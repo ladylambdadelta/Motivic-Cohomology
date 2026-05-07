@@ -1,0 +1,42 @@
+import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
+import TraceCalc.MotivicRecognition.Package7Proofs
+import TraceCalc.MotivicRecognition.Package9Proofs
+
+namespace AxiomCheckBlock789
+open TraceCalc.MotivicRecognition
+
+-- Package 7: DMgm Universal Recognition
+#print axioms DMgmUniversalRecognitionData.universalRecognitionTarget
+#print axioms DMgmUniversalRecognitionData.uniquenessOfRecipientTarget
+#print axioms DMgmUniversalRecognitionData.comparisonAgreementTarget
+#print axioms DMgmUniversalRecognitionData.ofCanonicalDMgmEquivalence
+#print axioms DMgmUniversalRecognitionTheoremTarget.ofCanonicalDMgmEquivalence
+#print axioms normTStructureTheoremPackage_from_target
+#print axioms normalizationInducesWeightCompatibleTStructure_holds
+#print axioms transportedTStructureIsMotivic_holds
+#print axioms truncationTriangleRepresentability_holds
+#print axioms HeartRecognitionTarget.ofNormTStructure
+#print axioms HeartRecognitionTarget.pureHeartRecognitionTarget_holds
+#print axioms HeartRecognitionTarget.lefschetzClosureTarget_holds
+#print axioms classicalMMQHeartTheorems_from_target
+#print axioms ClassicalHeartIdentificationTarget.ofClassicalMMQHeartTheorems
+#print axioms MMQIdentificationTarget.ofClassicalHeartIdentification
+#print axioms MMQIdentificationTarget.mmqHeartIdentification_holds
+
+-- Package 8: Realization comparison and period faithfulness
+#print axioms TraceCategoryMotivicLocalizationUniversalPropertyTarget.ofRecognitionLayers
+
+-- Package 9: Normalization package targets (terminal assembly)
+#print axioms NormalizationPackageTarget.ofData
+#print axioms NormalizationPackageTarget.ofCanNFFromHolography
+#print axioms NormalizationPackageData.ofCanNF
+#print axioms NormalizationPackageData.ofCanNFFromHolography
+#print axioms NormalizationPackageData.ofConcretePreferredHolography
+#print axioms NormalizationPackageTarget.ofConcretePreferredHolography
+#print axioms MMQRecognitionClosedTarget.concreteDependencyDAGStatement
+#print axioms MMQRecognitionClosedTarget.concreteDependencyDAG_holds_from_packages
+#print axioms MMQRecognitionClosedTarget.ofPackagesWithConcreteDependencyDAG
+#print axioms MMQRecognitionClosedTarget.ofAllSealedPackages
+#print axioms finalAllPackagesClosed
+
+end AxiomCheckBlock789

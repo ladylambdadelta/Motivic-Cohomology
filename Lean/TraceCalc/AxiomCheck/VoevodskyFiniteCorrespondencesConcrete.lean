@@ -1,0 +1,5 @@
+import TraceCalc.ClassicalPeriods.VoevodskyFiniteCorrespondencesConcreteBridge
+
+#print axioms TraceCalc.ClassicalPeriods.Wall10A.SchemeOverQ.Hom.ext
+#print axioms TraceCalc.ClassicalPeriods.Wall10A.SchemeOverQ.ConcreteWall10ABridgeData.identity_holds
+#print axioms TraceCalc.ClassicalPeriods.Wall10A.SchemeOverQ.ConcreteWall10ABridgeData.composition_assoc

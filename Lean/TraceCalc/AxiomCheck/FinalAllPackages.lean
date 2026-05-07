@@ -1,0 +1,9 @@
+import TraceCalc.MotivicRecognition.Package9Proofs
+
+namespace AxiomCheckFinalAllPackages
+open TraceCalc.MotivicRecognition
+
+#print axioms MMQRecognitionClosedTarget.ofAllSealedPackages
+#print axioms finalAllPackagesClosed
+
+end AxiomCheckFinalAllPackages

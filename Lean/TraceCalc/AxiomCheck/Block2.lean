@@ -1,0 +1,26 @@
+import TraceCalc.MotivicRecognition.RecognitionTarget
+
+namespace AxiomCheckBlock2
+open TraceCalc.MotivicRecognition
+
+-- CertifiedTraceCategoryStructuralTransport constructors
+#print axioms CertifiedTraceCategoryStructuralTransport.tensorClosureTransport
+#print axioms CertifiedTraceCategoryStructuralTransport.shiftClosureTransport
+#print axioms CertifiedTraceCategoryStructuralTransport.coneClosureTransport
+#print axioms CertifiedTraceCategoryStructuralTransport.cofiberClosureTransport
+#print axioms CertifiedTraceCategoryStructuralTransport.monoidalReplayTransport
+#print axioms CertifiedTraceCategoryStructuralTransport.ofTraceCategoryAndClosure
+
+-- TraceCompactGenerationData constructor
+#print axioms TraceCompactGenerationData.ofFiveFamilyClosure
+
+-- TraceTriangulatedCoherenceData constructor
+#print axioms TraceTriangulatedCoherenceData.ofTraceConesAndLocalization
+
+-- TraceTensorExactnessData constructor
+#print axioms TraceTensorExactnessData.ofTensorConeCompatibility
+
+-- TraceSymmetricMonoidalCoherenceData constructor
+#print axioms TraceSymmetricMonoidalCoherenceData.ofTraceTensorWitnesses
+
+end AxiomCheckBlock2

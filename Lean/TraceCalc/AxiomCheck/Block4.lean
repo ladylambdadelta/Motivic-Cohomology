@@ -1,0 +1,19 @@
+import TraceCalc.MotivicRecognition.StableCompletionProofs
+
+namespace AxiomCheckBlock4
+open TraceCalc.MotivicRecognition
+
+-- Package 4: Stable completion package
+#print axioms freeDGEnvelope_universal_holds
+#print axioms pretriangulatedHull_universal_holds
+#print axioms hZeroTriangulated_passage_holds
+#print axioms karoubiEnvelope_universal_holds
+#print axioms monoidalLiftThroughCompletion_holds
+#print axioms exactnessTransportThroughCompletion_holds
+#print axioms StableCompletionFromLayerBTargets.StepWitness.ofConcreteStableCompletion
+#print axioms StableCompletionFromLayerBTargets.TheoremPackage.ofStepWitness
+#print axioms StableCompletionFromLayerBTargets.toStableAdditiveKaroubiCompletionTarget
+#print axioms StableCompletionFromLayerBTargets.toTraceStableCompletionConstructionTarget
+#print axioms StableCompletionFromLayerBTargets.toTraceCompletionUniversalPropertyTarget
+
+end AxiomCheckBlock4

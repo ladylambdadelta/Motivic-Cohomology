@@ -1,0 +1,18 @@
+import TraceCalc.MotivicRecognition.Package7Proofs
+
+namespace AxiomCheckPackage7
+open TraceCalc.MotivicRecognition
+
+#print axioms normTStructureTheoremPackage_from_target
+#print axioms normalizationInducesWeightCompatibleTStructure_holds
+#print axioms transportedTStructureIsMotivic_holds
+#print axioms truncationTriangleRepresentability_holds
+#print axioms HeartRecognitionTarget.ofNormTStructure
+#print axioms HeartRecognitionTarget.pureHeartRecognitionTarget_holds
+#print axioms HeartRecognitionTarget.lefschetzClosureTarget_holds
+#print axioms classicalMMQHeartTheorems_from_target
+#print axioms ClassicalHeartIdentificationTarget.ofClassicalMMQHeartTheorems
+#print axioms MMQIdentificationTarget.ofClassicalHeartIdentification
+#print axioms MMQIdentificationTarget.mmqHeartIdentification_holds
+
+end AxiomCheckPackage7

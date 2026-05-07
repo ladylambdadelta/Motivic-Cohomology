@@ -1,0 +1,44 @@
+# Default deny: this repository tracks the Lean formalization source and build metadata only.
+*
+
+# Keep repository control files.
+!.gitignore
+!LICENSE
+
+# Keep Lean/Lake project metadata.
+!lakefile.lean
+!lake-manifest.json
+!lean-toolchain
+!flake.nix
+!flake.lock
+!default.nix
+!shell.nix
+
+# Keep Lean sources.
+!Lean/
+!Lean/**/
+!Lean/**/*.lean
+
+# Exclude local Lake build products and fetched packages.
+.lake/
+
+# Exclude manuscript, planning, status, generated reports, logs, archives, scripts, and editor files.
+*.md
+*.tex
+*.bib
+*.log
+*.txt
+*.out
+*.status
+*.tsv
+*.jsonl
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.bak
+*.tmp
+.DS_Store
+.vscode/
+docs/
+scripts/

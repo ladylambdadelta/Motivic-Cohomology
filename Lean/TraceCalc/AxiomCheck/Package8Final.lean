@@ -1,0 +1,37 @@
+import TraceCalc.MotivicRecognition.Package8Proofs
+
+namespace AxiomCheckPackage8Final
+open TraceCalc.MotivicRecognition
+open TraceCalc.ClassicalPeriods
+
+-- Wall 2: internal realization functor data and theorem target
+#print axioms InternalRealizationFunctorData.ofSealedPackages
+#print axioms InternalRealizationFunctorData.thm_internal_realization_functor
+
+-- Wall 3: tomography from internal realization functor
+#print axioms GeometricRealizationTomographySoundness.ofInternalRealizationFunctor
+
+-- Wall 3 providers using the full period-matrix statement
+#print axioms comparisonIso_agreement_from_internal_realization_functor
+#print axioms bettiAgreement_from_internal_realization_functor
+#print axioms deRhamAgreement_from_internal_realization_functor
+#print axioms periodMatrix_agreement_from_internal_realization_functor
+
+-- Walls 4-6: reconstruction, period pairing, and tomographic faithfulness
+#print axioms TraceCalc.MotivicRecognition.comparison_reconstruction_from_realization_agreements
+#print axioms TraceCalc.MotivicRecognition.period_pairing_determines_realizations
+#print axioms TraceCalc.MotivicRecognition.tomographic_faithfulness
+#print axioms TraceCalc.MotivicRecognition.tomographic_faithfulness_from_internal_realization_functor
+
+-- Wall 7: final P8 faithfulness surface without external injectivity hypotheses
+#print axioms ProofRelevantPeriodTheoremTarget.comparisonFaithfulnessInputTarget_of_realization_agreements
+#print axioms ProofRelevantPeriodTheoremTarget.ofRealizationAgreementComparisonFaithfulness
+
+-- Wall 8: final Package 8 constructors
+#print axioms RealizationComparisonTarget.ofInternalRealizationFunctor
+#print axioms ProofRelevantPeriodTheoremTarget.ofSealedP8
+#print axioms PeriodConjectureViaRealizationTarget.ofSealedP8
+#print axioms finalPackage8PeriodPackage
+#print axioms finalPackage8PeriodTheorem
+
+end AxiomCheckPackage8Final
