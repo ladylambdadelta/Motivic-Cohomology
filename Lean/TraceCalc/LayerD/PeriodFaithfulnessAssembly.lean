@@ -46,12 +46,6 @@ structure PeriodFaithfulnessContext where
 
 namespace PeriodFaithfulnessContext
 
-theorem structured_realization_equality_implies_morphism_equality
-    (C : PeriodFaithfulnessContext.{u, v, w}) :
-    ∀ f g : C.Morph, C.StructuredRealization f = C.StructuredRealization g → C.EqMorph f g := by
-  intro f g hstructured
-  exact C.structuredFaithful hstructured
-
 theorem scalar_period_faithfulness
     (C : PeriodFaithfulnessContext.{u, v, w}) :
     ∀ f g : C.Morph, C.ScalarShadow f = C.ScalarShadow g → C.EqMorph f g := by
@@ -63,11 +57,6 @@ def AssemblyConsequence (C : PeriodFaithfulnessContext.{u, v, w}) : Prop :=
 
 theorem assemblyConsequence_holds (C : PeriodFaithfulnessContext.{u, v, w}) :
     C.AssemblyConsequence :=
-  C.scalar_period_faithfulness
-
-theorem theorem_scalar_shadow_equality_implies_morphism_equality
-    (C : PeriodFaithfulnessContext.{u, v, w}) :
-    ∀ f g : C.Morph, C.ScalarShadow f = C.ScalarShadow g → C.EqMorph f g :=
   C.scalar_period_faithfulness
 
 end PeriodFaithfulnessContext
@@ -408,12 +397,6 @@ def gives_periodFaithfulnessReady
     subst obligationId
     exact ⟨rfl, PeriodFaithfulnessContext.assemblyConsequence_holds A.context⟩
 
-theorem gives_scalar_period_faithfulness
-    (A : PeriodFaithfulnessAssemblyData.{u, v, w}) :
-    ∀ f g : A.context.Morph,
-      A.context.ScalarShadow f = A.context.ScalarShadow g → A.context.EqMorph f g :=
-  A.context.scalar_period_faithfulness
-
 end PeriodFaithfulnessAssemblyData
 
 /-- Final proof package exported by the isolated Layer D assembly lane.  It contains both
@@ -426,15 +409,6 @@ structure AbstractPeriodFaithfulnessTheorem where
   scalarFaithful :
     ∀ f g : context.Morph,
       context.ScalarShadow f = context.ScalarShadow g → context.EqMorph f g
-
-def abstractPeriodFaithfulnessTheorem
-    (data : PeriodFaithfulnessAssemblyData.{u, v, w}) :
-    AbstractPeriodFaithfulnessTheorem.{u, v, w} where
-  context := data.context
-  assemblyData := data
-  assemblyData_context := rfl
-  periodFaithfulnessReady := data.gives_periodFaithfulnessReady
-  scalarFaithful := data.gives_scalar_period_faithfulness
 
 /-- Aggregate input surface for future Layer B / motivic instantiations of the final abstract
 period-faithfulness theorem package. -/
@@ -449,143 +423,7 @@ structure PeriodFaithfulnessInputPackages where
 
 namespace PeriodFaithfulnessInputPackages
 
-def toAssemblyData (I : PeriodFaithfulnessInputPackages.{u, v, w}) :
-    PeriodFaithfulnessAssemblyData.{u, v, w} where
-  sourceReady := sourceTracePackage_gives_sourceConstructionReady I.sourcePkg I.sourceWit
-  targetReady := I.targetPkg.package_gives_targetRecognitionReady
-  comparisonReady := I.comparisonPkg.package_gives_comparisonFactorizationReady
-  structuredBridgeReady := I.structuredPkg.package_gives_structuredRealizationBridgeReady
-  scalarShadowReady := I.scalarPkg.package_gives_scalarShadowConsequenceReady
-  context := I.context
-
 end PeriodFaithfulnessInputPackages
-
-def periodFaithfulness_from_packages
-    (I : PeriodFaithfulnessInputPackages.{u, v, w}) :
-    AbstractPeriodFaithfulnessTheorem.{u, v, w} :=
-  abstractPeriodFaithfulnessTheorem I.toAssemblyData
-
-theorem scalar_shadow_extraction_not_upstream_of_comparison_factorization :
-    ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id
-      ComparisonFactorizationReady.stageName := by
-  simp [HasPositiveStageFeed, positiveStageFeeds, targetRecognitionStageFeeds,
-    comparisonFactorizationStageFeeds, ComparisonFactorizationReady]
-  repeat' constructor <;> decide
-
-theorem scalar_shadow_extraction_not_upstream_of_structured_realization_bridge :
-    ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id
-      StructuredRealizationBridgeReady.stageName := by
-  simp [HasPositiveStageFeed, positiveStageFeeds, targetRecognitionStageFeeds,
-    comparisonFactorizationStageFeeds, StructuredRealizationBridgeReady]
-  repeat' constructor <;> decide
-
-theorem scalar_shadow_extraction_not_upstream_of_structured_realization_dependency :
-    ¬ HasPositiveDependency obligation_scalarShadowExtraction.id
-      obligation_structuredRealizationConsequence.id := by
-  simp [HasPositiveDependency, motivicObligationDependencies]
-  repeat' constructor <;> decide
-
-theorem scalar_shadow_extraction_not_upstream_of_source_construction :
-    ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id
-      SourceConstructionReady.stageName := by
-  simp [HasPositiveStageFeed, positiveStageFeeds, targetRecognitionStageFeeds,
-    comparisonFactorizationStageFeeds, SourceConstructionReady]
-  repeat' constructor <;> decide
-
-theorem final_period_faithfulness_not_upstream_of_source_construction :
-    ¬ HasPositiveStageFeed obligation_finalPeriodFaithfulnessConsequence.id
-      SourceConstructionReady.stageName := by
-  simp [HasPositiveStageFeed, positiveStageFeeds, targetRecognitionStageFeeds,
-    comparisonFactorizationStageFeeds, SourceConstructionReady]
-  repeat' constructor <;> decide
-
-theorem final_period_faithfulness_not_upstream_of_target_recognition :
-    ¬ HasPositiveStageFeed obligation_finalPeriodFaithfulnessConsequence.id
-      TargetRecognitionReady.stageName := by
-  simp [HasPositiveStageFeed, positiveStageFeeds, targetRecognitionStageFeeds,
-    comparisonFactorizationStageFeeds, TargetRecognitionReady]
-  repeat' constructor <;> decide
-
-theorem final_period_faithfulness_not_upstream_of_scalar_shadow_dependency :
-    ¬ HasPositiveDependency obligation_finalPeriodFaithfulnessConsequence.id
-      obligation_scalarShadowExtraction.id := by
-  simp [HasPositiveDependency, motivicObligationDependencies]
-  repeat' constructor <;> decide
-
-theorem scalar_shadow_extraction_requires_structured_realization_readiness :
-    MilestonePrerequisitesSatisfied
-      [StructuredRealizationBridgeReady.stageName]
-      ScalarShadowConsequenceReady := by
-  intro prerequisite hpre
-  simpa [ScalarShadowConsequenceReady, StructuredRealizationBridgeReady] using hpre
-
-theorem structured_realization_precedes_scalar_shadow_extraction :
-    HasPositiveDependency obligation_structuredRealizationConsequence.id
-      obligation_scalarShadowExtraction.id :=
-  scalar_shadow_extraction_downstream_of_structured_realization
-
-theorem final_period_faithfulness_precedes_only_after_scalar_shadow :
-    HasPositiveDependency obligation_scalarShadowExtraction.id
-      obligation_finalPeriodFaithfulnessConsequence.id :=
-  final_period_faithfulness_downstream_of_scalar_shadow
-
-namespace AbstractPeriodFaithfulnessTheorem
-
-theorem scalar_shadow_used_only_after_structured_realization_readiness
-    (_ : AbstractPeriodFaithfulnessTheorem.{u, v, w}) :
-    MilestonePrerequisitesSatisfied
-      [StructuredRealizationBridgeReady.stageName]
-      ScalarShadowConsequenceReady :=
-  scalar_shadow_extraction_requires_structured_realization_readiness
-
-theorem final_depends_on_scalar_shadow_but_not_conversely
-    (_ : AbstractPeriodFaithfulnessTheorem.{u, v, w}) :
-    HasPositiveDependency obligation_scalarShadowExtraction.id
-        obligation_finalPeriodFaithfulnessConsequence.id ∧
-      ¬ HasPositiveDependency obligation_finalPeriodFaithfulnessConsequence.id
-        obligation_scalarShadowExtraction.id := by
-  exact ⟨final_period_faithfulness_precedes_only_after_scalar_shadow,
-    final_period_faithfulness_not_upstream_of_scalar_shadow_dependency⟩
-
-theorem no_scalar_or_final_back_edges_to_upstream_stages
-    (_ : AbstractPeriodFaithfulnessTheorem.{u, v, w}) :
-    ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id SourceConstructionReady.stageName ∧
-      ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id TargetRecognitionReady.stageName ∧
-      ¬ HasPositiveStageFeed obligation_scalarShadowExtraction.id ComparisonFactorizationReady.stageName ∧
-      ¬ HasPositiveStageFeed obligation_finalPeriodFaithfulnessConsequence.id SourceConstructionReady.stageName ∧
-      ¬ HasPositiveStageFeed obligation_finalPeriodFaithfulnessConsequence.id TargetRecognitionReady.stageName ∧
-      ¬ HasPositiveStageFeed obligation_finalPeriodFaithfulnessConsequence.id ComparisonFactorizationReady.stageName := by
-  exact ⟨scalar_shadow_extraction_not_upstream_of_source_construction,
-    scalar_shadow_extraction_does_not_feed_target_recognition,
-    scalar_shadow_extraction_not_upstream_of_comparison_factorization,
-    final_period_faithfulness_not_upstream_of_source_construction,
-    final_period_faithfulness_not_upstream_of_target_recognition,
-    final_period_faithfulness_does_not_feed_comparison_factorization⟩
-
-end AbstractPeriodFaithfulnessTheorem
-
-def theorem_abstract_period_faithfulness_assembly
-    (sourceReady : MilestoneRealization SourceConstructionReady)
-    (targetReady : MilestoneRealization TargetRecognitionReady)
-    (comparisonReady : MilestoneRealization ComparisonFactorizationReady)
-    (structuredBridgeReady : MilestoneRealization StructuredRealizationBridgeReady)
-    (scalarShadowReady : MilestoneRealization ScalarShadowConsequenceReady)
-    (context : PeriodFaithfulnessContext.{u, v, w}) :
-    AbstractPeriodFaithfulnessTheorem.{u, v, w} :=
-  abstractPeriodFaithfulnessTheorem
-    { sourceReady := sourceReady
-    , targetReady := targetReady
-    , comparisonReady := comparisonReady
-    , structuredBridgeReady := structuredBridgeReady
-    , scalarShadowReady := scalarShadowReady
-    , context := context
-    }
-
-theorem theorem_scalar_shadow_equality_implies_morphism_equality
-    (context : PeriodFaithfulnessContext.{u, v, w}) :
-    ∀ f g : context.Morph,
-      context.ScalarShadow f = context.ScalarShadow g → context.EqMorph f g :=
-  context.theorem_scalar_shadow_equality_implies_morphism_equality
 
 end LayerD
 end TraceCalc
