@@ -2,7 +2,6 @@ import TraceCalc.LayerA.Base
 import TraceCalc.LayerA.Localization
 import TraceCalc.LayerB.TraceEnvelope
 import TraceCalc.LayerB.Boundary
-import TraceCalc.LayerB.Plugging
 import TraceCalc.LayerB.Reconstruction
 import TraceCalc.LayerB.RealObjects.RewriteCalculus
 import TraceCalc.LayerB.RealObjects.CompletedRecord
