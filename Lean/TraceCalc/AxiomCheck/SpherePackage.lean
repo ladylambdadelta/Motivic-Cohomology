@@ -1,4 +1,6 @@
-import TraceCalc.ProbeTheory.PeriodTomographyBridge
+import TraceCalc.ProbeTheory.Basic
+import TraceCalc.ProbeTheory.Separating
+import TraceCalc.ProbeTheory.Spheres
 
 #print axioms TraceCalc.ProbeTheory.ProbeFamily
 #print axioms TraceCalc.ProbeTheory.ProbeObservation
@@ -8,5 +10,3 @@ import TraceCalc.ProbeTheory.PeriodTomographyBridge
 #print axioms TraceCalc.ProbeTheory.MotivicSphereIndex
 #print axioms TraceCalc.ProbeTheory.TateSphereData
 #print axioms TraceCalc.ProbeTheory.TateSphereProbeFamily
-#print axioms TraceCalc.ProbeTheory.PeriodTomographyProbeBridge.framed_periods_are_probe_observations
-#print axioms TraceCalc.ProbeTheory.PeriodTomographyProbeBridge.period_tomography_from_sphere_probe_extensionality
