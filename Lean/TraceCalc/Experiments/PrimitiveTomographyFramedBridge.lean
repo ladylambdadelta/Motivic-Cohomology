@@ -2,6 +2,15 @@ import TraceCalc.ClassicalPeriods.PeriodConjectureTarget
 import TraceCalc.ClassicalPeriods.PrimitiveTraceTomography
 import TraceCalc.ClassicalBridge.PeriodTargetBridge
 
+/-!
+# Status
+
+Experimental helper only.
+
+This file supports the primitive-tomography scaffold in `TraceCalc/Experiments`
+and is not part of the public period-conjecture proof route.
+-/
+
 universe u v w
 
 namespace TraceCalc

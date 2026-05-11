@@ -4,6 +4,14 @@ import TraceCalc.LayerB.RealObjects.TraceDifferential
 import TraceCalc.LayerD.ConcretePeriodFaithfulness
 
 /-!
+# Status
+
+Audit/support only.
+
+This file is not part of the public period-conjecture proof route. It is a
+standalone importability/readiness seal used to check that key production
+surfaces coexist without pulling them into the exported theorem boundary.
+
 # Production Seal
 
 Cross-cutting seal for production readiness. This file intentionally checks

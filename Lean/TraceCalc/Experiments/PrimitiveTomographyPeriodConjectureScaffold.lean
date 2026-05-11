@@ -2,7 +2,19 @@ import TraceCalc.MotivicRecognition.PrimitiveTomographyBridge
 import TraceCalc.MotivicRecognition.PeriodFaithfulnessProviderProofs
 import TraceCalc.ClassicalPeriods.ClassicalConjectures
 import TraceCalc.PeriodConjectureProblemSeal
-import TraceCalc.PrimitiveTomographyFramedBridge
+import TraceCalc.Experiments.PrimitiveTomographyFramedBridge
+
+/-!
+# Status
+
+Experimental scaffold only.
+
+This file is not the public period-conjecture proof route. It records an
+alternate primitive-tomography-backed scaffold and explicit "not yet
+formalized" markers for future work. Keep it out of the public boundary and do
+not cite it as the exported proof of the period conjecture or MM(Q)
+recognition.
+-/
 
 universe u v w x y z
 

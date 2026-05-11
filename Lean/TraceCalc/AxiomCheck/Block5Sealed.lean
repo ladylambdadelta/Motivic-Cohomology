@@ -1,6 +1,14 @@
 import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
 
 /-!
+# Status
+
+Quarantined future-theorem ledger.
+
+This file is intentionally non-public. It records that the old fake Package 5
+seal was removed and that the remaining compatibility laws still need genuine
+proof-relevant infrastructure.
+
 # Package 5 quarantine
 
 This file previously contained a fake Package 5 seal using erased carriers and

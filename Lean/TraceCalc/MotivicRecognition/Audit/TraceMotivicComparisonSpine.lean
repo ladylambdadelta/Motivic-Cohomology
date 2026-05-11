@@ -24,6 +24,15 @@ open CompletedReconstructionRecord.PeelChain
 open PeelChain
 
 /-!
+# Status
+
+Future theorem ledger / audit summary.
+
+This file is not imported by the public period-conjecture proof route. It is
+kept because it names and packages a stronger assembled proof program for later
+normalization/recognition cleanup, rather than because it participates in the
+current exported theorem boundary.
+
 # Trace-to-motivic comparison spine: assembled proof route
 
 This module assembles the central paper proof route from the now-classified components.

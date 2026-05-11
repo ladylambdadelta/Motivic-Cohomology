@@ -5,6 +5,16 @@ universe u v
 namespace TraceCalc
 namespace ClassicalPeriods
 
+/-!
+# Status
+
+Audit/support only.
+
+This file is a readable dependency summary for the ClassicalPeriods generator
+layer. It is not part of the public period-conjecture proof route and is kept
+for audit/readability rather than as an exported theorem boundary.
+-/
+
 /-- Readable dependency spine for the completed ClassicalPeriods generator layer.
 
 This packages the assignment-table side together with the geometric tomography package and the
