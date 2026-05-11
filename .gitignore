@@ -4,6 +4,7 @@
 # Keep repository control files.
 !.gitignore
 !LICENSE
+!README
 
 # Keep Lean/Lake project metadata.
 !lakefile.lean

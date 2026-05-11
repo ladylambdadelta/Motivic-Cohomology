@@ -1,0 +1,106 @@
+```markdown
+# Trace Calculus, Mixed Motives, and the Period Conjecture
+
+> **Status note.** This repository remains under internal audit. The Lean code builds, and the public theorem surfaces currently have axiom receipts depending only on Lean’s standard foundations, but the project should not yet be treated as externally verified, complete, or error-free. In particular, the surrounding infrastructure, documentation, and lower-level support modules are still being reviewed.
+
+This repository formalizes a proof of scalar and framed forms of Grothendieck’s Period Conjecture, together with the trace-calculus recognition machinery needed to state those results over mixed motives over \(\mathbb Q\).
+
+The proof connects two central problems in the theory of motives:
+
+1. the construction and recognition of the category of mixed motives over \(\mathbb Q\), and
+2. Grothendieck’s Period Conjecture.
+
+The guiding idea is that periods are numerical shadows of motivic information, while mixed motives are the structured objects whose realizations produce those periods.
+
+Philosophically, the trace calculus is a natural linearization of presentable homotopy type theory. The core logical interpretation, mostly implicit in this Lean formalization, is that a doctrine is a structured collection of computadic rewriting rules presenting a higher inductive type. A certified trace is a semantic record of a computation or normalization procedure, representing a proof of a reachability statement in a particular doctrine. Certified traces represent finite processes or resources and are consumed linearly, in the sense of linear logic and type theory.
+
+Structurally, this trace calculus is the initial model for stable motivic homotopy type theory in the following sense: in this Lean formalization, we recognize the stable infinity category of doctrine-scoped traces as the stable infinity category of geometric motives over \(\mathbb Q\). In our concrete, computational, motivic-information-theoretic presentation of \(DM_{\mathrm{gm}}(\mathbb Q)_{\mathbb Q}\), we then derive the motivic \(t\)-structure and therefore the abelian heart \(MM(\mathbb Q)\).
+
+## The mixed motives construction problem
+
+A motive is meant to capture the part of algebraic geometry that is visible to cohomology. Different cohomology theories, such as Betti and de Rham cohomology, see the same underlying geometric object through different lenses.
+
+The expected category of mixed motives over \(\mathbb Q\), usually denoted \(MM(\mathbb Q)\), should be an abelian category organizing these objects and their morphisms. One way to state the construction problem, in the spirit of Beilinson’s program, is:
+
+> Construct the abelian category of mixed motives over \(\mathbb Q\), relate it to the triangulated category of geometric motives, and prove that it has the expected realization functors and structural properties.
+
+This repository formalizes a trace-calculus construction and recognition theorem for the relevant mixed-motive structure. The goal is not to introduce a private replacement for \(MM(\mathbb Q)\), but to recognize the classical category of mixed motives over \(\mathbb Q\) through explicit formal data.
+
+## The period conjecture
+
+Periods arise when one compares different realizations of the same motive. For example, a period may be obtained by pairing a de Rham class with a Betti cycle, producing a complex number.
+
+Grothendieck’s Period Conjecture says, roughly:
+
+> All algebraic relations among periods come from motivic relations.
+
+Equivalently, period data should not identify two genuinely different motivic pieces of information. In morphism-level form, sufficiently complete scalar or framed period data should determine the underlying motivic morphism.
+
+This repository formalizes a proof of the exported scalar and framed period-faithfulness theorem statements.
+
+## Relationship between the two problems
+
+The period conjecture depends on having the correct motivic category. If \(MM(\mathbb Q)\) is not constructed or recognized precisely, then the statement “periods determine motivic information” has no stable target.
+
+The proof therefore has two linked parts:
+
+\[
+\text{construct/recognize } MM(\mathbb Q)
+\]
+
+and
+
+\[
+\text{prove that period data separates motivic morphisms}.
+\]
+
+Together, these give the scalar and framed period-faithfulness results formalized in this repository.
+
+## What the Lean formalization proves
+
+The Lean code formalizes a trace-calculus construction and proves the public scalar and framed period-conjecture theorem statements exported by the repository.
+
+At a high level, the formal proof proceeds through the chain
+
+\[
+\text{period data}
+\Rightarrow
+\text{probe-coordinate data}
+\Rightarrow
+\text{packed comparison data}
+\Rightarrow
+\text{certified trace transcript}
+\Rightarrow
+\text{canonical trace normal form}
+\Rightarrow
+\text{morphism equality in } MM(\mathbb Q).
+\]
+
+The public scalar and framed theorem surfaces build successfully in Lean. Their public axiom receipts currently depend only on Lean’s standard foundational axioms:
+
+\[
+[\texttt{propext},\ \texttt{Classical.choice},\ \texttt{Quot.sound}].
+\]
+
+## Trace calculus
+
+Trace calculus is the operational formalism used here to present motivic constructions by certified replayable traces. Instead of treating motives and motivic morphisms as opaque objects, the system records how they are built, normalized, compared, and recognized.
+
+In the period proof, this trace structure supplies the key reflection principle:
+
+\[
+\text{complete boundary data}
+\Rightarrow
+\text{certified trace transcript}
+\Rightarrow
+\text{canonical normal form}
+\Rightarrow
+\text{motivic morphism equality}.
+\]
+
+The holographic reconstruction procedure is the central algorithmic mechanism on the proof-theoretic side, and the core consumer of the motivic \(t\)-structure itself. Given complete boundary data, the procedure reconstructs a certified trace transcript, computes its canonical normal form, and reflects that normal form back into morphism equality. In purely logical terms, this is a powerful normalization-and-recognition algorithm: it turns external observations of a proof or computation into a replayable internal certificate, then checks equality by reducing certified processes to canonical trace data. The significance is that motivic faithfulness is no longer treated as an opaque semantic assertion. It is realized as an explicit proof-theoretic reconstruction process, converting boundary information into canonical syntax and then into equality in the recognized motivic category.
+
+## Near-future work
+
+Near-future formalization work will study applications of holographic reconstruction to other local-to-global problems in mathematics, and will extend the theory toward logarithmic and exponential settings relevant to Schanuel’s Conjecture and related problems in transcendence theory.
+```
