@@ -52,7 +52,6 @@ import TraceCalc.LayerB.RealObjects.Bridge
 import TraceCalc.LayerC.MotivicTarget
 import TraceCalc.LayerC.ConcreteMotivicCategory
 import TraceCalc.LayerD.Comparison
-import TraceCalc.LayerD.ConcreteComparison
 import TraceCalc.LayerD.ConcretePeriodFaithfulness
 import TraceCalc.LayerE.RealizableImage
 import TraceCalc.MotivicRecognition.RecognitionTarget
