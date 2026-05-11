@@ -1,4 +1,14 @@
-import TraceCalc.LayerD.ComparisonRoadmap
+import TraceCalc.LayerD.Roadmap.ComparisonRoadmap
+
+/-!
+# Status
+
+Imported roadmap/index support surface.
+
+This file is not on the exported period-conjecture theorem boundary. It is a
+cross-reference index for Layer D roadmap obligations and is kept in the
+`Roadmap` namespace to separate it from theorem-bearing modules.
+-/
 
 namespace TraceCalc
 namespace LayerD

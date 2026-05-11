@@ -1,6 +1,17 @@
 import TraceCalc.LayerD.SourceTracePackage
 import TraceCalc.LayerD.MotivicObligationMap
 
+/-!
+# Status
+
+Imported roadmap support surface.
+
+This file records Layer D milestone, dependency, and noncircularity metadata
+used by support/assembly modules. It is intentionally kept outside the main
+Layer D theorem surface because it organizes obligations rather than proving the
+exported period-conjecture route.
+-/
+
 namespace TraceCalc
 namespace LayerD
 
