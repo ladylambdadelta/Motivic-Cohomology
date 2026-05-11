@@ -49,6 +49,17 @@ structure ComparisonIsomorphismData
   extendBetti : betti.Carrier →ₗ[ctx.BaseField] BettiOverScalar
   extendDeRham : deRham.Carrier →ₗ[ctx.BaseField] DeRhamOverScalar
   comparisonIso : DeRhamOverScalar ≃ₗ[ctx.ScalarField] BettiOverScalar
+  tensorScalarExtensionData :
+    ComparisonTensorScalarExtensionData
+      (ctx := ctx)
+      betti.Carrier
+      deRham.Carrier
+      BettiOverScalar
+      DeRhamOverScalar
+      extendBetti
+      extendDeRham
+  ScalarExtensionWitness : Type _
+  scalarExtensionWitness : ScalarExtensionWitness
   comparisonNaturalityTarget : Prop
   comparisonBaseChangeCompatibility : Prop
 
@@ -80,8 +91,9 @@ def ConcreteComparisonObjectData.toStructuredComparisonObject
   extendBetti := data.comparison.extendBetti
   extendDeRham := data.comparison.extendDeRham
   comparisonIso := data.comparison.comparisonIso
-  ScalarExtensionWitness := PUnit
-  scalarExtensionWitness := PUnit.unit
+  tensorScalarExtensionData := data.comparison.tensorScalarExtensionData
+  ScalarExtensionWitness := data.comparison.ScalarExtensionWitness
+  scalarExtensionWitness := data.comparison.scalarExtensionWitness
   comparisonNaturalityTarget := data.comparison.comparisonNaturalityTarget
   comparisonBaseChangeCompatibility := data.comparison.comparisonBaseChangeCompatibility
 

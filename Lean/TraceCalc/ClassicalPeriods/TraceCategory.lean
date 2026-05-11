@@ -639,17 +639,21 @@ end TraceMorphism
 structure TraceCategoryStructure
     (ctx : ClassicalComparisonContext.{u, v}) where
   package : PresentationAdmissibleClosureEquivalence ctx
-  objectFromGeometric : GeometricPeriodObject ctx → TraceObject ctx
   categoricalShadowTarget : Prop
 
 namespace TraceCategoryStructure
+
+def objectFromGeometric
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (traceCategory : TraceCategoryStructure ctx) :
+    GeometricPeriodObject ctx → TraceObject ctx :=
+  TraceObject.ofPresentationPackage traceCategory.package
 
 def fromCampaign8
     {ctx : ClassicalComparisonContext.{u, v}}
     (package : PresentationAdmissibleClosureEquivalence ctx) :
     TraceCategoryStructure ctx where
   package := package
-  objectFromGeometric := TraceObject.ofPresentationPackage package
   categoricalShadowTarget :=
     package.closureComparisonTarget ∧
       primitiveWitnessesSoundnessTarget package.primitiveWitnesses

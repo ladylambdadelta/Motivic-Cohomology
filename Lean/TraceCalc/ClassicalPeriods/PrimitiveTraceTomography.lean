@@ -1,6 +1,8 @@
 import TraceCalc.ClassicalPeriods.SymbolicGeneratorExamples
 import TraceCalc.ClassicalPeriods.CertifiedTraceClosureSurface
 
+set_option maxHeartbeats 800000
+
 /- This module is a transport-lemma layer for certified trace tomography.  It is consumed by
 classical-facing `DM_gm(Q)_Q` / `MM(Q)` recognition bridges rather than serving as a standalone
 period-faithfulness endpoint. -/

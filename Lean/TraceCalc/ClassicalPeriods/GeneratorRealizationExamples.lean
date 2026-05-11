@@ -6,6 +6,8 @@ universe u v
 namespace TraceCalc
 namespace ClassicalPeriods
 
+noncomputable section
+
 /-- Trivial `Corr` generator family for the unit sanity model. -/
 def unitCorrGeneratorFamilyData
     (ctx : ClassicalComparisonContext.{u, v}) :
@@ -641,6 +643,8 @@ def unitAssignmentTableClassicalMotivicRealizationReadiness
     (ctx : ClassicalComparisonContext.{u, v}) :
     (unitAssignmentTableClassicalMotivicRealizationReadiness ctx).tomographySoundness =
       unitGeometricRealizationTomographySoundness ctx := rfl
+
+end
 
 end ClassicalPeriods
 end TraceCalc

@@ -3721,9 +3721,9 @@ end SymbolicA1CanonicalTomographyPackage
 
 end GeometricRealizationTomographySoundness
 
-structure PrimitiveFamilyPeriodTomographyPartialTable
+structure PrimitiveFamilyPeriodTomographyPartialFamilyData
     {ctx : ClassicalComparisonContext.{u, v}}
-    (structuredEq : StructuredComparisonEquality ctx) where
+    (_structuredEq : StructuredComparisonEquality ctx) where
   CorrDatum : Type w
   LocDatum : Type x
   NisDatum : Type y
@@ -3732,73 +3732,30 @@ structure PrimitiveFamilyPeriodTomographyPartialTable
   locDatum : LocDatum → SymbolicLocDatum ctx
   nisDatum : NisDatum → SymbolicNisDatum ctx
   a1Datum : A1Datum → SymbolicA1Datum ctx
-  corrPackage :
-    (idx : CorrDatum) →
-      GeometricRealizationTomographySoundness.SymbolicCorrCanonicalTomographyPackage
-        structuredEq (corrDatum idx)
-  locRawPayloadSource :
-    (idx : LocDatum) → SymbolicLocCanonicalRawPayloadSource (locDatum idx)
-  locPackage :
-    (idx : LocDatum) →
-      GeometricRealizationTomographySoundness.SymbolicLocCanonicalTomographyPackage
-        structuredEq (locRawPayloadSource idx)
-  nisCanonicalPackageTarget : Prop
-  nisCanonicalPackageTarget_holds : nisCanonicalPackageTarget
-  a1Package :
-    (idx : A1Datum) →
-      GeometricRealizationTomographySoundness.SymbolicA1CanonicalTomographyPackage
-        structuredEq (a1Datum idx)
 
-structure PrimitiveFamilyPeriodTomographyTableShape
+structure PrimitiveFamilyPeriodTomographyFamilyData
     {ctx : ClassicalComparisonContext.{u, v}}
-    (structuredEq : StructuredComparisonEquality ctx) where
-  CorrDatum : Type w
-  LocDatum : Type x
-  NisDatum : Type y
-  A1Datum : Type z
+    (_structuredEq : StructuredComparisonEquality ctx) where
+  partialData : PrimitiveFamilyPeriodTomographyPartialFamilyData (_structuredEq := _structuredEq)
   EnvDatum : Type (max u v w x y z)
-  corrDatum : CorrDatum → SymbolicCorrDatum ctx
-  locDatum : LocDatum → SymbolicLocDatum ctx
-  nisDatum : NisDatum → SymbolicNisDatum ctx
-  a1Datum : A1Datum → SymbolicA1Datum ctx
   envDatum : EnvDatum → SymbolicEnvDatum ctx
-  corrPackage :
-    (idx : CorrDatum) →
-      GeometricRealizationTomographySoundness.SymbolicCorrCanonicalTomographyPackage
-        structuredEq (corrDatum idx)
-  a1Package :
-    (idx : A1Datum) →
-      GeometricRealizationTomographySoundness.SymbolicA1CanonicalTomographyPackage
-        structuredEq (a1Datum idx)
-  locPackageTarget : Prop
-  nisPackageTarget : Prop
-  envPackageTarget : Prop
 
 structure PrimitiveFamilyPeriodTomographyTable
     {ctx : ClassicalComparisonContext.{u, v}}
     (structuredEq : StructuredComparisonEquality ctx) where
-  CorrDatum : Type w
-  LocDatum : Type x
-  NisDatum : Type y
-  A1Datum : Type z
-  EnvDatum : Type (max u v w x y z)
-  corrDatum : CorrDatum → SymbolicCorrDatum ctx
-  locDatum : LocDatum → SymbolicLocDatum ctx
-  nisDatum : NisDatum → SymbolicNisDatum ctx
-  a1Datum : A1Datum → SymbolicA1Datum ctx
-  envDatum : EnvDatum → SymbolicEnvDatum ctx
+  familyData : PrimitiveFamilyPeriodTomographyFamilyData (_structuredEq := structuredEq)
   corrPackage :
-    (idx : CorrDatum) →
+    (idx : familyData.partialData.CorrDatum) →
       GeometricRealizationTomographySoundness.SymbolicCorrCanonicalTomographyPackage
-        structuredEq (corrDatum idx)
+        structuredEq (familyData.partialData.corrDatum idx)
   locCanonicalPackageTarget : Prop
   locCanonicalPackageTarget_holds : locCanonicalPackageTarget
   nisCanonicalPackageTarget : Prop
   nisCanonicalPackageTarget_holds : nisCanonicalPackageTarget
   a1Package :
-    (idx : A1Datum) →
+    (idx : familyData.partialData.A1Datum) →
       GeometricRealizationTomographySoundness.SymbolicA1CanonicalTomographyPackage
-        structuredEq (a1Datum idx)
+        structuredEq (familyData.partialData.a1Datum idx)
   envCanonicalPackageTarget : Prop
   envCanonicalPackageTarget_holds : envCanonicalPackageTarget
 

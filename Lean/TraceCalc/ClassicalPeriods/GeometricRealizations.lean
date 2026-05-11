@@ -572,6 +572,51 @@ def geometricComparisonObjectData
 
 end GeometricRealizationFunctorData
 
+/-- Smooth-scheme realization data attached to every object index of a geometric realization
+functor. -/
+structure GeometricSmoothRealizationFunctorData
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (realization : GeometricRealizationFunctorData ctx) where
+  objectRealization :
+    (idx : realization.ObjectIndex) →
+      GeometricObjectSmoothRealization (realization.geometricObject idx)
+
+namespace GeometricSmoothRealizationFunctorData
+
+def scheme
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (data : GeometricSmoothRealizationFunctorData realization)
+    (idx : realization.ObjectIndex) :
+    Wall10A.SchemeOverQ :=
+  (data.objectRealization idx).scheme
+
+def smoothScheme
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (data : GeometricSmoothRealizationFunctorData realization)
+    (idx : realization.ObjectIndex) :
+    Wall10A.SchemeOverQ.SmoothSchemeOverQ (data.scheme idx) :=
+  (data.objectRealization idx).smoothScheme
+
+theorem geometricAdmissibility
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (data : GeometricSmoothRealizationFunctorData realization)
+    (idx : realization.ObjectIndex) :
+    (realization.geometricObject idx).geometricAdmissibilityTarget :=
+  (data.objectRealization idx).geometricAdmissibility
+
+theorem realizationDefined
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (data : GeometricSmoothRealizationFunctorData realization)
+    (idx : realization.ObjectIndex) :
+    (realization.geometricObject idx).realizationDefinedTarget :=
+  (data.objectRealization idx).realizationDefined
+
+end GeometricSmoothRealizationFunctorData
+
 /-- Functoriality target for framed-period extraction from geometric correspondences. -/
 structure GeometricFramedPeriodFunctoriality
     (ctx : ClassicalComparisonContext.{u, v})

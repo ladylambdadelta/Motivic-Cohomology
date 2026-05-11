@@ -1,4 +1,5 @@
 import TraceCalc.ClassicalPeriods.GeometricRealizations
+import TraceCalc.ClassicalPeriods.GraphCorrespondences
 
 universe u v w x y z
 
@@ -171,6 +172,44 @@ theorem nisDescentSquareCompatibilityShadow
   target.nisDescentSquareCompatibility_from_certifiedReplay
 
 end GeometricNisnevichDescentTarget
+
+/-- Typed distinguished-square morphism data attached to a Nis row after geometric objects have
+been realized as Wall 10A smooth schemes.
+
+The map-level Nis descent construction only needs the overlap-to-patch and overlap-to-base legs to
+form the Mayer-Vietoris map, but we also record the patch-to-base leg and graph witnesses for all
+three morphisms so the square is carried as actual geometric data rather than as a bare Prop. -/
+structure GeometricNisnevichDistinguishedSquareData
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (smoothRealization : GeometricSmoothRealizationFunctorData realization)
+    (CoverIndex : Type w)
+    (baseIndex patchIndex overlapIndex : CoverIndex → realization.ObjectIndex) where
+  patchToBase :
+    (cover : CoverIndex) →
+      Wall10A.SchemeOverQ.Hom
+        (smoothRealization.scheme (patchIndex cover))
+        (smoothRealization.scheme (baseIndex cover))
+  overlapToPatch :
+    (cover : CoverIndex) →
+      Wall10A.SchemeOverQ.Hom
+        (smoothRealization.scheme (overlapIndex cover))
+        (smoothRealization.scheme (patchIndex cover))
+  overlapToBase :
+    (cover : CoverIndex) →
+      Wall10A.SchemeOverQ.Hom
+        (smoothRealization.scheme (overlapIndex cover))
+        (smoothRealization.scheme (baseIndex cover))
+  patchToBaseGraph :
+    ∀ cover : CoverIndex,
+      Wall10A.SchemeOverQ.GraphFiniteCorrespondenceData (patchToBase cover)
+  overlapToPatchGraph :
+    ∀ cover : CoverIndex,
+      Wall10A.SchemeOverQ.GraphFiniteCorrespondenceData (overlapToPatch cover)
+  overlapToBaseGraph :
+    ∀ cover : CoverIndex,
+      Wall10A.SchemeOverQ.GraphFiniteCorrespondenceData (overlapToBase cover)
+  commutativeSquareTarget : Prop
 
 /-- Exact trace-native blocker for future `Loc` triangle compatibility.
 

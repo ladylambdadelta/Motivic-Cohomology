@@ -63,8 +63,6 @@ placeholders. Compatibility conditions with the geometric structure are carried 
 structure ConcreteFunctor
     (source target : ConcreteMotivicCategory.{u, v}) where
   functor : source.Obj ⥤ target.Obj
-  nisnevichCompatible : Prop
-  a1Compatible : Prop
 
 namespace ConcreteFunctor
 
@@ -84,15 +82,11 @@ theorem map_comp {source target : ConcreteMotivicCategory.{u, v}}
 /-- Identity concrete functor on a concrete motivic category. -/
 def identity (C : ConcreteMotivicCategory.{u, v}) : ConcreteFunctor C C where
   functor := 𝟭 C.Obj
-  nisnevichCompatible := True
-  a1Compatible := True
 
 /-- Composition of two concrete motivic functors. -/
 def comp {A B C : ConcreteMotivicCategory.{u, v}}
     (F : ConcreteFunctor A B) (G : ConcreteFunctor B C) : ConcreteFunctor A C where
   functor := F.functor ⋙ G.functor
-  nisnevichCompatible := True
-  a1Compatible := True
 
 /-- The identity functor satisfies the map-identity law. -/
 @[simp]

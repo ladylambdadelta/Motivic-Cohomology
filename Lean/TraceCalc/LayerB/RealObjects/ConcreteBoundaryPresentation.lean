@@ -1602,8 +1602,6 @@ structure ConcretePreferredGluingWitness
   boundarySummandRetaggings : List PreferredBoundarySummandRetagging
   attachmentCompatibleValue : Bool
   gluedBoundary : OrderedBoundaryProfileSource Dc
-  attachmentCompatibilitySlot : Prop
-  gluingCompatibilitySlot : Prop
 
 /-- Universe-correct preferred gluing-witness carrier used by the concrete
 preferred auxiliary object. -/
@@ -2840,7 +2838,6 @@ structure PreferredTensorReassemblyData
   recordEquiv_to_original : RecordStructEquiv
     (@BoundaryAdminEquiv (PreferredFoundationsBridgeSetup Dc aux))
     tensorRecord R
-  key_order_compatible : Prop
 
 /-- Concrete preferred empty boundary object for the tensor lane: the empty
 ordered boundary cirquent. -/
@@ -2960,8 +2957,6 @@ def concretePreferredEmptyGluingWitness
   boundarySummandRetaggings := []
   attachmentCompatibleValue := true
   gluedBoundary := preferredEmptyTensorBoundary (Dc := Dc)
-  attachmentCompatibilitySlot := True
-  gluingCompatibilitySlot := True
 
 /-- Concrete preferred binary tensor operation on gluing witnesses. The
 metadata lists concatenate, compatibility booleans conjoin, proof slots conjoin,
@@ -2978,11 +2973,7 @@ def concretePreferredTensorGluingWitness₂
         attachmentCompatibleValue :=
           w₁.attachmentCompatibleValue && w₂.attachmentCompatibleValue
         gluedBoundary :=
-          preferredTensorBoundary₂ (Dc := Dc) w₁.gluedBoundary w₂.gluedBoundary
-        attachmentCompatibilitySlot :=
-          w₁.attachmentCompatibilitySlot ∧ w₂.attachmentCompatibilitySlot
-        gluingCompatibilitySlot :=
-          w₁.gluingCompatibilitySlot ∧ w₂.gluingCompatibilitySlot }
+          preferredTensorBoundary₂ (Dc := Dc) w₁.gluedBoundary w₂.gluedBoundary }
 
 /-- Concrete preferred retagging operation on gluing witnesses. Retagging only
 updates the ambient packet/summand indices; the proposed glued boundary and the
@@ -3000,9 +2991,7 @@ def concretePreferredRetagGluingWitness
           w.boundarySummandRetaggings.map
             (PreferredBoundarySummandRetagging.retag offset)
         attachmentCompatibleValue := w.attachmentCompatibleValue
-        gluedBoundary := w.gluedBoundary
-        attachmentCompatibilitySlot := w.attachmentCompatibilitySlot
-        gluingCompatibilitySlot := w.gluingCompatibilitySlot }
+        gluedBoundary := w.gluedBoundary }
 
 /-- Empty witness in the universe-correct carrier used by the concrete
 preferred auxiliary object. -/

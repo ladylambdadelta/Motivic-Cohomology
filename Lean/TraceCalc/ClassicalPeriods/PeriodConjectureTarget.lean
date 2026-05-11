@@ -13,9 +13,10 @@ universe u v w x y z
 namespace TraceCalc
 namespace ClassicalPeriods
 
-/-- Lower scalar-realization data for deriving scalar-shadow reflection.  The function field is
-kept under an explicitly named realization package rather than on the final target record, so the
-target is not itself a theorem-smuggling container. -/
+/-- Lower scalar-realization scaffold for scalar-shadow reflection.
+
+The final field is an explicit assumption/obligation of this scaffold package.  It is not proof
+provenance for the classical period conjecture. -/
 structure ScalarToStructuredReflectionData
     (Context : ClassicalComparisonContext)
     (MotiveCategory : Type u) [Category MotiveCategory]
@@ -28,7 +29,7 @@ structure ScalarToStructuredReflectionData
   scalarRealizationData : Prop
   comparisonData : Prop
   reconstructionData : Prop
-  theoremFromData :
+  scalarReflectionAssumption :
     ∀ {X Y : MotiveCategory} (f g : X ⟶ Y),
       scalarShadow.equalityRelation
         (scalarShadow.shadowOf
@@ -51,7 +52,10 @@ structure ScalarToStructuredReflectionData
           (objectComparison Y)
           (morphismStructuredComparison g))
 
-/-- Lower recognition/reconstruction data for deriving structured-comparison faithfulness. -/
+/-- Lower recognition/reconstruction scaffold for structured-comparison faithfulness.
+
+The final field is an explicit assumption/obligation of this scaffold package.  It is not a formal
+recognition theorem for `DM_gm(Q)_Q` or `MM(Q)`. -/
 structure StructuredComparisonFaithfulnessData
     (Context : ClassicalComparisonContext)
     (MotiveCategory : Type u) [Category MotiveCategory]
@@ -63,7 +67,7 @@ structure StructuredComparisonFaithfulnessData
   classicalRecognitionData : Prop
   morphismReconstructionData : Prop
   structuredTransportData : Prop
-  theoremFromData :
+  structuredFaithfulnessAssumption :
     ∀ {X Y : MotiveCategory} (f g : X ⟶ Y),
       structuredComparisonEquality.relates
         (packStructuredComparisonMorphism
@@ -197,17 +201,17 @@ def StructuredComparisonFaithfulnessTarget
     (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) : Prop :=
   target.structuredPeriodFaithfulnessStatement
 
-/-- Derived scalar-shadow reflection theorem, projected from lower scalar realization data. -/
+/-- Scaffold scalar-shadow reflection, projected from an explicit assumption field. -/
 def scalarEqualityReflectsStructuredComparison
     (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) :
     target.ScalarShadowReflectsStructuredComparisonTarget :=
-  target.scalarToStructuredReflectionData.theoremFromData
+  target.scalarToStructuredReflectionData.scalarReflectionAssumption
 
-/-- Derived structured-comparison faithfulness theorem, projected from lower recognition data. -/
+/-- Scaffold structured-comparison faithfulness, projected from an explicit assumption field. -/
 def structuredComparisonReflectsMorphismEquality
     (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) :
     target.StructuredComparisonFaithfulnessTarget :=
-  target.structuredComparisonFaithfulnessData.theoremFromData
+  target.structuredComparisonFaithfulnessData.structuredFaithfulnessAssumption
 
 /-- Final classical theorem target: equality in the scalar period shadow reflects equality of the
 corresponding motivic morphisms. -/
@@ -329,7 +333,10 @@ theorem PackedComparisonReconstructionStage.toPackedMorphismComparisonEqualitySt
 
 end ClassicalGrothendieckPeriodFaithfulnessTarget
 
-/-- Lower framed-realization data for deriving framed-shadow reflection to structured comparison. -/
+/-- Lower framed-realization scaffold for framed-shadow reflection to structured comparison.
+
+The final field is an explicit assumption/obligation of this scaffold package.  It is not proof
+provenance for the classical framed period conjecture. -/
 structure FramedToStructuredReflectionData
     (baseTarget : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w})
     (framedPeriodEquality : FramedPeriodEquality baseTarget.Context)
@@ -339,7 +346,7 @@ structure FramedToStructuredReflectionData
   framedRealizationData : Prop
   framedComparisonData : Prop
   framedReconstructionData : Prop
-  theoremFromData :
+  framedReflectionAssumption :
     ∀ {X Y : baseTarget.MotiveCategory} (f g : X ⟶ Y),
       framedPeriodShadow.equalityRelation
         (framedPeriodShadow.shadowOf (framedPeriodOf f))
@@ -517,11 +524,11 @@ def reflectionStatement (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop
       (target.baseTarget.packedMorphismComparison f)
       (target.baseTarget.packedMorphismComparison g)
 
-/-- Derived framed-shadow reflection theorem, projected from lower framed realization data. -/
+/-- Scaffold framed-shadow reflection, projected from an explicit assumption field. -/
 def framedEqualityReflectsStructuredComparison
     (target : FramedPeriodConjectureTarget.{u, v, w}) :
     target.reflectionStatement :=
-  target.framedToStructuredReflectionData.theoremFromData
+  target.framedToStructuredReflectionData.framedReflectionAssumption
 
 /-- Hard theorem-target core for the framed lane: scalar shadow equality descends through framed
 equality and then back up to structured comparison equality. -/

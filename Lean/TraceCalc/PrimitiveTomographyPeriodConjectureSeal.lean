@@ -13,9 +13,8 @@ open MotivicRecognition
 open LayerB.RealObjects
 open LayerB.RealObjects.RewriteCalculusSetup
 
-/-- Primitive-tomography-backed version of the classical scalar faithfulness theorem.
-It exposes the exact classical theorem shape while requiring the primitive recognized MM(Q)
-route in scope. -/
+/-- Primitive-tomography-backed scaffold statement for scalar faithfulness of structured
+comparison morphisms.  This is not a formalization of Grothendieck's scalar period conjecture. -/
 theorem scalar_period_faithfulness_from_primitive_tomography
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
     {setup : RewriteCalculusSetup.{u}}
@@ -51,9 +50,8 @@ theorem scalar_period_faithfulness_from_primitive_tomography
     MotivicRecognition.scalar_period_faithfulness_via_injective_extensions_bridge
       source target f g hBasis
 
-/-- Primitive-tomography-backed version of the classical full-morphism equality theorem.
-It exposes the exact classical theorem shape while routing the proof through the primitive
-recognized MM(Q) proof-relevant target. -/
+/-- Primitive-tomography-backed scaffold statement for equality of structured comparison
+morphisms.  This is not an `MM(Q)` recognition theorem. -/
 theorem full_morphism_eq_of_basisFreePeriodMap_eq_from_primitive_tomography
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
     {setup : RewriteCalculusSetup.{u}}
@@ -105,11 +103,8 @@ theorem primitive_headline_framed_period_conjecture_from_bridge
   primitive_headline_framed_period_conjecture
     bridge certifiedTraceTransport
 
-/-- Classical Grothendieck scalar period conjecture surface carried by the bridge.
-
-This is the genuine classical target statement for `bridge.classicalTarget`; it is obtained from the
-existing middleware bridge transport and does not pass through the primitive framed-probe route. -/
-theorem grothendieck_scalar_period_conjecture_classical
+/-- Bridge-carried scalar target-record faithfulness scaffold. -/
+theorem bridge_scalar_target_record_period_faithfulness
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
@@ -117,21 +112,17 @@ theorem grothendieck_scalar_period_conjecture_classical
     ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement bridge.classicalTarget :=
   bridge.classicalFaithfulnessStatement
 
-/-- Locked classical scalar conjecture alias for the bridge-exposed classical target. -/
-theorem grothendieck_period_conjecture
+/-- Bridge-carried scalar target-record statement.  This is explicitly scaffold-level. -/
+theorem bridge_target_record_scalar_period_faithfulness
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
     (bridge : ClassicalBridge.InternalProgramRealizesClassicalPeriodTarget presentation aux) :
-    ClassicalConjectures.GrothendieckPeriodConjecture bridge.classicalTarget := by
+    ClassicalConjectures.TargetRecordScalarPeriodFaithfulness bridge.classicalTarget := by
   exact bridge.classicalFaithfulnessStatement
 
-/-- Classical Grothendieck framed period conjecture surface carried by the repaired bridge.
-
-The repaired bridge constructs `bridge.framedTarget` from its structured scalar framed-period data,
-so primitive certified tomography applies to the genuine classical framed target without an
-external alignment hypothesis. -/
-theorem grothendieck_framed_period_conjecture_from_primitive_tomography
+/-- Bridge-carried framed target-record faithfulness scaffold from primitive tomography inputs. -/
+theorem bridge_framed_target_record_period_faithfulness_from_primitive_tomography
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
@@ -144,8 +135,8 @@ theorem grothendieck_framed_period_conjecture_from_primitive_tomography
   exact primitive_headline_framed_period_conjecture_from_bridge
     bridge certifiedTraceTransport f g hFramed
 
-/-- Locked classical framed conjecture alias for the bridge-exposed classical framed target. -/
-theorem grothendieck_framed_period_conjecture
+/-- Bridge-carried framed target-record statement.  This is explicitly scaffold-level. -/
+theorem bridge_target_record_framed_period_faithfulness
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
@@ -153,9 +144,19 @@ theorem grothendieck_framed_period_conjecture
     (certifiedTraceTransport :
       CertifiedTraceTomographyTransport
         bridge.framedTarget.baseTarget.structuredComparisonEquality) :
-    ClassicalConjectures.GrothendieckFramedPeriodConjecture bridge.framedTarget := by
+    ClassicalConjectures.TargetRecordFramedPeriodFaithfulness bridge.framedTarget := by
   intro X Y f g hFramed
-  exact grothendieck_framed_period_conjecture_from_primitive_tomography
+  exact bridge_framed_target_record_period_faithfulness_from_primitive_tomography
     bridge certifiedTraceTransport f g hFramed
+
+/-- Explicit marker: the unconditional scalar Grothendieck period conjecture is not formalized in
+this repository yet. -/
+def grothendieck_period_conjecture_not_yet_formalized : Prop :=
+  ClassicalConjectures.GrothendieckPeriodConjectureNotYetFormalized
+
+/-- Explicit marker: the unconditional framed Grothendieck period conjecture is not formalized in
+this repository yet. -/
+def grothendieck_framed_period_conjecture_not_yet_formalized : Prop :=
+  ClassicalConjectures.GrothendieckFramedPeriodConjectureNotYetFormalized
 
 end TraceCalc

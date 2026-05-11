@@ -19,7 +19,7 @@ feeding those proof packages into the manuscript P7 targets.  It does not
 construct a trace-native stand-in for the classical heart.
 -/
 
-theorem normTStructureTheoremPackage_from_target
+def normTStructureTheoremPackage_from_target
     {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.SyntacticBoundaryPresentation setup}
@@ -167,7 +167,7 @@ theorem lefschetzClosureTarget_holds
 
 end HeartRecognitionTarget
 
-theorem classicalMMQHeartTheorems_from_target
+def classicalMMQHeartTheorems_from_target
     {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.SyntacticBoundaryPresentation setup}
@@ -202,6 +202,77 @@ theorem classicalMMQHeartTheorems_from_target
       classicalHeartIdentification.traceHeart :=
   classicalHeartIdentification.classicalMMQHeartTheorems
 
+def tStructureMotivicInfrastructure_from_final
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup → α}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization}
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
+    TStructureMotivicMMQInfrastructure normTStructure.traceMotivicTStructure
+      (TraceMotivicHeart.ofTStructure normTStructure.traceMotivicTStructure) where
+  dm_gm_Q_Q_category := infrastructure.dm_gm_Q_Q_category
+  dm_gm_Q_Q_object := infrastructure.dm_gm_Q_Q_object
+  dm_gm_Q_Q_hom := infrastructure.dm_gm_Q_Q_hom
+  dm_gm_Q_Q_id := infrastructure.dm_gm_Q_Q_id
+  dm_gm_Q_Q_comp := infrastructure.dm_gm_Q_Q_comp
+  rationalBaseField := infrastructure.rationalBaseField
+  rationalCoefficientField := infrastructure.rationalCoefficientField
+  rationalBaseFieldIsQ := infrastructure.rationalBaseFieldIsQ
+  rationalCoefficientFieldIsQ := infrastructure.rationalCoefficientFieldIsQ
+  tNonpositive := infrastructure.tNonpositive
+  tNonnegative := infrastructure.tNonnegative
+  truncLE := infrastructure.truncLE
+  truncGE := infrastructure.truncGE
+  truncationTriangle := infrastructure.truncationTriangle
+  classicalHeartObject := infrastructure.classicalHeartObject
+  classicalHeartEmbedding := infrastructure.classicalHeartEmbedding
+  classicalHeartIsHeart := infrastructure.classicalHeartIsHeart
+  classicalHeartHom := infrastructure.classicalHeartHom
+  classicalHeartZero := infrastructure.classicalHeartZero
+  classicalHeartAdd := infrastructure.classicalHeartAdd
+  classicalHeartKernel := infrastructure.classicalHeartKernel
+  classicalHeartCokernel := infrastructure.classicalHeartCokernel
+  mixedMotivesQ := infrastructure.mixedMotivesQ
+  mixedMotivesQHom := infrastructure.mixedMotivesQHom
+  mixedMotivesQToHeart := infrastructure.mixedMotivesQToHeart
+  heartToMixedMotivesQ := infrastructure.heartToMixedMotivesQ
+  mixedMotivesQToHeart_leftInverse := infrastructure.mixedMotivesQToHeart_leftInverse
+  mixedMotivesQToHeart_rightInverse := infrastructure.mixedMotivesQToHeart_rightInverse
+  traceHeartToClassicalHeart := infrastructure.traceHeartToClassicalHeart
+  traceHeartFromClassicalHeart := infrastructure.traceHeartFromClassicalHeart
+  traceHeartClassical_leftInverse := infrastructure.traceHeartClassical_leftInverse
+  traceHeartClassical_rightInverse := infrastructure.traceHeartClassical_rightInverse
+  distinguishedHeartAgreement := rfl
+  transportedTStructureMatchesClassical := infrastructure.transportedTStructureMatchesClassical
+  normalizationRealizesClassicalHeart := infrastructure.normalizationRealizesClassicalHeart
+  canonicalReconstructionRealizesClassicalHeart :=
+    infrastructure.canonicalReconstructionRealizesClassicalHeart
+  separatedDegreeOrthogonalityRealizesMMQ :=
+    infrastructure.separatedDegreeOrthogonalityRealizesMMQ
+  exactHeartEmbedding := infrastructure.exactHeartEmbedding
+  pureHeartNaturality := infrastructure.pureHeartNaturality
+
 namespace ClassicalHeartIdentificationTarget
 
 def ofTraceMotivicTStructureData
@@ -232,14 +303,20 @@ def ofTraceMotivicTStructureData
       comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization
       normTStructure)
     (components :
-      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure) :
+      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
     ClassicalHeartIdentificationTarget spine internal normalization classical comparisonEquivalence
       canonicalEquivalence normalizationTransport transportedNormalization normTStructure
       heartRecognition where
+  finalMotivicInfrastructure := infrastructure
   traceHeart := TraceMotivicHeart.ofTStructure normTStructure.traceMotivicTStructure
   classicalMMQHeartTheorems :=
-    ClassicalMMQHeartTheorems.ofTraceMotivicTStructureData
-      normTStructure.traceMotivicTStructure components
+    ClassicalMMQHeartTheorems.ofTStructureComponentTheorems
+      normTStructure.traceMotivicTStructure
+      components
+      (tStructureMotivicInfrastructure_from_final infrastructure)
 
 def ofTransportedTStructureComponents
     (spine : MotivicRecognitionSpine.{u, v, w, x, y, z})
@@ -282,7 +359,10 @@ def ofTransportedTStructureComponents
         normTStructure.traceMotivicTStructure.orthogonalityTarget)
     (compatibilityWithHeartRecognitionIsNatural :
       normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
-        normTStructure.traceMotivicTStructure.normalizationPacketCutTarget) :
+        normTStructure.traceMotivicTStructure.normalizationPacketCutTarget)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
     ClassicalHeartIdentificationTarget spine internal normalization classical comparisonEquivalence
       canonicalEquivalence normalizationTransport transportedNormalization normTStructure
       heartRecognition :=
@@ -296,6 +376,7 @@ def ofTransportedTStructureComponents
       mixedMotiveHeartOverQTarget
       compatibilityWithTransportedTStructureIsExact
       compatibilityWithHeartRecognitionIsNatural)
+    infrastructure
 
 def ofCanonicalPacketCutWithCertifiedStructuralPackage
     (spine : MotivicRecognitionSpine.{u, v, w, x, y, z})
@@ -347,7 +428,10 @@ def ofCanonicalPacketCutWithCertifiedStructuralPackage
     (hThreshold : threshold ≤ traceNative.reconstructionLength)
     (hTStructure :
       normTStructure.traceMotivicTStructure =
-        TraceMotivicTStructureData.ofCanonicalPacketCut traceNative threshold hThreshold) :
+        TraceMotivicTStructureData.ofCanonicalPacketCut traceNative threshold hThreshold)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
     ClassicalHeartIdentificationTarget spine internal normalization classical comparisonEquivalence
       canonicalEquivalence normalizationTransport transportedNormalization normTStructure
       heartRecognition :=
@@ -363,6 +447,7 @@ def ofCanonicalPacketCutWithCertifiedStructuralPackage
     (hTStructure ▸
       TraceMotivicTStructureComponentTheorems.ofCanonicalPacketCutWithCertifiedStructuralPackage
         certified hCertified traceNative threshold hThreshold normalizationPacketCut_holds)
+    infrastructure
 
 abbrev ofCanonicalPacketCutWithStructuralTransport
     (spine : MotivicRecognitionSpine.{u, v, w, x, y, z}) :=
@@ -402,10 +487,14 @@ def ofClassicalMMQHeartTheorems
       normTStructure)
     (traceHeart : TraceMotivicHeart normTStructure.traceMotivicTStructure)
     (heartTheorems :
-      ClassicalMMQHeartTheorems normTStructure.traceMotivicTStructure traceHeart) :
+      ClassicalMMQHeartTheorems normTStructure.traceMotivicTStructure traceHeart)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
     ClassicalHeartIdentificationTarget spine internal normalization classical comparisonEquivalence
       canonicalEquivalence normalizationTransport transportedNormalization normTStructure
       heartRecognition where
+  finalMotivicInfrastructure := infrastructure
   traceHeart := traceHeart
   classicalMMQHeartTheorems := heartTheorems
 
@@ -440,13 +529,16 @@ def classicalHeartIdentificationOfTraceMotivicTStructureData
       comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization
       normTStructure)
     (components :
-      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure) :
+      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure) :
     ClassicalHeartIdentificationTarget spine internal normalization classical comparisonEquivalence
       canonicalEquivalence normalizationTransport transportedNormalization normTStructure
       heartRecognition :=
   ClassicalHeartIdentificationTarget.ofTraceMotivicTStructureData spine internal normalization
     classical comparisonEquivalence canonicalEquivalence normalizationTransport
-    transportedNormalization normTStructure heartRecognition components
+    transportedNormalization normTStructure heartRecognition components infrastructure
 
 namespace MMQIdentificationTarget
 
@@ -487,11 +579,12 @@ def ofClassicalHeartIdentification
   classicalHeartIdentification := classicalHeartIdentification
   mmqHeartIdentification :=
     classicalHeartIdentification.classicalMMQHeartTheorems.traceHeart_recognizes_classical_MMQ
+  finalMotivicInfrastructure := classicalHeartIdentification.finalMotivicInfrastructure
   mmqPureHeartCompatibility :=
     classicalHeartIdentification.classicalMMQHeartTheorems
       |>.compatibilityWithHeartRecognitionIsNatural
 
-theorem mmqHeartIdentification_holds
+def mmqHeartIdentification_holds
     {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.SyntacticBoundaryPresentation setup}

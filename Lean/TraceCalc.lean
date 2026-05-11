@@ -60,4 +60,6 @@ import TraceCalc.MotivicRecognition.RecognitionTarget
 import TraceCalc.MotivicRecognition.TStructureTarget
 import TraceCalc.MotivicRecognition.SpineSummary
 import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
-import TraceCalc.MotivicRecognition.RealizationAgreementStatements
+import TraceCalc.MotivicRecognition.DMgmQConstruction
+import TraceCalc.PeriodConjectureProblemSeal
+import TraceCalc.PeriodConjectureAssumptionBoundary

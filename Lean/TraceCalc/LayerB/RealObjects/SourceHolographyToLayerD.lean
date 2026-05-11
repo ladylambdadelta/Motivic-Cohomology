@@ -1,4 +1,3 @@
-import Mathlib.CategoryTheory.DiscreteCategory
 import TraceCalc.LayerB.TraceEnvelope
 import TraceCalc.LayerB.RealObjects.ConcreteBoundaryPresentation
 import TraceCalc.LayerB.RealObjects.ConcreteExternalOutSort
@@ -278,136 +277,6 @@ structure MotivicLocalizationTateWitness
   tateStabilizationPiZero_holds : tateStabilizationPiZero
   tateStabilizationInfinity : Prop
   tateStabilizationInfinity_holds : tateStabilizationInfinity
-
-abbrev FiniteSanityLocalizationCategory := Discrete (Fin 2)
-
-/-- Finite stable-like data used to sanity-check the aligned motivic
-localization constructor on a nontrivial discrete category. -/
-def finiteSanityStableLike : LayerA.StableLike FiniteSanityLocalizationCategory where
-  hasFiniteLimits := True
-  hasFiniteColimits := True
-  hasSuspensionData := True
-  exactTrianglesAvailable := True
-
-/-- Finite identity localization interface used to sanity-check the aligned
-motivic-localization constructor on a nontrivial discrete category. -/
-def finiteSanityLocalizationInterface : LayerA.LocalizationInterface.{0, 0} where
-  C := FiniteSanityLocalizationCategory
-  D := FiniteSanityLocalizationCategory
-  W := Eq
-  QObj := fun X => X
-  QMap := fun f => f
-  map_id := by
-    intro X
-    rfl
-  map_comp := by
-    intro X Y Z f g
-    rfl
-  invertsW := by
-    intro X Y f hW
-    subst hW
-    exact ⟨Iso.refl _⟩
-  universalFactorization := True
-
-/-- Finite proof-relevant universal-property data used to sanity-check that the
-infinity-side localization witness can be derived once explicit witness data is
-supplied on top of the Prop-level localization interface. -/
-def finiteSanityLocalizationUniversalPropertyData :
-    LayerA.LocalizationUniversalPropertyData finiteSanityLocalizationInterface where
-  localizationUniversalPropertyInfinity := True
-  localizationUniversalPropertyInfinity_holds := trivial
-
-/-- Finite pi0-shadow theorem target used to sanity-check that the triangulated
-localization shadow still enters separately from the infinity-side witness. -/
-def finiteSanityLocalizationPiZeroShadowTheorem :
-    LayerA.LocalizationPiZeroShadowTheorem finiteSanityLocalizationInterface where
-  verdierLocalizationPiZeroShadow := True
-  verdierLocalizationPiZeroShadow_holds := trivial
-
-/-- Finite proof-relevant localization wrapper for the identity localization
-sanity path. -/
-def finiteSanityProofRelevantLocalizationInterface :
-    LayerA.ProofRelevantLocalizationInterface :=
-  LayerA.ProofRelevantLocalizationInterface.ofInterface
-    finiteSanityLocalizationInterface
-    finiteSanityLocalizationUniversalPropertyData
-
-/-- Finite free stable trace envelope used to sanity-check the aligned
-motivic-localization constructor on a nontrivial syntax carrier. -/
-def finiteSanityFreeStableTraceEnvelope : LayerB.FreeStableTraceEnvelope.{0, 0} where
-  Syntax := Fin 2
-  Envelope := FiniteSanityLocalizationCategory
-  includeSyntax := fun i => ⟨i⟩
-  isStableLike := finiteSanityStableLike
-  universalProperty := True
-
-/-- Finite aligned motivic localization used to sanity-check that the real
-`LayerB.MotivicLocalization` carrier now feeds the bridge candidate directly. -/
-def finiteSanityMotivicLocalization : LayerB.MotivicLocalization.{0, 0} :=
-  LayerB.MotivicLocalization.mkAligned
-    finiteSanityFreeStableTraceEnvelope
-    FiniteSanityLocalizationCategory
-    finiteSanityStableLike
-    (fun X => X)
-    Eq
-    finiteSanityLocalizationInterface
-    ⟨rfl, rfl⟩
-    HEq.rfl
-    HEq.rfl
-    True
-    True
-    True
-
-/-- Finite symmetric-monoidal sanity witness for the aligned motivic
-localization constructor path. This stays explicitly theorem-shaped: the finite
-sanity package does not claim monoidal structure by definitional equality. -/
-def finiteSanityMotivicLocalizationSymmetricMonoidalWitness :
-    MotivicLocalizationSymmetricMonoidalWitness finiteSanityMotivicLocalization where
-  symmetricMonoidalPiZero := True
-  symmetricMonoidalPiZero_holds := trivial
-  symmetricMonoidalInfinity := True
-  symmetricMonoidalInfinity_holds := trivial
-
-/-- Finite stable/triangulated sanity witness for the aligned motivic
-localization constructor path. -/
-def finiteSanityMotivicLocalizationStableTriangulatedWitness :
-    MotivicLocalizationStableTriangulatedWitness finiteSanityMotivicLocalization where
-  triangulatedStablePiZero := True
-  triangulatedStablePiZero_holds := trivial
-  triangulatedStableInfinity := True
-  triangulatedStableInfinity_holds := trivial
-
-/-- Finite local-geometry sanity witness for the aligned motivic localization
-constructor path. -/
-def finiteSanityMotivicLocalizationLocalGeometryWitness :
-    MotivicLocalizationLocalGeometryWitness finiteSanityMotivicLocalization where
-  a1InvariancePiZeroTicket :=
-    { theoremTarget := True
-      theoremTarget_holds := trivial }
-  a1InvarianceInfinityTicket :=
-    { a1InvarianceInfinity := True
-      a1InvarianceInfinity_holds := trivial }
-  nisnevichDescentPiZeroTicket :=
-    { nisnevichDescentPiZero := True
-      nisnevichDescentPiZero_holds := trivial }
-  nisnevichDescentInfinityTicket :=
-    { nisnevichDescentInfinity := True
-      nisnevichDescentInfinity_holds := trivial }
-  localizationPiZeroTicket :=
-    LayerBLocalizationPiZeroTicket.ofLocalizationPiZeroShadowTheorem
-      finiteSanityLocalizationPiZeroShadowTheorem
-  localizationInfinityTicket :=
-    LayerBLocalizationInfinityTicket.ofLocalizationUniversalPropertyData
-      finiteSanityLocalizationUniversalPropertyData
-
-/-- Finite Tate sanity witness for the aligned motivic localization constructor
-path. -/
-def finiteSanityMotivicLocalizationTateWitness :
-    MotivicLocalizationTateWitness finiteSanityMotivicLocalization where
-  tateStabilizationPiZero := True
-  tateStabilizationPiZero_holds := trivial
-  tateStabilizationInfinity := True
-  tateStabilizationInfinity_holds := trivial
 
 /-- Real Layer B candidate for the source/localization bridge: an existing
 `LayerB.MotivicLocalization` now supplies the syntax carrier, envelope,
@@ -2188,7 +2057,6 @@ structure CompletedRecordTensorReassemblyConstructor
         (PreferredFoundationsBridgeSetup presentation.toDoctrine aux))
       tensorRecord R
   visibleBoundary_tensor : I.visibleBoundary tensorRecord = I.visibleBoundary R
-  key_order_compatible : Prop
 
 /-- Primitive target for constructing the tensor reassembly of replayed
 components as a completed record. This is the remaining honest obstruction once
@@ -2257,7 +2125,6 @@ def PreferredFoundationsTensorBoundaryGluingData.toPreferredTensorBoundaryGluing
       recordEquiv_to_original := T.recordEquiv_to_original
       visibleBoundary_tensor :=
         I.visibleBoundary_respects_admin T.recordEquiv_to_original
-      key_order_compatible := T.key_order_compatible
     }⟩
 
 /-- Preferred foundations bridge tensor data directly discharges the
@@ -2952,7 +2819,6 @@ theorem concretePreferredTensorReassemblyTarget_inhabited
     tensorRecord := R
     componentEmbeddings := ?_
     recordEquiv_to_original := ?_
-    key_order_compatible := True
   }⟩
   · intro i k
     let hReplay :=
@@ -2991,7 +2857,6 @@ theorem concretePreferredTensorReassemblyTarget_realizes_CompletedRecordTensorRe
     recordEquiv_to_original := T.recordEquiv_to_original
     visibleBoundary_tensor :=
       I.visibleBoundary_respects_admin T.recordEquiv_to_original
-    key_order_compatible := T.key_order_compatible
   }⟩
 
 /-- Concrete preferred tensor-reassembly target closes the full concrete
@@ -3643,24 +3508,6 @@ def internalHolographyInterface_fromMotivicLocalizationCandidate
     layerBSourceExportData_fromMotivicLocalizationCandidate
       (pkg := pkg) ML symmetricMonoidalWitness stableTriangulatedWitness
       localGeometryWitness tateWitness
-
-/-- Finite sanity constructor for the cautious bridge payload through the real
-aligned motivic-localization path. The theorem package remains an explicit
-input because it is independent of the finite localization carrier sanity
-check. -/
-def finiteSanityLayerBSourceExportData_fromMotivicLocalizationCandidate
-    {primitive : NamedPrimitiveInterfacePresentation}
-    {presentation : NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (pkg : NamedFreeSourceHolographyPackage presentation aux) :
-    LayerBSourceExportData presentation aux :=
-  layerBSourceExportData_fromMotivicLocalizationCandidate
-    (pkg := pkg)
-    finiteSanityMotivicLocalization
-    finiteSanityMotivicLocalizationSymmetricMonoidalWitness
-    finiteSanityMotivicLocalizationStableTriangulatedWitness
-    finiteSanityMotivicLocalizationLocalGeometryWitness
-    finiteSanityMotivicLocalizationTateWitness
 
 /-- Forget the cautious Layer B bridge payload down to the abstract Layer D
 source-trace package seam. -/

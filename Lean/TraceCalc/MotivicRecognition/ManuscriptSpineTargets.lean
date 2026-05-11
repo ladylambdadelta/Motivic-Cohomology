@@ -1556,6 +1556,12 @@ def ofCanonicalDMgmEquivalence
 
 end DMgmUniversalRecognitionData
 
+/-- Audit note: this target currently packages theorem-level comparison surfaces only.
+
+It does not yet consume the concrete `FinalMotivicMMQInfrastructure.DMgmQCategoryData` payload
+coming from the constructed quotient-zigzag/Karoubi spine. As a result, it can currently close
+without checking the new `DMgmQWithQCoefficients` category data, so it is weaker than a full
+construction-aware DMgmQ recognition statement. -/
 structure DMgmUniversalRecognitionTheoremTarget
     (spine : MotivicRecognitionSpine.{u, v, w, x, y, z})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
@@ -2172,6 +2178,249 @@ namespace NormTStructureTarget
 
 end NormTStructureTarget
 
+structure FinalMotivicMMQInfrastructure
+    (spine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    (internal : InternalManuscriptSpineTarget P comparison C)
+    (normalization : NormalizationPackageTarget internal)
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    (classical : ClassicalManuscriptSpineTarget ctx structuredEq)
+    (comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical)
+    (canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence)
+    (normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence)
+    (transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport)
+    (normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization) where
+  dm_gm_Q_Q_category : Type u
+  dm_gm_Q_Q_object : dm_gm_Q_Q_category
+  dm_gm_Q_Q_hom : dm_gm_Q_Q_category → dm_gm_Q_Q_category → Type v
+  dm_gm_Q_Q_id : ∀ X, dm_gm_Q_Q_hom X X
+  dm_gm_Q_Q_comp : ∀ {X Y Z}, dm_gm_Q_Q_hom X Y → dm_gm_Q_Q_hom Y Z → dm_gm_Q_Q_hom X Z
+  rationalBaseField : Type w
+  rationalCoefficientField : Type x
+  rationalBaseFieldIsQ : FieldIsQData rationalBaseField
+  rationalCoefficientFieldIsQ : FieldIsQData rationalCoefficientField
+  tNonpositive : dm_gm_Q_Q_category → Prop
+  tNonnegative : dm_gm_Q_Q_category → Prop
+  truncLE : Int → dm_gm_Q_Q_category → dm_gm_Q_Q_category
+  truncGE : Int → dm_gm_Q_Q_category → dm_gm_Q_Q_category
+  truncationTriangle : ∀ (n : Int) (X : dm_gm_Q_Q_category), Prop
+  classicalHeartObject : Type y
+  classicalHeartEmbedding : classicalHeartObject → dm_gm_Q_Q_category
+  classicalHeartIsHeart : ∀ A : classicalHeartObject,
+    tNonpositive (classicalHeartEmbedding A) ∧
+      tNonnegative (classicalHeartEmbedding A)
+  classicalHeartHom : classicalHeartObject → classicalHeartObject → Type z
+  classicalHeartZero : classicalHeartObject
+  classicalHeartAdd : classicalHeartObject → classicalHeartObject → classicalHeartObject
+  classicalHeartKernel : ∀ {A B : classicalHeartObject}, classicalHeartHom A B → classicalHeartObject
+  classicalHeartCokernel : ∀ {A B : classicalHeartObject}, classicalHeartHom A B → classicalHeartObject
+  mixedMotivesQ : Type y
+  mixedMotivesQHom : mixedMotivesQ → mixedMotivesQ → Type z
+  mixedMotivesQToHeart : mixedMotivesQ → classicalHeartObject
+  heartToMixedMotivesQ : classicalHeartObject → mixedMotivesQ
+  mixedMotivesQToHeart_leftInverse :
+    ∀ M : mixedMotivesQ, heartToMixedMotivesQ (mixedMotivesQToHeart M) = M
+  mixedMotivesQToHeart_rightInverse :
+    ∀ A : classicalHeartObject, mixedMotivesQToHeart (heartToMixedMotivesQ A) = A
+  traceHeartToClassicalHeart :
+    TraceMotivicHeart normTStructure.traceMotivicTStructure → classicalHeartObject
+  traceHeartFromClassicalHeart :
+    classicalHeartObject → TraceMotivicHeart normTStructure.traceMotivicTStructure
+  traceHeartClassical_leftInverse :
+    ∀ H : TraceMotivicHeart normTStructure.traceMotivicTStructure,
+      traceHeartFromClassicalHeart (traceHeartToClassicalHeart H) = H
+  traceHeartClassical_rightInverse :
+    ∀ A : classicalHeartObject,
+      traceHeartToClassicalHeart (traceHeartFromClassicalHeart A) = A
+  transportedTStructureMatchesClassical :
+    normTStructure.traceMotivicTStructure.recognitionCompatibilityTarget
+  normalizationRealizesClassicalHeart :
+    normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget
+  canonicalReconstructionRealizesClassicalHeart :
+    normTStructure.traceMotivicTStructure.canonicalReconstructionCompatibilityTarget
+  separatedDegreeOrthogonalityRealizesMMQ :
+    normTStructure.traceMotivicTStructure.orthogonalityFromSeparatedDegreesTarget
+  exactHeartEmbedding :
+    normTStructure.traceMotivicTStructure.shiftClosureNonposTarget ∧
+      normTStructure.traceMotivicTStructure.shiftClosureNonnegTarget ∧
+      normTStructure.traceMotivicTStructure.orthogonalityTarget
+  pureHeartNaturality :
+    normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
+      normTStructure.traceMotivicTStructure.normalizationPacketCutTarget
+
+namespace FinalMotivicMMQInfrastructure
+
+/-- The concrete rational-field part of the final MM(Q) infrastructure gate.
+
+This is the first bottom-up subpackage: it carries actual `FieldIsQData` terms, independent of the
+later `DM_gm(Q)_Q`, t-structure, heart, and trace/classical equivalence payload. -/
+structure RationalFieldData where
+  rationalBaseField : Type w
+  rationalCoefficientField : Type x
+  rationalBaseFieldIsQ : FieldIsQData rationalBaseField
+  rationalCoefficientFieldIsQ : FieldIsQData rationalCoefficientField
+
+namespace RationalFieldData
+
+/-- The standard rational base and coefficient fields. -/
+def standard : RationalFieldData.{0, 0} where
+  rationalBaseField := Rat
+  rationalCoefficientField := Rat
+  rationalBaseFieldIsQ := FieldIsQData.id
+  rationalCoefficientFieldIsQ := FieldIsQData.id
+
+end RationalFieldData
+
+/-- Typed carrier for the raw `DM_gm(Q)_Q` category data required by the final infrastructure gate.
+
+This is a certificate interface, not a construction of the classical category of geometric motives.
+The object/hom/id/comp fields match the first five fields of `FinalMotivicMMQInfrastructure`, while
+the law fields make the category-like obligations explicit instead of hiding them in prose. -/
+structure DMgmQCategoryData where
+  dm_gm_Q_Q_category : Type u
+  dm_gm_Q_Q_object : dm_gm_Q_Q_category
+  dm_gm_Q_Q_hom : dm_gm_Q_Q_category → dm_gm_Q_Q_category → Type v
+  dm_gm_Q_Q_id : ∀ X, dm_gm_Q_Q_hom X X
+  dm_gm_Q_Q_comp :
+    ∀ {X Y Z}, dm_gm_Q_Q_hom X Y → dm_gm_Q_Q_hom Y Z → dm_gm_Q_Q_hom X Z
+  id_comp :
+    ∀ {X Y : dm_gm_Q_Q_category} (f : dm_gm_Q_Q_hom X Y),
+      dm_gm_Q_Q_comp (dm_gm_Q_Q_id X) f = f
+  comp_id :
+    ∀ {X Y : dm_gm_Q_Q_category} (f : dm_gm_Q_Q_hom X Y),
+      dm_gm_Q_Q_comp f (dm_gm_Q_Q_id Y) = f
+  assoc :
+    ∀ {W X Y Z : dm_gm_Q_Q_category}
+      (f : dm_gm_Q_Q_hom W X) (g : dm_gm_Q_Q_hom X Y) (h : dm_gm_Q_Q_hom Y Z),
+      dm_gm_Q_Q_comp (dm_gm_Q_Q_comp f g) h =
+        dm_gm_Q_Q_comp f (dm_gm_Q_Q_comp g h)
+
+/-- Prefix data for the parts of the final gate split out so far: rational fields and the raw
+category certificate. This still does not construct the later t-structure, heart, mixed-motive, or
+trace/classical equivalence payload. -/
+structure InfrastructurePrefixData.{rw, rx, cu, cv} where
+  rationalFields : RationalFieldData.{rw, rx}
+  categoryData : DMgmQCategoryData.{cu, cv}
+
+/-- Extract the rational-field payload from a completed final infrastructure certificate. -/
+def rationalFieldData
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization}
+    (infrastructure : FinalMotivicMMQInfrastructure spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization
+      normTStructure) :
+    RationalFieldData.{w, x} where
+  rationalBaseField := infrastructure.rationalBaseField
+  rationalCoefficientField := infrastructure.rationalCoefficientField
+  rationalBaseFieldIsQ := infrastructure.rationalBaseFieldIsQ
+  rationalCoefficientFieldIsQ := infrastructure.rationalCoefficientFieldIsQ
+
+/-- Extract the raw category-data payload from a completed final infrastructure certificate.
+
+The law fields are not part of `FinalMotivicMMQInfrastructure` yet, so this projection records the
+law obligations explicitly as parameters. -/
+def categoryData
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization}
+    (infrastructure : FinalMotivicMMQInfrastructure spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport transportedNormalization
+      normTStructure)
+    (id_comp :
+      ∀ {X Y : infrastructure.dm_gm_Q_Q_category}
+        (f : infrastructure.dm_gm_Q_Q_hom X Y),
+        infrastructure.dm_gm_Q_Q_comp (infrastructure.dm_gm_Q_Q_id X) f = f)
+    (comp_id :
+      ∀ {X Y : infrastructure.dm_gm_Q_Q_category}
+        (f : infrastructure.dm_gm_Q_Q_hom X Y),
+        infrastructure.dm_gm_Q_Q_comp f (infrastructure.dm_gm_Q_Q_id Y) = f)
+    (assoc :
+      ∀ {W X Y Z : infrastructure.dm_gm_Q_Q_category}
+        (f : infrastructure.dm_gm_Q_Q_hom W X)
+        (g : infrastructure.dm_gm_Q_Q_hom X Y)
+        (h : infrastructure.dm_gm_Q_Q_hom Y Z),
+        infrastructure.dm_gm_Q_Q_comp (infrastructure.dm_gm_Q_Q_comp f g) h =
+          infrastructure.dm_gm_Q_Q_comp f (infrastructure.dm_gm_Q_Q_comp g h)) :
+    DMgmQCategoryData.{u, v} where
+  dm_gm_Q_Q_category := infrastructure.dm_gm_Q_Q_category
+  dm_gm_Q_Q_object := infrastructure.dm_gm_Q_Q_object
+  dm_gm_Q_Q_hom := infrastructure.dm_gm_Q_Q_hom
+  dm_gm_Q_Q_id := infrastructure.dm_gm_Q_Q_id
+  dm_gm_Q_Q_comp := infrastructure.dm_gm_Q_Q_comp
+  id_comp := id_comp
+  comp_id := comp_id
+  assoc := assoc
+
+/-- Assemble the currently implemented prefix of the final infrastructure gate. -/
+def prefixData
+    (rationalFields : RationalFieldData.{w, x})
+    (categoryData : DMgmQCategoryData.{u, v}) :
+    InfrastructurePrefixData.{w, x, u, v} where
+  rationalFields := rationalFields
+  categoryData := categoryData
+
+/-- The standard rational fields paired with supplied raw category data.
+
+This is only a prefix certificate and deliberately cannot close `FinalMotivicMMQInfrastructure`. -/
+def prefixDataWithStandardRationalFields
+    (categoryData : DMgmQCategoryData.{u, v}) :
+    InfrastructurePrefixData.{0, 0, u, v} where
+  rationalFields := RationalFieldData.standard
+  categoryData := categoryData
+
+end FinalMotivicMMQInfrastructure
+
 /-- Campaign 12C manuscript target for identifying the heart constructed from
 the normalization-induced motivic `t`-structure.
 
@@ -2283,6 +2532,9 @@ structure ClassicalHeartIdentificationTarget
     (heartRecognition : HeartRecognitionTarget spine internal normalization classical
       comparisonEquivalence canonicalEquivalence normalizationTransport
       transportedNormalization normTStructure) where
+  finalMotivicInfrastructure :
+    FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+      canonicalEquivalence normalizationTransport transportedNormalization normTStructure
   /-- The transported heart object for the current t-structure. -/
   traceHeart : TraceMotivicHeart normTStructure.traceMotivicTStructure
   /-- Named theorem package: transported heart = classical abelian heart of
@@ -2336,12 +2588,132 @@ structure MMQIdentificationTarget
   mmqHeartIdentification :
     RecognizesClassicalMMQ normTStructure.traceMotivicTStructure
       classicalHeartIdentification.traceHeart
+  finalMotivicInfrastructure :
+    FinalMotivicMMQInfrastructure spine internal normalization classical comparisonEquivalence
+      canonicalEquivalence normalizationTransport transportedNormalization normTStructure
   /-- Named theorem: the MM(Q) identification is compatible with pure-heart
   recognition, recorded via the normalization compatibility and normalization
   packet-cut targets of the transported motivic t-structure. -/
   mmqPureHeartCompatibility :
     normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
       normTStructure.traceMotivicTStructure.normalizationPacketCutTarget
+
+/-- Manuscript-facing endpoint for the abelian heart `MM(Q)` carried by the
+final motivic infrastructure. This is only a renaming layer over the already
+constructed source-of-truth field `FinalMotivicMMQInfrastructure.mixedMotivesQ`.
+-/
+def mixedMotivesQHeart
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization}
+    {heartRecognition : HeartRecognitionTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization normTStructure}
+    (mmqIdentification :
+      MMQIdentificationTarget spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure
+        heartRecognition) : Type y :=
+  mmqIdentification.finalMotivicInfrastructure.mixedMotivesQ
+
+/-- Manuscript-facing theorem that the transported classical heart is the
+abelian heart of the triangulated category of geometric mixed motives over `Q`
+with rational coefficients, i.e. `MM(Q)`. This re-exports the existing theorem
+package field without adding new mathematical content. -/
+theorem mixedMotivesQAbelian
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization}
+    {heartRecognition : HeartRecognitionTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization normTStructure}
+    (mmqIdentification :
+      MMQIdentificationTarget spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure
+        heartRecognition) :
+    normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
+      normTStructure.traceMotivicTStructure.canonicalReconstructionCompatibilityTarget :=
+  mmqIdentification.classicalHeartIdentification.classicalMMQHeartTheorems
+    |>.classicalAbelianHeartIsMixedMotivesQ
+
+/-- Manuscript-facing endpoint for the exact embedding of `MM(Q)` into the
+recognized `DM_gm(Q)_Q` target, obtained by composing the canonical comparison
+between `MM(Q)` and the classical heart with the classical heart embedding. -/
+def mixedMotivesQEmbedding
+    {spine : MotivicRecognitionSpine.{u, v, w, x, y, z}}
+    {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {P : SyntacticBoundaryPresentation setup}
+    {α : Type v}
+    {comparison : CompletedReconstructionRecord setup → α}
+    {C : CanNF setup}
+    {internal : InternalManuscriptSpineTarget P comparison C}
+    {normalization : NormalizationPackageTarget internal}
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {structuredEq : StructuredComparisonEquality ctx}
+    {classical : ClassicalManuscriptSpineTarget ctx structuredEq}
+    {comparisonEquivalence : TraceCategoryEquivalentToDMgmQTarget spine internal classical}
+    {canonicalEquivalence : CanonicalDMgmEquivalenceTarget spine internal classical
+      comparisonEquivalence}
+    {normalizationTransport :
+      NormalizationTransportAcrossDMgmEquivalenceTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence}
+    {transportedNormalization :
+      TransportedNormalizationIsMotivicTarget spine internal normalization classical
+        comparisonEquivalence canonicalEquivalence normalizationTransport}
+    {normTStructure : NormTStructureTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization}
+    {heartRecognition : HeartRecognitionTarget spine internal normalization classical
+      comparisonEquivalence canonicalEquivalence normalizationTransport
+      transportedNormalization normTStructure}
+    (mmqIdentification :
+      MMQIdentificationTarget spine internal normalization classical comparisonEquivalence
+        canonicalEquivalence normalizationTransport transportedNormalization normTStructure
+        heartRecognition) :
+    mixedMotivesQHeart mmqIdentification →
+      mmqIdentification.finalMotivicInfrastructure.dm_gm_Q_Q_category :=
+  fun motive =>
+    mmqIdentification.finalMotivicInfrastructure.classicalHeartEmbedding
+      (mmqIdentification.finalMotivicInfrastructure.mixedMotivesQToHeart motive)
 
 /-- Standalone theorem target for the proof-relevant period theorem on the
 trace-to-`DM_gm(Q)` comparison path.  This remains a manuscript-facing target

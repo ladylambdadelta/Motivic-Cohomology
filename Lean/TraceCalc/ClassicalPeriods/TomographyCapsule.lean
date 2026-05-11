@@ -450,7 +450,7 @@ def ofCore
 end GeneratorTomographyObligations
 
 /-- Concrete assignment table used by the canonical tomography core. -/
-def canonicalGeneratorTomographyAssignmentTable
+noncomputable def canonicalGeneratorTomographyAssignmentTable
     {ctx : ClassicalComparisonContext.{u, v}} :
     GeneratorRealizationAssignmentTable ctx :=
   unitGeneratorRealizationAssignmentTable ctx
@@ -605,7 +605,7 @@ def canonicalGeneratorTomographyRowSlotSeparation
 assignment table, slot data, recovered map, and row-slot separation witness.
 Production note: this is the absolute concrete capsule core instance, not merely
 parametric `core -> capsule` infrastructure. -/
-def canonicalGeneratorTomographyCore
+noncomputable def canonicalGeneratorTomographyCore
     {ctx : ClassicalComparisonContext.{u, v}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}} :
     GeneratorTomographyCore ctx setup where
@@ -624,7 +624,7 @@ def GeneratorTomographyCapsule.ofCoreWithCanonicalObligations
   core.withObligations_complete (GeneratorTomographyObligations.ofCore core)
 
 /-- Concrete complete capsule built from the canonical concrete core. -/
-def canonicalGeneratorTomographyCapsule
+noncomputable def canonicalGeneratorTomographyCapsule
     {ctx : ClassicalComparisonContext.{u, v}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}} :
     GeneratorTomographyCapsule ctx setup :=
@@ -632,7 +632,7 @@ def canonicalGeneratorTomographyCapsule
     (@canonicalGeneratorTomographyCore ctx setup)
 
 /-- Concrete comparison-boundary recovery bridge from the canonical capsule core. -/
-def canonicalGeneratorTomographyBoundaryRecoveryTarget
+noncomputable def canonicalGeneratorTomographyBoundaryRecoveryTarget
     {ctx : ClassicalComparisonContext.{u, v}}
     {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}} :
     PortLabelSeparationTargetOfSlots

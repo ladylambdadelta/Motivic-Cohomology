@@ -2,10 +2,10 @@ import TraceCalc.ClassicalBridge.SourceRealizationBridge
 import TraceCalc.ClassicalBridge.StructuredPeriodBridge
 import TraceCalc.ClassicalPeriods.Framed
 import TraceCalc.ClassicalPeriods.PeriodConjectureTarget
-import TraceCalc.ClassicalPeriods.PrimitiveTraceTomography
 import TraceCalc.ClassicalPeriods.Tomography
 import TraceCalc.ClassicalPeriods.ReverseMath
 import TraceCalc.LayerD.PeriodFaithfulnessAssembly
+import TraceCalc.LayerD.ConcretePeriodFaithfulness
 
 universe u v w x y z
 
@@ -85,7 +85,10 @@ theorem probe_eq_of_framed_eq
 
 end PrimitiveProbeRealizesConcreteFramedPeriods
 
-/-- Lower scalar transport data replacing the former direct theorem-shaped scalar transfer slot. -/
+/-- Lower scalar transport scaffold.
+
+The final field is an explicit transport assumption: this package does not prove the classical
+scalar period conjecture. -/
 structure ClassicalScalarFaithfulnessTransportData
     (abstractPeriodFaithfulness : LayerD.AbstractPeriodFaithfulnessTheorem.{u, v, w})
     (classicalTarget : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) where
@@ -93,7 +96,7 @@ structure ClassicalScalarFaithfulnessTransportData
   scalarToStructuredComparisonData : Prop
   structuredComparisonFaithfulnessData : Prop
   classicalRecognitionTransportData : Prop
-  theoremFromData :
+  scalarFaithfulnessTransportAssumption :
     (∀ f g : abstractPeriodFaithfulness.context.Morph,
       abstractPeriodFaithfulness.context.ScalarShadow f =
         abstractPeriodFaithfulness.context.ScalarShadow g →
@@ -102,7 +105,7 @@ structure ClassicalScalarFaithfulnessTransportData
 
 namespace ClassicalScalarFaithfulnessTransportData
 
-/-- Derived scalar faithfulness transport theorem. -/
+/-- Scaffold scalar faithfulness transport, projected from an explicit assumption field. -/
 def toClassicalFaithfulness
     {abstractPeriodFaithfulness : LayerD.AbstractPeriodFaithfulnessTheorem.{u, v, w}}
     {classicalTarget : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}}
@@ -113,7 +116,7 @@ def toClassicalFaithfulness
           abstractPeriodFaithfulness.context.ScalarShadow g →
         abstractPeriodFaithfulness.context.EqMorph f g) :
     ClassicalGrothendieckPeriodFaithfulnessStatement classicalTarget :=
-  transport.theoremFromData abstractFaithfulness
+  transport.scalarFaithfulnessTransportAssumption abstractFaithfulness
 
 end ClassicalScalarFaithfulnessTransportData
 
@@ -237,7 +240,7 @@ def framedTarget
     framedRealizationData := bridge.framedEqualityReflectsStructuredComparison
     framedComparisonData := bridge.internalStructuredScalarPackagesRealizeFramedPeriods
     framedReconstructionData := bridge.internalTargetPackageRealizesClassicalMotivicTarget
-    theoremFromData := bridge.framedEqualityReflectsStructuredComparisonTarget }
+    framedReflectionAssumption := bridge.framedEqualityReflectsStructuredComparisonTarget }
 
 /-- Framed-period equality induced by the primitive concrete/geometric probe family carried by the
 bridge. This is auxiliary: it is not the framed equality of `bridge.framedTarget`. -/
@@ -368,6 +371,183 @@ def classicalFaithfulnessStatement
     ClassicalGrothendieckPeriodFaithfulnessStatement bridge.classicalTarget :=
   bridge.scalarFaithfulnessTransportData.toClassicalFaithfulness
     bridge.abstractPeriodFaithfulness.scalarFaithful
+
+/-- Rebuild the classical target through the explicit literal packed-comparison equality lane.
+
+This does not assume faithfulness for an arbitrary `structuredComparisonEquality`: the equality
+layer is fixed to `LayerD.literalPackedStructuredComparisonEquality`, and the only remaining
+inputs are the two exact theorem surfaces needed by the final target package. -/
+def classicalTargetOfLiteralPackedComparison
+    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
+    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
+    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
+    (bridge : InternalProgramRealizesClassicalPeriodTarget presentation aux)
+    (scalarShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.scalarShadow.equalityRelation
+          (bridge.classicalTarget.scalarShadowOf f)
+          (bridge.classicalTarget.scalarShadowOf g) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g)
+    (packedComparisonReflectsMorphismEquality :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g →
+        f = g) :
+    ClassicalGrothendieckPeriodFaithfulnessTarget where
+  Context := bridge.classicalTarget.Context
+  MotiveCategory := bridge.classicalTarget.MotiveCategory
+  instMotiveCategory := bridge.classicalTarget.instMotiveCategory
+  BettiCategory := bridge.classicalTarget.BettiCategory
+  DeRhamCategory := bridge.classicalTarget.DeRhamCategory
+  instBettiCategory := bridge.classicalTarget.instBettiCategory
+  instDeRhamCategory := bridge.classicalTarget.instDeRhamCategory
+  BettiRealization := bridge.classicalTarget.BettiRealization
+  DeRhamRealization := bridge.classicalTarget.DeRhamRealization
+  objectComparison := bridge.classicalTarget.objectComparison
+  morphismStructuredComparison := bridge.classicalTarget.morphismStructuredComparison
+  structuredComparisonEquality :=
+    LayerD.literalPackedStructuredComparisonEquality bridge.classicalTarget.Context
+  scalarShadow := bridge.classicalTarget.scalarShadow
+  scalarShadowEquality := bridge.classicalTarget.scalarShadowEquality
+  classicalPeriodEvaluationIsBasisFree :=
+    bridge.classicalTarget.classicalPeriodEvaluationIsBasisFree
+  bettiScalarExtensionFaithfulnessTarget :=
+    bridge.classicalTarget.bettiScalarExtensionFaithfulnessTarget
+  scalarToStructuredReflectionData := {
+    scalarRealizationData :=
+      bridge.classicalTarget.scalarToStructuredReflectionData.scalarRealizationData
+    comparisonData := bridge.classicalTarget.scalarToStructuredReflectionData.comparisonData
+    reconstructionData := bridge.classicalTarget.scalarToStructuredReflectionData.reconstructionData
+    scalarReflectionAssumption := by
+      intro X Y f g hScalar
+      exact scalarShadowReflectsLiteralPackedComparison f g hScalar
+  }
+  structuredComparisonFaithfulnessData := {
+    classicalRecognitionData :=
+      bridge.classicalTarget.structuredComparisonFaithfulnessData.classicalRecognitionData
+    morphismReconstructionData :=
+      bridge.classicalTarget.structuredComparisonFaithfulnessData.morphismReconstructionData
+    structuredTransportData :=
+      bridge.classicalTarget.structuredComparisonFaithfulnessData.structuredTransportData
+    structuredFaithfulnessAssumption := by
+      intro X Y f g hStructured
+      exact packedComparisonReflectsMorphismEquality f g
+        (LayerD.structuredComparisonEquality_to_packedComparison_eq hStructured)
+  }
+
+/-- The scalar exported theorem, routed through the explicitly constructed literal-packed target. -/
+theorem classicalFaithfulnessStatement_ofLiteralPackedComparison
+    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
+    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
+    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
+    (bridge : InternalProgramRealizesClassicalPeriodTarget presentation aux)
+    (scalarShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.scalarShadow.equalityRelation
+          (bridge.classicalTarget.scalarShadowOf f)
+          (bridge.classicalTarget.scalarShadowOf g) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g)
+    (packedComparisonReflectsMorphismEquality :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g →
+        f = g) :
+    ClassicalGrothendieckPeriodFaithfulnessStatement
+      (bridge.classicalTargetOfLiteralPackedComparison
+        scalarShadowReflectsLiteralPackedComparison
+        packedComparisonReflectsMorphismEquality) :=
+    ClassicalPeriods.ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement_of_reflection
+    (bridge.classicalTargetOfLiteralPackedComparison
+      scalarShadowReflectsLiteralPackedComparison
+      packedComparisonReflectsMorphismEquality)
+
+/-- Rebuild the framed target through the explicit literal packed-comparison equality lane. -/
+def framedTargetOfLiteralPackedComparison
+    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
+    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
+    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
+    (bridge : InternalProgramRealizesClassicalPeriodTarget presentation aux)
+    (scalarShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.scalarShadow.equalityRelation
+          (bridge.classicalTarget.scalarShadowOf f)
+          (bridge.classicalTarget.scalarShadowOf g) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g)
+    (packedComparisonReflectsMorphismEquality :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g →
+        f = g)
+    (framedShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.framedPeriodShadow.equalityRelation
+          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf f))
+          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf g)) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g) :
+    FramedPeriodConjectureTarget where
+  baseTarget := bridge.classicalTargetOfLiteralPackedComparison
+    scalarShadowReflectsLiteralPackedComparison
+    packedComparisonReflectsMorphismEquality
+  framedPeriodEquality := bridge.framedPeriodEquality
+  framedPeriodOperations := bridge.framedPeriodOperations
+  framedPeriodShadow := bridge.framedPeriodShadow
+  framedShadowEquality := bridge.framedShadowEquality
+  framedScalarShadowAlgebra := bridge.framedScalarShadowAlgebra
+  framedPeriodOperationLaws := bridge.framedPeriodOperationLaws
+  framedPeriodOf := bridge.framedPeriodOf
+  framedScalarToBaseScalar := bridge.framedScalarToBaseScalar
+  framedShadowToBaseShadowCompatible := bridge.framedShadowToBaseShadowCompatible
+  scalarShadow_agrees_with_framedShadow := bridge.scalarShadow_agrees_with_framedShadow
+  framedPeriodEqualityReflectsShadowEquality := bridge.framedPeriodEqualityReflectsShadowEquality
+  scalarShadowReflectsFramedEquality := bridge.scalarShadowReflectsFramedEquality
+  framedToStructuredReflectionData := {
+    framedRealizationData := bridge.framedEqualityReflectsStructuredComparison
+    framedComparisonData := bridge.internalStructuredScalarPackagesRealizeFramedPeriods
+    framedReconstructionData := bridge.internalTargetPackageRealizesClassicalMotivicTarget
+    framedReflectionAssumption := by
+      intro X Y f g hFramed
+      exact framedShadowReflectsLiteralPackedComparison f g hFramed
+  }
+
+/-- The framed exported theorem, routed through the explicitly constructed literal-packed target. -/
+theorem framedFaithfulnessStatement_ofLiteralPackedComparison
+    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
+    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
+    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
+    (bridge : InternalProgramRealizesClassicalPeriodTarget presentation aux)
+    (scalarShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.scalarShadow.equalityRelation
+          (bridge.classicalTarget.scalarShadowOf f)
+          (bridge.classicalTarget.scalarShadowOf g) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g)
+    (packedComparisonReflectsMorphismEquality :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g →
+        f = g)
+    (framedShadowReflectsLiteralPackedComparison :
+      ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+        bridge.framedPeriodShadow.equalityRelation
+          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf f))
+          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf g)) →
+        bridge.classicalTarget.packedMorphismComparison f =
+          bridge.classicalTarget.packedMorphismComparison g) :
+    ClassicalFramedPeriodConjectureStatement
+      (bridge.framedTargetOfLiteralPackedComparison
+        scalarShadowReflectsLiteralPackedComparison
+        packedComparisonReflectsMorphismEquality
+        framedShadowReflectsLiteralPackedComparison) :=
+  ClassicalPeriods.FramedPeriodConjectureTarget.faithfulnessStatement_of_reflection
+    (bridge.framedTargetOfLiteralPackedComparison
+      scalarShadowReflectsLiteralPackedComparison
+      packedComparisonReflectsMorphismEquality
+      framedShadowReflectsLiteralPackedComparison)
 
 end InternalProgramRealizesClassicalPeriodTarget
 

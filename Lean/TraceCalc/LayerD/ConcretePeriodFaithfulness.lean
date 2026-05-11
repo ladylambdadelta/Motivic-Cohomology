@@ -1,7 +1,6 @@
 import TraceCalc.LayerD.PeriodFaithfulnessAssembly
 import TraceCalc.ClassicalPeriods.Basic
 import TraceCalc.ClassicalPeriods.ComparisonBoundaryRecovery
-import TraceCalc.ClassicalPeriods.TomographyCapsule
 import TraceCalc.LayerB.RealObjects.SourceHolographyToLayerD
 
 universe u v w
@@ -315,6 +314,14 @@ theorem comparison_eq_implies_visibleBoundary_eq
 
 end StructuredComparisonBoundaryProjectionData
 
+private def corrBoundarySlotLabelData : StructuredComparisonSlotData := {
+  sourceSlot := "source"
+  targetSlot := "target"
+  bettiSlot := "betti"
+  deRhamSlot := "deRham"
+  comparisonSlot := "comparison"
+}
+
 /-- Concrete packed-comparison projection data anchored on the same Corr-row
 slot labels used by the canonical tomography capsule.
 
@@ -326,10 +333,10 @@ boundary representative. -/
 def structuredComparisonBoundaryProjectionData_from_slotRecovery
     {ctx : ClassicalComparisonContext.{u, v}} :
     StructuredComparisonBoundaryProjectionData ctx where
-  boundarySlotLabels := fun _ => canonicalCorrSlotLabelData
-  sourceBoundaryIdentifier := fun _ => canonicalCorrSlotLabelData.sourceSlot
-  targetBoundaryIdentifier := fun _ => canonicalCorrSlotLabelData.targetSlot
-  gluingCompatibilityLabel := fun _ => canonicalCorrSlotLabelData.comparisonSlot
+  boundarySlotLabels := fun _ => corrBoundarySlotLabelData
+  sourceBoundaryIdentifier := fun _ => corrBoundarySlotLabelData.sourceSlot
+  targetBoundaryIdentifier := fun _ => corrBoundarySlotLabelData.targetSlot
+  gluingCompatibilityLabel := fun _ => corrBoundarySlotLabelData.comparisonSlot
   boundaryProjectionReadFromStructuredComparisonData := by
     intro comparison
     constructor
@@ -806,9 +813,13 @@ Equal classical periods (Betti and de Rham together with comparison isomorphism)
 imply morphism equality in the motivic category. This is the main classical
 period theorem, proved by composing:
 1. `cor:internal-period-faithfulness` (basis-free period map determines morphism)
-2. `thm:tomographic-faithfulness` (MISSING: periods determine comparison data)
-3. `lem:period-pairing-determines-realizations` (MISSING: pairings determine realizations)
-4. `thm:comparison-reconstruction` (MISSING: reconstruction from comparison data)
+2. `thm:tomographic-faithfulness`
+3. `lem:period-pairing-determines-realizations`
+4. `thm:comparison-reconstruction`
+
+These named theorem surfaces now exist in `MotivicRecognition/RealizationAgreementStatements.lean`.
+The remaining gap is the final assembly of their outputs into the classical target package, not
+the absence of local theorem names for steps (2)-(4).
 
 The theorem content is the `periodConsequence` field supplied by a constructor; this record is not
 used by the locked final theorem path as hidden evidence. -/

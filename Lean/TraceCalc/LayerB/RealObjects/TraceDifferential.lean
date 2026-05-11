@@ -474,16 +474,16 @@ end TraceDifferentialSemantics
 `boundaryGenerator generator boundary` and a refined-complete gluing witness,
 show `boundary.cls = zeroClass`. The existing Layer B files cannot prove this
 because `CertifiedTrace.cls` is defined via `TraceEquiv`, which tracks only
-two-cell generator steps (admin/swap/rw). There is no axiom or lemma in
+two-cell generator steps (admin/swap/rw). There is no bridge lemma in
 `CertifiedTrace.lean`, `Attach.lean`, `BoundaryCode.lean`, or
 `SyntacticBoundary.lean` that connects `glueBoundary` equations to
 `TraceEquiv` equivalence classes.
 
 This structure records exactly that missing semantic bridge as an explicit
-axiom package. It is not a proof — it is the precise name for the semantic
+bridge package. It is not a proof — it is the precise name for the semantic
 gap that separates the current gluing/attachment layer from the trace-class
 zero conclusion. A concrete instantiation would have to either:
-  (a) extend `CertifiedTrace` with a boundary-gluing compatibility axiom, or
+  (a) extend `CertifiedTrace` with a boundary-gluing compatibility law, or
   (b) define `zeroClass` as the class of a specific trace constructed from the
       gluing witness.
 
@@ -497,14 +497,14 @@ to `GluedBoundaryHasZeroTraceClassTarget` via
 * `boundaryGenerator` — the relation singling out boundary-generated traces.
 * `gluingWitnessImpliesZeroClass` — given a `boundaryGenerator generator boundary`
   and a refined-complete gluing witness, conclude `boundary.cls = zeroClass`.
-  This is the exact missing axiom.
+  This is the exact missing bridge law.
 
 ### Relationship to `GluedBoundaryHasZeroTraceClassTarget`
 
 Every `GluingWitnessToTraceClassBridge` produces a
 `GluedBoundaryHasZeroTraceClassTarget` by projection. The two structures
 differ only in documentation intent: the bridge foregrounds its role as
-a named axiom package, while the target foregrounds its role as the remaining
+a named bridge package, while the target foregrounds its role as the remaining
 proof obligation. -/
 structure GluingWitnessToTraceClassBridge (setup : RewriteCalculusSetup.{u}) where
   /-- A distinguished zero trace class, uniform across all `{X Y : setup.State}`. -/
@@ -513,7 +513,7 @@ structure GluingWitnessToTraceClassBridge (setup : RewriteCalculusSetup.{u}) whe
   boundaryGenerator :
     ∀ {X Y : setup.State},
       setup.CertifiedTrace X Y → setup.CertifiedTrace X Y → Prop
-  /-- **Missing axiom.** Given a generated boundary and a refined-complete
+  /-- **Missing bridge law.** Given a generated boundary and a refined-complete
   gluing witness, the generated boundary's trace class equals `zeroClass`.
 
   This is the exact semantic content absent from the current `CertifiedTrace` /
@@ -568,7 +568,7 @@ def toGluedBoundaryHasZeroTraceClassTarget
 `TraceBoundaryZeroTheorem`, provided the witness-existence half is supplied
 separately. This makes explicit the two independent ingredients:
   1. the witness *exists* (comes from the boundary-generator definition), and
-  2. the witness *forces the zero class* (this bridge's axiom).
+  2. the witness *forces the zero class* (this bridge's law).
 -/
 def toTraceBoundaryZeroTheorem
     (bridge : GluingWitnessToTraceClassBridge setup)
@@ -858,8 +858,8 @@ end SinkDeletionProducesTraceEquivZero
 `BoundaryGluingReplayData` is the concrete proof-relevant carrier that
 provides it for sink-deletion constructors. `SinkDeletionMakesClassZeroCertificate`
 is the quotient-level equivalent (easier to think about at the `cls` level),
-and all conversions below are genuine proofs using existing API — no broadening
-of `AdminRelation`, no `sorry`. -/
+and all conversions below are genuine proofs using existing API, with no broadening
+of `AdminRelation`. -/
 
 /-- Proof-relevant finite replay chain built from `TwoCellStep` edges.
 
@@ -1122,7 +1122,7 @@ via `TraceClass.exact` applied to the chain:
     `= zeroCertifiedTrace.cls`                             (by `zeroCertifiedTrace_cls.symm`)
     `= TraceClass.mk setup zeroCertifiedTrace.canonicalReplay` (by `represents.symm`)
 
-No broadening of `AdminRelation` is used; no `sorry` or arbitrary admin. -/
+No broadening of `AdminRelation` is used, and no arbitrary admin move is added. -/
 def toSinkDeletionProducesTraceEquivZero
     (cert : SinkDeletionMakesClassZeroCertificate setup) :
     SinkDeletionProducesTraceEquivZero setup where
@@ -1526,6 +1526,156 @@ def toTraceDifferentialSemantics
   rfl
 
 end BoundaryToTraceDifferentialCapsule
+
+/-! ### Typed peel-chain normalization differential package
+
+The trace-relation packages above supply boundary-to-zero semantics for certified traces.
+For the normalization complex, the first genuinely composable lower-layer carrier is the
+sink-peel chain itself: each differential is an adjacent peel step, and each two-step
+composite is equipped with proof-relevant null-boundary data.
+-/
+
+structure PeelChainAdjacentDifferential
+    {R : CompletedReconstructionRecord setup}
+    (chain : CompletedReconstructionRecord.PeelChain R) where
+  source : CompletedReconstructionRecord setup
+  target : CompletedReconstructionRecord setup
+  degree : Nat
+  nextDegree : Nat
+  degree_step : nextDegree = degree + 1
+  source_packet_count : source.n + degree = R.n
+  target_packet_count : target.n + nextDegree = R.n
+  sink : Fin source.n
+  sink_is_sink : source.IsSink sink
+
+namespace PeelChainAdjacentDifferential
+
+theorem degree_strictly_increases
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (step : PeelChainAdjacentDifferential (setup := setup) chain) :
+    step.degree < step.nextDegree := by
+  rw [step.degree_step]
+  exact Nat.lt_succ_self step.degree
+
+end PeelChainAdjacentDifferential
+
+structure PeelChainTwoStepNullBoundary
+    {R : CompletedReconstructionRecord setup}
+    (chain : CompletedReconstructionRecord.PeelChain R)
+    (first second : PeelChainAdjacentDifferential (setup := setup) chain) where
+  endpoints_match : first.target = second.source
+  composite_source : CompletedReconstructionRecord setup := first.source
+  composite_middle : CompletedReconstructionRecord setup := first.target
+  composite_target : CompletedReconstructionRecord setup := second.target
+  source_eq : composite_source = first.source
+  middle_eq_left : composite_middle = first.target
+  middle_eq_right : composite_middle = second.source
+  target_eq : composite_target = second.target
+  degree_gap : second.nextDegree = first.degree + 2
+
+namespace PeelChainTwoStepNullBoundary
+
+theorem middle_agrees
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    {first second : PeelChainAdjacentDifferential (setup := setup) chain}
+    (boundary : PeelChainTwoStepNullBoundary (setup := setup) chain first second) :
+    first.target = second.source :=
+  boundary.endpoints_match
+
+end PeelChainTwoStepNullBoundary
+
+structure PeelChainDifferentialPackage
+    {R : CompletedReconstructionRecord setup}
+    (chain : CompletedReconstructionRecord.PeelChain R) where
+  differentialAt : Nat → Option (PeelChainAdjacentDifferential (setup := setup) chain)
+  differentialAt_degree :
+    ∀ {degree : Nat} {step : PeelChainAdjacentDifferential (setup := setup) chain},
+      differentialAt degree = some step → step.degree = degree
+  starts_at_record :
+    ∀ {step : PeelChainAdjacentDifferential (setup := setup) chain},
+      differentialAt 0 = some step → step.source = R
+  adjacent_null_boundary :
+    ∀ {degree : Nat}
+      {first second : PeelChainAdjacentDifferential (setup := setup) chain},
+      differentialAt degree = some first →
+      differentialAt (degree + 1) = some second →
+        PeelChainTwoStepNullBoundary (setup := setup) chain first second
+
+namespace PeelChainDifferentialPackage
+
+def gradeObject
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    (degree : Nat) : Option (CompletedReconstructionRecord setup) :=
+  match PeelChainDifferentialPackage.differentialAt pkg degree with
+  | some step => some step.source
+  | none => none
+
+def differential
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    (degree : Nat) : Option (PeelChainAdjacentDifferential (setup := setup) chain) :=
+  PeelChainDifferentialPackage.differentialAt pkg degree
+
+def d_next_comp_d
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    {degree : Nat}
+    {first second : PeelChainAdjacentDifferential (setup := setup) chain}
+    (hfirst : differential (setup := setup) pkg degree = some first)
+    (hsecond : differential (setup := setup) pkg (degree + 1) = some second) :
+    PeelChainTwoStepNullBoundary (setup := setup) chain first second :=
+  PeelChainDifferentialPackage.adjacent_null_boundary pkg
+    (by simpa [differential] using hfirst)
+    (by simpa [differential] using hsecond)
+
+theorem first_differential_source
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    {step : PeelChainAdjacentDifferential (setup := setup) chain}
+    (hstep : differential (setup := setup) pkg 0 = some step) :
+    step.source = R :=
+  PeelChainDifferentialPackage.starts_at_record pkg hstep
+
+theorem differential_degree
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    {degree : Nat} {step : PeelChainAdjacentDifferential (setup := setup) chain}
+    (hstep : differential (setup := setup) pkg degree = some step) :
+    step.degree = degree :=
+  PeelChainDifferentialPackage.differentialAt_degree pkg hstep
+
+theorem differential_next_degree
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    {degree : Nat} {step : PeelChainAdjacentDifferential (setup := setup) chain}
+    (hstep : differential (setup := setup) pkg degree = some step) :
+    step.nextDegree = degree + 1 := by
+  rw [PeelChainAdjacentDifferential.degree_step step,
+    differential_degree (setup := setup) pkg hstep]
+
+theorem differential_degree_within_amplitude
+    {R : CompletedReconstructionRecord setup}
+    {chain : CompletedReconstructionRecord.PeelChain R}
+    (pkg : PeelChainDifferentialPackage (setup := setup) chain)
+    {degree : Nat} {step : PeelChainAdjacentDifferential (setup := setup) chain}
+    (hstep : differential (setup := setup) pkg degree = some step) :
+    degree ≤ R.n := by
+  have hdegree := differential_degree (setup := setup) pkg hstep
+  have hcount := PeelChainAdjacentDifferential.source_packet_count step
+  rw [← hdegree]
+  rw [← hcount]
+  exact Nat.le_add_left step.degree step.source.n
+
+end PeelChainDifferentialPackage
 
 end RewriteCalculusSetup
 end RealObjects

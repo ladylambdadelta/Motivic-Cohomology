@@ -1,5 +1,6 @@
 import TraceCalc.MotivicRecognition.Package7Proofs
 import TraceCalc.MotivicRecognition.Package8Proofs
+import TraceCalc.MotivicRecognition.DMgmQConstruction
 
 universe u v w x y z
 
@@ -17,9 +18,15 @@ namespace MMQRecognitionClosedTarget
 The terminal target has a generic `dependencyDAGStatement : Prop` slot.  This
 definition gives that slot a proof-relevant, non-arbitrary meaning: every row is
 an upstream proof field already carried by one of the sealed package inputs.
+
+This closeout now also consumes a construction-aware DMgmQ recognition target rooted in the live
+quotient-zigzag/Karoubi spine. In particular, the final Package 9 dependency path cannot close
+without threading the concrete `DMgmQCategoryData` and infrastructure prefix extracted from
+`DMgmQConstruction`.
 -/
 def concreteDependencyDAGStatement
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -46,6 +53,8 @@ def concreteDependencyDAGStatement
     (_periodConjectureViaRealization :
       PeriodConjectureViaRealizationTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence realizationComparison)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -102,6 +111,24 @@ def concreteDependencyDAGStatement
     (realizationComparison.periodMatrixAgreementTarget ∧
       canonicalDMgmEquivalence.canonicalEquivalenceTarget ∧
       canonicalDMgmEquivalence.rigidTensorTriangulatedEquivalenceTarget) ∧
+    (constructedRecognition.constructedCategoryData =
+      constructedDMgmQ.toDMgmQCategoryData) ∧
+    (constructedRecognition.constructedInfrastructurePrefix =
+      constructedDMgmQ.toInfrastructurePrefixData) ∧
+    (constructedRecognition.constructedInfrastructurePrefix.categoryData =
+      constructedRecognition.constructedCategoryData) ∧
+    (constructedRecognition.rationalCorrespondenceStage =
+      constructedDMgmQ.rationalCorrespondenceCategory) ∧
+    (constructedRecognition.boundedComplexStage =
+      constructedDMgmQ.boundedComplexes) ∧
+    (constructedRecognition.localizationStage =
+      constructedDMgmQ.localization) ∧
+    (constructedRecognition.localizationUniversalPropertyStage =
+      constructedDMgmQ.localizationUniversalProperty) ∧
+    (constructedRecognition.karoubiEnvelopeStage =
+      constructedDMgmQ.karoubiEnvelope) ∧
+    (constructedRecognition.karoubiUniversalPropertyData =
+      constructedDMgmQ.karoubiUniversalPropertyData) ∧
     universalRecognition.recognitionData.universalRecognitionTarget ∧
     universalRecognition.recognitionData.uniquenessOfRecipientTarget ∧
     universalRecognition.recognitionData.comparisonAgreementTarget ∧
@@ -122,8 +149,8 @@ def concreteDependencyDAGStatement
       normalizationPackage classicalSpine traceToDMgmEquivalence canonicalDMgmEquivalence
       normalizationTransport transportedNormalizationIsMotivic
       normTStructure).pureHeartRecognitionTarget ∧
-    ClassicalMMQHeartTheorems normTStructure.traceMotivicTStructure
-      classicalHeartIdentification.traceHeart ∧
+    (classicalHeartIdentification.traceHeart =
+      TraceMotivicHeart.ofTStructure normTStructure.traceMotivicTStructure) ∧
     (normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
       normTStructure.traceMotivicTStructure.orthogonalityFromSeparatedDegreesTarget) ∧
     (normTStructure.traceMotivicTStructure.normalizationCompatibilityTarget ∧
@@ -140,6 +167,7 @@ def concreteDependencyDAGStatement
 
 theorem concreteDependencyDAG_holds_from_packages
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -166,6 +194,8 @@ theorem concreteDependencyDAG_holds_from_packages
     (periodConjectureViaRealization :
       PeriodConjectureViaRealizationTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence realizationComparison)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -201,10 +231,10 @@ theorem concreteDependencyDAG_holds_from_packages
       ProofRelevantPeriodTheoremFromComparisonFaithfulnessTarget recognitionSpine internalSpine
         classicalSpine traceToDMgmEquivalence canonicalDMgmEquivalence
         proofRelevantPeriodTheorem) :
-    concreteDependencyDAGStatement recognitionSpine stableCompletion
+    concreteDependencyDAGStatement recognitionSpine constructedDMgmQ stableCompletion
       stableCompletionConstruction completionUniversalProperty traceToDMgmEquivalence
       canonicalDMgmEquivalence realizationComparison periodConjectureViaRealization
-      universalRecognition normalizationPackage normalizationTransport
+      constructedRecognition universalRecognition normalizationPackage normalizationTransport
       transportedNormalizationIsMotivic normTStructure classicalHeartIdentification
       mmqIdentification proofRelevantPeriodTheorem
       proofRelevantPeriodTheoremFromComparisonFaithfulness := by
@@ -228,6 +258,15 @@ theorem concreteDependencyDAG_holds_from_packages
       canonicalDMgmEquivalence.infinityShadowCompatibility_holds,
       periodConjectureViaRealization.periodFaithfulnessTransportTarget,
       periodConjectureViaRealization.equivalenceWithClassicalStatementTarget,
+      constructedRecognition.categoryDataFromConstruction,
+      constructedRecognition.infrastructurePrefixFromConstruction,
+      constructedRecognition.prefixCarriesConstructedCategoryData,
+      constructedRecognition.rationalCorrespondenceStageMatchesConstruction,
+      constructedRecognition.boundedComplexStageMatchesConstruction,
+      constructedRecognition.localizationStageMatchesConstruction,
+      constructedRecognition.localizationUniversalPropertyMatchesCanonical,
+      constructedRecognition.karoubiEnvelopeStageMatchesConstruction,
+      constructedRecognition.karoubiUniversalPropertyDataMatchesConstruction,
       ⟨universalRecognition.recognitionData.canonicalEquivalenceCompatibility,
         universalRecognition.recognitionData.comparisonEquivalenceCompatibility⟩,
       ⟨universalRecognition.recognitionData.rigidTensorTriangulatedCompatibility,
@@ -244,7 +283,7 @@ theorem concreteDependencyDAG_holds_from_packages
       normTStructure.normTStructureTheoremPackage,
       HeartRecognitionTarget.pureHeartRecognitionTarget_holds
         normTStructure.normTStructureTheoremPackage,
-      classicalHeartIdentification.classicalMMQHeartTheorems,
+      classicalHeartIdentification.classicalMMQHeartTheorems.classicalTraceHeartAgreement,
       classicalHeartIdentification.classicalMMQHeartTheorems.mixedMotiveHeartOverQTarget,
       mmqIdentification.mmqPureHeartCompatibility,
       proofRelevantPeriodTheorem.proofRelevantPeriodStatementTarget,
@@ -260,6 +299,7 @@ This is the non-arbitrary Package 9 assembly route: the final
 -/
 def ofPackagesWithConcreteDependencyDAG
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -292,6 +332,8 @@ def ofPackagesWithConcreteDependencyDAG
     (periodConjectureViaRealization :
       PeriodConjectureViaRealizationTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence realizationComparison)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -339,17 +381,17 @@ def ofPackagesWithConcreteDependencyDAG
       normalizationTransport transportedNormalizationIsMotivic normTStructure)
     classicalHeartIdentification mmqIdentification proofRelevantPeriodTheorem
     proofRelevantPeriodTheoremFromComparisonFaithfulness
-    (concreteDependencyDAGStatement recognitionSpine stableCompletion
+    (concreteDependencyDAGStatement recognitionSpine constructedDMgmQ stableCompletion
       stableCompletionConstruction completionUniversalProperty traceToDMgmEquivalence
       canonicalDMgmEquivalence realizationComparison periodConjectureViaRealization
-      universalRecognition normalizationPackage normalizationTransport
+      constructedRecognition universalRecognition normalizationPackage normalizationTransport
       transportedNormalizationIsMotivic normTStructure classicalHeartIdentification
       mmqIdentification proofRelevantPeriodTheorem
       proofRelevantPeriodTheoremFromComparisonFaithfulness)
-    (concreteDependencyDAG_holds_from_packages recognitionSpine stableCompletion
+    (concreteDependencyDAG_holds_from_packages recognitionSpine constructedDMgmQ stableCompletion
       stableCompletionConstruction completionUniversalProperty traceToDMgmEquivalence
       canonicalDMgmEquivalence realizationComparison periodConjectureViaRealization
-      universalRecognition normalizationPackage normalizationTransport
+      constructedRecognition universalRecognition normalizationPackage normalizationTransport
       transportedNormalizationIsMotivic normTStructure classicalHeartIdentification
       mmqIdentification proofRelevantPeriodTheorem
       proofRelevantPeriodTheoremFromComparisonFaithfulness)
@@ -362,6 +404,7 @@ proof-relevant period theorem, and comparison-faithfulness bridge from the seale
 internal realization functor and the canonical equivalence packages. -/
 def ofAllSealedPackages
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -389,6 +432,8 @@ def ofAllSealedPackages
       CanonicalDMgmEquivalenceTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence)
     (internalRealization : InternalRealizationFunctorData ctx structuredEq)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -438,11 +483,11 @@ def ofAllSealedPackages
         ⟨canonicalDMgmEquivalence.canonicalEquivalence_holds,
           canonicalDMgmEquivalence.rigidTensorTriangulatedEquivalence_holds,
           traceToDMgmEquivalence.homotopyCategoryComparison_holds⟩ }
-  MMQRecognitionClosedTarget.ofPackagesWithConcreteDependencyDAG recognitionSpine internalSpine
-    classicalSpine stableCompletion stableCompletionConstruction completionUniversalProperty
+  MMQRecognitionClosedTarget.ofPackagesWithConcreteDependencyDAG recognitionSpine constructedDMgmQ
+    internalSpine classicalSpine stableCompletion stableCompletionConstruction completionUniversalProperty
     corePresentationEquivalence completedPresentationEquivalence traceToDMgmEquivalence
     canonicalDMgmEquivalence realizationComparison periodConjectureViaRealization
-    universalRecognition normalizationPackage normalizationTransport
+    constructedRecognition universalRecognition normalizationPackage normalizationTransport
     transportedNormalizationIsMotivic normTStructure classicalHeartIdentification
     mmqIdentification proofRelevantPeriodTheorem
     proofRelevantPeriodTheoremFromComparisonFaithfulness
@@ -452,6 +497,7 @@ end MMQRecognitionClosedTarget
 /-- Final all-packages closed target, routed through `MMQRecognitionClosedTarget.ofAllSealedPackages`. -/
 def finalAllPackagesClosed
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -479,6 +525,8 @@ def finalAllPackagesClosed
       CanonicalDMgmEquivalenceTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence)
     (internalRealization : InternalRealizationFunctorData ctx structuredEq)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -508,10 +556,10 @@ def finalAllPackagesClosed
           normalizationPackage classicalSpine traceToDMgmEquivalence canonicalDMgmEquivalence
           normalizationTransport transportedNormalizationIsMotivic normTStructure)) :
     MMQRecognitionClosedTarget recognitionSpine internalSpine classicalSpine :=
-  MMQRecognitionClosedTarget.ofAllSealedPackages recognitionSpine internalSpine classicalSpine
+  MMQRecognitionClosedTarget.ofAllSealedPackages recognitionSpine constructedDMgmQ internalSpine classicalSpine
     stableCompletion stableCompletionConstruction completionUniversalProperty
     corePresentationEquivalence completedPresentationEquivalence traceToDMgmEquivalence
-    canonicalDMgmEquivalence internalRealization universalRecognition normalizationPackage
+    canonicalDMgmEquivalence internalRealization constructedRecognition universalRecognition normalizationPackage
     normalizationTransport transportedNormalizationIsMotivic normTStructure
     classicalHeartIdentification mmqIdentification
 
@@ -520,6 +568,7 @@ classical-heart and MM(Q) identification packages from the exposed component
 theorem package of the transported motivic t-structure. -/
 def mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -547,6 +596,8 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents
       CanonicalDMgmEquivalenceTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence)
     (internalRealization : InternalRealizationFunctorData ctx structuredEq)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -562,7 +613,11 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents
         traceToDMgmEquivalence canonicalDMgmEquivalence normalizationTransport
         transportedNormalizationIsMotivic)
     (components :
-      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure) :
+      TraceMotivicTStructureComponentTheorems normTStructure.traceMotivicTStructure)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure recognitionSpine internalSpine normalizationPackage classicalSpine
+        traceToDMgmEquivalence canonicalDMgmEquivalence normalizationTransport
+        transportedNormalizationIsMotivic normTStructure) :
     MMQRecognitionClosedTarget recognitionSpine internalSpine classicalSpine :=
   let heartRecognition :=
     HeartRecognitionTarget.ofNormTStructure recognitionSpine internalSpine normalizationPackage
@@ -572,21 +627,22 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents
     ClassicalHeartIdentificationTarget.ofTraceMotivicTStructureData recognitionSpine internalSpine
       normalizationPackage classicalSpine traceToDMgmEquivalence canonicalDMgmEquivalence
       normalizationTransport transportedNormalizationIsMotivic normTStructure heartRecognition
-      components
+      components infrastructure
   let mmqIdentification :=
     MMQIdentificationTarget.ofClassicalHeartIdentification recognitionSpine internalSpine
       normalizationPackage classicalSpine traceToDMgmEquivalence canonicalDMgmEquivalence
       normalizationTransport transportedNormalizationIsMotivic normTStructure heartRecognition
       classicalHeartIdentification
-  MMQRecognitionClosedTarget.ofAllSealedPackages recognitionSpine internalSpine classicalSpine
+  MMQRecognitionClosedTarget.ofAllSealedPackages recognitionSpine constructedDMgmQ internalSpine classicalSpine
     stableCompletion stableCompletionConstruction completionUniversalProperty
     corePresentationEquivalence completedPresentationEquivalence traceToDMgmEquivalence
-    canonicalDMgmEquivalence internalRealization universalRecognition normalizationPackage
+    canonicalDMgmEquivalence internalRealization constructedRecognition universalRecognition normalizationPackage
     normalizationTransport transportedNormalizationIsMotivic normTStructure
     classicalHeartIdentification mmqIdentification
 
 def mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage
     (recognitionSpine : MotivicRecognitionSpine.{u, v, w, x, y, z})
+  (constructedDMgmQ : DMgmQConstruction.Construction.{u, v, w, x})
     {setup : LayerB.RealObjects.RewriteCalculusSetup.{u}}
     {P : SyntacticBoundaryPresentation setup}
     {α : Type v}
@@ -614,6 +670,8 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage
       CanonicalDMgmEquivalenceTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence)
     (internalRealization : InternalRealizationFunctorData ctx structuredEq)
+    (constructedRecognition :
+      DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
       DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
@@ -651,7 +709,11 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage
     (hThreshold : threshold ≤ traceNative.reconstructionLength)
     (hTStructure :
       normTStructure.traceMotivicTStructure =
-        TraceMotivicTStructureData.ofCanonicalPacketCut traceNative threshold hThreshold) :
+        TraceMotivicTStructureData.ofCanonicalPacketCut traceNative threshold hThreshold)
+    (infrastructure :
+      FinalMotivicMMQInfrastructure recognitionSpine internalSpine normalizationPackage classicalSpine
+        traceToDMgmEquivalence canonicalDMgmEquivalence normalizationTransport
+        transportedNormalizationIsMotivic normTStructure) :
     MMQRecognitionClosedTarget recognitionSpine internalSpine classicalSpine :=
   let normalizationPacketCut_holds :
       (TraceMotivicTStructureData.ofCanonicalPacketCut traceNative threshold
@@ -660,13 +722,14 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage
       (normalizationInducesWeightCompatibleTStructure_holds
         normTStructure.normTStructureTheoremPackage).1
   mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents recognitionSpine
-    internalSpine classicalSpine stableCompletion stableCompletionConstruction
+    constructedDMgmQ internalSpine classicalSpine stableCompletion stableCompletionConstruction
     completionUniversalProperty corePresentationEquivalence completedPresentationEquivalence
-    traceToDMgmEquivalence canonicalDMgmEquivalence internalRealization universalRecognition
+    traceToDMgmEquivalence canonicalDMgmEquivalence internalRealization constructedRecognition universalRecognition
     normalizationPackage normalizationTransport transportedNormalizationIsMotivic normTStructure
     (hTStructure ▸
       TraceMotivicTStructureComponentTheorems.ofCanonicalPacketCutWithCertifiedStructuralPackage
         certified hCertified traceNative threshold hThreshold normalizationPacketCut_holds)
+    infrastructure
 
 abbrev mmqRecognitionClosedTargetOfAllSealedPackagesFromCanonicalPacketCut :=
   @mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage

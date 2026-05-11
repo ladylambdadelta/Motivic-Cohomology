@@ -1,3 +1,4 @@
+import TraceCalc.ClassicalPeriods.AGPredicates
 import TraceCalc.ClassicalPeriods.Basic
 
 universe u v w x y
@@ -65,6 +66,76 @@ def ofObject
       realizationDefinedTarget := rfl
 
 end GeometricPeriodObject
+
+/-- Canonical smooth-scheme realization package for a geometric source object.
+
+This closes the object-realization seam at the geometric-object layer: the object is no longer only
+a typed host with abstract targets, but can carry an explicit realization in the existing Wall 10A
+smooth-scheme surface. -/
+structure GeometricObjectSmoothRealization
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (object : GeometricPeriodObject ctx) where
+  scheme : Wall10A.SchemeOverQ
+  smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme
+  geometricAdmissibility : object.geometricAdmissibilityTarget
+  realizationDefined : object.realizationDefinedTarget
+
+namespace GeometricObjectSmoothRealization
+
+/-- Helper constructor for the canonical smooth-scheme realization package. -/
+def ofScheme
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {object : GeometricPeriodObject ctx}
+    (scheme : Wall10A.SchemeOverQ)
+    (smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme)
+    (geometricAdmissibility : object.geometricAdmissibilityTarget)
+    (realizationDefined : object.realizationDefinedTarget) :
+    GeometricObjectSmoothRealization object where
+  scheme := scheme
+  smoothScheme := smoothScheme
+  geometricAdmissibility := geometricAdmissibility
+  realizationDefined := realizationDefined
+
+@[simp] theorem ofScheme_scheme
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {object : GeometricPeriodObject ctx}
+    (scheme : Wall10A.SchemeOverQ)
+    (smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme)
+    (geometricAdmissibility : object.geometricAdmissibilityTarget)
+    (realizationDefined : object.realizationDefinedTarget) :
+    (ofScheme scheme smoothScheme geometricAdmissibility realizationDefined).scheme = scheme := rfl
+
+@[simp] theorem ofScheme_smoothScheme
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {object : GeometricPeriodObject ctx}
+    (scheme : Wall10A.SchemeOverQ)
+    (smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme)
+    (geometricAdmissibility : object.geometricAdmissibilityTarget)
+    (realizationDefined : object.realizationDefinedTarget) :
+    (ofScheme scheme smoothScheme geometricAdmissibility realizationDefined).smoothScheme =
+      smoothScheme := rfl
+
+@[simp] theorem ofScheme_geometricAdmissibility
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {object : GeometricPeriodObject ctx}
+    (scheme : Wall10A.SchemeOverQ)
+    (smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme)
+    (geometricAdmissibility : object.geometricAdmissibilityTarget)
+    (realizationDefined : object.realizationDefinedTarget) :
+    (ofScheme scheme smoothScheme geometricAdmissibility realizationDefined).geometricAdmissibility =
+      geometricAdmissibility := rfl
+
+@[simp] theorem ofScheme_realizationDefined
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {object : GeometricPeriodObject ctx}
+    (scheme : Wall10A.SchemeOverQ)
+    (smoothScheme : Wall10A.SchemeOverQ.SmoothSchemeOverQ scheme)
+    (geometricAdmissibility : object.geometricAdmissibilityTarget)
+    (realizationDefined : object.realizationDefinedTarget) :
+    (ofScheme scheme smoothScheme geometricAdmissibility realizationDefined).realizationDefined =
+      realizationDefined := rfl
+
+end GeometricObjectSmoothRealization
 
 /-- Lightweight correspondence between two geometric source objects. -/
 structure GeometricCorrespondence

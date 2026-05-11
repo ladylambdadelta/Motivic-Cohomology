@@ -1,6 +1,9 @@
 import Mathlib.Algebra.Algebra.Basic
+import Mathlib.Algebra.Algebra.RestrictScalars
 import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Equiv.Basic
+import Mathlib.LinearAlgebra.TensorProduct.Basic
+import Mathlib.LinearAlgebra.TensorProduct.Tower
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Functor.Basic
 
@@ -30,6 +33,52 @@ attribute [instance]
   ClassicalComparisonContext.instCharZero
   ClassicalComparisonContext.instAlgebra
 
+/-- Canonical scalar-extension map `v ↦ 1 ⊗ v` for the base/scalar field pair of `ctx`. -/
+noncomputable def canonicalTensorScalarExtensionMap
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (V : Type*) [AddCommGroup V] [Module ctx.BaseField V] :
+    V →ₗ[ctx.BaseField] TensorProduct ctx.BaseField ctx.ScalarField V :=
+  (LinearMap.rTensor V (Algebra.linearMap ctx.BaseField ctx.ScalarField)).comp
+    (TensorProduct.lid ctx.BaseField V).symm.toLinearMap
+
+/-- Concrete tensor/base-change model for one Betti/de Rham comparison package. -/
+structure ComparisonTensorScalarExtensionData
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (BettiCarrier : Type w)
+    (DeRhamCarrier : Type x)
+    (BettiOverScalar : Type y)
+    (DeRhamOverScalar : Type z)
+    [AddCommGroup BettiCarrier]
+    [AddCommGroup DeRhamCarrier]
+    [AddCommGroup BettiOverScalar]
+    [AddCommGroup DeRhamOverScalar]
+    [Module ctx.BaseField BettiCarrier]
+    [Module ctx.BaseField DeRhamCarrier]
+    [Module ctx.ScalarField BettiOverScalar]
+    [Module ctx.ScalarField DeRhamOverScalar]
+    [Module ctx.BaseField BettiOverScalar]
+    [Module ctx.BaseField DeRhamOverScalar]
+    (extendBetti : BettiCarrier →ₗ[ctx.BaseField] BettiOverScalar)
+    (extendDeRham : DeRhamCarrier →ₗ[ctx.BaseField] DeRhamOverScalar) where
+  bettiTensorModel :
+    TensorProduct ctx.BaseField ctx.ScalarField BettiCarrier ≃ₗ[ctx.BaseField]
+      BettiOverScalar
+  deRhamTensorModel :
+    TensorProduct ctx.BaseField ctx.ScalarField DeRhamCarrier ≃ₗ[ctx.BaseField]
+      DeRhamOverScalar
+  extendBetti_eq_tensorScalarExtension :
+    extendBetti =
+      bettiTensorModel.toLinearMap.comp
+        (canonicalTensorScalarExtensionMap
+          (ctx := ctx)
+          BettiCarrier)
+  extendDeRham_eq_tensorScalarExtension :
+    extendDeRham =
+      deRhamTensorModel.toLinearMap.comp
+        (canonicalTensorScalarExtensionMap
+          (ctx := ctx)
+          DeRhamCarrier)
+
 /-- Object-level classical structured comparison data. -/
 structure ClassicalStructuredComparisonObject
     (ctx : ClassicalComparisonContext.{u, v}) where
@@ -50,7 +99,16 @@ structure ClassicalStructuredComparisonObject
   extendBetti : BettiCarrier →ₗ[ctx.BaseField] BettiOverScalar
   extendDeRham : DeRhamCarrier →ₗ[ctx.BaseField] DeRhamOverScalar
   comparisonIso : DeRhamOverScalar ≃ₗ[ctx.ScalarField] BettiOverScalar
-  ScalarExtensionWitness : Type (max u v w x y z)
+  tensorScalarExtensionData :
+    ComparisonTensorScalarExtensionData
+      (ctx := ctx)
+      BettiCarrier
+      DeRhamCarrier
+      BettiOverScalar
+      DeRhamOverScalar
+      extendBetti
+      extendDeRham
+  ScalarExtensionWitness : Type _
   scalarExtensionWitness : ScalarExtensionWitness
   comparisonNaturalityTarget : Prop
   comparisonBaseChangeCompatibility : Prop
@@ -66,6 +124,19 @@ attribute [instance]
   ClassicalStructuredComparisonObject.instDeRhamOverScalarModule
   ClassicalStructuredComparisonObject.instBettiOverScalarRestrictModule
   ClassicalStructuredComparisonObject.instDeRhamOverScalarRestrictModule
+
+/-- Concrete tensor/base-change model for one structured comparison object. -/
+abbrev StructuredComparisonTensorScalarExtensionData
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (object : ClassicalStructuredComparisonObject ctx) :=
+  ComparisonTensorScalarExtensionData
+    (ctx := ctx)
+    object.BettiCarrier
+    object.DeRhamCarrier
+    object.BettiOverScalar
+    object.DeRhamOverScalar
+    object.extendBetti
+    object.extendDeRham
 
 /-- Morphism-level structured comparison datum. -/
 structure ClassicalStructuredComparisonMorphism

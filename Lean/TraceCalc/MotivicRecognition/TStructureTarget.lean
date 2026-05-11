@@ -218,6 +218,60 @@ structure TraceMotivicHeartMorphism
     tStructure.tNonpos (heart.forgetToMotivicObject target) ×
       tStructure.tNonneg (heart.forgetToMotivicObject target)
 
+namespace TraceMotivicHeartMorphism
+
+/-- Build a trace-heart morphism from its underlying recognized-category map
+once the source and target heart objects have been fixed. -/
+def ofUnderlying
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    (source target : heart.heartObject)
+    (underlying :
+      structuralRecognition.recognition.recognizedCategory.Hom
+        (heart.forgetToMotivicObject source)
+        (heart.forgetToMotivicObject target)) :
+    TraceMotivicHeartMorphism heart source target where
+  underlying := underlying
+  sourceHeart :=
+    ⟨heart.heartNonposWitness source, heart.heartNonnegWitness source⟩
+  targetHeart :=
+    ⟨heart.heartNonposWitness target, heart.heartNonnegWitness target⟩
+
+/-- The canonical `ofUnderlying` wrapper is determined by its underlying
+recognized-category map. -/
+theorem ofUnderlying_eq_of_underlying_eq
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    {f g : structuralRecognition.recognition.recognizedCategory.Hom
+      (heart.forgetToMotivicObject source)
+      (heart.forgetToMotivicObject target)}
+    (h : f = g) :
+    TraceMotivicHeartMorphism.ofUnderlying source target f =
+      TraceMotivicHeartMorphism.ofUnderlying source target g := by
+  cases h
+  rfl
+
+/-- `HEq` on underlying recognized-category maps is enough to identify the
+canonical `ofUnderlying` wrappers. -/
+theorem ofUnderlying_eq_of_underlying_heq
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    {f g : structuralRecognition.recognition.recognizedCategory.Hom
+      (heart.forgetToMotivicObject source)
+      (heart.forgetToMotivicObject target)}
+    (h : HEq f g) :
+    TraceMotivicHeartMorphism.ofUnderlying source target f =
+      TraceMotivicHeartMorphism.ofUnderlying source target g := by
+  cases h
+  rfl
+
+end TraceMotivicHeartMorphism
+
 /-- Proof-relevant exactness data for a heart morphism. This does not assert
 the abelian theorem by itself; it packages the concrete heart objects,
 morphism, and comparison witness that such a theorem would consume. -/
@@ -683,7 +737,7 @@ end TraceMotivicHeartExactPackage
 This is a construction target, not an assumption that a classical `MM(Q)` is
 already available. No semisimplicity or global `Ext`-vanishing is asserted at
 this stage. The live classical MM(Q) recognition path is
-`RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport`
+`RecognizesClassicalMMQ.ofFinalMotivicInfrastructure`
 in `ManuscriptSpineTargets.lean`. -/
 structure MMQ
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
@@ -702,7 +756,7 @@ abbrev MixedMotivesQ
 
 /-- Honest alias for the legacy trace-native heart candidate over Q scaffold.
 Not the classical category MM(Q). The live classical MM(Q) recognition path is
-RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport
+RecognizesClassicalMMQ.ofFinalMotivicInfrastructure
 in ManuscriptSpineTargets.lean. -/
 abbrev TraceMotivicHeartCandidateOverQ
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}} :=
@@ -710,7 +764,7 @@ abbrev TraceMotivicHeartCandidateOverQ
 
 /-- Honest deprecated alias for the legacy trace-native MMQ scaffold.
 Not the classical category MM(Q). The live classical MM(Q) recognition path is
-RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport
+RecognizesClassicalMMQ.ofFinalMotivicInfrastructure
 in ManuscriptSpineTargets.lean. -/
 abbrev TraceMMQCandidateDeprecated
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}} :=
@@ -793,10 +847,70 @@ recognition as the conjunction of the transported-heart identification, the
 mixed-motive abelian-heart identification, the MM(Q) identification, and the
 exact transported-heart compatibility laws, rather than reducing the statement
 to a bare normalization or orthogonality fragment. -/
+structure TStructureMotivicMMQInfrastructure
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    (tStructure : TraceMotivicTStructureData structuralRecognition)
+    (heart : TraceMotivicHeart tStructure) where
+  dm_gm_Q_Q_category : Type u
+  dm_gm_Q_Q_object : dm_gm_Q_Q_category
+  dm_gm_Q_Q_hom : dm_gm_Q_Q_category → dm_gm_Q_Q_category → Type v
+  dm_gm_Q_Q_id : ∀ X, dm_gm_Q_Q_hom X X
+  dm_gm_Q_Q_comp : ∀ {X Y Z}, dm_gm_Q_Q_hom X Y → dm_gm_Q_Q_hom Y Z → dm_gm_Q_Q_hom X Z
+  rationalBaseField : Type w
+  rationalCoefficientField : Type x
+  rationalBaseFieldIsQ : FieldIsQData rationalBaseField
+  rationalCoefficientFieldIsQ : FieldIsQData rationalCoefficientField
+  tNonpositive : dm_gm_Q_Q_category → Prop
+  tNonnegative : dm_gm_Q_Q_category → Prop
+  truncLE : Int → dm_gm_Q_Q_category → dm_gm_Q_Q_category
+  truncGE : Int → dm_gm_Q_Q_category → dm_gm_Q_Q_category
+  truncationTriangle : ∀ (n : Int) (X : dm_gm_Q_Q_category), Prop
+  classicalHeartObject : Type y
+  classicalHeartEmbedding : classicalHeartObject → dm_gm_Q_Q_category
+  classicalHeartIsHeart : ∀ A : classicalHeartObject,
+    tNonpositive (classicalHeartEmbedding A) ∧
+      tNonnegative (classicalHeartEmbedding A)
+  classicalHeartHom : classicalHeartObject → classicalHeartObject → Type z
+  classicalHeartZero : classicalHeartObject
+  classicalHeartAdd : classicalHeartObject → classicalHeartObject → classicalHeartObject
+  classicalHeartKernel : ∀ {A B : classicalHeartObject}, classicalHeartHom A B → classicalHeartObject
+  classicalHeartCokernel : ∀ {A B : classicalHeartObject}, classicalHeartHom A B → classicalHeartObject
+  mixedMotivesQ : Type y
+  mixedMotivesQHom : mixedMotivesQ → mixedMotivesQ → Type z
+  mixedMotivesQToHeart : mixedMotivesQ → classicalHeartObject
+  heartToMixedMotivesQ : classicalHeartObject → mixedMotivesQ
+  mixedMotivesQToHeart_leftInverse :
+    ∀ M : mixedMotivesQ, heartToMixedMotivesQ (mixedMotivesQToHeart M) = M
+  mixedMotivesQToHeart_rightInverse :
+    ∀ A : classicalHeartObject, mixedMotivesQToHeart (heartToMixedMotivesQ A) = A
+  traceHeartToClassicalHeart : TraceMotivicHeart tStructure → classicalHeartObject
+  traceHeartFromClassicalHeart : classicalHeartObject → TraceMotivicHeart tStructure
+  traceHeartClassical_leftInverse :
+    ∀ H : TraceMotivicHeart tStructure,
+      traceHeartFromClassicalHeart (traceHeartToClassicalHeart H) = H
+  traceHeartClassical_rightInverse :
+    ∀ A : classicalHeartObject,
+      traceHeartToClassicalHeart (traceHeartFromClassicalHeart A) = A
+  distinguishedHeartAgreement : traceHeartToClassicalHeart heart =
+    traceHeartToClassicalHeart (TraceMotivicHeart.ofTStructure tStructure)
+  transportedTStructureMatchesClassical : tStructure.recognitionCompatibilityTarget
+  normalizationRealizesClassicalHeart : tStructure.normalizationCompatibilityTarget
+  canonicalReconstructionRealizesClassicalHeart :
+    tStructure.canonicalReconstructionCompatibilityTarget
+  separatedDegreeOrthogonalityRealizesMMQ :
+    tStructure.orthogonalityFromSeparatedDegreesTarget
+  exactHeartEmbedding :
+    tStructure.shiftClosureNonposTarget ∧ tStructure.shiftClosureNonnegTarget ∧
+      tStructure.orthogonalityTarget
+  pureHeartNaturality :
+    tStructure.normalizationCompatibilityTarget ∧
+      tStructure.normalizationPacketCutTarget
+
 structure RecognizesClassicalMMQ
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
     (tStructure : TraceMotivicTStructureData structuralRecognition)
-    (heart : TraceMotivicHeart tStructure) : Prop where
+  (heart : TraceMotivicHeart tStructure) where
+  finalMotivicInfrastructure : TStructureMotivicMMQInfrastructure tStructure heart
   traceHeartIsConstructedHeart : heart = TraceMotivicHeart.ofTStructure tStructure
   recognizedDMgmQTransportTarget : tStructure.recognitionCompatibilityTarget
   classicalAbelianHeartOverQTarget :
@@ -819,32 +933,24 @@ recognition-spine components. This is the provenance-preserving constructor:
 each field of `RecognizesClassicalMMQ` is supplied by the corresponding
 transport, heart-identification, exactness, or naturality theorem rather than
 by an opaque single theorem-package field. -/
-def ofDMgmRecognitionAndHeartTransport
+def ofFinalMotivicInfrastructure
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
     {tStructure : TraceMotivicTStructureData structuralRecognition}
     {heart : TraceMotivicHeart tStructure}
-    (traceHeartIsConstructedHeart : heart = TraceMotivicHeart.ofTStructure tStructure)
-    (transportedHeartIdentifiesClassicalGeometricMotivesHeart :
-      tStructure.recognitionCompatibilityTarget)
-    (classicalAbelianHeartIsMixedMotivesQ :
-      tStructure.normalizationCompatibilityTarget ∧
-        tStructure.canonicalReconstructionCompatibilityTarget)
-    (mixedMotiveHeartOverQTarget :
-      tStructure.normalizationCompatibilityTarget ∧
-        tStructure.orthogonalityFromSeparatedDegreesTarget)
-    (compatibilityWithTransportedTStructureIsExact :
-      tStructure.shiftClosureNonposTarget ∧ tStructure.shiftClosureNonnegTarget ∧
-        tStructure.orthogonalityTarget)
-    (compatibilityWithHeartRecognitionIsNatural :
-      tStructure.normalizationCompatibilityTarget ∧
-        tStructure.normalizationPacketCutTarget) :
+    (infrastructure : TStructureMotivicMMQInfrastructure tStructure heart)
+    (traceHeartIsConstructedHeart : heart = TraceMotivicHeart.ofTStructure tStructure) :
     RecognizesClassicalMMQ tStructure heart where
+  finalMotivicInfrastructure := infrastructure
   traceHeartIsConstructedHeart := traceHeartIsConstructedHeart
-  recognizedDMgmQTransportTarget := transportedHeartIdentifiesClassicalGeometricMotivesHeart
-  classicalAbelianHeartOverQTarget := classicalAbelianHeartIsMixedMotivesQ
-  mixedMotiveHeartOverQTarget := mixedMotiveHeartOverQTarget
-  transportedHeartExactnessTarget := compatibilityWithTransportedTStructureIsExact
-  heartRecognitionNaturalityTarget := compatibilityWithHeartRecognitionIsNatural
+  recognizedDMgmQTransportTarget := infrastructure.transportedTStructureMatchesClassical
+  classicalAbelianHeartOverQTarget :=
+    ⟨infrastructure.normalizationRealizesClassicalHeart,
+      infrastructure.canonicalReconstructionRealizesClassicalHeart⟩
+  mixedMotiveHeartOverQTarget :=
+    ⟨infrastructure.normalizationRealizesClassicalHeart,
+      infrastructure.separatedDegreeOrthogonalityRealizesMMQ⟩
+  transportedHeartExactnessTarget := infrastructure.exactHeartEmbedding
+  heartRecognitionNaturalityTarget := infrastructure.pureHeartNaturality
 
 end RecognizesClassicalMMQ
 
@@ -913,6 +1019,7 @@ structure ClassicalMMQHeartTheorems
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
     (tStructure : TraceMotivicTStructureData structuralRecognition)
     (heart : TraceMotivicHeart tStructure) where
+  finalMotivicInfrastructure : TStructureMotivicMMQInfrastructure tStructure heart
   /-- The transported heart used by this theorem package is the canonical heart
   constructed from the transported t-structure. -/
   classicalTraceHeartAgreement : heart = TraceMotivicHeart.ofTStructure tStructure
@@ -949,28 +1056,301 @@ structure ClassicalMMQHeartTheorems
   this compatibility alias remains for existing package code, but is derived
   from the component fields rather than accepted as a theorem-package input. -/
   classicalMixedMotivesQIsMMQ :=
-    RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport
+    RecognizesClassicalMMQ.ofFinalMotivicInfrastructure
       (tStructure := tStructure)
       (heart := heart)
+      finalMotivicInfrastructure
       classicalTraceHeartAgreement
-      transportedHeartIdentifiesClassicalGeometricMotivesHeart
-      classicalAbelianHeartIsMixedMotivesQ
-      mixedMotiveHeartOverQTarget
-      compatibilityWithTransportedTStructureIsExact
-      compatibilityWithHeartRecognitionIsNatural
   /-- The trace-constructed heart is recognized as the classical mixed-motive
   abelian heart over Q. This preferred exported recognition surface is derived
   from the component fields above. -/
   traceHeart_recognizes_classical_MMQ :=
-    RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport
+    RecognizesClassicalMMQ.ofFinalMotivicInfrastructure
       (tStructure := tStructure)
       (heart := heart)
+      finalMotivicInfrastructure
       classicalTraceHeartAgreement
-      transportedHeartIdentifiesClassicalGeometricMotivesHeart
-      classicalAbelianHeartIsMixedMotivesQ
-      mixedMotiveHeartOverQTarget
-      compatibilityWithTransportedTStructureIsExact
-      compatibilityWithHeartRecognitionIsNatural
+
+/-- Concrete morphism-level transport data from the trace-constructed heart to
+`MM(Q)`.
+
+This is the exact missing carrier for the final replay-reflection step: object
+transport from trace-heart objects to the classical heart, morphism transport
+from trace-heart morphisms to classical-heart morphisms, and then transport
+from classical-heart morphisms to `MM(Q)` morphisms. -/
+structure ClassicalMMQHeartMorphismTransport
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    (theorems : ClassicalMMQHeartTheorems tStructure heart) where
+  traceObjectToClassicalHeart :
+    heart.heartObject → theorems.finalMotivicInfrastructure.classicalHeartObject
+  traceMorphismToClassicalHeart :
+    ∀ {source target : heart.heartObject},
+      TraceMotivicHeartMorphism heart source target →
+        theorems.finalMotivicInfrastructure.classicalHeartHom
+          (traceObjectToClassicalHeart source)
+          (traceObjectToClassicalHeart target)
+  classicalHeartMorphismToMixedMotivesQ :
+    ∀ {source target : theorems.finalMotivicInfrastructure.classicalHeartObject},
+      theorems.finalMotivicInfrastructure.classicalHeartHom source target →
+        theorems.finalMotivicInfrastructure.mixedMotivesQHom
+          (theorems.finalMotivicInfrastructure.heartToMixedMotivesQ source)
+          (theorems.finalMotivicInfrastructure.heartToMixedMotivesQ target)
+
+namespace ClassicalMMQHeartMorphismTransport
+
+/-- The `MM(Q)` object corresponding to a trace-heart object under a concrete
+morphism-transport package. -/
+def traceObjectToMixedMotivesQ
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {theorems : ClassicalMMQHeartTheorems tStructure heart}
+    (transport : ClassicalMMQHeartMorphismTransport theorems)
+    (obj : heart.heartObject) :
+    theorems.finalMotivicInfrastructure.mixedMotivesQ :=
+  theorems.finalMotivicInfrastructure.heartToMixedMotivesQ
+    (transport.traceObjectToClassicalHeart obj)
+
+/-- Transport a trace-heart morphism to the corresponding `MM(Q)` morphism. -/
+def traceMorphismToMixedMotivesQ
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {theorems : ClassicalMMQHeartTheorems tStructure heart}
+    (transport : ClassicalMMQHeartMorphismTransport theorems)
+    {source target : heart.heartObject}
+    (morphism : TraceMotivicHeartMorphism heart source target) :
+    theorems.finalMotivicInfrastructure.mixedMotivesQHom
+      (transport.traceObjectToMixedMotivesQ source)
+      (transport.traceObjectToMixedMotivesQ target) :=
+  transport.classicalHeartMorphismToMixedMotivesQ
+    (transport.traceMorphismToClassicalHeart morphism)
+
+/-- The transport theorem needed by the recognized replay-reflection step:
+equality of trace-heart morphisms implies equality of the transported `MM(Q)`
+morphisms. -/
+theorem traceMorphism_eq_implies_mixedMotivesQHom_eq
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {theorems : ClassicalMMQHeartTheorems tStructure heart}
+    (transport : ClassicalMMQHeartMorphismTransport theorems)
+    {source target : heart.heartObject}
+    {f g : TraceMotivicHeartMorphism heart source target}
+    (hfg : f = g) :
+    transport.traceMorphismToMixedMotivesQ f =
+      transport.traceMorphismToMixedMotivesQ g := by
+  cases hfg
+  rfl
+
+end ClassicalMMQHeartMorphismTransport
+
+/-- RealObjects-side semantic interpretation of completed traces into the
+underlying recognized-category Hom for fixed heart endpoints.
+
+This is the exact special case supplied by the existing frontier-determination
+theorems: once a completed replay record has been interpreted as the
+underlying recognized morphism between the chosen source and target heart
+objects, the heart-morphism wrapper is canonical. -/
+structure RealObjectsUnderlyingHeartMorphismRealization
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    (heart : TraceMotivicHeart tStructure)
+    (source target : heart.heartObject) where
+  underlyingOfCompletedTrace :
+    TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup →
+      structuralRecognition.recognition.recognizedCategory.Hom
+        (heart.forgetToMotivicObject source)
+        (heart.forgetToMotivicObject target)
+  underlyingHEq_of_frontierEquiv :
+    ∀ {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup},
+      TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FrontierWord.Equiv
+        (C.assignment.assign R₁).frontier
+        (C.assignment.assign R₂).frontier →
+          HEq
+            (underlyingOfCompletedTrace R₁)
+            (underlyingOfCompletedTrace R₂)
+
+/-- RealObjects-side realization of completed reconstruction records as fixed
+trace-heart morphisms.
+
+This is the exact seam for the remaining holographic step: once a certified
+completed trace has been assigned a trace-heart morphism with fixed source and
+target heart objects, frontier-equivalent completed traces determine the same
+underlying heart morphism action. -/
+structure RealObjectsTraceHeartMorphismRealization
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    (heart : TraceMotivicHeart tStructure)
+    (source target : heart.heartObject) where
+  underlyingOfCompletedTrace :
+    TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup →
+      structuralRecognition.recognition.recognizedCategory.Hom
+        (heart.forgetToMotivicObject source)
+        (heart.forgetToMotivicObject target)
+  underlyingHEq_of_frontierEquiv :
+    ∀ {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup},
+      TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FrontierWord.Equiv
+        (C.assignment.assign R₁).frontier
+        (C.assignment.assign R₂).frontier →
+          HEq
+            (underlyingOfCompletedTrace R₁)
+            (underlyingOfCompletedTrace R₂)
+
+namespace RealObjectsTraceHeartMorphismRealization
+
+/-- The canonical trace-heart morphism realized by a completed trace. -/
+def morphismOfCompletedTrace
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    (R : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup) :
+    TraceMotivicHeartMorphism heart source target :=
+  TraceMotivicHeartMorphism.ofUnderlying source target
+    (realization.underlyingOfCompletedTrace R)
+
+@[simp] theorem morphismOfCompletedTrace_underlying
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    (R : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup) :
+    (realization.morphismOfCompletedTrace R).underlying = realization.underlyingOfCompletedTrace R :=
+  rfl
+
+/-- Frontier-equivalent completed traces induce the same trace-heart morphism
+once the realization map fixes the source and target heart objects. -/
+theorem traceHeartMorphism_eq_of_frontierEquiv
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup}
+    (hFrontier : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FrontierWord.Equiv
+      (C.assignment.assign R₁).frontier
+      (C.assignment.assign R₂).frontier) :
+    realization.morphismOfCompletedTrace R₁ =
+      realization.morphismOfCompletedTrace R₂ := by
+  exact TraceMotivicHeartMorphism.ofUnderlying_eq_of_underlying_heq
+    (source := source) (target := target)
+    (realization.underlyingHEq_of_frontierEquiv hFrontier)
+
+/-- Equality of RealObjects canonical normal forms implies equality of the
+realized trace-heart morphisms.
+
+This is the exact CanNF-to-trace-heart equality step needed by the holographic
+bridge once the completed-trace-to-heart realization has been fixed. -/
+theorem traceHeartMorphism_eq_of_normalize_eq
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup}
+    (hNormalize : C.normalize R₁ = C.normalize R₂) :
+    realization.morphismOfCompletedTrace R₁ =
+      realization.morphismOfCompletedTrace R₂ := by
+  exact realization.traceHeartMorphism_eq_of_frontierEquiv
+    (C.CanNF_complete hNormalize)
+
+/-- Frontier-equivalent completed traces induce the same transported
+`MM(Q)` morphism once the completed traces have been realized as fixed
+trace-heart morphisms and the heart-level transport to `MM(Q)` is available. -/
+theorem mixedMotivesQHom_eq_of_frontierEquiv
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {theorems : ClassicalMMQHeartTheorems tStructure heart}
+    (transport : ClassicalMMQHeartMorphismTransport theorems)
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup}
+    (hFrontier : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FrontierWord.Equiv
+      (C.assignment.assign R₁).frontier
+      (C.assignment.assign R₂).frontier) :
+    transport.traceMorphismToMixedMotivesQ (realization.morphismOfCompletedTrace R₁) =
+      transport.traceMorphismToMixedMotivesQ (realization.morphismOfCompletedTrace R₂) := by
+  exact ClassicalMMQHeartMorphismTransport.traceMorphism_eq_implies_mixedMotivesQHom_eq
+    transport
+    (realization.traceHeartMorphism_eq_of_frontierEquiv hFrontier)
+
+/-- Equality of RealObjects canonical normal forms induces equality of the
+transported `MM(Q)` morphisms once the completed traces have been realized as
+fixed trace-heart morphisms. -/
+theorem mixedMotivesQHom_eq_of_normalize_eq
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {theorems : ClassicalMMQHeartTheorems tStructure heart}
+    (transport : ClassicalMMQHeartMorphismTransport theorems)
+    {source target : heart.heartObject}
+    (realization : RealObjectsTraceHeartMorphismRealization (C := C) heart source target)
+    {R₁ R₂ : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup}
+    (hNormalize : C.normalize R₁ = C.normalize R₂) :
+    transport.traceMorphismToMixedMotivesQ (realization.morphismOfCompletedTrace R₁) =
+      transport.traceMorphismToMixedMotivesQ (realization.morphismOfCompletedTrace R₂) := by
+  exact realization.mixedMotivesQHom_eq_of_frontierEquiv transport
+    (C.CanNF_complete hNormalize)
+
+end RealObjectsTraceHeartMorphismRealization
+
+namespace RealObjectsUnderlyingHeartMorphismRealization
+
+/-- Upgrade an underlying-map realization of completed traces to the fixed
+trace-heart realization map. The endpoint heart witnesses are supplied once and
+for all by the chosen source and target heart objects. -/
+def toTraceHeartMorphismRealization
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization :
+      RealObjectsUnderlyingHeartMorphismRealization (C := C) heart source target) :
+    RealObjectsTraceHeartMorphismRealization (C := C) heart source target where
+  underlyingOfCompletedTrace := realization.underlyingOfCompletedTrace
+  underlyingHEq_of_frontierEquiv := by
+    intro R₁ R₂ hFrontier
+    exact realization.underlyingHEq_of_frontierEquiv hFrontier
+
+@[simp] theorem toTraceHeartMorphismRealization_underlying
+    {setup : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.{u}}
+    {C : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CanNF setup}
+    {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
+    {tStructure : TraceMotivicTStructureData structuralRecognition}
+    {heart : TraceMotivicHeart tStructure}
+    {source target : heart.heartObject}
+    (realization :
+      RealObjectsUnderlyingHeartMorphismRealization (C := C) heart source target)
+    (R : TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.CompletedReconstructionRecord setup) :
+    (realization.toTraceHeartMorphismRealization.morphismOfCompletedTrace R).underlying =
+      realization.underlyingOfCompletedTrace R :=
+  rfl
+
+end RealObjectsUnderlyingHeartMorphismRealization
 
 namespace ClassicalMMQHeartTheorems
 
@@ -979,8 +1359,12 @@ theorem package for the canonical transported heart. -/
 def ofTStructureComponentTheorems
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
     (tStructure : TraceMotivicTStructureData structuralRecognition)
-    (components : TraceMotivicTStructureComponentTheorems tStructure) :
+    (components : TraceMotivicTStructureComponentTheorems tStructure)
+    (infrastructure :
+      TStructureMotivicMMQInfrastructure tStructure
+        (TraceMotivicHeart.ofTStructure tStructure)) :
     ClassicalMMQHeartTheorems tStructure (TraceMotivicHeart.ofTStructure tStructure) where
+  finalMotivicInfrastructure := infrastructure
   classicalTraceHeartAgreement := rfl
   transportedHeartIdentifiesClassicalGeometricMotivesHeart :=
     components.transportedHeartIdentifiesClassicalGeometricMotivesHeart
@@ -997,9 +1381,12 @@ component theorem package has been exposed. -/
 def ofTraceMotivicTStructureData
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}
     (tStructure : TraceMotivicTStructureData structuralRecognition)
-    (components : TraceMotivicTStructureComponentTheorems tStructure) :
+    (components : TraceMotivicTStructureComponentTheorems tStructure)
+    (infrastructure :
+      TStructureMotivicMMQInfrastructure tStructure
+        (TraceMotivicHeart.ofTStructure tStructure)) :
     ClassicalMMQHeartTheorems tStructure (TraceMotivicHeart.ofTStructure tStructure) :=
-  ofTStructureComponentTheorems tStructure components
+  ofTStructureComponentTheorems tStructure components infrastructure
 
 /-- Assemble the classical MM(Q) heart theorem package from its component
 fields for the canonical transported heart. This constructor does not accept
@@ -1021,7 +1408,10 @@ def ofTransportedTStructureComponents
         tStructure.orthogonalityTarget)
     (compatibilityWithHeartRecognitionIsNatural :
       tStructure.normalizationCompatibilityTarget ∧
-        tStructure.normalizationPacketCutTarget) :
+        tStructure.normalizationPacketCutTarget)
+    (infrastructure :
+      TStructureMotivicMMQInfrastructure tStructure
+        (TraceMotivicHeart.ofTStructure tStructure)) :
     ClassicalMMQHeartTheorems tStructure (TraceMotivicHeart.ofTStructure tStructure) :=
   ClassicalMMQHeartTheorems.ofTStructureComponentTheorems tStructure
     (TraceMotivicTStructureComponentTheorems.ofComponents tStructure
@@ -1030,6 +1420,7 @@ def ofTransportedTStructureComponents
       mixedMotiveHeartOverQTarget
       compatibilityWithTransportedTStructureIsExact
       compatibilityWithHeartRecognitionIsNatural)
+    infrastructure
 
 end ClassicalMMQHeartTheorems
 
@@ -1049,7 +1440,7 @@ structure AbelianHeartTarget
 
 /-- Legacy trace-native candidate/scaffold. Not the classical category MM(Q).
 The live classical MM(Q) recognition path is
-RecognizesClassicalMMQ.ofDMgmRecognitionAndHeartTransport
+RecognizesClassicalMMQ.ofFinalMotivicInfrastructure
 in ManuscriptSpineTargets.lean. -/
 structure MMQHeartTarget
     {structuralRecognition : DMgmStructuralRecognitionTarget.{u, v, w, x, y, z}}

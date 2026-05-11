@@ -35,22 +35,54 @@ def unitGeometricFramedObject
 /-- Tautological Betti carrier for the unit sanity model. -/
 def unitBettiRealizationCarrier
     (ctx : ClassicalComparisonContext.{u, v}) : BettiRealizationCarrier ctx where
-  Carrier := ctx.ScalarField
+  Carrier := ctx.BaseField
 
 /-- Tautological de Rham carrier for the unit sanity model. -/
 def unitDeRhamRealizationCarrier
     (ctx : ClassicalComparisonContext.{u, v}) : DeRhamRealizationCarrier ctx where
-  Carrier := ctx.ScalarField
+  Carrier := ctx.BaseField
+
+noncomputable section
 
 /-- Tautological scalar-extension and comparison isomorphism for the unit sanity model. -/
+def unitTensorScalarExtensionData
+    (ctx : ClassicalComparisonContext.{u, v}) :
+    ComparisonTensorScalarExtensionData
+      (ctx := ctx)
+      ctx.BaseField
+      ctx.BaseField
+      ctx.ScalarField
+      ctx.ScalarField
+      (Algebra.linearMap ctx.BaseField ctx.ScalarField)
+      (Algebra.linearMap ctx.BaseField ctx.ScalarField) where
+  bettiTensorModel :=
+    (TensorProduct.AlgebraTensorModule.rid
+      ctx.BaseField
+      ctx.ScalarField
+      ctx.ScalarField).restrictScalars ctx.BaseField
+  deRhamTensorModel :=
+    (TensorProduct.AlgebraTensorModule.rid
+      ctx.BaseField
+      ctx.ScalarField
+      ctx.ScalarField).restrictScalars ctx.BaseField
+  extendBetti_eq_tensorScalarExtension := by
+    ext x
+    simp [canonicalTensorScalarExtensionMap]
+  extendDeRham_eq_tensorScalarExtension := by
+    ext x
+    simp [canonicalTensorScalarExtensionMap]
+
 def unitComparisonIsomorphismData
     (ctx : ClassicalComparisonContext.{u, v}) :
     ComparisonIsomorphismData ctx (unitBettiRealizationCarrier ctx) (unitDeRhamRealizationCarrier ctx) where
   BettiOverScalar := ctx.ScalarField
   DeRhamOverScalar := ctx.ScalarField
-  extendBetti := LinearMap.id
-  extendDeRham := LinearMap.id
+  extendBetti := Algebra.linearMap ctx.BaseField ctx.ScalarField
+  extendDeRham := Algebra.linearMap ctx.BaseField ctx.ScalarField
   comparisonIso := LinearEquiv.refl _ _
+  tensorScalarExtensionData := unitTensorScalarExtensionData ctx
+  ScalarExtensionWitness := PUnit
+  scalarExtensionWitness := PUnit.unit
   comparisonNaturalityTarget := True
   comparisonBaseChangeCompatibility := True
 
@@ -241,7 +273,8 @@ def unitGeometricComparisonNaturality
     GeometricComparisonNaturality ctx (unitGeometricRealizationFunctorData ctx) where
   theoremTarget := by
     intro corr
-    exact ⟨True.intro, True.intro⟩
+    simp [unitGeometricRealizationFunctorData, unitGrothendieckComparisonData,
+      unitComparisonIsomorphismData]
   baseChangeNaturalityTarget := True
 
 /-- Trivial structured-comparison equality used only for the unit sanity model. -/
@@ -496,6 +529,8 @@ def unitClassicalMotivicRealizationReadiness
   (unitGeometricLocalizationPackage ctx).toClassicalMotivicRealizationReadiness
     (unitGeometricRealizationTomographySoundness ctx)
     rfl
+
+end
 
 end ClassicalPeriods
 end TraceCalc

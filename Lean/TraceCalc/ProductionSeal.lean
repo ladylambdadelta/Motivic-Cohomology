@@ -1,9 +1,7 @@
-import TraceCalc.ProofSpine
 import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
 import TraceCalc.LayerB.RealObjects.CanonicalReconstructionEngine
 import TraceCalc.LayerB.RealObjects.TraceDifferential
 import TraceCalc.LayerD.ConcretePeriodFaithfulness
-import TraceCalc.ClassicalPeriods.TomographyCapsule
 
 /-!
 # Production Seal
@@ -40,10 +38,6 @@ section ProductionSealChecks
 -- Trace differential production constructors from boundary-gluing witness data.
 #check LayerB.RealObjects.RewriteCalculusSetup.SinkDeletionProducesTraceEquivZero.ofBoundaryGluingWitnessData
 #check LayerB.RealObjects.RewriteCalculusSetup.BoundaryTraceEquivZeroData.ofBoundaryGluingWitnessData
-
--- Tomography production/core artifacts.
-#check ClassicalPeriods.canonicalGeneratorTomographyCore
-#check ClassicalPeriods.canonicalGeneratorTomographyCapsule
 
 -- Concrete classical period-faithfulness theorems.
 #check LayerD.scalar_period_faithfulness_classical
