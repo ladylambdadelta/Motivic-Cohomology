@@ -4,6 +4,7 @@ import TraceCalc.LayerB.RealObjects.ConcreteExternalOutSort
 import TraceCalc.LayerB.RealObjects.CanonicalNormalForm
 import TraceCalc.LayerB.RealObjects.InternalManuscriptTargets
 import TraceCalc.LayerB.RealObjects.Replay
+import TraceCalc.CategoryInfra.Localization
 import TraceCalc.LayerD.SourceTracePackage
 import TraceCalc.LayerD.PeriodFaithfulnessAssembly
 
@@ -31,11 +32,9 @@ structure LayerBConcreteSourceData
   [catEnvelope : Category Envelope]
   [catLocalized : Category Localized]
   includeSyntax : Syntax → Envelope
-  stableEnvelope : LayerA.StableLike Envelope
-  stableLocalized : LayerA.StableLike Localized
   weakEquivalence : Envelope → Envelope → Prop
   localizeObj : Envelope → Localized
-  localizationInterface : LayerA.LocalizationInterface
+  localizationInterface : CategoryInfra.LocalizationInterface
 
 attribute [instance] LayerBConcreteSourceData.catEnvelope LayerBConcreteSourceData.catLocalized
 
@@ -94,17 +93,6 @@ structure LayerBLocalizationInterfaceData
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
     (sourceData : LayerBConcreteSourceData presentation aux) where
   localizationMatchesTheorem : LayerBLocalizationMatchesTheorem sourceData
-
-/-- Named geometric-shape targets for the source-side bridge. These remain
-explicit until Layer B exports actual motivic shape theorems. -/
-structure LayerBShapeData
-    {primitive : NamedPrimitiveInterfacePresentation}
-    {presentation : NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (_sourceData : LayerBConcreteSourceData presentation aux) where
-  hasNisnevichShape : Prop
-  hasA1InvarianceShape : Prop
-  hasTateInvertibilityShape : Prop
 
 /-- Symmetric-monoidal source witness cluster, isolated so the remaining source
 construction witness fields can be retired one cluster at a time. -/
@@ -171,8 +159,8 @@ theorem target for a localization interface. This remains separate from the
 infinity-side universal-property witness because the truncation step is an
 additional theorem, not definitional fallout from the infinity statement. -/
 def ofLocalizationPiZeroShadowTheorem
-    {L : LayerA.LocalizationInterface}
-    (piZeroShadowTheorem : LayerA.LocalizationPiZeroShadowTheorem L) :
+    {L : CategoryInfra.LocalizationInterface}
+    (piZeroShadowTheorem : CategoryInfra.LocalizationPiZeroShadowTheorem L) :
     LayerBLocalizationPiZeroTicket where
   verdierLocalizationPiZeroShadow :=
     piZeroShadowTheorem.verdierLocalizationPiZeroShadow
@@ -200,20 +188,13 @@ namespace LayerBLocalizationInfinityTicket
 /-- Build the infinity-side localization ticket from explicit proof-relevant
 universal-property data for a localization interface. -/
 def ofLocalizationUniversalPropertyData
-    {L : LayerA.LocalizationInterface}
-    (universalPropertyData : LayerA.LocalizationUniversalPropertyData L) :
+    {L : CategoryInfra.LocalizationInterface}
+    (universalPropertyData : CategoryInfra.LocalizationUniversalPropertyData L) :
     LayerBLocalizationInfinityTicket where
   localizationUniversalPropertyInfinity :=
     universalPropertyData.localizationUniversalPropertyInfinity
   localizationUniversalPropertyInfinity_holds :=
     universalPropertyData.localizationUniversalPropertyInfinity_holds
-
-/-- The proof-relevant localization wrapper also suffices to build the
-infinity-side localization ticket. -/
-def ofProofRelevantLocalizationInterface
-    (L : LayerA.ProofRelevantLocalizationInterface) :
-    LayerBLocalizationInfinityTicket :=
-  ofLocalizationUniversalPropertyData L.universalPropertyData
 
 end LayerBLocalizationInfinityTicket
 
@@ -292,8 +273,6 @@ def layerBConcreteSourceDataCandidate
   Envelope := ML.F.Envelope
   Localized := ML.Loc
   includeSyntax := ML.F.includeSyntax
-  stableEnvelope := ML.F.isStableLike
-  stableLocalized := ML.stableLocalized
   weakEquivalence := ML.motivicWeakEq
   localizeObj := ML.localizeObj
   localizationInterface := ML.localization
@@ -349,34 +328,21 @@ def layerBConcreteSourceDataCandidate_localizationInterfaceData
   localizationMatchesTheorem :=
     layerBConcreteSourceDataCandidate_localizationMatchesTheorem presentation aux ML
 
-/-- The geometric shape data are likewise derivable from the strengthened
-`LayerB.MotivicLocalization` carrier for the concrete bridge candidate. -/
-def layerBConcreteSourceDataCandidate_shapeData
-    {primitive : NamedPrimitiveInterfacePresentation}
-    (presentation : NamedDoctrinePresentation primitive)
-    (aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine)
-    (ML : LayerB.MotivicLocalization) :
-    LayerBShapeData (layerBConcreteSourceDataCandidate presentation aux ML) where
-  hasNisnevichShape := ML.hasNisnevichShape
-  hasA1InvarianceShape := ML.hasA1InvarianceShape
-  hasTateInvertibilityShape := ML.hasTateInvertibilityShape
-
 /-- Assemble the abstract Layer D source-trace package from concrete source-side
-objects together with the first coherence and shape clusters. -/
+objects together with the first coherence and witness clusters. -/
 def LayerBConcreteSourceData.toSourceTracePackage
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
     (sourceData : LayerBConcreteSourceData presentation aux)
     (localizationData : LayerBLocalizationInterfaceData sourceData)
-    (shapeData : LayerBShapeData sourceData) :
+  (localGeometryWitness : LayerBLocalGeometryWitness sourceData)
+  (tateWitness : LayerBTateWitness sourceData) :
     LayerD.SourceTracePackage where
   Syntax := sourceData.Syntax
   Envelope := sourceData.Envelope
   Localized := sourceData.Localized
   includeSyntax := sourceData.includeSyntax
-  stableEnvelope := sourceData.stableEnvelope
-  stableLocalized := sourceData.stableLocalized
   weakEquivalence := sourceData.weakEquivalence
   localizeObj := sourceData.localizeObj
   localizationInterface := sourceData.localizationInterface
@@ -390,49 +356,14 @@ def LayerBConcreteSourceData.toSourceTracePackage
         localizationData.localizationMatchesTheorem.localizeObjAlignment
       localizationMapId := sourceData.localizationInterface.map_id
       localizationMapComp := sourceData.localizationInterface.map_comp }
-  envelopeUniversalProperty := sourceData.localizationInterface.universalFactorization
-  hasNisnevichShape := shapeData.hasNisnevichShape
-  hasA1InvarianceShape := shapeData.hasA1InvarianceShape
-  hasTateInvertibilityShape := shapeData.hasTateInvertibilityShape
-
-/-- The localization-seam theorem object feeds the consumer package exactly as
-advertised: the category-alignment pair populates `localization_matches` in the
-consumer package. -/
-theorem LayerBConcreteSourceData.toSourceTracePackage_uses_localizationMatchesTheorem
-    {primitive : NamedPrimitiveInterfacePresentation}
-    {presentation : NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceData : LayerBConcreteSourceData presentation aux)
-    (localizationMatchesTheorem : LayerBLocalizationMatchesTheorem sourceData)
-    (shapeData : LayerBShapeData sourceData) :
-    let pkg := sourceData.toSourceTracePackage
-      { localizationMatchesTheorem := localizationMatchesTheorem } shapeData
-    pkg.localization_matches =
-      ⟨localizationMatchesTheorem.sourceCategoryAlignment,
-        localizationMatchesTheorem.targetCategoryAlignment⟩ := by
-  rfl
-
-/-- Corollary specialized to the explicit constructor: concrete localization
-alignment data feeds `toSourceTracePackage` without any extra bridge layer. -/
-theorem LayerBLocalizationMatchesTheorem.ofConcreteAlignment_feeds_toSourceTracePackage
-    {primitive : NamedPrimitiveInterfacePresentation}
-    {presentation : NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceData : LayerBConcreteSourceData presentation aux)
-    (sourceCategoryAlignment : sourceData.localizationInterface.C = sourceData.Envelope)
-    (targetCategoryAlignment : sourceData.localizationInterface.D = sourceData.Localized)
-    (weakEquivalenceAlignment :
-      HEq sourceData.localizationInterface.W sourceData.weakEquivalence)
-    (localizeObjAlignment :
-      HEq sourceData.localizationInterface.QObj sourceData.localizeObj)
-    (shapeData : LayerBShapeData sourceData) :
-    let pkg := sourceData.toSourceTracePackage
-      { localizationMatchesTheorem :=
-          LayerBLocalizationMatchesTheorem.ofConcreteAlignment
-            sourceCategoryAlignment targetCategoryAlignment
-            weakEquivalenceAlignment localizeObjAlignment } shapeData
-    pkg.localization_matches = ⟨sourceCategoryAlignment, targetCategoryAlignment⟩ := by
-  rfl
+  envelopeUniversalProperty :=
+    localGeometryWitness.localizationInfinityTicket.localizationUniversalPropertyInfinity
+  hasNisnevichShape :=
+    localGeometryWitness.nisnevichDescentInfinityTicket.nisnevichDescentInfinity
+  hasA1InvarianceShape :=
+    localGeometryWitness.a1InvarianceInfinityTicket.a1InvarianceInfinity
+  hasTateInvertibilityShape :=
+    tateWitness.tateStabilizationInfinity
 
 namespace MotivicLocalizationSymmetricMonoidalWitness
 
@@ -503,98 +434,6 @@ theorem toLayerBStableTriangulatedWitness_preserves_fields
 end MotivicLocalizationStableTriangulatedWitness
 
 namespace MotivicLocalizationLocalGeometryWitness
-
-/- `LayerB.MotivicLocalization` together with the old Prop-level
-`LayerA.LocalizationInterface` is not enough to derive either localization
-ticket. But if one additionally supplies proof-relevant universal-property data
-for `ML.localization`, then the infinity-side localization ticket becomes
-derivable. The pi0 Verdier-localization shadow still requires a separate
-truncation theorem target. -/
-
-/-- Partial constructor for the candidate-specific local-geometry witness. The
-infinity-side localization ticket is derived from explicit proof-relevant
-universal-property data attached to `ML.localization`, while the pi0
-Verdier-localization shadow is supplied through a separate truncation theorem
-target and the A1/Nisnevich tickets remain explicit theorem inputs. -/
-def ofLocalizationTheoremData
-    (ML : LayerB.MotivicLocalization)
-    (universalPropertyData : LayerA.LocalizationUniversalPropertyData ML.localization)
-    (piZeroShadowTheorem : LayerA.LocalizationPiZeroShadowTheorem ML.localization)
-    (a1InvariancePiZeroTicket : LayerBA1InvariancePiZeroTicket)
-    (a1InvarianceInfinityTicket : LayerBA1InvarianceInfinityTicket)
-    (nisnevichDescentPiZeroTicket : LayerBNisnevichDescentPiZeroTicket)
-  (nisnevichDescentInfinityTicket : LayerBNisnevichDescentInfinityTicket) :
-    MotivicLocalizationLocalGeometryWitness ML where
-  a1InvariancePiZeroTicket := a1InvariancePiZeroTicket
-  a1InvarianceInfinityTicket := a1InvarianceInfinityTicket
-  nisnevichDescentPiZeroTicket := nisnevichDescentPiZeroTicket
-  nisnevichDescentInfinityTicket := nisnevichDescentInfinityTicket
-  localizationPiZeroTicket :=
-    LayerBLocalizationPiZeroTicket.ofLocalizationPiZeroShadowTheorem
-      piZeroShadowTheorem
-  localizationInfinityTicket :=
-    LayerBLocalizationInfinityTicket.ofLocalizationUniversalPropertyData universalPropertyData
-
-/-- Backward-compatible constructor for callers that already package the pi0
-localization shadow as a Layer B ticket. -/
-def ofLocalizationUniversalPropertyData
-    (ML : LayerB.MotivicLocalization)
-    (universalPropertyData : LayerA.LocalizationUniversalPropertyData ML.localization)
-    (a1InvariancePiZeroTicket : LayerBA1InvariancePiZeroTicket)
-    (a1InvarianceInfinityTicket : LayerBA1InvarianceInfinityTicket)
-    (nisnevichDescentPiZeroTicket : LayerBNisnevichDescentPiZeroTicket)
-    (nisnevichDescentInfinityTicket : LayerBNisnevichDescentInfinityTicket)
-    (localizationPiZeroTicket : LayerBLocalizationPiZeroTicket) :
-    MotivicLocalizationLocalGeometryWitness ML where
-  a1InvariancePiZeroTicket := a1InvariancePiZeroTicket
-  a1InvarianceInfinityTicket := a1InvarianceInfinityTicket
-  nisnevichDescentPiZeroTicket := nisnevichDescentPiZeroTicket
-  nisnevichDescentInfinityTicket := nisnevichDescentInfinityTicket
-  localizationPiZeroTicket := localizationPiZeroTicket
-  localizationInfinityTicket :=
-    LayerBLocalizationInfinityTicket.ofLocalizationUniversalPropertyData universalPropertyData
-
-/-- The stronger theorem-data constructor keeps the pi0 shadow separate while
-deriving the infinity-side ticket from proof-relevant data. -/
-theorem ofLocalizationTheoremData_derives_localizationPiZero
-    (ML : LayerB.MotivicLocalization)
-    (universalPropertyData : LayerA.LocalizationUniversalPropertyData ML.localization)
-    (piZeroShadowTheorem : LayerA.LocalizationPiZeroShadowTheorem ML.localization)
-    (a1InvariancePiZeroTicket : LayerBA1InvariancePiZeroTicket)
-    (a1InvarianceInfinityTicket : LayerBA1InvarianceInfinityTicket)
-    (nisnevichDescentPiZeroTicket : LayerBNisnevichDescentPiZeroTicket)
-    (nisnevichDescentInfinityTicket : LayerBNisnevichDescentInfinityTicket) :
-    ((ofLocalizationTheoremData
-      ML
-      universalPropertyData
-      piZeroShadowTheorem
-      a1InvariancePiZeroTicket
-      a1InvarianceInfinityTicket
-      nisnevichDescentPiZeroTicket
-      nisnevichDescentInfinityTicket).localizationPiZeroTicket).verdierLocalizationPiZeroShadow =
-      piZeroShadowTheorem.verdierLocalizationPiZeroShadow := by
-  rfl
-
-/-- The partial constructor derives the infinity-side localization ticket from
-explicit proof-relevant universal-property data exactly as advertised. -/
-theorem ofLocalizationUniversalPropertyData_derives_localizationInfinity
-    (ML : LayerB.MotivicLocalization)
-    (universalPropertyData : LayerA.LocalizationUniversalPropertyData ML.localization)
-    (a1InvariancePiZeroTicket : LayerBA1InvariancePiZeroTicket)
-    (a1InvarianceInfinityTicket : LayerBA1InvarianceInfinityTicket)
-    (nisnevichDescentPiZeroTicket : LayerBNisnevichDescentPiZeroTicket)
-    (nisnevichDescentInfinityTicket : LayerBNisnevichDescentInfinityTicket)
-    (localizationPiZeroTicket : LayerBLocalizationPiZeroTicket) :
-    ((ofLocalizationUniversalPropertyData
-      ML
-      universalPropertyData
-      a1InvariancePiZeroTicket
-      a1InvarianceInfinityTicket
-      nisnevichDescentPiZeroTicket
-      nisnevichDescentInfinityTicket
-      localizationPiZeroTicket).localizationInfinityTicket).localizationUniversalPropertyInfinity =
-      universalPropertyData.localizationUniversalPropertyInfinity := by
-  rfl
 
 /-- Repackage the motivic-localization-specific local-geometry theorem surface
 as the generic Layer B bridge witness for the concrete candidate path. -/
@@ -667,52 +506,6 @@ theorem toLayerBTateWitness_preserves_fields
   exact ⟨rfl, rfl⟩
 
 end MotivicLocalizationTateWitness
-
-/-- The strengthened `LayerB.MotivicLocalization` carrier now feeds the full
-`SourceTracePackage` source/localization seam directly. -/
-def motivicLocalization_candidate_sourceTracePackage
-    {primitive : NamedPrimitiveInterfacePresentation}
-    (presentation : NamedDoctrinePresentation primitive)
-    (aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine)
-    (ML : LayerB.MotivicLocalization) :
-    LayerD.SourceTracePackage :=
-  LayerBConcreteSourceData.toSourceTracePackage
-    (sourceData := layerBConcreteSourceDataCandidate presentation aux ML)
-    (layerBConcreteSourceDataCandidate_localizationInterfaceData presentation aux ML)
-    (layerBConcreteSourceDataCandidate_shapeData presentation aux ML)
-
-/-- The strengthened `LayerB.MotivicLocalization` alignment data feed the
-`SourceTracePackage` seam exactly as advertised. -/
-theorem motivicLocalization_alignment_feeds_sourceTracePackage
-    {primitive : NamedPrimitiveInterfacePresentation}
-    (presentation : NamedDoctrinePresentation primitive)
-    (aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine)
-    (ML : LayerB.MotivicLocalization) :
-    let pkg := motivicLocalization_candidate_sourceTracePackage presentation aux ML
-    pkg.localization_matches =
-      ⟨layerBConcreteSourceDataCandidate_sourceCategoryAlignment presentation aux ML,
-        layerBConcreteSourceDataCandidate_targetCategoryAlignment presentation aux ML⟩ ∧
-      HEq pkg.localizationInterface.W pkg.weakEquivalence ∧
-      HEq pkg.localizationInterface.QObj pkg.localizeObj := by
-  exact ⟨rfl, ⟨ML.weakEquivalence_alignment, ML.localizeObj_alignment⟩⟩
-
-/-- The strengthened `LayerB.MotivicLocalization` candidate reduces the
-source/localization bridge seam to the `SourceTracePackage` carrier directly. -/
-def motivicLocalization_candidate_reduces_localization_seam
-    {primitive : NamedPrimitiveInterfacePresentation}
-    (presentation : NamedDoctrinePresentation primitive)
-    (aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine)
-    (ML : LayerB.MotivicLocalization) :
-    (motivicLocalization_candidate_sourceTracePackage presentation aux ML).LocalizationCompatibilityType := by
-  refine {
-    weakEquivalenceAlignment := ML.weakEquivalence_alignment
-    localizeObjAlignment := ML.localizeObj_alignment
-    localizationMapId := ?_
-    localizationMapComp := ?_ }
-  · intro X
-    simpa using ML.localization.map_id X
-  · intro X Y Z f g
-    simpa using ML.localization.map_comp f g
 
 /-- The symmetric-monoidal theorem surface for the real
 `LayerB.MotivicLocalization` carrier repackages directly into the generic Layer
@@ -802,7 +595,6 @@ structure LayerBSourceExportData
   pkg : NamedFreeSourceHolographyPackage presentation aux
   concreteSource : LayerBConcreteSourceData presentation aux
   localizationData : LayerBLocalizationInterfaceData concreteSource
-  shapeData : LayerBShapeData concreteSource
   symmetricMonoidalWitness : LayerBSymmetricMonoidalWitness concreteSource
   stableTriangulatedWitness : LayerBStableTriangulatedWitness concreteSource
   localGeometryWitness : LayerBLocalGeometryWitness concreteSource
@@ -826,8 +618,6 @@ def toConcretePreferredAuxiliaryData
   catEnvelope := sourceData.catEnvelope
   catLocalized := sourceData.catLocalized
   includeSyntax := sourceData.includeSyntax
-  stableEnvelope := sourceData.stableEnvelope
-  stableLocalized := sourceData.stableLocalized
   weakEquivalence := sourceData.weakEquivalence
   localizeObj := sourceData.localizeObj
   localizationInterface := sourceData.localizationInterface
@@ -857,22 +647,6 @@ def toConcretePreferredAuxiliaryData
   }
 
 end LayerBLocalizationInterfaceData
-
-namespace LayerBShapeData
-
-/-- Transport shape witnesses to the concrete preferred auxiliary object. -/
-def toConcretePreferredAuxiliaryData
-    {primitive : NamedPrimitiveInterfacePresentation}
-    {presentation : NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    {sourceData : LayerBConcreteSourceData presentation aux}
-    (data : LayerBShapeData sourceData) :
-    LayerBShapeData sourceData.toConcretePreferredAuxiliaryData where
-  hasNisnevichShape := data.hasNisnevichShape
-  hasA1InvarianceShape := data.hasA1InvarianceShape
-  hasTateInvertibilityShape := data.hasTateInvertibilityShape
-
-end LayerBShapeData
 
 namespace LayerBSymmetricMonoidalWitness
 
@@ -966,7 +740,6 @@ def toConcretePreferredAuxiliaryData
       presentation boundaryCodes proofs
   concreteSource := sourceExport.concreteSource.toConcretePreferredAuxiliaryData
   localizationData := sourceExport.localizationData.toConcretePreferredAuxiliaryData
-  shapeData := sourceExport.shapeData.toConcretePreferredAuxiliaryData
   symmetricMonoidalWitness :=
     sourceExport.symmetricMonoidalWitness.toConcretePreferredAuxiliaryData
   stableTriangulatedWitness :=
@@ -1155,7 +928,7 @@ abbrev InternalHolographyPiZeroShadowTarget
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
     (ML : LayerB.MotivicLocalization) :=
-  LayerA.LocalizationPiZeroShadowTheorem ML.localization
+  CategoryInfra.LocalizationPiZeroShadowTheorem ML.localization
 
 namespace InternalHolographyInterface
 
@@ -3448,8 +3221,8 @@ def concretePreferredInternalHolographyInterface_realizes_ComparisonToBoundaryFa
 
 /-- Assemble the cautious bridge payload directly from the real
 `LayerB.MotivicLocalization` candidate path and the candidate-specific witness
-clusters. The localization seam and shape data are derived from `ML`; the
-remaining witness obligations stay explicit inputs. -/
+clusters. The localization seam is derived from `ML`; the remaining witness
+obligations stay explicit inputs. -/
 def layerBSourceExportData_fromMotivicLocalizationCandidate
     {primitive : NamedPrimitiveInterfacePresentation}
     {presentation : NamedDoctrinePresentation primitive}
@@ -3465,7 +3238,6 @@ def layerBSourceExportData_fromMotivicLocalizationCandidate
   concreteSource := layerBConcreteSourceDataCandidate presentation aux ML
   localizationData :=
     layerBConcreteSourceDataCandidate_localizationInterfaceData presentation aux ML
-  shapeData := layerBConcreteSourceDataCandidate_shapeData presentation aux ML
   symmetricMonoidalWitness :=
     MotivicLocalizationSymmetricMonoidalWitness.toLayerBSymmetricMonoidalWitness
       (presentation := presentation) (aux := aux) symmetricMonoidalWitness
@@ -3517,7 +3289,10 @@ def layerBSourceExportData_to_SourceTracePackage
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
     (exportData : LayerBSourceExportData presentation aux) :
     LayerD.SourceTracePackage :=
-  exportData.concreteSource.toSourceTracePackage exportData.localizationData exportData.shapeData
+  exportData.concreteSource.toSourceTracePackage
+    exportData.localizationData
+    exportData.localGeometryWitness
+    exportData.tateWitness
 
 /-- Package the explicit extra witness fields carried by
 `LayerBSourceExportData` as a Layer D `SourceConstructionWitness`. -/
