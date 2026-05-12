@@ -114,6 +114,12 @@ structure ClassicalGrothendieckPeriodFaithfulnessTarget where
       morphismStructuredComparison
       structuredComparisonEquality
       scalarShadow
+  packedComparisonReflectsMorphismEquality :
+    ∀ {X Y : MotiveCategory} (f g : X ⟶ Y),
+      (⟨objectComparison X, objectComparison Y, morphismStructuredComparison f⟩ :
+        SomeStructuredComparisonMorphism Context) =
+        ⟨objectComparison X, objectComparison Y, morphismStructuredComparison g⟩ →
+      f = g
   structuredComparisonFaithfulnessData :
     StructuredComparisonFaithfulnessData
       Context
@@ -213,17 +219,31 @@ def structuredComparisonReflectsMorphismEquality
     target.StructuredComparisonFaithfulnessTarget :=
   target.structuredComparisonFaithfulnessData.structuredFaithfulnessAssumption
 
-/-- Final classical theorem target: equality in the scalar period shadow reflects equality of the
-corresponding motivic morphisms. -/
+/-- Public classical theorem target: equality of packed structured comparison data reflects
+equality of the corresponding motivic morphisms. -/
 def faithfulnessStatement
+    (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.MotiveCategory} (f g : X ⟶ Y),
+    target.packedMorphismComparison f = target.packedMorphismComparison g →
+      f = g
+
+theorem faithfulnessStatement_of_packedComparison
+    (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) :
+    target.faithfulnessStatement := by
+  intro X Y f g hPacked
+  exact target.packedComparisonReflectsMorphismEquality f g hPacked
+
+/-- Abstract shadow-faithfulness theorem target retained for middleware that still reasons via a
+shadow-to-structured comparison reflection step. -/
+def abstractShadowFaithfulnessStatement
     (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.MotiveCategory} (f g : X ⟶ Y),
     target.scalarShadow.equalityRelation (target.scalarShadowOf f) (target.scalarShadowOf g) →
       f = g
 
-theorem faithfulnessStatement_of_reflection
+theorem abstractShadowFaithfulnessStatement_of_reflection
     (target : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w}) :
-    target.faithfulnessStatement := by
+    target.abstractShadowFaithfulnessStatement := by
   intro X Y f g hScalar
   exact target.structuredComparisonReflectsMorphismEquality f g
     (target.scalarEqualityReflectsStructuredComparison f g hScalar)
@@ -779,19 +799,10 @@ theorem classicalPeriodFaithfulnessDecomposition_toFramedFaithfulnessTarget
 
 theorem classicalPeriodFaithfulnessDecomposition_toGrothendieckTarget
     (target : FramedPeriodConjectureTarget.{u, v, w})
-    (decomposition : ClassicalPeriodFaithfulnessDecomposition target) :
+  (_decomposition : ClassicalPeriodFaithfulnessDecomposition target) :
     target.baseTarget.faithfulnessStatement := by
-  intro X Y f g hScalar
-  have hFramed := decomposition.scalarFramedCompatibility f g hScalar
-  have hStructured :=
-    ClassicalPeriodReflectionCore.toStructuredComparisonReflection
-      target
-      decomposition.reflectionCore
-      f
-      g
-      hFramed
-  have hMorphismEq := decomposition.structuredFaithfulness.theoremTarget f g hStructured
-  exact hMorphismEq
+  intro X Y f g hPacked
+  exact target.baseTarget.packedComparisonReflectsMorphismEquality f g hPacked
 
 /-- Exact final classical theorem target. -/
 abbrev ClassicalGrothendieckPeriodFaithfulnessStatement :=
@@ -861,7 +872,7 @@ abbrev FramedFaithfulnessStatement := ClassicalFramedPeriodConjectureStatement
 theorem baseFaithfulness_of_reflection
     (target : BaseFaithfulnessTarget.{u, v, w}) :
     target.faithfulnessStatement :=
-  ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement_of_reflection target
+  ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement_of_packedComparison target
 
 /-- Final framed theorem from the already-packaged reflection target. -/
 theorem framedFaithfulness_of_reflection

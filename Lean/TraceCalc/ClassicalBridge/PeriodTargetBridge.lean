@@ -423,6 +423,9 @@ def classicalTargetOfLiteralPackedComparison
       intro X Y f g hScalar
       exact scalarShadowReflectsLiteralPackedComparison f g hScalar
   }
+  packedComparisonReflectsMorphismEquality := by
+    intro X Y f g hPacked
+    exact packedComparisonReflectsMorphismEquality f g hPacked
   structuredComparisonFaithfulnessData := {
     classicalRecognitionData :=
       bridge.classicalTarget.structuredComparisonFaithfulnessData.classicalRecognitionData
@@ -458,7 +461,7 @@ theorem classicalFaithfulnessStatement_ofLiteralPackedComparison
       (bridge.classicalTargetOfLiteralPackedComparison
         scalarShadowReflectsLiteralPackedComparison
         packedComparisonReflectsMorphismEquality) :=
-    ClassicalPeriods.ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement_of_reflection
+      ClassicalPeriods.ClassicalGrothendieckPeriodFaithfulnessTarget.faithfulnessStatement_of_packedComparison
     (bridge.classicalTargetOfLiteralPackedComparison
       scalarShadowReflectsLiteralPackedComparison
       packedComparisonReflectsMorphismEquality)
