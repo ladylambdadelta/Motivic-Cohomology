@@ -145,8 +145,8 @@ structure NormalizationTruncationTriangle
   recognitionCompatibilityTarget : Prop
   campaign11WeightDevissageInputTarget : Prop
 
-/- Theorem target for a coarse `t`-structure package on the structurally-recognized motivic
-category.
+/- Theorem target for a coarse legacy `t`-structure compatibility shell on the
+structurally-recognized motivic category.
 
 This compatibility shell is retained for existing callers. The richer Campaign
 12B target surface is `TraceMotivicTStructureData`. -/
@@ -158,6 +158,11 @@ structure TStructureTarget
     structuralRecognition.recognition.recognizedCategory.Object → Type z
   truncationTriangleTarget : Prop
   orthogonalityTarget : Prop
+
+/-- Preferred honest name for the coarse compatibility shell retained for
+legacy callers. Public theorem-facing routes should use
+`TraceMotivicTStructureData` for the actual motivic `t`-structure target. -/
+abbrev CoarseTStructureCompatibilityTarget := TStructureTarget
 
 /-- Typed candidate for the heart of the recognized t-structure.
 

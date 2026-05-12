@@ -47,9 +47,9 @@ section ProductionSealChecks
 #check LayerB.RealObjects.RewriteCalculusSetup.SinkDeletionProducesTraceEquivZero.ofBoundaryGluingWitnessData
 #check LayerB.RealObjects.RewriteCalculusSetup.BoundaryTraceEquivZeroData.ofBoundaryGluingWitnessData
 
--- Concrete classical period-faithfulness theorems.
-#check LayerD.scalar_period_faithfulness_classical
-#check LayerD.full_morphism_eq_of_basisFreePeriodMap_eq
+-- Concrete classical period-faithfulness bridge theorems.
+#check LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq
+#check LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
 
 -- Final manuscript spine target artifacts.
 #check MotivicRecognition.InternalManuscriptSpineTarget

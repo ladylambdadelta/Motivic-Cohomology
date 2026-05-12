@@ -4,9 +4,9 @@ namespace AxiomCheckPackage8Final
 open TraceCalc.MotivicRecognition
 open TraceCalc.ClassicalPeriods
 
--- Wall 2: internal realization functor data and theorem target
+-- Wall 2: internal realization functor data and closed receipt target
 #print axioms InternalRealizationFunctorData.ofSealedPackages
-#print axioms InternalRealizationFunctorData.thm_internal_realization_functor
+#print axioms InternalRealizationFunctorData.internal_realization_functor_receipt
 
 -- Wall 3: tomography from internal realization functor
 #print axioms GeometricRealizationTomographySoundness.ofInternalRealizationFunctor
@@ -21,7 +21,7 @@ open TraceCalc.ClassicalPeriods
 #print axioms TraceCalc.MotivicRecognition.comparison_reconstruction_from_realization_agreements
 #print axioms TraceCalc.MotivicRecognition.period_pairing_determines_realizations
 #print axioms TraceCalc.MotivicRecognition.tomographic_faithfulness
-#print axioms TraceCalc.MotivicRecognition.tomographic_faithfulness_from_internal_realization_functor
+#print axioms TraceCalc.MotivicRecognition.tomographic_faithfulness_receipt_from_internal_realization_functor
 
 -- Wall 7: final P8 faithfulness surface without external injectivity hypotheses
 #print axioms ProofRelevantPeriodTheoremTarget.comparisonFaithfulnessInputTarget_of_realization_agreements

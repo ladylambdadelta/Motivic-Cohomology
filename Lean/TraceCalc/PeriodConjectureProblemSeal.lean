@@ -55,10 +55,10 @@ rg -n "ScalarShadow|scalar.*witness|scalar.*certificate|scalar.*trace|scalar.*re
 These are direct theorem-shape aliases for the concrete period-faithfulness results,
 restated without any extra wrapper relation or audit-only structure layer. -/
 
-/-- Alias to the concrete over-scalar reflection theorem.
+/-- Alias to the concrete over-scalar realization-equality theorem.
 This restates the exact theorem surface of
-`LayerD.scalar_period_faithfulness_classical`. -/
-theorem scalar_period_faithfulness_classical_sealed :
+`LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq`. -/
+theorem overScalarRealization_eq_of_basisFreePeriodMap_eq_sealed :
     {ctx : ClassicalComparisonContext} →
     (source target : ClassicalStructuredComparisonObject ctx) →
     (f g : ClassicalStructuredComparisonMorphism source target) →
@@ -66,12 +66,12 @@ theorem scalar_period_faithfulness_classical_sealed :
       f.deRhamMapOverScalar = g.deRhamMapOverScalar ∧
       f.bettiMapOverScalar = g.bettiMapOverScalar :=
   fun source target f g h =>
-    LayerD.scalar_period_faithfulness_classical source target f g h
+  LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq source target f g h
 
-/-- Alias to the concrete literal-equality theorem.
+/-- Alias to the concrete literal-equality theorem with explicit Betti/de Rham map hypotheses.
 This restates the exact theorem surface of
-`LayerD.full_morphism_eq_of_basisFreePeriodMap_eq`. -/
-theorem full_morphism_eq_of_basisFreePeriodMap_eq_sealed :
+`LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq`. -/
+theorem full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq_sealed :
     {ctx : ClassicalComparisonContext} →
     {source target : ClassicalStructuredComparisonObject ctx} →
     (f g : ClassicalStructuredComparisonMorphism source target) →
@@ -80,7 +80,7 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq_sealed :
     f.basisFreePeriodMap = g.basisFreePeriodMap →
     f = g :=
   fun f g hBetti hDeRham hBasis =>
-    LayerD.full_morphism_eq_of_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
+    LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
 
 /-- Final period-conjecture theorem endpoint currently exposed in production.
 This takes a `BaseFaithfulnessTarget` package and returns its `faithfulnessStatement`. -/
@@ -337,8 +337,8 @@ end LiteralPackedBridgeConstructionSeal
 
 These expose the precise Lean-elaborated type of each theorem for human inspection. -/
 
-#check LayerD.scalar_period_faithfulness_classical
-#check LayerD.full_morphism_eq_of_basisFreePeriodMap_eq
+#check LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq
+#check LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
 #check PeriodConjectureTargetIndex.baseFaithfulness_of_reflection
 #check PeriodConjectureTargetIndex.framedFaithfulness_of_reflection
 #check MotivicRecognition.ProofRelevantPeriodTheoremTarget
@@ -358,8 +358,8 @@ These expose the precise Lean-elaborated type of each theorem for human inspecti
 Confirms that the two concrete theorems depend only on `propext` and `Quot.sound`,
 with no `sorry`, no `Classical.choice` escape, and no custom axioms. -/
 
-#print axioms LayerD.scalar_period_faithfulness_classical
-#print axioms LayerD.full_morphism_eq_of_basisFreePeriodMap_eq
+#print axioms LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq
+#print axioms LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
 #print axioms TraceCalc.PeriodConjectureProblemSeal.recognizedMMQ_framedShadowExtensionality_sealed
 #print axioms TraceCalc.PeriodConjectureProblemSeal.recognizedMMQ_morphismReconstructionFromPackedComparison_sealed
 

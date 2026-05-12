@@ -441,7 +441,7 @@ structure PeriodFaithfulnessSpine
   Paper role: equal basis-free period maps imply equal structured comparison
     morphisms (period faithfulness corollary)
   Lean status: PROVED-WEAKER
-  Proof source: ConcretePeriodFaithfulness.full_morphism_eq_of_basisFreePeriodMap_eq
+  Proof source: ConcretePeriodFaithfulness.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
     (renamed alias: internal_period_faithfulness_weaker)
   Gap: the paper claims this follows from the comparison constraint alone.
     The Lean proof requires 4 additional field hypotheses:

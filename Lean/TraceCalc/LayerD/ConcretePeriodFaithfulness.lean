@@ -22,8 +22,9 @@ univalence axiom) requires that type equality of indexed structures implies fiel
 which is not derivable from abstract type proofs. See the `PeriodFaithfulnessContext`
 Instantiation note at the end of this file for a detailed explanation.
 
-The genuine mathematical content lives in `scalar_period_faithfulness_classical` and
-`full_morphism_eq_of_basisFreePeriodMap_eq`.
+The genuine mathematical content lives in
+`overScalarRealization_eq_of_basisFreePeriodMap_eq` and
+`full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq`.
 -/
 
 open ClassicalPeriods
@@ -38,13 +39,13 @@ Scope: this is the over-scalar algebraic reflection lemma. The final full-morphi
 uses `full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions`, which derives the
 base-map hypotheses from explicit injectivity data instead of using the legacy auxiliary alias.
 -/
-/-- **Concrete scalar period faithfulness theorem** (over-scalar level).
+/-- **Concrete over-scalar realization equality theorem**.
 
 For fixed source and target classical comparison objects, equality of the basis-free period map
 implies equality of both over-scalar realization maps. Proved directly from the algebraic
 reflection theorems `deRhamMapOverScalar_eq_of_basisFreePeriodMap_eq` and
 `bettiMapOverScalar_eq_of_basisFreePeriodMap_eq` in `ClassicalPeriods.Basic`. -/
-theorem scalar_period_faithfulness_classical
+theorem overScalarRealization_eq_of_basisFreePeriodMap_eq
     {ctx : ClassicalComparisonContext.{u, v}}
     (source target : ClassicalStructuredComparisonObject ctx)
     (f g : ClassicalStructuredComparisonMorphism source target)
@@ -71,13 +72,15 @@ Lean status: LEGACY SUPPORT LEMMA.
   required: they are proof-type fields whose equality is established internally by
   `eq_of_map_fields_eq` via proof irrelevance once the map fields agree.)
 The final route for this file discharges those two hypotheses from explicit injectivity of the
-target scalar-extension maps in `full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions`.
+target scalar-extension maps in
+`full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions`.
 -/
-/-- **Full morphism equality from basis-free period map equality** (concrete combined theorem).
+/-- **Full morphism equality from basis-free period-map equality plus explicit Betti/de Rham map
+equality**.
 
 Given that the base-level maps and extension compatibility fields agree, equality of the
 basis-free period map implies literal equality of the structured comparison morphisms. -/
-theorem full_morphism_eq_of_basisFreePeriodMap_eq
+theorem full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
     {ctx : ClassicalComparisonContext.{u, v}}
     {source target : ClassicalStructuredComparisonObject ctx}
     (f g : ClassicalStructuredComparisonMorphism source target)
@@ -86,7 +89,7 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq
     (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
     f = g := by
   obtain ⟨hDeRhamScalar, hBettiScalar⟩ :=
-    scalar_period_faithfulness_classical source target f g hBasis
+    overScalarRealization_eq_of_basisFreePeriodMap_eq source target f g hBasis
   exact ClassicalStructuredComparisonMorphism.eq_of_map_fields_eq
     f g hBetti hDeRham hBettiScalar hDeRhamScalar
 
@@ -94,7 +97,7 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq
 extension maps are injective on the target object.
 
 This discharges the two extra hypotheses of
-`full_morphism_eq_of_basisFreePeriodMap_eq` by transporting scalar-map equality
+`full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq` by transporting scalar-map equality
 back along extension-compatibility squares. -/
 theorem full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions
     {ctx : ClassicalComparisonContext.{u, v}}
@@ -105,7 +108,7 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions
     (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
     f = g := by
   obtain ⟨hDeRhamScalar, hBettiScalar⟩ :=
-    scalar_period_faithfulness_classical source target f g hBasis
+    overScalarRealization_eq_of_basisFreePeriodMap_eq source target f g hBasis
   have hBetti : f.bettiMap = g.bettiMap := by
     ext x
     apply hExtendBettiInj
@@ -115,7 +118,7 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions
               symm
               exact f.bettiExtensionCompatibility x
       _ = g.bettiMapOverScalar (source.extendBetti x) := by
-            simpa [hBettiScalar]
+        simp [hBettiScalar]
       _ = target.extendBetti (g.bettiMap x) := by
             exact g.bettiExtensionCompatibility x
   have hDeRham : f.deRhamMap = g.deRhamMap := by
@@ -127,64 +130,10 @@ theorem full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions
               symm
               exact f.deRhamExtensionCompatibility x
       _ = g.deRhamMapOverScalar (source.extendDeRham x) := by
-            simpa [hDeRhamScalar]
+        simp [hDeRhamScalar]
       _ = target.extendDeRham (g.deRhamMap x) := by
             exact g.deRhamExtensionCompatibility x
-  exact full_morphism_eq_of_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
-
-/-! ## Concrete Realization and Shadow Data
-
-To instantiate `PeriodFaithfulnessContext` non-vacuously, we define type families carrying
-the actual maps from classical comparison morphisms.
--/
-
-/-- Structured realization data extracted from a classical comparison morphism.
-This is a record carrying all four realization maps and extension compatibility fields. -/
-structure ClassicalStructuredRealization
-    {ctx : ClassicalComparisonContext.{u, v}}
-    {source target : ClassicalStructuredComparisonObject ctx}
-    (f : ClassicalStructuredComparisonMorphism source target) where
-  bettiMap : source.BettiCarrier →ₗ[ctx.BaseField] target.BettiCarrier
-  deRhamMap : source.DeRhamCarrier →ₗ[ctx.BaseField] target.DeRhamCarrier
-  bettiMapOverScalar : source.BettiOverScalar →ₗ[ctx.ScalarField] target.BettiOverScalar
-  deRhamMapOverScalar : source.DeRhamOverScalar →ₗ[ctx.ScalarField] target.DeRhamOverScalar
-  /-- The scalar extension of `bettiMap` agrees with `bettiMapOverScalar` after scalar extension. -/
-  bettiExtensionCompatibility :
-    ∀ (x : source.BettiCarrier),
-      bettiMapOverScalar (source.extendBetti x) = target.extendBetti (bettiMap x)
-  /-- The scalar extension of `deRhamMap` agrees with `deRhamMapOverScalar` after scalar extension. -/
-  deRhamExtensionCompatibility :
-    ∀ (x : source.DeRhamCarrier),
-      deRhamMapOverScalar (source.extendDeRham x) = target.extendDeRham (deRhamMap x)
-
-/-- Constructor lifting a morphism to its structured realization. -/
-def ClassicalStructuredRealization.ofMorphism
-    {ctx : ClassicalComparisonContext.{u, v}}
-    {source target : ClassicalStructuredComparisonObject ctx}
-    (f : ClassicalStructuredComparisonMorphism source target) :
-    ClassicalStructuredRealization f where
-  bettiMap := f.bettiMap
-  deRhamMap := f.deRhamMap
-  bettiMapOverScalar := f.bettiMapOverScalar
-  deRhamMapOverScalar := f.deRhamMapOverScalar
-  bettiExtensionCompatibility := f.bettiExtensionCompatibility
-  deRhamExtensionCompatibility := f.deRhamExtensionCompatibility
-
-/-- Scalar shadow data extracted from a classical comparison morphism.
-This is a record carrying the basis-free period map. -/
-structure ClassicalScalarShadow
-    {ctx : ClassicalComparisonContext.{u, v}}
-    {source target : ClassicalStructuredComparisonObject ctx}
-    (f : ClassicalStructuredComparisonMorphism source target) where
-  basisFreePeriodMap : source.DeRhamOverScalar →ₗ[ctx.ScalarField] target.BettiOverScalar
-
-/-- Constructor lifting a morphism to its scalar shadow. -/
-def ClassicalScalarShadow.ofMorphism
-    {ctx : ClassicalComparisonContext.{u, v}}
-    {source target : ClassicalStructuredComparisonObject ctx}
-    (f : ClassicalStructuredComparisonMorphism source target) :
-    ClassicalScalarShadow f where
-  basisFreePeriodMap := f.basisFreePeriodMap
+  exact full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
 
 /-! ## Bridge-To-Visible-Boundary Data
 
@@ -265,16 +214,6 @@ def structuredComparisonVisibleBoundaryPorts
   cases h
   rfl
 
-@[simp] theorem structuredComparisonVisibleBoundaryPorts_eq_of_eq
-    {ctx : ClassicalComparisonContext.{u, v}}
-    (projection : StructuredComparisonBoundaryProjectionData ctx)
-    {comparison₁ comparison₂ : PackedStructuredComparison ctx}
-    (h : comparison₁ = comparison₂) :
-    projection.structuredComparisonVisibleBoundaryPorts comparison₁ =
-      projection.structuredComparisonVisibleBoundaryPorts comparison₂ := by
-  cases h
-  rfl
-
 /-- The first honest equality theorem on the current bridge carrier: equality of
 packed structured comparison data implies equality of the projected comparison-
 side visible-boundary carrier. This is intentionally weaker than a theorem
@@ -287,30 +226,6 @@ theorem comparison_eq_implies_visibleBoundary_eq
     projection.structuredComparisonVisibleBoundary comparison₁ =
       projection.structuredComparisonVisibleBoundary comparison₂ :=
   projection.structuredComparisonVisibleBoundary_eq_of_eq h
-
-@[simp] theorem sourceBoundaryIdentifier_eq_boundarySlotLabels_source
-    {ctx : ClassicalComparisonContext.{u, v}}
-    (projection : StructuredComparisonBoundaryProjectionData ctx)
-    (comparison : PackedStructuredComparison ctx) :
-    projection.sourceBoundaryIdentifier comparison =
-      (projection.boundarySlotLabels comparison).sourceSlot :=
-  (projection.boundaryProjectionReadFromStructuredComparisonData comparison).1
-
-@[simp] theorem targetBoundaryIdentifier_eq_boundarySlotLabels_target
-    {ctx : ClassicalComparisonContext.{u, v}}
-    (projection : StructuredComparisonBoundaryProjectionData ctx)
-    (comparison : PackedStructuredComparison ctx) :
-    projection.targetBoundaryIdentifier comparison =
-      (projection.boundarySlotLabels comparison).targetSlot :=
-  (projection.boundaryProjectionReadFromStructuredComparisonData comparison).2.1
-
-@[simp] theorem gluingCompatibilityLabel_eq_boundarySlotLabels_comparison
-    {ctx : ClassicalComparisonContext.{u, v}}
-    (projection : StructuredComparisonBoundaryProjectionData ctx)
-    (comparison : PackedStructuredComparison ctx) :
-    projection.gluingCompatibilityLabel comparison =
-      (projection.boundarySlotLabels comparison).comparisonSlot :=
-  (projection.boundaryProjectionReadFromStructuredComparisonData comparison).2.2
 
 end StructuredComparisonBoundaryProjectionData
 
@@ -685,15 +600,16 @@ definitionally when the proof is not `rfl`. This blocks any proof of
 `SR f = SR g → f = g` that does not degenerate to `fun _ => h` for some separately
 constructed `h : f = g`.
 
-Additionally, `scalarReflectsStructured` with `SR := ClassicalStructuredRealization`
-(carrying all four maps) would require deriving `f.bettiMap = g.bettiMap` from
+Additionally, `scalarReflectsStructured` with a structured-realization family
+carrying all four maps would require deriving `f.bettiMap = g.bettiMap` from
 `f.basisFreePeriodMap = g.basisFreePeriodMap`, which is FALSE: the over-scalar maps are
-determined by `basisFreePeriodMap` (via `scalar_period_faithfulness_classical`), but the
+determined by `basisFreePeriodMap` (via `overScalarRealization_eq_of_basisFreePeriodMap_eq`), but the
 base-level maps `bettiMap` and `deRhamMap` are independent.
 
 The genuine mathematical content of period faithfulness — that the basis-free period map
 determines all scalar-extended realization maps — is fully captured by the direct theorems
-`scalar_period_faithfulness_classical` and `full_morphism_eq_of_basisFreePeriodMap_eq`
+`overScalarRealization_eq_of_basisFreePeriodMap_eq` and
+`full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq`
 above, without the need for an abstract type-family wrapper. -/
 
 /-
@@ -707,7 +623,7 @@ Lean status: LEGACY SUPPORT LEMMA. The final file-level route is the injective-e
 equality of the basis-free period map implies equality of the full structured
 comparison morphism — **under two additional field hypotheses**.
 
-This is a named alias for `full_morphism_eq_of_basisFreePeriodMap_eq`.
+This is a named alias for `full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq`.
 The two extra field hypotheses (`hBetti`, `hDeRham`) are the WEAKER gap
 relative to the paper's unconditional statement. The paper proves both
 follow from the comparison iso constraint alone, which is not yet formalized.
@@ -723,7 +639,7 @@ theorem internal_period_faithfulness_weaker
     (hBetti : f.bettiMap = g.bettiMap)
     (hDeRham : f.deRhamMap = g.deRhamMap) :
     f = g :=
-  full_morphism_eq_of_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
+  full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
 
 /-- Injective-extension variant of `cor:internal-period-faithfulness`.
 

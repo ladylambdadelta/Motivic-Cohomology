@@ -119,20 +119,27 @@ def ofSealedPackages
   probeExtensionality := probeExtensionality
   packedReconstruction := packedReconstruction
 
-/-- The Wall 2 theorem target: internal realization functor data exists for the fixed
-classical comparison context and structured equality. -/
-def TheoremTarget
+/-- Closed receipt target for Wall 2.
+
+This is intentionally only a trivial receipt showing that a named Wall 2 package
+has been supplied. The actual nontrivial Wall 2 content lives in
+`InternalRealizationFunctorData` itself and in the derived tomography package,
+not in this scalar reflexivity proposition. -/
+def ReceiptTarget
     {ctx : ClassicalComparisonContext.{u, v}}
   (_structuredEq : StructuredComparisonEquality ctx) : Prop :=
   ∀ (a : ctx.ScalarField), a = a
 
-/-- `thm:internal-realization-functor`, expressed as the nonempty target of the
-proof-relevant data structure. -/
-theorem thm_internal_realization_functor
+/-- Closed receipt that a Wall 2 internal realization functor package was
+provided.
+
+This is not the internal realization functor theorem itself; it is only a
+trivial receipt layered on top of the proof-relevant package. -/
+theorem internal_realization_functor_receipt
     {ctx : ClassicalComparisonContext.{u, v}}
     {structuredEq : StructuredComparisonEquality ctx}
   (_internal : InternalRealizationFunctorData ctx structuredEq) :
-    TheoremTarget structuredEq := by
+    ReceiptTarget structuredEq := by
   intro a
   rfl
 
@@ -710,7 +717,7 @@ theorem comparison_reconstruction_from_realization_agreements
     (hDeRham : f.deRhamMap = g.deRhamMap)
     (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
     f = g :=
-  LayerD.full_morphism_eq_of_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
+  LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
 
 /-- Wall 5: the full period-matrix agreement contains framed-period payloads whose scalar
 periods are exactly evaluations of the basis-free period map. -/
@@ -726,9 +733,13 @@ theorem period_pairing_determines_realizations
       datum.bettiCovector (morphism.basisFreePeriodMap datum.deRhamVector) :=
   datum.scalarPeriod_eq_pairing
 
-/-- Lightweight receipt target for Wall 6.  The proof-relevant theorem below carries the full
-morphism-level faithfulness statement; this scalar law keeps closed receipts universe-safe. -/
-def TomographicFaithfulnessStatement
+/-- Lightweight receipt target for Wall 6.
+
+This is intentionally not the tomographic faithfulness theorem. The actual
+morphism-level theorem in this file is `tomographic_faithfulness`; this target
+is only a trivial closed receipt used to acknowledge that a sealed internal
+provider was supplied. -/
+def TomographicFaithfulnessReceiptTarget
     (ctx : ClassicalComparisonContext.{u, v}) : Prop :=
   ∀ (a : ctx.ScalarField), a = a
 
@@ -748,12 +759,15 @@ theorem tomographic_faithfulness
     f = g :=
   comparison_reconstruction_from_realization_agreements f g hBetti hDeRham hBasis
 
-/-- Final-path Wall 6 provider from the sealed internal realization functor. -/
-theorem tomographic_faithfulness_from_internal_realization_functor
+/-- Closed receipt that a sealed internal Wall 6 provider was supplied.
+
+This is not a morphism-faithfulness theorem; the nontrivial morphism-level
+statement remains `tomographic_faithfulness`. -/
+theorem tomographic_faithfulness_receipt_from_internal_realization_functor
     {ctx : ClassicalComparisonContext.{u, v}}
     {structuredEq : StructuredComparisonEquality ctx}
   (_internal : InternalRealizationFunctorData ctx structuredEq) :
-    TomographicFaithfulnessStatement ctx := by
+    TomographicFaithfulnessReceiptTarget ctx := by
   intro a
   rfl
 

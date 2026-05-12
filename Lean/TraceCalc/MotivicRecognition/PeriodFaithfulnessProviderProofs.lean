@@ -65,7 +65,8 @@ open LayerB.RealObjects.RewriteCalculusSetup
 
 Equal basis-free period maps imply equality of both over-scalar realization maps.
 
-This is a named alias for `LayerD.scalar_period_faithfulness_classical` that makes
+This is a named alias for
+`LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq` that makes
 the bridge to the `ProofRelevantPeriodTheoremTarget` route explicit.
 
 Axioms: [propext, Quot.sound]. No extra hypotheses. -/
@@ -76,7 +77,7 @@ theorem scalar_period_faithfulness_via_injective_extensions_bridge
     (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
     f.deRhamMapOverScalar = g.deRhamMapOverScalar ∧
     f.bettiMapOverScalar = g.bettiMapOverScalar :=
-  LayerD.scalar_period_faithfulness_classical source target f g hBasis
+  LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq source target f g hBasis
 
 /-- **Bridge theorem 2** (full morphism level, conditional on injectivity).
 
@@ -85,7 +86,7 @@ target object's extension maps are injective.
 
 Proof route:
   basis-free period equality
-  →  (via `scalar_period_faithfulness_classical`) over-scalar map equality
+  →  (via `overScalarRealization_eq_of_basisFreePeriodMap_eq`) over-scalar map equality
   →  (via extension-compatibility squares + `Function.Injective` hypotheses) full map equality
   →  (via `ClassicalStructuredComparisonMorphism.eq_of_map_fields_eq`) morphism equality.
 
@@ -152,7 +153,7 @@ These are NOT pretended to be discharged. -/
 structure InjectiveExtensionPeriodFaithfulnessProvider
     (ctx : ClassicalComparisonContext.{u, v}) where
   /-- Over-scalar faithfulness: equal basis-free period maps → equal over-scalar maps.
-  Proved unconditionally from `scalar_period_faithfulness_classical`. -/
+  Proved unconditionally from `overScalarRealization_eq_of_basisFreePeriodMap_eq`. -/
   scalarFaithfulness_holds :
     ∀ (source target : ClassicalStructuredComparisonObject ctx)
       (f g : ClassicalStructuredComparisonMorphism source target),

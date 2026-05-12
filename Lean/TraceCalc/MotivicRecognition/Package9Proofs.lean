@@ -56,7 +56,8 @@ def concreteDependencyDAGStatement
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -197,7 +198,8 @@ theorem concreteDependencyDAG_holds_from_packages
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -335,7 +337,8 @@ def ofPackagesWithConcreteDependencyDAG
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -435,7 +438,8 @@ def ofAllSealedPackages
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -528,7 +532,8 @@ def finalAllPackagesClosed
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -599,7 +604,8 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromTStructureComponents
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :
@@ -673,7 +679,8 @@ def mmqRecognitionClosedTargetOfAllSealedPackagesFromCertifiedStructuralPackage
     (constructedRecognition :
       DMgmQConstruction.Construction.ConstructedDMgmQRecognitionTarget constructedDMgmQ)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget recognitionSpine internalSpine classicalSpine
+      ConstructionUnawareDMgmUniversalRecognitionTarget
+        recognitionSpine internalSpine classicalSpine
         traceToDMgmEquivalence canonicalDMgmEquivalence)
     (normalizationPackage : NormalizationPackageTarget internalSpine)
     (normalizationTransport :

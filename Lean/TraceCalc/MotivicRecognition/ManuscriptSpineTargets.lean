@@ -1583,6 +1583,14 @@ structure DMgmUniversalRecognitionTheoremTarget
   uniquenessOfRecipientTarget : Prop
   comparisonAgreementTarget : Prop
 
+/-- Preferred honest name for the current construction-unaware universal
+recognition wrapper.
+
+This wrapper packages theorem-level comparison surfaces only. Construction-aware
+public routes should prefer `ConstructedDMgmQRecognitionTarget`. -/
+abbrev ConstructionUnawareDMgmUniversalRecognitionTarget :=
+  DMgmUniversalRecognitionTheoremTarget
+
 namespace DMgmUniversalRecognitionTheoremTarget
 
 def ofCanonicalDMgmEquivalence
@@ -1654,7 +1662,7 @@ structure TraceCategoryMotivicLocalizationUniversalPropertyTarget
     (canonicalDMgmEquivalence :
       CanonicalDMgmEquivalenceTarget spine internal classical traceToDMgmEquivalence)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget spine internal classical
+      ConstructionUnawareDMgmUniversalRecognitionTarget spine internal classical
         traceToDMgmEquivalence canonicalDMgmEquivalence) where
   completionUniversalPropertyData :
     TraceCompletionUniversalPropertyTarget spine internal stableCompletion construction
@@ -1663,7 +1671,7 @@ structure TraceCategoryMotivicLocalizationUniversalPropertyTarget
   canonicalDMgmEquivalenceData :
     CanonicalDMgmEquivalenceTarget spine internal classical traceToDMgmEquivalence
   universalRecognitionData :
-    DMgmUniversalRecognitionTheoremTarget spine internal classical
+    ConstructionUnawareDMgmUniversalRecognitionTarget spine internal classical
       traceToDMgmEquivalence canonicalDMgmEquivalence
 
 namespace TraceCategoryMotivicLocalizationUniversalPropertyTarget
@@ -1688,7 +1696,7 @@ def ofRecognitionLayers
     (canonicalDMgmEquivalence :
       CanonicalDMgmEquivalenceTarget spine internal classical traceToDMgmEquivalence)
     (universalRecognition :
-      DMgmUniversalRecognitionTheoremTarget spine internal classical
+      ConstructionUnawareDMgmUniversalRecognitionTarget spine internal classical
         traceToDMgmEquivalence canonicalDMgmEquivalence) :
     TraceCategoryMotivicLocalizationUniversalPropertyTarget spine internal classical
       stableCompletion construction completionUniversalProperty traceToDMgmEquivalence
@@ -2124,7 +2132,7 @@ structure NormTStructureTarget
   normalizationPacketCut : NormalizationPacketCutData spine.structuralRecognition
   normalizationTruncationTriangle :
     NormalizationTruncationTriangle spine.structuralRecognition normalizationPacketCut
-  tStructure : TStructureTarget spine.structuralRecognition
+  tStructure : CoarseTStructureCompatibilityTarget spine.structuralRecognition
   /-- Named theorem package for the three normalization t-structure obligations:
   weight compatibility, motivic transport, and truncation representability. -/
   normTStructureTheoremPackage :
@@ -2164,7 +2172,7 @@ structure NormTStructureData
   normalizationPacketCut : NormalizationPacketCutData spine.structuralRecognition
   normalizationTruncationTriangle :
     NormalizationTruncationTriangle spine.structuralRecognition normalizationPacketCut
-  tStructure : TStructureTarget spine.structuralRecognition
+  tStructure : CoarseTStructureCompatibilityTarget spine.structuralRecognition
   /-- Single named proof witness for all three normalization t-structure theorems:
   the `NormTStructureTheoremPackage` is a Prop-valued structure, so this field
   carries a proof of the entire named package. -/
@@ -2769,7 +2777,7 @@ structure ProofRelevantPeriodTheoremTarget
       (hDeRham : f.deRhamMap = g.deRhamMap)
       (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
       f = g :=
-    LayerD.full_morphism_eq_of_basisFreePeriodMap_eq
+    LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
       f g hBetti hDeRham hBasis
 
   /-- Constructor wiring reconstruction-based period faithfulness into the proof-relevant
