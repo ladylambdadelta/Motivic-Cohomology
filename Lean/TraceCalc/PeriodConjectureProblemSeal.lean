@@ -65,8 +65,11 @@ theorem overScalarRealization_eq_of_basisFreePeriodMap_eq_sealed :
     f.basisFreePeriodMap = g.basisFreePeriodMap →
       f.deRhamMapOverScalar = g.deRhamMapOverScalar ∧
       f.bettiMapOverScalar = g.bettiMapOverScalar :=
-  fun source target f g h =>
-  LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq source target f g h
+  fun _source _target f g h =>
+    ⟨ClassicalStructuredComparisonMorphism.deRhamMapOverScalar_eq_of_basisFreePeriodMap_eq
+        f g h,
+      ClassicalStructuredComparisonMorphism.bettiMapOverScalar_eq_of_basisFreePeriodMap_eq
+        f g h⟩
 
 /-- Alias to the concrete literal-equality theorem with explicit Betti/de Rham map hypotheses.
 This restates the exact theorem surface of
@@ -79,8 +82,11 @@ theorem full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq_sealed :
     f.deRhamMap = g.deRhamMap →
     f.basisFreePeriodMap = g.basisFreePeriodMap →
     f = g :=
-  fun f g hBetti hDeRham hBasis =>
-    LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq f g hBetti hDeRham hBasis
+  fun f g hBetti hDeRham hBasis => by
+    obtain ⟨hDeRhamScalar, hBettiScalar⟩ :=
+      overScalarRealization_eq_of_basisFreePeriodMap_eq_sealed _ _ f g hBasis
+    exact ClassicalStructuredComparisonMorphism.eq_of_map_fields_eq
+      f g hBetti hDeRham hBettiScalar hDeRhamScalar
 
 /-- Final period-conjecture theorem endpoint currently exposed in production.
 This takes a `BaseFaithfulnessTarget` package and returns its `faithfulnessStatement`. -/
@@ -313,55 +319,30 @@ theorem bridge_framedFaithfulness_of_literalPackedConstruction_sealed
         bridge.classicalTarget.packedMorphismComparison f =
           bridge.classicalTarget.packedMorphismComparison g →
         f = g)
-    (framedShadowReflectsLiteralPackedComparison :
+    (pointwiseFramedPeriodEqualityReflectsLiteralPackedComparison :
       ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
-        bridge.framedPeriodShadow.equalityRelation
-          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf f))
-          (bridge.framedPeriodShadow.shadowOf (bridge.framedPeriodOf g)) →
+        (∀ probe : bridge.primitiveFramedProbeFamily.ProbeIndex,
+          bridge.framedPeriodEquality.relates
+            (bridge.primitiveProbeRealization.probeFramedDatum probe
+              (bridge.classicalTarget.packedMorphismComparison f))
+            (bridge.primitiveProbeRealization.probeFramedDatum probe
+              (bridge.classicalTarget.packedMorphismComparison g))) →
         bridge.classicalTarget.packedMorphismComparison f =
           bridge.classicalTarget.packedMorphismComparison g) :
-    ClassicalFramedPeriodConjectureStatement
-      (bridge.framedTargetOfLiteralPackedComparison
-        scalarShadowReflectsLiteralPackedComparison
-        packedComparisonReflectsMorphismEquality
-        framedShadowReflectsLiteralPackedComparison) :=
-  ClassicalBridge.InternalProgramRealizesClassicalPeriodTarget.framedFaithfulnessStatement_ofLiteralPackedComparison
-    bridge
-    scalarShadowReflectsLiteralPackedComparison
-    packedComparisonReflectsMorphismEquality
-    framedShadowReflectsLiteralPackedComparison
+    ∀ {X Y : bridge.classicalTarget.MotiveCategory} (f g : X ⟶ Y),
+      (∀ probe : bridge.primitiveFramedProbeFamily.ProbeIndex,
+        bridge.framedPeriodEquality.relates
+          (bridge.primitiveProbeRealization.probeFramedDatum probe
+            (bridge.classicalTarget.packedMorphismComparison f))
+          (bridge.primitiveProbeRealization.probeFramedDatum probe
+            (bridge.classicalTarget.packedMorphismComparison g))) →
+      f = g := by
+  intro X Y f g hFamily
+  have hPacked :=
+    pointwiseFramedPeriodEqualityReflectsLiteralPackedComparison f g hFamily
+  exact packedComparisonReflectsMorphismEquality f g hPacked
 
 end LiteralPackedBridgeConstructionSeal
-
-/-! ## #check probes
-
-These expose the precise Lean-elaborated type of each theorem for human inspection. -/
-
-#check LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq
-#check LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
-#check PeriodConjectureTargetIndex.baseFaithfulness_of_reflection
-#check PeriodConjectureTargetIndex.framedFaithfulness_of_reflection
-#check MotivicRecognition.ProofRelevantPeriodTheoremTarget
-#check ClassicalBridge.recognizedMMQFaithfulScalarExtensionOnImage_of_objectComparisonTensorData
-#check ClassicalBridge.recognizedMMQReconstructionObligation_of_objectComparisonTensorData
-#check recognizedMMQ_faithfulScalarExtension_sealed
-#check recognizedMMQ_reconstructionObligation_sealed
-#check recognizedMMQ_literalPackedComparisonExtensionality_sealed
-#check recognizedMMQ_scalarShadowExtensionality_sealed
-#check recognizedMMQ_framedShadowExtensionality_sealed
-#check recognizedMMQ_morphismReconstructionFromPackedComparison_sealed
-#check bridge_baseFaithfulness_of_literalPackedConstruction_sealed
-#check bridge_framedFaithfulness_of_literalPackedConstruction_sealed
-
-/-! ## #print axioms
-
-Confirms that the two concrete theorems depend only on `propext` and `Quot.sound`,
-with no `sorry`, no `Classical.choice` escape, and no custom axioms. -/
-
-#print axioms LayerD.overScalarRealization_eq_of_basisFreePeriodMap_eq
-#print axioms LayerD.full_morphism_eq_of_betti_deRham_basisFreePeriodMap_eq
-#print axioms TraceCalc.PeriodConjectureProblemSeal.recognizedMMQ_framedShadowExtensionality_sealed
-#print axioms TraceCalc.PeriodConjectureProblemSeal.recognizedMMQ_morphismReconstructionFromPackedComparison_sealed
 
 end PeriodConjectureProblemSeal
 end TraceCalc
