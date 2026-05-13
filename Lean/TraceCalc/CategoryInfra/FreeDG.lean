@@ -19,12 +19,6 @@ structure DGCategoryLike where
 
 namespace DGCategoryLike
 
-def theoremTarget (C : DGCategoryLike.{u, v}) : Prop :=
-  C.idClosed ∧ C.compClosed ∧ C.differentialSquaredZero
-
-theorem theoremTarget_holds (C : DGCategoryLike.{u, v}) : C.theoremTarget := by
-  exact ⟨C.idClosed_holds, C.compClosed_holds, C.differentialSquaredZero_holds⟩
-
 end DGCategoryLike
 
 /-- Abstract free-dg-envelope package for a presentation type. -/
@@ -35,30 +29,6 @@ structure FreeDGEnvelope (presentation : Type u) where
   universalProperty_holds : universalProperty
 
 namespace FreeDGEnvelope
-
-def existenceTarget {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : Prop :=
-  Nonempty (FreeDGEnvelope.{u, v} presentation)
-
-theorem existenceTarget_holds {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : E.existenceTarget := by
-  exact ⟨E⟩
-
-def universalPropertyTarget {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : Prop :=
-  E.universalProperty
-
-theorem universalPropertyTarget_holds {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : E.universalPropertyTarget :=
-  E.universalProperty_holds
-
-def theoremTarget {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : Prop :=
-  E.existenceTarget ∧ E.universalPropertyTarget
-
-theorem theoremTarget_holds {presentation : Type u}
-    (E : FreeDGEnvelope.{u, v} presentation) : E.theoremTarget := by
-  exact ⟨E.existenceTarget_holds, E.universalPropertyTarget_holds⟩
 
 end FreeDGEnvelope
 

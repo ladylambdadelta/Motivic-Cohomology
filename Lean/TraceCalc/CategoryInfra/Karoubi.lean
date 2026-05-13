@@ -20,43 +20,6 @@ structure KaroubiEnvelope {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C
 
 namespace KaroubiEnvelope
 
-def existenceTarget {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C}
-    {H : H0Category P} (K : KaroubiEnvelope H) : Prop :=
-  Nonempty (KaroubiEnvelope.{u, v} H)
-
-theorem existenceTarget_holds {C : DGCategoryLike.{u, v}}
-    {P : PretriangulatedHull C} {H : H0Category P} (K : KaroubiEnvelope H) :
-    K.existenceTarget := by
-  exact ⟨K⟩
-
-def idempotentSplittingTarget {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C}
-    {H : H0Category P} (K : KaroubiEnvelope H) : Prop :=
-  K.idempotentSplitting
-
-theorem idempotentSplittingTarget_holds {C : DGCategoryLike.{u, v}}
-    {P : PretriangulatedHull C} {H : H0Category P} (K : KaroubiEnvelope H) :
-    K.idempotentSplittingTarget :=
-  K.idempotentSplitting_holds
-
-def universalPropertyTarget {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C}
-    {H : H0Category P} (K : KaroubiEnvelope H) : Prop :=
-  K.universalProperty
-
-theorem universalPropertyTarget_holds {C : DGCategoryLike.{u, v}}
-    {P : PretriangulatedHull C} {H : H0Category P} (K : KaroubiEnvelope H) :
-    K.universalPropertyTarget :=
-  K.universalProperty_holds
-
-def theoremTarget {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C}
-    {H : H0Category P} (K : KaroubiEnvelope H) : Prop :=
-  K.existenceTarget ∧ K.idempotentSplittingTarget ∧ K.universalPropertyTarget
-
-theorem theoremTarget_holds {C : DGCategoryLike.{u, v}}
-    {P : PretriangulatedHull C} {H : H0Category P} (K : KaroubiEnvelope H) :
-    K.theoremTarget := by
-  exact ⟨K.existenceTarget_holds, K.idempotentSplittingTarget_holds,
-    K.universalPropertyTarget_holds⟩
-
 end KaroubiEnvelope
 
 end CategoryInfra

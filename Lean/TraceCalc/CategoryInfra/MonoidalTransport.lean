@@ -28,28 +28,6 @@ structure MonoidalTransport {presentation : Type u}
 
 namespace MonoidalTransport
 
-def theoremTarget {presentation : Type u}
-    {F : FreeDGEnvelope.{u, v} presentation}
-    {P : PretriangulatedHull F.envelope}
-    {H : H0Category P}
-    {K : KaroubiEnvelope H}
-    (M : MonoidalTransport F P H K) : Prop :=
-  M.throughDGEnvelope ∧
-    M.throughPretriangulatedHull ∧
-      M.throughH0 ∧
-        M.throughKaroubiEnvelope ∧
-          M.coherenceTransport
-
-theorem theoremTarget_holds {presentation : Type u}
-    {F : FreeDGEnvelope.{u, v} presentation}
-    {P : PretriangulatedHull F.envelope}
-    {H : H0Category P}
-    {K : KaroubiEnvelope H}
-    (M : MonoidalTransport F P H K) : M.theoremTarget := by
-  exact ⟨M.throughDGEnvelope_holds, M.throughPretriangulatedHull_holds,
-    M.throughH0_holds, M.throughKaroubiEnvelope_holds,
-    M.coherenceTransport_holds⟩
-
 end MonoidalTransport
 
 end CategoryInfra

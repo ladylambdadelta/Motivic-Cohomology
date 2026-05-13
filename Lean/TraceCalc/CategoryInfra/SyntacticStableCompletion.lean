@@ -249,40 +249,50 @@ theorem h0LocalizationAtAcyclics_holds (presentation : Type u) :
   exact PretriangulatedMorphism.differential_squared_zero f
 
 def syntacticH0Category (presentation : Type u) :
-    H0Category (syntacticPretriangulatedHull presentation) where
-  Hom := PretriangulatedMorphism
-  id := PretriangulatedMorphism.id
-  comp := PretriangulatedMorphism.comp
-  cycles := fun f => PretriangulatedMorphism.differential f = f
-  boundaries := fun f => PretriangulatedMorphism.differential f = f
-  quotientMap := fun f => f
-  quotientMapRespectsCycles := ∀ {X Y : PretriangulatedObject presentation}
-    (f : PretriangulatedMorphism X Y),
-    PretriangulatedMorphism.differential f = f →
-      PretriangulatedMorphism.differential f = f
-  quotientMapKillsBoundaries := ∀ {X Y : PretriangulatedObject presentation}
-    (f : PretriangulatedMorphism X Y),
-    PretriangulatedMorphism.differential f = f →
-      PretriangulatedMorphism.differential f = f
-  toH0Functor := ∀ {X Y : PretriangulatedObject presentation}
-    (f : PretriangulatedMorphism X Y),
-    PretriangulatedMorphism.differential
-        (PretriangulatedMorphism.differential f) = f
-  distinguishedTriangles := h0DistinguishedTriangles presentation
-  triangulatedAxioms := h0TriangulatedAxioms presentation
-  localizationAtAcyclics := h0LocalizationAtAcyclics presentation
-  quotientMapRespectsCycles_holds := by
-    intro X Y f hf
-    exact hf
-  quotientMapKillsBoundaries_holds := by
-    intro X Y f hf
-    exact hf
-  toH0Functor_holds := by
-    intro X Y f
-    exact PretriangulatedMorphism.differential_squared_zero f
-  distinguishedTriangles_holds := h0DistinguishedTriangles_holds presentation
-  triangulatedAxioms_holds := h0TriangulatedAxioms_holds presentation
-  localizationAtAcyclics_holds := h0LocalizationAtAcyclics_holds presentation
+    H0Category (syntacticPretriangulatedHull presentation) :=
+  H0Category.ofData
+    (syntacticPretriangulatedHull presentation)
+    (cycles := fun f => PretriangulatedMorphism.differential f = f)
+    (boundaries := fun f => f = { word := [] })
+    (boundaryRel := fun f g => f = g)
+    (boundaryRel_refl := by intro X Y f; rfl)
+    (boundaryRel_symm := by intro X Y f g h; exact h.symm)
+    (boundaryRel_trans := by intro X Y f g h hfg hgh; exact hfg.trans hgh)
+    (toH0Functor := by
+      intro X Y f
+      exact PretriangulatedMorphism.differential_squared_zero f)
+    (idCycle := by
+      intro X
+      exact ⟨PretriangulatedMorphism.id X, rfl⟩)
+    (compCycle := by
+      intro X Y Z f g
+      exact ⟨PretriangulatedMorphism.comp f.1 g.1, rfl⟩)
+    (comp_respects_boundary_left := by
+      intro X Y Z f f' g h
+      simp [h])
+    (comp_respects_boundary_right := by
+      intro X Y Z f g g' h
+      simp [h])
+    (id_comp := by
+      intro X Y f
+      cases f
+      rfl)
+    (comp_id := by
+      intro X Y f
+      cases f with
+      | mk val hval =>
+          cases val
+          simp [PretriangulatedMorphism.comp, PretriangulatedMorphism.id])
+    (assoc := by
+      intro W X Y Z f g h
+      cases f
+      cases g
+      cases h
+      simp [PretriangulatedMorphism.comp, List.append_assoc])
+    { distinguishedTriangles := pretriangulatedConeClosure_holds presentation
+      triangulatedAxioms := ⟨pretriangulatedShiftClosure_holds presentation,
+        pretriangulatedConeClosure_holds presentation⟩
+      localizationAtAcyclics := pretriangulatedHullUniversalProperty_holds presentation }
 
 structure KaroubiObject (presentation : Type u) where
   carrier : PretriangulatedObject presentation
