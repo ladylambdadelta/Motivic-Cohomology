@@ -20,10 +20,21 @@ structure DMgmCategoryTarget where
   tensorMap :
     ∀ {A B C D : Obj}, Hom A B → Hom C D → Hom (tensorObj A C) (tensorObj B D)
   dualObj : Obj → Obj
-  categoryLaws : Prop
+
+structure DMgmCategoryLaws (target : DMgmCategoryTarget) where
+  idComp :
+    ∀ {X Y : target.Obj} (f : target.Hom X Y),
+      target.comp (target.id X) f = f
+  compId :
+    ∀ {X Y : target.Obj} (f : target.Hom X Y),
+      target.comp f (target.id Y) = f
+  assoc :
+    ∀ {W X Y Z : target.Obj}
+      (f : target.Hom W X) (g : target.Hom X Y) (h : target.Hom Y Z),
+        target.comp (target.comp f g) h = target.comp f (target.comp g h)
 
 structure DMgmCategoryData (target : DMgmCategoryTarget) where
-  categoryLawsWitness : target.categoryLaws
+  categoryLaws : DMgmCategoryLaws target
 
 structure TraceToDMgmComparisonTarget (presentation : Type u) where
   enhancement : StableInfinityEnhancementTarget presentation
@@ -38,25 +49,42 @@ structure TraceToDMgmComparisonTarget (presentation : Type u) where
     ∀ {X Y : target.Obj},
       target.Hom X Y →
         enhancement.category.Pi0Hom (inverseObjectComparison X) (inverseObjectComparison Y)
-  objectCompatibility : Prop
-  homCompatibility : Prop
-  exactMonoidalCompatibility : Prop
-  dualityCompatibility : Prop
-  fullyFaithful : Prop
-  essentiallySurjective : Prop
-  homotopyCategoryCompatibility : Prop
+
+structure TraceToDMgmComparisonCompatibility {presentation : Type u}
+    (target : TraceToDMgmComparisonTarget presentation) where
+  objectCompatibility :
+    ∀ X : target.enhancement.Obj,
+      target.inverseObjectComparison (target.objectComparison X) = X
+  homCompatibility :
+    ∀ {X Y : target.enhancement.Obj}
+      (f : target.enhancement.category.Pi0Hom X Y),
+        target.inverseHomComparison (target.homComparison f) = f
+  exactMonoidalCompatibility :
+    ∀ X Y : target.enhancement.Obj,
+      target.inverseObjectComparison
+          (target.target.tensorObj (target.objectComparison X) (target.objectComparison Y)) =
+        tensorObj X Y
+  dualityCompatibility :
+    ∀ X : target.enhancement.Obj,
+      target.inverseObjectComparison (target.target.dualObj (target.objectComparison X)) =
+        shiftObj X
+  fullyFaithful :
+    ∀ {X Y : target.enhancement.Obj}
+      (f g : target.enhancement.category.Pi0Hom X Y),
+        target.homComparison f = target.homComparison g → f = g
+  essentiallySurjective :
+    ∀ Y : target.target.Obj,
+      target.inverseObjectComparison (target.objectComparison (target.inverseObjectComparison Y)) =
+        target.inverseObjectComparison Y
+  homotopyCategoryCompatibility :
+    ∀ {X Y : InfObj presentation} (f : InfMap X Y),
+      target.inverseHomComparison (target.homComparison (pi0Class f)) = pi0Class f
 
 structure TraceToDMgmComparisonData {presentation : Type u}
     (target : TraceToDMgmComparisonTarget presentation) where
   enhancementData : StableInfinityEnhancementData target.enhancement
   targetData : DMgmCategoryData target.target
-  objectCompatibilityWitness : target.objectCompatibility
-  homCompatibilityWitness : target.homCompatibility
-  exactMonoidalCompatibilityWitness : target.exactMonoidalCompatibility
-  dualityCompatibilityWitness : target.dualityCompatibility
-  fullyFaithfulWitness : target.fullyFaithful
-  essentiallySurjectiveWitness : target.essentiallySurjective
-  homotopyCategoryCompatibilityWitness : target.homotopyCategoryCompatibility
+  comparisonCompatibility : TraceToDMgmComparisonCompatibility target
 
 abbrev TraceObj (presentation : Type u) :=
   InfObj presentation
@@ -133,37 +161,6 @@ private def existingLayerADMCofiber {presentation : Type u} :
     DMgmObj presentation → DMgmObj presentation → DMgmObj presentation :=
   DMgmObj.cofiber
 
-private def existingLayerAFullyFaithful (presentation : Type u) : Prop :=
-  ∀ {X Y : InfObj presentation} (f g : Pi0Hom X Y),
-    existingLayerATraceToDMgmHom f = existingLayerATraceToDMgmHom g → f = g
-
-private theorem existingLayerAFullyFaithfulWitness (presentation : Type u) :
-    existingLayerAFullyFaithful presentation := by
-  intro X Y f g h
-  cases h
-  rfl
-
-private def existingLayerAEssentiallySurjective (presentation : Type u) : Prop :=
-  ∀ Y : DMgmObj presentation,
-    existingLayerADMToTraceObj (existingLayerATraceToDMgmObj (existingLayerADMToTraceObj Y)) =
-      existingLayerADMToTraceObj Y
-
-private theorem existingLayerAEssentiallySurjectiveWitness (presentation : Type u) :
-    existingLayerAEssentiallySurjective presentation := by
-  intro Y
-  rfl
-
-private def existingLayerAHomotopyCategoryCompatibility (presentation : Type u) : Prop :=
-  ∀ {X Y : InfObj presentation} (f : InfMap X Y),
-    existingLayerADMToTraceHom
-        (existingLayerATraceToDMgmHom (pi0Class f)) =
-      pi0Class f
-
-private theorem existingLayerAHomotopyCategoryCompatibilityWitness (presentation : Type u) :
-    existingLayerAHomotopyCategoryCompatibility presentation := by
-  intro X Y f
-  rfl
-
 private def existingLayerADMgmCategoryTarget (presentation : Type u) :
     DMgmCategoryTarget where
   Obj := DMgmObj presentation
@@ -176,15 +173,6 @@ private def existingLayerADMgmCategoryTarget (presentation : Type u) :
   tensorObj := DMgmObj.tensor
   tensorMap := @DMgmHom.tensorMap presentation
   dualObj := DMgmObj.dual
-  categoryLaws :=
-    (∀ {X Y : DMgmObj presentation} (f : DMgmHom X Y),
-      existingLayerADMToTraceHom (DMgmHom.comp (DMgmHom.id X) f) = existingLayerADMToTraceHom f) ∧
-    (∀ {X Y : DMgmObj presentation} (f : DMgmHom X Y),
-      existingLayerADMToTraceHom (DMgmHom.comp f (DMgmHom.id Y)) = existingLayerADMToTraceHom f) ∧
-    ∀ {W X Y Z : DMgmObj presentation}
-      (f : DMgmHom W X) (g : DMgmHom X Y) (h : DMgmHom Y Z),
-        existingLayerADMToTraceHom (DMgmHom.comp (DMgmHom.comp f g) h) =
-          existingLayerADMToTraceHom (DMgmHom.comp f (DMgmHom.comp g h))
 
 namespace TraceToDMgmComparisonTarget
 
@@ -196,45 +184,8 @@ def ofExistingLayerAInterfaces (presentation : Type u) :
   inverseObjectComparison := existingLayerADMToTraceObj
   homComparison := @existingLayerATraceToDMgmHom presentation
   inverseHomComparison := @existingLayerADMToTraceHom presentation
-  objectCompatibility :=
-    ∀ X : InfObj presentation,
-      existingLayerADMToTraceObj (existingLayerATraceToDMgmObj X) = X
-  homCompatibility :=
-    ∀ {X Y : InfObj presentation} (f : Pi0Hom X Y),
-      existingLayerADMToTraceHom (existingLayerATraceToDMgmHom f) = f
-  exactMonoidalCompatibility :=
-    ∀ X Y : InfObj presentation,
-      existingLayerADMToTraceObj
-          (DMgmObj.tensor (existingLayerATraceToDMgmObj X) (existingLayerATraceToDMgmObj Y)) =
-        tensorObj X Y
-  dualityCompatibility :=
-    ∀ X : InfObj presentation,
-      existingLayerADMToTraceObj (DMgmObj.dual (existingLayerATraceToDMgmObj X)) =
-        shiftObj X
-  fullyFaithful := existingLayerAFullyFaithful presentation
-  essentiallySurjective := existingLayerAEssentiallySurjective presentation
-  homotopyCategoryCompatibility := existingLayerAHomotopyCategoryCompatibility presentation
 
 end TraceToDMgmComparisonTarget
-
-private theorem existingLayerAComparisonHomCompatibilityWitness (presentation : Type u) :
-    (TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces presentation).homCompatibility := by
-  dsimp [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces]
-  intro X Y f
-  rfl
-
-private theorem existingLayerAComparisonFullyFaithfulWitness (presentation : Type u) :
-    (TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces presentation).fullyFaithful := by
-  dsimp [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces, existingLayerAFullyFaithful]
-  intro X Y f g h
-  cases h
-  rfl
-
-private theorem existingLayerAComparisonHomotopyCompatibilityWitness (presentation : Type u) :
-    (TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces presentation).homotopyCategoryCompatibility := by
-  dsimp [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces, existingLayerAHomotopyCategoryCompatibility]
-  intro X Y f
-  rfl
 
 namespace TraceToDMgmComparisonData
 
@@ -245,55 +196,39 @@ def ofExistingLayerAInterfaces (presentation : Type u) :
     simpa [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces] using
       StableInfinityEnhancementData.ofExistingLayerAInterfaces presentation
   targetData :=
-    { categoryLawsWitness := by
-        refine ⟨?_, ?_, ?_⟩
-        · intro X Y f
-          change compPi0 (idPi0 (existingLayerADMToTraceObj X)) (existingLayerADMToTraceHom f) =
-              existingLayerADMToTraceHom f
-          exact compPi0_id_left (existingLayerADMToTraceHom f)
-        · intro X Y f
-          change compPi0 (existingLayerADMToTraceHom f) (idPi0 (existingLayerADMToTraceObj Y)) =
-              existingLayerADMToTraceHom f
-          exact compPi0_id_right (existingLayerADMToTraceHom f)
-        · intro W X Y Z f g h
-          change compPi0 (compPi0 (existingLayerADMToTraceHom f) (existingLayerADMToTraceHom g))
-              (existingLayerADMToTraceHom h) =
-              compPi0 (existingLayerADMToTraceHom f)
-                (compPi0 (existingLayerADMToTraceHom g) (existingLayerADMToTraceHom h))
-          exact compPi0_assoc
-            (existingLayerADMToTraceHom f)
-            (existingLayerADMToTraceHom g)
-            (existingLayerADMToTraceHom h) }
-  objectCompatibilityWitness := by
-    simpa [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces] using
-      (show ∀ X : InfObj presentation,
-          existingLayerADMToTraceObj (existingLayerATraceToDMgmObj X) = X from by
+    { categoryLaws :=
+        { idComp := by
+            intro X Y f
+            cases f <;> rfl
+          compId := by
+            intro X Y f
+            cases f <;> rfl
+          assoc := by
+            intro W X Y Z f g h
+            cases f <;> cases g <;> cases h <;> rfl } }
+  comparisonCompatibility :=
+    { objectCompatibility := by
         intro X
-        rfl)
-  homCompatibilityWitness := by
-    exact existingLayerAComparisonHomCompatibilityWitness presentation
-  exactMonoidalCompatibilityWitness := by
-    simpa [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces] using
-      (show ∀ X Y : InfObj presentation,
-          existingLayerADMToTraceObj
-              (DMgmObj.tensor (existingLayerATraceToDMgmObj X) (existingLayerATraceToDMgmObj Y)) =
-            tensorObj X Y from by
+        rfl
+      homCompatibility := by
+        intro X Y f
+        rfl
+      exactMonoidalCompatibility := by
         intro X Y
-        rfl)
-  dualityCompatibilityWitness := by
-    simpa [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces] using
-      (show ∀ X : InfObj presentation,
-          existingLayerADMToTraceObj (DMgmObj.dual (existingLayerATraceToDMgmObj X)) =
-            shiftObj X from by
+        rfl
+      dualityCompatibility := by
         intro X
-        rfl)
-  fullyFaithfulWitness := by
-    exact existingLayerAComparisonFullyFaithfulWitness presentation
-  essentiallySurjectiveWitness := by
-    simpa [TraceToDMgmComparisonTarget.ofExistingLayerAInterfaces] using
-      existingLayerAEssentiallySurjectiveWitness presentation
-  homotopyCategoryCompatibilityWitness := by
-    exact existingLayerAComparisonHomotopyCompatibilityWitness presentation
+        rfl
+      fullyFaithful := by
+        intro X Y f g h
+        cases h
+        rfl
+      essentiallySurjective := by
+        intro Y
+        rfl
+      homotopyCategoryCompatibility := by
+        intro X Y f
+        rfl }
 
 end TraceToDMgmComparisonData
 
