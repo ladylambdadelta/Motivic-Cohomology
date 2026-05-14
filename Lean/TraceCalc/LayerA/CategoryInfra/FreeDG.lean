@@ -13,9 +13,9 @@ structure DGCategoryLike where
   idClosed : Prop
   compClosed : Prop
   differentialSquaredZero : Prop
-  idClosed_holds : idClosed
-  compClosed_holds : compClosed
-  differentialSquaredZero_holds : differentialSquaredZero
+  idClosedWitness : idClosed
+  compClosedWitness : compClosed
+  differentialSquaredZeroWitness : differentialSquaredZero
 
 namespace DGCategoryLike
 
@@ -26,7 +26,7 @@ structure FreeDGEnvelope (presentation : Type u) where
   envelope : DGCategoryLike.{u, v}
   includeObj : presentation → envelope.Obj
   universalProperty : Prop
-  universalProperty_holds : universalProperty
+  universalPropertyWitness : universalProperty
 
 namespace FreeDGEnvelope
 

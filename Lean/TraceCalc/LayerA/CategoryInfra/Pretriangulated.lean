@@ -12,9 +12,9 @@ structure PretriangulatedHull (C : DGCategoryLike.{u, v}) where
   shiftClosed : Prop
   coneClosed : Prop
   universalProperty : Prop
-  shiftClosed_holds : shiftClosed
-  coneClosed_holds : coneClosed
-  universalProperty_holds : universalProperty
+  shiftClosedWitness : shiftClosed
+  coneClosedWitness : coneClosed
+  universalPropertyWitness : universalProperty
 
 namespace PretriangulatedHull
 

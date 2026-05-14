@@ -6,6 +6,178 @@ namespace TraceCalc
 namespace CategoryInfra
 namespace SyntacticInfinity
 
+structure InfinityCategoryTarget (Obj : Type u) where
+  Mapping : Obj → Obj → Type u
+  Pi0Hom : Obj → Obj → Type u
+  pi0Class : ∀ {X Y : Obj}, Mapping X Y → Pi0Hom X Y
+  idPi0 : ∀ X : Obj, Pi0Hom X X
+  compPi0 : ∀ {X Y Z : Obj}, Pi0Hom X Y → Pi0Hom Y Z → Pi0Hom X Z
+  categoryLaws : Prop
+
+structure InfinityCategoryData {Obj : Type u}
+    (target : InfinityCategoryTarget Obj) where
+  categoryLawsWitness : target.categoryLaws
+
+structure InfinityShiftTarget {Obj : Type u}
+    (category : InfinityCategoryTarget Obj) where
+  shiftObj : Obj → Obj
+  shiftMapPi0 :
+    ∀ {X Y : Obj}, category.Pi0Hom X Y → category.Pi0Hom (shiftObj X) (shiftObj Y)
+  shiftCompatibility : Prop
+
+structure InfinityShiftData {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    (target : InfinityShiftTarget category) where
+  shiftCompatibilityWitness : target.shiftCompatibility
+
+structure InfinityTriangulatedTarget {Obj : Type u}
+    (category : InfinityCategoryTarget Obj)
+    (shift : InfinityShiftTarget category) where
+  cofiberObj : ∀ {X Y : Obj}, category.Pi0Hom X Y → Obj
+  fiberObj : ∀ {X Y : Obj}, category.Pi0Hom X Y → Obj
+  distinguishedTriangle : Obj → Obj → Obj → Type u
+
+structure InfinityTriangulatedData {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    {shift : InfinityShiftTarget category}
+    (target : InfinityTriangulatedTarget category shift) where
+  cofiberTriangleWitness :
+    ∀ {X Y : Obj} (f : category.Pi0Hom X Y),
+      target.distinguishedTriangle X Y (target.cofiberObj f)
+  fiberTriangleWitness :
+    ∀ {X Y : Obj} (f : category.Pi0Hom X Y),
+      target.distinguishedTriangle (target.fiberObj f) X Y
+  cofiberCompositionWitness :
+    ∀ {X Y Z : Obj} (f : category.Pi0Hom X Y) (g : category.Pi0Hom Y Z),
+      target.distinguishedTriangle
+        (target.cofiberObj f)
+        (target.cofiberObj (category.compPi0 f g))
+        (target.cofiberObj g)
+  rotationWitness :
+    ∀ {X Y Z : Obj},
+      target.distinguishedTriangle X Y Z →
+        target.distinguishedTriangle Y Z (shift.shiftObj X)
+
+structure InfinityMonoidalTarget {Obj : Type u}
+    (category : InfinityCategoryTarget Obj) where
+  tensorObj : Obj → Obj → Obj
+  tensorPi0 :
+    ∀ {A B C D : Obj},
+      category.Pi0Hom A B → category.Pi0Hom C D →
+        category.Pi0Hom (tensorObj A C) (tensorObj B D)
+  monoidalCompatibility : Prop
+
+structure InfinityMonoidalData {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    (target : InfinityMonoidalTarget category) where
+  monoidalCompatibilityWitness : target.monoidalCompatibility
+
+structure InfinityToH0ComparisonTarget
+    {presentation : Type u}
+    (stableCompletion : StableCompletionConstructionTarget presentation)
+    (Obj : Type u)
+    (category : InfinityCategoryTarget Obj)
+    (_shift : InfinityShiftTarget category)
+    (_triangulated : InfinityTriangulatedTarget category _shift)
+    (_monoidal : InfinityMonoidalTarget category) where
+  objectComparison : Obj → stableCompletion.pretriangulatedHull.hull.Obj
+  pi0Comparison :
+    ∀ {X Y : Obj},
+      category.Pi0Hom X Y →
+        stableCompletion.homotopyCategory.H0Hom (objectComparison X) (objectComparison Y)
+  identityCompatibility : Prop
+  compositionCompatibility : Prop
+  shiftCompatibility : Prop
+  triangulatedCompatibility : Prop
+  monoidalCompatibility : Prop
+
+structure InfinityToH0ComparisonData
+    {presentation : Type u}
+    {stableCompletion : StableCompletionConstructionTarget presentation}
+    {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    {shift : InfinityShiftTarget category}
+    {triangulated : InfinityTriangulatedTarget category shift}
+    {monoidal : InfinityMonoidalTarget category}
+    (target : InfinityToH0ComparisonTarget stableCompletion Obj category shift triangulated monoidal) where
+  identityCompatibilityWitness : target.identityCompatibility
+  compositionCompatibilityWitness : target.compositionCompatibility
+  shiftCompatibilityWitness : target.shiftCompatibility
+  triangulatedCompatibilityWitness : target.triangulatedCompatibility
+  monoidalCompatibilityWitness : target.monoidalCompatibility
+
+structure InfinityRealizationTarget {Obj : Type u}
+    (category : InfinityCategoryTarget Obj)
+    (_shift : InfinityShiftTarget category)
+    (_triangulated : InfinityTriangulatedTarget category _shift)
+    (_monoidal : InfinityMonoidalTarget category) where
+  targetObj : Type u
+  targetHom : targetObj → targetObj → Type u
+  objectRealization : Obj → targetObj
+  pi0Realization :
+    ∀ {X Y : Obj},
+      category.Pi0Hom X Y → targetHom (objectRealization X) (objectRealization Y)
+  identityCompatibility : Prop
+  compositionCompatibility : Prop
+  shiftCompatibility : Prop
+  triangulatedCompatibility : Prop
+  monoidalCompatibility : Prop
+
+structure InfinityRealizationData {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    {shift : InfinityShiftTarget category}
+    {triangulated : InfinityTriangulatedTarget category shift}
+    {monoidal : InfinityMonoidalTarget category}
+    (target : InfinityRealizationTarget category shift triangulated monoidal) where
+  identityCompatibilityWitness : target.identityCompatibility
+  compositionCompatibilityWitness : target.compositionCompatibility
+  shiftCompatibilityWitness : target.shiftCompatibility
+  triangulatedCompatibilityWitness : target.triangulatedCompatibility
+  monoidalCompatibilityWitness : target.monoidalCompatibility
+
+structure InfinityCompletedPresentationTarget
+    {presentation : Type u}
+    (stableCompletion : StableCompletionConstructionTarget presentation)
+    (Obj : Type u)
+    (category : InfinityCategoryTarget Obj)
+    (_shift : InfinityShiftTarget category)
+    (_triangulated : InfinityTriangulatedTarget category _shift)
+    (_monoidal : InfinityMonoidalTarget category) where
+  compatibilityWithCompletedPresentation : Prop
+  compatibilityWithLocalization : Prop
+
+structure InfinityCompletedPresentationData
+    {presentation : Type u}
+    {stableCompletion : StableCompletionConstructionTarget presentation}
+    {Obj : Type u}
+    {category : InfinityCategoryTarget Obj}
+    {shift : InfinityShiftTarget category}
+    {triangulated : InfinityTriangulatedTarget category shift}
+    {monoidal : InfinityMonoidalTarget category}
+    (target : InfinityCompletedPresentationTarget stableCompletion Obj category shift triangulated monoidal) where
+  compatibilityWithCompletedPresentationWitness : target.compatibilityWithCompletedPresentation
+  compatibilityWithLocalizationWitness : target.compatibilityWithLocalization
+
+structure StableInfinityEnhancementTarget (presentation : Type u) where
+  stableCompletion : StableCompletionConstructionTarget presentation
+  Obj : Type u
+  category : InfinityCategoryTarget Obj
+  shift : InfinityShiftTarget category
+  triangulated : InfinityTriangulatedTarget category shift
+  monoidal : InfinityMonoidalTarget category
+  realization : InfinityRealizationTarget category shift triangulated monoidal
+  completedPresentation :
+    InfinityCompletedPresentationTarget stableCompletion Obj category shift triangulated monoidal
+
+structure StableInfinityEnhancementData {presentation : Type u}
+    (target : StableInfinityEnhancementTarget presentation) where
+  categoryData : InfinityCategoryData target.category
+  shiftData : InfinityShiftData target.shift
+  triangulatedData : InfinityTriangulatedData target.triangulated
+  monoidalData : InfinityMonoidalData target.monoidal
+  realizationData : InfinityRealizationData target.realization
+  completedPresentationData : InfinityCompletedPresentationData target.completedPresentation
+
 abbrev StableObj (presentation : Type u) :=
   PretriangulatedObject presentation
 
@@ -275,7 +447,7 @@ structure SyntacticRealizationData (presentation : Type u) where
     ∀ {X Y : InfObj presentation} {f g : InfMap X Y},
       InfHomotopy f g → InfHomotopy (mapMap f) (mapMap g)
 
-def identityRealizationData (presentation : Type u) :
+private def existingLayerAIdentityRealizationData (presentation : Type u) :
     SyntacticRealizationData presentation where
   mapObj := fun X => X
   mapMap := fun f => InfMap.realizationMap f
@@ -295,7 +467,7 @@ def SyntacticRealizationCompatibilityStatement {presentation : Type u}
   ∀ {X Y : InfObj presentation} (f : InfMap X Y),
     realizationMapPi0 R (pi0Class f) = pi0Class (R.mapMap f)
 
-theorem syntactic_realizationCompatibility_holds {presentation : Type u}
+private theorem existingLayerARealizationCompatibilityWitness {presentation : Type u}
     (R : SyntacticRealizationData presentation) :
     SyntacticRealizationCompatibilityStatement R := by
   intro X Y f
@@ -310,7 +482,7 @@ structure SyntacticCompletedPresentationData (presentation : Type u) where
     ∀ {X Y : InfObj presentation} (f : InfMap X Y),
       InfHomotopy (encodeMap f) f
 
-def identityCompletedPresentationData (presentation : Type u) :
+private def existingLayerAIdentityCompletedPresentationData (presentation : Type u) :
     SyntacticCompletedPresentationData presentation where
   encodeMap := fun f => InfMap.presentationMap f
   encode_respects := fun h => InfHomotopy.trans
@@ -329,11 +501,171 @@ def SyntacticCompletedPresentationCompatibilityStatement {presentation : Type u}
   ∀ {X Y : InfObj presentation} (f : InfMap X Y),
     completedPresentationMapPi0 P (pi0Class f) = pi0Class f
 
-theorem syntactic_completedPresentationCompatibility_holds {presentation : Type u}
+private theorem existingLayerACompletedPresentationCompatibilityWitness {presentation : Type u}
     (P : SyntacticCompletedPresentationData presentation) :
     SyntacticCompletedPresentationCompatibilityStatement P := by
   intro X Y f
   exact Quot.sound (P.generator_agrees f)
+
+private def existingLayerAInfinityCategoryTarget (presentation : Type u) :
+    InfinityCategoryTarget (InfObj presentation) where
+  Mapping := InfMap
+  Pi0Hom := Pi0Hom
+  pi0Class := @pi0Class presentation
+  idPi0 := idPi0
+  compPi0 := @compPi0 presentation
+  categoryLaws :=
+    (∀ {X Y : InfObj presentation} (f : Pi0Hom X Y), compPi0 (idPi0 X) f = f) ∧
+      (∀ {X Y : InfObj presentation} (f : Pi0Hom X Y), compPi0 f (idPi0 Y) = f) ∧
+        (∀ {W X Y Z : InfObj presentation}
+          (f : Pi0Hom W X) (g : Pi0Hom X Y) (h : Pi0Hom Y Z),
+            compPi0 (compPi0 f g) h = compPi0 f (compPi0 g h))
+
+private def existingLayerAInfinityShiftTarget (presentation : Type u) :
+    InfinityShiftTarget (existingLayerAInfinityCategoryTarget presentation) where
+  shiftObj := shiftObj
+  shiftMapPi0 := @shiftMapPi0 presentation
+  shiftCompatibility :=
+    (∀ X : InfObj presentation, shiftMapPi0 (idPi0 X) = idPi0 (shiftObj X)) ∧
+      (∀ {X Y Z : InfObj presentation} (f : Pi0Hom X Y) (g : Pi0Hom Y Z),
+        shiftMapPi0 (compPi0 f g) = compPi0 (shiftMapPi0 f) (shiftMapPi0 g))
+
+private def existingLayerATriangulatedTarget (presentation : Type u) :
+    InfinityTriangulatedTarget
+      (existingLayerAInfinityCategoryTarget presentation)
+      (existingLayerAInfinityShiftTarget presentation) where
+  cofiberObj := @cofiberObj presentation
+  fiberObj := @fiberObj presentation
+  distinguishedTriangle := DistinguishedTriangle
+
+private def existingLayerAMonoidalTarget (presentation : Type u) :
+    InfinityMonoidalTarget (existingLayerAInfinityCategoryTarget presentation) where
+  tensorObj := tensorObj
+  tensorPi0 := @tensorPi0 presentation
+  monoidalCompatibility :=
+    ∀ A C : InfObj presentation,
+      tensorPi0 (idPi0 A) (idPi0 C) = idPi0 (tensorObj A C)
+
+private def existingLayerARealizationTarget (presentation : Type u) :
+    InfinityRealizationTarget
+      (existingLayerAInfinityCategoryTarget presentation)
+      (existingLayerAInfinityShiftTarget presentation)
+      (existingLayerATriangulatedTarget presentation)
+      (existingLayerAMonoidalTarget presentation) where
+  targetObj := InfObj presentation
+  targetHom := Pi0Hom
+  objectRealization := (existingLayerAIdentityRealizationData presentation).mapObj
+  pi0Realization := realizationMapPi0 (existingLayerAIdentityRealizationData presentation)
+  identityCompatibility :=
+    ∀ X : InfObj presentation,
+      realizationMapPi0 (existingLayerAIdentityRealizationData presentation) (idPi0 X) =
+        idPi0 ((existingLayerAIdentityRealizationData presentation).mapObj X)
+  compositionCompatibility :=
+    ∀ {X Y Z : InfObj presentation} (f : Pi0Hom X Y) (g : Pi0Hom Y Z),
+      realizationMapPi0 (existingLayerAIdentityRealizationData presentation) (compPi0 f g) = compPi0 f g
+  shiftCompatibility :=
+    ∀ {X Y : InfObj presentation} (f : Pi0Hom X Y),
+      shiftMapPi0 (realizationMapPi0 (existingLayerAIdentityRealizationData presentation) f) = shiftMapPi0 f
+  triangulatedCompatibility :=
+    SyntacticRealizationCompatibilityStatement (existingLayerAIdentityRealizationData presentation)
+  monoidalCompatibility :=
+    ∀ {A B C D : InfObj presentation} (f : Pi0Hom A B) (g : Pi0Hom C D),
+      tensorPi0 (realizationMapPi0 (existingLayerAIdentityRealizationData presentation) f)
+        (realizationMapPi0 (existingLayerAIdentityRealizationData presentation) g) =
+          tensorPi0 f g
+
+private def existingLayerACompletedPresentationTarget (presentation : Type u) :
+    InfinityCompletedPresentationTarget
+      (StableCompletionConstructionTarget.ofExistingLayerAInterfaces presentation)
+      (InfObj presentation)
+      (existingLayerAInfinityCategoryTarget presentation)
+      (existingLayerAInfinityShiftTarget presentation)
+      (existingLayerATriangulatedTarget presentation)
+      (existingLayerAMonoidalTarget presentation) where
+  compatibilityWithCompletedPresentation :=
+    SyntacticCompletedPresentationCompatibilityStatement
+      (existingLayerAIdentityCompletedPresentationData presentation)
+  compatibilityWithLocalization :=
+    ∀ {X Y : InfObj presentation} (f : InfMap X Y),
+      completedPresentationMapPi0 (existingLayerAIdentityCompletedPresentationData presentation) (pi0Class f) =
+        pi0Class f
+
+namespace StableInfinityEnhancementTarget
+
+def ofExistingLayerAInterfaces (presentation : Type u) :
+    StableInfinityEnhancementTarget presentation where
+  stableCompletion := StableCompletionConstructionTarget.ofExistingLayerAInterfaces presentation
+  Obj := InfObj presentation
+  category := existingLayerAInfinityCategoryTarget presentation
+  shift := existingLayerAInfinityShiftTarget presentation
+  triangulated := existingLayerATriangulatedTarget presentation
+  monoidal := existingLayerAMonoidalTarget presentation
+  realization := existingLayerARealizationTarget presentation
+  completedPresentation := existingLayerACompletedPresentationTarget presentation
+
+end StableInfinityEnhancementTarget
+
+namespace StableInfinityEnhancementData
+
+def ofExistingLayerAInterfaces (presentation : Type u) :
+    StableInfinityEnhancementData
+      (StableInfinityEnhancementTarget.ofExistingLayerAInterfaces presentation) where
+  categoryData :=
+    { categoryLawsWitness :=
+        ⟨compPi0_id_left, compPi0_id_right, compPi0_assoc⟩ }
+  shiftData :=
+    { shiftCompatibilityWitness :=
+        ⟨shiftMapPi0_id, shiftMapPi0_comp⟩ }
+  triangulatedData :=
+    { cofiberTriangleWitness := by
+        intro X Y f
+        exact cofiberTriangle f
+      fiberTriangleWitness := by
+        intro X Y f
+        exact fiberTriangle f
+      cofiberCompositionWitness := by
+        intro X Y Z f g
+        exact cofiberTriangleCompatibility f g
+      rotationWitness := by
+        intro X Y Z triangle
+        exact triangulatedRotation triangle }
+  monoidalData :=
+    { monoidalCompatibilityWitness := tensorPi0_id }
+  realizationData :=
+    { identityCompatibilityWitness := by
+        intro X
+        exact Quot.sound (InfHomotopy.realization_compat (InfMap.id X))
+      compositionCompatibilityWitness := by
+        intro X Y Z f g
+        refine Quotient.inductionOn₂ f g ?_
+        intro f0 g0
+        exact Quot.sound (InfHomotopy.realization_compat (InfMap.comp f0 g0))
+      shiftCompatibilityWitness := by
+        intro X Y f
+        refine Quotient.inductionOn f ?_
+        intro f0
+        exact Quot.sound (InfHomotopy.shift_congr (InfHomotopy.realization_compat f0))
+      triangulatedCompatibilityWitness :=
+        existingLayerARealizationCompatibilityWitness
+          (existingLayerAIdentityRealizationData presentation)
+      monoidalCompatibilityWitness := by
+        intro A B C D f g
+        refine Quotient.inductionOn₂ f g ?_
+        intro f0 g0
+        exact Quot.sound
+          (InfHomotopy.tensor_congr
+            (InfHomotopy.realization_compat f0)
+            (InfHomotopy.realization_compat g0)) }
+  completedPresentationData :=
+    { compatibilityWithCompletedPresentationWitness :=
+        existingLayerACompletedPresentationCompatibilityWitness
+          (existingLayerAIdentityCompletedPresentationData presentation)
+      compatibilityWithLocalizationWitness := by
+        intro X Y f
+        exact existingLayerACompletedPresentationCompatibilityWitness
+          (existingLayerAIdentityCompletedPresentationData presentation) f }
+
+end StableInfinityEnhancementData
 
 end SyntacticInfinity
 end CategoryInfra

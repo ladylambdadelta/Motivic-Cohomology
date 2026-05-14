@@ -15,8 +15,8 @@ structure KaroubiEnvelope {C : DGCategoryLike.{u, v}} {P : PretriangulatedHull C
   comp : ∀ {X Y Z : Obj}, Hom X Y → Hom Y Z → Hom X Z
   idempotentSplitting : Prop
   universalProperty : Prop
-  idempotentSplitting_holds : idempotentSplitting
-  universalProperty_holds : universalProperty
+  idempotentSplittingWitness : idempotentSplitting
+  universalPropertyWitness : universalProperty
 
 namespace KaroubiEnvelope
 

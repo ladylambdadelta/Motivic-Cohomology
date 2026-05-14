@@ -30,7 +30,7 @@ consume an actual universal-property witness can ask for this structure
 explicitly. -/
 structure LocalizationUniversalPropertyData (L : LocalizationInterface) where
   localizationUniversalPropertyInfinity : Prop
-  localizationUniversalPropertyInfinity_holds : localizationUniversalPropertyInfinity
+  localizationUniversalPropertyInfinityWitness : localizationUniversalPropertyInfinity
 
 /-- Separate theorem target for the pi0 Verdier-localization shadow.
 
@@ -40,7 +40,7 @@ shadow is a distinct truncation bridge theorem, not data already carried by the
 infinity witness itself. -/
 structure LocalizationPiZeroShadowTheorem (L : LocalizationInterface) where
   verdierLocalizationPiZeroShadow : Prop
-  verdierLocalizationPiZeroShadow_holds : verdierLocalizationPiZeroShadow
+  verdierLocalizationPiZeroShadowWitness : verdierLocalizationPiZeroShadow
 
 end CategoryInfra
 end TraceCalc

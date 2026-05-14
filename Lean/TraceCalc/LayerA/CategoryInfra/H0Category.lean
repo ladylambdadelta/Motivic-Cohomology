@@ -321,7 +321,7 @@ theorem comp_identity {C} {P : PretriangulatedHull C}
     data.quotientMap representative
   exact data.quotientData.quotientMap_eq_of_boundaryRel (data.comp_id representative)
 
-theorem assoc_holds {C} {P : PretriangulatedHull C}
+theorem composition_assoc {C} {P : PretriangulatedHull C}
     (data : H0Category P)
     {W X Y Z : P.hull.Obj}
     (f : data.H0Hom W X)
