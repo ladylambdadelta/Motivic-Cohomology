@@ -1,7 +1,7 @@
 import TraceCalc.LayerD.PeriodFaithfulnessAssembly
 import TraceCalc.MotivicRecognition.RecognitionTarget
 import TraceCalc.MotivicRecognition.Package3B6Admissibility
-import TraceCalc.CategoryInfra.SyntacticTraceDMgmEquivalence
+import TraceCalc.LayerA.CategoryInfra.SyntacticTraceDMgmEquivalence
 
 universe u v w x y z
 

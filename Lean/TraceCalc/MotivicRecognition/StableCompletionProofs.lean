@@ -1,5 +1,5 @@
 import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
-import TraceCalc.CategoryInfra.SyntacticStableCompletion
+import TraceCalc.LayerA.CategoryInfra.SyntacticStableCompletion
 
 universe u v w x y z
 

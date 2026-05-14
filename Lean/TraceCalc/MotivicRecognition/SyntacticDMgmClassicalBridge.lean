@@ -1,4 +1,4 @@
-import TraceCalc.CategoryInfra.SyntacticTraceDMgmEquivalence
+import TraceCalc.LayerA.CategoryInfra.SyntacticTraceDMgmEquivalence
 import TraceCalc.MotivicRecognition.InfinityPiZeroProofs
 import TraceCalc.MotivicRecognition.Package3B6Admissibility
 import TraceCalc.LayerD.DMgmQInterface

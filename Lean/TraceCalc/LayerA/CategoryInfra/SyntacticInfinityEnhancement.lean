@@ -1,4 +1,4 @@
-import TraceCalc.CategoryInfra.SyntacticStableCompletion
+import TraceCalc.LayerA.CategoryInfra.SyntacticStableCompletion
 
 universe u
 

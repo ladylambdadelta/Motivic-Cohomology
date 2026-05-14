@@ -1,5 +1,5 @@
 import TraceCalc.LayerA.Base
-import TraceCalc.LayerA.Localization
+import TraceCalc.LayerA.CategoryInfra.Localization
 
 universe u v
 
@@ -19,7 +19,7 @@ structure LocalizationCompatibilityData
     [Category.{v} Localized]
     (weakEquivalence : Envelope → Envelope → Prop)
     (localizeObj : Envelope → Localized)
-    (localizationInterface : LayerA.LocalizationInterface) where
+    (localizationInterface : CategoryInfra.LocalizationInterface) where
   weakEquivalenceAlignment : HEq localizationInterface.W weakEquivalence
   localizeObjAlignment : HEq localizationInterface.QObj localizeObj
   localizationMapId :
@@ -49,7 +49,7 @@ structure SourceTracePackage where
   stableLocalized : LayerA.StableLike Localized
   weakEquivalence : Envelope → Envelope → Prop
   localizeObj : Envelope → Localized
-  localizationInterface : LayerA.LocalizationInterface
+  localizationInterface : CategoryInfra.LocalizationInterface
   localization_matches :
     localizationInterface.C = Envelope ∧
     localizationInterface.D = Localized

@@ -1,5 +1,5 @@
 import TraceCalc.LayerA.Base
-import TraceCalc.LayerA.Localization
+import TraceCalc.LayerA.CategoryInfra.Localization
 
 universe u v
 
@@ -27,7 +27,7 @@ structure MotivicLocalization where
   stableLocalized : LayerA.StableLike Loc
   localizeObj : F.Envelope → Loc
   motivicWeakEq : F.Envelope → F.Envelope → Prop
-  localization : LayerA.LocalizationInterface
+  localization : CategoryInfra.LocalizationInterface
   localization_matches : localization.C = F.Envelope ∧ localization.D = Loc
   weakEquivalence_alignment : HEq localization.W motivicWeakEq
   localizeObj_alignment : HEq localization.QObj localizeObj

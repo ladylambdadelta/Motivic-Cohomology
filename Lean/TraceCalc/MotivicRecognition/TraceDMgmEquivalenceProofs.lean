@@ -1,6 +1,6 @@
 import TraceCalc.MotivicRecognition.StableCompletionProofs
 import TraceCalc.MotivicRecognition.InfinityPiZeroProofs
-import TraceCalc.CategoryInfra.SyntacticTraceDMgmEquivalence
+import TraceCalc.LayerA.CategoryInfra.SyntacticTraceDMgmEquivalence
 
 universe u v w x y z
 

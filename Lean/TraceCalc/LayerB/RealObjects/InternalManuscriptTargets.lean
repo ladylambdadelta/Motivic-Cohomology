@@ -5,12 +5,12 @@ import TraceCalc.LayerB.RealObjects.CanonicalNormalForm
 import TraceCalc.LayerB.RealObjects.CanonicalReconstructionEngine
 import TraceCalc.LayerB.RealObjects.ConcreteBoundaryPresentation
 import TraceCalc.LayerB.RealObjects.ConcreteBoundaryContent
-import TraceCalc.CategoryInfra.FreeDG
-import TraceCalc.CategoryInfra.Pretriangulated
-import TraceCalc.CategoryInfra.H0Category
-import TraceCalc.CategoryInfra.Karoubi
-import TraceCalc.CategoryInfra.MonoidalTransport
-import TraceCalc.CategoryInfra.ExactnessTransport
+import TraceCalc.LayerA.CategoryInfra.FreeDG
+import TraceCalc.LayerA.CategoryInfra.Pretriangulated
+import TraceCalc.LayerA.CategoryInfra.H0Category
+import TraceCalc.LayerA.CategoryInfra.Karoubi
+import TraceCalc.LayerA.CategoryInfra.MonoidalTransport
+import TraceCalc.LayerA.CategoryInfra.ExactnessTransport
 
 /-!
 # Real-objects formalization: internal manuscript theorem targets

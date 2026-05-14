@@ -1,4 +1,4 @@
-import TraceCalc.CategoryInfra.FreeDG
+import TraceCalc.LayerA.CategoryInfra.FreeDG
 
 universe u v
 

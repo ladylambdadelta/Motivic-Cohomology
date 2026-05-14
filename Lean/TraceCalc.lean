@@ -1,5 +1,5 @@
 import TraceCalc.LayerA.Base
-import TraceCalc.LayerA.Localization
+import TraceCalc.LayerA.CategoryInfra.Localization
 import TraceCalc.LayerB.TraceEnvelope
 import TraceCalc.LayerB.Boundary
 import TraceCalc.LayerB.Reconstruction

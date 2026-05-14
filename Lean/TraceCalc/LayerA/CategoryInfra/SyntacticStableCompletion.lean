@@ -1,5 +1,5 @@
-import TraceCalc.CategoryInfra.MonoidalTransport
-import TraceCalc.CategoryInfra.ExactnessTransport
+import TraceCalc.LayerA.CategoryInfra.MonoidalTransport
+import TraceCalc.LayerA.CategoryInfra.ExactnessTransport
 
 universe u v
 

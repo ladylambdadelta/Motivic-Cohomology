@@ -1,4 +1,4 @@
-import TraceCalc.CategoryInfra.Karoubi
+import TraceCalc.LayerA.CategoryInfra.Karoubi
 
 universe u v
 

@@ -4,7 +4,7 @@ import TraceCalc.LayerB.RealObjects.ConcreteExternalOutSort
 import TraceCalc.LayerB.RealObjects.CanonicalNormalForm
 import TraceCalc.LayerB.RealObjects.InternalManuscriptTargets
 import TraceCalc.LayerB.RealObjects.Replay
-import TraceCalc.CategoryInfra.Localization
+import TraceCalc.LayerA.CategoryInfra.Localization
 import TraceCalc.LayerD.SourceTracePackage
 import TraceCalc.LayerD.PeriodFaithfulnessAssembly
 

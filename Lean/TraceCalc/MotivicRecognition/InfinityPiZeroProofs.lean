@@ -1,5 +1,5 @@
 import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
-import TraceCalc.CategoryInfra.SyntacticInfinityEnhancement
+import TraceCalc.LayerA.CategoryInfra.SyntacticInfinityEnhancement
 
 universe u
 
