@@ -1,7 +1,9 @@
-import TraceCalc.LayerD.Comparison
+import TraceCalc.LayerBNonCore.Interfaces.TraceEnvelope
 import TraceCalc.LayerE.RealizableImage
 
 universe u v
+
+open CategoryTheory
 
 namespace TraceCalc
 namespace LayerD
@@ -20,10 +22,11 @@ This is the Lean skeleton corresponding to the manuscript's admissible geometric
 it records target-side assignments and the named proof obligations they must satisfy,
 without instantiating any motivic category or proving any comparison theorem. -/
 structure AdmissibleFrontierRealization (ML : LayerB.MotivicLocalization.{u, v}) where
-  Tgt : LayerC.MotivicTargetInterface.{u, v}
+  Tgt : Type u
+  [catTgt : Category.{v} Tgt]
   scope : FrontierRealizationScope
-  realizeSyntaxObj : ML.F.Syntax -> Tgt.M
-  realizeEnvelopeObj : ML.F.Envelope -> Tgt.M
+  realizeSyntaxObj : ML.F.Syntax -> Tgt
+  realizeEnvelopeObj : ML.F.Envelope -> Tgt
   generatorCompatibility : Prop
   relationSoundness : Prop
   exactnessCompatibility : Prop
@@ -34,6 +37,8 @@ structure AdmissibleFrontierRealization (ML : LayerB.MotivicLocalization.{u, v})
   a1Compatibility : Prop
   tateCompatibility : Prop
 
+attribute [instance] AdmissibleFrontierRealization.catTgt
+
 /-- A factorization through the localized frontier source after passage to the homotopy
 category / triangulated shadow.
 This is the `pi_0`-level contract target of the universal property: once the datum above
@@ -41,7 +46,7 @@ is supplied, the realization should extend on objects and named exact/monoidal s
 without yet claiming higher coherent comparison data. -/
 structure FrontierPiZeroFactorization (ML : LayerB.MotivicLocalization.{u, v})
     (R : AdmissibleFrontierRealization ML) where
-  realizeLocalizedObj : ML.Loc -> R.Tgt.M
+  realizeLocalizedObj : ML.Loc -> R.Tgt
   factorsEnvelopeAssignment : Prop
   factorsGeneratorAssignment : Prop
   preservesExactTriangles : Prop
@@ -101,6 +106,48 @@ namespace FrontierInfinityFactorization
 variable {ML : LayerB.MotivicLocalization.{u, v}}
 variable {R : AdmissibleFrontierRealization ML}
 
+/-- Forget the higher-coherent fields of an infinity factorization and keep only
+its `π₀`-level factorization shadow. -/
+def toPiZeroFactorization (F : FrontierInfinityFactorization ML R) :
+    FrontierPiZeroFactorization ML R where
+  realizeLocalizedObj := F.realizeLocalizedObj
+  factorsEnvelopeAssignment := F.factorsEnvelopeAssignment
+  factorsGeneratorAssignment := F.factorsGeneratorAssignment
+  preservesExactTriangles := F.preservesExactTriangles
+  preservesTensor := F.preservesTensor
+  preservesIdempotentCompletion := F.preservesIdempotentCompletion
+
+@[simp] theorem toPiZeroFactorization_realizeLocalizedObj
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.realizeLocalizedObj = F.realizeLocalizedObj :=
+  rfl
+
+@[simp] theorem toPiZeroFactorization_factorsEnvelopeAssignment
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.factorsEnvelopeAssignment = F.factorsEnvelopeAssignment :=
+  rfl
+
+@[simp] theorem toPiZeroFactorization_factorsGeneratorAssignment
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.factorsGeneratorAssignment = F.factorsGeneratorAssignment :=
+  rfl
+
+@[simp] theorem toPiZeroFactorization_preservesExactTriangles
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.preservesExactTriangles = F.preservesExactTriangles :=
+  rfl
+
+@[simp] theorem toPiZeroFactorization_preservesTensor
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.preservesTensor = F.preservesTensor :=
+  rfl
+
+@[simp] theorem toPiZeroFactorization_preservesIdempotentCompletion
+    (F : FrontierInfinityFactorization ML R) :
+    F.toPiZeroFactorization.preservesIdempotentCompletion =
+      F.preservesIdempotentCompletion :=
+  rfl
+
 /-- The structural compatibility propositions recorded by an `infty` factorization. -/
 structure RecordedRealizationStructure (F : FrontierInfinityFactorization ML R) where
   exactTriangles : Prop
@@ -119,13 +166,50 @@ def recordsRealizationStructure (F : FrontierInfinityFactorization ML R) :
 
 end FrontierInfinityFactorization
 
+/-- Chosen infinity lift of every `π₀` factorization.
+
+This is the constructive content needed to upgrade a `π₀`-level factorization
+package to an infinity-level one: not just existence, but a specified lift with
+the correct shadow. -/
+structure FrontierInfinityLiftData
+    (ML : LayerB.MotivicLocalization.{u, v}) where
+  lift :
+    ∀ {R : AdmissibleFrontierRealization ML},
+      FrontierPiZeroFactorization ML R → FrontierInfinityFactorization ML R
+  shadow_lift :
+    ∀ {R : AdmissibleFrontierRealization ML}
+      (F : FrontierPiZeroFactorization ML R),
+      (lift F).toPiZeroFactorization = F
+
+/-- Equality reflection for infinity factorizations from equality of their
+`π₀` shadows. -/
+structure FrontierInfinityReflectionData
+    (ML : LayerB.MotivicLocalization.{u, v}) where
+  reflects_shadow_equality :
+    ∀ {R : AdmissibleFrontierRealization ML}
+      {F1 F2 : FrontierInfinityFactorization ML R},
+      F1.toPiZeroFactorization = F2.toPiZeroFactorization → F1 = F2
+
+namespace FrontierInfinityToPiZeroShadowContract
+
+def ofLiftData
+    {ML : LayerB.MotivicLocalization.{u, v}}
+    (liftData : FrontierInfinityLiftData ML) :
+    FrontierInfinityToPiZeroShadowContract ML where
+  shadow := fun F => F.toPiZeroFactorization
+  liftsPiZero := by
+    intro R F
+    exact ⟨⟨liftData.lift F, liftData.shadow_lift F⟩⟩
+
+end FrontierInfinityToPiZeroShadowContract
+
 namespace FrontierPiZeroFactorization
 
 variable {ML : LayerB.MotivicLocalization.{u, v}}
 variable {R : AdmissibleFrontierRealization ML}
 
 /-- Any factorization determines its own realizable-image boundary inside the chosen target. -/
-def realizableImage (F : FrontierPiZeroFactorization ML R) : LayerE.RealizableImage ML.Loc R.Tgt.M where
+def realizableImage (F : FrontierPiZeroFactorization ML R) : LayerE.RealizableImage ML.Loc R.Tgt where
   sourceMap := F.realizeLocalizedObj
   IsRealizable := fun targetObj => Nonempty { sourceObj : ML.Loc // F.realizeLocalizedObj sourceObj = targetObj }
   realizable_iff := by
@@ -160,25 +244,6 @@ namespace FrontierPiZeroInitialityContract
 
 variable {ML : LayerB.MotivicLocalization.{u, v}}
 
-/-- The manuscript-facing existence clause of the universal property. -/
-theorem factorization_exists (U : FrontierPiZeroInitialityContract ML)
-    (R : AdmissibleFrontierRealization ML) :
-    Nonempty (FrontierPiZeroFactorization ML R) :=
-  U.existsFactorization R
-
-/-- The manuscript-facing uniqueness clause of the universal property. -/
-theorem factorization_unique (U : FrontierPiZeroInitialityContract ML)
-    (R : AdmissibleFrontierRealization ML)
-    (F1 F2 : FrontierPiZeroFactorization ML R) :
-    F1 = F2 :=
-  U.uniqueFactorization R F1 F2
-
-theorem factorization_unique_up_to_equivalent (U : FrontierPiZeroInitialityContract ML)
-    (R : AdmissibleFrontierRealization ML)
-    (F1 F2 : FrontierPiZeroFactorization ML R) :
-    F1.Equivalent F2 :=
-  U.uniqueFactorization R F1 F2
-
 /-- Bundled statement used by downstream comparison layers when they only need the
 existence/uniqueness form and not a concrete proof term. -/
 def initialityStatement (_U : FrontierPiZeroInitialityContract ML) : Prop :=
@@ -193,38 +258,11 @@ theorem initialityStatement_of_contract (U : FrontierPiZeroInitialityContract ML
   intro F1 F2
   exact U.uniqueFactorization R F1 F2
 
-theorem exists_factorization_for_every_admissible_realization
-    (U : FrontierPiZeroInitialityContract ML) :
-    forall R : AdmissibleFrontierRealization ML,
-      Nonempty (FrontierPiZeroFactorization ML R) :=
-  U.existsFactorization
-
 end FrontierPiZeroInitialityContract
 
 namespace FrontierInfinityInitialityContract
 
 variable {ML : LayerB.MotivicLocalization.{u, v}}
-
-/-- The `infty`-level existence clause of the universal property. -/
-theorem factorization_exists (U : FrontierInfinityInitialityContract ML)
-    (R : AdmissibleFrontierRealization ML) :
-    Nonempty (FrontierInfinityFactorization ML R) :=
-  U.existsInfinityFactorization R
-
-/-- The `infty`-level uniqueness clause of the universal property. -/
-theorem factorization_unique (U : FrontierInfinityInitialityContract ML)
-    (R : AdmissibleFrontierRealization ML)
-    (F1 F2 : FrontierInfinityFactorization ML R) :
-    F1 = F2 :=
-  U.uniqueInfinityFactorization R F1 F2
-
-theorem factorization_unique_up_to_shadow
-    (U : FrontierInfinityInitialityContract ML)
-    (B : FrontierInfinityToPiZeroShadowContract ML)
-    (R : AdmissibleFrontierRealization ML)
-    (F1 F2 : FrontierInfinityFactorization ML R) :
-    B.shadow F1 = B.shadow F2 := by
-  simpa [U.uniqueInfinityFactorization R F1 F2]
 
 /-- Bundled `infty`-level statement used when the comparison theorem genuinely needs the
 higher coherent universal property, not just its `pi_0` shadow. -/
@@ -268,9 +306,9 @@ def toPiZeroInitialityContract
     rcases B.liftsPiZero F2 with ⟨⟨FInf2, h2⟩⟩
     have hInf : FInf1 = FInf2 := U.uniqueInfinityFactorization R FInf1 FInf2
     calc
-      F1 = B.shadow FInf1 := by simpa [h1]
-      _ = B.shadow FInf2 := by simpa [hInf]
-      _ = F2 := by simpa [h2]
+      F1 = B.shadow FInf1 := by simp [h1]
+      _ = B.shadow FInf2 := by simp [hInf]
+      _ = F2 := by simp [h2]
 
 theorem piZero_initiality_of_infinity_shadow
     (U : FrontierInfinityInitialityContract ML)
@@ -278,8 +316,34 @@ theorem piZero_initiality_of_infinity_shadow
     (U.toPiZeroInitialityContract B).initialityStatement :=
   FrontierPiZeroInitialityContract.initialityStatement_of_contract _
 
+/-- Upgrade a `π₀`-initiality contract to an infinity-initiality contract once
+the codebase supplies chosen infinity lifts of all `π₀` factorizations and a
+reflection principle showing that equality of `π₀` shadows determines equality
+of the lifted infinity factorizations. -/
+def ofPiZeroInitialityAndLifts
+    (U : FrontierPiZeroInitialityContract ML)
+    (liftData : FrontierInfinityLiftData ML)
+    (reflection : FrontierInfinityReflectionData ML) :
+    FrontierInfinityInitialityContract ML where
+  piZero := U
+  existsInfinityFactorization := by
+    intro R
+    rcases U.existsFactorization R with ⟨F⟩
+    exact ⟨liftData.lift F⟩
+  uniqueInfinityFactorization := by
+    intro R F1 F2
+    apply reflection.reflects_shadow_equality
+    exact U.uniqueFactorization R F1.toPiZeroFactorization F2.toPiZeroFactorization
+
+theorem ofPiZeroInitialityAndLifts_piZero
+    (U : FrontierPiZeroInitialityContract ML)
+    (liftData : FrontierInfinityLiftData ML)
+    (reflection : FrontierInfinityReflectionData ML) :
+    (ofPiZeroInitialityAndLifts U liftData reflection).piZero = U :=
+  rfl
+
 def infinity_initiality_exposes_piZero_shadow
-    (U : FrontierInfinityInitialityContract ML)
+  (_U : FrontierInfinityInitialityContract ML)
     (B : FrontierInfinityToPiZeroShadowContract ML)
     (R : AdmissibleFrontierRealization ML)
     (F : FrontierInfinityFactorization ML R) :

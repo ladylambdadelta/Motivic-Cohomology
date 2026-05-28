@@ -1,20 +1,26 @@
-import TraceCalc.LayerB.RealObjects.CanonicalSink
+import TraceCalc.LayerC.RealObjects.CanonicalReconstructionEngine
+
+/-! Compatibility shim: the implementation moved to LayerC because it is a
+derived reconstruction-engine layer built on LayerB foundations. -/
+
+/- Retired copied implementation kept below only as historical context. The
+live compatibility surface for this module is the LayerC import above.
+
 import TraceCalc.LayerB.RealObjects.PeelChain
 import TraceCalc.LayerB.RealObjects.ContextualAdminEquiv
 import TraceCalc.LayerB.RealObjects.CanonicalFrontierWord
 import TraceCalc.LayerB.RealObjects.HolographicReconstruction
 import TraceCalc.LayerB.RealObjects.Replay
 import TraceCalc.LayerB.RealObjects.CanonicalNormalForm
+import TraceCalc.LayerB.RealObjects.CanNFProductionSystem
 
 /-!
 # Real-objects formalization: canonical reconstruction engine (items 3–10)
 
 **Phase 3B, items 3–10 (2026-05-??).** This file packages the main
 combinatorial theorem-carrier for canonical reconstruction. It bundles
-the following manuscript ingredients into two structures:
+the following manuscript ingredients into one core structure:
 
-* `CanonicalReconstructionObligations` — legacy named CONTRACT obligations
-  (retained for compatibility).
 * `CanonicalReconstructionEngine` — the full evidence package:
   existing proved results plus a closed complete normalizer field.
 
@@ -76,39 +82,6 @@ open PeelChain
 open PeelChain.FrontierObservation
 
 variable {setup : RewriteCalculusSetup.{u}}
-
-/-! ### Contract obligations
-
-Per `INV CanNF-Contract`: CanNF completeness is a CONTRACT obligation of
-the manuscript. It is never derived from frontier-equivalence machinery.
-The structure below carries exactly this obligation and nothing else.
-Soundness-side descent does not depend on completeness. -/
-
-/-- Named contract obligations for canonical reconstruction.
-
-The only field is `canNF_complete`: equality of normalized images implies
-frontier-word equivalence. This is the manuscript's main canonicality
-guarantee (`thm:canonical-reconstruction-algorithm`, L1180), and it is a
-CONTRACT obligation — a target theorem to be proved in the paper — not a
-consequence manufactured from the reconstruction infrastructure.
-
-Per `INV CanNF-Contract`: `complete` must remain a CONTRACT field.
-The `sound` direction (`equiv → normalize equal`) is provable from
-existing machinery and lives in `FrontierWordSoundNormalizer`; it is
-intentionally kept separate so soundness-side descent does not depend on
-completeness. -/
-structure CanonicalReconstructionObligations
-    (setup : RewriteCalculusSetup.{u})
-    {NF : Type*} (normalize : FrontierWord setup → NF) : Prop where
-  /-- **(Obl-A) CanNF completeness contract** (item 5v / `INV CanNF-Contract`):
-  equal normalized images imply frontier-word equivalence.
-
-  This is a CONTRACT field. It is the completeness direction of the CanNF
-  normalizer — a named proof target that the manuscript must discharge
-  independently. It must never be derived by circularity from the
-  frontier-equivalence framework. -/
-  canNF_complete : ∀ {w₁ w₂ : FrontierWord setup},
-      normalize w₁ = normalize w₂ → FrontierWord.Equiv w₁ w₂
 
 /-! ### Main engine
 
@@ -315,6 +288,37 @@ noncomputable def ofComputationalCanNF
     CanonicalReconstructionEngine setup :=
   ofCurrentDevelopment (computational_to_quotient_complete (setup := setup) N)
 
+/-- Concrete production-side upgrade constructor.
+
+This packages the fully constructive production CanNF closure directly into the
+canonical reconstruction engine, using the proof-relevant computational
+normalizer assembled from the concrete production data. -/
+noncomputable def ofConcreteProductionCanNFData
+    (B       : BoundaryAdminCanonicalizeData setup)
+    (Dep     : DependencyOrderCanonicalizeData setup)
+    (Tensor  : TensorFactorOrderCanonicalizeData setup)
+    (Key     : KeyOrderCanonicalizeData setup)
+    (Remove  : AdministrativeIdentityRemovalData setup)
+    (Compose : AdjacentCertifiedStepCompositionData setup)
+    (Expose  : BoundaryBlockSwapExposureData setup)
+    (C : ProductionSchemaOperationalSideConditions
+           (productionFamilySpecs_allConcreteOrConditional
+             B Dep Tensor Key Remove Compose Expose))
+    (JP   : ProductionJoinEnvPrimitive
+              (productionFrontierRuleSystem_from_spec
+                (productionSchemaOperationalSpec_concrete
+                  B Dep Tensor Key Remove Compose Expose C)))
+    (BC   : BoundaryAdminCanonicalizeCongr B)
+    (TC   : TensorFactorOrderCanonicalizeUniqueData Tensor)
+    (KC   : KeyOrderCanonicalizeUniqueData Key)
+    (EOSort : CanNFProductionExternalOutSortData B Dep Tensor Key
+                (productionSchemaOperationalSpec_concrete
+                  B Dep Tensor Key Remove Compose Expose C)) :
+    CanonicalReconstructionEngine setup :=
+  ofComputationalCanNF <|
+    productionComputationalFrontierNormalizer_from_concrete_data
+      B Dep Tensor Key Remove Compose Expose C JP BC TC KC EOSort
+
 /-! ### Downstream consequences
 
 The following lemmas extract key conclusions from a
@@ -341,6 +345,56 @@ theorem record_equiv_iff_cannf_eq (eng : CanonicalReconstructionEngine setup)
         (eng.holographic_data.toFrontierWord R₁)
         (eng.holographic_data.toFrontierWord R₂) :=
   holographic_cannf_detects_record_equiv eng.holographic_data N
+
+/-- Engine-level relative CanNF master theorem: equality of any supplied
+relation-parameterized normalizer on holographic outputs is exactly the chosen
+relation on those outputs. -/
+theorem record_rel_iff_relative_cannf_eq (eng : CanonicalReconstructionEngine setup)
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    {R₁ R₂ : CompletedReconstructionRecord setup} :
+    N.normalize (eng.holographic_data.toFrontierWord R₁) =
+        N.normalize (eng.holographic_data.toFrontierWord R₂) ↔
+      Rel
+        (eng.holographic_data.toFrontierWord R₁)
+        (eng.holographic_data.toFrontierWord R₂) :=
+  holographic_relative_cannf_detects_relation eng.holographic_data N
+
+/-- Engine-level relative CanNF soundness on completed records: once plain
+frontier-word equivalence is known to imply the chosen relation, the engine's
+holographic output is already invariant under record admin equivalence. -/
+theorem record_relative_cannf_eq_of_record_equiv
+    (eng : CanonicalReconstructionEngine setup)
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    (hRel_of_frontier_equiv :
+      ∀ {w₁ w₂ : FrontierWord setup},
+        FrontierWord.Equiv w₁ w₂ → Rel w₁ w₂)
+    {R₁ R₂ : CompletedReconstructionRecord setup}
+    (h : RecordStructEquiv (@BoundaryAdminEquiv setup) R₁ R₂) :
+    N.normalize (eng.holographic_data.toFrontierWord R₁) =
+      N.normalize (eng.holographic_data.toFrontierWord R₂) :=
+  holographic_relative_cannf_sound_on_records
+    eng.holographic_data N hRel_of_frontier_equiv h
+
+/-- Engine-level relative CanNF soundness on canonical frontier words: once
+plain frontier-word equivalence implies the chosen relation, contextual admin
+equivalence of peel chains already forces equality of relative normal forms. -/
+theorem canonical_word_relative_cannf_eq_under_admin_equiv
+    (eng : CanonicalReconstructionEngine setup)
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    (hRel_of_frontier_equiv :
+      ∀ {w₁ w₂ : FrontierWord setup},
+        FrontierWord.Equiv w₁ w₂ → Rel w₁ w₂)
+    {d : Nat}
+    {R : CompletedReconstructionRecord setup}
+    {c₁ c₂ : PeelChain R}
+    (h : PeelChain.ContextualAdminEquiv d c₁ c₂) :
+    N.normalize (canonicalFrontierWord (FrontierObservation.ofChain c₁ d)) =
+      N.normalize (canonicalFrontierWord (FrontierObservation.ofChain c₂ d)) :=
+  contextual_admin_equiv_holographic_relative_cannf_eq
+    N hRel_of_frontier_equiv h
 
 end CanonicalReconstructionEngine
 
@@ -382,3 +436,4 @@ end RewriteCalculusSetup
 end RealObjects
 end LayerB
 end TraceCalc
+-/

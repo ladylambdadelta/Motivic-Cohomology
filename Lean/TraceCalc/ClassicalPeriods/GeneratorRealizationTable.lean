@@ -851,6 +851,7 @@ structure GeneratorRealizationAssignmentTable
   nisTarget : GeometricNisnevichDescentTarget ctx realization
   a1Target : GeometricA1InvarianceTarget ctx realization
   envTarget : GeometricEnvelopeExactnessTarget ctx realization
+  tateTarget : GeometricTateStabilizationTarget ctx realization
   generatorCoverageTarget : Prop
   assignmentCompatibilityTarget : Prop
   motivicRecognitionInterfaceTarget : Prop
@@ -871,6 +872,7 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     GeneratorRealizationAssignmentTable ctx where
   realization := realization
@@ -884,6 +886,7 @@ def ofAssignments
   nisTarget := nisTarget
   a1Target := a1Target
   envTarget := envTarget
+  tateTarget := tateTarget
   generatorCoverageTarget := generatorCoverageTarget
   assignmentCompatibilityTarget := assignmentCompatibilityTarget
   motivicRecognitionInterfaceTarget := motivicRecognitionInterfaceTarget
@@ -901,9 +904,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).realization = realization := rfl
 
 @[simp] theorem ofAssignments_corrAssignment
@@ -919,9 +923,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).corrAssignment = corrAssignment := rfl
 
 @[simp] theorem ofAssignments_locAssignment
@@ -937,9 +942,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).locAssignment = locAssignment := rfl
 
 @[simp] theorem ofAssignments_nisAssignment
@@ -955,9 +961,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).nisAssignment = nisAssignment := rfl
 
 @[simp] theorem ofAssignments_a1Assignment
@@ -973,9 +980,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).a1Assignment = a1Assignment := rfl
 
 @[simp] theorem ofAssignments_envAssignment
@@ -991,9 +999,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).envAssignment = envAssignment := rfl
 
 @[simp] theorem ofAssignments_corr_sourceSlotName
@@ -1009,9 +1018,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).corrAssignment.sourceSlotName =
         corrAssignment.sourceSlotName := rfl
 
@@ -1028,9 +1038,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).corrAssignment.targetSlotName =
         corrAssignment.targetSlotName := rfl
 
@@ -1047,9 +1058,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).locAssignment.ambientSlotName =
         locAssignment.ambientSlotName := rfl
 
@@ -1066,9 +1078,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).nisAssignment.baseSlotName =
         nisAssignment.baseSlotName := rfl
 
@@ -1085,9 +1098,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).a1Assignment.baseSlotName =
         a1Assignment.baseSlotName := rfl
 
@@ -1104,9 +1118,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).envAssignment.ambientSlotName =
         envAssignment.ambientSlotName := rfl
 
@@ -1123,9 +1138,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).corrTarget = corrTarget := rfl
 
 @[simp] theorem ofAssignments_locTarget
@@ -1141,9 +1157,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).locTarget = locTarget := rfl
 
 @[simp] theorem ofAssignments_nisTarget
@@ -1159,9 +1176,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).nisTarget = nisTarget := rfl
 
 @[simp] theorem ofAssignments_a1Target
@@ -1177,9 +1195,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).a1Target = a1Target := rfl
 
 @[simp] theorem ofAssignments_envTarget
@@ -1195,9 +1214,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).envTarget = envTarget := rfl
 
 @[simp] theorem ofAssignments_generatorCoverageTarget
@@ -1213,9 +1233,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).generatorCoverageTarget =
         generatorCoverageTarget := rfl
 
@@ -1232,9 +1253,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).assignmentCompatibilityTarget =
         assignmentCompatibilityTarget := rfl
 
@@ -1251,9 +1273,10 @@ def ofAssignments
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget assignmentCompatibilityTarget motivicRecognitionInterfaceTarget : Prop) :
     (ofAssignments realization corrAssignment locAssignment nisAssignment a1Assignment envAssignment
-      corrTarget locTarget nisTarget a1Target envTarget generatorCoverageTarget
+      corrTarget locTarget nisTarget a1Target envTarget tateTarget generatorCoverageTarget
       assignmentCompatibilityTarget motivicRecognitionInterfaceTarget).motivicRecognitionInterfaceTarget =
         motivicRecognitionInterfaceTarget := rfl
 
@@ -1272,6 +1295,7 @@ def toGeometricGeneratorFamilyPackage
   nisTarget := table.nisTarget
   a1Target := table.a1Target
   envTarget := table.envTarget
+  tateTarget := table.tateTarget
   generatorCoverageTarget := table.generatorCoverageTarget
   realizationCompatibilityTarget := table.assignmentCompatibilityTarget
   motivicRecognitionInterfaceTarget := table.motivicRecognitionInterfaceTarget
@@ -1353,6 +1377,11 @@ unfolding the forgetful definitions. -/
     (table : GeneratorRealizationAssignmentTable ctx) :
     (table.toGeometricGeneratorFamilyPackage).envTarget = table.envTarget := rfl
 
+@[simp] theorem toGeometricGeneratorFamilyPackage_tateTarget
+  {ctx : ClassicalComparisonContext.{u, v}}
+  (table : GeneratorRealizationAssignmentTable ctx) :
+  (table.toGeometricGeneratorFamilyPackage).tateTarget = table.tateTarget := rfl
+
 @[simp] theorem toGeometricGeneratorFamilyPackage_generatorCoverageTarget
   {ctx : ClassicalComparisonContext.{u, v}}
   (table : GeneratorRealizationAssignmentTable ctx) :
@@ -1389,6 +1418,11 @@ unfolding the forgetful definitions. -/
     {ctx : ClassicalComparisonContext.{u, v}}
     (table : GeneratorRealizationAssignmentTable ctx) :
     (table.toGeometricLocalizationPackage).openClosedLocalization = table.locTarget := rfl
+
+@[simp] theorem toGeometricLocalizationPackage_tateStabilization
+  {ctx : ClassicalComparisonContext.{u, v}}
+  (table : GeneratorRealizationAssignmentTable ctx) :
+  (table.toGeometricLocalizationPackage).tateStabilization = table.tateTarget := rfl
 
 @[simp] theorem toGeometricLocalizationPackage_correspondenceFunctoriality
     {ctx : ClassicalComparisonContext.{u, v}}

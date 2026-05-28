@@ -1,8 +1,9 @@
 import Mathlib.Logic.Equiv.Fin
 import Mathlib.Logic.Relation
+import TraceCalc.LayerB.RealObjects.CanonicalNormalForm
 import TraceCalc.LayerB.RealObjects.CanNFRuleFamilies
 import TraceCalc.LayerB.RealObjects.CanNFRuleSplit
-import TraceCalc.LayerB.RealObjects.CanNFObligations
+import TraceCalc.LayerBNonCore.Contracts.CanNFObligations
 import TraceCalc.LayerB.RealObjects.CertifiedTrace
 import TraceCalc.LayerB.RealObjects.ResidueCanNF
 
@@ -1528,6 +1529,46 @@ private theorem removeAdministrativeIdentityResultStepDecreases
   | succ n =>
       simp [removeAdministrativeIdentityResult]
 
+/-- Deleting an administrative-identity packet satisfies the dedicated
+packet-contraction semantics recorded by `FrontierWord.IdentityRemovalSound`. -/
+def removeAdministrativeIdentityResult_identityRemovalSound
+    (w : FrontierWord setup)
+    (k : Fin w.residue.n)
+    (hId : IsAdministrativeIdentityPacket w k) :
+    FrontierWord.IdentityRemovalSound w (removeAdministrativeIdentityResult w k hId) := by
+  rcases w with ⟨⟨m, X, Y, ports, packets, dep, attach, tensor, key⟩⟩
+  cases m with
+  | zero =>
+      have hkFalse : False := by
+        simpa using k.2
+      exact False.elim hkFalse
+  | succ n =>
+      refine
+        { removed_index := k
+          packet_count_contracts := ?_ }
+      simp [removeAdministrativeIdentityResult]
+
+/-- Administrative-identity contraction cannot be sound for plain
+`FrontierWord.Equiv`: the contraction strictly lowers packet count, while
+`FrontierWord.Equiv` preserves packet count. -/
+theorem removeAdministrativeIdentityResult_not_equiv
+    (w : FrontierWord setup)
+    (k : Fin w.residue.n)
+    (hId : IsAdministrativeIdentityPacket w k) :
+    ¬ FrontierWord.Equiv w (removeAdministrativeIdentityResult w k hId) := by
+  intro hEquiv
+  have hlt := removeAdministrativeIdentityResultStepDecreases setup w k hId
+  exact (Nat.ne_of_lt hlt) hEquiv.n_eq.symm
+
+/-- Symmetric form of `removeAdministrativeIdentityResult_not_equiv`. -/
+theorem removeAdministrativeIdentityResult_not_equiv_symm
+    (w : FrontierWord setup)
+    (k : Fin w.residue.n)
+    (hId : IsAdministrativeIdentityPacket w k) :
+    ¬ FrontierWord.Equiv (removeAdministrativeIdentityResult w k hId) w := by
+  intro hEquiv
+  exact removeAdministrativeIdentityResult_not_equiv w k hId hEquiv.symm
+
 private noncomputable def concreteAdministrativeIdentityContractionResult
     (setup : RewriteCalculusSetup.{u})
     (w : FrontierWord setup)
@@ -1581,6 +1622,27 @@ namespace TraceFrontierWord
 
 end TraceFrontierWord
 
+/-- Trace-level rule application on the canonical enriched carrier used for
+adjacent certified-step composition. The rule acts on trace/provenance data and
+is required to preserve the residue projection up to `FrontierWord.Equiv`. -/
+structure TraceFrontierRuleApplication (setup : RewriteCalculusSetup.{u}) where
+  family : FrontierTraceRuleFamily setup
+  before : TraceFrontierWord setup
+  after : TraceFrontierWord setup
+  valid : Prop
+  residue_sound :
+    valid → FrontierWord.Equiv before.toFrontierWord after.toFrontierWord
+
+namespace TraceFrontierRuleApplication
+
+/-- Valid trace-frontier rule applications preserve the residue projection. -/
+theorem sound_of_valid (app : TraceFrontierRuleApplication setup)
+    (h : app.valid) :
+    FrontierWord.Equiv app.before.toFrontierWord app.after.toFrontierWord :=
+  app.residue_sound h
+
+end TraceFrontierRuleApplication
+
 /-- Trace-level compression data for adjacent certified-step composition. This
 rule acts only on the trace witness and must preserve the residue projection. -/
 structure AdjacentCertifiedStepTraceCompressionData
@@ -1611,6 +1673,88 @@ theorem traceCompositionPreservesResidue
     (t : TraceFrontierWord setup) (h : D.applies t) :
     (D.result t h).toFrontierWord = t.toFrontierWord :=
   traceCompressionSound_fullConcrete D t h
+
+namespace AdjacentCertifiedStepTraceCompressionData
+
+/-- Package a trace-compression step as a trace-level rule application on the
+canonical enriched carrier. -/
+def toTraceRuleApplication
+    (D : AdjacentCertifiedStepTraceCompressionData setup)
+    (t : TraceFrontierWord setup)
+    (h : D.applies t) :
+    TraceFrontierRuleApplication setup where
+  family := .compose_adjacent_certified_steps
+  before := t
+  after := D.result t h
+  valid := D.applies t
+  residue_sound := by
+    intro ht
+    simpa [D.residue_preserved t ht] using
+      (FrontierWord.Equiv.refl t.toFrontierWord)
+
+@[simp] theorem toTraceRuleApplication_family
+    (D : AdjacentCertifiedStepTraceCompressionData setup)
+    (t : TraceFrontierWord setup)
+    (h : D.applies t) :
+    (D.toTraceRuleApplication t h).family =
+      FrontierTraceRuleFamily.compose_adjacent_certified_steps :=
+  rfl
+
+@[simp] theorem toTraceRuleApplication_before
+    (D : AdjacentCertifiedStepTraceCompressionData setup)
+    (t : TraceFrontierWord setup)
+    (h : D.applies t) :
+    (D.toTraceRuleApplication t h).before = t :=
+  rfl
+
+@[simp] theorem toTraceRuleApplication_after
+    (D : AdjacentCertifiedStepTraceCompressionData setup)
+    (t : TraceFrontierWord setup)
+    (h : D.applies t) :
+    (D.toTraceRuleApplication t h).after = D.result t h :=
+  rfl
+
+end AdjacentCertifiedStepTraceCompressionData
+
+/-- Canonical trace-enrichment choice for the trace-side CanNF rule surface.
+
+The enriched carrier is `TraceFrontierWord`: a frontier word together with the
+source/target states and a real certified trace realizing those endpoints.
+This is the smallest existing carrier in the workspace that supports the
+adjacent certified-step composition rule without overloading residue-only
+`FrontierWord`. -/
+def traceFrontierWordTraceContextObligations
+    (setup : RewriteCalculusSetup.{u}) :
+    FrontierTraceContextObligations setup where
+  EnrichedCarrier := TraceFrontierWord setup
+  toFrontierWord := TraceFrontierWord.toFrontierWord
+  TraceContext t := setup.CertifiedTrace t.sourceState t.targetState
+  trace_rules_statable :=
+    ∀ (D : AdjacentCertifiedStepTraceCompressionData setup)
+      (t : TraceFrontierWord setup) (h : D.applies t),
+      (D.toTraceRuleApplication t h).family =
+        FrontierTraceRuleFamily.compose_adjacent_certified_steps
+  trace_context_admin_compat :=
+    ∀ (D : AdjacentCertifiedStepTraceCompressionData setup)
+      (t : TraceFrontierWord setup) (h : D.applies t),
+      FrontierWord.Equiv t.toFrontierWord (D.result t h).toFrontierWord
+
+/-- The canonical enriched-carrier choice does indeed support stating the
+trace-level composition rule. -/
+theorem traceFrontierWordTraceContextObligations_trace_rules_statable
+    (setup : RewriteCalculusSetup.{u}) :
+    (traceFrontierWordTraceContextObligations setup).trace_rules_statable := by
+  intro D t h
+  rfl
+
+/-- The canonical enriched-carrier choice preserves admin-equivalent residue
+data across trace-level compression steps. -/
+theorem traceFrontierWordTraceContextObligations_trace_context_admin_compat
+    (setup : RewriteCalculusSetup.{u}) :
+    (traceFrontierWordTraceContextObligations setup).trace_context_admin_compat := by
+  intro D t h
+  simpa [D.residue_preserved t h] using
+    (FrontierWord.Equiv.refl t.toFrontierWord)
 
 /-! ## Corrected residue-level inventory: compose excluded, remove contracts -/
 
@@ -1712,6 +1856,17 @@ def family : ResidueProductionSchemaIdx setup → FrontierRuleFamily setup
   | .expose_boundary_block_swap        => .expose_boundary_block_swap
   | .administrative_identity_contraction => .remove_administrative_identity
 
+/-- Corrected residue family viewed in the residue-only taxonomy from
+`CanNFRuleSplit`. Administrative identity remains residue-side, but as a real
+packet contraction rather than a plain `FrontierWord.Equiv`-sound rewrite. -/
+def toResidueRuleFamily : ResidueProductionSchemaIdx setup → FrontierResidueRuleFamily setup
+  | .boundary_admin_canonicalize => .boundary_admin_canonicalize
+  | .dependency_order_canonicalize => .dependency_order_canonicalize
+  | .tensor_factor_order_canonicalize => .tensor_factor_order_canonicalize
+  | .key_order_canonicalize => .key_order_canonicalize
+  | .expose_boundary_block_swap => .expose_boundary_block_swap
+  | .administrative_identity_contraction => .remove_administrative_identity
+
 /-- Residue write-tag controlled by a corrected residue family. -/
 def writeTag : ResidueProductionSchemaIdx setup → ResidueFieldTag
   | .boundary_admin_canonicalize        => .boundary_Y
@@ -1794,6 +1949,21 @@ def footprint : ResidueProductionSchemaIdx setup → ResidueWriteFootprint
 theorem writeTag_eq_familyTag (i : ResidueProductionSchemaIdx setup) :
     i.writeTag = i.family.residueFieldTag := by
   cases i <;> rfl
+
+/-- The corrected residue inventory is still residue-only in the taxonomy of
+`CanNFRuleSplit`; the trace-level compose family remains excluded. -/
+theorem family_eq_toRuleFamily
+    (i : ResidueProductionSchemaIdx setup) :
+    i.family = FrontierResidueRuleFamily.toRuleFamily i.toResidueRuleFamily := by
+  cases i <;> rfl
+
+/-- Every corrected residue family classifies as residue-only under the unified
+rule-family classifier. -/
+theorem dataRequirement_eq_residue_only
+    (i : ResidueProductionSchemaIdx setup) :
+    i.family.dataRequirement = FrontierRuleFamily.DataRequirement.residue_only := by
+  rw [family_eq_toRuleFamily]
+  exact dataRequirement_of_residueRule i.toResidueRuleFamily
 
 /-- Compose is not part of the corrected residue-level family inventory. -/
 theorem family_ne_compose (i : ResidueProductionSchemaIdx setup) :
@@ -3595,6 +3765,29 @@ noncomputable def canNFObligations_from_buildNormalizerFn
   contextual_admin_stable := fun {R d c₁ c₂} h =>
     SC.sound_compat (PeelChain.contextual_admin_equiv_word_stable h)
 
+/-- Proof-relevant packaging of `buildNormalizerFn` into the computational CanNF
+interface.
+
+This does not add any new extensional mathematics beyond
+`ProductionCanNFSoundCompatData`: the computational trace is the actual
+multi-step reduction chosen by `buildNormalizerFn`, canonicality is the existing
+`NormalResult.sound`, and completeness is the proved theorem
+`canNFComplete_from_normalizerFn`. -/
+noncomputable def computationalFrontierNormalizer_from_buildNormalizerFn
+    {setup : RewriteCalculusSetup.{u}}
+    (S : FrontierReductionSystem setup)
+    (SC : ProductionCanNFSoundCompatData S) :
+    ComputationalFrontierNormalizer setup where
+  NF := FrontierWord setup
+  decode := id
+  normalize w := (S.buildNormalizerFn w).nf_word
+  NormalizationTrace := fun w w' => ULift (PLift (S.MultiStep w w'))
+  trace w := ⟨⟨(S.buildNormalizerFn w).reduces⟩⟩
+  sound := fun {w₁ w₂} hEquiv => SC.sound_compat hEquiv
+  complete := fun {w₁ w₂} h => canNFComplete_from_normalizerFn S h
+  canonical := fun w => (S.buildNormalizerFn w).sound
+  decidableCode := Classical.decEq _
+
 /-- **`productionCanNFObligations_concrete`**: build `CanNFObligations` for the
 production system from an operational spec and the exact sound-compat primitive.
 
@@ -3907,6 +4100,22 @@ noncomputable def productionCanNFObligations_from_church_rosser
       (fun w => (FrontierReductionSystem.buildNormalizerFn
                    (productionFrontierReductionSystem_from_spec spec) w).nf_word) :=
   productionCanNFObligations_concrete spec
+    (productionCanNFSoundCompatData_from_church_rosser spec JP CR)
+
+/-- Proof-relevant computational packaging of the constructive Church-Rosser
+closure.
+
+This is the computational sibling of
+`productionCanNFObligations_from_church_rosser`: it exposes the same chosen
+`buildNormalizerFn` representative, together with its actual reduction trace. -/
+noncomputable def productionComputationalFrontierNormalizer_from_church_rosser
+    {setup : RewriteCalculusSetup.{u}}
+    (spec : ProductionSchemaOperationalSpec setup)
+    (JP : ProductionJoinEnvPrimitive (productionFrontierRuleSystem_from_spec spec))
+    (CR : FrontierWordChurchRosserData (productionFrontierReductionSystem_from_spec spec)) :
+    ComputationalFrontierNormalizer setup :=
+  computationalFrontierNormalizer_from_buildNormalizerFn
+    (productionFrontierReductionSystem_from_spec spec)
     (productionCanNFSoundCompatData_from_church_rosser spec JP CR)
 
 /-! ## Part III — Church-Rosser constructive seam
@@ -4278,6 +4487,17 @@ noncomputable def productionCanNFObligations_from_production_halves
       (fun w => (FrontierReductionSystem.buildNormalizerFn
                    (productionFrontierReductionSystem_from_spec spec) w).nf_word) :=
   productionCanNFObligations_from_church_rosser spec JP
+    (FrontierWordChurchRosserData.from_production_halves spec JP BA EO)
+
+/-- Proof-relevant computational packaging of the production-halves closure. -/
+noncomputable def productionComputationalFrontierNormalizer_from_production_halves
+    {setup : RewriteCalculusSetup.{u}}
+    (spec : ProductionSchemaOperationalSpec setup)
+    (JP : ProductionJoinEnvPrimitive (productionFrontierRuleSystem_from_spec spec))
+    (BA : CanNFProductionBoundaryAdminChurchRosserData spec)
+    (EO : CanNFProductionExternalOutChurchRosserData spec) :
+    ComputationalFrontierNormalizer setup :=
+  productionComputationalFrontierNormalizer_from_church_rosser spec JP
     (FrontierWordChurchRosserData.from_production_halves spec JP BA EO)
 
 /-! ## Part III — Closing the two half-obligations
@@ -4778,6 +4998,43 @@ noncomputable def productionCanNFObligations_from_concrete_data
              (productionSchemaOperationalSpec_concrete
                B Dep Tensor Key Remove Compose Expose C)) w).nf_word) :=
   productionCanNFObligations_from_production_halves
+    (productionSchemaOperationalSpec_concrete B Dep Tensor Key Remove Compose Expose C)
+    JP
+    (CanNFProductionBoundaryAdminChurchRosserData.from_concrete
+      B Dep Tensor Key Remove Compose Expose C BC TC KC)
+    (CanNFProductionExternalOutChurchRosserData.from_sort_data
+      B Dep Tensor Key Remove Compose Expose C TC KC EOSort)
+
+/-- Fully concrete computational frontier normalizer built from the production
+closure data.
+
+This is the proof-relevant upgrade path from the concrete production-side CanNF
+theorems to the `ComputationalFrontierNormalizer` consumed by
+`CanonicalReconstructionEngine.ofComputationalCanNF`. -/
+noncomputable def productionComputationalFrontierNormalizer_from_concrete_data
+    {setup : RewriteCalculusSetup.{u}}
+    (B       : BoundaryAdminCanonicalizeData setup)
+    (Dep     : DependencyOrderCanonicalizeData setup)
+    (Tensor  : TensorFactorOrderCanonicalizeData setup)
+    (Key     : KeyOrderCanonicalizeData setup)
+    (Remove  : AdministrativeIdentityRemovalData setup)
+    (Compose : AdjacentCertifiedStepCompositionData setup)
+    (Expose  : BoundaryBlockSwapExposureData setup)
+    (C : ProductionSchemaOperationalSideConditions
+           (productionFamilySpecs_allConcreteOrConditional
+             B Dep Tensor Key Remove Compose Expose))
+    (JP   : ProductionJoinEnvPrimitive
+              (productionFrontierRuleSystem_from_spec
+                (productionSchemaOperationalSpec_concrete
+                  B Dep Tensor Key Remove Compose Expose C)))
+    (BC   : BoundaryAdminCanonicalizeCongr B)
+    (TC   : TensorFactorOrderCanonicalizeUniqueData Tensor)
+    (KC   : KeyOrderCanonicalizeUniqueData Key)
+    (EOSort : CanNFProductionExternalOutSortData B Dep Tensor Key
+                (productionSchemaOperationalSpec_concrete
+                  B Dep Tensor Key Remove Compose Expose C)) :
+    ComputationalFrontierNormalizer setup :=
+  productionComputationalFrontierNormalizer_from_production_halves
     (productionSchemaOperationalSpec_concrete B Dep Tensor Key Remove Compose Expose C)
     JP
     (CanNFProductionBoundaryAdminChurchRosserData.from_concrete

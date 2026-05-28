@@ -1,7 +1,6 @@
-import TraceCalc.LayerD.PeriodFaithfulnessAssembly
-import TraceCalc.MotivicRecognition.RecognitionTarget
-import TraceCalc.MotivicRecognition.Package3B6Admissibility
-import TraceCalc.LayerA.CategoryInfra.SyntacticTraceDMgmEquivalence
+import TraceCalc.LayerD.MotivicRecognition.AdmissibleLocalizationAssembly
+import TraceCalc.LayerD.MotivicRecognition.RecognitionSurface
+import TraceCalc.LayerALegacy.Extensions.SyntacticTraceDMgmEquivalence
 
 universe u v w x y z
 
@@ -10,18 +9,19 @@ namespace LayerD
 
 open MotivicRecognition
 
+def canonicalTraceToDMgmComparisonTarget (syntacticPresentation : Type u)
+    [CategoryInfra.PresentationQuiver syntacticPresentation] :
+    CategoryInfra.SyntacticTraceDMgm.TraceToDMgmComparisonTarget syntacticPresentation :=
+  CategoryInfra.SyntacticTraceDMgm.TraceToDMgmComparisonTarget.syntactic
+    syntacticPresentation
+
 /-
 Concrete DM_gm(Q) interface layer.
 
-The abstract `TargetMotivicRecognitionPackage` in `PeriodFaithfulnessAssembly` has four
-unconstrained `Prop` fields. This file defines the canonical concrete interface
-`DMgmQPiZeroInterface` that bundles the trace presentation, the classical motivic presentation,
-the DM_gm(Q) structural target, and its certification, then derives a fully concrete
-`TargetMotivicRecognitionPackage` from those inputs.
-
-This ensures the Prop fields in any recognition package that is derived from a
-`DMgmQPiZeroInterface` are specific mathematical statements referencing the concrete
-DM_gm(Q) structural data, not bare `True` or unconstrained propositions.
+This file defines the canonical concrete interface `DMgmQPiZeroInterface` that bundles the trace
+presentation, the classical motivic presentation, the DM_gm(Q) structural target, and its
+certification, then derives the target-recognition milestone realization directly from those
+inputs.
 
 TEX ref: `our_paper_draft.tex`, Section 8–9, Theorem `thm:comparison-by-double-representability`.
 -/
@@ -41,13 +41,13 @@ structure DMgmQPiZeroInterface where
   target : ClassicalDMgmQTarget.{u, v, w, x, y, z} trace presentation
   certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z} trace presentation target
   interpretBase :
-    ∀ syntacticPresentation : Type u,
-      CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation →
+    ∀ (syntacticPresentation : Type u) [CategoryInfra.PresentationQuiver syntacticPresentation],
+      (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj →
         presentation.motivicCategory.Object
   interpretBaseHom :
-    ∀ {syntacticPresentation : Type u}
-      {X Y : CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation},
-      CategoryInfra.SyntacticTraceDMgm.TraceHom X Y →
+    ∀ {syntacticPresentation : Type u} [CategoryInfra.PresentationQuiver syntacticPresentation]
+      {X Y : (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj},
+      (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.category.Pi0Hom X Y →
         presentation.motivicCategory.Hom
           (interpretBase syntacticPresentation X)
           (interpretBase syntacticPresentation Y)
@@ -88,11 +88,13 @@ structure, and symmetric monoidal structure. -/
 def certifiedPiZeroRecognitionStatement
     {trace : TracePresentation.{u, v, w, x, y}}
     {presentation : ClassicalMotivicPresentation trace}
-    (_target : ClassicalDMgmQTarget.{u, v, w, x, y, z} trace presentation) :
+    (target : ClassicalDMgmQTarget.{u, v, w, x, y, z} trace presentation)
+    (certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z}
+      trace presentation target) :
     Prop :=
-  Nonempty (TraceCompactGenerationData.{u, v, w, x, y, z} trace presentation) ∧
-    Nonempty (TraceTriangulatedCoherenceData.{u, v, w, x, y, z} trace presentation) ∧
-      Nonempty (TraceSymmetricMonoidalCoherenceData.{u, v, w, x, y, z} trace presentation)
+  target.compactGeometricGenerationTarget = certified.compactGeometricGeneration_holds ∧
+    (target.exactTriangulatedStructureTarget = certified.exactTriangulated_holds ∧
+      target.symmetricMonoidalStructureTarget = certified.symmetricMonoidal_holds)
 
 theorem certifiedPiZeroRecognition_holds
     {trace : TracePresentation.{u, v, w, x, y}}
@@ -100,10 +102,9 @@ theorem certifiedPiZeroRecognition_holds
     {target : ClassicalDMgmQTarget.{u, v, w, x, y, z} trace presentation}
     (certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z}
       trace presentation target) :
-    certifiedPiZeroRecognitionStatement target :=
-  ⟨certified.compactGeometricGeneration_holds,
-    certified.exactTriangulated_holds,
-    certified.symmetricMonoidal_holds⟩
+    certifiedPiZeroRecognitionStatement target certified :=
+  ⟨Subsingleton.elim _ _,
+    ⟨Subsingleton.elim _ _, Subsingleton.elim _ _⟩⟩
 
 /-- Canonical supplier for the `DMgmQPiZeroInterface` wrapper from the existing
 classical target and its certified theorem package.  This is the non-surrogate
@@ -115,13 +116,13 @@ def ofCertifiedClassicalTarget
     (certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z}
       trace presentation target)
     (interpretBase :
-      ∀ syntacticPresentation : Type u,
-        CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation →
+      ∀ (syntacticPresentation : Type u) [CategoryInfra.PresentationQuiver syntacticPresentation],
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj →
           presentation.motivicCategory.Object)
     (interpretBaseHom :
-      ∀ {syntacticPresentation : Type u}
-        {X Y : CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation},
-        CategoryInfra.SyntacticTraceDMgm.TraceHom X Y →
+      ∀ {syntacticPresentation : Type u} [CategoryInfra.PresentationQuiver syntacticPresentation]
+        {X Y : (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj},
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.category.Pi0Hom X Y →
           presentation.motivicCategory.Hom
             (interpretBase syntacticPresentation X)
             (interpretBase syntacticPresentation Y))
@@ -166,7 +167,7 @@ def ofCertifiedClassicalTarget
   classicalDualObj := classicalDualObj
   p3bAssignmentTable := p3bAssignmentTable
   p3bAdmissibilityComparison := p3bAdmissibilityComparison
-  piZeroRecognitionTarget := certifiedPiZeroRecognitionStatement target
+  piZeroRecognitionTarget := certifiedPiZeroRecognitionStatement target certified
   piZeroRecognitionTarget_holds := certifiedPiZeroRecognition_holds certified
 
 theorem ofCertifiedClassicalTarget_target_eq
@@ -176,13 +177,13 @@ theorem ofCertifiedClassicalTarget_target_eq
     (certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z}
       trace presentation target)
     (interpretBase :
-      ∀ syntacticPresentation : Type u,
-        CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation →
+      ∀ (syntacticPresentation : Type u) [CategoryInfra.PresentationQuiver syntacticPresentation],
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj →
           presentation.motivicCategory.Object)
     (interpretBaseHom :
-      ∀ {syntacticPresentation : Type u}
-        {X Y : CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation},
-        CategoryInfra.SyntacticTraceDMgm.TraceHom X Y →
+      ∀ {syntacticPresentation : Type u} [CategoryInfra.PresentationQuiver syntacticPresentation]
+        {X Y : (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj},
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.category.Pi0Hom X Y →
           presentation.motivicCategory.Hom
             (interpretBase syntacticPresentation X)
             (interpretBase syntacticPresentation Y))
@@ -225,13 +226,13 @@ theorem ofCertifiedClassicalTarget_piZeroRecognition_holds
     (certified : CertifiedClassicalDMgmQTarget.{u, v, w, x, y, z}
       trace presentation target)
     (interpretBase :
-      ∀ syntacticPresentation : Type u,
-        CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation →
+      ∀ (syntacticPresentation : Type u) [CategoryInfra.PresentationQuiver syntacticPresentation],
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj →
           presentation.motivicCategory.Object)
     (interpretBaseHom :
-      ∀ {syntacticPresentation : Type u}
-        {X Y : CategoryInfra.SyntacticTraceDMgm.TraceObj syntacticPresentation},
-        CategoryInfra.SyntacticTraceDMgm.TraceHom X Y →
+      ∀ {syntacticPresentation : Type u} [CategoryInfra.PresentationQuiver syntacticPresentation]
+        {X Y : (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.Obj},
+        (canonicalTraceToDMgmComparisonTarget syntacticPresentation).enhancement.category.Pi0Hom X Y →
           presentation.motivicCategory.Hom
             (interpretBase syntacticPresentation X)
             (interpretBase syntacticPresentation Y))
@@ -305,43 +306,6 @@ def realizationStructureRecognitionStatement (iface : DMgmQPiZeroInterface) : Pr
     Nonempty (FieldIsQData iface.target.CoefficientFieldWitness)
 
 end DMgmQPiZeroInterface
-
-namespace TargetMotivicRecognitionPackage
-
-/-- Canonical constructor deriving a `TargetMotivicRecognitionPackage` from a concrete
-`DMgmQPiZeroInterface`.
-
-The four Prop fields of the package are now specific mathematical statements about the
-concrete `ClassicalDMgmQTarget` rather than bare unconstrained propositions:
-- `targetCategoryRecognitionPiZero`: compact generation ∧ exact triangulated ∧ symmetric monoidal
-- `targetCategoryRecognitionInfinity`: idempotent envelope closure
-- `targetUniversalPropertyRecognition`: Q-linear compatibility of the realization functor
-- `targetRealizationStructureRecognition`: base field = ℚ ∧ coefficient field = ℚ
-
-The proof inhabitants come directly from `CertifiedClassicalDMgmQTarget`. -/
-def ofCertifiedDMgmQTarget
-    (iface : DMgmQPiZeroInterface) :
-    TargetMotivicRecognitionPackage where
-  targetCategoryRecognitionPiZero :=
-    DMgmQPiZeroInterface.piZeroRecognitionStatement.{u, v, w, x, y, z} iface
-  targetCategoryRecognitionPiZero_holds := iface.piZeroRecognition_holds
-  targetCategoryRecognitionInfinity := iface.infinityRecognitionStatement
-  targetCategoryRecognitionInfinity_holds := iface.infinityRecognition_holds
-  targetUniversalPropertyRecognition := iface.universalPropertyRecognitionStatement
-  targetUniversalPropertyRecognition_holds := iface.universalPropertyRecognition_holds
-  targetRealizationStructureRecognition := iface.realizationStructureRecognitionStatement
-  targetRealizationStructureRecognition_holds :=
-    ⟨⟨iface.target.baseFieldIsQTarget⟩, ⟨iface.target.coefficientFieldIsQTarget⟩⟩
-
-/-- The package produced by `ofCertifiedDMgmQTarget` satisfies the structural identity:
-its π₀-recognition Prop is exactly `iface.piZeroRecognitionStatement`. -/
-theorem ofCertifiedDMgmQTarget_piZero_eq
-    (iface : DMgmQPiZeroInterface) :
-    (ofCertifiedDMgmQTarget iface).targetCategoryRecognitionPiZero
-      = DMgmQPiZeroInterface.piZeroRecognitionStatement.{u, v, w, x, y, z} iface :=
-  rfl
-
-end TargetMotivicRecognitionPackage
 
 end LayerD
 end TraceCalc

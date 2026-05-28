@@ -1,5 +1,5 @@
-import TraceCalc.ClassicalPeriods.PeriodConjectureTarget
-import TraceCalc.ClassicalPeriods.ReverseMath
+import TraceCalc.ClassicalPeriods.Basic
+import TraceCalc.ClassicalPeriods.Framed
 
 open CategoryTheory
 
@@ -32,6 +32,7 @@ structure ClassicalMotivicPresentation where
   GeometricShapeData : Type y
   geometricShapeData : GeometricShapeData
   geometricShapeAxioms : Prop
+  geometricShapeAxioms_holds : geometricShapeAxioms
 
 attribute [instance] ClassicalMotivicPresentation.catSource ClassicalMotivicPresentation.catLocalized
 
@@ -102,29 +103,6 @@ abbrev FramedPeriodEquality
 abbrev FramedPeriodOperations
     (ctx : ClassicalComparisonContext) :=
   ClassicalPeriods.FramedPeriodOperations ctx
-
-/-- Real classical Grothendieck period-faithfulness target. -/
-abbrev ClassicalGrothendieckPeriodFaithfulnessTarget :=
-  ClassicalPeriods.ClassicalGrothendieckPeriodFaithfulnessTarget
-
-/-- Stable exported final classical theorem target. -/
-abbrev ClassicalGrothendieckPeriodFaithfulnessStatement :=
-  ClassicalPeriods.ClassicalGrothendieckPeriodFaithfulnessStatement
-
-/-- Real framed refinement of the classical target. -/
-abbrev FramedPeriodConjectureTarget := ClassicalPeriods.FramedPeriodConjectureTarget
-
-/-- Stable exported framed-period theorem target. -/
-abbrev ClassicalFramedPeriodConjectureStatement :=
-  ClassicalPeriods.ClassicalFramedPeriodConjectureStatement
-
-/-- Real reverse-mathematics obligation package for the classical target lane. -/
-abbrev ClassicalPeriodReverseMathObligations :=
-  ClassicalPeriods.ClassicalPeriodReverseMathObligations
-
-/-- Real reverse-mathematics input surface for the classical target lane. -/
-abbrev ClassicalPeriodTargetInputsFromTraceProgram :=
-  ClassicalPeriods.ClassicalPeriodTargetInputsFromTraceProgram
 
 end ClassicalBridge
 end TraceCalc

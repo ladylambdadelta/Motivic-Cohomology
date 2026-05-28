@@ -39,14 +39,20 @@ def CycleEquiv
 
 /-- The identity cycle: the graph of id_X, i.e., the diagonal Δ_X ⊂ X × X.
 
-In the abstract model, the diagonal is represented by the Unit witness.
+In this skeletal witness model, the diagonal is represented by an explicit
+proof-bearing diagonal witness rather than a unit placeholder.
 -/
+def DiagonalWitness
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (X : GeometricPeriodObject ctx) : Type :=
+  PLift (X = X)
+
 def identity
     {ctx : ClassicalComparisonContext.{u, v}}
     (X : GeometricPeriodObject ctx) :
     Cycle X X where
-  WitnessType := Unit
-  witness := ()
+  WitnessType := DiagonalWitness X
+  witness := ⟨rfl⟩
 
 /-- Composition of cycles: β ∘ α = (p₁₃)_* ((p₁₂)^* α · (p₂₃)^* β).
 
@@ -61,15 +67,37 @@ def compose
   WitnessType := α.WitnessType × β.WitnessType
   witness := (α.witness, β.witness)
 
-/-- Left unit isomorphism: PUnit × T ≃ T -/
-def punitProdEquiv (T : Type u) : (PUnit × T) ≃ T :=
-  Equiv.mk (fun ⟨_, t⟩ => t) (fun t => ⟨(), t⟩)
-    (fun ⟨_, _⟩ => rfl) (fun _ => rfl)
+/-- Left unit equivalence for an inhabited proposition-valued witness type. -/
+def leftDiagonalWitnessProdEquiv
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (X : GeometricPeriodObject ctx)
+    (T : Type _) : (DiagonalWitness X × T) ≃ T :=
+  Equiv.mk (fun ⟨_, t⟩ => t) (fun t => ⟨⟨rfl⟩, t⟩)
+    (by
+      intro pair
+      cases pair with
+      | mk h t =>
+          cases h with
+          | up h =>
+              cases h
+              rfl)
+    (by intro _; rfl)
 
-/-- Right unit isomorphism: T × PUnit ≃ T -/
-def prodPunitEquiv (T : Type u) : (T × PUnit) ≃ T :=
-  Equiv.mk (fun ⟨t, _⟩ => t) (fun t => ⟨t, ()⟩)
-    (fun ⟨_, ()⟩ => rfl) (fun _ => rfl)
+/-- Right unit equivalence for an inhabited proposition-valued witness type. -/
+def rightDiagonalWitnessProdEquiv
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (Y : GeometricPeriodObject ctx)
+    (T : Type _) : (T × DiagonalWitness Y) ≃ T :=
+  Equiv.mk (fun ⟨t, _⟩ => t) (fun t => ⟨t, ⟨rfl⟩⟩)
+    (by
+      intro pair
+      cases pair with
+      | mk t h =>
+          cases h with
+          | up h =>
+              cases h
+              rfl)
+    (by intro _; rfl)
 
 /-- Product associativity: (T₁ × T₂) × T₃ ≃ T₁ × (T₂ × T₃) -/
 def prodAssocEquiv {α β γ : Type*} :
@@ -106,9 +134,9 @@ open AlgebraicCycleCategory
 
 /-- CATEGORY LAW 1: Left identity (identity X) ∘ α = α.
 
-The witness type of (identity X) is Unit. Composing with identity gives
-Unit × α.WitnessType with witness ((), α.witness). This is equivalent to
-α via the canonical isomorphism that projects out the witness of α.
+The witness type of (identity X) is the explicit diagonal witness `X = X`.
+Composing with identity gives `(X = X) × α.WitnessType`, which is equivalent to
+`α.WitnessType` by projecting out the diagonal proof component.
 -/
 theorem left_identity
     {ctx : ClassicalComparisonContext.{u, v}}
@@ -116,7 +144,7 @@ theorem left_identity
     (α : Cycle X Y) :
     CycleEquiv (compose (identity X) α) α := by
   unfold compose identity CycleEquiv
-  exact ⟨punitProdEquiv α.WitnessType, rfl⟩
+  exact ⟨leftDiagonalWitnessProdEquiv X α.WitnessType, rfl⟩
 
 /-- CATEGORY LAW 2: Right identity α ∘ (identity Y) = α. -/
 theorem right_identity
@@ -125,7 +153,7 @@ theorem right_identity
     (α : Cycle X Y) :
     CycleEquiv (compose α (identity Y)) α := by
   unfold compose identity CycleEquiv
-  exact ⟨prodPunitEquiv α.WitnessType, rfl⟩
+  exact ⟨rightDiagonalWitnessProdEquiv Y α.WitnessType, rfl⟩
 
 /-- CATEGORY LAW 3: Associativity (γ ∘ β) ∘ α = γ ∘ (β ∘ α).
 

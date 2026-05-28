@@ -2,7 +2,7 @@ import Mathlib.LinearAlgebra.Basis.VectorSpace
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import TraceCalc.ClassicalBridge.RecognizedMMQPeriodTargetSkeleton
 import TraceCalc.ClassicalPeriods.PeriodMatrix
-import TraceCalc.MotivicRecognition.PeriodFaithfulnessProviderProofs
+import TraceCalc.LayerE.MotivicRecognition.PeriodFaithfulnessProviderProofs
 
 universe u v w x y z
 
@@ -108,6 +108,8 @@ injectivity. -/
 theorem canonicalTensorScalarExtensionMap_injective
     (V : Type*) [AddCommGroup V] [Module ctx.BaseField V] :
     Function.Injective (canonicalTensorScalarExtensionMap (ctx := ctx) V) := by
+  letI : Module.Free ctx.BaseField V := Module.Free.of_divisionRing ctx.BaseField V
+  letI : Module.Flat ctx.BaseField V := Module.Flat.of_free (R := ctx.BaseField) (M := V)
   have hAlgebraLinearMap :
       Function.Injective (Algebra.linearMap ctx.BaseField ctx.ScalarField) := by
     simpa using

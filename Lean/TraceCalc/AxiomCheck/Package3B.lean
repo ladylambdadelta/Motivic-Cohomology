@@ -3,9 +3,9 @@ import TraceCalc.ClassicalPeriods.Package3B2Localization
 import TraceCalc.ClassicalPeriods.Package3B3Nisnevich
 import TraceCalc.ClassicalPeriods.Package3B4A1
 import TraceCalc.ClassicalPeriods.Package3B5Envelope
-import TraceCalc.MotivicRecognition.Package3B6Admissibility
-import TraceCalc.MotivicRecognition.Package3BProofs
-import TraceCalc.MotivicRecognition.Package3B6Admissibility
+import TraceCalc.LayerD.MotivicRecognition.AdmissibleLocalizationAssembly
+import TraceCalc.LayerD.MotivicRecognition.LocalizationPackageProofs
+import TraceCalc.LayerD.MotivicRecognition.AdmissibleLocalizationAssembly
 
 open TraceCalc.ClassicalPeriods
 

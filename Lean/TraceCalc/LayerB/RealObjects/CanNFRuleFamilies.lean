@@ -327,6 +327,13 @@ theorem stuck_is_normal_of_no_step (R : FrontierRuleSystem setup)
   intro ⟨app, hb, hv⟩
   exact h ⟨app.after, app, hb, rfl, hv⟩
 
+/-- Normality is equivalent to having no outgoing `Step`. This is the exact
+rule-system irreducibility criterion induced by the bridge. -/
+theorem isNormal_iff_no_step (R : FrontierRuleSystem setup)
+    {w : FrontierWord setup} :
+    R.IsNormal w ↔ ¬ ∃ w', R.Step w w' :=
+  ⟨fun hN => R.normal_no_step hN, fun hNo => R.stuck_is_normal_of_no_step hNo⟩
+
 /-- **Item 6h: the bridge.** A `FrontierRuleSystem` induces a
 `FrontierReductionSystem` by bundling the lifted Step relation with
 the per-application soundness/measure obligations. -/
@@ -410,6 +417,36 @@ theorem normal_unique
     (hN₁ : S.IsNormal n₁) (hN₂ : S.IsNormal n₂) :
     FrontierWord.Equiv n₁ n₂ :=
   C.normal_unique_from_confluence h₁ h₂ hN₁ hN₂
+
+/-- Symmetric form of boundary-admin overlap coherence: if a step starts from
+the right-hand representative of an admin-equivalent pair, then the left-hand
+representative can be reduced to an admin-equivalent successor. -/
+theorem boundary_admin_overlap_coherence_symm
+    {w₁ w₂ w₂' : FrontierWord setup}
+    (hEq : FrontierWord.Equiv w₁ w₂)
+    (hStep : S.Step w₂ w₂') :
+    ∃ w₁' : FrontierWord setup,
+      S.MultiStep w₁ w₁' ∧ FrontierWord.Equiv w₁' w₂' := by
+  rcases C.boundary_admin_overlap_coherence hEq.symm hStep with ⟨w₁', hMulti, hEquiv⟩
+  exact ⟨w₁', hMulti, hEquiv.symm⟩
+
+/-- Symmetric form of measure compatibility. -/
+theorem measure_compatibility_symm
+    {w₁ w₂ : FrontierWord setup}
+    (hEq : FrontierWord.Equiv w₁ w₂) :
+    S.measure w₂ = S.measure w₁ := by
+  simpa using C.measure_compatibility hEq.symm
+
+/-- Special case of normal uniqueness with the left branch reflexive. This is
+the form typically used once one branch has already been normalized. -/
+theorem normal_unique_of_multistep_to_normal
+    {n₁ n₂ : FrontierWord setup}
+    (h : S.MultiStep n₁ n₂)
+    (hN₁ : S.IsNormal n₁) (hN₂ : S.IsNormal n₂) :
+    FrontierWord.Equiv n₁ n₂ :=
+  C.normal_unique
+    (FrontierReductionSystem.MultiStep.refl' S n₁)
+    h hN₁ hN₂
 
 end FrontierConfluenceObligations
 

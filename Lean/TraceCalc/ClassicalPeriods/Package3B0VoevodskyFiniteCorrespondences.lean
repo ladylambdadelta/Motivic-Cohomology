@@ -32,7 +32,7 @@ This represents the multiplicity data on finite correspondences Z ⊂ X ×_Q Y,
 where each component contributes an integer multiplicity.
 We model this abstractly using ℤ (can be extended to formal sums of components).
 -/
-def RawFiniteCorrespondenceCycle : Type :=
+abbrev RawFiniteCorrespondenceCycle : Type :=
   ℤ
 
 /-- Correspondence equivalence: two cycles are equivalent if their multiplicities match.
@@ -63,19 +63,17 @@ of multiplicity values, which respects the associativity and unit laws.
 def composeRaw (α β : RawFiniteCorrespondenceCycle) : RawFiniteCorrespondenceCycle :=
   α * β
 
--- Quotient by the nontrivial equivalence relation
-def FiniteCorrespondence : Type :=
-  Quot CorrespondenceEquivalence
+-- Direct nondegenerate carrier for the formal skeleton.
+abbrev FiniteCorrespondence : Type :=
+  RawFiniteCorrespondenceCycle
 
-/-- Identity in the quotient -/
+/-- Identity on the active correspondence carrier. -/
 def identityCorrespondence : FiniteCorrespondence :=
-  Quot.mk CorrespondenceEquivalence diagonal
+  diagonal
 
-/-- Composition in the quotient -/
-def composeCorrespondence : FiniteCorrespondence → FiniteCorrespondence → FiniteCorrespondence :=
-  Quot.lift₂ composeRaw fun a₁ a₂ hab b₁ b₂ hbb => by
-    simp only [CorrespondenceEquivalence] at hab hbb ⊢
-    rw [hab, hbb]
+/-- Composition on the active correspondence carrier. -/
+def composeCorrespondence (α β : FiniteCorrespondence) : FiniteCorrespondence :=
+  composeRaw α β
 
 -- ============================================================================
 -- CATEGORY LAWS
@@ -96,39 +94,25 @@ theorem correspondence_assoc (α β γ : RawFiniteCorrespondenceCycle) :
     composeRaw (composeRaw α β) γ = composeRaw α (composeRaw β γ) :=
   mul_assoc α β γ
 
-/-- Left identity (quotient) -/
+/-- Left identity on the active carrier. -/
 theorem finiteCorrespondence_id_left (α : FiniteCorrespondence) :
-    composeCorrespondence identityCorrespondence α = α := by
-  induction α using Quot.ind with
-  | mk a =>
-    show composeCorrespondence (Quot.mk _ diagonal) (Quot.mk _ a) = Quot.mk _ a
-    rfl
+    composeCorrespondence identityCorrespondence α = α :=
+  correspondence_id_left α
 
-/-- Right identity (quotient) -/
+/-- Right identity on the active carrier. -/
 theorem finiteCorrespondence_id_right (α : FiniteCorrespondence) :
-    composeCorrespondence α identityCorrespondence = α := by
-  induction α using Quot.ind with
-  | mk a =>
-    show composeCorrespondence (Quot.mk _ a) (Quot.mk _ diagonal) = Quot.mk _ a
-    rfl
+    composeCorrespondence α identityCorrespondence = α :=
+  correspondence_id_right α
 
-/-- Associativity (quotient) -/
+/-- Associativity on the active carrier. -/
 theorem finiteCorrespondence_assoc (α β γ : FiniteCorrespondence) :
     composeCorrespondence (composeCorrespondence α β) γ =
-    composeCorrespondence α (composeCorrespondence β γ) := by
-  induction α using Quot.ind with
-  | mk a =>
-    induction β using Quot.ind with
-    | mk b =>
-      induction γ using Quot.ind with
-      | mk c =>
-        show composeCorrespondence (composeCorrespondence (Quot.mk _ a) (Quot.mk _ b)) (Quot.mk _ c) =
-             composeCorrespondence (Quot.mk _ a) (composeCorrespondence (Quot.mk _ b) (Quot.mk _ c))
-        rfl
+    composeCorrespondence α (composeCorrespondence β γ) :=
+  correspondence_assoc α β γ
 
 end VoevodskyFiniteCorrespondences
 
-/-- CONCRETE CORRESPONDENCE LAYER: ARCHITECTURE AND STATUS
+      /- CONCRETE CORRESPONDENCE LAYER: ARCHITECTURE AND STATUS
 
 PRINCIPLES DEMONSTRATED:
 

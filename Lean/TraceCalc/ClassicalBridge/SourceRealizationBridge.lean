@@ -1,7 +1,7 @@
 import TraceCalc.ClassicalBridge.ClassicalBridgeAnchors
-import TraceCalc.LayerB.RealObjects.SourceHolographyToLayerD
+import TraceCalc.LayerBNonCore.Bridges.SourceHolographyToLayerD
 
-universe u v w x y z
+universe u1 v1 w1 x1 y1 z1
 
 namespace TraceCalc
 namespace ClassicalBridge
@@ -10,91 +10,6 @@ open CategoryTheory
 open LayerB.RealObjects
 open LayerB.RealObjects.RewriteCalculusSetup
 open LayerB.RealObjects.RewriteCalculusSetup.FoundationsBoundaryBridgeAuxiliaryData
-
-/-- The Layer D source package exported by a Layer B source export datum. -/
-abbrev sourceTracePackageFromExport
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux) :
-    LayerD.SourceTracePackage :=
-  layerBSourceExportData_to_SourceTracePackage sourceExport
-
-/-- The Layer D source-construction witness exported by a Layer B source export datum. -/
-abbrev sourceConstructionWitnessFromExport
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux) :
-    LayerD.SourceTracePackage.SourceConstructionWitness
-      (sourceTracePackageFromExport sourceExport) :=
-  layerBSourceExportData_to_SourceConstructionWitness sourceExport
-
-/-- The realized `SourceConstructionReady` milestone exported by a Layer B source export datum. -/
-def sourceConstructionReadyFromExport
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux) :
-    LayerD.MilestoneRealization LayerD.SourceConstructionReady :=
-  LayerD.sourceTracePackage_gives_sourceConstructionReady
-    (sourceTracePackageFromExport sourceExport)
-    (sourceConstructionWitnessFromExport sourceExport)
-
-/-- Concrete localization-compatibility data for the source-realization bridge. -/
-structure ReconstructionRespectsLocalizationData
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory) where
-  sourceLocalizationExports :
-      (sourceTracePackageFromExport sourceExport).localizationInterface.C =
-          (sourceTracePackageFromExport sourceExport).Envelope ∧
-        (sourceTracePackageFromExport sourceExport).localizationInterface.D =
-          (sourceTracePackageFromExport sourceExport).Localized
-  sourceLocalizationCompatibility :
-      (sourceTracePackageFromExport sourceExport).LocalizationCompatibilityType
-  localizedFunctorPreservesId :
-    ∀ X,
-      localizedRealizationFunctor.map (𝟙 X) =
-        𝟙 (localizedRealizationFunctor.obj X)
-  localizedFunctorPreservesComp :
-    ∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z),
-      localizedRealizationFunctor.map (f ≫ g) =
-        localizedRealizationFunctor.map f ≫ localizedRealizationFunctor.map g
-
-/-- Concrete presentation-feed data for the source-realization bridge. -/
-structure SourceConstructionFeedsPresentationData
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax)
-    (localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory) where
-  syntaxLocalizationCompatibility :
-    ∀ s,
-      localizedRealizationFunctor.obj
-        ((sourceTracePackageFromExport sourceExport).localizeObj
-          ((sourceTracePackageFromExport sourceExport).includeSyntax s)) =
-      classicalPresentation.localization.localizationFunctor.obj
-        (classicalPresentation.includeSyntax (syntaxTransport s))
-  sourceWitnessReadiness :
-    (sourceConstructionWitnessFromExport sourceExport).readinessData
-  sourceReadyStage :
-    (sourceConstructionReadyFromExport sourceExport).stageName =
-      LayerD.SourceConstructionReady.stageName
-  classicalGeometricShapeAxioms : classicalPresentation.geometricShapeAxioms
 
 /-- Exact bridge-local comparison datum still required to feed the source
 construction package into a classical motivic presentation.
@@ -117,220 +32,88 @@ This is irreducibly comparison data between the trace-native syntax lane and
 the classical presentation's localization syntax lane, so it belongs at the
 bridge boundary rather than in Layer B or Layer D. -/
 abbrev SourceConstructionSyntaxLocalizationComparison
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax)
+    (sourcePackage : LayerD.SourceTracePackage)
+    (classicalPresentation : ClassicalMotivicPresentation.{u1, v1, w1, x1, y1})
+    (syntaxTransport : sourcePackage.Syntax → classicalPresentation.Syntax)
     (localizedRealizationFunctor :
       ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
+        sourcePackage.Localized
         classicalPresentation.LocalizedCategory) : Prop :=
   ∀ s,
     localizedRealizationFunctor.obj
-      ((sourceTracePackageFromExport sourceExport).localizeObj
-        ((sourceTracePackageFromExport sourceExport).includeSyntax s)) =
+      (sourcePackage.localizeObj (sourcePackage.includeSyntax s)) =
     classicalPresentation.localization.localizationFunctor.obj
       (classicalPresentation.includeSyntax (syntaxTransport s))
 
-/-- The remaining bridge-local ingredients needed to build
-`SourceConstructionFeedsPresentationData`. The readiness and stage fields are
-exported by the lower source package. The syntax compatibility law is still
-bridge-local, and the classical geometric-shape proof remains external because
-`ClassicalMotivicPresentation` currently exposes only the proposition
-`geometricShapeAxioms : Prop`, not a proof term. -/
-structure SourceConstructionSyntaxCompatibilityData
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax)
-    (localizedRealizationFunctor :
+/-- Real localization functor extracted from the proof-carrying source package. -/
+def sourceLocalizationFunctor
+    (sourcePackage : LayerD.SourceTracePackage) :
+    ClassicalFunctor sourcePackage.Envelope sourcePackage.Localized := by
+  let interfaceFunctor :
       ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory) where
-  syntaxLocalizationCompatibility :
+        sourcePackage.localizationInterface.C
+        sourcePackage.localizationInterface.D :=
+    { obj := sourcePackage.localizationInterface.QObj
+      map := fun {X Y} f => sourcePackage.localizationInterface.QMap f
+      map_id := fun X => sourcePackage.localizationCompatibility.localizationMapId X
+      map_comp := fun {X Y Z} f g => sourcePackage.localizationCompatibility.localizationMapComp f g }
+  let sourceCategoryAlignment := sourcePackage.localizationCompatibility.sourceCategoryAlignment
+  let targetCategoryAlignment := sourcePackage.localizationCompatibility.targetCategoryAlignment
+  simpa [sourceCategoryAlignment, targetCategoryAlignment] using interfaceFunctor
+
+/-- Canonical classical-localization package aligned with the source trace package itself. -/
+def sourceAlignedClassicalLocalization
+  (sourcePackage : LayerD.SourceTracePackage) :
+    ClassicalLocalization sourcePackage.Envelope sourcePackage.Localized where
+  weakEquivalence := fun X Y => ∃ f : X ⟶ Y, sourcePackage.weakEquivalence f
+  localizationFunctor := sourceLocalizationFunctor sourcePackage
+  LocalizationWitness := PUnit
+  localizationWitness := PUnit.unit
+  universalProperty := sourcePackage.localizationInfinity
+
+/-- Canonical classical presentation obtained directly from the proof-carrying source package. -/
+def sourceAlignedClassicalPresentation
+  (sourcePackage : LayerD.SourceTracePackage) :
+    ClassicalMotivicPresentation.{u1, u1, u1, v1, 0} where
+  Syntax := sourcePackage.Syntax
+  SourceCategory := sourcePackage.Envelope
+  LocalizedCategory := sourcePackage.Localized
+  includeSyntax := sourcePackage.includeSyntax
+  localization := sourceAlignedClassicalLocalization sourcePackage
+  GeometricShapeData := PUnit
+  geometricShapeData := PUnit.unit
+  geometricShapeAxioms :=
+    sourcePackage.nisnevichDescentInfinity ∧
+      sourcePackage.a1InvarianceInfinity ∧
+      sourcePackage.tateStabilizationInfinity
+  geometricShapeAxioms_holds := by
+    exact ⟨sourcePackage.nisnevichDescentInfinity_holds,
+      sourcePackage.a1InvarianceInfinity_holds,
+      sourcePackage.tateStabilizationInfinity_holds⟩
+
+/-- For the source-aligned classical presentation, the only remaining comparison theorem is now a
+direct consequence of the constructive localization alignment exported by the source package. -/
+theorem sourceAlignedSyntaxLocalizationComparison
+    (sourcePackage : LayerD.SourceTracePackage) :
     SourceConstructionSyntaxLocalizationComparison
-      sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor
-  classicalGeometricShapeAxioms : classicalPresentation.geometricShapeAxioms
+      sourcePackage
+      (sourceAlignedClassicalPresentation sourcePackage)
+      (fun s => s)
+      (𝟭 sourcePackage.Localized) := by
+  intro s
+  let sourceCategoryAlignment := sourcePackage.localizationCompatibility.sourceCategoryAlignment
+  let targetCategoryAlignment := sourcePackage.localizationCompatibility.targetCategoryAlignment
+  let localizeObjAlignmentEq := sourcePackage.localizationCompatibility.localizeObjAlignment
+  simpa [sourceCategoryAlignment, targetCategoryAlignment] using
+    congrArg (fun localizeObj => localizeObj (sourcePackage.includeSyntax s))
+      localizeObjAlignmentEq.symm
 
-namespace ReconstructionRespectsLocalizationData
-
-/-- The theorem-target proposition extracted from localization-compatibility data. -/
-def toTarget
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    {sourceExport : LayerBSourceExportData presentation aux}
-    {classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y}}
-    {localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory}
-    (data :
-      ReconstructionRespectsLocalizationData
-        sourceExport classicalPresentation localizedRealizationFunctor) : Prop :=
-  ((sourceTracePackageFromExport sourceExport).localizationInterface.C =
-      (sourceTracePackageFromExport sourceExport).Envelope ∧
-    (sourceTracePackageFromExport sourceExport).localizationInterface.D =
-      (sourceTracePackageFromExport sourceExport).Localized) ∧
-    HEq (sourceTracePackageFromExport sourceExport).localizationInterface.W
-      (sourceTracePackageFromExport sourceExport).weakEquivalence ∧
-    HEq (sourceTracePackageFromExport sourceExport).localizationInterface.QObj
-      (sourceTracePackageFromExport sourceExport).localizeObj ∧
-    (∀ X : (sourceTracePackageFromExport sourceExport).localizationInterface.C,
-      (sourceTracePackageFromExport sourceExport).localizationInterface.QMap (𝟙 X) =
-        𝟙 ((sourceTracePackageFromExport sourceExport).localizationInterface.QObj X)) ∧
-    (∀ {X Y Z : (sourceTracePackageFromExport sourceExport).localizationInterface.C}
-        (f : X ⟶ Y) (g : Y ⟶ Z),
-      (sourceTracePackageFromExport sourceExport).localizationInterface.QMap (f ≫ g) =
-        (sourceTracePackageFromExport sourceExport).localizationInterface.QMap f ≫
-          (sourceTracePackageFromExport sourceExport).localizationInterface.QMap g) ∧
-    (∀ X,
-      localizedRealizationFunctor.map (𝟙 X) =
-        𝟙 (localizedRealizationFunctor.obj X)) ∧
-    (∀ {X Y Z} (f : X ⟶ Y) (g : Y ⟶ Z),
-      localizedRealizationFunctor.map (f ≫ g) =
-        localizedRealizationFunctor.map f ≫ localizedRealizationFunctor.map g)
-
-theorem toTarget_holds
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    {sourceExport : LayerBSourceExportData presentation aux}
-    {classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y}}
-    {localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory}
-    (data :
-      ReconstructionRespectsLocalizationData
-        sourceExport classicalPresentation localizedRealizationFunctor) :
-    data.toTarget :=
-  ⟨data.sourceLocalizationExports,
-    data.sourceLocalizationCompatibility.weakEquivalenceAlignment,
-    data.sourceLocalizationCompatibility.localizeObjAlignment,
-    data.sourceLocalizationCompatibility.localizationMapId,
-    data.sourceLocalizationCompatibility.localizationMapComp,
-    data.localizedFunctorPreservesId,
-    data.localizedFunctorPreservesComp⟩
-
-/-- Build the bridge localization-compatibility record directly from the Layer D
-source package exported by the Layer B source data, together with the actual
-functoriality laws of the localized realization functor. -/
-def ofSourceTracePackage
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory) :
-    ReconstructionRespectsLocalizationData
-      sourceExport classicalPresentation localizedRealizationFunctor where
-  sourceLocalizationExports :=
-    (sourceTracePackageFromExport sourceExport).localization_interface_exports
-  sourceLocalizationCompatibility :=
-    (sourceTracePackageFromExport sourceExport).localizationCompatibilityData
-  localizedFunctorPreservesId := by
-    intro X
-    simpa using localizedRealizationFunctor.map_id X
-  localizedFunctorPreservesComp := by
-    intro X Y Z f g
-    simpa using localizedRealizationFunctor.map_comp f g
-
-end ReconstructionRespectsLocalizationData
-
-namespace SourceConstructionFeedsPresentationData
-
-/-- Build the full source-to-presentation feed package from the lower source
-construction data and the remaining bridge-local presentation compatibility
-record. -/
-def ofSourceTracePackage
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax)
-    (localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory)
-    (syntaxData :
-      SourceConstructionSyntaxCompatibilityData
-        sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor) :
-    SourceConstructionFeedsPresentationData
-      sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor where
-  syntaxLocalizationCompatibility := syntaxData.syntaxLocalizationCompatibility
-  sourceWitnessReadiness :=
-    LayerD.SourceTracePackage.SourceConstructionWitness.readinessData_of_fields
-      (sourceConstructionWitnessFromExport sourceExport)
-  sourceReadyStage :=
-    LayerD.MilestoneRealization.stageName_eq
-      (sourceConstructionReadyFromExport sourceExport)
-  classicalGeometricShapeAxioms := syntaxData.classicalGeometricShapeAxioms
-
-/-- The theorem-target proposition extracted from presentation-feed data. -/
-def toTarget
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    {sourceExport : LayerBSourceExportData presentation aux}
-    {classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y}}
-    {syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax}
-    {localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory}
-    (data :
-      SourceConstructionFeedsPresentationData
-        sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor) : Prop :=
-  SourceConstructionSyntaxLocalizationComparison
-      sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor ∧
-    (sourceConstructionWitnessFromExport sourceExport).readinessData ∧
-    (sourceConstructionReadyFromExport sourceExport).stageName =
-      LayerD.SourceConstructionReady.stageName ∧
-    classicalPresentation.geometricShapeAxioms
-
-theorem toTarget_holds
-    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
-    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
-    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    {sourceExport : LayerBSourceExportData presentation aux}
-    {classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y}}
-    {syntaxTransport :
-      (sourceTracePackageFromExport sourceExport).Syntax →
-        classicalPresentation.Syntax}
-    {localizedRealizationFunctor :
-      ClassicalFunctor
-        (sourceTracePackageFromExport sourceExport).Localized
-        classicalPresentation.LocalizedCategory}
-    (data :
-      SourceConstructionFeedsPresentationData
-        sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor) :
-    data.toTarget :=
-  ⟨data.syntaxLocalizationCompatibility,
-    data.sourceWitnessReadiness,
-    data.sourceReadyStage,
-    data.classicalGeometricShapeAxioms⟩
-
-end SourceConstructionFeedsPresentationData
+/-– The lower source package already carries its source-construction mathematics, and the
+classical presentation now carries its geometric-shape proof. The remaining bridge-local datum is
+the exact syntax/localization comparison theorem between those two concrete lanes. -/
 
 /-- Middleware contract describing how the existing Layer B source export and its already-proved
-`SourceConstructionReady` milestone should feed a classical source-presentation slot. The source
+source-construction theorem should feed a classical source-presentation slot. The source
 presentation remains bridge-local adapter data because the ClassicalPeriods target lane begins at
 structured comparison and period-faithfulness objects. -/
 structure SourceRealizesClassicalMotivePresentation
@@ -338,26 +121,18 @@ structure SourceRealizesClassicalMotivePresentation
     (presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive)
     (aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine) where
   sourceExport : LayerBSourceExportData presentation aux
-  classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y}
-  ReconstructionTransport : Type z
+  sourcePackage : LayerD.SourceTracePackage
+  classicalPresentation : ClassicalMotivicPresentation.{u1, v1, w1, x1, y1}
+  ReconstructionTransport : Type z1
   reconstructionTransport : ReconstructionTransport
-  syntaxTransport :
-    (layerBSourceExportData_to_SourceTracePackage sourceExport).Syntax →
-      classicalPresentation.Syntax
+  syntaxTransport : sourcePackage.Syntax → classicalPresentation.Syntax
   localizedRealizationFunctor :
     ClassicalFunctor
-      (layerBSourceExportData_to_SourceTracePackage sourceExport).Localized
+      sourcePackage.Localized
       classicalPresentation.LocalizedCategory
-  sourceConstructionWitness :
-    LayerD.SourceTracePackage.SourceConstructionWitness
-      (layerBSourceExportData_to_SourceTracePackage sourceExport)
-  sourceConstructionReady : LayerD.MilestoneRealization LayerD.SourceConstructionReady
-  reconstructionRespectsLocalization :
-    ReconstructionRespectsLocalizationData
-      sourceExport classicalPresentation localizedRealizationFunctor
-  sourceConstructionFeedsPresentation :
-    SourceConstructionFeedsPresentationData
-      sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor
+  sourceConstructionSyntaxLocalizationComparison :
+    SourceConstructionSyntaxLocalizationComparison
+      sourcePackage classicalPresentation syntaxTransport localizedRealizationFunctor
 
 namespace SourceRealizesClassicalMotivePresentation
 
@@ -366,9 +141,8 @@ def sourceTracePackage
     {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
     {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
-    (bridge : SourceRealizesClassicalMotivePresentation presentation aux) :
-    LayerD.SourceTracePackage :=
-  layerBSourceExportData_to_SourceTracePackage bridge.sourceExport
+    (bridge : SourceRealizesClassicalMotivePresentation presentation aux) :=
+  bridge.sourcePackage
 
 /-- Canonical constructor from the existing Layer B export seam. This computes the already
 available Layer D witness and milestone realization, leaving only the classical-facing claims as
@@ -378,39 +152,50 @@ def ofLayerBSourceExportData
     {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
     {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
     (sourceExport : LayerBSourceExportData presentation aux)
-    (classicalPresentation : ClassicalMotivicPresentation.{u, v, w, x, y})
-    (ReconstructionTransport : Type z)
+    (sourcePackage : LayerD.SourceTracePackage)
+    (classicalPresentation : ClassicalMotivicPresentation.{u1, v1, w1, x1, y1})
+    (ReconstructionTransport : Type z1)
     (reconstructionTransport : ReconstructionTransport)
-    (syntaxTransport :
-      (layerBSourceExportData_to_SourceTracePackage sourceExport).Syntax →
-        classicalPresentation.Syntax)
+    (syntaxTransport : sourcePackage.Syntax → classicalPresentation.Syntax)
     (localizedRealizationFunctor :
       ClassicalFunctor
-        (layerBSourceExportData_to_SourceTracePackage sourceExport).Localized
+        sourcePackage.Localized
         classicalPresentation.LocalizedCategory)
-    (sourceConstructionSyntaxCompatibility :
-      SourceConstructionSyntaxCompatibilityData
-        sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor) :
+    (sourceConstructionSyntaxLocalizationComparison :
+      SourceConstructionSyntaxLocalizationComparison
+        sourcePackage classicalPresentation syntaxTransport localizedRealizationFunctor) :
     SourceRealizesClassicalMotivePresentation presentation aux where
   sourceExport := sourceExport
+  sourcePackage := sourcePackage
   classicalPresentation := classicalPresentation
   ReconstructionTransport := ReconstructionTransport
   reconstructionTransport := reconstructionTransport
   syntaxTransport := syntaxTransport
   localizedRealizationFunctor := localizedRealizationFunctor
-  sourceConstructionWitness :=
-    layerBSourceExportData_to_SourceConstructionWitness sourceExport
-  sourceConstructionReady :=
-    LayerD.sourceTracePackage_gives_sourceConstructionReady
-      (layerBSourceExportData_to_SourceTracePackage sourceExport)
-      (layerBSourceExportData_to_SourceConstructionWitness sourceExport)
-  reconstructionRespectsLocalization :=
-    ReconstructionRespectsLocalizationData.ofSourceTracePackage
-      sourceExport classicalPresentation localizedRealizationFunctor
-  sourceConstructionFeedsPresentation :=
-    SourceConstructionFeedsPresentationData.ofSourceTracePackage
-      sourceExport classicalPresentation syntaxTransport localizedRealizationFunctor
-      sourceConstructionSyntaxCompatibility
+  sourceConstructionSyntaxLocalizationComparison :=
+    sourceConstructionSyntaxLocalizationComparison
+
+/-- Canonical bridge constructor using the source-aligned classical presentation and the exact
+localization comparison theorem derived from the source package itself. -/
+def ofSourceAlignedLayerBSourceExportData
+    {primitive : LayerB.RealObjects.NamedPrimitiveInterfacePresentation}
+    {presentation : LayerB.RealObjects.NamedDoctrinePresentation primitive}
+    {aux : FoundationsBoundaryBridgeAuxiliaryData presentation.toDoctrine}
+    (sourceExport : LayerBSourceExportData presentation aux)
+    (sourcePackage : LayerD.SourceTracePackage)
+    (ReconstructionTransport : Type z1)
+    (reconstructionTransport : ReconstructionTransport) :
+    SourceRealizesClassicalMotivePresentation presentation aux := by
+  exact
+    ofLayerBSourceExportData
+      sourceExport
+      sourcePackage
+      (sourceAlignedClassicalPresentation sourcePackage)
+      ReconstructionTransport
+      reconstructionTransport
+      (fun s => s)
+      (𝟭 sourcePackage.Localized)
+      (sourceAlignedSyntaxLocalizationComparison sourcePackage)
 
 end SourceRealizesClassicalMotivePresentation
 

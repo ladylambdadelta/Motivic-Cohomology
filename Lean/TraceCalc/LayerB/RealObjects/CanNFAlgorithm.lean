@@ -1,4 +1,4 @@
-import TraceCalc.LayerB.RealObjects.CanNFObligations
+import TraceCalc.LayerBNonCore.Contracts.CanNFObligations
 
 /-!
 # Real-objects formalization: CanNF algorithm-design layer (items 6a–6e)

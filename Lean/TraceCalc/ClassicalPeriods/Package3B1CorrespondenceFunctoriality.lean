@@ -1,6 +1,6 @@
 import TraceCalc.ClassicalPeriods.Package3B0CorrespondenceFoundations
 import TraceCalc.ClassicalPeriods.GeometricGeneratorFamilies
-import TraceCalc.ClassicalPeriods.ClassicalManuscriptTargets
+import TraceCalc.ClassicalPeriods.Package3BGeneratorSoundness
 import TraceCalc.ClassicalPeriods.AlgebraicCycleCategory
 
 universe u v w x y z

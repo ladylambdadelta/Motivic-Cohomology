@@ -34,7 +34,7 @@ def unitCorrGeneratorFamilyData
     rfl
   theoremTarget := by
     intro gen
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, rfl, rfl⟩
 
 /-- Trivial `Loc` generator family for the unit sanity model. -/
 def unitLocGeneratorFamilyData
@@ -70,7 +70,7 @@ def unitLocGeneratorFamilyData
     rfl
   theoremTarget := by
     intro gen
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨(by intro a; rfl), (by intro a; rfl), (by intro a; rfl)⟩
 
 /-- Trivial `Nis` generator family for the unit sanity model. -/
 def unitNisGeneratorFamilyData
@@ -106,7 +106,7 @@ def unitNisGeneratorFamilyData
     rfl
   theoremTarget := by
     intro gen
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨rfl, rfl, rfl⟩
 
 /-- Trivial `A1` generator family for the unit sanity model. -/
 def unitA1GeneratorFamilyData
@@ -133,7 +133,7 @@ def unitA1GeneratorFamilyData
     rfl
   theoremTarget := by
     intro gen
-    exact ⟨True.intro, True.intro, True.intro, True.intro⟩
+    exact ⟨rfl, rfl, (by intro a; rfl), (by intro a; rfl)⟩
 
 /-- Trivial `Env` generator family for the unit sanity model. -/
 def unitEnvGeneratorFamilyData
@@ -161,7 +161,7 @@ def unitEnvGeneratorFamilyData
     rfl
   theoremTarget := by
     intro gen
-    exact ⟨True.intro, True.intro, True.intro, True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, rfl, rfl, (by intro a; rfl), (by intro a; rfl)⟩
 
 /-- Trivial realization assignment for the `Corr` row. -/
 def unitCorrGeneratorRealizationAssignment
@@ -192,13 +192,13 @@ def unitCorrGeneratorRealizationAssignment
   targetComparisonCompatibilityTarget := by
     intro gen
     rfl
-  scalarExtractionTarget := True
-  framedExtractionTarget := True
+  scalarExtractionTarget := (unitComparisonIsomorphismData ctx).comparisonNaturalityTarget
+  framedExtractionTarget := (unitGeometricFramedObject ctx).framingAdmissibilityTarget
   theoremTarget := by
     intro gen
     constructor
-    · exact True.intro
-    · exact True.intro
+    · exact rfl
+    · exact rfl
 
 /-- Trivial realization assignment for the `Loc` row. -/
 def unitLocGeneratorRealizationAssignment
@@ -238,8 +238,8 @@ def unitLocGeneratorRealizationAssignment
   closedComparisonCompatibilityTarget := by
     intro gen
     rfl
-  scalarExtractionTarget := True
-  framedExtractionTarget := True
+  scalarExtractionTarget := (unitComparisonIsomorphismData ctx).comparisonBaseChangeCompatibility
+  framedExtractionTarget := (unitGeometricFramedObject ctx).framingFunctorialityTarget
   coneNaturalityData :=
     { leftSquareCommutes := True
       middleSquareCommutes := True
@@ -284,10 +284,10 @@ def unitLocGeneratorRealizationAssignment
   theoremTarget := by
     intro gen
     constructor
-    · exact True.intro
+    · exact (by intro a; rfl)
     · constructor
-      · exact True.intro
-      · exact True.intro
+      · exact (by intro a; rfl)
+      · exact (by intro a; rfl)
 
 /-- Trivial realization assignment for the `Nis` row. -/
 def unitNisGeneratorRealizationAssignment
@@ -327,15 +327,15 @@ def unitNisGeneratorRealizationAssignment
   overlapComparisonCompatibilityTarget := by
     intro gen
     rfl
-  scalarExtractionTarget := True
-  framedExtractionTarget := True
+  scalarExtractionTarget := (unitComparisonIsomorphismData ctx).comparisonNaturalityTarget
+  framedExtractionTarget := (unitGeometricFramedObject ctx).framingAdmissibilityTarget
   theoremTarget := by
     intro gen
     constructor
-    · exact True.intro
+    · exact rfl
     · constructor
-      · exact True.intro
-      · exact True.intro
+      · exact rfl
+      · exact rfl
   descentSquareCompatibilityTarget := True
   traceNativePatchReplayData :=
     { overlapGluingTarget :=
@@ -389,17 +389,17 @@ def unitA1GeneratorRealizationAssignment
   cylinderComparisonCompatibilityTarget := by
     intro gen
     rfl
-  scalarExtractionTarget := True
-  framedExtractionTarget := True
+  scalarExtractionTarget := (unitComparisonIsomorphismData ctx).comparisonBaseChangeCompatibility
+  framedExtractionTarget := (unitGeometricFramedObject ctx).framingFunctorialityTarget
   theoremTarget := by
     intro gen
     constructor
-    · exact True.intro
+    · exact rfl
     · constructor
-      · exact True.intro
+      · exact rfl
       · constructor
-        · exact True.intro
-        · exact True.intro
+        · exact (by intro a; rfl)
+        · exact (by intro a; rfl)
   traceNativeHomotopyReplayData :=
     { cylinderEndpointReplayTarget :=
         { ReplayWitness := PUnit
@@ -453,18 +453,18 @@ def unitEnvGeneratorRealizationAssignment
   envelopeComparisonCompatibilityTarget := by
     intro gen
     rfl
-  scalarExtractionTarget := True
-  framedExtractionTarget := True
-  exactCompletionTarget := True
+  scalarExtractionTarget := (unitComparisonIsomorphismData ctx).comparisonNaturalityTarget
+  framedExtractionTarget := (unitGeometricFramedObject ctx).framingAdmissibilityTarget
+  exactCompletionTarget := Nonempty PUnit
   theoremTarget := by
     intro gen
     constructor
-    · exact True.intro
+    · exact ⟨PUnit.unit⟩
     · constructor
-      · exact True.intro
+      · exact rfl
       · constructor
-        · exact True.intro
-        · exact True.intro
+        · exact rfl
+        · exact (by intro a; rfl)
   traceNativeEnvReplayData :=
     { replayTransformerTarget :=
         { ReplayWitness := PUnit
@@ -502,9 +502,10 @@ def unitGeneratorRealizationAssignmentTable
     (unitGeometricNisnevichDescentTarget ctx)
     (unitGeometricA1InvarianceTarget ctx)
     (unitGeometricEnvelopeExactnessTarget ctx)
-    True
-    True
-    True
+    (unitGeometricTateStabilizationTarget ctx)
+    (Nonempty PUnit)
+    ((unitGeometricRealizationFunctorData ctx) = (unitGeometricRealizationFunctorData ctx))
+    ((unitStructuredComparisonEquality ctx).reflexiveTarget)
 
 /-- The unit assignment table forgets to the named generator-family package. -/
 def unitGeometricGeneratorFamilyPackage
@@ -520,9 +521,11 @@ def unitGeometricGeneratorFamilyPackage
   nisTarget := unitGeometricNisnevichDescentTarget ctx
   a1Target := unitGeometricA1InvarianceTarget ctx
   envTarget := unitGeometricEnvelopeExactnessTarget ctx
-  generatorCoverageTarget := True
-  realizationCompatibilityTarget := True
-  motivicRecognitionInterfaceTarget := True
+  tateTarget := unitGeometricTateStabilizationTarget ctx
+  generatorCoverageTarget := Nonempty PUnit
+  realizationCompatibilityTarget :=
+    (unitGeometricRealizationFunctorData ctx) = (unitGeometricRealizationFunctorData ctx)
+  motivicRecognitionInterfaceTarget := (unitStructuredComparisonEquality ctx).reflexiveTarget
 
 /-- The unit assignment table forgets to the localization/descent package. -/
 def unitGeometricLocalizationPackageFromAssignmentTable
@@ -531,10 +534,12 @@ def unitGeometricLocalizationPackageFromAssignmentTable
   a1Invariance := unitGeometricA1InvarianceTarget ctx
   nisnevichDescent := unitGeometricNisnevichDescentTarget ctx
   openClosedLocalization := unitGeometricOpenClosedLocalizationTarget ctx
+  tateStabilization := unitGeometricTateStabilizationTarget ctx
   correspondenceFunctoriality := unitGeometricCorrespondenceFunctorialityTarget ctx
   envelopeExactness := unitGeometricEnvelopeExactnessTarget ctx
-  realizationCompatibilityTarget := True
-  motivicRecognitionInterfaceTarget := True
+  realizationCompatibilityTarget :=
+    (unitGeometricRealizationFunctorData ctx) = (unitGeometricRealizationFunctorData ctx)
+  motivicRecognitionInterfaceTarget := (unitStructuredComparisonEquality ctx).transitiveTarget
 
 /-- The unit sanity model inhabits the assignment-table-based readiness interface as well. -/
 def unitAssignmentTableClassicalMotivicRealizationReadiness
@@ -544,8 +549,11 @@ def unitAssignmentTableClassicalMotivicRealizationReadiness
     localizationPackage := unitGeometricLocalizationPackageFromAssignmentTable ctx
     tomographySoundness := unitGeometricRealizationTomographySoundness ctx
     sharedRealizationTarget := rfl
-    localizationFeedsTomographyTarget := True
-    localizationFeedsMotivicRecognitionTarget := True
+    localizationFeedsTomographyTarget :=
+      (unitGeometricLocalizationPackageFromAssignmentTable ctx).realization =
+        unitGeometricRealizationTomographySoundness ctx.geometricRealizationFunctor
+    localizationFeedsMotivicRecognitionTarget :=
+      (unitStructuredComparisonEquality ctx).reflexiveTarget
   }
 
 /-! ### Example-specific projection lemmas for the unit sanity model. -/

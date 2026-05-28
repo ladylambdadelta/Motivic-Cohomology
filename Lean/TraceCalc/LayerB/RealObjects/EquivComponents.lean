@@ -1,4 +1,5 @@
-import TraceCalc.LayerB.RealObjects.QuotientRealizationObligations
+import TraceCalc.LayerB.RealObjects.CanonicalFrontierWord
+import TraceCalc.LayerC.RealObjects.QuotientRealization
 
 /-!
 # Real-objects formalization: boundary/interior split of `FrontierWord.Equiv` (items 8v–8z)
@@ -29,10 +30,10 @@ completeness obligations can receive *real theorem signatures*
 * The meaning of `FrontierWord.Equiv` is **not** changed —
   `BoundaryEquiv ∧ InteriorEquiv` is iff-equivalent to it; the
   components are honest projections of `RecordStructEquiv`.
-* No concrete `BoundaryCode` is constructed.
-* No concrete `InteriorCode` is constructed.
-* No `BoundaryCodeContract` or `InteriorCodeContract` instance is
-  supplied.
+* A first honest concrete boundary/interior code route is supplied by
+  quotienting directly by `BoundaryEquiv` and `InteriorEquiv`.
+* No semantic or extensional boundary/interior code is constructed
+  beyond those quotient carriers.
 * `FrontierWord` is **not** enriched.
 
 ## Manuscript anchor
@@ -70,6 +71,24 @@ structure BoundaryEquiv (w₁ w₂ : FrontierWord setup) : Prop where
   /-- External-output lists agree up to `List.Perm`. -/
   externalOut_perm :
     List.Perm w₁.residue.ports.externalOut w₂.residue.ports.externalOut
+
+/-- Reflexivity of the boundary component relation. -/
+theorem BoundaryEquiv.refl (w : FrontierWord setup) : BoundaryEquiv w w where
+  Y_rel := BoundaryAdminEquiv.refl _
+  externalOut_perm := List.Perm.refl _
+
+/-- Symmetry of the boundary component relation. -/
+theorem BoundaryEquiv.symm {w₁ w₂ : FrontierWord setup}
+    (h : BoundaryEquiv w₁ w₂) : BoundaryEquiv w₂ w₁ where
+  Y_rel := BoundaryAdminEquiv.symm h.Y_rel
+  externalOut_perm := h.externalOut_perm.symm
+
+/-- Transitivity of the boundary component relation. -/
+theorem BoundaryEquiv.trans {w₁ w₂ w₃ : FrontierWord setup}
+    (h₁ : BoundaryEquiv w₁ w₂) (h₂ : BoundaryEquiv w₂ w₃) :
+    BoundaryEquiv w₁ w₃ where
+  Y_rel := BoundaryAdminEquiv.trans h₁.Y_rel h₂.Y_rel
+  externalOut_perm := h₁.externalOut_perm.trans h₂.externalOut_perm
 
 /-- **`FrontierWord.InteriorEquiv`** (item 8v, interior half): the
 strict-equality slot of `FrontierWord.Equiv`.
@@ -110,6 +129,105 @@ structure InteriorEquiv (w₁ w₂ : FrontierWord setup) : Prop where
   attach_eq :
     ∀ (i : Fin w₁.residue.n),
       w₁.residue.attach i = w₂.residue.attach (Fin.cast n_eq i)
+
+/-- Reflexivity of the interior component relation. -/
+theorem InteriorEquiv.refl (w : FrontierWord setup) : InteriorEquiv w w where
+  n_eq := rfl
+  X_eq := rfl
+  externalIn_eq := rfl
+  packetIn_eq := fun _ => rfl
+  packetOut_eq := fun _ => rfl
+  packets_eq := fun _ => rfl
+  dep_edge_eq := fun _ _ => rfl
+  attach_eq := fun _ => rfl
+
+/-- Symmetry of the interior component relation. -/
+theorem InteriorEquiv.symm {w₁ w₂ : FrontierWord setup}
+    (h : InteriorEquiv w₁ w₂) : InteriorEquiv w₂ w₁ where
+  n_eq := h.n_eq.symm
+  X_eq := h.X_eq.symm
+  externalIn_eq := h.externalIn_eq.symm
+  packetIn_eq := fun i => by
+    have h' := (h.packetIn_eq (Fin.cast h.n_eq.symm i)).symm
+    convert h' using 2
+  packetOut_eq := fun i => by
+    have h' := (h.packetOut_eq (Fin.cast h.n_eq.symm i)).symm
+    convert h' using 2
+  packets_eq := fun i => by
+    have h' := (h.packets_eq (Fin.cast h.n_eq.symm i)).symm
+    convert h' using 2
+  dep_edge_eq := fun i j => by
+    have h' := (h.dep_edge_eq (Fin.cast h.n_eq.symm i) (Fin.cast h.n_eq.symm j)).symm
+    convert h' using 2
+  attach_eq := fun i => by
+    have h' := (h.attach_eq (Fin.cast h.n_eq.symm i)).symm
+    convert h' using 2
+
+/-- Transitivity of the interior component relation. -/
+theorem InteriorEquiv.trans {w₁ w₂ w₃ : FrontierWord setup}
+    (h₁ : InteriorEquiv w₁ w₂) (h₂ : InteriorEquiv w₂ w₃) :
+    InteriorEquiv w₁ w₃ where
+  n_eq := h₁.n_eq.trans h₂.n_eq
+  X_eq := h₁.X_eq.trans h₂.X_eq
+  externalIn_eq := h₁.externalIn_eq.trans h₂.externalIn_eq
+  packetIn_eq := fun i => by
+    rw [h₁.packetIn_eq i, h₂.packetIn_eq (Fin.cast h₁.n_eq i)]
+    rfl
+  packetOut_eq := fun i => by
+    rw [h₁.packetOut_eq i, h₂.packetOut_eq (Fin.cast h₁.n_eq i)]
+    rfl
+  packets_eq := fun i => by
+    rw [h₁.packets_eq i, h₂.packets_eq (Fin.cast h₁.n_eq i)]
+    rfl
+  dep_edge_eq := fun i j => by
+    rw [h₁.dep_edge_eq i j,
+      h₂.dep_edge_eq (Fin.cast h₁.n_eq i) (Fin.cast h₁.n_eq j)]
+    rfl
+  attach_eq := fun i => by
+    rw [h₁.attach_eq i, h₂.attach_eq (Fin.cast h₁.n_eq i)]
+    rfl
+
+/-- Setoid on frontier words induced by the boundary component relation. -/
+def boundarySetoid (setup : RewriteCalculusSetup.{u}) : Setoid (FrontierWord setup) where
+  r := BoundaryEquiv
+  iseqv := by
+    refine ⟨?_, ?_, ?_⟩
+    · intro w
+      exact BoundaryEquiv.refl w
+    · intro w₁ w₂ h
+      exact BoundaryEquiv.symm h
+    · intro w₁ w₂ w₃ h₁ h₂
+      exact BoundaryEquiv.trans h₁ h₂
+
+/-- Setoid on frontier words induced by the interior component relation. -/
+def interiorSetoid (setup : RewriteCalculusSetup.{u}) : Setoid (FrontierWord setup) where
+  r := InteriorEquiv
+  iseqv := by
+    refine ⟨?_, ?_, ?_⟩
+    · intro w
+      exact InteriorEquiv.refl w
+    · intro w₁ w₂ h
+      exact InteriorEquiv.symm h
+    · intro w₁ w₂ w₃ h₁ h₂
+      exact InteriorEquiv.trans h₁ h₂
+
+/-- Quotient carrier for the boundary component of frontier equivalence. -/
+def BoundaryEquivClass (setup : RewriteCalculusSetup.{u}) : Type u :=
+  Quotient (boundarySetoid setup)
+
+/-- Constructor for a frontier word's boundary-equivalence class. -/
+def BoundaryEquivClass.mk {setup : RewriteCalculusSetup.{u}}
+    (w : FrontierWord setup) : BoundaryEquivClass setup :=
+  Quotient.mk (boundarySetoid setup) w
+
+/-- Quotient carrier for the interior component of frontier equivalence. -/
+def InteriorEquivClass (setup : RewriteCalculusSetup.{u}) : Type u :=
+  Quotient (interiorSetoid setup)
+
+/-- Constructor for a frontier word's interior-equivalence class. -/
+def InteriorEquivClass.mk {setup : RewriteCalculusSetup.{u}}
+    (w : FrontierWord setup) : InteriorEquivClass setup :=
+  Quotient.mk (interiorSetoid setup) w
 
 /-! ## Item 8w — Equiv iff components -/
 
@@ -199,6 +317,28 @@ structure InteriorCodeContract (setup : RewriteCalculusSetup.{u}) where
   complete :
     ∀ {w₁ w₂ : FrontierWord setup},
       interiorCode w₁ = interiorCode w₂ → FrontierWord.InteriorEquiv w₁ w₂
+
+/-- First honest concrete boundary-code contract.
+
+This uses the quotient of frontier words by `FrontierWord.BoundaryEquiv`.
+Equal codes are exactly boundary-equivalence classes. -/
+def boundaryEquivQuotientCodeContract
+    (setup : RewriteCalculusSetup.{u}) : BoundaryCodeContract.{u, u} setup where
+  BoundaryCode := FrontierWord.BoundaryEquivClass setup
+  boundaryCode w := FrontierWord.BoundaryEquivClass.mk w
+  sound h := Quotient.sound h
+  complete h := Quotient.exact h
+
+/-- First honest concrete interior-code contract.
+
+This uses the quotient of frontier words by `FrontierWord.InteriorEquiv`.
+Equal codes are exactly interior-equivalence classes. -/
+def interiorEquivQuotientCodeContract
+    (setup : RewriteCalculusSetup.{u}) : InteriorCodeContract.{u, u} setup where
+  InteriorCode := FrontierWord.InteriorEquivClass setup
+  interiorCode w := FrontierWord.InteriorEquivClass.mk w
+  sound h := Quotient.sound h
+  complete h := Quotient.exact h
 
 /-! ## Item 8y — Assemble quotient realization from component contracts -/
 

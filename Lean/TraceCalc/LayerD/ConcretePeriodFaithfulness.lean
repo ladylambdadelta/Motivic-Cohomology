@@ -1,9 +1,11 @@
-import TraceCalc.LayerD.PeriodFaithfulnessAssembly
 import TraceCalc.ClassicalPeriods.Basic
 import TraceCalc.ClassicalPeriods.ComparisonBoundaryRecovery
-import TraceCalc.LayerB.RealObjects.SourceHolographyToLayerD
+import TraceCalc.ClassicalPeriods.GeometricRealizations
+import TraceCalc.ClassicalPeriods.Reflection
+import TraceCalc.ClassicalPeriods.Tomography
+import TraceCalc.LayerBNonCore.Bridges.SourceHolographyToLayerD
 
-universe u v w
+universe u v w x y z
 
 namespace TraceCalc
 namespace LayerD
@@ -657,25 +659,186 @@ theorem internal_period_faithfulness_of_injective_extensions
   full_morphism_eq_of_basisFreePeriodMap_eq_of_injective_extensions
     f g hExtendBettiInj hExtendDeRhamInj hBasis
 
+/-- Unconditional concrete classical coarse period consequence.
+
+In the concrete classical comparison layer, the scalar-extension maps are the
+canonical tensor scalar-extension maps up to the stored tensor models, hence
+injective. This removes the final extra hypotheses from
+`internal_period_faithfulness_of_injective_extensions`. -/
+theorem classical_coarse_period_consequence
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (source target : ClassicalStructuredComparisonObject ctx)
+    (f g : ClassicalStructuredComparisonMorphism source target)
+    (hBasis : f.basisFreePeriodMap = g.basisFreePeriodMap) :
+    f = g :=
+  internal_period_faithfulness_of_injective_extensions
+    source target f g
+    target.extendBetti_injective
+    target.extendDeRham_injective
+    hBasis
+
 /-
 TEX ref: our_paper_draft.tex, label thm:internal-realization-functor (Section 10)
 Paper role: the internal realization functor T_can → VecQ exists and is lax monoidal.
-Lean status: EXPLICIT TARGET RECORD. This record is not used as a hidden final-theorem proof.
+Lean status: EXACT TARGET RECORD. The target now carries the concrete geometric realization
+ingredients and the exact structured-realization consequence assembled from them.
 -/
 /-- **`thm:internal-realization-functor`** (Task 22): the internal realization
 functor from T_can to VecQ exists and is a lax monoidal functor.
 
 This is the functor that maps a canonical trace category object to its
-comparison data (Betti, de Rham, comparison isomorphism). Existence requires
-the full T_can → DM_gm(Q) recognition theorem. -/
+comparison data (Betti, de Rham, comparison isomorphism). Instead of three
+opaque `Prop` fields, the target stores the exact geometric realization,
+framed-period functoriality, comparison naturality, and tomography/reconstruction
+inputs needed to derive the structured realization bridge. -/
 structure InternalRealizationFunctorTarget
     (ctx : ClassicalComparisonContext.{u, v}) where
-  /-- The functor exists as a lax monoidal functor. -/
-  functorExists : Prop
-  /-- The functor commutes with the comparison data. -/
-  comparisonCompatibility : Prop
-  /-- The functor is faithful on morphisms (the period faithfulness claim). -/
-  faithful : Prop
+  structuredComparisonEquality : StructuredComparisonEquality ctx
+  geometricRealizationFunctor : GeometricRealizationFunctorData ctx
+  geometricFramedFunctoriality :
+    GeometricFramedPeriodFunctoriality ctx geometricRealizationFunctor
+  geometricComparisonNaturality :
+    GeometricComparisonNaturality ctx geometricRealizationFunctor
+  geometricObjectData :
+    geometricRealizationFunctor.ObjectIndex → GeometricComparisonObjectData ctx
+  objectDataCompatibilityTarget :
+    ∀ idx : geometricRealizationFunctor.ObjectIndex,
+      geometricObjectData idx =
+        geometricRealizationFunctor.geometricComparisonObjectData idx
+  ProbeIndex : Type y
+  geometricFramedDatum :
+    ProbeIndex → SomeStructuredComparisonMorphism ctx → SomeGeometricFramedPeriodData ctx
+  geometricToConcreteFramed :
+    GeometricPeriodsRealizeConcreteFramedData ctx geometricFramedDatum
+  basisFreePeriodMapEquality : BasisFreePeriodMapEquality ctx
+  probeExtensionality :
+    ProbeExtensionalityForBasisFreePeriodMap
+      ctx
+      (concreteFramedProbeFamily
+        (fun probe morphism =>
+          (geometricFramedDatum probe morphism).toSomeConcreteFramedPeriodData)).toScalarProbeFamily
+      basisFreePeriodMapEquality
+  packedReconstruction :
+    BasisFreePeriodMapDeterminesPackedComparison
+      ctx
+      basisFreePeriodMapEquality
+      structuredComparisonEquality
+
+namespace InternalRealizationFunctorTarget
+
+/-- Exact functor-existence statement extracted from the proof-relevant target.
+
+This records the object-level realization functoriality together with the
+framed-period functoriality needed to transport geometric correspondences to
+structured comparison morphisms. -/
+def functorExistsStatement
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) : Prop :=
+  target.geometricRealizationFunctor.objectFunctorialityTarget ∧
+    target.geometricFramedFunctoriality.framedPeriodFunctorialityTarget ∧
+    target.geometricFramedFunctoriality.framedExtractionCompatibilityTarget
+
+/-- Exact comparison-compatibility statement extracted from the proof-relevant target.
+
+This is the actual compatibility data used downstream: object-level agreement
+between the chosen object map and the functor's canonical comparison-object data,
+together with comparison naturality on correspondences. -/
+def comparisonCompatibilityStatement
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) : Prop :=
+  (∀ idx : target.geometricRealizationFunctor.ObjectIndex,
+      target.geometricObjectData idx =
+        target.geometricRealizationFunctor.geometricComparisonObjectData idx) ∧
+    target.geometricComparisonNaturality.baseChangeNaturalityTarget
+
+/-- Exact structured-realization consequence extracted from the proof-relevant target.
+
+Agreement on all scalar probes coming from the concrete framed-period family
+forces equality in the packed structured-comparison equality layer. This is the
+actual faithfulness consequence used by the tomography bridge. -/
+def structuredRealizationConsequenceStatement
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) : Prop :=
+  ∀ left right : SomeStructuredComparisonMorphism ctx,
+    ProbeEquality
+        (concreteFramedProbeFamily
+          (fun probe morphism =>
+            (target.geometricFramedDatum probe morphism).toSomeConcreteFramedPeriodData)).toScalarProbeFamily
+        left
+        right →
+      target.structuredComparisonEquality.relates left right
+
+/-- Constructor for the exact Task 22 target from the underlying geometric ingredients. -/
+def ofSealedPackages
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (structuredComparisonEquality : StructuredComparisonEquality ctx)
+    (geometricRealizationFunctor : GeometricRealizationFunctorData ctx)
+    (geometricFramedFunctoriality :
+      GeometricFramedPeriodFunctoriality ctx geometricRealizationFunctor)
+    (geometricComparisonNaturality :
+      GeometricComparisonNaturality ctx geometricRealizationFunctor)
+    (geometricObjectData :
+      geometricRealizationFunctor.ObjectIndex → GeometricComparisonObjectData ctx)
+    (objectDataCompatibilityTarget :
+      ∀ idx : geometricRealizationFunctor.ObjectIndex,
+        geometricObjectData idx =
+          geometricRealizationFunctor.geometricComparisonObjectData idx)
+    (ProbeIndex : Type y)
+    (geometricFramedDatum :
+      ProbeIndex → SomeStructuredComparisonMorphism ctx → SomeGeometricFramedPeriodData ctx)
+    (geometricToConcreteFramed :
+      GeometricPeriodsRealizeConcreteFramedData ctx geometricFramedDatum)
+    (basisFreePeriodMapEquality : BasisFreePeriodMapEquality ctx)
+    (probeExtensionality :
+      ProbeExtensionalityForBasisFreePeriodMap
+        ctx
+        (concreteFramedProbeFamily
+          (fun probe morphism =>
+            (geometricFramedDatum probe morphism).toSomeConcreteFramedPeriodData)).toScalarProbeFamily
+        basisFreePeriodMapEquality)
+    (packedReconstruction :
+      BasisFreePeriodMapDeterminesPackedComparison
+        ctx
+        basisFreePeriodMapEquality
+        structuredComparisonEquality) :
+    InternalRealizationFunctorTarget ctx where
+  structuredComparisonEquality := structuredComparisonEquality
+  geometricRealizationFunctor := geometricRealizationFunctor
+  geometricFramedFunctoriality := geometricFramedFunctoriality
+  geometricComparisonNaturality := geometricComparisonNaturality
+  geometricObjectData := geometricObjectData
+  objectDataCompatibilityTarget := objectDataCompatibilityTarget
+  ProbeIndex := ProbeIndex
+  geometricFramedDatum := geometricFramedDatum
+  geometricToConcreteFramed := geometricToConcreteFramed
+  basisFreePeriodMapEquality := basisFreePeriodMapEquality
+  probeExtensionality := probeExtensionality
+  packedReconstruction := packedReconstruction
+
+theorem functorExistsStatement_holds
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) :
+    target.functorExistsStatement := by
+  exact ⟨target.geometricRealizationFunctor.objectFunctorialityTarget,
+    target.geometricFramedFunctoriality.framedPeriodFunctorialityTarget,
+    target.geometricFramedFunctoriality.framedExtractionCompatibilityTarget⟩
+
+theorem comparisonCompatibilityStatement_holds
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) :
+    target.comparisonCompatibilityStatement := by
+  exact ⟨target.objectDataCompatibilityTarget,
+    target.geometricComparisonNaturality.baseChangeNaturalityTarget⟩
+
+theorem structuredRealizationConsequenceStatement_holds
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (target : InternalRealizationFunctorTarget ctx) :
+    target.structuredRealizationConsequenceStatement := by
+  intro left right hProbe
+  exact target.packedReconstruction.theoremTarget left right <|
+    target.probeExtensionality.theoremTarget left right hProbe
+
+end InternalRealizationFunctorTarget
 
 /-
 TEX ref: our_paper_draft.tex, label thm:internal-pf-construction (Section 10)
@@ -748,6 +911,29 @@ structure ClassicalCoarsePeriodConsequenceTarget
       f.basisFreePeriodMap = g.basisFreePeriodMap → f = g
   /-- Status flag: all prerequisite theorems are discharged. -/
   prerequisitesDischargedTarget : Prop
+
+namespace ClassicalCoarsePeriodConsequenceTarget
+
+/-- Exact prerequisite-discharge statement for the concrete coarse period theorem. -/
+def prerequisitesDischargedStatement
+    {ctx : ClassicalComparisonContext.{u, v}} : Prop :=
+  ∀ (object : ClassicalStructuredComparisonObject ctx),
+    Function.Injective object.extendBetti ∧ Function.Injective object.extendDeRham
+
+/-- Concrete Task 25 package assembled from the now-internal scalar-extension injectivity route. -/
+def ofConcretePeriodFaithfulness
+    {ctx : ClassicalComparisonContext.{u, v}} :
+    ClassicalCoarsePeriodConsequenceTarget ctx where
+  periodConsequence := classical_coarse_period_consequence
+  prerequisitesDischargedTarget := prerequisitesDischargedStatement
+
+theorem prerequisitesDischargedTarget_holds
+    {ctx : ClassicalComparisonContext.{u, v}} :
+    (ofConcretePeriodFaithfulness (ctx := ctx)).prerequisitesDischargedTarget := by
+  intro object
+  exact ⟨object.extendBetti_injective, object.extendDeRham_injective⟩
+
+end ClassicalCoarsePeriodConsequenceTarget
 
 end LayerD
 end TraceCalc

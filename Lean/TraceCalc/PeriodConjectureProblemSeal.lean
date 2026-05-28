@@ -1,8 +1,7 @@
 import TraceCalc.LayerD.ConcretePeriodFaithfulness
 import TraceCalc.ClassicalPeriods.PeriodConjectureTarget
-import TraceCalc.ClassicalBridge.PeriodTargetBridge
 import TraceCalc.ClassicalBridge.RecognizedMMQPeriodBridgeTheorems
-import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
+import TraceCalc.LayerE.MotivicRecognition.ManuscriptSpineTargets
 
 universe u v w x y z
 
@@ -135,7 +134,7 @@ variable
     {normTStructure : NormTStructureTarget spine internal normalization classical
       comparisonEquivalence canonicalEquivalence normalizationTransport
       transportedNormalization}
-    {heartRecognition : HeartRecognitionTarget spine internal normalization classical
+    {heartPackage : ClassicalHeartRecognitionPackage spine internal normalization classical
       comparisonEquivalence canonicalEquivalence normalizationTransport
       transportedNormalization normTStructure}
 
@@ -144,7 +143,7 @@ recognized `MM(Q)` bridge. -/
 def recognizedMMQ_faithfulScalarExtension_sealed
     (target : ClassicalBridge.RecognizedMMQPeriodTargetSkeleton
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQFaithfulScalarExtensionOnImage target :=
   ClassicalBridge.recognizedMMQFaithfulScalarExtensionOnImage_of_objectComparisonTensorData
     (ctx := ctx)
@@ -155,7 +154,7 @@ accepted recognized `MM(Q)` bridge. -/
 def recognizedMMQ_scalarExtensionInjectivity_sealed
     (target : ClassicalBridge.RecognizedMMQPeriodTargetSkeleton
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQScalarExtensionInjectivityWitnessOnImage target :=
   ClassicalBridge.recognizedMMQScalarExtensionInjectivityWitnessOnImage_of_objectComparisonTensorData
     (ctx := ctx)
@@ -166,7 +165,7 @@ recognized `MM(Q)` bridge. -/
 theorem recognizedMMQ_reconstructionObligation_sealed
     (target : ClassicalBridge.RecognizedMMQPeriodTargetSkeleton
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQPeriodTargetSkeleton.RecognizedMMQReconstructionObligation
       (ctx := ctx) target :=
   ClassicalBridge.recognizedMMQReconstructionObligation_of_objectComparisonTensorData
@@ -201,14 +200,14 @@ variable
     {normTStructure : NormTStructureTarget spine internal normalization classical
       comparisonEquivalence canonicalEquivalence normalizationTransport
       transportedNormalization}
-    {heartRecognition : HeartRecognitionTarget spine internal normalization classical
+    {heartPackage : ClassicalHeartRecognitionPackage spine internal normalization classical
       comparisonEquivalence canonicalEquivalence normalizationTransport
       transportedNormalization normTStructure}
 
 abbrev RecognizedCanonicalTarget
     (coordinates : ClassicalBridge.RecognizedMMQFramedPeriodSystem.ComparisonPeriodCoordinatePackage
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :=
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :=
   ClassicalBridge.RecognizedMMQPeriodTargetSkeleton.ofFramedSystem
     coordinates.system
 
@@ -218,7 +217,7 @@ equality on recognized `MM(Q)` morphisms. -/
 def recognizedMMQ_literalPackedComparisonExtensionality_sealed
     (target : ClassicalBridge.RecognizedMMQPeriodTargetSkeleton
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQPackedComparisonExtensionalityOnRecognizedImage target :=
   ClassicalBridge.RecognizedMMQPackedComparisonExtensionalityOnRecognizedImage.ofLiteralPackedEquality
     (ctx := ctx)
@@ -232,7 +231,7 @@ through the explicit literal-packed route. -/
 def recognizedMMQ_scalarShadowExtensionality_sealed
     (coordinates : ClassicalBridge.RecognizedMMQFramedPeriodSystem.ComparisonPeriodCoordinatePackage
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQScalarShadowExtensionalityOnImage
       (RecognizedCanonicalTarget coordinates) := by
   exact
@@ -249,7 +248,7 @@ through the explicit literal-packed route. -/
 theorem recognizedMMQ_framedShadowExtensionality_sealed
     (coordinates : ClassicalBridge.RecognizedMMQFramedPeriodSystem.ComparisonPeriodCoordinatePackage
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQFramedShadowExtensionalityOnImage
       (RecognizedCanonicalTarget coordinates) := by
   exact
@@ -263,11 +262,64 @@ comparison equality into equality of recognized `MM(Q)` morphisms. -/
 theorem recognizedMMQ_morphismReconstructionFromPackedComparison_sealed
     (coordinates : ClassicalBridge.RecognizedMMQFramedPeriodSystem.ComparisonPeriodCoordinatePackage
       spine internal normalization classical comparisonEquivalence canonicalEquivalence
-      normalizationTransport transportedNormalization normTStructure heartRecognition) :
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
     ClassicalBridge.RecognizedMMQLiteralPackedComparisonReflectsMorphismEqualityOnImage
       (RecognizedCanonicalTarget coordinates) := by
   exact
     { theoremTarget := coordinates.homFaithfulnessTarget }
+
+/-- Audit seal for the exact structured-comparison faithfulness theorem on the
+recognized image when the classical comparison layer is fixed to literal packed
+structured-comparison equality. -/
+def recognizedMMQ_structuredFaithfulness_sealed
+    (coordinates : ClassicalBridge.RecognizedMMQFramedPeriodSystem.ComparisonPeriodCoordinatePackage
+      spine internal normalization classical comparisonEquivalence canonicalEquivalence
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition) :
+    ClassicalBridge.RecognizedMMQPeriodTargetSkeleton.RecognizedMMQStructuredFaithfulnessObligation
+      (ctx := ctx)
+      (RecognizedCanonicalTarget coordinates) :=
+  ClassicalBridge.RecognizedMMQStructuredFaithfulnessFromMorphismReconstruction
+    (ctx := ctx)
+    (RecognizedCanonicalTarget coordinates)
+    (recognizedMMQ_literalPackedComparisonExtensionality_sealed
+      (target := RecognizedCanonicalTarget coordinates))
+    (recognizedMMQ_morphismReconstructionFromPackedComparison_sealed coordinates)
+
+/-- Closed constructive variant of the recognized-image structured-faithfulness
+theorem. Instead of taking an abstract `ComparisonPeriodCoordinatePackage`, it
+constructs that package from the explicit holographic data already isolated in
+`RecognizedMMQFramedPeriodSystem.comparisonPeriodPackage_of_holographic_facts`.
+-/
+def recognizedMMQ_structuredFaithfulness_from_holographic_facts
+    (input : ClassicalBridge.RecognizedMMQFramedPeriodSystem.CanonicalInput
+      spine internal normalization classical comparisonEquivalence canonicalEquivalence
+      normalizationTransport transportedNormalization normTStructure heartPackage.heartRecognition)
+    (factorization :
+      ClassicalBridge.RecognizedMMQFramedPeriodSystem.framedCoordinateFactorsThroughPackedComparisonTarget
+        (ClassicalBridge.RecognizedMMQFramedPeriodSystem.ofCanonicalInput input))
+    (framedSeparation :
+      ClassicalBridge.RecognizedMMQFramedPeriodSystem.framedSeparationTarget
+        (ClassicalBridge.RecognizedMMQFramedPeriodSystem.ofCanonicalInput input))
+    (transcripts :
+      ClassicalBridge.RecognizedMMQRealizationSystem.CertifiedBoundaryTranscriptSystem
+        input.realizationSystem)
+    (packedComparisonDeterminesTranscript :
+      ClassicalBridge.RecognizedMMQRealizationSystem.packedComparisonDeterminesTranscriptTarget
+        transcripts)
+    (semantic :
+      ClassicalBridge.RecognizedMMQRealizationSystem.CertifiedBoundaryTranscriptSemanticInterpretation
+        transcripts) :
+    ClassicalBridge.RecognizedMMQPeriodTargetSkeleton.RecognizedMMQStructuredFaithfulnessObligation
+      (ctx := ctx)
+      (RecognizedCanonicalTarget
+        (ClassicalBridge.RecognizedMMQFramedPeriodSystem.comparisonPeriodPackage_of_holographic_facts
+          input factorization framedSeparation transcripts
+          packedComparisonDeterminesTranscript semantic)) :=
+  recognizedMMQ_structuredFaithfulness_sealed
+    (coordinates :=
+      ClassicalBridge.RecognizedMMQFramedPeriodSystem.comparisonPeriodPackage_of_holographic_facts
+        input factorization framedSeparation transcripts
+        packedComparisonDeterminesTranscript semantic)
 
 end RecognizedMMQLiteralPackedEqualitySeal
 
@@ -341,8 +393,6 @@ theorem bridge_framedFaithfulness_of_literalPackedConstruction_sealed
   have hPacked :=
     pointwiseFramedPeriodEqualityReflectsLiteralPackedComparison f g hFamily
   exact packedComparisonReflectsMorphismEquality f g hPacked
-
-end LiteralPackedBridgeConstructionSeal
 
 end PeriodConjectureProblemSeal
 end TraceCalc

@@ -1,4 +1,3 @@
-import TraceCalc.LayerA.Base
 import TraceCalc.LayerA.CategoryInfra.Localization
 
 universe u v
@@ -17,11 +16,15 @@ structure LocalizationCompatibilityData
     {Localized : Type u}
     [Category.{v} Envelope]
     [Category.{v} Localized]
-    (weakEquivalence : Envelope → Envelope → Prop)
+  (weakEquivalence : ∀ {X Y : Envelope}, (X ⟶ Y) → Prop)
     (localizeObj : Envelope → Localized)
     (localizationInterface : CategoryInfra.LocalizationInterface) where
-  weakEquivalenceAlignment : HEq localizationInterface.W weakEquivalence
-  localizeObjAlignment : HEq localizationInterface.QObj localizeObj
+  sourceCategoryAlignment : localizationInterface.C = Envelope
+  targetCategoryAlignment : localizationInterface.D = Localized
+  localizeObjAlignment :
+    localizationInterface.transportQObj
+        (C := Envelope) (D := Localized)
+        sourceCategoryAlignment targetCategoryAlignment = localizeObj
   localizationMapId :
     ∀ X : localizationInterface.C,
       localizationInterface.QMap (𝟙 X) = 𝟙 (localizationInterface.QObj X)
@@ -45,9 +48,7 @@ structure SourceTracePackage where
   [catEnvelope : Category.{v} Envelope]
   [catLocalized : Category.{v} Localized]
   includeSyntax : Syntax → Envelope
-  stableEnvelope : LayerA.StableLike Envelope
-  stableLocalized : LayerA.StableLike Localized
-  weakEquivalence : Envelope → Envelope → Prop
+  weakEquivalence : ∀ {X Y : Envelope}, (X ⟶ Y) → Prop
   localizeObj : Envelope → Localized
   localizationInterface : CategoryInfra.LocalizationInterface
   localization_matches :
@@ -56,21 +57,6 @@ structure SourceTracePackage where
   localizationCompatibility :
     LocalizationCompatibilityData
       weakEquivalence localizeObj localizationInterface
-  envelopeUniversalProperty : Prop
-  hasNisnevichShape : Prop
-  hasA1InvarianceShape : Prop
-  hasTateInvertibilityShape : Prop
-
-attribute [instance] SourceTracePackage.catEnvelope SourceTracePackage.catLocalized
-
-namespace SourceTracePackage
-
-/-- Additional theorem-sized source-side fields that Layer B will eventually have to export
-alongside the consumer package before Layer D can treat the source-construction milestone as
-covered. This is intentionally a cautious seam: the package provides the ambient source-side
-objects and localization data, while the witness records the named theorem targets still needed
-for the source-construction slice of the roadmap. -/
-structure SourceConstructionWitness (S : SourceTracePackage.{u, v}) where
   symmetricMonoidalPiZero : Prop
   symmetricMonoidalPiZero_holds : symmetricMonoidalPiZero
   symmetricMonoidalInfinity : Prop
@@ -96,34 +82,32 @@ structure SourceConstructionWitness (S : SourceTracePackage.{u, v}) where
   tateStabilizationInfinity : Prop
   tateStabilizationInfinity_holds : tateStabilizationInfinity
 
-def SourceConstructionWitness.readinessData
-    {S : SourceTracePackage.{u, v}} (W : SourceConstructionWitness S) : Prop :=
-  W.symmetricMonoidalPiZero ∧
-    W.symmetricMonoidalInfinity ∧
-    W.triangulatedStablePiZero ∧
-    W.triangulatedStableInfinity ∧
-    W.a1InvariancePiZero ∧
-    W.a1InvarianceInfinity ∧
-    W.nisnevichDescentPiZero ∧
-    W.nisnevichDescentInfinity ∧
-    W.localizationPiZero ∧
-    W.localizationInfinity ∧
-    W.tateStabilizationPiZero ∧
-    W.tateStabilizationInfinity
+attribute [instance] SourceTracePackage.catEnvelope SourceTracePackage.catLocalized
 
-theorem SourceConstructionWitness.readinessData_of_fields
-    {S : SourceTracePackage.{u, v}} (W : SourceConstructionWitness S) :
-    W.readinessData := by
-  exact ⟨W.symmetricMonoidalPiZero_holds, W.symmetricMonoidalInfinity_holds,
-    W.triangulatedStablePiZero_holds, W.triangulatedStableInfinity_holds,
-    W.a1InvariancePiZero_holds, W.a1InvarianceInfinity_holds,
-    W.nisnevichDescentPiZero_holds, W.nisnevichDescentInfinity_holds,
-    W.localizationPiZero_holds, W.localizationInfinity_holds,
-    W.tateStabilizationPiZero_holds, W.tateStabilizationInfinity_holds⟩
+namespace SourceTracePackage
 
-/-- The source-side geometric shape axioms exported to Layer D as a single bundled `Prop`. -/
-def geometricShapeAxioms (S : SourceTracePackage.{u, v}) : Prop :=
-  S.hasNisnevichShape ∧ S.hasA1InvarianceShape ∧ S.hasTateInvertibilityShape
+def sourceConstructionReadiness (S : SourceTracePackage.{u, v}) : Prop :=
+  S.symmetricMonoidalPiZero ∧
+    S.symmetricMonoidalInfinity ∧
+    S.triangulatedStablePiZero ∧
+    S.triangulatedStableInfinity ∧
+    S.a1InvariancePiZero ∧
+    S.a1InvarianceInfinity ∧
+    S.nisnevichDescentPiZero ∧
+    S.nisnevichDescentInfinity ∧
+    S.localizationPiZero ∧
+    S.localizationInfinity ∧
+    S.tateStabilizationPiZero ∧
+    S.tateStabilizationInfinity
+
+theorem sourceConstructionReadiness_holds (S : SourceTracePackage.{u, v}) :
+    S.sourceConstructionReadiness := by
+  exact ⟨S.symmetricMonoidalPiZero_holds, S.symmetricMonoidalInfinity_holds,
+    S.triangulatedStablePiZero_holds, S.triangulatedStableInfinity_holds,
+    S.a1InvariancePiZero_holds, S.a1InvarianceInfinity_holds,
+    S.nisnevichDescentPiZero_holds, S.nisnevichDescentInfinity_holds,
+    S.localizationPiZero_holds, S.localizationInfinity_holds,
+    S.tateStabilizationPiZero_holds, S.tateStabilizationInfinity_holds⟩
 
 /-- Minimal seam theorem: the package exposes a localization interface with the advertised
 source and target categories; compatibility with the exported weak equivalence relation and
@@ -142,43 +126,8 @@ abbrev LocalizationCompatibilityType (S : SourceTracePackage.{u, v}) :=
 /-- The compatibility statements exported alongside the localization interface are
 recorded as concrete law-bearing data. -/
 def localizationCompatibilityData (S : SourceTracePackage.{u, v}) :
-    S.LocalizationCompatibilityType :=
+  LocalizationCompatibilityType S :=
   S.localizationCompatibility
-
-theorem localizationCompatibilityData_weakEquivalenceAlignment
-    (S : SourceTracePackage.{u, v}) :
-    HEq S.localizationInterface.W S.weakEquivalence :=
-  S.localizationCompatibility.weakEquivalenceAlignment
-
-theorem localizationCompatibilityData_localizeObjAlignment
-    (S : SourceTracePackage.{u, v}) :
-    HEq S.localizationInterface.QObj S.localizeObj :=
-  S.localizationCompatibility.localizeObjAlignment
-
-theorem localizationCompatibilityData_map_id
-    (S : SourceTracePackage.{u, v}) :
-    ∀ X : S.localizationInterface.C,
-      S.localizationInterface.QMap (𝟙 X) =
-        𝟙 (S.localizationInterface.QObj X) :=
-  S.localizationCompatibility.localizationMapId
-
-theorem localizationCompatibilityData_map_comp
-    (S : SourceTracePackage.{u, v}) :
-    ∀ {X Y Z : S.localizationInterface.C}
-      (f : X ⟶ Y) (g : Y ⟶ Z),
-      S.localizationInterface.QMap (f ≫ g) =
-        S.localizationInterface.QMap f ≫ S.localizationInterface.QMap g :=
-  S.localizationCompatibility.localizationMapComp
-
-/-- Consumer-facing readiness proposition for the future Layer B -> Layer D merge seam. -/
-def readyForUniversalProperty (S : SourceTracePackage.{u, v}) : Prop :=
-  S.envelopeUniversalProperty ∧ S.geometricShapeAxioms
-
-theorem readyForUniversalProperty_components (S : SourceTracePackage.{u, v}) :
-    S.readyForUniversalProperty →
-      S.envelopeUniversalProperty ∧ S.geometricShapeAxioms := by
-  intro h
-  exact h
 
 end SourceTracePackage
 

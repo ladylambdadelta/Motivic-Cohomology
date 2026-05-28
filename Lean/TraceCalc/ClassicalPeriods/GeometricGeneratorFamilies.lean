@@ -555,6 +555,7 @@ structure GeometricGeneratorFamilyPackage
   nisTarget : GeometricNisnevichDescentTarget ctx realization
   a1Target : GeometricA1InvarianceTarget ctx realization
   envTarget : GeometricEnvelopeExactnessTarget ctx realization
+  tateTarget : GeometricTateStabilizationTarget ctx realization
   generatorCoverageTarget : Prop
   realizationCompatibilityTarget : Prop
   motivicRecognitionInterfaceTarget : Prop
@@ -575,6 +576,7 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     GeometricGeneratorFamilyPackage ctx where
@@ -589,6 +591,7 @@ def ofRows
   nisTarget := nisTarget
   a1Target := a1Target
   envTarget := envTarget
+  tateTarget := tateTarget
   generatorCoverageTarget := generatorCoverageTarget
   realizationCompatibilityTarget := realizationCompatibilityTarget
   motivicRecognitionInterfaceTarget := motivicRecognitionInterfaceTarget
@@ -606,10 +609,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).realization = realization := by
   rfl
 
@@ -626,10 +630,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).corrFamily = corrFamily := by
   rfl
 
@@ -646,10 +651,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).locFamily = locFamily := by
   rfl
 
@@ -666,10 +672,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).nisFamily = nisFamily := by
   rfl
 
@@ -686,10 +693,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).a1Family = a1Family := by
   rfl
 
@@ -706,10 +714,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).envFamily = envFamily := by
   rfl
 
@@ -726,10 +735,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).corrTarget = corrTarget := by
   rfl
 
@@ -746,10 +756,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).locTarget = locTarget := by
   rfl
 
@@ -766,10 +777,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).nisTarget = nisTarget := by
   rfl
 
@@ -786,10 +798,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).a1Target = a1Target := by
   rfl
 
@@ -806,10 +819,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).envTarget = envTarget := by
   rfl
 
@@ -826,10 +840,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).generatorCoverageTarget = generatorCoverageTarget := by
   rfl
 
@@ -846,10 +861,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).realizationCompatibilityTarget =
       realizationCompatibilityTarget := by
   rfl
@@ -867,10 +883,11 @@ def ofRows
     (nisTarget : GeometricNisnevichDescentTarget ctx realization)
     (a1Target : GeometricA1InvarianceTarget ctx realization)
     (envTarget : GeometricEnvelopeExactnessTarget ctx realization)
+    (tateTarget : GeometricTateStabilizationTarget ctx realization)
     (generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget : Prop) :
     (ofRows realization corrFamily locFamily nisFamily a1Family envFamily corrTarget locTarget
-      nisTarget a1Target envTarget generatorCoverageTarget realizationCompatibilityTarget
+      nisTarget a1Target envTarget tateTarget generatorCoverageTarget realizationCompatibilityTarget
       motivicRecognitionInterfaceTarget).motivicRecognitionInterfaceTarget =
       motivicRecognitionInterfaceTarget := by
   rfl
@@ -890,6 +907,7 @@ def toGeometricLocalizationPackage
   a1Invariance := package.a1Target
   nisnevichDescent := package.nisTarget
   openClosedLocalization := package.locTarget
+  tateStabilization := package.tateTarget
   correspondenceFunctoriality := package.corrTarget
   envelopeExactness := package.envTarget
   realizationCompatibilityTarget :=
@@ -927,6 +945,11 @@ def toClassicalMotivicRealizationReadiness
     {ctx : ClassicalComparisonContext.{u, v}}
     (package : GeometricGeneratorFamilyPackage ctx) :
     (package.toGeometricLocalizationPackage).openClosedLocalization = package.locTarget := rfl
+
+@[simp] theorem toGeometricLocalizationPackage_tateStabilization
+  {ctx : ClassicalComparisonContext.{u, v}}
+  (package : GeometricGeneratorFamilyPackage ctx) :
+  (package.toGeometricLocalizationPackage).tateStabilization = package.tateTarget := rfl
 
 @[simp] theorem toGeometricLocalizationPackage_correspondenceFunctoriality
     {ctx : ClassicalComparisonContext.{u, v}}

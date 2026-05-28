@@ -1,5 +1,4 @@
 import TraceCalc.ClassicalPeriods.ClassicalManuscriptTargets
-import TraceCalc.ClassicalPeriods.GeneratorRealizationExamples
 
 universe u v w
 

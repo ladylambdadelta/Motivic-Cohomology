@@ -10,3 +10,15 @@ require mathlib from git
 @[default_target]
 lean_lib TraceCalc where
   srcDir := "Lean"
+
+lean_lib Foundation where
+  srcDir := "Lean"
+
+lean_lib Geometry where
+  srcDir := "Lean"
+
+lean_lib MacLane where
+  srcDir := "Lean"
+
+lean_lib Boundary where
+  srcDir := "Lean"

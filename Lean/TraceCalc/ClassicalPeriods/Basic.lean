@@ -2,8 +2,10 @@ import Mathlib.Algebra.Algebra.Basic
 import Mathlib.Algebra.Algebra.RestrictScalars
 import Mathlib.Algebra.Module.Basic
 import Mathlib.Algebra.Module.Equiv.Basic
+import Mathlib.LinearAlgebra.Basis.VectorSpace
 import Mathlib.LinearAlgebra.TensorProduct.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
+import Mathlib.RingTheory.Flat.Basic
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Functor.Basic
 
@@ -40,6 +42,31 @@ noncomputable def canonicalTensorScalarExtensionMap
     V →ₗ[ctx.BaseField] TensorProduct ctx.BaseField ctx.ScalarField V :=
   (LinearMap.rTensor V (Algebra.linearMap ctx.BaseField ctx.ScalarField)).comp
     (TensorProduct.lid ctx.BaseField V).symm.toLinearMap
+
+/-- The canonical scalar-extension map `v ↦ 1 ⊗ v` is injective for a field extension.
+
+This is the concrete algebraic fact used to remove the last extra hypotheses from
+the coarse period-faithfulness theorem: tensoring the injective algebra map
+`BaseField → ScalarField` with a vector space preserves injectivity, and the
+left-unit tensor equivalence is itself injective. -/
+theorem canonicalTensorScalarExtensionMap_injective
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (V : Type*) [AddCommGroup V] [Module ctx.BaseField V] :
+    Function.Injective (canonicalTensorScalarExtensionMap (ctx := ctx) V) := by
+  letI : Module.Free ctx.BaseField V := Module.Free.of_divisionRing ctx.BaseField V
+  letI : Module.Flat ctx.BaseField V := Module.Flat.of_free (R := ctx.BaseField) (M := V)
+  have hAlgebraLinearMap :
+      Function.Injective (Algebra.linearMap ctx.BaseField ctx.ScalarField) := by
+    simpa using
+      (NoZeroSMulDivisors.algebraMap_injective ctx.BaseField ctx.ScalarField)
+  have hTensor :
+      Function.Injective
+        (LinearMap.rTensor V (Algebra.linearMap ctx.BaseField ctx.ScalarField)) :=
+    Module.Flat.rTensor_preserves_injective_linearMap
+      (M := V)
+      (Algebra.linearMap ctx.BaseField ctx.ScalarField)
+      hAlgebraLinearMap
+  exact hTensor.comp (TensorProduct.lid ctx.BaseField V).symm.injective
 
 /-- Concrete tensor/base-change model for one Betti/de Rham comparison package. -/
 structure ComparisonTensorScalarExtensionData
@@ -124,6 +151,28 @@ attribute [instance]
   ClassicalStructuredComparisonObject.instDeRhamOverScalarModule
   ClassicalStructuredComparisonObject.instBettiOverScalarRestrictModule
   ClassicalStructuredComparisonObject.instDeRhamOverScalarRestrictModule
+
+namespace ClassicalStructuredComparisonObject
+
+/-- The Betti scalar-extension map of a concrete structured comparison object is injective. -/
+theorem extendBetti_injective
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (object : ClassicalStructuredComparisonObject ctx) :
+    Function.Injective object.extendBetti := by
+  rw [object.tensorScalarExtensionData.extendBetti_eq_tensorScalarExtension]
+  exact (LinearEquiv.injective object.tensorScalarExtensionData.bettiTensorModel).comp
+    (canonicalTensorScalarExtensionMap_injective (ctx := ctx) object.BettiCarrier)
+
+/-- The de Rham scalar-extension map of a concrete structured comparison object is injective. -/
+theorem extendDeRham_injective
+    {ctx : ClassicalComparisonContext.{u, v}}
+    (object : ClassicalStructuredComparisonObject ctx) :
+    Function.Injective object.extendDeRham := by
+  rw [object.tensorScalarExtensionData.extendDeRham_eq_tensorScalarExtension]
+  exact (LinearEquiv.injective object.tensorScalarExtensionData.deRhamTensorModel).comp
+    (canonicalTensorScalarExtensionMap_injective (ctx := ctx) object.DeRhamCarrier)
+
+end ClassicalStructuredComparisonObject
 
 /-- Concrete tensor/base-change model for one structured comparison object. -/
 abbrev StructuredComparisonTensorScalarExtensionData

@@ -1,4 +1,4 @@
-import TraceCalc.MotivicRecognition.SyntacticDMgmClassicalBridge
+import TraceCalc.LayerE.MotivicRecognition.SyntacticDMgmClassicalBridge
 
 namespace AxiomCheckPackage6B
 
@@ -64,8 +64,9 @@ open TraceCalc.LayerD
 #print axioms TraceCalc.MotivicRecognition.SealedClassicalOperationsProvider.p3bAdmissibilityComparison_from_sealedSources
 
 -- ── P6B interpretation interface preservation receipts ───────────────────
--- Status: SPECIFIED / NOT SEALED — interface fields audited; inhabited via
---         ofSealedPackages once a SealedClassicalOperationsProvider is given.
+-- Status: SEALED THROUGH OPERATION DATA / SEALED SOURCES
+--         The public interpretation route now runs through
+--         ofClassicalOperationsData / ofSealedSources.
 #print axioms interpret_id_from_provider
 #print axioms interpret_comp_from_provider
 #print axioms interpret_pi0_class_from_provider
@@ -75,26 +76,27 @@ open TraceCalc.LayerD
 #print axioms interpret_tensor_obj_from_provider
 #print axioms interpret_tensor_hom_from_provider
 #print axioms interpret_dual_from_provider
+#print axioms SyntacticDMgmClassicalInterpretationData.ofClassicalOperationsData
+#print axioms SyntacticDMgmClassicalInterpretationData.ofSealedSources
 
--- ── P6B final constructors from interface — SEALED AS CONDITIONAL ─────────
--- Status: SEALED AS CONDITIONAL CONSTRUCTORS
---         These are sealed given a SealedClassicalOperationsProvider.
-#print axioms SyntacticDMgmClassicalInterpretationData.ofSealedPackages
-#print axioms finalPackage6ClassicalSeal_from_sealedPackages
-#print axioms finalPackage6ClassicalSeal_from_sealedPackages_reaches_target
-#print axioms finalPackage6ClassicalSeal_from_sealedPackages_bridge_holds
+-- ── P6B final constructors from interface ────────────────────────────────
+-- Status: SEALED THROUGH OPERATION DATA / SEALED SOURCES
+#print axioms finalPackage6ClassicalSeal_from_classicalOperationsData
+#print axioms finalPackage6ClassicalSeal_from_classicalOperationsData_reaches_target
+#print axioms finalPackage6ClassicalSeal_from_classicalOperationsData_bridge_holds
 #print axioms finalPackage6ClassicalSeal_from_sealedSources
 #print axioms finalPackage6ClassicalSeal_from_sealedSources_reaches_target
 #print axioms finalPackage6ClassicalSeal_from_sealedSources_bridge_holds
 
 -- ── Package 6 status ─────────────────────────────────────────────────────
--- Package 6            — CONDITIONAL ON FULL INTERPRETATION INTERFACE
--- P6B interpretation interface — SPECIFIED / NOT SEALED
--- P6B final constructors from interface — SEALED AS CONDITIONAL CONSTRUCTORS
+-- Package 6            — SEALED THROUGH THE EXISTING OPERATIONAL INTERFACE
+-- P6B interpretation interface — SEALED THROUGH OPERATION DATA / SEALED SOURCES
+-- P6B final constructors from interface — SEALED
 --
--- Package 6 is NOT SEALED until
---   finalPackage6ClassicalSeal_from_sealedPackages
--- is applied to a concrete, fully inhabited SealedClassicalOperationsProvider
--- with clean receipts and no local assumptions.
+-- Package 6 closes on the direct route
+--   finalPackage6ClassicalSeal_from_sealedSources
+-- which projects the operation-level data from the existing
+-- `DMgmQPiZeroInterface` without an extra provider parameter at the final
+-- constructor surface.
 
 end AxiomCheckPackage6B

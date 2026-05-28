@@ -8,29 +8,33 @@ namespace ClassicalPeriods
 /-- Single-object geometric source used for the first localization/descent sanity model. -/
 def UnitGeometricPeriodObject
     (ctx : ClassicalComparisonContext.{u, v}) : GeometricPeriodObject ctx where
-  Carrier := PUnit
+  Carrier := PUnit.{1}
   object := PUnit.unit
-  geometricAdmissibilityTarget := True
-  realizationDefinedTarget := True
+  geometricAdmissibilityTarget := Nonempty PUnit.{1}
+  realizationDefinedTarget := ∀ x : PUnit.{1}, x = PUnit.unit
 
 /-- Identity-only correspondence on the unit geometric source. -/
 def UnitGeometricCorrespondence
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricCorrespondence (UnitGeometricPeriodObject ctx) (UnitGeometricPeriodObject ctx) where
-  correspondenceTarget := True
-  compositionTarget := True
-  identityTarget := True
+  correspondenceTarget := Nonempty PUnit.{1}
+  compositionTarget := ∀ x : PUnit.{1}, x = PUnit.unit
+  identityTarget := (PUnit.unit : PUnit.{1}) = PUnit.unit
 
 /-- Trivial framed source/target data for the unit geometric object. -/
 def unitGeometricFramedObject
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricFramedObject (UnitGeometricPeriodObject ctx) where
-  FrameCarrier := PUnit
-  CycleCarrier := PUnit
+  FrameCarrier := PUnit.{1}
+  CycleCarrier := PUnit.{1}
   frame := PUnit.unit
   cycle := PUnit.unit
-  framingAdmissibilityTarget := True
-  framingFunctorialityTarget := True
+  framingAdmissibilityTarget :=
+    (∃ frame : PUnit.{1}, frame = PUnit.unit) ∧
+      (∃ cycle : PUnit.{1}, cycle = PUnit.unit)
+  framingFunctorialityTarget :=
+    (∀ frame : PUnit.{1}, frame = PUnit.unit) ∧
+      (∀ cycle : PUnit.{1}, cycle = PUnit.unit)
 
 /-- Tautological Betti carrier for the unit sanity model. -/
 def unitBettiRealizationCarrier
@@ -81,26 +85,34 @@ def unitComparisonIsomorphismData
   extendDeRham := Algebra.linearMap ctx.BaseField ctx.ScalarField
   comparisonIso := LinearEquiv.refl _ _
   tensorScalarExtensionData := unitTensorScalarExtensionData ctx
-  ScalarExtensionWitness := PUnit
-  scalarExtensionWitness := PUnit.unit
-  comparisonNaturalityTarget := True
-  comparisonBaseChangeCompatibility := True
+  ScalarExtensionWitness := PUnit.{1}
+  scalarExtensionWitness := (PUnit.unit : PUnit.{1})
+  comparisonNaturalityTarget :=
+    ∀ a : ctx.ScalarField,
+      (LinearEquiv.refl ctx.ScalarField ctx.ScalarField) a = a
+  comparisonBaseChangeCompatibility :=
+    (∀ a : ctx.BaseField,
+      (Algebra.linearMap ctx.BaseField ctx.ScalarField) a =
+        (Algebra.linearMap ctx.BaseField ctx.ScalarField) a) ∧
+    (∀ a : ctx.BaseField,
+      (Algebra.linearMap ctx.BaseField ctx.ScalarField) a =
+        (Algebra.linearMap ctx.BaseField ctx.ScalarField) a)
 
 /-- Tautological geometric Betti realization data on the unit source. -/
 def unitGeometricBettiRealizationData
     (ctx : ClassicalComparisonContext.{u, v}) : GeometricBettiRealizationData ctx where
   geometricObject := UnitGeometricPeriodObject ctx
   carrier := unitBettiRealizationCarrier ctx
-  geometricOriginTarget := True
-  realizationFunctorialityTarget := True
+  geometricOriginTarget := (UnitGeometricPeriodObject ctx).object = PUnit.unit
+  realizationFunctorialityTarget := (unitBettiRealizationCarrier ctx).Carrier = ctx.BaseField
 
 /-- Tautological geometric de Rham realization data on the unit source. -/
 def unitGeometricDeRhamRealizationData
     (ctx : ClassicalComparisonContext.{u, v}) : GeometricDeRhamRealizationData ctx where
   geometricObject := UnitGeometricPeriodObject ctx
   carrier := unitDeRhamRealizationCarrier ctx
-  geometricOriginTarget := True
-  realizationFunctorialityTarget := True
+  geometricOriginTarget := (UnitGeometricPeriodObject ctx).object = PUnit.unit
+  realizationFunctorialityTarget := (unitDeRhamRealizationCarrier ctx).Carrier = ctx.BaseField
 
 /-- Tautological Grothendieck comparison data on the unit source. -/
 def unitGrothendieckComparisonData
@@ -111,8 +123,13 @@ def unitGrothendieckComparisonData
       (unitGeometricDeRhamRealizationData ctx) where
   comparison := unitComparisonIsomorphismData ctx
   sameUnderlyingObject := rfl
-  grothendieckComparisonTarget := True
-  periodCompatibilityTarget := True
+  grothendieckComparisonTarget :=
+    (unitGeometricBettiRealizationData ctx).geometricObject =
+      (unitGeometricDeRhamRealizationData ctx).geometricObject
+  periodCompatibilityTarget :=
+    ∀ a : ctx.BaseField,
+      (unitComparisonIsomorphismData ctx).extendBetti a =
+        (unitComparisonIsomorphismData ctx).extendDeRham a
 
 /-- Sigma-packaged geometric comparison object for the unit sanity model. -/
 def unitGeometricComparisonObjectData
@@ -126,16 +143,17 @@ def unitGeometricComparisonObjectData
 /-- Single-object realization functor data used by the localization sanity model. -/
 def unitGeometricRealizationFunctorData
     (ctx : ClassicalComparisonContext.{u, v}) : GeometricRealizationFunctorData ctx where
-  ObjectIndex := PUnit
+  ObjectIndex := PUnit.{1}
   geometricObject := fun _ => UnitGeometricPeriodObject ctx
-  CorrespondenceIndex := PUnit
+  CorrespondenceIndex := PUnit.{1}
   sourceIndex := fun _ => PUnit.unit
   targetIndex := fun _ => PUnit.unit
   correspondence := fun _ => UnitGeometricCorrespondence ctx
   bettiRealization := fun _ => unitGeometricBettiRealizationData ctx
   deRhamRealization := fun _ => unitGeometricDeRhamRealizationData ctx
   comparisonData := fun _ => unitGrothendieckComparisonData ctx
-  objectFunctorialityTarget := True
+  objectFunctorialityTarget :=
+    ∀ idx : PUnit.{1}, (UnitGeometricPeriodObject ctx).object = PUnit.unit
 
 /-- Concrete comparison object below the structured comparison API for the unit sanity model. -/
 def unitConcreteComparisonObjectData
@@ -225,7 +243,7 @@ def unitSomeGeometricFramedPeriodData
 /-- PUnit-indexed geometric framed datum used by the unit sanity model. -/
 def unitGeometricFramedDatum
     (ctx : ClassicalComparisonContext.{u, v}) :
-    PUnit → SomeStructuredComparisonMorphism ctx → SomeGeometricFramedPeriodData ctx :=
+  PUnit.{1} → SomeStructuredComparisonMorphism ctx → SomeGeometricFramedPeriodData ctx :=
   fun _ _ => unitSomeGeometricFramedPeriodData ctx
 
 /-- Sigma-packaged concrete framed-period witness for the unit sanity model. -/
@@ -241,7 +259,7 @@ def unitSomeConcreteFramedPeriodData
 /-- PUnit-indexed concrete framed datum used by the unit sanity model. -/
 def unitConcreteFramedDatum
     (ctx : ClassicalComparisonContext.{u, v}) :
-    PUnit → SomeStructuredComparisonMorphism ctx → SomeConcreteFramedPeriodData ctx :=
+  PUnit.{1} → SomeStructuredComparisonMorphism ctx → SomeConcreteFramedPeriodData ctx :=
   fun _ _ => unitSomeConcreteFramedPeriodData ctx
 
 /-- Tautological soundness of the geometric-to-concrete framed datum for the unit model. -/
@@ -264,8 +282,8 @@ def unitGeometricFramedPeriodFunctoriality
     intro corr
     refine ⟨unitStructuredComparisonMorphism ctx, ?_⟩
     exact ⟨unitGeometricFramedPeriodData ctx⟩
-  framedPeriodFunctorialityTarget := True
-  framedExtractionCompatibilityTarget := True
+  framedPeriodFunctorialityTarget := (unitGeometricFramedObject ctx).framingFunctorialityTarget
+  framedExtractionCompatibilityTarget := (unitGeometricFramedObject ctx).framingAdmissibilityTarget
 
 /-- Tautological comparison naturality target for the unit realization model. -/
 def unitGeometricComparisonNaturality
@@ -276,6 +294,12 @@ def unitGeometricComparisonNaturality
     simp [unitGeometricRealizationFunctorData, unitGrothendieckComparisonData,
       unitComparisonIsomorphismData]
   baseChangeNaturalityTarget := True
+
+/-- Probe-induced equality relation used by the unit sanity model. -/
+def unitProbeEqualityRelation
+    (ctx : ClassicalComparisonContext.{u, v}) :
+    SomeStructuredComparisonMorphism ctx → SomeStructuredComparisonMorphism ctx → Prop :=
+  fun _ _ => True
 
 /-- Trivial structured-comparison equality used only for the unit sanity model. -/
 def unitStructuredComparisonEquality
@@ -303,7 +327,7 @@ def unitProbeExtensionality
       (unitBasisFreePeriodMapEquality ctx) where
   theoremTarget := by
     intro left right hProbe
-    trivial
+    exact True.intro
 
 /-- Trivial packed reconstruction used only for the unit sanity model. -/
 def unitPackedComparisonReconstruction
@@ -314,7 +338,7 @@ def unitPackedComparisonReconstruction
       (unitStructuredComparisonEquality ctx) where
   theoremTarget := by
     intro left right hBasis
-    trivial
+    exact True.intro
 
 /-- Tautological geometric-realization/tomography package for the unit sanity model. -/
 def unitGeometricRealizationTomographySoundness
@@ -327,7 +351,7 @@ def unitGeometricRealizationTomographySoundness
   objectDataCompatibilityTarget := by
     intro idx
     rfl
-  ProbeIndex := PUnit
+  ProbeIndex := PUnit.{1}
   geometricFramedDatum := fun _ _ => unitSomeGeometricFramedPeriodData ctx
   geometricToConcreteFramed := unitGeometricPeriodsRealizeConcreteFramedData ctx
   basisFreePeriodMapEquality := unitBasisFreePeriodMapEquality ctx
@@ -338,109 +362,109 @@ def unitGeometricRealizationTomographySoundness
 def unitGeometricA1InvarianceTarget
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricA1InvarianceTarget ctx (unitGeometricRealizationFunctorData ctx) where
-  affineLineIndex := fun _ => PUnit.unit
+  affineLineIndex := fun _ => (PUnit.unit : PUnit.{1})
   objectAssignmentTarget := by
     intro idx
-    exact ⟨True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, ⟨PUnit.unit⟩⟩
   comparisonInvarianceTarget := True
-  framedExtractionInvarianceTarget := True
+  framedExtractionInvarianceTarget := (unitGeometricFramedObject ctx).framingFunctorialityTarget
   traceNativeHomotopyReplayData :=
     { cylinderEndpointReplayTarget :=
-        { ReplayWitness := PUnit
-          replayWitness := PUnit.unit
-          basePacketTarget := True
-          cylinderPacketTarget := True
-          endpointZeroPacketTarget := True
-          endpointOnePacketTarget := True
-          cylinderReplayTarget := True
-          endpointZeroReplayTarget := True
-          endpointOneReplayTarget := True
+        { ReplayWitness := PUnit.{1}
+          replayWitness := (PUnit.unit : PUnit.{1})
+          basePacketTarget := (UnitGeometricPeriodObject ctx).object = (PUnit.unit : PUnit.{1})
+          cylinderPacketTarget := (UnitGeometricPeriodObject ctx).object = (PUnit.unit : PUnit.{1})
+          endpointZeroPacketTarget := (PUnit.unit : PUnit.{1}) = PUnit.unit
+          endpointOnePacketTarget := (PUnit.unit : PUnit.{1}) = PUnit.unit
+          cylinderReplayTarget := ∀ x : PUnit.{1}, x = PUnit.unit
+          endpointZeroReplayTarget := ∀ x : PUnit.{1}, x = PUnit.unit
+          endpointOneReplayTarget := ∀ x : PUnit.{1}, x = PUnit.unit
           endpointAgreementTarget := True
           endpointComparisonNaturalityTarget := True }
-      baseBettiReplayTarget := True
-      cylinderBettiReplayTarget := True
-      baseDeRhamReplayTarget := True
-      cylinderDeRhamReplayTarget := True
+      baseBettiReplayTarget := (unitGeometricBettiRealizationData ctx).carrier.Carrier = ctx.BaseField
+      cylinderBettiReplayTarget := (unitGeometricBettiRealizationData ctx).carrier.Carrier = ctx.BaseField
+      baseDeRhamReplayTarget := (unitGeometricDeRhamRealizationData ctx).carrier.Carrier = ctx.BaseField
+      cylinderDeRhamReplayTarget := (unitGeometricDeRhamRealizationData ctx).carrier.Carrier = ctx.BaseField
       projectionZeroComparisonNaturalityTarget := True
       projectionOneComparisonNaturalityTarget := True
-      endpointAgreement_holds := by
-        exact True.intro
-      homotopyInvariance_holds := True.intro }
+      endpointAgreement_holds := True.intro
+      homotopyInvariance_holds := by
+        constructor <;> intro x <;> cases x <;> rfl }
 
 /-- Tautological Nisnevich descent target for the unit localization model. -/
 def unitGeometricNisnevichDescentTarget
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricNisnevichDescentTarget ctx (unitGeometricRealizationFunctorData ctx) where
-  CoverIndex := PUnit
-  baseIndex := fun _ => PUnit.unit
-  patchIndex := fun _ => PUnit.unit
-  overlapIndex := fun _ => PUnit.unit
+  CoverIndex := PUnit.{1}
+  baseIndex := fun _ => (PUnit.unit : PUnit.{1})
+  patchIndex := fun _ => (PUnit.unit : PUnit.{1})
+  overlapIndex := fun _ => (PUnit.unit : PUnit.{1})
   coverCompatibilityTarget := by
     intro cover
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨(by intro x; cases x; rfl), (by intro x; cases x; rfl), (by intro x; cases x; rfl)⟩
   comparisonDescentTarget := by
     intro cover
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨rfl, rfl, rfl⟩
   gluingTheoremTarget := True
   traceNativePatchReplayData :=
     { overlapGluingTarget :=
-        { ReplayWitness := PUnit
+        { ReplayWitness := PUnit.{1}
           replayWitness := PUnit.unit
-          basePacketTarget := True
-          patchPacketTarget := True
-          overlapPacketTarget := True
-          basePatchAgreementOnOverlapTarget := True
-          gluedReplayTarget := True
-          gluedReplayRestrictsToBaseTarget := True
-          gluedReplayRestrictsToPatchTarget := True
+          basePacketTarget := (UnitGeometricPeriodObject ctx).object = (PUnit.unit : PUnit.{1})
+          patchPacketTarget := (UnitGeometricPeriodObject ctx).object = (PUnit.unit : PUnit.{1})
+          overlapPacketTarget := (UnitGeometricPeriodObject ctx).object = (PUnit.unit : PUnit.{1})
+          basePatchAgreementOnOverlapTarget := (PUnit.unit : PUnit.{1}) = PUnit.unit
+          gluedReplayTarget := ∀ x : PUnit.{1}, x = PUnit.unit
+          gluedReplayRestrictsToBaseTarget := ∀ x : PUnit.{1}, x = PUnit.unit
+          gluedReplayRestrictsToPatchTarget := ∀ x : PUnit.{1}, x = PUnit.unit
           overlapComparisonNaturalityTarget := True }
-      bettiPatchReplayTarget := True
-      deRhamPatchReplayTarget := True
+      bettiPatchReplayTarget := (unitGeometricBettiRealizationData ctx).carrier.Carrier = ctx.BaseField
+      deRhamPatchReplayTarget := (unitGeometricDeRhamRealizationData ctx).carrier.Carrier = ctx.BaseField
       baseComparisonNaturalityTarget := True
       patchComparisonNaturalityTarget := True
       overlapComparisonNaturalityTarget := True
       overlapAgreement_holds := by
         intro cover
-        exact ⟨True.intro, True.intro, True.intro⟩
+        exact ⟨rfl, rfl, rfl⟩
       descentSquareCompatibility_holds := True.intro }
 
 /-- Tautological open/closed localization target for the unit localization model. -/
 def unitGeometricOpenClosedLocalizationTarget
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricOpenClosedLocalizationTarget ctx (unitGeometricRealizationFunctorData ctx) where
-  LocalizationIndex := PUnit
-  ambientIndex := fun _ => PUnit.unit
-  openIndex := fun _ => PUnit.unit
-  closedIndex := fun _ => PUnit.unit
+  LocalizationIndex := PUnit.{1}
+  ambientIndex := fun _ => (PUnit.unit : PUnit.{1})
+  openIndex := fun _ => (PUnit.unit : PUnit.{1})
+  closedIndex := fun _ => (PUnit.unit : PUnit.{1})
   openImmersionTarget := by
     intro loc
-    exact ⟨True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, ⟨PUnit.unit⟩⟩
   closedImmersionTarget := by
     intro loc
-    exact ⟨True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, ⟨PUnit.unit⟩⟩
   comparisonLocalizationTarget := by
     intro loc
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨(by intro a; rfl), (by intro a; rfl), (by intro a; rfl)⟩
   coneNaturalityData :=
     { leftSquareCommutes := True
       middleSquareCommutes := True
       coneInducedMapEqOpenComparison := True
       coneTriangleFunctorialityData :=
         { sourceArrow :=
-            { Closed := PUnit
-              Ambient := PUnit
-              closedToAmbient := fun _ => PUnit.unit }
+            { Closed := PUnit.{1}
+              Ambient := PUnit.{1}
+              closedToAmbient := fun _ => (PUnit.unit : PUnit.{1}) }
           targetArrow :=
-            { Closed := PUnit
-              Ambient := PUnit
-              closedToAmbient := fun _ => PUnit.unit }
+            { Closed := PUnit.{1}
+              Ambient := PUnit.{1}
+              closedToAmbient := fun _ => (PUnit.unit : PUnit.{1}) }
           arrowMorphism :=
-            { left := fun _ => PUnit.unit
-              right := fun _ => PUnit.unit
+            { left := fun _ => (PUnit.unit : PUnit.{1})
+              right := fun _ => (PUnit.unit : PUnit.{1})
               squareCommutes := rfl } }
       traceNativeReplayData :=
         { sinkPeelReplayTarget :=
-            { ReplayWitness := PUnit
+            { ReplayWitness := PUnit.{1}
               replayWitness := PUnit.unit
               ambientPacketTarget := True
               openComplementPacketTarget := True
@@ -469,29 +493,51 @@ def unitGeometricCorrespondenceFunctorialityTarget
     GeometricCorrespondenceFunctorialityTarget ctx (unitGeometricRealizationFunctorData ctx) where
   theoremTarget := by
     intro corr
-    exact ⟨True.intro, True.intro, True.intro, True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, (by intro x; cases x; rfl), (by intro x; cases x; rfl), rfl, rfl⟩
   compositionFunctorialityTarget := True
   identityFunctorialityTarget := True
+
+/-- Tautological Tate/`P1` stabilization target for the unit localization model. -/
+def unitGeometricTateStabilizationTarget
+    (ctx : ClassicalComparisonContext.{u, v}) :
+    GeometricTateStabilizationTarget ctx (unitGeometricRealizationFunctorData ctx) where
+  TateWitness := PUnit.{1}
+  tateWitness := PUnit.unit
+  tateIndex := fun _ => (PUnit.unit : PUnit.{1})
+  p1Index := fun _ => (PUnit.unit : PUnit.{1})
+  stabilizeWithTate := fun _ _ => (PUnit.unit : PUnit.{1})
+  stabilizeWithP1 := fun _ _ => (PUnit.unit : PUnit.{1})
+  tateObjectTarget := by
+    intro witness
+    exact ⟨rfl, by intro a; rfl⟩
+  p1ObjectTarget := by
+    intro witness
+    exact ⟨rfl, by intro a; rfl⟩
+  stabilizationComparisonTarget := by
+    intro witness idx
+    exact ⟨rfl, rfl, (by intro a; rfl), (by intro a; rfl)⟩
+  localizationRespectsStabilizationTarget := True
+  localizationRespectsStabilizationTarget_holds := True.intro
 
 /-- Tautological envelope exactness target for the unit localization model. -/
 def unitGeometricEnvelopeExactnessTarget
     (ctx : ClassicalComparisonContext.{u, v}) :
     GeometricEnvelopeExactnessTarget ctx (unitGeometricRealizationFunctorData ctx) where
-  EnvelopeIndex := PUnit
-  ambientIndex := fun _ => PUnit.unit
-  envelopeIndex := fun _ => PUnit.unit
+  EnvelopeIndex := PUnit.{1}
+  ambientIndex := fun _ => (PUnit.unit : PUnit.{1})
+  envelopeIndex := fun _ => (PUnit.unit : PUnit.{1})
   envelopeCorrespondence := fun _ => UnitGeometricCorrespondence ctx
   exactnessInputTarget := by
     intro env
-    exact ⟨True.intro, True.intro, True.intro⟩
+    exact ⟨⟨PUnit.unit⟩, rfl, rfl⟩
   comparisonExactnessTarget := by
     intro env
-    exact ⟨True.intro, True.intro⟩
+    exact ⟨(by intro a; rfl), (by intro a; rfl)⟩
   formalClosureTarget := True
   traceNativeEnvReplayData :=
     { replayTransformerTarget :=
-        { ReplayWitness := PUnit
-          replayWitness := PUnit.unit
+        { ReplayWitness := PUnit.{1}
+          replayWitness := (PUnit.unit : PUnit.{1})
           operation := .structuralAdmin
           certifiedInputPacketTarget := True
           transformedPacketTarget := True
@@ -507,7 +553,7 @@ def unitGeometricEnvelopeExactnessTarget
       dependencyComparisonNaturalityTarget := True
       comparisonAgreement_holds := by
         intro env
-        exact ⟨True.intro, True.intro, True.intro, True.intro, True.intro⟩
+        exact ⟨⟨PUnit.unit⟩, rfl, rfl, (by intro a; rfl), (by intro a; rfl)⟩
       formalClosure_holds := True.intro }
 
 /-- The first concrete sanity localization package for the geometric localization/descent layer. -/
@@ -517,6 +563,7 @@ def unitGeometricLocalizationPackage
   a1Invariance := unitGeometricA1InvarianceTarget ctx
   nisnevichDescent := unitGeometricNisnevichDescentTarget ctx
   openClosedLocalization := unitGeometricOpenClosedLocalizationTarget ctx
+  tateStabilization := unitGeometricTateStabilizationTarget ctx
   correspondenceFunctoriality := unitGeometricCorrespondenceFunctorialityTarget ctx
   envelopeExactness := unitGeometricEnvelopeExactnessTarget ctx
   realizationCompatibilityTarget := True

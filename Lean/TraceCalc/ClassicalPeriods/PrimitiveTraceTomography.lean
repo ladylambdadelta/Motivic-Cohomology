@@ -1,4 +1,3 @@
-import TraceCalc.ClassicalPeriods.SymbolicGeneratorExamples
 import TraceCalc.ClassicalPeriods.CertifiedTraceClosureSurface
 
 set_option maxHeartbeats 800000

@@ -1,6 +1,5 @@
 import TraceCalc.ClassicalBridge.RecognizedMMQFramedPeriodSystem
 import TraceCalc.ClassicalPeriods.Reflection
-import TraceCalc.ClassicalPeriods.ReverseMath
 
 universe u v w x y z
 

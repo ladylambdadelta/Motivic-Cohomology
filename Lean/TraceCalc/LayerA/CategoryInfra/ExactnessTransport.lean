@@ -1,4 +1,4 @@
-import TraceCalc.LayerA.CategoryInfra.Karoubi
+import TraceCalc.LayerA.CategoryInfra.H0Category
 
 universe u v
 
@@ -6,20 +6,34 @@ namespace TraceCalc
 namespace CategoryInfra
 
 /-- Abstract exactness-transport package through the completion ladder. -/
-structure ExactnessTransport {presentation : Type u}
+structure ExactnessTransportTarget {presentation : Type u}
     (F : FreeDGEnvelope.{u, v} presentation)
     (P : PretriangulatedHull F.envelope)
-    (H : H0Category P)
-    (K : KaroubiEnvelope H) where
+    {C : StandardDGCategoryLike.{u, v}}
+    (H : StandardH0CategoryTarget C) where
+  exactnessForH0 : H0TriangulatedData P
+  exactnessForKaroubiCompletion :
+    CategoryTheory.IsIdempotentComplete (StandardH0CategoryTarget.AsCategory.KaroubiCompletion H)
+  distinguishedTriangleTransport : ConeStructure P.hull.Obj
+
+structure ExactnessTransportLaws {presentation : Type u}
+    {F : FreeDGEnvelope.{u, v} presentation}
+    {P : PretriangulatedHull F.envelope}
+    {C : StandardDGCategoryLike.{u, v}}
+    {H : StandardH0CategoryTarget C}
+    (target : ExactnessTransportTarget F P H) where
   exactnessForDGEnvelope :
-    ∀ {X Y : F.envelope.Obj} (f : F.envelope.HomComplex X Y),
-      F.envelope.differential (F.envelope.differential f) = f
+    F.envelope.differentialSquaredZero
   exactnessForPretriangulatedHull :
-    ∀ {X Y : P.hull.Obj} (f : P.hull.HomComplex X Y),
-      P.hull.differential (P.hull.differential f) = f
-  exactnessForH0 : P.shiftClosed ∧ P.coneClosed
-  exactnessForKaroubiEnvelope : K.idempotentSplitting
-  distinguishedTriangleTransport : P.coneClosed
+    P.hull.differentialSquaredZero
+
+structure ExactnessTransportData {presentation : Type u}
+    {F : FreeDGEnvelope.{u, v} presentation}
+    {P : PretriangulatedHull F.envelope}
+    {C : StandardDGCategoryLike.{u, v}}
+    {H : StandardH0CategoryTarget C}
+    (target : ExactnessTransportTarget F P H) where
+  laws : ExactnessTransportLaws target
 
 namespace ExactnessTransport
 

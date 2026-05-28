@@ -805,53 +805,6 @@ theorem CertifiedTrace.assoc_cls {setup : RewriteCalculusSetup.{u}}
     ((T.compose T').compose T'').cls = (T.compose (T'.compose T'')).cls :=
   CertifiedTrace.compose_assoc_cls T T' T''
 
-/-! #### (6) Minimal replay interface signatures (no proofs).
-
-Per the user's instruction: signatures only — the substantive replay
-semantics belong to a subsequent phase that will rest on the
-composition machinery formalized above. The signatures below pin the
-shape of the future replay operation so that downstream consumers can
-target a stable interface. -/
-
-/-- **Replay interface (signature only).** A replay assigns to each
-certified trace a "replay value" of some carrier type — the actual
-data consumed when executing the trace. The exact target carrier is
-left abstract here; the future implementation will instantiate it
-(per `def:replay-representative` L731's "execute the certified
-declarations in the listed order against the substitution provided by
-the boundary"). -/
-structure ReplayInterface (setup : RewriteCalculusSetup.{u}) where
-  /-- Carrier of replay values, parametrized by source/target states. -/
-  Value : setup.State → setup.State → Type u
-  /-- Replay of the empty/identity certified trace yields a designated
-  identity value. -/
-  replayId : (X : setup.State) → Value X X
-  /-- Replay of a composition is the composition of replays — the
-  homomorphism property that an actual replay implementation must
-  satisfy. (Signature; no proof yet.) -/
-  replayCompose :
-    {X Y Z : setup.State} →
-    Value X Y → Value Y Z → Value X Z
-
-/-- **Replay-empty signature.** The identity certified trace's replay
-is the identity replay value. (Statement only; proof deferred until a
-concrete `ReplayInterface` instance is implemented.) -/
-def ReplayInterface.IsCorrectOnIdentity {setup : RewriteCalculusSetup.{u}}
-    (R : ReplayInterface setup)
-    (replay : ∀ {X Y : setup.State}, setup.CertifiedTrace X Y → R.Value X Y) :
-    Prop :=
-  ∀ X : setup.State, replay (idCertifiedTrace X) = R.replayId X
-
-/-- **Replay-cons / replay-compose signature.** A replay assignment
-respects composition. (Statement only; proof deferred.) -/
-def ReplayInterface.IsCorrectOnCompose {setup : RewriteCalculusSetup.{u}}
-    (R : ReplayInterface setup)
-    (replay : ∀ {X Y : setup.State}, setup.CertifiedTrace X Y → R.Value X Y) :
-    Prop :=
-  ∀ {X Y Z : setup.State}
-    (T : setup.CertifiedTrace X Y) (T' : setup.CertifiedTrace Y Z),
-    replay (T.compose T') = R.replayCompose (replay T) (replay T')
-
 /-! ### Congruence and convenience aliases for BoundaryTraceClass -/
 
 /-- Trace-class composition is congruent: equal classes compose to equal classes. -/

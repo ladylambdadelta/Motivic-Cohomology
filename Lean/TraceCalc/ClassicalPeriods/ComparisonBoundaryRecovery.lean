@@ -1,6 +1,6 @@
 import TraceCalc.ClassicalPeriods.FramedPeriodsConcrete
 import TraceCalc.ClassicalPeriods.GeneratorRealizationTable
-import TraceCalc.LayerB.RealObjects.InternalManuscriptTargets
+import TraceCalc.LayerBNonCore.Targets.InternalManuscriptTargets
 
 universe u v w
 

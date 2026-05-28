@@ -1,6 +1,5 @@
 import TraceCalc.ClassicalPeriods.PeriodConjectureTarget
 import TraceCalc.ClassicalPeriods.GeometricPeriodSpine
-import TraceCalc.ClassicalPeriods.SymbolicGeneratorExamples
 
 universe u v w
 
@@ -93,46 +92,25 @@ end UnitSanityModel
 /-- Symbolic one-row examples already closed for all manuscript generator families. -/
 namespace SymbolicRows
 
-abbrev CorrDatum := SymbolicCorrDatum
-abbrev CorrFamily := symbolicCorrGeneratorFamilyData
-abbrev CorrAssignment := symbolicCorrGeneratorRealizationAssignment
-abbrev LocDatum := SymbolicLocDatum
-abbrev LocFamily := symbolicLocGeneratorFamilyData
-abbrev LocAssignment := symbolicLocGeneratorRealizationAssignment
-abbrev NisDatum := SymbolicNisDatum
-abbrev NisFamily := symbolicNisGeneratorFamilyData
-abbrev NisAssignment := symbolicNisGeneratorRealizationAssignment
-abbrev A1Datum := SymbolicA1Datum
-abbrev A1Family := symbolicA1GeneratorFamilyData
-abbrev A1Assignment := symbolicA1GeneratorRealizationAssignment
-abbrev EnvDatum := SymbolicEnvDatum
-abbrev EnvFamily := symbolicEnvGeneratorFamilyData
-abbrev EnvAssignment := symbolicEnvGeneratorRealizationAssignment
-
-theorem corr_sourceObject
-    {ctx : ClassicalComparisonContext.{u, v}} (datum : CorrDatum ctx) :
-    (CorrFamily datum).sourceObject PUnit.unit = datum.source :=
-  symbolicCorrGeneratorFamilyData_sourceObject datum
-
-theorem loc_ambientObject
-    {ctx : ClassicalComparisonContext.{u, v}} (datum : LocDatum ctx) :
-    (LocFamily datum).ambientObject PUnit.unit = datum.ambient :=
-  symbolicLocGeneratorFamilyData_ambientObject datum
-
-theorem nis_baseObject
-    {ctx : ClassicalComparisonContext.{u, v}} (datum : NisDatum ctx) :
-    (NisFamily datum).baseObject PUnit.unit = datum.base :=
-  symbolicNisGeneratorFamilyData_baseObject datum
-
-theorem a1_baseObject
-    {ctx : ClassicalComparisonContext.{u, v}} (datum : A1Datum ctx) :
-    (A1Family datum).baseObject PUnit.unit = datum.base :=
-  symbolicA1GeneratorFamilyData_baseObject datum
-
-theorem env_envelopeCorrespondence
-    {ctx : ClassicalComparisonContext.{u, v}} (datum : EnvDatum ctx) :
-    (EnvFamily datum).envelopeCorrespondence PUnit.unit = datum.envelopeCorrespondence :=
-  symbolicEnvGeneratorFamilyData_envelopeCorrespondence datum
+/-- Representative symbolic-row entry points recorded textually so this index does not
+depend on the mock-heavy example modules themselves. -/
+def representativeLeanNames : List String :=
+  [ "SymbolicCorrDatum"
+  , "symbolicCorrGeneratorFamilyData"
+  , "symbolicCorrGeneratorRealizationAssignment"
+  , "SymbolicLocDatum"
+  , "symbolicLocGeneratorFamilyData"
+  , "symbolicLocGeneratorRealizationAssignment"
+  , "SymbolicNisDatum"
+  , "symbolicNisGeneratorFamilyData"
+  , "symbolicNisGeneratorRealizationAssignment"
+  , "SymbolicA1Datum"
+  , "symbolicA1GeneratorFamilyData"
+  , "symbolicA1GeneratorRealizationAssignment"
+  , "SymbolicEnvDatum"
+  , "symbolicEnvGeneratorFamilyData"
+  , "symbolicEnvGeneratorRealizationAssignment"
+  ]
 
 end SymbolicRows
 

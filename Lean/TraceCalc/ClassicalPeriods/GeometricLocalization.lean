@@ -495,6 +495,63 @@ theorem locTriangleCompatibilityFromConeFunctoriality
 
 end GeometricOpenClosedLocalizationTarget
 
+/-- Theorem-target interface for Tate/`P1` stabilization on geometric source objects. -/
+structure GeometricTateStabilizationTarget
+    (ctx : ClassicalComparisonContext.{u, v})
+    (realization : GeometricRealizationFunctorData ctx) where
+  TateWitness : Type w
+  tateWitness : TateWitness
+  tateIndex : TateWitness → realization.ObjectIndex
+  p1Index : TateWitness → realization.ObjectIndex
+  stabilizeWithTate : TateWitness → realization.ObjectIndex → realization.ObjectIndex
+  stabilizeWithP1 : TateWitness → realization.ObjectIndex → realization.ObjectIndex
+  tateObjectTarget :
+    ∀ witness : TateWitness,
+      let tateComparison := realization.comparisonData (tateIndex witness)
+      tateComparison.grothendieckComparisonTarget ∧
+        tateComparison.periodCompatibilityTarget
+  p1ObjectTarget :
+    ∀ witness : TateWitness,
+      let p1Comparison := realization.comparisonData (p1Index witness)
+      p1Comparison.grothendieckComparisonTarget ∧
+        p1Comparison.periodCompatibilityTarget
+  stabilizationComparisonTarget :
+    ∀ witness : TateWitness,
+      ∀ idx : realization.ObjectIndex,
+        let tateComparison := realization.comparisonData (stabilizeWithTate witness idx)
+        let p1Comparison := realization.comparisonData (stabilizeWithP1 witness idx)
+        tateComparison.grothendieckComparisonTarget ∧
+          p1Comparison.grothendieckComparisonTarget ∧
+          tateComparison.periodCompatibilityTarget ∧
+          p1Comparison.periodCompatibilityTarget
+  localizationRespectsStabilizationTarget : Prop
+  localizationRespectsStabilizationTarget_holds : localizationRespectsStabilizationTarget
+
+namespace GeometricTateStabilizationTarget
+
+def theoremTarget
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (target : GeometricTateStabilizationTarget ctx realization) : Prop :=
+  (∀ witness : target.TateWitness,
+      ∀ idx : realization.ObjectIndex,
+        let tateComparison := realization.comparisonData (target.stabilizeWithTate witness idx)
+        let p1Comparison := realization.comparisonData (target.stabilizeWithP1 witness idx)
+        tateComparison.grothendieckComparisonTarget ∧
+          p1Comparison.grothendieckComparisonTarget ∧
+          tateComparison.periodCompatibilityTarget ∧
+          p1Comparison.periodCompatibilityTarget) ∧
+    target.localizationRespectsStabilizationTarget
+
+theorem theoremTarget_holds
+    {ctx : ClassicalComparisonContext.{u, v}}
+    {realization : GeometricRealizationFunctorData ctx}
+    (target : GeometricTateStabilizationTarget ctx realization) :
+    target.theoremTarget :=
+  ⟨target.stabilizationComparisonTarget, target.localizationRespectsStabilizationTarget_holds⟩
+
+end GeometricTateStabilizationTarget
+
 /-- Theorem-target interface for functoriality of geometric correspondences on realization data. -/
 structure GeometricCorrespondenceFunctorialityTarget
     (ctx : ClassicalComparisonContext.{u, v})
@@ -698,6 +755,7 @@ structure GeometricLocalizationPackage
   a1Invariance : GeometricA1InvarianceTarget ctx realization
   nisnevichDescent : GeometricNisnevichDescentTarget ctx realization
   openClosedLocalization : GeometricOpenClosedLocalizationTarget ctx realization
+  tateStabilization : GeometricTateStabilizationTarget ctx realization
   correspondenceFunctoriality : GeometricCorrespondenceFunctorialityTarget ctx realization
   envelopeExactness : GeometricEnvelopeExactnessTarget ctx realization
   realizationCompatibilityTarget : Prop

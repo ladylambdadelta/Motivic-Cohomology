@@ -1,0 +1,20 @@
+import TraceCalc.PeriodConjectureAssumptionBoundary
+import TraceCalc.LayerBNonCore.Bridges.SourceHolographyToLayerD
+
+namespace AxiomCheckPeriodConjectureBoundary
+
+-- Public period-conjecture boundary status: the visible recognized-image scalar and framed
+-- theorem routes are sealed in code and audited here directly.
+-- Track A closes on this route. Remaining work is Track C statement transport,
+-- measurement-level equivalence audit, and label cleanup, not absence of a public theorem.
+
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.ScalarGrothendieckPeriodConjectureStatement
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.StructuredGrothendieckPeriodConjectureStatement
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.FramedGrothendieckPeriodConjectureStatement
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.scalar_grothendieck_period_conjecture_from_sealed_trace_calculus
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.structured_grothendieck_period_conjecture_from_sealed_trace_calculus
+#print axioms TraceCalc.PeriodConjectureAssumptionBoundary.framed_grothendieck_period_conjecture_from_sealed_trace_calculus
+#print axioms TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FoundationsBoundaryBridgeAuxiliaryData.concretePreferred_cbr_equivalence
+#print axioms TraceCalc.LayerB.RealObjects.RewriteCalculusSetup.FoundationsBoundaryBridgeAuxiliaryData.concretePreferred_classical_period_conjecture
+
+end AxiomCheckPeriodConjectureBoundary

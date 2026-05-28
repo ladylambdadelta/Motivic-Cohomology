@@ -1,3 +1,6 @@
+import Mathlib.CategoryTheory.Idempotents.Karoubi
+import Mathlib.Algebra.Group.MinimalAxioms
+import Mathlib.CategoryTheory.Preadditive.Basic
 import TraceCalc.LayerA.CategoryInfra.Pretriangulated
 
 universe u v
@@ -5,556 +8,478 @@ universe u v
 namespace TraceCalc
 namespace CategoryInfra
 
-/-- Quotient data defining the canonical `H^0` homs as cycles modulo a chosen
-boundary equivalence relation. -/
-structure H0QuotientData {C} (P : PretriangulatedHull C) where
-  cycles : ∀ {X Y : P.hull.Obj}, P.hull.HomComplex X Y → Prop
-  boundaries : ∀ {X Y : P.hull.Obj}, P.hull.HomComplex X Y → Prop
-  boundaryRel :
-    ∀ {X Y : P.hull.Obj},
-      { f : P.hull.HomComplex X Y // cycles f } →
-        { g : P.hull.HomComplex X Y // cycles g } → Prop
+/-- Canonical `H^0` target attached to a standard dg category: degree-zero cycles
+modulo degree-(-1) boundaries. The relation itself is fixed canonically; the
+remaining fields assert the standard quotient/category compatibility facts. -/
+structure StandardH0CategoryTarget (C : StandardDGCategoryLike.{u, v}) where
+  dgData : StandardDGCategoryData C
   boundaryRel_refl :
-    ∀ {X Y : P.hull.Obj} (f : { f : P.hull.HomComplex X Y // cycles f }),
-      boundaryRel f f
+    ∀ {X Y : C.Obj} (f : C.CycleHom X Y),
+      C.boundaryRel f f
   boundaryRel_symm :
-    ∀ {X Y : P.hull.Obj} {f g : { f : P.hull.HomComplex X Y // cycles f }},
-      boundaryRel f g → boundaryRel g f
+    ∀ {X Y : C.Obj} {f g : C.CycleHom X Y},
+      C.boundaryRel f g → C.boundaryRel g f
   boundaryRel_trans :
-    ∀ {X Y : P.hull.Obj} {f g h : { f : P.hull.HomComplex X Y // cycles f }},
-      boundaryRel f g → boundaryRel g h → boundaryRel f h
-  toH0Functor : P.hull.differentialSquaredZero
+    ∀ {X Y : C.Obj} {f g h : C.CycleHom X Y},
+      C.boundaryRel f g → C.boundaryRel g h → C.boundaryRel f h
+  comp_respects_boundary_left :
+    ∀ {X Y Z : C.Obj}
+      {f f' : C.CycleHom X Y} (g : C.CycleHom Y Z),
+        C.boundaryRel f f' →
+          C.boundaryRel
+            ⟨C.comp f.1 g.1, dgData.laws.closed_comp f g⟩
+            ⟨C.comp f'.1 g.1, dgData.laws.closed_comp f' g⟩
+  comp_respects_boundary_right :
+    ∀ {X Y Z : C.Obj}
+      (f : C.CycleHom X Y) {g g' : C.CycleHom Y Z},
+        C.boundaryRel g g' →
+          C.boundaryRel
+            ⟨C.comp f.1 g.1, dgData.laws.closed_comp f g⟩
+            ⟨C.comp f.1 g'.1, dgData.laws.closed_comp f g'⟩
 
-namespace H0QuotientData
+namespace StandardH0CategoryTarget
 
-abbrev CycleHom {C} {P : PretriangulatedHull C}
-    (data : H0QuotientData P) (X Y : P.hull.Obj) : Type v :=
-  { f : P.hull.HomComplex X Y // data.cycles f }
+def ofZeroDifferential {C : StandardDGCategoryLike.{u, v}}
+    (dgData : StandardDGCategoryData C)
+    (differential_zero :
+      ∀ {X Y : C.Obj} (n : Int) (f : C.Hom X Y n),
+        C.differential n f = C.zero (n + 1)) :
+    StandardH0CategoryTarget C := by
+  let boundaryRefl :
+      ∀ {X Y : C.Obj} (f : C.CycleHom X Y), C.boundaryRel f f := by
+    intro X Y f
+    refine ⟨C.zero (-1), ?_⟩
+    letI := StandardDGCategoryData.instAddCommGroupHom dgData X Y (-1)
+    letI := StandardDGCategoryData.instAddCommGroupHom dgData X Y 0
+    rw [differential_zero (-1) (C.zero (-1))]
+    calc
+      C.zero 0 = C.add 0 (C.neg 0 f.1) f.1 := by
+        symm
+        exact dgData.laws.add_left_neg 0 f.1
+      _ = C.add 0 f.1 (C.neg 0 f.1) := by
+        rw [dgData.laws.add_comm 0 (C.neg 0 f.1) f.1]
+      _ = C.sub 0 f.1 f.1 := rfl
+  let boundaryEq :
+      ∀ {X Y : C.Obj} {f g : C.CycleHom X Y}, C.boundaryRel f g → f = g := by
+    intro X Y f g hfg
+    rcases hfg with ⟨witness, hWitness⟩
+    letI := StandardDGCategoryData.instAddCommGroupHom dgData X Y (-1)
+    letI := StandardDGCategoryData.instAddCommGroupHom dgData X Y 0
+    have hSub : f.1 - g.1 = 0 := by
+      simpa [StandardDGCategoryLike.sub] using
+        (hWitness.symm.trans (differential_zero (-1) witness))
+    exact Subtype.ext (sub_eq_zero.mp hSub)
+  exact
+    { dgData := dgData
+      boundaryRel_refl := boundaryRefl
+      boundaryRel_symm := by
+        intro X Y f g hfg
+        rw [boundaryEq hfg]
+        exact boundaryRefl g
+      boundaryRel_trans := by
+        intro X Y f g h hfg hgh
+        rw [boundaryEq hfg, boundaryEq hgh]
+        exact boundaryRefl h
+      comp_respects_boundary_left := by
+        intro X Y Z f f' g hff'
+        rw [boundaryEq hff']
+        exact boundaryRefl ⟨C.comp f'.1 g.1, dgData.laws.closed_comp f' g⟩
+      comp_respects_boundary_right := by
+        intro X Y Z f g g' hgg'
+        rw [boundaryEq hgg']
+        exact boundaryRefl ⟨C.comp f.1 g'.1, dgData.laws.closed_comp f g'⟩ }
 
-def boundarySetoid {C} {P : PretriangulatedHull C}
-    (data : H0QuotientData P) (X Y : P.hull.Obj) : Setoid (data.CycleHom X Y) where
-  r := data.boundaryRel
-  iseqv := ⟨data.boundaryRel_refl, data.boundaryRel_symm, data.boundaryRel_trans⟩
+def boundarySetoid {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    (X Y : C.Obj) : Setoid (C.CycleHom X Y) where
+  r := C.boundaryRel
+  iseqv :=
+    ⟨target.boundaryRel_refl, target.boundaryRel_symm, target.boundaryRel_trans⟩
 
-abbrev H0Hom {C} {P : PretriangulatedHull C}
-    (data : H0QuotientData P) (X Y : P.hull.Obj) : Type v :=
-  Quotient (data.boundarySetoid X Y)
+abbrev H0Hom {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    (X Y : C.Obj) : Type v :=
+  Quotient (target.boundarySetoid X Y)
 
-def quotientMap {C} {P : PretriangulatedHull C}
-    (data : H0QuotientData P) {X Y : P.hull.Obj} :
-    data.CycleHom X Y → data.H0Hom X Y :=
-  Quotient.mk (data.boundarySetoid X Y)
+def quotientMap {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} :
+    C.CycleHom X Y → target.H0Hom X Y :=
+  Quotient.mk (target.boundarySetoid X Y)
 
-theorem quotientMap_eq_of_boundaryRel {C} {P : PretriangulatedHull C}
-    (data : H0QuotientData P) {X Y : P.hull.Obj}
-    {f g : data.CycleHom X Y} :
-    data.boundaryRel f g → data.quotientMap f = data.quotientMap g :=
-  fun h => Quotient.sound h
+def identity {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    (X : C.Obj) : target.H0Hom X X :=
+  target.quotientMap ⟨C.id X, target.dgData.laws.id_closed X⟩
 
-end H0QuotientData
+def composeCycle {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y Z : C.Obj} :
+    C.CycleHom X Y → C.CycleHom Y Z → C.CycleHom X Z :=
+  fun f g => ⟨C.comp f.1 g.1, target.dgData.laws.closed_comp f g⟩
+
+def compose {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y Z : C.Obj} :
+    target.H0Hom X Y → target.H0Hom Y Z → target.H0Hom X Z := by
+  intro left right
+  refine Quotient.liftOn₂ left right
+    (fun f g => target.quotientMap (target.composeCycle f g)) ?_
+  intro f g f' g' hff' hgg'
+  have hLeft := target.comp_respects_boundary_left g hff'
+  have hRight := target.comp_respects_boundary_right f' hgg'
+  exact Quotient.sound (target.boundaryRel_trans hLeft hRight)
+
+def zeroCycle {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} : C.CycleHom X Y :=
+  ⟨C.zero 0, by
+    simpa using target.dgData.laws.differential_zero (X := X) (Y := Y) 0⟩
+
+def addCycle {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} :
+    C.CycleHom X Y → C.CycleHom X Y → C.CycleHom X Y
+  | f, g =>
+      by
+        refine ⟨C.add 0 f.1 g.1, ?_⟩
+        calc
+          C.differential 0 (C.add 0 f.1 g.1)
+              = C.add 1 (C.differential 0 f.1) (C.differential 0 g.1) := by
+                  simpa using target.dgData.laws.differential_add 0 f.1 g.1
+          _ = C.add 1 (C.zero 1) (C.zero 1) := by rw [f.2, g.2]
+          _ = C.zero 1 := by exact target.dgData.laws.zero_add 1 (C.zero 1)
+
+def negCycle {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} :
+    C.CycleHom X Y → C.CycleHom X Y
+  | f =>
+      by
+        letI := StandardDGCategoryData.instAddCommGroupHom target.dgData X Y 1
+        refine ⟨C.neg 0 f.1, ?_⟩
+        rw [target.dgData.laws.differential_neg 0 f.1, f.2]
+        calc
+          C.neg 1 (C.zero 1) = C.add 1 (C.zero 1) (C.neg 1 (C.zero 1)) := by
+            symm
+            exact target.dgData.laws.zero_add 1 (C.neg 1 (C.zero 1))
+          _ = C.add 1 (C.neg 1 (C.zero 1)) (C.zero 1) := by
+            rw [target.dgData.laws.add_comm 1 (C.zero 1) (C.neg 1 (C.zero 1))]
+          _ = C.zero 1 := by
+            exact target.dgData.laws.add_left_neg 1 (C.zero 1)
+
+theorem boundaryRel_add {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj}
+    {f f' g g' : C.CycleHom X Y} :
+    C.boundaryRel f f' → C.boundaryRel g g' →
+      C.boundaryRel (target.addCycle f g) (target.addCycle f' g') := by
+  intro hff' hgg'
+  rcases hff' with ⟨leftWitness, hLeft⟩
+  rcases hgg' with ⟨rightWitness, hRight⟩
+  letI := StandardDGCategoryData.instAddCommGroupHom target.dgData X Y 0
+  refine ⟨C.add (-1) leftWitness rightWitness, ?_⟩
+  change C.differential (-1) (C.add (-1) leftWitness rightWitness) =
+    C.sub 0 (target.addCycle f g).1 (target.addCycle f' g').1
+  calc
+    C.differential (-1) (C.add (-1) leftWitness rightWitness)
+        = C.add 0 (C.differential (-1) leftWitness) (C.differential (-1) rightWitness) := by
+            simpa using target.dgData.laws.differential_add (-1) leftWitness rightWitness
+    _ = C.add 0 (C.sub 0 f.1 f'.1) (C.sub 0 g.1 g'.1) := by rw [hLeft, hRight]
+    _ = C.sub 0 (C.add 0 f.1 g.1) (C.add 0 f'.1 g'.1) := by
+          change (f.1 - f'.1) + (g.1 - g'.1) = (f.1 + g.1) - (f'.1 + g'.1)
+          simp [sub_eq_add_neg, add_assoc, add_left_comm, add_comm]
+    _ = C.sub 0 (target.addCycle f g).1 (target.addCycle f' g').1 := by rfl
+
+theorem boundaryRel_neg {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj}
+    {f f' : C.CycleHom X Y} :
+    C.boundaryRel f f' → C.boundaryRel (target.negCycle f) (target.negCycle f') := by
+  intro hff'
+  rcases hff' with ⟨witness, hWitness⟩
+  letI := StandardDGCategoryData.instAddCommGroupHom target.dgData X Y 0
+  refine ⟨C.neg (-1) witness, ?_⟩
+  change C.differential (-1) (C.neg (-1) witness) =
+    C.sub 0 (target.negCycle f).1 (target.negCycle f').1
+  calc
+    C.differential (-1) (C.neg (-1) witness)
+        = C.neg 0 (C.differential (-1) witness) := by
+            simpa using target.dgData.laws.differential_neg (-1) witness
+    _ = C.neg 0 (C.sub 0 f.1 f'.1) := by rw [hWitness]
+    _ = C.sub 0 (C.neg 0 f.1) (C.neg 0 f'.1) := by
+          change -(f.1 - f'.1) = (-f.1) - (-f'.1)
+          simp [sub_eq_add_neg, add_assoc, add_left_comm, add_comm]
+    _ = C.sub 0 (target.negCycle f).1 (target.negCycle f').1 := by rfl
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} : Zero (target.H0Hom X Y) where
+  zero := target.quotientMap target.zeroCycle
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} : Add (target.H0Hom X Y) where
+  add left right := by
+    refine Quotient.liftOn₂ left right
+      (fun f g => target.quotientMap (target.addCycle f g)) ?_
+    intro f g f' g' hff' hgg'
+    exact Quotient.sound (target.boundaryRel_add hff' hgg')
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} : Neg (target.H0Hom X Y) where
+  neg morphism := by
+    refine Quotient.liftOn morphism (fun f => target.quotientMap (target.negCycle f)) ?_
+    intro f g hfg
+    exact Quotient.sound (target.boundaryRel_neg hfg)
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} : AddCommGroup (target.H0Hom X Y) := by
+  letI : AddGroup (target.H0Hom X Y) :=
+    AddGroup.ofLeftAxioms
+      (by
+        intro a b c
+        refine Quotient.inductionOn₃ a b c ?_
+        intro f g h
+        let rightRep : C.CycleHom X Y := target.addCycle f (target.addCycle g h)
+        have hleft : target.addCycle (target.addCycle f g) h = rightRep := by
+          apply Subtype.ext
+          change C.add 0 (C.add 0 f.1 g.1) h.1 = rightRep.1
+          simpa [rightRep, StandardH0CategoryTarget.addCycle] using
+            target.dgData.laws.add_assoc 0 f.1 g.1 h.1
+        exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep))
+      (by
+        intro a
+        refine Quotient.inductionOn a ?_
+        intro f
+        let rightRep : C.CycleHom X Y := f
+        have hleft : target.addCycle target.zeroCycle f = rightRep := by
+          apply Subtype.ext
+          change C.add 0 (C.zero 0) f.1 = rightRep.1
+          simpa [rightRep] using target.dgData.laws.zero_add 0 f.1
+        exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep))
+      (by
+        intro a
+        refine Quotient.inductionOn a ?_
+        intro f
+        let rightRep : C.CycleHom X Y := target.zeroCycle (X := X) (Y := Y)
+        have hleft : target.addCycle (target.negCycle f) f = rightRep := by
+          apply Subtype.ext
+          change C.add 0 (C.neg 0 f.1) f.1 = rightRep.1
+          simpa [rightRep, StandardH0CategoryTarget.zeroCycle] using
+            target.dgData.laws.add_left_neg 0 f.1
+        exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep))
+  let addGroupInst : AddGroup (target.H0Hom X Y) := inferInstance
+  exact
+    { addGroupInst with
+      add_comm := by
+        intro a b
+        refine Quotient.inductionOn₂ a b ?_
+        intro f g
+        let rightRep : C.CycleHom X Y := target.addCycle g f
+        have hleft : target.addCycle f g = rightRep := by
+          apply Subtype.ext
+          change C.add 0 f.1 g.1 = rightRep.1
+          simpa [rightRep, StandardH0CategoryTarget.addCycle] using
+            target.dgData.laws.add_comm 0 f.1 g.1
+        exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep) }
+
+theorem identity_comp {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} (f : target.H0Hom X Y) :
+    target.compose (target.identity X) f = f := by
+  refine Quotient.inductionOn f ?_
+  intro representative
+  change target.quotientMap
+      ⟨C.comp (C.id X) representative.1,
+        target.dgData.laws.closed_comp ⟨C.id X, target.dgData.laws.id_closed X⟩ representative⟩ =
+    target.quotientMap representative
+  apply Quotient.sound
+  change C.boundaryRel
+      ⟨C.comp (C.id X) representative.1,
+        target.dgData.laws.closed_comp ⟨C.id X, target.dgData.laws.id_closed X⟩ representative⟩
+      representative
+  let rightRep : C.CycleHom X Y := representative
+  have hleft :
+      (⟨C.comp (C.id X) representative.1,
+          target.dgData.laws.closed_comp ⟨C.id X, target.dgData.laws.id_closed X⟩ representative⟩ :
+        C.CycleHom X Y) = rightRep := by
+    apply Subtype.ext
+    simpa using target.dgData.laws.id_comp representative.1
+  simpa [hleft] using target.boundaryRel_refl rightRep
+
+theorem comp_identity {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {X Y : C.Obj} (f : target.H0Hom X Y) :
+    target.compose f (target.identity Y) = f := by
+  refine Quotient.inductionOn f ?_
+  intro representative
+  change target.quotientMap
+      ⟨C.comp representative.1 (C.id Y),
+        target.dgData.laws.closed_comp representative ⟨C.id Y, target.dgData.laws.id_closed Y⟩⟩ =
+    target.quotientMap representative
+  apply Quotient.sound
+  change C.boundaryRel
+      ⟨C.comp representative.1 (C.id Y),
+        target.dgData.laws.closed_comp representative ⟨C.id Y, target.dgData.laws.id_closed Y⟩⟩
+      representative
+  let rightRep : C.CycleHom X Y := representative
+  have hleft :
+      (⟨C.comp representative.1 (C.id Y),
+          target.dgData.laws.closed_comp representative ⟨C.id Y, target.dgData.laws.id_closed Y⟩⟩ :
+        C.CycleHom X Y) = rightRep := by
+    apply Subtype.ext
+    simpa using target.dgData.laws.comp_id representative.1
+  simpa [hleft] using target.boundaryRel_refl rightRep
+
+theorem composition_assoc {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C)
+    {W X Y Z : C.Obj}
+    (f : target.H0Hom W X)
+    (g : target.H0Hom X Y)
+    (h : target.H0Hom Y Z) :
+    target.compose (target.compose f g) h =
+      target.compose f (target.compose g h) := by
+  refine Quotient.inductionOn₃ f g h ?_
+  intro fRep gRep hRep
+  change target.quotientMap
+      ⟨C.comp (C.comp fRep.1 gRep.1) hRep.1,
+        target.dgData.laws.closed_comp
+          ⟨C.comp fRep.1 gRep.1, target.dgData.laws.closed_comp fRep gRep⟩ hRep⟩ =
+    target.quotientMap
+      ⟨C.comp fRep.1 (C.comp gRep.1 hRep.1),
+        target.dgData.laws.closed_comp fRep
+          ⟨C.comp gRep.1 hRep.1, target.dgData.laws.closed_comp gRep hRep⟩⟩
+  apply Quotient.sound
+  change C.boundaryRel
+      ⟨C.comp (C.comp fRep.1 gRep.1) hRep.1,
+        target.dgData.laws.closed_comp
+          ⟨C.comp fRep.1 gRep.1, target.dgData.laws.closed_comp fRep gRep⟩ hRep⟩
+      ⟨C.comp fRep.1 (C.comp gRep.1 hRep.1),
+        target.dgData.laws.closed_comp fRep
+          ⟨C.comp gRep.1 hRep.1, target.dgData.laws.closed_comp gRep hRep⟩⟩
+  let rightRep : C.CycleHom W Z :=
+    ⟨C.comp fRep.1 (C.comp gRep.1 hRep.1),
+      target.dgData.laws.closed_comp fRep
+        ⟨C.comp gRep.1 hRep.1, target.dgData.laws.closed_comp gRep hRep⟩⟩
+  have hleft :
+      (⟨C.comp (C.comp fRep.1 gRep.1) hRep.1,
+          target.dgData.laws.closed_comp
+            ⟨C.comp fRep.1 gRep.1, target.dgData.laws.closed_comp fRep gRep⟩ hRep⟩ :
+        C.CycleHom W Z) = rightRep := by
+    apply Subtype.ext
+    simpa [Int.add_assoc] using target.dgData.laws.comp_assoc fRep.1 gRep.1 hRep.1
+  simpa [hleft] using target.boundaryRel_refl rightRep
+
+/-- Wrapper exposing the canonical standard `H^0` quotient as a mathlib category. -/
+structure AsCategory {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) where
+  obj : C.Obj
+
+namespace AsCategory
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C) :
+    CategoryTheory.Category (AsCategory target) where
+  Hom X Y := target.H0Hom X.obj Y.obj
+  id X := target.identity X.obj
+  comp f g := target.compose f g
+  id_comp := by
+    intro X Y f
+    exact target.identity_comp f
+  comp_id := by
+    intro X Y f
+    exact target.comp_identity f
+  assoc := by
+    intro W X Y Z f g h
+    exact target.composition_assoc f g h
+
+instance {C : StandardDGCategoryLike.{u, v}} (target : StandardH0CategoryTarget C) :
+    CategoryTheory.Preadditive (AsCategory target) where
+  homGroup X Y := inferInstanceAs (AddCommGroup (target.H0Hom X.obj Y.obj))
+  add_comp P Q R f f' g := by
+    letI : AddCommGroup (P ⟶ Q) := inferInstanceAs (AddCommGroup (target.H0Hom P.obj Q.obj))
+    letI : AddCommGroup (P ⟶ R) := inferInstanceAs (AddCommGroup (target.H0Hom P.obj R.obj))
+    refine Quotient.inductionOn₃ f f' g ?_
+    intro fRep fRep' gRep
+    change target.quotientMap (target.composeCycle (target.addCycle fRep fRep') gRep) =
+      target.quotientMap
+        (target.addCycle (target.composeCycle fRep gRep) (target.composeCycle fRep' gRep))
+    let rightRep : C.CycleHom P.obj R.obj :=
+      target.addCycle (target.composeCycle fRep gRep) (target.composeCycle fRep' gRep)
+    letI := StandardDGCategoryData.instAddCommGroupHom target.dgData P.obj Q.obj 0
+    letI := StandardDGCategoryData.instAddCommGroupHom target.dgData P.obj R.obj 0
+    have hleft : target.composeCycle (target.addCycle fRep fRep') gRep = rightRep := by
+      apply Subtype.ext
+      change (target.composeCycle (target.addCycle fRep fRep') gRep).1 = rightRep.1
+      simpa [rightRep, StandardH0CategoryTarget.addCycle, StandardH0CategoryTarget.composeCycle] using
+        target.dgData.laws.comp_add_left fRep.1 fRep'.1 gRep.1
+    exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep)
+  comp_add P Q R f g g' := by
+    letI : AddCommGroup (Q ⟶ R) := inferInstanceAs (AddCommGroup (target.H0Hom Q.obj R.obj))
+    letI : AddCommGroup (P ⟶ R) := inferInstanceAs (AddCommGroup (target.H0Hom P.obj R.obj))
+    refine Quotient.inductionOn₃ f g g' ?_
+    intro fRep gRep gRep'
+    change target.quotientMap (target.composeCycle fRep (target.addCycle gRep gRep')) =
+      target.quotientMap
+        (target.addCycle (target.composeCycle fRep gRep) (target.composeCycle fRep gRep'))
+    let rightRep : C.CycleHom P.obj R.obj :=
+      target.addCycle (target.composeCycle fRep gRep) (target.composeCycle fRep gRep')
+    letI := StandardDGCategoryData.instAddCommGroupHom target.dgData Q.obj R.obj 0
+    letI := StandardDGCategoryData.instAddCommGroupHom target.dgData P.obj R.obj 0
+    have hleft : target.composeCycle fRep (target.addCycle gRep gRep') = rightRep := by
+      apply Subtype.ext
+      change (target.composeCycle fRep (target.addCycle gRep gRep')).1 = rightRep.1
+      simpa [rightRep, StandardH0CategoryTarget.addCycle, StandardH0CategoryTarget.composeCycle] using
+        target.dgData.laws.comp_add_right fRep.1 gRep.1 gRep'.1
+    exact Quotient.sound (by simpa [hleft] using target.boundaryRel_refl rightRep)
+
+@[simp] def ofObj {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) (X : C.Obj) : AsCategory target :=
+  ⟨X⟩
+
+@[simp] theorem ofObj_obj {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) (X : C.Obj) :
+  (ofObj target X).obj = X :=
+  rfl
+
+/-- Mathlib Karoubi completion of the canonical standard `H^0` category. -/
+abbrev KaroubiCompletion {C : StandardDGCategoryLike.{u, v}}
+  (target : StandardH0CategoryTarget C) : Type _ :=
+  CategoryTheory.Idempotents.Karoubi (AsCategory target)
+
+/-- The standard embedding of the canonical `H^0` category into its Karoubi completion. -/
+abbrev toKaroubi {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) :
+    CategoryTheory.Functor (AsCategory target) (KaroubiCompletion target) :=
+  CategoryTheory.Idempotents.toKaroubi (AsCategory target)
+
+@[simp] def karoubiOfObj {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) (X : C.Obj) : KaroubiCompletion target :=
+  ((ofObj target X : AsCategory target) : CategoryTheory.Idempotents.Karoubi (AsCategory target))
+
+@[simp] def karoubiCarrier {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) (P : KaroubiCompletion target) : C.Obj :=
+  P.X.obj
+
+@[simp] theorem karoubiCarrier_ofObj {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) (X : C.Obj) :
+  karoubiCarrier target (karoubiOfObj target X) = X :=
+  rfl
+
+theorem karoubi_idempotentComplete {C : StandardDGCategoryLike.{u, v}}
+    (target : StandardH0CategoryTarget C) :
+    CategoryTheory.IsIdempotentComplete (KaroubiCompletion target) :=
+  inferInstance
+
+end AsCategory
+
+end StandardH0CategoryTarget
 
 /-- Triangulated/localization data carried by the `H^0` passage once the
 canonical hom quotients are fixed. -/
 structure H0TriangulatedData {C} (P : PretriangulatedHull C) where
-  distinguishedTriangles : P.coneClosed
-  triangulatedAxioms : P.shiftClosed ∧ P.coneClosed
-  localizationAtAcyclics : P.universalProperty
-
-/-- Layer B raw data needed to define canonical `H^0` hom quotients before
-transport into a hull. -/
-structure LayerBHomComplexData where
-  objects : Type u
-  morphismData : objects → objects → Type v
-  differentialRel : ∀ {X Y : objects}, morphismData X Y → morphismData X Y → Prop
-  cycles : ∀ {X Y : objects}, morphismData X Y → Prop
-  boundaries : ∀ {X Y : objects}, morphismData X Y → Prop
-  boundaryRel :
-    ∀ {X Y : objects},
-      { f : morphismData X Y // cycles f } →
-        { g : morphismData X Y // cycles g } → Prop
-  boundaryRel_refl :
-    ∀ {X Y : objects} (f : { f : morphismData X Y // cycles f }),
-      boundaryRel f f
-  boundaryRel_symm :
-    ∀ {X Y : objects} {f g : { f : morphismData X Y // cycles f }},
-      boundaryRel f g → boundaryRel g f
-  boundaryRel_trans :
-    ∀ {X Y : objects} {f g h : { f : morphismData X Y // cycles f }},
-      boundaryRel f g → boundaryRel g h → boundaryRel f h
-
-namespace LayerBHomComplexData
-
-abbrev CycleHom (data : LayerBHomComplexData) (X Y : data.objects) : Type v :=
-  { f : data.morphismData X Y // data.cycles f }
-
-def boundarySetoid (data : LayerBHomComplexData) (X Y : data.objects) : Setoid (data.CycleHom X Y) where
-  r := data.boundaryRel
-  iseqv := ⟨data.boundaryRel_refl, data.boundaryRel_symm, data.boundaryRel_trans⟩
-
-abbrev H0Hom (data : LayerBHomComplexData) (X Y : data.objects) : Type v :=
-  Quotient (data.boundarySetoid X Y)
-
-def quotientMap (data : LayerBHomComplexData) {X Y : data.objects} :
-    data.CycleHom X Y → data.H0Hom X Y :=
-  Quotient.mk (data.boundarySetoid X Y)
-
-end LayerBHomComplexData
-
-/-- Source-side dg data whose cycle quotient canonically determines the `H^0`
-homs on the hull. -/
-structure LayerBPretriangulatedDGSourceData {C} (P : PretriangulatedHull C) where
-  objects : Type u
-  objectEquiv : objects ≃ P.hull.Obj
-  morphismComplex : objects → objects → Type v
-  morphismComplexEquiv :
-    ∀ X Y : objects,
-      morphismComplex X Y ≃ P.hull.HomComplex (objectEquiv X) (objectEquiv Y)
-  cycles : ∀ {X Y : objects}, morphismComplex X Y → Prop
-  boundaries : ∀ {X Y : objects}, morphismComplex X Y → Prop
-  boundaryRel :
-    ∀ {X Y : objects},
-      { f : morphismComplex X Y // cycles f } →
-        { g : morphismComplex X Y // cycles g } → Prop
-  boundaryRel_refl :
-    ∀ {X Y : objects} (f : { f : morphismComplex X Y // cycles f }),
-      boundaryRel f f
-  boundaryRel_symm :
-    ∀ {X Y : objects} {f g : { f : morphismComplex X Y // cycles f }},
-      boundaryRel f g → boundaryRel g f
-  boundaryRel_trans :
-    ∀ {X Y : objects} {f g h : { f : morphismComplex X Y // cycles f }},
-      boundaryRel f g → boundaryRel g h → boundaryRel f h
-  toH0Functor : P.hull.differentialSquaredZero
-
-namespace LayerBPretriangulatedDGSourceData
-
-abbrev CycleHom {C} {P : PretriangulatedHull C}
-    (data : LayerBPretriangulatedDGSourceData P) (X Y : data.objects) : Type v :=
-  { f : data.morphismComplex X Y // data.cycles f }
-
-def boundarySetoid {C} {P : PretriangulatedHull C}
-    (data : LayerBPretriangulatedDGSourceData P) (X Y : data.objects) : Setoid (data.CycleHom X Y) where
-  r := data.boundaryRel
-  iseqv := ⟨data.boundaryRel_refl, data.boundaryRel_symm, data.boundaryRel_trans⟩
-
-abbrev H0Hom {C} {P : PretriangulatedHull C}
-    (data : LayerBPretriangulatedDGSourceData P) (X Y : data.objects) : Type v :=
-  Quotient (data.boundarySetoid X Y)
-
-def quotientMap {C} {P : PretriangulatedHull C}
-    (data : LayerBPretriangulatedDGSourceData P) {X Y : data.objects} :
-    data.CycleHom X Y → data.H0Hom X Y :=
-  Quotient.mk (data.boundarySetoid X Y)
-
-end LayerBPretriangulatedDGSourceData
-
-namespace LayerBHomComplexData
-
-def toPretriangulatedDGSourceData {C} {P : PretriangulatedHull C}
-    (homData : LayerBHomComplexData)
-    (objectEquiv : homData.objects ≃ P.hull.Obj)
-    (morphismComplexEquiv :
-      ∀ X Y : homData.objects,
-        homData.morphismData X Y ≃ P.hull.HomComplex (objectEquiv X) (objectEquiv Y))
-    (toH0Functor : P.hull.differentialSquaredZero) : LayerBPretriangulatedDGSourceData P where
-  objects := homData.objects
-  objectEquiv := objectEquiv
-  morphismComplex := homData.morphismData
-  morphismComplexEquiv := morphismComplexEquiv
-  cycles := @homData.cycles
-  boundaries := @homData.boundaries
-  boundaryRel := @homData.boundaryRel
-  boundaryRel_refl := @homData.boundaryRel_refl
-  boundaryRel_symm := @homData.boundaryRel_symm
-  boundaryRel_trans := @homData.boundaryRel_trans
-  toH0Functor := toH0Functor
-
-@[simp] theorem toPretriangulatedDGSourceData_objects
-    {C} {P : PretriangulatedHull C}
-    (homData : LayerBHomComplexData)
-    (objectEquiv : homData.objects ≃ P.hull.Obj)
-    (morphismComplexEquiv :
-      ∀ X Y : homData.objects,
-        homData.morphismData X Y ≃ P.hull.HomComplex (objectEquiv X) (objectEquiv Y))
-    (toH0Functor : P.hull.differentialSquaredZero) :
-    (homData.toPretriangulatedDGSourceData objectEquiv morphismComplexEquiv
-      toH0Functor).objects = homData.objects :=
-  rfl
-
-end LayerBHomComplexData
-
-namespace LayerBPretriangulatedDGSourceData
-
-def toH0QuotientData {C} {P : PretriangulatedHull C}
-    (sourceData : LayerBPretriangulatedDGSourceData P) : H0QuotientData P :=
-  let pullback : ∀ {X Y : P.hull.Obj}, P.hull.HomComplex X Y →
-      sourceData.morphismComplex (sourceData.objectEquiv.symm X) (sourceData.objectEquiv.symm Y) :=
-    fun {X} {Y} morphism =>
-      let transported :
-          P.hull.HomComplex
-            (sourceData.objectEquiv (sourceData.objectEquiv.symm X))
-            (sourceData.objectEquiv (sourceData.objectEquiv.symm Y)) := by
-        simpa using morphism
-      (sourceData.morphismComplexEquiv
-        (sourceData.objectEquiv.symm X)
-        (sourceData.objectEquiv.symm Y)).symm transported
-  { cycles := fun morphism => sourceData.cycles (pullback morphism)
-    boundaries := fun morphism => sourceData.boundaries (pullback morphism)
-    boundaryRel := fun f g =>
-      sourceData.boundaryRel
-        ⟨pullback f.1, f.2⟩
-        ⟨pullback g.1, g.2⟩
-    boundaryRel_refl := by
-      intro X Y f
-      exact sourceData.boundaryRel_refl ⟨pullback f.1, f.2⟩
-    boundaryRel_symm := by
-      intro X Y f g hfg
-      exact sourceData.boundaryRel_symm hfg
-    boundaryRel_trans := by
-      intro X Y f g h hfg hgh
-      exact sourceData.boundaryRel_trans hfg hgh
-    toH0Functor := sourceData.toH0Functor }
-
-end LayerBPretriangulatedDGSourceData
-
-/-- Canonical `H^0` category construction data carried by cycle representatives,
-their quotient homs, and the induced category laws. -/
-structure H0Category {C} (P : PretriangulatedHull C) where
-  quotientData : H0QuotientData P
-  idCycle : ∀ X : P.hull.Obj, quotientData.CycleHom X X
-  compCycle : ∀ {X Y Z : P.hull.Obj},
-    quotientData.CycleHom X Y → quotientData.CycleHom Y Z → quotientData.CycleHom X Z
-  comp_respects_boundary_left :
-    ∀ {X Y Z : P.hull.Obj}
-      {f f' : quotientData.CycleHom X Y} (g : quotientData.CycleHom Y Z),
-        quotientData.boundaryRel f f' →
-          quotientData.boundaryRel (compCycle f g) (compCycle f' g)
-  comp_respects_boundary_right :
-    ∀ {X Y Z : P.hull.Obj}
-      (f : quotientData.CycleHom X Y) {g g' : quotientData.CycleHom Y Z},
-        quotientData.boundaryRel g g' →
-          quotientData.boundaryRel (compCycle f g) (compCycle f g')
-  id_comp
-    :
-    ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-      quotientData.boundaryRel (compCycle (idCycle X) f) f
-  comp_id
-    :
-    ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-      quotientData.boundaryRel (compCycle f (idCycle Y)) f
-  assoc :
-    ∀ {W X Y Z : P.hull.Obj}
-      (f : quotientData.CycleHom W X)
-      (g : quotientData.CycleHom X Y)
-      (h : quotientData.CycleHom Y Z),
-        quotientData.boundaryRel
-          (compCycle (compCycle f g) h)
-          (compCycle f (compCycle g h))
-  distinguishedTriangles : P.coneClosed
-  triangulatedAxioms : P.shiftClosed ∧ P.coneClosed
-  localizationAtAcyclics : P.universalProperty
-
-namespace H0Category
-
-abbrev CycleHom {C} {P : PretriangulatedHull C}
-    (data : H0Category P) (X Y : P.hull.Obj) : Type v :=
-  data.quotientData.CycleHom X Y
-
-abbrev H0Hom {C} {P : PretriangulatedHull C}
-    (data : H0Category P) (X Y : P.hull.Obj) : Type v :=
-  data.quotientData.H0Hom X Y
-
-def boundarySetoid {C} {P : PretriangulatedHull C}
-    (data : H0Category P) (X Y : P.hull.Obj) : Setoid (data.CycleHom X Y) :=
-  data.quotientData.boundarySetoid X Y
-
-def quotientMap {C} {P : PretriangulatedHull C}
-    (data : H0Category P) {X Y : P.hull.Obj} :
-    data.CycleHom X Y → data.H0Hom X Y :=
-  data.quotientData.quotientMap
-
-def identity {C} {P : PretriangulatedHull C}
-    (data : H0Category P) (X : P.hull.Obj) : data.H0Hom X X :=
-  data.quotientMap (data.idCycle X)
-
-def compose {C} {P : PretriangulatedHull C}
-    (data : H0Category P) {X Y Z : P.hull.Obj} :
-    data.H0Hom X Y → data.H0Hom Y Z → data.H0Hom X Z := by
-  intro left right
-  refine Quotient.liftOn₂ left right
-    (fun f g => data.quotientMap (data.compCycle f g)) ?_
-  intro f g f' g' hff' hgg'
-  have hLeft :
-      data.quotientData.boundaryRel (data.compCycle f g) (data.compCycle f' g) :=
-    @H0Category.comp_respects_boundary_left _ _ data X Y Z f f' g hff'
-  have hRight :
-      data.quotientData.boundaryRel (data.compCycle f' g) (data.compCycle f' g') :=
-    @H0Category.comp_respects_boundary_right _ _ data X Y Z f' g g' hgg'
-  apply data.quotientData.quotientMap_eq_of_boundaryRel
-  exact data.quotientData.boundaryRel_trans hLeft hRight
-
-abbrev toH0Functor {C} {P : PretriangulatedHull C}
-    (data : H0Category P) : P.hull.differentialSquaredZero :=
-  data.quotientData.toH0Functor
-
-def triangulatedData {C} {P : PretriangulatedHull C}
-    (data : H0Category P) : H0TriangulatedData P where
-  distinguishedTriangles := data.distinguishedTriangles
-  triangulatedAxioms := data.triangulatedAxioms
-  localizationAtAcyclics := data.localizationAtAcyclics
-
-theorem identity_comp {C} {P : PretriangulatedHull C}
-    (data : H0Category P) {X Y : P.hull.Obj} (f : data.H0Hom X Y) :
-    data.compose (data.identity X) f = f := by
-  refine Quotient.inductionOn f ?_
-  intro representative
-  change data.quotientMap (data.compCycle (data.idCycle X) representative) =
-    data.quotientMap representative
-  exact data.quotientData.quotientMap_eq_of_boundaryRel (data.id_comp representative)
-
-theorem comp_identity {C} {P : PretriangulatedHull C}
-    (data : H0Category P) {X Y : P.hull.Obj} (f : data.H0Hom X Y) :
-    data.compose f (data.identity Y) = f := by
-  refine Quotient.inductionOn f ?_
-  intro representative
-  change data.quotientMap (data.compCycle representative (data.idCycle Y)) =
-    data.quotientMap representative
-  exact data.quotientData.quotientMap_eq_of_boundaryRel (data.comp_id representative)
-
-theorem composition_assoc {C} {P : PretriangulatedHull C}
-    (data : H0Category P)
-    {W X Y Z : P.hull.Obj}
-    (f : data.H0Hom W X)
-    (g : data.H0Hom X Y)
-    (h : data.H0Hom Y Z) :
-    data.compose (data.compose f g) h = data.compose f (data.compose g h) := by
-  refine Quotient.inductionOn₃ f g h ?_
-  intro fRep gRep hRep
-  change data.quotientMap (data.compCycle (data.compCycle fRep gRep) hRep) =
-    data.quotientMap (data.compCycle fRep (data.compCycle gRep hRep))
-  exact data.quotientData.quotientMap_eq_of_boundaryRel (data.assoc fRep gRep hRep)
-
-def ofPieces {C} {P : PretriangulatedHull C}
-    (quotientData : H0QuotientData P)
-    (idCycle : ∀ X : P.hull.Obj, quotientData.CycleHom X X)
-    (compCycle : ∀ {X Y Z : P.hull.Obj},
-      quotientData.CycleHom X Y → quotientData.CycleHom Y Z → quotientData.CycleHom X Z)
-    (comp_respects_boundary_left :
-      ∀ {X Y Z : P.hull.Obj}
-        {f f' : quotientData.CycleHom X Y} (g : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel f f' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f' g))
-    (comp_respects_boundary_right :
-      ∀ {X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom X Y) {g g' : quotientData.CycleHom Y Z},
-          quotientData.boundaryRel g g' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f g'))
-    (id_comp
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle (idCycle X) f) f)
-    (comp_id
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle f (idCycle Y)) f)
-    (assoc :
-      ∀ {W X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom W X)
-        (g : quotientData.CycleHom X Y)
-        (h : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel
-            (compCycle (compCycle f g) h)
-            (compCycle f (compCycle g h)))
-    (triangulatedData : H0TriangulatedData P) : H0Category P where
-  quotientData := quotientData
-  idCycle := idCycle
-  compCycle := compCycle
-  comp_respects_boundary_left := comp_respects_boundary_left
-  comp_respects_boundary_right := comp_respects_boundary_right
-  id_comp
-    := id_comp
-  comp_id
-    := comp_id
-  assoc := assoc
-  distinguishedTriangles := triangulatedData.distinguishedTriangles
-  triangulatedAxioms := triangulatedData.triangulatedAxioms
-  localizationAtAcyclics := triangulatedData.localizationAtAcyclics
-
-def ofSourcePieces {C} {P : PretriangulatedHull C}
-    (sourceData : LayerBPretriangulatedDGSourceData P)
-    (idCycle : ∀ X : P.hull.Obj, sourceData.toH0QuotientData.CycleHom X X)
-    (compCycle : ∀ {X Y Z : P.hull.Obj},
-      sourceData.toH0QuotientData.CycleHom X Y →
-        sourceData.toH0QuotientData.CycleHom Y Z →
-          sourceData.toH0QuotientData.CycleHom X Z)
-    (comp_respects_boundary_left :
-      ∀ {X Y Z : P.hull.Obj}
-        {f f' : sourceData.toH0QuotientData.CycleHom X Y}
-        (g : sourceData.toH0QuotientData.CycleHom Y Z),
-          sourceData.toH0QuotientData.boundaryRel f f' →
-            sourceData.toH0QuotientData.boundaryRel (compCycle f g) (compCycle f' g))
-    (comp_respects_boundary_right :
-      ∀ {X Y Z : P.hull.Obj}
-        (f : sourceData.toH0QuotientData.CycleHom X Y)
-        {g g' : sourceData.toH0QuotientData.CycleHom Y Z},
-          sourceData.toH0QuotientData.boundaryRel g g' →
-            sourceData.toH0QuotientData.boundaryRel (compCycle f g) (compCycle f g'))
-    (id_comp
-      :
-      ∀ {X Y : P.hull.Obj} (f : sourceData.toH0QuotientData.CycleHom X Y),
-        sourceData.toH0QuotientData.boundaryRel (compCycle (idCycle X) f) f)
-    (comp_id
-      :
-      ∀ {X Y : P.hull.Obj} (f : sourceData.toH0QuotientData.CycleHom X Y),
-        sourceData.toH0QuotientData.boundaryRel (compCycle f (idCycle Y)) f)
-    (assoc :
-      ∀ {W X Y Z : P.hull.Obj}
-        (f : sourceData.toH0QuotientData.CycleHom W X)
-        (g : sourceData.toH0QuotientData.CycleHom X Y)
-        (h : sourceData.toH0QuotientData.CycleHom Y Z),
-          sourceData.toH0QuotientData.boundaryRel
-            (compCycle (compCycle f g) h)
-            (compCycle f (compCycle g h)))
-    (triangulatedData : H0TriangulatedData P) : H0Category P :=
-  ofPieces sourceData.toH0QuotientData idCycle compCycle
-    comp_respects_boundary_left comp_respects_boundary_right
-    id_comp comp_id assoc triangulatedData
-
-def ofData {C} (P : PretriangulatedHull C)
-    (cycles : ∀ {X Y : P.hull.Obj}, P.hull.HomComplex X Y → Prop)
-    (boundaries : ∀ {X Y : P.hull.Obj}, P.hull.HomComplex X Y → Prop)
-    (boundaryRel :
-      ∀ {X Y : P.hull.Obj},
-        { f : P.hull.HomComplex X Y // cycles f } →
-          { g : P.hull.HomComplex X Y // cycles g } → Prop)
-    (boundaryRel_refl :
-      ∀ {X Y : P.hull.Obj} (f : { f : P.hull.HomComplex X Y // cycles f }),
-        boundaryRel f f)
-    (boundaryRel_symm :
-      ∀ {X Y : P.hull.Obj} {f g : { f : P.hull.HomComplex X Y // cycles f }},
-        boundaryRel f g → boundaryRel g f)
-    (boundaryRel_trans :
-      ∀ {X Y : P.hull.Obj} {f g h : { f : P.hull.HomComplex X Y // cycles f }},
-        boundaryRel f g → boundaryRel g h → boundaryRel f h)
-    (toH0Functor : P.hull.differentialSquaredZero)
-    (idCycle : ∀ X : P.hull.Obj,
-      { f : P.hull.HomComplex X X // cycles f })
-    (compCycle : ∀ {X Y Z : P.hull.Obj},
-      { f : P.hull.HomComplex X Y // cycles f } →
-        { g : P.hull.HomComplex Y Z // cycles g } →
-          { h : P.hull.HomComplex X Z // cycles h })
-    (comp_respects_boundary_left :
-      ∀ {X Y Z : P.hull.Obj}
-        {f f' : { f : P.hull.HomComplex X Y // cycles f }}
-        (g : { g : P.hull.HomComplex Y Z // cycles g }),
-          boundaryRel f f' → boundaryRel (compCycle f g) (compCycle f' g))
-    (comp_respects_boundary_right :
-      ∀ {X Y Z : P.hull.Obj}
-        (f : { f : P.hull.HomComplex X Y // cycles f })
-        {g g' : { g : P.hull.HomComplex Y Z // cycles g }},
-          boundaryRel g g' → boundaryRel (compCycle f g) (compCycle f g'))
-    (id_comp
-      :
-      ∀ {X Y : P.hull.Obj} (f : { f : P.hull.HomComplex X Y // cycles f }),
-        boundaryRel (compCycle (idCycle X) f) f)
-    (comp_id
-      :
-      ∀ {X Y : P.hull.Obj} (f : { f : P.hull.HomComplex X Y // cycles f }),
-        boundaryRel (compCycle f (idCycle Y)) f)
-    (assoc :
-      ∀ {W X Y Z : P.hull.Obj}
-        (f : { f : P.hull.HomComplex W X // cycles f })
-        (g : { g : P.hull.HomComplex X Y // cycles g })
-        (h : { h : P.hull.HomComplex Y Z // cycles h }),
-          boundaryRel (compCycle (compCycle f g) h) (compCycle f (compCycle g h)))
-    (triangulatedData : H0TriangulatedData P) : H0Category P :=
-  ofPieces
-    { cycles := cycles
-      boundaries := boundaries
-      boundaryRel := boundaryRel
-      boundaryRel_refl := boundaryRel_refl
-      boundaryRel_symm := boundaryRel_symm
-      boundaryRel_trans := boundaryRel_trans
-      toH0Functor := toH0Functor }
-    idCycle compCycle comp_respects_boundary_left comp_respects_boundary_right
-    id_comp comp_id assoc triangulatedData
-
-@[simp] theorem ofPieces_quotientData {C} {P : PretriangulatedHull C}
-    (quotientData : H0QuotientData P)
-    (idCycle : ∀ X : P.hull.Obj, quotientData.CycleHom X X)
-    (compCycle : ∀ {X Y Z : P.hull.Obj},
-      quotientData.CycleHom X Y → quotientData.CycleHom Y Z → quotientData.CycleHom X Z)
-    (comp_respects_boundary_left :
-      ∀ {X Y Z : P.hull.Obj}
-        {f f' : quotientData.CycleHom X Y} (g : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel f f' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f' g))
-    (comp_respects_boundary_right :
-      ∀ {X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom X Y) {g g' : quotientData.CycleHom Y Z},
-          quotientData.boundaryRel g g' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f g'))
-    (id_comp
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle (idCycle X) f) f)
-    (comp_id
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle f (idCycle Y)) f)
-    (assoc :
-      ∀ {W X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom W X)
-        (g : quotientData.CycleHom X Y)
-        (h : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel
-            (compCycle (compCycle f g) h)
-            (compCycle f (compCycle g h)))
-    (triangulatedData : H0TriangulatedData P) :
-    (ofPieces quotientData idCycle compCycle comp_respects_boundary_left
-      comp_respects_boundary_right id_comp comp_id assoc triangulatedData).quotientData =
-      quotientData := by
-  rfl
-
-@[simp] theorem ofPieces_triangulatedData {C} {P : PretriangulatedHull C}
-    (quotientData : H0QuotientData P)
-    (idCycle : ∀ X : P.hull.Obj, quotientData.CycleHom X X)
-    (compCycle : ∀ {X Y Z : P.hull.Obj},
-      quotientData.CycleHom X Y → quotientData.CycleHom Y Z → quotientData.CycleHom X Z)
-    (comp_respects_boundary_left :
-      ∀ {X Y Z : P.hull.Obj}
-        {f f' : quotientData.CycleHom X Y} (g : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel f f' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f' g))
-    (comp_respects_boundary_right :
-      ∀ {X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom X Y) {g g' : quotientData.CycleHom Y Z},
-          quotientData.boundaryRel g g' →
-            quotientData.boundaryRel (compCycle f g) (compCycle f g'))
-    (id_comp
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle (idCycle X) f) f)
-    (comp_id
-      :
-      ∀ {X Y : P.hull.Obj} (f : quotientData.CycleHom X Y),
-        quotientData.boundaryRel (compCycle f (idCycle Y)) f)
-    (assoc :
-      ∀ {W X Y Z : P.hull.Obj}
-        (f : quotientData.CycleHom W X)
-        (g : quotientData.CycleHom X Y)
-        (h : quotientData.CycleHom Y Z),
-          quotientData.boundaryRel
-            (compCycle (compCycle f g) h)
-            (compCycle f (compCycle g h)))
-    (triangulatedData : H0TriangulatedData P) :
-    (ofPieces quotientData idCycle compCycle comp_respects_boundary_left
-      comp_respects_boundary_right id_comp comp_id assoc triangulatedData).triangulatedData =
-      triangulatedData := by
-  cases triangulatedData
-  rfl
-
-end H0Category
+  distinguishedTriangles : ConeStructure P.hull.Obj
+  triangulatedAxioms : ShiftStructure P.hull.Obj × ConeStructure P.hull.Obj
+  localizationAtAcyclics :
+    PretriangulatedUniversalProperty C.Obj P.hull.Obj P.includeObj P.shift.obj P.cone.obj
 
 end CategoryInfra
 end TraceCalc

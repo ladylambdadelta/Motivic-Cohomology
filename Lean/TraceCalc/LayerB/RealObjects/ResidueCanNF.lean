@@ -169,6 +169,63 @@ structure ResidueIsNormal
   /-- Absence of inserted administrative identity moves. -/
   admin_identity_free : Prop
 
+/-- Concrete semantic interpretation of the five named residue-normality fields.
+
+`ResidueIsNormal` intentionally records only the API shape of residue
+normality. A downstream concrete normalizer can supply the actual meaning of
+those five fields through this structure without changing the abstract CanNF
+contract. -/
+structure ResidueNormalitySemantics
+    {setup : RewriteCalculusSetup.{u}}
+    (O : ResidueCanonicalOrder.{u, v} setup) where
+  boundaryNormal : FrontierWord setup → Prop
+  dependencyOrderNormal : FrontierWord setup → Prop
+  tensorOrderNormal : FrontierWord setup → Prop
+  keyOrderNormal : FrontierWord setup → Prop
+  adminIdentityFree : FrontierWord setup → Prop
+
+namespace ResidueIsNormal
+
+variable {setup : RewriteCalculusSetup.{u}}
+  {O : ResidueCanonicalOrder.{u, v} setup}
+
+/-- Build the five-field residue normality record from an explicit semantic
+interpretation. This is the bridge from the abstract API layer to a concrete
+meaning for the fields. -/
+def ofSemantics
+    (N : ResidueNormalitySemantics O)
+    (w : FrontierWord setup) : ResidueIsNormal O w where
+  boundary_normal := N.boundaryNormal w
+  dependency_order_normal := N.dependencyOrderNormal w
+  tensor_order_normal := N.tensorOrderNormal w
+  key_order_normal := N.keyOrderNormal w
+  admin_identity_free := N.adminIdentityFree w
+
+/-- Conjunction of all five residue-normality clauses carried by the API-level
+record. This is useful when comparing the abstract five-field record with a
+single operational irreducibility predicate. -/
+def Holds
+    {w : FrontierWord setup}
+    (hN : ResidueIsNormal O w) : Prop :=
+  hN.boundary_normal ∧
+    hN.dependency_order_normal ∧
+    hN.tensor_order_normal ∧
+    hN.key_order_normal ∧
+    hN.admin_identity_free
+
+@[simp] theorem holds_ofSemantics
+    (N : ResidueNormalitySemantics O)
+    (w : FrontierWord setup) :
+    (ofSemantics N w).Holds ↔
+      N.boundaryNormal w ∧
+        N.dependencyOrderNormal w ∧
+        N.tensorOrderNormal w ∧
+        N.keyOrderNormal w ∧
+        N.adminIdentityFree w :=
+  Iff.rfl
+
+end ResidueIsNormal
+
 /-! ## Item 8c — Residue normal-form carrier -/
 
 /-- **`ResidueFrontierNF O`**: a frontier word together with a

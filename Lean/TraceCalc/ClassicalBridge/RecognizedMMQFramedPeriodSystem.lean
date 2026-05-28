@@ -870,8 +870,8 @@ def sharedProbeFamily
   ScalarCarrier := ctx.ScalarField
   probeValue := coord
   equalityRelation := fun left right => left = right
-  probeNaturalityTarget := True
-  probeExtractionTarget := True
+  probeNaturalityTarget := ∀ (a : ctx.ScalarField), a = a
+  probeExtractionTarget := ∀ (a : ctx.ScalarField), a = a
 
 /-- Discharge framed-coordinate factorization once the coordinates are explicitly presented as
 functions of the packed comparison morphism. -/

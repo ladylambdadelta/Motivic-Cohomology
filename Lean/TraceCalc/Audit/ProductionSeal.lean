@@ -1,4 +1,4 @@
-import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
+import TraceCalc.LayerE.MotivicRecognition.ManuscriptSpineTargets
 import TraceCalc.LayerB.RealObjects.CanonicalReconstructionEngine
 import TraceCalc.LayerB.RealObjects.TraceDifferential
 import TraceCalc.LayerD.ConcretePeriodFaithfulness

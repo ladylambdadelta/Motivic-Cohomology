@@ -1,4 +1,8 @@
+import TraceCalc.LayerC.RealObjects.BoundaryCode
 import TraceCalc.LayerB.RealObjects.InteriorCode
+
+/-! Compatibility shim: the implementation moved to LayerC because it is a
+derived boundary-coding layer built on LayerB foundations. -/
 
 /-!
 # Real-objects formalization: boundary code feasibility audit (Phase 9 items 9e–9i)

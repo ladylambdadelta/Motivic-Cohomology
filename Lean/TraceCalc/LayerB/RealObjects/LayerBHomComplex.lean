@@ -1,4 +1,7 @@
-import TraceCalc.LayerB.RealObjects.Composition
+import TraceCalc.LayerC.RealObjects.LayerBHomComplex
+
+/-! Compatibility shim: the implementation moved to LayerC because it is a
+derived homological layer built on LayerB foundations. -/import TraceCalc.LayerB.RealObjects.Composition
 import TraceCalc.LayerA.CategoryInfra.H0Category
 
 universe u
@@ -33,10 +36,10 @@ structure LayerBTraceDifferentialPackage (setup : RewriteCalculusSetup.{u}) wher
   boundaries :
     ∀ {X Y : setup.State},
       setup.CertifiedTrace X Y → Prop
-  quotientMapRespectsCycles : Prop
-  quotientMapKillsBoundaries : Prop
-  quotientMapRespectsCycles_holds : quotientMapRespectsCycles
-  quotientMapKillsBoundaries_holds : quotientMapKillsBoundaries
+  zeroClass : ∀ {X Y : setup.State}, setup.TraceClass X Y
+  quotientMapKillsBoundaries :
+    ∀ {X Y : setup.State} (trace : setup.CertifiedTrace X Y),
+      boundaries trace → trace.cls = zeroClass
 
 namespace LayerBTraceDifferentialPackage
 
@@ -58,6 +61,7 @@ def toLayerBHomComplexData (pkg : LayerBTraceDifferentialPackage setup) :
   morphismData X Y := setup.CertifiedTrace X Y
   quotientHom X Y := setup.TraceClass X Y
   id := TraceClass.id
+  zero X Y := pkg.zeroClass
   comp := by
     intro X Y Z left right
     exact left.compose right
@@ -73,10 +77,7 @@ def toLayerBHomComplexData (pkg : LayerBTraceDifferentialPackage setup) :
   quotientMap := by
     intro X Y trace
     exact trace.cls
-  quotientMapRespectsCycles := pkg.quotientMapRespectsCycles
   quotientMapKillsBoundaries := pkg.quotientMapKillsBoundaries
-  quotientMapRespectsCycles_holds := pkg.quotientMapRespectsCycles_holds
-  quotientMapKillsBoundaries_holds := pkg.quotientMapKillsBoundaries_holds
 
 @[simp] theorem toLayerBHomComplexData_objects
     (pkg : LayerBTraceDifferentialPackage setup) :

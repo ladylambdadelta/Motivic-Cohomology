@@ -181,6 +181,156 @@ theorem normalize_eq_iff_equiv (C : CanNF setup)
 
 end CanNF
 
+/-- Relation-parameterized frontier-word normalizer contract.
+
+This is the generic variant of `FrontierWordCompleteNormalizer`: equality of
+normal forms detects an arbitrary chosen frontier-word relation `Rel`, not
+necessarily plain `FrontierWord.Equiv`. -/
+structure FrontierWordRelativeNormalizer
+    (setup : RewriteCalculusSetup.{u})
+    (Rel : FrontierWord setup → FrontierWord setup → Prop) where
+  NF : Type v
+  normalize : FrontierWord setup → NF
+  sound :
+    ∀ {w₁ w₂ : FrontierWord setup},
+      Rel w₁ w₂ → normalize w₁ = normalize w₂
+  complete :
+    ∀ {w₁ w₂ : FrontierWord setup},
+      normalize w₁ = normalize w₂ → Rel w₁ w₂
+
+namespace FrontierWordRelativeNormalizer
+
+theorem rel_of_normalize_eq
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    {w₁ w₂ : FrontierWord setup}
+    (h : N.normalize w₁ = N.normalize w₂) :
+    Rel w₁ w₂ :=
+  N.complete h
+
+theorem normalize_eq_iff_rel
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    {w₁ w₂ : FrontierWord setup} :
+    N.normalize w₁ = N.normalize w₂ ↔ Rel w₁ w₂ :=
+  ⟨N.complete, N.sound⟩
+
+end FrontierWordRelativeNormalizer
+
+/-- Relation-parameterized record-facing CanNF scaffold.
+
+This is the generic variant of `CanNF`: the packaged normalizer detects a
+chosen frontier-word relation on the canonical-word assignment, not necessarily
+plain `FrontierWord.Equiv`. -/
+structure RelativeCanNF
+    (setup : RewriteCalculusSetup.{u})
+    (Rel : FrontierWord setup → FrontierWord setup → Prop) where
+  assignment : CanonicalWordAssignment setup
+  normalizer : FrontierWordRelativeNormalizer setup Rel
+
+namespace RelativeCanNF
+
+def normalize
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (C : RelativeCanNF setup Rel)
+    (R : CompletedReconstructionRecord setup) :
+    C.normalizer.NF :=
+  C.normalizer.normalize (C.assignment.assign R).frontier
+
+@[simp] theorem normalize_eq
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (C : RelativeCanNF setup Rel)
+    (R : CompletedReconstructionRecord setup) :
+    C.normalize R = C.normalizer.normalize (C.assignment.assign R).frontier :=
+  rfl
+
+theorem sound
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (C : RelativeCanNF setup Rel)
+    {R₁ R₂ : CompletedReconstructionRecord setup}
+    (h : Rel (C.assignment.assign R₁).frontier (C.assignment.assign R₂).frontier) :
+    C.normalize R₁ = C.normalize R₂ :=
+  C.normalizer.sound h
+
+theorem complete
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (C : RelativeCanNF setup Rel)
+    {R₁ R₂ : CompletedReconstructionRecord setup}
+    (h : C.normalize R₁ = C.normalize R₂) :
+    Rel (C.assignment.assign R₁).frontier (C.assignment.assign R₂).frontier :=
+  C.normalizer.complete h
+
+theorem normalize_eq_iff_rel
+    {Rel : FrontierWord setup → FrontierWord setup → Prop}
+    (C : RelativeCanNF setup Rel)
+    (R₁ R₂ : CompletedReconstructionRecord setup) :
+    C.normalize R₁ = C.normalize R₂ ↔
+      Rel (C.assignment.assign R₁).frontier (C.assignment.assign R₂).frontier :=
+  ⟨C.complete, C.sound⟩
+
+end RelativeCanNF
+
+/-- First generic bridge from a relation-parameterized frontier-word
+normalizer to the record-facing relative CanNF scaffold. -/
+def FrontierWordRelativeCanNF
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel) :
+    RelativeCanNF setup Rel where
+  assignment := CanonicalWordAssignment.ofResidue setup
+  normalizer := N
+
+@[simp] theorem FrontierWordRelativeCanNF_assignment
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel) :
+    (FrontierWordRelativeCanNF (setup := setup) Rel N).assignment =
+      CanonicalWordAssignment.ofResidue setup :=
+  rfl
+
+@[simp] theorem FrontierWordRelativeCanNF_normalizer
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel) :
+    (FrontierWordRelativeCanNF (setup := setup) Rel N).normalizer = N :=
+  rfl
+
+@[simp] theorem FrontierWordRelativeCanNF_normalize
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    (R : CompletedReconstructionRecord setup) :
+    (FrontierWordRelativeCanNF Rel N).normalize R =
+      N.normalize (FrontierWord.ofResidue R) :=
+  rfl
+
+theorem frontierWordRelativeCanNF_normalize_eq_iff_rel
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    (R₁ R₂ : CompletedReconstructionRecord setup) :
+    (FrontierWordRelativeCanNF Rel N).normalize R₁ =
+      (FrontierWordRelativeCanNF Rel N).normalize R₂ ↔
+      Rel (FrontierWord.ofResidue R₁) (FrontierWord.ofResidue R₂) := by
+  simpa [FrontierWordRelativeCanNF, CanonicalWordAssignment.ofResidue, CanonicalWord.ofResidue]
+    using (RelativeCanNF.normalize_eq_iff_rel
+      (C := FrontierWordRelativeCanNF (setup := setup) Rel N) R₁ R₂)
+
+theorem frontierWordRelativeCanNF_of_normalize_eq
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    {R₁ R₂ : CompletedReconstructionRecord setup}
+    (h : (FrontierWordRelativeCanNF Rel N).normalize R₁ =
+      (FrontierWordRelativeCanNF Rel N).normalize R₂) :
+    Rel (FrontierWord.ofResidue R₁) (FrontierWord.ofResidue R₂) :=
+  (frontierWordRelativeCanNF_normalize_eq_iff_rel
+    (setup := setup) Rel N R₁ R₂).1 h
+
+theorem frontierWordRelativeCanNF_normalize_eq_of_rel
+    (Rel : FrontierWord setup → FrontierWord setup → Prop)
+    (N : FrontierWordRelativeNormalizer setup Rel)
+    {R₁ R₂ : CompletedReconstructionRecord setup}
+    (h : Rel (FrontierWord.ofResidue R₁) (FrontierWord.ofResidue R₂)) :
+    (FrontierWordRelativeCanNF Rel N).normalize R₁ =
+      (FrontierWordRelativeCanNF Rel N).normalize R₂ :=
+  (frontierWordRelativeCanNF_normalize_eq_iff_rel
+    (setup := setup) Rel N R₁ R₂).2 h
+
 namespace FrontierWordCompleteNormalizer
 
 def ofFields

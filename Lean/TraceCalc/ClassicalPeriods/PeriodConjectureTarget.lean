@@ -1,10 +1,9 @@
-import TraceCalc.ClassicalPeriods.ReverseMath
 import TraceCalc.ClassicalPeriods.Examples
 import TraceCalc.ClassicalPeriods.FramedPeriodsConcrete
 import TraceCalc.ClassicalPeriods.GeometricLocalization
 import TraceCalc.ClassicalPeriods.GeometricRealizations
 import TraceCalc.ClassicalPeriods.ComparisonBoundaryRecovery
-import TraceCalc.LayerB.RealObjects.InternalManuscriptTargets
+import TraceCalc.LayerBNonCore.Targets.InternalManuscriptTargets
 
 open CategoryTheory
 
@@ -357,7 +356,7 @@ end ClassicalGrothendieckPeriodFaithfulnessTarget
 
 The final field is an explicit assumption/obligation of this scaffold package.  It is not proof
 provenance for the classical framed period conjecture. -/
-structure FramedToStructuredReflectionData
+structure SingleFramedToStructuredReflectionData
     (baseTarget : ClassicalGrothendieckPeriodFaithfulnessTarget.{u, v, w})
     (framedPeriodEquality : FramedPeriodEquality baseTarget.Context)
     (framedPeriodShadow : ScalarPeriodShadow (SomeFramedPeriodDatum baseTarget.Context))
@@ -382,7 +381,7 @@ target can distinguish:
 1. framed/scalar period equality,
 2. reflection to structured comparison equality,
 3. reflection from structured comparison equality to equality of morphisms. -/
-structure FramedPeriodConjectureTarget where
+structure SingleFramedShadowFaithfulnessTarget where
   baseTarget : ClassicalGrothendieckPeriodFaithfulnessTarget
   framedPeriodEquality : FramedPeriodEquality baseTarget.Context
   framedPeriodOperations : FramedPeriodOperations baseTarget.Context
@@ -414,24 +413,24 @@ structure FramedPeriodConjectureTarget where
         (framedPeriodShadow.shadowOf (framedPeriodOf g)) →
       framedPeriodEquality.relates (framedPeriodOf f) (framedPeriodOf g)
   framedToStructuredReflectionData :
-    FramedToStructuredReflectionData
+    SingleFramedToStructuredReflectionData
       baseTarget
       framedPeriodEquality
       framedPeriodShadow
       framedPeriodOf
 
-namespace FramedPeriodConjectureTarget
+namespace SingleFramedShadowFaithfulnessTarget
 
 /-- The framed scalar shadow attached to a motive morphism. -/
 def framedShadowOf
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     {X Y : target.baseTarget.MotiveCategory} (f : X ⟶ Y) :
     target.framedPeriodShadow.ScalarCarrier :=
   target.framedPeriodShadow.shadowOf (target.framedPeriodOf f)
 
 /-- Equality of framed scalar shadows, viewed as the first level of the equality ladder. -/
 def scalarShadowEqualityStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodShadow.equalityRelation
       (target.framedShadowOf f)
@@ -439,7 +438,7 @@ def scalarShadowEqualityStatement
 
 /-- Equality of framed witnesses, viewed as the second level of the equality ladder. -/
 def framedPeriodEqualityStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodEquality.relates
       (target.framedPeriodOf f)
@@ -447,7 +446,7 @@ def framedPeriodEqualityStatement
 
 /-- Equality of packed structured comparison morphisms, viewed as the third level of the ladder. -/
 def structuredComparisonEqualityStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.baseTarget.structuredComparisonEquality.relates
       (target.baseTarget.packedMorphismComparison f)
@@ -455,13 +454,13 @@ def structuredComparisonEqualityStatement
 
 /-- Equality of motive morphisms, viewed as the last level of the equality ladder. -/
 def motiveMorphismEqualityStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     (definitionalMotiveMorphismEqualityTarget target.baseTarget.MotiveCategory).relates f g
 
 /-- Explicit packaging of the four equality levels that the manuscript distinguishes. -/
 def equalityLadder
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     ClassicalPeriodEqualityLadder
       target.baseTarget.MotiveCategory
       target.baseTarget.Context
@@ -488,7 +487,7 @@ def equalityLadder
 
 /-- Pointwise soundness of the framed scalar shadow used in the framed lane. -/
 def framedShadowSoundness
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     FramedShadowSoundness
       target.baseTarget.MotiveCategory
       target.baseTarget.Context
@@ -502,7 +501,7 @@ def framedShadowSoundness
 /-- Pointwise compatibility between the framed scalar shadow and the scalar shadow of the packed
 comparison package. -/
 def framedToScalarCompatibility
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     FramedToScalarCompatibility
       target.baseTarget.MotiveCategory
       target.baseTarget.Context
@@ -516,7 +515,7 @@ def framedToScalarCompatibility
 /-- Pairwise compatibility needed to transport an equality of base scalar shadows into the framed
 shadow relation that feeds the hard reflection core. -/
 def baseScalarToFramedShadowStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.baseTarget.scalarShadow.equalityRelation
       (target.baseTarget.scalarShadowOf f)
@@ -527,7 +526,7 @@ def baseScalarToFramedShadowStatement
 
 /-- Exact theorem-target burden for scalar shadow to framed-period reflection. -/
 def scalarShadowReflectsFramedEqualityStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodShadow.equalityRelation
       (target.framedShadowOf f)
@@ -535,7 +534,7 @@ def scalarShadowReflectsFramedEqualityStatement
     target.framedPeriodEquality.relates (target.framedPeriodOf f) (target.framedPeriodOf g)
 
 /-- Exact theorem-target burden carried by the framed-period lane. -/
-def reflectionStatement (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+def reflectionStatement (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodShadow.equalityRelation
       (target.framedShadowOf f)
@@ -546,14 +545,14 @@ def reflectionStatement (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop
 
 /-- Scaffold framed-shadow reflection, projected from an explicit assumption field. -/
 def framedEqualityReflectsStructuredComparison
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     target.reflectionStatement :=
   target.framedToStructuredReflectionData.framedReflectionAssumption
 
 /-- Hard theorem-target core for the framed lane: scalar shadow equality descends through framed
 equality and then back up to structured comparison equality. -/
 def scalarShadowReflectsStructuredComparisonStatement
-    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodShadow.equalityRelation
       (target.framedShadowOf f)
@@ -562,8 +561,8 @@ def scalarShadowReflectsStructuredComparisonStatement
       (target.baseTarget.packedMorphismComparison f)
       (target.baseTarget.packedMorphismComparison g)
 
-/-- Framed version of the classical period-faithfulness target. -/
-def faithfulnessStatement (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+/-- Single-witness framed version of the classical period-faithfulness target. -/
+def faithfulnessStatement (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     target.framedPeriodShadow.equalityRelation
       (target.framedShadowOf f)
@@ -571,7 +570,7 @@ def faithfulnessStatement (target : FramedPeriodConjectureTarget.{u, v, w}) : Pr
     f = g
 
 theorem faithfulnessStatement_of_reflection
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     target.faithfulnessStatement := by
   intro X Y f g hFramed
   have hStructured :
@@ -583,15 +582,15 @@ theorem faithfulnessStatement_of_reflection
     hStructured
 
 theorem scalarShadowReflectsStructuredComparison_of_reflection
-    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) :
     target.scalarShadowReflectsStructuredComparisonStatement :=
   target.framedEqualityReflectsStructuredComparison
 
-end FramedPeriodConjectureTarget
+end SingleFramedShadowFaithfulnessTarget
 
 /-- Framed reflection core separating structural transport from the hard reflection burden. -/
 structure ClassicalPeriodReflectionCore
-    (target : FramedPeriodConjectureTarget.{u, v, w}) where
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) where
   scalarShadowReflectsFramed :
     ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
       target.framedPeriodShadow.equalityRelation
@@ -610,7 +609,7 @@ structure ClassicalPeriodReflectionCore
         (target.baseTarget.packedMorphismComparison g)
 
 theorem ClassicalPeriodReflectionCore.toStructuredComparisonReflection
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     (core : ClassicalPeriodReflectionCore target) :
     target.scalarShadowReflectsStructuredComparisonStatement := by
   intro X Y f g hScalar
@@ -625,7 +624,7 @@ theorem ClassicalPeriodReflectionCore.toStructuredComparisonReflection
 /-- Target-specific tomography core: probes determine the basis-free period map, and the basis-free
 period map determines the packed structured comparison package. -/
 structure ClassicalPeriodTomographyTarget
-    (target : FramedPeriodConjectureTarget.{u, v, w}) where
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) where
   tomographyCore :
     ClassicalPeriodTomographyCore
       target.baseTarget.Context
@@ -641,7 +640,7 @@ structure ClassicalPeriodTomographyTarget
 
 /-- Probe equality on packed comparison morphisms, induced by the target-specific tomography core. -/
 def ClassicalPeriodTomographyTarget.probeEqualityStatement
-    {target : FramedPeriodConjectureTarget.{u, v, w}}
+  {target : SingleFramedShadowFaithfulnessTarget.{u, v, w}}
     (tomography : ClassicalPeriodTomographyTarget target) : Prop :=
   ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
     ProbeEquality
@@ -652,7 +651,7 @@ def ClassicalPeriodTomographyTarget.probeEqualityStatement
 /-- Framed-period equality yields tomography probe equality through the packaged probe soundness
 input. This exposes the exact interface consumed by the tomography core before reflection. -/
 theorem ClassicalPeriodTomographyTarget.probeEquality_of_framedEquality
-    {target : FramedPeriodConjectureTarget.{u, v, w}}
+  {target : SingleFramedShadowFaithfulnessTarget.{u, v, w}}
     (tomography : ClassicalPeriodTomographyTarget target)
     {X Y : target.baseTarget.MotiveCategory}
     (f g : X ⟶ Y)
@@ -669,7 +668,7 @@ theorem ClassicalPeriodTomographyTarget.probeEquality_of_framedEquality
 /-- The main tomography consequence at the target level: enough probes recover packed structured
 comparison equality. -/
 theorem classicalPeriodTomographyTarget_toStructuredComparisonEquality
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     (tomography : ClassicalPeriodTomographyTarget target) :
     ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
       ProbeEquality
@@ -688,7 +687,7 @@ theorem classicalPeriodTomographyTarget_toStructuredComparisonEquality
 /-- Framed equality feeds the tomography core and therefore already yields structured comparison
 equality before the reflection-core packaging step. -/
 theorem ClassicalPeriodTomographyTarget.structuredComparisonEquality_of_framedEquality
-    {target : FramedPeriodConjectureTarget.{u, v, w}}
+  {target : SingleFramedShadowFaithfulnessTarget.{u, v, w}}
     (tomography : ClassicalPeriodTomographyTarget target)
     {X Y : target.baseTarget.MotiveCategory}
     (f g : X ⟶ Y)
@@ -708,7 +707,7 @@ theorem ClassicalPeriodTomographyTarget.structuredComparisonEquality_of_framedEq
 
 /-- Tomography plus probe soundness assembles into the Phase 5 reflection core. -/
 theorem classicalPeriodTomographyCore_toReflectionCore
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     (tomography : ClassicalPeriodTomographyTarget target) :
     ClassicalPeriodReflectionCore target := by
   refine {
@@ -723,7 +722,7 @@ theorem classicalPeriodTomographyCore_toReflectionCore
 /-- Cheap sanity target: tautological packed probes recover the reflection core whenever the
 framed reflection step is already packaged. -/
 def tautologicalTomographyTarget
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     (core : ClassicalPeriodReflectionCore target) :
     ClassicalPeriodTomographyTarget target where
   tomographyCore := target.baseTarget.tautologicalTomographyCore
@@ -737,7 +736,7 @@ def tautologicalTomographyTarget
 
 /-- Sanity theorem: the tautological tomography package feeds the same reflection core. -/
 theorem tautologicalTomography_toReflectionCore
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
     (core : ClassicalPeriodReflectionCore target) :
     ClassicalPeriodReflectionCore target :=
   core
@@ -745,7 +744,7 @@ theorem tautologicalTomography_toReflectionCore
 /-- Faithfulness decomposition exposing the theorem ladder from coarse scalar equality to literal
 morphism equality. -/
 structure ClassicalPeriodFaithfulnessDecomposition
-    (target : FramedPeriodConjectureTarget.{u, v, w}) where
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w}) where
   basisFreeReflection :
     ClassicalGrothendieckPeriodFaithfulnessTarget.BasisFreePeriodReflectionStage
       target.baseTarget
@@ -783,7 +782,7 @@ structure ClassicalPeriodFaithfulnessDecomposition
       (definitionalMotiveMorphismEqualityTarget target.baseTarget.MotiveCategory)
 
 theorem classicalPeriodFaithfulnessDecomposition_toFramedFaithfulnessTarget
-  (target : FramedPeriodConjectureTarget.{u, v, w})
+  (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
   (decomposition : ClassicalPeriodFaithfulnessDecomposition target) :
     target.faithfulnessStatement := by
   intro X Y f g hScalar
@@ -798,11 +797,104 @@ theorem classicalPeriodFaithfulnessDecomposition_toFramedFaithfulnessTarget
   exact hMorphismEq
 
 theorem classicalPeriodFaithfulnessDecomposition_toGrothendieckTarget
-    (target : FramedPeriodConjectureTarget.{u, v, w})
+    (target : SingleFramedShadowFaithfulnessTarget.{u, v, w})
   (_decomposition : ClassicalPeriodFaithfulnessDecomposition target) :
     target.baseTarget.faithfulnessStatement := by
   intro X Y f g hPacked
   exact target.baseTarget.packedComparisonReflectsMorphismEquality f g hPacked
+
+/-- Public framed-period target indexed by a common frame family over each source-target pair. -/
+structure FramedPeriodConjectureTarget where
+  baseTarget : ClassicalGrothendieckPeriodFaithfulnessTarget
+  framedPeriodEquality : FramedPeriodEquality baseTarget.Context
+  framedPeriodOperations : FramedPeriodOperations baseTarget.Context
+  framedPeriodShadow : ScalarPeriodShadow (SomeFramedPeriodDatum baseTarget.Context)
+  framedShadowEquality :
+    ScalarShadowEquality (SomeFramedPeriodDatum baseTarget.Context) framedPeriodShadow
+  framedScalarShadowAlgebra : FramedScalarShadowAlgebra baseTarget.Context framedPeriodShadow
+  framedPeriodOperationLaws :
+    FramedPeriodOperationLaws
+      baseTarget.Context
+      framedPeriodOperations
+      framedPeriodShadow
+      framedScalarShadowAlgebra
+  FrameIndex : {X Y : baseTarget.MotiveCategory} → Type (max u v w x y z)
+  framedPeriodFamilyOf :
+    {X Y : baseTarget.MotiveCategory} →
+      (f : X ⟶ Y) →
+      FrameIndex (X := X) (Y := Y) →
+      SomeFramedPeriodDatum baseTarget.Context
+  pointwiseFramedPeriodEqualityReflectsStructuredComparison :
+    ∀ {X Y : baseTarget.MotiveCategory} (f g : X ⟶ Y),
+      (∀ i : FrameIndex (X := X) (Y := Y),
+        framedPeriodEquality.relates
+          (framedPeriodFamilyOf f i)
+          (framedPeriodFamilyOf g i)) →
+      baseTarget.structuredComparisonEquality.relates
+        (baseTarget.packedMorphismComparison f)
+        (baseTarget.packedMorphismComparison g)
+
+namespace FramedPeriodConjectureTarget
+
+/-- The framed scalar shadow family attached to a motive morphism. -/
+def framedShadowOf
+    (target : FramedPeriodConjectureTarget.{u, v, w})
+    {X Y : target.baseTarget.MotiveCategory} (f : X ⟶ Y)
+    (i : target.FrameIndex (X := X) (Y := Y)) :
+    target.framedPeriodShadow.ScalarCarrier :=
+  target.framedPeriodShadow.shadowOf (target.framedPeriodFamilyOf f i)
+
+/-- Equality of all framed scalar shadows for a fixed source-target pair. -/
+def scalarShadowEqualityStatement
+    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
+    ∀ i : target.FrameIndex (X := X) (Y := Y),
+      target.framedPeriodShadow.equalityRelation
+        (target.framedShadowOf f i)
+        (target.framedShadowOf g i)
+
+/-- Equality of all framed witnesses for a fixed source-target pair. -/
+def framedPeriodEqualityStatement
+    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
+    ∀ i : target.FrameIndex (X := X) (Y := Y),
+      target.framedPeriodEquality.relates
+        (target.framedPeriodFamilyOf f i)
+        (target.framedPeriodFamilyOf g i)
+
+/-- Equality of packed structured comparison morphisms, viewed as the reflected hard target. -/
+def structuredComparisonEqualityStatement
+    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
+    target.baseTarget.structuredComparisonEquality.relates
+      (target.baseTarget.packedMorphismComparison f)
+      (target.baseTarget.packedMorphismComparison g)
+
+/-- Equality of motive morphisms, viewed as the final family-valued endpoint. -/
+def motiveMorphismEqualityStatement
+    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
+    (definitionalMotiveMorphismEqualityTarget target.baseTarget.MotiveCategory).relates f g
+
+/-- Public framed period conjecture: agreement of all framed periods implies morphism equality. -/
+def faithfulnessStatement
+    (target : FramedPeriodConjectureTarget.{u, v, w}) : Prop :=
+  ∀ {X Y : target.baseTarget.MotiveCategory} (f g : X ⟶ Y),
+    (∀ i : target.FrameIndex (X := X) (Y := Y),
+      target.framedPeriodEquality.relates
+        (target.framedPeriodFamilyOf f i)
+        (target.framedPeriodFamilyOf g i)) →
+    f = g
+
+theorem faithfulnessStatement_of_reflection
+    (target : FramedPeriodConjectureTarget.{u, v, w}) :
+    target.faithfulnessStatement := by
+  intro X Y f g hFamily
+  have hStructured :=
+    target.pointwiseFramedPeriodEqualityReflectsStructuredComparison f g hFamily
+  exact target.baseTarget.structuredComparisonReflectsMorphismEquality f g hStructured
+
+end FramedPeriodConjectureTarget
 
 /-- Exact final classical theorem target. -/
 abbrev ClassicalGrothendieckPeriodFaithfulnessStatement :=
@@ -837,9 +929,6 @@ abbrev TargetReflectionCoreObject := ClassicalPeriodReflectionCore
 /-- Stable exported name for later bridge consumption of the faithfulness decomposition. -/
 abbrev TargetFaithfulnessDecompositionObject := ClassicalPeriodFaithfulnessDecomposition
 
-/-- Stable exported name for later bridge consumption of the reverse-math obligation object. -/
-abbrev TargetReverseMathObject := ClassicalPeriodReverseMathObligations
-
 /- Compact alias index for the theorem-target surface already closed inside
 `PeriodConjectureTarget.lean`.
 
@@ -858,9 +947,6 @@ abbrev ReflectionCore := ClassicalPeriodReflectionCore
 
 /-- Decomposed final assembly object. -/
 abbrev FaithfulnessDecomposition := ClassicalPeriodFaithfulnessDecomposition
-
-/-- Reverse-mathematics registry for the classical lane. -/
-abbrev ReverseMathObligations := ClassicalPeriodReverseMathObligations
 
 /-- Exact final classical theorem statement. -/
 abbrev BaseFaithfulnessStatement := ClassicalGrothendieckPeriodFaithfulnessStatement

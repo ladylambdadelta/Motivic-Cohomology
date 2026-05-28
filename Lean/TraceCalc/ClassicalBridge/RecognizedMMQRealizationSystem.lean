@@ -1,5 +1,5 @@
 import TraceCalc.ClassicalBridge.ClassicalBridgeAnchors
-import TraceCalc.MotivicRecognition.ManuscriptSpineTargets
+import TraceCalc.LayerE.MotivicRecognition.ManuscriptSpineTargets
 import TraceCalc.ClassicalPeriods.StructuredComparison
 import TraceCalc.ClassicalPeriods.Framed
 

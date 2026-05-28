@@ -1,4 +1,7 @@
-import TraceCalc.LayerB.RealObjects.LayerBHomComplex
+import TraceCalc.LayerC.RealObjects.TraceDifferential
+
+/-! Compatibility shim: the implementation moved to LayerC because it is a
+derived differential layer built on LayerB foundations. -/import TraceCalc.LayerB.RealObjects.LayerBHomComplex
 import TraceCalc.LayerB.RealObjects.BoundaryCode
 import TraceCalc.LayerB.RealObjects.SyntacticBoundary
 
@@ -412,16 +415,8 @@ def toLayerBTraceDifferentialPackage
   differentialRel := semantics.differentialRel
   cycles := semantics.cycles
   boundaries := semantics.boundaries
-  quotientMapRespectsCycles :=
-    ∀ {X Y : setup.State} (trace : setup.CertifiedTrace X Y),
-      semantics.cycles trace → semantics.cycleClass trace.cls
-  quotientMapKillsBoundaries :=
-    ∀ {X Y : setup.State} (trace : setup.CertifiedTrace X Y),
-      semantics.boundaries trace → trace.cls = semantics.boundaryClass
-  quotientMapRespectsCycles_holds :=
-    semantics.cycles_descend_to_traceClass
-  quotientMapKillsBoundaries_holds :=
-    semantics.boundaries_map_to_identified_class
+  zeroClass := semantics.boundaryClass
+  quotientMapKillsBoundaries := semantics.boundaries_map_to_identified_class
 
 @[simp] theorem toLayerBTraceDifferentialPackage_differentialRel
     (semantics : TraceDifferentialSemantics setup)
@@ -450,12 +445,12 @@ def toLayerBTraceDifferentialPackage
       semantics.boundaries trace :=
   rfl
 
-@[simp] theorem toLayerBTraceDifferentialPackage_quotientMapRespectsCycles
-    (semantics : TraceDifferentialSemantics setup) :
+@[simp] theorem toLayerBTraceDifferentialPackage_zeroClass
+    (semantics : TraceDifferentialSemantics setup)
+    {X Y : setup.State} :
     (TraceDifferentialSemantics.toLayerBTraceDifferentialPackage
-      (setup := setup) semantics).quotientMapRespectsCycles =
-      (∀ {X Y : setup.State} (trace : setup.CertifiedTrace X Y),
-        semantics.cycles trace → semantics.cycleClass trace.cls) :=
+      (setup := setup) semantics).zeroClass (X := X) (Y := Y) =
+      semantics.boundaryClass (X := X) (Y := Y) :=
   rfl
 
 @[simp] theorem toLayerBTraceDifferentialPackage_quotientMapKillsBoundaries
@@ -786,14 +781,16 @@ structure BoundaryTraceEquivZeroData (setup : RewriteCalculusSetup.{u}) where
 `lem:sink-deletion-inverse` (boundary deletion/gluing inverse) plus the
 trace-equivalence generation step.
 
-This is the minimal missing theorem needed to inhabit
+Historically this was the minimal theorem needed to inhabit
 `BoundaryTraceEquivZeroData.boundary_trace_equiv_zero`: from a refined-complete
 sink-deletion/gluing witness and generated boundary trace, produce a
 `TraceEquiv` witness between the boundary trace representative and the chosen
 zero trace representative.
 
-No additional capsule layer is introduced; this is the single theorem package
-that supplies the currently missing proof field. -/
+No additional capsule layer is introduced. The file now also provides concrete
+constructors deriving this package from `ReplayChainWitness.sinkDeletion`, so
+the structure remains useful as a theorem interface without being a live proof
+gap. -/
 structure SinkDeletionProducesTraceEquivZero (setup : RewriteCalculusSetup.{u}) where
   boundaryTraceData : BoundaryTraceRepresentativeData setup
   zeroData : ZeroTraceRepresentativeData setup
@@ -825,8 +822,8 @@ That collapse was the pre-repair behavior.  The admin constructor now requires
 an explicit `setup.AdminRelation` witness, and the collapse theorems were
 removed from production code.
 
-`SinkDeletionProducesTraceEquivZero` is the correct obligation structure.
-It can only be genuinely inhabited once one of the following is in place:
+`SinkDeletionProducesTraceEquivZero` was the correct obligation structure.
+It could only be genuinely inhabited once one of the following was in place:
 
   (A) a specific `adminRelation` proof connecting
       `boundary.canonicalReplay` and `zeroCertifiedTrace.canonicalReplay`
@@ -837,8 +834,10 @@ It can only be genuinely inhabited once one of the following is in place:
       `TraceEquiv` witness on `ReplayRepresentative` via a chain of
       genuine `swap` or `rw` 2-cells.
 
-Until one of (A) or (B) is available, `SinkDeletionProducesTraceEquivZero`
-remains an explicit honest obligation. -/
+Path (B) is now available in this file via `ReplayChainWitness.sinkDeletion`
+and the derived constructors from `BoundaryGluingReplayData`. The structure
+remains as an explicit theorem interface for callers that want to provide an
+alternative derivation. -/
 
 end SinkDeletionProducesTraceEquivZero
 
@@ -1060,7 +1059,7 @@ end BoundaryGluingReplayData
 Components (1)–(3) are already captured in `BoundaryGluingWitnessData`
 (see table above); component (5) is derived from (4) below.
 
-The single genuinely missing field is (4): given any boundary gluing
+Historically the single genuinely missing field was (4): given any boundary gluing
 witness and a generated boundary trace, the boundary canonical replay is
 trace-equivalent to the zero canonical replay.
 
@@ -1068,18 +1067,18 @@ Proof paths for (4):
 - **Path A**: exhibit an explicit chain of `TwoCellGenerator.swap`/`.rw`
   2-cells derived from the `glueBoundaryWitness` equation and the refined
   packet structure of `witnesses.R`.
-- **Path B**: show `boundary.canonicalReplay = zeroCertifiedTrace.canonicalReplay`
-  propositionally, then apply `twoCellStep_admin_eq_only` to obtain the
-  `TraceEquiv` via an Eq-admin step (valid because `AdminRelation = Eq`). -/
+- **Path B**: build a replay-chain from `setup.sinkDeletionGeometricRule`,
+  which is now implemented below by `ReplayChainWitness.sinkDeletion` and the
+  constructors derived from `BoundaryGluingReplayData`. -/
 structure SinkDeletionInverseObligations (setup : RewriteCalculusSetup.{u}) where
   boundaryTraceData : BoundaryTraceRepresentativeData setup
   zeroData : ZeroTraceRepresentativeData setup
-  /-- (4) Replay-chain construction: the primary missing ingredient.
+  /-- (4) Replay-chain construction: the primary theorem ingredient.
   Given any boundary gluing witness and generated boundary trace, the
   boundary `canonicalReplay` is trace-equivalent to the zero
   `canonicalReplay`.  Components (1)–(3) (deletion data, reattachment
   data, inverse law) are already in `witnesses`; this field is what
-  remains to be proved. -/
+  gets discharged by the canonical constructors below. -/
   replayChainExists :
     ∀ {X Y : setup.State}
       (witnesses : BoundaryGluingWitnessData setup)
@@ -1264,8 +1263,9 @@ end SinkDeletionProducesTraceEquivZero
 
 namespace BoundaryTraceEquivZeroData
 
-/-- Build `BoundaryTraceEquivZeroData` once the single missing theorem
-`SinkDeletionProducesTraceEquivZero` is supplied. -/
+/-- Build `BoundaryTraceEquivZeroData` from the sink-deletion theorem package
+`SinkDeletionProducesTraceEquivZero`. The converse projection back to that
+package is provided below by `toSinkDeletionProducesTraceEquivZero`. -/
 def ofSinkDeletionProducesTraceEquivZero
     (boundaryAdminCodeContract : BoundaryAdminCodeContract.{u, u} setup)
     (externalOutCodeContract : ExternalOutCodeContract.{u, u} setup)
@@ -1335,6 +1335,46 @@ def ofBoundaryGluingWitnessData
       boundaryAdminCodeContract externalOutCodeContract
       syntacticBoundaryPresentation theoremData).zeroData =
       theoremData.zeroData :=
+  rfl
+
+/-- Recover the sink-deletion theorem package from the full
+`BoundaryTraceEquivZeroData` capsule. -/
+def toSinkDeletionProducesTraceEquivZero
+    (data : BoundaryTraceEquivZeroData setup) :
+    SinkDeletionProducesTraceEquivZero setup where
+  boundaryTraceData := data.boundaryTraceData
+  zeroData := data.zeroData
+  sinkDeletionProducesTraceEquivZero := data.boundary_trace_equiv_zero
+
+/-- Recover the named replay-chain obligations from the full
+`BoundaryTraceEquivZeroData` capsule. -/
+def toSinkDeletionInverseObligations
+    (data : BoundaryTraceEquivZeroData setup) :
+    SinkDeletionInverseObligations setup where
+  boundaryTraceData := data.boundaryTraceData
+  zeroData := data.zeroData
+  replayChainExists := data.boundary_trace_equiv_zero
+
+@[simp] theorem toSinkDeletionProducesTraceEquivZero_boundaryTraceData
+    (data : BoundaryTraceEquivZeroData setup) :
+    data.toSinkDeletionProducesTraceEquivZero.boundaryTraceData =
+      data.boundaryTraceData :=
+  rfl
+
+@[simp] theorem toSinkDeletionProducesTraceEquivZero_zeroData
+    (data : BoundaryTraceEquivZeroData setup) :
+    data.toSinkDeletionProducesTraceEquivZero.zeroData = data.zeroData :=
+  rfl
+
+@[simp] theorem toSinkDeletionInverseObligations_boundaryTraceData
+    (data : BoundaryTraceEquivZeroData setup) :
+    data.toSinkDeletionInverseObligations.boundaryTraceData =
+      data.boundaryTraceData :=
+  rfl
+
+@[simp] theorem toSinkDeletionInverseObligations_zeroData
+    (data : BoundaryTraceEquivZeroData setup) :
+    data.toSinkDeletionInverseObligations.zeroData = data.zeroData :=
   rfl
 
 /-- Quotient-level consequence of `boundary_trace_equiv_zero` for the produced
