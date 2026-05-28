@@ -1,5 +1,6 @@
 import Boundary.DiagonalDecomposition
 import Boundary.ImageComponentGeometry
+import Geometry.Cycles.Components
 import Geometry.Cycles.Operations
 
 /-!
@@ -717,15 +718,6 @@ structure RepresentedPrimeCompositionPiece
     toCompositionFiberProduct ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme =
       toTarget
 
-/-- A finite family of integral closed subschemes of an arbitrary scheme. This
-is the source-side decomposition layer before target-image multiplicities are
-attached. -/
-structure FiniteIntegralClosedFamily (X : Scheme.{u}) where
-  index : Type u
-  fintype_index : Fintype index
-  decidableEq_index : DecidableEq index
-  component : index → IntClosedSubscheme X
-
 /-- Source-lifted data for one composed image piece.
 
 This stores the honest triple `(R, D_R, [k(R):k(D_R)])`:
@@ -850,8 +842,8 @@ def sourceComponentFamily
     (data : SupportFiberProductLiftedImageDecompositionData P Q) :
     FiniteIntegralClosedFamily (compositionFiberProduct P Q) where
   index := data.index
-  fintype_index := data.fintype_index
-  decidableEq_index := data.decidableEq_index
+  fintypeIndex := data.fintype_index
+  decidableEqIndex := data.decidableEq_index
   component := fun i => (data.component i).sourceSubscheme
 
 /-- Repackage finite source-lifted image data as the binary image decomposition
@@ -868,6 +860,110 @@ def toSupportFiberProductImageDecomposition
   component := fun i => (data.component i).toSupportFiberProductImageComponent
 
 end SupportFiberProductLiftedImageDecompositionData
+
+/-- Explicit image data for one source component of
+`compositionFiberProduct P Q`. This keeps the composition builder honest when a
+source-component decomposition is available but a generic image-construction
+theorem is not yet formalized. -/
+structure SupportFiberProductSourceComponentImageData
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z)
+    (imageData : SupportFiberProductImageFactorization P Q)
+    (sourceSubscheme : IntClosedSubscheme (compositionFiberProduct P Q)) where
+  targetSubscheme : IntClosedSubscheme (overBaseProduct P.sourceComponent.carrier Z)
+  genericLengthData :
+    _root_.FiniteMapImageFunctionFieldData
+      (compositionToAmbientProduct P Q)
+      sourceSubscheme
+      targetSubscheme
+  multiplicity : ℕ
+  multiplicity_eq_genericLength :
+    multiplicity =
+      _root_.finiteMapImageMultiplicity (compositionToAmbientProduct P Q) genericLengthData
+  liftedTargetToCompositionFiberProduct :
+    targetSubscheme.scheme ⟶ compositionFiberProduct P Q
+  finiteOverSourceComponent : targetSubscheme.scheme ⟶ P.sourceComponent.carrier.scheme
+  finite_toSourceComponent : IsFinite finiteOverSourceComponent
+  surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
+  toTarget : targetSubscheme.scheme ⟶ Z.scheme
+  targetSubscheme_inclusion_fst :
+    targetSubscheme.inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+      finiteOverSourceComponent
+  targetSubscheme_inclusion_snd :
+    targetSubscheme.inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+      toTarget
+  liftedTarget_fst :
+    liftedTargetToCompositionFiberProduct ≫ compositionFiberFst P Q ≫ P.toSourceComponent =
+      finiteOverSourceComponent
+  liftedTarget_snd :
+    liftedTargetToCompositionFiberProduct ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme =
+      toTarget
+  sourceToTarget : sourceSubscheme.scheme ⟶ targetSubscheme.scheme
+  sourceToTarget_factorization :
+    sourceSubscheme.inclusion ≫ compositionToAmbientProduct P Q =
+      sourceToTarget ≫ targetSubscheme.inclusion
+  toImage : targetSubscheme.scheme ⟶ imageData.image
+  toImageClosedImmersion : IsClosedImmersion toImage
+  toImage_factorization :
+    liftedTargetToCompositionFiberProduct ≫ imageData.toImage = toImage
+  inclusion_factorization :
+    toImage ≫ imageData.imageToAmbientProduct = targetSubscheme.inclusion
+
+namespace SupportFiberProductSourceComponentImageData
+
+/-- Package explicit image data for a fixed source component into the general
+lifted image-component structure. -/
+def toLiftedImageComponentData
+    {X Y Z : Geometry.SmSchemeOver k}
+    {P : RepresentedPrimeSupport X Y} {Q : RepresentedPrimeSupport Y Z}
+    {imageData : SupportFiberProductImageFactorization P Q}
+    {sourceSubscheme : IntClosedSubscheme (compositionFiberProduct P Q)}
+    (data : SupportFiberProductSourceComponentImageData P Q imageData sourceSubscheme) :
+    SupportFiberProductLiftedImageComponentData imageData where
+  sourceSubscheme := sourceSubscheme
+  targetSubscheme := data.targetSubscheme
+  genericLengthData := data.genericLengthData
+  multiplicity := data.multiplicity
+  multiplicity_eq_genericLength := data.multiplicity_eq_genericLength
+  liftedTargetToCompositionFiberProduct := data.liftedTargetToCompositionFiberProduct
+  finiteOverSourceComponent := data.finiteOverSourceComponent
+  finite_toSourceComponent := data.finite_toSourceComponent
+  surjective_toSourceComponent := data.surjective_toSourceComponent
+  toTarget := data.toTarget
+  targetSubscheme_inclusion_fst := data.targetSubscheme_inclusion_fst
+  targetSubscheme_inclusion_snd := data.targetSubscheme_inclusion_snd
+  liftedTarget_fst := data.liftedTarget_fst
+  liftedTarget_snd := data.liftedTarget_snd
+  sourceToTarget := data.sourceToTarget
+  sourceToTarget_factorization := data.sourceToTarget_factorization
+  toImage := data.toImage
+  toImageClosedImmersion := data.toImageClosedImmersion
+  toImage_factorization := data.toImage_factorization
+  inclusion_factorization := data.inclusion_factorization
+
+end SupportFiberProductSourceComponentImageData
+
+/-- Assemble lifted decomposition data from an honest source decomposition of
+`compositionFiberProduct P Q` together with explicit image data for each source
+piece. This is the composition-specific builder available before a generic
+construction of image components from source components is formalized. -/
+def supportFiberProductLiftedImageDecompositionOfSourceDecomposition
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z)
+    (sourceDecomposition :
+      FiniteIntegralClosedComponentDecomposition (compositionFiberProduct P Q))
+    (imageData : SupportFiberProductImageFactorization P Q)
+    (componentImageData :
+      (i : sourceDecomposition.index) →
+        SupportFiberProductSourceComponentImageData
+          P Q imageData
+          ((sourceDecomposition.component i).carrier)) :
+    SupportFiberProductLiftedImageDecompositionData P Q where
+  imageData := imageData
+  index := sourceDecomposition.index
+  fintype_index := sourceDecomposition.fintypeIndex
+  decidableEq_index := sourceDecomposition.decidableEqIndex
+  component := fun i => (componentImageData i).toLiftedImageComponentData
 
 namespace RepresentedPrimeCompositionPiece
 
