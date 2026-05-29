@@ -2,6 +2,7 @@ import Boundary.A1Invariance
 import Boundary.ComponentGeometry
 import Boundary.CorrespondenceSums
 import Boundary.NisnevichDescent
+import Boundary.NisnevichTopology
 import Boundary.PolynomialSmoothness
 import Boundary.SmOver
 import Geometry.Correspondences.Graph
@@ -693,6 +694,136 @@ theorem IsA1NisLocal_iff_QtrLinear_local
     IsA1Local_iff_QtrLinear_inverts_A1Projection,
     IsNisnevichLocal_iff_QtrLinear_satisfies_descent]
 
+/-- Canonical-route Nisnevich locality for presheaves with transfers on
+`canonicalSmCorQ`. This is just the existing squarewise descent condition,
+specialized to the canonical rational correspondence category attached to the
+chosen composition package. -/
+def IsCanonicalNisnevichLocal
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (F : PST (Boundary.canonicalCategory composition)) : Prop :=
+  IsNisnevichLocal F
+
+/-- On the canonical route, Nisnevich locality is exactly the usual unique
+gluing condition for canonical distinguished-square descent generators. -/
+theorem IsCanonicalNisnevichLocal_iff_QtrLinear_satisfies_descent
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (F : LinearPST (Boundary.canonicalCategory composition)) :
+    IsCanonicalNisnevichLocal composition F.toPST ↔
+      ∀ square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition),
+        ∀ (ηopen : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.openPiece).toPST ⟶ F.toPST)
+          (ηpatch : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.patchPiece).toPST ⟶ F.toPST),
+          (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToOpenTransfer) ≫ ηopen =
+            (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToPatchTransfer) ≫ ηpatch →
+          ∃! ηbase : (QtrLinear (category := Boundary.canonicalCategory composition)
+              square.base).toPST ⟶ F.toPST,
+            (QtrMap (category := Boundary.canonicalCategory composition)
+                square.openToBaseTransfer) ≫ ηbase = ηopen ∧
+              (QtrMap (category := Boundary.canonicalCategory composition)
+                square.patchToBaseTransfer) ≫ ηbase = ηpatch :=
+  IsNisnevichLocal_iff_QtrLinear_satisfies_descent F
+
+/-- Canonical-route `A1`-locality for presheaves with transfers on
+`canonicalSmCorQ`. This is the existing `A1`-locality predicate specialized to
+the canonical rational correspondence category determined by `composition`. -/
+def IsCanonicalA1Local
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (F : PST (Boundary.canonicalCategory composition)) : Prop :=
+  IsA1Local F
+
+/-- Canonical-route combined `A1`+Nisnevich locality on `canonicalSmCorQ`. -/
+def IsCanonicalA1NisLocal
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (F : PST (Boundary.canonicalCategory composition)) : Prop :=
+  IsCanonicalA1Local composition F ∧ IsCanonicalNisnevichLocal composition F
+
+namespace IsCanonicalA1NisLocal
+
+/-- A canonical `A1`+Nisnevich-local presheaf is canonically `A1`-local. -/
+theorem isA1Local
+    {composition : Boundary.CanonicalCompositionData (k := k)}
+    {F : PST (Boundary.canonicalCategory composition)}
+    (hF : IsCanonicalA1NisLocal composition F) :
+    IsCanonicalA1Local composition F :=
+  hF.1
+
+/-- A canonical `A1`+Nisnevich-local presheaf is canonically Nisnevich-local. -/
+theorem isNisnevichLocal
+    {composition : Boundary.CanonicalCompositionData (k := k)}
+    {F : PST (Boundary.canonicalCategory composition)}
+    (hF : IsCanonicalA1NisLocal composition F) :
+    IsCanonicalNisnevichLocal composition F :=
+  hF.2
+
+/-- Canonical combined locality is exactly the conjunction of the canonical
+`A1`- and Nisnevich-locality predicates. -/
+theorem iff_localities
+    {composition : Boundary.CanonicalCompositionData (k := k)}
+    {F : PST (Boundary.canonicalCategory composition)} :
+    IsCanonicalA1NisLocal composition F ↔
+      IsCanonicalA1Local composition F ∧
+        IsCanonicalNisnevichLocal composition F :=
+  Iff.rfl
+
+end IsCanonicalA1NisLocal
+
+/-- On the canonical route, combined `A1`+Nisnevich locality is equivalent to
+the conjunction of the canonical `A1`-projection and distinguished-square
+descent conditions on the honest `QtrLinear` surface. -/
+theorem IsCanonicalA1NisLocal_iff_QtrLinear_local
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (F : LinearPST (Boundary.canonicalCategory composition)) :
+    IsCanonicalA1NisLocal composition F.toPST ↔
+      (∀ (X : Geometry.SmSchemeOver k)
+        (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        Function.Bijective
+          (fun η : (QtrLinear (category := Boundary.canonicalCategory composition) X).toPST ⟶
+              F.toPST =>
+            (projectionToBase_QtrMapOfDecomposition
+              (Boundary.canonicalCategory composition) X D) ≫ η)) ∧
+      (∀ square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition),
+        ∀ (ηopen : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.openPiece).toPST ⟶ F.toPST)
+          (ηpatch : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.patchPiece).toPST ⟶ F.toPST),
+          (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToOpenTransfer) ≫ ηopen =
+            (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToPatchTransfer) ≫ ηpatch →
+          ∃! ηbase : (QtrLinear (category := Boundary.canonicalCategory composition)
+              square.base).toPST ⟶ F.toPST,
+            (QtrMap (category := Boundary.canonicalCategory composition)
+                square.openToBaseTransfer) ≫ ηbase = ηopen ∧
+              (QtrMap (category := Boundary.canonicalCategory composition)
+                square.patchToBaseTransfer) ≫ ηbase = ηpatch) := by
+  change IsA1NisLocal F.toPST ↔
+      (∀ (X : Geometry.SmSchemeOver k)
+        (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        Function.Bijective
+          (fun η : (QtrLinear (category := Boundary.canonicalCategory composition) X).toPST ⟶
+              F.toPST =>
+            (projectionToBase_QtrMapOfDecomposition
+              (Boundary.canonicalCategory composition) X D) ≫ η)) ∧
+      (∀ square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition),
+        ∀ (ηopen : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.openPiece).toPST ⟶ F.toPST)
+          (ηpatch : (QtrLinear (category := Boundary.canonicalCategory composition)
+            square.patchPiece).toPST ⟶ F.toPST),
+          (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToOpenTransfer) ≫ ηopen =
+            (QtrMap (category := Boundary.canonicalCategory composition)
+              square.overlapToPatchTransfer) ≫ ηpatch →
+          ∃! ηbase : (QtrLinear (category := Boundary.canonicalCategory composition)
+              square.base).toPST ⟶ F.toPST,
+            (QtrMap (category := Boundary.canonicalCategory composition)
+                square.openToBaseTransfer) ≫ ηbase = ηopen ∧
+              (QtrMap (category := Boundary.canonicalCategory composition)
+                square.patchToBaseTransfer) ≫ ηbase = ηpatch)
+  exact IsA1NisLocal_iff_QtrLinear_local F
+
 /-- A bundled linear presheaf with transfers is `A1`+Nisnevich-local when its
 underlying presheaf with transfers is both `A1`-local and Nisnevich-local. -/
 def IsLinearA1NisLocal {category : SmCorQ (k := k)}
@@ -1139,6 +1270,473 @@ theorem basicGenerators_areA1NisLocalEquivalences
           square.nisnevichDescentGeneratorMapLinear) :=
   ⟨fun X D => representableA1Projection_isA1NisLocalEquivalence X D,
    fun square => nisnevichDescentGenerator_isA1NisLocalEquivalence square⟩
+
+/-- Canonical-route bundled linear presheaves with transfers that are both
+`A1`-local and Nisnevich-local. -/
+abbrev CanonicalA1NisLocalPST
+    (composition : Boundary.CanonicalCompositionData (k := k)) :=
+  LinearA1NisLocalPST (Boundary.canonicalCategory composition)
+
+/-- Canonical-route local equivalences on `LinearPST (canonicalSmCorQ)`. -/
+def IsCanonicalA1NisLocalEquivalence
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : LinearPST (Boundary.canonicalCategory composition)}
+    (φ : F ⟶ G) : Prop :=
+  IsA1NisLocalEquivalence φ
+
+/-- The representable `A1`-projection generator is a canonical
+`A1`+Nisnevich-local equivalence. -/
+theorem representableA1Projection_isCanonicalA1NisLocalEquivalence
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (X : Geometry.SmSchemeOver k)
+    (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)) :
+    IsCanonicalA1NisLocalEquivalence composition
+      (F := QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X))
+      (G := QtrLinear (category := Boundary.canonicalCategory composition) X)
+      (show QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X) ⟶
+          QtrLinear (category := Boundary.canonicalCategory composition) X from
+        projectionToBase_QtrMapOfDecomposition
+          (Boundary.canonicalCategory composition) X D) :=
+  representableA1Projection_isA1NisLocalEquivalence
+    (category := Boundary.canonicalCategory composition) X D
+
+/-- The canonical Nisnevich descent generator is a canonical `A1`+Nisnevich-local
+equivalence. -/
+theorem canonicalNisnevichDescentGenerator_isCanonicalA1NisLocalEquivalence
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)) :
+    IsCanonicalA1NisLocalEquivalence composition
+      (F := square.descentCompatiblePairObjectLinear)
+      (G := QtrLinear (category := Boundary.canonicalCategory composition) square.base)
+      square.nisnevichDescentGeneratorMapLinear :=
+  nisnevichDescentGenerator_isA1NisLocalEquivalence
+    (category := Boundary.canonicalCategory composition) square
+
+/-- On the canonical route, both basic generator families land in the canonical
+`A1`+Nisnevich local-equivalence class. -/
+theorem canonicalBasicGenerators_areA1NisLocalEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    (∀ (X : Geometry.SmSchemeOver k)
+       (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        IsCanonicalA1NisLocalEquivalence composition
+          (F := QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X))
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) X)
+          (projectionToBase_QtrMapOfDecomposition
+            (Boundary.canonicalCategory composition) X D)) ∧
+    (∀ (square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)),
+        IsCanonicalA1NisLocalEquivalence composition
+          (F := square.descentCompatiblePairObjectLinear)
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) square.base)
+          square.nisnevichDescentGeneratorMapLinear) :=
+  ⟨fun X D => representableA1Projection_isCanonicalA1NisLocalEquivalence composition X D,
+   fun square => canonicalNisnevichDescentGenerator_isCanonicalA1NisLocalEquivalence
+     composition square⟩
+
+/-- Primitive canonical-route `A1` and Nisnevich generators over
+`canonicalSmCorQ`. -/
+inductive CanonicalA1NisGenerator
+    (composition : Boundary.CanonicalCompositionData (k := k)) where
+  | a1Projection (X : Geometry.SmSchemeOver k)
+      (D : FiniteIrreducibleComponentDecomposition (productWithA1 X))
+  | nisnevichDescent
+      (square : NisnevichDistinguishedSquareDataQ
+        (Boundary.canonicalCategory composition))
+
+/-- The canonical generator presentation for the `A1` projections and
+Nisnevich descent maps over `canonicalSmCorQ`. -/
+def canonicalA1NisGenerators
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    LocalizingMorphismPresentationQ (Boundary.canonicalCategory composition) where
+  Generator := CanonicalA1NisGenerator composition
+  data := fun
+    | .a1Projection X D =>
+        ⟨Qtr (category := Boundary.canonicalCategory composition) (productWithA1 X),
+          Qtr (category := Boundary.canonicalCategory composition) X,
+          projectionToBase_QtrMapOfDecomposition
+            (Boundary.canonicalCategory composition) X D⟩
+    | .nisnevichDescent square =>
+        ⟨square.descentCompatiblePairObject,
+          Qtr (category := Boundary.canonicalCategory composition) square.base,
+          square.nisnevichDescentGeneratorMapCanonical⟩
+
+/-- The canonical `W_{A1,Nis}` local-equivalence predicate on
+`LinearPST (canonicalSmCorQ)`, expressed through the Bousfield-`W` class of the
+bundled canonical local objects. -/
+def canonicalA1NisLocalEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : LinearPST (Boundary.canonicalCategory composition)}
+    (φ : F ⟶ G) : Prop :=
+  Localization.LeftBousfield.W
+    (· ∈ Set.range
+      (LinearA1NisLocalPST.inclusion (Boundary.canonicalCategory composition)).obj) φ
+
+/-- The generated canonical weak-equivalence class
+`W_{A1,Nis}^{can} = \langle X × A1 → X, \text{Nis descent} \rangle`. -/
+def canonicalA1NisWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : PST (Boundary.canonicalCategory composition)}
+    (φ : F ⟶ G) : Prop :=
+  Nonempty (GeneratedWeakEquivalenceQ (canonicalA1NisGenerators composition) φ)
+
+/-- The saturated canonical weak-equivalence class generated by the primitive
+`A1` projections and Nisnevich descent maps.
+
+On the canonical route this saturation is taken semantically, via the same
+left-Bousfield `W`-construction used for the honest localization object.  Thus
+`canonicalA1NisSaturatedWeakEquivalences` is the public saturated class, while
+`canonicalA1NisWeakEquivalences` remains the proof-relevant raw syntax of
+generator composites. -/
+def canonicalA1NisSaturatedWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : LinearPST (Boundary.canonicalCategory composition)}
+    (φ : F ⟶ G) : Prop :=
+  canonicalA1NisLocalEquivalences composition φ
+
+private def canonicalA1NisLocalEquivalencesProperty
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    MorphismProperty (LinearPST (Boundary.canonicalCategory composition)) :=
+  fun _ _ φ => canonicalA1NisLocalEquivalences composition φ
+
+private def canonicalA1NisWeakEquivalencesProperty
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    MorphismProperty (LinearPST (Boundary.canonicalCategory composition)) :=
+  fun F G φ =>
+    canonicalA1NisWeakEquivalences composition (F := F.toPST) (G := G.toPST) φ
+
+private def canonicalA1NisSaturatedWeakEquivalencesProperty
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    MorphismProperty (LinearPST (Boundary.canonicalCategory composition)) :=
+  fun _ _ φ => canonicalA1NisSaturatedWeakEquivalences composition φ
+
+/-- The honest canonical `A1`/Nisnevich localization of
+`LinearPST (canonicalSmCorQ)`, formed by Mathlib's localization construction at
+the canonical local-equivalence class. -/
+abbrev canonicalA1NisLocalization
+    (composition : Boundary.CanonicalCompositionData (k := k)) :=
+  (canonicalA1NisLocalEquivalencesProperty composition).Localization
+
+/-- The canonical localization functor
+`LinearPST (canonicalSmCorQ) ⥤ canonicalA1NisLocalization`. -/
+def canonicalA1NisLocalizationFunctor
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    LinearPST (Boundary.canonicalCategory composition) ⥤
+      canonicalA1NisLocalization composition :=
+  (canonicalA1NisLocalEquivalencesProperty composition).Q
+
+instance canonicalA1NisLocalizationFunctor_isLocalization
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    (canonicalA1NisLocalizationFunctor composition).IsLocalization
+      (canonicalA1NisLocalEquivalencesProperty composition) := by
+  dsimp [canonicalA1NisLocalizationFunctor, canonicalA1NisLocalization]
+  infer_instance
+
+theorem canonicalA1NisLocalEquivalences_iff
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : LinearPST (Boundary.canonicalCategory composition)}
+    (φ : F ⟶ G) :
+    canonicalA1NisLocalEquivalences composition φ ↔
+      IsCanonicalA1NisLocalEquivalence composition φ := by
+  constructor
+  · intro hφ L
+    exact hφ ((LinearA1NisLocalPST.inclusion
+      (Boundary.canonicalCategory composition)).obj L) ⟨L, rfl⟩
+  · intro hφ Z ⟨L, hL⟩
+    rw [← hL]
+    exact hφ L
+
+/-- Universal property of the canonical `A1`/Nisnevich localization: for every
+target category `D`, precomposition with the canonical localization functor is
+an equivalence from functors out of the localization to functors that invert
+the canonical local-equivalence class. -/
+def canonicalA1NisLocalization_universalProperty
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (D : Type*) [Category D] :
+    (canonicalA1NisLocalization composition ⥤ D) ≌
+      (canonicalA1NisLocalEquivalencesProperty composition).FunctorsInverting D :=
+  CategoryTheory.Localization.functorEquivalence
+    (canonicalA1NisLocalizationFunctor composition)
+    (canonicalA1NisLocalEquivalencesProperty composition)
+    D
+
+private theorem generatedWeakEquivalence_invertedByCanonicalLocal
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    {F G : PST (Boundary.canonicalCategory composition)}
+    {φ : F ⟶ G}
+    (hφ : GeneratedWeakEquivalenceQ (canonicalA1NisGenerators composition) φ) :
+    ∀ (L : CanonicalA1NisLocalPST composition),
+      Function.Bijective (fun η : G ⟶ L.toPST => φ ≫ η) := by
+  induction hφ with
+  | ofGenerator g =>
+      cases g with
+      | a1Projection X D =>
+          intro L
+          have hloc :
+              canonicalA1NisLocalEquivalences composition
+                (F := QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X))
+                (G := QtrLinear (category := Boundary.canonicalCategory composition) X)
+                (show QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X) ⟶
+                    QtrLinear (category := Boundary.canonicalCategory composition) X from
+                  projectionToBase_QtrMapOfDecomposition
+                    (Boundary.canonicalCategory composition) X D) := by
+            rw [canonicalA1NisLocalEquivalences_iff]
+            exact representableA1Projection_isCanonicalA1NisLocalEquivalence composition X D
+          simpa using hloc
+            ((LinearA1NisLocalPST.inclusion (Boundary.canonicalCategory composition)).obj L)
+            ⟨L, rfl⟩
+      | nisnevichDescent square =>
+          intro L
+          have hloc :
+              canonicalA1NisLocalEquivalences composition
+                (F := square.descentCompatiblePairObjectLinear)
+                (G := QtrLinear (category := Boundary.canonicalCategory composition) square.base)
+                square.nisnevichDescentGeneratorMapLinear := by
+            rw [canonicalA1NisLocalEquivalences_iff]
+            exact canonicalNisnevichDescentGenerator_isCanonicalA1NisLocalEquivalence
+              composition square
+          simpa [NisnevichDistinguishedSquareDataQ.nisnevichDescentGeneratorMapLinear,
+            NisnevichDistinguishedSquareDataQ.nisnevichDescentGeneratorMapCanonical] using
+            hloc ((LinearA1NisLocalPST.inclusion (Boundary.canonicalCategory composition)).obj L)
+              ⟨L, rfl⟩
+  | id X =>
+      intro L
+      constructor
+      · intro η₁ η₂ hη
+        simpa using hη
+      · intro η
+        refine ⟨η, ?_⟩
+        simp
+  | comp hf hg ihf ihg =>
+      intro L
+      rename_i X Y Z f g
+      let bf := ihf L
+      let bg := ihg L
+      constructor
+      · intro η₁ η₂ hη
+        apply bg.1
+        apply bf.1
+        simpa [Category.assoc] using hη
+      · intro η
+        rcases bf.2 η with ⟨θ, hθ⟩
+        rcases bg.2 θ with ⟨μ, hμ⟩
+        refine ⟨μ, ?_⟩
+        calc
+          (fun η => (f ≫ g) ≫ η) μ = f ≫ ((fun η => g ≫ η) μ) := by
+            simp [Category.assoc]
+          _ = f ≫ θ := by rw [hμ]
+          _ = η := hθ
+
+/-- Every generator-built canonical weak equivalence between linear presheaves
+is already a canonical local equivalence. -/
+theorem canonicalA1NisWeakEquivalences_le_localEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisWeakEquivalences composition (F := F.toPST) (G := G.toPST) φ →
+        canonicalA1NisLocalEquivalences composition φ := by
+  intro F G φ hφ
+  rcases hφ with ⟨hφ⟩
+  intro Z hZ
+  rcases hZ with ⟨L, rfl⟩
+  simpa using generatedWeakEquivalence_invertedByCanonicalLocal composition hφ L
+
+/-- The raw generator-built class sits inside the saturated canonical class. -/
+theorem canonicalA1NisWeakEquivalences_le_saturated
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisWeakEquivalences composition (F := F.toPST) (G := G.toPST) φ →
+        canonicalA1NisSaturatedWeakEquivalences composition φ := by
+  intro F G φ hφ
+  exact canonicalA1NisWeakEquivalences_le_localEquivalences composition φ hφ
+
+/-- The saturated canonical generated class is already a local-equivalence
+class on the canonical route. -/
+theorem canonicalA1NisSaturatedWeakEquivalences_le_localEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisSaturatedWeakEquivalences composition φ →
+        canonicalA1NisLocalEquivalences composition φ := by
+  intro F G φ hφ
+  exact hφ
+
+/-- Conversely, the canonical local-equivalence class is exactly the saturated
+generated class. -/
+theorem canonicalA1NisLocalEquivalences_le_saturatedWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisLocalEquivalences composition φ →
+        canonicalA1NisSaturatedWeakEquivalences composition φ := by
+  intro F G φ hφ
+  exact hφ
+
+/-- The saturated generated class and the canonical local-equivalence class
+coincide on the canonical route. -/
+theorem canonicalA1NisSaturatedWeakEquivalences_eq_localEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisSaturatedWeakEquivalences composition φ ↔
+        canonicalA1NisLocalEquivalences composition φ := by
+  intro F G φ
+  constructor
+  · exact canonicalA1NisSaturatedWeakEquivalences_le_localEquivalences composition φ
+  · exact canonicalA1NisLocalEquivalences_le_saturatedWeakEquivalences composition φ
+
+/-- Exact remaining reverse comparison obligation: the current generated class
+contains only identities, compositions, and primitive generators, while the
+local-equivalence class used for the actual localization is already saturated by
+Mathlib's localization API.  Any proof of this proposition must therefore show
+that the generated class is sufficiently saturated on the canonical route. -/
+def canonicalA1NisLocalEquivalences_le_generatedWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) : Prop :=
+  ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+    canonicalA1NisLocalEquivalences composition φ →
+      canonicalA1NisWeakEquivalences composition (F := F.toPST) (G := G.toPST) φ
+
+/-- If the reverse saturation obligation is discharged, the generator-built and
+local-equivalence presentations coincide on the canonical route. -/
+theorem canonicalA1NisWeakEquivalences_eq_localEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hrev : canonicalA1NisLocalEquivalences_le_generatedWeakEquivalences composition) :
+    ∀ {F G : LinearPST (Boundary.canonicalCategory composition)} (φ : F ⟶ G),
+      canonicalA1NisWeakEquivalences composition (F := F.toPST) (G := G.toPST) φ ↔
+        canonicalA1NisLocalEquivalences composition φ := by
+  intro F G φ
+  constructor
+  · exact canonicalA1NisWeakEquivalences_le_localEquivalences composition φ
+  · exact hrev φ
+
+/-- If the reverse inclusion is discharged, the universal property of the
+canonical localization can be restated using the generator-built weak
+equivalence class. -/
+def canonicalA1NisLocalization_universalProperty_generated
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hrev : canonicalA1NisLocalEquivalences_le_generatedWeakEquivalences composition)
+    (D : Type*) [Category D] :
+    (canonicalA1NisLocalization composition ⥤ D) ≌
+      (canonicalA1NisWeakEquivalencesProperty composition).FunctorsInverting D := by
+  let hgen_le_hloc : canonicalA1NisWeakEquivalencesProperty composition ≤
+      canonicalA1NisLocalEquivalencesProperty composition := by
+    intro F G φ hφ
+    exact canonicalA1NisWeakEquivalences_le_localEquivalences composition φ hφ
+  let hloc_le_hgen : canonicalA1NisLocalEquivalencesProperty composition ≤
+      canonicalA1NisWeakEquivalencesProperty composition := by
+    intro F G φ hφ
+    exact hrev φ hφ
+  let transport :
+      (canonicalA1NisLocalEquivalencesProperty composition).FunctorsInverting D ≌
+        (canonicalA1NisWeakEquivalencesProperty composition).FunctorsInverting D := by
+    refine
+      { functor :=
+          { obj := fun F =>
+              MorphismProperty.FunctorsInverting.mk F.1
+                (MorphismProperty.IsInvertedBy.of_le _ _ F.1 F.2 hgen_le_hloc)
+            map := fun η => η }
+        inverse :=
+          { obj := fun F =>
+              MorphismProperty.FunctorsInverting.mk F.1
+                (MorphismProperty.IsInvertedBy.of_le _ _ F.1 F.2 hloc_le_hgen)
+            map := fun η => η }
+        unitIso := NatIso.ofComponents (fun F => Iso.refl F) (fun η => by
+          ext X
+          change η.app X ≫ 𝟙 _ = 𝟙 _ ≫ η.app X
+          simpa using ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
+        counitIso := NatIso.ofComponents (fun F => Iso.refl F) (fun η => by
+          ext X
+          change η.app X ≫ 𝟙 _ = 𝟙 _ ≫ η.app X
+          simpa using ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
+        functor_unitIso_comp := by
+          intro F
+          ext X
+          change 𝟙 _ ≫ 𝟙 _ = 𝟙 _
+          simp }
+  let uprop :
+      (canonicalA1NisLocalization composition ⥤ D) ≌
+        (canonicalA1NisLocalEquivalencesProperty composition).FunctorsInverting D :=
+    canonicalA1NisLocalization_universalProperty composition D
+  exact uprop.trans transport
+
+/-- Unconditional universal property of the canonical localization restated
+using the saturated generated class. -/
+def canonicalA1NisLocalization_universalProperty_saturatedGenerated
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (D : Type*) [Category D] :
+    (canonicalA1NisLocalization composition ⥤ D) ≌
+      (canonicalA1NisSaturatedWeakEquivalencesProperty composition).FunctorsInverting D :=
+  canonicalA1NisLocalization_universalProperty composition D
+
+/-- The primitive canonical `A1` and Nisnevich generator maps are members of
+the generated weak-equivalence class `W_{A1,Nis}^{can}`. -/
+theorem canonicalA1NisGenerators_generate_canonicalA1NisWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    (∀ (X : Geometry.SmSchemeOver k)
+       (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        canonicalA1NisWeakEquivalences composition
+          (projectionToBase_QtrMapOfDecomposition
+            (Boundary.canonicalCategory composition) X D)) ∧
+    (∀ (square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)),
+        canonicalA1NisWeakEquivalences composition
+          square.nisnevichDescentGeneratorMapCanonical) := by
+  constructor
+  · intro X D
+    change canonicalA1NisWeakEquivalences composition
+      ((canonicalA1NisGenerators composition).map
+        (CanonicalA1NisGenerator.a1Projection X D))
+    exact ⟨GeneratedWeakEquivalenceQ.ofGenerator
+      (presentation := canonicalA1NisGenerators composition)
+      (CanonicalA1NisGenerator.a1Projection X D)⟩
+  · intro square
+    change canonicalA1NisWeakEquivalences composition
+      ((canonicalA1NisGenerators composition).map
+        (CanonicalA1NisGenerator.nisnevichDescent square))
+    exact ⟨GeneratedWeakEquivalenceQ.ofGenerator
+      (presentation := canonicalA1NisGenerators composition)
+      (CanonicalA1NisGenerator.nisnevichDescent square)⟩
+
+/-- The primitive canonical `A1` and Nisnevich generators already lie in the
+canonical local-equivalence class seen by canonical local objects. -/
+theorem canonicalA1NisGenerators_areCanonicalLocalEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    (∀ (X : Geometry.SmSchemeOver k)
+       (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        canonicalA1NisLocalEquivalences composition
+          (F := QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X))
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) X)
+          (show QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X) ⟶
+              QtrLinear (category := Boundary.canonicalCategory composition) X from
+            projectionToBase_QtrMapOfDecomposition
+              (Boundary.canonicalCategory composition) X D)) ∧
+    (∀ (square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)),
+        canonicalA1NisLocalEquivalences composition
+          (F := square.descentCompatiblePairObjectLinear)
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) square.base)
+          square.nisnevichDescentGeneratorMapLinear) := by
+  constructor
+  · intro X D
+    rw [canonicalA1NisLocalEquivalences_iff]
+    exact representableA1Projection_isCanonicalA1NisLocalEquivalence composition X D
+  · intro square
+    rw [canonicalA1NisLocalEquivalences_iff]
+    exact canonicalNisnevichDescentGenerator_isCanonicalA1NisLocalEquivalence
+      composition square
+
+/-- The primitive canonical `A1` and Nisnevich generators already lie in the
+public saturated weak-equivalence class on the canonical route. -/
+theorem canonicalA1NisGenerators_areSaturatedWeakEquivalences
+    (composition : Boundary.CanonicalCompositionData (k := k)) :
+    (∀ (X : Geometry.SmSchemeOver k)
+       (D : FiniteIrreducibleComponentDecomposition (productWithA1 X)),
+        canonicalA1NisSaturatedWeakEquivalences composition
+          (F := QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X))
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) X)
+          (show QtrLinear (category := Boundary.canonicalCategory composition) (productWithA1 X) ⟶
+              QtrLinear (category := Boundary.canonicalCategory composition) X from
+            projectionToBase_QtrMapOfDecomposition
+              (Boundary.canonicalCategory composition) X D)) ∧
+    (∀ (square : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)),
+        canonicalA1NisSaturatedWeakEquivalences composition
+          (F := square.descentCompatiblePairObjectLinear)
+          (G := QtrLinear (category := Boundary.canonicalCategory composition) square.base)
+          square.nisnevichDescentGeneratorMapLinear) := by
+  simpa [canonicalA1NisSaturatedWeakEquivalences_eq_localEquivalences]
+    using canonicalA1NisGenerators_areCanonicalLocalEquivalences composition
 
 /-- Alignment: `IsA1NisLocalEquivalence` is exactly
 `Localization.LeftBousfield.W` for objects in the essential image of
