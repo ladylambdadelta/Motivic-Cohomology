@@ -1,5 +1,6 @@
 import Boundary.CompositionGeometry
 import Boundary.CompositionCategory
+import Boundary.RationalCompositionCategory
 
 /-!
 # Represented-Prime Composition Package
@@ -4442,7 +4443,385 @@ def supportFiberProductLiftedDecomposition
   fun {X} {Y} {Z} P Q =>
     (decomposition (X := X) (Y := Y) (Z := Z) P Q).toSupportFiberProductImageDecomposition
 
+/-- Bundled concrete composition input whose binary packages are still defined
+via honest lifted support-fiber-product image decompositions. This keeps the
+package-family layer computational: later graph compatibility can be proved by
+showing that a chosen lifted builder specializes to the graph decomposition on
+graph-prime pairs. -/
+structure SupportFiberProductLiftedImageCompositionPackage where
+  diagonalDecomposition :
+    (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X
+  liftedDecomposition :
+    {X Y Z : Geometry.SmSchemeOver k} →
+    (P : RepresentedPrimeSupport X Y) →
+    (Q : RepresentedPrimeSupport Y Z) →
+      SupportFiberProductLiftedImageDecompositionData P Q
+  respects_left :
+    ∀ {X Y Z : Geometry.SmSchemeOver k}
+      {P P' : RepresentedPrimeSupport X Y}
+      (_h : PrimeSupportEquivalent P P')
+      (Q : RepresentedPrimeSupport Y Z),
+        FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+          FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) P' Q)).toPresentation)
+  respects_right :
+    ∀ {X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport X Y)
+      {Q Q' : RepresentedPrimeSupport Y Z}
+      (_h : PrimeSupportEquivalent Q Q'),
+        FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+          FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q')).toPresentation)
+  source_eq_diagonalLeftIdentity :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport X Y),
+        (supportFiberProductLiftedDecomposition liftedDecomposition)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P =
+          RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P
+  landing_eq_diagonalRightIdentity :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport X Y),
+        (supportFiberProductLiftedDecomposition liftedDecomposition) P
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)) =
+          RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+            P
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).1.1)
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).2.1)
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).2.2)
+  leftPresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k},
+      RepresentedPrimeSupport W X →
+      RepresentedPrimeSupport X Y →
+      RepresentedPrimeSupport Y Z →
+        FiniteCorrespondencePresentation W Z
+  rightPresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k},
+      RepresentedPrimeSupport W X →
+      RepresentedPrimeSupport X Y →
+      RepresentedPrimeSupport Y Z →
+        FiniteCorrespondencePresentation W Z
+  hpresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        rightPresentation P Q R = leftPresentation P Q R
+  hleft :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        FiniteCorrespondenceCompositionData.comp
+          (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+            diagonalDecomposition
+            (supportFiberProductLiftedDecomposition liftedDecomposition)
+            respects_left respects_right).toFiniteCorrespondenceCompositionData
+          (FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation))
+          (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+            FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R)
+  hright :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        FiniteCorrespondenceCompositionData.comp
+          (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+            diagonalDecomposition
+            (supportFiberProductLiftedDecomposition liftedDecomposition)
+            respects_left respects_right).toFiniteCorrespondenceCompositionData
+          (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+          (FiniteCorrespondencePresentation.toGeom
+            ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+              ((supportFiberProductLiftedDecomposition liftedDecomposition) Q R)).toPresentation)) =
+            FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R)
+
+namespace SupportFiberProductLiftedImageCompositionPackage
+
+/-- Forget the lifted refinement of a concrete package while keeping the fact
+that it came from an honest lifted decomposition builder available upstream. -/
+def toSupportFiberProductImageCompositionPackage
+    (pkg : SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    SupportFiberProductImageCompositionPackage (k := k) :=
+  { diagonalDecomposition := pkg.diagonalDecomposition
+    decomposition := supportFiberProductLiftedDecomposition pkg.liftedDecomposition
+    respects_left := pkg.respects_left
+    respects_right := pkg.respects_right
+    source_eq_diagonalLeftIdentity := pkg.source_eq_diagonalLeftIdentity
+    landing_eq_diagonalRightIdentity := pkg.landing_eq_diagonalRightIdentity
+    leftPresentation := pkg.leftPresentation
+    rightPresentation := pkg.rightPresentation
+    hpresentation := pkg.hpresentation
+    hleft := pkg.hleft
+    hright := pkg.hright }
+
+end SupportFiberProductLiftedImageCompositionPackage
+
 namespace SupportFiberProductImageCompositionPackage
+
+/-- Build the ordinary support-fiber-product image composition package directly
+from a real lifted-decomposition builder by forgetting the source-lifted
+refinement. -/
+def ofSupportFiberProductLiftedDecomposition
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (liftedDecomposition :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      (P : RepresentedPrimeSupport X Y) →
+      (Q : RepresentedPrimeSupport Y Z) →
+        SupportFiberProductLiftedImageDecompositionData P Q)
+    (respects_left :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        {P P' : RepresentedPrimeSupport X Y}
+        (_h : PrimeSupportEquivalent P P')
+        (Q : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P' Q)).toPresentation))
+    (respects_right :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y)
+        {Q Q' : RepresentedPrimeSupport Y Z}
+        (_h : PrimeSupportEquivalent Q Q'),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q')).toPresentation))
+    (source_eq_diagonalLeftIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P =
+            RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition) P
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation))
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) Q R)).toPresentation)) =
+              FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R)) :
+    SupportFiberProductImageCompositionPackage (k := k) where
+  diagonalDecomposition := diagonalDecomposition
+  decomposition := supportFiberProductLiftedDecomposition liftedDecomposition
+  respects_left := respects_left
+  respects_right := respects_right
+  source_eq_diagonalLeftIdentity := source_eq_diagonalLeftIdentity
+  landing_eq_diagonalRightIdentity := landing_eq_diagonalRightIdentity
+  leftPresentation := leftPresentation
+  rightPresentation := rightPresentation
+  hpresentation := hpresentation
+  hleft := hleft
+  hright := hright
+
+/-- Existence form of `ofSupportFiberProductLiftedDecomposition`: once the real
+lifted decomposition and its presentation compatibilities are available, the
+ordinary support-fiber-product image composition package exists. -/
+theorem exists_ofSupportFiberProductLiftedDecomposition
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (liftedDecomposition :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      (P : RepresentedPrimeSupport X Y) →
+      (Q : RepresentedPrimeSupport Y Z) →
+        SupportFiberProductLiftedImageDecompositionData P Q)
+    (respects_left :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        {P P' : RepresentedPrimeSupport X Y}
+        (_h : PrimeSupportEquivalent P P')
+        (Q : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P' Q)).toPresentation))
+    (respects_right :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y)
+        {Q Q' : RepresentedPrimeSupport Y Z}
+        (_h : PrimeSupportEquivalent Q Q'),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q')).toPresentation))
+    (source_eq_diagonalLeftIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P =
+            RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition) P
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation))
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) Q R)).toPresentation)) =
+              FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R)) :
+    Nonempty (SupportFiberProductImageCompositionPackage (k := k)) :=
+  ⟨ofSupportFiberProductLiftedDecomposition
+      diagonalDecomposition liftedDecomposition respects_left respects_right
+      source_eq_diagonalLeftIdentity landing_eq_diagonalRightIdentity
+      leftPresentation rightPresentation hpresentation hleft hright⟩
+
+/-- The package-parametric prime composition presentation produced by the
+honest support-fiber-product image decomposition attached to `pkg`. -/
+def canonicalCompPresentation
+    (pkg : SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y)
+    (Q : RepresentedPrimeSupport Y Z) :
+    FiniteCorrespondencePresentation X Z :=
+  (pkg.decomposition P Q).toPresentation
+
+/-- The package-parametric prime composition descended to geometric prime
+classes. -/
+def canonicalComp
+    (pkg : SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y)
+    (Q : RepresentedPrimeSupport Y Z) :
+    FiniteCorrespondence X Z :=
+  FiniteCorrespondencePresentation.toGeom (pkg.canonicalCompPresentation P Q)
+
+@[simp] theorem canonicalComp_eq_toGeom_canonicalCompPresentation
+    (pkg : SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y)
+    (Q : RepresentedPrimeSupport Y Z) :
+    pkg.canonicalComp P Q =
+      FiniteCorrespondencePresentation.toGeom (pkg.canonicalCompPresentation P Q) :=
+  rfl
 
 /-- The bundled support-fiber-product image composition package produces the
 final correspondence category `SmCor(k)`. -/
@@ -4461,6 +4840,874 @@ def toSmCor (pkg : SupportFiberProductImageCompositionPackage (k := k)) : SmCor 
     pkg.hright
 
 end SupportFiberProductImageCompositionPackage
+
+namespace PrimeFiniteCorrespondenceSupport
+
+/-- The canonical prime-composition presentation produced by a chosen honest
+support-fiber-product image composition package. -/
+def canonicalCompPresentation
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z)
+    (pkg : SupportFiberProductImageCompositionPackage (k := k)) :
+    FiniteCorrespondencePresentation X Z :=
+  pkg.canonicalCompPresentation P Q
+
+/-- The canonical prime composition on geometric prime-support classes produced
+by a chosen honest support-fiber-product image composition package. -/
+def canonicalComp
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z)
+    (pkg : SupportFiberProductImageCompositionPackage (k := k)) :
+    FiniteCorrespondence X Z :=
+  pkg.canonicalComp P Q
+
+@[simp] theorem canonicalComp_eq_toGeom_canonicalCompPresentation
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z)
+    (pkg : SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalComp P Q pkg =
+      FiniteCorrespondencePresentation.toGeom (canonicalCompPresentation P Q pkg) :=
+  rfl
+
+private def liftedCanonicalCompGenericLengthPresentation
+    (liftedDecomposition :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      (P : RepresentedPrimeSupport X Y) →
+      (Q : RepresentedPrimeSupport Y Z) →
+        SupportFiberProductLiftedImageDecompositionData P Q)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z) :
+    FiniteCorrespondencePresentation X Z := by
+  classical
+  let lifted := liftedDecomposition P Q
+  let decomposition := lifted.toSupportFiberProductImageDecomposition
+  letI := decomposition.fintype_index
+  letI := decomposition.decidableEq_index
+  exact Finset.univ.sum fun i : decomposition.index =>
+    let component := decomposition.component i
+    ((_root_.finiteMapImageMultiplicity (compositionToAmbientProduct P Q)
+        (lifted.component i).genericLengthData : ℤ)) •
+      Finsupp.single component.toWeightedPrimeFiniteCorrespondenceSupport.prime 1
+
+/-- For a package obtained from a real lifted decomposition, the canonical
+prime-composition presentation is the sum of singleton represented-prime
+supports weighted by the corresponding generic-length multiplicities. -/
+theorem canonicalComp_coeff_eq_genericLength
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (liftedDecomposition :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      (P : RepresentedPrimeSupport X Y) →
+      (Q : RepresentedPrimeSupport Y Z) →
+        SupportFiberProductLiftedImageDecompositionData P Q)
+    (respects_left :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        {P P' : RepresentedPrimeSupport X Y}
+        (_h : PrimeSupportEquivalent P P')
+        (Q : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P' Q)).toPresentation))
+    (respects_right :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y)
+        {Q Q' : RepresentedPrimeSupport Y Z}
+        (_h : PrimeSupportEquivalent Q Q'),
+          FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation) =
+            FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q')).toPresentation))
+    (source_eq_diagonalLeftIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P =
+            RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          (supportFiberProductLiftedDecomposition liftedDecomposition) P
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) P Q)).toPresentation))
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+              diagonalDecomposition
+              (supportFiberProductLiftedDecomposition liftedDecomposition)
+              respects_left respects_right).toFiniteCorrespondenceCompositionData
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (FiniteCorrespondencePresentation.toGeom
+              ((RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+                ((supportFiberProductLiftedDecomposition liftedDecomposition) Q R)).toPresentation)) =
+              FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z) :
+    canonicalCompPresentation P Q
+        (SupportFiberProductImageCompositionPackage.ofSupportFiberProductLiftedDecomposition
+          diagonalDecomposition liftedDecomposition respects_left respects_right
+          source_eq_diagonalLeftIdentity landing_eq_diagonalRightIdentity
+          leftPresentation rightPresentation hpresentation hleft hright) =
+      liftedCanonicalCompGenericLengthPresentation liftedDecomposition P Q := by
+  classical
+  simp [canonicalCompPresentation,
+    liftedCanonicalCompGenericLengthPresentation,
+    SupportFiberProductImageCompositionPackage.canonicalCompPresentation,
+    SupportFiberProductImageCompositionPackage.ofSupportFiberProductLiftedDecomposition,
+    supportFiberProductLiftedDecomposition,
+    SupportFiberProductLiftedImageDecompositionData.toSupportFiberProductImageDecomposition,
+    SupportFiberProductLiftedImageComponentData.toSupportFiberProductImageComponent,
+    SupportFiberProductImageDecomposition.toPresentation,
+    SupportFiberProductImageComponent.toWeightedPrimeFiniteCorrespondenceSupport,
+    SupportFiberProductImageComponent.toRepresentedPrimeSupport,
+    FiniteCorrespondencePresentation.ofWeightedPrimeSupport,
+    SupportFiberProductLiftedImageComponentData.multiplicity_eq_finiteMapImageMultiplicity]
+
+end PrimeFiniteCorrespondenceSupport
+
+namespace PrimeFiniteCorrespondenceGeom
+
+/-- Package-parametric prime composition on geometric prime-support classes. The
+package input is indexed explicitly by the two geometric prime classes being
+composed, so no representative is chosen by hidden choice. -/
+def canonicalCompWithPackages
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceGeom X Y)
+    (Q : PrimeFiniteCorrespondenceGeom Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    FiniteCorrespondence X Z := by
+  let pkg := packages P Q
+  exact
+    (RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+      pkg.diagonalDecomposition
+      pkg.decomposition
+      pkg.respects_left
+      pkg.respects_right).compPrime P Q
+
+@[simp] theorem canonicalCompWithPackages_ofRepresented
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceSupport X Y)
+    (Q : PrimeFiniteCorrespondenceSupport Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages
+        (PrimeFiniteCorrespondenceGeom.ofRepresented P)
+        (PrimeFiniteCorrespondenceGeom.ofRepresented Q)
+        packages =
+      PrimeFiniteCorrespondenceSupport.canonicalComp P Q
+        (packages
+          (PrimeFiniteCorrespondenceGeom.ofRepresented P)
+          (PrimeFiniteCorrespondenceGeom.ofRepresented Q)) :=
+  rfl
+
+end PrimeFiniteCorrespondenceGeom
+
+namespace FiniteCorrespondence
+
+/-- Package-parametric bilinear composition on finite correspondences. The
+package data is supplied explicitly for each pair of geometric prime classes in
+the supports of the two inputs. -/
+def canonicalCompWithPackages
+    {X Y Z : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y)
+    (β : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    FiniteCorrespondence X Z :=
+  α.sum fun P a =>
+    β.sum fun Q b =>
+      (a * b) • PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages P Q packages
+
+@[simp] theorem canonicalCompWithPackages_zero_left
+    {X Y Z : Geometry.SmSchemeOver k}
+    (β : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages (0 : FiniteCorrespondence X Y) β packages = 0 := by
+  simp [canonicalCompWithPackages]
+
+@[simp] theorem canonicalCompWithPackages_zero_right
+    {X Y Z : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages α (0 : FiniteCorrespondence Y Z) packages = 0 := by
+  simp [canonicalCompWithPackages]
+
+@[simp] theorem canonicalCompWithPackages_add_left
+    {X Y Z : Geometry.SmSchemeOver k}
+    (α₁ α₂ : FiniteCorrespondence X Y)
+    (β : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages (α₁ + α₂) β packages =
+      canonicalCompWithPackages α₁ β packages +
+        canonicalCompWithPackages α₂ β packages := by
+  classical
+  rw [canonicalCompWithPackages,
+    canonicalCompWithPackages,
+    canonicalCompWithPackages,
+    Finsupp.sum_add_index'] <;>
+    simp [add_mul, add_smul, zero_mul]
+
+@[simp] theorem canonicalCompWithPackages_add_right
+    {X Y Z : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y)
+    (β₁ β₂ : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages α (β₁ + β₂) packages =
+      canonicalCompWithPackages α β₁ packages +
+        canonicalCompWithPackages α β₂ packages := by
+  classical
+  rw [canonicalCompWithPackages,
+    canonicalCompWithPackages,
+    canonicalCompWithPackages,
+    ← Finsupp.sum_add]
+  congr
+  ext P a
+  rw [Finsupp.sum_add_index'] <;> simp [mul_add, add_smul, zero_mul]
+
+@[simp] theorem canonicalCompWithPackages_zsmul_left
+    {X Y Z : Geometry.SmSchemeOver k}
+    (n : ℤ)
+    (α : FiniteCorrespondence X Y)
+    (β : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages (n • α) β packages =
+      n • canonicalCompWithPackages α β packages := by
+  apply Finsupp.induction_linear α
+  · simp
+  · intro α₁ α₂ ih₁ ih₂
+    rw [smul_add, canonicalCompWithPackages_add_left, ih₁, ih₂,
+      ← smul_add, canonicalCompWithPackages_add_left]
+  · intro P a
+    simp [canonicalCompWithPackages]
+    rw [Finsupp.smul_sum]
+    refine Finset.sum_congr rfl ?_
+    intro Q _
+    simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+
+@[simp] theorem canonicalCompWithPackages_zsmul_right
+    {X Y Z : Geometry.SmSchemeOver k}
+    (n : ℤ)
+    (α : FiniteCorrespondence X Y)
+    (β : FiniteCorrespondence Y Z)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    canonicalCompWithPackages α (n • β) packages =
+      n • canonicalCompWithPackages α β packages := by
+  apply Finsupp.induction_linear β
+  · simp
+  · intro β₁ β₂ ih₁ ih₂
+    rw [smul_add, canonicalCompWithPackages_add_right, ih₁, ih₂,
+      ← smul_add, canonicalCompWithPackages_add_right]
+  · intro Q b
+    simp [canonicalCompWithPackages]
+    rw [Finsupp.smul_sum]
+    refine Finset.sum_congr rfl ?_
+    intro P _
+    simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+
+private theorem canonicalCompWithPackages_const_id_left
+    (pkg : SupportFiberProductImageCompositionPackage (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y) :
+    canonicalCompWithPackages
+      ((pkg.diagonalDecomposition X).identityFiniteCorrespondence)
+      α
+      (fun _ _ => pkg) = α := by
+  change FiniteCorrespondenceCompositionData.comp
+      ((RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+        pkg.diagonalDecomposition
+        pkg.decomposition
+        pkg.respects_left
+        pkg.respects_right).toFiniteCorrespondenceCompositionData)
+      ((pkg.diagonalDecomposition X).identityFiniteCorrespondence)
+      α = α
+  exact id_comp_ofSupportFiberProductImageDecomposition_of_eq_diagonalLeftIdentity
+    pkg.diagonalDecomposition
+    pkg.decomposition
+    pkg.respects_left
+    pkg.respects_right
+    pkg.source_eq_diagonalLeftIdentity
+    α
+
+private theorem canonicalCompWithPackages_const_id_right
+    (pkg : SupportFiberProductImageCompositionPackage (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y) :
+    canonicalCompWithPackages
+      α
+      ((pkg.diagonalDecomposition Y).identityFiniteCorrespondence)
+      (fun _ _ => pkg) = α := by
+  let data :=
+    RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImageDecomposition
+      pkg.diagonalDecomposition
+      pkg.decomposition
+      pkg.respects_left
+      pkg.respects_right
+  change FiniteCorrespondenceCompositionData.comp
+      data.toFiniteCorrespondenceCompositionData
+      α
+      (FiniteCorrespondenceCompositionData.id data.toFiniteCorrespondenceCompositionData Y) = α
+  exact FiniteCorrespondenceCompositionData.comp_id_of_singleton_identities
+    data.toFiniteCorrespondenceCompositionData
+    (fun {X Y} prime coeff =>
+      comp_id_single_of_finite_landing_ofSupportFiberProductImageDecomposition_of_eq_diagonalRightIdentity
+        pkg.diagonalDecomposition
+        pkg.decomposition
+        pkg.respects_left
+        pkg.respects_right
+        pkg.landing_eq_diagonalRightIdentity
+        prime coeff)
+    α
+
+@[simp] theorem canonicalCompWithPackages_id_left
+    {X Y : Geometry.SmSchemeOver k}
+    (D : FiniteIrreducibleComponentDecomposition X)
+    (α : FiniteCorrespondence X Y)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X X →
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (leftPackage :
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (hpackages :
+      ∀ (diagClass : PrimeFiniteCorrespondenceGeom X X)
+        (prime : PrimeFiniteCorrespondenceGeom X Y),
+          diagClass ∈ D.diagonalPrimeClasses →
+            packages diagClass prime = leftPackage prime) :
+    canonicalCompWithPackages D.identityFiniteCorrespondence α packages = α := by
+  classical
+  apply Finsupp.induction_linear α
+  · simp
+  · intro α₁ α₂ ih₁ ih₂
+    rw [canonicalCompWithPackages_add_right, ih₁, ih₂]
+  · intro prime coeff
+    let pkg := leftPackage prime
+    have hconst :
+        canonicalCompWithPackages D.identityFiniteCorrespondence
+          (Finsupp.single prime coeff)
+          packages =
+          canonicalCompWithPackages D.identityFiniteCorrespondence
+            (Finsupp.single prime coeff)
+            (fun _ _ => pkg) := by
+      rw [FiniteIrreducibleComponentDecomposition.identityFiniteCorrespondence]
+      let f := fun diagClass : PrimeFiniteCorrespondenceGeom X X => Finsupp.single diagClass (1 : ℤ)
+      have haux :
+          ∀ t : Finset (PrimeFiniteCorrespondenceGeom X X),
+            t ⊆ D.diagonalPrimeClasses →
+              canonicalCompWithPackages (t.sum f) (Finsupp.single prime coeff) packages =
+                canonicalCompWithPackages (t.sum f) (Finsupp.single prime coeff) (fun _ _ => pkg) := by
+        intro t
+        refine Finset.induction_on t ?_ ?_
+        · intro _
+          simp [canonicalCompWithPackages, f]
+        · intro diagClass s hnotin ih hsub
+          have hdiag_mem : diagClass ∈ D.diagonalPrimeClasses := hsub (by simp)
+          have hsub_s : s ⊆ D.diagonalPrimeClasses := by
+            intro x hx
+            exact hsub (by simp [hx])
+          rw [Finset.sum_insert hnotin, canonicalCompWithPackages_add_left,
+            canonicalCompWithPackages_add_left, ih hsub_s]
+          have hfirst :
+              canonicalCompWithPackages
+                (Finsupp.single diagClass 1)
+                (Finsupp.single prime coeff)
+                packages =
+                canonicalCompWithPackages
+                  (Finsupp.single diagClass 1)
+                  (Finsupp.single prime coeff)
+                  (fun _ _ => pkg) := by
+            simpa [canonicalCompWithPackages,
+              mul_comm, mul_left_comm, mul_assoc] using
+              (show coeff • PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages
+                    diagClass
+                    prime
+                    packages =
+                  coeff • PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages
+                    diagClass
+                    prime
+                    (fun _ _ => pkg) by
+                dsimp [PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages, pkg]
+                rw [hpackages diagClass prime hdiag_mem])
+          exact congrArg (fun t =>
+            t + canonicalCompWithPackages (s.sum f) (Finsupp.single prime coeff) (fun _ _ => pkg)) hfirst
+      exact haux D.diagonalPrimeClasses (by intro x hx; exact hx)
+    have hid :
+        D.identityFiniteCorrespondence =
+          (pkg.diagonalDecomposition X).identityFiniteCorrespondence :=
+      FiniteIrreducibleComponentDecomposition.identityFiniteCorrespondence_independent
+        D (pkg.diagonalDecomposition X)
+    calc
+      canonicalCompWithPackages D.identityFiniteCorrespondence
+          (Finsupp.single prime coeff)
+          packages =
+        canonicalCompWithPackages D.identityFiniteCorrespondence
+          (Finsupp.single prime coeff)
+          (fun _ _ => pkg) := hconst
+      _ = canonicalCompWithPackages
+            ((pkg.diagonalDecomposition X).identityFiniteCorrespondence)
+            (Finsupp.single prime coeff)
+            (fun _ _ => pkg) := by
+              rw [hid]
+      _ = Finsupp.single prime coeff :=
+        canonicalCompWithPackages_const_id_left pkg (Finsupp.single prime coeff)
+
+@[simp] theorem canonicalCompWithPackages_id_right
+    {X Y : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y)
+    (D : FiniteIrreducibleComponentDecomposition Y)
+    (packages :
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Y →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (rightPackage :
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (hpackages :
+      ∀ (prime : PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ D.diagonalPrimeClasses →
+            packages prime diagClass = rightPackage prime) :
+    canonicalCompWithPackages α D.identityFiniteCorrespondence packages = α := by
+  classical
+  apply Finsupp.induction_linear α
+  · simp
+  · intro α₁ α₂ ih₁ ih₂
+    rw [canonicalCompWithPackages_add_left, ih₁, ih₂]
+  · intro prime coeff
+    let pkg := rightPackage prime
+    have hconst :
+        canonicalCompWithPackages
+          (Finsupp.single prime coeff)
+          D.identityFiniteCorrespondence
+          packages =
+          canonicalCompWithPackages
+            (Finsupp.single prime coeff)
+            D.identityFiniteCorrespondence
+            (fun _ _ => pkg) := by
+      rw [FiniteIrreducibleComponentDecomposition.identityFiniteCorrespondence]
+      let f := fun diagClass : PrimeFiniteCorrespondenceGeom Y Y => Finsupp.single diagClass (1 : ℤ)
+      have haux :
+          ∀ t : Finset (PrimeFiniteCorrespondenceGeom Y Y),
+            t ⊆ D.diagonalPrimeClasses →
+              canonicalCompWithPackages (Finsupp.single prime coeff) (t.sum f) packages =
+                canonicalCompWithPackages (Finsupp.single prime coeff) (t.sum f) (fun _ _ => pkg) := by
+        intro t
+        refine Finset.induction_on t ?_ ?_
+        · intro _
+          simp [canonicalCompWithPackages, f]
+        · intro diagClass s hnotin ih hsub
+          have hdiag_mem : diagClass ∈ D.diagonalPrimeClasses := hsub (by simp)
+          have hsub_s : s ⊆ D.diagonalPrimeClasses := by
+            intro x hx
+            exact hsub (by simp [hx])
+          rw [Finset.sum_insert hnotin, canonicalCompWithPackages_add_right,
+            canonicalCompWithPackages_add_right, ih hsub_s]
+          have hfirst :
+              canonicalCompWithPackages
+                (Finsupp.single prime coeff)
+                (Finsupp.single diagClass 1)
+                packages =
+                canonicalCompWithPackages
+                  (Finsupp.single prime coeff)
+                  (Finsupp.single diagClass 1)
+                  (fun _ _ => pkg) := by
+            simpa [canonicalCompWithPackages,
+              mul_comm, mul_left_comm, mul_assoc] using
+              (show coeff • PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages
+                    prime
+                    diagClass
+                    packages =
+                  coeff • PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages
+                    prime
+                    diagClass
+                    (fun _ _ => pkg) by
+                dsimp [PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages, pkg]
+                rw [hpackages prime diagClass hdiag_mem])
+          exact congrArg (fun t =>
+            t + canonicalCompWithPackages (Finsupp.single prime coeff) (s.sum f) (fun _ _ => pkg)) hfirst
+      exact haux D.diagonalPrimeClasses (by intro x hx; exact hx)
+    have hid :
+        D.identityFiniteCorrespondence =
+          (pkg.diagonalDecomposition Y).identityFiniteCorrespondence :=
+      FiniteIrreducibleComponentDecomposition.identityFiniteCorrespondence_independent
+        D (pkg.diagonalDecomposition Y)
+    calc
+      canonicalCompWithPackages
+          (Finsupp.single prime coeff)
+          D.identityFiniteCorrespondence
+          packages =
+        canonicalCompWithPackages
+          (Finsupp.single prime coeff)
+          D.identityFiniteCorrespondence
+          (fun _ _ => pkg) := hconst
+      _ = canonicalCompWithPackages
+            (Finsupp.single prime coeff)
+            ((pkg.diagonalDecomposition Y).identityFiniteCorrespondence)
+            (fun _ _ => pkg) := by
+              rw [hid]
+      _ = Finsupp.single prime coeff :=
+        canonicalCompWithPackages_const_id_right pkg (Finsupp.single prime coeff)
+
+end FiniteCorrespondence
+
+namespace SupportFiberProductImageCompositionPackageFamily
+
+/-- The honest represented-level decomposition builder obtained by freezing a
+package family on quotient geometric prime classes and evaluating it on
+represented inputs. -/
+def decomposition
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    {X Y Z : Geometry.SmSchemeOver k} →
+    (P : RepresentedPrimeSupport X Y) →
+    (Q : RepresentedPrimeSupport Y Z) →
+    SupportFiberProductImageDecomposition P Q :=
+  fun {_} {_} {_} P Q =>
+    (packages (PrimeFiniteCorrespondenceGeom.ofRepresented P)
+      (PrimeFiniteCorrespondenceGeom.ofRepresented Q)).decomposition P Q
+
+/-- Left-compatibility for the decomposition builder induced by a package
+family follows from the bundled left-compatibility of the frozen package. -/
+theorem respects_left
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    {P P' : RepresentedPrimeSupport X Y}
+    (h : PrimeSupportEquivalent P P')
+    (Q : RepresentedPrimeSupport Y Z) :
+    FiniteCorrespondencePresentation.toGeom
+        (SupportFiberProductImageDecomposition.toPresentation
+          (decomposition packages P Q)) =
+      FiniteCorrespondencePresentation.toGeom
+        (SupportFiberProductImageDecomposition.toPresentation
+          (decomposition packages P' Q)) := by
+  let pkg :=
+    packages (PrimeFiniteCorrespondenceGeom.ofRepresented P)
+      (PrimeFiniteCorrespondenceGeom.ofRepresented Q)
+  have hclass : PrimeFiniteCorrespondenceGeom.ofRepresented P =
+      PrimeFiniteCorrespondenceGeom.ofRepresented P' := Quot.sound h
+  simpa [decomposition, pkg, hclass] using pkg.respects_left h Q
+
+/-- Right-compatibility for the decomposition builder induced by a package
+family follows from the bundled right-compatibility of the frozen package. -/
+theorem respects_right
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y)
+    {Q Q' : RepresentedPrimeSupport Y Z}
+    (h : PrimeSupportEquivalent Q Q') :
+    FiniteCorrespondencePresentation.toGeom
+        (SupportFiberProductImageDecomposition.toPresentation
+          (decomposition packages P Q)) =
+      FiniteCorrespondencePresentation.toGeom
+        (SupportFiberProductImageDecomposition.toPresentation
+          (decomposition packages P Q')) := by
+  let pkg :=
+    packages (PrimeFiniteCorrespondenceGeom.ofRepresented P)
+      (PrimeFiniteCorrespondenceGeom.ofRepresented Q)
+  have hclass : PrimeFiniteCorrespondenceGeom.ofRepresented Q =
+      PrimeFiniteCorrespondenceGeom.ofRepresented Q' := Quot.sound h
+  simpa [decomposition, pkg, hclass] using pkg.respects_right P h
+
+/-- The represented-prime composition package induced by a global family of
+binary support-fiber-product image composition packages. -/
+def data
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k)) :
+    RepresentedPrimeFiniteCorrespondenceComposition (k := k) :=
+  RepresentedPrimeFiniteCorrespondenceComposition.ofSupportFiberProductImagePresentation
+    diagonalDecomposition
+    (decomposition packages)
+    (respects_left packages)
+    (respects_right packages)
+
+@[simp] theorem compPrime_eq_canonicalCompWithPackages
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : PrimeFiniteCorrespondenceGeom X Y)
+    (Q : PrimeFiniteCorrespondenceGeom Y Z) :
+    (data diagonalDecomposition packages).compPrime P Q =
+      PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages P Q (fun x y => packages x y) := by
+  refine Quotient.inductionOn P ?_
+  intro PRep
+  refine Quotient.inductionOn Q ?_
+  intro QRep
+  rfl
+
+@[simp] theorem comp_eq_canonicalCompWithPackages
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (α : FiniteCorrespondence X Y)
+    (β : FiniteCorrespondence Y Z) :
+    FiniteCorrespondenceCompositionData.comp
+      (data diagonalDecomposition packages).toFiniteCorrespondenceCompositionData
+      α β =
+        FiniteCorrespondence.canonicalCompWithPackages α β (fun x y => packages x y) := by
+  classical
+  apply Finsupp.induction_linear α
+  · simp [FiniteCorrespondenceCompositionData.comp,
+      FiniteCorrespondence.canonicalCompWithPackages]
+  · intro α₁ α₂ ih₁ ih₂
+    rw [FiniteCorrespondenceCompositionData.comp_add_left,
+      FiniteCorrespondence.canonicalCompWithPackages_add_left, ih₁, ih₂]
+  · intro prime coeff
+    simp [FiniteCorrespondenceCompositionData.comp_single_left,
+      FiniteCorrespondence.canonicalCompWithPackages]
+    refine Finset.sum_congr rfl ?_
+    intro Q _
+    exact congrArg (fun t => (coeff * β Q) • t)
+      (compPrime_eq_canonicalCompWithPackages
+        (diagonalDecomposition := diagonalDecomposition)
+        (packages := packages)
+        (P := prime) (Q := Q))
+
+/-- If the package family is constant on source-side diagonal classes with
+respect to a chosen decomposition, the induced represented-level decomposition
+builder uses the canonical left-identity decomposition on diagonal inputs. -/
+theorem source_eq_diagonalLeftIdentity
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (leftIdentityPackage :
+      {X Y : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductImageCompositionPackage (k := k))
+    (hleftpkg :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (diagClass : PrimeFiniteCorrespondenceGeom X X)
+        (prime : PrimeFiniteCorrespondenceGeom X Y),
+          diagClass ∈ (diagonalDecomposition X).diagonalPrimeClasses →
+            packages diagClass prime = leftIdentityPackage prime)
+    {X Y : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) :
+    decomposition packages
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent)
+        P =
+      RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P := by
+  let D := diagonalDecomposition X
+  let diagClass : PrimeFiniteCorrespondenceGeom X X :=
+    SourceIrreducibleComponent.diagonalPrimeGeom P.sourceComponent
+  have hdiag_mem : diagClass ∈ D.diagonalPrimeClasses := by
+    rcases D.exhaustive P.sourceComponent with ⟨listed, hiso⟩
+    refine (FiniteIrreducibleComponentDecomposition.mem_diagonalPrimeClasses_iff D diagClass).2 ?_
+    refine ⟨listed.1, listed.2, ?_⟩
+    rw [← SourceIrreducibleComponent.diagonalPrimeGeom_eq_of_isoOverAmbient hiso]
+  change (packages diagClass (PrimeFiniteCorrespondenceGeom.ofRepresented P)).decomposition _ _ = _
+  rw [hleftpkg diagClass (PrimeFiniteCorrespondenceGeom.ofRepresented P) hdiag_mem]
+  exact (leftIdentityPackage (PrimeFiniteCorrespondenceGeom.ofRepresented P)).source_eq_diagonalLeftIdentity P
+
+end SupportFiberProductImageCompositionPackageFamily
+
+/-- Canonical composition data built from a global family of honest binary
+support-fiber-product image composition packages, together with the exact
+identity and triple-coherence hypotheses needed to recover `SmCor(k)`. -/
+structure CanonicalCompositionPackageData where
+  diagonalDecomposition :
+    (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X
+  packages :
+    {X Y Z : Geometry.SmSchemeOver k} →
+    PrimeFiniteCorrespondenceGeom X Y →
+    PrimeFiniteCorrespondenceGeom Y Z →
+    SupportFiberProductImageCompositionPackage (k := k)
+  leftIdentityPackage :
+    {X Y : Geometry.SmSchemeOver k} →
+    PrimeFiniteCorrespondenceGeom X Y →
+    SupportFiberProductImageCompositionPackage (k := k)
+  leftIdentity_constant :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (diagClass : PrimeFiniteCorrespondenceGeom X X)
+      (prime : PrimeFiniteCorrespondenceGeom X Y),
+        diagClass ∈ (diagonalDecomposition X).diagonalPrimeClasses →
+          packages diagClass prime = leftIdentityPackage prime
+  rightIdentityPackage :
+    {X Y : Geometry.SmSchemeOver k} →
+    PrimeFiniteCorrespondenceGeom X Y →
+    SupportFiberProductImageCompositionPackage (k := k)
+  rightIdentity_constant :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (prime : PrimeFiniteCorrespondenceGeom X Y)
+      (diagClass : PrimeFiniteCorrespondenceGeom Y Y),
+        diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+          packages prime diagClass = rightIdentityPackage prime
+  source_eq_diagonalLeftIdentity :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport X Y),
+        SupportFiberProductImageCompositionPackageFamily.decomposition packages
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent)
+            P =
+          RepresentedPrimeCompositionDatum.diagonalLeftIdentityImageDecomposition P
+  landing_eq_diagonalRightIdentity :
+    ∀ {X Y : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport X Y),
+        SupportFiberProductImageCompositionPackageFamily.decomposition packages P
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)) =
+          RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+            P
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).1.1)
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).2.1)
+            ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+              (diagonalDecomposition Y) P).2.2)
+  leftPresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k},
+      RepresentedPrimeSupport W X →
+      RepresentedPrimeSupport X Y →
+      RepresentedPrimeSupport Y Z →
+        FiniteCorrespondencePresentation W Z
+  rightPresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k},
+      RepresentedPrimeSupport W X →
+      RepresentedPrimeSupport X Y →
+      RepresentedPrimeSupport Y Z →
+        FiniteCorrespondencePresentation W Z
+  hpresentation :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        rightPresentation P Q R = leftPresentation P Q R
+  hleft :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        FiniteCorrespondenceCompositionData.comp
+          ((SupportFiberProductImageCompositionPackageFamily.data
+            diagonalDecomposition packages).toFiniteCorrespondenceCompositionData)
+          (FiniteCorrespondencePresentation.toGeom
+            (SupportFiberProductImageDecomposition.toPresentation
+              (SupportFiberProductImageCompositionPackageFamily.decomposition packages P Q)))
+          (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+            FiniteCorrespondencePresentation.toGeom
+              (leftPresentation P Q R)
+  hright :
+    ∀ {W X Y Z : Geometry.SmSchemeOver k}
+      (P : RepresentedPrimeSupport W X)
+      (Q : RepresentedPrimeSupport X Y)
+      (R : RepresentedPrimeSupport Y Z),
+        FiniteCorrespondenceCompositionData.comp
+          ((SupportFiberProductImageCompositionPackageFamily.data
+            diagonalDecomposition packages).toFiniteCorrespondenceCompositionData)
+          (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+          (FiniteCorrespondencePresentation.toGeom
+            (SupportFiberProductImageDecomposition.toPresentation
+              (SupportFiberProductImageCompositionPackageFamily.decomposition packages Q R))) =
+            FiniteCorrespondencePresentation.toGeom
+              (rightPresentation P Q R)
 
 /-- The concrete diagonal projectors form the expected orthogonal family: two
 listed diagonal singleton correspondences compose to the shared projector when
@@ -4824,6 +6071,485 @@ def toSmCor (composition : GeometricFiniteCorrespondenceComposition (k := k)) :
     composition.assoc_prime
 
 end GeometricFiniteCorrespondenceComposition
+
+namespace CanonicalCompositionPackageData
+
+private def concreteLiftedPackageToImagePackage
+    (pkg : SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    SupportFiberProductImageCompositionPackage (k := k) :=
+  SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage pkg
+
+private def concreteLiftedPackagesFamily
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    {X Y Z : Geometry.SmSchemeOver k} →
+    PrimeFiniteCorrespondenceGeom X Y →
+    PrimeFiniteCorrespondenceGeom Y Z →
+    SupportFiberProductImageCompositionPackage (k := k) :=
+  fun {X} {Y} {Z} x y =>
+    concreteLiftedPackageToImagePackage
+      (packages (X := X) (Y := Y) (Z := Z) x y)
+
+private def concreteLiftedIdentityFamily
+    (packages :
+      {X Y : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    {X Y : Geometry.SmSchemeOver k} →
+    PrimeFiniteCorrespondenceGeom X Y →
+    SupportFiberProductImageCompositionPackage (k := k) :=
+  fun {X} {Y} prime =>
+    concreteLiftedPackageToImagePackage (packages (X := X) (Y := Y) prime)
+
+private def concreteLiftedFamilyData
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    RepresentedPrimeFiniteCorrespondenceComposition (k := k) :=
+  SupportFiberProductImageCompositionPackageFamily.data
+    diagonalDecomposition
+    (concreteLiftedPackagesFamily packages)
+
+private def concreteLiftedFamilyCompositionData
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductLiftedImageCompositionPackage (k := k)) :
+    FiniteCorrespondenceCompositionData (k := k) :=
+  RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+    (SupportFiberProductImageCompositionPackageFamily.data
+      diagonalDecomposition
+      (concreteLiftedPackagesFamily packages))
+
+/-- Build canonical package-family data from a family of concrete lifted
+packages. The resulting `packages` field is still computed by honest lifted
+decomposition builders rather than supplied as an arbitrary abstract family. -/
+def ofConcreteLiftedDecompositionFamily
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → FiniteIrreducibleComponentDecomposition X)
+    (packages :
+      {X Y Z : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      PrimeFiniteCorrespondenceGeom Y Z →
+      SupportFiberProductLiftedImageCompositionPackage (k := k))
+    (leftIdentityPackage :
+      {X Y : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductLiftedImageCompositionPackage (k := k))
+    (leftIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (diagClass : PrimeFiniteCorrespondenceGeom X X)
+        (prime : PrimeFiniteCorrespondenceGeom X Y),
+          diagClass ∈ (diagonalDecomposition X).diagonalPrimeClasses →
+            packages diagClass prime = leftIdentityPackage prime)
+    (rightIdentityPackage :
+      {X Y : Geometry.SmSchemeOver k} →
+      PrimeFiniteCorrespondenceGeom X Y →
+      SupportFiberProductLiftedImageCompositionPackage (k := k))
+    (rightIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+            packages prime diagClass = rightIdentityPackage prime)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport X Y),
+          SupportFiberProductImageCompositionPackageFamily.decomposition
+              (concreteLiftedPackagesFamily packages)
+              P
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        RepresentedPrimeSupport W X →
+        RepresentedPrimeSupport X Y →
+        RepresentedPrimeSupport Y Z →
+          FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (concreteLiftedFamilyCompositionData diagonalDecomposition packages)
+            (FiniteCorrespondencePresentation.toGeom
+              (SupportFiberProductImageDecomposition.toPresentation
+                (SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (concreteLiftedPackagesFamily packages)
+                  P Q)))
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : RepresentedPrimeSupport W X)
+        (Q : RepresentedPrimeSupport X Y)
+        (R : RepresentedPrimeSupport Y Z),
+          FiniteCorrespondenceCompositionData.comp
+            (concreteLiftedFamilyCompositionData diagonalDecomposition packages)
+            (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (FiniteCorrespondencePresentation.toGeom
+              (SupportFiberProductImageDecomposition.toPresentation
+                (SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (concreteLiftedPackagesFamily packages)
+                  Q R))) =
+              FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R)) :
+    CanonicalCompositionPackageData (k := k) where
+  diagonalDecomposition := diagonalDecomposition
+  packages := concreteLiftedPackagesFamily packages
+  leftIdentityPackage := concreteLiftedIdentityFamily leftIdentityPackage
+  leftIdentity_constant := by
+    intro X Y diagClass prime hdiag
+    exact congrArg
+      SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+      (leftIdentity_constant diagClass prime hdiag)
+  rightIdentityPackage := concreteLiftedIdentityFamily rightIdentityPackage
+  rightIdentity_constant := by
+    intro X Y prime diagClass hdiag
+    exact congrArg
+      SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+      (rightIdentity_constant prime diagClass hdiag)
+  source_eq_diagonalLeftIdentity := by
+    intro X Y P
+    exact SupportFiberProductImageCompositionPackageFamily.source_eq_diagonalLeftIdentity
+      diagonalDecomposition
+      (concreteLiftedPackagesFamily packages)
+      (concreteLiftedIdentityFamily leftIdentityPackage)
+      (fun diagClass prime hdiag =>
+        congrArg
+          SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+          (leftIdentity_constant diagClass prime hdiag))
+      P
+  landing_eq_diagonalRightIdentity := landing_eq_diagonalRightIdentity
+  leftPresentation := leftPresentation
+  rightPresentation := rightPresentation
+  hpresentation := hpresentation
+  hleft := hleft
+  hright := hright
+
+/-- The represented-prime composition model induced by the package family. -/
+def data (composition : CanonicalCompositionPackageData (k := k)) :
+    RepresentedPrimeFiniteCorrespondenceComposition (k := k) :=
+  SupportFiberProductImageCompositionPackageFamily.data
+    composition.diagonalDecomposition
+    composition.packages
+
+/-- The literature-shaped finite-correspondence composition package induced by
+the canonical package family data. -/
+def toGeometricFiniteCorrespondenceComposition
+    (composition : CanonicalCompositionPackageData (k := k)) :
+    GeometricFiniteCorrespondenceComposition (k := k) :=
+  GeometricFiniteCorrespondenceComposition.ofSupportFiberProductImagePresentation_of_eq_diagonalIdentities
+    composition.diagonalDecomposition
+    (SupportFiberProductImageCompositionPackageFamily.decomposition composition.packages)
+    (SupportFiberProductImageCompositionPackageFamily.respects_left composition.packages)
+    (SupportFiberProductImageCompositionPackageFamily.respects_right composition.packages)
+    composition.source_eq_diagonalLeftIdentity
+    composition.landing_eq_diagonalRightIdentity
+    composition.leftPresentation
+    composition.rightPresentation
+    composition.hpresentation
+    composition.hleft
+    composition.hright
+
+/-- The induced prime-level associativity bridge for the canonical package
+family data. -/
+theorem assoc_prime
+    (composition : CanonicalCompositionPackageData (k := k))
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (f : PrimeFiniteCorrespondenceGeom W X)
+    (g : PrimeFiniteCorrespondenceGeom X Y)
+    (h : PrimeFiniteCorrespondenceGeom Y Z) :
+    FiniteCorrespondence.canonicalCompWithPackages
+      (PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages f g
+        (fun x y => composition.packages x y))
+      (Finsupp.single h 1)
+      (fun x y => composition.packages x y) =
+        FiniteCorrespondence.canonicalCompWithPackages
+          (Finsupp.single f 1)
+          (PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages g h
+            (fun x y => composition.packages x y))
+          (fun x y => composition.packages x y) := by
+  let data := composition.data
+  have hfg :
+      FiniteCorrespondenceCompositionData.compPrime
+        data.toFiniteCorrespondenceCompositionData f g =
+      PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages f g
+        (fun x y => composition.packages x y) := by
+    change (SupportFiberProductImageCompositionPackageFamily.data
+        composition.diagonalDecomposition
+        (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData.compPrime
+        f g = _
+    exact SupportFiberProductImageCompositionPackageFamily.compPrime_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition (fun x y => composition.packages x y) f g
+  have hgh :
+      FiniteCorrespondenceCompositionData.compPrime
+        data.toFiniteCorrespondenceCompositionData g h =
+      PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages g h
+        (fun x y => composition.packages x y) := by
+    change (SupportFiberProductImageCompositionPackageFamily.data
+        composition.diagonalDecomposition
+        (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData.compPrime
+        g h = _
+    exact SupportFiberProductImageCompositionPackageFamily.compPrime_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition (fun x y => composition.packages x y) g h
+  have hAssoc :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData f g)
+        (Finsupp.single h 1) =
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (Finsupp.single f 1)
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData g h) := by
+    simpa [CanonicalCompositionPackageData.toGeometricFiniteCorrespondenceComposition,
+      CanonicalCompositionPackageData.data, data] using
+      (composition.toGeometricFiniteCorrespondenceComposition).assoc_prime f g h
+  have hOuterLeft :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData f g)
+        (Finsupp.single h 1) =
+      FiniteCorrespondence.canonicalCompWithPackages
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData f g)
+        (Finsupp.single h 1)
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData f g)
+        (Finsupp.single h 1) = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition
+      (fun x y => composition.packages x y)
+      (FiniteCorrespondenceCompositionData.compPrime
+        data.toFiniteCorrespondenceCompositionData f g)
+      (Finsupp.single h 1)
+  have hOuterRight :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (Finsupp.single f 1)
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData g h) =
+      FiniteCorrespondence.canonicalCompWithPackages
+        (Finsupp.single f 1)
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData g h)
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        (Finsupp.single f 1)
+        (FiniteCorrespondenceCompositionData.compPrime
+          data.toFiniteCorrespondenceCompositionData g h) = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition
+      (fun x y => composition.packages x y)
+      (Finsupp.single f 1)
+      (FiniteCorrespondenceCompositionData.compPrime
+        data.toFiniteCorrespondenceCompositionData g h)
+  calc
+    FiniteCorrespondence.canonicalCompWithPackages
+        (PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages f g
+          (fun x y => composition.packages x y))
+        (Finsupp.single h 1)
+        (fun x y => composition.packages x y)
+      = FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          (FiniteCorrespondenceCompositionData.compPrime
+            data.toFiniteCorrespondenceCompositionData f g)
+          (Finsupp.single h 1) := by
+            rw [← hfg]
+            exact hOuterLeft.symm
+    _ = FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          (Finsupp.single f 1)
+          (FiniteCorrespondenceCompositionData.compPrime
+            data.toFiniteCorrespondenceCompositionData g h) := hAssoc
+    _ = FiniteCorrespondence.canonicalCompWithPackages
+          (Finsupp.single f 1)
+          (PrimeFiniteCorrespondenceGeom.canonicalCompWithPackages g h
+            (fun x y => composition.packages x y))
+          (fun x y => composition.packages x y) := by
+            rw [← hgh]
+            exact hOuterRight
+
+/-- The correspondence category induced by the canonical package family data. -/
+def toSmCor (composition : CanonicalCompositionPackageData (k := k)) :
+    SmCor (k := k) :=
+  (composition.toGeometricFiniteCorrespondenceComposition).toSmCor
+
+/-- The rationalized correspondence category induced by the canonical package
+family data. This is the Q-linearization of `CanonicalCompositionPackageData.toSmCor`. -/
+def canonicalSmCorQ (composition : CanonicalCompositionPackageData (k := k)) :
+    SmCorQ (k := k) where
+  integral := composition.toSmCor
+
+/-- Bilinear associativity for the finite-correspondence composition induced by
+the canonical package family data. -/
+theorem assoc
+    (composition : CanonicalCompositionPackageData (k := k))
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (f : FiniteCorrespondence W X)
+    (g : FiniteCorrespondence X Y)
+    (h : FiniteCorrespondence Y Z) :
+    FiniteCorrespondence.canonicalCompWithPackages
+      (FiniteCorrespondence.canonicalCompWithPackages f g
+        (fun x y => composition.packages x y))
+      h
+      (fun x y => composition.packages x y) =
+        FiniteCorrespondence.canonicalCompWithPackages
+          f
+          (FiniteCorrespondence.canonicalCompWithPackages g h
+            (fun x y => composition.packages x y))
+          (fun x y => composition.packages x y) := by
+  let data := composition.data
+  have hfg :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        f g =
+      FiniteCorrespondence.canonicalCompWithPackages f g
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        f g = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition (fun x y => composition.packages x y) f g
+  have hgh :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        g h =
+      FiniteCorrespondence.canonicalCompWithPackages g h
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        g h = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition (fun x y => composition.packages x y) g h
+  have hAssoc :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f g)
+        h =
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        f
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          g h) := by
+    have hAssoc' := (composition.toSmCor).laws.assoc f g h
+    change FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f g)
+        h =
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        f
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          g h) at hAssoc'
+    exact hAssoc'
+  have hOuterLeft :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f g)
+        h =
+      FiniteCorrespondence.canonicalCompWithPackages
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f g)
+        h
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f g)
+        h = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition
+      (fun x y => composition.packages x y)
+      (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        f g)
+      h
+  have hOuterRight :
+      FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        f
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          g h) =
+      FiniteCorrespondence.canonicalCompWithPackages
+        f
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          g h)
+        (fun x y => composition.packages x y) := by
+    change FiniteCorrespondenceCompositionData.comp
+        (SupportFiberProductImageCompositionPackageFamily.data
+          composition.diagonalDecomposition
+          (fun x y => composition.packages x y)).toFiniteCorrespondenceCompositionData
+        f
+        (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          g h) = _
+    exact SupportFiberProductImageCompositionPackageFamily.comp_eq_canonicalCompWithPackages
+      composition.diagonalDecomposition
+      (fun x y => composition.packages x y)
+      f
+      (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+        g h)
+  calc
+    FiniteCorrespondence.canonicalCompWithPackages
+        (FiniteCorrespondence.canonicalCompWithPackages f g
+          (fun x y => composition.packages x y))
+        h
+        (fun x y => composition.packages x y)
+      = FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+            f g)
+          h := by
+            rw [← hfg]
+            exact hOuterLeft.symm
+    _ = FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+          f
+          (FiniteCorrespondenceCompositionData.comp data.toFiniteCorrespondenceCompositionData
+            g h) := hAssoc
+    _ = FiniteCorrespondence.canonicalCompWithPackages
+          f
+          (FiniteCorrespondence.canonicalCompWithPackages g h
+            (fun x y => composition.packages x y))
+          (fun x y => composition.packages x y) := by
+            rw [← hgh]
+            exact hOuterRight
+
+end CanonicalCompositionPackageData
 
 end RepresentedPrimeFiniteCorrespondenceComposition
 

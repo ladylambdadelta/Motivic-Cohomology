@@ -33,8 +33,8 @@ obligation is the commutativity condition
 `overlap_to_base_transfer_commutes` for the pulled-back square.  That condition
 requires:
 
-  **`Geometry.ordinaryMorphismGraph_comp`** (currently a stub in
-  `Lean/Geometry/Correspondences/Composition.lean`):
+  **`Geometry.ordinaryMorphismGraph_comp`** together with the new integral
+  canonical bridge in `Lean/Geometry/Correspondences/Composition.lean`:
   ```
   category.comp
       (ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category f D_X)

@@ -1,5 +1,6 @@
 import Geometry.Correspondences.Graph
 import Boundary.CompositionGeometry
+import Boundary.RepresentedPrimeComposition
 
 /-! # Graph Correspondence Composition
 
@@ -163,6 +164,93 @@ theorem ordinaryMorphismGraph_component_comp
         (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y)
       = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
   exact hGF.graph_comp_component C f g D_Y
+
+/-- Componentwise graph functoriality specialized to the canonical/package-family
+integral composition datum attached to `CanonicalCompositionPackageData`. -/
+theorem ordinaryMorphismGraph_component_comp_canonical
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData (k := k))
+    (hGF : GraphFunctoriality
+      (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition).toFiniteCorrespondenceCompositionData)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (C : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let data :=
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition
+    Boundary.FiniteCorrespondenceCompositionData.comp
+        data.toFiniteCorrespondenceCompositionData
+        (ordinaryMorphismGraph_componentCorrespondence C f)
+        (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y)
+      = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
+  let data :=
+    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+      composition
+  exact hGF.graph_comp_component C f g D_Y
+
+/-- Integral graph functoriality specialized to the canonical/package-family
+composition datum attached to `CanonicalCompositionPackageData`. -/
+theorem ordinaryMorphismGraph_comp_canonical
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData (k := k))
+    (hGF : GraphFunctoriality
+      (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition).toFiniteCorrespondenceCompositionData)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let data :=
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition
+    Boundary.FiniteCorrespondenceCompositionData.comp
+      data.toFiniteCorrespondenceCompositionData
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition f D_X)
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y)
+    = ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition
+        (Boundary.SmOverHom.comp f g) D_X := by
+  let data :=
+    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+      composition
+  simp only [ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition]
+  have h_distrib :
+      ∀ (right : Boundary.FiniteCorrespondence Y Z)
+        (s : Finset (Boundary.SourceIrreducibleComponent X))
+        (φ : Boundary.SourceIrreducibleComponent X → Boundary.FiniteCorrespondence X Y),
+        Boundary.FiniteCorrespondenceCompositionData.comp
+            data.toFiniteCorrespondenceCompositionData
+            (s.sum φ) right =
+          s.sum fun C =>
+            Boundary.FiniteCorrespondenceCompositionData.comp
+              data.toFiniteCorrespondenceCompositionData
+              (φ C) right := by
+    intro right s φ
+    let compHom : Boundary.FiniteCorrespondence X Y →+ Boundary.FiniteCorrespondence X Z :=
+      { toFun := fun left =>
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            data.toFiniteCorrespondenceCompositionData
+            left right
+        map_zero' :=
+          Boundary.FiniteCorrespondenceCompositionData.comp_zero_left
+            data.toFiniteCorrespondenceCompositionData
+            right
+        map_add' := fun left₁ left₂ =>
+          Boundary.FiniteCorrespondenceCompositionData.comp_add_left
+            data.toFiniteCorrespondenceCompositionData
+            left₁ left₂ right }
+    exact map_sum compHom φ s
+  rw [h_distrib
+        (∑ component in D_Y.components,
+          ordinaryMorphismGraph_componentCorrespondence component g)
+        D_X.components
+        (fun C => ordinaryMorphismGraph_componentCorrespondence C f)]
+  apply Finset.sum_congr rfl
+  intro C _
+  exact ordinaryMorphismGraph_component_comp_canonical composition hGF C f g D_Y
 
 /-- **Graph component fiber product isomorphism (AG lemma)**:
 When `D.toAmbient : D.carrier.scheme ⟶ Y.scheme` is an open immersion
@@ -472,5 +560,272 @@ theorem graphPrimeSupportFiberProductImageDecomposition_toPresentation_toGeom
   rw [hpres]
   exact Boundary.FiniteCorrespondencePresentation.toGeom_single
     (ordinaryMorphismGraphPrimeSupport C (Boundary.SmOverHom.comp f g))
+
+/-- Package-family level compatibility condition for graph-prime pairs.
+It records the exact finite correspondence computed by the chosen canonical
+package family on each graph singleton pair, before any summation over a target
+decomposition is performed. -/
+def CanonicalGraphPackageCompatibility
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k)) : Prop := by
+  classical
+  exact
+    ∀ {X Y Z : Geometry.SmSchemeOver k}
+      (C : Boundary.SourceIrreducibleComponent X)
+      (f : Boundary.SmOverHom X Y)
+      (D : Boundary.SourceIrreducibleComponent Y)
+      (g : Boundary.SmOverHom Y Z),
+        Boundary.FiniteCorrespondencePresentation.toGeom
+            (Boundary.SupportFiberProductImageDecomposition.toPresentation
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                composition.packages
+                (ordinaryMorphismGraphPrimeSupport C f)
+                (ordinaryMorphismGraphPrimeSupport D g))) =
+          if hfac : Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+              h ≫ D.toAmbient = C.toAmbient ≫ f.hom }
+          then ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g)
+          else 0
+
+/-- A canonical package family satisfying the graph-pair compatibility law is
+already graph-functorial at the finite-correspondence composition level. -/
+theorem canonicalGraphFunctoriality_ofPackageCompatibility
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k))
+    (hgraph : CanonicalGraphPackageCompatibility composition) :
+    GraphFunctoriality
+      (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition).toFiniteCorrespondenceCompositionData := by
+  classical
+  let data :=
+    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+      composition
+  refine ⟨?_⟩
+  intro X Y Z C f g D_Y
+  have h_distrib :
+      ∀ (right : Boundary.FiniteCorrespondence Y Z)
+        (s : Finset (Boundary.SourceIrreducibleComponent Y))
+        (φ : Boundary.SourceIrreducibleComponent Y → Boundary.FiniteCorrespondence Y Z),
+        Boundary.FiniteCorrespondenceCompositionData.comp
+            data.toFiniteCorrespondenceCompositionData
+            (ordinaryMorphismGraph_componentCorrespondence C f)
+            (s.sum φ) =
+          s.sum fun D =>
+            Boundary.FiniteCorrespondenceCompositionData.comp
+              data.toFiniteCorrespondenceCompositionData
+              (ordinaryMorphismGraph_componentCorrespondence C f)
+              (φ D) := by
+    intro right s φ
+    let compHom : Boundary.FiniteCorrespondence Y Z →+ Boundary.FiniteCorrespondence X Z :=
+      { toFun := fun corr =>
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            data.toFiniteCorrespondenceCompositionData
+            (ordinaryMorphismGraph_componentCorrespondence C f)
+            corr
+        map_zero' :=
+          Boundary.FiniteCorrespondenceCompositionData.comp_zero_right
+            data.toFiniteCorrespondenceCompositionData
+            (ordinaryMorphismGraph_componentCorrespondence C f)
+        map_add' := fun corr₁ corr₂ =>
+          Boundary.FiniteCorrespondenceCompositionData.comp_add_right
+            data.toFiniteCorrespondenceCompositionData
+            (ordinaryMorphismGraph_componentCorrespondence C f)
+            corr₁ corr₂ }
+    exact map_sum compHom φ s
+  have hterm (D : Boundary.SourceIrreducibleComponent Y) :
+      Boundary.FiniteCorrespondenceCompositionData.comp
+        data.toFiniteCorrespondenceCompositionData
+        (ordinaryMorphismGraph_componentCorrespondence C f)
+        (ordinaryMorphismGraph_componentCorrespondence D g) =
+          if hfac : Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+              h ≫ D.toAmbient = C.toAmbient ≫ f.hom }
+          then ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g)
+          else 0 := by
+    simp only [ordinaryMorphismGraph_componentCorrespondence,
+      Boundary.FiniteCorrespondence.ofPrimeSupport,
+      Boundary.FiniteCorrespondenceCompositionData.comp_single_single,
+      one_mul, one_zsmul]
+    change data.compPrime
+        (ordinaryMorphismGraphPrimeGeom C f)
+        (ordinaryMorphismGraphPrimeGeom D g) = _
+    change Boundary.FiniteCorrespondencePresentation.toGeom
+        (Boundary.SupportFiberProductImageDecomposition.toPresentation
+          (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+            composition.packages
+            (ordinaryMorphismGraphPrimeSupport C f)
+            (ordinaryMorphismGraphPrimeSupport D g))) = _
+    simpa [CanonicalGraphPackageCompatibility, ordinaryMorphismGraphPrimeGeom] using hgraph C f D g
+  let term := fun D : Boundary.SourceIrreducibleComponent Y =>
+    Boundary.FiniteCorrespondenceCompositionData.comp
+      data.toFiniteCorrespondenceCompositionData
+      (ordinaryMorphismGraph_componentCorrespondence C f)
+      (ordinaryMorphismGraph_componentCorrespondence D g)
+  have hsum :
+      Boundary.FiniteCorrespondenceCompositionData.comp
+        data.toFiniteCorrespondenceCompositionData
+        (ordinaryMorphismGraph_componentCorrespondence C f)
+        (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y) =
+      D_Y.components.sum term := by
+    simpa [ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition, term] using
+      (h_distrib
+        (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y)
+        D_Y.components
+        (fun D => ordinaryMorphismGraph_componentCorrespondence D g))
+  rw [hsum]
+  let landing :=
+    Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+      D_Y
+      (ordinaryMorphismGraphPrimeSupport C f)
+  let listed : Boundary.SourceIrreducibleComponent Y := landing.1.1
+  have hlisted_mem : listed ∈ D_Y.components := landing.1.2
+  have hlanding_term :
+      term listed = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
+    have hfac : Nonempty { h : C.carrier.scheme ⟶ listed.carrier.scheme //
+        h ≫ listed.toAmbient = C.toAmbient ≫ f.hom } := ⟨⟨landing.2.1, landing.2.2⟩⟩
+    calc
+      term listed =
+        if hfac' : Nonempty { h : C.carrier.scheme ⟶ listed.carrier.scheme //
+          h ≫ listed.toAmbient = C.toAmbient ≫ f.hom }
+        then ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g)
+        else 0 := by
+        simpa [term] using hterm listed
+      _ = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
+        simp [hfac]
+  have hoffsum :
+      (D_Y.components.erase listed).sum term = 0 := by
+    have haux :
+        ∀ t : Finset (Boundary.SourceIrreducibleComponent Y),
+          t ⊆ D_Y.components.erase listed → t.sum term = 0 := by
+      intro t
+      refine Finset.induction_on t ?_ ?_
+      · intro _
+        simp
+      · intro D t hnotin hIH hsub
+        have hmemErase : D ∈ D_Y.components.erase listed := hsub (by simp)
+        have hmem : D ∈ D_Y.components := (Finset.mem_erase.mp hmemErase).2
+        have hneq : D ≠ listed := (Finset.mem_erase.mp hmemErase).1
+        have hsub_t : t ⊆ D_Y.components.erase listed := by
+          intro x hx
+          exact hsub (by simp [hx])
+        have hno :
+            ¬ Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+                h ≫ D.toAmbient = C.toAmbient ≫ f.hom } := by
+          intro hfac
+          rcases hfac with ⟨⟨h, hh⟩⟩
+          exact hneq
+            (Boundary.FiniteIrreducibleComponentDecomposition.eq_landingComponent_of_target_factorization
+              D_Y
+              (ordinaryMorphismGraphPrimeSupport C f)
+              D
+              hmem
+              h
+              hh)
+        rw [Finset.sum_insert hnotin, hterm D, hIH hsub_t]
+        simp [hno]
+    exact haux (D_Y.components.erase listed) (by
+      intro x hx
+      exact hx)
+  have hsplit :
+      D_Y.components.sum term = term listed + (D_Y.components.erase listed).sum term := by
+    simpa [term, add_comm, add_left_comm, add_assoc] using
+      (Finset.sum_erase_add (s := D_Y.components) (f := term) hlisted_mem).symm
+  calc
+    D_Y.components.sum term = term listed + (D_Y.components.erase listed).sum term := by
+      rw [hsplit]
+    _ = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) + 0 := by
+      rw [hlanding_term, hoffsum]
+    _ = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
+      simp
+
+/-- The integral graph-composition theorem specialized to any canonical package
+family satisfying `CanonicalGraphPackageCompatibility`. -/
+theorem ordinaryMorphismGraph_comp_canonical_ofPackageCompatibility
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k))
+    (hgraph : CanonicalGraphPackageCompatibility composition)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let data :=
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition
+    Boundary.FiniteCorrespondenceCompositionData.comp
+      data.toFiniteCorrespondenceCompositionData
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition f D_X)
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y) =
+      ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition
+        (Boundary.SmOverHom.comp f g) D_X := by
+  exact ordinaryMorphismGraph_comp_canonical
+    composition
+    (canonicalGraphFunctoriality_ofPackageCompatibility composition hgraph)
+    f g D_X D_Y
+
+/-- Concrete-lifted entry point for canonical graph functoriality.
+Apply this to package data obtained from
+`CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily`. -/
+theorem canonicalGraphFunctoriality_ofConcreteLiftedDecompositionFamily
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k))
+    (hgraph : CanonicalGraphPackageCompatibility composition) :
+    GraphFunctoriality
+      (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition).toFiniteCorrespondenceCompositionData :=
+  canonicalGraphFunctoriality_ofPackageCompatibility composition hgraph
+
+/-- Concrete-lifted entry point for integral graph composition on canonical
+package data. Apply this to package data obtained from
+`CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily`. -/
+theorem ordinaryMorphismGraph_comp_canonical_ofConcreteLiftedDecompositionFamily
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k))
+    (hgraph : CanonicalGraphPackageCompatibility composition)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let data :=
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
+        composition
+    Boundary.FiniteCorrespondenceCompositionData.comp
+      data.toFiniteCorrespondenceCompositionData
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition f D_X)
+      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y) =
+      ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition
+        (Boundary.SmOverHom.comp f g) D_X :=
+  ordinaryMorphismGraph_comp_canonical_ofPackageCompatibility composition hgraph f g D_X D_Y
+
+/-- Rational graph functoriality for the canonical package-family composition,
+transported from the validated integral theorem through `canonicalSmCorQ` and
+the rationalization map. No new graph geometry is reproved over `ℚ`. -/
+theorem ordinaryMorphismGraph_comp_canonical_Q
+    (composition :
+      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+        (k := k))
+    (hgraph : CanonicalGraphPackageCompatibility composition)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let category :=
+      ({ integral := composition.toSmCor } : Boundary.SmCorQ (k := k))
+    category.comp
+      (ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category f D_X)
+      (ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category g D_Y)
+      = ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category
+          (Boundary.SmOverHom.comp f g) D_X := by
+  let category :=
+    ({ integral := composition.toSmCor } : Boundary.SmCorQ (k := k))
+  have hGF : GraphFunctoriality category.integral.composition := by
+    simpa [category] using
+      canonicalGraphFunctoriality_ofConcreteLiftedDecompositionFamily composition hgraph
+  exact ordinaryMorphismGraph_comp category hGF f g D_X D_Y
 
 end Geometry
