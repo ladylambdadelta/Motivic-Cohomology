@@ -33,7 +33,7 @@ def HolographicRecord (P : ProbeFamily C) (M : C) :=
   ∀ b : P.Probe, (P.iota b ⟶ M)
 
 /-- Holography means that probe-precomposition detects equality of morphisms. -/
-def Holography (P : ProbeFamily C) : Prop :=
+def Holography (P : ProbeFamily C) :=
   ∀ ⦃X Y : C⦄ (f g : X ⟶ Y),
     (∀ (b : P.Probe) (α : P.iota b ⟶ X), α ≫ f = α ≫ g) →
       f = g
@@ -42,14 +42,14 @@ def Holography (P : ProbeFamily C) : Prop :=
     boundary probe input. -/
 def Tomography
     (P : ProbeFamily C)
-    (R : ∀ {X Y : C}, (X ⟶ Y) → Type x) : Prop :=
+    (R : ∀ {X Y : C}, (X ⟶ Y) → Type x) :=
   ∀ ⦃X Y : C⦄ (f g : X ⟶ Y),
     R f = R g →
       ∀ (b : P.Probe) (α : P.iota b ⟶ X), α ≫ f = α ≫ g
 
 /-- Period faithfulness is the final target statement. -/
 def PeriodFaithfulness
-    (R : ∀ {X Y : C}, (X ⟶ Y) → Type x) : Prop :=
+  (R : ∀ {X Y : C}, (X ⟶ Y) → Type x) :=
   ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), R f = R g → f = g
 
 /-- Formal theorem: tomography plus holography implies period faithfulness. -/

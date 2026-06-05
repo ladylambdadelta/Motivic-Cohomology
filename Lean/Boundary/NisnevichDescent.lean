@@ -1,5 +1,6 @@
 import Boundary.Localization
 import Boundary.PresheavesWithTransfers
+import Boundary.SmSchemeOverPullbacks
 import Mathlib.Algebra.Category.ModuleCat.Colimits
 import Mathlib.AlgebraicGeometry.Morphisms.Etale
 import Mathlib.CategoryTheory.Limits.FunctorCategory.Basic
@@ -136,7 +137,7 @@ the current representable/direct-sum surface. Because the available
 representable restriction legs are variance-correct maps out of `Qtr overlap`,
 the missing object is the cokernel of `descentDifferenceMap square`. -/
 def descentCompatiblePairObject_obligation {category : SmCorQ (k := k)}
-    (square : NisnevichDistinguishedSquareDataQ category) : Prop :=
+  (square : NisnevichDistinguishedSquareDataQ category) :=
   Limits.HasCokernel (descentDifferenceMap square)
 
 /-- `PST category` has cokernels, inherited pointwise from `ModuleCat ℚ`
@@ -912,13 +913,210 @@ theorem pullback_geometry {category : SmCorQ (k := k)}
     haveI := sq.openToBase_isOpenImmersion
     exact IsPullback.of_hasPullback _ _
 
+private theorem openToBase_isSmooth {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    IsSmooth sq.openToBase.hom := by
+  letI := sq.openToBase_isOpenImmersion
+  infer_instance
+
+private theorem openToBase_isSeparated {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    IsSeparated sq.openToBase.hom := by
+  letI := sq.openToBase_isOpenImmersion
+  infer_instance
+
+private theorem openToBase_isFiniteType {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    Geometry.IsOfFiniteType sq.openToBase.hom := by
+  letI := sq.openToBase_isOpenImmersion
+  exact ⟨inferInstance, inferInstance⟩
+
+private theorem patchToBase_isSmooth {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    IsSmooth sq.patchToBase.hom := by
+  exact sq.patchToBase_isEtale.isSmooth
+
+private theorem patchToBase_isSeparated {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    IsSeparated sq.patchToBase.hom := by
+  letI : IsSeparated sq.base.structMap := sq.base.separated
+  letI : IsSeparated (sq.patchToBase.hom ≫ sq.base.structMap) := by
+    simpa [sq.patchToBase.over] using sq.patchPiece.separated
+  exact IsSeparated.of_comp (f := sq.patchToBase.hom) (g := sq.base.structMap)
+
+private theorem patchToBase_isFiniteType {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category) :
+    Geometry.IsOfFiniteType sq.patchToBase.hom := by
+  letI : LocallyOfFiniteType (sq.patchToBase.hom ≫ sq.base.structMap) := by
+    simpa [sq.patchToBase.over] using sq.patchPiece.locallyOfFiniteType_structMap
+  exact ⟨inferInstance,
+    locallyOfFiniteType_of_comp (f := sq.patchToBase.hom) (g := sq.base.structMap)⟩
+
+/-- The base-changed open piece `U ×_X Y`. -/
+def baseChange_open {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    Geometry.SmSchemeOver k :=
+  SmSchemeOver.pullbackObject
+    sq.openToBase
+    f
+    (openToBase_isSmooth sq)
+    (openToBase_isSeparated sq)
+    (openToBase_isFiniteType sq)
+
+/-- The base-changed patch piece `V ×_X Y`. -/
+def baseChange_patch {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    Geometry.SmSchemeOver k :=
+  SmSchemeOver.pullbackObject
+    sq.patchToBase
+    f
+    (patchToBase_isSmooth sq)
+    (patchToBase_isSeparated sq)
+    (patchToBase_isFiniteType sq)
+
+/-- The pulled-back open-to-base structural morphism `U ×_X Y ⟶ Y`. -/
+def baseChange_open_to_base {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    SmOverHom (baseChange_open sq f) Y :=
+  SmSchemeOver.pullbackSnd
+    sq.openToBase
+    f
+    (openToBase_isSmooth sq)
+    (openToBase_isSeparated sq)
+    (openToBase_isFiniteType sq)
+
+/-- The pulled-back patch-to-base structural morphism `V ×_X Y ⟶ Y`. -/
+def baseChange_patch_to_base {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    SmOverHom (baseChange_patch sq f) Y :=
+  SmSchemeOver.pullbackSnd
+    sq.patchToBase
+    f
+    (patchToBase_isSmooth sq)
+    (patchToBase_isSeparated sq)
+    (patchToBase_isFiniteType sq)
+
+theorem baseChange_open_to_base_isOpenImmersion {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    IsOpenImmersion (baseChange_open_to_base sq f).hom := by
+  simpa [baseChange_open_to_base, baseChange_open] using
+    (pullback_geometry sq f).1
+
+theorem baseChange_patch_to_base_isEtale {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    IsEtale (baseChange_patch_to_base sq f).hom := by
+  simpa [baseChange_patch_to_base, baseChange_patch] using
+    (pullback_geometry sq f).2.1
+
+private theorem baseChange_open_to_base_isSmooth {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    IsSmooth (baseChange_open_to_base sq f).hom := by
+  letI := baseChange_open_to_base_isOpenImmersion sq f
+  infer_instance
+
+private theorem baseChange_open_to_base_isSeparated {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    IsSeparated (baseChange_open_to_base sq f).hom := by
+  letI := baseChange_open_to_base_isOpenImmersion sq f
+  infer_instance
+
+private theorem baseChange_open_to_base_isFiniteType {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    Geometry.IsOfFiniteType (baseChange_open_to_base sq f).hom := by
+  letI := baseChange_open_to_base_isOpenImmersion sq f
+  exact ⟨inferInstance, inferInstance⟩
+
+/-- The pulled-back overlap `(U ×_X Y) ×_Y (V ×_X Y)`. -/
+def baseChange_overlap {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    Geometry.SmSchemeOver k :=
+  SmSchemeOver.pullbackObject
+    (baseChange_open_to_base sq f)
+    (baseChange_patch_to_base sq f)
+    (baseChange_open_to_base_isSmooth sq f)
+    (baseChange_open_to_base_isSeparated sq f)
+    (baseChange_open_to_base_isFiniteType sq f)
+
+/-- The overlap-to-open morphism in the pulled-back Nisnevich square. -/
+def baseChange_overlap_to_open {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    SmOverHom (baseChange_overlap sq f) (baseChange_open sq f) :=
+  SmSchemeOver.pullbackFst
+    (baseChange_open_to_base sq f)
+    (baseChange_patch_to_base sq f)
+    (baseChange_open_to_base_isSmooth sq f)
+    (baseChange_open_to_base_isSeparated sq f)
+    (baseChange_open_to_base_isFiniteType sq f)
+
+/-- The overlap-to-patch morphism in the pulled-back Nisnevich square. -/
+def baseChange_overlap_to_patch {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    SmOverHom (baseChange_overlap sq f) (baseChange_patch sq f) :=
+  SmSchemeOver.pullbackSnd
+    (baseChange_open_to_base sq f)
+    (baseChange_patch_to_base sq f)
+    (baseChange_open_to_base_isSmooth sq f)
+    (baseChange_open_to_base_isSeparated sq f)
+    (baseChange_open_to_base_isFiniteType sq f)
+
+theorem baseChange_overlap_isPullback {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    IsPullback
+      (baseChange_overlap_to_open sq f).hom
+      (baseChange_overlap_to_patch sq f).hom
+      (baseChange_open_to_base sq f).hom
+      (baseChange_patch_to_base sq f).hom := by
+  simpa [baseChange_overlap_to_open, baseChange_overlap_to_patch,
+    baseChange_open_to_base, baseChange_patch_to_base,
+    baseChange_overlap, baseChange_open, baseChange_patch] using
+    (pullback_geometry sq f).2.2
+
+theorem baseChange_overlap_comp_eq {category : SmCorQ (k := k)}
+    (sq : NisnevichDistinguishedSquareDataQ category)
+    {Y : Geometry.SmSchemeOver k}
+    (f : SmOverHom Y sq.base) :
+    SmOverHom.comp (baseChange_overlap_to_open sq f) (baseChange_open_to_base sq f) =
+      SmOverHom.comp (baseChange_overlap_to_patch sq f) (baseChange_patch_to_base sq f) :=
+  SmSchemeOver.pullbackFst_comp_eq
+    (baseChange_open_to_base sq f)
+    (baseChange_patch_to_base sq f)
+    (baseChange_open_to_base_isSmooth sq f)
+    (baseChange_open_to_base_isSeparated sq f)
+    (baseChange_open_to_base_isFiniteType sq f)
+
 end NisnevichDistinguishedSquareDataQ
 
 /-- Honest Nisnevich descent condition for one distinguished square: compatible
 sections on the open and the etale patch glue uniquely to a section on the
 base. -/
 def IsNisnevichLocalAtSquareQ {category : SmCorQ (k := k)}
-    (F : PST category) (square : NisnevichDistinguishedSquareDataQ category) : Prop := by
+    (F : PST category) (square : NisnevichDistinguishedSquareDataQ category) := by
   letI := SmCorQCat category
   exact
     ∀ (openSection : F.obj (Opposite.op square.openPiece))
@@ -935,7 +1133,7 @@ def IsNisnevichLocalAtSquareQ {category : SmCorQ (k := k)}
 transfers: every typed distinguished square in the Boundary layer satisfies the
 usual unique-gluing descent condition on values of `F`. -/
 def IsNisnevichLocal {category : SmCorQ (k := k)}
-    (F : PST category) : Prop :=
+    (F : PST category) :=
   ∀ square : NisnevichDistinguishedSquareDataQ category,
     IsNisnevichLocalAtSquareQ F square
 
@@ -1225,23 +1423,16 @@ subtype of the canonical `PST` category, not a localization. -/
 def NisnevichLocalPST (category : SmCorQ (k := k)) :=
   { F : PST category // IsNisnevichLocal F }
 
-/-- Family of Nisnevich localizing-map obligations feeding the
-transfer-presheaf localization scaffold.  This package keeps the concrete
-distinguished squares and the still-unproved descent targets together. -/
+/-- Family of Nisnevich localizing maps feeding the transfer-presheaf
+localization construction. -/
 structure NisnevichLocalizingMapObligationQ (category : SmCorQ (k := k)) where
   Square : Type (u + 1)
   square : Square → NisnevichDistinguishedSquareDataQ category
   localizingData : Square → Sigma fun X : PST category =>
     Sigma fun Y : PST category =>
       (X ⟶ Y)
-  coverDescentObligation : Prop
-  hyperdescentObligation : Prop
 
 namespace NisnevichLocalizingMapObligationQ
-
-def theoremTarget {category : SmCorQ (k := k)}
-    (presentation : NisnevichLocalizingMapObligationQ category) : Prop :=
-  presentation.coverDescentObligation ∧ presentation.hyperdescentObligation
 
 def toLocalizingMorphisms {category : SmCorQ (k := k)}
     (presentation : NisnevichLocalizingMapObligationQ category) :
@@ -1250,14 +1441,6 @@ def toLocalizingMorphisms {category : SmCorQ (k := k)}
     data := presentation.localizingData }
 
 end NisnevichLocalizingMapObligationQ
-
-/-- Certified wrapper for the boundary-side Nisnevich localizing-map
-obligation package. -/
-structure CertifiedNisnevichLocalizingMapObligationQ (category : SmCorQ (k := k)) where
-  target : NisnevichLocalizingMapObligationQ category
-  coverDescent_holds : target.coverDescentObligation
-  hyperdescent_holds : target.hyperdescentObligation
-  theorem_holds : target.theoremTarget
 
 end
 

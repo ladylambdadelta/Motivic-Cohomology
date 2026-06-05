@@ -106,7 +106,7 @@ noncomputable instance instSMulRightTensorWithRat
     tensorRatComm (X := X) (Y := Y) (corr ⊗ₜ[ℤ] q) = q ⊗ₜ[ℤ] corr := by
   rfl
 
-@[simp] theorem tensorRatComm_smul
+theorem tensorRatComm_smul
     {X Y : Geometry.SmSchemeOver k}
     (q : ℚ)
     (tensor : TensorProduct ℤ (FiniteCorrespondence X Y) ℚ) :

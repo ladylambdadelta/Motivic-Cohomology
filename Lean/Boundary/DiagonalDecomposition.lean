@@ -8,7 +8,7 @@ This file packages the diagonal prime classes and identity correspondence
 attached to a finite irreducible-component decomposition.
 -/
 
-universe u
+universe u v
 
 variable {k : Type u} [Field k] [PerfectField k]
 
@@ -79,7 +79,7 @@ theorem eq_landingComponent_of_target_factorization
   by_contra hne
   have hdisj := D.pairwise_disjoint hlisted hlanding_mem hne
   have hsource_nonempty : (Set.range P.sourceComponent.toAmbient.base).Nonempty := by
-    exact P.sourceComponent.range_mem_irreducibleComponents.1.nonempty
+    exact P.sourceComponent.range_nonempty
   rcases hsource_nonempty with ⟨xAmbient, xSource, rfl⟩
   let x : P.support.carrier := Classical.choose (P.surjective_toSourceComponent xSource)
   have hx_listed : P.toTargetScheme.base x ∈ Set.range listed.toAmbient.base := by
@@ -119,8 +119,11 @@ theorem landingComponent_of_finite_diagonalRepresentedPrimeSupport
   refine eq_landingComponent_of_target_factorization D
     (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport component)
     component hcomponent (𝟙 component.carrier.scheme) ?_
-  simp [SourceIrreducibleComponent.diagonalRepresentedPrimeSupport,
-    PrimeFiniteCorrespondenceSupport.toTargetScheme]
+  change 𝟙 component.carrier.scheme ≫ component.toAmbient =
+    component.toSourceImageSubscheme.diagonalRepresentedPrimeSupport.toTarget
+  change component.toAmbient =
+    component.toSourceImageSubscheme.diagonalRepresentedPrimeSupport.toTarget
+  rfl
 
 /-- A point of the support pullback `P.support ×_Y Δ_component` forces the
 target map of `P` to factor through `component`. -/
@@ -151,7 +154,11 @@ theorem target_factorization_of_nonempty_compositionFiberProduct_diagonal
     refine ⟨(PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x, ?_⟩
     have hcond := congrArg (fun f => f.base x)
       (PrimeFiniteCorrespondenceSupport.compositionFiber_condition P diag)
-    change (PrimeFiniteCorrespondenceSupport.toAmbientSource diag).base
+    change component.toAmbient.base
+        ((PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x) =
+      P.toTargetScheme.base
+        ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x)
+    change diag.toAmbientSource.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x) =
       P.toTargetScheme.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x)
@@ -243,6 +250,51 @@ theorem identityFiniteCorrespondence_eq_sum_components {X : Geometry.SmSchemeOve
   have hiso : SourceIrreducibleComponent.IsoOverAmbient C D :=
     isoOverAmbient_of_diagonalPrimeGeom_eq hCD
   exact decomposition.no_equivalent_duplicates hC hD hiso
+
+/-- Formal comparison between an indexed diagonal component sum and the
+canonical identity correspondence of a certified finite irreducible-component
+decomposition.
+
+This is the coefficient-level endpoint needed by external-product identity
+proofs: once the geometric construction identifies its indexed diagonal pieces
+bijectively with the certified listed components, the finite correspondence is
+the canonical identity. -/
+theorem sum_diagonal_eq_identityFiniteCorrespondence_of_equiv_components
+    {X : Geometry.SmSchemeOver k}
+    (decomposition : FiniteIrreducibleComponentDecomposition X)
+    {ι : Type v} [Fintype ι]
+    (sourceImage : ι → SourceImageSubscheme (k := k) X)
+    (listedEquiv : ι ≃ { listed : SourceIrreducibleComponent X //
+      listed ∈ decomposition.components })
+    (hcomponent :
+      ∀ i,
+        SourceImageSubscheme.diagonalFiniteCorrespondence (sourceImage i) =
+          SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    (∑ i : ι, SourceImageSubscheme.diagonalFiniteCorrespondence (sourceImage i)) =
+      decomposition.identityFiniteCorrespondence := by
+  classical
+  rw [identityFiniteCorrespondence_eq_sum_components decomposition]
+  calc
+    (∑ i : ι, SourceImageSubscheme.diagonalFiniteCorrespondence (sourceImage i)) =
+        ∑ i : ι,
+          SourceIrreducibleComponent.diagonalFiniteCorrespondence ((listedEquiv i).1) := by
+        apply Finset.sum_congr rfl
+        intro i _hi
+        exact hcomponent i
+    _ =
+        ∑ listed : { listed : SourceIrreducibleComponent X //
+          listed ∈ decomposition.components },
+          SourceIrreducibleComponent.diagonalFiniteCorrespondence listed.1 := by
+        exact Fintype.sum_equiv listedEquiv
+          (fun i =>
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence ((listedEquiv i).1))
+          (fun listed =>
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence listed.1)
+          (fun _ => rfl)
+    _ =
+        decomposition.components.sum SourceIrreducibleComponent.diagonalFiniteCorrespondence := by
+        simpa using Finset.sum_attach decomposition.components
+          SourceIrreducibleComponent.diagonalFiniteCorrespondence
 
 theorem mem_identityFiniteCorrespondence_support_iff {X : Geometry.SmSchemeOver k}
     (decomposition : FiniteIrreducibleComponentDecomposition X)
@@ -359,7 +411,10 @@ theorem identityFiniteCorrespondence_singleton {X : Geometry.SmSchemeOver k}
     simp [diagonalPrimeClasses, hcomponents]
   rw [identityFiniteCorrespondence, hclasses,
     SourceIrreducibleComponent.diagonalFiniteCorrespondence]
-  simp
+  rw [Finset.sum_singleton]
+  change Finsupp.single (SourceIrreducibleComponent.diagonalPrimeGeom component) (1 : ℤ) =
+    Finsupp.single (SourceIrreducibleComponent.diagonalPrimeGeom component) (1 : ℤ)
+  rfl
 
 end FiniteIrreducibleComponentDecomposition
 

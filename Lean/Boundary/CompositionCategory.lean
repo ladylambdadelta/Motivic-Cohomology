@@ -61,13 +61,15 @@ def comp (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (right : FiniteCorrespondence Y Z) :
     FiniteCorrespondenceCompositionData.comp data (0 : FiniteCorrespondence X Y) right = 0 := by
-  simp [FiniteCorrespondenceCompositionData.comp]
+  rw [FiniteCorrespondenceCompositionData.comp]
+  simp
 
 @[simp] theorem comp_zero_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (left : FiniteCorrespondence X Y) :
     FiniteCorrespondenceCompositionData.comp data left (0 : FiniteCorrespondence Y Z) = 0 := by
-  simp [FiniteCorrespondenceCompositionData.comp]
+  rw [FiniteCorrespondenceCompositionData.comp]
+  simp
 
 @[simp] theorem comp_single_left (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
@@ -78,7 +80,8 @@ def comp (data : FiniteCorrespondenceCompositionData (k := k))
       right.sum fun rightPrime rightCoeff =>
         (leftCoeff * rightCoeff) • data.compPrime leftPrime rightPrime := by
   classical
-  simp [FiniteCorrespondenceCompositionData.comp]
+  rw [FiniteCorrespondenceCompositionData.comp]
+  simp
 
 @[simp] theorem comp_single_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
@@ -89,7 +92,8 @@ def comp (data : FiniteCorrespondenceCompositionData (k := k))
       left.sum fun leftPrime leftCoeff =>
         (leftCoeff * rightCoeff) • data.compPrime leftPrime rightPrime := by
   classical
-  simp [FiniteCorrespondenceCompositionData.comp]
+  rw [FiniteCorrespondenceCompositionData.comp]
+  simp
 
 @[simp] theorem comp_single_single (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
@@ -100,7 +104,8 @@ def comp (data : FiniteCorrespondenceCompositionData (k := k))
       (Finsupp.single rightPrime rightCoeff) =
         (leftCoeff * rightCoeff) • data.compPrime leftPrime rightPrime := by
   classical
-  simp [FiniteCorrespondenceCompositionData.comp]
+  rw [FiniteCorrespondenceCompositionData.comp]
+  simp
 
 /-- To prove singleton associativity, it is enough to prove the corresponding
 bridge after rewriting the inner singleton compositions into scaled prime-level
@@ -133,10 +138,11 @@ theorem assoc_single_of_scaled_prime_assoc
               (FiniteCorrespondenceCompositionData.comp data
                 (Finsupp.single g gCoeff) (Finsupp.single h hCoeff)) := by
   intro W X Y Z f fCoeff g gCoeff h hCoeff
-  simpa [FiniteCorrespondenceCompositionData.comp_single_single] using
-    assoc_scaled_prime f fCoeff g gCoeff h hCoeff
+  rw [FiniteCorrespondenceCompositionData.comp_single_single,
+    FiniteCorrespondenceCompositionData.comp_single_single]
+  exact assoc_scaled_prime f fCoeff g gCoeff h hCoeff
 
-@[simp] theorem comp_add_left (data : FiniteCorrespondenceCompositionData (k := k))
+theorem comp_add_left (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (left₁ left₂ : FiniteCorrespondence X Y)
     (right : FiniteCorrespondence Y Z) :
@@ -150,7 +156,7 @@ theorem assoc_single_of_scaled_prime_assoc
     Finsupp.sum_add_index'] <;>
     simp [add_mul, add_smul, zero_mul]
 
-@[simp] theorem comp_add_right (data : FiniteCorrespondenceCompositionData (k := k))
+theorem comp_add_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (left : FiniteCorrespondence X Y)
     (right₁ right₂ : FiniteCorrespondence Y Z) :
@@ -166,7 +172,7 @@ theorem assoc_single_of_scaled_prime_assoc
   ext leftPrime leftCoeff
   rw [Finsupp.sum_add_index'] <;> simp [mul_add, add_smul, zero_mul]
 
-@[simp] theorem comp_smul_left (data : FiniteCorrespondenceCompositionData (k := k))
+theorem comp_smul_left (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (coeff : ℤ)
     (left : FiniteCorrespondence X Y)
@@ -185,7 +191,7 @@ theorem assoc_single_of_scaled_prime_assoc
     intro rightPrime _
     simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
-@[simp] theorem comp_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
+theorem comp_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (coeff : ℤ)
     (left : FiniteCorrespondence X Y)

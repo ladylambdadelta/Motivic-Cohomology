@@ -1,5 +1,6 @@
 import Boundary.NisnevichPullbackTransfer
 import Mathlib.CategoryTheory.Sites.Coverage
+import Mathlib.CategoryTheory.Sites.LeftExact
 
 /-!
 # Nisnevich Presieve Definitions for Sm/k
@@ -204,10 +205,13 @@ variable
   (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
   (leftIdentity_constant :
     ∀ {X Y : Geometry.SmSchemeOver k}
-      (diagClass : Boundary.PrimeFiniteCorrespondenceGeom X X)
-      (prime : Boundary.PrimeFiniteCorrespondenceGeom X Y),
-        diagClass ∈ (diagonalDecomposition X).diagonalPrimeClasses →
-          packages diagClass prime = leftIdentityPackage prime)
+      (P : Boundary.RepresentedPrimeSupport X Y)
+      (component : Boundary.SourceIrreducibleComponent X)
+      (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
+      (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+        packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
+            (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
+          leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
   (rightIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
   (rightIdentity_constant :
     ∀ {X Y : Geometry.SmSchemeOver k}

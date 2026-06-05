@@ -3,6 +3,7 @@ import Boundary.SmOver
 import Boundary.PrimeSupport
 import Boundary.SupportEquivalence
 import Boundary.CorrespondenceSums
+import Boundary.ExternalProduct
 import Boundary.CorrespondenceRationalization
 import Boundary.RationalCompositionCategory
 import Boundary.PresheavesWithTransfers
@@ -11,8 +12,6 @@ import Boundary.NisnevichDescent
 import Boundary.A1Invariance
 import Boundary.MinimalPresentationPackage
 import Boundary.OpenClosedLocalization
-import Boundary.TateStabilization
-import Boundary.InternalPresentationPackage
 import Boundary.GeometricRecognition
 import Boundary.Diagonal
 import Boundary.DiagonalDecomposition
@@ -35,7 +34,8 @@ import Mathlib.Topology.Irreducible
 This file is the umbrella import for the boundary-correspondence layer. The
 actual owners now live in the split modules for raw prime supports,
 support-equivalence, correspondence sums, diagonals, diagonal decompositions,
-composition data, and the downstream boundary formulas.
+composition data, and the downstream boundary formulas. Legacy Tate/internal
+presentation target surfaces are intentionally not re-exported here.
 -/
 
 universe u

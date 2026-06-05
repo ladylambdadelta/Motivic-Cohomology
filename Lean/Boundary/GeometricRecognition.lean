@@ -1,11 +1,14 @@
-import Boundary.InternalPresentationPackage
+import Boundary.CanonicalDMgmConstruction
 
 /-!
-# Geometric Recognition Target Surface
+# Boundary DMgm Input Surface
 
-This file records the exact boundary-side theorem surface for recognizing the
-internal presentation package inside geometric motives over `Q`, together with
-its realization and transport consequences.
+This file exports the canonical Boundary-side input package consumed by the
+classical `DM_gm(Q)_Q` construction layer.
+
+Boundary has a formal geometric-motives stabilization surface in
+`Boundary.GeometricMotives`; this module intentionally exposes the separate
+input bundle used by downstream classical recognition APIs.
 -/
 
 universe u
@@ -16,72 +19,67 @@ namespace Boundary
 
 noncomputable section
 
-/-- Exact theorem-target package for the recognition stage above an internal
-presentation package.  The carrier `DMgmQObj` is intentionally abstract here:
-it names the target geometric-motive category without prematurely choosing a
-concrete construction. -/
-structure GeometricRecognitionPresentationQ
-    (category : SmCorQ (k := k))
-    (package : InternalPresentationPackageQ category) where
-  DMgmQObj : Type (u + 1)
-  motiveOf : package.minimal.GeneratorIndex → DMgmQObj
-  generatorSoundnessTarget : ∀ idx : package.minimal.GeneratorIndex, Prop
-  traceCategoryEquivalentToDMgmQTarget : Prop
-  canonicalDMgmEquivalenceTarget : Prop
-  realizationComparisonTarget : Prop
-  universalRecognitionTarget : Prop
-  pureHeartEquivalenceTarget : Prop
-  comparisonByDoubleRepresentabilityTarget : Prop
-  transportApiTarget : Prop
-  recognitionConsequencesTarget : Prop
 
-namespace GeometricRecognitionPresentationQ
+/-- Final Boundary-side input bundle for the classical `DM_gm(Q)_Q`
+construction. Boundary exports the effective presentation and canonical
+Tate-stabilization input expected by the classical recognition layer. -/
+structure CanonicalDMgmInputDataQ (category : SmCorQ (k := k)) where
+  effectivePresentation : CanonicalEffectiveMotivicPresentationQ category
+  tateStabilizationInput :
+    CanonicalTateStabilizationInputQ category effectivePresentation
 
-def theoremTarget
+namespace CanonicalDMgmInputDataQ
+
+abbrev internalPresentation
     {category : SmCorQ (k := k)}
-    {package : InternalPresentationPackageQ category}
-    (presentation : GeometricRecognitionPresentationQ category package) : Prop :=
-  (∀ idx : package.minimal.GeneratorIndex,
-      presentation.generatorSoundnessTarget idx) ∧
-    presentation.traceCategoryEquivalentToDMgmQTarget ∧
-    presentation.canonicalDMgmEquivalenceTarget ∧
-    presentation.realizationComparisonTarget ∧
-    presentation.universalRecognitionTarget ∧
-    presentation.pureHeartEquivalenceTarget ∧
-    presentation.comparisonByDoubleRepresentabilityTarget ∧
-    presentation.transportApiTarget ∧
-    presentation.recognitionConsequencesTarget
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.effectivePresentation.internalPresentation
 
-end GeometricRecognitionPresentationQ
-
-/-- Certified wrapper for the boundary-side geometric recognition stage. -/
-structure CertifiedGeometricRecognitionPresentationQ
-    (category : SmCorQ (k := k))
-    (package : InternalPresentationPackageQ category) where
-  target : GeometricRecognitionPresentationQ category package
-  theorem_holds : target.theoremTarget
-
-/-- Final boundary-side bundle through geometric recognition: the internal
-presentation package together with the recognition/comparison layer built on
-top of it. -/
-structure BoundaryMotivicProgramQ (category : SmCorQ (k := k)) where
-  internal : InternalPresentationPackageQ category
-  recognition : GeometricRecognitionPresentationQ category internal
-
-namespace BoundaryMotivicProgramQ
-
-def theoremTarget
+abbrev motiveOf
     {category : SmCorQ (k := k)}
-    (program : BoundaryMotivicProgramQ category) : Prop :=
-  program.internal.theoremTarget ∧ program.recognition.theoremTarget
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.tateStabilizationInput.tateObjectData.motiveComparisonData.tateObject
 
-end BoundaryMotivicProgramQ
+abbrev reducedProjectiveLineMotive
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.tateStabilizationInput.tateObjectData.motiveComparisonData.reducedProjectiveLineMotive
 
-/-- Certified wrapper for the full boundary-side motivic program through
-recognition. -/
-structure CertifiedBoundaryMotivicProgramQ (category : SmCorQ (k := k)) where
-  target : BoundaryMotivicProgramQ category
-  theorem_holds : target.theoremTarget
+/-- Canonical theorem-surface alias for localization compatibility, proved in
+the effective-motives owner layer. -/
+abbrev localizationCompatibility :=
+  CanonicalTateStabilizationInputQ.localizationCompatibility
+
+abbrev canonicalExternalProduct
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.tateStabilizationInput.canonicalExternalProduct
+
+/-- Canonical theorem-surface alias for tensor input data at the correspondence
+layer used by downstream Tate-action consumers. -/
+abbrev boundaryCanonicalTensorInput
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.canonicalExternalProduct
+
+/-- Canonical theorem-surface alias for the Boundary DMgm input package. -/
+abbrev boundaryCanonicalDMgmInput
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :=
+  input
+
+/-- Project the canonical Boundary input to the pair of the effective
+presentation data and the Tate-stabilization input needed by the classical
+motives layer. -/
+def toPresentationAndStabilization
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :
+    CanonicalEffectiveMotivicPresentationQ category ×
+      CanonicalTateStabilizationInputQ category input.effectivePresentation :=
+  (input.effectivePresentation,
+    input.tateStabilizationInput)
+
+end CanonicalDMgmInputDataQ
 
 end
 

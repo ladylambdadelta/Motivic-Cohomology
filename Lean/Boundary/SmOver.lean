@@ -69,4 +69,13 @@ instance : Category (Geometry.SmSchemeOver k) where
     apply SmOverHom.ext
     rfl
 
+@[simp] theorem smOverHom_id_hom (X : Geometry.SmSchemeOver k) :
+    (𝟙 X : SmOverHom X X).hom = 𝟙 X.scheme :=
+  rfl
+
+@[simp] theorem smOverHom_comp_hom {X Y Z : Geometry.SmSchemeOver k}
+    (f : SmOverHom X Y) (g : SmOverHom Y Z) :
+    (SmOverHom.comp f g).hom = f.hom ≫ g.hom :=
+  rfl
+
 end Boundary

@@ -22,6 +22,24 @@ open PrimeFiniteCorrespondenceSupport
 
 noncomputable section
 
+@[simp] theorem sourceImage_diagonal_toSourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (SourceImageSubscheme.diagonalRepresentedPrimeSupport sourceImage).toSourceComponent =
+      𝟙 sourceImage.carrier.scheme := rfl
+
+@[simp] theorem sourceImage_diagonal_toTargetScheme
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (SourceImageSubscheme.diagonalRepresentedPrimeSupport sourceImage).toTargetScheme =
+      sourceImage.toAmbient := rfl
+
+@[simp] theorem sourceComponent_diagonal_toTargetScheme
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport component).toTargetScheme =
+      component.toAmbient := rfl
+
 /-- A factorization of the canonical map from the support fiber product
 `P.support ×_Y Q.support` to `sourceComponent(P) ×_k Z` through its intended
 scheme-theoretic image. -/
@@ -30,7 +48,7 @@ structure SupportFiberProductImageFactorization
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) where
   image : Scheme
   toImage : compositionFiberProduct P Q ⟶ image
-  imageToAmbientProduct : image ⟶ overBaseProduct P.sourceComponent.carrier Z
+  imageToAmbientProduct : image ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   factorization : toImage ≫ imageToAmbientProduct = compositionToAmbientProduct P Q
   imageClosedImmersion : IsClosedImmersion imageToAmbientProduct
 
@@ -43,7 +61,7 @@ structure LeftAssociatedSupportFiberProductImageFactorization
     (R : RepresentedPrimeSupport Y Z) where
   image : Scheme
   toImage : leftAssociatedCompositionFiberProduct P Q R ⟶ image
-  imageToAmbientProduct : image ⟶ overBaseProduct P.sourceComponent.carrier Z
+  imageToAmbientProduct : image ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   factorization :
     toImage ≫ imageToAmbientProduct = leftAssociatedCompositionToAmbientProduct P Q R
   imageClosedImmersion : IsClosedImmersion imageToAmbientProduct
@@ -57,7 +75,7 @@ structure RightAssociatedSupportFiberProductImageFactorization
     (R : RepresentedPrimeSupport Y Z) where
   image : Scheme
   toImage : rightAssociatedCompositionFiberProduct P Q R ⟶ image
-  imageToAmbientProduct : image ⟶ overBaseProduct P.sourceComponent.carrier Z
+  imageToAmbientProduct : image ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   factorization :
     toImage ≫ imageToAmbientProduct = rightAssociatedCompositionToAmbientProduct P Q R
   imageClosedImmersion : IsClosedImmersion imageToAmbientProduct
@@ -185,11 +203,11 @@ structure LeftAssociatedSupportFiberProductImageComponent
   finite_toSourceComponent : IsFinite finiteOverSourceComponent
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : support ⟶ Z.scheme
-  inclusion : support ⟶ overBaseProduct P.sourceComponent.carrier Z
+  inclusion : support ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   inclusion_factorization : toImage ≫ imageData.imageToAmbientProduct = inclusion
-  inclusion_fst : inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+  inclusion_fst : inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
     finiteOverSourceComponent
-  inclusion_snd : inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+  inclusion_snd : inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
     toTarget
   isClosedImmersion : IsClosedImmersion inclusion
 
@@ -212,11 +230,11 @@ structure RightAssociatedSupportFiberProductImageComponent
   finite_toSourceComponent : IsFinite finiteOverSourceComponent
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : support ⟶ Z.scheme
-  inclusion : support ⟶ overBaseProduct P.sourceComponent.carrier Z
+  inclusion : support ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   inclusion_factorization : toImage ≫ imageData.imageToAmbientProduct = inclusion
-  inclusion_fst : inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+  inclusion_fst : inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
     finiteOverSourceComponent
-  inclusion_snd : inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+  inclusion_snd : inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
     toTarget
   isClosedImmersion : IsClosedImmersion inclusion
 
@@ -344,7 +362,7 @@ def toRepresentedPrimeSupport
     {imageData : LeftAssociatedSupportFiberProductImageFactorization P Q R}
     (component : LeftAssociatedSupportFiberProductImageComponent imageData) :
     RepresentedPrimeSupport W Z where
-  sourceComponent := P.sourceComponent
+  sourceImage := P.sourceComponent
   support := component.support
   isIntegral := component.isIntegral
   finiteOverSourceComponent := component.finiteOverSourceComponent
@@ -469,7 +487,7 @@ def toRepresentedPrimeSupport
     {imageData : RightAssociatedSupportFiberProductImageFactorization P Q R}
     (component : RightAssociatedSupportFiberProductImageComponent imageData) :
     RepresentedPrimeSupport W Z where
-  sourceComponent := P.sourceComponent
+  sourceImage := P.sourceComponent
   support := component.support
   isIntegral := component.isIntegral
   finiteOverSourceComponent := component.finiteOverSourceComponent
@@ -621,11 +639,11 @@ structure SupportFiberProductImageComponent
   finite_toSourceComponent : IsFinite finiteOverSourceComponent
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : support ⟶ Z.scheme
-  inclusion : support ⟶ overBaseProduct P.sourceComponent.carrier Z
+  inclusion : support ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
   inclusion_factorization : toImage ≫ imageData.imageToAmbientProduct = inclusion
-  inclusion_fst : inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+  inclusion_fst : inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
     finiteOverSourceComponent
-  inclusion_snd : inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+  inclusion_snd : inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
     toTarget
   isClosedImmersion : IsClosedImmersion inclusion
   toCompositionFiberProduct_fst :
@@ -704,10 +722,10 @@ structure RepresentedPrimeCompositionPiece
   finite_toSourceComponent : IsFinite finiteOverSourceComponent
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : support ⟶ Z.scheme
-  inclusion : support ⟶ overBaseProduct P.sourceComponent.carrier Z
-  inclusion_fst : inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+  inclusion : support ⟶ sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z
+  inclusion_fst : inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
     finiteOverSourceComponent
-  inclusion_snd : inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+  inclusion_snd : inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
     toTarget
   isClosedImmersion : IsClosedImmersion inclusion
   toCompositionFiberProduct : support ⟶ compositionFiberProduct P Q
@@ -737,7 +755,7 @@ structure SupportFiberProductLiftedImageComponentData
     {P : RepresentedPrimeSupport X Y} {Q : RepresentedPrimeSupport Y Z}
     (imageData : SupportFiberProductImageFactorization P Q) where
   sourceSubscheme : IntClosedSubscheme (compositionFiberProduct P Q)
-  targetSubscheme : IntClosedSubscheme (overBaseProduct P.sourceComponent.carrier Z)
+  targetSubscheme : IntClosedSubscheme (sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z)
   genericLengthData :
     _root_.FiniteMapImageFunctionFieldData
       (compositionToAmbientProduct P Q)
@@ -754,10 +772,10 @@ structure SupportFiberProductLiftedImageComponentData
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : targetSubscheme.scheme ⟶ Z.scheme
   targetSubscheme_inclusion_fst :
-    targetSubscheme.inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+    targetSubscheme.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
       finiteOverSourceComponent
   targetSubscheme_inclusion_snd :
-    targetSubscheme.inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+    targetSubscheme.inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
       toTarget
   liftedTarget_fst :
     liftedTargetToCompositionFiberProduct ≫ compositionFiberFst P Q ≫ P.toSourceComponent =
@@ -870,7 +888,7 @@ structure SupportFiberProductSourceComponentImageData
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z)
     (imageData : SupportFiberProductImageFactorization P Q)
     (sourceSubscheme : IntClosedSubscheme (compositionFiberProduct P Q)) where
-  targetSubscheme : IntClosedSubscheme (overBaseProduct P.sourceComponent.carrier Z)
+  targetSubscheme : IntClosedSubscheme (sourceOverBaseProduct (k := k) P.sourceComponent.carrier Z)
   genericLengthData :
     _root_.FiniteMapImageFunctionFieldData
       (compositionToAmbientProduct P Q)
@@ -887,10 +905,10 @@ structure SupportFiberProductSourceComponentImageData
   surjective_toSourceComponent : Function.Surjective finiteOverSourceComponent.base
   toTarget : targetSubscheme.scheme ⟶ Z.scheme
   targetSubscheme_inclusion_fst :
-    targetSubscheme.inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Z =
+    targetSubscheme.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Z =
       finiteOverSourceComponent
   targetSubscheme_inclusion_snd :
-    targetSubscheme.inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Z =
+    targetSubscheme.inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Z =
       toTarget
   liftedTarget_fst :
     liftedTargetToCompositionFiberProduct ≫ compositionFiberFst P Q ≫ P.toSourceComponent =
@@ -965,6 +983,39 @@ def supportFiberProductLiftedImageDecompositionOfSourceDecomposition
   decidableEq_index := sourceDecomposition.decidableEqIndex
   component := fun i => (componentImageData i).toLiftedImageComponentData
 
+/-- Explicit-data entry point for the lifted source-image decomposition route:
+feed a concrete source decomposition together with per-source image data into
+the lifted decomposition package consumed downstream. -/
+def supportFiberProductLiftedImageDecompositionOfComponentData
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z)
+    (sourceDecomposition :
+      FiniteIntegralClosedComponentDecomposition (compositionFiberProduct P Q))
+    (imageData : SupportFiberProductImageFactorization P Q)
+    (componentImageData :
+      (i : sourceDecomposition.index) →
+        SupportFiberProductSourceComponentImageData
+          P Q imageData ((sourceDecomposition.component i).carrier)) :
+    SupportFiberProductLiftedImageDecompositionData P Q :=
+  supportFiberProductLiftedImageDecompositionOfSourceDecomposition
+    P Q sourceDecomposition imageData componentImageData
+
+/-- Forget the lifted source data from an explicit source decomposition and keep
+only the ordinary support-fiber-product image decomposition. -/
+def supportFiberProductImageDecompositionOfComponentData
+    {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z)
+    (sourceDecomposition :
+      FiniteIntegralClosedComponentDecomposition (compositionFiberProduct P Q))
+    (imageData : SupportFiberProductImageFactorization P Q)
+    (componentImageData :
+      (i : sourceDecomposition.index) →
+        SupportFiberProductSourceComponentImageData
+          P Q imageData ((sourceDecomposition.component i).carrier)) :
+    SupportFiberProductImageDecomposition P Q :=
+  (supportFiberProductLiftedImageDecompositionOfComponentData
+      P Q sourceDecomposition imageData componentImageData).toSupportFiberProductImageDecomposition
+
 namespace RepresentedPrimeCompositionPiece
 
 /-- The represented prime support induced by one composed piece. -/
@@ -972,7 +1023,7 @@ def toRepresentedPrimeSupport {X Y Z : Geometry.SmSchemeOver k}
     {P : RepresentedPrimeSupport X Y} {Q : RepresentedPrimeSupport Y Z}
     (piece : RepresentedPrimeCompositionPiece P Q) :
     RepresentedPrimeSupport X Z where
-  sourceComponent := P.sourceComponent
+  sourceImage := P.sourceComponent
   support := piece.support
   isIntegral := piece.isIntegral
   finiteOverSourceComponent := piece.finiteOverSourceComponent
@@ -1038,7 +1089,7 @@ def toRepresentedPrimeSupport
     {imageData : SupportFiberProductImageFactorization P Q}
     (component : SupportFiberProductImageComponent imageData) :
     RepresentedPrimeSupport X Z where
-  sourceComponent := P.sourceComponent
+  sourceImage := P.sourceComponent
   support := component.support
   isIntegral := component.isIntegral
   finiteOverSourceComponent := component.finiteOverSourceComponent
@@ -1179,7 +1230,7 @@ theorem isEmpty_index_of_isEmpty_compositionFiberProduct
   refine ⟨fun i => ?_⟩
   let component := decomposition.component i
   have hsource_nonempty : (Set.range P.sourceComponent.toAmbient.base).Nonempty := by
-    exact P.sourceComponent.range_mem_irreducibleComponents.1.nonempty
+    exact P.sourceComponent.range_nonempty
   rcases hsource_nonempty with ⟨_, xSource, rfl⟩
   let x : component.support := Classical.choose (component.surjective_toSourceComponent xSource)
   exact isEmptyElim (component.toCompositionFiberProduct.base x)
@@ -1227,7 +1278,7 @@ from the canonical pullback isomorphism
 def diagonalLeftIdentityPiece {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
     RepresentedPrimeCompositionPiece
-      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P where
+  (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P where
   multiplicity := 1
   support := P.support
   isIntegral := P.isIntegral
@@ -1242,24 +1293,25 @@ def diagonalLeftIdentityPiece {X Y : Geometry.SmSchemeOver k}
   toCompositionFiberProduct :=
     pullback.lift P.toSourceComponent (𝟙 P.support) (by
       simp [PrimeFiniteCorrespondenceSupport.toAmbientSource,
-        SourceIrreducibleComponent.diagonalRepresentedPrimeSupport])
+        SourceImageSubscheme.diagonalRepresentedPrimeSupport])
   toCompositionFiberProduct_fst := by
     calc
       pullback.lift P.toSourceComponent (𝟙 P.support) (by
           simp [PrimeFiniteCorrespondenceSupport.toAmbientSource,
             SourceIrreducibleComponent.diagonalRepresentedPrimeSupport]) ≫
           compositionFiberFst
-            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
-          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+            (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport
             P.sourceComponent).toSourceComponent
           = P.toSourceComponent ≫
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport
                 P.sourceComponent).toSourceComponent := by
                   simp [compositionFiberFst, compositionFiberProduct]
       _ = P.finiteOverSourceComponent := by
+            change P.toSourceImage ≫ 𝟙 P.sourceComponent.carrier.scheme =
+              P.finiteOverSourceComponent
             simp [PrimeFiniteCorrespondenceSupport.toSourceComponent,
-              SourceIrreducibleComponent.diagonalRepresentedPrimeSupport,
-              Category.assoc]
+              PrimeFiniteCorrespondenceSupport.toSourceImage]
   toCompositionFiberProduct_snd := by
     simp [compositionFiberSnd, compositionFiberProduct]
 
@@ -1268,7 +1320,7 @@ supports. -/
 def diagonalLeftIdentityDatum {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
     RepresentedPrimeCompositionDatum
-      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P where
+  (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P where
   index := PUnit
   fintype_index := inferInstance
   decidableEq_index := inferInstance
@@ -1285,7 +1337,7 @@ def diagonalLeftIdentityDatum {X Y : Geometry.SmSchemeOver k}
     FiniteCorrespondencePresentation.ofWeightedPrimeSupport,
     RepresentedPrimeCompositionPiece.toWeightedPrimeFiniteCorrespondenceSupport,
     RepresentedPrimeCompositionPiece.toRepresentedPrimeSupport,
-    SourceIrreducibleComponent.diagonalRepresentedPrimeSupport]
+    SourceImageSubscheme.diagonalRepresentedPrimeSupport]
 
 @[simp] theorem diagonalLeftIdentityDatum_toGeomSingle {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
@@ -1299,14 +1351,14 @@ prime supports at the support-fiber-product level. -/
 def diagonalLeftIdentityFiberIso {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
     compositionFiberProduct
-        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≅
+        (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≅
       P.support := by
   classical
-  let diag := SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent
+  let diag := SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent
   let inv : P.support ⟶ compositionFiberProduct diag P :=
     pullback.lift P.toSourceComponent (𝟙 P.support) (by
       simp [diag, PrimeFiniteCorrespondenceSupport.toAmbientSource,
-        SourceIrreducibleComponent.diagonalRepresentedPrimeSupport, Category.assoc])
+        SourceImageSubscheme.diagonalRepresentedPrimeSupport, Category.assoc])
   refine
     { hom := compositionFiberSnd diag P
       inv := inv
@@ -1314,9 +1366,7 @@ def diagonalLeftIdentityFiberIso {X Y : Geometry.SmSchemeOver k}
       inv_hom_id := ?_ }
   · apply pullback.hom_ext
     · haveI : Mono P.sourceComponent.toAmbient := by
-        haveI : IsOpenImmersion P.sourceComponent.toAmbient := by
-          change IsOpenImmersion P.sourceComponent.immersion
-          exact P.sourceComponent.isOpenImmersion
+        haveI : IsClosedImmersion P.sourceComponent.toAmbient := P.sourceComponent.isClosedImmersion
         infer_instance
       have hcond :
           compositionFiberFst diag P ≫ P.sourceComponent.toAmbient =
@@ -1333,75 +1383,112 @@ def diagonalLeftIdentityFiberIso {X Y : Geometry.SmSchemeOver k}
               simp [PrimeFiniteCorrespondenceSupport.toAmbientSource, Category.assoc]
         _ = compositionFiberFst diag P ≫ P.sourceComponent.toAmbient := by
               exact hcond.symm
-    · simp [inv, Category.assoc]
+    · change compositionFiberSnd diag P ≫ inv ≫ compositionFiberSnd diag P =
+        compositionFiberSnd diag P
+      simp [inv, compositionFiberSnd, compositionFiberProduct, Category.assoc]
   · simp [inv, Category.assoc]
+
+/-- For the left-identity fiber product `Δ × P`, projecting the transported
+second factor through `P.inclusion` agrees with the raw second pullback
+projection of the ambient source-over-base product. -/
+theorem diagonalLeftIdentity_compositionFiberSnd_comp_inclusion_eq_pullback_snd
+    {X Y : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) :
+    compositionFiberSnd
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+        P.inclusion ≫ pullback.snd P.sourceComponent.carrier.structMap Y.structMap =
+      compositionToAmbientProduct
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+        pullback.snd P.sourceComponent.carrier.structMap Y.structMap := by
+  let diag := SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent
+  calc
+    compositionFiberSnd diag P ≫ P.inclusion ≫
+        pullback.snd P.sourceComponent.carrier.structMap Y.structMap
+        = compositionFiberSnd diag P ≫ P.toTargetScheme := by
+          simpa [diag, sourceOverBaseProduct, Category.assoc] using
+            congrArg (fun f => compositionFiberSnd diag P ≫ f) P.inclusion_snd
+    _ = compositionToAmbientProduct diag P ≫
+        pullback.snd P.sourceComponent.carrier.structMap Y.structMap := by
+          symm
+          simpa [diag, sourceOverBaseProduct, Category.assoc] using
+            compositionToAmbientProduct_snd diag P
 
 /-- The scheme-theoretic-image factorization for `Δ_X ×_X P`, transported
 across the canonical fiber-product isomorphism `Δ_X ×_X P ≅ P`. -/
 def diagonalLeftIdentityImageFactorization {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
     SupportFiberProductImageFactorization
-      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P where
+  (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P where
   image := P.support
   toImage := compositionFiberSnd _ P
   imageToAmbientProduct := P.inclusion
   factorization := by
     apply pullback.hom_ext
     · haveI : Mono P.sourceComponent.toAmbient := by
-        haveI : IsOpenImmersion P.sourceComponent.toAmbient := by
-          change IsOpenImmersion P.sourceComponent.immersion
-          exact P.sourceComponent.isOpenImmersion
+        haveI : IsClosedImmersion P.sourceComponent.toAmbient := P.sourceComponent.isClosedImmersion
         infer_instance
       have hfst := congrArg
         (fun f =>
           compositionFiberSnd
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
             f ≫ P.sourceComponent.toAmbient)
         P.inclusion_fst
       have hcond :
           compositionFiberFst
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
             P.sourceComponent.toAmbient =
               compositionFiberSnd
-                (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+                (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
               P.toAmbientSource := by
         change compositionFiberFst
-            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent).toTargetScheme =
+            (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent).toTargetScheme =
             compositionFiberSnd
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
               P.toAmbientSource
         exact compositionFiber_condition _ P
       apply (cancel_mono P.sourceComponent.toAmbient).1
       calc
         compositionFiberSnd
-            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
-            P.inclusion ≫ overBaseProduct.fst P.sourceComponent.carrier Y ≫
+            (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+            P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Y ≫
             P.sourceComponent.toAmbient
             = compositionFiberSnd
-                (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+                (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
                 P.toSourceComponent ≫ P.sourceComponent.toAmbient := by
                   simpa [Category.assoc] using hfst
         _ = compositionFiberSnd
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
               P.toAmbientSource := by
                 simp [PrimeFiniteCorrespondenceSupport.toAmbientSource, Category.assoc]
         _ = compositionFiberFst
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
               P.sourceComponent.toAmbient := by
                 exact hcond.symm
         _ = compositionToAmbientProduct
-              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
-              overBaseProduct.fst P.sourceComponent.carrier Y ≫ P.sourceComponent.toAmbient := by
-                simp [compositionToAmbientProduct_fst,
-                  PrimeFiniteCorrespondenceSupport.toSourceComponent,
-                  SourceIrreducibleComponent.diagonalRepresentedPrimeSupport, Category.assoc]
-    · simpa [compositionToAmbientProduct_snd, Category.assoc] using
-        congrArg
-          (fun f =>
-            compositionFiberSnd
-                (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫ f)
-          P.inclusion_snd
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+              sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Y ≫
+                P.sourceComponent.toAmbient := by
+                let diag :=
+                  SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent
+                have hproj :
+                    compositionToAmbientProduct diag P ≫
+                        sourceOverBaseProduct.fst (k := k) diag.sourceImage.carrier Y =
+                      compositionFiberFst diag P ≫ diag.toSourceComponent :=
+                  compositionToAmbientProduct_fst diag P
+                change compositionFiberFst diag P ≫ P.sourceComponent.toAmbient =
+                  (compositionToAmbientProduct diag P ≫
+                    sourceOverBaseProduct.fst (k := k) diag.sourceImage.carrier Y) ≫
+                      P.sourceComponent.toAmbient
+                rw [hproj]
+                rw [show diag.toSourceComponent = 𝟙 P.sourceComponent.carrier.scheme by
+                  simpa [diag] using sourceImage_diagonal_toSourceComponent P.sourceComponent]
+                change compositionFiberFst diag P ≫ P.sourceComponent.toAmbient =
+                  compositionFiberFst diag P ≫
+                    𝟙 P.sourceComponent.carrier.scheme ≫ P.sourceComponent.toAmbient
+                exact congrArg (fun f => f ≫ P.sourceComponent.toAmbient)
+                  (Category.comp_id (compositionFiberFst diag P)).symm
+    · exact diagonalLeftIdentity_compositionFiberSnd_comp_inclusion_eq_pullback_snd P
   imageClosedImmersion := P.isClosedImmersion
 
 /-- The unique integral image component for `Δ_X ×_X P`, with multiplicity `1`,
@@ -1432,16 +1519,34 @@ def diagonalLeftIdentityImageComponent {X Y : Geometry.SmSchemeOver k}
   toCompositionFiberProduct_fst := by
     change (diagonalLeftIdentityFiberIso P).inv ≫
         compositionFiberFst
-          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
-        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent).toSourceComponent =
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+        (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent).toSourceComponent =
       P.finiteOverSourceComponent
-    simp [diagonalLeftIdentityFiberIso, compositionFiberFst, compositionFiberProduct,
-      PrimeFiniteCorrespondenceSupport.toSourceComponent,
-      SourceIrreducibleComponent.diagonalRepresentedPrimeSupport, Category.assoc]
+    change (diagonalLeftIdentityFiberIso P).inv ≫
+        compositionFiberFst
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+        𝟙 P.sourceComponent.carrier.scheme =
+      P.finiteOverSourceComponent
+    calc
+      (diagonalLeftIdentityFiberIso P).inv ≫
+          compositionFiberFst
+            (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+          𝟙 P.sourceComponent.carrier.scheme =
+          (diagonalLeftIdentityFiberIso P).inv ≫
+            compositionFiberFst
+              (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P := by
+            exact Category.comp_id
+              ((diagonalLeftIdentityFiberIso P).inv ≫
+                compositionFiberFst
+                  (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P)
+      _ = P.finiteOverSourceComponent := by
+            simp [diagonalLeftIdentityFiberIso, compositionFiberFst, compositionFiberProduct,
+              PrimeFiniteCorrespondenceSupport.toSourceComponent,
+              PrimeFiniteCorrespondenceSupport.toSourceImage]
   toCompositionFiberProduct_snd := by
     change (diagonalLeftIdentityFiberIso P).inv ≫
         compositionFiberSnd
-          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
+          (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P ≫
         P.toTargetScheme = P.toTarget
     simp [diagonalLeftIdentityFiberIso, compositionFiberSnd, compositionFiberProduct]
 
@@ -1450,7 +1555,7 @@ represented-prime level. -/
 def diagonalLeftIdentityImageDecomposition {X Y : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) :
     SupportFiberProductImageDecomposition
-      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport P.sourceComponent) P where
+      (SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent) P where
   imageData := diagonalLeftIdentityImageFactorization P
   index := PUnit
   fintype_index := inferInstance
@@ -1551,7 +1656,7 @@ def diagonalRightIdentityImageFactorization {X Y : Geometry.SmSchemeOver k}
             compositionFiberSnd P diag ≫ diag.toAmbientSource
         exact compositionFiber_condition P diag
       calc
-        compositionFiberFst P diag ≫ P.inclusion ≫ overBaseProduct.snd P.sourceComponent.carrier Y
+        compositionFiberFst P diag ≫ P.inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Y
             = compositionFiberFst P diag ≫ P.toTargetScheme := by
                 simpa [Category.assoc] using
                   congrArg (fun f => compositionFiberFst P diag ≫ f) P.inclusion_snd
@@ -1559,7 +1664,7 @@ def diagonalRightIdentityImageFactorization {X Y : Geometry.SmSchemeOver k}
         _ = compositionFiberSnd P diag ≫ diag.toTargetScheme := by
               simp [diag, PrimeFiniteCorrespondenceSupport.toTargetScheme,
                 SourceIrreducibleComponent.diagonalRepresentedPrimeSupport]
-        _ = compositionToAmbientProduct P diag ≫ overBaseProduct.snd P.sourceComponent.carrier Y := by
+        _ = compositionToAmbientProduct P diag ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Y := by
               simp [compositionToAmbientProduct_snd,
                 PrimeFiniteCorrespondenceSupport.toTargetScheme,
                 SourceIrreducibleComponent.diagonalRepresentedPrimeSupport, Category.assoc]

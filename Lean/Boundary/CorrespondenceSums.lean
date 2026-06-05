@@ -89,7 +89,7 @@ def toGeom {X Y : Geometry.SmSchemeOver k}
       (0 : EffectiveFiniteCorrespondencePresentation X Y) = 0
   exact Finsupp.mapDomain_zero
 
-@[simp] theorem toGeom_add {X Y : Geometry.SmSchemeOver k}
+theorem toGeom_add {X Y : Geometry.SmSchemeOver k}
     (a b : EffectiveFiniteCorrespondencePresentation X Y) :
     EffectiveFiniteCorrespondencePresentation.toGeom (a + b) =
       EffectiveFiniteCorrespondencePresentation.toGeom a +
@@ -145,7 +145,7 @@ def toGeom {X Y : Geometry.SmSchemeOver k}
       (0 : FiniteCorrespondencePresentation X Y) = 0
   exact Finsupp.mapDomain_zero
 
-@[simp] theorem toGeom_add {X Y : Geometry.SmSchemeOver k}
+theorem toGeom_add {X Y : Geometry.SmSchemeOver k}
     (a b : FiniteCorrespondencePresentation X Y) :
     FiniteCorrespondencePresentation.toGeom (a + b) =
       FiniteCorrespondencePresentation.toGeom a +
@@ -232,17 +232,21 @@ def toRational {X Y : Geometry.SmSchemeOver k}
 
 @[simp] theorem toRational_zero {X Y : Geometry.SmSchemeOver k} :
     toRational (0 : FiniteCorrespondence X Y) = 0 := by
-  simp [toRational]
+  change toRationalLinearMap (0 : FiniteCorrespondence X Y) = 0
+  exact map_zero toRationalLinearMap
 
-@[simp] theorem toRational_add {X Y : Geometry.SmSchemeOver k}
+theorem toRational_add {X Y : Geometry.SmSchemeOver k}
     (left right : FiniteCorrespondence X Y) :
     toRational (left + right) = toRational left + toRational right := by
-  simpa [toRational] using (toRationalLinearMap.map_add left right)
+  change toRationalLinearMap (left + right) =
+    toRationalLinearMap left + toRationalLinearMap right
+  exact map_add toRationalLinearMap left right
 
-@[simp] theorem toRational_smul {X Y : Geometry.SmSchemeOver k}
+theorem toRational_smul {X Y : Geometry.SmSchemeOver k}
     (coeff : ℤ) (corr : FiniteCorrespondence X Y) :
     toRational (coeff • corr) = coeff • toRational corr := by
-  simpa [toRational] using (toRationalLinearMap.map_smul coeff corr)
+  change toRationalLinearMap (coeff • corr) = coeff • toRationalLinearMap corr
+  exact map_smul toRationalLinearMap coeff corr
 
 @[simp] theorem toRational_single {X Y : Geometry.SmSchemeOver k}
     (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℤ) :

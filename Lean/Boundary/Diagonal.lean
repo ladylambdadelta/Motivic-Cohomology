@@ -17,6 +17,200 @@ namespace Boundary
 
 noncomputable section
 
+namespace SourceImageSubscheme
+
+/-- The diagonal graph of an integral closed source image inside
+`sourceImage ×_k X`, viewed as a represented prime support from `X` to itself.
+
+This is the root diagonal class compatible with the source-image basis for
+represented prime supports. -/
+def diagonalRepresentedPrimeSupport {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    RepresentedPrimeSupport X X where
+  sourceImage := sourceImage
+  support := sourceImage.carrier.scheme
+  isIntegral := sourceImage.isIntegral
+  finiteOverSourceComponent := 𝟙 sourceImage.carrier.scheme
+  finite_toSourceComponent := by infer_instance
+  surjective_toSourceComponent := by
+    intro x
+    exact ⟨x, rfl⟩
+  toTarget := sourceImage.toAmbient
+  inclusion := pullback.lift (𝟙 sourceImage.carrier.scheme) sourceImage.toAmbient (by
+    simpa using sourceImage.toAmbient_overBase.symm)
+  inclusion_fst := by
+    simp [sourceOverBaseProduct]
+  inclusion_snd := by
+    simp [sourceOverBaseProduct]
+  isClosedImmersion := by
+    let graphIso :
+        pullback (sourceImage.toAmbient ≫ X.structMap) X.structMap ≅
+          sourceOverBaseProduct sourceImage.carrier X :=
+      pullback.congrHom sourceImage.toAmbient_overBase rfl
+    let desired : sourceImage.carrier.scheme ⟶ sourceOverBaseProduct sourceImage.carrier X :=
+      pullback.lift (𝟙 sourceImage.carrier.scheme) sourceImage.toAmbient (by
+        simpa using sourceImage.toAmbient_overBase.symm)
+    let graphMap : sourceImage.carrier.scheme ⟶
+        pullback (sourceImage.toAmbient ≫ X.structMap) X.structMap :=
+      pullback.lift (𝟙 sourceImage.carrier.scheme) sourceImage.toAmbient
+        (Category.id_comp (sourceImage.toAmbient ≫ X.structMap))
+    let e : Arrow.mk desired ≅ Arrow.mk graphMap :=
+      Arrow.isoMk (Iso.refl _) graphIso.symm (by
+        apply pullback.hom_ext
+        · simp [desired, graphMap, graphIso, sourceOverBaseProduct,
+            sourceImage.toAmbient_overBase]
+        · simp [desired, graphMap, graphIso, sourceOverBaseProduct,
+            sourceImage.toAmbient_overBase])
+    letI : IsSeparated X.structMap := X.separated
+    exact (MorphismProperty.arrow_mk_iso_iff (P := @IsClosedImmersion) e).2 inferInstance
+
+@[simp] theorem diagonalRepresentedPrimeSupport_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).sourceComponent = sourceImage := rfl
+
+@[simp] theorem diagonalRepresentedPrimeSupport_toSourceImage
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).toSourceImage =
+      𝟙 sourceImage.carrier.scheme := rfl
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_fst
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).inclusion ≫
+        sourceOverBaseProduct.fst (k := k) sourceImage.carrier X =
+      𝟙 sourceImage.carrier.scheme := by
+  exact (diagonalRepresentedPrimeSupport sourceImage).inclusion_fst
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_snd
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).inclusion ≫
+        sourceOverBaseProduct.snd (k := k) sourceImage.carrier X =
+      sourceImage.toAmbient := by
+  exact (diagonalRepresentedPrimeSupport sourceImage).inclusion_snd
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_fst_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).inclusion ≫
+        Limits.pullback.fst
+          (diagonalRepresentedPrimeSupport sourceImage).sourceComponent.carrier.structMap
+          X.structMap =
+      𝟙 sourceImage.carrier.scheme := by
+  exact diagonalRepresentedPrimeSupport_inclusion_fst sourceImage
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_snd_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    (diagonalRepresentedPrimeSupport sourceImage).inclusion ≫
+        Limits.pullback.snd
+          (diagonalRepresentedPrimeSupport sourceImage).sourceComponent.carrier.structMap
+          X.structMap =
+      sourceImage.toAmbient := by
+  exact diagonalRepresentedPrimeSupport_inclusion_snd sourceImage
+
+/-- The quotient class of the diagonal graph over a source image. -/
+def diagonalPrimeGeom {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    PrimeFiniteCorrespondenceGeom X X :=
+  PrimeFiniteCorrespondenceGeom.ofRepresented
+    (diagonalRepresentedPrimeSupport sourceImage)
+
+/-- The singleton finite correspondence supported on the diagonal graph of a
+source image. -/
+def diagonalFiniteCorrespondence {X : Geometry.SmSchemeOver k}
+    (sourceImage : SourceImageSubscheme (k := k) X) :
+    FiniteCorrespondence X X :=
+  Finsupp.single (diagonalPrimeGeom sourceImage) 1
+
+/-- A represented prime support whose support maps isomorphically to its
+source image and whose target map is the ambient source map is equivalent to
+the diagonal represented support over that source image. -/
+theorem primeSupportEquivalent_diagonal_of_isIso_toSourceImage_of_target_eq
+    {X : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X X)
+    [IsIso P.toSourceImage]
+    (hTarget : P.toTargetScheme = P.toAmbientSource) :
+    PrimeFiniteCorrespondenceSupport.PrimeSupportEquivalent P
+      (diagonalRepresentedPrimeSupport P.sourceComponent) := by
+  let compat :=
+    SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.refl
+      (Y := X) P.sourceComponent
+  refine ⟨compat, asIso P.toSourceImage, ?_⟩
+  change P.inclusion ≫ compat.iso.hom =
+    (asIso P.toSourceImage).hom ≫
+      (diagonalRepresentedPrimeSupport P.sourceComponent).inclusion
+  apply pullback.hom_ext
+  · calc
+      (P.inclusion ≫ compat.iso.hom) ≫
+          sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier X =
+        P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier X := by
+          simp [compat,
+            SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.refl,
+            Category.assoc]
+      _ = P.toSourceImage := P.inclusion_fst
+      _ = ((asIso P.toSourceImage).hom ≫
+            (diagonalRepresentedPrimeSupport P.sourceComponent).inclusion) ≫
+          sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier X := by
+          simp [PrimeFiniteCorrespondenceSupport.toSourceImage, Category.assoc]
+  · calc
+      (P.inclusion ≫ compat.iso.hom) ≫
+          sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier X =
+        P.inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier X := by
+          simp [compat,
+            SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.refl,
+            Category.assoc]
+      _ = P.toTargetScheme := P.inclusion_snd
+      _ = P.toAmbientSource := hTarget
+      _ = P.toSourceImage ≫ P.sourceComponent.toAmbient := rfl
+      _ = ((asIso P.toSourceImage).hom ≫
+            (diagonalRepresentedPrimeSupport P.sourceComponent).inclusion) ≫
+          sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier X := by
+          simp [PrimeFiniteCorrespondenceSupport.toSourceImage,
+            PrimeFiniteCorrespondenceSupport.toAmbientSource, Category.assoc]
+
+/-- Singleton finite-correspondence form of
+`primeSupportEquivalent_diagonal_of_isIso_toSourceImage_of_target_eq`. -/
+theorem single_eq_diagonal_of_isIso_toSourceImage_of_target_eq
+    {X : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X X)
+    [IsIso P.toSourceImage]
+    (hTarget : P.toTargetScheme = P.toAmbientSource) :
+    Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1 =
+      diagonalFiniteCorrespondence P.sourceComponent := by
+  change Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) (1 : ℤ) =
+    Finsupp.single
+      (PrimeFiniteCorrespondenceGeom.ofRepresented
+        (diagonalRepresentedPrimeSupport P.sourceComponent)) (1 : ℤ)
+  rw [PrimeFiniteCorrespondenceGeom.eq_of_primeSupportEquivalent
+    (primeSupportEquivalent_diagonal_of_isIso_toSourceImage_of_target_eq P hTarget)]
+
+end SourceImageSubscheme
+
+namespace PrimeFiniteCorrespondenceSupport
+
+/-- The diagonal represented prime support on the actual source image of `P`. -/
+abbrev sourceDiagonal {X Y : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) :
+    RepresentedPrimeSupport X X :=
+  SourceImageSubscheme.diagonalRepresentedPrimeSupport P.sourceComponent
+
+/-- The quotient diagonal class on the actual source image of `P`. -/
+abbrev sourceDiagonalGeom {X Y : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) :
+    PrimeFiniteCorrespondenceGeom X X :=
+  SourceImageSubscheme.diagonalPrimeGeom P.sourceComponent
+
+/-- The singleton diagonal correspondence on the actual source image of `P`. -/
+abbrev sourceDiagonalFiniteCorrespondence {X Y : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) :
+    FiniteCorrespondence X X :=
+  SourceImageSubscheme.diagonalFiniteCorrespondence P.sourceComponent
+
+end PrimeFiniteCorrespondenceSupport
+
 namespace SourceIrreducibleComponent
 
 /-- The diagonal graph of a chosen source irreducible component inside
@@ -27,55 +221,73 @@ component, so this is the honest diagonal class available without yet summing
 over all components of a reducible source. -/
 def diagonalRepresentedPrimeSupport {X : Geometry.SmSchemeOver k}
     (component : SourceIrreducibleComponent X) :
-    RepresentedPrimeSupport X X where
-  sourceComponent := component
-  support := component.carrier.scheme
-  isIntegral := component.isIntegral
-  finiteOverSourceComponent := 𝟙 component.carrier.scheme
-  finite_toSourceComponent := by infer_instance
-  surjective_toSourceComponent := by
-    intro x
-    exact ⟨x, rfl⟩
-  toTarget := component.toAmbient
-  inclusion := pullback.lift (𝟙 component.carrier.scheme) component.toAmbient (by
-    simpa using component.toAmbient_overBase.symm)
-  inclusion_fst := by
-    simp [overBaseProduct]
-  inclusion_snd := by
-    simp [overBaseProduct]
-  isClosedImmersion := by
-    let graphIso :
-        pullback (component.toAmbient ≫ X.structMap) X.structMap ≅
-          overBaseProduct component.carrier X :=
-      pullback.congrHom component.toAmbient_overBase rfl
-    let desired : component.carrier.scheme ⟶ overBaseProduct component.carrier X :=
-      pullback.lift (𝟙 component.carrier.scheme) component.toAmbient (by
-        simpa using component.toAmbient_overBase.symm)
-    let graphMap : component.carrier.scheme ⟶
-        pullback (component.toAmbient ≫ X.structMap) X.structMap :=
-      pullback.lift (𝟙 component.carrier.scheme) component.toAmbient
-        (Category.id_comp (component.toAmbient ≫ X.structMap))
-    let e : Arrow.mk desired ≅ Arrow.mk graphMap :=
-      Arrow.isoMk (Iso.refl _) graphIso.symm (by
-        apply pullback.hom_ext
-        · simp [desired, graphMap, graphIso, overBaseProduct, component.toAmbient_overBase]
-        · simp [desired, graphMap, graphIso, overBaseProduct, component.toAmbient_overBase])
-    letI : IsSeparated X.structMap := X.separated
-    exact (MorphismProperty.arrow_mk_iso_iff (P := @IsClosedImmersion) e).2 inferInstance
+    RepresentedPrimeSupport X X :=
+  SourceImageSubscheme.diagonalRepresentedPrimeSupport component.toSourceImageSubscheme
+
+@[simp] theorem diagonalRepresentedPrimeSupport_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).sourceComponent =
+      component.toSourceImageSubscheme := rfl
+
+@[simp] theorem diagonalRepresentedPrimeSupport_toSourceImage
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).toSourceImage =
+      𝟙 component.carrier.scheme := rfl
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_fst
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).inclusion ≫
+        sourceOverBaseProduct.fst (k := k) component.toSourceImageSubscheme.carrier X =
+      𝟙 component.carrier.scheme := by
+  exact SourceImageSubscheme.diagonalRepresentedPrimeSupport_inclusion_fst
+    component.toSourceImageSubscheme
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_snd
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).inclusion ≫
+        sourceOverBaseProduct.snd (k := k) component.toSourceImageSubscheme.carrier X =
+      component.toAmbient := by
+  exact SourceImageSubscheme.diagonalRepresentedPrimeSupport_inclusion_snd
+    component.toSourceImageSubscheme
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_fst_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).inclusion ≫
+        Limits.pullback.fst
+          (diagonalRepresentedPrimeSupport component).sourceComponent.carrier.structMap
+          X.structMap =
+      𝟙 component.carrier.scheme := by
+  exact SourceImageSubscheme.diagonalRepresentedPrimeSupport_inclusion_fst_sourceComponent
+    component.toSourceImageSubscheme
+
+@[simp] theorem diagonalRepresentedPrimeSupport_inclusion_snd_sourceComponent
+    {X : Geometry.SmSchemeOver k}
+    (component : SourceIrreducibleComponent X) :
+    (diagonalRepresentedPrimeSupport component).inclusion ≫
+        Limits.pullback.snd
+          (diagonalRepresentedPrimeSupport component).sourceComponent.carrier.structMap
+          X.structMap =
+      component.toAmbient := by
+  exact SourceImageSubscheme.diagonalRepresentedPrimeSupport_inclusion_snd_sourceComponent
+    component.toSourceImageSubscheme
 
 /-- The quotient class of the diagonal graph over a chosen source component. -/
 def diagonalPrimeGeom {X : Geometry.SmSchemeOver k}
     (component : SourceIrreducibleComponent X) :
     PrimeFiniteCorrespondenceGeom X X :=
-  PrimeFiniteCorrespondenceGeom.ofRepresented
-    (diagonalRepresentedPrimeSupport component)
+  SourceImageSubscheme.diagonalPrimeGeom component.toSourceImageSubscheme
 
 /-- The singleton finite correspondence supported on the diagonal graph of a
 chosen source irreducible component. -/
 def diagonalFiniteCorrespondence {X : Geometry.SmSchemeOver k}
     (component : SourceIrreducibleComponent X) :
     FiniteCorrespondence X X :=
-  Finsupp.single (diagonalPrimeGeom component) 1
+  SourceImageSubscheme.diagonalFiniteCorrespondence component.toSourceImageSubscheme
 
 /-- Any represented prime support equivalent to the diagonal graph over a chosen
 source component defines the same singleton quotient-indexed correspondence. -/
@@ -100,49 +312,68 @@ theorem diagonal_primeSupportEquivalent_of_isoOverAmbient
     PrimeFiniteCorrespondenceSupport.PrimeSupportEquivalent
       (diagonalRepresentedPrimeSupport C)
       (diagonalRepresentedPrimeSupport D) := by
+  let sourceIso : SourceImageSubscheme.IsoOverAmbient
+      C.toSourceImageSubscheme D.toSourceImageSubscheme :=
+    { iso := h.iso
+      hom_toAmbient := h.hom_toAmbient }
   let compat :=
-    SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient
-      (Y := X) h
+    SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient
+      (Y := X) sourceIso
   refine ⟨compat, h.iso, ?_⟩
   change (diagonalRepresentedPrimeSupport C).inclusion ≫ compat.iso.hom =
     h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion
   apply pullback.hom_ext
   · calc
-      (diagonalRepresentedPrimeSupport C).inclusion ≫ compat.iso.hom ≫ overBaseProduct.fst D.carrier X
+      (diagonalRepresentedPrimeSupport C).inclusion ≫ compat.iso.hom ≫
+          sourceOverBaseProduct.fst (k := k) D.toSourceImageSubscheme.carrier X
           = (diagonalRepresentedPrimeSupport C).inclusion ≫
-              overBaseProduct.fst C.carrier X ≫ h.iso.hom := by
+              sourceOverBaseProduct.fst (k := k) C.toSourceImageSubscheme.carrier X ≫ h.iso.hom := by
                 simpa [compat,
-                  SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
+                  SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
                   Category.assoc] using
                   congrArg (fun f => (diagonalRepresentedPrimeSupport C).inclusion ≫ f)
-                    (SourceIrreducibleComponent.IsoOverAmbient.overBaseProductIso_hom_fst h)
+                    (SourceImageSubscheme.IsoOverAmbient.overBaseProductIso_hom_fst
+                      (Y := X) sourceIso)
       _ = (diagonalRepresentedPrimeSupport C).finiteOverSourceComponent ≫ h.iso.hom := by
             simpa [Category.assoc] using
               congrArg (fun f => f ≫ h.iso.hom)
                 (diagonalRepresentedPrimeSupport C).inclusion_fst
       _ = h.iso.hom := by
-            simp [diagonalRepresentedPrimeSupport]
+            change 𝟙 C.carrier.scheme ≫ h.iso.hom = h.iso.hom
+            simp
       _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).finiteOverSourceComponent := by
-            simp [diagonalRepresentedPrimeSupport]
-      _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion ≫ overBaseProduct.fst D.carrier X := by
+            change h.iso.hom = h.iso.hom ≫ 𝟙 D.carrier.scheme
+            simp
+      _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion ≫
+        sourceOverBaseProduct.fst (k := k) D.toSourceImageSubscheme.carrier X := by
             simpa [Category.assoc] using
               congrArg (fun f => h.iso.hom ≫ f)
                 (diagonalRepresentedPrimeSupport D).inclusion_fst.symm
   · calc
-      (diagonalRepresentedPrimeSupport C).inclusion ≫ compat.iso.hom ≫ overBaseProduct.snd D.carrier X
-          = (diagonalRepresentedPrimeSupport C).inclusion ≫ overBaseProduct.snd C.carrier X := by
+      (diagonalRepresentedPrimeSupport C).inclusion ≫ compat.iso.hom ≫
+          sourceOverBaseProduct.snd (k := k) D.toSourceImageSubscheme.carrier X
+          = (diagonalRepresentedPrimeSupport C).inclusion ≫
+          sourceOverBaseProduct.snd (k := k) C.toSourceImageSubscheme.carrier X := by
+                have hsnd :=
+                  SourceImageSubscheme.IsoOverAmbient.overBaseProductIso_hom_snd
+                    (Y := X) sourceIso
                 simpa [compat,
-                  SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
+                  SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
                   Category.assoc] using
                   congrArg (fun f => (diagonalRepresentedPrimeSupport C).inclusion ≫ f)
-                    (SourceIrreducibleComponent.IsoOverAmbient.overBaseProductIso_hom_snd h)
+                    hsnd
       _ = (diagonalRepresentedPrimeSupport C).toTarget := by
             exact (diagonalRepresentedPrimeSupport C).inclusion_snd
-      _ = C.toAmbient := by simp [diagonalRepresentedPrimeSupport]
+      _ = C.toAmbient := by
+            change C.toSourceImageSubscheme.toAmbient = C.toAmbient
+            rfl
       _ = h.iso.hom ≫ D.toAmbient := by rw [h.hom_toAmbient]
       _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).toTarget := by
-            simp [diagonalRepresentedPrimeSupport]
-      _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion ≫ overBaseProduct.snd D.carrier X := by
+            change h.iso.hom ≫ D.toAmbient =
+              h.iso.hom ≫ D.toSourceImageSubscheme.toAmbient
+            rfl
+      _ = h.iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion ≫
+        sourceOverBaseProduct.snd (k := k) D.toSourceImageSubscheme.carrier X := by
             simpa [Category.assoc] using
               congrArg (fun f => h.iso.hom ≫ f)
                 (diagonalRepresentedPrimeSupport D).inclusion_snd.symm
@@ -166,16 +397,18 @@ def isoOverAmbient_of_diagonal_primeSupportEquivalent
     SourceIrreducibleComponent.IsoOverAmbient C D := by
   have h' :
       ∃ (compatibleSourceComponent :
-          SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso
-            (Y := X) C D)
-        (_iso : C.carrier.scheme ≅ D.carrier.scheme),
+          SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+            (Y := X) C.toSourceImageSubscheme D.toSourceImageSubscheme)
+        (supportIso : C.carrier.scheme ≅ D.carrier.scheme),
         (diagonalRepresentedPrimeSupport C).inclusion ≫ compatibleSourceComponent.iso.hom =
-          _iso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion := by
+          supportIso.hom ≫ (diagonalRepresentedPrimeSupport D).inclusion := by
     simpa [PrimeFiniteCorrespondenceSupport.PrimeSupportEquivalent,
       PrimeFiniteCorrespondenceSupport.SupportIsoOverProduct,
       diagonalRepresentedPrimeSupport] using h
   let compatibleSourceComponent := Classical.choose h'
-  exact compatibleSourceComponent.sourceIso
+  exact
+    { iso := compatibleSourceComponent.sourceIso.iso
+      hom_toAmbient := compatibleSourceComponent.sourceIso.hom_toAmbient }
 
 /-- Equality of diagonal geometric classes forces the corresponding source
 components to be isomorphic over the ambient source. -/

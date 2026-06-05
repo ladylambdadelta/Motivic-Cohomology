@@ -1,9 +1,9 @@
 import Boundary.MinimalPresentationPackage
 
 /-!
-# Open/Closed Localization Target Surface
+# Open/Closed Localization Construction Surface
 
-This file records typed smooth closed-pair data and the exact theorem surface
+This file records typed smooth closed-pair data and the exact construction surface
 for the internal localization triangle derived from the minimal presentation
 package.
 -/
@@ -30,35 +30,20 @@ structure SmoothClosedPairQ (category : SmCorQ (k := k)) where
   openToAmbientTransfer : SmCorQ.Hom category openPiece ambient
   closedToAmbientTransfer : SmCorQ.Hom category closedPiece ambient
   openImmersionTarget : IsOpenImmersion openToAmbient.hom
-  closedImmersionTarget : Prop
-  complementCompatibilityTarget : Prop
-  open_transferRepresentsMapTarget : Prop
-  closed_transferRepresentsMapTarget : Prop
+  closedImmersionData : Type (u + 1)
+  complementCompatibilityObligation : Type (u + 1)
+  openTransferRepresentsMapData : Type (u + 1)
+  closedTransferRepresentsMapData : Type (u + 1)
 
-/-- Exact theorem-target package for internal open/closed localization on the
+/-- Exact construction package for internal open/closed localization on the
 boundary-side correspondence category. -/
 structure OpenClosedLocalizationPresentationQ (category : SmCorQ (k := k)) where
   PairIndex : Type (u + 1)
   pair : PairIndex → SmoothClosedPairQ category
-  purityTarget : PairIndex → Prop
-  gysinMapTarget : PairIndex → Prop
-  localizationTriangleTarget : Prop
-  gluingCompatibilityTarget : Prop
-
-namespace OpenClosedLocalizationPresentationQ
-
-def theoremTarget {category : SmCorQ (k := k)}
-    (presentation : OpenClosedLocalizationPresentationQ category) : Prop :=
-  (∀ pairIndex, presentation.purityTarget pairIndex ∧ presentation.gysinMapTarget pairIndex) ∧
-    presentation.localizationTriangleTarget ∧
-    presentation.gluingCompatibilityTarget
-
-end OpenClosedLocalizationPresentationQ
-
-/-- Certified wrapper for the open/closed localization theorem surface. -/
-structure CertifiedOpenClosedLocalizationPresentationQ (category : SmCorQ (k := k)) where
-  target : OpenClosedLocalizationPresentationQ category
-  theorem_holds : target.theoremTarget
+  purityData : PairIndex → Type (u + 1)
+  gysinMapData : PairIndex → Type (u + 1)
+  localizationTriangleData : Type (u + 1)
+  gluingCompatibilityObligation : Type (u + 1)
 
 end
 

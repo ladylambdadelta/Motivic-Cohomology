@@ -288,7 +288,7 @@ theorem pushforwardCycleQ_apply {C : Geometry.SmSchemeOver k}
   change Finsupp.mapDomain _ (0 : NormalizedBoundaryCycle model) = 0
   exact Finsupp.mapDomain_zero
 
-@[simp] theorem pushforwardCycle_add {C : Geometry.SmSchemeOver k}
+theorem pushforwardCycle_add {C : Geometry.SmSchemeOver k}
     (model : NormalizationBoundaryModel C)
     [DecidableEq (PrimeFiniteCorrespondenceGeom C C)]
     (a b : NormalizedBoundaryCycle model) :

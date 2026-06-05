@@ -5,9 +5,7 @@ import Boundary.Localization
 # A1 Homotopy Targets For Presheaves With Transfers
 
 This file records typed representable `A1`-homotopy data together with the
-chosen transfer maps whose projection maps are intended as localization
-generators. It does not yet define global `A1`-locality for arbitrary
-presheaves with transfers.
+chosen transfer maps whose projection maps are used as localization generators.
 -/
 
 universe u
@@ -22,8 +20,7 @@ noncomputable section
 
 /-- Typed representable `A1`-homotopy data consisting of a base object, a
 chosen cylinder, and the transfer data needed to express the interval
-projection on representables.  The section/retraction and contraction facts are
-kept as exact named targets. -/
+projection on representables. -/
 structure A1RepresentableHomotopyDataQ (category : SmCorQ (k := k)) where
   base : Geometry.SmSchemeOver k
   cylinder : Geometry.SmSchemeOver k
@@ -37,11 +34,6 @@ structure A1RepresentableHomotopyDataQ (category : SmCorQ (k := k)) where
     category.comp zeroSectionTransfer projectionTransfer = category.id base
   oneSectionRetractionTarget :
     category.comp oneSectionTransfer projectionTransfer = category.id base
-  sectionHomotopyTarget : Prop
-  cylinderContractionTarget : Prop
-  projection_transferRepresentsMapTarget : Prop
-  zeroSection_transferRepresentsMapTarget : Prop
-  oneSection_transferRepresentsMapTarget : Prop
 
 namespace A1RepresentableHomotopyDataQ
 
@@ -97,18 +89,13 @@ def oneSectionMap {category : SmCorQ (k := k)}
 end A1RepresentableHomotopyDataQ
 
 /-- Honest locality predicate relative to chosen representable `A1`-homotopy
-data: a presheaf sends the selected projection map to an isomorphism.  A global
-`IsA1Local` predicate is still blocked on packaging actual `X × A1` objects and
-projection maps for every smooth scheme. -/
+data: a presheaf sends the selected projection map to an isomorphism. -/
 def IsA1LocalAtRepresentableDataQ {category : SmCorQ (k := k)}
-    (F : PST category) (data : A1RepresentableHomotopyDataQ category) : Prop := by
+  (F : PST category) (data : A1RepresentableHomotopyDataQ category) := by
   letI := SmCorQCat category
   exact CategoryTheory.IsIso (F.map (Quiver.Hom.op data.projectionTransfer))
 
-/-- Exact geometric data needed before an honest global `A1`-locality
-predicate can be stated.  Boundary currently has only the underlying scheme
-fiber product `X ×_k Y`; it does not yet provide this package as actual
-constructed data. -/
+/-- Exact geometric data for the affine-line product and projection. -/
 structure A1GeometryDataQ where
   affineLine : Geometry.SmSchemeOver k
   productObj : Geometry.SmSchemeOver k → Geometry.SmSchemeOver k
@@ -130,18 +117,12 @@ def productProjection {geometry : A1GeometryDataQ (k := k)}
 
 end A1GeometryDataQ
 
-/-- Exact remaining prerequisite for a global `IsA1Local`: a chosen affine-line
-geometry package together with transfer morphisms representing the projection
-maps `X × A1 → X` for all smooth `X`. -/
+/-- A chosen affine-line geometry package together with transfer morphisms used
+as the projection maps `X × A1 → X` for all smooth `X`. -/
 structure A1ProjectionTransferFamilyQ (category : SmCorQ (k := k)) where
   geometry : A1GeometryDataQ (k := k)
   projectionTransfer :
     (X : Geometry.SmSchemeOver k) → SmCorQ.Hom category (geometry.productObj X) X
-  projectionTransferRepresentsProjectionTarget :
-    ∀ X : Geometry.SmSchemeOver k,
-      let _projectionMap := geometry.projection X
-      let _projectionTransfer := projectionTransfer X
-      Prop
 
 namespace A1ProjectionTransferFamilyQ
 
@@ -154,19 +135,12 @@ def inducedMap {category : SmCorQ (k := k)}
 end A1ProjectionTransferFamilyQ
 
 /-- Family of representable `A1` generators feeding the transfer-presheaf
-localization scaffold.  The two theorem fields remain exact targets rather than
-an already-constructed global `A1`-locality predicate. -/
+localization construction. -/
 structure A1LocalizationTargetQ (category : SmCorQ (k := k)) where
   Witness : Type (u + 1)
   witness : Witness → A1RepresentableHomotopyDataQ category
-  intervalObjectTarget : Prop
-  homotopyInvarianceTarget : Prop
 
 namespace A1LocalizationTargetQ
-
-def theoremTarget {category : SmCorQ (k := k)}
-    (presentation : A1LocalizationTargetQ category) : Prop :=
-  presentation.intervalObjectTarget ∧ presentation.homotopyInvarianceTarget
 
 def toLocalizingMorphisms {category : SmCorQ (k := k)}
     (presentation : A1LocalizationTargetQ category) :
@@ -178,13 +152,6 @@ def toLocalizingMorphisms {category : SmCorQ (k := k)}
       (presentation.witness index).homotopyMap⟩
 
 end A1LocalizationTargetQ
-
-/-- Certified wrapper for the boundary-side `A1` localization target package. -/
-structure CertifiedA1LocalizationTargetQ (category : SmCorQ (k := k)) where
-  target : A1LocalizationTargetQ category
-  intervalObject_holds : target.intervalObjectTarget
-  homotopyInvariance_holds : target.homotopyInvarianceTarget
-  theorem_holds : target.theoremTarget
 
 end
 

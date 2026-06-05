@@ -1,0 +1,33 @@
+import Boundary.GeometricMotives
+
+open Boundary
+
+#check canonicalBoundaryDMgmCanonical
+#check canonicalBoundaryDMgmCanonicalEffectiveEmbedding
+#check canonicalBoundaryDMgmCanonicalTateShiftEquivalence
+
+#check BoundaryCanonicalDMgmCompletionData
+#check BoundaryCanonicalDMgmCompletionData.ofWitness
+#print axioms BoundaryCanonicalDMgmCompletionData.ofWitness
+
+#check canonicalBoundaryDMgmStep1MonoidalData
+#check canonicalBoundaryDMgmStep2TensorByTateData
+#check canonicalBoundaryDMgmConstruction
+
+#check externalProduct_id_id
+#check identityFiniteCorrespondence_externalProduct_eq_identity
+#check identityPrimeSupport_externalProduct_eq_identityPrimeSupport
+#check diagonal_externalProduct_eq_diagonal_product
+#check externalProduct_comp_interchange
+
+#check tateTensor_obj
+#check tateTensor_hom
+#check tateTensor_id
+#check tateTensor_comp
+#check effectiveTateObject
+
+#check tateTensor_respects_A1_relation
+#check tateTensor_respects_Nisnevich_relation
+#check canonical_a1MorphismCompatibility
+#check canonical_nisnevichMorphismCompatibility
+#check canonical_localizationRespectsStabilization
