@@ -31,14 +31,22 @@ def landingComponent_of_finite
     (P : RepresentedPrimeSupport X Y) :
     Σ listed : { listed : SourceIrreducibleComponent Y // listed ∈ D.components },
         { toComponent : P.support ⟶ listed.1.carrier.scheme //
-            toComponent ≫ listed.1.toAmbient = P.toTargetScheme } := by
+            toComponent ≫ listed.1.toAmbient = P.toTarget } := by
   classical
   letI : IsIntegral P.support := P.isIntegral
-  let image : Set Y.scheme.carrier := Set.range P.toTargetScheme.base
+  let image : Set Y.scheme.carrier := Set.range P.toTarget.base
   have hImageIrreducible : IsIrreducible image := by
-    simpa [image] using
-      (IrreducibleSpace.isIrreducible_univ P.support).image
-        P.toTargetScheme.base P.toTargetScheme.base.continuous.continuousOn
+    rw [show image = P.toTarget.base '' Set.univ by
+      ext y
+      constructor
+      · intro hy
+        rcases hy with ⟨x, rfl⟩
+        exact ⟨x, Set.mem_univ x, rfl⟩
+      · intro hy
+        rcases hy with ⟨x, _hx, rfl⟩
+        exact ⟨x, rfl⟩]
+    exact (IrreducibleSpace.isIrreducible_univ P.support).image
+      P.toTarget.base P.toTarget.base.continuous.continuousOn
   let y : Y.scheme.carrier := Classical.choose hImageIrreducible.nonempty
   have hy : y ∈ image := Classical.choose_spec hImageIrreducible.nonempty
   let component : SourceIrreducibleComponent Y := Classical.choose (D.covers y)
@@ -55,9 +63,9 @@ def landingComponent_of_finite
   let listed : { listed : SourceIrreducibleComponent Y // listed ∈ D.components } :=
     ⟨component, hcomponent⟩
   let toComponent : P.support ⟶ component.carrier.scheme :=
-    IsOpenImmersion.lift component.toAmbient P.toTargetScheme himage_subset
+    IsOpenImmersion.lift component.toAmbient P.toTarget himage_subset
   refine ⟨listed, ⟨toComponent, ?_⟩⟩
-  exact IsOpenImmersion.lift_fac component.toAmbient P.toTargetScheme himage_subset
+  exact IsOpenImmersion.lift_fac component.toAmbient P.toTarget himage_subset
 
 /-- Any listed component of the chosen finite decomposition through which the
 target morphism of `P` factors must coincide with the canonical landing
@@ -69,7 +77,7 @@ theorem eq_landingComponent_of_target_factorization
     (listed : SourceIrreducibleComponent Y)
     (hlisted : listed ∈ D.components)
     (toComponent : P.support ⟶ listed.carrier.scheme)
-    (htoComponent : toComponent ≫ listed.toAmbient = P.toTargetScheme) :
+    (htoComponent : toComponent ≫ listed.toAmbient = P.toTarget) :
     listed = (landingComponent_of_finite D P).1.1 := by
   classical
   let landing := landingComponent_of_finite D P
@@ -78,19 +86,19 @@ theorem eq_landingComponent_of_target_factorization
   have hlanding_mem : landingListed ∈ D.components := landing.1.2
   by_contra hne
   have hdisj := D.pairwise_disjoint hlisted hlanding_mem hne
-  have hsource_nonempty : (Set.range P.sourceComponent.toAmbient.base).Nonempty := by
-    exact P.sourceComponent.range_nonempty
+  have hsource_nonempty : (Set.range P.sourceImage.toAmbient.base).Nonempty := by
+    exact P.sourceImage.range_nonempty
   rcases hsource_nonempty with ⟨xAmbient, xSource, rfl⟩
   let x : P.support.carrier := Classical.choose (P.surjective_toSourceComponent xSource)
-  have hx_listed : P.toTargetScheme.base x ∈ Set.range listed.toAmbient.base := by
+  have hx_listed : P.toTarget.base x ∈ Set.range listed.toAmbient.base := by
     refine ⟨toComponent.base x, ?_⟩
     exact congrArg (fun f => f.base x) htoComponent
-  have hx_landing : P.toTargetScheme.base x ∈ Set.range landingListed.toAmbient.base := by
+  have hx_landing : P.toTarget.base x ∈ Set.range landingListed.toAmbient.base := by
     refine ⟨landingToComponent.base x, ?_⟩
     exact congrArg (fun f => f.base x) landing.2.2
   exact Set.disjoint_left.mp hdisj hx_listed hx_landing
 
-/-- The diagonal class of any listed component through which `P.toTargetScheme`
+/-- The diagonal class of any listed component through which `P.toTarget`
 factors is the canonical landing diagonal class attached to the chosen finite
 decomposition. -/
 theorem diagonalPrimeGeom_eq_landingComponent_of_target_factorization
@@ -100,10 +108,10 @@ theorem diagonalPrimeGeom_eq_landingComponent_of_target_factorization
     (listed : SourceIrreducibleComponent Y)
     (hlisted : listed ∈ D.components)
     (toComponent : P.support ⟶ listed.carrier.scheme)
-    (htoComponent : toComponent ≫ listed.toAmbient = P.toTargetScheme) :
+    (htoComponent : toComponent ≫ listed.toAmbient = P.toTarget) :
     SourceIrreducibleComponent.diagonalPrimeGeom listed =
       SourceIrreducibleComponent.diagonalPrimeGeom ((landingComponent_of_finite D P).1.1) := by
-  simp [eq_landingComponent_of_target_factorization D P listed hlisted toComponent htoComponent]
+  rw [eq_landingComponent_of_target_factorization D P listed hlisted toComponent htoComponent]
 
 /-- If a listed source component already belongs to the chosen finite
 decomposition, then the canonical landing component of its diagonal support is
@@ -134,21 +142,29 @@ theorem target_factorization_of_nonempty_compositionFiberProduct_diagonal
     (x : PrimeFiniteCorrespondenceSupport.compositionFiberProduct P
       (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport component)) :
     ∃ toComponent : P.support ⟶ component.carrier.scheme,
-      toComponent ≫ component.toAmbient = P.toTargetScheme := by
+      toComponent ≫ component.toAmbient = P.toTarget := by
   classical
   let diag := SourceIrreducibleComponent.diagonalRepresentedPrimeSupport component
   letI : IsIntegral P.support := P.isIntegral
-  let image : Set Y.scheme.carrier := Set.range P.toTargetScheme.base
+  let image : Set Y.scheme.carrier := Set.range P.toTarget.base
   have hImageIrreducible : IsIrreducible image := by
-    simpa [image] using
-      (IrreducibleSpace.isIrreducible_univ P.support).image
-        P.toTargetScheme.base P.toTargetScheme.base.continuous.continuousOn
+    rw [show image = P.toTarget.base '' Set.univ by
+      ext y
+      constructor
+      · intro hy
+        rcases hy with ⟨x, rfl⟩
+        exact ⟨x, Set.mem_univ x, rfl⟩
+      · intro hy
+        rcases hy with ⟨x, _hx, rfl⟩
+        exact ⟨x, rfl⟩]
+    exact (IrreducibleSpace.isIrreducible_univ P.support).image
+      P.toTarget.base P.toTarget.base.continuous.continuousOn
   have hy :
-      P.toTargetScheme.base
+      P.toTarget.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x) ∈ image := by
     exact ⟨(PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x, rfl⟩
   have hycomponent :
-      P.toTargetScheme.base
+      P.toTarget.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x) ∈
         Set.range component.toAmbient.base := by
     refine ⟨(PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x, ?_⟩
@@ -156,11 +172,11 @@ theorem target_factorization_of_nonempty_compositionFiberProduct_diagonal
       (PrimeFiniteCorrespondenceSupport.compositionFiber_condition P diag)
     change component.toAmbient.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x) =
-      P.toTargetScheme.base
+      P.toTarget.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x)
     change diag.toAmbientSource.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberSnd P diag).base x) =
-      P.toTargetScheme.base
+      P.toTarget.base
         ((PrimeFiniteCorrespondenceSupport.compositionFiberFst P diag).base x)
     exact hcond.symm
   letI : IsOpenImmersion component.toAmbient := component.isOpenImmersion
@@ -171,9 +187,9 @@ theorem target_factorization_of_nonempty_compositionFiberProduct_diagonal
     exact hImageIrreducible.isConnected.isPreconnected.subset_isClopen
       hcomponentClopen ⟨_, hy, hycomponent⟩
   let toComponent : P.support ⟶ component.carrier.scheme :=
-    IsOpenImmersion.lift component.toAmbient P.toTargetScheme himage_subset
+    IsOpenImmersion.lift component.toAmbient P.toTarget himage_subset
   refine ⟨toComponent, ?_⟩
-  exact IsOpenImmersion.lift_fac component.toAmbient P.toTargetScheme himage_subset
+  exact IsOpenImmersion.lift_fac component.toAmbient P.toTarget himage_subset
 
 /-- If a listed component of a certified finite decomposition is not the
 canonical landing component of `P`, then the pullback of `P` with the diagonal
@@ -211,7 +227,7 @@ theorem isEmpty_compositionFiberProduct_diagonal_of_ne_component
     landingComponent_of_finite_diagonalRepresentedPrimeSupport D left hleft
   exact isEmpty_compositionFiberProduct_diagonal_of_ne_landingComponent D
     (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport left)
-    right hright (by simpa [hlanding] using hne)
+    right hright (fun h => hne (h.trans hlanding))
 
 /-- The finite set of diagonal geometric classes represented by a certified
 finite irreducible-component decomposition. -/
@@ -293,8 +309,49 @@ theorem sum_diagonal_eq_identityFiniteCorrespondence_of_equiv_components
           (fun _ => rfl)
     _ =
         decomposition.components.sum SourceIrreducibleComponent.diagonalFiniteCorrespondence := by
-        simpa using Finset.sum_attach decomposition.components
+        exact Finset.sum_attach decomposition.components
           SourceIrreducibleComponent.diagonalFiniteCorrespondence
+
+theorem identityFiniteCorrespondence_apply_of_mem {X : Geometry.SmSchemeOver k}
+  (decomposition : FiniteIrreducibleComponentDecomposition X)
+  {diagonalClass : PrimeFiniteCorrespondenceGeom X X}
+  (hmem : diagonalClass ∈ decomposition.diagonalPrimeClasses) :
+  decomposition.identityFiniteCorrespondence diagonalClass = 1 := by
+  classical
+  rw [identityFiniteCorrespondence]
+  rw [show
+    (∑ c ∈ decomposition.diagonalPrimeClasses,
+      (Finsupp.single c 1 : FiniteCorrespondence X X)) diagonalClass =
+        ∑ c ∈ decomposition.diagonalPrimeClasses,
+          (Finsupp.single c 1 : FiniteCorrespondence X X) diagonalClass by
+    exact map_sum (Finsupp.applyAddHom diagonalClass)
+      (fun c => (Finsupp.single c 1 : FiniteCorrespondence X X))
+      decomposition.diagonalPrimeClasses]
+  rw [Finset.sum_eq_single diagonalClass]
+  · rw [Finsupp.single_eq_same]
+  · intro other hother hne
+    exact Finsupp.single_eq_of_ne hne
+  · intro hnot
+    exact False.elim (hnot hmem)
+
+theorem identityFiniteCorrespondence_apply_of_not_mem {X : Geometry.SmSchemeOver k}
+  (decomposition : FiniteIrreducibleComponentDecomposition X)
+  {diagonalClass : PrimeFiniteCorrespondenceGeom X X}
+  (hmem : diagonalClass ∉ decomposition.diagonalPrimeClasses) :
+  decomposition.identityFiniteCorrespondence diagonalClass = 0 := by
+  classical
+  rw [identityFiniteCorrespondence]
+  rw [show
+    (∑ c ∈ decomposition.diagonalPrimeClasses,
+      (Finsupp.single c 1 : FiniteCorrespondence X X)) diagonalClass =
+        ∑ c ∈ decomposition.diagonalPrimeClasses,
+          (Finsupp.single c 1 : FiniteCorrespondence X X) diagonalClass by
+    exact map_sum (Finsupp.applyAddHom diagonalClass)
+      (fun c => (Finsupp.single c 1 : FiniteCorrespondence X X))
+      decomposition.diagonalPrimeClasses]
+  rw [Finset.sum_eq_zero]
+  intro other hother
+  exact Finsupp.single_eq_of_ne (fun h => hmem (h ▸ hother))
 
 theorem mem_identityFiniteCorrespondence_support_iff {X : Geometry.SmSchemeOver k}
     (decomposition : FiniteIrreducibleComponentDecomposition X)
@@ -304,25 +361,19 @@ theorem mem_identityFiniteCorrespondence_support_iff {X : Geometry.SmSchemeOver 
   classical
   by_cases hmem : diagonalClass ∈ decomposition.diagonalPrimeClasses
   · rw [Finsupp.mem_support_iff]
-    simp [identityFiniteCorrespondence, Finsupp.single_apply, hmem]
+    rw [decomposition.identityFiniteCorrespondence_apply_of_mem hmem]
+    constructor
+    · intro _hne
+      exact hmem
+    · intro _hmem
+      exact one_ne_zero
   · rw [Finsupp.mem_support_iff]
-    simp [identityFiniteCorrespondence, Finsupp.single_apply, hmem]
-
-theorem identityFiniteCorrespondence_apply_of_mem {X : Geometry.SmSchemeOver k}
-  (decomposition : FiniteIrreducibleComponentDecomposition X)
-  {diagonalClass : PrimeFiniteCorrespondenceGeom X X}
-  (hmem : diagonalClass ∈ decomposition.diagonalPrimeClasses) :
-  decomposition.identityFiniteCorrespondence diagonalClass = 1 := by
-  classical
-  simp [identityFiniteCorrespondence, Finsupp.single_apply, hmem]
-
-theorem identityFiniteCorrespondence_apply_of_not_mem {X : Geometry.SmSchemeOver k}
-  (decomposition : FiniteIrreducibleComponentDecomposition X)
-  {diagonalClass : PrimeFiniteCorrespondenceGeom X X}
-  (hmem : diagonalClass ∉ decomposition.diagonalPrimeClasses) :
-  decomposition.identityFiniteCorrespondence diagonalClass = 0 := by
-  classical
-  simp [identityFiniteCorrespondence, Finsupp.single_apply, hmem]
+    rw [decomposition.identityFiniteCorrespondence_apply_of_not_mem hmem]
+    constructor
+    · intro hzero
+      exact False.elim (hzero rfl)
+    · intro hmem'
+      exact False.elim (hmem hmem')
 
 theorem identityFiniteCorrespondence_apply_eq_indicator {X : Geometry.SmSchemeOver k}
     (decomposition : FiniteIrreducibleComponentDecomposition X)
@@ -347,10 +398,12 @@ theorem identityFiniteCorrespondenceQ_apply_eq_indicator {X : Geometry.SmSchemeO
   by_cases hmem : diagonalClass ∈ decomposition.diagonalPrimeClasses
   · rw [if_pos hmem]
     change ((decomposition.identityFiniteCorrespondence diagonalClass : ℤ) : ℚ) = 1
-    simp [decomposition.identityFiniteCorrespondence_apply_of_mem hmem]
+    rw [decomposition.identityFiniteCorrespondence_apply_of_mem hmem]
+    norm_num
   · rw [if_neg hmem]
     change ((decomposition.identityFiniteCorrespondence diagonalClass : ℤ) : ℚ) = 0
-    simp [decomposition.identityFiniteCorrespondence_apply_of_not_mem hmem]
+    rw [decomposition.identityFiniteCorrespondence_apply_of_not_mem hmem]
+    norm_num
 
 @[simp] theorem mem_diagonalPrimeClasses_iff {X : Geometry.SmSchemeOver k}
     (decomposition : FiniteIrreducibleComponentDecomposition X)
@@ -359,7 +412,8 @@ theorem identityFiniteCorrespondenceQ_apply_eq_indicator {X : Geometry.SmSchemeO
       ∃ component ∈ decomposition.components,
         SourceIrreducibleComponent.diagonalPrimeGeom component = diagonalClass := by
   classical
-  simp [diagonalPrimeClasses]
+  rw [diagonalPrimeClasses]
+  exact Finset.mem_image
 
 /-- Any two certified decompositions of `X` determine the same set of diagonal
 geometric classes. -/
@@ -408,7 +462,19 @@ theorem identityFiniteCorrespondence_singleton {X : Geometry.SmSchemeOver k}
   classical
   have hclasses : D.diagonalPrimeClasses =
       {SourceIrreducibleComponent.diagonalPrimeGeom component} := by
-    simp [diagonalPrimeClasses, hcomponents]
+    rw [diagonalPrimeClasses, hcomponents]
+    ext diagonalClass
+    rw [Finset.mem_image]
+    constructor
+    · intro h
+      rcases h with ⟨listed, hlisted, hdiag⟩
+      rw [Finset.mem_singleton] at hlisted
+      rw [← hdiag, hlisted]
+      exact Finset.mem_singleton_self _
+    · intro h
+      rw [Finset.mem_singleton] at h
+      refine ⟨component, Finset.mem_singleton_self component, ?_⟩
+      exact h.symm
   rw [identityFiniteCorrespondence, hclasses,
     SourceIrreducibleComponent.diagonalFiniteCorrespondence]
   rw [Finset.sum_singleton]

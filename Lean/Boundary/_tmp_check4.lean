@@ -1,0 +1,5 @@
+import Boundary.PolynomialSmoothness.StandardSmoothDimensionZero
+
+#print Algebra.PreSubmersivePresentation
+#print Algebra.Presentation
+#print Algebra.SubmersivePresentation

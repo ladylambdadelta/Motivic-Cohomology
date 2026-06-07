@@ -2,6 +2,7 @@ import Boundary.CompositionCategory
 import Boundary.PrimeSupport
 import Boundary.ComponentGeometry
 import Boundary.SupportEquivalence
+import Geometry.Topology.IrreducibleComponents
 
 /-!
 # External Products of Finite Correspondences
@@ -109,7 +110,8 @@ theorem transport_injective {X Y : Scheme.{u}} (e : X ≅ Y) :
     Function.Injective (transport e) := by
   intro Z Z' h
   have h' := congrArg (transport e.symm) h
-  simpa using h'
+  rw [transport_symm_transport, transport_symm_transport] at h'
+  exact h'
 
 @[simp] theorem range_transport_inclusion
     {X Y : Scheme.{u}} (e : X ≅ Y) (Z : IntClosedSubscheme X) :
@@ -149,9 +151,129 @@ theorem transport_injective {X Y : Scheme.{u}} (e : X ≅ Y) :
     Function.Injective (transport e) := by
   intro component₁ component₂ h
   have h' := congrArg (transport e.symm) h
-  simpa using h'
+  rw [transport_symm_transport, transport_symm_transport] at h'
+  exact h'
 
 end IrreducibleComponentAsIntClosedSubscheme
+
+/-- For each topological irreducible component of a plain scheme, choose an
+integral closed subscheme whose image is exactly that component. This is the
+honest scheme-level input needed to assemble a finite raw-support decomposition
+from topological irreducible components. -/
+structure IrreducibleComponentRealization (X : Scheme.{u}) where
+  component :
+    { s : Set X | s ∈ irreducibleComponents X } →
+      IrreducibleComponentAsIntClosedSubscheme X
+  carrier_range_eq :
+    ∀ s : { s : Set X | s ∈ irreducibleComponents X },
+      Set.range ((component s).carrier.inclusion.base) = s.1
+
+namespace IrreducibleComponentRealization
+
+variable {X : Scheme.{u}}
+
+@[simp] theorem component_range_eq
+    (realization : IrreducibleComponentRealization X)
+    (s : { s : Set X | s ∈ irreducibleComponents X }) :
+    Set.range ((realization.component s).carrier.inclusion.base) = s.1 :=
+  realization.carrier_range_eq s
+
+@[simp] theorem component_range_mem_irreducibleComponents
+    (realization : IrreducibleComponentRealization X)
+    (s : { s : Set X | s ∈ irreducibleComponents X }) :
+    Set.range ((realization.component s).carrier.inclusion.base) ∈ irreducibleComponents X := by
+  rw [realization.component_range_eq s]
+  exact s.2
+
+/-- Transport a realization of irreducible components across an ambient scheme
+isomorphism. -/
+noncomputable def transport {X Y : Scheme.{u}} (e : X ≅ Y)
+    (realization : IrreducibleComponentRealization X) :
+    IrreducibleComponentRealization Y where
+  component := fun s =>
+    IrreducibleComponentAsIntClosedSubscheme.transport e
+      (realization.component
+        ⟨e.hom.homeomorph.symm '' s.1,
+          by
+            exact mem_irreducibleComponents_image_of_homeomorph e.hom.homeomorph.symm s.2⟩)
+  carrier_range_eq := by
+    intro s
+    let sX : { s : Set X | s ∈ irreducibleComponents X } :=
+      ⟨e.hom.homeomorph.symm '' s.1,
+        by
+          exact mem_irreducibleComponents_image_of_homeomorph e.hom.homeomorph.symm s.2⟩
+    calc
+      Set.range (((transport e realization).component s).carrier.inclusion.base) =
+          e.hom.homeomorph '' Set.range ((realization.component sX).carrier.inclusion.base) := by
+            simp [transport, sX, IntClosedSubscheme.range_transport_inclusion]
+      _ = e.hom.homeomorph '' sX.1 := by
+            rw [realization.component_range_eq sX]
+      _ = s.1 := by
+            ext y
+            constructor
+            · rintro ⟨x, hx, rfl⟩
+              rcases hx with ⟨y', hy', hxy'⟩
+              exact hxy'
+            · intro hy
+              exact ⟨e.inv.base y, ⟨y, hy, by simp⟩, by simp⟩
+
+end IrreducibleComponentRealization
+
+/-- Build a plain-scheme irreducible-component realization from clopen,
+integral topological components of a smooth scheme. This is the raw-scheme
+forgetful form of `SourceIrreducibleComponent.ofTopologicalComponent`. -/
+noncomputable def irreducibleComponentRealizationOfClopenComponents
+    (X : Geometry.SmSchemeOver k)
+    (hClopen :
+      ∀ C : { C : Set X.scheme // C ∈ irreducibleComponents X.scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set X.scheme // C ∈ irreducibleComponents X.scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme (⟨C.1, (hClopen C).right⟩ : X.scheme.Opens))) :
+    IrreducibleComponentRealization X.scheme where
+  component := fun C =>
+    let sourceComponent :=
+      SourceIrreducibleComponent.ofTopologicalComponent
+        X C (hClopen C).right (hClopen C).left (hIntegral C)
+    { carrier := sourceComponent.toSourceImageSubscheme.toIntClosedSubscheme
+      isIrreducibleComponent := by
+        simpa [SourceIrreducibleComponent.toSourceImageSubscheme,
+          SourceImageSubscheme.ofSourceIrreducibleComponent,
+          SourceImageSubscheme.toIntClosedSubscheme] using
+          sourceComponent.range_mem_irreducibleComponents }
+  carrier_range_eq := by
+    intro C
+    simpa [SourceIrreducibleComponent.toSourceImageSubscheme,
+      SourceImageSubscheme.ofSourceIrreducibleComponent,
+      SourceImageSubscheme.toIntClosedSubscheme] using
+      SourceIrreducibleComponent.range_ofTopologicalComponent
+        X C (hClopen C).right (hClopen C).left (hIntegral C)
+
+/-- Canonical plain-scheme irreducible-component realization for a smooth
+scheme whose underlying topological space is locally irreducible and whose
+irreducible-component open subschemes are integral. This is the direct raw
+scheme owner theorem underlying the component-geometry path. -/
+noncomputable def irreducibleComponentRealizationOfLocallyIrreducible
+    (X : Geometry.SmSchemeOver k)
+    (hLoc : Geometry.Topology.LocallyIrreducibleSpace X.scheme)
+    (hIntegral :
+      ∀ C : { C : Set X.scheme // C ∈ irreducibleComponents X.scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              X.scheme.Opens))) :
+    IrreducibleComponentRealization X.scheme :=
+  irreducibleComponentRealizationOfClopenComponents X
+    (fun C =>
+      Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+        C.2 hLoc)
+    (by
+      intro C
+      exact hIntegral C)
+
 
 namespace FiniteIntegralClosedComponentDecomposition
 
@@ -172,11 +294,64 @@ def transport {X Y : Scheme.{u}} (e : X ≅ Y)
     rcases decomposition.covers x with ⟨i, ⟨z, hz⟩⟩
     refine ⟨i, ⟨z, ?_⟩⟩
     change e.hom.base ((decomposition.component i).carrier.inclusion.base z) = y
-    simpa [x, hz]
+    rw [hz]
+    change (e.inv ≫ e.hom).base y = y
+    rw [e.inv_hom_id]
+    rfl
   irredundant := by
     intro i j hij
     exact decomposition.irredundant
       (IrreducibleComponentAsIntClosedSubscheme.transport_injective e hij)
+
+/-- Build a finite integral closed component decomposition from a realization
+of each topological irreducible component of a noetherian scheme as an actual
+integral closed subscheme. -/
+noncomputable def ofIrreducibleComponentRealization {X : Scheme.{u}}
+    (hfinite : (irreducibleComponents X).Finite)
+    (realization : IrreducibleComponentRealization X) :
+    FiniteIntegralClosedComponentDecomposition X := by
+  classical
+  let index : Type u := { s : Set X | s ∈ irreducibleComponents X }
+  let _ : Fintype index := hfinite.fintype
+  let _ : DecidableEq index := Classical.decEq index
+  refine
+    { index := index
+      fintypeIndex := inferInstance
+      decidableEqIndex := inferInstance
+      component := realization.component
+      covers := ?_
+      irredundant := ?_ }
+  · intro x
+    refine ⟨⟨irreducibleComponent x, irreducibleComponent_mem_irreducibleComponents x⟩, ?_⟩
+    rw [realization.component_range_eq
+      ⟨irreducibleComponent x, irreducibleComponent_mem_irreducibleComponents x⟩]
+    exact mem_irreducibleComponent
+  · intro s t hst
+    rcases s with ⟨s, hs⟩
+    rcases t with ⟨t, ht⟩
+    dsimp at hst ⊢
+    have hrange :
+        Set.range ((realization.component ⟨s, hs⟩).carrier.inclusion.base) =
+          Set.range ((realization.component ⟨t, ht⟩).carrier.inclusion.base) := by
+      exact congrArg
+        (fun component => Set.range (component.carrier.inclusion.base)) hst
+    have hset : s = t := calc
+      s = Set.range ((realization.component ⟨s, hs⟩).carrier.inclusion.base) := by
+        symm
+        exact realization.component_range_eq ⟨s, hs⟩
+      _ = Set.range ((realization.component ⟨t, ht⟩).carrier.inclusion.base) := hrange
+      _ = t := realization.component_range_eq ⟨t, ht⟩
+    subst hset
+    have hproof : hs = ht := Subsingleton.elim _ _
+    cases hproof
+    rfl
+
+/-- Existence form of `ofIrreducibleComponentRealization`. -/
+theorem exists_of_irreducibleComponentRealization {X : Scheme.{u}}
+    (hfinite : (irreducibleComponents X).Finite)
+    (realization : IrreducibleComponentRealization X) :
+    Nonempty (FiniteIntegralClosedComponentDecomposition X) :=
+  ⟨ofIrreducibleComponentRealization hfinite realization⟩
 
 end FiniteIntegralClosedComponentDecomposition
 
@@ -325,7 +500,7 @@ theorem diagonalRepresentedPrimeSupport_toAmbientSource_structMap
         X.structMap =
         (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source).toTargetScheme ≫
           X.structMap := by
-          simpa using
+          exact
             (PrimeFiniteCorrespondenceSupport.toAmbientSource_overBase
               (Z := SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source))
     _ = SourceIrreducibleComponent.toAmbient source ≫ X.structMap := by
@@ -361,7 +536,7 @@ theorem product_of_integral_diagonal_source_is_integral
       ↔ IsIntegral (pullback
         (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
         (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)) := by
-  simpa [diagonal_externalProduct_eq_diagonal_product (k := k) source1 source2]
+  rw [diagonal_externalProduct_eq_diagonal_product (k := k) source1 source2]
 
 /-- Support-level diagonal-product identification: the raw support of the
 external product of diagonal represented primes is the pullback of the two
@@ -376,8 +551,8 @@ noncomputable def product_diagonal_support_iso
       ≅ pullback
         (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
         (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap) := by
-  simpa [diagonal_externalProduct_eq_diagonal_product (k := k) source1 source2]
-    using Iso.refl (pullback
+  rw [diagonal_externalProduct_eq_diagonal_product (k := k) source1 source2]
+  exact Iso.refl (pullback
       (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
       (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
 
@@ -530,8 +705,6 @@ theorem diagonal_externalProductSupport_toProductTarget_eq_toProductSource
         (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)).toProductSource := by
   exact diagonal_externalProductToProductTarget_eq_toProductSource
     (k := k) source1 source2
-
-end PrimeFiniteCorrespondenceSupport
 
 namespace FiniteIrreducibleComponentDecomposition
 
@@ -993,6 +1166,57 @@ theorem toRepresentedPrimeSupport_toTarget_eq_toAmbientSource_of_target_eq_sourc
     _ = (decomposition.toRepresentedPrimeSupport i).toAmbientSource := by
         rfl
 
+/-- If a diagonal image decomposition has multiplicity one and its diagonal
+pieces are identified bijectively with the listed components of a certified
+product decomposition, then the decomposed finite correspondence is the
+identity finite correspondence of that certified decomposition. -/
+theorem toFiniteCorrespondence_eq_identityFiniteCorrespondence_of_equiv_components
+    {X1 X2 : Geometry.SmSchemeOver k}
+    {supportData : ProductFiniteCorrespondenceSupport X1 X1 X2 X2}
+    (decomposition : ProductFiniteCorrespondenceImageDecomposition supportData)
+    (hTarget :
+      supportData.toProductTarget = supportData.toProductSource)
+    (hIso :
+      ∀ i : decomposition.components.index,
+        IsIso (decomposition.toSourceImage i))
+    (hmult :
+      ∀ i : decomposition.components.index,
+        decomposition.multiplicity i = 1)
+    (D :
+      FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (listedEquiv :
+      decomposition.components.index ≃
+        { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+            listed ∈ D.components })
+    (hcomponent :
+      ∀ i : decomposition.components.index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent =
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence
+              (listedEquiv i).1) :
+    decomposition.toFiniteCorrespondence =
+      D.identityFiniteCorrespondence := by
+  classical
+  have hdiag :
+      decomposition.toFiniteCorrespondence =
+        ∑ i : decomposition.components.index,
+          SourceImageSubscheme.diagonalFiniteCorrespondence
+            (decomposition.toRepresentedPrimeSupport i).sourceComponent := by
+    exact decomposition.toFiniteCorrespondence_eq_sum_diagonal_of_target_eq_source
+      hTarget (by intro i; exact hIso i) (by intro i; exact hmult i)
+  have hsum :
+      (∑ i : decomposition.components.index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent) =
+        D.identityFiniteCorrespondence := by
+    exact
+      FiniteIrreducibleComponentDecomposition.sum_diagonal_eq_identityFiniteCorrespondence_of_equiv_components
+        (decomposition := D)
+        (sourceImage := fun i => (decomposition.toRepresentedPrimeSupport i).sourceComponent)
+        (listedEquiv := listedEquiv)
+        hcomponent
+  exact hdiag.trans hsum
+
 /-- One listed image-based decomposition piece as a weighted represented prime
 support. -/
 def toWeightedPrimeFiniteCorrespondenceSupport
@@ -1314,6 +1538,3480 @@ theorem toPresentation_transportRight_eq
   rfl
 
 end ProductFiniteCorrespondenceImageDecomposition
+
+/-- Canonical raw-support decomposition target for the external product of two
+diagonal represented supports, once the actual irreducible components of that
+raw support have been realized as integral closed subschemes and shown finite.
+This is the ground-up decomposition owner needed before attaching source-image
+and multiplicity data to prove tensor identity. -/
+noncomputable def diagonal_externalProductSupportDecompositionOfRealization
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2))) :
+    FiniteIntegralClosedComponentDecomposition
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) := by
+  exact
+    FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+      (X :=
+        externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2))
+      hfinite
+      realization
+
+/-- Realize irreducible components of the actual raw support of
+`Δ(source1) ⊠ Δ(source2)` by transporting a realization from the smooth
+product model `source1.carrier ×_k source2.carrier`. This isolates the
+remaining geometric work to the smooth product model, where the component
+geometry naturally lives. -/
+noncomputable def diagonal_externalProductSupportRealizationOfProductModel
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))) :
+    IrreducibleComponentRealization
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  IrreducibleComponentRealization.transport
+    (PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso
+      (k := k) source1 source2).symm
+    realization
+
+/-- Decompose the actual raw support of `Δ(source1) ⊠ Δ(source2)` by
+transporting a component realization from the smooth product model. This turns
+any honest product-model realization into the raw-support decomposition needed
+by the external-product identity route. -/
+noncomputable def diagonal_externalProductSupportDecompositionOfProductModel
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))) :
+    FiniteIntegralClosedComponentDecomposition
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductSupportDecompositionOfRealization
+    (k := k) source1 source2
+    (by
+      simpa [PrimeFiniteCorrespondenceSupport.diagonal_externalProduct_eq_diagonal_product
+        (k := k) source1 source2] using hfinite)
+    (diagonal_externalProductSupportRealizationOfProductModel
+      (k := k) source1 source2 realization)
+
+/-- The actual raw support of `Δ(source1) ⊠ Δ(source2)` has a canonical finite
+irreducible-component decomposition as soon as the smooth product model is
+locally irreducible and its irreducible-component opens are integral. -/
+noncomputable def diagonal_externalProductSupportDecompositionOfLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    FiniteIntegralClosedComponentDecomposition
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductSupportDecompositionOfProductModel
+    (k := k) source1 source2
+    AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+      (k := k) source1 source2 hLoc hIntegral)
+
+/-- Reduced locally irreducible specialization of the raw-support component
+decomposition for `Δ(source1) ⊠ Δ(source2)`. -/
+noncomputable def diagonal_externalProductSupportDecompositionOfReducedLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    FiniteIntegralClosedComponentDecomposition
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductSupportDecompositionOfLocallyIrreducible
+    (k := k) source1 source2 hLoc
+    (irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hLoc)
+
+/-- Reduced-components-open specialization of the raw-support component
+decomposition for `Δ(source1) ⊠ Δ(source2)`. -/
+noncomputable def diagonal_externalProductSupportDecompositionOfReducedComponentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    FiniteIntegralClosedComponentDecomposition
+      (externalProductSupportScheme
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductSupportDecompositionOfProductModel
+    (k := k) source1 source2
+    AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    (product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+      (k := k) source1 source2 hOpen)
+
+/-- Build the honest image decomposition of the raw support of
+`Δ(source1) ⊠ Δ(source2)` from realized raw irreducible components together
+with explicit source-image data for each realized component. This is the
+immediate owner-level constructor needed before applying the diagonal-sum
+identity theorems. -/
+noncomputable def diagonal_externalProductImageDecompositionOfComponentData
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)))
+    (componentData :
+      (i :
+        (diagonal_externalProductSupportDecompositionOfRealization
+          (k := k) source1 source2 hfinite realization).index) →
+        ExternalProductSourceImageData
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+          (diagonal_externalProductSupportDecompositionOfRealization
+            (k := k) source1 source2 hfinite realization)
+          (((diagonal_externalProductSupportDecompositionOfRealization
+            (k := k) source1 source2 hfinite realization).component i).carrier)) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  ProductFiniteCorrespondenceImageDecomposition.ofComponentData
+    (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+    (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+    (diagonal_externalProductSupportDecompositionOfRealization
+      (k := k) source1 source2 hfinite realization)
+    componentData
+
+/-- Sum-level diagonal normal form for the concrete image decomposition of the
+actual raw support of `Δ(source1) ⊠ Δ(source2)`. Once the realized components
+are equipped with honest source-image data, multiplicity-one and source-image
+isomorphism are the only remaining local geometric hypotheses. -/
+theorem diagonal_externalProductImageDecompositionOfComponentData_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (externalProductSupportScheme
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)))
+    (componentData :
+      (i :
+        (diagonal_externalProductSupportDecompositionOfRealization
+          (k := k) source1 source2 hfinite realization).index) →
+        ExternalProductSourceImageData
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+          (diagonal_externalProductSupportDecompositionOfRealization
+            (k := k) source1 source2 hfinite realization)
+          (((diagonal_externalProductSupportDecompositionOfRealization
+            (k := k) source1 source2 hfinite realization).component i).carrier))
+    (hIso :
+      ∀ i :
+        (diagonal_externalProductSupportDecompositionOfRealization
+          (k := k) source1 source2 hfinite realization).index,
+        IsIso
+          ((diagonal_externalProductImageDecompositionOfComponentData
+            (k := k) source1 source2 hfinite realization componentData).toSourceImage i))
+    (hmult :
+      ∀ i :
+        (diagonal_externalProductSupportDecompositionOfRealization
+          (k := k) source1 source2 hfinite realization).index,
+        (diagonal_externalProductImageDecompositionOfComponentData
+          (k := k) source1 source2 hfinite realization componentData).multiplicity i = 1) :
+    (diagonal_externalProductImageDecompositionOfComponentData
+      (k := k) source1 source2 hfinite realization componentData).toFiniteCorrespondence =
+      ∑ i :
+        (diagonal_externalProductSupportDecompositionOfRealization
+          (k := k) source1 source2 hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((diagonal_externalProductImageDecompositionOfComponentData
+            (k := k) source1 source2 hfinite realization componentData).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    ProductFiniteCorrespondenceImageDecomposition.diagonal_externalProduct_decomposition_toFiniteCorrespondence_eq_sum_diagonal
+      source1 source2
+      (diagonal_externalProductImageDecompositionOfComponentData
+        (k := k) source1 source2 hfinite realization componentData)
+      hIso hmult
+
+/-- Transport an image decomposition across an isomorphism of raw support
+schemes that preserves the maps to product source and product target. This is
+the owner-level bridge needed to move diagonal-product component data proved on
+the smooth product model onto the actual raw support of `Δ ⊠ Δ`. -/
+noncomputable def transportImageDecompositionAlongSupportIso
+    {X1 Y1 X2 Y2 : Geometry.SmSchemeOver k}
+    {supportData supportData' : ProductFiniteCorrespondenceSupport X1 Y1 X2 Y2}
+    (e : supportData.support ≅ supportData'.support)
+    (hSource :
+      e.hom ≫ supportData'.toProductSource = supportData.toProductSource)
+    (hTarget :
+      e.hom ≫ supportData'.toProductTarget = supportData.toProductTarget)
+    (decomposition : ProductFiniteCorrespondenceImageDecomposition supportData) :
+    ProductFiniteCorrespondenceImageDecomposition supportData' where
+  components :=
+    FiniteIntegralClosedComponentDecomposition.transport e decomposition.components
+  multiplicity := decomposition.multiplicity
+  sourceImage := decomposition.sourceImage
+  toSourceImage := decomposition.toSourceImage
+  finite_toSourceImage := decomposition.finite_toSourceImage
+  surjective_toSourceImage := decomposition.surjective_toSourceImage
+  sourceImage_factorization := by
+    intro i
+    change decomposition.toSourceImage i ≫ (decomposition.sourceImage i).inclusion =
+      ((decomposition.components.component i).carrier.inclusion ≫ e.hom) ≫
+        supportData'.toProductSource
+    rw [Category.assoc, hSource]
+    exact decomposition.sourceImage_factorization i
+  toProductTarget := decomposition.toProductTarget
+  target_factorization := by
+    intro i
+    change decomposition.toProductTarget i =
+      ((decomposition.components.component i).carrier.inclusion ≫ e.hom) ≫
+        supportData'.toProductTarget
+    rw [Category.assoc, hTarget]
+    exact decomposition.target_factorization i
+  inclusion := decomposition.inclusion
+  inclusion_fst := decomposition.inclusion_fst
+  inclusion_snd := decomposition.inclusion_snd
+  isClosedImmersion := decomposition.isClosedImmersion
+
+/-- The smooth-product presentation of the raw support of `Δ(source1) ⊠
+Δ(source2)`, with the same source and target maps as the raw external-product
+support after identifying the support scheme with the corresponding pullback. -/
+def product_diagonal_support
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    ProductFiniteCorrespondenceSupport X1 X1 X2 X2 where
+  support :=
+    pullback
+      (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+      (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)
+  finiteOverProductSource :=
+    PrimeFiniteCorrespondenceSupport.product_diagonal_source_map
+      (k := k) source1 source2
+  finite_toProductSource := by
+    simpa [PrimeFiniteCorrespondenceSupport.product_diagonal_source_map] using
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)).finite_toProductSource
+  toProductTarget :=
+    PrimeFiniteCorrespondenceSupport.product_diagonal_target_map
+      (k := k) source1 source2
+  overBase := by
+    simpa [PrimeFiniteCorrespondenceSupport.product_diagonal_source_map,
+      PrimeFiniteCorrespondenceSupport.product_diagonal_target_map] using
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)).overBase
+
+/-- The smooth `Sm/k` object underlying the product-model diagonal support. -/
+abbrev product_diagonal_smoothObject
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    Geometry.SmSchemeOver k :=
+  overBaseProductObject source1.carrier source2.carrier
+
+/-- Every point of the smooth product model attached to two source components
+admits an affine neighborhood whose coordinate ring is standard smooth over the
+base field. This is the affine chart input for the remaining product-model
+reducedness proof. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_isStandardSmooth
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ V :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ V.1 ∧
+        RingHom.IsStandardSmooth.{0, 0}
+          ((product_diagonal_smoothObject (k := k) source1 source2).structMap.appLE
+            ⟨⊤, AlgebraicGeometry.isAffineOpen_top _⟩ V le_top) :=
+  overBaseProductObject_exists_affineNeighborhood_isStandardSmooth
+    source1.carrier source2.carrier x
+
+/-- The smooth product model attached to two source components has affine
+smooth chart rings once standard-smooth chart rings are known to be smooth over
+`k`. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_smooth_of_standardSmoothToSmooth
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hStandardSmooth :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        RingHom.IsStandardSmooth.{0, 0} (algebraMap k A) → Algebra.Smooth k A)
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ V :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ V.1 ∧
+      Algebra.Smooth k
+        (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, V)) :=
+  overBaseProductObject_exists_affineNeighborhood_smooth_of_standardSmoothToSmooth
+    source1.carrier source2.carrier hStandardSmooth x
+
+/-- Every point of the smooth product model used in the tensor-identity proof
+admits an affine neighborhood whose coordinate ring is essentially of finite
+type over `k`. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_essFiniteType
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ V :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ V.1 ∧
+        Algebra.EssFiniteType k
+          (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, V)) :=
+  overBaseProductObject_exists_affineNeighborhood_essFiniteType
+    source1.carrier source2.carrier x
+
+/-- The smooth product model used in the tensor-identity proof is reduced once
+standard-smooth affine `k`-algebras are known to be reduced. This is the exact
+base-geometry reduction needed by the clean external-product identity route. -/
+theorem product_diagonal_smoothObject_isReduced_of_standardSmoothAffineReduced
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hStandardReduced :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        RingHom.IsStandardSmooth.{0, 0} (algebraMap k A) → _root_.IsReduced A) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_standardSmoothAffineReduced
+    (X := product_diagonal_smoothObject (k := k) source1 source2)
+    hStandardReduced
+
+/-- The smooth product model used in the tensor-identity proof is reduced once
+standard-smooth affine chart rings are known to be smooth over `k`, provided
+smooth `k`-algebras are reduced. -/
+theorem product_diagonal_smoothObject_isReduced_of_standardSmoothAffineSmooth
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hStandardSmooth :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        RingHom.IsStandardSmooth.{0, 0} (algebraMap k A) → Algebra.Smooth k A)
+    (hSmoothReduced :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        Algebra.Smooth k A → _root_.IsReduced A) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_standardSmoothAffineSmooth
+    (X := product_diagonal_smoothObject (k := k) source1 source2)
+    hStandardSmooth hSmoothReduced
+
+/-- The smooth product model used in the tensor-identity proof is reduced once
+standard-smooth affine `k`-algebras are known to be formally unramified. -/
+theorem product_diagonal_smoothObject_isReduced_of_standardSmoothAffineFormallyUnramified
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hStandardUnramified :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        RingHom.IsStandardSmooth.{0, 0} (algebraMap k A) →
+          Algebra.FormallyUnramified k A) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_standardSmoothAffineFormallyUnramified
+    (X := product_diagonal_smoothObject (k := k) source1 source2)
+    hStandardUnramified
+
+/-- The smooth product model used in the tensor-identity proof is reduced once
+standard-smooth affine `k`-algebras are known to be formally étale. -/
+theorem product_diagonal_smoothObject_isReduced_of_standardSmoothAffineFormallyEtale
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hStandardEtale :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        RingHom.IsStandardSmooth.{0, 0} (algebraMap k A) →
+          Algebra.FormallyEtale k A) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_standardSmoothAffineFormallyEtale
+    (X := product_diagonal_smoothObject (k := k) source1 source2)
+    hStandardEtale
+
+/-- The smooth product model used in the tensor-identity proof is reduced if
+its affine chart rings are standard smooth of relative dimension `0` over
+`k`. -/
+theorem product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- The smooth product model used in the tensor-identity proof is locally
+irreducible if its affine chart rings are standard smooth of relative
+dimension `0` over `k`. -/
+theorem product_diagonal_smoothObject_locallyIrreducible_of_standardSmoothOfRelativeDimensionZeroAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    Geometry.Topology.LocallyIrreducibleSpace
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_locallyIrreducible_of_standardSmoothOfRelativeDimensionZeroAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- Every irreducible component of the smooth product model is open if its
+points admit relative-dimension-zero standard-smooth affine charts over `k`. -/
+theorem product_diagonal_smoothObject_irreducibleComponentsOpen_of_standardSmoothOfRelativeDimensionZeroAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    ∀ C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+      IsOpen C.1 := by
+  exact
+    smSchemeOver_irreducibleComponentsOpen_of_standardSmoothOfRelativeDimensionZeroAffine
+      (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- The smooth product model attached to two source components has affine étale
+chart rings as soon as each point admits a relative-dimension-zero
+standard-smooth affine chart. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_etale_of_standardSmoothOfRelativeDimensionZero
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)))
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ U :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ U.1 ∧
+      Algebra.Etale k
+        (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)) :=
+  exists_affineNeighborhood_etale_of_standardSmoothOfRelativeDimensionZero
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h x
+
+/-- Every point of the smooth product model admits an affine neighborhood whose
+coordinate ring is standard smooth of relative dimension `0` over a finite
+polynomial algebra over `k`. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_standardSmoothOfRelativeDimensionZero_overPolynomial
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ U :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ U.1 ∧
+      ∃ (τ : Type _) (_ : Finite τ)
+        (φ :
+          MvPolynomial τ k →+*
+            Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)),
+        RingHom.IsStandardSmoothOfRelativeDimension 0 φ :=
+  overBaseProductObject_exists_affineNeighborhood_standardSmoothOfRelativeDimensionZero_overPolynomial
+    (X := source1.carrier) (Y := source2.carrier) x
+
+/-- Every point of the smooth product model admits an affine neighborhood whose
+coordinate ring is étale over a finite polynomial algebra over `k`. -/
+theorem product_diagonal_smoothObject_exists_affineNeighborhood_etale_overPolynomial
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (x : (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ∃ U :
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+      x ∈ U.1 ∧
+      ∃ (τ : Type _) (_ : Finite τ)
+        (φ :
+          MvPolynomial τ k →+*
+            Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)),
+        Algebra.Etale φ.toAlgebra :=
+  exists_affineNeighborhood_etale_overPolynomial
+    (X := product_diagonal_smoothObject (k := k) source1 source2) x
+
+/-- The smooth product model has affine chart rings that are standard smooth of
+relative dimension `0` over finite polynomial algebras over `k`. This is the
+exact owner chart form needed for the remaining local-domain proof. -/
+theorem product_diagonal_smoothObject_has_polynomialBase_standardSmoothOfRelativeDimensionZero_charts
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+      ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+        x ∈ U.1 ∧
+        ∃ (τ : Type _) (_ : Finite τ)
+          (φ :
+            MvPolynomial τ k →+*
+              Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)),
+          RingHom.IsStandardSmoothOfRelativeDimension 0 φ :=
+  product_diagonal_smoothObject_exists_affineNeighborhood_standardSmoothOfRelativeDimensionZero_overPolynomial
+    (source1 := source1) (source2 := source2)
+
+/-- The smooth product model used in the tensor-identity proof is reduced if
+its affine chart rings are formally étale over `k` and essentially of finite
+type. -/
+theorem product_diagonal_smoothObject_isReduced_of_formallyEtaleAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.FormallyEtale k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)) ∧
+          Algebra.EssFiniteType k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_formallyEtaleAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- The smooth product model used in the tensor-identity proof is reduced if
+its affine chart rings are formally unramified over `k` and essentially of
+finite type. -/
+theorem product_diagonal_smoothObject_isReduced_of_formallyUnramifiedAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.FormallyUnramified k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)) ∧
+          Algebra.EssFiniteType k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_formallyUnramifiedAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- The smooth product model used in the tensor-identity proof is reduced if
+its affine chart rings are étale over `k`. -/
+theorem product_diagonal_smoothObject_isReduced_of_etaleAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.Etale k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U))) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_etaleAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h
+
+/-- The smooth product model used in the tensor-identity proof is reduced if
+its affine chart rings are smooth over `k`, provided smooth `k`-algebras are
+known to be reduced. -/
+theorem product_diagonal_smoothObject_isReduced_of_smoothAffine
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (h :
+      ∀ x : (product_diagonal_smoothObject (k := k) source1 source2).scheme,
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.Smooth k
+            (Γ((product_diagonal_smoothObject (k := k) source1 source2).scheme, U)))
+    (hSmoothReduced :
+      ∀ {A : Type u} [CommRing A] [Algebra k A],
+        Algebra.Smooth k A → _root_.IsReduced A) :
+    IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  smSchemeOver_isReduced_of_smoothAffine
+    (X := product_diagonal_smoothObject (k := k) source1 source2) h hSmoothReduced
+
+/-- The canonical clopen immersion of the smooth product model
+`source1.carrier ×_k source2.carrier` into the full ambient product
+`X1 ×_k X2`. -/
+def product_diagonal_ambientMap
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    SmOverHom
+      (product_diagonal_smoothObject (k := k) source1 source2)
+      (overBaseProductObject X1 X2) :=
+  overBaseProductMap
+    { hom := source1.toAmbient
+      over := source1.toAmbient_overBase }
+    { hom := source2.toAmbient
+      over := source2.toAmbient_overBase }
+
+theorem product_diagonal_ambientMap_mem_range_iff
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    {x : (overBaseProductObject X1 X2).scheme.carrier} :
+    x ∈ Set.range (product_diagonal_ambientMap (k := k) source1 source2).hom.base ↔
+      (overBaseProduct.fst X1 X2).base x ∈ Set.range source1.toAmbient.base ∧
+        (overBaseProduct.snd X1 X2).base x ∈ Set.range source2.toAmbient.base := by
+  have hRange :
+      Set.range (product_diagonal_ambientMap (k := k) source1 source2).hom.base =
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base := by
+    change
+      Set.range
+        (pullback.map source1.carrier.structMap source2.carrier.structMap
+          X1.structMap X2.structMap source1.toAmbient source2.toAmbient (𝟙 _)
+          (by simpa [Category.assoc] using source1.toAmbient_overBase.symm)
+          (by simpa [Category.assoc] using source2.toAmbient_overBase.symm)).base =
+        (pullback.fst X1.structMap X2.structMap).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (pullback.snd X1.structMap X2.structMap).base ⁻¹' Set.range source2.toAmbient.base
+    simpa [overBaseProduct, overBaseProductObject, product_diagonal_ambientMap] using
+      (AlgebraicGeometry.Scheme.Pullback.range_map
+        source1.carrier.structMap source2.carrier.structMap
+        X1.structMap X2.structMap source1.toAmbient source2.toAmbient (𝟙 _)
+        (by simpa [Category.assoc] using source1.toAmbient_overBase.symm)
+        (by simpa [Category.assoc] using source2.toAmbient_overBase.symm))
+  rw [hRange]
+  rfl
+
+/-- If an ambient product component is contained in the clopen product of two
+source components, then its immersion factors canonically through the
+corresponding smooth product model. -/
+noncomputable def ambient_product_component_liftToProductModel_of_subset
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base) :
+    component.carrier.scheme ⟶
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme := by
+  have himage_subset :
+      Set.range component.toAmbient.base ⊆
+        Set.range (product_diagonal_ambientMap (k := k) source1 source2).hom.base := by
+    intro x hx
+    rw [product_diagonal_ambientMap_mem_range_iff (k := k) source1 source2]
+    exact hsubset hx
+  exact IsOpenImmersion.lift
+    (product_diagonal_ambientMap (k := k) source1 source2).hom
+    component.toAmbient
+    himage_subset
+
+@[simp] theorem ambient_product_component_liftToProductModel_of_subset_fac
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base) :
+    ambient_product_component_liftToProductModel_of_subset
+      (k := k) source1 source2 component hsubset ≫
+        (product_diagonal_ambientMap (k := k) source1 source2).hom =
+      component.toAmbient := by
+  exact IsOpenImmersion.lift_fac
+    (product_diagonal_ambientMap (k := k) source1 source2).hom
+    component.toAmbient
+    (by
+      intro x hx
+      rw [product_diagonal_ambientMap_mem_range_iff (k := k) source1 source2]
+      exact hsubset hx)
+
+@[simp] theorem ambient_product_component_liftToProductModel_of_subset_range_image
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base) :
+    Set.image
+      (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+      (Set.range
+        (ambient_product_component_liftToProductModel_of_subset
+          (k := k) source1 source2 component hsubset).base) =
+      Set.range component.toAmbient.base := by
+  ext x
+  constructor
+  · rintro ⟨y, ⟨z, rfl⟩, rfl⟩
+    exact ⟨z, by
+      simpa [Function.comp] using
+        congrArg (fun f => f.base z)
+          (ambient_product_component_liftToProductModel_of_subset_fac
+            (k := k) source1 source2 component hsubset)⟩
+  · rintro ⟨z, rfl⟩
+    refine ⟨(ambient_product_component_liftToProductModel_of_subset
+      (k := k) source1 source2 component hsubset).base z, ?_, rfl⟩
+    exact ⟨z, rfl⟩
+
+/-- The image of an ambient product component lifted into a smooth product
+model is an irreducible component of that product model whenever the ambient
+component lies inside the corresponding clopen factor product. -/
+theorem ambient_product_component_liftToProductModel_range_mem_irreducibleComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base) :
+    Set.range
+      (ambient_product_component_liftToProductModel_of_subset
+        (k := k) source1 source2 component hsubset).base ∈
+      irreducibleComponents
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme := by
+  let e :
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme ≃ₜ
+        Set.range (product_diagonal_ambientMap (k := k) source1 source2).hom.base :=
+    (IsOpenImmersion.homeomorph (product_diagonal_ambientMap (k := k) source1 source2).hom).toHomeomorph
+  have hImage :
+      e ''
+        Set.range
+          (ambient_product_component_liftToProductModel_of_subset
+            (k := k) source1 source2 component hsubset).base =
+        Set.range component.toAmbient.base := by
+    ext x
+    constructor
+    · rintro ⟨y, hy, hx⟩
+      rcases hy with ⟨z, rfl⟩
+      change
+        (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+            ((ambient_product_component_liftToProductModel_of_subset
+              (k := k) source1 source2 component hsubset).base z) ∈
+          Set.range component.toAmbient.base
+      simpa [e] using
+        show
+          (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+              ((ambient_product_component_liftToProductModel_of_subset
+                (k := k) source1 source2 component hsubset).base z) =
+            component.toAmbient.base z by
+              simpa [Function.comp] using
+                congrArg (fun f => f.base z)
+                  (ambient_product_component_liftToProductModel_of_subset_fac
+                    (k := k) source1 source2 component hsubset)
+    · intro hx
+      rcases hx with ⟨z, rfl⟩
+      refine ⟨(ambient_product_component_liftToProductModel_of_subset
+        (k := k) source1 source2 component hsubset).base z, ?_, ?_⟩
+      · exact ⟨z, rfl⟩
+      · change
+          (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+              ((ambient_product_component_liftToProductModel_of_subset
+                (k := k) source1 source2 component hsubset).base z) =
+            component.toAmbient.base z
+        simpa [Function.comp] using
+          congrArg (fun f => f.base z)
+            (ambient_product_component_liftToProductModel_of_subset_fac
+              (k := k) source1 source2 component hsubset)
+  have hmem :
+      e ''
+        Set.range
+          (ambient_product_component_liftToProductModel_of_subset
+            (k := k) source1 source2 component hsubset).base ∈
+        irreducibleComponents
+          (Set.range (product_diagonal_ambientMap (k := k) source1 source2).hom.base) := by
+    simpa [hImage] using
+      mem_irreducibleComponents_image_of_homeomorph e.symm component.range_mem_irreducibleComponents
+  simpa [hImage] using hmem
+
+/-- Package the lifted image of an ambient product component as a source
+irreducible component of the smooth product model. -/
+noncomputable def ambient_product_component_descendedToProductModel_of_subset
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    SourceIrreducibleComponent (product_diagonal_smoothObject (k := k) source1 source2) :=
+  SourceIrreducibleComponent.ofTopologicalComponent
+    (product_diagonal_smoothObject (k := k) source1 source2)
+    ⟨Set.range
+      (ambient_product_component_liftToProductModel_of_subset
+        (k := k) source1 source2 component hsubset).base,
+      ambient_product_component_liftToProductModel_range_mem_irreducibleComponents
+        (k := k) source1 source2 component hsubset⟩
+    (hClopen _).right
+    (hClopen _).left
+    (hIntegral _)
+
+/-- Pushing the descended product-model component back into the ambient product
+recovers the original ambient component, up to ambient-compatible isomorphism. -/
+theorem ambient_product_component_descendedToProductModel_mapsBack
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (overBaseProductObject X1 X2))
+    (hsubset :
+      Set.range component.toAmbient.base ⊆
+        (overBaseProduct.fst X1 X2).base ⁻¹' Set.range source1.toAmbient.base ∩
+          (overBaseProduct.snd X1 X2).base ⁻¹' Set.range source2.toAmbient.base)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    SourceIrreducibleComponent.IsoOverAmbient
+      component
+      (product_diagonal_modelComponentToAmbient
+        (k := k) source1 source2
+        (ambient_product_component_descendedToProductModel_of_subset
+          (k := k) source1 source2 component hsubset hClopen hIntegral)) := by
+  have hrangeDesc :
+      Set.range
+        (product_diagonal_modelComponentToAmbient
+          (k := k) source1 source2
+          (ambient_product_component_descendedToProductModel_of_subset
+            (k := k) source1 source2 component hsubset hClopen hIntegral)).toAmbient.base =
+        Set.range component.toAmbient.base := by
+    calc
+      Set.range
+        (product_diagonal_modelComponentToAmbient
+          (k := k) source1 source2
+          (ambient_product_component_descendedToProductModel_of_subset
+            (k := k) source1 source2 component hsubset hClopen hIntegral)).toAmbient.base =
+          Set.image
+            (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+            (Set.range
+              (ambient_product_component_descendedToProductModel_of_subset
+                (k := k) source1 source2 component hsubset hClopen hIntegral).toAmbient.base) := by
+            rw [SourceIrreducibleComponent.range_mapAlongClopen]
+      _ =
+          Set.image
+            (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+            (Set.range
+              (ambient_product_component_liftToProductModel_of_subset
+                (k := k) source1 source2 component hsubset).base) := by
+            simp [ambient_product_component_descendedToProductModel_of_subset,
+              SourceIrreducibleComponent.range_ofTopologicalComponent]
+      _ = Set.range component.toAmbient.base := by
+            exact ambient_product_component_liftToProductModel_of_subset_range_image
+              (k := k) source1 source2 component hsubset
+  apply SourceIrreducibleComponent.isoOverAmbient_of_range_eq
+  exact hrangeDesc.symm
+
+/-- View a source irreducible component of the smooth product model as a source
+irreducible component of the full ambient product by pushing it forward along
+the canonical clopen immersion. -/
+noncomputable def product_diagonal_modelComponentToAmbient
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (component : SourceIrreducibleComponent (product_diagonal_smoothObject (k := k) source1 source2)) :
+    SourceIrreducibleComponent (overBaseProductObject X1 X2) :=
+  SourceIrreducibleComponent.mapAlongClopen
+    (product_diagonal_ambientMap (k := k) source1 source2)
+    component
+
+/-- The canonical ambient product component attached to one topological
+irreducible component of the smooth product model. -/
+noncomputable def product_diagonal_canonicalAmbientComponentOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }) :
+    SourceIrreducibleComponent (overBaseProductObject X1 X2) :=
+  product_diagonal_modelComponentToAmbient
+    (k := k) source1 source2
+    (SourceIrreducibleComponent.ofTopologicalComponent
+      (product_diagonal_smoothObject (k := k) source1 source2)
+      C (hClopen C).right (hClopen C).left (hIntegral C))
+
+@[simp] theorem range_product_diagonal_canonicalAmbientComponentOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }) :
+    Set.range
+      (product_diagonal_canonicalAmbientComponentOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral C).toAmbient.base =
+      Set.image
+        (product_diagonal_ambientMap (k := k) source1 source2).hom.base
+        C.1 := by
+  rw [SourceIrreducibleComponent.range_mapAlongClopen]
+  simp [product_diagonal_canonicalAmbientComponentOfClopenComponents,
+    product_diagonal_modelComponentToAmbient,
+    SourceIrreducibleComponent.range_ofTopologicalComponent]
+
+theorem isoOverAmbient_product_diagonal_canonicalAmbientComponentOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    {C D :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }}
+    (h :
+      SourceIrreducibleComponent.IsoOverAmbient
+        (SourceIrreducibleComponent.ofTopologicalComponent
+          (product_diagonal_smoothObject (k := k) source1 source2)
+          C (hClopen C).right (hClopen C).left (hIntegral C))
+        (SourceIrreducibleComponent.ofTopologicalComponent
+          (product_diagonal_smoothObject (k := k) source1 source2)
+          D (hClopen D).right (hClopen D).left (hIntegral D))) :
+    SourceIrreducibleComponent.IsoOverAmbient
+      (product_diagonal_canonicalAmbientComponentOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral C)
+      (product_diagonal_canonicalAmbientComponentOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral D) :=
+  SourceIrreducibleComponent.isoOverAmbient_mapAlongClopen
+    (product_diagonal_ambientMap (k := k) source1 source2) h
+
+/-- For any certified product decomposition, the canonical ambient component
+coming from a product-model topological irreducible component has a canonical
+listed representative in that decomposition. -/
+noncomputable def product_diagonal_canonicalListedComponentOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }) :
+    { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+        listed ∈ DProduct.components } :=
+  DProduct.listedRepresentative
+    (product_diagonal_canonicalAmbientComponentOfClopenComponents
+      (k := k) source1 source2 hClopen hIntegral C)
+
+/-- The canonical raw diagonal piece attached to a product-model topological
+irreducible component agrees with the diagonal correspondence of its chosen
+listed representative in any certified product decomposition. -/
+theorem product_diagonal_supportCanonicalImageDecomposition_component_eq_listedDiagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }) :
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      ((product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport C).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (product_diagonal_canonicalListedComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral DProduct C).1 := by
+  calc
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      ((product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport C).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral C) := by
+      exact
+        product_diagonal_supportCanonicalImageDecomposition_component_eq_diagonal
+          (k := k) source1 source2 hClopen hIntegral C
+    _ = SourceIrreducibleComponent.diagonalFiniteCorrespondence
+          (product_diagonal_canonicalListedComponentOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral DProduct C).1 := by
+      exact
+        SourceIrreducibleComponent.diagonalFiniteCorrespondence_eq_of_isoOverAmbient
+          (DProduct.listedRepresentativeIso
+            (product_diagonal_canonicalAmbientComponentOfClopenComponents
+              (k := k) source1 source2 hClopen hIntegral C))
+
+/-- The canonical listed-representative map from product-model topological
+irreducible components to listed components of a certified product
+decomposition is injective. -/
+theorem product_diagonal_canonicalListedComponentOfClopenComponents_injective
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2)) :
+    Function.Injective
+      (product_diagonal_canonicalListedComponentOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral DProduct) := by
+  intro C D hCD
+  have hAmbient :
+      SourceIrreducibleComponent.IsoOverAmbient
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral C)
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral D) := by
+    have hEq :
+        (product_diagonal_canonicalListedComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral DProduct C).1 =
+          (product_diagonal_canonicalListedComponentOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral DProduct D).1 := by
+      exact congrArg Subtype.val hCD
+    subst hEq
+    exact
+      (DProduct.listedRepresentativeIso
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral C)).trans
+        (DProduct.listedRepresentativeIso
+          (product_diagonal_canonicalAmbientComponentOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral D)).symm
+  have hModel :
+      SourceIrreducibleComponent.IsoOverAmbient
+        (SourceIrreducibleComponent.ofTopologicalComponent
+          (product_diagonal_smoothObject (k := k) source1 source2)
+          C (hClopen C).right (hClopen C).left (hIntegral C))
+        (SourceIrreducibleComponent.ofTopologicalComponent
+          (product_diagonal_smoothObject (k := k) source1 source2)
+          D (hClopen D).right (hClopen D).left (hIntegral D)) := by
+    exact
+      SourceIrreducibleComponent.isoOverAmbient_of_mapAlongClopen
+        (product_diagonal_ambientMap (k := k) source1 source2) hAmbient
+  have hRange :
+      C.1 = D.1 := by
+    calc
+      C.1 =
+          Set.range
+            (SourceIrreducibleComponent.ofTopologicalComponent
+              (product_diagonal_smoothObject (k := k) source1 source2)
+              C (hClopen C).right (hClopen C).left (hIntegral C)).toAmbient.base := by
+            symm
+            exact SourceIrreducibleComponent.range_ofTopologicalComponent
+              (product_diagonal_smoothObject (k := k) source1 source2)
+              C (hClopen C).right (hClopen C).left (hIntegral C)
+      _ =
+          Set.range
+            (SourceIrreducibleComponent.ofTopologicalComponent
+              (product_diagonal_smoothObject (k := k) source1 source2)
+              D (hClopen D).right (hClopen D).left (hIntegral D)).toAmbient.base := by
+            exact SourceIrreducibleComponent.IsoOverAmbient.range_eq hModel
+      _ = D.1 := by
+            exact SourceIrreducibleComponent.range_ofTopologicalComponent
+              (product_diagonal_smoothObject (k := k) source1 source2)
+              D (hClopen D).right (hClopen D).left (hIntegral D)
+  exact Subtype.ext hRange
+
+/-- Canonical equivalence between topological irreducible components of the
+smooth product model and the listed components of its canonical source
+decomposition. -/
+noncomputable def product_diagonal_model_listedEquivOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+        C ∈ irreducibleComponents
+          (product_diagonal_smoothObject (k := k) source1 source2).scheme } ≃
+      { listed :
+          SourceIrreducibleComponent (product_diagonal_smoothObject (k := k) source1 source2) //
+          listed ∈
+            (finiteSourceIrreducibleComponentDecompositionOfClopenComponents
+              (product_diagonal_smoothObject (k := k) source1 source2)
+              hClopen hIntegral).components } :=
+  finiteSourceIrreducibleComponentDecompositionOfClopenComponents_listedEquiv
+    (product_diagonal_smoothObject (k := k) source1 source2) hClopen hIntegral
+
+/-- For the global identity-by-identity external product, the canonical listed
+representative attached to one concrete diagonal piece. This is the natural
+candidate target for the eventual global sigma-indexed `listedEquiv`. -/
+noncomputable def identityExternalProduct_canonicalListedComponentOfClopenComponents
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hClopen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsClopen C.1)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1, (hClopen sourceX sourceY C).right⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens)))
+    (idx :
+      Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
+        Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme }) :
+    { listed : SourceIrreducibleComponent (overBaseProductObject X Y) //
+        listed ∈ DProduct.components } :=
+  product_diagonal_canonicalListedComponentOfClopenComponents
+    (k := k) idx.1.1 idx.2.1.1
+    (hClopen idx.1 idx.2.1)
+    (hIntegral idx.1 idx.2.1)
+    DProduct
+    idx.2.2
+
+/-- Componentwise diagonal identification for the global sigma-indexed diagonal
+pieces appearing in the identity-by-identity external product. -/
+theorem identityExternalProduct_component_eq_listedDiagonal_of_clopenComponents
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hClopen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsClopen C.1)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1, (hClopen sourceX sourceY C).right⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens)))
+    (idx :
+      Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
+        Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme }) :
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) idx.1.1 idx.2.1.1
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) idx.1.1 idx.2.1.1
+          (hClopen idx.1 idx.2.1) (hIntegral idx.1 idx.2.1))
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      (decomposition.toRepresentedPrimeSupport idx.2.2).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (identityExternalProduct_canonicalListedComponentOfClopenComponents
+          (k := k) DX DY DProduct hClopen hIntegral idx).1 := by
+  exact
+    product_diagonal_supportCanonicalImageDecomposition_component_eq_listedDiagonal
+      (k := k) idx.1.1 idx.2.1.1
+      (hClopen idx.1 idx.2.1)
+      (hIntegral idx.1 idx.2.1)
+      DProduct
+      idx.2.2
+
+/-- Locally irreducible specialization of the global sigma-indexed componentwise
+diagonal identification for the identity-by-identity external product. -/
+theorem identityExternalProduct_component_eq_listedDiagonal_of_locallyIrreducible
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hLoc :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1,
+                Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                  C.2 (hLoc sourceX sourceY)⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens)))
+    (idx :
+      Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
+        Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme }) :
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) idx.1.1 idx.2.1.1
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+          (k := k) idx.1.1 idx.2.1.1
+          (hLoc idx.1 idx.2.1) (hIntegral idx.1 idx.2.1))
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      (decomposition.toRepresentedPrimeSupport idx.2.2).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (identityExternalProduct_canonicalListedComponentOfClopenComponents
+          (k := k) DX DY DProduct
+          (fun sourceX sourceY C =>
+            Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+              C.2 (hLoc sourceX sourceY))
+          (fun sourceX sourceY C => by
+            exact hIntegral sourceX sourceY C)
+          idx).1 := by
+  exact
+    identityExternalProduct_component_eq_listedDiagonal_of_clopenComponents
+      (k := k) DX DY DProduct
+      (fun sourceX sourceY C =>
+        Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+          C.2 (hLoc sourceX sourceY))
+      (fun sourceX sourceY C => by
+        exact hIntegral sourceX sourceY C)
+      idx
+
+/-- Reduced locally irreducible specialization of the global sigma-indexed
+componentwise diagonal identification for the identity-by-identity external
+product. -/
+theorem identityExternalProduct_component_eq_listedDiagonal_of_reduced_locallyIrreducible
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hLoc :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hReduced :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (idx :
+      Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
+        Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme }) :
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) idx.1.1 idx.2.1.1
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+          (k := k) idx.1.1 idx.2.1.1
+          (hLoc idx.1 idx.2.1))
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      (decomposition.toRepresentedPrimeSupport idx.2.2).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (identityExternalProduct_canonicalListedComponentOfClopenComponents
+          (k := k) DX DY DProduct
+          (fun sourceX sourceY C =>
+            Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+              C.2 (hLoc sourceX sourceY))
+          (fun sourceX sourceY C => by
+            letI := hReduced sourceX sourceY
+            exact
+              irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme
+                (hLoc sourceX sourceY) C)
+          idx).1 := by
+  exact
+    identityExternalProduct_component_eq_listedDiagonal_of_locallyIrreducible
+      (k := k) DX DY DProduct hLoc
+      (fun sourceX sourceY C => by
+        letI := hReduced sourceX sourceY
+        exact
+          irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+            (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme
+            (hLoc sourceX sourceY) C)
+      idx
+
+/-- Surjectivity of the global sigma-indexed canonical listed-component map for
+the identity-by-identity external product, under clopen/integral hypotheses on
+all factor product models. -/
+theorem identityExternalProduct_canonicalListedComponentOfClopenComponents_surjective
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hClopen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsClopen C.1)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1, (hClopen sourceX sourceY C).right⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    Function.Surjective
+      (identityExternalProduct_canonicalListedComponentOfClopenComponents
+        (k := k) DX DY DProduct hClopen hIntegral) := by
+  intro listed
+  classical
+  let component : SourceIrreducibleComponent (overBaseProductObject X Y) := listed.1
+  rcases ambient_product_component_subset_product_of_listed DX DY component with
+    ⟨sourceX, sourceY, hsubset⟩
+  let descended :=
+    ambient_product_component_descendedToProductModel_of_subset
+      (k := k) sourceX.1 sourceY.1 component hsubset
+      (hClopen sourceX sourceY) (hIntegral sourceX sourceY)
+  let modelListed :=
+    (finiteSourceIrreducibleComponentDecompositionOfClopenComponents
+      (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+      (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).listedRepresentative descended
+  let C :=
+    (product_diagonal_model_listedEquivOfClopenComponents
+      (k := k) sourceX.1 sourceY.1
+      (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).symm modelListed
+  refine ⟨⟨sourceX, sourceY, C⟩, ?_⟩
+  apply Subtype.ext
+  apply DProduct.listedRepresentative_eq_of_iso listed.2
+  calc
+    SourceIrreducibleComponent.IsoOverAmbient
+      (product_diagonal_canonicalAmbientComponentOfClopenComponents
+        (k := k) sourceX.1 sourceY.1
+        (hClopen sourceX sourceY) (hIntegral sourceX sourceY) C)
+      component := by
+        have hModel :
+            (finiteSourceIrreducibleComponentDecompositionOfClopenComponents
+              (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+              (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).listedRepresentative
+              (SourceIrreducibleComponent.ofTopologicalComponent
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+                C ((hClopen sourceX sourceY) C).right ((hClopen sourceX sourceY) C).left
+                ((hIntegral sourceX sourceY) C)).1 =
+              descended := by
+          simpa [product_diagonal_model_listedEquivOfClopenComponents, C, modelListed] using
+            congrArg Subtype.val
+              ((product_diagonal_model_listedEquivOfClopenComponents
+                (k := k) sourceX.1 sourceY.1
+                (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).apply_symm_apply modelListed)
+        have hListedIso :
+            SourceIrreducibleComponent.IsoOverAmbient
+              (SourceIrreducibleComponent.ofTopologicalComponent
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+                C ((hClopen sourceX sourceY) C).right ((hClopen sourceX sourceY) C).left
+                ((hIntegral sourceX sourceY) C))
+              descended := by
+          have hEq :
+              (finiteSourceIrreducibleComponentDecompositionOfClopenComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+                (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).listedRepresentative
+                  (SourceIrreducibleComponent.ofTopologicalComponent
+                    (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+                    C ((hClopen sourceX sourceY) C).right ((hClopen sourceX sourceY) C).left
+                    ((hIntegral sourceX sourceY) C)).1 =
+                descended := hModel
+          subst hEq
+          exact
+            (finiteSourceIrreducibleComponentDecompositionOfClopenComponents
+              (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+              (hClopen sourceX sourceY) (hIntegral sourceX sourceY)).listedRepresentativeIso
+                (SourceIrreducibleComponent.ofTopologicalComponent
+                  (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1)
+                  C ((hClopen sourceX sourceY) C).right ((hClopen sourceX sourceY) C).left
+                  ((hIntegral sourceX sourceY) C))
+        exact
+          (isoOverAmbient_product_diagonal_canonicalAmbientComponentOfClopenComponents
+            (k := k) sourceX.1 sourceY.1
+            (hClopen sourceX sourceY) (hIntegral sourceX sourceY) hListedIso).trans
+            (ambient_product_component_descendedToProductModel_mapsBack
+              (k := k) sourceX.1 sourceY.1 component hsubset
+              (hClopen sourceX sourceY) (hIntegral sourceX sourceY))
+    _ := by
+      exact this.symm
+
+/-- The global sigma-indexed canonical listed-component map for the
+identity-by-identity external product is a bijection under the clopen/integral
+product-model hypotheses. -/
+noncomputable def identityExternalProduct_canonicalListedComponentOfClopenComponents_equiv
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hClopen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsClopen C.1)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1, (hClopen sourceX sourceY C).right⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    (Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
+      Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
+        { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme }) ≃
+      { listed : SourceIrreducibleComponent (overBaseProductObject X Y) //
+          listed ∈ DProduct.components } :=
+  Equiv.ofBijective
+    (identityExternalProduct_canonicalListedComponentOfClopenComponents
+      (k := k) DX DY DProduct hClopen hIntegral)
+    ⟨product_diagonal_canonicalListedComponentOfClopenComponents_injective
+        (k := k),
+      identityExternalProduct_canonicalListedComponentOfClopenComponents_surjective
+        (k := k) DX DY DProduct hClopen hIntegral⟩
+
+/-- Under clopen/integral hypotheses on all factor product models, the
+identity-by-identity external product is the identity finite correspondence on
+the full product. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_clopenComponents
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hClopen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsClopen C.1)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1, (hClopen sourceX sourceY C).right⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_equiv_diagonal_decompositions
+      (family := family) DX DY DProduct hIso hmult
+      (identityExternalProduct_canonicalListedComponentOfClopenComponents_equiv
+        (k := k) DX DY DProduct hClopen hIntegral)
+      (identityExternalProduct_component_eq_listedDiagonal_of_clopenComponents
+        (k := k) DX DY DProduct hClopen hIntegral)
+
+/-- Locally irreducible specialization of the global identity-by-identity
+external-product theorem. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_locallyIrreducible
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hLoc :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hIntegral :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1,
+                Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                  C.2 (hLoc sourceX sourceY)⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_clopenComponents
+      (k := k) family DX DY DProduct hIso hmult
+      (fun sourceX sourceY C =>
+        Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+          C.2 (hLoc sourceX sourceY))
+      (fun sourceX sourceY C => by
+        exact hIntegral sourceX sourceY C)
+
+/-- Reduced locally irreducible specialization of the global
+identity-by-identity external-product theorem. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reduced_locallyIrreducible
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hLoc :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hReduced :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_locallyIrreducible
+      (k := k) family DX DY DProduct hIso hmult hLoc
+      (fun sourceX sourceY C => by
+        letI := hReduced sourceX sourceY
+        exact
+          irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+            (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme
+            (hLoc sourceX sourceY) C)
+
+/-- Reduced-components-open specialization of the global identity-by-identity
+external-product theorem. This is the direct owner form when the bottom
+product-model geometry proves openness of irreducible components without
+passing through a separate local-irreducibility theorem. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reduced_componentsOpen
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hOpen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hReduced :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_clopenComponents
+      (k := k) family DX DY DProduct hIso hmult
+      (fun sourceX sourceY C =>
+        ⟨isClosed_of_mem_irreducibleComponents C.1 C.2, hOpen sourceX sourceY C⟩)
+      (fun sourceX sourceY C => by
+        letI := hReduced sourceX sourceY
+        exact
+          irreducibleComponentOpen_isIntegral_of_isReduced_componentsOpen
+            (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme
+            (hOpen sourceX sourceY) C)
+
+/-- Reduced-components-open specialization of the global identity-by-identity
+external-product theorem, using the canonical reducedness route through
+relative-dimension-zero standard-smooth affine charts on each product model. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_standardSmoothOfRelativeDimensionZero_componentsOpen
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hOpen :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hStd0 :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reduced_componentsOpen
+      (k := k) family DX DY DProduct hIso hmult hOpen
+      (fun sourceX sourceY =>
+        product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+          (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+
+/-- Reduced-locally-irreducible specialization of the global identity theorem,
+using the canonical relative-dimension-zero standard-smooth chart route on each
+product model. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_standardSmoothOfRelativeDimensionZero_reducedLocallyIrreducible
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hStd0 :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reducedLocallyIrreducible
+      (k := k) family DX DY DProduct hIso hmult
+      (fun sourceX sourceY =>
+        product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+          (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+      (fun sourceX sourceY =>
+        product_diagonal_smoothObject_locallyIrreducible_of_standardSmoothOfRelativeDimensionZeroAffine
+          (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+
+/-- Direct global identity theorem from the relative-dimension-zero
+standard-smooth affine chart hypothesis on each product model. The needed
+component-openness and reducedness facts are discharged canonically from that
+chart theorem. -/
+theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_standardSmoothOfRelativeDimensionZeroAffine
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (hIso :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          IsIso
+            ((family.decompose
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+              (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).toSourceImage i))
+    (hmult :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (i :
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index),
+          (family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).multiplicity i = 1)
+    (hStd0 :
+      ∀ (sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components })
+        (sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    externalProductWithFamily family
+      DX.identityFiniteCorrespondence DY.identityFiniteCorrespondence =
+      DProduct.identityFiniteCorrespondence := by
+  exact
+    externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reduced_componentsOpen
+      (k := k) family DX DY DProduct hIso hmult
+      (fun sourceX sourceY =>
+        product_diagonal_smoothObject_irreducibleComponentsOpen_of_standardSmoothOfRelativeDimensionZeroAffine
+          (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+      (fun sourceX sourceY =>
+        product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+          (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+
+/-- Componentwise diagonal identification for the canonical product-model
+decomposition. Each raw diagonal piece is the diagonal finite correspondence of
+the corresponding ambient product component obtained from the same topological
+irreducible component. -/
+theorem product_diagonal_supportCanonicalImageDecomposition_component_eq_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsOpenImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    [IsClosedImmersion (product_diagonal_ambientMap (k := k) source1 source2).hom]
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (C :
+      { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme }) :
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      ((product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport C).sourceComponent =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral C) := by
+  change
+    SourceImageSubscheme.diagonalFiniteCorrespondence
+      { carrier :=
+          { scheme :=
+              ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+                (X := pullback
+                  (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+                  (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+                AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+                (product_diagonal_smoothObjectRealizationOfClopenComponents
+                  (k := k) source1 source2 hClopen hIntegral)).component C).carrier.scheme
+            structMap :=
+              ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+                (X := pullback
+                  (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+                  (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+                AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+                (product_diagonal_smoothObjectRealizationOfClopenComponents
+                  (k := k) source1 source2 hClopen hIntegral)).component C).carrier.inclusion ≫
+                (product_diagonal_support (k := k) source1 source2).toProductSource ≫
+                  (overBaseProductObject X1 X2).structMap }
+        toAmbient :=
+          ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfClopenComponents
+              (k := k) source1 source2 hClopen hIntegral)).component C).carrier.inclusion ≫
+            (product_diagonal_support (k := k) source1 source2).toProductSource
+        toAmbient_overBase := rfl
+        isClosedImmersion := by
+          letI :
+              IsClosedImmersion
+                (((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+                  (X := pullback
+                    (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+                    (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+                  AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+                  (product_diagonal_smoothObjectRealizationOfClopenComponents
+                    (k := k) source1 source2 hClopen hIntegral)).component C).carrier.inclusion ≫
+                  (product_diagonal_support (k := k) source1 source2).toProductSource) := by
+            letI :=
+              ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+                (X := pullback
+                  (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+                  (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+                AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+                (product_diagonal_smoothObjectRealizationOfClopenComponents
+                  (k := k) source1 source2 hClopen hIntegral)).component C).carrier.isClosedImm
+            infer_instance
+          infer_instance
+        isIntegral :=
+          ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfClopenComponents
+              (k := k) source1 source2 hClopen hIntegral)).component C).carrier.isIntegral } =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (product_diagonal_canonicalAmbientComponentOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral C) := by
+  rfl
+
+/-- Conditional product-model irreducible-component realization: once the
+irreducible components of the smooth product model are known to be clopen and
+their open component schemes are known to be integral, the plain-scheme
+realization required by the external-product identity route is canonical. -/
+noncomputable def product_diagonal_smoothObjectRealizationOfClopenComponents
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    IrreducibleComponentRealization
+      (pullback
+        (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+        (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)) :=
+  irreducibleComponentRealizationOfClopenComponents
+    (product_diagonal_smoothObject (k := k) source1 source2) hClopen hIntegral
+
+/-- Specialized owner theorem: if the irreducible components of the smooth
+product model are open, then that model is locally irreducible. -/
+theorem product_diagonal_smoothObject_locallyIrreducible_of_componentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hOpen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    Geometry.Topology.LocallyIrreducibleSpace
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme :=
+  overBaseProductObject_locallyIrreducible_of_componentsOpen
+    (k := k) source1.carrier source2.carrier hOpen
+
+/-- Specialized owner decomposition on the smooth product model under the
+bottom hypothesis `IsReduced + irreducible components open`. -/
+noncomputable def product_diagonal_smoothObjectComponentDecompositionOfReducedComponentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    FiniteIrreducibleComponentDecomposition
+      (product_diagonal_smoothObject (k := k) source1 source2) :=
+  overBaseProductObject_componentDecompositionOfReducedComponentsOpen
+    (k := k) source1.carrier source2.carrier hOpen
+
+/-- Specialized owner decomposition on the smooth product model under the
+bottom hypothesis `IsReduced + locally irreducible`. -/
+noncomputable def product_diagonal_smoothObjectComponentDecompositionOfReducedLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    FiniteIrreducibleComponentDecomposition
+      (product_diagonal_smoothObject (k := k) source1 source2) :=
+  overBaseProductObject_componentDecompositionOfReducedLocallyIrreducible
+    (k := k) source1.carrier source2.carrier hLoc
+
+/-- Bottom-up product-model realization from local irreducibility. This is the
+direct owner interface for the diagonal external-product identity chain: once
+the smooth product model is locally irreducible and its irreducible-component
+open subschemes are integral, the plain-scheme realization needed by
+`ExternalProduct` is canonical. -/
+noncomputable def product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    IrreducibleComponentRealization
+      (pullback
+        (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+        (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)) :=
+  irreducibleComponentRealizationOfLocallyIrreducible
+    (product_diagonal_smoothObject (k := k) source1 source2)
+    hLoc hIntegral
+
+/-- Reduced locally irreducible product-model realization. This packages the
+canonical integrality of irreducible-component opens so downstream
+external-product arguments can start from the honest base hypotheses
+`IsReduced + locally irreducible` on the smooth product model. -/
+noncomputable def product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    IrreducibleComponentRealization
+      (pullback
+        (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+        (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)) :=
+  product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+    (k := k) source1 source2 hLoc
+    (irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hLoc)
+
+/-- Reduced product-model realization from direct openness of irreducible
+components. This is the most primitive external-product entry point once
+component-openness has been proved geometrically on the smooth product model. -/
+noncomputable def product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    IrreducibleComponentRealization
+      (pullback
+        (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+        (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)) :=
+  product_diagonal_smoothObjectRealizationOfClopenComponents
+    (k := k) source1 source2
+    (fun C =>
+      ⟨isClosed_of_mem_irreducibleComponents C.1 C.2, hOpen C⟩)
+    (irreducibleComponentOpen_isIntegral_of_isReduced_componentsOpen
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hOpen)
+
+@[simp] theorem product_diagonal_support_toProductTarget_eq_toProductSource
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    (product_diagonal_support (k := k) source1 source2).toProductTarget =
+      (product_diagonal_support (k := k) source1 source2).toProductSource := by
+  exact PrimeFiniteCorrespondenceSupport.diagonal_externalProductToProductTarget_eq_toProductSource
+    (k := k) source1 source2
+
+/-- For a realized irreducible component of the smooth product-model diagonal
+support, the source image is just that same component viewed inside the ambient
+product. Because the support is diagonal, the source-image map is literally the
+identity. -/
+noncomputable def product_diagonal_supportComponentData
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (decomposition :
+      FiniteIntegralClosedComponentDecomposition
+        (product_diagonal_support (k := k) source1 source2).support)
+    (i : decomposition.index) :
+    ExternalProductSourceImageData
+      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+      (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+      decomposition
+      ((decomposition.component i).carrier) where
+  multiplicity := 1
+  sourceImage :=
+    { scheme := (decomposition.component i).carrier.scheme
+      inclusion :=
+        (decomposition.component i).carrier.inclusion ≫
+          (product_diagonal_support (k := k) source1 source2).toProductSource
+      isClosedImm := by
+        letI : IsClosedImmersion (decomposition.component i).carrier.inclusion :=
+          (decomposition.component i).carrier.isClosedImm
+        infer_instance
+      isIntegral := (decomposition.component i).carrier.isIntegral }
+  toSourceImage := 𝟙 ((decomposition.component i).carrier.scheme)
+  finite_toSourceImage := by infer_instance
+  surjective_toSourceImage := by
+    intro x
+    exact ⟨x, rfl⟩
+  sourceImage_factorization := by
+    simp [product_diagonal_support]
+  toProductTarget :=
+    (decomposition.component i).carrier.inclusion ≫
+      (product_diagonal_support (k := k) source1 source2).toProductTarget
+  target_factorization := by
+    rfl
+  inclusion :=
+    pullback.lift
+      (𝟙 ((decomposition.component i).carrier.scheme))
+      ((decomposition.component i).carrier.inclusion ≫
+        (product_diagonal_support (k := k) source1 source2).toProductTarget)
+      (by
+        calc
+          (𝟙 ((decomposition.component i).carrier.scheme)) ≫
+              (((decomposition.component i).carrier.inclusion ≫
+                (product_diagonal_support (k := k) source1 source2).toProductSource) ≫
+                  (overBaseProductObject X1 X2).structMap) =
+            (decomposition.component i).carrier.inclusion ≫
+              (product_diagonal_support (k := k) source1 source2).toProductSource ≫
+                (overBaseProductObject X1 X2).structMap := by
+              simp [Category.assoc]
+          _ = (decomposition.component i).carrier.inclusion ≫
+                (product_diagonal_support (k := k) source1 source2).toProductTarget ≫
+                  (overBaseProductObject X1 X2).structMap := by
+              rw [product_diagonal_support_toProductTarget_eq_toProductSource]
+          _ = ((decomposition.component i).carrier.inclusion ≫
+                (product_diagonal_support (k := k) source1 source2).toProductTarget) ≫
+                  (overBaseProductObject X1 X2).structMap := by
+              simp [Category.assoc])
+  inclusion_fst := by
+    simp
+  inclusion_snd := by
+    simp
+  isClosedImmersion := by
+    letI :
+        IsClosedImmersion
+          ((decomposition.component i).carrier.inclusion ≫
+            (product_diagonal_support (k := k) source1 source2).toProductTarget) := by
+      letI : IsClosedImmersion (decomposition.component i).carrier.inclusion :=
+        (decomposition.component i).carrier.isClosedImm
+      infer_instance
+    infer_instance
+
+@[simp] theorem product_diagonal_supportComponentData_multiplicity
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (decomposition :
+      FiniteIntegralClosedComponentDecomposition
+        (product_diagonal_support (k := k) source1 source2).support)
+    (i : decomposition.index) :
+    (product_diagonal_supportComponentData
+      (k := k) source1 source2 decomposition i).multiplicity = 1 := rfl
+
+theorem product_diagonal_supportComponentData_toSourceImage_isIso
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (decomposition :
+      FiniteIntegralClosedComponentDecomposition
+        (product_diagonal_support (k := k) source1 source2).support)
+    (i : decomposition.index) :
+    IsIso
+      ((product_diagonal_supportComponentData
+        (k := k) source1 source2 decomposition i).toSourceImage) := by
+  change IsIso (𝟙 ((decomposition.component i).carrier.scheme))
+  infer_instance
+
+/-- Build an honest image decomposition directly on the smooth product model
+of the two source components, from a realization of its irreducible components
+and explicit source-image data on each realized component. -/
+noncomputable def product_diagonal_supportImageDecompositionOfComponentData
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)))
+    (componentData :
+      (i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) →
+        ExternalProductSourceImageData
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization)
+          (((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization).component i).carrier)) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (product_diagonal_support (k := k) source1 source2) :=
+  ProductFiniteCorrespondenceImageDecomposition.ofComponentData
+    (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+    (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+    (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+      (X := pullback
+        (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+        (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+      hfinite realization)
+    componentData
+
+/-- Sum-level diagonal normal form on the smooth product model. This is the
+local theorem one wants before transporting the decomposition to the actual
+raw support of `Δ(source1) ⊠ Δ(source2)`. -/
+theorem product_diagonal_supportImageDecompositionOfComponentData_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap)))
+    (componentData :
+      (i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) →
+        ExternalProductSourceImageData
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization)
+          (((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization).component i).carrier))
+    (hIso :
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        IsIso
+          ((product_diagonal_supportImageDecompositionOfComponentData
+            (k := k) source1 source2 hfinite realization componentData).toSourceImage i))
+    (hmult :
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        (product_diagonal_supportImageDecompositionOfComponentData
+          (k := k) source1 source2 hfinite realization componentData).multiplicity i = 1) :
+    (product_diagonal_supportImageDecompositionOfComponentData
+      (k := k) source1 source2 hfinite realization componentData).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportImageDecompositionOfComponentData
+            (k := k) source1 source2 hfinite realization componentData).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    ProductFiniteCorrespondenceImageDecomposition.diagonal_externalProduct_decomposition_toFiniteCorrespondence_eq_sum_diagonal
+      source1 source2
+      (product_diagonal_supportImageDecompositionOfComponentData
+        (k := k) source1 source2 hfinite realization componentData)
+      hIso hmult
+
+/-- Canonical image decomposition on the smooth product model of the diagonal
+support, using each realized raw component as its own source image. -/
+noncomputable def product_diagonal_supportCanonicalImageDecomposition
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (product_diagonal_support (k := k) source1 source2) :=
+  product_diagonal_supportImageDecompositionOfComponentData
+    (k := k) source1 source2 hfinite realization
+    (product_diagonal_supportComponentData
+      (k := k) source1 source2
+      (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+        (X := pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+        hfinite realization))
+
+/-- Canonical image decomposition of the actual raw support of `Δ(source1) ⊠
+Δ(source2)` from the bottom-up geometric input on the smooth product model. -/
+noncomputable def diagonal_externalProductCanonicalImageDecompositionOfLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductImageDecompositionOfProductModel
+    (k := k) source1 source2
+    (product_diagonal_supportCanonicalImageDecomposition
+      (k := k) source1 source2
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+        (k := k) source1 source2 hLoc hIntegral))
+
+/-- Canonical sum-diagonal normal form for the raw-support image decomposition
+of `Δ(source1) ⊠ Δ(source2)` under local irreducibility and integrality of
+component opens on the smooth product model. -/
+theorem diagonal_externalProductCanonicalImageDecompositionOfLocallyIrreducible_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    (diagonal_externalProductCanonicalImageDecompositionOfLocallyIrreducible
+      (k := k) source1 source2 hLoc hIntegral).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+            (k := k) source1 source2 hLoc hIntegral)).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+              (k := k) source1 source2 hLoc hIntegral)).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    product_diagonal_supportCanonicalImageDecomposition_eq_sum_diagonal
+      (k := k) source1 source2
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      (product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+        (k := k) source1 source2 hLoc hIntegral)
+
+/-- Reduced locally irreducible specialization of the canonical raw-support
+image decomposition for `Δ(source1) ⊠ Δ(source2)`. -/
+noncomputable def diagonal_externalProductCanonicalImageDecompositionOfReducedLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductCanonicalImageDecompositionOfLocallyIrreducible
+    (k := k) source1 source2 hLoc
+    (irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hLoc)
+
+/-- Canonical sum-diagonal normal form for the raw-support image decomposition
+of `Δ(source1) ⊠ Δ(source2)` under the bottom hypothesis
+`IsReduced + locally irreducible` on the smooth product model. -/
+theorem diagonal_externalProductCanonicalImageDecompositionOfReducedLocallyIrreducible_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    (diagonal_externalProductCanonicalImageDecompositionOfReducedLocallyIrreducible
+      (k := k) source1 source2 hLoc).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+            (k := k) source1 source2 hLoc)).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+              (k := k) source1 source2 hLoc)).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    product_diagonal_supportCanonicalImageDecomposition_eq_sum_diagonal
+      (k := k) source1 source2
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      (product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+        (k := k) source1 source2 hLoc)
+
+/-- Reduced-components-open specialization of the canonical raw-support image
+decomposition for `Δ(source1) ⊠ Δ(source2)`. -/
+noncomputable def diagonal_externalProductCanonicalImageDecompositionOfReducedComponentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  diagonal_externalProductImageDecompositionOfProductModel
+    (k := k) source1 source2
+    (product_diagonal_supportCanonicalImageDecomposition
+      (k := k) source1 source2
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      (product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+        (k := k) source1 source2 hOpen))
+
+/-- Canonical sum-diagonal normal form for the raw-support image decomposition
+of `Δ(source1) ⊠ Δ(source2)` under the bottom hypothesis
+`IsReduced + irreducible components open` on the smooth product model. -/
+theorem diagonal_externalProductCanonicalImageDecompositionOfReducedComponentsOpen_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    (diagonal_externalProductCanonicalImageDecompositionOfReducedComponentsOpen
+      (k := k) source1 source2 hOpen).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+            (k := k) source1 source2 hOpen)).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+              (k := k) source1 source2 hOpen)).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    product_diagonal_supportCanonicalImageDecomposition_eq_sum_diagonal
+      (k := k) source1 source2
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      (product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+        (k := k) source1 source2 hOpen)
+
+/-- The canonical product-model image decomposition already satisfies the two
+local diagonal-support hypotheses needed by the sum-diagonal theorem:
+multiplicity one and source-image-isomorphism for every realized component. -/
+theorem product_diagonal_supportCanonicalImageDecomposition_eq_sum_diagonal
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hfinite :
+      (irreducibleComponents
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite)
+    (realization :
+      IrreducibleComponentRealization
+        (pullback
+          (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+          (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))) :
+    (product_diagonal_supportCanonicalImageDecomposition
+      (k := k) source1 source2 hfinite realization).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2 hfinite realization).toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    product_diagonal_supportImageDecompositionOfComponentData_eq_sum_diagonal
+      (k := k) source1 source2 hfinite realization
+      (product_diagonal_supportComponentData
+        (k := k) source1 source2
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization))
+      (by
+        intro i
+        exact product_diagonal_supportComponentData_toSourceImage_isIso
+          (k := k) source1 source2
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization)
+          i)
+      (by
+        intro i
+        exact product_diagonal_supportComponentData_multiplicity
+          (k := k) source1 source2
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+            hfinite realization)
+          i)
+
+@[simp] theorem product_diagonal_support_iso_hom_toProductSource
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    (PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso
+      (k := k) source1 source2).hom ≫
+      (product_diagonal_support (k := k) source1 source2).toProductSource =
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)).toProductSource := by
+  simp [product_diagonal_support,
+    PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso,
+    PrimeFiniteCorrespondenceSupport.diagonal_externalProduct_eq_diagonal_product,
+    PrimeFiniteCorrespondenceSupport.product_diagonal_source_map]
+
+@[simp] theorem product_diagonal_support_iso_hom_toProductTarget
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2) :
+    (PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso
+      (k := k) source1 source2).hom ≫
+      (product_diagonal_support (k := k) source1 source2).toProductTarget =
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)).toProductTarget := by
+  simp [product_diagonal_support,
+    PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso,
+    PrimeFiniteCorrespondenceSupport.diagonal_externalProduct_eq_diagonal_product,
+    PrimeFiniteCorrespondenceSupport.product_diagonal_target_map]
+
+/-- Specialization of `transportImageDecompositionAlongSupportIso` to the
+diagonal raw support. Any image decomposition constructed on the smooth
+product model transports directly to the actual raw support of
+`Δ(source1) ⊠ Δ(source2)`. -/
+noncomputable def diagonal_externalProductImageDecompositionOfProductModel
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (decomposition :
+      ProductFiniteCorrespondenceImageDecomposition
+        (product_diagonal_support (k := k) source1 source2)) :
+    ProductFiniteCorrespondenceImageDecomposition
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source1)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) source2)) :=
+  transportImageDecompositionAlongSupportIso
+    ((PrimeFiniteCorrespondenceSupport.product_diagonal_support_iso
+      (k := k) source1 source2).symm)
+    (by
+      exact
+        (product_diagonal_support_iso_hom_toProductSource
+          (k := k) source1 source2))
+    (by
+      exact
+        (product_diagonal_support_iso_hom_toProductTarget
+          (k := k) source1 source2))
+    decomposition
+
+@[simp] theorem diagonal_externalProductImageDecompositionOfProductModel_toFiniteCorrespondence
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (decomposition :
+      ProductFiniteCorrespondenceImageDecomposition
+        (product_diagonal_support (k := k) source1 source2)) :
+    (diagonal_externalProductImageDecompositionOfProductModel
+      (k := k) source1 source2 decomposition).toFiniteCorrespondence =
+      decomposition.toFiniteCorrespondence := by
+  rfl
+
+/-- Full owner-level chain for `Δ(source1) ⊠ Δ(source2)` from geometric input
+on the smooth product model down to the diagonal sum on the actual raw support.
+
+Once the smooth product model has clopen irreducible components and the
+corresponding open component schemes are integral, the raw-support external
+product decomposition is canonical, each component contributes with
+multiplicity one, and each source-image map is an isomorphism. The resulting
+finite correspondence is therefore exactly the sum of diagonal correspondences
+of the transported product-model components. -/
+theorem diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_clopen_integral_components
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent := by
+  dsimp
+  calc
+    (diagonal_externalProductImageDecompositionOfProductModel
+      (k := k) source1 source2
+      (product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral))).toFiniteCorrespondence =
+      (product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral)).toFiniteCorrespondence := by
+        rfl
+    _ = ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral)).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfClopenComponents
+              (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport i).sourceComponent := by
+        exact product_diagonal_supportCanonicalImageDecomposition_eq_sum_diagonal
+          (k := k) source1 source2
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral)
+
+/-- Under the bottom geometric input on the smooth product model, the canonical
+raw-support diagonal external-product decomposition is the identity finite
+correspondence of any certified product decomposition whose listed components
+are identified with the diagonal raw pieces. -/
+theorem diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_clopen_integral_components
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hClopen :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsClopen C.1)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1, (hClopen C).right⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (listedEquiv :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) ≃
+        { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+            listed ∈ DProduct.components })
+    (hcomponent :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent =
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfClopenComponents
+        (k := k) source1 source2 hClopen hIntegral
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence = DProduct.identityFiniteCorrespondence := by
+  dsimp
+  calc
+    (diagonal_externalProductImageDecompositionOfProductModel
+      (k := k) source1 source2
+      (product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+        (product_diagonal_smoothObjectRealizationOfClopenComponents
+          (k := k) source1 source2 hClopen hIntegral))).toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (product_diagonal_smoothObjectRealizationOfClopenComponents
+            (k := k) source1 source2 hClopen hIntegral)).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((product_diagonal_supportCanonicalImageDecomposition
+            (k := k) source1 source2
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (product_diagonal_smoothObjectRealizationOfClopenComponents
+              (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport i).sourceComponent := by
+      exact diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_clopen_integral_components
+        (k := k) source1 source2 hClopen hIntegral
+    _ = DProduct.identityFiniteCorrespondence := by
+      exact
+        FiniteIrreducibleComponentDecomposition.sum_diagonal_eq_identityFiniteCorrespondence_of_equiv_components
+          (decomposition := DProduct)
+          (sourceImage := fun i =>
+            ((product_diagonal_supportCanonicalImageDecomposition
+              (k := k) source1 source2
+              AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+              (product_diagonal_smoothObjectRealizationOfClopenComponents
+                (k := k) source1 source2 hClopen hIntegral)).toRepresentedPrimeSupport i).sourceComponent)
+          (listedEquiv := listedEquiv)
+          hcomponent
+
+/-- The full bottom-up product-model-to-raw-support chain starting only from
+local irreducibility of the smooth product model and integrality of its
+irreducible-component open subschemes. This is the owner theorem that packages
+steps 1-10 of the diagonal external-product identity route in one place. -/
+theorem diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_locallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens))) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+        (k := k) source1 source2 hLoc hIntegral
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent := by
+  exact
+    diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_clopen_integral_components
+      (k := k) source1 source2
+      (fun C =>
+        Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+          C.2 hLoc)
+      (by
+        intro C
+        exact hIntegral C)
+
+/-- Locally irreducible specialization of the direct identity theorem for the
+canonical raw-support diagonal external-product decomposition. -/
+theorem diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_locallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (hIntegral :
+      ∀ C : { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+          C ∈ irreducibleComponents
+            (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsIntegral
+          (Scheme.Opens.toScheme
+            (⟨C.1,
+              Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                C.2 hLoc⟩ :
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme.Opens)))
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (listedEquiv :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+          (k := k) source1 source2 hLoc hIntegral
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) ≃
+        { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+            listed ∈ DProduct.components })
+    (hcomponent :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+          (k := k) source1 source2 hLoc hIntegral
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent =
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfLocallyIrreducible
+        (k := k) source1 source2 hLoc hIntegral
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence = DProduct.identityFiniteCorrespondence := by
+  exact
+    diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_clopen_integral_components
+      (k := k) source1 source2
+      (fun C =>
+        Geometry.Topology.isClopen_irreducibleComponent_of_noetherian_locallyIrreducible
+          C.2 hLoc)
+      (by
+        intro C
+        exact hIntegral C)
+      DProduct listedEquiv hcomponent
+
+/-- Reduced locally irreducible specialization of the full bottom-up
+product-model-to-raw-support diagonal-sum theorem. This is the strongest
+currently honest owner theorem below the final identity-comparison step. -/
+theorem diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_reduced_locallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+        (k := k) source1 source2 hLoc
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent := by
+  exact diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_locallyIrreducible
+    (k := k) source1 source2 hLoc
+    (irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hLoc)
+
+/-- Reduced locally irreducible specialization of the direct identity theorem
+for the canonical raw-support diagonal external-product decomposition. -/
+theorem diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_reducedLocallyIrreducible
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hLoc :
+      Geometry.Topology.LocallyIrreducibleSpace
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (listedEquiv :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+          (k := k) source1 source2 hLoc
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) ≃
+        { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+            listed ∈ DProduct.components })
+    (hcomponent :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+          (k := k) source1 source2 hLoc
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent =
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+        (k := k) source1 source2 hLoc
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence = DProduct.identityFiniteCorrespondence := by
+  exact
+    diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_locallyIrreducible
+      (k := k) source1 source2 hLoc
+      (irreducibleComponentOpen_isIntegral_of_isReduced_locallyIrreducible
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme hLoc)
+      DProduct listedEquiv hcomponent
+
+/-- Reduced-components-open specialization of the full bottom-up
+product-model-to-raw-support diagonal-sum theorem. This removes the derived
+local-irreducibility hypothesis when component openness is proved directly. -/
+theorem diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_reduced_componentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+        (k := k) source1 source2 hOpen
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence =
+      ∑ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent := by
+  exact diagonal_externalProduct_rawSupport_eq_sum_diagonal_of_clopen_integral_components
+    (k := k) source1 source2
+    (fun C =>
+      ⟨isClosed_of_mem_irreducibleComponents C.1 C.2, hOpen C⟩)
+    (irreducibleComponentOpen_isIntegral_of_isReduced_componentsOpen
+      (product_diagonal_smoothObject (k := k) source1 source2).scheme hOpen)
+
+/-- Reduced-components-open specialization of the direct identity theorem for
+the canonical raw-support diagonal external-product decomposition. -/
+theorem diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_reduced_componentsOpen
+    {X1 X2 : Geometry.SmSchemeOver k}
+    (source1 : SourceIrreducibleComponent X1)
+    (source2 : SourceIrreducibleComponent X2)
+    [IsReduced (product_diagonal_smoothObject (k := k) source1 source2).scheme]
+    (hOpen :
+      ∀ C :
+        { C : Set (product_diagonal_smoothObject (k := k) source1 source2).scheme //
+            C ∈ irreducibleComponents
+              (product_diagonal_smoothObject (k := k) source1 source2).scheme },
+        IsOpen C.1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X1 X2))
+    (listedEquiv :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+          (k := k) source1 source2 hOpen
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ((FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index) ≃
+        { listed : SourceIrreducibleComponent (overBaseProductObject X1 X2) //
+            listed ∈ DProduct.components })
+    (hcomponent :
+      let hfinite :
+          (irreducibleComponents
+            (pullback
+              (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+              (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+        AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+      let realization :=
+        product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+          (k := k) source1 source2 hOpen
+      let decomposition :=
+        product_diagonal_supportCanonicalImageDecomposition
+          (k := k) source1 source2 hfinite realization
+      ∀ i :
+        (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+          (X := pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))
+          hfinite realization).index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          (decomposition.toRepresentedPrimeSupport i).sourceComponent =
+            SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    let hfinite :
+        (irreducibleComponents
+          (pullback
+            (SourceIrreducibleComponent.toAmbient source1 ≫ X1.structMap)
+            (SourceIrreducibleComponent.toAmbient source2 ≫ X2.structMap))).Finite :=
+      AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+    let realization :=
+      product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+        (k := k) source1 source2 hOpen
+    let decomposition :=
+      product_diagonal_supportCanonicalImageDecomposition
+        (k := k) source1 source2 hfinite realization
+    let rawDecomposition :=
+      diagonal_externalProductImageDecompositionOfProductModel
+        (k := k) source1 source2 decomposition
+    rawDecomposition.toFiniteCorrespondence = DProduct.identityFiniteCorrespondence := by
+  exact
+    diagonal_externalProduct_rawSupport_eq_identityFiniteCorrespondence_of_clopen_integral_components
+      (k := k) source1 source2
+      (fun C =>
+        ⟨isClosed_of_mem_irreducibleComponents C.1 C.2, hOpen C⟩)
+      (irreducibleComponentOpen_isIntegral_of_isReduced_componentsOpen
+        (product_diagonal_smoothObject (k := k) source1 source2).scheme hOpen)
+      DProduct listedEquiv hcomponent
+
+end PrimeFiniteCorrespondenceSupport
 
 namespace FiniteCorrespondencePresentation
 
@@ -1784,11 +5482,21 @@ theorem ext_smul_left
     exact (smul_add coeff (data.ext left1 right) (data.ext left2 right)).symm
   · intro leftPrime leftCoeff
     classical
-    simp [ext_single_left]
-    rw [Finsupp.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro rightPrime _hmem
-    simp [mul_assoc, mul_left_comm, mul_comm, smul_smul]
+    apply Finsupp.induction_linear right
+    · simp
+    · intro right₁ right₂ ihRight₁ ihRight₂
+      rw [ext_add_right, ext_add_right, ihRight₁, ihRight₂, smul_add]
+    · intro rightPrime rightCoeff
+      calc
+        data.ext (coeff • Finsupp.single leftPrime leftCoeff)
+            (Finsupp.single rightPrime rightCoeff)
+            = data.ext (Finsupp.single leftPrime (coeff * leftCoeff))
+                (Finsupp.single rightPrime rightCoeff) := by
+              simp
+        _ = coeff • data.ext (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [ext_single_single, ext_single_single]
+              simp [mul_assoc, mul_left_comm, mul_comm, smul_smul]
 
 theorem ext_smul_right
     (data : RepresentedPrimeFiniteCorrespondenceExternalProduct (k := k))
@@ -1804,11 +5512,21 @@ theorem ext_smul_right
     exact (smul_add coeff (data.ext left right1) (data.ext left right2)).symm
   · intro rightPrime rightCoeff
     classical
-    simp [ext_single_right]
-    rw [Finsupp.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro leftPrime _hmem
-    simp [mul_assoc, mul_left_comm, mul_comm, smul_smul]
+    apply Finsupp.induction_linear left
+    · simp
+    · intro left₁ left₂ ihLeft₁ ihLeft₂
+      rw [ext_add_left, ext_add_left, ihLeft₁, ihLeft₂, smul_add]
+    · intro leftPrime leftCoeff
+      calc
+        data.ext (Finsupp.single leftPrime leftCoeff)
+            (coeff • Finsupp.single rightPrime rightCoeff)
+            = data.ext (Finsupp.single leftPrime leftCoeff)
+                (Finsupp.single rightPrime (coeff * rightCoeff)) := by
+              simp
+        _ = coeff • data.ext (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [ext_single_single, ext_single_single]
+              simp [mul_assoc, mul_left_comm, mul_comm, smul_smul]
 
 @[simp] theorem representedPrimeExternalProduct_ext_zero_left
     (decompose :
@@ -2110,7 +5828,7 @@ theorem externalProductWithFamily_smul_right
         (Finsupp.single leftPrime 1)
         (Finsupp.single rightPrime 1) =
       family.data.extPrime leftPrime rightPrime := by
-  simpa using
+  exact
     externalProductWithFamily_single_single
       (family := family) leftPrime rightPrime (leftCoeff := 1) (rightCoeff := 1)
 
@@ -2142,7 +5860,7 @@ theorem externalProductWithFamily_single_single_eq_smul_one
         (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
         (Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented Q) 1) =
       FiniteCorrespondencePresentation.toGeom ((family.decompose P Q).toPresentation) := by
-  simpa using
+  exact
     congrArg id
       (RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily.data_extPrime_ofRepresented
         (family := family) P Q)
@@ -2219,6 +5937,90 @@ theorem externalProductWithFamily_diagonal_single_single_eq_sum_diagonal
               intro i
               exact hmult i)
 
+/-- Singleton diagonal external products identify directly with the identity
+finite correspondence of a certified product decomposition, once the diagonal
+image pieces are identified bijectively with its listed components. -/
+theorem externalProductWithFamily_diagonal_single_single_eq_identityFiniteCorrespondence_of_equiv_components
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (sourceX : SourceIrreducibleComponent X)
+    (sourceY : SourceIrreducibleComponent Y)
+    (hIso :
+      ∀ i :
+        (family.decompose
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).components.index,
+        IsIso
+          ((family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).toSourceImage i))
+    (hmult :
+      ∀ i :
+        (family.decompose
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).components.index,
+        (family.decompose
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).multiplicity i = 1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (listedEquiv :
+      (family.decompose
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+        (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).components.index ≃
+          { listed : SourceIrreducibleComponent (overBaseProductObject X Y) //
+              listed ∈ DProduct.components })
+    (hcomponent :
+      ∀ i :
+        (family.decompose
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+          (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).components.index,
+        SourceImageSubscheme.diagonalFiniteCorrespondence
+          ((family.decompose
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX)
+            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY)).toRepresentedPrimeSupport i).sourceComponent =
+          SourceIrreducibleComponent.diagonalFiniteCorrespondence (listedEquiv i).1) :
+    externalProductWithFamily family
+        (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceX)
+        (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceY) =
+      DProduct.identityFiniteCorrespondence := by
+  classical
+  let P := SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX
+  let Q := SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY
+  let decomposition := family.decompose P Q
+  have hdiagTarget :
+      (PrimeFiniteCorrespondenceSupport.externalProductSupport P Q).toProductTarget =
+        (PrimeFiniteCorrespondenceSupport.externalProductSupport P Q).toProductSource := by
+    exact PrimeFiniteCorrespondenceSupport.diagonal_externalProductSupport_toProductTarget_eq_toProductSource
+      (k := k) sourceX sourceY
+  calc
+    externalProductWithFamily family
+        (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceX)
+        (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceY) =
+      decomposition.toFiniteCorrespondence := by
+        simpa [P, Q, decomposition,
+          SourceIrreducibleComponent.diagonalPrimeGeom] using
+          calc
+            externalProductWithFamily family
+              (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceX)
+              (SourceIrreducibleComponent.diagonalFiniteCorrespondence sourceY) =
+            externalProductWithFamily family
+              (Finsupp.single (SourceIrreducibleComponent.diagonalPrimeGeom sourceX) 1)
+              (Finsupp.single (SourceIrreducibleComponent.diagonalPrimeGeom sourceY) 1) := by
+                rfl
+            _ = FiniteCorrespondencePresentation.toGeom decomposition.toPresentation := by
+                simpa [P, Q, decomposition,
+                  SourceIrreducibleComponent.diagonalPrimeGeom] using
+                  externalProductWithFamily_single_single_ofRepresented_one
+                    (family := family) P Q
+            _ = decomposition.toFiniteCorrespondence := by
+                rfl
+    _ = DProduct.identityFiniteCorrespondence := by
+        exact decomposition.toFiniteCorrespondence_eq_identityFiniteCorrespondence_of_equiv_components
+          hdiagTarget (by intro i; exact hIso i) (by intro i; exact hmult i)
+          DProduct listedEquiv hcomponent
+
 /-- The identity-by-identity external product is a sum of diagonal pieces from
 the actual raw diagonal product decompositions. This is the bilinear lift of
 `externalProductWithFamily_diagonal_single_single_eq_sum_diagonal`; it keeps
@@ -2283,6 +6085,36 @@ theorem externalProductWithFamily_identity_identity_eq_sum_diagonal_decompositio
       (by
         intro i
         exact hmult sourceX sourceY i)
+
+private theorem sum_sigma_sigma_eq_iterated_sum
+    {α : Type*} {β : α → Type*} {γ : (a : α) → β a → Type*}
+    [Fintype α] [∀ a, Fintype (β a)] [∀ a b, Fintype (γ a b)]
+    {M : Type*} [AddCommMonoid M]
+    (f : (Σ a : α, Σ b : β a, γ a b) → M) :
+    (∑ idx : (Σ a : α, Σ b : β a, γ a b), f idx) =
+      ∑ a : α, ∑ b : β a, ∑ c : γ a b, f ⟨a, b, c⟩ := by
+  classical
+  calc
+    (∑ idx : (Σ a : α, Σ b : β a, γ a b), f idx) =
+        ∑ idx in
+          ((Finset.univ : Finset α).sigma
+            (fun a => (Finset.univ : Finset (Σ b : β a, γ a b)))),
+          f idx := by
+          rw [Finset.univ_sigma_univ]
+    _ = ∑ a : α, ∑ bc : (Σ b : β a, γ a b), f ⟨a, bc⟩ := by
+          rw [Finset.sum_sigma]
+    _ = ∑ a : α, ∑ b : β a, ∑ c : γ a b, f ⟨a, b, c⟩ := by
+          apply Finset.sum_congr rfl
+          intro a _ha
+          calc
+            (∑ bc : (Σ b : β a, γ a b), f ⟨a, bc⟩) =
+                ∑ bc in
+                  ((Finset.univ : Finset (β a)).sigma
+                    (fun b => (Finset.univ : Finset (γ a b)))),
+                  f ⟨a, bc⟩ := by
+                  rw [Finset.univ_sigma_univ]
+            _ = ∑ b : β a, ∑ c : γ a b, f ⟨a, b, c⟩ := by
+                  rw [Finset.sum_sigma]
 
 /-- If the diagonal pieces produced by the raw identity-product
 decompositions are identified bijectively with the listed components of a
@@ -2363,15 +6195,6 @@ theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorresponde
         SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) idx.2.1.1
       let decomposition := family.decompose P Q
       (decomposition.toRepresentedPrimeSupport idx.2.2).sourceComponent
-  letI : Fintype
-      (Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
-        Σ sourceY : { sourceY : SourceIrreducibleComponent Y // sourceY ∈ DY.components },
-          (family.decompose
-            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceX.1)
-            (SourceIrreducibleComponent.diagonalRepresentedPrimeSupport (k := k) sourceY.1)).components.index) :=
-    Fintype.ofEquiv
-      { listed : SourceIrreducibleComponent (overBaseProductObject X Y) //
-          listed ∈ DProduct.components } listedEquiv.symm
   have hFormal :
       (∑ idx :
         (Σ sourceX : { sourceX : SourceIrreducibleComponent X // sourceX ∈ DX.components },
@@ -2399,13 +6222,16 @@ theorem externalProductWithFamily_identity_identity_eq_identityFiniteCorresponde
           SourceImageSubscheme.diagonalFiniteCorrespondence
             (sourceImage ⟨sourceX, sourceY, i⟩)) =
       DProduct.identityFiniteCorrespondence
-  simpa [sourceImage, Finset.univ_sigma_univ, Finset.sum_sigma] using hFormal
+  rw [← sum_sigma_sigma_eq_iterated_sum
+    (fun idx => SourceImageSubscheme.diagonalFiniteCorrespondence (sourceImage idx))]
+  exact hFormal
+
 
 /-- Bilinear lift for external-product/compose interchange.
 
 To prove full interchange on finite correspondences, it is enough to prove it
 on singleton generators. -/
-theorem externalProductWithFamily_comp_interchange_of_singletons
+private theorem externalProductWithFamily_comp_interchange_extend
     (family :
       RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
         (k := k))
@@ -2481,6 +6307,46 @@ theorem externalProductWithFamily_comp_interchange_of_singletons
         · intro gPrime' gCoeff'
           exact hSingle fPrime fCoeff gPrime gCoeff fPrime' fCoeff' gPrime' gCoeff'
 
+theorem externalProductWithFamily_comp_interchange_of_singletons
+    (family :
+      RepresentedPrimeFiniteCorrespondenceExternalProduct.ExternalProductDecompositionFamily
+        (k := k))
+    (compData : FiniteCorrespondenceCompositionData (k := k))
+    (hSingle :
+      ∀ {W1 X1 Y1 W2 X2 Y2 : Geometry.SmSchemeOver k}
+        (f : PrimeFiniteCorrespondenceGeom W1 X1)
+        (fCoeff : ℤ)
+        (g : PrimeFiniteCorrespondenceGeom X1 Y1)
+        (gCoeff : ℤ)
+        (f' : PrimeFiniteCorrespondenceGeom W2 X2)
+        (fCoeff' : ℤ)
+        (g' : PrimeFiniteCorrespondenceGeom X2 Y2)
+        (gCoeff' : ℤ),
+          externalProductWithFamily family
+              (FiniteCorrespondenceCompositionData.comp compData
+                (Finsupp.single f fCoeff) (Finsupp.single g gCoeff))
+              (FiniteCorrespondenceCompositionData.comp compData
+                (Finsupp.single f' fCoeff') (Finsupp.single g' gCoeff'))
+            =
+              FiniteCorrespondenceCompositionData.comp compData
+                (externalProductWithFamily family
+                  (Finsupp.single f fCoeff) (Finsupp.single f' fCoeff'))
+                (externalProductWithFamily family
+                  (Finsupp.single g gCoeff) (Finsupp.single g' gCoeff')))
+    {W1 X1 Y1 W2 X2 Y2 : Geometry.SmSchemeOver k}
+    (f : FiniteCorrespondence W1 X1)
+    (g : FiniteCorrespondence X1 Y1)
+    (f' : FiniteCorrespondence W2 X2)
+    (g' : FiniteCorrespondence X2 Y2) :
+    externalProductWithFamily family
+        (FiniteCorrespondenceCompositionData.comp compData f g)
+        (FiniteCorrespondenceCompositionData.comp compData f' g')
+      =
+        FiniteCorrespondenceCompositionData.comp compData
+          (externalProductWithFamily family f f')
+          (externalProductWithFamily family g g') :=
+  externalProductWithFamily_comp_interchange_extend family compData hSingle f g f' g'
+
 /-- Prime-level external-product/compose interchange implies full interchange
 on finite correspondences. -/
 theorem externalProductWithFamily_comp_interchange_of_primes
@@ -2545,7 +6411,17 @@ theorem externalProductWithFamily_comp_interchange_of_primes
           ((gCoeff * gCoeff') •
             (externalProductWithFamily family (Finsupp.single gPrime 1) (Finsupp.single gPrime' 1))) := by
             rw [show ((fCoeff * gCoeff) * (fCoeff' * gCoeff')) =
-                (fCoeff * fCoeff') * (gCoeff * gCoeff') by ring]
+                (fCoeff * fCoeff') * (gCoeff * gCoeff') by
+              calc
+                (fCoeff * gCoeff) * (fCoeff' * gCoeff') =
+                    fCoeff * (gCoeff * (fCoeff' * gCoeff')) := by rw [mul_assoc]
+                _ = fCoeff * ((gCoeff * fCoeff') * gCoeff') := by
+                      rw [← mul_assoc gCoeff fCoeff' gCoeff']
+                _ = fCoeff * ((fCoeff' * gCoeff) * gCoeff') := by
+                      rw [mul_comm gCoeff fCoeff']
+                _ = fCoeff * (fCoeff' * (gCoeff * gCoeff')) := by
+                      rw [mul_assoc fCoeff' gCoeff gCoeff']
+                _ = (fCoeff * fCoeff') * (gCoeff * gCoeff') := by rw [← mul_assoc]]
             rw [← smul_smul]
             rw [← FiniteCorrespondenceCompositionData.comp_smul_right]
             rw [← FiniteCorrespondenceCompositionData.comp_smul_left]
@@ -2661,7 +6537,7 @@ theorem product_single_single_one
         (Finsupp.single leftPrime 1)
         (Finsupp.single rightPrime 1) =
       package.family.data.extPrime leftPrime rightPrime := by
-  simpa using
+  exact
     product_single_single
       (package := package) leftPrime rightPrime (leftCoeff := 1) (rightCoeff := 1)
 

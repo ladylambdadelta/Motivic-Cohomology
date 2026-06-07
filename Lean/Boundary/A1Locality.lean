@@ -1,4 +1,5 @@
 import Boundary.A1ProjectionCorrespondence
+import Boundary.NisnevichPullbackTransfer
 /-!
 This file was split out of `Boundary.A1Geometry`; declarations remain in
 namespace `Boundary` under their mathematical owner layer.
@@ -97,7 +98,7 @@ theorem IsA1Local_iff_QtrLinear_inverts_A1Projection
     let ep : F.toPST.obj (Opposite.op X) ≃ₗ[ℚ] F.toPST.obj (Opposite.op (productWithA1 X)) :=
       (asIso p).toLinearEquiv
     have hpBij : Function.Bijective p := by
-      simpa using ep.bijective
+      exact ep.bijective
     refine ⟨?_, ?_⟩
     · intro η₁ η₂ hη
       apply (QtrLinear_yoneda F X).injective
@@ -112,7 +113,7 @@ theorem IsA1Local_iff_QtrLinear_inverts_A1Projection
                 exact h₁
         _ = QtrLinear_yoneda F (productWithA1 X)
               ((projectionToBase_QtrMapOfDecomposition category X D) ≫ η₂) := by
-                simpa using congrArg (QtrLinear_yoneda F (productWithA1 X)) hη
+                exact congrArg (QtrLinear_yoneda F (productWithA1 X)) hη
         _ = p (QtrLinear_yoneda F X η₂) := h₂
     · intro θ
       rcases hpBij.2 (QtrLinear_yoneda F (productWithA1 X) θ) with ⟨x, hx⟩
@@ -179,7 +180,7 @@ theorem IsA1Local_iff_QtrLinear_inverts_A1Projection
                   symm
                   exact QtrLinear_yoneda_representableA1Projection (F := F) X D η
           _ = QtrLinear_yoneda F (productWithA1 X) θ := by
-                simpa using congrArg (QtrLinear_yoneda F (productWithA1 X)) hη
+                exact congrArg (QtrLinear_yoneda F (productWithA1 X)) hη
           _ = y := (QtrLinear_yoneda F (productWithA1 X)).right_inv y
     exact
       (LinearEquiv.toModuleIso'
@@ -680,22 +681,34 @@ theorem isLinearA1NisLocal_pullback
         · simpa [vLin, Category.assoc] using hηG.2
     · intro η hη
       apply CategoryTheory.Limits.pullback.hom_ext
-      · simpa using huniqF
-          (η ≫ CategoryTheory.Limits.pullback.fst f g)
-          (by
-            constructor
-            · simpa [uLin, Category.assoc] using
-                congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.fst f g) hη.1
-            · simpa [vLin, Category.assoc] using
-                congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.fst f g) hη.2)
-      · simpa using huniqG
-          (η ≫ CategoryTheory.Limits.pullback.snd f g)
-          (by
-            constructor
-            · simpa [uLin, Category.assoc] using
-                congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.snd f g) hη.1
-            · simpa [vLin, Category.assoc] using
-                congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.snd f g) hη.2)
+      · calc
+          η ≫ CategoryTheory.Limits.pullback.fst f g = ηF :=
+            huniqF
+              (η ≫ CategoryTheory.Limits.pullback.fst f g)
+              (by
+                constructor
+                · simpa [uLin, Category.assoc] using
+                    congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.fst f g) hη.1
+                · simpa [vLin, Category.assoc] using
+                    congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.fst f g) hη.2)
+          _ = CategoryTheory.Limits.pullback.lift ηF ηG hcompat ≫
+              CategoryTheory.Limits.pullback.fst f g := by
+                symm
+                exact CategoryTheory.Limits.pullback.lift_fst ηF ηG hcompat
+      · calc
+          η ≫ CategoryTheory.Limits.pullback.snd f g = ηG :=
+            huniqG
+              (η ≫ CategoryTheory.Limits.pullback.snd f g)
+              (by
+                constructor
+                · simpa [uLin, Category.assoc] using
+                    congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.snd f g) hη.1
+                · simpa [vLin, Category.assoc] using
+                    congrArg (fun z => z ≫ CategoryTheory.Limits.pullback.snd f g) hη.2)
+          _ = CategoryTheory.Limits.pullback.lift ηF ηG hcompat ≫
+              CategoryTheory.Limits.pullback.snd f g := by
+                symm
+                exact CategoryTheory.Limits.pullback.lift_snd ηF ηG hcompat
 
 /-- The bundled category of A1/Nis-local linear presheaves has pullbacks,
 constructed as ambient pullbacks in `LinearPST` with locality supplied by
@@ -756,8 +769,30 @@ noncomputable instance hasPullback
             ((inclusion category).map s.fst)
             ((inclusion category).map s.snd) _
       apply CategoryTheory.Limits.pullback.hom_ext
-      · simpa using congrArg ((inclusion category).map) hfst
-      · simpa using congrArg ((inclusion category).map) hsnd
+      · calc
+          (inclusion category).map m ≫ CategoryTheory.Limits.pullback.fst f' g' =
+              (inclusion category).map s.fst := by
+                exact congrArg ((inclusion category).map) hfst
+          _ = CategoryTheory.Limits.pullback.lift
+                ((inclusion category).map s.fst)
+                ((inclusion category).map s.snd) _ ≫
+              CategoryTheory.Limits.pullback.fst f' g' := by
+                symm
+                exact CategoryTheory.Limits.pullback.lift_fst
+                  ((inclusion category).map s.fst)
+                  ((inclusion category).map s.snd) _
+      · calc
+          (inclusion category).map m ≫ CategoryTheory.Limits.pullback.snd f' g' =
+              (inclusion category).map s.snd := by
+                exact congrArg ((inclusion category).map) hsnd
+          _ = CategoryTheory.Limits.pullback.lift
+                ((inclusion category).map s.fst)
+                ((inclusion category).map s.snd) _ ≫
+              CategoryTheory.Limits.pullback.snd f' g' := by
+                symm
+                exact CategoryTheory.Limits.pullback.lift_snd
+                  ((inclusion category).map s.fst)
+                  ((inclusion category).map s.snd) _
 
 /-- A1/Nis-local linear presheaves have all pullbacks. -/
 noncomputable instance hasPullbacks
@@ -799,6 +834,36 @@ noncomputable def pullback_isLimit_of_ambient
 
 end LinearA1NisLocalPST
 
+/-- A morphism of linear presheaves into the actual zero presheaf is unique. -/
+theorem LinearPST.hom_to_zero_subsingleton
+    {category : SmCorQ (k := k)}
+    (F : LinearPST category) :
+    Subsingleton (F.toPST ⟶ (LinearPST.zero (category := category)).toPST) := by
+  letI := SmCorQCat category
+  constructor
+  intro η₁ η₂
+  apply NatTrans.ext
+  apply _root_.funext
+  intro X
+  apply LinearMap.ext
+  intro x
+  cases η₁.app X x
+  cases η₂.app X x
+  rfl
+
+/-- Maps from representable transfer presheaves into the actual zero presheaf
+are unique. -/
+theorem Qtr_hom_to_linearPST_zero_subsingleton
+    {category : SmCorQ (k := k)}
+    (X : Geometry.SmSchemeOver k) :
+    Subsingleton (Qtr (category := category) X ⟶
+      (LinearPST.zero (category := category)).toPST) := by
+  change Subsingleton
+    ((QtrLinear (category := category) X).toPST ⟶
+      (LinearPST.zero (category := category)).toPST)
+  exact LinearPST.hom_to_zero_subsingleton
+    (QtrLinear (category := category) X)
+
 theorem isLinearA1NisLocal_zero
     {category : SmCorQ (k := k)} :
     IsLinearA1NisLocal (LinearPST.zero (category := category)) := by
@@ -808,21 +873,30 @@ theorem isLinearA1NisLocal_zero
   · intro X D
     constructor
     · intro η₁ η₂
-      apply Subsingleton.elim
+      intro _hη
+      exact (LinearPST.hom_to_zero_subsingleton
+        (QtrLinear (category := category) X)).elim η₁ η₂
     · intro η
       refine ⟨0, ?_⟩
-      apply Subsingleton.elim
+      exact (LinearPST.hom_to_zero_subsingleton
+        (QtrLinear (category := category) (productWithA1 X))).elim _ _
   · intro square ηopen ηpatch hoverlap
     refine ⟨0, ?_, ?_⟩
-    · constructor <;> apply Subsingleton.elim
+    · constructor
+      · exact (LinearPST.hom_to_zero_subsingleton
+          (QtrLinear (category := category) square.openPiece)).elim _ _
+      · exact (LinearPST.hom_to_zero_subsingleton
+          (QtrLinear (category := category) square.patchPiece)).elim _ _
     · intro η hη
-      apply Subsingleton.elim
+      exact (LinearPST.hom_to_zero_subsingleton
+        (QtrLinear (category := category) square.base)).elim η 0
 
 /-- The bundled local category has a zero object, obtained by equipping the
 ambient zero object with its locality proof. -/
 noncomputable instance linearA1NisLocalPST_hasZeroObject
     {category : SmCorQ (k := k)} :
     CategoryTheory.Limits.HasZeroObject (LinearA1NisLocalPST category) := by
+  letI := SmCorQCat category
   letI : Preadditive (LinearA1NisLocalPST category) :=
     LinearA1NisLocalPST.preadditive (category := category)
   let Z : LinearA1NisLocalPST category :=
@@ -831,12 +905,27 @@ noncomputable instance linearA1NisLocalPST_hasZeroObject
   refine ⟨?_, ?_⟩
   · intro Y
     exact
-      { default := 0
-        uniq := fun f => Subsingleton.elim f 0 }
+      ⟨{ default := 0,
+          uniq := fun f => by
+            apply NatTrans.ext
+            apply _root_.funext
+            intro X
+            apply LinearMap.ext
+            intro x
+            cases x
+            change (f.app X) 0 = 0
+            exact (f.app X).map_zero }⟩
   · intro Y
     exact
-      { default := 0
-        uniq := fun f => Subsingleton.elim f 0 }
+      ⟨{ default := 0,
+          uniq := fun f => by
+            apply NatTrans.ext
+            apply _root_.funext
+            intro X
+            apply LinearMap.ext
+            intro x
+            cases f.app X x
+            rfl }⟩
 
 
 def A1NisLocalPST (category : SmCorQ (k := k)) :=
@@ -924,5 +1013,7 @@ theorem isNisnevichLocal {category : SmCorQ (k := k)}
   F.2.2
 
 end A1NisLocalPST
+
+end
 
 end Boundary

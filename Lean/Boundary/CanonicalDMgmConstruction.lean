@@ -1,3 +1,4 @@
+import Boundary.DMgm
 import Boundary.InternalPresentationPackage
 
 /-!
@@ -47,6 +48,12 @@ abbrev canonicalExternalProduct
     FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k) :=
   presentation.canonicalExternalProductData
 
+@[simp] theorem canonicalExternalProduct_eq_data
+    {category : SmCorQ (k := k)}
+    (presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category) :
+    presentation.canonicalExternalProduct = presentation.canonicalExternalProductData :=
+  rfl
+
 end CanonicalEffectiveMotivicPresentationQ
 
 /-- Canonical Boundary-side Tate object data exported to the classical motives
@@ -87,6 +94,155 @@ equivalences. Product-stability theorems identify Tate-stabilized primitive
 generators with maps in this class before this theorem is applied. -/
 abbrev localizationCompatibility :=
   @canonicalEffectiveMotivesLocalizationFunctor_map_degreeZero_isIso_of_localEquivalence
+
+@[simp] theorem localizationCompatibility_eq_canonical :
+    localizationCompatibility (k := k) =
+      @canonicalEffectiveMotivesLocalizationFunctor_map_degreeZero_isIso_of_localEquivalence k _ _ :=
+  rfl
+
+abbrev composition
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :=
+  input.tateObjectData.witnessData.composition
+
+abbrev composition
+    {category : SmCorQ (k := k)}
+    (input : CanonicalDMgmInputDataQ category) :=
+  input.tateStabilizationInput.tateObjectData.witnessData.composition
+
+/-- The effective Tate object carried by a classical stabilization input is the
+owner-level Boundary Tate object for the witness composition. -/
+abbrev effectiveTateObject
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    canonicalEffectiveMotives input.composition :=
+  boundaryEffectiveTateObject
+    (composition := input.composition)
+
+/-- Canonical owner-level Tate datum for a classical stabilization input.
+This is the theorem-shaped surface downstream code should prefer over the
+witness field. -/
+abbrev canonicalTateDatum
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :=
+  input.effectiveTateObject
+
+@[simp] theorem canonicalTateDatum_eq_tateObjectData_tateDatum
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    input.canonicalTateDatum = input.effectiveTateObject :=
+  rfl
+
+@[simp] theorem effectiveTateObject_eq_boundaryEffectiveTateObject
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    input.effectiveTateObject =
+      boundaryEffectiveTateObject
+        (composition := input.composition) :=
+  rfl
+
+/-- The reduced projective-line motive carried by a classical stabilization
+input is the owner-level reduced `P¹` motive for the witness composition. -/
+abbrev reducedProjectiveLineMotive
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    canonicalEffectiveMotives input.composition :=
+  boundaryReducedProjectiveLineMotive
+    (composition := input.composition)
+
+/-- Canonical owner-level reduced projective-line motive datum exposed without
+the witness record as the primary surface. -/
+abbrev canonicalReducedProjectiveLineMotive
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :=
+  input.reducedProjectiveLineMotive
+
+@[simp] theorem canonicalReducedProjectiveLineMotive_eq_reducedProjectiveLineMotive
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    input.canonicalReducedProjectiveLineMotive = input.reducedProjectiveLineMotive :=
+  rfl
+
+@[simp] theorem reducedProjectiveLineMotive_eq_boundaryReducedProjectiveLineMotive
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    input.reducedProjectiveLineMotive =
+      boundaryReducedProjectiveLineMotive (composition := input.composition) :=
+  rfl
+
+/-- The shifted-Tate/reduced-`P¹` identification consumed by stabilization,
+routed through the owner theorem rather than through presentation fields. -/
+theorem effectiveTateObject_shifted_iso_reducedProjectiveLine
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    Nonempty
+      (((shiftFunctor
+          (canonicalEffectiveMotives input.composition)
+          (2 : ℤ)).obj
+          (effectiveTateObject input)) ≅
+        reducedProjectiveLineMotive input) :=
+  boundaryEffectiveTateObject_shifted_iso_reducedProjectiveLine
+    (composition := input.composition)
+
+/-- The reduced-`P¹` cone theorem consumed by stabilization, routed through
+the owner theorem rather than through presentation fields. -/
+theorem reducedProjectiveLineMotive_isCone
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    ∃ (projectiveLineToReduced :
+          boundaryProjectiveLineMotive
+              (composition := input.composition) ⟶
+            reducedProjectiveLineMotive input)
+        (reducedToShiftedUnit :
+          reducedProjectiveLineMotive input ⟶
+            (shiftFunctor
+              (canonicalEffectiveMotives input.composition)
+              (1 : ℤ)).obj
+              (canonicalUnitMotive input.composition)),
+      ({ obj₁ := canonicalUnitMotive input.composition
+         obj₂ := boundaryProjectiveLineMotive
+            (composition := input.composition)
+         obj₃ := reducedProjectiveLineMotive input
+         mor₁ := boundaryUnitToProjectiveLineMotive
+            (composition := input.composition)
+         mor₂ := projectiveLineToReduced
+         mor₃ := reducedToShiftedUnit } :
+          CategoryTheory.Pretriangulated.Triangle
+            (canonicalEffectiveMotives input.composition)) ∈
+        distTriang (canonicalEffectiveMotives input.composition) :=
+  boundaryReducedProjectiveLineMotive_isCone
+    (composition := input.composition)
+
+/-- The classical stabilization input consumes the owner-level DMgm universal
+property built from the projective-geometric Tate object. -/
+abbrev dmgmUniversalProperty
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    VoevodskyDMgmTateStabilizationUniversalProperty
+      (composition := input.composition) :=
+  VoevodskyDMgmTateStabilizationUniversalProperty.canonical
+    (composition := input.composition)
+
+@[simp] theorem dmgmUniversalProperty_eq_canonical
+    {category : SmCorQ (k := k)}
+    {presentation : CanonicalEffectiveMotivicPresentationQ (k := k) category}
+    (input : CanonicalTateStabilizationInputQ (k := k) category presentation) :
+    input.dmgmUniversalProperty =
+      VoevodskyDMgmTateStabilizationUniversalProperty.canonical
+        (composition := input.composition) :=
+  rfl
 
 end CanonicalTateStabilizationInputQ
 

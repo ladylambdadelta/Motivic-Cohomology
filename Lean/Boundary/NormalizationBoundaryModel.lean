@@ -205,7 +205,7 @@ theorem branchWeight_mul_branchMultiplicity {C : Geometry.SmSchemeOver k}
     (model : NormalizationBoundaryModel C) (boundaryIndex : model.boundaryIndex) :
     model.branchWeight boundaryIndex * model.branchMultiplicity boundaryIndex = 1 := by
   unfold branchWeight
-  field_simp [model.branchMultiplicity_ne_zero boundaryIndex]
+  exact inv_mul_cancel₀ (model.branchMultiplicity_ne_zero boundaryIndex)
 
 /-- The diagonal geometric class determined by the pushed boundary branch. -/
 def landingClass {C : Geometry.SmSchemeOver k}
@@ -310,6 +310,40 @@ theorem pushforwardCycle_add {C : Geometry.SmSchemeOver k}
   change Finsupp.mapDomain _ (Finsupp.single boundaryIndex coefficient) = _
   exact Finsupp.mapDomain_single
 
+private theorem pushforwardCycle_single_apply_of_landing_eq
+    {C : Geometry.SmSchemeOver k}
+    (model : NormalizationBoundaryModel C)
+    [DecidableEq (PrimeFiniteCorrespondenceGeom C C)]
+    (boundaryIndex : model.boundaryIndex) (coefficient : ℤ)
+    (primeClass : PrimeFiniteCorrespondenceGeom C C)
+    (hclass :
+      PrimeFiniteCorrespondenceGeom.ofRepresented
+        (PushforwardPrimeSupportData.toRepresentedPrimeSupport
+          ((model.toStratumGeometry.datum boundaryIndex).toPushforwardPrimeSupportData)) =
+        primeClass) :
+    model.pushforwardCycle (Finsupp.single boundaryIndex coefficient) primeClass =
+      coefficient := by
+  rw [pushforwardCycle_single]
+  simp only [Finsupp.single_apply]
+  exact if_pos hclass
+
+private theorem pushforwardCycle_single_apply_of_landing_ne
+    {C : Geometry.SmSchemeOver k}
+    (model : NormalizationBoundaryModel C)
+    [DecidableEq (PrimeFiniteCorrespondenceGeom C C)]
+    (boundaryIndex : model.boundaryIndex) (coefficient : ℤ)
+    (primeClass : PrimeFiniteCorrespondenceGeom C C)
+    (hclass :
+      PrimeFiniteCorrespondenceGeom.ofRepresented
+        (PushforwardPrimeSupportData.toRepresentedPrimeSupport
+          ((model.toStratumGeometry.datum boundaryIndex).toPushforwardPrimeSupportData)) ≠
+        primeClass) :
+    model.pushforwardCycle (Finsupp.single boundaryIndex coefficient) primeClass =
+      0 := by
+  rw [pushforwardCycle_single]
+  simp only [Finsupp.single_apply]
+  exact if_neg hclass
+
 /-- Coefficient formula for the pushforward of a normalized boundary cycle. -/
 theorem pushforwardCycle_apply {C : Geometry.SmSchemeOver k}
     (model : NormalizationBoundaryModel C)
@@ -342,28 +376,39 @@ theorem pushforwardCycle_apply {C : Geometry.SmSchemeOver k}
         (PushforwardPrimeSupportData.toRepresentedPrimeSupport
         ((model.toStratumGeometry.datum boundaryIndex).toPushforwardPrimeSupportData)) = primeClass
       · rw [pushforwardCycle_single, Finset.sum_eq_single boundaryIndex]
-        · simp [hclass, Finsupp.single_apply, eq_comm]
+        · rw [← hclass]
+          rw [Finsupp.single_eq_same, Finsupp.single_eq_same]
+          rw [if_pos rfl]
         · intro boundaryIndex' _ hneq
           have hneq' : boundaryIndex ≠ boundaryIndex' := by
             intro h
             exact hneq h.symm
-          simp [Finsupp.single_apply, hneq', eq_comm]
-        · simp
-      · rw [pushforwardCycle_single]
-        rw [show
-            (Finsupp.single
-              (PrimeFiniteCorrespondenceGeom.ofRepresented
-                (PushforwardPrimeSupportData.toRepresentedPrimeSupport
-                  ((model.toStratumGeometry.datum boundaryIndex).toPushforwardPrimeSupportData)))
-              coefficient) primeClass = 0 by
-              simp [Finsupp.single_apply, hclass, eq_comm]]
+          by_cases hclass' :
+            PrimeFiniteCorrespondenceGeom.ofRepresented
+              (PushforwardPrimeSupportData.toRepresentedPrimeSupport
+                ((model.toStratumGeometry.datum boundaryIndex').toPushforwardPrimeSupportData)) =
+              primeClass
+          · rw [if_pos hclass']
+            exact Finsupp.single_eq_of_ne hneq'
+          · rw [if_neg hclass']
+        · intro hnot
+          exact False.elim (hnot (Finset.mem_univ boundaryIndex))
+      · rw [pushforwardCycle_single_apply_of_landing_ne model boundaryIndex coefficient primeClass hclass]
         symm
         apply Finset.sum_eq_zero
         intro boundaryIndex' _
         by_cases hneq : boundaryIndex = boundaryIndex'
         · subst hneq
-          simp [hclass, eq_comm]
-        · simp [Finsupp.single_apply, hneq, eq_comm]
+          rw [if_neg hclass]
+        · have hneq' : boundaryIndex ≠ boundaryIndex' := hneq
+          by_cases hclass' :
+            PrimeFiniteCorrespondenceGeom.ofRepresented
+              (PushforwardPrimeSupportData.toRepresentedPrimeSupport
+                ((model.toStratumGeometry.datum boundaryIndex').toPushforwardPrimeSupportData)) =
+              primeClass
+          · rw [if_pos hclass']
+            exact Finsupp.single_eq_of_ne hneq'
+          · rw [if_neg hclass']
 
 /-- Pushing forward the weighted normalized boundary cycle recovers the raw
 boundary correspondence attached to the model. -/
@@ -398,7 +443,7 @@ theorem landingClass_mem_diagonalPrimeClasses {C : Geometry.SmSchemeOver k}
     SourceIrreducibleComponent.diagonalPrimeGeom listed.1
       = SourceIrreducibleComponent.diagonalPrimeGeom
           (model.targetSourceComponent boundaryIndex) := by
-            simpa using
+            exact
               (SourceIrreducibleComponent.diagonalPrimeGeom_eq_of_isoOverAmbient hiso).symm
     _ = model.landingClass boundaryIndex := by
           symm
@@ -432,6 +477,33 @@ theorem exists_unique_boundaryIndex_of_diagonalPrimeClass
   · intro boundaryIndex' hboundaryIndex'
     exact model.landingClass_injective (hboundaryIndex'.trans hboundaryIndex.symm)
 
+private theorem weightedBoundaryCycleQ_pushforward_summand_of_landing_eq
+    {C : Geometry.SmSchemeOver k}
+    (model : NormalizationBoundaryModel C)
+    [DecidableEq (PrimeFiniteCorrespondenceGeom C C)]
+    (boundaryIndex : model.boundaryIndex)
+    (primeClass : PrimeFiniteCorrespondenceGeom C C)
+    (hlanding : primeClass = model.landingClass boundaryIndex) :
+    (if primeClass = model.landingClass boundaryIndex then
+        model.weightedBoundaryCycleQ boundaryIndex * model.branchMultiplicity boundaryIndex
+      else
+        0) = 1 := by
+  rw [if_pos hlanding]
+  exact model.branchWeight_mul_branchMultiplicity boundaryIndex
+
+private theorem weightedBoundaryCycleQ_pushforward_summand_of_landing_ne
+    {C : Geometry.SmSchemeOver k}
+    (model : NormalizationBoundaryModel C)
+    [DecidableEq (PrimeFiniteCorrespondenceGeom C C)]
+    (boundaryIndex : model.boundaryIndex)
+    (primeClass : PrimeFiniteCorrespondenceGeom C C)
+    (hlanding : primeClass ≠ model.landingClass boundaryIndex) :
+    (if primeClass = model.landingClass boundaryIndex then
+        model.weightedBoundaryCycleQ boundaryIndex * model.branchMultiplicity boundaryIndex
+      else
+        0) = 0 := by
+  exact if_neg hlanding
+
 /-- Coefficient theorem for the concretely weighted normalized boundary cycle.
 The divisor multiplicity `e_η` and the normalization weight `e_η⁻¹` cancel on
 diagonal classes, and no off-diagonal prime class appears in the pushforward
@@ -451,14 +523,16 @@ theorem weightedBoundaryCycleQ_coeff_eq_indicator
     rcases model.exists_unique_boundaryIndex_of_diagonalPrimeClass decomposition hprime with
       ⟨boundaryIndex, hboundaryIndex, hunique⟩
     rw [Finset.sum_eq_single boundaryIndex]
-    · simp [weightedBoundaryCycleQ_apply, hboundaryIndex,
-        model.branchWeight_mul_branchMultiplicity]
+    · exact weightedBoundaryCycleQ_pushforward_summand_of_landing_eq
+        model boundaryIndex primeClass hboundaryIndex.symm
     · intro boundaryIndex' _ hneq
       have hnot : primeClass ≠ model.landingClass boundaryIndex' := by
         intro hboundaryIndex'
         exact hneq ((hunique boundaryIndex') hboundaryIndex'.symm)
-      simp [weightedBoundaryCycleQ_apply, hnot]
-    · simp
+      exact weightedBoundaryCycleQ_pushforward_summand_of_landing_ne
+        model boundaryIndex' primeClass hnot
+    · intro hnot
+      exact False.elim (hnot (Finset.mem_univ boundaryIndex))
   · rw [if_neg hprime]
     refine Finset.sum_eq_zero ?_
     intro boundaryIndex _
@@ -467,8 +541,10 @@ theorem weightedBoundaryCycleQ_coeff_eq_indicator
     have hnot : primeClass ≠ model.landingClass boundaryIndex := by
       intro hboundaryIndex
       apply hprime
-      simpa [hboundaryIndex] using hdiag
-    simp [weightedBoundaryCycleQ_apply, hnot]
+      rw [hboundaryIndex]
+      exact hdiag
+    exact weightedBoundaryCycleQ_pushforward_summand_of_landing_ne
+      model boundaryIndex primeClass hnot
 
 /-- Concrete normalization closeout theorem: the weighted normalized boundary
 divisor pushes forward to the diagonal identity correspondence because the

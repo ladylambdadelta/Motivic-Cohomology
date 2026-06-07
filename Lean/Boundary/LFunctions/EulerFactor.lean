@@ -9,6 +9,9 @@ This file starts the Boundary L-functions stack at the linear-algebra layer.
 For a finite-dimensional endomorphism `F`, the Euler polynomial is the
 basis-free reverse characteristic polynomial, i.e. the polynomial represented
 in a basis by `det(1 - T F)`.
+
+This is the linear-algebra convention underlying cohomological local factors;
+cf. Serre, *Zeta and L Functions*, §1, and Milne, *Étale Cohomology*, VI.13.
 -/
 
 universe u v w
@@ -28,7 +31,8 @@ variable [AddCommGroup W] [Module K W] [FiniteDimensional K W]
 /-- The algebraic Euler polynomial of a finite-dimensional endomorphism.
 
 This is the reverse characteristic polynomial. In coordinates it is
-`det (1 - T • F)`, so it is the local-factor polynomial before inversion. -/
+`det (1 - T • F)`, so it is the local-factor polynomial before inversion; cf.
+Serre, *Zeta and L Functions*, §1. -/
 def eulerPolynomial (F : Module.End K V) : K[X] :=
   F.charpoly.reverse
 

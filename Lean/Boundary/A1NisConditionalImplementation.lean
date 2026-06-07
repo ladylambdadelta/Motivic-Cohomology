@@ -19,12 +19,13 @@ namespace Boundary
 noncomputable section
 
 variable {k : Type u} [Field k] [PerfectField k]
-/-- Legacy compatibility package for downstream effective-motive files that
-still request several localization structures at once.
+/-- Compatibility bundle of canonical A1/Nis localization structure for downstream
+consumers that request multiple localization components at once.
 
-The core A1/Nis development does not use this as a construction of the
-localization. Each field is consumed through the projection lemmas below while
-the actual weak-equivalence and localization theorems live in the owner modules. -/
+Core A1/Nis constructions are provided in owner modules; this record packages
+their stable projections for API compatibility during gradual downstream
+migration. Reference: Gabriel–Zisman, `Calculus of Fractions and Homotopy
+Theory`. -/
 structure CanonicalA1NisLocalizationImplementation
     (composition : Boundary.CanonicalCompositionData (k := k)) where
   sourcePreadditive :
@@ -323,7 +324,7 @@ theorem canonicalA1NisSheafification_map_isLocal
       (canonicalA1NisSheafificationAdjunction composition implementation).counit.app M =
         (canonicalA1NisSheafificationAdjunction composition implementation).counit.app L ≫ φ := by
   letI := implementation.sourcePreadditive
-  simpa using
+  exact
     (canonicalA1NisSheafificationAdjunction
       composition implementation).counit.naturality φ
 

@@ -91,6 +91,18 @@ theorem compQ_add_right (data : FiniteCorrespondenceCompositionData (k := k))
   ext leftPrime leftCoeff
   rw [Finsupp.sum_add_index'] <;> simp [mul_add, add_smul, zero_mul]
 
+@[simp] theorem compQ_single_single (data : FiniteCorrespondenceCompositionData (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (leftPrime : PrimeFiniteCorrespondenceGeom X Y)
+    (rightPrime : PrimeFiniteCorrespondenceGeom Y Z)
+    (leftCoeff rightCoeff : ℚ) :
+    data.compQ (Finsupp.single leftPrime leftCoeff)
+      (Finsupp.single rightPrime rightCoeff) =
+        (leftCoeff * rightCoeff) • FiniteCorrespondence.toRational (data.compPrime leftPrime rightPrime) := by
+  classical
+  rw [FiniteCorrespondenceCompositionData.compQ]
+  simp
+
 theorem compQ_smul_left (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
     (coeff : ℚ)
@@ -110,8 +122,17 @@ theorem compQ_smul_left (data : FiniteCorrespondenceCompositionData (k := k))
         FiniteCorrespondenceCompositionData.compQ_add_right, ihRight₁, ihRight₂,
         smul_add]
     · intro rightPrime rightCoeff
-      simp [FiniteCorrespondenceCompositionData.compQ, smul_smul,
-        mul_assoc, mul_left_comm, mul_comm]
+      calc
+        data.compQ (coeff • Finsupp.single prime primeCoeff)
+            (Finsupp.single rightPrime rightCoeff)
+            = data.compQ (Finsupp.single prime (coeff * primeCoeff))
+                (Finsupp.single rightPrime rightCoeff) := by
+              simp
+        _ = coeff • data.compQ (Finsupp.single prime primeCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [FiniteCorrespondenceCompositionData.compQ_single_single,
+                FiniteCorrespondenceCompositionData.compQ_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 theorem compQ_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
@@ -132,20 +153,17 @@ theorem compQ_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
         FiniteCorrespondenceCompositionData.compQ_add_left, ihLeft₁, ihLeft₂,
         smul_add]
     · intro leftPrime leftCoeff
-      simp [FiniteCorrespondenceCompositionData.compQ, smul_smul,
-        mul_assoc, mul_left_comm, mul_comm]
-
-@[simp] theorem compQ_single_single (data : FiniteCorrespondenceCompositionData (k := k))
-    {X Y Z : Geometry.SmSchemeOver k}
-    (leftPrime : PrimeFiniteCorrespondenceGeom X Y)
-    (rightPrime : PrimeFiniteCorrespondenceGeom Y Z)
-    (leftCoeff rightCoeff : ℚ) :
-    data.compQ (Finsupp.single leftPrime leftCoeff)
-      (Finsupp.single rightPrime rightCoeff) =
-        (leftCoeff * rightCoeff) • FiniteCorrespondence.toRational (data.compPrime leftPrime rightPrime) := by
-  classical
-  rw [FiniteCorrespondenceCompositionData.compQ]
-  simp
+      calc
+        data.compQ (Finsupp.single leftPrime leftCoeff)
+            (coeff • Finsupp.single prime primeCoeff)
+            = data.compQ (Finsupp.single leftPrime leftCoeff)
+                (Finsupp.single prime (coeff * primeCoeff)) := by
+              simp
+        _ = coeff • data.compQ (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single prime primeCoeff) := by
+              rw [FiniteCorrespondenceCompositionData.compQ_single_single,
+                FiniteCorrespondenceCompositionData.compQ_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 /-- Rational composition agrees with integral composition after coefficient
 extension from `ℤ` to `ℚ`. -/
@@ -190,7 +208,7 @@ theorem compQ_toRational (data : FiniteCorrespondenceCompositionData (k := k))
                 simp [smul_smul, mul_assoc]
         _ = (((leftCoeff * rightCoeff : ℤ) : ℚ)) •
               FiniteCorrespondence.toRational (data.compPrime leftPrime rightPrime) := by
-                simpa using congrArg
+                simp using congrArg
                   (fun coeff : ℚ => coeff • FiniteCorrespondence.toRational (data.compPrime leftPrime rightPrime))
                   (Int.cast_mul leftCoeff rightCoeff).symm
         _ = FiniteCorrespondence.toRational
@@ -348,6 +366,23 @@ theorem externalProduct_add_right
   ext leftPrime leftCoeff
   rw [Finsupp.sum_add_index'] <;> simp [mul_add, add_smul, zero_mul]
 
+@[simp] theorem externalProduct_single_single
+    (category : SmCorQ (k := k))
+    {X1 Y1 X2 Y2 : Geometry.SmSchemeOver k}
+    (leftPrime : PrimeFiniteCorrespondenceGeom X1 Y1)
+    (rightPrime : PrimeFiniteCorrespondenceGeom X2 Y2)
+    (leftCoeff rightCoeff : ℚ) :
+    category.externalProduct (Finsupp.single leftPrime leftCoeff)
+        (Finsupp.single rightPrime rightCoeff) =
+      (leftCoeff * rightCoeff) •
+        FiniteCorrespondence.toRational
+          (FiniteCorrespondence.externalProduct (k := k)
+            (Finsupp.single leftPrime (1 : ℤ))
+            (Finsupp.single rightPrime (1 : ℤ))) := by
+  classical
+  rw [SmCorQ.externalProduct]
+  simp
+
 theorem externalProduct_smul_left
     (category : SmCorQ (k := k))
     {X1 Y1 X2 Y2 : Geometry.SmSchemeOver k}
@@ -370,8 +405,17 @@ theorem externalProduct_smul_left
       rw [SmCorQ.externalProduct_add_right, SmCorQ.externalProduct_add_right,
         ihRight₁, ihRight₂, smul_add]
     · intro rightPrime rightCoeff
-      rw [SmCorQ.externalProduct, SmCorQ.externalProduct]
-      simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+      calc
+        category.externalProduct (coeff • Finsupp.single leftPrime leftCoeff)
+            (Finsupp.single rightPrime rightCoeff)
+            = category.externalProduct (Finsupp.single leftPrime (coeff * leftCoeff))
+                (Finsupp.single rightPrime rightCoeff) := by
+              simp
+        _ = coeff • category.externalProduct (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [SmCorQ.externalProduct_single_single,
+                SmCorQ.externalProduct_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 theorem externalProduct_smul_right
     (category : SmCorQ (k := k))
@@ -395,8 +439,17 @@ theorem externalProduct_smul_right
       rw [SmCorQ.externalProduct_add_left, SmCorQ.externalProduct_add_left,
         ihLeft₁, ihLeft₂, smul_add]
     · intro leftPrime leftCoeff
-      rw [SmCorQ.externalProduct, SmCorQ.externalProduct]
-      simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+      calc
+        category.externalProduct (Finsupp.single leftPrime leftCoeff)
+            (coeff • Finsupp.single rightPrime rightCoeff)
+            = category.externalProduct (Finsupp.single leftPrime leftCoeff)
+                (Finsupp.single rightPrime (coeff * rightCoeff)) := by
+              simp
+        _ = coeff • category.externalProduct (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [SmCorQ.externalProduct_single_single,
+                SmCorQ.externalProduct_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 /-- Rational external product agrees with integral external product after
 coefficient extension from `ℤ` to `ℚ`. -/
@@ -457,8 +510,8 @@ theorem externalProduct_toRational
                       (FiniteCorrespondence.externalProduct (k := k)
                         (Finsupp.single leftPrime (1 : ℤ))
                         (Finsupp.single rightPrime (1 : ℤ))) := by
-                rw [SmCorQ.externalProduct]
-                simp [FiniteCorrespondence.externalProduct_single_single_one]
+                rw [SmCorQ.externalProduct_single_single]
+                simp
               exact congrArg
                 (fun corr => ((leftCoeff : ℚ) * (rightCoeff : ℚ)) • corr)
                 hOne
@@ -596,14 +649,14 @@ theorem externalProduct_comp_interchange
                         (Finsupp.single fPrime (1 : ℚ))
                         (Finsupp.single fPrime' (1 : ℚ)) =
                       FiniteCorrespondence.toRational ff' := by
-                  simpa [ff'] using
+                  simp [ff'] using
                     SmCorQ.externalProduct_toRational (category := category)
                       (Finsupp.single fPrime (1 : ℤ))
                       (Finsupp.single fPrime' (1 : ℤ))
                 rw [SmCorQ.externalProduct_smul_left, SmCorQ.externalProduct_smul_right]
                 rw [hOne]
                 simp [smul_smul, mul_assoc]
-              simpa using hNorm
+              simp using hNorm
             have hExtRight :
                 category.externalProduct (Finsupp.single gPrime gCoeff)
                     (Finsupp.single gPrime' gCoeff') =
@@ -618,14 +671,14 @@ theorem externalProduct_comp_interchange
                         (Finsupp.single gPrime (1 : ℚ))
                         (Finsupp.single gPrime' (1 : ℚ)) =
                       FiniteCorrespondence.toRational gg' := by
-                  simpa [gg'] using
+                  simp [gg'] using
                     SmCorQ.externalProduct_toRational (category := category)
                       (Finsupp.single gPrime (1 : ℤ))
                       (Finsupp.single gPrime' (1 : ℤ))
                 rw [SmCorQ.externalProduct_smul_left, SmCorQ.externalProduct_smul_right]
                 rw [hOne]
                 simp [smul_smul, mul_assoc]
-              simpa using hNorm
+              simp using hNorm
             calc
               category.comp
                   (category.externalProduct (Finsupp.single fPrime fCoeff)
@@ -649,7 +702,15 @@ theorem externalProduct_comp_interchange
           have hCoeff :
               fCoeff * gCoeff * (fCoeff' * gCoeff') =
                 fCoeff * fCoeff' * (gCoeff * gCoeff') := by
-            ring
+            calc
+              fCoeff * gCoeff * (fCoeff' * gCoeff') =
+                  fCoeff * (gCoeff * (fCoeff' * gCoeff')) := by rw [mul_assoc]
+              _ = fCoeff * ((gCoeff * fCoeff') * gCoeff') := by
+                    rw [← mul_assoc gCoeff fCoeff' gCoeff']
+              _ = fCoeff * ((fCoeff' * gCoeff) * gCoeff') := by rw [mul_comm gCoeff fCoeff']
+              _ = fCoeff * (fCoeff' * (gCoeff * gCoeff')) := by
+                    rw [mul_assoc fCoeff' gCoeff gCoeff']
+              _ = fCoeff * fCoeff' * (gCoeff * gCoeff') := by rw [← mul_assoc]
           calc
             category.externalProduct
                 (category.comp (Finsupp.single fPrime fCoeff)
@@ -700,7 +761,7 @@ noncomputable def homTensorWithRatLinearEquiv (category : SmCorQ (k := k))
     homTensorWithRatLinearEquiv category
         ((category.integral.id X) ⊗ₜ[ℤ] (1 : ℚ)) = category.id X := by
   rw [homTensorWithRatLinearEquiv_tmul, id_eq_toRational_id]
-  simpa using (one_smul ℚ (category.id X))
+  simp using (one_smul ℚ (category.id X))
 
 theorem comp_homTensorWithRatLinearEquiv_tmul_tmul
     (category : SmCorQ (k := k))
@@ -754,7 +815,13 @@ private theorem comp_id_single_one (category : SmCorQ (k := k))
     _ = Finsupp.single prime (1 : ℚ) := by
           simp [f, category.integral.comp_id]
 
-theorem id_comp (category : SmCorQ (k := k))
+/-- Extend left singleton identity for rational correspondences by linearity. -/
+private theorem id_comp_of_singleton_identities (category : SmCorQ (k := k))
+    (id_comp_single :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℚ),
+          category.comp (category.id X) (Finsupp.single prime coeff) =
+            Finsupp.single prime coeff)
     {X Y : Geometry.SmSchemeOver k}
     (f : SmCorQ.Hom category X Y) :
     category.comp (category.id X) f = f := by
@@ -763,18 +830,15 @@ theorem id_comp (category : SmCorQ (k := k))
   · intro f₁ f₂ hf₁ hf₂
     rw [category.comp_add, hf₁, hf₂]
   · intro prime coeff
-    calc
-      category.comp (category.id X) (Finsupp.single prime coeff)
-          = category.comp (category.id X) (coeff • Finsupp.single prime (1 : ℚ)) := by
-              simp
-      _ = coeff • category.comp (category.id X) (Finsupp.single prime (1 : ℚ)) := by
-            rw [category.comp_smul]
-      _ = coeff • Finsupp.single prime (1 : ℚ) := by
-            rw [id_comp_single_one]
-      _ = Finsupp.single prime coeff := by
-            simp
+    exact id_comp_single prime coeff
 
-theorem comp_id (category : SmCorQ (k := k))
+/-- Extend right singleton identity for rational correspondences by linearity. -/
+private theorem comp_id_of_singleton_identities (category : SmCorQ (k := k))
+    (comp_id_single :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℚ),
+          category.comp (Finsupp.single prime coeff) (category.id Y) =
+            Finsupp.single prime coeff)
     {X Y : Geometry.SmSchemeOver k}
     (f : SmCorQ.Hom category X Y) :
     category.comp f (category.id Y) = f := by
@@ -783,16 +847,51 @@ theorem comp_id (category : SmCorQ (k := k))
   · intro f₁ f₂ hf₁ hf₂
     rw [category.add_comp, hf₁, hf₂]
   · intro prime coeff
-    calc
-      category.comp (Finsupp.single prime coeff) (category.id Y)
-          = category.comp (coeff • Finsupp.single prime (1 : ℚ)) (category.id Y) := by
-              simp
-      _ = coeff • category.comp (Finsupp.single prime (1 : ℚ)) (category.id Y) := by
-            rw [category.smul_comp]
-      _ = coeff • Finsupp.single prime (1 : ℚ) := by
-            rw [comp_id_single_one]
-      _ = Finsupp.single prime coeff := by
+    exact comp_id_single prime coeff
+
+private theorem id_comp_single (category : SmCorQ (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℚ) :
+    category.comp (category.id X) (Finsupp.single prime coeff) =
+      Finsupp.single prime coeff := by
+  calc
+    category.comp (category.id X) (Finsupp.single prime coeff)
+        = category.comp (category.id X) (coeff • Finsupp.single prime (1 : ℚ)) := by
             simp
+    _ = coeff • category.comp (category.id X) (Finsupp.single prime (1 : ℚ)) := by
+          rw [category.comp_smul]
+    _ = coeff • Finsupp.single prime (1 : ℚ) := by
+          rw [id_comp_single_one]
+    _ = Finsupp.single prime coeff := by
+          simp
+
+private theorem comp_id_single (category : SmCorQ (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℚ) :
+    category.comp (Finsupp.single prime coeff) (category.id Y) =
+      Finsupp.single prime coeff := by
+  calc
+    category.comp (Finsupp.single prime coeff) (category.id Y)
+        = category.comp (coeff • Finsupp.single prime (1 : ℚ)) (category.id Y) := by
+            simp
+    _ = coeff • category.comp (Finsupp.single prime (1 : ℚ)) (category.id Y) := by
+          rw [category.smul_comp]
+    _ = coeff • Finsupp.single prime (1 : ℚ) := by
+          rw [comp_id_single_one]
+    _ = Finsupp.single prime coeff := by
+          simp
+
+theorem id_comp (category : SmCorQ (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (f : SmCorQ.Hom category X Y) :
+    category.comp (category.id X) f = f :=
+  id_comp_of_singleton_identities category (id_comp_single category) f
+
+theorem comp_id (category : SmCorQ (k := k))
+    {X Y : Geometry.SmSchemeOver k}
+    (f : SmCorQ.Hom category X Y) :
+    category.comp f (category.id Y) = f :=
+  comp_id_of_singleton_identities category (comp_id_single category) f
 
 private theorem assoc_single_one (category : SmCorQ (k := k))
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -817,7 +916,7 @@ private theorem assoc_single_one (category : SmCorQ (k := k))
         (Finsupp.single h (1 : ℚ))
         = category.comp (FiniteCorrespondence.toRational (category.integral.comp fZ gZ))
             (FiniteCorrespondence.toRational hZ) := by
-              simpa [hfg, hZ]
+              simp [hfg, hZ]
     _ = FiniteCorrespondence.toRational
           (category.integral.comp (category.integral.comp fZ gZ) hZ) := by
             exact category.comp_eq_toRational_comp (category.integral.comp fZ gZ) hZ
@@ -830,7 +929,7 @@ private theorem assoc_single_one (category : SmCorQ (k := k))
             exact category.comp_eq_toRational_comp fZ (category.integral.comp gZ hZ)
     _ = category.comp (Finsupp.single f (1 : ℚ))
           (category.comp (Finsupp.single g (1 : ℚ)) (Finsupp.single h (1 : ℚ))) := by
-            simpa [hgh, fZ]
+            simp [hgh, fZ]
 
 private theorem assoc_single (category : SmCorQ (k := k))
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -900,7 +999,18 @@ private theorem assoc_single (category : SmCorQ (k := k))
             rw [hgh]
             simp
 
-theorem assoc (category : SmCorQ (k := k))
+/-- Extend singleton associativity for rational correspondences by trilinearity. -/
+private theorem assoc_of_singleton_associativity (category : SmCorQ (k := k))
+    (assoc_single :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (f : PrimeFiniteCorrespondenceGeom W X) (fCoeff : ℚ)
+        (g : PrimeFiniteCorrespondenceGeom X Y) (gCoeff : ℚ)
+        (h : PrimeFiniteCorrespondenceGeom Y Z) (hCoeff : ℚ),
+          category.comp
+            (category.comp (Finsupp.single f fCoeff) (Finsupp.single g gCoeff))
+            (Finsupp.single h hCoeff) =
+              category.comp (Finsupp.single f fCoeff)
+                (category.comp (Finsupp.single g gCoeff) (Finsupp.single h hCoeff)))
     {W X Y Z : Geometry.SmSchemeOver k}
     (f : SmCorQ.Hom category W X)
     (g : SmCorQ.Hom category X Y)
@@ -932,7 +1042,16 @@ theorem assoc (category : SmCorQ (k := k))
           category.comp_add,
           hh₁, hh₂]
       · intro hPrime hCoeff
-        exact assoc_single category fPrime fCoeff gPrime gCoeff hPrime hCoeff
+        exact assoc_single fPrime fCoeff gPrime gCoeff hPrime hCoeff
+
+theorem assoc (category : SmCorQ (k := k))
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (f : SmCorQ.Hom category W X)
+    (g : SmCorQ.Hom category X Y)
+    (h : SmCorQ.Hom category Y Z) :
+    category.comp (category.comp f g) h =
+      category.comp f (category.comp g h) :=
+  assoc_of_singleton_associativity category (assoc_single category) f g h
 
 def categoryStruct (category : SmCorQ (k := k)) :
     CategoryStruct.{u + 1} (Geometry.SmSchemeOver k) where

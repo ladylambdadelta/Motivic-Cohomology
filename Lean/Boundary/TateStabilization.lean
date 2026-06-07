@@ -28,6 +28,8 @@ owner object and basepoint are now taken from the canonical constructions in
 structure BoundaryTateStabilizationWitnessData where
   composition : Boundary.CanonicalCompositionData (k := k)
   a1NisImplementation : CanonicalA1NisLocalizationImplementation composition
+  localizationPresentation :
+    OpenClosedLocalizationPresentationQ (Boundary.canonicalCategory composition)
   abelianLinearPST : Abelian (LinearPST (Boundary.canonicalCategory composition))
   hasDerivedLinearPST : HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))
   abelianA1Nis : Abelian (canonicalA1NisLocalization composition)
@@ -40,6 +42,21 @@ def projectiveLineData
     CanonicalProjectiveLineMotiveConstructionData witness.composition :=
   boundaryProjectiveLineMotiveConstructionData
     (composition := witness.composition)
+
+/-- The canonical projective-line open/closed localization presentation
+threaded through the Tate stabilization witness package. -/
+def projectiveLineLocalizationPresentation
+    (witness : BoundaryTateStabilizationWitnessData (k := k)) :
+    OpenClosedLocalizationPresentationQ (Boundary.canonicalCategory witness.composition) :=
+  witness.localizationPresentation
+
+/-- The witness-threaded localization presentation is the canonical projective
+line localization package. -/
+theorem projectiveLineLocalizationPresentation_isCanonical
+    (witness : BoundaryTateStabilizationWitnessData (k := k)) :
+    witness.projectiveLineLocalizationPresentation =
+      boundaryProjectiveLineLocalizationPresentation (k := k) witness.composition :=
+  rfl
 
 /-- The canonical Boundary Tate datum determined by the witness environment.
 No additional choice is stored here: the datum is reconstructed from the
@@ -158,7 +175,7 @@ def canonicalProjectiveLineGeneratorModel
     {category : SmCorQ (k := k)}
     (witness : BoundaryTateStabilizationWitnessData (k := k)) :
     MinimalPresentationGeneratorQ category where
-  scheme := boundaryProjectiveLineConcreteObject (k := k)
+  scheme := boundaryProjectiveLineCanonicalObject (k := k)
   projector := 𝟙 _
   projectorIdempotentTarget := by
     letI := SmCorQCat category
@@ -263,13 +280,18 @@ structure BoundaryTateStabilizationPresentationQ
 
 namespace BoundaryTateStabilizationPresentationQ
 
-/-- The canonical Boundary Tate datum attached to the specialized witness
-environment carried by the presentation. -/
-def tateDatum
+/-- The canonical witness-free Tate datum attached to a stabilization
+presentation is the owner-level Tate datum constructed directly from the
+composition package. Downstream code should prefer this theorem-shaped API
+over threading witness records. -/
+def canonicalTateDatum
     {category : SmCorQ (k := k)}
     {package : MinimalPresentationPackageQ category}
-    (presentation : BoundaryTateStabilizationPresentationQ (k := k) category package) :=
-  presentation.witnessData.tateDatum
+    (presentation : BoundaryTateStabilizationPresentationQ (k := k) category package) :
+  BoundaryTateObjectConstructionData (k := k)
+      presentation.witnessData.composition :=
+  Boundary.boundaryCanonicalTateObjectConstructionData
+    (composition := presentation.witnessData.composition)
 
 end BoundaryTateStabilizationPresentationQ
 

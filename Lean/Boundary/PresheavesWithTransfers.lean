@@ -22,6 +22,11 @@ import Mathlib.LinearAlgebra.Prod
 
 This file packages `ℚ`-linear presheaves with transfers on the rational
 finite-correspondence category `SmCorQ(k)`.
+
+The terminology follows Voevodsky's presheaves with transfers; cf.
+Voevodsky-Suslin-Friedlander, *Cycles, Transfers, and Motivic Homology
+Theories*, Ch. 2, and Mazza-Voevodsky-Weibel, *Lecture Notes on Motivic
+Cohomology*, Lect. 2.
 -/
 
 universe u
@@ -38,7 +43,7 @@ noncomputable section
 abbrev VectQ := ModuleCat.{u + 1} ℚ
 
 /-- `ℚ`-linear presheaves with transfers on a chosen rational correspondence
-category. -/
+category; cf. Voevodsky-Suslin-Friedlander, Ch. 2. -/
 abbrev PresheafWithTransfers (category : SmCorQ (k := k)) := by
   letI := SmCorQCat category
   exact (Geometry.SmSchemeOver k)ᵒᵖ ⥤ ModuleCat.{u + 1} ℚ
@@ -420,12 +425,11 @@ def additiveFunctor {category : SmCorQ (k := k)}
   letI := SmCorQCat category
   letI := SmCorQCat_preadditive category
   exact
-    { map_add := by
+    ({ map_add := by
         intro X Y f g
         cases X
         cases Y
-        exact hF.1 f.unop g.unop :
-      F.Additive }
+        exact hF.1 f.unop g.unop } : F.Additive)
 
 theorem of_additive {category : SmCorQ (k := k)}
     (F : PST category)
@@ -689,7 +693,7 @@ theorem QtrMap_comp {category : SmCorQ (k := k)}
       QtrMap (category := category) f ≫ QtrMap (category := category) g := by
   letI := SmCorQCat category
   ext W h
-  exact category.assoc h f g
+  exact (category.assoc h f g).symm
 
 @[simp] theorem QtrMap_zero {category : SmCorQ (k := k)}
     {X Y : Geometry.SmSchemeOver k} :
@@ -715,6 +719,16 @@ theorem QtrMap_smul {category : SmCorQ (k := k)}
   letI := SmCorQCat category
   ext W h
   exact category.comp_smul a h f
+
+/-- The representable transfer construction is `ℚ`-linear in the
+correspondence. -/
+noncomputable def QtrMap_linear {category : SmCorQ (k := k)}
+    {X Y : Geometry.SmSchemeOver k} :
+    SmCorQ.Hom category X Y →ₗ[ℚ]
+      (Qtr (category := category) X ⟶ Qtr (category := category) Y) where
+  toFun := QtrMap (category := category)
+  map_add' := QtrMap_add (category := category)
+  map_smul' := QtrMap_smul (category := category)
 
 /-- Object-level representable external product: on smooth schemes it is the
 representable presheaf of the fiber product over `Spec k`. -/
@@ -831,34 +845,34 @@ def directSum {category : SmCorQ (k := k)}
             rintro ⟨a₁, a₂⟩ ⟨b₁, b₂⟩
             apply Prod.ext
             · change F.map f (a₁ + b₁) = ((F.map f a₁, G.map f a₂) + (F.map f b₁, G.map f b₂)).1
-              simpa using (F.map f).map_add a₁ b₁
+              exact (F.map f).map_add a₁ b₁
             · change G.map f (a₂ + b₂) = ((F.map f a₁, G.map f a₂) + (F.map f b₁, G.map f b₂)).2
-              simpa using (G.map f).map_add a₂ b₂
+              exact (G.map f).map_add a₂ b₂
           map_smul' := by
             rintro coeff ⟨fst, snd⟩
             apply Prod.ext
             · change F.map f (coeff • fst) = (coeff • (F.map f fst, G.map f snd)).1
-              simpa using (F.map f).map_smul coeff fst
+              exact (F.map f).map_smul coeff fst
             · change G.map f (coeff • snd) = (coeff • (F.map f fst, G.map f snd)).2
-              simpa using (G.map f).map_smul coeff snd }
+              exact (G.map f).map_smul coeff snd }
       map_id := by
         intro X
         apply LinearMap.ext
         rintro ⟨fst, snd⟩
         apply Prod.ext
         · change (F.map (𝟙 X)) fst = fst
-          simpa using DFunLike.congr_fun (F.map_id X) fst
+          exact DFunLike.congr_fun (F.map_id X) fst
         · change (G.map (𝟙 X)) snd = snd
-          simpa using DFunLike.congr_fun (G.map_id X) snd
+          exact DFunLike.congr_fun (G.map_id X) snd
       map_comp := by
         intro X Y Z f g
         apply LinearMap.ext
         rintro ⟨fst, snd⟩
         apply Prod.ext
         · change (F.map (f ≫ g)) fst = (F.map g) ((F.map f) fst)
-          simpa using DFunLike.congr_fun (F.map_comp f g) fst
+          exact DFunLike.congr_fun (F.map_comp f g) fst
         · change (G.map (f ≫ g)) snd = (G.map g) ((G.map f) snd)
-          simpa using DFunLike.congr_fun (G.map_comp f g) snd }
+          exact DFunLike.congr_fun (G.map_comp f g) snd }
 
 namespace IsTransferLinear
 
@@ -1103,7 +1117,7 @@ def directSum_desc {category : SmCorQ (k := k)}
             change inl.app X (x₁ + y₁) + inr.app X (x₂ + y₂) =
               (inl.app X x₁ + inr.app X x₂) + (inl.app X y₁ + inr.app X y₂)
             rw [LinearMap.map_add, LinearMap.map_add]
-            abel
+            rw [← add_add_add_comm]
           map_smul' := by
             rintro coeff ⟨x₁, x₂⟩
             change inl.app X (coeff • x₁) + inr.app X (coeff • x₂) =

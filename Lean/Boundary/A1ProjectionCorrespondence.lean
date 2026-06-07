@@ -1,4 +1,4 @@
-import Boundary.A1AffineBasic
+import Boundary.A1AffineLine
 /-!
 This file was split out of `Boundary.A1Geometry`; declarations remain in
 namespace `Boundary` under their mathematical owner layer.
@@ -28,7 +28,7 @@ theorem projectionToBase_graphProjectionFinite (X : Geometry.SmSchemeOver k) :
     IsFinite
       (Geometry.ordinaryMorphismGraphMap (projectionToBase X) ≫
         overBaseProduct.fst (productWithA1 X) X) := by
-  simpa using Geometry.ordinaryMorphismGraphProjectionFinite (projectionToBase X)
+  exact Geometry.ordinaryMorphismGraphProjectionFinite (projectionToBase X)
 
 /-- The componentwise graph of the projection `X ×_k A1_k ⟶ X` as a represented
 prime support. -/
@@ -344,5 +344,19 @@ theorem projectionToBase_PSTMap_independent
 /-- The `LinearPST` Yoneda bridge sends precomposition by the representable
 `A1`-projection generator to the induced value map on the presheaf. -/
 theorem QtrLinear_yoneda_representableA1Projection
+    {category : SmCorQ (k := k)}
+    (F : LinearPST category) (X : Geometry.SmSchemeOver k)
+    (D : FiniteIrreducibleComponentDecomposition (productWithA1 X))
+    (η : (QtrLinear (category := category) X).toPST ⟶ F.toPST) :
+    QtrLinear_yoneda F (productWithA1 X)
+        ((projectionToBase_QtrMapOfDecomposition category X D) ≫ η) =
+      projectionToBase_PSTMapOfDecomposition F.toPST X D
+        (QtrLinear_yoneda F X η) := by
+  simpa [projectionToBase_QtrMapOfDecomposition,
+    projectionToBase_PSTMapOfDecomposition] using
+    QtrLinear_yoneda_naturality (F := F)
+      (α := projectionToBase_rationalCorrespondenceOfDecomposition category X D) η
+
+end
 
 end Boundary

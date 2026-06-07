@@ -9,6 +9,11 @@ import Mathlib.LinearAlgebra.TensorProduct.Tower
 
 This file packages finite formal sums of represented prime supports and their
 pushforward to quotient-level geometric prime-support classes.
+
+Finite correspondences are represented here as formal sums of integral
+finite-over-source supports, following the conventions of
+Voevodsky-Suslin-Friedlander, *Cycles, Transfers, and Motivic Homology
+Theories*, Ch. 1, and Suslin-Voevodsky, "Relative cycles and Chow sheaves".
 -/
 
 universe u
@@ -53,7 +58,8 @@ abbrev FiniteCorrespondence
 
 /-- A rational finite correspondence is a finite formal `ℚ`-linear
 combination of geometric prime finite correspondences. This is the concrete
-normal form of rationalizing `FiniteCorrespondence X Y` over `ℤ`. -/
+normal form of rationalizing `FiniteCorrespondence X Y` over `ℤ`; cf.
+Mazza-Voevodsky-Weibel, *Lecture Notes on Motivic Cohomology*, Lect. 2. -/
 abbrev RationalFiniteCorrespondence
   (X Y : Geometry.SmSchemeOver k) : Type (u + 1) :=
   PrimeFiniteCorrespondenceGeom X Y →₀ ℚ
@@ -252,24 +258,27 @@ theorem toRational_smul {X Y : Geometry.SmSchemeOver k}
     (prime : PrimeFiniteCorrespondenceGeom X Y) (coeff : ℤ) :
     toRational (Finsupp.single prime coeff : FiniteCorrespondence X Y) =
       Finsupp.single prime (coeff : ℚ) := by
-  ext otherPrime
-  by_cases h : otherPrime = prime
-  · subst h
-    simp [toRational, toRationalLinearMap]
-  · simp [toRational, toRationalLinearMap, h]
+  rw [toRational, toRationalLinearMap]
+  rw [Finsupp.mapRange.linearMap_apply]
+  rw [Finsupp.mapRange_single]
+  change Finsupp.single prime (coeff : ℚ) = Finsupp.single prime (coeff : ℚ)
+  rfl
 
 @[simp] theorem toRational_ofPrimeSupport {X Y : Geometry.SmSchemeOver k}
     (Z : PrimeFiniteCorrespondenceSupport X Y) :
     toRational (ofPrimeSupport Z) =
       Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented Z) (1 : ℚ) := by
-  simp [ofPrimeSupport]
+  rw [ofPrimeSupport]
+  exact toRational_single (PrimeFiniteCorrespondenceGeom.ofRepresented Z) 1
 
 @[simp] theorem toRational_ofWeightedPrimeSupport {X Y : Geometry.SmSchemeOver k}
     (Z : WeightedPrimeFiniteCorrespondenceSupport X Y) :
     toRational (ofWeightedPrimeSupport Z) =
       Finsupp.single (PrimeFiniteCorrespondenceGeom.ofRepresented Z.prime)
         (Z.multiplicity : ℚ) := by
-  simp [ofWeightedPrimeSupport]
+  rw [ofWeightedPrimeSupport]
+  rw [toRational_single]
+  rfl
 
 end FiniteCorrespondence
 

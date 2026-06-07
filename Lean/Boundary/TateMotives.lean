@@ -10,6 +10,11 @@ import Mathlib.CategoryTheory.Triangulated.Basic
 This file starts the Tate slice above canonical effective and geometric
 effective motives.
 
+The intended reference construction is Voevodsky's Tate object obtained from
+the reduced projective-line motive; cf. Voevodsky, "Triangulated categories of
+motives over a field", §2, and Mazza-Voevodsky-Weibel, *Lecture Notes on
+Motivic Cohomology*, Lect. 14.
+
 What is genuinely available on current owner surfaces:
 - the unit object `M(Spec k)` can be defined concretely;
 - the Boundary-side `P¹` owner object and its canonical basepoint are already
@@ -74,7 +79,8 @@ def canonicalUnitScheme : Geometry.SmSchemeOver k where
   finiteType := by
     constructor <;> infer_instance
 
-/-- The canonical unit motive `M(Spec k)` in effective motives. -/
+/-- The canonical unit motive `M(Spec k)` in effective motives; cf.
+Voevodsky, "Triangulated categories of motives over a field", §2. -/
 def canonicalUnitMotive : canonicalEffectiveMotives composition :=
   canonicalEffectiveMotive composition (canonicalUnitScheme (k := k))
 
@@ -87,7 +93,8 @@ def canonicalUnitGeometricMotiveObject :
 /-- Generic Boundary-side input surface for speaking concretely about a
 projective-line motive. The canonical Boundary `P¹` object and basepoint are
 constructed below by instantiating this package with the resolved owner data
-from `ProjectiveLineGeometry.lean`. -/
+from `ProjectiveLineGeometry.lean`; cf. the reduced-`P¹` construction of the
+Tate motive in Voevodsky, §2. -/
 structure CanonicalProjectiveLineMotiveConstructionData
     (composition : Boundary.CanonicalCompositionData (k := k)) where
   projectiveLineScheme : Geometry.SmSchemeOver k
@@ -100,8 +107,8 @@ def canonicalProjectiveLineMotive
     canonicalEffectiveMotives composition :=
   canonicalEffectiveMotive composition data.projectiveLineScheme
 
-/-- The canonical map `M(Spec k) ⟶ M(P¹)` attached to the chosen base-point
-inclusion, once the actual projective-line geometry has been supplied. -/
+/-- The canonical map `M(Spec k) ⟶ M(P¹)` attached to the chosen basepoint
+inclusion from the projective-line owner geometry. -/
 def canonicalUnitToProjectiveLineMotive
   (data : CanonicalProjectiveLineMotiveConstructionData composition) :
     canonicalUnitMotive composition ⟶ canonicalProjectiveLineMotive composition data :=
@@ -141,9 +148,10 @@ structure CanonicalTateObjectConstructionData
       (((shiftFunctor (canonicalEffectiveMotives composition) (2 : ℤ)).obj tateObject) ≅
         reducedProjectiveLineMotive)
 
-/-- Construction data for a Tate twist functor once a first-class
-tensor/inversion API is in place. The `Prop` fields record laws about the
-supplied functor. -/
+/-- Tate action functor data together with the laws identifying its value on
+the unit motive and its preservation of geometric motives. A value of this
+structure is a functorial action datum; the canonical projective-geometric Tate
+object itself is constructed below from `P¹`. -/
 structure CanonicalTateTwistFunctorConstructionData
     (p1Data : CanonicalProjectiveLineMotiveConstructionData composition)
     (tateData : CanonicalTateObjectConstructionData composition p1Data) where
@@ -161,23 +169,32 @@ projective line object together with its canonical basepoint map from `Spec k`.
 abbrev boundaryProjectiveLineMotiveConstructionData :
     CanonicalProjectiveLineMotiveConstructionData composition where
   projectiveLineScheme :=
-    boundaryProjectiveLineConcreteObject (k := k)
+    boundaryProjectiveLineCanonicalObject (k := k)
   unitToProjectiveLine :=
-    boundaryProjectiveLineCanonicalBasepoint
-      (k := k)
-      (boundaryProjectiveLineSmooth (k := k))
-      (boundaryProjectiveLineFiniteType (k := k))
+    boundaryProjectiveLineBasepoint (k := k)
 
 /-- The effective motive of the concrete canonical Boundary-side projective line. -/
 abbrev boundaryProjectiveLineMotive : canonicalEffectiveMotives composition :=
   canonicalProjectiveLineMotive composition
     (boundaryProjectiveLineMotiveConstructionData (composition := composition))
 
+/-- Synonym emphasizing that `M(P¹)` is constructed from the canonical
+Boundary projective-line object. -/
+abbrev boundaryProjectiveLineEffectiveMotive : canonicalEffectiveMotives composition :=
+  boundaryProjectiveLineMotive (composition := composition)
+
 /-- The unit-to-`P¹` motive map attached to the canonical Boundary-side basepoint. -/
 abbrev boundaryUnitToProjectiveLineMotive :
     canonicalUnitMotive composition ⟶ boundaryProjectiveLineMotive composition :=
   canonicalUnitToProjectiveLineMotive composition
     (boundaryProjectiveLineMotiveConstructionData (composition := composition))
+
+/-- Synonym emphasizing that the unit-to-`P¹` map is induced by the canonical
+basepoint `Spec k → P¹_k`. -/
+abbrev boundaryUnitToProjectiveLineEffectiveMotive :
+    canonicalUnitMotive composition ⟶
+      boundaryProjectiveLineEffectiveMotive (composition := composition) :=
+  boundaryUnitToProjectiveLineMotive (composition := composition)
 
 /-- The concrete Boundary-side projective-line motive lies in the geometric
 effective subcategory immediately after packaging the canonical owner object. -/
@@ -186,14 +203,13 @@ abbrev boundaryProjectiveLineGeometricMotiveObject :
   canonicalProjectiveLineGeometricMotiveObject composition
     (boundaryProjectiveLineMotiveConstructionData (composition := composition))
 
-/-- The Tate-object construction problem specialized to the concrete canonical
-Boundary projective line. This is the exact stabilization seam now exposed by
-the resolved `P¹` owner surface. -/
+/-- The Tate-object datum specialized to the concrete canonical Boundary
+projective line. -/
 abbrev BoundaryTateObjectConstructionData :=
   CanonicalTateObjectConstructionData composition
     (boundaryProjectiveLineMotiveConstructionData (composition := composition))
 
-/-- Canonical Boundary Tate datum obtained by choosing a distinguished triangle
+/-- Canonical Boundary Tate object datum obtained by choosing a distinguished triangle
 for the actual motive map `M(Spec k) ⟶ M(P¹)` and defining the Tate object as
 the `(-2)`-shift of the reduced projective-line motive. -/
 def boundaryCanonicalTateObjectConstructionData :
@@ -212,9 +228,9 @@ def boundaryCanonicalTateObjectConstructionData :
       reducedProjectiveLine_isCone := ⟨g, h, hTriangle⟩
       tateObject_shifted_iso_reducedProjectiveLine := ?_ }
   refine ⟨?_⟩
-  simpa using
+  exact
     (shiftFunctorCompIsoId (canonicalEffectiveMotives composition) (-2 : ℤ) (2 : ℤ)
-      (by norm_num)).app Z
+      (by rw [neg_add_cancel])).app Z
 
 /-- The canonical reduced projective-line motive, defined as the cone object in
 the distinguished triangle of `M(Spec k) ⟶ M(P¹)`. -/
@@ -252,6 +268,77 @@ theorem boundaryReducedProjectiveLineMotive_isCone :
   (boundaryCanonicalTateObjectConstructionData
     (composition := composition)).reducedProjectiveLine_isCone
 
+/-- The canonical map `M(P¹) ⟶ \widetilde M(P¹)` chosen by the distinguished
+cone triangle of the basepoint inclusion. -/
+abbrev boundaryProjectiveLineMotiveToReduced :
+    boundaryProjectiveLineMotive (composition := composition) ⟶
+      boundaryReducedProjectiveLineMotive (composition := composition) :=
+  Classical.choose
+    (boundaryReducedProjectiveLineMotive_isCone (composition := composition))
+
+/-- The canonical map from the reduced projective-line motive to the shifted
+unit in the distinguished cone triangle. -/
+abbrev boundaryReducedProjectiveLineMotiveToShiftedUnit :
+    boundaryReducedProjectiveLineMotive (composition := composition) ⟶
+      (shiftFunctor (canonicalEffectiveMotives composition) (1 : ℤ)).obj
+        (canonicalUnitMotive composition) :=
+  Classical.choose
+    (Classical.choose_spec
+      (boundaryReducedProjectiveLineMotive_isCone (composition := composition)))
+
+/-- The distinguished triangle whose third object is the canonical reduced
+projective-line motive. -/
+theorem boundaryReducedProjectiveLineMotive_distinguishedTriangle :
+    ({ obj₁ := canonicalUnitMotive composition
+       obj₂ := boundaryProjectiveLineMotive (composition := composition)
+       obj₃ := boundaryReducedProjectiveLineMotive (composition := composition)
+       mor₁ := boundaryUnitToProjectiveLineMotive (composition := composition)
+       mor₂ := boundaryProjectiveLineMotiveToReduced (composition := composition)
+       mor₃ := boundaryReducedProjectiveLineMotiveToShiftedUnit
+          (composition := composition) } :
+        CategoryTheory.Pretriangulated.Triangle
+          (canonicalEffectiveMotives composition)) ∈
+      distTriang (canonicalEffectiveMotives composition) :=
+  Classical.choose_spec
+    (Classical.choose_spec
+      (boundaryReducedProjectiveLineMotive_isCone (composition := composition)))
+
+/-- The effective Tate object is, by construction, the `(-2)`-shift of the
+reduced projective-line motive. -/
+theorem boundaryEffectiveTateObject_eq_shift_reducedProjectiveLine :
+    boundaryEffectiveTateObject (composition := composition) =
+      (shiftFunctor (canonicalEffectiveMotives composition) (-2 : ℤ)).obj
+        (boundaryReducedProjectiveLineMotive (composition := composition)) :=
+  rfl
+
+/-- The effective Tate object is the projective-geometric object determined by
+the distinguished cone of the canonical basepoint inclusion
+`M(Spec k) ⟶ M(P¹)`. -/
+theorem boundaryEffectiveTateObject_projectiveGeometry :
+    ∃ (projectiveLineToReduced :
+          boundaryProjectiveLineMotive (composition := composition) ⟶
+            boundaryReducedProjectiveLineMotive (composition := composition))
+        (reducedToShiftedUnit :
+          boundaryReducedProjectiveLineMotive (composition := composition) ⟶
+            (shiftFunctor (canonicalEffectiveMotives composition) (1 : ℤ)).obj
+              (canonicalUnitMotive composition)),
+      ({ obj₁ := canonicalUnitMotive composition
+         obj₂ := boundaryProjectiveLineMotive (composition := composition)
+         obj₃ := boundaryReducedProjectiveLineMotive (composition := composition)
+         mor₁ := boundaryUnitToProjectiveLineMotive (composition := composition)
+         mor₂ := projectiveLineToReduced
+         mor₃ := reducedToShiftedUnit } :
+          CategoryTheory.Pretriangulated.Triangle
+            (canonicalEffectiveMotives composition)) ∈
+        distTriang (canonicalEffectiveMotives composition) ∧
+      boundaryEffectiveTateObject (composition := composition) =
+        (shiftFunctor (canonicalEffectiveMotives composition) (-2 : ℤ)).obj
+          (boundaryReducedProjectiveLineMotive (composition := composition)) := by
+  rcases boundaryReducedProjectiveLineMotive_isCone
+      (composition := composition) with ⟨projectiveLineToReduced, reducedToShiftedUnit, hTriangle⟩
+  exact ⟨projectiveLineToReduced, reducedToShiftedUnit, hTriangle,
+    boundaryEffectiveTateObject_eq_shift_reducedProjectiveLine (composition := composition)⟩
+
 /-- Shifting the canonical effective Tate object by `2` recovers the reduced
 projective-line motive. -/
 theorem boundaryEffectiveTateObject_shifted_iso_reducedProjectiveLine :
@@ -262,8 +349,8 @@ theorem boundaryEffectiveTateObject_shifted_iso_reducedProjectiveLine :
   (boundaryCanonicalTateObjectConstructionData
     (composition := composition)).tateObject_shifted_iso_reducedProjectiveLine
 
-/-- The Tate-twist functor construction problem specialized to the concrete
-Boundary projective line and its associated Tate-object data. -/
+/-- Tate action functor data specialized to the concrete Boundary projective
+line and its projective-geometric Tate object. -/
 abbrev BoundaryTateTwistFunctorConstructionData
     (tateData : BoundaryTateObjectConstructionData composition) :=
   CanonicalTateTwistFunctorConstructionData composition

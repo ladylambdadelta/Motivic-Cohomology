@@ -1,0 +1,4 @@
+import Boundary.PolynomialSmoothness.StandardSmoothDimensionZero
+
+#print Algebra.Presentation.ofBijectiveAlgebraMap_isFinite
+#print Algebra.Presentation.ofFinite

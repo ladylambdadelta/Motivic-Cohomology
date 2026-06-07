@@ -30,7 +30,7 @@ def SupportIsoOverProduct {X Y : Geometry.SmSchemeOver k}
     (P Q : PrimeFiniteCorrespondenceSupport X Y) :=
   ∃ (compatible_source_component :
         SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
-          (Y := Y) P.sourceComponent Q.sourceComponent)
+          (Y := Y) P.sourceImage Q.sourceImage)
     (iso : P.support ≅ Q.support),
       P.inclusion ≫ compatible_source_component.iso.hom =
         iso.hom ≫ Q.inclusion
@@ -44,44 +44,39 @@ abbrev PrimeSupportEquivalent {X Y : Geometry.SmSchemeOver k}
 theorem supportIsoOverProduct_refl {X Y : Geometry.SmSchemeOver k}
     (P : PrimeFiniteCorrespondenceSupport X Y) : SupportIsoOverProduct P P := by
   refine ⟨SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.refl
-      (Y := Y) P.sourceComponent,
+      (Y := Y) P.sourceImage,
     Iso.refl P.support, ?_⟩
-  simp [SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.refl]
+  rfl
 
 theorem SupportIsoOverProduct.toSourceComponent_hom
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q) :
-    P.toSourceComponent ≫ (Classical.choose hPQ).sourceIso.iso.hom =
-      (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toSourceComponent := by
+    P.finiteOverSourceComponent ≫ (Classical.choose hPQ).sourceIso.iso.hom =
+      (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.finiteOverSourceComponent := by
   classical
   let hcomp := Classical.choose hPQ
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
   let hcomm := Classical.choose_spec hrest
-  change P.toSourceComponent ≫ hcomp.sourceIso.iso.hom =
-    iso.hom ≫ Q.toSourceComponent
+  change P.inclusion ≫ hcomp.iso.hom = iso.hom ≫ Q.inclusion at hcomm
+  change P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
+    iso.hom ≫ Q.finiteOverSourceComponent
   calc
-    P.toSourceComponent ≫ hcomp.sourceIso.iso.hom =
-        P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceComponent.carrier Y ≫
+    P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
+        P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Y ≫
           hcomp.sourceIso.iso.hom := by
-          simpa [PrimeFiniteCorrespondenceSupport.toSourceComponent,
-            Category.assoc] using
-            congrArg (fun f => f ≫ hcomp.sourceIso.iso.hom) P.inclusion_fst.symm
+          exact congrArg (fun f => f ≫ hcomp.sourceIso.iso.hom) P.inclusion_fst.symm
     _ = P.inclusion ≫ hcomp.iso.hom ≫
-          sourceOverBaseProduct.fst (k := k) Q.sourceComponent.carrier Y := by
-          simpa [Category.assoc] using
-            congrArg (fun f => P.inclusion ≫ f) hcomp.hom_fst.symm
+          sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y := by
+          rw [← hcomp.hom_fst]
     _ = iso.hom ≫ Q.inclusion ≫
-          sourceOverBaseProduct.fst (k := k) Q.sourceComponent.carrier Y := by
-          simpa [Category.assoc] using
-            congrArg
-              (fun f => f ≫ sourceOverBaseProduct.fst (k := k) Q.sourceComponent.carrier Y)
-              hcomm
-    _ = iso.hom ≫ Q.toSourceComponent := by
-          simpa [PrimeFiniteCorrespondenceSupport.toSourceComponent,
-            Category.assoc] using
-            congrArg (fun f => iso.hom ≫ f) Q.inclusion_fst
+          sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y := by
+          exact congrArg
+            (fun f => f ≫ sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y)
+            hcomm
+    _ = iso.hom ≫ Q.finiteOverSourceComponent := by
+          rw [Q.inclusion_fst]
 
 theorem SupportIsoOverProduct.hom_toAmbientSource
     {X Y : Geometry.SmSchemeOver k}
@@ -94,59 +89,55 @@ theorem SupportIsoOverProduct.hom_toAmbientSource
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
   have hsource := SupportIsoOverProduct.toSourceComponent_hom (P := P) (Q := Q) hPQ
+  change P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
+    iso.hom ≫ Q.finiteOverSourceComponent at hsource
   change iso.hom ≫ Q.toAmbientSource = P.toAmbientSource
   calc
     iso.hom ≫ Q.toAmbientSource =
-        iso.hom ≫ Q.toSourceComponent ≫ Q.sourceComponent.toAmbient := by
-        simp [PrimeFiniteCorrespondenceSupport.toAmbientSource, Category.assoc]
-    _ = P.toSourceComponent ≫ hcomp.sourceIso.iso.hom ≫ Q.sourceComponent.toAmbient := by
-        simpa [Category.assoc] using
-          congrArg (fun f => f ≫ Q.sourceComponent.toAmbient) hsource.symm
-    _ = P.toSourceComponent ≫ P.sourceComponent.toAmbient := by
-        simpa [Category.assoc] using
-          congrArg (fun f => P.toSourceComponent ≫ f) hcomp.sourceIso.hom_toAmbient
+        iso.hom ≫ Q.finiteOverSourceComponent ≫ Q.sourceImage.toAmbient := by
+        rfl
+    _ = P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom ≫ Q.sourceImage.toAmbient := by
+        exact congrArg (fun f => f ≫ Q.sourceImage.toAmbient) hsource.symm
+    _ = P.finiteOverSourceComponent ≫ P.sourceImage.toAmbient := by
+        rw [hcomp.sourceIso.hom_toAmbient]
     _ = P.toAmbientSource := by
-        simp [PrimeFiniteCorrespondenceSupport.toAmbientSource]
+        rfl
 
 theorem SupportIsoOverProduct.hom_toTargetScheme
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q) :
-    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTargetScheme =
-      P.toTargetScheme := by
+    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget =
+      P.toTarget := by
   classical
   let hcomp := Classical.choose hPQ
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
   let hcomm := Classical.choose_spec hrest
-  change iso.hom ≫ Q.toTargetScheme = P.toTargetScheme
+  change P.inclusion ≫ hcomp.iso.hom = iso.hom ≫ Q.inclusion at hcomm
+  change iso.hom ≫ Q.toTarget = P.toTarget
   calc
-    iso.hom ≫ Q.toTargetScheme =
+    iso.hom ≫ Q.toTarget =
         iso.hom ≫ Q.inclusion ≫
-          sourceOverBaseProduct.snd (k := k) Q.sourceComponent.carrier Y := by
-          simpa [PrimeFiniteCorrespondenceSupport.toTargetScheme,
-            Category.assoc] using
-            congrArg (fun f => iso.hom ≫ f) Q.inclusion_snd.symm
+          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y := by
+          exact congrArg (fun f => iso.hom ≫ f) Q.inclusion_snd.symm
     _ = P.inclusion ≫ hcomp.iso.hom ≫
-          sourceOverBaseProduct.snd (k := k) Q.sourceComponent.carrier Y := by
-          simpa [Category.assoc] using
-            congrArg
-              (fun f => f ≫ sourceOverBaseProduct.snd (k := k) Q.sourceComponent.carrier Y)
-              hcomm.symm
+          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y := by
+          exact congrArg
+            (fun f => f ≫ sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y)
+            hcomm.symm
     _ = P.inclusion ≫
-          sourceOverBaseProduct.snd (k := k) P.sourceComponent.carrier Y := by
-          simpa [Category.assoc] using
-            congrArg (fun f => P.inclusion ≫ f) hcomp.hom_snd
-    _ = P.toTargetScheme := by
-          simpa [PrimeFiniteCorrespondenceSupport.toTargetScheme,
-            Category.assoc] using P.inclusion_snd
+          sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Y := by
+          rw [hcomp.hom_snd]
+    _ = P.toTarget := by
+          exact P.inclusion_snd
 
 theorem supportIsoOverProduct_toSourceComponent_hom
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q) :
-    P.toSourceComponent ≫ (Classical.choose hPQ).sourceIso.iso.hom =
-      (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toSourceComponent :=
+    P.finiteOverSourceComponent ≫ (Classical.choose hPQ).sourceIso.iso.hom =
+      (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.finiteOverSourceComponent :=
   SupportIsoOverProduct.toSourceComponent_hom hPQ
 
 theorem supportIsoOverProduct_hom_toAmbientSource
@@ -161,8 +152,8 @@ theorem supportIsoOverProduct_hom_toTargetScheme
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q) :
-    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTargetScheme =
-      P.toTargetScheme :=
+    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget =
+      P.toTarget :=
   SupportIsoOverProduct.hom_toTargetScheme hPQ
 
 theorem supportIsoOverProduct_comp_hom_toAmbientSource
@@ -172,27 +163,24 @@ theorem supportIsoOverProduct_comp_hom_toAmbientSource
     {W : Scheme.{u}} (f : W ⟶ P.support) :
     f ≫ (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource =
       f ≫ P.toAmbientSource := by
-  simpa [Category.assoc] using
-    congrArg (fun g => f ≫ g) (supportIsoOverProduct_hom_toAmbientSource hPQ)
+  rw [supportIsoOverProduct_hom_toAmbientSource hPQ]
 
 theorem supportIsoOverProduct_comp_hom_toTargetScheme
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q)
     {W : Scheme.{u}} (f : W ⟶ P.support) :
-    f ≫ (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTargetScheme =
-      f ≫ P.toTargetScheme := by
-  simpa [Category.assoc] using
-    congrArg (fun g => f ≫ g) (supportIsoOverProduct_hom_toTargetScheme hPQ)
+    f ≫ (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget =
+      f ≫ P.toTarget := by
+  rw [supportIsoOverProduct_hom_toTargetScheme hPQ]
 
 theorem supportIsoOverProduct_hom_toTargetScheme_structMap
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
     (hPQ : SupportIsoOverProduct P Q) :
-    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTargetScheme ≫ Y.structMap =
-      P.toTargetScheme ≫ Y.structMap := by
-  simpa [Category.assoc] using
-    congrArg (fun f => f ≫ Y.structMap) (supportIsoOverProduct_hom_toTargetScheme hPQ)
+    (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget ≫ Y.structMap =
+      P.toTarget ≫ Y.structMap := by
+  rw [← Category.assoc, supportIsoOverProduct_hom_toTargetScheme hPQ]
 
 theorem supportIsoOverProduct_hom_toAmbientSource_structMap
     {X Y : Geometry.SmSchemeOver k}
@@ -200,8 +188,11 @@ theorem supportIsoOverProduct_hom_toAmbientSource_structMap
     (hPQ : SupportIsoOverProduct P Q) :
     (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource ≫ X.structMap =
       P.toAmbientSource ≫ X.structMap := by
-  simpa [Category.assoc] using
-    congrArg (fun f => f ≫ X.structMap) (supportIsoOverProduct_hom_toAmbientSource hPQ)
+  change
+    ((Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource) ≫ X.structMap =
+      P.toAmbientSource ≫ X.structMap
+  exact congrArg (fun f => f ≫ X.structMap)
+    (supportIsoOverProduct_hom_toAmbientSource hPQ)
 
 /-- Symmetry of the isomorphism-over-product relation. -/
 theorem supportIsoOverProduct_symm {X Y : Geometry.SmSchemeOver k}
@@ -211,12 +202,20 @@ theorem supportIsoOverProduct_symm {X Y : Geometry.SmSchemeOver k}
   refine ⟨SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.symm hcomp,
     iso.symm, ?_⟩
   have hleft : iso.inv ≫ P.inclusion ≫ hcomp.iso.hom = Q.inclusion := by
-    simpa [Category.assoc] using congrArg (fun f => iso.inv ≫ f) hcomm
+    rw [hcomm]
+    rw [← Category.assoc, Iso.inv_hom_id, Category.id_comp]
   have hright : iso.inv ≫ P.inclusion = Q.inclusion ≫ hcomp.iso.inv := by
-    simpa [Category.assoc] using
-      congrArg (fun f => f ≫ hcomp.iso.inv) hleft
-  simpa [SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.symm,
-    Category.assoc] using hright.symm
+    rw [← hleft]
+    calc
+      iso.inv ≫ P.inclusion =
+          (iso.inv ≫ P.inclusion) ≫ 𝟙 _ := by
+            rw [Category.comp_id]
+      _ = (iso.inv ≫ P.inclusion) ≫ hcomp.iso.hom ≫ hcomp.iso.inv := by
+            rw [Iso.hom_inv_id]
+      _ = (iso.inv ≫ P.inclusion ≫ hcomp.iso.hom) ≫ hcomp.iso.inv := by
+            rfl
+  change Q.inclusion ≫ hcomp.iso.inv = iso.inv ≫ P.inclusion
+  exact hright.symm
 
 /-- Transitivity of the isomorphism-over-product relation. -/
 theorem supportIsoOverProduct_trans {X Y : Geometry.SmSchemeOver k}
@@ -231,14 +230,13 @@ theorem supportIsoOverProduct_trans {X Y : Geometry.SmSchemeOver k}
   calc
     P.inclusion ≫ (hcompPQ.iso ≪≫ hcompQR.iso).hom
         = P.inclusion ≫ hcompPQ.iso.hom ≫ hcompQR.iso.hom := by
-              simp [Category.assoc]
+              rfl
     _ = (isoPQ.hom ≫ Q.inclusion) ≫ hcompQR.iso.hom := by
-          simpa [Category.assoc] using
-            congrArg (fun f => f ≫ hcompQR.iso.hom) hcommPQ
+          exact congrArg (fun f => f ≫ hcompQR.iso.hom) hcommPQ
     _ = isoPQ.hom ≫ (Q.inclusion ≫ hcompQR.iso.hom) := by
-          simp [Category.assoc]
+          rw [Category.assoc]
     _ = isoPQ.hom ≫ (isoQR.hom ≫ R.inclusion) := by rw [hcommQR]
-    _ = (isoPQ ≪≫ isoQR).hom ≫ R.inclusion := by simp [Category.assoc]
+    _ = (isoPQ ≪≫ isoQR).hom ≫ R.inclusion := by rfl
 
 /-- The setoid identifying represented prime supports that are isomorphic over
 the same source-image fiber product. -/

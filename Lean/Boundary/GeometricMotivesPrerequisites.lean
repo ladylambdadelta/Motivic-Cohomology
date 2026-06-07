@@ -293,6 +293,82 @@ theorem boundaryEffectiveTensorProduct_id_right_graphTransfer
   graphTransfer_overBaseProductMap_id_right
     category DX DZ stableDX hstableDX f
 
+/-- `SmCorQ`-level graph-transfer identity law for tensoring a graph
+correspondence on the right by an identity graph. This is the direct
+`tensorHom` form of `boundaryEffectiveTensorProduct_id_right_graphTransfer`. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_graphTransfer_id_right
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DZ : FiniteIrreducibleComponentDecomposition Z)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (f : SmOverHom X Y) :
+    SmCorQ.tensorHom family category
+        (SmCorQ.graphTransfer category f DX)
+        (FiniteCorrespondence.toRational DZ.identityFiniteCorrespondence) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap f (𝟙 Z))
+        (_root_.Boundary.finiteProductSourceIrreducibleComponentDecomposition
+          DX DZ stableDX hstableDX) := by
+  exact
+    SmCorQ.tensorHom_graphTransfer_id_right
+      family category DX DZ stableDX hstableDX f
+
+/-- Graph-transfer identity law for tensoring a graph correspondence on the
+right by an identity graph, targeting any certified decomposition of the
+product object. -/
+theorem boundaryEffectiveTensorProduct_id_right_graphTransfer_of_product_decomposition
+    (family : FiniteCorrespondence.GraphIdentityCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DZ : FiniteIrreducibleComponentDecomposition Z)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Z))
+    (f : SmOverHom X Y) :
+    FiniteCorrespondence.toRational
+        (FiniteCorrespondence.externalProductWithFamily family.family
+          (Geometry.ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition f DX)
+          DZ.identityFiniteCorrespondence) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap f (𝟙 Z))
+        DProduct :=
+  FiniteCorrespondence.GraphIdentityCompatibleExternalProductFamily
+    .externalProduct_graphTransfer_id_right_of_product_decomposition
+    family category DX DZ stableDX hstableDX DProduct f
+
+/-- `SmCorQ`-level graph-transfer identity law for tensoring a graph
+correspondence on the right by an identity graph, targeting any certified
+decomposition of the product object. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_graphTransfer_id_right_of_product_decomposition
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DZ : FiniteIrreducibleComponentDecomposition Z)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Z))
+    (f : SmOverHom X Y) :
+    SmCorQ.tensorHom family category
+        (SmCorQ.graphTransfer category f DX)
+        (FiniteCorrespondence.toRational DZ.identityFiniteCorrespondence) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap f (𝟙 Z))
+        DProduct := by
+  exact
+    SmCorQ.tensorHom_graphTransfer_id_right_of_product_decomposition
+      family category DX DZ stableDX hstableDX DProduct f
+
 /-- Graph-transfer identity law for tensoring an identity graph on the left by a
 graph correspondence. This is the concrete graph-transfer endpoint used when
 lifting the identity law from graph correspondences to arbitrary finite
@@ -317,6 +393,664 @@ theorem boundaryEffectiveTensorProduct_id_left_graphTransfer
             (graphExternalProductPrimeSupport_id_left (stableDX p.1) p.2.1 g)) :=
   graphTransfer_overBaseProductMap_id_left
     category DX DY stableDX hstableDX g
+
+/-- `SmCorQ`-level graph-transfer identity law for tensoring an identity graph
+on the left by a graph correspondence. This is the direct `tensorHom` form of
+`boundaryEffectiveTensorProduct_id_left_graphTransfer`. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_left_graphTransfer
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (g : SmOverHom Y Z) :
+    SmCorQ.tensorHom family category
+        (FiniteCorrespondence.toRational DX.identityFiniteCorrespondence)
+        (SmCorQ.graphTransfer category g DY) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap (𝟙 X) g)
+        (_root_.Boundary.finiteProductSourceIrreducibleComponentDecomposition
+          DX DY stableDX hstableDX) := by
+  exact
+    SmCorQ.tensorHom_id_left_graphTransfer
+      family category DX DY stableDX hstableDX g
+
+/-- Graph-transfer identity law for tensoring an identity graph on the left by
+a graph correspondence, targeting any certified decomposition of the product
+object. -/
+theorem boundaryEffectiveTensorProduct_id_left_graphTransfer_of_product_decomposition
+    (family : FiniteCorrespondence.GraphIdentityCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (g : SmOverHom Y Z) :
+    FiniteCorrespondence.toRational
+        (FiniteCorrespondence.externalProductWithFamily family.family
+          DX.identityFiniteCorrespondence
+          (Geometry.ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g DY)) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap (𝟙 X) g)
+        DProduct :=
+  FiniteCorrespondence.GraphIdentityCompatibleExternalProductFamily
+    .externalProduct_id_left_graphTransfer_of_product_decomposition
+    family category DX DY stableDX hstableDX DProduct g
+
+/-- `SmCorQ`-level graph-transfer identity law for tensoring an identity graph
+on the left by a graph correspondence, targeting any certified decomposition
+of the product object. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_left_graphTransfer_of_product_decomposition
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (DX : FiniteIrreducibleComponentDecomposition X)
+    (DY : FiniteIrreducibleComponentDecomposition Y)
+    (stableDX :
+      (listed : { listed : SourceIrreducibleComponent X // listed ∈ DX.components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1)
+    (DProduct : FiniteIrreducibleComponentDecomposition (overBaseProductObject X Y))
+    (g : SmOverHom Y Z) :
+    SmCorQ.tensorHom family category
+        (FiniteCorrespondence.toRational DX.identityFiniteCorrespondence)
+        (SmCorQ.graphTransfer category g DY) =
+      SmCorQ.graphTransfer category
+        (overBaseProductMap (𝟙 X) g)
+        DProduct := by
+  exact
+    SmCorQ.tensorHom_id_left_graphTransfer_of_product_decomposition
+      family category DX DY stableDX hstableDX DProduct g
+
+/-- Correspondence-level tensor identity under the route
+`locally irreducible + integral component opens`
+on each product model. This is the motive-facing wrapper over the clean
+`SmCorQ` owner theorem. -/
+theorem boundaryEffectiveTensorProduct_id_of_locallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hLoc :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hIntegral :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+            sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1,
+                Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                  C.2 (hLoc sourceX sourceY)⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (FiniteCorrespondence
+      .externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_locallyIrreducible
+      (k := k) family.family
+      (category.integral.composition.diagonalDecomposition X)
+      (category.integral.composition.diagonalDecomposition Y)
+      (category.integral.composition.diagonalDecomposition (overBaseProductObject X Y))
+      hLoc hIntegral)
+
+/-- `SmCorQ`-level tensor identity under the route
+`locally irreducible + integral component opens`
+on each product model, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_locallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hLoc :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hIntegral :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+            sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsIntegral
+            (Scheme.Opens.toScheme
+              (⟨C.1,
+                Geometry.Topology.isOpen_irreducibleComponent_of_locallyIrreducible
+                  C.2 (hLoc sourceX sourceY)⟩ :
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.Opens))) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_locallyIrreducible
+      family category X Y hLoc hIntegral
+
+/-- Correspondence-level tensor identity under the route
+`reduced + locally irreducible`
+on each product model. This is the motive-facing wrapper over the clean
+`SmCorQ` owner theorem. -/
+theorem boundaryEffectiveTensorProduct_id_of_reducedLocallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hLoc :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hReduced :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (FiniteCorrespondence
+      .externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reducedLocallyIrreducible
+      (k := k) family.family
+      (category.integral.composition.diagonalDecomposition X)
+      (category.integral.composition.diagonalDecomposition Y)
+      (category.integral.composition.diagonalDecomposition (overBaseProductObject X Y))
+      hLoc hReduced)
+
+/-- `SmCorQ`-level tensor identity under the route
+`reduced + locally irreducible`
+on each product model, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_reducedLocallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hLoc :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        Geometry.Topology.LocallyIrreducibleSpace
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme)
+    (hReduced :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_reducedLocallyIrreducible
+      family category X Y hLoc hReduced
+
+/-- Correspondence-level tensor identity under the route
+`components open + reduced`
+on each product model. This is the motive-facing wrapper over the clean
+`SmCorQ` owner theorem. -/
+theorem boundaryEffectiveTensorProduct_id_of_reducedComponentsOpen
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hOpen :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hReduced :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (FiniteCorrespondence
+      .externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_reducedComponentsOpen
+      (k := k) family.family
+      (category.integral.composition.diagonalDecomposition X)
+      (category.integral.composition.diagonalDecomposition Y)
+      (category.integral.composition.diagonalDecomposition (overBaseProductObject X Y))
+      hOpen hReduced)
+
+/-- `SmCorQ`-level tensor identity under the route
+`components open + reduced`
+on each product model, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_reducedComponentsOpen
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hOpen :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hReduced :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        IsReduced
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_reducedComponentsOpen
+      family category X Y hOpen hReduced
+
+/-- Correspondence-level tensor identity under the route
+`components open + relative-dimension-zero standard-smooth affine charts`
+on each product model. This is the motive-facing wrapper over the clean
+`SmCorQ` owner theorem. -/
+theorem boundaryEffectiveTensorProduct_id_of_standardSmoothOfRelativeDimensionZeroComponentsOpen
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hOpen :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (FiniteCorrespondence
+      .externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_standardSmoothOfRelativeDimensionZero_componentsOpen
+      (k := k) family.family
+      (category.integral.composition.diagonalDecomposition X)
+      (category.integral.composition.diagonalDecomposition Y)
+      (category.integral.composition.diagonalDecomposition (overBaseProductObject X Y))
+      (fun sourceX sourceY i =>
+        product_diagonal_supportComponentData_toSourceImage_isIso
+          (k := k) sourceX.1 sourceY.1
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient sourceX.1 ≫ X.structMap)
+              (SourceIrreducibleComponent.toAmbient sourceY.1 ≫ Y.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (PrimeFiniteCorrespondenceSupport
+              .product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+              (k := k) sourceX.1 sourceY.1
+              (hOpen sourceX sourceY)))
+          i)
+      (fun sourceX sourceY i =>
+        product_diagonal_supportComponentData_multiplicity
+          (k := k) sourceX.1 sourceY.1
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient sourceX.1 ≫ X.structMap)
+              (SourceIrreducibleComponent.toAmbient sourceY.1 ≫ Y.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+          (PrimeFiniteCorrespondenceSupport
+              .product_diagonal_smoothObjectRealizationOfReducedComponentsOpen
+              (k := k) sourceX.1 sourceY.1
+              (hOpen sourceX sourceY)))
+          i)
+      hOpen hStd0)
+
+/-- `SmCorQ`-level tensor identity under the route
+`components open + relative-dimension-zero standard-smooth affine charts`
+on each product model, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_standardSmoothOfRelativeDimensionZeroComponentsOpen
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hOpen :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components }),
+        ∀ C :
+          { C : Set (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme //
+              C ∈ irreducibleComponents
+                (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme },
+          IsOpen C.1)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_standardSmoothOfRelativeDimensionZeroComponentsOpen
+      family category X Y hOpen hStd0
+
+/-- Correspondence-level tensor identity under the route
+`reduced locally irreducible + relative-dimension-zero standard-smooth affine charts`
+on each product model. This is the motive-facing wrapper over the clean
+`SmCorQ` owner theorem. -/
+theorem boundaryEffectiveTensorProduct_id_of_standardSmoothOfRelativeDimensionZeroReducedLocallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (FiniteCorrespondence
+      .externalProductWithFamily_identity_identity_eq_identityFiniteCorrespondence_of_standardSmoothOfRelativeDimensionZero_reducedLocallyIrreducible
+      (k := k) family.family
+      (category.integral.composition.diagonalDecomposition X)
+      (category.integral.composition.diagonalDecomposition Y)
+      (category.integral.composition.diagonalDecomposition (overBaseProductObject X Y))
+      (fun sourceX sourceY i =>
+        product_diagonal_supportComponentData_toSourceImage_isIso
+          (k := k) sourceX.1 sourceY.1
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient sourceX.1 ≫ X.structMap)
+              (SourceIrreducibleComponent.toAmbient sourceY.1 ≫ Y.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (PrimeFiniteCorrespondenceSupport
+              .product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+              (k := k) sourceX.1 sourceY.1
+              (product_diagonal_smoothObject_locallyIrreducible_of_standardSmoothOfRelativeDimensionZeroAffine
+                (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+              (product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+                (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))))
+          i)
+      (fun sourceX sourceY i =>
+        product_diagonal_supportComponentData_multiplicity
+          (k := k) sourceX.1 sourceY.1
+          (FiniteIntegralClosedComponentDecomposition.ofIrreducibleComponentRealization
+            (X := pullback
+              (SourceIrreducibleComponent.toAmbient sourceX.1 ≫ X.structMap)
+              (SourceIrreducibleComponent.toAmbient sourceY.1 ≫ Y.structMap))
+            AlgebraicGeometry.finite_irreducibleComponents_of_isNoetherian
+            (PrimeFiniteCorrespondenceSupport
+              .product_diagonal_smoothObjectRealizationOfReducedLocallyIrreducible
+              (k := k) sourceX.1 sourceY.1
+              (product_diagonal_smoothObject_locallyIrreducible_of_standardSmoothOfRelativeDimensionZeroAffine
+                (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))
+              (product_diagonal_smoothObject_isReduced_of_standardSmoothOfRelativeDimensionZeroAffine
+                (k := k) sourceX.1 sourceY.1 (hStd0 sourceX sourceY))))
+          i)
+      hStd0)
+
+/-- `SmCorQ`-level tensor identity under the route
+`reduced locally irreducible + relative-dimension-zero standard-smooth affine charts`
+on each product model, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_standardSmoothOfRelativeDimensionZeroReducedLocallyIrreducible
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_standardSmoothOfRelativeDimensionZeroReducedLocallyIrreducible
+      family category X Y hStd0
+
+/-- Correspondence-level tensor identity under the direct route
+`relative-dimension-zero standard-smooth affine charts`
+on each product model. -/
+theorem boundaryEffectiveTensorProduct_id_of_standardSmoothOfRelativeDimensionZeroAffine
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (SmCorQ.externalProductIdentity_of_standardSmoothOfRelativeDimensionZeroAffine
+      family category X Y hStd0)
+
+/-- `SmCorQ`-level tensor identity under the direct route
+`relative-dimension-zero standard-smooth affine charts`
+on each product model. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id_of_standardSmoothOfRelativeDimensionZeroAffine
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (hStd0 :
+      ∀ (sourceX :
+        { sourceX : SourceIrreducibleComponent X //
+          sourceX ∈ (category.integral.composition.diagonalDecomposition X).components })
+        (sourceY :
+          { sourceY : SourceIrreducibleComponent Y //
+          sourceY ∈ (category.integral.composition.diagonalDecomposition Y).components })
+        (x : (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme),
+        ∃ U :
+          (product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme.affineOpens,
+          x ∈ U.1 ∧
+          Algebra.IsStandardSmoothOfRelativeDimension 0 k
+            (Γ((product_diagonal_smoothObject (k := k) sourceX.1 sourceY.1).scheme, U))) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id_of_standardSmoothOfRelativeDimensionZeroAffine
+      family category X Y hStd0
+
+/-- Correspondence-level tensor identity for the current default
+product-stable route. This mirrors `SmCorQ.externalProductIdentity_of_productStableDiagonal`
+at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_id
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (stableDX :
+      (listed :
+        { listed : SourceIrreducibleComponent X //
+          listed ∈ (category.integral.composition.diagonalDecomposition X).components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1) :
+    FiniteCorrespondence.toRational
+      (boundaryEffectiveTensorProductWithFamily (k := k) family
+        (category.id X) (category.id Y)) =
+    category.id (overBaseProductObject X Y) := by
+  change
+    FiniteCorrespondence.toRational
+      (FiniteCorrespondence.externalProductWithFamily family.family
+        (category.integral.composition.diagonalDecomposition X).identityFiniteCorrespondence
+        (category.integral.composition.diagonalDecomposition Y).identityFiniteCorrespondence) =
+    FiniteCorrespondence.toRational
+      ((category.integral.composition.diagonalDecomposition
+        (overBaseProductObject X Y)).identityFiniteCorrespondence)
+  exact congrArg FiniteCorrespondence.toRational
+    (SmCorQ.externalProductIdentity_of_productStableDiagonal
+      family category X Y stableDX hstableDX)
+
+/-- `SmCorQ`-level tensor identity for the current default product-stable
+route, exported at the motive-prerequisite layer. -/
+theorem boundaryEffectiveTensorProduct_tensorHom_id
+    (family : FiniteCorrespondence.TensorCompatibleExternalProductFamily (k := k))
+    (category : SmCorQ (k := k))
+    (X Y : Geometry.SmSchemeOver k)
+    (stableDX :
+      (listed :
+        { listed : SourceIrreducibleComponent X //
+          listed ∈ (category.integral.composition.diagonalDecomposition X).components }) →
+        ProductStableSourceComponent X)
+    (hstableDX : ∀ listed, (stableDX listed).component = listed.1) :
+    SmCorQ.tensorHom family category (category.id X) (category.id Y) =
+      category.id (overBaseProductObject X Y) := by
+  exact
+    SmCorQ.tensorHom_id family category X Y stableDX hstableDX
 
 end
 

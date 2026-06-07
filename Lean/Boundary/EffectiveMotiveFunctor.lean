@@ -91,11 +91,11 @@ theorem canonicalRepresentableLinearPSTMap_id
           (Boundary.SmOverHom.id X)
           (composition.diagonalDecomposition X) =
         (Boundary.canonicalCategory composition).id X := by
-    simpa using
+    exact
             (canonicalCategory_graphTransfer_id
         (composition := composition) (X := X))
   rw [hId]
-  simpa using (Boundary.canonicalCategory composition).comp_id corr
+  exact (Boundary.canonicalCategory composition).comp_id corr
 
 /-- The degree-zero derived morphism induced by the canonical representable
 map attached to an ordinary smooth morphism. -/
@@ -186,7 +186,7 @@ theorem canonicalRepresentableLinearPSTMap_comp_of_graphTransfer_comp
         g
         (composition.diagonalDecomposition Y))
   rw [(Boundary.canonicalCategory composition).assoc]
-  simpa [hgraph]
+  rw [hgraph]
 
 /-- The graph-transfer composition theorem for the canonical correspondence
 category induces the expected composition law on representable presheaves with
@@ -215,6 +215,23 @@ def canonicalRepresentableLinearPSTFunctor
   map f := canonicalRepresentableLinearPSTMap composition f
   map_id X := canonicalRepresentableLinearPSTMap_id composition X
   map_comp f g := canonicalRepresentableLinearPSTMap_comp composition hgraph f g
+
+@[simp] theorem canonicalRepresentableLinearPSTFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    (X : Geometry.SmSchemeOver k) :
+    (canonicalRepresentableLinearPSTFunctor composition hgraph).obj X =
+      canonicalRepresentableLinearPST composition X :=
+  rfl
+
+@[simp] theorem canonicalRepresentableLinearPSTFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    {X Y : Geometry.SmSchemeOver k}
+    (f : X ⟶ Y) :
+    (canonicalRepresentableLinearPSTFunctor composition hgraph).map f =
+      canonicalRepresentableLinearPSTMap composition f :=
+  rfl
 
 /-- The external product of representable generators is represented by the
 product smooth scheme. This is the honest generator-level tensor carrier before
@@ -280,6 +297,23 @@ def canonicalRepresentableExternalProductFunctor
     exact canonicalRepresentableLinearPSTMap_comp composition hgraph
       (overBaseProductMap f₁ g₁) (overBaseProductMap f₂ g₂)
 
+@[simp] theorem canonicalRepresentableExternalProductFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    (X Y : Geometry.SmSchemeOver k) :
+    (canonicalRepresentableExternalProductFunctor composition hgraph).obj (X, Y) =
+      canonicalRepresentableExternalProduct composition X Y :=
+  rfl
+
+@[simp] theorem canonicalRepresentableExternalProductFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    {X₁ X₂ Y₁ Y₂ : Geometry.SmSchemeOver k}
+    (f : X₁ ⟶ X₂) (g : Y₁ ⟶ Y₂) :
+    (canonicalRepresentableExternalProductFunctor composition hgraph).map (f, g) =
+      canonicalRepresentableExternalProductMap composition f g :=
+  rfl
+
 /-- For the canonical correspondence category, the representable map attached
 to the ordinary `A¹` projection agrees with the decomposition-indexed owner
 map from `A1Geometry.lean`. -/
@@ -322,7 +356,7 @@ theorem A1ProjectionGenerator_product_right_stable
       canonicalA1NisLocalEquivalences composition
         (canonicalRepresentableLinearPSTMap composition
           (projectionToBase (overBaseProductObject X Y))) := by
-    simpa [canonicalRepresentableLinearPSTMap_eq_projectionToBase_QtrMapOfDecomposition]
+    rw [canonicalRepresentableLinearPSTMap_eq_projectionToBase_QtrMapOfDecomposition]
       using
         (canonicalA1NisGenerators_areCanonicalLocalEquivalences composition).1
           (overBaseProductObject X Y) D
@@ -359,7 +393,7 @@ theorem A1ProjectionGenerator_product_left_stable
       canonicalA1NisLocalEquivalences composition
         (canonicalRepresentableLinearPSTMap composition
           (projectionToBase (overBaseProductObject X Y))) := by
-    simpa [canonicalRepresentableLinearPSTMap_eq_projectionToBase_QtrMapOfDecomposition]
+    rw [canonicalRepresentableLinearPSTMap_eq_projectionToBase_QtrMapOfDecomposition]
       using
         (canonicalA1NisGenerators_areCanonicalLocalEquivalences composition).1
           (overBaseProductObject X Y) D
@@ -681,6 +715,143 @@ theorem canonicalEffectiveMotivesLocalization_inverts_externalProduct_NisGenerat
     composition _
     (externalProduct_preserves_NisGenerators_left composition hgraph X sq)
 
+/-- The canonical Verdier `A¹`/Nis subcategory contains the degree-zero right
+tensor image of every primitive `A¹` projection generator. -/
+theorem canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_A1Generator_right
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k)
+    (D : FiniteIrreducibleComponentDecomposition
+      (productWithA1 (overBaseProductObject X Y))) :
+    canonicalA1NisVerdierLocalizingMorphisms composition
+      ((DerivedCategory.singleFunctor
+          (LinearPST (Boundary.canonicalCategory composition)) 0).map
+        (canonicalRepresentableExternalProductMap composition (projectionToBase X) (𝟙 Y))) :=
+  canonicalA1NisVerdierLocalizingSubcategory_contains_degreeZeroA1Nis
+    composition _
+    (canonicalA1NisGeneratedWeakEquivalences_tensor_right composition X Y D)
+
+/-- The canonical Verdier `A¹`/Nis subcategory contains the degree-zero left
+tensor image of every primitive `A¹` projection generator. -/
+theorem canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_A1Generator_left
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k)
+    (D : FiniteIrreducibleComponentDecomposition
+      (productWithA1 (overBaseProductObject X Y))) :
+    canonicalA1NisVerdierLocalizingMorphisms composition
+      ((DerivedCategory.singleFunctor
+          (LinearPST (Boundary.canonicalCategory composition)) 0).map
+        (canonicalRepresentableExternalProductMap composition (𝟙 X) (projectionToBase Y))) :=
+  canonicalA1NisVerdierLocalizingSubcategory_contains_degreeZeroA1Nis
+    composition _
+    (canonicalA1NisGeneratedWeakEquivalences_tensor_left composition X Y D)
+
+/-- The canonical Verdier `A¹`/Nis subcategory contains the degree-zero right
+tensor image of every Nisnevich descent generator. -/
+theorem canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_NisGenerator_right
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (sq : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition))
+    (Y : Geometry.SmSchemeOver k) :
+    canonicalA1NisVerdierLocalizingMorphisms composition
+      ((DerivedCategory.singleFunctor
+          (LinearPST (Boundary.canonicalCategory composition)) 0).map
+        ((nisnevichSquare_product_right composition hgraph sq Y).nisnevichDescentGeneratorMapLinear)) :=
+  canonicalA1NisVerdierLocalizingSubcategory_contains_degreeZeroA1Nis
+    composition _
+    (canonicalA1NisGeneratedWeakEquivalences_tensor_right_nis composition hgraph sq Y)
+
+/-- The canonical Verdier `A¹`/Nis subcategory contains the degree-zero left
+tensor image of every Nisnevich descent generator. -/
+theorem canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_NisGenerator_left
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X : Geometry.SmSchemeOver k)
+    (sq : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)) :
+    canonicalA1NisVerdierLocalizingMorphisms composition
+      ((DerivedCategory.singleFunctor
+          (LinearPST (Boundary.canonicalCategory composition)) 0).map
+        ((nisnevichSquare_product_left composition hgraph X sq).nisnevichDescentGeneratorMapLinear)) :=
+  canonicalA1NisVerdierLocalizingSubcategory_contains_degreeZeroA1Nis
+    composition _
+    (canonicalA1NisGeneratedWeakEquivalences_tensor_left_nis composition hgraph X sq)
+
+/-- Canonical `A¹`/Nis Verdier tensor-ideal package at the generator level:
+tensoring any primitive `A¹` projection or Nisnevich descent generator on
+either side by a representable generator remains in the canonical Verdier
+localizing morphism class. This is the precise owner-level descent input used
+before any ambient monoidal structure on effective motives is claimed. -/
+theorem canonicalA1NisVerdierLocalizingSubcategory_tensorIdeal
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k)
+    (D : FiniteIrreducibleComponentDecomposition
+      (productWithA1 (overBaseProductObject X Y)))
+    (sq : NisnevichDistinguishedSquareDataQ (Boundary.canonicalCategory composition)) :
+    canonicalA1NisVerdierLocalizingMorphisms composition
+        ((DerivedCategory.singleFunctor
+            (LinearPST (Boundary.canonicalCategory composition)) 0).map
+          (canonicalRepresentableExternalProductMap composition (projectionToBase X) (𝟙 Y))) ∧
+      canonicalA1NisVerdierLocalizingMorphisms composition
+        ((DerivedCategory.singleFunctor
+            (LinearPST (Boundary.canonicalCategory composition)) 0).map
+          (canonicalRepresentableExternalProductMap composition (𝟙 X) (projectionToBase Y))) ∧
+      canonicalA1NisVerdierLocalizingMorphisms composition
+        ((DerivedCategory.singleFunctor
+            (LinearPST (Boundary.canonicalCategory composition)) 0).map
+          ((nisnevichSquare_product_right composition hgraph sq Y).nisnevichDescentGeneratorMapLinear)) ∧
+      canonicalA1NisVerdierLocalizingMorphisms composition
+        ((DerivedCategory.singleFunctor
+            (LinearPST (Boundary.canonicalCategory composition)) 0).map
+          ((nisnevichSquare_product_left composition hgraph X sq).nisnevichDescentGeneratorMapLinear)) := by
+  refine ⟨?_, ⟨?_, ⟨?_, ?_⟩⟩⟩
+  · exact
+      canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_A1Generator_right
+        composition X Y D
+  · exact
+      canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_A1Generator_left
+        composition X Y D
+  · exact
+      canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_NisGenerator_right
+        composition hgraph sq Y
+  · exact
+      canonicalA1NisVerdierLocalizingSubcategory_contains_tensor_NisGenerator_left
+        composition hgraph X sq
+
 /-- The degree-zero derived maps satisfy composition because
 `DerivedCategory.singleFunctor` is functorial. -/
 theorem canonicalRepresentableComplexMap_comp
@@ -709,6 +880,27 @@ def canonicalRepresentableComplexFunctor
   map f := canonicalRepresentableComplexMap composition f
   map_id X := canonicalRepresentableComplexMap_id composition X
   map_comp f g := canonicalRepresentableComplexMap_comp composition hgraph f g
+
+@[simp] theorem canonicalRepresentableComplexFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    (X : Geometry.SmSchemeOver k) :
+    (canonicalRepresentableComplexFunctor composition hgraph).obj X =
+      canonicalRepresentableComplex composition X :=
+  rfl
+
+@[simp] theorem canonicalRepresentableComplexFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    {X Y : Geometry.SmSchemeOver k}
+    (f : X ⟶ Y) :
+    (canonicalRepresentableComplexFunctor composition hgraph).map f =
+      canonicalRepresentableComplexMap composition f :=
+  rfl
 
 /-- Degree-zero derived external product on representable generators: the
 generator attached to `(X,Y)` is the derived representable of `X ×_k Y`. -/
@@ -750,6 +942,27 @@ def canonicalRepresentableComplexExternalProductFunctor
     exact canonicalRepresentableComplexMap_comp composition hgraph
       (overBaseProductMap f₁ g₁) (overBaseProductMap f₂ g₂)
 
+@[simp] theorem canonicalRepresentableComplexExternalProductFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    (X Y : Geometry.SmSchemeOver k) :
+    (canonicalRepresentableComplexExternalProductFunctor composition hgraph).obj (X, Y) =
+      canonicalRepresentableComplexExternalProduct composition X Y :=
+  rfl
+
+@[simp] theorem canonicalRepresentableComplexExternalProductFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    {X₁ X₂ Y₁ Y₂ : Geometry.SmSchemeOver k}
+    (f : X₁ ⟶ X₂) (g : Y₁ ⟶ Y₂) :
+    (canonicalRepresentableComplexExternalProductFunctor composition hgraph).map (f, g) =
+      canonicalRepresentableComplexMap composition (overBaseProductMap f g) :=
+  rfl
+
 /-- The canonical effective motive object of a smooth `k`-scheme, defined as
 the image of the degree-zero representable complex under the validated
 effective-motives localization functor. -/
@@ -767,6 +980,21 @@ def canonicalEffectiveMotive
     (canonicalEffectiveMotivesLocalizationFunctor composition).obj
       (canonicalRepresentableComplex composition X)
 
+@[simp] theorem canonicalEffectiveMotive_eq_localization_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X : Geometry.SmSchemeOver k) :
+    canonicalEffectiveMotive composition X =
+      (canonicalEffectiveMotivesLocalizationFunctor composition).obj
+        (canonicalRepresentableComplex composition X) :=
+  rfl
+
 /-- External product carrier on effective generators: the generator attached to
 `(X,Y)` is the canonical effective motive of `X ×_k Y`. -/
 abbrev canonicalEffectiveMotiveExternalProduct
@@ -782,6 +1010,20 @@ abbrev canonicalEffectiveMotiveExternalProduct
     canonicalEffectiveMotives composition :=
   canonicalEffectiveMotive composition (overBaseProductObject X Y)
 
+@[simp] theorem canonicalEffectiveMotiveExternalProduct_eq
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k) :
+    canonicalEffectiveMotiveExternalProduct composition X Y =
+      canonicalEffectiveMotive composition (overBaseProductObject X Y) :=
+  rfl
+
 /-- Public name for the product carrier on canonical effective motive
 generators. -/
 abbrev canonicalEffectiveMotives_tensorProduct
@@ -796,6 +1038,20 @@ abbrev canonicalEffectiveMotives_tensorProduct
     (X Y : Geometry.SmSchemeOver k) :
     canonicalEffectiveMotives composition :=
   canonicalEffectiveMotiveExternalProduct composition X Y
+
+@[simp] theorem canonicalEffectiveMotives_tensorProduct_eq
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k) :
+    canonicalEffectiveMotives_tensorProduct composition X Y =
+      canonicalEffectiveMotiveExternalProduct composition X Y :=
+  rfl
 
 /-- Morphism induced by the graph correspondence of an ordinary smooth
 morphism. -/
@@ -871,6 +1127,37 @@ def canonicalEffectiveMotiveFunctor
   map_id X := canonicalEffectiveMotiveMap_id composition X
   map_comp f g := canonicalEffectiveMotiveMap_comp composition hgraph f g
 
+@[simp] theorem canonicalEffectiveMotiveFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotiveFunctor composition hgraph).obj X =
+      canonicalEffectiveMotive composition X :=
+  rfl
+
+@[simp] theorem canonicalEffectiveMotiveFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    {X Y : Geometry.SmSchemeOver k}
+    (f : X ⟶ Y) :
+    (canonicalEffectiveMotiveFunctor composition hgraph).map f =
+      canonicalEffectiveMotiveMap composition f :=
+  rfl
+
 /-- Bifunctorial external-product carrier on effective generators, obtained by
 feeding the product object in `Sm/k` through the actual canonical effective
 motive functor. -/
@@ -905,6 +1192,37 @@ def canonicalEffectiveMotiveExternalProductFunctor
     rw [overBaseProductMap_comp]
     exact canonicalEffectiveMotiveMap_comp composition hgraph
       (overBaseProductMap f₁ g₁) (overBaseProductMap f₂ g₂)
+
+@[simp] theorem canonicalEffectiveMotiveExternalProductFunctor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotiveExternalProductFunctor composition hgraph).obj (X, Y) =
+      canonicalEffectiveMotiveExternalProduct composition X Y :=
+  rfl
+
+@[simp] theorem canonicalEffectiveMotiveExternalProductFunctor_map
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    {X₁ X₂ Y₁ Y₂ : Geometry.SmSchemeOver k}
+    (f : X₁ ⟶ X₂) (g : Y₁ ⟶ Y₂) :
+    (canonicalEffectiveMotiveExternalProductFunctor composition hgraph).map (f, g) =
+      canonicalEffectiveMotiveMap composition (overBaseProductMap f g) :=
+  rfl
 
 /-- Associativity of the canonical product carrier on effective motive
 generators, induced by the genuine associator of fiber products over the base. -/
@@ -965,6 +1283,112 @@ noncomputable def canonicalEffectiveMotives_tensor_rightUnitor
       canonicalEffectiveMotive composition X :=
   (canonicalEffectiveMotiveFunctor composition hgraph).mapIso
     (overBaseProductRightUnitor X)
+
+/-- Canonical generator-level tensor geometry on effective motives.
+
+This packages the already-constructed bifunctorial product carrier together
+with its associator and unitors. It is an honest owner surface: every field is
+constructed concretely in this file from the genuine product geometry of
+smooth schemes and the functorial effective motive construction. -/
+structure CanonicalEffectiveMotivesTensorGeometry where
+  tensor :
+    (Geometry.SmSchemeOver k × Geometry.SmSchemeOver k) ⥤
+      canonicalEffectiveMotives composition
+  assoc :
+    ∀ (X Y Z : Geometry.SmSchemeOver k),
+      tensor.obj (overBaseProductObject X Y, Z) ≅
+        tensor.obj (X, overBaseProductObject Y Z)
+  leftUnitor :
+    ∀ (X : Geometry.SmSchemeOver k),
+      tensor.obj (overBaseUnitObject (k := k), X) ≅
+        canonicalEffectiveMotive composition X
+  rightUnitor :
+    ∀ (X : Geometry.SmSchemeOver k),
+      tensor.obj (X, overBaseUnitObject (k := k)) ≅
+        canonicalEffectiveMotive composition X
+
+/-- The canonical generator-level tensor geometry carried by effective motives,
+assembled from the external-product bifunctor on generators and the genuine
+fiber-product coherence isomorphisms. -/
+noncomputable def canonicalEffectiveMotives_tensorGeometry
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)] :
+    CanonicalEffectiveMotivesTensorGeometry (composition := composition) where
+  tensor := canonicalEffectiveMotiveExternalProductFunctor composition hgraph
+  assoc := canonicalEffectiveMotives_tensor_assoc composition hgraph
+  leftUnitor := canonicalEffectiveMotives_tensor_leftUnitor composition hgraph
+  rightUnitor := canonicalEffectiveMotives_tensor_rightUnitor composition hgraph
+
+@[simp] theorem canonicalEffectiveMotives_tensorGeometry_tensor_obj
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotives_tensorGeometry
+      (composition := composition) hgraph).tensor.obj (X, Y) =
+      canonicalEffectiveMotiveExternalProduct composition X Y :=
+  rfl
+
+@[simp] theorem canonicalEffectiveMotives_tensorGeometry_assoc
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X Y Z : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotives_tensorGeometry
+      (composition := composition) hgraph).assoc X Y Z =
+      canonicalEffectiveMotives_tensor_assoc composition hgraph X Y Z :=
+  rfl
+
+@[simp] theorem canonicalEffectiveMotives_tensorGeometry_leftUnitor
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotives_tensorGeometry
+      (composition := composition) hgraph).leftUnitor X =
+      canonicalEffectiveMotives_tensor_leftUnitor composition hgraph X :=
+  rfl
+
+@[simp] theorem canonicalEffectiveMotives_tensorGeometry_rightUnitor
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (hgraph : Geometry.CanonicalGraphPackageCompatibilityObligation composition)
+    [Abelian (LinearPST (Boundary.canonicalCategory composition))]
+    [HasDerivedCategory (LinearPST (Boundary.canonicalCategory composition))]
+    [Abelian (canonicalA1NisLocalization composition)]
+    [HasDerivedCategory (canonicalA1NisLocalization composition)]
+    [(canonicalA1NisLocalizationFunctor composition).Additive]
+    [Limits.PreservesFiniteLimits (canonicalA1NisLocalizationFunctor composition)]
+    [Limits.PreservesFiniteColimits (canonicalA1NisLocalizationFunctor composition)]
+    (X : Geometry.SmSchemeOver k) :
+    (canonicalEffectiveMotives_tensorGeometry
+      (composition := composition) hgraph).rightUnitor X =
+      canonicalEffectiveMotives_tensor_rightUnitor composition hgraph X :=
+  rfl
 
 end
 

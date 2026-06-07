@@ -370,11 +370,12 @@ def canonicalA1NisDerivedHomologyDegreeZeroKill
     ((DerivedCategory.singleFunctor source 0).map φ)).2 ?_)
   intro n
   change IsIso (F.map ((((DerivedCategory.singleFunctor source 0).map φ)⟦n⟧')))
-  let s := (DerivedCategory.singleFunctors source).shiftIso n (-n) 0 (by omega)
+  let s := (DerivedCategory.singleFunctors source).shiftIso n (-n) 0 (by
+    rw [add_right_neg])
   have hs :
       (((DerivedCategory.singleFunctor source 0).map φ)⟦n⟧') ≫ s.hom.app Y =
         s.hom.app X ≫ ((DerivedCategory.singleFunctor source (-n)).map φ) := by
-    simpa using s.hom.naturality φ
+    exact s.hom.naturality φ
   have hsF :
       F.map ((((DerivedCategory.singleFunctor source 0).map φ)⟦n⟧')) ≫ F.map (s.hom.app Y) =
         F.map (s.hom.app X) ≫ F.map ((DerivedCategory.singleFunctor source (-n)).map φ) := by
@@ -405,7 +406,7 @@ def canonicalA1NisDerivedHomologyDegreeZeroKill
         rw [Functor.map_comp]
       have hpre :
           F.map shiftedMap ≫ F.map (s.hom.app Y) = F.map (shiftedMap ≫ s.hom.app Y) := by
-        simpa using (Functor.map_comp F shiftedMap (s.hom.app Y)).symm
+        exact (Functor.map_comp F shiftedMap (s.hom.app Y)).symm
       have hpost :
           F.map shiftedMap ≫ F.map (s.hom.app Y) ≫ F.map (s.inv.app Y) =
             F.map (shiftedMap ≫ s.hom.app Y) ≫ F.map (s.inv.app Y) := by
@@ -734,7 +735,7 @@ theorem canonicalEffectiveMotivesLocalizationFunctor_map_degreeZero_isIso_of_loc
     exact canonicalA1NisVerdierLocalizingSubcategory_contains_degreeZeroA1Nis composition φ
       ((canonicalA1NisGeneratedWeakEquivalences_eq_localEquivalences composition φ).mpr hφ)
   letI : (canonicalEffectiveMotivesLocalizationFunctor composition).IsLocalization W := by
-    simpa [W, canonicalEffectiveMotivesMorphismProperty]
+    rw [W, canonicalEffectiveMotivesMorphismProperty]
       using canonicalEffectiveMotivesLocalizationFunctor_isLocalization composition
   exact Localization.inverts
     (canonicalEffectiveMotivesLocalizationFunctor composition) W

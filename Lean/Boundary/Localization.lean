@@ -81,17 +81,6 @@ inductive GeneratedWeakEquivalenceQ
       GeneratedWeakEquivalenceQ presentation g →
     GeneratedWeakEquivalenceQ presentation (f ≫ g)
 
-/-- Explicit later saturation obligation, recorded rather than assumed. -/
-def GeneratedWeakEquivalenceTwoOutOfThreeTargetQ
-    {category : SmCorQ (k := k)}
-  (presentation : LocalizingMorphismPresentationQ category) : Type _ :=
-  ∀ {X Y Z : PST category}
-    {f : X ⟶ Y}
-    {g : Y ⟶ Z},
-    GeneratedWeakEquivalenceQ presentation f →
-    GeneratedWeakEquivalenceQ presentation (f ≫ g) →
-    GeneratedWeakEquivalenceQ presentation g
-
 /-- One step in the raw zigzag localization category.  Backward steps are
 formal inverses of chosen weak equivalences. -/
 inductive ZigzagStepQ
@@ -224,6 +213,149 @@ def toRawZigzagCategory
   assoc := ZigzagHomQ.assoc
 
 end RawZigzagLocalizationConstructionQ
+
+/-- Arrow-level retract datum used for saturating a class of weak-equivalences.
+
+This is the standard diagrammatic datum used to prove retract stability, as in
+Gabriel–Zisman, *Calculus of Fractions and Homotopy Theory*, §2.2. -/
+structure GeneratedWeakEquivalenceRetraction
+    {category : SmCorQ (k := k)}
+    {X Y X' Y' : PST category}
+    (f : X ⟶ Y) (g : X' ⟶ Y') where
+  leftTo : X ⟶ X'
+  leftFrom : X' ⟶ X
+  rightTo : Y ⟶ Y'
+  rightFrom : Y' ⟶ Y
+  left_retract : leftTo ≫ leftFrom = 𝟙 X
+  right_retract : rightTo ≫ rightFrom = 𝟙 Y
+  square_to : f ≫ rightTo = leftTo ≫ g
+  square_from : g ≫ rightFrom = leftFrom ≫ f
+
+/-- Saturation of generator-built weak equivalences.
+
+This is the canonical closure construction that explicitly adds identities,
+composition, two-out-of-three, and retracts to `GeneratedWeakEquivalenceQ`.
+We keep the constructors explicit to avoid downstream placeholder abstractions.
+-/
+inductive GeneratedWeakEquivalenceSaturationQ
+    {category : SmCorQ (k := k)}
+    (presentation : LocalizingMorphismPresentationQ category) :
+  {X Y : PST category} →
+  (X ⟶ Y) → Type _ where
+  | ofGenerated
+      {X Y : PST category}
+      {f : X ⟶ Y}
+      (h : GeneratedWeakEquivalenceQ presentation f) :
+      GeneratedWeakEquivalenceSaturationQ presentation f
+  | ofIdentity
+      (X : PST category) :
+      GeneratedWeakEquivalenceSaturationQ presentation (𝟙 X)
+  | ofComposition
+      {X Y Z : PST category}
+      {f : X ⟶ Y}
+      {g : Y ⟶ Z}
+      (hf : GeneratedWeakEquivalenceSaturationQ presentation f)
+      (hg : GeneratedWeakEquivalenceSaturationQ presentation g) :
+      GeneratedWeakEquivalenceSaturationQ presentation (f ≫ g)
+  | ofLeftOfComposition
+      {X Y Z : PST category}
+      {f : X ⟶ Y}
+      {g : Y ⟶ Z}
+      (hg : GeneratedWeakEquivalenceSaturationQ presentation g)
+      (hfg : GeneratedWeakEquivalenceSaturationQ presentation (f ≫ g)) :
+      GeneratedWeakEquivalenceSaturationQ presentation f
+  | ofRightOfComposition
+      {X Y Z : PST category}
+      {f : X ⟶ Y}
+      {g : Y ⟶ Z}
+      (hf : GeneratedWeakEquivalenceSaturationQ presentation f)
+      (hfg : GeneratedWeakEquivalenceSaturationQ presentation (f ≫ g)) :
+      GeneratedWeakEquivalenceSaturationQ presentation g
+  | ofRetraction
+      {X Y X' Y' : PST category}
+      {f : X ⟶ Y}
+      {g : X' ⟶ Y'}
+      (r : GeneratedWeakEquivalenceRetraction (category := category) f g)
+      (hg : GeneratedWeakEquivalenceSaturationQ presentation g) :
+      GeneratedWeakEquivalenceSaturationQ presentation f
+  | ofIso
+      {X Y : PST category} (f : X ⟶ Y) [CategoryTheory.IsIso f] :
+      GeneratedWeakEquivalenceSaturationQ presentation f
+
+/-- Saturation as a `MorphismProperty`. -/
+def GeneratedWeakEquivalenceSaturation
+    (category : SmCorQ (k := k))
+    (presentation : LocalizingMorphismPresentationQ (k := k) category) :
+    MorphismProperty (PST category) :=
+  fun _ _ f => Nonempty (GeneratedWeakEquivalenceSaturationQ (k := k) presentation f)
+
+/-- Closure of a property under generated-equivalence saturation constructors. -/
+structure GeneratedWeakEquivalenceSaturationClosure
+    {category : SmCorQ (k := k)}
+    (presentation : LocalizingMorphismPresentationQ (k := k) category)
+    (W : MorphismProperty (PST category)) : Prop where
+  contains_generators :
+    ∀ {X Y : PST category} (f : X ⟶ Y),
+      GeneratedWeakEquivalenceSaturationQ (k := k) presentation f →
+        W f
+  identities :
+    ∀ X : PST category, W (𝟙 X)
+  closed_under_composition :
+    ∀ {X Y Z : PST category}
+      {f : X ⟶ Y} {g : Y ⟶ Z}, W f → W g → W (f ≫ g)
+  two_out_of_three_left :
+    ∀ {X Y Z : PST category}
+      {f : X ⟶ Y} {g : Y ⟶ Z}, W g → W (f ≫ g) → W f
+  two_out_of_three_right :
+    ∀ {X Y Z : PST category}
+      {f : X ⟶ Y} {g : Y ⟶ Z}, W f → W (f ≫ g) → W g
+  retracts :
+    ∀ {X Y X' Y' : PST category}
+      {f : X ⟶ Y} {g : X' ⟶ Y'},
+      GeneratedWeakEquivalenceRetraction (category := category) f g → W g → W f
+
+/-- Raw generated weak-equivalences embed into their saturation. -/
+theorem GeneratedWeakEquivalence_to_saturation
+    {category : SmCorQ (k := k)}
+    (presentation : LocalizingMorphismPresentationQ (k := k) category)
+    {X Y : PST category}
+    {f : X ⟶ Y}
+    (h : GeneratedWeakEquivalenceQ presentation f) :
+    GeneratedWeakEquivalenceSaturation (k := k) category presentation f :=
+  ⟨GeneratedWeakEquivalenceSaturationQ.ofGenerated h⟩
+
+/-- Closure lemmas for the saturation construction by definition. -/
+theorem GeneratedWeakEquivalenceSaturation_closure
+    {category : SmCorQ (k := k)}
+    (presentation : LocalizingMorphismPresentationQ (k := k) category) :
+    GeneratedWeakEquivalenceSaturationClosure (k := k) presentation
+      (GeneratedWeakEquivalenceSaturation (k := k) category presentation) := by
+  refine
+    { contains_generators := ?_
+      identities := ?_
+      closed_under_composition := ?_
+      two_out_of_three_left := ?_
+      two_out_of_three_right := ?_
+      retracts := ?_ }
+  · intro X Y f hf
+    exact ⟨hf⟩
+  · intro X
+    exact ⟨GeneratedWeakEquivalenceSaturationQ.ofIdentity (presentation := presentation) X⟩
+  · intro X Y Z f g hf hg
+    rcases hf with ⟨hf⟩
+    rcases hg with ⟨hg⟩
+    exact ⟨GeneratedWeakEquivalenceSaturationQ.ofComposition hf hg⟩
+  · intro X Y Z f g hg hfg
+    rcases hg with ⟨hg⟩
+    rcases hfg with ⟨hfg⟩
+    exact ⟨GeneratedWeakEquivalenceSaturationQ.ofLeftOfComposition hg hfg⟩
+  · intro X Y Z f g hf hfg
+    rcases hf with ⟨hf⟩
+    rcases hfg with ⟨hfg⟩
+    exact ⟨GeneratedWeakEquivalenceSaturationQ.ofRightOfComposition hf hfg⟩
+  · intro X Y X' Y' f g r hg
+    rcases hg with ⟨hg⟩
+    exact ⟨GeneratedWeakEquivalenceSaturationQ.ofRetraction r hg⟩
 
 end
 

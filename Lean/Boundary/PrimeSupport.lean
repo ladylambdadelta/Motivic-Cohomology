@@ -170,7 +170,7 @@ noncomputable def overBaseProductIso {X : Geometry.SmSchemeOver k}
   refine asIso <|
     pullback.map C.carrier.structMap Y.structMap D.carrier.structMap Y.structMap
       h.iso.hom (𝟙 Y.scheme) (𝟙 (Spec (CommRingCat.of k))) ?_ ?_
-  · simpa using h.hom_structMap.symm
+  · exact h.hom_structMap.symm
   · simp
 
 @[simp] theorem overBaseProductIso_hom_fst {X : Geometry.SmSchemeOver k}
@@ -270,8 +270,8 @@ def ofIsoOverAmbient {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     CompatibleOverBaseProductIso (Y := Y) C D where
   sourceIso := h
   iso := h.overBaseProductIso (Y := Y)
-  hom_fst := by simpa using h.overBaseProductIso_hom_fst (Y := Y)
-  hom_snd := by simpa using h.overBaseProductIso_hom_snd (Y := Y)
+  hom_fst := by simp using h.overBaseProductIso_hom_fst (Y := Y)
+  hom_snd := by simp using h.overBaseProductIso_hom_snd (Y := Y)
 
 end CompatibleOverBaseProductIso
 

@@ -6,6 +6,10 @@ import Boundary.Localization
 
 This file records typed representable `A1`-homotopy data together with the
 chosen transfer maps whose projection maps are used as localization generators.
+
+The localization generators mirror the standard `X × A¹ → X` maps used in
+motivic homotopy and motives; cf. Morel-Voevodsky, "A¹-homotopy theory of
+schemes", §2, and Mazza-Voevodsky-Weibel, Lect. 3.
 -/
 
 universe u
@@ -20,7 +24,7 @@ noncomputable section
 
 /-- Typed representable `A1`-homotopy data consisting of a base object, a
 chosen cylinder, and the transfer data needed to express the interval
-projection on representables. -/
+projection on representables; cf. Morel-Voevodsky, §2. -/
 structure A1RepresentableHomotopyDataQ (category : SmCorQ (k := k)) where
   base : Geometry.SmSchemeOver k
   cylinder : Geometry.SmSchemeOver k
@@ -48,7 +52,7 @@ def targetPresheaf {category : SmCorQ (k := k)}
   Qtr (category := category) witness.base
 
 /-- The `A1` localization map attached to a witness: the projection from the
-chosen cylinder to the base. -/
+chosen cylinder to the base, in the usual `X × A¹ → X` family. -/
 def homotopyMap {category : SmCorQ (k := k)}
     (witness : A1RepresentableHomotopyDataQ category) :
     witness.sourcePresheaf ⟶ witness.targetPresheaf :=

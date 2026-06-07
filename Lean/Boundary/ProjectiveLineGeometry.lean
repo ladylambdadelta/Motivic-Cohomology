@@ -103,7 +103,7 @@ theorem boundaryProjectiveLineX0Dehom_monomial
     boundaryProjectiveLineX0Dehom (k := k) (MvPolynomial.monomial d a) =
       Polynomial.C a * Polynomial.X ^ d 1 := by
   rw [boundaryProjectiveLineX0Dehom, MvPolynomial.eval₂Hom_monomial]
-  simpa [Fin.prod_univ_succ, mul_assoc, mul_left_comm, mul_comm]
+  rw [Fin.prod_univ_succ, mul_assoc, mul_left_comm, mul_comm]
 
 /-- The forward chart map on `Away x₀`, viewed through the underlying localization. -/
 abbrev boundaryProjectiveLineX0AwayToPolynomial :
@@ -436,7 +436,7 @@ theorem boundaryProjectiveLineX0PolynomialToAway_surjective :
       b = boundaryProjectiveLineCoordinate k 0 ^ m := hmemb.symm
       _ = boundaryProjectiveLineCoordinate k 0 ^ n := by simpa [hm]
   subst b
-  simpa using boundaryProjectiveLineX0PolynomialToAway_dehom_of_mem_degree (k := k) hφ
+  exact boundaryProjectiveLineX0PolynomialToAway_dehom_of_mem_degree (k := k) hφ
 
 /-- Dehomogenization on the `x₁` chart sends `x₀ ↦ s` and `x₁ ↦ 1`. -/
 abbrev boundaryProjectiveLineX1Dehom : MvPolynomial (Fin 2) k →+* Polynomial k :=
@@ -455,7 +455,7 @@ theorem boundaryProjectiveLineX1Dehom_monomial
     boundaryProjectiveLineX1Dehom (k := k) (MvPolynomial.monomial d a) =
       Polynomial.C a * Polynomial.X ^ d 0 := by
   rw [boundaryProjectiveLineX1Dehom, MvPolynomial.eval₂Hom_monomial]
-  simpa [Fin.prod_univ_succ, mul_assoc, mul_left_comm, mul_comm]
+  rw [Fin.prod_univ_succ, mul_assoc, mul_left_comm, mul_comm]
 
 /-- The forward chart map on `Away x₁`, viewed through the underlying localization. -/
 abbrev boundaryProjectiveLineX1AwayToPolynomial :
@@ -810,7 +810,7 @@ theorem boundaryProjectiveLineX1PolynomialToAway_surjective :
       b = boundaryProjectiveLineCoordinate k 1 ^ m := hmemb.symm
       _ = boundaryProjectiveLineCoordinate k 1 ^ n := by simpa [hm]
   subst b
-  simpa using boundaryProjectiveLineX1PolynomialToAway_dehom_of_mem_degree (k := k) hφ
+  exact boundaryProjectiveLineX1PolynomialToAway_dehom_of_mem_degree (k := k) hφ
 
 theorem boundaryProjectiveLine_iSup_coordinate_basicOpen_eq_top :
     (⨆ i : Fin 2,
@@ -1369,7 +1369,7 @@ theorem boundaryProjectiveLineFiniteType :
     (boundaryProjectiveLineConstructionData (k := k))
 
 /-- The raw `Proj` model lifted to the actual Boundary owner surface `Sm/k`,
-using the supplied smoothness and finite-type proofs. -/
+using smoothness and finite-type proofs for the structural morphism. -/
 def boundaryProjectiveLineObject
     (smoothProof : BoundaryProjectiveLineSmoothOverBaseObligation k)
     (finiteTypeProof : BoundaryProjectiveLineFiniteTypeOverBaseObligation k) :
@@ -1388,6 +1388,28 @@ noncomputable def boundaryProjectiveLineConcreteObject : Geometry.SmSchemeOver k
     (k := k)
     (boundaryProjectiveLineSmooth (k := k))
     (boundaryProjectiveLineFiniteType (k := k))
+
+/-- The canonical Boundary-side smooth projective line over `Spec k`. -/
+abbrev boundaryProjectiveLineCanonicalObject : Geometry.SmSchemeOver k :=
+  boundaryProjectiveLineConcreteObject (k := k)
+
+@[simp] theorem boundaryProjectiveLineCanonicalObject_scheme :
+    (boundaryProjectiveLineCanonicalObject (k := k)).scheme =
+      boundaryProjectiveLineScheme k :=
+  rfl
+
+@[simp] theorem boundaryProjectiveLineCanonicalObject_structMap :
+    (boundaryProjectiveLineCanonicalObject (k := k)).structMap =
+      boundaryProjectiveLineOverSpec k :=
+  rfl
+
+theorem boundaryProjectiveLineCanonicalObject_eq_object :
+    boundaryProjectiveLineCanonicalObject (k := k) =
+      boundaryProjectiveLineObject
+        (k := k)
+        (boundaryProjectiveLineSmooth (k := k))
+        (boundaryProjectiveLineFiniteType (k := k)) :=
+  rfl
 
 /-- Type of basepoint maps `Spec k ⟶ P¹_k` compatible with the structure map. -/
 abbrev BoundaryProjectiveLineBasepointObligation
@@ -1440,8 +1462,41 @@ def boundaryProjectiveLineCanonicalBasepoint
     rw [Category.assoc, boundaryProjectiveLineX1ChartToBase,
       boundaryProjectiveLineX1BasepointChart_over_base]
 
-/-- A basepoint morphism in the Boundary owner surface, once the corresponding
-owner obligation has been discharged. -/
+/-- The canonical Boundary-side basepoint on the canonical projective-line
+object. -/
+abbrev boundaryProjectiveLineBasepoint :
+    Boundary.SmOverHom
+      (boundarySpecObject k)
+      (boundaryProjectiveLineCanonicalObject (k := k)) :=
+  boundaryProjectiveLineCanonicalBasepoint
+    (k := k)
+    (boundaryProjectiveLineSmooth (k := k))
+    (boundaryProjectiveLineFiniteType (k := k))
+
+@[simp] theorem boundaryProjectiveLineBasepoint_hom :
+    (boundaryProjectiveLineBasepoint (k := k)).hom =
+      boundaryProjectiveLineX1BasepointChart (k := k) ≫
+        boundaryProjectiveLineCoordinateAwayι (k := k) 1 :=
+  rfl
+
+/-- The canonical Boundary-side projective-line basepoint is a section of the
+projective-line structural morphism. -/
+theorem boundaryProjectiveLineBasepoint_section :
+    (boundaryProjectiveLineBasepoint (k := k)).hom ≫
+        boundaryProjectiveLineOverSpec k = 𝟙 _ := by
+  simpa [boundaryProjectiveLineBasepoint_hom] using
+    (boundaryProjectiveLineCanonicalBasepoint (k := k)
+      (boundaryProjectiveLineSmooth (k := k))
+      (boundaryProjectiveLineFiniteType (k := k))).over
+
+/-- The canonical Boundary-side projective-line basepoint is a closed
+immersion. This is the first geometric upgrade needed for the localization
+package. -/
+theorem boundaryProjectiveLineBasepoint_isClosedImmersion :
+    IsClosedImmersion (boundaryProjectiveLineBasepoint (k := k)).hom := by
+  infer_instance
+
+/-- A basepoint morphism in the Boundary owner surface. -/
 def boundaryP1Basepoint
     (smoothProof : BoundaryProjectiveLineSmoothOverBaseObligation k)
     (finiteTypeProof : BoundaryProjectiveLineFiniteTypeOverBaseObligation k)

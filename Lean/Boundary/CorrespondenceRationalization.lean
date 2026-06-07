@@ -151,7 +151,7 @@ theorem tensorRatComm_smul
                           rfl
       _ = q • tensorRatComm (X := X) (Y := Y) left +
             q • tensorRatComm (X := X) (Y := Y) right := by
-          simpa using congrArg₂ (fun a b => a + b) ihLeft ihRight
+          exact congrArg₂ (fun a b => a + b) ihLeft ihRight
       _ = q • tensorRatComm (X := X) (Y := Y) (left + right) := by
             simp [smul_add]
 

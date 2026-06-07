@@ -1,4 +1,4 @@
-import Boundary.A1AffineBasic
+import Boundary.A1AffineLine
 /-!
 This file was split out of `Boundary.A1Geometry`; declarations remain in
 namespace `Boundary` under their mathematical owner layer.
@@ -39,10 +39,13 @@ private noncomputable def productWithA1_product_right_iso_hom_scheme
         (𝟙 _)
         (𝟙 _)
         (by
-          simpa [overBaseProduct] using
-            (pullbackSymmetry_hom_comp_snd
-              (f := X.structMap) (g := Y.structMap)))
-        (by simp)) ≪≫
+          rw [overBaseProduct]
+          exact
+            pullbackSymmetry_hom_comp_snd
+              (f := X.structMap) (g := Y.structMap))
+        (by
+          change _ = _
+          rfl)) ≪≫
     pullbackLeftPullbackSndIso Y.structMap X.structMap
       (overBaseProduct.fst X (A1_k (k := k))) ≪≫
     pullbackSymmetry Y.structMap
@@ -64,10 +67,13 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
         (𝟙 _)
         (𝟙 _)
         (by
-          simpa [overBaseProduct] using
-            (pullbackSymmetry_hom_comp_snd
-              (f := X.structMap) (g := Y.structMap)))
-        (by simp)) ≪≫
+          rw [overBaseProduct]
+          exact
+            pullbackSymmetry_hom_comp_snd
+              (f := X.structMap) (g := Y.structMap))
+        (by
+          change _ = _
+          rfl)) ≪≫
     pullbackLeftPullbackSndIso Y.structMap X.structMap
       (overBaseProduct.fst X (A1_k (k := k))) ≪≫
     pullbackSymmetry Y.structMap
@@ -75,29 +81,29 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_hom_scheme_fst
     (X Y : Geometry.SmSchemeOver k) :
-    productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
+  productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.fst (productWithA1 X) Y ≫
         overBaseProduct.fst X (A1_k (k := k)) =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
-  simp [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_hom_scheme_snd
     (X Y : Geometry.SmSchemeOver k) :
-    productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
+  productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.snd (productWithA1 X) Y =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
-  simp [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_hom_scheme_snd_a1
     (X Y : Geometry.SmSchemeOver k) :
-    productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
+  productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.fst (productWithA1 X) Y ≫ overBaseProduct.snd X (A1_k (k := k)) =
       overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) := by
-  simp [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_right_iso_hom_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_inv_scheme_fst
@@ -113,9 +119,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
             (pullbackSymmetry X.structMap Y.structMap).inv
             (𝟙 _)
             (𝟙 _)
-            (by simpa [overBaseProduct] using
-              (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-            (by simp) ≫
+            (by
+              rw [overBaseProduct]
+              exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+            (by
+              change _ = _
+              rfl) ≫
               (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
                 (overBaseProduct.fst X Y)).hom ≫
                 overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -134,9 +143,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
             (pullbackSymmetry X.structMap Y.structMap).inv
             (𝟙 _)
             (𝟙 _)
-            (by simpa [overBaseProduct] using
-              (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-            (by simp) ≫
+            (by
+              rw [overBaseProduct]
+              exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+            (by
+              change _ = _
+              rfl) ≫
               (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
                 (overBaseProduct.fst X Y)).hom ≫
                 overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -153,14 +165,17 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
           (pullbackSymmetry X.structMap Y.structMap).inv
           (𝟙 _)
           (𝟙 _)
-          (by simpa [overBaseProduct] using
-            (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-          (by simp) ≫
+          (by
+            rw [overBaseProduct]
+            exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+          (by
+            change (𝟙 _).hom ≫ overBaseProduct.snd Y X = overBaseProduct.snd Y X
+            rfl) ≫
         CategoryTheory.Limits.pullback.fst
           (overBaseProduct.fst X Y)
           (overBaseProduct.fst X (A1_k (k := k))) ≫
         overBaseProduct.fst X Y := by
-          simpa only [Category.assoc] using congrArg
+          exact congrArg
             (fun z =>
               (pullbackSymmetry Y.structMap
                   (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
@@ -174,9 +189,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
                   (pullbackSymmetry X.structMap Y.structMap).inv
                   (𝟙 _)
                   (𝟙 _)
-                  (by simpa [overBaseProduct] using
-                    (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-                  (by simp) ≫ z)
+                  (by
+                    rw [overBaseProduct]
+                    exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+                  (by
+                    change (𝟙 _).hom ≫ overBaseProduct.snd Y X = overBaseProduct.snd Y X
+                    rfl) ≫ z)
             (pullbackRightPullbackFstIso_hom_fst_assoc
               (f := X.structMap) (g := (A1_k (k := k)).structMap)
               (f' := overBaseProduct.fst X Y)
@@ -200,7 +218,8 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
                     (overBaseProduct.snd Y X)
                     (overBaseProduct.fst X (A1_k (k := k))) ≫ z)
               (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
-          simpa only [Limits.pullback.map, Category.assoc, Limits.pullback.lift_fst_assoc] using hstep
+          rw [Limits.pullback.map, Category.assoc, Limits.pullback.lift_fst_assoc] at hstep
+          exact hstep
     _ =
       (pullbackSymmetry Y.structMap (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
         overBaseProduct.snd Y (productWithA1 X) ≫
@@ -213,7 +232,8 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
               (pullbackLeftPullbackSndIso_inv_fst_snd
                 (f := Y.structMap) (g := X.structMap)
                 (g' := overBaseProduct.fst X (A1_k (k := k))))
-          simpa only [Category.assoc] using hstep
+          rw [Category.assoc] at hstep
+          exact hstep
     _ = overBaseProduct.fst (productWithA1 X) Y ≫
           overBaseProduct.fst X (A1_k (k := k)) := by
           have hstep :=
@@ -222,7 +242,8 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
               (pullbackSymmetry_inv_comp_snd
                 (f := Y.structMap)
                 (g := overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap))
-          simpa only [Category.assoc] using hstep
+          rw [Category.assoc] at hstep
+          exact hstep
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_inv_scheme_fst_eq
     (X Y : Geometry.SmSchemeOver k) :
@@ -241,9 +262,11 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   let mInv :=
     Limits.pullback.map
       (overBaseProduct.snd Y X)
@@ -254,18 +277,20 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   have hcomp : mHom ≫ mInv = 𝟙 _ := by
     dsimp [mHom, mInv]
     rw [Limits.pullback.map_comp]
-    simp [Limits.pullback.map_id, Category.assoc, overBaseProduct]
+    rw [Limits.pullback.map_id, Category.assoc, overBaseProduct]
   letI : IsIso mHom := by
     dsimp [mHom]
     infer_instance
   have hInv : inv mHom = mInv := by
-    simpa using (IsIso.eq_inv_of_hom_inv_id hcomp).symm
+    exact (IsIso.eq_inv_of_hom_inv_id hcomp).symm
   change (pullbackSymmetry Y.structMap (productWithA1 X).structMap).inv ≫
       (pullbackLeftPullbackSndIso Y.structMap X.structMap
         (overBaseProduct.fst X (A1_k (k := k)))).inv ≫
@@ -292,9 +317,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
             (pullbackSymmetry X.structMap Y.structMap).inv
             (𝟙 _)
             (𝟙 _)
-            (by simpa [overBaseProduct] using
-              (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-            (by simp) ≫
+            (by
+              rw [overBaseProduct]
+              exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+            (by
+              change _ = _
+              rfl) ≫
               (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
                 (overBaseProduct.fst X Y)).hom ≫
                 overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) =
@@ -312,9 +340,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
             (pullbackSymmetry X.structMap Y.structMap).inv
             (𝟙 _)
             (𝟙 _)
-            (by simpa [overBaseProduct] using
-              (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-            (by simp) ≫
+            (by
+              rw [overBaseProduct]
+              exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+            (by
+              change _ = _
+              rfl) ≫
               (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
                 (overBaseProduct.fst X Y)).hom ≫
                 overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k))
@@ -330,9 +361,12 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
           (pullbackSymmetry X.structMap Y.structMap).inv
           (𝟙 _)
           (𝟙 _)
-          (by simpa [overBaseProduct] using
-            (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-          (by simp) ≫
+          (by
+            rw [overBaseProduct]
+            exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+          (by
+            change _ = _
+            rfl) ≫
         CategoryTheory.Limits.pullback.snd
           (overBaseProduct.fst X Y)
           (overBaseProduct.fst X (A1_k (k := k))) ≫
@@ -352,13 +386,17 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
                     (pullbackSymmetry X.structMap Y.structMap).inv
                     (𝟙 _)
                     (𝟙 _)
-                    (by simpa [overBaseProduct] using
-                      (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-                    (by simp) ≫ z)
+                    (by
+                      rw [overBaseProduct]
+                      exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+                    (by
+                      change _ = _
+                      rfl) ≫ z)
               (pullbackRightPullbackFstIso_hom_snd
                 (f := X.structMap) (g := (A1_k (k := k)).structMap)
                 (f' := overBaseProduct.fst X Y))
-          simpa only [Category.assoc] using hstep
+          rw [Category.assoc] at hstep
+          exact hstep
     _ =
       (pullbackSymmetry Y.structMap (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
         (pullbackLeftPullbackSndIso Y.structMap X.structMap
@@ -367,7 +405,7 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
           (overBaseProduct.snd Y X)
           (overBaseProduct.fst X (A1_k (k := k))) ≫
         overBaseProduct.snd X (A1_k (k := k)) := by
-          simp only [Limits.pullback.map, Category.assoc, Limits.pullback.lift_snd_assoc,
+          rw [Limits.pullback.map, Category.assoc, Limits.pullback.lift_snd_assoc,
             pullbackSymmetry_inv_comp_snd_assoc, Category.id_comp]
     _ =
       (pullbackSymmetry Y.structMap (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
@@ -382,14 +420,15 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
               (pullbackLeftPullbackSndIso_inv_snd_snd
                 (f := Y.structMap) (g := X.structMap)
                 (g' := overBaseProduct.fst X (A1_k (k := k))))
-          simpa only [Category.assoc] using hstep
+          rw [Category.assoc] at hstep
+          exact hstep
     _ = overBaseProduct.fst (productWithA1 X) Y ≫
           overBaseProduct.snd X (A1_k (k := k)) := by
-          simpa only [Category.assoc] using
-            (pullbackSymmetry_inv_comp_snd_assoc
-              (f := Y.structMap)
-              (g := overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)
-              (overBaseProduct.snd X (A1_k (k := k))))
+          rw [Category.assoc]
+          exact pullbackSymmetry_inv_comp_snd_assoc
+            (f := Y.structMap)
+            (g := overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)
+            (overBaseProduct.snd X (A1_k (k := k)))
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_inv_scheme_snd_eq
     (X Y : Geometry.SmSchemeOver k) :
@@ -407,9 +446,11 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   let mInv :=
     Limits.pullback.map
       (overBaseProduct.snd Y X)
@@ -420,18 +461,20 @@ private noncomputable def productWithA1_product_right_iso_inv_scheme
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   have hcomp : mHom ≫ mInv = 𝟙 _ := by
     dsimp [mHom, mInv]
     rw [Limits.pullback.map_comp]
-    simp [Limits.pullback.map_id, Category.assoc, overBaseProduct]
+    rw [Limits.pullback.map_id, Category.assoc, overBaseProduct]
   letI : IsIso mHom := by
     dsimp [mHom]
     infer_instance
   have hInv : inv mHom = mInv := by
-    simpa using (IsIso.eq_inv_of_hom_inv_id hcomp).symm
+    exact (IsIso.eq_inv_of_hom_inv_id hcomp).symm
   change (pullbackSymmetry Y.structMap (productWithA1 X).structMap).inv ≫
       (pullbackLeftPullbackSndIso Y.structMap X.structMap
         (overBaseProduct.fst X (A1_k (k := k)))).inv ≫
@@ -458,9 +501,12 @@ set_option maxHeartbeats 20000000 in
           (pullbackSymmetry X.structMap Y.structMap).inv
           (𝟙 _)
           (𝟙 _)
-          (by simpa [overBaseProduct] using
-            (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-          (by simp) ≫
+          (by
+            rw [overBaseProduct]
+            exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+          (by
+            change _ = _
+            rfl) ≫
         (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
           (overBaseProduct.fst X Y)).hom ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -478,9 +524,13 @@ set_option maxHeartbeats 20000000 in
           (pullbackSymmetry X.structMap Y.structMap).inv
           (𝟙 _)
           (𝟙 _)
-          (by simpa [overBaseProduct] using
-            (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-          (by simp) ≫
+          (by
+            rw [overBaseProduct]
+            exact
+              pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+          (by
+            change _ = _
+            rfl) ≫
         (pullbackRightPullbackFstIso X.structMap (A1_k (k := k)).structMap
           (overBaseProduct.fst X Y)).hom ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -497,14 +547,18 @@ set_option maxHeartbeats 20000000 in
           (pullbackSymmetry X.structMap Y.structMap).inv
           (𝟙 _)
           (𝟙 _)
-          (by simpa [overBaseProduct] using
-            (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-          (by simp) ≫
+          (by
+            rw [overBaseProduct]
+            exact
+              pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+          (by
+            change _ = _
+            rfl) ≫
         CategoryTheory.Limits.pullback.fst
           (overBaseProduct.fst X Y)
           (overBaseProduct.fst X (A1_k (k := k))) ≫
         overBaseProduct.snd X Y := by
-          simpa only [Category.assoc] using congrArg
+          exact congrArg
             (fun z =>
               (pullbackSymmetry Y.structMap
                   (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
@@ -518,9 +572,12 @@ set_option maxHeartbeats 20000000 in
                   (pullbackSymmetry X.structMap Y.structMap).inv
                   (𝟙 _)
                   (𝟙 _)
-                  (by simpa [overBaseProduct] using
-                    (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-                  (by simp) ≫ z)
+                  (by
+                    rw [overBaseProduct]
+                    exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+                  (by
+                    change _ = _
+                    rfl) ≫ z)
             (pullbackRightPullbackFstIso_hom_fst_assoc
               (f := X.structMap) (g := (A1_k (k := k)).structMap)
               (f' := overBaseProduct.fst X Y)
@@ -544,7 +601,8 @@ set_option maxHeartbeats 20000000 in
                     (overBaseProduct.snd Y X)
                     (overBaseProduct.fst X (A1_k (k := k))) ≫ z)
               (pullbackSymmetry_inv_comp_snd (f := X.structMap) (g := Y.structMap))
-          simpa only [Limits.pullback.map, Category.assoc, Limits.pullback.lift_fst_assoc] using hstep
+          rw [Limits.pullback.map, Category.assoc, Limits.pullback.lift_fst_assoc] at hstep
+          exact hstep
     _ =
       (pullbackSymmetry Y.structMap (overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)).inv ≫
         overBaseProduct.fst Y (productWithA1 X) := by
@@ -569,12 +627,13 @@ set_option maxHeartbeats 20000000 in
               (pullbackLeftPullbackSndIso_inv_fst_snd
                 (f := Y.structMap) (g := X.structMap)
                 (g' := overBaseProduct.fst X (A1_k (k := k))))
-          simpa only [Category.assoc] using hstep
+          rw [Category.assoc] at hstep
+          exact hstep
     _ = overBaseProduct.snd (productWithA1 X) Y := by
-          simpa only [Category.assoc] using
-            (pullbackSymmetry_inv_comp_fst
-              (f := Y.structMap)
-              (g := overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap))
+          rw [Category.assoc]
+          exact pullbackSymmetry_inv_comp_fst
+            (f := Y.structMap)
+            (g := overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap)
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_inv_scheme_base_snd
     (X Y : Geometry.SmSchemeOver k) :
@@ -592,9 +651,11 @@ set_option maxHeartbeats 20000000 in
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_hom_comp_snd (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   let mInv :=
     Limits.pullback.map
       (overBaseProduct.snd Y X)
@@ -605,18 +666,20 @@ set_option maxHeartbeats 20000000 in
       (𝟙 _)
       (𝟙 _)
       (by
-        simpa [overBaseProduct] using
-          (pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap)))
-      (by simp)
+        rw [overBaseProduct]
+        exact pullbackSymmetry_inv_comp_fst (f := X.structMap) (g := Y.structMap))
+      (by
+        change _ = _
+        rfl)
   have hcomp : mHom ≫ mInv = 𝟙 _ := by
     dsimp [mHom, mInv]
     rw [Limits.pullback.map_comp]
-    simp [Limits.pullback.map_id, Category.assoc, overBaseProduct]
+    rw [Limits.pullback.map_id, Category.assoc, overBaseProduct]
   letI : IsIso mHom := by
     dsimp [mHom]
     infer_instance
   have hInv : inv mHom = mInv := by
-    simpa using (IsIso.eq_inv_of_hom_inv_id hcomp).symm
+    exact (IsIso.eq_inv_of_hom_inv_id hcomp).symm
   change (pullbackSymmetry Y.structMap (productWithA1 X).structMap).inv ≫
       (pullbackLeftPullbackSndIso Y.structMap X.structMap
         (overBaseProduct.fst X (A1_k (k := k)))).inv ≫
@@ -636,8 +699,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.snd X Y =
       overBaseProduct.snd (productWithA1 X) Y := by
   unfold productWithA1_product_right_iso_inv_scheme
-  simpa only [Category.assoc] using
-    productWithA1_product_right_iso_inv_scheme_base_snd (k := k) X Y
+  exact productWithA1_product_right_iso_inv_scheme_base_snd (k := k) X Y
 
 @[simp, reassoc] private theorem productWithA1_product_right_iso_hom_inv_fst
     (X Y : Geometry.SmSchemeOver k) :
@@ -655,11 +717,12 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         (productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
-          overBaseProduct.fst X Y) := by simp [Category.assoc]
+          overBaseProduct.fst X Y) := by
+          rw [Category.assoc]
     _ = productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.fst (productWithA1 X) Y ≫
         overBaseProduct.fst X (A1_k (k := k)) := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫ z)
@@ -681,11 +744,11 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         (productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k))) := by
-          simp [Category.assoc]
+          rw [Category.assoc]
     _ = productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.fst (productWithA1 X) Y ≫
         overBaseProduct.snd X (A1_k (k := k)) := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫ z)
@@ -706,8 +769,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst X Y =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y
-    simpa only [Category.assoc] using
-      productWithA1_product_right_iso_hom_inv_fst (k := k) X Y
+    exact productWithA1_product_right_iso_hom_inv_fst (k := k) X Y
   · change productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
         productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -723,7 +785,7 @@ set_option maxHeartbeats 20000000 in
           (productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
             overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
             overBaseProduct.snd X Y) := by
-              simp [Category.assoc]
+              rw [Category.assoc]
       _ = productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.snd (productWithA1 X) Y := by
             rw [productWithA1_product_right_iso_inv_scheme_base_snd_eq]
@@ -747,11 +809,12 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         (productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.fst (productWithA1 X) Y ≫
-          overBaseProduct.fst X (A1_k (k := k))) := by simp [Category.assoc]
+          overBaseProduct.fst X (A1_k (k := k))) := by
+          rw [Category.assoc]
     _ = productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫ z)
@@ -772,11 +835,12 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.snd (productWithA1 X) Y =
       productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         (productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
-          overBaseProduct.snd (productWithA1 X) Y) := by simp [Category.assoc]
+          overBaseProduct.snd (productWithA1 X) Y) := by
+          rw [Category.assoc]
     _ = productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫ z)
@@ -801,7 +865,7 @@ set_option maxHeartbeats 20000000 in
         (productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.fst (productWithA1 X) Y ≫
           overBaseProduct.snd X (A1_k (k := k))) := by
-            simp [Category.assoc]
+            rw [Category.assoc]
     _ = productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) := by
           rw [productWithA1_product_right_iso_hom_scheme_snd_a1]
@@ -816,10 +880,8 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst (productWithA1 X) Y =
       overBaseProduct.fst (productWithA1 X) Y := by
   apply Limits.pullback.hom_ext
-  · simpa only [Category.assoc] using
-      productWithA1_product_right_iso_inv_hom_fst (k := k) X Y
-  · simpa only [Category.assoc] using
-      productWithA1_product_right_iso_inv_hom_a1 (k := k) X Y
+  · exact productWithA1_product_right_iso_inv_hom_fst (k := k) X Y
+  · exact productWithA1_product_right_iso_inv_hom_a1 (k := k) X Y
 
 set_option maxHeartbeats 20000000 in
 noncomputable def productWithA1_product_right_iso
@@ -830,7 +892,7 @@ noncomputable def productWithA1_product_right_iso
     { hom :=
         productWithA1_product_right_iso_hom_scheme (k := k) X Y
       over := by
-        simpa [productWithA1, overBaseProductObject, Category.assoc] using
+        exact
           congrArg
             (fun z => z ≫ X.structMap)
             (productWithA1_product_right_iso_hom_scheme_fst (k := k) X Y) }
@@ -843,7 +905,7 @@ noncomputable def productWithA1_product_right_iso
             overBaseProduct.fst X Y ≫ X.structMap =
           overBaseProduct.fst (productWithA1 X) Y ≫
             overBaseProduct.fst X (A1_k (k := k)) ≫ X.structMap
-        simpa [productWithA1, overBaseProductObject, Category.assoc] using
+        exact
           congrArg
             (fun z => z ≫ X.structMap)
             (productWithA1_product_right_iso_inv_scheme_fst_eq (k := k) X Y) }
@@ -854,14 +916,12 @@ noncomputable def productWithA1_product_right_iso
           productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) =
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k))
-      simpa only [Category.assoc] using
-        productWithA1_product_right_iso_hom_inv_toBaseProduct (k := k) X Y
+      exact productWithA1_product_right_iso_hom_inv_toBaseProduct (k := k) X Y
     · change productWithA1_product_right_iso_hom_scheme (k := k) X Y ≫
           productWithA1_product_right_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) =
         overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k))
-      simpa only [Category.assoc] using
-        productWithA1_product_right_iso_hom_inv_snd (k := k) X Y
+      exact productWithA1_product_right_iso_hom_inv_snd (k := k) X Y
   inv_hom_id := by
     apply Boundary.SmOverHom.ext
     apply Limits.pullback.hom_ext
@@ -876,8 +936,8 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst X (A1_k (k := k)) =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
-  simpa [productWithA1_product_right_iso] using
-    productWithA1_product_right_iso_hom_scheme_fst (k := k) X Y
+  rw [productWithA1_product_right_iso]
+  exact productWithA1_product_right_iso_hom_scheme_fst (k := k) X Y
 
 set_option maxHeartbeats 20000000 in
 @[reassoc] theorem productWithA1_product_right_iso_hom_snd
@@ -886,8 +946,8 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.snd (productWithA1 X) Y =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
-  simpa [productWithA1_product_right_iso] using
-    productWithA1_product_right_iso_hom_scheme_snd (k := k) X Y
+  rw [productWithA1_product_right_iso]
+  exact productWithA1_product_right_iso_hom_scheme_snd (k := k) X Y
 
 /-- Reassociate the affine-line factor to the left:
 
@@ -899,8 +959,8 @@ private noncomputable def productWithA1_product_left_iso_hom_scheme
       (overBaseProductObject X (productWithA1 Y)).scheme :=
   ((pullback.congrHom
       (by
-        simpa [overBaseProductObject, overBaseProduct] using
-          (pullback.condition (f := X.structMap) (g := Y.structMap)))
+        change X.structMap ≫ Y.structMap = X.structMap ≫ Y.structMap
+        exact pullback.condition (f := X.structMap) (g := Y.structMap))
       rfl) ≪≫
     (pullbackRightPullbackFstIso Y.structMap (A1_k (k := k)).structMap
       (overBaseProduct.snd X Y)).symm ≪≫
@@ -913,8 +973,8 @@ private noncomputable def productWithA1_product_left_iso_inv_scheme
       (productWithA1 (overBaseProductObject X Y)).scheme :=
   ((pullback.congrHom
       (by
-        simpa [overBaseProductObject, overBaseProduct] using
-          (pullback.condition (f := X.structMap) (g := Y.structMap)))
+        change X.structMap ≫ Y.structMap = X.structMap ≫ Y.structMap
+        exact pullback.condition (f := X.structMap) (g := Y.structMap))
       rfl) ≪≫
     (pullbackRightPullbackFstIso Y.structMap (A1_k (k := k)).structMap
       (overBaseProduct.snd X Y)).symm ≪≫
@@ -929,7 +989,7 @@ set_option maxHeartbeats 20000000 in
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
   unfold productWithA1_product_left_iso_hom_scheme
-  simp [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
+  rw [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
 
 set_option maxHeartbeats 20000000 in
 @[reassoc] theorem productWithA1_product_left_iso_hom_scheme_snd
@@ -939,7 +999,7 @@ set_option maxHeartbeats 20000000 in
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
   unfold productWithA1_product_left_iso_hom_scheme
-  simp [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
+  rw [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
 
 set_option maxHeartbeats 20000000 in
 @[reassoc] theorem productWithA1_product_left_iso_hom_scheme_snd_a1
@@ -948,7 +1008,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.snd X (productWithA1 Y) ≫ overBaseProduct.snd Y (A1_k (k := k)) =
       overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) := by
   unfold productWithA1_product_left_iso_hom_scheme
-  simp [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
+  rw [productWithA1, overBaseProductObject, overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_left_iso_inv_scheme_fst
     (X Y : Geometry.SmSchemeOver k) :
@@ -956,7 +1016,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y =
       overBaseProduct.fst X (productWithA1 Y) := by
-  simp [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_left_iso_inv_scheme_snd
@@ -964,7 +1024,7 @@ set_option maxHeartbeats 20000000 in
     productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) =
       overBaseProduct.snd X (productWithA1 Y) ≫ overBaseProduct.snd Y (A1_k (k := k)) := by
-  simp [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_left_iso_inv_scheme_base_snd
@@ -974,7 +1034,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.snd X Y =
       overBaseProduct.snd X (productWithA1 Y) ≫
         overBaseProduct.fst Y (A1_k (k := k)) := by
-  simp [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
+  rw [productWithA1_product_left_iso_inv_scheme, productWithA1, overBaseProductObject,
     overBaseProduct, Category.assoc]
 
 @[simp, reassoc] private theorem productWithA1_product_left_iso_hom_inv_fst
@@ -993,10 +1053,11 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
         (productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
-          overBaseProduct.fst X Y) := by simp [Category.assoc]
+          overBaseProduct.fst X Y) := by
+          rw [Category.assoc]
     _ = productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.fst X (productWithA1 Y) := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫ z)
@@ -1018,11 +1079,11 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
         (productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k))) := by
-          simp [Category.assoc]
+          rw [Category.assoc]
     _ = productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
         overBaseProduct.snd X (productWithA1 Y) ≫
         overBaseProduct.snd Y (A1_k (k := k)) := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫ z)
@@ -1043,8 +1104,7 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst X Y =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y
-    simpa only [Category.assoc] using
-      productWithA1_product_left_iso_hom_inv_fst (k := k) X Y
+    exact productWithA1_product_left_iso_hom_inv_fst (k := k) X Y
   · change productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
         productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
@@ -1060,7 +1120,7 @@ set_option maxHeartbeats 20000000 in
           (productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
             overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
             overBaseProduct.snd X Y) := by
-              simp [Category.assoc]
+              rw [Category.assoc]
       _ = productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.snd X (productWithA1 Y) ≫
           overBaseProduct.fst Y (A1_k (k := k)) := by
@@ -1081,11 +1141,12 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst X (productWithA1 Y) =
       productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         (productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
-          overBaseProduct.fst X (productWithA1 Y)) := by simp [Category.assoc]
+          overBaseProduct.fst X (productWithA1 Y)) := by
+          rw [Category.assoc]
     _ = productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫ z)
@@ -1109,11 +1170,12 @@ set_option maxHeartbeats 20000000 in
       productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         (productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.snd X (productWithA1 Y) ≫
-          overBaseProduct.fst Y (A1_k (k := k))) := by simp [Category.assoc]
+          overBaseProduct.fst Y (A1_k (k := k))) := by
+          rw [Category.assoc]
     _ = productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
-          simpa only [Category.assoc] using
+          exact
             congrArg
               (fun z =>
                 productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫ z)
@@ -1139,7 +1201,7 @@ set_option maxHeartbeats 20000000 in
         (productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.snd X (productWithA1 Y) ≫
           overBaseProduct.snd Y (A1_k (k := k))) := by
-            simp [Category.assoc]
+            rw [Category.assoc]
     _ = productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
         overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) := by
           rw [productWithA1_product_left_iso_hom_scheme_snd_a1]
@@ -1171,7 +1233,7 @@ noncomputable def productWithA1_product_left_iso
           overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
             overBaseProduct.fst X Y ≫ X.structMap
         rw [productWithA1_product_left_iso_hom_scheme_fst]
-        simp [productWithA1, overBaseProductObject, Category.assoc] }
+        rw [productWithA1, overBaseProductObject, Category.assoc] }
   inv :=
     { hom :=
         productWithA1_product_left_iso_inv_scheme (k := k) X Y
@@ -1181,7 +1243,7 @@ noncomputable def productWithA1_product_left_iso
             overBaseProduct.fst X Y ≫ X.structMap =
           overBaseProduct.fst X (productWithA1 Y) ≫ X.structMap
         rw [productWithA1_product_left_iso_inv_scheme_fst]
-        simp [productWithA1, overBaseProductObject, Category.assoc] }
+        rw [productWithA1, overBaseProductObject, Category.assoc] }
   hom_inv_id := by
     apply Boundary.SmOverHom.ext
     apply Limits.pullback.hom_ext
@@ -1189,14 +1251,12 @@ noncomputable def productWithA1_product_left_iso
           productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) =
         overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k))
-      simpa only [Category.assoc] using
-        productWithA1_product_left_iso_hom_inv_toBaseProduct (k := k) X Y
+    exact productWithA1_product_left_iso_hom_inv_toBaseProduct (k := k) X Y
     · change productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
           overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k)) =
         overBaseProduct.snd (overBaseProductObject X Y) (A1_k (k := k))
-      simpa only [Category.assoc] using
-        productWithA1_product_left_iso_hom_inv_snd (k := k) X Y
+    exact productWithA1_product_left_iso_hom_inv_snd (k := k) X Y
   inv_hom_id := by
     apply Boundary.SmOverHom.ext
     apply Limits.pullback.hom_ext
@@ -1204,14 +1264,12 @@ noncomputable def productWithA1_product_left_iso
           productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.fst X (productWithA1 Y) =
         overBaseProduct.fst X (productWithA1 Y)
-      simpa only [Category.assoc] using
-        productWithA1_product_left_iso_inv_hom_fst (k := k) X Y
+      exact productWithA1_product_left_iso_inv_hom_fst (k := k) X Y
     · change productWithA1_product_left_iso_inv_scheme (k := k) X Y ≫
           productWithA1_product_left_iso_hom_scheme (k := k) X Y ≫
           overBaseProduct.snd X (productWithA1 Y) =
         overBaseProduct.snd X (productWithA1 Y)
-      simpa only [Category.assoc] using
-        productWithA1_product_left_iso_inv_hom_toProductSource (k := k) X Y
+      exact productWithA1_product_left_iso_inv_hom_toProductSource (k := k) X Y
 
 set_option maxHeartbeats 20000000 in
 @[reassoc] theorem productWithA1_product_left_iso_hom_fst
@@ -1220,8 +1278,8 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst X (productWithA1 Y) =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.fst X Y := by
-  simpa [productWithA1_product_left_iso] using
-    productWithA1_product_left_iso_hom_scheme_fst (k := k) X Y
+  rw [productWithA1_product_left_iso]
+  exact productWithA1_product_left_iso_hom_scheme_fst (k := k) X Y
 
 set_option maxHeartbeats 20000000 in
 @[reassoc] theorem productWithA1_product_left_iso_hom_snd
@@ -1231,8 +1289,8 @@ set_option maxHeartbeats 20000000 in
         overBaseProduct.fst Y (A1_k (k := k)) =
       overBaseProduct.fst (overBaseProductObject X Y) (A1_k (k := k)) ≫
         overBaseProduct.snd X Y := by
-  simpa [productWithA1_product_left_iso] using
-    productWithA1_product_left_iso_hom_scheme_snd (k := k) X Y
+  rw [productWithA1_product_left_iso]
+  exact productWithA1_product_left_iso_hom_scheme_snd (k := k) X Y
 
 /-- Under the right reassociation isomorphism, the ordinary projection
 `(X × A¹) × Y → X × Y` transports to the usual `A¹` projection
@@ -1248,15 +1306,13 @@ theorem productWithA1_product_right_iso_hom_comp_projection
         overBaseProduct.fst X Y =
       (projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.fst X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      productWithA1_product_right_iso_hom_fst (k := k) X Y
+    rw [productWithA1_product_right_iso_hom_fst (k := k) X Y]
   · change ((productWithA1_product_right_iso (k := k) X Y).hom.hom ≫
         (overBaseProductMap (projectionToBase X) (𝟙 Y)).hom) ≫
         overBaseProduct.snd X Y =
       (projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.snd X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      productWithA1_product_right_iso_hom_snd (k := k) X Y
+    rw [productWithA1_product_right_iso_hom_snd (k := k) X Y]
 
 /-- Under the left reassociation isomorphism, the ordinary projection
 `X × (Y × A¹) → X × Y` transports to the usual `A¹` projection
@@ -1272,15 +1328,13 @@ theorem productWithA1_product_left_iso_hom_comp_projection
         overBaseProduct.fst X Y =
       (projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.fst X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      productWithA1_product_left_iso_hom_fst (k := k) X Y
+    rw [productWithA1_product_left_iso_hom_fst (k := k) X Y]
   · change ((productWithA1_product_left_iso (k := k) X Y).hom.hom ≫
         (overBaseProductMap (𝟙 X) (projectionToBase Y)).hom) ≫
         overBaseProduct.snd X Y =
       (projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.snd X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      productWithA1_product_left_iso_hom_snd (k := k) X Y
+    rw [productWithA1_product_left_iso_hom_snd (k := k) X Y]
 
 /-- The right-product projection is exactly the transported `A¹` projection on
 `X ×_k Y`. -/
@@ -1296,15 +1350,13 @@ theorem overBaseProductMap_projectionToBase_right_eq
       ((productWithA1_product_right_iso (k := k) X Y).inv ≫
           projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.fst X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      (productWithA1_product_right_iso_inv_scheme_fst_eq (k := k) X Y).symm
+    rw [productWithA1_product_right_iso_inv_scheme_fst_eq (k := k) X Y]
   · change (overBaseProductMap (projectionToBase X) (𝟙 Y)).hom ≫
         overBaseProduct.snd X Y =
       ((productWithA1_product_right_iso (k := k) X Y).inv ≫
           projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.snd X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      (productWithA1_product_right_iso_inv_scheme_base_snd_eq (k := k) X Y).symm
+    rw [productWithA1_product_right_iso_inv_scheme_base_snd_eq (k := k) X Y]
 
 /-- The left-product projection is exactly the transported `A¹` projection on
 `X ×_k Y`. -/
@@ -1320,15 +1372,13 @@ theorem overBaseProductMap_projectionToBase_left_eq
       ((productWithA1_product_left_iso (k := k) X Y).inv ≫
           projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.fst X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      (productWithA1_product_left_iso_inv_scheme_fst (k := k) X Y).symm
+    rw [productWithA1_product_left_iso_inv_scheme_fst (k := k) X Y]
   · change (overBaseProductMap (𝟙 X) (projectionToBase Y)).hom ≫
         overBaseProduct.snd X Y =
       ((productWithA1_product_left_iso (k := k) X Y).inv ≫
           projectionToBase (overBaseProductObject X Y)).hom ≫
         overBaseProduct.snd X Y
-    simpa [projectionToBase, overBaseProductMap, Category.assoc] using
-      (productWithA1_product_left_iso_inv_scheme_base_snd (k := k) X Y).symm
+    rw [productWithA1_product_left_iso_inv_scheme_base_snd (k := k) X Y]
 
 /-- Right-associated transport of the `A1`-projection along
 `((X × A1) × Y) ≅ ((X × Y) × A1)`. This is the geometric map whose graph is
@@ -1359,7 +1409,7 @@ def a1ProjectionProductLeftTransport
       Limits.pullback.map X.structMap (productWithA1 Y).structMap
         X.structMap Y.structMap
         (𝟙 X.scheme) (projectionToBase Y).hom (𝟙 (Spec (CommRingCat.of k)))
-        (by simp [Category.assoc])
+        (by rfl)
         (by
           change (projectionToBase Y).hom ≫ Y.structMap = (productWithA1 Y).structMap
           rfl) := by

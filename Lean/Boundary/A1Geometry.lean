@@ -1,4 +1,4 @@
-import Boundary.A1AffineBasic
+import Boundary.A1AffineLine
 import Boundary.A1ProductTransport
 import Boundary.A1ProjectionCorrespondence
 import Boundary.A1Locality

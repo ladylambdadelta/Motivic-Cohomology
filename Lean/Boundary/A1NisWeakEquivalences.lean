@@ -35,7 +35,7 @@ theorem id
   intro L
   constructor
   · intro η₁ η₂ hη
-    simpa using hη
+    exact hη
   · intro η
     refine ⟨η, ?_⟩
     simp
@@ -61,7 +61,7 @@ theorem comp
     refine ⟨μ, ?_⟩
     calc
       (φ ≫ ψ) ≫ μ = φ ≫ (ψ ≫ μ) := by simp [Category.assoc]
-      _ = φ ≫ θ := by simpa using congrArg (fun t => φ ≫ t) hμ
+      _ = φ ≫ θ := by exact congrArg (fun t => φ ≫ t) hμ
       _ = η := hθ
 
 theorem of_comp_left
@@ -87,7 +87,7 @@ theorem of_comp_left
       have hμμ : μ₁ = μ₂ := (hcomp L).1 hcompEq
       calc
         η₁ = ψ ≫ μ₁ := hμ₁.symm
-        _ = ψ ≫ μ₂ := by simpa using congrArg (fun t => ψ ≫ t) hμμ
+        _ = ψ ≫ μ₂ := by exact congrArg (fun t => ψ ≫ t) hμμ
         _ = η₂ := hμ₂
     · intro η
       rcases (hcomp L).2 η with ⟨μ, hμ⟩
@@ -128,7 +128,7 @@ theorem of_isIso
     calc
       η₁ = inv φ ≫ (φ ≫ η₁) := by simp [Category.assoc]
       _ = inv φ ≫ (φ ≫ η₂) := by
-        simpa using congrArg (fun t => inv φ ≫ t) hη
+        exact congrArg (fun t => inv φ ≫ t) hη
       _ = η₂ := by simp [Category.assoc]
   · intro η
     refine ⟨inv φ ≫ η, ?_⟩
@@ -355,7 +355,7 @@ theorem representableA1Projection_isA1NisLocalEquivalence
           QtrLinear (category := category) X from
         projectionToBase_QtrMapOfDecomposition category X D) := by
   intro L
-  simpa using
+  exact
     ((IsA1NisLocal_iff_QtrLinear_local L.toLinearPST).mp L.isA1NisLocal).1 X D
 
 /-- Both basic geometric generator families land in `IsA1NisLocalEquivalence`.
@@ -668,7 +668,7 @@ private theorem generatedWeakEquivalence_invertedByCanonicalLocal
                     (Boundary.canonicalCategory composition) X D) := by
             rw [canonicalA1NisLocalEquivalences_iff]
             exact representableA1Projection_isCanonicalA1NisLocalEquivalence composition X D
-          simpa using hloc
+          exact hloc
             ((LinearA1NisLocalPST.inclusion (Boundary.canonicalCategory composition)).obj L)
             ⟨L, rfl⟩
       | nisnevichDescent square =>
@@ -689,7 +689,7 @@ private theorem generatedWeakEquivalence_invertedByCanonicalLocal
       intro L
       constructor
       · intro η₁ η₂ hη
-        simpa using hη
+        exact hη
       · intro η
         refine ⟨η, ?_⟩
         simp
@@ -724,7 +724,7 @@ theorem canonicalA1NisWeakEquivalences_le_localEquivalences
   rcases hφ with ⟨hφ⟩
   intro Z hZ
   rcases hZ with ⟨L, rfl⟩
-  simpa using generatedWeakEquivalence_invertedByCanonicalLocal composition hφ L
+  exact generatedWeakEquivalence_invertedByCanonicalLocal composition hφ L
 
 /-- The raw generator-built class sits inside the Bousfield-generated
 weak-equivalence class. -/
@@ -738,7 +738,7 @@ theorem canonicalA1NisWeakEquivalences_le_generatedWeakEquivalences
   intro L hL
   have hLocal : IsLinearA1NisLocal L :=
     (canonicalA1NisGeneratedLocalObject_iff_isLocal composition L).mp hL
-  simpa using
+  exact
     generatedWeakEquivalence_invertedByCanonicalLocal composition hφ
       (⟨L, hLocal⟩ : CanonicalA1NisLocalPST composition)
 
@@ -761,7 +761,7 @@ theorem canonicalA1NisGeneratedWeakEquivalences_closure
     intro L _hL
     constructor
     · intro η₁ η₂ hη
-      simpa using hη
+      exact hη
     · intro η
       refine ⟨η, ?_⟩
       simp
@@ -780,7 +780,7 @@ theorem canonicalA1NisGeneratedWeakEquivalences_closure
       refine ⟨μ, ?_⟩
       calc
         (f ≫ g) ≫ μ = f ≫ (g ≫ μ) := by simp [Category.assoc]
-        _ = f ≫ θ := by simpa using congrArg (fun t => f ≫ t) hμ
+        _ = f ≫ θ := by exact congrArg (fun t => f ≫ t) hμ
         _ = η := hθ
   · intro X Y Z f g hg hfg
     intro L hL
@@ -800,7 +800,7 @@ theorem canonicalA1NisGeneratedWeakEquivalences_closure
       have hμ : μ₁ = μ₂ := bfg.1 hcomp
       calc
         η₁ = g ≫ μ₁ := hμ₁.symm
-        _ = g ≫ μ₂ := by simpa using congrArg (fun t => g ≫ t) hμ
+        _ = g ≫ μ₂ := by exact congrArg (fun t => g ≫ t) hμ
         _ = η₂ := hμ₂
     · intro η
       rcases bfg.2 η with ⟨μ, hμ⟩
@@ -977,11 +977,11 @@ def canonicalA1NisLocalization_universalProperty_generated
         unitIso := NatIso.ofComponents (fun F => Iso.refl F) (fun η => by
           ext X
           change η.app X ≫ 𝟙 _ = 𝟙 _ ≫ η.app X
-          simpa using ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
+          exact ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
         counitIso := NatIso.ofComponents (fun F => Iso.refl F) (fun η => by
           ext X
           change η.app X ≫ 𝟙 _ = 𝟙 _ ≫ η.app X
-          simpa using ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
+          exact ((Category.comp_id (η.app X)).trans (Category.id_comp (η.app X)).symm))
         functor_unitIso_comp := by
           intro F
           ext X

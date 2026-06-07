@@ -1,33 +1,26 @@
-import Boundary.GeometricMotives
+import Boundary.DMgm
 
 open Boundary
 
-#check canonicalBoundaryDMgmCanonical
-#check canonicalBoundaryDMgmCanonicalEffectiveEmbedding
-#check canonicalBoundaryDMgmCanonicalTateShiftEquivalence
+#check boundaryProjectiveLineCanonicalObject
+#check boundaryProjectiveLineBasepoint
+#check boundaryEffectiveTateObject
+#check boundaryEffectiveTateObject_projectiveGeometry
+#check boundaryEffectiveTateObject_shifted_iso_reducedProjectiveLine
 
-#check BoundaryCanonicalDMgmCompletionData
-#check BoundaryCanonicalDMgmCompletionData.ofWitness
-#print axioms BoundaryCanonicalDMgmCompletionData.ofWitness
+#check Boundary.Motives.TateStabilizationExtension
+#check Boundary.Motives.TateStabilizationExtension.lift
+#check Boundary.Motives.tateShiftEquivalence
 
-#check canonicalBoundaryDMgmStep1MonoidalData
-#check canonicalBoundaryDMgmStep2TensorByTateData
-#check canonicalBoundaryDMgmConstruction
+#check boundaryMotivesOfProjectiveGeometricTateObject
+#check boundaryEffectiveMotivesEmbeddingProjectiveGeometricTate
+#check boundaryProjectiveGeometricTateShiftEquivalence
+#check boundaryProjectiveGeometricTateStabilizationUniversalProperty
 
-#check externalProduct_id_id
-#check identityFiniteCorrespondence_externalProduct_eq_identity
-#check identityPrimeSupport_externalProduct_eq_identityPrimeSupport
-#check diagonal_externalProduct_eq_diagonal_product
-#check externalProduct_comp_interchange
-
-#check tateTensor_obj
-#check tateTensor_hom
-#check tateTensor_id
-#check tateTensor_comp
-#check effectiveTateObject
-
-#check tateTensor_respects_A1_relation
-#check tateTensor_respects_Nisnevich_relation
-#check canonical_a1MorphismCompatibility
-#check canonical_nisnevichMorphismCompatibility
-#check canonical_localizationRespectsStabilization
+#check VoevodskyDMgmQ_Q
+#check VoevodskyDMgmEffectiveEmbedding
+#check VoevodskyDMgmTateShiftEquivalence
+#check VoevodskyDMgmTateStabilizationExtension
+#check VoevodskyDMgmTateStabilizationExtension.lift
+#check VoevodskyDMgmTateStabilizationUniversalProperty
+#check VoevodskyDMgmTateStabilizationUniversalProperty.canonical

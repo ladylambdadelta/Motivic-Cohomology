@@ -79,7 +79,7 @@ def wholeSupportComponent (S : Scheme.{u}) [IsIntegral S] :
       isClosedImm := by infer_instance
       isIntegral := inferInstance }
   isIrreducibleComponent := by
-    simpa using univ_mem_irreducibleComponents_of_isIntegral S
+    exact univ_mem_irreducibleComponents_of_isIntegral S
 
 def singletonRawSupportDecomposition (S : Scheme.{u}) [IsIntegral S] :
     FiniteIntegralClosedComponentDecomposition S where
@@ -606,7 +606,7 @@ def graphExternalProduct_id_right_imageDecomposition_singleton
     have hcancel :
         ((graphExternalProductSupportIso_id_right C D f).hom.base
           ((graphExternalProductSupportIso_id_right C D f).inv.base x)) = x := by
-      simpa using congrArg (fun h => h.base x)
+      exact congrArg (fun h => h.base x)
         (graphExternalProductSupportIso_id_right C D f).inv_hom_id
     change (rightGraphPrime C D f).toSourceComponent.base
       ((graphExternalProductSupportIso_id_right C D f).hom.base
@@ -738,6 +738,25 @@ theorem graphExternalProduct_id_right_decomposition_toSourceImage_isIso
       IsIso
         ((graphExternalProductSupportIso_id_right C D f).hom ≫
           𝟙 (productSourceIrreducibleComponent C D).carrier.scheme))
+
+@[simp] theorem rightSourceImage_eq_toSourceImageSubscheme
+    {X Y Z : Geometry.SmSchemeOver k}
+    (C : ProductStableSourceComponent X)
+    (D : SourceIrreducibleComponent Z)
+    (f : SmOverHom X Y) :
+    rightSourceImage C D f =
+      (productSourceIrreducibleComponent C D).toSourceImageSubscheme := by
+  rfl
+
+theorem rightSourceImage_diagonalFiniteCorrespondence
+    {X Y Z : Geometry.SmSchemeOver k}
+    (C : ProductStableSourceComponent X)
+    (D : SourceIrreducibleComponent Z)
+    (f : SmOverHom X Y) :
+    SourceImageSubscheme.diagonalFiniteCorrespondence (rightSourceImage C D f) =
+      SourceIrreducibleComponent.diagonalFiniteCorrespondence
+        (productSourceIrreducibleComponent C D) := by
+  rfl
 
 def leftSourceImage
     {X Y Z : Geometry.SmSchemeOver k}

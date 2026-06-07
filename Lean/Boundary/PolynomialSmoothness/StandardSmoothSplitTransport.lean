@@ -1,0 +1,6 @@
+import Boundary.PolynomialSmoothness.StandardSmoothConstructions
+import Boundary.PolynomialSmoothness.StandardSmoothDimensionZero
+
+namespace Boundary
+
+end Boundary

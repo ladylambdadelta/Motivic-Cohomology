@@ -9,6 +9,11 @@ This file defines the generating presieve for a Nisnevich distinguished square,
 the canonical Nisnevich covering families on each object of `Geometry.SmSchemeOver k`,
 and the resulting coverage/topology objects.
 
+Nisnevich distinguished squares and their associated covers are the standard
+cd-structure generators for the Nisnevich topology; cf. Nisnevich, "The
+completely decomposed topology on schemes and associated descent spectral
+sequences", and Morel-Voevodsky, "A¹-homotopy theory of schemes", §3.
+
 ## What is here
 
 - `nisnevichCoverPresieve sq` — the two-morphism presieve
@@ -204,11 +209,11 @@ variable
   (packages : ConcreteLiftedPackages (k := k))
   (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
   (leftIdentity_constant :
-    ∀ {X Y : Geometry.SmSchemeOver k}
-      (P : Boundary.RepresentedPrimeSupport X Y)
-      (component : Boundary.SourceIrreducibleComponent X)
-      (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
-      (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y)
+        (component : Boundary.SourceIrreducibleComponent X)
+      (toComponent : P.sourceImage.carrier.scheme ⟶ component.carrier.scheme)
+      (_htoComponent : toComponent ≫ component.toAmbient = P.sourceImage.toAmbient),
         packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
             (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
           leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
@@ -366,7 +371,7 @@ theorem nisnevichCoverPresieve_mem_nisnevichCovering_pullback
           leftPresentation rightPresentation hpresentation hleft hright
           graphPair_yes graphPair_no sq f decomps) ∈
       nisnevichCovering Y := by
-  simpa using
+  exact
     nisnevichCoverPresieve_mem_nisnevichCovering
       (sq := NisnevichDistinguishedSquareDataQ.pullback
         diagonalDecomposition packages leftIdentityPackage leftIdentity_constant

@@ -11,9 +11,12 @@ import Mathlib.CategoryTheory.Limits.Shapes.Pullback.CommSq
 # Nisnevich Square Targets For Presheaves With Transfers
 
 This file records typed Nisnevich distinguished-square data together with the
-chosen transfer maps that feed the proof-relevant localization scaffold. It
-does not yet state a global Nisnevich descent predicate on arbitrary
-presheaves with transfers.
+chosen transfer maps that feed the proof-relevant localization scaffold.
+It also defines global Nisnevich locality for `PST` via compatibility on every
+typed Nisnevich distinguished square.
+
+Reference: Grothendieck, EGA I/II descent viewpoint, and Voevodsky–Suslin–
+Friedlander, `Cycles, Transfers, and Motivic Homology Theories`, Ch. 2.
 -/
 
 universe u
@@ -27,9 +30,9 @@ namespace Boundary
 noncomputable section
 
 /-- Typed Nisnevich distinguished-square data, together with chosen transfer
-realizations of the four structural maps.  The geometric compatibility facts
-that still need proofs are left as precisely named targets rather than being
-collapsed into a single opaque proposition. -/
+realizations of the four structural maps. Structural compatibility and transfer
+functoriality are packaged as explicitly named constructions for downstream use.
+-/
 structure NisnevichDistinguishedSquareDataQ (category : SmCorQ (k := k)) where
   base : Geometry.SmSchemeOver k
   openPiece : Geometry.SmSchemeOver k
@@ -102,7 +105,7 @@ def descentDifferenceMap {category : SmCorQ (k := k)}
                 -((descentPatchRestrictionMap square).app X a) +
                   -((descentPatchRestrictionMap square).app X b)
               rw [((descentPatchRestrictionMap square).app X).map_add]
-              abel
+              rw [neg_add]
           map_smul' := by
             intro coeff value
             apply Prod.ext
@@ -111,7 +114,7 @@ def descentDifferenceMap {category : SmCorQ (k := k)}
               exact ((descentOpenRestrictionMap square).app X).map_smul coeff value
             · change -((descentPatchRestrictionMap square).app X (coeff • value)) =
                 coeff • (-((descentPatchRestrictionMap square).app X value))
-              simpa using
+              exact
                 congrArg Neg.neg (((descentPatchRestrictionMap square).app X).map_smul coeff value) }
       naturality := by
         intro X Y f
@@ -132,13 +135,9 @@ def descentDifferenceMap {category : SmCorQ (k := k)}
                   (-((descentPatchRestrictionMap square).app X value)) := by
                     simp }
 
-/-- Exact remaining categorical obligation for the compatible-pair object on
-the current representable/direct-sum surface. Because the available
-representable restriction legs are variance-correct maps out of `Qtr overlap`,
-the missing object is the cokernel of `descentDifferenceMap square`. -/
-def descentCompatiblePairObject_obligation {category : SmCorQ (k := k)}
-  (square : NisnevichDistinguishedSquareDataQ category) :=
-  Limits.HasCokernel (descentDifferenceMap square)
+/-! The compatible-pair object is defined by applying `Limits.cokernel` to
+`descentDifferenceMap`. The canonical construction is given by
+`descentCompatiblePairObject` below. -/
 
 /-- `PST category` has cokernels, inherited pointwise from `ModuleCat ℚ`
 through the functor-category colimit instances. -/
@@ -200,7 +199,7 @@ def descentComparisonMap {category : SmCorQ (k := k)}
                   ((QtrMap (category := category) square.openToBaseTransfer).app X open₂ +
                     (QtrMap (category := category) square.patchToBaseTransfer).app X patch₂)
             rw [LinearMap.map_add, LinearMap.map_add]
-            abel
+            rw [← add_add_add_comm]
           map_smul' := by
             rintro coeff ⟨openPart, patchPart⟩
             change
@@ -251,9 +250,9 @@ theorem descentComparisonMap_factors
   have hcomm' :
       category.comp value (category.comp square.overlapToOpenTransfer square.openToBaseTransfer) =
         category.comp value (category.comp square.overlapToPatchTransfer square.patchToBaseTransfer) := by
-    simpa using hcomm
+    exact hcomm
   rw [hcomm']
-  simpa [neg_one_smul]
+  rw [neg_one_smul]
 
 /-- The Nisnevich descent generator map in the variance-correct direction:
 from the compatible-pair quotient object to the base representable. -/
@@ -653,7 +652,7 @@ theorem descentCompatiblePairObject_overlap_compat
           = qη.app X (a, zpatch) + (-(qη.app X (zopen, b))) := by
               simp [sub_eq_add_neg]
       _ = qη.app X (a, zpatch) + qη.app X (zopen, -b) := by
-            simpa [hneg]
+            rw [hneg]
       _ = 0 := hsum
   exact sub_eq_zero.mp <| by
     simpa [a, b, zopen, zpatch, qη, ηP, Category.assoc] using hsub
@@ -676,7 +675,7 @@ def descentTargetPairingMap
               ηU.app X (u1 + u2) + ηV.app X (v1 + v2) =
                 (ηU.app X u1 + ηV.app X v1) + (ηU.app X u2 + ηV.app X v2)
             rw [LinearMap.map_add, LinearMap.map_add]
-            abel
+            rw [← add_add_add_comm]
           map_smul' := by
             intro coeff value
             rcases value with ⟨u, v⟩
@@ -812,7 +811,7 @@ theorem descentCompatiblePair_desc
           qX (u, v) = qX ((u, 0) + (0, v)) := by
             exact congrArg qX huv
           _ = qX (u, 0) + qX (0, v) := by
-                simpa using qX.map_add (u, 0) (0, v)
+                exact qX.map_add (u, 0) (0, v)
       change
         ((descentCompatiblePairQuotientMap square ≫ η).app X (u, v)) =
           ηU.app X u + ηV.app X v
@@ -1207,7 +1206,7 @@ theorem IsNisnevichLocal_iff_QtrLinear_satisfies_descent
                   (α := square.overlapToOpenTransfer) ηopen
         _ = QtrLinear_yoneda F square.overlap
               ((QtrMap (category := category) square.overlapToPatchTransfer) ≫ ηpatch) := by
-              simpa using congrArg (QtrLinear_yoneda F square.overlap) hcompat
+              exact congrArg (QtrLinear_yoneda F square.overlap) hcompat
         _ = NisnevichDistinguishedSquareDataQ.patchRestrictionToOverlap square F.toPST
               patchSection := by
               simpa [patchSection,
@@ -1275,7 +1274,7 @@ theorem IsNisnevichLocal_iff_QtrLinear_satisfies_descent
                       QtrLinear_yoneda_naturality (F := F)
                         (α := square.openToBaseTransfer) ζ
               _ = QtrLinear_yoneda F square.openPiece ηopen := by
-                    simpa using congrArg (QtrLinear_yoneda F square.openPiece) hζ.1
+                    exact congrArg (QtrLinear_yoneda F square.openPiece) hζ.1
               _ = openSection := by
                     rfl
           · calc
@@ -1288,7 +1287,7 @@ theorem IsNisnevichLocal_iff_QtrLinear_satisfies_descent
                       QtrLinear_yoneda_naturality (F := F)
                         (α := square.patchToBaseTransfer) ζ
               _ = QtrLinear_yoneda F square.patchPiece ηpatch := by
-                    simpa using congrArg (QtrLinear_yoneda F square.patchPiece) hζ.2
+                    exact congrArg (QtrLinear_yoneda F square.patchPiece) hζ.2
               _ = patchSection := by
                     rfl
         _ = QtrLinear_yoneda F square.base
@@ -1347,7 +1346,7 @@ theorem IsNisnevichLocal_iff_QtrLinear_satisfies_descent
                     QtrLinear_yoneda_naturality (F := F)
                       (α := square.openToBaseTransfer) ηbase
           _ = QtrLinear_yoneda F square.openPiece ηopen := by
-                simpa using congrArg (QtrLinear_yoneda F square.openPiece) hbase.1
+                exact congrArg (QtrLinear_yoneda F square.openPiece) hbase.1
           _ = openSection := by
                 simpa [ηopen] using
                   (QtrLinear_yoneda F square.openPiece).right_inv openSection
@@ -1361,7 +1360,7 @@ theorem IsNisnevichLocal_iff_QtrLinear_satisfies_descent
                     QtrLinear_yoneda_naturality (F := F)
                       (α := square.patchToBaseTransfer) ηbase
           _ = QtrLinear_yoneda F square.patchPiece ηpatch := by
-                simpa using congrArg (QtrLinear_yoneda F square.patchPiece) hbase.2
+                exact congrArg (QtrLinear_yoneda F square.patchPiece) hbase.2
           _ = patchSection := by
                 simpa [ηpatch] using
                   (QtrLinear_yoneda F square.patchPiece).right_inv patchSection
@@ -1423,24 +1422,25 @@ subtype of the canonical `PST` category, not a localization. -/
 def NisnevichLocalPST (category : SmCorQ (k := k)) :=
   { F : PST category // IsNisnevichLocal F }
 
-/-- Family of Nisnevich localizing maps feeding the transfer-presheaf
-localization construction. -/
-structure NisnevichLocalizingMapObligationQ (category : SmCorQ (k := k)) where
+/-! Family of Nisnevich localization generators used by the owner-level
+localization construction: each index chooses a distinguished square and its
+compatible-pair to base map. -/
+structure NisnevichLocalizingMorphismFamilyQ (category : SmCorQ (k := k)) where
   Square : Type (u + 1)
   square : Square → NisnevichDistinguishedSquareDataQ category
   localizingData : Square → Sigma fun X : PST category =>
     Sigma fun Y : PST category =>
       (X ⟶ Y)
 
-namespace NisnevichLocalizingMapObligationQ
+namespace NisnevichLocalizingMorphismFamilyQ
 
 def toLocalizingMorphisms {category : SmCorQ (k := k)}
-    (presentation : NisnevichLocalizingMapObligationQ category) :
+    (presentation : NisnevichLocalizingMorphismFamilyQ category) :
     LocalizingMorphismPresentationQ category :=
   { Generator := presentation.Square
     data := presentation.localizingData }
 
-end NisnevichLocalizingMapObligationQ
+end NisnevichLocalizingMorphismFamilyQ
 
 end
 

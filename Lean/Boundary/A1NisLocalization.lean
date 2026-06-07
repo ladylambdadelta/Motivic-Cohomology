@@ -43,6 +43,42 @@ structure CanonicalA1NisWeakEquivalencePackage
     bousfieldGeneratedProperty =
       canonicalA1NisGeneratedWeakEquivalencesProperty composition
 
+/-- The canonical weak-equivalence package really does package the full closure
+theorems for the generator-built Bousfield class.
+
+This is exactly the canonical theorem chain in C. Weibel, *An Introduction to
+Homological Algebra*, Chapter 9.4, now expressed at owner level via the
+generated-class closure API established in `Boundary.A1NisWeakEquivalences`. -/
+theorem canonicalA1NisWeakEquivalencePackage_generatedClosure
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (weakEquiv : CanonicalA1NisWeakEquivalencePackage composition) :
+    CanonicalA1NisWeakEquivalenceClosure composition
+      (CanonicalA1NisWeakEquivalencePackage.generatedProperty weakEquiv) := by
+  simpa [weakEquiv.generatedProperty_eq] using
+    (canonicalA1NisGeneratedWeakEquivalences_closure composition)
+
+/-- The generated-property side of the canonical package has 2-out-of-3 and
+retract stability in the canonical setting. -/
+theorem canonicalA1NisWeakEquivalencePackage_generatedTwoOutOfThree
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (weakEquiv : CanonicalA1NisWeakEquivalencePackage composition)
+    {X Y Z : LinearPST (Boundary.canonicalCategory composition)}
+    (f : X ⟶ Y) (g : Y ⟶ Z) :
+    (weakEquiv.generatedProperty g →
+      weakEquiv.generatedProperty (f ≫ g) →
+        weakEquiv.generatedProperty f) ∧
+    (weakEquiv.generatedProperty f →
+      weakEquiv.generatedProperty (f ≫ g) →
+        weakEquiv.generatedProperty g) := by
+  refine
+    ⟨?_, ?_⟩
+  · simpa [weakEquiv.generatedProperty_eq] using
+      (canonicalA1NisGeneratedWeakEquivalences_closure composition
+        |>.two_out_of_three_left (f := f) (g := g))
+  · simpa [weakEquiv.generatedProperty_eq] using
+      (canonicalA1NisGeneratedWeakEquivalences_closure composition
+        |>.two_out_of_three_right (f := f) (g := g))
+
 structure CanonicalA1NisReflectorPackage
     (composition : Boundary.CanonicalCompositionData (k := k))
     [Preadditive (LinearPST (Boundary.canonicalCategory composition))] where
@@ -65,6 +101,22 @@ structure CanonicalA1NisReflectorPackage
       (φ : X ⟶ Y),
       canonicalA1NisLocalEquivalences composition φ ↔
         IsIso (reflector.map φ)
+
+/-- The canonical reflector package is itself a localization of
+`canonicalA1NisLocalEquivalencesProperty`.  This is the standard adjunction
+argument in Gabriel–Zisman, §2.1. -/
+theorem canonicalA1NisReflectorPackage_isLocalization
+    (composition : Boundary.CanonicalCompositionData (k := k))
+    (reflector : CanonicalA1NisReflectorPackage composition) :
+    reflector.reflector.IsLocalization
+      (canonicalA1NisLocalEquivalencesProperty composition) := by
+  simpa [canonicalA1NisLocalEquivalencesProperty] using
+    (Localization.LeftBousfield.isLocalization reflector.adjunction :
+      reflector.reflector.IsLocalization
+        (Localization.LeftBousfield.W
+          (· ∈ Set.range
+            (LinearA1NisLocalPST.inclusion
+              (Boundary.canonicalCategory composition)).obj)))
 
 /-- Construct the canonical A1/Nis reflector package from an actual
 sheafification adjunction and its left-exactness. -/

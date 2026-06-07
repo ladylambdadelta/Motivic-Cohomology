@@ -185,11 +185,27 @@ theorem comp_smul_left (data : FiniteCorrespondenceCompositionData (k := k))
     rw [smul_add, FiniteCorrespondenceCompositionData.comp_add_left, ih₁, ih₂,
       ← smul_add, FiniteCorrespondenceCompositionData.comp_add_left]
   · intro prime primeCoeff
-    simp [FiniteCorrespondenceCompositionData.comp_single_left]
-    rw [Finsupp.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro rightPrime _
-    simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+    apply Finsupp.induction_linear right
+    · simp
+    · intro right₁ right₂ ihRight₁ ihRight₂
+      rw [FiniteCorrespondenceCompositionData.comp_add_right,
+        FiniteCorrespondenceCompositionData.comp_add_right, ihRight₁, ihRight₂,
+        smul_add]
+    · intro rightPrime rightCoeff
+      calc
+        FiniteCorrespondenceCompositionData.comp data
+            (coeff • Finsupp.single prime primeCoeff)
+            (Finsupp.single rightPrime rightCoeff)
+            = FiniteCorrespondenceCompositionData.comp data
+                (Finsupp.single prime (coeff * primeCoeff))
+                (Finsupp.single rightPrime rightCoeff) := by
+              simp
+        _ = coeff • FiniteCorrespondenceCompositionData.comp data
+              (Finsupp.single prime primeCoeff)
+              (Finsupp.single rightPrime rightCoeff) := by
+              rw [FiniteCorrespondenceCompositionData.comp_single_single,
+                FiniteCorrespondenceCompositionData.comp_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 theorem comp_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
     {X Y Z : Geometry.SmSchemeOver k}
@@ -204,11 +220,27 @@ theorem comp_smul_right (data : FiniteCorrespondenceCompositionData (k := k))
     rw [smul_add, FiniteCorrespondenceCompositionData.comp_add_right, ih₁, ih₂,
       ← smul_add, FiniteCorrespondenceCompositionData.comp_add_right]
   · intro prime primeCoeff
-    simp [FiniteCorrespondenceCompositionData.comp_single_right]
-    rw [Finsupp.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro leftPrime _
-    simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
+    apply Finsupp.induction_linear left
+    · simp
+    · intro left₁ left₂ ihLeft₁ ihLeft₂
+      rw [FiniteCorrespondenceCompositionData.comp_add_left,
+        FiniteCorrespondenceCompositionData.comp_add_left, ihLeft₁, ihLeft₂,
+        smul_add]
+    · intro leftPrime leftCoeff
+      calc
+        FiniteCorrespondenceCompositionData.comp data
+            (Finsupp.single leftPrime leftCoeff)
+            (coeff • Finsupp.single prime primeCoeff)
+            = FiniteCorrespondenceCompositionData.comp data
+                (Finsupp.single leftPrime leftCoeff)
+                (Finsupp.single prime (coeff * primeCoeff)) := by
+              simp
+        _ = coeff • FiniteCorrespondenceCompositionData.comp data
+              (Finsupp.single leftPrime leftCoeff)
+              (Finsupp.single prime primeCoeff) := by
+              rw [FiniteCorrespondenceCompositionData.comp_single_single,
+                FiniteCorrespondenceCompositionData.comp_single_single]
+              simp [smul_smul, mul_assoc, mul_left_comm, mul_comm]
 
 /-- To prove the scaled prime associativity bridge, it is enough to prove the
 corresponding coefficient-free prime associativity statement. Bilinearity of
@@ -340,6 +372,57 @@ theorem comp_id_of_singleton_identities
   · intro prime coeff
     exact comp_id_single prime coeff
 
+/-- Extend singleton associativity to all finite correspondences by trilinearity. -/
+theorem assoc_of_singleton_associativity
+    (data : FiniteCorrespondenceCompositionData (k := k))
+    (assoc_single :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (f : PrimeFiniteCorrespondenceGeom W X) (fCoeff : ℤ)
+        (g : PrimeFiniteCorrespondenceGeom X Y) (gCoeff : ℤ)
+        (h : PrimeFiniteCorrespondenceGeom Y Z) (hCoeff : ℤ),
+          FiniteCorrespondenceCompositionData.comp data
+            (FiniteCorrespondenceCompositionData.comp data
+              (Finsupp.single f fCoeff) (Finsupp.single g gCoeff))
+            (Finsupp.single h hCoeff) =
+              FiniteCorrespondenceCompositionData.comp data
+                (Finsupp.single f fCoeff)
+                (FiniteCorrespondenceCompositionData.comp data
+                  (Finsupp.single g gCoeff) (Finsupp.single h hCoeff)))
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (f : FiniteCorrespondence W X)
+    (g : FiniteCorrespondence X Y)
+    (h : FiniteCorrespondence Y Z) :
+    FiniteCorrespondenceCompositionData.comp data
+      (FiniteCorrespondenceCompositionData.comp data f g) h =
+        FiniteCorrespondenceCompositionData.comp data f
+          (FiniteCorrespondenceCompositionData.comp data g h) := by
+  apply Finsupp.induction_linear f
+  · simp
+  · intro f₁ f₂ hf₁ hf₂
+    rw [FiniteCorrespondenceCompositionData.comp_add_left,
+      FiniteCorrespondenceCompositionData.comp_add_left,
+      FiniteCorrespondenceCompositionData.comp_add_left,
+      hf₁, hf₂]
+  · intro fPrime fCoeff
+    apply Finsupp.induction_linear g
+    · simp
+    · intro g₁ g₂ hg₁ hg₂
+      rw [FiniteCorrespondenceCompositionData.comp_add_right,
+        FiniteCorrespondenceCompositionData.comp_add_left,
+        FiniteCorrespondenceCompositionData.comp_add_left,
+        FiniteCorrespondenceCompositionData.comp_add_right,
+        hg₁, hg₂]
+    · intro gPrime gCoeff
+      apply Finsupp.induction_linear h
+      · simp
+      · intro h₁ h₂ hh₁ hh₂
+        rw [FiniteCorrespondenceCompositionData.comp_add_right,
+          FiniteCorrespondenceCompositionData.comp_add_right,
+          FiniteCorrespondenceCompositionData.comp_add_right,
+          hh₁, hh₂]
+      · intro hPrime hCoeff
+        exact assoc_single fPrime fCoeff gPrime gCoeff hPrime hCoeff
+
 end FiniteCorrespondenceCompositionData
 
 /-- Law package for the correspondence composition determined by
@@ -421,48 +504,16 @@ def ofSingletonLaws
     FiniteCorrespondenceCategoryLaws data where
   id_comp := by
     intro X Y f
-    apply Finsupp.induction_linear f
-    · simp
-    · intro f₁ f₂ hf₁ hf₂
-      rw [FiniteCorrespondenceCompositionData.comp_add_right, hf₁, hf₂]
-    · intro prime coeff
-      exact id_comp_single prime coeff
+    exact FiniteCorrespondenceCompositionData.id_comp_of_singleton_identities
+      data id_comp_single f
   comp_id := by
     intro X Y f
-    apply Finsupp.induction_linear f
-    · simp
-    · intro f₁ f₂ hf₁ hf₂
-      rw [FiniteCorrespondenceCompositionData.comp_add_left, hf₁, hf₂]
-    · intro prime coeff
-      exact comp_id_single prime coeff
+    exact FiniteCorrespondenceCompositionData.comp_id_of_singleton_identities
+      data comp_id_single f
   assoc := by
     intro W X Y Z f g h
-    apply Finsupp.induction_linear f
-    · simp
-    · intro f₁ f₂ hf₁ hf₂
-      rw [FiniteCorrespondenceCompositionData.comp_add_left,
-        FiniteCorrespondenceCompositionData.comp_add_left,
-        FiniteCorrespondenceCompositionData.comp_add_left,
-        hf₁, hf₂]
-    · intro fPrime fCoeff
-      apply Finsupp.induction_linear g
-      · simp
-      · intro g₁ g₂ hg₁ hg₂
-        rw [FiniteCorrespondenceCompositionData.comp_add_right,
-          FiniteCorrespondenceCompositionData.comp_add_left,
-          FiniteCorrespondenceCompositionData.comp_add_left,
-          FiniteCorrespondenceCompositionData.comp_add_right,
-          hg₁, hg₂]
-      · intro gPrime gCoeff
-        apply Finsupp.induction_linear h
-        · simp
-        · intro h₁ h₂ hh₁ hh₂
-          rw [FiniteCorrespondenceCompositionData.comp_add_right,
-            FiniteCorrespondenceCompositionData.comp_add_right,
-            FiniteCorrespondenceCompositionData.comp_add_right,
-            hh₁, hh₂]
-        · intro hPrime hCoeff
-          exact assoc_single fPrime fCoeff gPrime gCoeff hPrime hCoeff
+    exact FiniteCorrespondenceCompositionData.assoc_of_singleton_associativity
+      data assoc_single f g h
   zero_comp := by
     intro X Y Z f
     exact FiniteCorrespondenceCompositionData.comp_zero_left data f

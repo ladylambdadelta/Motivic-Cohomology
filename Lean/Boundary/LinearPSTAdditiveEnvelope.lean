@@ -80,7 +80,7 @@ def toAdditiveEnvelopeFunctor (category : SmCorQ (k := k)) :
     change additiveEnvelopeLiftMap (category := category) (F := F.1) (G := F.1) (𝟙 F) =
       𝟙 (AdditiveFunctor.of (CategoryTheory.Mat_.lift F.1))
     change CategoryTheory.Mat_.liftMap (𝟙 F.1) = 𝟙 (CategoryTheory.Mat_.lift F.1)
-    simpa using CategoryTheory.Mat_.liftMap_id F.1
+    exact CategoryTheory.Mat_.liftMap_id F.1
   map_comp := by
     intro F G H α β
     letI := SmCorQCat category
@@ -90,7 +90,7 @@ def toAdditiveEnvelopeFunctor (category : SmCorQ (k := k)) :
         additiveEnvelopeLiftMap (category := category) (F := G.1) (G := H.1) β
     change CategoryTheory.Mat_.liftMap (α ≫ β) =
       CategoryTheory.Mat_.liftMap α ≫ CategoryTheory.Mat_.liftMap β
-    simpa using CategoryTheory.Mat_.liftMap_comp α β
+    exact CategoryTheory.Mat_.liftMap_comp α β
 
 def fromAdditiveEnvelopeFunctor (category : SmCorQ (k := k)) :
     additiveEnvelopeFunctorCategory (category := category) ⥤

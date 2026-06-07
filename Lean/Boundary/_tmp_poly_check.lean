@@ -1,0 +1,7 @@
+import Boundary.PolynomialSmoothness.StandardSmoothDimensionZero
+
+#check Algebra.IsStandardSmooth
+#check Algebra.IsStandardSmoothOfRelativeDimension
+#check RingHom.IsStandardSmoothOfRelativeDimension
+#check MvPolynomial
+#check polynomial_isStandardSmoothOfRelativeDimension_one

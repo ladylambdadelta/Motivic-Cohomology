@@ -50,6 +50,101 @@ theorem dual_dual (a : HodgeNumberProfile) : dual (dual a) = a :=
 theorem tateTwist_zero (a : HodgeNumberProfile) : tateTwist 0 a = a :=
   Hodge.twistProfile_zero a
 
+@[simp]
+theorem directSum_comm (a b : HodgeNumberProfile) : directSum a b = directSum b a := by
+  funext pq
+  simp [directSum, Nat.add_comm]
+
+@[simp]
+theorem directSum_assoc (a b c : HodgeNumberProfile) :
+    directSum (directSum a b) c = directSum a (directSum b c) := by
+  funext pq
+  simp [directSum, Nat.add_assoc]
+
+@[simp]
+theorem directSum_zero (a : HodgeNumberProfile) : directSum a 0 = a := by
+  funext pq
+  simp [directSum]
+
+@[simp]
+theorem zero_directSum (a : HodgeNumberProfile) : directSum 0 a = a := by
+  funext pq
+  simp [directSum]
+
+@[simp]
+theorem dual_directSum (a b : HodgeNumberProfile) :
+    dual (directSum a b) = directSum (dual a) (dual b) := by
+  rfl
+
+@[simp]
+theorem tateTwist_directSum (n : ℤ) (a b : HodgeNumberProfile) :
+    tateTwist n (directSum a b) = directSum (tateTwist n a) (tateTwist n b) := by
+  rfl
+
+theorem dual_tateTwist (n : ℤ) (a : HodgeNumberProfile) :
+    dual (tateTwist n a) = tateTwist (-n) (dual a) := by
+  funext pq
+  cases pq with
+  | mk p q =>
+    apply congrArg a
+    apply Prod.ext
+    · change -p + n = -(p + -n)
+      rw [neg_add, neg_neg]
+    · change -q + n = -(q + -n)
+      rw [neg_add, neg_neg]
+
+theorem tateTwist_dual (n : ℤ) (a : HodgeNumberProfile) :
+    tateTwist n (dual a) = dual (tateTwist (-n) a) := by
+  funext pq
+  cases pq with
+  | mk p q =>
+    apply congrArg a
+    apply Prod.ext
+    · change -(p + n) = -p + -n
+      rw [neg_add]
+    · change -(q + n) = -q + -n
+      rw [neg_add]
+
+/-! ### Boundary-level profile transport
+
+The archimedean packet route will eventually need to move between Hodge
+structures and their rank profiles.  These lemmas make that transport explicit
+at the Boundary layer instead of forcing later files to reopen the Hodge API.
+-/
+
+namespace Pure
+
+open Boundary.Hodge
+
+theorem rankProfile_tateTwist (H : PureHodgeStructure) (n : ℤ) :
+    (H.tateTwist n).rankProfile = tateTwist n H.rankProfile := by
+  simpa [HodgeNumberProfile.tateTwist] using Hodge.rankProfile_tateTwist H n
+
+theorem rankProfile_product_add (H G : PureHodgeStructure) (hweight : H.weight = G.weight) :
+    (H.product G hweight).rankProfile = directSum H.rankProfile G.rankProfile := by
+  simpa [HodgeNumberProfile.directSum] using Hodge.rankProfile_product H G hweight
+
+theorem rankProfile_ofLinearEquiv (H : PureHodgeStructure)
+    {V : Type} [AddCommGroup V] [Module ℚ V] [Module.Finite ℚ V]
+    (e : V ≃ₗ[ℚ] H.rationalCarrier) :
+    (H.ofLinearEquiv e).rankProfile = H.rankProfile := by
+  funext pq
+  rcases pq with ⟨p, q⟩
+  rw [PureHodgeStructure.rankProfile, PureHodgeStructure.rankProfile]
+  rw [PureHodgeStructure.hodgeNumber, PureHodgeStructure.hodgeNumber]
+  exact LinearEquiv.finrank_eq
+    (Submodule.comapLinearEquiv
+      (Complexification.mapLinearEquiv V H.rationalCarrier e) (H.hodgePiece (p, q)))
+
+theorem rankProfile_tateTwist_product (H G : PureHodgeStructure) (hweight : H.weight = G.weight)
+    (n : ℤ) :
+    ((H.product G hweight).tateTwist n).rankProfile =
+      tateTwist n (directSum H.rankProfile G.rankProfile) := by
+  rw [PureHodgeStructure.rankProfile_tateTwist, rankProfile_product_add]
+  rfl
+
+end Pure
+
 end HodgeNumberProfile
 
 end LFunctions

@@ -1,0 +1,18 @@
+import Boundary.PolynomialSmoothness.StandardSmoothTransport
+
+#check Algebra.IsStandardSmoothOfRelativeDimension
+#check Algebra.IsStandardSmoothOfRelativeDimension.of_algebraMap_bijective
+#check Algebra.IsStandardSmoothOfRelativeDimension.trans
+#check RingHom.IsStandardSmoothOfRelativeDimension.equiv
+#check MvPolynomial.finSuccEquiv
+#check RingHom.IsStandardSmoothOfRelativeDimension.comp
+#check Algebra.IsStandardSmoothOfRelativeDimension.of_algebraMap
+#check Algebra.IsStandardSmoothOfRelativeDimension.of_algebraMap_bijective
+#check Algebra.IsStandardSmooth.of_equiv
+#check Algebra.IsStandardSmoothOfRelativeDimension.equiv
+#check RingHom.IsStandardSmooth.equiv
+#check RingHom.IsStandardSmoothOfRelativeDimension.ofAlgebraMap
+#check RingHom.IsStandardSmoothOfRelativeDimension.isStandardSmooth
+#check MvPolynomial.isEmptyAlgEquiv
+#check Equiv.equivPUnit
+#check Algebra.IsStandardSmoothOfRelativeDimension.iff_of_equiv

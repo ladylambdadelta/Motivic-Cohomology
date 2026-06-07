@@ -6,6 +6,11 @@ import Boundary.DiagonalDecomposition
 This file packages pushforward support data, raw boundary formula geometry, and
 the coefficient criterion that identifies a pushed boundary correspondence with
 the diagonal identity correspondence.
+
+The cycle-theoretic background is pushforward of cycles and diagonal
+correspondences; cf. Fulton, *Intersection Theory*, Ch. 1, and
+Voevodsky-Suslin-Friedlander, *Cycles, Transfers, and Motivic Homology
+Theories*, Ch. 1.
 -/
 
 universe u
@@ -25,17 +30,18 @@ along a morphism `ν : B → C`.
 
 This record packages a pushed support on `C ×_k C` together with the geometric
 maps relating it to the original support and to the ambient morphism `ν`.
-Pushforward correspondences are obtained from such geometric data below. -/
+Pushforward correspondences are obtained from such geometric data below; cf.
+Fulton, *Intersection Theory*, §1.4 for cycle pushforward. -/
 structure PushforwardPrimeSupportData {B C : Geometry.SmSchemeOver k}
     (ν : SmOverHom B C) (P : RepresentedPrimeSupport B B) where
   targetSourceComponent : SourceIrreducibleComponent C
   pushSupport : Scheme
   pushSupport_isIntegral : IsIntegral pushSupport
   sourceComponentMap :
-    P.sourceComponent.carrier.scheme ⟶ targetSourceComponent.carrier.scheme
+    P.sourceImage.carrier.scheme ⟶ targetSourceComponent.carrier.scheme
   sourceComponentMap_toAmbient :
     sourceComponentMap ≫ targetSourceComponent.toAmbient =
-      P.sourceComponent.toAmbient ≫ ν.hom
+      P.sourceImage.toAmbient ≫ ν.hom
   finiteOverTargetSource : pushSupport ⟶ targetSourceComponent.carrier.scheme
   finite_toTargetSource : IsFinite finiteOverTargetSource
   surjective_toTargetSource : Function.Surjective finiteOverTargetSource.base
@@ -49,9 +55,9 @@ structure PushforwardPrimeSupportData {B C : Geometry.SmSchemeOver k}
   mapFromOriginal : P.support ⟶ pushSupport
   mapFromOriginal_toSource :
     mapFromOriginal ≫ finiteOverTargetSource =
-      P.toSourceComponent ≫ sourceComponentMap
+      P.finiteOverSourceComponent ≫ sourceComponentMap
   mapFromOriginal_toTarget :
-    mapFromOriginal ≫ toTarget = P.toTargetScheme ≫ ν.hom
+    mapFromOriginal ≫ toTarget = P.toTarget ≫ ν.hom
 
 namespace PushforwardPrimeSupportData
 
@@ -60,7 +66,7 @@ def toRepresentedPrimeSupport {B C : Geometry.SmSchemeOver k}
     {ν : SmOverHom B C} {P : RepresentedPrimeSupport B B}
     (data : PushforwardPrimeSupportData ν P) :
     RepresentedPrimeSupport C C where
-  sourceComponent := data.targetSourceComponent
+  sourceImage := SourceImageSubscheme.ofSourceIrreducibleComponent data.targetSourceComponent
   support := data.pushSupport
   isIntegral := data.pushSupport_isIntegral
   finiteOverSourceComponent := data.finiteOverTargetSource

@@ -1,0 +1,6 @@
+import Mathlib.RingTheory.RingHom.StandardSmooth
+import Boundary.PolynomialSmoothness.StandardSmoothDimensionZero
+
+#check mvPolynomial_C_toAlgebra_eq
+#check algebra_isStandardSmoothOfRelativeDimension_of_equiv
+#check RingHom.IsStandardSmoothOfRelativeDimension.toAlgebra
