@@ -38,7 +38,7 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
     (h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ) :
     completedZetaZeroMultiplicity ρ = h.order.toNat := by
   unfold completedZetaZeroMultiplicity
-  simp [h]
+  rw [dif_pos h]
 
 /-- The centered zero coordinate. -/
 def zetaCenteredZero (ρ : ℂ) : ℂ :=

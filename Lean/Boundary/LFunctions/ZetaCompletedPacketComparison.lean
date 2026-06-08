@@ -1,4 +1,3 @@
-import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
 import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
 import Boundary.LFunctions.ZetaPacketComparison
 
@@ -8,9 +7,8 @@ import Boundary.LFunctions.ZetaPacketComparison
 This file composes the owned arrows:
 
 `Weil form → zero Krein → explicit boundary sum → boundary-defect Gram → packet norm square`
-
-The only analytic dependency is the imported Guinand–Weil explicit-formula
-input typeclass.
+The explicit-formula bridge is consumed through the class-free owner theorem in the transport
+layer.
 -/
 
 namespace Boundary
@@ -28,11 +26,10 @@ theorem zetaCompletedZeroKreinGram_eq_boundaryDefectGram
   calc
     zetaCompletedZeroKreinGram f
         = ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f :=
-          zeta_completed_explicit_formula_autocorrelation f
+          zeta_completed_explicit_formula_autocorrelation_classFree f
     _   = zetaCompletedBoundaryDefectGram f := by
-          simpa using
-            (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectKreinGram
-              (f := f))
+          exact ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectGram
+            (f := f)
 
 /-- The completed Weil form on an autocorrelation equals the packet norm square. -/
 theorem zetaWeilFormCompleted_eq_packetNormSq

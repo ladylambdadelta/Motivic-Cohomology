@@ -1,4 +1,3 @@
-import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
 import Boundary.LFunctions.ZetaZeroKreinGram
 import Boundary.LFunctions.ZetaPacketComparison
 
@@ -47,6 +46,13 @@ theorem zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectKreinGram
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySum f =
       zetaCompletedBoundaryDefectKreinGram f := by
+  rfl
+
+/-- The completed explicit-formula boundary sum is the boundary-defect Gram. -/
+theorem zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectGram
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundarySum f =
+      zetaCompletedBoundaryDefectGram f := by
   rfl
 
 /-- The zero-side Krein form is the completed boundary-defect Krein Gram. -/

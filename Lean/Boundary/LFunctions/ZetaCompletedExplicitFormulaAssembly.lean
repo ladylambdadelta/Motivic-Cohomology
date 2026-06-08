@@ -1,13 +1,11 @@
-import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
 import Boundary.LFunctions.ZetaCompletedPacketComparison
 import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
 
 /-!
 # Boundary completed explicit-formula assembly
 
-This file owns the final class-free assembly theorem that combines the
-upstream Guinand-Weil input, packet comparison, and explicit-formula boundary
-transport layers.
+This file owns the final class-free assembly theorem that combines the packet
+comparison and explicit-formula boundary transport layers.
 -/
 
 namespace Boundary
@@ -24,9 +22,8 @@ theorem zeta_completed_explicit_formula_autocorrelation
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
   rw [zetaCompletedZeroKreinGram_eq_boundaryDefectGram]
-  simpa [ZetaAdmissibleFunction.zetaCompletedBoundaryDefectKreinGram] using
-    (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectKreinGram
-      (f := f)).symm
+  exact (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectGram
+    (f := f)).symm
 
 end ZetaAdmissibleFunction
 
