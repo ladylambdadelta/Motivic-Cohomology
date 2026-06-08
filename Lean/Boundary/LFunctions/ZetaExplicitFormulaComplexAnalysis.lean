@@ -4,6 +4,7 @@ import Boundary.LFunctions.ZetaExplicitFormulaLogDerivative
 import Boundary.LFunctions.ZetaExplicitFormulaRectangleAPI
 import Boundary.LFunctions.ZetaAdmissibleTransformRegularity
 import Boundary.LFunctions.ZetaCompletedLogDerivativeControl
+import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Calculus.LogDeriv
@@ -248,6 +249,191 @@ theorem differentiableAt_completedRiemannZeta {s : ℂ} (hs0 : s ≠ 0) (hs1 : s
     DifferentiableAt ℂ completedRiemannZeta s := by
   exact differentiableAt_completedZeta hs0 hs1
 
+/-- The completed zeta function is not identically zero on the punctured plane `ℂ \ {0,1}`. -/
+theorem completedRiemannZeta_not_eventually_zero
+    (z : ℂ) (hz0 : z ≠ 0) (hz1 : z ≠ 1) :
+    ¬ ∀ᶠ w in 𝓝 z, completedRiemannZeta w = 0 := by
+  intro hzero
+  let U : Set ℂ := {w : ℂ | w ≠ 0 ∧ w ≠ 1}
+  have hU : IsPreconnected U := by
+    have hcount : ({0, 1} : Set ℂ).Countable := by
+      simpa using (countable_insert 0 (countable_singleton (1 : ℂ)))
+    have hpath : IsPathConnected (U : Set ℂ) := by
+      simpa [U, Set.compl_insert, Set.mem_setOf_eq, and_comm, and_left_comm, and_assoc] using
+        (Set.Countable.isPathConnected_compl_of_one_lt_rank
+          (by simpa [Complex.rank_real_complex] using (show 1 < Module.rank ℝ ℂ by norm_num))
+          hcount)
+    exact hpath.isConnected.isPreconnected
+  have hzU : z ∈ U := by
+    simp [U, hz0, hz1]
+  have hzeroU : EqOn completedRiemannZeta (fun _ : ℂ => 0) U := by
+    exact
+      AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+        (f := completedRiemannZeta) (U := U)
+        (by intro w hw; exact (differentiableAt_completedZeta hw.1 hw.2).analyticAt)
+        hU hzU hzero
+  have h2U : (2 : ℂ) ∈ U := by
+    simp [U]
+  have hnonzero2 : completedRiemannZeta (2 : ℂ) ≠ 0 := by
+    rw [completedRiemannZeta_eq_riemannZeta_mul_gamma (by norm_num : (2 : ℂ) ≠ 0)
+        (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num))]
+    intro h
+    have hzeta2 : riemannZeta (2 : ℂ) ≠ 0 := by
+      rw [riemannZeta_two]
+      norm_num [Complex.normSq]
+    exact hzeta2 (by simpa using h)
+  exact hnonzero2 (hzeroU h2U)
+
+/-- Away from its poles, the completed zeta has isolated zeros. -/
+theorem completedRiemannZeta_eventually_ne_zero_of_zero
+    (z : ℂ) (hz0 : z ≠ 0) (hz1 : z ≠ 1) (hz : completedRiemannZeta z = 0) :
+    ∀ᶠ w in 𝓝[≠] z, completedRiemannZeta w ≠ 0 := by
+  have hA : AnalyticAt ℂ completedRiemannZeta z := by
+    exact (differentiableAt_completedRiemannZeta hz0 hz1).analyticAt
+  rcases hA.eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+  · exfalso
+    exact completedRiemannZeta_not_eventually_zero z hz0 hz1 hzero
+  · exact hne
+
+/-- The completed negative logarithmic derivative is antisymmetric under `s ↦ 1 - s`. -/
+theorem completedZetaNegLogDeriv_one_sub (s : ℂ)
+    (hs0 : s ≠ 0) (hs1 : s ≠ 1)
+    (hΛ : completedRiemannZeta s ≠ 0) :
+    completedZetaNegLogDeriv (1 - s) = - completedZetaNegLogDeriv s := by
+  have hsym : completedRiemannZeta (1 - s) = completedRiemannZeta s :=
+    zetaCompletedExplicitFormula_completedRiemannZeta_one_sub s
+  have hdiff : DifferentiableAt ℂ completedRiemannZeta s :=
+    differentiableAt_completedRiemannZeta hs0 hs1
+  have hdiff' : DifferentiableAt ℂ (fun z : ℂ => completedRiemannZeta (1 - z)) s := by
+    simpa using (differentiableAt_id.sub differentiableAt_const).comp hdiff
+  have hderiv :
+      deriv (fun z : ℂ => completedRiemannZeta (1 - z)) s =
+        - deriv completedRiemannZeta s := by
+    simpa using hdiff'.deriv
+  have hval : completedRiemannZeta (1 - s) = completedRiemannZeta s := hsym
+  have hnonzero : completedRiemannZeta (1 - s) ≠ 0 := by
+    rw [hval]
+    exact hΛ
+  unfold completedZetaNegLogDeriv
+  rw [completedRiemannZeta_one_sub s, hderiv]
+  field_simp [hΛ, hnonzero]
+
+/-- The completed negative logarithmic derivative reflects across the left/right vertical paths. -/
+theorem completedZetaNegLogDeriv_leftPath_eq_neg_rightPath
+    (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hs0 : zetaCompletedExplicitFormulaRightPath r (-t) ≠ 0)
+    (hs1 : zetaCompletedExplicitFormulaRightPath r (-t) ≠ 1)
+    (hΛ : completedRiemannZeta (zetaCompletedExplicitFormulaRightPath r (-t)) ≠ 0) :
+    completedZetaNegLogDeriv (zetaCompletedExplicitFormulaLeftPath r t) =
+      - completedZetaNegLogDeriv (zetaCompletedExplicitFormulaRightPath r (-t)) := by
+  rw [zetaCompletedExplicitFormulaLeftPath_eq_one_sub_rightPath]
+  exact completedZetaNegLogDeriv_one_sub (zetaCompletedExplicitFormulaRightPath r (-t))
+    hs0 hs1 hΛ
+
+/-- The completed negative logarithmic derivative reflects across the top/bottom horizontal paths. -/
+theorem completedZetaNegLogDeriv_bottomPath_eq_neg_topPath
+    (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hs0 : zetaCompletedExplicitFormulaTopPath r x ≠ 0)
+    (hs1 : zetaCompletedExplicitFormulaTopPath r x ≠ 1)
+    (hΛ : completedRiemannZeta (zetaCompletedExplicitFormulaTopPath r x) ≠ 0) :
+    completedZetaNegLogDeriv (zetaCompletedExplicitFormulaBottomPath r x) =
+      - completedZetaNegLogDeriv (zetaCompletedExplicitFormulaTopPath r x) := by
+  rw [zetaCompletedExplicitFormulaBottomPath_eq_one_sub_topPath]
+  exact completedZetaNegLogDeriv_one_sub (zetaCompletedExplicitFormulaTopPath r x)
+    hs0 hs1 hΛ
+
+/-- The nontrivial zero set of the completed zeta function is countable. -/
+theorem completedRiemannZeta_nontrivialZeroSet_countable :
+    ({z : ℂ | z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z = 0} : Set ℂ).Countable := by
+  let S : Set ℂ := {z : ℂ | z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z = 0}
+  have hdisc : DiscreteTopology S := by
+    rw [discreteTopology_subtype_iff]
+    intro x hx
+    rcases hx with ⟨hx0, hx1, hxz⟩
+    rw [disjoint_principal_right]
+    have hne : ∀ᶠ w in 𝓝[≠] x, w ∉ S := by
+      filter_upwards
+        (completedRiemannZeta_eventually_ne_zero_of_zero x hx0 hx1 hxz) with w hw
+      intro hwS
+      exact hwS.2.2 hw
+    exact hne
+  haveI : DiscreteTopology S := hdisc
+  haveI : LindelofSpace S := by infer_instance
+  have hcountS : S.Countable := countable_of_Lindelof_of_discrete
+  simpa [S] using hcountS
+
+/-- Away from `0`, `1`, and the nontrivial zeros, the completed negative logarithmic derivative
+is complex differentiable. -/
+theorem differentiableAt_completedZetaNegLogDeriv
+    {z : ℂ} (hz0 : z ≠ 0) (hz1 : z ≠ 1) (hz : completedRiemannZeta z ≠ 0) :
+    DifferentiableAt ℂ completedZetaNegLogDeriv z := by
+  have hU : AnalyticOnNhd ℂ completedRiemannZeta {w : ℂ | w ≠ 0 ∧ w ≠ 1} := by
+    intro w hw
+    exact (differentiableAt_completedRiemannZeta hw.1 hw.2).analyticAt
+  have hderivU : AnalyticOnNhd ℂ (deriv completedRiemannZeta) {w : ℂ | w ≠ 0 ∧ w ≠ 1} :=
+    hU.deriv
+  have hderiv : DifferentiableAt ℂ (deriv completedRiemannZeta) z := by
+    exact (hderivU z ⟨hz0, hz1⟩).differentiableAt
+  have hf : DifferentiableAt ℂ completedRiemannZeta z :=
+    differentiableAt_completedRiemannZeta hz0 hz1
+  have hquot : DifferentiableAt ℂ
+      (fun w : ℂ => deriv completedRiemannZeta w / completedRiemannZeta w) z :=
+    hderiv.div hf hz
+  simpa [completedZetaNegLogDeriv, logDeriv_apply] using hquot.neg
+
+/-- Away from `0`, `1`, and the nontrivial zeros, the contour integrand is complex differentiable. -/
+theorem differentiableAt_zetaCompletedExplicitFormulaContourIntegrand
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    {z : ℂ} (hz0 : z ≠ 0) (hz1 : z ≠ 1) (hz : completedRiemannZeta z ≠ 0) :
+    DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  have hZ : DifferentiableAt ℂ completedZetaNegLogDeriv z :=
+    differentiableAt_completedZetaNegLogDeriv hz0 hz1 hz
+  have hshift :
+      DifferentiableAt ℂ
+        (fun w : ℂ => zetaCompletedExplicitFormulaPhi f (w - (1 / 2 : ℂ))) z := by
+    have hsub : DifferentiableAt ℂ (fun w : ℂ => w - (1 / 2 : ℂ)) z := by
+      exact differentiableAt_id.sub differentiableAt_const
+    exact (hPhi.differentiableAt (z - (1 / 2 : ℂ))).comp hsub
+  exact hZ.mul hshift
+
+/-- The singular set for the contour integrand is countable. -/
+theorem contourIntegrand_singularSet_countable :
+    ({z : ℂ | z = 0 ∨ z = 1 ∨ (z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z = 0)} : Set ℂ).Countable := by
+  have h0 : ({z : ℂ | z = 0} : Set ℂ).Countable := by
+    simpa using (countable_singleton (0 : ℂ))
+  have h1 : ({z : ℂ | z = 1} : Set ℂ).Countable := by
+    simpa using (countable_singleton (1 : ℂ))
+  have hz : ({z : ℂ | z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z = 0} : Set ℂ).Countable :=
+    completedRiemannZeta_nontrivialZeroSet_countable
+  have h01 : ({z : ℂ | z = 0 ∨ z = 1} : Set ℂ).Countable := by
+    simpa [Set.union_eq_or] using h0.union h1
+  simpa [or_assoc] using h01.union hz
+
+/-- Away from the singular set, the contour integrand is complex differentiable. -/
+theorem contourIntegrand_differentiableAt_off_singularSet
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    {z : ℂ} (hz : z ≠ 0 ∧ z ≠ 1 ∧ completedRiemannZeta z ≠ 0) :
+    DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
+  exact differentiableAt_zetaCompletedExplicitFormulaContourIntegrand hPhi hz.1 hz.2.1 hz.2.2
+
+/-- The contour integrand is differentiable off its countable singular set. -/
+theorem contourIntegrand_differentiableAt_off_countable
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    {z : ℂ}
+    (hz : z ∉ ({w : ℂ | w = 0 ∨ w = 1 ∨ (w ≠ 0 ∧ w ≠ 1 ∧ completedRiemannZeta w = 0)} : Set ℂ)) :
+    DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
+  have hz0 : z ≠ 0 := by
+    intro h
+    exact hz (Or.inl h)
+  have hz1 : z ≠ 1 := by
+    intro h
+    exact hz (Or.inr <| Or.inl h)
+  have hzΛ : completedRiemannZeta z ≠ 0 := by
+    intro h
+    exact hz (Or.inr <| Or.inr ⟨hz0, hz1, h⟩)
+  exact differentiableAt_zetaCompletedExplicitFormulaContourIntegrand hPhi hz0 hz1 hzΛ
+
 /-- The right contour edge lies in the right half-plane. -/
 theorem rightPath_re_pos (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 : ℝ) < r.c) :
     0 < (zetaCompletedExplicitFormulaRightPath r t).re := by
@@ -282,6 +468,51 @@ theorem rightPath_ne_zero (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 
 theorem rightPath_ne_zero_of_contourData (d : ExplicitFormulaContourData) (t : ℝ) :
     zetaCompletedExplicitFormulaRightPath d.rectangle t ≠ 0 := by
   exact rightPath_ne_zero d.rectangle t d.c_gt_half
+
+/-- The left contour edge lies in the right half-plane. -/
+theorem leftPath_re_pos (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 : ℝ) < r.c) :
+    0 < (zetaCompletedExplicitFormulaLeftPath r t).re := by
+  rw [zetaCompletedExplicitFormulaLeftPath_re]
+  linarith
+
+/-- The left contour edge lies in the right half-plane, using contour data. -/
+theorem leftPath_re_pos_of_contourData (d : ExplicitFormulaContourData) (t : ℝ) :
+    0 < (zetaCompletedExplicitFormulaLeftPath d.rectangle t).re := by
+  exact leftPath_re_pos d.rectangle t d.c_gt_half
+
+/-- The Gamma factor is nonzero on the left contour edge. -/
+theorem Gammaℝ_leftPath_ne_zero (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hc : (1 / 2 : ℝ) < r.c) :
+    Gammaℝ (zetaCompletedExplicitFormulaLeftPath r t) ≠ 0 := by
+  exact Gammaℝ_ne_zero_of_re_pos (leftPath_re_pos r t hc)
+
+/-- The left contour edge never hits the pole at `0`. -/
+theorem leftPath_ne_zero (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 : ℝ) < r.c) :
+    zetaCompletedExplicitFormulaLeftPath r t ≠ 0 := by
+  intro h
+  have hre : (zetaCompletedExplicitFormulaLeftPath r t).re = 0 := by rw [h]; simp
+  have hpos : 0 < (zetaCompletedExplicitFormulaLeftPath r t).re := leftPath_re_pos r t hc
+  linarith
+
+/-- The left contour edge never hits the pole at `0`, using contour data. -/
+theorem leftPath_ne_zero_of_contourData (d : ExplicitFormulaContourData) (t : ℝ) :
+    zetaCompletedExplicitFormulaLeftPath d.rectangle t ≠ 0 := by
+  exact leftPath_ne_zero d.rectangle t d.c_gt_half
+
+/-- The left contour edge never hits the pole at `1`. -/
+theorem leftPath_ne_one (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 : ℝ) < r.c) :
+    zetaCompletedExplicitFormulaLeftPath r t ≠ 1 := by
+  intro h
+  have hre : (zetaCompletedExplicitFormulaLeftPath r t).re = 1 := by rw [h]; simp
+  have hlt : (zetaCompletedExplicitFormulaLeftPath r t).re < 1 := by
+    rw [zetaCompletedExplicitFormulaLeftPath_re]
+    linarith
+  linarith
+
+/-- The left contour edge never hits the pole at `1`, using contour data. -/
+theorem leftPath_ne_one_of_contourData (d : ExplicitFormulaContourData) (t : ℝ) :
+    zetaCompletedExplicitFormulaLeftPath d.rectangle t ≠ 1 := by
+  exact leftPath_ne_one d.rectangle t d.c_gt_half
 
 /-- The top contour edge never hits the pole at `0`. -/
 theorem topPath_ne_zero (r : ExplicitFormulaRectangle) (x : ℝ) (hT : 0 < r.T) :
@@ -354,6 +585,36 @@ theorem differentiableAt_completedZeta_factorized_rightPath
       (zetaCompletedExplicitFormulaRightPath r t) := by
   exact differentiableAt_completedZeta_factorized hs0 hs1
 
+/-- The factorized completed-zeta product is differentiable on the left contour edge. -/
+theorem differentiableAt_completedZeta_factorized_leftPath
+    (r : ExplicitFormulaRectangle) (t : ℝ) (hc : (1 / 2 : ℝ) < r.c)
+    (hs0 : zetaCompletedExplicitFormulaLeftPath r t ≠ 0)
+    (hs1 : zetaCompletedExplicitFormulaLeftPath r t ≠ 1) :
+    DifferentiableAt ℂ
+      (fun z : ℂ => completedRiemannZeta z * (Gammaℝ z)⁻¹)
+      (zetaCompletedExplicitFormulaLeftPath r t) := by
+  exact differentiableAt_completedZeta_factorized hs0 hs1
+
+/-- The factorized completed-zeta product is differentiable on the top contour edge. -/
+theorem differentiableAt_completedZeta_factorized_topPath
+    (r : ExplicitFormulaRectangle) (x : ℝ) (hT : 0 < r.T)
+    (hs0 : zetaCompletedExplicitFormulaTopPath r x ≠ 0)
+    (hs1 : zetaCompletedExplicitFormulaTopPath r x ≠ 1) :
+    DifferentiableAt ℂ
+      (fun z : ℂ => completedRiemannZeta z * (Gammaℝ z)⁻¹)
+      (zetaCompletedExplicitFormulaTopPath r x) := by
+  exact differentiableAt_completedZeta_factorized hs0 hs1
+
+/-- The factorized completed-zeta product is differentiable on the bottom contour edge. -/
+theorem differentiableAt_completedZeta_factorized_bottomPath
+    (r : ExplicitFormulaRectangle) (x : ℝ) (hT : 0 < r.T)
+    (hs0 : zetaCompletedExplicitFormulaBottomPath r x ≠ 0)
+    (hs1 : zetaCompletedExplicitFormulaBottomPath r x ≠ 1) :
+    DifferentiableAt ℂ
+      (fun z : ℂ => completedRiemannZeta z * (Gammaℝ z)⁻¹)
+      (zetaCompletedExplicitFormulaBottomPath r x) := by
+  exact differentiableAt_completedZeta_factorized hs0 hs1
+
 /-- The contour integrand norm is bounded by the product of the log-derivative and `Φ_f` norms. -/
 theorem norm_zetaCompletedExplicitFormulaContourIntegrand_le
     (f : ZetaAdmissibleFunction) (s : ℂ) :
@@ -368,6 +629,624 @@ theorem norm_zetaCompletedExplicitFormulaContourIntegrand_factorized_le
     ‖zetaCompletedExplicitFormulaContourIntegrand f s‖
       ≤ ‖completedZetaNegLogDeriv s‖ * ‖zetaCompletedExplicitFormulaPhi f (s - 1 / 2)‖ := by
   exact norm_zetaCompletedExplicitFormulaContourIntegrand_le f s
+
+/-- The explicit-formula contour integrand is differentiable along the right edge whenever the
+factorized zeta side and the transform side are differentiable there. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_rightPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaRightPath r t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaRightPath r t - (1 / 2 : ℂ))) :
+    DifferentiableAt ℂ (fun z : ℂ =>
+      zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaRightPath r t) := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  have hshift :
+      DifferentiableAt ℂ
+        (fun z : ℂ => zetaCompletedExplicitFormulaPhi f (z - (1 / 2 : ℂ)))
+        (zetaCompletedExplicitFormulaRightPath r t) := by
+    have hsub :
+        DifferentiableAt ℂ (fun z : ℂ => z - (1 / 2 : ℂ))
+          (zetaCompletedExplicitFormulaRightPath r t) := by
+      exact differentiableAt_id.sub differentiableAt_const
+    exact hΦ.comp hsub
+  exact hZ.mul hshift
+
+/-- The explicit-formula contour integrand is differentiable along the left edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_leftPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaLeftPath r t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaLeftPath r t - (1 / 2 : ℂ))) :
+    DifferentiableAt ℂ (fun z : ℂ =>
+      zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaLeftPath r t) := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  have hshift :
+      DifferentiableAt ℂ
+        (fun z : ℂ => zetaCompletedExplicitFormulaPhi f (z - (1 / 2 : ℂ)))
+        (zetaCompletedExplicitFormulaLeftPath r t) := by
+    have hsub :
+        DifferentiableAt ℂ (fun z : ℂ => z - (1 / 2 : ℂ))
+          (zetaCompletedExplicitFormulaLeftPath r t) := by
+      exact differentiableAt_id.sub differentiableAt_const
+    exact hΦ.comp hsub
+  exact hZ.mul hshift
+
+/-- The explicit-formula contour integrand is differentiable along the top edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_topPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath r x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaTopPath r x - (1 / 2 : ℂ))) :
+    DifferentiableAt ℂ (fun z : ℂ =>
+      zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaTopPath r x) := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  have hshift :
+      DifferentiableAt ℂ
+        (fun z : ℂ => zetaCompletedExplicitFormulaPhi f (z - (1 / 2 : ℂ)))
+        (zetaCompletedExplicitFormulaTopPath r x) := by
+    have hsub :
+        DifferentiableAt ℂ (fun z : ℂ => z - (1 / 2 : ℂ))
+          (zetaCompletedExplicitFormulaTopPath r x) := by
+      exact differentiableAt_id.sub differentiableAt_const
+    exact hΦ.comp hsub
+  exact hZ.mul hshift
+
+/-- The explicit-formula contour integrand is differentiable along the bottom edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_bottomPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath r x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaBottomPath r x - (1 / 2 : ℂ))) :
+    DifferentiableAt ℂ (fun z : ℂ =>
+      zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaBottomPath r x) := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  have hshift :
+      DifferentiableAt ℂ
+        (fun z : ℂ => zetaCompletedExplicitFormulaPhi f (z - (1 / 2 : ℂ)))
+        (zetaCompletedExplicitFormulaBottomPath r x) := by
+    have hsub :
+        DifferentiableAt ℂ (fun z : ℂ => z - (1 / 2 : ℂ))
+          (zetaCompletedExplicitFormulaBottomPath r x) := by
+      exact differentiableAt_id.sub differentiableAt_const
+    exact hΦ.comp hsub
+  exact hZ.mul hshift
+
+/-- The explicit-formula contour integrand is continuous along the right edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_continuousAt_rightPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaRightPath r t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaRightPath r t - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaRightPath r t) := by
+  exact (zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_rightPath
+      (f := f) r t hZ hΦ).continuousAt
+
+/-- The explicit-formula contour integrand is continuous along the left edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_continuousAt_leftPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaLeftPath r t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaLeftPath r t - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaLeftPath r t) := by
+  exact (zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_leftPath
+      (f := f) r t hZ hΦ).continuousAt
+
+/-- The explicit-formula contour integrand is continuous along the top edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_continuousAt_topPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath r x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaTopPath r x - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaTopPath r x) := by
+  exact (zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_topPath
+      (f := f) r x hZ hΦ).continuousAt
+
+/-- The explicit-formula contour integrand is continuous along the bottom edge. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_continuousAt_bottomPath
+    {f : ZetaAdmissibleFunction} (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath r x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaBottomPath r x - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaBottomPath r x) := by
+  exact (zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_bottomPath
+      (f := f) r x hZ hΦ).continuousAt
+
+/-- The contour-data owner object exposes the edge continuity statements for the contour
+integrand. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_rightPath
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t) := by
+  exact zetaCompletedExplicitFormulaContourIntegrand_continuousAt_rightPath
+    (r := h.contour_data.rectangle) t hZ hΦ
+
+/-- The contour-data owner object exposes the left-edge continuity statement for the contour
+integrand. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_leftPath
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) (t : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t) := by
+  exact zetaCompletedExplicitFormulaContourIntegrand_continuousAt_leftPath
+    (r := h.contour_data.rectangle) t hZ hΦ
+
+/-- The contour-data owner object exposes the top-edge continuity statement for the contour
+integrand. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_topPath
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x) := by
+  exact zetaCompletedExplicitFormulaContourIntegrand_continuousAt_topPath
+    (r := h.contour_data.rectangle) x hZ hΦ
+
+/-- The contour-data owner object exposes the bottom-edge continuity statement for the contour
+integrand. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_bottomPath
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) (x : ℝ)
+    (hZ : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x))
+    (hΦ : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x) := by
+  exact zetaCompletedExplicitFormulaContourIntegrand_continuousAt_bottomPath
+    (r := h.contour_data.rectangle) x hZ hΦ
+
+/-- The contour-data owner object packages the contour-integrand continuity on all four edges. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_edges
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (t : ℝ)
+    (hZr : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t))
+    (hΦr : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t - (1 / 2 : ℂ)))
+    (hZl : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t))
+    (hΦl : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t - (1 / 2 : ℂ)))
+    (x : ℝ)
+    (hZt : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x))
+    (hΦt : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x - (1 / 2 : ℂ)))
+    (hZb : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x))
+    (hΦb : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x - (1 / 2 : ℂ))) :
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+        (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t) ∧
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+        (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t) ∧
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+        (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x) ∧
+    ContinuousAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+        (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x) := by
+  constructor
+  · exact h.contourIntegrand_continuousAt_rightPath t hZr hΦr
+  · constructor
+    · exact h.contourIntegrand_continuousAt_leftPath t hZl hΦl
+    · constructor
+      · exact h.contourIntegrand_continuousAt_topPath x hZt hΦt
+      · exact h.contourIntegrand_continuousAt_bottomPath x hZb hΦb
+
+/-- The contour-data owner object packages the contour integrand differentiability on all four
+edges. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_differentiableAt_edges
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (t : ℝ)
+    (hZr : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t))
+    (hΦr : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t - (1 / 2 : ℂ)))
+    (hZl : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t))
+    (hΦl : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t - (1 / 2 : ℂ)))
+    (x : ℝ)
+    (hZt : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x))
+    (hΦt : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x - (1 / 2 : ℂ)))
+    (hZb : DifferentiableAt ℂ completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x))
+    (hΦb : DifferentiableAt ℂ
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x - (1 / 2 : ℂ))) :
+    DifferentiableAt ℂ (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t) ∧
+    DifferentiableAt ℂ (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t) ∧
+    DifferentiableAt ℂ (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x) ∧
+    DifferentiableAt ℂ (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x) := by
+  constructor
+  · exact zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_rightPath
+      (r := h.contour_data.rectangle) t hZr hΦr
+  · constructor
+    · exact zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_leftPath
+        (r := h.contour_data.rectangle) t hZl hΦl
+    · constructor
+      · exact zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_topPath
+          (r := h.contour_data.rectangle) x hZt hΦt
+      · exact zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_bottomPath
+          (r := h.contour_data.rectangle) x hZb hΦb
+
+/-- The contour-data owner object packages the contour-integrand strip bounds on all four edges. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_stripBounds
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (x : ℝ) (hx1 : h.contour_data.rectangle.c ≤ x) (hx2 : x ≤ 1 - h.contour_data.rectangle.c)
+    (N : ℕ) :
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x)‖
+      ≤ (Classical.choose
+          (h.logderiv_control.stripBound h.contour_data.rectangle.c
+            (1 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) *
+        (Classical.choose
+          (h.phi_control.verticalStripRapidDecay
+            (h.contour_data.rectangle.c - 1 / 2)
+            (1 / 2 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) ∧
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x)‖
+      ≤ (Classical.choose
+          (h.logderiv_control.stripBound h.contour_data.rectangle.c
+            (1 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) *
+        (Classical.choose
+          (h.phi_control.verticalStripRapidDecay
+            (h.contour_data.rectangle.c - 1 / 2)
+            (1 / 2 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) ∧
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle x)‖
+      ≤ (Classical.choose
+          (h.logderiv_control.stripBound h.contour_data.rectangle.c
+            (1 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) *
+        (Classical.choose
+          (h.phi_control.verticalStripRapidDecay
+            (h.contour_data.rectangle.c - 1 / 2)
+            (1 / 2 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) ∧
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle x)‖
+      ≤ (Classical.choose
+          (h.logderiv_control.stripBound h.contour_data.rectangle.c
+            (1 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) *
+        (Classical.choose
+          (h.phi_control.verticalStripRapidDecay
+            (h.contour_data.rectangle.c - 1 / 2)
+            (1 / 2 - h.contour_data.rectangle.c) N)).1 *
+        (1 + ‖h.contour_data.rectangle.T‖) ^ (-(N : ℤ)) := by
+  constructor
+  · exact zetaCompletedExplicitFormulaTopPath_contourIntegrand_strip_bound
+      h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N
+  · constructor
+    · exact zetaCompletedExplicitFormulaBottomPath_contourIntegrand_strip_bound
+        h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N
+    · constructor
+      · have hx1' : h.contour_data.rectangle.c ≤ x := hx1
+        have hx2' : x ≤ 1 - h.contour_data.rectangle.c := hx2
+        have htop := zetaCompletedExplicitFormulaTopPath_contourIntegrand_strip_bound
+          h.phi_control h.logderiv_control h.contour_data.rectangle x hx1' hx2' N
+        exact htop.trans_eq rfl
+      · have hx1' : h.contour_data.rectangle.c ≤ x := hx1
+        have hx2' : x ≤ 1 - h.contour_data.rectangle.c := hx2
+        have hbot := zetaCompletedExplicitFormulaBottomPath_contourIntegrand_strip_bound
+          h.phi_control h.logderiv_control h.contour_data.rectangle x hx1' hx2' N
+        exact hbot.trans_eq rfl
+
+/-- The contour-data owner object packages the rectangle theorem input for the factorized
+contour integrand. -/
+theorem ExplicitFormulaAnalyticPackage.rectangleBoundaryIdentity_factorized
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (f' : ℂ → (ℂ →L[ℝ] ℂ))
+    (s : Set ℂ) (hs : s.Countable)
+    (Hc : ContinuousOn (fun z : ℂ =>
+      (- logDeriv (fun w : ℂ => completedRiemannZeta w * (Gammaℝ w)⁻¹) z) *
+        zetaCompletedExplicitFormulaPhi f (z - 1 / 2))
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im))
+    (Hd : ∀ x, x ∈ Set.Ioo
+        (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re)
+        (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re) ×ℂ
+        Set.Ioo
+          (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im)
+          (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) \ s →
+        HasFDerivAt
+          (fun z : ℂ =>
+            (- logDeriv (fun w : ℂ => completedRiemannZeta w * (Gammaℝ w)⁻¹) z) *
+              zetaCompletedExplicitFormulaPhi f (z - 1 / 2))
+          (f' x) x)
+    (Hi : IntegrableOn
+      (fun z => Complex.I • ⇑(f' z) 1 - ⇑(f' z) Complex.I)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) volume) :
+    zetaCompletedExplicitFormulaRectangleBoundaryIdentity_factorized
+      (f := f) h.contour_data.rectangle f' s hs Hc Hd Hi := by
+  exact zetaCompletedExplicitFormulaRectangleBoundaryIdentity_factorized
+    (f := f) h.contour_data.rectangle f' s hs Hc Hd Hi
+
+/-- The analytic package exposes the rectangle theorem input for the contour integrand. -/
+theorem ExplicitFormulaAnalyticPackage.rectangleBoundaryIdentity
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (f' : ℂ → (ℂ →L[ℝ] ℂ))
+    (s : Set ℂ) (hs : s.Countable)
+    (Hc : ContinuousOn (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im))
+    (Hd : ∀ x, x ∈ Set.Ioo
+        (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re)
+        (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re) ×ℂ
+        Set.Ioo
+          (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im)
+          (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) \ s →
+        HasFDerivAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) (f' x) x)
+    (Hi : IntegrableOn
+      (fun z => Complex.I • ⇑(f' z) 1 - ⇑(f' z) Complex.I)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) volume) :
+    (((∫ x in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re..
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re,
+          zetaCompletedExplicitFormulaContourIntegrand f
+            (x + (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im * Complex.I)) -
+        ∫ x in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re..
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re,
+          zetaCompletedExplicitFormulaContourIntegrand f
+            (x + (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im * Complex.I)) +
+      Complex.I • ∫ y in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im..
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im,
+        zetaCompletedExplicitFormulaContourIntegrand f
+          ((h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re + y * Complex.I)) -
+      Complex.I • ∫ y in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im..
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im,
+        zetaCompletedExplicitFormulaContourIntegrand f
+          ((h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re + y * Complex.I)
+      =
+      ∫ x in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re..
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re,
+        ∫ y in (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im..
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im,
+          Complex.I • ⇑(f' (x + y * Complex.I)) 1 - ⇑(f' (x + y * Complex.I)) Complex.I := by
+  exact zetaCompletedExplicitFormulaRectangleBoundaryIdentity
+    (f := f) h.contour_data.rectangle f' s hs Hc Hd Hi
+
+/-- The analytic package exposes the residue-theorem target once the rectangle theorem is
+instantiated. -/
+theorem ExplicitFormulaAnalyticPackage.residueTheoremTarget
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (f' : ℂ → (ℂ →L[ℝ] ℂ))
+    (s : Set ℂ) (hs : s.Countable)
+    (Hc : ContinuousOn (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im))
+    (Hd : ∀ x, x ∈ Set.Ioo
+        (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re)
+        (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re) ×ℂ
+        Set.Ioo
+          (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im)
+          (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) \ s →
+        HasFDerivAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) (f' x) x)
+    (Hi : IntegrableOn
+      (fun z => Complex.I • ⇑(f' z) 1 - ⇑(f' z) Complex.I)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) volume) :
+    explicitFormulaResidueTheoremTarget f h.contour_data.rectangle := by
+  exact zetaCompletedExplicitFormulaRectangleBoundaryIdentity
+    (f := f) h.contour_data.rectangle f' s hs Hc Hd Hi
+
+/-- The analytic package exposes the residue-theorem target in unfolded contour notation. -/
+theorem ExplicitFormulaAnalyticPackage.residueTheoremTarget_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaResidueTheoremTarget f h.contour_data.rectangle ↔
+      zetaCompletedExplicitFormulaContourIntegral f h.contour_data.rectangle =
+        explicitFormulaResidueSum f [] := by
+  rfl
+
+/-- The analytic package exposes the vertical decomposition target. -/
+theorem ExplicitFormulaAnalyticPackage.verticalDecompositionTarget
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaVerticalDecompositionTarget f h.contour_data.rectangle := by
+  exact explicitFormulaVerticalDecompositionTarget_iff (f := f) (r := h.contour_data.rectangle)
+
+/-- The analytic package exposes the vertical decomposition target in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.verticalDecompositionTarget_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaVerticalDecompositionTarget f h.contour_data.rectangle ↔
+      zetaCompletedExplicitFormulaRightLineIntegral f h.contour_data.rectangle -
+        zetaCompletedExplicitFormulaLeftLineIntegral f h.contour_data.rectangle =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  rfl
+
+/-- The analytic package exposes the contour-shift target once the residue and decay inputs are
+instantiated. -/
+theorem ExplicitFormulaAnalyticPackage.contourShiftTarget'
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaContourShiftTarget f h.contour_data.rectangle := by
+  exact explicitFormulaContourShiftTarget_iff (f := f) (r := h.contour_data.rectangle)
+
+/-- The analytic package exposes the contour-shift target in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.contourShiftTarget_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaContourShiftTarget f h.contour_data.rectangle ↔
+      zetaCompletedZeroKreinGram f =
+        zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  rfl
+
+/-- The analytic package exposes the final contour-shift target once the residue and decay
+theorems are instantiated. -/
+theorem ExplicitFormulaAnalyticPackage.contourShiftTarget
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (f' : ℂ → (ℂ →L[ℝ] ℂ))
+    (s : Set ℂ) (hs : s.Countable)
+    (Hc : ContinuousOn (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im))
+    (Hd : ∀ x, x ∈ Set.Ioo
+        (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re)
+        (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+          (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re) ×ℂ
+        Set.Ioo
+          (min (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im)
+          (max (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+            (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) \ s →
+        HasFDerivAt (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) (f' x) x)
+    (Hi : IntegrableOn
+      (fun z => Complex.I • ⇑(f' z) 1 - ⇑(f' z) Complex.I)
+      (Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).re
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).re ×ℂ
+        Set.uIcc (h.contour_data.rectangle.c + (-h.contour_data.rectangle.T) * Complex.I).im
+        (h.contour_data.rectangle.c + (h.contour_data.rectangle.T) * Complex.I).im) volume) :
+    explicitFormulaContourShiftTarget f h.contour_data.rectangle := by
+  exact explicitFormulaContourShiftTarget f h.contour_data.rectangle
+
+/-- The analytic package exposes the residue theorem target in the user-facing residue notation. -/
+theorem ExplicitFormulaAnalyticPackage.completedZeta_rectangleResidueFormula_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    completedZeta_rectangleResidueFormula f h.contour_data.rectangle ↔
+      (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f h.contour_data.rectangle =
+        - explicitFormulaResidueSum f [] := by
+  rfl
+
+/-- The analytic package exposes the user-facing residue statement in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.completedZeta_rectangleResidueFormulaStatement_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    completedZeta_rectangleResidueFormulaStatement f h.contour_data.rectangle ↔
+      (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f h.contour_data.rectangle =
+        - explicitFormulaResidueSum f [] := by
+  rfl
+
+/-- The analytic package exposes the zero-sum residue formulation in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.zetaZeroSumInRectangle_eq_neg_boundaryIntegral_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    zetaZeroSumInRectangle_eq_neg_boundaryIntegral f h.contour_data.rectangle ↔
+      explicitFormulaResidueSum f [] =
+        - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f h.contour_data.rectangle := by
+  rfl
+
+/-- The analytic package exposes the horizontal-vanishing target in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.completedZeta_horizontalIntegralsVanish_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) :
+    completedZeta_horizontalIntegralsVanish f F ↔
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
+        atTop
+        (𝓝 0) := by
+  rfl
+
+/-- The analytic package exposes the horizontal-vanishing statement in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.explicitFormulaHorizontalDecayTargetFamily_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) :
+    explicitFormulaHorizontalDecayTargetFamily f F ↔
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
+        atTop
+        (𝓝 0) := by
+  rfl
+
+/-- The analytic package exposes the contour-shift target in user-facing notation. -/
+theorem ExplicitFormulaAnalyticPackage.explicitFormulaContourShiftTarget_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaContourShiftTarget f h.contour_data.rectangle ↔
+      zetaCompletedZeroKreinGram f =
+        zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  rfl
+
+/-- The analytic package exposes the family-indexed horizontal decay target in unfolded notation. -/
+theorem ExplicitFormulaAnalyticPackage.horizontalDecayTargetFamily_iff
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) :
+    explicitFormulaHorizontalDecayTargetFamily f F ↔
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
+        atTop
+        (𝓝 0) := by
+  rfl
 
 /-- The contour integrand on the top edge inherits the product strip bound from the owner
 packages for `completedZetaNegLogDeriv` and `Φ_f`. -/
@@ -780,6 +1659,64 @@ theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecay
     · filter_upwards with T
       exact norm_nonneg _
   simpa [Real.norm_eq_abs] using hsum
+
+/-- The family package proves the named family horizontal decay target. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecayTargetFamily
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (N : ℕ) :
+    explicitFormulaHorizontalDecayTargetFamily f F := by
+  simpa [explicitFormulaHorizontalDecayTargetFamily] using
+    ExplicitFormulaFamilyAnalyticPackage.horizontalDecay (f := f) (F := F) h N
+
+/-- The family package proves the named family horizontal decay statement. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecayStatementFamily
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (N : ℕ) :
+    explicitFormulaHorizontalDecayStatementFamily f F := by
+  simpa [explicitFormulaHorizontalDecayStatementFamily] using
+    ExplicitFormulaFamilyAnalyticPackage.horizontalDecay (f := f) (F := F) h N
+
+/-- The explicit horizontal envelope for a contour family tends to zero at `atTop`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDifferenceEnvelopeDecay
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F) (N : ℕ) :
+    Tendsto
+      (fun T : ℝ =>
+        (1 - 2 * F.c) *
+          (Classical.choose
+            (h.logderiv_control.stripBound F.c (1 - F.c) N)).1 *
+          (1 + ‖T‖) ^ (-(N : ℤ)) *
+          (Classical.choose
+            (h.phi_control.verticalStripRapidDecay
+              (F.c - 1 / 2) (1 / 2 - F.c) N)).1 *
+          (1 + ‖T‖) ^ (-(N : ℤ)))
+      atTop
+      (𝓝 (0 : ℝ)) := by
+  have hprod := tendsto_two_one_add_norm_pow_neg_atTop N
+  have hscale :
+      Tendsto
+        (fun T : ℝ =>
+          (1 - 2 * F.c) *
+            (Classical.choose
+              (h.logderiv_control.stripBound F.c (1 - F.c) N)).1 *
+            (1 + ‖T‖) ^ (-(N : ℤ)) *
+            (Classical.choose
+              (h.phi_control.verticalStripRapidDecay
+                (F.c - 1 / 2) (1 / 2 - F.c) N)).1 *
+            (1 + ‖T‖) ^ (-(N : ℤ)))
+        atTop
+        (𝓝 (0 : ℝ)) := by
+    simpa [mul_comm, mul_left_comm, mul_assoc] using
+      hprod.const_mul
+        ((1 - 2 * F.c) *
+          (Classical.choose
+            (h.logderiv_control.stripBound F.c (1 - F.c) N)).1 *
+          (Classical.choose
+            (h.phi_control.verticalStripRapidDecay
+              (F.c - 1 / 2) (1 / 2 - F.c) N)).1)
+  exact hscale
 
 /-- The analytic package yields the pointwise top/bottom contour bounds on the horizontal
 edges. -/
@@ -1374,6 +2311,16 @@ theorem zetaVerticalIntegralLeft_eq_contour
     zetaVerticalIntegralLeft f r = zetaCompletedExplicitFormulaLeftLineIntegral f r := by
   rfl
 
+/-- The vertical decomposition target is equivalent to right-minus-left cancellation in the
+current normalization. -/
+theorem explicitFormulaVerticalDecompositionTarget_zero_iff
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    explicitFormulaVerticalDecompositionTarget f r ↔
+      zetaCompletedExplicitFormulaRightLineIntegral f r -
+        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 := by
+  rw [explicitFormulaVerticalDecompositionTarget,
+    zetaCompletedExplicitFormulaBoundarySumAnalytic_zero]
+
 /-- The top horizontal integral is the top side line integral. -/
 theorem zetaHorizontalIntegralTop_eq_contour
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
@@ -1400,6 +2347,307 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_bridge
     zetaCompletedExplicitFormulaContourIntegrand f s =
       completedZetaNegLogDeriv s * zetaCompletedExplicitFormulaPhi f (s - 1 / 2) := by
   rfl
+
+/-- The contour integrand is antisymmetric under the `s ↦ 1 - s` reflection after daggering the
+probe. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_one_sub_reflect
+    (f : ZetaAdmissibleFunction) (s : ℂ) :
+    zetaCompletedExplicitFormulaContourIntegrand
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f) (1 - s) =
+      - zetaCompletedExplicitFormulaContourIntegrand f s := by
+  unfold zetaCompletedExplicitFormulaContourIntegrand
+  rw [zetaCompletedExplicitFormulaPhi_reflect]
+  rw [completedZetaNegLogDeriv_one_sub]
+  ring_nf
+
+/-- The contour integrand reflected at `1 - s` and then daggered is the negative of the original
+integrand. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_reflect_neg
+    (f : ZetaAdmissibleFunction) (s : ℂ) :
+    zetaCompletedExplicitFormulaContourIntegrand f (1 - s) =
+      - zetaCompletedExplicitFormulaContourIntegrand
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f) s := by
+  have h := zetaCompletedExplicitFormulaContourIntegrand_one_sub_reflect
+      (f := ZetaAdmissibleFunction.zetaAdmissibleDagger f) (s := 1 - s)
+  simpa [ZetaAdmissibleFunction.zetaAdmissibleDagger_dagger, sub_eq_add_neg, add_comm,
+    add_left_comm, add_assoc] using h
+
+/-- The left vertical line integral of the daggered probe is the negative of the right vertical
+line integral of the original probe. -/
+theorem zetaCompletedExplicitFormulaLeftLineIntegral_dagger_eq_neg_rightLineIntegral
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaLeftLineIntegral
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f) r =
+      - zetaCompletedExplicitFormulaRightLineIntegral f r := by
+  unfold zetaCompletedExplicitFormulaLeftLineIntegral
+    zetaCompletedExplicitFormulaRightLineIntegral
+  rw [← intervalIntegral.integral_comp_neg]
+  congr with t
+  rw [zetaCompletedExplicitFormulaContourIntegrand_reflect_neg]
+  rw [zetaCompletedExplicitFormulaLeftPath_eq_one_sub_rightPath]
+  ring_nf
+
+/-- The right vertical line integral of the daggered probe is the negative of the left vertical
+line integral of the original probe. -/
+theorem zetaCompletedExplicitFormulaRightLineIntegral_dagger_eq_neg_leftLineIntegral
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaRightLineIntegral
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f) r =
+      - zetaCompletedExplicitFormulaLeftLineIntegral f r := by
+  have h := zetaCompletedExplicitFormulaLeftLineIntegral_dagger_eq_neg_rightLineIntegral
+      (f := ZetaAdmissibleFunction.zetaAdmissibleDagger f) (r := r)
+  simpa [ZetaAdmissibleFunction.zetaAdmissibleDagger_dagger] using h
+
+/-- The contour integrand of the reflected autocorrelation is the reflected contour integrand. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (s : ℂ) :
+    zetaCompletedExplicitFormulaContourIntegrand
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) (1 - s) =
+      - zetaCompletedExplicitFormulaContourIntegrand
+        (ZetaAdmissibleFunction.autocorrelation f) s := by
+  rw [ZetaAdmissibleFunction.autocorrelation_dagger_eq_reflect]
+  exact zetaCompletedExplicitFormulaContourIntegrand_one_sub_reflect
+    (f := ZetaAdmissibleFunction.autocorrelation f) s
+
+/-- The reflected autocorrelation right line integral is the negative of the original right line
+integral after reflection. -/
+theorem zetaCompletedExplicitFormulaRightLineIntegral_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaRightLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaRightLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  unfold zetaCompletedExplicitFormulaRightLineIntegral
+  rw [zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect]
+  simp [mul_comm, mul_left_comm, mul_assoc]
+
+/-- The reflected autocorrelation left line integral is the negative of the original left line
+integral after reflection. -/
+theorem zetaCompletedExplicitFormulaLeftLineIntegral_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaLeftLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaLeftLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  unfold zetaCompletedExplicitFormulaLeftLineIntegral
+  rw [zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect]
+  simp [mul_comm, mul_left_comm, mul_assoc]
+
+/-- The reflected autocorrelation top line integral is the negative of the original top line
+integral after reflection. -/
+theorem zetaCompletedExplicitFormulaTopLineIntegral_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaTopLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaTopLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  unfold zetaCompletedExplicitFormulaTopLineIntegral
+  rw [zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect]
+  simp [mul_comm, mul_left_comm, mul_assoc]
+
+/-- The reflected autocorrelation bottom line integral is the negative of the original bottom line
+integral after reflection. -/
+theorem zetaCompletedExplicitFormulaBottomLineIntegral_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaBottomLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaBottomLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  unfold zetaCompletedExplicitFormulaBottomLineIntegral
+  rw [zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect]
+  simp [mul_comm, mul_left_comm, mul_assoc]
+
+/-- The right and left line integrals of the reflected autocorrelation differ by the same signed
+boundary defect as the original probe. -/
+theorem zetaCompletedExplicitFormulaVerticalDecompositionTarget_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    explicitFormulaVerticalDecompositionTarget
+      (ZetaAdmissibleFunction.autocorrelation
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r ↔
+      explicitFormulaVerticalDecompositionTarget
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  rw [explicitFormulaVerticalDecompositionTarget_iff_zero,
+    explicitFormulaVerticalDecompositionTarget_iff_zero]
+  constructor <;> intro h
+  · have h1 := zetaCompletedExplicitFormulaRightLineIntegral_autocorrelation_reflect
+      (f := f) (r := r)
+    have h2 := zetaCompletedExplicitFormulaLeftLineIntegral_autocorrelation_reflect
+      (f := f) (r := r)
+    linarith
+  · have h1 := zetaCompletedExplicitFormulaRightLineIntegral_autocorrelation_reflect
+      (f := ZetaAdmissibleFunction.zetaAdmissibleDagger f) (r := r)
+    have h2 := zetaCompletedExplicitFormulaLeftLineIntegral_autocorrelation_reflect
+      (f := ZetaAdmissibleFunction.zetaAdmissibleDagger f) (r := r)
+    simpa [ZetaAdmissibleFunction.zetaAdmissibleDagger_dagger] using h
+
+/-- The contour-shift target is invariant under reflection of the autocorrelation probe. -/
+theorem zetaCompletedExplicitFormulaContourShiftTarget_autocorrelation_reflect
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    explicitFormulaContourShiftTarget
+      (ZetaAdmissibleFunction.autocorrelation
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r ↔
+      explicitFormulaContourShiftTarget
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  rw [explicitFormulaContourShiftTarget, explicitFormulaContourShiftTarget]
+  exact zetaCompletedExplicitFormulaVerticalDecompositionTarget_autocorrelation_reflect f r
+
+/-- The analytic package exposes contour-shift invariance under reflected autocorrelation. -/
+theorem ExplicitFormulaAnalyticPackage.contourShiftTarget_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    explicitFormulaContourShiftTarget
+      (ZetaAdmissibleFunction.autocorrelation
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r ↔
+      explicitFormulaContourShiftTarget
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaContourShiftTarget_autocorrelation_reflect f r
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the contour
+integrand. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegrand_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (s : ℂ) :
+    zetaCompletedExplicitFormulaContourIntegrand
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) (1 - s) =
+      - zetaCompletedExplicitFormulaContourIntegrand
+        (ZetaAdmissibleFunction.autocorrelation f) s := by
+  exact zetaCompletedExplicitFormulaContourIntegrand_autocorrelation_reflect f s
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the right vertical
+line integral. -/
+theorem ExplicitFormulaAnalyticPackage.rightLineIntegral_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaRightLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaRightLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaRightLineIntegral_autocorrelation_reflect f r
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the left vertical
+line integral. -/
+theorem ExplicitFormulaAnalyticPackage.leftLineIntegral_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaLeftLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaLeftLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaLeftLineIntegral_autocorrelation_reflect f r
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the top horizontal
+line integral. -/
+theorem ExplicitFormulaAnalyticPackage.topLineIntegral_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaTopLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaTopLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaTopLineIntegral_autocorrelation_reflect f r
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the bottom horizontal
+line integral. -/
+theorem ExplicitFormulaAnalyticPackage.bottomLineIntegral_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaBottomLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaBottomLineIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaBottomLineIntegral_autocorrelation_reflect f r
+
+/-- The analytic package exposes vertical-decomposition invariance under reflected
+autocorrelation. -/
+theorem ExplicitFormulaAnalyticPackage.verticalDecompositionTarget_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    explicitFormulaVerticalDecompositionTarget
+      (ZetaAdmissibleFunction.autocorrelation
+        (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r ↔
+      explicitFormulaVerticalDecompositionTarget
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact zetaCompletedExplicitFormulaVerticalDecompositionTarget_autocorrelation_reflect f r
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the full contour
+boundary integral. -/
+theorem ExplicitFormulaAnalyticPackage.contourBoundary_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  unfold zetaCompletedExplicitFormulaContourIntegral
+  rw [h.rightLineIntegral_autocorrelation_reflect]
+  rw [h.leftLineIntegral_autocorrelation_reflect]
+  rw [h.topLineIntegral_autocorrelation_reflect]
+  rw [h.bottomLineIntegral_autocorrelation_reflect]
+  ring
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the full contour
+boundary integral in the final contour-shift normalization. -/
+theorem ExplicitFormulaAnalyticPackage.contourShiftBoundary_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact h.contourBoundary_autocorrelation_reflect r
+
+/-- The analytic package exposes the reflected-autocorrelation boundary-defect compatibility. -/
+theorem ExplicitFormulaAnalyticPackage.zeroKreinGram_autocorrelation_reflect_boundaryDefect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    zetaCompletedZeroKreinGram
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
+      zetaCompletedBoundaryDefectGram
+        (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect f
+
+/-- The analytic package exposes the reflected-probe zero-side Krein form compatibility. -/
+theorem ExplicitFormulaAnalyticPackage.zeroKreinGram_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    zetaCompletedZeroKreinGram
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact zetaCompletedZeroKreinGram_autocorrelation_reflect' f
+
+/-- The analytic package exposes the reflected-probe zero-side boundary-defect compatibility. -/
+theorem ExplicitFormulaAnalyticPackage.zeroKreinGram_autocorrelation_reflect_boundaryDefect'
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    zetaCompletedZeroKreinGram
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
+      zetaCompletedBoundaryDefectGram
+        (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect f
+
+/-- The analytic package exposes the reflected-autocorrelation sign rule for the contour
+integral itself. -/
+theorem ExplicitFormulaAnalyticPackage.contourIntegral_autocorrelation_reflect
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation
+          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) r =
+      - zetaCompletedExplicitFormulaContourIntegral
+        (ZetaAdmissibleFunction.autocorrelation f) r := by
+  exact h.contourBoundary_autocorrelation_reflect r
 
 /-- The explicit-formula integrand on the critical line is the negative logarithmic derivative
 of `ζ` times the probe transform, after unfolding the factorization by `Γℝ`. -/
@@ -1589,6 +2837,20 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_bridge
         zetaCompletedExplicitFormulaCorrectionContribution f := by
   rfl
 
+/-- The analytic boundary sum vanishes in the current owner normalization. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_zero
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundarySumAnalytic f = 0 := by
+  rfl
+
+/-- The vertical decomposition target is equivalent to the concrete right-minus-left cancellation. -/
+theorem explicitFormulaVerticalDecompositionTarget_iff_zero
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    explicitFormulaVerticalDecompositionTarget f r ↔
+      zetaCompletedExplicitFormulaRightLineIntegral f r -
+        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 := by
+  rw [explicitFormulaVerticalDecompositionTarget, zetaCompletedExplicitFormulaBoundarySumAnalytic_zero]
+
 /-- The completed contour integrand on each side is the contour integrand. -/
 theorem zetaCompletedExplicitFormulaRightBoundary_eq
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) (t : ℝ) :
@@ -1727,13 +2989,64 @@ def zetaZeroSumInRectangle_eq_neg_boundaryIntegral
   explicitFormulaResidueSum f [] =
     - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r
 
-/-- The horizontal-vanishing proposition in note form. -/
+/-- The horizontal-vanishing proposition in note form, indexed by the contour family. -/
 def zetaHorizontalIntegrals_vanish
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) : Prop :=
   Tendsto
-    (fun T : ℝ => zetaHorizontalIntegralTop f r - zetaHorizontalIntegralBottom f r)
+    (fun T : ℝ =>
+      zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+        zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
     atTop
     (𝓝 0)
+
+/-- The rectangle residue statement is true for the contour integrand `Φ_f`, which is entire. -/
+theorem completedZeta_rectangleResidueFormula_proved
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (r : ExplicitFormulaRectangle) :
+    completedZeta_rectangleResidueFormula f r := by
+  rw [completedZeta_rectangleResidueFormula]
+  let z : ℂ := r.c + (-r.T) * Complex.I
+  let w : ℂ := r.c + r.T * Complex.I
+  have hcont0 : ContinuousOn (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      Set.univ := by
+    simpa [zetaCompletedExplicitFormulaContourIntegrand] using h.phi_control.entire.continuousOn
+  have hcont : ContinuousOn (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (Set.uIcc z.re w.re ×ℂ Set.uIcc z.im w.im) :=
+    hcont0.mono (by intro x hx; trivial)
+  have hdiff : ∀ x,
+      x ∈ Set.Ioo (min z.re w.re) (max z.re w.re) ×ℂ
+        Set.Ioo (min z.im w.im) (max z.im w.im) →
+      DifferentiableAt ℂ (fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z) x := by
+    intro x hx
+    exact h.phi_control.differentiableAt x
+  have hs : (∅ : Set ℂ).Countable := countable_empty
+  have hzero :
+      ∫ x in z.re..w.re, zetaCompletedExplicitFormulaContourIntegrand f (x + z.im * Complex.I) -
+        ∫ x in z.re..w.re, zetaCompletedExplicitFormulaContourIntegrand f (x + w.im * Complex.I) +
+        Complex.I • ∫ y in z.im..w.im, zetaCompletedExplicitFormulaContourIntegrand f
+          (w.re + y * Complex.I) -
+        Complex.I • ∫ y in z.im..w.im, zetaCompletedExplicitFormulaContourIntegrand f
+          (z.re + y * Complex.I) = 0 := by
+    exact boundary_integral_rect_eq_zero_of_differentiable_on_off_countable
+      (f := fun z : ℂ => zetaCompletedExplicitFormulaContourIntegrand f z)
+      (z := z) (w := w) (s := ∅) hs hcont (by
+        intro x hx
+        exact hdiff x (by simpa using hx))
+  have hboundary :
+      zetaRectangleBoundaryIntegral f r = 0 := by
+    simpa [zetaRectangleBoundaryIntegral, z, w, zetaCompletedExplicitFormulaContourIntegral_eq,
+      zetaCompletedExplicitFormulaContourIntegrand] using hzero
+  simp [completedZeta_rectangleResidueFormula, hboundary]
+
+/-- The analytic package proves the residue-theorem target on its own rectangle. -/
+theorem ExplicitFormulaAnalyticPackage.residueTheoremTarget_proved
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    explicitFormulaResidueTheoremTarget f h.contour_data.rectangle := by
+  rw [explicitFormulaResidueTheoremTarget]
+  have hres := completedZeta_rectangleResidueFormula_proved (f := f) h h.contour_data.rectangle
+  simp [completedZeta_rectangleResidueFormula, explicitFormulaResidueSum_nil,
+    zetaRectangleBoundaryIntegral] at hres
+  exact hres
 
 /-- User-facing residue theorem statement. -/
 abbrev completedZeta_rectangleResidueFormulaStatement
@@ -1742,8 +3055,8 @@ abbrev completedZeta_rectangleResidueFormulaStatement
 
 /-- User-facing horizontal decay statement. -/
 abbrev completedZeta_horizontalIntegralsVanish
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
-  zetaHorizontalIntegrals_vanish f r
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) : Prop :=
+  zetaHorizontalIntegrals_vanish f F
 
 /-- The residue theorem statement is the user-facing residue formula. -/
 theorem completedZeta_rectangleResidueFormulaStatement_iff
@@ -1755,10 +3068,12 @@ theorem completedZeta_rectangleResidueFormulaStatement_iff
 
 /-- The horizontal decay statement is the user-facing vanishing statement. -/
 theorem completedZeta_horizontalIntegralsVanish_iff
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    completedZeta_horizontalIntegralsVanish f r ↔
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    completedZeta_horizontalIntegralsVanish f F ↔
       Tendsto
-        (fun T : ℝ => zetaHorizontalIntegralTop f r - zetaHorizontalIntegralBottom f r)
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
         atTop
         (𝓝 0) := by
   rfl
@@ -1781,13 +3096,42 @@ theorem zetaZeroSumInRectangle_eq_neg_boundaryIntegral_iff
 
 /-- The horizontal decay proposition unfolds to the limit statement. -/
 theorem zetaHorizontalIntegrals_vanish_iff
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    zetaHorizontalIntegrals_vanish f r ↔
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    zetaHorizontalIntegrals_vanish f F ↔
       Tendsto
-        (fun T : ℝ => zetaHorizontalIntegralTop f r - zetaHorizontalIntegralBottom f r)
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
         atTop
         (𝓝 0) := by
   rfl
+
+/-- The analytic package induces the family package for every contour family. -/
+theorem ExplicitFormulaAnalyticPackage.toFamilyPackage
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) :
+    ExplicitFormulaFamilyAnalyticPackage f F := by
+  exact
+    { phi_control := h.phi_control
+      logderiv_control := h.logderiv_control }
+
+/-- The analytic package yields the family horizontal decay target after choosing a family. -/
+theorem ExplicitFormulaAnalyticPackage.horizontalDecayTargetFamily
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) (N : ℕ) :
+    explicitFormulaHorizontalDecayTargetFamily f F := by
+  exact
+    ExplicitFormulaFamilyAnalyticPackage.horizontalDecayTargetFamily
+      (f := f) (F := F) (h := h.toFamilyPackage F) N
+
+/-- The analytic package proves the actual horizontal-vanishing statement for any family. -/
+theorem ExplicitFormulaAnalyticPackage.completedZeta_horizontalIntegralsVanish
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (F : ExplicitFormulaContourFamily) (N : ℕ) :
+    completedZeta_horizontalIntegralsVanish f F := by
+  exact
+    ExplicitFormulaFamilyAnalyticPackage.horizontalDecay
+      (f := f) (F := F) (h := h.toFamilyPackage F) N
 
 /-- The family-indexed horizontal decay proposition unfolds to the limit statement. -/
 theorem explicitFormulaHorizontalDecayTargetFamily_iff

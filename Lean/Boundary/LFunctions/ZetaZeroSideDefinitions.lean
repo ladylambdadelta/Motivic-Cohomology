@@ -31,11 +31,31 @@ def zetaCenteredZero (ρ : ℂ) : ℂ :=
   ρ - (1 / 2 : ℂ)
 
 /-- The spectral evaluation map for admissible test functions. -/
-axiom zetaSpectralTransform : ZetaAdmissibleFunction → ℂ → ℂ
+def zetaSpectralTransform : ZetaAdmissibleFunction → ℂ → ℂ :=
+  zetaLaplaceTransform
 
 /-- The spectral evaluation of an admissible test function. -/
 abbrev zetaSpectralEval (φ : ZetaAdmissibleFunction) (z : ℂ) : ℂ :=
   zetaSpectralTransform φ z
+
+/-- The spectral transform is the zeta Laplace transform. -/
+theorem zetaSpectralTransform_eq_laplace
+    (φ : ZetaAdmissibleFunction) :
+    zetaSpectralTransform φ = zetaLaplaceTransform φ := by
+  rfl
+
+/-- The spectral evaluation is the zeta Laplace transform evaluation. -/
+theorem zetaSpectralEval_eq_laplace
+    (φ : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval φ z = zetaLaplaceTransform φ z := by
+  rfl
+
+/-- The spectral evaluation of an autocorrelation is the constructed Laplace transform. -/
+theorem zetaSpectralEval_autocorrelation
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
+      zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+  rfl
 
 /-- The single zero contribution to the completed zero side. -/
 def zetaZeroSideContribution (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℂ :=
@@ -77,6 +97,30 @@ def zetaZeroOrbitRemainderRe (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℝ :=
 theorem zetaZeroSideContribution_def (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroSideContribution ρ φ =
       - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ (zetaCenteredZero ρ) := by
+  rfl
+
+/-- The spectral transform of an autocorrelation is the constructed Laplace transform. -/
+theorem zetaSpectralTransform_autocorrelation
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+      zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+  rfl
+
+/-- The spectral transform of an autocorrelation is the explicit Laplace integral. -/
+theorem zetaSpectralTransform_autocorrelation_eq_integral
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+      ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
+  rw [zetaSpectralTransform_autocorrelation,
+    LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
+  rfl
+
+/-- The spectral evaluation of an autocorrelation is the explicit Laplace integral. -/
+theorem zetaSpectralEval_autocorrelation_eq_integral
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
+      ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
+  rw [zetaSpectralEval_eq_laplace, LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
   rfl
 
 theorem zetaZeroOrbitContribution_eq_sum (ρ : ℂ) (φ : ZetaAdmissibleFunction) :

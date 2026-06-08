@@ -1,4 +1,5 @@
-import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
+import Boundary.LFunctions.ZetaZeroKreinGram
+import Boundary.LFunctions.ZetaPacketComparison
 
 /-!
 # Boundary Guinand-Weil explicit formula input
@@ -31,6 +32,11 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+/-- The completed explicit-formula boundary sum in signed form. -/
+noncomputable def zetaCompletedExplicitFormulaBoundarySum
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCompletedBoundaryDefectGram f
 
 /-- The imported Guinand-Weil explicit-formula input for completed zeta. -/
 class ZetaGuinandWeilExplicitFormulaInput : Prop where

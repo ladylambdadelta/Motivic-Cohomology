@@ -78,6 +78,24 @@ theorem zetaCompletedExplicitFormulaLeftPath_re (r : ExplicitFormulaRectangle) (
   rw [Complex.re_add_im]
   ring
 
+/-- The left path is the reflection of the right path across `s ↦ 1 - s`. -/
+theorem zetaCompletedExplicitFormulaLeftPath_eq_one_sub_rightPath
+    (r : ExplicitFormulaRectangle) (t : ℝ) :
+    zetaCompletedExplicitFormulaLeftPath r t =
+      1 - zetaCompletedExplicitFormulaRightPath r (-t) := by
+  unfold zetaCompletedExplicitFormulaLeftPath zetaCompletedExplicitFormulaRightPath
+  rw [Complex.coe_real_add, Complex.coe_real_sub, Complex.ofReal_add, Complex.ofReal_sub]
+  rw [Complex.ofReal_mul_I]
+  ring
+
+/-- The right path reflected in the parameter matches the left path. -/
+theorem zetaCompletedExplicitFormulaRightPath_neg_eq_one_sub_leftPath
+    (r : ExplicitFormulaRectangle) (t : ℝ) :
+    zetaCompletedExplicitFormulaRightPath r (-t) =
+      1 - zetaCompletedExplicitFormulaLeftPath r t := by
+  rw [zetaCompletedExplicitFormulaLeftPath_eq_one_sub_rightPath]
+  ring_nf
+
 /-- The top path has constant imaginary part `T`. -/
 theorem zetaCompletedExplicitFormulaTopPath_im (r : ExplicitFormulaRectangle) (x : ℝ) :
     (zetaCompletedExplicitFormulaTopPath r x).im = r.T := by
@@ -94,6 +112,16 @@ theorem zetaCompletedExplicitFormulaTopPath_re (r : ExplicitFormulaRectangle) (x
   rw [Complex.coe_real_add]
   rw [Complex.ofReal_mul_I]
   rw [Complex.re_add_im]
+  ring
+
+/-- The bottom path is the reflection of the top path across `s ↦ 1 - s`. -/
+theorem zetaCompletedExplicitFormulaBottomPath_eq_one_sub_topPath
+    (r : ExplicitFormulaRectangle) (x : ℝ) :
+    zetaCompletedExplicitFormulaBottomPath r x =
+      1 - zetaCompletedExplicitFormulaTopPath r x := by
+  unfold zetaCompletedExplicitFormulaBottomPath zetaCompletedExplicitFormulaTopPath
+  rw [Complex.coe_real_sub, Complex.coe_real_add, Complex.ofReal_sub, Complex.ofReal_add]
+  rw [Complex.ofReal_mul_I]
   ring
 
 /-- The bottom path has constant imaginary part `-T`. -/

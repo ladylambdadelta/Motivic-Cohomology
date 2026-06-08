@@ -1,4 +1,4 @@
-import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
+import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
 import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
 import Boundary.LFunctions.ZetaExplicitFormulaNormalizationBridge
 
@@ -7,7 +7,7 @@ import Boundary.LFunctions.ZetaExplicitFormulaNormalizationBridge
 
 This file is the owner-level wrapper for the completed contour-shift theorem
 in the current repository normalization. The analytic content is carried by
-`ZetaGuinandWeilExplicitFormulaInput`; this file keeps the exact final theorem
+the class-free transport theorem; this file keeps the exact final theorem
 shape available in the contour namespace.
 -/
 
@@ -20,11 +20,10 @@ namespace ZetaAdmissibleFunction
 
 /-- The completed explicit-formula contour bridge in the owner namespace. -/
 theorem zetaCompletedExplicitFormulaContourBridge
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact zeta_completed_explicit_formula_autocorrelation f
+  exact zeta_completed_explicit_formula_autocorrelation_classFree f
 
 end ZetaAdmissibleFunction
 

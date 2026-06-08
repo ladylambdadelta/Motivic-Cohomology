@@ -80,15 +80,16 @@ theorem ZetaPhiAnalyticControl.rightPath_verticalStripBound
     (ha : a ≤ (zetaCompletedExplicitFormulaRightPath r t).re)
     (hb : (zetaCompletedExplicitFormulaRightPath r t).re ≤ b) :
     ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaRightPath r t)‖
-      ≤ (Classical.choose (h.verticalStripRapidDecay a b N)).1 * (1 +
+      ≤ Classical.choose (h.verticalStripRapidDecay a b N) * (1 +
         ‖(zetaCompletedExplicitFormulaRightPath r t).im‖) ^ (-(N : ℤ)) := by
   let C : ℝ := Classical.choose (h.verticalStripRapidDecay a b N)
   have hC : 0 < C ∧
       ∀ z : ℂ, a ≤ z.re → z.re ≤ b →
         ‖zetaCompletedExplicitFormulaPhi f z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-    simpa [C] using Classical.choose_spec (h.verticalStripRapidDecay a b N)
-  exact hC.2 _ ha hb
+    exact Classical.choose_spec (h.verticalStripRapidDecay a b N)
+  have hbound := hC.2 (zetaCompletedExplicitFormulaRightPath r t) ha hb
+  exact hbound
 
 /-- The vertical-strip bound of `Φ_f` applies to the top contour edge once the rectangle is inside
 the chosen strip. -/
@@ -98,15 +99,16 @@ theorem ZetaPhiAnalyticControl.topPath_verticalStripBound
     (ha : a ≤ (zetaCompletedExplicitFormulaTopPath r x).re)
     (hb : (zetaCompletedExplicitFormulaTopPath r x).re ≤ b) :
     ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaTopPath r x)‖
-      ≤ (Classical.choose (h.verticalStripRapidDecay a b N)).1 * (1 +
+      ≤ Classical.choose (h.verticalStripRapidDecay a b N) * (1 +
         ‖(zetaCompletedExplicitFormulaTopPath r x).im‖) ^ (-(N : ℤ)) := by
   let C : ℝ := Classical.choose (h.verticalStripRapidDecay a b N)
   have hC : 0 < C ∧
       ∀ z : ℂ, a ≤ z.re → z.re ≤ b →
         ‖zetaCompletedExplicitFormulaPhi f z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-    simpa [C] using Classical.choose_spec (h.verticalStripRapidDecay a b N)
-  exact hC.2 _ ha hb
+    exact Classical.choose_spec (h.verticalStripRapidDecay a b N)
+  have hbound := hC.2 (zetaCompletedExplicitFormulaTopPath r x) ha hb
+  exact hbound
 
 /-- The vertical-strip bound of `Φ_f` applies to the bottom contour edge once the rectangle is
 inside the chosen strip. -/
@@ -116,15 +118,16 @@ theorem ZetaPhiAnalyticControl.bottomPath_verticalStripBound
     (ha : a ≤ (zetaCompletedExplicitFormulaBottomPath r x).re)
     (hb : (zetaCompletedExplicitFormulaBottomPath r x).re ≤ b) :
     ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaBottomPath r x)‖
-      ≤ (Classical.choose (h.verticalStripRapidDecay a b N)).1 * (1 +
+      ≤ Classical.choose (h.verticalStripRapidDecay a b N) * (1 +
         ‖(zetaCompletedExplicitFormulaBottomPath r x).im‖) ^ (-(N : ℤ)) := by
   let C : ℝ := Classical.choose (h.verticalStripRapidDecay a b N)
   have hC : 0 < C ∧
       ∀ z : ℂ, a ≤ z.re → z.re ≤ b →
         ‖zetaCompletedExplicitFormulaPhi f z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-    simpa [C] using Classical.choose_spec (h.verticalStripRapidDecay a b N)
-  exact hC.2 _ ha hb
+    exact Classical.choose_spec (h.verticalStripRapidDecay a b N)
+  have hbound := hC.2 (zetaCompletedExplicitFormulaBottomPath r x) ha hb
+  exact hbound
 
 /-- The transform package is the owner-level input for contour estimates. -/
 def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Prop :=

@@ -31,6 +31,41 @@ theorem autocorrelation_eq (f : ZetaAdmissibleFunction) :
     autocorrelation f = (fun x => f x * star (f x)) := by
   rfl
 
+/-- The autocorrelation of the daggered probe is the reflection of the original autocorrelation. -/
+theorem autocorrelation_dagger_eq_reflect (f : ZetaAdmissibleFunction) :
+    autocorrelation
+        { toZetaTestFunction :=
+            ⟨fun t => star (f (-t)),
+              by continuity,
+              by
+                simpa using
+                  f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
+                    (Homeomorph.neg ℝ).isClosedEmbedding⟩
+          smooth := by
+            simpa using f.smooth.comp contDiff_neg } =
+      ZetaTestFunction.reflect (autocorrelation f) := by
+  ext t
+  unfold autocorrelation
+  rw [ZetaTestFunction.reflect_apply]
+  rw [star_star]
+  rw [mul_comm]
+
+/-- The autocorrelation kernel is even under reflection of the underlying probe. -/
+theorem autocorrelation_reflect_eq (f : ZetaAdmissibleFunction) :
+    autocorrelation
+        { toZetaTestFunction :=
+            ⟨fun t => star (f (-t)),
+              by continuity,
+              by
+                simpa using
+                  f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
+                    (Homeomorph.neg ℝ).isClosedEmbedding⟩
+          smooth := by
+            simpa using f.smooth.comp contDiff_neg } =
+      fun t => autocorrelation f (-t) := by
+  rw [autocorrelation_dagger_eq_reflect]
+  rfl
+
 end ZetaAdmissibleFunction
 
 end
