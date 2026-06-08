@@ -30,7 +30,8 @@ def zetaMultiplicativeCoordinate (x : ℝ) : ℝ := Real.exp x
 def zetaPrimePacketCenter (p n : ℝ) : ℝ := n * Real.log p
 
 theorem zetaCriticalCenter_one_half : zetaCriticalCenter (1 / 2 : ℂ) = 0 := by
-  simp [zetaCriticalCenter]
+  unfold zetaCriticalCenter
+  ring
 
 theorem zetaCriticalCenter_one_sub (s : ℂ) :
     zetaCriticalCenter (1 - s) = - zetaCriticalCenter s := by
@@ -74,7 +75,8 @@ theorem zetaPrimePacketCenter_succ {p : ℝ} (n : ℕ) :
 
 theorem zetaPrimePacketCenter_zero (p : ℝ) :
     zetaPrimePacketCenter p 0 = 0 := by
-  simp [zetaPrimePacketCenter]
+  unfold zetaPrimePacketCenter
+  ring
 
 end
 end LFunctions
