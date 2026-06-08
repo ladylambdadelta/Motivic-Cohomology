@@ -33,7 +33,7 @@ theorem translationDefect_zero (f : ZetaTestFunction) :
   funext x
   unfold translationDefect
   rw [show x + (0 : ℝ) / 2 = x by ring, show x - (0 : ℝ) / 2 = x by ring]
-  simp
+  ring
 
 theorem translationDefect_reflect (a : ℝ) (f : ZetaTestFunction) :
     translationDefect a (reflect f) = fun x => - translationDefect a f (-x) := by
@@ -68,8 +68,10 @@ theorem primePacketTranslationDefect_pow (p : ℝ) (n : ℕ) (f : ZetaTestFuncti
 theorem primePacketTranslationDefect_succ (p : ℝ) (n : ℕ) (f : ZetaTestFunction) :
     primePacketTranslationDefect p (n + 1) f =
       translationDefect (zetaPrimePacketCenter p n + Real.log p) f := by
-  simpa [primePacketTranslationDefect] using
-    congrArg (fun a => translationDefect a f) (zetaPrimePacketCenter_succ (p := p) n)
+  rw [primePacketTranslationDefect]
+  norm_num
+  exact congrArg (fun a => translationDefect a f)
+    (zetaPrimePacketCenter_succ (p := p) (n := n))
 
 /-- Reflection compatibility for the prime-side logarithmic translation defect. -/
 theorem primePacketTranslationDefect_reflect (p : ℝ) (n : ℕ) (f : ZetaTestFunction) :
