@@ -26,7 +26,7 @@ theorem completedZetaNegLogDeriv_eq_neg_logDeriv (s : ℂ) :
     completedZetaNegLogDeriv s = - logDeriv completedRiemannZeta s := by
   unfold completedZetaNegLogDeriv
   rw [logDeriv_apply]
-  rfl
+  rw [neg_div]
 
 end ZetaAdmissibleFunction
 
