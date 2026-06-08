@@ -22,10 +22,94 @@ noncomputable section
 namespace ZetaTestFunction
 
 /-- The explicit-formula defect package for a logarithmic test function. -/
+@[ext]
 structure explicitFormulaDefectPackage where
   primeDefect : ℕ → ℕ → ℝ → ℂ
   archimedeanDefect : ℝ → ℂ
   correctionDefect : ℂ
+
+instance : Zero explicitFormulaDefectPackage where
+  zero :=
+    { primeDefect := fun _ _ _ => 0
+      archimedeanDefect := fun _ => 0
+      correctionDefect := 0 }
+
+instance : Add explicitFormulaDefectPackage where
+  add f g :=
+    { primeDefect := fun p n => f.primeDefect p n + g.primeDefect p n
+      archimedeanDefect := fun a => f.archimedeanDefect a + g.archimedeanDefect a
+      correctionDefect := f.correctionDefect + g.correctionDefect }
+
+instance : SMul ℂ explicitFormulaDefectPackage where
+  smul a f :=
+    { primeDefect := fun p n => fun x => a * f.primeDefect p n x
+      archimedeanDefect := fun x => a * (f.archimedeanDefect x)
+      correctionDefect := a * f.correctionDefect }
+
+instance : AddCommMonoid explicitFormulaDefectPackage where
+  zero := 0
+  add := (· + ·)
+  nsmul := fun n f =>
+    { primeDefect := fun p m a => n • f.primeDefect p m a
+      archimedeanDefect := fun a => n • f.archimedeanDefect a
+      correctionDefect := n • f.correctionDefect }
+  add_assoc := by
+    intro f g h
+    ext p n a
+    · change ((f.primeDefect p n a + g.primeDefect p n a) + h.primeDefect p n a) =
+        f.primeDefect p n a + (g.primeDefect p n a + h.primeDefect p n a)
+      rw [add_assoc]
+    · change ((f.archimedeanDefect p + g.archimedeanDefect p) + h.archimedeanDefect p) =
+        f.archimedeanDefect p + (g.archimedeanDefect p + h.archimedeanDefect p)
+      rw [add_assoc]
+    · change ((f.correctionDefect + g.correctionDefect) + h.correctionDefect) =
+        f.correctionDefect + (g.correctionDefect + h.correctionDefect)
+      rw [add_assoc]
+  zero_add := by
+    intro f
+    ext p n a
+    · change (0 : ℂ) + f.primeDefect p n a = f.primeDefect p n a
+      rw [zero_add]
+    · change (0 : ℂ) + f.archimedeanDefect p = f.archimedeanDefect p
+      rw [zero_add]
+    · change (0 : ℂ) + f.correctionDefect = f.correctionDefect
+      rw [zero_add]
+  add_zero := by
+    intro f
+    ext p n a
+    · change f.primeDefect p n a + (0 : ℂ) = f.primeDefect p n a
+      rw [add_zero]
+    · change f.archimedeanDefect p + (0 : ℂ) = f.archimedeanDefect p
+      rw [add_zero]
+    · change f.correctionDefect + (0 : ℂ) = f.correctionDefect
+      rw [add_zero]
+  add_comm := by
+    intro f g
+    ext p n a
+    · change f.primeDefect p n a + g.primeDefect p n a = g.primeDefect p n a + f.primeDefect p n a
+      rw [add_comm]
+    · change f.archimedeanDefect p + g.archimedeanDefect p = g.archimedeanDefect p + f.archimedeanDefect p
+      rw [add_comm]
+    · change f.correctionDefect + g.correctionDefect = g.correctionDefect + f.correctionDefect
+      rw [add_comm]
+  nsmul_zero := by
+    intro f
+    ext p n a
+    · change (0 : ℕ) • f.primeDefect p n a = 0
+      rw [zero_nsmul]
+    · change (0 : ℕ) • f.archimedeanDefect p = 0
+      rw [zero_nsmul]
+    · change (0 : ℕ) • f.correctionDefect = 0
+      rw [zero_nsmul]
+  nsmul_succ := by
+    intro n f
+    ext p m a
+    · change ((n + 1 : ℕ) • f.primeDefect p m a) = n • f.primeDefect p m a + f.primeDefect p m a
+      rw [add_nsmul, one_nsmul]
+    · change ((n + 1 : ℕ) • f.archimedeanDefect p) = n • f.archimedeanDefect p + f.archimedeanDefect p
+      rw [add_nsmul, one_nsmul]
+    · change ((n + 1 : ℕ) • f.correctionDefect) = n • f.correctionDefect + f.correctionDefect
+      rw [add_nsmul, one_nsmul]
 
 /-- The logarithmic explicit-formula transform attached to a test function. -/
 abbrev zetaExplicitFormulaTransform := explicitFormulaDefectPackage
