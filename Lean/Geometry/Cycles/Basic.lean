@@ -1,6 +1,7 @@
 import Geometry.Schemes.Basic
 import Mathlib.AlgebraicGeometry.AffineScheme
 import Mathlib.AlgebraicGeometry.FunctionField
+import Mathlib.AlgebraicGeometry.OpenImmersion
 import Mathlib.AlgebraicGeometry.Properties
 import Mathlib.AlgebraicGeometry.Morphisms.ClosedImmersion
 import Mathlib.Data.Finsupp.Defs
@@ -24,7 +25,7 @@ the free abelian group on the set of integral closed subschemes.
 
 universe u
 
-open AlgebraicGeometry CategoryTheory
+open AlgebraicGeometry CategoryTheory Limits
 open scoped nonZeroDivisors
 
 /-- A closed integral subscheme of X: an integral scheme Z with a closed
@@ -44,6 +45,29 @@ attribute [instance] IntClosedSubscheme.isIntegral
 namespace IntClosedSubscheme
 
 variable {X : Scheme.{u}}
+
+/-- Restrict an integral closed subscheme to a nonempty open subscheme by
+pulling back its closed immersion. The nonemptiness hypothesis is necessary:
+an empty open pullback would not be integral. -/
+noncomputable def restrict
+    {U : Scheme.{u}} (f : U ⟶ X) [IsOpenImmersion f]
+    (W : IntClosedSubscheme X) [hp : HasPullback W.inclusion f]
+    [Nonempty (@CategoryTheory.Limits.pullback Scheme.{u} _ _ _ _ W.inclusion f hp)] :
+    IntClosedSubscheme U where
+  scheme := @CategoryTheory.Limits.pullback Scheme.{u} _ _ _ _ W.inclusion f hp
+  inclusion := @CategoryTheory.Limits.pullback.snd Scheme.{u} _ _ _ _ W.inclusion f hp
+  isClosedImm := by
+    haveI : HasPullback W.inclusion f := hp
+    haveI : IsClosedImmersion W.inclusion := W.isClosedImm
+    letI := MorphismProperty.pullback_snd (P := @IsClosedImmersion) W.inclusion f inferInstance
+    infer_instance
+  isIntegral := by
+    haveI : HasPullback W.inclusion f := hp
+    haveI : IsIntegral W.scheme := W.isIntegral
+    letI : IsOpenImmersion (@CategoryTheory.Limits.pullback.fst Scheme.{u} _ _ _ _ W.inclusion f hp) := by
+      infer_instance
+    exact AlgebraicGeometry.isIntegral_of_isOpenImmersion
+      (@CategoryTheory.Limits.pullback.fst Scheme.{u} _ _ _ _ W.inclusion f hp)
 
 /-- The image in `X` of the generic point of an integral closed subscheme `W`. -/
 noncomputable def genericPointImage (W : IntClosedSubscheme X) : X :=

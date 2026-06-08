@@ -283,16 +283,6 @@ theorem graph_component_pullback_fst_isIso
   -- Now apply Mathlib: IsIso (pullback.fst (h ≫ i) i) for any Mono i.
   infer_instance
 
-/-- The `toAmbientSource` of a graph prime support is the source component's
-ambient immersion. -/
-private theorem ordinaryMorphismGraphPrimeSupport_toAmbientSource
-    {X Y : Geometry.SmSchemeOver k}
-    (C : Boundary.SourceIrreducibleComponent X)
-    (f : Boundary.SmOverHom X Y) :
-    (ordinaryMorphismGraphPrimeSupport C f).toAmbientSource = C.toAmbient := by
-  simp [Boundary.PrimeFiniteCorrespondenceSupport.toAmbientSource,
-        ordinaryMorphismGraphPrimeSupport, ordinaryMorphismGraphMap_fst]
-
 /-- API-upgrade of `graph_component_pullback_fst_isIso` to graph prime supports:
 for graph primes `P = Γ_C(f)` and `Q = Γ_D(g)` with factorization data
 `h ≫ D.toAmbient = C.toAmbient ≫ f.hom`, the canonical first projection
@@ -341,9 +331,12 @@ noncomputable def graphPrimeSupportFiberProductImageFactorization
   factorization := by
     let _ := graphPrime_compositionFiberFst_isIso C f D g h hh
     apply Limits.pullback.hom_ext
-    · simp [Boundary.PrimeFiniteCorrespondenceSupport.compositionToAmbientProduct_fst,
-        Boundary.PrimeFiniteCorrespondenceSupport.toSourceComponent,
-        ordinaryMorphismGraphPrimeSupport, ordinaryMorphismGraphMap_fst]
+    · rw [Boundary.PrimeFiniteCorrespondenceSupport.compositionToAmbientProduct_fst]
+      simp [ordinaryMorphismGraphPrimeSupport_toSourceComponent, Category.assoc]
+      exact (Category.comp_id
+        (Boundary.PrimeFiniteCorrespondenceSupport.compositionFiberFst
+          (ordinaryMorphismGraphPrimeSupport C f)
+          (ordinaryMorphismGraphPrimeSupport D g))).symm
     · have hQsrc := ordinaryMorphismGraphPrimeSupport_toAmbientSource D g
       have hcond :=
         Boundary.PrimeFiniteCorrespondenceSupport.compositionFiber_condition
@@ -447,8 +440,11 @@ noncomputable def graphPrimeSupportFiberProductImageComponent
         (ordinaryMorphismGraphPrimeSupport C f).toSourceComponent
       = (ordinaryMorphismGraphPrimeSupport C (Boundary.SmOverHom.comp f g)).finiteOverSourceComponent
     simp [Boundary.PrimeFiniteCorrespondenceSupport.toSourceComponent,
-      ordinaryMorphismGraphPrimeSupport, ordinaryMorphismOnSourceComponent,
-      ordinaryMorphismGraphMap_fst, Boundary.SmOverHom.comp, Category.assoc]
+      ordinaryMorphismGraphPrimeSupport_toSourceImage,
+      ordinaryMorphismGraphPrimeSupport_toSourceComponent,
+      ordinaryMorphismOnSourceComponent,
+      ordinaryMorphismGraphMap_sourceOverBaseProduct_fst,
+      Boundary.SmOverHom.comp, Category.assoc]
   toCompositionFiberProduct_snd := by
     haveI := graphPrime_compositionFiberFst_isIso C f D g h hh
     have hQsrc := ordinaryMorphismGraphPrimeSupport_toAmbientSource D g
@@ -561,11 +557,12 @@ theorem graphPrimeSupportFiberProductImageDecomposition_toPresentation_toGeom
   exact Boundary.FiniteCorrespondencePresentation.toGeom_single
     (ordinaryMorphismGraphPrimeSupport C (Boundary.SmOverHom.comp f g))
 
-/-- Package-family level compatibility condition for graph-prime pairs.
+/-- Package-family level compatibility obligation for graph-prime pairs.
 It records the exact finite correspondence computed by the chosen canonical
 package family on each graph singleton pair, before any summation over a target
-decomposition is performed. -/
-def CanonicalGraphPackageCompatibility
+decomposition is performed. This is an internal obligation on abstract package
+data, not the canonical public graph theorem. -/
+def CanonicalGraphPackageCompatibilityObligation
     (composition :
       Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
         (k := k)) : Prop := by
@@ -587,13 +584,311 @@ def CanonicalGraphPackageCompatibility
           then ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g)
           else 0
 
-/-- A canonical package family satisfying the graph-pair compatibility law is
-already graph-functorial at the finite-correspondence composition level. -/
-theorem canonicalGraphFunctoriality_ofPackageCompatibility
+private abbrev ConcreteLiftedPackages :=
+  {X Y Z : Geometry.SmSchemeOver k} →
+  Boundary.PrimeFiniteCorrespondenceGeom X Y →
+  Boundary.PrimeFiniteCorrespondenceGeom Y Z →
+  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage (k := k)
+
+private abbrev ConcreteLiftedIdentityPackages :=
+  {X Y : Geometry.SmSchemeOver k} →
+  Boundary.PrimeFiniteCorrespondenceGeom X Y →
+  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage (k := k)
+
+private def concreteLiftedCanonicalComposition
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → Boundary.FiniteIrreducibleComponentDecomposition X)
+    (packages : ConcreteLiftedPackages (k := k))
+    (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (leftIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y)
+        (component : Boundary.SourceIrreducibleComponent X)
+        (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
+        (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+          packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
+              (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
+            leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
+    (rightIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (rightIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : Boundary.PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : Boundary.PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+            packages prime diagClass = rightIdentityPackage prime)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y),
+          Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+              (fun {X} {Y} {Z} x y =>
+                Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                  (packages (X := X) (Y := Y) (Z := Z) x y))
+              P
+              (Boundary.SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            Boundary.RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  P Q)))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  Q R))) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R)) :
+    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
+      (k := k) :=
+  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily
+      diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+      rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+      leftPresentation rightPresentation hpresentation hleft hright
+
+private noncomputable def concreteLiftedGraphPairDecomposition
+    (packages : ConcreteLiftedPackages (k := k))
+    {X Y Z : Geometry.SmSchemeOver k}
+    (C : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y)
+    (D : Boundary.SourceIrreducibleComponent Y)
+    (g : Boundary.SmOverHom Y Z) :
+    Boundary.SupportFiberProductImageDecomposition
+      (ordinaryMorphismGraphPrimeSupport C f)
+      (ordinaryMorphismGraphPrimeSupport D g) :=
+  ((packages
+      (ordinaryMorphismGraphPrimeGeom C f)
+      (ordinaryMorphismGraphPrimeGeom D g)).liftedDecomposition
+        (ordinaryMorphismGraphPrimeSupport C f)
+        (ordinaryMorphismGraphPrimeSupport D g)).toSupportFiberProductImageDecomposition
+
+/-- The canonical package family built from a concrete lifted-decomposition
+family satisfies the graph-pair compatibility obligation as soon as the lifted
+packages compute the graph-pair decomposition on the nose and become empty when
+no middle-component factorization exists. -/
+theorem canonicalGraphPackageCompatibility_ofConcreteLiftedDecompositionFamily
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → Boundary.FiniteIrreducibleComponentDecomposition X)
+    (packages : ConcreteLiftedPackages (k := k))
+    (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (leftIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y)
+        (component : Boundary.SourceIrreducibleComponent X)
+        (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
+        (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+          packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
+              (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
+            leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
+    (rightIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (rightIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : Boundary.PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : Boundary.PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+            packages prime diagClass = rightIdentityPackage prime)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y),
+          Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+              (fun {X} {Y} {Z} x y =>
+                Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                  (packages (X := X) (Y := Y) (Z := Z) x y))
+              P
+              (Boundary.SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            Boundary.RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  P Q)))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  Q R))) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R))
+    (graphPair_yes :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z)
+        (h : C.carrier.scheme ⟶ D.carrier.scheme)
+        (hh : h ≫ D.toAmbient = C.toAmbient ≫ f.hom),
+          concreteLiftedGraphPairDecomposition packages C f D g =
+            graphPrimeSupportFiberProductImageDecomposition C f D g h hh)
+    (graphPair_no :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z),
+          (¬ Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+              h ≫ D.toAmbient = C.toAmbient ≫ f.hom }) →
+            IsEmpty (concreteLiftedGraphPairDecomposition packages C f D g).index) :
+    CanonicalGraphPackageCompatibilityObligation
+      (concreteLiftedCanonicalComposition
+        diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+        rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+        leftPresentation rightPresentation hpresentation hleft hright) := by
+  classical
+  intro X Y Z C f D g
+  change Boundary.FiniteCorrespondencePresentation.toGeom
+      (Boundary.SupportFiberProductImageDecomposition.toPresentation
+        (concreteLiftedGraphPairDecomposition packages C f D g)) =
+    if hfac : Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+        h ≫ D.toAmbient = C.toAmbient ≫ f.hom }
+    then ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g)
+    else 0
+  by_cases hfac : Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+      h ≫ D.toAmbient = C.toAmbient ≫ f.hom }
+  · rcases hfac with ⟨⟨h, hh⟩⟩
+    have hfac' : Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+        h ≫ D.toAmbient = C.toAmbient ≫ f.hom } := ⟨⟨h, hh⟩⟩
+    rw [graphPair_yes C f D g h hh]
+    have hgeom :=
+      graphPrimeSupportFiberProductImageDecomposition_toPresentation_toGeom C f D g h hh
+    simpa [ordinaryMorphismGraph_componentCorrespondence,
+      Boundary.FiniteCorrespondence.ofPrimeSupport, hfac'] using hgeom
+  · let dec := concreteLiftedGraphPairDecomposition packages C f D g
+    letI : IsEmpty dec.index := graphPair_no C f D g hfac
+    have hdatum_zero :
+        (Boundary.RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition
+          dec).toPresentation = 0 := by
+      simpa using
+        Boundary.RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition_toPresentation_eq_zero_of_isEmpty dec
+    have hpres_zero : dec.toPresentation = 0 := by
+      simpa using
+        (Boundary.RepresentedPrimeCompositionDatum.ofSupportFiberProductImageDecomposition_toPresentation dec).symm.trans hdatum_zero
+    have hzero :
+        Boundary.FiniteCorrespondencePresentation.toGeom
+          (Boundary.SupportFiberProductImageDecomposition.toPresentation dec) = 0 := by
+      rw [hpres_zero, Boundary.FiniteCorrespondencePresentation.toGeom_zero]
+    simpa [hfac, dec] using hzero
+
+/-- A canonical package family satisfying the graph-pair compatibility
+obligation is already graph-functorial at the finite-correspondence composition
+level. -/
+private theorem graphFunctoriality_ofCompatibilityObligation
     (composition :
       Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
         (k := k))
-    (hgraph : CanonicalGraphPackageCompatibility composition) :
+    (hgraph : CanonicalGraphPackageCompatibilityObligation composition) :
     GraphFunctoriality
       (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
         composition).toFiniteCorrespondenceCompositionData := by
@@ -655,7 +950,7 @@ theorem canonicalGraphFunctoriality_ofPackageCompatibility
             composition.packages
             (ordinaryMorphismGraphPrimeSupport C f)
             (ordinaryMorphismGraphPrimeSupport D g))) = _
-    simpa [CanonicalGraphPackageCompatibility, ordinaryMorphismGraphPrimeGeom] using hgraph C f D g
+    simpa [CanonicalGraphPackageCompatibilityObligation, ordinaryMorphismGraphPrimeGeom] using hgraph C f D g
   let term := fun D : Boundary.SourceIrreducibleComponent Y =>
     Boundary.FiniteCorrespondenceCompositionData.comp
       data.toFiniteCorrespondenceCompositionData
@@ -738,13 +1033,11 @@ theorem canonicalGraphFunctoriality_ofPackageCompatibility
     _ = ordinaryMorphismGraph_componentCorrespondence C (Boundary.SmOverHom.comp f g) := by
       simp
 
-/-- The integral graph-composition theorem specialized to any canonical package
-family satisfying `CanonicalGraphPackageCompatibility`. -/
-theorem ordinaryMorphismGraph_comp_canonical_ofPackageCompatibility
+private theorem ordinaryMorphismGraph_comp_canonical_ofCompatibilityObligation
     (composition :
       Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
         (k := k))
-    (hgraph : CanonicalGraphPackageCompatibility composition)
+    (hgraph : CanonicalGraphPackageCompatibilityObligation composition)
     {X Y Z : Geometry.SmSchemeOver k}
     (f : Boundary.SmOverHom X Y)
     (g : Boundary.SmOverHom Y Z)
@@ -761,54 +1054,158 @@ theorem ordinaryMorphismGraph_comp_canonical_ofPackageCompatibility
         (Boundary.SmOverHom.comp f g) D_X := by
   exact ordinaryMorphismGraph_comp_canonical
     composition
-    (canonicalGraphFunctoriality_ofPackageCompatibility composition hgraph)
+    (graphFunctoriality_ofCompatibilityObligation composition hgraph)
     f g D_X D_Y
 
 /-- Concrete-lifted entry point for canonical graph functoriality.
-Apply this to package data obtained from
-`CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily`. -/
+This is the public canonical route: the theorem is stated directly in the raw
+inputs of `CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily`,
+not via a free-standing graph-compatibility hypothesis on abstract package data. -/
 theorem canonicalGraphFunctoriality_ofConcreteLiftedDecompositionFamily
-    (composition :
-      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
-        (k := k))
-    (hgraph : CanonicalGraphPackageCompatibility composition) :
-    GraphFunctoriality
-      (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
-        composition).toFiniteCorrespondenceCompositionData :=
-  canonicalGraphFunctoriality_ofPackageCompatibility composition hgraph
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → Boundary.FiniteIrreducibleComponentDecomposition X)
+    (packages : ConcreteLiftedPackages (k := k))
+    (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (leftIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y)
+        (component : Boundary.SourceIrreducibleComponent X)
+        (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
+        (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+          packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
+              (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
+            leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
+    (rightIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (rightIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : Boundary.PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : Boundary.PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+            packages prime diagClass = rightIdentityPackage prime)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y),
+          Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+              (fun {X} {Y} {Z} x y =>
+                Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                  (packages (X := X) (Y := Y) (Z := Z) x y))
+              P
+              (Boundary.SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            Boundary.RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  P Q)))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  Q R))) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R))
+    (graphPair_yes :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z)
+        (h : C.carrier.scheme ⟶ D.carrier.scheme)
+        (hh : h ≫ D.toAmbient = C.toAmbient ≫ f.hom),
+          concreteLiftedGraphPairDecomposition packages C f D g =
+            graphPrimeSupportFiberProductImageDecomposition C f D g h hh)
+    (graphPair_no :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z),
+          (¬ Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+              h ≫ D.toAmbient = C.toAmbient ≫ f.hom }) →
+            IsEmpty (concreteLiftedGraphPairDecomposition packages C f D g).index) :
+    let composition :=
+      concreteLiftedCanonicalComposition
+        diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+        rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+        leftPresentation rightPresentation hpresentation hleft hright
+    GraphFunctoriality composition.data.toFiniteCorrespondenceCompositionData := by
+  let composition := concreteLiftedCanonicalComposition
+    diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+    rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+    leftPresentation rightPresentation hpresentation hleft hright
+  exact graphFunctoriality_ofCompatibilityObligation composition
+    (canonicalGraphPackageCompatibility_ofConcreteLiftedDecompositionFamily
+      diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+      rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+      leftPresentation rightPresentation hpresentation hleft hright
+      graphPair_yes graphPair_no)
 
-/-- Concrete-lifted entry point for integral graph composition on canonical
-package data. Apply this to package data obtained from
-`CanonicalCompositionPackageData.ofConcreteLiftedDecompositionFamily`. -/
-theorem ordinaryMorphismGraph_comp_canonical_ofConcreteLiftedDecompositionFamily
+/-- Rational graph functoriality for an abstract canonical package-family
+composition, transported from the validated integral theorem through
+`canonicalSmCorQ` and the rationalization map. This remains available only as an
+obligation-suffixed internal route. -/
+theorem ordinaryMorphismGraph_comp_canonical_Q_ofCompatibilityObligation
     (composition :
       Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
         (k := k))
-    (hgraph : CanonicalGraphPackageCompatibility composition)
-    {X Y Z : Geometry.SmSchemeOver k}
-    (f : Boundary.SmOverHom X Y)
-    (g : Boundary.SmOverHom Y Z)
-    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
-    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
-    let data :=
-      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData.data
-        composition
-    Boundary.FiniteCorrespondenceCompositionData.comp
-      data.toFiniteCorrespondenceCompositionData
-      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition f D_X)
-      (ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition g D_Y) =
-      ordinaryMorphismGraph_finiteCorrespondenceOfDecomposition
-        (Boundary.SmOverHom.comp f g) D_X :=
-  ordinaryMorphismGraph_comp_canonical_ofPackageCompatibility composition hgraph f g D_X D_Y
-
-/-- Rational graph functoriality for the canonical package-family composition,
-transported from the validated integral theorem through `canonicalSmCorQ` and
-the rationalization map. No new graph geometry is reproved over `ℚ`. -/
-theorem ordinaryMorphismGraph_comp_canonical_Q
-    (composition :
-      Boundary.RepresentedPrimeFiniteCorrespondenceComposition.CanonicalCompositionPackageData
-        (k := k))
-    (hgraph : CanonicalGraphPackageCompatibility composition)
+    (hgraph : CanonicalGraphPackageCompatibilityObligation composition)
     {X Y Z : Geometry.SmSchemeOver k}
     (f : Boundary.SmOverHom X Y)
     (g : Boundary.SmOverHom Y Z)
@@ -825,7 +1222,157 @@ theorem ordinaryMorphismGraph_comp_canonical_Q
     ({ integral := composition.toSmCor } : Boundary.SmCorQ (k := k))
   have hGF : GraphFunctoriality category.integral.composition := by
     simpa [category] using
-      canonicalGraphFunctoriality_ofConcreteLiftedDecompositionFamily composition hgraph
+      graphFunctoriality_ofCompatibilityObligation composition hgraph
   exact ordinaryMorphismGraph_comp category hGF f g D_X D_Y
+
+/-- Rational graph functoriality for the canonical concrete lifted-decomposition
+family, transported from the validated integral theorem through `canonicalSmCorQ`
+and the rationalization map. -/
+theorem ordinaryMorphismGraph_comp_canonical_Q
+    (diagonalDecomposition :
+      (X : Geometry.SmSchemeOver k) → Boundary.FiniteIrreducibleComponentDecomposition X)
+    (packages : ConcreteLiftedPackages (k := k))
+    (leftIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (leftIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y)
+        (component : Boundary.SourceIrreducibleComponent X)
+        (toComponent : P.sourceComponent.carrier.scheme ⟶ component.carrier.scheme)
+        (_htoComponent : toComponent ≫ component.toAmbient = P.sourceComponent.toAmbient),
+          packages (Boundary.SourceIrreducibleComponent.diagonalPrimeGeom component)
+              (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) =
+            leftIdentityPackage (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P))
+    (rightIdentityPackage : ConcreteLiftedIdentityPackages (k := k))
+    (rightIdentity_constant :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (prime : Boundary.PrimeFiniteCorrespondenceGeom X Y)
+        (diagClass : Boundary.PrimeFiniteCorrespondenceGeom Y Y),
+          diagClass ∈ (diagonalDecomposition Y).diagonalPrimeClasses →
+            packages prime diagClass = rightIdentityPackage prime)
+    (landing_eq_diagonalRightIdentity :
+      ∀ {X Y : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport X Y),
+          Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+              (fun {X} {Y} {Z} x y =>
+                Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                  (packages (X := X) (Y := Y) (Z := Z) x y))
+              P
+              (Boundary.SourceIrreducibleComponent.diagonalRepresentedPrimeSupport
+                ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                  (diagonalDecomposition Y) P).1.1)) =
+            Boundary.RepresentedPrimeCompositionDatum.diagonalRightIdentityImageDecomposition
+              P
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).1.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.1)
+              ((Boundary.FiniteIrreducibleComponentDecomposition.landingComponent_of_finite
+                (diagonalDecomposition Y) P).2.2))
+    (leftPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (rightPresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k},
+        Boundary.RepresentedPrimeSupport W X →
+        Boundary.RepresentedPrimeSupport X Y →
+        Boundary.RepresentedPrimeSupport Y Z →
+          Boundary.FiniteCorrespondencePresentation W Z)
+    (hpresentation :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          rightPresentation P Q R = leftPresentation P Q R)
+    (hleft :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  P Q)))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented R) 1) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (leftPresentation P Q R))
+    (hright :
+      ∀ {W X Y Z : Geometry.SmSchemeOver k}
+        (P : Boundary.RepresentedPrimeSupport W X)
+        (Q : Boundary.RepresentedPrimeSupport X Y)
+        (R : Boundary.RepresentedPrimeSupport Y Z),
+          Boundary.FiniteCorrespondenceCompositionData.comp
+            (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.toFiniteCorrespondenceCompositionData
+              (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.data
+                diagonalDecomposition
+                (fun {X} {Y} {Z} x y =>
+                  Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                    (packages (X := X) (Y := Y) (Z := Z) x y))))
+            (Finsupp.single (Boundary.PrimeFiniteCorrespondenceGeom.ofRepresented P) 1)
+            (Boundary.FiniteCorrespondencePresentation.toGeom
+              (Boundary.SupportFiberProductImageDecomposition.toPresentation
+                (Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductImageCompositionPackageFamily.decomposition
+                  (fun {X} {Y} {Z} x y =>
+                    Boundary.RepresentedPrimeFiniteCorrespondenceComposition.SupportFiberProductLiftedImageCompositionPackage.toSupportFiberProductImageCompositionPackage
+                      (packages (X := X) (Y := Y) (Z := Z) x y))
+                  Q R))) =
+              Boundary.FiniteCorrespondencePresentation.toGeom (rightPresentation P Q R))
+    (graphPair_yes :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z)
+        (h : C.carrier.scheme ⟶ D.carrier.scheme)
+        (hh : h ≫ D.toAmbient = C.toAmbient ≫ f.hom),
+          concreteLiftedGraphPairDecomposition packages C f D g =
+            graphPrimeSupportFiberProductImageDecomposition C f D g h hh)
+    (graphPair_no :
+      ∀ {X Y Z : Geometry.SmSchemeOver k}
+        (C : Boundary.SourceIrreducibleComponent X)
+        (f : Boundary.SmOverHom X Y)
+        (D : Boundary.SourceIrreducibleComponent Y)
+        (g : Boundary.SmOverHom Y Z),
+          (¬ Nonempty { h : C.carrier.scheme ⟶ D.carrier.scheme //
+              h ≫ D.toAmbient = C.toAmbient ≫ f.hom }) →
+            IsEmpty (concreteLiftedGraphPairDecomposition packages C f D g).index)
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y)
+    (g : Boundary.SmOverHom Y Z)
+    (D_X : Boundary.FiniteIrreducibleComponentDecomposition X)
+    (D_Y : Boundary.FiniteIrreducibleComponentDecomposition Y) :
+    let composition := concreteLiftedCanonicalComposition
+      diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+      rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+      leftPresentation rightPresentation hpresentation hleft hright
+    let category := ({ integral := composition.toSmCor } : Boundary.SmCorQ (k := k))
+    category.comp
+      (ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category f D_X)
+      (ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category g D_Y)
+      = ordinaryMorphismGraph_rationalCorrespondenceOfDecomposition category
+          (Boundary.SmOverHom.comp f g) D_X := by
+  let composition := concreteLiftedCanonicalComposition
+    diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+    rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+    leftPresentation rightPresentation hpresentation hleft hright
+  exact ordinaryMorphismGraph_comp_canonical_Q_ofCompatibilityObligation
+    composition
+    (canonicalGraphPackageCompatibility_ofConcreteLiftedDecompositionFamily
+      diagonalDecomposition packages leftIdentityPackage leftIdentity_constant
+      rightIdentityPackage rightIdentity_constant landing_eq_diagonalRightIdentity
+      leftPresentation rightPresentation hpresentation hleft hright
+      graphPair_yes graphPair_no)
+    f g D_X D_Y
 
 end Geometry

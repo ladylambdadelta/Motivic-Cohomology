@@ -1,6 +1,7 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
 import Boundary.LFunctions.ZetaCenteredZero
 import Boundary.LFunctions.ZetaTransformCalculus
+import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Data.Finset.Basic
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
 
@@ -19,12 +20,25 @@ noncomputable section
 /-- The centered completed zeta zero predicate used by the zero-side definitions. -/
 abbrev ZetaCompletedZero (ρ : ℂ) : Prop := centeredCompletedRiemannZeta ρ = 0
 
-/-- The multiplicity of a completed zeta zero. -/
-axiom completedZetaZeroMultiplicity : ℂ → ℕ
+/-- The multiplicity of a completed zeta zero.
+
+This is defined by the local analytic order at the centered completed zeta
+function when it is analytic at the point, and `0` otherwise. This keeps the
+zero-side bookkeeping tied to the canonical order-of-vanishing notion from
+`Mathlib.Analysis.Analytic.IsolatedZeros`. -/
+noncomputable def completedZetaZeroMultiplicity (ρ : ℂ) : ℕ :=
+  if h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ then h.order.toNat else 0
 
 /-- The multiplicity of a centered completed zeta zero. -/
 def zetaZeroMultiplicity (ρ : ℂ) : ℕ :=
   completedZetaZeroMultiplicity ρ
+
+/-- At analytic points, the zero multiplicity is the local analytic order. -/
+theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
+    (h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ) :
+    completedZetaZeroMultiplicity ρ = h.order.toNat := by
+  unfold completedZetaZeroMultiplicity
+  simp [h]
 
 /-- The centered zero coordinate. -/
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
@@ -106,6 +120,26 @@ theorem zetaSpectralTransform_autocorrelation
       zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
   rfl
 
+/-- The spectral transform is additive. -/
+theorem zetaSpectralTransform_add
+    (φ ψ : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralTransform (φ + ψ) z =
+      zetaSpectralTransform φ z + zetaSpectralTransform ψ z := by
+  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_add]
+
+/-- The spectral transform is homogeneous under scalar multiplication. -/
+theorem zetaSpectralTransform_smul
+    (a : ℂ) (φ : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralTransform (a • φ) z = a * zetaSpectralTransform φ z := by
+  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_smul]
+
+/-- The spectral transform commutes with finite sums. -/
+theorem zetaSpectralTransform_sum
+    {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralTransform (∑ a in s, f a) z =
+      ∑ a in s, zetaSpectralTransform (f a) z := by
+  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_sum]
+
 /-- The spectral transform of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralTransform_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
@@ -138,6 +172,16 @@ theorem zetaZeroTail_def (S : Finset ℂ) (φ : ZetaAdmissibleFunction) :
       tsum (fun η : {η : ℂ // ZetaCompletedZero η ∧ η ∉ S} =>
         zetaZeroSideContribution (η : ℂ) φ) := by
   rfl
+
+/-- The centered zero set is countable. -/
+theorem centeredZetaZeros_countable :
+    centeredZetaZeros.Countable := by
+  have hfin : ∀ z : CenteredZetaZero, ({x : ℂ | x ∈ orbit z}.Finite) := by
+    intro z
+    exact orbit_finite z
+  classical
+  refine countable_union (fun z => ?_)
+  exact (hfin z).countable
 
 end
 end LFunctions

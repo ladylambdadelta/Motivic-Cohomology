@@ -22,7 +22,6 @@ namespace ZetaAdmissibleFunction
 
 /-- The zero-side Krein gram equals the boundary-defect Gram. -/
 theorem zetaCompletedZeroKreinGram_eq_boundaryDefectGram
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       zetaCompletedBoundaryDefectGram f := by
@@ -37,7 +36,6 @@ theorem zetaCompletedZeroKreinGram_eq_boundaryDefectGram
 
 /-- The completed Weil form on an autocorrelation equals the packet norm square. -/
 theorem zetaWeilFormCompleted_eq_packetNormSq
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) =
       zetaCompletedPacketNormSq f := by
@@ -70,7 +68,6 @@ theorem zetaWeilFormCompleted_autocorrelation_nonnegative_classFree
 
 /-- The completed Weil form on an autocorrelation is nonnegative. -/
 theorem zetaWeilFormCompleted_autocorrelation_nonnegative
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
   exact zetaWeilFormCompleted_autocorrelation_nonnegative_classFree f
@@ -165,7 +162,6 @@ theorem zetaCompletedPacketNormSq_autocorrelation_reflect'
 /-- The completed Weil form of the reflected autocorrelation is the packet norm square of the
 original autocorrelation. -/
 theorem zetaWeilFormCompleted_autocorrelation_reflect_eq_packetNormSq
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     zetaWeilFormCompleted
       (ZetaAdmissibleFunction.autocorrelation

@@ -42,6 +42,104 @@ def ordinaryMorphismGraphMap {X Y : Geometry.SmSchemeOver k}
     ordinaryMorphismGraphMap f ≫ Boundary.overBaseProduct.snd X Y = f.hom := by
   simp [ordinaryMorphismGraphMap]
 
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_right_fst_fst
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap f (𝟙 Z)) ≫
+        Boundary.overBaseProduct.fst
+          (Boundary.overBaseProductObject X Z) (Boundary.overBaseProductObject Y Z) ≫
+      Boundary.overBaseProduct.fst X Z =
+      Boundary.overBaseProduct.fst X Z := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_right_fst_snd
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap f (𝟙 Z)) ≫
+        Boundary.overBaseProduct.fst
+          (Boundary.overBaseProductObject X Z) (Boundary.overBaseProductObject Y Z) ≫
+      Boundary.overBaseProduct.snd X Z =
+      Boundary.overBaseProduct.snd X Z := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_right_snd_fst
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap f (𝟙 Z)) ≫
+        Boundary.overBaseProduct.snd
+          (Boundary.overBaseProductObject X Z) (Boundary.overBaseProductObject Y Z) ≫
+          Boundary.overBaseProduct.fst Y Z =
+      Boundary.overBaseProduct.fst X Z ≫ f.hom := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_right_snd_snd
+    {X Y Z : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap f (𝟙 Z)) ≫
+        Boundary.overBaseProduct.snd
+          (Boundary.overBaseProductObject X Z) (Boundary.overBaseProductObject Y Z) ≫
+          Boundary.overBaseProduct.snd Y Z =
+      Boundary.overBaseProduct.snd X Z := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_left_fst_fst
+    {X Y Z : Geometry.SmSchemeOver k}
+    (g : Boundary.SmOverHom Y Z) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap (𝟙 X) g) ≫
+        Boundary.overBaseProduct.fst
+          (Boundary.overBaseProductObject X Y) (Boundary.overBaseProductObject X Z) ≫
+      Boundary.overBaseProduct.fst X Y =
+      Boundary.overBaseProduct.fst X Y := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_left_fst_snd
+    {X Y Z : Geometry.SmSchemeOver k}
+    (g : Boundary.SmOverHom Y Z) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap (𝟙 X) g) ≫
+        Boundary.overBaseProduct.fst
+          (Boundary.overBaseProductObject X Y) (Boundary.overBaseProductObject X Z) ≫
+      Boundary.overBaseProduct.snd X Y =
+      Boundary.overBaseProduct.snd X Y := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_left_snd_fst
+    {X Y Z : Geometry.SmSchemeOver k}
+    (g : Boundary.SmOverHom Y Z) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap (𝟙 X) g) ≫
+        Boundary.overBaseProduct.snd
+          (Boundary.overBaseProductObject X Y) (Boundary.overBaseProductObject X Z) ≫
+          Boundary.overBaseProduct.fst X Z =
+      Boundary.overBaseProduct.fst X Y := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp, reassoc] theorem ordinaryMorphismGraphMap_overBaseProductMap_id_left_snd_snd
+    {X Y Z : Geometry.SmSchemeOver k}
+    (g : Boundary.SmOverHom Y Z) :
+    ordinaryMorphismGraphMap (Boundary.overBaseProductMap (𝟙 X) g) ≫
+        Boundary.overBaseProduct.snd
+          (Boundary.overBaseProductObject X Y) (Boundary.overBaseProductObject X Z) ≫
+          Boundary.overBaseProduct.snd X Z =
+      Boundary.overBaseProduct.snd X Y ≫ g.hom := by
+  simp [ordinaryMorphismGraphMap, Boundary.overBaseProductMap, Category.assoc]
+
+@[simp] theorem ordinaryMorphismGraphMap_sourceOverBaseProduct_fst
+    {X Y : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap f ≫
+        Boundary.sourceOverBaseProduct.fst (k := k)
+          { scheme := X.scheme, structMap := X.structMap } Y =
+      𝟙 X.scheme := by
+  simp [ordinaryMorphismGraphMap, Boundary.sourceOverBaseProduct]
+
+@[simp] theorem ordinaryMorphismGraphMap_sourceOverBaseProduct_snd
+    {X Y : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    ordinaryMorphismGraphMap f ≫
+        Boundary.sourceOverBaseProduct.snd (k := k)
+          { scheme := X.scheme, structMap := X.structMap } Y =
+      f.hom := by
+  simp [ordinaryMorphismGraphMap, Boundary.sourceOverBaseProduct]
+
 /-- The graph projection `Γ_f ⟶ X` is an isomorphism. -/
 theorem ordinaryMorphismGraphProjectionIso {X Y : Geometry.SmSchemeOver k}
     (f : Boundary.SmOverHom X Y) :
@@ -56,6 +154,17 @@ theorem ordinaryMorphismGraphProjectionFinite {X Y : Geometry.SmSchemeOver k}
   letI : IsIso (ordinaryMorphismGraphMap f ≫ Boundary.overBaseProduct.fst X Y) :=
     ordinaryMorphismGraphProjectionIso f
   infer_instance
+
+/-- Source-over-base version of graph-projection finiteness. -/
+theorem ordinaryMorphismGraphProjectionFinite_sourceOverBaseProduct
+    {X Y : Geometry.SmSchemeOver k}
+    (f : Boundary.SmOverHom X Y) :
+    IsFinite (ordinaryMorphismGraphMap f ≫
+      Boundary.sourceOverBaseProduct.fst (k := k)
+        { scheme := X.scheme, structMap := X.structMap } Y) := by
+  simpa [Boundary.sourceOverBaseProduct, Boundary.overBaseProduct] using
+    ordinaryMorphismGraphProjectionFinite f
+
 
 /-- Restrict an ordinary `Sm/k` morphism to a chosen source irreducible
 component. -/
@@ -97,12 +206,12 @@ def ordinaryMorphismGraphPrimeSupport {X Y : Geometry.SmSchemeOver k}
     Boundary.PrimeFiniteCorrespondenceSupport X Y := by
   let componentMorphism := ordinaryMorphismOnSourceComponent component f
   refine
-    { sourceComponent := component
+    { sourceImage := component.toSourceImageSubscheme
       support := component.carrier.scheme
       isIntegral := component.isIntegral
       finiteOverSourceComponent :=
         ordinaryMorphismGraphMap componentMorphism ≫
-          Boundary.overBaseProduct.fst component.carrier Y
+          Boundary.sourceOverBaseProduct.fst (k := k) component.toSourceImageSubscheme.carrier Y
       finite_toSourceComponent := ?_
       surjective_toSourceComponent := ?_
       toTarget := component.toAmbient ≫ f.hom
@@ -110,14 +219,88 @@ def ordinaryMorphismGraphPrimeSupport {X Y : Geometry.SmSchemeOver k}
       inclusion_fst := rfl
       inclusion_snd := ?_
       isClosedImmersion := ?_ }
-  · simpa [componentMorphism, ordinaryMorphismOnSourceComponent] using
-      ordinaryMorphismGraphProjectionFinite componentMorphism
+  · simpa [componentMorphism, ordinaryMorphismOnSourceComponent,
+      Boundary.SourceIrreducibleComponent.toSourceImageSubscheme_carrier] using
+      ordinaryMorphismGraphProjectionFinite_sourceOverBaseProduct componentMorphism
   · intro x
+    have hfst :=
+      ordinaryMorphismGraphMap_sourceOverBaseProduct_fst componentMorphism
     refine ⟨x, ?_⟩
-    simp [componentMorphism, ordinaryMorphismOnSourceComponent]
-  · simpa [componentMorphism, ordinaryMorphismOnSourceComponent] using
-      ordinaryMorphismGraphMap_snd componentMorphism
+    change (ordinaryMorphismGraphMap componentMorphism ≫
+        Boundary.sourceOverBaseProduct.fst (k := k) component.toSourceImageSubscheme.carrier Y).base x = x
+    simpa [componentMorphism, ordinaryMorphismOnSourceComponent,
+      Boundary.SourceIrreducibleComponent.toSourceImageSubscheme_carrier] using
+      congrArg (fun g => g.base x) hfst
+  · simpa [componentMorphism, ordinaryMorphismOnSourceComponent,
+      Boundary.SourceIrreducibleComponent.toSourceImageSubscheme_carrier] using
+      ordinaryMorphismGraphMap_sourceOverBaseProduct_snd componentMorphism
   · exact ordinaryMorphismGraphMap_isClosedImmersion componentMorphism
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_sourceComponent
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).sourceComponent =
+      component.toSourceImageSubscheme := rfl
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_toSourceImage
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).toSourceImage =
+      𝟙 component.carrier.scheme := by
+  change ordinaryMorphismGraphMap (ordinaryMorphismOnSourceComponent component f) ≫
+      Boundary.sourceOverBaseProduct.fst (k := k)
+        component.toSourceImageSubscheme.carrier Y =
+    𝟙 component.carrier.scheme
+  simpa [Boundary.SourceIrreducibleComponent.toSourceImageSubscheme_carrier] using
+    ordinaryMorphismGraphMap_sourceOverBaseProduct_fst
+      (ordinaryMorphismOnSourceComponent component f)
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_toSourceComponent
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).toSourceComponent =
+      𝟙 component.carrier.scheme :=
+  ordinaryMorphismGraphPrimeSupport_toSourceImage component f
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_toAmbientSource
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).toAmbientSource =
+      component.toAmbient := by
+  simp [Boundary.PrimeFiniteCorrespondenceSupport.toAmbientSource]
+  exact Category.id_comp component.toAmbient
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_toTargetScheme
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).toTargetScheme =
+      component.toAmbient ≫ f.hom := rfl
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_inclusion_fst
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).inclusion ≫
+        Boundary.sourceOverBaseProduct.fst (k := k)
+          component.toSourceImageSubscheme.carrier Y =
+      𝟙 component.carrier.scheme := by
+  exact (ordinaryMorphismGraphPrimeSupport component f).inclusion_fst.trans
+    (ordinaryMorphismGraphPrimeSupport_toSourceImage component f)
+
+@[simp] theorem ordinaryMorphismGraphPrimeSupport_inclusion_snd
+    {X Y : Geometry.SmSchemeOver k}
+    (component : Boundary.SourceIrreducibleComponent X)
+    (f : Boundary.SmOverHom X Y) :
+    (ordinaryMorphismGraphPrimeSupport component f).inclusion ≫
+        Boundary.sourceOverBaseProduct.snd (k := k)
+          component.toSourceImageSubscheme.carrier Y =
+      component.toAmbient ≫ f.hom := by
+  exact (ordinaryMorphismGraphPrimeSupport component f).inclusion_snd
 
 /-- The quotient geometric class of the componentwise graph of an ordinary
 `Sm/k` morphism. -/
@@ -138,24 +321,29 @@ theorem ordinaryMorphismGraphPrimeSupportEquivalent_of_isoOverAmbient
     Boundary.PrimeFiniteCorrespondenceSupport.PrimeSupportEquivalent
       (ordinaryMorphismGraphPrimeSupport C f)
       (ordinaryMorphismGraphPrimeSupport D f) := by
+  let sourceIso : Boundary.SourceImageSubscheme.IsoOverAmbient
+      C.toSourceImageSubscheme D.toSourceImageSubscheme :=
+    { iso := h.iso
+      hom_toAmbient := h.hom_toAmbient }
   let compat :=
-    Boundary.SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient
-      (Y := Y) h
+    Boundary.SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient
+      (Y := Y) sourceIso
   refine ⟨compat, h.iso, ?_⟩
   change (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ compat.iso.hom =
     h.iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).inclusion
   apply Limits.pullback.hom_ext
   · calc
       (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ compat.iso.hom ≫
-          Boundary.overBaseProduct.fst D.carrier Y
+          Boundary.sourceOverBaseProduct.fst (k := k) D.toSourceImageSubscheme.carrier Y
           = (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫
-              Boundary.overBaseProduct.fst C.carrier Y ≫ h.iso.hom := by
+              Boundary.sourceOverBaseProduct.fst (k := k) C.toSourceImageSubscheme.carrier Y ≫
+                h.iso.hom := by
                 simpa [compat,
-                  Boundary.SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
+                  Boundary.SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
                   Category.assoc] using
                   congrArg (fun g => (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ g)
-                    (Boundary.SourceIrreducibleComponent.IsoOverAmbient.overBaseProductIso_hom_fst
-                      (Y := Y) h)
+                    (Boundary.SourceImageSubscheme.IsoOverAmbient.overBaseProductIso_hom_fst
+                      (Y := Y) sourceIso)
       _ = (ordinaryMorphismGraphPrimeSupport C f).finiteOverSourceComponent ≫ h.iso.hom := by
             simpa [Category.assoc] using
               congrArg (fun g => g ≫ h.iso.hom)
@@ -163,33 +351,36 @@ theorem ordinaryMorphismGraphPrimeSupportEquivalent_of_isoOverAmbient
       _ = h.iso.hom := by
             change ((ordinaryMorphismGraphMap
               (ordinaryMorphismOnSourceComponent C f) ≫
-                Boundary.overBaseProduct.fst C.carrier Y) ≫ h.iso.hom = h.iso.hom)
+                Boundary.sourceOverBaseProduct.fst (k := k) C.toSourceImageSubscheme.carrier Y) ≫
+                  h.iso.hom = h.iso.hom)
             simpa [Category.assoc] using
               congrArg (fun g => g ≫ h.iso.hom)
-                (ordinaryMorphismGraphMap_fst (ordinaryMorphismOnSourceComponent C f))
+                (ordinaryMorphismGraphMap_sourceOverBaseProduct_fst
+                  (ordinaryMorphismOnSourceComponent C f))
       _ = h.iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).finiteOverSourceComponent := by
             change h.iso.hom = h.iso.hom ≫
               (ordinaryMorphismGraphMap (ordinaryMorphismOnSourceComponent D f) ≫
-                Boundary.overBaseProduct.fst D.carrier Y)
+                Boundary.sourceOverBaseProduct.fst (k := k) D.toSourceImageSubscheme.carrier Y)
             simpa [Category.assoc] using
               congrArg (fun g => h.iso.hom ≫ g)
-                (ordinaryMorphismGraphMap_fst (ordinaryMorphismOnSourceComponent D f)).symm
+                (ordinaryMorphismGraphMap_sourceOverBaseProduct_fst
+                  (ordinaryMorphismOnSourceComponent D f)).symm
       _ = h.iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).inclusion ≫
-            Boundary.overBaseProduct.fst D.carrier Y := by
+            Boundary.sourceOverBaseProduct.fst (k := k) D.toSourceImageSubscheme.carrier Y := by
             simpa [Category.assoc] using
               congrArg (fun g => h.iso.hom ≫ g)
                 (ordinaryMorphismGraphPrimeSupport D f).inclusion_fst.symm
   · calc
       (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ compat.iso.hom ≫
-          Boundary.overBaseProduct.snd D.carrier Y
+          Boundary.sourceOverBaseProduct.snd (k := k) D.toSourceImageSubscheme.carrier Y
           = (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫
-              Boundary.overBaseProduct.snd C.carrier Y := by
+              Boundary.sourceOverBaseProduct.snd (k := k) C.toSourceImageSubscheme.carrier Y := by
                 simpa [compat,
-                  Boundary.SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
+                  Boundary.SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.ofIsoOverAmbient,
                   Category.assoc] using
                   congrArg (fun g => (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ g)
-                    (Boundary.SourceIrreducibleComponent.IsoOverAmbient.overBaseProductIso_hom_snd
-                      (Y := Y) h)
+                    (Boundary.SourceImageSubscheme.IsoOverAmbient.overBaseProductIso_hom_snd
+                      (Y := Y) sourceIso)
       _ = (ordinaryMorphismGraphPrimeSupport C f).toTarget := by
             exact (ordinaryMorphismGraphPrimeSupport C f).inclusion_snd
       _ = C.toAmbient ≫ f.hom := by
@@ -201,7 +392,7 @@ theorem ordinaryMorphismGraphPrimeSupportEquivalent_of_isoOverAmbient
       _ = h.iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).toTarget := by
             rfl
       _ = h.iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).inclusion ≫
-            Boundary.overBaseProduct.snd D.carrier Y := by
+        Boundary.sourceOverBaseProduct.snd (k := k) D.toSourceImageSubscheme.carrier Y := by
             simpa [Category.assoc] using
               congrArg (fun g => h.iso.hom ≫ g)
                 (ordinaryMorphismGraphPrimeSupport D f).inclusion_snd.symm
@@ -229,14 +420,16 @@ def isoOverAmbient_of_ordinaryMorphismGraphPrimeSupportEquivalent
     Boundary.SourceIrreducibleComponent.IsoOverAmbient C D := by
   have h' :
       ∃ (compatibleSourceComponent :
-          Boundary.SourceIrreducibleComponent.IsoOverAmbient.CompatibleOverBaseProductIso
-            (Y := Y) C D)
+          Boundary.SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+            (Y := Y) C.toSourceImageSubscheme D.toSourceImageSubscheme)
         (_iso : C.carrier.scheme ≅ D.carrier.scheme),
         (ordinaryMorphismGraphPrimeSupport C f).inclusion ≫ compatibleSourceComponent.iso.hom =
           _iso.hom ≫ (ordinaryMorphismGraphPrimeSupport D f).inclusion := by
     simpa [Boundary.PrimeFiniteCorrespondenceSupport.PrimeSupportEquivalent,
       Boundary.PrimeFiniteCorrespondenceSupport.SupportIsoOverProduct] using h
-  exact (Classical.choose h').sourceIso
+  exact
+    { iso := (Classical.choose h').sourceIso.iso
+      hom_toAmbient := (Classical.choose h').sourceIso.hom_toAmbient }
 
 /-- Equality of componentwise graph geometric classes forces the corresponding
 source components to be isomorphic over the ambient source. -/

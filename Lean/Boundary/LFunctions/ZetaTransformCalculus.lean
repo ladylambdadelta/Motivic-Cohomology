@@ -35,6 +35,34 @@ noncomputable def zetaLaplaceTransform
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
   ∫ t : ℝ, φ t * Complex.exp (z * t)
 
+/-- The zeta Laplace transform is additive. -/
+theorem zetaLaplaceTransform_add
+    (φ ψ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    zetaLaplaceTransform (φ + ψ) z =
+      zetaLaplaceTransform φ z + zetaLaplaceTransform ψ z := by
+  unfold zetaLaplaceTransform
+  simp [add_mul, integral_add]
+
+/-- The zeta Laplace transform is homogeneous under scalar multiplication. -/
+theorem zetaLaplaceTransform_smul
+    (a : ℂ) (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    zetaLaplaceTransform (a • φ) z = a * zetaLaplaceTransform φ z := by
+  unfold zetaLaplaceTransform
+  simp [smul_mul_assoc, integral_mul_left]
+
+/-- The zeta Laplace transform commutes with finite sums. -/
+theorem zetaLaplaceTransform_sum
+    {α : Type*} (s : Finset α) (f : α → LFunctions.ZetaTestFunction) (z : ℂ) :
+    zetaLaplaceTransform (∑ a in s, f a) z =
+      ∑ a in s, zetaLaplaceTransform (f a) z := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+      simp [zetaLaplaceTransform]
+  | @insert a s ha ih =>
+      simp [Finset.sum_insert ha, ih, zetaLaplaceTransform_add, add_comm, add_left_comm,
+        add_assoc]
+
 /-- The zeta Laplace transform is definitionally stable under pointwise equality. -/
 theorem zetaLaplaceTransform_congr
     {φ ψ : LFunctions.ZetaTestFunction}

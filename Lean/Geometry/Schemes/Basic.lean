@@ -118,6 +118,68 @@ def ofOpen (X : SmSchemeOver k) (U : X.scheme.Opens) [IsClosedImmersion U.ι] :
     letI : LocallyOfFiniteType X.structMap := locallyOfFiniteType_structMap X
     letI : QuasiCompact U.ι := inferInstance
     letI : LocallyOfFiniteType U.ι := inferInstance
+    exact ⟨inferInstance, inferInstance⟩
+
+/-- An affine open subscheme of a smooth scheme inherits the `Sm/k` structure from the ambient
+smooth scheme. -/
+def ofAffineOpen (X : SmSchemeOver k) (U : X.scheme.affineOpens) :
+    SmSchemeOver k where
+  scheme := (U : X.scheme.Opens).toScheme
+  structMap := (U : X.scheme.Opens).ι ≫ X.structMap
+  smooth := by
+    letI : IsSmooth X.structMap := X.smooth
+    letI : IsSmooth ((U : X.scheme.Opens).ι) := inferInstance
+    infer_instance
+  separated := by
+    letI : IsSeparated X.structMap := X.separated
+    letI : IsSeparated ((U : X.scheme.Opens).ι) := inferInstance
+    infer_instance
+  finiteType := by
+    letI : QuasiCompact X.structMap := quasiCompact_structMap X
+    letI : LocallyOfFiniteType X.structMap := locallyOfFiniteType_structMap X
+    letI : QuasiCompact ((U : X.scheme.Opens).ι) := inferInstance
+    letI : LocallyOfFiniteType ((U : X.scheme.Opens).ι) := inferInstance
+    exact ⟨inferInstance, inferInstance⟩
+
+/-- An open subscheme of a smooth scheme inherits the `Sm/k` structure from the ambient
+smooth scheme. -/
+def ofOpenImmersion (X : SmSchemeOver k) (U : X.scheme.Opens) :
+    SmSchemeOver k where
+  scheme := U.toScheme
+  structMap := U.ι ≫ X.structMap
+  smooth := by
+    letI : IsSmooth X.structMap := X.smooth
+    letI : IsOpenImmersion U.ι := inferInstance
+    infer_instance
+  separated := by
+    letI : IsSeparated X.structMap := X.separated
+    letI : IsOpenImmersion U.ι := inferInstance
+    infer_instance
+  finiteType := by
+    letI : QuasiCompact X.structMap := quasiCompact_structMap X
+    letI : LocallyOfFiniteType X.structMap := locallyOfFiniteType_structMap X
+    letI : QuasiCompact U.ι := inferInstance
+    letI : LocallyOfFiniteType U.ι := inferInstance
+    exact ⟨inferInstance, inferInstance⟩
+
+/-- A scheme equipped with an open immersion into a smooth scheme inherits the `Sm/k` structure. -/
+def ofOpenImmersionMap (Y : SmSchemeOver k) {X : Scheme.{u}} (i : X ⟶ Y.scheme)
+    [IsOpenImmersion i] : SmSchemeOver k where
+  scheme := X
+  structMap := i ≫ Y.structMap
+  smooth := by
+    letI : IsSmooth Y.structMap := Y.smooth
+    letI : IsOpenImmersion i := inferInstance
+    infer_instance
+  separated := by
+    letI : IsSeparated Y.structMap := Y.separated
+    letI : IsOpenImmersion i := inferInstance
+    infer_instance
+  finiteType := by
+    letI : QuasiCompact Y.structMap := quasiCompact_structMap Y
+    letI : LocallyOfFiniteType Y.structMap := locallyOfFiniteType_structMap Y
+    letI : QuasiCompact i := inferInstance
+    letI : LocallyOfFiniteType i := inferInstance
     constructor
     · infer_instance
     · infer_instance

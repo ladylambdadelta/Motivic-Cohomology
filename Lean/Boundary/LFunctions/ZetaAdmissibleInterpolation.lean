@@ -19,6 +19,12 @@ def interpolationSurface (f : ZetaAdmissibleFunction) :
     ZetaTestFunction.zetaExplicitFormulaTransform × ZetaTestFunction :=
   (spectralModel f, separatingProbe f)
 
+/-- The interpolation surface is the spectral transform together with the
+autocorrelation probe. -/
+theorem interpolationSurface_eq_spectralModel_autocorrelation (f : ZetaAdmissibleFunction) :
+    interpolationSurface f = (spectralModel f, autocorrelation f) := by
+  rw [interpolationSurface_eq, separatingProbe_eq]
+
 /-- The interpolation surface has the admissible spectral model as first component. -/
 theorem interpolationSurface_fst (f : ZetaAdmissibleFunction) :
     (interpolationSurface f).1 = spectralModel f := by
@@ -43,6 +49,11 @@ theorem interpolationSurface_pair (f : ZetaAdmissibleFunction) :
 theorem interpolationSurface_components (f : ZetaAdmissibleFunction) :
     interpolationSurface f = (spectralModel f, separatingProbe f) := by
   rfl
+
+/-- The spectral-model component of a finite sum is the finite sum of spectral models. -/
+theorem interpolationSurface_fst_sum {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) :
+    (interpolationSurface (∑ a in s, f a)).1 = ∑ a in s, spectralModel (f a) := by
+  rw [interpolationSurface_fst, ZetaAdmissibleFunction.spectralModel_sum]
 
 end ZetaAdmissibleFunction
 

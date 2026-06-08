@@ -26,6 +26,15 @@ namespace ZetaTestFunction
 instance : CoeFun ZetaTestFunction (fun _ => ℝ → ℂ) :=
   ⟨ZetaTestFunction.toFun⟩
 
+instance : Zero ZetaTestFunction :=
+  ⟨⟨0, by continuity⟩⟩
+
+instance : Add ZetaTestFunction :=
+  ⟨fun f g => ⟨fun x => f x + g x, by continuity⟩⟩
+
+instance : SMul ℂ ZetaTestFunction :=
+  ⟨fun a f => ⟨fun x => a * f x, by continuity⟩⟩
+
 @[ext]
 theorem ext {f g : ZetaTestFunction} (h : ∀ x, f x = g x) : f = g := by
   cases f

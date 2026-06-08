@@ -40,6 +40,69 @@ theorem zetaPacketEnergy_nonneg (x : ZetaPacketEnsemble) :
     0 ≤ ZetaPacketEnsemble.packetEnergy x := by
   exact ZetaPacketEnsemble.packetEnergy_nonneg x
 
+/-- The criterion's autocorrelation probes satisfy the named Weil-positivity predicate. -/
+theorem zetaCriterion_autocorrelation_weilPositivity_predicate :
+    ZetaAutocorrelationWeilPositivity := by
+  intro φ hφ
+  rcases hφ with ⟨f, rfl⟩
+  exact Boundary.LFunctions.ZetaAdmissibleFunction
+    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+
+/-- The criterion's probe positivity predicate is the raw Weil-positivity predicate. -/
+theorem zetaCriterion_weilPositivity_predicate :
+    ZetaWeilPositivity := by
+  intro φ
+  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe
+    (f := φ)
+
+/-- The criterion's raw Weil-positivity predicate is pointwise nonnegativity. -/
+theorem zetaCriterion_weilPositivity_iff :
+    ZetaWeilPositivity ↔
+      ∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ := by
+  rfl
+
+/-- Pointwise nonnegativity is the criterion's raw Weil-positivity predicate. -/
+theorem zetaCriterion_weilPositivity_iff' :
+    (∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ) ↔ ZetaWeilPositivity := by
+  rfl
+
+/-- Autocorrelation-generated probes have nonnegative completed zero-side real sum. -/
+theorem zetaCriterion_autocorrelation_zeroSide_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+  rw [← Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact Boundary.LFunctions.ZetaAdmissibleFunction
+    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+
+/-- Autocorrelation-generated probes satisfy the criterion's Weil positivity. -/
+theorem zetaCriterion_autocorrelation_weilPositivity
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact Boundary.LFunctions.ZetaAdmissibleFunction
+    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+
+/-- The criterion's autocorrelation Weil positivity is the zero-side nonnegativity statement. -/
+theorem zetaCriterion_autocorrelation_weilPositivity_iff
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) ↔
+      0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+
+/-- The zero-side nonnegativity statement is the criterion's autocorrelation Weil positivity. -/
+theorem zetaCriterion_autocorrelation_weilPositivity_iff'
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) ↔
+      0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+
+/-- Zero-side nonnegativity implies criterion Weil positivity for autocorrelation probes. -/
+theorem zetaCriterion_autocorrelation_weilPositivity_of_zeroSide
+    (f : ZetaAdmissibleFunction)
+    (h : 0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f)) :
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact h
+
 end
 
 end LFunctions

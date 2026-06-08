@@ -1,5 +1,5 @@
+import Boundary.LFunctions.ZetaCompletedExplicitFormulaAssembly
 import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
-import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
 import Boundary.LFunctions.ZetaExplicitFormulaNormalizationBridge
 
 /-!
@@ -23,7 +23,15 @@ theorem zetaCompletedExplicitFormulaContourBridge
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact zeta_completed_explicit_formula_autocorrelation_classFree f
+  exact zeta_completed_explicit_formula_autocorrelation f
+
+/-- The completed explicit-formula contour bridge vanishes in the current normalization. -/
+theorem zetaCompletedExplicitFormulaContourBridge_zero
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram f = 0 := by
+  rw [zetaCompletedExplicitFormulaContourBridge,
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum]
+  simp [ZetaAdmissibleFunction.zetaCompletedBoundaryDefectGram]
 
 end ZetaAdmissibleFunction
 

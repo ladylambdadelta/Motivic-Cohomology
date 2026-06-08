@@ -1,4 +1,4 @@
-import Boundary.LFunctions.ZetaExplicitFormulaComplexAnalysis
+import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
 
 /-!
 # Boundary completed-log-derivative control
@@ -51,6 +51,28 @@ theorem CompletedZetaNegLogDerivControlPackage_eq
     (f : ZetaAdmissibleFunction) :
     CompletedZetaNegLogDerivControlPackage f = CompletedZetaNegLogDerivControl f := by
   rfl
+
+/-- A critical-line specialization of the strip bound. -/
+theorem CompletedZetaNegLogDerivControl.criticalLineBound
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ t : ℝ,
+        ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖
+          ≤ C * (1 + ‖t‖) ^ (-(N : ℤ)) := by
+  rcases h.stripBound (1 / 2 : ℝ) (1 / 2 : ℝ) N with ⟨C, hC, hbound⟩
+  refine ⟨C, hC, ?_⟩
+  intro t
+  have hre_left :
+      (1 / 2 : ℝ) ≤ ((1 / 2 : ℂ) + t * Complex.I).re := by
+    simp
+  have hre_right :
+      ((1 / 2 : ℂ) + t * Complex.I).re ≤ (1 / 2 : ℝ) := by
+    simp
+  have hnorm : ‖((1 / 2 : ℂ) + t * Complex.I).im‖ = ‖t‖ := by
+    simp
+  simpa [hnorm] using hbound ((1 / 2 : ℂ) + t * Complex.I) hre_left hre_right
 
 end ZetaAdmissibleFunction
 

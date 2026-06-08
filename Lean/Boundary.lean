@@ -3,6 +3,8 @@ import Boundary.SmOver
 import Boundary.Correspondence
 import Boundary.Scaffold
 import Boundary.MotivicPeriodFaithfulness
+import Boundary.TriangulatedProbes
+import Boundary.Realization
 
 /-!
 # Boundary

@@ -3,7 +3,7 @@ import Boundary.LFunctions.ZetaCompletedNormalization
 import Boundary.LFunctions.ZetaZeroKreinGram
 import Boundary.LFunctions.ZetaTransformCalculus
 import Boundary.LFunctions.ZetaZeroSideDefinitions
-import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
+import Boundary.LFunctions.ZetaCompletedExplicitFormulaAssembly
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 
 /-!
@@ -171,11 +171,10 @@ theorem zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect
 /-- The completed explicit formula for autocorrelation probes, exposed in the analytic core
 namespace. -/
 theorem zetaCompletedExplicitFormula_autocorrelation
-    [ZetaGuinandWeilExplicitFormulaInput]
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact Boundary.LFunctions.zeta_completed_explicit_formula_autocorrelation f
+  exact Boundary.LFunctions.ZetaAdmissibleFunction.zeta_completed_explicit_formula_autocorrelation f
 
 /-- The explicit-formula `Φ_f` on an autocorrelation is the explicit Laplace integral. -/
 theorem zetaCompletedExplicitFormulaPhi_autocorrelation_eq_integral

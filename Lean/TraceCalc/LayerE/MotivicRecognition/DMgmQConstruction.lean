@@ -1383,6 +1383,17 @@ def nisTheoremTarget
     presentation.admissibleLocalizationAxioms.Nis.theoremTarget :=
   package.bridge.witnesses.theoremPackage.nis_holds
 
+theorem theoremTargets_holds
+  {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
+    {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
+    {complexes : BoundedComplexOfFiniteCorrespondencesQ rationalCategory}
+    {trace : TracePresentation.{u, v, w, x, y}}
+    {presentation : ClassicalMotivicPresentation trace}
+    (package : A1NisGeneratorRealizationPackageQ complexes presentation) :
+    presentation.admissibleLocalizationAxioms.A1.theoremTarget ∧
+      presentation.admissibleLocalizationAxioms.Nis.theoremTarget := by
+  exact ⟨package.a1TheoremTarget, package.nisTheoremTarget⟩
+
 def a1SourceOfWitness
   {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
     {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
@@ -1515,6 +1526,54 @@ def realizedLocalizingSubcategory
   a1GeneratorTarget := package.a1TargetOfWitness
   nisGeneratorSource := package.nisSourceOfWitness
   nisGeneratorTarget := package.nisTargetOfWitness
+
+theorem realizedLocalizing_a1GeneratorSource_eq
+  {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
+    {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
+    {complexes : BoundedComplexOfFiniteCorrespondencesQ rationalCategory}
+    {trace : TracePresentation.{u, v, w, x, y}}
+    {presentation : ClassicalMotivicPresentation trace}
+    (package : A1NisGeneratorRealizationPackageQ complexes presentation)
+    (g : package.realizedLocalizingSubcategory.A1Generator) :
+    package.realizedLocalizingSubcategory.a1GeneratorSource g =
+      package.bridge.a1RowRealization.sourceComplex g := by
+  rfl
+
+theorem realizedLocalizing_a1GeneratorTarget_eq
+  {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
+    {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
+    {complexes : BoundedComplexOfFiniteCorrespondencesQ rationalCategory}
+    {trace : TracePresentation.{u, v, w, x, y}}
+    {presentation : ClassicalMotivicPresentation trace}
+    (package : A1NisGeneratorRealizationPackageQ complexes presentation)
+    (g : package.realizedLocalizingSubcategory.A1Generator) :
+    package.realizedLocalizingSubcategory.a1GeneratorTarget g =
+      package.bridge.a1RowRealization.targetComplex g := by
+  rfl
+
+theorem realizedLocalizing_nisGeneratorSource_eq
+  {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
+    {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
+    {complexes : BoundedComplexOfFiniteCorrespondencesQ rationalCategory}
+    {trace : TracePresentation.{u, v, w, x, y}}
+    {presentation : ClassicalMotivicPresentation trace}
+    (package : A1NisGeneratorRealizationPackageQ complexes presentation)
+    (g : package.realizedLocalizingSubcategory.NisGenerator) :
+    package.realizedLocalizingSubcategory.nisGeneratorSource g =
+      package.bridge.nisRowRealization.sourceComplex g := by
+  rfl
+
+theorem realizedLocalizing_nisGeneratorTarget_eq
+  {category : FiniteCorrespondenceCategoryQ.{1, v, w, x} smoothQSchemeFromWall10A}
+    {rationalCategory : RationalFiniteCorrespondenceCategoryQ category}
+    {complexes : BoundedComplexOfFiniteCorrespondencesQ rationalCategory}
+    {trace : TracePresentation.{u, v, w, x, y}}
+    {presentation : ClassicalMotivicPresentation trace}
+    (package : A1NisGeneratorRealizationPackageQ complexes presentation)
+    (g : package.realizedLocalizingSubcategory.NisGenerator) :
+    package.realizedLocalizingSubcategory.nisGeneratorTarget g =
+      package.bridge.nisRowRealization.targetComplex g := by
+  rfl
   a1GeneratorRealizesHomotopy := by
     intro gen
     exact ⟨gen, rfl, rfl⟩

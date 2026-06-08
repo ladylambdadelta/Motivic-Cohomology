@@ -2,6 +2,7 @@ import Boundary.LFunctions.ZetaTestFunction
 import Boundary.LFunctions.ZetaCompletedNormalization
 import Boundary.LFunctions.ProbeInterface
 import Boundary.LFunctions.AutocorrelationInterface
+import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
 import Boundary.LFunctions.ZetaZeroSideDefinitions
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -221,9 +222,53 @@ def ZetaAutocorrelationWeilPositivity : Prop :=
     IsZetaAutocorrelationProbe φ →
       0 ≤ zetaWeilFormCompleted φ
 
+/-- Autocorrelation-generated probes satisfy Weil positivity. -/
+theorem zetaAutocorrelationWeilPositivity :
+    ZetaAutocorrelationWeilPositivity := by
+  intro φ hφ
+  rcases hφ with ⟨f, rfl⟩
+  exact Boundary.LFunctions.ZetaAdmissibleFunction
+    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+
+/-- Autocorrelation-generated probes have nonnegative Weil form value. -/
+theorem zetaWeilFormCompleted_nonnegative_of_isZetaAutocorrelationProbe
+    (φ : ZetaProbe) (hφ : IsZetaAutocorrelationProbe φ) :
+    0 ≤ zetaWeilFormCompleted φ := by
+  exact zetaAutocorrelationWeilPositivity φ hφ
+
+/-- Autocorrelation-generated admissible functions have nonnegative Weil form value. -/
+theorem zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact Boundary.LFunctions.ZetaAdmissibleFunction
+    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+
+/-- The autocorrelation positivity predicate is exactly the pointwise nonnegativity statement. -/
+theorem zetaAutocorrelationWeilPositivity_iff :
+    ZetaAutocorrelationWeilPositivity ↔
+      ∀ φ : ZetaProbe, IsZetaAutocorrelationProbe φ →
+        0 ≤ zetaWeilFormCompleted φ := by
+  rfl
+
+/-- Pointwise autocorrelation nonnegativity is the autocorrelation positivity predicate. -/
+theorem zetaAutocorrelationWeilPositivity_iff' :
+    (∀ φ : ZetaProbe, IsZetaAutocorrelationProbe φ →
+      0 ≤ zetaWeilFormCompleted φ) ↔ ZetaAutocorrelationWeilPositivity := by
+  rfl
+
 /-- Weil positivity on the probe class. -/
 def ZetaWeilPositivity : Prop :=
   ∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ
+
+/-- The Weil positivity predicate is pointwise nonnegativity. -/
+theorem ZetaWeilPositivity_iff :
+    ZetaWeilPositivity ↔ ∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ := by
+  rfl
+
+/-- Pointwise nonnegativity is the Weil positivity predicate. -/
+theorem ZetaWeilPositivity_iff' :
+    (∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ) ↔ ZetaWeilPositivity := by
+  rfl
 
 /-- The completed spectral Weil form is definitionally the completed zero-side sum. -/
 theorem zetaCompletedSpectralWeilForm_def
@@ -236,6 +281,67 @@ theorem zetaWeilFormCompleted_def
     (φ : ZetaProbe) :
     zetaWeilFormCompleted φ = zetaCompletedSpectralWeilForm φ := by
   rfl
+
+/-- The completed spectral Weil form is the completed zero-side real sum. -/
+theorem zetaCompletedSpectralWeilForm_eq_zeroSide
+    (φ : ZetaProbe) :
+    zetaCompletedSpectralWeilForm φ = zetaCompletedZeroSideRe φ := by
+  rfl
+
+/-- The completed Weil form is the completed zero-side real sum. -/
+theorem zetaWeilFormCompleted_eq_zeroSide
+    (φ : ZetaProbe) :
+    zetaWeilFormCompleted φ = zetaCompletedZeroSideRe φ := by
+  rw [zetaWeilFormCompleted_def, zetaCompletedSpectralWeilForm_eq_zeroSide]
+
+/-- The completed Weil form of an autocorrelation probe is the zero-side real sum. -/
+theorem zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+    (f : ZetaAdmissibleFunction) :
+    zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) =
+      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact zetaWeilFormCompleted_eq_zeroSide (ZetaAdmissibleFunction.autocorrelation f)
+
+/-- The completed zero-side real sum of an autocorrelation probe is nonnegative. -/
+theorem zetaCompletedZeroSideRe_autocorrelation_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+  rw [← zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := f)
+
+/-- A centered zero-criterion theorem implies the Boundary RH statement. -/
+theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
+    (h :
+      ∀ s : ℂ,
+        riemannZeta (1 / 2 + s) = 0 →
+          (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
+          (1 / 2 + s) ≠ 1 →
+          s.re = 0) :
+    boundaryRiemannHypothesis := by
+  intro z hz htriv hpole
+  let s : ℂ := z - 1 / 2
+  have hs : 1 / 2 + s = z := by
+    dsimp [s]
+    ring
+  have hz' : riemannZeta (1 / 2 + s) = 0 := by
+    rw [hs]
+    exact hz
+  have htriv' : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1) := by
+    intro hx
+    rcases hx with ⟨n, hn⟩
+    apply htriv
+    refine ⟨n, ?_⟩
+    rw [hs] at hn
+    simpa [s] using hn
+  have hpole' : (1 / 2 + s) ≠ 1 := by
+    intro h1
+    apply hpole
+    rw [hs] at h1
+    simpa [s] using h1
+  have hsre : s.re = 0 := h s hz' htriv' hpole'
+  have hzre : z.re = 1 / 2 := by
+    dsimp [s] at hsre
+    linarith
+  simpa [boundaryRiemannHypothesis, RiemannHypothesis] using hzre
 
 end
 
