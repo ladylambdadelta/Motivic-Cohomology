@@ -25,46 +25,30 @@ theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =
       centeredCompletedRiemannZeta₀ s -
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
-  unfold centeredCompletedRiemannZeta centeredCompletedRiemannZeta₀
+  rw [show centeredCompletedRiemannZeta s = completedRiemannZeta (1 / 2 + s) by rfl]
+  rw [show centeredCompletedRiemannZeta₀ s = completedRiemannZeta₀ (1 / 2 + s) by rfl]
   rw [completedRiemannZeta_eq]
 
 theorem centeredCompletedRiemannZeta_neg (s : ℂ) :
     centeredCompletedRiemannZeta (-s) = centeredCompletedRiemannZeta s := by
-  unfold centeredCompletedRiemannZeta
-  rw [← completedRiemannZeta_one_sub]
-  congr
-  rw [sub_eq_add_neg]
-  rw [neg_add, neg_neg]
-  rw [← add_assoc]
-  rw [show (1 : ℂ) + -(1 / 2) = (1 / 2 : ℂ) by
-    rw [← sub_eq_add_neg, sub_half]]
+  rw [show centeredCompletedRiemannZeta (-s) = completedRiemannZeta (1 / 2 - s) by rfl]
+  rw [show centeredCompletedRiemannZeta s = completedRiemannZeta (1 / 2 + s) by rfl]
+  rw [show (1 / 2 : ℂ) - s = 1 - (1 / 2 + s) by ring]
+  rw [completedRiemannZeta_one_sub]
 
 theorem centeredCompletedRiemannZeta₀_neg (s : ℂ) :
     centeredCompletedRiemannZeta₀ (-s) = centeredCompletedRiemannZeta₀ s := by
-  unfold centeredCompletedRiemannZeta₀
-  rw [← completedRiemannZeta₀_one_sub]
-  congr
-  rw [sub_eq_add_neg]
-  rw [neg_add, neg_neg]
-  rw [← add_assoc]
-  rw [show (1 : ℂ) + -(1 / 2) = (1 / 2 : ℂ) by
-    rw [← sub_eq_add_neg, sub_half]]
+  rw [show centeredCompletedRiemannZeta₀ (-s) = completedRiemannZeta₀ (1 / 2 - s) by rfl]
+  rw [show centeredCompletedRiemannZeta₀ s = completedRiemannZeta₀ (1 / 2 + s) by rfl]
+  rw [show (1 / 2 : ℂ) - s = 1 - (1 / 2 + s) by ring]
+  rw [completedRiemannZeta₀_one_sub]
 
 theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
     1 / (1 / 2 + (-s)) + 1 / (1 - (1 / 2 + (-s))) =
       1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s)) := by
-  have h1 : (1 / 2 : ℂ) + (-s) = (1 / 2 : ℂ) - s := rfl
-  have h2 : (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s := by
-    rw [sub_eq_add_neg, sub_eq_add_neg, neg_add, neg_neg]
-    rw [← add_assoc]
-    rw [show (1 : ℂ) + -(1 / 2) = (1 / 2 : ℂ) by
-      rw [← sub_eq_add_neg, sub_half]]
-  have h3 : (1 : ℂ) - ((1 / 2 : ℂ) + s) = (1 / 2 : ℂ) - s := by
-    rw [sub_eq_add_neg, neg_add]
-    rw [← add_assoc]
-    rw [show (1 : ℂ) + -(1 / 2) = (1 / 2 : ℂ) by
-      rw [← sub_eq_add_neg, sub_half]]
-    rfl
+  have h1 : (1 / 2 : ℂ) + (-s) = (1 / 2 : ℂ) - s := by ring
+  have h2 : (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s := by ring
+  have h3 : (1 : ℂ) - ((1 / 2 : ℂ) + s) = (1 / 2 : ℂ) - s := by ring
   rw [h1, h2, h3]
   ac_rfl
 
