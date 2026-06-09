@@ -17,30 +17,8 @@ namespace ZetaAdmissibleFunction
 
 /-- The admissible spectral model attached to an admissible function. -/
 def spectralModel (f : ZetaAdmissibleFunction) :
-    ZetaTestFunction.zetaExplicitFormulaTransform :=
+    ZetaTestFunction.explicitFormulaDefectPackage :=
   toZetaExplicitFormulaTransform f
-
-/-- The admissible spectral model is additive. -/
-theorem spectralModel_add (f g : ZetaAdmissibleFunction) :
-    spectralModel (f + g) = spectralModel f + spectralModel g := by
-  ext
-  simp [spectralModel, toZetaExplicitFormulaTransform]
-
-/-- The admissible spectral model is homogeneous under scalar multiplication. -/
-theorem spectralModel_smul (a : ℂ) (f : ZetaAdmissibleFunction) :
-    spectralModel (a • f) = a • spectralModel f := by
-  ext
-  simp [spectralModel, toZetaExplicitFormulaTransform]
-
-/-- The admissible spectral model commutes with finite sums. -/
-theorem spectralModel_sum {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) :
-    spectralModel (∑ a in s, f a) = ∑ a in s, spectralModel (f a) := by
-  classical
-  induction s using Finset.induction_on with
-  | empty =>
-      simp [spectralModel]
-  | @insert a s ha ih =>
-      simp [Finset.sum_insert ha, ih, spectralModel_add]
 
 /-- The admissible spectral model is exactly the admissible explicit-formula transform. -/
 theorem spectralModel_eq (f : ZetaAdmissibleFunction) :

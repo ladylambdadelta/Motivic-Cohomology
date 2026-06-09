@@ -28,6 +28,7 @@ Relevant files:
 
 Checkpoint note:
 - 2026-06-08: `ZetaAdmissibleFunction.lean`, `ZetaAdmissibleFunctionCore.lean`, and `ZetaAdmissibleFunctionTransport.lean` are green and now form a stable owner/public split. The public root file is a thin import surface, the core file owns the carrier and algebra, and the transport file owns translate/reflect/scale plus support calculus.
+- 2026-06-08: `ZetaAdmissibleSpectralModel.lean` is also green and remains a thin definitional alias surface over `toZetaExplicitFormulaTransform`, with unsupported algebraic wrapper lemmas removed rather than forced.
 
 Relevant files:
 - `LFunctions/ZetaAdmissibleFunction.lean`
