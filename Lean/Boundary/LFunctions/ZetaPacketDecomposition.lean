@@ -13,8 +13,6 @@ namespace LFunctions
 
 noncomputable section
 
-open Classical
-
 namespace ZetaPacketLabel
 
 /-- Predicate selecting prime packet labels. -/
@@ -33,7 +31,7 @@ def IsCorrection : ZetaPacketLabel → Prop
   | _ => False
 
 theorem isPrime_prime (m n : ℕ) : IsPrime (.prime m n) := by
-  trivial
+  exact True.intro
 
 theorem isPrime_archimedean : ¬ IsPrime (.archimedean) := by
   intro h
@@ -44,7 +42,7 @@ theorem isPrime_correction : ¬ IsPrime (.correction) := by
   cases h
 
 theorem isArchimedean_archimedean : IsArchimedean .archimedean := by
-  trivial
+  exact True.intro
 
 theorem isArchimedean_prime (m n : ℕ) : ¬ IsArchimedean (.prime m n) := by
   intro h
@@ -55,7 +53,7 @@ theorem isArchimedean_correction : ¬ IsArchimedean (.correction) := by
   cases h
 
 theorem isCorrection_correction : IsCorrection .correction := by
-  trivial
+  exact True.intro
 
 theorem isCorrection_prime (m n : ℕ) : ¬ IsCorrection (.prime m n) := by
   intro h
@@ -68,6 +66,27 @@ theorem isCorrection_archimedean : ¬ IsCorrection .archimedean := by
 end ZetaPacketLabel
 
 namespace ZetaPacketEnsemble
+
+instance : DecidablePred ZetaPacketLabel.IsPrime := by
+  intro ℓ
+  cases ℓ with
+  | prime m n => exact isTrue True.intro
+  | archimedean => exact isFalse (by intro h; cases h)
+  | correction => exact isFalse (by intro h; cases h)
+
+instance : DecidablePred ZetaPacketLabel.IsArchimedean := by
+  intro ℓ
+  cases ℓ with
+  | prime m n => exact isFalse (by intro h; cases h)
+  | archimedean => exact isTrue True.intro
+  | correction => exact isFalse (by intro h; cases h)
+
+instance : DecidablePred ZetaPacketLabel.IsCorrection := by
+  intro ℓ
+  cases ℓ with
+  | prime m n => exact isFalse (by intro h; cases h)
+  | archimedean => exact isFalse (by intro h; cases h)
+  | correction => exact isTrue True.intro
 
 /-- The prime part of a packet ensemble. -/
 def primePart (x : ZetaPacketEnsemble) : ZetaPacketEnsemble :=
@@ -93,6 +112,60 @@ theorem correctionPart_apply (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) :
     correctionPart x ℓ = if ZetaPacketLabel.IsCorrection ℓ then x ℓ else 0 := by
   rfl
 
+theorem primePart_prime (x : ZetaPacketEnsemble) (m n : ℕ) :
+    primePart x (ZetaPacketLabel.prime m n) = x (ZetaPacketLabel.prime m n) := by
+  unfold primePart
+  exact Finsupp.filter_apply_pos (f := x) (p := ZetaPacketLabel.IsPrime)
+    (a := ZetaPacketLabel.prime m n) (ZetaPacketLabel.isPrime_prime m n)
+
+theorem archimedeanPart_prime (x : ZetaPacketEnsemble) (m n : ℕ) :
+    archimedeanPart x (ZetaPacketLabel.prime m n) = 0 := by
+  unfold archimedeanPart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsArchimedean)
+    (a := ZetaPacketLabel.prime m n) (ZetaPacketLabel.isArchimedean_prime m n)
+
+theorem correctionPart_prime (x : ZetaPacketEnsemble) (m n : ℕ) :
+    correctionPart x (ZetaPacketLabel.prime m n) = 0 := by
+  unfold correctionPart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsCorrection)
+    (a := ZetaPacketLabel.prime m n) (ZetaPacketLabel.isCorrection_prime m n)
+
+theorem primePart_archimedean (x : ZetaPacketEnsemble) :
+    primePart x ZetaPacketLabel.archimedean = 0 := by
+  unfold primePart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsPrime)
+    (a := ZetaPacketLabel.archimedean) ZetaPacketLabel.isPrime_archimedean
+
+theorem archimedeanPart_archimedean (x : ZetaPacketEnsemble) :
+    archimedeanPart x ZetaPacketLabel.archimedean = x ZetaPacketLabel.archimedean := by
+  unfold archimedeanPart
+  exact Finsupp.filter_apply_pos (f := x) (p := ZetaPacketLabel.IsArchimedean)
+    (a := ZetaPacketLabel.archimedean) ZetaPacketLabel.isArchimedean_archimedean
+
+theorem correctionPart_archimedean (x : ZetaPacketEnsemble) :
+    correctionPart x ZetaPacketLabel.archimedean = 0 := by
+  unfold correctionPart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsCorrection)
+    (a := ZetaPacketLabel.archimedean) ZetaPacketLabel.isCorrection_archimedean
+
+theorem primePart_correction (x : ZetaPacketEnsemble) :
+    primePart x ZetaPacketLabel.correction = 0 := by
+  unfold primePart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsPrime)
+    (a := ZetaPacketLabel.correction) ZetaPacketLabel.isPrime_correction
+
+theorem archimedeanPart_correction (x : ZetaPacketEnsemble) :
+    archimedeanPart x ZetaPacketLabel.correction = 0 := by
+  unfold archimedeanPart
+  exact Finsupp.filter_apply_neg (f := x) (p := ZetaPacketLabel.IsArchimedean)
+    (a := ZetaPacketLabel.correction) ZetaPacketLabel.isArchimedean_correction
+
+theorem correctionPart_correction (x : ZetaPacketEnsemble) :
+    correctionPart x ZetaPacketLabel.correction = x ZetaPacketLabel.correction := by
+  unfold correctionPart
+  exact Finsupp.filter_apply_pos (f := x) (p := ZetaPacketLabel.IsCorrection)
+    (a := ZetaPacketLabel.correction) ZetaPacketLabel.isCorrection_correction
+
 /-- The packet decomposition as a literal sum of the three filtered parts. -/
 theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
     primePart x + archimedeanPart x + correctionPart x = x := by
@@ -103,117 +176,144 @@ theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
           archimedeanPart x (ZetaPacketLabel.prime m n) +
           correctionPart x (ZetaPacketLabel.prime m n) =
         x (ZetaPacketLabel.prime m n)
-      rw [primePart_apply, archimedeanPart_apply, correctionPart_apply]
-      rw [if_pos (ZetaPacketLabel.isPrime_prime m n)]
-      rw [if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
-      rw [if_neg (ZetaPacketLabel.isCorrection_prime m n)]
-      simp
+      have hprime := primePart_prime x m n
+      have harch := archimedeanPart_prime x m n
+      have hcorr := correctionPart_prime x m n
+      calc
+        primePart x (ZetaPacketLabel.prime m n) +
+            archimedeanPart x (ZetaPacketLabel.prime m n) +
+            correctionPart x (ZetaPacketLabel.prime m n)
+            = x (ZetaPacketLabel.prime m n) + 0 + 0 := by
+              exact Eq.trans
+                (congrArg (fun t => t + archimedeanPart x (ZetaPacketLabel.prime m n) +
+                  correctionPart x (ZetaPacketLabel.prime m n)) hprime)
+                (Eq.trans
+                  (congrArg (fun t => x (ZetaPacketLabel.prime m n) + t +
+                    correctionPart x (ZetaPacketLabel.prime m n)) harch)
+                  (congrArg (fun t => x (ZetaPacketLabel.prime m n) + 0 + t) hcorr))
+        _ = x (ZetaPacketLabel.prime m n) := by
+              calc
+                x (ZetaPacketLabel.prime m n) + 0 + 0 = x (ZetaPacketLabel.prime m n) + 0 := by
+                  exact add_zero (x (ZetaPacketLabel.prime m n) + 0)
+                _ = x (ZetaPacketLabel.prime m n) := by
+                  exact add_zero _
   | archimedean =>
       change primePart x ZetaPacketLabel.archimedean +
           archimedeanPart x ZetaPacketLabel.archimedean +
           correctionPart x ZetaPacketLabel.archimedean =
         x ZetaPacketLabel.archimedean
-      rw [primePart_apply, archimedeanPart_apply, correctionPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_archimedean]
-      rw [if_pos ZetaPacketLabel.isArchimedean_archimedean]
-      rw [if_neg ZetaPacketLabel.isCorrection_archimedean]
-      simp
+      have hprime := primePart_archimedean x
+      have harch := archimedeanPart_archimedean x
+      have hcorr := correctionPart_archimedean x
+      calc
+        primePart x ZetaPacketLabel.archimedean +
+            archimedeanPart x ZetaPacketLabel.archimedean +
+            correctionPart x ZetaPacketLabel.archimedean
+            = 0 + x ZetaPacketLabel.archimedean + 0 := by
+              exact Eq.trans
+                (congrArg (fun t => t + archimedeanPart x ZetaPacketLabel.archimedean +
+                  correctionPart x ZetaPacketLabel.archimedean) hprime)
+                (Eq.trans
+                  (congrArg (fun t => 0 + t + correctionPart x ZetaPacketLabel.archimedean) harch)
+                  (congrArg (fun t => 0 + x ZetaPacketLabel.archimedean + t) hcorr))
+        _ = x ZetaPacketLabel.archimedean := by
+              calc
+                0 + x ZetaPacketLabel.archimedean + 0 = 0 + x ZetaPacketLabel.archimedean := by
+                  exact add_zero (0 + x ZetaPacketLabel.archimedean)
+                _ = x ZetaPacketLabel.archimedean := by
+                  exact zero_add _
   | correction =>
       change primePart x ZetaPacketLabel.correction +
           archimedeanPart x ZetaPacketLabel.correction +
           correctionPart x ZetaPacketLabel.correction =
         x ZetaPacketLabel.correction
-      rw [primePart_apply, archimedeanPart_apply, correctionPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_correction]
-      rw [if_neg ZetaPacketLabel.isArchimedean_correction]
-      rw [if_pos ZetaPacketLabel.isCorrection_correction]
-      simp
+      have hprime := primePart_correction x
+      have harch := archimedeanPart_correction x
+      have hcorr := correctionPart_correction x
+      calc
+        primePart x ZetaPacketLabel.correction +
+            archimedeanPart x ZetaPacketLabel.correction +
+            correctionPart x ZetaPacketLabel.correction
+            = 0 + 0 + x ZetaPacketLabel.correction := by
+              exact Eq.trans
+                (congrArg (fun t => t + archimedeanPart x ZetaPacketLabel.correction +
+                  correctionPart x ZetaPacketLabel.correction) hprime)
+                (Eq.trans
+                  (congrArg (fun t => 0 + t + correctionPart x ZetaPacketLabel.correction) harch)
+                  (congrArg (fun t => 0 + 0 + t) hcorr))
+        _ = x ZetaPacketLabel.correction := by
+              calc
+                0 + 0 + x ZetaPacketLabel.correction = 0 + (0 + x ZetaPacketLabel.correction) := by
+                  exact add_assoc _ _ _
+                _ = 0 + x ZetaPacketLabel.correction := by
+                  exact zero_add _
+                _ = x ZetaPacketLabel.correction := by
+                  exact zero_add _
 
 /-- Prime and archimedean packet parts have disjoint support. -/
 theorem support_primePart_disjoint_archimedeanPart (x : ZetaPacketEnsemble) :
     Disjoint x.primePart.support x.archimedeanPart.support := by
-  classical
   refine Finset.disjoint_left.2 ?_
   intro ℓ h₁ h₂
   cases ℓ with
   | prime m n =>
       have h₂nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq : x.archimedeanPart (ZetaPacketLabel.prime m n) = 0 := by
-        rw [archimedeanPart_apply]
-        rw [if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
+      have h₂eq := archimedeanPart_prime x m n
       exact h₂nz h₂eq
   | archimedean =>
       have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.primePart ZetaPacketLabel.archimedean = 0 := by
-        rw [primePart_apply]
-        rw [if_neg ZetaPacketLabel.isPrime_archimedean]
+      have h₁eq := primePart_archimedean x
       exact h₁nz h₁eq
   | correction =>
       have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.primePart ZetaPacketLabel.correction = 0 := by
-        rw [primePart_apply]
-        rw [if_neg ZetaPacketLabel.isPrime_correction]
+      have h₁eq := primePart_correction x
       exact h₁nz h₁eq
 
 /-- Prime and correction packet parts have disjoint support. -/
 theorem support_primePart_disjoint_correctionPart (x : ZetaPacketEnsemble) :
     Disjoint x.primePart.support x.correctionPart.support := by
-  classical
   refine Finset.disjoint_left.2 ?_
   intro ℓ h₁ h₂
   cases ℓ with
   | prime m n =>
       have h₂nz : x.correctionPart (ZetaPacketLabel.prime m n) ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq : x.correctionPart (ZetaPacketLabel.prime m n) = 0 := by
-        rw [correctionPart_apply]
-        rw [if_neg (ZetaPacketLabel.isCorrection_prime m n)]
+      have h₂eq := correctionPart_prime x m n
       exact h₂nz h₂eq
   | archimedean =>
       have h₁nz : x.primePart ZetaPacketLabel.archimedean ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.primePart ZetaPacketLabel.archimedean = 0 := by
-        rw [primePart_apply]
-        rw [if_neg ZetaPacketLabel.isPrime_archimedean]
+      have h₁eq := primePart_archimedean x
       exact h₁nz h₁eq
   | correction =>
       have h₁nz : x.primePart ZetaPacketLabel.correction ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.primePart ZetaPacketLabel.correction = 0 := by
-        rw [primePart_apply]
-        rw [if_neg ZetaPacketLabel.isPrime_correction]
+      have h₁eq := primePart_correction x
       exact h₁nz h₁eq
 
 /-- Archimedean and correction packet parts have disjoint support. -/
 theorem support_archimedeanPart_disjoint_correctionPart (x : ZetaPacketEnsemble) :
     Disjoint x.archimedeanPart.support x.correctionPart.support := by
-  classical
   refine Finset.disjoint_left.2 ?_
   intro ℓ h₁ h₂
   cases ℓ with
   | prime m n =>
       have h₁nz : x.archimedeanPart (ZetaPacketLabel.prime m n) ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.archimedeanPart (ZetaPacketLabel.prime m n) = 0 := by
-        rw [archimedeanPart_apply]
-        rw [if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
+      have h₁eq := archimedeanPart_prime x m n
       exact h₁nz h₁eq
   | archimedean =>
       have h₂nz : x.correctionPart ZetaPacketLabel.archimedean ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₂
-      have h₂eq : x.correctionPart ZetaPacketLabel.archimedean = 0 := by
-        rw [correctionPart_apply]
-        rw [if_neg ZetaPacketLabel.isCorrection_archimedean]
+      have h₂eq := correctionPart_archimedean x
       exact h₂nz h₂eq
   | correction =>
       have h₁nz : x.archimedeanPart ZetaPacketLabel.correction ≠ 0 := by
         exact Finsupp.mem_support_iff.mp h₁
-      have h₁eq : x.archimedeanPart ZetaPacketLabel.correction = 0 := by
-        rw [archimedeanPart_apply]
-        rw [if_neg ZetaPacketLabel.isArchimedean_correction]
+      have h₁eq := archimedeanPart_correction x
       exact h₁nz h₁eq
 
 end ZetaPacketEnsemble
