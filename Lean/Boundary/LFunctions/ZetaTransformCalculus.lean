@@ -7,6 +7,7 @@ import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import Boundary.LFunctions.ZetaAdmissibleFunction
 import Boundary.LFunctions.AutocorrelationCore
+import Boundary.LFunctions.ZetaTransformCalculusZeta
 
 /-!
 # Boundary zeta transform calculus
@@ -37,31 +38,160 @@ noncomputable def zetaLaplaceTransform
 
 /-- The zeta Laplace transform is additive. -/
 theorem zetaLaplaceTransform_add
-    (φ ψ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    (φ ψ : LFunctions.ZetaTestFunction) (z : ℂ)
+    (hφ : Integrable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ))
+    (hψ : Integrable (fun t : ℝ => ψ t * Complex.exp (z * t)) (volume : Measure ℝ)) :
     zetaLaplaceTransform (φ + ψ) z =
       zetaLaplaceTransform φ z + zetaLaplaceTransform ψ z := by
   unfold zetaLaplaceTransform
-  simp [add_mul, integral_add]
+  have hfun :
+      (fun t : ℝ => (φ + ψ) t * Complex.exp (z * t)) =
+        fun t : ℝ => φ t * Complex.exp (z * t) + ψ t * Complex.exp (z * t) := by
+    funext t
+    exact add_mul (φ t) (ψ t) (Complex.exp (z * t))
+  calc
+    zetaLaplaceTransform (φ + ψ) z
+        = ∫ t : ℝ, φ t * Complex.exp (z * t) + ψ t * Complex.exp (z * t) := by
+            unfold zetaLaplaceTransform
+            exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+              congrArg (fun g => g t) hfun)
+    _ = zetaLaplaceTransform φ z + zetaLaplaceTransform ψ z := by
+          exact integral_add hφ hψ
 
 /-- The zeta Laplace transform is homogeneous under scalar multiplication. -/
 theorem zetaLaplaceTransform_smul
-    (a : ℂ) (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    (a : ℂ) (φ : LFunctions.ZetaTestFunction) (z : ℂ)
+    (_hφ : Integrable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ)) :
     zetaLaplaceTransform (a • φ) z = a * zetaLaplaceTransform φ z := by
-  unfold zetaLaplaceTransform
-  simp [smul_mul_assoc, integral_mul_left]
+  have hfun :
+      (fun t : ℝ => (a • φ) t * Complex.exp (z * t)) =
+        fun t : ℝ => a * (φ t * Complex.exp (z * t)) := by
+    funext t
+    change (a * φ t) * Complex.exp (z * t) = a * (φ t * Complex.exp (z * t))
+    exact mul_assoc a (φ t) (Complex.exp (z * t))
+  calc
+    zetaLaplaceTransform (a • φ) z
+        = ∫ t : ℝ, (a • φ) t * Complex.exp (z * t) := by rfl
+    _ = ∫ t : ℝ, a * (φ t * Complex.exp (z * t)) := by
+            exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+              congrArg (fun g => g t) hfun)
+    _ = a * zetaLaplaceTransform φ z := by
+          exact integral_mul_left a (fun t : ℝ => φ t * Complex.exp (z * t))
+
+/-- The zeta Laplace transform commutes with finite sums. -/
+theorem zetaLaplaceTransform_sum_apply
+    {α : Type*} [DecidableEq α] (s : Finset α) (f : α → LFunctions.ZetaTestFunction)
+    (t : ℝ) :
+    (∑ a in s, f a).toFun t = ∑ a in s, f a t := by
+  induction s using Finset.induction_on with
+  | empty =>
+      exact rfl
+  | @insert a s ha ih =>
+      calc
+        (∑ a in insert a s, f a).toFun t
+            = (f a + ∑ b in s, f b).toFun t := by
+                exact congrArg (fun g : LFunctions.ZetaTestFunction => g t)
+                  (Finset.sum_insert ha)
+        _ = f a t + (∑ b in s, f b).toFun t := by
+              rfl
+        _ = f a t + ∑ b in s, f b t := by
+              exact congrArg (fun x : ℂ => f a t + x) ih
+        _ = ∑ a in insert a s, f a t := by
+              show f a t + ∑ b in s, f b t = ∑ a in insert a s, f a t
+              exact (Finset.sum_insert ha (f := fun a => f a t)).symm
+
+/-- The zeta Laplace transform commutes with finite sums. -/
+theorem zetaLaplaceTransform_sum_integrand
+    {α : Type*} [DecidableEq α] (s : Finset α) (f : α → LFunctions.ZetaTestFunction)
+    (z : ℂ) :
+    (fun t : ℝ => (∑ a in s, f a).toFun t * Complex.exp (z * t)) =
+      fun t : ℝ => ∑ a in s, f a t * Complex.exp (z * t) := by
+  funext t
+  calc
+    (∑ a in s, f a).toFun t * Complex.exp (z * t)
+        = (∑ a in s, f a t) * Complex.exp (z * t) := by
+            exact congrArg (fun x => x * Complex.exp (z * t))
+              (zetaLaplaceTransform_sum_apply (s := s) (f := f) t)
+    _ = ∑ a in s, f a t * Complex.exp (z * t) := by
+          exact Finset.sum_mul (s := s) (f := fun a => f a t) (a := Complex.exp (z * t))
+
+/-- The zeta Laplace transform of the empty sum is zero. -/
+theorem zetaLaplaceTransform_sum_empty_integrand
+    {α : Type*} (f : α → LFunctions.ZetaTestFunction) (z : ℂ) :
+    (fun t : ℝ => (∑ a in (∅ : Finset α), f a).toFun t * Complex.exp (z * t)) =
+      fun _ : ℝ => (0 : ℂ) := by
+  funext t
+  have hsum : (∑ a in (∅ : Finset α), f a) = (0 : LFunctions.ZetaTestFunction) := by
+    exact Finset.sum_empty (f := f)
+  calc
+    (∑ a in (∅ : Finset α), f a).toFun t * Complex.exp (z * t)
+        = (0 : ℂ) * Complex.exp (z * t) := by
+            exact congrArg (fun x : ℂ => x * Complex.exp (z * t))
+              (congrArg (fun g : LFunctions.ZetaTestFunction => g t) hsum)
+    _ = 0 := by
+          exact zero_mul _
+
+/-- The zeta Laplace transform of the empty sum is zero. -/
+theorem zetaLaplaceTransform_sum_empty
+    {α : Type*} (f : α → LFunctions.ZetaTestFunction) (z : ℂ) :
+    zetaLaplaceTransform (∑ a in (∅ : Finset α), f a) z = 0 := by
+  change ∫ t : ℝ, (∑ a in (∅ : Finset α), f a).toFun t * Complex.exp (z * t) = 0
+  calc
+    ∫ t : ℝ, (∑ a in (∅ : Finset α), f a).toFun t * Complex.exp (z * t)
+        = ∫ t : ℝ, (0 : ℂ) := by
+            exact integral_congr_ae (Filter.Eventually.of_forall
+              (fun t => by exact zero_mul _))
+    _ = 0 := by
+          exact (integral_zero (α := ℝ) (G := ℂ) (μ := (volume : Measure ℝ)))
+
+/-- The zeta Laplace transform of the insert step is the sum of transforms. -/
+theorem zetaLaplaceTransform_sum_insert_integrand
+    {α : Type*} [DecidableEq α] (a : α) (s : Finset α) (f : α → LFunctions.ZetaTestFunction)
+    (z : ℂ) :
+    (fun t : ℝ => (∑ b in insert a s, f b).toFun t * Complex.exp (z * t)) =
+      fun t : ℝ => ∑ b in insert a s, f b t * Complex.exp (z * t) := by
+  exact zetaLaplaceTransform_sum_integrand (s := insert a s) f z
+
+/-- The zeta Laplace transform of a nonempty finite sum is the sum of transforms. -/
+theorem zetaLaplaceTransform_sum_insert_integral
+    {α : Type*} [DecidableEq α] (a : α) (s : Finset α) (_ha : a ∉ s)
+    (f : α → LFunctions.ZetaTestFunction) (z : ℂ)
+    (h : ∀ b ∈ insert a s, Integrable (fun t : ℝ => f b t * Complex.exp (z * t)) (volume : Measure ℝ)) :
+    ∫ t : ℝ, ∑ b in insert a s, f b t * Complex.exp (z * t)
+      = ∑ b in insert a s, zetaLaplaceTransform (f b) z := by
+  exact MeasureTheory.integral_finset_sum
+    (s := insert a s)
+    (f := fun b t => f b t * Complex.exp (z * t))
+    (fun b hb => h b hb)
+
+/-- The zeta Laplace transform of a nonempty finite sum is the sum of transforms. -/
+theorem zetaLaplaceTransform_sum_insert
+    {α : Type*} [DecidableEq α] (a : α) (s : Finset α) (ha : a ∉ s)
+    (f : α → LFunctions.ZetaTestFunction) (z : ℂ)
+    (h : ∀ b ∈ insert a s, Integrable (fun t : ℝ => f b t * Complex.exp (z * t)) (volume : Measure ℝ)) :
+    zetaLaplaceTransform (∑ b in insert a s, f b) z =
+      ∑ b in insert a s, zetaLaplaceTransform (f b) z := by
+  calc
+    zetaLaplaceTransform (∑ b in insert a s, f b) z
+        = ∫ t : ℝ, (∑ b in insert a s, f b).toFun t * Complex.exp (z * t) := by
+            rfl
+    _ = ∫ t : ℝ, ∑ b in insert a s, f b t * Complex.exp (z * t) := by
+          exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+            congrArg (fun g => g t) (zetaLaplaceTransform_sum_insert_integrand (a := a) (s := s) f z))
+    _ = ∑ b in insert a s, zetaLaplaceTransform (f b) z := by
+          exact zetaLaplaceTransform_sum_insert_integral a s ha f z h
 
 /-- The zeta Laplace transform commutes with finite sums. -/
 theorem zetaLaplaceTransform_sum
-    {α : Type*} (s : Finset α) (f : α → LFunctions.ZetaTestFunction) (z : ℂ) :
+    {α : Type*} [DecidableEq α] (s : Finset α) (f : α → LFunctions.ZetaTestFunction) (z : ℂ)
+    (h : ∀ a ∈ s, Integrable (fun t : ℝ => f a t * Complex.exp (z * t)) (volume : Measure ℝ)) :
     zetaLaplaceTransform (∑ a in s, f a) z =
       ∑ a in s, zetaLaplaceTransform (f a) z := by
-  classical
   induction s using Finset.induction_on with
   | empty =>
-      simp [zetaLaplaceTransform]
+      exact zetaLaplaceTransform_sum_empty f z
   | @insert a s ha ih =>
-      simp [Finset.sum_insert ha, ih, zetaLaplaceTransform_add, add_comm, add_left_comm,
-        add_assoc]
+      exact zetaLaplaceTransform_sum_insert a s ha f z h
 
 /-- The zeta Laplace transform is definitionally stable under pointwise equality. -/
 theorem zetaLaplaceTransform_congr
@@ -71,8 +201,198 @@ theorem zetaLaplaceTransform_congr
   funext z
   unfold zetaLaplaceTransform
   refine integral_congr_ae ?_
-  filter_upwards with t
-  exact congrArg (fun x => x * Complex.exp (z * t)) (h t)
+  exact Filter.Eventually.of_forall fun t =>
+    congrArg (fun x => x * Complex.exp (z * t)) (h t)
+
+/-- The pointwise Laplace integrand is continuous in the pair `(z, t)`. -/
+theorem continuous_laplaceIntegrand
+    (φ : LFunctions.ZetaTestFunction) :
+    Continuous (fun p : ℂ × ℝ => φ p.2 * Complex.exp (p.1 * p.2)) := by
+  have hφ : Continuous (fun p : ℂ × ℝ => φ p.2) :=
+    φ.continuous.comp continuous_snd
+  have hmul : Continuous (fun p : ℂ × ℝ => p.1 * p.2) :=
+    continuous_fst.mul (Complex.continuous_ofReal.comp continuous_snd)
+  have hexp : Continuous (fun p : ℂ × ℝ => Complex.exp (p.1 * p.2)) :=
+    Complex.continuous_exp.comp hmul
+  exact hφ.mul hexp
+
+/-- The Laplace integrand, viewed as a curried function, is continuous on the full product. -/
+theorem continuousOn_laplaceIntegrand_uncurried
+    (φ : LFunctions.ZetaTestFunction) :
+    ContinuousOn (Function.uncurry fun z (t : ℝ) => φ t * Complex.exp (z * t))
+      ((Set.univ : Set ℂ) ×ˢ (Set.univ : Set ℝ)) := by
+  change ContinuousOn (fun p : ℂ × ℝ => φ p.2 * Complex.exp (p.1 * p.2))
+    ((Set.univ : Set ℂ) ×ˢ (Set.univ : Set ℝ))
+  exact (continuous_laplaceIntegrand φ).continuousOn
+
+/-- The weighted pointwise Laplace integrand is continuous in the pair `(z, t)`. -/
+theorem continuous_weightedLaplaceIntegrand
+    (φ : LFunctions.ZetaTestFunction) :
+    Continuous (fun p : ℂ × ℝ => (p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2)) := by
+  have ht : Continuous (fun p : ℂ × ℝ => (p.2 : ℂ)) :=
+    Complex.continuous_ofReal.comp continuous_snd
+  have hφ : Continuous (fun p : ℂ × ℝ => φ p.2) :=
+    φ.continuous.comp continuous_snd
+  have hmul : Continuous (fun p : ℂ × ℝ => (p.2 : ℂ) * φ p.2) :=
+    ht.mul hφ
+  have hmul' : Continuous (fun p : ℂ × ℝ => p.1 * p.2) :=
+    continuous_fst.mul (Complex.continuous_ofReal.comp continuous_snd)
+  have hexp : Continuous (fun p : ℂ × ℝ => Complex.exp (p.1 * p.2)) :=
+    Complex.continuous_exp.comp hmul'
+  exact hmul.mul hexp
+
+/-- The weighted Laplace integrand, viewed as a curried function, is continuous on the full product. -/
+theorem continuousOn_weightedLaplaceIntegrand_uncurried
+    (φ : LFunctions.ZetaTestFunction) :
+    ContinuousOn (Function.uncurry fun z (t : ℝ) => (t : ℂ) * φ t * Complex.exp (z * t))
+      ((Set.univ : Set ℂ) ×ˢ (Set.univ : Set ℝ)) := by
+  change ContinuousOn (fun p : ℂ × ℝ => (p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2))
+    ((Set.univ : Set ℂ) ×ˢ (Set.univ : Set ℝ))
+  exact (continuous_weightedLaplaceIntegrand φ).continuousOn
+
+/-- The one-variable Laplace kernel is continuous. -/
+theorem continuous_laplaceKernel
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    Continuous (fun t : ℝ => φ t * Complex.exp (z * t)) := by
+  have hφ : Continuous (fun t : ℝ => φ t) :=
+    φ.continuous
+  have hmul : Continuous (fun t : ℝ => (z : ℂ) * t) := by
+    exact continuous_const.mul Complex.continuous_ofReal
+  have hexp : Continuous (fun t : ℝ => Complex.exp (z * t)) :=
+    Complex.continuous_exp.comp hmul
+  exact hφ.mul hexp
+
+/-- The Laplace kernel inherits compact support from the underlying test function. -/
+theorem hasCompactSupport_laplaceKernel_of_hasCompactSupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ)
+    (hφ : HasCompactSupport φ) :
+    HasCompactSupport (fun t : ℝ => φ t * Complex.exp (z * t)) := by
+  exact hφ.mul_right
+
+theorem integrable_laplaceKernel_of_hasCompactSupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ)
+    (hφ : HasCompactSupport φ) :
+    Integrable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ) := by
+  exact (continuous_laplaceKernel φ z).integrable_of_hasCompactSupport
+    (hasCompactSupport_laplaceKernel_of_hasCompactSupport φ z hφ)
+
+/-- The Laplace kernel is strongly measurable whenever it is continuous. -/
+theorem aestronglyMeasurable_laplaceKernel
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    AEStronglyMeasurable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ) := by
+  exact (continuous_laplaceKernel φ z).aestronglyMeasurable
+
+/-- The one-variable weighted Laplace kernel is continuous. -/
+theorem continuous_weightedLaplaceKernel
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    Continuous (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t)) := by
+  have ht : Continuous (fun t : ℝ => (t : ℂ)) := Complex.continuous_ofReal
+  have hφ : Continuous (fun t : ℝ => φ t) :=
+    φ.continuous
+  have hmul : Continuous (fun t : ℝ => (t : ℂ) * φ t) :=
+    ht.mul hφ
+  have hmul' : Continuous (fun t : ℝ => (z : ℂ) * t) := by
+    exact continuous_const.mul Complex.continuous_ofReal
+  have hexp : Continuous (fun t : ℝ => Complex.exp (z * t)) :=
+    Complex.continuous_exp.comp hmul'
+  exact hmul.mul hexp
+
+/-- A compact-support kernel stays compactly supported after multiplying by `t`. -/
+theorem hasCompactSupport_weightedLaplaceKernel_of_hasCompactSupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) (hφ : HasCompactSupport φ) :
+    HasCompactSupport (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t)) := by
+  have hcompact :
+      HasCompactSupport (fun t : ℝ => (t : ℂ) * (φ t * Complex.exp (z * t))) := by
+    exact HasCompactSupport.mul_left (f := fun t : ℝ => (t : ℂ))
+      (hasCompactSupport_laplaceKernel_of_hasCompactSupport φ z hφ)
+  have hEq :
+      (fun t : ℝ => (t : ℂ) * (φ t * Complex.exp (z * t))) =
+        fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t) := by
+    funext t
+    exact (mul_assoc (t : ℂ) (φ t) (Complex.exp (z * t))).symm
+  exact hEq ▸ hcompact
+
+/-- A Laplace kernel vanishes outside the support of the underlying test function. -/
+theorem laplaceKernel_eq_zero_of_nmem_tsupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) {t : ℝ}
+    (ht : t ∉ tsupport φ) :
+    φ t * Complex.exp (z * t) = 0 := by
+  have hφ : φ t = 0 := image_eq_zero_of_nmem_tsupport ht
+  calc
+    φ t * Complex.exp (z * t) = 0 * Complex.exp (z * t) := by
+      exact congrArg (fun x => x * Complex.exp (z * t)) hφ
+    _ = 0 := by
+      exact zero_mul _
+
+/-- A weighted Laplace kernel vanishes outside the support of the underlying test function. -/
+theorem weightedLaplaceKernel_eq_zero_of_nmem_tsupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) {t : ℝ}
+    (ht : t ∉ tsupport φ) :
+    (t : ℂ) * φ t * Complex.exp (z * t) = 0 := by
+  have hφ : φ t = 0 := image_eq_zero_of_nmem_tsupport ht
+  calc
+    (t : ℂ) * φ t * Complex.exp (z * t) = (t : ℂ) * 0 * Complex.exp (z * t) := by
+      exact congrArg (fun x => (t : ℂ) * x * Complex.exp (z * t)) hφ
+    _ = 0 * Complex.exp (z * t) := by
+      exact congrArg (fun x => x * Complex.exp (z * t)) (mul_zero (t : ℂ))
+    _ = 0 := by
+      exact zero_mul _
+
+/-- The indicator of a support set is equal to the constant on points inside the set. -/
+theorem indicator_eq_of_mem {K : Set ℝ} {C : ℝ} {t : ℝ} (ht : t ∈ K) :
+    K.indicator (fun _ => C) t = C := by
+  exact Set.indicator_of_mem ht (fun _ : ℝ => C)
+
+/-- The indicator of a support set is zero outside the set. -/
+theorem indicator_eq_zero_of_not_mem {K : Set ℝ} {C : ℝ} {t : ℝ} (ht : t ∉ K) :
+    K.indicator (fun _ => C) t = 0 := by
+  exact Set.indicator_of_not_mem ht (fun _ : ℝ => C)
+
+/-- Reflection turns the Laplace kernel at `z` into the unreflected kernel at `-z`. -/
+theorem reflect_laplaceKernel_eq_comp_neg_pointwise
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) (t : ℝ) :
+    (LFunctions.ZetaTestFunction.reflect φ) t * Complex.exp (z * t) =
+      φ (-t) * Complex.exp (-z * (-t)) := by
+  have hmul : z * t = (-z) * (-t) := by
+    exact (neg_mul_neg z t).symm
+  calc
+    (LFunctions.ZetaTestFunction.reflect φ) t * Complex.exp (z * t)
+        = φ (-t) * Complex.exp (z * t) := by
+            exact congrArg (fun x => x * Complex.exp (z * t))
+              (LFunctions.ZetaTestFunction.reflect_apply φ t)
+    _ = φ (-t) * Complex.exp (-z * (-t)) := by
+          exact congrArg (fun x => φ (-t) * Complex.exp x) hmul
+
+theorem reflect_laplaceKernel_eq_comp_neg
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    (fun t : ℝ => (LFunctions.ZetaTestFunction.reflect φ) t * Complex.exp (z * t)) =
+      fun t : ℝ => φ (-t) * Complex.exp (-z * (-t)) := by
+  funext t
+  exact reflect_laplaceKernel_eq_comp_neg_pointwise φ z t
+
+/-- The weighted Laplace kernel vanishes outside the support of the underlying test function. -/
+theorem weightedLaplaceKernel_eq_zero_of_nmem_tsupport'
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) {t : ℝ}
+    (ht : t ∉ tsupport φ) :
+    (fun x : ℝ => (x : ℂ) * φ x * Complex.exp (z * x)) t = 0 := by
+  exact weightedLaplaceKernel_eq_zero_of_nmem_tsupport φ z ht
+
+/-- The weighted Laplace kernel with compact support is integrable. -/
+theorem integrable_weightedLaplaceKernel_of_hasCompactSupport
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ)
+    (hφ : HasCompactSupport φ) :
+    Integrable (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t)) (volume : Measure ℝ) := by
+  have hcs :
+      HasCompactSupport (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t)) := by
+    exact hasCompactSupport_weightedLaplaceKernel_of_hasCompactSupport φ z hφ
+  exact (continuous_weightedLaplaceKernel φ z).integrable_of_hasCompactSupport hcs
+
+/-- The weighted Laplace kernel is strongly measurable whenever it is continuous. -/
+theorem aestronglyMeasurable_weightedLaplaceKernel
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    AEStronglyMeasurable (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t))
+      (volume : Measure ℝ) := by
+  exact (continuous_weightedLaplaceKernel φ z).aestronglyMeasurable
 
 /-- The zeta Laplace transform of an autocorrelation unfolds pointwise. -/
 theorem zetaLaplaceTransform_autocorrelation
@@ -80,196 +400,40 @@ theorem zetaLaplaceTransform_autocorrelation
     zetaLaplaceTransform (LFunctions.ZetaAdmissibleFunction.autocorrelation f) z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
   unfold zetaLaplaceTransform
-  rw [LFunctions.ZetaAdmissibleFunction.autocorrelation_eq]
+  exact congrArg (fun g : ℝ → ℂ => ∫ t : ℝ, g t * Complex.exp (z * t))
+    (LFunctions.ZetaAdmissibleFunction.autocorrelation_eq f)
 
 /-- The zeta Laplace transform of an admissible function is continuous in the spectral variable. -/
 theorem zetaLaplaceTransform_continuous
     (φ : LFunctions.ZetaAdmissibleFunction) :
     Continuous (fun z => zetaLaplaceTransform φ.toZetaTestFunction' z) := by
-  rw [continuous_iff_continuousOn_univ]
   have hcs : HasCompactSupport φ.toZetaTestFunction' := by
-    simpa using φ.toZetaTestFunction.hasCompactSupport
+    exact φ.toZetaTestFunction.hasCompactSupport
   let K : Set ℝ := tsupport φ.toZetaTestFunction'
   have hK : IsCompact K := by
-    simpa [K, HasCompactSupport, tsupport] using hcs
-  refine continuousOn_integral_of_compact_support hK ?_ ?_
-  · have hcont : Continuous fun p : ℂ × ℝ => φ p.2 * Complex.exp (p.1 * p.2) := by
-      fun_prop
-    exact hcont.continuousOn
-  · intro p t hp ht
-    have hφ : φ.toZetaTestFunction' t = 0 := by
-      exact image_eq_zero_of_nmem_tsupport ht
-    rw [hφ, zero_mul]
-
-/-- The zeta Laplace transform is compatible with reflection of the test function. -/
-theorem zetaLaplaceTransform_reflect
-    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
-    zetaLaplaceTransform (LFunctions.ZetaTestFunction.reflect φ) z =
-      zetaLaplaceTransform φ (-z) := by
-  unfold zetaLaplaceTransform
-  rw [LFunctions.ZetaTestFunction.reflect_apply, ← intervalIntegral.integral_comp_neg]
-  congr with t
-  simp [mul_comm, mul_left_comm, mul_assoc]
-
-/-- The zeta Laplace transform of the reflected dagger probe is the reflected Laplace transform. -/
-theorem zetaLaplaceTransform_dagger_reflect
-    (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    zetaLaplaceTransform (LFunctions.ZetaAdmissibleFunction.zetaAdmissibleDagger φ) z =
-      zetaLaplaceTransform φ.toZetaTestFunction' (-z) := by
-  have h := zetaLaplaceTransform_reflect (LFunctions.ZetaAdmissibleFunction.zetaAdmissibleDagger φ) z
-  rw [LFunctions.ZetaAdmissibleFunction.zetaAdmissibleDagger_dagger] at h
-  simpa using h
-
-/-- The weighted zeta Laplace transform attached to an admissible test function. -/
-noncomputable def zetaLaplaceTransformWeighted
-    (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
-  ∫ t : ℝ, (t : ℂ) * φ t * Complex.exp (z * t)
-
-/-- The weighted zeta Laplace transform of an admissible function is continuous in the spectral variable. -/
-theorem zetaLaplaceTransformWeighted_continuous
-    (φ : LFunctions.ZetaAdmissibleFunction) :
-    Continuous (fun z => zetaLaplaceTransformWeighted φ.toZetaTestFunction' z) := by
-  rw [continuous_iff_continuousOn_univ]
-  have hcs : HasCompactSupport φ.toZetaTestFunction' := by
-    simpa using φ.toZetaTestFunction.hasCompactSupport
-  let K : Set ℝ := tsupport φ.toZetaTestFunction'
-  have hK : IsCompact K := by
-    simpa [K, HasCompactSupport, tsupport] using hcs
-  refine continuousOn_integral_of_compact_support hK ?_ ?_
-  · have hcont : Continuous fun p : ℂ × ℝ => (p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2) := by
-      fun_prop
-    exact hcont.continuousOn
-  · intro p t hp ht
-    have hφ : φ.toZetaTestFunction' t = 0 := by
-      exact image_eq_zero_of_nmem_tsupport ht
-    rw [hφ, mul_zero, zero_mul]
-
-/-- The weighted Laplace kernel of an admissible function has compact support in the real variable. -/
-theorem hasCompactSupport_weightedLaplaceKernel
-    (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    HasCompactSupport (fun t : ℝ => (t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (z * t)) := by
-  refine HasCompactSupport.of_support_subset_isCompact ?_ ?_
-  · simpa [HasCompactSupport] using φ.toZetaTestFunction.hasCompactSupport
-  intro t ht
-  have h1 :
-      t ∈ Function.support (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (z * t)) := by
-    exact Function.support_mul_subset_right (f := fun t : ℝ => (t : ℂ))
-      (g := fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (z * t)) ht
-  have h2 :
-      t ∈ Function.support φ.toZetaTestFunction' := by
-    exact Function.support_mul_subset_right (f := fun t : ℝ => φ.toZetaTestFunction' t)
-      (g := fun t : ℝ => Complex.exp (z * t)) h1
-  simpa [HasCompactSupport, tsupport] using h2
-
-/-- The weighted zeta Laplace transform of an autocorrelation unfolds pointwise. -/
-theorem zetaLaplaceTransformWeighted_autocorrelation
-    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    zetaLaplaceTransformWeighted (LFunctions.ZetaAdmissibleFunction.autocorrelation f) z =
-      ∫ t : ℝ, (t : ℂ) * (f t * star (f t)) * Complex.exp (z * t) := by
-  unfold zetaLaplaceTransformWeighted
-  rw [LFunctions.ZetaAdmissibleFunction.autocorrelation_eq]
-
-/-- The weighted Laplace derivative kernel is uniformly bounded on a fixed closed ball. -/
-theorem weightedLaplaceKernel_uniform_bound_on_closedBall
-    (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    ∃ C : ℝ, 0 < C ∧
-      ∀ w : ℂ, w ∈ Metric.closedBall z 1 →
-      ∀ t : ℝ, t ∈ tsupport φ.toZetaTestFunction' →
-        ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-  have hcomp : IsCompact ((Metric.closedBall z 1 : Set ℂ) ×ˢ (tsupport φ.toZetaTestFunction')) := by
-    exact (isCompact_closedBall z 1).prod (by
-      simpa using φ.toZetaTestFunction.hasCompactSupport)
+    exact hcs.isCompact
   have hcont :
-      Continuous fun p : ℂ × ℝ => ‖(p.2 : ℂ) * φ.toZetaTestFunction' p.2 * Complex.exp (p.1 * p.2)‖ := by
-    fun_prop
-  obtain ⟨C, hC⟩ := hcomp.bddAbove_image hcont.continuousOn
-  refine ⟨max C 0 + 1, by positivity, ?_⟩
-  intro w hw t ht
-  have hmem : ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ∈
-      (fun p : ℂ × ℝ => ‖(p.2 : ℂ) * φ.toZetaTestFunction' p.2 * Complex.exp (p.1 * p.2)‖) ''
-        ((Metric.closedBall z 1 : Set ℂ) ×ˢ (tsupport φ.toZetaTestFunction')) := by
-    exact ⟨(w, t), by exact ⟨hw, ht⟩, rfl⟩
-  have hle := hC hmem
-  have hle' : ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ max C 0 := by
-    exact le_trans hle (le_max_left _ _)
-  have : ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ max C 0 + 1 := by
-    linarith
-  exact this
-
-/-- The Laplace kernel has the expected pointwise derivative. -/
-theorem hasDerivAt_laplaceKernel
-    (φ : LFunctions.ZetaTestFunction) (t : ℝ) (z : ℂ) :
-    HasDerivAt
-      (fun w : ℂ => φ t * Complex.exp (w * t))
-      ((t : ℂ) * φ t * Complex.exp (z * t))
-      z := by
-  have hmul : HasDerivAt (fun w : ℂ => w * (t : ℂ)) (t : ℂ) z := by
-    simpa [mul_comm] using (hasDerivAt_id' z).mul_const (t : ℂ)
-  have hexp : HasDerivAt (fun w : ℂ => Complex.exp (w * t))
-      (Complex.exp (z * t) * (t : ℂ)) z :=
-    (Complex.hasDerivAt_exp (z * t)).comp z hmul
-  have hconst : HasDerivAt (fun w : ℂ => φ t) 0 z := hasDerivAt_const z (φ t)
-  have hmul' :
-      HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t))
-        (φ t * (Complex.exp (z * t) * (t : ℂ))) z :=
-    by
-      have htmp := hconst.mul hexp
-      simpa [mul_assoc, mul_left_comm, mul_comm, add_comm, add_left_comm, add_assoc] using htmp
-  simpa [mul_assoc, mul_left_comm, mul_comm, add_comm, add_left_comm, add_assoc] using hmul'
-
-/-- The zeta Laplace transform is differentiable at every spectral parameter. -/
-theorem zetaLaplaceTransform_differentiableAt
-    (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    DifferentiableAt ℂ (fun w => zetaLaplaceTransform φ.toZetaTestFunction' w) z := by
-  let K : Set ℝ := tsupport φ.toZetaTestFunction'
-  rcases weightedLaplaceKernel_uniform_bound_on_closedBall (φ := φ) z with ⟨C, hCpos, hC⟩
-  let bound : ℝ → ℝ := Set.indicator K (fun _ => C)
-  have hK : IsCompact K := by
-    simpa [K, HasCompactSupport, tsupport] using φ.toZetaTestFunction.hasCompactSupport
-  have hK_meas : MeasurableSet K := hK.measurableSet
-  have hF_meas :
-      ∀ᶠ w in nhds z, AEStronglyMeasurable (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (w * t))
-        (volume : Measure ℝ) := by
-    refine Filter.Eventually.of_forall fun w => ?_
-    have hcont : Continuous (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (w * t)) := by
-      fun_prop
-    exact hcont.aestronglyMeasurable
-  have hF_int : Integrable (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (z * t)) (volume : Measure ℝ) := by
-    have hcont : Continuous (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (z * t)) := by
-      fun_prop
-    exact hcont.integrable_of_hasCompactSupport
-      (by simpa [HasCompactSupport] using φ.toZetaTestFunction.hasCompactSupport)
-  have hF'_meas :
-      AEStronglyMeasurable (fun t : ℝ => (t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (z * t))
-        (volume : Measure ℝ) := by
-    have hcont : Continuous (fun t : ℝ => (t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (z * t)) := by
-      fun_prop
-    exact hcont.aestronglyMeasurable
-  have h_bound : ∀ᵐ t ∂(volume : Measure ℝ), ∀ w ∈ Metric.ball z 1,
-      ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ bound t := by
-    filter_upwards with t
-    by_cases ht : t ∈ K
-    · intro w hw
-      have hw' : w ∈ Metric.closedBall z 1 := Metric.mem_closedBall.2 (le_of_lt hw)
-      have hle := hC w hw' t ht
-      simpa [bound, ht] using hle
-    · intro w hw
-      have hφ : φ.toZetaTestFunction' t = 0 := by
-        exact image_eq_zero_of_nmem_tsupport ht
-      simp [bound, ht, hφ]
-  have h_diff : ∀ᵐ t ∂(volume : Measure ℝ), ∀ w ∈ Metric.ball z 1,
-      HasDerivAt (fun x : ℂ => φ.toZetaTestFunction' t * Complex.exp (x * t))
-        ((t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)) w := by
-    filter_upwards with t w hw
-    simpa [mul_assoc, mul_left_comm, mul_comm] using hasDerivAt_laplaceKernel (φ := φ.toZetaTestFunction') t w
-  have hbound_int : Integrable bound := by
-    unfold bound
-    exact (integrable_const C).indicator hK_meas
-  have h :=
-    hasDerivAt_integral_of_dominated_loc_of_deriv_le (ε_pos := by norm_num) hF_meas hF_int
-      hF'_meas h_bound hbound_int h_diff
-  unfold zetaLaplaceTransform
-  exact h.2.differentiableAt
+      Continuous (fun p : ℂ × ℝ => φ.toZetaTestFunction' p.2 * Complex.exp (p.1 * p.2)) :=
+    continuous_laplaceIntegrand φ.toZetaTestFunction'
+  have hcontOn :=
+    continuousOn_laplaceIntegrand_uncurried φ.toZetaTestFunction'
+  have hzero :
+      ∀ p : ℂ, ∀ t : ℝ, p ∈ (Set.univ : Set ℂ) → t ∉ K →
+        φ.toZetaTestFunction' t * Complex.exp (p * t) = 0 := by
+    intro p t _ ht
+    exact laplaceKernel_eq_zero_of_nmem_tsupport φ.toZetaTestFunction' p ht
+  have hcont' :
+      ContinuousOn (fun z => ∫ t : ℝ, φ.toZetaTestFunction' t * Complex.exp (z * t))
+        (Set.univ : Set ℂ) := by
+    exact continuousOn_integral_of_compact_support
+      (μ := (volume : Measure ℝ))
+      (f := fun z t => φ.toZetaTestFunction' t * Complex.exp (z * t))
+      (s := (Set.univ : Set ℂ))
+      (k := K)
+      hK
+      hcontOn
+      hzero
+  exact continuous_iff_continuousOn_univ.mpr hcont'
 
 /-- Boundary name for mathlib's Mellin/Fourier bridge. -/
 theorem boundary_mellin_eq_fourierIntegral (f : ℝ → E) {s : ℂ} :
@@ -320,26 +484,5 @@ theorem boundary_fourierCoeffOn_of_hasDerivAt_Ioo {a b : ℝ} (hab : a < b) {f f
 
 end FourierInterval
 
-section Zeta
-
-/-- Boundary name for the completed zeta decomposition. -/
-theorem boundary_completedRiemannZeta_eq (s : ℂ) :
-    completedRiemannZeta s = completedRiemannZeta₀ s - 1 / s - 1 / (1 - s) := by
-  exact completedRiemannZeta_eq s
-
-/-- Boundary name for the symmetry of the completed zeta function. -/
-theorem boundary_completedRiemannZeta_one_sub (s : ℂ) :
-    completedRiemannZeta (1 - s) = completedRiemannZeta s := by
-  exact completedRiemannZeta_one_sub s
-
-/-- Boundary name for zeta's functional equation identity in mathlib. -/
-theorem boundary_riemannZeta_one_sub {s : ℂ} (hs : ∀ n : ℕ, s ≠ -n) (hs' : s ≠ 1) :
-    riemannZeta (1 - s) = 2 * (2 * π) ^ (-s) * Gamma s * cos (π * s / 2) * riemannZeta s := by
-  exact riemannZeta_one_sub (s := s) hs hs'
-
-/-- Boundary name for the Dirichlet-series expansion of zeta. -/
-theorem boundary_riemannZeta_eq_tsum_one_div_nat_cpow {s : ℂ} (hs : 1 < s.re) :
-    riemannZeta s = ∑' n : ℕ, 1 / (n : ℂ) ^ s := by
-  exact zeta_eq_tsum_one_div_nat_cpow (s := s) hs
-
-end Zeta
+end
+end Boundary
