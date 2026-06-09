@@ -21,6 +21,11 @@ def toZetaExplicitFormulaTransform (f : ZetaAdmissibleFunction) :
     ZetaTestFunction.zetaExplicitFormulaTransform :=
   ZetaTestFunction.toZetaExplicitFormulaTransform f.toZetaTestFunction'
 
+/-- The linear core of the admissible explicit-formula transform. -/
+def toZetaExplicitFormulaLinearTransform (f : ZetaAdmissibleFunction) :
+    ZetaTestFunction.zetaExplicitFormulaLinearTransform :=
+  ZetaTestFunction.toZetaExplicitFormulaLinearTransform f.toZetaTestFunction'
+
 /-- The prime component of the admissible explicit-formula transform. -/
 theorem toZetaExplicitFormulaTransform_prime (f : ZetaAdmissibleFunction) (p : ℕ) (n : ℕ) :
     (toZetaExplicitFormulaTransform f).primeDefect p n =
@@ -43,6 +48,16 @@ theorem toZetaExplicitFormulaTransform_correction (f : ZetaAdmissibleFunction) :
 theorem toZetaExplicitFormulaTransform_eq (f : ZetaAdmissibleFunction) :
     toZetaExplicitFormulaTransform f =
       ZetaTestFunction.toZetaExplicitFormulaTransform f.toZetaTestFunction' := by
+  rfl
+
+/-- The completed admissible explicit-formula transform is the linear core plus correction. -/
+theorem toZetaExplicitFormulaTransform_eq_linear_add_correction (f : ZetaAdmissibleFunction) :
+    toZetaExplicitFormulaTransform f =
+      { primeDefect := fun p n =>
+          (toZetaExplicitFormulaLinearTransform f).primeDefect p n
+        archimedeanDefect := fun a =>
+          (toZetaExplicitFormulaLinearTransform f).archimedeanDefect a
+        correctionDefect := zetaCompletionCorrection 0 } := by
   rfl
 
 /-- The admissible transform is the underlying explicit-formula transform. -/
@@ -84,6 +99,29 @@ theorem toZetaExplicitFormulaTransform_split (f : ZetaAdmissibleFunction) :
         (fun a => ZetaTestFunction.archimedeanTranslationDefect a f.toZetaTestFunction' 0) ∧
       (toZetaExplicitFormulaTransform f).correctionDefect = zetaCompletionCorrection 0 := by
   exact toZetaExplicitFormulaTransform_components f
+
+/-- The admissible explicit-formula transform of a sum is the sum of the transforms. -/
+theorem toZetaExplicitFormulaLinearTransform_add (f g : ZetaAdmissibleFunction) :
+    toZetaExplicitFormulaLinearTransform (f + g) =
+      toZetaExplicitFormulaLinearTransform f + toZetaExplicitFormulaLinearTransform g := by
+  exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_add
+    (f := f.toZetaTestFunction') (g := g.toZetaTestFunction')
+
+/-- The admissible explicit-formula transform of a scalar multiple is the scalar multiple of the
+transform. -/
+theorem toZetaExplicitFormulaLinearTransform_smul (c : ℂ) (f : ZetaAdmissibleFunction) :
+    toZetaExplicitFormulaLinearTransform (c • f) =
+      c • toZetaExplicitFormulaLinearTransform f := by
+  exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_smul
+    (c := c) (f := f.toZetaTestFunction')
+
+/-- The admissible explicit-formula transform commutes with finite sums. -/
+theorem toZetaExplicitFormulaLinearTransform_sum {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaAdmissibleFunction) :
+    toZetaExplicitFormulaLinearTransform (∑ a in s, f a) =
+      ∑ a in s, toZetaExplicitFormulaLinearTransform (f a) := by
+  exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_sum
+    (s := s) (f := fun a => f a.toZetaTestFunction')
 
 end ZetaAdmissibleFunction
 

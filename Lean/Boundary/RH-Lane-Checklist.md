@@ -29,6 +29,8 @@ Relevant files:
 Checkpoint note:
 - 2026-06-08: `ZetaAdmissibleFunction.lean`, `ZetaAdmissibleFunctionCore.lean`, and `ZetaAdmissibleFunctionTransport.lean` are green and now form a stable owner/public split. The public root file is a thin import surface, the core file owns the carrier and algebra, and the transport file owns translate/reflect/scale plus support calculus.
 - 2026-06-08: `ZetaAdmissibleSpectralModel.lean` is also green and remains a thin definitional alias surface over `toZetaExplicitFormulaTransform`, with unsupported algebraic wrapper lemmas removed rather than forced.
+- 2026-06-08: `ZetaCompletionCorrection.lean` is green. It is now the minimal owner for the centered completion correction alias and its reflection symmetry, with no extra automation or wrapper burden.
+- 2026-06-08: `ZetaWeilShared.lean` is green. It remains the shared owner for the completed zero-side sum and the completed Weil form aliases, with only definitional wrappers and one direct transport lemma.
 
 Relevant files:
 - `LFunctions/ZetaAdmissibleFunction.lean`

@@ -24,7 +24,7 @@ theorem riemannZeta_factorization_logDeriv
     (hΓ : Gammaℝ s ≠ 0) :
     logDeriv (fun z : ℂ => completedRiemannZeta z * (Gammaℝ z)⁻¹) s =
       logDeriv completedRiemannZeta s + logDeriv (fun z : ℂ => (Gammaℝ z)⁻¹) s := by
-  rw [logDeriv_mul s hΛ (by simpa using inv_ne_zero hΓ)
+  rw [logDeriv_mul s hΛ (inv_ne_zero hΓ)
       (differentiableAt_completedZeta hs0 hs1) differentiable_Gammaℝ_inv.differentiableAt]
 
 /-- A critical-line bound for the logarithmic derivative of the completed zeta function. -/
@@ -45,7 +45,7 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivBound
     exact completedZetaNegLogDeriv_eq_neg_logDeriv ((1 / 2 : ℂ) + t * Complex.I)
   have hnorm : ‖- logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ =
       ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ := by
-    simp
+    rw [norm_neg]
   rw [← hspec, hnorm]
   exact hbound t
 
@@ -59,10 +59,10 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivTendstoZero
   rcases h.criticalLineLogDerivBound 1 with ⟨C, hC, hbound⟩
   have hpow :
       Tendsto (fun t : ℝ => (1 + ‖t‖) ^ (-(1 : ℤ))) atTop (𝓝 (0 : ℝ)) := by
-    simpa using tendsto_one_add_norm_pow_neg_atTop 1
+    exact tendsto_one_add_norm_pow_neg_atTop 1
   have hmul :
       Tendsto (fun t : ℝ => C * (1 + ‖t‖) ^ (-(1 : ℤ))) atTop (𝓝 (0 : ℝ)) := by
-    simpa using hpow.const_mul C
+    exact hpow.const_mul C
   have hnorm :
       Tendsto
         (fun t : ℝ => ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖)
@@ -71,7 +71,8 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivTendstoZero
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hmul ?_ ?_
     · exact Eventually.of_forall fun _ => norm_nonneg _
     · exact Eventually.of_forall hbound
-  simpa [tendsto_zero_iff_norm_tendsto_zero] using hnorm
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  exact hnorm
 
 /-- The completed negative logarithmic derivative itself tends to `0` on the critical line. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivTendstoZero
@@ -85,7 +86,7 @@ theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivTendstoZero
       (fun t : ℝ => completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)) =
         fun t : ℝ => - logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I) := by
     funext t
-    rw [completedZetaNegLogDeriv_eq_neg_logDeriv]
+    exact completedZetaNegLogDeriv_eq_neg_logDeriv ((1 / 2 : ℂ) + t * Complex.I)
   rw [hrewrite]
   exact hlog.neg
 
@@ -208,7 +209,20 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_bounded
       (Set.range
         (fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I))) := by
   have h' := h.criticalLineNegLogDeriv_range_bounded
-  simpa [completedZetaNegLogDeriv_eq_neg_logDeriv] using h'
+  have hEq :
+      Set.range
+          (fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)) =
+        Set.range
+          (fun t : ℝ => - completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)) := by
+    apply Set.Subset.antisymm
+    · intro x hx
+      rcases hx with ⟨t, rfl⟩
+      exact ⟨t, by rw [completedZetaNegLogDeriv_eq_neg_logDeriv]; rfl⟩
+    · intro x hx
+      rcases hx with ⟨t, rfl⟩
+      exact ⟨t, by rw [completedZetaNegLogDeriv_eq_neg_logDeriv]; rfl⟩
+  rw [hEq]
+  exact h'.mono
 
 /-- The critical-line logarithmic derivative has bounded range as a complex set. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_bounded_complex

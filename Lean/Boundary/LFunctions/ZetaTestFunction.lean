@@ -35,6 +35,52 @@ instance : Add ZetaTestFunction :=
 instance : SMul ℂ ZetaTestFunction :=
   ⟨fun a f => ⟨fun x => a * f x, continuous_const.mul f.continuous⟩⟩
 
+theorem ext' {f g : ZetaTestFunction} (h : ∀ x, f x = g x) : f = g := by
+  cases f with
+  | mk ff fc =>
+    cases g with
+    | mk gf gc =>
+      have hfun : ff = gf := by
+        funext x
+        exact h x
+      cases hfun
+      rfl
+
+instance : AddCommMonoid ZetaTestFunction where
+  zero := 0
+  add := (· + ·)
+  add_assoc := by
+    intro f g h
+    apply ext'
+    intro x
+    exact add_assoc (f x) (g x) (h x)
+  zero_add := by
+    intro f
+    apply ext'
+    intro x
+    exact zero_add (f x)
+  add_zero := by
+    intro f
+    apply ext'
+    intro x
+    exact add_zero (f x)
+  add_comm := by
+    intro f g
+    apply ext'
+    intro x
+    exact add_comm (f x) (g x)
+  nsmul := fun n f => ⟨fun x => n • f x, f.continuous.nsmul n⟩
+  nsmul_zero := by
+    intro f
+    apply ext'
+    intro x
+    exact zero_nsmul (f x)
+  nsmul_succ := by
+    intro n f
+    apply ext'
+    intro x
+    exact succ_nsmul (f x) n
+
 @[ext]
 theorem ext {f g : ZetaTestFunction} (h : ∀ x, f x = g x) : f = g := by
   cases f
