@@ -1,3 +1,4 @@
+import Boundary.LFunctions.ZetaAdmissibleFunction
 import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
 
 /-!
@@ -64,15 +65,24 @@ theorem CompletedZetaNegLogDerivControl.criticalLineBound
   rcases h.stripBound (1 / 2 : ℝ) (1 / 2 : ℝ) N with ⟨C, hC, hbound⟩
   refine ⟨C, hC, ?_⟩
   intro t
+  have hre : ((1 / 2 : ℂ) + t * Complex.I).re = (1 / 2 : ℝ) := by
+    norm_num [Complex.add_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+      Complex.I_re, Complex.I_im]
+  have him : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
+    norm_num [Complex.add_im, Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im,
+      Complex.I_re, Complex.I_im]
   have hre_left :
       (1 / 2 : ℝ) ≤ ((1 / 2 : ℂ) + t * Complex.I).re := by
-    simp
+    rw [hre]
   have hre_right :
       ((1 / 2 : ℂ) + t * Complex.I).re ≤ (1 / 2 : ℝ) := by
-    simp
+    rw [hre]
   have hnorm : ‖((1 / 2 : ℂ) + t * Complex.I).im‖ = ‖t‖ := by
-    simp
-  simpa [hnorm] using hbound ((1 / 2 : ℂ) + t * Complex.I) hre_left hre_right
+    rw [him]
+  have hbound' :=
+    hbound ((1 / 2 : ℂ) + t * Complex.I) hre_left hre_right
+  rw [hnorm] at hbound'
+  exact hbound'
 
 end ZetaAdmissibleFunction
 
