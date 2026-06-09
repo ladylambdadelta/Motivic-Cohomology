@@ -258,13 +258,20 @@ theorem previousStepSubmodule_product_map
         (W₁.previousStepSubmodule n) (W₂.previousStepSubmodule n) := by
   ext x
   constructor
-  · rintro ⟨y, hy, rfl⟩
-    rcases y with ⟨⟨y₁, y₂⟩, hy'⟩
-    rw [IncreasingFiltration.previousStepSubmodule, mem_submoduleProd] at hy
+  · intro hx
+    rw [Submodule.mem_map] at hx
+    rcases hx with ⟨y, hy, rfl⟩
+    rcases y with ⟨⟨y₁, y₂⟩, hy⟩
+    rw [IncreasingFiltration.previousStepSubmodule] at hy
     exact hy
   · rintro hx
-    refine ⟨⟨(x.1.1, x.2.1), ?_⟩, hx, ?_⟩
+    rw [Submodule.mem_map]
+    refine ⟨⟨(x.1.1, x.2.1), ?_⟩, ?_, ?_⟩
     · exact ⟨x.1.2, x.2.2⟩
+    · change (x.1.1, x.2.1) ∈ (W₁.product W₂).step (n - 1)
+      rw [IncreasingFiltration.product, mem_submoduleProd]
+      rw [IncreasingFiltration.previousStepSubmodule, mem_submoduleProd] at hx
+      exact hx
     · ext <;> rfl
 
 /-- The associated graded piece `grₙ^W(V) = Wₙ / Wₙ₋₁`. -/
@@ -377,7 +384,8 @@ theorem finrank_gradedPiece (W : IncreasingFiltration K V) (n : ℤ)
     Module.finrank K (W.gradedPiece n) =
       Module.finrank K (W.step n) -
         Module.finrank K (W.previousStepSubmodule n) := by
-  rw [IncreasingFiltration.gradedPiece]
+  change Module.finrank K (W.step n ⧸ W.previousStepSubmodule n) =
+    Module.finrank K (W.step n) - Module.finrank K (W.previousStepSubmodule n)
   exact Submodule.finrank_quotient (W.previousStepSubmodule n)
 
 /-- The associated graded piece of a product filtration is the product of the
