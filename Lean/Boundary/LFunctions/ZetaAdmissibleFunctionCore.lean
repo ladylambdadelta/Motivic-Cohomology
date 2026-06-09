@@ -33,7 +33,7 @@ instance : CoeFun ZetaAdmissibleFunction (fun _ => ℝ → ℂ) :=
 
 instance : Zero ZetaAdmissibleFunction :=
   ⟨CompactlySupportedContinuousMap.mk
-      (ContinuousMap.mk (fun x => (0 : ℂ)) continuous_const)
+      (ContinuousMap.mk (fun _ => (0 : ℂ)) continuous_const)
       (HasCompactSupport.zero),
     contDiff_const⟩
 
@@ -187,7 +187,7 @@ def translate (c : ℝ) (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction wh
     exact f.smooth.comp (contDiff_id.add contDiff_const)
 
 /-- The zero scale is the zero function. -/
-def scaleZero (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction := 0
+def scaleZero (_ : ZetaAdmissibleFunction) : ZetaAdmissibleFunction := 0
 
 /-- The nonzero scale acts pointwise by precomposition. -/
 def scaleNonzero (a : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction where
@@ -234,14 +234,10 @@ theorem translate_apply (c : ℝ) (f : ZetaAdmissibleFunction) (x : ℝ) :
     translate c f x = f (x + c) := rfl
 
 theorem scale_apply (a : ℝ) (f : ZetaAdmissibleFunction) (x : ℝ) :
-    scale a f x = if h : a = 0 then 0 else f (a * x) := by
-  by_cases ha : a = 0
-  · subst ha
-    unfold scale
-    split_ifs with h
-    · rfl
-    · contradiction
-  · rw [scale_nonzero_apply a ha f x]
-    exact (if_neg ha).symm
+    scale a f x = if a = 0 then 0 else f (a * x) := by
+  unfold scale
+  split_ifs with ha
+  · rfl
+  · rfl
 
 end ZetaAdmissibleFunction
