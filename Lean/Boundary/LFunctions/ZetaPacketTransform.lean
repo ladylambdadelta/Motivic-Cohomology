@@ -53,20 +53,16 @@ theorem dual_apply (f : ZetaPacketTransform) (ℓ : ZetaPacketLabel) :
 
 theorem reflect_reflect (f : ZetaPacketTransform) : reflect (reflect f) = f := by
   ext ℓ
-  change f (ZetaPacketLabel.swapPrimeIndices (ZetaPacketLabel.swapPrimeIndices ℓ)) = f ℓ
-  rw [ZetaPacketLabel.swapPrimeIndices_swapPrimeIndices]
+  cases ℓ <;> rfl
 
 theorem dual_dual (f : ZetaPacketTransform) : dual (dual f) = f := by
   ext ℓ
-  change f (ZetaPacketLabel.dual (ZetaPacketLabel.dual ℓ)) = f ℓ
-  rw [ZetaPacketLabel.dual_dual]
+  cases ℓ <;> rfl
 
 theorem dual_reflect (f : ZetaPacketTransform) :
     dual (reflect f) = reflect (dual f) := by
   ext ℓ
-  change f (ZetaPacketLabel.swapPrimeIndices (ZetaPacketLabel.dual ℓ)) =
-    f (ZetaPacketLabel.dual (ZetaPacketLabel.swapPrimeIndices ℓ))
-  rw [ZetaPacketLabel.dual_swapPrimeIndices]
+  cases ℓ <;> rfl
 
 theorem canonical_dual :
     dual canonical = canonical := by

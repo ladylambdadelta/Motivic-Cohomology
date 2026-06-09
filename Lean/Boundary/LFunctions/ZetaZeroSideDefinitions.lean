@@ -38,7 +38,7 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
     (h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ) :
     completedZetaZeroMultiplicity ρ = h.order.toNat := by
   unfold completedZetaZeroMultiplicity
-  rw [dif_pos h]
+  exact dif_pos h
 
 /-- The centered zero coordinate. -/
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
@@ -125,37 +125,42 @@ theorem zetaSpectralTransform_add
     (φ ψ : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (φ + ψ) z =
       zetaSpectralTransform φ z + zetaSpectralTransform ψ z := by
-  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_add]
+  change zetaLaplaceTransform (φ + ψ) z = zetaLaplaceTransform φ z + zetaLaplaceTransform ψ z
+  exact zetaLaplaceTransform_add φ ψ z
 
 /-- The spectral transform is homogeneous under scalar multiplication. -/
 theorem zetaSpectralTransform_smul
     (a : ℂ) (φ : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (a • φ) z = a * zetaSpectralTransform φ z := by
-  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_smul]
+  change zetaLaplaceTransform (a • φ) z = a * zetaLaplaceTransform φ z
+  exact zetaLaplaceTransform_smul a φ z
 
 /-- The spectral transform commutes with finite sums. -/
 theorem zetaSpectralTransform_sum
     {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (∑ a in s, f a) z =
       ∑ a in s, zetaSpectralTransform (f a) z := by
-  rw [zetaSpectralTransform_eq_laplace, zetaLaplaceTransform_sum]
+  change zetaLaplaceTransform (∑ a in s, f a) z =
+    ∑ a in s, zetaLaplaceTransform (f a) z
+  exact zetaLaplaceTransform_sum s f z
 
 /-- The spectral transform of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralTransform_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  rw [zetaSpectralTransform_autocorrelation,
-    LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
-  rfl
+  change zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+    ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
+  exact LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation f z
 
 /-- The spectral evaluation of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralEval_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  rw [zetaSpectralEval_eq_laplace, LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
-  rfl
+  change zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+    ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
+  exact LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation f z
 
 theorem zetaZeroOrbitContribution_eq_sum (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroOrbitContribution ρ φ =
