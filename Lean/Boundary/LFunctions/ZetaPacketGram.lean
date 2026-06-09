@@ -35,32 +35,61 @@ theorem pointwise_sq_decompose (x : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) 
       correctionPart x ℓ * correctionPart x ℓ := by
   cases ℓ with
   | prime m n =>
-      have hp : primePart x (ZetaPacketLabel.prime m n) = x (ZetaPacketLabel.prime m n) := by
-        rw [primePart_apply, if_pos (ZetaPacketLabel.isPrime_prime m n)]
-      have ha : archimedeanPart x (ZetaPacketLabel.prime m n) = 0 := by
-        rw [archimedeanPart_apply, if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
-      have hc : correctionPart x (ZetaPacketLabel.prime m n) = 0 := by
-        rw [correctionPart_apply, if_neg (ZetaPacketLabel.isCorrection_prime m n)]
-      rw [hp, ha, hc]
-      ring
+      have hp : primePart x (ZetaPacketLabel.prime m n) = x (ZetaPacketLabel.prime m n) :=
+        primePart_prime x m n
+      have ha : archimedeanPart x (ZetaPacketLabel.prime m n) = 0 :=
+        archimedeanPart_prime x m n
+      have hc : correctionPart x (ZetaPacketLabel.prime m n) = 0 :=
+        correctionPart_prime x m n
+      calc
+        x (ZetaPacketLabel.prime m n) * x (ZetaPacketLabel.prime m n)
+            = primePart x (ZetaPacketLabel.prime m n) * primePart x (ZetaPacketLabel.prime m n) := by
+              exact congrArg (fun t => t * t) hp
+        _ = primePart x (ZetaPacketLabel.prime m n) * primePart x (ZetaPacketLabel.prime m n) +
+            archimedeanPart x (ZetaPacketLabel.prime m n) *
+              archimedeanPart x (ZetaPacketLabel.prime m n) +
+            correctionPart x (ZetaPacketLabel.prime m n) *
+              correctionPart x (ZetaPacketLabel.prime m n) := by
+              rw [ha, hc]
+              simp
   | archimedean =>
-      have hp : primePart x ZetaPacketLabel.archimedean = 0 := by
-        rw [primePart_apply, if_neg ZetaPacketLabel.isPrime_archimedean]
-      have ha : archimedeanPart x ZetaPacketLabel.archimedean = x ZetaPacketLabel.archimedean := by
-        rw [archimedeanPart_apply, if_pos ZetaPacketLabel.isArchimedean_archimedean]
-      have hc : correctionPart x ZetaPacketLabel.archimedean = 0 := by
-        rw [correctionPart_apply, if_neg ZetaPacketLabel.isCorrection_archimedean]
-      rw [hp, ha, hc]
-      ring
+      have hp : primePart x ZetaPacketLabel.archimedean = 0 :=
+        primePart_archimedean x
+      have ha : archimedeanPart x ZetaPacketLabel.archimedean = x ZetaPacketLabel.archimedean :=
+        archimedeanPart_archimedean x
+      have hc : correctionPart x ZetaPacketLabel.archimedean = 0 :=
+        correctionPart_archimedean x
+      calc
+        x ZetaPacketLabel.archimedean * x ZetaPacketLabel.archimedean
+            = archimedeanPart x ZetaPacketLabel.archimedean *
+                archimedeanPart x ZetaPacketLabel.archimedean := by
+              exact congrArg (fun t => t * t) ha.symm
+        _ = primePart x ZetaPacketLabel.archimedean * primePart x ZetaPacketLabel.archimedean +
+            archimedeanPart x ZetaPacketLabel.archimedean *
+              archimedeanPart x ZetaPacketLabel.archimedean +
+            correctionPart x ZetaPacketLabel.archimedean *
+              correctionPart x ZetaPacketLabel.archimedean := by
+              rw [hp, hc]
+              simp
   | correction =>
-      have hp : primePart x ZetaPacketLabel.correction = 0 := by
-        rw [primePart_apply, if_neg ZetaPacketLabel.isPrime_correction]
-      have ha : archimedeanPart x ZetaPacketLabel.correction = 0 := by
-        rw [archimedeanPart_apply, if_neg ZetaPacketLabel.isArchimedean_correction]
-      have hc : correctionPart x ZetaPacketLabel.correction = x ZetaPacketLabel.correction := by
-        rw [correctionPart_apply, if_pos ZetaPacketLabel.isCorrection_correction]
-      rw [hp, ha, hc]
-      ring
+      have hp : primePart x ZetaPacketLabel.correction = 0 :=
+        primePart_correction x
+      have ha : archimedeanPart x ZetaPacketLabel.correction = 0 :=
+        archimedeanPart_correction x
+      have hc : correctionPart x ZetaPacketLabel.correction = x ZetaPacketLabel.correction :=
+        correctionPart_correction x
+      calc
+        x ZetaPacketLabel.correction * x ZetaPacketLabel.correction
+            = correctionPart x ZetaPacketLabel.correction *
+                correctionPart x ZetaPacketLabel.correction := by
+              exact congrArg (fun t => t * t) hc.symm
+        _ = primePart x ZetaPacketLabel.correction * primePart x ZetaPacketLabel.correction +
+            archimedeanPart x ZetaPacketLabel.correction *
+              archimedeanPart x ZetaPacketLabel.correction +
+            correctionPart x ZetaPacketLabel.correction *
+              correctionPart x ZetaPacketLabel.correction := by
+              rw [hp, ha]
+              simp
 
 /-- Prime and archimedean packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_prime_archimedean (x : ZetaPacketEnsemble) :
@@ -70,20 +99,37 @@ theorem dotProduct_prime_archimedean (x : ZetaPacketEnsemble) :
   intro ℓ hℓ
   cases ℓ with
   | prime m n =>
-      rw [primePart_apply, archimedeanPart_apply]
-      rw [if_pos (ZetaPacketLabel.isPrime_prime m n)]
-      rw [if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
-      ring
+      have hp := primePart_prime x m n
+      have ha := archimedeanPart_prime x m n
+      exact by
+        calc
+          primePart x (ZetaPacketLabel.prime m n) * archimedeanPart x (ZetaPacketLabel.prime m n)
+              = x (ZetaPacketLabel.prime m n) * 0 := by
+                rw [hp, ha]
+          _ = 0 := by
+                exact mul_zero _
   | archimedean =>
-      rw [primePart_apply, archimedeanPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_archimedean]
-      rw [if_pos ZetaPacketLabel.isArchimedean_archimedean]
-      ring
+      have hp := primePart_archimedean x
+      have ha := archimedeanPart_archimedean x
+      exact by
+        calc
+          primePart x ZetaPacketLabel.archimedean *
+              archimedeanPart x ZetaPacketLabel.archimedean
+              = 0 * x ZetaPacketLabel.archimedean := by
+                rw [hp, ha]
+          _ = 0 := by
+                exact zero_mul _
   | correction =>
-      rw [primePart_apply, archimedeanPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_correction]
-      rw [if_neg ZetaPacketLabel.isArchimedean_correction]
-      ring
+      have hp := primePart_correction x
+      have ha := archimedeanPart_correction x
+      exact by
+        calc
+          primePart x ZetaPacketLabel.correction *
+              archimedeanPart x ZetaPacketLabel.correction
+              = 0 * 0 := by
+                rw [hp, ha]
+          _ = 0 := by
+                exact zero_mul _
 
 /-- Prime and correction packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_prime_correction (x : ZetaPacketEnsemble) :
@@ -93,20 +139,35 @@ theorem dotProduct_prime_correction (x : ZetaPacketEnsemble) :
   intro ℓ hℓ
   cases ℓ with
   | prime m n =>
-      rw [primePart_apply, correctionPart_apply]
-      rw [if_pos (ZetaPacketLabel.isPrime_prime m n)]
-      rw [if_neg (ZetaPacketLabel.isCorrection_prime m n)]
-      ring
+      have hp := primePart_prime x m n
+      have hc := correctionPart_prime x m n
+      exact by
+        calc
+          primePart x (ZetaPacketLabel.prime m n) * correctionPart x (ZetaPacketLabel.prime m n)
+              = x (ZetaPacketLabel.prime m n) * 0 := by
+                rw [hp, hc]
+          _ = 0 := by
+                exact mul_zero _
   | archimedean =>
-      rw [primePart_apply, correctionPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_archimedean]
-      rw [if_neg ZetaPacketLabel.isCorrection_archimedean]
-      ring
+      have hp := primePart_archimedean x
+      have hc := correctionPart_archimedean x
+      exact by
+        calc
+          primePart x ZetaPacketLabel.archimedean * correctionPart x ZetaPacketLabel.archimedean
+              = 0 * 0 := by
+                rw [hp, hc]
+          _ = 0 := by
+                exact zero_mul _
   | correction =>
-      rw [primePart_apply, correctionPart_apply]
-      rw [if_neg ZetaPacketLabel.isPrime_correction]
-      rw [if_pos ZetaPacketLabel.isCorrection_correction]
-      ring
+      have hp := primePart_correction x
+      have hc := correctionPart_correction x
+      exact by
+        calc
+          primePart x ZetaPacketLabel.correction * correctionPart x ZetaPacketLabel.correction
+              = 0 * x ZetaPacketLabel.correction := by
+                rw [hp, hc]
+          _ = 0 := by
+                exact zero_mul _
 
 /-- Archimedean and correction packet parts are orthogonal for the packet kernel. -/
 theorem dotProduct_archimedean_correction (x : ZetaPacketEnsemble) :
@@ -116,20 +177,38 @@ theorem dotProduct_archimedean_correction (x : ZetaPacketEnsemble) :
   intro ℓ hℓ
   cases ℓ with
   | prime m n =>
-      rw [archimedeanPart_apply, correctionPart_apply]
-      rw [if_neg (ZetaPacketLabel.isArchimedean_prime m n)]
-      rw [if_neg (ZetaPacketLabel.isCorrection_prime m n)]
-      ring
+      have ha := archimedeanPart_prime x m n
+      have hc := correctionPart_prime x m n
+      exact by
+        calc
+          archimedeanPart x (ZetaPacketLabel.prime m n) *
+              correctionPart x (ZetaPacketLabel.prime m n)
+              = 0 * 0 := by
+                rw [ha, hc]
+          _ = 0 := by
+                exact zero_mul _
   | archimedean =>
-      rw [archimedeanPart_apply, correctionPart_apply]
-      rw [if_pos ZetaPacketLabel.isArchimedean_archimedean]
-      rw [if_neg ZetaPacketLabel.isCorrection_archimedean]
-      ring
+      have ha := archimedeanPart_archimedean x
+      have hc := correctionPart_archimedean x
+      exact by
+        calc
+          archimedeanPart x ZetaPacketLabel.archimedean *
+              correctionPart x ZetaPacketLabel.archimedean
+              = x ZetaPacketLabel.archimedean * 0 := by
+                rw [ha, hc]
+          _ = 0 := by
+                exact mul_zero _
   | correction =>
-      rw [archimedeanPart_apply, correctionPart_apply]
-      rw [if_neg ZetaPacketLabel.isArchimedean_correction]
-      rw [if_pos ZetaPacketLabel.isCorrection_correction]
-      ring
+      have ha := archimedeanPart_correction x
+      have hc := correctionPart_correction x
+      exact by
+        calc
+          archimedeanPart x ZetaPacketLabel.correction *
+              correctionPart x ZetaPacketLabel.correction
+              = 0 * x ZetaPacketLabel.correction := by
+                rw [ha, hc]
+          _ = 0 := by
+                exact zero_mul _
 
 /-- The squared norm splits into the three packet-family Gram sums. -/
 theorem normSq_eq_prime_add_archimedean_add_correction (x : ZetaPacketEnsemble) :
