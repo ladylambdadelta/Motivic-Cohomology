@@ -28,6 +28,17 @@ theorem translationDefect_apply (a : ℝ) (f : ZetaTestFunction) (x : ℝ) :
     translationDefect a f x = f (x + a / 2) - f (x - a / 2) := by
   rfl
 
+theorem translationDefect_add_apply (a : ℝ) (f g : ZetaTestFunction) (x : ℝ) :
+    translationDefect a (f + g) x = translationDefect a f x + translationDefect a g x := by
+  unfold translationDefect
+  calc
+    (f (x + a / 2) + g (x + a / 2)) - (f (x - a / 2) + g (x - a / 2)) =
+        (f (x + a / 2) + g (x + a / 2)) +
+          (-f (x - a / 2) + -g (x - a / 2)) := by
+          rw [sub_eq_add_neg, neg_add]
+    _ = (f (x + a / 2) + -f (x - a / 2)) + (g (x + a / 2) + -g (x - a / 2)) := by
+          ac_rfl
+
 theorem translationDefect_zero (f : ZetaTestFunction) :
     translationDefect 0 f = fun _ => 0 := by
   funext x
@@ -48,6 +59,22 @@ theorem translationDefect_neg (a : ℝ) (f : ZetaTestFunction) :
   rw [show x + (-a) / 2 = x - a / 2 by ring]
   rw [show x - (-a) / 2 = x + a / 2 by ring]
   ring
+
+theorem translationDefect_smul_apply (a : ℝ) (c : ℂ) (f : ZetaTestFunction) (x : ℝ) :
+    translationDefect a (c • f) x = c * translationDefect a f x := by
+  unfold translationDefect
+  calc
+    c * f (x + a / 2) - c * f (x - a / 2) =
+        c * f (x + a / 2) + -(c * f (x - a / 2)) := by
+          rw [sub_eq_add_neg]
+    _ = c * (f (x + a / 2) + -f (x - a / 2)) := by
+          rw [← mul_neg, ← mul_add]
+
+theorem translationDefect_zero_apply (a : ℝ) (x : ℝ) :
+    translationDefect a (0 : ZetaTestFunction) x = 0 := by
+  unfold translationDefect
+  change (0 : ℂ) - 0 = 0
+  rw [sub_eq_add_neg, neg_zero, zero_add]
 
 /-- The prime-side translation defect at the logarithmic prime-power center. -/
 def primePacketTranslationDefect (p : ℝ) (n : ℕ) (f : ZetaTestFunction) : ℝ → ℂ :=
@@ -88,6 +115,15 @@ theorem archimedeanTranslationDefect_apply (a : ℝ) (f : ZetaTestFunction) (x :
     archimedeanTranslationDefect a f x = f (x + a / 2) + f (x - a / 2) := by
   rfl
 
+theorem archimedeanTranslationDefect_add_apply (a : ℝ) (f g : ZetaTestFunction) (x : ℝ) :
+    archimedeanTranslationDefect a (f + g) x =
+      archimedeanTranslationDefect a f x + archimedeanTranslationDefect a g x := by
+  unfold archimedeanTranslationDefect
+  change
+    f (x + a / 2) + g (x + a / 2) + (f (x - a / 2) + g (x - a / 2)) =
+      (f (x + a / 2) + f (x - a / 2)) + (g (x + a / 2) + g (x - a / 2))
+  ac_rfl
+
 theorem archimedeanTranslationDefect_zero (f : ZetaTestFunction) :
     archimedeanTranslationDefect 0 f = fun x => 2 * f x := by
   ext x
@@ -101,6 +137,12 @@ theorem archimedeanTranslationDefect_reflect (a : ℝ) (f : ZetaTestFunction) :
   unfold archimedeanTranslationDefect reflect
   ring_nf
 
+theorem archimedeanTranslationDefect_reflect_zero (a : ℝ) (f : ZetaTestFunction) :
+    archimedeanTranslationDefect a (reflect f) 0 = archimedeanTranslationDefect a f 0 := by
+  have h := congrFun (archimedeanTranslationDefect_reflect a f) 0
+  rw [neg_zero] at h
+  exact h
+
 theorem archimedeanTranslationDefect_neg (a : ℝ) (f : ZetaTestFunction) :
     archimedeanTranslationDefect (-a) f = archimedeanTranslationDefect a f := by
   ext x
@@ -108,6 +150,21 @@ theorem archimedeanTranslationDefect_neg (a : ℝ) (f : ZetaTestFunction) :
   rw [show x + (-a) / 2 = x - a / 2 by ring]
   rw [show x - (-a) / 2 = x + a / 2 by ring]
   ring
+
+theorem archimedeanTranslationDefect_smul_apply (a : ℝ) (c : ℂ) (f : ZetaTestFunction)
+    (x : ℝ) :
+    archimedeanTranslationDefect a (c • f) x = c * archimedeanTranslationDefect a f x := by
+  unfold archimedeanTranslationDefect
+  change
+    (c * f (x + a / 2)) + (c * f (x - a / 2)) =
+      c * (f (x + a / 2) + f (x - a / 2))
+  rw [← mul_add]
+
+theorem archimedeanTranslationDefect_zero_apply (a : ℝ) (x : ℝ) :
+    archimedeanTranslationDefect a (0 : ZetaTestFunction) x = 0 := by
+  unfold archimedeanTranslationDefect
+  change (0 : ℂ) + 0 = 0
+  rw [zero_add]
 
 end ZetaTestFunction
 
