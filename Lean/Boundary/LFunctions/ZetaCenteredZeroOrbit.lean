@@ -17,17 +17,42 @@ namespace CenteredZetaZero
 /-- The reflection orbit of a centered zeta zero. -/
 def orbit (z : CenteredZetaZero) : Finset ℂ := ({(z : ℂ), (-z : ℂ)} : Finset ℂ)
 
+theorem orbit_mem_iff_left (z : CenteredZetaZero) {x : ℂ} :
+    x ∈ orbit z → x = (z : ℂ) ∨ x = -z := by
+  intro hx
+  change x ∈ insert (z : ℂ) ({(-z : ℂ)} : Finset ℂ) at hx
+  rcases Finset.mem_insert.mp hx with rfl | hx'
+  · exact Or.inl rfl
+  · have hx'' : x = -z := by
+      change x ∈ ({(-z : ℂ)} : Finset ℂ) at hx'
+      exact Finset.mem_singleton.mp hx'
+    exact Or.inr hx''
+
+theorem orbit_mem_iff_right (z : CenteredZetaZero) {x : ℂ} :
+    x = (z : ℂ) ∨ x = -z → x ∈ orbit z := by
+  intro hx
+  rcases hx with rfl | rfl
+  · exact Finset.mem_insert_self _ _
+  · have hmem : (-z : ℂ) ∈ ({(-z : ℂ)} : Finset ℂ) := by
+      exact Finset.mem_singleton_self (-z : ℂ)
+    exact Finset.mem_insert_of_mem hmem
+
+theorem orbit_mem_iff (z : CenteredZetaZero) {x : ℂ} :
+    x ∈ orbit z ↔ x = (z : ℂ) ∨ x = -z := by
+  constructor
+  · exact orbit_mem_iff_left z
+  · exact orbit_mem_iff_right z
+
 theorem mem_orbit_left (z : CenteredZetaZero) : (z : ℂ) ∈ orbit z := by
-  simp [orbit]
+  exact orbit_mem_iff_right z (Or.inl rfl)
 
 theorem mem_orbit_right (z : CenteredZetaZero) : (-z : ℂ) ∈ orbit z := by
-  simp [orbit]
+  exact orbit_mem_iff_right z (Or.inr rfl)
 
 theorem orbit_finite (z : CenteredZetaZero) : ({x : ℂ | x ∈ orbit z}.Finite) := by
-  classical
   exact Set.Finite.ofFinset (orbit z) (by
     intro x
-    constructor <;> intro hx <;> simpa [orbit] using hx)
+    constructor <;> intro hx <;> exact hx)
 
 /-- The orbit of a centered zero is stable under negation. -/
 theorem orbit_neg (z : CenteredZetaZero) :
@@ -38,8 +63,7 @@ theorem orbit_neg (z : CenteredZetaZero) :
 
 /-- The orbit of a centered zero is a two-point finset. -/
 theorem orbit_card_le_two (z : CenteredZetaZero) : (orbit z).card ≤ 2 := by
-  classical
-  simpa [orbit] using (Finset.card_le_two (a := (z : ℂ)) (b := (-z : ℂ)))
+  exact Finset.card_le_two (a := (z : ℂ)) (b := (-z : ℂ))
 
 /-- The centered zero orbit can be extracted as a finite support. -/
 theorem orbit_support_finite (z : CenteredZetaZero) : {x : ℂ | x ∈ orbit z}.Finite := by
