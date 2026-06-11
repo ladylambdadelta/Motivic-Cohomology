@@ -104,7 +104,6 @@ theorem zeroObject_mem_directSumSubgroup (A : EndomorphismObject.{u, v} K)
       (directSumSubgroup K : AddSubgroup (VirtualEndomorphism K)) := by
   exact AddSubgroup.subset_closure (Or.inr (Or.inr ⟨A, hA, rfl⟩))
 
-@[simp]
 theorem mk_directSumRelation (A B : EndomorphismObject.{u, v} K) :
     mk K (directSumRelation K A B) = 0 := by
   change (directSumRelation K A B : K0 K) = 0
@@ -112,7 +111,6 @@ theorem mk_directSumRelation (A B : EndomorphismObject.{u, v} K) :
     (N := directSumSubgroup K) (directSumRelation K A B)).2
       (directSumRelation_mem_directSumSubgroup K A B)
 
-@[simp]
 theorem mk_zeroObject_of_isZero (A : EndomorphismObject.{u, v} K)
     (hA : Subsingleton A.carrier) :
     mk K (of K A) = (0 : K0 K) := by
@@ -121,7 +119,6 @@ theorem mk_zeroObject_of_isZero (A : EndomorphismObject.{u, v} K)
     (N := directSumSubgroup K) (of K A)).2
       (zeroObject_mem_directSumSubgroup K A hA)
 
-@[simp]
 theorem mk_zeroObject :
     mk K (of K (zeroObject K)) = (0 : K0 K) := by
   exact mk_zeroObject_of_isZero K (zeroObject K)
@@ -146,7 +143,6 @@ theorem mk_directSum_eq_add (A B : EndomorphismObject.{u, v} K) :
             exact mk_directSumRelation (K := K) A B)
 
 /-- Conjugate endomorphism objects have the same class in `K0`. -/
-@[simp]
 theorem mk_conj_eq_mk (A : EndomorphismObject.{u, v} K) {B : EndomorphismObject.{u, v} K}
     (e : A.carrier ≃ₗ[K] B.carrier) :
     mk K (of K (EndomorphismObject.conj A e)) = mk K (of K A) := by
@@ -160,14 +156,12 @@ the unit group of `RatFunc K`. -/
 def determinantCharacter : VirtualEndomorphism K →+ Additive ((RatFunc K)ˣ) :=
   FreeAbelianGroup.lift fun A => Additive.ofMul (EndomorphismObject.determinantUnit A)
 
-@[simp]
 theorem determinantCharacter_of (A : EndomorphismObject.{u, v} K) :
     determinantCharacter K (of K A) =
       Additive.ofMul (EndomorphismObject.determinantUnit A) := by
   exact FreeAbelianGroup.lift.of _ A
 
 /-- The determinant character kills the direct-sum relation. -/
-@[simp]
 theorem determinantCharacter_directSumRelation (A B : EndomorphismObject.{u, v} K) :
     determinantCharacter K (directSumRelation K A B) = 0 := by
   calc
@@ -180,8 +174,9 @@ theorem determinantCharacter_directSumRelation (A B : EndomorphismObject.{u, v} 
           exact map_sub (determinantCharacter K) _ _
     _ = determinantCharacter K (of K (EndomorphismObject.product A B)) -
           (determinantCharacter K (of K A) + determinantCharacter K (of K B)) := by
-          congr 1
-          exact map_add (determinantCharacter K) (of K A) (of K B)
+          exact congrArg
+            (fun x => determinantCharacter K (of K (EndomorphismObject.product A B)) - x)
+            (map_add (determinantCharacter K) (of K A) (of K B))
     _ = Additive.ofMul (EndomorphismObject.determinantUnit (EndomorphismObject.product A B)) -
           (Additive.ofMul (EndomorphismObject.determinantUnit A) +
             Additive.ofMul (EndomorphismObject.determinantUnit B)) := by
@@ -215,7 +210,6 @@ theorem determinantCharacter_conjRelation
           exact sub_eq_zero.mpr
             (congrArg Additive.ofMul (EndomorphismObject.determinantUnit_conj A e))
 
-@[simp]
 theorem determinantCharacter_zeroObject (A : EndomorphismObject.{u, v} K)
     (hA : Subsingleton A.carrier) :
     determinantCharacter K (of K A) = 0 := by
@@ -263,13 +257,11 @@ def determinantCharacterK0Mul : Multiplicative (K0 K) →* (RatFunc K)ˣ where
   map_mul' x y := by
     exact determinantCharacterK0Mul_map_mul (K := K) x y
 
-@[simp]
 theorem determinantCharacterK0_mk (x : VirtualEndomorphism K) :
     determinantCharacterK0 K (mk K x) = determinantCharacter K x := by
   exact QuotientAddGroup.lift_mk (directSumSubgroup K)
     (directSumSubgroup_le_determinantCharacter_ker K) x
 
-@[simp]
 theorem determinantCharacterK0_of (A : EndomorphismObject.{u, v} K) :
     determinantCharacterK0 K (mk K (of K A)) =
       Additive.ofMul (EndomorphismObject.determinantUnit A) := by
@@ -279,7 +271,6 @@ theorem determinantCharacterK0_of (A : EndomorphismObject.{u, v} K) :
     _ = Additive.ofMul (EndomorphismObject.determinantUnit A) := by
       exact determinantCharacter_of (K := K) A
 
-@[simp]
 theorem determinantCharacterK0Mul_of (A : EndomorphismObject.{u, v} K) :
     determinantCharacterK0Mul K (Multiplicative.ofAdd (mk K (of K A))) =
       EndomorphismObject.determinantUnit A := by
@@ -389,13 +380,11 @@ theorem tracePower_zeroObject (n : ℕ) (A : EndomorphismObject.{u, v} K)
   | succ n =>
       exact tracePower_zeroObject_succ (K := K) n A hA
 
-@[simp]
 theorem traceCharacter_of (n : ℕ) (A : EndomorphismObject.{u, v} K) :
     traceCharacter K n (of K A) = EndomorphismObject.tracePower n A := by
   exact FreeAbelianGroup.lift.of _ A
 
 /-- The trace-power character kills the direct-sum relation. -/
-@[simp]
 theorem traceCharacter_directSumRelation (n : ℕ) (A B : EndomorphismObject.{u, v} K) :
     traceCharacter K n (directSumRelation K A B) = 0 := by
   calc
@@ -408,8 +397,9 @@ theorem traceCharacter_directSumRelation (n : ℕ) (A B : EndomorphismObject.{u,
           exact map_sub (traceCharacter K n) _ _
     _ = traceCharacter K n (of K (EndomorphismObject.product A B)) -
           (traceCharacter K n (of K A) + traceCharacter K n (of K B)) := by
-          congr 1
-          exact map_add (traceCharacter K n) (of K A) (of K B)
+          exact congrArg
+            (fun x => traceCharacter K n (of K (EndomorphismObject.product A B)) - x)
+            (map_add (traceCharacter K n) (of K A) (of K B))
     _ = EndomorphismObject.tracePower n (EndomorphismObject.product A B) -
           (EndomorphismObject.tracePower n A + EndomorphismObject.tracePower n B) := by
           exact congrArg₂ (fun a b => a - b)
@@ -437,14 +427,12 @@ theorem traceCharacter_conjRelation (n : ℕ) (A : EndomorphismObject.{u, v} K)
     _ = 0 := by
           exact sub_eq_zero.mpr (EndomorphismObject.tracePower_conj n A e)
 
-@[simp]
 theorem traceCharacter_zeroObject (n : ℕ) (A : EndomorphismObject.{u, v} K)
     (hA : Subsingleton A.carrier) :
     traceCharacter K n (of K A) = 0 := by
   exact (traceCharacter_of (K := K) n A).trans (tracePower_zeroObject (K := K) n A hA)
 
 /-- The first trace character kills the direct-sum relation. -/
-@[simp]
 theorem traceCharacter_one_directSumRelation (A B : EndomorphismObject.{u, v} K) :
     traceCharacter K 1 (directSumRelation K A B) = 0 :=
   traceCharacter_directSumRelation K 1 A B
@@ -474,13 +462,11 @@ def traceCharacterK0 (n : ℕ) : K0 K →+ K :=
   QuotientAddGroup.lift (directSumSubgroup K) (traceCharacter K n)
     (directSumSubgroup_le_traceCharacter_ker K n)
 
-@[simp]
 theorem traceCharacterK0_mk (n : ℕ) (x : VirtualEndomorphism K) :
     traceCharacterK0 K n (mk K x) = traceCharacter K n x := by
   exact QuotientAddGroup.lift_mk (directSumSubgroup K)
     (directSumSubgroup_le_traceCharacter_ker K n) x
 
-@[simp]
 theorem traceCharacterK0_of (n : ℕ) (A : EndomorphismObject.{u, v} K) :
     traceCharacterK0 K n (mk K (of K A)) = EndomorphismObject.tracePower n A := by
   calc
@@ -493,7 +479,6 @@ theorem traceCharacterK0_of (n : ℕ) (A : EndomorphismObject.{u, v} K) :
 def powerMapVirtual (n : ℕ) : VirtualEndomorphism K →+ VirtualEndomorphism K :=
   FreeAbelianGroup.lift fun A => of K (EndomorphismObject.power A n)
 
-@[simp]
 theorem powerMapVirtual_of (n : ℕ) (A : EndomorphismObject.{u, v} K) :
     powerMapVirtual K n (of K A) = of K (EndomorphismObject.power A n) := by
   exact FreeAbelianGroup.lift.of _ A
@@ -514,8 +499,9 @@ theorem powerMapVirtual_directSumRelation
           exact map_sub (powerMapVirtual K n) _ _
     _ = of K (EndomorphismObject.power (EndomorphismObject.product A B) n) -
           (powerMapVirtual K n (of K A) + powerMapVirtual K n (of K B)) := by
-          congr 1
-          exact map_add (powerMapVirtual K n) (of K A) (of K B)
+          exact congrArg
+            (fun x => of K (EndomorphismObject.power (EndomorphismObject.product A B) n) - x)
+            (map_add (powerMapVirtual K n) (of K A) (of K B))
     _ = of K (EndomorphismObject.product (EndomorphismObject.power A n)
             (EndomorphismObject.power B n)) -
           (of K (EndomorphismObject.power A n) + of K (EndomorphismObject.power B n)) := by
@@ -615,7 +601,6 @@ def powerMapK0 (n : ℕ) : K0 K →+ K0 K :=
         (N := directSumSubgroup K) (powerMapVirtual K n x)).2
           (powerMapVirtual_directSumSubgroup_le K n hx))
 
-@[simp]
 theorem powerMapK0_mk (n : ℕ) (x : VirtualEndomorphism K) :
     powerMapK0 K n (mk K x) = mk K (powerMapVirtual K n x) := by
   exact QuotientAddGroup.lift_mk (directSumSubgroup K)
@@ -626,7 +611,6 @@ theorem powerMapK0_mk (n : ℕ) (x : VirtualEndomorphism K) :
           (powerMapVirtual_directSumSubgroup_le K n hx))
     x
 
-@[simp]
 theorem powerMapK0_of (n : ℕ) (A : EndomorphismObject.{u, v} K) :
     powerMapK0 K n (mk K (of K A)) =
       mk K (of K (EndomorphismObject.power A n)) := by
@@ -793,7 +777,6 @@ theorem powerMapK0_one_induction
   | Cp y z hy hz =>
       exact powerMapK0_one_add_step (K := K) y z hy hz
 
-@[simp]
 theorem powerMapK0_one (x : K0 K) :
     powerMapK0 K 1 x = x := by
   exact Quotient.inductionOn' x
@@ -891,13 +874,11 @@ theorem powerMapK0_comp (m n : ℕ) (x : K0 K) :
 def traceCharacterOneK0 : K0 K →+ K :=
   traceCharacterK0 K 1
 
-@[simp]
 theorem traceCharacterOneK0_mk (x : VirtualEndomorphism K) :
     traceCharacterOneK0 K (mk K x) = traceCharacter K 1 x := by
   exact QuotientAddGroup.lift_mk (directSumSubgroup K)
     (directSumSubgroup_le_traceCharacter_one_ker K) x
 
-@[simp]
 theorem traceCharacterOneK0_of (A : EndomorphismObject.{u, v} K) :
     traceCharacterOneK0 K (mk K (of K A)) = EndomorphismObject.tracePower 1 A := by
   calc
