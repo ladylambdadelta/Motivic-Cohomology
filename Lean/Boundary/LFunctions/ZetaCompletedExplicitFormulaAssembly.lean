@@ -15,20 +15,37 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
-/-- The completed explicit formula for autocorrelation probes, assembled from the
-class-free owner theorems. -/
-theorem zeta_completed_explicit_formula_autocorrelation
+/-- The completed explicit formula for convolution-autocorrelation probes, assembled from the
+class-free owner theorems. This is the remaining analytic target, not a proved
+boundary/packet normalization theorem. -/
+def zeta_completed_explicit_formula_convolutionAutocorrelation
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram f =
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact ZetaAdmissibleFunction.zetaCompletedZeroKreinGram_eq_explicitFormulaBoundarySum (f := f)
+    Prop :=
+  zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f
 
-/-- The analytic package exposes the completed explicit-formula autocorrelation identity. -/
-theorem ExplicitFormulaAnalyticPackage.zetaCompletedExplicitFormula_autocorrelation
+/-- Historical public name for the convolution-autocorrelation explicit-formula target. -/
+abbrev zeta_completed_explicit_formula_autocorrelation
+    (f : ZetaAdmissibleFunction) : Prop :=
+  zeta_completed_explicit_formula_convolutionAutocorrelation f
+
+/-- The analytic package exposes the completed explicit-formula convolution-autocorrelation
+target. -/
+theorem ExplicitFormulaAnalyticPackage.zetaCompletedExplicitFormula_convolutionAutocorrelation_target
+    {f : ZetaAdmissibleFunction} (_h : ExplicitFormulaAnalyticPackage f) :
+    ZetaAdmissibleFunction.zeta_completed_explicit_formula_convolutionAutocorrelation f ↔
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  rfl
+
+/-- Historical package name for the convolution-autocorrelation explicit-formula target. -/
+theorem ExplicitFormulaAnalyticPackage.zetaCompletedExplicitFormula_autocorrelation_target
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
-    zetaCompletedZeroKreinGram f =
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact ZetaAdmissibleFunction.zeta_completed_explicit_formula_autocorrelation f
+    ZetaAdmissibleFunction.zeta_completed_explicit_formula_autocorrelation f ↔
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  exact ExplicitFormulaAnalyticPackage
+    .zetaCompletedExplicitFormula_convolutionAutocorrelation_target h
 
 end ZetaAdmissibleFunction
 

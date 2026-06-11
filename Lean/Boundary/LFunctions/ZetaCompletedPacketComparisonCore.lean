@@ -19,24 +19,24 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
-/-- Helper: completed Weil form of an autocorrelation is the packet norm square. -/
-theorem zetaWeilFormCompleted_eq_packetNormSq_helper
+/-- Helper: the explicit-formula boundary sum is the centered packet norm square. -/
+theorem zetaCompletedExplicitFormulaBoundarySum_eq_packetNormSq_helper
     (f : ZetaAdmissibleFunction) :
-    zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) =
-      zetaCompletedPacketNormSq f := by
-  exact zetaWeilFormCompleted_eq_packetNormSq_classFree f
+    zetaCompletedExplicitFormulaBoundarySum f =
+      zetaCompletedPacketNormSq f 0 := by
+  exact zetaCompletedExplicitFormulaBoundarySum_eq_completedPacketNormSq f
 
-/-- Helper: the zero-side Krein form is the packet norm square. -/
-theorem zetaCompletedZeroKreinGram_eq_completedPacketNormSq_helper
+/-- Helper: the boundary-defect Gram is the centered packet norm square. -/
+theorem zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq_helper
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram f = zetaCompletedPacketNormSq f := by
-  exact zetaCompletedZeroKreinGram_eq_completedPacketNormSq_classFree f
+    zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 := by
+  exact zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f
 
-/-- Helper: completed Weil form of an autocorrelation is nonnegative. -/
-theorem zetaWeilFormCompleted_autocorrelation_nonnegative_helper
+/-- Helper: the explicit-formula boundary sum is nonnegative. -/
+theorem zetaCompletedExplicitFormulaBoundarySum_nonnegative_helper
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  exact zetaWeilFormCompleted_autocorrelation_nonnegative_classFree f
+    0 ≤ zetaCompletedExplicitFormulaBoundarySum f := by
+  exact zetaCompletedExplicitFormulaBoundarySum_nonnegative f
 
 end ZetaAdmissibleFunction
 

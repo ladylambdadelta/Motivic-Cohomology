@@ -17,11 +17,6 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
-/-- The admissible spectral model is the explicit-formula transform. -/
-abbrev spectralModel (f : ZetaAdmissibleFunction) :
-    ZetaTestFunction.explicitFormulaLinearDefectPackage :=
-  toZetaExplicitFormulaLinearTransform f
-
 /-- The admissible interpolation surface is the pair of spectral model and probe. -/
 def interpolationSurface (f : ZetaAdmissibleFunction) :
     ZetaTestFunction.explicitFormulaLinearDefectPackage × ZetaTestFunction :=
@@ -61,7 +56,8 @@ theorem interpolationSurface_components (f : ZetaAdmissibleFunction) :
 /-- The spectral-model component of a finite sum is the finite sum of spectral models. -/
 theorem interpolationSurface_fst_sum {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) :
     (interpolationSurface (∑ a in s, f a)).1 = ∑ a in s, spectralModel (f a) := by
-  rw [interpolationSurface_fst, toZetaExplicitFormulaLinearTransform_sum]
+  exact (interpolationSurface_fst (∑ a in s, f a)).trans
+    (spectralModel_sum (s := s) f)
 
 /-- A finite sample can be realized by an admissible interpolation surface with compact support. -/
 theorem exists_interpolationSurface_eval_sample_with_support
@@ -85,7 +81,7 @@ theorem exists_interpolationSurface_eval_sample_with_basis_support
       ∃ f : ZetaAdmissibleFunction,
         (∀ i, f (S.x i) = a i) ∧
         HasCompactSupport f ∧
-        Function.support f ⊆ Set.iUnion fun i => Function.support (F i) ∧
+        Function.support f ⊆ (Set.iUnion fun i => Function.support (F i)) ∧
         (interpolationSurface f).1 = spectralModel f ∧
         (interpolationSurface f).2 = separatingProbe f := by
   rcases exists_admissible_eval_sample_with_basis_support S a with
@@ -105,7 +101,7 @@ theorem exists_interpolationSurface_eval_sample_with_basis_closedBall_support
       ∃ f : ZetaAdmissibleFunction,
         (∀ i, f (S.x i) = a i) ∧
         HasCompactSupport f ∧
-        Function.support f ⊆ Set.iUnion fun i => Function.support (F i) ∧
+        Function.support f ⊆ (Set.iUnion fun i => Function.support (F i)) ∧
         (interpolationSurface f).1 = spectralModel f ∧
         (interpolationSurface f).2 = separatingProbe f := by
   rcases exists_admissible_eval_sample_with_basis_closedBall_support S a with

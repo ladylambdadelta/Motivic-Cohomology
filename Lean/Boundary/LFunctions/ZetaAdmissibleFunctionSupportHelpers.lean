@@ -58,7 +58,20 @@ theorem support_of_smul_term_nonzero {c : ℂ} {f : ZetaAdmissibleFunction} {x :
 theorem support_sum_subset_finset {α : Type*} [DecidableEq α] (s : Finset α)
     (f : α → ZetaAdmissibleFunction) :
     Function.support (∑ a in s, f a) ⊆ ⋃ a ∈ s, Function.support (f a) := by
-  simpa using support_sum_subset (s := s) (f := f)
+  intro x hx
+  have hxfunction :
+      (∑ a in s, ⇑(f a).toZetaTestFunction) x ≠ 0 := by
+    exact hx
+  have hxsum : (∑ a in s, f a x) ≠ 0 := by
+    exact Eq.subst (motive := fun y => y ≠ 0)
+      (s.sum_apply x (fun a => ⇑(f a).toZetaTestFunction))
+      hxfunction
+  have hterm : ∃ a ∈ s, f a x ≠ 0 :=
+    exists_nonzero_term_of_sum_ne_zero_at (s := s) (g := f) hxsum
+  exact mem_iUnion_pair_of_exists
+    (p := fun a => Function.support (f a))
+    (x := x)
+    hterm
 
 end ZetaAdmissibleFunction
 

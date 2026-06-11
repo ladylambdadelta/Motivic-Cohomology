@@ -20,9 +20,10 @@ theorem orbit_subset_centeredZetaZeros (z : CenteredZetaZero) :
     {x : ℂ | x ∈ orbit z} ⊆ centeredZetaZeros := by
   intro x hx
   unfold centeredZetaZeros
-  rcases hx with rfl | rfl
-  · exact z.2
-  · exact (centeredZetaZeros_neg z).1 z.2
+  have hx_orbit : x = (z : ℂ) ∨ x = -z := orbit_mem_iff_left z hx
+  rcases hx_orbit with hx_left | hx_right
+  · exact Eq.subst hx_left.symm z.2
+  · exact Eq.subst hx_right.symm ((centeredZetaZeros_neg z).1 z.2)
 
 /-- The centered zero orbit is isolated inside the centered zero set. -/
 theorem centeredZeroOrbit_isolated (z : CenteredZetaZero) :

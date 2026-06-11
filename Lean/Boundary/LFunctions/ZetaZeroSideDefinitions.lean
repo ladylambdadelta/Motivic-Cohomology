@@ -19,6 +19,8 @@ namespace LFunctions
 
 noncomputable section
 
+open MeasureTheory
+
 /-- The centered completed zeta zero predicate used by the zero-side definitions. -/
 abbrev ZetaCompletedZero (ρ : ℂ) : Prop := centeredCompletedRiemannZeta ρ = 0
 
@@ -29,7 +31,9 @@ function when it is analytic at the point, and `0` otherwise. This keeps the
 zero-side bookkeeping tied to the canonical order-of-vanishing notion from
 `Mathlib.Analysis.Analytic.IsolatedZeros`. -/
 noncomputable def completedZetaZeroMultiplicity (ρ : ℂ) : ℕ :=
-  if h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ then h.order.toNat else 0
+  by
+    classical
+    exact if h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ then h.order.toNat else 0
 
 /-- The multiplicity of a centered completed zeta zero. -/
 def zetaZeroMultiplicity (ρ : ℂ) : ℕ :=
@@ -39,6 +43,7 @@ def zetaZeroMultiplicity (ρ : ℂ) : ℕ :=
 theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
     (h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ) :
     completedZetaZeroMultiplicity ρ = h.order.toNat := by
+  classical
   unfold completedZetaZeroMultiplicity
   exact dif_pos h
 
@@ -46,31 +51,32 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
   ρ - (1 / 2 : ℂ)
 
-/-- The spectral evaluation map for admissible test functions. -/
-def zetaSpectralTransform : ZetaAdmissibleFunction → ℂ → ℂ :=
+/-- The spectral transform of a test function. -/
+def zetaSpectralTransform : ZetaTestFunction → ℂ → ℂ :=
   zetaLaplaceTransform
 
 /-- The spectral evaluation of an admissible test function. -/
 abbrev zetaSpectralEval (φ : ZetaAdmissibleFunction) (z : ℂ) : ℂ :=
-  zetaSpectralTransform φ z
+  zetaSpectralTransform φ.toZetaTestFunction' z
 
 /-- The spectral transform is the zeta Laplace transform. -/
 theorem zetaSpectralTransform_eq_laplace
-    (φ : ZetaAdmissibleFunction) :
+    (φ : ZetaTestFunction) :
     zetaSpectralTransform φ = Boundary.zetaLaplaceTransform φ := by
   exact Eq.refl _
 
 /-- The spectral evaluation is the zeta Laplace transform evaluation. -/
 theorem zetaSpectralEval_eq_laplace
     (φ : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval φ z = Boundary.zetaLaplaceTransform φ z := by
+    zetaSpectralEval φ z = Boundary.zetaLaplaceTransform φ.toZetaTestFunction' z := by
   exact Eq.refl _
 
 /-- The spectral evaluation of an autocorrelation is the constructed Laplace transform. -/
 theorem zetaSpectralEval_autocorrelation
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
-      Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
+      Boundary.zetaLaplaceTransform
+        (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z := by
   exact Eq.refl _
 
 /-- The single zero contribution to the completed zero side. -/
@@ -118,50 +124,51 @@ theorem zetaZeroSideContribution_def (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
 /-- The spectral transform of an autocorrelation is the constructed Laplace transform. -/
 theorem zetaSpectralTransform_autocorrelation
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
-      Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
+      Boundary.zetaLaplaceTransform
+        (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z := by
   exact Eq.refl _
 
 /-- The spectral transform is additive. -/
 theorem zetaSpectralTransform_add
-    (φ ψ : ZetaAdmissibleFunction) (z : ℂ) :
+    (φ ψ : ZetaTestFunction) (z : ℂ)
+    (hφ : Integrable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ))
+    (hψ : Integrable (fun t : ℝ => ψ t * Complex.exp (z * t)) (volume : Measure ℝ)) :
     zetaSpectralTransform (φ + ψ) z =
       zetaSpectralTransform φ z + zetaSpectralTransform ψ z := by
-  change Boundary.zetaLaplaceTransform (φ + ψ) z =
-    Boundary.zetaLaplaceTransform φ z + Boundary.zetaLaplaceTransform ψ z
-  exact Boundary.zetaLaplaceTransform_add φ ψ z
+  exact Boundary.zetaLaplaceTransform_add φ ψ z hφ hψ
 
 /-- The spectral transform is homogeneous under scalar multiplication. -/
 theorem zetaSpectralTransform_smul
-    (a : ℂ) (φ : ZetaAdmissibleFunction) (z : ℂ) :
+    (a : ℂ) (φ : ZetaTestFunction) (z : ℂ) :
     zetaSpectralTransform (a • φ) z = a * zetaSpectralTransform φ z := by
-  change Boundary.zetaLaplaceTransform (a • φ) z = a * Boundary.zetaLaplaceTransform φ z
   exact Boundary.zetaLaplaceTransform_smul a φ z
 
 /-- The spectral transform commutes with finite sums. -/
 theorem zetaSpectralTransform_sum
-    {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralTransform (∑ a in s, f a) z =
-      ∑ a in s, zetaSpectralTransform (f a) z := by
-  change Boundary.zetaLaplaceTransform (∑ a in s, f a) z =
-    ∑ a in s, Boundary.zetaLaplaceTransform (f a) z
-  exact Boundary.zetaLaplaceTransform_sum s f z
+    {α : Type*} [DecidableEq α] (s : Finset α) (φ : α → ZetaTestFunction) (z : ℂ)
+    (h : ∀ a ∈ s, Integrable (fun t : ℝ => φ a t * Complex.exp (z * t)) (volume : Measure ℝ)) :
+    zetaSpectralTransform (∑ a in s, φ a) z =
+      ∑ a in s, zetaSpectralTransform (φ a) z := by
+  exact Boundary.zetaLaplaceTransform_sum s φ z h
 
 /-- The spectral transform of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralTransform_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  change Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+  change Boundary.zetaLaplaceTransform
+      (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
     ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
   exact Boundary.zetaLaplaceTransform_autocorrelation f z
 
 /-- The spectral evaluation of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralEval_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
+    zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  change Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+  change Boundary.zetaLaplaceTransform
+      (ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
     ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
   exact Boundary.zetaLaplaceTransform_autocorrelation f z
 
@@ -180,15 +187,6 @@ theorem zetaZeroTail_def (S : Finset ℂ) (φ : ZetaAdmissibleFunction) :
       tsum (fun η : {η : ℂ // ZetaCompletedZero η ∧ η ∉ S} =>
         zetaZeroSideContribution (η : ℂ) φ) := by
   exact Eq.refl _
-
-/-- The centered zero set is countable. -/
-theorem centeredZetaZeros_countable :
-    centeredZetaZeros.Countable := by
-  have hfin : ∀ z : CenteredZetaZero, ({x : ℂ | x ∈ CenteredZetaZero.orbit z}.Finite) := by
-    intro z
-    exact CenteredZetaZero.orbit_finite z
-  refine countable_union (fun z => ?_)
-  exact (hfin z).countable
 
 end
 end LFunctions

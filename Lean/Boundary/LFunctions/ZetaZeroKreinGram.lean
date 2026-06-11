@@ -29,6 +29,18 @@ theorem zetaCompletedZeroKreinGram_eq_zeroSide
     zetaCompletedZeroKreinGram φ = zetaCompletedZeroSideRe φ := by
   rfl
 
+/-- The zero-side Krein form depends only on the underlying test function. -/
+theorem zetaCompletedZeroKreinGram_congr_toZetaTestFunction
+    {φ ψ : ZetaProbe}
+    (h : φ.toZetaTestFunction' = ψ.toZetaTestFunction') :
+    zetaCompletedZeroKreinGram φ = zetaCompletedZeroKreinGram ψ := by
+  have hzero :
+      zetaCompletedZeroSideRe φ = zetaCompletedZeroSideRe ψ :=
+    zetaCompletedZeroSideRe_congr_toZetaTestFunction h
+  exact
+    (zetaCompletedZeroKreinGram_eq_zeroSide φ).trans
+      (hzero.trans (zetaCompletedZeroKreinGram_eq_zeroSide ψ).symm)
+
 end
 end LFunctions
 end Boundary

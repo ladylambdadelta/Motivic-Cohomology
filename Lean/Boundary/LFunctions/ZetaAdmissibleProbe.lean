@@ -16,7 +16,7 @@ namespace ZetaAdmissibleFunction
 
 /-- The admissible separating probe attached to an admissible function. -/
 def separatingProbe (f : ZetaAdmissibleFunction) : ZetaTestFunction :=
-  autocorrelation f
+  (autocorrelation f).toZetaTestFunction'
 
 /-- The separating probe is pointwise the autocorrelation. -/
 theorem separatingProbe_apply (f : ZetaAdmissibleFunction) (x : ℝ) :
@@ -25,7 +25,7 @@ theorem separatingProbe_apply (f : ZetaAdmissibleFunction) (x : ℝ) :
 
 /-- The separating probe is the admissible autocorrelation. -/
 theorem separatingProbe_eq (f : ZetaAdmissibleFunction) :
-    separatingProbe f = autocorrelation f := by
+    separatingProbe f = (autocorrelation f).toZetaTestFunction' := by
   rfl
 
 /-- The admissible probe is the pointwise conjugate square. -/

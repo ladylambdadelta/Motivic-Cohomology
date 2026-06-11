@@ -27,6 +27,55 @@ theorem zetaCompletionCorrection_eq (s : ℂ) :
       1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s)) := by
   rfl
 
+/-- At the centered basepoint the correction has the explicit pole-normalized value. -/
+theorem zetaCompletionCorrection_zero :
+    zetaCompletionCorrection 0 =
+      1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) := by
+  have harg : (1 / 2 : ℂ) + 0 = (1 / 2 : ℂ) := add_zero (1 / 2 : ℂ)
+  have hleft :
+      1 / ((1 / 2 : ℂ) + 0) = 1 / (1 / 2 : ℂ) :=
+    congrArg (fun z : ℂ => 1 / z) harg
+  have hright_den :
+      1 - ((1 / 2 : ℂ) + 0) = 1 - (1 / 2 : ℂ) :=
+    congrArg (fun z : ℂ => 1 - z) harg
+  have hright :
+      1 / (1 - ((1 / 2 : ℂ) + 0)) = 1 / (1 - (1 / 2 : ℂ)) :=
+    congrArg (fun z : ℂ => 1 / z) hright_den
+  calc
+    zetaCompletionCorrection 0 =
+        1 / ((1 / 2 : ℂ) + 0) + 1 / (1 - ((1 / 2 : ℂ) + 0)) :=
+      zetaCompletionCorrection_eq 0
+    _ = 1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) :=
+      congrArg₂ (fun a b : ℂ => a + b) hleft hright
+
+/-- The centered basepoint correction is real. -/
+theorem zetaCompletionCorrection_zero_im :
+    Complex.im (zetaCompletionCorrection 0) = 0 := by
+  norm_num [zetaCompletionCorrection_zero]
+
+/-- The centered basepoint correction has real value four. -/
+theorem zetaCompletionCorrection_zero_re :
+    Complex.re (zetaCompletionCorrection 0) = 4 := by
+  norm_num [zetaCompletionCorrection_zero]
+
+/-- The normalized correction packet coordinate. Its square is the centered
+linear correction value. -/
+def zetaCompletionCorrectionPacketCoordinate : ℝ :=
+  2
+
+/-- The normalized correction packet coordinate squares to the centered
+correction contribution. -/
+theorem zetaCompletionCorrectionPacketCoordinate_sq :
+    zetaCompletionCorrectionPacketCoordinate *
+        zetaCompletionCorrectionPacketCoordinate =
+      Complex.re (zetaCompletionCorrection 0) := by
+  calc
+    zetaCompletionCorrectionPacketCoordinate *
+        zetaCompletionCorrectionPacketCoordinate = 4 := by
+      norm_num [zetaCompletionCorrectionPacketCoordinate]
+    _ = Complex.re (zetaCompletionCorrection 0) := by
+      exact zetaCompletionCorrection_zero_re.symm
+
 theorem zetaCompletionCorrection_neg (s : ℂ) :
     zetaCompletionCorrection (-s) = zetaCompletionCorrection s := by
   unfold zetaCompletionCorrection

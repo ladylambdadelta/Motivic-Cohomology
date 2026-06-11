@@ -17,17 +17,6 @@ namespace CenteredZetaZero
 theorem orbit_finite' (z : CenteredZetaZero) : ({x : ℂ | x ∈ orbit z}.Finite) := by
   exact orbit_finite z
 
-/-- The centered zero orbit is finite as a set. -/
-theorem orbit_finite (z : CenteredZetaZero) : ({x : ℂ | x ∈ orbit z}.Finite) := by
-  classical
-  exact Set.Finite.ofFinset (orbit z) (by
-    intro x
-    constructor
-    · intro hx
-      exact hx
-    · intro hx
-      exact hx)
-
 end CenteredZetaZero
 
 end

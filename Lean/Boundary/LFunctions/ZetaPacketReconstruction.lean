@@ -88,7 +88,7 @@ def zetaArchimedeanPacketAsEnsemble (f : ZetaAdmissibleFunction) :
 /-- The completion/correction packet associated to an admissible function. -/
 noncomputable def zetaCorrectionPacketAsEnsemble (_f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
-  ZetaPacketEnsemble.single .correction (Complex.re (zetaCompletionCorrection 0))
+  ZetaPacketEnsemble.single .correction zetaCompletionCorrectionPacketCoordinate
 
 /-- The canonical completed zeta packet attached to an admissible probe. -/
 def zetaPacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :

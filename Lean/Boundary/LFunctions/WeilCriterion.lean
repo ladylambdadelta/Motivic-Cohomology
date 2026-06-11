@@ -147,12 +147,6 @@ theorem zetaWeilCompletedPart_eq_dirichlet_mul_gamma (s : ℂ)
   have h := riemannZeta_def_of_ne_zero (s := (1 / 2 : ℂ) + s) hs
   exact (div_eq_iff hΓ).mp h.symm
 
-theorem completedRiemannZeta_eq_riemannZeta_mul_gamma {s : ℂ}
-    (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
-    completedRiemannZeta s = riemannZeta s * Gammaℝ s := by
-  have h := riemannZeta_def_of_ne_zero hs
-  exact (div_eq_iff hΓ).mp h.symm
-
 /-- Criterion-facing form of the centered completed zeta, expressed in the
 mathlib normalization. -/
 theorem zetaWeilForm_eq_completedRiemannZeta_centered (s : ℂ) :
@@ -199,20 +193,12 @@ theorem zetaWeilCorrection_centered_reflection (s : ℂ) :
 
 /-- The centered shift used in the RH transport theorem. -/
 theorem boundaryRiemannHypothesis_shift_eq (z : ℂ) :
-    z - 1 / 2 + 1 / 2 = z := by
-  have hsub : z - 1 / 2 = z + (-1 / 2 : ℂ) := by
-    exact sub_eq_add_neg z (1 / 2 : ℂ)
+    1 / 2 + (z - 1 / 2) = z := by
   calc
-    z - 1 / 2 + 1 / 2 = (z + (-1 / 2 : ℂ)) + 1 / 2 := by
-      exact congrArg (fun w : ℂ => w + 1 / 2) hsub
+    1 / 2 + (z - 1 / 2) = z - 1 / 2 + 1 / 2 := by
+      exact add_comm (1 / 2 : ℂ) (z - 1 / 2)
     _ = z := by
-      calc
-        z + (-1 / 2 : ℂ) + 1 / 2 = z + (((-1 / 2 : ℂ)) + 1 / 2) := by
-          exact (add_assoc z (-1 / 2 : ℂ) (1 / 2 : ℂ)).symm
-        _ = z + 0 := by
-          exact congrArg (fun w : ℂ => z + w) (add_left_neg_self (1 / 2 : ℂ))
-        _ = z := by
-          exact add_zero z
+      exact sub_add_cancel z (1 / 2 : ℂ)
 
 /-- The centered zero-criterion transport preserves the trivial-line exclusion. -/
 theorem boundaryRiemannHypothesis_nontrivial_shift
@@ -237,9 +223,13 @@ theorem boundaryRiemannHypothesis_realPart_of_centered
     (z : ℂ) (hsre : (z - 1 / 2).re = 0) :
     z.re = 1 / 2 := by
   have hsre' : z.re - 1 / 2 = 0 := by
-    have hcomplex : (z - 1 / 2 : ℂ).re = z.re - 1 / 2 := by
+    have hcomplex' : (z - 1 / 2 : ℂ).re = z.re - (1 / 2 : ℂ).re := by
       exact Complex.sub_re z (1 / 2 : ℂ)
-    exact hcomplex.trans hsre
+    have hhalf : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
+      norm_num
+    have hcomplex : (z - 1 / 2 : ℂ).re = z.re - 1 / 2 := by
+      exact hcomplex'.trans (congrArg (fun x : ℝ => z.re - x) hhalf)
+    exact hcomplex.symm.trans hsre
   exact sub_eq_zero.mp hsre'
 
 /-- A centered zero-criterion theorem implies the Boundary RH statement. -/

@@ -15,22 +15,24 @@ noncomputable section
 namespace CenteredZetaZero
 
 /-- The reflection orbit of a centered zeta zero as a multiset. -/
-def orbitMultiset (z : CenteredZetaZero) : Multiset ℂ := {z, -z}
+def orbitMultiset (z : CenteredZetaZero) : Multiset ℂ := {(z : ℂ), (-z : ℂ)}
 
 theorem mem_orbitMultiset_left (z : CenteredZetaZero) : (z : ℂ) ∈ orbitMultiset z := by
-  decide
+  exact Multiset.mem_cons_self (z : ℂ) ({(-z : ℂ)} : Multiset ℂ)
 
 theorem mem_orbitMultiset_right (z : CenteredZetaZero) : (-z : ℂ) ∈ orbitMultiset z := by
-  decide
+  have hmem_singleton : (-z : ℂ) ∈ ({(-z : ℂ)} : Multiset ℂ) :=
+    Multiset.mem_singleton_self (-z : ℂ)
+  exact Multiset.mem_cons_of_mem hmem_singleton
 
 /-- The orbit multiset is stable under reflection. -/
 theorem orbitMultiset_neg (z : CenteredZetaZero) :
     orbitMultiset z = {(-z : ℂ), (z : ℂ)} := by
-  rfl
+  exact Multiset.cons_swap (z : ℂ) (-z : ℂ) 0
 
 /-- The orbit multiset is the reflection pair. -/
 theorem orbitMultiset_eq (z : CenteredZetaZero) :
-    orbitMultiset z = {z, -z} := by
+    orbitMultiset z = {(z : ℂ), (-z : ℂ)} := by
   rfl
 
 end CenteredZetaZero

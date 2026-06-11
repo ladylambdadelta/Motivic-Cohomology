@@ -65,7 +65,12 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivBound
   have hnorm :
       ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ =
         ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖ := by
-    exact (hnorm_neg.trans (congrArg norm hspec).symm).symm
+    calc
+      ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ =
+          ‖- logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ :=
+        hnorm_neg.symm
+      _ = ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖ :=
+        (congrArg norm hspec).symm
   have hbound' := hbound t
   exact hnorm ▸ hbound'
 
@@ -139,8 +144,13 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_eq_neg_completedZet
     {f : ZetaAdmissibleFunction} (_h : CompletedZetaNegLogDerivControl f) (t : ℝ) :
     logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I) =
       - completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I) := by
-  exact neg_eq_of_eq_neg
-    (completedZetaNegLogDeriv_eq_neg_logDeriv ((1 / 2 : ℂ) + t * Complex.I))
+  calc
+    logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I) =
+        - (- logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)) :=
+      (neg_neg _).symm
+    _ = - completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I) :=
+      congrArg Neg.neg
+        (completedZetaNegLogDeriv_eq_neg_logDeriv ((1 / 2 : ℂ) + t * Complex.I)).symm
 
 /-- A zero-exponent critical-line bound is an honest uniform bound. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineBound_zeroExponent_uniform
@@ -148,7 +158,12 @@ theorem CompletedZetaNegLogDerivControl.criticalLineBound_zeroExponent_uniform
     ∃ C : ℝ, 0 < C ∧
       ∀ t : ℝ, ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖ ≤ C := by
   rcases h.criticalLineBound 0 with ⟨C, hC, hbound⟩
-  exact ⟨C, hC, fun t => hbound t⟩
+  refine ⟨C, hC, ?_⟩
+  intro t
+  have hCeq :
+      C * (1 + ‖t‖) ^ (-(0 : ℤ)) = C := by
+    simp
+  exact (hbound t).trans_eq hCeq
 
 /-- A zero-exponent critical-line logarithmic-derivative bound is an honest uniform bound. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivBound_zeroExponent_uniform
@@ -156,42 +171,65 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivBound_zeroExponent_u
     ∃ C : ℝ, 0 < C ∧
       ∀ t : ℝ, ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ ≤ C := by
   rcases h.criticalLineLogDerivBound 0 with ⟨C, hC, hbound⟩
-  exact ⟨C, hC, fun t => hbound t⟩
+  refine ⟨C, hC, ?_⟩
+  intro t
+  have hCeq :
+      C * (1 + ‖t‖) ^ (-(0 : ℤ)) = C := by
+    simp
+  exact (hbound t).trans_eq hCeq
 
 /-- The critical-line negative logarithmic derivative is little-o of `1`. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivIsLittleOOne
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
     (fun t : ℝ => completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)) =o[atTop]
       (fun _ : ℝ => (1 : ℂ)) := by
-  exact (Asymptotics.isLittleO_one_iff).2 h.criticalLineNegLogDerivTendstoZero
+  exact (Asymptotics.isLittleO_one_iff
+    (F := ℂ)
+    (f := fun t : ℝ => completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I))
+    (l := atTop)).2
+    h.criticalLineNegLogDerivTendstoZero
 
 /-- The completed zeta logarithmic derivative is little-o of `1` on the critical line. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivIsLittleOOne
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
     (fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)) =o[atTop]
       (fun _ : ℝ => (1 : ℂ)) := by
-  exact (Asymptotics.isLittleO_one_iff).2 h.criticalLineLogDerivTendstoZero
+  exact (Asymptotics.isLittleO_one_iff
+    (F := ℂ)
+    (f := fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I))
+    (l := atTop)).2
+    h.criticalLineLogDerivTendstoZero
 
 /-- The completed zeta logarithmic derivative is bounded on the critical line. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivIsBigOOne
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
     (fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)) =O[atTop]
       (fun _ : ℝ => (1 : ℂ)) := by
-  exact (Asymptotics.isBigO_one_iff).2 h.criticalLineLogDerivTendstoZero.isBigO_one
+  exact h.criticalLineLogDerivTendstoZero.isBigO_one ℂ
 
 /-- The completed negative logarithmic derivative is bounded on the critical line. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivIsBigOOne
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
     (fun t : ℝ => completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)) =O[atTop]
       (fun _ : ℝ => (1 : ℂ)) := by
-  exact (Asymptotics.isBigO_one_iff).2 h.criticalLineNegLogDerivTendstoZero.isBigO_one
+  exact h.criticalLineNegLogDerivTendstoZero.isBigO_one ℂ
 
 /-- The norm of the critical-line logarithmic derivative is eventually bounded. -/
+theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivNorm_eventually_le_uniformBound
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
+    ∃ C : ℝ, 0 < C ∧
+      ∀ᶠ t : ℝ in atTop,
+        ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ ≤ C := by
+  rcases h.criticalLineLogDerivBound_zeroExponent_uniform with ⟨C, hC, hbound⟩
+  exact ⟨C, hC, Eventually.of_forall hbound⟩
+
+/-- The norm of the critical-line logarithmic derivative is bounded under `atTop`. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivEventuallyBounded
     {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f) :
     IsBoundedUnder (· ≤ ·) atTop
       (fun t : ℝ => ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖) := by
-  exact (Asymptotics.isBigO_one_iff).1 h.criticalLineLogDerivTendstoZero.isBigO_one
+  rcases h.criticalLineLogDerivNorm_eventually_le_uniformBound with ⟨C, _hC, hbound⟩
+  exact ⟨C, hbound⟩
 
 /-- The range of the critical-line logarithmic derivative norm is bounded above. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivRange_bddAbove
@@ -199,7 +237,10 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivRange_bddAbove
     BddAbove
       (Set.range
         (fun t : ℝ => ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖)) := by
-  exact h.criticalLineLogDerivTendstoZero.bddAbove_range
+  rcases h.criticalLineLogDerivBound_zeroExponent_uniform with ⟨C, _hC, hbound⟩
+  exact ⟨C, fun y hy =>
+    match hy with
+    | ⟨t, ht⟩ => ht ▸ hbound t⟩
 
 /-- The range of the critical-line completed negative logarithmic derivative norm is bounded above. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivRange_bddAbove
@@ -207,7 +248,10 @@ theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDerivRange_bddAbove
     BddAbove
       (Set.range
         (fun t : ℝ => ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖)) := by
-  exact h.criticalLineNegLogDerivTendstoZero.bddAbove_range
+  rcases h.criticalLineBound_zeroExponent_uniform with ⟨C, _hC, hbound⟩
+  exact ⟨C, fun y hy =>
+    match hy with
+    | ⟨t, ht⟩ => ht ▸ hbound t⟩
 
 /-- The critical-line logarithmic derivative admits a global uniform bound. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDerivUniformBound
@@ -239,15 +283,13 @@ theorem CompletedZetaNegLogDerivControl.criticalLineNegLogDeriv_range_bounded
   rcases h.criticalLineNegLogDerivUniformBound with ⟨C, hC, hbound⟩
   refine (Metric.isBounded_range_iff).2 ?_
   refine ⟨2 * C, ?_⟩
-  intro x hx y hy
-  rcases hx with ⟨t, rfl⟩
-  rcases hy with ⟨u, rfl⟩
+  intro t u
   calc
     dist (completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I))
         (completedZetaNegLogDeriv ((1 / 2 : ℂ) + u * Complex.I))
         = ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I) -
             completedZetaNegLogDeriv ((1 / 2 : ℂ) + u * Complex.I)‖ := by
-            exact dist_eq_norm
+            exact dist_eq_norm _ _
     _ ≤ ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I)‖ +
         ‖completedZetaNegLogDeriv ((1 / 2 : ℂ) + u * Complex.I)‖ := by
           exact norm_sub_le _ _
@@ -265,10 +307,10 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_eq_neg_comple
   apply Set.Subset.antisymm
   · intro x hx
     rcases hx with ⟨t, rfl⟩
-    exact ⟨t, h.criticalLineLogDeriv_eq_neg_completedZetaNegLogDeriv t⟩
+    exact ⟨t, (h.criticalLineLogDeriv_eq_neg_completedZetaNegLogDeriv t).symm⟩
   · intro x hx
     rcases hx with ⟨t, rfl⟩
-    exact ⟨t, (h.criticalLineLogDeriv_eq_neg_completedZetaNegLogDeriv t).symm⟩
+    exact ⟨t, h.criticalLineLogDeriv_eq_neg_completedZetaNegLogDeriv t⟩
 
 /-- The critical-line logarithmic derivative has bounded range. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_bounded
@@ -276,11 +318,22 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_bounded
     Bornology.IsBounded
       (Set.range
         (fun t : ℝ => logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I))) := by
-  have hneg :
-      Bornology.IsBounded
-        (Set.range (fun t : ℝ => - completedZetaNegLogDeriv ((1 / 2 : ℂ) + t * Complex.I))) := by
-    exact h.criticalLineNegLogDeriv_range_bounded.image (Neg.neg : ℂ → ℂ)
-  exact (h.criticalLineLogDeriv_range_eq_neg_completedZetaNegLogDeriv_range).symm ▸ hneg
+  rcases h.criticalLineLogDerivUniformBound with ⟨C, _hC, hbound⟩
+  refine (Metric.isBounded_range_iff).2 ?_
+  refine ⟨2 * C, ?_⟩
+  intro t u
+  calc
+    dist (logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I))
+        (logDeriv completedRiemannZeta ((1 / 2 : ℂ) + u * Complex.I))
+        = ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I) -
+            logDeriv completedRiemannZeta ((1 / 2 : ℂ) + u * Complex.I)‖ := by
+            exact dist_eq_norm _ _
+    _ ≤ ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + t * Complex.I)‖ +
+        ‖logDeriv completedRiemannZeta ((1 / 2 : ℂ) + u * Complex.I)‖ := by
+          exact norm_sub_le _ _
+    _ ≤ C + C := by gcongr <;> exact hbound _
+    _ = 2 * C := by
+      norm_num [two_mul]
 
 /-- The critical-line logarithmic derivative has bounded range as a complex set. -/
 theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_bounded_complex
@@ -299,19 +352,33 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
     simpa [centeredCompletedRiemannZeta] using hz
   have hs0 : (1 / 2 : ℂ) + z ≠ 0 := by
     intro h
-    apply hz0
-    linarith
+    have hz_eq : z = -(1 / 2 : ℂ) := by
+      have hsum : (1 / 2 : ℂ) + z = (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by
+        calc
+          (1 / 2 : ℂ) + z = 0 := h
+          _ = (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by norm_num
+      exact add_left_cancel hsum
+    exact hz0 hz_eq
   have hs1 : (1 / 2 : ℂ) + z ≠ 1 := by
     intro h
-    apply hz1
-    linarith
+    have hz_eq : z = (1 / 2 : ℂ) := by
+      have hsum : (1 / 2 : ℂ) + z = (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
+        calc
+          (1 / 2 : ℂ) + z = 1 := h
+          _ = (1 / 2 : ℂ) + (1 / 2 : ℂ) := by norm_num
+      exact add_left_cancel hsum
+    exact hz1 hz_eq
   have hzero :=
     completedRiemannZeta_eventually_ne_zero_of_zero ((1 / 2 : ℂ) + z) hs0 hs1 hz'
   have ht :
       Tendsto (fun w : ℂ => (1 / 2 : ℂ) + w) (𝓝[≠] z)
         (𝓝[≠] ((1 / 2 : ℂ) + z)) := by
-    exact (Homeomorph.addLeft (1 / 2 : ℂ)).continuous.tendsto
-  have hcomp := hzero.comp ht
+    rw [tendsto_nhdsWithin_iff]
+    exact ⟨
+      ((continuous_const.add continuous_id).continuousAt.tendsto).mono_left nhdsWithin_le_nhds,
+      (Eventually.mono self_mem_nhdsWithin
+        (fun w hw hsum => hw (add_left_cancel hsum)))⟩
+  have hcomp := ht hzero
   simpa [centeredCompletedRiemannZeta] using hcomp
 
 end ZetaAdmissibleFunction

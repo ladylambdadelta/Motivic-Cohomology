@@ -315,7 +315,7 @@ theorem ExplicitFormulaFamilyAnalyticPackage.bottomLineIntegral_norm_le_core
 theorem zetaCompletedExplicitFormulaContourBoundary_autocorrelation_reflect
     (f : ZetaAdmissibleFunction) :
     ZetaAdmissibleFunction.autocorrelation (ZetaAdmissibleFunction.reflect f) =
-      ZetaTestFunction.reflect (ZetaAdmissibleFunction.autocorrelation f) :=
+      ZetaAdmissibleFunction.reflect (ZetaAdmissibleFunction.autocorrelation f) :=
   ZetaAdmissibleFunction.autocorrelation_dagger_eq_reflect f
 
 /-- The rectangle theorem applies to the factorized contour integrand once its analytic hypotheses

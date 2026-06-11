@@ -790,6 +790,82 @@ theorem derivative_sub_one_eq_derivative (f : K⟦X⟧) :
     exact sub_zero (PowerSeries.derivative K f)
   exact hsub.trans (hzero.trans hsubZero)
 
+theorem formalLog_tail_sum_eq_derivative_mul_finiteGeomInverse
+    [CharZero K] (f : K⟦X⟧) (n : ℕ) :
+    (∑ k in Finset.range (n + 2),
+        ((-1 : K) ^ (k + 1) / (k : K)) •
+          PowerSeries.derivative K ((f - 1) ^ k)) =
+      PowerSeries.derivative K f * finiteGeomInverse (K := K) (f - 1) n := by
+  let F : ℕ → K⟦X⟧ :=
+    fun k => ((-1 : K) ^ (k + 1) / (k : K)) •
+      PowerSeries.derivative K ((f - 1) ^ k)
+  have hrange :
+      (∑ k in Finset.range (n + 2),
+          ((-1 : K) ^ (k + 1) / (k : K)) •
+            PowerSeries.derivative K ((f - 1) ^ k)) =
+        (∑ r in Finset.range (n + 1), F (r + 1)) + F 0 := by
+    exact Finset.sum_range_succ' F (n + 1)
+  have hpowZero : (f - 1) ^ (0 : ℕ) = (1 : K⟦X⟧) := by
+    exact pow_zero (f - 1)
+  have hderivativeZero :
+      PowerSeries.derivative K ((f - 1) ^ (0 : ℕ)) =
+        PowerSeries.derivative K (1 : K⟦X⟧) := by
+    exact congrArg (PowerSeries.derivative K) hpowZero
+  have honeDerivative : PowerSeries.derivative K (1 : K⟦X⟧) = 0 := by
+    exact (PowerSeries.derivative K).map_one_eq_zero
+  have hzeroDerivative :
+      PowerSeries.derivative K ((f - 1) ^ (0 : ℕ)) = 0 := by
+    exact hderivativeZero.trans honeDerivative
+  have hzeroTerm :
+      F 0 = 0 := by
+    have hsmul :
+        F 0 =
+          (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) •
+            (0 : K⟦X⟧)) := by
+      exact congrArg
+        (fun t : K⟦X⟧ =>
+          (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) • t))
+        hzeroDerivative
+    have hsmulZero :
+        (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) •
+            (0 : K⟦X⟧)) = 0 := by
+      exact smul_zero (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) : K)
+    exact hsmul.trans hsmulZero
+  have hdrop :
+      (∑ r in Finset.range (n + 1), F (r + 1)) + F 0 =
+        ∑ r in Finset.range (n + 1), F (r + 1) := by
+    exact (congrArg (fun t : K⟦X⟧ => (∑ r in Finset.range (n + 1), F (r + 1)) + t)
+      hzeroTerm).trans (add_zero (∑ r in Finset.range (n + 1), F (r + 1)))
+  have htail :
+      (∑ r in Finset.range (n + 1), F (r + 1)) =
+        ∑ r in Finset.range (n + 1),
+          PowerSeries.derivative K f * ((-(f - 1) : K⟦X⟧) ^ r) := by
+    exact Finset.sum_congr rfl
+      (fun r _ =>
+        let hterm :
+            F (r + 1) =
+              ((-(f - 1) : K⟦X⟧) ^ r) * PowerSeries.derivative K (f - 1) :=
+          derivative_formalLog_term (K := K) (g := f - 1) r
+        let hderivative :
+            ((-(f - 1) : K⟦X⟧) ^ r) * PowerSeries.derivative K (f - 1) =
+              ((-(f - 1) : K⟦X⟧) ^ r) * PowerSeries.derivative K f :=
+          congrArg (fun t : K⟦X⟧ => ((-(f - 1) : K⟦X⟧) ^ r) * t)
+            (derivative_sub_one_eq_derivative (K := K) f)
+        let hcomm :
+            ((-(f - 1) : K⟦X⟧) ^ r) * PowerSeries.derivative K f =
+              PowerSeries.derivative K f * ((-(f - 1) : K⟦X⟧) ^ r) :=
+          mul_comm (((-(f - 1) : K⟦X⟧) ^ r)) (PowerSeries.derivative K f)
+        hterm.trans (hderivative.trans hcomm))
+  have hmul :
+      PowerSeries.derivative K f * finiteGeomInverse (K := K) (f - 1) n =
+        ∑ r in Finset.range (n + 1),
+          PowerSeries.derivative K f * ((-(f - 1) : K⟦X⟧) ^ r) := by
+    exact Finset.mul_sum
+      (s := Finset.range (n + 1))
+      (f := fun r => ((-(f - 1) : K⟦X⟧) ^ r))
+      (a := PowerSeries.derivative K f)
+  exact hrange.trans (hdrop.trans (htail.trans hmul.symm))
+
 theorem coeff_derivative_formalLog_eq_coeff_mul_finiteGeomInverse
     [CharZero K] (f : K⟦X⟧) (n : ℕ) :
     PowerSeries.coeff K n (PowerSeries.derivative K (formalLog f)) =
@@ -865,75 +941,7 @@ theorem coeff_derivative_formalLog_eq_coeff_mul_finiteGeomInverse
           scalarCoeff k •
             PowerSeries.derivative K ((f - 1) ^ k)) =
         PowerSeries.derivative K f * finiteGeomInverse (K := K) (f - 1) n := by
-    let F : ℕ → K⟦X⟧ :=
-      fun k => scalarCoeff k •
-        PowerSeries.derivative K ((f - 1) ^ k)
-    have hrange :
-        (∑ k in Finset.range (n + 2),
-            ((-1 : K) ^ (k + 1) / (k : K)) •
-              PowerSeries.derivative K ((f - 1) ^ k)) =
-          (∑ r in Finset.range (n + 1), F (r + 1)) + F 0 := by
-      exact Finset.sum_range_succ' F (n + 1)
-    have hpowZero : (f - 1) ^ (0 : ℕ) = (1 : K⟦X⟧) := by
-      exact pow_zero (f - 1)
-    have hderivativeZero :
-        PowerSeries.derivative K ((f - 1) ^ (0 : ℕ)) =
-          PowerSeries.derivative K (1 : K⟦X⟧) := by
-      exact congrArg (PowerSeries.derivative K) hpowZero
-    have honeDerivative : PowerSeries.derivative K (1 : K⟦X⟧) = 0 := by
-      exact (PowerSeries.derivative K).map_one_eq_zero
-    have hzeroDerivative :
-        PowerSeries.derivative K ((f - 1) ^ (0 : ℕ)) = 0 := by
-      exact hderivativeZero.trans honeDerivative
-    have hzeroTerm :
-        F 0 = 0 := by
-      have hsmul :
-          F 0 =
-            (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) •
-              (0 : K⟦X⟧)) := by
-        exact congrArg
-          (fun t : K⟦X⟧ =>
-            (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) • t))
-          hzeroDerivative
-      have hsmulZero :
-          (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) •
-              (0 : K⟦X⟧)) = 0 := by
-        exact smul_zero (((-1 : K) ^ (0 + 1) / ((0 : ℕ) : K)) : K)
-      exact hsmul.trans hsmulZero
-    have hdrop :
-        (∑ r in Finset.range (n + 1), F (r + 1)) + F 0 =
-          ∑ r in Finset.range (n + 1), F (r + 1) := by
-      exact (congrArg (fun t : K⟦X⟧ => (∑ r in Finset.range (n + 1), F (r + 1)) + t)
-        hzeroTerm).trans (add_zero (∑ r in Finset.range (n + 1), F (r + 1)))
-    have htail :
-        (∑ r in Finset.range (n + 1), F (r + 1)) =
-          ∑ r in Finset.range (n + 1),
-            PowerSeries.derivative K f * (-(f - 1)) ^ r := by
-      exact Finset.sum_congr rfl
-        (fun r _ =>
-          let hterm :
-              F (r + 1) =
-                (-(f - 1)) ^ r * PowerSeries.derivative K (f - 1) :=
-            derivative_formalLog_term (K := K) (g := f - 1) r
-          let hderivative :
-              (-(f - 1)) ^ r * PowerSeries.derivative K (f - 1) =
-                (-(f - 1)) ^ r * PowerSeries.derivative K f :=
-            congrArg (fun t : K⟦X⟧ => (-(f - 1)) ^ r * t)
-              (derivative_sub_one_eq_derivative (K := K) f)
-          let hcomm :
-              (-(f - 1)) ^ r * PowerSeries.derivative K f =
-                PowerSeries.derivative K f * (-(f - 1)) ^ r :=
-            mul_comm ((-(f - 1)) ^ r) (PowerSeries.derivative K f)
-          hterm.trans (hderivative.trans hcomm))
-    have hmul :
-        PowerSeries.derivative K f * finiteGeomInverse (K := K) (f - 1) n =
-          ∑ r in Finset.range (n + 1),
-            PowerSeries.derivative K f * (-(f - 1)) ^ r := by
-      exact Finset.mul_sum
-        (s := Finset.range (n + 1))
-        (f := fun r => (-(f - 1)) ^ r)
-        (a := PowerSeries.derivative K f)
-    exact hrange.trans (hdrop.trans (htail.trans hmul.symm))
+    exact formalLog_tail_sum_eq_derivative_mul_finiteGeomInverse (K := K) f n
   have hcoeffDerive :
       PowerSeries.coeff K n
         (∑ k in Finset.range (n + 2),

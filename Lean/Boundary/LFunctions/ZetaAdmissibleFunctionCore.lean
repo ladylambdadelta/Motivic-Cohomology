@@ -118,7 +118,9 @@ theorem smul_apply (a : ℂ) (f : ZetaAdmissibleFunction) (x : ℝ) :
     (a • f) x = a * f x := by
   rfl
 
-theorem sum_apply {α : Type*} [DecidableEq α] (s : Finset α) (f : α → ZetaAdmissibleFunction) (x : ℝ) :
+/-- The coercion of a finite sum is the pointwise finite sum. -/
+theorem sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaAdmissibleFunction) (x : ℝ) :
     (∑ a in s, f a) x = ∑ a in s, f a x := by
   induction s using Finset.induction_on with
   | empty =>

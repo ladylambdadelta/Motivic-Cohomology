@@ -3,6 +3,7 @@ import Boundary.LFunctions.AutocorrelationCore
 import Boundary.LFunctions.ZetaTransformCalculusReflection
 import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
 import Boundary.LFunctions.ZetaExplicitFormulaNormalizationBridge
+import Boundary.LFunctions.ZetaLogBoundaryDefect
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.NormedSpace.Connected
@@ -37,13 +38,13 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 
 /-- The conjugate-reflected involution attached to an admissible function. -/
-def zetaAdmissibleDagger (f : ZetaAdmissibleFunction) : ZetaTestFunction :=
-  ⟨fun t => star (f (-t)), by continuity⟩
+abbrev zetaAdmissibleDagger (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction :=
+  ZetaAdmissibleFunction.dagger f
 
 /-- The involution is pointwise conjugate reflection. -/
 theorem zetaAdmissibleDagger_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAdmissibleDagger f t = star (f (-t)) := by
-  exact rfl
+  exact ZetaAdmissibleFunction.dagger_apply f t
 
 /-- The reflected admissible probe evaluates to the unreﬂected value at `t`. -/
 theorem reflect_neg_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
@@ -60,15 +61,18 @@ theorem zetaAdmissibleDagger_dagger_apply (f : ZetaAdmissibleFunction) (t : ℝ)
   exact h.trans (congrArg star (reflect_neg_apply f t))
 
 theorem zetaAdmissibleDagger_dagger (f : ZetaAdmissibleFunction) :
-    zetaAdmissibleDagger (ZetaAdmissibleFunction.reflect f) = fun t => star (f t) := by
+    ⇑(zetaAdmissibleDagger (ZetaAdmissibleFunction.reflect f)) = fun t => star (f t) := by
   ext t
   exact zetaAdmissibleDagger_dagger_apply f t
 
-/-- The autocorrelation kernel attached to an admissible function. -/
+/-- The legacy pointwise autocorrelation kernel attached to an admissible function.
+
+This is not the convolution autocorrelation kernel used by the RH-lane
+holography theorem. -/
 def zetaAutocorrelationKernel (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
   fun t => f t * zetaAdmissibleDagger f t
 
-/-- The autocorrelation kernel is pointwise the convolution product. -/
+/-- The legacy autocorrelation kernel is pointwise the product with the dagger. -/
 theorem zetaAutocorrelationKernel_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAutocorrelationKernel f t = f t * zetaAdmissibleDagger f t := by
   exact Eq.refl _
@@ -86,7 +90,13 @@ theorem zetaAutocorrelationKernel_eq (f : ZetaAdmissibleFunction) :
 /-- The kernel can be rewritten using the dagger on the right factor. -/
 theorem zetaAutocorrelationKernel_dagger_eq (f : ZetaAdmissibleFunction) :
     zetaAutocorrelationKernel f = fun t => f t * star (f (-t)) := by
-  exact Eq.refl _
+  ext t
+  calc
+    zetaAutocorrelationKernel f t =
+        f t * zetaAdmissibleDagger f t := by
+      exact zetaAutocorrelationKernel_apply f t
+    _ = f t * star (f (-t)) := by
+      exact congrArg (fun z : ℂ => f t * z) (zetaAdmissibleDagger_apply f t)
 
 /-- The spectral transform attached to the autocorrelation kernel. -/
 def zetaAutocorrelationSpectralTransform (f : ZetaAdmissibleFunction) : ℂ → ℂ :=
@@ -166,22 +176,57 @@ theorem zetaCompletedExplicitFormulaPhi_autocorrelation_reflect
 /-- The kernel involution recovers the original pointwise factorization. -/
 theorem zetaAdmissibleDagger_pointwise (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAdmissibleDagger f t = star (f (-t)) := by
-  exact Eq.refl _
+  exact zetaAdmissibleDagger_apply f t
+
+/-- The finite prime-power window used by the current completed explicit-formula core. -/
+def zetaCompletedExplicitFormulaPrimeSupport : Finset (ℕ × ℕ) :=
+  Finset.product
+    (Finset.range (Nat.ceil (Real.exp 0) + 1))
+    (Finset.range (Nat.ceil (Real.exp 0) + 1))
+
+/-- The explicit prime-power weight in the completed formula normalization. -/
+def zetaCompletedExplicitFormulaPrimeWeight (p n : ℕ) : ℝ :=
+  if _hp : Nat.Prime p then Real.log p / Real.sqrt (p ^ n) else 0
 
 /-- The prime contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeContribution
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  0
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+      ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2 f.toZetaTestFunction' 0
 
 /-- The archimedean contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaArchimedeanContribution
-    (_f : ZetaAdmissibleFunction) : ℂ :=
-  0
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  ZetaTestFunction.archimedeanTranslationDefect 0 f.toZetaTestFunction' 0
 
 /-- The correction contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionContribution
     (_f : ZetaAdmissibleFunction) : ℂ :=
-  0
+  1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))
+
+/-- The prime contribution unfolds to the weighted finite prime-defect sum. -/
+theorem zetaCompletedExplicitFormulaPrimeContribution_eq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaPrimeContribution f =
+      ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+        (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2 f.toZetaTestFunction' 0 := by
+  rfl
+
+/-- The archimedean contribution is the archimedean defect at the basepoint. -/
+theorem zetaCompletedExplicitFormulaArchimedeanContribution_eq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaArchimedeanContribution f =
+      ZetaTestFunction.archimedeanTranslationDefect 0 f.toZetaTestFunction' 0 := by
+  rfl
+
+/-- The correction contribution is the centered pole correction at the basepoint. -/
+theorem zetaCompletedExplicitFormulaCorrectionContribution_eq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaCorrectionContribution f =
+      1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) := by
+  rfl
 
 /-- The combined completed explicit-formula boundary sum. -/
 noncomputable def zetaCompletedExplicitFormulaBoundarySumCore

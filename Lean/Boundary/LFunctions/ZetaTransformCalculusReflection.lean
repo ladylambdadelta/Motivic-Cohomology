@@ -110,7 +110,8 @@ theorem hasCompactSupport_weightedLaplaceKernel
 /-- The weighted zeta Laplace transform of an autocorrelation unfolds pointwise. -/
 theorem zetaLaplaceTransformWeighted_autocorrelation
     (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    zetaLaplaceTransformWeighted (LFunctions.ZetaAdmissibleFunction.autocorrelation f) z =
+    zetaLaplaceTransformWeighted
+        (LFunctions.ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
       ∫ t : ℝ, (t : ℂ) * (f t * star (f t)) * Complex.exp (z * t) := by
   unfold zetaLaplaceTransformWeighted
   exact congrArg (fun g : ℝ → ℂ => ∫ t : ℝ, (t : ℂ) * g t * Complex.exp (z * t))

@@ -155,64 +155,6 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_eq
         zetaCompletedExplicitFormulaCorrectionContribution f :=
   rfl
 
-/-- The owner-normalized prime contribution is zero. -/
-theorem zetaCompletedExplicitFormulaPrimeContribution_eq_zero
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaPrimeContribution f = 0 :=
-  rfl
-
-/-- The owner-normalized archimedean contribution is zero. -/
-theorem zetaCompletedExplicitFormulaArchimedeanContribution_eq_zero
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaArchimedeanContribution f = 0 :=
-  rfl
-
-/-- The owner-normalized correction contribution is zero. -/
-theorem zetaCompletedExplicitFormulaCorrectionContribution_eq_zero
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaCorrectionContribution f = 0 :=
-  rfl
-
-/-- Three zero complex summands add to zero. -/
-theorem complex_zero_add_zero_add_zero :
-    (0 : ℂ) + 0 + 0 = 0 :=
-  Eq.trans (add_zero (0 + 0 : ℂ)) (add_zero (0 : ℂ))
-
-/-- The analytic boundary-sum expansion is zero in the current owner normalization. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_expansion_zero
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaPrimeContribution f +
-        zetaCompletedExplicitFormulaArchimedeanContribution f +
-        zetaCompletedExplicitFormulaCorrectionContribution f =
-      0 := by
-  exact
-    Eq.trans
-      (congrArg
-        (fun z : ℂ =>
-          z +
-            zetaCompletedExplicitFormulaArchimedeanContribution f +
-            zetaCompletedExplicitFormulaCorrectionContribution f)
-        (zetaCompletedExplicitFormulaPrimeContribution_eq_zero f))
-      (Eq.trans
-        (congrArg
-          (fun z : ℂ =>
-            (0 : ℂ) + z + zetaCompletedExplicitFormulaCorrectionContribution f)
-          (zetaCompletedExplicitFormulaArchimedeanContribution_eq_zero f))
-        (Eq.trans
-          (congrArg
-            (fun z : ℂ => (0 : ℂ) + 0 + z)
-            (zetaCompletedExplicitFormulaCorrectionContribution_eq_zero f))
-          complex_zero_add_zero_add_zero))
-
-/-- The analytic boundary sum is the owner-normalization zero term. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_zero
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBoundarySumAnalytic f = 0 := by
-  exact
-    Eq.trans
-      (zetaCompletedExplicitFormulaBoundarySumAnalytic_eq f)
-      (zetaCompletedExplicitFormulaBoundarySumAnalytic_expansion_zero f)
-
 /-- The right-side line integral of the contour integrand. -/
 noncomputable def zetaCompletedExplicitFormulaRightLineIntegral
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : ℂ :=
@@ -432,63 +374,6 @@ theorem explicitFormulaVerticalDecompositionTarget_iff
         zetaCompletedExplicitFormulaLeftLineIntegral f r =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f
   exact Iff.rfl
-
-/-- Replacing the analytic boundary sum by zero sends the vertical target to cancellation. -/
-theorem verticalDecompositionBoundaryIdentity_to_zero
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle)
-    (h :
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r =
-        zetaCompletedExplicitFormulaBoundarySumAnalytic f) :
-    zetaCompletedExplicitFormulaRightLineIntegral f r -
-      zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 :=
-  h.trans (zetaCompletedExplicitFormulaBoundarySumAnalytic_zero f)
-
-/-- Replacing zero by the analytic boundary sum rebuilds the vertical target identity. -/
-theorem verticalDecompositionZero_to_boundaryIdentity
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle)
-    (h :
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0) :
-    zetaCompletedExplicitFormulaRightLineIntegral f r -
-      zetaCompletedExplicitFormulaLeftLineIntegral f r =
-        zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
-  h.trans (zetaCompletedExplicitFormulaBoundarySumAnalytic_zero f).symm
-
-/-- The vertical boundary identity is equivalent to right-minus-left cancellation. -/
-theorem verticalDecompositionBoundaryIdentity_iff_zero
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    (zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r =
-        zetaCompletedExplicitFormulaBoundarySumAnalytic f) ↔
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 :=
-  Iff.intro
-    (verticalDecompositionBoundaryIdentity_to_zero f r)
-    (verticalDecompositionZero_to_boundaryIdentity f r)
-
-/-- The vertical decomposition target is equivalent to right-minus-left cancellation in the
-current normalization. -/
-theorem explicitFormulaVerticalDecompositionTarget_zero_iff
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalDecompositionTarget f r ↔
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 := by
-  show
-    zetaCompletedExplicitFormulaRightLineIntegral f r -
-      zetaCompletedExplicitFormulaLeftLineIntegral f r =
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f ↔
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0
-  exact verticalDecompositionBoundaryIdentity_iff_zero f r
-
-/-- The vertical decomposition target unfolds to right-minus-left cancellation. -/
-theorem explicitFormulaVerticalDecompositionTarget_iff_zero
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalDecompositionTarget f r ↔
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r = 0 := by
-  exact explicitFormulaVerticalDecompositionTarget_zero_iff f r
 
 /-- The residue theorem target unfolds to the contour-integral identity. -/
 theorem explicitFormulaResidueTheoremTarget_iff

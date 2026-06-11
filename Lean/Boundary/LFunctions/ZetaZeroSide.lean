@@ -1,6 +1,8 @@
 import Boundary.LFunctions.ZetaZeroSideDefinitions
 import Boundary.LFunctions.ZetaCenteredZeroCounting
+import Boundary.LFunctions.ZetaZeroOrbitIsolation
 import Boundary.LFunctions.WeilCriterion
+import Boundary.LFunctions.ZetaCriterion
 
 /-!
 # Boundary zero-side package
@@ -41,23 +43,24 @@ theorem zetaZeroSide_centered (z : ℂ) :
 
 /-- The zero-side package satisfies the raw Weil positivity predicate. -/
 theorem zetaZeroSide_weilPositivity_predicate : ZetaWeilPositivity := by
-  intro φ
-  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := φ)
+  exact zetaCriterion_weilPositivity_predicate
 
-/-- The zero-side package's Weil positivity on the autocorrelation surface is the zero-side real part statement. -/
+/-- The zero-side package's Weil positivity on the convolution-autocorrelation surface is the
+zero-side real part statement. -/
 theorem zetaZeroSide_autocorrelation_zeroSide_eq_weil
     (f : ZetaAdmissibleFunction) :
-    zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) =
-      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+    zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  exact Boundary.LFunctions.zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
 
-/-- Autocorrelation-generated probes satisfy the zero-side package Weil positivity predicate. -/
+/-- Convolution-autocorrelation-generated probes satisfy the zero-side package Weil positivity
+predicate. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_predicate :
     ZetaAutocorrelationWeilPositivity := by
-  intro φ hφ
-  exact Boundary.LFunctions.zetaWeilFormCompleted_nonnegative_of_isZetaAutocorrelationProbe φ hφ
+  exact zetaCriterion_autocorrelation_weilPositivity_predicate
 
-/-- The zero-side package's autocorrelation Weil positivity predicate is pointwise nonnegativity. -/
+/-- The zero-side package's convolution-autocorrelation Weil positivity predicate is pointwise
+nonnegativity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_iff_predicate :
     ZetaAutocorrelationWeilPositivity ↔
       ∀ φ : ZetaProbe, IsZetaAutocorrelationProbe φ →
@@ -75,56 +78,58 @@ theorem zetaZeroSide_weilPositivity_iff' :
     (∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ) ↔ ZetaWeilPositivity := by
   rfl
 
-/-- Autocorrelation-generated probes have nonnegative zero-side real sum in the package surface. -/
+/-- Convolution-autocorrelation-generated probes have nonnegative zero-side real sum in the
+package surface. -/
 theorem zetaZeroSide_autocorrelation_zeroSide_nonnegative
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  exact
-    (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸
-      Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := f)
+    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  exact zetaCriterion_convolutionAutocorrelation_zeroSide_nonnegative f
 
-/-- Autocorrelation-generated probes satisfy the zero-side package's Weil positivity. -/
+/-- Convolution-autocorrelation-generated probes satisfy the zero-side package's Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := f)
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  exact zetaCriterion_autocorrelation_weilPositivity f
 
-/-- The zero-side package's autocorrelation Weil positivity is the zero-side nonnegativity statement. -/
+/-- The zero-side package's convolution-autocorrelation Weil positivity is the zero-side
+nonnegativity statement. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_iff
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) ↔
-      0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) ↔
+      0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
   exact
     (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸ Iff.rfl
 
-/-- The zero-side package's zero-side nonnegativity statement is the autocorrelation Weil positivity. -/
+/-- The zero-side package's zero-side nonnegativity statement is the convolution-autocorrelation
+Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_iff'
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) ↔
-      0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+    0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) ↔
+      0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
   exact
     (zetaZeroSide_autocorrelation_zeroSide_eq_weil f) ▸ Iff.rfl
 
-/-- Zero-side nonnegativity implies the zero-side package's autocorrelation Weil positivity. -/
+/-- Zero-side nonnegativity implies the zero-side package's convolution-autocorrelation Weil
+positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_of_zeroSide
     (f : ZetaAdmissibleFunction)
-    (h : 0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f)) :
-    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
+    (h : 0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
   exact (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸ h
 
 /-- Each zero-side reflection orbit is finite. -/
 theorem zetaZeroSide_orbit_finite (z : CenteredZetaZero) :
-    ({x : ℂ | x ∈ orbit z}.Finite) := by
+    ({x : ℂ | x ∈ CenteredZetaZero.orbit z}.Finite) := by
   exact CenteredZetaZero.orbit_finite z
 
 /-- Each zero-side reflection orbit has at most two points. -/
 theorem zetaZeroSide_orbit_card_le_two (z : CenteredZetaZero) :
-    (orbit z).card ≤ 2 := by
+    (CenteredZetaZero.orbit z).card ≤ 2 := by
   exact CenteredZetaZero.orbit_card_le_two z
 
 /-- Each zero-side reflection orbit is countable. -/
 theorem zetaZeroSide_orbit_countable (z : CenteredZetaZero) :
-    ({x : ℂ | x ∈ orbit z}.Countable) := by
+    ({x : ℂ | x ∈ CenteredZetaZero.orbit z}.Countable) := by
   exact (CenteredZetaZero.orbit_finite z).countable
 
 /-- The zero-side package is countable. -/
@@ -142,11 +147,11 @@ theorem zetaZeroSide_nontrivialZeroSet_discreteTopology :
     DiscreteTopology
       ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0} :
         Set ℂ) := by
-  exact centeredZetaZeros_nontrivialZeroSet_discreteTopology
+  exact centeredZetaZeros_nontrivialZeroSet_discreteTopology_of_subset
 
 /-- The zero-side reflection orbit is contained in the centered zero set. -/
 theorem zetaZeroSide_orbit_subset_centeredZetaZeros (z : CenteredZetaZero) :
-    {x : ℂ | x ∈ orbit z} ⊆ zetaZeroSide := by
+    {x : ℂ | x ∈ CenteredZetaZero.orbit z} ⊆ zetaZeroSide := by
   intro x hx
   exact (CenteredZetaZero.orbit_subset_centeredZetaZeros z) hx
 

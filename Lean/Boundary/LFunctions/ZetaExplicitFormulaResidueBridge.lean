@@ -26,11 +26,18 @@ theorem zetaCompletedZeroKreinGram_eq_residueBoundarySum
       zetaCompletedResidueBoundarySum f := by
   rfl
 
-/-- The completed residue boundary sum is the completed explicit-formula boundary sum. -/
-theorem zetaCompletedResidueBoundarySum_eq_explicitFormulaBoundarySum
+/-- The remaining residue-to-boundary identity target. -/
+def zetaCompletedResidueBoundarySum_eq_explicitFormulaBoundarySum
     (f : ZetaAdmissibleFunction) :
+    Prop :=
     zetaCompletedResidueBoundarySum f =
-      zetaCompletedExplicitFormulaBoundarySum f := by
+      zetaCompletedExplicitFormulaBoundarySum f
+
+/-- The residue-to-boundary target is the completed explicit-formula autocorrelation target. -/
+theorem zetaCompletedResidueBoundarySum_eq_explicitFormulaBoundarySum_iff
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedResidueBoundarySum_eq_explicitFormulaBoundarySum f ↔
+      zetaCompletedExplicitFormulaAutocorrelationTarget f := by
   rfl
 
 end ZetaAdmissibleFunction

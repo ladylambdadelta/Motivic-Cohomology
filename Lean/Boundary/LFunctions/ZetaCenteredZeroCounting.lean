@@ -75,10 +75,10 @@ theorem centeredZetaZeros_nontrivial_discreteTopology_at {x : ℂ}
     (hx0 : x ≠ -(1 / 2 : ℂ)) (hx1 : x ≠ (1 / 2 : ℂ))
     (hxz : centeredCompletedRiemannZeta x = 0) :
     Disjoint (𝓝[≠] (x : ℂ))
-      (Filter.principal ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0}ᶜ)) := by
+      (Filter.principal ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0})) := by
   have hne :
       ∀ᶠ w in 𝓝[≠] (x : ℂ), centeredCompletedRiemannZeta w ≠ 0 :=
-    Boundary.LFunctions.centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
+    Boundary.LFunctions.ZetaAdmissibleFunction.centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
       (z := x) hx0 hx1 hxz
   have hS :
       ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0}ᶜ) ∈ 𝓝[≠] (x : ℂ) := by
@@ -170,6 +170,5 @@ instance : Countable CenteredZetaZero := CenteredZetaZero.countable
 
 end
 
-end
 end LFunctions
 end Boundary

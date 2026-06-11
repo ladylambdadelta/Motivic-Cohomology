@@ -19,6 +19,34 @@ noncomputable def zetaLaplaceTransform
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
   ∫ t : ℝ, φ t * Complex.exp (z * t)
 
+/-- Laplace transform of the convolution autocorrelation kernel.
+
+For `g_f(t) = ∫ f(u+t/2) * conj(f(u-t/2)) du`, the two-variable change of variables
+`v = u+t/2`, `w = u-t/2` factors the Laplace transform of `g_f` into the Hermitian product
+of the seed transforms. This is the transform-level owner theorem consumed by the
+explicit-formula spectral packet bridge. -/
+theorem zetaLaplaceTransform_convolutionAutocorrelation
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction'
+        z =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
+  sorry
+
+/-- On real spectral parameters, the convolution autocorrelation transform pairs the opposite
+real spectral parameters. The later packet normalization is responsible for folding this paired
+coordinate into a Hermitian square when the explicit-formula symmetry identifies the paired
+amplitudes. -/
+theorem zetaLaplaceTransform_convolutionAutocorrelation_real_pair
+    (f : LFunctions.ZetaAdmissibleFunction) (a : ℝ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction'
+        (a : ℂ) =
+      zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-(a : ℂ))) := by
+  sorry
+
 /-- The pointwise integrand for additivity. -/
 theorem zetaLaplaceTransform_add_integrand
     (φ ψ : LFunctions.ZetaTestFunction) (z : ℂ) :
@@ -256,7 +284,8 @@ theorem aestronglyMeasurable_weightedLaplaceKernel
 /-- The zeta Laplace transform of an autocorrelation unfolds pointwise. -/
 theorem zetaLaplaceTransform_autocorrelation
     (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
-    zetaLaplaceTransform (LFunctions.ZetaAdmissibleFunction.autocorrelation f) z =
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.autocorrelation f).toZetaTestFunction' z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
   unfold zetaLaplaceTransform
   exact congrArg (fun g : ℝ → ℂ => ∫ t : ℝ, g t * Complex.exp (z * t))

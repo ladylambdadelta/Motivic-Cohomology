@@ -30,7 +30,7 @@ namespace ZetaAdmissibleFunction
 /-- Purity / normalization for the boundary defect: the boundary-defect Gram
 form agrees with the packet norm square. -/
 abbrev ZetaBoundaryPurity (f : ZetaAdmissibleFunction) : Prop :=
-  zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f
+  zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0
 
 /-- The boundary-defect Gram satisfies the purity / normalization condition. -/
 theorem zetaBoundaryPurity_of_packetComparison (f : ZetaAdmissibleFunction) :
@@ -40,8 +40,7 @@ theorem zetaBoundaryPurity_of_packetComparison (f : ZetaAdmissibleFunction) :
 /-- The boundary-defect Gram is nonnegative by purity / normalization. -/
 theorem zetaBoundaryPurity_nonnegative (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedBoundaryDefectGram f := by
-  rw [zetaBoundaryPurity_of_packetComparison f]
-  exact zetaCompletedPacketNormSq_nonnegative f
+  exact zetaCompletedBoundaryDefectGram_nonnegative f
 
 end ZetaAdmissibleFunction
 

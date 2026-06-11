@@ -115,13 +115,50 @@ theorem toZetaExplicitFormulaLinearTransform_smul (c : ℂ) (f : ZetaAdmissibleF
   exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_smul
     (c := c) (f := f.toZetaTestFunction')
 
+/-- Finite sums in `ZetaTestFunction` evaluate pointwise. -/
+theorem zetaTestFunction_sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaTestFunction) (x : ℝ) :
+    (∑ a in s, f a) x = ∑ a in s, f a x := by
+  induction s using Finset.induction_on with
+  | empty =>
+      rfl
+  | @insert a s ha ih =>
+      calc
+        (∑ b in insert a s, f b) x = (f a + ∑ b in s, f b) x := by
+          rw [Finset.sum_insert ha]
+        _ = f a x + (∑ b in s, f b) x := by
+          rfl
+        _ = f a x + ∑ b in s, f b x := by
+          exact congrArg (fun y => f a x + y) ih
+        _ = ∑ b in insert a s, f b x := by
+          rw [Finset.sum_insert ha]
+
+/-- The underlying test function of an admissible finite sum is the finite sum of the
+underlying test functions. -/
+theorem toZetaTestFunction'_sum {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaAdmissibleFunction) :
+    (∑ a in s, f a).toZetaTestFunction' =
+      ∑ a in s, (f a).toZetaTestFunction' := by
+  ext x
+  exact
+    (ZetaAdmissibleFunction.sum_apply (s := s) (f := f) x).trans
+      (zetaTestFunction_sum_apply (s := s)
+        (f := fun a => (f a).toZetaTestFunction') x).symm
+
 /-- The admissible explicit-formula transform commutes with finite sums. -/
 theorem toZetaExplicitFormulaLinearTransform_sum {α : Type*} [DecidableEq α] (s : Finset α)
     (f : α → ZetaAdmissibleFunction) :
     toZetaExplicitFormulaLinearTransform (∑ a in s, f a) =
       ∑ a in s, toZetaExplicitFormulaLinearTransform (f a) := by
-  exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_sum
-    (s := s) (f := fun a => f a.toZetaTestFunction')
+  calc
+    toZetaExplicitFormulaLinearTransform (∑ a in s, f a)
+        = ZetaTestFunction.toExplicitFormulaLinearDefectPackage
+            (∑ a in s, (f a).toZetaTestFunction') := by
+          exact congrArg ZetaTestFunction.toExplicitFormulaLinearDefectPackage
+            (toZetaTestFunction'_sum (s := s) (f := f))
+    _ = ∑ a in s, toZetaExplicitFormulaLinearTransform (f a) := by
+          exact ZetaTestFunction.toExplicitFormulaLinearDefectPackage_sum
+            (s := s) (f := fun a => (f a).toZetaTestFunction')
 
 end ZetaAdmissibleFunction
 
