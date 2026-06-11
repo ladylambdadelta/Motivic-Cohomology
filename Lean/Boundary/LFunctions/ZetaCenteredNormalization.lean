@@ -30,17 +30,23 @@ def zetaMultiplicativeCoordinate (x : ℝ) : ℝ := Real.exp x
 def zetaPrimePacketCenter (p n : ℝ) : ℝ := n * Real.log p
 
 theorem zetaCriticalCenter_one_half : zetaCriticalCenter (1 / 2 : ℂ) = 0 := by
-  unfold zetaCriticalCenter
-  ring
+  change ((1 / 2 : ℂ) - (1 / 2 : ℂ)) = 0
+  exact sub_self _
 
 theorem zetaCriticalCenter_one_sub (s : ℂ) :
     zetaCriticalCenter (1 - s) = - zetaCriticalCenter s := by
-  change ((1 : ℂ) + -s) + -(1 / 2) = -(s + -(1 / 2))
-  rw [neg_add, neg_neg]
-  rw [add_comm (1 : ℂ) (-s)]
-  rw [add_assoc]
-  rw [show (1 : ℂ) + -(1 / 2) = (1 / 2 : ℂ) by
-    rw [← sub_eq_add_neg, sub_half]]
+  change ((1 : ℂ) + -s) - (1 / 2 : ℂ) = - (s - (1 / 2 : ℂ))
+  have hhalf : (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) := by
+    norm_num
+  calc
+    (1 : ℂ) + -s + -(1 / 2 : ℂ) = -s + (1 : ℂ) + -(1 / 2 : ℂ) := by
+      abel
+    _ = -s + ((1 : ℂ) + -(1 / 2 : ℂ)) := by
+      rw [add_assoc]
+    _ = -s + (1 / 2 : ℂ) := by
+      rw [show (1 : ℂ) + -(1 / 2 : ℂ) = (1 / 2 : ℂ) by norm_num]
+    _ = - (s - (1 / 2 : ℂ)) := by
+      rw [sub_eq_add_neg, neg_add, neg_neg]
 
 theorem zetaAdditiveCoordinate_exp (x : ℝ) :
     zetaAdditiveCoordinate (Real.exp x) = x := by
@@ -65,18 +71,23 @@ theorem zetaAdditiveCoordinate_mul {x y : ℝ} (hx : 0 < x) (hy : 0 < y) :
 
 theorem zetaPrimePacketCenter_pow {p : ℝ} (n : ℕ) :
     zetaPrimePacketCenter p n = Real.log (p ^ n) := by
-  rw [zetaPrimePacketCenter, Real.log_pow]
+  change (n : ℝ) * Real.log p = Real.log (p ^ n)
+  exact (Real.log_pow p n).symm
 
 theorem zetaPrimePacketCenter_succ {p : ℝ} (n : ℕ) :
     zetaPrimePacketCenter p (n + 1) =
       zetaPrimePacketCenter p n + Real.log p := by
   change ((↑n + 1) * Real.log p = ↑n * Real.log p + Real.log p)
-  rw [add_mul, one_mul]
+  calc
+    ((↑n + 1 : ℝ) * Real.log p) = (↑n * Real.log p + 1 * Real.log p) := by
+      rw [add_mul]
+    _ = ↑n * Real.log p + Real.log p := by
+      rw [one_mul]
 
 theorem zetaPrimePacketCenter_zero (p : ℝ) :
     zetaPrimePacketCenter p 0 = 0 := by
-  unfold zetaPrimePacketCenter
-  ring
+  change (0 : ℝ) * Real.log p = 0
+  exact zero_mul _
 
 end
 end LFunctions

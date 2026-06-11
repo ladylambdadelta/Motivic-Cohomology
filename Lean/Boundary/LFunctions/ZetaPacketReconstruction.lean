@@ -21,8 +21,6 @@ namespace LFunctions
 
 noncomputable section
 
-open Classical
-
 namespace ZetaPacketEnsemble
 
 /-- The packet singleton at a label. -/
@@ -33,28 +31,16 @@ end ZetaPacketEnsemble
 
 namespace ZetaAdmissibleFunction
 
-/-- The canonical logarithmic support radius extracted from compact support. -/
-noncomputable def zetaPacketSupportRadius (f : ZetaAdmissibleFunction) : ℝ :=
-  Classical.choose <| by
-    have hcomp : IsCompact (tsupport f.toZetaTestFunction) := by
-      simpa [HasCompactSupport, tsupport] using f.toZetaTestFunction.hasCompactSupport
-    rcases IsCompact.bddAbove hcomp with ⟨B, hB⟩
-    exact ⟨B, hB⟩
-
-theorem zetaPacketSupportRadius_spec (f : ZetaAdmissibleFunction) :
-    ∀ x ∈ tsupport f.toZetaTestFunction, x ≤ zetaPacketSupportRadius f := by
-  classical
-  unfold zetaPacketSupportRadius
-  exact Classical.choose_spec <| by
-    have hcomp : IsCompact (tsupport f.toZetaTestFunction) := by
-      simpa [HasCompactSupport, tsupport] using f.toZetaTestFunction.hasCompactSupport
-    rcases IsCompact.bddAbove hcomp with ⟨B, hB⟩
-    exact ⟨B, hB⟩
+/-- Compact support provides an explicit upper bound for the logarithmic support. -/
+theorem exists_zetaPacketSupportRadius (f : ZetaAdmissibleFunction) :
+    ∃ B : ℝ, ∀ x ∈ tsupport f.toZetaTestFunction, x ≤ B := by
+  obtain ⟨B, hB⟩ := IsCompact.bddAbove (f.toZetaTestFunction.hasCompactSupport.isCompact)
+  exact ⟨B, hB⟩
 
 /-- The prime packet weight on a prime-power label. -/
 def zetaPrimePacketWeight : ZetaPacketLabel → ℝ
   | .prime p m =>
-      if hp : Nat.Prime p then
+      if _hp : Nat.Prime p then
         Real.log p / Real.sqrt (p ^ m)
       else
         0
@@ -62,7 +48,8 @@ def zetaPrimePacketWeight : ZetaPacketLabel → ℝ
 
 theorem zetaPrimePacketWeight_prime (p m : ℕ) (hp : Nat.Prime p) :
     zetaPrimePacketWeight (.prime p m) = Real.log p / Real.sqrt (p ^ m) := by
-  simp [zetaPrimePacketWeight, hp]
+  unfold zetaPrimePacketWeight
+  exact if_pos hp
 
 theorem zetaPrimePacketWeight_nonprime (ℓ : ZetaPacketLabel) (h : ¬ ∃ p m, ℓ = .prime p m) :
     zetaPrimePacketWeight ℓ = 0 := by
@@ -72,20 +59,20 @@ theorem zetaPrimePacketWeight_nonprime (ℓ : ZetaPacketLabel) (h : ¬ ∃ p m, 
       apply h
       exact ⟨p, m, rfl⟩
   | archimedean =>
-      simp [zetaPrimePacketWeight]
+      rfl
   | correction =>
-      simp [zetaPrimePacketWeight]
+      rfl
 
 /-- The finite set of prime-power indices used by the prime-side reconstruction. -/
-noncomputable def zetaPacketPrimeSupport (f : ZetaAdmissibleFunction) : Finset (ℕ × ℕ) :=
+def zetaPacketPrimeSupport (B : ℝ) : Finset (ℕ × ℕ) :=
   Finset.product
-    (Finset.range (Nat.ceil (Real.exp (zetaPacketSupportRadius f)) + 1))
-    (Finset.range (Nat.ceil (Real.exp (zetaPacketSupportRadius f)) + 1))
+    (Finset.range (Nat.ceil (Real.exp B) + 1))
+    (Finset.range (Nat.ceil (Real.exp B) + 1))
 
 /-- The prime packet associated to an admissible function. -/
-noncomputable def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) :
+def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
     ZetaPacketEnsemble :=
-  ∑ ℓ in zetaPacketPrimeSupport f,
+  ∑ ℓ in zetaPacketPrimeSupport B,
     ZetaPacketEnsemble.single
       (ZetaPacketLabel.prime ℓ.1 ℓ.2)
       (Complex.re
@@ -93,44 +80,47 @@ noncomputable def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) :
           ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2 f.toZetaTestFunction' 0))
 
 /-- The archimedean packet associated to an admissible function. -/
-noncomputable def zetaArchimedeanPacketAsEnsemble (f : ZetaAdmissibleFunction) :
+def zetaArchimedeanPacketAsEnsemble (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
   ZetaPacketEnsemble.single .archimedean
     (Complex.re (ZetaTestFunction.archimedeanTranslationDefect 0 f.toZetaTestFunction' 0))
 
 /-- The completion/correction packet associated to an admissible function. -/
-noncomputable def zetaCorrectionPacketAsEnsemble (f : ZetaAdmissibleFunction) :
+noncomputable def zetaCorrectionPacketAsEnsemble (_f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
   ZetaPacketEnsemble.single .correction (Complex.re (zetaCompletionCorrection 0))
 
 /-- The canonical completed zeta packet attached to an admissible probe. -/
-noncomputable def zetaPacketAsEnsemble (f : ZetaAdmissibleFunction) :
+def zetaPacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
     ZetaPacketEnsemble :=
-  zetaPrimePacketAsEnsemble f +
+  zetaPrimePacketAsEnsemble f B +
     zetaArchimedeanPacketAsEnsemble f +
     zetaCorrectionPacketAsEnsemble f
 
 /-- The packet is finite-support because it is a finite sum of singletons. -/
 theorem zetaPacketAsEnsemble_finiteSupport (f : ZetaAdmissibleFunction) :
-    Finite ((zetaPacketAsEnsemble f).support : Set ZetaPacketLabel) := by
-  exact Set.toFinite ((zetaPacketAsEnsemble f).support : Set ZetaPacketLabel)
+    ∀ B : ℝ, Finite ((zetaPacketAsEnsemble f B).support : Set ZetaPacketLabel) := by
+  intro B
+  exact Set.toFinite ((zetaPacketAsEnsemble f B).support : Set ZetaPacketLabel)
 
 /-- The packet norm-square of the reconstructed packet. -/
-noncomputable def zetaCompletedPacketNormSq (f : ZetaAdmissibleFunction) : ℝ :=
-  ZetaPacketEnsemble.normSq (zetaPacketAsEnsemble f)
+def zetaCompletedPacketNormSq (f : ZetaAdmissibleFunction) (B : ℝ) : ℝ :=
+  ZetaPacketEnsemble.normSq (zetaPacketAsEnsemble f B)
 
 /-- The reconstructed packet norm-square is nonnegative. -/
 theorem zetaCompletedPacketNormSq_nonnegative (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedPacketNormSq f := by
+    ∀ B : ℝ, 0 ≤ zetaCompletedPacketNormSq f B := by
+  intro B
   unfold zetaCompletedPacketNormSq
-  exact ZetaPacketEnsemble.normSq_nonneg (zetaPacketAsEnsemble f)
+  exact ZetaPacketEnsemble.normSq_nonneg (zetaPacketAsEnsemble f B)
 
 /-- The reconstructed packet decomposes into prime, archimedean, and correction parts. -/
 theorem zetaPacketAsEnsemble_decomposition (f : ZetaAdmissibleFunction) :
-    zetaPacketAsEnsemble f =
-      zetaPrimePacketAsEnsemble f +
+    ∀ B : ℝ, zetaPacketAsEnsemble f B =
+      zetaPrimePacketAsEnsemble f B +
         zetaArchimedeanPacketAsEnsemble f +
         zetaCorrectionPacketAsEnsemble f := by
+  intro B
   rfl
 
 end ZetaAdmissibleFunction

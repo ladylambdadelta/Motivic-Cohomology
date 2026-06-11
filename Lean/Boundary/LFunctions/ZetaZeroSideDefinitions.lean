@@ -1,5 +1,7 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
 import Boundary.LFunctions.ZetaCenteredZero
+import Boundary.LFunctions.ZetaCenteredZeroOrbit
+import Boundary.LFunctions.ZetaCenteredZeroCounting
 import Boundary.LFunctions.ZetaTransformCalculus
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Data.Finset.Basic
@@ -55,21 +57,21 @@ abbrev zetaSpectralEval (φ : ZetaAdmissibleFunction) (z : ℂ) : ℂ :=
 /-- The spectral transform is the zeta Laplace transform. -/
 theorem zetaSpectralTransform_eq_laplace
     (φ : ZetaAdmissibleFunction) :
-    zetaSpectralTransform φ = zetaLaplaceTransform φ := by
-  rfl
+    zetaSpectralTransform φ = Boundary.zetaLaplaceTransform φ := by
+  exact Eq.refl _
 
 /-- The spectral evaluation is the zeta Laplace transform evaluation. -/
 theorem zetaSpectralEval_eq_laplace
     (φ : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaSpectralEval φ z = zetaLaplaceTransform φ z := by
-  rfl
+    zetaSpectralEval φ z = Boundary.zetaLaplaceTransform φ z := by
+  exact Eq.refl _
 
 /-- The spectral evaluation of an autocorrelation is the constructed Laplace transform. -/
 theorem zetaSpectralEval_autocorrelation
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
-      zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
-  rfl
+      Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+  exact Eq.refl _
 
 /-- The single zero contribution to the completed zero side. -/
 def zetaZeroSideContribution (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℂ :=
@@ -111,80 +113,80 @@ def zetaZeroOrbitRemainderRe (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℝ :=
 theorem zetaZeroSideContribution_def (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroSideContribution ρ φ =
       - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval φ (zetaCenteredZero ρ) := by
-  rfl
+  exact Eq.refl _
 
 /-- The spectral transform of an autocorrelation is the constructed Laplace transform. -/
 theorem zetaSpectralTransform_autocorrelation
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
-      zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
-  rfl
+      Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z := by
+  exact Eq.refl _
 
 /-- The spectral transform is additive. -/
 theorem zetaSpectralTransform_add
     (φ ψ : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (φ + ψ) z =
       zetaSpectralTransform φ z + zetaSpectralTransform ψ z := by
-  change zetaLaplaceTransform (φ + ψ) z = zetaLaplaceTransform φ z + zetaLaplaceTransform ψ z
-  exact zetaLaplaceTransform_add φ ψ z
+  change Boundary.zetaLaplaceTransform (φ + ψ) z =
+    Boundary.zetaLaplaceTransform φ z + Boundary.zetaLaplaceTransform ψ z
+  exact Boundary.zetaLaplaceTransform_add φ ψ z
 
 /-- The spectral transform is homogeneous under scalar multiplication. -/
 theorem zetaSpectralTransform_smul
     (a : ℂ) (φ : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (a • φ) z = a * zetaSpectralTransform φ z := by
-  change zetaLaplaceTransform (a • φ) z = a * zetaLaplaceTransform φ z
-  exact zetaLaplaceTransform_smul a φ z
+  change Boundary.zetaLaplaceTransform (a • φ) z = a * Boundary.zetaLaplaceTransform φ z
+  exact Boundary.zetaLaplaceTransform_smul a φ z
 
 /-- The spectral transform commutes with finite sums. -/
 theorem zetaSpectralTransform_sum
     {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (∑ a in s, f a) z =
       ∑ a in s, zetaSpectralTransform (f a) z := by
-  change zetaLaplaceTransform (∑ a in s, f a) z =
-    ∑ a in s, zetaLaplaceTransform (f a) z
-  exact zetaLaplaceTransform_sum s f z
+  change Boundary.zetaLaplaceTransform (∑ a in s, f a) z =
+    ∑ a in s, Boundary.zetaLaplaceTransform (f a) z
+  exact Boundary.zetaLaplaceTransform_sum s f z
 
 /-- The spectral transform of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralTransform_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralTransform (ZetaAdmissibleFunction.autocorrelation f) z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  change zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+  change Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
     ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
-  exact LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation f z
+  exact Boundary.zetaLaplaceTransform_autocorrelation f z
 
 /-- The spectral evaluation of an autocorrelation is the explicit Laplace integral. -/
 theorem zetaSpectralEval_autocorrelation_eq_integral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaSpectralEval (ZetaAdmissibleFunction.autocorrelation f) z =
       ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  change zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
+  change Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
     ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t)
-  exact LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation f z
+  exact Boundary.zetaLaplaceTransform_autocorrelation f z
 
 theorem zetaZeroOrbitContribution_eq_sum (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroOrbitContribution ρ φ =
       Finset.sum (zetaZeroOrbitFinset ρ) (fun η => zetaZeroSideContribution η φ) := by
-  rfl
+  exact Eq.refl _
 
 theorem zetaZeroOrbitRemainder_eq_tail (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroOrbitRemainder ρ φ =
       zetaZeroTail (zetaZeroOrbitFinset ρ) φ := by
-  rfl
+  exact Eq.refl _
 
 theorem zetaZeroTail_def (S : Finset ℂ) (φ : ZetaAdmissibleFunction) :
     zetaZeroTail S φ =
       tsum (fun η : {η : ℂ // ZetaCompletedZero η ∧ η ∉ S} =>
         zetaZeroSideContribution (η : ℂ) φ) := by
-  rfl
+  exact Eq.refl _
 
 /-- The centered zero set is countable. -/
 theorem centeredZetaZeros_countable :
     centeredZetaZeros.Countable := by
-  have hfin : ∀ z : CenteredZetaZero, ({x : ℂ | x ∈ orbit z}.Finite) := by
+  have hfin : ∀ z : CenteredZetaZero, ({x : ℂ | x ∈ CenteredZetaZero.orbit z}.Finite) := by
     intro z
-    exact orbit_finite z
-  classical
+    exact CenteredZetaZero.orbit_finite z
   refine countable_union (fun z => ?_)
   exact (hfin z).countable
 

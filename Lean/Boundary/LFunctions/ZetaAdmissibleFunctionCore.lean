@@ -15,7 +15,7 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped CompactlySupported
+open scoped CompactlySupported ContDiff
 
 /-- The admissible test-function carrier for the explicit-formula route.
 
@@ -24,7 +24,7 @@ together with the smoothness data required by the Paley--Wiener model.
 -/
 structure ZetaAdmissibleFunction where
   toZetaTestFunction : ℝ →C_c ℂ
-  smooth : ContDiff ℝ ⊤ (fun x => toZetaTestFunction x)
+  smooth : ContDiff ℝ ∞ (fun x => toZetaTestFunction x)
 
 namespace ZetaAdmissibleFunction
 
@@ -158,7 +158,7 @@ theorem hasCompactSupport (f : ZetaAdmissibleFunction) :
   exact f.toZetaTestFunction.hasCompactSupport
 
 /-- The admissible carrier is smooth on the logarithmic line. -/
-theorem contDiff (f : ZetaAdmissibleFunction) : ContDiff ℝ ⊤ f := by
+theorem contDiff (f : ZetaAdmissibleFunction) : ContDiff ℝ ∞ f := by
   exact f.smooth
 
 /-- Reflection across the origin. -/
@@ -170,7 +170,7 @@ def reflect (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction where
         exact f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
           (Homeomorph.neg ℝ).isClosedEmbedding)
   smooth := by
-    change ContDiff ℝ ⊤ (fun x => f.toZetaTestFunction (-x))
+    change ContDiff ℝ ∞ (fun x => f.toZetaTestFunction (-x))
     exact f.smooth.comp contDiff_neg
 
 /-- Translation by a real parameter. -/
@@ -183,7 +183,7 @@ def translate (c : ℝ) (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction wh
         exact f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
           (Homeomorph.addRight c).isClosedEmbedding)
   smooth := by
-    change ContDiff ℝ ⊤ (fun x => f.toZetaTestFunction (x + c))
+    change ContDiff ℝ ∞ (fun x => f.toZetaTestFunction (x + c))
     exact f.smooth.comp (contDiff_id.add contDiff_const)
 
 /-- The zero scale is the zero function. -/
@@ -199,7 +199,7 @@ def scaleNonzero (a : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) : ZetaAdm
         exact f.toZetaTestFunction.hasCompactSupport.comp_isClosedEmbedding
           (Homeomorph.mulLeft₀ a ha).isClosedEmbedding)
   smooth := by
-    have hmul : ContDiff ℝ ⊤ (fun x : ℝ => a * x) := contDiff_const.mul contDiff_id
+    have hmul : ContDiff ℝ ∞ (fun x : ℝ => a * x) := contDiff_const.mul contDiff_id
     exact f.smooth.comp hmul
 
 /-- Scaling by a real parameter. -/
@@ -229,6 +229,13 @@ theorem scale_nonzero_apply (a : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction
 
 theorem reflect_apply (f : ZetaAdmissibleFunction) (x : ℝ) :
     reflect f x = f (-x) := rfl
+
+/-- The underlying test function of the reflected admissible function is the reflected test function. -/
+theorem toZetaTestFunction'_reflect (f : ZetaAdmissibleFunction) :
+    (ZetaAdmissibleFunction.reflect f).toZetaTestFunction' =
+      ZetaTestFunction.reflect f.toZetaTestFunction' := by
+  ext x
+  exact rfl
 
 theorem translate_apply (c : ℝ) (f : ZetaAdmissibleFunction) (x : ℝ) :
     translate c f x = f (x + c) := rfl

@@ -70,9 +70,11 @@ theorem zetaCriterion_weilPositivity_iff' :
 theorem zetaCriterion_autocorrelation_zeroSide_nonnegative
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [← Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
-  exact Boundary.LFunctions.ZetaAdmissibleFunction
-    .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
+  exact
+    (Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+      (f := f)).symm ▸
+      Boundary.LFunctions.ZetaAdmissibleFunction
+        .zetaWeilFormCompleted_autocorrelation_nonnegative_classFree (f := f)
 
 /-- Autocorrelation-generated probes satisfy the criterion's Weil positivity. -/
 theorem zetaCriterion_autocorrelation_weilPositivity
@@ -86,22 +88,27 @@ theorem zetaCriterion_autocorrelation_weilPositivity_iff
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) ↔
       0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact
+    (Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+      (f := f)).symm ▸ Iff.rfl
 
 /-- The zero-side nonnegativity statement is the criterion's autocorrelation Weil positivity. -/
 theorem zetaCriterion_autocorrelation_weilPositivity_iff'
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) ↔
       0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact
+    (Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+      (f := f)) ▸ Iff.rfl
 
 /-- Zero-side nonnegativity implies criterion Weil positivity for autocorrelation probes. -/
 theorem zetaCriterion_autocorrelation_weilPositivity_of_zeroSide
     (f : ZetaAdmissibleFunction)
     (h : 0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f)) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
-  exact h
+  exact
+    (Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
+      (f := f)).symm ▸ h
 
 end
 

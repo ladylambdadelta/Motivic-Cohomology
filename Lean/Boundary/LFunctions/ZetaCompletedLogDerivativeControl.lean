@@ -18,17 +18,17 @@ noncomputable section
 namespace ZetaAdmissibleFunction
 
 /-- Strip control data for the completed zeta negative logarithmic derivative. -/
-structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) : Prop where
+structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
   /-- A uniform strip bound on the completed negative log derivative. -/
   strip_bound :
     ∀ (a b : ℝ) (N : ℕ),
-      ∃ C : ℝ,
+      {C : ℝ //
         0 < C ∧
         ∀ z : ℂ,
           a ≤ z.re →
           z.re ≤ b →
           ‖completedZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))
+            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))}
 
 /-- The strip-control package exposes the pointwise bound. -/
 theorem CompletedZetaNegLogDerivControl.stripBound
@@ -41,14 +41,38 @@ theorem CompletedZetaNegLogDerivControl.stripBound
         z.re ≤ b →
         ‖completedZetaNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  exact h.strip_bound a b N
+  exact ⟨(h.strip_bound a b N).1, (h.strip_bound a b N).2⟩
+
+/-- A constructive selector for the completed-zeta strip-bound constant. -/
+def CompletedZetaNegLogDerivControl.stripBoundConstant
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (N : ℕ) : ℝ :=
+  (h.strip_bound a b N).1
+
+/-- The constructive completed-zeta strip-bound constant is positive. -/
+theorem CompletedZetaNegLogDerivControl.stripBoundConstant_pos
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (N : ℕ) :
+    0 < h.stripBoundConstant a b N :=
+  (h.strip_bound a b N).2.1
+
+/-- The constructive completed-zeta strip-bound constant satisfies its strip bound. -/
+theorem CompletedZetaNegLogDerivControl.stripBoundConstant_bound
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (N : ℕ) :
+    ∀ z : ℂ,
+      a ≤ z.re →
+      z.re ≤ b →
+      ‖completedZetaNegLogDeriv z‖
+        ≤ h.stripBoundConstant a b N * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=
+  (h.strip_bound a b N).2.2
 
 /-- The completed negative log-derivative control is the owner-level strip package. -/
-def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Prop :=
+def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Type :=
   CompletedZetaNegLogDerivControl f
 
 /-- The package is exactly the strip-control data. -/
-theorem CompletedZetaNegLogDerivControlPackage_eq
+def CompletedZetaNegLogDerivControlPackage_eq
     (f : ZetaAdmissibleFunction) :
     CompletedZetaNegLogDerivControlPackage f = CompletedZetaNegLogDerivControl f := by
   rfl
@@ -71,18 +95,17 @@ theorem CompletedZetaNegLogDerivControl.criticalLineBound
   have him : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
     norm_num [Complex.add_im, Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im,
       Complex.I_re, Complex.I_im]
-  have hre_left :
-      (1 / 2 : ℝ) ≤ ((1 / 2 : ℂ) + t * Complex.I).re := by
-    rw [hre]
-  have hre_right :
-      ((1 / 2 : ℂ) + t * Complex.I).re ≤ (1 / 2 : ℝ) := by
-    rw [hre]
-  have hnorm : ‖((1 / 2 : ℂ) + t * Complex.I).im‖ = ‖t‖ := by
-    rw [him]
+  have hre_le : (1 / 2 : ℝ) ≤ ((1 / 2 : ℂ) + t * Complex.I).re := by
+    exact le_of_eq hre.symm
+  have hre_ge : ((1 / 2 : ℂ) + t * Complex.I).re ≤ (1 / 2 : ℝ) := by
+    exact le_of_eq hre
   have hbound' :=
-    hbound ((1 / 2 : ℂ) + t * Complex.I) hre_left hre_right
-  rw [hnorm] at hbound'
-  exact hbound'
+    hbound ((1 / 2 : ℂ) + t * Complex.I) hre_le hre_ge
+  have hRHS :
+      C * (1 + ‖((1 / 2 : ℂ) + t * Complex.I).im‖) ^ (-(N : ℤ)) =
+        C * (1 + ‖t‖) ^ (-(N : ℤ)) := by
+    exact congrArg (fun u : ℝ => C * (1 + ‖u‖) ^ (-(N : ℤ))) him
+  exact hbound'.trans (le_of_eq hRHS)
 
 end ZetaAdmissibleFunction
 

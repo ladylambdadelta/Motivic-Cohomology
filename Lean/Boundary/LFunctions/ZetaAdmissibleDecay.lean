@@ -13,6 +13,8 @@ namespace LFunctions
 
 noncomputable section
 
+open scoped ContDiff
+
 namespace ZetaAdmissibleFunction
 
 /-- The admissible function has compact support. -/
@@ -21,7 +23,7 @@ theorem admissible_hasCompactSupport (f : ZetaAdmissibleFunction) :
   exact hasCompactSupport f
 
 /-- The admissible function is smooth on the logarithmic line. -/
-theorem admissible_contDiff (f : ZetaAdmissibleFunction) : ContDiff ℝ ⊤ f := by
+theorem admissible_contDiff (f : ZetaAdmissibleFunction) : ContDiff ℝ ∞ f := by
   exact contDiff f
 
 /-- The admissible function retains the underlying test-function carrier. -/

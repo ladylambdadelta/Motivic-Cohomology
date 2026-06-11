@@ -27,7 +27,8 @@ def explicitFormulaPrimeLogDerivative (s : ℂ) : ℂ :=
 
 /-- The archimedean logarithmic derivative contribution. -/
 def explicitFormulaArchimedeanLogDerivative (s : ℂ) : ℂ :=
-  (1 / 2 : ℂ) * Complex.log π - (1 / 2 : ℂ) * deriv (fun z : ℂ => Complex.log (Gamma ℝ z)) (s / 2)
+  (1 / 2 : ℂ) * Complex.log (Real.pi : ℂ) -
+    (1 / 2 : ℂ) * deriv (fun z : ℂ => Complex.log (Gammaℝ z)) (s / 2)
 
 /-- The pole correction logarithmic derivative contribution. -/
 def explicitFormulaCorrectionLogDerivative (s : ℂ) : ℂ :=

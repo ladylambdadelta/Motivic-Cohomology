@@ -34,35 +34,34 @@ def packetEnergyCorrection (x : ZetaPacketEnsemble) : ℝ :=
 /-- The packet energy is definitionally the packet norm square. -/
 theorem packetEnergy_eq_normSq (x : ZetaPacketEnsemble) :
     packetEnergy x = normSq x := by
-  rfl
+  exact Eq.refl _
 
 /-- The prime packet energy is definitionally the prime Gram contribution. -/
 theorem packetEnergyPrime_eq (x : ZetaPacketEnsemble) :
     packetEnergyPrime x = primePacketGram x := by
-  rfl
+  exact Eq.refl _
 
 /-- The archimedean packet energy is definitionally the archimedean Gram contribution. -/
 theorem packetEnergyArchimedean_eq (x : ZetaPacketEnsemble) :
     packetEnergyArchimedean x = archimedeanPacketGram x := by
-  rfl
+  exact Eq.refl _
 
 /-- The correction packet energy is definitionally the correction Gram contribution. -/
 theorem packetEnergyCorrection_eq (x : ZetaPacketEnsemble) :
     packetEnergyCorrection x = correctionPacketGram x := by
-  rfl
+  exact Eq.refl _
 
 /-- The packet energy decomposes into the three family contributions. -/
 theorem packetEnergy_eq_sum (x : ZetaPacketEnsemble) :
     packetEnergy x =
       packetEnergyPrime x + packetEnergyArchimedean x + packetEnergyCorrection x := by
-  rw [packetEnergy_eq_normSq, packetEnergyPrime_eq, packetEnergyArchimedean_eq,
-    packetEnergyCorrection_eq]
+  change normSq x = primePacketGram x + archimedeanPacketGram x + correctionPacketGram x
   exact zetaPacketNormSquare x
 
 /-- The packet energy is nonnegative. -/
 theorem packetEnergy_nonneg (x : ZetaPacketEnsemble) :
     0 ≤ packetEnergy x := by
-  rw [packetEnergy_eq_normSq]
+  change 0 ≤ normSq x
   exact normSq_nonneg x
 
 end ZetaPacketEnsemble

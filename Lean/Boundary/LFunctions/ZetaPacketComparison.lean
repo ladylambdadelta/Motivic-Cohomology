@@ -31,7 +31,6 @@ theorem zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq
 theorem zetaCompletedPacketNormSq_nonnegative_of_boundaryDefect
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedPacketNormSq f := by
-  rw [zetaCompletedPacketNormSq_eq_boundaryDefectGram]
   exact zetaCompletedBoundaryDefectGram_nonnegative f
 
 end ZetaAdmissibleFunction

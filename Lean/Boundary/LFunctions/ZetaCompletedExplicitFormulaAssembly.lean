@@ -1,5 +1,5 @@
-import Boundary.LFunctions.ZetaCompletedPacketComparison
 import Boundary.LFunctions.ZetaExplicitFormulaBoundaryTransport
+import Boundary.LFunctions.ZetaExplicitFormulaComplexAnalysis
 
 /-!
 # Boundary completed explicit-formula assembly
@@ -21,9 +21,14 @@ theorem zeta_completed_explicit_formula_autocorrelation
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  rw [zetaCompletedZeroKreinGram_eq_boundaryDefectGram]
-  exact (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectGram
-    (f := f)).symm
+  exact ZetaAdmissibleFunction.zetaCompletedZeroKreinGram_eq_explicitFormulaBoundarySum (f := f)
+
+/-- The analytic package exposes the completed explicit-formula autocorrelation identity. -/
+theorem ExplicitFormulaAnalyticPackage.zetaCompletedExplicitFormula_autocorrelation
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
+    zetaCompletedZeroKreinGram f =
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
+  exact ZetaAdmissibleFunction.zeta_completed_explicit_formula_autocorrelation f
 
 end ZetaAdmissibleFunction
 

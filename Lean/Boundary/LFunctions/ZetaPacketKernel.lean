@@ -33,41 +33,49 @@ theorem dotProduct_comm (x y : ZetaPacketEnsemble) :
   congr with ℓ
   exact mul_comm _ _
 
-/-- If two packet ensembles have disjoint supports, then their dot product vanishes. -/
-theorem dotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
-    (hxy : Disjoint x.support y.support) : dotProduct x y = 0 := by
+/-- Helper: a disjoint-support summand vanishes at a label. -/
+theorem dotProduct_eq_zero_of_disjoint_support_aux {x y : ZetaPacketEnsemble} (ℓ : ZetaPacketLabel)
+    (hxy : Disjoint x.support y.support) :
+    ℓ ∈ x.support ∪ y.support → x ℓ * y ℓ = 0 := by
+  intro hℓ
   have hxy' : ∀ ℓ, ℓ ∈ x.support → ℓ ∈ y.support → False := by
-    rw [Finset.disjoint_left] at hxy
-    exact hxy
-  unfold dotProduct
-  refine Finset.sum_eq_zero ?_
-  intro ℓ hℓ
+    exact Finset.disjoint_left.mp hxy
   have hmem : ℓ ∈ x.support ∨ ℓ ∈ y.support := Finset.mem_union.mp hℓ
   rcases hmem with hx | hy
   · have hy' : ℓ ∉ y.support := by
       intro hy
       exact hxy' ℓ hx hy
-    have hx0 : x ℓ ≠ 0 := by
-      simpa [Finsupp.mem_support_iff] using hx
     have hy0 : y ℓ = 0 := by
       by_contra hy0
       have hy_mem : ℓ ∈ y.support := by
-        simpa [Finsupp.mem_support_iff] using hy0
+        exact Finsupp.mem_support_iff.mpr hy0
       exact hy' hy_mem
-    rw [hy0]
-    ring
+    calc
+      x ℓ * y ℓ = x ℓ * 0 := by
+        exact congrArg (fun t => x ℓ * t) hy0
+      _ = 0 := by
+        exact mul_zero _
   · have hx' : ℓ ∉ x.support := by
       intro hx
       exact hxy' ℓ hx hy
     have hx0 : x ℓ = 0 := by
       by_contra hx0
       have hx_mem : ℓ ∈ x.support := by
-        simpa [Finsupp.mem_support_iff] using hx0
+        exact Finsupp.mem_support_iff.mpr hx0
       exact hx' hx_mem
-    have hy0 : y ℓ ≠ 0 := by
-      simpa [Finsupp.mem_support_iff] using hy
-    rw [hx0]
-    ring
+    calc
+      x ℓ * y ℓ = 0 * y ℓ := by
+        exact congrArg (fun t => t * y ℓ) hx0
+      _ = 0 := by
+        exact zero_mul _
+
+/-- If two packet ensembles have disjoint supports, then their dot product vanishes. -/
+theorem dotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
+    (hxy : Disjoint x.support y.support) : dotProduct x y = 0 := by
+  unfold dotProduct
+  refine Finset.sum_eq_zero ?_
+  intro ℓ hℓ
+  exact dotProduct_eq_zero_of_disjoint_support_aux (x := x) (y := y) ℓ hxy hℓ
 
 theorem normSq_nonneg (x : ZetaPacketEnsemble) : 0 ≤ normSq x := by
   unfold normSq dotProduct
@@ -79,8 +87,7 @@ end ZetaPacketEnsemble
 theorem packetDotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
     (hxy : Disjoint x.support y.support) : ZetaPacketEnsemble.dotProduct x y = 0 := by
   have hxy' : ∀ ℓ, ℓ ∈ x.support → ℓ ∈ y.support → False := by
-    rw [Finset.disjoint_left] at hxy
-    exact hxy
+    exact Finset.disjoint_left.mp hxy
   unfold ZetaPacketEnsemble.dotProduct
   refine Finset.sum_eq_zero ?_
   intro ℓ hℓ
@@ -92,20 +99,26 @@ theorem packetDotProduct_eq_zero_of_disjoint_support {x y : ZetaPacketEnsemble}
     have hy0 : y ℓ = 0 := by
       by_contra hy0
       have hy_mem : ℓ ∈ y.support := by
-        simpa [Finsupp.mem_support_iff] using hy0
+        exact Finsupp.mem_support_iff.mpr hy0
       exact hy' hy_mem
-    rw [hy0]
-    ring
+    calc
+      x ℓ * y ℓ = x ℓ * 0 := by
+        exact congrArg (fun t => x ℓ * t) hy0
+      _ = 0 := by
+        exact mul_zero _
   · have hx' : ℓ ∉ x.support := by
       intro hx
       exact hxy' ℓ hx hy
     have hx0 : x ℓ = 0 := by
       by_contra hx0
       have hx_mem : ℓ ∈ x.support := by
-        simpa [Finsupp.mem_support_iff] using hx0
+        exact Finsupp.mem_support_iff.mpr hx0
       exact hx' hx_mem
-    rw [hx0]
-    ring
+    calc
+      x ℓ * y ℓ = 0 * y ℓ := by
+        exact congrArg (fun t => t * y ℓ) hx0
+      _ = 0 := by
+        exact zero_mul _
 
 /-- The canonical bilinear packet kernel: the dot product on finite ensembles. -/
 def zetaPacketKernel (x y : ZetaPacketEnsemble) : ℝ :=

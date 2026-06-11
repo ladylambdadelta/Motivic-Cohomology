@@ -43,8 +43,8 @@ theorem translationDefect_zero (f : ZetaTestFunction) :
     translationDefect 0 f = fun _ => 0 := by
   funext x
   unfold translationDefect
-  rw [show x + (0 : ℝ) / 2 = x by ring, show x - (0 : ℝ) / 2 = x by ring]
-  ring
+  rw [show x + 0 / 2 = x by norm_num, show x - 0 / 2 = x by norm_num]
+  exact sub_self (f x)
 
 theorem translationDefect_reflect (a : ℝ) (f : ZetaTestFunction) :
     translationDefect a (reflect f) = fun x => - translationDefect a f (-x) := by
@@ -74,7 +74,7 @@ theorem translationDefect_zero_apply (a : ℝ) (x : ℝ) :
     translationDefect a (0 : ZetaTestFunction) x = 0 := by
   unfold translationDefect
   change (0 : ℂ) - 0 = 0
-  rw [sub_eq_add_neg, neg_zero, zero_add]
+  exact sub_self 0
 
 /-- The prime-side translation defect at the logarithmic prime-power center. -/
 def primePacketTranslationDefect (p : ℝ) (n : ℕ) (f : ZetaTestFunction) : ℝ → ℂ :=
@@ -128,8 +128,8 @@ theorem archimedeanTranslationDefect_zero (f : ZetaTestFunction) :
     archimedeanTranslationDefect 0 f = fun x => 2 * f x := by
   ext x
   unfold archimedeanTranslationDefect
-  rw [show x + (0 : ℝ) / 2 = x by ring, show x - (0 : ℝ) / 2 = x by ring]
-  ring
+  rw [show x + 0 / 2 = x by norm_num, show x - 0 / 2 = x by norm_num]
+  exact (two_mul (f x)).symm
 
 theorem archimedeanTranslationDefect_reflect (a : ℝ) (f : ZetaTestFunction) :
     archimedeanTranslationDefect a (reflect f) = fun x => archimedeanTranslationDefect a f (-x) := by
@@ -164,7 +164,7 @@ theorem archimedeanTranslationDefect_zero_apply (a : ℝ) (x : ℝ) :
     archimedeanTranslationDefect a (0 : ZetaTestFunction) x = 0 := by
   unfold archimedeanTranslationDefect
   change (0 : ℂ) + 0 = 0
-  rw [zero_add]
+  exact add_zero 0
 
 end ZetaTestFunction
 

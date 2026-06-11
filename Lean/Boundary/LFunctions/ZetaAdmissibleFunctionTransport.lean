@@ -247,4 +247,195 @@ theorem support_scale_smul_eq (t : ℝ) (ht : t ≠ 0) (a : ℂ) (ha : a ≠ 0) 
     Function.support (scale t (a • f)) = (fun x => t * x) ⁻¹' Function.support f := by
   rw [support_scale_smul t a ha, support_scale t ht f]
 
+/-- Translation is additive in the function variable. -/
+theorem translate_add (c : ℝ) (f g : ZetaAdmissibleFunction) :
+    translate c (f + g) = translate c f + translate c g := by
+  ext x
+  change f (x + c) + g (x + c) = translate c f x + translate c g x
+  rw [translate_apply, translate_apply]
+
+/-- Nonzero scaling is additive in the function variable. -/
+theorem scale_add (a : ℝ) (ha : a ≠ 0) (f g : ZetaAdmissibleFunction) :
+    scale a (f + g) = scale a f + scale a g := by
+  ext x
+  rw [scale_apply_nonzero a ha, add_apply]
+  change f (a * x) + g (a * x) = scale a f x + scale a g x
+  rw [scale_apply_nonzero a ha, scale_apply_nonzero a ha]
+
+/-- Translation commutes with complex scalar multiplication. -/
+theorem translate_smul (c : ℝ) (a : ℂ) (f : ZetaAdmissibleFunction) :
+    translate c (a • f) = a • translate c f := by
+  ext x
+  change a * f (x + c) = a * translate c f x
+  rw [translate_apply]
+
+/-- Nonzero scaling commutes with complex scalar multiplication. -/
+theorem scale_smul (t : ℝ) (ht : t ≠ 0) (a : ℂ) (f : ZetaAdmissibleFunction) :
+    scale t (a • f) = a • scale t f := by
+  ext x
+  rw [scale_apply_nonzero t ht, smul_apply]
+  change a * f (t * x) = a * scale t f x
+  rw [scale_apply_nonzero t ht]
+
+/-- Reflection commutes with complex scalar multiplication. -/
+theorem reflect_smul (a : ℂ) (f : ZetaAdmissibleFunction) :
+    reflect (a • f) = a • reflect f := by
+  ext x
+  change a * f (-x) = a * reflect f x
+  rw [reflect_apply]
+
+/-- Affine transport by `x ↦ a * x + c` on the real line. -/
+def affineTransport (a c : ℝ) (f : ZetaAdmissibleFunction) : ZetaAdmissibleFunction :=
+  translate c (scale a f)
+
+/-- Nonzero affine transport is pointwise affine. -/
+theorem affineTransport_apply_nonzero (a c : ℝ) (ha : a ≠ 0)
+    (f : ZetaAdmissibleFunction) (x : ℝ) :
+    affineTransport a c f x = f (a * x + a * c) := by
+  rw [affineTransport, translate_apply, scale_apply_nonzero a ha]
+  ring_nf
+
+/-- Affine transport is additive in the function variable for nonzero scale. -/
+theorem affineTransport_add (a c : ℝ) (ha : a ≠ 0) (f g : ZetaAdmissibleFunction) :
+    affineTransport a c (f + g) = affineTransport a c f + affineTransport a c g := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, add_apply]
+  change f (a * x + a * c) + g (a * x + a * c) =
+    affineTransport a c f x + affineTransport a c g x
+  rw [affineTransport_apply_nonzero a c ha, affineTransport_apply_nonzero a c ha]
+
+/-- Affine transport commutes with complex scalar multiplication for nonzero scale. -/
+theorem affineTransport_smul (a c : ℝ) (ha : a ≠ 0) (b : ℂ) (f : ZetaAdmissibleFunction) :
+    affineTransport a c (b • f) = b • affineTransport a c f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, smul_apply]
+  change b * f (a * x + a * c) = b * affineTransport a c f x
+  rw [affineTransport_apply_nonzero a c ha]
+
+/-- Nonzero scalar multiplication does not change the support of an affine transport. -/
+theorem support_affineTransport_smul (a c : ℝ) (ha : a ≠ 0) (b : ℂ) (hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    Function.support (affineTransport a c (b • f)) = Function.support (affineTransport a c f) := by
+  rw [affineTransport_smul a c ha b f, support_smul b hb]
+
+/-- The support of a nonzero affine transport is the affine pullback of the original support. -/
+theorem affineTransport_support (a c : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
+    Function.support (affineTransport a c f) =
+      (fun x => a * x + a * c) ⁻¹' Function.support f := by
+  rw [affineTransport, support_translate, support_scale a ha]
+  ext x
+  simp [Set.mem_preimage]
+  ring
+
+/-- The support of an affinely transported nonzero scalar multiple is the affine pullback of the
+original support. -/
+theorem support_affineTransport_smul_eq (a c : ℝ) (ha : a ≠ 0) (b : ℂ) (hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    Function.support (affineTransport a c (b • f)) =
+      (fun x => a * x + a * c) ⁻¹' Function.support f := by
+  rw [support_affineTransport_smul a c ha b hb, affineTransport_support a c ha f]
+
+/-- Affine transport preserves compact support. -/
+theorem hasCompactSupport_affineTransport (a c : ℝ) (f : ZetaAdmissibleFunction) :
+    HasCompactSupport (affineTransport a c f) := by
+  exact (affineTransport a c f).hasCompactSupport
+
+/-- Transport after a translation is transport with shifted offset for nonzero scale. -/
+theorem affineTransport_translate (a c d : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
+    affineTransport a c (translate d f) = affineTransport a (c + d / a) f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, translate_apply,
+    affineTransport_apply_nonzero a (c + d / a) ha]
+  congr 1
+  field_simp [ha]
+  ring
+
+/-- Transport after scaling composes the affine parameters, for nonzero scales. -/
+theorem affineTransport_scale (a b c : ℝ) (ha : a ≠ 0) (hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    affineTransport a c (scale b f) = affineTransport (b * a) c f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, scale_apply_nonzero b hb,
+    affineTransport_apply_nonzero (b * a) c (mul_ne_zero hb ha)]
+  ring
+
+/-- Transport after reflection is transport by the reflected affine map. -/
+theorem affineTransport_reflect (a c : ℝ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
+    affineTransport a c (reflect f) = affineTransport (-a) c f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, reflect_apply,
+    affineTransport_apply_nonzero (-a) c (neg_ne_zero.mpr ha)]
+  ring
+
+/-- Composing two affine transports is again an affine transport. -/
+theorem affineTransport_compose (a c b d : ℝ) (ha : a ≠ 0) (hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    affineTransport a c (affineTransport b d f) =
+      affineTransport (b * a) (c + d / a) f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha,
+    affineTransport_apply_nonzero b d hb,
+    affineTransport_apply_nonzero (b * a) (c + d / a) (mul_ne_zero hb ha)]
+  congr 1
+  field_simp [ha]
+  ring
+
+/-- The support of a composed nonzero affine transport is the pullback of the support of the
+original probe under the composed affine map. -/
+theorem affineTransport_compose_support (a c b d : ℝ) (ha : a ≠ 0) (hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    Function.support (affineTransport a c (affineTransport b d f)) =
+      (fun x => (b * a) * x + (b * a) * (c + d / a)) ⁻¹' Function.support f := by
+  rw [affineTransport_compose a c b d ha hb, affineTransport_support (b * a) (c + d / a)
+    (mul_ne_zero hb ha)]
+
+/-- A composed affine transport of a nonzero scalar multiple has the same exact support pullback
+as the underlying probe. -/
+theorem affineTransport_compose_smul_support (a c b d : ℝ) (ha : a ≠ 0) (hb : b ≠ 0)
+    (t : ℂ) (ht : t ≠ 0) (f : ZetaAdmissibleFunction) :
+    Function.support (affineTransport a c (affineTransport b d (t • f))) =
+      (fun x => (b * a) * x + (b * a) * (c + d / a)) ⁻¹' Function.support f := by
+  rw [affineTransport_compose_support a c b d ha hb, support_smul t ht]
+
+/-- Affine transport commutes with the basic translation move after nonzero scalar multiplication. -/
+theorem affineTransport_translate_smul (a c d : ℝ) (ha : a ≠ 0) (b : ℂ) (_hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    affineTransport a c (translate d (b • f)) =
+      b • affineTransport a (c + d / a) f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, translate_apply, smul_apply,
+    ]
+  change b * f (a * x + a * c + d) =
+    b * affineTransport a (c + d / a) f x
+  rw [affineTransport_apply_nonzero a (c + d / a) ha]
+  congr 1
+  field_simp [ha]
+  ring
+
+/-- Affine transport commutes with scaling after nonzero scalar multiplication. -/
+theorem affineTransport_scale_smul (a c t : ℝ) (ha : a ≠ 0) (ht : t ≠ 0)
+    (b : ℂ) (_hb : b ≠ 0) (f : ZetaAdmissibleFunction) :
+    affineTransport a c (scale t (b • f)) =
+      b • affineTransport (t * a) c f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, scale_apply_nonzero t ht, smul_apply,
+    ]
+  change b * f (t * (a * x + a * c)) =
+    b * affineTransport (t * a) c f x
+  rw [affineTransport_apply_nonzero (t * a) c (mul_ne_zero ht ha)]
+  ring
+
+/-- Affine transport commutes with reflection after nonzero scalar multiplication. -/
+theorem affineTransport_reflect_smul (a c : ℝ) (ha : a ≠ 0) (b : ℂ) (_hb : b ≠ 0)
+    (f : ZetaAdmissibleFunction) :
+    affineTransport a c (reflect (b • f)) =
+      b • affineTransport (-a) c f := by
+  ext x
+  rw [affineTransport_apply_nonzero a c ha, reflect_apply, smul_apply,
+    ]
+  change b * f (-(a * x + a * c)) =
+    b * affineTransport (-a) c f x
+  rw [affineTransport_apply_nonzero (-a) c (neg_ne_zero.mpr ha)]
+  ring
+
 end ZetaAdmissibleFunction

@@ -39,14 +39,17 @@ theorem zetaZeroSide_centered (z : ℂ) :
     z ∈ zetaZeroSide ↔ centeredCompletedRiemannZeta z = 0 := by
   rfl
 
-/-- The zero-side package is the centered zero locus. -/
-theorem zetaZeroSide_eq_centeredZetaZeros : zetaZeroSide = centeredZetaZeros := by
-  rfl
-
 /-- The zero-side package satisfies the raw Weil positivity predicate. -/
 theorem zetaZeroSide_weilPositivity_predicate : ZetaWeilPositivity := by
   intro φ
   exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := φ)
+
+/-- The zero-side package's Weil positivity on the autocorrelation surface is the zero-side real part statement. -/
+theorem zetaZeroSide_autocorrelation_zeroSide_eq_weil
+    (f : ZetaAdmissibleFunction) :
+    zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) =
+      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
+  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide
 
 /-- Autocorrelation-generated probes satisfy the zero-side package Weil positivity predicate. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_predicate :
@@ -76,8 +79,9 @@ theorem zetaZeroSide_weilPositivity_iff' :
 theorem zetaZeroSide_autocorrelation_zeroSide_nonnegative
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [← Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
-  exact Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := f)
+  exact
+    (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸
+      Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_nonnegative_of_probe (f := f)
 
 /-- Autocorrelation-generated probes satisfy the zero-side package's Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity
@@ -90,22 +94,23 @@ theorem zetaZeroSide_autocorrelation_weilPositivity_iff
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) ↔
       0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact
+    (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸ Iff.rfl
 
 /-- The zero-side package's zero-side nonnegativity statement is the autocorrelation Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_iff'
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f) ↔
       0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
+  exact
+    (zetaZeroSide_autocorrelation_zeroSide_eq_weil f) ▸ Iff.rfl
 
 /-- Zero-side nonnegativity implies the zero-side package's autocorrelation Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_of_zeroSide
     (f : ZetaAdmissibleFunction)
     (h : 0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.autocorrelation f)) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [Boundary.LFunctions.zetaWeilFormCompleted_autocorrelation_eq_zeroSide]
-  exact h
+  exact (zetaZeroSide_autocorrelation_zeroSide_eq_weil f).symm ▸ h
 
 /-- Each zero-side reflection orbit is finite. -/
 theorem zetaZeroSide_orbit_finite (z : CenteredZetaZero) :
@@ -124,26 +129,25 @@ theorem zetaZeroSide_orbit_countable (z : CenteredZetaZero) :
 
 /-- The zero-side package is countable. -/
 theorem zetaZeroSide_countable : zetaZeroSide.Countable := by
-  simpa [zetaZeroSide_eq_centeredZetaZeros] using centeredZetaZeros_countable
+  exact centeredZetaZeros_countable
 
 /-- The zero-side package's nontrivial zero locus is countable. -/
 theorem zetaZeroSide_nontrivialZeroSet_countable :
     ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0} :
       Set ℂ).Countable := by
-  simpa using centeredZetaZeros_nontrivialZeroSet_countable
+  exact centeredZetaZeros_nontrivialZeroSet_countable
 
 /-- The zero-side package's nontrivial zero locus has the discrete topology. -/
 theorem zetaZeroSide_nontrivialZeroSet_discreteTopology :
     DiscreteTopology
       ({z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0} :
         Set ℂ) := by
-  simpa using centeredZetaZeros_nontrivialZeroSet_discreteTopology
+  exact centeredZetaZeros_nontrivialZeroSet_discreteTopology
 
 /-- The zero-side reflection orbit is contained in the centered zero set. -/
 theorem zetaZeroSide_orbit_subset_centeredZetaZeros (z : CenteredZetaZero) :
     {x : ℂ | x ∈ orbit z} ⊆ zetaZeroSide := by
   intro x hx
-  rw [zetaZeroSide_centered]
   exact (CenteredZetaZero.orbit_subset_centeredZetaZeros z) hx
 
 end

@@ -18,13 +18,13 @@ namespace ZetaAdmissibleFunction
 
 /-- The explicit-formula transform attached to an admissible test function. -/
 def toZetaExplicitFormulaTransform (f : ZetaAdmissibleFunction) :
-    ZetaTestFunction.zetaExplicitFormulaTransform :=
-  ZetaTestFunction.toZetaExplicitFormulaTransform f.toZetaTestFunction'
+    ZetaTestFunction.explicitFormulaDefectPackage :=
+  ZetaTestFunction.toExplicitFormulaDefectPackage f.toZetaTestFunction'
 
 /-- The linear core of the admissible explicit-formula transform. -/
 def toZetaExplicitFormulaLinearTransform (f : ZetaAdmissibleFunction) :
-    ZetaTestFunction.zetaExplicitFormulaLinearTransform :=
-  ZetaTestFunction.toZetaExplicitFormulaLinearTransform f.toZetaTestFunction'
+    ZetaTestFunction.explicitFormulaLinearDefectPackage :=
+  ZetaTestFunction.toExplicitFormulaLinearDefectPackage f.toZetaTestFunction'
 
 /-- The prime component of the admissible explicit-formula transform. -/
 theorem toZetaExplicitFormulaTransform_prime (f : ZetaAdmissibleFunction) (p : ℕ) (n : ℕ) :
@@ -47,7 +47,7 @@ theorem toZetaExplicitFormulaTransform_correction (f : ZetaAdmissibleFunction) :
 /-- The admissible explicit-formula transform agrees with the underlying test-function transform. -/
 theorem toZetaExplicitFormulaTransform_eq (f : ZetaAdmissibleFunction) :
     toZetaExplicitFormulaTransform f =
-      ZetaTestFunction.toZetaExplicitFormulaTransform f.toZetaTestFunction' := by
+      ZetaTestFunction.toExplicitFormulaDefectPackage f.toZetaTestFunction' := by
   rfl
 
 /-- The completed admissible explicit-formula transform is the linear core plus correction. -/
@@ -63,7 +63,7 @@ theorem toZetaExplicitFormulaTransform_eq_linear_add_correction (f : ZetaAdmissi
 /-- The admissible transform is the underlying explicit-formula transform. -/
 theorem toZetaExplicitFormulaTransform_pair (f : ZetaAdmissibleFunction) :
     toZetaExplicitFormulaTransform f =
-      ZetaTestFunction.toZetaExplicitFormulaTransform f.toZetaTestFunction' := by
+      ZetaTestFunction.toExplicitFormulaDefectPackage f.toZetaTestFunction' := by
   rfl
 
 /-- The admissible transform exposes the prime, archimedean, and correction components. -/

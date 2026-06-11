@@ -44,19 +44,22 @@ theorem reflect_coordinate (z : CenteredZetaZero) :
 /-- Reflection is an involution on centered zeta zeros. -/
 theorem reflect_reflect (z : CenteredZetaZero) : reflect (reflect z) = z := by
   ext
-  change -(-((z : ℂ))) = (z : ℂ)
-  ring
+  exact neg_neg (z : ℂ)
 
 /-- The centered zero locus is stable under negation. -/
 theorem neg_mem_iff (z : ℂ) :
     centeredCompletedRiemannZeta z = 0 ↔ centeredCompletedRiemannZeta (-z) = 0 := by
   constructor
   · intro hz
-    rw [centeredCompletedRiemannZeta_neg]
-    exact hz
+    calc
+      centeredCompletedRiemannZeta (-z) = centeredCompletedRiemannZeta z := by
+        exact centeredCompletedRiemannZeta_neg z
+      _ = 0 := hz
   · intro hz
-    rw [centeredCompletedRiemannZeta_neg] at hz
-    exact hz
+    calc
+      centeredCompletedRiemannZeta z = centeredCompletedRiemannZeta (-z) := by
+        exact (centeredCompletedRiemannZeta_neg z).symm
+      _ = 0 := hz
 
 end CenteredZetaZero
 

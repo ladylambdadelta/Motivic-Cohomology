@@ -25,32 +25,47 @@ theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =
       centeredCompletedRiemannZeta₀ s -
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
-  rw [show centeredCompletedRiemannZeta s = completedRiemannZeta (1 / 2 + s) by rfl]
-  rw [show centeredCompletedRiemannZeta₀ s = completedRiemannZeta₀ (1 / 2 + s) by rfl]
-  rw [completedRiemannZeta_eq]
+  exact completedRiemannZeta_eq (1 / 2 + s)
 
 theorem centeredCompletedRiemannZeta_neg (s : ℂ) :
     centeredCompletedRiemannZeta (-s) = centeredCompletedRiemannZeta s := by
-  rw [show centeredCompletedRiemannZeta (-s) = completedRiemannZeta (1 / 2 - s) by rfl]
-  rw [show centeredCompletedRiemannZeta s = completedRiemannZeta (1 / 2 + s) by rfl]
-  rw [show (1 / 2 : ℂ) - s = 1 - (1 / 2 + s) by ring]
-  rw [completedRiemannZeta_one_sub]
+  have hsub : (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s := by
+    ring
+  have hsymm :
+      completedRiemannZeta (1 / 2 - s) = completedRiemannZeta (1 - (1 / 2 + s)) := by
+    exact congrArg completedRiemannZeta hsub.symm
+  exact hsymm.trans (completedRiemannZeta_one_sub (1 / 2 + s))
 
 theorem centeredCompletedRiemannZeta₀_neg (s : ℂ) :
     centeredCompletedRiemannZeta₀ (-s) = centeredCompletedRiemannZeta₀ s := by
-  rw [show centeredCompletedRiemannZeta₀ (-s) = completedRiemannZeta₀ (1 / 2 - s) by rfl]
-  rw [show centeredCompletedRiemannZeta₀ s = completedRiemannZeta₀ (1 / 2 + s) by rfl]
-  rw [show (1 / 2 : ℂ) - s = 1 - (1 / 2 + s) by ring]
-  rw [completedRiemannZeta₀_one_sub]
+  have hsub : (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s := by
+    ring
+  have hsymm :
+      completedRiemannZeta₀ (1 / 2 - s) = completedRiemannZeta₀ (1 - (1 / 2 + s)) := by
+    exact congrArg completedRiemannZeta₀ hsub.symm
+  exact hsymm.trans (completedRiemannZeta₀_one_sub (1 / 2 + s))
 
 theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
     1 / (1 / 2 + (-s)) + 1 / (1 - (1 / 2 + (-s))) =
       1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s)) := by
-  have h1 : (1 / 2 : ℂ) + (-s) = (1 / 2 : ℂ) - s := by ring
-  have h2 : (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s := by ring
-  have h3 : (1 : ℂ) - ((1 / 2 : ℂ) + s) = (1 / 2 : ℂ) - s := by ring
-  rw [h1, h2, h3]
-  ac_rfl
+  have h1 : (1 / 2 : ℂ) + (-s) = (1 / 2 : ℂ) - s := by
+    exact sub_eq_add_neg (1 / 2) s
+  have h2 : (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s := by
+    ring
+  have h3 : (1 : ℂ) - (1 / 2 + s) = (1 / 2 : ℂ) - s := by
+    ring
+  calc
+    1 / (1 / 2 + (-s)) + 1 / (1 - (1 / 2 + (-s))) =
+        1 / ((1 / 2 : ℂ) - s) + 1 / (1 - ((1 / 2 : ℂ) - s)) := by
+      exact congrArg (fun x : ℂ => 1 / x + 1 / (1 - x)) h1
+    _ = 1 / ((1 / 2 : ℂ) - s) + 1 / (1 / 2 + s) := by
+      exact congrArg (fun x : ℂ => 1 / ((1 / 2 : ℂ) - s) + x)
+        (congrArg (fun x : ℂ => 1 / x) h2)
+    _ = 1 / (1 / 2 + s) + 1 / ((1 / 2 : ℂ) - s) := by
+      exact add_comm (1 / ((1 / 2 : ℂ) - s)) (1 / (1 / 2 + s))
+    _ = 1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s)) := by
+      exact congrArg (fun x : ℂ => 1 / (1 / 2 + s) + x)
+        (congrArg (fun x : ℂ => 1 / x) h3.symm)
 
 end
 end LFunctions

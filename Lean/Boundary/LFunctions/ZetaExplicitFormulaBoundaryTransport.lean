@@ -1,3 +1,5 @@
+import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
+import Boundary.LFunctions.ZetaGuinandWeilExplicitFormula
 import Boundary.LFunctions.ZetaZeroKreinGram
 import Boundary.LFunctions.ZetaPacketComparison
 
@@ -60,22 +62,25 @@ theorem zetaCompletedZeroKreinGram_eq_boundaryDefectKreinGram
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f =
       zetaCompletedBoundaryDefectKreinGram f := by
-  rw [zetaCompletedZeroKreinGram_eq_completedPacketNormSq_classFree,
-    zetaCompletedBoundaryDefectKreinGram, zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq]
+  exact
+    (zetaCompletedZeroKreinGram_eq_completedPacketNormSq_classFree f).trans
+      (zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f).symm
 
 /-- The zero-side Krein form is the completed boundary-defect Gram. -/
 theorem zetaCompletedZeroKreinGram_eq_boundaryDefectGram
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f = zetaCompletedBoundaryDefectGram f := by
-  rw [zetaCompletedZeroKreinGram_eq_boundaryDefectKreinGram]
-  rfl
+  exact
+    (zetaCompletedZeroKreinGram_eq_boundaryDefectKreinGram f).trans
+      rfl
 
 /-- The zero-side Krein form is the completed packet norm square. -/
 theorem zetaCompletedZeroKreinGram_eq_completedPacketNormSq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram f = zetaCompletedPacketNormSq f := by
-  rw [zetaCompletedZeroKreinGram_eq_boundaryDefectGram,
-    zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq]
+  exact
+    (zetaCompletedZeroKreinGram_eq_boundaryDefectGram f).trans
+      (zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f)
 
 /-- The reflected autocorrelation zero-side Krein form equals the reflected boundary-defect Gram. -/
 theorem zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect
@@ -85,8 +90,11 @@ theorem zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect
           (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
       zetaCompletedBoundaryDefectKreinGram
         (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [zetaCompletedZeroKreinGram_autocorrelation_reflect_eq_completedPacketNormSq_classFree,
-    zetaCompletedBoundaryDefectKreinGram, zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq]
+  exact
+    (zetaCompletedZeroKreinGram_autocorrelation_reflect_eq_completedPacketNormSq_classFree
+      f).trans
+      (zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq
+        (ZetaAdmissibleFunction.autocorrelation f)).symm
 
 /-- The reflected autocorrelation packet norm square is the original boundary-defect Gram. -/
 theorem zetaCompletedPacketNormSq_autocorrelation_reflect

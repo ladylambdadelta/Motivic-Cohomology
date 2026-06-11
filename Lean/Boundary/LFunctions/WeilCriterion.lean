@@ -75,7 +75,8 @@ theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_decomposition (s : ℂ) :
     zetaWeilForm s =
       centeredCompletedRiemannZeta₀ s -
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
-  rw [zetaWeilForm_eq_centeredCompletedRiemannZeta, centeredCompletedRiemannZeta_eq]
+  exact (zetaWeilForm_eq_centeredCompletedRiemannZeta s).trans
+    (centeredCompletedRiemannZeta_eq s)
 
 /-- The centered completed zeta expanded as the entire term minus pole terms. -/
 theorem zetaWeilForm_eq_centeredCompletedRiemannZeta₀_minus_poles (s : ℂ) :
@@ -110,8 +111,8 @@ def zetaWeilGammaPart (s : ℂ) : ℂ :=
 theorem zetaWeilForm_eq_main_minus_correction (s : ℂ) :
     zetaWeilForm s = zetaWeilMainTerm s - zetaWeilCorrection s := by
   unfold zetaWeilForm zetaWeilMainTerm zetaWeilCorrection
-  rw [centeredCompletedRiemannZeta_eq]
-  rw [sub_sub]
+  exact centeredCompletedRiemannZeta_eq s ▸ by
+    exact sub_sub _ _ _
 
 /-- The Weil-form decomposition rewritten as the main term minus correction. -/
 theorem zetaWeilForm_eq_main_minus_correction_expanded (s : ℂ) :
@@ -178,7 +179,8 @@ theorem zetaWeilForm_centered_reflection_symmetry (s : ℂ) :
 /-- The centered completed zeta symmetry rewritten through the centered form. -/
 theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_neg_centered (s : ℂ) :
     zetaWeilForm (-s) = centeredCompletedRiemannZeta s := by
-  rw [zetaWeilForm_eq_centeredCompletedRiemannZeta, centeredCompletedRiemannZeta_neg]
+  exact (zetaWeilForm_eq_centeredCompletedRiemannZeta (-s)).trans
+    (centeredCompletedRiemannZeta_neg s)
 
 /-- The centered completed zeta normalization rewritten in the public owner file. -/
 theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_centered (s : ℂ) :
@@ -188,12 +190,57 @@ theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_centered (s : ℂ) :
 /-- The centered completed zeta symmetry rewritten in the public owner file. -/
 theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_neg (s : ℂ) :
     zetaWeilForm (-s) = centeredCompletedRiemannZeta s := by
-  rw [zetaWeilForm_eq_centeredCompletedRiemannZeta, centeredCompletedRiemannZeta_neg]
+  exact zetaWeilForm_eq_centeredCompletedRiemannZeta_neg_centered s
 
 /-- The centered pole correction symmetry rewritten in the public owner file. -/
 theorem zetaWeilCorrection_centered_reflection (s : ℂ) :
     zetaWeilCorrection (-s) = zetaWeilCorrection s := by
   exact zetaWeilCorrection_neg s
+
+/-- The centered shift used in the RH transport theorem. -/
+theorem boundaryRiemannHypothesis_shift_eq (z : ℂ) :
+    z - 1 / 2 + 1 / 2 = z := by
+  have hsub : z - 1 / 2 = z + (-1 / 2 : ℂ) := by
+    exact sub_eq_add_neg z (1 / 2 : ℂ)
+  calc
+    z - 1 / 2 + 1 / 2 = (z + (-1 / 2 : ℂ)) + 1 / 2 := by
+      exact congrArg (fun w : ℂ => w + 1 / 2) hsub
+    _ = z := by
+      calc
+        z + (-1 / 2 : ℂ) + 1 / 2 = z + (((-1 / 2 : ℂ)) + 1 / 2) := by
+          exact (add_assoc z (-1 / 2 : ℂ) (1 / 2 : ℂ)).symm
+        _ = z + 0 := by
+          exact congrArg (fun w : ℂ => z + w) (add_left_neg_self (1 / 2 : ℂ))
+        _ = z := by
+          exact add_zero z
+
+/-- The centered zero-criterion transport preserves the trivial-line exclusion. -/
+theorem boundaryRiemannHypothesis_nontrivial_shift
+    (z : ℂ) (htriv : ¬ ∃ n : ℕ, z = -2 * (n + 1)) :
+    ¬ ∃ n : ℕ, 1 / 2 + (z - 1 / 2) = -2 * (n + 1) := by
+  intro hx
+  rcases hx with ⟨n, hn⟩
+  apply htriv
+  refine ⟨n, ?_⟩
+  exact boundaryRiemannHypothesis_shift_eq z ▸ hn
+
+/-- The centered zero-criterion transport preserves the pole exclusion. -/
+theorem boundaryRiemannHypothesis_pole_shift
+    (z : ℂ) (hpole : z ≠ 1) :
+    (1 / 2 + (z - 1 / 2)) ≠ 1 := by
+  intro h1
+  apply hpole
+  exact boundaryRiemannHypothesis_shift_eq z ▸ h1
+
+/-- The centered zero-criterion transport rewrites the real part conclusion. -/
+theorem boundaryRiemannHypothesis_realPart_of_centered
+    (z : ℂ) (hsre : (z - 1 / 2).re = 0) :
+    z.re = 1 / 2 := by
+  have hsre' : z.re - 1 / 2 = 0 := by
+    have hcomplex : (z - 1 / 2 : ℂ).re = z.re - 1 / 2 := by
+      exact Complex.sub_re z (1 / 2 : ℂ)
+    exact hcomplex.trans hsre
+  exact sub_eq_zero.mp hsre'
 
 /-- A centered zero-criterion theorem implies the Boundary RH statement. -/
 theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
@@ -207,32 +254,16 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   intro z hz htriv hpole
   let s : ℂ := z - 1 / 2
   have hs : 1 / 2 + s = z := by
-    dsimp [s]
-    ring
+    change 1 / 2 + (z - 1 / 2) = z
+    exact boundaryRiemannHypothesis_shift_eq z
   have hz' : riemannZeta (1 / 2 + s) = 0 := by
-    rw [hs]
-    exact hz
-  have htriv' : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1) := by
-    intro hx
-    rcases hx with ⟨n, hn⟩
-    apply htriv
-    refine ⟨n, ?_⟩
-    rw [hs] at hn
-    dsimp [s]
-    exact hn
-  have hpole' : (1 / 2 + s) ≠ 1 := by
-    intro h1
-    apply hpole
-    rw [hs] at h1
-    dsimp [s]
-    exact h1
+    exact hs ▸ hz
+  have htriv' : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1) :=
+    boundaryRiemannHypothesis_nontrivial_shift z htriv
+  have hpole' : (1 / 2 + s) ≠ 1 :=
+    boundaryRiemannHypothesis_pole_shift z hpole
   have hsre : s.re = 0 := h s hz' htriv' hpole'
-  have hzre : z.re = 1 / 2 := by
-    dsimp [s] at hsre
-    have hzre' : z.re = 1 / 2 := by
-      linarith
-    exact hzre'
-  exact hzre
+  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
 
 end
 

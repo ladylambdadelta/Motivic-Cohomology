@@ -25,8 +25,12 @@ def completedZetaNegLogDeriv (s : ℂ) : ℂ :=
 theorem completedZetaNegLogDeriv_eq_neg_logDeriv (s : ℂ) :
     completedZetaNegLogDeriv s = - logDeriv completedRiemannZeta s := by
   unfold completedZetaNegLogDeriv
-  rw [logDeriv_apply]
-  rw [neg_div]
+  calc
+    (-deriv completedRiemannZeta s) / completedRiemannZeta s =
+        -(deriv completedRiemannZeta s / completedRiemannZeta s) := by
+      exact neg_div (completedRiemannZeta s) (deriv completedRiemannZeta s)
+    _ = - logDeriv completedRiemannZeta s := by
+      exact Eq.symm <| congrArg Neg.neg (logDeriv_apply (f := completedRiemannZeta) (x := s))
 
 end ZetaAdmissibleFunction
 

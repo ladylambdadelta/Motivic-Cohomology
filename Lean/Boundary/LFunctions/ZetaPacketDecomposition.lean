@@ -166,36 +166,36 @@ theorem correctionPart_correction (x : ZetaPacketEnsemble) :
   exact Finsupp.filter_apply_pos (f := x) (p := ZetaPacketLabel.IsCorrection)
     (a := ZetaPacketLabel.correction) ZetaPacketLabel.isCorrection_correction
 
-/-- The packet decomposition as a literal sum of the three filtered parts. -/
-theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
+/-- Prime-label decomposition helper. -/
+theorem add_prime_archimedean_correction_prime (x : ZetaPacketEnsemble) :
     primePart x + archimedeanPart x + correctionPart x = x := by
   ext ℓ
   cases ℓ with
-  | prime m n =>
-      change primePart x (ZetaPacketLabel.prime m n) +
-          archimedeanPart x (ZetaPacketLabel.prime m n) +
-          correctionPart x (ZetaPacketLabel.prime m n) =
-        x (ZetaPacketLabel.prime m n)
-      have hprime := primePart_prime x m n
-      have harch := archimedeanPart_prime x m n
-      have hcorr := correctionPart_prime x m n
+  | prime m' n' =>
+      change primePart x (ZetaPacketLabel.prime m' n') +
+          archimedeanPart x (ZetaPacketLabel.prime m' n') +
+          correctionPart x (ZetaPacketLabel.prime m' n') =
+        x (ZetaPacketLabel.prime m' n')
+      have hprime := primePart_prime x m' n'
+      have harch := archimedeanPart_prime x m' n'
+      have hcorr := correctionPart_prime x m' n'
       calc
-        primePart x (ZetaPacketLabel.prime m n) +
-            archimedeanPart x (ZetaPacketLabel.prime m n) +
-            correctionPart x (ZetaPacketLabel.prime m n)
-            = x (ZetaPacketLabel.prime m n) + 0 + 0 := by
+        primePart x (ZetaPacketLabel.prime m' n') +
+            archimedeanPart x (ZetaPacketLabel.prime m' n') +
+            correctionPart x (ZetaPacketLabel.prime m' n')
+            = x (ZetaPacketLabel.prime m' n') + 0 + 0 := by
               exact Eq.trans
-                (congrArg (fun t => t + archimedeanPart x (ZetaPacketLabel.prime m n) +
-                  correctionPart x (ZetaPacketLabel.prime m n)) hprime)
+                (congrArg (fun t => t + archimedeanPart x (ZetaPacketLabel.prime m' n') +
+                  correctionPart x (ZetaPacketLabel.prime m' n')) hprime)
                 (Eq.trans
-                  (congrArg (fun t => x (ZetaPacketLabel.prime m n) + t +
-                    correctionPart x (ZetaPacketLabel.prime m n)) harch)
-                  (congrArg (fun t => x (ZetaPacketLabel.prime m n) + 0 + t) hcorr))
-        _ = x (ZetaPacketLabel.prime m n) := by
+                  (congrArg (fun t => x (ZetaPacketLabel.prime m' n') + t +
+                    correctionPart x (ZetaPacketLabel.prime m' n')) harch)
+                  (congrArg (fun t => x (ZetaPacketLabel.prime m' n') + 0 + t) hcorr))
+        _ = x (ZetaPacketLabel.prime m' n') := by
               calc
-                x (ZetaPacketLabel.prime m n) + 0 + 0 = x (ZetaPacketLabel.prime m n) + 0 := by
-                  exact add_zero (x (ZetaPacketLabel.prime m n) + 0)
-                _ = x (ZetaPacketLabel.prime m n) := by
+                x (ZetaPacketLabel.prime m' n') + 0 + 0 = x (ZetaPacketLabel.prime m' n') + 0 := by
+                  exact add_zero (x (ZetaPacketLabel.prime m' n') + 0)
+                _ = x (ZetaPacketLabel.prime m' n') := by
                   exact add_zero _
   | archimedean =>
       change primePart x ZetaPacketLabel.archimedean +
@@ -249,6 +249,21 @@ theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
                   exact zero_add _
                 _ = x ZetaPacketLabel.correction := by
                   exact zero_add _
+
+/-- The packet decomposition as a literal sum of the three filtered parts. -/
+theorem add_prime_archimedean_correction (x : ZetaPacketEnsemble) :
+    primePart x + archimedeanPart x + correctionPart x = x := by
+  ext ℓ
+  cases ℓ with
+  | prime m n =>
+      exact congrArg (fun f => f (ZetaPacketLabel.prime m n))
+        (add_prime_archimedean_correction_prime x)
+  | archimedean =>
+      exact congrArg (fun f => f ZetaPacketLabel.archimedean)
+        (add_prime_archimedean_correction_prime x)
+  | correction =>
+      exact congrArg (fun f => f ZetaPacketLabel.correction)
+        (add_prime_archimedean_correction_prime x)
 
 /-- Prime and archimedean packet parts have disjoint support. -/
 theorem support_primePart_disjoint_archimedeanPart (x : ZetaPacketEnsemble) :

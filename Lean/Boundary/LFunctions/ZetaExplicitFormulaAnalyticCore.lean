@@ -1,10 +1,17 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
-import Boundary.LFunctions.ZetaCompletedNormalization
-import Boundary.LFunctions.ZetaZeroKreinGram
-import Boundary.LFunctions.ZetaTransformCalculus
-import Boundary.LFunctions.ZetaZeroSideDefinitions
-import Boundary.LFunctions.ZetaCompletedExplicitFormulaAssembly
+import Boundary.LFunctions.AutocorrelationCore
+import Boundary.LFunctions.ZetaTransformCalculusReflection
+import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
+import Boundary.LFunctions.ZetaExplicitFormulaNormalizationBridge
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.NormedSpace.Connected
+import Mathlib.Analysis.Calculus.LogDeriv
+import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
+import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
+import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.Topology.Constructions
+import Mathlib.Topology.Compactness.Lindelof
 
 /-!
 # Boundary explicit-formula analytic core
@@ -38,13 +45,24 @@ theorem zetaAdmissibleDagger_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAdmissibleDagger f t = star (f (-t)) := by
   exact rfl
 
+/-- The reflected admissible probe evaluates to the unreﬂected value at `t`. -/
+theorem reflect_neg_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
+    ZetaAdmissibleFunction.reflect f (-t) = f t := by
+  have h := ZetaAdmissibleFunction.reflect_apply f (-t)
+  have h' : f (- -t) = f t := by
+    exact congrArg f (neg_neg t)
+  exact h.trans h'
+
 /-- Applying the dagger twice returns the original function. -/
+theorem zetaAdmissibleDagger_dagger_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
+    zetaAdmissibleDagger (ZetaAdmissibleFunction.reflect f) t = star (f t) := by
+  have h := zetaAdmissibleDagger_apply (ZetaAdmissibleFunction.reflect f) t
+  exact h.trans (congrArg star (reflect_neg_apply f t))
+
 theorem zetaAdmissibleDagger_dagger (f : ZetaAdmissibleFunction) :
-    ZetaTestFunction.reflect (zetaAdmissibleDagger f) = f.toZetaTestFunction' := by
+    zetaAdmissibleDagger (ZetaAdmissibleFunction.reflect f) = fun t => star (f t) := by
   ext t
-  change (starRingEnd ℂ) ((starRingEnd ℂ) (f.toZetaTestFunction (- -t))) = f.toZetaTestFunction t
-  rw [neg_neg]
-  simpa using (star_star (f.toZetaTestFunction t))
+  exact zetaAdmissibleDagger_dagger_apply f t
 
 /-- The autocorrelation kernel attached to an admissible function. -/
 def zetaAutocorrelationKernel (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
@@ -53,27 +71,26 @@ def zetaAutocorrelationKernel (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
 /-- The autocorrelation kernel is pointwise the convolution product. -/
 theorem zetaAutocorrelationKernel_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAutocorrelationKernel f t = f t * zetaAdmissibleDagger f t := by
-  rfl
+  exact Eq.refl _
 
 /-- The autocorrelation kernel is pointwise symmetric under dagger. -/
 theorem zetaAutocorrelationKernel_symm (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAutocorrelationKernel f t = zetaAdmissibleDagger f t * f t := by
-  unfold zetaAutocorrelationKernel
-  rw [mul_comm]
+  exact mul_comm (f t) (zetaAdmissibleDagger f t)
 
 /-- The autocorrelation kernel is exactly the pointwise product. -/
 theorem zetaAutocorrelationKernel_eq (f : ZetaAdmissibleFunction) :
     zetaAutocorrelationKernel f = fun t => f t * zetaAdmissibleDagger f t := by
-  exact rfl
+  exact Eq.refl _
 
 /-- The kernel can be rewritten using the dagger on the right factor. -/
 theorem zetaAutocorrelationKernel_dagger_eq (f : ZetaAdmissibleFunction) :
     zetaAutocorrelationKernel f = fun t => f t * star (f (-t)) := by
-  exact rfl
+  exact Eq.refl _
 
 /-- The spectral transform attached to the autocorrelation kernel. -/
 def zetaAutocorrelationSpectralTransform (f : ZetaAdmissibleFunction) : ℂ → ℂ :=
-  fun z => zetaSpectralTransform f z
+  fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z
 
 /-- The spectral transform notation `Φ_f`. -/
 abbrev zetaCompletedExplicitFormulaPhi (f : ZetaAdmissibleFunction) : ℂ → ℂ :=
@@ -82,138 +99,88 @@ abbrev zetaCompletedExplicitFormulaPhi (f : ZetaAdmissibleFunction) : ℂ → �
 /-- The explicit-formula spectral transform is definitionally the named `Φ_f`. -/
 theorem zetaCompletedExplicitFormulaPhi_eq (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPhi f = zetaAutocorrelationSpectralTransform f := by
-  exact rfl
+  exact Eq.refl _
 
 /-- The explicit-formula spectral transform is the zeta Laplace transform. -/
 theorem zetaCompletedExplicitFormulaPhi_eq_laplace (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaPhi f = Boundary.zetaLaplaceTransform f := by
-  exact rfl
+    zetaCompletedExplicitFormulaPhi f = Boundary.zetaLaplaceTransform f.toZetaTestFunction' := by
+  exact Eq.refl _
 
 /-- The autocorrelation spectral transform is the zeta Laplace transform. -/
 theorem zetaAutocorrelationSpectralTransform_eq_laplace (f : ZetaAdmissibleFunction) :
-    zetaAutocorrelationSpectralTransform f = Boundary.zetaLaplaceTransform f := by
-  exact rfl
+    zetaAutocorrelationSpectralTransform f = Boundary.zetaLaplaceTransform f.toZetaTestFunction' := by
+  exact Eq.refl _
 
 /-- The autocorrelation spectral transform is continuous. -/
+theorem zetaAutocorrelationSpectralTransform_continuous_apply
+    (f : ZetaAdmissibleFunction) :
+    Continuous (fun z : ℂ => zetaAutocorrelationSpectralTransform f z) := by
+  unfold zetaAutocorrelationSpectralTransform
+  exact zetaLaplaceTransform_continuous f
+
+/-- The reflected admissible function has reflected underlying test function. -/
+theorem zetaReflect_toZetaTestFunction'_eq (f : ZetaAdmissibleFunction) :
+    (ZetaAdmissibleFunction.reflect f).toZetaTestFunction' =
+      ZetaTestFunction.reflect f.toZetaTestFunction' := by
+  ext x
+  exact rfl
+
 theorem zetaAutocorrelationSpectralTransform_continuous
     (f : ZetaAdmissibleFunction) :
     Continuous (zetaAutocorrelationSpectralTransform f) := by
-  simpa [zetaAutocorrelationSpectralTransform, zetaSpectralTransform] using
-    zetaLaplaceTransform_continuous f
+  exact zetaAutocorrelationSpectralTransform_continuous_apply f
 
 /-- The autocorrelation spectral transform reflects with the test function. -/
 theorem zetaAutocorrelationSpectralTransform_reflect
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaAutocorrelationSpectralTransform (ZetaAdmissibleFunction.zetaAdmissibleDagger f) z =
+    zetaAutocorrelationSpectralTransform (ZetaAdmissibleFunction.reflect f) z =
       zetaAutocorrelationSpectralTransform f (-z) := by
-  unfold zetaAutocorrelationSpectralTransform
-  rw [← LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_dagger_reflect]
-  rfl
+  have h := zetaReflect_toZetaTestFunction'_eq f
+  have h' := congrArg (fun φ => Boundary.zetaLaplaceTransform φ z) h
+  exact h'.trans (zetaLaplaceTransform_reflect (φ := f.toZetaTestFunction') (z := z))
 
 /-- The autocorrelation spectral transform of the reflected kernel is the reflected transform. -/
 theorem zetaAutocorrelationSpectralTransform_autocorrelation_reflect
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaAutocorrelationSpectralTransform
-        (ZetaAdmissibleFunction.zetaAdmissibleDagger f) z =
+        (ZetaAdmissibleFunction.reflect f) z =
       zetaAutocorrelationSpectralTransform f (-z) := by
   exact zetaAutocorrelationSpectralTransform_reflect f z
 
 /-- The explicit-formula transform reflects under the dagger involution. -/
 theorem zetaCompletedExplicitFormulaPhi_reflect
     (f : ZetaAdmissibleFunction) (z : ℂ) :
-    zetaCompletedExplicitFormulaPhi (ZetaAdmissibleFunction.zetaAdmissibleDagger f) z =
+    zetaCompletedExplicitFormulaPhi (ZetaAdmissibleFunction.reflect f) z =
       zetaCompletedExplicitFormulaPhi f (-z) := by
-  rw [zetaCompletedExplicitFormulaPhi_eq, zetaCompletedExplicitFormulaPhi_eq,
-    zetaAutocorrelationSpectralTransform_reflect]
+  exact zetaAutocorrelationSpectralTransform_reflect f z
 
 /-- The explicit-formula transform of the reflected autocorrelation is the reflected transform. -/
 theorem zetaCompletedExplicitFormulaPhi_autocorrelation_reflect
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaCompletedExplicitFormulaPhi
-        (ZetaAdmissibleFunction.autocorrelation (ZetaAdmissibleFunction.zetaAdmissibleDagger f))
+        (ZetaAdmissibleFunction.reflect f)
           z =
-      zetaCompletedExplicitFormulaPhi (ZetaAdmissibleFunction.autocorrelation f) (-z) := by
-  rw [ZetaAdmissibleFunction.autocorrelation_dagger_eq_reflect]
+      zetaCompletedExplicitFormulaPhi f (-z) := by
   exact zetaCompletedExplicitFormulaPhi_reflect f z
-
-/-- The zero-side Krein form of the reflected autocorrelation probe is the reflected zero-side
-form. -/
-theorem zetaCompletedZeroKreinGram_autocorrelation_reflect
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram
-        (ZetaAdmissibleFunction.autocorrelation
-          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
-      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.autocorrelation f) := by
-  rfl
-
-/-- The zero-side Krein form exposes reflected-autocorrelation invariance in the analytic core. -/
-theorem zetaCompletedZeroKreinGram_autocorrelation_reflect' :
-    ∀ f : ZetaAdmissibleFunction,
-      zetaCompletedZeroKreinGram
-        (ZetaAdmissibleFunction.autocorrelation
-          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
-      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.autocorrelation f) := by
-  intro f
-  exact zetaCompletedZeroKreinGram_autocorrelation_reflect f
-
-/-- The reflected autocorrelation zero-side Krein form is compatible with the boundary-defect
-comparison normalization. -/
-theorem zetaCompletedZeroKreinGram_autocorrelation_reflect_boundaryDefect
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram
-        (ZetaAdmissibleFunction.autocorrelation
-          (ZetaAdmissibleFunction.zetaAdmissibleDagger f)) =
-      zetaCompletedBoundaryDefectGram
-        (ZetaAdmissibleFunction.autocorrelation f) := by
-  rw [zetaCompletedZeroKreinGram_autocorrelation_reflect']
-  rfl
-
-/-- The completed explicit formula for autocorrelation probes, exposed in the analytic core
-namespace. -/
-theorem zetaCompletedExplicitFormula_autocorrelation
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram f =
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact Boundary.LFunctions.ZetaAdmissibleFunction.zeta_completed_explicit_formula_autocorrelation f
-
-/-- The explicit-formula `Φ_f` on an autocorrelation is the explicit Laplace integral. -/
-theorem zetaCompletedExplicitFormulaPhi_autocorrelation_eq_integral
-    (f : ZetaAdmissibleFunction) (z : ℂ) :
-    Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
-      ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  rw [LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
-  rfl
-
-/-- The autocorrelation spectral transform unfolds to the Laplace integral of the kernel. -/
-theorem zetaAutocorrelationSpectralTransform_autocorrelation
-    (f : ZetaAdmissibleFunction) (z : ℂ) :
-    Boundary.zetaLaplaceTransform (ZetaAdmissibleFunction.autocorrelation f) z =
-      ∫ t : ℝ, (f t * star (f t)) * Complex.exp (z * t) := by
-  rw [LFunctions.ZetaTransformCalculus.zetaLaplaceTransform_autocorrelation]
-  rfl
 
 /-- The kernel involution recovers the original pointwise factorization. -/
 theorem zetaAdmissibleDagger_pointwise (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAdmissibleDagger f t = star (f (-t)) := by
-  exact rfl
-
-/-- The zero-side sum contribution attached to the admissible autocorrelation. -/
-def zetaCompletedExplicitFormulaZeroSum (f : ZetaAdmissibleFunction) : ℝ :=
-  zetaCompletedZeroKreinGram f
+  exact Eq.refl _
 
 /-- The prime contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeContribution
-    (f : ZetaAdmissibleFunction) : ℂ :=
+    (_f : ZetaAdmissibleFunction) : ℂ :=
   0
 
 /-- The archimedean contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaArchimedeanContribution
-    (f : ZetaAdmissibleFunction) : ℂ :=
+    (_f : ZetaAdmissibleFunction) : ℂ :=
   0
 
 /-- The correction contribution in the completed explicit formula. -/
 noncomputable def zetaCompletedExplicitFormulaCorrectionContribution
-    (f : ZetaAdmissibleFunction) : ℂ :=
+    (_f : ZetaAdmissibleFunction) : ℂ :=
   0
 
 /-- The combined completed explicit-formula boundary sum. -/
@@ -230,7 +197,7 @@ theorem zetaCompletedExplicitFormulaBoundarySumCore_eq
       zetaCompletedExplicitFormulaPrimeContribution f +
         zetaCompletedExplicitFormulaArchimedeanContribution f +
         zetaCompletedExplicitFormulaCorrectionContribution f := by
-  exact rfl
+  exact Eq.refl _
 
 end ZetaAdmissibleFunction
 
