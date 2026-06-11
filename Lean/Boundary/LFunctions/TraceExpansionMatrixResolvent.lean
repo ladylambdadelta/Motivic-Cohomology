@@ -1008,6 +1008,42 @@ theorem coeff_oneSubXMatrix_mul_matrixResolvent_succ
     exact (coeff_matrix_one_apply_succ (K := K) i j k).symm
   exact hexpand.trans (hsum.trans hone)
 
+theorem coeff_matrixResolvent_mul_oneSubXMatrix
+    (M : Matrix n n K) (i j : n) (k : ℕ) :
+    PowerSeries.coeff K k
+        ((matrixResolvent (K := K) M * oneSubXMatrix (K := K) M) i j) =
+      PowerSeries.coeff K k ((1 : Matrix n n K⟦X⟧) i j) := by
+  match k with
+  | 0 =>
+      exact coeff_matrixResolvent_mul_oneSubXMatrix_zero (K := K) M i j
+  | k + 1 =>
+      exact coeff_matrixResolvent_mul_oneSubXMatrix_succ (K := K) M i j k
+
+theorem coeff_oneSubXMatrix_mul_matrixResolvent
+    (M : Matrix n n K) (i j : n) (k : ℕ) :
+    PowerSeries.coeff K k
+        ((oneSubXMatrix (K := K) M * matrixResolvent (K := K) M) i j) =
+      PowerSeries.coeff K k ((1 : Matrix n n K⟦X⟧) i j) := by
+  match k with
+  | 0 =>
+      exact coeff_oneSubXMatrix_mul_matrixResolvent_zero (K := K) M i j
+  | k + 1 =>
+      exact coeff_oneSubXMatrix_mul_matrixResolvent_succ (K := K) M i j k
+
+theorem matrixResolvent_mul_oneSubXMatrix_entry
+    (M : Matrix n n K) (i j : n) :
+    (matrixResolvent (K := K) M * oneSubXMatrix (K := K) M) i j =
+      (1 : Matrix n n K⟦X⟧) i j := by
+  exact PowerSeries.ext
+    (fun k => coeff_matrixResolvent_mul_oneSubXMatrix (K := K) M i j k)
+
+theorem oneSubXMatrix_mul_matrixResolvent_entry
+    (M : Matrix n n K) (i j : n) :
+    (oneSubXMatrix (K := K) M * matrixResolvent (K := K) M) i j =
+      (1 : Matrix n n K⟦X⟧) i j := by
+  exact PowerSeries.ext
+    (fun k => coeff_oneSubXMatrix_mul_matrixResolvent (K := K) M i j k)
+
 theorem neg_mul_right_assoc (a b c : K⟦X⟧) :
     (-(a * b)) * c = -((a * b) * c) := by
   exact neg_mul (a * b) c
@@ -1050,27 +1086,13 @@ theorem neg_mul_mul_inv_cancel_comm (a b : K⟦X⟧)
 
 theorem matrixResolvent_mul_oneSubXMatrix (M : Matrix n n K) :
     matrixResolvent (K := K) M * oneSubXMatrix (K := K) M = 1 := by
-  apply Matrix.ext
-  intro i j
-  apply PowerSeries.ext
-  intro k
-  cases k with
-  | zero =>
-      exact coeff_matrixResolvent_mul_oneSubXMatrix_zero (K := K) M i j
-  | succ k =>
-      exact coeff_matrixResolvent_mul_oneSubXMatrix_succ (K := K) M i j k
+  exact Matrix.ext
+    (fun i j => matrixResolvent_mul_oneSubXMatrix_entry (K := K) M i j)
 
 theorem oneSubXMatrix_mul_matrixResolvent (M : Matrix n n K) :
     oneSubXMatrix (K := K) M * matrixResolvent (K := K) M = 1 := by
-  apply Matrix.ext
-  intro i j
-  apply PowerSeries.ext
-  intro k
-  cases k with
-  | zero =>
-      exact coeff_oneSubXMatrix_mul_matrixResolvent_zero (K := K) M i j
-  | succ k =>
-      exact coeff_oneSubXMatrix_mul_matrixResolvent_succ (K := K) M i j k
+  exact Matrix.ext
+    (fun i j => oneSubXMatrix_mul_matrixResolvent_entry (K := K) M i j)
 end MatrixSeries
 
 end

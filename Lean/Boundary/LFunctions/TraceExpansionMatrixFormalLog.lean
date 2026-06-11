@@ -106,13 +106,11 @@ theorem eval_zero_polynomial_one_sub_X_matrix_entry
       (1 : Matrix n n K) i j = if i = j then 1 else 0).symm
   exact hentry.trans (hsub.trans (hindicator.trans (hmonomial.trans (hzero.trans hone))))
 
-theorem eval_zero_mapMatrix_one_sub_X_matrix
-    (M : Matrix n n K) :
-    (Polynomial.evalRingHom (R := K) 0).mapMatrix
-        (1 - (Polynomial.X : Polynomial K) • M.map Polynomial.C) =
-      (1 : Matrix n n K) := by
-  apply Matrix.ext
-  intro i j
+theorem eval_zero_mapMatrix_one_sub_X_matrix_entry
+    (M : Matrix n n K) (i j : n) :
+    ((Polynomial.evalRingHom (R := K) 0).mapMatrix
+      (1 - (Polynomial.X : Polynomial K) • M.map Polynomial.C)) i j =
+      (1 : Matrix n n K) i j := by
   have hentry :
       ((Polynomial.evalRingHom (R := K) 0).mapMatrix
         (1 - (Polynomial.X : Polynomial K) • M.map Polynomial.C)) i j =
@@ -127,6 +125,14 @@ theorem eval_zero_mapMatrix_one_sub_X_matrix
         (1 : Matrix n n K) i j := by
     exact eval_zero_polynomial_one_sub_X_matrix_entry (K := K) M i j
   exact hentry.trans hone
+
+theorem eval_zero_mapMatrix_one_sub_X_matrix
+    (M : Matrix n n K) :
+    (Polynomial.evalRingHom (R := K) 0).mapMatrix
+        (1 - (Polynomial.X : Polynomial K) • M.map Polynomial.C) =
+      (1 : Matrix n n K) := by
+  exact Matrix.ext
+    (fun i j => eval_zero_mapMatrix_one_sub_X_matrix_entry (K := K) M i j)
 
 theorem eval_zero_det_one_sub_X_matrix (M : Matrix n n K) :
     Polynomial.evalRingHom (R := K) 0
@@ -420,6 +426,18 @@ theorem neg_matrix_trace_pow_div_eq_neg_linearMap_trace_div
   exact congrArg (fun t : K => -t / (m : K))
     (linearMap_trace_eq_matrix_trace_toMatrix_pow (K := K) b F m).symm
 
+theorem coeff_formalLog_eulerPolynomial_eq_neg_trace_pow_of_basis
+    [CharZero K]
+    {V ι : Type*} [AddCommGroup V] [Module K V] [FiniteDimensional K V]
+    [Fintype ι] [DecidableEq ι]
+    (b : Basis ι K V)
+    (F : Module.End K V) (m : ℕ) (hm : m ≠ 0) :
+    PowerSeries.coeff K m
+        (formalLog (Boundary.LinearEulerFactor.eulerPolynomial F : K⟦X⟧)) =
+      -LinearMap.trace K V (F ^ m) / (m : K) := by
+  exact (coeff_formalLog_eulerPolynomial_eq_matrix_trace_pow (K := K) b F m hm).trans
+    (neg_matrix_trace_pow_div_eq_neg_linearMap_trace_div (K := K) b F m)
+
 theorem coeff_formalLog_eulerPolynomial_eq_neg_trace_pow
     [CharZero K]
     {V : Type*} [AddCommGroup V] [Module K V] [FiniteDimensional K V]
@@ -428,8 +446,7 @@ theorem coeff_formalLog_eulerPolynomial_eq_neg_trace_pow
         (formalLog (Boundary.LinearEulerFactor.eulerPolynomial F : K⟦X⟧)) =
       -LinearMap.trace K V (F ^ m) / (m : K) := by
   let b := Module.Free.chooseBasis K V
-  exact (coeff_formalLog_eulerPolynomial_eq_matrix_trace_pow (K := K) b F m hm).trans
-    (neg_matrix_trace_pow_div_eq_neg_linearMap_trace_div (K := K) b F m)
+  exact coeff_formalLog_eulerPolynomial_eq_neg_trace_pow_of_basis (K := K) b F m hm
 end MatrixSeries
 
 end

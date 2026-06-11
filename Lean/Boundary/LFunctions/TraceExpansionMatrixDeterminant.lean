@@ -321,14 +321,21 @@ theorem coeff_sum_sum_C_mul_matrixResolvent_eq_trace
   exact (coeff_sum_sum_C_mul_matrixResolvent (K := K) M k).trans
     (trace_matrix_pow_succ_eq_sum_entry_mul_pow (K := K) M k).symm
 
+theorem coeff_traceResolventSeries_eq_coeff_sum_matrixResolvent
+    (M : Matrix n n K) (k : ℕ) :
+    PowerSeries.coeff K k (traceResolventSeries (K := K) M) =
+      PowerSeries.coeff K k
+        (∑ i : n, ∑ j : n,
+          PowerSeries.C K (M i j) * matrixResolvent (K := K) M j i) := by
+  exact (coeff_traceResolventSeries (K := K) M k).trans
+    (coeff_sum_sum_C_mul_matrixResolvent_eq_trace (K := K) M k).symm
+
 theorem traceResolventSeries_eq_sum_matrixResolvent (M : Matrix n n K) :
     traceResolventSeries (K := K) M =
       ∑ i : n, ∑ j : n,
         PowerSeries.C K (M i j) * matrixResolvent (K := K) M j i := by
-  apply PowerSeries.ext
-  intro k
-  exact (coeff_traceResolventSeries (K := K) M k).trans
-    (coeff_sum_sum_C_mul_matrixResolvent_eq_trace (K := K) M k).symm
+  exact PowerSeries.ext
+    (fun k => coeff_traceResolventSeries_eq_coeff_sum_matrixResolvent (K := K) M k)
 
 theorem mul_C_mul_reassociate (a c r : K⟦X⟧) :
     a * (c * r) = c * (a * r) := by
