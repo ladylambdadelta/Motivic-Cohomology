@@ -1,0 +1,2980 @@
+import Boundary.LFunctions.ZetaCompletedSquareLedger
+import Boundary.LFunctions.ZetaTransformCalculusBase
+
+/-!
+# Boundary completed-channel descent
+
+This file owns the concrete descent and compatibility statements for the
+completed explicit-formula boundary channel.  It deliberately uses named
+channel definitions and named theorems rather than an abstract prerequisite
+record.
+-/
+
+namespace Boundary
+namespace LFunctions
+
+noncomputable section
+
+open Filter
+open scoped Topology
+
+namespace ZetaAdmissibleFunction
+
+/-- The completed explicit-formula boundary channel. -/
+def completedBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaBoundarySumCore g
+
+/-- The prime channel of the completed boundary functional. -/
+def primeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaPrimeContribution g
+
+/-- The opposite prime face of the completed boundary functional.  This is the negative
+prime-power face paired with the positive prime channel by dagger. -/
+def oppositePrimeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+      zetaCompletedExplicitFormulaPhi g (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))
+
+/-- The archimedean channel of the completed boundary functional. -/
+def archimedeanBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaArchimedeanContribution g
+
+/-- The pole channel in the current centered completed-zeta normalization. -/
+def poleBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionContribution g
+
+/-- The residual completion channel after the explicit archimedean and pole channels have been
+separated.  In the current normalization this channel is zero; if the gamma normalization is
+split further, this is the owner slot to refine. -/
+def completionBoundaryChannel (_g : ZetaAdmissibleFunction) : ℂ :=
+  0
+
+/-- The opposite completed boundary channel.  The prime face is reflected to the negative
+prime-power face; the self-paired archimedean and correction faces remain at the basepoint. -/
+def oppositeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  oppositePrimeBoundaryChannel g +
+    archimedeanBoundaryChannel g +
+    poleBoundaryChannel g +
+    completionBoundaryChannel g
+
+/-- The spectral boundary functional attached to a transform. -/
+def spectralBoundaryChannel (Φ : ℂ → ℂ) : ℂ :=
+  (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+      Φ (zetaPrimePacketCenter ℓ.1 ℓ.2))) +
+    (2 : ℂ) * Φ 0 +
+    (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)))
+
+/-- The windowed spectral prime channel over genuine prime-power indices. -/
+def spectralPrimeBoundaryWindow
+    (N : ℕ) (Φ : ℂ → ℂ) : ℂ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    -((ι.weight : ℂ) * Φ ι.center)
+
+/-- The windowed completed spectral boundary channel over genuine prime-power indices. -/
+def spectralCompletedBoundaryWindow
+    (N : ℕ) (Φ : ℂ → ℂ) : ℂ :=
+  spectralPrimeBoundaryWindow N Φ +
+    (2 : ℂ) * Φ 0 +
+    (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)))
+
+/-- The local channel decomposition of the completed boundary functional. -/
+theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
+    (g : ZetaAdmissibleFunction) :
+    completedBoundaryChannel g =
+      primeBoundaryChannel g +
+        archimedeanBoundaryChannel g +
+        poleBoundaryChannel g +
+        completionBoundaryChannel g := by
+  unfold completedBoundaryChannel
+  unfold primeBoundaryChannel
+  unfold archimedeanBoundaryChannel
+  unfold poleBoundaryChannel
+  unfold completionBoundaryChannel
+  calc
+    zetaCompletedExplicitFormulaBoundarySumCore g =
+        zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g :=
+      zetaCompletedExplicitFormulaBoundarySumCore_eq g
+    _ =
+        zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g + 0 := by
+      exact (add_zero _).symm
+
+/-- The Hermitian kernel assembled from the completed boundary channels on the convolution
+pairing algebra. -/
+def completedHermitianKernel
+    (f h : ZetaAdmissibleFunction) : ℂ :=
+  primeBoundaryChannel (convolutionPair f h) +
+    archimedeanBoundaryChannel (convolutionPair f h) +
+    poleBoundaryChannel (convolutionPair f h) +
+    completionBoundaryChannel (convolutionPair f h)
+
+/-- The completed boundary channel of a convolution pair is the completed Hermitian kernel. -/
+theorem completedBoundaryChannel_convolutionPair_eq_kernel
+    (f h : ZetaAdmissibleFunction) :
+    completedBoundaryChannel (convolutionPair f h) =
+      completedHermitianKernel f h := by
+  exact completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
+    (convolutionPair f h)
+
+/-- The diagonal convolution-pair transport specializes to the completed autocorrelation
+boundary channel. -/
+theorem completedBoundaryChannel_convolutionAutocorrelation_eq_kernel_diagonal
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryChannel (convolutionAutocorrelation f) =
+      completedHermitianKernel f f := by
+  exact
+    Eq.subst
+      (motive := fun g : ZetaAdmissibleFunction =>
+        completedBoundaryChannel g = completedHermitianKernel f f)
+      (convolutionPair_self f)
+      (completedBoundaryChannel_convolutionPair_eq_kernel f f)
+
+/-- Transform compatibility for two-variable convolution-pair kernels. -/
+theorem zetaLaplaceTransform_convolutionPair
+    (f h : ZetaAdmissibleFunction) (z : ℂ) :
+    Boundary.zetaLaplaceTransform (convolutionPair f h).toZetaTestFunction' z =
+      Boundary.zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (Boundary.zetaLaplaceTransform h.toZetaTestFunction' (-star z)) := by
+  exact Boundary.zetaLaplaceTransform_convolutionPair f h z
+
+/-- Spectral boundary compatibility with convolution-pair factorization. -/
+theorem spectralBoundaryChannel_convolutionPair_factorization
+    (f h : ZetaAdmissibleFunction) :
+    spectralBoundaryChannel
+        (zetaCompletedExplicitFormulaPhi (convolutionPair f h)) =
+      spectralBoundaryChannel
+        (fun z : ℂ =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi h (-star z))) := by
+  unfold spectralBoundaryChannel
+  have hprime :
+      (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+            zetaCompletedExplicitFormulaPhi (convolutionPair f h)
+              (zetaPrimePacketCenter ℓ.1 ℓ.2)) =
+        ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+            (zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
+              star
+                (zetaCompletedExplicitFormulaPhi h
+                  (-star (zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))) := by
+    refine Finset.sum_congr rfl ?_
+    intro ℓ hℓ
+    unfold zetaCompletedExplicitFormulaPhi
+    unfold zetaAutocorrelationSpectralTransform
+    exact congrArg
+      (fun z : ℂ => (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) * z)
+      (zetaLaplaceTransform_convolutionPair
+        f h (zetaPrimePacketCenter ℓ.1 ℓ.2))
+  have harch :
+      (2 : ℂ) * zetaCompletedExplicitFormulaPhi (convolutionPair f h) 0 =
+        (2 : ℂ) *
+          (zetaCompletedExplicitFormulaPhi f 0 *
+            star (zetaCompletedExplicitFormulaPhi h (-star (0 : ℂ)))) := by
+    unfold zetaCompletedExplicitFormulaPhi
+    unfold zetaAutocorrelationSpectralTransform
+    exact congrArg (fun z : ℂ => (2 : ℂ) * z)
+      (zetaLaplaceTransform_convolutionPair f h 0)
+  exact congrArg₂
+    (fun prime arch : ℂ =>
+      prime + arch + (1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ))))
+    hprime harch
+
+/-- The windowed spectral prime channel of a convolution pair factors through the two seed
+transforms. -/
+theorem spectralPrimeBoundaryWindow_convolutionPair_factorization
+    (N : ℕ) (f h : ZetaAdmissibleFunction) :
+    spectralPrimeBoundaryWindow N
+        (zetaCompletedExplicitFormulaPhi (convolutionPair f h)) =
+      spectralPrimeBoundaryWindow N
+        (fun z : ℂ =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi h (-star z))) := by
+  unfold spectralPrimeBoundaryWindow
+  refine Finset.sum_congr rfl ?_
+  intro ι hι
+  unfold zetaCompletedExplicitFormulaPhi
+  unfold zetaAutocorrelationSpectralTransform
+  exact congrArg (fun z : ℂ => (ι.weight : ℂ) * z)
+    (zetaLaplaceTransform_convolutionPair f h ι.center)
+
+/-- The finite completed physical boundary channel attached to the `N`th prime-power window. -/
+def completedBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCompletedPhysicalAutocorrelationBoundaryChannel N f
+
+/-- The physical prime off-diagonal boundary window evaluates the convolution autocorrelation
+kernel at prime-power centers.  This is distinct from the Laplace-transform spectral window. -/
+def primeKernelOffDiagonalBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    - (2 * ι.weight * Complex.re (convolutionAutocorrelationKernel f ι.center))
+
+/-- The kernel-level prime off-diagonal window is the physical prime off-diagonal channel. -/
+theorem primeKernelOffDiagonalBoundaryWindow_eq_physicalPrimeOffDiagonal
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    primeKernelOffDiagonalBoundaryWindow N f =
+      zetaPrimeOffDiagonalChannel N f := by
+  unfold primeKernelOffDiagonalBoundaryWindow
+  unfold zetaPrimeOffDiagonalChannel
+  refine Finset.sum_congr rfl ?_
+  intro ι hι
+  unfold zetaPrimeOffDiagonalCoordinate
+  have hkernel :
+      convolutionAutocorrelationKernel f ι.center =
+        zetaSeedInner (zetaTranslate ι.center f) f :=
+    convolutionAutocorrelationKernel_eq_translateInner f ι.center
+  exact congrArg
+    (fun x : ℝ => - (2 * ι.weight * x))
+    (congrArg Complex.re hkernel)
+
+/-- The completed physical boundary window is the kernel off-diagonal window plus the
+archimedean/correction square channel. -/
+theorem completedBoundaryWindow_eq_primeKernelOffDiagonal_add_archimedeanCorrection
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedBoundaryWindow N f =
+      primeKernelOffDiagonalBoundaryWindow N f +
+        zetaArchimedeanCorrectionAutocorrelationChannel f := by
+  have hprime :=
+    primeKernelOffDiagonalBoundaryWindow_eq_physicalPrimeOffDiagonal N f
+  unfold completedBoundaryWindow
+  unfold zetaCompletedPhysicalAutocorrelationBoundaryChannel
+  calc
+    zetaPrimeOffDiagonalChannel N f +
+        zetaArchimedeanCorrectionAutocorrelationChannel f =
+        zetaPrimeOffDiagonalChannel N f +
+          zetaArchimedeanCorrectionAutocorrelationChannel f := by
+      rfl
+    _ =
+        primeKernelOffDiagonalBoundaryWindow N f +
+          zetaArchimedeanCorrectionAutocorrelationChannel f := by
+      exact congrArg
+        (fun x : ℝ => x + zetaArchimedeanCorrectionAutocorrelationChannel f)
+        hprime.symm
+
+/-- The completed physical boundary window unfolds to the prime off-diagonal window plus the
+archimedean/correction channel. -/
+theorem completedBoundaryWindow_eq_primeOffDiagonal_add_archimedeanCorrection
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedBoundaryWindow N f =
+      zetaPrimeOffDiagonalChannel N f +
+        zetaArchimedeanCorrectionAutocorrelationChannel f := by
+  rfl
+
+/-- The smaller prime-power window embeds into the larger one compatibly with the completed
+physical boundary presentation. -/
+theorem completedBoundaryWindow_mono_compat
+    {N M : ℕ} (hNM : N ≤ M) (f : ZetaAdmissibleFunction) :
+    zetaPrimeOffDiagonalChannel N f =
+      ∑ ι in (ZetaPrimePowerIndex.window M).filter
+          (fun ι => ι ∈ ZetaPrimePowerIndex.window N),
+        zetaPrimeOffDiagonalCoordinate ι f := by
+  unfold zetaPrimeOffDiagonalChannel
+  have hwindow :
+      (ZetaPrimePowerIndex.window M).filter
+          (fun ι => ι ∈ ZetaPrimePowerIndex.window N) =
+        ZetaPrimePowerIndex.window N := by
+    ext ι
+    constructor
+    · intro hι
+      exact (Finset.mem_filter.mp hι).2
+    · intro hι
+      exact Finset.mem_filter.mpr
+        ⟨ZetaPrimePowerIndex.window_mono hNM hι, hι⟩
+  exact congrArg
+    (fun s : Finset ZetaPrimePowerIndex =>
+      ∑ ι in s, zetaPrimeOffDiagonalCoordinate ι f)
+    hwindow.symm
+
+/-- The debt-corrected finite completed boundary window.  This is the finite approximant in the
+completed normalization; the raw finite physical window alone is not the approximating object. -/
+def completedCorrectedBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f
+
+/-- The finite positive square-energy window after adding diagonal debt.  This object is used
+for positivity; it is not itself the renormalized finite-part distribution unless the diagonal
+debt has also been cancelled by a completed normalization channel. -/
+def finitePositiveSquareEnergyWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCompletedPhysicalAutocorrelationSquareEnergy N f
+
+/-- The prime off-diagonal finite-part window.  This is the prime channel after diagonal debt
+has been removed from the finite-part distribution. -/
+def finitePartPrimeOffDiagonalWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaPrimeOffDiagonalChannel N f
+
+/-- The finite diagonal-debt absorption channel. This is deliberately separate from the
+archimedean and correction channels: it is the normalization channel that cancels the diagonal
+part of the prime defect square after the positive prime kernel has been expanded. -/
+def finitePartDebtAbsorptionWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  - zetaPrimeDiagonalDebt N f
+
+/-- Backwards-compatible name for the finite diagonal-debt absorption channel. -/
+def finitePartDiagonalDebtCancellationWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartDebtAbsorptionWindow N f
+
+/-- The archimedean/correction finite channel.  Diagonal-debt absorption is not hidden here;
+it is a separate normalization channel. -/
+def finitePartArchimedeanCorrectionWindow
+    (_N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaArchimedeanCorrectionAutocorrelationChannel f
+
+/-- The renormalized finite-part completed boundary window.  This is the object whose limit is
+the completed boundary channel; the positive square-energy window is related to it only after
+adding the diagonal debt. -/
+def finitePartBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartPrimeOffDiagonalWindow N f +
+    zetaPrimeDiagonalDebt N f +
+    finitePartDebtAbsorptionWindow N f +
+    finitePartArchimedeanCorrectionWindow N f
+
+/-- The positive square-energy window after applying the finite diagonal-debt absorption
+normalization.  This is the bridge object between finite positivity and the finite-part
+completed boundary window. -/
+def finitePositiveRenormalizedBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  completedCorrectedBoundaryWindow N f +
+    finitePartDebtAbsorptionWindow N f
+
+/-- The finite boundary weight packet for one cutoff.  It keeps the positive square object,
+the prime cross term, the diagonal debt, its absorption channel, and the archimedean/correction
+term as separate coordinates. -/
+structure FiniteBoundaryWeightObject where
+  positiveSquare : ℝ
+  primeCross : ℝ
+  diagonalDebt : ℝ
+  debtAbsorption : ℝ
+  archCorrection : ℝ
+
+/-- The concrete finite boundary weight packet attached to a cutoff and admissible seed. -/
+def finiteBoundaryWeightObject
+    (N : ℕ) (f : ZetaAdmissibleFunction) : FiniteBoundaryWeightObject :=
+  { positiveSquare := finitePositiveSquareEnergyWindow N f
+    primeCross := finitePartPrimeOffDiagonalWindow N f
+    diagonalDebt := zetaPrimeDiagonalDebt N f
+    debtAbsorption := finitePartDebtAbsorptionWindow N f
+    archCorrection := finitePartArchimedeanCorrectionWindow N f }
+
+namespace FiniteBoundaryWeightObject
+
+/-- The finite square representative scalar. -/
+def squareRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
+  x.positiveSquare
+
+/-- The finite-part representative scalar after triangular debt absorption. -/
+def finitePartRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
+  x.primeCross + x.diagonalDebt + x.debtAbsorption + x.archCorrection
+
+/-- The absorbed square representative scalar. -/
+def absorbedSquareRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
+  x.positiveSquare + x.debtAbsorption
+
+end FiniteBoundaryWeightObject
+
+/-- A concrete lower-weight absorption certificate for a finite boundary packet.  It records
+only proved scalar identities: diagonal debt cancels with the absorption channel, and the
+absorbed square representative is the finite-part representative. -/
+structure FiniteBoundaryLowerWeightAbsorptionCert
+    (x : FiniteBoundaryWeightObject) where
+  debt_absorption_cancel :
+    x.diagonalDebt + x.debtAbsorption = 0
+  absorbed_square_eq_finitePart :
+    FiniteBoundaryWeightObject.absorbedSquareRepresentative x =
+      FiniteBoundaryWeightObject.finitePartRepresentative x
+
+/-- The completed prime off-diagonal finite-part channel. -/
+noncomputable def completedPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCompletedPrimeOffDiagonalChannel f
+
+/-- The completed physical prime off-diagonal channel, obtained as the finite-part limit of
+physical autocorrelation-kernel prime windows. -/
+noncomputable def completedPhysicalPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeOffDiagonalChannel f
+
+/-- The time-side prime distribution coordinate.  This uses the raw logarithmic boundary
+value and then takes the real symmetrized prime contribution; it does not mention the
+Laplace transform. -/
+def completedPrimeTimeDistributionCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) : ℝ :=
+  -(ι.weight *
+    Complex.re
+      (zetaCompletedTimeBoundaryValue g ι.center +
+        star (zetaCompletedTimeBoundaryValue g ι.center)))
+
+/-- The completed time-side prime distribution pairing. -/
+noncomputable def completedPrimeTimeDistributionPairing
+    (g : ZetaAdmissibleFunction) : ℝ :=
+  ∑' ι : ZetaPrimePowerIndex,
+    completedPrimeTimeDistributionCoordinate ι g
+
+/-- The spectral-side completed prime distribution pairing attached to a Laplace transform. -/
+noncomputable def completedPrimeSpectralDistributionPairing
+    (Φ : ℂ → ℂ) : ℝ :=
+  Complex.re
+    (∑' ι : ZetaPrimePowerIndex,
+      -((ι.weight : ℂ) * (Φ ι.center + star (Φ ι.center))))
+
+/-- The prime distribution after completed contour realization.  This is not the raw
+time-side value; it is the time face after the completed contour/log-coordinate realization
+has been applied. -/
+noncomputable def completedPrimeContourRealizedTimeDistributionPairing
+    (g : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeSpectralDistributionPairing
+    (zetaCompletedSpectralLaplaceTransform g)
+
+/-- At an autocorrelation probe, the time-side prime coordinate is the physical
+off-diagonal coordinate. -/
+theorem completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+      zetaPrimeOffDiagonalCoordinate ι f := by
+  unfold completedPrimeTimeDistributionCoordinate
+  unfold zetaPrimeOffDiagonalCoordinate
+  have htime :
+      zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center =
+        convolutionAutocorrelationKernel f ι.center :=
+    zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel f ι.center
+  have hkernel :
+      convolutionAutocorrelationKernel f ι.center =
+        zetaSeedInner (zetaTranslate ι.center f) f :=
+    convolutionAutocorrelationKernel_eq_translateInner f ι.center
+  have hsum :
+      Complex.re
+          (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center +
+            star (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center)) =
+        2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
+    have htime_sum :
+        zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center +
+            star (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center) =
+          convolutionAutocorrelationKernel f ι.center +
+            star (convolutionAutocorrelationKernel f ι.center) := by
+      exact congrArg₂ HAdd.hAdd htime (congrArg star htime)
+    have hneg :
+        convolutionAutocorrelationKernel f (-ι.center) =
+          star (convolutionAutocorrelationKernel f ι.center) :=
+      convolutionAutocorrelationKernel_neg_eq_conj f ι.center
+    have hpair :
+        Complex.re
+            (convolutionAutocorrelationKernel f ι.center +
+              convolutionAutocorrelationKernel f (-ι.center)) =
+          2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) :=
+      convolutionAutocorrelationKernel_add_neg_eq_two_re_translateInner
+        f ι.center
+    calc
+      Complex.re
+          (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center +
+            star (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center)) =
+          Complex.re
+            (convolutionAutocorrelationKernel f ι.center +
+              star (convolutionAutocorrelationKernel f ι.center)) := by
+        exact congrArg Complex.re htime_sum
+      _ =
+          Complex.re
+            (convolutionAutocorrelationKernel f ι.center +
+              convolutionAutocorrelationKernel f (-ι.center)) := by
+        exact congrArg
+          (fun z : ℂ => Complex.re
+            (convolutionAutocorrelationKernel f ι.center + z))
+          hneg.symm
+      _ = 2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := hpair
+  calc
+    -(ι.weight *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center +
+            star (zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) ι.center))) =
+        -(ι.weight *
+          (2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f))) := by
+      exact congrArg (fun x : ℝ => -(ι.weight * x)) hsum
+    _ =
+        -(2 * ι.weight *
+          Complex.re (zetaSeedInner (zetaTranslate ι.center f) f)) := by
+      have hmul :
+          ι.weight * (2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f)) =
+            2 * ι.weight *
+              Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
+        calc
+          ι.weight * (2 * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f)) =
+              (ι.weight * 2) *
+                Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
+            exact (mul_assoc ι.weight 2
+              (Complex.re (zetaSeedInner (zetaTranslate ι.center f) f))).symm
+          _ =
+              (2 * ι.weight) *
+                Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
+            exact congrArg
+              (fun x : ℝ =>
+                x * Complex.re (zetaSeedInner (zetaTranslate ι.center f) f))
+              (mul_comm ι.weight 2)
+          _ =
+              2 * ι.weight *
+                Complex.re (zetaSeedInner (zetaTranslate ι.center f) f) := by
+            rfl
+      exact congrArg Neg.neg hmul
+
+/-- The completed physical prime channel is the autocorrelation specialization of the
+time-side completed prime distribution. -/
+theorem completedPhysicalPrimeOffDiagonalChannel_eq_timeDistributionPairing
+    (f : ZetaAdmissibleFunction) :
+    completedPhysicalPrimeOffDiagonalChannel f =
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+  unfold completedPhysicalPrimeOffDiagonalChannel
+  unfold completedPrimeOffDiagonalChannel
+  unfold zetaCompletedPrimeOffDiagonalChannel
+  unfold completedPrimeTimeDistributionPairing
+  exact tsum_congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
+        ι f).symm)
+
+/-- Completed prime contour realization has identical realized time and spectral faces. -/
+theorem completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+    (g : ZetaAdmissibleFunction) :
+    completedPrimeContourRealizedTimeDistributionPairing g =
+      completedPrimeSpectralDistributionPairing
+        (zetaCompletedSpectralLaplaceTransform g) := by
+  rfl
+
+/-- The time-side prime distribution pairing is the real part of the owner prime-power
+explicit-formula contribution.  This is bookkeeping after the owner prime channel is defined
+on the time/log side. -/
+theorem completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
+    (g : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing g =
+      Complex.re (zetaCompletedExplicitFormulaPrimePowerContribution g) := by
+  unfold completedPrimeTimeDistributionPairing
+  unfold completedPrimeTimeDistributionCoordinate
+  unfold zetaCompletedExplicitFormulaPrimePowerContribution
+  exact (Complex.ofReal_re
+    (∑' ι : ZetaPrimePowerIndex,
+      -(ι.weight *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue g ι.center +
+            star (zetaCompletedTimeBoundaryValue g ι.center))))).symm
+
+/-- The real spectral prime off-diagonal coordinate in the completed prime-power
+explicit-formula distribution. -/
+def zetaSpectralPrimeOffDiagonalCoordinate
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (-((ι.weight : ℂ) *
+      (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+        star
+          (zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) ι.center))))
+
+/-- The completed spectral prime off-diagonal channel, obtained from the completed
+explicit-formula prime-power distribution on the convolution-autocorrelation probe. -/
+noncomputable def completedSpectralPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+      (convolutionAutocorrelation f))
+
+/-- The completed spectral prime channel is the autocorrelation specialization of the
+spectral completed prime distribution. -/
+theorem completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing
+    (f : ZetaAdmissibleFunction) :
+    completedSpectralPrimeOffDiagonalChannel f =
+      completedPrimeSpectralDistributionPairing
+        (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) := by
+  unfold completedSpectralPrimeOffDiagonalChannel
+  unfold completedPrimeSpectralDistributionPairing
+  unfold zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+  unfold zetaCompletedSpectralLaplaceTransform
+  rfl
+
+/-- The finite physical prime off-diagonal window. -/
+def finitePhysicalPrimeOffDiagonalWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartPrimeOffDiagonalWindow N f
+
+/-- The finite spectral prime off-diagonal window attached to the completed explicit-formula
+prime-power distribution. -/
+def finiteSpectralPrimeOffDiagonalWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (∑ ι in ZetaPrimePowerIndex.window N,
+      -((ι.weight : ℂ) *
+        (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+          star
+            (zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) ι.center))))
+
+/-- The finite spectral prime window is the finite sum of spectral prime coordinates. -/
+theorem finiteSpectralPrimeOffDiagonalWindow_eq_sum_coordinates
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finiteSpectralPrimeOffDiagonalWindow N f =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        zetaSpectralPrimeOffDiagonalCoordinate ι f := by
+  unfold finiteSpectralPrimeOffDiagonalWindow
+  unfold zetaSpectralPrimeOffDiagonalCoordinate
+  exact Complex.sum_re
+    (fun ι : ZetaPrimePowerIndex =>
+      -((ι.weight : ℂ) *
+        (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+          star
+            (zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) ι.center))))
+    (ZetaPrimePowerIndex.window N)
+
+/-- Nongenuine indices have zero spectral prime off-diagonal coordinate. -/
+theorem zetaSpectralPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
+    zetaSpectralPrimeOffDiagonalCoordinate ι f = 0 := by
+  have hweight : ι.weight = 0 :=
+    ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
+  unfold zetaSpectralPrimeOffDiagonalCoordinate
+  calc
+    Complex.re
+        (-((ι.weight : ℂ) *
+          (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedExplicitFormulaPhi
+                (convolutionAutocorrelation f) ι.center)))) =
+        Complex.re
+          (-((0 : ℂ) *
+            (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedExplicitFormulaPhi
+                  (convolutionAutocorrelation f) ι.center)))) := by
+      exact congrArg
+        (fun x : ℝ =>
+          Complex.re
+            (-((x : ℂ) *
+              (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+                star
+                  (zetaCompletedExplicitFormulaPhi
+                    (convolutionAutocorrelation f) ι.center)))))
+        hweight
+    _ = Complex.re (-(0 : ℂ)) := by
+      exact congrArg (fun x : ℂ => Complex.re (-x))
+        (zero_mul
+          (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedExplicitFormulaPhi
+                (convolutionAutocorrelation f) ι.center)))
+    _ = Complex.re (0 : ℂ) := by
+      exact congrArg Complex.re (neg_zero : -(0 : ℂ) = 0)
+    _ = 0 := by
+      exact Complex.zero_re
+
+/-- The finite physical prime window is the kernel off-diagonal window. -/
+theorem finitePhysicalPrimeOffDiagonalWindow_eq_kernelWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePhysicalPrimeOffDiagonalWindow N f =
+      primeKernelOffDiagonalBoundaryWindow N f := by
+  unfold finitePhysicalPrimeOffDiagonalWindow
+  unfold finitePartPrimeOffDiagonalWindow
+  exact (primeKernelOffDiagonalBoundaryWindow_eq_physicalPrimeOffDiagonal N f).symm
+
+/-- The completed spectral prime channel is the real part of the contour-side spectral-sample
+prime-power presentation. -/
+theorem completedSpectralPrimeOffDiagonalChannel_eq_spectralSampleContribution_re
+    (f : ZetaAdmissibleFunction) :
+    completedSpectralPrimeOffDiagonalChannel f =
+      Complex.re
+        (zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+          (convolutionAutocorrelation f)) := by
+  rfl
+
+/-- The completed prime finite-part channel obtained after finite diagonal-debt cancellation.
+
+There is no standalone completed diagonal-debt summand here: the finite debt and finite
+absorption terms cancel before taking the completed prime finite-part limit. -/
+noncomputable def completedPrimeDefectKernelRenormalizedChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeOffDiagonalChannel f
+
+/-- The completed renormalized boundary channel after finite diagonal-debt cancellation. -/
+noncomputable def completedRenormalizedDefectKernelBoundaryChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeDefectKernelRenormalizedChannel f +
+    zetaArchimedeanAutocorrelationSquareEnergy f +
+    zetaCorrectionAutocorrelationSquareEnergy f
+
+/-- The completed physical finite-part boundary channel.  This is the limit object of the
+renormalized square-energy windows before comparing it with the explicit-formula boundary
+functional. -/
+noncomputable def completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeDefectKernelRenormalizedChannel f +
+    zetaArchimedeanAutocorrelationSquareEnergy f +
+    zetaCorrectionAutocorrelationSquareEnergy f
+
+/-- The prime finite-part tail: finite prime off-diagonal window minus the completed prime
+off-diagonal channel. -/
+def finitePartPrimeTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartPrimeOffDiagonalWindow N f -
+    completedPrimeOffDiagonalChannel f
+
+/-- The grouped finite-part tail of the prime defect package: cross term, diagonal debt, and
+debt absorption are kept together because the positive prime object is the defect square, not
+the raw cross term alone. -/
+def finitePartPrimeDefectRenormalizedTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  (finitePartPrimeOffDiagonalWindow N f +
+      zetaPrimeDiagonalDebt N f +
+      finitePartDebtAbsorptionWindow N f) -
+    completedPrimeDefectKernelRenormalizedChannel f
+
+/-- The archimedean finite-part tail: the finite archimedean square channel minus the completed
+archimedean boundary channel. -/
+def finitePartArchimedeanTail
+    (_N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaArchimedeanAutocorrelationSquareEnergy f -
+    Complex.re (archimedeanBoundaryChannel (convolutionAutocorrelation f))
+
+/-- The pole/completion finite-part tail: the finite correction square channel minus the
+completed pole and residual completion channels. -/
+def finitePartCorrectionTail
+    (_N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCorrectionAutocorrelationSquareEnergy f -
+    Complex.re (poleBoundaryChannel (convolutionAutocorrelation f))
+
+/-- The pole/completion residual tail.  In the current normalization the completion channel is
+zero, but it remains a named tail so later refinements of the completed normalization do not
+hide pole/completion estimates in the correction theorem. -/
+def finitePartPoleTail
+    (_N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  - Complex.re (completionBoundaryChannel (convolutionAutocorrelation f))
+
+/-- The total named tail in the finite-part convergence certificate. -/
+def finitePartBoundaryTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartPrimeDefectRenormalizedTail N f +
+    finitePartArchimedeanTail N f +
+    finitePartCorrectionTail N f +
+    finitePartPoleTail N f
+
+/-- The literal remainder of the finite-part window after subtracting the completed boundary
+channel.  The named tail decomposition refines this remainder into prime, archimedean, and
+pole/completion pieces. -/
+def finitePartBoundaryRemainder
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePartBoundaryWindow N f -
+    completedFinitePartBoundaryChannel f
+
+/-- Four-term subtraction bookkeeping for the finite-part tail certificate. -/
+theorem finitePart_three_sub_four_eq_tail_sum
+    (P A C p a q r : ℝ) :
+    P + A + C - (p + a + q + r) =
+      (P - p) + (A - a) + (C - q) + -r := by
+  calc
+    P + A + C - (p + a + q + r) =
+        P + A + C + -(p + a + q + r) := by
+      exact sub_eq_add_neg (P + A + C) (p + a + q + r)
+    _ = P + A + C + (-(p + a + q) + -r) := by
+      exact congrArg
+        (fun x : ℝ => P + A + C + x)
+        (neg_add (p + a + q) r)
+    _ = P + A + C + (-(p + a) + -q + -r) := by
+      exact congrArg
+        (fun x : ℝ => P + A + C + (x + -r))
+        (neg_add (p + a) q)
+    _ = P + A + C + ((-p + -a) + -q + -r) := by
+      exact congrArg
+        (fun x : ℝ => P + A + C + (x + -q + -r))
+        (neg_add p a)
+    _ = (((P + A + C) + -p) + -a) + -q + -r := by
+      calc
+        P + A + C + ((-p + -a) + -q + -r) =
+            (P + A + C + ((-p + -a) + -q)) + -r := by
+          exact (add_assoc (P + A + C) ((-p + -a) + -q) (-r)).symm
+        _ = ((P + A + C + (-p + -a)) + -q) + -r := by
+          exact congrArg (fun x : ℝ => x + -r)
+            ((add_assoc (P + A + C) (-p + -a) (-q)).symm)
+        _ = (((P + A + C) + -p) + -a) + -q + -r := by
+          exact congrArg (fun x : ℝ => (x + -q) + -r)
+            ((add_assoc (P + A + C) (-p) (-a)).symm)
+    _ = (((P + -p) + A + C) + -a) + -q + -r := by
+      have hmove :
+          (P + A + C) + -p = (P + -p) + A + C := by
+        calc
+          (P + A + C) + -p = ((P + A) + C) + -p := by
+            rfl
+          _ = (P + A) + (C + -p) := by
+            exact add_assoc (P + A) C (-p)
+          _ = (P + A) + (-p + C) := by
+            exact congrArg (fun x : ℝ => (P + A) + x) (add_comm C (-p))
+          _ = ((P + A) + -p) + C := by
+            exact (add_assoc (P + A) (-p) C).symm
+          _ = (P + (A + -p)) + C := by
+            exact congrArg (fun x : ℝ => x + C) (add_assoc P A (-p))
+          _ = (P + (-p + A)) + C := by
+            exact congrArg (fun x : ℝ => (P + x) + C) (add_comm A (-p))
+          _ = ((P + -p) + A) + C := by
+            exact congrArg (fun x : ℝ => x + C) ((add_assoc P (-p) A).symm)
+          _ = (P + -p) + A + C := by
+            rfl
+      exact congrArg (fun x : ℝ => ((x + -a) + -q) + -r) hmove
+    _ = ((P - p + A + C) + -a) + -q + -r := by
+      exact congrArg (fun x : ℝ => ((x + A + C + -a) + -q) + -r)
+        (sub_eq_add_neg P p).symm
+    _ = (P - p + (A + -a) + C) + -q + -r := by
+      have hmove :
+          (P - p + A + C) + -a = P - p + (A + -a) + C := by
+        calc
+          (P - p + A + C) + -a = ((P - p + A) + C) + -a := by
+            rfl
+          _ = (P - p + A) + (C + -a) := by
+            exact add_assoc (P - p + A) C (-a)
+          _ = (P - p + A) + (-a + C) := by
+            exact congrArg (fun x : ℝ => (P - p + A) + x) (add_comm C (-a))
+          _ = ((P - p + A) + -a) + C := by
+            exact (add_assoc (P - p + A) (-a) C).symm
+          _ = (P - p + (A + -a)) + C := by
+            exact congrArg (fun x : ℝ => x + C) (add_assoc (P - p) A (-a))
+          _ = P - p + (A + -a) + C := by
+            rfl
+      exact congrArg (fun x : ℝ => (x + -q) + -r) hmove
+    _ = (P - p + (A - a) + C) + -q + -r := by
+      exact congrArg (fun x : ℝ => (P - p + x + C + -q) + -r)
+        (sub_eq_add_neg A a).symm
+    _ = (P - p + (A - a) + (C + -q)) + -r := by
+      exact congrArg (fun x : ℝ => x + -r)
+        (add_assoc (P - p + (A - a)) C (-q))
+    _ = (P - p + (A - a) + (C - q)) + -r := by
+      exact congrArg (fun x : ℝ => (P - p + (A - a) + x) + -r)
+        (sub_eq_add_neg C q).symm
+    _ = (P - p) + (A - a) + (C - q) + -r := by
+      rfl
+
+/-- Diagonal debt cancellation is algebraic and happens before taking the finite-part limit. -/
+theorem completedBoundaryWindow_add_diagonalDebt_sub_diagonalDebt
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f -
+        zetaPrimeDiagonalDebt N f =
+      completedBoundaryWindow N f := by
+  have hcancel :
+      zetaPrimeDiagonalDebt N f + -zetaPrimeDiagonalDebt N f = 0 := by
+    exact add_neg_cancel (zetaPrimeDiagonalDebt N f)
+  calc
+    completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f -
+        zetaPrimeDiagonalDebt N f =
+        completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f +
+          -zetaPrimeDiagonalDebt N f := by
+      exact sub_eq_add_neg
+        (completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f)
+        (zetaPrimeDiagonalDebt N f)
+    _ =
+        completedBoundaryWindow N f +
+          (zetaPrimeDiagonalDebt N f + -zetaPrimeDiagonalDebt N f) := by
+      exact add_assoc
+        (completedBoundaryWindow N f)
+        (zetaPrimeDiagonalDebt N f)
+        (-zetaPrimeDiagonalDebt N f)
+    _ = completedBoundaryWindow N f + 0 := by
+      exact congrArg (fun x : ℝ => completedBoundaryWindow N f + x) hcancel
+    _ = completedBoundaryWindow N f := by
+      exact add_zero (completedBoundaryWindow N f)
+
+/-- The finite-part window is the completed boundary channel plus its literal remainder. -/
+theorem finitePartBoundaryWindow_eq_boundaryChannel_add_remainder
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartBoundaryWindow N f =
+      completedFinitePartBoundaryChannel f +
+        finitePartBoundaryRemainder N f := by
+  unfold finitePartBoundaryRemainder
+  exact zetaBoundaryDebt_add_sub_cancel
+    (finitePartBoundaryWindow N f)
+    (completedFinitePartBoundaryChannel f)
+
+/-- The named finite-part tails assemble to the literal boundary remainder.  This is the
+finite-part cancellation certificate: the prime-defect package is kept grouped as cross term,
+diagonal debt, and debt absorption, while archimedean, correction, and completion tails remain
+separate. -/
+theorem finitePartBoundaryRemainder_eq_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartBoundaryRemainder N f =
+      finitePartBoundaryTail N f := by
+  let g : ZetaAdmissibleFunction := convolutionAutocorrelation f
+  let P : ℝ :=
+    finitePartPrimeOffDiagonalWindow N f +
+      zetaPrimeDiagonalDebt N f +
+      finitePartDebtAbsorptionWindow N f
+  let A : ℝ := zetaArchimedeanAutocorrelationSquareEnergy f
+  let C : ℝ := zetaCorrectionAutocorrelationSquareEnergy f
+  let p : ℝ :=
+    completedPrimeDefectKernelRenormalizedChannel f
+  let a : ℝ := Complex.re (archimedeanBoundaryChannel g)
+  let q : ℝ := Complex.re (poleBoundaryChannel g)
+  let r : ℝ := Complex.re (completionBoundaryChannel g)
+  have hfinite :
+      finitePartBoundaryWindow N f = P + A + C := by
+    unfold finitePartBoundaryWindow
+    unfold finitePartPrimeOffDiagonalWindow
+    unfold finitePartArchimedeanCorrectionWindow
+    unfold finitePartDebtAbsorptionWindow
+    unfold zetaArchimedeanCorrectionAutocorrelationChannel
+    calc
+      zetaPrimeOffDiagonalChannel N f + zetaPrimeDiagonalDebt N f +
+          -zetaPrimeDiagonalDebt N f +
+          zetaArchimedeanCorrectionAutocorrelationChannel f =
+          (zetaPrimeOffDiagonalChannel N f + zetaPrimeDiagonalDebt N f +
+            -zetaPrimeDiagonalDebt N f) +
+            zetaArchimedeanCorrectionAutocorrelationChannel f := by
+        rfl
+      _ =
+          (zetaPrimeOffDiagonalChannel N f + zetaPrimeDiagonalDebt N f +
+            -zetaPrimeDiagonalDebt N f) +
+            (zetaArchimedeanAutocorrelationSquareEnergy f +
+              zetaCorrectionAutocorrelationSquareEnergy f) := by
+        exact congrArg
+          (fun x : ℝ =>
+            (zetaPrimeOffDiagonalChannel N f + zetaPrimeDiagonalDebt N f +
+              -zetaPrimeDiagonalDebt N f) + x)
+          (zetaArchimedeanCorrectionAutocorrelationChannel_eq_squareEnergy f)
+      _ = P + A + C := by
+        rfl
+  have hchannel :
+      completedFinitePartBoundaryChannel f = p + a + q + r := by
+    have harch :
+        a = A := by
+      unfold a
+      unfold g
+      unfold archimedeanBoundaryChannel
+      exact zetaArchimedeanAutocorrelationChannel_eq_squareEnergy f
+    have hcorr :
+        q = C := by
+      unfold q
+      unfold g
+      unfold poleBoundaryChannel
+      exact zetaCorrectionAutocorrelationChannel_eq_squareEnergy f
+    have hr :
+        r = 0 := by
+      unfold r
+      unfold g
+      unfold completionBoundaryChannel
+      exact Complex.zero_re
+    unfold completedFinitePartBoundaryChannel
+    calc
+      completedPrimeOffDiagonalChannel f +
+          zetaArchimedeanAutocorrelationSquareEnergy f +
+          zetaCorrectionAutocorrelationSquareEnergy f =
+          p + A + C := by
+        unfold p
+        unfold completedPrimeDefectKernelRenormalizedChannel
+        rfl
+      _ = p + a + C := by
+        exact congrArg (fun x : ℝ => p + x + C) harch.symm
+      _ = p + a + q := by
+        exact congrArg (fun x : ℝ => p + a + x) hcorr.symm
+      _ = p + a + q + 0 := by
+        exact (add_zero (p + a + q)).symm
+      _ = p + a + q + r := by
+        exact congrArg (fun x : ℝ => p + a + q + x) hr.symm
+  unfold finitePartBoundaryRemainder
+  unfold finitePartBoundaryTail
+  unfold finitePartPrimeDefectRenormalizedTail
+  unfold finitePartArchimedeanTail
+  unfold finitePartCorrectionTail
+  unfold finitePartPoleTail
+  change finitePartBoundaryWindow N f - completedFinitePartBoundaryChannel f =
+    (P - p) + (A - a) + (C - q) + -r
+  calc
+    finitePartBoundaryWindow N f - completedFinitePartBoundaryChannel f =
+        (P + A + C) - completedFinitePartBoundaryChannel f := by
+      exact congrArg (fun x : ℝ => x - completedFinitePartBoundaryChannel f) hfinite
+    _ = (P + A + C) - (p + a + q + r) := by
+      exact congrArg (fun x : ℝ => (P + A + C) - x) hchannel
+    _ = (P - p) + (A - a) + (C - q) + -r := by
+      exact finitePart_three_sub_four_eq_tail_sum P A C p a q r
+
+/-- The prime off-diagonal coordinates are summable against the completed prime-power weights.
+This is the exact admissibility/decay input needed for the completed prime finite-part limit. -/
+theorem summable_primeOffDiagonalCoordinate
+    (f : ZetaAdmissibleFunction) :
+    Summable (fun ι : ZetaPrimePowerIndex =>
+      zetaPrimeOffDiagonalCoordinate ι f) := by
+  exact summable_zetaPrimeOffDiagonalCoordinate f
+
+/-- The growing finite prime off-diagonal windows converge to the completed prime off-diagonal
+channel.  This is the window-exhaustion theorem built from prime weighted-kernel summability
+and the completed-prime realization theorem. -/
+theorem zetaPrimeOffDiagonalChannel_tendsto_completedPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => zetaPrimeOffDiagonalChannel N f)
+      atTop
+      (𝓝 (completedPrimeOffDiagonalChannel f)) := by
+  unfold completedPrimeOffDiagonalChannel
+  exact zetaPrimeOffDiagonalChannel_tendsto_completed f
+
+/-- The finite physical prime windows exhaust the completed physical prime off-diagonal
+channel. -/
+theorem finitePhysicalPrimeOffDiagonalWindow_tendsto_completedPhysicalPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePhysicalPrimeOffDiagonalWindow N f)
+      atTop
+      (𝓝 (completedPhysicalPrimeOffDiagonalChannel f)) := by
+  unfold finitePhysicalPrimeOffDiagonalWindow
+  unfold finitePartPrimeOffDiagonalWindow
+  unfold completedPhysicalPrimeOffDiagonalChannel
+  exact zetaPrimeOffDiagonalChannel_tendsto_completedPrimeOffDiagonalChannel f
+
+/-- Prime/off-diagonal finite-part tails tend to zero because the growing finite prime windows
+converge to the completed prime translation-defect energy.  The analytic content is the
+preceding completed-prime convergence theorem. -/
+theorem finitePartPrimeTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartPrimeTail N f) atTop (𝓝 0) := by
+  have hprime :
+      Tendsto
+        (fun N : ℕ => zetaPrimeOffDiagonalChannel N f)
+        atTop
+        (𝓝 (completedPrimeOffDiagonalChannel f)) :=
+    zetaPrimeOffDiagonalChannel_tendsto_completedPrimeOffDiagonalChannel f
+  have htail :
+      Tendsto
+        (fun N : ℕ =>
+          zetaPrimeOffDiagonalChannel N f -
+            completedPrimeOffDiagonalChannel f)
+        atTop
+        (𝓝 (completedPrimeOffDiagonalChannel f -
+          completedPrimeOffDiagonalChannel f)) := by
+    exact hprime.sub tendsto_const_nhds
+  have hzero :
+      completedPrimeOffDiagonalChannel f -
+        completedPrimeOffDiagonalChannel f = 0 := by
+    exact sub_self (completedPrimeOffDiagonalChannel f)
+  unfold finitePartPrimeTail
+  unfold finitePartPrimeOffDiagonalWindow
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ =>
+          zetaPrimeOffDiagonalChannel N f -
+            completedPrimeOffDiagonalChannel f)
+        atTop (𝓝 x))
+    hzero
+    htail
+
+/-- A real limit of nonnegative finite windows is nonnegative. -/
+theorem nonnegative_of_tendsto_nonnegative_owner
+    {u : ℕ → ℝ} {x : ℝ}
+    (hu : Tendsto u atTop (𝓝 x))
+    (hnonneg : ∀ N : ℕ, 0 ≤ u N) :
+    0 ≤ x := by
+  have hclosed : IsClosed (Set.Ici (0 : ℝ)) :=
+    isClosed_Ici
+  have heventually : ∀ᶠ N in atTop, u N ∈ Set.Ici (0 : ℝ) :=
+    Filter.Eventually.of_forall
+      (fun N : ℕ => hnonneg N)
+  exact hclosed.mem_of_tendsto hu heventually
+
+/-- Debt and debt-absorption cancel in each finite prime-defect renormalized window. -/
+theorem finitePartPrimeDefectRenormalizedWindow_eq_primeOffDiagonalWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartPrimeOffDiagonalWindow N f +
+        zetaPrimeDiagonalDebt N f +
+        finitePartDebtAbsorptionWindow N f =
+      finitePartPrimeOffDiagonalWindow N f := by
+  unfold finitePartDebtAbsorptionWindow
+  let P : ℝ := finitePartPrimeOffDiagonalWindow N f
+  let D : ℝ := zetaPrimeDiagonalDebt N f
+  change P + D + -D = P
+  have hcancel : D + -D = 0 := by
+    exact add_neg_cancel D
+  calc
+    P + D + -D = P + (D + -D) := by
+      exact add_assoc P D (-D)
+    _ = P + 0 := by
+      exact congrArg (fun x : ℝ => P + x) hcancel
+    _ = P := by
+      exact add_zero P
+
+/-- The completed renormalized prime-defect package is exactly the completed prime
+off-diagonal finite part. -/
+theorem completedPrimeDefectKernelRenormalizedChannel_eq_primeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeDefectKernelRenormalizedChannel f =
+      completedPrimeOffDiagonalChannel f := by
+  rfl
+
+/-- The grouped prime-defect renormalized tail tends to zero. -/
+theorem finitePartPrimeDefectRenormalizedTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartPrimeDefectRenormalizedTail N f) atTop (𝓝 0) := by
+  have hprime : Tendsto (fun N : ℕ => finitePartPrimeTail N f) atTop (𝓝 0) :=
+    finitePartPrimeTail_tendsto_zero f
+  have hfun :
+      (fun N : ℕ => finitePartPrimeDefectRenormalizedTail N f) =
+        (fun N : ℕ => finitePartPrimeTail N f) := by
+    funext N
+    have hcancel :=
+      finitePartPrimeDefectRenormalizedWindow_eq_primeOffDiagonalWindow N f
+    unfold finitePartPrimeDefectRenormalizedTail
+    unfold finitePartPrimeTail
+    let P : ℝ := finitePartPrimeOffDiagonalWindow N f
+    let D : ℝ := zetaPrimeDiagonalDebt N f
+    let E : ℝ := finitePartDebtAbsorptionWindow N f
+    let p : ℝ := completedPrimeOffDiagonalChannel f
+    change (P + D + E) - completedPrimeDefectKernelRenormalizedChannel f = P - p
+    have hrenorm :
+        completedPrimeDefectKernelRenormalizedChannel f = p :=
+      completedPrimeDefectKernelRenormalizedChannel_eq_primeOffDiagonalChannel f
+    have hfinite : P + D + E = P := hcancel
+    calc
+      (P + D + E) - completedPrimeDefectKernelRenormalizedChannel f =
+          P - completedPrimeDefectKernelRenormalizedChannel f := by
+        exact congrArg
+          (fun x : ℝ => x - completedPrimeDefectKernelRenormalizedChannel f)
+          hfinite
+      _ = P - p := by
+        exact congrArg (fun x : ℝ => P - x) hrenorm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    hprime
+
+/-- In the current completed normalization the archimedean finite-part tail is identically
+zero: the finite square channel is exactly the archimedean channel on the autocorrelation
+probe. -/
+theorem finitePartArchimedeanTail_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartArchimedeanTail N f = 0 := by
+  have harch :
+      Complex.re (archimedeanBoundaryChannel (convolutionAutocorrelation f)) =
+        zetaArchimedeanAutocorrelationSquareEnergy f := by
+    unfold archimedeanBoundaryChannel
+    exact zetaArchimedeanAutocorrelationChannel_eq_squareEnergy f
+  unfold finitePartArchimedeanTail
+  calc
+    zetaArchimedeanAutocorrelationSquareEnergy f -
+        Complex.re (archimedeanBoundaryChannel (convolutionAutocorrelation f)) =
+        zetaArchimedeanAutocorrelationSquareEnergy f -
+          zetaArchimedeanAutocorrelationSquareEnergy f := by
+      exact congrArg
+        (fun x : ℝ => zetaArchimedeanAutocorrelationSquareEnergy f - x)
+        harch
+    _ = 0 := by
+      exact sub_self (zetaArchimedeanAutocorrelationSquareEnergy f)
+
+/-- Archimedean finite-part tails tend to zero by the completed archimedean kernel bound and
+integrable-tail convergence. -/
+theorem finitePartArchimedeanTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartArchimedeanTail N f) atTop (𝓝 0) := by
+  have hfun :
+      (fun N : ℕ => finitePartArchimedeanTail N f) =
+        (fun _N : ℕ => (0 : ℝ)) := by
+    funext N
+    exact finitePartArchimedeanTail_eq_zero N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    tendsto_const_nhds
+
+/-- In the current completed normalization the correction finite-part tail is identically
+zero: the correction square energy is the completed pole correction on the autocorrelation
+probe.  Diagonal-debt absorption is handled by its own channel. -/
+theorem finitePartCorrectionTail_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartCorrectionTail N f = 0 := by
+  have hcorr :
+      Complex.re (poleBoundaryChannel (convolutionAutocorrelation f)) =
+        zetaCorrectionAutocorrelationSquareEnergy f := by
+    unfold poleBoundaryChannel
+    exact zetaCorrectionAutocorrelationChannel_eq_squareEnergy f
+  unfold finitePartCorrectionTail
+  calc
+    zetaCorrectionAutocorrelationSquareEnergy f -
+        Complex.re (poleBoundaryChannel (convolutionAutocorrelation f)) =
+        zetaCorrectionAutocorrelationSquareEnergy f -
+          zetaCorrectionAutocorrelationSquareEnergy f := by
+      exact congrArg
+        (fun x : ℝ => zetaCorrectionAutocorrelationSquareEnergy f - x)
+        hcorr
+    _ = 0 := by
+      exact sub_self (zetaCorrectionAutocorrelationSquareEnergy f)
+
+/-- Correction finite-part tails tend to zero. -/
+theorem finitePartCorrectionTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartCorrectionTail N f) atTop (𝓝 0) := by
+  have hfun :
+      (fun N : ℕ => finitePartCorrectionTail N f) =
+        (fun _N : ℕ => (0 : ℝ)) := by
+    funext N
+    exact finitePartCorrectionTail_eq_zero N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    tendsto_const_nhds
+
+/-- In the current completed normalization the residual completion tail is identically zero. -/
+theorem finitePartPoleTail_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartPoleTail N f = 0 := by
+  have hcompletion :
+      completionBoundaryChannel (convolutionAutocorrelation f) = 0 := by
+    unfold completionBoundaryChannel
+    rfl
+  have hreal :
+      Complex.re (completionBoundaryChannel (convolutionAutocorrelation f)) = 0 := by
+    calc
+      Complex.re (completionBoundaryChannel (convolutionAutocorrelation f)) =
+          Complex.re 0 := by
+        exact congrArg Complex.re hcompletion
+      _ = 0 := by
+        exact Complex.zero_re
+  unfold finitePartPoleTail
+  calc
+    -Complex.re (completionBoundaryChannel (convolutionAutocorrelation f)) =
+        -0 := by
+      exact congrArg Neg.neg hreal
+    _ = 0 := by
+      exact neg_zero
+
+/-- Pole/completion finite-part tails tend to zero by the pole-kernel tail estimate. -/
+theorem finitePartPoleTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartPoleTail N f) atTop (𝓝 0) := by
+  have hfun :
+      (fun N : ℕ => finitePartPoleTail N f) =
+        (fun _N : ℕ => (0 : ℝ)) := by
+    funext N
+    exact finitePartPoleTail_eq_zero N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hfun.symm
+    tendsto_const_nhds
+
+/-- The explicit total finite-part tail tends to zero once its four named channel tails do. -/
+theorem finitePartBoundaryTail_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartBoundaryTail N f) atTop (𝓝 0) := by
+  have hprime :
+      Tendsto (fun N : ℕ => finitePartPrimeDefectRenormalizedTail N f) atTop (𝓝 0) :=
+    finitePartPrimeDefectRenormalizedTail_tendsto_zero f
+  have harch : Tendsto (fun N : ℕ => finitePartArchimedeanTail N f) atTop (𝓝 0) :=
+    finitePartArchimedeanTail_tendsto_zero f
+  have hcorr : Tendsto (fun N : ℕ => finitePartCorrectionTail N f) atTop (𝓝 0) :=
+    finitePartCorrectionTail_tendsto_zero f
+  have hpole : Tendsto (fun N : ℕ => finitePartPoleTail N f) atTop (𝓝 0) :=
+    finitePartPoleTail_tendsto_zero f
+  have hprime_arch :
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f)
+        atTop (𝓝 (0 + 0)) := by
+    exact hprime.add harch
+  have hprime_arch_zero :
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f)
+        atTop (𝓝 0) := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f)
+          atTop (𝓝 x))
+      (add_zero 0)
+      hprime_arch
+  have hthree :
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f +
+            finitePartCorrectionTail N f)
+        atTop (𝓝 (0 + 0)) := by
+    exact hprime_arch_zero.add hcorr
+  have hthree_zero :
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f +
+            finitePartCorrectionTail N f)
+        atTop (𝓝 0) := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f +
+              finitePartCorrectionTail N f)
+          atTop (𝓝 x))
+      (add_zero 0)
+      hthree
+  unfold finitePartBoundaryTail
+  have hall :
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f +
+            finitePartCorrectionTail N f + finitePartPoleTail N f)
+        atTop (𝓝 (0 + 0)) := by
+    exact hthree_zero.add hpole
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ =>
+          finitePartPrimeDefectRenormalizedTail N f + finitePartArchimedeanTail N f +
+            finitePartCorrectionTail N f + finitePartPoleTail N f)
+        atTop (𝓝 x))
+    (add_zero 0)
+    hall
+
+/-- The literal finite-part remainder tends to zero because the named tail certificate tends to
+zero. -/
+theorem finitePartBoundaryRemainder_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto (fun N : ℕ => finitePartBoundaryRemainder N f) atTop (𝓝 0) := by
+  have htail : Tendsto (fun N : ℕ => finitePartBoundaryTail N f) atTop (𝓝 0) :=
+    finitePartBoundaryTail_tendsto_zero f
+  have hrem :
+      (fun N : ℕ => finitePartBoundaryRemainder N f) =
+        (fun N : ℕ => finitePartBoundaryTail N f) := by
+    funext N
+    exact finitePartBoundaryRemainder_eq_tail N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hrem.symm
+    htail
+
+/-- The completed corrected boundary window is the finite completed square energy. -/
+theorem completedCorrectedBoundaryWindow_eq_squareEnergy
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedCorrectedBoundaryWindow N f =
+      zetaCompletedPhysicalAutocorrelationSquareEnergy N f := by
+  unfold completedCorrectedBoundaryWindow
+  unfold completedBoundaryWindow
+  exact zetaCompletedPhysicalAutocorrelationBoundaryChannel_add_diagonalDebt_eq_squareEnergy N f
+
+/-- The completed corrected boundary window is the finite positive square-energy window. -/
+theorem completedCorrectedBoundaryWindow_eq_finitePositiveSquareEnergyWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedCorrectedBoundaryWindow N f =
+      finitePositiveSquareEnergyWindow N f := by
+  unfold finitePositiveSquareEnergyWindow
+  exact completedCorrectedBoundaryWindow_eq_squareEnergy N f
+
+/-- The finite positive square-energy window is nonnegative. -/
+theorem finitePositiveSquareEnergyWindow_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ finitePositiveSquareEnergyWindow N f := by
+  unfold finitePositiveSquareEnergyWindow
+  unfold zetaCompletedPhysicalAutocorrelationSquareEnergy
+  exact add_nonneg
+    (zetaPrimeTranslationDefectEnergy_nonnegative N f)
+    (zetaArchimedeanCorrectionAutocorrelationSquareEnergy_nonnegative f)
+
+/-- The finite-part boundary window is the raw completed physical boundary window after the
+finite diagonal debt has been added and cancelled inside the completed normalization. -/
+theorem finitePartBoundaryWindow_eq_completedBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePartBoundaryWindow N f =
+      completedBoundaryWindow N f := by
+  unfold finitePartBoundaryWindow
+  unfold finitePartPrimeOffDiagonalWindow
+  unfold finitePartArchimedeanCorrectionWindow
+  unfold finitePartDebtAbsorptionWindow
+  unfold completedBoundaryWindow
+  unfold zetaCompletedPhysicalAutocorrelationBoundaryChannel
+  unfold zetaArchimedeanCorrectionAutocorrelationChannel
+  let P : ℝ := zetaPrimeOffDiagonalChannel N f
+  let D : ℝ := zetaPrimeDiagonalDebt N f
+  let A : ℝ := zetaArchimedeanCorrectionAutocorrelationChannel f
+  have hcancel : D + -D = 0 := by
+    exact add_neg_cancel D
+  calc
+    P + D + -D + A =
+        P + (D + -D) + A := by
+      exact congrArg (fun x : ℝ => x + A) (add_assoc P D (-D))
+    _ = P + 0 + A := by
+      exact congrArg (fun x : ℝ => P + x + A)
+        hcancel
+    _ = P + A := by
+      exact congrArg (fun x : ℝ => x + A) (add_zero P)
+
+/-- The positive corrected window plus its finite debt absorption is exactly the finite-part
+boundary window. -/
+theorem finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePositiveRenormalizedBoundaryWindow N f =
+      finitePartBoundaryWindow N f := by
+  unfold finitePositiveRenormalizedBoundaryWindow
+  unfold completedCorrectedBoundaryWindow
+  unfold finitePartDebtAbsorptionWindow
+  have hsub :
+      completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f +
+          -zetaPrimeDiagonalDebt N f =
+        completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f -
+          zetaPrimeDiagonalDebt N f := by
+    exact (sub_eq_add_neg
+      (completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f)
+      (zetaPrimeDiagonalDebt N f)).symm
+  calc
+    completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f +
+        -zetaPrimeDiagonalDebt N f =
+        completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f -
+          zetaPrimeDiagonalDebt N f := hsub
+    _ = completedBoundaryWindow N f := by
+      exact completedBoundaryWindow_add_diagonalDebt_sub_diagonalDebt N f
+    _ = finitePartBoundaryWindow N f := by
+      exact (finitePartBoundaryWindow_eq_completedBoundaryWindow N f).symm
+
+/-- The finite boundary weight object's square representative is the positive square-energy
+window. -/
+theorem finiteBoundaryWeightObject_squareRepresentative_eq_squareEnergyWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) =
+      finitePositiveSquareEnergyWindow N f := by
+  rfl
+
+/-- The square representative of the finite boundary weight object is nonnegative. -/
+theorem finiteBoundaryWeightObject_squareRepresentative_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤
+      FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  unfold FiniteBoundaryWeightObject.squareRepresentative
+  unfold finiteBoundaryWeightObject
+  unfold finitePositiveSquareEnergyWindow
+  unfold zetaCompletedPhysicalAutocorrelationSquareEnergy
+  exact add_nonneg
+    (zetaPrimeTranslationDefectEnergy_nonnegative N f)
+    (zetaArchimedeanCorrectionAutocorrelationSquareEnergy_nonnegative f)
+
+/-- The finite boundary weight object's finite-part representative is the finite-part
+boundary window. -/
+theorem finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) =
+      finitePartBoundaryWindow N f := by
+  rfl
+
+/-- The finite boundary weight object's absorbed square representative is the positive
+renormalized boundary window. -/
+theorem finiteBoundaryWeightObject_absorbedSquareRepresentative_eq_renormalizedWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.absorbedSquareRepresentative
+        (finiteBoundaryWeightObject N f) =
+      finitePositiveRenormalizedBoundaryWindow N f := by
+  unfold FiniteBoundaryWeightObject.absorbedSquareRepresentative
+  unfold finiteBoundaryWeightObject
+  unfold finitePositiveRenormalizedBoundaryWindow
+  have hcorrected :
+      completedCorrectedBoundaryWindow N f =
+        finitePositiveSquareEnergyWindow N f :=
+    completedCorrectedBoundaryWindow_eq_finitePositiveSquareEnergyWindow N f
+  calc
+    finitePositiveSquareEnergyWindow N f + finitePartDebtAbsorptionWindow N f =
+        completedCorrectedBoundaryWindow N f + finitePartDebtAbsorptionWindow N f := by
+      exact congrArg
+        (fun x : ℝ => x + finitePartDebtAbsorptionWindow N f)
+        hcorrected.symm
+
+/-- The diagonal debt and its absorption channel cancel inside the finite boundary weight
+object. -/
+theorem finiteBoundaryWeightObject_debt_absorption_cancel
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (finiteBoundaryWeightObject N f).diagonalDebt +
+        (finiteBoundaryWeightObject N f).debtAbsorption =
+      0 := by
+  unfold finiteBoundaryWeightObject
+  unfold finitePartDebtAbsorptionWindow
+  exact add_neg_cancel (zetaPrimeDiagonalDebt N f)
+
+/-- The absorbed square representative equals the finite-part representative.  This is the
+finite triangular transport identity: the positive square is transported to the finite-part
+window by adding the lower-weight debt absorption channel. -/
+theorem finiteBoundaryWeightObject_absorbedSquare_eq_finitePartRepresentative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.absorbedSquareRepresentative
+        (finiteBoundaryWeightObject N f) =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact
+    (finiteBoundaryWeightObject_absorbedSquareRepresentative_eq_renormalizedWindow
+      N f).trans
+      ((finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow N f).trans
+        (finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+          N f).symm)
+
+/-- The concrete lower-weight absorption certificate for the finite boundary weight object. -/
+def finiteBoundaryWeightObject_lowerWeightAbsorptionCert
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryLowerWeightAbsorptionCert (finiteBoundaryWeightObject N f) :=
+  { debt_absorption_cancel :=
+      finiteBoundaryWeightObject_debt_absorption_cancel N f
+    absorbed_square_eq_finitePart :=
+      finiteBoundaryWeightObject_absorbedSquare_eq_finitePartRepresentative N f }
+
+/-- The finite diagonal-debt absorption defect: the difference between the absorbed positive
+window and the original positive square-energy window. -/
+def finiteDiagonalDebtAbsorptionDefect
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePositiveRenormalizedBoundaryWindow N f -
+    finitePositiveSquareEnergyWindow N f
+
+/-- The finite absorption defect is exactly the finite debt-absorption channel. -/
+theorem finiteDiagonalDebtAbsorptionDefect_eq_finitePartDebtAbsorptionWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finiteDiagonalDebtAbsorptionDefect N f =
+      finitePartDebtAbsorptionWindow N f := by
+  unfold finiteDiagonalDebtAbsorptionDefect
+  unfold finitePositiveRenormalizedBoundaryWindow
+  let Q : ℝ := finitePositiveSquareEnergyWindow N f
+  let A : ℝ := finitePartDebtAbsorptionWindow N f
+  have hcorrected :
+      completedCorrectedBoundaryWindow N f = Q := by
+    exact completedCorrectedBoundaryWindow_eq_finitePositiveSquareEnergyWindow N f
+  change (completedCorrectedBoundaryWindow N f + A) - Q = A
+  calc
+    (completedCorrectedBoundaryWindow N f + A) - Q =
+        (Q + A) - Q := by
+      exact congrArg (fun x : ℝ => (x + A) - Q) hcorrected
+    _ = (Q + A) + -Q := by
+      exact sub_eq_add_neg (Q + A) Q
+    _ = (A + Q) + -Q := by
+      exact congrArg (fun x : ℝ => x + -Q) (add_comm Q A)
+    _ = A + (Q + -Q) := by
+      exact add_assoc A Q (-Q)
+    _ = A + 0 := by
+      exact congrArg (fun x : ℝ => A + x) (add_neg_cancel Q)
+    _ = A := by
+      exact add_zero A
+
+/-- The completed corrected boundary window is nonnegative. -/
+theorem completedCorrectedBoundaryWindow_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedCorrectedBoundaryWindow N f := by
+  unfold completedCorrectedBoundaryWindow
+  exact zetaCompletedPhysicalAutocorrelationBoundaryChannel_add_diagonalDebt_nonnegative N f
+
+/-- Finite-part convergence to the completed physical finite-part boundary channel. This is the
+genuine completed-normalization theorem before comparison with the explicit-formula boundary
+functional. -/
+theorem finitePartBoundaryWindow_tendsto_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePartBoundaryWindow N f)
+      atTop
+      (𝓝 (completedFinitePartBoundaryChannel f)) := by
+  let c : ℝ := completedFinitePartBoundaryChannel f
+  have hrem :
+      Tendsto (fun N : ℕ => finitePartBoundaryRemainder N f) atTop (𝓝 0) :=
+    finitePartBoundaryRemainder_tendsto_zero f
+  have hsum :
+      Tendsto
+        (fun N : ℕ => c + finitePartBoundaryRemainder N f)
+        atTop
+        (𝓝 (c + 0)) := by
+    exact (tendsto_const_nhds.add hrem)
+  have htarget : c + 0 = c := by
+    exact add_zero c
+  have hfinite :
+      (fun N : ℕ => finitePartBoundaryWindow N f) =
+      (fun N : ℕ => c + finitePartBoundaryRemainder N f) := by
+    funext N
+    exact finitePartBoundaryWindow_eq_boundaryChannel_add_remainder N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 c))
+    hfinite.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto (fun N : ℕ => c + finitePartBoundaryRemainder N f) atTop (𝓝 x))
+      htarget
+      hsum)
+
+/-- Compatibility wrapper for the historical prime-power contribution statement. -/
+theorem completedPrimeOffDiagonalChannel_eq_primePowerContribution_re
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeOffDiagonalChannel f =
+      Complex.re
+        (zetaCompletedExplicitFormulaPrimePowerContribution
+          (convolutionAutocorrelation f)) := by
+  have htime :
+      completedPhysicalPrimeOffDiagonalChannel f =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
+    completedPhysicalPrimeOffDiagonalChannel_eq_timeDistributionPairing f
+  have howner :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        Complex.re
+          (zetaCompletedExplicitFormulaPrimePowerContribution
+            (convolutionAutocorrelation f)) :=
+    completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
+      (convolutionAutocorrelation f)
+  exact htime.trans howner
+
+/-- The completed prime off-diagonal channel is the real part of the explicit-formula prime
+boundary channel on the convolution-autocorrelation probe. -/
+theorem completedPrimeOffDiagonalChannel_eq_primeBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeOffDiagonalChannel f =
+      Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) := by
+  have howner :
+      zetaCompletedExplicitFormulaPrimePowerContribution (convolutionAutocorrelation f) =
+        zetaCompletedExplicitFormulaPrimeContribution (convolutionAutocorrelation f) :=
+    zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution
+      (convolutionAutocorrelation f)
+  have hphysical :
+      completedPrimeOffDiagonalChannel f =
+        Complex.re
+          (zetaCompletedExplicitFormulaPrimePowerContribution
+            (convolutionAutocorrelation f)) := by
+    exact completedPrimeOffDiagonalChannel_eq_primePowerContribution_re f
+  unfold primeBoundaryChannel
+  exact hphysical.trans (congrArg Complex.re howner)
+
+/-- The completed physical finite-part channel is the real explicit-formula completed boundary
+channel on the convolution-autocorrelation probe.  This is the owner bridge between the
+renormalized square-energy completion and the explicit-formula boundary functional. -/
+theorem completedFinitePartBoundaryChannel_eq_completedBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  let g : ZetaAdmissibleFunction := convolutionAutocorrelation f
+  have hprime :
+      completedPrimeOffDiagonalChannel f =
+        Complex.re (primeBoundaryChannel g) := by
+    unfold g
+    exact completedPrimeOffDiagonalChannel_eq_primeBoundaryChannel f
+  have harch :
+      zetaArchimedeanAutocorrelationSquareEnergy f =
+        Complex.re (archimedeanBoundaryChannel g) := by
+    unfold g
+    unfold archimedeanBoundaryChannel
+    exact (zetaArchimedeanAutocorrelationChannel_eq_squareEnergy f).symm
+  have hcorr :
+      zetaCorrectionAutocorrelationSquareEnergy f =
+        Complex.re (poleBoundaryChannel g) := by
+    unfold g
+    unfold poleBoundaryChannel
+    exact (zetaCorrectionAutocorrelationChannel_eq_squareEnergy f).symm
+  have hcompletion :
+      Complex.re (completionBoundaryChannel g) = 0 := by
+    unfold g
+    unfold completionBoundaryChannel
+    exact Complex.zero_re
+  have hboundary :
+      Complex.re (completedBoundaryChannel g) =
+        Complex.re (primeBoundaryChannel g) +
+          Complex.re (archimedeanBoundaryChannel g) +
+          Complex.re (poleBoundaryChannel g) +
+          Complex.re (completionBoundaryChannel g) := by
+    have hdecomp :
+        completedBoundaryChannel g =
+          primeBoundaryChannel g +
+            archimedeanBoundaryChannel g +
+            poleBoundaryChannel g +
+            completionBoundaryChannel g :=
+      completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion g
+    calc
+      Complex.re (completedBoundaryChannel g) =
+          Complex.re
+            (primeBoundaryChannel g +
+              archimedeanBoundaryChannel g +
+              poleBoundaryChannel g +
+              completionBoundaryChannel g) := by
+        exact congrArg Complex.re hdecomp
+      _ =
+          Complex.re
+              (primeBoundaryChannel g +
+                archimedeanBoundaryChannel g +
+                poleBoundaryChannel g) +
+            Complex.re (completionBoundaryChannel g) := by
+        exact Complex.add_re
+          (primeBoundaryChannel g +
+            archimedeanBoundaryChannel g +
+            poleBoundaryChannel g)
+          (completionBoundaryChannel g)
+      _ =
+          (Complex.re (primeBoundaryChannel g + archimedeanBoundaryChannel g) +
+              Complex.re (poleBoundaryChannel g)) +
+            Complex.re (completionBoundaryChannel g) := by
+        exact congrArg
+          (fun x : ℝ => x + Complex.re (completionBoundaryChannel g))
+          (Complex.add_re
+            (primeBoundaryChannel g + archimedeanBoundaryChannel g)
+            (poleBoundaryChannel g))
+      _ =
+          ((Complex.re (primeBoundaryChannel g) +
+              Complex.re (archimedeanBoundaryChannel g)) +
+            Complex.re (poleBoundaryChannel g)) +
+            Complex.re (completionBoundaryChannel g) := by
+        exact congrArg
+          (fun x : ℝ =>
+            (x + Complex.re (poleBoundaryChannel g)) +
+              Complex.re (completionBoundaryChannel g))
+          (Complex.add_re (primeBoundaryChannel g) (archimedeanBoundaryChannel g))
+      _ =
+          Complex.re (primeBoundaryChannel g) +
+            Complex.re (archimedeanBoundaryChannel g) +
+            Complex.re (poleBoundaryChannel g) +
+            Complex.re (completionBoundaryChannel g) := by
+        rfl
+  unfold completedFinitePartBoundaryChannel
+  calc
+    completedPrimeOffDiagonalChannel f +
+        zetaArchimedeanAutocorrelationSquareEnergy f +
+        zetaCorrectionAutocorrelationSquareEnergy f =
+        Complex.re (primeBoundaryChannel g) +
+          Complex.re (archimedeanBoundaryChannel g) +
+          Complex.re (poleBoundaryChannel g) := by
+      exact congrArg₂ (fun x y : ℝ => x + y)
+        (congrArg₂ (fun x y : ℝ => x + y) hprime harch)
+        hcorr
+    _ =
+        Complex.re (primeBoundaryChannel g) +
+          Complex.re (archimedeanBoundaryChannel g) +
+          Complex.re (poleBoundaryChannel g) +
+          0 := by
+      exact (add_zero
+        (Complex.re (primeBoundaryChannel g) +
+          Complex.re (archimedeanBoundaryChannel g) +
+          Complex.re (poleBoundaryChannel g))).symm
+    _ =
+        Complex.re (primeBoundaryChannel g) +
+          Complex.re (archimedeanBoundaryChannel g) +
+          Complex.re (poleBoundaryChannel g) +
+          Complex.re (completionBoundaryChannel g) := by
+      exact congrArg
+        (fun x : ℝ =>
+          Complex.re (primeBoundaryChannel g) +
+            Complex.re (archimedeanBoundaryChannel g) +
+            Complex.re (poleBoundaryChannel g) + x)
+        hcompletion.symm
+    _ = Complex.re (completedBoundaryChannel g) := by
+      exact hboundary.symm
+
+/-- The renormalized defect-kernel boundary channel is the completed finite-part boundary
+channel. -/
+theorem completedRenormalizedDefectKernelBoundaryChannel_eq_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    completedRenormalizedDefectKernelBoundaryChannel f =
+      completedFinitePartBoundaryChannel f := by
+  rfl
+
+/-- The renormalized defect-kernel boundary channel is the real completed explicit-formula
+boundary channel. -/
+theorem completedRenormalizedDefectKernelBoundaryChannel_eq_completedBoundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    completedRenormalizedDefectKernelBoundaryChannel f =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  exact (completedRenormalizedDefectKernelBoundaryChannel_eq_completedFinitePartBoundaryChannel f).trans
+    (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f)
+
+/-- Finite-part convergence to the completed boundary channel. This is the genuine completed
+normalization theorem: diagonal debt cancellation has already happened inside
+`finitePartBoundaryWindow`, so no separate convergence of the raw prime window is asserted. -/
+theorem finitePartBoundaryWindow_tendsto_boundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePartBoundaryWindow N f)
+      atTop
+      (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) := by
+  have hfinite :
+      Tendsto
+        (fun N : ℕ => finitePartBoundaryWindow N f)
+        atTop
+        (𝓝 (completedFinitePartBoundaryChannel f)) :=
+    finitePartBoundaryWindow_tendsto_completedFinitePartBoundaryChannel f
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto (fun N : ℕ => finitePartBoundaryWindow N f) atTop (𝓝 x))
+    (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f)
+    hfinite
+
+/-- The finite positive square-energy windows, after finite diagonal-debt absorption, converge
+to the completed boundary channel.  This is pure assembly: the absorption-renormalized positive
+window is the finite-part window, and the finite-part window has the tail convergence
+certificate above. -/
+theorem finitePositiveRenormalizedBoundaryWindow_tendsto_boundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePositiveRenormalizedBoundaryWindow N f)
+      atTop
+      (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) := by
+  have hfinite :
+      (fun N : ℕ => finitePositiveRenormalizedBoundaryWindow N f) =
+        (fun N : ℕ => finitePartBoundaryWindow N f) := by
+    funext N
+    exact finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop
+        (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))))
+    hfinite.symm
+    (finitePartBoundaryWindow_tendsto_boundaryChannel f)
+
+/-- A completed boundary weight stream is a stream of finite weight objects together with the
+real scalar realized by its finite-part representatives. -/
+structure CompletedBoundaryWeightStream where
+  source : ZetaAdmissibleFunction
+  object : ℕ → FiniteBoundaryWeightObject
+  scalar : ℝ
+  scalar_eq_completedBoundaryChannel :
+    scalar =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation source))
+  finitePart_tendsto_scalar :
+    Tendsto
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative (object N))
+      atTop
+      (𝓝 scalar)
+
+namespace CompletedBoundaryWeightStream
+
+/-- A completed boundary weight stream has pointwise nonnegative square representatives. -/
+def SquareRepresentativesNonnegative
+    (X : CompletedBoundaryWeightStream) : Prop :=
+  ∀ N : ℕ, 0 ≤ FiniteBoundaryWeightObject.squareRepresentative (X.object N)
+
+/-- A completed boundary weight stream has pointwise lower-weight absorption certificates. -/
+def HasLowerWeightAbsorption
+    (X : CompletedBoundaryWeightStream) : Prop :=
+  ∀ N : ℕ, FiniteBoundaryLowerWeightAbsorptionCert (X.object N)
+
+/-- The completed positive cone in the ordered heart: positivity means having square-positive
+finite representatives together with lower-weight absorption certificates. -/
+def InPositiveCone
+    (X : CompletedBoundaryWeightStream) : Prop :=
+  SquareRepresentativesNonnegative X ∧ HasLowerWeightAbsorption X
+
+end CompletedBoundaryWeightStream
+
+/-- The completed boundary weight stream attached to an admissible seed. -/
+def completedBoundaryWeightStream
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryWeightStream :=
+  { source := f
+    object := fun N : ℕ => finiteBoundaryWeightObject N f
+    scalar := Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
+    scalar_eq_completedBoundaryChannel := rfl
+    finitePart_tendsto_scalar := by
+      have hfinite :
+          Tendsto
+            (fun N : ℕ => finitePartBoundaryWindow N f)
+            atTop
+            (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) :=
+        finitePartBoundaryWindow_tendsto_boundaryChannel f
+      have hobject :
+          (fun N : ℕ =>
+            FiniteBoundaryWeightObject.finitePartRepresentative
+              (finiteBoundaryWeightObject N f)) =
+            (fun N : ℕ => finitePartBoundaryWindow N f) := by
+        funext N
+        exact finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+          N f
+      exact Eq.subst
+        (motive := fun u : ℕ → ℝ =>
+          Tendsto u atTop
+            (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))))
+        hobject.symm
+        hfinite }
+
+/-- The completed boundary weight stream has nonnegative square representatives. -/
+theorem completedBoundaryWeightStream_squareRepresentatives_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryWeightStream.SquareRepresentativesNonnegative
+      (completedBoundaryWeightStream f) := by
+  intro N
+  exact finiteBoundaryWeightObject_squareRepresentative_nonnegative N f
+
+/-- The completed boundary weight stream has the pointwise lower-weight absorption
+certificates. -/
+theorem completedBoundaryWeightStream_hasLowerWeightAbsorption
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryWeightStream.HasLowerWeightAbsorption
+      (completedBoundaryWeightStream f) := by
+  intro N
+  exact finiteBoundaryWeightObject_lowerWeightAbsorptionCert N f
+
+/-- The completed boundary weight stream lies in the completed positive cone. -/
+theorem completedBoundaryWeightStream_mem_positiveCone
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryWeightStream.InPositiveCone
+      (completedBoundaryWeightStream f) := by
+  exact
+    ⟨completedBoundaryWeightStream_squareRepresentatives_nonnegative f,
+      completedBoundaryWeightStream_hasLowerWeightAbsorption f⟩
+
+/-- The scalar of the completed boundary weight stream is the real completed boundary channel. -/
+theorem completedBoundaryWeightStream_scalar_eq_boundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  rfl
+
+/-- The Hilbert-source object for the completed boundary realization.
+
+The completed explicit-formula boundary channel is not a linear form on raw admissible
+functions: the pole/correction contribution contains a fixed square coordinate.  The Hilbert
+source therefore consists of the analytic seed together with that correction coordinate. -/
+structure CompletedBoundaryHilbertSource where
+  seed : ZetaAdmissibleFunction
+  correctionCoordinate : ℝ
+
+namespace CompletedBoundaryHilbertSource
+
+instance : Zero CompletedBoundaryHilbertSource :=
+  ⟨{ seed := 0
+     correctionCoordinate := 0 }⟩
+
+instance : Add CompletedBoundaryHilbertSource :=
+  ⟨fun X Y =>
+    { seed := X.seed + Y.seed
+      correctionCoordinate := X.correctionCoordinate + Y.correctionCoordinate }⟩
+
+instance : Neg CompletedBoundaryHilbertSource :=
+  ⟨fun X =>
+    { seed := -X.seed
+      correctionCoordinate := -X.correctionCoordinate }⟩
+
+instance : Sub CompletedBoundaryHilbertSource :=
+  ⟨fun X Y => X + -Y⟩
+
+instance : SMul ℝ CompletedBoundaryHilbertSource :=
+  ⟨fun a X =>
+    { seed := a • X.seed
+      correctionCoordinate := a * X.correctionCoordinate }⟩
+
+@[ext]
+theorem ext
+    {X Y : CompletedBoundaryHilbertSource}
+    (hseed : X.seed = Y.seed)
+    (hcorr : X.correctionCoordinate = Y.correctionCoordinate) :
+    X = Y := by
+  cases X with
+  | mk Xseed Xcorr =>
+    cases Y with
+    | mk Yseed Ycorr =>
+      change Xseed = Yseed at hseed
+      change Xcorr = Ycorr at hcorr
+      cases hseed
+      cases hcorr
+      rfl
+
+instance : AddCommGroup CompletedBoundaryHilbertSource where
+  zero := 0
+  add := (· + ·)
+  neg := Neg.neg
+  sub := Sub.sub
+  zsmul := fun n X =>
+    { seed := n • X.seed
+      correctionCoordinate := n * X.correctionCoordinate }
+  add_assoc := by
+    intro X Y Z
+    ext
+    · exact add_assoc X.seed Y.seed Z.seed
+    · exact add_assoc X.correctionCoordinate Y.correctionCoordinate Z.correctionCoordinate
+  zero_add := by
+    intro X
+    ext
+    · exact zero_add X.seed
+    · exact zero_add X.correctionCoordinate
+  add_zero := by
+    intro X
+    ext
+    · exact add_zero X.seed
+    · exact add_zero X.correctionCoordinate
+  add_comm := by
+    intro X Y
+    ext
+    · exact add_comm X.seed Y.seed
+    · exact add_comm X.correctionCoordinate Y.correctionCoordinate
+  add_left_neg := by
+    intro X
+    ext
+    · exact neg_add_cancel X.seed
+    · exact neg_add_cancel X.correctionCoordinate
+  sub_eq_add_neg := by
+    intro X Y
+    rfl
+  nsmul := fun n X =>
+    { seed := n • X.seed
+      correctionCoordinate := n * X.correctionCoordinate }
+  nsmul_zero := by
+    intro X
+    ext
+    · exact nsmul_zero X.seed
+    · change ((0 : ℕ) : ℝ) * X.correctionCoordinate = 0
+      exact zero_mul X.correctionCoordinate
+  nsmul_succ := by
+    intro n X
+    ext
+    · exact nsmul_succ n X.seed
+    · change ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
+        n * X.correctionCoordinate + X.correctionCoordinate
+      calc
+        ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
+            (((n : ℕ) : ℝ) + 1) * X.correctionCoordinate := by
+          exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
+            (Nat.cast_add n 1)
+        _ =
+            ((n : ℕ) : ℝ) * X.correctionCoordinate +
+              1 * X.correctionCoordinate := by
+          exact add_mul ((n : ℕ) : ℝ) 1 X.correctionCoordinate
+        _ =
+            ((n : ℕ) : ℝ) * X.correctionCoordinate +
+              X.correctionCoordinate := by
+          exact congrArg
+            (fun a : ℝ => ((n : ℕ) : ℝ) * X.correctionCoordinate + a)
+            (one_mul X.correctionCoordinate)
+  zsmul_zero' := by
+    intro X
+    ext
+    · exact zsmul_zero' X.seed
+    · change ((0 : ℤ) : ℝ) * X.correctionCoordinate = 0
+      exact zero_mul X.correctionCoordinate
+  zsmul_succ' := by
+    intro n X
+    ext
+    · exact zsmul_succ' n X.seed
+    · change (((Int.ofNat n + 1 : ℤ) : ℝ) * X.correctionCoordinate) =
+        (n : ℤ) * X.correctionCoordinate + X.correctionCoordinate
+      have hcast :
+          ((Int.ofNat n + 1 : ℤ) : ℝ) = ((n : ℤ) : ℝ) + 1 := by
+        exact Int.cast_add (Int.ofNat n) 1
+      calc
+        ((Int.ofNat n + 1 : ℤ) : ℝ) * X.correctionCoordinate =
+            (((n : ℤ) : ℝ) + 1) * X.correctionCoordinate := by
+          exact congrArg (fun a : ℝ => a * X.correctionCoordinate) hcast
+        _ =
+            ((n : ℤ) : ℝ) * X.correctionCoordinate +
+              1 * X.correctionCoordinate := by
+          exact add_mul ((n : ℤ) : ℝ) 1 X.correctionCoordinate
+        _ =
+            ((n : ℤ) : ℝ) * X.correctionCoordinate +
+              X.correctionCoordinate := by
+          exact congrArg
+            (fun a : ℝ => ((n : ℤ) : ℝ) * X.correctionCoordinate + a)
+            (one_mul X.correctionCoordinate)
+  zsmul_neg' := by
+    intro n X
+    ext
+    · exact zsmul_neg' n X.seed
+    · change (((-Int.ofNat n : ℤ) : ℝ) * X.correctionCoordinate) =
+        -(((n : ℤ) : ℝ) * X.correctionCoordinate)
+      calc
+        ((-Int.ofNat n : ℤ) : ℝ) * X.correctionCoordinate =
+            (-((n : ℤ) : ℝ)) * X.correctionCoordinate := by
+          exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
+            (Int.cast_neg (Int.ofNat n))
+        _ = -(((n : ℤ) : ℝ) * X.correctionCoordinate) := by
+          exact neg_mul ((n : ℤ) : ℝ) X.correctionCoordinate
+
+instance : Module ℝ CompletedBoundaryHilbertSource where
+  one_smul := by
+    intro X
+    ext
+    · exact one_smul ℝ X.seed
+    · exact one_mul X.correctionCoordinate
+  mul_smul := by
+    intro a b X
+    ext
+    · exact mul_smul a b X.seed
+    · exact mul_assoc a b X.correctionCoordinate
+  smul_zero := by
+    intro a
+    ext
+    · exact smul_zero a
+    · exact mul_zero a
+  smul_add := by
+    intro a X Y
+    ext
+    · exact smul_add a X.seed Y.seed
+    · exact mul_add a X.correctionCoordinate Y.correctionCoordinate
+  add_smul := by
+    intro a b X
+    ext
+    · exact add_smul a b X.seed
+    · exact add_mul a b X.correctionCoordinate
+  zero_smul := by
+    intro X
+    ext
+    · exact zero_smul ℝ X.seed
+    · exact zero_mul X.correctionCoordinate
+
+end CompletedBoundaryHilbertSource
+
+/-- The completed Hilbert source attached to an admissible seed.  The correction coordinate is
+the explicit square-root correction packet coordinate. -/
+def completedBoundaryHilbertSource
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertSource :=
+  { seed := f
+    correctionCoordinate := zetaCompletionCorrectionPacketCoordinate }
+
+/-- The lower-weight exact Hilbert source is the zero source: it has no analytic seed and no
+correction square coordinate. -/
+def completedBoundaryLowerWeightExactHilbertSource :
+    CompletedBoundaryHilbertSource :=
+  0
+
+/-- The reduced completed boundary channel: prime, archimedean, and residual completion
+channels, with the affine pole/correction square coordinate removed from the raw boundary
+functional. -/
+def completedBoundaryReducedChannel
+    (g : ZetaAdmissibleFunction) : ℂ :=
+  primeBoundaryChannel g +
+    archimedeanBoundaryChannel g +
+    completionBoundaryChannel g
+
+/-- The completed Hilbert pairing.  The reduced analytic channel is paired through
+`convolutionPair`; the correction contribution is paired by the explicit real correction
+coordinate. -/
+def completedBoundaryHilbertPairing
+    (X Y : CompletedBoundaryHilbertSource) : ℝ :=
+  Complex.re
+      (completedBoundaryReducedChannel (convolutionPair X.seed Y.seed)) +
+    X.correctionCoordinate * Y.correctionCoordinate
+
+/-- The Hilbert pairing unfolds to the reduced analytic source pairing plus the explicit
+correction-coordinate product. -/
+theorem completedBoundaryHilbertPairing_eq_reduced_add_correction
+    (X Y : CompletedBoundaryHilbertSource) :
+    completedBoundaryHilbertPairing X Y =
+      Complex.re
+          (completedBoundaryReducedChannel (convolutionPair X.seed Y.seed)) +
+        X.correctionCoordinate * Y.correctionCoordinate := by
+  rfl
+
+/-- Rearranging the real parts of the reduced channel plus pole channel. -/
+theorem completedBoundaryReduced_re_add_pole_re
+    (p a q r : ℂ) :
+    Complex.re (p + a + r) + Complex.re q =
+      Complex.re (p + a + q + r) := by
+  calc
+    Complex.re (p + a + r) + Complex.re q =
+        (Complex.re (p + a) + Complex.re r) + Complex.re q := by
+      exact congrArg (fun x : ℝ => x + Complex.re q)
+        (Complex.add_re (p + a) r)
+    _ =
+        (Complex.re p + Complex.re a + Complex.re r) + Complex.re q := by
+      exact congrArg (fun x : ℝ => (x + Complex.re r) + Complex.re q)
+        (Complex.add_re p a)
+    _ =
+        Complex.re p + Complex.re a + Complex.re q + Complex.re r := by
+      ring
+    _ =
+        Complex.re (p + a + q) + Complex.re r := by
+      exact congrArg (fun x : ℝ => x + Complex.re r)
+        ((congrArg (fun x : ℝ => x + Complex.re q)
+          (Complex.add_re p a)).symm)
+    _ =
+        Complex.re (p + a + q + r) := by
+      exact (Complex.add_re (p + a + q) r).symm
+
+/-- The Hilbert pairing of a realized seed with itself is the real completed boundary
+channel on its autocorrelation probe.  The affine pole/correction contribution is represented
+by the explicit correction coordinate in `CompletedBoundaryHilbertSource`. -/
+theorem completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryHilbertPairing
+        (completedBoundaryHilbertSource f)
+        (completedBoundaryHilbertSource f) =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  let g : ZetaAdmissibleFunction := convolutionAutocorrelation f
+  let p : ℂ := primeBoundaryChannel g
+  let a : ℂ := archimedeanBoundaryChannel g
+  let q : ℂ := poleBoundaryChannel g
+  let r : ℂ := completionBoundaryChannel g
+  have hconv : convolutionPair f f = g := by
+    unfold g
+    exact convolutionPair_self f
+  have hcorr :
+      zetaCompletionCorrectionPacketCoordinate *
+          zetaCompletionCorrectionPacketCoordinate =
+        Complex.re q := by
+    unfold q
+    unfold g
+    exact (zetaCorrectionAutocorrelationChannel_eq_squareEnergy f).symm
+  have hchannel :
+      completedBoundaryChannel g = p + a + q + r := by
+    unfold p
+    unfold a
+    unfold q
+    unfold r
+    exact completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion g
+  have hreduced :
+      primeBoundaryChannel (convolutionPair f f) +
+          archimedeanBoundaryChannel (convolutionPair f f) +
+          completionBoundaryChannel (convolutionPair f f) =
+        p + a + r := by
+    calc
+      primeBoundaryChannel (convolutionPair f f) +
+          archimedeanBoundaryChannel (convolutionPair f f) +
+          completionBoundaryChannel (convolutionPair f f) =
+        primeBoundaryChannel g +
+            archimedeanBoundaryChannel g +
+            completionBoundaryChannel g := by
+        exact congrArg
+          (fun u : ZetaAdmissibleFunction =>
+            primeBoundaryChannel u + archimedeanBoundaryChannel u +
+              completionBoundaryChannel u)
+          hconv
+      _ = p + a + r := by
+        rfl
+  unfold completedBoundaryHilbertPairing
+  unfold completedBoundaryHilbertSource
+  unfold completedBoundaryReducedChannel
+  calc
+    Complex.re
+          (primeBoundaryChannel (convolutionPair f f) +
+            archimedeanBoundaryChannel (convolutionPair f f) +
+            completionBoundaryChannel (convolutionPair f f)) +
+        zetaCompletionCorrectionPacketCoordinate *
+          zetaCompletionCorrectionPacketCoordinate =
+        Complex.re (p + a + r) +
+          zetaCompletionCorrectionPacketCoordinate *
+            zetaCompletionCorrectionPacketCoordinate := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg Complex.re hreduced)
+        rfl
+    _ = Complex.re (p + a + r) + Complex.re q := by
+      exact congrArg
+        (fun x : ℝ => Complex.re (p + a + r) + x)
+        hcorr
+    _ = Complex.re (p + a + q + r) := by
+      exact completedBoundaryReduced_re_add_pole_re p a q r
+    _ = Complex.re (completedBoundaryChannel g) := by
+      exact congrArg Complex.re hchannel.symm
+
+/-- The finite lower-weight exact component consisting of diagonal debt plus its absorption
+channel.  Its finite-part representative is identically zero. -/
+def finiteBoundaryLowerWeightExactObject
+    (N : ℕ) (f : ZetaAdmissibleFunction) : FiniteBoundaryWeightObject :=
+  { positiveSquare := 0
+    primeCross := 0
+    diagonalDebt := zetaPrimeDiagonalDebt N f
+    debtAbsorption := finitePartDebtAbsorptionWindow N f
+    archCorrection := 0 }
+
+/-- A finite boundary packet is lower-weight exact when its finite-part representative is
+zero. -/
+structure FiniteBoundaryLowerWeightExactCert
+    (x : FiniteBoundaryWeightObject) where
+  finitePart_eq_zero :
+    FiniteBoundaryWeightObject.finitePartRepresentative x = 0
+
+/-- The concrete diagonal-debt plus debt-absorption packet is finite lower-weight exact. -/
+def finiteBoundaryLowerWeightExactObject_cert
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryLowerWeightExactCert
+      (finiteBoundaryLowerWeightExactObject N f) :=
+  { finitePart_eq_zero := by
+      unfold finiteBoundaryLowerWeightExactObject
+      unfold FiniteBoundaryWeightObject.finitePartRepresentative
+      unfold finitePartDebtAbsorptionWindow
+      let D : ℝ := zetaPrimeDiagonalDebt N f
+      change 0 + D + -D + 0 = 0
+      calc
+        0 + D + -D + 0 = D + -D + 0 := by
+          exact congrArg (fun x : ℝ => x + -D + 0) (zero_add D)
+        _ = 0 + 0 := by
+          exact congrArg (fun x : ℝ => x + 0) (add_neg_cancel D)
+        _ = 0 := by
+          exact zero_add 0 }
+
+/-- A completed boundary stream realized in the Hilbert pairing. -/
+structure CompletedBoundaryHilbertWeightStream where
+  source : CompletedBoundaryHilbertSource
+  object : ℕ → FiniteBoundaryWeightObject
+  scalar : ℝ
+  scalar_eq_pairing_self :
+    scalar = completedBoundaryHilbertPairing source source
+  finitePart_tendsto_scalar :
+    Tendsto
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative (object N))
+      atTop
+      (𝓝 scalar)
+
+namespace CompletedBoundaryHilbertWeightStream
+
+/-- A Hilbert stream is lower-weight exact when its scalar realization is zero. -/
+def IsLowerWeightExact
+    (D : CompletedBoundaryHilbertWeightStream) : Prop :=
+  D.scalar = 0
+
+/-- A Hilbert stream is lower-weight null when it lies in the radical of the Hilbert pairing. -/
+def IsLowerWeightNull
+    (D : CompletedBoundaryHilbertWeightStream) : Prop :=
+  ∀ T : CompletedBoundaryHilbertWeightStream,
+    completedBoundaryHilbertPairing D.source T.source = 0 ∧
+      completedBoundaryHilbertPairing T.source D.source = 0
+
+/-- Lower-weight exactness gives diagonal nullity in the Hilbert pairing. -/
+theorem IsLowerWeightExact.pairing_self_eq_zero
+    {D : CompletedBoundaryHilbertWeightStream}
+    (hD : IsLowerWeightExact D) :
+    completedBoundaryHilbertPairing D.source D.source = 0 := by
+  exact D.scalar_eq_pairing_self.symm.trans hD
+
+end CompletedBoundaryHilbertWeightStream
+
+/-- The completed Hilbert weight stream attached to an admissible seed. -/
+def completedBoundaryHilbertWeightStream
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertWeightStream :=
+  { source := completedBoundaryHilbertSource f
+    object := fun N : ℕ => finiteBoundaryWeightObject N f
+    scalar := Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
+    scalar_eq_pairing_self :=
+      (completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f).symm
+    finitePart_tendsto_scalar := by
+      have hfinite :
+          Tendsto
+            (fun N : ℕ => finitePartBoundaryWindow N f)
+            atTop
+            (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) :=
+        finitePartBoundaryWindow_tendsto_boundaryChannel f
+      have hobject :
+          (fun N : ℕ =>
+            FiniteBoundaryWeightObject.finitePartRepresentative
+              (finiteBoundaryWeightObject N f)) =
+            (fun N : ℕ => finitePartBoundaryWindow N f) := by
+        funext N
+        exact finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+          N f
+      exact Eq.subst
+        (motive := fun u : ℕ → ℝ =>
+          Tendsto u atTop
+            (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))))
+        hobject.symm
+        hfinite }
+
+/-- The finite lower-weight exact component has zero finite-part representative. -/
+theorem finiteBoundaryLowerWeightExactObject_finitePart_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryLowerWeightExactObject N f) =
+      0 :=
+  (finiteBoundaryLowerWeightExactObject_cert N f).finitePart_eq_zero
+
+/-- The completed lower-weight exact stream has zero finite-part representatives. -/
+theorem completedBoundaryLowerWeightExact_finitePart_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryLowerWeightExactObject N f) =
+      0 :=
+  finiteBoundaryLowerWeightExactObject_finitePart_eq_zero N f
+
+/-- The concrete source-probe package for the lower-weight exact diagonal-debt cancellation
+component.  It records the actual Hilbert source and the actual finite window component; no
+cross-pairing vanishing is built into this object. -/
+structure CompletedBoundaryLowerWeightExactSourceProbe
+    (f : ZetaAdmissibleFunction) where
+  source : CompletedBoundaryHilbertSource
+  object : ℕ → FiniteBoundaryWeightObject
+  source_eq_zero :
+    source = completedBoundaryLowerWeightExactHilbertSource
+  object_eq_exact :
+    object = fun N : ℕ => finiteBoundaryLowerWeightExactObject N f
+  finitePart_eq_zero :
+    ∀ N : ℕ,
+      FiniteBoundaryWeightObject.finitePartRepresentative (object N) = 0
+
+/-- The diagonal-debt plus debt-absorption cancellation packet is represented by the zero
+Hilbert source at the finite-window level. -/
+def completedBoundaryLowerWeightExactSourceProbe
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryLowerWeightExactSourceProbe f :=
+  { source := completedBoundaryLowerWeightExactHilbertSource
+    object := fun N : ℕ => finiteBoundaryLowerWeightExactObject N f
+    source_eq_zero := rfl
+    object_eq_exact := rfl
+    finitePart_eq_zero := by
+      intro N
+      exact finiteBoundaryLowerWeightExactObject_finitePart_eq_zero N f }
+
+/-- The lower-weight exact source probe has zero finite scalar at every cutoff. -/
+theorem completedBoundaryLowerWeightExactSourceProbe_finitePart_eq_zero
+    (f : ZetaAdmissibleFunction) (N : ℕ) :
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        ((completedBoundaryLowerWeightExactSourceProbe f).object N) =
+      0 :=
+  (completedBoundaryLowerWeightExactSourceProbe f).finitePart_eq_zero N
+
+
+/-- The completed boundary pairing is induced by the two-variable completed boundary kernel. -/
+def completedBoundaryPairing
+    (S T : CompletedBoundaryWeightStream) : ℝ :=
+  Complex.re (completedBoundaryChannel (convolutionPair S.source T.source))
+
+/-- The completed boundary pairing unfolds to the real part of the completed Hermitian
+kernel. -/
+theorem completedBoundaryPairing_eq_kernel
+    (S T : CompletedBoundaryWeightStream) :
+    completedBoundaryPairing S T =
+      Complex.re (completedHermitianKernel S.source T.source) := by
+  unfold completedBoundaryPairing
+  exact congrArg Complex.re
+    (completedBoundaryChannel_convolutionPair_eq_kernel S.source T.source)
+
+/-- The diagonal of the completed boundary pairing is the completed boundary channel on the
+convolution autocorrelation probe. -/
+theorem completedBoundaryPairing_self_eq_boundaryChannel_autocorrelation
+    (S : CompletedBoundaryWeightStream) :
+    completedBoundaryPairing S S =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation S.source)) := by
+  unfold completedBoundaryPairing
+  exact congrArg
+    (fun g : ZetaAdmissibleFunction =>
+      Complex.re (completedBoundaryChannel g))
+    (convolutionPair_self S.source)
+
+/-- The scalar of a completed boundary weight stream is the self-pairing of its completed
+boundary kernel. -/
+theorem completedBoundaryWeightStream_scalar_eq_pairing_self
+    (S : CompletedBoundaryWeightStream) :
+    S.scalar = completedBoundaryPairing S S := by
+  exact S.scalar_eq_completedBoundaryChannel.trans
+    (completedBoundaryPairing_self_eq_boundaryChannel_autocorrelation S).symm
+
+namespace CompletedBoundaryWeightStream
+
+/-- A completed boundary weight stream is lower-weight null when it lies in the radical of
+the completed boundary pairing. -/
+def IsLowerWeightNull
+    (D : CompletedBoundaryWeightStream) : Prop :=
+  ∀ T : CompletedBoundaryWeightStream,
+    completedBoundaryPairing D T = 0 ∧
+      completedBoundaryPairing T D = 0
+
+/-- A completed boundary weight stream is lower-weight exact when its completed diagonal
+realization is zero.  This is the diagonal form of lower-weight absorption; positive
+semidefiniteness of the completed pairing upgrades it to radical/nullity. -/
+def IsLowerWeightExact
+    (D : CompletedBoundaryWeightStream) : Prop :=
+  D.scalar = 0
+
+/-- A lower-weight null stream pairs trivially on the left. -/
+theorem IsLowerWeightNull.pairing_left_eq_zero
+    {D T : CompletedBoundaryWeightStream}
+    (hD : IsLowerWeightNull D) :
+    completedBoundaryPairing D T = 0 :=
+  (hD T).1
+
+/-- A lower-weight null stream pairs trivially on the right. -/
+theorem IsLowerWeightNull.pairing_right_eq_zero
+    {D T : CompletedBoundaryWeightStream}
+    (hD : IsLowerWeightNull D) :
+    completedBoundaryPairing T D = 0 :=
+  (hD T).2
+
+/-- A lower-weight null stream has zero self-pairing. -/
+theorem IsLowerWeightNull.pairing_self_eq_zero
+    {D : CompletedBoundaryWeightStream}
+    (hD : IsLowerWeightNull D) :
+    completedBoundaryPairing D D = 0 :=
+  (hD D).1
+
+/-- A lower-weight exact stream has zero completed self-pairing. -/
+theorem IsLowerWeightExact.pairing_self_eq_zero
+    {D : CompletedBoundaryWeightStream}
+    (hD : IsLowerWeightExact D) :
+    completedBoundaryPairing D D = 0 := by
+  exact (completedBoundaryWeightStream_scalar_eq_pairing_self D).symm.trans hD
+
+end CompletedBoundaryWeightStream
+
+/-- In a real symmetric positive-semidefinite bilinear pairing, a vector with zero
+self-pairing lies in the left radical.
+
+This is the algebraic reduction that turns diagonal lower-weight nullity into cross-kernel
+nullity.  The analytic work for the completed boundary pairing is to provide the bilinear,
+symmetric, and positive-semidefinite laws for the concrete kernel. -/
+theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
+    {V : Type*} [AddCommGroup V] [Module ℝ V]
+    (B : V → V → ℝ)
+    (B_add_left : ∀ x y z : V, B (x + y) z = B x z + B y z)
+    (B_smul_left : ∀ (a : ℝ) (x y : V), B (a • x) y = a * B x y)
+    (B_add_right : ∀ x y z : V, B x (y + z) = B x y + B x z)
+    (B_smul_right : ∀ (a : ℝ) (x y : V), B x (a • y) = a * B x y)
+    (B_symm : ∀ x y : V, B x y = B y x)
+    (B_psd : ∀ x : V, 0 ≤ B x x)
+    {d t : V}
+    (hdd : B d d = 0) :
+    B d t = 0 := by
+  by_cases htd : B t d = 0
+  · exact (B_symm d t).trans htd
+  · exfalso
+    let b : ℝ := B t t
+    let c : ℝ := B t d
+    let r : ℝ := -((b + 1) / (2 * c))
+    have hc : c ≠ 0 := htd
+    have hpos : 0 ≤ B (t + r • d) (t + r • d) :=
+      B_psd (t + r • d)
+    have hcross : B d t = c := by
+      exact B_symm d t
+    have hexpand :
+        B (t + r • d) (t + r • d) =
+          b + 2 * r * c := by
+      calc
+        B (t + r • d) (t + r • d) =
+            B t (t + r • d) + B (r • d) (t + r • d) := by
+          exact B_add_left t (r • d) (t + r • d)
+        _ =
+            (B t t + B t (r • d)) +
+              (B (r • d) t + B (r • d) (r • d)) := by
+          exact congrArg₂ HAdd.hAdd
+            (B_add_right t t (r • d))
+            (B_add_right (r • d) t (r • d))
+        _ =
+            (b + r * c) + (r * c + r * (r * 0)) := by
+          exact congrArg₂ HAdd.hAdd
+            (congrArg₂ HAdd.hAdd rfl (B_smul_right r t d))
+            ((congrArg₂ HAdd.hAdd
+              (B_smul_left r d t)
+              ((B_smul_left r d (r • d)).trans
+                (congrArg (fun x : ℝ => r * x)
+                  ((B_smul_right r d d).trans
+                    (congrArg (fun x : ℝ => r * x) hdd))))).trans
+              (congrArg₂ HAdd.hAdd
+                (congrArg (fun x : ℝ => r * x) hcross)
+                rfl))
+        _ = b + 2 * r * c := by
+          ring
+    have hr : b + 2 * r * c = -1 := by
+      unfold r
+      field_simp [hc]
+      ring
+    rw [hexpand, hr] at hpos
+    linarith
+
+/-- In a real symmetric positive-semidefinite bilinear pairing, a vector with zero
+self-pairing lies in the right radical. -/
+theorem real_symmetric_bilinear_psd_right_radical_of_self_zero
+    {V : Type*} [AddCommGroup V] [Module ℝ V]
+    (B : V → V → ℝ)
+    (B_add_left : ∀ x y z : V, B (x + y) z = B x z + B y z)
+    (B_smul_left : ∀ (a : ℝ) (x y : V), B (a • x) y = a * B x y)
+    (B_add_right : ∀ x y z : V, B x (y + z) = B x y + B x z)
+    (B_smul_right : ∀ (a : ℝ) (x y : V), B x (a • y) = a * B x y)
+    (B_symm : ∀ x y : V, B x y = B y x)
+    (B_psd : ∀ x : V, 0 ≤ B x x)
+    {d t : V}
+    (hdd : B d d = 0) :
+    B t d = 0 := by
+  have hleft :
+      B d t = 0 :=
+    real_symmetric_bilinear_psd_left_radical_of_self_zero
+      B B_add_left B_smul_left B_add_right B_smul_right B_symm B_psd hdd
+  exact (B_symm t d).trans hleft
+
+/-- Diagonal nullity implies left radicality for the completed Hilbert pairing. -/
+theorem completedBoundaryHilbertPairing_left_zero_of_self_zero
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_smul_left :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing (a • x) y =
+          a * completedBoundaryHilbertPairing x y)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (B_smul_right :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing x (a • y) =
+          a * completedBoundaryHilbertPairing x y)
+    (B_symm :
+      ∀ x y : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x y =
+          completedBoundaryHilbertPairing y x)
+    (B_psd :
+      ∀ x : CompletedBoundaryHilbertSource,
+        0 ≤ completedBoundaryHilbertPairing x x)
+    (D T : CompletedBoundaryHilbertWeightStream)
+    (hDD : completedBoundaryHilbertPairing D.source D.source = 0) :
+    completedBoundaryHilbertPairing D.source T.source = 0 := by
+  exact
+    real_symmetric_bilinear_psd_left_radical_of_self_zero
+      completedBoundaryHilbertPairing
+      B_add_left
+      B_smul_left
+      B_add_right
+      B_smul_right
+      B_symm
+      B_psd
+      (d := D.source)
+      (t := T.source)
+      hDD
+
+/-- Diagonal nullity implies right radicality for the completed Hilbert pairing. -/
+theorem completedBoundaryHilbertPairing_right_zero_of_self_zero
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_smul_left :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing (a • x) y =
+          a * completedBoundaryHilbertPairing x y)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (B_smul_right :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing x (a • y) =
+          a * completedBoundaryHilbertPairing x y)
+    (B_symm :
+      ∀ x y : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x y =
+          completedBoundaryHilbertPairing y x)
+    (B_psd :
+      ∀ x : CompletedBoundaryHilbertSource,
+        0 ≤ completedBoundaryHilbertPairing x x)
+    (D T : CompletedBoundaryHilbertWeightStream)
+    (hDD : completedBoundaryHilbertPairing D.source D.source = 0) :
+    completedBoundaryHilbertPairing T.source D.source = 0 := by
+  exact
+    real_symmetric_bilinear_psd_right_radical_of_self_zero
+      completedBoundaryHilbertPairing
+      B_add_left
+      B_smul_left
+      B_add_right
+      B_smul_right
+      B_symm
+      B_psd
+      (d := D.source)
+      (t := T.source)
+      hDD
+
+/-- Diagonal nullity of a Hilbert stream implies lower-weight nullity once the completed
+Hilbert pairing has its symmetric bilinear positive-semidefinite laws. -/
+theorem completedBoundaryHilbertWeightStream_isLowerWeightNull_of_self_pairing_zero
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_smul_left :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing (a • x) y =
+          a * completedBoundaryHilbertPairing x y)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (B_smul_right :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing x (a • y) =
+          a * completedBoundaryHilbertPairing x y)
+    (B_symm :
+      ∀ x y : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x y =
+          completedBoundaryHilbertPairing y x)
+    (B_psd :
+      ∀ x : CompletedBoundaryHilbertSource,
+        0 ≤ completedBoundaryHilbertPairing x x)
+    (D : CompletedBoundaryHilbertWeightStream)
+    (hDD : completedBoundaryHilbertPairing D.source D.source = 0) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightNull D := by
+  intro T
+  exact
+    ⟨completedBoundaryHilbertPairing_left_zero_of_self_zero
+        B_add_left B_smul_left B_add_right B_smul_right B_symm B_psd D T hDD,
+      completedBoundaryHilbertPairing_right_zero_of_self_zero
+        B_add_left B_smul_left B_add_right B_smul_right B_symm B_psd D T hDD⟩
+
+/-- Lower-weight exact Hilbert streams lie in the radical/nullspace once the completed Hilbert
+pairing has its symmetric bilinear positive-semidefinite laws. -/
+theorem completedBoundaryHilbertWeightStream_isLowerWeightNull_of_lowerWeightExact
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_smul_left :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing (a • x) y =
+          a * completedBoundaryHilbertPairing x y)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (B_smul_right :
+      ∀ (a : ℝ) (x y : CompletedBoundaryHilbertSource),
+        completedBoundaryHilbertPairing x (a • y) =
+          a * completedBoundaryHilbertPairing x y)
+    (B_symm :
+      ∀ x y : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x y =
+          completedBoundaryHilbertPairing y x)
+    (B_psd :
+      ∀ x : CompletedBoundaryHilbertSource,
+        0 ≤ completedBoundaryHilbertPairing x x)
+    (D : CompletedBoundaryHilbertWeightStream)
+    (hD : CompletedBoundaryHilbertWeightStream.IsLowerWeightExact D) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightNull D := by
+  exact completedBoundaryHilbertWeightStream_isLowerWeightNull_of_self_pairing_zero
+    B_add_left
+    B_smul_left
+    B_add_right
+    B_smul_right
+    B_symm
+    B_psd
+    D
+    (CompletedBoundaryHilbertWeightStream.IsLowerWeightExact.pairing_self_eq_zero hD)
+
+/-- A completed positive-boundary precone element.
+
+The positive representative is the finite square-energy window.  The absorbed representative
+is the finite representative after applying the finite diagonal-debt absorption normalization.
+The scalar is the completed realization of that absorbed representative. -/
+structure CompletedPositiveBoundaryPreconeElement where
+  scalar : ℝ
+  positiveRepresentative : ℕ → ℝ
+  absorbedRepresentative : ℕ → ℝ
+  absorptionDefect : ℕ → ℝ
+  positiveRepresentative_nonnegative :
+    ∀ N : ℕ, 0 ≤ positiveRepresentative N
+  absorbedRepresentative_tendsto_scalar :
+    Tendsto absorbedRepresentative atTop (𝓝 scalar)
+  absorptionDefect_eq :
+    ∀ N : ℕ,
+      absorptionDefect N =
+        absorbedRepresentative N - positiveRepresentative N
+
+/-- The completed positive-boundary precone element attached to a zeta admissible function. -/
+def completedPositiveBoundaryPreconeElement
+    (f : ZetaAdmissibleFunction) : CompletedPositiveBoundaryPreconeElement :=
+  { scalar :=
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
+    positiveRepresentative :=
+      fun N : ℕ => finitePositiveSquareEnergyWindow N f
+    absorbedRepresentative :=
+      fun N : ℕ => finitePositiveRenormalizedBoundaryWindow N f
+    absorptionDefect :=
+      fun N : ℕ => finiteDiagonalDebtAbsorptionDefect N f
+    positiveRepresentative_nonnegative :=
+      fun N : ℕ => finitePositiveSquareEnergyWindow_nonnegative N f
+    absorbedRepresentative_tendsto_scalar :=
+      finitePositiveRenormalizedBoundaryWindow_tendsto_boundaryChannel f
+    absorptionDefect_eq := by
+      intro N
+      unfold finiteDiagonalDebtAbsorptionDefect
+      rfl }
+
+/-- The absorption defect of the completed positive-boundary precone element is the finite
+debt-absorption channel. -/
+theorem completedPositiveBoundaryPreconeElement_absorptionDefect_eq_debtAbsorption
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+      finitePartDebtAbsorptionWindow N f := by
+  exact finiteDiagonalDebtAbsorptionDefect_eq_finitePartDebtAbsorptionWindow N f
+
+/-- The scalar realization of the completed positive-boundary precone element is the real
+completed boundary channel on the convolution-autocorrelation probe. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_boundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  rfl
+
+/-- The scalar of the completed positive-boundary precone element is the scalar of the
+completed boundary weight stream. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_weightStream_scalar
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      (completedBoundaryWeightStream f).scalar := by
+  rfl
+
+/-- The completed positive-boundary precone element is represented by a completed boundary
+weight stream in the positive cone. -/
+theorem completedPositiveBoundaryPreconeElement_weightStream_mem_positiveCone
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryWeightStream.InPositiveCone
+      (completedBoundaryWeightStream f) := by
+  exact completedBoundaryWeightStream_mem_positiveCone f
+
+/-- The positive representative is exactly the finite positive square-energy window. -/
+theorem completedPositiveBoundaryPreconeElement_positiveRepresentative_eq_squareEnergyWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).positiveRepresentative N =
+      finitePositiveSquareEnergyWindow N f := by
+  rfl
+
+/-- The precone positive representative is the square representative of the finite boundary
+weight object. -/
+theorem completedPositiveBoundaryPreconeElement_positiveRepresentative_eq_weightSquare
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).positiveRepresentative N =
+      FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact
+    (completedPositiveBoundaryPreconeElement_positiveRepresentative_eq_squareEnergyWindow
+      N f).trans
+      (finiteBoundaryWeightObject_squareRepresentative_eq_squareEnergyWindow N f).symm
+
+/-- The positive representative of the completed positive-boundary precone element is
+pointwise nonnegative. -/
+theorem completedPositiveBoundaryPreconeElement_positiveRepresentative_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ (completedPositiveBoundaryPreconeElement f).positiveRepresentative N := by
+  exact (completedPositiveBoundaryPreconeElement f).positiveRepresentative_nonnegative N
+
+/-- The absorbed representative of the completed positive-boundary precone element converges
+to its scalar realization. -/
+theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_tendsto_scalar
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (completedPositiveBoundaryPreconeElement f).absorbedRepresentative
+      atTop
+      (𝓝 (completedPositiveBoundaryPreconeElement f).scalar) := by
+  exact (completedPositiveBoundaryPreconeElement f).absorbedRepresentative_tendsto_scalar
+
+/-- The absorbed representative is obtained from the positive square representative by adding
+the named finite diagonal-debt absorption defect. -/
+theorem completedPositiveBoundaryPreconeElement_absorbed_eq_positive_add_absorptionDefect
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+      (completedPositiveBoundaryPreconeElement f).positiveRepresentative N +
+        (completedPositiveBoundaryPreconeElement f).absorptionDefect N := by
+  have hdef :
+      (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+        (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N -
+          (completedPositiveBoundaryPreconeElement f).positiveRepresentative N :=
+    (completedPositiveBoundaryPreconeElement f).absorptionDefect_eq N
+  let A : ℝ := (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N
+  let Q : ℝ := (completedPositiveBoundaryPreconeElement f).positiveRepresentative N
+  let E : ℝ := (completedPositiveBoundaryPreconeElement f).absorptionDefect N
+  change A = Q + E
+  have hE : E = A - Q := hdef
+  calc
+    A = Q + (A - Q) := by
+      exact zetaBoundaryDebt_add_sub_cancel A Q
+    _ = Q + E := by
+      exact congrArg (fun x : ℝ => Q + x) hE.symm
+
+/-- The absorbed representative is exactly the finite positive renormalized boundary window. -/
+theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_renormalizedWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+      finitePositiveRenormalizedBoundaryWindow N f := by
+  rfl
+
+/-- The absorbed representative is exactly the finite-part boundary window. -/
+theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_finitePartWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+      finitePartBoundaryWindow N f := by
+  exact
+    (completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_renormalizedWindow
+      N f).trans
+      (finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow N f)
+
+/-- The precone absorbed representative is the finite-part representative of the finite
+boundary weight object. -/
+theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_weightFinitePart
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact
+    (completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_finitePartWindow
+      N f).trans
+      (finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+        N f).symm
+
+/-- The absorbed representative is exactly the raw completed boundary window, because the
+finite diagonal debt has been added and cancelled inside the finite-part normalization. -/
+theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_completedWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+      completedBoundaryWindow N f := by
+  exact
+    (completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_finitePartWindow
+      N f).trans
+      (finitePartBoundaryWindow_eq_completedBoundaryWindow N f)
+
+/-- The completed GNS positive form in the finite-part normalization. -/
+noncomputable def completedGNSPositiveForm
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedFinitePartBoundaryChannel f
+
+/-- The completed GNS positive form realizes as the completed boundary scalar. -/
+theorem completedGNSPositiveForm_eq_boundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    completedGNSPositiveForm f =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  unfold completedGNSPositiveForm
+  exact completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f
+
+/-- The raw completed physical boundary windows converge to the completed boundary channel
+after diagonal debt has been cancelled inside the finite-part normalization. -/
+theorem completedBoundaryWindow_tendsto_boundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedBoundaryWindow N f)
+      atTop
+      (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) := by
+  have hfinite :
+      (fun N : ℕ => completedBoundaryWindow N f) =
+        (fun N : ℕ => finitePartBoundaryWindow N f) := by
+    funext N
+    exact (finitePartBoundaryWindow_eq_completedBoundaryWindow N f).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop
+        (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))))
+    hfinite.symm
+    (finitePartBoundaryWindow_tendsto_boundaryChannel f)
+
+/-- Compatibility wrapper for the explicit finite-window expression after the diagonal debt has
+already been cancelled in the finite-part normalization. -/
+theorem completedBoundaryWindow_tendsto
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedBoundaryWindow N f)
+      atTop
+      (𝓝 (Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)))) := by
+  exact completedBoundaryWindow_tendsto_boundaryChannel f
+
+/-- The finite-window completed physical channel is nonnegative after adding its matching
+prime diagonal debt. -/
+theorem completedBoundaryWindow_add_diagonalDebt_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedBoundaryWindow N f + zetaPrimeDiagonalDebt N f := by
+  exact completedCorrectedBoundaryWindow_nonnegative N f
+
+/-- A real limit of an everywhere nonnegative sequence is nonnegative. -/
+theorem nonnegative_of_tendsto_nonnegative
+    {u : ℕ → ℝ} {x : ℝ}
+    (hu : Tendsto u atTop (𝓝 x))
+    (hnonneg : ∀ N : ℕ, 0 ≤ u N) :
+    0 ≤ x := by
+  have hclosed : IsClosed (Set.Ici (0 : ℝ)) :=
+    isClosed_Ici
+  have heventually : ∀ᶠ N in atTop, u N ∈ Set.Ici (0 : ℝ) :=
+    Filter.Eventually.of_forall
+      (fun N : ℕ => hnonneg N)
+  exact hclosed.mem_of_tendsto hu heventually
+
+/-- The completed boundary channel on an autocorrelation probe has real part represented by
+the renormalized completed defect-kernel boundary channel. -/
+theorem completedBoundaryChannel_convolutionAutocorrelation_re_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) =
+    completedRenormalizedDefectKernelBoundaryChannel f := by
+  exact (completedRenormalizedDefectKernelBoundaryChannel_eq_completedBoundaryChannel_re f).symm
+
+end ZetaAdmissibleFunction
+
+end
+end LFunctions
+end Boundary

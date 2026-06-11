@@ -1,5 +1,7 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
 import Boundary.LFunctions.AutocorrelationCore
+import Mathlib.Analysis.Convolution
+import Mathlib.MeasureTheory.Group.Measure
 import Mathlib.MeasureTheory.Integral.Bochner
 import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
@@ -8,6 +10,7 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 namespace Boundary
 
 open scoped MeasureTheory
+open scoped Convolution
 open Real Complex Set MeasureTheory
 
 noncomputable section
@@ -18,6 +21,413 @@ section Mellin
 noncomputable def zetaLaplaceTransform
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
   ∫ t : ℝ, φ t * Complex.exp (z * t)
+
+/-- The dagger Laplace kernel is the conjugate of the opposite spectral kernel. This lives in the
+base transform file so convolution transform calculus does not depend on the reflection layer. -/
+theorem dagger_laplaceKernel_pointwise_base
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
+    (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+        Complex.exp (z * t) =
+      star
+        (f.toZetaTestFunction' (-t) *
+          Complex.exp ((-star z) * (-t))) := by
+  have hdagger :
+      (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t =
+        star (f.toZetaTestFunction' (-t)) := by
+    exact LFunctions.ZetaAdmissibleFunction.dagger_apply f t
+  have hexp :
+      Complex.exp (z * t) =
+        star (Complex.exp ((-star z) * (-t))) := by
+    have harg :
+        z * (t : ℂ) = star ((-star z) * (-(t : ℂ))) := by
+      have hnegmul :
+          (-star z) * (-(t : ℂ)) = star z * (t : ℂ) := by
+        exact neg_mul_neg (star z) (t : ℂ)
+      have hstar :
+          star ((-star z) * (-(t : ℂ))) =
+            star (star z * (t : ℂ)) := by
+        exact congrArg star hnegmul
+      have hstar_mul :
+          star (star z * (t : ℂ)) =
+            star (t : ℂ) * star (star z) := by
+        exact star_mul (star z) (t : ℂ)
+      have ht :
+          star (t : ℂ) = (t : ℂ) := by
+        exact Complex.conj_ofReal t
+      have hzz :
+          star (star z) = z := by
+        exact star_star z
+      calc
+        z * (t : ℂ) = (t : ℂ) * z := by
+          exact mul_comm z (t : ℂ)
+        _ = star (t : ℂ) * z := by
+          exact congrArg (fun w : ℂ => w * z) ht.symm
+        _ = star (t : ℂ) * star (star z) := by
+          exact congrArg (fun w : ℂ => star (t : ℂ) * w) hzz.symm
+        _ = star (star z * (t : ℂ)) := by
+          exact hstar_mul.symm
+        _ = star ((-star z) * (-(t : ℂ))) := by
+          exact hstar.symm
+    calc
+      Complex.exp (z * t) =
+          Complex.exp (star ((-star z) * (-t))) := by
+        exact congrArg Complex.exp harg
+      _ = star (Complex.exp ((-star z) * (-t))) := by
+        exact Complex.exp_conj ((-star z) * (-t))
+  calc
+    (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+        Complex.exp (z * t) =
+        star (f.toZetaTestFunction' (-t)) * Complex.exp (z * t) := by
+      exact congrArg
+        (fun w : ℂ => w * Complex.exp (z * t))
+        hdagger
+    _ =
+        star (f.toZetaTestFunction' (-t)) *
+          star (Complex.exp ((-star z) * (-t))) := by
+      exact congrArg
+        (fun w : ℂ => star (f.toZetaTestFunction' (-t)) * w)
+        hexp
+    _ =
+        star
+          (f.toZetaTestFunction' (-t) *
+            Complex.exp ((-star z) * (-t))) := by
+      have hcomm :
+          star (f.toZetaTestFunction' (-t)) *
+              star (Complex.exp ((-star z) * (-t))) =
+            star (Complex.exp ((-star z) * (-t))) *
+              star (f.toZetaTestFunction' (-t)) := by
+        exact mul_comm
+          (star (f.toZetaTestFunction' (-t)))
+          (star (Complex.exp ((-star z) * (-t))))
+      exact hcomm.trans
+        (star_mul
+          (f.toZetaTestFunction' (-t))
+          (Complex.exp ((-star z) * (-t)))).symm
+
+/-- The dagger Laplace transform is the conjugate of the opposite spectral transform. -/
+theorem zetaLaplaceTransform_dagger_base
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' z =
+      star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
+  unfold zetaLaplaceTransform
+  calc
+    (∫ t : ℝ,
+        (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+          Complex.exp (z * t)) =
+        ∫ t : ℝ,
+          star
+            (f.toZetaTestFunction' (-t) *
+              Complex.exp ((-star z) * (-t))) := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun t : ℝ => dagger_laplaceKernel_pointwise_base f z t))
+    _ =
+        ∫ t : ℝ,
+          star
+            (f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t)) := by
+      have hneg : MeasurePreserving (Homeomorph.neg ℝ).toMeasurableEquiv
+          (volume : Measure ℝ) (volume : Measure ℝ) :=
+        Measure.measurePreserving_neg (volume : Measure ℝ)
+      let G : ℝ → ℂ := fun t : ℝ =>
+          star
+            (f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t))
+      have hleft :
+          (∫ t : ℝ,
+            star
+              (f.toZetaTestFunction' (-t) *
+                Complex.exp ((-star z) * (-t)))) =
+            ∫ t : ℝ, G (-t) := by
+        exact integral_congr_ae
+          (Filter.Eventually.of_forall
+            (fun t : ℝ =>
+              congrArg
+                (fun w : ℂ =>
+                  star
+                    (f.toZetaTestFunction' (-t) *
+                      Complex.exp ((-star z) * w)))
+                (Complex.ofReal_neg t).symm))
+      have hright :
+          (∫ t : ℝ, G t) =
+            ∫ t : ℝ,
+              star
+                (f.toZetaTestFunction' t *
+                  Complex.exp ((-star z) * t)) := by
+        rfl
+      have hcomp := hneg.integral_comp' (g := G)
+      change (∫ x : ℝ, G ((Homeomorph.neg ℝ).toMeasurableEquiv x)) =
+        ∫ y : ℝ, G y at hcomp
+      exact hleft.trans (hcomp.trans hright)
+    _ =
+        star
+          (∫ t : ℝ,
+            f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t)) := by
+      exact integral_conj
+
+/-- The Laplace transform of the convolution autocorrelation unfolds to the single integral
+whose integrand contains the autocorrelation integral. -/
+theorem zetaLaplaceTransform_convolutionAutocorrelation_unfold
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction'
+        z =
+      ∫ t : ℝ,
+        (∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))) *
+          Complex.exp (z * t) := by
+  unfold zetaLaplaceTransform
+  refine integral_congr_ae ?_
+  exact Filter.Eventually.of_forall fun t : ℝ =>
+    congrArg (fun y : ℂ => y * Complex.exp (z * t))
+      ((LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelation_toZetaTestFunction'_apply
+          f t).trans
+        (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernel_apply f t))
+
+/-- The weighted standard convolution integrand equals the convolution of the weighted faces. -/
+theorem weighted_standardConvolutionPair_pointwise
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
+    LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+        Complex.exp (z * t) =
+      (((fun v : ℝ => f v * Complex.exp (z * v)) ⋆[ContinuousLinearMap.mul ℝ ℂ]
+          (fun w : ℝ =>
+            (LFunctions.ZetaAdmissibleFunction.dagger h) w * Complex.exp (z * w))) t) := by
+  let A : ℝ → ℂ := fun v : ℝ => f v * Complex.exp (z * v)
+  let B : ℝ → ℂ := fun w : ℝ =>
+    (LFunctions.ZetaAdmissibleFunction.dagger h) w * Complex.exp (z * w)
+  let C : ℝ → ℂ := fun y : ℝ =>
+    f y * (LFunctions.ZetaAdmissibleFunction.dagger h) (t - y)
+  have hmul_integral :
+      LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+          Complex.exp (z * t) =
+        ∫ y : ℝ, C y * Complex.exp (z * t) := by
+    unfold LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard
+    unfold MeasureTheory.convolution
+    change (∫ y : ℝ, C y) * Complex.exp (z * t) =
+      ∫ y : ℝ, C y * Complex.exp (z * t)
+    exact (integral_mul_right (Complex.exp (z * t)) C).symm
+  have hpoint :
+      (fun y : ℝ => C y * Complex.exp (z * t)) =
+        fun y : ℝ => A y * B (t - y) := by
+    funext y
+    have hsplit : (t : ℂ) = (y : ℂ) + ((t - y : ℝ) : ℂ) := by
+      have hreal : y + (t - y) = t := by
+        ring
+      calc
+        (t : ℂ) = ((y + (t - y) : ℝ) : ℂ) := by
+          exact congrArg (fun x : ℝ => (x : ℂ)) hreal.symm
+        _ = (y : ℂ) + ((t - y : ℝ) : ℂ) := by
+          exact Complex.ofReal_add y (t - y)
+    have harg : z * (t : ℂ) =
+        z * (y : ℂ) + z * ((t - y : ℝ) : ℂ) := by
+      calc
+        z * (t : ℂ) =
+            z * ((y : ℂ) + ((t - y : ℝ) : ℂ)) := by
+          exact congrArg (fun w : ℂ => z * w) hsplit
+        _ = z * (y : ℂ) + z * ((t - y : ℝ) : ℂ) := by
+          exact mul_add z (y : ℂ) ((t - y : ℝ) : ℂ)
+    have hexp :
+        Complex.exp (z * t) =
+          Complex.exp (z * y) * Complex.exp (z * ((t - y : ℝ) : ℂ)) := by
+      calc
+        Complex.exp (z * t) =
+            Complex.exp (z * (y : ℂ) + z * ((t - y : ℝ) : ℂ)) := by
+          exact congrArg Complex.exp harg
+        _ =
+            Complex.exp (z * y) * Complex.exp (z * ((t - y : ℝ) : ℂ)) := by
+          exact Complex.exp_add (z * y) (z * ((t - y : ℝ) : ℂ))
+    calc
+      C y * Complex.exp (z * t) =
+          (f y * (LFunctions.ZetaAdmissibleFunction.dagger h) (t - y)) *
+            Complex.exp (z * t) := by
+        rfl
+      _ =
+          (f y * (LFunctions.ZetaAdmissibleFunction.dagger h) (t - y)) *
+            (Complex.exp (z * y) *
+              Complex.exp (z * ((t - y : ℝ) : ℂ))) := by
+        exact congrArg
+          (fun w : ℂ =>
+            (f y * (LFunctions.ZetaAdmissibleFunction.dagger h) (t - y)) * w)
+          hexp
+      _ =
+          (f y * Complex.exp (z * y)) *
+            ((LFunctions.ZetaAdmissibleFunction.dagger h) (t - y) *
+              Complex.exp (z * ((t - y : ℝ) : ℂ))) := by
+        ring
+      _ = A y * B (t - y) := by
+        rfl
+  calc
+    LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+        Complex.exp (z * t) =
+        ∫ y : ℝ, C y * Complex.exp (z * t) := hmul_integral
+    _ = ∫ y : ℝ, A y * B (t - y) := by
+      exact integral_congr_ae (Filter.Eventually.of_forall fun y =>
+        congrArg (fun F : ℝ → ℂ => F y) hpoint)
+    _ = ((A ⋆[ContinuousLinearMap.mul ℝ ℂ] B) t) := by
+      rfl
+
+/-- Weighted Laplace kernels of admissible functions are integrable by continuity and compact
+support. This local owner lemma is placed before the convolution transform factorization. -/
+theorem integrable_admissible_laplaceKernel
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    Integrable
+      (fun t : ℝ => f t * Complex.exp (z * t))
+      (volume : Measure ℝ) := by
+  have hcont : Continuous (fun t : ℝ => f t * Complex.exp (z * t)) := by
+    have hf : Continuous fun t : ℝ => f t :=
+      f.toZetaTestFunction.continuous
+    have hmul : Continuous (fun t : ℝ => (z : ℂ) * t) := by
+      exact continuous_const.mul Complex.continuous_ofReal
+    have hexp : Continuous (fun t : ℝ => Complex.exp (z * t)) :=
+      Complex.continuous_exp.comp hmul
+    exact hf.mul hexp
+  have hsupport :
+      HasCompactSupport (fun t : ℝ => f t * Complex.exp (z * t)) := by
+    exact f.toZetaTestFunction.hasCompactSupport.mul_right
+  exact hcont.integrable_of_hasCompactSupport hsupport
+
+/-- The Laplace transform of the standard convolution-pair kernel factors by the convolution
+integral theorem. -/
+theorem zetaLaplaceTransform_standardConvolutionPair
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ t : ℝ,
+        LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+          Complex.exp (z * t)) =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) := by
+  let A : ℝ → ℂ := fun v : ℝ => f v * Complex.exp (z * v)
+  let B : ℝ → ℂ := fun w : ℝ =>
+    (LFunctions.ZetaAdmissibleFunction.dagger h) w * Complex.exp (z * w)
+  have hpoint :
+      (fun t : ℝ =>
+        LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+          Complex.exp (z * t)) =
+        fun t : ℝ => (A ⋆[ContinuousLinearMap.mul ℝ ℂ] B) t := by
+    funext t
+    exact weighted_standardConvolutionPair_pointwise f h z t
+  have hA : Integrable A (volume : Measure ℝ) :=
+    integrable_admissible_laplaceKernel f z
+  have hB : Integrable B (volume : Measure ℝ) :=
+    integrable_admissible_laplaceKernel
+      (LFunctions.ZetaAdmissibleFunction.dagger h) z
+  have hconv :
+      (∫ t : ℝ, (A ⋆[ContinuousLinearMap.mul ℝ ℂ] B) t) =
+        (∫ t : ℝ, A t) * (∫ t : ℝ, B t) := by
+    exact MeasureTheory.integral_convolution
+      (ContinuousLinearMap.mul ℝ ℂ)
+      (μ := (volume : Measure ℝ))
+      (ν := (volume : Measure ℝ))
+      hA hB
+  have hdagger :
+      (∫ t : ℝ, B t) =
+        star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) := by
+    exact zetaLaplaceTransform_dagger_base h z
+  unfold zetaLaplaceTransform
+  change (∫ t : ℝ,
+      LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+        Complex.exp (z * t)) =
+    (∫ t : ℝ, A t) *
+      star (∫ t : ℝ, h.toZetaTestFunction' t * Complex.exp ((-star z) * t))
+  calc
+    (∫ t : ℝ,
+        LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+          Complex.exp (z * t)) =
+        ∫ t : ℝ, (A ⋆[ContinuousLinearMap.mul ℝ ℂ] B) t := by
+      exact congrArg (fun F : ℝ → ℂ => ∫ t : ℝ, F t) hpoint
+    _ = (∫ t : ℝ, A t) * (∫ t : ℝ, B t) := hconv
+    _ =
+        (∫ t : ℝ, A t) *
+          star (∫ t : ℝ, h.toZetaTestFunction' t * Complex.exp ((-star z) * t)) := by
+      exact congrArg (fun w : ℂ => (∫ t : ℝ, A t) * w) hdagger
+
+/-- The Laplace transform of the standard autocorrelation kernel factors by the convolution
+integral theorem. -/
+theorem zetaLaplaceTransform_standardConvolutionAutocorrelation
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ t : ℝ,
+        LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernelStandard f t *
+          Complex.exp (z * t)) =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
+  exact zetaLaplaceTransform_standardConvolutionPair f f z
+
+/-- The separated two-variable integral factors into the product of the two seed Laplace
+transforms. -/
+theorem zetaLaplaceTransform_convolutionAutocorrelation_factorSeparated
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ v : ℝ, ∫ w : ℝ,
+        (f v * Complex.exp (z * v)) *
+          star (f w * Complex.exp ((-star z) * w))) =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
+  let A : ℝ → ℂ := fun v : ℝ => f v * Complex.exp (z * v)
+  let B : ℝ → ℂ := fun w : ℝ => f w * Complex.exp ((-star z) * w)
+  have hinner :
+      (fun v : ℝ => ∫ w : ℝ, A v * star (B w)) =
+        fun v : ℝ => A v * ∫ w : ℝ, star (B w) := by
+    funext v
+    exact integral_mul_left (A v) (fun w : ℝ => star (B w))
+  have houter :
+      (∫ v : ℝ, A v * ∫ w : ℝ, star (B w)) =
+        (∫ v : ℝ, A v) * (∫ w : ℝ, star (B w)) := by
+    exact integral_mul_right (∫ w : ℝ, star (B w)) A
+  have hstar :
+      (∫ w : ℝ, star (B w)) =
+        star (∫ w : ℝ, B w) := by
+    exact integral_conj
+  unfold zetaLaplaceTransform
+  change (∫ v : ℝ, ∫ w : ℝ, A v * star (B w)) =
+      (∫ t : ℝ, A t) * star (∫ t : ℝ, B t)
+  calc
+    (∫ v : ℝ, ∫ w : ℝ, A v * star (B w)) =
+        ∫ v : ℝ, A v * ∫ w : ℝ, star (B w) := by
+      exact congrArg (fun F : ℝ → ℂ => ∫ v : ℝ, F v) hinner
+    _ = (∫ v : ℝ, A v) * (∫ w : ℝ, star (B w)) := houter
+    _ = (∫ v : ℝ, A v) * star (∫ w : ℝ, B w) := by
+      exact congrArg (fun y : ℂ => (∫ v : ℝ, A v) * y) hstar
+
+/-- The convolution autocorrelation Laplace integral becomes a separated two-variable integral
+after the linear change of variables `v = u + t/2`, `w = u-t/2`.
+
+The owner proof factors through the standard convolution theorem; this displayed equality is the
+coordinate form consumed downstream. -/
+theorem zetaLaplaceTransform_convolutionAutocorrelation_changeVariables
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ t : ℝ,
+        (∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))) *
+          Complex.exp (z * t)) =
+      ∫ v : ℝ, ∫ w : ℝ,
+        (f v * Complex.exp (z * v)) *
+          star (f w * Complex.exp ((-star z) * w)) := by
+  have hleft :
+      (∫ t : ℝ,
+          (∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))) *
+            Complex.exp (z * t)) =
+        ∫ t : ℝ,
+          LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernelStandard f t *
+            Complex.exp (z * t) := by
+    exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+      congrArg (fun y : ℂ => y * Complex.exp (z * t))
+        ((LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernel_apply f t).symm.trans
+          (congrFun
+            (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernel_eq_standard f)
+            t)))
+  have hstandard :
+      (∫ t : ℝ,
+          LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelationKernelStandard f t *
+            Complex.exp (z * t)) =
+        zetaLaplaceTransform f.toZetaTestFunction' z *
+          star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) :=
+    zetaLaplaceTransform_standardConvolutionAutocorrelation f z
+  have hright :
+      (∫ v : ℝ, ∫ w : ℝ,
+          (f v * Complex.exp (z * v)) *
+            star (f w * Complex.exp ((-star z) * w))) =
+        zetaLaplaceTransform f.toZetaTestFunction' z *
+          star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) :=
+    zetaLaplaceTransform_convolutionAutocorrelation_factorSeparated f z
+  exact hleft.trans (hstandard.trans hright.symm)
 
 /-- Laplace transform of the convolution autocorrelation kernel.
 
@@ -32,7 +442,10 @@ theorem zetaLaplaceTransform_convolutionAutocorrelation
         z =
       zetaLaplaceTransform f.toZetaTestFunction' z *
         star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
-  sorry
+  exact
+    (zetaLaplaceTransform_convolutionAutocorrelation_unfold f z).trans
+      ((zetaLaplaceTransform_convolutionAutocorrelation_changeVariables f z).trans
+        (zetaLaplaceTransform_convolutionAutocorrelation_factorSeparated f z))
 
 /-- On real spectral parameters, the convolution autocorrelation transform pairs the opposite
 real spectral parameters. The later packet normalization is responsible for folding this paired
@@ -45,7 +458,113 @@ theorem zetaLaplaceTransform_convolutionAutocorrelation_real_pair
         (a : ℂ) =
       zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
         star (zetaLaplaceTransform f.toZetaTestFunction' (-(a : ℂ))) := by
-  sorry
+  simpa using zetaLaplaceTransform_convolutionAutocorrelation f (a : ℂ)
+
+/-- The two-variable convolution-pair Laplace integral unfolds to the kernel integral. -/
+theorem zetaLaplaceTransform_convolutionPair_unfold
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionPair f h).toZetaTestFunction'
+        z =
+      ∫ t : ℝ,
+        (∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))) *
+          Complex.exp (z * t) := by
+  unfold zetaLaplaceTransform
+  refine integral_congr_ae ?_
+  exact Filter.Eventually.of_forall fun t : ℝ =>
+    congrArg (fun y : ℂ => y * Complex.exp (z * t))
+      ((LFunctions.ZetaAdmissibleFunction.convolutionPair_toZetaTestFunction'_apply
+          f h t).trans
+        (LFunctions.ZetaAdmissibleFunction.convolutionPairKernel_apply f h t))
+
+/-- The separated two-variable convolution-pair integral factors into seed transforms. -/
+theorem zetaLaplaceTransform_convolutionPair_factorSeparated
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ v : ℝ, ∫ w : ℝ,
+        (f v * Complex.exp (z * v)) *
+          star (h w * Complex.exp ((-star z) * w))) =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) := by
+  let A : ℝ → ℂ := fun v : ℝ => f v * Complex.exp (z * v)
+  let B : ℝ → ℂ := fun w : ℝ => h w * Complex.exp ((-star z) * w)
+  have hinner :
+      (fun v : ℝ => ∫ w : ℝ, A v * star (B w)) =
+        fun v : ℝ => A v * ∫ w : ℝ, star (B w) := by
+    funext v
+    exact integral_mul_left (A v) (fun w : ℝ => star (B w))
+  have houter :
+      (∫ v : ℝ, A v * ∫ w : ℝ, star (B w)) =
+        (∫ v : ℝ, A v) * (∫ w : ℝ, star (B w)) := by
+    exact integral_mul_right (∫ w : ℝ, star (B w)) A
+  have hstar :
+      (∫ w : ℝ, star (B w)) =
+        star (∫ w : ℝ, B w) := by
+    exact integral_conj
+  unfold zetaLaplaceTransform
+  change (∫ v : ℝ, ∫ w : ℝ, A v * star (B w)) =
+      (∫ t : ℝ, A t) * star (∫ t : ℝ, B t)
+  calc
+    (∫ v : ℝ, ∫ w : ℝ, A v * star (B w)) =
+        ∫ v : ℝ, A v * ∫ w : ℝ, star (B w) := by
+      exact congrArg (fun F : ℝ → ℂ => ∫ v : ℝ, F v) hinner
+    _ = (∫ v : ℝ, A v) * (∫ w : ℝ, star (B w)) := houter
+    _ = (∫ v : ℝ, A v) * star (∫ w : ℝ, B w) := by
+      exact congrArg (fun y : ℂ => (∫ v : ℝ, A v) * y) hstar
+
+/-- The two-variable convolution-pair Laplace integral becomes separated after the centered
+linear change of variables.
+
+The owner proof factors through the standard convolution theorem; this displayed equality is the
+coordinate form consumed downstream. -/
+theorem zetaLaplaceTransform_convolutionPair_changeVariables
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    (∫ t : ℝ,
+        (∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))) *
+          Complex.exp (z * t)) =
+      ∫ v : ℝ, ∫ w : ℝ,
+        (f v * Complex.exp (z * v)) *
+          star (h w * Complex.exp ((-star z) * w)) := by
+  have hleft :
+      (∫ t : ℝ,
+          (∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))) *
+            Complex.exp (z * t)) =
+        ∫ t : ℝ,
+          LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+            Complex.exp (z * t) := by
+    exact integral_congr_ae (Filter.Eventually.of_forall fun t =>
+      congrArg (fun y : ℂ => y * Complex.exp (z * t))
+        ((LFunctions.ZetaAdmissibleFunction.convolutionPairKernel_apply f h t).symm.trans
+          (congrFun
+            (LFunctions.ZetaAdmissibleFunction.convolutionPairKernel_eq_standard f h)
+            t)))
+  have hstandard :
+      (∫ t : ℝ,
+          LFunctions.ZetaAdmissibleFunction.convolutionPairKernelStandard f h t *
+            Complex.exp (z * t)) =
+        zetaLaplaceTransform f.toZetaTestFunction' z *
+          star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) :=
+    zetaLaplaceTransform_standardConvolutionPair f h z
+  have hright :
+      (∫ v : ℝ, ∫ w : ℝ,
+          (f v * Complex.exp (z * v)) *
+            star (h w * Complex.exp ((-star z) * w))) =
+        zetaLaplaceTransform f.toZetaTestFunction' z *
+          star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) :=
+    zetaLaplaceTransform_convolutionPair_factorSeparated f h z
+  exact hleft.trans (hstandard.trans hright.symm)
+
+/-- Laplace transform of the two-variable convolution-pair kernel. -/
+theorem zetaLaplaceTransform_convolutionPair
+    (f h : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionPair f h).toZetaTestFunction'
+        z =
+      zetaLaplaceTransform f.toZetaTestFunction' z *
+        star (zetaLaplaceTransform h.toZetaTestFunction' (-star z)) := by
+  exact
+    (zetaLaplaceTransform_convolutionPair_unfold f h z).trans
+      ((zetaLaplaceTransform_convolutionPair_changeVariables f h z).trans
+        (zetaLaplaceTransform_convolutionPair_factorSeparated f h z))
 
 /-- The pointwise integrand for additivity. -/
 theorem zetaLaplaceTransform_add_integrand

@@ -102,6 +102,13 @@ def ZetaConvolutionAutocorrelationWeilPositivity : Prop :=
 abbrev ZetaAutocorrelationWeilPositivity : Prop :=
   ZetaConvolutionAutocorrelationWeilPositivity
 
+/-- The quadratic Weil-positivity statement: every seed has nonnegative completed Weil form
+after passing to its convolution autocorrelation. This is the criterion-facing positivity cone,
+not the stronger raw all-probe positivity predicate. -/
+def ZetaWeilQuadraticPositivity : Prop :=
+  ∀ f : ZetaAdmissibleFunction,
+    0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+
 /-- Convolution-autocorrelation probes have the same completed Weil form as their zero-side
 real sum. -/
 theorem zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide

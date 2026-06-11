@@ -2,6 +2,7 @@ import Boundary.LFunctions.ZetaExplicitFormulaGeometry
 import Boundary.LFunctions.ZetaZeroKreinGram
 import Boundary.LFunctions.ZetaPacketComparison
 import Boundary.LFunctions.ZetaHermitianPacket
+import Boundary.LFunctions.ZetaCompletedBoundaryDescent
 
 /-!
 # Boundary explicit-formula transport
@@ -27,6 +28,8 @@ namespace LFunctions
 noncomputable section
 
 namespace ZetaAdmissibleFunction
+
+open Filter
 
 /-- The completed explicit-formula boundary sum in signed real form. -/
 noncomputable def zetaCompletedExplicitFormulaBoundarySum
@@ -159,30 +162,47 @@ theorem zetaCompletedExplicitFormulaBoundaryKreinSum_eq_completedPacketNormSq
       zetaCompletedPacketNormSq f 0 := by
   exact zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f
 
-/-- The convolution-autocorrelation boundary Krein sum is the Hermitian seed packet Gram.
-This is the target normalization for the holographic positivity argument: the explicit
-formula is evaluated on the convolution autocorrelation kernel, while the Hermitian Gram is
-formed from the original seed `f`. -/
+/-- The convolution-autocorrelation boundary Krein sum is the real part of the completed
+boundary channel on the convolution autocorrelation probe.  Positivity is supplied by the
+completed-square descent theorem, not by collapsing paired spectral coordinates. -/
 noncomputable def zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum
     (f : ZetaAdmissibleFunction) : ℝ :=
-  zetaCompletedHermitianPacketNormSq f
+  Complex.re (completedBoundaryChannel (ZetaAdmissibleFunction.convolutionAutocorrelation f))
 
 /-- Historical name for the convolution-autocorrelation boundary Krein sum. -/
 abbrev zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
     (f : ZetaAdmissibleFunction) : ℝ :=
   zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum f
 
-/-- The convolution-autocorrelation boundary Krein sum is nonnegative. -/
-theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum_nonnegative
-    (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum f := by
-  exact zetaCompletedHermitianPacketNormSq_nonnegative f
+/-- The convolution-autocorrelation boundary real form carries the completed positive-class
+certificate constructed by finite defect-square descent. -/
+def zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryPositiveClass
+    (f : ZetaAdmissibleFunction) : CompletedPositiveBoundaryPreconeElement :=
+  completedPositiveBoundaryPreconeElement f
 
-/-- Historical name for nonnegativity of the convolution-autocorrelation boundary Krein sum. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative
+/-- Historical name for the convolution-autocorrelation completed positive-class certificate. -/
+abbrev zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass
+    (f : ZetaAdmissibleFunction) : CompletedPositiveBoundaryPreconeElement :=
+  zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryPositiveClass f
+
+/-- The positive representative in the convolution-autocorrelation boundary class is
+pointwise nonnegative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_nonnegative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).positiveRepresentative
+        N := by
+  exact completedPositiveBoundaryPreconeElement_positiveRepresentative_nonnegative N f
+
+/-- The absorbed representative in the convolution-autocorrelation boundary class realizes to
+the boundary Krein scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_tendsto
     (f : ZetaAdmissibleFunction) :
-    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
-  exact zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum_nonnegative f
+    Tendsto
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorbedRepresentative
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)) := by
+  exact completedPositiveBoundaryPreconeElement_absorbedRepresentative_tendsto_scalar f
 
 /-- A complex number is a real scalar once its real part is the scalar and its imaginary part
 vanishes. -/
@@ -194,56 +214,61 @@ theorem complex_eq_of_re_eq_of_im_eq_zero
   exact Complex.ext hre (him.trans (Complex.ofReal_im r).symm)
 
 /-- Prime-channel holography: the prime explicit-formula functional evaluated on the
-convolution autocorrelation kernel is the Hermitian prime packet Gram. -/
+convolution autocorrelation kernel is the two-face/GNS prime matrix coefficient. -/
 theorem zetaCompletedExplicitFormulaPrimeChannel_holographic
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace f) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-      ZetaHermitianPacketEnsemble.primePacketGram
-        (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic f
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+  exact zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic_twoFace f hself
 
 /-- The prime linear boundary functional on the convolution autocorrelation kernel is its
-Hermitian prime packet contribution. -/
-theorem zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_primePacketGram
-    (f : ZetaAdmissibleFunction) :
+two-face/GNS prime packet contribution. -/
+theorem zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace f) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-      ZetaHermitianPacketEnsemble.primePacketGram
-        (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaPrimeChannel_holographic f
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+  exact zetaCompletedExplicitFormulaPrimeChannel_holographic f hself
 
 /-- Historical name for prime convolution-channel holography. -/
-theorem zetaCompletedExplicitFormulaPrimeLinearReal_autocorrelation_eq_primePacketGram
-    (f : ZetaAdmissibleFunction) :
+theorem zetaCompletedExplicitFormulaPrimeLinearReal_autocorrelation_eq_twoFaceMatrixCoefficient
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace f) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-      ZetaHermitianPacketEnsemble.primePacketGram
-        (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_primePacketGram f
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+  exact zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient f hself
 
 /-- Archimedean-channel holography: the archimedean explicit-formula functional evaluated
-on the convolution autocorrelation kernel is the Hermitian archimedean packet Gram. -/
+on the convolution autocorrelation kernel is the Hermitian archimedean packet Gram under the
+self-dual specialization. -/
 theorem zetaCompletedExplicitFormulaArchimedeanChannel_holographic
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
     Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
       ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaArchimedeanConvolutionChannel_holographic f
+  exact zetaCompletedExplicitFormulaArchimedeanConvolutionChannel_holographic_of_selfDual f hself
 
 /-- The archimedean linear boundary functional on the convolution autocorrelation kernel is its
-Hermitian archimedean packet contribution. -/
+Hermitian archimedean packet contribution under the self-dual specialization. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionLinearReal_eq_archimedeanPacketGram
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
     Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
       ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaArchimedeanChannel_holographic f
+  exact zetaCompletedExplicitFormulaArchimedeanChannel_holographic f hself
 
 /-- Historical name for archimedean convolution-channel holography. -/
 theorem zetaCompletedExplicitFormulaArchimedeanLinearReal_autocorrelation_eq_archimedeanPacketGram
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
     Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
       ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f) := by
-  exact zetaCompletedExplicitFormulaArchimedeanConvolutionLinearReal_eq_archimedeanPacketGram f
+  exact zetaCompletedExplicitFormulaArchimedeanConvolutionLinearReal_eq_archimedeanPacketGram
+    f hself
 
 /-- Correction-channel holography: the correction explicit-formula functional evaluated on the
 convolution autocorrelation kernel is the Hermitian correction packet Gram. -/
@@ -321,62 +346,43 @@ theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re
           Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) := by
       rfl
 
-/-- The Hermitian convolution boundary Krein sum. -/
+/-- The paired convolution boundary form. -/
+noncomputable def zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedPairedSpectralBoundaryForm f
+
+/-- Historical name for the real part of the paired spectral convolution boundary form.
+This is not the public completed time-side Krein scalar. -/
 noncomputable def zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
     (f : ZetaAdmissibleFunction) : ℝ :=
-  ZetaHermitianPacketEnsemble.normSq (zetaCompletedHermitianBoundaryDefect f)
+  Complex.re (zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm f)
 
-/-- The real convolution explicit-formula boundary functional agrees with the Hermitian
-seed packet Krein sum. -/
+/-- The real paired-spectral convolution boundary functional agrees with the real part of the
+paired spectral boundary form. -/
 theorem zetaCompletedExplicitFormulaConvolutionBoundaryLinearRealSum_eq_seedKreinSum
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaConvolutionBoundaryLinearRealSum f =
       zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f := by
-  have hprime :
-      Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-        ZetaHermitianPacketEnsemble.primePacketGram
-          (zetaCompletedHermitianBoundaryDefect f) :=
-    zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_primePacketGram f
-  have harch :
-      Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
-        ZetaHermitianPacketEnsemble.archimedeanPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) :=
-    zetaCompletedExplicitFormulaArchimedeanConvolutionLinearReal_eq_archimedeanPacketGram f
-  have hcorrection :
-      Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
-        ZetaHermitianPacketEnsemble.correctionPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) :=
-    zetaCompletedExplicitFormulaCorrectionConvolutionLinearReal_eq_correctionPacketGram f
-  have hgram :
-      ZetaHermitianPacketEnsemble.normSq (zetaCompletedHermitianBoundaryDefect f) =
-        ZetaHermitianPacketEnsemble.primePacketGram
-            (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.archimedeanPacketGram
-            (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.correctionPacketGram
-            (zetaCompletedHermitianBoundaryDefect f) := by
-    exact ZetaHermitianPacketEnsemble.normSq_eq_prime_add_archimedean_add_correction
-      (zetaCompletedHermitianBoundaryDefect f)
-  calc
-    zetaCompletedExplicitFormulaConvolutionBoundaryLinearRealSum f =
-        Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) +
-          Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) +
-          Complex.re (zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) := by
-      rfl
-    _ =
-        ZetaHermitianPacketEnsemble.primePacketGram
-            (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.archimedeanPacketGram
-            (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.correctionPacketGram
-            (zetaCompletedHermitianBoundaryDefect f) := by
-      exact congrArg₂ (fun a b : ℝ => a + b)
-        (congrArg₂ (fun a b : ℝ => a + b) hprime harch)
-        hcorrection
-    _ = ZetaHermitianPacketEnsemble.normSq
-          (zetaCompletedHermitianBoundaryDefect f) := hgram.symm
-    _ = zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f := by
-      rfl
+  have hsum :
+      zetaCompletedPairedSpectralBoundaryForm f =
+        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
+          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
+          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f :=
+    zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f
+  have hre :
+      Complex.re
+          (zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
+            zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
+            zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
+        Complex.re (zetaCompletedPairedSpectralBoundaryForm f) :=
+    congrArg Complex.re hsum.symm
+  have hleft :
+      Complex.re (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
+        zetaCompletedExplicitFormulaConvolutionBoundaryLinearRealSum f :=
+    zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re f
+  unfold zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
+  unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
+  exact hleft.symm.trans hre
 
 /-- Historical name for the real convolution boundary assembly theorem. -/
 theorem zetaCompletedExplicitFormulaBoundaryLinearRealSum_autocorrelation_eq_seedKreinSum
@@ -389,84 +395,128 @@ theorem zetaCompletedExplicitFormulaBoundaryLinearRealSum_autocorrelation_eq_see
 theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_im_eq_zero
     (f : ZetaAdmissibleFunction) :
     Complex.im (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) = 0 := by
-  let p : ℂ := zetaCompletedExplicitFormulaPrimeConvolutionContribution f
-  let a : ℂ := zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f
-  let c : ℂ := zetaCompletedExplicitFormulaCorrectionConvolutionContribution f
-  have hp : Complex.im p = 0 :=
-    zetaCompletedExplicitFormulaPrimeConvolutionContribution_im_eq_zero f
-  have ha : Complex.im a = 0 :=
-    zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_im_eq_zero f
-  have hc : Complex.im c = 0 :=
-    zetaCompletedExplicitFormulaCorrectionConvolutionContribution_im_eq_zero f
-  calc
-    Complex.im (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
-        Complex.im (p + a + c) := by
-      rfl
-    _ = Complex.im (p + a) + Complex.im c := Complex.add_im (p + a) c
-    _ = (Complex.im p + Complex.im a) + Complex.im c := by
-      exact congrArg (fun x : ℝ => x + Complex.im c) (Complex.add_im p a)
-    _ = (0 + 0) + 0 := by
-      exact congrArg₂ (fun x y : ℝ => x + y)
-        (congrArg₂ (fun x y : ℝ => x + y) hp ha)
-        hc
-    _ = 0 + 0 := by
-      exact add_zero (0 + 0)
-    _ = 0 := by
-      exact zero_add 0
+  have hsum :
+      zetaCompletedPairedSpectralBoundaryForm f =
+        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
+          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
+          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f :=
+    zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f
+  have him :
+      Complex.im
+          (zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
+            zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
+            zetaCompletedExplicitFormulaCorrectionConvolutionContribution f) =
+        Complex.im (zetaCompletedPairedSpectralBoundaryForm f) :=
+    congrArg Complex.im hsum.symm
+  unfold zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic
+  exact him.trans (zetaCompletedPairedSpectralBoundaryForm_im_eq_zero f)
 
-/-- The complex convolution boundary sum agrees with the Hermitian seed packet Krein
-normalization. -/
-theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_seedKreinSum
+/-- The complex convolution boundary sum agrees with the paired spectral boundary form. -/
+theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_pairedForm
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f =
-      (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
-  have hreal :
-      Complex.re (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
-        zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
-    exact
-      (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re f).trans
-        (zetaCompletedExplicitFormulaConvolutionBoundaryLinearRealSum_eq_seedKreinSum f)
-  have him :
-      Complex.im (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) = 0 :=
-    zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_im_eq_zero f
-  exact complex_eq_of_re_eq_of_im_eq_zero
-    (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f)
-    (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)
-    hreal him
+      zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm f := by
+  unfold zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic
+  unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
+  exact (zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f).symm
 
-/-- Prime analytic convolution transform bridge before paired-coordinate folding.
-
-This is the owner analytic bridge between the original explicit-formula prime functional
-applied to the convolution autocorrelation probe and the paired spectral prime channel
-attached to the seed. Its proof is the prime-channel transform identity for
-`g_f = f * f†`, with the square-root prime weights absorbed into the two paired spectral
-coordinates. -/
-theorem zetaCompletedExplicitFormulaPrimeContribution_convolutionAutocorrelation_eq_pairedSpectral
+/-- The real two-face prime presentation is the realized prime GNS channel. -/
+theorem zetaRealPrimePresentation_eq_realizedPrimeGram
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaPrimeContribution
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution f := by
-  sorry
-
-/-- Prime spectral convolution bridge after paired-coordinate folding. -/
-theorem zetaCompletedExplicitFormulaPrimeContribution_convolutionAutocorrelation_eq
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaPrimeContribution
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
-  exact
-    (zetaCompletedExplicitFormulaPrimeContribution_convolutionAutocorrelation_eq_pairedSpectral
-      f).trans
-      (zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution_eq_hermitian f)
+    (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+        (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          ((zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
+              star
+                (zetaCompletedExplicitFormulaPhi f
+                  (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))) +
+            star
+              (zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
+                star
+                  (zetaCompletedExplicitFormulaPhi f
+                    (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))))) =
+      zetaCompletedPrimeBoundaryRealizedGram f := by
+  unfold zetaCompletedPrimeBoundaryRealizedGram
+  unfold zetaCompletedPrimeBoundaryRealizedCoordinateGram
+  refine Finset.sum_congr rfl ?_
+  intro ℓ hℓ
+  have hface :
+      zetaCompletedAutocorrelationPrimePositiveFace ℓ.1 ℓ.2
+          (zetaCompletedAutocorrelationProbe f) =
+        zetaCompletedPrimeHermitianSeedAmplitude ℓ.1 ℓ.2 f *
+          star (zetaCompletedPrimeHermitianNegativeSeedAmplitude ℓ.1 ℓ.2 f) := by
+    unfold zetaCompletedAutocorrelationPrimePositiveFace
+    unfold zetaCompletedAutocorrelationProbe
+    unfold ZetaCompletedAutocorrelationProbe.toAdmissible
+    unfold zetaCompletedPrimeHermitianSeedAmplitude
+    unfold zetaCompletedPrimeHermitianNegativeSeedAmplitude
+    exact zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_real_pair
+      f (zetaPrimePacketCenter ℓ.1 ℓ.2)
+  calc
+    (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+        ((zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
+            star
+              (zetaCompletedExplicitFormulaPhi f
+                (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))) +
+          star
+            (zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
+              star
+                (zetaCompletedExplicitFormulaPhi f
+                  (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ))))) =
+        (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          ((zetaCompletedPrimeHermitianSeedAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedPrimeHermitianNegativeSeedAmplitude ℓ.1 ℓ.2 f)) +
+            star
+              (zetaCompletedPrimeHermitianSeedAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedPrimeHermitianNegativeSeedAmplitude ℓ.1 ℓ.2 f))) := by
+      unfold zetaCompletedPrimeHermitianSeedAmplitude
+      unfold zetaCompletedPrimeHermitianNegativeSeedAmplitude
+      rfl
+    _ =
+        (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          (zetaCompletedAutocorrelationPrimePositiveFace ℓ.1 ℓ.2
+              (zetaCompletedAutocorrelationProbe f) +
+            star
+              (zetaCompletedAutocorrelationPrimePositiveFace ℓ.1 ℓ.2
+                (zetaCompletedAutocorrelationProbe f))) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+            (z + star z))
+        hface.symm
 
 /-- Archimedean analytic convolution transform bridge before self-paired folding. -/
+theorem zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_weightedPaired
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaArchimedeanContribution
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      (2 : ℂ) *
+        (zetaCompletedExplicitFormulaPhi f 0 *
+          star (zetaCompletedExplicitFormulaPhi f 0)) := by
+  unfold zetaCompletedExplicitFormulaArchimedeanContribution
+  exact congrArg (fun z : ℂ => (2 : ℂ) * z)
+    (by
+      simpa using zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_real_pair f 0)
+
+/-- The paired archimedean spectral packet contribution is the weighted paired product. -/
+theorem zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_weightedPaired
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution f =
+      (2 : ℂ) *
+        (zetaCompletedExplicitFormulaPhi f 0 *
+          star (zetaCompletedExplicitFormulaPhi f 0)) := by
+  exact
+    zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_weightedPaired_owner f
+
 theorem zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_pairedSpectral
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaArchimedeanContribution
         (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f *
-        star (zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f) := by
-  sorry
+      zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution f := by
+  exact
+    (zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_weightedPaired
+      f).trans
+      (zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_weightedPaired
+        f).symm
 
 /-- Archimedean spectral convolution bridge after self-paired folding. -/
 theorem zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq
@@ -475,9 +525,7 @@ theorem zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorre
         (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f := by
   exact
-    (zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_pairedSpectral
-      f).trans
-      (zetaCompletedExplicitFormulaArchimedeanConvolutionPaired_eq_hermitian f)
+    zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_pairedSpectral f
 
 /-- The usual correction contribution of the admissible convolution autocorrelation probe is the
 convolution-channel correction contribution. -/
@@ -489,83 +537,73 @@ theorem zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrel
   exact Boundary.LFunctions.zetaCompletionCorrection_zero.symm
 
 /-- The usual analytic boundary sum of the admissible convolution autocorrelation probe is the
-convolution-channel boundary sum. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq
+completed time-side boundary channel. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_completedBoundaryChannel
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySumAnalytic
         (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f := by
-  let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
-  have hprime :
-      zetaCompletedExplicitFormulaPrimeContribution g =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f :=
-    zetaCompletedExplicitFormulaPrimeContribution_convolutionAutocorrelation_eq f
-  have harch :
-      zetaCompletedExplicitFormulaArchimedeanContribution g =
-        zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f :=
-    zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq f
-  have hcorrection :
-      zetaCompletedExplicitFormulaCorrectionContribution g =
-        zetaCompletedExplicitFormulaCorrectionConvolutionContribution f :=
-    zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrelation_eq f
-  calc
-    zetaCompletedExplicitFormulaBoundarySumAnalytic g =
-        zetaCompletedExplicitFormulaPrimeContribution g +
-          zetaCompletedExplicitFormulaArchimedeanContribution g +
-          zetaCompletedExplicitFormulaCorrectionContribution g := by
-      exact zetaCompletedExplicitFormulaBoundarySumAnalytic_eq g
-    _ =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-      exact congrArg₂ (fun a b : ℂ => a + b)
-        (congrArg₂ (fun a b : ℂ => a + b) hprime harch)
-        hcorrection
-    _ = zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f := by
-      rfl
+      completedBoundaryChannel (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  unfold completedBoundaryChannel
+  exact zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_core
+    (ZetaAdmissibleFunction.convolutionAutocorrelation f)
 
-/-- The analytic boundary sum of the admissible convolution autocorrelation probe agrees with
-the Hermitian seed packet Krein normalization. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBoundarySumAnalytic
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-      (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
-  exact
-    (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq f).trans
-      (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_seedKreinSum f)
+/-- The prime contribution is real on convolution-autocorrelation probes when the two-face/GNS
+matrix coefficient is real-valued. -/
+theorem zetaCompletedExplicitFormulaPrimeContribution_autocorrelation_im_eq_zero_of_twoFace_real
+    (f : ZetaAdmissibleFunction)
+    (hreal : Complex.im (zetaPrimeTwoFaceGNSMatrixCoefficient f) = 0) :
+    Complex.im
+        (zetaCompletedExplicitFormulaPrimeContribution
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
+  unfold zetaCompletedExplicitFormulaPrimeContribution
+  unfold zetaCompletedExplicitFormulaPrimePowerContribution
+  exact Complex.ofReal_im
+    (∑' ι : ZetaPrimePowerIndex,
+      -(ι.weight *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedTimeBoundaryValue
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f) ι.center))))
 
-/-- Raw all-probe boundary normalization. This is stronger than the holographic
-convolution-autocorrelation route and is not used by the convolution-autocorrelation positivity
-proof. -/
-theorem zetaCompletedExplicitFormulaBoundaryLinearRealSum_eq_kreinSum
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBoundaryLinearRealSum f =
-      zetaCompletedExplicitFormulaBoundaryKreinSum f := by
-  sorry
-
-/-- Raw all-probe real-valuedness of the analytic-core boundary expression. This is stronger
-than the convolution-autocorrelation real-valuedness needed for positivity. -/
-theorem zetaCompletedExplicitFormulaBoundarySumCore_im_eq_zero
-    (f : ZetaAdmissibleFunction) :
-    Complex.im (zetaCompletedExplicitFormulaBoundarySumCore f) = 0 := by
-  sorry
-
-/-- The prime contribution is real on convolution-autocorrelation probes. -/
+/-- The prime contribution is real on convolution-autocorrelation probes because the owner
+prime channel is the time-side real distribution coerced to `ℂ`. -/
 theorem zetaCompletedExplicitFormulaPrimeContribution_autocorrelation_im_eq_zero
     (f : ZetaAdmissibleFunction) :
     Complex.im
         (zetaCompletedExplicitFormulaPrimeContribution
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
-  have h :
-      zetaCompletedExplicitFormulaPrimeContribution
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f :=
-    zetaCompletedExplicitFormulaPrimeContribution_convolutionAutocorrelation_eq f
-  exact (congrArg Complex.im h).trans
-    (zetaCompletedExplicitFormulaPrimeConvolutionContribution_im_eq_zero f)
+  unfold zetaCompletedExplicitFormulaPrimeContribution
+  unfold zetaCompletedExplicitFormulaPrimePowerContribution
+  exact Complex.ofReal_im
+    (∑' ι : ZetaPrimePowerIndex,
+      -(ι.weight *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedTimeBoundaryValue
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f) ι.center))))
 
-/-- The archimedean contribution is real on convolution-autocorrelation probes. -/
+/-- The archimedean contribution is real on convolution-autocorrelation probes under the
+self-dual specialization. -/
+theorem zetaCompletedExplicitFormulaArchimedeanContribution_autocorrelation_im_eq_zero_of_selfDual
+    (f : ZetaAdmissibleFunction)
+    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
+    Complex.im
+        (zetaCompletedExplicitFormulaArchimedeanContribution
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
+  have h :
+      zetaCompletedExplicitFormulaArchimedeanContribution
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f :=
+    zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq f
+  exact (congrArg Complex.im h).trans
+    (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_im_eq_zero_of_selfDual f hself)
+
+/-- The archimedean contribution is real on convolution-autocorrelation probes by completed
+boundary reconstruction, not by a self-duality condition on the seed. -/
 theorem zetaCompletedExplicitFormulaArchimedeanContribution_autocorrelation_im_eq_zero
     (f : ZetaAdmissibleFunction) :
     Complex.im
@@ -645,58 +683,70 @@ theorem zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_im_eq_zero
     Complex.im
         (zetaCompletedExplicitFormulaBoundarySumCore
           (ZetaAdmissibleFunction.convolutionAutocorrelation f)) = 0 := by
-  exact zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_im_eq_zero_of_components f
-    (zetaCompletedExplicitFormulaPrimeContribution_autocorrelation_im_eq_zero f)
-    (zetaCompletedExplicitFormulaArchimedeanContribution_autocorrelation_im_eq_zero f)
-    (zetaCompletedExplicitFormulaCorrectionContribution_autocorrelation_im_eq_zero f)
+  exact
+    zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_im_eq_zero_of_components
+      f
+      (zetaCompletedExplicitFormulaPrimeContribution_autocorrelation_im_eq_zero f)
+      (zetaCompletedExplicitFormulaArchimedeanContribution_autocorrelation_im_eq_zero f)
+      (zetaCompletedExplicitFormulaCorrectionContribution_autocorrelation_im_eq_zero f)
+
+/-- The analytic boundary sum of the admissible convolution autocorrelation probe agrees with
+the completed time-side Krein scalar. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundarySumAnalytic
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
+  let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
+  apply Complex.ext
+  · unfold zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+    unfold zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum
+    have hboundary :
+        zetaCompletedExplicitFormulaBoundarySumAnalytic g =
+          completedBoundaryChannel g := by
+      unfold g
+      exact
+        zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_completedBoundaryChannel
+          f
+    calc
+      Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic g) =
+          Complex.re (completedBoundaryChannel g) := by
+        exact congrArg Complex.re hboundary
+      _ =
+          Complex.re ((Complex.re (completedBoundaryChannel g)) : ℂ) := by
+        exact (Complex.ofReal_re (Complex.re (completedBoundaryChannel g))).symm
+  · unfold zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+    unfold zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum
+    have hanalytic :
+        zetaCompletedExplicitFormulaBoundarySumAnalytic g =
+          zetaCompletedExplicitFormulaBoundarySumCore g :=
+      zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_core g
+    calc
+      Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic g) =
+          Complex.im (zetaCompletedExplicitFormulaBoundarySumCore g) := by
+        exact congrArg Complex.im hanalytic
+      _ = 0 := by
+        unfold g
+        exact zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_im_eq_zero f
+      _ =
+          Complex.im ((Complex.re (completedBoundaryChannel g)) : ℂ) := by
+        exact (Complex.ofReal_im (Complex.re (completedBoundaryChannel g))).symm
 
 /-- Legacy wrapper name for the corrected convolution-boundary normalization. -/
 theorem zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_eq_seedKreinSum
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f =
+    zetaCompletedExplicitFormulaBoundarySumAnalytic
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
-  exact zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_seedKreinSum f
+  exact zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum f
 
 /-- Legacy wrapper name for the corrected convolution-boundary analytic normalization. -/
 theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_autocorrelation_eq_seedKreinSum
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f =
+    zetaCompletedExplicitFormulaBoundarySumAnalytic
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
-  exact zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_seedKreinSum f
-
-/-- The analytic-core explicit-formula boundary expression agrees with the signed real
-boundary-defect Gram normalization.
-
-This is the substantive normalization comparison: the left side is the prime,
-archimedean, and pole-correction expression from the contour formula, while the right side is
-the packet/boundary-defect Gram used in the positivity argument, embedded in `ℂ`. -/
-theorem zetaCompletedExplicitFormulaBoundarySumCore_eq_realBoundarySum
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBoundarySumCore f =
-      (zetaCompletedExplicitFormulaBoundarySum f : ℂ) := by
-  have hreal :
-      Complex.re (zetaCompletedExplicitFormulaBoundarySumCore f) =
-        zetaCompletedExplicitFormulaBoundarySum f := by
-    exact
-      (zetaCompletedExplicitFormulaBoundaryLinearRealSum_eq_kreinSum f).trans
-        (zetaCompletedExplicitFormulaBoundaryKreinSum_eq_realBoundarySum f)
-  have him :
-      Complex.im (zetaCompletedExplicitFormulaBoundarySumCore f) = 0 :=
-    zetaCompletedExplicitFormulaBoundarySumCore_im_eq_zero f
-  exact complex_eq_of_re_eq_of_im_eq_zero
-    (zetaCompletedExplicitFormulaBoundarySumCore f)
-    (zetaCompletedExplicitFormulaBoundarySum f)
-    hreal him
-
-/-- The analytic explicit-formula boundary sum agrees with the signed real boundary-defect
-Gram normalization. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_realBoundarySum
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBoundarySumAnalytic f =
-      (zetaCompletedExplicitFormulaBoundarySum f : ℂ) := by
-  exact
-    (zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_core f).trans
-      (zetaCompletedExplicitFormulaBoundarySumCore_eq_realBoundarySum f)
+  exact zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum f
 
 /-- The analytic equality still required to complete the explicit formula. -/
 def zetaCompletedExplicitFormulaAutocorrelationTarget

@@ -255,6 +255,27 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   have hsre : s.re = 0 := h s hz' htriv' hpole'
   exact boundaryRiemannHypothesis_realPart_of_centered z hsre
 
+/-- Quadratic Weil positivity gives the centered zero criterion.
+
+This is the standard Weil-criterion formalization point: once the completed Weil quadratic
+form is nonnegative on all autocorrelation seeds, every nontrivial centered zero lies on the
+critical line. -/
+theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
+    (h : ZetaWeilQuadraticPositivity) :
+    ∀ s : ℂ,
+      riemannZeta (1 / 2 + s) = 0 →
+        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
+          (1 / 2 + s) ≠ 1 →
+            s.re = 0 := by
+  sorry
+
+/-- The standard Weil criterion in the quadratic/autocorrelation form. -/
+theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
+    (h : ZetaWeilQuadraticPositivity) :
+    boundaryRiemannHypothesis := by
+  exact boundaryRiemannHypothesis_of_centeredZeroCriterion
+    (centeredZeroCriterion_of_zetaWeilQuadraticPositivity h)
+
 end
 
 end LFunctions

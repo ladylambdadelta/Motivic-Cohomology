@@ -41,10 +41,6 @@ theorem zetaZeroSide_centered (z : ℂ) :
     z ∈ zetaZeroSide ↔ centeredCompletedRiemannZeta z = 0 := by
   rfl
 
-/-- The zero-side package satisfies the raw Weil positivity predicate. -/
-theorem zetaZeroSide_weilPositivity_predicate : ZetaWeilPositivity := by
-  exact zetaCriterion_weilPositivity_predicate
-
 /-- The zero-side package's Weil positivity on the convolution-autocorrelation surface is the
 zero-side real part statement. -/
 theorem zetaZeroSide_autocorrelation_zeroSide_eq_weil
@@ -54,10 +50,15 @@ theorem zetaZeroSide_autocorrelation_zeroSide_eq_weil
   exact Boundary.LFunctions.zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
 
 /-- Convolution-autocorrelation-generated probes satisfy the zero-side package Weil positivity
-predicate. -/
+predicate, assuming real boundary nonnegativity on autocorrelation seeds. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity_predicate :
+    (∀ f : ZetaAdmissibleFunction,
+      0 ≤
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f) →
     ZetaAutocorrelationWeilPositivity := by
-  exact zetaCriterion_autocorrelation_weilPositivity_predicate
+  intro hboundaryAll
+  exact zetaCriterion_autocorrelation_weilPositivity_predicate hboundaryAll
 
 /-- The zero-side package's convolution-autocorrelation Weil positivity predicate is pointwise
 nonnegativity. -/
@@ -67,13 +68,15 @@ theorem zetaZeroSide_autocorrelation_weilPositivity_iff_predicate :
         0 ≤ zetaWeilFormCompleted φ := by
   rfl
 
-/-- The zero-side package's Weil positivity predicate is pointwise nonnegativity. -/
+/-- The raw zero-side Weil positivity predicate is pointwise nonnegativity. This is only the
+definition of the raw predicate, not a proof that the predicate holds for all probes. -/
 theorem zetaZeroSide_weilPositivity_iff :
     ZetaWeilPositivity ↔
       ∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ := by
   rfl
 
-/-- Pointwise nonnegativity is the zero-side package's raw Weil positivity predicate. -/
+/-- Pointwise nonnegativity is the raw zero-side Weil positivity predicate. This records the
+predicate shape without asserting raw all-probe positivity. -/
 theorem zetaZeroSide_weilPositivity_iff' :
     (∀ φ : ZetaProbe, 0 ≤ zetaWeilFormCompleted φ) ↔ ZetaWeilPositivity := by
   rfl
@@ -81,15 +84,23 @@ theorem zetaZeroSide_weilPositivity_iff' :
 /-- Convolution-autocorrelation-generated probes have nonnegative zero-side real sum in the
 package surface. -/
 theorem zetaZeroSide_autocorrelation_zeroSide_nonnegative
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hboundary :
+      0 ≤
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f) :
     0 ≤ zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-  exact zetaCriterion_convolutionAutocorrelation_zeroSide_nonnegative f
+  exact zetaCriterion_convolutionAutocorrelation_zeroSide_nonnegative f hboundary
 
 /-- Convolution-autocorrelation-generated probes satisfy the zero-side package's Weil positivity. -/
 theorem zetaZeroSide_autocorrelation_weilPositivity
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hboundary :
+      0 ≤
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f) :
     0 ≤ zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-  exact zetaCriterion_autocorrelation_weilPositivity f
+  exact zetaCriterion_autocorrelation_weilPositivity f hboundary
 
 /-- The zero-side package's convolution-autocorrelation Weil positivity is the zero-side
 nonnegativity statement. -/

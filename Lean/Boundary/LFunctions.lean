@@ -12,8 +12,12 @@ import Boundary.LFunctions.ZetaPacketKernel
 import Boundary.LFunctions.ZetaPacketLabels
 import Boundary.LFunctions.RiemannHypothesisBridge
 import Boundary.LFunctions.ZetaCompletionCorrection
+import Boundary.LFunctions.ZetaPrimePowerWindow
 import Boundary.LFunctions.ZetaExplicitFormulaPackage
 import Boundary.LFunctions.ZetaLogBoundaryDefect
+import Boundary.LFunctions.ZetaAutocorrelationHilbert
+import Boundary.LFunctions.ZetaCompletedSquareLedger
+import Boundary.LFunctions.ZetaCompletedBoundaryDescent
 import Boundary.LFunctions.ZetaPacketTransform
 import Boundary.LFunctions.ZetaTransformCalculus
 import Boundary.LFunctions.ZetaAdmissibleFunction

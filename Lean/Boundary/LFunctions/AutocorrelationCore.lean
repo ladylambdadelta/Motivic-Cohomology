@@ -1,4 +1,5 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
+import Mathlib.Analysis.Convolution
 import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 import Mathlib.MeasureTheory.Integral.Bochner
 
@@ -15,6 +16,8 @@ namespace LFunctions
 noncomputable section
 
 open scoped ContDiff
+open scoped CompactlySupported
+open scoped Convolution
 open MeasureTheory
 
 namespace ZetaAdmissibleFunction
@@ -118,6 +121,27 @@ noncomputable def convolutionAutocorrelationKernel
     (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
   fun t : ℝ => ∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))
 
+/-- The two-variable convolution pairing kernel
+`g_{f,h}(t) = ∫ f(u+t/2) * conj(h(u-t/2)) du`.
+
+The diagonal `h = f` is the autocorrelation kernel used by the positivity route. -/
+noncomputable def convolutionPairKernel
+    (f h : ZetaAdmissibleFunction) : ℝ → ℂ :=
+  fun t : ℝ => ∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))
+
+/-- The standard convolution face of the paired kernel.
+
+The centered integral is the display form used by the explicit formula; the standard convolution
+face is the regularity owner form consumed by mathlib's convolution API. -/
+noncomputable def convolutionPairKernelStandard
+    (f h : ZetaAdmissibleFunction) : ℝ → ℂ :=
+  (f : ℝ → ℂ) ⋆[ContinuousLinearMap.mul ℝ ℂ] (dagger h : ℝ → ℂ)
+
+/-- The standard convolution face of the autocorrelation kernel. -/
+noncomputable def convolutionAutocorrelationKernelStandard
+    (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
+  convolutionPairKernelStandard f f
+
 /-- The convolution autocorrelation kernel unfolds to its defining integral. -/
 theorem convolutionAutocorrelationKernel_apply
     (f : ZetaAdmissibleFunction) (t : ℝ) :
@@ -127,6 +151,113 @@ theorem convolutionAutocorrelationKernel_apply
     (fun t : ℝ => ∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))) t =
       ∫ u : ℝ, f (u + t / 2) * star (f (u - t / 2))
   rfl
+
+/-- The two-variable convolution-pair kernel unfolds to its defining integral. -/
+theorem convolutionPairKernel_apply
+    (f h : ZetaAdmissibleFunction) (t : ℝ) :
+    convolutionPairKernel f h t =
+      ∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2)) := by
+  rfl
+
+/-- The diagonal convolution-pair kernel is the autocorrelation kernel. -/
+theorem convolutionPairKernel_self
+    (f : ZetaAdmissibleFunction) :
+    convolutionPairKernel f f = convolutionAutocorrelationKernel f := by
+  rfl
+
+/-- The centered convolution-pair integrand is the translated standard convolution integrand. -/
+theorem convolutionPairKernel_centeredIntegrand_eq_standardIntegrand
+    (f h : ZetaAdmissibleFunction) (t y : ℝ) :
+    f ((y - t / 2) + t / 2) *
+        star (h ((y - t / 2) - t / 2)) =
+      f y * (dagger h) (t - y) := by
+  have hleft : (y - t / 2) + t / 2 = y := by
+    ring
+  have hright_arg : (y - t / 2) - t / 2 = y - t := by
+    ring
+  have hdagger_arg : -(t - y) = y - t := by
+    ring
+  calc
+    f ((y - t / 2) + t / 2) *
+        star (h ((y - t / 2) - t / 2)) =
+        f y * star (h ((y - t / 2) - t / 2)) := by
+      exact congrArg
+        (fun x : ℝ => f x * star (h ((y - t / 2) - t / 2)))
+        hleft
+    _ = f y * star (h (y - t)) := by
+      exact congrArg (fun x : ℝ => f y * star (h x)) hright_arg
+    _ = f y * star (h (-(t - y))) := by
+      exact congrArg (fun x : ℝ => f y * star (h x)) hdagger_arg.symm
+    _ = f y * (dagger h) (t - y) := by
+      exact congrArg (fun x : ℂ => f y * x) (dagger_apply h (t - y)).symm
+
+/-- The centered convolution-pair kernel is the standard convolution against the dagger face. -/
+theorem convolutionPairKernel_eq_standard
+    (f h : ZetaAdmissibleFunction) :
+    convolutionPairKernel f h = convolutionPairKernelStandard f h := by
+  ext t
+  unfold convolutionPairKernel
+  unfold convolutionPairKernelStandard
+  have htranslate :
+      (∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))) =
+        ∫ y : ℝ, f ((y - t / 2) + t / 2) *
+          star (h ((y - t / 2) - t / 2)) := by
+    have hraw :=
+      integral_add_right_eq_self
+        (μ := (volume : Measure ℝ))
+        (fun y : ℝ =>
+          f ((y - t / 2) + t / 2) *
+            star (h ((y - t / 2) - t / 2)))
+        (t / 2)
+    have hpoint :
+        (fun x : ℝ =>
+          f (((x + t / 2) - t / 2) + t / 2) *
+            star (h (((x + t / 2) - t / 2) - t / 2))) =
+          fun x : ℝ => f (x + t / 2) * star (h (x - t / 2)) := by
+      funext x
+      have hxleft : ((x + t / 2) - t / 2) + t / 2 = x + t / 2 := by
+        ring
+      have hxright : ((x + t / 2) - t / 2) - t / 2 = x - t / 2 := by
+        ring
+      calc
+        f (((x + t / 2) - t / 2) + t / 2) *
+            star (h (((x + t / 2) - t / 2) - t / 2)) =
+            f (x + t / 2) *
+              star (h (((x + t / 2) - t / 2) - t / 2)) := by
+          exact congrArg
+            (fun y : ℝ => f y *
+              star (h (((x + t / 2) - t / 2) - t / 2)))
+            hxleft
+        _ = f (x + t / 2) * star (h (x - t / 2)) := by
+          exact congrArg (fun y : ℝ => f (x + t / 2) * star (h y)) hxright
+    exact Eq.trans
+      (integral_congr_ae (Filter.Eventually.of_forall fun x =>
+        congrArg (fun F : ℝ → ℂ => F x) hpoint)).symm
+      hraw
+  have hintegrand :
+      (∫ y : ℝ,
+          f ((y - t / 2) + t / 2) *
+            star (h ((y - t / 2) - t / 2))) =
+        ∫ y : ℝ, f y * (dagger h) (t - y) := by
+    exact integral_congr_ae (Filter.Eventually.of_forall fun y =>
+      convolutionPairKernel_centeredIntegrand_eq_standardIntegrand f h t y)
+  calc
+    (∫ u : ℝ, f (u + t / 2) * star (h (u - t / 2))) =
+        ∫ y : ℝ,
+          f ((y - t / 2) + t / 2) *
+            star (h ((y - t / 2) - t / 2)) := htranslate
+    _ = ∫ y : ℝ, f y * (dagger h) (t - y) := hintegrand
+
+/-- The centered autocorrelation kernel is the standard convolution against the dagger face. -/
+theorem convolutionAutocorrelationKernel_eq_standard
+    (f : ZetaAdmissibleFunction) :
+    convolutionAutocorrelationKernel f = convolutionAutocorrelationKernelStandard f := by
+  exact convolutionPairKernel_eq_standard f f
+
+/-- Admissible functions are locally integrable on the logarithmic line. -/
+theorem locallyIntegrable (f : ZetaAdmissibleFunction) :
+    LocallyIntegrable (fun x : ℝ => f x) (volume : Measure ℝ) := by
+  exact f.toZetaTestFunction.continuous.locallyIntegrable
 
 /-- At the origin, the convolution autocorrelation is the seed norm-density integral. -/
 theorem convolutionAutocorrelationKernel_zero
@@ -151,19 +282,106 @@ theorem convolutionAutocorrelationKernel_zero
 theorem convolutionAutocorrelationKernel_continuous
     (f : ZetaAdmissibleFunction) :
     Continuous (convolutionAutocorrelationKernel f) := by
-  sorry
+  have hstandard :
+      Continuous (convolutionAutocorrelationKernelStandard f) := by
+    unfold convolutionAutocorrelationKernelStandard
+    unfold convolutionPairKernelStandard
+    exact (dagger f).toZetaTestFunction.hasCompactSupport.continuous_convolution_right
+      (ContinuousLinearMap.mul ℝ ℂ)
+      (locallyIntegrable f)
+      (dagger f).toZetaTestFunction.continuous
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => Continuous k)
+    (convolutionAutocorrelationKernel_eq_standard f).symm
+    hstandard
 
 /-- The convolution autocorrelation kernel has compact support. -/
 theorem convolutionAutocorrelationKernel_hasCompactSupport
     (f : ZetaAdmissibleFunction) :
     HasCompactSupport (convolutionAutocorrelationKernel f) := by
-  sorry
+  have hstandard :
+      HasCompactSupport (convolutionAutocorrelationKernelStandard f) := by
+    unfold convolutionAutocorrelationKernelStandard
+    unfold convolutionPairKernelStandard
+    exact HasCompactSupport.convolution
+      (L := ContinuousLinearMap.mul ℝ ℂ)
+      (μ := (volume : Measure ℝ))
+      (f := fun x : ℝ => f x)
+      (g := fun x : ℝ => (dagger f) x)
+      f.toZetaTestFunction.hasCompactSupport
+      (dagger f).toZetaTestFunction.hasCompactSupport
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => HasCompactSupport k)
+    (convolutionAutocorrelationKernel_eq_standard f).symm
+    hstandard
 
 /-- The convolution autocorrelation kernel is smooth. -/
 theorem convolutionAutocorrelationKernel_contDiff
     (f : ZetaAdmissibleFunction) :
     ContDiff ℝ ∞ (convolutionAutocorrelationKernel f) := by
-  sorry
+  have hstandard :
+      ContDiff ℝ ∞ (convolutionAutocorrelationKernelStandard f) := by
+    unfold convolutionAutocorrelationKernelStandard
+    unfold convolutionPairKernelStandard
+    exact (dagger f).toZetaTestFunction.hasCompactSupport.contDiff_convolution_right
+      (ContinuousLinearMap.mul ℝ ℂ)
+      (locallyIntegrable f)
+      (dagger f).smooth
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => ContDiff ℝ ∞ k)
+    (convolutionAutocorrelationKernel_eq_standard f).symm
+    hstandard
+
+/-- The two-variable convolution-pair kernel is continuous. -/
+theorem convolutionPairKernel_continuous
+    (f h : ZetaAdmissibleFunction) :
+    Continuous (convolutionPairKernel f h) := by
+  have hstandard :
+      Continuous (convolutionPairKernelStandard f h) := by
+    unfold convolutionPairKernelStandard
+    exact (dagger h).toZetaTestFunction.hasCompactSupport.continuous_convolution_right
+      (ContinuousLinearMap.mul ℝ ℂ)
+      (locallyIntegrable f)
+      (dagger h).toZetaTestFunction.continuous
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => Continuous k)
+    (convolutionPairKernel_eq_standard f h).symm
+    hstandard
+
+/-- The two-variable convolution-pair kernel has compact support. -/
+theorem convolutionPairKernel_hasCompactSupport
+    (f h : ZetaAdmissibleFunction) :
+    HasCompactSupport (convolutionPairKernel f h) := by
+  have hstandard :
+      HasCompactSupport (convolutionPairKernelStandard f h) := by
+    unfold convolutionPairKernelStandard
+    exact HasCompactSupport.convolution
+      (L := ContinuousLinearMap.mul ℝ ℂ)
+      (μ := (volume : Measure ℝ))
+      (f := fun x : ℝ => f x)
+      (g := fun x : ℝ => (dagger h) x)
+      f.toZetaTestFunction.hasCompactSupport
+      (dagger h).toZetaTestFunction.hasCompactSupport
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => HasCompactSupport k)
+    (convolutionPairKernel_eq_standard f h).symm
+    hstandard
+
+/-- The two-variable convolution-pair kernel is smooth. -/
+theorem convolutionPairKernel_contDiff
+    (f h : ZetaAdmissibleFunction) :
+    ContDiff ℝ ∞ (convolutionPairKernel f h) := by
+  have hstandard :
+      ContDiff ℝ ∞ (convolutionPairKernelStandard f h) := by
+    unfold convolutionPairKernelStandard
+    exact (dagger h).toZetaTestFunction.hasCompactSupport.contDiff_convolution_right
+      (ContinuousLinearMap.mul ℝ ℂ)
+      (locallyIntegrable f)
+      (dagger h).smooth
+  exact Eq.subst
+    (motive := fun k : ℝ → ℂ => ContDiff ℝ ∞ k)
+    (convolutionPairKernel_eq_standard f h).symm
+    hstandard
 
 /-- The convolution autocorrelation test function attached to an admissible function. -/
 def convolutionAutocorrelationTestFunction
@@ -171,8 +389,17 @@ def convolutionAutocorrelationTestFunction
   CompactlySupportedContinuousMap.mk
     (ContinuousMap.mk
       (convolutionAutocorrelationKernel f)
-      (convolutionAutocorrelationKernel_continuous f))
+    (convolutionAutocorrelationKernel_continuous f))
     (convolutionAutocorrelationKernel_hasCompactSupport f)
+
+/-- The two-variable convolution-pair test function attached to two admissible functions. -/
+def convolutionPairTestFunction
+    (f h : ZetaAdmissibleFunction) : ℝ →C_c ℂ :=
+  CompactlySupportedContinuousMap.mk
+    (ContinuousMap.mk
+      (convolutionPairKernel f h)
+      (convolutionPairKernel_continuous f h))
+    (convolutionPairKernel_hasCompactSupport f h)
 
 /-- The admissible convolution autocorrelation attached to a seed admissible function. -/
 def convolutionAutocorrelation
@@ -180,12 +407,37 @@ def convolutionAutocorrelation
   toZetaTestFunction := convolutionAutocorrelationTestFunction f
   smooth := convolutionAutocorrelationKernel_contDiff f
 
+/-- The admissible two-variable convolution pairing attached to two seed admissible functions. -/
+def convolutionPair
+    (f h : ZetaAdmissibleFunction) : ZetaAdmissibleFunction where
+  toZetaTestFunction := convolutionPairTestFunction f h
+  smooth := convolutionPairKernel_contDiff f h
+
 /-- The admissible convolution autocorrelation evaluates as the convolution kernel. -/
 theorem convolutionAutocorrelation_apply
     (f : ZetaAdmissibleFunction) (t : ℝ) :
     convolutionAutocorrelation f t =
       convolutionAutocorrelationKernel f t := by
+  change convolutionAutocorrelationTestFunction f t = convolutionAutocorrelationKernel f t
   rfl
+
+/-- The admissible convolution pair evaluates as the convolution-pair kernel. -/
+theorem convolutionPair_apply
+    (f h : ZetaAdmissibleFunction) (t : ℝ) :
+    convolutionPair f h t =
+      convolutionPairKernel f h t := by
+  change convolutionPairTestFunction f h t = convolutionPairKernel f h t
+  rfl
+
+/-- The diagonal convolution pair is the convolution autocorrelation. -/
+theorem convolutionPair_self
+    (f : ZetaAdmissibleFunction) :
+    convolutionPair f f = convolutionAutocorrelation f := by
+  ext t
+  exact
+    (convolutionPair_apply f f t).trans
+      ((convolutionPairKernel_self f ▸
+        (convolutionAutocorrelation_apply f t).symm))
 
 /-- The underlying test function of the admissible convolution autocorrelation is the
 convolution autocorrelation kernel. -/
@@ -193,6 +445,16 @@ theorem convolutionAutocorrelation_toZetaTestFunction'_apply
     (f : ZetaAdmissibleFunction) (t : ℝ) :
     (convolutionAutocorrelation f).toZetaTestFunction' t =
       convolutionAutocorrelationKernel f t := by
+  change convolutionAutocorrelationTestFunction f t = convolutionAutocorrelationKernel f t
+  rfl
+
+/-- The underlying test function of the admissible convolution pair is the
+two-variable convolution-pair kernel. -/
+theorem convolutionPair_toZetaTestFunction'_apply
+    (f h : ZetaAdmissibleFunction) (t : ℝ) :
+    (convolutionPair f h).toZetaTestFunction' t =
+      convolutionPairKernel f h t := by
+  change convolutionPairTestFunction f h t = convolutionPairKernel f h t
   rfl
 
 end ZetaAdmissibleFunction

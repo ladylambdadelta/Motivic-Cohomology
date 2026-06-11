@@ -47,6 +47,23 @@ instance : Add ZetaAdmissibleFunction :=
           g.toZetaTestFunction.hasCompactSupport),
       f.smooth.add g.smooth⟩⟩
 
+instance : Neg ZetaAdmissibleFunction :=
+  ⟨fun f =>
+    ⟨CompactlySupportedContinuousMap.mk
+      (ContinuousMap.mk (fun x => -f x)
+        (continuous_neg.comp f.toZetaTestFunction.continuous))
+      (by
+        change HasCompactSupport (fun x : ℝ => (-1 : ℂ) * f x)
+        exact
+          HasCompactSupport.smul_left
+            (f := fun _ : ℝ => (-1 : ℂ))
+            (f' := f.toZetaTestFunction)
+            f.toZetaTestFunction.hasCompactSupport),
+      f.smooth.neg⟩⟩
+
+instance : Sub ZetaAdmissibleFunction :=
+  ⟨fun f g => f + -g⟩
+
 @[ext]
 theorem ext {f g : ZetaAdmissibleFunction} (h : ∀ x, f x = g x) : f = g := by
   cases f with
@@ -92,6 +109,31 @@ instance : AddCommMonoid ZetaAdmissibleFunction where
     ext x
     rfl
 
+instance : AddCommGroup ZetaAdmissibleFunction where
+  neg := Neg.neg
+  sub := Sub.sub
+  zsmul := fun n f => zsmulRec n f
+  zsmul_zero' := by
+    intro f
+    ext x
+    rfl
+  zsmul_succ' := by
+    intro n f
+    ext x
+    rfl
+  zsmul_neg' := by
+    intro n f
+    ext x
+    rfl
+  add_left_neg := by
+    intro f
+    ext x
+    change -f x + f x = 0
+    exact neg_add_cancel (f x)
+  sub_eq_add_neg := by
+    intro f g
+    rfl
+
 instance : SMul ℂ ZetaAdmissibleFunction :=
   ⟨fun a f =>
     ⟨CompactlySupportedContinuousMap.mk
@@ -101,6 +143,77 @@ instance : SMul ℂ ZetaAdmissibleFunction :=
           (HasCompactSupport.smul_left (f := fun _ : ℝ => a)
             (f' := f.toZetaTestFunction) f.toZetaTestFunction.hasCompactSupport)),
       f.smooth.const_smul a⟩⟩
+
+instance : SMul ℝ ZetaAdmissibleFunction :=
+  ⟨fun a f => ((a : ℂ) • f)⟩
+
+instance : Module ℂ ZetaAdmissibleFunction where
+  one_smul := by
+    intro f
+    ext x
+    change (1 : ℂ) * f x = f x
+    exact one_mul (f x)
+  mul_smul := by
+    intro a b f
+    ext x
+    change (a * b) * f x = a * (b * f x)
+    exact mul_assoc a b (f x)
+  smul_zero := by
+    intro a
+    ext x
+    change a * 0 = 0
+    exact mul_zero a
+  smul_add := by
+    intro a f g
+    ext x
+    change a * (f x + g x) = a * f x + a * g x
+    exact mul_add a (f x) (g x)
+  add_smul := by
+    intro a b f
+    ext x
+    change (a + b) * f x = a * f x + b * f x
+    exact add_mul a b (f x)
+  zero_smul := by
+    intro f
+    ext x
+    change (0 : ℂ) * f x = 0
+    exact zero_mul (f x)
+
+instance : Module ℝ ZetaAdmissibleFunction where
+  one_smul := by
+    intro f
+    ext x
+    change ((1 : ℝ) : ℂ) * f x = f x
+    exact one_mul (f x)
+  mul_smul := by
+    intro a b f
+    ext x
+    change (((a * b : ℝ) : ℂ) * f x) = (a : ℂ) * ((b : ℂ) * f x)
+    have hcast : ((a * b : ℝ) : ℂ) = (a : ℂ) * (b : ℂ) := by
+      exact Complex.ofReal_mul a b
+    exact Eq.trans (congrArg (fun z : ℂ => z * f x) hcast) (mul_assoc (a : ℂ) (b : ℂ) (f x))
+  smul_zero := by
+    intro a
+    ext x
+    change (a : ℂ) * 0 = 0
+    exact mul_zero (a : ℂ)
+  smul_add := by
+    intro a f g
+    ext x
+    change (a : ℂ) * (f x + g x) = (a : ℂ) * f x + (a : ℂ) * g x
+    exact mul_add (a : ℂ) (f x) (g x)
+  add_smul := by
+    intro a b f
+    ext x
+    change (((a + b : ℝ) : ℂ) * f x) = (a : ℂ) * f x + (b : ℂ) * f x
+    have hcast : ((a + b : ℝ) : ℂ) = (a : ℂ) + (b : ℂ) := by
+      exact Complex.ofReal_add a b
+    exact Eq.trans (congrArg (fun z : ℂ => z * f x) hcast) (add_mul (a : ℂ) (b : ℂ) (f x))
+  zero_smul := by
+    intro f
+    ext x
+    change ((0 : ℝ) : ℂ) * f x = 0
+    exact zero_mul (f x)
 
 /-- Forget the admissible structure and retain the underlying test function. -/
 def toZetaTestFunction' (f : ZetaAdmissibleFunction) : ZetaTestFunction :=
@@ -114,8 +227,20 @@ theorem add_apply (f g : ZetaAdmissibleFunction) (x : ℝ) :
     (f + g) x = f x + g x := by
   rfl
 
+theorem neg_apply (f : ZetaAdmissibleFunction) (x : ℝ) :
+    (-f) x = -f x := by
+  rfl
+
+theorem sub_apply (f g : ZetaAdmissibleFunction) (x : ℝ) :
+    (f - g) x = f x - g x := by
+  rfl
+
 theorem smul_apply (a : ℂ) (f : ZetaAdmissibleFunction) (x : ℝ) :
     (a • f) x = a * f x := by
+  rfl
+
+theorem real_smul_apply (a : ℝ) (f : ZetaAdmissibleFunction) (x : ℝ) :
+    (a • f) x = (a : ℂ) * f x := by
   rfl
 
 /-- The coercion of a finite sum is the pointwise finite sum. -/

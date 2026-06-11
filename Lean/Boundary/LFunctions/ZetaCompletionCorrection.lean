@@ -58,6 +58,23 @@ theorem zetaCompletionCorrection_zero_re :
     Complex.re (zetaCompletionCorrection 0) = 4 := by
   norm_num [zetaCompletionCorrection_zero]
 
+/-- The centered basepoint correction is fixed by complex conjugation. -/
+theorem zetaCompletionCorrection_zero_star :
+    star (zetaCompletionCorrection 0) = zetaCompletionCorrection 0 := by
+  apply Complex.ext
+  · rfl
+  · have him := zetaCompletionCorrection_zero_im
+    calc
+      Complex.im (star (zetaCompletionCorrection 0)) =
+          -Complex.im (zetaCompletionCorrection 0) := by
+        rfl
+      _ = -0 := by
+        exact congrArg Neg.neg him
+      _ = 0 := by
+        exact neg_zero
+      _ = Complex.im (zetaCompletionCorrection 0) := by
+        exact him.symm
+
 /-- The normalized correction packet coordinate. Its square is the centered
 linear correction value. -/
 def zetaCompletionCorrectionPacketCoordinate : ℝ :=

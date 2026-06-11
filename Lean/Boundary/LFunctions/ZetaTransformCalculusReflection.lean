@@ -49,6 +49,150 @@ theorem zetaLaplaceTransform_reflect
   unfold zetaLaplaceTransform
   exact zetaLaplaceTransform_reflect_aux (φ := φ) (z := z)
 
+/-- The dagger Laplace kernel is the conjugate of the opposite spectral kernel. -/
+theorem dagger_laplaceKernel_pointwise
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
+    (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+        Complex.exp (z * t) =
+      star
+        (f.toZetaTestFunction' (-t) *
+          Complex.exp ((-star z) * (-t))) := by
+  have hdagger :
+      (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t =
+        star (f.toZetaTestFunction' (-t)) := by
+    exact LFunctions.ZetaAdmissibleFunction.dagger_apply f t
+  have hexp :
+      Complex.exp (z * t) =
+        star (Complex.exp ((-star z) * (-t))) := by
+    have harg :
+        z * (t : ℂ) = star ((-star z) * (-(t : ℂ))) := by
+      have hnegmul :
+          (-star z) * (-(t : ℂ)) = star z * (t : ℂ) := by
+        exact neg_mul_neg (star z) (t : ℂ)
+      have hstar :
+          star ((-star z) * (-(t : ℂ))) =
+            star (star z * (t : ℂ)) := by
+        exact congrArg star hnegmul
+      have hstar_mul :
+          star (star z * (t : ℂ)) =
+            star (t : ℂ) * star (star z) := by
+        exact star_mul (star z) (t : ℂ)
+      have ht :
+          star (t : ℂ) = (t : ℂ) := by
+        exact Complex.conj_ofReal t
+      have hzz :
+          star (star z) = z := by
+        exact star_star z
+      calc
+        z * (t : ℂ) = (t : ℂ) * z := by
+          exact mul_comm z (t : ℂ)
+        _ = star (t : ℂ) * z := by
+          exact congrArg (fun w : ℂ => w * z) ht.symm
+        _ = star (t : ℂ) * star (star z) := by
+          exact congrArg (fun w : ℂ => star (t : ℂ) * w) hzz.symm
+        _ = star (star z * (t : ℂ)) := by
+          exact hstar_mul.symm
+        _ = star ((-star z) * (-(t : ℂ))) := by
+          exact hstar.symm
+    calc
+      Complex.exp (z * t) =
+          Complex.exp (star ((-star z) * (-t))) := by
+        exact congrArg Complex.exp harg
+      _ = star (Complex.exp ((-star z) * (-t))) := by
+        exact Complex.exp_conj ((-star z) * (-t))
+  calc
+    (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+        Complex.exp (z * t) =
+        star (f.toZetaTestFunction' (-t)) * Complex.exp (z * t) := by
+      exact congrArg
+        (fun w : ℂ => w * Complex.exp (z * t))
+        hdagger
+    _ =
+        star (f.toZetaTestFunction' (-t)) *
+          star (Complex.exp ((-star z) * (-t))) := by
+      exact congrArg
+        (fun w : ℂ => star (f.toZetaTestFunction' (-t)) * w)
+        hexp
+    _ =
+        star
+          (f.toZetaTestFunction' (-t) *
+            Complex.exp ((-star z) * (-t))) := by
+      have hcomm :
+          star (f.toZetaTestFunction' (-t)) *
+              star (Complex.exp ((-star z) * (-t))) =
+            star (Complex.exp ((-star z) * (-t))) *
+              star (f.toZetaTestFunction' (-t)) := by
+        exact mul_comm
+          (star (f.toZetaTestFunction' (-t)))
+          (star (Complex.exp ((-star z) * (-t))))
+      exact hcomm.trans
+        (star_mul
+          (f.toZetaTestFunction' (-t))
+          (Complex.exp ((-star z) * (-t)))).symm
+
+/-- The dagger Laplace transform is the conjugate of the opposite spectral transform. -/
+theorem zetaLaplaceTransform_dagger
+    (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' z =
+      star (zetaLaplaceTransform f.toZetaTestFunction' (-star z)) := by
+  unfold zetaLaplaceTransform
+  calc
+    (∫ t : ℝ,
+        (LFunctions.ZetaAdmissibleFunction.dagger f).toZetaTestFunction' t *
+          Complex.exp (z * t)) =
+        ∫ t : ℝ,
+          star
+            (f.toZetaTestFunction' (-t) *
+              Complex.exp ((-star z) * (-t))) := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun t : ℝ => dagger_laplaceKernel_pointwise f z t))
+    _ =
+        ∫ t : ℝ,
+          star
+            (f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t)) := by
+      have hneg : MeasurePreserving (Homeomorph.neg ℝ).toMeasurableEquiv
+          (volume : Measure ℝ) (volume : Measure ℝ) :=
+        Measure.measurePreserving_neg (volume : Measure ℝ)
+      let G : ℝ → ℂ := fun t : ℝ =>
+          star
+            (f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t))
+      have hleft :
+          (∫ t : ℝ,
+            star
+              (f.toZetaTestFunction' (-t) *
+                Complex.exp ((-star z) * (-t)))) =
+            ∫ t : ℝ, G (-t) := by
+        exact integral_congr_ae
+          (Filter.Eventually.of_forall
+            (fun t : ℝ =>
+              congrArg
+                (fun w : ℂ =>
+                  star
+                    (f.toZetaTestFunction' (-t) *
+                      Complex.exp ((-star z) * w)))
+                (Complex.ofReal_neg t).symm))
+      have hright :
+          (∫ t : ℝ, G t) =
+            ∫ t : ℝ,
+              star
+                (f.toZetaTestFunction' t *
+                  Complex.exp ((-star z) * t)) := by
+        rfl
+      have hcomp := hneg.integral_comp' (g := G)
+      change (∫ x : ℝ, G ((Homeomorph.neg ℝ).toMeasurableEquiv x)) =
+        ∫ y : ℝ, G y at hcomp
+      exact hleft.trans (hcomp.trans hright)
+    _ =
+        star
+          (∫ t : ℝ,
+            f.toZetaTestFunction' t *
+              Complex.exp ((-star z) * t)) := by
+      exact integral_conj
+
 /-- The weighted zeta Laplace transform attached to an admissible test function. -/
 noncomputable def zetaLaplaceTransformWeighted
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=

@@ -19,27 +19,20 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
-/-- The completed explicit-formula contour bridge assembled from the contour shift and boundary
-normalization owner theorems. -/
-theorem zetaCompletedExplicitFormulaContourBridge_from_owner_theorems
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    zetaCompletedZeroKreinGram f =
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  have hshift : explicitFormulaContourShiftTarget f r :=
-    explicitFormulaContourShiftTarget_of_rectangle f r
-  have hboundary :
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f =
-        (zetaCompletedExplicitFormulaBoundarySum f : ℂ) :=
-    zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_realBoundarySum f
-  exact Complex.ofReal_injective (Eq.trans hshift hboundary)
+/-- The completed explicit-formula target actually used by the quadratic/autocorrelation
+positivity lane. -/
+def zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget
+    (f : ZetaAdmissibleFunction) : Prop :=
+  zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f
 
-/-- The completed explicit-formula contour bridge in the owner namespace. -/
-theorem zetaCompletedExplicitFormulaContourBridge
+/-- The autocorrelation target unfolds to the seed-Krein boundary equality. -/
+theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget_iff
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram f =
-      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f := by
-  exact zetaCompletedExplicitFormulaContourBridge_from_owner_theorems
-    f ⟨1, 1⟩
+    zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget f ↔
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  rfl
 
 /-- The completed explicit-formula contour bridge for convolution-autocorrelation probes, using
 the holographic boundary normalization. -/
@@ -61,6 +54,12 @@ theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation f
+
+/-- The completed contour bridge proves the named autocorrelation target. -/
+theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget_of_contourBridge
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget f := by
   exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation f
 
 /-- A contour-shift target proves the completed explicit-formula contour bridge once the analytic
