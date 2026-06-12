@@ -18,17 +18,6 @@ open scoped ContDiff
 
 namespace ZetaAdmissibleFunction
 
-/-- Constructive vertical-strip rapid-decay certificate for a complex-valued transform. -/
-structure VerticalStripRapidDecayCertificate
-    (Φ : ℂ → ℂ) (a b : ℝ) (N : ℕ) where
-  constant : ℝ
-  constant_pos : 0 < constant
-  bound :
-    ∀ z : ℂ,
-      a ≤ z.re →
-      z.re ≤ b →
-      ‖Φ z‖ ≤ constant * (1 + ‖z.im‖) ^ (-(N : ℤ))
-
 /-- A concrete support interval certificate for a compactly supported admissible source. -/
 structure ZetaPaleyWienerSupportInterval (f : ZetaAdmissibleFunction) where
   lower : ℝ
@@ -104,20 +93,37 @@ def zetaLaplaceTransformHasVerticalStripDecayConstant
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
       ≤ C * zetaPaleyWienerVerticalWeight z N
 
+/-- The length of the compact support interval used in the Paley-Wiener estimate. -/
+def zetaPaleyWienerSupportIntervalLength
+    (I : ZetaPaleyWienerSupportInterval f) : ℝ :=
+  max (I.upper - I.lower) 0
+
+/-- The support-interval length is nonnegative. -/
+theorem zetaPaleyWienerSupportIntervalLength_nonnegative
+    (I : ZetaPaleyWienerSupportInterval f) :
+    0 ≤ zetaPaleyWienerSupportIntervalLength I := by
+  unfold zetaPaleyWienerSupportIntervalLength
+  exact le_max_right (I.upper - I.lower) 0
+
+/-- The horizontal exponential factor is uniformly bounded on a fixed vertical strip and
+support interval. -/
+def zetaPaleyWienerStripExponentialEnvelope
+    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) : ℝ :=
+  Real.exp (max (max (|a * I.lower|) (|a * I.upper|))
+    (max (|b * I.lower|) (|b * I.upper|)))
+
+/-- The strip exponential envelope is positive. -/
+theorem zetaPaleyWienerStripExponentialEnvelope_pos
+    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) :
+    0 < zetaPaleyWienerStripExponentialEnvelope I a b := by
+  unfold zetaPaleyWienerStripExponentialEnvelope
+  exact Real.exp_pos _
+
 /-- The oscillatory integration-by-parts estimate on a fixed support interval.
 
 This is the Fourier-side core of Paley-Wiener: after `N` integrations by parts, the vertical
 frequency contributes the factor `(1 + |im z|)^{-N}`.  Smoothness supplies the needed
 derivative seminorms and the support-interval vanishing lemmas kill all boundary terms. -/
-noncomputable def zetaLaplaceTransform_supportInterval_integrationByParts_decayCertificate
-    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
-    (a b : ℝ) (N : ℕ) :
-    VerticalStripRapidDecayCertificate
-      (fun z : ℂ => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z) a b N := by
-  sorry
-
-/-- The oscillatory integration-by-parts estimate on a fixed support interval, projected as an
-existence statement for theorem consumers. -/
 theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (N : ℕ) :
@@ -127,12 +133,7 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  let cert :=
-    zetaLaplaceTransform_supportInterval_integrationByParts_decayCertificate
-      f I a b N
-  exact
-    ⟨cert.constant, cert.constant_pos, fun z hz =>
-      cert.bound z hz.1 hz.2⟩
+  sorry
 
 /-- The Paley-Wiener support-interval estimate assembled from the interval seminorm and the
 oscillatory integration-by-parts bound. -/
