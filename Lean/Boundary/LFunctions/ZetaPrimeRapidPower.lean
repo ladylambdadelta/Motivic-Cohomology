@@ -73,6 +73,40 @@ theorem polynomialTimesRapidPower_le_requestedRapidPower
     hcombine.symm
     hmono
 
+/-- Real power bookkeeping for multiplying an independent polynomial-growth degree `K`
+by sufficiently rapid decay to obtain the requested decay order `N`. -/
+theorem polynomialDegreeTimesRapidPower_le_requestedRapidPower
+    (K N : ℕ) (X : ℝ) (hX : 1 ≤ X) :
+    X ^ K * X ^ (-(K + N + 1 : ℤ)) ≤
+      X ^ (-(N : ℤ)) := by
+  have hX_ne_zero : X ≠ 0 :=
+    ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
+  have hexp :
+      (K : ℤ) + (-(K + N + 1 : ℤ)) ≤ -(N : ℤ) := by
+    omega
+  have hnat :
+      X ^ K = X ^ (K : ℤ) := by
+    exact (zpow_natCast X K).symm
+  have hcombine :
+      X ^ K * X ^ (-(K + N + 1 : ℤ)) =
+        X ^ ((K : ℤ) + (-(K + N + 1 : ℤ))) := by
+    calc
+      X ^ K * X ^ (-(K + N + 1 : ℤ)) =
+          X ^ (K : ℤ) * X ^ (-(K + N + 1 : ℤ)) := by
+        exact congrArg
+          (fun y : ℝ => y * X ^ (-(K + N + 1 : ℤ)))
+          hnat
+      _ = X ^ ((K : ℤ) + (-(K + N + 1 : ℤ))) := by
+        exact (zpow_add₀ hX_ne_zero (K : ℤ) (-(K + N + 1 : ℤ))).symm
+  have hmono :
+      X ^ ((K : ℤ) + (-(K + N + 1 : ℤ))) ≤
+        X ^ (-(N : ℤ)) :=
+    zpow_le_zpow_right₀ hX hexp
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ X ^ (-(N : ℤ)))
+    hcombine.symm
+    hmono
+
 end ZetaAdmissibleFunction
 
 end

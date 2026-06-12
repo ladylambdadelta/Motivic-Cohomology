@@ -513,7 +513,57 @@ theorem stripProductPointwise_le_of_polynomialDegree
     (hA : A ≤ C₁ * X ^ K)
     (hB : B ≤ C₂ * X ^ (-(K + N + 1 : ℤ))) :
     A * B ≤ (C₁ * C₂) * X ^ (-(N : ℤ)) := by
-  sorry
+  have hX_pos : 0 < X :=
+    lt_of_lt_of_le zero_lt_one hX
+  have hX_pow_nonneg : 0 ≤ X ^ K :=
+    pow_nonneg (le_of_lt hX_pos) K
+  have hrightA_nonneg : 0 ≤ C₁ * X ^ K :=
+    mul_nonneg (le_of_lt hC₁) hX_pow_nonneg
+  have hproduct_le :
+      A * B ≤ (C₁ * X ^ K) *
+        (C₂ * X ^ (-(K + N + 1 : ℤ))) :=
+    mul_le_mul hA hB hB_nonneg hrightA_nonneg
+  have hrearrange :
+      (C₁ * X ^ K) * (C₂ * X ^ (-(K + N + 1 : ℤ))) =
+        (C₁ * C₂) * (X ^ K * X ^ (-(K + N + 1 : ℤ))) := by
+    calc
+      (C₁ * X ^ K) * (C₂ * X ^ (-(K + N + 1 : ℤ))) =
+          C₁ * (X ^ K * (C₂ * X ^ (-(K + N + 1 : ℤ)))) := by
+        exact mul_assoc C₁ (X ^ K) (C₂ * X ^ (-(K + N + 1 : ℤ)))
+      _ = C₁ * (C₂ * (X ^ K * X ^ (-(K + N + 1 : ℤ)))) := by
+        exact congrArg (fun y : ℝ => C₁ * y)
+          (by
+            calc
+              X ^ K * (C₂ * X ^ (-(K + N + 1 : ℤ))) =
+                  (X ^ K * C₂) * X ^ (-(K + N + 1 : ℤ)) := by
+                exact
+                  (mul_assoc (X ^ K) C₂
+                    (X ^ (-(K + N + 1 : ℤ)))).symm
+              _ = (C₂ * X ^ K) * X ^ (-(K + N + 1 : ℤ)) := by
+                exact congrArg
+                  (fun y : ℝ => y * X ^ (-(K + N + 1 : ℤ)))
+                  (mul_comm (X ^ K) C₂)
+              _ = C₂ * (X ^ K * X ^ (-(K + N + 1 : ℤ))) := by
+                exact
+                  mul_assoc C₂ (X ^ K)
+                    (X ^ (-(K + N + 1 : ℤ))))
+      _ = (C₁ * C₂) * (X ^ K * X ^ (-(K + N + 1 : ℤ))) := by
+        exact
+          (mul_assoc C₁ C₂
+            (X ^ K * X ^ (-(K + N + 1 : ℤ)))).symm
+  have hpower :
+      X ^ K * X ^ (-(K + N + 1 : ℤ)) ≤ X ^ (-(N : ℤ)) :=
+    polynomialDegreeTimesRapidPower_le_requestedRapidPower K N X hX
+  have hconstant_nonneg : 0 ≤ C₁ * C₂ :=
+    mul_nonneg (le_of_lt hC₁) (le_of_lt hC₂)
+  have hafter_rearrange :
+      (C₁ * X ^ K) * (C₂ * X ^ (-(K + N + 1 : ℤ))) ≤
+        (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ (C₁ * C₂) * X ^ (-(N : ℤ)))
+      hrearrange.symm
+      (mul_le_mul_of_nonneg_left hpower hconstant_nonneg)
+  exact hproduct_le.trans hafter_rearrange
 
 /-- Generic zero-excised strip product estimate with an independent polynomial growth
 degree. This is the stable API for multiplying a fixed polynomial-growth log derivative by
