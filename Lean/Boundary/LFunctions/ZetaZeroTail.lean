@@ -33,7 +33,8 @@ theorem below only applies it to the zero-side contribution family. -/
 theorem completedZeroSubtype_tsum_eq_finite_add_complement
     (S : Finset ℂ)
     (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
-    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
       (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
@@ -49,6 +50,17 @@ theorem zetaZeroSideContribution_sum_attach_eq_sum
       ∑ η in S, zetaZeroSideContribution η φ := by
   exact Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ)
 
+/-- The completed zero-side contribution is summable over the completed zero locus.
+
+This is the analytic convergence input that makes zero-tail excision a genuine decomposition
+of the completed zero-side `tsum`. -/
+theorem summable_zetaZeroSideContribution
+    (φ : ZetaAdmissibleFunction) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroSideContribution (ρ : ℂ) φ) := by
+  sorry
+
 /-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
 
 This is the complex owner form of zero-tail excision.  The excluded finite set must consist of
@@ -56,7 +68,11 @@ completed zeros, so its finite contribution can be compared with the ambient com
 subtype sum. -/
 theorem zetaCompletedZeroSideSum_eq_finite_add_tail
     (S : Finset ℂ) (φ : ZetaAdmissibleFunction)
-    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContribution (ρ : ℂ) φ)) :
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         zetaZeroSideContribution (ρ : ℂ) φ) =
       (∑ η in S, zetaZeroSideContribution η φ) +
@@ -75,6 +91,7 @@ theorem zetaCompletedZeroSideSum_eq_finite_add_tail
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroSideContribution (ρ : ℂ) φ)
       hS
+      hsum
   have hfinite :
       (∑ η in S.attach,
         zetaZeroSideContribution

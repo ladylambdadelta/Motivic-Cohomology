@@ -31,7 +31,11 @@ theorem zetaZeroOrbitRemainderRe_eq
 theorem zetaCompletedZeroSideSum_eq_orbitContribution_add_orbitRemainder
     (ρ : ℂ) (φ : ZetaAdmissibleFunction)
     (hρ : ZetaCompletedZero ρ)
-    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η) :
+    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η)
+    (hsum :
+      Summable
+        (fun η : {η : ℂ // ZetaCompletedZero η} =>
+          zetaZeroSideContribution (η : ℂ) φ)) :
     (∑' η : {η : ℂ // ZetaCompletedZero η},
         zetaZeroSideContribution (η : ℂ) φ) =
       zetaZeroOrbitContribution ρ φ + zetaZeroOrbitRemainder ρ φ := by
@@ -41,7 +45,7 @@ theorem zetaCompletedZeroSideSum_eq_orbitContribution_add_orbitRemainder
         (∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ) +
           zetaZeroTail (zetaZeroOrbitFinset ρ) φ :=
     zetaCompletedZeroSideSum_eq_finite_add_tail
-      (zetaZeroOrbitFinset ρ) φ horbit
+      (zetaZeroOrbitFinset ρ) φ horbit hsum
   have horbit_sum :
       zetaZeroOrbitContribution ρ φ =
         ∑ η in zetaZeroOrbitFinset ρ, zetaZeroSideContribution η φ :=
@@ -74,7 +78,11 @@ all remaining zeros. -/
 theorem zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
     (ρ : ℂ) (φ : ZetaAdmissibleFunction)
     (hρ : ZetaCompletedZero ρ)
-    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η) :
+    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ → ZetaCompletedZero η)
+    (hsum :
+      Summable
+        (fun η : {η : ℂ // ZetaCompletedZero η} =>
+          zetaZeroSideContribution (η : ℂ) φ)) :
     zetaCompletedZeroSideRe φ =
       zetaZeroOrbitContributionRe ρ φ + zetaZeroOrbitRemainderRe ρ φ := by
   have hcomplex :
@@ -82,7 +90,7 @@ theorem zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
           zetaZeroSideContribution (η : ℂ) φ) =
         zetaZeroOrbitContribution ρ φ + zetaZeroOrbitRemainder ρ φ :=
     zetaCompletedZeroSideSum_eq_orbitContribution_add_orbitRemainder
-      ρ φ hρ horbit
+      ρ φ hρ horbit hsum
   unfold zetaCompletedZeroSideRe
   unfold zetaZeroOrbitContributionRe
   unfold zetaZeroOrbitRemainderRe

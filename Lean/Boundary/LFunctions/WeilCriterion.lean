@@ -370,11 +370,20 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
           zetaZeroOrbitRemainderRe z.point
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
+    have hsum :
+        Summable
+          (fun η : {η : ℂ // ZetaCompletedZero η} =>
+            zetaZeroSideContribution
+              (η : ℂ)
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
+      summable_zetaZeroSideContribution
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
     zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
       z.point
       (ZetaAdmissibleFunction.convolutionAutocorrelation f)
       hcompleted
       horbit
+      hsum
   exact Eq.subst
     (motive := fun x : ℝ => x < 0)
     hsplit.symm
