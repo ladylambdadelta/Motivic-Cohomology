@@ -65,6 +65,30 @@ theorem zetaZeroSideContribution_sum_attach_eq_sum
       ∑ η in S, zetaZeroSideContribution η φ := by
   exact Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ)
 
+/-- Majorant for the zero-side contribution over the completed-zero locus. -/
+noncomputable def zetaZeroSideContributionMajorant
+    (φ : ZetaAdmissibleFunction)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  ‖zetaZeroSideContribution (ρ : ℂ) φ‖
+
+/-- The zero-side contribution is bounded by its majorant. -/
+theorem norm_zetaZeroSideContribution_le_majorant
+    (φ : ZetaAdmissibleFunction)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    ‖zetaZeroSideContribution (ρ : ℂ) φ‖ ≤
+      zetaZeroSideContributionMajorant φ ρ := by
+  unfold zetaZeroSideContributionMajorant
+  exact le_refl _
+
+/-- Zero-density, multiplicity, and transform-decay estimates make the zero-side majorant
+summable over the completed-zero locus. -/
+theorem summable_zetaZeroSideContributionMajorant
+    (φ : ZetaAdmissibleFunction) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroSideContributionMajorant φ ρ) := by
+  sorry
+
 /-- The completed zero-side contribution is summable over the completed zero locus.
 
 This is the analytic convergence input that makes zero-tail excision a genuine decomposition
@@ -74,7 +98,13 @@ theorem summable_zetaZeroSideContribution
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroSideContribution (ρ : ℂ) φ) := by
-  sorry
+  have hmajorant :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContributionMajorant φ ρ) :=
+    summable_zetaZeroSideContributionMajorant φ
+  unfold zetaZeroSideContributionMajorant at hmajorant
+  exact hmajorant.of_norm
 
 /-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
 

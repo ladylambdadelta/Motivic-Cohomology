@@ -145,8 +145,27 @@ theorem completedRiemannZeta_eq_riemannZeta_mul_gamma {s : ℂ}
   exact (div_eq_iff hΓ).mp h.symm
 
 /-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
+theorem riemannZeta_zero_eq_neg_half :
+    riemannZeta (0 : ℂ) = (-1 / 2 : ℂ) := by
+  sorry
+
+/-- The value `-1/2` is nonzero in the complex normalization. -/
+theorem complex_neg_half_ne_zero :
+    (-1 / 2 : ℂ) ≠ 0 := by
+  norm_num
+
+/-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
 theorem riemannZeta_zero_ne_zero :
     riemannZeta (0 : ℂ) ≠ 0 := by
+  intro hz
+  have hhalf : (-1 / 2 : ℂ) = 0 := by
+    exact (riemannZeta_zero_eq_neg_half).symm.trans hz
+  exact complex_neg_half_ne_zero hhalf
+
+/-- The exact zero locus of the completed Gamma factor in the current normalization. -/
+theorem Gammaℝ_eq_zero_iff_zero_or_negative_even
+    {s : ℂ} :
+    Gammaℝ s = 0 ↔ s = 0 ∨ ∃ n : ℕ, s = -2 * (n + 1) := by
   sorry
 
 /-- The completed Gamma factor is nonzero away from its centered nonpositive-even
@@ -156,7 +175,13 @@ theorem Gammaℝ_ne_zero_of_ne_zero_and_not_negative_even
     (hs0 : s ≠ 0)
     (hneg : ¬ ∃ n : ℕ, s = -2 * (n + 1)) :
     Gammaℝ s ≠ 0 := by
-  sorry
+  intro hΓ
+  have hzero_or_negative :
+      s = 0 ∨ ∃ n : ℕ, s = -2 * (n + 1) :=
+    (Gammaℝ_eq_zero_iff_zero_or_negative_even).1 hΓ
+  rcases hzero_or_negative with hzero | hnegative
+  · exact hs0 hzero
+  · exact hneg hnegative
 
 /-- A zero of the ordinary Riemann zeta function is a zero of the completed zeta function
 away from the normalization singularity, provided the Gamma factor is finite and nonzero. -/

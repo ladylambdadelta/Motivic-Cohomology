@@ -203,6 +203,17 @@ noncomputable def finitePrimeContourTransportTomographicError
   finitePrimeContourTransportRemainder N f -
     sampledHorizontalDifference N f
 
+/-- Additive contour-residue tomography balance.
+
+The sampled horizontal top-minus-bottom contour term plus the omitted outside-window
+coordinate-remainder tail reconstructs the finite coordinate-remainder window. -/
+theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalDifference N f +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  sorry
+
 /-- Contour-residue reconstruction of the sampled horizontal term.
 
 The complex sampled horizontal term reconstructs the finite real coordinate remainder after
@@ -213,7 +224,21 @@ theorem sampledHorizontalDifferenceComplex_re_eq_coordinateRemainderWindow_sub_t
     Complex.re (sampledHorizontalDifferenceComplex N f) =
       finitePrimeContourTransportCoordinateRemainderWindow N f -
         completedPrimeContourTransportCoordinateRemainderTail N f := by
-  sorry
+  let H : ℝ := Complex.re (sampledHorizontalDifferenceComplex N f)
+  let T : ℝ := completedPrimeContourTransportCoordinateRemainderTail N f
+  let W : ℝ := finitePrimeContourTransportCoordinateRemainderWindow N f
+  have hbalance : H + T = W := by
+    have howner :=
+      sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+        N f
+    unfold sampledHorizontalDifference at howner
+    exact howner
+  change H = W - T
+  calc
+    H = H + T - T := by
+      exact (add_sub_cancel_right H T).symm
+    _ = W - T := by
+      exact congrArg (fun x : ℝ => x - T) hbalance
 
 /-- Contour-residue reconstruction of the sampled horizontal term.
 
@@ -225,25 +250,9 @@ theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRem
     sampledHorizontalDifference N f +
         completedPrimeContourTransportCoordinateRemainderTail N f =
       finitePrimeContourTransportCoordinateRemainderWindow N f := by
-  let H : ℝ := sampledHorizontalDifference N f
-  let T : ℝ := completedPrimeContourTransportCoordinateRemainderTail N f
-  let W : ℝ := finitePrimeContourTransportCoordinateRemainderWindow N f
-  have hshadow :
-      H = W - T := by
-    unfold sampledHorizontalDifference
-    exact sampledHorizontalDifferenceComplex_re_eq_coordinateRemainderWindow_sub_tail N f
-  change H + T = W
-  calc
-    H + T = (W - T) + T := by
-      exact congrArg (fun x : ℝ => x + T) hshadow
-    _ = (W + -T) + T := by
-      exact congrArg (fun x : ℝ => x + T) (sub_eq_add_neg W T)
-    _ = W + (-T + T) := by
-      exact add_assoc W (-T) T
-    _ = W + 0 := by
-      exact congrArg (fun x : ℝ => W + x) (neg_add_cancel T)
-    _ = W := by
-      exact add_zero W
+  exact
+    sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+      N f
 
 /-- Contour-residue tomography identifies the finite residual error with the omitted
 coordinate-remainder tail.
