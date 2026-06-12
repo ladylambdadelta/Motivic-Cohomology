@@ -209,28 +209,19 @@ is the ordered-heart contour bridge in `ZetaExplicitFormulaContourBridge`. -/
 theorem zetaCriterion_autocorrelation_weilPositivity_orderedHeart :
     ZetaAutocorrelationWeilPositivity := by
   exact zetaCriterion_autocorrelation_weilPositivity_of_orderedHeartContourBridge
-    (fun f : ZetaAdmissibleFunction =>
-      ZetaAdmissibleFunction
-        .zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart
-          f)
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
 
 /-- Ordered-heart payoff for quadratic Weil positivity. -/
 theorem zetaCriterion_quadraticWeilPositivity_orderedHeart :
     ZetaWeilQuadraticPositivity := by
   exact zetaCriterion_quadraticWeilPositivity_of_orderedHeartContourBridge
-    (fun f : ZetaAdmissibleFunction =>
-      ZetaAdmissibleFunction
-        .zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart
-          f)
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
 
 /-- Ordered-heart payoff for the Boundary RH statement. -/
 theorem zetaCriterion_boundaryRiemannHypothesis_orderedHeart :
     boundaryRiemannHypothesis := by
   exact zetaCriterion_boundaryRiemannHypothesis_of_orderedHeartContourBridge
-    (fun f : ZetaAdmissibleFunction =>
-      ZetaAdmissibleFunction
-        .zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart
-          f)
+    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
 
 /-- Criterion transport through the final time-pairing/GNS reconstruction comparison. -/
 theorem zetaCriterion_quadraticWeilPositivity_of_timePairingScalar_eq_orderedHeartScalar

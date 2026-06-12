@@ -571,6 +571,81 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_eq
       completedRenormalizedDefectKernelBoundaryChannel f := by
   exact completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel f
 
+/-- The raw autocorrelation Krein scalar plus prime diagonal debt is the completed
+ordered-heart scalar.  This is the honest debt-visible comparison between the time-side
+explicit-formula scalar and the quotient/GNS scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
+  have hkrein :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedFinitePartBoundaryChannel f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel
+      f
+  have hfinite :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedAnalyticBoundaryRealizationScalar f :=
+    completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_completedAnalyticBoundaryRealizationScalar
+      f
+  have hordered :
+      completedAnalyticBoundaryRealizationScalar f =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+    by
+      unfold completedAnalyticBoundaryRealizationScalar
+      unfold completedAnalyticBoundaryRealizationClass
+      unfold zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+      rfl
+  have hkrein_debt :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hkrein
+  exact hkrein_debt.trans (hfinite.trans hordered)
+
+/-- Zero-side lower-weight absorption kills the prime diagonal-debt face on the raw
+autocorrelation Krein representative.
+
+This is the concrete radical statement on the zero side.  It does not say the prime
+diagonal debt vanishes as an independent analytic channel; it says the debt face is null
+after evaluation in the completed zero-side Krein realization. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_KreinSum_by_zeroSideLowerWeightAbsorption
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  sorry
+
+/-- Zero-side lower-weight absorption identifies the raw autocorrelation Krein scalar with
+the completed ordered-heart scalar.
+
+This is the remaining quotient comparison theorem: the diagonal debt already appears in the
+debt-visible transport theorem, and this statement says precisely that the extra diagonal
+face is radical-null in the zero-side completed realization. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_orderedHeartScalar_by_zeroSideLowerWeightAbsorption
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
+  have habsorb :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_KreinSum_by_zeroSideLowerWeightAbsorption
+      f
+  have hdebt :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_orderedHeartScalar
+      f
+  exact habsorb.symm.trans hdebt
+
 /-- The descended ordered-heart autocorrelation boundary scalar is nonnegative. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_nonnegative
     (f : ZetaAdmissibleFunction) :
@@ -837,31 +912,34 @@ theorem complex_eq_of_re_eq_of_im_eq_zero
     z = (r : ℂ) := by
   exact Complex.ext hre (him.trans (Complex.ofReal_im r).symm)
 
-/-- Prime-channel holography: the prime explicit-formula functional evaluated on the
-convolution autocorrelation kernel is the two-face/GNS prime matrix coefficient. -/
+/-- Legacy finite-presentation prime-channel holography: the finite display prime
+convolution contribution is the finite two-face/GNS prime matrix coefficient.
+
+The completed owner path uses `zetaCompletedPrimeTwoFaceGNSMatrixCoefficient`. -/
 theorem zetaCompletedExplicitFormulaPrimeChannel_holographic
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
   exact zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic_twoFace f
 
-/-- The prime linear boundary functional on the convolution autocorrelation kernel is its
-two-face/GNS prime packet contribution. -/
+/-- Legacy finite-presentation name for the prime linear boundary functional on the
+convolution autocorrelation kernel. -/
 theorem zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
   exact zetaCompletedExplicitFormulaPrimeChannel_holographic f
 
-/-- Historical name for prime convolution-channel holography. -/
+/-- Historical finite-presentation name for prime convolution-channel holography. -/
 theorem zetaCompletedExplicitFormulaPrimeLinearReal_autocorrelation_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
   exact zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient f
 
-/-- New-style prime channel expansion: the explicit prime contribution is the cross term in
-the positive prime defect-kernel square, and the diagonal debt is the remaining square face. -/
+/-- Legacy finite-presentation prime channel expansion: the finite explicit prime
+contribution is the cross term in the finite positive prime defect-kernel square, and the
+finite diagonal debt is the remaining square face. -/
 theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_add_positiveDefectKernel_eq_diagonalDebt
     (f : ZetaAdmissibleFunction) :
     zetaPrimeDefectKernelPositiveForm f +
@@ -901,12 +979,12 @@ noncomputable def zetaCompletedGNSDiagonalDebtBoundaryScalar
 theorem zetaCompletedGNSPositiveBoundaryScalar_eq_primeDefect_add_archCorrection
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSPositiveBoundaryScalar f =
-      Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
         (ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f)) := by
-  let P : ℂ := zetaPrimeDefectKernelPositiveForm f
+  let P : ℂ := zetaCompletedPrimeDefectKernelPositiveForm f
   let A : ℝ :=
     ZetaHermitianPacketEnsemble.archimedeanPacketGram
       (zetaCompletedHermitianBoundaryDefect f)
@@ -935,12 +1013,12 @@ theorem zetaCompletedGNSPositiveBoundaryScalar_eq_primeDefect_add_archCorrection
 theorem zetaCompletedGNSSymmetrizedBoundaryScalar_eq_primeTwoFace_add_archCorrection
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSSymmetrizedBoundaryScalar f =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
         (ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f)) := by
-  let S : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
+  let S : ℂ := zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f
   let A : ℝ :=
     ZetaHermitianPacketEnsemble.archimedeanPacketGram
       (zetaCompletedHermitianBoundaryDefect f)
@@ -969,12 +1047,12 @@ theorem zetaCompletedGNSSymmetrizedBoundaryScalar_eq_primeTwoFace_add_archCorrec
 theorem zetaCompletedGNSDiagonalDebtBoundaryScalar_eq_primeDebt_add_archCorrection
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSDiagonalDebtBoundaryScalar f =
-      Complex.re (zetaPrimeDefectKernelDiagonalDebt f) +
+      Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) +
         (ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f)) := by
-  let D : ℂ := zetaPrimeDefectKernelDiagonalDebt f
+  let D : ℂ := zetaCompletedPrimeDefectKernelDiagonalDebt f
   let A : ℝ :=
     ZetaHermitianPacketEnsemble.archimedeanPacketGram
       (zetaCompletedHermitianBoundaryDefect f)
@@ -1599,18 +1677,35 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelati
       unfold g
       exact completedBoundaryChannel_convolutionAutocorrelation_re_eq_completedFinitePartBoundaryChannel f
 
-/-- The real part of the analytic boundary sum of a convolution-autocorrelation probe is the
-owner completed analytic boundary realization scalar. -/
-theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_realizationScalar
+/-- The real part of the analytic boundary sum of a convolution-autocorrelation probe plus
+the completed prime diagonal debt is the owner completed analytic boundary realization
+scalar. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_add_primeDiagonalDebt_eq_realizationScalar
     (f : ZetaAdmissibleFunction) :
     Complex.re
         (zetaCompletedExplicitFormulaBoundarySumAnalytic
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedAnalyticBoundaryRealizationScalar f := by
+  have hfinite :
+      Complex.re
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+        completedFinitePartBoundaryChannel f :=
+    zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_finitePartBoundaryChannel
+      f
+  have hrealization :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedAnalyticBoundaryRealizationScalar f :=
+    completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_completedAnalyticBoundaryRealizationScalar
+      f
   exact
-    (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_finitePartBoundaryChannel
-      f).trans
-      (completedFinitePartBoundaryChannel_eq_completedAnalyticBoundaryRealizationScalar f)
+    (congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hfinite).trans
+      hrealization
 
 /-- The analytic boundary sum of the admissible convolution autocorrelation probe realizes
 as the owner completed analytic boundary scalar.
@@ -1622,24 +1717,73 @@ that the contour boundary realization is evaluated in the completed ordered-hear
 theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_realizationScalar
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySumAnalytic
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
       (completedAnalyticBoundaryRealizationScalar f : ℂ) := by
   apply Complex.ext
-  · exact
-      (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_realizationScalar
-        f).trans
-        (Complex.ofReal_re (completedAnalyticBoundaryRealizationScalar f)).symm
-  · exact
-      (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_im_eq_zero
-        f).trans
-        (Complex.ofReal_im (completedAnalyticBoundaryRealizationScalar f)).symm
+  · calc
+      Complex.re
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)) =
+          Complex.re
+              (zetaCompletedExplicitFormulaBoundarySumAnalytic
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
+            Complex.re
+              (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
+        exact Complex.add_re
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)
+      _ =
+          Complex.re
+              (zetaCompletedExplicitFormulaBoundarySumAnalytic
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+        exact congrArg
+          (fun x : ℝ =>
+            Complex.re
+                (zetaCompletedExplicitFormulaBoundarySumAnalytic
+                  (ZetaAdmissibleFunction.convolutionAutocorrelation f)) + x)
+          (Complex.ofReal_re
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)))
+      _ = completedAnalyticBoundaryRealizationScalar f := by
+        exact
+          zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_add_primeDiagonalDebt_eq_realizationScalar
+            f
+      _ = Complex.re (completedAnalyticBoundaryRealizationScalar f : ℂ) := by
+        exact (Complex.ofReal_re (completedAnalyticBoundaryRealizationScalar f)).symm
+  · calc
+      Complex.im
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)) =
+          Complex.im
+              (zetaCompletedExplicitFormulaBoundarySumAnalytic
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)) +
+            Complex.im
+              (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
+        exact Complex.add_im
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)
+      _ = 0 + 0 := by
+        exact congrArg₂ HAdd.hAdd
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_im_eq_zero f)
+          (Complex.ofReal_im
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)))
+      _ = 0 := by
+        exact zero_add 0
+      _ = Complex.im (completedAnalyticBoundaryRealizationScalar f : ℂ) := by
+        exact (Complex.ofReal_im (completedAnalyticBoundaryRealizationScalar f)).symm
 
 /-- The analytic boundary sum of the admissible convolution autocorrelation probe descends
 to the completed ordered-heart scalar. -/
 theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_orderedHeartScalar
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySumAnalytic
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
       (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) := by
   exact
     (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_realizationScalar

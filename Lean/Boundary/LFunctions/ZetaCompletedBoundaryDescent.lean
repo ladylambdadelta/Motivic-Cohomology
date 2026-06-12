@@ -1,7 +1,9 @@
 import Boundary.LFunctions.ZetaCompletedSquareLedger
 import Boundary.LFunctions.ZetaTransformCalculusBase
+import Boundary.LFunctions.ZetaTransformCalculusWeighted
 import Boundary.LFunctions.ZetaPacketComparison
 import Boundary.LFunctions.ZetaHermitianPacket
+import Boundary.LFunctions.ZetaExplicitFormulaComplexAnalysis
 
 /-!
 # Boundary completed-channel descent
@@ -442,6 +444,12 @@ def completedPrimeTimeDistributionCoordinate
       (zetaCompletedTimeBoundaryValue g ι.center +
         star (zetaCompletedTimeBoundaryValue g ι.center)))
 
+/-- The finite time-side prime distribution over a prime-power window. -/
+def finitePrimeTimeDistributionWindow
+    (N : ℕ) (g : ZetaAdmissibleFunction) : ℝ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    completedPrimeTimeDistributionCoordinate ι g
+
 /-- The completed time-side prime distribution pairing. -/
 noncomputable def completedPrimeTimeDistributionPairing
     (g : ZetaAdmissibleFunction) : ℝ :=
@@ -462,6 +470,40 @@ noncomputable def completedPrimeContourRealizedTimeDistributionPairing
     (g : ZetaAdmissibleFunction) : ℝ :=
   completedPrimeSpectralDistributionPairing
     (zetaCompletedSpectralLaplaceTransform g)
+
+/-- The finite contour-realized prime distribution over a prime-power window. -/
+def finitePrimeContourRealizedTimeDistributionWindow
+    (N : ℕ) (g : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (∑ ι in ZetaPrimePowerIndex.window N,
+      -((ι.weight : ℂ) *
+        (zetaCompletedSpectralLaplaceTransform g ι.center +
+          star (zetaCompletedSpectralLaplaceTransform g ι.center))))
+
+/-- The contour-realized prime distribution coordinate. -/
+noncomputable def completedPrimeContourRealizedTimeDistributionCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (-((ι.weight : ℂ) *
+      (zetaCompletedSpectralLaplaceTransform g ι.center +
+        star (zetaCompletedSpectralLaplaceTransform g ι.center))))
+
+/-- The finite contour-realized prime window is the sum of its contour-realized
+coordinates. -/
+theorem finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeContourRealizedTimeDistributionWindow N g =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
+  unfold finitePrimeContourRealizedTimeDistributionWindow
+  unfold completedPrimeContourRealizedTimeDistributionCoordinate
+  exact
+    Complex.sum_re
+      (fun ι : ZetaPrimePowerIndex =>
+        -((ι.weight : ℂ) *
+          (zetaCompletedSpectralLaplaceTransform g ι.center +
+            star (zetaCompletedSpectralLaplaceTransform g ι.center))))
+      (ZetaPrimePowerIndex.window N)
 
 /-- At an autocorrelation probe, the time-side prime coordinate is the physical
 off-diagonal coordinate. -/
@@ -719,6 +761,42 @@ theorem completedSpectralPrimeOffDiagonalChannel_eq_spectralSampleContribution_r
           (convolutionAutocorrelation f)) := by
   rfl
 
+/-- The completed spectral prime channel is the real part of the completed two-face boundary
+coefficient.  This is the algebraic half of prime tomography after the contour-side spectral
+sample has been formed. -/
+theorem completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
+    (f : ZetaAdmissibleFunction) :
+    completedSpectralPrimeOffDiagonalChannel f =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  unfold completedSpectralPrimeOffDiagonalChannel
+  unfold zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+  have hsum :
+      (∑' ι : ZetaPrimePowerIndex,
+          -((ι.weight : ℂ) *
+            (zetaCompletedExplicitFormulaPhi
+                (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedExplicitFormulaPhi
+                  (convolutionAutocorrelation f) ι.center)))) =
+        zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f := by
+    calc
+      (∑' ι : ZetaPrimePowerIndex,
+          -((ι.weight : ℂ) *
+            (zetaCompletedExplicitFormulaPhi
+                (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedExplicitFormulaPhi
+                  (convolutionAutocorrelation f) ι.center)))) =
+          ∑' ι : ZetaPrimePowerIndex,
+            -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f := by
+        exact tsum_congr
+          (fun ι : ZetaPrimePowerIndex =>
+            zetaCompletedPrimeSpectralSampleCoordinate_eq_neg_twoFaceBoundaryCoordinate
+              ι f)
+      _ = zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f := by
+        exact zetaCompletedPrimeTwoFaceGNSBoundaryCoordinate_tsum_eq_boundaryCoefficient f
+  exact congrArg Complex.re hsum
+
 /-- The completed prime finite-part channel obtained after finite diagonal-debt cancellation.
 
 There is no standalone completed diagonal-debt summand here: the finite debt and finite
@@ -730,7 +808,7 @@ noncomputable def completedPrimeDefectKernelRenormalizedChannel
 /-- The completed positive prime defect-kernel channel. -/
 noncomputable def completedPrimeDefectKernelPositiveChannel
     (f : ZetaAdmissibleFunction) : ℝ :=
-  Complex.re (zetaPrimeDefectKernelPositiveForm f)
+  Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f)
 
 /-- The completed renormalized boundary channel after passing from the finite triangular
 presentation to the positive Hermitian defect-kernel realization.  This is the positive
@@ -2330,7 +2408,7 @@ part is the positive defect-square kernel; the archimedean part is the Hermitian
 Gram; the correction coordinate is owned by the source itself. -/
 noncomputable def completedBoundaryHermitianGNSScalar
     (X : CompletedBoundaryHilbertSource) : ℝ :=
-  Complex.re (zetaPrimeDefectKernelPositiveForm X.seed) +
+  Complex.re (zetaCompletedPrimeDefectKernelPositiveForm X.seed) +
     ZetaHermitianPacketEnsemble.archimedeanPacketGram
       (zetaCompletedHermitianBoundaryDefect X.seed) +
     X.correctionCoordinate * X.correctionCoordinate
@@ -2340,8 +2418,8 @@ theorem completedBoundaryHermitianGNSScalar_nonnegative
     (X : CompletedBoundaryHilbertSource) :
     0 ≤ completedBoundaryHermitianGNSScalar X := by
   have hprime :
-      0 ≤ Complex.re (zetaPrimeDefectKernelPositiveForm X.seed) :=
-    zetaPrimeDefectKernelPositiveForm_re_nonnegative X.seed
+      0 ≤ Complex.re (zetaCompletedPrimeDefectKernelPositiveForm X.seed) :=
+    zetaCompletedPrimeDefectKernelPositiveForm_re_nonnegative X.seed
   have harch :
       0 ≤ ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect X.seed) :=
@@ -2370,31 +2448,31 @@ theorem completedBoundaryHermitianGNSScalar_source_eq_positiveBoundaryScalar
       (zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
         f).symm
   calc
-    Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+    Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
         ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
         zetaCompletionCorrectionPacketCoordinate *
           zetaCompletionCorrectionPacketCoordinate =
-        Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+        Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
           ZetaHermitianPacketEnsemble.archimedeanPacketGram
             (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f) := by
       exact congrArg
         (fun x : ℝ =>
-          Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+          Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
             ZetaHermitianPacketEnsemble.archimedeanPacketGram
               (zetaCompletedHermitianBoundaryDefect f) +
             x)
         hcorr
     _ =
         Complex.re
-          (zetaPrimeDefectKernelPositiveForm f +
+          (zetaCompletedPrimeDefectKernelPositiveForm f +
             (ZetaHermitianPacketEnsemble.archimedeanPacketGram
               (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
             (ZetaHermitianPacketEnsemble.correctionPacketGram
               (zetaCompletedHermitianBoundaryDefect f) : ℂ)) := by
-      let P : ℂ := zetaPrimeDefectKernelPositiveForm f
+      let P : ℂ := zetaCompletedPrimeDefectKernelPositiveForm f
       let A : ℝ :=
         ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f)
@@ -2627,7 +2705,7 @@ theorem completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq
     zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq f
   exact congrArg
     (fun x : ℝ =>
-      Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
         ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
         x)
@@ -4371,13 +4449,2705 @@ theorem completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChann
     (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f).symm
   exact hstream.trans hfinite
 
-/-- The prime boundary channel of the convolution pair is the owner prime convolution
-contribution. -/
-theorem primeBoundaryChannel_convolutionPair_eq_primeConvolutionContribution
+/-- The prime boundary channel of the convolution pair is the raw time-side prime
+distribution. -/
+theorem primeBoundaryChannel_convolutionPair_re_eq_timeDistributionPairing
     (f : ZetaAdmissibleFunction) :
-    primeBoundaryChannel (convolutionPair f f) =
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
+    Complex.re (primeBoundaryChannel (convolutionPair f f)) =
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+  have hpair :
+      convolutionPair f f = convolutionAutocorrelation f :=
+    convolutionPair_self f
+  have htime :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        Complex.re
+          (zetaCompletedExplicitFormulaPrimePowerContribution
+            (convolutionAutocorrelation f)) :=
+    completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
+      (convolutionAutocorrelation f)
+  have hprime :
+      zetaCompletedExplicitFormulaPrimePowerContribution
+          (convolutionAutocorrelation f) =
+        primeBoundaryChannel (convolutionAutocorrelation f) := by
+    unfold primeBoundaryChannel
+    exact zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution
+      (convolutionAutocorrelation f)
+  have hchannel :
+      Complex.re (primeBoundaryChannel (convolutionPair f f)) =
+        Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) :=
+    congrArg
+      (fun g : ZetaAdmissibleFunction => Complex.re (primeBoundaryChannel g))
+      hpair
+  exact hchannel.trans ((congrArg Complex.re hprime).symm.trans htime.symm)
+
+/-- The real completed two-face/GNS coordinate attached to one prime-power index. -/
+noncomputable def completedPrimeTwoFaceGNSRealCoordinate
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re
+    (zetaCompletedPrimeSpectralAmplitudeIndex ι f *
+        star (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f) +
+      star
+        (zetaCompletedPrimeSpectralAmplitudeIndex ι f *
+          star (zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f)))
+
+/-- The real completed two-face boundary coordinate attached to one prime-power index.
+
+This is the time-side prime off-diagonal coordinate.  The spectral two-face coefficient is a
+separate completed reconstruction of the sum of these coordinates, not a pointwise
+definition. -/
+noncomputable def completedPrimeTwoFaceGNSBoundaryRealCoordinate
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaPrimeOffDiagonalCoordinate ι f
+
+/-- Coordinate prime tomography: the physical off-diagonal coordinate is the completed
+two-face boundary coordinate.
+
+This is the local time/spectral reconstruction theorem. -/
+theorem zetaPrimeOffDiagonalCoordinate_eq_completedPrimeTwoFaceGNSBoundaryRealCoordinate
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    zetaPrimeOffDiagonalCoordinate ι f =
+      completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
+  rfl
+
+/-- Prime tomography at one prime-power coordinate: the time-side autocorrelation coordinate
+reconstructs the completed two-face/GNS boundary coordinate.
+
+This is the coordinate form of the completed contour/log-coordinate reconstruction theorem.
+It is intentionally stated before the completed summation theorem so the global prime
+realization cannot hide coordinate-level content. -/
+theorem completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+      completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
+  have hphysical :
+      completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+        zetaPrimeOffDiagonalCoordinate ι f :=
+    completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
+      ι f
+  have htomography :
+      zetaPrimeOffDiagonalCoordinate ι f =
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
+    zetaPrimeOffDiagonalCoordinate_eq_completedPrimeTwoFaceGNSBoundaryRealCoordinate
+      ι f
+  exact hphysical.trans htomography
+
+/-- The completed two-face boundary real coordinates are summable over prime powers. -/
+theorem summable_completedPrimeTwoFaceGNSBoundaryRealCoordinate
+    (f : ZetaAdmissibleFunction) :
+    Summable (fun ι : ZetaPrimePowerIndex =>
+      completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) := by
+  exact summable_zetaPrimeOffDiagonalCoordinate f
+
+/-- The finite contour-transport remainder between the time-side and contour-realized prime
+windows.  This is the honest finite-level difference; it is not asserted to vanish before
+passing to the completed contour realization. -/
+def finitePrimeContourTransportRemainder
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePrimeContourRealizedTimeDistributionWindow N (convolutionAutocorrelation f) -
+    finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)
+
+/-- The coordinatewise contour-transport remainder between the contour-realized and
+time-side prime distributions. -/
+noncomputable def completedPrimeContourTransportCoordinateRemainder
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeContourRealizedTimeDistributionCoordinate
+      ι (convolutionAutocorrelation f) -
+    completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)
+
+/-- The finite-window coordinate remainder presentation of contour transport. -/
+noncomputable def finitePrimeContourTransportCoordinateRemainderWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    completedPrimeContourTransportCoordinateRemainder ι f
+
+/-- The finite contour-transport remainder is the finite window sum of the coordinatewise
+contour-transport remainders. -/
+theorem finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportRemainder N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  let g : ZetaAdmissibleFunction := convolutionAutocorrelation f
+  have hcontour :
+      finitePrimeContourRealizedTimeDistributionWindow N g =
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeContourRealizedTimeDistributionCoordinate ι g :=
+    finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g
+  have htime :
+      finitePrimeTimeDistributionWindow N g =
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeTimeDistributionCoordinate ι g := by
+    rfl
+  have hsub :
+      (∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeContourRealizedTimeDistributionCoordinate ι g) -
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeTimeDistributionCoordinate ι g) =
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          (completedPrimeContourRealizedTimeDistributionCoordinate ι g -
+            completedPrimeTimeDistributionCoordinate ι g) := by
+    exact Finset.sum_sub_distrib
+  unfold finitePrimeContourTransportRemainder
+  unfold finitePrimeContourTransportCoordinateRemainderWindow
+  unfold completedPrimeContourTransportCoordinateRemainder
+  unfold g at hcontour htime hsub
+  calc
+    finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f) -
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) =
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)) -
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) := by
+      exact congrArg
+        (fun x : ℝ =>
+          x - finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+        hcontour
+    _ =
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)) -
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)) := by
+      exact congrArg
+        (fun x : ℝ =>
+          (∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)) - x)
+        htime
+    _ =
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          (completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f) -
+            completedPrimeTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)) := by
+      exact hsub
+
+/-- The completed boundary difference measured by the finite contour-transport remainder. -/
+noncomputable def completedPrimeContourTransportBoundaryDifference
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeContourRealizedTimeDistributionPairing
+      (convolutionAutocorrelation f) -
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
+
+/-- Finite contour realization is time-side window plus the named contour-transport
+remainder. -/
+theorem finitePrimeTimeDistributionWindow_add_contourTransportRemainder
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        finitePrimeContourTransportRemainder N f =
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) := by
+  unfold finitePrimeContourTransportRemainder
+  let T : ℝ := finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)
+  let C : ℝ :=
+    finitePrimeContourRealizedTimeDistributionWindow N
+      (convolutionAutocorrelation f)
+  change T + (C - T) = C
+  calc
+    T + (C - T) = T + (C + -T) := by
+      exact congrArg (fun x : ℝ => T + x) (sub_eq_add_neg C T)
+    _ = (T + C) + -T := by
+      exact (add_assoc T C (-T)).symm
+    _ = (C + T) + -T := by
+      exact congrArg (fun x : ℝ => x + -T) (add_comm T C)
+    _ = C + (T + -T) := by
+      exact add_assoc C T (-T)
+    _ = C + 0 := by
+      exact congrArg (fun x : ℝ => C + x) (add_right_neg T)
+    _ = C := by
+      exact add_zero C
+
+/-- The finite time-side prime windows converge to the completed time-side prime
+distribution. -/
+theorem finitePrimeTimeDistributionWindow_tendsto_completed
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+      atTop
+      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) := by
+  have hboundary :
+      Summable (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) :=
+    summable_completedPrimeTwoFaceGNSBoundaryRealCoordinate f
+  have hcoordinate :
+      ∀ ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f =
+          completedPrimeTimeDistributionCoordinate ι
+            (convolutionAutocorrelation f) := by
+    intro ι
+    exact
+      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
+        ι f).symm
+  have htime :
+      Summable (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeTimeDistributionCoordinate ι
+          (convolutionAutocorrelation f)) :=
+    hboundary.congr hcoordinate
+  unfold finitePrimeTimeDistributionWindow
+  exact ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+    (fun ι : ZetaPrimePowerIndex =>
+      completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))
+    htime
+    (fun ι hι => by
+      have hphysical :
+          completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+            zetaPrimeOffDiagonalCoordinate ι f :=
+        completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical ι f
+      exact hphysical.trans
+        (zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine ι f hι))
+
+/-- The finite contour-realized prime windows converge to the completed contour-realized
+prime distribution. -/
+theorem finitePrimeContourRealizedWindow_tendsto_completed
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f))
+      atTop
+      (𝓝
+        (completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f))) := by
+  let c : ZetaPrimePowerIndex → ℂ :=
+    fun ι =>
+      -((ι.weight : ℂ) *
+        (zetaCompletedSpectralLaplaceTransform
+            (convolutionAutocorrelation f) ι.center +
+          star
+            (zetaCompletedSpectralLaplaceTransform
+              (convolutionAutocorrelation f) ι.center)))
+  let a : ZetaPrimePowerIndex → ℝ := fun ι => Complex.re (c ι)
+  have hcomplex_twoFace :
+      Summable (fun ι : ZetaPrimePowerIndex =>
+        -zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) :=
+    (summable_zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate f).neg
+  have hcomplex :
+      Summable c := by
+    exact hcomplex_twoFace.congr
+      (fun ι : ZetaPrimePowerIndex => by
+        unfold c
+        unfold zetaCompletedSpectralLaplaceTransform
+        unfold zetaCompletedExplicitFormulaPhi
+        exact
+          (zetaCompletedPrimeSpectralSampleCoordinate_eq_neg_twoFaceBoundaryCoordinate
+            ι f).symm)
+  have hreal : Summable a := by
+    exact hcomplex.re
+  have hzero :
+      ∀ ι : ZetaPrimePowerIndex, ¬ ZetaPrimePowerIndex.IsGenuine ι → a ι = 0 := by
+    intro ι hι
+    have hweight : ι.weight = 0 :=
+      ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
+    unfold a
+    unfold c
+    calc
+      Complex.re
+          (-((ι.weight : ℂ) *
+            (zetaCompletedSpectralLaplaceTransform
+                (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedSpectralLaplaceTransform
+                  (convolutionAutocorrelation f) ι.center)))) =
+          Complex.re
+            (-((0 : ℂ) *
+              (zetaCompletedSpectralLaplaceTransform
+                  (convolutionAutocorrelation f) ι.center +
+                star
+                  (zetaCompletedSpectralLaplaceTransform
+                    (convolutionAutocorrelation f) ι.center)))) := by
+        exact congrArg
+          (fun x : ℝ =>
+            Complex.re
+              (-((x : ℂ) *
+                (zetaCompletedSpectralLaplaceTransform
+                    (convolutionAutocorrelation f) ι.center +
+                  star
+                    (zetaCompletedSpectralLaplaceTransform
+                      (convolutionAutocorrelation f) ι.center)))))
+          hweight
+      _ = Complex.re (-(0 : ℂ)) := by
+        exact congrArg (fun x : ℂ => Complex.re (-x))
+          (zero_mul
+            (zetaCompletedSpectralLaplaceTransform
+                (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedSpectralLaplaceTransform
+                  (convolutionAutocorrelation f) ι.center)))
+      _ = Complex.re (0 : ℂ) := by
+        exact congrArg Complex.re (neg_zero : -(0 : ℂ) = 0)
+      _ = 0 := by
+        exact Complex.zero_re
+  have hwindow :
+      Tendsto
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, a ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, a ι)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable a hreal hzero
+  have hwindow_eq :
+      (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f)) =
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, a ι) := by
+    funext N
+    unfold finitePrimeContourRealizedTimeDistributionWindow
+    unfold a
+    unfold c
+    exact Complex.sum_re
+      (fun ι : ZetaPrimePowerIndex =>
+        -((ι.weight : ℂ) *
+          (zetaCompletedSpectralLaplaceTransform
+              (convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedSpectralLaplaceTransform
+                (convolutionAutocorrelation f) ι.center))))
+      (ZetaPrimePowerIndex.window N)
+  have htarget :
+      (∑' ι : ZetaPrimePowerIndex, a ι) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) := by
+    unfold completedPrimeContourRealizedTimeDistributionPairing
+    unfold completedPrimeSpectralDistributionPairing
+    unfold a
+    unfold c
+    exact
+      (Complex.tsum_re
+        (fun ι : ZetaPrimePowerIndex =>
+          -((ι.weight : ℂ) *
+            (zetaCompletedSpectralLaplaceTransform
+                (convolutionAutocorrelation f) ι.center +
+              star
+                (zetaCompletedSpectralLaplaceTransform
+                  (convolutionAutocorrelation f) ι.center))))).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop
+        (𝓝
+          (completedPrimeContourRealizedTimeDistributionPairing
+            (convolutionAutocorrelation f))))
+    hwindow_eq.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, a ι)
+          atTop
+          (𝓝 x))
+      htarget
+      hwindow)
+
+/-- The finite contour-transport remainder tends to the completed difference between the
+contour-realized and time-side prime channels. -/
+theorem finitePrimeContourTransportRemainder_tendsto_boundaryDifference
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+      atTop
+      (𝓝 (completedPrimeContourTransportBoundaryDifference f)) := by
+  have hcontour :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝
+          (completedPrimeContourRealizedTimeDistributionPairing
+            (convolutionAutocorrelation f))) :=
+    finitePrimeContourRealizedWindow_tendsto_completed f
+  have htime :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) :=
+    finitePrimeTimeDistributionWindow_tendsto_completed f
+  have hdifference :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+              (convolutionAutocorrelation f) -
+            finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+        atTop
+        (𝓝
+          (completedPrimeContourRealizedTimeDistributionPairing
+              (convolutionAutocorrelation f) -
+            completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) := by
+    exact hcontour.sub htime
+  unfold finitePrimeContourTransportRemainder
+  unfold completedPrimeContourTransportBoundaryDifference
+  exact hdifference
+
+/-- The canonical contour family used to compare the finite prime transport remainder with
+the horizontal top-minus-bottom contour remainder. -/
+def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
+  c := (1 / 2 : ℝ) + 1
+  c_gt_half := by
+    exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
+
+/-- Compact support of the admissible source gives entireity of the completed Laplace
+transform. -/
+theorem zetaPhi_entire_of_compactSupport
+    (f : ZetaAdmissibleFunction) :
+    AnalyticOn ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi f z)
+      Set.univ := by
   sorry
+
+/-- Compact support of the admissible source gives differentiability of the completed
+Laplace transform at every spectral parameter. -/
+theorem zetaPhi_differentiableAt_of_compactSupport
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    DifferentiableAt ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi f z)
+      z := by
+  have hbase :
+      DifferentiableAt ℂ
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
+        z :=
+    Boundary.zetaLaplaceTransform_differentiableAt f z
+  have hphi :
+      (fun z => zetaCompletedExplicitFormulaPhi f z) =
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z) :=
+    zetaCompletedExplicitFormulaPhi_eq_laplace f
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => DifferentiableAt ℂ Φ z)
+    hphi.symm
+    hbase
+
+/-- The Paley--Wiener decay estimate for an admissible compactly supported smooth source. -/
+theorem zetaPhi_verticalStripRapidDecay_of_admissible
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi f z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  sorry
+
+/-- The admissible source has the completed transform control package. -/
+theorem zetaPhiAnalyticControl_of_admissible
+    (f : ZetaAdmissibleFunction) :
+    ZetaPhiAnalyticControl f := by
+  exact
+    { entire_phi := zetaPhi_entire_of_compactSupport f
+      differentiableAt_phi := fun z => zetaPhi_differentiableAt_of_compactSupport f z
+      vertical_strip_rapid_decay :=
+        fun a b N => zetaPhi_verticalStripRapidDecay_of_admissible f a b N }
+
+/-- The reflected dagger spectral face is entire when the seed transform has analytic
+control. -/
+theorem reflectedDaggerSeedPhi_entire_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) :
+    AnalyticOn ℂ
+      (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z)))
+      Set.univ := by
+  have hdagger :
+      AnalyticOn ℂ
+        (fun z => zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z)
+        Set.univ :=
+    zetaPhi_entire_of_compactSupport (zetaAdmissibleDagger f)
+  have hrewrite :
+      (fun z => zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z) =
+        (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z))) := by
+    funext z
+    exact zetaCompletedExplicitFormulaPhi_dagger f z
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => AnalyticOn ℂ Φ Set.univ)
+    hrewrite
+    hdagger
+
+/-- The factorized autocorrelation transform is entire when the seed transform has analytic
+control. -/
+theorem convolutionAutocorrelation_zetaPhi_entire_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) :
+    AnalyticOn ℂ
+      (fun z =>
+        zetaCompletedExplicitFormulaPhi f z *
+          star (zetaCompletedExplicitFormulaPhi f (-star z)))
+      Set.univ := by
+  have hleft :
+      AnalyticOn ℂ (fun z => zetaCompletedExplicitFormulaPhi f z) Set.univ :=
+    hseed.entire
+  have hright :
+      AnalyticOn ℂ
+        (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z)))
+        Set.univ :=
+    reflectedDaggerSeedPhi_entire_of_seedControl f hseed
+  exact hleft.mul hright
+
+/-- The autocorrelation transform is entire by factorization through the seed transform and
+its dagger-reflected face. -/
+theorem convolutionAutocorrelation_zetaPhi_entire
+    (f : ZetaAdmissibleFunction) :
+    AnalyticOn ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z)
+      Set.univ := by
+  have hseed : ZetaPhiAnalyticControl f :=
+    zetaPhiAnalyticControl_of_admissible f
+  have hfactorized :
+      AnalyticOn ℂ
+        (fun z =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi f (-star z)))
+        Set.univ :=
+    convolutionAutocorrelation_zetaPhi_entire_of_seedControl f hseed
+  have hrewrite :
+      (fun z => zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z) =
+        (fun z =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi f (-star z))) := by
+    funext z
+    exact zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation f z
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => AnalyticOn ℂ Φ Set.univ)
+    hrewrite.symm
+    hfactorized
+
+/-- The reflected dagger spectral face is differentiable when the seed transform has analytic
+control. -/
+theorem reflectedDaggerSeedPhi_differentiableAt_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) (z : ℂ) :
+    DifferentiableAt ℂ
+      (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z)))
+      z := by
+  have hdagger :
+      DifferentiableAt ℂ
+        (fun z => zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z)
+        z :=
+    zetaPhi_differentiableAt_of_compactSupport (zetaAdmissibleDagger f) z
+  have hrewrite :
+      (fun z => zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z) =
+        (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z))) := by
+    funext w
+    exact zetaCompletedExplicitFormulaPhi_dagger f w
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => DifferentiableAt ℂ Φ z)
+    hrewrite
+    hdagger
+
+/-- The autocorrelation probe transform is differentiable at every spectral point. -/
+theorem convolutionAutocorrelation_zetaPhi_differentiableAt_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) (z : ℂ) :
+    DifferentiableAt ℂ
+      (fun z =>
+        zetaCompletedExplicitFormulaPhi f z *
+          star (zetaCompletedExplicitFormulaPhi f (-star z)))
+      z := by
+  have hleft :
+      DifferentiableAt ℂ (fun z => zetaCompletedExplicitFormulaPhi f z) z :=
+    hseed.differentiableAt z
+  have hright :
+      DifferentiableAt ℂ
+        (fun z => star (zetaCompletedExplicitFormulaPhi f (-star z)))
+        z :=
+    reflectedDaggerSeedPhi_differentiableAt_of_seedControl f hseed z
+  exact hleft.mul hright
+
+/-- The autocorrelation probe transform is differentiable at every spectral point. -/
+theorem convolutionAutocorrelation_zetaPhi_differentiableAt
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    DifferentiableAt ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z)
+      z := by
+  have hseed : ZetaPhiAnalyticControl f :=
+    zetaPhiAnalyticControl_of_admissible f
+  have hfactorized :
+      DifferentiableAt ℂ
+        (fun z =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi f (-star z)))
+        z :=
+    convolutionAutocorrelation_zetaPhi_differentiableAt_of_seedControl f hseed z
+  have hrewrite :
+      (fun z => zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z) =
+        (fun z =>
+          zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi f (-star z))) := by
+    funext w
+    exact zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation f w
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => DifferentiableAt ℂ Φ z)
+    hrewrite.symm
+    hfactorized
+
+/-- The reflected dagger spectral face has rapid vertical-strip decay when the seed transform
+has analytic control. -/
+theorem reflectedDaggerSeedPhi_verticalStripRapidDecay_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖star (zetaCompletedExplicitFormulaPhi f (-star z))‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  let P := zetaPhi_verticalStripRapidDecay_of_admissible
+    (zetaAdmissibleDagger f) a b N
+  refine ⟨P.1, P.2.1, ?_⟩
+  intro z hleft hright
+  have hdagger :
+      zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z =
+        star (zetaCompletedExplicitFormulaPhi f (-star z)) :=
+    zetaCompletedExplicitFormulaPhi_dagger f z
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ P.1 * (1 + ‖z.im‖) ^ (-(N : ℤ)))
+    hdagger
+    (P.2.2 z hleft hright)
+
+/-- Real power bookkeeping for multiplying two rapidly decaying faces. -/
+theorem rapidTimesRapidPower_le_requestedRapidPower
+    (N : ℕ) (X : ℝ) (hX : 1 ≤ X) :
+    X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)) ≤
+      X ^ (-(N : ℤ)) := by
+  have hX_ne_zero : X ≠ 0 :=
+    ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
+  have hexp :
+      (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) ≤ -(N : ℤ) := by
+    omega
+  have hcombine :
+      X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)) =
+        X ^ ((-(N + 1 : ℤ)) + (-(N + 1 : ℤ))) := by
+    exact (zpow_add₀ hX_ne_zero (-(N + 1 : ℤ)) (-(N + 1 : ℤ))).symm
+  have hmono :
+      X ^ ((-(N + 1 : ℤ)) + (-(N + 1 : ℤ))) ≤
+        X ^ (-(N : ℤ)) :=
+    zpow_le_zpow_right₀ hX hexp
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ X ^ (-(N : ℤ)))
+    hcombine.symm
+    hmono
+
+/-- Pointwise product estimate for two rapidly decaying faces. -/
+theorem rapidTimesRapidPointwise_le
+    (N : ℕ) (C₁ C₂ X A B : ℝ)
+    (hC₁ : 0 < C₁) (hC₂ : 0 < C₂)
+    (hX : 1 ≤ X)
+    (hA_nonneg : 0 ≤ A) (hB_nonneg : 0 ≤ B)
+    (hA : A ≤ C₁ * X ^ (-(N + 1 : ℤ)))
+    (hB : B ≤ C₂ * X ^ (-(N + 1 : ℤ))) :
+    A * B ≤ (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+  have hX_pos : 0 < X := lt_of_lt_of_le zero_lt_one hX
+  have hX_zpow_nonneg :
+      0 ≤ X ^ (-(N + 1 : ℤ)) := by
+    exact le_of_lt (zpow_pos hX_pos (-(N + 1 : ℤ)))
+  have hrightA_nonneg : 0 ≤ C₁ * X ^ (-(N + 1 : ℤ)) := by
+    exact mul_nonneg (le_of_lt hC₁) hX_zpow_nonneg
+  have hmul :
+      A * B ≤
+        (C₁ * X ^ (-(N + 1 : ℤ))) *
+          (C₂ * X ^ (-(N + 1 : ℤ))) := by
+    exact mul_le_mul hA hB hB_nonneg hrightA_nonneg
+  have hrearrange :
+      (C₁ * X ^ (-(N + 1 : ℤ))) *
+          (C₂ * X ^ (-(N + 1 : ℤ))) =
+        (C₁ * C₂) *
+          (X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ))) := by
+    calc
+      (C₁ * X ^ (-(N + 1 : ℤ))) *
+          (C₂ * X ^ (-(N + 1 : ℤ))) =
+          C₁ * (X ^ (-(N + 1 : ℤ)) *
+            (C₂ * X ^ (-(N + 1 : ℤ)))) := by
+        exact mul_assoc C₁ (X ^ (-(N + 1 : ℤ)))
+          (C₂ * X ^ (-(N + 1 : ℤ)))
+      _ = C₁ * (C₂ *
+            (X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)))) := by
+        exact congrArg (fun y : ℝ => C₁ * y)
+          (by
+            calc
+              X ^ (-(N + 1 : ℤ)) *
+                  (C₂ * X ^ (-(N + 1 : ℤ))) =
+                  (X ^ (-(N + 1 : ℤ)) * C₂) *
+                    X ^ (-(N + 1 : ℤ)) := by
+                exact (mul_assoc (X ^ (-(N + 1 : ℤ))) C₂
+                  (X ^ (-(N + 1 : ℤ)))).symm
+              _ = (C₂ * X ^ (-(N + 1 : ℤ))) *
+                    X ^ (-(N + 1 : ℤ)) := by
+                exact congrArg
+                  (fun y : ℝ => y * X ^ (-(N + 1 : ℤ)))
+                  (mul_comm (X ^ (-(N + 1 : ℤ))) C₂)
+              _ = C₂ *
+                    (X ^ (-(N + 1 : ℤ)) *
+                      X ^ (-(N + 1 : ℤ))) := by
+                exact mul_assoc C₂
+                  (X ^ (-(N + 1 : ℤ)))
+                  (X ^ (-(N + 1 : ℤ))))
+      _ = (C₁ * C₂) *
+            (X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ))) := by
+        exact (mul_assoc C₁ C₂
+          (X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)))).symm
+  have hpower :
+      X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)) ≤
+        X ^ (-(N : ℤ)) :=
+    rapidTimesRapidPower_le_requestedRapidPower N X hX
+  have hconstant_nonneg : 0 ≤ C₁ * C₂ := by
+    exact mul_nonneg (le_of_lt hC₁) (le_of_lt hC₂)
+  have hafter_rearrange :
+      (C₁ * X ^ (-(N + 1 : ℤ))) *
+          (C₂ * X ^ (-(N + 1 : ℤ))) ≤
+        (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ (C₁ * C₂) * X ^ (-(N : ℤ)))
+      hrearrange.symm
+      (mul_le_mul_of_nonneg_left hpower hconstant_nonneg)
+  exact hmul.trans hafter_rearrange
+
+/-- Generic strip product estimate for two rapidly decaying faces. -/
+theorem stripProductDecay_of_two_rapidDecay
+    (Φ Ψ : ℂ → ℂ) (a b : ℝ) (N : ℕ)
+    (hΦ :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖Φ z‖ ≤ C * (1 + ‖z.im‖) ^ (-(N + 1 : ℤ))})
+    (hΨ :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖Ψ z‖ ≤ C * (1 + ‖z.im‖) ^ (-(N + 1 : ℤ))}) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖Φ z * Ψ z‖ ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  refine ⟨hΦ.1 * hΨ.1, mul_pos hΦ.2.1 hΨ.2.1, ?_⟩
+  intro z hleft hright
+  have hX : 1 ≤ 1 + ‖z.im‖ := by
+    exact le_add_of_nonneg_right (norm_nonneg z.im)
+  have hproduct_norm :
+      ‖Φ z * Ψ z‖ ≤ ‖Φ z‖ * ‖Ψ z‖ :=
+    norm_mul_le _ _
+  have hpoint :
+      ‖Φ z‖ * ‖Ψ z‖ ≤
+        (hΦ.1 * hΨ.1) * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=
+    rapidTimesRapidPointwise_le
+      N hΦ.1 hΨ.1 (1 + ‖z.im‖) ‖Φ z‖ ‖Ψ z‖
+      hΦ.2.1 hΨ.2.1 hX
+      (norm_nonneg (Φ z)) (norm_nonneg (Ψ z))
+      (hΦ.2.2 z hleft hright)
+      (hΨ.2.2 z hleft hright)
+  exact hproduct_norm.trans hpoint
+
+/-- The autocorrelation probe transform has rapid decay in every vertical strip. -/
+theorem convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay_of_seedControl
+    (f : ZetaAdmissibleFunction)
+    (hseed : ZetaPhiAnalyticControl f) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi f z *
+            star (zetaCompletedExplicitFormulaPhi f (-star z))‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  exact
+    stripProductDecay_of_two_rapidDecay
+      (fun z : ℂ => zetaCompletedExplicitFormulaPhi f z)
+      (fun z : ℂ => star (zetaCompletedExplicitFormulaPhi f (-star z)))
+      a b N
+      (hseed.vertical_strip_rapid_decay a b (N + 1))
+      (reflectedDaggerSeedPhi_verticalStripRapidDecay_of_seedControl
+        f hseed a b (N + 1))
+
+/-- The autocorrelation probe transform has rapid decay in every vertical strip. -/
+theorem convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  have hseed : ZetaPhiAnalyticControl f :=
+    zetaPhiAnalyticControl_of_admissible f
+  let P :=
+    convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay_of_seedControl
+      f hseed a b N
+  refine ⟨P.1, P.2.1, ?_⟩
+  intro z hleft hright
+  have hfactor :
+      zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z =
+        zetaCompletedExplicitFormulaPhi f z *
+          star (zetaCompletedExplicitFormulaPhi f (-star z)) :=
+    zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation f z
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ P.1 * (1 + ‖z.im‖) ^ (-(N : ℤ)))
+    hfactor.symm
+    (P.2.2 z hleft hright)
+
+/-- The autocorrelation probe has the Paley--Wiener transform control required for the
+completed prime contour-transport family. -/
+theorem convolutionAutocorrelation_zetaPhiAnalyticControl
+    (f : ZetaAdmissibleFunction) :
+    ZetaPhiAnalyticControl (convolutionAutocorrelation f) := by
+  exact
+    { entire_phi := convolutionAutocorrelation_zetaPhi_entire f
+      differentiableAt_phi :=
+        fun z => convolutionAutocorrelation_zetaPhi_differentiableAt f z
+      vertical_strip_rapid_decay :=
+        fun a b N =>
+          convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay f a b N }
+
+/-- The completed negative logarithmic derivative has polynomial strip growth. -/
+theorem completedZetaNegLogDeriv_globalPolynomialStripBound
+    (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N} := by
+  sorry
+
+/-- Real power bookkeeping for the strip product estimate. -/
+theorem polynomialTimesRapidPower_le_requestedRapidPower
+    (N : ℕ) (X : ℝ) (hX : 1 ≤ X) :
+    X ^ N * X ^ (-(N + N + 1 : ℤ)) ≤
+      X ^ (-(N : ℤ)) := by
+  have hX_ne_zero : X ≠ 0 :=
+    ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
+  have hexp :
+      (N : ℤ) + (-(N + N + 1 : ℤ)) ≤ -(N : ℤ) := by
+    omega
+  have hnat :
+      X ^ N = X ^ (N : ℤ) := by
+    exact (zpow_natCast X N).symm
+  have hcombine :
+      X ^ N * X ^ (-(N + N + 1 : ℤ)) =
+        X ^ ((N : ℤ) + (-(N + N + 1 : ℤ))) := by
+    calc
+      X ^ N * X ^ (-(N + N + 1 : ℤ)) =
+          X ^ (N : ℤ) * X ^ (-(N + N + 1 : ℤ)) := by
+        exact congrArg
+          (fun y : ℝ => y * X ^ (-(N + N + 1 : ℤ)))
+          hnat
+      _ = X ^ ((N : ℤ) + (-(N + N + 1 : ℤ))) := by
+        exact (zpow_add₀ hX_ne_zero (N : ℤ) (-(N + N + 1 : ℤ))).symm
+  have hmono :
+      X ^ ((N : ℤ) + (-(N + N + 1 : ℤ))) ≤
+        X ^ (-(N : ℤ)) :=
+    zpow_le_zpow_right₀ hX hexp
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ X ^ (-(N : ℤ)))
+    hcombine.symm
+    hmono
+
+/-- Constant and power bookkeeping for the strip product estimate. -/
+theorem stripProductPointwise_le
+    (N : ℕ) (C₁ C₂ X A B : ℝ)
+    (hC₁ : 0 < C₁) (hC₂ : 0 < C₂)
+    (hX : 1 ≤ X)
+    (hA_nonneg : 0 ≤ A) (hB_nonneg : 0 ≤ B)
+    (hA : A ≤ C₁ * X ^ N)
+    (hB : B ≤ C₂ * X ^ (-(N + N + 1 : ℤ))) :
+    A * B ≤ (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+  have hX_pos : 0 < X := lt_of_lt_of_le zero_lt_one hX
+  have hX_pow_nonneg : 0 ≤ X ^ N := by
+    exact pow_nonneg (le_of_lt hX_pos) N
+  have hX_zpow_nonneg :
+      0 ≤ X ^ (-(N + N + 1 : ℤ)) := by
+    exact le_of_lt (zpow_pos hX_pos (-(N + N + 1 : ℤ)))
+  have hrightA_nonneg : 0 ≤ C₁ * X ^ N := by
+    exact mul_nonneg (le_of_lt hC₁) hX_pow_nonneg
+  have hmul :
+      A * B ≤ (C₁ * X ^ N) *
+          (C₂ * X ^ (-(N + N + 1 : ℤ))) := by
+    exact mul_le_mul hA hB hB_nonneg hrightA_nonneg
+  have hrearrange :
+      (C₁ * X ^ N) * (C₂ * X ^ (-(N + N + 1 : ℤ))) =
+        (C₁ * C₂) * (X ^ N * X ^ (-(N + N + 1 : ℤ))) := by
+    calc
+      (C₁ * X ^ N) * (C₂ * X ^ (-(N + N + 1 : ℤ))) =
+          C₁ * (X ^ N * (C₂ * X ^ (-(N + N + 1 : ℤ)))) := by
+        exact mul_assoc C₁ (X ^ N) (C₂ * X ^ (-(N + N + 1 : ℤ)))
+      _ = C₁ * (C₂ * (X ^ N * X ^ (-(N + N + 1 : ℤ)))) := by
+        exact congrArg (fun y : ℝ => C₁ * y)
+          (by
+            calc
+              X ^ N * (C₂ * X ^ (-(N + N + 1 : ℤ))) =
+                  (X ^ N * C₂) * X ^ (-(N + N + 1 : ℤ)) := by
+                exact (mul_assoc (X ^ N) C₂ (X ^ (-(N + N + 1 : ℤ)))).symm
+              _ = (C₂ * X ^ N) * X ^ (-(N + N + 1 : ℤ)) := by
+                exact congrArg (fun y : ℝ => y * X ^ (-(N + N + 1 : ℤ)))
+                  (mul_comm (X ^ N) C₂)
+              _ = C₂ * (X ^ N * X ^ (-(N + N + 1 : ℤ))) := by
+                exact mul_assoc C₂ (X ^ N) (X ^ (-(N + N + 1 : ℤ))))
+      _ = (C₁ * C₂) * (X ^ N * X ^ (-(N + N + 1 : ℤ))) := by
+        exact (mul_assoc C₁ C₂ (X ^ N * X ^ (-(N + N + 1 : ℤ)))).symm
+  have hpower :
+      X ^ N * X ^ (-(N + N + 1 : ℤ)) ≤ X ^ (-(N : ℤ)) :=
+    polynomialTimesRapidPower_le_requestedRapidPower N X hX
+  have hconstant_nonneg : 0 ≤ C₁ * C₂ := by
+    exact mul_nonneg (le_of_lt hC₁) (le_of_lt hC₂)
+  have hafter_rearrange :
+      (C₁ * X ^ N) * (C₂ * X ^ (-(N + N + 1 : ℤ))) ≤
+        (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ (C₁ * C₂) * X ^ (-(N : ℤ)))
+      hrearrange.symm
+      (mul_le_mul_of_nonneg_left hpower hconstant_nonneg)
+  exact hmul.trans hafter_rearrange
+
+/-- Generic strip product estimate: polynomial growth times sufficiently rapid decay is
+rapid decay of the requested order. -/
+theorem stripProductDecay_of_polynomialGrowth_and_rapidDecay
+    (Φ : ℂ → ℂ) (a b : ℝ) (N : ℕ)
+    (hlog :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ N})
+    (hphi :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖Φ z‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(N + N + 1 : ℤ))}) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖ * ‖Φ z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  refine ⟨hlog.1 * hphi.1, mul_pos hlog.2.1 hphi.2.1, ?_⟩
+  intro z hleft hright
+  have hX : 1 ≤ 1 + ‖z.im‖ := by
+    exact le_add_of_nonneg_right (norm_nonneg z.im)
+  exact stripProductPointwise_le
+    N hlog.1 hphi.1 (1 + ‖z.im‖)
+    ‖completedZetaNegLogDeriv z‖
+    ‖Φ z‖
+    hlog.2.1 hphi.2.1 hX
+    (norm_nonneg (completedZetaNegLogDeriv z))
+    (norm_nonneg (Φ z))
+    (hlog.2.2 z hleft hright)
+    (hphi.2.2 z hleft hright)
+
+/-- Polynomial completed-zeta log-derivative growth, paired with rapid transform decay, gives
+the product decay actually used by the horizontal contour estimate. -/
+theorem completedZetaNegLogDeriv_times_autocorrelationPhi_rapidStripDecay_of_growth_and_phiDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ)
+    (hlog :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ N})
+    (hphi :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(N + N + 1 : ℤ))}) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  exact
+    stripProductDecay_of_polynomialGrowth_and_rapidDecay
+      (fun z : ℂ =>
+        zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z)
+      a b N hlog hphi
+
+/-- Polynomial completed-zeta log-derivative growth, paired with rapid transform decay, gives
+the product decay actually used by the horizontal contour estimate. -/
+theorem completedZetaNegLogDeriv_times_autocorrelationPhi_rapidStripDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  exact
+    completedZetaNegLogDeriv_times_autocorrelationPhi_rapidStripDecay_of_growth_and_phiDecay
+      f a b N
+    (completedZetaNegLogDeriv_globalPolynomialStripBound a b N)
+    (convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay f a b (N + N + 1))
+
+/-- Subtracting the central half shifts the real coordinate by `1 / 2`. -/
+theorem complex_sub_half_re (z : ℂ) :
+    (z - (1 / 2 : ℂ)).re = z.re - (1 / 2 : ℝ) := by
+  calc
+    (z - (1 / 2 : ℂ)).re = z.re - (1 / 2 : ℂ).re := by
+      exact Complex.sub_re z (1 / 2 : ℂ)
+    _ = z.re - (1 / 2 : ℝ) := by
+      exact congrArg (fun x : ℝ => z.re - x) complex_half_re
+
+/-- Subtracting the central half does not change the imaginary coordinate. -/
+theorem complex_sub_half_im (z : ℂ) :
+    (z - (1 / 2 : ℂ)).im = z.im := by
+  have hhalf_im : (1 / 2 : ℂ).im = 0 := by
+    exact Eq.trans
+      (congrArg Complex.im complex_half_eq_ofReal_half)
+      (Complex.ofReal_im (1 / 2 : ℝ))
+  calc
+    (z - (1 / 2 : ℂ)).im = z.im - (1 / 2 : ℂ).im := by
+      exact Complex.sub_im z (1 / 2 : ℂ)
+    _ = z.im - 0 := by
+      exact congrArg (fun x : ℝ => z.im - x) hhalf_im
+    _ = z.im := by
+      exact sub_zero z.im
+
+/-- Subtracting the central half does not change the imaginary norm. -/
+theorem complex_sub_half_im_norm (z : ℂ) :
+    ‖(z - (1 / 2 : ℂ)).im‖ = ‖z.im‖ := by
+  exact congrArg norm (complex_sub_half_im z)
+
+/-- Vertical-strip decay for the autocorrelation transform after the contour half-shift. -/
+theorem shiftedAutocorrelationPhi_verticalStripRapidDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (z - 1 / 2)‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  let P :=
+    convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay
+      f (a - 1 / 2) (b - 1 / 2) N
+  refine ⟨P.1, P.2.1, ?_⟩
+  intro z hleft hright
+  have hshift_left :
+      a - 1 / 2 ≤ (z - (1 / 2 : ℂ)).re := by
+    exact Eq.subst
+      (motive := fun x : ℝ => a - 1 / 2 ≤ x)
+      (complex_sub_half_re z).symm
+      (sub_le_sub_right hleft (1 / 2 : ℝ))
+  have hshift_right :
+      (z - (1 / 2 : ℂ)).re ≤ b - 1 / 2 := by
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ b - 1 / 2)
+      (complex_sub_half_re z).symm
+      (sub_le_sub_right hright (1 / 2 : ℝ))
+  have hdecay :
+      ‖zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ P.1 * (1 + ‖(z - (1 / 2 : ℂ)).im‖) ^ (-(N : ℤ)) :=
+    P.2.2 (z - 1 / 2) hshift_left hshift_right
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      ‖zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ P.1 * (1 + x) ^ (-(N : ℤ)))
+    (complex_sub_half_im_norm z)
+    hdecay
+
+/-- Polynomial completed-zeta log-derivative growth, paired with shifted rapid transform
+decay, gives the product decay actually used by the horizontal contour estimate. -/
+theorem completedZetaNegLogDeriv_times_shiftedAutocorrelationPhi_rapidStripDecay_of_growth_and_phiDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ)
+    (hlog :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ N})
+    (hphi :
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(N + N + 1 : ℤ))}) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  exact
+    stripProductDecay_of_polynomialGrowth_and_rapidDecay
+      (fun z : ℂ =>
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (z - 1 / 2))
+      a b N hlog hphi
+
+/-- Product-form horizontal decay for the shifted contour integrand.  The completed contour
+integrand contains `Φ(g)(z - 1/2)`, not `Φ(g)(z)`, so the horizontal-control API must own
+this shifted estimate explicitly. -/
+theorem completedZetaNegLogDeriv_times_shiftedAutocorrelationPhi_rapidStripDecay
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    {C : ℝ //
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
+  exact
+    completedZetaNegLogDeriv_times_shiftedAutocorrelationPhi_rapidStripDecay_of_growth_and_phiDecay
+      f a b N
+      (completedZetaNegLogDeriv_globalPolynomialStripBound a b N)
+      (shiftedAutocorrelationPhi_verticalStripRapidDecay f a b (N + N + 1))
+
+/-- Product-form horizontal control for the completed prime contour transport.
+
+This is the long-term horizontal-decay API for the RH lane: the horizontal integrand is
+controlled by the product of the completed-zeta logarithmic derivative and the probe
+transform.  It does not require the logarithmic derivative to have rapid decay by itself. -/
+structure CompletedPrimeProductHorizontalControl
+    (f : ZetaAdmissibleFunction) where
+  product_strip_decay :
+    ∀ (a b : ℝ) (N : ℕ),
+      {C : ℝ //
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖completedZetaNegLogDeriv z‖ *
+              ‖zetaCompletedExplicitFormulaPhi
+                (convolutionAutocorrelation f) (z - 1 / 2)‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))}
+
+/-- The completed prime contour transport has product-form horizontal control. -/
+theorem completedPrimeProductHorizontalControl_of_autocorrelation
+    (f : ZetaAdmissibleFunction) :
+    CompletedPrimeProductHorizontalControl f := by
+  exact
+    { product_strip_decay :=
+        fun a b N =>
+          completedZetaNegLogDeriv_times_shiftedAutocorrelationPhi_rapidStripDecay
+            f a b N }
+
+/-- Product-form horizontal envelope for the sampled prime contour family. -/
+noncomputable def sampledProductHorizontalEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) : ℕ → ℝ :=
+  fun M =>
+    (hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      N).1 *
+      (1 + ‖(M : ℝ)‖) ^ (-(N : ℤ)) *
+      (2 * horizontalEdgeLength completedPrimeContourTransportFamily.c)
+
+/-- The sampled horizontal top-minus-bottom contour remainder along the prime transport
+family. -/
+noncomputable def sampledHorizontalDifference
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  zetaCompletedExplicitFormulaTopLineIntegral
+      (convolutionAutocorrelation f)
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
+    zetaCompletedExplicitFormulaBottomLineIntegral
+      (convolutionAutocorrelation f)
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
+/-- The coordinatewise majorant for the completed contour-transport remainder. -/
+noncomputable def completedPrimeContourTransportCoordinateRemainderMajorant
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  ‖completedPrimeContourTransportCoordinateRemainder ι f‖
+
+/-- The contour-transport coordinate remainder is bounded by its explicit majorant. -/
+theorem norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+      completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant
+  exact le_refl _
+
+/-- The contour-transport coordinate remainder majorant is nonnegative. -/
+theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant
+  exact norm_nonneg _
+
+/-- The contour-transport coordinate remainder majorant is controlled by the completed
+spectral majorant. -/
+theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_spectralMajorant_ownerBound
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  sorry
+
+/-- The completed contour-transport coordinate remainder majorant is summable. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
+  exact
+    Summable.of_norm_bounded
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimeSpectralCoordinateMajorant ι f)
+      (summable_zetaCompletedPrimeSpectralCoordinateMajorant f)
+      (fun ι : ZetaPrimePowerIndex => by
+        have hnonneg :
+            0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+          completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
+            ι f
+        have hnorm :
+            ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
+              completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+          Real.norm_of_nonneg hnonneg
+        exact Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ zetaCompletedPrimeSpectralCoordinateMajorant ι f)
+          hnorm.symm
+          (completedPrimeContourTransportCoordinateRemainderMajorant_le_spectralMajorant_ownerBound
+            ι f))
+
+/-- A real coordinate family is summable when its norm is bounded by a summable nonnegative
+majorant. -/
+theorem summable_real_family_of_norm_le_majorant
+    (u v : ZetaPrimePowerIndex → ℝ)
+    (hv : Summable v)
+    (hv_nonneg : ∀ ι : ZetaPrimePowerIndex, 0 ≤ v ι)
+    (hbound : ∀ ι : ZetaPrimePowerIndex, ‖u ι‖ ≤ v ι) :
+    Summable u := by
+  exact Summable.of_norm_bounded v hv hbound
+
+/-- The completed contour-transport coordinate remainder is summable. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainder
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainder ι f) := by
+  exact
+    summable_real_family_of_norm_le_majorant
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainder ι f)
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f)
+      (summable_completedPrimeContourTransportCoordinateRemainderMajorant f)
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f)
+      (fun ι : ZetaPrimePowerIndex =>
+        norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
+          ι f)
+
+/-- The contour-transport coordinate remainder majorant is controlled by the completed
+spectral majorant. -/
+theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_spectralMajorant
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  exact
+    completedPrimeContourTransportCoordinateRemainderMajorant_le_spectralMajorant_ownerBound
+      ι f
+
+/-- Each contour-transport coordinate remainder is controlled by the completed spectral
+majorant. -/
+theorem norm_completedPrimeContourTransportCoordinateRemainder_le_spectralMajorant
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  exact
+    (norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
+      ι f).trans
+      (completedPrimeContourTransportCoordinateRemainderMajorant_le_spectralMajorant
+        ι f)
+
+/-- The tail of the contour-transport coordinate remainder is controlled by the spectral
+majorant tail. -/
+theorem norm_coordinateRemainderTail_le_spectralMajorantTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ‖(∑' ι : ZetaPrimePowerIndex,
+        if ι ∈ ZetaPrimePowerIndex.window N then
+          0
+        else
+          completedPrimeContourTransportCoordinateRemainder ι f)‖ ≤
+      ∑' ι : ZetaPrimePowerIndex,
+        if ι ∈ ZetaPrimePowerIndex.window N then
+          0
+        else
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  let u : ZetaPrimePowerIndex → ℝ :=
+    fun ι => completedPrimeContourTransportCoordinateRemainder ι f
+  let v : ZetaPrimePowerIndex → ℝ :=
+    fun ι => zetaCompletedPrimeSpectralCoordinateMajorant ι f
+  have hu : Summable u := by
+    exact summable_completedPrimeContourTransportCoordinateRemainder f
+  have hv : Summable v := by
+    exact summable_zetaCompletedPrimeSpectralCoordinateMajorant f
+  have hv_nonneg : ∀ ι : ZetaPrimePowerIndex, 0 ≤ v ι := by
+    intro ι
+    unfold v
+    unfold zetaCompletedPrimeSpectralCoordinateMajorant
+    exact add_nonneg (sq_nonneg _) (sq_nonneg _)
+  have hbound : ∀ ι : ZetaPrimePowerIndex, ‖u ι‖ ≤ v ι := by
+    intro ι
+    unfold u
+    unfold v
+    exact norm_completedPrimeContourTransportCoordinateRemainder_le_spectralMajorant
+      ι f
+  change
+    ‖(∑' ι : ZetaPrimePowerIndex, ZetaPrimePowerIndex.spectralTail u N ι)‖ ≤
+      ∑' ι : ZetaPrimePowerIndex, ZetaPrimePowerIndex.spectralTail v N ι
+  exact
+    ZetaPrimePowerIndex.norm_spectralTail_tsum_le_spectralTail_tsum_of_norm_le
+      u v hu hv hv_nonneg hbound N
+
+/-- The two horizontal edge envelopes combine into the product envelope with the explicit
+factor `2`. -/
+theorem two_horizontalEdgeEnvelope_eq_productEnvelope
+    (A B L : ℝ) :
+    A * B * L + A * B * L = A * B * (2 * L) := by
+  calc
+    A * B * L + A * B * L =
+        (A * B) * L + (A * B) * L := by
+      rfl
+    _ = 2 * ((A * B) * L) := by
+      exact (two_mul ((A * B) * L)).symm
+    _ = (2 * (A * B)) * L := by
+      exact mul_assoc 2 (A * B) L
+    _ = ((A * B) * 2) * L := by
+      exact congrArg (fun x : ℝ => x * L) (mul_comm 2 (A * B))
+    _ = (A * B) * (2 * L) := by
+      exact (mul_assoc (A * B) 2 L).symm
+    _ = A * B * (2 * L) := by
+      rfl
+
+/-- Product-form control bounds the top horizontal contour integrand pointwise. -/
+theorem sampledTopHorizontalIntegrand_norm_le_productEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) (x : ℝ)
+    (hx :
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c)) :
+    ‖completedZetaNegLogDeriv
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)‖ ≤
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).1 *
+        (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+  let r : ExplicitFormulaRectangle :=
+    completedPrimeContourTransportFamily.rectangle (N : ℝ)
+  let z : ℂ := zetaCompletedExplicitFormulaTopPath r x
+  let A : ℝ :=
+    (hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      1).1
+  have hstrip :
+      min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) ≤ z.re ∧
+        z.re ≤
+          max completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) := by
+    unfold z
+    unfold r
+    exact zetaCompletedExplicitFormulaTopPath_re_mem_uIcc_bounds
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x hx
+  have hprod :
+      ‖completedZetaNegLogDeriv z‖ *
+          ‖zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ A * (1 + ‖z.im‖) ^ (-(1 : ℤ)) := by
+    unfold A
+    exact
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).2.2 z hstrip.1 hstrip.2
+  have him :
+      ‖z.im‖ = ‖(N : ℝ)‖ := by
+    unfold z
+    unfold r
+    exact zetaCompletedExplicitFormulaTopPath_im_norm
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x
+  have hproduct_norm :
+      ‖completedZetaNegLogDeriv z *
+          zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖ :=
+    norm_mul_le _ _
+  have htarget_product :
+      ‖completedZetaNegLogDeriv z‖ *
+          ‖zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ A * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+    exact Eq.subst
+      (motive := fun y : ℝ =>
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖
+          ≤ A * (1 + y) ^ (-(1 : ℤ)))
+      him
+      hprod
+  exact hproduct_norm.trans htarget_product
+
+/-- Product-form control bounds the bottom horizontal contour integrand pointwise. -/
+theorem sampledBottomHorizontalIntegrand_norm_le_productEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) (x : ℝ)
+    (hx :
+      x ∈ Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c)) :
+    ‖completedZetaNegLogDeriv
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)‖ ≤
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).1 *
+        (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+  let r : ExplicitFormulaRectangle :=
+    completedPrimeContourTransportFamily.rectangle (N : ℝ)
+  let z : ℂ := zetaCompletedExplicitFormulaBottomPath r x
+  let A : ℝ :=
+    (hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      1).1
+  have hstrip :
+      min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c) ≤ z.re ∧
+        z.re ≤
+          max completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c) := by
+    unfold z
+    unfold r
+    exact zetaCompletedExplicitFormulaBottomPath_re_mem_uIcc_bounds
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x hx
+  have hprod :
+      ‖completedZetaNegLogDeriv z‖ *
+          ‖zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ A * (1 + ‖z.im‖) ^ (-(1 : ℤ)) := by
+    unfold A
+    exact
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).2.2 z hstrip.1 hstrip.2
+  have him :
+      ‖z.im‖ = ‖(N : ℝ)‖ := by
+    unfold z
+    unfold r
+    exact zetaCompletedExplicitFormulaBottomPath_im_norm
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x
+  have hproduct_norm :
+      ‖completedZetaNegLogDeriv z *
+          zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖ :=
+    norm_mul_le _ _
+  have htarget_product :
+      ‖completedZetaNegLogDeriv z‖ *
+          ‖zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f) (z - 1 / 2)‖
+        ≤ A * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+    exact Eq.subst
+      (motive := fun y : ℝ =>
+        ‖completedZetaNegLogDeriv z‖ *
+            ‖zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f) (z - 1 / 2)‖
+          ≤ A * (1 + y) ^ (-(1 : ℤ)))
+      him
+      hprod
+  exact hproduct_norm.trans htarget_product
+
+/-- Product-form control bounds the top horizontal contour integral. -/
+theorem sampledTopHorizontalIntegral_norm_le_productEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) :
+    ‖zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ))‖ ≤
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).1 *
+        (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) *
+        horizontalEdgeLength completedPrimeContourTransportFamily.c := by
+  unfold zetaCompletedExplicitFormulaTopLineIntegral
+  exact norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
+    (fun x : ℝ =>
+      completedZetaNegLogDeriv
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2))
+    completedPrimeContourTransportFamily.c
+    ((hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      1).1 *
+      (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)))
+    (fun x hx =>
+      sampledTopHorizontalIntegrand_norm_le_productEnvelope
+        f hcontrol N x hx)
+
+/-- Product-form control bounds the bottom horizontal contour integral. -/
+theorem sampledBottomHorizontalIntegral_norm_le_productEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) :
+    ‖zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ))‖ ≤
+      (hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).1 *
+        (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) *
+        horizontalEdgeLength completedPrimeContourTransportFamily.c := by
+  unfold zetaCompletedExplicitFormulaBottomLineIntegral
+  exact norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
+    (fun x : ℝ =>
+      completedZetaNegLogDeriv
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2))
+    completedPrimeContourTransportFamily.c
+    ((hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      1).1 *
+      (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)))
+    (fun x hx =>
+      sampledBottomHorizontalIntegrand_norm_le_productEnvelope
+        f hcontrol N x hx)
+
+/-- Product-form control bounds the top-minus-bottom sampled horizontal contour
+difference. -/
+theorem sampledHorizontalDifference_norm_le_twoEdgeProductEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) :
+    ‖sampledHorizontalDifference N f‖ ≤
+      sampledProductHorizontalEnvelope f hcontrol 1 N := by
+  let A : ℝ :=
+    (hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      1).1
+  let B : ℝ := (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ))
+  let L : ℝ := horizontalEdgeLength completedPrimeContourTransportFamily.c
+  have htop :
+      ‖zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))‖ ≤
+        A * B * L := by
+    exact sampledTopHorizontalIntegral_norm_le_productEnvelope f hcontrol N
+  have hbottom :
+      ‖zetaCompletedExplicitFormulaBottomLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))‖ ≤
+        A * B * L := by
+    exact sampledBottomHorizontalIntegral_norm_le_productEnvelope f hcontrol N
+  have hnorm :
+      ‖sampledHorizontalDifference N f‖ ≤
+        A * B * L + A * B * L := by
+    unfold sampledHorizontalDifference
+    exact (norm_sub_le
+      (zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
+      (zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))).trans
+      (add_le_add htop hbottom)
+  have henvelope :
+      A * B * L + A * B * L =
+        sampledProductHorizontalEnvelope f hcontrol 1 N := by
+    unfold sampledProductHorizontalEnvelope
+    unfold A
+    unfold B
+    unfold L
+    exact two_horizontalEdgeEnvelope_eq_productEnvelope
+      ((hcontrol.product_strip_decay
+        (min completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        (max completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c))
+        1).1)
+      ((1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)))
+      (horizontalEdgeLength completedPrimeContourTransportFamily.c)
+  exact hnorm.trans (le_of_eq henvelope)
+
+/-- The sampled horizontal difference is bounded by the product-form horizontal envelope. -/
+theorem sampledHorizontalDifference_norm_le_productEnvelope
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (N : ℕ) :
+    ‖sampledHorizontalDifference N f‖ ≤
+      sampledProductHorizontalEnvelope f hcontrol 1 N := by
+  exact sampledHorizontalDifference_norm_le_twoEdgeProductEnvelope f hcontrol N
+
+/-- The product-form sampled horizontal envelope tends to zero. -/
+theorem sampledProductHorizontalEnvelope_tendsto_zero
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f)
+    (k : ℕ) :
+    Tendsto
+      (fun N : ℕ => sampledProductHorizontalEnvelope f hcontrol k.succ N)
+      atTop
+      (𝓝 0) := by
+  let C : ℝ :=
+    (hcontrol.product_strip_decay
+      (min completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      (max completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c))
+      k.succ).1
+  let L : ℝ := 2 * horizontalEdgeLength completedPrimeContourTransportFamily.c
+  have hpowReal :
+      Tendsto
+        (fun T : ℝ => (1 + ‖T‖) ^ (-(k.succ : ℤ)))
+        atTop
+        (𝓝 (0 : ℝ)) :=
+    tendsto_one_add_norm_pow_neg_atTop k
+  have hpowNat :
+      Tendsto
+        (fun N : ℕ => (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)))
+        atTop
+        (𝓝 (0 : ℝ)) :=
+    hpowReal.comp tendsto_natCast_atTop_atTop
+  have hscaled :
+      Tendsto
+        (fun N : ℕ => (C * L) * (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)))
+        atTop
+        (𝓝 0) := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ => (C * L) * (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)))
+          atTop
+          (𝓝 x))
+      (mul_zero (C * L))
+      (hpowNat.const_mul (C * L))
+  have hrewrite :
+      (fun N : ℕ => sampledProductHorizontalEnvelope f hcontrol k.succ N) =
+        fun N : ℕ =>
+          (C * L) * (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)) := by
+    funext N
+    unfold sampledProductHorizontalEnvelope
+    unfold C
+    unfold L
+    calc
+      (hcontrol.product_strip_decay
+          (min completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c))
+          (max completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c))
+          k.succ).1 *
+          (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)) *
+          (2 * horizontalEdgeLength completedPrimeContourTransportFamily.c) =
+          ((hcontrol.product_strip_decay
+              (min completedPrimeContourTransportFamily.c
+                (1 - completedPrimeContourTransportFamily.c))
+              (max completedPrimeContourTransportFamily.c
+                (1 - completedPrimeContourTransportFamily.c))
+              k.succ).1 *
+            (2 * horizontalEdgeLength completedPrimeContourTransportFamily.c)) *
+            (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ)) := by
+        let A : ℝ :=
+          (hcontrol.product_strip_decay
+            (min completedPrimeContourTransportFamily.c
+              (1 - completedPrimeContourTransportFamily.c))
+            (max completedPrimeContourTransportFamily.c
+              (1 - completedPrimeContourTransportFamily.c))
+            k.succ).1
+        let B : ℝ := (1 + ‖(N : ℝ)‖) ^ (-(k.succ : ℤ))
+        let D : ℝ := 2 * horizontalEdgeLength completedPrimeContourTransportFamily.c
+        change A * B * D = (A * D) * B
+        calc
+          A * B * D = A * (B * D) := by
+            exact mul_assoc A B D
+          _ = A * (D * B) := by
+            exact congrArg (fun x : ℝ => A * x) (mul_comm B D)
+          _ = A * D * B := by
+            exact (mul_assoc A D B).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hrewrite.symm
+    hscaled
+
+/-- Product-form horizontal control implies decay of the sampled horizontal difference. -/
+theorem sampledHorizontalDifference_tendsto_zero_of_productHorizontalControl
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f) :
+    Tendsto
+      (fun N : ℕ => sampledHorizontalDifference N f)
+      atTop
+      (𝓝 0) := by
+  have hbound :
+      ∀ N : ℕ,
+        ‖sampledHorizontalDifference N f‖ ≤
+          sampledProductHorizontalEnvelope f hcontrol 1 N := by
+    intro N
+    exact sampledHorizontalDifference_norm_le_productEnvelope f hcontrol N
+  have henvelope :
+      Tendsto
+        (fun N : ℕ => sampledProductHorizontalEnvelope f hcontrol 1 N)
+        atTop
+        (𝓝 0) :=
+    sampledProductHorizontalEnvelope_tendsto_zero f hcontrol 0
+  exact squeeze_zero_norm'
+    (Eventually.of_forall hbound)
+    henvelope
+
+/-- The residual finite prime tomography error after subtracting the sampled horizontal
+contour difference from the finite prime contour-transport remainder.
+
+This object is deliberately explicit: the finite prime-window remainder is not asserted to
+be literally the horizontal contour difference.  The remaining owner theorem is that this
+residual error tends to zero. -/
+noncomputable def finitePrimeContourTransportTomographicError
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePrimeContourTransportRemainder N f -
+    sampledHorizontalDifference N f
+
+/-- A nonnegative majorant for the finite prime tomographic residual error. -/
+noncomputable def finitePrimeContourTransportTomographicErrorMajorant
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  ‖finitePrimeContourTransportTomographicError N f‖
+
+/-- The spectral-coordinate tail majorant controlling the finite prime tomographic residual.
+
+The finite residual is a completed prime-window tomography error, so its decay is controlled
+by the tail of the completed spectral coordinate majorant outside the finite prime-power
+window. -/
+noncomputable def finitePrimeContourTransportTomographicSpectralTailMajorant
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  ∑' ι : ZetaPrimePowerIndex,
+    if ι ∈ ZetaPrimePowerIndex.window N then
+      0
+    else
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f
+
+/-- The finite prime contour-transport remainder splits as sampled horizontal difference
+plus residual finite tomography error. -/
+theorem finitePrimeContourTransportRemainder_eq_sampledHorizontalDifference_add_error
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportRemainder N f =
+      sampledHorizontalDifference N f +
+        finitePrimeContourTransportTomographicError N f := by
+  unfold finitePrimeContourTransportTomographicError
+  let R : ℝ := finitePrimeContourTransportRemainder N f
+  let H : ℝ := sampledHorizontalDifference N f
+  change R = H + (R - H)
+  calc
+    R = R + 0 := by
+      exact (add_zero R).symm
+    _ = R + (H + -H) := by
+      exact congrArg (fun x : ℝ => R + x) (add_right_neg H).symm
+    _ = (R + H) + -H := by
+      exact (add_assoc R H (-H)).symm
+    _ = (H + R) + -H := by
+      exact congrArg (fun x : ℝ => x + -H) (add_comm R H)
+    _ = H + (R + -H) := by
+      exact add_assoc H R (-H)
+    _ = H + (R - H) := by
+      exact congrArg (fun x : ℝ => H + x) (sub_eq_add_neg R H).symm
+
+/-- The finite prime tomographic residual error is controlled by its explicit majorant. -/
+theorem norm_finitePrimeContourTransportTomographicError_le_majorant
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ‖finitePrimeContourTransportTomographicError N f‖ ≤
+      finitePrimeContourTransportTomographicErrorMajorant N f := by
+  unfold finitePrimeContourTransportTomographicErrorMajorant
+  exact le_refl _
+
+/-- Contour-residue tomography bounds the residual finite prime error, after subtracting
+the horizontal contour sides, by the omitted completed spectral-coordinate tail. -/
+theorem finitePrimeContourTransportTomographicError_residueTailDomination
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ‖finitePrimeContourTransportTomographicError N f‖ ≤
+      ∑' ι : ZetaPrimePowerIndex,
+        if ι ∈ ZetaPrimePowerIndex.window N then
+          0
+        else
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  sorry
+
+/-- The residual majorant is controlled by the spectral tail majorant. -/
+theorem finitePrimeContourTransportTomographicError_coordinateDomination
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ‖finitePrimeContourTransportTomographicError N f‖ ≤
+      ∑' ι : ZetaPrimePowerIndex,
+        if ι ∈ ZetaPrimePowerIndex.window N then
+          0
+        else
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  exact finitePrimeContourTransportTomographicError_residueTailDomination N f
+
+/-- The residual majorant is controlled by the spectral tail majorant. -/
+theorem finitePrimeContourTransportTomographicErrorMajorant_le_spectralTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportTomographicErrorMajorant N f ≤
+      finitePrimeContourTransportTomographicSpectralTailMajorant N f := by
+  unfold finitePrimeContourTransportTomographicErrorMajorant
+  unfold finitePrimeContourTransportTomographicSpectralTailMajorant
+  exact finitePrimeContourTransportTomographicError_coordinateDomination N f
+
+/-- The spectral tail majorant controlling the finite prime tomographic residual tends to
+zero. -/
+theorem primeWindow_spectralTail_tendsto_zero_of_summable
+    (f : ZetaAdmissibleFunction)
+    (u : ZetaPrimePowerIndex → ℝ)
+    (hsum : Summable u)
+    (hnonneg : ∀ ι : ZetaPrimePowerIndex, 0 ≤ u ι)
+    (hzero : ∀ ι : ZetaPrimePowerIndex, ¬ ZetaPrimePowerIndex.IsGenuine ι → u ι = 0) :
+    Tendsto
+      (fun N : ℕ =>
+        ∑' ι : ZetaPrimePowerIndex,
+          if ι ∈ ZetaPrimePowerIndex.window N then
+            0
+          else
+            u ι)
+      atTop
+      (𝓝 0) := by
+  have hwindow :
+      Tendsto
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable u hsum hzero
+  have htail_as_difference :
+      (fun N : ℕ =>
+        ∑' ι : ZetaPrimePowerIndex,
+          if ι ∈ ZetaPrimePowerIndex.window N then
+            0
+          else
+            u ι) =
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
+    funext N
+    exact ZetaPrimePowerIndex.spectralTail_eq_tsum_sub_windowSum u hsum N
+  have hdifference :
+      Tendsto
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 ((∑' ι : ZetaPrimePowerIndex, u ι) -
+          (∑' ι : ZetaPrimePowerIndex, u ι))) := by
+    exact tendsto_const_nhds.sub hwindow
+  have hzero_target :
+      (∑' ι : ZetaPrimePowerIndex, u ι) -
+          (∑' ι : ZetaPrimePowerIndex, u ι) =
+        0 := by
+    exact sub_self (∑' ι : ZetaPrimePowerIndex, u ι)
+  have htail :
+      Tendsto
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            (∑' ι : ZetaPrimePowerIndex, u ι) -
+              ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+          atTop
+          (𝓝 x))
+      hzero_target
+      hdifference
+  exact Eq.subst
+    (motive := fun v : ℕ → ℝ => Tendsto v atTop (𝓝 0))
+    htail_as_difference.symm
+    htail
+
+/-- Nongenuine indices have zero completed spectral coordinate majorant. -/
+theorem zetaCompletedPrimeSpectralCoordinateMajorant_eq_zero_of_not_isGenuine
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
+    zetaCompletedPrimeSpectralCoordinateMajorant ι f = 0 := by
+  have hweight : ZetaPrimePowerIndex.weight ι = 0 :=
+    ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
+  have hsqrt : ZetaPrimePowerIndex.sqrtWeight ι = 0 := by
+    unfold ZetaPrimePowerIndex.sqrtWeight
+    exact (congrArg Real.sqrt hweight).trans Real.sqrt_zero
+  have hpos :
+      zetaCompletedPrimeSpectralAmplitudeIndex ι f = 0 := by
+    unfold zetaCompletedPrimeSpectralAmplitudeIndex
+    exact Eq.trans
+      (congrArg
+        (fun x : ℝ =>
+          (x : ℂ) * zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f)
+        hsqrt)
+      (zero_mul (zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f))
+  have hneg :
+      zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f = 0 := by
+    unfold zetaCompletedPrimeOppositeSpectralAmplitudeIndex
+    exact Eq.trans
+      (congrArg
+        (fun x : ℝ =>
+          (x : ℂ) * zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f)
+        hsqrt)
+      (zero_mul (zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f))
+  unfold zetaCompletedPrimeSpectralCoordinateMajorant
+  calc
+    ‖zetaCompletedPrimeSpectralAmplitudeIndex ι f‖ ^ 2 +
+        ‖zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f‖ ^ 2 =
+        ‖(0 : ℂ)‖ ^ 2 + ‖(0 : ℂ)‖ ^ 2 := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg (fun x : ℂ => ‖x‖ ^ 2) hpos)
+        (congrArg (fun x : ℂ => ‖x‖ ^ 2) hneg)
+    _ = 0 + 0 := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg (fun x : ℝ => x ^ 2) (norm_zero : ‖(0 : ℂ)‖ = 0))
+        (congrArg (fun x : ℝ => x ^ 2) (norm_zero : ‖(0 : ℂ)‖ = 0))
+    _ = 0 := by
+      exact add_zero 0
+
+/-- The completed spectral coordinate majorant is nonnegative at every prime-power index. -/
+theorem zetaCompletedPrimeSpectralCoordinateMajorant_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
+  unfold zetaCompletedPrimeSpectralCoordinateMajorant
+  exact add_nonneg (sq_nonneg _) (sq_nonneg _)
+
+/-- The spectral tail majorant controlling the finite prime tomographic residual tends to
+zero. -/
+theorem finitePrimeContourTransportTomographicSpectralTailMajorant_tendsto_zero_of_summable
+    (f : ZetaAdmissibleFunction)
+    (hsum :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourTransportTomographicSpectralTailMajorant N f)
+      atTop
+      (𝓝 0) := by
+  unfold finitePrimeContourTransportTomographicSpectralTailMajorant
+  exact primeWindow_spectralTail_tendsto_zero_of_summable
+    f
+    (fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeSpectralCoordinateMajorant ι f)
+    hsum
+    (fun ι : ZetaPrimePowerIndex =>
+      zetaCompletedPrimeSpectralCoordinateMajorant_nonnegative ι f)
+    (fun ι hι =>
+      zetaCompletedPrimeSpectralCoordinateMajorant_eq_zero_of_not_isGenuine ι f hι)
+
+/-- The spectral tail majorant controlling the finite prime tomographic residual tends to
+zero. -/
+theorem finitePrimeContourTransportTomographicSpectralTailMajorant_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourTransportTomographicSpectralTailMajorant N f)
+      atTop
+      (𝓝 0) := by
+  exact
+    finitePrimeContourTransportTomographicSpectralTailMajorant_tendsto_zero_of_summable
+      f
+      (summable_zetaCompletedPrimeSpectralCoordinateMajorant f)
+
+/-- The finite prime tomographic residual majorant tends to zero. -/
+theorem finitePrimeContourTransportTomographicErrorMajorant_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportTomographicErrorMajorant N f)
+      atTop
+      (𝓝 0) := by
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
+    (finitePrimeContourTransportTomographicSpectralTailMajorant_tendsto_zero f)
+    ?_ ?_
+  · exact Eventually.of_forall
+      (fun N => norm_nonneg (finitePrimeContourTransportTomographicError N f))
+  · exact Eventually.of_forall
+      (fun N =>
+        finitePrimeContourTransportTomographicErrorMajorant_le_spectralTail N f)
+
+/-- The residual finite prime tomography error tends to zero. -/
+theorem finitePrimeContourTransportTomographicError_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
+      atTop
+      (𝓝 0) := by
+  exact squeeze_zero_norm'
+    (Eventually.of_forall
+      (fun N =>
+        norm_finitePrimeContourTransportTomographicError_le_majorant N f))
+    (finitePrimeContourTransportTomographicErrorMajorant_tendsto_zero f)
+
+/-- The sampled horizontal top-minus-bottom contour remainder tends to zero along the
+prime-window height parameter. -/
+theorem sampledHorizontalDifference_tendsto_zero_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => sampledHorizontalDifference N f)
+      atTop
+      (𝓝 0) := by
+  have hcontrol : CompletedPrimeProductHorizontalControl f :=
+    completedPrimeProductHorizontalControl_of_autocorrelation f
+  exact sampledHorizontalDifference_tendsto_zero_of_productHorizontalControl f hcontrol
+
+/-- Owner horizontal-decay theorem for the finite prime contour-transport remainder.
+
+The finite contour-transport remainder tends to zero after the horizontal sides of the
+completed contour shift have been discharged.  This is the analytic input that drives prime
+tomography; tomography must not be used to prove it. -/
+theorem finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+      atTop
+      (𝓝 0) := by
+  have hsampled :
+      Tendsto
+        (fun N : ℕ => sampledHorizontalDifference N f)
+        atTop
+        (𝓝 0) :=
+    sampledHorizontalDifference_tendsto_zero_ownerHorizontalDecay f
+  have herror :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeContourTransportTomographicError_tendsto_zero f
+  have hsum :
+      Tendsto
+        (fun N : ℕ =>
+          sampledHorizontalDifference N f +
+            finitePrimeContourTransportTomographicError N f)
+        atTop
+        (𝓝 (0 + 0)) :=
+    hsampled.add herror
+  have hfunctions :
+      (fun N : ℕ => finitePrimeContourTransportRemainder N f) =
+        (fun N : ℕ =>
+          sampledHorizontalDifference N f +
+            finitePrimeContourTransportTomographicError N f) := by
+    funext N
+    exact finitePrimeContourTransportRemainder_eq_sampledHorizontalDifference_add_error N f
+  have htarget :
+      Tendsto
+        (fun N : ℕ =>
+          sampledHorizontalDifference N f +
+            finitePrimeContourTransportTomographicError N f)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            sampledHorizontalDifference N f +
+              finitePrimeContourTransportTomographicError N f)
+          atTop
+          (𝓝 x))
+      (add_zero 0)
+      hsum
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop (𝓝 0))
+    hfunctions.symm
+    htarget
+
+/-- Owner horizontal-decay consequence for the completed prime contour transport.
+
+Since the finite contour-transport remainder tends both to the completed boundary
+difference and, by horizontal decay, to zero, the completed boundary difference is zero. -/
+theorem completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportBoundaryDifference f = 0 := by
+  have hboundary :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+        atTop
+        (𝓝 (completedPrimeContourTransportBoundaryDifference f)) :=
+    finitePrimeContourTransportRemainder_tendsto_boundaryDifference f
+  have hzero :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay f
+  exact tendsto_nhds_unique hboundary hzero
+
+/-- Completed horizontal-decay transport identifies the time-side prime distribution with
+the contour-realized prime distribution. -/
+theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  have hzero :
+      completedPrimeContourTransportBoundaryDifference f = 0 :=
+    completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay f
+  unfold completedPrimeContourTransportBoundaryDifference at hzero
+  let C : ℝ :=
+    completedPrimeContourRealizedTimeDistributionPairing
+      (convolutionAutocorrelation f)
+  let T : ℝ :=
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
+  change C - T = 0 at hzero
+  change T = C
+  have hadd :
+      T + (C - T) = C := by
+    calc
+      T + (C - T) = T + (C + -T) := by
+        exact congrArg (fun x : ℝ => T + x) (sub_eq_add_neg C T)
+      _ = (T + C) + -T := by
+        exact (add_assoc T C (-T)).symm
+      _ = (C + T) + -T := by
+        exact congrArg (fun x : ℝ => x + -T) (add_comm T C)
+      _ = C + (T + -T) := by
+        exact add_assoc C T (-T)
+      _ = C + 0 := by
+        exact congrArg (fun x : ℝ => C + x) (add_right_neg T)
+      _ = C := by
+        exact add_zero C
+  calc
+    T = T + 0 := by
+      exact (add_zero T).symm
+    _ = T + (C - T) := by
+      exact congrArg (fun x : ℝ => T + x) hzero.symm
+    _ = C := by
+      exact hadd
+
+/-- The completed time-side prime distribution is the completed off-diagonal channel. -/
+theorem completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeOffDiagonalChannel f := by
+  have hphysical :
+      completedPhysicalPrimeOffDiagonalChannel f =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
+    completedPhysicalPrimeOffDiagonalChannel_eq_timeDistributionPairing f
+  unfold completedPhysicalPrimeOffDiagonalChannel at hphysical
+  exact hphysical.symm
+
+/-- The completed off-diagonal channel is the `tsum` of the completed two-face boundary real
+coordinates. -/
+theorem completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeOffDiagonalChannel f =
+      ∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
+  unfold completedPrimeOffDiagonalChannel
+  unfold zetaCompletedPrimeOffDiagonalChannel
+  unfold completedPrimeTwoFaceGNSBoundaryRealCoordinate
+
+/-- A completed prime tomography class records the scalar seen after the completed prime
+time-side boundary distribution is reconstructed as a two-face boundary object.
+
+This is intentionally a global object.  Its scalar is not a pointwise coordinate
+identification between real/log samples and spectral samples. -/
+structure CompletedPrimeTomographyClass where
+  scalar : ℝ
+
+/-- The scalar carried by a completed prime tomography class. -/
+def completedPrimeTomographyClassScalar
+    (C : CompletedPrimeTomographyClass) : ℝ :=
+  C.scalar
+
+/-- Prime tomography classes are determined by their completed scalar. -/
+theorem CompletedPrimeTomographyClass.ext_scalar
+    {C D : CompletedPrimeTomographyClass}
+    (hscalar :
+      completedPrimeTomographyClassScalar C =
+        completedPrimeTomographyClassScalar D) :
+    C = D := by
+  cases C with
+  | mk c =>
+    cases D with
+    | mk d =>
+      change { scalar := c } = ({ scalar := d } : CompletedPrimeTomographyClass)
+      change c = d at hscalar
+      exact congrArg (fun x : ℝ => ({ scalar := x } : CompletedPrimeTomographyClass))
+        hscalar
+
+/-- The completed time-side prime tomography projection: sum of reconstructed real
+two-face boundary coordinates. -/
+noncomputable def completedPrimeTimeTomographyProjection
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  ∑' ι : ZetaPrimePowerIndex,
+    completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f
+
+/-- The completed two-face prime tomography projection: the real part of the completed
+two-face boundary coefficient. -/
+noncomputable def completedPrimeTwoFaceTomographyProjection
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f)
+
+/-- The completed time-side prime tomography class. -/
+noncomputable def completedPrimeTimeTomographyClass
+    (f : ZetaAdmissibleFunction) :
+    CompletedPrimeTomographyClass where
+  scalar := completedPrimeTimeTomographyProjection f
+
+/-- The completed reconstructed two-face prime tomography class. -/
+noncomputable def completedPrimeTwoFaceTomographyClass
+    (f : ZetaAdmissibleFunction) :
+    CompletedPrimeTomographyClass where
+  scalar := completedPrimeTwoFaceTomographyProjection f
+
+/-- The scalar of the completed time-side prime tomography class is the time projection. -/
+theorem completedPrimeTomographyClassScalar_time
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTomographyClassScalar
+        (completedPrimeTimeTomographyClass f) =
+      completedPrimeTimeTomographyProjection f := by
+  rfl
+
+/-- The scalar of the completed two-face prime tomography class is the two-face projection. -/
+theorem completedPrimeTomographyClassScalar_twoFace
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTomographyClassScalar
+        (completedPrimeTwoFaceTomographyClass f) =
+      completedPrimeTwoFaceTomographyProjection f := by
+  rfl
+
+/-- The completed time tomography projection is the completed time-side prime distribution. -/
+theorem completedPrimeTimeTomographyProjection_eq_timeDistributionPairing
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeTomographyProjection f =
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+  unfold completedPrimeTimeTomographyProjection
+  unfold completedPrimeTimeDistributionPairing
+  exact tsum_congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
+        ι f).symm)
+
+/-- The completed two-face tomography projection is the completed contour-realized prime
+distribution. -/
+theorem completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTwoFaceTomographyProjection f =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  have hspectral :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+      (convolutionAutocorrelation f)
+  have hspectralChannel :
+      completedSpectralPrimeOffDiagonalChannel f =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
+  have hcoefficient :
+      completedSpectralPrimeOffDiagonalChannel f =
+        completedPrimeTwoFaceTomographyProjection f := by
+    unfold completedPrimeTwoFaceTomographyProjection
+    exact completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
+      f
+  exact (hspectral.trans (hspectralChannel.symm.trans hcoefficient)).symm
+
+/-- Completed prime holographic reconstruction.
+
+The completed prime time-side projection and the completed two-face boundary projection
+define the same prime tomography class.  This is the global reconstruction theorem: it is
+not a pointwise identification between a time-side real/log coordinate and a vertical or
+Laplace spectral sample. -/
+theorem completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeTomographyClass f =
+      completedPrimeTwoFaceTomographyClass f := by
+  apply CompletedPrimeTomographyClass.ext_scalar
+  calc
+    completedPrimeTomographyClassScalar
+        (completedPrimeTimeTomographyClass f) =
+        completedPrimeTimeTomographyProjection f := by
+      exact completedPrimeTomographyClassScalar_time f
+    _ = completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+      exact completedPrimeTimeTomographyProjection_eq_timeDistributionPairing f
+    _ =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) := by
+      exact
+        completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
+          f
+    _ = completedPrimeTwoFaceTomographyProjection f := by
+      exact (completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing f).symm
+    _ =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTwoFaceTomographyClass f) := by
+      exact (completedPrimeTomographyClassScalar_twoFace f).symm
+
+/-- The scalar consequence of completed prime holographic reconstruction. -/
+theorem completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeTomographyProjection f =
+      completedPrimeTwoFaceTomographyProjection f := by
+  have hclass :
+      completedPrimeTimeTomographyClass f =
+        completedPrimeTwoFaceTomographyClass f :=
+    completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass f
+  have hscalar :
+      completedPrimeTomographyClassScalar
+          (completedPrimeTimeTomographyClass f) =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTwoFaceTomographyClass f) :=
+    congrArg completedPrimeTomographyClassScalar hclass
+  calc
+    completedPrimeTimeTomographyProjection f =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTimeTomographyClass f) := by
+      exact (completedPrimeTomographyClassScalar_time f).symm
+    _ =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTwoFaceTomographyClass f) := by
+      exact hscalar
+    _ = completedPrimeTwoFaceTomographyProjection f := by
+      exact completedPrimeTomographyClassScalar_twoFace f
+
+/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
+boundary coefficient.
+
+This is the completed, global time-side prime tomography theorem after the raw time-side
+channel has been reduced to its owner coordinate `tsum`.  It is not a pointwise equality
+between time values and Laplace/spectral samples. -/
+theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  exact completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient f
+
+/-- Time-side completed prime tomography: the completed real prime distribution is the real
+part of the completed two-face boundary coefficient.
+
+This owns the time-side half of prime holography.  It is deliberately separated from the
+contour-side spectral realization so the final contour-transport theorem is just a
+comparison through the same reconstructed two-face coefficient. -/
+theorem completedPrimeTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hchannel :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeOffDiagonalChannel f :=
+    completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f
+  have hsum :
+      completedPrimeOffDiagonalChannel f =
+        ∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
+    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
+  have hcoefficient :
+      (∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+      f
+  exact hchannel.trans (hsum.trans hcoefficient)
+
+/-- Contour-side completed prime tomography: the contour-realized prime distribution is the
+real part of the completed two-face boundary coefficient. -/
+theorem completedPrimeContourRealizedTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hspectral :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+      (convolutionAutocorrelation f)
+  have hspectralChannel :
+      completedSpectralPrimeOffDiagonalChannel f =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
+  have hcoefficient :
+      completedSpectralPrimeOffDiagonalChannel f =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
+      f
+  exact hspectral.trans (hspectralChannel.symm.trans hcoefficient)
+
+/-- Completed prime-channel tomography identifies the time-side completed prime distribution
+with the contour-realized prime channel.
+
+This is the owner analytic reconstruction theorem behind the finite contour-transport
+remainder.  The finite remainder measures the difference of two finite presentations; this
+theorem says their completed prime distributions are the same boundary class. -/
+theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  exact
+    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
+      f
+
+/-- Completed contour transport has no residual boundary difference.  This is the analytic
+contour-realization theorem: after passing to the completed prime channel, the finite
+horizontal/transport remainder has zero limit. -/
+theorem completedPrimeContourTransportBoundaryDifference_eq_zero
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportBoundaryDifference f = 0 := by
+  exact completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay f
+
+/-- The finite contour-transport remainder vanishes in the completed prime realization. -/
+theorem finitePrimeContourTransportRemainder_tendsto_zero
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+      atTop
+      (𝓝 0) := by
+  exact finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay f
+
+/-- Completed contour realization identifies the time-side prime distribution with its
+contour-realized prime channel. -/
+theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  exact completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
+    f
+
+/-- Completed contour realization identifies the real prime boundary channel with the
+contour-realized prime channel. -/
+theorem primeBoundaryChannel_convolutionAutocorrelation_re_eq_contourRealizedPrimeChannel
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  have htime :
+      Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+    have hprimePower :
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+          Complex.re
+            (zetaCompletedExplicitFormulaPrimePowerContribution
+              (convolutionAutocorrelation f)) :=
+      completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
+        (convolutionAutocorrelation f)
+    have howner :
+        zetaCompletedExplicitFormulaPrimePowerContribution
+            (convolutionAutocorrelation f) =
+          primeBoundaryChannel (convolutionAutocorrelation f) := by
+      unfold primeBoundaryChannel
+      exact zetaCompletedExplicitFormulaPrimePowerContribution_eq_primeContribution
+        (convolutionAutocorrelation f)
+    exact (congrArg Complex.re howner).symm.trans hprimePower.symm
+  have hrealized :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel f
+  exact htime.trans hrealized
+
+/-- Completed contour realization turns the realized prime channel into the spectral-sample
+prime channel. -/
+theorem completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpectralPrimeChannel
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  have hrealized :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+      (convolutionAutocorrelation f)
+  have hspectral :
+      completedSpectralPrimeOffDiagonalChannel f =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
+  exact hrealized.trans hspectral.symm
+
+/-- Completed contour realization identifies the time-side real prime channel with the
+spectral-sample prime channel. -/
+theorem primeBoundaryChannel_convolutionAutocorrelation_re_eq_completedSpectralPrimeChannel
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  have hcontour :
+      Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    primeBoundaryChannel_convolutionAutocorrelation_re_eq_contourRealizedPrimeChannel f
+  have hspectral :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedSpectralPrimeOffDiagonalChannel f :=
+    completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpectralPrimeChannel f
+  exact hcontour.trans hspectral
+
+/-- Prime boundary tomography: the real explicit-formula prime channel of the completed
+autocorrelation probe reconstructs the completed spectral two-face boundary coefficient.
+
+This is the global contour/log-coordinate transport theorem.  It deliberately compares
+completed channels, not pointwise real-lag and spectral coordinates. -/
+theorem primeBoundaryChannel_convolutionAutocorrelation_re_eq_completedTwoFaceBoundaryCoefficient
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hcontour :
+      Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
+        completedSpectralPrimeOffDiagonalChannel f :=
+    primeBoundaryChannel_convolutionAutocorrelation_re_eq_completedSpectralPrimeChannel f
+  have hspectral :
+      completedSpectralPrimeOffDiagonalChannel f =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re f
+  exact hcontour.trans hspectral
+
+/-- Completed prime tomography: the time-side off-diagonal channel reconstructs the real
+part of the completed spectral boundary coefficient. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeOffDiagonalChannel f =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hsum :
+      completedPrimeOffDiagonalChannel f =
+        ∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
+    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
+  have hcoefficient :
+      (∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+      f
+  exact hsum.trans hcoefficient
+
+/-- The completed sum of boundary real coordinates is the real part of the completed
+boundary coefficient. -/
+theorem completedPrimeTwoFaceGNSBoundaryRealCoordinate_tsum_eq_boundaryCoefficient_re
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography f
+
+/-- The completed sum of the reconstructed two-face/GNS boundary coordinates is the real part
+of the completed prime two-face/GNS boundary coefficient.
+
+This is the summability/real-part transport part of prime tomography.  The coordinate
+reconstruction theorem owns the local analytic content; this theorem owns the completed
+prime-power summation passage. -/
+theorem completedPrimeTwoFaceGNSRealCoordinate_tsum_eq_matrixCoefficient_re
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  exact completedPrimeTwoFaceGNSBoundaryRealCoordinate_tsum_eq_boundaryCoefficient_re f
+
+/-- Prime contour/tomographic realization: the raw time-side prime distribution of the
+autocorrelation source realizes as the completed two-face prime coefficient.
+
+This is the remaining prime presentation theorem.  It is not definitional: it is the
+completed contour/log-coordinate transport identifying the raw prime distribution with its
+completed spectral two-face presentation. -/
+theorem completedPrimeTimeDistributionPairing_convolutionAutocorrelation_eq_completedTwoFace_re
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hcoord :
+      (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeTimeDistributionCoordinate ι
+            (convolutionAutocorrelation f)) =
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) := by
+    funext ι
+    exact
+      completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
+        ι f
+  unfold completedPrimeTimeDistributionPairing
+  calc
+    (∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTimeDistributionCoordinate ι
+            (convolutionAutocorrelation f)) =
+        ∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
+      exact congrArg
+        (fun u : ZetaPrimePowerIndex → ℝ =>
+          ∑' ι : ZetaPrimePowerIndex, u ι)
+        hcoord
+    _ = Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+      completedPrimeTwoFaceGNSRealCoordinate_tsum_eq_matrixCoefficient_re f
 
 /-- Prime-channel tomography for the canonical positive boundary source.
 
@@ -4386,17 +7156,17 @@ the positive defect square before lower-weight diagonal-debt transport. -/
 theorem completedPositiveBoundary_primeTimeChannel_re_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
     Complex.re (primeBoundaryChannel (convolutionPair f f)) =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
   have hchannel :
-      primeBoundaryChannel (convolutionPair f f) =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f :=
-    primeBoundaryChannel_convolutionPair_eq_primeConvolutionContribution f
-  have htwoFace :
-      Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
-    zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient
+      Complex.re (primeBoundaryChannel (convolutionPair f f)) =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
+    primeBoundaryChannel_convolutionPair_re_eq_timeDistributionPairing f
+  have hcontour :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeTimeDistributionPairing_convolutionAutocorrelation_eq_completedTwoFace_re
       f
-  exact (congrArg Complex.re hchannel).trans htwoFace
+  exact hchannel.trans hcontour
 
 /-- Archimedean-channel tomography for the canonical positive boundary source. -/
 theorem completedPositiveBoundary_archimedeanTimeChannel_re_eq_packetGram
@@ -4454,12 +7224,12 @@ current completed normalization. -/
 theorem completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace
     (f : ZetaAdmissibleFunction) :
     Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
         ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) := by
   have hprime :
       Complex.re (primeBoundaryChannel (convolutionPair f f)) =
-        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
     completedPositiveBoundary_primeTimeChannel_re_eq_twoFaceMatrixCoefficient f
   have harch :
       Complex.re (archimedeanBoundaryChannel (convolutionPair f f)) =
@@ -4474,7 +7244,7 @@ theorem completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace
   let A : ℂ := archimedeanBoundaryChannel (convolutionPair f f)
   let C : ℂ := completionBoundaryChannel (convolutionPair f f)
   change Complex.re (P + A + C) =
-    Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+    Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
       ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f)
   calc
@@ -4492,7 +7262,7 @@ theorem completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace
     _ = Complex.re P + Complex.re A := by
       exact add_zero (Complex.re P + Complex.re A)
     _ =
-        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
           ZetaHermitianPacketEnsemble.archimedeanPacketGram
             (zetaCompletedHermitianBoundaryDefect f) := by
       exact congrArg₂ HAdd.hAdd hprime harch
@@ -4503,14 +7273,14 @@ theorem completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
         (completedPositiveBoundaryOrderedHeartClass f) =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
         ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
         ZetaHermitianPacketEnsemble.correctionPacketGram
           (zetaCompletedHermitianBoundaryDefect f) := by
   have hreduced :
       Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) =
-        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
           ZetaHermitianPacketEnsemble.archimedeanPacketGram
             (zetaCompletedHermitianBoundaryDefect f) :=
     completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace f
@@ -4528,7 +7298,7 @@ theorem completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar
     Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) +
         zetaCompletionCorrectionPacketCoordinate *
           zetaCompletionCorrectionPacketCoordinate =
-        (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        (Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
             ZetaHermitianPacketEnsemble.archimedeanPacketGram
               (zetaCompletedHermitianBoundaryDefect f)) +
           zetaCompletionCorrectionPacketCoordinate *
@@ -4539,47 +7309,242 @@ theorem completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar
             zetaCompletionCorrectionPacketCoordinate)
         hreduced
     _ =
-        (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        (Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
             ZetaHermitianPacketEnsemble.archimedeanPacketGram
               (zetaCompletedHermitianBoundaryDefect f)) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f) := by
       exact congrArg
         (fun x : ℝ =>
-          (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+          (Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
             ZetaHermitianPacketEnsemble.archimedeanPacketGram
               (zetaCompletedHermitianBoundaryDefect f)) + x)
         hcorr
     _ =
-        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
           ZetaHermitianPacketEnsemble.archimedeanPacketGram
             (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f) := by
       rfl
 
-/-- The positive-boundary representative's time-pairing scalar is its ordered-heart scalar.
+/-- The ordered-heart scalar of the canonical positive boundary source unfolds to the
+completed positive defect-kernel scalar. -/
+theorem completedPositiveBoundary_orderedHeartScalar_eq_positiveDefectScalar
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) := by
+  unfold completedOrderedHeartScalar
+  unfold completedPositiveBoundaryOrderedHeartClass
+  unfold completedBoundaryHermitianGNSScalar
+  unfold completedBoundaryHilbertSource
+  have hcorr :
+      zetaCompletionCorrectionPacketCoordinate *
+          zetaCompletionCorrectionPacketCoordinate =
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_correctionCoordinate_sq_eq_packetGram f
+  exact congrArg
+    (fun x : ℝ =>
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+        x)
+    hcorr
 
-This is the owner quotient-realization assertion for the positive GNS source: the reduced
-time-side pairing and the completed ordered-heart GNS scalar agree on the canonical positive
-boundary representative. -/
-theorem completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+/-- The ordered-heart positive defect scalar differs from the raw two-face time scalar by
+the completed prime diagonal debt.
+
+This is the concrete weight-triangular calculation.  The diagonal debt must be absorbed by
+the lower-weight radical before one can identify the raw time scalar with the ordered-heart
+positive scalar. -/
+theorem completedPositiveBoundary_orderedHeartScalar_eq_timePairingScalar_add_primeDiagonalDebt
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+  have htime :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar f
+  have hordered :
+      completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_orderedHeartScalar_eq_positiveDefectScalar f
+  have hprime :
+      zetaCompletedPrimeDefectKernelPositiveForm f =
+        zetaCompletedPrimeDefectKernelDiagonalDebt f +
+          zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f :=
+    zetaCompletedPrimeDefectKernelPositiveForm_eq_diagonalDebt_add_boundaryCoefficient
+      f
+  let B : ℝ := Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f)
+  let D : ℝ := Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f)
+  let A : ℝ :=
+    ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  let C : ℝ :=
+    ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  have hprime_re :
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) = D + B := by
+    calc
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) =
+          Complex.re
+            (zetaCompletedPrimeDefectKernelDiagonalDebt f +
+              zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+        exact congrArg Complex.re hprime
+      _ =
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) +
+            Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+        exact Complex.add_re
+          (zetaCompletedPrimeDefectKernelDiagonalDebt f)
+          (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f)
+      _ = D + B := by
+        rfl
+  calc
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) + A + C := by
+      exact hordered
+    _ = (D + B) + A + C := by
+      exact congrArg (fun x : ℝ => x + A + C) hprime_re
+    _ = (B + A + C) + D := by
+      calc
+        (D + B) + A + C = (D + (B + A)) + C := by
+          exact congrArg (fun x : ℝ => x + C) (add_assoc D B A)
+        _ = D + ((B + A) + C) := by
+          exact add_assoc D (B + A) C
+        _ = ((B + A) + C) + D := by
+          exact add_comm D ((B + A) + C)
+        _ = (B + A + C) + D := by
+          rfl
+    _ =
+        completedBoundaryTimePairingScalar
+            (completedPositiveBoundaryOrderedHeartClass f) + D := by
+      exact congrArg (fun x : ℝ => x + D) htime.symm
+
+/-- Weight-triangular transport identifies the reduced time-side scalar plus diagonal debt
+with its completed ordered-heart scalar.
+
+This is the corrected owner scalar transport theorem before quotienting the diagonal debt
+through the lower-weight radical. -/
+theorem completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedPositiveBoundaryOrderedHeartClass f) =
+        (completedPositiveBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
-  sorry
+  exact
+    (completedPositiveBoundary_orderedHeartScalar_eq_timePairingScalar_add_primeDiagonalDebt
+      f).symm
 
-/-- The finite-part representative's time-pairing scalar is its ordered-heart scalar.
+/-- Completed lower-weight reconstruction with explicit diagonal debt transports the
+completed two-face time scalar to the completed positive defect-kernel scalar.
+
+This is the remaining top-level holographic reconstruction claim after the prime support
+upgrade: it is not an algebraic identity between the two prime channels, but the
+ordered-heart/lower-weight transport identifying their completed scalar realizations after
+the diagonal debt has been made visible. -/
+theorem completedPositiveBoundary_twoFaceScalar_add_primeDiagonalDebt_eq_positiveDefectScalar
+    (f : ZetaAdmissibleFunction) :
+    (Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f)) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) := by
+  have htime :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar f
+  have htransport_add :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar
+      f
+  have hordered :
+      completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_orderedHeartScalar_eq_positiveDefectScalar f
+  have hleft :
+      (Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f)) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+            (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      htime.symm
+  exact hleft.trans (htransport_add.trans hordered)
+
+/-- The positive-boundary representative's time-pairing scalar plus prime diagonal debt is
+its ordered-heart scalar.
+
+This is the owner quotient-realization assertion for the positive GNS source: the reduced
+time-side pairing reaches the completed ordered-heart GNS scalar after the prime diagonal
+debt has been made explicit. -/
+theorem completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_ownerRealization
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  exact completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar
+    f
+
+/-- The finite-part representative's time-pairing scalar plus prime diagonal debt is its
+ordered-heart scalar.
 
 This is the representative-level quotient-realization assertion.  It is intentionally placed
 before the quotient-class scalar wrapper so downstream lower-weight transport cannot prove it
 by circularly reusing the wrapper. -/
-theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+theorem completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_quotientRealization
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedFinitePartBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedFinitePartBoundaryOrderedHeartClass f) := by
   have hclass :
@@ -4594,10 +7559,11 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_qu
     congrArg completedBoundaryTimePairingScalar hclass
   have hpositive :
       completedBoundaryTimePairingScalar
-          (completedPositiveBoundaryOrderedHeartClass f) =
+          (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedOrderedHeartScalar
           (completedPositiveBoundaryOrderedHeartClass f) :=
-    completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+    completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_ownerRealization
       f
   have hordered :
       completedOrderedHeartScalar
@@ -4605,22 +7571,35 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_qu
         completedOrderedHeartScalar
           (completedFinitePartBoundaryOrderedHeartClass f) :=
     congrArg completedOrderedHeartScalar hclass.symm
-  exact htime.trans (hpositive.trans hordered)
+  have htime_debt :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      htime
+  exact htime_debt.trans (hpositive.trans hordered)
 
-/-- The finite-part time-pairing scalar descends to the finite-part ordered-heart quotient
-scalar. -/
-theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartQuotientScalar_by_quotientRealization
+/-- The finite-part time-pairing scalar plus prime diagonal debt descends to the finite-part
+ordered-heart quotient scalar. -/
+theorem completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_quotientRealization
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedFinitePartBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedBoundaryOrderedHeartClassScalar
         (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
   have hrepresentative :
       completedBoundaryTimePairingScalar
-          (completedFinitePartBoundaryOrderedHeartClass f) =
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedOrderedHeartScalar
           (completedFinitePartBoundaryOrderedHeartClass f) :=
-    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+    completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_quotientRealization
       f
   have hquotient :
       completedOrderedHeartScalar
@@ -4631,15 +7610,16 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartQuotientScal
       f).symm
   exact hrepresentative.trans hquotient
 
-/-- The raw finite-part boundary scalar descends to the finite-part ordered-heart quotient
-scalar.
+/-- The raw finite-part boundary scalar plus prime diagonal debt descends to the finite-part
+ordered-heart quotient scalar.
 
 This is the quotient-realization map for the finite-part representative: the real scalar
 defined by the completed time-side boundary channel is the scalar induced by the completed
-ordered-heart quotient class. -/
-theorem completedFinitePartBoundaryChannel_eq_orderedHeartQuotientScalar_by_quotientRealization
+ordered-heart quotient class after the diagonal debt is made visible. -/
+theorem completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_quotientRealization
     (f : ZetaAdmissibleFunction) :
-    completedFinitePartBoundaryChannel f =
+    completedFinitePartBoundaryChannel f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedBoundaryOrderedHeartClassScalar
         (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
   have htime :
@@ -4649,12 +7629,23 @@ theorem completedFinitePartBoundaryChannel_eq_orderedHeartQuotientScalar_by_quot
     completedFinitePartBoundaryChannel_eq_timePairingScalar f
   have hquotient :
       completedBoundaryTimePairingScalar
-          (completedFinitePartBoundaryOrderedHeartClass f) =
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedBoundaryOrderedHeartClassScalar
           (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
-    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartQuotientScalar_by_quotientRealization
+    completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_quotientRealization
       f
-  exact htime.trans hquotient
+  have htime_debt :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      htime
+  exact htime_debt.trans hquotient
 
 /-- The finite-part ordered-heart quotient scalar is the positive defect-kernel scalar. -/
 theorem completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_positiveDefectKernelBoundaryScalar
@@ -4675,21 +7666,23 @@ theorem completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_positiveDefectK
       f
   exact hquotient.trans hpositive
 
-/-- Quotient realization identifies the raw time-side scalar with the positive defect-kernel
-ordered-heart scalar. -/
-theorem completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_by_quotientRealization
+/-- Quotient realization identifies the raw time-side scalar plus prime diagonal debt with
+the positive defect-kernel ordered-heart scalar. -/
+theorem completedRawTimeBoundaryScalar_add_primeDiagonalDebt_eq_positiveDefectKernelBoundaryScalar_by_quotientRealization
     (f : ZetaAdmissibleFunction) :
-    completedRawTimeBoundaryScalar f =
+    completedRawTimeBoundaryScalar f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedPositiveDefectKernelBoundaryScalar f := by
   have hraw :
       completedRawTimeBoundaryScalar f =
         completedFinitePartBoundaryChannel f :=
     completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel f
   have hquotient :
-      completedFinitePartBoundaryChannel f =
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedBoundaryOrderedHeartClassScalar
           (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
-    completedFinitePartBoundaryChannel_eq_orderedHeartQuotientScalar_by_quotientRealization
+    completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_quotientRealization
       f
   have hpositive :
       completedBoundaryOrderedHeartClassScalar
@@ -4697,31 +7690,42 @@ theorem completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_by_
         completedPositiveDefectKernelBoundaryScalar f :=
     completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_positiveDefectKernelBoundaryScalar
       f
-  exact hraw.trans (hquotient.trans hpositive)
+  have hraw_debt :
+      completedRawTimeBoundaryScalar f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hraw
+  exact hraw_debt.trans (hquotient.trans hpositive)
 
-/-- The positive-boundary time-pairing scalar is the positive ordered-heart GNS scalar after
-lower-weight quotient realization. -/
-theorem completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+/-- The positive-boundary time-pairing scalar plus prime diagonal debt is the positive
+ordered-heart GNS scalar after lower-weight quotient realization. -/
+theorem completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_quotientRealization
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedPositiveBoundaryOrderedHeartClass f) =
+        (completedPositiveBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
-  exact completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+  exact completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_ownerRealization
     f
 
-/-- Radical absorption identifies the absorbed positive-boundary precone scalar with the
-positive ordered-heart scalar.
+/-- Radical absorption identifies the absorbed positive-boundary precone scalar plus prime
+diagonal debt with the positive ordered-heart scalar.
 
 This is the genuine lower-weight transport theorem: the absorbed finite representatives
 define the same completed scalar as the positive square class because their difference is the
 lower-weight radical absorption face. -/
-theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_radicalAbsorption
+theorem completedPositiveBoundaryPreconeElement_scalar_add_primeDiagonalDebt_eq_orderedHeartScalar_of_radicalAbsorption
     (f : ZetaAdmissibleFunction)
     (habsorption :
       CompletedBoundaryHilbertSource.LowerWeightRadical
         (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)) :
-    (completedPositiveBoundaryPreconeElement f).scalar =
+    (completedPositiveBoundaryPreconeElement f).scalar +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
   have hsource :
@@ -4739,26 +7743,50 @@ theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_
       f habsorption
   have hpositive :
       completedBoundaryTimePairingScalar
-          (completedPositiveBoundaryOrderedHeartClass f) =
+          (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedOrderedHeartScalar
           (completedPositiveBoundaryOrderedHeartClass f) :=
-    completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+    completedPositiveBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_quotientRealization
       f
-  exact hsource.trans (habsorbed.trans hpositive)
+  have hsource_debt :
+      (completedPositiveBoundaryPreconeElement f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryAbsorbedOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hsource
+  have habsorbed_debt :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryAbsorbedOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      habsorbed
+  exact hsource_debt.trans (habsorbed_debt.trans hpositive)
 
-/-- The absorbed positive-boundary precone scalar is the ordered-heart scalar of its class.
+/-- The absorbed positive-boundary precone scalar plus prime diagonal debt is the
+ordered-heart scalar of its class.
 
 This is the limit-level lower-weight transport assertion: the finite absorbed representatives
 converge to the same completed scalar as the positive GNS ordered-heart class.  The proof
 belongs to the radical/nullspace transport from finite diagonal-debt absorption to the
 completed ordered-heart quotient. -/
-theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+theorem completedPositiveBoundaryPreconeElement_scalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
     (f : ZetaAdmissibleFunction) :
-    (completedPositiveBoundaryPreconeElement f).scalar =
+    (completedPositiveBoundaryPreconeElement f).scalar +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
   exact
-    completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_radicalAbsorption
+    completedPositiveBoundaryPreconeElement_scalar_add_primeDiagonalDebt_eq_orderedHeartScalar_of_radicalAbsorption
       f
       (completedPositiveBoundaryPreconeElement_absorptionDefect_lowerWeightRadical f)
 
@@ -4772,17 +7800,19 @@ theorem completedFinitePartBoundaryOrderedHeartScalar_eq_positiveBoundary
   exact congrArg completedOrderedHeartScalar
     (completedFinitePartBoundaryOrderedHeartClass_eq_positiveBoundary f).symm
 
-/-- Lower-weight triangular transport identifies the time-pairing scalar of the finite-part
-representative with the ordered-heart GNS scalar of the same completed class.
+/-- Lower-weight triangular transport identifies the time-pairing scalar plus prime diagonal
+debt of the finite-part representative with the ordered-heart GNS scalar of the same
+completed class.
 
 This is the radical/nullspace payoff theorem.  The finite-part representative is evaluated by
 the time-side completed pairing, while the ordered-heart scalar is evaluated by the positive
 defect-kernel GNS pairing.  Diagonal-debt absorption says these are the same scalar after
 quotienting by the lower-weight radical. -/
-theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+theorem completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedFinitePartBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedFinitePartBoundaryOrderedHeartClass f) := by
   have htime :
@@ -4791,10 +7821,11 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lo
         (completedPositiveBoundaryPreconeElement f).scalar :=
     completedFinitePartBoundaryTimePairingScalar_eq_positivePreconeScalar f
   have hprecone :
-      (completedPositiveBoundaryPreconeElement f).scalar =
+      (completedPositiveBoundaryPreconeElement f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedOrderedHeartScalar
           (completedPositiveBoundaryOrderedHeartClass f) :=
-    completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+    completedPositiveBoundaryPreconeElement_scalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
       f
   have hclass :
       completedOrderedHeartScalar
@@ -4802,19 +7833,31 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lo
         completedOrderedHeartScalar
           (completedFinitePartBoundaryOrderedHeartClass f) :=
     completedFinitePartBoundaryOrderedHeartScalar_eq_positiveBoundary f
-  exact htime.trans (hprecone.trans hclass)
+  have htime_debt :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        (completedPositiveBoundaryPreconeElement f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      htime
+  exact htime_debt.trans (hprecone.trans hclass)
 
-/-- The finite-part representative stream converges to the ordered-heart quotient scalar.
+/-- The finite-part representative stream shifted by prime diagonal debt converges to the
+ordered-heart quotient scalar.
 
 This is the precise tomographic reconstruction burden for the completed finite-part stream:
-the finite representatives converge to the time-side boundary scalar, and lower-weight
-triangular transport identifies that scalar with the ordered-heart quotient scalar. -/
-theorem completedBoundaryWeightStream_finitePart_tendsto_orderedHeartQuotientScalar
+the finite representatives converge to the time-side boundary scalar, and weight-triangular
+transport identifies the scalar after the diagonal debt is made visible. -/
+theorem completedBoundaryWeightStream_finitePart_add_primeDiagonalDebt_tendsto_orderedHeartQuotientScalar
     (f : ZetaAdmissibleFunction) :
     Tendsto
       (fun N : ℕ =>
         FiniteBoundaryWeightObject.finitePartRepresentative
-          ((completedBoundaryWeightStream f).object N))
+          ((completedBoundaryWeightStream f).object N) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
       atTop
       (𝓝
         (completedBoundaryOrderedHeartClassScalar
@@ -4846,82 +7889,85 @@ theorem completedBoundaryWeightStream_finitePart_tendsto_orderedHeartQuotientSca
       hobject.symm
       hwindow
   have hfinite_to_quotient :
-      completedFinitePartBoundaryChannel f =
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedBoundaryOrderedHeartClassScalar
           (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
-    have htime :
-        completedFinitePartBoundaryChannel f =
-          completedBoundaryTimePairingScalar
-            (completedFinitePartBoundaryOrderedHeartClass f) :=
-      completedFinitePartBoundaryChannel_eq_timePairingScalar f
-    have htransport :
-        completedBoundaryTimePairingScalar
-            (completedFinitePartBoundaryOrderedHeartClass f) =
-          completedOrderedHeartScalar
-            (completedFinitePartBoundaryOrderedHeartClass f) :=
-      completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
-        f
-    have hquotient :
-        completedOrderedHeartScalar
-            (completedFinitePartBoundaryOrderedHeartClass f) =
-          completedBoundaryOrderedHeartClassScalar
-            (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
-      (completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_orderedHeartScalar
-        f).symm
-    exact htime.trans (htransport.trans hquotient)
+    exact completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_quotientRealization
+      f
+  have hshifted :
+      Tendsto
+        (fun N : ℕ =>
+          FiniteBoundaryWeightObject.finitePartRepresentative
+            ((completedBoundaryWeightStream f).object N) +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+        atTop
+        (𝓝
+          (completedFinitePartBoundaryChannel f +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))) :=
+    hobject_tendsto_finite.add tendsto_const_nhds
   exact Eq.subst
     (motive := fun x : ℝ =>
       Tendsto
         (fun N : ℕ =>
           FiniteBoundaryWeightObject.finitePartRepresentative
-            ((completedBoundaryWeightStream f).object N))
+            ((completedBoundaryWeightStream f).object N) +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
         atTop
         (𝓝 x))
     hfinite_to_quotient
-    hobject_tendsto_finite
+    hshifted
 
-/-- The positive-cone completed boundary weight stream realizes in the completed ordered-heart
-quotient scalar.
+/-- The positive-cone completed boundary weight stream plus prime diagonal debt realizes in
+the completed ordered-heart quotient scalar.
 
 This is the stream-level lower-weight projection theorem: finite square representatives and
 their lower-weight absorption certificates define the same completed scalar as the ordered
 heart quotient class. -/
-theorem completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+theorem completedBoundaryWeightStream_scalar_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_positiveCone
     (f : ZetaAdmissibleFunction) :
-    (completedBoundaryWeightStream f).scalar =
+    (completedBoundaryWeightStream f).scalar +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedBoundaryOrderedHeartClassScalar
         (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
   have hscalar :
       Tendsto
         (fun N : ℕ =>
           FiniteBoundaryWeightObject.finitePartRepresentative
-            ((completedBoundaryWeightStream f).object N))
+            ((completedBoundaryWeightStream f).object N) +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
         atTop
-        (𝓝 ((completedBoundaryWeightStream f).scalar)) :=
-    (completedBoundaryWeightStream f).finitePart_tendsto_scalar
+        (𝓝
+          ((completedBoundaryWeightStream f).scalar +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))) :=
+    (completedBoundaryWeightStream f).finitePart_tendsto_scalar.add tendsto_const_nhds
   have hquotient :
       Tendsto
         (fun N : ℕ =>
           FiniteBoundaryWeightObject.finitePartRepresentative
-            ((completedBoundaryWeightStream f).object N))
+            ((completedBoundaryWeightStream f).object N) +
+            Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
         atTop
         (𝓝
           (completedBoundaryOrderedHeartClassScalar
             (completedFinitePartBoundaryOrderedHeartQuotientClass f))) :=
-    completedBoundaryWeightStream_finitePart_tendsto_orderedHeartQuotientScalar f
+    completedBoundaryWeightStream_finitePart_add_primeDiagonalDebt_tendsto_orderedHeartQuotientScalar f
   exact tendsto_nhds_unique hscalar hquotient
 
-/-- The completed boundary weight stream scalar is represented by the completed renormalized
-positive defect-kernel channel after projection to the ordered-heart quotient. -/
-theorem completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel
+/-- The completed boundary weight stream scalar plus prime diagonal debt is represented by
+the completed renormalized positive defect-kernel channel after projection to the
+ordered-heart quotient. -/
+theorem completedBoundaryWeightStream_scalar_add_primeDiagonalDebt_eq_renormalizedDefectKernel
     (f : ZetaAdmissibleFunction) :
-    (completedBoundaryWeightStream f).scalar =
+    (completedBoundaryWeightStream f).scalar +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedRenormalizedDefectKernelBoundaryChannel f := by
   have hquotient :
-      (completedBoundaryWeightStream f).scalar =
+      (completedBoundaryWeightStream f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedBoundaryOrderedHeartClassScalar
           (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
-    completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+    completedBoundaryWeightStream_scalar_add_primeDiagonalDebt_eq_orderedHeartQuotientScalar_by_positiveCone
       f
   have hrenormalized :
       completedBoundaryOrderedHeartClassScalar
@@ -4931,34 +7977,48 @@ theorem completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel
       f
   exact hquotient.trans hrenormalized
 
-/-- Owner channel-level lower-weight descent: the completed finite-part boundary channel is
-represented by the completed renormalized positive defect-kernel channel.
+/-- Owner channel-level lower-weight descent: the completed finite-part boundary channel
+plus prime diagonal debt is represented by the completed renormalized positive defect-kernel
+channel.
 
 This is the channel form of the lower-weight triangular transport theorem. -/
-theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent
+theorem completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_renormalizedDefectKernel_ownerDescent
     (f : ZetaAdmissibleFunction) :
-    completedFinitePartBoundaryChannel f =
+    completedFinitePartBoundaryChannel f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedRenormalizedDefectKernelBoundaryChannel f := by
   have hfinite :
       completedFinitePartBoundaryChannel f =
         (completedBoundaryWeightStream f).scalar :=
     (completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChannel f).symm
   have hstream :
-      (completedBoundaryWeightStream f).scalar =
+      (completedBoundaryWeightStream f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedRenormalizedDefectKernelBoundaryChannel f :=
-    completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel f
-  exact hfinite.trans hstream
+    completedBoundaryWeightStream_scalar_add_primeDiagonalDebt_eq_renormalizedDefectKernel f
+  have hfinite_debt :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        (completedBoundaryWeightStream f).scalar +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hfinite
+  exact hfinite_debt.trans hstream
 
-/-- Lower-weight triangular transport identifies the symmetrized two-face representative with
-the positive defect-kernel representative in the completed ordered-heart scalar.
+/-- Lower-weight triangular transport identifies the symmetrized two-face representative
+plus prime diagonal debt with the positive defect-kernel representative in the completed
+ordered-heart scalar.
 
 This is the exact radical-absorption step: the prime two-face cross term is not asserted to
 be positive.  Instead, the completed ordered-heart transport replaces it by the positive
 defect-square representative after the diagonal debt has been absorbed as lower-weight
 radical data. -/
-theorem completedSymmetrizedTwoFaceBoundaryScalar_eq_positiveDefectKernelBoundaryScalar
+theorem completedSymmetrizedTwoFaceBoundaryScalar_add_primeDiagonalDebt_eq_positiveDefectKernelBoundaryScalar
     (f : ZetaAdmissibleFunction) :
-    completedSymmetrizedTwoFaceBoundaryScalar f =
+    completedSymmetrizedTwoFaceBoundaryScalar f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedPositiveDefectKernelBoundaryScalar f := by
   have hsymm_to_finite :
       completedSymmetrizedTwoFaceBoundaryScalar f =
@@ -4971,10 +8031,11 @@ theorem completedSymmetrizedTwoFaceBoundaryScalar_eq_positiveDefectKernelBoundar
     completedFinitePartBoundaryChannel_eq_timePairingScalar f
   have htime_to_ordered :
       completedBoundaryTimePairingScalar
-          (completedFinitePartBoundaryOrderedHeartClass f) =
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
         completedOrderedHeartScalar
           (completedFinitePartBoundaryOrderedHeartClass f) :=
-    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+    completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
       f
   have hordered_to_renormalized :
       completedOrderedHeartScalar
@@ -4986,64 +8047,103 @@ theorem completedSymmetrizedTwoFaceBoundaryScalar_eq_positiveDefectKernelBoundar
         completedPositiveDefectKernelBoundaryScalar f :=
     completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
       f
-  exact hsymm_to_finite.trans
-    (hfinite_to_time.trans
+  have hsymm_to_finite_debt :
+      completedSymmetrizedTwoFaceBoundaryScalar f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hsymm_to_finite
+  have hfinite_to_time_debt :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      hfinite_to_time
+  exact hsymm_to_finite_debt.trans
+    (hfinite_to_time_debt.trans
       (htime_to_ordered.trans
         (hordered_to_renormalized.trans hrenormalized_to_positive)))
 
-/-- Weight-triangular scalar descent identifies the raw completed finite-part channel with
-the completed renormalized positive defect-kernel channel.
+/-- Weight-triangular scalar descent identifies the raw completed finite-part channel plus
+prime diagonal debt with the completed renormalized positive defect-kernel channel.
 
 This is the finite-window payoff theorem: diagonal debt is absorbed as lower-weight radical
 data, and the resulting completed scalar is represented by the positive defect-kernel
 realization. -/
-theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_by_weightTriangularDescent
+theorem completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_renormalizedDefectKernel_by_weightTriangularDescent
     (f : ZetaAdmissibleFunction) :
-    completedFinitePartBoundaryChannel f =
+    completedFinitePartBoundaryChannel f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedRenormalizedDefectKernelBoundaryChannel f := by
-  exact completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent f
+  exact
+    completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_renormalizedDefectKernel_ownerDescent
+      f
 
-/-- The finite-part boundary class has the same completed time-pairing scalar and
-ordered-heart Hermitian GNS scalar.
+/-- The finite-part boundary class has completed time-pairing scalar plus prime diagonal
+debt equal to the ordered-heart Hermitian GNS scalar.
 
 This is the owner reconstruction theorem for lower-weight descent: the time-side contour
 representative is evaluated through the same completed ordered-heart class as the Hermitian
 positive realization. -/
-theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar
+theorem completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedFinitePartBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedOrderedHeartScalar
         (completedFinitePartBoundaryOrderedHeartClass f) := by
   exact
-    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+    completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
       f
 
-/-- The finite-part boundary class has time-pairing scalar equal to the owner analytic
-boundary realization scalar. -/
-theorem completedFinitePartBoundaryTimePairingScalar_eq_completedAnalyticBoundaryRealizationScalar
+/-- The finite-part boundary class has time-pairing scalar plus prime diagonal debt equal to
+the owner analytic boundary realization scalar. -/
+theorem completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_completedAnalyticBoundaryRealizationScalar
     (f : ZetaAdmissibleFunction) :
     completedBoundaryTimePairingScalar
-        (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedFinitePartBoundaryOrderedHeartClass f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedAnalyticBoundaryRealizationScalar f := by
   exact
-    (completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar f).trans
+    (completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_orderedHeartScalar f).trans
       (completedAnalyticBoundaryRealizationScalar_eq_finitePartOrderedHeartScalar f).symm
 
-/-- The raw completed finite-part boundary scalar descends to the owner completed analytic
-boundary realization scalar.
+/-- The raw completed finite-part boundary scalar plus prime diagonal debt descends to the
+owner completed analytic boundary realization scalar.
 
 This is the scalar form of lower-weight ordered-heart descent.  The left side is the raw
 time-side finite-part representative, while the right side is the scalar induced by the
 completed ordered-heart quotient class. -/
-theorem completedFinitePartBoundaryChannel_eq_completedAnalyticBoundaryRealizationScalar
+theorem completedFinitePartBoundaryChannel_add_primeDiagonalDebt_eq_completedAnalyticBoundaryRealizationScalar
     (f : ZetaAdmissibleFunction) :
-    completedFinitePartBoundaryChannel f =
+    completedFinitePartBoundaryChannel f +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       completedAnalyticBoundaryRealizationScalar f := by
-  exact
-    (completedFinitePartBoundaryChannel_eq_timePairingScalar f).trans
-      (completedFinitePartBoundaryTimePairingScalar_eq_completedAnalyticBoundaryRealizationScalar
-        f)
+  have htime :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) :=
+    completedFinitePartBoundaryChannel_eq_timePairingScalar f
+  have htime_debt :
+      completedFinitePartBoundaryChannel f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) :=
+    congrArg
+      (fun x : ℝ =>
+        x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+      htime
+  exact htime_debt.trans
+    (completedFinitePartBoundaryTimePairingScalar_add_primeDiagonalDebt_eq_completedAnalyticBoundaryRealizationScalar
+      f)
 
 /-- The scalar of the completed positive-boundary precone element is the scalar of the
 completed boundary weight stream. -/

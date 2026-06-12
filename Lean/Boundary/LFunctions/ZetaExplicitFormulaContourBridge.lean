@@ -55,19 +55,101 @@ contour-side zero sum lands directly in the ordered-heart quotient scalar, not i
 time-side representative. -/
 theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart
     (f : ZetaAdmissibleFunction) :
-    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
         f := by
   let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
   have hshift : explicitFormulaContourShiftTarget g ⟨1, 1⟩ :=
     explicitFormulaContourShiftTarget_of_rectangle g ⟨1, 1⟩
   have hboundary :
-      zetaCompletedExplicitFormulaBoundarySumAnalytic g =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic g +
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
         (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) := by
     exact
       zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_orderedHeartScalar
         f
-  exact Complex.ofReal_injective (Eq.trans hshift hboundary)
+  apply Complex.ofReal_injective
+  calc
+    (zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
+        (zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) : ℂ) +
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
+      exact Complex.ofReal_add
+        (zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+    _ =
+        zetaCompletedExplicitFormulaBoundarySumAnalytic g +
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
+      exact congrArg
+        (fun z : ℂ =>
+          z + (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ))
+        hshift
+    _ =
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) :=
+      hboundary
+
+/-- The completed prime diagonal debt is lower-weight radical on the zero side: adding it to
+the zero-side Krein scalar does not change the represented zero-side class. -/
+theorem zetaCompletedZeroKreinGram_add_primeDiagonalDebt_eq_zeroKreinGram
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  have hzero_krein :
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f :=
+    zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation f
+  have hkrein_debt :
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        ZetaAdmissibleFunction
+          .zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_orderedHeartScalar
+      f
+  have hkrein_ordered :
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
+          f =
+        ZetaAdmissibleFunction
+          .zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_orderedHeartScalar_by_zeroSideLowerWeightAbsorption
+      f
+  have hzero_debt :
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        ZetaAdmissibleFunction
+          .zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
+    exact
+      (congrArg
+        (fun x : ℝ =>
+          x + Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
+        hzero_krein).trans
+        hkrein_debt
+  exact hzero_debt.trans (hkrein_ordered.symm.trans hzero_krein.symm)
+
+/-- The debt-visible ordered-heart contour bridge after zero-side lower-weight absorption. -/
+theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart_noDebt
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+        f := by
+  have hdebt :
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
+    zetaCompletedZeroKreinGram_add_primeDiagonalDebt_eq_zeroKreinGram f
+  have hbridge :
+      zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+          f :=
+    zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart f
+  exact hdebt.symm.trans hbridge
 
 /-- Historical name for the convolution-autocorrelation contour bridge. -/
 theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation
@@ -82,7 +164,7 @@ theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
     zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
         f := by
-  exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart f
+  exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart_noDebt f
 
 /-- The completed contour bridge proves the named autocorrelation target. -/
 theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget_of_contourBridge
