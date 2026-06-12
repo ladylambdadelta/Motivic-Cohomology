@@ -503,6 +503,62 @@ theorem stripProductDecay_of_zeroExcisedPolynomialGrowth_and_rapidDecay
     (hClogBound z hz)
     (hCphiBound z hstrip.1 hstrip.2)
 
+/-- Constant and power bookkeeping for a product where the polynomial growth degree `K`
+is independent of the requested rapid-decay order `N`. -/
+theorem stripProductPointwise_le_of_polynomialDegree
+    (K N : ℕ) (C₁ C₂ X A B : ℝ)
+    (hC₁ : 0 < C₁) (hC₂ : 0 < C₂)
+    (hX : 1 ≤ X)
+    (hA_nonneg : 0 ≤ A) (hB_nonneg : 0 ≤ B)
+    (hA : A ≤ C₁ * X ^ K)
+    (hB : B ≤ C₂ * X ^ (-(K + N + 1 : ℤ))) :
+    A * B ≤ (C₁ * C₂) * X ^ (-(N : ℤ)) := by
+  sorry
+
+/-- Generic zero-excised strip product estimate with an independent polynomial growth
+degree. This is the stable API for multiplying a fixed polynomial-growth log derivative by
+an arbitrarily rapidly decaying probe transform. -/
+theorem stripProductDecay_of_zeroExcisedPolynomialGrowthDegree_and_rapidDecay
+    (Φ : ℂ → ℂ) (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b)
+    (K N : ℕ)
+    (hlog :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ K)
+    (hphi :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖Φ z‖
+            ≤ C * (1 + ‖z.im‖) ^ (-(K + N + 1 : ℤ))) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖completedZetaNegLogDeriv z‖ * ‖Φ z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  rcases hlog with ⟨Clog, hClogPos, hClogBound⟩
+  rcases hphi with ⟨Cphi, hCphiPos, hCphiBound⟩
+  refine ⟨Clog * Cphi, mul_pos hClogPos hCphiPos, ?_⟩
+  intro z hz
+  have hstrip : a ≤ z.re ∧ z.re ≤ b := E.in_strip z hz
+  have hX : 1 ≤ 1 + ‖z.im‖ := by
+    exact le_add_of_nonneg_right (norm_nonneg z.im)
+  exact stripProductPointwise_le_of_polynomialDegree
+    K N Clog Cphi (1 + ‖z.im‖)
+    ‖completedZetaNegLogDeriv z‖
+    ‖Φ z‖
+    hClogPos hCphiPos hX
+    (norm_nonneg (completedZetaNegLogDeriv z))
+    (norm_nonneg (Φ z))
+    (hClogBound z hz)
+    (hCphiBound z hstrip.1 hstrip.2)
+
 /-- Polynomial completed-zeta log-derivative growth, paired with rapid transform decay, gives
 the product decay actually used by the horizontal contour estimate. -/
 theorem completedZetaNegLogDeriv_times_autocorrelationPhi_rapidStripDecay_of_growth_and_phiDecay
@@ -549,13 +605,15 @@ theorem completedZetaNegLogDeriv_times_autocorrelationPhi_zeroExcisedRapidStripD
         ‖completedZetaNegLogDeriv z‖ *
             ‖zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  rcases completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth a b E with
+    ⟨K, Clog, hClogPos, hClogBound⟩
   exact
-    stripProductDecay_of_zeroExcisedPolynomialGrowth_and_rapidDecay
+    stripProductDecay_of_zeroExcisedPolynomialGrowthDegree_and_rapidDecay
       (fun z : ℂ =>
         zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z)
-      a b E N
-    (completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N)
-    (convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay f a b (N + N + 1))
+      a b E K N
+      ⟨Clog, hClogPos, hClogBound⟩
+      (convolutionAutocorrelation_zetaPhi_verticalStripRapidDecay f a b (K + N + 1))
 
 /-- Subtracting the central half shifts the real coordinate by `1 / 2`. -/
 theorem complex_sub_half_re (z : ℂ) :
@@ -677,14 +735,16 @@ theorem completedZetaNegLogDeriv_times_shiftedAutocorrelationPhi_zeroExcisedRapi
             ‖zetaCompletedExplicitFormulaPhi
               (convolutionAutocorrelation f) (z - 1 / 2)‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  rcases completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth a b E with
+    ⟨K, Clog, hClogPos, hClogBound⟩
   exact
-    stripProductDecay_of_zeroExcisedPolynomialGrowth_and_rapidDecay
+    stripProductDecay_of_zeroExcisedPolynomialGrowthDegree_and_rapidDecay
       (fun z : ℂ =>
         zetaCompletedExplicitFormulaPhi
           (convolutionAutocorrelation f) (z - 1 / 2))
-      a b E N
-      (completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N)
-      (shiftedAutocorrelationPhi_verticalStripRapidDecay f a b (N + N + 1))
+      a b E K N
+      ⟨Clog, hClogPos, hClogBound⟩
+      (shiftedAutocorrelationPhi_verticalStripRapidDecay f a b (K + N + 1))
 
 end ZetaAdmissibleFunction
 

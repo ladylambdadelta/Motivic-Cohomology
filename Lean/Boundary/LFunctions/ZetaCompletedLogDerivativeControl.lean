@@ -171,6 +171,22 @@ theorem inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound
           ≤ C * (1 + ‖z.im‖) ^ N :=
   inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound a b E N
 
+/-- Honest polynomial growth form for the completed negative logarithmic derivative.
+
+The logarithmic derivative has some finite polynomial growth degree on a zero-excised
+vertical strip; downstream rapid-decay arguments should absorb this degree rather than
+requiring bounds of every requested degree. -/
+theorem completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
+    ∃ K : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ K := by
+  sorry
+
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_polynomialStripBound
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
