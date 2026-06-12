@@ -4371,79 +4371,192 @@ theorem completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChann
     (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f).symm
   exact hstream.trans hfinite
 
-/-- The positive-cone completed boundary weight stream realizes in the completed ordered-heart
-quotient scalar.
-
-This is the stream-level lower-weight projection theorem: finite square representatives and
-their lower-weight absorption certificates define the same completed scalar as the ordered
-heart quotient class. -/
-theorem completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+/-- The prime boundary channel of the convolution pair is the owner prime convolution
+contribution. -/
+theorem primeBoundaryChannel_convolutionPair_eq_primeConvolutionContribution
     (f : ZetaAdmissibleFunction) :
-    (completedBoundaryWeightStream f).scalar =
-      completedBoundaryOrderedHeartClassScalar
-        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+    primeBoundaryChannel (convolutionPair f f) =
+      zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
   sorry
 
-/-- The completed boundary weight stream scalar is represented by the completed renormalized
-positive defect-kernel channel after projection to the ordered-heart quotient. -/
-theorem completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel
+/-- Prime-channel tomography for the canonical positive boundary source.
+
+The reduced time-side prime coordinate reconstructs the two-face/GNS cross term.  It is not
+the positive defect square before lower-weight diagonal-debt transport. -/
+theorem completedPositiveBoundary_primeTimeChannel_re_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
-    (completedBoundaryWeightStream f).scalar =
-      completedRenormalizedDefectKernelBoundaryChannel f := by
-  have hquotient :
-      (completedBoundaryWeightStream f).scalar =
-        completedBoundaryOrderedHeartClassScalar
-          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
-    completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+    Complex.re (primeBoundaryChannel (convolutionPair f f)) =
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+  have hchannel :
+      primeBoundaryChannel (convolutionPair f f) =
+        zetaCompletedExplicitFormulaPrimeConvolutionContribution f :=
+    primeBoundaryChannel_convolutionPair_eq_primeConvolutionContribution f
+  have htwoFace :
+      Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
+    zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient
       f
-  have hrenormalized :
-      completedBoundaryOrderedHeartClassScalar
-          (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
-        completedRenormalizedDefectKernelBoundaryChannel f :=
-    completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel
-      f
-  exact hquotient.trans hrenormalized
+  exact (congrArg Complex.re hchannel).trans htwoFace
 
-/-- Owner channel-level lower-weight descent: the completed finite-part boundary channel is
-represented by the completed renormalized positive defect-kernel channel.
-
-This is the channel form of the lower-weight triangular transport theorem. -/
-theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent
+/-- Archimedean-channel tomography for the canonical positive boundary source. -/
+theorem completedPositiveBoundary_archimedeanTimeChannel_re_eq_packetGram
     (f : ZetaAdmissibleFunction) :
-    completedFinitePartBoundaryChannel f =
-      completedRenormalizedDefectKernelBoundaryChannel f := by
-  have hfinite :
-      completedFinitePartBoundaryChannel f =
-        (completedBoundaryWeightStream f).scalar :=
-    (completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChannel f).symm
-  have hstream :
-      (completedBoundaryWeightStream f).scalar =
-        completedRenormalizedDefectKernelBoundaryChannel f :=
-    completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel f
-  exact hfinite.trans hstream
-
-/-- Owner scalar comparison between the raw completed time-side scalar and the positive
-defect-kernel scalar.
-
-This is the scalar normal form of completed ordered-heart quotient realization. -/
-theorem completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_ownerRealization
-    (f : ZetaAdmissibleFunction) :
-    completedRawTimeBoundaryScalar f =
-      completedPositiveDefectKernelBoundaryScalar f := by
-  have hraw :
-      completedRawTimeBoundaryScalar f =
-        completedFinitePartBoundaryChannel f :=
-    completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel f
-  have hdescent :
-      completedFinitePartBoundaryChannel f =
-        completedRenormalizedDefectKernelBoundaryChannel f :=
-    completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent f
-  have hpositive :
-      completedRenormalizedDefectKernelBoundaryChannel f =
-        completedPositiveDefectKernelBoundaryScalar f :=
-    completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
+    Complex.re (archimedeanBoundaryChannel (convolutionPair f f)) =
+      ZetaHermitianPacketEnsemble.archimedeanPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) := by
+  have hpair :
+      convolutionPair f f = convolutionAutocorrelation f :=
+    convolutionPair_self f
+  have hchannel :
+      archimedeanBoundaryChannel (convolutionAutocorrelation f) =
+        zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f :=
+    archimedeanBoundaryChannel_convolutionAutocorrelation_eq_archimedeanConvolutionContribution
       f
-  exact hraw.trans (hdescent.trans hpositive)
+  have hgram :
+      Complex.re
+          (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) :=
+    zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_re_eq_archimedeanPacketGram
+      f
+  exact
+    (congrArg
+      (fun g : ZetaAdmissibleFunction =>
+        Complex.re (archimedeanBoundaryChannel g))
+      hpair).trans
+      ((congrArg Complex.re hchannel).trans hgram)
+
+/-- The residual completion channel vanishes on the canonical positive boundary source. -/
+theorem completedPositiveBoundary_completionTimeChannel_re_eq_zero
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (completionBoundaryChannel (convolutionPair f f)) = 0 := by
+  unfold completionBoundaryChannel
+  exact Complex.zero_re
+
+/-- The correction coordinate in the time-side Hilbert pairing is the correction packet Gram
+of the completed Hermitian boundary defect. -/
+theorem completedPositiveBoundary_correctionCoordinate_sq_eq_packetGram
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletionCorrectionPacketCoordinate *
+        zetaCompletionCorrectionPacketCoordinate =
+      ZetaHermitianPacketEnsemble.correctionPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) := by
+  exact
+    (zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
+      f).symm
+
+/-- Channel reconstruction for the reduced time-side pairing on the canonical positive
+boundary source.
+
+The reduced channel has prime, archimedean, and residual completion faces.  Prime and
+archimedean are reconstructed by their channel tomography lemmas; completion vanishes in the
+current completed normalization. -/
+theorem completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) =
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) := by
+  have hprime :
+      Complex.re (primeBoundaryChannel (convolutionPair f f)) =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) :=
+    completedPositiveBoundary_primeTimeChannel_re_eq_twoFaceMatrixCoefficient f
+  have harch :
+      Complex.re (archimedeanBoundaryChannel (convolutionPair f f)) =
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_archimedeanTimeChannel_re_eq_packetGram f
+  have hcompletion :
+      Complex.re (completionBoundaryChannel (convolutionPair f f)) = 0 :=
+    completedPositiveBoundary_completionTimeChannel_re_eq_zero f
+  unfold completedBoundaryReducedChannel
+  let P : ℂ := primeBoundaryChannel (convolutionPair f f)
+  let A : ℂ := archimedeanBoundaryChannel (convolutionPair f f)
+  let C : ℂ := completionBoundaryChannel (convolutionPair f f)
+  change Complex.re (P + A + C) =
+    Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+      ZetaHermitianPacketEnsemble.archimedeanPacketGram
+        (zetaCompletedHermitianBoundaryDefect f)
+  calc
+    Complex.re (P + A + C) =
+        Complex.re (P + A) + Complex.re C := by
+      exact Complex.add_re (P + A) C
+    _ = (Complex.re P + Complex.re A) + Complex.re C := by
+      exact congrArg
+        (fun x : ℝ => x + Complex.re C)
+        (Complex.add_re P A)
+    _ = (Complex.re P + Complex.re A) + 0 := by
+      exact congrArg
+        (fun x : ℝ => (Complex.re P + Complex.re A) + x)
+        hcompletion
+    _ = Complex.re P + Complex.re A := by
+      exact add_zero (Complex.re P + Complex.re A)
+    _ =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) := by
+      exact congrArg₂ HAdd.hAdd hprime harch
+
+/-- Scalar reconstruction for the canonical positive boundary source before quotient
+wrapping. -/
+theorem completedPositiveBoundary_timePairingScalar_eq_twoFaceScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) := by
+  have hreduced :
+      Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_reducedTimeChannel_re_eq_twoFace f
+  have hcorr :
+      zetaCompletionCorrectionPacketCoordinate *
+          zetaCompletionCorrectionPacketCoordinate =
+        ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) :=
+    completedPositiveBoundary_correctionCoordinate_sq_eq_packetGram f
+  unfold completedBoundaryTimePairingScalar
+  unfold completedPositiveBoundaryOrderedHeartClass
+  unfold completedBoundaryHilbertPairing
+  unfold completedBoundaryHilbertSource
+  calc
+    Complex.re (completedBoundaryReducedChannel (convolutionPair f f)) +
+        zetaCompletionCorrectionPacketCoordinate *
+          zetaCompletionCorrectionPacketCoordinate =
+        (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+            ZetaHermitianPacketEnsemble.archimedeanPacketGram
+              (zetaCompletedHermitianBoundaryDefect f)) +
+          zetaCompletionCorrectionPacketCoordinate *
+            zetaCompletionCorrectionPacketCoordinate := by
+      exact congrArg
+        (fun x : ℝ =>
+          x + zetaCompletionCorrectionPacketCoordinate *
+            zetaCompletionCorrectionPacketCoordinate)
+        hreduced
+    _ =
+        (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+            ZetaHermitianPacketEnsemble.archimedeanPacketGram
+              (zetaCompletedHermitianBoundaryDefect f)) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) := by
+      exact congrArg
+        (fun x : ℝ =>
+          (Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+            ZetaHermitianPacketEnsemble.archimedeanPacketGram
+              (zetaCompletedHermitianBoundaryDefect f)) + x)
+        hcorr
+    _ =
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+          ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) := by
+      rfl
 
 /-- The positive-boundary representative's time-pairing scalar is its ordered-heart scalar.
 
@@ -4456,23 +4569,7 @@ theorem completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRe
         (completedPositiveBoundaryOrderedHeartClass f) =
       completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
-  have htime :
-      completedBoundaryTimePairingScalar
-          (completedPositiveBoundaryOrderedHeartClass f) =
-        completedRawTimeBoundaryScalar f :=
-    completedPositiveBoundaryTimePairingScalar_eq_rawTimeBoundaryScalar f
-  have hscalar :
-      completedRawTimeBoundaryScalar f =
-        completedPositiveDefectKernelBoundaryScalar f :=
-    completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_ownerRealization
-      f
-  have hordered :
-      completedPositiveDefectKernelBoundaryScalar f =
-        completedOrderedHeartScalar
-          (completedPositiveBoundaryOrderedHeartClass f) :=
-    (completedPositiveBoundaryOrderedHeartScalar_eq_positiveDefectKernelBoundaryScalar
-      f).symm
-  exact htime.trans (hscalar.trans hordered)
+  sorry
 
 /-- The finite-part representative's time-pairing scalar is its ordered-heart scalar.
 
@@ -4706,6 +4803,151 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lo
           (completedFinitePartBoundaryOrderedHeartClass f) :=
     completedFinitePartBoundaryOrderedHeartScalar_eq_positiveBoundary f
   exact htime.trans (hprecone.trans hclass)
+
+/-- The finite-part representative stream converges to the ordered-heart quotient scalar.
+
+This is the precise tomographic reconstruction burden for the completed finite-part stream:
+the finite representatives converge to the time-side boundary scalar, and lower-weight
+triangular transport identifies that scalar with the ordered-heart quotient scalar. -/
+theorem completedBoundaryWeightStream_finitePart_tendsto_orderedHeartQuotientScalar
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          ((completedBoundaryWeightStream f).object N))
+      atTop
+      (𝓝
+        (completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f))) := by
+  have hwindow :
+      Tendsto
+        (fun N : ℕ => finitePartBoundaryWindow N f)
+        atTop
+        (𝓝 (completedFinitePartBoundaryChannel f)) :=
+    finitePartBoundaryWindow_tendsto_completedFinitePartBoundaryChannel f
+  have hobject :
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          ((completedBoundaryWeightStream f).object N)) =
+        (fun N : ℕ => finitePartBoundaryWindow N f) := by
+    funext N
+    exact finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
+      N f
+  have hobject_tendsto_finite :
+      Tendsto
+        (fun N : ℕ =>
+          FiniteBoundaryWeightObject.finitePartRepresentative
+            ((completedBoundaryWeightStream f).object N))
+        atTop
+        (𝓝 (completedFinitePartBoundaryChannel f)) :=
+    Eq.subst
+      (motive := fun u : ℕ → ℝ =>
+        Tendsto u atTop (𝓝 (completedFinitePartBoundaryChannel f)))
+      hobject.symm
+      hwindow
+  have hfinite_to_quotient :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+    have htime :
+        completedFinitePartBoundaryChannel f =
+          completedBoundaryTimePairingScalar
+            (completedFinitePartBoundaryOrderedHeartClass f) :=
+      completedFinitePartBoundaryChannel_eq_timePairingScalar f
+    have htransport :
+        completedBoundaryTimePairingScalar
+            (completedFinitePartBoundaryOrderedHeartClass f) =
+          completedOrderedHeartScalar
+            (completedFinitePartBoundaryOrderedHeartClass f) :=
+      completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+        f
+    have hquotient :
+        completedOrderedHeartScalar
+            (completedFinitePartBoundaryOrderedHeartClass f) =
+          completedBoundaryOrderedHeartClassScalar
+            (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+      (completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_orderedHeartScalar
+        f).symm
+    exact htime.trans (htransport.trans hquotient)
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ =>
+          FiniteBoundaryWeightObject.finitePartRepresentative
+            ((completedBoundaryWeightStream f).object N))
+        atTop
+        (𝓝 x))
+    hfinite_to_quotient
+    hobject_tendsto_finite
+
+/-- The positive-cone completed boundary weight stream realizes in the completed ordered-heart
+quotient scalar.
+
+This is the stream-level lower-weight projection theorem: finite square representatives and
+their lower-weight absorption certificates define the same completed scalar as the ordered
+heart quotient class. -/
+theorem completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+  have hscalar :
+      Tendsto
+        (fun N : ℕ =>
+          FiniteBoundaryWeightObject.finitePartRepresentative
+            ((completedBoundaryWeightStream f).object N))
+        atTop
+        (𝓝 ((completedBoundaryWeightStream f).scalar)) :=
+    (completedBoundaryWeightStream f).finitePart_tendsto_scalar
+  have hquotient :
+      Tendsto
+        (fun N : ℕ =>
+          FiniteBoundaryWeightObject.finitePartRepresentative
+            ((completedBoundaryWeightStream f).object N))
+        atTop
+        (𝓝
+          (completedBoundaryOrderedHeartClassScalar
+            (completedFinitePartBoundaryOrderedHeartQuotientClass f))) :=
+    completedBoundaryWeightStream_finitePart_tendsto_orderedHeartQuotientScalar f
+  exact tendsto_nhds_unique hscalar hquotient
+
+/-- The completed boundary weight stream scalar is represented by the completed renormalized
+positive defect-kernel channel after projection to the ordered-heart quotient. -/
+theorem completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  have hquotient :
+      (completedBoundaryWeightStream f).scalar =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+    completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+      f
+  have hrenormalized :
+      completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel
+      f
+  exact hquotient.trans hrenormalized
+
+/-- Owner channel-level lower-weight descent: the completed finite-part boundary channel is
+represented by the completed renormalized positive defect-kernel channel.
+
+This is the channel form of the lower-weight triangular transport theorem. -/
+theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  have hfinite :
+      completedFinitePartBoundaryChannel f =
+        (completedBoundaryWeightStream f).scalar :=
+    (completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChannel f).symm
+  have hstream :
+      (completedBoundaryWeightStream f).scalar =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel f
+  exact hfinite.trans hstream
 
 /-- Lower-weight triangular transport identifies the symmetrized two-face representative with
 the positive defect-kernel representative in the completed ordered-heart scalar.
