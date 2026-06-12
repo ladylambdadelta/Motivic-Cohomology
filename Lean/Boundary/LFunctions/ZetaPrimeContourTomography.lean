@@ -32,6 +32,31 @@ noncomputable def completedPrimeContourTransportCoordinateRemainderMajorant
     (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
   ‖completedPrimeContourTransportCoordinateRemainder ι f‖
 
+/-- The spectral half-envelope for a contour-realized prime coordinate. -/
+noncomputable def completedPrimeContourTransportSpectralCoordinateEnvelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  2 * ‖ι.weight‖ *
+    ‖zetaCompletedSpectralLaplaceTransform
+      (convolutionAutocorrelation f) ι.center‖
+
+/-- The time half-envelope for a time-side prime coordinate. -/
+noncomputable def completedPrimeContourTransportTimeCoordinateEnvelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  2 * ‖ι.weight‖ *
+    ‖zetaCompletedTimeBoundaryValue
+      (convolutionAutocorrelation f) ι.center‖
+
+/-- The explicit coordinate envelope for the completed contour-transport remainder.
+
+This is the owner analytic envelope: it records that the remainder is controlled by the
+prime weight times the two boundary magnitudes being compared.  Summability of this
+envelope is the true horizontal-decay input; the remainder majorant is only a dominated
+family. -/
+noncomputable def completedPrimeContourTransportCoordinateRemainderEnvelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  completedPrimeContourTransportSpectralCoordinateEnvelope ι f +
+    completedPrimeContourTransportTimeCoordinateEnvelope ι f
+
 /-- The contour-transport coordinate remainder is bounded by its explicit majorant. -/
 theorem norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
     (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
@@ -46,6 +71,112 @@ theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
     0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
   unfold completedPrimeContourTransportCoordinateRemainderMajorant
   exact norm_nonneg _
+
+/-- The spectral coordinate envelope is nonnegative. -/
+theorem completedPrimeContourTransportSpectralCoordinateEnvelope_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedPrimeContourTransportSpectralCoordinateEnvelope ι f := by
+  have htwo : 0 ≤ (2 : ℝ) := by
+    exact zero_le_two
+  have hweight : 0 ≤ ‖ι.weight‖ := by
+    exact norm_nonneg ι.weight
+  have hleft : 0 ≤ 2 * ‖ι.weight‖ := by
+    exact mul_nonneg htwo hweight
+  have hspectral :
+      0 ≤ ‖zetaCompletedSpectralLaplaceTransform
+        (convolutionAutocorrelation f) ι.center‖ := by
+    exact norm_nonneg _
+  unfold completedPrimeContourTransportSpectralCoordinateEnvelope
+  exact mul_nonneg hleft hspectral
+
+/-- The time coordinate envelope is nonnegative. -/
+theorem completedPrimeContourTransportTimeCoordinateEnvelope_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedPrimeContourTransportTimeCoordinateEnvelope ι f := by
+  have htwo : 0 ≤ (2 : ℝ) := by
+    exact zero_le_two
+  have hweight : 0 ≤ ‖ι.weight‖ := by
+    exact norm_nonneg ι.weight
+  have hleft : 0 ≤ 2 * ‖ι.weight‖ := by
+    exact mul_nonneg htwo hweight
+  have htime :
+      0 ≤ ‖zetaCompletedTimeBoundaryValue
+        (convolutionAutocorrelation f) ι.center‖ := by
+    exact norm_nonneg _
+  unfold completedPrimeContourTransportTimeCoordinateEnvelope
+  exact mul_nonneg hleft htime
+
+/-- The explicit coordinate envelope is nonnegative. -/
+theorem completedPrimeContourTransportCoordinateRemainderEnvelope_nonnegative
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    0 ≤ completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
+  unfold completedPrimeContourTransportCoordinateRemainderEnvelope
+  exact add_nonneg
+    (completedPrimeContourTransportSpectralCoordinateEnvelope_nonnegative ι f)
+    (completedPrimeContourTransportTimeCoordinateEnvelope_nonnegative ι f)
+
+/-- The contour-realized coordinate is bounded by the spectral half-envelope. -/
+theorem norm_completedPrimeContourRealizedTimeDistributionCoordinate_le_spectralEnvelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖completedPrimeContourRealizedTimeDistributionCoordinate
+        ι (convolutionAutocorrelation f)‖ ≤
+      completedPrimeContourTransportSpectralCoordinateEnvelope ι f := by
+  sorry
+
+/-- The time-side coordinate is bounded by the time half-envelope. -/
+theorem norm_completedPrimeTimeDistributionCoordinate_le_timeEnvelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖completedPrimeTimeDistributionCoordinate
+        ι (convolutionAutocorrelation f)‖ ≤
+      completedPrimeContourTransportTimeCoordinateEnvelope ι f := by
+  sorry
+
+/-- The remainder majorant is bounded by the explicit coordinate envelope. -/
+theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
+      completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
+  have htriangle :
+      ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ +
+          ‖completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ := by
+    unfold completedPrimeContourTransportCoordinateRemainder
+    exact norm_sub_le
+      (completedPrimeContourRealizedTimeDistributionCoordinate
+        ι (convolutionAutocorrelation f))
+      (completedPrimeTimeDistributionCoordinate
+        ι (convolutionAutocorrelation f))
+  have hspectral :
+      ‖completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f)‖ ≤
+        completedPrimeContourTransportSpectralCoordinateEnvelope ι f :=
+    norm_completedPrimeContourRealizedTimeDistributionCoordinate_le_spectralEnvelope
+      ι f
+  have htime :
+      ‖completedPrimeTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f)‖ ≤
+        completedPrimeContourTransportTimeCoordinateEnvelope ι f :=
+    norm_completedPrimeTimeDistributionCoordinate_le_timeEnvelope ι f
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant
+  unfold completedPrimeContourTransportCoordinateRemainderEnvelope
+  exact htriangle.trans (add_le_add hspectral htime)
+
+/-- The norm of the remainder majorant is bounded by the explicit coordinate envelope. -/
+theorem norm_completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ ≤
+      completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
+  have hnonneg :
+      0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+    completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f
+  calc
+    ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+      exact Real.norm_of_nonneg hnonneg
+    _ ≤ completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
+      exact completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope ι f
 
 /-- The finite-window coordinate remainder presentation of contour transport. -/
 noncomputable def finitePrimeContourTransportCoordinateRemainderWindow

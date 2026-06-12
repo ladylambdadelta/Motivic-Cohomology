@@ -137,13 +137,39 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- The contour-transport coordinate-remainder majorant is summable by horizontal contour decay. -/
+/-- The explicit contour-transport coordinate envelope is summable by horizontal contour
+decay. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderEnvelope_of_horizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderEnvelope ι f) := by
+  sorry
+
+/-- The contour-transport coordinate-remainder majorant is summable by domination by the
+explicit horizontal-decay envelope. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  sorry
+  have henvelope :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourTransportCoordinateRemainderEnvelope ι f) :=
+    summable_completedPrimeContourTransportCoordinateRemainderEnvelope_of_horizontalDecay f
+  have hbound :
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ ≤
+          completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
+    intro ι
+    exact
+      norm_completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope ι f
+  exact Summable.of_norm_bounded
+    (fun ι : ZetaPrimePowerIndex =>
+      completedPrimeContourTransportCoordinateRemainderEnvelope ι f)
+    henvelope
+    hbound
 
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay
