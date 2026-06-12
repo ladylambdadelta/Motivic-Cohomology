@@ -292,18 +292,27 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   sorry
 
-/-- The completed Gamma factor is nonzero at a nontrivial centered zeta zero. -/
-theorem offCriticalCenteredZero_gamma_ne_zero
-    (z : OffCriticalCenteredZetaZero) :
-    Gammaℝ ((1 / 2 : ℂ) + z.point) ≠ 0 := by
-  sorry
-
 /-- The shifted coordinate of an off-critical centered zero avoids the completed
 normalization singularity. -/
 theorem offCriticalCenteredZero_shift_ne_zero
     (z : OffCriticalCenteredZetaZero) :
     (1 / 2 : ℂ) + z.point ≠ 0 := by
-  sorry
+  intro hzero
+  have hzeta_at_zero : riemannZeta (0 : ℂ) = 0 := by
+    calc
+      riemannZeta (0 : ℂ) =
+          riemannZeta ((1 / 2 : ℂ) + z.point) := by
+        exact congrArg riemannZeta hzero.symm
+      _ = 0 := z.zeta_zero
+  exact riemannZeta_zero_ne_zero hzeta_at_zero
+
+/-- The completed Gamma factor is nonzero at a nontrivial centered zeta zero. -/
+theorem offCriticalCenteredZero_gamma_ne_zero
+    (z : OffCriticalCenteredZetaZero) :
+    Gammaℝ ((1 / 2 : ℂ) + z.point) ≠ 0 := by
+  exact Gammaℝ_ne_zero_of_ne_zero_and_not_negative_even
+    (offCriticalCenteredZero_shift_ne_zero z)
+    z.nontrivial
 
 /-- An off-critical centered ordinary zeta zero is a centered completed-zeta zero. -/
 theorem offCriticalCenteredZero_completedZero

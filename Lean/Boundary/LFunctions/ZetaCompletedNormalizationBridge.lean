@@ -144,6 +144,20 @@ theorem completedRiemannZeta_eq_riemannZeta_mul_gamma {s : ℂ}
   have h := riemannZeta_def_of_ne_zero hs
   exact (div_eq_iff hΓ).mp h.symm
 
+/-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
+theorem riemannZeta_zero_ne_zero :
+    riemannZeta (0 : ℂ) ≠ 0 := by
+  sorry
+
+/-- The completed Gamma factor is nonzero away from its centered nonpositive-even
+singular locus. -/
+theorem Gammaℝ_ne_zero_of_ne_zero_and_not_negative_even
+    {s : ℂ}
+    (hs0 : s ≠ 0)
+    (hneg : ¬ ∃ n : ℕ, s = -2 * (n + 1)) :
+    Gammaℝ s ≠ 0 := by
+  sorry
+
 /-- A zero of the ordinary Riemann zeta function is a zero of the completed zeta function
 away from the normalization singularity, provided the Gamma factor is finite and nonzero. -/
 theorem completedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
