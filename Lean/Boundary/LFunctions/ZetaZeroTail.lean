@@ -26,6 +26,20 @@ theorem zetaZeroTailRe_eq
     zetaZeroTailRe S φ = Complex.re (zetaZeroTail S φ) := by
   rfl
 
+/-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
+
+This is the complex owner form of zero-tail excision.  The excluded finite set must consist of
+completed zeros, so its finite contribution can be compared with the ambient completed-zero
+subtype sum. -/
+theorem zetaCompletedZeroSideSum_eq_finite_add_tail
+    (S : Finset ℂ) (φ : ZetaAdmissibleFunction)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        zetaZeroSideContribution (ρ : ℂ) φ) =
+      (∑ η in S, zetaZeroSideContribution η φ) +
+        zetaZeroTail S φ := by
+  sorry
+
 end
 end LFunctions
 end Boundary
