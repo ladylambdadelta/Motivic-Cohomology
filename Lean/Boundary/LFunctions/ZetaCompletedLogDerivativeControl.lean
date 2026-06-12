@@ -42,7 +42,7 @@ theorem zetaSideNegLogDeriv_polynomialStripBound
       0 < C ∧
       ∀ z : ℂ,
         z ∈ E.carrier →
-        ‖- deriv riemannZeta z / riemannZeta z‖
+        ‖zetaSideNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
   sorry
 
@@ -66,7 +66,7 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
         0 < C ∧
         ∀ z : ℂ,
           z ∈ E.carrier →
-          ‖- deriv riemannZeta z / riemannZeta z‖
+          ‖zetaSideNegLogDeriv z‖
             ≤ C * (1 + ‖z.im‖) ^ N)
     (hgamma :
       ∃ C : ℝ,
