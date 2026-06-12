@@ -144,6 +144,32 @@ theorem completedRiemannZeta_eq_riemannZeta_mul_gamma {s : ℂ}
   have h := riemannZeta_def_of_ne_zero hs
   exact (div_eq_iff hΓ).mp h.symm
 
+/-- A zero of the ordinary Riemann zeta function is a zero of the completed zeta function
+away from the normalization singularity, provided the Gamma factor is finite and nonzero. -/
+theorem completedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+    {s : ℂ} (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0)
+    (hζ : riemannZeta s = 0) :
+    completedRiemannZeta s = 0 := by
+  have hfactor :
+      completedRiemannZeta s = riemannZeta s * Gammaℝ s :=
+    completedRiemannZeta_eq_riemannZeta_mul_gamma hs hΓ
+  calc
+    completedRiemannZeta s = riemannZeta s * Gammaℝ s := hfactor
+    _ = 0 * Gammaℝ s := by
+      exact congrArg (fun x : ℂ => x * Gammaℝ s) hζ
+    _ = 0 := by
+      exact zero_mul (Gammaℝ s)
+
+/-- Centered form of forward zero transport from ordinary zeta to completed zeta. -/
+theorem centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+    {s : ℂ}
+    (hs : (1 / 2 : ℂ) + s ≠ 0)
+    (hΓ : Gammaℝ ((1 / 2 : ℂ) + s) ≠ 0)
+    (hζ : riemannZeta ((1 / 2 : ℂ) + s) = 0) :
+    centeredCompletedRiemannZeta s = 0 := by
+  unfold centeredCompletedRiemannZeta
+  exact completedRiemannZeta_eq_zero_of_riemannZeta_eq_zero hs hΓ hζ
+
 end
 end LFunctions
 end Boundary

@@ -1,5 +1,6 @@
 import Boundary.LFunctions.ZetaTestFunction
 import Boundary.LFunctions.ZetaCompletedNormalization
+import Boundary.LFunctions.ZetaCompletedNormalizationBridge
 import Boundary.LFunctions.ZetaWeilShared
 import Boundary.LFunctions.ZetaZeroOrbitRemainder
 import Boundary.LFunctions.ProbeInterface
@@ -291,13 +292,63 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   sorry
 
+/-- The completed Gamma factor is nonzero at a nontrivial centered zeta zero. -/
+theorem offCriticalCenteredZero_gamma_ne_zero
+    (z : OffCriticalCenteredZetaZero) :
+    Gammaℝ ((1 / 2 : ℂ) + z.point) ≠ 0 := by
+  sorry
+
+/-- The shifted coordinate of an off-critical centered zero avoids the completed
+normalization singularity. -/
+theorem offCriticalCenteredZero_shift_ne_zero
+    (z : OffCriticalCenteredZetaZero) :
+    (1 / 2 : ℂ) + z.point ≠ 0 := by
+  sorry
+
+/-- An off-critical centered ordinary zeta zero is a centered completed-zeta zero. -/
+theorem offCriticalCenteredZero_completedZero
+    (z : OffCriticalCenteredZetaZero) :
+    ZetaCompletedZero z.point := by
+  exact centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+    (offCriticalCenteredZero_shift_ne_zero z)
+    (offCriticalCenteredZero_gamma_ne_zero z)
+    z.zeta_zero
+
+/-- The centered reflection orbit of an off-critical centered zero lies in the centered
+completed-zero locus. -/
+theorem offCriticalCenteredZero_orbit_completedZero
+    (z : OffCriticalCenteredZetaZero) :
+    ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η := by
+  intro η hη
+  have hcompleted : ZetaCompletedZero z.point :=
+    offCriticalCenteredZero_completedZero z
+  have hfaces : η = z.point ∨ η = -z.point :=
+    (zetaZeroOrbitFinset_mem_iff z.point η).1 hη
+  rcases hfaces with hpos | hneg
+  · exact Eq.subst
+      (motive := fun x : ℂ => ZetaCompletedZero x)
+      hpos.symm
+      hcompleted
+  · have hnegzero : ZetaCompletedZero (-z.point) := by
+      unfold ZetaCompletedZero
+      calc
+        centeredCompletedRiemannZeta (-z.point) =
+            centeredCompletedRiemannZeta z.point := by
+          exact centeredCompletedRiemannZeta_neg z.point
+        _ = 0 := hcompleted
+    exact Eq.subst
+      (motive := fun x : ℂ => ZetaCompletedZero x)
+      hneg.symm
+      hnegzero
+
 /-- An off-critical centered Riemann-zeta zero is a centered completed-zeta zero, and its
 functional-equation orbit remains in the centered completed zero locus. -/
 theorem offCriticalCenteredZero_completedZero_and_orbit
     (z : OffCriticalCenteredZetaZero) :
     ZetaCompletedZero z.point ∧
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η := by
-  sorry
+  exact ⟨offCriticalCenteredZero_completedZero z,
+    offCriticalCenteredZero_orbit_completedZero z⟩
 
 /-- Zero-side separation for an off-critical centered zeta zero.
 

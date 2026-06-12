@@ -85,7 +85,35 @@ def zetaZeroSideContribution (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℂ :=
 
 /-- The functional-equation orbit of a centered zero. -/
 def zetaZeroOrbitFinset (ρ : ℂ) : Finset ℂ :=
-  insert ρ <| insert (1 - ρ) <| insert (star ρ) <| insert (1 - star ρ) ∅
+  insert ρ <| insert (-ρ) ∅
+
+/-- Membership in the centered zero orbit is membership in the two reflection faces. -/
+theorem zetaZeroOrbitFinset_mem_iff (ρ η : ℂ) :
+    η ∈ zetaZeroOrbitFinset ρ ↔ η = ρ ∨ η = -ρ := by
+  constructor
+  · intro hη
+    unfold zetaZeroOrbitFinset at hη
+    rcases Finset.mem_insert.mp hη with hleft | hright
+    · exact Or.inl hleft
+    · have hneg : η = -ρ := by
+        exact Finset.mem_singleton.mp hright
+      exact Or.inr hneg
+  · intro hη
+    unfold zetaZeroOrbitFinset
+    rcases hη with hleft | hright
+    · exact Finset.mem_insert.mpr (Or.inl hleft)
+    · exact Finset.mem_insert.mpr
+        (Or.inr (Finset.mem_singleton.mpr hright))
+
+/-- The centered zero orbit contains its positive face. -/
+theorem zetaZeroOrbitFinset_mem_self (ρ : ℂ) :
+    ρ ∈ zetaZeroOrbitFinset ρ := by
+  exact (zetaZeroOrbitFinset_mem_iff ρ ρ).2 (Or.inl rfl)
+
+/-- The centered zero orbit contains its reflected face. -/
+theorem zetaZeroOrbitFinset_mem_neg (ρ : ℂ) :
+    -ρ ∈ zetaZeroOrbitFinset ρ := by
+  exact (zetaZeroOrbitFinset_mem_iff ρ (-ρ)).2 (Or.inr rfl)
 
 /-- The orbit contribution attached to a centered zero. -/
 def zetaZeroOrbitContribution (ρ : ℂ) (φ : ZetaAdmissibleFunction) : ℂ :=
