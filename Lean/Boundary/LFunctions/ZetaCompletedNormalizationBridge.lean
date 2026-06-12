@@ -60,6 +60,42 @@ theorem zetaSideFactor_eq_riemannZeta {s : ℂ}
     _ = riemannZeta s := by
       exact mul_one (riemannZeta s)
 
+/-- Nonvanishing of the completed zeta and Gamma factor gives nonvanishing of the ordinary
+Riemann zeta factor. -/
+theorem riemannZeta_ne_zero_of_completed_ne_zero
+    {s : ℂ} (hs : s ≠ 0)
+    (hΛ : completedRiemannZeta s ≠ 0)
+    (hΓ : Gammaℝ s ≠ 0) :
+    riemannZeta s ≠ 0 := by
+  intro hζ
+  have hcompleted :
+      completedRiemannZeta s = riemannZeta s * Gammaℝ s := by
+    have h := riemannZeta_def_of_ne_zero hs
+    exact (div_eq_iff hΓ).mp h.symm
+  have hzero :
+      completedRiemannZeta s = 0 := by
+    calc
+      completedRiemannZeta s = riemannZeta s * Gammaℝ s := hcompleted
+      _ = 0 * Gammaℝ s := by
+        exact congrArg (fun x : ℂ => x * Gammaℝ s) hζ
+      _ = 0 := by
+        exact zero_mul (Gammaℝ s)
+  exact hΛ hzero
+
+/-- The zeta-side factor and ordinary Riemann zeta agree in a punctured neighborhood where
+the completed normalization is valid. -/
+theorem zetaSideFactor_eventually_eq_riemannZeta
+    {s : ℂ} (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
+    ∀ᶠ w in 𝓝 s, zetaSideFactor w = riemannZeta w := by
+  sorry
+
+/-- The derivative of the zeta-side factor is the derivative of the ordinary Riemann zeta
+factor at every point where the completed normalization is valid. -/
+theorem deriv_zetaSideFactor_eq_deriv_riemannZeta
+    {s : ℂ} (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
+    deriv zetaSideFactor s = deriv riemannZeta s := by
+  sorry
+
 theorem deriv_zetaSideFactor_at {s : ℂ}
     (hs0 : s ≠ 0) (hs1 : s ≠ 1) (_hΓ : Gammaℝ s ≠ 0) :
     deriv zetaSideFactor s =

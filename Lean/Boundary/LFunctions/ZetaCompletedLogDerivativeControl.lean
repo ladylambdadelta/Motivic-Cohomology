@@ -56,13 +56,40 @@ theorem riemannZetaNegLogDeriv_eq
       - deriv riemannZeta z / riemannZeta z :=
   rfl
 
+/-- Pointwise compatibility between the completed zeta-side factor and the ordinary
+Riemann-zeta logarithmic derivative. -/
+theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv
+    {z : ℂ}
+    (hz0 : z ≠ 0)
+    (hΛ : completedRiemannZeta z ≠ 0)
+    (hΓ : Complex.Gammaℝ z ≠ 0) :
+    zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z := by
+  have hderiv :
+      deriv zetaSideFactor z = deriv riemannZeta z :=
+    deriv_zetaSideFactor_eq_deriv_riemannZeta hz0 hΓ
+  have hfactor :
+      zetaSideFactor z = riemannZeta z :=
+    zetaSideFactor_eq_riemannZeta hz0 hΓ
+  unfold zetaSideNegLogDeriv
+  calc
+    - deriv zetaSideFactor z / zetaSideFactor z =
+        - deriv riemannZeta z / zetaSideFactor z := by
+      exact congrArg (fun x : ℂ => -x / zetaSideFactor z) hderiv
+    _ = - deriv riemannZeta z / riemannZeta z := by
+      exact congrArg (fun x : ℂ => - deriv riemannZeta z / x) hfactor
+    _ = riemannZetaNegLogDeriv z := by
+      exact (riemannZetaNegLogDeriv_eq z).symm
+
 /-- On a zero-excised completed strip, the finite zeta-side logarithmic derivative is the
 ordinary Riemann-zeta logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b)
     (z : ℂ) (hz : z ∈ E.carrier) :
     zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z := by
-  sorry
+  exact zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv
+    (E.ne_zero z hz)
+    (E.zeta_ne_zero z hz)
+    (E.gamma_ne_zero z hz)
 
 /-- Polynomial strip growth for the ordinary Riemann-zeta logarithmic derivative on a
 zero-excised completed strip. -/
