@@ -39,6 +39,17 @@ theorem zetaSideFactor_ne_zero {s : ℂ}
     zetaSideFactor s ≠ 0 := by
   exact mul_ne_zero hΛ (inv_ne_zero hΓ)
 
+/-- Away from the singular point of the completed normalization, the zeta-side factor is
+definitionally the ordinary Riemann zeta quotient. -/
+theorem zetaSideFactor_eq_riemannZeta_of_ne_zero {s : ℂ}
+    (hs : s ≠ 0) :
+    zetaSideFactor s = riemannZeta s := by
+  have h :
+      riemannZeta s = completedRiemannZeta s / Gammaℝ s :=
+    riemannZeta_def_of_ne_zero hs
+  unfold zetaSideFactor
+  exact h.symm
+
 /-- Away from the singular point of the completed normalization, removing the Gamma factor
 from the completed zeta recovers the ordinary Riemann zeta function. -/
 theorem zetaSideFactor_eq_riemannZeta {s : ℂ}
@@ -87,7 +98,8 @@ the completed normalization is valid. -/
 theorem zetaSideFactor_eventually_eq_riemannZeta
     {s : ℂ} (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
     ∀ᶠ w in 𝓝 s, zetaSideFactor w = riemannZeta w := by
-  sorry
+  filter_upwards [eventually_ne_nhds hs] with w hw
+  exact zetaSideFactor_eq_riemannZeta_of_ne_zero hw
 
 /-- The derivative of the zeta-side factor is the derivative of the ordinary Riemann zeta
 factor at every point where the completed normalization is valid. -/
