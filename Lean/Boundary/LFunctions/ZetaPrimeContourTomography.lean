@@ -205,6 +205,18 @@ noncomputable def finitePrimeContourTransportTomographicError
 
 /-- Contour-residue reconstruction of the sampled horizontal term.
 
+The complex sampled horizontal term reconstructs the finite real coordinate remainder after
+taking the real shadow.  This is the precise tomography theorem; the additive real form below
+is algebraic packaging for downstream tail estimates. -/
+theorem sampledHorizontalDifferenceComplex_re_eq_coordinateRemainderWindow_sub_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) =
+      finitePrimeContourTransportCoordinateRemainderWindow N f -
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  sorry
+
+/-- Contour-residue reconstruction of the sampled horizontal term.
+
 The sampled horizontal term plus the outside-window coordinate-remainder tail reconstructs the
 finite coordinate-remainder window.  This additive form is the direct residue-balance statement;
 the subtraction form below is only algebraic packaging for downstream tail estimates. -/
@@ -213,7 +225,25 @@ theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRem
     sampledHorizontalDifference N f +
         completedPrimeContourTransportCoordinateRemainderTail N f =
       finitePrimeContourTransportCoordinateRemainderWindow N f := by
-  sorry
+  let H : ℝ := sampledHorizontalDifference N f
+  let T : ℝ := completedPrimeContourTransportCoordinateRemainderTail N f
+  let W : ℝ := finitePrimeContourTransportCoordinateRemainderWindow N f
+  have hshadow :
+      H = W - T := by
+    unfold sampledHorizontalDifference
+    exact sampledHorizontalDifferenceComplex_re_eq_coordinateRemainderWindow_sub_tail N f
+  change H + T = W
+  calc
+    H + T = (W - T) + T := by
+      exact congrArg (fun x : ℝ => x + T) hshadow
+    _ = (W + -T) + T := by
+      exact congrArg (fun x : ℝ => x + T) (sub_eq_add_neg W T)
+    _ = W + (-T + T) := by
+      exact add_assoc W (-T) T
+    _ = W + 0 := by
+      exact congrArg (fun x : ℝ => W + x) (neg_add_cancel T)
+    _ = W := by
+      exact add_zero W
 
 /-- Contour-residue tomography identifies the finite residual error with the omitted
 coordinate-remainder tail.
