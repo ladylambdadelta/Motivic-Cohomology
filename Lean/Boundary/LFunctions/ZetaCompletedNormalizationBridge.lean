@@ -39,6 +39,27 @@ theorem zetaSideFactor_ne_zero {s : ℂ}
     zetaSideFactor s ≠ 0 := by
   exact mul_ne_zero hΛ (inv_ne_zero hΓ)
 
+/-- Away from the singular point of the completed normalization, removing the Gamma factor
+from the completed zeta recovers the ordinary Riemann zeta function. -/
+theorem zetaSideFactor_eq_riemannZeta {s : ℂ}
+    (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
+    zetaSideFactor s = riemannZeta s := by
+  have hcompleted :
+      completedRiemannZeta s = riemannZeta s * Gammaℝ s := by
+    have h := riemannZeta_def_of_ne_zero hs
+    exact (div_eq_iff hΓ).mp h.symm
+  unfold zetaSideFactor
+  calc
+    completedRiemannZeta s * (Gammaℝ s)⁻¹ =
+        (riemannZeta s * Gammaℝ s) * (Gammaℝ s)⁻¹ := by
+      exact congrArg (fun x : ℂ => x * (Gammaℝ s)⁻¹) hcompleted
+    _ = riemannZeta s * (Gammaℝ s * (Gammaℝ s)⁻¹) := by
+      exact mul_assoc (riemannZeta s) (Gammaℝ s) (Gammaℝ s)⁻¹
+    _ = riemannZeta s * 1 := by
+      exact congrArg (fun x : ℂ => riemannZeta s * x) (mul_inv_cancel₀ hΓ)
+    _ = riemannZeta s := by
+      exact mul_one (riemannZeta s)
+
 theorem deriv_zetaSideFactor_at {s : ℂ}
     (hs0 : s ≠ 0) (hs1 : s ≠ 1) (_hΓ : Gammaℝ s ≠ 0) :
     deriv zetaSideFactor s =
