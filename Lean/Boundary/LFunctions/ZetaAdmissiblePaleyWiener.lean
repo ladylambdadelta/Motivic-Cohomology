@@ -119,6 +119,45 @@ theorem zetaPaleyWienerStripExponentialEnvelope_pos
   unfold zetaPaleyWienerStripExponentialEnvelope
   exact Real.exp_pos _
 
+/-- Zero-order Paley-Wiener control on a fixed compact support interval.
+
+This is the compact-support estimate before any integration by parts: the horizontal
+exponential factor is uniformly bounded on the strip and support interval. -/
+theorem zetaLaplaceTransform_supportInterval_zeroOrder_decay
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z 0 := by
+  sorry
+
+/-- One integration-by-parts step for Paley-Wiener control on a fixed compact support
+interval.
+
+The step consumes the `N`th vertical decay estimate and produces the successor estimate by
+integrating by parts once more; smoothness bounds the next derivative seminorm and compact
+support kills the boundary terms. -/
+theorem zetaLaplaceTransform_supportInterval_integrationByParts_successor
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ)
+    (hN :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  sorry
+
 /-- The oscillatory integration-by-parts estimate on a fixed support interval.
 
 This is the Fourier-side core of Paley-Wiener: after `N` integrations by parts, the vertical
@@ -133,7 +172,12 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  sorry
+  induction N with
+  | zero =>
+      exact zetaLaplaceTransform_supportInterval_zeroOrder_decay f I a b
+  | succ N ih =>
+      exact zetaLaplaceTransform_supportInterval_integrationByParts_successor
+        f I a b N ih
 
 /-- The Paley-Wiener support-interval estimate assembled from the interval seminorm and the
 oscillatory integration-by-parts bound. -/
