@@ -1,5 +1,5 @@
 import Boundary.LFunctions.ZetaExplicitFormulaGeometry
-import Boundary.LFunctions.ZetaZeroKreinGram
+import Boundary.LFunctions.ZetaExplicitFormulaResidueBridge
 
 /-!
 # Boundary explicit-formula final target
@@ -31,19 +31,19 @@ theorem explicitFormulaContourShiftTarget_iff
         zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
   Iff.rfl
 
-/-- The zero-side Krein sum is the completed residue sum produced by the rectangle residue
-theorem. -/
-theorem zetaCompletedZeroKreinGram_eq_residueSum
+/-- The zero-side Krein sum is the completed residue boundary sum. -/
+theorem zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
     (zetaCompletedZeroKreinGram f : ℂ) =
-      explicitFormulaResidueSum f [] := by
-  sorry
+      (zetaCompletedResidueBoundarySum f : ℂ) := by
+  exact congrArg (fun x : ℝ => (x : ℂ))
+    (zetaCompletedZeroKreinGram_eq_residueBoundarySum f)
 
-/-- After horizontal decay, the completed residue sum is the limiting vertical side
+/-- After horizontal decay, the completed residue boundary sum is the limiting vertical side
 difference. -/
-theorem explicitFormulaResidueSum_eq_verticalDifference_of_horizontalDecay
+theorem completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaResidueSum f [] =
+    (zetaCompletedResidueBoundarySum f : ℂ) =
       zetaCompletedExplicitFormulaRightLineIntegral f r -
         zetaCompletedExplicitFormulaLeftLineIntegral f r := by
   sorry
@@ -59,8 +59,8 @@ theorem zetaCompletedZeroKreinGram_eq_verticalDifference_of_residue_horizontalDe
       zetaCompletedExplicitFormulaRightLineIntegral f r -
         zetaCompletedExplicitFormulaLeftLineIntegral f r := by
   exact
-    (zetaCompletedZeroKreinGram_eq_residueSum f r).trans
-      (explicitFormulaResidueSum_eq_verticalDifference_of_horizontalDecay f r)
+    (zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum f r).trans
+      (completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay f r)
 
 /-- The vertical side difference of the completed contour. -/
 noncomputable def explicitFormulaVerticalDifference
