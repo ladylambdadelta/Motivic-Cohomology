@@ -15,6 +15,9 @@ namespace LFunctions
 
 noncomputable section
 
+open Filter
+open scoped Topology
+
 namespace ZetaAdmissibleFunction
 
 /-- The full contour-shift target for the explicit formula. -/
@@ -39,45 +42,68 @@ theorem zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum
   exact congrArg (fun x : ℝ => (x : ℂ))
     (zetaCompletedZeroKreinGram_eq_residueBoundarySum f)
 
-/-- The completed residue boundary sum is reconstructed by the completed contour integral. -/
-theorem completedResidueBoundarySum_eq_contourIntegral_of_residueReconstruction
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    (zetaCompletedResidueBoundarySum f : ℂ) =
-      zetaCompletedExplicitFormulaContourIntegral f r := by
+/-- The vertical side difference along a contour family. -/
+noncomputable def explicitFormulaFamilyVerticalDifference
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
+    zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
+
+/-- Residue reconstruction plus horizontal decay identifies the limit of the vertical
+family with the completed residue boundary sum. -/
+theorem explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      atTop
+      (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
   sorry
 
-/-- Horizontal decay removes the top and bottom sides from the completed contour integral. -/
-theorem contourIntegral_eq_verticalDifference_of_horizontalDecay
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    zetaCompletedExplicitFormulaContourIntegral f r =
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r := by
+/-- The vertical channel transport identifies the limit of the vertical family with the
+analytic prime/archimedean/correction boundary sum. -/
+theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
   sorry
 
-/-- After horizontal decay, the completed residue boundary sum is the limiting vertical side
-difference. -/
-theorem completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    (zetaCompletedResidueBoundarySum f : ℂ) =
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r := by
-  exact
-    (completedResidueBoundarySum_eq_contourIntegral_of_residueReconstruction f r).trans
-      (contourIntegral_eq_verticalDifference_of_horizontalDecay f r)
-
-/-- The zero side is the limiting vertical-difference side of the completed contour shift.
-
-This is the residue/horizontal-decay cut: its proof must combine the completed
-log-derivative residue theorem with vanishing of the horizontal sides, then identify the
-resulting zero sum with `zetaCompletedZeroKreinGram`. -/
-theorem zetaCompletedZeroKreinGram_eq_verticalDifference_of_residue_horizontalDecay
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    zetaCompletedZeroKreinGram f =
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r := by
-  exact
-    (zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum f r).trans
-      (completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay f r)
+/-- The zero side equals the analytic boundary sum by uniqueness of the completed vertical
+family limit. -/
+theorem zetaCompletedZeroKreinGram_eq_boundarySum_of_familyContourShift
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    (zetaCompletedZeroKreinGram f : ℂ) =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  have hresidue :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+        atTop
+        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
+    explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum f F
+  have hzero_eq_residue :
+      (zetaCompletedZeroKreinGram f : ℂ) =
+        (zetaCompletedResidueBoundarySum f : ℂ) :=
+    zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum f (F.rectangle 1)
+  have hzero :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+        atTop
+        (𝓝 (zetaCompletedZeroKreinGram f : ℂ)) := by
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+          atTop
+          (𝓝 z))
+      hzero_eq_residue.symm
+      hresidue
+  have hboundary :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    explicitFormulaFamilyVerticalDifference_tendsto_boundarySum f F
+  exact tendsto_nhds_unique hzero hboundary
 
 /-- The vertical side difference of the completed contour. -/
 noncomputable def explicitFormulaVerticalDifference
@@ -99,15 +125,6 @@ noncomputable def explicitFormulaVerticalArchimedeanContribution
 noncomputable def explicitFormulaVerticalCorrectionContribution
     (f : ZetaAdmissibleFunction) (_r : ExplicitFormulaRectangle) : ℂ :=
   zetaCompletedExplicitFormulaCorrectionContribution f
-
-/-- The vertical side difference decomposes into prime, archimedean, and correction channels. -/
-theorem explicitFormulaVerticalDifference_decomposition
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalDifference f r =
-      explicitFormulaVerticalPrimeContribution f r +
-        explicitFormulaVerticalArchimedeanContribution f r +
-        explicitFormulaVerticalCorrectionContribution f r := by
-  sorry
 
 /-- The prime part of the vertical contour difference is the prime explicit-formula boundary
 contribution. -/
@@ -133,88 +150,22 @@ theorem explicitFormulaVerticalCorrectionDecomposition
       zetaCompletedExplicitFormulaCorrectionContribution f := by
   rfl
 
-/-- The vertical side difference assembles from the prime, archimedean, and correction channel
-decompositions. -/
-theorem explicitFormulaVerticalDifference_eq_boundarySum_of_components
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle)
-    (_hprime :
-      explicitFormulaVerticalPrimeContribution f r =
-        zetaCompletedExplicitFormulaPrimeContribution f)
-    (_harch :
-      explicitFormulaVerticalArchimedeanContribution f r =
-        zetaCompletedExplicitFormulaArchimedeanContribution f)
-    (_hcorrection :
-      explicitFormulaVerticalCorrectionContribution f r =
-        zetaCompletedExplicitFormulaCorrectionContribution f) :
-    zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r =
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
-  have hvertical :
-      explicitFormulaVerticalDifference f r =
-        explicitFormulaVerticalPrimeContribution f r +
-          explicitFormulaVerticalArchimedeanContribution f r +
-          explicitFormulaVerticalCorrectionContribution f r :=
-    explicitFormulaVerticalDifference_decomposition f r
-  calc
-    zetaCompletedExplicitFormulaRightLineIntegral f r -
-        zetaCompletedExplicitFormulaLeftLineIntegral f r =
-        explicitFormulaVerticalDifference f r := by
-      rfl
-    _ =
-        explicitFormulaVerticalPrimeContribution f r +
-          explicitFormulaVerticalArchimedeanContribution f r +
-          explicitFormulaVerticalCorrectionContribution f r := hvertical
-    _ =
-        zetaCompletedExplicitFormulaPrimeContribution f +
-          zetaCompletedExplicitFormulaArchimedeanContribution f +
-          zetaCompletedExplicitFormulaCorrectionContribution f := by
-      exact congrArg₂ (fun a b : ℂ => a + b)
-        (congrArg₂ (fun a b : ℂ => a + b) _hprime _harch)
-        _hcorrection
-    _ = zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
-      (zetaCompletedExplicitFormulaBoundarySumAnalytic_eq f).symm
-
-/-- The vertical side difference is the analytic explicit-formula boundary sum.
-
-This is the vertical-decomposition cut: its proof must unfold the completed logarithmic
-derivative into prime, archimedean, and pole-correction pieces and identify the resulting
-line-integral decomposition with `zetaCompletedExplicitFormulaBoundarySumAnalytic`. -/
-theorem explicitFormulaVerticalDecompositionTarget_of_rectangle
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalDecompositionTarget f r := by
-  exact explicitFormulaVerticalDifference_eq_boundarySum_of_components f r
-    (explicitFormulaVerticalPrimeDecomposition f r)
-    (explicitFormulaVerticalArchimedeanDecomposition f r)
-    (explicitFormulaVerticalCorrectionDecomposition f r)
-
-/-- The contour-shift target follows from the zero/vertical identification and the vertical
-decomposition. -/
-theorem explicitFormulaContourShiftTarget_of_verticalDifference
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle)
-    (hzero :
-      zetaCompletedZeroKreinGram f =
-        zetaCompletedExplicitFormulaRightLineIntegral f r -
-          zetaCompletedExplicitFormulaLeftLineIntegral f r)
-    (hvertical : explicitFormulaVerticalDecompositionTarget f r) :
-    explicitFormulaContourShiftTarget f r := by
-  have hv :
-      zetaCompletedExplicitFormulaRightLineIntegral f r -
-          zetaCompletedExplicitFormulaLeftLineIntegral f r =
-        zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
-    (explicitFormulaVerticalDecompositionTarget_iff f r).mp hvertical
-  exact hzero.trans hv
-
 /-- The completed contour-shift theorem in the repository's analytic normalization.
 
-This is the owner target for the contour argument. Its proof must assemble the completed
-log-derivative residue theorem, horizontal decay, and vertical decomposition to identify the
-zero-side Krein sum with the analytic explicit-formula boundary sum. -/
+This is a rectangle-indexed wrapper around the family/limit theorem above; the target itself
+does not depend on the finite rectangle parameter. -/
 theorem explicitFormulaContourShiftTarget_of_rectangle
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
     explicitFormulaContourShiftTarget f r := by
-  exact explicitFormulaContourShiftTarget_of_verticalDifference f r
-    (zetaCompletedZeroKreinGram_eq_verticalDifference_of_residue_horizontalDecay f r)
-    (explicitFormulaVerticalDecompositionTarget_of_rectangle f r)
+  let F : ExplicitFormulaContourFamily :=
+    { c := (1 / 2 : ℝ) + 1
+      c_gt_half := by
+        exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one }
+  have htarget :
+      (zetaCompletedZeroKreinGram f : ℂ) =
+        zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
+    zetaCompletedZeroKreinGram_eq_boundarySum_of_familyContourShift f F
+  exact htarget
 
 /-- A complex zero statement for the real zero-side Krein form descends to a real zero statement. -/
 theorem zetaCompletedZeroKreinGram_eq_zero_of_complex_zero
