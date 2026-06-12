@@ -1671,6 +1671,114 @@ noncomputable def zetaCompletedPrimeSpectralCoordinateMajorant
   ‖zetaCompletedPrimeSpectralAmplitudeIndex ι f‖ ^ 2 +
     ‖zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f‖ ^ 2
 
+/-- The positive weighted prime sample norm square before the square-root-weight
+amplitude packaging. -/
+noncomputable def zetaCompletedPrimePositiveWeightedSampleNormSq
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  ZetaPrimePowerIndex.weight ι *
+    ‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2
+
+/-- The opposite weighted prime sample norm square before the square-root-weight
+amplitude packaging. -/
+noncomputable def zetaCompletedPrimeOppositeWeightedSampleNormSq
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
+  ZetaPrimePowerIndex.weight ι *
+    ‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2
+
+/-- The positive square-root-weight amplitude has norm square equal to the positive
+weighted prime sample norm square. -/
+theorem zetaCompletedPrimeSpectralAmplitudeIndex_norm_sq_eq_weightedSampleNormSq
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖zetaCompletedPrimeSpectralAmplitudeIndex ι f‖ ^ 2 =
+      zetaCompletedPrimePositiveWeightedSampleNormSq ι f := by
+  let r : ℝ := ZetaPrimePowerIndex.sqrtWeight ι
+  let A : ℂ := zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f
+  have hr_nonneg : 0 ≤ r := by
+    unfold r
+    unfold ZetaPrimePowerIndex.sqrtWeight
+    exact Real.sqrt_nonneg _
+  have hnorm_r : ‖(r : ℂ)‖ = r := by
+    calc
+      ‖(r : ℂ)‖ = |r| := by
+        exact RCLike.norm_ofReal r
+      _ = r := by
+        exact abs_of_nonneg hr_nonneg
+  have hnorm :
+      ‖(r : ℂ) * A‖ = r * ‖A‖ := by
+    calc
+      ‖(r : ℂ) * A‖ = ‖(r : ℂ)‖ * ‖A‖ := by
+        exact norm_mul (r : ℂ) A
+      _ = r * ‖A‖ := by
+        exact congrArg (fun x : ℝ => x * ‖A‖) hnorm_r
+  have hweight : r * r = ZetaPrimePowerIndex.weight ι := by
+    unfold r
+    exact ZetaPrimePowerIndex.sqrtWeight_mul_self ι
+  unfold zetaCompletedPrimeSpectralAmplitudeIndex
+  unfold zetaCompletedPrimePositiveWeightedSampleNormSq
+  change ‖(r : ℂ) * A‖ ^ 2 =
+    ZetaPrimePowerIndex.weight ι * ‖A‖ ^ 2
+  calc
+    ‖(r : ℂ) * A‖ ^ 2 = (r * ‖A‖) ^ 2 := by
+      exact congrArg (fun x : ℝ => x ^ 2) hnorm
+    _ = ZetaPrimePowerIndex.weight ι * ‖A‖ ^ 2 := by
+      nlinarith [hweight]
+
+/-- The opposite square-root-weight amplitude has norm square equal to the opposite
+weighted prime sample norm square. -/
+theorem zetaCompletedPrimeOppositeSpectralAmplitudeIndex_norm_sq_eq_weightedSampleNormSq
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    ‖zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f‖ ^ 2 =
+      zetaCompletedPrimeOppositeWeightedSampleNormSq ι f := by
+  let r : ℝ := ZetaPrimePowerIndex.sqrtWeight ι
+  let A : ℂ := zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f
+  have hr_nonneg : 0 ≤ r := by
+    unfold r
+    unfold ZetaPrimePowerIndex.sqrtWeight
+    exact Real.sqrt_nonneg _
+  have hnorm_r : ‖(r : ℂ)‖ = r := by
+    calc
+      ‖(r : ℂ)‖ = |r| := by
+        exact RCLike.norm_ofReal r
+      _ = r := by
+        exact abs_of_nonneg hr_nonneg
+  have hnorm :
+      ‖(r : ℂ) * A‖ = r * ‖A‖ := by
+    calc
+      ‖(r : ℂ) * A‖ = ‖(r : ℂ)‖ * ‖A‖ := by
+        exact norm_mul (r : ℂ) A
+      _ = r * ‖A‖ := by
+        exact congrArg (fun x : ℝ => x * ‖A‖) hnorm_r
+  have hweight : r * r = ZetaPrimePowerIndex.weight ι := by
+    unfold r
+    exact ZetaPrimePowerIndex.sqrtWeight_mul_self ι
+  unfold zetaCompletedPrimeOppositeSpectralAmplitudeIndex
+  unfold zetaCompletedPrimeOppositeWeightedSampleNormSq
+  change ‖(r : ℂ) * A‖ ^ 2 =
+    ZetaPrimePowerIndex.weight ι * ‖A‖ ^ 2
+  calc
+    ‖(r : ℂ) * A‖ ^ 2 = (r * ‖A‖) ^ 2 := by
+      exact congrArg (fun x : ℝ => x ^ 2) hnorm
+    _ = ZetaPrimePowerIndex.weight ι * ‖A‖ ^ 2 := by
+      nlinarith [hweight]
+
+/-- Positive real-axis prime-sample decay: the weighted positive prime samples are
+summable. -/
+theorem summable_zetaCompletedPrimePositiveWeightedSampleNormSq
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimePositiveWeightedSampleNormSq ι f) := by
+  sorry
+
+/-- Opposite real-axis prime-sample decay: the weighted opposite prime samples are
+summable. -/
+theorem summable_zetaCompletedPrimeOppositeWeightedSampleNormSq
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        zetaCompletedPrimeOppositeWeightedSampleNormSq ι f) := by
+  sorry
+
 /-- The norm of a two-face product is bounded by the sum of the two squared face norms. -/
 theorem complex_norm_mul_star_le_sq_add_sq (a b : ℂ) :
     ‖a * star b‖ ≤ ‖a‖ ^ 2 + ‖b‖ ^ 2 := by
@@ -1720,6 +1828,32 @@ theorem complex_norm_defect_square_le_two_sq_add_sq (a b : ℂ) :
     nlinarith [sq_nonneg (‖a‖ - ‖b‖)]
   exact hmul_self.trans (hsquare.trans harith)
 
+/-- The positive completed real-axis prime spectral amplitudes are square-summable.
+
+This is the positive-face half of the owner analytic prime-sample decay theorem. -/
+theorem summable_zetaCompletedPrimeSpectralAmplitudeIndex_norm_sq
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        ‖zetaCompletedPrimeSpectralAmplitudeIndex ι f‖ ^ 2) := by
+  exact (summable_zetaCompletedPrimePositiveWeightedSampleNormSq f).congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (zetaCompletedPrimeSpectralAmplitudeIndex_norm_sq_eq_weightedSampleNormSq
+        ι f).symm)
+
+/-- The opposite completed real-axis prime spectral amplitudes are square-summable.
+
+This is the opposite-face half of the owner analytic prime-sample decay theorem. -/
+theorem summable_zetaCompletedPrimeOppositeSpectralAmplitudeIndex_norm_sq
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        ‖zetaCompletedPrimeOppositeSpectralAmplitudeIndex ι f‖ ^ 2) := by
+  exact (summable_zetaCompletedPrimeOppositeWeightedSampleNormSq f).congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (zetaCompletedPrimeOppositeSpectralAmplitudeIndex_norm_sq_eq_weightedSampleNormSq
+        ι f).symm)
+
 /-- The completed real-axis prime spectral majorant is summable.
 
 This is the owner analytic prime-sample decay theorem.  It is the only analytic estimate
@@ -1730,7 +1864,10 @@ theorem summable_zetaCompletedPrimeSpectralCoordinateMajorant
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         zetaCompletedPrimeSpectralCoordinateMajorant ι f) := by
-  sorry
+  unfold zetaCompletedPrimeSpectralCoordinateMajorant
+  exact
+    (summable_zetaCompletedPrimeSpectralAmplitudeIndex_norm_sq f).add
+      (summable_zetaCompletedPrimeOppositeSpectralAmplitudeIndex_norm_sq f)
 
 /-- The positive defect-square coordinate is bounded by twice the spectral majorant. -/
 theorem norm_zetaCompletedPrimeDefectKernelPositiveCoordinate_le_spectralMajorant
