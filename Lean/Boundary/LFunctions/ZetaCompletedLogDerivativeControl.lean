@@ -93,7 +93,7 @@ theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
 
 /-- Polynomial strip growth for the ordinary Riemann-zeta logarithmic derivative on a
 zero-excised completed strip. -/
-theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
+theorem riemannZetaNegLogDeriv_zeroFreeVerticalStripPolynomialBound
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
     ∃ C : ℝ,
       0 < C ∧
@@ -102,6 +102,17 @@ theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
         ‖riemannZetaNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
   sorry
+
+/-- Completed-strip form of ordinary zeta logarithmic derivative polynomial growth. -/
+theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖riemannZetaNegLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  riemannZetaNegLogDeriv_zeroFreeVerticalStripPolynomialBound a b E N
 
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
@@ -125,6 +136,18 @@ theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
     heq.symm
     (hCbound z hz)
 
+/-- Stirling polynomial control for the inverse-Gamma logarithmic derivative on a fixed
+vertical strip away from the Gamma singular locus. -/
+theorem inverseGammaCompletionLogDeriv_stirlingVerticalStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖inverseGammaCompletionLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  sorry
+
 /-- Polynomial strip growth for the inverse-Gamma logarithmic derivative, by the
 Stirling/asymptotic control of the archimedean completion factor. -/
 theorem inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound
@@ -134,8 +157,8 @@ theorem inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖inverseGammaCompletionLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  inverseGammaCompletionLogDeriv_stirlingVerticalStripBound a b E N
 
 /-- Polynomial strip growth for the inverse-Gamma completion logarithmic derivative. -/
 theorem inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound

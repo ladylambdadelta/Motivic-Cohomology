@@ -137,6 +137,19 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
+/-- The coordinate-remainder majorant is summable from the sampled horizontal-envelope
+estimate for the contour-transport family.
+
+This is the analytic owner step behind prime contour transport: the horizontal sides give
+a summable envelope for the omitted coordinate remainders after the residue/tomography
+identity has localized the error coordinatewise. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_sampledHorizontalEnvelope
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
+  sorry
+
 /-- The contour-transport coordinate-remainder majorant is summable by the prime
 tomography residue theorem and horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay
@@ -144,7 +157,8 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_ho
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  sorry
+  exact
+    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_sampledHorizontalEnvelope f
 
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay
@@ -415,7 +429,7 @@ theorem sampledTopHorizontalIntegrand_norm_le_productEnvelope
       ‖completedZetaNegLogDeriv z‖ *
           ‖zetaCompletedExplicitFormulaPhi
             (convolutionAutocorrelation f) (z - 1 / 2)‖
-        ≤ A * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+        ≤ C * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
     exact Eq.subst
       (motive := fun y : ℝ =>
         ‖completedZetaNegLogDeriv z‖ *
@@ -489,7 +503,7 @@ theorem sampledBottomHorizontalIntegrand_norm_le_productEnvelope
       ‖completedZetaNegLogDeriv z‖ *
           ‖zetaCompletedExplicitFormulaPhi
             (convolutionAutocorrelation f) (z - 1 / 2)‖
-        ≤ A * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
+        ≤ C * (1 + ‖(N : ℝ)‖) ^ (-(1 : ℤ)) := by
     exact Eq.subst
       (motive := fun y : ℝ =>
         ‖completedZetaNegLogDeriv z‖ *

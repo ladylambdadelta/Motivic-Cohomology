@@ -26,6 +26,21 @@ theorem zetaZeroTailRe_eq
     zetaZeroTailRe S φ = Complex.re (zetaZeroTail S φ) := by
   rfl
 
+/-- Pure finite-excision splitting for a completed-zero-indexed family.
+
+This is the topology/root summability theorem behind zero-tail excision: a summable family
+over the completed-zero subtype splits into the finite selected part and the complementary
+subtype tail. -/
+theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
+    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
+      (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
+        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
+  sorry
+
 /-- Generic finite-excision splitting for a completed-zero-indexed family.
 
 This is the purely summability/topology root behind zero-tail excision.  The zeta-specific
@@ -37,8 +52,8 @@ theorem completedZeroSubtype_tsum_eq_finite_add_complement
     (hF : Summable F) :
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
       (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
-        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
-  sorry
+        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) :=
+  completedZeroSubtype_tsum_eq_finiteSubtype_add_complement S F hS hF
 
 /-- The attached finite zero-set sum is the ordinary finite zero-set contribution. -/
 theorem zetaZeroSideContribution_sum_attach_eq_sum

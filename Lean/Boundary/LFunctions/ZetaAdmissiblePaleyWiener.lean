@@ -119,6 +119,22 @@ theorem zetaPaleyWienerStripExponentialEnvelope_pos
   unfold zetaPaleyWienerStripExponentialEnvelope
   exact Real.exp_pos _
 
+/-- Zero-order compact-support control for the admissible Laplace transform on a fixed
+support interval.
+
+This is the analytic estimate before integration by parts: compact support bounds the
+source, the support interval bounds the horizontal exponential factor uniformly on the
+strip, and the integral is controlled by those two bounds. -/
+theorem zetaLaplaceTransform_supportInterval_zeroOrder_integralBound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤ C := by
+  sorry
+
 /-- Zero-order Paley-Wiener control on a fixed compact support interval.
 
 This is the compact-support estimate before any integration by parts: the horizontal
@@ -132,6 +148,86 @@ theorem zetaLaplaceTransform_supportInterval_zeroOrder_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z 0 := by
+  rcases zetaLaplaceTransform_supportInterval_zeroOrder_integralBound
+      f I a b with ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro z hz
+  have hweight :
+      zetaPaleyWienerVerticalWeight z 0 = 1 := by
+    unfold zetaPaleyWienerVerticalWeight
+    exact zpow_zero (1 + ‖z.im‖)
+  have htarget :
+      C * zetaPaleyWienerVerticalWeight z 0 = C := by
+    exact Eq.trans (congrArg (fun W : ℝ => C * W) hweight) (mul_one C)
+  exact (hCbound z hz).trans_eq htarget.symm
+
+/-- One Paley-Wiener integration-by-parts identity on a fixed support interval.
+
+The boundary terms vanish because the admissible source is zero off the supplied compact
+support interval. This identity is the exact analytic transport that trades one vertical
+frequency factor for one source derivative. -/
+theorem zetaLaplaceTransform_supportInterval_integrationByParts_identity
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∃ derivativeProbe : ZetaAdmissibleFunction,
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        z.im ≠ 0 →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+          (z.im : ℂ)⁻¹ *
+            Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z := by
+  sorry
+
+/-- One integration-by-parts derivative transfer: the derivative probe obtained from the
+identity has the `N`th decay estimate required by the successor step.
+
+This is where smooth compact support supplies the derivative seminorm bound for the new
+probe. -/
+theorem zetaLaplaceTransform_supportInterval_integrationByParts_derivativeProbe_decay
+    (f derivativeProbe : ZetaAdmissibleFunction)
+    (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ)
+    (hN :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z N := by
+  sorry
+
+/-- The one-step Paley-Wiener frequency estimate converts integration-by-parts and
+derivative-probe decay into successor vertical decay. -/
+theorem zetaLaplaceTransform_supportInterval_successor_decay_from_parts
+    (f derivativeProbe : ZetaAdmissibleFunction)
+    (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ)
+    (hidentity :
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        z.im ≠ 0 →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+          (z.im : ℂ)⁻¹ *
+            Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z)
+    (hderiv :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
   sorry
 
 /-- One integration-by-parts step for Paley-Wiener control on a fixed compact support
@@ -156,7 +252,19 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_successor
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
-  sorry
+  rcases zetaLaplaceTransform_supportInterval_integrationByParts_identity
+      f I a b with ⟨derivativeProbe, hidentity⟩
+  have hderivativeDecay :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N := by
+    exact zetaLaplaceTransform_supportInterval_integrationByParts_derivativeProbe_decay
+      f derivativeProbe I a b N hN
+  exact zetaLaplaceTransform_supportInterval_successor_decay_from_parts
+    f derivativeProbe I a b N hidentity hderivativeDecay
 
 /-- The oscillatory integration-by-parts estimate on a fixed support interval.
 
