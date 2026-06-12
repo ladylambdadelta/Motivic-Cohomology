@@ -295,17 +295,6 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum
       htarget
       hdiff)
 
-/-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
-the same completed boundary scalar for a contour family.
-
-This is the exact comparison root between the residue-side vertical limit and the analytic
-boundary-channel reconstruction. -/
-theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_of_family
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
-    (zetaCompletedResidueBoundarySum f : ℂ) =
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
-  sorry
-
 /-- If the residue-side vertical limit is identified with the analytic boundary scalar, then
 the vertical-transport remainder tends to zero. -/
 theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_residueBoundary
@@ -383,7 +372,7 @@ theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero
       (𝓝 0) := by
   exact explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_residueBoundary
     f F
-    (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_of_family f F)
+    (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic f)
 
 /-- The vertical channel transport identifies the vertical-family limit with the analytic
 prime/archimedean/correction boundary sum. -/

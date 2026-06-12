@@ -40,6 +40,17 @@ theorem zetaCompletedResidueBoundarySum_eq_explicitFormulaBoundarySum_iff
       zetaCompletedExplicitFormulaAutocorrelationTarget f := by
   rfl
 
+/-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
+the same completed boundary scalar.
+
+This is the residue-to-boundary comparison root.  The final contour-shift file should use this
+owner theorem rather than owning a duplicate vertical-transport comparison. -/
+theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedResidueBoundarySum f : ℂ) =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end
