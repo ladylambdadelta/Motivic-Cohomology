@@ -1,6 +1,7 @@
 import Boundary.LFunctions.ZetaTestFunction
 import Boundary.LFunctions.ZetaCompletedNormalization
 import Boundary.LFunctions.ZetaWeilShared
+import Boundary.LFunctions.ZetaZeroOrbitRemainder
 import Boundary.LFunctions.ProbeInterface
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -275,6 +276,29 @@ theorem OffCriticalCenteredZetaZero.point_zeta_zero
     riemannZeta (1 / 2 + z.point) = 0 :=
   z.zeta_zero
 
+/-- Off-critical zero separation after isolating the finite zero orbit.
+
+The finite orbit is the controlled negative direction; the orbit remainder is the tail that
+must be made small by the separating admissible autocorrelation probe. -/
+theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
+    (z : OffCriticalCenteredZetaZero)
+    (hcompleted : ZetaCompletedZero z.point)
+    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaZeroOrbitContributionRe z.point
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        zetaZeroOrbitRemainderRe z.point
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
+  sorry
+
+/-- An off-critical centered Riemann-zeta zero is a centered completed-zeta zero, and its
+functional-equation orbit remains in the centered completed zero locus. -/
+theorem offCriticalCenteredZero_completedZero_and_orbit
+    (z : OffCriticalCenteredZetaZero) :
+    ZetaCompletedZero z.point ∧
+      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η := by
+  sorry
+
 /-- Zero-side separation for an off-critical centered zeta zero.
 
 This is the real analytic separation step in Weil's criterion: an off-critical centered
@@ -283,7 +307,27 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  sorry
+  rcases offCriticalCenteredZero_completedZero_and_orbit z with
+    ⟨hcompleted, horbit⟩
+  rcases exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
+      z hcompleted horbit with
+    ⟨f, hf⟩
+  refine ⟨f, ?_⟩
+  have hsplit :
+      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaZeroOrbitContributionRe z.point
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+          zetaZeroOrbitRemainderRe z.point
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
+    zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
+      z.point
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+      hcompleted
+      horbit
+  exact Eq.subst
+    (motive := fun x : ℝ => x < 0)
+    hsplit.symm
+    hf
 
 /-- The zero-detecting direction of Weil's criterion.
 
