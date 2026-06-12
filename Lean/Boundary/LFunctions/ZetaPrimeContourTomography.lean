@@ -168,14 +168,20 @@ def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
 
 /-- The sampled horizontal top-minus-bottom contour remainder along the prime transport
 family. -/
-noncomputable def sampledHorizontalDifference
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+noncomputable def sampledHorizontalDifferenceComplex
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaTopLineIntegral
       (convolutionAutocorrelation f)
       (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
     zetaCompletedExplicitFormulaBottomLineIntegral
       (convolutionAutocorrelation f)
       (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
+/-- The real shadow of the sampled horizontal top-minus-bottom contour remainder along the
+prime transport family. -/
+noncomputable def sampledHorizontalDifference
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (sampledHorizontalDifferenceComplex N f)
 
 /-- The outside-window coordinate-remainder tail. -/
 noncomputable def completedPrimeContourTransportCoordinateRemainderTail
@@ -190,8 +196,8 @@ noncomputable def completedPrimeContourTransportCoordinateRemainderTail
 contour difference from the finite prime contour-transport remainder.
 
 This object is deliberately explicit: the finite prime-window remainder is not asserted to
-be literally the horizontal contour difference.  The remaining owner theorem is that this
-residual error is exactly the omitted coordinate-remainder tail. -/
+be literally the horizontal contour difference.  The residual error is identified with the
+omitted coordinate-remainder tail by the residue-balance theorem below. -/
 noncomputable def finitePrimeContourTransportTomographicError
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   finitePrimeContourTransportRemainder N f -

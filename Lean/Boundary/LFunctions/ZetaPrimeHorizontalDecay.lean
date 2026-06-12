@@ -607,8 +607,11 @@ theorem sampledHorizontalDifference_norm_le_twoEdgeProductEnvelope
   have hnorm :
       ‖sampledHorizontalDifference N f‖ ≤
         A * B * L + A * B * L := by
-    unfold sampledHorizontalDifference
-    exact (norm_sub_le
+    have hcomplex :
+        ‖sampledHorizontalDifferenceComplex N f‖ ≤
+          A * B * L + A * B * L := by
+      unfold sampledHorizontalDifferenceComplex
+      exact (norm_sub_le
       (zetaCompletedExplicitFormulaTopLineIntegral
         (convolutionAutocorrelation f)
         (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
@@ -616,6 +619,12 @@ theorem sampledHorizontalDifference_norm_le_twoEdgeProductEnvelope
         (convolutionAutocorrelation f)
         (completedPrimeContourTransportFamily.rectangle (N : ℝ)))).trans
       (add_le_add htop hbottom)
+    have hreal :
+        ‖sampledHorizontalDifference N f‖ ≤
+          ‖sampledHorizontalDifferenceComplex N f‖ := by
+      unfold sampledHorizontalDifference
+      exact Complex.abs_re_le_abs (sampledHorizontalDifferenceComplex N f)
+    exact hreal.trans hcomplex
   have henvelope :
       A * B * L + A * B * L =
         sampledProductHorizontalEnvelope C 1 N := by

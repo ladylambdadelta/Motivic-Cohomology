@@ -276,7 +276,7 @@ theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecay_core
         zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
           zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
       atTop
-      (𝓝 (0 : ℝ)) :=
+      (𝓝 (0 : ℂ)) :=
   zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
     h.phi_control h.logderiv_control F N
 
@@ -290,7 +290,7 @@ theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecay
         zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
           zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
       atTop
-      (𝓝 (0 : ℝ)) :=
+      (𝓝 (0 : ℂ)) :=
   h.horizontalDecay_core N
 
 /-- A reusable bound for the bottom horizontal line integral in terms of pointwise edge bounds. -/

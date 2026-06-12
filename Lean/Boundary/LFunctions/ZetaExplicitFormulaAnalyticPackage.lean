@@ -44,6 +44,21 @@ theorem ExplicitFormulaFamilyAnalyticPackage.logderiv_control_eq
     h.logderiv_control = h.logderiv_control :=
   rfl
 
+/-- The admissible source has completed log-derivative strip control. -/
+noncomputable def completedZetaNegLogDerivControl_of_admissible
+    (f : ZetaAdmissibleFunction) :
+    CompletedZetaNegLogDerivControl f :=
+  { zero_excised_polynomial_strip_bound :=
+      fun a b E N =>
+        completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N }
+
+/-- The admissible source has the family analytic package for every contour family. -/
+noncomputable def explicitFormulaFamilyAnalyticPackage_of_admissible
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    ExplicitFormulaFamilyAnalyticPackage f F :=
+  { phi_control := zetaPhiAnalyticControl_of_admissible f
+    logderiv_control := completedZetaNegLogDerivControl_of_admissible f }
+
 end ZetaAdmissibleFunction
 
 end

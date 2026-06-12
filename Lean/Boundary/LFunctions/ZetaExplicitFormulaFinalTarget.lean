@@ -1,4 +1,5 @@
 import Boundary.LFunctions.ZetaExplicitFormulaGeometry
+import Boundary.LFunctions.ZetaExplicitFormulaComplexAnalysis
 import Boundary.LFunctions.ZetaExplicitFormulaResidueBridge
 
 /-!
@@ -48,6 +49,88 @@ noncomputable def explicitFormulaFamilyVerticalDifference
   zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
     zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
 
+/-- The horizontal side difference along a contour family. -/
+noncomputable def explicitFormulaFamilyHorizontalDifference
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+    zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
+
+/-- The contour integral along a contour family. -/
+noncomputable def explicitFormulaFamilyContourIntegral
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)
+
+/-- The contour-family integral is the sum of the vertical and horizontal differences. -/
+theorem explicitFormulaFamilyContourIntegral_eq_vertical_add_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    explicitFormulaFamilyContourIntegral f F T =
+      explicitFormulaFamilyVerticalDifference f F T +
+        explicitFormulaFamilyHorizontalDifference f F T := by
+  let R : ℂ := zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T)
+  let L : ℂ := zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
+  let U : ℂ := zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T)
+  let B : ℂ := zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)
+  unfold explicitFormulaFamilyContourIntegral
+  unfold zetaCompletedExplicitFormulaContourIntegral
+  unfold explicitFormulaFamilyVerticalDifference
+  unfold explicitFormulaFamilyHorizontalDifference
+  change R - L + U - B = (R - L) + (U - B)
+  calc
+    R - L + U - B = (R - L + U) + -B := by
+      exact sub_eq_add_neg (R - L + U) B
+    _ = ((R - L) + U) + -B := by
+      rfl
+    _ = (R - L) + (U + -B) := by
+      exact add_assoc (R - L) U (-B)
+    _ = (R - L) + (U - B) := by
+      exact congrArg (fun x : ℂ => (R - L) + x) (sub_eq_add_neg U B).symm
+
+/-- The vertical family is the contour family with the horizontal difference subtracted. -/
+theorem explicitFormulaFamilyVerticalDifference_eq_contour_sub_horizontal
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    explicitFormulaFamilyVerticalDifference f F T =
+      explicitFormulaFamilyContourIntegral f F T -
+        explicitFormulaFamilyHorizontalDifference f F T := by
+  let V : ℂ := explicitFormulaFamilyVerticalDifference f F T
+  let H : ℂ := explicitFormulaFamilyHorizontalDifference f F T
+  have hcontour :
+      explicitFormulaFamilyContourIntegral f F T = V + H :=
+    explicitFormulaFamilyContourIntegral_eq_vertical_add_horizontal f F T
+  calc
+    explicitFormulaFamilyVerticalDifference f F T = V := by
+      rfl
+    _ = (V + H) - H := by
+      exact (add_sub_cancel_right V H).symm
+    _ = explicitFormulaFamilyContourIntegral f F T - H := by
+      exact congrArg (fun x : ℂ => x - H) hcontour.symm
+    _ =
+        explicitFormulaFamilyContourIntegral f F T -
+          explicitFormulaFamilyHorizontalDifference f F T := by
+      rfl
+
+/-- The horizontal contour sides vanish along every admissible contour family. -/
+theorem explicitFormulaFamilyHorizontalDifference_tendsto_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyHorizontalDifference f F T)
+      atTop
+      (𝓝 0) := by
+  exact
+    ExplicitFormulaFamilyAnalyticPackage.horizontalDecay
+      (f := f) (F := F)
+      (h := explicitFormulaFamilyAnalyticPackage_of_admissible f F)
+      1
+
+/-- The residue theorem reconstructs the limiting contour integral from the zero-side
+completed residue boundary. -/
+theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
+      atTop
+      (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
+  sorry
+
 /-- Residue reconstruction plus horizontal decay identifies the limit of the vertical
 family with the completed residue boundary sum. -/
 theorem explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum
@@ -56,6 +139,60 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum
       (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
       atTop
       (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
+  have hcontour :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
+        atTop
+        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
+    explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum f F
+  have hhorizontal :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyHorizontalDifference f F T)
+        atTop
+        (𝓝 (0 : ℂ)) :=
+    explicitFormulaFamilyHorizontalDifference_tendsto_zero f F
+  have hdiff :
+      Tendsto
+        (fun T : ℝ =>
+          explicitFormulaFamilyContourIntegral f F T -
+            explicitFormulaFamilyHorizontalDifference f F T)
+        atTop
+        (𝓝 ((zetaCompletedResidueBoundarySum f : ℂ) - 0)) :=
+    hcontour.sub hhorizontal
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T) =
+        (fun T : ℝ =>
+          explicitFormulaFamilyContourIntegral f F T -
+            explicitFormulaFamilyHorizontalDifference f F T) := by
+    funext T
+    exact explicitFormulaFamilyVerticalDifference_eq_contour_sub_horizontal f F T
+  have htarget :
+      ((zetaCompletedResidueBoundarySum f : ℂ) - 0) =
+        (zetaCompletedResidueBoundarySum f : ℂ) :=
+    sub_zero _
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            explicitFormulaFamilyContourIntegral f F T -
+              explicitFormulaFamilyHorizontalDifference f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hdiff)
+
+/-- The vertical channel transport identifies the vertical-family limit with the analytic
+prime/archimedean/correction boundary sum. -/
+theorem explicitFormulaFamilyVerticalTransport_tendsto_boundarySum
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
   sorry
 
 /-- The vertical channel transport identifies the limit of the vertical family with the
@@ -65,8 +202,8 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum
     Tendsto
       (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
       atTop
-      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  sorry
+      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+  explicitFormulaFamilyVerticalTransport_tendsto_boundarySum f F
 
 /-- The zero side equals the analytic boundary sum by uniqueness of the completed vertical
 family limit. -/

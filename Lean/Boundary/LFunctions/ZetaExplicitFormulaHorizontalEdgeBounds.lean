@@ -957,7 +957,7 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
         zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
           zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T))
       atTop
-      (𝓝 (0 : ℝ)) :=
+      (𝓝 (0 : ℂ)) :=
   squeeze_zero_norm'
     (Eventually.of_forall
       (fun T =>
