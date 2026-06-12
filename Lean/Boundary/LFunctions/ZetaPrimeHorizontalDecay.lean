@@ -137,13 +137,27 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
+/-- The contour-transport coordinate-remainder majorant is summable by horizontal contour decay. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
+  sorry
+
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainder ι f) := by
-  sorry
+  have hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourTransportCoordinateRemainderMajorant ι f) :=
+    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay f
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant at hmajorant
+  exact hmajorant.of_norm
 
 /-- A contour-realized prime coordinate is the physical time coordinate plus the
 contour-transport remainder. -/
@@ -283,8 +297,7 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  unfold completedPrimeContourTransportCoordinateRemainderMajorant
-  exact (summable_completedPrimeContourTransportCoordinateRemainder f).norm
+  exact summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay f
 
 /-- The tail of the contour-transport coordinate remainder is controlled by its own
 coordinate-remainder majorant tail. -/

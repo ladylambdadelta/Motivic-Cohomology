@@ -18,6 +18,17 @@ open scoped ContDiff
 
 namespace ZetaAdmissibleFunction
 
+/-- Constructive vertical-strip rapid-decay certificate for a complex-valued transform. -/
+structure VerticalStripRapidDecayCertificate
+    (Φ : ℂ → ℂ) (a b : ℝ) (N : ℕ) where
+  constant : ℝ
+  constant_pos : 0 < constant
+  bound :
+    ∀ z : ℂ,
+      a ≤ z.re →
+      z.re ≤ b →
+      ‖Φ z‖ ≤ constant * (1 + ‖z.im‖) ^ (-(N : ℤ))
+
 /-- A concrete support interval certificate for a compactly supported admissible source. -/
 structure ZetaPaleyWienerSupportInterval (f : ZetaAdmissibleFunction) where
   lower : ℝ
@@ -98,6 +109,15 @@ def zetaLaplaceTransformHasVerticalStripDecayConstant
 This is the Fourier-side core of Paley-Wiener: after `N` integrations by parts, the vertical
 frequency contributes the factor `(1 + |im z|)^{-N}`.  Smoothness supplies the needed
 derivative seminorms and the support-interval vanishing lemmas kill all boundary terms. -/
+noncomputable def zetaLaplaceTransform_supportInterval_integrationByParts_decayCertificate
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    VerticalStripRapidDecayCertificate
+      (fun z : ℂ => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z) a b N := by
+  sorry
+
+/-- The oscillatory integration-by-parts estimate on a fixed support interval, projected as an
+existence statement for theorem consumers. -/
 theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (N : ℕ) :
@@ -107,7 +127,12 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  sorry
+  let cert :=
+    zetaLaplaceTransform_supportInterval_integrationByParts_decayCertificate
+      f I a b N
+  exact
+    ⟨cert.constant, cert.constant_pos, fun z hz =>
+      cert.bound z hz.1 hz.2⟩
 
 /-- The Paley-Wiener support-interval estimate assembled from the interval seminorm and the
 oscillatory integration-by-parts bound. -/
@@ -164,7 +189,7 @@ theorem zetaLaplaceTransform_verticalStripRapidDecay_of_compactSupport_smooth
   exact hC.2 z ⟨haz, hzb⟩
 
 /-- Paley-Wiener rapid vertical-strip decay for the completed explicit-formula transform
-`Φ_f`. -/
+`Φ_f`, projected as an existence statement for theorem consumers. -/
 theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
     (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
     ∃ C : ℝ,

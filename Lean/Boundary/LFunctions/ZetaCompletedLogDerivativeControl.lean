@@ -1,5 +1,5 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
-import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
+import Boundary.LFunctions.ZetaCompletedNormalizationBridge
 
 /-!
 # Boundary completed-log-derivative control
@@ -21,12 +21,18 @@ namespace ZetaAdmissibleFunction
 structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
   carrier : Set ℂ
   in_strip : ∀ z : ℂ, z ∈ carrier → a ≤ z.re ∧ z.re ≤ b
+  ne_zero : ∀ z : ℂ, z ∈ carrier → z ≠ 0
+  ne_one : ∀ z : ℂ, z ∈ carrier → z ≠ 1
   zeta_ne_zero : ∀ z : ℂ, z ∈ carrier → completedRiemannZeta z ≠ 0
+  gamma_ne_zero : ∀ z : ℂ, z ∈ carrier → Complex.Gammaℝ z ≠ 0
   contains_zero_avoiding_contour_edges :
     ∀ z : ℂ,
       a ≤ z.re →
       z.re ≤ b →
+      z ≠ 0 →
+      z ≠ 1 →
       completedRiemannZeta z ≠ 0 →
+      Complex.Gammaℝ z ≠ 0 →
       z ∈ carrier
 
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
@@ -75,14 +81,62 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
         z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+  rcases hzeta with ⟨Czeta, hCzeta_pos, hCzeta_bound⟩
+  rcases hgamma with ⟨Cgamma, hCgamma_pos, hCgamma_bound⟩
+  refine ⟨Czeta + Cgamma, add_pos hCzeta_pos hCgamma_pos, ?_⟩
+  intro z hz
+  let correction :=
+    deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹
+  have hsplit :
+      completedZetaNegLogDeriv z =
+        zetaSideNegLogDeriv z + correction := by
+    have hside :
+        zetaSideNegLogDeriv z =
+          completedZetaNegLogDeriv z - correction :=
+      zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
+        (E.ne_zero z hz) (E.ne_one z hz)
+        (E.zeta_ne_zero z hz) (E.gamma_ne_zero z hz)
+    exact (sub_eq_iff_eq_add.mp hside).symm
+  have hnorm_split :
+      ‖completedZetaNegLogDeriv z‖ ≤
+        ‖zetaSideNegLogDeriv z‖ + ‖correction‖ := by
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        ‖w‖ ≤ ‖zetaSideNegLogDeriv z‖ + ‖correction‖)
+      hsplit.symm
+      (norm_add_le (zetaSideNegLogDeriv z) correction)
+  have hbounds :
+      ‖zetaSideNegLogDeriv z‖ + ‖correction‖ ≤
+        Czeta * (1 + ‖z.im‖) ^ N +
+          Cgamma * (1 + ‖z.im‖) ^ N := by
+    exact add_le_add (hCzeta_bound z hz) (hCgamma_bound z hz)
+  have hfactor :
+      Czeta * (1 + ‖z.im‖) ^ N + Cgamma * (1 + ‖z.im‖) ^ N =
+        (Czeta + Cgamma) * (1 + ‖z.im‖) ^ N := by
+    exact (add_mul Czeta Cgamma ((1 + ‖z.im‖) ^ N)).symm
+  exact hnorm_split.trans (hbounds.trans_eq hfactor)
 
 /-- The completed zeta zero set admits a zero-excised strip containing every zero-free contour
 point in the strip. -/
 theorem exists_completedZetaZeroExcisedStrip
     (a b : ℝ) :
     ∃ E : CompletedZetaZeroExcisedStrip a b, True := by
-  sorry
+  exact
+    ⟨{ carrier :=
+          {z : ℂ |
+            a ≤ z.re ∧ z.re ≤ b ∧
+              z ≠ 0 ∧ z ≠ 1 ∧
+              completedRiemannZeta z ≠ 0 ∧
+              Complex.Gammaℝ z ≠ 0}
+        in_strip := fun z hz => ⟨hz.1, hz.2.1⟩
+        ne_zero := fun z hz => hz.2.2.1
+        ne_one := fun z hz => hz.2.2.2.1
+        zeta_ne_zero := fun z hz => hz.2.2.2.2.1
+        gamma_ne_zero := fun z hz => hz.2.2.2.2.2
+        contains_zero_avoiding_contour_edges :=
+          fun z haz hzb hz0 hz1 hΛ hΓ =>
+            ⟨haz, hzb, hz0, hz1, hΛ, hΓ⟩ },
+      trivial⟩
 
 /-- The completed negative logarithmic derivative has polynomial growth on the canonical
 zero-excised strip region. -/
