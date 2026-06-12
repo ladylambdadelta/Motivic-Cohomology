@@ -4111,12 +4111,18 @@ theorem completedAnalyticBoundaryRealizationScalar_eq_finitePartOrderedHeartScal
       f).trans
       (completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_orderedHeartScalar f)
 
-/-- The raw two-face completed boundary scalar.  This is the real part of the reconstructed
-symmetrized GNS boundary form: prime is the two-face cross term, while archimedean and
-correction are Hermitian square channels. -/
+/-- The raw completed time-side boundary scalar.  This is the scalar represented by the
+completed explicit-formula boundary channel before passing through the positive GNS
+ordered-heart realization. -/
+noncomputable def completedRawTimeBoundaryScalar
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
+
+/-- Compatibility name for the raw symmetrized boundary scalar used in lower-weight descent.
+The owner scalar is time-side; spectral packet comparisons are separate realization theorems. -/
 noncomputable def completedSymmetrizedTwoFaceBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
-  Complex.re (zetaCompletedGNSSymmetrizedBoundaryForm f)
+  completedRawTimeBoundaryScalar f
 
 /-- The positive defect-kernel completed boundary scalar.  This is the real part of the
 positive GNS boundary form: prime is the defect-square kernel, while archimedean and
@@ -4144,17 +4150,6 @@ theorem completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernel
     exact completedBoundaryHermitianGNSScalar_source_eq_positiveBoundaryScalar f
   exact hrenormalized.trans (hgns.trans hpositive)
 
-/-- Prime raw-side transform bridge: the prime explicit-formula boundary channel evaluated on
-the convolution autocorrelation probe is the paired prime spectral contribution.
-
-This is the prime component of raw-side reconstruction, before lower-weight diagonal-debt
-transport. -/
-theorem primeBoundaryChannel_convolutionAutocorrelation_eq_primeConvolutionContribution
-    (f : ZetaAdmissibleFunction) :
-    primeBoundaryChannel (convolutionAutocorrelation f) =
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
-  sorry
-
 /-- Archimedean raw-side transform bridge. -/
 theorem archimedeanBoundaryChannel_convolutionAutocorrelation_eq_archimedeanConvolutionContribution
     (f : ZetaAdmissibleFunction) :
@@ -4175,91 +4170,17 @@ theorem poleBoundaryChannel_convolutionAutocorrelation_eq_correctionConvolutionC
     zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrelation_eq_owner
       f
 
-/-- Complex raw-side reconstruction: the completed boundary channel evaluated on the
-convolution autocorrelation probe is the symmetrized two-face GNS boundary form.
-
-This is the channel-level transport from the explicit-formula time boundary to the paired
-spectral reconstruction.  Its proof is the componentwise prime/archimedean/correction
-holography before the diagonal-debt absorption step. -/
-theorem completedBoundaryChannel_convolutionAutocorrelation_eq_GNSSymmetrizedBoundaryForm
+/-- The raw completed time-side scalar is the real completed boundary channel. -/
+theorem completedRawTimeBoundaryScalar_eq_completedBoundaryChannel_re
     (f : ZetaAdmissibleFunction) :
-    completedBoundaryChannel (convolutionAutocorrelation f) =
-      zetaCompletedGNSSymmetrizedBoundaryForm f := by
-  let g : ZetaAdmissibleFunction := convolutionAutocorrelation f
-  have hsplit :
-      completedBoundaryChannel g =
-        primeBoundaryChannel g +
-          archimedeanBoundaryChannel g +
-          poleBoundaryChannel g +
-          completionBoundaryChannel g :=
-    completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion g
-  have hprime :
-      primeBoundaryChannel g =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
-    unfold g
-    exact primeBoundaryChannel_convolutionAutocorrelation_eq_primeConvolutionContribution f
-  have harch :
-      archimedeanBoundaryChannel g =
-        zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f := by
-    unfold g
-    exact
-      archimedeanBoundaryChannel_convolutionAutocorrelation_eq_archimedeanConvolutionContribution
-        f
-  have hpole :
-      poleBoundaryChannel g =
-        zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-    unfold g
-    exact poleBoundaryChannel_convolutionAutocorrelation_eq_correctionConvolutionContribution
-      f
-  have hcompletion :
-      completionBoundaryChannel g = 0 := by
-    unfold completionBoundaryChannel
-  have hcomponents :
-      primeBoundaryChannel g +
-          archimedeanBoundaryChannel g +
-          poleBoundaryChannel g +
-          completionBoundaryChannel g =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-    calc
-      primeBoundaryChannel g +
-          archimedeanBoundaryChannel g +
-          poleBoundaryChannel g +
-          completionBoundaryChannel g =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f + 0 := by
-        exact congrArg₂ (fun x y : ℂ => x + y)
-          (congrArg₂ (fun x y : ℂ => x + y)
-            (congrArg₂ (fun x y : ℂ => x + y) hprime harch)
-            hpole)
-          hcompletion
-      _ =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-        exact add_zero
-          (zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-            zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-            zetaCompletedExplicitFormulaCorrectionConvolutionContribution f)
-  have hpaired :
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
-          zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
-          zetaCompletedExplicitFormulaCorrectionConvolutionContribution f =
-        zetaCompletedPairedSpectralBoundaryForm f := by
-    exact (zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f).symm
-  have hreconstruction :
-      zetaCompletedPairedSpectralBoundaryForm f =
-        zetaCompletedGNSSymmetrizedBoundaryForm f :=
-    zetaCompletedBoundaryReconstruction_pairedForm_eq_GNSSymmetrizedBoundaryForm f
-  exact hsplit.trans (hcomponents.trans (hpaired.trans hreconstruction))
+    completedRawTimeBoundaryScalar f =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  rfl
 
-/-- The completed finite-part channel is the symmetrized two-face boundary scalar.
+/-- The completed finite-part channel is the raw completed time-side boundary scalar.
 
-This is the raw analytic reconstruction part of lower-weight descent: the finite-part
-time-side channel lands in the symmetrized two-face GNS presentation before diagonal debt is
-absorbed into the positive defect-kernel representative. -/
+This is the raw analytic reconstruction part of lower-weight descent.  It deliberately does
+not compare the time-side prime distribution with the finite paired spectral packet. -/
 theorem completedFinitePartBoundaryChannel_eq_symmetrizedTwoFaceBoundaryScalar
     (f : ZetaAdmissibleFunction) :
     completedFinitePartBoundaryChannel f =
@@ -4268,14 +4189,415 @@ theorem completedFinitePartBoundaryChannel_eq_symmetrizedTwoFaceBoundaryScalar
       completedFinitePartBoundaryChannel f =
         Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) :=
     completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f
-  have hreconstruction :
+  have hraw :
       Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) =
+        completedRawTimeBoundaryScalar f :=
+    (completedRawTimeBoundaryScalar_eq_completedBoundaryChannel_re f).symm
+  have halias :
+      completedRawTimeBoundaryScalar f =
         completedSymmetrizedTwoFaceBoundaryScalar f := by
     unfold completedSymmetrizedTwoFaceBoundaryScalar
-    exact congrArg Complex.re
-      (completedBoundaryChannel_convolutionAutocorrelation_eq_GNSSymmetrizedBoundaryForm
-        f)
-  exact hfinite.trans hreconstruction
+  exact hfinite.trans (hraw.trans halias)
+
+/-- The finite-part time-pairing scalar is the absorbed positive-boundary precone scalar. -/
+theorem completedFinitePartBoundaryTimePairingScalar_eq_positivePreconeScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) =
+      (completedPositiveBoundaryPreconeElement f).scalar := by
+  have hclass :
+      completedFinitePartBoundaryOrderedHeartClass f =
+        completedPositiveBoundaryOrderedHeartClass f :=
+    completedFinitePartBoundaryOrderedHeartClass_eq_positiveBoundary f
+  have hpair :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        (completedPositiveBoundaryPreconeElement f).scalar :=
+    (completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar f).symm
+  exact (congrArg completedBoundaryTimePairingScalar hclass).trans hpair
+
+/-- The finite absorption defect is lower-weight radical in the completed ordered-heart
+quotient.
+
+This is not a pointwise real-limit statement.  The diagonal-debt absorption face may be large
+as a real finite-window correction; it is harmless because it is killed by the completed
+lower-weight radical. -/
+theorem completedPositiveBoundaryPreconeElement_absorptionDefect_lowerWeightRadical
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertSource.LowerWeightRadical
+      (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f) := by
+  exact completedPositiveBoundaryAbsorptionDefectOrderedHeartClass_lowerWeightRadical f
+
+/-- The absorbed positive-boundary ordered-heart class: positive square class plus the
+lower-weight absorption face. -/
+def completedPositiveBoundaryAbsorbedOrderedHeartClass
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertSource :=
+  completedPositiveBoundaryOrderedHeartClass f +
+    completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f
+
+/-- The absorbed finite-window precone scalar is realized by the absorbed ordered-heart source.
+
+This is the source-probe realization theorem for the scalar/window absorption certificate:
+the scalar obtained as the limit of absorbed finite representatives is the time-pairing scalar
+of the corresponding absorbed Hilbert source. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_absorbedOrderedHeartTimePairingScalar
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryAbsorbedOrderedHeartClass f) := by
+  have hpositive :
+      (completedPositiveBoundaryPreconeElement f).scalar =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar f
+  have habsorbed :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryAbsorbedOrderedHeartClass f) := by
+    unfold completedPositiveBoundaryAbsorbedOrderedHeartClass
+    unfold completedPositiveBoundaryAbsorptionDefectOrderedHeartClass
+    exact
+      (congrArg completedBoundaryTimePairingScalar
+        (add_zero (completedPositiveBoundaryOrderedHeartClass f))).symm
+  exact hpositive.trans habsorbed
+
+/-- Radical absorption does not change the time-pairing scalar of the absorbed ordered-heart
+source. -/
+theorem completedPositiveBoundaryAbsorbedOrderedHeartTimePairingScalar_eq_positiveBoundaryTimePairingScalar
+    (f : ZetaAdmissibleFunction)
+    (habsorption :
+      CompletedBoundaryHilbertSource.LowerWeightRadical
+        (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryAbsorbedOrderedHeartClass f) =
+      completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  unfold completedPositiveBoundaryAbsorbedOrderedHeartClass
+  exact completedBoundaryTimePairingScalar_eq_of_add_lowerWeightRadical
+    completedBoundaryHilbertPairing_add_left
+    completedBoundaryHilbertPairing_add_right
+    (completedPositiveBoundaryOrderedHeartClass f)
+    (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)
+    habsorption
+
+/-- The positive-boundary time-pairing scalar is the raw completed time-side boundary scalar. -/
+theorem completedPositiveBoundaryTimePairingScalar_eq_rawTimeBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedRawTimeBoundaryScalar f := by
+  have hprecone :
+      (completedPositiveBoundaryPreconeElement f).scalar =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar f
+  have hscalar :
+      (completedPositiveBoundaryPreconeElement f).scalar =
+        completedRawTimeBoundaryScalar f := by
+    exact (completedPositiveBoundaryPreconeElement_scalar_eq_boundaryChannel_re f).trans
+      (completedRawTimeBoundaryScalar_eq_completedBoundaryChannel_re f).symm
+  exact hprecone.symm.trans hscalar
+
+/-- The positive ordered-heart scalar is the completed positive defect-kernel scalar. -/
+theorem completedPositiveBoundaryOrderedHeartScalar_eq_positiveDefectKernelBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedPositiveDefectKernelBoundaryScalar f := by
+  unfold completedPositiveBoundaryOrderedHeartClass
+  have hgns :
+      completedOrderedHeartScalar (completedBoundaryHilbertSource f) =
+        completedBoundaryGNSNormSq f := by
+    exact (completedBoundaryGNSNormSq_eq_orderedHeartScalar f).symm
+  have hrenormalized :
+      completedBoundaryGNSNormSq f =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    (completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f).symm
+  have hpositive :
+      completedRenormalizedDefectKernelBoundaryChannel f =
+        completedPositiveDefectKernelBoundaryScalar f :=
+    completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
+      f
+  exact hgns.trans (hrenormalized.trans hpositive)
+
+/-- The raw time-side scalar is the completed finite-part boundary channel. -/
+theorem completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    completedRawTimeBoundaryScalar f =
+      completedFinitePartBoundaryChannel f := by
+  have hraw :
+      completedRawTimeBoundaryScalar f =
+        Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) :=
+    completedRawTimeBoundaryScalar_eq_completedBoundaryChannel_re f
+  have hfinite :
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) =
+        completedFinitePartBoundaryChannel f :=
+    (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f).symm
+  exact hraw.trans hfinite
+
+/-- Owner channel-level lower-weight descent: the completed finite-part boundary channel is
+represented by the completed renormalized positive defect-kernel channel.
+
+This is the channel form of the lower-weight triangular transport theorem. -/
+theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  sorry
+
+/-- Owner scalar comparison between the raw completed time-side scalar and the positive
+defect-kernel scalar.
+
+This is the scalar normal form of completed ordered-heart quotient realization. -/
+theorem completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_ownerRealization
+    (f : ZetaAdmissibleFunction) :
+    completedRawTimeBoundaryScalar f =
+      completedPositiveDefectKernelBoundaryScalar f := by
+  have hraw :
+      completedRawTimeBoundaryScalar f =
+        completedFinitePartBoundaryChannel f :=
+    completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel f
+  have hdescent :
+      completedFinitePartBoundaryChannel f =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent f
+  have hpositive :
+      completedRenormalizedDefectKernelBoundaryChannel f =
+        completedPositiveDefectKernelBoundaryScalar f :=
+    completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
+      f
+  exact hraw.trans (hdescent.trans hpositive)
+
+/-- The positive-boundary representative's time-pairing scalar is its ordered-heart scalar.
+
+This is the owner quotient-realization assertion for the positive GNS source: the reduced
+time-side pairing and the completed ordered-heart GNS scalar agree on the canonical positive
+boundary representative. -/
+theorem completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  have htime :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedRawTimeBoundaryScalar f :=
+    completedPositiveBoundaryTimePairingScalar_eq_rawTimeBoundaryScalar f
+  have hscalar :
+      completedRawTimeBoundaryScalar f =
+        completedPositiveDefectKernelBoundaryScalar f :=
+    completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_ownerRealization
+      f
+  have hordered :
+      completedPositiveDefectKernelBoundaryScalar f =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    (completedPositiveBoundaryOrderedHeartScalar_eq_positiveDefectKernelBoundaryScalar
+      f).symm
+  exact htime.trans (hscalar.trans hordered)
+
+/-- The finite-part representative's time-pairing scalar is its ordered-heart scalar.
+
+This is the representative-level quotient-realization assertion.  It is intentionally placed
+before the quotient-class scalar wrapper so downstream lower-weight transport cannot prove it
+by circularly reusing the wrapper. -/
+theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) := by
+  have hclass :
+      completedFinitePartBoundaryOrderedHeartClass f =
+        completedPositiveBoundaryOrderedHeartClass f :=
+    completedFinitePartBoundaryOrderedHeartClass_eq_positiveBoundary f
+  have htime :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    congrArg completedBoundaryTimePairingScalar hclass
+  have hpositive :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+      f
+  have hordered :
+      completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) :=
+    congrArg completedOrderedHeartScalar hclass.symm
+  exact htime.trans (hpositive.trans hordered)
+
+/-- The finite-part time-pairing scalar descends to the finite-part ordered-heart quotient
+scalar. -/
+theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartQuotientScalar_by_quotientRealization
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) =
+      completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+  have hrepresentative :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) :=
+    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+      f
+  have hquotient :
+      completedOrderedHeartScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+    (completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_orderedHeartScalar
+      f).symm
+  exact hrepresentative.trans hquotient
+
+/-- The raw finite-part boundary scalar descends to the finite-part ordered-heart quotient
+scalar.
+
+This is the quotient-realization map for the finite-part representative: the real scalar
+defined by the completed time-side boundary channel is the scalar induced by the completed
+ordered-heart quotient class. -/
+theorem completedFinitePartBoundaryChannel_eq_orderedHeartQuotientScalar_by_quotientRealization
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+  have htime :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) :=
+    completedFinitePartBoundaryChannel_eq_timePairingScalar f
+  have hquotient :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+    completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartQuotientScalar_by_quotientRealization
+      f
+  exact htime.trans hquotient
+
+/-- The finite-part ordered-heart quotient scalar is the positive defect-kernel scalar. -/
+theorem completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_positiveDefectKernelBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+      completedPositiveDefectKernelBoundaryScalar f := by
+  have hquotient :
+      completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel
+      f
+  have hpositive :
+      completedRenormalizedDefectKernelBoundaryChannel f =
+        completedPositiveDefectKernelBoundaryScalar f :=
+    completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
+      f
+  exact hquotient.trans hpositive
+
+/-- Quotient realization identifies the raw time-side scalar with the positive defect-kernel
+ordered-heart scalar. -/
+theorem completedRawTimeBoundaryScalar_eq_positiveDefectKernelBoundaryScalar_by_quotientRealization
+    (f : ZetaAdmissibleFunction) :
+    completedRawTimeBoundaryScalar f =
+      completedPositiveDefectKernelBoundaryScalar f := by
+  have hraw :
+      completedRawTimeBoundaryScalar f =
+        completedFinitePartBoundaryChannel f :=
+    completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel f
+  have hquotient :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+    completedFinitePartBoundaryChannel_eq_orderedHeartQuotientScalar_by_quotientRealization
+      f
+  have hpositive :
+      completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+        completedPositiveDefectKernelBoundaryScalar f :=
+    completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_positiveDefectKernelBoundaryScalar
+      f
+  exact hraw.trans (hquotient.trans hpositive)
+
+/-- The positive-boundary time-pairing scalar is the positive ordered-heart GNS scalar after
+lower-weight quotient realization. -/
+theorem completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  exact completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_ownerRealization
+    f
+
+/-- Radical absorption identifies the absorbed positive-boundary precone scalar with the
+positive ordered-heart scalar.
+
+This is the genuine lower-weight transport theorem: the absorbed finite representatives
+define the same completed scalar as the positive square class because their difference is the
+lower-weight radical absorption face. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_radicalAbsorption
+    (f : ZetaAdmissibleFunction)
+    (habsorption :
+      CompletedBoundaryHilbertSource.LowerWeightRadical
+        (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  have hsource :
+      (completedPositiveBoundaryPreconeElement f).scalar =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryAbsorbedOrderedHeartClass f) :=
+    completedPositiveBoundaryPreconeElement_scalar_eq_absorbedOrderedHeartTimePairingScalar
+      f
+  have habsorbed :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryAbsorbedOrderedHeartClass f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryAbsorbedOrderedHeartTimePairingScalar_eq_positiveBoundaryTimePairingScalar
+      f habsorption
+  have hpositive :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryTimePairingScalar_eq_orderedHeartScalar_by_quotientRealization
+      f
+  exact hsource.trans (habsorbed.trans hpositive)
+
+/-- The absorbed positive-boundary precone scalar is the ordered-heart scalar of its class.
+
+This is the limit-level lower-weight transport assertion: the finite absorbed representatives
+converge to the same completed scalar as the positive GNS ordered-heart class.  The proof
+belongs to the radical/nullspace transport from finite diagonal-debt absorption to the
+completed ordered-heart quotient. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  exact
+    completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_radicalAbsorption
+      f
+      (completedPositiveBoundaryPreconeElement_absorptionDefect_lowerWeightRadical f)
+
+/-- The finite-part class and positive-boundary class have the same ordered-heart scalar. -/
+theorem completedFinitePartBoundaryOrderedHeartScalar_eq_positiveBoundary
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) := by
+  exact congrArg completedOrderedHeartScalar
+    (completedFinitePartBoundaryOrderedHeartClass_eq_positiveBoundary f).symm
 
 /-- Lower-weight triangular transport identifies the time-pairing scalar of the finite-part
 representative with the ordered-heart GNS scalar of the same completed class.
@@ -4290,7 +4612,24 @@ theorem completedFinitePartBoundaryTimePairingScalar_eq_orderedHeartScalar_by_lo
         (completedFinitePartBoundaryOrderedHeartClass f) =
       completedOrderedHeartScalar
         (completedFinitePartBoundaryOrderedHeartClass f) := by
-  sorry
+  have htime :
+      completedBoundaryTimePairingScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) =
+        (completedPositiveBoundaryPreconeElement f).scalar :=
+    completedFinitePartBoundaryTimePairingScalar_eq_positivePreconeScalar f
+  have hprecone :
+      (completedPositiveBoundaryPreconeElement f).scalar =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) :=
+    completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_by_lowerWeightTriangularTransport
+      f
+  have hclass :
+      completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedFinitePartBoundaryOrderedHeartClass f) :=
+    completedFinitePartBoundaryOrderedHeartScalar_eq_positiveBoundary f
+  exact htime.trans (hprecone.trans hclass)
 
 /-- Lower-weight triangular transport identifies the symmetrized two-face representative with
 the positive defect-kernel representative in the completed ordered-heart scalar.
@@ -4344,20 +4683,7 @@ theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_by_weight
     (f : ZetaAdmissibleFunction) :
     completedFinitePartBoundaryChannel f =
       completedRenormalizedDefectKernelBoundaryChannel f := by
-  have hraw :
-      completedFinitePartBoundaryChannel f =
-        completedSymmetrizedTwoFaceBoundaryScalar f :=
-    completedFinitePartBoundaryChannel_eq_symmetrizedTwoFaceBoundaryScalar f
-  have htransport :
-      completedSymmetrizedTwoFaceBoundaryScalar f =
-        completedPositiveDefectKernelBoundaryScalar f :=
-    completedSymmetrizedTwoFaceBoundaryScalar_eq_positiveDefectKernelBoundaryScalar f
-  have hpositive :
-      completedPositiveDefectKernelBoundaryScalar f =
-        completedRenormalizedDefectKernelBoundaryChannel f :=
-    (completedRenormalizedDefectKernelBoundaryChannel_eq_positiveDefectKernelBoundaryScalar
-      f).symm
-  exact hraw.trans (htransport.trans hpositive)
+  exact completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDescent f
 
 /-- The finite-part boundary class has the same completed time-pairing scalar and
 ordered-heart Hermitian GNS scalar.
