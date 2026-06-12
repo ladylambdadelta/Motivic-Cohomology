@@ -44,6 +44,38 @@ theorem inverseGammaCompletionLogDeriv_eq
       deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
   rfl
 
+/-- The negative logarithmic derivative of the ordinary Riemann zeta factor. -/
+noncomputable def riemannZetaNegLogDeriv (z : ℂ) : ℂ :=
+  - deriv riemannZeta z / riemannZeta z
+
+/-- The ordinary Riemann-zeta negative logarithmic derivative unfolds to the derivative
+quotient. -/
+theorem riemannZetaNegLogDeriv_eq
+    (z : ℂ) :
+    riemannZetaNegLogDeriv z =
+      - deriv riemannZeta z / riemannZeta z :=
+  rfl
+
+/-- On a zero-excised completed strip, the finite zeta-side logarithmic derivative is the
+ordinary Riemann-zeta logarithmic derivative. -/
+theorem zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b)
+    (z : ℂ) (hz : z ∈ E.carrier) :
+    zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z := by
+  sorry
+
+/-- Polynomial strip growth for the ordinary Riemann-zeta logarithmic derivative on a
+zero-excised completed strip. -/
+theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖riemannZetaNegLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  sorry
+
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
@@ -52,6 +84,29 @@ theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖zetaSideNegLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  rcases riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N with
+    ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro z hz
+  have heq :
+      zetaSideNegLogDeriv z = riemannZetaNegLogDeriv z :=
+    zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv_of_mem_zeroExcisedStrip
+      a b E z hz
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ C * (1 + ‖z.im‖) ^ N)
+    heq.symm
+    (hCbound z hz)
+
+/-- Polynomial strip growth for the inverse-Gamma logarithmic derivative, by the
+Stirling/asymptotic control of the archimedean completion factor. -/
+theorem inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖inverseGammaCompletionLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
   sorry
 
@@ -63,8 +118,8 @@ theorem inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖inverseGammaCompletionLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  inverseGammaCompletionLogDeriv_stirlingPolynomialStripBound a b E N
 
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
 theorem zetaSideNegLogDeriv_polynomialStripBound
