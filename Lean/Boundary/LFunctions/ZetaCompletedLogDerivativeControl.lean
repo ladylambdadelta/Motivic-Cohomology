@@ -5,9 +5,7 @@ import Boundary.LFunctions.ZetaCompletedNormalizationBridge
 # Boundary completed-log-derivative control
 
 This file owns the strip-control package for the completed zeta negative
-logarithmic derivative. The actual analytic bound is part of the upstream
-completion theory; this file only records the owner-level interface the
-contour estimate will consume.
+logarithmic derivative.
 -/
 
 namespace Boundary
@@ -35,8 +33,19 @@ structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
       Complex.Gammaℝ z ≠ 0 →
       z ∈ carrier
 
+/-- The inverse-Gamma correction in the completed logarithmic derivative split. -/
+noncomputable def inverseGammaCompletionLogDeriv (z : ℂ) : ℂ :=
+  deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹
+
+/-- The inverse-Gamma correction unfolds to the derivative quotient. -/
+theorem inverseGammaCompletionLogDeriv_eq
+    (z : ℂ) :
+    inverseGammaCompletionLogDeriv z =
+      deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
+  rfl
+
 /-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
-theorem zetaSideNegLogDeriv_polynomialStripBound
+theorem zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound
     (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
     ∃ C : ℝ,
       0 < C ∧
@@ -45,6 +54,28 @@ theorem zetaSideNegLogDeriv_polynomialStripBound
         ‖zetaSideNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
   sorry
+
+/-- Polynomial strip growth for the inverse-Gamma completion logarithmic derivative. -/
+theorem inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖inverseGammaCompletionLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  sorry
+
+/-- Polynomial strip growth for the zeta-side logarithmic derivative. -/
+theorem zetaSideNegLogDeriv_polynomialStripBound
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ∈ E.carrier →
+        ‖zetaSideNegLogDeriv z‖
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  zetaSideNegLogDeriv_zeroExcisedPolynomialStripBound a b E N
 
 /-- Polynomial strip growth for the archimedean completion logarithmic derivative. -/
 theorem gammaCompletionLogDeriv_polynomialStripBound
@@ -55,7 +86,19 @@ theorem gammaCompletionLogDeriv_polynomialStripBound
         z ∈ E.carrier →
         ‖deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+  rcases inverseGammaCompletionLogDeriv_zeroExcisedPolynomialStripBound a b E N with
+    ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro z hz
+  have hgamma :
+      inverseGammaCompletionLogDeriv z =
+        deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
+    inverseGammaCompletionLogDeriv_eq z
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ C * (1 + ‖z.im‖) ^ N)
+    hgamma
+    (hCbound z hz)
 
 /-- The completed negative log-derivative is bounded by the zeta-side and archimedean
 completion logarithmic derivative bounds on vertical strips. -/
@@ -86,16 +129,24 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
   refine ⟨Czeta + Cgamma, add_pos hCzeta_pos hCgamma_pos, ?_⟩
   intro z hz
   let correction :=
-    deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹
+    inverseGammaCompletionLogDeriv z
   have hsplit :
       completedZetaNegLogDeriv z =
         zetaSideNegLogDeriv z + correction := by
+    have hcorrection :
+        correction =
+          deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
+      inverseGammaCompletionLogDeriv_eq z
     have hside :
         zetaSideNegLogDeriv z =
-          completedZetaNegLogDeriv z - correction :=
-      zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
-        (E.ne_zero z hz) (E.ne_one z hz)
-        (E.zeta_ne_zero z hz) (E.gamma_ne_zero z hz)
+          completedZetaNegLogDeriv z - correction := by
+      exact Eq.subst
+        (motive := fun w : ℂ =>
+          zetaSideNegLogDeriv z = completedZetaNegLogDeriv z - w)
+        hcorrection.symm
+        (zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
+          (E.ne_zero z hz) (E.ne_one z hz)
+          (E.zeta_ne_zero z hz) (E.gamma_ne_zero z hz))
     exact (sub_eq_iff_eq_add.mp hside).symm
   have hnorm_split :
       ‖completedZetaNegLogDeriv z‖ ≤
@@ -109,7 +160,18 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
       ‖zetaSideNegLogDeriv z‖ + ‖correction‖ ≤
         Czeta * (1 + ‖z.im‖) ^ N +
           Cgamma * (1 + ‖z.im‖) ^ N := by
-    exact add_le_add (hCzeta_bound z hz) (hCgamma_bound z hz)
+    have hcorrection :
+        correction =
+          deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹ :=
+      inverseGammaCompletionLogDeriv_eq z
+    have hgamma_bound_correction :
+        ‖correction‖ ≤ Cgamma * (1 + ‖z.im‖) ^ N :=
+      Eq.subst
+        (motive := fun w : ℂ =>
+          ‖w‖ ≤ Cgamma * (1 + ‖z.im‖) ^ N)
+        hcorrection.symm
+        (hCgamma_bound z hz)
+    exact add_le_add (hCzeta_bound z hz) hgamma_bound_correction
   have hfactor :
       Czeta * (1 + ‖z.im‖) ^ N + Cgamma * (1 + ‖z.im‖) ^ N =
         (Czeta + Cgamma) * (1 + ‖z.im‖) ^ N := by
