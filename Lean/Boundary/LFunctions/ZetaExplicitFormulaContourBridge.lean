@@ -49,12 +49,40 @@ theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation
     zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum f
   exact Complex.ofReal_injective (Eq.trans hshift hboundary)
 
+/-- The completed explicit-formula contour bridge after descent to the completed
+ordered-heart scalar.  This is the true payoff theorem for the GNS-positive route: the
+contour-side zero sum lands directly in the ordered-heart quotient scalar, not in the raw
+time-side representative. -/
+theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+        f := by
+  let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
+  have hshift : explicitFormulaContourShiftTarget g ⟨1, 1⟩ :=
+    explicitFormulaContourShiftTarget_of_rectangle g ⟨1, 1⟩
+  have hboundary :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic g =
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) := by
+    exact
+      zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_orderedHeartScalar
+        f
+  exact Complex.ofReal_injective (Eq.trans hshift hboundary)
+
 /-- Historical name for the convolution-autocorrelation contour bridge. -/
 theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation
     (f : ZetaAdmissibleFunction) :
     zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
   exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation f
+
+/-- Historical name for the ordered-heart convolution-autocorrelation contour bridge. -/
+theorem zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+        f := by
+  exact zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_orderedHeart f
 
 /-- The completed contour bridge proves the named autocorrelation target. -/
 theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationTarget_of_contourBridge

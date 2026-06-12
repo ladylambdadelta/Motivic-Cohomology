@@ -1219,6 +1219,77 @@ theorem zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt
       exact zetaPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
         ℓ.1 ℓ.2 f
 
+/-- Real scalar form of the prime defect-square expansion. -/
+theorem zetaPrimeDefectKernelPositiveForm_re_add_twoFace_re_eq_diagonalDebt_re
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) =
+      Complex.re (zetaPrimeDefectKernelDiagonalDebt f) := by
+  have hcomplex :
+      zetaPrimeDefectKernelPositiveForm f +
+          zetaPrimeTwoFaceGNSMatrixCoefficient f =
+        zetaPrimeDefectKernelDiagonalDebt f :=
+    zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
+  calc
+    Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+        Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) =
+        Complex.re
+          (zetaPrimeDefectKernelPositiveForm f +
+            zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
+      exact (Complex.add_re
+        (zetaPrimeDefectKernelPositiveForm f)
+        (zetaPrimeTwoFaceGNSMatrixCoefficient f)).symm
+    _ = Complex.re (zetaPrimeDefectKernelDiagonalDebt f) := by
+      exact congrArg Complex.re hcomplex
+
+/-- The real part of one complex Hermitian square is nonnegative. -/
+theorem complex_re_mul_star_self_nonnegative_hermitianPacket
+    (z : ℂ) :
+    0 ≤ Complex.re (z * star z) := by
+  have hnorm :
+      Complex.re (z * star z) = Complex.normSq z := by
+    have hmul : z * star z = (Complex.normSq z : ℂ) := by
+      exact Complex.mul_conj z
+    calc
+      Complex.re (z * star z) =
+          Complex.re (Complex.normSq z : ℂ) := by
+        exact congrArg Complex.re hmul
+      _ = Complex.normSq z := by
+        rfl
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    hnorm.symm
+    (Complex.normSq_nonneg z)
+
+/-- One positive prime defect-kernel coordinate has nonnegative real part. -/
+theorem zetaPrimeDefectKernelPositiveCoordinate_re_nonnegative
+    (p n : ℕ) (f : ZetaAdmissibleFunction) :
+    0 ≤ Complex.re (zetaPrimeDefectKernelPositiveCoordinate p n f) := by
+  let a : ℂ := zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f
+  let b : ℂ := zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f
+  unfold zetaPrimeDefectKernelPositiveCoordinate
+  change 0 ≤ Complex.re ((a - b) * star (a - b))
+  exact complex_re_mul_star_self_nonnegative_hermitianPacket (a - b)
+
+/-- The positive prime defect-kernel form has nonnegative real part. -/
+theorem zetaPrimeDefectKernelPositiveForm_re_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ Complex.re (zetaPrimeDefectKernelPositiveForm f) := by
+  unfold zetaPrimeDefectKernelPositiveForm
+  calc
+    0 ≤ ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+        Complex.re (zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) := by
+      exact Finset.sum_nonneg
+        (fun ℓ _ =>
+          zetaPrimeDefectKernelPositiveCoordinate_re_nonnegative ℓ.1 ℓ.2 f)
+    _ = Complex.re
+        (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) := by
+      exact (Complex.sum_re
+        (fun ℓ =>
+          zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f)
+        zetaCompletedExplicitFormulaPrimeSupport).symm
+
 /-- The symmetrized prime two-face/GNS matrix coefficient is real-valued. -/
 theorem zetaPrimeTwoFaceGNSMatrixCoefficient_im_eq_zero
     (f : ZetaAdmissibleFunction) :

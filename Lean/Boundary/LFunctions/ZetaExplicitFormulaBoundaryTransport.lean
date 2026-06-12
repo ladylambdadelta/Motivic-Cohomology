@@ -39,31 +39,29 @@ theorem completedBoundaryHilbertSourcePacket_eq_boundaryDefect
       zetaCompletedBoundaryDefect f := by
   rfl
 
-/-- The positive GNS norm-square compares with the completed boundary-defect Gram.  The
-positive GNS scalar is defined by the packet kernel; the defect Gram is the reconstructed
-packet comparison target. -/
-theorem completedBoundaryGNSPositiveNormSq_eq_boundaryDefectGram
+/-- The real-shadow GNS norm-square compares with the completed boundary-defect Gram.  This
+is a packet-comparison theorem; the completed ordered-heart scalar is the Hermitian
+defect-kernel scalar. -/
+theorem completedBoundaryRealShadowGNSNormSq_eq_boundaryDefectGram
     (f : ZetaAdmissibleFunction) :
-    completedBoundaryGNSPositiveNormSq f =
+    completedBoundaryRealShadowGNSNormSq f =
       zetaCompletedBoundaryDefectGram f := by
   have hpacket :
       completedBoundaryHilbertSourcePacket (completedBoundaryHilbertSource f) =
         zetaCompletedBoundaryDefect f :=
     completedBoundaryHilbertSourcePacket_eq_boundaryDefect f
-  unfold completedBoundaryGNSPositiveNormSq
-  unfold completedBoundaryGNSNormSq
-  unfold completedOrderedHeartScalar
+  unfold completedBoundaryRealShadowGNSNormSq
   unfold completedBoundaryGNSKernel
   unfold zetaCompletedBoundaryDefectGram
   unfold ZetaPacketEnsemble.normSq
   exact congrArg₂ ZetaPacketEnsemble.dotProduct hpacket hpacket
 
-/-- The completed boundary-defect Gram is the positive GNS norm-square. -/
-theorem zetaCompletedBoundaryDefectGram_eq_GNSPositiveNormSq
+/-- The completed boundary-defect Gram is the real-shadow GNS norm-square. -/
+theorem zetaCompletedBoundaryDefectGram_eq_realShadowGNSNormSq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedBoundaryDefectGram f =
-      completedBoundaryGNSPositiveNormSq f := by
-  exact (completedBoundaryGNSPositiveNormSq_eq_boundaryDefectGram f).symm
+      completedBoundaryRealShadowGNSNormSq f := by
+  exact (completedBoundaryRealShadowGNSNormSq_eq_boundaryDefectGram f).symm
 
 /-- The completed explicit-formula boundary sum in signed real form. -/
 noncomputable def zetaCompletedExplicitFormulaBoundarySum
@@ -133,19 +131,19 @@ theorem zetaCompletedExplicitFormulaBoundarySum_nonnegative
       zetaCompletedExplicitFormulaBoundarySum_eq_completedPacketNormSq f
   exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hboundary.symm hpacket
 
-/-- The explicit-formula boundary sum is nonnegative through the completed positive GNS
-kernel. -/
-theorem zetaCompletedExplicitFormulaBoundarySum_nonnegative_of_GNSPositiveNormSq
+/-- The explicit-formula boundary sum is nonnegative through the real-shadow packet
+norm-square comparison. -/
+theorem zetaCompletedExplicitFormulaBoundarySum_nonnegative_of_realShadowGNSNormSq
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedExplicitFormulaBoundarySum f := by
-  have hgns : 0 ≤ completedBoundaryGNSPositiveNormSq f :=
-    completedBoundaryGNSPositiveNormSq_nonnegative f
+  have hgns : 0 ≤ completedBoundaryRealShadowGNSNormSq f :=
+    completedBoundaryRealShadowGNSNormSq_nonnegative f
   have hboundary :
       zetaCompletedExplicitFormulaBoundarySum f =
-        completedBoundaryGNSPositiveNormSq f := by
+        completedBoundaryRealShadowGNSNormSq f := by
     exact
       (zetaCompletedExplicitFormulaBoundarySum_eq_boundaryDefectGram f).trans
-        (zetaCompletedBoundaryDefectGram_eq_GNSPositiveNormSq f)
+        (zetaCompletedBoundaryDefectGram_eq_realShadowGNSNormSq f)
   exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hboundary.symm hgns
 
 /-- The completed boundary-defect Krein Gram is nonnegative. -/
@@ -211,12 +209,19 @@ theorem zetaCompletedExplicitFormulaBoundaryKreinSum_eq_completedPacketNormSq
       zetaCompletedPacketNormSq f 0 := by
   exact zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f
 
-/-- The Krein boundary sum is the completed positive GNS norm-square. -/
-theorem zetaCompletedExplicitFormulaBoundaryKreinSum_eq_GNSPositiveNormSq
+/-- The Krein boundary sum is the real-shadow packet norm-square. -/
+theorem zetaCompletedExplicitFormulaBoundaryKreinSum_eq_realShadowGNSNormSq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundaryKreinSum f =
-      completedBoundaryGNSPositiveNormSq f := by
-  exact zetaCompletedBoundaryDefectGram_eq_GNSPositiveNormSq f
+      completedBoundaryRealShadowGNSNormSq f := by
+  exact zetaCompletedBoundaryDefectGram_eq_realShadowGNSNormSq f
+
+/-- The packet Krein boundary sum is the real-shadow packet norm-square. -/
+theorem zetaCompletedExplicitFormulaBoundaryKreinSum_eq_realShadowNormSq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundaryKreinSum f =
+      completedBoundaryRealShadowGNSNormSq f := by
+  exact zetaCompletedExplicitFormulaBoundaryKreinSum_eq_realShadowGNSNormSq f
 
 /-- The convolution-autocorrelation boundary Krein sum is the real part of the completed
 boundary channel on the convolution autocorrelation probe.  Positivity is supplied by the
@@ -229,6 +234,69 @@ noncomputable def zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundary
 abbrev zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum
     (f : ZetaAdmissibleFunction) : ℝ :=
   zetaCompletedExplicitFormulaConvolutionAutocorrelationBoundaryKreinSum f
+
+/-- The time-side autocorrelation Krein scalar is the completed finite-part boundary channel.
+This is the raw finite-part realization before passing to the positive Hermitian
+defect-kernel representative in the ordered heart. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+      completedFinitePartBoundaryChannel f := by
+  exact completedBoundaryChannel_convolutionAutocorrelation_re_eq_completedFinitePartBoundaryChannel f
+
+/-- The completed finite-part boundary channel is the public autocorrelation Krein scalar. -/
+theorem completedFinitePartBoundaryChannel_eq_autocorrelationBoundaryKreinSum
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  exact
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel
+      f).symm
+
+/-- The completed renormalized positive defect-kernel channel is the completed
+ordered-heart GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    completedRenormalizedDefectKernelBoundaryChannel f =
+      completedBoundaryGNSNormSq f := by
+  exact completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f
+
+/-- The real scalar attached to the positive GNS boundary form with prime defect kernel. -/
+noncomputable def zetaCompletedGNSPositiveBoundaryScalar
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaCompletedGNSPositiveBoundaryForm f)
+
+/-- The completed ordered-heart GNS norm-square is the positive Hermitian defect-kernel
+boundary scalar. -/
+theorem completedBoundaryGNSNormSq_eq_positiveBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryGNSNormSq f =
+      zetaCompletedGNSPositiveBoundaryScalar f := by
+  unfold completedBoundaryGNSNormSq
+  unfold completedOrderedHeartScalar
+  unfold zetaCompletedGNSPositiveBoundaryScalar
+  exact completedBoundaryHermitianGNSScalar_source_eq_positiveBoundaryScalar f
+
+/-- The completed renormalized positive defect-kernel channel is the positive Hermitian GNS
+boundary scalar. -/
+theorem zetaCompletedExplicitFormulaRenormalizedDefectKernelBoundaryChannel_eq_positiveBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    completedRenormalizedDefectKernelBoundaryChannel f =
+      zetaCompletedGNSPositiveBoundaryScalar f := by
+  exact
+    (completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f).trans
+      (completedBoundaryGNSNormSq_eq_positiveBoundaryScalar f)
+
+/-- The positive Hermitian defect-kernel boundary scalar is nonnegative. -/
+theorem zetaCompletedGNSPositiveBoundaryScalar_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedGNSPositiveBoundaryScalar f := by
+  have hgns : 0 ≤ completedBoundaryGNSNormSq f :=
+    completedBoundaryGNSNormSq_nonnegative f
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    (completedBoundaryGNSNormSq_eq_positiveBoundaryScalar f)
+    hgns
 
 /-- The convolution-autocorrelation boundary real form carries the completed positive-class
 certificate constructed by finite defect-square descent. -/
@@ -352,6 +420,37 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_
       zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
   rfl
 
+/-- The scalar of the convolution-autocorrelation positive class is the completed finite-part
+boundary channel. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+      completedFinitePartBoundaryChannel f := by
+  exact
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_KreinSum
+      f).trans
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel
+        f)
+
+/-- The completed positive precone scalar is the same completed finite-part boundary scalar
+without passing through the public Krein abbreviation. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedFinitePartBoundaryChannel f := by
+  exact
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_completedFinitePartBoundaryChannel
+      f
+
+/-- The convolution-autocorrelation positive class scalar is the reduced time-pairing scalar
+of its completed ordered-heart representative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_timePairingScalar
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+      completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  exact completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar f
+
 /-- The absorption defect of the autocorrelation boundary positive class is lower-weight
 radical in the completed ordered-heart quotient. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_absorptionDefect_lowerWeightRadical
@@ -367,6 +466,223 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar
         (completedPositiveSquareBoundaryOrderedHeartClass f) =
       completedBoundaryGNSNormSq f := by
   exact completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq f
+
+/-- GNS tomography transports the absorbed positive-boundary ordered-heart scalar to the
+square-only ordered-heart scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_square
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedPositiveSquareBoundaryOrderedHeartClass f) := by
+  exact completedPositiveBoundaryOrderedHeartScalar_eq_square_by_GNSTomography f
+
+/-- The absorbed positive-boundary ordered-heart scalar is the completed GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedBoundaryGNSNormSq f := by
+  exact
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_square
+      f).trans
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar_eq_GNSNormSq
+        f)
+
+/-- The completed finite-part boundary ordered-heart class is tomographically the positive
+square class. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryClass_GNSTomographicallyEquivalent_positiveSquare
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent
+      (completedFinitePartBoundaryOrderedHeartClass f)
+      (completedPositiveSquareBoundaryOrderedHeartClass f) := by
+  exact completedFinitePartBoundaryClass_GNSTomographicallyEquivalent_positiveSquare f
+
+/-- The completed finite-part boundary ordered-heart scalar is the completed GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryOrderedHeartScalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) =
+      completedBoundaryGNSNormSq f := by
+  exact completedFinitePartBoundaryOrderedHeartScalar_eq_GNSNormSq f
+
+/-- The completed finite-part boundary ordered-heart scalar is represented by the completed
+renormalized positive defect-kernel channel. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryOrderedHeartScalar_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  exact completedFinitePartBoundaryOrderedHeartScalar_eq_renormalizedDefectKernel f
+
+/-- The completed finite-part boundary ordered-heart quotient class is the positive square
+quotient class. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryQuotientClass_eq_positiveSquare
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryOrderedHeartQuotientClass f =
+      completedPositiveSquareBoundaryOrderedHeartQuotientClass f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientClass_eq_positiveSquare f
+
+/-- The completed finite-part boundary quotient scalar is the completed GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryQuotientScalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+      completedBoundaryGNSNormSq f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_GNSNormSq f
+
+/-- The completed finite-part boundary quotient scalar is represented by the completed
+renormalized positive defect-kernel channel. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryQuotientScalar_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel f
+
+/-- The completed finite-part boundary quotient scalar is nonnegative. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryQuotientScalar_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤
+      completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_nonnegative f
+
+/-- The descended ordered-heart scalar of the completed finite-part autocorrelation boundary
+class.  This is the quotient-level scalar, not the raw time-side finite-part number. -/
+noncomputable def zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedBoundaryOrderedHeartClassScalar
+    (completedFinitePartBoundaryOrderedHeartQuotientClass f)
+
+/-- The descended ordered-heart autocorrelation boundary scalar is the completed GNS
+norm-square. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f =
+      completedBoundaryGNSNormSq f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_GNSNormSq f
+
+/-- The descended ordered-heart autocorrelation boundary scalar is represented by the
+completed renormalized positive defect-kernel channel. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel f
+
+/-- The descended ordered-heart autocorrelation boundary scalar is nonnegative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
+  exact completedFinitePartBoundaryOrderedHeartQuotientScalar_nonnegative f
+
+/-- The explicit-formula ordered-heart scalar is the owner analytic boundary realization
+scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_eq_realizationScalar
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f =
+      completedAnalyticBoundaryRealizationScalar f := by
+  rfl
+
+/-- The owner analytic boundary realization scalar is the explicit-formula ordered-heart
+scalar. -/
+theorem completedAnalyticBoundaryRealizationScalar_eq_explicitFormulaOrderedHeartScalar
+    (f : ZetaAdmissibleFunction) :
+    completedAnalyticBoundaryRealizationScalar f =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
+  rfl
+
+/-- The raw completed finite-part boundary scalar is the time-pairing scalar of its
+ordered-heart representative. -/
+theorem zetaCompletedExplicitFormulaFinitePartBoundaryChannel_eq_timePairingScalar
+    (f : ZetaAdmissibleFunction) :
+    completedFinitePartBoundaryChannel f =
+      completedBoundaryTimePairingScalar
+        (completedFinitePartBoundaryOrderedHeartClass f) := by
+  exact completedFinitePartBoundaryChannel_eq_timePairingScalar f
+
+/-- If the reduced time-pairing realization is reconstructed as the ordered-heart GNS scalar,
+then the convolution-autocorrelation positive class scalar is the completed GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_GNSNormSq_of_timePairingScalar_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction)
+    (hcomparison :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f)) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+      completedBoundaryGNSNormSq f := by
+  exact
+    (completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar_of_timePairingScalar_eq_orderedHeartScalar
+      f
+      hcomparison).trans
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_GNSNormSq
+        f)
+
+/-- The final time-pairing/GNS reconstruction comparison is exactly the same statement as
+transporting the completed finite-part boundary channel to the completed ordered-heart GNS
+norm-square. -/
+theorem completedBoundaryTimePairingScalar_eq_orderedHeartScalar_iff_completedFinitePartGNSTransport
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) ↔
+    completedFinitePartBoundaryChannel f =
+      completedBoundaryGNSNormSq f := by
+  constructor
+  · intro hcomparison
+    have hfinite_time :
+        completedFinitePartBoundaryChannel f =
+          completedBoundaryTimePairingScalar
+            (completedPositiveBoundaryOrderedHeartClass f) := by
+      exact
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_completedFinitePartBoundaryChannel
+          f).symm.trans
+          (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_timePairingScalar
+            f)
+    have hordered_gns :
+        completedOrderedHeartScalar
+            (completedPositiveBoundaryOrderedHeartClass f) =
+          completedBoundaryGNSNormSq f :=
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_GNSNormSq
+        f
+    exact hfinite_time.trans (hcomparison.trans hordered_gns)
+  · intro htransport
+    have htime_finite :
+        completedBoundaryTimePairingScalar
+            (completedPositiveBoundaryOrderedHeartClass f) =
+          completedFinitePartBoundaryChannel f := by
+      exact
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_timePairingScalar
+          f).symm.trans
+          (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_completedFinitePartBoundaryChannel
+            f)
+    have hgns_ordered :
+        completedBoundaryGNSNormSq f =
+          completedOrderedHeartScalar
+            (completedPositiveBoundaryOrderedHeartClass f) := by
+      exact
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_orderedHeartScalar_eq_GNSNormSq
+          f).symm
+    exact htime_finite.trans (htransport.trans hgns_ordered)
+
+/-- Completed finite-part transport proves the final time-pairing/GNS reconstruction
+comparison. -/
+theorem completedBoundaryTimePairingScalar_eq_orderedHeartScalar_of_completedFinitePartGNSTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryGNSNormSq f) :
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f) =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  exact
+    (completedBoundaryTimePairingScalar_eq_orderedHeartScalar_iff_completedFinitePartGNSTransport
+      f).2
+      htransport
 
 /-- The positive square ordered-heart scalar is nonnegative. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar_nonnegative
@@ -395,6 +711,109 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_
     (motive := fun x : ℝ => 0 ≤ x)
     htransport.symm
     hgns
+
+/-- Once the time-side autocorrelation Krein scalar descends to the completed ordered-heart
+finite-part quotient scalar, nonnegativity follows from the positive GNS square in that
+quotient. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_orderedHeartQuotientTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  have hquotient :
+      0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_nonnegative f
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    htransport.symm
+    hquotient
+
+/-- The ordered-heart quotient transport seam is equivalent to transporting the time-side
+autocorrelation Krein scalar to the completed GNS norm-square, because the finite-part
+quotient scalar has already been identified with the GNS scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_GNSNormSq_of_orderedHeartQuotientTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f) :
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+      completedBoundaryGNSNormSq f := by
+  exact htransport.trans
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_eq_GNSNormSq f)
+
+/-- Nonnegativity follows once the reduced time-pairing realization is reconstructed as the
+ordered-heart GNS scalar.  This is the final comparison seam after finite triangular
+transport and GNS tomography have been discharged. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_timePairingScalar_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction)
+    (hcomparison :
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedOrderedHeartScalar
+          (completedPositiveBoundaryOrderedHeartClass f)) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  have hclass :
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+        completedBoundaryGNSNormSq f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_GNSNormSq_of_timePairingScalar_eq_orderedHeartScalar
+      f
+      hcomparison
+  have hkrein :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedBoundaryGNSNormSq f :=
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_KreinSum
+      f).symm.trans hclass
+  exact zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_GNSTransport
+    f
+    hkrein
+
+/-- Once the completed finite-part channel is transported through the completed ordered-heart
+quotient to the GNS scalar, the time-side autocorrelation Krein scalar is nonnegative.  This
+representative-level implication is retained as a compatibility route; the canonical route
+uses `zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar`. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_completedFinitePartGNSTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      completedFinitePartBoundaryChannel f =
+        completedBoundaryGNSNormSq f) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  have htimeToFinitePart :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedFinitePartBoundaryChannel f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel f
+  have htimeToGNS :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedBoundaryGNSNormSq f :=
+    htimeToFinitePart.trans htransport
+  exact zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_GNSTransport
+    f
+    htimeToGNS
+
+/-- Once the completed finite-part channel is transported to the positive Hermitian GNS
+boundary scalar, nonnegativity follows from the owned defect-square/Hermitian-packet
+positivity theorem. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_weightTriangularPositiveGNSTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      completedFinitePartBoundaryChannel f =
+        zetaCompletedGNSPositiveBoundaryScalar f) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  have htimeToFinitePart :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedFinitePartBoundaryChannel f :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_completedFinitePartBoundaryChannel f
+  have htimeToPositiveGNS :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        zetaCompletedGNSPositiveBoundaryScalar f :=
+    htimeToFinitePart.trans htransport
+  have hpositiveGNS :
+      0 ≤ zetaCompletedGNSPositiveBoundaryScalar f :=
+    zetaCompletedGNSPositiveBoundaryScalar_nonnegative f
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    htimeToPositiveGNS.symm
+    hpositiveGNS
 
 /-- Nonnegativity of the finite time-side positive-class scalar gives nonnegativity of the
 boundary Krein scalar.  This is retained as a finite-precone wrapper; the ordered-heart/GNS
@@ -468,12 +887,7 @@ theorem zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_re_eq_diagonalDebt_
     (zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_eq_diagonalDebt_add_archCorrection
       f)
 
-/-- The real scalar attached to the positive GNS boundary form with prime defect kernel. -/
-noncomputable def zetaCompletedGNSPositiveBoundaryScalar
-    (f : ZetaAdmissibleFunction) : ℝ :=
-  Complex.re (zetaCompletedGNSPositiveBoundaryForm f)
-
-/-- The real scalar attached to the symmetrized legacy GNS boundary form. -/
+/-- The real scalar attached to the symmetrized two-face GNS boundary form. -/
 noncomputable def zetaCompletedGNSSymmetrizedBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
   Complex.re (zetaCompletedGNSSymmetrizedBoundaryForm f)
@@ -482,6 +896,108 @@ noncomputable def zetaCompletedGNSSymmetrizedBoundaryScalar
 noncomputable def zetaCompletedGNSDiagonalDebtBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
   Complex.re (zetaCompletedGNSDiagonalDebtBoundaryForm f)
+
+/-- Component normal form for the positive GNS boundary scalar. -/
+theorem zetaCompletedGNSPositiveBoundaryScalar_eq_primeDefect_add_archCorrection
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSPositiveBoundaryScalar f =
+      Complex.re (zetaPrimeDefectKernelPositiveForm f) +
+        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f)) := by
+  let P : ℂ := zetaPrimeDefectKernelPositiveForm f
+  let A : ℝ :=
+    ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  let C : ℝ :=
+    ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  unfold zetaCompletedGNSPositiveBoundaryScalar
+  unfold zetaCompletedGNSPositiveBoundaryForm
+  change Complex.re (P + (A : ℂ) + (C : ℂ)) =
+    Complex.re P + (A + C)
+  calc
+    Complex.re (P + (A : ℂ) + (C : ℂ)) =
+        Complex.re (P + (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact Complex.add_re (P + (A : ℂ)) (C : ℂ)
+    _ = (Complex.re P + Complex.re (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact congrArg (fun x : ℝ => x + Complex.re (C : ℂ))
+        (Complex.add_re P (A : ℂ))
+    _ = (Complex.re P + A) + C := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd rfl (Complex.ofReal_re A))
+        (Complex.ofReal_re C)
+    _ = Complex.re P + (A + C) := by
+      exact add_assoc (Complex.re P) A C
+
+/-- Component normal form for the symmetrized GNS boundary scalar. -/
+theorem zetaCompletedGNSSymmetrizedBoundaryScalar_eq_primeTwoFace_add_archCorrection
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSSymmetrizedBoundaryScalar f =
+      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) +
+        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f)) := by
+  let S : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
+  let A : ℝ :=
+    ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  let C : ℝ :=
+    ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  unfold zetaCompletedGNSSymmetrizedBoundaryScalar
+  unfold zetaCompletedGNSSymmetrizedBoundaryForm
+  change Complex.re (S + (A : ℂ) + (C : ℂ)) =
+    Complex.re S + (A + C)
+  calc
+    Complex.re (S + (A : ℂ) + (C : ℂ)) =
+        Complex.re (S + (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact Complex.add_re (S + (A : ℂ)) (C : ℂ)
+    _ = (Complex.re S + Complex.re (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact congrArg (fun x : ℝ => x + Complex.re (C : ℂ))
+        (Complex.add_re S (A : ℂ))
+    _ = (Complex.re S + A) + C := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd rfl (Complex.ofReal_re A))
+        (Complex.ofReal_re C)
+    _ = Complex.re S + (A + C) := by
+      exact add_assoc (Complex.re S) A C
+
+/-- Component normal form for the diagonal-debt GNS boundary scalar. -/
+theorem zetaCompletedGNSDiagonalDebtBoundaryScalar_eq_primeDebt_add_archCorrection
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSDiagonalDebtBoundaryScalar f =
+      Complex.re (zetaPrimeDefectKernelDiagonalDebt f) +
+        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) +
+          ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f)) := by
+  let D : ℂ := zetaPrimeDefectKernelDiagonalDebt f
+  let A : ℝ :=
+    ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  let C : ℝ :=
+    ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f)
+  unfold zetaCompletedGNSDiagonalDebtBoundaryScalar
+  unfold zetaCompletedGNSDiagonalDebtBoundaryForm
+  change Complex.re (D + (A : ℂ) + (C : ℂ)) =
+    Complex.re D + (A + C)
+  calc
+    Complex.re (D + (A : ℂ) + (C : ℂ)) =
+        Complex.re (D + (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact Complex.add_re (D + (A : ℂ)) (C : ℂ)
+    _ = (Complex.re D + Complex.re (A : ℂ)) + Complex.re (C : ℂ) := by
+      exact congrArg (fun x : ℝ => x + Complex.re (C : ℂ))
+        (Complex.add_re D (A : ℂ))
+    _ = (Complex.re D + A) + C := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd rfl (Complex.ofReal_re A))
+        (Complex.ofReal_re C)
+    _ = Complex.re D + (A + C) := by
+      exact add_assoc (Complex.re D) A C
 
 /-- Real scalar form of the positive/symmetrized/diagonal-debt expansion. -/
 theorem zetaCompletedGNSPositiveBoundaryScalar_add_symmetrized_eq_diagonalDebt_add_archCorrection
@@ -1028,6 +1544,109 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelati
       _ =
           Complex.im ((Complex.re (completedBoundaryChannel g)) : ℂ) := by
         exact (Complex.ofReal_im (Complex.re (completedBoundaryChannel g))).symm
+
+/-- The analytic boundary sum of a convolution-autocorrelation probe is real-valued. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_im_eq_zero
+    (f : ZetaAdmissibleFunction) :
+    Complex.im
+        (zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+      0 := by
+  have hanalytic :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaCompletedExplicitFormulaBoundarySumCore
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
+    zetaCompletedExplicitFormulaBoundarySumAnalytic_eq_core
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+  calc
+    Complex.im
+        (zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+        Complex.im
+          (zetaCompletedExplicitFormulaBoundarySumCore
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f)) := by
+      exact congrArg Complex.im hanalytic
+    _ = 0 := by
+      exact zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_im_eq_zero f
+
+/-- The real part of the analytic boundary sum of a convolution-autocorrelation probe is the
+raw completed finite-part boundary scalar. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_finitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+      completedFinitePartBoundaryChannel f := by
+  let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
+  have hboundary :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic g =
+        completedBoundaryChannel g := by
+    unfold g
+    exact
+      zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_completedBoundaryChannel
+        f
+  calc
+    Complex.re
+        (zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+        Complex.re
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic g) := by
+      rfl
+    _ = Complex.re (completedBoundaryChannel g) := by
+      exact congrArg Complex.re hboundary
+    _ = completedFinitePartBoundaryChannel f := by
+      unfold g
+      exact completedBoundaryChannel_convolutionAutocorrelation_re_eq_completedFinitePartBoundaryChannel f
+
+/-- The real part of the analytic boundary sum of a convolution-autocorrelation probe is the
+owner completed analytic boundary realization scalar. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_realizationScalar
+    (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaBoundarySumAnalytic
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)) =
+      completedAnalyticBoundaryRealizationScalar f := by
+  exact
+    (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_finitePartBoundaryChannel
+      f).trans
+      (completedFinitePartBoundaryChannel_eq_completedAnalyticBoundaryRealizationScalar f)
+
+/-- The analytic boundary sum of the admissible convolution autocorrelation probe realizes
+as the owner completed analytic boundary scalar.
+
+This is the owner-level boundary normalization needed by the positive GNS route.  It is not
+the raw time-side equality
+`completedFinitePartBoundaryChannel f = completedBoundaryGNSNormSq f`; it is the statement
+that the contour boundary realization is evaluated in the completed ordered-heart quotient. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_realizationScalar
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundarySumAnalytic
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      (completedAnalyticBoundaryRealizationScalar f : ℂ) := by
+  apply Complex.ext
+  · exact
+      (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_re_eq_realizationScalar
+        f).trans
+        (Complex.ofReal_re (completedAnalyticBoundaryRealizationScalar f)).symm
+  · exact
+      (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_im_eq_zero
+        f).trans
+        (Complex.ofReal_im (completedAnalyticBoundaryRealizationScalar f)).symm
+
+/-- The analytic boundary sum of the admissible convolution autocorrelation probe descends
+to the completed ordered-heart scalar. -/
+theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBoundarySumAnalytic
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) := by
+  exact
+    (zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_realizationScalar
+      f).trans
+      (congrArg
+        (fun x : ℝ => (x : ℂ))
+        (completedAnalyticBoundaryRealizationScalar_eq_explicitFormulaOrderedHeartScalar f))
 
 /-- Legacy wrapper name for the corrected convolution-boundary normalization. -/
 theorem zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_eq_seedKreinSum
