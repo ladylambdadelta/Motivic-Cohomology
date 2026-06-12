@@ -1,3 +1,4 @@
+import Boundary.LFunctions.ZetaAdmissiblePaleyWiener
 import Boundary.LFunctions.ZetaAdmissibleSpectralModel
 
 /-!
@@ -35,6 +36,19 @@ theorem admissible_toTestFunction (f : ZetaAdmissibleFunction) :
 theorem admissible_carrier (f : ZetaAdmissibleFunction) :
     f.toZetaTestFunction' = ZetaAdmissibleFunction.toZetaTestFunction' f := by
   rfl
+
+/-- Paley--Wiener rapid vertical-strip decay for the completed explicit-formula transform of
+an admissible compactly supported smooth source. -/
+theorem zetaPhi_verticalStripRapidDecay_of_admissible
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖zetaCompletedExplicitFormulaPhi f z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  exact zetaPhi_verticalStripRapidDecay_of_admissible_owner f a b N
 
 end ZetaAdmissibleFunction
 

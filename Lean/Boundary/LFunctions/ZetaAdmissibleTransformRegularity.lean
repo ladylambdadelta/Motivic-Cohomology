@@ -1,5 +1,7 @@
 import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
 import Boundary.LFunctions.ZetaExplicitFormulaContourPaths
+import Boundary.LFunctions.ZetaTransformCalculusWeighted
+import Boundary.LFunctions.ZetaAdmissibleDecay
 import Mathlib.Analysis.Complex.Basic
 
 /-!
@@ -31,13 +33,13 @@ structure ZetaPhiAnalyticControl (f : ZetaAdmissibleFunction) where
   /-- `Φ_f` has vertical-strip rapid decay. -/
   vertical_strip_rapid_decay :
     ∀ (a b : ℝ) (N : ℕ),
-      {C : ℝ //
+      ∃ C : ℝ,
         0 < C ∧
         ∀ z : ℂ,
           a ≤ z.re →
           z.re ≤ b →
           ‖zetaCompletedExplicitFormulaPhi f z‖
-            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))}
+            ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))
 
 /-- The analytic control package exposes pointwise differentiability. -/
 theorem ZetaPhiAnalyticControl.differentiableAt
@@ -62,31 +64,7 @@ theorem ZetaPhiAnalyticControl.verticalStripRapidDecay
         z.re ≤ b →
         ‖zetaCompletedExplicitFormulaPhi f z‖
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  exact ⟨(h.vertical_strip_rapid_decay a b N).1, (h.vertical_strip_rapid_decay a b N).2⟩
-
-/-- A constructive selector for the `Φ_f` vertical-strip constant. -/
-def ZetaPhiAnalyticControl.verticalStripRapidDecayConstant
-    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
-    (a b : ℝ) (N : ℕ) : ℝ :=
-  (h.vertical_strip_rapid_decay a b N).1
-
-/-- The constructive `Φ_f` vertical-strip constant is positive. -/
-theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_pos
-    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
-    (a b : ℝ) (N : ℕ) :
-    0 < h.verticalStripRapidDecayConstant a b N :=
-  (h.vertical_strip_rapid_decay a b N).2.1
-
-/-- The constructive `Φ_f` vertical-strip constant satisfies its strip bound. -/
-theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_bound
-    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
-    (a b : ℝ) (N : ℕ) :
-    ∀ z : ℂ,
-      a ≤ z.re →
-      z.re ≤ b →
-      ‖zetaCompletedExplicitFormulaPhi f z‖
-        ≤ h.verticalStripRapidDecayConstant a b N * (1 + ‖z.im‖) ^ (-(N : ℤ)) :=
-  (h.vertical_strip_rapid_decay a b N).2.2
+  exact h.vertical_strip_rapid_decay a b N
 
 /-- `Φ_f` is differentiable along the right contour edge whenever the control package is present. -/
 theorem ZetaPhiAnalyticControl.differentiableAt_rightPath
@@ -138,6 +116,72 @@ theorem ZetaPhiAnalyticControl.bottomPath_verticalStripBound
         ≤ C * (1 + ‖(zetaCompletedExplicitFormulaBottomPath r x).im‖) ^ (-(N : ℤ)) := by
   rcases h.verticalStripRapidDecay a b N with ⟨C, hC, hbound⟩
   exact ⟨C, hC, hbound (zetaCompletedExplicitFormulaBottomPath r x) ha hb⟩
+
+/-- Compact support of the admissible source gives entireity of the completed Laplace
+transform. -/
+theorem zetaLaplaceTransform_entire_of_compactSupport
+    (f : ZetaAdmissibleFunction) :
+    AnalyticOn ℂ
+      (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
+      Set.univ := by
+  intro z _hz
+  exact
+    (Iff.mpr
+        Complex.analyticAt_iff_eventually_differentiableAt
+        (Filter.Eventually.of_forall
+          (fun w : ℂ => Boundary.zetaLaplaceTransform_differentiableAt f w))).analyticWithinAt
+
+/-- Compact support of the admissible source gives entireity of the completed explicit-formula
+transform. -/
+theorem zetaPhi_entire_of_compactSupport
+    (f : ZetaAdmissibleFunction) :
+    AnalyticOn ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi f z)
+      Set.univ := by
+  have hbase :
+      AnalyticOn ℂ
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
+        Set.univ :=
+    zetaLaplaceTransform_entire_of_compactSupport f
+  have hphi :
+      (fun z => zetaCompletedExplicitFormulaPhi f z) =
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z) :=
+    zetaCompletedExplicitFormulaPhi_eq_laplace f
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => AnalyticOn ℂ Φ Set.univ)
+    hphi.symm
+    hbase
+
+/-- Compact support of the admissible source gives differentiability of the completed
+Laplace transform at every spectral parameter. -/
+theorem zetaPhi_differentiableAt_of_compactSupport
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    DifferentiableAt ℂ
+      (fun z => zetaCompletedExplicitFormulaPhi f z)
+      z := by
+  have hbase :
+      DifferentiableAt ℂ
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z)
+        z :=
+    Boundary.zetaLaplaceTransform_differentiableAt f z
+  have hphi :
+      (fun z => zetaCompletedExplicitFormulaPhi f z) =
+        (fun z => Boundary.zetaLaplaceTransform f.toZetaTestFunction' z) :=
+    zetaCompletedExplicitFormulaPhi_eq_laplace f
+  exact Eq.subst
+    (motive := fun Φ : ℂ → ℂ => DifferentiableAt ℂ Φ z)
+    hphi.symm
+    hbase
+
+/-- The admissible source has the completed transform control package. -/
+noncomputable def zetaPhiAnalyticControl_of_admissible
+    (f : ZetaAdmissibleFunction) :
+    ZetaPhiAnalyticControl f := by
+  exact
+    { entire_phi := zetaPhi_entire_of_compactSupport f
+      differentiableAt_phi := fun z => zetaPhi_differentiableAt_of_compactSupport f z
+      vertical_strip_rapid_decay :=
+        fun a b N => zetaPhi_verticalStripRapidDecay_of_admissible f a b N }
 
 /-- The transform package is the owner-level input for contour estimates. -/
 def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Type :=

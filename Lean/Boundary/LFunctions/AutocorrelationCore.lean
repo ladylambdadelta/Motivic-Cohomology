@@ -457,7 +457,7 @@ theorem convolutionPair_zero_zero :
             change (0 : ℂ) * star (0 : ℂ) = 0
             exact zero_mul (star (0 : ℂ))))
     _ = 0 := by
-      exact integral_zero ℝ
+      exact integral_zero ℝ ℂ
     _ = (0 : ZetaAdmissibleFunction) t := by
       rfl
 
@@ -480,7 +480,7 @@ theorem convolutionPair_zero_left
             change (0 : ℂ) * star (h (u - t / 2)) = 0
             exact zero_mul (star (h (u - t / 2)))))
     _ = 0 := by
-      exact integral_zero ℝ
+      exact integral_zero ℝ ℂ
     _ = (0 : ZetaAdmissibleFunction) t := by
       rfl
 
@@ -506,9 +506,9 @@ theorem convolutionPair_zero_right
                   f (u + t / 2) * 0 := by
                 exact congrArg (fun z : ℂ => f (u + t / 2) * z) (star_zero ℂ)
               _ = 0 := by
-                exact mul_zero (f (u + t / 2)))))
+                exact mul_zero (f (u + t / 2))))
     _ = 0 := by
-      exact integral_zero ℝ
+      exact integral_zero ℝ ℂ
     _ = (0 : ZetaAdmissibleFunction) t := by
       rfl
 

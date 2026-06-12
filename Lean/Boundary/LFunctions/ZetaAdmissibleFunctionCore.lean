@@ -53,12 +53,19 @@ instance : Neg ZetaAdmissibleFunction :=
       (ContinuousMap.mk (fun x => -f x)
         (continuous_neg.comp f.toZetaTestFunction.continuous))
       (by
-        change HasCompactSupport (fun x : ℝ => (-1 : ℂ) * f x)
-        exact
+        have hmul :
+            HasCompactSupport (fun x : ℝ => (-1 : ℂ) * f.toZetaTestFunction x) :=
           HasCompactSupport.smul_left
             (f := fun _ : ℝ => (-1 : ℂ))
             (f' := f.toZetaTestFunction)
-            f.toZetaTestFunction.hasCompactSupport),
+            f.toZetaTestFunction.hasCompactSupport
+        exact
+          Eq.subst
+            (motive := fun u : ℝ → ℂ => HasCompactSupport u)
+            (funext
+              (fun x : ℝ =>
+                neg_one_mul (f.toZetaTestFunction x)))
+            hmul),
       f.smooth.neg⟩⟩
 
 instance : Sub ZetaAdmissibleFunction :=
@@ -99,7 +106,7 @@ instance : AddCommMonoid ZetaAdmissibleFunction where
     ext x
     change f x + g x = g x + f x
     exact add_comm (f x) (g x)
-  nsmul := fun n f => nsmulRec n f
+  nsmul := nsmulRec
   nsmul_zero := by
     intro f
     ext x
@@ -112,7 +119,7 @@ instance : AddCommMonoid ZetaAdmissibleFunction where
 instance : AddCommGroup ZetaAdmissibleFunction where
   neg := Neg.neg
   sub := Sub.sub
-  zsmul := fun n f => zsmulRec n f
+  zsmul := zsmulRec
   zsmul_zero' := by
     intro f
     ext x
@@ -125,11 +132,16 @@ instance : AddCommGroup ZetaAdmissibleFunction where
     intro n f
     ext x
     rfl
-  add_left_neg := by
+  neg_add_cancel := by
     intro f
     ext x
     change -f x + f x = 0
     exact neg_add_cancel (f x)
+  add_comm := by
+    intro f g
+    ext x
+    change f x + g x = g x + f x
+    exact add_comm (f x) (g x)
   sub_eq_add_neg := by
     intro f g
     rfl

@@ -11,6 +11,7 @@ import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.Analysis.Calculus.LogDeriv
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
+import Mathlib.MeasureTheory.Integral.Bochner
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Topology.Constructions
 import Mathlib.Topology.Compactness.Lindelof
@@ -176,13 +177,13 @@ theorem zetaCompletedExplicitFormulaPhi_zero
         (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
           Complex.exp (z * t)) =
         ∫ _t : ℝ, 0 := by
-      exact integral_congr_ae
+      exact MeasureTheory.integral_congr_ae
         (Filter.Eventually.of_forall
           (fun t : ℝ => by
             change (0 : ℂ) * Complex.exp (z * t) = 0
             exact zero_mul (Complex.exp (z * t))))
     _ = 0 := by
-      exact integral_zero ℝ
+      exact MeasureTheory.integral_zero ℝ ℂ
 
 /-- The spectral transform of the convolution autocorrelation pairs opposite real spectral
 parameters. -/
@@ -384,6 +385,98 @@ theorem zetaCompletedExplicitFormulaBoundarySumCore_eq
         zetaCompletedExplicitFormulaArchimedeanContribution f +
         zetaCompletedExplicitFormulaCorrectionContribution f := by
   exact Eq.refl _
+
+/-- The completed explicit-formula boundary channel. -/
+def completedBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaBoundarySumCore g
+
+/-- The prime channel of the completed boundary functional. -/
+def primeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaPrimeContribution g
+
+/-- The opposite prime face of the completed boundary functional.  This is the negative
+prime-power face paired with the positive prime channel by dagger. -/
+def oppositePrimeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+      zetaCompletedExplicitFormulaPhi g (-(zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))
+
+/-- The archimedean channel of the completed boundary functional. -/
+def archimedeanBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaArchimedeanContribution g
+
+/-- The pole channel in the current centered completed-zeta normalization. -/
+def poleBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaCorrectionContribution g
+
+/-- The residual completion channel after the explicit archimedean and pole channels have been
+separated.  In the current normalization this channel is zero; if the gamma normalization is
+split further, this is the owner slot to refine. -/
+def completionBoundaryChannel (_g : ZetaAdmissibleFunction) : ℂ :=
+  0
+
+/-- The opposite completed boundary channel.  The prime face is reflected to the negative
+prime-power face; the self-paired archimedean and correction faces remain at the basepoint. -/
+def oppositeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
+  oppositePrimeBoundaryChannel g +
+    archimedeanBoundaryChannel g +
+    poleBoundaryChannel g +
+    completionBoundaryChannel g
+
+/-- The local channel decomposition of the completed boundary functional. -/
+theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
+    (g : ZetaAdmissibleFunction) :
+    completedBoundaryChannel g =
+      primeBoundaryChannel g +
+        archimedeanBoundaryChannel g +
+        poleBoundaryChannel g +
+        completionBoundaryChannel g := by
+  unfold completedBoundaryChannel
+  unfold primeBoundaryChannel
+  unfold archimedeanBoundaryChannel
+  unfold poleBoundaryChannel
+  unfold completionBoundaryChannel
+  calc
+    zetaCompletedExplicitFormulaBoundarySumCore g =
+        zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g :=
+      zetaCompletedExplicitFormulaBoundarySumCore_eq g
+    _ =
+        zetaCompletedExplicitFormulaPrimeContribution g +
+          zetaCompletedExplicitFormulaArchimedeanContribution g +
+          zetaCompletedExplicitFormulaCorrectionContribution g + 0 := by
+      exact (add_zero _).symm
+
+/-- The Hermitian kernel assembled from the completed boundary channels on the convolution
+pairing algebra. -/
+def completedHermitianKernel
+    (f h : ZetaAdmissibleFunction) : ℂ :=
+  primeBoundaryChannel (convolutionPair f h) +
+    archimedeanBoundaryChannel (convolutionPair f h) +
+    poleBoundaryChannel (convolutionPair f h) +
+    completionBoundaryChannel (convolutionPair f h)
+
+/-- The completed boundary channel of a convolution pair is the completed Hermitian kernel. -/
+theorem completedBoundaryChannel_convolutionPair_eq_kernel
+    (f h : ZetaAdmissibleFunction) :
+    completedBoundaryChannel (convolutionPair f h) =
+      completedHermitianKernel f h := by
+  exact completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
+    (convolutionPair f h)
+
+/-- The diagonal convolution-pair transport specializes to the completed autocorrelation
+boundary channel. -/
+theorem completedBoundaryChannel_convolutionAutocorrelation_eq_kernel_diagonal
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryChannel (convolutionAutocorrelation f) =
+      completedHermitianKernel f f := by
+  exact
+    Eq.subst
+      (motive := fun g : ZetaAdmissibleFunction =>
+        completedBoundaryChannel g = completedHermitianKernel f f)
+      (convolutionPair_self f)
+      (completedBoundaryChannel_convolutionPair_eq_kernel f f)
 
 end ZetaAdmissibleFunction
 

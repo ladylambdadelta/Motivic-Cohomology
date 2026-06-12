@@ -24,25 +24,17 @@ namespace ZetaAdmissibleFunction
 /-- The prime component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectPrime (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
-  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
-    ZetaPacketEnsemble.single
-      (ZetaPacketLabel.prime ℓ.1 ℓ.2)
-      (Complex.re
-        ((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
-          ZetaTestFunction.primePacketTranslationDefect
-            ℓ.1 ℓ.2 f.toZetaTestFunction' 0))
+  zetaPrimePacketAsEnsemble f 0
 
 /-- The archimedean component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectArchimedean (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
-  ZetaPacketEnsemble.single .archimedean
-    (Complex.re (zetaCompletedExplicitFormulaArchimedeanContribution f))
+  zetaArchimedeanPacketAsEnsemble f
 
 /-- The completion/correction component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectCorrection (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
-  ZetaPacketEnsemble.single .correction
-    zetaCompletionCorrectionPacketCoordinate
+  zetaCorrectionPacketAsEnsemble f
 
 /-- The completed zeta boundary defect attached to an admissible probe. -/
 noncomputable def zetaCompletedBoundaryDefect (f : ZetaAdmissibleFunction) :
@@ -50,6 +42,59 @@ noncomputable def zetaCompletedBoundaryDefect (f : ZetaAdmissibleFunction) :
   zetaCompletedBoundaryDefectPrime f +
     zetaCompletedBoundaryDefectArchimedean f +
     zetaCompletedBoundaryDefectCorrection f
+
+/-- A prime packet has zero correction coordinate. -/
+theorem zetaPrimePacketAsEnsemble_correction_apply
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimePacketAsEnsemble f 0 ZetaPacketLabel.correction = 0 := by
+  unfold zetaPrimePacketAsEnsemble ZetaPacketEnsemble.single
+  calc
+    (∑ ℓ in zetaPacketPrimeSupport 0,
+        (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
+          (Complex.re
+            (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
+              ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2
+                f.toZetaTestFunction' 0)) : ZetaPacketEnsemble))
+        ZetaPacketLabel.correction =
+        ∑ ℓ in zetaPacketPrimeSupport 0,
+          (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
+            (Complex.re
+              (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
+                ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2
+                  f.toZetaTestFunction' 0)) : ZetaPacketEnsemble)
+            ZetaPacketLabel.correction := by
+      exact Finsupp.finset_sum_apply (zetaPacketPrimeSupport 0)
+        (fun ℓ =>
+          (Finsupp.single (ZetaPacketLabel.prime ℓ.1 ℓ.2)
+            (Complex.re
+              (zetaPrimePacketWeight (ZetaPacketLabel.prime ℓ.1 ℓ.2) •
+                ZetaTestFunction.primePacketTranslationDefect ℓ.1 ℓ.2
+                  f.toZetaTestFunction' 0)) : ZetaPacketEnsemble))
+        ZetaPacketLabel.correction
+    _ = 0 := by
+      exact Finset.sum_eq_zero
+        (fun ℓ _ =>
+          Finsupp.single_eq_of_ne
+            (fun h : ZetaPacketLabel.prime ℓ.1 ℓ.2 = ZetaPacketLabel.correction =>
+              ZetaPacketLabel.noConfusion h))
+
+/-- An archimedean packet has zero correction coordinate. -/
+theorem zetaArchimedeanPacketAsEnsemble_correction_apply
+    (f : ZetaAdmissibleFunction) :
+    zetaArchimedeanPacketAsEnsemble f ZetaPacketLabel.correction = 0 := by
+  unfold zetaArchimedeanPacketAsEnsemble ZetaPacketEnsemble.single
+  exact
+    Finsupp.single_eq_of_ne
+      (fun h : ZetaPacketLabel.archimedean = ZetaPacketLabel.correction =>
+        ZetaPacketLabel.noConfusion h)
+
+/-- The correction packet has the normalized coordinate in the correction slot. -/
+theorem zetaCorrectionPacketAsEnsemble_correction_apply
+    (f : ZetaAdmissibleFunction) :
+    zetaCorrectionPacketAsEnsemble f ZetaPacketLabel.correction =
+      zetaCompletionCorrectionPacketCoordinate := by
+  unfold zetaCorrectionPacketAsEnsemble ZetaPacketEnsemble.single
+  exact Finsupp.single_eq_same
 
 /-- The completed zeta boundary defect decomposes into prime, archimedean, and correction parts. -/
 theorem zetaCompletedBoundaryDefect_decomposition (f : ZetaAdmissibleFunction) :
@@ -108,9 +153,30 @@ theorem zetaCompletedBoundaryDefect_correction_apply
     (f : ZetaAdmissibleFunction) :
     zetaCompletedBoundaryDefect f ZetaPacketLabel.correction =
       zetaCompletionCorrectionPacketCoordinate := by
-  simp [zetaCompletedBoundaryDefect, zetaCompletedBoundaryDefectPrime,
-    zetaCompletedBoundaryDefectArchimedean, zetaCompletedBoundaryDefectCorrection,
-    ZetaPacketEnsemble.single]
+  calc
+    zetaCompletedBoundaryDefect f ZetaPacketLabel.correction =
+        zetaCompletedBoundaryDefectPrime f ZetaPacketLabel.correction +
+            zetaCompletedBoundaryDefectArchimedean f ZetaPacketLabel.correction +
+          zetaCompletedBoundaryDefectCorrection f ZetaPacketLabel.correction := by
+      rfl
+    _ =
+        zetaPrimePacketAsEnsemble f 0 ZetaPacketLabel.correction +
+            zetaArchimedeanPacketAsEnsemble f ZetaPacketLabel.correction +
+          zetaCorrectionPacketAsEnsemble f ZetaPacketLabel.correction := by
+      rfl
+    _ = 0 + 0 + zetaCompletionCorrectionPacketCoordinate := by
+      exact congrArg₂ (fun a b : ℝ => a + b)
+        (congrArg₂ (fun a b : ℝ => a + b)
+          (zetaPrimePacketAsEnsemble_correction_apply f)
+          (zetaArchimedeanPacketAsEnsemble_correction_apply f))
+        (zetaCorrectionPacketAsEnsemble_correction_apply f)
+    _ = zetaCompletionCorrectionPacketCoordinate := by
+      exact
+        Eq.trans
+          (congrArg
+            (fun x : ℝ => x + zetaCompletionCorrectionPacketCoordinate)
+            (zero_add (0 : ℝ)))
+          (zero_add zetaCompletionCorrectionPacketCoordinate)
 
 /-- The correction slot belongs to the support of the completed boundary defect. -/
 theorem zetaCompletedBoundaryDefect_correction_mem_support

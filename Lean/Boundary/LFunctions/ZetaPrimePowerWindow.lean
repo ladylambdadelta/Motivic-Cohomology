@@ -424,7 +424,7 @@ theorem tsum_eq_windowPart_tsum_add_spectralTail_tsum
     summable_spectralTail_of_summable u hsum N
   have hsplit :
       (∑' ι : ZetaPrimePowerIndex,
-        windowPart u N ι + spectralTail u N ι) =
+        (windowPart u N ι + spectralTail u N ι)) =
         (∑' ι : ZetaPrimePowerIndex, windowPart u N ι) +
           (∑' ι : ZetaPrimePowerIndex, spectralTail u N ι) :=
     tsum_add hwindow htail
@@ -486,8 +486,8 @@ theorem spectralTail_eq_tsum_sub_windowSum
               (∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)) -
               ∑ ι in window N, u ι := by
               exact (add_sub_cancel_left
-                (∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)
-                (∑ ι in window N, u ι)).symm
+                (∑ ι in window N, u ι)
+                (∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)).symm
       _ = (∑' ι : ZetaPrimePowerIndex, u ι) -
               ∑ ι in window N, u ι := by
               exact congrArg
@@ -505,18 +505,11 @@ theorem spectralTail_eq_tsum_sub_windowSum
 coordinate norm is bounded by the majorant. -/
 theorem norm_spectralTail_tsum_le_spectralTail_tsum_of_norm_le
     (u v : ZetaPrimePowerIndex → ℝ)
-    (hu : Summable u)
     (hv : Summable v)
-    (hv_nonneg : ∀ ι : ZetaPrimePowerIndex, 0 ≤ v ι)
     (hbound : ∀ ι : ZetaPrimePowerIndex, ‖u ι‖ ≤ v ι)
     (N : ℕ) :
     ‖(∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)‖ ≤
       ∑' ι : ZetaPrimePowerIndex, spectralTail v N ι := by
-  have htail_u : Summable (spectralTail u N) :=
-    summable_spectralTail_of_summable u hu N
-  have htail_u_norm :
-      Summable (fun ι : ZetaPrimePowerIndex => ‖spectralTail u N ι‖) :=
-    htail_u.norm
   have htail_v : Summable (spectralTail v N) :=
     summable_spectralTail_of_summable v hv N
   have hpoint :
@@ -535,8 +528,8 @@ theorem norm_spectralTail_tsum_le_spectralTail_tsum_of_norm_le
           exact congrArg norm hu_zero
         _ = 0 := by
           exact norm_zero
-        _ = spectralTail v N ι := by
-          exact hv_zero.symm
+        _ ≤ spectralTail v N ι := by
+          exact le_of_eq hv_zero.symm
     · have hu_value : spectralTail u N ι = u ι := by
         unfold spectralTail
         exact if_neg hι
@@ -549,6 +542,14 @@ theorem norm_spectralTail_tsum_le_spectralTail_tsum_of_norm_le
         _ ≤ v ι := hbound ι
         _ = spectralTail v N ι := by
           exact hv_value.symm
+  have htail_u_norm :
+      Summable (fun ι : ZetaPrimePowerIndex => ‖spectralTail u N ι‖) := by
+    refine Summable.of_norm_bounded (spectralTail v N) htail_v ?_
+    intro ι
+    calc
+      ‖‖spectralTail u N ι‖‖ = ‖spectralTail u N ι‖ := by
+        exact norm_norm (spectralTail u N ι)
+      _ ≤ spectralTail v N ι := hpoint ι
   have hnorm_tsum :
       ‖(∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)‖ ≤
         ∑' ι : ZetaPrimePowerIndex, ‖spectralTail u N ι‖ :=

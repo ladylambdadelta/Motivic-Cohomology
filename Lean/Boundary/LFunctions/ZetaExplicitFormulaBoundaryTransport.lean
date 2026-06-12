@@ -261,42 +261,39 @@ theorem zetaCompletedExplicitFormulaRenormalizedDefectKernelBoundaryChannel_eq_G
       completedBoundaryGNSNormSq f := by
   exact completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f
 
-/-- The real scalar attached to the positive GNS boundary form with prime defect kernel. -/
+/-- The real scalar attached to the positive completed GNS boundary class.
+
+The owner scalar is the completed ordered-heart/GNS norm-square.  The complex positive
+boundary form is a comparison presentation, not the definition of positivity. -/
 noncomputable def zetaCompletedGNSPositiveBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
-  Complex.re (zetaCompletedGNSPositiveBoundaryForm f)
+  completedBoundaryGNSNormSq f
 
 /-- The completed ordered-heart GNS norm-square is the positive Hermitian defect-kernel
 boundary scalar. -/
-theorem completedBoundaryGNSNormSq_eq_positiveBoundaryScalar
+theorem completedBoundaryGNSNormSq_eq_GNSPositiveBoundaryScalar
     (f : ZetaAdmissibleFunction) :
     completedBoundaryGNSNormSq f =
       zetaCompletedGNSPositiveBoundaryScalar f := by
-  unfold completedBoundaryGNSNormSq
-  unfold completedOrderedHeartScalar
   unfold zetaCompletedGNSPositiveBoundaryScalar
-  exact completedBoundaryHermitianGNSScalar_source_eq_positiveBoundaryScalar f
+  rfl
 
 /-- The completed renormalized positive defect-kernel channel is the positive Hermitian GNS
 boundary scalar. -/
-theorem zetaCompletedExplicitFormulaRenormalizedDefectKernelBoundaryChannel_eq_positiveBoundaryScalar
+theorem zetaCompletedExplicitFormulaRenormalizedDefectKernelBoundaryChannel_eq_GNSPositiveBoundaryScalar
     (f : ZetaAdmissibleFunction) :
     completedRenormalizedDefectKernelBoundaryChannel f =
       zetaCompletedGNSPositiveBoundaryScalar f := by
   exact
     (completedRenormalizedDefectKernelBoundaryChannel_eq_GNSNormSq f).trans
-      (completedBoundaryGNSNormSq_eq_positiveBoundaryScalar f)
+      (completedBoundaryGNSNormSq_eq_GNSPositiveBoundaryScalar f)
 
 /-- The positive Hermitian defect-kernel boundary scalar is nonnegative. -/
 theorem zetaCompletedGNSPositiveBoundaryScalar_nonnegative
     (f : ZetaAdmissibleFunction) :
     0 ≤ zetaCompletedGNSPositiveBoundaryScalar f := by
-  have hgns : 0 ≤ completedBoundaryGNSNormSq f :=
-    completedBoundaryGNSNormSq_nonnegative f
-  exact Eq.subst
-    (motive := fun x : ℝ => 0 ≤ x)
-    (completedBoundaryGNSNormSq_eq_positiveBoundaryScalar f)
-    hgns
+  unfold zetaCompletedGNSPositiveBoundaryScalar
+  exact completedBoundaryGNSNormSq_nonnegative f
 
 /-- The convolution-autocorrelation boundary real form carries the completed positive-class
 certificate constructed by finite defect-square descent. -/
@@ -609,43 +606,6 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDia
       hkrein
   exact hkrein_debt.trans (hfinite.trans hordered)
 
-/-- Zero-side lower-weight absorption kills the prime diagonal-debt face on the raw
-autocorrelation Krein representative.
-
-This is the concrete radical statement on the zero side.  It does not say the prime
-diagonal debt vanishes as an independent analytic channel; it says the debt face is null
-after evaluation in the completed zero-side Krein realization. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_KreinSum_by_zeroSideLowerWeightAbsorption
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
-      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
-  sorry
-
-/-- Zero-side lower-weight absorption identifies the raw autocorrelation Krein scalar with
-the completed ordered-heart scalar.
-
-This is the remaining quotient comparison theorem: the diagonal debt already appears in the
-debt-visible transport theorem, and this statement says precisely that the extra diagonal
-face is radical-null in the zero-side completed realization. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_eq_orderedHeartScalar_by_zeroSideLowerWeightAbsorption
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
-      zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f := by
-  have habsorb :
-      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
-          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
-        zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f :=
-    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_KreinSum_by_zeroSideLowerWeightAbsorption
-      f
-  have hdebt :
-      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f +
-          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
-        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
-    zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_add_primeDiagonalDebt_eq_orderedHeartScalar
-      f
-  exact habsorb.symm.trans hdebt
-
 /-- The descended ordered-heart autocorrelation boundary scalar is nonnegative. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar_nonnegative
     (f : ZetaAdmissibleFunction) :
@@ -912,35 +872,37 @@ theorem complex_eq_of_re_eq_of_im_eq_zero
     z = (r : ℂ) := by
   exact Complex.ext hre (him.trans (Complex.ofReal_im r).symm)
 
-/-- Legacy finite-presentation prime-channel holography: the finite display prime
+/-- Finite-display prime-channel holography: the finite display prime
 convolution contribution is the finite two-face/GNS prime matrix coefficient.
 
 The completed owner path uses `zetaCompletedPrimeTwoFaceGNSMatrixCoefficient`. -/
-theorem zetaCompletedExplicitFormulaPrimeChannel_holographic
+theorem zetaCompletedExplicitFormulaPrimeFiniteDisplayChannel_holographic
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
   exact zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic_twoFace f
 
-/-- Legacy finite-presentation name for the prime linear boundary functional on the
+/-- Finite-display compatibility name for the prime linear boundary functional on the
 convolution autocorrelation kernel. -/
-theorem zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient
+theorem zetaCompletedExplicitFormulaPrimeFiniteDisplayConvolutionLinearReal_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  exact zetaCompletedExplicitFormulaPrimeChannel_holographic f
+  exact zetaCompletedExplicitFormulaPrimeFiniteDisplayChannel_holographic f
 
-/-- Historical finite-presentation name for prime convolution-channel holography. -/
-theorem zetaCompletedExplicitFormulaPrimeLinearReal_autocorrelation_eq_twoFaceMatrixCoefficient
+/-- Finite-display compatibility name for prime convolution-channel holography. -/
+theorem zetaCompletedExplicitFormulaPrimeFiniteDisplayLinearReal_autocorrelation_eq_twoFaceMatrixCoefficient
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  exact zetaCompletedExplicitFormulaPrimeConvolutionLinearReal_eq_twoFaceMatrixCoefficient f
+  exact
+    zetaCompletedExplicitFormulaPrimeFiniteDisplayConvolutionLinearReal_eq_twoFaceMatrixCoefficient
+      f
 
-/-- Legacy finite-presentation prime channel expansion: the finite explicit prime
+/-- Finite-display prime channel expansion: the finite explicit prime
 contribution is the cross term in the finite positive prime defect-kernel square, and the
 finite diagonal debt is the remaining square face. -/
-theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_add_positiveDefectKernel_eq_diagonalDebt
+theorem zetaCompletedExplicitFormulaPrimeFiniteDisplayConvolutionContribution_add_positiveDefectKernel_eq_diagonalDebt
     (f : ZetaAdmissibleFunction) :
     zetaPrimeDefectKernelPositiveForm f +
         zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
@@ -950,10 +912,10 @@ theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_add_positiveDef
       f
 
 /-- Real scalar form of the full positive/symmetrized GNS transport identity. -/
-theorem zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_re_eq_diagonalDebt_add_archCorrection_re
+theorem zetaCompletedGNSPositiveBoundaryPresentationForm_add_symmetrized_re_eq_diagonalDebt_add_archCorrection_re
     (f : ZetaAdmissibleFunction) :
     Complex.re
-        (zetaCompletedGNSPositiveBoundaryForm f +
+        (zetaCompletedGNSPositiveBoundaryPresentationForm f +
           zetaCompletedGNSSymmetrizedBoundaryForm f) =
       Complex.re
         (zetaCompletedGNSDiagonalDebtBoundaryForm f +
@@ -962,7 +924,7 @@ theorem zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_re_eq_diagonalDebt_
             (ZetaHermitianPacketEnsemble.correctionPacketGram
               (zetaCompletedHermitianBoundaryDefect f) : ℂ))) := by
   exact congrArg Complex.re
-    (zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_eq_diagonalDebt_add_archCorrection
+    (zetaCompletedGNSPositiveBoundaryPresentationForm_add_symmetrized_eq_diagonalDebt_add_archCorrection
       f)
 
 /-- The real scalar attached to the symmetrized two-face GNS boundary form. -/
@@ -970,55 +932,34 @@ noncomputable def zetaCompletedGNSSymmetrizedBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
   Complex.re (zetaCompletedGNSSymmetrizedBoundaryForm f)
 
+/-- The real scalar attached to the finite display-level symmetrized two-face boundary form. -/
+noncomputable def zetaFiniteGNSSymmetrizedBoundaryScalar
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  Complex.re (zetaFiniteGNSSymmetrizedBoundaryForm f)
+
 /-- The real scalar attached to the diagonal-debt GNS boundary face. -/
 noncomputable def zetaCompletedGNSDiagonalDebtBoundaryScalar
     (f : ZetaAdmissibleFunction) : ℝ :=
   Complex.re (zetaCompletedGNSDiagonalDebtBoundaryForm f)
 
 /-- Component normal form for the positive GNS boundary scalar. -/
-theorem zetaCompletedGNSPositiveBoundaryScalar_eq_primeDefect_add_archCorrection
+theorem zetaCompletedGNSPositiveBoundaryScalar_eq_GNSNormSq
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSPositiveBoundaryScalar f =
-      Complex.re (zetaCompletedPrimeDefectKernelPositiveForm f) +
-        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.correctionPacketGram
-            (zetaCompletedHermitianBoundaryDefect f)) := by
-  let P : ℂ := zetaCompletedPrimeDefectKernelPositiveForm f
-  let A : ℝ :=
-    ZetaHermitianPacketEnsemble.archimedeanPacketGram
-      (zetaCompletedHermitianBoundaryDefect f)
-  let C : ℝ :=
-    ZetaHermitianPacketEnsemble.correctionPacketGram
-      (zetaCompletedHermitianBoundaryDefect f)
+      completedBoundaryGNSNormSq f := by
   unfold zetaCompletedGNSPositiveBoundaryScalar
-  unfold zetaCompletedGNSPositiveBoundaryForm
-  change Complex.re (P + (A : ℂ) + (C : ℂ)) =
-    Complex.re P + (A + C)
-  calc
-    Complex.re (P + (A : ℂ) + (C : ℂ)) =
-        Complex.re (P + (A : ℂ)) + Complex.re (C : ℂ) := by
-      exact Complex.add_re (P + (A : ℂ)) (C : ℂ)
-    _ = (Complex.re P + Complex.re (A : ℂ)) + Complex.re (C : ℂ) := by
-      exact congrArg (fun x : ℝ => x + Complex.re (C : ℂ))
-        (Complex.add_re P (A : ℂ))
-    _ = (Complex.re P + A) + C := by
-      exact congrArg₂ HAdd.hAdd
-        (congrArg₂ HAdd.hAdd rfl (Complex.ofReal_re A))
-        (Complex.ofReal_re C)
-    _ = Complex.re P + (A + C) := by
-      exact add_assoc (Complex.re P) A C
+  rfl
 
 /-- Component normal form for the symmetrized GNS boundary scalar. -/
 theorem zetaCompletedGNSSymmetrizedBoundaryScalar_eq_primeTwoFace_add_archCorrection
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSSymmetrizedBoundaryScalar f =
-      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) +
+      Complex.re (zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f) +
         (ZetaHermitianPacketEnsemble.archimedeanPacketGram
           (zetaCompletedHermitianBoundaryDefect f) +
           ZetaHermitianPacketEnsemble.correctionPacketGram
             (zetaCompletedHermitianBoundaryDefect f)) := by
-  let S : ℂ := zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f
+  let S : ℂ := zetaCompletedPrimeTwoFaceGNSMatrixCoefficient f
   let A : ℝ :=
     ZetaHermitianPacketEnsemble.archimedeanPacketGram
       (zetaCompletedHermitianBoundaryDefect f)
@@ -1077,45 +1018,17 @@ theorem zetaCompletedGNSDiagonalDebtBoundaryScalar_eq_primeDebt_add_archCorrecti
     _ = Complex.re D + (A + C) := by
       exact add_assoc (Complex.re D) A C
 
-/-- Real scalar form of the positive/symmetrized/diagonal-debt expansion. -/
-theorem zetaCompletedGNSPositiveBoundaryScalar_add_symmetrized_eq_diagonalDebt_add_archCorrection
+/-- Real scalar form of adding the completed symmetrized two-face scalar to the positive
+GNS scalar.  The positive scalar is owned by the ordered-heart GNS norm-square; spectral
+defect-kernel expansion is a separate comparison theorem. -/
+theorem zetaCompletedGNSPositiveBoundaryScalar_add_symmetrized_eq_GNSNormSq_add_symmetrized
     (f : ZetaAdmissibleFunction) :
     zetaCompletedGNSPositiveBoundaryScalar f +
         zetaCompletedGNSSymmetrizedBoundaryScalar f =
-      zetaCompletedGNSDiagonalDebtBoundaryScalar f +
-        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
-          (zetaCompletedHermitianBoundaryDefect f) +
-          ZetaHermitianPacketEnsemble.correctionPacketGram
-            (zetaCompletedHermitianBoundaryDefect f)) := by
-  let P : ℂ := zetaCompletedGNSPositiveBoundaryForm f
-  let S : ℂ := zetaCompletedGNSSymmetrizedBoundaryForm f
-  let D : ℂ := zetaCompletedGNSDiagonalDebtBoundaryForm f
-  let A : ℝ :=
-    ZetaHermitianPacketEnsemble.archimedeanPacketGram
-      (zetaCompletedHermitianBoundaryDefect f)
-  let C : ℝ :=
-    ZetaHermitianPacketEnsemble.correctionPacketGram
-      (zetaCompletedHermitianBoundaryDefect f)
-  have hcomplex :
-      P + S = D + ((A : ℂ) + (C : ℂ)) := by
-    exact zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_eq_diagonalDebt_add_archCorrection f
+      completedBoundaryGNSNormSq f +
+        zetaCompletedGNSSymmetrizedBoundaryScalar f := by
   unfold zetaCompletedGNSPositiveBoundaryScalar
-  unfold zetaCompletedGNSSymmetrizedBoundaryScalar
-  unfold zetaCompletedGNSDiagonalDebtBoundaryScalar
-  change Complex.re P + Complex.re S = Complex.re D + (A + C)
-  calc
-    Complex.re P + Complex.re S = Complex.re (P + S) := by
-      exact (Complex.add_re P S).symm
-    _ = Complex.re (D + ((A : ℂ) + (C : ℂ))) := by
-      exact congrArg Complex.re hcomplex
-    _ = Complex.re D + Complex.re ((A : ℂ) + (C : ℂ)) := by
-      exact Complex.add_re D ((A : ℂ) + (C : ℂ))
-    _ = Complex.re D + (Complex.re (A : ℂ) + Complex.re (C : ℂ)) := by
-      exact congrArg (fun x : ℝ => Complex.re D + x)
-        (Complex.add_re (A : ℂ) (C : ℂ))
-    _ = Complex.re D + (A + C) := by
-      exact congrArg (fun x : ℝ => Complex.re D + x)
-        (congrArg₂ HAdd.hAdd (Complex.ofReal_re A) (Complex.ofReal_re C))
+  rfl
 
 /-- Archimedean-channel holography: the archimedean explicit-formula functional evaluated
 on the convolution autocorrelation kernel is the Hermitian archimedean packet Gram. -/
@@ -1294,25 +1207,25 @@ theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_pairedForm
   unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
   exact (zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f).symm
 
-/-- The paired spectral convolution Krein scalar is exactly the symmetrized GNS boundary
-scalar.  This is the owner bridge from the two-face spectral presentation into the
-completed GNS boundary surface. -/
-theorem zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_GNSSymmetrizedBoundaryScalar
+/-- The paired spectral convolution Krein scalar is exactly the finite symmetrized boundary
+scalar reconstructed by the finite packet presentation.  Completed GNS transport is owned by
+the completed finite-part/ordered-heart route, not by this finite reconstruction theorem. -/
+theorem zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_finiteGNSSymmetrizedBoundaryScalar
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f =
-      zetaCompletedGNSSymmetrizedBoundaryScalar f := by
+      zetaFiniteGNSSymmetrizedBoundaryScalar f := by
   unfold zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
   unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
-  unfold zetaCompletedGNSSymmetrizedBoundaryScalar
+  unfold zetaFiniteGNSSymmetrizedBoundaryScalar
   exact congrArg Complex.re
-    (zetaCompletedBoundaryReconstruction_pairedForm_eq_GNSSymmetrizedBoundaryForm f)
+    (zetaCompletedBoundaryReconstruction_pairedForm_eq_finiteGNSSymmetrizedBoundaryForm f)
 
-/-- The complex convolution boundary presentation has real part equal to the symmetrized GNS
-boundary scalar. -/
-theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re_eq_GNSSymmetrizedBoundaryScalar
+/-- The complex convolution boundary presentation has real part equal to the finite
+symmetrized boundary scalar. -/
+theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re_eq_finiteGNSSymmetrizedBoundaryScalar
     (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
-      zetaCompletedGNSSymmetrizedBoundaryScalar f := by
+      zetaFiniteGNSSymmetrizedBoundaryScalar f := by
   have hpaired :
       zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f =
         zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm f :=
@@ -1323,8 +1236,8 @@ theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re_eq_GNSSymm
       exact congrArg Complex.re hpaired
     _ = zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f := by
       unfold zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
-    _ = zetaCompletedGNSSymmetrizedBoundaryScalar f := by
-      exact zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_GNSSymmetrizedBoundaryScalar
+    _ = zetaFiniteGNSSymmetrizedBoundaryScalar f := by
+      exact zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_finiteGNSSymmetrizedBoundaryScalar
         f
 
 /-- The real two-face prime presentation is the realized prime GNS channel. -/
@@ -1792,7 +1705,7 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelati
         (fun x : ℝ => (x : ℂ))
         (completedAnalyticBoundaryRealizationScalar_eq_explicitFormulaOrderedHeartScalar f))
 
-/-- Legacy wrapper name for the corrected convolution-boundary normalization. -/
+/-- Compatibility wrapper name for the corrected convolution-boundary normalization. -/
 theorem zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_eq_seedKreinSum
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySumAnalytic
@@ -1800,7 +1713,7 @@ theorem zetaCompletedExplicitFormulaBoundarySumCore_autocorrelation_eq_seedKrein
       (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) := by
   exact zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum f
 
-/-- Legacy wrapper name for the corrected convolution-boundary analytic normalization. -/
+/-- Compatibility wrapper name for the corrected convolution-boundary analytic normalization. -/
 theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_autocorrelation_eq_seedKreinSum
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBoundarySumAnalytic

@@ -3,6 +3,7 @@ import Boundary.LFunctions.AutocorrelationCore
 import Mathlib.Analysis.Convolution
 import Mathlib.MeasureTheory.Group.Measure
 import Mathlib.MeasureTheory.Integral.Bochner
+import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import Mathlib.MeasureTheory.Measure.Haar.OfBasis
@@ -127,9 +128,9 @@ theorem zetaLaplaceTransform_dagger_base
           star
             (f.toZetaTestFunction' t *
               Complex.exp ((-star z) * t)) := by
-      have hneg : MeasurePreserving (Homeomorph.neg ℝ).toMeasurableEquiv
+      have hneg : MeasurePreserving (fun x : ℝ => -x)
           (volume : Measure ℝ) (volume : Measure ℝ) :=
-        Measure.measurePreserving_neg (volume : Measure ℝ)
+        ⟨measurable_neg, Measure.map_neg_eq_self (volume : Measure ℝ)⟩
       let G : ℝ → ℂ := fun t : ℝ =>
           star
             (f.toZetaTestFunction' t *
@@ -156,8 +157,11 @@ theorem zetaLaplaceTransform_dagger_base
                 (f.toZetaTestFunction' t *
                   Complex.exp ((-star z) * t)) := by
         rfl
-      have hcomp := hneg.integral_comp' (g := G)
-      change (∫ x : ℝ, G ((Homeomorph.neg ℝ).toMeasurableEquiv x)) =
+      have hcomp :=
+        hneg.integral_comp
+          (Homeomorph.neg ℝ).measurableEmbedding
+          G
+      change (∫ x : ℝ, G (-x)) =
         ∫ y : ℝ, G y at hcomp
       exact hleft.trans (hcomp.trans hright)
     _ =

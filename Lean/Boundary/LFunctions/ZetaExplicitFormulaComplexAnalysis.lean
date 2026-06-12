@@ -247,29 +247,23 @@ theorem ExplicitFormulaFamilyAnalyticPackage.topLineIntegral_norm_le
 theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecayEnvelope_core
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (N : ℕ) :
-    ∃ C : ℝ,
-      Tendsto
-        (fun T : ℝ =>
-          C * (1 + ‖T‖) ^ (-(N.succ : ℤ)) * (1 + ‖T‖) ^ (-(N.succ : ℤ)))
-        atTop (𝓝 (0 : ℝ)) := by
-  have hprod := tendsto_two_one_add_norm_pow_neg_atTop N
-  refine ⟨horizontalEdgeLength F.c *
-      h.logderiv_control.stripBoundConstant F.c (1 - F.c) N *
-      h.phi_control.verticalStripRapidDecayConstant (F.c - 1 / 2) (1 / 2 - F.c) N, ?_⟩
-  simpa [mul_comm, mul_left_comm, mul_assoc] using
-    hprod.const_mul (horizontalEdgeLength F.c *
-      h.logderiv_control.stripBoundConstant F.c (1 - F.c) N *
-      h.phi_control.verticalStripRapidDecayConstant (F.c - 1 / 2) (1 / 2 - F.c) N)
+    Tendsto
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          h.phi_control h.logderiv_control F N (N + N.succ) T)
+      atTop (𝓝 (0 : ℝ)) := by
+  exact horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero
+    h.phi_control h.logderiv_control F N N
 
 /-- Thin wrapper for the horizontal decay envelope. -/
 theorem ExplicitFormulaFamilyAnalyticPackage.horizontalDecayEnvelope
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F) (N : ℕ) :
-    ∃ C : ℝ,
-      Tendsto
-        (fun T : ℝ =>
-          C * (1 + ‖T‖) ^ (-(N.succ : ℤ)) * (1 + ‖T‖) ^ (-(N.succ : ℤ)))
-        atTop (𝓝 (0 : ℝ)) :=
+    Tendsto
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          h.phi_control h.logderiv_control F N (N + N.succ) T)
+      atTop (𝓝 (0 : ℝ)) :=
   h.horizontalDecayEnvelope_core N
 
 /-- The horizontal top-minus-bottom difference tends to zero along a contour family. -/

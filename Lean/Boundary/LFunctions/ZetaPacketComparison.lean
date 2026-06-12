@@ -1,6 +1,7 @@
 import Boundary.LFunctions.ZetaCompletedBoundaryDefect
 import Boundary.LFunctions.ZetaCompletionCorrection
 import Boundary.LFunctions.ZetaExplicitFormulaAnalyticCore
+import Boundary.LFunctions.ZetaHermitianPacket
 
 /-!
 # Boundary zeta packet comparison
@@ -153,6 +154,27 @@ theorem zetaCompletedPacketNormSq_nonnegative_of_boundaryDefect
       zetaCompletedBoundaryDefectGram f = zetaCompletedPacketNormSq f 0 :=
     zetaCompletedBoundaryDefectGram_eq_completedPacketNormSq f
   exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hgram hboundary
+
+/-- The completed boundary-defect Gram agrees with the Hermitian packet norm-square. -/
+theorem zetaCompletedBoundaryDefectGram_eq_realShadowComponents
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedBoundaryDefectGram f =
+      ZetaPacketEnsemble.primePacketGram (zetaCompletedBoundaryDefect f) +
+        ZetaPacketEnsemble.archimedeanPacketGram (zetaCompletedBoundaryDefect f) +
+        ZetaPacketEnsemble.correctionPacketGram (zetaCompletedBoundaryDefect f) := by
+  unfold zetaCompletedBoundaryDefectGram
+  exact ZetaPacketEnsemble.zetaPacketNormSquare (zetaCompletedBoundaryDefect f)
+
+/-- The real-shadow correction packet Gram agrees with the Hermitian correction packet Gram. -/
+theorem zetaCompletedBoundaryDefect_correctionPacketGram_eq_HermitianCorrectionPacketGram
+    (f : ZetaAdmissibleFunction) :
+    ZetaPacketEnsemble.correctionPacketGram (zetaCompletedBoundaryDefect f) =
+      ZetaHermitianPacketEnsemble.correctionPacketGram
+        (zetaCompletedHermitianBoundaryDefect f) := by
+  exact
+    (zetaCompletedBoundaryDefect_correctionPacketGram_eq_coordinate_sq f).trans
+      (zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
+        f).symm
 
 end ZetaAdmissibleFunction
 

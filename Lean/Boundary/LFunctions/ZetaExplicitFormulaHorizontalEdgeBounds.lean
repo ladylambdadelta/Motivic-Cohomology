@@ -96,6 +96,11 @@ theorem stripConstant_mul_zpow_nonneg {C t : ℝ} {N : ℕ} (hC : 0 < C) :
     0 ≤ C * (1 + ‖t‖) ^ (-(N : ℤ)) :=
   le_of_lt (mul_pos hC (zpow_pos (one_add_norm_pos t) (-(N : ℤ))))
 
+/-- A positive strip constant times a natural power is nonnegative. -/
+theorem stripConstant_mul_pow_nonneg {C t : ℝ} {N : ℕ} (hC : 0 < C) :
+    0 ≤ C * (1 + ‖t‖) ^ N :=
+  mul_nonneg (le_of_lt hC) (pow_nonneg (le_of_lt (one_add_norm_pos t)) N)
+
 /-- Two pointwise bounds multiply to a product bound. -/
 theorem norm_product_le_of_bounds
     {a b A B : ℝ} (ha : a ≤ A) (hb : b ≤ B) (hA : 0 ≤ A) (hb0 : 0 ≤ b) :
@@ -109,11 +114,11 @@ theorem completedZetaNegLogDeriv_horizontal_height_bound
     (hpath : r.c ≤ z.re ∧ z.re ≤ 1 - r.c)
     (hpath_im : ‖z.im‖ = ‖r.T‖) :
     ‖completedZetaNegLogDeriv z‖ ≤
-      hLog.stripBoundConstant r.c (1 - r.c) N * (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
+      hLog.stripBoundConstant r.c (1 - r.c) N * (1 + ‖r.T‖) ^ N :=
   (hLog.stripBoundConstant_bound r.c (1 - r.c) N z hpath.1 hpath.2).trans_eq
     (congrArg
       (fun u : ℝ =>
-        hLog.stripBoundConstant r.c (1 - r.c) N * (1 + u) ^ (-(N : ℤ)))
+        hLog.stripBoundConstant r.c (1 - r.c) N * (1 + u) ^ N)
       hpath_im)
 
 /-- The `Φ_f` strip bound after substituting the shifted horizontal height `T`. -/
@@ -140,8 +145,8 @@ theorem completedZetaNegLogDeriv_horizontal_target_nonneg
     {f : ZetaAdmissibleFunction} (hLog : CompletedZetaNegLogDerivControl f)
     (r : ExplicitFormulaRectangle) (N : ℕ) :
     0 ≤ hLog.stripBoundConstant r.c (1 - r.c) N *
-      (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
-  stripConstant_mul_zpow_nonneg
+      (1 + ‖r.T‖) ^ N :=
+  stripConstant_mul_pow_nonneg
     (hLog.stripBoundConstant_pos r.c (1 - r.c) N)
 
 /-- The common horizontal edge product constant. -/
@@ -150,7 +155,7 @@ def horizontalEdgeIntegrandBoundConstant
     (hLog : CompletedZetaNegLogDerivControl f)
     (r : ExplicitFormulaRectangle) (N : ℕ) : ℝ :=
   (hLog.stripBoundConstant r.c (1 - r.c) N) *
-    (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+    (1 + ‖r.T‖) ^ N *
     (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
     (1 + ‖r.T‖) ^ (-(N : ℤ))
 
@@ -167,7 +172,7 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound
     ‖completedZetaNegLogDeriv z‖ *
         ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N *
-            (1 + ‖r.T‖) ^ (-(N : ℤ))) *
+            (1 + ‖r.T‖) ^ N) *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N *
             (1 + ‖r.T‖) ^ (-(N : ℤ))) :=
   norm_product_le_of_bounds
@@ -178,9 +183,9 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound
 
 /-- Reassociate the horizontal product target into the public edge-bound shape. -/
 theorem horizontalProductTarget_reassociate
-    (A B C : ℝ) :
-    A * B * (C * B) = A * B * C * B :=
-  (mul_assoc (A * B) C B).symm
+    (A B C D : ℝ) :
+    A * B * (C * D) = A * B * C * D :=
+  (mul_assoc (A * B) C D).symm
 
 /-- The horizontal product estimate in the public edge-bound parenthesization. -/
 theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound'
@@ -195,15 +200,16 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound'
     ‖completedZetaNegLogDeriv z‖ *
         ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   (zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound
     hPhi hLog r z N hpath hshift hpath_im hshift_im).trans_eq
     (horizontalProductTarget_reassociate
       (hLog.stripBoundConstant r.c (1 - r.c) N)
-      ((1 + ‖r.T‖) ^ (-(N : ℤ)))
-      (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N))
+      ((1 + ‖r.T‖) ^ N)
+      (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N)
+      ((1 + ‖r.T‖) ^ (-(N : ℤ))))
 
 /-- The shifted top path remains inside the vertical strip needed for `Φ_f`. -/
 theorem zetaCompletedExplicitFormulaTopPath_shift_strip
@@ -291,7 +297,7 @@ def horizontalUnorderedEdgeIntegrandBoundConstant
     (hLog : CompletedZetaNegLogDerivControl f)
     (r : ExplicitFormulaRectangle) (N : ℕ) : ℝ :=
   (hLog.stripBoundConstant (min r.c (1 - r.c)) (max r.c (1 - r.c)) N) *
-    (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+    (1 + ‖r.T‖) ^ N *
     (hPhi.verticalStripRapidDecayConstant
       (min r.c (1 - r.c) - 1 / 2) (max r.c (1 - r.c) - 1 / 2) N) *
     (1 + ‖r.T‖) ^ (-(N : ℤ))
@@ -303,11 +309,11 @@ theorem completedZetaNegLogDeriv_strip_height_bound
     (hpath : a ≤ z.re ∧ z.re ≤ b)
     (hpath_im : ‖z.im‖ = ‖t‖) :
     ‖completedZetaNegLogDeriv z‖ ≤
-      hLog.stripBoundConstant a b N * (1 + ‖t‖) ^ (-(N : ℤ)) :=
+      hLog.stripBoundConstant a b N * (1 + ‖t‖) ^ N :=
   (hLog.stripBoundConstant_bound a b N z hpath.1 hpath.2).trans_eq
     (congrArg
       (fun u : ℝ =>
-        hLog.stripBoundConstant a b N * (1 + u) ^ (-(N : ℤ)))
+        hLog.stripBoundConstant a b N * (1 + u) ^ N)
       hpath_im)
 
 /-- The transform strip bound with a supplied horizontal height. -/
@@ -329,8 +335,8 @@ theorem zetaCompletedExplicitFormulaPhi_strip_height_bound
 theorem completedZetaNegLogDeriv_strip_height_target_nonneg
     {f : ZetaAdmissibleFunction} (hLog : CompletedZetaNegLogDerivControl f)
     (a b t : ℝ) (N : ℕ) :
-    0 ≤ hLog.stripBoundConstant a b N * (1 + ‖t‖) ^ (-(N : ℤ)) :=
-  stripConstant_mul_zpow_nonneg
+    0 ≤ hLog.stripBoundConstant a b N * (1 + ‖t‖) ^ N :=
+  stripConstant_mul_pow_nonneg
     (hLog.stripBoundConstant_pos a b N)
 
 /-- The product estimate for arbitrary log-derivative and transform strips. -/
@@ -345,7 +351,7 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_stripProduct_bound
     ‖completedZetaNegLogDeriv z‖ *
         ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
       ≤ hLog.stripBoundConstant a b N *
-          (1 + ‖t‖) ^ (-(N : ℤ)) *
+          (1 + ‖t‖) ^ N *
           hPhi.verticalStripRapidDecayConstant aΦ bΦ N *
           (1 + ‖t‖) ^ (-(N : ℤ)) :=
   (norm_product_le_of_bounds
@@ -355,8 +361,46 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_stripProduct_bound
     (norm_nonneg (zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))).trans_eq
       (horizontalProductTarget_reassociate
         (hLog.stripBoundConstant a b N)
-        ((1 + ‖t‖) ^ (-(N : ℤ)))
-        (hPhi.verticalStripRapidDecayConstant aΦ bΦ N))
+        ((1 + ‖t‖) ^ N)
+        (hPhi.verticalStripRapidDecayConstant aΦ bΦ N)
+        ((1 + ‖t‖) ^ (-(N : ℤ))))
+
+/-- The product estimate with separated logarithmic-growth and transform-decay exponents. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_stripProduct_bound_split
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (a b aΦ bΦ t : ℝ) (z : ℂ) (logN phiN : ℕ)
+    (hpath : a ≤ z.re ∧ z.re ≤ b)
+    (hshift : aΦ ≤ (z - 1 / 2 : ℂ).re ∧ (z - 1 / 2 : ℂ).re ≤ bΦ)
+    (hpath_im : ‖z.im‖ = ‖t‖)
+    (hshift_im : ‖(z - 1 / 2 : ℂ).im‖ = ‖t‖) :
+    ‖completedZetaNegLogDeriv z‖ *
+        ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
+      ≤ hLog.stripBoundConstant a b logN *
+          (1 + ‖t‖) ^ logN *
+          hPhi.verticalStripRapidDecayConstant aΦ bΦ phiN *
+          (1 + ‖t‖) ^ (-(phiN : ℤ)) :=
+  (norm_product_le_of_bounds
+    (completedZetaNegLogDeriv_strip_height_bound hLog a b t z logN hpath hpath_im)
+    (zetaCompletedExplicitFormulaPhi_strip_height_bound hPhi aΦ bΦ t z phiN hshift hshift_im)
+    (completedZetaNegLogDeriv_strip_height_target_nonneg hLog a b t logN)
+    (norm_nonneg (zetaCompletedExplicitFormulaPhi f (z - 1 / 2)))).trans_eq
+      (horizontalProductTarget_reassociate
+        (hLog.stripBoundConstant a b logN)
+        ((1 + ‖t‖) ^ logN)
+        (hPhi.verticalStripRapidDecayConstant aΦ bΦ phiN)
+        ((1 + ‖t‖) ^ (-(phiN : ℤ))))
+
+/-- The common unordered horizontal edge product constant with separated exponents. -/
+def horizontalUnorderedEdgeIntegrandBoundConstantSplit
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (logN phiN : ℕ) : ℝ :=
+  (hLog.stripBoundConstant (min r.c (1 - r.c)) (max r.c (1 - r.c)) logN) *
+    (1 + ‖r.T‖) ^ logN *
+    (hPhi.verticalStripRapidDecayConstant
+      (min r.c (1 - r.c) - 1 / 2) (max r.c (1 - r.c) - 1 / 2) phiN) *
+    (1 + ‖r.T‖) ^ (-(phiN : ℤ))
 
 /-- The unordered horizontal pointwise contour-integrand bound. -/
 theorem zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bound
@@ -376,6 +420,25 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bo
     hPhi hLog (min r.c (1 - r.c)) (max r.c (1 - r.c))
     (min r.c (1 - r.c) - 1 / 2) (max r.c (1 - r.c) - 1 / 2)
     r.T z N hpath hshift hpath_im hshift_im
+
+/-- The unordered horizontal pointwise contour-integrand bound with separated exponents. -/
+theorem zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bound_split
+    {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (z : ℂ) (logN phiN : ℕ)
+    (hpath : min r.c (1 - r.c) ≤ z.re ∧ z.re ≤ max r.c (1 - r.c))
+    (hshift :
+      min r.c (1 - r.c) - 1 / 2 ≤ (z - 1 / 2 : ℂ).re ∧
+        (z - 1 / 2 : ℂ).re ≤ max r.c (1 - r.c) - 1 / 2)
+    (hpath_im : ‖z.im‖ = ‖r.T‖)
+    (hshift_im : ‖(z - 1 / 2 : ℂ).im‖ = ‖r.T‖) :
+    ‖completedZetaNegLogDeriv z‖ *
+        ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
+      ≤ horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN :=
+  zetaCompletedExplicitFormulaContourIntegrand_stripProduct_bound_split
+    hPhi hLog (min r.c (1 - r.c)) (max r.c (1 - r.c))
+    (min r.c (1 - r.c) - 1 / 2) (max r.c (1 - r.c) - 1 / 2)
+    r.T z logN phiN hpath hshift hpath_im hshift_im
 
 /-- A pointwise contour-integrand estimate along the unordered top horizontal edge. -/
 theorem zetaCompletedExplicitFormulaTopEdgeContourIntegrand_uIcc_bound
@@ -408,6 +471,44 @@ theorem zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_uIcc_bound
   (norm_zetaCompletedExplicitFormulaContourIntegrand_le f _).trans
     (zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bound
       hPhi hLog r (zetaCompletedExplicitFormulaBottomPath r x) N
+      (zetaCompletedExplicitFormulaBottomPath_re_mem_uIcc_bounds r x hx)
+      (zetaCompletedExplicitFormulaBottomPath_shift_re_mem_uIcc_bounds r x hx)
+      (zetaCompletedExplicitFormulaBottomPath_im_norm r x)
+      (zetaCompletedExplicitFormulaBottomPath_shift_im_norm r x))
+
+/-- A pointwise contour-integrand estimate along the unordered top horizontal edge with
+separated exponents. -/
+theorem zetaCompletedExplicitFormulaTopEdgeContourIntegrand_uIcc_bound_split
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hx : x ∈ Set.uIcc r.c (1 - r.c)) (logN phiN : ℕ) :
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaTopPath r x)‖
+      ≤ horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN :=
+  (norm_zetaCompletedExplicitFormulaContourIntegrand_le f _).trans
+    (zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bound_split
+      hPhi hLog r (zetaCompletedExplicitFormulaTopPath r x) logN phiN
+      (zetaCompletedExplicitFormulaTopPath_re_mem_uIcc_bounds r x hx)
+      (zetaCompletedExplicitFormulaTopPath_shift_re_mem_uIcc_bounds r x hx)
+      (zetaCompletedExplicitFormulaTopPath_im_norm r x)
+      (zetaCompletedExplicitFormulaTopPath_shift_im_norm r x))
+
+/-- A pointwise contour-integrand estimate along the unordered bottom horizontal edge with
+separated exponents. -/
+theorem zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_uIcc_bound_split
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (x : ℝ)
+    (hx : x ∈ Set.uIcc r.c (1 - r.c)) (logN phiN : ℕ) :
+    ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaBottomPath r x)‖
+      ≤ horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN :=
+  (norm_zetaCompletedExplicitFormulaContourIntegrand_le f _).trans
+    (zetaCompletedExplicitFormulaContourIntegrand_unorderedHorizontalPoint_bound_split
+      hPhi hLog r (zetaCompletedExplicitFormulaBottomPath r x) logN phiN
       (zetaCompletedExplicitFormulaBottomPath_re_mem_uIcc_bounds r x hx)
       (zetaCompletedExplicitFormulaBottomPath_shift_re_mem_uIcc_bounds r x hx)
       (zetaCompletedExplicitFormulaBottomPath_im_norm r x)
@@ -451,6 +552,46 @@ theorem zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelope
       zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_uIcc_bound
         hPhi hLog r x hx N)
 
+/-- The unordered top horizontal integral is bounded by the split-exponent horizontal edge
+envelope. -/
+theorem zetaCompletedExplicitFormulaTopLineIntegral_uIcc_norm_le_envelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (logN phiN : ℕ) :
+    ‖zetaCompletedExplicitFormulaTopLineIntegral f r‖ ≤
+      horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN *
+        horizontalEdgeLength r.c :=
+  norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
+    (fun x : ℝ =>
+      zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaTopPath r x))
+    r.c
+    (horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN)
+    (fun x hx =>
+      zetaCompletedExplicitFormulaTopEdgeContourIntegrand_uIcc_bound_split
+        hPhi hLog r x hx logN phiN)
+
+/-- The unordered bottom horizontal integral is bounded by the split-exponent horizontal edge
+envelope. -/
+theorem zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (logN phiN : ℕ) :
+    ‖zetaCompletedExplicitFormulaBottomLineIntegral f r‖ ≤
+      horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN *
+        horizontalEdgeLength r.c :=
+  norm_setIntegral_uIcc_le_horizontalEdgeLength_mul
+    (fun x : ℝ =>
+      zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaBottomPath r x))
+    r.c
+    (horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN)
+    (fun x hx =>
+      zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_uIcc_bound_split
+        hPhi hLog r x hx logN phiN)
+
 /-- The horizontal difference is bounded by the sum of the two unordered edge envelopes. -/
 theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelope
     {f : ZetaAdmissibleFunction}
@@ -471,6 +612,29 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelo
         (zetaCompletedExplicitFormulaTopLineIntegral_uIcc_norm_le_envelope hPhi hLog r N)
         (zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelope hPhi hLog r N))
 
+/-- The horizontal difference is bounded by the sum of the two split-exponent unordered edge
+envelopes. -/
+theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (r : ExplicitFormulaRectangle) (logN phiN : ℕ) :
+    ‖zetaCompletedExplicitFormulaTopLineIntegral f r -
+        zetaCompletedExplicitFormulaBottomLineIntegral f r‖
+      ≤
+        horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN *
+          horizontalEdgeLength r.c +
+        horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog r logN phiN *
+          horizontalEdgeLength r.c :=
+  (norm_sub_le
+    (zetaCompletedExplicitFormulaTopLineIntegral f r)
+    (zetaCompletedExplicitFormulaBottomLineIntegral f r)).trans
+      (add_le_add
+        (zetaCompletedExplicitFormulaTopLineIntegral_uIcc_norm_le_envelopeSplit
+          hPhi hLog r logN phiN)
+        (zetaCompletedExplicitFormulaBottomLineIntegral_uIcc_norm_le_envelopeSplit
+          hPhi hLog r logN phiN))
+
 /-- The horizontal envelope base `T ↦ 1 + ‖T‖` tends to infinity at `atTop`. -/
 theorem horizontalEnvelopeBase_tendsto_atTop :
     Tendsto (fun T : ℝ => (1 + ‖T‖ : ℝ)) atTop atTop :=
@@ -480,6 +644,110 @@ theorem horizontalEnvelopeBase_tendsto_atTop :
         (fun T hT =>
           le_trans hT
             (le_trans (Real.le_norm_self T) (le_add_of_nonneg_left zero_le_one))))
+
+/-- The split exponent product collapses to the remaining negative decay exponent. -/
+theorem one_add_norm_pow_mul_zpow_dominated_eq_decay
+    (logN requestedDecay : ℕ) (T : ℝ) :
+    (1 + ‖T‖) ^ logN *
+        (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ)) =
+      (1 + ‖T‖) ^ (-(requestedDecay.succ : ℤ)) := by
+  let x : ℝ := 1 + ‖T‖
+  have hx_pos : 0 < x :=
+    one_add_norm_pos T
+  have hx_ne : x ≠ 0 :=
+    ne_of_gt hx_pos
+  have hnat :
+      x ^ logN = x ^ (logN : ℤ) := by
+    exact (zpow_natCast x logN).symm
+  have hcast_sum :
+      ((logN + requestedDecay.succ : ℕ) : ℤ) =
+        (logN : ℤ) + (requestedDecay.succ : ℤ) := by
+    exact Int.ofNat_add logN requestedDecay.succ
+  have hint :
+      (logN : ℤ) + -((logN + requestedDecay.succ : ℕ) : ℤ) =
+        -(requestedDecay.succ : ℤ) := by
+    let a : ℤ := (logN : ℤ)
+    let b : ℤ := (requestedDecay.succ : ℤ)
+    have hsum : ((logN + requestedDecay.succ : ℕ) : ℤ) = a + b := by
+      exact hcast_sum
+    calc
+      (logN : ℤ) + -((logN + requestedDecay.succ : ℕ) : ℤ) =
+          a + -(a + b) := by
+        exact congrArg (fun y : ℤ => (logN : ℤ) + -y) hsum
+      _ = a + (-a + -b) := by
+        exact congrArg (fun y : ℤ => a + y) (neg_add a b)
+      _ = (a + -a) + -b := by
+        exact (add_assoc a (-a) (-b)).symm
+      _ = 0 + -b := by
+        exact congrArg (fun y : ℤ => y + -b) (add_right_neg a)
+      _ = -b := by
+        exact zero_add (-b)
+      _ = -(requestedDecay.succ : ℤ) := by
+        rfl
+  change x ^ logN * x ^ (-(logN + requestedDecay.succ : ℤ)) =
+    x ^ (-(requestedDecay.succ : ℤ))
+  calc
+    x ^ logN * x ^ (-(logN + requestedDecay.succ : ℤ)) =
+        x ^ (logN : ℤ) * x ^ (-(logN + requestedDecay.succ : ℤ)) := by
+      exact congrArg
+        (fun y : ℝ => y * x ^ (-(logN + requestedDecay.succ : ℤ)))
+        hnat
+    _ = x ^ ((logN : ℤ) + -(logN + requestedDecay.succ : ℤ)) := by
+      exact (zpow_add₀ hx_ne (logN : ℤ) (-(logN + requestedDecay.succ : ℤ))).symm
+    _ = x ^ (-(requestedDecay.succ : ℤ)) := by
+      exact congrArg (fun y : ℤ => x ^ y) hint
+
+/-- A polynomial factor times a sufficiently stronger negative power tends to zero. -/
+theorem one_add_norm_pow_mul_zpow_dominated_tendsto_zero
+    (logN requestedDecay : ℕ) :
+    Tendsto
+      (fun T : ℝ =>
+        (1 + ‖T‖) ^ logN *
+          (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ)))
+      atTop
+      (𝓝 (0 : ℝ)) := by
+  have hdecay :
+      Tendsto
+        (fun T : ℝ => (1 + ‖T‖) ^ (-(requestedDecay.succ : ℤ)))
+        atTop
+        (𝓝 (0 : ℝ)) :=
+    (tendsto_zpow_atTop_zero (Int.negSucc_lt_zero requestedDecay)).comp
+      horizontalEnvelopeBase_tendsto_atTop
+  have hfun :
+      (fun T : ℝ =>
+        (1 + ‖T‖) ^ logN *
+          (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ))) =
+        fun T : ℝ => (1 + ‖T‖) ^ (-(requestedDecay.succ : ℤ)) := by
+    funext T
+    exact one_add_norm_pow_mul_zpow_dominated_eq_decay logN requestedDecay T
+  exact hfun ▸ hdecay
+
+/-- Reassociate the split horizontal envelope into constant times decay factor. -/
+theorem horizontalEnvelopeSplit_reassociate (A B L X Y : ℝ) :
+    (A * X * B * Y) * L = (A * B * L) * (X * Y) := by
+  calc
+    (A * X * B * Y) * L = ((A * X) * B * Y) * L := by
+      rfl
+    _ = ((A * X) * B) * (Y * L) := by
+      exact mul_assoc ((A * X) * B) Y L
+    _ = (A * X) * (B * (Y * L)) := by
+      exact mul_assoc (A * X) B (Y * L)
+    _ = (A * X) * (B * (L * Y)) := by
+      exact congrArg (fun q : ℝ => (A * X) * (B * q)) (mul_comm Y L)
+    _ = (A * X) * ((B * L) * Y) := by
+      exact congrArg (fun q : ℝ => (A * X) * q) (mul_assoc B L Y).symm
+    _ = ((A * X) * (B * L)) * Y := by
+      exact (mul_assoc (A * X) (B * L) Y).symm
+    _ = ((B * L) * (A * X)) * Y := by
+      exact congrArg (fun q : ℝ => q * Y) (mul_comm (A * X) (B * L))
+    _ = (((B * L) * A) * X) * Y := by
+      exact congrArg (fun q : ℝ => q * Y) (mul_assoc (B * L) A X).symm
+    _ = ((A * (B * L)) * X) * Y := by
+      exact congrArg (fun q : ℝ => (q * X) * Y) (mul_comm (B * L) A)
+    _ = (((A * B) * L) * X) * Y := by
+      exact congrArg (fun q : ℝ => (q * X) * Y) (mul_assoc A B L).symm
+    _ = ((A * B) * L) * (X * Y) := by
+      exact mul_assoc ((A * B) * L) X Y
 
 /-- The family-level unordered horizontal edge envelope at height `T`. -/
 def horizontalUnorderedFamilyEdgeEnvelope
@@ -499,6 +767,26 @@ def horizontalUnorderedFamilyDifferenceEnvelope
   horizontalUnorderedFamilyEdgeEnvelope hPhi hLog F N T +
     horizontalUnorderedFamilyEdgeEnvelope hPhi hLog F N T
 
+/-- The family-level unordered horizontal edge envelope with separated logarithmic-growth
+and transform-decay exponents. -/
+def horizontalUnorderedFamilyEdgeEnvelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (F : ExplicitFormulaContourFamily) (logN phiN : ℕ) (T : ℝ) : ℝ :=
+  horizontalUnorderedEdgeIntegrandBoundConstantSplit hPhi hLog (F.rectangle T) logN phiN *
+    horizontalEdgeLength F.c
+
+/-- The family-level unordered horizontal difference envelope with separated logarithmic-growth
+and transform-decay exponents. -/
+def horizontalUnorderedFamilyDifferenceEnvelopeSplit
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (F : ExplicitFormulaContourFamily) (logN phiN : ℕ) (T : ℝ) : ℝ :=
+  horizontalUnorderedFamilyEdgeEnvelopeSplit hPhi hLog F logN phiN T +
+    horizontalUnorderedFamilyEdgeEnvelopeSplit hPhi hLog F logN phiN T
+
 /-- The horizontal difference is bounded by the family-level unordered envelope. -/
 theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelope
     {f : ZetaAdmissibleFunction}
@@ -508,63 +796,155 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelope
     ‖zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
         zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)‖
       ≤ horizontalUnorderedFamilyDifferenceEnvelope hPhi hLog F N T := by
-  simpa [horizontalUnorderedFamilyDifferenceEnvelope,
-    horizontalUnorderedFamilyEdgeEnvelope, ExplicitFormulaContourFamily.rectangle_c] using
-    zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelope
-      hPhi hLog (F.rectangle T) N
+  unfold horizontalUnorderedFamilyDifferenceEnvelope
+  unfold horizontalUnorderedFamilyEdgeEnvelope
+  unfold ExplicitFormulaContourFamily.rectangle
+  exact zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelope
+    hPhi hLog (F.rectangle T) N
 
-/-- The unordered family edge envelope with a positive decay exponent tends to zero. -/
-theorem horizontalUnorderedFamilyEdgeEnvelope_tendsto_zero
+/-- The horizontal difference is bounded by the split-exponent family-level unordered
+envelope. -/
+theorem zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelopeSplit
     {f : ZetaAdmissibleFunction}
     (hPhi : ZetaPhiAnalyticControl f)
     (hLog : CompletedZetaNegLogDerivControl f)
-    (F : ExplicitFormulaContourFamily) (N : ℕ) :
+    (F : ExplicitFormulaContourFamily) (logN phiN : ℕ) (T : ℝ) :
+    ‖zetaCompletedExplicitFormulaTopLineIntegral f (F.rectangle T) -
+        zetaCompletedExplicitFormulaBottomLineIntegral f (F.rectangle T)‖
+      ≤ horizontalUnorderedFamilyDifferenceEnvelopeSplit hPhi hLog F logN phiN T := by
+  unfold horizontalUnorderedFamilyDifferenceEnvelopeSplit
+  unfold horizontalUnorderedFamilyEdgeEnvelopeSplit
+  unfold ExplicitFormulaContourFamily.rectangle
+  exact zetaCompletedExplicitFormulaHorizontalDifference_norm_le_unorderedEnvelopeSplit
+    hPhi hLog (F.rectangle T) logN phiN
+
+/-- The split-exponent unordered family edge envelope tends to zero once the transform
+decay exponent dominates the logarithmic-derivative polynomial-growth exponent. -/
+theorem horizontalUnorderedFamilyEdgeEnvelopeSplit_tendsto_zero
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (F : ExplicitFormulaContourFamily) (logN requestedDecay : ℕ) :
     Tendsto
-      (fun T : ℝ => horizontalUnorderedFamilyEdgeEnvelope hPhi hLog F N.succ T)
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyEdgeEnvelopeSplit
+          hPhi hLog F logN (logN + requestedDecay.succ) T)
       atTop
       (𝓝 (0 : ℝ)) := by
-  have hprod :
+  have hpow :
       Tendsto
         (fun T : ℝ =>
-          (1 + ‖T‖) ^ (-(N.succ : ℤ)) *
-            (1 + ‖T‖) ^ (-(N.succ : ℤ)))
+          (1 + ‖T‖) ^ logN *
+            (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ)))
+        atTop
+        (𝓝 (0 : ℝ)) :=
+    one_add_norm_pow_mul_zpow_dominated_tendsto_zero logN requestedDecay
+  let C : ℝ :=
+    hLog.stripBoundConstant (min F.c (1 - F.c)) (max F.c (1 - F.c)) logN *
+      hPhi.verticalStripRapidDecayConstant
+        (min F.c (1 - F.c) - 1 / 2)
+        (max F.c (1 - F.c) - 1 / 2)
+        (logN + requestedDecay.succ) *
+      horizontalEdgeLength F.c
+  have hscaled :
+      Tendsto
+        (fun T : ℝ =>
+          C *
+            ((1 + ‖T‖) ^ logN *
+              (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ))))
+        atTop
+        (𝓝 (0 : ℝ)) := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun T : ℝ =>
+            C *
+              ((1 + ‖T‖) ^ logN *
+                (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ))))
+          atTop
+          (𝓝 x))
+      (mul_zero C)
+      (hpow.const_mul C)
+  have hrewrite :
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyEdgeEnvelopeSplit
+          hPhi hLog F logN (logN + requestedDecay.succ) T) =
+        fun T : ℝ =>
+          C *
+            ((1 + ‖T‖) ^ logN *
+              (1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ))) := by
+    funext T
+    unfold horizontalUnorderedFamilyEdgeEnvelopeSplit
+    unfold horizontalUnorderedEdgeIntegrandBoundConstantSplit
+    unfold ExplicitFormulaContourFamily.rectangle
+    unfold C
+    exact horizontalEnvelopeSplit_reassociate
+      (hLog.stripBoundConstant (min F.c (1 - F.c)) (max F.c (1 - F.c)) logN)
+      (hPhi.verticalStripRapidDecayConstant
+        (min F.c (1 - F.c) - 1 / 2)
+        (max F.c (1 - F.c) - 1 / 2)
+        (logN + requestedDecay.succ))
+      (horizontalEdgeLength F.c)
+      ((1 + ‖T‖) ^ logN)
+      ((1 + ‖T‖) ^ (-(logN + requestedDecay.succ : ℤ)))
+  exact hrewrite ▸ hscaled
+
+/-- The split-exponent unordered family difference envelope tends to zero once the transform
+decay exponent dominates the logarithmic-derivative polynomial-growth exponent. -/
+theorem horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero
+    {f : ZetaAdmissibleFunction}
+    (hPhi : ZetaPhiAnalyticControl f)
+    (hLog : CompletedZetaNegLogDerivControl f)
+    (F : ExplicitFormulaContourFamily) (logN requestedDecay : ℕ) :
+    Tendsto
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          hPhi hLog F logN (logN + requestedDecay.succ) T)
+      atTop
+      (𝓝 (0 : ℝ)) := by
+  have hedge :
+      Tendsto
+        (fun T : ℝ =>
+          horizontalUnorderedFamilyEdgeEnvelopeSplit
+            hPhi hLog F logN (logN + requestedDecay.succ) T)
+        atTop
+        (𝓝 (0 : ℝ)) :=
+    horizontalUnorderedFamilyEdgeEnvelopeSplit_tendsto_zero hPhi hLog F logN requestedDecay
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          horizontalUnorderedFamilyEdgeEnvelopeSplit
+              hPhi hLog F logN (logN + requestedDecay.succ) T +
+            horizontalUnorderedFamilyEdgeEnvelopeSplit
+              hPhi hLog F logN (logN + requestedDecay.succ) T)
+        atTop
+        (𝓝 ((0 : ℝ) + 0)) :=
+    hedge.add hedge
+  have hzero : (0 : ℝ) + 0 = 0 :=
+    zero_add 0
+  have htarget :
+      Tendsto
+        (fun T : ℝ =>
+          horizontalUnorderedFamilyEdgeEnvelopeSplit
+              hPhi hLog F logN (logN + requestedDecay.succ) T +
+            horizontalUnorderedFamilyEdgeEnvelopeSplit
+              hPhi hLog F logN (logN + requestedDecay.succ) T)
         atTop
         (𝓝 (0 : ℝ)) :=
     Eq.subst
-      (motive := fun y : ℝ =>
+      (motive := fun x : ℝ =>
         Tendsto
           (fun T : ℝ =>
-            (1 + ‖T‖) ^ (-(N.succ : ℤ)) *
-              (1 + ‖T‖) ^ (-(N.succ : ℤ)))
+            horizontalUnorderedFamilyEdgeEnvelopeSplit
+                hPhi hLog F logN (logN + requestedDecay.succ) T +
+              horizontalUnorderedFamilyEdgeEnvelopeSplit
+                hPhi hLog F logN (logN + requestedDecay.succ) T)
           atTop
-          (𝓝 y))
-      (mul_zero (0 : ℝ))
-      (((tendsto_zpow_atTop_zero (Int.negSucc_lt_zero N)).comp
-          horizontalEnvelopeBase_tendsto_atTop).mul
-        ((tendsto_zpow_atTop_zero (Int.negSucc_lt_zero N)).comp
-          horizontalEnvelopeBase_tendsto_atTop))
-  simpa [horizontalUnorderedFamilyEdgeEnvelope,
-    horizontalUnorderedEdgeIntegrandBoundConstant,
-    ExplicitFormulaContourFamily.rectangle, mul_comm, mul_left_comm, mul_assoc] using
-    hprod.const_mul
-      (hLog.stripBoundConstant (min F.c (1 - F.c)) (max F.c (1 - F.c)) N.succ *
-        hPhi.verticalStripRapidDecayConstant
-          (min F.c (1 - F.c) - 1 / 2) (max F.c (1 - F.c) - 1 / 2) N.succ *
-        horizontalEdgeLength F.c)
-
-/-- The unordered family difference envelope with a positive decay exponent tends to zero. -/
-theorem horizontalUnorderedFamilyDifferenceEnvelope_tendsto_zero
-    {f : ZetaAdmissibleFunction}
-    (hPhi : ZetaPhiAnalyticControl f)
-    (hLog : CompletedZetaNegLogDerivControl f)
-    (F : ExplicitFormulaContourFamily) (N : ℕ) :
-    Tendsto
-      (fun T : ℝ => horizontalUnorderedFamilyDifferenceEnvelope hPhi hLog F N.succ T)
-      atTop
-      (𝓝 (0 : ℝ)) := by
-  simpa [horizontalUnorderedFamilyDifferenceEnvelope] using
-    (horizontalUnorderedFamilyEdgeEnvelope_tendsto_zero hPhi hLog F N).add
-      (horizontalUnorderedFamilyEdgeEnvelope_tendsto_zero hPhi hLog F N)
+          (𝓝 x))
+      hzero
+      hsum
+  unfold horizontalUnorderedFamilyDifferenceEnvelopeSplit
+  exact htarget
 
 /-- The unordered horizontal family difference tends to zero. -/
 theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
@@ -581,9 +961,9 @@ theorem zetaCompletedExplicitFormulaHorizontalDifference_tendsto_zero
   squeeze_zero_norm'
     (Eventually.of_forall
       (fun T =>
-        zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelope
-          hPhi hLog F N.succ T))
-    (horizontalUnorderedFamilyDifferenceEnvelope_tendsto_zero hPhi hLog F N)
+        zetaCompletedExplicitFormulaHorizontalDifference_norm_le_familyEnvelopeSplit
+          hPhi hLog F N (N + N.succ) T))
+    (horizontalUnorderedFamilyDifferenceEnvelopeSplit_tendsto_zero hPhi hLog F N N)
 
 /-- A generic pointwise contour-integrand strip bound along a horizontal contour point. -/
 theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalPoint_bound
@@ -597,7 +977,7 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_horizontalPoint_bound
     ‖completedZetaNegLogDeriv z‖ *
         ‖zetaCompletedExplicitFormulaPhi f (z - 1 / 2)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   zetaCompletedExplicitFormulaContourIntegrand_horizontalProduct_bound'
@@ -633,7 +1013,7 @@ theorem zetaCompletedExplicitFormulaTopPath_horizontalPoint_bound
         ‖zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaTopPath r x - 1 / 2)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   zetaCompletedExplicitFormulaContourIntegrand_horizontalPoint_bound
@@ -653,7 +1033,7 @@ theorem zetaCompletedExplicitFormulaBottomPath_horizontalPoint_bound
         ‖zetaCompletedExplicitFormulaPhi f
           (zetaCompletedExplicitFormulaBottomPath r x - 1 / 2)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   zetaCompletedExplicitFormulaContourIntegrand_horizontalPoint_bound
@@ -673,7 +1053,7 @@ theorem zetaCompletedExplicitFormulaTopEdgeContourIntegrand_bound
     ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaTopPath r x)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   (zetaCompletedExplicitFormulaTopPath_integrand_norm_le_product f r x).trans
@@ -689,7 +1069,7 @@ theorem zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_bound
     ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaBottomPath r x)‖
       ≤ (hLog.stripBoundConstant r.c (1 - r.c) N) *
-          (1 + ‖r.T‖) ^ (-(N : ℤ)) *
+          (1 + ‖r.T‖) ^ N *
           (hPhi.verticalStripRapidDecayConstant (r.c - 1 / 2) (1 / 2 - r.c) N) *
           (1 + ‖r.T‖) ^ (-(N : ℤ)) :=
   (zetaCompletedExplicitFormulaBottomPath_integrand_norm_le_product f r x).trans

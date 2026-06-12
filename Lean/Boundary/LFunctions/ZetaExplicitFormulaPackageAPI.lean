@@ -37,48 +37,44 @@ def ExplicitFormulaAnalyticPackage.logDerivControl
     CompletedZetaNegLogDerivControl f := by
   exact h.logderiv_control
 
-/-- The analytic package exposes the strip bound for the completed negative log derivative. -/
-theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_stripBound
+/-- The analytic package exposes zero-excised polynomial strip growth for the completed
+negative log derivative. -/
+theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStripBound
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
-    (a b : ℝ) (N : ℕ) :
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
     ∃ C : ℝ,
       0 < C ∧
       ∀ z : ℂ,
-        a ≤ z.re →
-        z.re ≤ b →
+        z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
-  exact h.logderiv_control.stripBound a b N
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  exact h.logderiv_control.zeroExcisedStripBound a b E N
 
-/-- A constructive witness for the completed negative log derivative strip bound. -/
-def ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_stripBound_witness
+/-- The package-level completed negative log derivative has zero-excised polynomial
+strip growth. -/
+theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStripBound_exists
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
-    (a b : ℝ) (N : ℕ) :
-    {C : ℝ //
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
       0 < C ∧
       ∀ z : ℂ,
-        a ≤ z.re →
-        z.re ≤ b →
+        z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
-  exact
-    ⟨h.logderiv_control.stripBoundConstant a b N,
-      And.intro
-        (h.logderiv_control.stripBoundConstant_pos a b N)
-        (h.logderiv_control.stripBoundConstant_bound a b N)⟩
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  exact h.completedZetaNegLogDeriv_zeroExcisedStripBound a b E N
 
-/-- A constructive witness for the package-level log-derivative strip bound. -/
-def ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_stripBound_sigma
+/-- The package-level completed negative log derivative has zero-excised polynomial
+strip growth. -/
+theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStripBound_sigma
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
-    (a b : ℝ) (N : ℕ) :
-    {C : ℝ //
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    ∃ C : ℝ,
       0 < C ∧
       ∀ z : ℂ,
-        a ≤ z.re →
-        z.re ≤ b →
+        z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ))} := by
-  exact h.completedZetaNegLogDeriv_stripBound_witness a b N
+          ≤ C * (1 + ‖z.im‖) ^ N := by
+  exact h.completedZetaNegLogDeriv_zeroExcisedStripBound_exists a b E N
 
 /-- The analytic package exposes the zeta-side logarithmic derivative with its Gamma correction. -/
 theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_eq_zetaSide_add_invGammaCorrection
@@ -452,10 +448,13 @@ theorem ExplicitFormulaAnalyticPackage.horizontalDecayStatementFamily
 theorem ExplicitFormulaAnalyticPackage.horizontalDifferenceEnvelopeDecay
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (F : ExplicitFormulaContourFamily) (N : ℕ) :
-    ∃ C : ℝ,
-      Tendsto (fun T : ℝ => C * (1 + ‖T‖) ^ (-(N.succ : ℤ)) *
-        (1 + ‖T‖) ^ (-(N.succ : ℤ)))
-        atTop (𝓝 (0 : ℝ)) := by
+    Tendsto
+      (fun T : ℝ =>
+        horizontalUnorderedFamilyDifferenceEnvelopeSplit
+          (h.toFamilyPackage F).phi_control
+          (h.toFamilyPackage F).logderiv_control
+          F N (N + N.succ) T)
+      atTop (𝓝 (0 : ℝ)) := by
   exact ExplicitFormulaFamilyAnalyticPackage.horizontalDecayEnvelope
     (f := f) (F := F) (h := h.toFamilyPackage F) N
 
@@ -522,32 +521,29 @@ theorem ExplicitFormulaFamilyAnalyticPackage.topEdgeContourBound
     zetaCompletedExplicitFormulaTopPath_contourIntegrand_strip_bound
       h.phi_control h.logderiv_control (F.rectangle T) x hx1 hx2 N
 
-/-- A constructive witness for the family-level top edge contour bound constant. -/
-def ExplicitFormulaFamilyAnalyticPackage.topEdgeContourBound_witness
+/-- The family-level package yields the top-edge contour bound at height `T`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.topEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (N : ℕ) (T x : ℝ)
     (hx1 : F.c ≤ x) (hx2 : x ≤ 1 - F.c) :
-    {C : ℝ //
+    ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
-          (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)‖ ≤ C} := by
-  exact
-    ⟨horizontalEdgeIntegrandBoundConstant h.phi_control h.logderiv_control (F.rectangle T) N,
-      zetaCompletedExplicitFormulaTopEdgeContourIntegrand_bound
-        h.phi_control h.logderiv_control (F.rectangle T) x hx1 hx2 N⟩
+          (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x)‖ ≤ C := by
+  exact h.topEdgeContourBound N T x hx1 hx2
 
-/-- A constructive witness for the package-level top edge contour bound constant. -/
-def ExplicitFormulaAnalyticPackage.topEdgeContourBound_witness
+/-- The package-level top edge contour bound. -/
+theorem ExplicitFormulaAnalyticPackage.topEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (N : ℕ) (x : ℝ)
     (hx1 : h.contour_data.rectangle.c ≤ x)
     (hx2 : x ≤ 1 - h.contour_data.rectangle.c) :
-    {C : ℝ // ‖zetaCompletedExplicitFormulaContourIntegrand f
-        (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x)‖ ≤ C} := by
+    ∃ C : ℝ,
+      ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x)‖ ≤ C := by
   exact
-    ⟨horizontalEdgeIntegrandBoundConstant h.phi_control h.logderiv_control h.contour_data.rectangle N,
-      zetaCompletedExplicitFormulaTopEdgeContourIntegrand_bound
-        h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N⟩
+    zetaCompletedExplicitFormulaTopPath_contourIntegrand_strip_bound
+      h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N
 
 /-- The family-level package yields the bottom-edge contour bound at height `T`. -/
 theorem ExplicitFormulaFamilyAnalyticPackage.bottomEdgeContourBound
@@ -562,32 +558,29 @@ theorem ExplicitFormulaFamilyAnalyticPackage.bottomEdgeContourBound
     zetaCompletedExplicitFormulaBottomPath_contourIntegrand_strip_bound
       h.phi_control h.logderiv_control (F.rectangle T) x hx1 hx2 N
 
-/-- A constructive witness for the family-level bottom edge contour bound constant. -/
-def ExplicitFormulaFamilyAnalyticPackage.bottomEdgeContourBound_witness
+/-- The family-level package yields the bottom-edge contour bound at height `T`. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.bottomEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F)
     (N : ℕ) (T x : ℝ)
     (hx1 : F.c ≤ x) (hx2 : x ≤ 1 - F.c) :
-    {C : ℝ //
+    ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
-          (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)‖ ≤ C} := by
-  exact
-    ⟨horizontalEdgeIntegrandBoundConstant h.phi_control h.logderiv_control (F.rectangle T) N,
-      zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_bound
-        h.phi_control h.logderiv_control (F.rectangle T) x hx1 hx2 N⟩
+          (zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x)‖ ≤ C := by
+  exact h.bottomEdgeContourBound N T x hx1 hx2
 
-/-- A constructive witness for the package-level bottom edge contour bound constant. -/
-def ExplicitFormulaAnalyticPackage.bottomEdgeContourBound_witness
+/-- The package-level bottom edge contour bound. -/
+theorem ExplicitFormulaAnalyticPackage.bottomEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (N : ℕ) (x : ℝ)
     (hx1 : h.contour_data.rectangle.c ≤ x)
     (hx2 : x ≤ 1 - h.contour_data.rectangle.c) :
-    {C : ℝ // ‖zetaCompletedExplicitFormulaContourIntegrand f
-        (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x)‖ ≤ C} := by
+    ∃ C : ℝ,
+      ‖zetaCompletedExplicitFormulaContourIntegrand f
+        (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x)‖ ≤ C := by
   exact
-    ⟨horizontalEdgeIntegrandBoundConstant h.phi_control h.logderiv_control h.contour_data.rectangle N,
-      zetaCompletedExplicitFormulaBottomEdgeContourIntegrand_bound
-        h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N⟩
+    zetaCompletedExplicitFormulaBottomPath_contourIntegrand_strip_bound
+      h.phi_control h.logderiv_control h.contour_data.rectangle x hx1 hx2 N
 
 /-- The analytic package yields the pointwise top/bottom contour bounds on the horizontal
 edges. -/
@@ -599,8 +592,7 @@ theorem ExplicitFormulaAnalyticPackage.horizontalEdgeContourBoundTop
     ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x)‖ ≤ C := by
-  let w := h.topEdgeContourBound_witness N x hx1 hx2
-  exact ⟨w.1, w.2⟩
+  exact h.topEdgeContourBound_witness N x hx1 hx2
 
 /-- The analytic package yields the pointwise contour bound on the bottom horizontal edge. -/
 theorem ExplicitFormulaAnalyticPackage.horizontalEdgeContourBoundBottom
@@ -611,8 +603,7 @@ theorem ExplicitFormulaAnalyticPackage.horizontalEdgeContourBoundBottom
     ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x)‖ ≤ C := by
-  let w := h.bottomEdgeContourBound_witness N x hx1 hx2
-  exact ⟨w.1, w.2⟩
+  exact h.bottomEdgeContourBound_witness N x hx1 hx2
 
 /-- The analytic package bundles the horizontal contour bounds as a named pair. -/
 theorem ExplicitFormulaAnalyticPackage.horizontalEdgeContourBounds
@@ -654,29 +645,29 @@ theorem ExplicitFormulaAnalyticPackage.bottomEdgeContourBound
         (zetaCompletedExplicitFormulaBottomPath h.contour_data.rectangle x)‖ ≤ C := by
   exact h.horizontalEdgeContourBoundBottom N x hx1 hx2
 
-/-- A constructive witness for the package-level right vertical edge contour bound constant. -/
-def ExplicitFormulaAnalyticPackage.rightEdgeContourBound_witness
+/-- The package-level right vertical edge contour bound. -/
+theorem ExplicitFormulaAnalyticPackage.rightEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (N : ℕ) (t : ℝ)
     (ht1 : t ≤ h.contour_data.rectangle.T)
     (ht2 : -h.contour_data.rectangle.T ≤ t) :
-    {C : ℝ //
+    ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
-        (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C} := by
+        (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C := by
   exact
     ⟨‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖,
       le_rfl⟩
 
-/-- A constructive witness for the package-level left vertical edge contour bound constant. -/
-def ExplicitFormulaAnalyticPackage.leftEdgeContourBound_witness
+/-- The package-level left vertical edge contour bound. -/
+theorem ExplicitFormulaAnalyticPackage.leftEdgeContourBound_witness
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (N : ℕ) (t : ℝ)
     (ht1 : t ≤ h.contour_data.rectangle.T)
     (ht2 : -h.contour_data.rectangle.T ≤ t) :
-    {C : ℝ //
+    ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
-        (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C} := by
+        (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C := by
   exact
     ⟨‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖,
@@ -691,8 +682,7 @@ theorem ExplicitFormulaAnalyticPackage.rightEdgeContourBound
     ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C := by
-  let w := h.rightEdgeContourBound_witness N t ht1 ht2
-  exact ⟨w.1, w.2⟩
+  exact h.rightEdgeContourBound_witness N t ht1 ht2
 
 /-- The analytic package yields the pointwise contour bound on the left vertical edge. -/
 theorem ExplicitFormulaAnalyticPackage.leftEdgeContourBound
@@ -703,8 +693,7 @@ theorem ExplicitFormulaAnalyticPackage.leftEdgeContourBound
     ∃ C : ℝ,
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C := by
-  let w := h.leftEdgeContourBound_witness N t ht1 ht2
-  exact ⟨w.1, w.2⟩
+  exact h.leftEdgeContourBound_witness N t ht1 ht2
 
 /-- The analytic package bundles the vertical contour bounds as a named pair. -/
 theorem ExplicitFormulaAnalyticPackage.verticalEdgeContourBounds
@@ -717,23 +706,23 @@ theorem ExplicitFormulaAnalyticPackage.verticalEdgeContourBounds
         (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C ∧
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C := by
-  let wr := h.rightEdgeContourBound_witness N t ht1 ht2
-  let wl := h.leftEdgeContourBound_witness N t ht1 ht2
+  rcases h.rightEdgeContourBound_witness N t ht1 ht2 with ⟨Cr, hCr⟩
+  rcases h.leftEdgeContourBound_witness N t ht1 ht2 with ⟨Cl, hCl⟩
   exact
-    ⟨max wr.1 wl.1,
+    ⟨max Cr Cl,
       And.intro
-        (le_trans wr.2 (le_max_left wr.1 wl.1))
-        (le_trans wl.2 (le_max_right wr.1 wl.1))⟩
+        (le_trans hCr (le_max_left Cr Cl))
+        (le_trans hCl (le_max_right Cr Cl))⟩
 
-/-- A constructive witness for the package-level four-edge contour bound constant. -/
-def ExplicitFormulaAnalyticPackage.contourEdgeBounds_witness
+/-- The package-level four-edge contour bound. -/
+theorem ExplicitFormulaAnalyticPackage.contourEdgeBounds_witness
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (N : ℕ) (x t : ℝ)
     (hx1 : h.contour_data.rectangle.c ≤ x)
     (hx2 : x ≤ 1 - h.contour_data.rectangle.c)
     (ht1 : t ≤ h.contour_data.rectangle.T)
     (ht2 : -h.contour_data.rectangle.T ≤ t) :
-    {C : ℝ //
+    ∃ C : ℝ,
       0 < C ∧
       ‖zetaCompletedExplicitFormulaContourIntegrand f
           (zetaCompletedExplicitFormulaTopPath h.contour_data.rectangle x)‖ ≤ C ∧
@@ -742,42 +731,42 @@ def ExplicitFormulaAnalyticPackage.contourEdgeBounds_witness
       ‖zetaCompletedExplicitFormulaContourIntegrand f
           (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C ∧
       ‖zetaCompletedExplicitFormulaContourIntegrand f
-          (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C} := by
-  let wtop := h.topEdgeContourBound_witness N x hx1 hx2
-  let wbottom := h.bottomEdgeContourBound_witness N x hx1 hx2
-  let wright := h.rightEdgeContourBound_witness N t ht1 ht2
-  let wleft := h.leftEdgeContourBound_witness N t ht1 ht2
-  let Ch := max wtop.1 wbottom.1
-  let Cv := max wright.1 wleft.1
+          (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C := by
+  rcases h.topEdgeContourBound_witness N x hx1 hx2 with ⟨Ctop, htop⟩
+  rcases h.bottomEdgeContourBound_witness N x hx1 hx2 with ⟨Cbottom, hbottom⟩
+  rcases h.rightEdgeContourBound_witness N t ht1 ht2 with ⟨Cright, hright⟩
+  rcases h.leftEdgeContourBound_witness N t ht1 ht2 with ⟨Cleft, hleft⟩
+  let Ch := max Ctop Cbottom
+  let Cv := max Cright Cleft
   let C0 := max Ch Cv
   let C := C0 + 1
-  have htop_nonneg : 0 ≤ wtop.1 :=
-    le_trans (norm_nonneg _) wtop.2
+  have htop_nonneg : 0 ≤ Ctop :=
+    le_trans (norm_nonneg _) htop
   have hC0_nonneg : 0 ≤ C0 :=
     le_trans htop_nonneg
-      (le_trans (le_max_left wtop.1 wbottom.1) (le_max_left Ch Cv))
+      (le_trans (le_max_left Ctop Cbottom) (le_max_left Ch Cv))
   have hC_pos : 0 < C :=
     lt_of_le_of_lt hC0_nonneg (lt_add_of_pos_right C0 zero_lt_one)
   have hC0_le_C : C0 ≤ C :=
     le_add_of_nonneg_right zero_le_one
-  have htop_le : wtop.1 ≤ C :=
-    le_trans (le_trans (le_max_left wtop.1 wbottom.1) (le_max_left Ch Cv)) hC0_le_C
-  have hbottom_le : wbottom.1 ≤ C :=
-    le_trans (le_trans (le_max_right wtop.1 wbottom.1) (le_max_left Ch Cv)) hC0_le_C
-  have hright_le : wright.1 ≤ C :=
-    le_trans (le_trans (le_max_left wright.1 wleft.1) (le_max_right Ch Cv)) hC0_le_C
-  have hleft_le : wleft.1 ≤ C :=
-    le_trans (le_trans (le_max_right wright.1 wleft.1) (le_max_right Ch Cv)) hC0_le_C
+  have htop_le : Ctop ≤ C :=
+    le_trans (le_trans (le_max_left Ctop Cbottom) (le_max_left Ch Cv)) hC0_le_C
+  have hbottom_le : Cbottom ≤ C :=
+    le_trans (le_trans (le_max_right Ctop Cbottom) (le_max_left Ch Cv)) hC0_le_C
+  have hright_le : Cright ≤ C :=
+    le_trans (le_trans (le_max_left Cright Cleft) (le_max_right Ch Cv)) hC0_le_C
+  have hleft_le : Cleft ≤ C :=
+    le_trans (le_trans (le_max_right Cright Cleft) (le_max_right Ch Cv)) hC0_le_C
   exact
     ⟨C,
       And.intro hC_pos
         (And.intro
-          (le_trans wtop.2 htop_le)
+          (le_trans htop htop_le)
           (And.intro
-            (le_trans wbottom.2 hbottom_le)
+            (le_trans hbottom hbottom_le)
             (And.intro
-              (le_trans wright.2 hright_le)
-              (le_trans wleft.2 hleft_le))))⟩
+              (le_trans hright hright_le)
+              (le_trans hleft hleft_le))))⟩
 
 /-- The analytic package bundles the four pointwise contour edge bounds. -/
 theorem ExplicitFormulaAnalyticPackage.contourEdgeBounds
@@ -796,8 +785,9 @@ theorem ExplicitFormulaAnalyticPackage.contourEdgeBounds
           (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle t)‖ ≤ C ∧
       ‖zetaCompletedExplicitFormulaContourIntegrand f
           (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle t)‖ ≤ C := by
-  let w := h.contourEdgeBounds_witness N x t hx1 hx2 ht1 ht2
-  exact ⟨w.1, w.2.2⟩
+  rcases h.contourEdgeBounds_witness N x t hx1 hx2 ht1 ht2 with
+    ⟨C, _hCpos, htop, hbottom, hright, hleft⟩
+  exact ⟨C, htop, hbottom, hright, hleft⟩
 
 /-- The contour-data owner object packages the contour-integrand strip bounds on all four edges. -/
 theorem ExplicitFormulaAnalyticPackage.contourIntegrand_stripBounds
@@ -813,19 +803,19 @@ theorem ExplicitFormulaAnalyticPackage.contourIntegrand_stripBounds
         (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle x)‖ ≤ C ∧
       ‖zetaCompletedExplicitFormulaContourIntegrand f
         (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle x)‖ ≤ C := by
-  let wtop := h.topEdgeContourBound_witness N x hx1 hx2
-  let wbottom := h.bottomEdgeContourBound_witness N x hx1 hx2
+  rcases h.topEdgeContourBound_witness N x hx1 hx2 with ⟨Ctop, htop⟩
+  rcases h.bottomEdgeContourBound_witness N x hx1 hx2 with ⟨Cbottom, hbottom⟩
   let wr := ‖zetaCompletedExplicitFormulaContourIntegrand f
     (zetaCompletedExplicitFormulaRightPath h.contour_data.rectangle x)‖
   let wl := ‖zetaCompletedExplicitFormulaContourIntegrand f
     (zetaCompletedExplicitFormulaLeftPath h.contour_data.rectangle x)‖
-  let Ch := max wtop.1 wbottom.1
+  let Ch := max Ctop Cbottom
   let Cv := max wr wl
   let C := max Ch Cv
-  have htop_le : wtop.1 ≤ C :=
-    le_trans (le_max_left wtop.1 wbottom.1) (le_max_left Ch Cv)
-  have hbottom_le : wbottom.1 ≤ C :=
-    le_trans (le_max_right wtop.1 wbottom.1) (le_max_left Ch Cv)
+  have htop_le : Ctop ≤ C :=
+    le_trans (le_max_left Ctop Cbottom) (le_max_left Ch Cv)
+  have hbottom_le : Cbottom ≤ C :=
+    le_trans (le_max_right Ctop Cbottom) (le_max_left Ch Cv)
   have hright_le : wr ≤ C :=
     le_trans (le_max_left wr wl) (le_max_right Ch Cv)
   have hleft_le : wl ≤ C :=
@@ -833,9 +823,9 @@ theorem ExplicitFormulaAnalyticPackage.contourIntegrand_stripBounds
   exact
     ⟨C,
       And.intro
-        (le_trans wtop.2 htop_le)
+        (le_trans htop htop_le)
         (And.intro
-          (le_trans wbottom.2 hbottom_le)
+          (le_trans hbottom hbottom_le)
           (And.intro
             hright_le
             hleft_le))⟩

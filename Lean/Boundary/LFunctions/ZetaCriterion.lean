@@ -204,24 +204,54 @@ theorem zetaCriterion_boundaryRiemannHypothesis_of_orderedHeartContourBridge
     (zetaCriterion_quadraticWeilPositivity_of_orderedHeartContourBridge
       hbridge)
 
-/-- Ordered-heart payoff for autocorrelation Weil positivity.  The only non-mechanical input
-is the ordered-heart contour bridge in `ZetaExplicitFormulaContourBridge`. -/
-theorem zetaCriterion_autocorrelation_weilPositivity_orderedHeart :
+/-- The quotient-normalized autocorrelation zero-side positivity predicate.
+
+This is the unconditional ordered-heart payoff currently proved by the GNS-positive route.  It
+is deliberately not the raw Weil-positivity predicate: the scalar includes the diagonal-debt
+coordinate required by the completed ordered-heart realization. -/
+def ZetaAutocorrelationOrderedHeartZeroSidePositivity : Prop :=
+  ∀ f : ZetaAdmissibleFunction,
+    0 ≤ ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f
+
+/-- The ordered-heart route proves quotient-normalized zero-side positivity. -/
+theorem zetaCriterion_autocorrelation_orderedHeartZeroSidePositivity :
+    ZetaAutocorrelationOrderedHeartZeroSidePositivity := by
+  intro f
+  exact
+    ZetaAdmissibleFunction
+      .zetaCompletedZeroSideAutocorrelationOrderedHeartScalar_nonnegative f
+
+/-- Raw ordered-heart contour descent is exactly the extra condition needed to turn
+ordered-heart zero-side positivity into raw autocorrelation Weil positivity. -/
+theorem zetaCriterion_autocorrelation_weilPositivity_of_orderedHeartZeroSidePositivity
+    (hdescent :
+      ∀ f : ZetaAdmissibleFunction,
+        zetaCompletedZeroKreinGram
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+          ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f)
+    (hpositive : ZetaAutocorrelationOrderedHeartZeroSidePositivity) :
     ZetaAutocorrelationWeilPositivity := by
-  exact zetaCriterion_autocorrelation_weilPositivity_of_orderedHeartContourBridge
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
-
-/-- Ordered-heart payoff for quadratic Weil positivity. -/
-theorem zetaCriterion_quadraticWeilPositivity_orderedHeart :
-    ZetaWeilQuadraticPositivity := by
-  exact zetaCriterion_quadraticWeilPositivity_of_orderedHeartContourBridge
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
-
-/-- Ordered-heart payoff for the Boundary RH statement. -/
-theorem zetaCriterion_boundaryRiemannHypothesis_orderedHeart :
-    boundaryRiemannHypothesis := by
-  exact zetaCriterion_boundaryRiemannHypothesis_of_orderedHeartContourBridge
-    ZetaAdmissibleFunction.zetaCompletedExplicitFormulaContourBridge_autocorrelation_orderedHeart
+  intro φ hφ
+  rcases hφ with ⟨f, hφ⟩
+  let g : ZetaAdmissibleFunction := ZetaAdmissibleFunction.convolutionAutocorrelation f
+  have hφg :
+      zetaWeilFormCompleted φ = zetaWeilFormCompleted g :=
+    zetaWeilFormCompleted_congr_toZetaTestFunction hφ
+  have hzero_ordered :
+      zetaCompletedZeroKreinGram g =
+        ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f := by
+    exact hdescent f
+  have hordered :
+      0 ≤ ZetaAdmissibleFunction.zetaCompletedZeroSideAutocorrelationOrderedHeartScalar f :=
+    hpositive f
+  have hzero : 0 ≤ zetaCompletedZeroKreinGram g :=
+    Eq.subst (motive := fun x : ℝ => 0 ≤ x) hzero_ordered.symm hordered
+  have hweil_zero :
+      zetaWeilFormCompleted g = zetaCompletedZeroKreinGram g :=
+    zetaWeilFormCompleted_eq_zeroKreinGram g
+  have hweil_g : 0 ≤ zetaWeilFormCompleted g :=
+    Eq.subst (motive := fun x : ℝ => 0 ≤ x) hweil_zero.symm hzero
+  exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hφg.symm hweil_g
 
 /-- Criterion transport through the final time-pairing/GNS reconstruction comparison. -/
 theorem zetaCriterion_quadraticWeilPositivity_of_timePairingScalar_eq_orderedHeartScalar
