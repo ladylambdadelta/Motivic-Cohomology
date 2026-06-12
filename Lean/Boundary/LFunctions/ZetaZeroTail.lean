@@ -47,7 +47,7 @@ theorem zetaZeroSideContribution_sum_attach_eq_sum
       zetaZeroSideContribution
         ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
       ∑ η in S, zetaZeroSideContribution η φ := by
-  sorry
+  exact Finset.sum_attach S (fun η : ℂ => zetaZeroSideContribution η φ)
 
 /-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
 
