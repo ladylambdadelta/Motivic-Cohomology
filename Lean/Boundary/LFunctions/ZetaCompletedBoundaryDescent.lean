@@ -4336,6 +4336,74 @@ theorem completedRawTimeBoundaryScalar_eq_finitePartBoundaryChannel
     (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f).symm
   exact hraw.trans hfinite
 
+/-- The finite positive renormalized boundary windows converge to the completed finite-part
+boundary channel. -/
+theorem finitePositiveRenormalizedBoundaryWindow_tendsto_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePositiveRenormalizedBoundaryWindow N f)
+      atTop
+      (𝓝 (completedFinitePartBoundaryChannel f)) := by
+  have hfinite :
+      (fun N : ℕ => finitePositiveRenormalizedBoundaryWindow N f) =
+        (fun N : ℕ => finitePartBoundaryWindow N f) := by
+    funext N
+    exact finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop (𝓝 (completedFinitePartBoundaryChannel f)))
+    hfinite.symm
+    (finitePartBoundaryWindow_tendsto_completedFinitePartBoundaryChannel f)
+
+/-- The scalar of the completed boundary weight stream is the completed finite-part boundary
+channel. -/
+theorem completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChannel
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      completedFinitePartBoundaryChannel f := by
+  have hstream :
+      (completedBoundaryWeightStream f).scalar =
+        Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) :=
+    completedBoundaryWeightStream_scalar_eq_boundaryChannel_re f
+  have hfinite :
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) =
+        completedFinitePartBoundaryChannel f :=
+    (completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f).symm
+  exact hstream.trans hfinite
+
+/-- The positive-cone completed boundary weight stream realizes in the completed ordered-heart
+quotient scalar.
+
+This is the stream-level lower-weight projection theorem: finite square representatives and
+their lower-weight absorption certificates define the same completed scalar as the ordered
+heart quotient class. -/
+theorem completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      completedBoundaryOrderedHeartClassScalar
+        (completedFinitePartBoundaryOrderedHeartQuotientClass f) := by
+  sorry
+
+/-- The completed boundary weight stream scalar is represented by the completed renormalized
+positive defect-kernel channel after projection to the ordered-heart quotient. -/
+theorem completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryWeightStream f).scalar =
+      completedRenormalizedDefectKernelBoundaryChannel f := by
+  have hquotient :
+      (completedBoundaryWeightStream f).scalar =
+        completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) :=
+    completedBoundaryWeightStream_scalar_eq_orderedHeartQuotientScalar_by_positiveCone
+      f
+  have hrenormalized :
+      completedBoundaryOrderedHeartClassScalar
+          (completedFinitePartBoundaryOrderedHeartQuotientClass f) =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedFinitePartBoundaryOrderedHeartQuotientScalar_eq_renormalizedDefectKernel
+      f
+  exact hquotient.trans hrenormalized
+
 /-- Owner channel-level lower-weight descent: the completed finite-part boundary channel is
 represented by the completed renormalized positive defect-kernel channel.
 
@@ -4344,7 +4412,15 @@ theorem completedFinitePartBoundaryChannel_eq_renormalizedDefectKernel_ownerDesc
     (f : ZetaAdmissibleFunction) :
     completedFinitePartBoundaryChannel f =
       completedRenormalizedDefectKernelBoundaryChannel f := by
-  sorry
+  have hfinite :
+      completedFinitePartBoundaryChannel f =
+        (completedBoundaryWeightStream f).scalar :=
+    (completedBoundaryWeightStream_scalar_eq_completedFinitePartBoundaryChannel f).symm
+  have hstream :
+      (completedBoundaryWeightStream f).scalar =
+        completedRenormalizedDefectKernelBoundaryChannel f :=
+    completedBoundaryWeightStream_scalar_eq_renormalizedDefectKernel f
+  exact hfinite.trans hstream
 
 /-- Owner scalar comparison between the raw completed time-side scalar and the positive
 defect-kernel scalar.
