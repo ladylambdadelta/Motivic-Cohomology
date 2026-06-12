@@ -81,6 +81,56 @@ theorem normSq_nonneg (x : ZetaPacketEnsemble) : 0 ≤ normSq x := by
   unfold normSq dotProduct
   exact Finset.sum_nonneg (fun ℓ _ => mul_self_nonneg (x ℓ))
 
+/-- If a finite packet has zero norm square, every coordinate of the packet vanishes. -/
+theorem apply_eq_zero_of_normSq_eq_zero
+    (x : ZetaPacketEnsemble)
+    (hx : normSq x = 0)
+    (ℓ : ZetaPacketLabel) :
+    x ℓ = 0 := by
+  by_cases hℓ : ℓ ∈ x.support
+  · have hsum :
+        ∑ a in x.support, x a * x a = 0 := by
+      unfold normSq dotProduct at hx
+      exact Eq.subst
+        (motive := fun s : Finset ZetaPacketLabel =>
+          ∑ a in s, x a * x a = 0)
+        (Finset.union_self x.support)
+        hx
+    have hterm :
+        x ℓ * x ℓ = 0 := by
+      exact
+        (Finset.sum_eq_zero_iff_of_nonneg
+          (fun a _ha => mul_self_nonneg (x a))).mp hsum ℓ hℓ
+    exact mul_self_eq_zero.mp hterm
+  · exact Finsupp.not_mem_support_iff.mp hℓ
+
+/-- A zero-norm packet lies in the left radical of the packet dot product. -/
+theorem dotProduct_left_eq_zero_of_normSq_eq_zero
+    {x y : ZetaPacketEnsemble}
+    (hx : normSq x = 0) :
+    dotProduct x y = 0 := by
+  unfold dotProduct
+  refine Finset.sum_eq_zero ?_
+  intro ℓ _hℓ
+  have hxℓ : x ℓ = 0 :=
+    apply_eq_zero_of_normSq_eq_zero x hx ℓ
+  calc
+    x ℓ * y ℓ = 0 * y ℓ := by
+      exact congrArg (fun a : ℝ => a * y ℓ) hxℓ
+    _ = 0 := by
+      exact zero_mul (y ℓ)
+
+/-- A zero-norm packet lies in the right radical of the packet dot product. -/
+theorem dotProduct_right_eq_zero_of_normSq_eq_zero
+    {x y : ZetaPacketEnsemble}
+    (hy : normSq y = 0) :
+    dotProduct x y = 0 := by
+  calc
+    dotProduct x y = dotProduct y x := by
+      exact dotProduct_comm x y
+    _ = 0 := by
+      exact dotProduct_left_eq_zero_of_normSq_eq_zero hy
+
 end ZetaPacketEnsemble
 
 /-- If two packet ensembles have disjoint supports, then their dot product vanishes. -/

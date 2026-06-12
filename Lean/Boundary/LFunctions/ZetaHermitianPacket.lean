@@ -1077,6 +1077,148 @@ noncomputable def zetaPrimeTwoFaceGNSMatrixCoefficient
   zetaPrimeTwoFaceGNSOrientedCoefficient f +
     star (zetaPrimeTwoFaceGNSOrientedCoefficient f)
 
+/-- The weighted prime diagonal-debt coordinate attached to one prime-power label. -/
+noncomputable def zetaPrimeDefectKernelDiagonalDebtCoordinate
+    (p n : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f *
+      star (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f) +
+    zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f *
+      star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f)
+
+/-- The weighted positive prime defect-kernel coordinate attached to one prime-power label. -/
+noncomputable def zetaPrimeDefectKernelPositiveCoordinate
+    (p n : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f -
+      zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f) *
+    star
+      (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f -
+        zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f)
+
+/-- The prime diagonal debt over the explicit prime support. -/
+noncomputable def zetaPrimeDefectKernelDiagonalDebt
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    zetaPrimeDefectKernelDiagonalDebtCoordinate ℓ.1 ℓ.2 f
+
+/-- The positive prime defect kernel over the explicit prime support. -/
+noncomputable def zetaPrimeDefectKernelPositiveForm
+    (f : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+    zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f
+
+/-- The one-coordinate positive prime defect square expands as diagonal debt minus the
+symmetrized two-face cross term. -/
+theorem zetaPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
+    (p n : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaPrimeDefectKernelPositiveCoordinate p n f +
+        (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f *
+            star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f) +
+          star
+            (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f))) =
+      zetaPrimeDefectKernelDiagonalDebtCoordinate p n f := by
+  let a : ℂ := zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f
+  let b : ℂ := zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f
+  have hstar_cross : star (a * star b) = b * star a := by
+    calc
+      star (a * star b) = star (star b) * star a := by
+        exact star_mul a (star b)
+      _ = b * star a := by
+        exact congrArg (fun z : ℂ => z * star a) (star_star b)
+  unfold zetaPrimeDefectKernelPositiveCoordinate
+  unfold zetaPrimeDefectKernelDiagonalDebtCoordinate
+  change (a - b) * star (a - b) + (a * star b + star (a * star b)) =
+    a * star a + b * star b
+  calc
+    (a - b) * star (a - b) + (a * star b + star (a * star b)) =
+        (a - b) * (star a - star b) + (a * star b + star (a * star b)) := by
+      exact congrArg
+        (fun z : ℂ => (a - b) * z + (a * star b + star (a * star b)))
+        (star_sub a b)
+    _ =
+        ((a - b) * star a - (a - b) * star b) +
+          (a * star b + star (a * star b)) := by
+      exact congrArg
+        (fun z : ℂ => z + (a * star b + star (a * star b)))
+        (mul_sub (a - b) (star a) (star b))
+    _ =
+        ((a * star a - b * star a) - (a * star b - b * star b)) +
+          (a * star b + star (a * star b)) := by
+      exact congrArg
+        (fun z : ℂ => z + (a * star b + star (a * star b)))
+        (congrArg₂ Sub.sub
+          (sub_mul a b (star a))
+          (sub_mul a b (star b)))
+    _ =
+        ((a * star a - b * star a) - (a * star b - b * star b)) +
+          (a * star b + b * star a) := by
+      exact congrArg
+        (fun z : ℂ =>
+          ((a * star a - b * star a) - (a * star b - b * star b)) +
+            (a * star b + z))
+        hstar_cross
+    _ = a * star a + b * star b := by
+      ring
+
+/-- The positive prime defect kernel plus its two-face cross term is the prime diagonal debt. -/
+theorem zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeDefectKernelPositiveForm f +
+        zetaPrimeTwoFaceGNSMatrixCoefficient f =
+      zetaPrimeDefectKernelDiagonalDebt f := by
+  unfold zetaPrimeDefectKernelPositiveForm
+  unfold zetaPrimeTwoFaceGNSMatrixCoefficient
+  unfold zetaPrimeTwoFaceGNSOrientedCoefficient
+  unfold zetaPrimeDefectKernelDiagonalDebt
+  calc
+    (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+        zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) +
+        ((∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+            zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) +
+          star
+            (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+              zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f))) =
+        (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) +
+        ((∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+            zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) +
+          ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+            star
+              (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f))) := by
+      exact congrArg
+        (fun z : ℂ =>
+          (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+            zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) +
+            ((∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+              zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) + z))
+        (map_sum star zetaCompletedExplicitFormulaPrimeSupport
+          (fun ℓ =>
+            zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))
+    _ =
+        ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          (zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f +
+            (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) +
+              star
+                (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                  star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))) := by
+      rw [Finset.sum_add_distrib]
+      rw [Finset.sum_add_distrib]
+      abel
+    _ =
+        ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+          zetaPrimeDefectKernelDiagonalDebtCoordinate ℓ.1 ℓ.2 f := by
+      refine Finset.sum_congr rfl ?_
+      intro ℓ hℓ
+      exact zetaPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
+        ℓ.1 ℓ.2 f
+
 /-- The symmetrized prime two-face/GNS matrix coefficient is real-valued. -/
 theorem zetaPrimeTwoFaceGNSMatrixCoefficient_im_eq_zero
     (f : ZetaAdmissibleFunction) :
@@ -1120,13 +1262,115 @@ noncomputable def zetaCompletedGNSSymmetrizedBoundaryForm (f : ZetaAdmissibleFun
     (ZetaHermitianPacketEnsemble.correctionPacketGram
       (zetaCompletedHermitianBoundaryDefect f) : ℂ)
 
-/-- Compatibility alias for the symmetrized completed GNS boundary presentation.
+/-- The positive completed GNS boundary form.  Its prime channel is the defect-square kernel;
+the symmetrized two-face prime channel is only the expansion cross term. -/
+noncomputable def zetaCompletedGNSPositiveBoundaryForm (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaPrimeDefectKernelPositiveForm f +
+    (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
 
-The positive prime kernel is not owned in this spectral packet file; it lives in the
-completed-square/defect-kernel descent layer where diagonal debt and debt absorption are
-visible. -/
+/-- The completed GNS diagonal-debt boundary face associated with the prime defect-square
+expansion. -/
+noncomputable def zetaCompletedGNSDiagonalDebtBoundaryForm (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaPrimeDefectKernelDiagonalDebt f +
+    (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
+
+/-- Compatibility alias for the symmetrized completed GNS boundary presentation.  This is the
+legacy cross-term surface, not the positive defect-kernel surface. -/
 noncomputable def zetaCompletedGNSBoundaryForm (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedGNSSymmetrizedBoundaryForm f
+
+/-- The positive completed GNS boundary form unfolds to the positive prime defect kernel plus
+the archimedean and correction Gram channels. -/
+theorem zetaCompletedGNSPositiveBoundaryForm_eq_primeDefect_add_archimedean_add_correction
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSPositiveBoundaryForm f =
+      zetaPrimeDefectKernelPositiveForm f +
+        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+        (ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
+  rfl
+
+/-- The symmetrized completed GNS boundary form unfolds to the two-face prime cross term plus
+the archimedean and correction Gram channels. -/
+theorem zetaCompletedGNSSymmetrizedBoundaryForm_eq_primeTwoFace_add_archimedean_add_correction
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSSymmetrizedBoundaryForm f =
+      zetaPrimeTwoFaceGNSMatrixCoefficient f +
+        (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+        (ZetaHermitianPacketEnsemble.correctionPacketGram
+          (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
+  rfl
+
+/-- Boundary-level prime defect expansion: the positive GNS form plus the prime two-face cross
+term equals the diagonal-debt boundary form. -/
+theorem zetaCompletedGNSPositiveBoundaryForm_add_primeTwoFace_eq_diagonalDebtBoundaryForm
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSPositiveBoundaryForm f +
+        zetaPrimeTwoFaceGNSMatrixCoefficient f =
+      zetaCompletedGNSDiagonalDebtBoundaryForm f := by
+  let P : ℂ := zetaPrimeDefectKernelPositiveForm f
+  let T : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
+  let D : ℂ := zetaPrimeDefectKernelDiagonalDebt f
+  let A : ℂ :=
+    (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
+  let C : ℂ :=
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
+  have hprime : P + T = D := by
+    exact zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
+  unfold zetaCompletedGNSPositiveBoundaryForm
+  unfold zetaCompletedGNSDiagonalDebtBoundaryForm
+  change (P + A + C) + T = D + A + C
+  calc
+    (P + A + C) + T = (P + T) + A + C := by
+      ring
+    _ = D + A + C := by
+      exact congrArg (fun z : ℂ => z + A + C) hprime
+
+/-- Full boundary-form expansion: adding the legacy symmetrized boundary form to the positive
+GNS boundary form replaces the prime cross term by diagonal debt and leaves a second copy of
+the archimedean/correction square channels. -/
+theorem zetaCompletedGNSPositiveBoundaryForm_add_symmetrized_eq_diagonalDebt_add_archCorrection
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedGNSPositiveBoundaryForm f +
+        zetaCompletedGNSSymmetrizedBoundaryForm f =
+      zetaCompletedGNSDiagonalDebtBoundaryForm f +
+        ((ZetaHermitianPacketEnsemble.archimedeanPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+          (ZetaHermitianPacketEnsemble.correctionPacketGram
+            (zetaCompletedHermitianBoundaryDefect f) : ℂ)) := by
+  let P : ℂ := zetaPrimeDefectKernelPositiveForm f
+  let T : ℂ := zetaPrimeTwoFaceGNSMatrixCoefficient f
+  let D : ℂ := zetaPrimeDefectKernelDiagonalDebt f
+  let A : ℂ :=
+    (ZetaHermitianPacketEnsemble.archimedeanPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
+  let C : ℂ :=
+    (ZetaHermitianPacketEnsemble.correctionPacketGram
+      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
+  have hprime : P + T = D := by
+    exact zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
+  unfold zetaCompletedGNSPositiveBoundaryForm
+  unfold zetaCompletedGNSSymmetrizedBoundaryForm
+  unfold zetaCompletedGNSDiagonalDebtBoundaryForm
+  change (P + A + C) + (T + A + C) = (D + A + C) + (A + C)
+  calc
+    (P + A + C) + (T + A + C) =
+        (P + T) + A + C + (A + C) := by
+      ring
+    _ = D + A + C + (A + C) := by
+      exact congrArg (fun z : ℂ => z + A + C + (A + C)) hprime
+    _ = (D + A + C) + (A + C) := by
+      rfl
 
 /-- The correction coordinate of the completed Hermitian boundary packet is the normalized
 completion-correction coordinate. -/
@@ -1730,6 +1974,27 @@ theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_eq_twoFaceMatri
   exact (zetaCompletedExplicitFormulaPrimeConvolutionContribution_eq_paired f).trans
     (zetaCompletedPrimeBoundaryReconstruction_pairing_eq_twoFaceMatrixCoefficient f)
 
+/-- The explicit prime convolution contribution is the cross term in the positive prime
+defect-kernel expansion.  Adding the positive prime defect kernel produces the prime diagonal
+debt. -/
+theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_add_primeDefectKernelPositiveForm_eq_diagonalDebt
+    (f : ZetaAdmissibleFunction) :
+    zetaPrimeDefectKernelPositiveForm f +
+        zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
+      zetaPrimeDefectKernelDiagonalDebt f := by
+  have hcross :
+      zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
+        zetaPrimeTwoFaceGNSMatrixCoefficient f :=
+    zetaCompletedExplicitFormulaPrimeConvolutionContribution_eq_twoFaceMatrixCoefficient f
+  calc
+    zetaPrimeDefectKernelPositiveForm f +
+        zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
+        zetaPrimeDefectKernelPositiveForm f +
+          zetaPrimeTwoFaceGNSMatrixCoefficient f := by
+      exact congrArg (fun z : ℂ => zetaPrimeDefectKernelPositiveForm f + z) hcross
+    _ = zetaPrimeDefectKernelDiagonalDebt f := by
+      exact zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt f
+
 /-- The archimedean convolution contribution is the reconstructed Hermitian archimedean Gram. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_eq_archimedeanPacketGram
     (f : ZetaAdmissibleFunction) :
@@ -1738,32 +2003,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_eq_archim
         (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
   exact (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_eq_paired f).trans
     (zetaCompletedArchimedeanBoundaryReconstruction_pairing_eq_gram f)
-
-/-- Predicate saying the prime paired spectral channel is represented by the two-face/GNS
-matrix coefficient. -/
-def zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace
-    (f : ZetaAdmissibleFunction) : Prop :=
-  zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
-    zetaPrimeTwoFaceGNSMatrixCoefficient f
-
-/-- Predicate saying the archimedean paired spectral channel folds to the single-coordinate
-Hermitian archimedean packet Gram. -/
-def zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual
-    (f : ZetaAdmissibleFunction) : Prop :=
-  zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f =
-    (ZetaHermitianPacketEnsemble.archimedeanPacketGram
-      (zetaCompletedHermitianBoundaryDefect f) : ℂ)
-
-/-- The real part of the prime convolution contribution is the real part of the two-face/GNS
-matrix coefficient. -/
-theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient_of
-    (f : ZetaAdmissibleFunction)
-    (hself :
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f =
-        zetaPrimeTwoFaceGNSMatrixCoefficient f) :
-    Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  exact congrArg Complex.re hself
 
 /-- The real part of the prime convolution contribution is the real part of the reconstructed
 two-face/GNS matrix coefficient. -/
@@ -1790,37 +2029,6 @@ theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_im_eq_zero
     Complex.im (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) = 0 := by
   exact zetaCompletedExplicitFormulaPrimeConvolutionContribution_im_eq_zero_of_twoFace_real
     f (zetaPrimeTwoFaceGNSMatrixCoefficient_im_eq_zero f)
-
-/-- The real part of the prime convolution contribution is the real part of the two-face/GNS
-matrix coefficient under the two-face representation. -/
-theorem zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient'
-    (f : ZetaAdmissibleFunction)
-    (hself : zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace f) :
-    Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
-      Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  exact congrArg Complex.re hself
-
-/-- The archimedean convolution contribution is real-valued under the self-dual
-specialization. -/
-theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_im_eq_zero_of_selfDual
-    (f : ZetaAdmissibleFunction)
-    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
-    Complex.im (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) = 0 := by
-  exact (congrArg Complex.im hself).trans
-    (Complex.ofReal_im
-      (ZetaHermitianPacketEnsemble.archimedeanPacketGram
-        (zetaCompletedHermitianBoundaryDefect f)))
-
-/-- The real part of the archimedean convolution contribution is the Hermitian archimedean
-packet Gram under the self-dual specialization. -/
-theorem
-    zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_re_eq_archimedeanPacketGram_of_selfDual
-    (f : ZetaAdmissibleFunction)
-    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
-    Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
-      ZetaHermitianPacketEnsemble.archimedeanPacketGram
-        (zetaCompletedHermitianBoundaryDefect f) := by
-  exact congrArg Complex.re hself
 
 /-- The reconstructed archimedean convolution contribution is real-valued. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_im_eq_zero
@@ -1850,23 +2058,18 @@ theorem zetaCompletedExplicitFormulaCorrectionConvolutionContribution_im_eq_zero
 
 /-- Prime-channel two-face/GNS holography. -/
 theorem zetaCompletedExplicitFormulaPrimeConvolutionChannel_holographic_twoFace
-    (f : ZetaAdmissibleFunction)
-    (hself : zetaCompletedExplicitFormulaPrimeConvolutionContributionTwoFace f) :
+    (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaPrimeConvolutionContribution f) =
       Complex.re (zetaPrimeTwoFaceGNSMatrixCoefficient f) := by
-  exact zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient'
-    f hself
+  exact zetaCompletedExplicitFormulaPrimeConvolutionContribution_re_eq_twoFaceMatrixCoefficient f
 
-/-- Archimedean-channel norm-square holography under the self-dual specialization. -/
-theorem zetaCompletedExplicitFormulaArchimedeanConvolutionChannel_holographic_of_selfDual
-    (f : ZetaAdmissibleFunction)
-    (hself : zetaCompletedExplicitFormulaArchimedeanConvolutionContributionSelfDual f) :
+/-- Archimedean-channel norm-square holography. -/
+theorem zetaCompletedExplicitFormulaArchimedeanConvolutionChannel_holographic
+    (f : ZetaAdmissibleFunction) :
     Complex.re (zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f) =
       ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f) := by
-  exact
-    zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_re_eq_archimedeanPacketGram_of_selfDual
-      f hself
+  exact zetaCompletedExplicitFormulaArchimedeanConvolutionContribution_re_eq_archimedeanPacketGram f
 
 /-- Correction-channel holography for the normalized Hermitian correction packet. -/
 theorem zetaCompletedExplicitFormulaCorrectionConvolutionChannel_holographic

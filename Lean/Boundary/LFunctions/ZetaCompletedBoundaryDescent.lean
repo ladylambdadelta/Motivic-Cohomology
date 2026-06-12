@@ -2276,6 +2276,45 @@ def completedBoundaryHilbertPairing
       (completedBoundaryReducedChannel (convolutionPair X.seed Y.seed)) +
     X.correctionCoordinate * Y.correctionCoordinate
 
+/-- A Hilbert source is lower-weight radical when it pairs trivially with every completed
+Hilbert source on both sides. -/
+def CompletedBoundaryHilbertSource.LowerWeightRadical
+    (D : CompletedBoundaryHilbertSource) : Prop :=
+  ∀ T : CompletedBoundaryHilbertSource,
+    completedBoundaryHilbertPairing D T = 0 ∧
+      completedBoundaryHilbertPairing T D = 0
+
+/-- The scalar induced by the completed Hilbert pairing on a Hilbert-source representative of
+the ordered heart. -/
+def completedOrderedHeartScalar
+    (X : CompletedBoundaryHilbertSource) : ℝ :=
+  completedBoundaryHilbertPairing X X
+
+/-- The completed GNS norm-square induced by the completed Hilbert quotient pairing.
+
+This is the canonical ordered-heart scalar of the realized Hilbert source; it is not defined
+by packet norm.  Packet norm belongs to a later comparison theorem. -/
+def completedBoundaryGNSNormSq
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedOrderedHeartScalar (completedBoundaryHilbertSource f)
+
+/-- The completed GNS norm-square is the ordered-heart scalar of the realized Hilbert source. -/
+theorem completedBoundaryGNSNormSq_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryGNSNormSq f =
+      completedOrderedHeartScalar (completedBoundaryHilbertSource f) := by
+  rfl
+
+/-- The completed GNS norm-square is induced by self-pairing in the completed Hilbert
+quotient. -/
+theorem completedBoundaryGNSNormSq_eq_HilbertPairing_self
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryGNSNormSq f =
+      completedBoundaryHilbertPairing
+        (completedBoundaryHilbertSource f)
+        (completedBoundaryHilbertSource f) := by
+  rfl
+
 /-- The Hilbert pairing unfolds to the reduced analytic source pairing plus the explicit
 correction-coordinate product. -/
 theorem completedBoundaryHilbertPairing_eq_reduced_add_correction
@@ -2524,6 +2563,127 @@ theorem completedBoundaryHilbertPairing_zero_right
     _ = 0 := by
       exact zero_add 0
 
+/-- The zero Hilbert source is lower-weight radical. -/
+theorem completedBoundaryHilbertSource_zero_lowerWeightRadical :
+    CompletedBoundaryHilbertSource.LowerWeightRadical
+      (0 : CompletedBoundaryHilbertSource) := by
+  intro T
+  exact
+    ⟨completedBoundaryHilbertPairing_zero_left T,
+      completedBoundaryHilbertPairing_zero_right T⟩
+
+/-- Adding a lower-weight radical Hilbert source does not change the scalar, provided the
+completed Hilbert pairing is additive in both variables. -/
+theorem completedOrderedHeartScalar_eq_of_add_lowerWeightRadical
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (Y D : CompletedBoundaryHilbertSource)
+    (hD : CompletedBoundaryHilbertSource.LowerWeightRadical D) :
+    completedOrderedHeartScalar (Y + D) =
+      completedOrderedHeartScalar Y := by
+  have hDYD :
+      completedBoundaryHilbertPairing D (Y + D) = 0 :=
+    (hD (Y + D)).1
+  have hYD :
+      completedBoundaryHilbertPairing Y D = 0 :=
+    (hD Y).2
+  unfold completedOrderedHeartScalar
+  calc
+    completedBoundaryHilbertPairing (Y + D) (Y + D) =
+        completedBoundaryHilbertPairing Y (Y + D) +
+          completedBoundaryHilbertPairing D (Y + D) := by
+      exact B_add_left Y D (Y + D)
+    _ =
+        completedBoundaryHilbertPairing Y (Y + D) + 0 := by
+      exact congrArg
+        (fun x : ℝ => completedBoundaryHilbertPairing Y (Y + D) + x)
+        hDYD
+    _ =
+        completedBoundaryHilbertPairing Y (Y + D) := by
+      exact add_zero (completedBoundaryHilbertPairing Y (Y + D))
+    _ =
+        completedBoundaryHilbertPairing Y Y +
+          completedBoundaryHilbertPairing Y D := by
+      exact B_add_right Y Y D
+    _ =
+        completedBoundaryHilbertPairing Y Y + 0 := by
+      exact congrArg
+        (fun x : ℝ => completedBoundaryHilbertPairing Y Y + x)
+        hYD
+    _ =
+        completedBoundaryHilbertPairing Y Y := by
+      exact add_zero (completedBoundaryHilbertPairing Y Y)
+
+/-- The additive decomposition `X = Y + (X - Y)` for Hilbert sources. -/
+theorem completedBoundaryHilbertSource_eq_add_sub
+    (X Y : CompletedBoundaryHilbertSource) :
+    X = Y + (X - Y) := by
+  have h :
+      Y + (X - Y) = X := by
+    calc
+      Y + (X - Y) =
+          Y + (X + -Y) := by
+        rfl
+      _ =
+          (Y + X) + -Y := by
+        exact (add_assoc Y X (-Y)).symm
+      _ =
+          (X + Y) + -Y := by
+        exact congrArg (fun Z : CompletedBoundaryHilbertSource => Z + -Y)
+          (add_comm Y X)
+      _ =
+          X + (Y + -Y) := by
+        exact add_assoc X Y (-Y)
+      _ =
+          X + 0 := by
+        exact congrArg (fun Z : CompletedBoundaryHilbertSource => X + Z)
+          (add_right_neg Y)
+      _ =
+          X := by
+        exact add_zero X
+  exact h.symm
+
+/-- Two Hilbert-source representatives have the same ordered-heart scalar when their
+difference is lower-weight radical, provided the completed Hilbert pairing is additive in both
+variables. -/
+theorem completedOrderedHeartScalar_eq_of_lowerWeightRadical_sub
+    (B_add_left :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing (x + y) z =
+          completedBoundaryHilbertPairing x z +
+            completedBoundaryHilbertPairing y z)
+    (B_add_right :
+      ∀ x y z : CompletedBoundaryHilbertSource,
+        completedBoundaryHilbertPairing x (y + z) =
+          completedBoundaryHilbertPairing x y +
+            completedBoundaryHilbertPairing x z)
+    (X Y : CompletedBoundaryHilbertSource)
+    (hD : CompletedBoundaryHilbertSource.LowerWeightRadical (X - Y)) :
+    completedOrderedHeartScalar X =
+      completedOrderedHeartScalar Y := by
+  have hdecomp : X = Y + (X - Y) :=
+    completedBoundaryHilbertSource_eq_add_sub X Y
+  calc
+    completedOrderedHeartScalar X =
+        completedOrderedHeartScalar (Y + (X - Y)) := by
+      exact congrArg completedOrderedHeartScalar hdecomp
+    _ =
+        completedOrderedHeartScalar Y := by
+      exact completedOrderedHeartScalar_eq_of_add_lowerWeightRadical
+        B_add_left
+        B_add_right
+        Y
+        (X - Y)
+        hD
+
 /-- Rearranging the real parts of the reduced channel plus pole channel. -/
 theorem completedBoundaryReduced_re_add_pole_re
     (p a q r : ℂ) :
@@ -2624,6 +2784,15 @@ theorem completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re
       exact completedBoundaryReduced_re_add_pole_re p a q r
     _ = Complex.re (completedBoundaryChannel g) := by
       exact congrArg Complex.re hchannel.symm
+
+/-- The completed GNS norm-square realizes as the completed boundary scalar through the
+Hilbert-pairing comparison. -/
+theorem completedBoundaryGNSNormSq_eq_boundaryChannel_re
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryGNSNormSq f =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
+  exact (completedBoundaryGNSNormSq_eq_HilbertPairing_self f).trans
+    (completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f)
 
 /-- The finite lower-weight exact component consisting of diagonal debt plus its absorption
 channel.  Its finite-part representative is identically zero. -/
@@ -3260,6 +3429,82 @@ theorem completedPositiveBoundaryPreconeElement_scalar_eq_boundaryChannel_re
       Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
   rfl
 
+/-- The ordered-heart class represented by the completed positive-boundary object.  Its scalar
+is induced by `completedBoundaryHilbertPairing`, not by a separate analytic packet norm. -/
+def completedPositiveBoundaryOrderedHeartClass
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertSource :=
+  completedBoundaryHilbertSource f
+
+/-- The ordered-heart class represented by the positive square object.  It has the same
+completed Hilbert-source representative as the absorbed finite-part class; the difference is
+carried by the lower-weight radical absorption face. -/
+def completedPositiveSquareBoundaryOrderedHeartClass
+    (f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertSource :=
+  completedBoundaryHilbertSource f
+
+/-- The ordered-heart class represented by the lower-weight absorption defect. -/
+def completedPositiveBoundaryAbsorptionDefectOrderedHeartClass
+    (_f : ZetaAdmissibleFunction) : CompletedBoundaryHilbertSource :=
+  0
+
+/-- The lower-weight absorption defect is radical in the completed ordered-heart quotient. -/
+theorem completedPositiveBoundaryAbsorptionDefectOrderedHeartClass_lowerWeightRadical
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertSource.LowerWeightRadical
+      (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f) := by
+  unfold completedPositiveBoundaryAbsorptionDefectOrderedHeartClass
+  exact completedBoundaryHilbertSource_zero_lowerWeightRadical
+
+/-- The absorbed positive-boundary class and square-only class have the same ordered-heart
+representative. -/
+theorem completedPositiveBoundaryOrderedHeartClass_eq_square
+    (f : ZetaAdmissibleFunction) :
+    completedPositiveBoundaryOrderedHeartClass f =
+      completedPositiveSquareBoundaryOrderedHeartClass f := by
+  rfl
+
+/-- The scalar of the completed positive-boundary precone element is induced by the completed
+Hilbert pairing on its ordered-heart class. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass f) := by
+  unfold completedOrderedHeartScalar
+  unfold completedPositiveBoundaryOrderedHeartClass
+  exact (completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f).symm
+
+/-- The absorbed completed positive-boundary scalar is the square-only ordered-heart scalar.
+This is the quotient-side scalar transport; it does not identify the scalar with packet norm by
+definition. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_positiveSquare_scalar
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedOrderedHeartScalar
+        (completedPositiveSquareBoundaryOrderedHeartClass f) := by
+  exact
+    (completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar f).trans
+      (congrArg completedOrderedHeartScalar
+        (completedPositiveBoundaryOrderedHeartClass_eq_square f))
+
+/-- The square-only ordered-heart scalar is the completed GNS norm-square. -/
+theorem completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    completedOrderedHeartScalar
+        (completedPositiveSquareBoundaryOrderedHeartClass f) =
+      completedBoundaryGNSNormSq f := by
+  unfold completedPositiveSquareBoundaryOrderedHeartClass
+  exact (completedBoundaryGNSNormSq_eq_orderedHeartScalar f).symm
+
+/-- The absorbed completed positive-boundary scalar is the completed GNS norm-square. -/
+theorem completedPositiveBoundaryPreconeElement_scalar_eq_GNSNormSq
+    (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).scalar =
+      completedBoundaryGNSNormSq f := by
+  exact
+    (completedPositiveBoundaryPreconeElement_scalar_eq_positiveSquare_scalar f).trans
+      (completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq f)
+
 /-- The scalar of the completed positive-boundary precone element is the scalar of the
 completed boundary weight stream. -/
 theorem completedPositiveBoundaryPreconeElement_scalar_eq_weightStream_scalar
@@ -3446,17 +3691,19 @@ theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_comple
       N f).trans
       (finitePartBoundaryWindow_eq_completedBoundaryWindow N f)
 
-/-- The completed GNS positive form in the finite-part normalization. -/
-noncomputable def completedGNSPositiveForm
+/-- The completed finite-part boundary form in the legacy normalization.  Positivity is not
+owned by this scalar directly; it is compared to the positive GNS packet kernel by the
+ordered-heart transport layer. -/
+noncomputable def completedFinitePartGNSBoundaryForm
     (f : ZetaAdmissibleFunction) : ℝ :=
   completedFinitePartBoundaryChannel f
 
-/-- The completed GNS positive form realizes as the completed boundary scalar. -/
-theorem completedGNSPositiveForm_eq_boundaryChannel_re
+/-- The completed finite-part boundary form realizes as the completed boundary scalar. -/
+theorem completedFinitePartGNSBoundaryForm_eq_boundaryChannel_re
     (f : ZetaAdmissibleFunction) :
-    completedGNSPositiveForm f =
+    completedFinitePartGNSBoundaryForm f =
       Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
-  unfold completedGNSPositiveForm
+  unfold completedFinitePartGNSBoundaryForm
   exact completedFinitePartBoundaryChannel_eq_completedBoundaryChannel f
 
 /-- The raw completed physical boundary windows converge to the completed boundary channel
