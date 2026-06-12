@@ -255,12 +255,39 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   have hsre : s.re = 0 := h s hz' htriv' hpole'
 	  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
 
+/-- A nontrivial centered zeta zero that is off the critical centered line. -/
+structure OffCriticalCenteredZetaZero where
+  point : ℂ
+  zeta_zero : riemannZeta (1 / 2 + point) = 0
+  nontrivial : ¬ ∃ n : ℕ, 1 / 2 + point = -2 * (n + 1)
+  not_pole : (1 / 2 + point) ≠ 1
+  offCritical : point.re ≠ 0
+
+/-- The point carried by an off-critical centered zero is off the centered critical line. -/
+theorem OffCriticalCenteredZetaZero.point_re_ne_zero
+    (z : OffCriticalCenteredZetaZero) :
+    z.point.re ≠ 0 :=
+  z.offCritical
+
+/-- The point carried by an off-critical centered zero is a nontrivial centered zero. -/
+theorem OffCriticalCenteredZetaZero.point_zeta_zero
+    (z : OffCriticalCenteredZetaZero) :
+    riemannZeta (1 / 2 + z.point) = 0 :=
+  z.zeta_zero
+
 /-- The zero-detecting direction of Weil's criterion.
 
 An off-critical nontrivial centered zero can be separated by an admissible
 autocorrelation seed whose completed Weil quadratic form is strictly negative.
 This is the real analytic Hahn--Banach/Paley--Wiener separation step in the
 criterion; the wrapper below only turns it into the centered-zero conclusion. -/
+theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    (z : OffCriticalCenteredZetaZero) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
+  sorry
+
+/-- Parameter-facing wrapper for the zero-detecting direction of Weil's criterion. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
     (s : ℂ)
     (hz : riemannZeta (1 / 2 + s) = 0)
@@ -269,7 +296,8 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
     (hoff : s.re ≠ 0) :
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  sorry
+  exact exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    ⟨s, hz, htriv, hpole, hoff⟩
 
 /-- Quadratic Weil positivity gives the centered zero criterion.
 
