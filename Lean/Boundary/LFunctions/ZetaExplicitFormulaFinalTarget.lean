@@ -60,6 +60,18 @@ noncomputable def explicitFormulaFamilyContourIntegral
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
   zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)
 
+/-- The residue-side contour remainder along a contour family. -/
+noncomputable def explicitFormulaFamilyResidueRemainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  explicitFormulaFamilyContourIntegral f F T -
+    (zetaCompletedResidueBoundarySum f : ℂ)
+
+/-- The vertical-channel transport remainder along a contour family. -/
+noncomputable def explicitFormulaFamilyVerticalTransportRemainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  explicitFormulaFamilyVerticalDifference f F T -
+    zetaCompletedExplicitFormulaBoundarySumAnalytic f
+
 /-- The contour-family integral is the sum of the vertical and horizontal differences. -/
 theorem explicitFormulaFamilyContourIntegral_eq_vertical_add_horizontal
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
@@ -108,6 +120,51 @@ theorem explicitFormulaFamilyVerticalDifference_eq_contour_sub_horizontal
           explicitFormulaFamilyHorizontalDifference f F T := by
       rfl
 
+/-- The contour family is its residue boundary value plus the residue-side remainder. -/
+theorem explicitFormulaFamilyContourIntegral_eq_residue_add_remainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    explicitFormulaFamilyContourIntegral f F T =
+      (zetaCompletedResidueBoundarySum f : ℂ) +
+        explicitFormulaFamilyResidueRemainder f F T := by
+  let C : ℂ := explicitFormulaFamilyContourIntegral f F T
+  let R : ℂ := (zetaCompletedResidueBoundarySum f : ℂ)
+  unfold explicitFormulaFamilyResidueRemainder
+  change C = R + (C - R)
+  calc
+    C = C + 0 := by
+      exact (add_zero C).symm
+    _ = C + (-R + R) := by
+      exact congrArg (fun x : ℂ => C + x) (neg_add_cancel R).symm
+    _ = (C + -R) + R := by
+      exact (add_assoc C (-R) R).symm
+    _ = R + (C + -R) := by
+      exact add_comm (C + -R) R
+    _ = R + (C - R) := by
+      exact congrArg (fun x : ℂ => R + x) (sub_eq_add_neg C R).symm
+
+/-- The vertical family is its analytic boundary value plus the vertical-transport
+remainder. -/
+theorem explicitFormulaFamilyVerticalDifference_eq_boundary_add_transportRemainder
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    explicitFormulaFamilyVerticalDifference f F T =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f +
+        explicitFormulaFamilyVerticalTransportRemainder f F T := by
+  let V : ℂ := explicitFormulaFamilyVerticalDifference f F T
+  let B : ℂ := zetaCompletedExplicitFormulaBoundarySumAnalytic f
+  unfold explicitFormulaFamilyVerticalTransportRemainder
+  change V = B + (V - B)
+  calc
+    V = V + 0 := by
+      exact (add_zero V).symm
+    _ = V + (-B + B) := by
+      exact congrArg (fun x : ℂ => V + x) (neg_add_cancel B).symm
+    _ = (V + -B) + B := by
+      exact (add_assoc V (-B) B).symm
+    _ = B + (V + -B) := by
+      exact add_comm (V + -B) B
+    _ = B + (V - B) := by
+      exact congrArg (fun x : ℂ => B + x) (sub_eq_add_neg V B).symm
+
 /-- The horizontal contour sides vanish along every admissible contour family. -/
 theorem explicitFormulaFamilyHorizontalDifference_tendsto_zero
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
@@ -121,6 +178,15 @@ theorem explicitFormulaFamilyHorizontalDifference_tendsto_zero
       (h := explicitFormulaFamilyAnalyticPackage_of_admissible f F)
       1
 
+/-- The residue-side contour remainder vanishes along the contour family. -/
+theorem explicitFormulaFamilyResidueRemainder_tendsto_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- The residue theorem reconstructs the limiting contour integral from the zero-side
 completed residue boundary. -/
 theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum
@@ -129,7 +195,51 @@ theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum
       (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
       atTop
       (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
-  sorry
+  have hconst :
+      Tendsto
+        (fun _T : ℝ => (zetaCompletedResidueBoundarySum f : ℂ))
+        atTop
+        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
+    tendsto_const_nhds
+  have hrem :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T)
+        atTop
+        (𝓝 (0 : ℂ)) :=
+    explicitFormulaFamilyResidueRemainder_tendsto_zero f F
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          (zetaCompletedResidueBoundarySum f : ℂ) +
+            explicitFormulaFamilyResidueRemainder f F T)
+        atTop
+        (𝓝 ((zetaCompletedResidueBoundarySum f : ℂ) + 0)) :=
+    hconst.add hrem
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T) =
+        (fun T : ℝ =>
+          (zetaCompletedResidueBoundarySum f : ℂ) +
+            explicitFormulaFamilyResidueRemainder f F T) := by
+    funext T
+    exact explicitFormulaFamilyContourIntegral_eq_residue_add_remainder f F T
+  have htarget :
+      (zetaCompletedResidueBoundarySum f : ℂ) + 0 =
+        (zetaCompletedResidueBoundarySum f : ℂ) :=
+    add_zero _
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            (zetaCompletedResidueBoundarySum f : ℂ) +
+              explicitFormulaFamilyResidueRemainder f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
 
 /-- Residue reconstruction plus horizontal decay identifies the limit of the vertical
 family with the completed residue boundary sum. -/
@@ -185,6 +295,15 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_residueBoundarySum
       htarget
       hdiff)
 
+/-- The vertical-channel transport remainder vanishes along the contour family. -/
+theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
 /-- The vertical channel transport identifies the vertical-family limit with the analytic
 prime/archimedean/correction boundary sum. -/
 theorem explicitFormulaFamilyVerticalTransport_tendsto_boundarySum
@@ -193,7 +312,51 @@ theorem explicitFormulaFamilyVerticalTransport_tendsto_boundarySum
       (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  sorry
+  have hconst :
+      Tendsto
+        (fun _T : ℝ => zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    tendsto_const_nhds
+  have hrem :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
+        atTop
+        (𝓝 (0 : ℂ)) :=
+    explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero f F
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaBoundarySumAnalytic f +
+            explicitFormulaFamilyVerticalTransportRemainder f F T)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f + 0)) :=
+    hconst.add hrem
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T) =
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaBoundarySumAnalytic f +
+            explicitFormulaFamilyVerticalTransportRemainder f F T) := by
+    funext T
+    exact explicitFormulaFamilyVerticalDifference_eq_boundary_add_transportRemainder f F T
+  have htarget :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f + 0 =
+        zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
+    add_zero _
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f +
+              explicitFormulaFamilyVerticalTransportRemainder f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
 
 /-- The vertical channel transport identifies the limit of the vertical family with the
 analytic prime/archimedean/correction boundary sum. -/
