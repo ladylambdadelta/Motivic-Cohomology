@@ -124,42 +124,28 @@ theorem exists_convolutionAutocorrelationKernelSupportUpperBound
     IsCompact.bddAbove (convolutionAutocorrelationKernel_hasCompactSupport f).isCompact
   exact ⟨B, hB⟩
 
-/-- The canonical upper support bound for the autocorrelation kernel. -/
-def convolutionAutocorrelationKernelSupportUpperBound
-    (f : ZetaAdmissibleFunction) : ℝ :=
-  Classical.choose (exists_convolutionAutocorrelationKernelSupportUpperBound f)
-
-/-- The canonical upper support bound actually bounds the autocorrelation-kernel support. -/
-theorem convolutionAutocorrelationKernelSupportUpperBound_spec
-    (f : ZetaAdmissibleFunction) :
-    ∀ a ∈ tsupport (convolutionAutocorrelationKernel f),
-      a ≤ convolutionAutocorrelationKernelSupportUpperBound f :=
-  Classical.choose_spec (exists_convolutionAutocorrelationKernelSupportUpperBound f)
-
 /-- The autocorrelation kernel vanishes strictly to the right of its compact-support bound. -/
 theorem convolutionAutocorrelationKernel_eq_zero_of_supportUpperBound_lt
-    (f : ZetaAdmissibleFunction) {a : ℝ}
-    (ha : convolutionAutocorrelationKernelSupportUpperBound f < a) :
+    (f : ZetaAdmissibleFunction) {B a : ℝ}
+    (hB : ∀ x ∈ tsupport (convolutionAutocorrelationKernel f), x ≤ B)
+    (ha : B < a) :
     convolutionAutocorrelationKernel f a = 0 := by
   have hnot_mem : a ∉ tsupport (convolutionAutocorrelationKernel f) := by
     intro hmem
-    have hle :
-        a ≤ convolutionAutocorrelationKernelSupportUpperBound f :=
-      convolutionAutocorrelationKernelSupportUpperBound_spec f a hmem
+    have hle : a ≤ B := hB a hmem
     exact (not_lt_of_ge hle) ha
   exact image_eq_zero_of_nmem_tsupport hnot_mem
 
 /-- Prime off-diagonal coordinates vanish after the autocorrelation support bound. -/
 theorem zetaPrimeOffDiagonalCoordinate_eq_zero_of_supportUpperBound_lt_center
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
-    (hι :
-      convolutionAutocorrelationKernelSupportUpperBound f <
-        ZetaPrimePowerIndex.center ι) :
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) {B : ℝ}
+    (hB : ∀ a ∈ tsupport (convolutionAutocorrelationKernel f), a ≤ B)
+    (hι : B < ZetaPrimePowerIndex.center ι) :
     zetaPrimeOffDiagonalCoordinate ι f = 0 := by
   have hkernel :
       convolutionAutocorrelationKernel f (ZetaPrimePowerIndex.center ι) = 0 :=
     convolutionAutocorrelationKernel_eq_zero_of_supportUpperBound_lt
-      f hι
+      f hB hι
   have hinner :
       zetaSeedInner (zetaTranslate (ZetaPrimePowerIndex.center ι) f) f = 0 := by
     exact Eq.trans
@@ -375,45 +361,42 @@ theorem zetaPrimeDefectKernelGNSBoundaryForm_eq_diagonalDebt_add_crossTerm
         zetaPrimeSymmetrizedBoundaryCrossTerm N f := by
   exact zetaPrimeDefectKernelQuadraticForm_eq_diagonalDebt_add_crossTerm N f
 
-/-- The finite set that can support nonzero prime off-diagonal coordinates. -/
-def zetaPrimeOffDiagonalSupportFinset
-    (f : ZetaAdmissibleFunction) : Finset ZetaPrimePowerIndex :=
+/-- The finite set that can support nonzero prime off-diagonal coordinates for an explicit
+autocorrelation support bound. -/
+def zetaPrimeOffDiagonalSupportFinsetOfBound
+    (f : ZetaAdmissibleFunction) (B : ℝ) : Finset ZetaPrimePowerIndex :=
   (ZetaPrimePowerIndex.finite_setOf_isGenuine_and_center_le
-      (convolutionAutocorrelationKernelSupportUpperBound f)).toFinset
+      B).toFinset
 
 /-- Membership in the prime off-diagonal support finset is exactly genuine bounded center. -/
-theorem mem_zetaPrimeOffDiagonalSupportFinset_iff
-    (f : ZetaAdmissibleFunction) (ι : ZetaPrimePowerIndex) :
-    ι ∈ zetaPrimeOffDiagonalSupportFinset f ↔
+theorem mem_zetaPrimeOffDiagonalSupportFinsetOfBound_iff
+    (f : ZetaAdmissibleFunction) (B : ℝ) (ι : ZetaPrimePowerIndex) :
+    ι ∈ zetaPrimeOffDiagonalSupportFinsetOfBound f B ↔
       ZetaPrimePowerIndex.IsGenuine ι ∧
-        ZetaPrimePowerIndex.center ι ≤
-          convolutionAutocorrelationKernelSupportUpperBound f := by
-  unfold zetaPrimeOffDiagonalSupportFinset
+        ZetaPrimePowerIndex.center ι ≤ B := by
+  unfold zetaPrimeOffDiagonalSupportFinsetOfBound
   exact
     Set.Finite.mem_toFinset
       (ZetaPrimePowerIndex.finite_setOf_isGenuine_and_center_le
-        (convolutionAutocorrelationKernelSupportUpperBound f))
+        B)
 
 /-- Prime off-diagonal coordinates vanish away from their finite support finset. -/
-theorem zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinset
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
-    (hι : ι ∉ zetaPrimeOffDiagonalSupportFinset f) :
+theorem zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinsetOfBound
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) {B : ℝ}
+    (hB : ∀ a ∈ tsupport (convolutionAutocorrelationKernel f), a ≤ B)
+    (hι : ι ∉ zetaPrimeOffDiagonalSupportFinsetOfBound f B) :
     zetaPrimeOffDiagonalCoordinate ι f = 0 := by
   by_cases hgenuine : ZetaPrimePowerIndex.IsGenuine ι
-  · by_cases hcenter :
-        ZetaPrimePowerIndex.center ι ≤
-          convolutionAutocorrelationKernelSupportUpperBound f
+  · by_cases hcenter : ZetaPrimePowerIndex.center ι ≤ B
     · have hmem :
-          ι ∈ zetaPrimeOffDiagonalSupportFinset f :=
-        (mem_zetaPrimeOffDiagonalSupportFinset_iff f ι).mpr
+          ι ∈ zetaPrimeOffDiagonalSupportFinsetOfBound f B :=
+        (mem_zetaPrimeOffDiagonalSupportFinsetOfBound_iff f B ι).mpr
           ⟨hgenuine, hcenter⟩
       exact False.elim (hι hmem)
-    · have hlt :
-        convolutionAutocorrelationKernelSupportUpperBound f <
-          ZetaPrimePowerIndex.center ι :=
+    · have hlt : B < ZetaPrimePowerIndex.center ι :=
         lt_of_not_ge hcenter
       exact zetaPrimeOffDiagonalCoordinate_eq_zero_of_supportUpperBound_lt_center
-        ι f hlt
+        ι f hB hlt
   · exact zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine ι f hgenuine
 
 /-- The prime off-diagonal coordinates are summable against the completed prime-power weights.
@@ -422,10 +405,12 @@ theorem summable_zetaPrimeOffDiagonalCoordinate
     (f : ZetaAdmissibleFunction) :
     Summable (fun ι : ZetaPrimePowerIndex =>
       zetaPrimeOffDiagonalCoordinate ι f) := by
+  rcases exists_convolutionAutocorrelationKernelSupportUpperBound f with
+    ⟨B, hB⟩
   exact summable_of_ne_finset_zero
-    (s := zetaPrimeOffDiagonalSupportFinset f)
+    (s := zetaPrimeOffDiagonalSupportFinsetOfBound f B)
     (fun ι hι =>
-      zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinset ι f hι)
+      zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinsetOfBound ι f hB hι)
 
 /-- Generic exhaustion theorem for summable functions over genuine prime-power windows.
 
