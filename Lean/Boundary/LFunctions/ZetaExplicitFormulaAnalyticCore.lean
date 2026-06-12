@@ -135,6 +135,13 @@ theorem zetaCompletedTimeBoundaryValue_eq_apply
   unfold zetaCompletedTimeBoundaryValue
   exact ZetaAdmissibleFunction.toZetaTestFunction'_apply f a
 
+/-- The zero admissible probe has zero time-side boundary value. -/
+theorem zetaCompletedTimeBoundaryValue_zero
+    (a : ℝ) :
+    zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction) a = 0 := by
+  unfold zetaCompletedTimeBoundaryValue
+  exact ZetaAdmissibleFunction.toZetaTestFunction'_apply 0 a
+
 /-- The time-side value of the convolution autocorrelation is the autocorrelation kernel. -/
 theorem zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel
     (f : ZetaAdmissibleFunction) (a : ℝ) :
@@ -156,6 +163,26 @@ theorem zetaCompletedExplicitFormulaPhi_eq (f : ZetaAdmissibleFunction) :
 theorem zetaCompletedExplicitFormulaPhi_eq_laplace (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPhi f = Boundary.zetaLaplaceTransform f.toZetaTestFunction' := by
   exact Eq.refl _
+
+/-- The zero admissible probe has zero spectral/Laplace transform. -/
+theorem zetaCompletedExplicitFormulaPhi_zero
+    (z : ℂ) :
+    zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) z = 0 := by
+  unfold zetaCompletedExplicitFormulaPhi
+  unfold zetaAutocorrelationSpectralTransform
+  unfold Boundary.zetaLaplaceTransform
+  calc
+    (∫ t : ℝ,
+        (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
+          Complex.exp (z * t)) =
+        ∫ _t : ℝ, 0 := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun t : ℝ => by
+            change (0 : ℂ) * Complex.exp (z * t) = 0
+            exact zero_mul (Complex.exp (z * t))))
+    _ = 0 := by
+      exact integral_zero ℝ
 
 /-- The spectral transform of the convolution autocorrelation pairs opposite real spectral
 parameters. -/

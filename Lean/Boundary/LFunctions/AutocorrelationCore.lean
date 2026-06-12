@@ -439,6 +439,79 @@ theorem convolutionPair_self
       ((convolutionPairKernel_self f ▸
         (convolutionAutocorrelation_apply f t).symm))
 
+/-- The two-variable convolution pair of two zero admissible functions is zero. -/
+theorem convolutionPair_zero_zero :
+    convolutionPair (0 : ZetaAdmissibleFunction) (0 : ZetaAdmissibleFunction) = 0 := by
+  ext t
+  calc
+    convolutionPair (0 : ZetaAdmissibleFunction) 0 t =
+        convolutionPairKernel (0 : ZetaAdmissibleFunction) 0 t := by
+      exact convolutionPair_apply 0 0 t
+    _ = ∫ u : ℝ, (0 : ZetaAdmissibleFunction) (u + t / 2) *
+          star ((0 : ZetaAdmissibleFunction) (u - t / 2)) := by
+      exact convolutionPairKernel_apply 0 0 t
+    _ = ∫ _u : ℝ, 0 := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun u : ℝ => by
+            change (0 : ℂ) * star (0 : ℂ) = 0
+            exact zero_mul (star (0 : ℂ))))
+    _ = 0 := by
+      exact integral_zero ℝ
+    _ = (0 : ZetaAdmissibleFunction) t := by
+      rfl
+
+/-- A two-variable convolution pair with zero left input is zero. -/
+theorem convolutionPair_zero_left
+    (h : ZetaAdmissibleFunction) :
+    convolutionPair (0 : ZetaAdmissibleFunction) h = 0 := by
+  ext t
+  calc
+    convolutionPair (0 : ZetaAdmissibleFunction) h t =
+        convolutionPairKernel (0 : ZetaAdmissibleFunction) h t := by
+      exact convolutionPair_apply 0 h t
+    _ = ∫ u : ℝ, (0 : ZetaAdmissibleFunction) (u + t / 2) *
+          star (h (u - t / 2)) := by
+      exact convolutionPairKernel_apply 0 h t
+    _ = ∫ _u : ℝ, 0 := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun u : ℝ => by
+            change (0 : ℂ) * star (h (u - t / 2)) = 0
+            exact zero_mul (star (h (u - t / 2)))))
+    _ = 0 := by
+      exact integral_zero ℝ
+    _ = (0 : ZetaAdmissibleFunction) t := by
+      rfl
+
+/-- A two-variable convolution pair with zero right input is zero. -/
+theorem convolutionPair_zero_right
+    (f : ZetaAdmissibleFunction) :
+    convolutionPair f (0 : ZetaAdmissibleFunction) = 0 := by
+  ext t
+  calc
+    convolutionPair f (0 : ZetaAdmissibleFunction) t =
+        convolutionPairKernel f (0 : ZetaAdmissibleFunction) t := by
+      exact convolutionPair_apply f 0 t
+    _ = ∫ u : ℝ, f (u + t / 2) *
+          star ((0 : ZetaAdmissibleFunction) (u - t / 2)) := by
+      exact convolutionPairKernel_apply f 0 t
+    _ = ∫ _u : ℝ, 0 := by
+      exact integral_congr_ae
+        (Filter.Eventually.of_forall
+          (fun u : ℝ => by
+            change f (u + t / 2) * star (0 : ℂ) = 0
+            calc
+              f (u + t / 2) * star (0 : ℂ) =
+                  f (u + t / 2) * 0 := by
+                exact congrArg (fun z : ℂ => f (u + t / 2) * z) (star_zero ℂ)
+              _ = 0 := by
+                exact mul_zero (f (u + t / 2)))))
+    _ = 0 := by
+      exact integral_zero ℝ
+    _ = (0 : ZetaAdmissibleFunction) t := by
+      rfl
+
 /-- The underlying test function of the admissible convolution autocorrelation is the
 convolution autocorrelation kernel. -/
 theorem convolutionAutocorrelation_toZetaTestFunction'_apply

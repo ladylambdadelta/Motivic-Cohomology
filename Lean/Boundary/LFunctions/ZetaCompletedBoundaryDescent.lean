@@ -378,6 +378,10 @@ def finitePartRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
 def absorbedSquareRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
   x.positiveSquare + x.debtAbsorption
 
+/-- The finite diagonal-plus-absorption lower-weight scalar component. -/
+def lowerWeightExactRepresentative (x : FiniteBoundaryWeightObject) : ℝ :=
+  x.diagonalDebt + x.debtAbsorption
+
 end FiniteBoundaryWeightObject
 
 /-- A concrete lower-weight absorption certificate for a finite boundary packet.  It records
@@ -390,6 +394,30 @@ structure FiniteBoundaryLowerWeightAbsorptionCert
   absorbed_square_eq_finitePart :
     FiniteBoundaryWeightObject.absorbedSquareRepresentative x =
       FiniteBoundaryWeightObject.finitePartRepresentative x
+
+namespace FiniteBoundaryLowerWeightAbsorptionCert
+
+/-- A finite lower-weight absorption certificate says that the lower-weight representative is
+exact. -/
+theorem lowerWeightExactRepresentative_eq_zero
+    {x : FiniteBoundaryWeightObject}
+    (h : FiniteBoundaryLowerWeightAbsorptionCert x) :
+    FiniteBoundaryWeightObject.lowerWeightExactRepresentative x = 0 := by
+  unfold FiniteBoundaryWeightObject.lowerWeightExactRepresentative
+  exact h.debt_absorption_cancel
+
+/-- A finite lower-weight absorption certificate transports the positive square representative
+to the finite-part representative. -/
+theorem weightTriangularTransport
+    {x : FiniteBoundaryWeightObject}
+    (h : FiniteBoundaryLowerWeightAbsorptionCert x) :
+    FiniteBoundaryWeightObject.squareRepresentative x + x.debtAbsorption =
+      FiniteBoundaryWeightObject.finitePartRepresentative x := by
+  unfold FiniteBoundaryWeightObject.absorbedSquareRepresentative at h
+  unfold FiniteBoundaryWeightObject.squareRepresentative
+  exact h.absorbed_square_eq_finitePart
+
+end FiniteBoundaryLowerWeightAbsorptionCert
 
 /-- The completed prime off-diagonal finite-part channel. -/
 noncomputable def completedPrimeOffDiagonalChannel
@@ -1489,6 +1517,24 @@ theorem finiteBoundaryWeightObject_debt_absorption_cancel
   unfold finitePartDebtAbsorptionWindow
   exact add_neg_cancel (zetaPrimeDiagonalDebt N f)
 
+/-- The concrete finite lower-weight exact representative is zero. -/
+theorem finiteBoundaryWeightObject_lowerWeightExactRepresentative_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.lowerWeightExactRepresentative
+        (finiteBoundaryWeightObject N f) =
+      0 := by
+  unfold FiniteBoundaryWeightObject.lowerWeightExactRepresentative
+  exact finiteBoundaryWeightObject_debt_absorption_cancel N f
+
+/-- The finite absorption channel is the negative face of the finite diagonal debt. -/
+theorem finiteBoundaryWeightObject_debtAbsorption_eq_neg_diagonalDebt
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (finiteBoundaryWeightObject N f).debtAbsorption =
+      - (finiteBoundaryWeightObject N f).diagonalDebt := by
+  unfold finiteBoundaryWeightObject
+  unfold finitePartDebtAbsorptionWindow
+  rfl
+
 /-- The absorbed square representative equals the finite-part representative.  This is the
 finite triangular transport identity: the positive square is transported to the finite-part
 window by adding the lower-weight debt absorption channel. -/
@@ -1504,6 +1550,55 @@ theorem finiteBoundaryWeightObject_absorbedSquare_eq_finitePartRepresentative
       ((finitePositiveRenormalizedBoundaryWindow_eq_finitePartBoundaryWindow N f).trans
         (finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
           N f).symm)
+
+/-- Weight-triangular transport at a finite cutoff: adding the absorption face to the positive
+square representative gives the finite-part representative. -/
+theorem finiteBoundaryWeightObject_weightTriangularTransport
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) +
+      (finiteBoundaryWeightObject N f).debtAbsorption =
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact finiteBoundaryWeightObject_absorbedSquare_eq_finitePartRepresentative N f
+
+/-- The finite triangular transport may equivalently replace the diagonal face by its
+lower-weight exact absorption partner. -/
+theorem finiteBoundaryWeightObject_square_add_neg_diagonalDebt_eq_finitePartRepresentative
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) -
+      (finiteBoundaryWeightObject N f).diagonalDebt =
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  have habs :
+      (finiteBoundaryWeightObject N f).debtAbsorption =
+        - (finiteBoundaryWeightObject N f).diagonalDebt :=
+    finiteBoundaryWeightObject_debtAbsorption_eq_neg_diagonalDebt N f
+  calc
+    FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) -
+      (finiteBoundaryWeightObject N f).diagonalDebt =
+        FiniteBoundaryWeightObject.squareRepresentative
+          (finiteBoundaryWeightObject N f) +
+        - (finiteBoundaryWeightObject N f).diagonalDebt := by
+      exact sub_eq_add_neg
+        (FiniteBoundaryWeightObject.squareRepresentative
+          (finiteBoundaryWeightObject N f))
+        ((finiteBoundaryWeightObject N f).diagonalDebt)
+    _ =
+        FiniteBoundaryWeightObject.squareRepresentative
+          (finiteBoundaryWeightObject N f) +
+        (finiteBoundaryWeightObject N f).debtAbsorption := by
+      exact congrArg
+        (fun x : ℝ =>
+          FiniteBoundaryWeightObject.squareRepresentative
+            (finiteBoundaryWeightObject N f) + x)
+        habs.symm
+    _ =
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          (finiteBoundaryWeightObject N f) := by
+      exact finiteBoundaryWeightObject_weightTriangularTransport N f
 
 /-- The concrete lower-weight absorption certificate for the finite boundary weight object. -/
 def finiteBoundaryWeightObject_lowerWeightAbsorptionCert
@@ -1846,6 +1941,28 @@ def InPositiveCone
     (X : CompletedBoundaryWeightStream) : Prop :=
   SquareRepresentativesNonnegative X ∧ HasLowerWeightAbsorption X
 
+/-- Positive-cone membership supplies pointwise lower-weight exactness. -/
+theorem lowerWeightExactRepresentative_eq_zero_of_inPositiveCone
+    {X : CompletedBoundaryWeightStream}
+    (hX : InPositiveCone X)
+    (N : ℕ) :
+    FiniteBoundaryWeightObject.lowerWeightExactRepresentative (X.object N) = 0 := by
+  exact
+    FiniteBoundaryLowerWeightAbsorptionCert.lowerWeightExactRepresentative_eq_zero
+      (hX.2 N)
+
+/-- Positive-cone membership supplies the pointwise weight-triangular transport identity. -/
+theorem weightTriangularTransport_of_inPositiveCone
+    {X : CompletedBoundaryWeightStream}
+    (hX : InPositiveCone X)
+    (N : ℕ) :
+    FiniteBoundaryWeightObject.squareRepresentative (X.object N) +
+        (X.object N).debtAbsorption =
+      FiniteBoundaryWeightObject.finitePartRepresentative (X.object N) := by
+  exact
+    FiniteBoundaryLowerWeightAbsorptionCert.weightTriangularTransport
+      (hX.2 N)
+
 end CompletedBoundaryWeightStream
 
 /-- The completed boundary weight stream attached to an admissible seed. -/
@@ -1902,6 +2019,32 @@ theorem completedBoundaryWeightStream_mem_positiveCone
   exact
     ⟨completedBoundaryWeightStream_squareRepresentatives_nonnegative f,
       completedBoundaryWeightStream_hasLowerWeightAbsorption f⟩
+
+/-- The concrete completed boundary weight stream has pointwise lower-weight exact
+representatives. -/
+theorem completedBoundaryWeightStream_lowerWeightExactRepresentative_eq_zero
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.lowerWeightExactRepresentative
+        ((completedBoundaryWeightStream f).object N) =
+      0 := by
+  exact
+    CompletedBoundaryWeightStream.lowerWeightExactRepresentative_eq_zero_of_inPositiveCone
+      (completedBoundaryWeightStream_mem_positiveCone f)
+      N
+
+/-- The concrete completed boundary weight stream satisfies weight-triangular transport
+pointwise. -/
+theorem completedBoundaryWeightStream_weightTriangularTransport
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    FiniteBoundaryWeightObject.squareRepresentative
+        ((completedBoundaryWeightStream f).object N) +
+      ((completedBoundaryWeightStream f).object N).debtAbsorption =
+    FiniteBoundaryWeightObject.finitePartRepresentative
+        ((completedBoundaryWeightStream f).object N) := by
+  exact
+    CompletedBoundaryWeightStream.weightTriangularTransport_of_inPositiveCone
+      (completedBoundaryWeightStream_mem_positiveCone f)
+      N
 
 /-- The scalar of the completed boundary weight stream is the real completed boundary channel. -/
 theorem completedBoundaryWeightStream_scalar_eq_boundaryChannel_re
@@ -2142,6 +2285,244 @@ theorem completedBoundaryHilbertPairing_eq_reduced_add_correction
           (completedBoundaryReducedChannel (convolutionPair X.seed Y.seed)) +
         X.correctionCoordinate * Y.correctionCoordinate := by
   rfl
+
+/-- The prime boundary channel vanishes on the zero admissible probe. -/
+theorem primeBoundaryChannel_zero :
+    primeBoundaryChannel (0 : ZetaAdmissibleFunction) = 0 := by
+  unfold primeBoundaryChannel
+  unfold zetaCompletedExplicitFormulaPrimeContribution
+  unfold zetaCompletedExplicitFormulaPrimePowerContribution
+  let term : ZetaPrimePowerIndex → ℝ :=
+    fun ι : ZetaPrimePowerIndex =>
+      -(ZetaPrimePowerIndex.weight ι *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+              (ZetaPrimePowerIndex.center ι) +
+            star
+              (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                (ZetaPrimePowerIndex.center ι))))
+  have hterm : term = fun _ι : ZetaPrimePowerIndex => 0 := by
+    funext ι
+    unfold term
+    have hpos :
+        zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+            (ZetaPrimePowerIndex.center ι) =
+          0 :=
+      zetaCompletedTimeBoundaryValue_zero (ZetaPrimePowerIndex.center ι)
+    have hstar :
+        star
+            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+              (ZetaPrimePowerIndex.center ι)) =
+          0 := by
+      exact (congrArg star hpos).trans (star_zero ℂ)
+    have hsum :
+        zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+            (ZetaPrimePowerIndex.center ι) +
+          star
+            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+              (ZetaPrimePowerIndex.center ι)) =
+        0 := by
+      calc
+        zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+            (ZetaPrimePowerIndex.center ι) +
+          star
+            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+              (ZetaPrimePowerIndex.center ι)) =
+            0 + 0 := by
+          exact congrArg₂ HAdd.hAdd hpos hstar
+        _ = 0 := by
+          exact zero_add 0
+    have hre :
+        Complex.re
+          (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+              (ZetaPrimePowerIndex.center ι) +
+            star
+              (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                (ZetaPrimePowerIndex.center ι))) =
+          0 := by
+      exact (congrArg Complex.re hsum).trans Complex.zero_re
+    calc
+      -(ZetaPrimePowerIndex.weight ι *
+          Complex.re
+            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                (ZetaPrimePowerIndex.center ι) +
+              star
+                (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                  (ZetaPrimePowerIndex.center ι)))) =
+          -(ZetaPrimePowerIndex.weight ι * 0) := by
+        exact congrArg
+          (fun x : ℝ => -(ZetaPrimePowerIndex.weight ι * x))
+          hre
+      _ = -0 := by
+        exact congrArg Neg.neg (mul_zero (ZetaPrimePowerIndex.weight ι))
+      _ = 0 := by
+        exact neg_zero
+  change ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) = 0
+  calc
+    ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) =
+        ((∑' _ι : ZetaPrimePowerIndex, (0 : ℝ)) : ℂ) := by
+      exact congrArg
+        (fun u : ZetaPrimePowerIndex → ℝ =>
+          ((∑' ι : ZetaPrimePowerIndex, u ι) : ℂ))
+        hterm
+    _ = ((0 : ℝ) : ℂ) := by
+      exact congrArg (fun x : ℝ => (x : ℂ)) (tsum_zero)
+    _ = 0 := by
+      exact Complex.ofReal_zero
+
+/-- The archimedean boundary channel vanishes on the zero admissible probe. -/
+theorem archimedeanBoundaryChannel_zero :
+    archimedeanBoundaryChannel (0 : ZetaAdmissibleFunction) = 0 := by
+  unfold archimedeanBoundaryChannel
+  unfold zetaCompletedExplicitFormulaArchimedeanContribution
+  have hphi :
+      zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) 0 = 0 :=
+    zetaCompletedExplicitFormulaPhi_zero 0
+  calc
+    (2 : ℂ) * zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) 0 =
+        (2 : ℂ) * 0 := by
+      exact congrArg (fun z : ℂ => (2 : ℂ) * z) hphi
+    _ = 0 := by
+      exact mul_zero (2 : ℂ)
+
+/-- The residual completion boundary channel vanishes on the zero admissible probe. -/
+theorem completionBoundaryChannel_zero :
+    completionBoundaryChannel (0 : ZetaAdmissibleFunction) = 0 := by
+  rfl
+
+/-- The reduced completed boundary channel vanishes on the zero admissible probe. -/
+theorem completedBoundaryReducedChannel_zero :
+    completedBoundaryReducedChannel (0 : ZetaAdmissibleFunction) = 0 := by
+  unfold completedBoundaryReducedChannel
+  calc
+    primeBoundaryChannel (0 : ZetaAdmissibleFunction) +
+        archimedeanBoundaryChannel (0 : ZetaAdmissibleFunction) +
+        completionBoundaryChannel (0 : ZetaAdmissibleFunction) =
+      0 + 0 + 0 := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd primeBoundaryChannel_zero archimedeanBoundaryChannel_zero)
+        completionBoundaryChannel_zero
+    _ = 0 + 0 := by
+      exact add_zero (0 + 0)
+    _ = 0 := by
+      exact zero_add 0
+
+/-- The reduced completed boundary channel of the zero convolution pair is zero. -/
+theorem completedBoundaryReducedChannel_convolutionPair_zero_zero :
+    completedBoundaryReducedChannel
+        (convolutionPair (0 : ZetaAdmissibleFunction) 0) =
+      0 := by
+  exact (congrArg completedBoundaryReducedChannel convolutionPair_zero_zero).trans
+    completedBoundaryReducedChannel_zero
+
+/-- The reduced completed boundary channel of a convolution pair with zero left input is
+zero. -/
+theorem completedBoundaryReducedChannel_convolutionPair_zero_left
+    (h : ZetaAdmissibleFunction) :
+    completedBoundaryReducedChannel
+        (convolutionPair (0 : ZetaAdmissibleFunction) h) =
+      0 := by
+  exact (congrArg completedBoundaryReducedChannel (convolutionPair_zero_left h)).trans
+    completedBoundaryReducedChannel_zero
+
+/-- The reduced completed boundary channel of a convolution pair with zero right input is
+zero. -/
+theorem completedBoundaryReducedChannel_convolutionPair_zero_right
+    (f : ZetaAdmissibleFunction) :
+    completedBoundaryReducedChannel
+        (convolutionPair f (0 : ZetaAdmissibleFunction)) =
+      0 := by
+  exact (congrArg completedBoundaryReducedChannel (convolutionPair_zero_right f)).trans
+    completedBoundaryReducedChannel_zero
+
+/-- The zero Hilbert source has zero self-pairing. -/
+theorem completedBoundaryHilbertPairing_zero_zero :
+    completedBoundaryHilbertPairing
+        (0 : CompletedBoundaryHilbertSource)
+        (0 : CompletedBoundaryHilbertSource) =
+      0 := by
+  unfold completedBoundaryHilbertPairing
+  change
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair (0 : ZetaAdmissibleFunction) 0)) +
+      0 * 0 =
+    0
+  calc
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair (0 : ZetaAdmissibleFunction) 0)) +
+      0 * 0 =
+        Complex.re 0 + 0 * 0 := by
+      exact congrArg
+        (fun z : ℂ => Complex.re z + 0 * 0)
+        completedBoundaryReducedChannel_convolutionPair_zero_zero
+    _ = 0 + 0 * 0 := by
+      exact congrArg (fun x : ℝ => x + 0 * 0) Complex.zero_re
+    _ = 0 + 0 := by
+      exact congrArg (fun x : ℝ => 0 + x) (zero_mul 0)
+    _ = 0 := by
+      exact zero_add 0
+
+/-- The zero Hilbert source pairs trivially on the left. -/
+theorem completedBoundaryHilbertPairing_zero_left
+    (Y : CompletedBoundaryHilbertSource) :
+    completedBoundaryHilbertPairing
+        (0 : CompletedBoundaryHilbertSource)
+        Y =
+      0 := by
+  unfold completedBoundaryHilbertPairing
+  change
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair (0 : ZetaAdmissibleFunction) Y.seed)) +
+      0 * Y.correctionCoordinate =
+    0
+  calc
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair (0 : ZetaAdmissibleFunction) Y.seed)) +
+      0 * Y.correctionCoordinate =
+        Complex.re 0 + 0 * Y.correctionCoordinate := by
+      exact congrArg
+        (fun z : ℂ => Complex.re z + 0 * Y.correctionCoordinate)
+        (completedBoundaryReducedChannel_convolutionPair_zero_left Y.seed)
+    _ = 0 + 0 * Y.correctionCoordinate := by
+      exact congrArg (fun x : ℝ => x + 0 * Y.correctionCoordinate) Complex.zero_re
+    _ = 0 + 0 := by
+      exact congrArg (fun x : ℝ => 0 + x) (zero_mul Y.correctionCoordinate)
+    _ = 0 := by
+      exact zero_add 0
+
+/-- The zero Hilbert source pairs trivially on the right. -/
+theorem completedBoundaryHilbertPairing_zero_right
+    (X : CompletedBoundaryHilbertSource) :
+    completedBoundaryHilbertPairing
+        X
+        (0 : CompletedBoundaryHilbertSource) =
+      0 := by
+  unfold completedBoundaryHilbertPairing
+  change
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair X.seed (0 : ZetaAdmissibleFunction))) +
+      X.correctionCoordinate * 0 =
+    0
+  calc
+    Complex.re
+        (completedBoundaryReducedChannel
+          (convolutionPair X.seed (0 : ZetaAdmissibleFunction))) +
+      X.correctionCoordinate * 0 =
+        Complex.re 0 + X.correctionCoordinate * 0 := by
+      exact congrArg
+        (fun z : ℂ => Complex.re z + X.correctionCoordinate * 0)
+        (completedBoundaryReducedChannel_convolutionPair_zero_right X.seed)
+    _ = 0 + X.correctionCoordinate * 0 := by
+      exact congrArg (fun x : ℝ => x + X.correctionCoordinate * 0) Complex.zero_re
+    _ = 0 + 0 := by
+      exact congrArg (fun x : ℝ => 0 + x) (mul_zero X.correctionCoordinate)
+    _ = 0 := by
+      exact zero_add 0
 
 /-- Rearranging the real parts of the reduced channel plus pole channel. -/
 theorem completedBoundaryReduced_re_add_pole_re
@@ -2398,6 +2779,92 @@ theorem completedBoundaryLowerWeightExactSourceProbe_finitePart_eq_zero
         ((completedBoundaryLowerWeightExactSourceProbe f).object N) =
       0 :=
   (completedBoundaryLowerWeightExactSourceProbe f).finitePart_eq_zero N
+
+/-- The completed Hilbert stream represented by the lower-weight exact diagonal-debt
+cancellation component. -/
+def completedBoundaryLowerWeightExactHilbertWeightStream
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertWeightStream :=
+  { source := (completedBoundaryLowerWeightExactSourceProbe f).source
+    object := (completedBoundaryLowerWeightExactSourceProbe f).object
+    scalar := 0
+    scalar_eq_pairing_self := by
+      have hsource :
+          (completedBoundaryLowerWeightExactSourceProbe f).source =
+            (0 : CompletedBoundaryHilbertSource) :=
+        (completedBoundaryLowerWeightExactSourceProbe f).source_eq_zero
+      change
+        0 =
+          completedBoundaryHilbertPairing
+            (completedBoundaryLowerWeightExactSourceProbe f).source
+            (completedBoundaryLowerWeightExactSourceProbe f).source
+      calc
+        0 =
+            completedBoundaryHilbertPairing
+              (0 : CompletedBoundaryHilbertSource)
+              (0 : CompletedBoundaryHilbertSource) := by
+          exact completedBoundaryHilbertPairing_zero_zero.symm
+        _ =
+            completedBoundaryHilbertPairing
+              (completedBoundaryLowerWeightExactSourceProbe f).source
+              (completedBoundaryLowerWeightExactSourceProbe f).source := by
+          exact congrArg₂ completedBoundaryHilbertPairing hsource.symm hsource.symm
+    finitePart_tendsto_scalar := by
+      have hzero :
+          (fun N : ℕ =>
+            FiniteBoundaryWeightObject.finitePartRepresentative
+              ((completedBoundaryLowerWeightExactSourceProbe f).object N)) =
+            fun _N : ℕ => 0 := by
+        funext N
+        exact completedBoundaryLowerWeightExactSourceProbe_finitePart_eq_zero f N
+      exact Eq.subst
+        (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+        hzero.symm
+        tendsto_const_nhds }
+
+/-- The lower-weight exact Hilbert stream has zero scalar. -/
+theorem completedBoundaryLowerWeightExactHilbertWeightStream_scalar_eq_zero
+    (f : ZetaAdmissibleFunction) :
+    (completedBoundaryLowerWeightExactHilbertWeightStream f).scalar = 0 := by
+  rfl
+
+/-- The lower-weight exact Hilbert stream is lower-weight exact. -/
+theorem completedBoundaryLowerWeightExactHilbertWeightStream_isLowerWeightExact
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightExact
+      (completedBoundaryLowerWeightExactHilbertWeightStream f) := by
+  rfl
+
+/-- Any completed Hilbert stream with zero source is lower-weight null. -/
+theorem completedBoundaryHilbertWeightStream_isLowerWeightNull_of_source_eq_zero
+    (D : CompletedBoundaryHilbertWeightStream)
+    (hD : D.source = (0 : CompletedBoundaryHilbertSource)) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightNull D := by
+  intro T
+  constructor
+  · calc
+      completedBoundaryHilbertPairing D.source T.source =
+          completedBoundaryHilbertPairing (0 : CompletedBoundaryHilbertSource) T.source := by
+        exact congrArg (fun X : CompletedBoundaryHilbertSource =>
+          completedBoundaryHilbertPairing X T.source) hD
+      _ = 0 := by
+        exact completedBoundaryHilbertPairing_zero_left T.source
+  · calc
+      completedBoundaryHilbertPairing T.source D.source =
+          completedBoundaryHilbertPairing T.source (0 : CompletedBoundaryHilbertSource) := by
+        exact congrArg (fun X : CompletedBoundaryHilbertSource =>
+          completedBoundaryHilbertPairing T.source X) hD
+      _ = 0 := by
+        exact completedBoundaryHilbertPairing_zero_right T.source
+
+/-- The concrete diagonal-debt cancellation stream is lower-weight null. -/
+theorem completedBoundaryLowerWeightExactHilbertWeightStream_isLowerWeightNull_unconditional
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightNull
+      (completedBoundaryLowerWeightExactHilbertWeightStream f) := by
+  exact completedBoundaryHilbertWeightStream_isLowerWeightNull_of_source_eq_zero
+    (completedBoundaryLowerWeightExactHilbertWeightStream f)
+    (completedBoundaryLowerWeightExactSourceProbe f).source_eq_zero
 
 
 /-- The completed boundary pairing is induced by the two-variable completed boundary kernel. -/
@@ -2731,6 +3198,13 @@ theorem completedBoundaryHilbertWeightStream_isLowerWeightNull_of_lowerWeightExa
     D
     (CompletedBoundaryHilbertWeightStream.IsLowerWeightExact.pairing_self_eq_zero hD)
 
+/-- The concrete diagonal-debt cancellation stream is lower-weight null. -/
+theorem completedBoundaryLowerWeightExactHilbertWeightStream_isLowerWeightNull
+    (f : ZetaAdmissibleFunction) :
+    CompletedBoundaryHilbertWeightStream.IsLowerWeightNull
+      (completedBoundaryLowerWeightExactHilbertWeightStream f) := by
+  exact completedBoundaryLowerWeightExactHilbertWeightStream_isLowerWeightNull_unconditional f
+
 /-- A completed positive-boundary precone element.
 
 The positive representative is the finite square-energy window.  The absorbed representative
@@ -2890,6 +3364,76 @@ theorem completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_weight
       N f).trans
       (finiteBoundaryWeightObject_finitePartRepresentative_eq_finitePartBoundaryWindow
         N f).symm
+
+/-- The precone absorption defect is the negative face of the finite diagonal debt. -/
+theorem completedPositiveBoundaryPreconeElement_absorptionDefect_eq_neg_diagonalDebt
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+      - (finiteBoundaryWeightObject N f).diagonalDebt := by
+  have hdefect :
+      (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+        finitePartDebtAbsorptionWindow N f :=
+    completedPositiveBoundaryPreconeElement_absorptionDefect_eq_debtAbsorption N f
+  have habs :
+      finitePartDebtAbsorptionWindow N f =
+        (finiteBoundaryWeightObject N f).debtAbsorption := by
+    rfl
+  have hneg :
+      (finiteBoundaryWeightObject N f).debtAbsorption =
+        - (finiteBoundaryWeightObject N f).diagonalDebt :=
+    finiteBoundaryWeightObject_debtAbsorption_eq_neg_diagonalDebt N f
+  exact hdefect.trans (habs.trans hneg)
+
+/-- Completed precone-level weight-triangular transport: the positive square representative,
+after adding the lower-weight absorption defect, is the finite-part weight representative. -/
+theorem completedPositiveBoundaryPreconeElement_weightTriangularTransport
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).positiveRepresentative N +
+        (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  have habsorbed :
+      (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+        (completedPositiveBoundaryPreconeElement f).positiveRepresentative N +
+          (completedPositiveBoundaryPreconeElement f).absorptionDefect N :=
+    completedPositiveBoundaryPreconeElement_absorbed_eq_positive_add_absorptionDefect N f
+  have hfinite :
+      (completedPositiveBoundaryPreconeElement f).absorbedRepresentative N =
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          (finiteBoundaryWeightObject N f) :=
+    completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_weightFinitePart N f
+  exact habsorbed.symm.trans hfinite
+
+/-- Completed precone-level transport with the diagonal face written explicitly. -/
+theorem completedPositiveBoundaryPreconeElement_positive_sub_diagonalDebt_eq_weightFinitePart
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (completedPositiveBoundaryPreconeElement f).positiveRepresentative N -
+        (finiteBoundaryWeightObject N f).diagonalDebt =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  have hdefect :
+      (completedPositiveBoundaryPreconeElement f).absorptionDefect N =
+        - (finiteBoundaryWeightObject N f).diagonalDebt :=
+    completedPositiveBoundaryPreconeElement_absorptionDefect_eq_neg_diagonalDebt N f
+  calc
+    (completedPositiveBoundaryPreconeElement f).positiveRepresentative N -
+        (finiteBoundaryWeightObject N f).diagonalDebt =
+        (completedPositiveBoundaryPreconeElement f).positiveRepresentative N +
+          - (finiteBoundaryWeightObject N f).diagonalDebt := by
+      exact sub_eq_add_neg
+        ((completedPositiveBoundaryPreconeElement f).positiveRepresentative N)
+        ((finiteBoundaryWeightObject N f).diagonalDebt)
+    _ =
+        (completedPositiveBoundaryPreconeElement f).positiveRepresentative N +
+          (completedPositiveBoundaryPreconeElement f).absorptionDefect N := by
+      exact congrArg
+        (fun x : ℝ =>
+          (completedPositiveBoundaryPreconeElement f).positiveRepresentative N + x)
+        hdefect.symm
+    _ =
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          (finiteBoundaryWeightObject N f) := by
+      exact completedPositiveBoundaryPreconeElement_weightTriangularTransport N f
 
 /-- The absorbed representative is exactly the raw completed boundary window, because the
 finite diagonal debt has been added and cancelled inside the finite-part normalization. -/
