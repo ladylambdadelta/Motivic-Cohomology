@@ -194,6 +194,59 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_nonnega
         N := by
   exact completedPositiveBoundaryPreconeElement_positiveRepresentative_nonnegative N f
 
+/-- The positive representative in the convolution-autocorrelation boundary class is the
+finite defect-square representative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_positive_eq_weightSquare
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).positiveRepresentative
+        N =
+      FiniteBoundaryWeightObject.squareRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact completedPositiveBoundaryPreconeElement_positiveRepresentative_eq_weightSquare N f
+
+/-- The absorption defect in the convolution-autocorrelation boundary class is the negative
+finite diagonal-debt face. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_absorptionDefect_eq_neg_diagonalDebt
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorptionDefect N =
+      - (finiteBoundaryWeightObject N f).diagonalDebt := by
+  exact completedPositiveBoundaryPreconeElement_absorptionDefect_eq_neg_diagonalDebt N f
+
+/-- Weight-triangular transport for the convolution-autocorrelation boundary class: adding the
+lower-weight absorption defect transports the positive square representative to the finite-part
+boundary representative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_weightTriangularTransport
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).positiveRepresentative
+        N +
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorptionDefect
+          N =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact completedPositiveBoundaryPreconeElement_weightTriangularTransport N f
+
+/-- The same transport with the diagonal face written explicitly. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_positive_sub_diagonalDebt_eq_weightFinitePart
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).positiveRepresentative
+        N -
+        (finiteBoundaryWeightObject N f).diagonalDebt =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact completedPositiveBoundaryPreconeElement_positive_sub_diagonalDebt_eq_weightFinitePart
+    N f
+
+/-- The absorbed representative in the positive class is the finite-part boundary
+representative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_absorbed_eq_weightFinitePart
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorbedRepresentative
+        N =
+      FiniteBoundaryWeightObject.finitePartRepresentative
+        (finiteBoundaryWeightObject N f) := by
+  exact completedPositiveBoundaryPreconeElement_absorbedRepresentative_eq_weightFinitePart
+    N f
+
 /-- The absorbed representative in the convolution-autocorrelation boundary class realizes to
 the boundary Krein scalar. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_tendsto
@@ -203,6 +256,57 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_tendsto
       atTop
       (𝓝 (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)) := by
   exact completedPositiveBoundaryPreconeElement_absorbedRepresentative_tendsto_scalar f
+
+/-- The finite-part representatives obtained by triangular transport converge to the boundary
+Krein scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_weightFinitePart_tendsto
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          (finiteBoundaryWeightObject N f))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)) := by
+  have habsorbed :
+      Tendsto
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorbedRepresentative
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)) :=
+    zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_tendsto f
+  have htransport :
+      (fun N : ℕ =>
+        FiniteBoundaryWeightObject.finitePartRepresentative
+          (finiteBoundaryWeightObject N f)) =
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).absorbedRepresentative := by
+    funext N
+    exact
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_absorbed_eq_weightFinitePart
+        N f).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop
+        (𝓝 (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)))
+    htransport.symm
+    habsorbed
+
+/-- The scalar of the convolution-autocorrelation positive class is the boundary Krein scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_KreinSum
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  rfl
+
+/-- Nonnegativity of the completed positive-class scalar gives nonnegativity of the boundary
+Krein scalar. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_positiveClass
+    (f : ZetaAdmissibleFunction)
+    (hclass :
+      0 ≤ (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_KreinSum f)
+    hclass
 
 /-- A complex number is a real scalar once its real part is the scalar and its imaginary part
 vanishes. -/

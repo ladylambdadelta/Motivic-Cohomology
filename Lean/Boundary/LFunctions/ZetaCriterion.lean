@@ -107,6 +107,23 @@ theorem zetaCriterion_quadraticWeilPositivity_predicate :
   exact zetaCriterion_quadraticWeilPositivity_of_autocorrelation
     (zetaCriterion_autocorrelation_weilPositivity_predicate hboundaryAll)
 
+/-- Nonnegativity of the completed positive-class scalar implies the criterion's quadratic
+Weil positivity predicate.  This is the payoff seam for the weight-triangular transport layer:
+the remaining ordered-heart work is to prove nonnegativity of the transported positive-class
+scalar, not of the raw boundary cross term. -/
+theorem zetaCriterion_quadraticWeilPositivity_of_positiveClassScalar
+    (hclass :
+      ∀ f : ZetaAdmissibleFunction,
+        0 ≤
+          (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass
+            f).scalar) :
+    ZetaWeilQuadraticPositivity := by
+  exact zetaCriterion_quadraticWeilPositivity_predicate
+    (fun f : ZetaAdmissibleFunction =>
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_positiveClass
+        f
+        (hclass f))
+
 /-- The Weil criterion in the quadratic/autocorrelation form. -/
 theorem zetaCriterion_boundaryRiemannHypothesis_of_quadraticWeilPositivity
     (h : ZetaWeilQuadraticPositivity) :
