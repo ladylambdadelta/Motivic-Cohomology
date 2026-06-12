@@ -253,7 +253,23 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   have hpole' : (1 / 2 + s) ≠ 1 :=
     boundaryRiemannHypothesis_pole_shift z hpole
   have hsre : s.re = 0 := h s hz' htriv' hpole'
-  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
+	  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
+
+/-- The zero-detecting direction of Weil's criterion.
+
+An off-critical nontrivial centered zero can be separated by an admissible
+autocorrelation seed whose completed Weil quadratic form is strictly negative.
+This is the real analytic Hahn--Banach/Paley--Wiener separation step in the
+criterion; the wrapper below only turns it into the centered-zero conclusion. -/
+theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+    (s : ℂ)
+    (hz : riemannZeta (1 / 2 + s) = 0)
+    (htriv : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1))
+    (hpole : (1 / 2 + s) ≠ 1)
+    (hoff : s.re ≠ 0) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
+  sorry
 
 /-- Quadratic Weil positivity gives the centered zero criterion.
 
@@ -263,11 +279,15 @@ critical line. -/
 theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
     (h : ZetaWeilQuadraticPositivity) :
     ∀ s : ℂ,
-      riemannZeta (1 / 2 + s) = 0 →
-        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
-          (1 / 2 + s) ≠ 1 →
-            s.re = 0 := by
-  sorry
+	      riemannZeta (1 / 2 + s) = 0 →
+	        (¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1)) →
+	          (1 / 2 + s) ≠ 1 →
+	            s.re = 0 := by
+  intro s hz htriv hpole
+  by_contra hoff
+  rcases exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+      s hz htriv hpole hoff with ⟨f, hfneg⟩
+  exact (not_lt_of_ge (h f)) hfneg
 
 /-- The standard Weil criterion in the quadratic/autocorrelation form. -/
 theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
