@@ -137,14 +137,48 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- The explicit contour-transport coordinate envelope is summable by horizontal contour
-decay. -/
+/-- The spectral half-envelope for contour-transport coordinates is summable by horizontal
+contour decay. -/
+theorem summable_completedPrimeContourTransportSpectralCoordinateEnvelope_of_horizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportSpectralCoordinateEnvelope ι f) := by
+  sorry
+
+/-- The time half-envelope for contour-transport coordinates is summable by the physical
+prime-kernel decay estimate. -/
+theorem summable_completedPrimeContourTransportTimeCoordinateEnvelope_of_primeKernelDecay
+    (f : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourTransportTimeCoordinateEnvelope ι f) := by
+  sorry
+
+/-- The explicit contour-transport coordinate envelope is summable after separately summing
+its spectral and time half-envelopes. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainderEnvelope_of_horizontalDecay
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderEnvelope ι f) := by
-  sorry
+  have hspectral :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourTransportSpectralCoordinateEnvelope ι f) :=
+    summable_completedPrimeContourTransportSpectralCoordinateEnvelope_of_horizontalDecay f
+  have htime :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourTransportTimeCoordinateEnvelope ι f) :=
+    summable_completedPrimeContourTransportTimeCoordinateEnvelope_of_primeKernelDecay f
+  exact (hspectral.add htime).congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (show
+        completedPrimeContourTransportSpectralCoordinateEnvelope ι f +
+            completedPrimeContourTransportTimeCoordinateEnvelope ι f =
+          completedPrimeContourTransportCoordinateRemainderEnvelope ι f from
+        rfl))
 
 /-- The contour-transport coordinate-remainder majorant is summable by domination by the
 explicit horizontal-decay envelope. -/
