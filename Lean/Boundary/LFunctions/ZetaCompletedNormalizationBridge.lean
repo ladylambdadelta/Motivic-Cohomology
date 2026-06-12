@@ -94,7 +94,8 @@ factor at every point where the completed normalization is valid. -/
 theorem deriv_zetaSideFactor_eq_deriv_riemannZeta
     {s : ℂ} (hs : s ≠ 0) (hΓ : Gammaℝ s ≠ 0) :
     deriv zetaSideFactor s = deriv riemannZeta s := by
-  sorry
+  exact Filter.EventuallyEq.deriv_eq
+    (zetaSideFactor_eventually_eq_riemannZeta hs hΓ)
 
 theorem deriv_zetaSideFactor_at {s : ℂ}
     (hs0 : s ≠ 0) (hs1 : s ≠ 1) (_hΓ : Gammaℝ s ≠ 0) :
