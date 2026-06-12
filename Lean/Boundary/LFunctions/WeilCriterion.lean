@@ -277,6 +277,24 @@ theorem OffCriticalCenteredZetaZero.point_zeta_zero
     riemannZeta (1 / 2 + z.point) = 0 :=
   z.zeta_zero
 
+/-- Off-critical zero separation with the finite orbit and tail margin exposed.
+
+The first inequality says the chosen finite centered zero orbit is a genuinely negative
+direction. The second says the complementary zero tail is dominated by that negative margin
+for the same autocorrelation probe. -/
+theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
+    (z : OffCriticalCenteredZetaZero)
+    (hcompleted : ZetaCompletedZero z.point)
+    (horbit : ∀ η : ℂ, η ∈ zetaZeroOrbitFinset z.point → ZetaCompletedZero η) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaZeroOrbitContributionRe z.point
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 ∧
+        zetaZeroOrbitRemainderRe z.point
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) <
+            - zetaZeroOrbitContributionRe z.point
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+  sorry
+
 /-- Off-critical zero separation after isolating the finite zero orbit.
 
 The finite orbit is the controlled negative direction; the orbit remainder is the tail that
@@ -290,7 +308,24 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
         zetaZeroOrbitRemainderRe z.point
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  sorry
+  rcases
+    exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
+      z hcompleted horbit with
+    ⟨f, _hfinite_negative, hremainder_dominated⟩
+  refine ⟨f, ?_⟩
+  let A : ℝ :=
+    zetaZeroOrbitContributionRe z.point
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+  let R : ℝ :=
+    zetaZeroOrbitRemainderRe z.point
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+  have hR : R < -A := by
+    exact hremainder_dominated
+  have hsum_lt : A + R < A + -A := by
+    exact add_lt_add_left hR A
+  have hzero : A + -A = 0 := by
+    exact add_neg_cancel A
+  exact hsum_lt.trans_eq hzero
 
 /-- The shifted coordinate of an off-critical centered zero avoids the completed
 normalization singularity. -/
