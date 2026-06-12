@@ -31,87 +31,6 @@ namespace ZetaAdmissibleFunction
 
 open Filter
 
-/-- The packet realization of a completed Hilbert source.
-
-The correction coordinate is the source coordinate, not the fixed completed-zeta coordinate.
-This keeps the packet realization compatible with the zero Hilbert source and makes the GNS
-radical a genuine packet-kernel radical. -/
-noncomputable def completedBoundaryHilbertSourcePacket
-    (X : CompletedBoundaryHilbertSource) : ZetaPacketEnsemble :=
-  zetaCompletedBoundaryDefectPrime X.seed +
-    zetaCompletedBoundaryDefectArchimedean X.seed +
-    ZetaPacketEnsemble.single ZetaPacketLabel.correction X.correctionCoordinate
-
-/-- The completed positive GNS kernel on Hilbert sources, realized as the packet dot product.
-This is the owner two-variable positive kernel; the legacy completed boundary pairing is
-compared to it separately by transport theorems. -/
-noncomputable def completedBoundaryGNSKernel
-    (X Y : CompletedBoundaryHilbertSource) : ℝ :=
-  ZetaPacketEnsemble.dotProduct
-    (completedBoundaryHilbertSourcePacket X)
-    (completedBoundaryHilbertSourcePacket Y)
-
-/-- The completed positive GNS kernel is symmetric. -/
-theorem completedBoundaryGNSKernel_symmetric
-    (X Y : CompletedBoundaryHilbertSource) :
-    completedBoundaryGNSKernel X Y =
-      completedBoundaryGNSKernel Y X := by
-  unfold completedBoundaryGNSKernel
-  exact ZetaPacketEnsemble.dotProduct_comm
-    (completedBoundaryHilbertSourcePacket X)
-    (completedBoundaryHilbertSourcePacket Y)
-
-/-- The completed positive GNS radical is the zero-norm radical of the completed positive
-kernel. -/
-def completedBoundaryGNSRadical
-    (X : CompletedBoundaryHilbertSource) : Prop :=
-  completedBoundaryGNSKernel X X = 0
-
-/-- Zero GNS norm kills left cross-terms in the completed positive packet kernel. -/
-theorem completedBoundaryGNSKernel_left_zero_of_self_zero
-    {X Y : CompletedBoundaryHilbertSource}
-    (hX : completedBoundaryGNSRadical X) :
-    completedBoundaryGNSKernel X Y = 0 := by
-  unfold completedBoundaryGNSRadical at hX
-  unfold completedBoundaryGNSKernel at hX
-  unfold completedBoundaryGNSKernel
-  exact ZetaPacketEnsemble.dotProduct_left_eq_zero_of_normSq_eq_zero hX
-
-/-- Zero GNS norm kills right cross-terms in the completed positive packet kernel. -/
-theorem completedBoundaryGNSKernel_right_zero_of_self_zero
-    {X Y : CompletedBoundaryHilbertSource}
-    (hY : completedBoundaryGNSRadical Y) :
-    completedBoundaryGNSKernel X Y = 0 := by
-  unfold completedBoundaryGNSRadical at hY
-  unfold completedBoundaryGNSKernel at hY
-  unfold completedBoundaryGNSKernel
-  exact ZetaPacketEnsemble.dotProduct_right_eq_zero_of_normSq_eq_zero hY
-
-/-- The completed positive GNS kernel is nonnegative on the diagonal. -/
-theorem completedBoundaryGNSKernel_self_nonnegative
-    (X : CompletedBoundaryHilbertSource) :
-    0 ≤ completedBoundaryGNSKernel X X := by
-  unfold completedBoundaryGNSKernel
-  exact ZetaPacketEnsemble.normSq_nonneg
-    (completedBoundaryHilbertSourcePacket X)
-
-/-- The completed positive GNS norm-square of an admissible seed.  This is the positive
-quotient-side scalar; comparison with the legacy completed boundary scalar is a separate
-transport theorem. -/
-noncomputable def completedBoundaryGNSPositiveNormSq
-    (f : ZetaAdmissibleFunction) : ℝ :=
-  completedBoundaryGNSKernel
-    (completedBoundaryHilbertSource f)
-    (completedBoundaryHilbertSource f)
-
-/-- The completed positive GNS norm-square is nonnegative. -/
-theorem completedBoundaryGNSPositiveNormSq_nonnegative
-    (f : ZetaAdmissibleFunction) :
-    0 ≤ completedBoundaryGNSPositiveNormSq f := by
-  unfold completedBoundaryGNSPositiveNormSq
-  exact completedBoundaryGNSKernel_self_nonnegative
-    (completedBoundaryHilbertSource f)
-
 /-- The Hilbert-source packet of the canonical source is the completed boundary-defect packet.
 This is a comparison theorem, not the definition of the GNS kernel. -/
 theorem completedBoundaryHilbertSourcePacket_eq_boundaryDefect
@@ -132,6 +51,8 @@ theorem completedBoundaryGNSPositiveNormSq_eq_boundaryDefectGram
         zetaCompletedBoundaryDefect f :=
     completedBoundaryHilbertSourcePacket_eq_boundaryDefect f
   unfold completedBoundaryGNSPositiveNormSq
+  unfold completedBoundaryGNSNormSq
+  unfold completedOrderedHeartScalar
   unfold completedBoundaryGNSKernel
   unfold zetaCompletedBoundaryDefectGram
   unfold ZetaPacketEnsemble.normSq
@@ -439,24 +360,45 @@ theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_absorpt
       (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f) := by
   exact completedPositiveBoundaryAbsorptionDefectOrderedHeartClass_lowerWeightRadical f
 
-/-- The autocorrelation boundary positive-class scalar is the square-only ordered-heart scalar.
-The packet norm comparison is deliberately not used as a definition here. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_positiveSquare_scalar
+/-- The positive square ordered-heart scalar is the completed GNS norm-square. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar_eq_GNSNormSq
     (f : ZetaAdmissibleFunction) :
-    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
-      completedOrderedHeartScalar
-        (completedPositiveSquareBoundaryOrderedHeartClass f) := by
-  exact completedPositiveBoundaryPreconeElement_scalar_eq_positiveSquare_scalar f
-
-/-- The autocorrelation boundary positive-class scalar is the completed GNS norm-square. -/
-theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass_scalar_eq_GNSNormSq
-    (f : ZetaAdmissibleFunction) :
-    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveClass f).scalar =
+    completedOrderedHeartScalar
+        (completedPositiveSquareBoundaryOrderedHeartClass f) =
       completedBoundaryGNSNormSq f := by
-  exact completedPositiveBoundaryPreconeElement_scalar_eq_GNSNormSq f
+  exact completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq f
 
-/-- Nonnegativity of the completed positive-class scalar gives nonnegativity of the boundary
-Krein scalar. -/
+/-- The positive square ordered-heart scalar is nonnegative. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ completedOrderedHeartScalar
+        (completedPositiveSquareBoundaryOrderedHeartClass f) := by
+  have hgns : 0 ≤ completedBoundaryGNSNormSq f :=
+    completedBoundaryGNSNormSq_nonnegative f
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryPositiveSquare_scalar_eq_GNSNormSq
+      f).symm
+    hgns
+
+/-- Once the time-side autocorrelation Krein scalar is transported to the completed
+ordered-heart GNS scalar, nonnegativity is immediate from the GNS positive kernel. -/
+theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_GNSTransport
+    (f : ZetaAdmissibleFunction)
+    (htransport :
+      zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+        completedBoundaryGNSNormSq f) :
+    0 ≤ zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f := by
+  have hgns : 0 ≤ completedBoundaryGNSNormSq f :=
+    completedBoundaryGNSNormSq_nonnegative f
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 ≤ x)
+    htransport.symm
+    hgns
+
+/-- Nonnegativity of the finite time-side positive-class scalar gives nonnegativity of the
+boundary Krein scalar.  This is retained as a finite-precone wrapper; the ordered-heart/GNS
+route goes through `zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_GNSTransport`. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_positiveClass
     (f : ZetaAdmissibleFunction)
     (hclass :
@@ -757,6 +699,39 @@ theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_pairedForm
   unfold zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic
   unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
   exact (zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions f).symm
+
+/-- The paired spectral convolution Krein scalar is exactly the symmetrized GNS boundary
+scalar.  This is the owner bridge from the two-face spectral presentation into the
+completed GNS boundary surface. -/
+theorem zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_GNSSymmetrizedBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f =
+      zetaCompletedGNSSymmetrizedBoundaryScalar f := by
+  unfold zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
+  unfold zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm
+  unfold zetaCompletedGNSSymmetrizedBoundaryScalar
+  exact congrArg Complex.re
+    (zetaCompletedBoundaryReconstruction_pairedForm_eq_GNSSymmetrizedBoundaryForm f)
+
+/-- The complex convolution boundary presentation has real part equal to the symmetrized GNS
+boundary scalar. -/
+theorem zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_re_eq_GNSSymmetrizedBoundaryScalar
+    (f : ZetaAdmissibleFunction) :
+    Complex.re (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
+      zetaCompletedGNSSymmetrizedBoundaryScalar f := by
+  have hpaired :
+      zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f =
+        zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm f :=
+    zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic_eq_pairedForm f
+  calc
+    Complex.re (zetaCompletedExplicitFormulaConvolutionBoundarySumAnalytic f) =
+        Complex.re (zetaCompletedExplicitFormulaConvolutionBoundaryPairedForm f) := by
+      exact congrArg Complex.re hpaired
+    _ = zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum f := by
+      unfold zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum
+    _ = zetaCompletedGNSSymmetrizedBoundaryScalar f := by
+      exact zetaCompletedExplicitFormulaConvolutionBoundaryKreinSum_eq_GNSSymmetrizedBoundaryScalar
+        f
 
 /-- The real two-face prime presentation is the realized prime GNS channel. -/
 theorem zetaRealPrimePresentation_eq_realizedPrimeGram

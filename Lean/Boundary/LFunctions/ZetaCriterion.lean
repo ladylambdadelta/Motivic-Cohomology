@@ -107,10 +107,25 @@ theorem zetaCriterion_quadraticWeilPositivity_predicate :
   exact zetaCriterion_quadraticWeilPositivity_of_autocorrelation
     (zetaCriterion_autocorrelation_weilPositivity_predicate hboundaryAll)
 
-/-- Nonnegativity of the completed positive-class scalar implies the criterion's quadratic
-Weil positivity predicate.  This is the payoff seam for the weight-triangular transport layer:
-the remaining ordered-heart work is to prove nonnegativity of the transported positive-class
-scalar, not of the raw boundary cross term. -/
+/-- Transport from the time-side autocorrelation Krein scalar to the completed ordered-heart
+GNS norm-square implies the criterion's quadratic Weil positivity predicate.  The GNS scalar
+is nonnegative by construction; the comparison/transport theorem is the remaining analytic
+input. -/
+theorem zetaCriterion_quadraticWeilPositivity_of_GNSTransport
+    (htransport :
+      ∀ f : ZetaAdmissibleFunction,
+        ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f =
+          ZetaAdmissibleFunction.completedBoundaryGNSNormSq f) :
+    ZetaWeilQuadraticPositivity := by
+  exact zetaCriterion_quadraticWeilPositivity_predicate
+    (fun f : ZetaAdmissibleFunction =>
+      ZetaAdmissibleFunction.zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum_nonnegative_of_GNSTransport
+        f
+        (htransport f))
+
+/-- Nonnegativity of the finite time-side positive-class scalar implies the criterion's
+quadratic Weil positivity predicate.  This finite-precone wrapper is retained for comparison;
+the ordered-heart/GNS route is `zetaCriterion_quadraticWeilPositivity_of_GNSTransport`. -/
 theorem zetaCriterion_quadraticWeilPositivity_of_positiveClassScalar
     (hclass :
       ∀ f : ZetaAdmissibleFunction,

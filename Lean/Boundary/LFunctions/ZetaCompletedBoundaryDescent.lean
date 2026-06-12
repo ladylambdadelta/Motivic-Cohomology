@@ -1,5 +1,6 @@
 import Boundary.LFunctions.ZetaCompletedSquareLedger
 import Boundary.LFunctions.ZetaTransformCalculusBase
+import Boundary.LFunctions.ZetaPacketComparison
 
 /-!
 # Boundary completed-channel descent
@@ -2252,6 +2253,69 @@ def completedBoundaryHilbertSource
   { seed := f
     correctionCoordinate := zetaCompletionCorrectionPacketCoordinate }
 
+/-- The packet realization of a completed Hilbert source.
+
+The correction coordinate is the source coordinate, not the fixed completed-zeta coordinate.
+This keeps the packet realization compatible with lower-weight source changes and makes the
+GNS scalar a genuine packet-kernel scalar. -/
+noncomputable def completedBoundaryHilbertSourcePacket
+    (X : CompletedBoundaryHilbertSource) : ZetaPacketEnsemble :=
+  zetaCompletedBoundaryDefectPrime X.seed +
+    zetaCompletedBoundaryDefectArchimedean X.seed +
+    ZetaPacketEnsemble.single ZetaPacketLabel.correction X.correctionCoordinate
+
+/-- The completed positive GNS kernel on Hilbert sources, realized as the packet dot product.
+The reduced time-side Hilbert pairing is retained below as a comparison channel, not as the
+ordered-heart scalar owner. -/
+noncomputable def completedBoundaryGNSKernel
+    (X Y : CompletedBoundaryHilbertSource) : ℝ :=
+  ZetaPacketEnsemble.dotProduct
+    (completedBoundaryHilbertSourcePacket X)
+    (completedBoundaryHilbertSourcePacket Y)
+
+/-- The completed positive GNS kernel is symmetric. -/
+theorem completedBoundaryGNSKernel_symmetric
+    (X Y : CompletedBoundaryHilbertSource) :
+    completedBoundaryGNSKernel X Y =
+      completedBoundaryGNSKernel Y X := by
+  unfold completedBoundaryGNSKernel
+  exact ZetaPacketEnsemble.dotProduct_comm
+    (completedBoundaryHilbertSourcePacket X)
+    (completedBoundaryHilbertSourcePacket Y)
+
+/-- The completed positive GNS radical is the zero-norm radical of the packet kernel. -/
+def completedBoundaryGNSRadical
+    (X : CompletedBoundaryHilbertSource) : Prop :=
+  completedBoundaryGNSKernel X X = 0
+
+/-- Zero GNS norm kills left cross-terms in the completed positive packet kernel. -/
+theorem completedBoundaryGNSKernel_left_zero_of_self_zero
+    {X Y : CompletedBoundaryHilbertSource}
+    (hX : completedBoundaryGNSRadical X) :
+    completedBoundaryGNSKernel X Y = 0 := by
+  unfold completedBoundaryGNSRadical at hX
+  unfold completedBoundaryGNSKernel at hX
+  unfold completedBoundaryGNSKernel
+  exact ZetaPacketEnsemble.dotProduct_left_eq_zero_of_normSq_eq_zero hX
+
+/-- Zero GNS norm kills right cross-terms in the completed positive packet kernel. -/
+theorem completedBoundaryGNSKernel_right_zero_of_self_zero
+    {X Y : CompletedBoundaryHilbertSource}
+    (hY : completedBoundaryGNSRadical Y) :
+    completedBoundaryGNSKernel X Y = 0 := by
+  unfold completedBoundaryGNSRadical at hY
+  unfold completedBoundaryGNSKernel at hY
+  unfold completedBoundaryGNSKernel
+  exact ZetaPacketEnsemble.dotProduct_right_eq_zero_of_normSq_eq_zero hY
+
+/-- The completed positive GNS kernel is nonnegative on the diagonal. -/
+theorem completedBoundaryGNSKernel_self_nonnegative
+    (X : CompletedBoundaryHilbertSource) :
+    0 ≤ completedBoundaryGNSKernel X X := by
+  unfold completedBoundaryGNSKernel
+  exact ZetaPacketEnsemble.normSq_nonneg
+    (completedBoundaryHilbertSourcePacket X)
+
 /-- The lower-weight exact Hilbert source is the zero source: it has no analytic seed and no
 correction square coordinate. -/
 def completedBoundaryLowerWeightExactHilbertSource :
@@ -2284,16 +2348,17 @@ def CompletedBoundaryHilbertSource.LowerWeightRadical
     completedBoundaryHilbertPairing D T = 0 ∧
       completedBoundaryHilbertPairing T D = 0
 
-/-- The scalar induced by the completed Hilbert pairing on a Hilbert-source representative of
-the ordered heart. -/
+/-- The scalar induced by the completed positive GNS kernel on a Hilbert-source representative
+of the ordered heart. -/
 def completedOrderedHeartScalar
     (X : CompletedBoundaryHilbertSource) : ℝ :=
-  completedBoundaryHilbertPairing X X
+  completedBoundaryGNSKernel X X
 
 /-- The completed GNS norm-square induced by the completed Hilbert quotient pairing.
 
-This is the canonical ordered-heart scalar of the realized Hilbert source; it is not defined
-by packet norm.  Packet norm belongs to a later comparison theorem. -/
+This is the canonical ordered-heart scalar of the realized Hilbert source, owned by the
+positive packet kernel.  The reduced time-side boundary pairing is related to this scalar by
+separate transport/comparison theorems. -/
 def completedBoundaryGNSNormSq
     (f : ZetaAdmissibleFunction) : ℝ :=
   completedOrderedHeartScalar (completedBoundaryHilbertSource f)
@@ -2305,15 +2370,37 @@ theorem completedBoundaryGNSNormSq_eq_orderedHeartScalar
       completedOrderedHeartScalar (completedBoundaryHilbertSource f) := by
   rfl
 
-/-- The completed GNS norm-square is induced by self-pairing in the completed Hilbert
-quotient. -/
-theorem completedBoundaryGNSNormSq_eq_HilbertPairing_self
+/-- The completed GNS norm-square is induced by self-pairing in the completed positive packet
+kernel. -/
+theorem completedBoundaryGNSNormSq_eq_GNSKernel_self
     (f : ZetaAdmissibleFunction) :
     completedBoundaryGNSNormSq f =
-      completedBoundaryHilbertPairing
+      completedBoundaryGNSKernel
         (completedBoundaryHilbertSource f)
         (completedBoundaryHilbertSource f) := by
   rfl
+
+/-- The completed ordered-heart GNS norm-square is nonnegative. -/
+theorem completedBoundaryGNSNormSq_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ completedBoundaryGNSNormSq f := by
+  unfold completedBoundaryGNSNormSq
+  unfold completedOrderedHeartScalar
+  exact completedBoundaryGNSKernel_self_nonnegative
+    (completedBoundaryHilbertSource f)
+
+/-- Compatibility name for the completed positive GNS norm-square.  The owner scalar is
+`completedBoundaryGNSNormSq`; this abbreviation keeps older packet-comparison wrappers useful
+without creating a second scalar. -/
+abbrev completedBoundaryGNSPositiveNormSq
+    (f : ZetaAdmissibleFunction) : ℝ :=
+  completedBoundaryGNSNormSq f
+
+/-- The completed positive GNS norm-square is nonnegative. -/
+theorem completedBoundaryGNSPositiveNormSq_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ completedBoundaryGNSPositiveNormSq f := by
+  exact completedBoundaryGNSNormSq_nonnegative f
 
 /-- The Hilbert pairing unfolds to the reduced analytic source pairing plus the explicit
 correction-coordinate product. -/
@@ -2324,6 +2411,12 @@ theorem completedBoundaryHilbertPairing_eq_reduced_add_correction
           (completedBoundaryReducedChannel (convolutionPair X.seed Y.seed)) +
         X.correctionCoordinate * Y.correctionCoordinate := by
   rfl
+
+/-- The scalar induced by the reduced time-side Hilbert pairing.  This is retained as a
+comparison scalar; the completed ordered-heart scalar is owned by the positive GNS kernel. -/
+def completedBoundaryTimePairingScalar
+    (X : CompletedBoundaryHilbertSource) : ℝ :=
+  completedBoundaryHilbertPairing X X
 
 /-- The prime boundary channel vanishes on the zero admissible probe. -/
 theorem primeBoundaryChannel_zero :
@@ -2572,9 +2665,9 @@ theorem completedBoundaryHilbertSource_zero_lowerWeightRadical :
     ⟨completedBoundaryHilbertPairing_zero_left T,
       completedBoundaryHilbertPairing_zero_right T⟩
 
-/-- Adding a lower-weight radical Hilbert source does not change the scalar, provided the
-completed Hilbert pairing is additive in both variables. -/
-theorem completedOrderedHeartScalar_eq_of_add_lowerWeightRadical
+/-- Adding a lower-weight radical Hilbert source does not change the reduced time-pairing
+scalar, provided the completed Hilbert pairing is additive in both variables. -/
+theorem completedBoundaryTimePairingScalar_eq_of_add_lowerWeightRadical
     (B_add_left :
       ∀ x y z : CompletedBoundaryHilbertSource,
         completedBoundaryHilbertPairing (x + y) z =
@@ -2587,15 +2680,15 @@ theorem completedOrderedHeartScalar_eq_of_add_lowerWeightRadical
             completedBoundaryHilbertPairing x z)
     (Y D : CompletedBoundaryHilbertSource)
     (hD : CompletedBoundaryHilbertSource.LowerWeightRadical D) :
-    completedOrderedHeartScalar (Y + D) =
-      completedOrderedHeartScalar Y := by
+    completedBoundaryTimePairingScalar (Y + D) =
+      completedBoundaryTimePairingScalar Y := by
   have hDYD :
       completedBoundaryHilbertPairing D (Y + D) = 0 :=
     (hD (Y + D)).1
   have hYD :
       completedBoundaryHilbertPairing Y D = 0 :=
     (hD Y).2
-  unfold completedOrderedHeartScalar
+  unfold completedBoundaryTimePairingScalar
   calc
     completedBoundaryHilbertPairing (Y + D) (Y + D) =
         completedBoundaryHilbertPairing Y (Y + D) +
@@ -2651,10 +2744,10 @@ theorem completedBoundaryHilbertSource_eq_add_sub
         exact add_zero X
   exact h.symm
 
-/-- Two Hilbert-source representatives have the same ordered-heart scalar when their
+/-- Two Hilbert-source representatives have the same reduced time-pairing scalar when their
 difference is lower-weight radical, provided the completed Hilbert pairing is additive in both
 variables. -/
-theorem completedOrderedHeartScalar_eq_of_lowerWeightRadical_sub
+theorem completedBoundaryTimePairingScalar_eq_of_lowerWeightRadical_sub
     (B_add_left :
       ∀ x y z : CompletedBoundaryHilbertSource,
         completedBoundaryHilbertPairing (x + y) z =
@@ -2667,17 +2760,17 @@ theorem completedOrderedHeartScalar_eq_of_lowerWeightRadical_sub
             completedBoundaryHilbertPairing x z)
     (X Y : CompletedBoundaryHilbertSource)
     (hD : CompletedBoundaryHilbertSource.LowerWeightRadical (X - Y)) :
-    completedOrderedHeartScalar X =
-      completedOrderedHeartScalar Y := by
+    completedBoundaryTimePairingScalar X =
+      completedBoundaryTimePairingScalar Y := by
   have hdecomp : X = Y + (X - Y) :=
     completedBoundaryHilbertSource_eq_add_sub X Y
   calc
-    completedOrderedHeartScalar X =
-        completedOrderedHeartScalar (Y + (X - Y)) := by
-      exact congrArg completedOrderedHeartScalar hdecomp
+    completedBoundaryTimePairingScalar X =
+        completedBoundaryTimePairingScalar (Y + (X - Y)) := by
+      exact congrArg completedBoundaryTimePairingScalar hdecomp
     _ =
-        completedOrderedHeartScalar Y := by
-      exact completedOrderedHeartScalar_eq_of_add_lowerWeightRadical
+        completedBoundaryTimePairingScalar Y := by
+      exact completedBoundaryTimePairingScalar_eq_of_add_lowerWeightRadical
         B_add_left
         B_add_right
         Y
@@ -2784,15 +2877,6 @@ theorem completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re
       exact completedBoundaryReduced_re_add_pole_re p a q r
     _ = Complex.re (completedBoundaryChannel g) := by
       exact congrArg Complex.re hchannel.symm
-
-/-- The completed GNS norm-square realizes as the completed boundary scalar through the
-Hilbert-pairing comparison. -/
-theorem completedBoundaryGNSNormSq_eq_boundaryChannel_re
-    (f : ZetaAdmissibleFunction) :
-    completedBoundaryGNSNormSq f =
-      Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
-  exact (completedBoundaryGNSNormSq_eq_HilbertPairing_self f).trans
-    (completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f)
 
 /-- The finite lower-weight exact component consisting of diagonal debt plus its absorption
 channel.  Its finite-part representative is identically zero. -/
@@ -3463,30 +3547,6 @@ theorem completedPositiveBoundaryOrderedHeartClass_eq_square
       completedPositiveSquareBoundaryOrderedHeartClass f := by
   rfl
 
-/-- The scalar of the completed positive-boundary precone element is induced by the completed
-Hilbert pairing on its ordered-heart class. -/
-theorem completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar
-    (f : ZetaAdmissibleFunction) :
-    (completedPositiveBoundaryPreconeElement f).scalar =
-      completedOrderedHeartScalar
-        (completedPositiveBoundaryOrderedHeartClass f) := by
-  unfold completedOrderedHeartScalar
-  unfold completedPositiveBoundaryOrderedHeartClass
-  exact (completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f).symm
-
-/-- The absorbed completed positive-boundary scalar is the square-only ordered-heart scalar.
-This is the quotient-side scalar transport; it does not identify the scalar with packet norm by
-definition. -/
-theorem completedPositiveBoundaryPreconeElement_scalar_eq_positiveSquare_scalar
-    (f : ZetaAdmissibleFunction) :
-    (completedPositiveBoundaryPreconeElement f).scalar =
-      completedOrderedHeartScalar
-        (completedPositiveSquareBoundaryOrderedHeartClass f) := by
-  exact
-    (completedPositiveBoundaryPreconeElement_scalar_eq_orderedHeartScalar f).trans
-      (congrArg completedOrderedHeartScalar
-        (completedPositiveBoundaryOrderedHeartClass_eq_square f))
-
 /-- The square-only ordered-heart scalar is the completed GNS norm-square. -/
 theorem completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq
     (f : ZetaAdmissibleFunction) :
@@ -3495,15 +3555,6 @@ theorem completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq
       completedBoundaryGNSNormSq f := by
   unfold completedPositiveSquareBoundaryOrderedHeartClass
   exact (completedBoundaryGNSNormSq_eq_orderedHeartScalar f).symm
-
-/-- The absorbed completed positive-boundary scalar is the completed GNS norm-square. -/
-theorem completedPositiveBoundaryPreconeElement_scalar_eq_GNSNormSq
-    (f : ZetaAdmissibleFunction) :
-    (completedPositiveBoundaryPreconeElement f).scalar =
-      completedBoundaryGNSNormSq f := by
-  exact
-    (completedPositiveBoundaryPreconeElement_scalar_eq_positiveSquare_scalar f).trans
-      (completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq f)
 
 /-- The scalar of the completed positive-boundary precone element is the scalar of the
 completed boundary weight stream. -/
