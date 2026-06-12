@@ -26,6 +26,29 @@ theorem zetaZeroTailRe_eq
     zetaZeroTailRe S φ = Complex.re (zetaZeroTail S φ) := by
   rfl
 
+/-- Generic finite-excision splitting for a completed-zero-indexed family.
+
+This is the purely summability/topology root behind zero-tail excision.  The zeta-specific
+theorem below only applies it to the zero-side contribution family. -/
+theorem completedZeroSubtype_tsum_eq_finite_add_complement
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
+      (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
+        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
+  sorry
+
+/-- The attached finite zero-set sum is the ordinary finite zero-set contribution. -/
+theorem zetaZeroSideContribution_sum_attach_eq_sum
+    (S : Finset ℂ) (φ : ZetaAdmissibleFunction)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (∑ η in S.attach,
+      zetaZeroSideContribution
+        ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
+      ∑ η in S, zetaZeroSideContribution η φ := by
+  sorry
+
 /-- Splitting the completed zero-side sum into a finite zero set and its complementary tail.
 
 This is the complex owner form of zero-tail excision.  The excluded finite set must consist of
@@ -38,7 +61,35 @@ theorem zetaCompletedZeroSideSum_eq_finite_add_tail
         zetaZeroSideContribution (ρ : ℂ) φ) =
       (∑ η in S, zetaZeroSideContribution η φ) +
         zetaZeroTail S φ := by
-  sorry
+  have hsplit :
+      (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          zetaZeroSideContribution (ρ : ℂ) φ) =
+        (∑ η in S.attach,
+          zetaZeroSideContribution
+            ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) +
+          (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+            zetaZeroSideContribution
+              ((⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) :=
+    completedZeroSubtype_tsum_eq_finite_add_complement
+      S
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroSideContribution (ρ : ℂ) φ)
+      hS
+  have hfinite :
+      (∑ η in S.attach,
+        zetaZeroSideContribution
+          ((⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ) =
+        ∑ η in S, zetaZeroSideContribution η φ :=
+    zetaZeroSideContribution_sum_attach_eq_sum S φ hS
+  unfold zetaZeroTail
+  exact Eq.trans hsplit
+    (congrArg
+      (fun x : ℂ =>
+        x +
+          (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+            zetaZeroSideContribution
+              ((⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) φ))
+      hfinite)
 
 end
 end LFunctions
