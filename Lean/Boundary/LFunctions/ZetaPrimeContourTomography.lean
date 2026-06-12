@@ -174,7 +174,7 @@ theorem norm_completedPrimeContourTransportCoordinateRemainderMajorant_le_envelo
   calc
     ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
         completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-      exact Real.norm_of_nonneg hnonneg
+      exact norm_of_nonneg hnonneg
     _ ≤ completedPrimeContourTransportCoordinateRemainderEnvelope ι f := by
       exact completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope ι f
 
