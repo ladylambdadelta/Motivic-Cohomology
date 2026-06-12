@@ -146,6 +146,100 @@ theorem summable_completedPrimeContourTransportSpectralCoordinateEnvelope_of_hor
         completedPrimeContourTransportSpectralCoordinateEnvelope ι f) := by
   sorry
 
+/-- Nongenuine indices have zero time half-envelope. -/
+theorem completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_not_isGenuine
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
+    completedPrimeContourTransportTimeCoordinateEnvelope ι f = 0 := by
+  have hweight : ι.weight = 0 :=
+    ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
+  have hnorm_weight : ‖ι.weight‖ = 0 := by
+    calc
+      ‖ι.weight‖ = ‖(0 : ℝ)‖ := by
+        exact congrArg norm hweight
+      _ = 0 := by
+        exact norm_zero
+  unfold completedPrimeContourTransportTimeCoordinateEnvelope
+  calc
+    2 * ‖ι.weight‖ *
+        ‖zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation f) ι.center‖ =
+        2 * 0 *
+          ‖zetaCompletedTimeBoundaryValue
+            (convolutionAutocorrelation f) ι.center‖ := by
+      exact congrArg
+        (fun x : ℝ =>
+          2 * x *
+            ‖zetaCompletedTimeBoundaryValue
+              (convolutionAutocorrelation f) ι.center‖)
+        hnorm_weight
+    _ = 0 *
+          ‖zetaCompletedTimeBoundaryValue
+            (convolutionAutocorrelation f) ι.center‖ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x *
+            ‖zetaCompletedTimeBoundaryValue
+              (convolutionAutocorrelation f) ι.center‖)
+        (mul_zero 2)
+    _ = 0 := by
+      exact zero_mul
+        ‖zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation f) ι.center‖
+
+/-- Time half-envelope coordinates vanish after the autocorrelation support bound. -/
+theorem completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_supportUpperBound_lt_center
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) {B : ℝ}
+    (hB : ∀ a ∈ tsupport (convolutionAutocorrelationKernel f), a ≤ B)
+    (hι : B < ZetaPrimePowerIndex.center ι) :
+    completedPrimeContourTransportTimeCoordinateEnvelope ι f = 0 := by
+  have hkernel :
+      convolutionAutocorrelationKernel f (ZetaPrimePowerIndex.center ι) = 0 :=
+    convolutionAutocorrelationKernel_eq_zero_of_supportUpperBound_lt
+      f hB hι
+  have htime :
+      zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation f) (ZetaPrimePowerIndex.center ι) = 0 := by
+    exact
+      (zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel
+        f (ZetaPrimePowerIndex.center ι)).trans
+        hkernel
+  unfold completedPrimeContourTransportTimeCoordinateEnvelope
+  calc
+    2 * ‖ι.weight‖ *
+        ‖zetaCompletedTimeBoundaryValue
+          (convolutionAutocorrelation f) ι.center‖ =
+        2 * ‖ι.weight‖ * ‖(0 : ℂ)‖ := by
+      exact congrArg
+        (fun x : ℂ => 2 * ‖ι.weight‖ * ‖x‖)
+        htime
+    _ = 2 * ‖ι.weight‖ * 0 := by
+      exact congrArg (fun x : ℝ => 2 * ‖ι.weight‖ * x) norm_zero
+    _ = 0 := by
+      exact mul_zero (2 * ‖ι.weight‖)
+
+/-- Time half-envelope coordinates vanish away from the finite physical prime support. -/
+theorem completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_not_mem_supportFinsetOfBound
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) {B : ℝ}
+    (hB : ∀ a ∈ tsupport (convolutionAutocorrelationKernel f), a ≤ B)
+    (hι : ι ∉ zetaPrimeOffDiagonalSupportFinsetOfBound f B) :
+    completedPrimeContourTransportTimeCoordinateEnvelope ι f = 0 := by
+  by_cases hgenuine : ZetaPrimePowerIndex.IsGenuine ι
+  · by_cases hcenter : ZetaPrimePowerIndex.center ι ≤ B
+    · have hmem :
+          ι ∈ zetaPrimeOffDiagonalSupportFinsetOfBound f B :=
+        (mem_zetaPrimeOffDiagonalSupportFinsetOfBound_iff f B ι).mpr
+          ⟨hgenuine, hcenter⟩
+      exact False.elim (hι hmem)
+    · have hlt : B < ZetaPrimePowerIndex.center ι :=
+        lt_of_not_ge hcenter
+      exact
+        completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_supportUpperBound_lt_center
+          ι f hB hlt
+  · exact
+      completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_not_isGenuine
+        ι f hgenuine
+
 /-- The time half-envelope for contour-transport coordinates is summable by the physical
 prime-kernel decay estimate. -/
 theorem summable_completedPrimeContourTransportTimeCoordinateEnvelope_of_primeKernelDecay
@@ -153,7 +247,13 @@ theorem summable_completedPrimeContourTransportTimeCoordinateEnvelope_of_primeKe
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportTimeCoordinateEnvelope ι f) := by
-  sorry
+  rcases exists_convolutionAutocorrelationKernelSupportUpperBound f with
+    ⟨B, hB⟩
+  exact summable_of_ne_finset_zero
+    (s := zetaPrimeOffDiagonalSupportFinsetOfBound f B)
+    (fun ι hι =>
+      completedPrimeContourTransportTimeCoordinateEnvelope_eq_zero_of_not_mem_supportFinsetOfBound
+        ι f hB hι)
 
 /-- The explicit contour-transport coordinate envelope is summable after separately summing
 its spectral and time half-envelopes. -/
