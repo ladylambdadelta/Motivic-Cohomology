@@ -275,17 +275,33 @@ theorem OffCriticalCenteredZetaZero.point_zeta_zero
     riemannZeta (1 / 2 + z.point) = 0 :=
   z.zeta_zero
 
+/-- Zero-side separation for an off-critical centered zeta zero.
+
+This is the real analytic separation step in Weil's criterion: an off-critical centered
+zero produces an admissible autocorrelation seed whose zero-side quadratic form is negative. -/
+theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
+    (z : OffCriticalCenteredZetaZero) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
+  sorry
+
 /-- The zero-detecting direction of Weil's criterion.
 
 An off-critical nontrivial centered zero can be separated by an admissible
 autocorrelation seed whose completed Weil quadratic form is strictly negative.
-This is the real analytic Hahn--Banach/Paley--Wiener separation step in the
-criterion; the wrapper below only turns it into the centered-zero conclusion. -/
+This theorem is now only the Weil-form transport of the zero-side separation theorem above. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  sorry
+  rcases exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero z with
+    ⟨f, hf⟩
+  refine ⟨f, ?_⟩
+  calc
+    zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+      exact zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
+    _ < 0 := hf
 
 /-- Parameter-facing wrapper for the zero-detecting direction of Weil's criterion. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
