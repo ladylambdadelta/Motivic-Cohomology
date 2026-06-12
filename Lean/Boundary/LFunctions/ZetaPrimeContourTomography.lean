@@ -121,7 +121,69 @@ theorem norm_completedPrimeContourRealizedTimeDistributionCoordinate_le_spectral
     ‖completedPrimeContourRealizedTimeDistributionCoordinate
         ι (convolutionAutocorrelation f)‖ ≤
       completedPrimeContourTransportSpectralCoordinateEnvelope ι f := by
-  sorry
+  let A : ℂ :=
+    zetaCompletedSpectralLaplaceTransform
+      (convolutionAutocorrelation f) ι.center
+  let W : ℂ := (ι.weight : ℂ)
+  have hre :
+      ‖Complex.re (-((ι.weight : ℂ) * (A + star A)))‖ ≤
+        ‖-((ι.weight : ℂ) * (A + star A))‖ := by
+    exact Complex.abs_re_le_abs (-((ι.weight : ℂ) * (A + star A)))
+  have hneg :
+      ‖-((ι.weight : ℂ) * (A + star A))‖ =
+        ‖(ι.weight : ℂ) * (A + star A)‖ := by
+    exact norm_neg ((ι.weight : ℂ) * (A + star A))
+  have hmul :
+      ‖(ι.weight : ℂ) * (A + star A)‖ ≤
+        ‖(ι.weight : ℂ)‖ * ‖A + star A‖ := by
+    exact norm_mul_le (ι.weight : ℂ) (A + star A)
+  have hadd :
+      ‖A + star A‖ ≤ ‖A‖ + ‖star A‖ := by
+    exact norm_add_le A (star A)
+  have hmul_add :
+      ‖(ι.weight : ℂ)‖ * ‖A + star A‖ ≤
+        ‖(ι.weight : ℂ)‖ * (‖A‖ + ‖star A‖) := by
+    exact mul_le_mul_of_nonneg_left hadd (norm_nonneg (ι.weight : ℂ))
+  have hstar :
+      ‖A‖ + ‖star A‖ = ‖A‖ + ‖A‖ := by
+    exact congrArg (fun x : ℝ => ‖A‖ + x) (norm_star A)
+  have htwo :
+      ‖A‖ + ‖A‖ = 2 * ‖A‖ := by
+    exact (two_mul ‖A‖).symm
+  have hcast :
+      ‖(ι.weight : ℂ)‖ = ‖ι.weight‖ := by
+    exact RCLike.norm_ofReal ι.weight
+  unfold completedPrimeContourRealizedTimeDistributionCoordinate
+  unfold completedPrimeContourTransportSpectralCoordinateEnvelope
+  unfold A
+  calc
+    ‖Complex.re
+        (-((ι.weight : ℂ) *
+          (zetaCompletedSpectralLaplaceTransform
+              (convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedSpectralLaplaceTransform
+                (convolutionAutocorrelation f) ι.center))))‖ ≤
+        ‖-((ι.weight : ℂ) * (A + star A))‖ := by
+      exact hre
+    _ = ‖(ι.weight : ℂ) * (A + star A)‖ := by
+      exact hneg
+    _ ≤ ‖(ι.weight : ℂ)‖ * ‖A + star A‖ := by
+      exact hmul
+    _ ≤ ‖(ι.weight : ℂ)‖ * (‖A‖ + ‖star A‖) := by
+      exact hmul_add
+    _ = ‖(ι.weight : ℂ)‖ * (‖A‖ + ‖A‖) := by
+      exact congrArg (fun x : ℝ => ‖(ι.weight : ℂ)‖ * x) hstar
+    _ = ‖(ι.weight : ℂ)‖ * (2 * ‖A‖) := by
+      exact congrArg (fun x : ℝ => ‖(ι.weight : ℂ)‖ * x) htwo
+    _ = (‖(ι.weight : ℂ)‖ * 2) * ‖A‖ := by
+      exact (mul_assoc ‖(ι.weight : ℂ)‖ 2 ‖A‖).symm
+    _ = (2 * ‖(ι.weight : ℂ)‖) * ‖A‖ := by
+      exact congrArg (fun x : ℝ => x * ‖A‖) (mul_comm ‖(ι.weight : ℂ)‖ 2)
+    _ = 2 * ‖(ι.weight : ℂ)‖ * ‖A‖ := by
+      rfl
+    _ = 2 * ‖ι.weight‖ * ‖A‖ := by
+      exact congrArg (fun x : ℝ => 2 * x * ‖A‖) hcast
 
 /-- The time-side coordinate is bounded by the time half-envelope. -/
 theorem norm_completedPrimeTimeDistributionCoordinate_le_timeEnvelope
@@ -129,7 +191,63 @@ theorem norm_completedPrimeTimeDistributionCoordinate_le_timeEnvelope
     ‖completedPrimeTimeDistributionCoordinate
         ι (convolutionAutocorrelation f)‖ ≤
       completedPrimeContourTransportTimeCoordinateEnvelope ι f := by
-  sorry
+  let B : ℂ :=
+    zetaCompletedTimeBoundaryValue
+      (convolutionAutocorrelation f) ι.center
+  have hneg :
+      ‖-(ι.weight * Complex.re (B + star B))‖ =
+        ‖ι.weight * Complex.re (B + star B)‖ := by
+    exact norm_neg (ι.weight * Complex.re (B + star B))
+  have hmul :
+      ‖ι.weight * Complex.re (B + star B)‖ ≤
+        ‖ι.weight‖ * ‖Complex.re (B + star B)‖ := by
+    exact norm_mul_le ι.weight (Complex.re (B + star B))
+  have hre :
+      ‖Complex.re (B + star B)‖ ≤ ‖B + star B‖ := by
+    exact Complex.abs_re_le_abs (B + star B)
+  have hadd :
+      ‖B + star B‖ ≤ ‖B‖ + ‖star B‖ := by
+    exact norm_add_le B (star B)
+  have hreal :
+      ‖Complex.re (B + star B)‖ ≤ ‖B‖ + ‖star B‖ := by
+    exact hre.trans hadd
+  have hmul_real :
+      ‖ι.weight‖ * ‖Complex.re (B + star B)‖ ≤
+        ‖ι.weight‖ * (‖B‖ + ‖star B‖) := by
+    exact mul_le_mul_of_nonneg_left hreal (norm_nonneg ι.weight)
+  have hstar :
+      ‖B‖ + ‖star B‖ = ‖B‖ + ‖B‖ := by
+    exact congrArg (fun x : ℝ => ‖B‖ + x) (norm_star B)
+  have htwo :
+      ‖B‖ + ‖B‖ = 2 * ‖B‖ := by
+    exact (two_mul ‖B‖).symm
+  unfold completedPrimeTimeDistributionCoordinate
+  unfold completedPrimeContourTransportTimeCoordinateEnvelope
+  unfold B
+  calc
+    ‖-(ι.weight *
+        Complex.re
+          (zetaCompletedTimeBoundaryValue
+              (convolutionAutocorrelation f) ι.center +
+            star
+              (zetaCompletedTimeBoundaryValue
+                (convolutionAutocorrelation f) ι.center)))‖ =
+        ‖ι.weight * Complex.re (B + star B)‖ := by
+      exact hneg
+    _ ≤ ‖ι.weight‖ * ‖Complex.re (B + star B)‖ := by
+      exact hmul
+    _ ≤ ‖ι.weight‖ * (‖B‖ + ‖star B‖) := by
+      exact hmul_real
+    _ = ‖ι.weight‖ * (‖B‖ + ‖B‖) := by
+      exact congrArg (fun x : ℝ => ‖ι.weight‖ * x) hstar
+    _ = ‖ι.weight‖ * (2 * ‖B‖) := by
+      exact congrArg (fun x : ℝ => ‖ι.weight‖ * x) htwo
+    _ = (‖ι.weight‖ * 2) * ‖B‖ := by
+      exact (mul_assoc ‖ι.weight‖ 2 ‖B‖).symm
+    _ = (2 * ‖ι.weight‖) * ‖B‖ := by
+      exact congrArg (fun x : ℝ => x * ‖B‖) (mul_comm ‖ι.weight‖ 2)
+    _ = 2 * ‖ι.weight‖ * ‖B‖ := by
+      rfl
 
 /-- The remainder majorant is bounded by the explicit coordinate envelope. -/
 theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_envelope
