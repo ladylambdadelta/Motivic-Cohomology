@@ -178,14 +178,13 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_identity
             Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z := by
   sorry
 
-/-- One integration-by-parts derivative transfer: the derivative probe obtained from the
-identity has the `N`th decay estimate required by the successor step.
+/-- One integration-by-parts step constructs the derivative probe together with the
+frequency identity and inherited `N`th vertical-strip decay.
 
 This is where smooth compact support supplies the derivative seminorm bound for the new
-probe. -/
-theorem zetaLaplaceTransform_supportInterval_integrationByParts_derivativeProbe_decay
-    (f derivativeProbe : ZetaAdmissibleFunction)
-    (I : ZetaPaleyWienerSupportInterval f)
+probe; the derivative probe is not arbitrary. -/
+theorem zetaLaplaceTransform_supportInterval_integrationByParts_step
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (N : ℕ)
     (hN :
       ∃ C : ℝ,
@@ -194,12 +193,19 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_derivativeProbe_
           zetaPaleyWienerInVerticalStrip a b z →
           ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
             ≤ C * zetaPaleyWienerVerticalWeight z N) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ z : ℂ,
+    ∃ derivativeProbe : ZetaAdmissibleFunction,
+      (∀ z : ℂ,
         zetaPaleyWienerInVerticalStrip a b z →
-        ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
-          ≤ C * zetaPaleyWienerVerticalWeight z N := by
+        z.im ≠ 0 →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+          (z.im : ℂ)⁻¹ *
+            Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z) ∧
+        ∃ C : ℝ,
+          0 < C ∧
+          ∀ z : ℂ,
+            zetaPaleyWienerInVerticalStrip a b z →
+            ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+              ≤ C * zetaPaleyWienerVerticalWeight z N := by
   sorry
 
 /-- The one-step Paley-Wiener frequency estimate converts integration-by-parts and
@@ -252,17 +258,9 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_successor
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
-  rcases zetaLaplaceTransform_supportInterval_integrationByParts_identity
-      f I a b with ⟨derivativeProbe, hidentity⟩
-  have hderivativeDecay :
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ z : ℂ,
-          zetaPaleyWienerInVerticalStrip a b z →
-          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
-            ≤ C * zetaPaleyWienerVerticalWeight z N := by
-    exact zetaLaplaceTransform_supportInterval_integrationByParts_derivativeProbe_decay
-      f derivativeProbe I a b N hN
+  rcases zetaLaplaceTransform_supportInterval_integrationByParts_step
+      f I a b N hN with
+    ⟨derivativeProbe, hidentity, hderivativeDecay⟩
   exact zetaLaplaceTransform_supportInterval_successor_decay_from_parts
     f derivativeProbe I a b N hidentity hderivativeDecay
 
