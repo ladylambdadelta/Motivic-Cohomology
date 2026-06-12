@@ -39,6 +39,21 @@ theorem zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum
   exact congrArg (fun x : ℝ => (x : ℂ))
     (zetaCompletedZeroKreinGram_eq_residueBoundarySum f)
 
+/-- The completed residue boundary sum is reconstructed by the completed contour integral. -/
+theorem completedResidueBoundarySum_eq_contourIntegral_of_residueReconstruction
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    (zetaCompletedResidueBoundarySum f : ℂ) =
+      zetaCompletedExplicitFormulaContourIntegral f r := by
+  sorry
+
+/-- Horizontal decay removes the top and bottom sides from the completed contour integral. -/
+theorem contourIntegral_eq_verticalDifference_of_horizontalDecay
+    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
+    zetaCompletedExplicitFormulaContourIntegral f r =
+      zetaCompletedExplicitFormulaRightLineIntegral f r -
+        zetaCompletedExplicitFormulaLeftLineIntegral f r := by
+  sorry
+
 /-- After horizontal decay, the completed residue boundary sum is the limiting vertical side
 difference. -/
 theorem completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay
@@ -46,7 +61,9 @@ theorem completedResidueBoundarySum_eq_verticalDifference_of_horizontalDecay
     (zetaCompletedResidueBoundarySum f : ℂ) =
       zetaCompletedExplicitFormulaRightLineIntegral f r -
         zetaCompletedExplicitFormulaLeftLineIntegral f r := by
-  sorry
+  exact
+    (completedResidueBoundarySum_eq_contourIntegral_of_residueReconstruction f r).trans
+      (contourIntegral_eq_verticalDifference_of_horizontalDecay f r)
 
 /-- The zero side is the limiting vertical-difference side of the completed contour shift.
 
