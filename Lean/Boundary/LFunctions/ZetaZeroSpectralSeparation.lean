@@ -87,9 +87,12 @@ theorem zetaZeroOrbitContribution_eq_self_add_neg
       exact Finset.sum_insert
         (by
           intro hmem
-          have hneg_eq : ρ = -ρ :=
-            Finset.mem_singleton.mp hmem
-          exact zetaZeroOrbit_self_ne_neg_of_re_ne_zero ρ hρre hneg_eq)
+          exact
+            match Finset.mem_insert.mp hmem with
+            | Or.inl hneg_eq =>
+                zetaZeroOrbit_self_ne_neg_of_re_ne_zero ρ hρre hneg_eq
+            | Or.inr hempty =>
+                False.elim (Finset.not_mem_empty ρ hempty))
     _ =
         zetaZeroSideContribution ρ φ + zetaZeroSideContribution (-ρ) φ := by
       exact congrArg
@@ -202,7 +205,7 @@ theorem neg_multiplicity_add_neg_multiplicity_lt_zero_of_orbitCompletedZero
       - (zetaZeroMultiplicity ρ : ℝ) +
           - (zetaZeroMultiplicity (-ρ) : ℝ) < 0 + 0 :=
     add_lt_add hleft hright
-  exact hsum.trans_eq (add_zero 0)
+  exact lt_of_lt_of_eq hsum (add_zero 0)
 
 /-- Unit spectral samples on an off-critical completed-zero orbit force the signed
 multiplicity-weighted orbit contribution to be strictly negative. -/
