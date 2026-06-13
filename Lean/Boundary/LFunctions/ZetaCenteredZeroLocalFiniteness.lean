@@ -49,6 +49,22 @@ def centeredZetaNontrivialZeroSet : Set ℂ :=
       z ≠ (1 / 2 : ℂ) ∧
         centeredCompletedRiemannZeta z = 0}
 
+/-- The named nontrivial zero set is the nontrivial zero locus from the
+counting surface. -/
+theorem centeredZetaNontrivialZeroSet_eq :
+    centeredZetaNontrivialZeroSet =
+      ({z : ℂ |
+        z ≠ -(1 / 2 : ℂ) ∧
+          z ≠ (1 / 2 : ℂ) ∧
+            centeredCompletedRiemannZeta z = 0} : Set ℂ) := by
+  rfl
+
+/-- The nontrivial centered zero set has the discrete topology. -/
+theorem centeredZetaNontrivialZeroSet_discreteTopology :
+    DiscreteTopology centeredZetaNontrivialZeroSet := by
+  unfold centeredZetaNontrivialZeroSet
+  exact centeredZetaZeros_nontrivialZeroSet_discreteTopology_of_subset
+
 /-- The critical-height nontrivial zero box is the nontrivial zero set inside
 the ambient centered critical height box. -/
 theorem centeredZetaNontrivialZerosInCenteredCriticalHeightBox_eq_inter
@@ -93,12 +109,28 @@ theorem isCompact_centeredCriticalHeightBox
     IsCompact (centeredCriticalHeightBox T) := by
   sorry
 
+/-- A discrete nontrivial centered zero set has finite intersection with the
+compact centered critical height box. -/
+theorem finite_centeredZetaNontrivialZeroSet_inter_compact_of_discrete
+    (T : ℝ)
+    (hcompact : IsCompact (centeredCriticalHeightBox T))
+    (hdiscrete : DiscreteTopology centeredZetaNontrivialZeroSet) :
+    (centeredZetaNontrivialZeroSet ∩ centeredCriticalHeightBox T).Finite := by
+  sorry
+
 /-- Isolated nontrivial centered zeros have finite intersection with the compact
 centered critical height box. -/
 theorem finite_centeredZetaNontrivialZeroSet_inter_compactCriticalHeightBox
     (T : ℝ) :
     (centeredZetaNontrivialZeroSet ∩ centeredCriticalHeightBox T).Finite := by
-  sorry
+  have hcompact : IsCompact (centeredCriticalHeightBox T) :=
+    isCompact_centeredCriticalHeightBox T
+  have hdiscrete : DiscreteTopology centeredZetaNontrivialZeroSet :=
+    centeredZetaNontrivialZeroSet_discreteTopology
+  exact finite_centeredZetaNontrivialZeroSet_inter_compact_of_discrete
+    (T := T)
+    hcompact
+    hdiscrete
 
 /-- Nontrivial centered zeros have finite intersection with each centered
 critical height box. -/
