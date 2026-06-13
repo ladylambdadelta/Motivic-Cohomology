@@ -137,84 +137,18 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- Coordinatewise horizontal envelope for contour-transport remainders.
-
-The envelope is indexed by the prime-power center, not by a sampled window height.  This
-is the owner object needed to turn horizontal decay into summability of the tomographic
-coordinate errors. -/
-noncomputable def completedPrimeContourTransportCoordinateHorizontalEnvelope
-    (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
-  C *
-    (1 + ‖ZetaPrimePowerIndex.center ι‖) ^ (-(k.succ : ℤ)) *
-      (2 * horizontalEdgeLength completedPrimeContourTransportFamily.c)
-
-/-- Horizontal contour decay bounds each coordinate-remainder majorant by the coordinatewise
-horizontal envelope. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_horizontalEnvelope
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∃ k : ℕ,
-        ∀ ι : ZetaPrimePowerIndex,
-          completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
-            completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι := by
-  sorry
-
-/-- The coordinatewise horizontal envelope is summable over prime powers once the horizontal
-decay order dominates the prime-power counting growth. -/
-theorem summable_completedPrimeContourTransportCoordinateHorizontalEnvelope
-    (C : ℝ) (k : ℕ) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι) := by
-  sorry
-
-/-- A nonnegative family bounded by a summable coordinatewise horizontal envelope is
-summable. -/
-theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalEnvelope
-    (f : ZetaAdmissibleFunction)
-    (C : ℝ) (k : ℕ)
-    (hbound :
-      ∀ ι : ZetaPrimePowerIndex,
-        completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
-          completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  have henvelope :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι) :=
-    summable_completedPrimeContourTransportCoordinateHorizontalEnvelope C k
-  exact Summable.of_norm_bounded
-    (fun ι : ZetaPrimePowerIndex =>
-      completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι)
-    henvelope
-    (fun ι : ZetaPrimePowerIndex =>
-      calc
-        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
-            completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-          exact norm_of_nonneg
-            (completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f)
-        _ ≤ completedPrimeContourTransportCoordinateHorizontalEnvelope C k ι :=
-          hbound ι)
-
-/-- The coordinate-remainder majorant is summable from the sampled horizontal-envelope
+/-- The coordinate-remainder majorant is summable from the completed contour-localization
 estimate for the contour-transport family.
 
-This is the analytic owner step behind prime contour transport: the horizontal sides give
-a summable envelope for the omitted coordinate remainders after the residue/tomography
-identity has localized the error coordinatewise. -/
-theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_sampledHorizontalEnvelope
+This is the analytic owner step behind prime contour transport.  It is not a consequence
+of polynomial decay in the prime-power center alone; the completed localization data must
+provide the genuinely summable coordinate control. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_contourLocalization
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  rcases completedPrimeContourTransportCoordinateRemainderMajorant_le_horizontalEnvelope
-      f with ⟨C, _hCpos, k, hbound⟩
-  exact
-    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalEnvelope
-      f C k hbound
+  sorry
 
 /-- The contour-transport coordinate-remainder majorant is summable by the prime
 tomography residue theorem and horizontal contour decay. -/
@@ -224,7 +158,7 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_ho
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
   exact
-    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_sampledHorizontalEnvelope f
+    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_contourLocalization f
 
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay
