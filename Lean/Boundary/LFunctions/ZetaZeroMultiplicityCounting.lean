@@ -407,6 +407,20 @@ def completedZeroCenteredHeightShell
     ((m : ℕ) : ℝ) ≤ zetaCompletedZeroCenteredHeight ρ ∧
       zetaCompletedZeroCenteredHeight ρ < ((m + 1 : ℕ) : ℝ)}
 
+/-- Every completed zero has an integer centered-height shell index. -/
+theorem exists_completedZeroCenteredHeightShell_index
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    ∃ m : ℕ, ρ ∈ completedZeroCenteredHeightShell m := by
+  sorry
+
+/-- Centered-height shells are disjoint. -/
+theorem completedZeroCenteredHeightShell_index_unique
+    {ρ : {ρ : ℂ // ZetaCompletedZero ρ}} {m n : ℕ}
+    (hm : ρ ∈ completedZeroCenteredHeightShell m)
+    (hn : ρ ∈ completedZeroCenteredHeightShell n) :
+    m = n := by
+  sorry
+
 /-- The completed-zero shell fiber at integer height `m`. -/
 def completedZeroCenteredHeightShellFiber
     (m : ℕ) : Type :=
@@ -426,27 +440,31 @@ def completedZeroCenteredHeightShellSigma_forget
 /-- The shell-fiber forgetful map is surjective onto completed zeros. -/
 theorem completedZeroCenteredHeightShellSigma_forget_surjective :
     Function.Surjective completedZeroCenteredHeightShellSigma_forget := by
-  sorry
+  intro ρ
+  rcases exists_completedZeroCenteredHeightShell_index ρ with ⟨m, hm⟩
+  exact ⟨⟨m, ⟨ρ, hm⟩⟩, rfl⟩
 
 /-- The shell-fiber forgetful map is injective; integer height shells are disjoint. -/
 theorem completedZeroCenteredHeightShellSigma_forget_injective :
     Function.Injective completedZeroCenteredHeightShellSigma_forget := by
-  sorry
-
-/-- The shell contribution for a polynomial negative-height envelope. -/
-noncomputable def completedZeroCenteredHeightShellDecaySummand
-    (d k m : ℕ)
-    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
-  if ρ ∈ completedZeroCenteredHeightShell m then
-    zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))
-  else
-    0
+  intro x y hxy
+  rcases x with ⟨m, ρm⟩
+  rcases y with ⟨n, ρn⟩
+  rcases ρm with ⟨ρ, hρm⟩
+  rcases ρn with ⟨η, hηn⟩
+  have hρη : ρ = η := hxy
+  cases hρη
+  have hmn : m = n :=
+    completedZeroCenteredHeightShell_index_unique hρm hηn
+  cases hmn
+  rfl
 
 /-- The total decay mass in one centered-height shell. -/
 noncomputable def completedZeroCenteredHeightShellDecayMass
     (d k m : ℕ) : ℝ :=
-  ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-    completedZeroCenteredHeightShellDecaySummand d k m ρ
+  ∑' x : completedZeroCenteredHeightShellFiber m,
+    zetaCompletedZeroCenteredHeight (x : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+      (-(d + k + 3 : ℤ))
 
 /-- The polynomial decay restricted to a shell fiber. -/
 noncomputable def completedZeroCenteredHeightShellFiberDecay
@@ -456,6 +474,18 @@ noncomputable def completedZeroCenteredHeightShellFiberDecay
       (completedZeroCenteredHeightShellSigma_forget x) ^
     (-(d + k + 3 : ℤ))
 
+/-- Shell-fiber decay is nonnegative. -/
+theorem completedZeroCenteredHeightShellFiberDecay_nonnegative
+    (d k : ℕ)
+    (x : CompletedZeroCenteredHeightShellSigma) :
+    0 ≤ completedZeroCenteredHeightShellFiberDecay d k x := by
+  unfold completedZeroCenteredHeightShellFiberDecay
+  exact zpow_nonneg
+    (le_trans zero_le_one
+      (zetaCompletedZeroCenteredHeight_ge_one
+        (completedZeroCenteredHeightShellSigma_forget x)))
+    (-(d + k + 3 : ℤ))
+
 /-- The shell-fiber `tsum` at height `m` is the shell decay mass. -/
 theorem completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
     (d k m : ℕ) :
@@ -463,7 +493,26 @@ theorem completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
       zetaCompletedZeroCenteredHeight (x : {ρ : ℂ // ZetaCompletedZero ρ}) ^
         (-(d + k + 3 : ℤ))) =
       completedZeroCenteredHeightShellDecayMass d k m := by
+  rfl
+
+/-- Each completed-zero centered-height shell fiber is finite. -/
+theorem finite_completedZeroCenteredHeightShellFiber
+    (m : ℕ) :
+    (Set.univ : Set (completedZeroCenteredHeightShellFiber m)).Finite := by
   sorry
+
+/-- Decay over a fixed completed-zero centered-height shell fiber is summable. -/
+theorem summable_completedZeroCenteredHeightShellFiberDecay_fixed
+    (d k m : ℕ) :
+    Summable
+      (fun x : completedZeroCenteredHeightShellFiber m =>
+        completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) := by
+  exact summable_of_finite_support_real
+    (fun x : completedZeroCenteredHeightShellFiber m =>
+      completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩)
+    Set.univ
+    (finite_completedZeroCenteredHeightShellFiber m)
+    (fun x hx => False.elim (hx trivial))
 
 /-- Summability over shell masses is equivalent to summability over the sigma
 shell decomposition. -/
@@ -476,7 +525,45 @@ theorem summable_completedZeroCenteredHeightShellFiberDecay_of_shellMass
     Summable
       (fun x : CompletedZeroCenteredHeightShellSigma =>
         completedZeroCenteredHeightShellFiberDecay d k x) := by
+  refine (summable_sigma_of_nonneg ?_).mpr ?_
+  · intro x
+    exact completedZeroCenteredHeightShellFiberDecay_nonnegative d k x
+  · constructor
+    · intro m
+      exact summable_completedZeroCenteredHeightShellFiberDecay_fixed d k m
+    · have hfiberSums :
+          (fun m : ℕ =>
+            ∑' x : completedZeroCenteredHeightShellFiber m,
+              completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) =
+            fun m : ℕ =>
+              completedZeroCenteredHeightShellDecayMass d k m := by
+        funext m
+        exact completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
+          d k m
+      exact Eq.subst
+        (motive := fun u : ℕ → ℝ => Summable u)
+        hfiberSums.symm
+        hshell
+
+/-- Summability transports across a bijective map of index types. -/
+theorem summable_of_bijective_index_transport_real
+    {α β : Type*} (e : α → β) (u : β → ℝ)
+    (hinj : Function.Injective e)
+    (hsurj : Function.Surjective e)
+    (hsum : Summable (fun a : α => u (e a))) :
+    Summable u := by
   sorry
+
+/-- Shell-fiber decay is the base negative-height decay after forgetting the
+shell coordinate. -/
+theorem completedZeroCenteredHeightShellFiberDecay_eq_baseDecay
+    (d k : ℕ)
+    (x : CompletedZeroCenteredHeightShellSigma) :
+    completedZeroCenteredHeightShellFiberDecay d k x =
+      zetaCompletedZeroCenteredHeight
+          (completedZeroCenteredHeightShellSigma_forget x) ^
+        (-(d + k + 3 : ℤ)) := by
+  rfl
 
 /-- Summability over the sigma shell decomposition transports to summability
 over completed zeros. -/
@@ -489,7 +576,19 @@ theorem summable_completedZero_centeredHeight_negativePower_of_shellSigma
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
-  sorry
+  exact summable_of_bijective_index_transport_real
+    completedZeroCenteredHeightShellSigma_forget
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ)))
+    completedZeroCenteredHeightShellSigma_forget_injective
+    completedZeroCenteredHeightShellSigma_forget_surjective
+    (Eq.subst
+      (motive := fun u : CompletedZeroCenteredHeightShellSigma → ℝ =>
+        Summable u)
+      (by
+        funext x
+        exact completedZeroCenteredHeightShellFiberDecay_eq_baseDecay d k x)
+      hsigma)
 
 /-- The degree-aware shell masses are summable under the polynomial
 multiplicity-counting bound. -/
