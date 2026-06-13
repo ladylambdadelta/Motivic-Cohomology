@@ -399,6 +399,45 @@ theorem zetaPaleyWienerStripExponential_norm_le_envelope
     hnorm.symm
     hexp
 
+/-- The pointwise raw kernel envelope before multiplying by support length. -/
+noncomputable def zetaPaleyWienerRawKernelEnvelope
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) : ℝ :=
+  zetaPaleyWienerSupportNormEnvelope f *
+    zetaPaleyWienerStripExponentialEnvelope I a b
+
+/-- The raw kernel envelope is nonnegative. -/
+theorem zetaPaleyWienerRawKernelEnvelope_nonnegative
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    0 ≤ zetaPaleyWienerRawKernelEnvelope f I a b := by
+  sorry
+
+/-- Pointwise kernel domination on the compact support interval. -/
+theorem zetaLaplaceKernel_norm_le_rawEnvelope_on_support
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∀ z : ℂ,
+      zetaPaleyWienerInVerticalStrip a b z →
+      ∀ t : ℝ,
+        t ∈ tsupport f.toZetaTestFunction →
+        ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ ≤
+          zetaPaleyWienerRawKernelEnvelope f I a b := by
+  sorry
+
+/-- Integral-norm transport from a pointwise compact-support kernel bound. -/
+theorem zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (z : ℂ) (B : ℝ)
+    (hB_nonneg : 0 ≤ B)
+    (hbound :
+      ∀ t : ℝ,
+        t ∈ tsupport f.toZetaTestFunction →
+        ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ ≤ B) :
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+      B * zetaPaleyWienerSupportIntervalLength I := by
+  sorry
+
 /-- Raw zero-order compact-support product bound for the Laplace transform.
 
 This is the un-bumped estimate: source norm envelope, horizontal exponential envelope,
@@ -412,7 +451,28 @@ theorem zetaLaplaceTransform_supportInterval_zeroOrder_le_rawEnvelope
         zetaPaleyWienerSupportNormEnvelope f *
           zetaPaleyWienerStripExponentialEnvelope I a b *
           zetaPaleyWienerSupportIntervalLength I := by
-  sorry
+  intro z hz
+  let B : ℝ :=
+    zetaPaleyWienerRawKernelEnvelope f I a b
+  have hB_nonneg : 0 ≤ B :=
+    zetaPaleyWienerRawKernelEnvelope_nonnegative f I a b
+  have hbound :
+      ∀ t : ℝ,
+        t ∈ tsupport f.toZetaTestFunction →
+        ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ ≤ B := by
+    intro t ht
+    exact zetaLaplaceKernel_norm_le_rawEnvelope_on_support
+      f I a b z hz t ht
+  have hintegral :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+        B * zetaPaleyWienerSupportIntervalLength I :=
+    zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
+      f I z B hB_nonneg hbound
+  change
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+      zetaPaleyWienerRawKernelEnvelope f I a b *
+        zetaPaleyWienerSupportIntervalLength I
+  exact hintegral
 
 /-- The concrete zero-order integral estimate from compact support.
 
