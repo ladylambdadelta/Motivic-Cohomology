@@ -480,6 +480,118 @@ theorem one_add_natNorm_le_two_mul_max_one_natNorm
       congrArg (fun x : ℝ => (2 : ℝ) * x) hmax.symm
     exact le_trans hadd (le_of_eq (Eq.trans hone_add_one htarget))
 
+/-- The successor shell endpoint is the canonical tail base. -/
+theorem natSucc_cast_eq_one_add_natNorm
+    (m : ℕ) :
+    (((m + 1 : ℕ) : ℝ)) = 1 + ‖((m : ℕ) : ℝ)‖ := by
+  have hm_norm :
+      ‖((m : ℕ) : ℝ)‖ = ((m : ℕ) : ℝ) :=
+    Real.norm_of_nonneg (Nat.cast_nonneg m)
+  have hsucc :
+      (((m + 1 : ℕ) : ℝ)) = ((m : ℕ) : ℝ) + 1 := by
+    exact Nat.cast_add m 1
+  have hcomm :
+      ((m : ℕ) : ℝ) + 1 = 1 + ((m : ℕ) : ℝ) :=
+    add_comm ((m : ℕ) : ℝ) 1
+  have hnorm :
+      1 + ((m : ℕ) : ℝ) = 1 + ‖((m : ℕ) : ℝ)‖ :=
+    congrArg (fun x : ℝ => 1 + x) hm_norm.symm
+  exact Eq.trans hsucc (Eq.trans hcomm hnorm)
+
+/-- Abstract exponent bookkeeping for the shell envelope: if `b` is controlled
+by `2 * a`, then the growth factor in `b` is absorbed by the stronger decay in
+`a`, after enlarging the constant by `2 ^ D`. -/
+theorem real_growth_decay_product_le_tail_of_baseComparison
+    {a b : ℝ} (d D K : ℕ)
+    (ha : 1 ≤ a)
+    (hb : 1 ≤ b)
+    (hbase : b ≤ (2 : ℝ) * a)
+    (hdk : d + K ≤ D) :
+    b ^ d * a ^ (-(D : ℤ)) ≤
+      (2 : ℝ) ^ D * b ^ (-(K : ℤ)) := by
+  have ha_pos : 0 < a :=
+    lt_of_lt_of_le zero_lt_one ha
+  have hb_pos : 0 < b :=
+    lt_of_lt_of_le zero_lt_one hb
+  have haD_pos : 0 < a ^ D :=
+    pow_pos ha_pos D
+  have hbK_pos : 0 < b ^ K :=
+    pow_pos hb_pos K
+  have hnum_left_eq :
+      b ^ d * b ^ K = b ^ (d + K) :=
+    (pow_add b d K).symm
+  have hnum_left_le_D :
+      b ^ (d + K) ≤ b ^ D :=
+    pow_le_pow_right₀ hb hdk
+  have hbase_pow :
+      b ^ D ≤ ((2 : ℝ) * a) ^ D :=
+    pow_le_pow_left₀ (le_trans zero_le_one hb) hbase D
+  have hmul_pow :
+      ((2 : ℝ) * a) ^ D = (2 : ℝ) ^ D * a ^ D :=
+    mul_pow (2 : ℝ) a D
+  have hnum :
+      b ^ d * b ^ K ≤ (2 : ℝ) ^ D * a ^ D :=
+    le_trans
+      (Eq.subst
+        (motive := fun x : ℝ => x ≤ b ^ D)
+        hnum_left_eq.symm
+        hnum_left_le_D)
+      (le_trans hbase_pow (le_of_eq hmul_pow))
+  have hdiv :
+      b ^ d / a ^ D ≤ (2 : ℝ) ^ D / b ^ K :=
+    (div_le_div_iff₀ haD_pos hbK_pos).mpr hnum
+  have ha_zpow :
+      a ^ (-(D : ℤ)) = (a ^ D)⁻¹ := by
+    have hneg :
+        a ^ (-(D : ℤ)) = (a ^ (D : ℤ))⁻¹ :=
+      zpow_neg a (D : ℤ)
+    have hnat :
+        a ^ (D : ℤ) = a ^ D :=
+      zpow_natCast a D
+    exact Eq.trans hneg (congrArg Inv.inv hnat)
+  have hb_zpow :
+      b ^ (-(K : ℤ)) = (b ^ K)⁻¹ := by
+    have hneg :
+        b ^ (-(K : ℤ)) = (b ^ (K : ℤ))⁻¹ :=
+      zpow_neg b (K : ℤ)
+    have hnat :
+        b ^ (K : ℤ) = b ^ K :=
+      zpow_natCast b K
+    exact Eq.trans hneg (congrArg Inv.inv hnat)
+  have hleft :
+      b ^ d * a ^ (-(D : ℤ)) = b ^ d / a ^ D :=
+    Eq.trans
+      (congrArg (fun x : ℝ => b ^ d * x) ha_zpow)
+      (div_eq_mul_inv (b ^ d) (a ^ D)).symm
+  have hright :
+      (2 : ℝ) ^ D * b ^ (-(K : ℤ)) =
+        (2 : ℝ) ^ D / b ^ K :=
+    Eq.trans
+      (congrArg (fun x : ℝ => (2 : ℝ) ^ D * x) hb_zpow)
+      (div_eq_mul_inv ((2 : ℝ) ^ D) (b ^ K)).symm
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ (2 : ℝ) ^ D * b ^ (-(K : ℤ)))
+    hleft.symm
+    (Eq.subst
+      (motive := fun x : ℝ => b ^ d / a ^ D ≤ x)
+      hright.symm
+      hdiv)
+
+/-- Multiplying the abstract growth-decay comparison by a positive constant. -/
+theorem real_const_mul_growth_decay_product_le_tail_of_baseComparison
+    {a b C : ℝ} (d D K : ℕ)
+    (hCpos : 0 < C)
+    (ha : 1 ≤ a)
+    (hb : 1 ≤ b)
+    (hbase : b ≤ (2 : ℝ) * a)
+    (hdk : d + K ≤ D) :
+    C * (b ^ d * a ^ (-(D : ℤ))) ≤
+      C * ((2 : ℝ) ^ D * b ^ (-(K : ℤ))) := by
+  exact mul_le_mul_of_nonneg_left
+    (real_growth_decay_product_le_tail_of_baseComparison
+      d D K ha hb hbase hdk)
+    (le_of_lt hCpos)
+
 /-- The normalized shell envelope is bounded by the explicit tail constant once
 all height-base comparisons are written in the canonical base
 `1 + ‖m‖`. -/
@@ -489,7 +601,84 @@ theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heig
     completedZeroCenteredHeightShellCountingEnvelope C d k m ≤
       completedZeroCenteredHeightShellTailConstant C d k *
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
-  sorry
+  let a : ℝ := max 1 ‖((m : ℕ) : ℝ)‖
+  let b : ℝ := 1 + ‖((m : ℕ) : ℝ)‖
+  let D : ℕ := d + k + 3
+  let K : ℕ := k + 2
+  have ha : 1 ≤ a :=
+    le_max_left 1 ‖((m : ℕ) : ℝ)‖
+  have hb : 1 ≤ b :=
+    le_add_of_nonneg_right (norm_nonneg ((m : ℕ) : ℝ))
+  have hbase : b ≤ (2 : ℝ) * a :=
+    one_add_natNorm_le_two_mul_max_one_natNorm m
+  have hdk_eq :
+      d + K = d + k + 2 := by
+    unfold K
+    exact (Nat.add_assoc d k 2).symm
+  have hdk_le_raw :
+      d + k + 2 ≤ d + k + 3 :=
+    Nat.le_succ (d + k + 2)
+  have hdk : d + K ≤ D := by
+    unfold D
+    exact Eq.subst
+      (motive := fun x : ℕ => x ≤ d + k + 3)
+      hdk_eq.symm
+      hdk_le_raw
+  have hsucc :
+      (((m + 1 : ℕ) : ℝ)) = b := by
+    unfold b
+    exact natSucc_cast_eq_one_add_natNorm m
+  have hsucc_pow :
+      (((m + 1 : ℕ) : ℝ) ^ d) = b ^ d :=
+    congrArg (fun x : ℝ => x ^ d) hsucc
+  have hcore :
+      C * (b ^ d * a ^ (-(D : ℤ))) ≤
+        C * ((2 : ℝ) ^ D * b ^ (-(K : ℤ))) :=
+    real_const_mul_growth_decay_product_le_tail_of_baseComparison
+      d D K hCpos ha hb hbase hdk
+  unfold completedZeroCenteredHeightShellCountingEnvelope
+  unfold completedZeroCenteredHeightShellTailConstant
+  have hleft :
+      C * (((m + 1 : ℕ) : ℝ) ^ d) *
+          (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
+        C * (b ^ d * a ^ (-(D : ℤ))) := by
+    unfold a D
+    have hreplace :
+        C * (((m + 1 : ℕ) : ℝ) ^ d) *
+            (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
+          C * (b ^ d) *
+            (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) :=
+      congrArg
+        (fun x : ℝ =>
+          C * x *
+            (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)))
+        hsucc_pow
+    have hassoc :
+        C * (b ^ d) *
+            (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)) =
+          C *
+            (b ^ d *
+              (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))) :=
+      mul_assoc C (b ^ d)
+        ((max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ)))
+    exact Eq.trans hreplace hassoc
+  have hright :
+      C * (2 : ℝ) ^ (d + k + 3) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) =
+        C * ((2 : ℝ) ^ D * b ^ (-(K : ℤ))) := by
+    unfold b D K
+    exact mul_assoc C ((2 : ℝ) ^ (d + k + 3))
+      ((1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ completedZeroCenteredHeightShellTailConstant C d k *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+    hleft.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        C * (b ^ d * a ^ (-(D : ℤ))) ≤ x)
+      hright.symm
+      hcore)
 
 /-- The shell counting envelope is bounded by the explicit polynomial tail
 constant. -/
