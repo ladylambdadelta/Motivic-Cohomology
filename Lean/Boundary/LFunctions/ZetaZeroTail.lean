@@ -173,6 +173,50 @@ theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) := by
   exact ((completedZeroSubtypeFiniteComplementEquiv S hS).symm.tsum_eq F).symm
 
+/-- A complex-valued `tsum` over a sum type splits into its two oriented faces.
+
+This is the generic topology owner lemma behind finite/complement decompositions. -/
+theorem complex_tsum_sum_type_eq_add_of_summable_faces
+    {α β : Type*}
+    (G : α ⊕ β → ℂ)
+    (hleft : Summable (fun a : α => G (Sum.inl a)))
+    (hright : Summable (fun b : β => G (Sum.inr b))) :
+    (∑' x : α ⊕ β, G x) =
+      (∑' a : α, G (Sum.inl a)) +
+        (∑' b : β, G (Sum.inr b)) := by
+  sorry
+
+/-- Restricting a summable completed-zero family to the selected finite face is summable. -/
+theorem completedZeroFiniteFace_summable
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
+    Summable (fun η : S.attach => F ⟨η, hS η η.2⟩) := by
+  have hinj :
+      Function.Injective
+        (fun η : S.attach =>
+          (⟨η, hS η η.2⟩ : {ρ : ℂ // ZetaCompletedZero ρ})) := by
+    intro η μ hημ
+    exact Subtype.ext (congrArg Subtype.val hημ)
+  exact hF.comp_injective hinj
+
+/-- Restricting a summable completed-zero family to the complementary tail face is summable. -/
+theorem completedZeroComplementFace_summable
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hF : Summable F) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+        F ⟨ρ, ρ.2.1⟩) := by
+  have hinj :
+      Function.Injective
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+          (⟨ρ, ρ.2.1⟩ : {ρ : ℂ // ZetaCompletedZero ρ})) := by
+    intro ρ η hρη
+    exact Subtype.ext (congrArg Subtype.val hρη)
+  exact hF.comp_injective hinj
+
 /-- Split the finite/complement sum-type `tsum` into the selected finite side and the
 complementary tail side. -/
 theorem completedZeroFiniteComplement_sumType_tsum_eq_add
@@ -184,7 +228,39 @@ theorem completedZeroFiniteComplement_sumType_tsum_eq_add
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) =
       (∑' η : S.attach, F ⟨η, hS η η.2⟩) +
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
-  sorry
+  let G :
+      S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} → ℂ :=
+    fun x => F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)
+  have hleft : Summable (fun η : S.attach => F ⟨η, hS η η.2⟩) :=
+    completedZeroFiniteFace_summable S F hS hF
+  have hright :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+          F ⟨ρ, ρ.2.1⟩) :=
+    completedZeroComplementFace_summable S F hF
+  have hleftG : Summable (fun η : S.attach => G (Sum.inl η)) :=
+    hleft
+  have hrightG :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+          G (Sum.inr ρ)) :=
+    hright
+  exact complex_tsum_sum_type_eq_add_of_summable_faces G hleftG hrightG
+
+/-- A complex-valued `tsum` over a finite type is the finite sum over any finset that lists
+all elements. -/
+theorem complex_tsum_fintype_eq_finset_sum_of_finset_eq_univ
+    {α : Type*} [Fintype α]
+    (s : Finset α) (hs : s = Finset.univ)
+    (G : α → ℂ) :
+    (∑' a : α, G a) = ∑ a in s, G a := by
+  have htsum :
+      (∑' a : α, G a) = ∑ a : α, G a :=
+    tsum_fintype G
+  have hfinset :
+      (∑ a : α, G a) = ∑ a in s, G a :=
+    congrArg (fun t : Finset α => ∑ a in t, G a) hs.symm
+  exact htsum.trans hfinset
 
 /-- The selected finite side of the completed-zero split is a finite sum over `S.attach`. -/
 theorem completedZeroFiniteSubtype_tsum_eq_finset_sum
@@ -193,7 +269,11 @@ theorem completedZeroFiniteSubtype_tsum_eq_finset_sum
     (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
     (∑' η : S.attach, F ⟨η, hS η η.2⟩) =
       ∑ η in S.attach, F ⟨η, hS η η.2⟩ := by
-  sorry
+  exact
+    complex_tsum_fintype_eq_finset_sum_of_finset_eq_univ
+      S.attach
+      Finset.attach_eq_univ
+      (fun η : S.attach => F ⟨η, hS η η.2⟩)
 
 /-- Finite/complement `tsum` transport for the completed-zero subtype. -/
 theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
