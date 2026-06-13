@@ -471,13 +471,134 @@ theorem abs_mul_le_endpointEnvelopeProduct_of_mem_interval
     (abs_mul x t).symm
     hmul
 
+/-- The product of nonnegative max envelopes bounds each of the four products. -/
+theorem four_products_le_max_mul_max_of_nonneg
+    {a b c d : ℝ}
+    (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 ≤ c) (hd : 0 ≤ d) :
+    max (max (a * c) (a * d)) (max (b * c) (b * d)) ≤
+      max a b * max c d := by
+  have hmaxab_nonneg : 0 ≤ max a b :=
+    le_max_of_le_left ha
+  have hac : a * c ≤ max a b * max c d :=
+    mul_le_mul (le_max_left a b) (le_max_left c d) hc hmaxab_nonneg
+  have had : a * d ≤ max a b * max c d :=
+    mul_le_mul (le_max_left a b) (le_max_right c d) hd hmaxab_nonneg
+  have hbc : b * c ≤ max a b * max c d :=
+    mul_le_mul (le_max_right a b) (le_max_left c d) hc hmaxab_nonneg
+  have hbd : b * d ≤ max a b * max c d :=
+    mul_le_mul (le_max_right a b) (le_max_right c d) hd hmaxab_nonneg
+  exact max_le (max_le hac had) (max_le hbc hbd)
+
+/-- The first corner product is included in the four-product maximum. -/
+theorem first_product_le_four_products
+    (a b c d : ℝ) :
+    a * c ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+  le_trans (le_max_left (a * c) (a * d))
+    (le_max_left (max (a * c) (a * d)) (max (b * c) (b * d)))
+
+/-- The second corner product is included in the four-product maximum. -/
+theorem second_product_le_four_products
+    (a b c d : ℝ) :
+    a * d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+  le_trans (le_max_right (a * c) (a * d))
+    (le_max_left (max (a * c) (a * d)) (max (b * c) (b * d)))
+
+/-- The third corner product is included in the four-product maximum. -/
+theorem third_product_le_four_products
+    (a b c d : ℝ) :
+    b * c ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+  le_trans (le_max_left (b * c) (b * d))
+    (le_max_right (max (a * c) (a * d)) (max (b * c) (b * d)))
+
+/-- The fourth corner product is included in the four-product maximum. -/
+theorem fourth_product_le_four_products
+    (a b c d : ℝ) :
+    b * d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+  le_trans (le_max_right (b * c) (b * d))
+    (le_max_right (max (a * c) (a * d)) (max (b * c) (b * d)))
+
+/-- The product of nonnegative max envelopes is bounded by the four-product maximum. -/
+theorem max_mul_max_le_four_products_of_nonneg
+    {a b c d : ℝ}
+    (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 ≤ c) (hd : 0 ≤ d) :
+    max a b * max c d ≤
+      max (max (a * c) (a * d)) (max (b * c) (b * d)) := by
+  by_cases hab : a ≤ b
+  · have hmaxab : max a b = b := max_eq_right hab
+    by_cases hcd : c ≤ d
+    · have hmaxcd : max c d = d := max_eq_right hcd
+      have hcorner :
+          b * d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+        fourth_product_le_four_products a b c d
+      exact Eq.subst
+        (motive := fun v : ℝ =>
+          v * max c d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+        hmaxab.symm
+        (Eq.subst
+          (motive := fun v : ℝ =>
+            b * v ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+          hmaxcd.symm
+          hcorner)
+    · have hdc : d ≤ c := le_of_not_ge hcd
+      have hmaxcd : max c d = c := max_eq_left hdc
+      have hcorner :
+          b * c ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+        third_product_le_four_products a b c d
+      exact Eq.subst
+        (motive := fun v : ℝ =>
+          v * max c d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+        hmaxab.symm
+        (Eq.subst
+          (motive := fun v : ℝ =>
+            b * v ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+          hmaxcd.symm
+          hcorner)
+  · have hba : b ≤ a := le_of_not_ge hab
+    have hmaxab : max a b = a := max_eq_left hba
+    by_cases hcd : c ≤ d
+    · have hmaxcd : max c d = d := max_eq_right hcd
+      have hcorner :
+          a * d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+        second_product_le_four_products a b c d
+      exact Eq.subst
+        (motive := fun v : ℝ =>
+          v * max c d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+        hmaxab.symm
+        (Eq.subst
+          (motive := fun v : ℝ =>
+            a * v ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+          hmaxcd.symm
+          hcorner)
+    · have hdc : d ≤ c := le_of_not_ge hcd
+      have hmaxcd : max c d = c := max_eq_left hdc
+      have hcorner :
+          a * c ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)) :=
+        first_product_le_four_products a b c d
+      exact Eq.subst
+        (motive := fun v : ℝ =>
+          v * max c d ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+        hmaxab.symm
+        (Eq.subst
+          (motive := fun v : ℝ =>
+            a * v ≤ max (max (a * c) (a * d)) (max (b * c) (b * d)))
+          hmaxcd.symm
+          hcorner)
+
 /-- Multiplying two nonnegative two-point max envelopes gives the max of the four products. -/
 theorem max_mul_max_of_nonneg_eq_max_four_products
     {a b c d : ℝ}
     (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 ≤ c) (hd : 0 ≤ d) :
     max a b * max c d =
       max (max (a * c) (a * d)) (max (b * c) (b * d)) := by
-  sorry
+  exact le_antisymm
+    (max_mul_max_le_four_products_of_nonneg ha hb hc hd)
+    (four_products_le_max_mul_max_of_nonneg ha hb hc hd)
+
+/-- Absolute value of a product as separated absolute-value factors. -/
+theorem abs_mul_eq_abs_mul_abs
+    (x y : ℝ) :
+    |x * y| = |x| * |y| := by
+  exact abs_mul x y
 
 /-- The four-corner max written with separated absolute-value products equals the corner
 absolute-product max. -/
@@ -487,7 +608,13 @@ theorem max_four_abs_products_eq_max_corner_abs
         (max (|b| * |lower|) (|b| * |upper|)) =
       max (max (|a * lower|) (|a * upper|))
         (max (|b * lower|) (|b * upper|)) := by
-  sorry
+  exact congrArg₂ max
+    (congrArg₂ max
+      (abs_mul_eq_abs_mul_abs a lower).symm
+      (abs_mul_eq_abs_mul_abs a upper).symm)
+    (congrArg₂ max
+      (abs_mul_eq_abs_mul_abs b lower).symm
+      (abs_mul_eq_abs_mul_abs b upper).symm)
 
 /-- The product of the one-dimensional absolute endpoint envelopes is the maximum of the
 four corner absolute products. -/
@@ -570,13 +697,13 @@ theorem zetaPaleyWienerStripProduct_le_endpointEnvelope
 theorem complex_norm_eq_abs
     (w : ℂ) :
     ‖w‖ = Complex.abs w := by
-  sorry
+  rfl
 
 /-- The complex exponential absolute value is the exponential of the real part. -/
 theorem complexAbs_exp_eq_realExp_re
     (w : ℂ) :
     Complex.abs (Complex.exp w) = Real.exp w.re := by
-  sorry
+  exact Complex.abs_exp w
 
 /-- Norm of the complex exponential is the exponential of the real part. -/
 theorem complexExp_norm_eq_realExp_re
