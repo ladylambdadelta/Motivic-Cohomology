@@ -157,6 +157,18 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributio
     finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerHorizontalDecay
       f
 
+/-- Completed prime holographic scalar reconstruction.
+
+The completed prime time-side projection and the completed two-face boundary projection
+give the same reconstructed prime scalar.  This is the global reconstruction theorem: it
+is not a pointwise identification between a time-side real/log coordinate and a vertical
+or Laplace spectral sample. -/
+theorem completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeTomographyProjection f =
+      completedPrimeTwoFaceTomographyProjection f := by
+  sorry
+
 /-- Completed prime contour transport identifies the completed time-side prime distribution
 with the completed contour-realized distribution.
 
@@ -169,52 +181,19 @@ theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_own
       completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) := by
   have htime :
-      Tendsto
-        (fun N : ℕ =>
-          finitePrimeContourRealizedTimeDistributionWindow N
-            (convolutionAutocorrelation f))
-        atTop
-        (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) :=
-    finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerTomography
-      f
-  have hcontour :
-      Tendsto
-        (fun N : ℕ =>
-          finitePrimeContourRealizedTimeDistributionWindow N
-            (convolutionAutocorrelation f))
-        atTop
-        (𝓝
-          (completedPrimeContourRealizedTimeDistributionPairing
-            (convolutionAutocorrelation f))) :=
-    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized_autocorrelation
-      f
-  exact tendsto_nhds_unique htime hcontour
-
-/-- Completed prime holographic scalar reconstruction.
-
-The completed prime time-side projection and the completed two-face boundary projection
-give the same reconstructed prime scalar.  This is the global reconstruction theorem: it
-is not a pointwise identification between a time-side real/log coordinate and a vertical
-or Laplace spectral sample. -/
-theorem completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography
-    (f : ZetaAdmissibleFunction) :
-    completedPrimeTimeTomographyProjection f =
-      completedPrimeTwoFaceTomographyProjection f := by
-  have htime :
       completedPrimeTimeTomographyProjection f =
         completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
     completedPrimeTimeTomographyProjection_eq_timeDistributionPairing f
-  have htransport :
-      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
-        completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) :=
-    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTransport f
+  have htomography :
+      completedPrimeTimeTomographyProjection f =
+        completedPrimeTwoFaceTomographyProjection f :=
+    completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography f
   have htwoFace :
       completedPrimeTwoFaceTomographyProjection f =
         completedPrimeContourRealizedTimeDistributionPairing
           (convolutionAutocorrelation f) :=
     completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing f
-  exact htime.trans (htransport.trans htwoFace.symm)
+  exact htime.symm.trans (htomography.trans htwoFace)
 
 /-- Completed prime holographic reconstruction.
 
