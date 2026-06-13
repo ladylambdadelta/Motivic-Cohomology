@@ -27,6 +27,15 @@ def completedZerosInCenteredHeightBall (T : ℝ) :
     Set {ρ : ℂ // ZetaCompletedZero ρ} :=
   {ρ | zetaCompletedZeroCenteredHeight ρ ≤ T}
 
+/-- Completed zeros are locally finite in centered height balls.
+
+This is the local-finiteness part of the zero divisor of the completed zeta
+function, separated from the later summability bookkeeping. -/
+theorem finite_completedZerosInCenteredHeightBall
+    (T : ℝ) :
+    (completedZerosInCenteredHeightBall T).Finite := by
+  sorry
+
 /-- The height-ball multiplicity summand. -/
 noncomputable def completedZeroMultiplicityHeightBallSummand
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
@@ -114,6 +123,37 @@ theorem completedZeroMultiplicityHeightBallSummand_self
   unfold completedZeroMultiplicityHeightBallSummand
   exact if_pos (le_refl (zetaCompletedZeroCenteredHeight ρ))
 
+/-- Height-ball multiplicity summands vanish outside the height ball. -/
+theorem completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem
+    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    (hρ : ρ ∉ completedZerosInCenteredHeightBall T) :
+    completedZeroMultiplicityHeightBallSummand T ρ = 0 := by
+  unfold completedZerosInCenteredHeightBall at hρ
+  unfold completedZeroMultiplicityHeightBallSummand
+  exact if_neg hρ
+
+/-- A real family supported on a finite set is summable. -/
+theorem summable_of_finite_support_real
+    {α : Type*} (u : α → ℝ) (s : Set α)
+    (hs : s.Finite)
+    (hsupport : ∀ a : α, a ∉ s → u a = 0) :
+    Summable u := by
+  sorry
+
+/-- Finite height balls make the height-ball multiplicity summand summable. -/
+theorem summable_completedZeroMultiplicityHeightBallSummand_of_finite_heightBall
+    (T : ℝ)
+    (hfinite : (completedZerosInCenteredHeightBall T).Finite) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        completedZeroMultiplicityHeightBallSummand T ρ) := by
+  exact summable_of_finite_support_real
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      completedZeroMultiplicityHeightBallSummand T ρ)
+    (completedZerosInCenteredHeightBall T)
+    hfinite
+    (completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem T)
+
 /-- Height-ball multiplicity summands are summable.
 
 This is the finite-height-ball bookkeeping consequence of local finiteness of the completed
@@ -123,7 +163,9 @@ theorem summable_completedZeroMultiplicityHeightBallSummand
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         completedZeroMultiplicityHeightBallSummand T ρ) := by
-  sorry
+  exact summable_completedZeroMultiplicityHeightBallSummand_of_finite_heightBall
+    T
+    (finite_completedZerosInCenteredHeightBall T)
 
 /-- One nonnegative height-ball summand is bounded by the full height-ball count. -/
 theorem completedZeroMultiplicityHeightBallSummand_le_counting

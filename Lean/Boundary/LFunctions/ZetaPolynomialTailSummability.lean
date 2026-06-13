@@ -26,6 +26,23 @@ theorem one_le_one_add_nat_norm
     1 ≤ 1 + ‖((m : ℕ) : ℝ)‖ := by
   exact le_add_of_nonneg_right (norm_nonneg ((m : ℕ) : ℝ))
 
+/-- The natural height base is the successor denominator used in the standard
+reciprocal-square tail. -/
+theorem one_add_nat_norm_eq_nat_succ
+    (m : ℕ) :
+    1 + ‖((m : ℕ) : ℝ)‖ = ((m + 1 : ℕ) : ℝ) := by
+  have hnorm :
+      ‖((m : ℕ) : ℝ)‖ = ((m : ℕ) : ℝ) :=
+    Real.norm_of_nonneg (Nat.cast_nonneg m)
+  have hcast :
+      ((m + 1 : ℕ) : ℝ) = ((m : ℕ) : ℝ) + (1 : ℝ) :=
+    Nat.cast_add m 1
+  calc
+    1 + ‖((m : ℕ) : ℝ)‖
+        = 1 + ((m : ℕ) : ℝ) := congrArg (fun x : ℝ => 1 + x) hnorm
+    _ = ((m : ℕ) : ℝ) + 1 := add_comm 1 ((m : ℕ) : ℝ)
+    _ = ((m + 1 : ℕ) : ℝ) := hcast.symm
+
 /-- The reciprocal-square tail over positive natural denominators is summable. -/
 theorem summable_nat_succ_inverse_square :
     Summable
@@ -33,12 +50,33 @@ theorem summable_nat_succ_inverse_square :
         ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
   sorry
 
+/-- A negative second integer power is a reciprocal square. -/
+theorem real_zpow_neg_two_eq_inv_square
+    {x : ℝ}
+    (hx : x ≠ 0) :
+    x ^ (-(2 : ℤ)) = x⁻¹ ^ (2 : ℕ) := by
+  sorry
+
 /-- The height-base reciprocal-square tail is the usual reciprocal-square tail. -/
 theorem one_add_nat_norm_negative_two_eq_nat_succ_inverse_square
     (m : ℕ) :
     (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) =
       ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ) := by
-  sorry
+  have hbase :
+      1 + ‖((m : ℕ) : ℝ)‖ = ((m + 1 : ℕ) : ℝ) :=
+    one_add_nat_norm_eq_nat_succ m
+  have hpos :
+      0 < 1 + ‖((m : ℕ) : ℝ)‖ :=
+    one_add_nat_norm_pos m
+  have hne :
+      1 + ‖((m : ℕ) : ℝ)‖ ≠ 0 :=
+    ne_of_gt hpos
+  have hpow :
+      (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) =
+        (1 + ‖((m : ℕ) : ℝ)‖)⁻¹ ^ (2 : ℕ) :=
+    real_zpow_neg_two_eq_inv_square hne
+  exact Eq.trans hpow
+    (congrArg (fun x : ℝ => x⁻¹ ^ (2 : ℕ)) hbase)
 
 /-- The reciprocal-square natural tail is summable. -/
 theorem summable_one_add_nat_norm_negative_two :
