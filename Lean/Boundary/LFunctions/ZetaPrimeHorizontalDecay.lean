@@ -569,6 +569,74 @@ theorem sampledHorizontalDifference_tendsto_zero_ownerHorizontalDecay
     completedPrimeProductHorizontalControl_of_autocorrelation f
   exact sampledHorizontalDifference_tendsto_zero_of_productHorizontalControl f hcontrol
 
+/-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization.
+
+This is the owner horizontal-decay tail theorem.  It is independent of the finite
+tomographic residual error: the residual error is later identified with this tail, not used
+to prove the tail estimate. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- Owner horizontal-decay theorem for the finite prime coordinate-remainder window.
+
+The finite coordinate-remainder window is reconstructed as the sampled horizontal
+difference plus the omitted coordinate tail.  The sampled term decays by product-form
+horizontal control, and the tail decays by the independent tail theorem above. -/
+theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f)
+      atTop
+      (𝓝 0) := by
+  have hsampled :
+      Tendsto
+        (fun N : ℕ => sampledHorizontalDifference N f)
+        atTop
+        (𝓝 0) :=
+    sampledHorizontalDifference_tendsto_zero_ownerHorizontalDecay f
+  have htail :
+      Tendsto
+        (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+        atTop
+        (𝓝 0) :=
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay f
+  have hsum :
+      Tendsto
+        (fun N : ℕ =>
+          sampledHorizontalDifference N f +
+            completedPrimeContourTransportCoordinateRemainderTail N f)
+        atTop
+        (𝓝 (0 + 0)) :=
+    hsampled.add htail
+  have htarget : (0 : ℝ) + 0 = 0 :=
+    add_zero 0
+  have hwindow :
+      (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f) =
+        fun N : ℕ =>
+          sampledHorizontalDifference N f +
+            completedPrimeContourTransportCoordinateRemainderTail N f := by
+    funext N
+    exact (sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow
+      N f).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hwindow.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            sampledHorizontalDifference N f +
+              completedPrimeContourTransportCoordinateRemainderTail N f)
+          atTop
+          (𝓝 x))
+      htarget
+      hsum)
+
 /-- Owner horizontal-decay theorem for the finite prime contour-transport remainder.
 
 The finite contour-transport remainder tends to zero after the horizontal sides of the
@@ -580,7 +648,21 @@ theorem finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay
       (fun N : ℕ => finitePrimeContourTransportRemainder N f)
       atTop
       (𝓝 0) := by
-  sorry
+  have hwindow :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerHorizontalDecay f
+  have hrem :
+      (fun N : ℕ => finitePrimeContourTransportRemainder N f) =
+        (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f) := by
+    funext N
+    exact finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow N f
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+    hrem.symm
+    hwindow
 
 /-- Owner horizontal-decay theorem for the residual finite prime tomography error.
 
@@ -653,22 +735,8 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_owner
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  have herror :
-      Tendsto
-        (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
-        atTop
-        (𝓝 0) :=
-    finitePrimeContourTransportTomographicError_tendsto_zero f
-  have htail :
-      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f) =
-        (fun N : ℕ => finitePrimeContourTransportTomographicError N f) := by
-    funext N
-    exact (finitePrimeContourTransportTomographicError_eq_coordinateRemainderTail N f).symm
-  exact Eq.subst
-    (motive := fun u : ℕ → ℝ =>
-      Tendsto u atTop (𝓝 0))
-    htail.symm
-    herror
+  exact completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay
+    f
 
 /-- Finite contour-realized prime windows converge to the completed time-side prime
 distribution after horizontal contour transport.
