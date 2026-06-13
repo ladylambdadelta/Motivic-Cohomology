@@ -557,15 +557,6 @@ theorem completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenui
   unfold completedPrimeContourTransportCoordinateRemainder
   exact congrArg₂ Sub.sub hcontour htime
 
-/-- Nongenuine indices have zero coordinate-remainder majorant. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorant_eq_zero_of_not_isGenuine
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
-    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
-    completedPrimeContourTransportCoordinateRemainderMajorant ι f = 0 := by
-  unfold completedPrimeContourTransportCoordinateRemainderMajorant
-  exact congrArg norm
-    (completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine ι f hι)
-
 /-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization.
 
 This is the direct horizontal-transport tail theorem.  It is deliberately not routed

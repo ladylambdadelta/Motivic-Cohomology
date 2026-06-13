@@ -157,6 +157,18 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributio
     finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerHorizontalDecay
       f
 
+/-- Completed prime holographic reconstruction.
+
+The completed prime time-side projection and the completed two-face boundary projection
+define the same prime tomography class.  This is the global reconstruction theorem: it is
+not a pointwise identification between a time-side real/log coordinate and a vertical or
+Laplace spectral sample. -/
+theorem completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeTomographyClass f =
+      completedPrimeTwoFaceTomographyClass f := by
+  sorry
+
 /-- The completed time-side two-face coordinate sum reconstructs the completed two-face
 boundary coefficient.
 
@@ -168,7 +180,28 @@ theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_owner
     (∑' ι : ZetaPrimePowerIndex,
         completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
       Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  sorry
+  have hclass :
+      completedPrimeTimeTomographyClass f =
+        completedPrimeTwoFaceTomographyClass f :=
+    completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass_ownerTomography f
+  have hscalar :
+      completedPrimeTomographyClassScalar
+          (completedPrimeTimeTomographyClass f) =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTwoFaceTomographyClass f) :=
+    congrArg completedPrimeTomographyClassScalar hclass
+  calc
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTimeTomographyClass f) := by
+      exact (completedPrimeTomographyClassScalar_time f).symm
+    _ =
+        completedPrimeTomographyClassScalar
+          (completedPrimeTwoFaceTomographyClass f) := by
+      exact hscalar
+    _ = Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+      exact completedPrimeTomographyClassScalar_twoFace f
 
 /-- Completed prime channel tomography.
 
@@ -206,25 +239,7 @@ theorem completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeTomographyClass f =
       completedPrimeTwoFaceTomographyClass f := by
-  apply CompletedPrimeTomographyClass.ext_scalar
-  have hprojection :
-      completedPrimeTimeTomographyProjection f =
-        completedPrimeTwoFaceTomographyProjection f := by
-    unfold completedPrimeTimeTomographyProjection
-    unfold completedPrimeTwoFaceTomographyProjection
-    exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-      f
-  calc
-    completedPrimeTomographyClassScalar
-        (completedPrimeTimeTomographyClass f) =
-        completedPrimeTimeTomographyProjection f := by
-      exact completedPrimeTomographyClassScalar_time f
-    _ = completedPrimeTwoFaceTomographyProjection f := by
-      exact hprojection
-    _ =
-        completedPrimeTomographyClassScalar
-          (completedPrimeTwoFaceTomographyClass f) := by
-      exact (completedPrimeTomographyClassScalar_twoFace f).symm
+  exact completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass_ownerTomography f
 
 /-- The scalar consequence of completed prime holographic reconstruction. -/
 theorem completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient

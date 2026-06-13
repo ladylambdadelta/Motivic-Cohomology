@@ -128,30 +128,6 @@ noncomputable def completedPrimeContourTransportCoordinateRemainder
       ι (convolutionAutocorrelation f) -
     completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)
 
-/-- The coordinatewise majorant for the completed contour-transport remainder. -/
-noncomputable def completedPrimeContourTransportCoordinateRemainderMajorant
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
-  ‖completedPrimeContourTransportCoordinateRemainder ι f‖
-
-/-- The completed contour-transport coordinate-remainder majorant family. -/
-noncomputable def completedPrimeContourTransportCoordinateRemainderMajorantFamily
-    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
-  fun ι => completedPrimeContourTransportCoordinateRemainderMajorant ι f
-
-/-- The coordinate-remainder majorant family evaluates to the coordinate majorant. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorantFamily_apply
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
-    completedPrimeContourTransportCoordinateRemainderMajorantFamily f ι =
-      completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-  rfl
-
-/-- The coordinate-remainder majorant is the norm of the coordinate remainder. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
-    completedPrimeContourTransportCoordinateRemainderMajorant ι f =
-      ‖completedPrimeContourTransportCoordinateRemainder ι f‖ := by
-  rfl
-
 /-- The completed contour-transport coordinate-remainder family. -/
 noncomputable def completedPrimeContourTransportCoordinateRemainderFamily
     (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
@@ -198,25 +174,6 @@ theorem norm_completedPrimeContourTransportCoordinateRemainder_le_contour_add_ti
         (completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f))
         (completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))
-
-/-- The contour-transport coordinate remainder is bounded by its explicit majorant. -/
-theorem norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
-    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-      completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-  exact
-    le_of_eq
-      (completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f).symm
-
-/-- The contour-transport coordinate remainder majorant is nonnegative. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
-    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
-    0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-  calc
-    0 ≤ ‖completedPrimeContourTransportCoordinateRemainder ι f‖ := by
-      exact norm_nonneg _
-    _ = completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
-      exact (completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f).symm
 
 /-- Nongenuine prime-power coordinates carry no contour-transport remainder. -/
 theorem completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine_ownerTomography
@@ -1129,38 +1086,6 @@ theorem sampledHorizontalDifference_eq_coordinateRemainderWindow_sub_tail
       (sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow
         N f)
 
-/-- A nonnegative majorant for the finite prime tomographic residual error. -/
-noncomputable def finitePrimeContourTransportTomographicErrorMajorant
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
-  ‖finitePrimeContourTransportTomographicError N f‖
-
-/-- The finite tomographic-error majorant is the norm of the finite tomographic error. -/
-theorem finitePrimeContourTransportTomographicErrorMajorant_eq_norm
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    finitePrimeContourTransportTomographicErrorMajorant N f =
-      ‖finitePrimeContourTransportTomographicError N f‖ := by
-  rfl
-
-/-- The coordinate-remainder tail majorant controlling the finite prime tomographic residual.
-
-The finite residual is a completed prime-window tomography error, so its decay is controlled
-by the tail of the coordinate-remainder majorant outside the finite prime-power window. -/
-noncomputable def finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
-  ∑' ι : ZetaPrimePowerIndex,
-    ZetaPrimePowerIndex.spectralTail
-      (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι
-
-/-- The tomographic coordinate-remainder tail majorant is the `tsum` of the owner spectral
-tail of the coordinate-remainder majorant family. -/
-theorem finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant_eq_spectralTail_tsum
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f =
-      ∑' ι : ZetaPrimePowerIndex,
-        ZetaPrimePowerIndex.spectralTail
-          (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι := by
-  rfl
-
 /-- A target splits as a sampled reference plus a named error when the error is the
 corresponding residual. -/
 theorem real_target_eq_reference_add_error_of_error_eq_residual
@@ -1182,15 +1107,6 @@ theorem finitePrimeContourTransportRemainder_eq_sampledHorizontalDifference_add_
   exact
     real_target_eq_reference_add_error_of_error_eq_residual
       (finitePrimeContourTransportTomographicError_eq_remainder_sub_sampled N f)
-
-/-- The finite prime tomographic residual error is controlled by its explicit majorant. -/
-theorem norm_finitePrimeContourTransportTomographicError_le_majorant
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    ‖finitePrimeContourTransportTomographicError N f‖ ≤
-      finitePrimeContourTransportTomographicErrorMajorant N f := by
-  exact
-    le_of_eq
-      (finitePrimeContourTransportTomographicErrorMajorant_eq_norm N f).symm
 
 end ZetaAdmissibleFunction
 
