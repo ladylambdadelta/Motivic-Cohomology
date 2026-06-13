@@ -251,6 +251,14 @@ theorem finitePrimeContourTransportResidueDefect_eq_window_sub_tail
         completedPrimeContourTransportCoordinateRemainderTail N f := by
   rfl
 
+/-- Complex sampled contour tomography reconstructs the finite residue defect after taking
+the real part. -/
+theorem sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) =
+      finitePrimeContourTransportResidueDefect N f := by
+  sorry
+
 /-- The residual finite prime tomography error after subtracting the sampled horizontal
 contour difference from the finite prime contour-transport remainder.
 
@@ -271,7 +279,9 @@ theorem sampledHorizontalDifference_eq_finitePrimeContourTransportResidueDefect_
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     sampledHorizontalDifference N f =
       finitePrimeContourTransportResidueDefect N f := by
-  sorry
+  unfold sampledHorizontalDifference
+  exact sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography
+    N f
 
 /-- Additive contour-residue tomography balance.
 
