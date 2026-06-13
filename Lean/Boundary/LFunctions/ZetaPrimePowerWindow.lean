@@ -98,6 +98,22 @@ height. -/
 def heightShellHorizontalEdge (m : ℕ) : Finset ZetaPrimePowerIndex :=
   (rawBox m).filter (fun ι => ι.n = m)
 
+/-- The explicit range model for the vertical rectangular edge at height `m`. -/
+def heightShellVerticalEdgeModel (m : ℕ) : Finset ZetaPrimePowerIndex :=
+  (Finset.range (m + 1)).map
+    ⟨fun n => ⟨m, n⟩, by
+      intro n₁ n₂ hn
+      cases hn
+      rfl⟩
+
+/-- The explicit range model for the horizontal rectangular edge at height `m`. -/
+def heightShellHorizontalEdgeModel (m : ℕ) : Finset ZetaPrimePowerIndex :=
+  (Finset.range (m + 1)).map
+    ⟨fun p => ⟨p, m⟩, by
+      intro p₁ p₂ hp
+      cases hp
+      rfl⟩
+
 /-- Membership in an exact rectangular height shell is exactly equality of rectangular
 height with the shell parameter. -/
 theorem mem_heightShell_iff
@@ -148,6 +164,42 @@ theorem heightShell_subset_edgeUnion
   intro ι hι
   exact Finset.mem_union.mpr (heightShell_mem_vertical_or_horizontal m ι hι)
 
+/-- The vertical filtered edge is the explicit finite range model. -/
+theorem heightShellVerticalEdge_eq_model
+    (m : ℕ) :
+    heightShellVerticalEdge m = heightShellVerticalEdgeModel m := by
+  sorry
+
+/-- The horizontal filtered edge is the explicit finite range model. -/
+theorem heightShellHorizontalEdge_eq_model
+    (m : ℕ) :
+    heightShellHorizontalEdge m = heightShellHorizontalEdgeModel m := by
+  sorry
+
+/-- The vertical edge model has exactly `m + 1` points. -/
+theorem card_heightShellVerticalEdgeModel
+    (m : ℕ) :
+    (heightShellVerticalEdgeModel m).card = m + 1 := by
+  unfold heightShellVerticalEdgeModel
+  exact Finset.card_map
+    ⟨fun n => ⟨m, n⟩, by
+      intro n₁ n₂ hn
+      cases hn
+      rfl⟩
+    (Finset.range (m + 1))
+
+/-- The horizontal edge model has exactly `m + 1` points. -/
+theorem card_heightShellHorizontalEdgeModel
+    (m : ℕ) :
+    (heightShellHorizontalEdgeModel m).card = m + 1 := by
+  unfold heightShellHorizontalEdgeModel
+  exact Finset.card_map
+    ⟨fun p => ⟨p, m⟩, by
+      intro p₁ p₂ hp
+      cases hp
+      rfl⟩
+    (Finset.range (m + 1))
+
 /-- The exact height shell is covered by its two rectangular edges. -/
 theorem card_heightShell_le_edgeCard_sum
     (m : ℕ) :
@@ -167,13 +219,27 @@ theorem card_heightShell_le_edgeCard_sum
 theorem card_heightShellVerticalEdge_le
     (m : ℕ) :
     (heightShellVerticalEdge m).card ≤ m + 1 := by
-  sorry
+  have hedge :
+      (heightShellVerticalEdge m).card =
+        (heightShellVerticalEdgeModel m).card :=
+    congrArg Finset.card (heightShellVerticalEdge_eq_model m)
+  exact Eq.subst
+    (motive := fun c : ℕ => c ≤ m + 1)
+    hedge.symm
+    (le_of_eq (card_heightShellVerticalEdgeModel m))
 
 /-- The horizontal edge of an exact height shell has at most `m + 1` points. -/
 theorem card_heightShellHorizontalEdge_le
     (m : ℕ) :
     (heightShellHorizontalEdge m).card ≤ m + 1 := by
-  sorry
+  have hedge :
+      (heightShellHorizontalEdge m).card =
+        (heightShellHorizontalEdgeModel m).card :=
+    congrArg Finset.card (heightShellHorizontalEdge_eq_model m)
+  exact Eq.subst
+    (motive := fun c : ℕ => c ≤ m + 1)
+    hedge.symm
+    (le_of_eq (card_heightShellHorizontalEdgeModel m))
 
 /-- Twice a successor is the sum of two copies of that successor. -/
 theorem add_succ_self_eq_two_mul_succ
