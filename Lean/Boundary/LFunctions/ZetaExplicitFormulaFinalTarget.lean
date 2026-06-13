@@ -431,51 +431,6 @@ theorem zetaCompletedZeroKreinGram_eq_boundarySum_of_familyContourShift
     explicitFormulaFamilyVerticalDifference_tendsto_boundarySum f F
   exact tendsto_nhds_unique hzero hboundary
 
-/-- The vertical side difference of the completed contour. -/
-noncomputable def explicitFormulaVerticalDifference
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : ℂ :=
-  zetaCompletedExplicitFormulaRightLineIntegral f r -
-    zetaCompletedExplicitFormulaLeftLineIntegral f r
-
-/-- The prime channel of the vertical decomposition. -/
-noncomputable def explicitFormulaVerticalPrimeContribution
-    (f : ZetaAdmissibleFunction) (_r : ExplicitFormulaRectangle) : ℂ :=
-  zetaCompletedExplicitFormulaPrimeContribution f
-
-/-- The archimedean channel of the vertical decomposition. -/
-noncomputable def explicitFormulaVerticalArchimedeanContribution
-    (f : ZetaAdmissibleFunction) (_r : ExplicitFormulaRectangle) : ℂ :=
-  zetaCompletedExplicitFormulaArchimedeanContribution f
-
-/-- The correction channel of the vertical decomposition. -/
-noncomputable def explicitFormulaVerticalCorrectionContribution
-    (f : ZetaAdmissibleFunction) (_r : ExplicitFormulaRectangle) : ℂ :=
-  zetaCompletedExplicitFormulaCorrectionContribution f
-
-/-- The prime part of the vertical contour difference is the prime explicit-formula boundary
-contribution. -/
-theorem explicitFormulaVerticalPrimeDecomposition
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalPrimeContribution f r =
-      zetaCompletedExplicitFormulaPrimeContribution f := by
-  rfl
-
-/-- The archimedean part of the vertical contour difference is the archimedean explicit-formula
-boundary contribution. -/
-theorem explicitFormulaVerticalArchimedeanDecomposition
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalArchimedeanContribution f r =
-      zetaCompletedExplicitFormulaArchimedeanContribution f := by
-  rfl
-
-/-- The correction part of the vertical contour difference is the pole-correction
-explicit-formula boundary contribution. -/
-theorem explicitFormulaVerticalCorrectionDecomposition
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaVerticalCorrectionContribution f r =
-      zetaCompletedExplicitFormulaCorrectionContribution f := by
-  rfl
-
 /-- The completed contour-shift theorem in the repository's analytic normalization.
 
 This is a rectangle-indexed wrapper around the family/limit theorem above; the target itself
