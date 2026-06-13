@@ -445,6 +445,46 @@ theorem norm_zetaZeroSideContribution_le_majorant
   unfold zetaZeroSideContributionMajorant
   exact le_refl _
 
+/-- Multiplicity-weighted transform majorant for a completed-zero contribution. -/
+noncomputable def zetaZeroMultiplicityTransformMajorant
+    (φ : ZetaAdmissibleFunction)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
+    ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖
+
+/-- The contribution majorant unfolds to multiplicity times transform size. -/
+theorem zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant
+    (φ : ZetaAdmissibleFunction)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    zetaZeroSideContributionMajorant φ ρ =
+      zetaZeroMultiplicityTransformMajorant φ ρ := by
+  unfold zetaZeroSideContributionMajorant
+  unfold zetaZeroMultiplicityTransformMajorant
+  unfold zetaZeroSideContribution
+  calc
+    ‖-((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+        zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))‖ =
+        ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
+      exact norm_neg
+        ((zetaZeroMultiplicity (ρ : ℂ) : ℂ) *
+          zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+    _ =
+        ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
+          ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ := by
+      exact norm_mul
+        (zetaZeroMultiplicity (ρ : ℂ) : ℂ)
+        (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ)))
+
+/-- Zero-counting, multiplicity, and Paley-Wiener transform decay make the
+multiplicity-weighted transform majorant summable over the completed-zero locus. -/
+theorem summable_zetaZeroMultiplicityTransformMajorant
+    (φ : ZetaAdmissibleFunction) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroMultiplicityTransformMajorant φ ρ) := by
+  sorry
+
 /-- Zero-density, multiplicity, and transform-decay estimates make the zero-side majorant
 summable over the completed-zero locus. -/
 theorem summable_zetaZeroSideContributionMajorant
@@ -452,7 +492,22 @@ theorem summable_zetaZeroSideContributionMajorant
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroSideContributionMajorant φ ρ) := by
-  sorry
+  have hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroMultiplicityTransformMajorant φ ρ) :=
+    summable_zetaZeroMultiplicityTransformMajorant φ
+  have hfun :
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContributionMajorant φ ρ) =
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroMultiplicityTransformMajorant φ ρ) := by
+    funext ρ
+    exact zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant φ ρ
+  exact Eq.subst
+    (motive := fun G : {ρ : ℂ // ZetaCompletedZero ρ} → ℝ => Summable G)
+    hfun.symm
+    hsum
 
 /-- The completed zero-side contribution is summable over the completed zero locus.
 
