@@ -1397,12 +1397,61 @@ noncomputable def zetaPaleyWienerVerticalLineKernel
   zetaPaleyWienerHorizontalTwist f x t *
     zetaPaleyWienerVerticalOscillation y t
 
+/-- Complex multiplication by a real variable splits into horizontal and vertical parts. -/
+theorem complex_mul_real_verticalLine_decomposition
+    (z : ℂ) (t : ℝ) :
+    z * (t : ℂ) =
+      (z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ) := by
+  sorry
+
+/-- The exponential on a vertical line splits into horizontal and oscillatory factors. -/
+theorem complex_exp_verticalLine_decomposition
+    (z : ℂ) (t : ℝ) :
+    Complex.exp (z * (t : ℂ)) =
+      (Real.exp (z.re * t) : ℂ) *
+        Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
+  sorry
+
+/-- The Laplace kernel equals the explicit vertical-line product pointwise. -/
+theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel_pointwise
+    (f : ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
+    f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ)) =
+      (f.toZetaTestFunction' t * (Real.exp (z.re * t) : ℂ)) *
+        Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
+  have hexp :
+      Complex.exp (z * (t : ℂ)) =
+        (Real.exp (z.re * t) : ℂ) *
+          Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) :=
+    complex_exp_verticalLine_decomposition z t
+  calc
+    f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))
+        = f.toZetaTestFunction' t *
+          ((Real.exp (z.re * t) : ℂ) *
+            Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ))) := by
+          exact congrArg (fun v : ℂ => f.toZetaTestFunction' t * v) hexp
+    _ = (f.toZetaTestFunction' t * (Real.exp (z.re * t) : ℂ)) *
+          Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
+          exact (mul_assoc
+            (f.toZetaTestFunction' t)
+            (Real.exp (z.re * t) : ℂ)
+            (Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)))).symm
+
 /-- The original Laplace kernel factors into horizontal twist times vertical oscillation on
 the vertical line through `z.re`. -/
 theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel
     (f : ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
     zetaPaleyWienerLaplaceKernel f z t =
       zetaPaleyWienerVerticalLineKernel f z.re z.im t := by
+  unfold zetaPaleyWienerLaplaceKernel
+  unfold zetaPaleyWienerVerticalLineKernel
+  unfold zetaPaleyWienerHorizontalTwist
+  unfold zetaPaleyWienerVerticalOscillation
+  exact zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel_pointwise f z t
+
+/-- Pointwise equality of integrands transports their real-line integrals. -/
+theorem complex_integral_congr_of_pointwise_eq
+    (u v : ℝ → ℂ) (h : ∀ t : ℝ, u t = v t) :
+    (∫ t : ℝ, u t) = ∫ t : ℝ, v t := by
   sorry
 
 /-- The zeta Laplace transform is the integral of the vertical-line kernel. -/
@@ -1410,7 +1459,14 @@ theorem zetaLaplaceTransform_eq_verticalLineKernelIntegral
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
       ∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t := by
-  sorry
+  have hkernel :
+      (∫ t : ℝ, zetaPaleyWienerLaplaceKernel f z t) =
+        ∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t :=
+    complex_integral_congr_of_pointwise_eq
+      (zetaPaleyWienerLaplaceKernel f z)
+      (zetaPaleyWienerVerticalLineKernel f z.re z.im)
+      (fun t : ℝ => zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel f z t)
+  exact (zetaPaleyWienerLaplaceKernel_integral_eq_transform f z).symm.trans hkernel
 
 /-- The derivative source used by vertical-line integration by parts after the horizontal
 factor has been absorbed into the source. -/
@@ -1453,6 +1509,28 @@ theorem zetaPaleyWienerVerticalLineKernel_integral_eq_I_mul_inverse_mul_derivati
         zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
   sorry
 
+/-- The complex unit `I` has norm one. -/
+theorem complex_norm_I_eq_one :
+    ‖Complex.I‖ = (1 : ℝ) := by
+  sorry
+
+/-- Multiplication by `I` does not change the norm. -/
+theorem norm_I_mul_eq_norm
+    (w : ℂ) :
+    ‖Complex.I * w‖ = ‖w‖ := by
+  have hmul : ‖Complex.I * w‖ = ‖Complex.I‖ * ‖w‖ :=
+    norm_mul Complex.I w
+  exact Eq.trans hmul
+    (Eq.trans
+      (congrArg (fun v : ℝ => v * ‖w‖) complex_norm_I_eq_one)
+      (one_mul ‖w‖))
+
+/-- The `I * y⁻¹` norm is the same as the `y⁻¹` norm. -/
+theorem norm_I_mul_inverse_eq_norm_inverse
+    (y : ℝ) :
+    ‖Complex.I * (y : ℂ)⁻¹‖ = ‖(y : ℂ)⁻¹‖ := by
+  exact norm_I_mul_eq_norm ((y : ℂ)⁻¹)
+
 /-- Vertical-line integration by parts after substituting the spectral parameter `z`. -/
 theorem zetaLaplaceTransform_eq_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
@@ -1480,7 +1558,16 @@ change the norm comparison. -/
 theorem norm_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral_le
     (y : ℝ) (D : ℂ) :
     ‖Complex.I * (y : ℂ)⁻¹ * D‖ ≤ ‖(y : ℂ)⁻¹‖ * ‖D‖ := by
-  sorry
+  have hmul :
+      ‖Complex.I * (y : ℂ)⁻¹ * D‖ =
+        ‖Complex.I * (y : ℂ)⁻¹‖ * ‖D‖ :=
+    norm_mul (Complex.I * (y : ℂ)⁻¹) D
+  have hleft :
+      ‖Complex.I * (y : ℂ)⁻¹‖ = ‖(y : ℂ)⁻¹‖ :=
+    norm_I_mul_inverse_eq_norm_inverse y
+  exact le_of_eq
+    (Eq.trans hmul
+      (congrArg (fun v : ℝ => v * ‖D‖) hleft))
 
 /-- Vertical-line integration by parts as a norm identity.
 

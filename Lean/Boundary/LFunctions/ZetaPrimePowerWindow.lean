@@ -447,7 +447,11 @@ theorem summable_of_nonnegative_le_summable_real
     (hab : ∀ n : ℕ, a n ≤ b n)
     (hb : Summable b) :
     Summable a := by
-  sorry
+  exact Summable.of_norm_bounded b hb
+    (fun n => Eq.subst
+      (motive := fun v : ℝ => v ≤ b n)
+      (Real.norm_of_nonneg (ha_nonneg n)).symm
+      (hab n))
 
 /-- The one-dimensional polynomial shell mass sequence is summable. -/
 theorem summable_linear_polynomialShellMassSequence
@@ -479,6 +483,40 @@ theorem summable_polynomialHeightShellSum_of_shellMass
 /-- The finite fiber of raw indices at a fixed rectangular height. -/
 def heightFiber (m : ℕ) : Type :=
   {ι : ZetaPrimePowerIndex // ι ∈ heightShell m}
+
+/-- Rectangular-height decay is pointwise nonnegative. -/
+theorem polynomialHeightDecay_nonnegative
+    (k : ℕ) (ι : ZetaPrimePowerIndex) :
+    0 ≤ polynomialHeightDecay k ι := by
+  unfold polynomialHeightDecay
+  exact zpow_nonneg
+    (add_nonneg zero_le_one (norm_nonneg ((ι.height : ℕ) : ℝ)))
+    (-(k + 3 : ℤ))
+
+/-- The `tsum` over one exact-height fiber is the corresponding finite shell sum. -/
+theorem tsum_heightFiber_polynomialHeightDecay_eq_shellSum
+    (k m : ℕ) :
+    (∑' x : heightFiber m, polynomialHeightDecay k x.1) =
+      polynomialHeightShellSum k m := by
+  have htsum :
+      (∑' x : heightFiber m, polynomialHeightDecay k x.1) =
+        ∑ x : heightFiber m, polynomialHeightDecay k x.1 :=
+    tsum_fintype (fun x : heightFiber m => polynomialHeightDecay k x.1)
+  have huniv :
+      (∑ x : heightFiber m, polynomialHeightDecay k x.1) =
+        ∑ x in (heightShell m).attach, polynomialHeightDecay k x.1 := by
+    exact congrArg
+      (fun s : Finset (heightFiber m) =>
+        ∑ x in s, polynomialHeightDecay k x.1)
+      (Finset.univ_eq_attach (heightShell m))
+  have hattach :
+      (∑ x in (heightShell m).attach, polynomialHeightDecay k x.1) =
+        ∑ ι in heightShell m, polynomialHeightDecay k ι :=
+    Finset.sum_attach
+      (heightShell m)
+      (fun ι : ZetaPrimePowerIndex => polynomialHeightDecay k ι)
+  unfold polynomialHeightShellSum
+  exact htsum.trans (huniv.trans hattach)
 
 /-- Raw indices map constructively to their exact rectangular-height fiber. -/
 def toHeightFiberSigma
@@ -523,7 +561,29 @@ theorem summable_polynomialHeightDecay_of_heightFiberSummability
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         polynomialHeightDecay k ι) := by
-  sorry
+  have hsigma :
+      Summable
+        (fun s : Sigma heightFiber =>
+          polynomialHeightDecay k (ofHeightFiberSigma s)) := by
+    refine (summable_sigma_of_nonneg ?_).mpr ?_
+    · intro s
+      exact polynomialHeightDecay_nonnegative k (ofHeightFiberSigma s)
+    · constructor
+      · intro m
+        exact (hasSum_fintype
+          (fun x : heightFiber m => polynomialHeightDecay k x.1)).summable
+      · have hfiberSums :
+            (fun m : ℕ =>
+              ∑' x : heightFiber m,
+                polynomialHeightDecay k x.1) =
+              fun m : ℕ => polynomialHeightShellSum k m := by
+          funext m
+          exact tsum_heightFiber_polynomialHeightDecay_eq_shellSum k m
+        exact Eq.subst
+          (motive := fun u : ℕ → ℝ => Summable u)
+          hfiberSums.symm
+          hshellSum
+  exact ((heightFiberSigmaEquiv.symm).summable_iff).mp hsigma
 
 /-- Summability of exact-height shell sums transports to summability over raw indices. -/
 theorem summable_polynomialHeightDecay_of_shellSums
