@@ -122,7 +122,7 @@ completed explicit formula compares their completed prime distributions; it does
 abbrev zetaCompletedExplicitFormulaPhi (f : ZetaAdmissibleFunction) : ℂ → ℂ :=
   zetaAutocorrelationSpectralTransform f
 
-/-- The old `Φ` notation is the spectral/Laplace transform, not a time-side boundary value. -/
+/-- The `Φ` notation is the spectral/Laplace transform, not a time-side boundary value. -/
 theorem zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPhi f =
@@ -292,9 +292,10 @@ def zetaCompletedExplicitFormulaPrimeWeight (p n : ℕ) : ℝ :=
   else
     0
 
-/-- The old finite display presentation for prime terms.  This is not the owner completed
-prime distribution; it remains only for legacy packet/display code while the public prime
-contribution is the completed prime-power object. -/
+/-- Finite display presentation for packet-level prime terms.
+
+This is not the owner completed prime distribution; the public prime contribution below is
+the completed prime-power object. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeFinitePresentation
     (f : ZetaAdmissibleFunction) : ℂ :=
   ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
@@ -325,9 +326,10 @@ noncomputable def zetaCompletedExplicitFormulaPrimePowerContribution
         (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι) +
           star (zetaCompletedTimeBoundaryValue f (ZetaPrimePowerIndex.center ι))))) : ℂ)
 
-/-- The prime contribution in the completed explicit formula.  This public owner definition is
-the completed time/log-side prime-power distribution, not the legacy finite display support and
-not the contour-side spectral-sample presentation. -/
+/-- The prime contribution in the completed explicit formula.
+
+This public owner definition is the completed time/log-side prime-power distribution, not the
+finite display support and not the contour-side spectral-sample presentation. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletedExplicitFormulaPrimePowerContribution f

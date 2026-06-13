@@ -65,6 +65,55 @@ theorem zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
     (zetaZeroOrbitContribution_eq_of_spectralEval_eq_on_orbit
       ρ φ ψ hsample)
 
+/-- The finite spectral sample set attached to a finite set of completed-zero coordinates. -/
+def zetaZeroTailSpectralSampleFinset
+    (S : Finset ℂ) : Finset ℂ :=
+  S.image zetaCenteredZero
+
+/-- A zero coordinate in the finite tail-exclusion set contributes its centered spectral
+coordinate to the associated finite spectral sample set. -/
+theorem zetaCenteredZero_mem_zeroTailSpectralSampleFinset
+    (S : Finset ℂ) (η : ℂ) (hη : η ∈ S) :
+    zetaCenteredZero η ∈ zetaZeroTailSpectralSampleFinset S := by
+  unfold zetaZeroTailSpectralSampleFinset
+  exact Finset.mem_image.mpr ⟨η, hη, rfl⟩
+
+/-- Equality on the finite centered spectral sample set gives equality on the original
+zero-coordinate sample set. -/
+theorem zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
+    (S : Finset ℂ) (φ ψ : ZetaAdmissibleFunction)
+    (hsample :
+      ∀ z : ℂ, z ∈ zetaZeroTailSpectralSampleFinset S →
+        zetaSpectralEval φ z = zetaSpectralEval ψ z) :
+    ∀ η : ℂ, η ∈ S →
+      zetaSpectralEval φ (zetaCenteredZero η) =
+        zetaSpectralEval ψ (zetaCenteredZero η) := by
+  intro η hη
+  exact hsample
+    (zetaCenteredZero η)
+    (zetaCenteredZero_mem_zeroTailSpectralSampleFinset S η hη)
+
+/-- Finite spectral localization for the completed zero tail.
+
+This is the genuine localization input: preserve the prescribed finite spectral
+samples while driving the complementary completed-zero tail below an arbitrary
+positive tolerance. -/
+theorem exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        (∀ z : ℂ, z ∈ P →
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              z =
+            zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+              z) ∧
+          |Complex.re
+            (zetaZeroTail S
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
+  sorry
+
 /-- Finite zero-set localization preserves each zero spectral sample while making the
 complementary zero-side tail arbitrarily small. -/
 theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_owner
@@ -80,7 +129,18 @@ theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_o
           |Complex.re
             (zetaZeroTail S
               (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
-  sorry
+  intro ε hε
+  rcases
+    exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
+      S (zetaZeroTailSpectralSampleFinset S) f₀ ε hε with
+    ⟨f, hsample, htail⟩
+  exact ⟨f,
+    zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
+      S
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+      hsample,
+    htail⟩
 
 /-- The real orbit remainder is the real part of the zero-tail outside the orbit. -/
 theorem zetaZeroOrbitRemainderRe_eq_zeroTail_re
