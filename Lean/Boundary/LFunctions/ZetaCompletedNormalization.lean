@@ -79,6 +79,40 @@ theorem centeredCompletedRiemannZetaZeroCarrier_analyticAt
       (centeredCompletedRiemannZeta₀_analyticAt z)).sub analyticAt_const
   exact hcarrier
 
+/-- Finite-order growth for the uncentered entire completed-zeta part. -/
+theorem completedRiemannZeta₀_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- The centered affine shift is controlled by the basic centered height. -/
+theorem centeredCompletedRiemannZeta₀_shiftedBasicHeight_le
+    (z : ℂ) :
+    1 + ‖(1 / 2 : ℂ) + z‖ ≤ 2 * (1 + ‖z‖) := by
+  have hnorm_half : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+    norm_num
+  have htriangle :
+      ‖(1 / 2 : ℂ) + z‖ ≤ ‖(1 / 2 : ℂ)‖ + ‖z‖ :=
+    norm_add_le (1 / 2 : ℂ) z
+  have hbound :
+      ‖(1 / 2 : ℂ) + z‖ ≤ 1 + ‖z‖ :=
+    le_trans htriangle (add_le_add_right hnorm_half ‖z‖)
+  have hheight_nonneg : 0 ≤ ‖z‖ := norm_nonneg z
+  calc
+    1 + ‖(1 / 2 : ℂ) + z‖ ≤ 1 + (1 + ‖z‖) := by
+      exact add_le_add_left hbound 1
+    _ = 2 + ‖z‖ := by
+      ring
+    _ ≤ 2 + 2 * ‖z‖ := by
+      have hdouble : ‖z‖ ≤ 2 * ‖z‖ := by
+        nlinarith [hheight_nonneg]
+      exact add_le_add_left hdouble 2
+    _ = 2 * (1 + ‖z‖) := by
+      ring
+
 /-- Finite-order growth for the centered entire completed-zeta part. -/
 theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
     ∃ A : ℝ, ∃ m : ℕ,
@@ -86,7 +120,50 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZeta₀ z‖ ≤
           A * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases completedRiemannZeta₀_finiteOrder_growth_bound with
+    ⟨A, m, hApos, hbound⟩
+  refine ⟨A * (2 : ℝ) ^ m, m, ?_, ?_⟩
+  · exact mul_pos hApos (pow_pos zero_lt_two m)
+  intro z
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H := by
+    exact le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hshift_nonneg : 0 ≤ 1 + ‖(1 / 2 : ℂ) + z‖ := by
+    exact le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg ((1 / 2 : ℂ) + z)))
+  have hshift_le :
+      1 + ‖(1 / 2 : ℂ) + z‖ ≤ 2 * H :=
+    centeredCompletedRiemannZeta₀_shiftedBasicHeight_le z
+  have hpow_le :
+      (1 + ‖(1 / 2 : ℂ) + z‖) ^ m ≤ (2 * H) ^ m :=
+    pow_le_pow_left₀ hshift_nonneg hshift_le m
+  have hcenter :
+      ‖centeredCompletedRiemannZeta₀ z‖ =
+        ‖completedRiemannZeta₀ ((1 / 2 : ℂ) + z)‖ := by
+    rfl
+  have hraw :
+      ‖completedRiemannZeta₀ ((1 / 2 : ℂ) + z)‖ ≤
+        A * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m :=
+    hbound ((1 / 2 : ℂ) + z)
+  have hscale :
+      A * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m ≤
+        A * (2 * H) ^ m :=
+    mul_le_mul_of_nonneg_left hpow_le (le_of_lt hApos)
+  have hmul_pow :
+      (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
+    mul_pow 2 H m
+  have htarget :
+      A * (2 * H) ^ m =
+        (A * (2 : ℝ) ^ m) * H ^ m := by
+    calc
+      A * (2 * H) ^ m = A * ((2 : ℝ) ^ m * H ^ m) := by
+        exact congrArg (fun x : ℝ => A * x) hmul_pow
+      _ = (A * (2 : ℝ) ^ m) * H ^ m := by
+        exact (mul_assoc A ((2 : ℝ) ^ m) (H ^ m)).symm
+  exact Eq.subst
+    (motive := fun x : ℂ =>
+      ‖x‖ ≤ (A * (2 : ℝ) ^ m) * H ^ m)
+    hcenter.symm
+    (hraw.trans (hscale.trans_eq htarget))
 
 /-- Each linear factor in the zero-carrier clearing factor is controlled by
 `2 * (1 + ‖z‖)`. -/

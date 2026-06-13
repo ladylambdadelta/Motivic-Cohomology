@@ -1,3 +1,4 @@
+import Boundary.LFunctions.ZetaEntireJensen
 import Boundary.LFunctions.ZetaZeroSideDefinitions
 
 /-!
@@ -53,6 +54,30 @@ noncomputable def centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDi
     (R : ℝ) : ℝ :=
   ∑' z : CenteredCompletedZetaZeroCarrierZero,
     centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z
+
+/-- The carrier closed-disk summand is the generic entire-function closed-disk summand
+for the centered completed-zeta zero carrier. -/
+theorem centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_eq_entire
+    (R : ℝ)
+    (z : CenteredCompletedZetaZeroCarrierZero) :
+    centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z =
+      entireFunctionZeroMultiplicityClosedDiskSummand
+        centeredCompletedRiemannZetaZeroCarrier
+        centeredCompletedRiemannZetaZeroCarrier_analyticAt
+        R
+        z := by
+  rfl
+
+/-- The carrier closed-disk count is the generic entire-function closed-disk count
+for the centered completed-zeta zero carrier. -/
+theorem centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk_eq_entire
+    (R : ℝ) :
+    centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R =
+      entireFunctionZeroMultiplicityCountingInClosedDisk
+        centeredCompletedRiemannZetaZeroCarrier
+        centeredCompletedRiemannZetaZeroCarrier_analyticAt
+        R := by
+  rfl
 
 /-- Carrier zeros in the centered ordinary closed disk of radius `R`. -/
 def centeredCompletedZetaZeroCarrierZerosInClosedDisk
@@ -351,14 +376,93 @@ theorem completedZeroToCarrierZero_injective :
 /-- The cleared zero-carrier is nonzero at the negative shifted pole face. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_negHalf :
     centeredCompletedRiemannZetaZeroCarrier (-(1 / 2 : ℂ)) ≠ 0 := by
-  unfold centeredCompletedRiemannZetaZeroCarrier
-  norm_num
+  have hleft : (1 / 2 : ℂ) + -(1 / 2 : ℂ) = 0 :=
+    add_right_neg (1 / 2 : ℂ)
+  have hvalue :
+      centeredCompletedRiemannZetaZeroCarrier (-(1 / 2 : ℂ)) = -1 := by
+    unfold centeredCompletedRiemannZetaZeroCarrier
+    calc
+      ((1 / 2 : ℂ) + -(1 / 2 : ℂ)) *
+            (1 - ((1 / 2 : ℂ) + -(1 / 2 : ℂ))) *
+            centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ)) -
+          1 =
+          0 *
+            (1 - ((1 / 2 : ℂ) + -(1 / 2 : ℂ))) *
+            centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ)) -
+          1 := by
+        exact congrArg
+          (fun w : ℂ =>
+            w * (1 - ((1 / 2 : ℂ) + -(1 / 2 : ℂ))) *
+                centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ)) -
+              1)
+          hleft
+      _ =
+          0 * centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ)) - 1 := by
+        exact congrArg (fun w : ℂ => w * centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ)) - 1)
+          (zero_mul (1 - ((1 / 2 : ℂ) + -(1 / 2 : ℂ))))
+      _ = 0 - 1 := by
+        exact congrArg (fun w : ℂ => w - 1)
+          (zero_mul (centeredCompletedRiemannZeta₀ (-(1 / 2 : ℂ))))
+      _ = -1 := by
+        exact zero_sub 1
+  intro hzero
+  exact (neg_ne_zero.mpr one_ne_zero) (hvalue.symm.trans hzero)
 
 /-- The cleared zero-carrier is nonzero at the positive shifted pole face. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_posHalf :
     centeredCompletedRiemannZetaZeroCarrier (1 / 2 : ℂ) ≠ 0 := by
-  unfold centeredCompletedRiemannZetaZeroCarrier
-  norm_num
+  have hright : 1 - ((1 / 2 : ℂ) + (1 / 2 : ℂ)) = 0 := by
+    have htwo_ne : (2 : ℂ) ≠ 0 :=
+      two_ne_zero
+    have hhalf_add_half : (1 / 2 : ℂ) + (1 / 2 : ℂ) = 1 := by
+      calc
+        (1 / 2 : ℂ) + (1 / 2 : ℂ) =
+            (1 + 1 : ℂ) / 2 := by
+          exact (add_div (1 : ℂ) 1 2).symm
+        _ = (2 : ℂ) / 2 := by
+          exact congrArg (fun w : ℂ => w / 2) (one_add_one_eq_two)
+        _ = 1 := by
+          exact div_self htwo_ne
+    calc
+      1 - ((1 / 2 : ℂ) + (1 / 2 : ℂ)) =
+          1 - 1 := by
+        exact congrArg (fun w : ℂ => 1 - w) hhalf_add_half
+      _ = 0 := by
+        exact sub_self 1
+  have hvalue :
+      centeredCompletedRiemannZetaZeroCarrier (1 / 2 : ℂ) = -1 := by
+    unfold centeredCompletedRiemannZetaZeroCarrier
+    calc
+      ((1 / 2 : ℂ) + (1 / 2 : ℂ)) *
+            (1 - ((1 / 2 : ℂ) + (1 / 2 : ℂ))) *
+            centeredCompletedRiemannZeta₀ (1 / 2 : ℂ) -
+          1 =
+          ((1 / 2 : ℂ) + (1 / 2 : ℂ)) *
+            0 *
+            centeredCompletedRiemannZeta₀ (1 / 2 : ℂ) -
+          1 := by
+        exact congrArg
+          (fun w : ℂ =>
+            ((1 / 2 : ℂ) + (1 / 2 : ℂ)) * w *
+                centeredCompletedRiemannZeta₀ (1 / 2 : ℂ) -
+              1)
+          hright
+      _ =
+          0 * centeredCompletedRiemannZeta₀ (1 / 2 : ℂ) - 1 := by
+        exact congrArg (fun w : ℂ => w * centeredCompletedRiemannZeta₀ (1 / 2 : ℂ) - 1)
+          (mul_zero ((1 / 2 : ℂ) + (1 / 2 : ℂ)))
+      _ = 0 - 1 := by
+        exact congrArg (fun w : ℂ => w - 1)
+          (zero_mul (centeredCompletedRiemannZeta₀ (1 / 2 : ℂ)))
+      _ = -1 := by
+        exact zero_sub 1
+  intro hzero
+  exact (neg_ne_zero.mpr one_ne_zero) (hvalue.symm.trans hzero)
+
+/-- The cleared zero-carrier is not the zero entire function. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_nontrivial :
+    ∃ z : ℂ, centeredCompletedRiemannZetaZeroCarrier z ≠ 0 := by
+  exact ⟨-(1 / 2 : ℂ), centeredCompletedRiemannZetaZeroCarrier_ne_zero_negHalf⟩
 
 /-- A carrier zero cannot be the negative shifted pole face. -/
 theorem centeredCompletedZetaZeroCarrierZero_ne_negHalf
@@ -667,8 +771,14 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting_of_summa
       hnonnegative
       completedZeroToCarrierZero_injective)
 
-/-- Jensen counting for the centered entire zero-carrier divisor in ordinary closed disks. -/
+/-- Jensen counting for the centered entire zero-carrier divisor in ordinary closed disks.
+
+The nontriviality hypothesis is essential: polynomial growth alone does not control the
+zero divisor of an identically zero entire function.  The zeta-specific wrapper supplies
+this hypothesis from the explicit value at the shifted pole face. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by_jensen
+    (hnontrivial :
+      ∃ z : ℂ, centeredCompletedRiemannZetaZeroCarrier z ≠ 0)
     (hfinite :
       ∃ A : ℝ, ∃ m : ℕ,
         0 < A ∧
@@ -680,7 +790,19 @@ theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by
       ∀ R : ℝ,
         1 ≤ R →
         centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R ≤ C * R ^ d := by
-  sorry
+  exact
+    match entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
+        centeredCompletedRiemannZetaZeroCarrier
+        centeredCompletedRiemannZetaZeroCarrier_analyticAt
+        hnontrivial
+        hfinite with
+    | ⟨C, d, hC, hbound⟩ =>
+        ⟨C, d, hC,
+          fun R hR =>
+            Eq.subst
+              (motive := fun x : ℝ => x ≤ C * R ^ d)
+              (centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk_eq_entire R).symm
+              (hbound R hR)⟩
 
 /-- Finite-order growth of the centered entire zero-carrier gives polynomial closed-disk
 counting for its zero divisor.
@@ -700,6 +822,7 @@ theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of
         1 ≤ R →
         centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R ≤ C * R ^ d := by
   exact centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by_jensen
+    centeredCompletedRiemannZetaZeroCarrier_nontrivial
     hfinite
 
 /-- Completed-zero closed-disk counting is dominated by the cleared-carrier divisor count.

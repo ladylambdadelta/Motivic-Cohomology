@@ -1245,6 +1245,67 @@ theorem spectralTail_eq_tsum_sub_windowSum
     htail_fun.symm
     htail
 
+/-- The outside-window tail sum of a summable prime-power family vanishes along the
+prime-power windows. -/
+theorem spectralTail_tsum_tendsto_zero_of_summable
+    (u : ZetaPrimePowerIndex → ℝ)
+    (hsum : Summable u)
+    (hzero : ∀ ι : ZetaPrimePowerIndex, ¬ IsGenuine ι → u ι = 0) :
+    Filter.Tendsto
+      (fun N : ℕ =>
+        ∑' ι : ZetaPrimePowerIndex, spectralTail u N ι)
+      Filter.atTop
+      (nhds 0) := by
+  have hwindow :
+      Filter.Tendsto
+        (fun N : ℕ => ∑ ι in window N, u ι)
+        Filter.atTop
+        (nhds (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    tendsto_sum_window_tsum_of_summable u hsum hzero
+  have hconstant :
+      Filter.Tendsto
+        (fun _N : ℕ => ∑' ι : ZetaPrimePowerIndex, u ι)
+        Filter.atTop
+        (nhds (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    tendsto_const_nhds
+  have hsub :
+      Filter.Tendsto
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in window N, u ι)
+        Filter.atTop
+        (nhds
+          ((∑' ι : ZetaPrimePowerIndex, u ι) -
+            (∑' ι : ZetaPrimePowerIndex, u ι))) :=
+    hconstant.sub hwindow
+  have htarget :
+      (∑' ι : ZetaPrimePowerIndex, u ι) -
+          (∑' ι : ZetaPrimePowerIndex, u ι) =
+        0 :=
+    sub_self (∑' ι : ZetaPrimePowerIndex, u ι)
+  have htail_fun :
+      (fun N : ℕ =>
+        ∑' ι : ZetaPrimePowerIndex, spectralTail u N ι) =
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in window N, u ι) := by
+    funext N
+    exact spectralTail_eq_tsum_sub_windowSum u hsum N
+  exact Eq.subst
+    (motive := fun v : ℕ → ℝ =>
+      Filter.Tendsto v Filter.atTop (nhds 0))
+    htail_fun.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Filter.Tendsto
+          (fun N : ℕ =>
+            (∑' ι : ZetaPrimePowerIndex, u ι) -
+              ∑ ι in window N, u ι)
+          Filter.atTop
+          (nhds x))
+      htarget
+      hsub)
+
 /-- A summable real tail is bounded by a nonnegative summable majorant tail when each
 coordinate norm is bounded by the majorant. -/
 theorem norm_spectralTail_tsum_le_spectralTail_tsum_of_norm_le

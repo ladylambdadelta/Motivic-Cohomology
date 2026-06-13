@@ -44,13 +44,88 @@ theorem mem_daggerClosedSpectralSampleFinset_reflection
   exact Finset.mem_union.mpr
     (Or.inr (Finset.mem_image.mpr ⟨z, hz, rfl⟩))
 
+/-- Spectral evaluation is additive on admissible probes. -/
+theorem zetaSpectralEval_add
+    (f g : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval (f + g) z =
+      zetaSpectralEval f z + zetaSpectralEval g z := by
+  exact
+    zetaSpectralTransform_add
+      f.toZetaTestFunction'
+      g.toZetaTestFunction'
+      z
+      (integrable_laplaceKernel_at f z)
+      (integrable_laplaceKernel_at g z)
+
+/-- Spectral evaluation is homogeneous on admissible probes. -/
+theorem zetaSpectralEval_smul
+    (c : ℂ) (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval (c • f) z =
+      c * zetaSpectralEval f z := by
+  exact zetaSpectralTransform_smul c f.toZetaTestFunction' z
+
+/-- Spectral evaluation commutes with finite sums of admissible probes. -/
+theorem zetaSpectralEval_sum
+    {α : Type*} [DecidableEq α]
+    (s : Finset α) (F : α → ZetaAdmissibleFunction) (z : ℂ) :
+    zetaSpectralEval (∑ x in s, F x) z =
+      ∑ x in s, zetaSpectralEval (F x) z := by
+  have hforget :
+      zetaSpectralTransform
+          (∑ x in s, F x).toZetaTestFunction' z =
+        zetaSpectralTransform
+          (∑ x in s, (F x).toZetaTestFunction') z := by
+    change
+      Boundary.zetaLaplaceTransform
+          (∑ x in s, F x).toZetaTestFunction' z =
+        Boundary.zetaLaplaceTransform
+          (∑ x in s, (F x).toZetaTestFunction') z
+    exact congrFun
+      (Boundary.zetaLaplaceTransform_congr
+        (fun t : ℝ =>
+          calc
+            (∑ x in s, F x).toZetaTestFunction' t =
+                (∑ x in s, F x) t := by
+              rfl
+            _ = ∑ x in s, F x t := by
+              exact ZetaAdmissibleFunction.sum_apply s F t
+            _ = (∑ x in s, (F x).toZetaTestFunction') t := by
+              exact
+                (Boundary.zetaLaplaceTransform_sum_apply
+                  (s := s)
+                  (f := fun x : α => (F x).toZetaTestFunction')
+                  t).symm))
+      z
+  have hsum :
+      zetaSpectralTransform
+          (∑ x in s, (F x).toZetaTestFunction') z =
+        ∑ x in s,
+          zetaSpectralTransform (F x).toZetaTestFunction' z := by
+    exact zetaSpectralTransform_sum
+      s
+      (fun x : α => (F x).toZetaTestFunction')
+      z
+      (fun x _hx => integrable_laplaceKernel_at (F x) z)
+  exact hforget.trans hsum
+
+/-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
+sample set.
+
+This is the analytic spectral-interpolation owner input: admissible Paley-Wiener probes
+can realize arbitrary prescribed values on a finite set of spectral parameters. -/
+theorem exists_seed_spectralEval_sample_on_finset_ownerPaleyWiener
+    (S : Finset ℂ) (a : ℂ → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
+  sorry
+
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set. -/
 theorem exists_seed_spectralEval_sample_on_finset
     (S : Finset ℂ) (a : ℂ → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
-  sorry
+  exact exists_seed_spectralEval_sample_on_finset_ownerPaleyWiener S a
 
 /-- Finite Paley-Wiener interpolation at the unit value on a finite spectral sample set. -/
 theorem exists_seed_spectralEval_one_on_finset
