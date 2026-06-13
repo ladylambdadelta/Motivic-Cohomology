@@ -232,6 +232,14 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
+/-- The completed contour-realized prime distribution coordinates are summable. -/
+theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate
+    (g : ZetaAdmissibleFunction) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g) := by
+  sorry
+
 /-- The finite contour-realized prime window is the sum of its contour-realized
 coordinates. -/
 theorem finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
@@ -262,7 +270,65 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContou
       (fun N : ℕ => finitePrimeContourRealizedTimeDistributionWindow N g)
       atTop
       (𝓝 (completedPrimeContourRealizedTimeDistributionPairing g)) := by
-  sorry
+  have hsum :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourRealizedTimeDistributionCoordinate ι g) :=
+    summable_completedPrimeContourRealizedTimeDistributionCoordinate g
+  have hzero :
+      ∀ ι : ZetaPrimePowerIndex,
+        ¬ ZetaPrimePowerIndex.IsGenuine ι →
+          completedPrimeContourRealizedTimeDistributionCoordinate ι g = 0 :=
+    fun ι hι =>
+      completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+        ι g hι
+  have hwindow :
+      Tendsto
+        (fun N : ℕ =>
+          ∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeContourRealizedTimeDistributionCoordinate ι g)
+        atTop
+        (𝓝
+          (∑' ι : ZetaPrimePowerIndex,
+            completedPrimeContourRealizedTimeDistributionCoordinate ι g)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g)
+      hsum
+      hzero
+  have hfinite :
+      (fun N : ℕ => finitePrimeContourRealizedTimeDistributionWindow N g) =
+        (fun N : ℕ =>
+          ∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeContourRealizedTimeDistributionCoordinate ι g) := by
+    funext N
+    exact finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g
+  have hcompleted :
+      completedPrimeContourRealizedTimeDistributionPairing g =
+        ∑' ι : ZetaPrimePowerIndex,
+          completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
+    unfold completedPrimeContourRealizedTimeDistributionPairing
+    unfold completedPrimeSpectralDistributionPairing
+    unfold completedPrimeContourRealizedTimeDistributionCoordinate
+    exact (Complex.tsum_re
+      (fun ι : ZetaPrimePowerIndex =>
+        -((ι.weight : ℂ) *
+          (zetaCompletedSpectralLaplaceTransform g ι.center +
+            star (zetaCompletedSpectralLaplaceTransform g ι.center))))).symm
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ =>
+      Tendsto u atTop (𝓝 (completedPrimeContourRealizedTimeDistributionPairing g)))
+    hfinite.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            ∑ ι in ZetaPrimePowerIndex.window N,
+              completedPrimeContourRealizedTimeDistributionCoordinate ι g)
+          atTop
+          (𝓝 x))
+      hcompleted.symm
+      hwindow)
 
 /-- At an autocorrelation probe, the time-side prime coordinate is the physical
 off-diagonal coordinate. -/
