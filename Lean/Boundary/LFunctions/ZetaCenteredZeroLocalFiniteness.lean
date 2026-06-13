@@ -103,10 +103,44 @@ theorem finite_centeredZetaShiftedPolesInCenteredHeightBall
     Finset.finite_toSet s
   exact Set.Finite.subset hfinite hsubset
 
+/-- The centered critical height box is closed. -/
+theorem isClosed_centeredCriticalHeightBox
+    (T : ℝ) :
+    IsClosed (centeredCriticalHeightBox T) := by
+  sorry
+
+/-- The centered critical height box is contained in an explicit closed ball. -/
+theorem centeredCriticalHeightBox_subset_closedBall
+    (T : ℝ) :
+    ∃ R : ℝ,
+      centeredCriticalHeightBox T ⊆ Metric.closedBall (0 : ℂ) R := by
+  sorry
+
+/-- A closed subset of a compact closed ball is compact. -/
+theorem isCompact_centeredCriticalHeightBox_of_closed_subset_closedBall
+    (T R : ℝ)
+    (hclosed : IsClosed (centeredCriticalHeightBox T))
+    (hsubset : centeredCriticalHeightBox T ⊆ Metric.closedBall (0 : ℂ) R) :
+    IsCompact (centeredCriticalHeightBox T) := by
+  sorry
+
 /-- The centered critical height box is compact. -/
 theorem isCompact_centeredCriticalHeightBox
     (T : ℝ) :
     IsCompact (centeredCriticalHeightBox T) := by
+  rcases centeredCriticalHeightBox_subset_closedBall T with ⟨R, hsubset⟩
+  exact isCompact_centeredCriticalHeightBox_of_closed_subset_closedBall
+    T
+    R
+    (isClosed_centeredCriticalHeightBox T)
+    hsubset
+
+/-- A compact discrete subtype is finite. -/
+theorem finite_of_compact_discrete_subtype
+    {S K : Set ℂ}
+    (hcompact : IsCompact K)
+    (hdiscrete : DiscreteTopology S) :
+    (S ∩ K).Finite := by
   sorry
 
 /-- A discrete nontrivial centered zero set has finite intersection with the
@@ -116,7 +150,7 @@ theorem finite_centeredZetaNontrivialZeroSet_inter_compact_of_discrete
     (hcompact : IsCompact (centeredCriticalHeightBox T))
     (hdiscrete : DiscreteTopology centeredZetaNontrivialZeroSet) :
     (centeredZetaNontrivialZeroSet ∩ centeredCriticalHeightBox T).Finite := by
-  sorry
+  exact finite_of_compact_discrete_subtype hcompact hdiscrete
 
 /-- Isolated nontrivial centered zeros have finite intersection with the compact
 centered critical height box. -/
