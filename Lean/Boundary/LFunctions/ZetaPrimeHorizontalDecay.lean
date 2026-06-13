@@ -137,6 +137,54 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
+/-- Rectangular prime-power height used by the contour-localization majorant. -/
+def primeContourLocalizationHeight (ι : ZetaPrimePowerIndex) : ℕ :=
+  max ι.p ι.n
+
+/-- Polynomial contour-localization majorant on prime-power coordinates. -/
+noncomputable def completedPrimeContourLocalizationMajorant
+    (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
+  C *
+    (1 + ‖((primeContourLocalizationHeight ι : ℕ) : ℝ)‖) ^
+      (-(k + 3 : ℤ))
+
+/-- The contour-localization majorant is nonnegative when its constant is nonnegative. -/
+theorem completedPrimeContourLocalizationMajorant_nonnegative
+    {C : ℝ} (hC : 0 ≤ C) (k : ℕ) (ι : ZetaPrimePowerIndex) :
+    0 ≤ completedPrimeContourLocalizationMajorant C k ι := by
+  unfold completedPrimeContourLocalizationMajorant
+  have hbase :
+      0 ≤
+        (1 + ‖((primeContourLocalizationHeight ι : ℕ) : ℝ)‖) ^
+          (-(k + 3 : ℤ)) :=
+    zpow_nonneg
+      (add_nonneg zero_le_one
+        (norm_nonneg (((primeContourLocalizationHeight ι : ℕ) : ℝ))))
+      (-(k + 3 : ℤ))
+  exact mul_nonneg hC hbase
+
+/-- Polynomial prime-power height decay is summable in the two prime-power coordinates. -/
+theorem summable_completedPrimeContourLocalizationMajorant
+    (C : ℝ) (k : ℕ) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourLocalizationMajorant C k ι) := by
+  sorry
+
+/-- Completed contour localization gives a polynomially summable coordinate majorant.
+
+This is the owner analytic estimate: product-form horizontal decay, prime-power counting, and
+tomographic residue localization give constants whose height-majorant dominates every
+coordinate remainder majorant. -/
+theorem exists_completedPrimeContourLocalizationMajorant_bound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
+          completedPrimeContourLocalizationMajorant C k ι := by
+  sorry
+
 /-- The coordinate-remainder majorant is summable from the completed contour-localization
 estimate for the contour-transport family.
 
@@ -148,7 +196,35 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_co
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  sorry
+  rcases exists_completedPrimeContourLocalizationMajorant_bound f with
+    ⟨C, k, hCpos, hbound⟩
+  have hloc :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourLocalizationMajorant C k ι) :=
+    summable_completedPrimeContourLocalizationMajorant C k
+  have hnormBound :
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ ≤
+          completedPrimeContourLocalizationMajorant C k ι := by
+    intro ι
+    have hmajorant_nonneg :
+        0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+      completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f
+    have hnorm :
+        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
+          completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+      Real.norm_of_nonneg hmajorant_nonneg
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ completedPrimeContourLocalizationMajorant C k ι)
+      hnorm.symm
+      (hbound ι)
+  exact Summable.of_norm_bounded
+    (fun ι : ZetaPrimePowerIndex =>
+      completedPrimeContourLocalizationMajorant C k ι)
+    hloc
+    hnormBound
 
 /-- The contour-transport coordinate-remainder majorant is summable by the prime
 tomography residue theorem and horizontal contour decay. -/
