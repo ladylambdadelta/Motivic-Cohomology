@@ -50,7 +50,7 @@ The shell of indices with `max p n = m` has linear cardinality in `m`; this one-
 majorant is the honest counting object behind rectangular height summability. -/
 noncomputable def polynomialHeightShellMass
     (k m : ℕ) : ℝ :=
-  (2 * (m + 1) : ℝ) *
+  ((2 * (m + 1) : ℕ) : ℝ) *
     (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
 
 /-- The unfiltered rectangular box of raw prime-power coordinates. -/
@@ -154,7 +154,30 @@ theorem heightShell_mem_vertical_or_horizontal
     (hι : ι ∈ heightShell m) :
     ι ∈ heightShellVerticalEdge m ∨
       ι ∈ heightShellHorizontalEdge m := by
-  sorry
+  have hraw : ι ∈ rawBox m := (Finset.mem_filter.mp hι).1
+  have hheight : ι.height = m := (Finset.mem_filter.mp hι).2
+  by_cases hp_eq : ι.p = m
+  · left
+    unfold heightShellVerticalEdge
+    exact Finset.mem_filter.mpr ⟨hraw, hp_eq⟩
+  · right
+    have hp_le : ι.p ≤ m :=
+      le_trans (Nat.le_max_left ι.p ι.n) (le_of_eq hheight)
+    have hn_le : ι.n ≤ m :=
+      le_trans (Nat.le_max_right ι.p ι.n) (le_of_eq hheight)
+    have hp_lt : ι.p < m :=
+      Nat.lt_of_le_of_ne hp_le hp_eq
+    have hn_eq : ι.n = m := by
+      by_contra hn_ne
+      have hn_lt : ι.n < m :=
+        Nat.lt_of_le_of_ne hn_le hn_ne
+      have hmax_lt : max ι.p ι.n < m :=
+        max_lt hp_lt hn_lt
+      have hm_le_max : m ≤ max ι.p ι.n :=
+        le_of_eq hheight.symm
+      exact (not_lt_of_ge hm_le_max) hmax_lt
+    unfold heightShellHorizontalEdge
+    exact Finset.mem_filter.mpr ⟨hraw, hn_eq⟩
 
 /-- The exact rectangular height shell is contained in the union of its two edges. -/
 theorem heightShell_subset_edgeUnion
@@ -168,13 +191,57 @@ theorem heightShell_subset_edgeUnion
 theorem heightShellVerticalEdge_eq_model
     (m : ℕ) :
     heightShellVerticalEdge m = heightShellVerticalEdgeModel m := by
-  sorry
+  apply Finset.ext
+  intro ι
+  constructor
+  · intro hι
+    have hraw : ι ∈ rawBox m := (Finset.mem_filter.mp hι).1
+    have hp : ι.p = m := (Finset.mem_filter.mp hι).2
+    have hn_lt : ι.n < m + 1 :=
+      ((mem_rawBox_iff m ι).mp hraw).2
+    unfold heightShellVerticalEdgeModel
+    refine Finset.mem_map.mpr ?_
+    refine ⟨ι.n, Finset.mem_range.mpr hn_lt, ?_⟩
+    cases hp
+    rfl
+  · intro hι
+    unfold heightShellVerticalEdgeModel at hι
+    rcases Finset.mem_map.mp hι with ⟨n, hn_range, hn_eq⟩
+    cases hn_eq
+    unfold heightShellVerticalEdge
+    refine Finset.mem_filter.mpr ?_
+    have hraw : ({ p := m, n := n } : ZetaPrimePowerIndex) ∈ rawBox m :=
+      (mem_rawBox_iff m ({ p := m, n := n } : ZetaPrimePowerIndex)).mpr
+        ⟨Nat.lt_succ_self m, Finset.mem_range.mp hn_range⟩
+    exact ⟨hraw, rfl⟩
 
 /-- The horizontal filtered edge is the explicit finite range model. -/
 theorem heightShellHorizontalEdge_eq_model
     (m : ℕ) :
     heightShellHorizontalEdge m = heightShellHorizontalEdgeModel m := by
-  sorry
+  apply Finset.ext
+  intro ι
+  constructor
+  · intro hι
+    have hraw : ι ∈ rawBox m := (Finset.mem_filter.mp hι).1
+    have hn : ι.n = m := (Finset.mem_filter.mp hι).2
+    have hp_lt : ι.p < m + 1 :=
+      ((mem_rawBox_iff m ι).mp hraw).1
+    unfold heightShellHorizontalEdgeModel
+    refine Finset.mem_map.mpr ?_
+    refine ⟨ι.p, Finset.mem_range.mpr hp_lt, ?_⟩
+    cases hn
+    rfl
+  · intro hι
+    unfold heightShellHorizontalEdgeModel at hι
+    rcases Finset.mem_map.mp hι with ⟨p, hp_range, hp_eq⟩
+    cases hp_eq
+    unfold heightShellHorizontalEdge
+    refine Finset.mem_filter.mpr ?_
+    have hraw : ({ p := p, n := m } : ZetaPrimePowerIndex) ∈ rawBox m :=
+      (mem_rawBox_iff m ({ p := p, n := m } : ZetaPrimePowerIndex)).mpr
+        ⟨Finset.mem_range.mp hp_range, Nat.lt_succ_self m⟩
+    exact ⟨hraw, rfl⟩
 
 /-- The vertical edge model has exactly `m + 1` points. -/
 theorem card_heightShellVerticalEdgeModel
@@ -271,13 +338,33 @@ theorem card_heightShell_le_linear
 /-- The linear shell cardinality bound transported to real scalars. -/
 theorem card_heightShell_le_linear_real
     (m : ℕ) :
-    ((heightShell m).card : ℝ) ≤ (2 * (m + 1) : ℝ) := by
-  sorry
+    ((heightShell m).card : ℝ) ≤ ((2 * (m + 1) : ℕ) : ℝ) := by
+  exact Nat.cast_le.mpr (card_heightShell_le_linear m)
+
+/-- Summing a real constant over a finite set gives cardinality times that constant. -/
+theorem finset_sum_const_real
+    {α : Type} (s : Finset α) (c : ℝ) :
+    (∑ _ in s, c) = (s.card : ℝ) * c := by
+  calc
+    (∑ _ in s, c) = s.card • c := by
+      exact Finset.sum_const c
+    _ = (s.card : ℝ) * c := by
+      exact nsmul_eq_mul s.card c
 
 /-- The finite shell sum of rectangular-height decay at exact height `m`. -/
 noncomputable def polynomialHeightShellSum
     (k m : ℕ) : ℝ :=
   ∑ ι in heightShell m, polynomialHeightDecay k ι
+
+/-- The exact-height shell sum is the sum of a constant over that shell. -/
+theorem polynomialHeightShellSum_eq_sum_const_decay
+    (k m : ℕ) :
+    polynomialHeightShellSum k m =
+      ∑ _ in heightShell m,
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
+  unfold polynomialHeightShellSum
+  exact Finset.sum_congr rfl
+    (fun ι hι => polynomialHeightDecay_eq_on_heightShell k m ι hι)
 
 /-- The exact-height shell sum is the shell cardinality times the shell decay. -/
 theorem polynomialHeightShellSum_eq_card_mul_decay
@@ -285,7 +372,20 @@ theorem polynomialHeightShellSum_eq_card_mul_decay
     polynomialHeightShellSum k m =
       ((heightShell m).card : ℝ) *
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
-  sorry
+  have hsum :
+      polynomialHeightShellSum k m =
+        ∑ _ in heightShell m,
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    polynomialHeightShellSum_eq_sum_const_decay k m
+  have hconst :
+      (∑ _ in heightShell m,
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) =
+        ((heightShell m).card : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    finset_sum_const_real
+      (heightShell m)
+      ((1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
+  exact Eq.trans hsum hconst
 
 /-- The exact-height shell sum is bounded by the declared shell mass. -/
 theorem polynomialHeightShellSum_le_shellMass
@@ -297,7 +397,7 @@ theorem polynomialHeightShellSum_le_shellMass
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
     polynomialHeightShellSum_eq_card_mul_decay k m
   have hcard :
-      ((heightShell m).card : ℝ) ≤ (2 * (m + 1) : ℝ) := by
+      ((heightShell m).card : ℝ) ≤ ((2 * (m + 1) : ℕ) : ℝ) := by
     exact card_heightShell_le_linear_real m
   have hdecay_nonneg :
       0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
@@ -307,13 +407,13 @@ theorem polynomialHeightShellSum_le_shellMass
   have hmul :
       ((heightShell m).card : ℝ) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
-        (2 * (m + 1) : ℝ) *
+        ((2 * (m + 1) : ℕ) : ℝ) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
     mul_le_mul_of_nonneg_right hcard hdecay_nonneg
   unfold polynomialHeightShellMass
   exact Eq.subst
     (motive := fun v : ℝ =>
-      v ≤ (2 * (m + 1) : ℝ) *
+      v ≤ ((2 * (m + 1) : ℕ) : ℝ) *
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
     hsum.symm
     hmul
