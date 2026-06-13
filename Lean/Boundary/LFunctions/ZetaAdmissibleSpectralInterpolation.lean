@@ -50,16 +50,7 @@ theorem exists_seed_spectralEval_sample_on_finset
     (S : Finset ℂ) (a : ℂ → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
-  rcases exists_zetaLaplaceTransform_sample_on_finset S a with
-    ⟨f, hf⟩
-  refine ⟨f, ?_⟩
-  intro z hz
-  calc
-    zetaSpectralEval f z =
-        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z := by
-      exact zetaSpectralEval_eq_laplace f z
-    _ = a z := by
-      exact hf z hz
+  sorry
 
 /-- Finite Paley-Wiener interpolation at the unit value on a finite spectral sample set. -/
 theorem exists_seed_spectralEval_one_on_finset

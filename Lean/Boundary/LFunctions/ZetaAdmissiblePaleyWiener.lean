@@ -4807,17 +4807,6 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
     hphi.symm
     hbound
 
-/-- Finite Paley-Wiener interpolation for Laplace-transform samples on a finite set.
-
-This is the constructive owner shape: interpolation data is attached to the finite set of
-spectral points itself, so no quotienting or representative choice is needed. -/
-theorem exists_zetaLaplaceTransform_sample_on_finset
-    (S : Finset ℂ) (a : ℂ → ℂ) :
-    ∃ f : ZetaAdmissibleFunction,
-      ∀ z : ℂ, z ∈ S →
-        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z = a z := by
-  sorry
-
 end ZetaAdmissibleFunction
 
 end
