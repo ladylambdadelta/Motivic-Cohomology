@@ -173,20 +173,6 @@ theorem explicitFormulaFamilyHorizontalDifference_tendsto_zero
       (h := explicitFormulaFamilyAnalyticPackage_of_admissible f F)
       1
 
-/-- Owner residue theorem for the completed explicit-formula contour family.
-
-This is the residue-side limit theorem: the finite rectangle residue calculus,
-with zeros counted by analytic multiplicity, converges to the completed residue
-boundary scalar. It deliberately does not route through `explicitFormulaResidueSum f []`,
-which is the empty finite sum and hence not the completed zero divisor. -/
-theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_ownerResidueTheorem
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
-    Tendsto
-      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
-      atTop
-      (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
-  sorry
-
 /-- Historical name for the owner residue-limit theorem. -/
 theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_ownerResidueLimit
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :

@@ -4807,6 +4807,19 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
     hphi.symm
     hbound
 
+/-- Finite Paley-Wiener interpolation for Laplace-transform samples.
+
+Repeated sample points must carry the same requested value.  This is the spectral
+interpolation owner theorem: downstream zero-side files only transport this statement
+through their notation for spectral evaluation. -/
+theorem exists_zetaLaplaceTransform_sample_on_fintype
+    {α : Type*} [Fintype α] (x : α → ℂ) (a : α → ℂ) :
+    (∀ i j : α, x i = x j → a i = a j) →
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ i : α,
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' (x i) = a i := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end

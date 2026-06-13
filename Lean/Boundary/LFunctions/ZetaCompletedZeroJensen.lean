@@ -668,7 +668,7 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting_of_summa
       completedZeroToCarrierZero_injective)
 
 /-- Jensen counting for the centered entire zero-carrier divisor in ordinary closed disks. -/
-theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of_finiteOrder
+theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by_jensen
     (hfinite :
       ∃ A : ℝ, ∃ m : ℕ,
         0 < A ∧
@@ -681,6 +681,26 @@ theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of
         1 ≤ R →
         centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R ≤ C * R ^ d := by
   sorry
+
+/-- Finite-order growth of the centered entire zero-carrier gives polynomial closed-disk
+counting for its zero divisor.
+
+This theorem is a thin wrapper over the Jensen owner theorem above; downstream completed-zero
+transport should consume this wrapper rather than restating Jensen. -/
+theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of_finiteOrder
+    (hfinite :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
+            A * (1 + ‖z‖) ^ m) :
+    ∃ C : ℝ, ∃ d : ℕ,
+      0 < C ∧
+      ∀ R : ℝ,
+        1 ≤ R →
+        centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R ≤ C * R ^ d := by
+  exact centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by_jensen
+    hfinite
 
 /-- Completed-zero closed-disk counting is dominated by the cleared-carrier divisor count.
 

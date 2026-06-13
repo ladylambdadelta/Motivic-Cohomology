@@ -556,10 +556,54 @@ structure PrimeContourHorizontalReconstruction
 
 /-- Owner construction of the horizontal reconstruction package for the finite prime
 contour transport rectangle. -/
+theorem primeContourHorizontalReconstruction_top_re
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f) := by
+  sorry
+
+/-- Bottom-edge owner reconstruction for the finite prime contour transport rectangle.
+
+The bottom edge reconstructs the time-side finite window together with the omitted
+outside-window contour-transport tail. -/
+theorem primeContourHorizontalReconstruction_bottom_re
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaBottomLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  sorry
+
+/-- Oriented top/bottom conjugation for the finite prime contour transport rectangle. -/
+theorem primeContourHorizontalReconstruction_top_star_eq_neg_bottom
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      -zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
+  sorry
+
+/-- Owner construction of the horizontal reconstruction package for the finite prime
+contour transport rectangle. -/
 theorem primeContourHorizontalReconstruction
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     PrimeContourHorizontalReconstruction N f := by
-  sorry
+  exact
+    { top_re := primeContourHorizontalReconstruction_top_re N f
+      bottom_re := primeContourHorizontalReconstruction_bottom_re N f
+      top_star_eq_neg_bottom :=
+        primeContourHorizontalReconstruction_top_star_eq_neg_bottom N f }
 
 /-- The real part of the top line integral over the prime transport rectangle reconstructs
 the finite sum of contour-realized prime coordinates. -/
@@ -1042,6 +1086,46 @@ theorem finitePrimeContourTransportTomographicError_eq_coordinateRemainderTail
           (finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow N f)
           (sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow
             N f)
+
+/-- Owner tail theorem for finite prime contour tomography.
+
+The omitted contour-transport tail vanishes in the completed horizontal reconstruction.
+This is the direct tomographic-tail statement; it is not a coordinatewise absolute
+summability theorem over real prime centers. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The finite prime tomographic residual error vanishes.
+
+This is a projection of the owner tail theorem through the residue-balance identity
+identifying the residual error with the omitted contour-transport tail. -/
+theorem finitePrimeContourTransportTomographicError_tendsto_zero_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
+      atTop
+      (𝓝 0) := by
+  have htail :
+      Tendsto
+        (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+        atTop
+        (𝓝 0) :=
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerTomography f
+  have hfunctions :
+      (fun N : ℕ => finitePrimeContourTransportTomographicError N f) =
+        (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f) := by
+    funext N
+    exact finitePrimeContourTransportTomographicError_eq_coordinateRemainderTail N f
+  exact
+    Eq.subst
+      (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+      hfunctions.symm
+      htail
 
 /-- Contour-residue reconstruction of the sampled horizontal term.
 

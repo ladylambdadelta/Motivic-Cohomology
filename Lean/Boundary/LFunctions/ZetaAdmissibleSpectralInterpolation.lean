@@ -1,4 +1,5 @@
 import Boundary.LFunctions.ZetaAdmissibleInterpolation
+import Boundary.LFunctions.ZetaAdmissiblePaleyWiener
 import Boundary.LFunctions.ZetaZeroSideDefinitions
 
 /-!
@@ -50,7 +51,17 @@ theorem exists_seed_spectralEval_sample_on_fintype
     (∀ i j : α, x i = x j → a i = a j) →
     ∃ f : ZetaAdmissibleFunction,
       ∀ i : α, zetaSpectralEval f (x i) = a i := by
-  sorry
+  intro hcompat
+  rcases exists_zetaLaplaceTransform_sample_on_fintype x a hcompat with
+    ⟨f, hf⟩
+  refine ⟨f, ?_⟩
+  intro i
+  calc
+    zetaSpectralEval f (x i) =
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' (x i) := by
+      exact zetaSpectralEval_eq_laplace f (x i)
+    _ = a i := by
+      exact hf i
 
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set. -/

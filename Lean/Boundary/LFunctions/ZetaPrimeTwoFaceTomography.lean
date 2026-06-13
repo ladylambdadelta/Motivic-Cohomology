@@ -138,6 +138,45 @@ theorem completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing
       f
   exact (hspectral.trans (hspectralChannel.symm.trans hcoefficient)).symm
 
+/-- Completed prime channel tomography.
+
+The completed physical time-side prime channel and the completed spectral/two-face prime
+channel are the same reconstructed boundary object.  This is a global completed-channel
+statement, not a pointwise equality between real-lag coordinates and spectral samples. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeOffDiagonalChannel f =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  sorry
+
+/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
+boundary coefficient.
+
+This is the coordinate-sum shadow of completed channel tomography.  The owner content is
+the global channel equality
+`completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerTomography`. -/
+theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  have hchannel :
+      completedPrimeOffDiagonalChannel f =
+        ∑' ι : ZetaPrimePowerIndex,
+          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
+    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
+  have htomography :
+      completedPrimeOffDiagonalChannel f =
+        completedSpectralPrimeOffDiagonalChannel f :=
+    completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerTomography
+      f
+  have hspectral :
+      completedSpectralPrimeOffDiagonalChannel f =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
+      f
+  exact hchannel.symm.trans (htomography.trans hspectral)
+
 /-- Completed prime holographic reconstruction.
 
 The completed prime time-side projection and the completed two-face boundary projection
@@ -149,21 +188,20 @@ theorem completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass
     completedPrimeTimeTomographyClass f =
       completedPrimeTwoFaceTomographyClass f := by
   apply CompletedPrimeTomographyClass.ext_scalar
+  have hprojection :
+      completedPrimeTimeTomographyProjection f =
+        completedPrimeTwoFaceTomographyProjection f := by
+    unfold completedPrimeTimeTomographyProjection
+    unfold completedPrimeTwoFaceTomographyProjection
+    exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+      f
   calc
     completedPrimeTomographyClassScalar
         (completedPrimeTimeTomographyClass f) =
         completedPrimeTimeTomographyProjection f := by
       exact completedPrimeTomographyClassScalar_time f
-    _ = completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
-      exact completedPrimeTimeTomographyProjection_eq_timeDistributionPairing f
-    _ =
-        completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) := by
-      exact
-        completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
-          f
     _ = completedPrimeTwoFaceTomographyProjection f := by
-      exact (completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing f).symm
+      exact hprojection
     _ =
         completedPrimeTomographyClassScalar
           (completedPrimeTwoFaceTomographyClass f) := by
@@ -174,40 +212,10 @@ theorem completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeTomographyProjection f =
       completedPrimeTwoFaceTomographyProjection f := by
-  have hclass :
-      completedPrimeTimeTomographyClass f =
-        completedPrimeTwoFaceTomographyClass f :=
-    completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass f
-  have hscalar :
-      completedPrimeTomographyClassScalar
-          (completedPrimeTimeTomographyClass f) =
-        completedPrimeTomographyClassScalar
-          (completedPrimeTwoFaceTomographyClass f) :=
-    congrArg completedPrimeTomographyClassScalar hclass
-  calc
-    completedPrimeTimeTomographyProjection f =
-        completedPrimeTomographyClassScalar
-          (completedPrimeTimeTomographyClass f) := by
-      exact (completedPrimeTomographyClassScalar_time f).symm
-    _ =
-        completedPrimeTomographyClassScalar
-          (completedPrimeTwoFaceTomographyClass f) := by
-      exact hscalar
-    _ = completedPrimeTwoFaceTomographyProjection f := by
-      exact completedPrimeTomographyClassScalar_twoFace f
-
-/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
-boundary coefficient.
-
-This is the completed, global time-side prime tomography theorem after the raw time-side
-channel has been reduced to its owner coordinate `tsum`.  It is not a pointwise equality
-between time values and Laplace/spectral samples. -/
-theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-    (f : ZetaAdmissibleFunction) :
-    (∑' ι : ZetaPrimePowerIndex,
-        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
-      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  exact completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient f
+  unfold completedPrimeTimeTomographyProjection
+  unfold completedPrimeTwoFaceTomographyProjection
+  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+    f
 
 /-- Time-side completed prime tomography: the completed real prime distribution is the real
 part of the completed two-face boundary coefficient.
@@ -273,9 +281,18 @@ theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_own
     completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
       completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) := by
-  exact
-    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
+  have htime :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re_ownerTomography
       f
+  have hcontour :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeContourRealizedTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re
+      f
+  exact htime.trans hcontour.symm
 
 /-- Completed contour transport has no residual boundary difference.  This is the analytic
 contour-realization theorem: after passing to the completed prime channel, the finite
@@ -283,7 +300,25 @@ horizontal/transport remainder has zero limit. -/
 theorem completedPrimeContourTransportBoundaryDifference_eq_zero
     (f : ZetaAdmissibleFunction) :
     completedPrimeContourTransportBoundaryDifference f = 0 := by
-  exact completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay f
+  have htransport :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
+      f
+  unfold completedPrimeContourTransportBoundaryDifference
+  let C : ℝ :=
+    completedPrimeContourRealizedTimeDistributionPairing
+      (convolutionAutocorrelation f)
+  let T : ℝ :=
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
+  change C - T = 0
+  have hCT : C = T := htransport.symm
+  calc
+    C - T = T - T := by
+      exact congrArg (fun x : ℝ => x - T) hCT
+    _ = 0 := by
+      exact sub_self T
 
 /-- The finite contour-transport remainder vanishes in the completed prime realization. -/
 theorem finitePrimeContourTransportRemainder_tendsto_zero
@@ -363,17 +398,16 @@ theorem primeBoundaryChannel_convolutionAutocorrelation_re_eq_completedSpectralP
     (f : ZetaAdmissibleFunction) :
     Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
       completedSpectralPrimeOffDiagonalChannel f := by
-  have hcontour :
+  have hprime :
       Complex.re (primeBoundaryChannel (convolutionAutocorrelation f)) =
-        completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) :=
-    primeBoundaryChannel_convolutionAutocorrelation_re_eq_contourRealizedPrimeChannel f
-  have hspectral :
-      completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) =
+        completedPrimeOffDiagonalChannel f :=
+    (completedPrimeOffDiagonalChannel_eq_primeBoundaryChannel f).symm
+  have htomography :
+      completedPrimeOffDiagonalChannel f =
         completedSpectralPrimeOffDiagonalChannel f :=
-    completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpectralPrimeChannel f
-  exact hcontour.trans hspectral
+    completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerTomography
+      f
+  exact hprime.trans htomography
 
 /-- Prime boundary tomography: the real explicit-formula prime channel of the completed
 autocorrelation probe reconstructs the completed spectral two-face boundary coefficient.

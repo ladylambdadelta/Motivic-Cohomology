@@ -64,6 +64,33 @@ theorem centeredCompletedRiemannZetaZeroCarrier_analyticAt
       (centeredCompletedRiemannZeta₀_analyticAt z)).sub analyticAt_const
   exact hcarrier
 
+/-- Finite-order growth for the centered entire completed-zeta part. -/
+theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZeta₀ z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Finite-order growth is preserved by the completed zero-carrier normalization.
+
+The zero-carrier is obtained from the centered entire part by multiplying by the quadratic
+clearing factor `((1 / 2) + z) * (1 - ((1 / 2) + z))` and subtracting `1`. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_entirePart
+    (hentire :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZeta₀ z‖ ≤
+            A * (1 + ‖z‖) ^ m) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
 /-- Finite-order growth for the centered entire completed-zeta zero-carrier.
 
 This is the normalization-side entire-function input used by Jensen counting. The
@@ -77,7 +104,9 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound :
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
           A * (1 + ‖z‖) ^ m := by
-  sorry
+  exact
+    centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_entirePart
+      centeredCompletedRiemannZeta₀_finiteOrder_growth_bound
 
 theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =

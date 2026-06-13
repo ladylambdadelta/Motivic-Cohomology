@@ -617,7 +617,7 @@ theorem finitePrimeContourTransportTomographicError_tendsto_zero
       (fun N : ℕ => finitePrimeContourTransportTomographicError N f)
       atTop
       (𝓝 0) := by
-  sorry
+  exact finitePrimeContourTransportTomographicError_tendsto_zero_ownerTomography f
 
 /-- The sampled horizontal top-minus-bottom contour remainder tends to zero along the
 prime-window height parameter. -/
@@ -691,57 +691,6 @@ theorem finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay
       Tendsto u atTop (𝓝 0))
     hfunctions.symm
     htarget
-
-/-- Owner horizontal-decay consequence for the completed prime contour transport.
-
-This is the completed boundary transport theorem.  It is proved by the horizontal contour
-reconstruction at the completed level, not by asserting coordinatewise absolute summability
-of the real-prime contour samples. -/
-theorem completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay
-    (f : ZetaAdmissibleFunction) :
-    completedPrimeContourTransportBoundaryDifference f = 0 := by
-  sorry
-
-/-- Completed horizontal-decay transport identifies the time-side prime distribution with
-the contour-realized prime distribution. -/
-theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerHorizontalDecay
-    (f : ZetaAdmissibleFunction) :
-    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
-      completedPrimeContourRealizedTimeDistributionPairing
-        (convolutionAutocorrelation f) := by
-  have hzero :
-      completedPrimeContourTransportBoundaryDifference f = 0 :=
-    completedPrimeContourTransportBoundaryDifference_eq_zero_ownerHorizontalDecay f
-  unfold completedPrimeContourTransportBoundaryDifference at hzero
-  let C : ℝ :=
-    completedPrimeContourRealizedTimeDistributionPairing
-      (convolutionAutocorrelation f)
-  let T : ℝ :=
-    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
-  change C - T = 0 at hzero
-  change T = C
-  have hadd :
-      T + (C - T) = C := by
-    calc
-      T + (C - T) = T + (C + -T) := by
-        exact congrArg (fun x : ℝ => T + x) (sub_eq_add_neg C T)
-      _ = (T + C) + -T := by
-        exact (add_assoc T C (-T)).symm
-      _ = (C + T) + -T := by
-        exact congrArg (fun x : ℝ => x + -T) (add_comm T C)
-      _ = C + (T + -T) := by
-        exact add_assoc C T (-T)
-      _ = C + 0 := by
-        exact congrArg (fun x : ℝ => C + x) (add_right_neg T)
-      _ = C := by
-        exact add_zero C
-  calc
-    T = T + 0 := by
-      exact (add_zero T).symm
-    _ = T + (C - T) := by
-      exact congrArg (fun x : ℝ => T + x) hzero.symm
-    _ = C := by
-      exact hadd
 
 end ZetaAdmissibleFunction
 
