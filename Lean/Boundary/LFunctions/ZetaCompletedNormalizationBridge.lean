@@ -147,7 +147,7 @@ theorem completedRiemannZeta_eq_riemannZeta_mul_gamma {s : ℂ}
 /-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
 theorem riemannZeta_zero_eq_neg_half :
     riemannZeta (0 : ℂ) = (-1 / 2 : ℂ) := by
-  sorry
+  exact _root_.riemannZeta_zero
 
 /-- The value `-1/2` is nonzero in the complex normalization. -/
 theorem complex_neg_half_ne_zero :
@@ -162,11 +162,52 @@ theorem riemannZeta_zero_ne_zero :
     exact (riemannZeta_zero_eq_neg_half).symm.trans hz
   exact complex_neg_half_ne_zero hhalf
 
+/-- Mathlib's `Γℝ` zero indexing splits into the normalization point and the negative
+nonzero even locus used by the Weil criterion bridge. -/
+theorem gammaReal_zeroIndex_iff_zero_or_negative_even
+    {s : ℂ} :
+    (∃ n : ℕ, s = -(2 * (n : ℂ))) ↔
+      s = 0 ∨ ∃ n : ℕ, s = (-2 : ℂ) * ((n + 1 : ℕ) : ℂ) := by
+  constructor
+  · intro h
+    rcases h with ⟨n, hn⟩
+    cases n with
+    | zero =>
+        left
+        calc
+          s = -(2 * (0 : ℂ)) := hn
+          _ = -0 := by
+            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+          _ = 0 := by
+            exact neg_zero
+    | succ n =>
+        right
+        refine ⟨n, ?_⟩
+        calc
+          s = -(2 * (((n + 1 : ℕ) : ℂ))) := hn
+          _ = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
+            exact neg_mul_eq_neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))
+  · intro h
+    rcases h with hzero | hnegative
+    · refine ⟨0, ?_⟩
+      calc
+        s = 0 := hzero
+        _ = -0 := by
+          exact neg_zero.symm
+        _ = -(2 * (0 : ℂ)) := by
+          exact congrArg Neg.neg (mul_zero (2 : ℂ)).symm
+    · rcases hnegative with ⟨n, hn⟩
+      refine ⟨n + 1, ?_⟩
+      calc
+        s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := hn
+        _ = -(2 * (((n + 1 : ℕ) : ℂ))) := by
+          exact (neg_mul_eq_neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))).symm
+
 /-- The exact zero locus of the completed Gamma factor in the current normalization. -/
 theorem Gammaℝ_eq_zero_iff_zero_or_negative_even
     {s : ℂ} :
     Gammaℝ s = 0 ↔ s = 0 ∨ ∃ n : ℕ, s = -2 * (n + 1) := by
-  sorry
+  exact Complex.Gammaℝ_eq_zero_iff.trans gammaReal_zeroIndex_iff_zero_or_negative_even
 
 /-- The completed Gamma factor is nonzero away from its centered nonpositive-even
 singular locus. -/
