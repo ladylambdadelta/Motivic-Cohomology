@@ -463,6 +463,31 @@ theorem summable_of_nonnegative_le_summable_real
           hb_norm.symm
           (hab n)))
 
+/-- The one-dimensional polynomial tail with one spare power is summable. -/
+theorem summable_one_add_nat_norm_negative_zpow_succ
+    (k : ℕ) :
+    Summable
+      (fun m : ℕ =>
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) := by
+  sorry
+
+/-- The linear shell mass is pointwise dominated by a constant multiple of the
+one-dimensional polynomial tail with one fewer decay power. -/
+theorem linear_polynomialShellMassSequence_le_two_mul_tail
+    (k m : ℕ) :
+    ((2 * (m + 1) : ℕ) : ℝ) *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
+      2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
+  sorry
+
+/-- The constant multiple of the one-dimensional polynomial tail is summable. -/
+theorem summable_two_mul_one_add_nat_norm_negative_zpow_succ
+    (k : ℕ) :
+    Summable
+      (fun m : ℕ =>
+        2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) := by
+  exact (summable_one_add_nat_norm_negative_zpow_succ k).const_mul 2
+
 /-- The one-dimensional polynomial shell mass sequence is summable. -/
 theorem summable_linear_polynomialShellMassSequence
     (k : ℕ) :
@@ -470,7 +495,23 @@ theorem summable_linear_polynomialShellMassSequence
       (fun m : ℕ =>
         ((2 * (m + 1) : ℕ) : ℝ) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) := by
-  sorry
+  exact summable_of_nonnegative_le_summable_real
+    (fun m : ℕ =>
+      ((2 * (m + 1) : ℕ) : ℝ) *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
+    (fun m : ℕ =>
+      2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+    (fun m : ℕ => by
+      have hleft_nonneg : 0 ≤ ((2 * (m + 1) : ℕ) : ℝ) :=
+        Nat.cast_nonneg (2 * (m + 1))
+      have hright_nonneg :
+          0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+        zpow_nonneg
+          (add_nonneg zero_le_one (norm_nonneg ((m : ℕ) : ℝ)))
+          (-(k + 3 : ℤ))
+      exact mul_nonneg hleft_nonneg hright_nonneg)
+    (fun m : ℕ => linear_polynomialShellMassSequence_le_two_mul_tail k m)
+    (summable_two_mul_one_add_nat_norm_negative_zpow_succ k)
 
 /-- Polynomial shell masses are summable over rectangular heights. -/
 theorem summable_polynomialHeightShellMass
