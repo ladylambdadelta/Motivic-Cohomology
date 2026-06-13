@@ -65,16 +65,81 @@ def heightShell (m : ℕ) : Finset ZetaPrimePowerIndex :=
         cases hqr
         rfl⟩
 
+/-- Membership in an exact rectangular height shell is exactly equality of rectangular
+height with the shell parameter. -/
+theorem mem_heightShell_iff
+    (m : ℕ) (ι : ZetaPrimePowerIndex) :
+    ι ∈ heightShell m ↔ ι.height = m := by
+  sorry
+
+/-- Rectangular-height decay is constant on an exact height shell. -/
+theorem polynomialHeightDecay_eq_on_heightShell
+    (k m : ℕ) (ι : ZetaPrimePowerIndex)
+    (hι : ι ∈ heightShell m) :
+    polynomialHeightDecay k ι =
+      (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
+  have hheight : ι.height = m :=
+    (mem_heightShell_iff m ι).mp hι
+  unfold polynomialHeightDecay
+  exact congrArg
+    (fun h : ℕ => (1 + ‖((h : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
+    hheight
+
+/-- Exact rectangular height shells have at most linear cardinality. -/
+theorem card_heightShell_le_linear
+    (m : ℕ) :
+    (heightShell m).card ≤ 2 * (m + 1) := by
+  sorry
+
+/-- The linear shell cardinality bound transported to real scalars. -/
+theorem card_heightShell_le_linear_real
+    (m : ℕ) :
+    ((heightShell m).card : ℝ) ≤ (2 * (m + 1) : ℝ) := by
+  sorry
+
 /-- The finite shell sum of rectangular-height decay at exact height `m`. -/
 noncomputable def polynomialHeightShellSum
     (k m : ℕ) : ℝ :=
   ∑ ι in heightShell m, polynomialHeightDecay k ι
 
+/-- The exact-height shell sum is the shell cardinality times the shell decay. -/
+theorem polynomialHeightShellSum_eq_card_mul_decay
+    (k m : ℕ) :
+    polynomialHeightShellSum k m =
+      ((heightShell m).card : ℝ) *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
+  sorry
+
 /-- The exact-height shell sum is bounded by the declared shell mass. -/
 theorem polynomialHeightShellSum_le_shellMass
     (k m : ℕ) :
     polynomialHeightShellSum k m ≤ polynomialHeightShellMass k m := by
-  sorry
+  have hsum :
+      polynomialHeightShellSum k m =
+        ((heightShell m).card : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    polynomialHeightShellSum_eq_card_mul_decay k m
+  have hcard :
+      ((heightShell m).card : ℝ) ≤ (2 * (m + 1) : ℝ) := by
+    exact card_heightShell_le_linear_real m
+  have hdecay_nonneg :
+      0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
+    exact zpow_nonneg
+      (add_nonneg zero_le_one (norm_nonneg ((m : ℕ) : ℝ)))
+      (-(k + 3 : ℤ))
+  have hmul :
+      ((heightShell m).card : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
+        (2 * (m + 1) : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    mul_le_mul_of_nonneg_right hcard hdecay_nonneg
+  unfold polynomialHeightShellMass
+  exact Eq.subst
+    (motive := fun v : ℝ =>
+      v ≤ (2 * (m + 1) : ℝ) *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
+    hsum.symm
+    hmul
 
 /-- Polynomial shell masses are summable over rectangular heights. -/
 theorem summable_polynomialHeightShellMass
