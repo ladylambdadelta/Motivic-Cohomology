@@ -652,6 +652,23 @@ theorem exists_completedPrimeTimeDistributionCoordinate_rawHeightBound
             (zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinsetOfBound
               ι f hB hι))
 
+/-- Raw height-polynomial localization for the contour-realized prime distribution
+coordinate.
+
+This is the analytic owner estimate for the spectral/contour side: the sampled
+Laplace-transform coordinate is controlled by a rectangular-height summable majorant.
+Unlike the time-side estimate, this is not a finite-support statement; it uses the
+Paley--Wiener rapid decay of the spectral transform together with the prime-power
+weight and rectangular prime-power counting. -/
+theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
+    (g : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate ι g‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end

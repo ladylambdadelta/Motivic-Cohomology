@@ -144,7 +144,82 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_ho
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  sorry
+  rcases
+      exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
+        (convolutionAutocorrelation f)
+      with ⟨Ccontour, kcontour, hCcontour_pos, hcontour_bound⟩
+  rcases exists_completedPrimeTimeDistributionCoordinate_rawHeightBound f with
+    ⟨Ctime, ktime, hCtime_pos, htime_bound⟩
+  let contourMajorant : ZetaPrimePowerIndex → ℝ :=
+    fun ι => Ccontour * ZetaPrimePowerIndex.polynomialHeightDecay kcontour ι
+  let timeMajorant : ZetaPrimePowerIndex → ℝ :=
+    fun ι => Ctime * ZetaPrimePowerIndex.polynomialHeightDecay ktime ι
+  let remainderMajorant : ZetaPrimePowerIndex → ℝ :=
+    fun ι => contourMajorant ι + timeMajorant ι
+  have hcontour_summable : Summable contourMajorant := by
+    exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay
+      Ccontour kcontour
+  have htime_summable : Summable timeMajorant := by
+    exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay
+      Ctime ktime
+  have hremainder_summable : Summable remainderMajorant := by
+    exact hcontour_summable.add htime_summable
+  have hmajorant_bound :
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ ≤
+          remainderMajorant ι := by
+    intro ι
+    have hmajorant_nonneg :
+        0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+      completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f
+    have hmajorant_norm :
+        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
+          completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
+      Real.norm_of_nonneg hmajorant_nonneg
+    have hmajorant_eq :
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f =
+          ‖completedPrimeContourTransportCoordinateRemainder ι f‖ :=
+      completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f
+    have hremainder_triangle :
+        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+          ‖completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)‖ +
+            ‖completedPrimeTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)‖ :=
+      norm_completedPrimeContourTransportCoordinateRemainder_le_contour_add_time
+        ι f
+    have hcontour :
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤ contourMajorant ι := by
+      exact hcontour_bound ι
+    have htime :
+        ‖completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤ timeMajorant ι := by
+      exact htime_bound ι
+    have hsum :
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ +
+          ‖completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤
+            contourMajorant ι + timeMajorant ι :=
+      add_le_add hcontour htime
+    calc
+      ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
+          completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+        exact hmajorant_norm
+      _ = ‖completedPrimeContourTransportCoordinateRemainder ι f‖ := by
+        exact hmajorant_eq
+      _ ≤
+          ‖completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)‖ +
+            ‖completedPrimeTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)‖ := by
+        exact hremainder_triangle
+      _ ≤ contourMajorant ι + timeMajorant ι := by
+        exact hsum
+      _ = remainderMajorant ι := by
+        rfl
+  exact Summable.of_norm_bounded remainderMajorant hremainder_summable hmajorant_bound
 
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay
