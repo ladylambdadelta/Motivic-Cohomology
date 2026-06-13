@@ -557,19 +557,33 @@ theorem completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenui
   unfold completedPrimeContourTransportCoordinateRemainder
   exact congrArg₂ Sub.sub hcontour htime
 
-/-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization.
+/-- Product-form horizontal control makes the omitted coordinate-remainder tail vanish in the
+completed horizontal realization.
 
 This is the direct horizontal-transport tail theorem.  It is deliberately not routed
 through absolute summability of the pointwise contour/time coordinate difference: the
 product-form horizontal contour estimate controls the completed omitted tail as a
 transport residual, not as an independently summable real-axis coordinate family. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_of_productHorizontalControl
+    (f : ZetaAdmissibleFunction)
+    (hcontrol : CompletedPrimeProductHorizontalControl f) :
+    Tendsto
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization. -/
 theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  sorry
+  exact
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_of_productHorizontalControl
+      f
+      (completedPrimeProductHorizontalControl_of_autocorrelation f)
 
 /-- Owner horizontal-decay theorem for the residual finite prime tomography error.
 
