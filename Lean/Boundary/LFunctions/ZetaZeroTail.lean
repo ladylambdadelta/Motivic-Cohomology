@@ -46,9 +46,121 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
       left_inv := ?_
       right_inv := ?_ }
   · intro ρ
-    sorry
+    by_cases hρ : (ρ : ℂ) ∈ S
+    · change
+        (match
+            (if h : (ρ : ℂ) ∈ S then
+              Sum.inl ⟨(ρ : ℂ), h⟩
+            else
+              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) with
+          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ
+      have hif :
+          (if h : (ρ : ℂ) ∈ S then
+              Sum.inl ⟨(ρ : ℂ), h⟩
+            else
+              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) =
+            Sum.inl ⟨(ρ : ℂ), hρ⟩ :=
+        dif_pos hρ
+      exact Eq.subst
+        (motive := fun x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+          (match x with
+          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ)
+        hif.symm
+        (Subtype.ext rfl)
+    · change
+        (match
+            (if h : (ρ : ℂ) ∈ S then
+              Sum.inl ⟨(ρ : ℂ), h⟩
+            else
+              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) with
+          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ
+      have hif :
+          (if h : (ρ : ℂ) ∈ S then
+              Sum.inl ⟨(ρ : ℂ), h⟩
+            else
+              Sum.inr ⟨(ρ : ℂ), ρ.2, h⟩) =
+            Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩ :=
+        dif_neg hρ
+      exact Eq.subst
+        (motive := fun x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+          (match x with
+          | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+          | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩) = ρ)
+        hif.symm
+        (Subtype.ext rfl)
   · intro x
-    sorry
+    cases x with
+    | inl η =>
+        change
+          (if h : (((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
+              Sum.inl
+                ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
+            else
+              Sum.inr
+                ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
+                  (⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}).2,
+                  h⟩) = Sum.inl η
+        have hif :
+            (if h : (((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
+                Sum.inl
+                  ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
+              else
+                Sum.inr
+                  ⟨(((⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
+                    (⟨(η : ℂ), hS (η : ℂ) η.2⟩ :
+                      {ρ : ℂ // ZetaCompletedZero ρ}).2,
+                    h⟩) =
+              Sum.inl ⟨(η : ℂ), η.2⟩ :=
+          dif_pos η.2
+        exact Eq.subst
+          (motive := fun y : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+            y = Sum.inl η)
+          hif.symm
+          (congrArg Sum.inl (Subtype.ext rfl))
+    | inr ρ =>
+        change
+          (if h : (((⟨(ρ : ℂ), ρ.2.1⟩ :
+                {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
+              Sum.inl
+                ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
+            else
+              Sum.inr
+                ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
+                  (⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}).2,
+                  h⟩) = Sum.inr ρ
+        have hif :
+            (if h : (((⟨(ρ : ℂ), ρ.2.1⟩ :
+                  {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ) ∈ S) then
+                Sum.inl
+                  ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)), h⟩
+              else
+                Sum.inr
+                  ⟨(((⟨(ρ : ℂ), ρ.2.1⟩ :
+                    {ρ : ℂ // ZetaCompletedZero ρ}) : ℂ)),
+                    (⟨(ρ : ℂ), ρ.2.1⟩ :
+                      {ρ : ℂ // ZetaCompletedZero ρ}).2,
+                    h⟩) =
+              Sum.inr ⟨(ρ : ℂ), ρ.2.1, ρ.2.2⟩ :=
+          dif_neg ρ.2.2
+        exact Eq.subst
+          (motive := fun y : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
+            y = Sum.inr ρ)
+          hif.symm
+          (congrArg Sum.inr (Subtype.ext rfl))
 
 /-- Finite/complement `tsum` transport for the completed-zero subtype. -/
 theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
