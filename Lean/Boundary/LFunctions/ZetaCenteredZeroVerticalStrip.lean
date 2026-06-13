@@ -12,17 +12,58 @@ namespace LFunctions
 
 noncomputable section
 
-/-- The centered completed-zero spectral evaluation points lie in one fixed vertical
-strip.
+/-- The real part of the spectral zero coordinate is the completed-zero real part shifted
+by `1/2`. -/
+theorem zetaCenteredZero_re_eq_completedZero_re_sub_half
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (zetaCenteredZero (ρ : ℂ)).re = (ρ : ℂ).re - (1 / 2 : ℝ) := by
+  unfold zetaCenteredZero
+  calc
+    ((ρ : ℂ) - (1 / 2 : ℂ)).re =
+        (ρ : ℂ).re - (1 / 2 : ℂ).re := by
+      exact Complex.sub_re (ρ : ℂ) (1 / 2 : ℂ)
+    _ = (ρ : ℂ).re - (1 / 2 : ℝ) := by
+      exact congrArg (fun x : ℝ => (ρ : ℂ).re - x) Complex.ofReal_re
+
+/-- Completed-zero coordinates lie in one fixed vertical strip.
 
 This is the coarse critical-strip input for completed zeros after the normalizations used by
 the zero-side transform. -/
+theorem exists_zetaCompletedZero_fixed_vertical_strip :
+    ∃ a : ℝ, ∃ b : ℝ,
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        a ≤ (ρ : ℂ).re ∧ (ρ : ℂ).re ≤ b := by
+  sorry
+
+/-- The centered completed-zero spectral evaluation points lie in one fixed vertical
+strip. -/
 theorem exists_zetaCenteredZero_fixed_vertical_strip :
     ∃ a : ℝ, ∃ b : ℝ,
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
           (zetaCenteredZero (ρ : ℂ)).re ≤ b := by
-  sorry
+  rcases exists_zetaCompletedZero_fixed_vertical_strip with
+    ⟨a, b, hstrip⟩
+  refine ⟨a - (1 / 2 : ℝ), b - (1 / 2 : ℝ), ?_⟩
+  intro ρ
+  have hρ : a ≤ (ρ : ℂ).re ∧ (ρ : ℂ).re ≤ b :=
+    hstrip ρ
+  have hleft : a - (1 / 2 : ℝ) ≤ (ρ : ℂ).re - (1 / 2 : ℝ) :=
+    sub_le_sub_right hρ.1 (1 / 2 : ℝ)
+  have hright : (ρ : ℂ).re - (1 / 2 : ℝ) ≤ b - (1 / 2 : ℝ) :=
+    sub_le_sub_right hρ.2 (1 / 2 : ℝ)
+  have hre :
+      (zetaCenteredZero (ρ : ℂ)).re = (ρ : ℂ).re - (1 / 2 : ℝ) :=
+    zetaCenteredZero_re_eq_completedZero_re_sub_half ρ
+  exact
+    ⟨Eq.subst
+      (motive := fun x : ℝ => a - (1 / 2 : ℝ) ≤ x)
+      hre.symm
+      hleft,
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ b - (1 / 2 : ℝ))
+      hre.symm
+      hright⟩
 
 end
 
