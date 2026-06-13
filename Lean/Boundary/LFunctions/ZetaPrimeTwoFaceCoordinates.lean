@@ -77,6 +77,19 @@ theorem summable_completedPrimeTwoFaceGNSBoundaryRealCoordinate
       completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) := by
   exact summable_zetaPrimeOffDiagonalCoordinate f
 
+/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
+boundary coefficient.
+
+This is the owner holographic reconstruction theorem for the completed prime two-face
+coordinate layer: the completed real time-side coordinate sum and the completed
+spectral/two-face boundary coefficient are the same reconstructed prime boundary scalar. -/
+theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerCoordinates
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  sorry
+
 /-- The finite time-side prime windows converge to the completed time-side prime
 distribution. -/
 theorem finitePrimeTimeDistributionWindow_tendsto_completed

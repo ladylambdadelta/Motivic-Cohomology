@@ -168,7 +168,8 @@ theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_owner
     (∑' ι : ZetaPrimePowerIndex,
         completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
       Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  sorry
+  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerCoordinates
+    f
 
 /-- Completed prime holographic scalar reconstruction.
 
