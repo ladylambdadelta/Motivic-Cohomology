@@ -667,19 +667,6 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting_of_summa
       hnonnegative
       completedZeroToCarrierZero_injective)
 
-/-- Finite-order growth for the centered entire completed-zeta zero-carrier.
-
-This is the entire-function input used by Jensen counting.  The meromorphic completed
-normalization is handled by clearing the shifted pole denominators; the raw entire part
-`centeredCompletedRiemannZeta₀` is not itself the zero divisor. -/
-theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      ∀ z : ℂ,
-        ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
-  sorry
-
 /-- Jensen counting for the centered entire zero-carrier divisor in ordinary closed disks. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of_finiteOrder
     (hfinite :

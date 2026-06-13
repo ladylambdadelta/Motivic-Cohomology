@@ -64,6 +64,21 @@ theorem centeredCompletedRiemannZetaZeroCarrier_analyticAt
       (centeredCompletedRiemannZeta₀_analyticAt z)).sub analyticAt_const
   exact hcarrier
 
+/-- Finite-order growth for the centered entire completed-zeta zero-carrier.
+
+This is the normalization-side entire-function input used by Jensen counting. The
+zero-carrier is the cleared entire divisor
+`((1 / 2) + s) * (1 - ((1 / 2) + s)) * centeredCompletedRiemannZeta₀ s - 1`,
+so this theorem is owned by the completed normalization layer rather than by the
+downstream zero-counting file. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
 theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =
       centeredCompletedRiemannZeta₀ s -
