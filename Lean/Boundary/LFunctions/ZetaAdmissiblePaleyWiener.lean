@@ -22,6 +22,7 @@ namespace ZetaAdmissibleFunction
 structure ZetaPaleyWienerSupportInterval (f : ZetaAdmissibleFunction) where
   lower : ℝ
   upper : ℝ
+  lower_le_upper : lower ≤ upper
   lower_mem : ∀ t ∈ tsupport f.toZetaTestFunction, lower ≤ t
   upper_mem : ∀ t ∈ tsupport f.toZetaTestFunction, t ≤ upper
 
@@ -50,7 +51,11 @@ theorem exists_zetaPaleyWienerSupportInterval
     Nonempty (ZetaPaleyWienerSupportInterval f) := by
   obtain ⟨A, hA⟩ := exists_zetaPaleyWienerSupportLowerBound f
   obtain ⟨B, hB⟩ := exists_zetaPaleyWienerSupportUpperBound f
-  exact ⟨⟨A, B, hA, hB⟩⟩
+  exact
+    ⟨⟨min A B, max A B,
+      le_trans (min_le_left A B) (le_max_left A B),
+      (fun t ht => le_trans (min_le_left A B) (hA t ht)),
+      (fun t ht => le_trans (hB t ht) (le_max_right A B))⟩⟩
 
 /-- The admissible source vanishes strictly above its Paley-Wiener support bound. -/
 theorem zetaPaleyWiener_eq_zero_of_supportUpperBound_lt
@@ -272,6 +277,13 @@ theorem zetaPaleyWienerSupportIntervalLength_nonnegative
     0 ≤ zetaPaleyWienerSupportIntervalLength I := by
   unfold zetaPaleyWienerSupportIntervalLength
   exact le_max_right (I.upper - I.lower) 0
+
+/-- For ordered support intervals, the stored length is the ordinary endpoint difference. -/
+theorem zetaPaleyWienerSupportIntervalLength_eq_upper_sub_lower
+    (I : ZetaPaleyWienerSupportInterval f) :
+    zetaPaleyWienerSupportIntervalLength I = I.upper - I.lower := by
+  unfold zetaPaleyWienerSupportIntervalLength
+  exact max_eq_left (sub_nonneg.mpr I.lower_le_upper)
 
 /-- The horizontal exponential factor is uniformly bounded on a fixed vertical strip and
 support interval. -/
@@ -815,12 +827,27 @@ theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
       B * (volume (Set.Icc I.lower I.upper)).toReal := by
   sorry
 
+/-- The volume of an ordered closed real interval is its endpoint difference. -/
+theorem zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower
+    (I : ZetaPaleyWienerSupportInterval f) :
+    (volume (Set.Icc I.lower I.upper)).toReal =
+      I.upper - I.lower := by
+  sorry
+
 /-- The volume of the certified support interval is the certified support interval length. -/
 theorem zetaPaleyWienerIntervalVolume_toReal_eq_supportIntervalLength
     (I : ZetaPaleyWienerSupportInterval f) :
     (volume (Set.Icc I.lower I.upper)).toReal =
       zetaPaleyWienerSupportIntervalLength I := by
-  sorry
+  have hvolume :
+      (volume (Set.Icc I.lower I.upper)).toReal =
+        I.upper - I.lower :=
+    zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower I
+  have hlength :
+      zetaPaleyWienerSupportIntervalLength I =
+        I.upper - I.lower :=
+    zetaPaleyWienerSupportIntervalLength_eq_upper_sub_lower I
+  exact hvolume.trans hlength.symm
 
 /-- The integral of the constant interval indicator is the constant times the certified
 interval length. -/
@@ -1067,20 +1094,24 @@ theorem zetaPaleyWienerVerticalFrequency_ne_zero_of_high
     exact not_le_of_gt zero_lt_one
   exact hnot (Eq.subst (motive := fun v : ℝ => 1 ≤ v) hnorm_zero hy)
 
-/-- One vertical-line integration-by-parts identity before taking norms. -/
-theorem zetaPaleyWienerVerticalLineKernel_integral_eq_inverse_mul_derivativeIntegral
+/-- One vertical-line integration-by-parts identity before taking norms.
+
+The oscillatory factor is `exp (I * y * t)`, so differentiating it contributes
+`I * y`; the inverse factor is therefore `I * y⁻¹`, not just `y⁻¹`. -/
+theorem zetaPaleyWienerVerticalLineKernel_integral_eq_I_mul_inverse_mul_derivativeIntegral
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (x y : ℝ) (hy : (y : ℂ) ≠ 0) :
     (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
-      (y : ℂ)⁻¹ * zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
+      Complex.I * (y : ℂ)⁻¹ *
+        zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
   sorry
 
 /-- Vertical-line integration by parts after substituting the spectral parameter `z`. -/
-theorem zetaLaplaceTransform_eq_inverse_mul_verticalLineIBPDerivativeIntegral
+theorem zetaLaplaceTransform_eq_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (z : ℂ) (hzhigh : 1 ≤ ‖z.im‖) :
     Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
-      (z.im : ℂ)⁻¹ *
+      Complex.I * (z.im : ℂ)⁻¹ *
         zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im := by
   have htransform :
       Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
@@ -1091,11 +1122,18 @@ theorem zetaLaplaceTransform_eq_inverse_mul_verticalLineIBPDerivativeIntegral
     zetaPaleyWienerVerticalFrequency_ne_zero_of_high hzhigh
   have hibp :
       (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t) =
-        (z.im : ℂ)⁻¹ *
+        Complex.I * (z.im : ℂ)⁻¹ *
           zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im :=
-    zetaPaleyWienerVerticalLineKernel_integral_eq_inverse_mul_derivativeIntegral
+    zetaPaleyWienerVerticalLineKernel_integral_eq_I_mul_inverse_mul_derivativeIntegral
       f I z.re z.im hfreq
   exact htransform.trans hibp
+
+/-- The harmless `I` factor in the vertical-line integration-by-parts identity does not
+change the norm comparison. -/
+theorem norm_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral_le
+    (y : ℝ) (D : ℂ) :
+    ‖Complex.I * (y : ℂ)⁻¹ * D‖ ≤ ‖(y : ℂ)⁻¹‖ * ‖D‖ := by
+  sorry
 
 /-- Vertical-line integration by parts as a norm identity.
 
@@ -1107,13 +1145,13 @@ theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
     (hzstrip : zetaPaleyWienerInVerticalStrip a b z)
     (hzhigh : 1 ≤ ‖z.im‖) :
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
-      ‖(z.im : ℂ)⁻¹ *
+      ‖Complex.I * (z.im : ℂ)⁻¹ *
         zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ := by
   have hidentity :
       Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
-        (z.im : ℂ)⁻¹ *
+        Complex.I * (z.im : ℂ)⁻¹ *
           zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im :=
-    zetaLaplaceTransform_eq_inverse_mul_verticalLineIBPDerivativeIntegral
+    zetaLaplaceTransform_eq_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral
       f I z hzhigh
   exact congrArg (fun v : ℂ => ‖v‖) hidentity
 
@@ -1132,19 +1170,24 @@ theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normComparison
         ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ := by
   have hidentity :
       ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
-        ‖(z.im : ℂ)⁻¹ *
+        ‖Complex.I * (z.im : ℂ)⁻¹ *
           zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ :=
     zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
       f I a b z hzstrip hzhigh
-  have hmul :
-      ‖(z.im : ℂ)⁻¹ *
-          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ =
+  have hnorm :
+      ‖Complex.I * (z.im : ℂ)⁻¹ *
+          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ ≤
         ‖(z.im : ℂ)⁻¹‖ *
           ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ :=
-    norm_mul
-      ((z.im : ℂ)⁻¹)
+    norm_I_mul_inverse_mul_verticalLineIBPDerivativeIntegral_le
+      z.im
       (zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im)
-  exact le_of_eq (hidentity.trans hmul)
+  exact Eq.subst
+    (motive := fun v : ℝ =>
+      v ≤ ‖(z.im : ℂ)⁻¹‖ *
+          ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖)
+    hidentity.symm
+    hnorm
 
 /-- Uniform compact-strip decay for the derivative integral produced by vertical-line
 integration by parts, expressed directly in the real line coordinates `(x,y)`. -/
