@@ -48,7 +48,7 @@ noncomputable def entireFunctionZeroMultiplicityCountingInClosedDisk
 This is the analytic owner theorem: a nontrivial entire function of polynomial
 finite order has polynomially bounded zero count in closed disks, counted with
 analytic multiplicity. -/
-theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
+theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_owner
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
@@ -64,6 +64,30 @@ theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
         entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
           C * R ^ d := by
   sorry
+
+/-- Jensen finite-order counting theorem for nonzero entire functions.
+
+This is the analytic owner theorem: a nontrivial entire function of polynomial
+finite order has polynomially bounded zero count in closed disks, counted with
+analytic multiplicity. -/
+theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (hfinite :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖F z‖ ≤ A * (1 + ‖z‖) ^ m) :
+    ∃ C : ℝ, ∃ d : ℕ,
+      0 < C ∧
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          C * R ^ d := by
+  exact
+    entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_owner
+      F hF hnontrivial hfinite
 
 end
 

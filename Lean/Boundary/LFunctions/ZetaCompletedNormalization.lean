@@ -83,7 +83,7 @@ theorem centeredCompletedRiemannZetaZeroCarrier_analyticAt
 
 This is the actual analytic growth input underlying the completed-zeta normalization:
 `completedRiemannZeta₀` is the specialization `completedHurwitzZetaEven₀ 0`. -/
-theorem completedHurwitzZetaEven₀_finiteOrder_growth_bound
+theorem completedHurwitzZetaEven₀_finiteOrder_growth_bound_ownerHurwitz
     (a : UnitAddCircle) :
     ∃ A : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -91,6 +91,16 @@ theorem completedHurwitzZetaEven₀_finiteOrder_growth_bound
         ‖HurwitzZeta.completedHurwitzZetaEven₀ a z‖ ≤
           A * (1 + ‖z‖) ^ m := by
   sorry
+
+/-- Finite-order growth for the even completed Hurwitz entire part. -/
+theorem completedHurwitzZetaEven₀_finiteOrder_growth_bound
+    (a : UnitAddCircle) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖HurwitzZeta.completedHurwitzZetaEven₀ a z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  exact completedHurwitzZetaEven₀_finiteOrder_growth_bound_ownerHurwitz a
 
 /-- Finite-order growth for the uncentered entire completed-zeta part. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound :

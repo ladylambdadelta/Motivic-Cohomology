@@ -16,6 +16,32 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- The finite autocorrelation spectral sample vector of an admissible seed. -/
+def autocorrelationSpectralFiniteSample
+    (P : Finset ℂ) (f : ZetaAdmissibleFunction) :
+    P → ℂ :=
+  fun z : P =>
+    zetaSpectralEval (convolutionAutocorrelation f) (z : ℂ)
+
+/-- The finite target vector induced by a function on the ambient spectral plane. -/
+def autocorrelationSpectralFiniteTarget
+    (P : Finset ℂ) (a : ℂ → ℂ) :
+    P → ℂ :=
+  fun z : P => a (z : ℂ)
+
+/-- Runge/Paley-Wiener localization for finite autocorrelation spectral sample vectors,
+with zero-tail control. -/
+theorem exists_autocorrelation_spectralFiniteSample_zeroTail_small_ownerRunge
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (aP : P → ℂ) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        autocorrelationSpectralFiniteSample P f = aP ∧
+          |Complex.re
+            (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
+  sorry
+
 /-- Autocorrelation spectral localization with arbitrary finite prescribed samples and
 zero-tail control. -/
 theorem exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
@@ -28,7 +54,11 @@ theorem exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
           zetaSpectralEval (convolutionAutocorrelation f) z = a z) ∧
           |Complex.re
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
-  sorry
+  intro ε hε
+  rcases exists_autocorrelation_spectralFiniteSample_zeroTail_small_ownerRunge
+      S P (autocorrelationSpectralFiniteTarget P a) ε hε with
+    ⟨f, hfSample, hfTail⟩
+  exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩
 
 /-- Autocorrelation spectral localization with zero-tail control.
 

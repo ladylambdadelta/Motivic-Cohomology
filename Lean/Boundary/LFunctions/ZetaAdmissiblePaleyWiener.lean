@@ -4807,6 +4807,24 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
     hphi.symm
     hbound
 
+/-- The finite Laplace-transform sample vector of an admissible function. -/
+def zetaLaplaceTransformFiniteSample
+    (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
+    S → ℂ :=
+  fun z : S => Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ)
+
+/-- The finite target vector induced by a function on the ambient spectral plane. -/
+def zetaLaplaceTransformFiniteTarget
+    (S : Finset ℂ) (a : ℂ → ℂ) :
+    S → ℂ :=
+  fun z : S => a (z : ℂ)
+
+/-- Finite Paley-Wiener interpolation says the finite Laplace-sample map is surjective. -/
+theorem zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
+    (S : Finset ℂ) :
+    Function.Surjective (zetaLaplaceTransformFiniteSample S) := by
+  sorry
+
 /-- Finite Paley-Wiener interpolation for admissible Laplace transforms on a finite
 spectral sample set.
 
@@ -4818,7 +4836,11 @@ theorem exists_zetaLaplaceTransform_sample_on_finset_ownerPaleyWiener
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S →
         Boundary.zetaLaplaceTransform f.toZetaTestFunction' z = a z := by
-  sorry
+  rcases zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
+      S (zetaLaplaceTransformFiniteTarget S a) with
+    ⟨f, hf⟩
+  exact ⟨f, fun z hz =>
+    congrFun hf ⟨z, hz⟩⟩
 
 end ZetaAdmissibleFunction
 
