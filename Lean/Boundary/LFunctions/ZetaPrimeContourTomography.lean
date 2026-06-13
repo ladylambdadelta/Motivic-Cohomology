@@ -330,13 +330,40 @@ theorem finitePrimeContourTransportResidueDefect_eq_window_sub_tail
         completedPrimeContourTransportCoordinateRemainderTail N f := by
   rfl
 
+/-- Complex sampled contour tomography reconstructs the coordinate-remainder
+window after adding the omitted coordinate-remainder tail. -/
+theorem sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  sorry
+
 /-- Complex sampled contour tomography reconstructs the finite residue defect after taking
 the real part. -/
 theorem sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     Complex.re (sampledHorizontalDifferenceComplex N f) =
       finitePrimeContourTransportResidueDefect N f := by
-  sorry
+  let H : ℝ := Complex.re (sampledHorizontalDifferenceComplex N f)
+  let T : ℝ := completedPrimeContourTransportCoordinateRemainderTail N f
+  let W : ℝ := finitePrimeContourTransportCoordinateRemainderWindow N f
+  have hbalance : H + T = W := by
+    change Complex.re (sampledHorizontalDifferenceComplex N f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f
+    exact
+      sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+        N f
+  have hdefect : finitePrimeContourTransportResidueDefect N f = W - T :=
+    finitePrimeContourTransportResidueDefect_eq_window_sub_tail N f
+  change H = finitePrimeContourTransportResidueDefect N f
+  calc
+    H = H + T - T := by
+      exact (add_sub_cancel_right H T).symm
+    _ = W - T := by
+      exact congrArg (fun x : ℝ => x - T) hbalance
+    _ = finitePrimeContourTransportResidueDefect N f := hdefect.symm
 
 /-- The residual finite prime tomography error after subtracting the sampled horizontal
 contour difference from the finite prime contour-transport remainder.
