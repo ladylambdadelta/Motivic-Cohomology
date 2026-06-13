@@ -33,6 +33,21 @@ def centeredCompletedRiemannZetaZeroCarrier (s : ℂ) : ℂ :=
     (1 - ((1 / 2 : ℂ) + s)) *
       centeredCompletedRiemannZeta₀ s - 1
 
+/-- The quadratic clearing factor used to remove the shifted pole faces from the centered
+completed-zeta normalization. -/
+def centeredCompletedRiemannZetaZeroCarrierClearingFactor (s : ℂ) : ℂ :=
+  ((1 / 2 : ℂ) + s) *
+    (1 - ((1 / 2 : ℂ) + s))
+
+/-- The zero-carrier is the centered entire part multiplied by its quadratic clearing factor,
+then shifted by `-1`. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_eq_factor_mul_entirePart_sub_one
+    (s : ℂ) :
+    centeredCompletedRiemannZetaZeroCarrier s =
+      centeredCompletedRiemannZetaZeroCarrierClearingFactor s *
+        centeredCompletedRiemannZeta₀ s - 1 := by
+  rfl
+
 /-- The centered entire part is analytic everywhere. -/
 theorem centeredCompletedRiemannZeta₀_analyticAt
     (z : ℂ) :
@@ -73,6 +88,37 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
           A * (1 + ‖z‖) ^ m := by
   sorry
 
+/-- The quadratic clearing factor has polynomial growth. -/
+theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
+`1` preserves finite-order polynomial growth. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entirePart
+    (hfactor :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
+            A * (1 + ‖z‖) ^ m)
+    (hentire :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZeta₀ z‖ ≤
+            A * (1 + ‖z‖) ^ m) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
+          A * (1 + ‖z‖) ^ m := by
+  sorry
+
 /-- Finite-order growth is preserved by the completed zero-carrier normalization.
 
 The zero-carrier is obtained from the centered entire part by multiplying by the quadratic
@@ -89,7 +135,10 @@ theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_enti
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
           A * (1 + ‖z‖) ^ m := by
-  sorry
+  exact
+    centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entirePart
+      centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound
+      hentire
 
 /-- Finite-order growth for the centered entire completed-zeta zero-carrier.
 
