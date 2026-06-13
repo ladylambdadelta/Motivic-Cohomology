@@ -73,7 +73,9 @@ theorem real_zpow_neg_two_eq_inv_square
     {x : ℝ}
     (hx : x ≠ 0) :
     x ^ (-(2 : ℤ)) = x⁻¹ ^ (2 : ℕ) := by
-  sorry
+  calc
+    x ^ (-(2 : ℤ)) = (x ^ (2 : ℕ))⁻¹ := zpow_neg x 2
+    _ = x⁻¹ ^ (2 : ℕ) := (inv_pow x 2).symm
 
 /-- The height-base reciprocal-square tail is the usual reciprocal-square tail. -/
 theorem one_add_nat_norm_negative_two_eq_nat_succ_inverse_square
