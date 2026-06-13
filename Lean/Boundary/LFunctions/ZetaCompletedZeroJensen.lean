@@ -773,18 +773,19 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting_of_summa
 
 /-- Jensen counting for the centered entire zero-carrier divisor in ordinary closed disks.
 
-The nontriviality hypothesis is essential: polynomial growth alone does not control the
-zero divisor of an identically zero entire function.  The zeta-specific wrapper supplies
+The nontriviality hypothesis is essential: finite-order growth alone does not control the
+zero divisor of an identically zero entire function. The zeta-specific wrapper supplies
 this hypothesis from the explicit value at the shifted pole face. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_by_jensen
     (hnontrivial :
       ∃ z : ℂ, centeredCompletedRiemannZetaZeroCarrier z ≠ 0)
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ R : ℝ,
@@ -811,11 +812,12 @@ This theorem is a thin wrapper over the Jensen owner theorem above; downstream c
 transport should consume this wrapper rather than restating Jensen. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityCounting_closedDisk_bound_of_finiteOrder
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ R : ℝ,
@@ -841,11 +843,12 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting
 multiplicity-aware centered closed-disk completed-zero counting. -/
 theorem centeredCompletedRiemannZeta_closedDiskMultiplicityCounting_bound_of_zeroCarrierFiniteOrder
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ R : ℝ,
@@ -887,11 +890,12 @@ theorem completedZeroMultiplicityCounting_heightBall_bound_of_closedDisk_bound
 multiplicity-aware centered-height completed-zero counting. -/
 theorem centeredCompletedRiemannZeta_zeroMultiplicityCounting_height_bound_of_zeroCarrierFiniteOrder
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ T : ℝ,

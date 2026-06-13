@@ -18,16 +18,18 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The completed off-diagonal channel is the `tsum` of the completed two-face boundary real
-coordinates. -/
-theorem completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum
+/-- Global prime tomography: the completed raw off-diagonal channel is the real part of the
+completed two-face/GNS boundary coefficient.
+
+This is not a pointwise coordinate identification.  The coordinate owner theorem proves
+that the completed two-face coordinate sum reconstructs the coefficient; this theorem owns
+the global transport from the raw time-side completed channel to that reconstructed
+two-face object. -/
+theorem completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography
     (f : ZetaAdmissibleFunction) :
     completedPrimeOffDiagonalChannel f =
-      ∑' ι : ZetaPrimePowerIndex,
-        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
-  unfold completedPrimeOffDiagonalChannel
-  unfold zetaCompletedPrimeOffDiagonalChannel
-  unfold completedPrimeTwoFaceGNSBoundaryRealCoordinate
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  sorry
 
 /-- A completed prime tomography class records the scalar seen after the completed prime
 time-side boundary distribution is reconstructed as a two-face boundary object.
@@ -58,12 +60,11 @@ theorem CompletedPrimeTomographyClass.ext_scalar
       exact congrArg (fun x : ℝ => ({ scalar := x } : CompletedPrimeTomographyClass))
         hscalar
 
-/-- The completed time-side prime tomography projection: sum of reconstructed real
-two-face boundary coordinates. -/
+/-- The completed time-side prime tomography projection: the raw completed time-side prime
+distribution of the autocorrelation source. -/
 noncomputable def completedPrimeTimeTomographyProjection
     (f : ZetaAdmissibleFunction) : ℝ :=
-  ∑' ι : ZetaPrimePowerIndex,
-    completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f
+  completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
 
 /-- The completed two-face prime tomography projection: the real part of the completed
 two-face boundary coefficient. -/
@@ -104,12 +105,7 @@ theorem completedPrimeTimeTomographyProjection_eq_timeDistributionPairing
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeTomographyProjection f =
       completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
-  unfold completedPrimeTimeTomographyProjection
-  unfold completedPrimeTimeDistributionPairing
-  exact tsum_congr
-    (fun ι : ZetaPrimePowerIndex =>
-      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
-        ι f).symm)
+  rfl
 
 /-- The completed two-face tomography projection is the completed contour-realized prime
 distribution. -/
@@ -183,8 +179,15 @@ theorem completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ow
       completedPrimeTwoFaceTomographyProjection f := by
   unfold completedPrimeTimeTomographyProjection
   unfold completedPrimeTwoFaceTomographyProjection
-  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-    f
+  have htime :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeOffDiagonalChannel f :=
+    completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f
+  have hcoefficient :
+      completedPrimeOffDiagonalChannel f =
+        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
+    completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography f
+  exact htime.trans hcoefficient
 
 /-- Completed prime contour transport identifies the completed time-side prime distribution
 with the completed contour-realized distribution.
@@ -245,20 +248,14 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
       completedSpectralPrimeOffDiagonalChannel f := by
   have hchannel :
       completedPrimeOffDiagonalChannel f =
-        ∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
-    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
-  have hcoefficient :
-      (∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
         Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography f
+    completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography f
   have hspectral :
       completedSpectralPrimeOffDiagonalChannel f =
         Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
     completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
       f
-  exact hchannel.trans (hcoefficient.trans hspectral.symm)
+  exact hchannel.trans hspectral.symm
 
 /-- Completed prime holographic reconstruction.
 
@@ -277,9 +274,7 @@ theorem completedPrimeTomographyProjection_reconstructs_twoFaceCoefficient
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeTomographyProjection f =
       completedPrimeTwoFaceTomographyProjection f := by
-  unfold completedPrimeTimeTomographyProjection
-  unfold completedPrimeTwoFaceTomographyProjection
-  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+  exact completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography
     f
 
 /-- Time-side completed prime tomography: the completed real prime distribution is the real
@@ -296,18 +291,11 @@ theorem completedPrimeTimeDistributionPairing_eq_completedTwoFaceBoundaryCoeffic
       completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
         completedPrimeOffDiagonalChannel f :=
     completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f
-  have hsum :
-      completedPrimeOffDiagonalChannel f =
-        ∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
-    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
   have hcoefficient :
-      (∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      completedPrimeOffDiagonalChannel f =
         Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-      f
-  exact hchannel.trans (hsum.trans hcoefficient)
+    completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography f
+  exact hchannel.trans hcoefficient
 
 /-- Contour-side completed prime tomography: the contour-realized prime distribution is the
 real part of the completed two-face boundary coefficient. -/
@@ -487,18 +475,8 @@ theorem completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoef
     (f : ZetaAdmissibleFunction) :
     completedPrimeOffDiagonalChannel f =
       Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  have hsum :
-      completedPrimeOffDiagonalChannel f =
-        ∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f :=
-    completedPrimeOffDiagonalChannel_eq_twoFaceBoundaryRealCoordinate_tsum f
-  have hcoefficient :
-      (∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
-        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-      f
-  exact hsum.trans hcoefficient
+  exact completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography
+    f
 
 /-- The completed sum of boundary real coordinates is the real part of the completed
 boundary coefficient. -/
@@ -532,29 +510,8 @@ theorem completedPrimeTimeDistributionPairing_convolutionAutocorrelation_eq_comp
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
       Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  have hcoord :
-      (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeTimeDistributionCoordinate ι
-            (convolutionAutocorrelation f)) =
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) := by
-    funext ι
-    exact
-      completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_twoFaceGNSRealCoordinate
-        ι f
-  unfold completedPrimeTimeDistributionPairing
-  calc
-    (∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTimeDistributionCoordinate ι
-            (convolutionAutocorrelation f)) =
-        ∑' ι : ZetaPrimePowerIndex,
-          completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f := by
-      exact congrArg
-        (fun u : ZetaPrimePowerIndex → ℝ =>
-          ∑' ι : ZetaPrimePowerIndex, u ι)
-        hcoord
-    _ = Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-      completedPrimeTwoFaceGNSRealCoordinate_tsum_eq_matrixCoefficient_re f
+  exact completedPrimeTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re_ownerTomography
+    f
 
 end ZetaAdmissibleFunction
 

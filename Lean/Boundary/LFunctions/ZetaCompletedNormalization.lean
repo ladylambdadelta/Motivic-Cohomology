@@ -85,20 +85,22 @@ This is the analytic finite-order input actually used by completed-zeta zero cou
 the RH lane.  A more general Hurwitz finite-order theorem may imply it, but the zeta
 normalization layer only needs this specialization. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta :
-    ∃ A : ℝ, ∃ m : ℕ,
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖completedRiemannZeta₀ z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
 
 /-- Finite-order growth for the uncentered entire completed-zeta part. -/
 theorem completedRiemannZeta₀_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ m : ℕ,
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖completedRiemannZeta₀ z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
 
 /-- The centered affine shift is controlled by the basic centered height. -/
@@ -128,15 +130,16 @@ theorem centeredCompletedRiemannZeta₀_shiftedBasicHeight_le
 
 /-- Finite-order growth for the centered entire completed-zeta part. -/
 theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ m : ℕ,
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZeta₀ z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   rcases completedRiemannZeta₀_finiteOrder_growth_bound with
-    ⟨A, m, hApos, hbound⟩
-  refine ⟨A * (2 : ℝ) ^ m, m, ?_, ?_⟩
-  · exact mul_pos hApos (pow_pos zero_lt_two m)
+    ⟨A, B, m, hApos, hBpos, hbound⟩
+  refine ⟨A, B * (2 : ℝ) ^ m, m, hApos, ?_, ?_⟩
+  · exact mul_pos hBpos (pow_pos zero_lt_two m)
   intro z
   let H : ℝ := 1 + ‖z‖
   have hH_nonneg : 0 ≤ H := by
@@ -155,28 +158,36 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
     rfl
   have hraw :
       ‖completedRiemannZeta₀ ((1 / 2 : ℂ) + z)‖ ≤
-        A * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m :=
+        A * Real.exp (B * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m) :=
     hbound ((1 / 2 : ℂ) + z)
   have hscale :
-      A * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m ≤
-        A * (2 * H) ^ m :=
-    mul_le_mul_of_nonneg_left hpow_le (le_of_lt hApos)
+      B * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m ≤
+        B * (2 * H) ^ m :=
+    mul_le_mul_of_nonneg_left hpow_le (le_of_lt hBpos)
   have hmul_pow :
       (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
     mul_pow 2 H m
   have htarget :
-      A * (2 * H) ^ m =
-        (A * (2 : ℝ) ^ m) * H ^ m := by
+      B * (2 * H) ^ m =
+        (B * (2 : ℝ) ^ m) * H ^ m := by
     calc
-      A * (2 * H) ^ m = A * ((2 : ℝ) ^ m * H ^ m) := by
-        exact congrArg (fun x : ℝ => A * x) hmul_pow
-      _ = (A * (2 : ℝ) ^ m) * H ^ m := by
-        exact (mul_assoc A ((2 : ℝ) ^ m) (H ^ m)).symm
+      B * (2 * H) ^ m = B * ((2 : ℝ) ^ m * H ^ m) := by
+        exact congrArg (fun x : ℝ => B * x) hmul_pow
+      _ = (B * (2 : ℝ) ^ m) * H ^ m := by
+        exact (mul_assoc B ((2 : ℝ) ^ m) (H ^ m)).symm
+  have hexp_le :
+      Real.exp (B * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m) ≤
+        Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+    Real.exp_le_exp.mpr (hscale.trans_eq htarget)
+  have hscale_exp :
+      A * Real.exp (B * (1 + ‖(1 / 2 : ℂ) + z‖) ^ m) ≤
+        A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+    mul_le_mul_of_nonneg_left hexp_le (le_of_lt hApos)
   exact Eq.subst
     (motive := fun x : ℂ =>
-      ‖x‖ ≤ (A * (2 : ℝ) ^ m) * H ^ m)
+      ‖x‖ ≤ A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m))
     hcenter.symm
-    (hraw.trans (hscale.trans_eq htarget))
+    (hraw.trans hscale_exp)
 
 /-- Each linear factor in the zero-carrier clearing factor is controlled by
 `2 * (1 + ‖z‖)`. -/
@@ -341,7 +352,7 @@ theorem polynomialGrowth_sub_one
   exact htriangle.trans (hsum_bound.trans_eq halg)
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
-`1` preserves finite-order polynomial growth. -/
+`1` preserves exponential finite-order growth. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entirePart
     (hfactor :
       ∃ A : ℝ, ∃ m : ℕ,
@@ -350,44 +361,19 @@ theorem centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entir
           ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
             A * (1 + ‖z‖) ^ m)
     (hentire :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZeta₀ z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
-    ∃ A : ℝ, ∃ m : ℕ,
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
-  have hproduct :
-      ∃ A : ℝ, ∃ m : ℕ,
-        0 < A ∧
-        ∀ z : ℂ,
-          ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
-              centeredCompletedRiemannZeta₀ z‖ ≤
-            A * (1 + ‖z‖) ^ m :=
-    polynomialGrowth_mul hfactor hentire
-  have hsub :
-      ∃ A : ℝ, ∃ m : ℕ,
-        0 < A ∧
-        ∀ z : ℂ,
-          ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
-              centeredCompletedRiemannZeta₀ z - 1‖ ≤
-            A * (1 + ‖z‖) ^ m :=
-    polynomialGrowth_sub_one hproduct
-  rcases hsub with ⟨A, m, hApos, hbound⟩
-  refine ⟨A, m, hApos, ?_⟩
-  intro z
-  have hcarrier :
-      centeredCompletedRiemannZetaZeroCarrier z =
-        centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
-          centeredCompletedRiemannZeta₀ z - 1 :=
-    centeredCompletedRiemannZetaZeroCarrier_eq_factor_mul_entirePart_sub_one z
-  exact Eq.subst
-    (motive := fun w : ℂ => ‖w‖ ≤ A * (1 + ‖z‖) ^ m)
-    hcarrier.symm
-    (hbound z)
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
 
 /-- Finite-order growth is preserved by the completed zero-carrier normalization.
 
@@ -395,16 +381,18 @@ The zero-carrier is obtained from the centered entire part by multiplying by the
 clearing factor `((1 / 2) + z) * (1 - ((1 / 2) + z))` and subtracting `1`. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_entirePart
     (hentire :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
           ‖centeredCompletedRiemannZeta₀ z‖ ≤
-            A * (1 + ‖z‖) ^ m) :
-    ∃ A : ℝ, ∃ m : ℕ,
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entirePart
       centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound
@@ -418,11 +406,12 @@ zero-carrier is the cleared entire divisor
 so this theorem is owned by the completed normalization layer rather than by the
 downstream zero-counting file. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ m : ℕ,
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
+      0 < B ∧
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
-          A * (1 + ‖z‖) ^ m := by
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     centeredCompletedRiemannZetaZeroCarrier_finiteOrder_growth_bound_of_entirePart
       centeredCompletedRiemannZeta₀_finiteOrder_growth_bound

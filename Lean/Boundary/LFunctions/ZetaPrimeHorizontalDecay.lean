@@ -79,12 +79,59 @@ theorem exists_sampledProductHorizontalEnvelopeConstant
     E
     N
 
+/-- The time-side completed prime coordinate family at an autocorrelation probe. -/
+def completedPrimeTimeCoordinateFamily
+    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
+  fun ι : ZetaPrimePowerIndex =>
+    completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)
+
+/-- The contour-realized completed prime coordinate family at an autocorrelation probe. -/
+def completedPrimeContourRealizedCoordinateFamily
+    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
+  fun ι : ZetaPrimePowerIndex =>
+    completedPrimeContourRealizedTimeDistributionCoordinate
+      ι (convolutionAutocorrelation f)
+
+/-- The completed prime contour-transport coordinate-remainder family at an
+autocorrelation probe. -/
+def completedPrimeContourRemainderCoordinateFamily
+    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
+  completedPrimeContourTransportCoordinateRemainderFamily f
+
+/-- Polynomial-height majorant for the contour-realized prime coordinate family.
+
+The exponent belongs to the rectangular prime-power height, so this is the
+summable owner majorant appropriate for horizontal contour localization. -/
+def completedPrimeContourRealizedCoordinateMajorant
+    (C : ℝ) (k : ℕ) : ZetaPrimePowerIndex → ℝ :=
+  fun ι : ZetaPrimePowerIndex =>
+    C * ZetaPrimePowerIndex.polynomialHeightDecay k ι
+
+/-- The contour-realized coordinate majorant is summable over prime-power indices. -/
+theorem summable_completedPrimeContourRealizedCoordinateMajorant
+    (C : ℝ) (k : ℕ) :
+    Summable (completedPrimeContourRealizedCoordinateMajorant C k) := by
+  exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
+
+/-- Analytic horizontal-localization root: contour-realized prime coordinates are bounded
+by a summable rectangular-height majorant.
+
+This is the precise contour-side summability input.  It is a decay theorem for the
+completed contour-realized coordinate family, not a residual-error or tail-cancellation
+statement. -/
+theorem exists_completedPrimeContourRealizedCoordinateMajorant_bound_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 ≤ C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourRealizedCoordinateFamily f ι‖ ≤
+          completedPrimeContourRealizedCoordinateMajorant C k ι := by
+  sorry
+
 /-- Horizontal-decay compatibility wrapper for time-side prime-coordinate summability. -/
 theorem summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) := by
+    Summable (completedPrimeTimeCoordinateFamily f) := by
   exact summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation f
 
 /-- Horizontal-decay owner theorem for summability of the contour-realized prime
@@ -95,11 +142,13 @@ coordinate-remainder family is summable by subtracting the already-summable time
 prime coordinate family. -/
 theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourRealizedTimeDistributionCoordinate
-          ι (convolutionAutocorrelation f)) := by
-  sorry
+    Summable (completedPrimeContourRealizedCoordinateFamily f) := by
+  rcases exists_completedPrimeContourRealizedCoordinateMajorant_bound_ownerHorizontalDecay f with
+    ⟨C, k, _hC, hbound⟩
+  exact Summable.of_norm_bounded
+    (completedPrimeContourRealizedCoordinateMajorant C k)
+    (summable_completedPrimeContourRealizedCoordinateMajorant C k)
+    hbound
 
 /-- Horizontal-decay compatibility wrapper for nongenuine contour-realized coordinates. -/
 theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine_ownerHorizontalDecay
@@ -149,9 +198,8 @@ theorem completedPrimeContourTransportCoordinateRemainderFamily_eq_contour_sub_t
     (f : ZetaAdmissibleFunction) :
     completedPrimeContourTransportCoordinateRemainderFamily f =
       fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f) -
-          completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) := by
+        completedPrimeContourRealizedCoordinateFamily f ι -
+          completedPrimeTimeCoordinateFamily f ι := by
   funext ι
   exact completedPrimeContourTransportCoordinateRemainder_eq_contour_sub_time ι f
 
@@ -159,23 +207,14 @@ theorem completedPrimeContourTransportCoordinateRemainderFamily_eq_contour_sub_t
 time-side prime coordinate families are summable. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainderFamily_of_contour_and_time
     (f : ZetaAdmissibleFunction)
-    (hcontour :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)))
-    (htime :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f))) :
+    (hcontour : Summable (completedPrimeContourRealizedCoordinateFamily f))
+    (htime : Summable (completedPrimeTimeCoordinateFamily f)) :
     Summable (completedPrimeContourTransportCoordinateRemainderFamily f) := by
   have hdifference :
       Summable
         (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourRealizedTimeDistributionCoordinate
-              ι (convolutionAutocorrelation f) -
-            completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) :=
+          completedPrimeContourRealizedCoordinateFamily f ι -
+            completedPrimeTimeCoordinateFamily f ι) :=
     hcontour.sub htime
   exact Eq.subst
     (motive := fun u : ZetaPrimePowerIndex → ℝ => Summable u)
@@ -657,17 +696,10 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerHo
     (f : ZetaAdmissibleFunction) :
     Summable (completedPrimeContourTransportCoordinateRemainderFamily f) := by
   have hcontour :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)) :=
+      Summable (completedPrimeContourRealizedCoordinateFamily f) :=
     summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
       f
-  have htime :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)) :=
+  have htime : Summable (completedPrimeTimeCoordinateFamily f) :=
     summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
       f
   exact

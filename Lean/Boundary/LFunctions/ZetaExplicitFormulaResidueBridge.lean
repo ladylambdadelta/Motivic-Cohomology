@@ -129,7 +129,38 @@ theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_core_own
       (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
       atTop
       (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
-  sorry
+  have hzero :
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T))
+        atTop
+        (𝓝 (zetaCompletedZeroKreinGram f : ℂ)) :=
+    zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroKreinGram_ownerResidueCalculus
+      f F
+  have htarget :
+      (zetaCompletedZeroKreinGram f : ℂ) =
+        (zetaCompletedResidueBoundarySum f : ℂ) := by
+    exact congrArg (fun x : ℝ => (x : ℂ))
+      (zetaCompletedZeroKreinGram_eq_residueBoundarySum f)
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T) =
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)) := by
+    funext T
+    rfl
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T))
+          atTop
+          (𝓝 z))
+      htarget
+      hzero)
 
 /-- Owner residue theorem for the completed explicit-formula contour family.
 

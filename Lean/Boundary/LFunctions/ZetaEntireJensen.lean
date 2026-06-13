@@ -45,18 +45,19 @@ noncomputable def entireFunctionZeroMultiplicityCountingInClosedDisk
 
 /-- Jensen finite-order counting theorem for nonzero entire functions.
 
-This is the analytic owner theorem: a nontrivial entire function of polynomial
+This is the analytic owner theorem: a nontrivial entire function of exponential
 finite order has polynomially bounded zero count in closed disks, counted with
 analytic multiplicity. -/
 theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_owner
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (A B : ℝ) (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
-        0 < A ∧
-        ∀ z : ℂ,
-          ‖F z‖ ≤ A * (1 + ‖z‖) ^ m) :
+      ∀ z : ℂ,
+        ‖F z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ R : ℝ,
@@ -67,7 +68,7 @@ theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_owner
 
 /-- Jensen finite-order counting theorem for nonzero entire functions.
 
-This is the analytic owner theorem: a nontrivial entire function of polynomial
+This is the analytic owner theorem: a nontrivial entire function of exponential
 finite order has polynomially bounded zero count in closed disks, counted with
 analytic multiplicity. -/
 theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
@@ -75,19 +76,21 @@ theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
     (hfinite :
-      ∃ A : ℝ, ∃ m : ℕ,
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
+        0 < B ∧
         ∀ z : ℂ,
-          ‖F z‖ ≤ A * (1 + ‖z‖) ^ m) :
+          ‖F z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ C : ℝ, ∃ d : ℕ,
       0 < C ∧
       ∀ R : ℝ,
         1 ≤ R →
         entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
           C * R ^ d := by
+  rcases hfinite with ⟨A, B, m, hA, hB, hbound⟩
   exact
     entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_owner
-      F hF hnontrivial hfinite
+      F hF hnontrivial A B m hA hB hbound
 
 end
 

@@ -17,6 +17,11 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- A finite spectral sample vector indexed by a finite sample set. -/
+abbrev SpectralSampleVector
+    (S : Finset ℂ) : Type :=
+  S → ℂ
+
 /-- Dagger reflection of a finite spectral sample set. -/
 def daggerReflectedSpectralSampleFinset
     (S : Finset ℂ) : Finset ℂ :=
@@ -111,20 +116,26 @@ theorem zetaSpectralEval_sum
 /-- The finite seed spectral-evaluation vector of an admissible function. -/
 def seedSpectralEvalFiniteSample
     (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
-    S → ℂ :=
+    SpectralSampleVector S :=
   fun z : S => zetaSpectralEval f (z : ℂ)
 
 /-- The finite target vector induced by a function on the ambient spectral plane. -/
 def seedSpectralEvalFiniteTarget
     (S : Finset ℂ) (a : ℂ → ℂ) :
-    S → ℂ :=
+    SpectralSampleVector S :=
   fun z : S => a (z : ℂ)
 
-/-- Finite Paley-Wiener interpolation for seed spectral-evaluation vectors. -/
-theorem exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener
-    (S : Finset ℂ) (aS : S → ℂ) :
+/-- A seed realizes a finite spectral sample vector. -/
+def RealizesSeedSpectralSamples
+    (f : ZetaAdmissibleFunction) (S : Finset ℂ)
+    (aS : SpectralSampleVector S) : Prop :=
+  seedSpectralEvalFiniteSample S f = aS
+
+/-- Finite Paley-Wiener interpolation in realization-predicate form. -/
+theorem exists_realizesSeedSpectralSamples_ownerPaleyWiener
+    (S : Finset ℂ) (aS : SpectralSampleVector S) :
     ∃ f : ZetaAdmissibleFunction,
-      seedSpectralEvalFiniteSample S f = aS := by
+      RealizesSeedSpectralSamples f S aS := by
   rcases exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
       S aS with
     ⟨f, hf⟩
@@ -140,6 +151,13 @@ theorem exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener
       rfl
     _ = aS z := by
       exact congrFun hf z
+
+/-- Finite Paley-Wiener interpolation for seed spectral-evaluation vectors. -/
+theorem exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener
+    (S : Finset ℂ) (aS : SpectralSampleVector S) :
+    ∃ f : ZetaAdmissibleFunction,
+      seedSpectralEvalFiniteSample S f = aS := by
+  exact exists_realizesSeedSpectralSamples_ownerPaleyWiener S aS
 
 /-- Finite Paley-Wiener interpolation says the finite seed spectral-sample map is
 surjective. -/

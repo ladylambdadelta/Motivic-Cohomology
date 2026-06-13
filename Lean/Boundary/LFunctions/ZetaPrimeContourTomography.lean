@@ -883,6 +883,21 @@ theorem finitePrimeTimeDistributionComplexWindowWithTail_re_eq_coordinateSum_add
           (finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum
             N (convolutionAutocorrelation f))))
 
+/-- The real part of the finite time-side complex window with tail is the finite
+time-side window plus the omitted contour-transport tail. -/
+theorem finitePrimeTimeDistributionComplexWindowWithTail_re_eq_window_add_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeTimeDistributionComplexWindowWithTail N f) =
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    (finitePrimeTimeDistributionComplexWindowWithTail_re_eq_coordinateSum_add_tail
+      N f).trans
+      (congrArg
+        (fun x : ℝ => x + completedPrimeContourTransportCoordinateRemainderTail N f)
+        (finitePrimeTimeDistributionWindow_eq_sum_coordinate
+          N (convolutionAutocorrelation f)).symm)
+
 /-- The finite residue defect reconstructed by the sampled horizontal contour.
 
 This is the sign-sensitive finite object: the horizontal top-minus-bottom sample
@@ -921,6 +936,22 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
+/-- The top contour edge real shadow reconstructs the finite contour-realized prime
+window.
+
+This is the top-edge reconstruction root.  It is deliberately real-valued: downstream
+Krein/GNS transport only consumes the ordered real shadow, not a full complex
+tomographic reconstruction. -/
+theorem primeTransportTopContourIntegrand_integral_re_eq_contourRealizedWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+      (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c),
+        primeTransportTopContourIntegrand N f x) =
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) := by
+  sorry
+
 /-- The real part of the top contour-integrand integral reconstructs the real part of the
 symmetrized spectral prime boundary window. -/
 theorem primeTransportTopContourIntegrand_integral_re_eq_symmetrizedSpectralWindow_re_ownerTomography
@@ -933,7 +964,32 @@ theorem primeTransportTopContourIntegrand_integral_re_eq_symmetrizedSpectralWind
       (finitePrimeSymmetrizedComplexWindow N
         (fun a : ℝ =>
           zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a)) := by
-  sorry
+  have hwindow :
+      Complex.re
+        (finitePrimeSymmetrizedComplexWindow N
+          (fun a : ℝ =>
+            zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a)) =
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f) := by
+    calc
+      Complex.re
+          (finitePrimeSymmetrizedComplexWindow N
+            (fun a : ℝ =>
+              zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a)) =
+          Complex.re
+            (finitePrimeContourRealizedComplexWindow N
+              (convolutionAutocorrelation f)) := by
+        exact congrArg Complex.re
+          (finitePrimeContourRealizedComplexWindow_eq_symmetrizedSpectral
+            N (convolutionAutocorrelation f)).symm
+      _ =
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f) := by
+        exact finitePrimeContourRealizedComplexWindow_re_eq_window
+          N (convolutionAutocorrelation f)
+  exact
+    (primeTransportTopContourIntegrand_integral_re_eq_contourRealizedWindow_ownerTomography
+      N f).trans hwindow.symm
 
 /-- The top contour-integrand integral reconstructs the finite contour-realized real
 coordinate window after taking real parts. -/
@@ -1091,6 +1147,22 @@ theorem sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography
       (primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
         N f)
 
+/-- The bottom contour edge real shadow reconstructs the finite time-side prime window
+together with the omitted contour-transport coordinate tail.
+
+This is the bottom-edge reconstruction root.  It keeps the tail visible, so horizontal
+tail decay remains a separate summability consequence rather than a circular residual
+error argument. -/
+theorem primeTransportBottomContourIntegrand_integral_re_eq_timeWindow_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+      (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c),
+        primeTransportBottomContourIntegrand N f x) =
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  sorry
+
 /-- The real part of the bottom contour-integrand integral reconstructs the real part of
 the symmetrized time-boundary prime window with the omitted real tail. -/
 theorem primeTransportBottomContourIntegrand_integral_re_eq_symmetrizedTimeWindow_add_tail_re_ownerTomography
@@ -1104,7 +1176,42 @@ theorem primeTransportBottomContourIntegrand_integral_re_eq_symmetrizedTimeWindo
         (fun a : ℝ =>
           zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
         (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
-  sorry
+  have hcomplex :
+      Complex.re
+        (finitePrimeSymmetrizedComplexWindow N
+          (fun a : ℝ =>
+            zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
+          (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) =
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+          completedPrimeContourTransportCoordinateRemainderTail N f := by
+    calc
+      Complex.re
+          (finitePrimeSymmetrizedComplexWindow N
+            (fun a : ℝ =>
+              zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
+            (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) =
+          Complex.re
+            (finitePrimeTimeDistributionComplexWindow N
+                (convolutionAutocorrelation f) +
+              (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
+        exact congrArg Complex.re
+          (congrArg
+            (fun z : ℂ =>
+              z + (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ))
+            (finitePrimeTimeDistributionComplexWindow_eq_symmetrizedTime
+              N (convolutionAutocorrelation f)).symm)
+      _ =
+          Complex.re (finitePrimeTimeDistributionComplexWindowWithTail N f) := by
+        exact congrArg Complex.re
+          (finitePrimeTimeDistributionComplexWindowWithTail_eq_complexWindow_add_tail
+            N f).symm
+      _ =
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+            completedPrimeContourTransportCoordinateRemainderTail N f := by
+        exact finitePrimeTimeDistributionComplexWindowWithTail_re_eq_window_add_tail N f
+  exact
+    (primeTransportBottomContourIntegrand_integral_re_eq_timeWindow_add_tail_ownerTomography
+      N f).trans hcomplex.symm
 
 /-- The bottom contour-integrand integral reconstructs the finite time-side real
 coordinate window with tail after taking real parts. -/

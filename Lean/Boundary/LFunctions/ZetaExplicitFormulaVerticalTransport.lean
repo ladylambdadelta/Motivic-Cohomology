@@ -114,7 +114,27 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVe
       (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  sorry
+  have hvertical :
+      Tendsto
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_ownerVerticalDecomposition
+      f F
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T) =
+        (fun T : ℝ =>
+          zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
+            zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)) := by
+    funext T
+    rfl
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)))
+    hpointwise.symm
+    hvertical
 
 /-- Owner vertical-transport theorem: along an admissible contour family, the named
 vertical-transport remainder tends to zero. -/

@@ -9,6 +9,8 @@ import Boundary.LFunctions.ZetaCompletedLogDerivativeCore
 import Boundary.LFunctions.ZetaExplicitFormulaLogDerivative
 import Boundary.LFunctions.ZetaAdmissibleTransformRegularity
 import Boundary.LFunctions.ZetaCompletedLogDerivativeControl
+import Boundary.LFunctions.ZetaZeroKreinGram
+import Boundary.LFunctions.ZetaZeroSideContribution
 import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
@@ -385,6 +387,183 @@ theorem zetaCompletedExplicitFormulaBoundarySumAnalytic_bridge
         zetaCompletedExplicitFormulaArchimedeanContribution f +
         zetaCompletedExplicitFormulaCorrectionContribution f :=
   rfl
+
+/-- The explicit-formula residue datum attached to a completed zero.  The zero coordinate
+is the same coordinate used by the completed-zero side, so the residue summand evaluates
+`Φ_f` at `ρ - 1 / 2`, matching `zetaCenteredZero ρ`. -/
+noncomputable def explicitFormulaZeroDataOfCompletedZero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ExplicitFormulaZeroData :=
+  { zero := (ρ : ℂ)
+    multiplicity := zetaZeroMultiplicity (ρ : ℂ) }
+
+/-- The explicit-formula residue attached to a completed zero is the existing zero-side
+contribution.  This is bookkeeping: both sides are the same multiplicity-weighted spectral
+evaluation at the centered zero coordinate. -/
+theorem explicitFormulaZeroResidue_ofCompletedZero_eq_zeroSideContribution
+    (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) =
+      zetaZeroSideContribution (ρ : ℂ) f := by
+  unfold explicitFormulaZeroResidue
+  unfold explicitFormulaZeroDataOfCompletedZero
+  unfold zetaZeroSideContribution
+  unfold zetaCenteredZero
+  rfl
+
+/-- The finite completed-zero height window used by the residue-side contour approximation. -/
+noncomputable def explicitFormulaCompletedZeroHeightWindow
+    (T : ℝ) : Finset {ρ : ℂ // ZetaCompletedZero ρ} :=
+  (finite_completedZerosInCenteredHeightBall T).toFinset
+
+/-- The finite residue sum over the completed-zero height window. -/
+noncomputable def explicitFormulaCompletedZeroHeightWindowResidueSum
+    (f : ZetaAdmissibleFunction) (T : ℝ) : ℂ :=
+  ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+    explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ)
+
+/-- The same finite residue window expressed in zero-side contribution notation. -/
+noncomputable def explicitFormulaCompletedZeroHeightWindowZeroSideSum
+    (f : ZetaAdmissibleFunction) (T : ℝ) : ℂ :=
+  ∑ ρ in explicitFormulaCompletedZeroHeightWindow T,
+    zetaZeroSideContribution (ρ : ℂ) f
+
+/-- The residue-window presentation and the zero-side presentation are the same finite sum. -/
+theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
+    (f : ZetaAdmissibleFunction) (T : ℝ) :
+    explicitFormulaCompletedZeroHeightWindowResidueSum f T =
+      explicitFormulaCompletedZeroHeightWindowZeroSideSum f T := by
+  unfold explicitFormulaCompletedZeroHeightWindowResidueSum
+  unfold explicitFormulaCompletedZeroHeightWindowZeroSideSum
+  exact Finset.sum_congr
+    rfl
+    (fun ρ _hρ =>
+      explicitFormulaZeroResidue_ofCompletedZero_eq_zeroSideContribution f ρ)
+
+/-- The residue-window error left after subtracting the finite completed-zero window from the
+rectangle contour integral. -/
+noncomputable def explicitFormulaFamilyResidueWindowError
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
+  zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) -
+    explicitFormulaCompletedZeroHeightWindowResidueSum f T
+
+/-- The rectangle contour integral is its finite completed-zero residue window plus the
+residue-window error. -/
+theorem zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) :
+    zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
+      explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+        explicitFormulaFamilyResidueWindowError f F T := by
+  let C : ℂ := zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)
+  let S : ℂ := explicitFormulaCompletedZeroHeightWindowResidueSum f T
+  unfold explicitFormulaFamilyResidueWindowError
+  change C = S + (C - S)
+  calc
+    C = C + 0 := by
+      exact (add_zero C).symm
+    _ = C + (-S + S) := by
+      exact congrArg (fun x : ℂ => C + x) (neg_add_cancel S).symm
+    _ = (C + -S) + S := by
+      exact (add_assoc C (-S) S).symm
+    _ = S + (C + -S) := by
+      exact add_comm (C + -S) S
+    _ = S + (C - S) := by
+      exact congrArg (fun x : ℂ => S + x) (sub_eq_add_neg C S).symm
+
+/-- Owner zero-limit theorem for the finite completed-zero residue windows.
+
+This is the zero-side summability/Jensen input specialized to the residue windows:
+the finite height-window residue sums converge to the completed zero-side Krein scalar. -/
+theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroKreinGram_ownerZeroLimit
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+      atTop
+      (𝓝 (zetaCompletedZeroKreinGram f : ℂ)) := by
+  sorry
+
+/-- Owner finite-rectangle residue-calculus error theorem.
+
+After the finite completed-zero height-window residue sum is subtracted from the
+rectangle contour integral, the residual rectangle error tends to zero along an admissible
+contour family. -/
+theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculus
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyResidueWindowError f F T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The completed-zeta rectangle residue calculus reconstructs the zero-side Krein scalar
+from the limiting contour integral. -/
+theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroKreinGram_ownerResidueCalculus
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T))
+      atTop
+      (𝓝 (zetaCompletedZeroKreinGram f : ℂ)) := by
+  have hwindow :
+      Tendsto
+        (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
+        atTop
+        (𝓝 (zetaCompletedZeroKreinGram f : ℂ)) :=
+    explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroKreinGram_ownerZeroLimit f
+  have herror :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyResidueWindowError f F T)
+        atTop
+        (𝓝 0) :=
+    explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculus f F
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+            explicitFormulaFamilyResidueWindowError f F T)
+        atTop
+        (𝓝 ((zetaCompletedZeroKreinGram f : ℂ) + 0)) :=
+    hwindow.add herror
+  have htarget :
+      (zetaCompletedZeroKreinGram f : ℂ) + 0 =
+        (zetaCompletedZeroKreinGram f : ℂ) :=
+    add_zero _
+  have hpointwise :
+      (fun T : ℝ =>
+        zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T)) =
+        (fun T : ℝ =>
+          explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+            explicitFormulaFamilyResidueWindowError f F T) := by
+    funext T
+    exact zetaCompletedExplicitFormulaContourIntegral_eq_heightWindowResidueSum_add_error
+      f F T
+  exact Eq.subst
+    (motive := fun u : ℝ → ℂ =>
+      Tendsto u atTop (𝓝 (zetaCompletedZeroKreinGram f : ℂ)))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            explicitFormulaCompletedZeroHeightWindowResidueSum f T +
+              explicitFormulaFamilyResidueWindowError f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
+
+/-- Owner vertical-channel decomposition limit.
+
+This is the vertical-line integration theorem for the completed negative log-derivative
+decomposition: the right-minus-left vertical contour contribution converges to the analytic
+prime/archimedean/correction boundary sum. -/
+theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_ownerVerticalDecomposition
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ =>
+        zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
+          zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T))
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
+  sorry
 
 /-- The completed zeta contour integrand is compatible with the rectangle theorem
 surface once differentiability hypotheses are supplied. -/

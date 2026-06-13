@@ -4819,6 +4819,153 @@ def zetaLaplaceTransformFiniteTarget
     S → ℂ :=
   fun z : S => a (z : ℂ)
 
+/-- The finite Laplace-sample vector of a scalar multiple is the scalar multiple of the
+finite Laplace-sample vector. -/
+theorem zetaLaplaceTransformFiniteSample_smul
+    (S : Finset ℂ) (c : ℂ) (f : ZetaAdmissibleFunction) :
+    zetaLaplaceTransformFiniteSample S (c • f) =
+      c • zetaLaplaceTransformFiniteSample S f := by
+  funext z
+  unfold zetaLaplaceTransformFiniteSample
+  have hpoint :
+      (c • f).toZetaTestFunction' =
+        c • f.toZetaTestFunction' := by
+    ext t
+    calc
+      (c • f).toZetaTestFunction' t =
+          (c • f) t := by
+        exact ZetaAdmissibleFunction.toZetaTestFunction'_apply (c • f) t
+      _ = c * f t := by
+        exact ZetaAdmissibleFunction.smul_apply c f t
+      _ = c * f.toZetaTestFunction' t := by
+        exact congrArg (fun u : ℂ => c * u)
+          (ZetaAdmissibleFunction.toZetaTestFunction'_apply f t).symm
+      _ = (c • f.toZetaTestFunction') t := by
+        rfl
+  calc
+    Boundary.zetaLaplaceTransform (c • f).toZetaTestFunction' (z : ℂ) =
+        Boundary.zetaLaplaceTransform (c • f.toZetaTestFunction') (z : ℂ) := by
+      exact congrFun (Boundary.zetaLaplaceTransform_congr
+        (fun t : ℝ => congrFun hpoint t)) (z : ℂ)
+    _ = c * Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) := by
+      exact Boundary.zetaLaplaceTransform_smul c f.toZetaTestFunction' (z : ℂ)
+    _ = (c • zetaLaplaceTransformFiniteSample S f) z := by
+      rfl
+
+/-- The finite Laplace-sample vector of a finite sum is the finite sum of the sample
+vectors. -/
+theorem zetaLaplaceTransformFiniteSample_sum
+    {α : Type*} [DecidableEq α]
+    (S : Finset ℂ) (T : Finset α) (F : α → ZetaAdmissibleFunction) :
+    zetaLaplaceTransformFiniteSample S (∑ x in T, F x) =
+      ∑ x in T, zetaLaplaceTransformFiniteSample S (F x) := by
+  funext z
+  unfold zetaLaplaceTransformFiniteSample
+  have hpoint :
+      (∑ x in T, F x).toZetaTestFunction' =
+        ∑ x in T, (F x).toZetaTestFunction' := by
+    ext t
+    calc
+      (∑ x in T, F x).toZetaTestFunction' t =
+          (∑ x in T, F x) t := by
+        exact ZetaAdmissibleFunction.toZetaTestFunction'_apply (∑ x in T, F x) t
+      _ = ∑ x in T, F x t := by
+        exact ZetaAdmissibleFunction.sum_apply T F t
+      _ = (∑ x in T, (F x).toZetaTestFunction') t := by
+        exact (Boundary.zetaLaplaceTransform_sum_apply
+          (s := T)
+          (f := fun x : α => (F x).toZetaTestFunction')
+          t).symm
+  calc
+    Boundary.zetaLaplaceTransform (∑ x in T, F x).toZetaTestFunction' (z : ℂ) =
+        Boundary.zetaLaplaceTransform (∑ x in T, (F x).toZetaTestFunction') (z : ℂ) := by
+      exact congrFun (Boundary.zetaLaplaceTransform_congr
+        (fun t : ℝ => congrFun hpoint t)) (z : ℂ)
+    _ =
+        ∑ x in T,
+          Boundary.zetaLaplaceTransform (F x).toZetaTestFunction' (z : ℂ) := by
+      exact Boundary.zetaLaplaceTransform_sum
+        T
+        (fun x : α => (F x).toZetaTestFunction')
+        (z : ℂ)
+        (fun x _hx => integrable_laplaceKernel_at (F x) (z : ℂ))
+    _ = (∑ x in T, zetaLaplaceTransformFiniteSample S (F x)) z := by
+      exact (T.sum_apply z
+        (fun x : α => zetaLaplaceTransformFiniteSample S (F x))).symm
+
+/-- A cardinal family gives the finite linear-combination interpolant for any target
+finite sample vector. -/
+theorem zetaLaplaceTransformFiniteSample_linearCombination_cardinalFamily
+    (S : Finset ℂ) (aS : S → ℂ) (F : S → ZetaAdmissibleFunction)
+    (hF :
+      ∀ z w : S,
+        Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
+          if w = z then 1 else 0) :
+    zetaLaplaceTransformFiniteSample S (∑ z : S, aS z • F z) = aS := by
+  classical
+  funext w
+  calc
+    zetaLaplaceTransformFiniteSample S (∑ z : S, aS z • F z) w =
+        (∑ z : S, zetaLaplaceTransformFiniteSample S (aS z • F z)) w := by
+      exact congrFun
+        (zetaLaplaceTransformFiniteSample_sum
+          S Finset.univ (fun z : S => aS z • F z))
+        w
+    _ =
+        ∑ z : S, zetaLaplaceTransformFiniteSample S (aS z • F z) w := by
+      exact Finset.univ.sum_apply w
+        (fun z : S => zetaLaplaceTransformFiniteSample S (aS z • F z))
+    _ =
+        ∑ z : S, aS z *
+          Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) := by
+      exact Finset.sum_congr rfl
+        (fun z _hz =>
+          congrFun (zetaLaplaceTransformFiniteSample_smul S (aS z) (F z)) w)
+    _ =
+        ∑ z : S, aS z * (if w = z then 1 else 0) := by
+      exact Finset.sum_congr rfl
+        (fun z _hz =>
+          congrArg (fun u : ℂ => aS z * u) (hF z w))
+    _ = aS w := by
+      have hsingle :
+          ∑ z in (Finset.univ : Finset S),
+              aS z * (if w = z then 1 else 0) =
+            aS w * (if w = w then 1 else 0) := by
+        exact Finset.sum_eq_single
+          (a := w)
+          (f := fun z : S => aS z * (if w = z then 1 else 0))
+          (fun z _hz hzw =>
+            have hne : w ≠ z := fun hwz => hzw hwz.symm
+            calc
+              aS z * (if w = z then 1 else 0) =
+                  aS z * 0 := by
+                exact congrArg (fun u : ℂ => aS z * u) (if_neg hne)
+              _ = 0 := by
+                exact mul_zero (aS z))
+          (fun hw =>
+            False.elim (hw (Finset.mem_univ w)))
+      calc
+        ∑ z : S, aS z * (if w = z then 1 else 0) =
+            aS w * (if w = w then 1 else 0) := by
+          exact hsingle
+        _ = aS w * 1 := by
+          exact congrArg (fun u : ℂ => aS w * u) (if_pos rfl)
+        _ = aS w := by
+          exact mul_one (aS w)
+
+/-- Paley-Wiener cardinal interpolation on a finite spectral sample set.
+
+This is the true analytic interpolation root: construct admissible cardinal probes whose
+Laplace-transform sample matrix is the Kronecker delta. The arbitrary finite-vector
+interpolation theorem below is then just finite linear algebra. -/
+theorem exists_zetaLaplaceTransformCardinalFamily_ownerPaleyWiener
+    (S : Finset ℂ) :
+    ∃ F : S → ZetaAdmissibleFunction,
+      ∀ z w : S,
+        Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
+          if w = z then 1 else 0 := by
+  sorry
+
 /-- Finite Paley-Wiener interpolation in finite-vector form.
 
 This is the constructive basis/interpolant owner theorem: every target vector on a finite
@@ -4828,7 +4975,11 @@ theorem exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
     (S : Finset ℂ) (aS : S → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       zetaLaplaceTransformFiniteSample S f = aS := by
-  sorry
+  rcases exists_zetaLaplaceTransformCardinalFamily_ownerPaleyWiener S with
+    ⟨F, hF⟩
+  exact ⟨∑ z : S, aS z • F z,
+    zetaLaplaceTransformFiniteSample_linearCombination_cardinalFamily
+      S aS F hF⟩
 
 /-- Finite Paley-Wiener interpolation says the finite Laplace-sample map is surjective. -/
 theorem zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
