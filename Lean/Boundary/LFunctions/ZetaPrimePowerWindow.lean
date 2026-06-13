@@ -53,10 +53,49 @@ noncomputable def polynomialHeightShellMass
   (2 * (m + 1) : ℝ) *
     (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
 
+/-- The finite rectangular shell of raw prime-power coordinates at exact height `m`. -/
+def heightShell (m : ℕ) : Finset ZetaPrimePowerIndex :=
+  ((Finset.range (m + 1)).product (Finset.range (m + 1))).filter
+    (fun q : ℕ × ℕ => max q.1 q.2 = m)
+    |>.map
+      ⟨fun q => ⟨q.1, q.2⟩, by
+        intro q r hqr
+        cases q
+        cases r
+        cases hqr
+        rfl⟩
+
+/-- The finite shell sum of rectangular-height decay at exact height `m`. -/
+noncomputable def polynomialHeightShellSum
+    (k m : ℕ) : ℝ :=
+  ∑ ι in heightShell m, polynomialHeightDecay k ι
+
+/-- The exact-height shell sum is bounded by the declared shell mass. -/
+theorem polynomialHeightShellSum_le_shellMass
+    (k m : ℕ) :
+    polynomialHeightShellSum k m ≤ polynomialHeightShellMass k m := by
+  sorry
+
 /-- Polynomial shell masses are summable over rectangular heights. -/
 theorem summable_polynomialHeightShellMass
     (k : ℕ) :
     Summable (fun m : ℕ => polynomialHeightShellMass k m) := by
+  sorry
+
+/-- Shell sums are summable when dominated by summable shell masses. -/
+theorem summable_polynomialHeightShellSum_of_shellMass
+    (k : ℕ)
+    (hshell : Summable (fun m : ℕ => polynomialHeightShellMass k m)) :
+    Summable (fun m : ℕ => polynomialHeightShellSum k m) := by
+  sorry
+
+/-- Summability of exact-height shell sums transports to summability over raw indices. -/
+theorem summable_polynomialHeightDecay_of_shellSums
+    (k : ℕ)
+    (hshellSum : Summable (fun m : ℕ => polynomialHeightShellSum k m)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        polynomialHeightDecay k ι) := by
   sorry
 
 /-- Rectangular-height decay is summable once the height-shell masses are summable.
@@ -69,7 +108,9 @@ theorem summable_polynomialHeightDecay_of_shellMass
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         polynomialHeightDecay k ι) := by
-  sorry
+  exact summable_polynomialHeightDecay_of_shellSums
+    k
+    (summable_polynomialHeightShellSum_of_shellMass k hshell)
 
 /-- Rectangular-height polynomial decay is summable over raw prime-power indices. -/
 theorem summable_polynomialHeightDecay
