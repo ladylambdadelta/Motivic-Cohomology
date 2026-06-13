@@ -395,15 +395,11 @@ coordinate-remainder majorant tail. -/
 theorem norm_coordinateRemainderTail_le_coordinateRemainderMajorantTail
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     ‖(∑' ι : ZetaPrimePowerIndex,
-        if ι ∈ ZetaPrimePowerIndex.window N then
-          0
-        else
-          completedPrimeContourTransportCoordinateRemainder ι f)‖ ≤
+        ZetaPrimePowerIndex.spectralTail
+          (completedPrimeContourTransportCoordinateRemainderFamily f) N ι)‖ ≤
       ∑' ι : ZetaPrimePowerIndex,
-        if ι ∈ ZetaPrimePowerIndex.window N then
-          0
-        else
-          completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+        ZetaPrimePowerIndex.spectralTail
+          (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι := by
   let u : ZetaPrimePowerIndex → ℝ :=
     fun ι => completedPrimeContourTransportCoordinateRemainder ι f
   let v : ZetaPrimePowerIndex → ℝ :=
@@ -843,39 +839,38 @@ the horizontal contour sides, by the omitted coordinate-remainder majorant tail.
 theorem finitePrimeContourTransportTomographicError_residueTailDomination
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     ‖finitePrimeContourTransportTomographicError N f‖ ≤
-      ∑' ι : ZetaPrimePowerIndex,
-        if ι ∈ ZetaPrimePowerIndex.window N then
-          0
-        else
-          completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+      finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f := by
   have htail :
       finitePrimeContourTransportTomographicError N f =
         ∑' ι : ZetaPrimePowerIndex,
-          if ι ∈ ZetaPrimePowerIndex.window N then
-            0
-          else
-            completedPrimeContourTransportCoordinateRemainder ι f :=
+          ZetaPrimePowerIndex.spectralTail
+            (completedPrimeContourTransportCoordinateRemainderFamily f) N ι :=
     finitePrimeContourTransportTomographicError_eq_coordinateRemainderTail N f
+  have hmajorant :
+      finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f =
+        ∑' ι : ZetaPrimePowerIndex,
+          ZetaPrimePowerIndex.spectralTail
+            (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι :=
+    finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant_eq_spectralTail_tsum
+      N f
   exact Eq.subst
     (motive := fun x : ℝ =>
       ‖x‖ ≤
-        ∑' ι : ZetaPrimePowerIndex,
-          if ι ∈ ZetaPrimePowerIndex.window N then
-            0
-          else
-            completedPrimeContourTransportCoordinateRemainderMajorant ι f)
+        finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f)
     htail.symm
-    (norm_coordinateRemainderTail_le_coordinateRemainderMajorantTail N f)
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        ‖(∑' ι : ZetaPrimePowerIndex,
+            ZetaPrimePowerIndex.spectralTail
+              (completedPrimeContourTransportCoordinateRemainderFamily f) N ι)‖ ≤ x)
+      hmajorant.symm
+      (norm_coordinateRemainderTail_le_coordinateRemainderMajorantTail N f))
 
 /-- The residual is controlled by the coordinate-remainder tail majorant. -/
 theorem finitePrimeContourTransportTomographicError_coordinateDomination
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     ‖finitePrimeContourTransportTomographicError N f‖ ≤
-      ∑' ι : ZetaPrimePowerIndex,
-        if ι ∈ ZetaPrimePowerIndex.window N then
-          0
-        else
-          completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+      finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f := by
   exact finitePrimeContourTransportTomographicError_residueTailDomination N f
 
 /-- The residual majorant is controlled by the coordinate-remainder tail majorant. -/
@@ -884,7 +879,6 @@ theorem finitePrimeContourTransportTomographicErrorMajorant_le_coordinateRemaind
     finitePrimeContourTransportTomographicErrorMajorant N f ≤
       finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f := by
   unfold finitePrimeContourTransportTomographicErrorMajorant
-  unfold finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant
   exact finitePrimeContourTransportTomographicError_coordinateDomination N f
 
 /-- The spectral tail majorant controlling the finite prime tomographic residual tends to
@@ -898,10 +892,7 @@ theorem primeWindow_spectralTail_tendsto_zero_of_summable
     Tendsto
       (fun N : ℕ =>
         ∑' ι : ZetaPrimePowerIndex,
-          if ι ∈ ZetaPrimePowerIndex.window N then
-            0
-          else
-            u ι)
+          ZetaPrimePowerIndex.spectralTail u N ι)
       atTop
       (𝓝 0) := by
   have hwindow :
@@ -913,10 +904,7 @@ theorem primeWindow_spectralTail_tendsto_zero_of_summable
   have htail_as_difference :
       (fun N : ℕ =>
         ∑' ι : ZetaPrimePowerIndex,
-          if ι ∈ ZetaPrimePowerIndex.window N then
-            0
-          else
-            u ι) =
+          ZetaPrimePowerIndex.spectralTail u N ι) =
         (fun N : ℕ =>
           (∑' ι : ZetaPrimePowerIndex, u ι) -
             ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by

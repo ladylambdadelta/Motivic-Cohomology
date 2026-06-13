@@ -32,6 +32,30 @@ noncomputable def completedPrimeContourTransportCoordinateRemainderMajorant
     (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) : ℝ :=
   ‖completedPrimeContourTransportCoordinateRemainder ι f‖
 
+/-- The completed contour-transport coordinate-remainder majorant family. -/
+noncomputable def completedPrimeContourTransportCoordinateRemainderMajorantFamily
+    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
+  fun ι => completedPrimeContourTransportCoordinateRemainderMajorant ι f
+
+/-- The coordinate-remainder majorant family evaluates to the coordinate majorant. -/
+theorem completedPrimeContourTransportCoordinateRemainderMajorantFamily_apply
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderMajorantFamily f ι =
+      completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
+  rfl
+
+/-- The completed contour-transport coordinate-remainder family. -/
+noncomputable def completedPrimeContourTransportCoordinateRemainderFamily
+    (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
+  fun ι => completedPrimeContourTransportCoordinateRemainder ι f
+
+/-- The coordinate-remainder family evaluates to the coordinate remainder. -/
+theorem completedPrimeContourTransportCoordinateRemainderFamily_apply
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderFamily f ι =
+      completedPrimeContourTransportCoordinateRemainder ι f := by
+  rfl
+
 /-- The contour-transport coordinate remainder is bounded by its explicit majorant. -/
 theorem norm_completedPrimeContourTransportCoordinateRemainder_le_remainderMajorant
     (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction) :
@@ -51,7 +75,16 @@ theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
 noncomputable def finitePrimeContourTransportCoordinateRemainderWindow
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   ∑ ι in ZetaPrimePowerIndex.window N,
-    completedPrimeContourTransportCoordinateRemainder ι f
+    completedPrimeContourTransportCoordinateRemainderFamily f ι
+
+/-- The finite coordinate-remainder window is the finite window sum of the coordinate
+remainder family. -/
+theorem finitePrimeContourTransportCoordinateRemainderWindow_eq_windowSum
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportCoordinateRemainderWindow N f =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourTransportCoordinateRemainderFamily f ι := by
+  rfl
 
 /-- The finite contour-transport remainder between the time-side and contour-realized prime
 windows.  This is the honest finite-level difference; it is not asserted to vanish before
@@ -89,6 +122,7 @@ theorem finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow
     exact Finset.sum_sub_distrib
   unfold finitePrimeContourTransportRemainder
   unfold finitePrimeContourTransportCoordinateRemainderWindow
+  unfold completedPrimeContourTransportCoordinateRemainderFamily
   unfold completedPrimeContourTransportCoordinateRemainder
   unfold g at hcontour htime hsub
   calc
@@ -187,10 +221,35 @@ noncomputable def sampledHorizontalDifference
 noncomputable def completedPrimeContourTransportCoordinateRemainderTail
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   ∑' ι : ZetaPrimePowerIndex,
-    if ι ∈ ZetaPrimePowerIndex.window N then
-      0
-    else
-      completedPrimeContourTransportCoordinateRemainder ι f
+    ZetaPrimePowerIndex.spectralTail
+      (completedPrimeContourTransportCoordinateRemainderFamily f) N ι
+
+/-- The outside-window coordinate-remainder tail is the `tsum` of the owner spectral tail. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_eq_spectralTail_tsum
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    completedPrimeContourTransportCoordinateRemainderTail N f =
+      ∑' ι : ZetaPrimePowerIndex,
+        ZetaPrimePowerIndex.spectralTail
+          (completedPrimeContourTransportCoordinateRemainderFamily f) N ι := by
+  rfl
+
+/-- The finite residue defect reconstructed by the sampled horizontal contour.
+
+This is the sign-sensitive finite object: the horizontal top-minus-bottom sample
+reconstructs the finite coordinate-remainder window after subtracting the omitted
+outside-window coordinate tail. -/
+noncomputable def finitePrimeContourTransportResidueDefect
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
+  finitePrimeContourTransportCoordinateRemainderWindow N f -
+    completedPrimeContourTransportCoordinateRemainderTail N f
+
+/-- The finite residue defect is the coordinate window minus the outside-window tail. -/
+theorem finitePrimeContourTransportResidueDefect_eq_window_sub_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportResidueDefect N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f -
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  rfl
 
 /-- The residual finite prime tomography error after subtracting the sampled horizontal
 contour difference from the finite prime contour-transport remainder.
@@ -203,6 +262,17 @@ noncomputable def finitePrimeContourTransportTomographicError
   finitePrimeContourTransportRemainder N f -
     sampledHorizontalDifference N f
 
+/-- Finite contour-residue tomography reconstructs the residue defect.
+
+The sampled horizontal top-minus-bottom contour term is not the raw finite coordinate
+window.  It is the finite residue defect: the finite coordinate-remainder window with the
+outside-window coordinate tail subtracted. -/
+theorem sampledHorizontalDifference_eq_finitePrimeContourTransportResidueDefect_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalDifference N f =
+      finitePrimeContourTransportResidueDefect N f := by
+  sorry
+
 /-- Additive contour-residue tomography balance.
 
 The sampled horizontal top-minus-bottom contour term plus the omitted outside-window
@@ -212,7 +282,26 @@ theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRem
     sampledHorizontalDifference N f +
         completedPrimeContourTransportCoordinateRemainderTail N f =
       finitePrimeContourTransportCoordinateRemainderWindow N f := by
-  sorry
+  let H : ℝ := sampledHorizontalDifference N f
+  let W : ℝ := finitePrimeContourTransportCoordinateRemainderWindow N f
+  let T : ℝ := completedPrimeContourTransportCoordinateRemainderTail N f
+  have hdefect : H = W - T := by
+    have hsample :
+        sampledHorizontalDifference N f =
+          finitePrimeContourTransportResidueDefect N f :=
+      sampledHorizontalDifference_eq_finitePrimeContourTransportResidueDefect_ownerTomography
+        N f
+    have hresidue :
+        finitePrimeContourTransportResidueDefect N f = W - T :=
+      finitePrimeContourTransportResidueDefect_eq_window_sub_tail N f
+    change H = W - T
+    exact hsample.trans hresidue
+  change H + T = W
+  calc
+    H + T = (W - T) + T := by
+      exact congrArg (fun x : ℝ => x + T) hdefect
+    _ = W := by
+      exact sub_add_cancel W T
 
 /-- Contour-residue reconstruction of the sampled horizontal term.
 
@@ -329,10 +418,18 @@ by the tail of the coordinate-remainder majorant outside the finite prime-power 
 noncomputable def finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
   ∑' ι : ZetaPrimePowerIndex,
-    if ι ∈ ZetaPrimePowerIndex.window N then
-      0
-    else
-      completedPrimeContourTransportCoordinateRemainderMajorant ι f
+    ZetaPrimePowerIndex.spectralTail
+      (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι
+
+/-- The tomographic coordinate-remainder tail majorant is the `tsum` of the owner spectral
+tail of the coordinate-remainder majorant family. -/
+theorem finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant_eq_spectralTail_tsum
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant N f =
+      ∑' ι : ZetaPrimePowerIndex,
+        ZetaPrimePowerIndex.spectralTail
+          (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι := by
+  rfl
 
 /-- The finite prime contour-transport remainder splits as sampled horizontal difference
 plus residual finite tomography error. -/
