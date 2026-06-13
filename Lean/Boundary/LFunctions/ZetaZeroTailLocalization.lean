@@ -12,6 +12,45 @@ namespace LFunctions
 
 noncomputable section
 
+/-- If two probes have the same spectral evaluation at one centered zero coordinate, then
+their single zero-side contributions at that zero agree. -/
+theorem zetaZeroSideContribution_eq_of_spectralEval_eq
+    (η : ℂ) (φ ψ : ZetaAdmissibleFunction)
+    (hsample :
+      zetaSpectralEval φ (zetaCenteredZero η) =
+        zetaSpectralEval ψ (zetaCenteredZero η)) :
+    zetaZeroSideContribution η φ =
+      zetaZeroSideContribution η ψ := by
+  calc
+    zetaZeroSideContribution η φ =
+        - (zetaZeroMultiplicity η : ℂ) *
+          zetaSpectralEval φ (zetaCenteredZero η) := by
+      exact zetaZeroSideContribution_def η φ
+    _ =
+        - (zetaZeroMultiplicity η : ℂ) *
+          zetaSpectralEval ψ (zetaCenteredZero η) := by
+      exact congrArg
+        (fun z : ℂ => - (zetaZeroMultiplicity η : ℂ) * z)
+        hsample
+    _ = zetaZeroSideContribution η ψ := by
+      exact (zetaZeroSideContribution_def η ψ).symm
+
+/-- If two probes have the same spectral evaluations on the centered zero orbit, then their
+complex finite orbit contributions agree. -/
+theorem zetaZeroOrbitContribution_eq_of_spectralEval_eq_on_orbit
+    (ρ : ℂ) (φ ψ : ZetaAdmissibleFunction)
+    (hsample :
+      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
+        zetaSpectralEval φ (zetaCenteredZero η) =
+          zetaSpectralEval ψ (zetaCenteredZero η)) :
+    zetaZeroOrbitContribution ρ φ =
+      zetaZeroOrbitContribution ρ ψ := by
+  unfold zetaZeroOrbitContribution
+  exact Finset.sum_congr rfl
+    (fun η hη =>
+      zetaZeroSideContribution_eq_of_spectralEval_eq
+        η φ ψ (hsample η hη))
+
 /-- If two probes have the same spectral evaluations on the centered zero orbit, then their
 finite orbit contributions agree. -/
 theorem zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
@@ -22,15 +61,9 @@ theorem zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
           zetaSpectralEval ψ (zetaCenteredZero η)) :
     zetaZeroOrbitContributionRe ρ φ =
       zetaZeroOrbitContributionRe ρ ψ := by
-  unfold zetaZeroOrbitContributionRe
-  unfold zetaZeroOrbitContribution
-  unfold zetaZeroSideContribution
   exact congrArg Complex.re
-    (Finset.sum_congr rfl
-      (fun η hη =>
-        congrArg
-          (fun z : ℂ => - (zetaZeroMultiplicity η : ℂ) * z)
-          (hsample η hη)))
+    (zetaZeroOrbitContribution_eq_of_spectralEval_eq_on_orbit
+      ρ φ ψ hsample)
 
 /-- Localizing around a finite orbit preserves every individual orbit spectral sample while
 making the complementary orbit tail arbitrarily small. -/
@@ -82,6 +115,30 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution
       hsample
   exact ⟨f, hcontribution, htail⟩
 
+/-- Exact preservation of the finite orbit contribution transports a fixed negative
+margin to the localized probe. -/
+theorem zetaZeroOrbitContributionRe_le_margin_of_eq_reference
+    (ρ : ℂ) (δ : ℝ)
+    (f f₀ : ZetaAdmissibleFunction)
+    (hcontribution :
+      zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f₀))
+    (hmargin :
+      zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ≤ -δ) :
+    zetaZeroOrbitContributionRe ρ
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
+  calc
+    zetaZeroOrbitContributionRe ρ
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+        zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) := by
+      exact hcontribution
+    _ ≤ -δ := by
+      exact hmargin
+
 /-- Localizing around a finite-orbit negative-margin autocorrelation probe
 preserves that margin and makes the orbit remainder arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
@@ -108,14 +165,8 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
   have hmargin_f :
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
-    calc
-      zetaZeroOrbitContributionRe ρ
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-          zetaZeroOrbitContributionRe ρ
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) := by
-        exact hcontribution
-      _ ≤ -δ := by
-        exact hmargin
+    exact zetaZeroOrbitContributionRe_le_margin_of_eq_reference
+      ρ δ f f₀ hcontribution hmargin
   exact ⟨f, hmargin_f, htail⟩
 
 end
