@@ -242,18 +242,6 @@ def explicitFormulaVerticalDecompositionTarget
     zetaCompletedExplicitFormulaLeftLineIntegral f r =
     zetaCompletedExplicitFormulaBoundarySumAnalytic f
 
-/-- The main residue-formula proposition in the analytic note's normalization. -/
-def completedZeta_rectangleResidueFormula
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
-  (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r =
-    - explicitFormulaResidueSum f []
-
-/-- The equivalent zero-sum proposition solving for the residue sum. -/
-def zetaZeroSumInRectangle_eq_neg_boundaryIntegral
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
-  explicitFormulaResidueSum f [] =
-    - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r
-
 /-- The horizontal-vanishing proposition in note form, indexed by the contour family. -/
 def zetaHorizontalIntegrals_vanish
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) : Prop :=
@@ -367,19 +355,6 @@ theorem explicitFormulaVerticalDecompositionTarget_iff
       zetaCompletedExplicitFormulaRightLineIntegral f r -
         zetaCompletedExplicitFormulaLeftLineIntegral f r =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f
-  exact Iff.rfl
-
-/-- The zero-sum proposition is the same statement solved for the sum. -/
-theorem zetaZeroSumInRectangle_eq_neg_boundaryIntegral_iff
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    zetaZeroSumInRectangle_eq_neg_boundaryIntegral f r ↔
-      explicitFormulaResidueSum f [] =
-        - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r := by
-  show
-    (explicitFormulaResidueSum f [] =
-      - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r) ↔
-      explicitFormulaResidueSum f [] =
-        - (1 / (2 * Real.pi * Complex.I)) * zetaRectangleBoundaryIntegral f r
   exact Iff.rfl
 
 /-- The family-indexed horizontal decay statement is the same limit. -/
