@@ -632,21 +632,6 @@ theorem summable_completedZero_centeredHeight_negativePower_of_shellMass
     (summable_completedZeroCenteredHeightShellFiberDecay_of_shellMass
       d k hshell)
 
-/-- The completed-zero counting theorem supplies a counting degree after which
-all further polynomial negative-height envelopes are summable. -/
-theorem exists_summable_completedZero_centeredHeight_negativePower_with_countingMargin :
-    ∃ d : ℕ,
-      ∀ k : ℕ,
-        Summable
-          (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-            zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
-  rcases exists_completedZeroMultiplicityCounting_height_bound with
-    ⟨C, d, hCpos, hcount⟩
-  refine ⟨d, ?_⟩
-  intro k
-  exact summable_completedZero_centeredHeight_negativePower_of_counting_bound
-    C d k hCpos hcount
-
 end
 
 end LFunctions

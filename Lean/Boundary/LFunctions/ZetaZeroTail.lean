@@ -1,6 +1,6 @@
 import Boundary.LFunctions.ZetaZeroOrbitContribution
 import Boundary.LFunctions.ZetaPrimeRapidPower
-import Boundary.LFunctions.ZetaZeroMultiplicityCounting
+import Boundary.LFunctions.ZetaZeroMultiplicitySummability
 import Boundary.LFunctions.ZetaCenteredZeroVerticalStrip
 import Boundary.LFunctions.ZetaAdmissiblePaleyWiener
 
