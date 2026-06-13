@@ -1,3 +1,4 @@
+import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 /-!
@@ -72,14 +73,58 @@ theorem completedRiemannZeta_ne_zero_of_re_lt_zero
     (s : ℂ)
     (hsre : s.re < 0) :
     completedRiemannZeta s ≠ 0 := by
-  sorry
+  intro hs
+  have hright_re :
+      1 < ((1 : ℂ) - s).re := by
+    have hre :
+        ((1 : ℂ) - s).re = 1 - s.re := by
+      exact Complex.sub_re (1 : ℂ) s
+    have hlt : 1 < 1 - s.re := by
+      exact lt_sub_iff_add_lt'.2
+        (Eq.subst
+          (motive := fun x : ℝ => x < 1)
+          (zero_add (1 : ℝ)).symm
+          (add_lt_add_right hsre 1))
+    exact Eq.subst
+      (motive := fun x : ℝ => 1 < x)
+      hre.symm
+      hlt
+  have hright_ne :
+      completedRiemannZeta ((1 : ℂ) - s) ≠ 0 :=
+    completedRiemannZeta_ne_zero_of_one_lt_re ((1 : ℂ) - s) hright_re
+  have hsymm :
+      completedRiemannZeta ((1 : ℂ) - s) =
+        completedRiemannZeta s :=
+    completedRiemannZeta_one_sub s
+  exact hright_ne (hsymm.trans hs)
 
 /-- Completed zeta has no zeros in the half-plane to the right of `1`. -/
 theorem completedRiemannZeta_ne_zero_of_one_lt_re
     (s : ℂ)
     (hsre : 1 < s.re) :
     completedRiemannZeta s ≠ 0 := by
-  sorry
+  intro hs
+  have hs0 : s ≠ 0 := by
+    intro hs_zero
+    have hre_zero : s.re = 0 := by
+      exact congrArg Complex.re hs_zero
+    have hone_lt_zero : (1 : ℝ) < 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => 1 < x)
+        hre_zero
+        hsre
+    exact (not_lt_of_ge zero_le_one) hone_lt_zero
+  have hζ_eq :
+      riemannZeta s = completedRiemannZeta s / Gammaℝ s :=
+    riemannZeta_def_of_ne_zero hs0
+  have hζ_zero : riemannZeta s = 0 := by
+    calc
+      riemannZeta s = completedRiemannZeta s / Gammaℝ s := hζ_eq
+      _ = 0 / Gammaℝ s := by
+        exact congrArg (fun x : ℂ => x / Gammaℝ s) hs
+      _ = 0 := by
+        exact zero_div (Gammaℝ s)
+  exact riemannZeta_ne_zero_of_one_lt_re hsre hζ_zero
 
 /-- Completed-zeta zeros lie in the ordinary critical strip.
 
