@@ -469,7 +469,31 @@ theorem linear_shell_card_factor_le_two_mul_heightBase
     (m : ℕ) :
     ((2 * (m + 1) : ℕ) : ℝ) ≤
       2 * (1 + ‖((m : ℕ) : ℝ)‖) := by
-  sorry
+  have hm_nonneg : 0 ≤ ((m : ℕ) : ℝ) :=
+    Nat.cast_nonneg m
+  have hnorm : ‖((m : ℕ) : ℝ)‖ = ((m : ℕ) : ℝ) :=
+    Real.norm_of_nonneg hm_nonneg
+  have hcast_mul :
+      ((2 * (m + 1) : ℕ) : ℝ) =
+        (2 : ℝ) * ((m + 1 : ℕ) : ℝ) := by
+    exact Nat.cast_mul 2 (m + 1)
+  have hcast_add :
+      ((m + 1 : ℕ) : ℝ) = ((m : ℕ) : ℝ) + 1 := by
+    exact Nat.cast_add m 1
+  have htarget_eq :
+      ((2 * (m + 1) : ℕ) : ℝ) =
+        2 * (1 + ‖((m : ℕ) : ℝ)‖) := by
+    calc
+      ((2 * (m + 1) : ℕ) : ℝ) =
+          (2 : ℝ) * ((m + 1 : ℕ) : ℝ) := hcast_mul
+      _ = 2 * (((m : ℕ) : ℝ) + 1) := by
+        exact congrArg (fun x : ℝ => (2 : ℝ) * x) hcast_add
+      _ = 2 * (1 + ((m : ℕ) : ℝ)) := by
+        exact congrArg (fun x : ℝ => (2 : ℝ) * x)
+          (add_comm ((m : ℕ) : ℝ) 1)
+      _ = 2 * (1 + ‖((m : ℕ) : ℝ)‖) := by
+        exact congrArg (fun x : ℝ => (2 : ℝ) * (1 + x)) hnorm.symm
+  exact le_of_eq htarget_eq
 
 /-- One height-base factor cancels one negative-power step. -/
 theorem heightBase_mul_negative_zpow_succ_le_negative_zpow
