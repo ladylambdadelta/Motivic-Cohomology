@@ -890,17 +890,41 @@ noncomputable def zetaPaleyWienerIntervalIndicatorBound
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) : ℝ → ℝ :=
   Set.indicator (Set.Icc I.lower I.upper) (fun _ : ℝ => B)
 
+/-- A constant indicator on a compact real set is integrable. -/
+theorem real_integrable_const_indicator_of_isCompact
+    (K : Set ℝ) (hK : IsCompact K) (B : ℝ) :
+    Integrable (Set.indicator K (fun _ : ℝ => B)) :=
+  sorry
+
+/-- The certified support of an admissible source is compact. -/
+theorem zetaPaleyWienerSupport_isCompact
+    (f : ZetaAdmissibleFunction) :
+    IsCompact (tsupport f.toZetaTestFunction) :=
+  f.toZetaTestFunction.hasCompactSupport.isCompact
+
+/-- A closed real interval is compact. -/
+theorem real_Icc_isCompact
+    (lower upper : ℝ) :
+    IsCompact (Set.Icc lower upper) :=
+  isCompact_Icc
+
 /-- The compact-support indicator bound is integrable. -/
 theorem zetaPaleyWienerSupportIndicatorBound_integrable
     (f : ZetaAdmissibleFunction) (B : ℝ) :
     Integrable (zetaPaleyWienerSupportIndicatorBound f B) :=
-  sorry
+  real_integrable_const_indicator_of_isCompact
+    (tsupport f.toZetaTestFunction)
+    (zetaPaleyWienerSupport_isCompact f)
+    B
 
 /-- The interval indicator bound is integrable. -/
 theorem zetaPaleyWienerIntervalIndicatorBound_integrable
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) :
     Integrable (zetaPaleyWienerIntervalIndicatorBound I B) :=
-  sorry
+  real_integrable_const_indicator_of_isCompact
+    (Set.Icc I.lower I.upper)
+    (real_Icc_isCompact I.lower I.upper)
+    B
 
 /-- The certified support is contained in the certified interval. -/
 theorem zetaPaleyWienerSupport_subset_interval
@@ -1100,11 +1124,20 @@ theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
 
 /-- The integral of a nonnegative constant over an interval indicator is constant times
 the interval volume. -/
+theorem real_integral_const_indicator_of_isCompact_eq_const_mul_volume
+    (K : Set ℝ) (hK : IsCompact K) (B : ℝ) :
+    (∫ t : ℝ, Set.indicator K (fun _ : ℝ => B) t) =
+      B * (volume K).toReal := by
+  sorry
+
+/-- The integral of a nonnegative constant over an interval indicator is constant times
+the interval volume. -/
 theorem real_integral_const_indicator_Icc_eq_const_mul_volume
     (lower upper B : ℝ) (hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, Set.indicator (Set.Icc lower upper) (fun _ : ℝ => B) t) =
       B * (volume (Set.Icc lower upper)).toReal := by
-  sorry
+  exact real_integral_const_indicator_of_isCompact_eq_const_mul_volume
+    (Set.Icc lower upper) (real_Icc_isCompact lower upper) B
 
 /-- The interval-indicator integral is the constant times the interval volume. -/
 theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
@@ -1116,10 +1149,29 @@ theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
     I.lower I.upper B hB_nonneg
 
 /-- Ordered closed real interval volume in `toReal` form. -/
+theorem real_volume_Icc_eq_ofReal_sub
+    {lower upper : ℝ} (hlu : lower ≤ upper) :
+    volume (Set.Icc lower upper) = ENNReal.ofReal (upper - lower) := by
+  sorry
+
+/-- The `toReal` of a nonnegative real embedded in `ENNReal` is the original real. -/
+theorem ennreal_toReal_ofReal_of_nonnegative
+    {x : ℝ} (hx : 0 ≤ x) :
+    (ENNReal.ofReal x).toReal = x := by
+  sorry
+
+/-- Ordered closed real interval volume in `toReal` form. -/
 theorem real_volume_Icc_toReal_eq_sub
     {lower upper : ℝ} (hlu : lower ≤ upper) :
     (volume (Set.Icc lower upper)).toReal = upper - lower := by
-  sorry
+  have hvolume :
+      volume (Set.Icc lower upper) = ENNReal.ofReal (upper - lower) :=
+    real_volume_Icc_eq_ofReal_sub hlu
+  have hsub_nonneg : 0 ≤ upper - lower :=
+    sub_nonneg.mpr hlu
+  exact Eq.trans
+    (congrArg ENNReal.toReal hvolume)
+    (ennreal_toReal_ofReal_of_nonnegative hsub_nonneg)
 
 /-- The volume of an ordered closed real interval is its endpoint difference. -/
 theorem zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower
