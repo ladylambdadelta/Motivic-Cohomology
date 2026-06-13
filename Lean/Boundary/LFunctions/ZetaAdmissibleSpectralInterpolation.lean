@@ -44,41 +44,22 @@ theorem mem_daggerClosedSpectralSampleFinset_reflection
   exact Finset.mem_union.mpr
     (Or.inr (Finset.mem_image.mpr ⟨z, hz, rfl⟩))
 
-/-- Finite Paley-Wiener interpolation for seed spectral evaluations indexed by a finite
-sample type, with the necessary compatibility on repeated sample points. -/
-theorem exists_seed_spectralEval_sample_on_fintype
-    {α : Type*} [Fintype α] (x : α → ℂ) (a : α → ℂ) :
-    (∀ i j : α, x i = x j → a i = a j) →
-    ∃ f : ZetaAdmissibleFunction,
-      ∀ i : α, zetaSpectralEval f (x i) = a i := by
-  intro hcompat
-  rcases exists_zetaLaplaceTransform_sample_on_fintype x a hcompat with
-    ⟨f, hf⟩
-  refine ⟨f, ?_⟩
-  intro i
-  calc
-    zetaSpectralEval f (x i) =
-        Boundary.zetaLaplaceTransform f.toZetaTestFunction' (x i) := by
-      exact zetaSpectralEval_eq_laplace f (x i)
-    _ = a i := by
-      exact hf i
-
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set. -/
 theorem exists_seed_spectralEval_sample_on_finset
     (S : Finset ℂ) (a : ℂ → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
-  classical
-  let α : Type := {z : ℂ // z ∈ S}
-  let x : α → ℂ := fun z => z.1
-  let b : α → ℂ := fun z => a z.1
-  have hcompat : ∀ i j : α, x i = x j → b i = b j := by
-    intro i j hij
-    exact congrArg a hij
-  rcases exists_seed_spectralEval_sample_on_fintype x b hcompat with ⟨f, hf⟩
-  exact ⟨f, fun z hz =>
-    hf (⟨z, hz⟩ : α)⟩
+  rcases exists_zetaLaplaceTransform_sample_on_finset S a with
+    ⟨f, hf⟩
+  refine ⟨f, ?_⟩
+  intro z hz
+  calc
+    zetaSpectralEval f z =
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z := by
+      exact zetaSpectralEval_eq_laplace f z
+    _ = a z := by
+      exact hf z hz
 
 /-- Finite Paley-Wiener interpolation at the unit value on a finite spectral sample set. -/
 theorem exists_seed_spectralEval_one_on_finset
