@@ -398,6 +398,57 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting :
     (norm_complex_ofNat_zetaZeroMultiplicity ρ).symm
     hbound_zpow
 
+/-- The completed-zero shell at integer height `m`, using the centered height
+base `1 + |Im|`. -/
+def completedZeroCenteredHeightShell
+    (m : ℕ) :
+    Set {ρ : ℂ // ZetaCompletedZero ρ} :=
+  {ρ |
+    ((m : ℕ) : ℝ) ≤ zetaCompletedZeroCenteredHeight ρ ∧
+      zetaCompletedZeroCenteredHeight ρ < ((m + 1 : ℕ) : ℝ)}
+
+/-- The shell contribution for a polynomial negative-height envelope. -/
+noncomputable def completedZeroCenteredHeightShellDecaySummand
+    (d k m : ℕ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  if ρ ∈ completedZeroCenteredHeightShell m then
+    zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))
+  else
+    0
+
+/-- The total decay mass in one centered-height shell. -/
+noncomputable def completedZeroCenteredHeightShellDecayMass
+    (d k m : ℕ) : ℝ :=
+  ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+    completedZeroCenteredHeightShellDecaySummand d k m ρ
+
+/-- The degree-aware shell masses are summable under the polynomial
+multiplicity-counting bound. -/
+theorem summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
+    (C : ℝ) (d k : ℕ)
+    (hCpos : 0 < C)
+    (hcount :
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
+    Summable
+      (fun m : ℕ =>
+        completedZeroCenteredHeightShellDecayMass d k m) := by
+  sorry
+
+/-- Summable centered-height shell masses transport to summability over all
+completed zeros. -/
+theorem summable_completedZero_centeredHeight_negativePower_of_shellMass
+    (d k : ℕ)
+    (hshell :
+      Summable
+        (fun m : ℕ =>
+          completedZeroCenteredHeightShellDecayMass d k m)) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
+  sorry
+
 /-- Polynomial negative-height envelopes are summable over completed zeros once
 the decay exponent is chosen beyond the counting degree.
 
@@ -412,7 +463,11 @@ theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
-  sorry
+  exact summable_completedZero_centeredHeight_negativePower_of_shellMass
+    d
+    k
+    (summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
+      C d k hCpos hcount)
 
 /-- The completed-zero counting theorem supplies a counting degree after which
 all further polynomial negative-height envelopes are summable. -/
