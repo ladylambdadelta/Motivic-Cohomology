@@ -171,7 +171,7 @@ theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
       (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) := by
-  sorry
+  exact ((completedZeroSubtypeFiniteComplementEquiv S hS).symm.tsum_eq F).symm
 
 /-- Split the finite/complement sum-type `tsum` into the selected finite side and the
 complementary tail side. -/
