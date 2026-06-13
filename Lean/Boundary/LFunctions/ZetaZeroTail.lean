@@ -511,6 +511,13 @@ noncomputable def zetaZeroSpectralEvalDecayEnvelope
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
   B * zetaCompletedZeroCenteredHeight ρ ^ (-(N : ℤ))
 
+/-- Product envelope obtained before absorbing growth and decay into one polynomial tail. -/
+noncomputable def zetaZeroGrowthDecayProductEnvelope
+    (M : ℝ) (d : ℕ) (B : ℝ) (N : ℕ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  zetaZeroMultiplicityGrowthEnvelope M d ρ *
+    zetaZeroSpectralEvalDecayEnvelope B N ρ
+
 /-- Completed-zero multiplicities have polynomial growth in centered height. -/
 theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound :
     ∃ M : ℝ, ∃ d : ℕ,
@@ -528,6 +535,35 @@ theorem exists_zetaZeroSpectralEvalDecayEnvelope_bound
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
           zetaZeroSpectralEvalDecayEnvelope B N ρ := by
+  sorry
+
+/-- Separate multiplicity and spectral bounds give a product-envelope bound for the
+multiplicity-weighted transform majorant. -/
+theorem zetaZeroMultiplicityTransformMajorant_le_growthDecayProductEnvelope
+    (φ : ZetaAdmissibleFunction)
+    (M : ℝ) (d : ℕ) (B : ℝ) (N : ℕ)
+    (hgrowth :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ ≤
+          zetaZeroMultiplicityGrowthEnvelope M d ρ)
+    (hdecay :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
+          zetaZeroSpectralEvalDecayEnvelope B N ρ) :
+    ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+      zetaZeroMultiplicityTransformMajorant φ ρ ≤
+        zetaZeroGrowthDecayProductEnvelope M d B N ρ := by
+  sorry
+
+/-- The growth-decay product envelope is absorbed by a single summable polynomial envelope. -/
+theorem exists_zetaZeroGrowthDecayProductEnvelope_le_transformEnvelope
+    (M : ℝ) (d : ℕ) (B : ℝ) (N : ℕ)
+    (hM : 0 < M) (hB : 0 < B) :
+    ∃ A : ℝ, ∃ k : ℕ,
+      0 < A ∧
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        zetaZeroGrowthDecayProductEnvelope M d B N ρ ≤
+          zetaZeroMultiplicityTransformEnvelope A k ρ := by
   sorry
 
 /-- Multiplicity growth and transform decay combine into the zero-side transform envelope. -/
@@ -550,7 +586,18 @@ theorem exists_zetaZeroMultiplicityTransformEnvelope_bound_of_growth_and_decay
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         zetaZeroMultiplicityTransformMajorant φ ρ ≤
           zetaZeroMultiplicityTransformEnvelope A k ρ := by
-  sorry
+  rcases hgrowth with ⟨M, d, hMpos, hgrowth_bound⟩
+  rcases hdecay with ⟨B, N, hBpos, hdecay_bound⟩
+  rcases exists_zetaZeroGrowthDecayProductEnvelope_le_transformEnvelope
+      M d B N hMpos hBpos with ⟨A, k, hApos, hproduct_le⟩
+  refine ⟨A, k, hApos, ?_⟩
+  intro ρ
+  have hmajorant_product :
+      zetaZeroMultiplicityTransformMajorant φ ρ ≤
+        zetaZeroGrowthDecayProductEnvelope M d B N ρ :=
+    zetaZeroMultiplicityTransformMajorant_le_growthDecayProductEnvelope
+      φ M d B N hgrowth_bound hdecay_bound ρ
+  exact le_trans hmajorant_product (hproduct_le ρ)
 
 /-- Zero multiplicity growth and Paley-Wiener transform decay give a summable polynomial
 envelope for the multiplicity-weighted transform majorant. -/
