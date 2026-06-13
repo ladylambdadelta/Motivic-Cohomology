@@ -132,12 +132,36 @@ theorem polynomialHeightDecay_eq_on_heightShell
     (fun h : ℕ => (1 + ‖((h : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
     hheight
 
+/-- Every exact rectangular height-shell point lies on one of the two boundary edges. -/
+theorem heightShell_mem_vertical_or_horizontal
+    (m : ℕ) (ι : ZetaPrimePowerIndex)
+    (hι : ι ∈ heightShell m) :
+    ι ∈ heightShellVerticalEdge m ∨
+      ι ∈ heightShellHorizontalEdge m := by
+  sorry
+
+/-- The exact rectangular height shell is contained in the union of its two edges. -/
+theorem heightShell_subset_edgeUnion
+    (m : ℕ) :
+    heightShell m ⊆
+      heightShellVerticalEdge m ∪ heightShellHorizontalEdge m := by
+  intro ι hι
+  exact Finset.mem_union.mpr (heightShell_mem_vertical_or_horizontal m ι hι)
+
 /-- The exact height shell is covered by its two rectangular edges. -/
 theorem card_heightShell_le_edgeCard_sum
     (m : ℕ) :
     (heightShell m).card ≤
       (heightShellVerticalEdge m).card + (heightShellHorizontalEdge m).card := by
-  sorry
+  have hsubset :
+      (heightShell m).card ≤
+        (heightShellVerticalEdge m ∪ heightShellHorizontalEdge m).card :=
+    Finset.card_le_card (heightShell_subset_edgeUnion m)
+  have hunion :
+      (heightShellVerticalEdge m ∪ heightShellHorizontalEdge m).card ≤
+        (heightShellVerticalEdge m).card + (heightShellHorizontalEdge m).card :=
+    Finset.card_union_le (heightShellVerticalEdge m) (heightShellHorizontalEdge m)
+  exact le_trans hsubset hunion
 
 /-- The vertical edge of an exact height shell has at most `m + 1` points. -/
 theorem card_heightShellVerticalEdge_le
@@ -155,7 +179,7 @@ theorem card_heightShellHorizontalEdge_le
 theorem add_succ_self_eq_two_mul_succ
     (m : ℕ) :
     (m + 1) + (m + 1) = 2 * (m + 1) := by
-  sorry
+  exact (Nat.two_mul (m + 1)).symm
 
 /-- Exact rectangular height shells have at most linear cardinality. -/
 theorem card_heightShell_le_linear

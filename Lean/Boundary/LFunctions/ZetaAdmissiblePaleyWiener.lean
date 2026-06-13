@@ -304,6 +304,11 @@ def zetaPaleyWienerSupportNormSet
     (f : ZetaAdmissibleFunction) : Set ℝ :=
   {r : ℝ | ∃ t : ℝ, t ∈ tsupport f.toZetaTestFunction ∧ ‖f.toZetaTestFunction t‖ = r}
 
+/-- The compact image whose elements are exactly the pointwise source norms on the support. -/
+def zetaPaleyWienerSupportNormImage
+    (f : ZetaAdmissibleFunction) : Set ℝ :=
+  (fun t : ℝ => ‖f.toZetaTestFunction t‖) '' tsupport f.toZetaTestFunction
+
 /-- A source-size envelope for the compact support, expressed without choosing a maximizer. -/
 noncomputable def zetaPaleyWienerSupportNormEnvelope
     (f : ZetaAdmissibleFunction) : ℝ :=
@@ -316,11 +321,37 @@ theorem zetaPaleyWienerSupportNormEnvelope_nonnegative
   unfold zetaPaleyWienerSupportNormEnvelope
   exact le_max_right (sSup (zetaPaleyWienerSupportNormSet f)) 0
 
+/-- The support-norm set is the compact-support norm image in predicate form. -/
+theorem zetaPaleyWienerSupportNormSet_eq_supportNormImage
+    (f : ZetaAdmissibleFunction) :
+    zetaPaleyWienerSupportNormSet f =
+      zetaPaleyWienerSupportNormImage f := by
+  apply Set.ext
+  intro r
+  constructor
+  · intro hr
+    rcases hr with ⟨t, ht_support, ht_norm⟩
+    unfold zetaPaleyWienerSupportNormImage
+    exact ⟨t, ht_support, ht_norm.symm⟩
+  · intro hr
+    rcases hr with ⟨t, ht_support, ht_norm⟩
+    unfold zetaPaleyWienerSupportNormSet
+    exact ⟨t, ht_support, ht_norm.symm⟩
+
+/-- The compact-support norm image is bounded above. -/
+theorem zetaPaleyWienerSupportNormImage_bddAbove
+    (f : ZetaAdmissibleFunction) :
+    BddAbove (zetaPaleyWienerSupportNormImage f) := by
+  sorry
+
 /-- Source norms on the support are bounded above. -/
 theorem zetaPaleyWienerSupportNormSet_bddAbove
     (f : ZetaAdmissibleFunction) :
     BddAbove (zetaPaleyWienerSupportNormSet f) := by
-  sorry
+  exact Eq.subst
+    (motive := fun S : Set ℝ => BddAbove S)
+    (zetaPaleyWienerSupportNormSet_eq_supportNormImage f).symm
+    (zetaPaleyWienerSupportNormImage_bddAbove f)
 
 /-- The pointwise source norm at a support point belongs to the support-norm set. -/
 theorem zetaPaleyWienerSupportNorm_mem_supportNormSet
@@ -396,7 +427,13 @@ theorem zetaPaleyWienerTestFunctionNorm_le_envelope
 theorem abs_le_max_abs_endpoints_of_mem_interval
     (a b x : ℝ) (hxa : a ≤ x) (hxb : x ≤ b) :
     |x| ≤ max |a| |b| := by
-  sorry
+  have hx_upper : x ≤ max |a| |b| :=
+    le_trans hxb
+      (le_trans (le_abs_self b) (le_max_right |a| |b|))
+  have hx_lower : -x ≤ max |a| |b| :=
+    le_trans (neg_le_neg hxa)
+      (le_trans (neg_le_abs a) (le_max_left |a| |b|))
+  exact abs_le.mpr ⟨hx_lower, hx_upper⟩
 
 /-- The product of the one-dimensional endpoint absolute-value envelopes dominates the
 rectangle product. -/
@@ -420,6 +457,15 @@ theorem abs_mul_le_endpointEnvelopeProduct_of_mem_interval
     (abs_mul x t).symm
     hmul
 
+/-- The product of the one-dimensional absolute endpoint envelopes is the maximum of the
+four corner absolute products. -/
+theorem max_abs_mul_max_abs_eq_max_corner_abs
+    (a b lower upper : ℝ) :
+    max |a| |b| * max |lower| |upper| =
+      max (max (|a * lower|) (|a * upper|))
+        (max (|b * lower|) (|b * upper|)) := by
+  sorry
+
 /-- The product of endpoint absolute-value envelopes is bounded by the four-corner
 absolute-value envelope. -/
 theorem endpointEnvelopeProduct_le_max_corner_abs
@@ -427,7 +473,7 @@ theorem endpointEnvelopeProduct_le_max_corner_abs
     max |a| |b| * max |lower| |upper| ≤
       max (max (|a * lower|) (|a * upper|))
         (max (|b * lower|) (|b * upper|)) := by
-  sorry
+  exact le_of_eq (max_abs_mul_max_abs_eq_max_corner_abs a b lower upper)
 
 /-- A rectangle product is bounded in absolute value by the largest absolute product at
 the four corners. -/
