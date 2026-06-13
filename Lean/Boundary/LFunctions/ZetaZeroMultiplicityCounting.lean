@@ -398,7 +398,8 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting :
     (norm_complex_ofNat_zetaZeroMultiplicity ρ).symm
     hbound_zpow
 
-/-- Polynomial negative-height envelopes are summable over completed zeros.
+/-- Polynomial negative-height envelopes are summable over completed zeros once
+the decay exponent is chosen beyond the counting degree.
 
 This is the p-series consequence of multiplicity-aware polynomial zero counting. -/
 theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
@@ -410,17 +411,21 @@ theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) := by
+        zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
   sorry
 
-/-- Polynomial negative-height envelopes are summable over completed zeros. -/
-theorem summable_completedZero_centeredHeight_negativePower
-    (k : ℕ) :
-    Summable
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) := by
+/-- The completed-zero counting theorem supplies a counting degree after which
+all further polynomial negative-height envelopes are summable. -/
+theorem exists_summable_completedZero_centeredHeight_negativePower_with_countingMargin :
+    ∃ d : ℕ,
+      ∀ k : ℕ,
+        Summable
+          (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+            zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
   rcases exists_completedZeroMultiplicityCounting_height_bound with
     ⟨C, d, hCpos, hcount⟩
+  refine ⟨d, ?_⟩
+  intro k
   exact summable_completedZero_centeredHeight_negativePower_of_counting_bound
     C d k hCpos hcount
 

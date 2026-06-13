@@ -485,20 +485,27 @@ theorem zetaZeroMultiplicityTransformEnvelope_nonnegative
       (-(k + 3 : ℤ))
   exact mul_nonneg hA hheight
 
-/-- Polynomial zero-side envelopes are summable over the completed-zero locus.
+/-- Polynomial zero-side envelopes are summable over the completed-zero locus
+after choosing the envelope exponent beyond the zero-counting degree.
 
-This is the zero-counting owner theorem: completed zeros, counted with the centered
-vertical height, have enough polynomial counting control for the chosen envelope. -/
-theorem summable_zetaZeroMultiplicityTransformEnvelope
-    (A : ℝ) (k : ℕ) :
+This is the zero-counting owner theorem in the form consumed by the tail
+majorant: the envelope index records the necessary counting margin. -/
+theorem summable_zetaZeroMultiplicityTransformEnvelope_of_counting_bound
+    (A C : ℝ) (d k : ℕ)
+    (hCpos : 0 < C)
+    (hcount :
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        zetaZeroMultiplicityTransformEnvelope A k ρ) := by
+        zetaZeroMultiplicityTransformEnvelope A (d + k) ρ) := by
   have hbase :
       Summable
         (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))) :=
-    summable_completedZero_centeredHeight_negativePower k
+          zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) :=
+    summable_completedZero_centeredHeight_negativePower_of_counting_bound
+      C d k hCpos hcount
   unfold zetaZeroMultiplicityTransformEnvelope
   exact hbase.const_mul A
 
@@ -796,13 +803,47 @@ theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
     (φ : ZetaAdmissibleFunction) :
     ∃ A : ℝ, ∃ k : ℕ,
       0 < A ∧
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroMultiplicityTransformEnvelope A k ρ) ∧
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         zetaZeroMultiplicityTransformMajorant φ ρ ≤
           zetaZeroMultiplicityTransformEnvelope A k ρ := by
-  exact exists_zetaZeroMultiplicityTransformEnvelope_bound_of_growth_and_decay
-    φ
-    exists_zetaZeroMultiplicityGrowthEnvelope_bound
-    (exists_zetaZeroSpectralEvalDecayEnvelope_bound φ)
+  rcases exists_completedZeroMultiplicityCounting_height_bound with
+    ⟨C, dCount, hCpos, hcount⟩
+  rcases exists_zetaZeroMultiplicityGrowthEnvelope_bound with
+    ⟨M, dGrowth, hMpos, hgrowth_bound⟩
+  let k : ℕ := dCount + (dGrowth + 1)
+  rcases exists_zetaZeroSpectralEvalDecayEnvelope_bound
+      φ
+      (dGrowth + (k + 3) + 1) with
+    ⟨B, hBpos, hdecay_bound⟩
+  refine ⟨M * B, k, mul_pos hMpos hBpos, ?_, ?_⟩
+  · change
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroMultiplicityTransformEnvelope (M * B)
+            (dCount + (dGrowth + 1)) ρ)
+    exact summable_zetaZeroMultiplicityTransformEnvelope_of_counting_bound
+      (M * B) C dCount (dGrowth + 1) hCpos hcount
+  · intro ρ
+    have hmajorant_product :
+        zetaZeroMultiplicityTransformMajorant φ ρ ≤
+          zetaZeroGrowthDecayProductEnvelope M dGrowth B
+            (dGrowth + (k + 3) + 1) ρ :=
+      zetaZeroMultiplicityTransformMajorant_le_growthDecayProductEnvelope
+        φ M dGrowth B
+        (dGrowth + (k + 3) + 1)
+        hgrowth_bound
+        hdecay_bound
+        ρ
+    have hproduct :
+        zetaZeroGrowthDecayProductEnvelope M dGrowth B
+            (dGrowth + (k + 3) + 1) ρ ≤
+          zetaZeroMultiplicityTransformEnvelope (M * B) k ρ :=
+      zetaZeroGrowthDecayProductEnvelope_le_transformEnvelope_of_largeDecay
+        M dGrowth B k hMpos hBpos ρ
+    exact le_trans hmajorant_product hproduct
 
 /-- The contribution majorant unfolds to multiplicity times transform size. -/
 theorem zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant
@@ -836,12 +877,7 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroMultiplicityTransformMajorant φ ρ) := by
   rcases exists_zetaZeroMultiplicityTransformEnvelope_bound φ with
-    ⟨A, k, _hApos, hbound⟩
-  have henv :
-      Summable
-        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaZeroMultiplicityTransformEnvelope A k ρ) :=
-    summable_zetaZeroMultiplicityTransformEnvelope A k
+    ⟨A, k, _hApos, henv, hbound⟩
   have hnormBound :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ ≤
