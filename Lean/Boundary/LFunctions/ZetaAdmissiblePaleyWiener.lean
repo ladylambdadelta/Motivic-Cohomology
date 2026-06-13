@@ -142,7 +142,60 @@ theorem zetaPaleyWienerVerticalWeight_le_successor_lowFrequency
 theorem zetaPaleyWiener_inverseIm_times_verticalBase_le_two_highFrequency
     (z : ℂ) (hz : 1 ≤ ‖z.im‖) :
     ‖(z.im : ℂ)⁻¹‖ * (1 + ‖z.im‖) ≤ 2 := by
-  sorry
+  let r : ℝ := ‖z.im‖
+  have hr_pos : 0 < r :=
+    lt_of_lt_of_le zero_lt_one hz
+  have hr_ne_zero : r ≠ 0 :=
+    ne_of_gt hr_pos
+  have hr_inv_nonneg : 0 ≤ r⁻¹ :=
+    inv_nonneg.mpr (le_of_lt hr_pos)
+  have hnorm_inv :
+      ‖(z.im : ℂ)⁻¹‖ = r⁻¹ := by
+    calc
+      ‖(z.im : ℂ)⁻¹‖ = ‖(z.im : ℂ)‖⁻¹ := by
+        exact norm_inv (z.im : ℂ)
+      _ = r⁻¹ := by
+        exact congrArg Inv.inv (RCLike.norm_ofReal z.im)
+  have hinv_le_one : r⁻¹ ≤ 1 := by
+    have hscaled :
+        r⁻¹ * 1 ≤ r⁻¹ * r :=
+      mul_le_mul_of_nonneg_left hz hr_inv_nonneg
+    have hleft : r⁻¹ * 1 = r⁻¹ :=
+      mul_one r⁻¹
+    have hright : r⁻¹ * r = 1 :=
+      inv_mul_cancel₀ hr_ne_zero
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ 1)
+      hleft
+      (Eq.subst
+        (motive := fun x : ℝ => r⁻¹ * 1 ≤ x)
+        hright
+        hscaled)
+  have hbase :
+      r⁻¹ * (1 + r) ≤ 2 := by
+    have hdistrib :
+        r⁻¹ * (1 + r) = r⁻¹ + 1 := by
+      calc
+        r⁻¹ * (1 + r) = r⁻¹ * 1 + r⁻¹ * r := by
+          exact mul_add r⁻¹ 1 r
+        _ = r⁻¹ + r⁻¹ * r := by
+          exact congrArg (fun x : ℝ => x + r⁻¹ * r) (mul_one r⁻¹)
+        _ = r⁻¹ + 1 := by
+          exact congrArg (fun x : ℝ => r⁻¹ + x) (inv_mul_cancel₀ hr_ne_zero)
+    have hsum :
+        r⁻¹ + 1 ≤ 2 := by
+      calc
+        r⁻¹ + 1 ≤ 1 + 1 := by
+          exact add_le_add_right hinv_le_one 1
+        _ = 2 := one_add_one_eq_two
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ 2)
+      hdistrib.symm
+      hsum
+  exact Eq.subst
+    (motive := fun x : ℝ => x * (1 + ‖z.im‖) ≤ 2)
+    hnorm_inv.symm
+    hbase
 
 /-- High-frequency inverse weight comparison for one Paley-Wiener successor step. -/
 theorem zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency
@@ -294,20 +347,21 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_identity
   sorry
 
 /-- One integration-by-parts step constructs the derivative probe together with the
-frequency identity and inherited `N`th vertical-strip decay.
+frequency identity and the derivative probe's own `N`th vertical-strip decay.
 
-This is where smooth compact support supplies the derivative seminorm bound for the new
-probe; the derivative probe is not arbitrary. -/
+This is where smooth compact support constructs the derivative probe, while Paley-Wiener
+control is then applied to that new probe itself. -/
 theorem zetaLaplaceTransform_supportInterval_integrationByParts_step
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (N : ℕ)
-    (hN :
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ z : ℂ,
-          zetaPaleyWienerInVerticalStrip a b z →
-          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
-            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    (hDerivativeDecay :
+      ∀ derivativeProbe : ZetaAdmissibleFunction,
+        ∃ C : ℝ,
+          0 < C ∧
+          ∀ z : ℂ,
+            zetaPaleyWienerInVerticalStrip a b z →
+            ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+              ≤ C * zetaPaleyWienerVerticalWeight z N) :
     ∃ derivativeProbe : ZetaAdmissibleFunction,
       (∀ z : ℂ,
         zetaPaleyWienerInVerticalStrip a b z →
@@ -321,7 +375,10 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_step
             zetaPaleyWienerInVerticalStrip a b z →
             ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
               ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  sorry
+  rcases zetaLaplaceTransform_supportInterval_integrationByParts_identity
+      f I a b with ⟨derivativeProbe, hidentity⟩
+  refine ⟨derivativeProbe, hidentity, ?_⟩
+  exact hDerivativeDecay derivativeProbe
 
 /-- Low-frequency successor transport: on `|im z| ≤ 1`, the current decay estimate can be
 renormalized into the successor estimate by enlarging the constant. -/
@@ -611,17 +668,68 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_successor
           zetaPaleyWienerInVerticalStrip a b z →
           ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
             ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    (∀ derivativeProbe : ZetaAdmissibleFunction,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) →
     ∃ C : ℝ,
       0 < C ∧
       ∀ z : ℂ,
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  intro hDerivativeDecay
   rcases zetaLaplaceTransform_supportInterval_integrationByParts_step
-      f I a b N hN with
+      f I a b N hDerivativeDecay with
     ⟨derivativeProbe, hidentity, hderivativeDecay⟩
   exact zetaLaplaceTransform_supportInterval_successor_decay_from_parts
     f derivativeProbe I a b N hN hidentity hderivativeDecay
+
+/-- Paley-Wiener decay at a fixed order, uniformly available for every admissible probe.
+
+This is the induction form needed by integration by parts: in the successor step, the
+induction hypothesis is applied to the derivative probe, not only to the original probe. -/
+theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay_all
+    (N : ℕ) :
+    ∀ (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+      (a b : ℝ),
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N := by
+  induction N with
+  | zero =>
+      intro f I a b
+      exact zetaLaplaceTransform_supportInterval_zeroOrder_decay f I a b
+  | succ N ih =>
+      intro f I a b
+      have hN :
+          ∃ C : ℝ,
+            0 < C ∧
+            ∀ z : ℂ,
+              zetaPaleyWienerInVerticalStrip a b z →
+              ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+                ≤ C * zetaPaleyWienerVerticalWeight z N :=
+        ih f I a b
+      have hDerivativeDecay :
+          ∀ derivativeProbe : ZetaAdmissibleFunction,
+            ∃ C : ℝ,
+              0 < C ∧
+              ∀ z : ℂ,
+                zetaPaleyWienerInVerticalStrip a b z →
+                ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+                  ≤ C * zetaPaleyWienerVerticalWeight z N := by
+        intro derivativeProbe
+        rcases exists_zetaPaleyWienerSupportInterval derivativeProbe with
+          ⟨derivativeInterval⟩
+        exact ih derivativeProbe derivativeInterval a b
+      exact zetaLaplaceTransform_supportInterval_integrationByParts_successor
+        f I a b N hN hDerivativeDecay
 
 /-- The oscillatory integration-by-parts estimate on a fixed support interval.
 
@@ -637,12 +745,8 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  induction N with
-  | zero =>
-      exact zetaLaplaceTransform_supportInterval_zeroOrder_decay f I a b
-  | succ N ih =>
-      exact zetaLaplaceTransform_supportInterval_integrationByParts_successor
-        f I a b N ih
+  exact zetaLaplaceTransform_supportInterval_integrationByParts_decay_all
+    N f I a b
 
 /-- The Paley-Wiener support-interval estimate assembled from the interval seminorm and the
 oscillatory integration-by-parts bound. -/
