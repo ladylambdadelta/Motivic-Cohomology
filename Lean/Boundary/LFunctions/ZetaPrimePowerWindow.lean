@@ -418,17 +418,106 @@ theorem polynomialHeightShellSum_le_shellMass
     hsum.symm
     hmul
 
+/-- Exact-height shell sums are nonnegative. -/
+theorem polynomialHeightShellSum_nonnegative
+    (k m : ℕ) :
+    0 ≤ polynomialHeightShellSum k m := by
+  have hsum :
+      polynomialHeightShellSum k m =
+        ((heightShell m).card : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    polynomialHeightShellSum_eq_card_mul_decay k m
+  have hcard_nonneg :
+      0 ≤ ((heightShell m).card : ℝ) :=
+    Nat.cast_nonneg (heightShell m).card
+  have hdecay_nonneg :
+      0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    zpow_nonneg
+      (add_nonneg zero_le_one (norm_nonneg ((m : ℕ) : ℝ)))
+      (-(k + 3 : ℤ))
+  exact Eq.subst
+    (motive := fun v : ℝ => 0 ≤ v)
+    hsum.symm
+    (mul_nonneg hcard_nonneg hdecay_nonneg)
+
+/-- A nonnegative real sequence dominated by a summable real sequence is summable. -/
+theorem summable_of_nonnegative_le_summable_real
+    (a b : ℕ → ℝ)
+    (ha_nonneg : ∀ n : ℕ, 0 ≤ a n)
+    (hab : ∀ n : ℕ, a n ≤ b n)
+    (hb : Summable b) :
+    Summable a := by
+  sorry
+
+/-- The one-dimensional polynomial shell mass sequence is summable. -/
+theorem summable_linear_polynomialShellMassSequence
+    (k : ℕ) :
+    Summable
+      (fun m : ℕ =>
+        ((2 * (m + 1) : ℕ) : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) := by
+  sorry
+
 /-- Polynomial shell masses are summable over rectangular heights. -/
 theorem summable_polynomialHeightShellMass
     (k : ℕ) :
     Summable (fun m : ℕ => polynomialHeightShellMass k m) := by
-  sorry
+  exact summable_linear_polynomialShellMassSequence k
 
 /-- Shell sums are summable when dominated by summable shell masses. -/
 theorem summable_polynomialHeightShellSum_of_shellMass
     (k : ℕ)
     (hshell : Summable (fun m : ℕ => polynomialHeightShellMass k m)) :
     Summable (fun m : ℕ => polynomialHeightShellSum k m) := by
+  exact summable_of_nonnegative_le_summable_real
+    (fun m : ℕ => polynomialHeightShellSum k m)
+    (fun m : ℕ => polynomialHeightShellMass k m)
+    (fun m : ℕ => polynomialHeightShellSum_nonnegative k m)
+    (fun m : ℕ => polynomialHeightShellSum_le_shellMass k m)
+    hshell
+
+/-- The finite fiber of raw indices at a fixed rectangular height. -/
+def heightFiber (m : ℕ) : Type :=
+  {ι : ZetaPrimePowerIndex // ι ∈ heightShell m}
+
+/-- Raw indices map constructively to their exact rectangular-height fiber. -/
+def toHeightFiberSigma
+    (ι : ZetaPrimePowerIndex) :
+    Sigma heightFiber :=
+  ⟨ι.height, ⟨ι, (mem_heightShell_iff ι.height ι).mpr rfl⟩⟩
+
+/-- A point of a height fiber forgets to its raw prime-power index. -/
+def ofHeightFiberSigma
+    (s : Sigma heightFiber) : ZetaPrimePowerIndex :=
+  s.2.1
+
+/-- Forgetting after height-fiber decomposition returns the original raw index. -/
+theorem ofHeightFiberSigma_toHeightFiberSigma
+    (ι : ZetaPrimePowerIndex) :
+    ofHeightFiberSigma (toHeightFiberSigma ι) = ι := by
+  rfl
+
+/-- Height-fiber decomposition after forgetting is the original height-fiber point. -/
+theorem toHeightFiberSigma_ofHeightFiberSigma
+    (s : Sigma heightFiber) :
+    toHeightFiberSigma (ofHeightFiberSigma s) = s := by
+  sorry
+
+/-- The constructive equivalence between raw indices and their height-fiber decomposition. -/
+def heightFiberSigmaEquiv :
+    ZetaPrimePowerIndex ≃ Sigma heightFiber where
+  toFun := toHeightFiberSigma
+  invFun := ofHeightFiberSigma
+  left_inv := ofHeightFiberSigma_toHeightFiberSigma
+  right_inv := toHeightFiberSigma_ofHeightFiberSigma
+
+/-- Summability over exact-height fibers transports to summability over raw indices. -/
+theorem summable_polynomialHeightDecay_of_heightFiberSummability
+    (k : ℕ)
+    (hshellSum : Summable (fun m : ℕ => polynomialHeightShellSum k m)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        polynomialHeightDecay k ι) := by
   sorry
 
 /-- Summability of exact-height shell sums transports to summability over raw indices. -/
@@ -438,7 +527,7 @@ theorem summable_polynomialHeightDecay_of_shellSums
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         polynomialHeightDecay k ι) := by
-  sorry
+  exact summable_polynomialHeightDecay_of_heightFiberSummability k hshellSum
 
 /-- Rectangular-height decay is summable once the height-shell masses are summable.
 
