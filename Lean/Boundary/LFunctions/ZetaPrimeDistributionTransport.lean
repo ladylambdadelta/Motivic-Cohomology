@@ -364,13 +364,32 @@ theorem summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrela
 probe.
 
 This is the spectral-side decay input needed for completed prime contour transport. -/
+theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- The contour-realized prime distribution coordinates are summable at an autocorrelation
+probe. -/
 theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f)) := by
-  sorry
+  rcases exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound f with
+    ⟨C, k, _hC, hbound⟩
+  exact
+    Summable.of_norm_bounded
+      (fun ι : ZetaPrimePowerIndex =>
+        C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
+      (ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k)
+      hbound
 
 /-- The completed contour-realized prime distribution pairing is the `tsum` of its real
 coordinates. -/
