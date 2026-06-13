@@ -66,6 +66,71 @@ theorem explicitFormulaFamilyContourIntegral_eq_residue_add_remainder
 
 /-- Owner residue theorem for the completed explicit-formula contour family.
 
+This is the residue-side remainder theorem: the finite rectangle residue calculus, with
+zeros counted by analytic multiplicity, leaves a contour remainder that tends to zero. -/
+theorem explicitFormulaFamilyResidueRemainder_tendsto_zero_ownerResidueTheorem
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T)
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- If the residue-side contour remainder tends to zero, then the contour integral
+converges to the completed residue boundary scalar. -/
+theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_of_remainderLimit
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hremainder :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T)
+        atTop
+        (𝓝 0)) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
+      atTop
+      (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
+  have hconst :
+      Tendsto
+        (fun _T : ℝ => (zetaCompletedResidueBoundarySum f : ℂ))
+        atTop
+        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
+    tendsto_const_nhds
+  have hsum :
+      Tendsto
+        (fun T : ℝ =>
+          (zetaCompletedResidueBoundarySum f : ℂ) +
+            explicitFormulaFamilyResidueRemainder f F T)
+        atTop
+        (𝓝 ((zetaCompletedResidueBoundarySum f : ℂ) + 0)) :=
+    hconst.add hremainder
+  have htarget :
+      (zetaCompletedResidueBoundarySum f : ℂ) + 0 =
+        (zetaCompletedResidueBoundarySum f : ℂ) :=
+    add_zero _
+  have hfun :
+      (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T) =
+        fun T : ℝ =>
+          (zetaCompletedResidueBoundarySum f : ℂ) +
+            explicitFormulaFamilyResidueRemainder f F T := by
+    funext T
+    exact explicitFormulaFamilyContourIntegral_eq_residue_add_remainder f F T
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ =>
+      Tendsto φ atTop (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)))
+    hfun.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            (zetaCompletedResidueBoundarySum f : ℂ) +
+              explicitFormulaFamilyResidueRemainder f F T)
+          atTop
+          (𝓝 z))
+      htarget
+      hsum)
+
+/-- Owner residue theorem for the completed explicit-formula contour family.
+
 This is the residue-side limit theorem: the finite rectangle residue calculus, with zeros
 counted by analytic multiplicity, converges to the completed residue boundary scalar. -/
 theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_ownerResidueTheorem
@@ -74,7 +139,9 @@ theorem explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_ownerRes
       (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
       atTop
       (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) := by
-  sorry
+  exact explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_of_remainderLimit
+    f F
+    (explicitFormulaFamilyResidueRemainder_tendsto_zero_ownerResidueTheorem f F)
 
 /-- The residue-side contour remainder vanishes along the contour family. -/
 theorem explicitFormulaFamilyResidueRemainder_tendsto_zero
@@ -83,60 +150,7 @@ theorem explicitFormulaFamilyResidueRemainder_tendsto_zero
       (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T)
       atTop
       (𝓝 0) := by
-  have hcontour :
-      Tendsto
-        (fun T : ℝ => explicitFormulaFamilyContourIntegral f F T)
-        atTop
-        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
-    explicitFormulaFamilyContourIntegral_tendsto_residueBoundarySum_ownerResidueTheorem f F
-  have hconst :
-      Tendsto
-        (fun _T : ℝ => (zetaCompletedResidueBoundarySum f : ℂ))
-        atTop
-        (𝓝 (zetaCompletedResidueBoundarySum f : ℂ)) :=
-    tendsto_const_nhds
-  have hdiff :
-      Tendsto
-        (fun T : ℝ =>
-          explicitFormulaFamilyContourIntegral f F T -
-            (zetaCompletedResidueBoundarySum f : ℂ))
-        atTop
-        (𝓝 ((zetaCompletedResidueBoundarySum f : ℂ) -
-          (zetaCompletedResidueBoundarySum f : ℂ))) :=
-    hcontour.sub hconst
-  have hzero :
-      (zetaCompletedResidueBoundarySum f : ℂ) -
-          (zetaCompletedResidueBoundarySum f : ℂ) =
-        0 := by
-    exact sub_self (zetaCompletedResidueBoundarySum f : ℂ)
-  have hdiff_zero :
-      Tendsto
-        (fun T : ℝ =>
-          explicitFormulaFamilyContourIntegral f F T -
-            (zetaCompletedResidueBoundarySum f : ℂ))
-        atTop
-        (𝓝 0) :=
-    Eq.subst
-      (motive := fun x : ℂ =>
-        Tendsto
-          (fun T : ℝ =>
-            explicitFormulaFamilyContourIntegral f F T -
-              (zetaCompletedResidueBoundarySum f : ℂ))
-          atTop
-          (𝓝 x))
-      hzero
-      hdiff
-  have hfun :
-      (fun T : ℝ => explicitFormulaFamilyResidueRemainder f F T) =
-        fun T : ℝ =>
-          explicitFormulaFamilyContourIntegral f F T -
-            (zetaCompletedResidueBoundarySum f : ℂ) := by
-    funext T
-    rfl
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hfun.symm
-    hdiff_zero
+  exact explicitFormulaFamilyResidueRemainder_tendsto_zero_ownerResidueTheorem f F
 
 end ZetaAdmissibleFunction
 
