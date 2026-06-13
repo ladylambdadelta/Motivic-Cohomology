@@ -94,14 +94,80 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
     (z : ℂ) :
     ‖((1 / 2 : ℂ) + z)‖ ≤ 2 * (1 + ‖z‖) ∧
       ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ 2 * (1 + ‖z‖) := by
-  sorry
+  have hnorm_half : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+    norm_num
+  have hnorm_one_sub_half : ‖(1 - (1 / 2 : ℂ))‖ ≤ (1 : ℝ) := by
+    norm_num
+  have hnorm_z_nonneg : 0 ≤ ‖z‖ := norm_nonneg z
+  have hfirst_triangle :
+      ‖((1 / 2 : ℂ) + z)‖ ≤ ‖(1 / 2 : ℂ)‖ + ‖z‖ :=
+    norm_add_le (1 / 2 : ℂ) z
+  have hfirst_sum :
+      ‖(1 / 2 : ℂ)‖ + ‖z‖ ≤ 1 + ‖z‖ :=
+    add_le_add_right hnorm_half ‖z‖
+  have hfirst_height :
+      1 + ‖z‖ ≤ 2 * (1 + ‖z‖) := by
+    nlinarith [hnorm_z_nonneg]
+  have hfirst :
+      ‖((1 / 2 : ℂ) + z)‖ ≤ 2 * (1 + ‖z‖) :=
+    le_trans hfirst_triangle (le_trans hfirst_sum hfirst_height)
+  have hsecond_rewrite :
+      (1 : ℂ) - ((1 / 2 : ℂ) + z) = (1 - (1 / 2 : ℂ)) + (-z) := by
+    ring
+  have hsecond_triangle :
+      ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ := by
+    rw [hsecond_rewrite]
+    exact norm_add_le (1 - (1 / 2 : ℂ)) (-z)
+  have hnorm_neg_z : ‖-z‖ = ‖z‖ := norm_neg z
+  have hsecond_sum :
+      ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ ≤ 1 + ‖z‖ := by
+    rw [hnorm_neg_z]
+    exact add_le_add_right hnorm_one_sub_half ‖z‖
+  have hsecond_height :
+      1 + ‖z‖ ≤ 2 * (1 + ‖z‖) := by
+    nlinarith [hnorm_z_nonneg]
+  have hsecond :
+      ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ 2 * (1 + ‖z‖) :=
+    le_trans hsecond_triangle (le_trans hsecond_sum hsecond_height)
+  exact ⟨hfirst, hsecond⟩
 
 /-- The quadratic clearing factor is controlled by the square of the basic height. -/
 theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic
     (z : ℂ) :
     ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
       4 * (1 + ‖z‖) ^ (2 : ℕ) := by
-  sorry
+  rcases centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le z with
+    ⟨hleft, hright⟩
+  have hheight_nonneg : 0 ≤ 1 + ‖z‖ := by
+    nlinarith [norm_nonneg z]
+  have htwo_height_nonneg : 0 ≤ 2 * (1 + ‖z‖) := by
+    nlinarith [hheight_nonneg]
+  have hnorm_mul :
+      ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ =
+        ‖((1 / 2 : ℂ) + z)‖ * ‖(1 - ((1 / 2 : ℂ) + z))‖ := by
+    unfold centeredCompletedRiemannZetaZeroCarrierClearingFactor
+    exact norm_mul ((1 / 2 : ℂ) + z) (1 - ((1 / 2 : ℂ) + z))
+  have hproduct :
+      ‖((1 / 2 : ℂ) + z)‖ * ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤
+        (2 * (1 + ‖z‖)) * (2 * (1 + ‖z‖)) :=
+    mul_le_mul hleft hright (norm_nonneg _) htwo_height_nonneg
+  have htarget :
+      (2 * (1 + ‖z‖)) * (2 * (1 + ‖z‖)) =
+        4 * (1 + ‖z‖) ^ (2 : ℕ) := by
+    ring
+  exact hnorm_mul.trans_le (hproduct.trans_eq htarget)
+
+/-- The basic centered height is at least one. -/
+theorem centeredCompletedRiemannZeta_basicHeight_ge_one
+    (z : ℂ) :
+    (1 : ℝ) ≤ 1 + ‖z‖ := by
+  exact le_add_of_nonneg_right (norm_nonneg z)
+
+/-- Powers of the basic centered height are at least one. -/
+theorem centeredCompletedRiemannZeta_basicHeight_pow_ge_one
+    (z : ℂ) (m : ℕ) :
+    (1 : ℝ) ≤ (1 + ‖z‖) ^ m := by
+  exact one_le_pow₀ (centeredCompletedRiemannZeta_basicHeight_ge_one z) m
 
 /-- The quadratic clearing factor has polynomial growth. -/
 theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
@@ -129,7 +195,29 @@ theorem polynomialGrowth_mul
     ∃ A : ℝ, ∃ m : ℕ,
       0 < A ∧
       ∀ z : ℂ, ‖u z * v z‖ ≤ A * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases hu with ⟨A, m, hA_pos, hA_bound⟩
+  rcases hv with ⟨B, n, hB_pos, hB_bound⟩
+  refine ⟨A * B, m + n, mul_pos hA_pos hB_pos, ?_⟩
+  intro z
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H := by
+    exact le_trans zero_le_one (centeredCompletedRiemannZeta_basicHeight_ge_one z)
+  have hB_pow_nonneg : 0 ≤ B * H ^ n := by
+    exact mul_nonneg (le_of_lt hB_pos) (pow_nonneg hH_nonneg n)
+  have hmul_bound :
+      ‖u z‖ * ‖v z‖ ≤ (A * H ^ m) * (B * H ^ n) :=
+    mul_le_mul (hA_bound z) (hB_bound z) (norm_nonneg _) hB_pow_nonneg
+  have hnorm :
+      ‖u z * v z‖ = ‖u z‖ * ‖v z‖ :=
+    norm_mul (u z) (v z)
+  have hpow :
+      H ^ (m + n) = H ^ m * H ^ n :=
+    pow_add H m n
+  have halg :
+      (A * H ^ m) * (B * H ^ n) = (A * B) * H ^ (m + n) := by
+    rw [hpow]
+    ring
+  exact hnorm.trans_le (hmul_bound.trans_eq halg)
 
 /-- Subtracting the constant `1` from a polynomial-growth function preserves polynomial
 growth. -/
@@ -142,7 +230,25 @@ theorem polynomialGrowth_sub_one
     ∃ A : ℝ, ∃ m : ℕ,
       0 < A ∧
       ∀ z : ℂ, ‖u z - 1‖ ≤ A * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases hu with ⟨A, m, hA_pos, hA_bound⟩
+  refine ⟨A + 1, m, add_pos hA_pos zero_lt_one, ?_⟩
+  intro z
+  let H : ℝ := 1 + ‖z‖
+  have hH_pow_ge_one : (1 : ℝ) ≤ H ^ m :=
+    centeredCompletedRiemannZeta_basicHeight_pow_ge_one z m
+  have htriangle :
+      ‖u z - 1‖ ≤ ‖u z‖ + ‖(1 : ℂ)‖ :=
+    norm_sub_le (u z) (1 : ℂ)
+  have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) := by
+    norm_num
+  have hsum_bound :
+      ‖u z‖ + ‖(1 : ℂ)‖ ≤ A * H ^ m + H ^ m := by
+    rw [hone_norm]
+    exact add_le_add (hA_bound z) hH_pow_ge_one
+  have halg :
+      A * H ^ m + H ^ m = (A + 1) * H ^ m := by
+    ring
+  exact htriangle.trans (hsum_bound.trans_eq halg)
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
 `1` preserves finite-order polynomial growth. -/

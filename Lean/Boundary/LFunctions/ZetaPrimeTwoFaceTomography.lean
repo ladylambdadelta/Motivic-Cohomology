@@ -138,6 +138,85 @@ theorem completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing
       f
   exact (hspectral.trans (hspectralChannel.symm.trans hcoefficient)).symm
 
+/-- Completed prime-channel tomography identifies the time-side completed prime distribution
+with the contour-realized prime channel.
+
+This is the owner analytic reconstruction theorem behind the finite contour-transport
+remainder.  The finite remainder measures the difference of two finite presentations; this
+theorem says their completed prime distributions are the same boundary class. -/
+theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  let T : ℝ :=
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)
+  let C : ℝ :=
+    completedPrimeContourRealizedTimeDistributionPairing
+      (convolutionAutocorrelation f)
+  have htime :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+        atTop
+        (𝓝 T) :=
+    finitePrimeTimeDistributionWindow_tendsto_completed f
+  have hremainder :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportRemainder N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeContourTransportRemainder_tendsto_zero_ownerHorizontalDecay f
+  have hadd :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+            finitePrimeContourTransportRemainder N f)
+        atTop
+        (𝓝 (T + 0)) :=
+    htime.add hremainder
+  have hleft_fun :
+      (fun N : ℕ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+            finitePrimeContourTransportRemainder N f) =
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f)) := by
+    funext N
+    exact finitePrimeTimeDistributionWindow_add_contourTransportRemainder N f
+  have hleft :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (T + 0)) :=
+    Eq.subst
+      (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 (T + 0)))
+      hleft_fun
+      hadd
+  have hright :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 C) :=
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completed f
+  have hTC : T + 0 = C :=
+    tendsto_nhds_unique hleft hright
+  calc
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        T := by
+      rfl
+    _ = T + 0 := by
+      exact (add_zero T).symm
+    _ = C := hTC
+    _ =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) := by
+      rfl
+
 /-- Completed prime channel tomography.
 
 The completed physical time-side prime channel and the completed spectral/two-face prime
@@ -147,7 +226,40 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
     (f : ZetaAdmissibleFunction) :
     completedPrimeOffDiagonalChannel f =
       completedSpectralPrimeOffDiagonalChannel f := by
-  sorry
+  have htime :
+      completedPrimeOffDiagonalChannel f =
+        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) := by
+    have hphysical :
+        completedPhysicalPrimeOffDiagonalChannel f =
+          completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
+      completedPhysicalPrimeOffDiagonalChannel_eq_timeDistributionPairing f
+    unfold completedPhysicalPrimeOffDiagonalChannel at hphysical
+    exact hphysical
+  have htomography :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
+      f
+  have hspectral :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedSpectralPrimeOffDiagonalChannel f :=
+    by
+      have hrealized :
+          completedPrimeContourRealizedTimeDistributionPairing
+              (convolutionAutocorrelation f) =
+            completedPrimeSpectralDistributionPairing
+              (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+        completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+          (convolutionAutocorrelation f)
+      have hspectralChannel :
+          completedSpectralPrimeOffDiagonalChannel f =
+            completedPrimeSpectralDistributionPairing
+              (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+        completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
+      exact hrealized.trans hspectralChannel.symm
+  exact htime.trans (htomography.trans hspectral)
 
 /-- The completed time-side two-face coordinate sum reconstructs the completed two-face
 boundary coefficient.
@@ -269,30 +381,6 @@ theorem completedPrimeContourRealizedTimeDistributionPairing_eq_completedTwoFace
     completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
       f
   exact hspectral.trans (hspectralChannel.symm.trans hcoefficient)
-
-/-- Completed prime-channel tomography identifies the time-side completed prime distribution
-with the contour-realized prime channel.
-
-This is the owner analytic reconstruction theorem behind the finite contour-transport
-remainder.  The finite remainder measures the difference of two finite presentations; this
-theorem says their completed prime distributions are the same boundary class. -/
-theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomography
-    (f : ZetaAdmissibleFunction) :
-    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
-      completedPrimeContourRealizedTimeDistributionPairing
-        (convolutionAutocorrelation f) := by
-  have htime :
-      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
-        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re_ownerTomography
-      f
-  have hcontour :
-      completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) =
-        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeContourRealizedTimeDistributionPairing_eq_completedTwoFaceBoundaryCoefficient_re
-      f
-  exact htime.trans hcontour.symm
 
 /-- Completed contour transport has no residual boundary difference.  This is the analytic
 contour-realization theorem: after passing to the completed prime channel, the finite

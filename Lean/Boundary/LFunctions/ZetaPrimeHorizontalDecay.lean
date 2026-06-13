@@ -79,63 +79,22 @@ theorem exists_sampledProductHorizontalEnvelopeConstant
     E
     N
 
-/-- The time-side contour-transport coordinates are summable at an autocorrelation probe. -/
-theorem summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation
+/-- Horizontal-decay compatibility wrapper for time-side prime-coordinate summability. -/
+theorem summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) := by
-  exact (summable_zetaPrimeOffDiagonalCoordinate f).congr
-    (fun ι : ZetaPrimePowerIndex =>
-      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
-        ι f).symm)
+  exact summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation f
 
-/-- Nongenuine indices have zero contour-realized prime distribution coordinate. -/
-theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+/-- Horizontal-decay compatibility wrapper for nongenuine contour-realized coordinates. -/
+theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine_ownerHorizontalDecay
     (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
     (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
     completedPrimeContourRealizedTimeDistributionCoordinate
       ι (convolutionAutocorrelation f) = 0 := by
-  have hweight : ι.weight = 0 :=
-    ZetaPrimePowerIndex.weight_eq_zero_of_not_isGenuine ι hι
-  unfold completedPrimeContourRealizedTimeDistributionCoordinate
-  calc
-    Complex.re
-        (-((ι.weight : ℂ) *
-          (zetaCompletedSpectralLaplaceTransform
-              (convolutionAutocorrelation f) ι.center +
-            star
-              (zetaCompletedSpectralLaplaceTransform
-                (convolutionAutocorrelation f) ι.center)))) =
-        Complex.re
-          (-((0 : ℂ) *
-            (zetaCompletedSpectralLaplaceTransform
-                (convolutionAutocorrelation f) ι.center +
-              star
-                (zetaCompletedSpectralLaplaceTransform
-                  (convolutionAutocorrelation f) ι.center)))) := by
-      exact congrArg
-        (fun x : ℝ =>
-          Complex.re
-            (-((x : ℂ) *
-              (zetaCompletedSpectralLaplaceTransform
-                  (convolutionAutocorrelation f) ι.center +
-                star
-                  (zetaCompletedSpectralLaplaceTransform
-                    (convolutionAutocorrelation f) ι.center)))))
-        hweight
-    _ = Complex.re (-(0 : ℂ)) := by
-      exact congrArg (fun x : ℂ => Complex.re (-x))
-        (zero_mul
-          (zetaCompletedSpectralLaplaceTransform
-              (convolutionAutocorrelation f) ι.center +
-            star
-              (zetaCompletedSpectralLaplaceTransform
-                (convolutionAutocorrelation f) ι.center)))
-    _ = Complex.re (0 : ℂ) := by
-      exact congrArg Complex.re (neg_zero : -(0 : ℂ) = 0)
-    _ = 0 := by
-      exact Complex.zero_re
+  exact completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+    ι (convolutionAutocorrelation f) hι
 
 /-- A contour-realized prime coordinate is the physical time coordinate plus the
 contour-transport remainder. -/
@@ -583,9 +542,9 @@ theorem completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenui
     (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
     completedPrimeContourTransportCoordinateRemainder ι f = 0 := by
   have hcontour :
-      completedPrimeContourRealizedTimeDistributionCoordinate
+    completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f) = 0 :=
-    completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+    completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine_ownerHorizontalDecay
       ι f hι
   have htime :
       completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) = 0 := by

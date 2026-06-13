@@ -218,6 +218,87 @@ theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
     _ = completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
       exact (completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f).symm
 
+/-- Nongenuine prime-power coordinates carry no contour-transport remainder. -/
+theorem completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine_ownerTomography
+    (ι : ZetaPrimePowerIndex) (f : ZetaAdmissibleFunction)
+    (hι : ¬ ZetaPrimePowerIndex.IsGenuine ι) :
+    completedPrimeContourTransportCoordinateRemainder ι f = 0 := by
+  have hcontour :
+      completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f) =
+        0 :=
+    completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+      ι (convolutionAutocorrelation f) hι
+  have htime :
+      completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+        0 :=
+    completedPrimeTimeDistributionCoordinate_eq_zero_of_not_isGenuine
+      ι (convolutionAutocorrelation f) hι
+  calc
+    completedPrimeContourTransportCoordinateRemainder ι f =
+        completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f) -
+          completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) := by
+      exact completedPrimeContourTransportCoordinateRemainder_eq_contour_sub_time ι f
+    _ = 0 - completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) := by
+      exact congrArg
+        (fun x : ℝ =>
+          x - completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))
+        hcontour
+    _ = 0 - 0 := by
+      exact congrArg (fun x : ℝ => 0 - x) htime
+    _ = 0 := by
+      exact sub_self 0
+
+/-- The contour-transport coordinate-remainder family is summable.
+
+This is the owner decay/exhaustion input for the omitted contour-transport tail. -/
+theorem summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Summable (completedPrimeContourTransportCoordinateRemainderFamily f) := by
+  have hcontour :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)) :=
+    summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation f
+  have htime :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)) :=
+    summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation f
+  have hdifference :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f) -
+            completedPrimeTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f)) :=
+    hcontour.sub htime
+  exact hdifference.congr
+    (fun ι : ZetaPrimePowerIndex =>
+      (completedPrimeContourTransportCoordinateRemainder_eq_contour_sub_time
+        ι f).symm)
+
+/-- The finite windows exhaust the contour-transport coordinate-remainder family. -/
+theorem completedPrimeContourTransportCoordinateRemainderWindow_tendsto_tsum_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeContourTransportCoordinateRemainderFamily f ι)
+      atTop
+      (𝓝 (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeContourTransportCoordinateRemainderFamily f ι)) := by
+  exact
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+      (completedPrimeContourTransportCoordinateRemainderFamily f)
+      (summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerTomography f)
+      (fun ι hι =>
+        completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine_ownerTomography
+          ι f hι)
+
 /-- The finite-window coordinate remainder presentation of contour transport. -/
 noncomputable def finitePrimeContourTransportCoordinateRemainderWindow
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
@@ -1098,7 +1179,71 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_owner
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  sorry
+  let u : ZetaPrimePowerIndex → ℝ :=
+    completedPrimeContourTransportCoordinateRemainderFamily f
+  have hsum : Summable u :=
+    summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerTomography f
+  have hwindow :
+      Tendsto
+        (fun N : ℕ => ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+      u
+      hsum
+      (fun ι hι =>
+        completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine_ownerTomography
+          ι f hι)
+  have htail_eq :
+      ∀ N : ℕ,
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι := by
+    intro N
+    exact
+      (completedPrimeContourTransportCoordinateRemainderTail_eq_spectralTail_tsum
+        N f).trans
+        (ZetaPrimePowerIndex.spectralTail_eq_tsum_sub_windowSum u hsum N)
+  have htail_fun :
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f) =
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι) := by
+    funext N
+    exact htail_eq N
+  have hconst :
+      Tendsto
+        (fun _N : ℕ => ∑' ι : ZetaPrimePowerIndex, u ι)
+        atTop
+        (𝓝 (∑' ι : ZetaPrimePowerIndex, u ι)) :=
+    tendsto_const_nhds
+  have hdiff :
+      Tendsto
+        (fun N : ℕ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι) -
+            ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+        atTop
+        (𝓝 ((∑' ι : ZetaPrimePowerIndex, u ι) -
+          (∑' ι : ZetaPrimePowerIndex, u ι))) :=
+    hconst.sub hwindow
+  have hzero :
+      (∑' ι : ZetaPrimePowerIndex, u ι) -
+          (∑' ι : ZetaPrimePowerIndex, u ι) =
+        0 :=
+    sub_self _
+  exact Eq.subst
+    (motive := fun v : ℕ → ℝ => Tendsto v atTop (𝓝 0))
+    htail_fun.symm
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        Tendsto
+          (fun N : ℕ =>
+            (∑' ι : ZetaPrimePowerIndex, u ι) -
+              ∑ ι in ZetaPrimePowerIndex.window N, u ι)
+          atTop
+          (𝓝 x))
+      hzero
+      hdiff)
 
 /-- The finite prime tomographic residual error vanishes.
 
