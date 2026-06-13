@@ -1244,11 +1244,33 @@ theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
 
 /-- The integral of a nonnegative constant over an interval indicator is constant times
 the interval volume. -/
+theorem real_integral_const_indicator_eq_setIntegral_const
+    (K : Set ℝ) (hK : MeasurableSet K) (B : ℝ) :
+    (∫ t : ℝ, Set.indicator K (fun _ : ℝ => B) t) =
+      ∫ t in K, B := by
+  exact integral_indicator hK
+
+/-- The set integral of a real constant is the constant times the set volume. -/
+theorem real_setIntegral_const_eq_const_mul_volume
+    (K : Set ℝ) (B : ℝ) :
+    (∫ t in K, B) = B * (volume K).toReal := by
+  calc
+    (∫ t in K, B) = (volume K).toReal • B := by
+      exact integral_const B
+    _ = (volume K).toReal * B := by
+      rfl
+    _ = B * (volume K).toReal := by
+      exact mul_comm (volume K).toReal B
+
+/-- The integral of a constant over a compact-set indicator is constant times volume. -/
 theorem real_integral_const_indicator_of_isCompact_eq_const_mul_volume
     (K : Set ℝ) (hK : IsCompact K) (B : ℝ) :
     (∫ t : ℝ, Set.indicator K (fun _ : ℝ => B) t) =
       B * (volume K).toReal := by
-  sorry
+  exact Eq.trans
+    (real_integral_const_indicator_eq_setIntegral_const
+      K hK.isClosed.measurableSet B)
+    (real_setIntegral_const_eq_const_mul_volume K B)
 
 /-- The integral of a nonnegative constant over an interval indicator is constant times
 the interval volume. -/
