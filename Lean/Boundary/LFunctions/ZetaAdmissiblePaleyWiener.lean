@@ -338,11 +338,25 @@ theorem zetaPaleyWienerSupportNormSet_eq_supportNormImage
     unfold zetaPaleyWienerSupportNormSet
     exact ⟨t, ht_support, ht_norm.symm⟩
 
+/-- The pointwise norm map attached to an admissible source is continuous. -/
+theorem zetaPaleyWienerSupportNormMap_continuous
+    (f : ZetaAdmissibleFunction) :
+    Continuous (fun t : ℝ => ‖f.toZetaTestFunction t‖) := by
+  exact f.toZetaTestFunction.continuous.norm
+
+/-- The support-norm image is compact. -/
+theorem zetaPaleyWienerSupportNormImage_isCompact
+    (f : ZetaAdmissibleFunction) :
+    IsCompact (zetaPaleyWienerSupportNormImage f) := by
+  unfold zetaPaleyWienerSupportNormImage
+  exact f.toZetaTestFunction.hasCompactSupport.isCompact.image
+    (zetaPaleyWienerSupportNormMap_continuous f).continuousOn
+
 /-- The compact-support norm image is bounded above. -/
 theorem zetaPaleyWienerSupportNormImage_bddAbove
     (f : ZetaAdmissibleFunction) :
     BddAbove (zetaPaleyWienerSupportNormImage f) := by
-  sorry
+  exact IsCompact.bddAbove (zetaPaleyWienerSupportNormImage_isCompact f)
 
 /-- Source norms on the support are bounded above. -/
 theorem zetaPaleyWienerSupportNormSet_bddAbove
@@ -457,6 +471,24 @@ theorem abs_mul_le_endpointEnvelopeProduct_of_mem_interval
     (abs_mul x t).symm
     hmul
 
+/-- Multiplying two nonnegative two-point max envelopes gives the max of the four products. -/
+theorem max_mul_max_of_nonneg_eq_max_four_products
+    {a b c d : ℝ}
+    (ha : 0 ≤ a) (hb : 0 ≤ b) (hc : 0 ≤ c) (hd : 0 ≤ d) :
+    max a b * max c d =
+      max (max (a * c) (a * d)) (max (b * c) (b * d)) := by
+  sorry
+
+/-- The four-corner max written with separated absolute-value products equals the corner
+absolute-product max. -/
+theorem max_four_abs_products_eq_max_corner_abs
+    (a b lower upper : ℝ) :
+    max (max (|a| * |lower|) (|a| * |upper|))
+        (max (|b| * |lower|) (|b| * |upper|)) =
+      max (max (|a * lower|) (|a * upper|))
+        (max (|b * lower|) (|b * upper|)) := by
+  sorry
+
 /-- The product of the one-dimensional absolute endpoint envelopes is the maximum of the
 four corner absolute products. -/
 theorem max_abs_mul_max_abs_eq_max_corner_abs
@@ -464,7 +496,16 @@ theorem max_abs_mul_max_abs_eq_max_corner_abs
     max |a| |b| * max |lower| |upper| =
       max (max (|a * lower|) (|a * upper|))
         (max (|b * lower|) (|b * upper|)) := by
-  sorry
+  have hmax :
+      max |a| |b| * max |lower| |upper| =
+        max (max (|a| * |lower|) (|a| * |upper|))
+          (max (|b| * |lower|) (|b| * |upper|)) :=
+    max_mul_max_of_nonneg_eq_max_four_products
+      (abs_nonneg a)
+      (abs_nonneg b)
+      (abs_nonneg lower)
+      (abs_nonneg upper)
+  exact Eq.trans hmax (max_four_abs_products_eq_max_corner_abs a b lower upper)
 
 /-- The product of endpoint absolute-value envelopes is bounded by the four-corner
 absolute-value envelope. -/
@@ -525,11 +566,25 @@ theorem zetaPaleyWienerStripProduct_le_endpointEnvelope
   exact mul_le_max_corner_abs_of_mem_interval
     a b I.lower I.upper x t hxa hxb ht_lower ht_upper
 
+/-- The complex norm agrees with the complex absolute value. -/
+theorem complex_norm_eq_abs
+    (w : ℂ) :
+    ‖w‖ = Complex.abs w := by
+  sorry
+
+/-- The complex exponential absolute value is the exponential of the real part. -/
+theorem complexAbs_exp_eq_realExp_re
+    (w : ℂ) :
+    Complex.abs (Complex.exp w) = Real.exp w.re := by
+  sorry
+
 /-- Norm of the complex exponential is the exponential of the real part. -/
 theorem complexExp_norm_eq_realExp_re
     (w : ℂ) :
     ‖Complex.exp w‖ = Real.exp w.re := by
-  sorry
+  exact Eq.trans
+    (complex_norm_eq_abs (Complex.exp w))
+    (complexAbs_exp_eq_realExp_re w)
 
 /-- Multiplication by a real scalar has the expected real part. -/
 theorem complex_mul_real_re
