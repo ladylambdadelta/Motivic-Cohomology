@@ -35,6 +35,27 @@ def IsGenuine (ι : ZetaPrimePowerIndex) : Prop :=
 def center (ι : ZetaPrimePowerIndex) : ℝ :=
   zetaPrimePacketCenter ι.p ι.n
 
+/-- Rectangular height of a raw prime-power coordinate. -/
+def height (ι : ZetaPrimePowerIndex) : ℕ :=
+  max ι.p ι.n
+
+/-- Polynomial decay in the rectangular prime-power height. -/
+noncomputable def polynomialHeightDecay
+    (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
+  (1 + ‖((ι.height : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
+
+/-- Constant multiples of rectangular prime-power polynomial height decay are summable.
+
+This is the combinatorial owner theorem behind contour-localization majorants.  The
+exponent has two spare powers because the raw prime-power index is a rectangular
+two-dimensional coordinate. -/
+theorem summable_const_mul_polynomialHeightDecay
+    (C : ℝ) (k : ℕ) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        C * polynomialHeightDecay k ι) := by
+  sorry
+
 /-- The completed explicit-formula prime-power weight. -/
 def weight (ι : ZetaPrimePowerIndex) : ℝ :=
   if _hp : Nat.Prime ι.p then

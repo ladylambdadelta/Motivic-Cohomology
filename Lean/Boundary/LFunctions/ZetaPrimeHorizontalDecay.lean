@@ -137,29 +137,24 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- Rectangular prime-power height used by the contour-localization majorant. -/
-def primeContourLocalizationHeight (ι : ZetaPrimePowerIndex) : ℕ :=
-  max ι.p ι.n
-
 /-- Polynomial contour-localization majorant on prime-power coordinates. -/
 noncomputable def completedPrimeContourLocalizationMajorant
     (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
-  C *
-    (1 + ‖((primeContourLocalizationHeight ι : ℕ) : ℝ)‖) ^
-      (-(k + 3 : ℤ))
+  C * ZetaPrimePowerIndex.polynomialHeightDecay k ι
 
 /-- The contour-localization majorant is nonnegative when its constant is nonnegative. -/
 theorem completedPrimeContourLocalizationMajorant_nonnegative
     {C : ℝ} (hC : 0 ≤ C) (k : ℕ) (ι : ZetaPrimePowerIndex) :
     0 ≤ completedPrimeContourLocalizationMajorant C k ι := by
   unfold completedPrimeContourLocalizationMajorant
+  unfold ZetaPrimePowerIndex.polynomialHeightDecay
   have hbase :
       0 ≤
-        (1 + ‖((primeContourLocalizationHeight ι : ℕ) : ℝ)‖) ^
+        (1 + ‖((ι.height : ℕ) : ℝ)‖) ^
           (-(k + 3 : ℤ)) :=
     zpow_nonneg
       (add_nonneg zero_le_one
-        (norm_nonneg (((primeContourLocalizationHeight ι : ℕ) : ℝ))))
+        (norm_nonneg (((ι.height : ℕ) : ℝ))))
       (-(k + 3 : ℤ))
   exact mul_nonneg hC hbase
 
@@ -169,7 +164,7 @@ theorem summable_completedPrimeContourLocalizationMajorant
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourLocalizationMajorant C k ι) := by
-  sorry
+  exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
 
 /-- Completed contour localization gives a polynomially summable coordinate majorant.
 
