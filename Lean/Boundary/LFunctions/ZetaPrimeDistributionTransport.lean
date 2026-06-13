@@ -232,13 +232,69 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
+/-- A real prime-power coordinate family dominated by a rectangular-height polynomial
+majorant is summable. -/
+theorem summable_real_primePower_family_of_rawHeightPolynomialBound
+    (u : ZetaPrimePowerIndex → ℝ)
+    (hbound :
+      ∃ C : ℝ, ∃ k : ℕ,
+        0 < C ∧
+        ∀ ι : ZetaPrimePowerIndex,
+          ‖u ι‖ ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) :
+    Summable u := by
+  match hbound with
+  | ⟨C, k, hCpos, hCbound⟩ =>
+    have hmajorant :
+        Summable
+          (fun ι : ZetaPrimePowerIndex =>
+            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) :=
+      ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
+    exact Summable.of_norm_bounded
+      (fun ι : ZetaPrimePowerIndex =>
+        C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
+      hmajorant
+      (fun ι : ZetaPrimePowerIndex => by
+        have hdecay_nonnegative :
+            0 ≤ ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
+          le_of_lt (ZetaPrimePowerIndex.polynomialHeightDecay_pos k ι)
+        have hmajorant_nonnegative :
+            0 ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
+          mul_nonneg (le_of_lt hCpos) hdecay_nonnegative
+        have hmajorant_norm :
+            ‖C * ZetaPrimePowerIndex.polynomialHeightDecay k ι‖ =
+              C * ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
+          Real.norm_of_nonneg hmajorant_nonnegative
+        exact Eq.subst
+          (motive := fun rhs : ℝ => ‖u ι‖ ≤ rhs)
+          hmajorant_norm.symm
+          (hCbound ι))
+
+/-- Rectangular-height polynomial localization for the completed contour-realized prime
+distribution coordinate.
+
+This is the analytic owner estimate behind summability of the contour-realized spectral
+prime channel: after completed contour realization, the sampled prime-power coordinates
+are dominated by a summable rectangular-height majorant. -/
+theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
+    (g : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate ι g‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
 /-- The completed contour-realized prime distribution coordinates are summable. -/
 theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate
     (g : ZetaAdmissibleFunction) :
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourRealizedTimeDistributionCoordinate ι g) := by
-  sorry
+  exact
+    summable_real_primePower_family_of_rawHeightPolynomialBound
+      (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g)
+      (exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound g)
 
 /-- The finite contour-realized prime window is the sum of its contour-realized
 coordinates. -/
