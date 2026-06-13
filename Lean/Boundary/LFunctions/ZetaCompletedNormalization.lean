@@ -88,6 +88,21 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
           A * (1 + ‖z‖) ^ m := by
   sorry
 
+/-- Each linear factor in the zero-carrier clearing factor is controlled by
+`2 * (1 + ‖z‖)`. -/
+theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
+    (z : ℂ) :
+    ‖((1 / 2 : ℂ) + z)‖ ≤ 2 * (1 + ‖z‖) ∧
+      ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ 2 * (1 + ‖z‖) := by
+  sorry
+
+/-- The quadratic clearing factor is controlled by the square of the basic height. -/
+theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic
+    (z : ℂ) :
+    ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
+      4 * (1 + ‖z‖) ^ (2 : ℕ) := by
+  sorry
+
 /-- The quadratic clearing factor has polynomial growth. -/
 theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
     ∃ A : ℝ, ∃ m : ℕ,
@@ -95,6 +110,38 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
           A * (1 + ‖z‖) ^ m := by
+  have hfour_pos : (0 : ℝ) < 4 := by
+    exact lt_of_lt_of_le zero_lt_one one_le_ofNat
+  exact ⟨4, 2, hfour_pos, fun z =>
+    centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic z⟩
+
+/-- Products of two polynomial-growth functions have polynomial growth. -/
+theorem polynomialGrowth_mul
+    {u v : ℂ → ℂ}
+    (hu :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ, ‖u z‖ ≤ A * (1 + ‖z‖) ^ m)
+    (hv :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ, ‖v z‖ ≤ A * (1 + ‖z‖) ^ m) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ, ‖u z * v z‖ ≤ A * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Subtracting the constant `1` from a polynomial-growth function preserves polynomial
+growth. -/
+theorem polynomialGrowth_sub_one
+    {u : ℂ → ℂ}
+    (hu :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ, ‖u z‖ ≤ A * (1 + ‖z‖) ^ m) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ, ‖u z - 1‖ ≤ A * (1 + ‖z‖) ^ m := by
   sorry
 
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
@@ -117,7 +164,34 @@ theorem centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entir
       ∀ z : ℂ,
         ‖centeredCompletedRiemannZetaZeroCarrier z‖ ≤
           A * (1 + ‖z‖) ^ m := by
-  sorry
+  have hproduct :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
+              centeredCompletedRiemannZeta₀ z‖ ≤
+            A * (1 + ‖z‖) ^ m :=
+    polynomialGrowth_mul hfactor hentire
+  have hsub :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
+              centeredCompletedRiemannZeta₀ z - 1‖ ≤
+            A * (1 + ‖z‖) ^ m :=
+    polynomialGrowth_sub_one hproduct
+  rcases hsub with ⟨A, m, hApos, hbound⟩
+  refine ⟨A, m, hApos, ?_⟩
+  intro z
+  have hcarrier :
+      centeredCompletedRiemannZetaZeroCarrier z =
+        centeredCompletedRiemannZetaZeroCarrierClearingFactor z *
+          centeredCompletedRiemannZeta₀ z - 1 :=
+    centeredCompletedRiemannZetaZeroCarrier_eq_factor_mul_entirePart_sub_one z
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ A * (1 + ‖z‖) ^ m)
+    hcarrier.symm
+    (hbound z)
 
 /-- Finite-order growth is preserved by the completed zero-carrier normalization.
 
