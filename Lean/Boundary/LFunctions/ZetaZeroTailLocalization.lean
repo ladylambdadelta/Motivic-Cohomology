@@ -93,6 +93,28 @@ theorem zeroTailSpectralSample_eq_on_zeroSet_of_eq_on_sampleFinset
     (zetaCenteredZero η)
     (zetaCenteredZero_mem_zeroTailSpectralSampleFinset S η hη)
 
+/-- The orbit spectral sample set is the zero-tail spectral sample set of the orbit. -/
+theorem zetaZeroTailSpectralSampleFinset_orbit
+    (ρ : ℂ) :
+    zetaZeroTailSpectralSampleFinset (zetaZeroOrbitFinset ρ) =
+      zetaZeroOrbitSpectralSampleFinset ρ := by
+  rfl
+
+/-- Equality on the centered spectral sample set of a zero orbit gives equality on the
+orbit's zero-coordinate samples. -/
+theorem zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
+    (ρ : ℂ) (φ ψ : ZetaAdmissibleFunction)
+    (hsample :
+      ∀ z : ℂ, z ∈ zetaZeroOrbitSpectralSampleFinset ρ →
+        zetaSpectralEval φ z = zetaSpectralEval ψ z) :
+    ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
+      zetaSpectralEval φ (zetaCenteredZero η) =
+        zetaSpectralEval ψ (zetaCenteredZero η) := by
+  intro η hη
+  exact hsample
+    (zetaCenteredZero η)
+    (zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset ρ η hη)
+
 /-- Finite spectral localization for the completed zero tail.
 
 This is the genuine localization input: preserve the prescribed finite spectral
@@ -167,9 +189,20 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
           | < ε := by
   intro ε hε
   rcases
-    exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_owner
-      (zetaZeroOrbitFinset ρ) f₀ ε hε with
+    exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_owner
+      (zetaZeroOrbitFinset ρ) (zetaZeroOrbitSpectralSampleFinset ρ) f₀ ε hε with
     ⟨f, hsample, htail⟩
+  have hsample_orbit :
+      ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
+        zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+            (zetaCenteredZero η) =
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+            (zetaCenteredZero η) :=
+    zeroOrbitSpectralSample_eq_on_orbit_of_eq_on_sampleFinset
+      ρ
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+      hsample
   have htail_orbit :
       |
         zetaZeroOrbitRemainderRe ρ
@@ -180,7 +213,7 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
       (zetaZeroOrbitRemainderRe_eq_zeroTail_re
         ρ (ZetaAdmissibleFunction.convolutionAutocorrelation f)).symm
       htail
-  exact ⟨f, hsample, htail_orbit⟩
+  exact ⟨f, hsample_orbit, htail_orbit⟩
 
 /-- Localizing around a finite orbit preserves its autocorrelation contribution exactly while
 making the complementary orbit tail arbitrarily small. -/
