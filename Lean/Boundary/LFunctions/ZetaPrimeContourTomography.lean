@@ -71,6 +71,56 @@ theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
   unfold completedPrimeContourTransportCoordinateRemainderMajorant
   exact norm_nonneg _
 
+/-- Polynomial contour-localization majorant on prime-power coordinates. -/
+noncomputable def completedPrimeContourLocalizationMajorant
+    (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
+  C * ZetaPrimePowerIndex.polynomialHeightDecay k ι
+
+/-- The contour-localization majorant is nonnegative when its constant is nonnegative. -/
+theorem completedPrimeContourLocalizationMajorant_nonnegative
+    {C : ℝ} (hC : 0 ≤ C) (k : ℕ) (ι : ZetaPrimePowerIndex) :
+    0 ≤ completedPrimeContourLocalizationMajorant C k ι := by
+  unfold completedPrimeContourLocalizationMajorant
+  unfold ZetaPrimePowerIndex.polynomialHeightDecay
+  have hbase :
+      0 ≤
+        (1 + ‖((ι.height : ℕ) : ℝ)‖) ^
+          (-(k + 3 : ℤ)) :=
+    zpow_nonneg
+      (add_nonneg zero_le_one
+        (norm_nonneg (((ι.height : ℕ) : ℝ))))
+      (-(k + 3 : ℤ))
+  exact mul_nonneg hC hbase
+
+/-- Completed contour localization bounds the norm of every coordinate remainder by a
+height-polynomial majorant.
+
+This is the owner localization input for prime contour tomography. -/
+theorem exists_completedPrimeContourRemainderNorm_heightPolynomialBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+          completedPrimeContourLocalizationMajorant C k ι := by
+  sorry
+
+/-- Completed contour localization bounds the explicit coordinate-remainder
+majorant by a height-polynomial majorant. -/
+theorem exists_completedPrimeContourLocalizationMajorant_bound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
+          completedPrimeContourLocalizationMajorant C k ι := by
+  rcases exists_completedPrimeContourRemainderNorm_heightPolynomialBound f with
+    ⟨C, k, hCpos, hbound⟩
+  refine ⟨C, k, hCpos, ?_⟩
+  intro ι
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant
+  exact hbound ι
+
 /-- The finite-window coordinate remainder presentation of contour transport. -/
 noncomputable def finitePrimeContourTransportCoordinateRemainderWindow
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
