@@ -823,8 +823,18 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
+/-- The top horizontal line integral reconstructs the named finite contour-realized complex
+window. -/
+theorem primeTransportTopLineIntegral_eq_contourRealizedComplexWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
+  sorry
+
 /-- The top horizontal line integral reconstructs the finite contour-realized complex
-coordinate window. -/
+coordinate sum. -/
 theorem primeTransportTopLineIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaTopLineIntegral
@@ -833,7 +843,9 @@ theorem primeTransportTopLineIntegral_eq_sum_contourRealizedComplexCoordinates_o
       ∑ ι in ZetaPrimePowerIndex.window N,
         finitePrimeContourRealizedComplexCoordinate
           ι (convolutionAutocorrelation f) := by
-  sorry
+  exact
+    primeTransportTopLineIntegral_eq_contourRealizedComplexWindow_ownerTomography
+      N f
 
 /-- The top contour-integrand integral reconstructs the finite contour-realized complex
 coordinate window. -/
@@ -1069,8 +1081,18 @@ theorem sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography
       (primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
         N f)
 
+/-- The bottom horizontal line integral reconstructs the named finite time-side complex
+window with the omitted real tail. -/
+theorem primeTransportBottomLineIntegral_eq_timeComplexWindowWithTail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      finitePrimeTimeDistributionComplexWindowWithTail N f := by
+  sorry
+
 /-- The bottom horizontal line integral reconstructs the finite time-side complex
-coordinate window with the omitted real tail. -/
+coordinate sum with the omitted real tail. -/
 theorem primeTransportBottomLineIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaBottomLineIntegral
@@ -1080,7 +1102,9 @@ theorem primeTransportBottomLineIntegral_eq_sum_timeComplexCoordinates_add_tail_
         finitePrimeTimeDistributionComplexCoordinate
           ι (convolutionAutocorrelation f)) +
         (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  sorry
+  exact
+    primeTransportBottomLineIntegral_eq_timeComplexWindowWithTail_ownerTomography
+      N f
 
 /-- The bottom contour-integrand integral reconstructs the finite time-side complex
 coordinate window with the omitted real tail. -/
