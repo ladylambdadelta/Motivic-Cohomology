@@ -553,6 +553,73 @@ noncomputable def zetaPaleyWienerSupportIndicatorBound
     (f : ZetaAdmissibleFunction) (B : ℝ) : ℝ → ℝ :=
   Set.indicator (tsupport f.toZetaTestFunction) (fun _ : ℝ => B)
 
+/-- The constant interval-indicator majorant attached to a Paley-Wiener support interval. -/
+noncomputable def zetaPaleyWienerIntervalIndicatorBound
+    (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) : ℝ → ℝ :=
+  Set.indicator (Set.Icc I.lower I.upper) (fun _ : ℝ => B)
+
+/-- The certified support is contained in the certified interval. -/
+theorem zetaPaleyWienerSupport_subset_interval
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f) :
+    tsupport f.toZetaTestFunction ⊆ Set.Icc I.lower I.upper := by
+  intro t ht
+  exact ⟨I.lower_mem t ht, I.upper_mem t ht⟩
+
+/-- The support-indicator bound is pointwise dominated by the containing-interval
+indicator bound. -/
+theorem zetaPaleyWienerSupportIndicatorBound_le_intervalIndicatorBound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (B : ℝ) (hB_nonneg : 0 ≤ B) :
+    ∀ t : ℝ,
+      zetaPaleyWienerSupportIndicatorBound f B t ≤
+        zetaPaleyWienerIntervalIndicatorBound I B t := by
+  intro t
+  by_cases hsupport : t ∈ tsupport f.toZetaTestFunction
+  · have hinterval : t ∈ Set.Icc I.lower I.upper :=
+      zetaPaleyWienerSupport_subset_interval f I hsupport
+    have hsupport_value :
+        zetaPaleyWienerSupportIndicatorBound f B t = B := by
+      unfold zetaPaleyWienerSupportIndicatorBound
+      exact Set.indicator_of_mem hsupport
+    have hinterval_value :
+        zetaPaleyWienerIntervalIndicatorBound I B t = B := by
+      unfold zetaPaleyWienerIntervalIndicatorBound
+      exact Set.indicator_of_mem hinterval
+    exact Eq.subst
+      (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
+      hsupport_value.symm
+      (Eq.subst
+        (motive := fun v : ℝ => B ≤ v)
+        hinterval_value.symm
+        le_rfl)
+  · have hsupport_value :
+        zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
+      unfold zetaPaleyWienerSupportIndicatorBound
+      exact Set.indicator_of_not_mem hsupport
+    by_cases hinterval : t ∈ Set.Icc I.lower I.upper
+    · have hinterval_value :
+          zetaPaleyWienerIntervalIndicatorBound I B t = B := by
+        unfold zetaPaleyWienerIntervalIndicatorBound
+        exact Set.indicator_of_mem hinterval
+      exact Eq.subst
+        (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
+        hsupport_value.symm
+        (Eq.subst
+          (motive := fun v : ℝ => 0 ≤ v)
+          hinterval_value.symm
+          hB_nonneg)
+    · have hinterval_value :
+          zetaPaleyWienerIntervalIndicatorBound I B t = 0 := by
+        unfold zetaPaleyWienerIntervalIndicatorBound
+        exact Set.indicator_of_not_mem hinterval
+      exact Eq.subst
+        (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
+        hsupport_value.symm
+        (Eq.subst
+          (motive := fun v : ℝ => 0 ≤ v)
+          hinterval_value.symm
+          le_rfl)
+
 /-- The Laplace kernel is zero off the source support. -/
 theorem zetaPaleyWienerLaplaceKernel_eq_zero_of_not_mem_support
     (f : ZetaAdmissibleFunction) (z : ℂ) {t : ℝ}
@@ -626,13 +693,50 @@ theorem zetaLaplaceTransform_norm_le_supportIndicatorIntegral
       ∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t := by
   sorry
 
+/-- Pointwise domination of the support indicator by the interval indicator passes to the
+real-line integrals. -/
+theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (B : ℝ) (hB_nonneg : 0 ≤ B)
+    (hpoint :
+      ∀ t : ℝ,
+        zetaPaleyWienerSupportIndicatorBound f B t ≤
+          zetaPaleyWienerIntervalIndicatorBound I B t) :
+    (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
+      ∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t := by
+  sorry
+
+/-- The integral of the constant interval indicator is the constant times the certified
+interval length. -/
+theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_intervalLength_mul_bound
+    (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) (hB_nonneg : 0 ≤ B) :
+    (∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t) =
+      B * zetaPaleyWienerSupportIntervalLength I := by
+  sorry
+
 /-- The support-indicator integral is bounded by any containing support interval length. -/
 theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalLength_mul_bound
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (B : ℝ) (hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
       B * zetaPaleyWienerSupportIntervalLength I := by
-  sorry
+  have hpoint :
+      ∀ t : ℝ,
+        zetaPaleyWienerSupportIndicatorBound f B t ≤
+          zetaPaleyWienerIntervalIndicatorBound I B t :=
+    zetaPaleyWienerSupportIndicatorBound_le_intervalIndicatorBound
+      f I B hB_nonneg
+  have hintegral :
+      (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
+        ∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t :=
+    zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
+      f I B hB_nonneg hpoint
+  have hinterval :
+      (∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t) =
+        B * zetaPaleyWienerSupportIntervalLength I :=
+    zetaPaleyWienerIntervalIndicatorIntegral_eq_intervalLength_mul_bound
+      I B hB_nonneg
+  exact le_trans hintegral (le_of_eq hinterval)
 
 /-- Integral-norm transport from a pointwise compact-support kernel bound. -/
 theorem zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
