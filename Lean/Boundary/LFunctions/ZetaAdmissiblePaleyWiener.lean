@@ -852,13 +852,33 @@ theorem zetaPaleyWienerLaplaceKernel_integral_eq_transform
       Boundary.zetaLaplaceTransform f.toZetaTestFunction' z := by
   rfl
 
+/-- The named Paley-Wiener Laplace kernel is integrable. -/
+theorem zetaPaleyWienerLaplaceKernel_integrable
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    Integrable (fun t : ℝ => zetaPaleyWienerLaplaceKernel f z t) :=
+  sorry
+
+/-- The pointwise norm of the named Paley-Wiener Laplace kernel is integrable. -/
+theorem zetaPaleyWienerLaplaceKernel_norm_integrable
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    Integrable (fun t : ℝ => ‖zetaPaleyWienerLaplaceKernel f z t‖) :=
+  (zetaPaleyWienerLaplaceKernel_integrable f z).norm
+
+/-- Norm of an integrable complex-valued integral is bounded by the integral of its norm. -/
+theorem complex_norm_integral_le_integral_norm_of_integrable
+    (g : ℝ → ℂ) (hg : Integrable g) :
+    ‖∫ t : ℝ, g t‖ ≤ ∫ t : ℝ, ‖g t‖ :=
+  MeasureTheory.norm_integral_le_integral_norm g
+
 /-- The norm of the named Paley-Wiener kernel integral is bounded by the integral of the
 pointwise kernel norm. -/
 theorem zetaPaleyWienerLaplaceKernel_norm_integral_le_integral_norm
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     ‖∫ t : ℝ, zetaPaleyWienerLaplaceKernel f z t‖ ≤
       ∫ t : ℝ, ‖zetaPaleyWienerLaplaceKernel f z t‖ := by
-  sorry
+  exact complex_norm_integral_le_integral_norm_of_integrable
+    (fun t : ℝ => zetaPaleyWienerLaplaceKernel f z t)
+    (zetaPaleyWienerLaplaceKernel_integrable f z)
 
 /-- The constant support-indicator majorant used for the real-line integral bound. -/
 noncomputable def zetaPaleyWienerSupportIndicatorBound
@@ -869,6 +889,18 @@ noncomputable def zetaPaleyWienerSupportIndicatorBound
 noncomputable def zetaPaleyWienerIntervalIndicatorBound
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) : ℝ → ℝ :=
   Set.indicator (Set.Icc I.lower I.upper) (fun _ : ℝ => B)
+
+/-- The compact-support indicator bound is integrable. -/
+theorem zetaPaleyWienerSupportIndicatorBound_integrable
+    (f : ZetaAdmissibleFunction) (B : ℝ) :
+    Integrable (zetaPaleyWienerSupportIndicatorBound f B) :=
+  sorry
+
+/-- The interval indicator bound is integrable. -/
+theorem zetaPaleyWienerIntervalIndicatorBound_integrable
+    (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) :
+    Integrable (zetaPaleyWienerIntervalIndicatorBound I B) :=
+  sorry
 
 /-- The certified support is contained in the certified interval. -/
 theorem zetaPaleyWienerSupport_subset_interval
@@ -993,13 +1025,13 @@ theorem zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
         hindicator.symm
         le_rfl)
 
-/-- Real-line integral monotonicity for nonnegative pointwise domination. -/
-theorem real_integral_mono_of_nonnegative_pointwise_le
+/-- Real-line integral monotonicity for integrable pointwise domination. -/
+theorem real_integral_mono_of_integrable_pointwise_le
     (u v : ℝ → ℝ)
-    (hu_nonneg : ∀ t : ℝ, 0 ≤ u t)
+    (hu : Integrable u) (hv : Integrable v)
     (hle : ∀ t : ℝ, u t ≤ v t) :
     (∫ t : ℝ, u t) ≤ ∫ t : ℝ, v t := by
-  sorry
+  exact MeasureTheory.integral_mono hu hv (Filter.Eventually.of_forall hle)
 
 /-- Pointwise domination of the kernel norm by the support-indicator majorant passes to
 real-line integrals. -/
@@ -1011,10 +1043,11 @@ theorem zetaPaleyWienerKernelNormIntegral_le_supportIndicatorIntegral
           zetaPaleyWienerSupportIndicatorBound f B t) :
     (∫ t : ℝ, ‖zetaPaleyWienerLaplaceKernel f z t‖) ≤
       ∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t := by
-  exact real_integral_mono_of_nonnegative_pointwise_le
+  exact real_integral_mono_of_integrable_pointwise_le
     (fun t : ℝ => ‖zetaPaleyWienerLaplaceKernel f z t‖)
     (zetaPaleyWienerSupportIndicatorBound f B)
-    (fun t : ℝ => norm_nonneg (zetaPaleyWienerLaplaceKernel f z t))
+    (zetaPaleyWienerLaplaceKernel_norm_integrable f z)
+    (zetaPaleyWienerSupportIndicatorBound_integrable f B)
     hindicator
 
 /-- Integrating a support-indicator majorant bounds the norm of the real-line Laplace
@@ -1058,27 +1091,11 @@ theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
           zetaPaleyWienerIntervalIndicatorBound I B t) :
     (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
       ∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t := by
-  exact real_integral_mono_of_nonnegative_pointwise_le
+  exact real_integral_mono_of_integrable_pointwise_le
     (zetaPaleyWienerSupportIndicatorBound f B)
     (zetaPaleyWienerIntervalIndicatorBound I B)
-    (fun t : ℝ => by
-      by_cases ht : t ∈ tsupport f.toZetaTestFunction
-      · have hvalue :
-            zetaPaleyWienerSupportIndicatorBound f B t = B := by
-          unfold zetaPaleyWienerSupportIndicatorBound
-          exact Set.indicator_of_mem ht
-        exact Eq.subst
-          (motive := fun v : ℝ => 0 ≤ v)
-          hvalue.symm
-          hB_nonneg
-      · have hvalue :
-            zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
-          unfold zetaPaleyWienerSupportIndicatorBound
-          exact Set.indicator_of_not_mem ht
-        exact Eq.subst
-          (motive := fun v : ℝ => 0 ≤ v)
-          hvalue.symm
-          le_rfl)
+    (zetaPaleyWienerSupportIndicatorBound_integrable f B)
+    (zetaPaleyWienerIntervalIndicatorBound_integrable I B)
     hpoint
 
 /-- The integral of a nonnegative constant over an interval indicator is constant times
