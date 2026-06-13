@@ -471,6 +471,45 @@ theorem summable_one_add_nat_norm_negative_zpow_succ
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) := by
   sorry
 
+/-- The linear cardinal majorant is bounded by twice the height base. -/
+theorem linear_shell_card_factor_le_two_mul_heightBase
+    (m : ℕ) :
+    ((2 * (m + 1) : ℕ) : ℝ) ≤
+      2 * (1 + ‖((m : ℕ) : ℝ)‖) := by
+  sorry
+
+/-- One height-base factor cancels one negative-power step. -/
+theorem heightBase_mul_negative_zpow_succ_le_negative_zpow
+    (k m : ℕ) :
+    (1 + ‖((m : ℕ) : ℝ)‖) *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
+      (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
+  let X : ℝ := 1 + ‖((m : ℕ) : ℝ)‖
+  have hX_pos : 0 < X := by
+    exact lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg ((m : ℕ) : ℝ)))
+  have hX_ne : X ≠ 0 :=
+    ne_of_gt hX_pos
+  have hint :
+      (1 : ℤ) + (-(k + 3 : ℤ)) = -(k + 2 : ℤ) := by
+    omega
+  have hcombine :
+      X * X ^ (-(k + 3 : ℤ)) =
+        X ^ ((1 : ℤ) + (-(k + 3 : ℤ))) := by
+    calc
+      X * X ^ (-(k + 3 : ℤ)) =
+          X ^ (1 : ℤ) * X ^ (-(k + 3 : ℤ)) := by
+        exact congrArg
+          (fun v : ℝ => v * X ^ (-(k + 3 : ℤ)))
+          (zpow_one X).symm
+      _ = X ^ ((1 : ℤ) + (-(k + 3 : ℤ))) := by
+        exact (zpow_add₀ hX_ne (1 : ℤ) (-(k + 3 : ℤ))).symm
+  have heq :
+      X * X ^ (-(k + 3 : ℤ)) =
+        X ^ (-(k + 2 : ℤ)) := by
+    exact hcombine.trans (congrArg (fun n : ℤ => X ^ n) hint)
+  exact le_of_eq heq
+
 /-- The linear shell mass is pointwise dominated by a constant multiple of the
 one-dimensional polynomial tail with one fewer decay power. -/
 theorem linear_polynomialShellMassSequence_le_two_mul_tail
@@ -478,7 +517,47 @@ theorem linear_polynomialShellMassSequence_le_two_mul_tail
     ((2 * (m + 1) : ℕ) : ℝ) *
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
       2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
-  sorry
+  have hfactor :
+      ((2 * (m + 1) : ℕ) : ℝ) ≤
+        2 * (1 + ‖((m : ℕ) : ℝ)‖) :=
+    linear_shell_card_factor_le_two_mul_heightBase m
+  have hdecay_nonneg :
+      0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    zpow_nonneg
+      (add_nonneg zero_le_one (norm_nonneg ((m : ℕ) : ℝ)))
+      (-(k + 3 : ℤ))
+  have hstep :
+      ((2 * (m + 1) : ℕ) : ℝ) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
+        (2 * (1 + ‖((m : ℕ) : ℝ)‖)) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
+    mul_le_mul_of_nonneg_right hfactor hdecay_nonneg
+  have hcancel :
+      (1 + ‖((m : ℕ) : ℝ)‖) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) ≤
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
+    heightBase_mul_negative_zpow_succ_le_negative_zpow k m
+  have hscale :
+      2 *
+          ((1 + ‖((m : ℕ) : ℝ)‖) *
+            (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) ≤
+        2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
+    mul_le_mul_of_nonneg_left hcancel zero_le_two
+  have hreassoc :
+      (2 * (1 + ‖((m : ℕ) : ℝ)‖)) *
+          (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) =
+        2 *
+          ((1 + ‖((m : ℕ) : ℝ)‖) *
+            (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) :=
+    mul_assoc 2
+      (1 + ‖((m : ℕ) : ℝ)‖)
+      ((1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
+  exact le_trans hstep
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ 2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+      hreassoc.symm
+      hscale)
 
 /-- The constant multiple of the one-dimensional polynomial tail is summable. -/
 theorem summable_two_mul_one_add_nat_norm_negative_zpow_succ
