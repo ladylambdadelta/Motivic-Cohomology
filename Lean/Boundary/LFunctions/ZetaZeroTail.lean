@@ -452,6 +452,64 @@ noncomputable def zetaZeroMultiplicityTransformMajorant
   ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ *
     ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖
 
+/-- The zero-side multiplicity-transform majorant is nonnegative. -/
+theorem zetaZeroMultiplicityTransformMajorant_nonnegative
+    (φ : ZetaAdmissibleFunction)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    0 ≤ zetaZeroMultiplicityTransformMajorant φ ρ := by
+  unfold zetaZeroMultiplicityTransformMajorant
+  exact mul_nonneg
+    (norm_nonneg ((zetaZeroMultiplicity (ρ : ℂ) : ℂ)))
+    (norm_nonneg (zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))))
+
+/-- Vertical height of a completed zero after centering. -/
+noncomputable def zetaCompletedZeroCenteredHeight
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖
+
+/-- Polynomial zero-side envelope for multiplicity-weighted transform values. -/
+noncomputable def zetaZeroMultiplicityTransformEnvelope
+    (A : ℝ) (k : ℕ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  A * zetaCompletedZeroCenteredHeight ρ ^ (-(k + 3 : ℤ))
+
+/-- The zero-side envelope is nonnegative when its constant is nonnegative. -/
+theorem zetaZeroMultiplicityTransformEnvelope_nonnegative
+    {A : ℝ} (hA : 0 ≤ A) (k : ℕ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    0 ≤ zetaZeroMultiplicityTransformEnvelope A k ρ := by
+  unfold zetaZeroMultiplicityTransformEnvelope
+  unfold zetaCompletedZeroCenteredHeight
+  have hheight :
+      0 ≤ (1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖) ^ (-(k + 3 : ℤ)) :=
+    zpow_nonneg
+      (add_nonneg zero_le_one
+        (norm_nonneg ((zetaCenteredZero (ρ : ℂ)).im)))
+      (-(k + 3 : ℤ))
+  exact mul_nonneg hA hheight
+
+/-- Polynomial zero-side envelopes are summable over the completed-zero locus.
+
+This is the zero-counting owner theorem: completed zeros, counted with the centered
+vertical height, have enough polynomial counting control for the chosen envelope. -/
+theorem summable_zetaZeroMultiplicityTransformEnvelope
+    (A : ℝ) (k : ℕ) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaZeroMultiplicityTransformEnvelope A k ρ) := by
+  sorry
+
+/-- Zero multiplicity growth and Paley-Wiener transform decay give a summable polynomial
+envelope for the multiplicity-weighted transform majorant. -/
+theorem exists_zetaZeroMultiplicityTransformEnvelope_bound
+    (φ : ZetaAdmissibleFunction) :
+    ∃ A : ℝ, ∃ k : ℕ,
+      0 < A ∧
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        zetaZeroMultiplicityTransformMajorant φ ρ ≤
+          zetaZeroMultiplicityTransformEnvelope A k ρ := by
+  sorry
+
 /-- The contribution majorant unfolds to multiplicity times transform size. -/
 theorem zetaZeroSideContributionMajorant_eq_multiplicityTransformMajorant
     (φ : ZetaAdmissibleFunction)
@@ -483,7 +541,35 @@ theorem summable_zetaZeroMultiplicityTransformMajorant
     Summable
       (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
         zetaZeroMultiplicityTransformMajorant φ ρ) := by
-  sorry
+  rcases exists_zetaZeroMultiplicityTransformEnvelope_bound φ with
+    ⟨A, k, _hApos, hbound⟩
+  have henv :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroMultiplicityTransformEnvelope A k ρ) :=
+    summable_zetaZeroMultiplicityTransformEnvelope A k
+  have hnormBound :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ ≤
+          zetaZeroMultiplicityTransformEnvelope A k ρ := by
+    intro ρ
+    have hmajorant_nonneg :
+        0 ≤ zetaZeroMultiplicityTransformMajorant φ ρ :=
+      zetaZeroMultiplicityTransformMajorant_nonnegative φ ρ
+    have hnorm :
+        ‖zetaZeroMultiplicityTransformMajorant φ ρ‖ =
+          zetaZeroMultiplicityTransformMajorant φ ρ :=
+      Real.norm_of_nonneg hmajorant_nonneg
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ zetaZeroMultiplicityTransformEnvelope A k ρ)
+      hnorm.symm
+      (hbound ρ)
+  exact Summable.of_norm_bounded
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      zetaZeroMultiplicityTransformEnvelope A k ρ)
+    henv
+    hnormBound
 
 /-- Zero-density, multiplicity, and transform-decay estimates make the zero-side majorant
 summable over the completed-zero locus. -/
