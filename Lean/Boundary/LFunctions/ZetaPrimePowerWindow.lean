@@ -640,6 +640,20 @@ theorem polynomialHeightDecay_nonnegative
     (add_nonneg zero_le_one (norm_nonneg ((ι.height : ℕ) : ℝ)))
     (-(k + 3 : ℤ))
 
+/-- Increasing the requested polynomial decay exponent only decreases the
+rectangular-height decay majorant. -/
+theorem polynomialHeightDecay_le_of_le
+    {k l : ℕ} (hlk : l ≤ k) (ι : ZetaPrimePowerIndex) :
+    polynomialHeightDecay k ι ≤ polynomialHeightDecay l ι := by
+  let X : ℝ := 1 + ‖((ι.height : ℕ) : ℝ)‖
+  have hX_one : 1 ≤ X := by
+    exact le_add_of_nonneg_right (norm_nonneg ((ι.height : ℕ) : ℝ))
+  have hexp : (-(k + 3 : ℤ)) ≤ -(l + 3 : ℤ) := by
+    omega
+  unfold polynomialHeightDecay
+  change X ^ (-(k + 3 : ℤ)) ≤ X ^ (-(l + 3 : ℤ))
+  exact zpow_le_zpow_right₀ hX_one hexp
+
 /-- The `tsum` over one exact-height fiber is the corresponding finite shell sum. -/
 theorem tsum_heightFiber_polynomialHeightDecay_eq_shellSum
     (k m : ℕ) :
