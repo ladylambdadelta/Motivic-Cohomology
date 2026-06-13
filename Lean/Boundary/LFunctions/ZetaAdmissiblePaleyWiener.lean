@@ -543,6 +543,97 @@ theorem zetaLaplaceKernel_norm_le_rawEnvelope_on_support
     hnorm.symm
     hproduct
 
+/-- The Paley-Wiener Laplace kernel at a fixed spectral parameter. -/
+noncomputable def zetaPaleyWienerLaplaceKernel
+    (f : ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) : ℂ :=
+  f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))
+
+/-- The constant support-indicator majorant used for the real-line integral bound. -/
+noncomputable def zetaPaleyWienerSupportIndicatorBound
+    (f : ZetaAdmissibleFunction) (B : ℝ) : ℝ → ℝ :=
+  Set.indicator (tsupport f.toZetaTestFunction) (fun _ : ℝ => B)
+
+/-- The Laplace kernel is zero off the source support. -/
+theorem zetaPaleyWienerLaplaceKernel_eq_zero_of_not_mem_support
+    (f : ZetaAdmissibleFunction) (z : ℂ) {t : ℝ}
+    (ht : t ∉ tsupport f.toZetaTestFunction) :
+    zetaPaleyWienerLaplaceKernel f z t = 0 := by
+  have hsource : f.toZetaTestFunction t = 0 :=
+    image_eq_zero_of_nmem_tsupport ht
+  have htest :
+      f.toZetaTestFunction' t = f.toZetaTestFunction t :=
+    ZetaAdmissibleFunction.toZetaTestFunction'_apply f t
+  unfold zetaPaleyWienerLaplaceKernel
+  calc
+    f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))
+        = f.toZetaTestFunction t * Complex.exp (z * (t : ℂ)) := by
+          exact congrArg
+            (fun v : ℂ => v * Complex.exp (z * (t : ℂ)))
+            htest
+    _ = 0 * Complex.exp (z * (t : ℂ)) := by
+          exact congrArg
+            (fun v : ℂ => v * Complex.exp (z * (t : ℂ)))
+            hsource
+    _ = 0 := zero_mul (Complex.exp (z * (t : ℂ)))
+
+/-- A pointwise support bound induces domination by the constant support indicator. -/
+theorem zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
+    (f : ZetaAdmissibleFunction) (z : ℂ) (B : ℝ)
+    (hbound :
+      ∀ t : ℝ,
+        t ∈ tsupport f.toZetaTestFunction →
+        ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤ B) :
+    ∀ t : ℝ,
+      ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤
+        zetaPaleyWienerSupportIndicatorBound f B t := by
+  intro t
+  by_cases ht : t ∈ tsupport f.toZetaTestFunction
+  · have hindicator :
+        zetaPaleyWienerSupportIndicatorBound f B t = B := by
+      unfold zetaPaleyWienerSupportIndicatorBound
+      exact Set.indicator_of_mem ht
+    exact Eq.subst
+      (motive := fun v : ℝ => ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤ v)
+      hindicator.symm
+      (hbound t ht)
+  · have hkernel :
+        zetaPaleyWienerLaplaceKernel f z t = 0 :=
+      zetaPaleyWienerLaplaceKernel_eq_zero_of_not_mem_support f z ht
+    have hindicator :
+        zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
+      unfold zetaPaleyWienerSupportIndicatorBound
+      exact Set.indicator_of_not_mem ht
+    have hnorm_zero :
+        ‖zetaPaleyWienerLaplaceKernel f z t‖ = 0 := by
+      exact (congrArg (fun v : ℂ => ‖v‖) hkernel).trans norm_zero
+    exact Eq.subst
+      (motive := fun v : ℝ => v ≤ zetaPaleyWienerSupportIndicatorBound f B t)
+      hnorm_zero.symm
+      (Eq.subst
+        (motive := fun v : ℝ => 0 ≤ v)
+        hindicator.symm
+        le_rfl)
+
+/-- Integrating a support-indicator majorant bounds the norm of the real-line Laplace
+integral. -/
+theorem zetaLaplaceTransform_norm_le_supportIndicatorIntegral
+    (f : ZetaAdmissibleFunction) (z : ℂ) (B : ℝ)
+    (hindicator :
+      ∀ t : ℝ,
+        ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤
+          zetaPaleyWienerSupportIndicatorBound f B t) :
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+      ∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t := by
+  sorry
+
+/-- The support-indicator integral is bounded by any containing support interval length. -/
+theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalLength_mul_bound
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (B : ℝ) (hB_nonneg : 0 ≤ B) :
+    (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
+      B * zetaPaleyWienerSupportIntervalLength I := by
+  sorry
+
 /-- Integral-norm transport from a pointwise compact-support kernel bound. -/
 theorem zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
@@ -554,7 +645,30 @@ theorem zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
         ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ ≤ B) :
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
       B * zetaPaleyWienerSupportIntervalLength I := by
-  sorry
+  have hkernel_bound :
+      ∀ t : ℝ,
+        t ∈ tsupport f.toZetaTestFunction →
+        ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤ B := by
+    intro t ht
+    unfold zetaPaleyWienerLaplaceKernel
+    exact hbound t ht
+  have hindicator_pointwise :
+      ∀ t : ℝ,
+        ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤
+          zetaPaleyWienerSupportIndicatorBound f B t :=
+    zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
+      f z B hkernel_bound
+  have hintegral :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+        ∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t :=
+    zetaLaplaceTransform_norm_le_supportIndicatorIntegral
+      f z B hindicator_pointwise
+  have hlength :
+      (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
+        B * zetaPaleyWienerSupportIntervalLength I :=
+    zetaPaleyWienerSupportIndicatorIntegral_le_intervalLength_mul_bound
+      f I B hB_nonneg
+  exact le_trans hintegral hlength
 
 /-- Raw zero-order compact-support product bound for the Laplace transform.
 
