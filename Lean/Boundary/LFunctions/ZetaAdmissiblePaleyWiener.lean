@@ -1852,6 +1852,52 @@ theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normComparison
     hidentity.symm
     hnorm
 
+/-- The derivative source used after horizontal twisting is supported in the same compact
+support interval. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_eq_zero_off_supportInterval
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x t : ℝ) (ht_lower : t < I.lower) :
+    zetaPaleyWienerVerticalLineIBPDerivative f x t = 0 := by
+  sorry
+
+/-- The derivative source used after horizontal twisting vanishes above the support
+interval. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_eq_zero_of_supportInterval_lt
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x t : ℝ) (ht_upper : I.upper < t) :
+    zetaPaleyWienerVerticalLineIBPDerivative f x t = 0 := by
+  sorry
+
+/-- Uniform seminorm control for the horizontal-twist derivative family on compact
+real-part strips. -/
+theorem exists_zetaPaleyWienerHorizontalTwistDerivative_uniformSeminorm
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ x : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ∀ t : ℝ,
+          ‖zetaPaleyWienerVerticalLineIBPDerivative f x t‖ ≤ C := by
+  sorry
+
+/-- Fourier decay for the compactly supported horizontal-twist derivative family, with
+constants uniform over the real-part strip. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_uniformDecay
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ x y : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖
+          ≤ C * (1 + ‖y‖) ^ (-(N : ℤ)) := by
+  sorry
+
 /-- Uniform compact-strip decay for the derivative integral produced by vertical-line
 integration by parts, expressed directly in the real line coordinates `(x,y)`. -/
 theorem zetaPaleyWienerVerticalLineIBPDerivativeIntegral_compactStrip_uniformDecay
@@ -1864,7 +1910,12 @@ theorem zetaPaleyWienerVerticalLineIBPDerivativeIntegral_compactStrip_uniformDec
         x ≤ b →
         ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y‖
           ≤ C * (1 + ‖y‖) ^ (-(N : ℤ)) := by
-  sorry
+  rcases zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_uniformDecay
+      f I a b N with ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro x y hx_left hx_right
+  unfold zetaPaleyWienerVerticalLineIBPDerivativeIntegral
+  exact hCbound x y hx_left hx_right
 
 /-- Uniform compact-strip control of the derivative integral produced by one vertical-line
 integration-by-parts step.
