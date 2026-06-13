@@ -16,6 +16,63 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- Dagger reflection of a finite spectral sample set. -/
+def daggerReflectedSpectralSampleFinset
+    (S : Finset ℂ) : Finset ℂ :=
+  S.image (fun z : ℂ => -star z)
+
+/-- The spectral sample set enlarged by its dagger-reflected sample set. -/
+def daggerClosedSpectralSampleFinset
+    (S : Finset ℂ) : Finset ℂ :=
+  S ∪ daggerReflectedSpectralSampleFinset S
+
+/-- A sample belongs to its dagger-closed finite spectral sample set. -/
+theorem mem_daggerClosedSpectralSampleFinset_self
+    (S : Finset ℂ) (z : ℂ) (hz : z ∈ S) :
+    z ∈ daggerClosedSpectralSampleFinset S := by
+  unfold daggerClosedSpectralSampleFinset
+  exact Finset.mem_union.mpr (Or.inl hz)
+
+/-- The dagger-reflection of a sample belongs to the dagger-closed finite spectral sample
+set. -/
+theorem mem_daggerClosedSpectralSampleFinset_reflection
+    (S : Finset ℂ) (z : ℂ) (hz : z ∈ S) :
+    -star z ∈ daggerClosedSpectralSampleFinset S := by
+  unfold daggerClosedSpectralSampleFinset
+  unfold daggerReflectedSpectralSampleFinset
+  exact Finset.mem_union.mpr
+    (Or.inr (Finset.mem_image.mpr ⟨z, hz, rfl⟩))
+
+/-- Finite Paley-Wiener interpolation for seed spectral evaluations indexed by any finite
+sample type. -/
+theorem exists_seed_spectralEval_sample_on_fintype
+    {α : Type*} [Fintype α] (x : α → ℂ) (a : α → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ i : α, zetaSpectralEval f (x i) = a i := by
+  sorry
+
+/-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
+sample set. -/
+theorem exists_seed_spectralEval_sample_on_finset
+    (S : Finset ℂ) (a : ℂ → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
+  classical
+  let α : Type := {z : ℂ // z ∈ S}
+  let x : α → ℂ := fun z => z.1
+  let b : α → ℂ := fun z => a z.1
+  rcases exists_seed_spectralEval_sample_on_fintype x b with ⟨f, hf⟩
+  exact ⟨f, fun z hz =>
+    hf (⟨z, hz⟩ : α)⟩
+
+/-- Finite Paley-Wiener interpolation at the unit value on a finite spectral sample set. -/
+theorem exists_seed_spectralEval_one_on_finset
+    (S : Finset ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = 1 := by
+  exact exists_seed_spectralEval_sample_on_finset
+    S (fun _z : ℂ => 1)
+
 /-- Spectral evaluation of a completed convolution-autocorrelation probe factors through the
 seed transform and its dagger-reflected transform. -/
 theorem zetaSpectralEval_convolutionAutocorrelation_eq_seed_daggerProduct
@@ -39,7 +96,13 @@ theorem exists_seed_spectralEval_one_on_finset_and_reflection
     ∃ f : ZetaAdmissibleFunction,
       (∀ z : ℂ, z ∈ S → zetaSpectralEval f z = 1) ∧
         (∀ z : ℂ, z ∈ S → zetaSpectralEval f (-star z) = 1) := by
-  sorry
+  rcases exists_seed_spectralEval_one_on_finset
+      (daggerClosedSpectralSampleFinset S) with
+    ⟨f, hf⟩
+  exact ⟨f,
+    fun z hz => hf z (mem_daggerClosedSpectralSampleFinset_self S z hz),
+    fun z hz => hf (-star z)
+      (mem_daggerClosedSpectralSampleFinset_reflection S z hz)⟩
 
 /-- Unit seed values at a sample and its dagger-reflected sample give a unit dagger product
 at the original sample. -/

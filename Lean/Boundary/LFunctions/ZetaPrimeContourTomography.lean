@@ -110,6 +110,16 @@ theorem real_reference_add_complementary_residual
     _ = C := by
       exact add_zero C
 
+/-- Subtracting `T + τ` and then restoring `τ` is the same as subtracting `T`. -/
+theorem real_sub_add_tail_cancel
+    (C T τ : ℝ) :
+    C - (T + τ) + τ = C - T := by
+  calc
+    C - (T + τ) + τ = C - ((T + τ) - τ) := by
+      exact sub_add_eq_sub_sub C (T + τ) τ
+    _ = C - T := by
+      exact congrArg (fun x : ℝ => C - x) (add_sub_cancel_right T τ)
+
 /-- The coordinatewise contour-transport remainder between the contour-realized and
 time-side prime distributions. -/
 noncomputable def completedPrimeContourTransportCoordinateRemainder
@@ -208,108 +218,6 @@ theorem completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative
     _ = completedPrimeContourTransportCoordinateRemainderMajorant ι f := by
       exact (completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f).symm
 
-/-- Polynomial contour-localization majorant on prime-power coordinates. -/
-noncomputable def completedPrimeContourLocalizationMajorant
-    (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
-  C * ZetaPrimePowerIndex.polynomialHeightDecay k ι
-
-/-- The contour-localization majorant is the constant times the prime-power height decay. -/
-theorem completedPrimeContourLocalizationMajorant_eq_const_mul_decay
-    (C : ℝ) (k : ℕ) (ι : ZetaPrimePowerIndex) :
-    completedPrimeContourLocalizationMajorant C k ι =
-      C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  rfl
-
-/-- The contour-localization majorant is nonnegative when its constant is nonnegative. -/
-theorem completedPrimeContourLocalizationMajorant_nonnegative
-    {C : ℝ} (hC : 0 ≤ C) (k : ℕ) (ι : ZetaPrimePowerIndex) :
-    0 ≤ completedPrimeContourLocalizationMajorant C k ι := by
-  calc
-    0 ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-      exact mul_nonneg hC (ZetaPrimePowerIndex.polynomialHeightDecay_nonnegative k ι)
-    _ = completedPrimeContourLocalizationMajorant C k ι := by
-      exact (completedPrimeContourLocalizationMajorant_eq_const_mul_decay C k ι).symm
-
-/-- Raw height-polynomial localization for the contour-transport coordinate
-remainder. -/
-theorem exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
-
-/-- The raw height-polynomial coordinate estimate is exactly the named
-localization-majorant estimate. -/
-theorem completedPrimeContourTransportCoordinateRemainder_norm_le_localizationMajorant
-    (f : ZetaAdmissibleFunction) (C : ℝ) (k : ℕ)
-    (ι : ZetaPrimePowerIndex)
-    (hbound :
-      ∀ η : ZetaPrimePowerIndex,
-        ‖completedPrimeContourTransportCoordinateRemainder η f‖ ≤
-          C * ZetaPrimePowerIndex.polynomialHeightDecay k η) :
-    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-      completedPrimeContourLocalizationMajorant C k ι := by
-  calc
-    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-        C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-      exact hbound ι
-    _ = completedPrimeContourLocalizationMajorant C k ι := by
-      exact (completedPrimeContourLocalizationMajorant_eq_const_mul_decay C k ι).symm
-
-/-- A norm estimate for the coordinate remainder is the same estimate for its named
-coordinate-remainder majorant. -/
-theorem completedPrimeContourTransportCoordinateRemainderMajorant_le_of_norm_le
-    (f : ZetaAdmissibleFunction) (C : ℝ) (k : ℕ)
-    (ι : ZetaPrimePowerIndex)
-    (h :
-      ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-        completedPrimeContourLocalizationMajorant C k ι) :
-    completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
-      completedPrimeContourLocalizationMajorant C k ι := by
-  calc
-    completedPrimeContourTransportCoordinateRemainderMajorant ι f =
-        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ := by
-      exact completedPrimeContourTransportCoordinateRemainderMajorant_eq_norm ι f
-    _ ≤ completedPrimeContourLocalizationMajorant C k ι := by
-      exact h
-
-/-- Completed contour localization bounds the norm of every coordinate remainder by a
-height-polynomial majorant.
-
-This is the owner localization input for prime contour tomography. -/
-theorem exists_completedPrimeContourRemainderNorm_heightPolynomialBound
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-          completedPrimeContourLocalizationMajorant C k ι := by
-  exact
-    match exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound f with
-    | ⟨C, k, hCpos, hbound⟩ =>
-        ⟨C, k, hCpos, fun ι =>
-          completedPrimeContourTransportCoordinateRemainder_norm_le_localizationMajorant
-            f C k ι hbound⟩
-
-/-- Completed contour localization bounds the explicit coordinate-remainder
-majorant by a height-polynomial majorant. -/
-theorem exists_completedPrimeContourLocalizationMajorant_bound
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
-          completedPrimeContourLocalizationMajorant C k ι := by
-  exact
-    match exists_completedPrimeContourRemainderNorm_heightPolynomialBound f with
-    | ⟨C, k, hCpos, hbound⟩ =>
-        ⟨C, k, hCpos, fun ι =>
-          completedPrimeContourTransportCoordinateRemainderMajorant_le_of_norm_le
-            f C k ι (hbound ι)⟩
-
 /-- The finite-window coordinate remainder presentation of contour transport. -/
 noncomputable def finitePrimeContourTransportCoordinateRemainderWindow
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℝ :=
@@ -354,6 +262,39 @@ theorem finitePrimeContourTransportRemainder_eq_contourWindow_sub_timeWindow
         finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) := by
   rfl
 
+/-- The finite time-side prime window is the finite sum of its time-side coordinates. -/
+theorem finitePrimeTimeDistributionWindow_eq_sum_coordinate
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeTimeDistributionWindow N g =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι g := by
+  rfl
+
+/-- Subtracting two finite coordinate windows is the finite sum of the coordinatewise
+differences. -/
+theorem real_finset_sum_sub_distrib
+    (s : Finset ZetaPrimePowerIndex)
+    (u v : ZetaPrimePowerIndex → ℝ) :
+    (∑ ι in s, u ι) - (∑ ι in s, v ι) =
+      ∑ ι in s, (u ι - v ι) := by
+  exact Finset.sum_sub_distrib
+
+/-- Transport finite coordinate-window descriptions into a coordinatewise subtraction
+description. -/
+theorem real_window_sub_eq_sum_coordinate_sub_of_window_eq
+    {A B : ℝ} {s : Finset ZetaPrimePowerIndex}
+    {u v : ZetaPrimePowerIndex → ℝ}
+    (hA : A = ∑ ι in s, u ι)
+    (hB : B = ∑ ι in s, v ι) :
+    A - B = ∑ ι in s, (u ι - v ι) := by
+  calc
+    A - B = (∑ ι in s, u ι) - B := by
+      exact congrArg (fun x : ℝ => x - B) hA
+    _ = (∑ ι in s, u ι) - (∑ ι in s, v ι) := by
+      exact congrArg (fun x : ℝ => (∑ ι in s, u ι) - x) hB
+    _ = ∑ ι in s, (u ι - v ι) := by
+      exact real_finset_sum_sub_distrib s u v
+
 /-- The difference between the finite contour-realized and time-side prime windows is the
 sum of the coordinatewise differences. -/
 theorem finitePrimeContourRealized_sub_time_window_eq_sum_coordinate_sub
@@ -363,49 +304,10 @@ theorem finitePrimeContourRealized_sub_time_window_eq_sum_coordinate_sub
       ∑ ι in ZetaPrimePowerIndex.window N,
         (completedPrimeContourRealizedTimeDistributionCoordinate ι g -
           completedPrimeTimeDistributionCoordinate ι g) := by
-  have hcontour :
-      finitePrimeContourRealizedTimeDistributionWindow N g =
-        ∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g :=
-    finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g
-  have htime :
-      finitePrimeTimeDistributionWindow N g =
-        ∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeTimeDistributionCoordinate ι g := by
-    rfl
-  have hsub :
-      (∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g) -
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeTimeDistributionCoordinate ι g) =
-        ∑ ι in ZetaPrimePowerIndex.window N,
-          (completedPrimeContourRealizedTimeDistributionCoordinate ι g -
-            completedPrimeTimeDistributionCoordinate ι g) := by
-    exact Finset.sum_sub_distrib
-  calc
-    finitePrimeContourRealizedTimeDistributionWindow N g -
-        finitePrimeTimeDistributionWindow N g =
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g) -
-        finitePrimeTimeDistributionWindow N g := by
-      exact congrArg
-        (fun x : ℝ => x - finitePrimeTimeDistributionWindow N g)
-        hcontour
-    _ =
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g) -
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          completedPrimeTimeDistributionCoordinate ι g) := by
-      exact congrArg
-        (fun x : ℝ =>
-          (∑ ι in ZetaPrimePowerIndex.window N,
-            completedPrimeContourRealizedTimeDistributionCoordinate ι g) - x)
-        htime
-    _ =
-        ∑ ι in ZetaPrimePowerIndex.window N,
-          (completedPrimeContourRealizedTimeDistributionCoordinate ι g -
-            completedPrimeTimeDistributionCoordinate ι g) := by
-      exact hsub
+  exact
+    real_window_sub_eq_sum_coordinate_sub_of_window_eq
+      (finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g)
+      (finitePrimeTimeDistributionWindow_eq_sum_coordinate N g)
 
 /-- The finite contour-transport remainder is the finite window sum of the coordinatewise
 contour-transport remainders. -/
@@ -464,6 +366,21 @@ theorem finitePrimeTimeDistributionWindow_add_contourTransportRemainder
     _ = C := by
       exact real_reference_add_complementary_residual T C
 
+/-- A real subtraction identity can be transported into a top-minus-bottom real-part
+identity. -/
+theorem complex_re_sub_eq_real_difference_of_re_eq
+    {top bottom : ℂ} {a b : ℝ}
+    (htop : Complex.re top = a)
+    (hbottom : Complex.re bottom = b) :
+    Complex.re (top - bottom) = a - b := by
+  calc
+    Complex.re (top - bottom) = Complex.re top - Complex.re bottom := by
+      exact Complex.sub_re top bottom
+    _ = a - Complex.re bottom := by
+      exact congrArg (fun x : ℝ => x - Complex.re bottom) htop
+    _ = a - b := by
+      exact congrArg (fun x : ℝ => a - x) hbottom
+
 /-- The canonical contour family used to compare the finite prime transport remainder with
 the horizontal top-minus-bottom contour remainder. -/
 def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
@@ -471,16 +388,68 @@ def completedPrimeContourTransportFamily : ExplicitFormulaContourFamily where
   c_gt_half := by
     exact lt_add_of_pos_right (1 / 2 : ℝ) zero_lt_one
 
+/-- The sampled top horizontal contour integral along the prime transport family. -/
+noncomputable def sampledHorizontalTopIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaTopLineIntegral
+      (convolutionAutocorrelation f)
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
+/-- The sampled bottom horizontal contour integral along the prime transport family. -/
+noncomputable def sampledHorizontalBottomIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  zetaCompletedExplicitFormulaBottomLineIntegral
+      (convolutionAutocorrelation f)
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
 /-- The sampled horizontal top-minus-bottom contour remainder along the prime transport
 family. -/
 noncomputable def sampledHorizontalDifferenceComplex
     (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaTopLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-    zetaCompletedExplicitFormulaBottomLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+  sampledHorizontalTopIntegral N f -
+    sampledHorizontalBottomIntegral N f
+
+/-- The sampled top horizontal integral is the top edge integral of the prime transport
+rectangle. -/
+theorem sampledHorizontalTopIntegral_eq_topLineIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalTopIntegral N f =
+      zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
+  rfl
+
+/-- The sampled bottom horizontal integral is the bottom edge integral of the prime
+transport rectangle. -/
+theorem sampledHorizontalBottomIntegral_eq_bottomLineIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalBottomIntegral N f =
+      zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
+  rfl
+
+/-- The sampled horizontal difference is the sampled top edge minus the sampled bottom
+edge. -/
+theorem sampledHorizontalDifferenceComplex_eq_top_sub_bottom
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    sampledHorizontalDifferenceComplex N f =
+      sampledHorizontalTopIntegral N f -
+        sampledHorizontalBottomIntegral N f := by
+  rfl
+
+/-- The real part of the sampled horizontal difference is the difference of the real parts
+of the sampled top and bottom edges. -/
+theorem sampledHorizontalDifferenceComplex_re_eq_top_re_sub_bottom_re
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) =
+      Complex.re (sampledHorizontalTopIntegral N f) -
+        Complex.re (sampledHorizontalBottomIntegral N f) := by
+  exact
+    Eq.trans
+      (congrArg Complex.re (sampledHorizontalDifferenceComplex_eq_top_sub_bottom N f))
+      (Complex.sub_re (sampledHorizontalTopIntegral N f)
+        (sampledHorizontalBottomIntegral N f))
 
 /-- The real shadow of the sampled horizontal top-minus-bottom contour remainder along the
 prime transport family. -/
@@ -550,14 +519,302 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
+/-- The real part of the top line integral over the prime transport rectangle reconstructs
+the finite sum of contour-realized prime coordinates. -/
+theorem primeTransportTopLineIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f) := by
+  sorry
+
+/-- The real part of the top line integral over the prime transport rectangle reconstructs
+the finite contour-realized prime window. -/
+theorem primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) := by
+  exact
+    (primeTransportTopLineIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
+      N f).trans
+      (finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
+        N (convolutionAutocorrelation f)).symm
+
+/-- The real part of the sampled top horizontal edge reconstructs the finite
+contour-realized prime window. -/
+theorem sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalTopIntegral N f) =
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) := by
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+      (sampledHorizontalTopIntegral_eq_topLineIntegral N f).symm
+      (primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
+        N f)
+
+/-- The real part of the bottom line integral over the prime transport rectangle reconstructs
+the finite sum of time-side coordinates together with the omitted coordinate-remainder tail. -/
+theorem primeTransportBottomLineIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaBottomLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  sorry
+
+/-- The real part of the bottom line integral over the prime transport rectangle reconstructs
+the finite time-side prime window together with the omitted coordinate-remainder tail. -/
+theorem primeTransportBottomLineIntegral_re_eq_timeWindow_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (zetaCompletedExplicitFormulaBottomLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    (primeTransportBottomLineIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+      N f).trans
+      (congrArg
+        (fun x : ℝ => x + completedPrimeContourTransportCoordinateRemainderTail N f)
+        (finitePrimeTimeDistributionWindow_eq_sum_coordinate
+          N (convolutionAutocorrelation f)).symm)
+
+/-- The real part of the sampled bottom horizontal edge reconstructs the finite time-side
+prime window together with the omitted coordinate-remainder tail. -/
+theorem sampledHorizontalBottomIntegral_re_eq_timeWindow_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalBottomIntegral N f) =
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+            completedPrimeContourTransportCoordinateRemainderTail N f)
+      (sampledHorizontalBottomIntegral_eq_bottomLineIntegral N f).symm
+      (primeTransportBottomLineIntegral_re_eq_timeWindow_add_tail_ownerTomography
+        N f)
+
+/-- The top and bottom real edge reconstructions imply the sampled-horizontal real
+contour-transport reconstruction. -/
+theorem sampledHorizontalDifferenceComplex_re_add_tail_eq_contourTransportRemainder_of_edgeRealReconstructions
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (htop :
+      Complex.re (sampledHorizontalTopIntegral N f) =
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f))
+    (hbottom :
+      Complex.re (sampledHorizontalBottomIntegral N f) =
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+          completedPrimeContourTransportCoordinateRemainderTail N f) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportRemainder N f := by
+  let C : ℝ :=
+    finitePrimeContourRealizedTimeDistributionWindow N
+      (convolutionAutocorrelation f)
+  let T : ℝ :=
+    finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)
+  let τ : ℝ :=
+    completedPrimeContourTransportCoordinateRemainderTail N f
+  have hre :
+      Complex.re (sampledHorizontalDifferenceComplex N f) =
+        C - (T + τ) := by
+    exact complex_re_sub_eq_real_difference_of_re_eq htop hbottom
+  calc
+    Complex.re (sampledHorizontalDifferenceComplex N f) + τ =
+        (C - (T + τ)) + τ := by
+      exact congrArg (fun x : ℝ => x + τ) hre
+    _ = C - T := by
+      exact real_sub_add_tail_cancel C T τ
+    _ = finitePrimeContourTransportRemainder N f := by
+      exact (finitePrimeContourTransportRemainder_eq_contourWindow_sub_timeWindow N f).symm
+
+/-- Real-part sampled contour tomography reconstructs the finite contour-transport
+remainder after restoring the omitted coordinate-remainder tail. -/
+theorem sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_contourTransportRemainder_ownerTomography_core
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportRemainder N f := by
+  exact
+    sampledHorizontalDifferenceComplex_re_add_tail_eq_contourTransportRemainder_of_edgeRealReconstructions
+      N f
+      (sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography N f)
+      (sampledHorizontalBottomIntegral_re_eq_timeWindow_add_tail_ownerTomography N f)
+
+/-- Real-part sampled contour tomography reconstructs the coordinate-remainder window after
+adding the omitted coordinate-remainder tail.
+
+This is the finite-window form of the sampled-horizontal reconstruction. -/
+theorem sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography_core
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  exact
+    real_add_eq_of_left_eq_of_add_eq
+      rfl
+      ((sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_contourTransportRemainder_ownerTomography_core
+        N f).trans
+        (finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow N f))
+
 /-- Real-part sampled contour tomography reconstructs the finite residue defect.
 
-This is the real residue-balance content of the horizontal contour tomography theorem. -/
+This is the subtraction form obtained from additive window reconstruction. -/
 theorem sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     Complex.re (sampledHorizontalDifferenceComplex N f) =
       finitePrimeContourTransportResidueDefect N f := by
+  exact
+    (real_left_eq_sub_of_add_eq
+      (sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography_core
+        N f)).trans
+      (finitePrimeContourTransportResidueDefect_eq_window_sub_tail N f).symm
+
+/-- A complex number fixed by conjugation has zero imaginary part. -/
+theorem complex_im_eq_zero_of_star_eq_self
+    (z : ℂ) (hstar : star z = z) :
+    Complex.im z = 0 := by
+  have him_star : Complex.im (star z) = Complex.im z :=
+    congrArg Complex.im hstar
+  have him_neg : Complex.im (star z) = -Complex.im z :=
+    Complex.conj_im z
+  have hneg_eq : -Complex.im z = Complex.im z :=
+    him_neg.symm.trans him_star
+  have hsum_zero : Complex.im z + Complex.im z = 0 := by
+    calc
+      Complex.im z + Complex.im z = Complex.im z + -Complex.im z := by
+        exact congrArg (fun x : ℝ => Complex.im z + x) hneg_eq.symm
+      _ = 0 := by
+        exact add_right_neg (Complex.im z)
+  have htwo_zero : (2 : ℝ) * Complex.im z = 0 := by
+    calc
+      (2 : ℝ) * Complex.im z = Complex.im z + Complex.im z := by
+        exact two_mul (Complex.im z)
+      _ = 0 := by
+        exact hsum_zero
+  exact
+    match mul_eq_zero.mp htwo_zero with
+    | Or.inl htwo => False.elim (two_ne_zero htwo)
+    | Or.inr him => him
+
+/-- The top line integral over the prime transport rectangle is conjugate to the oppositely
+oriented bottom line integral. -/
+theorem primeTransportTopLineIntegral_star_eq_neg_bottomLineIntegral_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      -zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
   sorry
+
+/-- The sampled top horizontal edge is conjugate to the oppositely oriented bottom edge. -/
+theorem sampledHorizontalTopIntegral_star_eq_neg_bottom_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (sampledHorizontalTopIntegral N f) =
+      -sampledHorizontalBottomIntegral N f := by
+  exact
+    Eq.trans
+      (congrArg star (sampledHorizontalTopIntegral_eq_topLineIntegral N f))
+      ((primeTransportTopLineIntegral_star_eq_neg_bottomLineIntegral_ownerTomography
+        N f).trans
+        (congrArg Neg.neg
+          (sampledHorizontalBottomIntegral_eq_bottomLineIntegral N f).symm))
+
+/-- Oriented conjugation of one edge gives the reverse oriented conjugation of the paired
+edge. -/
+theorem complex_star_eq_neg_left_of_star_eq_neg_right
+    (top bottom : ℂ)
+    (h : star top = -bottom) :
+    star bottom = -top := by
+  have hstar :
+      star (star top) = star (-bottom) :=
+    congrArg star h
+  have htop_eq_neg_star_bottom :
+      top = -star bottom := by
+    calc
+      top = star (star top) := by
+        exact (star_star top).symm
+      _ = star (-bottom) := hstar
+      _ = -star bottom := by
+        exact map_neg star bottom
+  calc
+    star bottom = -(-star bottom) := by
+      exact (neg_neg (star bottom)).symm
+    _ = -top := by
+      exact congrArg Neg.neg htop_eq_neg_star_bottom.symm
+
+/-- The sampled bottom horizontal edge is conjugate to the oppositely oriented top edge. -/
+theorem sampledHorizontalBottomIntegral_star_eq_neg_top_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (sampledHorizontalBottomIntegral N f) =
+      -sampledHorizontalTopIntegral N f := by
+  exact
+    complex_star_eq_neg_left_of_star_eq_neg_right
+      (sampledHorizontalTopIntegral N f)
+      (sampledHorizontalBottomIntegral N f)
+      (sampledHorizontalTopIntegral_star_eq_neg_bottom_ownerTomography N f)
+
+/-- If two horizontal edge terms are conjugate after reversing orientation, then their
+top-minus-bottom difference is self-adjoint. -/
+theorem complex_star_sub_eq_self_of_star_eq_neg_cross
+    (top bottom : ℂ)
+    (htop : star top = -bottom)
+    (hbottom : star bottom = -top) :
+    star (top - bottom) = top - bottom := by
+  calc
+    star (top - bottom) = star top - star bottom := by
+      exact map_sub star top bottom
+    _ = -bottom - star bottom := by
+      exact congrArg (fun z : ℂ => z - star bottom) htop
+    _ = -bottom - -top := by
+      exact congrArg (fun z : ℂ => -bottom - z) hbottom
+    _ = top - bottom := by
+      exact neg_sub_neg bottom top
+
+/-- Oriented edge conjugation makes the sampled horizontal difference self-adjoint. -/
+theorem sampledHorizontalDifferenceComplex_star_eq_self_of_orientedEdgeConjugation
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (sampledHorizontalDifferenceComplex N f) =
+      sampledHorizontalDifferenceComplex N f := by
+  exact
+    Eq.trans
+      (congrArg star (sampledHorizontalDifferenceComplex_eq_top_sub_bottom N f))
+      ((complex_star_sub_eq_self_of_star_eq_neg_cross
+        (sampledHorizontalTopIntegral N f)
+        (sampledHorizontalBottomIntegral N f)
+        (sampledHorizontalTopIntegral_star_eq_neg_bottom_ownerTomography N f)
+        (sampledHorizontalBottomIntegral_star_eq_neg_top_ownerTomography N f)).trans
+        (sampledHorizontalDifferenceComplex_eq_top_sub_bottom N f).symm)
+
+/-- The real-normalized sampled horizontal contour difference is self-adjoint. -/
+theorem sampledHorizontalDifferenceComplex_star_eq_self_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (sampledHorizontalDifferenceComplex N f) =
+      sampledHorizontalDifferenceComplex N f := by
+  exact sampledHorizontalDifferenceComplex_star_eq_self_of_orientedEdgeConjugation N f
 
 /-- The sampled horizontal contour difference has no imaginary residue defect component.
 
@@ -566,7 +823,25 @@ complex representative equality. -/
 theorem sampledHorizontalDifferenceComplex_im_eq_zero_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     Complex.im (sampledHorizontalDifferenceComplex N f) = 0 := by
-  sorry
+  exact
+    complex_im_eq_zero_of_star_eq_self
+      (sampledHorizontalDifferenceComplex N f)
+      (sampledHorizontalDifferenceComplex_star_eq_self_ownerTomography N f)
+
+/-- A real-part residue-defect identity and imaginary vanishing identify the sampled
+complex horizontal difference with the complex residue-defect representative. -/
+theorem sampledHorizontalDifferenceComplex_eq_complexResidueDefect_of_re_im
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (hre :
+      Complex.re (sampledHorizontalDifferenceComplex N f) =
+        finitePrimeContourTransportResidueDefect N f)
+    (him :
+      Complex.im (sampledHorizontalDifferenceComplex N f) = 0) :
+    sampledHorizontalDifferenceComplex N f =
+      finitePrimeContourTransportComplexResidueDefect N f := by
+  exact Complex.ext
+    (hre.trans (finitePrimeContourTransportComplexResidueDefect_re N f).symm)
+    (him.trans (finitePrimeContourTransportComplexResidueDefect_im N f).symm)
 
 /-- Complex sampled contour tomography reconstructs the complex finite residue defect.
 
@@ -576,12 +851,12 @@ theorem sampledHorizontalDifferenceComplex_eq_complexResidueDefect_ownerTomograp
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     sampledHorizontalDifferenceComplex N f =
       finitePrimeContourTransportComplexResidueDefect N f := by
-  exact Complex.ext
-    ((sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
-      N f).trans
-      (finitePrimeContourTransportComplexResidueDefect_re N f).symm)
-    ((sampledHorizontalDifferenceComplex_im_eq_zero_ownerTomography N f).trans
-      (finitePrimeContourTransportComplexResidueDefect_im N f).symm)
+  exact
+    sampledHorizontalDifferenceComplex_eq_complexResidueDefect_of_re_im
+      N f
+      (sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
+        N f)
+      (sampledHorizontalDifferenceComplex_im_eq_zero_ownerTomography N f)
 
 /-- Complex sampled contour tomography reconstructs the finite residue defect after taking
 the real part.
@@ -605,10 +880,8 @@ theorem sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coo
         completedPrimeContourTransportCoordinateRemainderTail N f =
       finitePrimeContourTransportCoordinateRemainderWindow N f := by
   exact
-    real_add_eq_of_left_eq_sub
-      ((sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography
-        N f).trans
-        (finitePrimeContourTransportResidueDefect_eq_window_sub_tail N f))
+    sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography_core
+      N f
 
 /-- The residual finite prime tomography error after subtracting the sampled horizontal
 contour difference from the finite prime contour-transport remainder.
@@ -644,6 +917,25 @@ theorem sampledHorizontalDifference_eq_finitePrimeContourTransportResidueDefect_
       (sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography
         N f)
 
+/-- Transport the additive contour-residue balance from the complex real part to the named
+real sampled horizontal difference. -/
+theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow_of_complex_re
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (hcomplex :
+      Complex.re (sampledHorizontalDifferenceComplex N f) +
+          completedPrimeContourTransportCoordinateRemainderTail N f =
+        finitePrimeContourTransportCoordinateRemainderWindow N f) :
+    sampledHorizontalDifference N f +
+        completedPrimeContourTransportCoordinateRemainderTail N f =
+      finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x + completedPrimeContourTransportCoordinateRemainderTail N f =
+          finitePrimeContourTransportCoordinateRemainderWindow N f)
+      (sampledHorizontalDifference_eq_complex_re N f).symm
+      hcomplex
+
 /-- Additive contour-residue tomography balance.
 
 The sampled horizontal top-minus-bottom contour term plus the omitted outside-window
@@ -653,11 +945,10 @@ theorem sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRem
     sampledHorizontalDifference N f +
         completedPrimeContourTransportCoordinateRemainderTail N f =
       finitePrimeContourTransportCoordinateRemainderWindow N f := by
-  exact
-    real_add_eq_of_left_eq_sub
-      ((sampledHorizontalDifference_eq_finitePrimeContourTransportResidueDefect_ownerTomography
-        N f).trans
-        (finitePrimeContourTransportResidueDefect_eq_window_sub_tail N f))
+  exact sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow_of_complex_re
+    N f
+    (sampledHorizontalDifferenceComplex_re_add_coordinateRemainderTail_eq_coordinateRemainderWindow_ownerTomography
+      N f)
 
 /-- Contour-residue reconstruction of the sampled horizontal term.
 
@@ -757,6 +1048,17 @@ theorem finitePrimeContourTransportTomographicCoordinateRemainderTailMajorant_eq
           (completedPrimeContourTransportCoordinateRemainderMajorantFamily f) N ι := by
   rfl
 
+/-- A target splits as a sampled reference plus a named error when the error is the
+corresponding residual. -/
+theorem real_target_eq_reference_add_error_of_error_eq_residual
+    {R H E : ℝ} (hE : E = R - H) :
+    R = H + E := by
+  calc
+    R = H + (R - H) := by
+      exact real_eq_reference_add_residual R H
+    _ = H + E := by
+      exact congrArg (fun x : ℝ => H + x) hE.symm
+
 /-- The finite prime contour-transport remainder splits as sampled horizontal difference
 plus residual finite tomography error. -/
 theorem finitePrimeContourTransportRemainder_eq_sampledHorizontalDifference_add_error
@@ -764,17 +1066,9 @@ theorem finitePrimeContourTransportRemainder_eq_sampledHorizontalDifference_add_
     finitePrimeContourTransportRemainder N f =
       sampledHorizontalDifference N f +
         finitePrimeContourTransportTomographicError N f := by
-  let R : ℝ := finitePrimeContourTransportRemainder N f
-  let H : ℝ := sampledHorizontalDifference N f
-  have herror :
-      finitePrimeContourTransportTomographicError N f = R - H :=
-    finitePrimeContourTransportTomographicError_eq_remainder_sub_sampled N f
-  calc
-    finitePrimeContourTransportRemainder N f = H + (R - H) := by
-      exact real_eq_reference_add_residual R H
-    _ = sampledHorizontalDifference N f +
-        finitePrimeContourTransportTomographicError N f := by
-      exact congrArg (fun x : ℝ => sampledHorizontalDifference N f + x) herror.symm
+  exact
+    real_target_eq_reference_add_error_of_error_eq_residual
+      (finitePrimeContourTransportTomographicError_eq_remainder_sub_sampled N f)
 
 /-- The finite prime tomographic residual error is controlled by its explicit majorant. -/
 theorem norm_finitePrimeContourTransportTomographicError_le_majorant

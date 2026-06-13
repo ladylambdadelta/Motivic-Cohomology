@@ -26,36 +26,32 @@ theorem zetaCompletedZeroKreinGram_eq_residueBoundarySum
       zetaCompletedResidueBoundarySum f := by
   rfl
 
-/-- Real-part form of the residue-to-boundary comparison.
+/-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
+the same completed boundary scalar. -/
+theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedResidueBoundarySum f : ℂ) =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  sorry
 
-This is the real scalar comparison root: the residue sum is real, so the complex comparison
-below is assembled from this real-part identity and the imaginary-part vanishing theorem. -/
+/-- Real-part form of the residue-to-boundary comparison. -/
 theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re_owner
     (f : ZetaAdmissibleFunction) :
     zetaCompletedResidueBoundarySum f =
       Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-  sorry
+  exact
+    (Complex.ofReal_re (zetaCompletedResidueBoundarySum f)).symm.trans
+      (congrArg Complex.re
+        (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner f))
 
 /-- The analytic boundary sum attached to a residue probe is real-valued. -/
 theorem zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero_owner
     (f : ZetaAdmissibleFunction) :
     Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic f) = 0 := by
-  sorry
-
-/-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
-the same completed boundary scalar.
-
-This complex comparison is only the assembly of the real residue comparison and the
-imaginary-part vanishing statement. -/
-theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner
-    (f : ZetaAdmissibleFunction) :
-    (zetaCompletedResidueBoundarySum f : ℂ) =
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
-  exact Complex.ext
-    ((Complex.ofReal_re (zetaCompletedResidueBoundarySum f)).trans
-      (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re_owner f))
-    ((Complex.ofReal_im (zetaCompletedResidueBoundarySum f)).trans
-      (zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero_owner f).symm)
+  exact
+    (congrArg Complex.im
+      (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner f)).symm.trans
+      (Complex.ofReal_im (zetaCompletedResidueBoundarySum f))
 
 /-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
 the same completed boundary scalar. -/

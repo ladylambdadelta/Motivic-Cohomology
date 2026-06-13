@@ -23,18 +23,6 @@ noncomputable def explicitFormulaFamilyVerticalDifference
   zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
     zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
 
-/-- Owner vertical-channel contour transport theorem.
-
-The vertical side of the contour family converges to the analytic
-prime/archimedean/correction boundary scalar. -/
-theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_ownerVerticalTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
-    Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
-      atTop
-      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  sorry
-
 end ZetaAdmissibleFunction
 
 end

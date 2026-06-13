@@ -162,16 +162,6 @@ def ExplicitFormulaAnalyticPackage.toFamilyPackage
     ExplicitFormulaFamilyAnalyticPackage f F := by
   exact { phi_control := h.phi_control, logderiv_control := h.logderiv_control }
 
-/-- The analytic package exposes the residue-theorem target once the residue identity itself is
-available. -/
-theorem ExplicitFormulaAnalyticPackage.residueTheoremTarget
-    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
-    (hres :
-      zetaCompletedExplicitFormulaContourIntegral f h.contour_data.rectangle =
-        explicitFormulaResidueSum f []) :
-    explicitFormulaResidueTheoremTarget f h.contour_data.rectangle :=
-  hres
-
 /-- The contour-data owner object exposes the edge continuity statements for the contour
 integrand. -/
 theorem ExplicitFormulaAnalyticPackage.contourIntegrand_continuousAt_rightPath
@@ -486,14 +476,6 @@ theorem ExplicitFormulaAnalyticPackage.horizontalDifferenceEnvelopeDecay
       atTop (𝓝 (0 : ℝ)) := by
   exact ExplicitFormulaFamilyAnalyticPackage.horizontalDecayEnvelope
     (f := f) (F := F) (h := h.toFamilyPackage F) N
-
-/-- The analytic package exposes the residue-theorem target in unfolded contour notation. -/
-theorem ExplicitFormulaAnalyticPackage.residueTheoremTarget_iff
-    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
-    explicitFormulaResidueTheoremTarget f h.contour_data.rectangle ↔
-      zetaCompletedExplicitFormulaContourIntegral f h.contour_data.rectangle =
-        explicitFormulaResidueSum f [] := by
-  rfl
 
 /-- The analytic package exposes the full-integrand residue regularity theorem. -/
 theorem ExplicitFormulaAnalyticPackage.completedZeta_rectangleResidueFormula_regular_off_countable

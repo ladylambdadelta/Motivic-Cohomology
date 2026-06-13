@@ -22,11 +22,262 @@ def centeredCompletedRiemannZeta (s : ℂ) : ℂ :=
 def centeredCompletedRiemannZeta₀ (s : ℂ) : ℂ :=
   completedRiemannZeta₀ (1 / 2 + s)
 
+/-- The entire zero-carrier for the centered completed zeta function.
+
+Away from the shifted pole faces, zeros of the centered completed zeta
+normalization are zeros of this entire carrier.  This is the object to which
+Jensen/finite-order zero counting applies; the raw entire part
+`centeredCompletedRiemannZeta₀` alone is not the completed-zero divisor. -/
+def centeredCompletedRiemannZetaZeroCarrier (s : ℂ) : ℂ :=
+  ((1 / 2 : ℂ) + s) *
+    (1 - ((1 / 2 : ℂ) + s)) *
+      centeredCompletedRiemannZeta₀ s - 1
+
+/-- The centered entire part is analytic everywhere. -/
+theorem centeredCompletedRiemannZeta₀_analyticAt
+    (z : ℂ) :
+    AnalyticAt ℂ centeredCompletedRiemannZeta₀ z := by
+  have hlinear :
+      AnalyticAt ℂ (fun w : ℂ => (1 / 2 : ℂ) + w) z :=
+    analyticAt_const.add analyticAt_id
+  unfold centeredCompletedRiemannZeta₀
+  exact (differentiable_completedZeta₀.analyticAt ((1 / 2 : ℂ) + z)).comp hlinear
+
+/-- The centered zero-carrier is analytic everywhere. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_analyticAt
+    (z : ℂ) :
+    AnalyticAt ℂ centeredCompletedRiemannZetaZeroCarrier z := by
+  have hleft :
+      AnalyticAt ℂ (fun w : ℂ => (1 / 2 : ℂ) + w) z :=
+    analyticAt_const.add analyticAt_id
+  have hright :
+      AnalyticAt ℂ (fun w : ℂ => 1 - ((1 / 2 : ℂ) + w)) z :=
+    analyticAt_const.sub (analyticAt_const.add analyticAt_id)
+  have hcarrier :
+      AnalyticAt ℂ
+        (fun w : ℂ =>
+          ((1 / 2 : ℂ) + w) *
+            (1 - ((1 / 2 : ℂ) + w)) *
+              centeredCompletedRiemannZeta₀ w - 1)
+        z :=
+    ((hleft.mul hright).mul
+      (centeredCompletedRiemannZeta₀_analyticAt z)).sub analyticAt_const
+  exact hcarrier
+
 theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =
       centeredCompletedRiemannZeta₀ s -
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
   exact completedRiemannZeta_eq (1 / 2 + s)
+
+/-- Excluding the negative shifted pole makes the left denominator nonzero. -/
+theorem centeredShift_leftDenominator_ne_zero_of_ne_negHalf
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ)) :
+    (1 / 2 : ℂ) + z ≠ 0 := by
+  intro hzero
+  have hz_eq : z = -(1 / 2 : ℂ) := by
+    calc
+      z = ((1 / 2 : ℂ) + z) - (1 / 2 : ℂ) := by ring
+      _ = 0 - (1 / 2 : ℂ) := by
+        exact congrArg (fun w : ℂ => w - (1 / 2 : ℂ)) hzero
+      _ = -(1 / 2 : ℂ) := by ring
+  exact hzneg hz_eq
+
+/-- Excluding the positive shifted pole makes the right denominator nonzero. -/
+theorem centeredShift_rightDenominator_ne_zero_of_ne_posHalf
+    {z : ℂ}
+    (hzpos : z ≠ (1 / 2 : ℂ)) :
+    1 - ((1 / 2 : ℂ) + z) ≠ 0 := by
+  intro hzero
+  have hz_eq : z = (1 / 2 : ℂ) := by
+    have hz_sub : z - (1 / 2 : ℂ) = 0 := by
+      calc
+        z - (1 / 2 : ℂ) =
+            (1 : ℂ) - ((1 / 2 : ℂ) + z) := by ring
+        _ = 0 := hzero
+    calc
+      z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
+      _ = 0 + (1 / 2 : ℂ) := by
+        exact congrArg (fun w : ℂ => w + (1 / 2 : ℂ)) hz_sub
+      _ = (1 / 2 : ℂ) := by ring
+  exact hzpos hz_eq
+
+/-- Excluding both shifted poles makes the clearing denominator product nonzero. -/
+theorem centeredShift_denominatorProduct_ne_zero_of_ne_shiftedPoles
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ))
+    (hzpos : z ≠ (1 / 2 : ℂ)) :
+    ((1 / 2 : ℂ) + z) *
+        (1 - ((1 / 2 : ℂ) + z)) ≠ 0 := by
+  intro hmul
+  match mul_eq_zero.mp hmul with
+  | Or.inl hleft =>
+      exact centeredShift_leftDenominator_ne_zero_of_ne_negHalf hzneg hleft
+  | Or.inr hright =>
+      exact centeredShift_rightDenominator_ne_zero_of_ne_posHalf hzpos hright
+
+/-- The shifted denominator-clearing factor is analytic at every point. -/
+theorem centeredShift_denominatorClearingFactor_analyticAt
+    (z : ℂ) :
+    AnalyticAt ℂ
+      (fun w : ℂ =>
+        ((1 / 2 : ℂ) + w) * (1 - ((1 / 2 : ℂ) + w))) z := by
+  have hleft :
+      AnalyticAt ℂ (fun w : ℂ => (1 / 2 : ℂ) + w) z :=
+    analyticAt_const.add analyticAt_id
+  have hright :
+      AnalyticAt ℂ (fun w : ℂ => 1 - ((1 / 2 : ℂ) + w)) z :=
+      analyticAt_const.sub (analyticAt_const.add analyticAt_id)
+  exact hleft.mul hright
+
+/-- Multiplying the left reciprocal pole by the cleared denominator leaves the right
+denominator. -/
+theorem denominatorProduct_mul_leftReciprocal
+    {a b : ℂ} (ha : a ≠ 0) :
+    a * b * (1 / a) = b := by
+  calc
+    a * b * (1 / a) = b * a * (1 / a) := by
+      exact congrArg (fun x : ℂ => x * (1 / a)) (mul_comm a b)
+    _ = b * (a * (1 / a)) := by
+      exact mul_assoc b a (1 / a)
+    _ = b * 1 := by
+      exact congrArg (fun x : ℂ => b * x) (mul_inv_cancel₀ ha)
+    _ = b := by
+      exact mul_one b
+
+/-- Multiplying the right reciprocal pole by the cleared denominator leaves the left
+denominator. -/
+theorem denominatorProduct_mul_rightReciprocal
+    {a b : ℂ} (hb : b ≠ 0) :
+    a * b * (1 / b) = a := by
+  calc
+    a * b * (1 / b) = a * (b * (1 / b)) := by
+      exact mul_assoc a b (1 / b)
+    _ = a * 1 := by
+      exact congrArg (fun x : ℂ => a * x) (mul_inv_cancel₀ hb)
+    _ = a := by
+      exact mul_one a
+
+/-- Clearing both reciprocal pole terms leaves subtraction by the sum of the two
+denominators. -/
+theorem denominatorProduct_mul_sub_twoReciprocals
+    {a b E : ℂ} (ha : a ≠ 0) (hb : b ≠ 0) :
+    a * b * (E - 1 / a - 1 / b) =
+      a * b * E - (a + b) := by
+  calc
+    a * b * (E - 1 / a - 1 / b) =
+        a * b * (E - 1 / a) - a * b * (1 / b) := by
+      exact mul_sub (a * b) (E - 1 / a) (1 / b)
+    _ = (a * b * E - a * b * (1 / a)) - a * b * (1 / b) := by
+      exact congrArg
+        (fun x : ℂ => x - a * b * (1 / b))
+        (mul_sub (a * b) E (1 / a))
+    _ = (a * b * E - b) - a * b * (1 / b) := by
+      exact congrArg
+        (fun x : ℂ => (a * b * E - x) - a * b * (1 / b))
+        (denominatorProduct_mul_leftReciprocal ha)
+    _ = (a * b * E - b) - a := by
+      exact congrArg
+        (fun x : ℂ => (a * b * E - b) - x)
+        (denominatorProduct_mul_rightReciprocal hb)
+    _ = a * b * E - (a + b) := by
+      calc
+        (a * b * E - b) - a =
+            a * b * E + -b + -a := by
+          exact congrArg
+            (fun x : ℂ => x + -a)
+            (sub_eq_add_neg (a * b * E) b)
+        _ = a * b * E + (-b + -a) := by
+          exact add_assoc (a * b * E) (-b) (-a)
+        _ = a * b * E + (-(b + a)) := by
+          exact congrArg
+            (fun x : ℂ => a * b * E + x)
+            (neg_add b a).symm
+        _ = a * b * E + (-(a + b)) := by
+          exact congrArg
+            (fun x : ℂ => a * b * E + (-x))
+            (add_comm b a)
+        _ = a * b * E - (a + b) := by
+          exact (sub_eq_add_neg (a * b * E) (a + b)).symm
+
+/-- The two shifted denominators sum to one. -/
+theorem centeredShift_left_add_right_denominator
+    (s : ℂ) :
+    ((1 / 2 : ℂ) + s) + (1 - ((1 / 2 : ℂ) + s)) = 1 := by
+  exact add_sub_cancel_left 1 ((1 / 2 : ℂ) + s)
+
+/-- Subtracting the sum of the two shifted denominators is subtraction by one. -/
+theorem centeredShift_sub_denominatorSum_eq_sub_one
+    (s E : ℂ) :
+    ((1 / 2 : ℂ) + s) *
+          (1 - ((1 / 2 : ℂ) + s)) * E -
+        (((1 / 2 : ℂ) + s) + (1 - ((1 / 2 : ℂ) + s))) =
+      ((1 / 2 : ℂ) + s) *
+          (1 - ((1 / 2 : ℂ) + s)) * E - 1 := by
+  exact congrArg
+    (fun x : ℂ =>
+      ((1 / 2 : ℂ) + s) * (1 - ((1 / 2 : ℂ) + s)) * E - x)
+    (centeredShift_left_add_right_denominator s)
+
+/-- Clearing the two shifted pole denominators identifies the centered completed
+zeta normalization with the entire zero-carrier. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_eq_denominator_mul
+    {s : ℂ}
+    (hs0 : (1 / 2 : ℂ) + s ≠ 0)
+    (hs1 : 1 - ((1 / 2 : ℂ) + s) ≠ 0) :
+    centeredCompletedRiemannZetaZeroCarrier s =
+      ((1 / 2 : ℂ) + s) *
+        (1 - ((1 / 2 : ℂ) + s)) *
+          centeredCompletedRiemannZeta s := by
+  let a : ℂ := (1 / 2 : ℂ) + s
+  let b : ℂ := 1 - ((1 / 2 : ℂ) + s)
+  let E : ℂ := centeredCompletedRiemannZeta₀ s
+  have hcompleted :
+      centeredCompletedRiemannZeta s =
+        E - 1 / a - 1 / b := by
+    exact centeredCompletedRiemannZeta_eq s
+  have hcleared :
+      a * b * centeredCompletedRiemannZeta s =
+        a * b * E - (a + b) := by
+    exact Eq.subst
+      (motive := fun x : ℂ => a * b * x = a * b * E - (a + b))
+      hcompleted.symm
+      (denominatorProduct_mul_sub_twoReciprocals hs0 hs1)
+  have hsum :
+      a * b * E - (a + b) = a * b * E - 1 := by
+    exact centeredShift_sub_denominatorSum_eq_sub_one s E
+  calc
+    centeredCompletedRiemannZetaZeroCarrier s =
+        a * b * E - 1 := by
+      rfl
+    _ = a * b * centeredCompletedRiemannZeta s := by
+      exact (hcleared.trans hsum).symm
+
+/-- A non-pole zero of the centered completed zeta normalization is a zero of
+the entire zero-carrier. -/
+theorem centeredCompletedRiemannZetaZeroCarrier_eq_zero_of_completed_zero
+    {s : ℂ}
+    (hs0 : (1 / 2 : ℂ) + s ≠ 0)
+    (hs1 : 1 - ((1 / 2 : ℂ) + s) ≠ 0)
+    (hz : centeredCompletedRiemannZeta s = 0) :
+    centeredCompletedRiemannZetaZeroCarrier s = 0 := by
+  calc
+    centeredCompletedRiemannZetaZeroCarrier s =
+        ((1 / 2 : ℂ) + s) *
+          (1 - ((1 / 2 : ℂ) + s)) *
+            centeredCompletedRiemannZeta s := by
+      exact centeredCompletedRiemannZetaZeroCarrier_eq_denominator_mul hs0 hs1
+    _ = ((1 / 2 : ℂ) + s) *
+          (1 - ((1 / 2 : ℂ) + s)) *
+            0 := by
+      exact congrArg
+        (fun w : ℂ =>
+          ((1 / 2 : ℂ) + s) *
+            (1 - ((1 / 2 : ℂ) + s)) * w)
+        hz
+    _ = 0 := by
+      exact mul_zero (((1 / 2 : ℂ) + s) * (1 - ((1 / 2 : ℂ) + s)))
 
 /-- Away from the shifted poles, the centered completed zeta function is
 analytic. The owner proof is the completed-zeta decomposition into an entire
@@ -41,33 +292,13 @@ theorem centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
     analyticAt_const.add analyticAt_id
   have hcenteredEntire :
       AnalyticAt ℂ centeredCompletedRiemannZeta₀ z := by
-    unfold centeredCompletedRiemannZeta₀
-    exact (differentiable_completedZeta₀.analyticAt ((1 / 2 : ℂ) + z)).comp hlinear
+    exact centeredCompletedRiemannZeta₀_analyticAt z
   have hden_left :
       (1 / 2 : ℂ) + z ≠ 0 := by
-    intro hzero
-    have hz_eq : z = -(1 / 2 : ℂ) := by
-      calc
-        z = ((1 / 2 : ℂ) + z) - (1 / 2 : ℂ) := by ring
-        _ = 0 - (1 / 2 : ℂ) := by
-          exact congrArg (fun w : ℂ => w - (1 / 2 : ℂ)) hzero
-        _ = -(1 / 2 : ℂ) := by ring
-    exact hzneg hz_eq
+    exact centeredShift_leftDenominator_ne_zero_of_ne_negHalf hzneg
   have hden_right :
       1 - ((1 / 2 : ℂ) + z) ≠ 0 := by
-    intro hzero
-    have hz_eq : z = (1 / 2 : ℂ) := by
-      have hz_add : z - (1 / 2 : ℂ) = 0 := by
-        calc
-          z - (1 / 2 : ℂ) =
-              (1 : ℂ) - ((1 / 2 : ℂ) + z) := by ring
-          _ = 0 := hzero
-      calc
-        z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
-        _ = 0 + (1 / 2 : ℂ) := by
-          exact congrArg (fun w : ℂ => w + (1 / 2 : ℂ)) hz_add
-        _ = (1 / 2 : ℂ) := by ring
-    exact hzpos hz_eq
+    exact centeredShift_rightDenominator_ne_zero_of_ne_posHalf hzpos
   have hleftPole :
       AnalyticAt ℂ (fun w : ℂ => 1 / ((1 / 2 : ℂ) + w)) z := by
     exact (analyticAt_const.div (analyticAt_const.add analyticAt_id) hden_left)

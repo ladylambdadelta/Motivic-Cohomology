@@ -242,12 +242,6 @@ def explicitFormulaVerticalDecompositionTarget
     zetaCompletedExplicitFormulaLeftLineIntegral f r =
     zetaCompletedExplicitFormulaBoundarySumAnalytic f
 
-/-- The residue-theorem target for the explicit formula. -/
-def explicitFormulaResidueTheoremTarget
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
-  zetaCompletedExplicitFormulaContourIntegral f r =
-    explicitFormulaResidueSum f []
-
 /-- The main residue-formula proposition in the analytic note's normalization. -/
 def completedZeta_rectangleResidueFormula
     (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) : Prop :=
@@ -373,19 +367,6 @@ theorem explicitFormulaVerticalDecompositionTarget_iff
       zetaCompletedExplicitFormulaRightLineIntegral f r -
         zetaCompletedExplicitFormulaLeftLineIntegral f r =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f
-  exact Iff.rfl
-
-/-- The residue theorem target unfolds to the contour-integral identity. -/
-theorem explicitFormulaResidueTheoremTarget_iff
-    (f : ZetaAdmissibleFunction) (r : ExplicitFormulaRectangle) :
-    explicitFormulaResidueTheoremTarget f r ↔
-      zetaCompletedExplicitFormulaContourIntegral f r =
-        explicitFormulaResidueSum f [] := by
-  show
-    (zetaCompletedExplicitFormulaContourIntegral f r =
-      explicitFormulaResidueSum f []) ↔
-      zetaCompletedExplicitFormulaContourIntegral f r =
-        explicitFormulaResidueSum f []
   exact Iff.rfl
 
 /-- The zero-sum proposition is the same statement solved for the sum. -/

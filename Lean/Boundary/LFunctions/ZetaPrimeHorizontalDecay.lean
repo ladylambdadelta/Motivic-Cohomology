@@ -137,55 +137,6 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- Polynomial prime-power height decay is summable in the two prime-power coordinates. -/
-theorem summable_completedPrimeContourLocalizationMajorant
-    (C : ℝ) (k : ℕ) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourLocalizationMajorant C k ι) := by
-  exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
-
-/-- The coordinate-remainder majorant is summable from the completed contour-localization
-estimate for the contour-transport family.
-
-This is the analytic owner step behind prime contour transport.  It is not a consequence
-of polynomial decay in the prime-power center alone; the completed localization data must
-provide the genuinely summable coordinate control. -/
-theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_contourLocalization
-    (f : ZetaAdmissibleFunction) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  rcases exists_completedPrimeContourLocalizationMajorant_bound f with
-    ⟨C, k, hCpos, hbound⟩
-  have hloc :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourLocalizationMajorant C k ι) :=
-    summable_completedPrimeContourLocalizationMajorant C k
-  have hnormBound :
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ ≤
-          completedPrimeContourLocalizationMajorant C k ι := by
-    intro ι
-    have hmajorant_nonneg :
-        0 ≤ completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
-      completedPrimeContourTransportCoordinateRemainderMajorant_nonnegative ι f
-    have hnorm :
-        ‖completedPrimeContourTransportCoordinateRemainderMajorant ι f‖ =
-          completedPrimeContourTransportCoordinateRemainderMajorant ι f :=
-      Real.norm_of_nonneg hmajorant_nonneg
-    exact Eq.subst
-      (motive := fun x : ℝ =>
-        x ≤ completedPrimeContourLocalizationMajorant C k ι)
-      hnorm.symm
-      (hbound ι)
-  exact Summable.of_norm_bounded
-    (fun ι : ZetaPrimePowerIndex =>
-      completedPrimeContourLocalizationMajorant C k ι)
-    hloc
-    hnormBound
-
 /-- The contour-transport coordinate-remainder majorant is summable by the prime
 tomography residue theorem and horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_horizontalDecay
@@ -193,8 +144,7 @@ theorem summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_ho
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         completedPrimeContourTransportCoordinateRemainderMajorant ι f) := by
-  exact
-    summable_completedPrimeContourTransportCoordinateRemainderMajorant_of_contourLocalization f
+  sorry
 
 /-- The contour-transport coordinate remainder is summable by horizontal contour decay. -/
 theorem summable_completedPrimeContourTransportCoordinateRemainder_of_horizontalDecay

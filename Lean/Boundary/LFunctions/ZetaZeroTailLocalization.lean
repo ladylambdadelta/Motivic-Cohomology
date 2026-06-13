@@ -65,6 +65,58 @@ theorem zetaZeroOrbitContributionRe_eq_of_spectralEval_eq_on_orbit
     (zetaZeroOrbitContribution_eq_of_spectralEval_eq_on_orbit
       ρ φ ψ hsample)
 
+/-- Finite zero-set localization preserves each zero spectral sample while making the
+complementary zero-side tail arbitrarily small, in finite-indexed form. -/
+theorem exists_autocorrelation_zeroTail_small_preserving_finiteIndexedSpectralSamples_owner
+    {α : Type*} [Fintype α]
+    (x : α → ℂ)
+    (S : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    (∀ i : α, x i ∈ S) →
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        (∀ i : α,
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (zetaCenteredZero (x i)) =
+            zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+              (zetaCenteredZero (x i))) ∧
+          |Complex.re
+            (zetaZeroTail S
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
+  sorry
+
+/-- Finite zero-set localization preserves each zero spectral sample while making the
+complementary zero-side tail arbitrarily small. -/
+theorem exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_owner
+    (S : Finset ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        (∀ η : ℂ, η ∈ S →
+          zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+              (zetaCenteredZero η) =
+            zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f₀)
+              (zetaCenteredZero η)) ∧
+          |Complex.re
+            (zetaZeroTail S
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
+  classical
+  intro ε hε
+  let α : Type := {z : ℂ // z ∈ S}
+  let x : α → ℂ := fun z => z.1
+  have hx : ∀ i : α, x i ∈ S := fun i => i.2
+  rcases exists_autocorrelation_zeroTail_small_preserving_finiteIndexedSpectralSamples_owner
+      x S f₀ hx ε hε with
+    ⟨f, hsample, htail⟩
+  exact ⟨f, fun η hη => hsample (⟨η, hη⟩ : α), htail⟩
+
+/-- The real orbit remainder is the real part of the zero-tail outside the orbit. -/
+theorem zetaZeroOrbitRemainderRe_eq_zeroTail_re
+    (ρ : ℂ) (φ : ZetaAdmissibleFunction) :
+    zetaZeroOrbitRemainderRe ρ φ =
+      Complex.re (zetaZeroTail (zetaZeroOrbitFinset ρ) φ) := by
+  rfl
+
 /-- Localizing around a finite orbit preserves every individual orbit spectral sample while
 making the complementary orbit tail arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamples_owner
@@ -81,7 +133,22 @@ theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitSpectralSamp
             zetaZeroOrbitRemainderRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f)
           | < ε := by
-  sorry
+  intro ε hε
+  rcases
+    exists_autocorrelation_zeroTail_small_preserving_finiteSpectralSamples_owner
+      (zetaZeroOrbitFinset ρ) f₀ ε hε with
+    ⟨f, hsample, htail⟩
+  have htail_orbit :
+      |
+        zetaZeroOrbitRemainderRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+      | < ε := by
+    exact Eq.subst
+      (motive := fun x : ℝ => |x| < ε)
+      (zetaZeroOrbitRemainderRe_eq_zeroTail_re
+        ρ (ZetaAdmissibleFunction.convolutionAutocorrelation f)).symm
+      htail
+  exact ⟨f, hsample, htail_orbit⟩
 
 /-- Localizing around a finite orbit preserves its autocorrelation contribution exactly while
 making the complementary orbit tail arbitrarily small. -/
