@@ -25,6 +25,13 @@ theorem zetaCenteredZero_re_eq_completedZero_re_sub_half
     _ = (ρ : ℂ).re - (1 / 2 : ℝ) := by
       exact congrArg (fun x : ℝ => (ρ : ℂ).re - x) Complex.ofReal_re
 
+/-- Centered completed zeros lie in the centered critical strip. -/
+theorem zetaCompletedZero_re_mem_centeredCriticalStrip
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    -(1 / 2 : ℝ) ≤ (ρ : ℂ).re ∧
+      (ρ : ℂ).re ≤ (1 / 2 : ℝ) := by
+  sorry
+
 /-- Completed-zero coordinates lie in one fixed vertical strip.
 
 This is the coarse critical-strip input for completed zeros after the normalizations used by
@@ -33,7 +40,8 @@ theorem exists_zetaCompletedZero_fixed_vertical_strip :
     ∃ a : ℝ, ∃ b : ℝ,
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         a ≤ (ρ : ℂ).re ∧ (ρ : ℂ).re ≤ b := by
-  sorry
+  exact ⟨-(1 / 2 : ℝ), (1 / 2 : ℝ),
+    zetaCompletedZero_re_mem_centeredCriticalStrip⟩
 
 /-- The centered completed-zero spectral evaluation points lie in one fixed vertical
 strip. -/
