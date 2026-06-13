@@ -92,6 +92,31 @@ theorem completedPrimeContourLocalizationMajorant_nonnegative
       (-(k + 3 : ℤ))
   exact mul_nonneg hC hbase
 
+/-- Raw height-polynomial localization for the contour-transport coordinate
+remainder. -/
+theorem exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- The raw height-polynomial coordinate estimate is exactly the named
+localization-majorant estimate. -/
+theorem completedPrimeContourTransportCoordinateRemainder_norm_le_localizationMajorant
+    (f : ZetaAdmissibleFunction) (C : ℝ) (k : ℕ)
+    (ι : ZetaPrimePowerIndex)
+    (hbound :
+      ∀ η : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainder η f‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k η) :
+    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+      completedPrimeContourLocalizationMajorant C k ι := by
+  unfold completedPrimeContourLocalizationMajorant
+  exact hbound ι
+
 /-- Completed contour localization bounds the norm of every coordinate remainder by a
 height-polynomial majorant.
 
@@ -103,7 +128,11 @@ theorem exists_completedPrimeContourRemainderNorm_heightPolynomialBound
       ∀ ι : ZetaPrimePowerIndex,
         ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
           completedPrimeContourLocalizationMajorant C k ι := by
-  sorry
+  rcases exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound f with
+    ⟨C, k, hCpos, hbound⟩
+  exact ⟨C, k, hCpos, fun ι =>
+    completedPrimeContourTransportCoordinateRemainder_norm_le_localizationMajorant
+      f C k ι hbound⟩
 
 /-- Completed contour localization bounds the explicit coordinate-remainder
 majorant by a height-polynomial majorant. -/
