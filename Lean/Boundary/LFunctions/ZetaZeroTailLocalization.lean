@@ -1,4 +1,4 @@
-import Boundary.LFunctions.ZetaZeroTail
+import Boundary.LFunctions.ZetaAutocorrelationSpectralLocalization
 
 /-!
 # Zero-tail localization
@@ -134,7 +134,10 @@ theorem exists_autocorrelation_zeroTail_small_preserving_spectralSampleFinset_ow
           |Complex.re
             (zetaZeroTail S
               (ZetaAdmissibleFunction.convolutionAutocorrelation f))| < ε := by
-  sorry
+  exact
+    ZetaAdmissibleFunction
+      .exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
+        S P f₀
 
 /-- Finite zero-set localization preserves each zero spectral sample while making the
 complementary zero-side tail arbitrarily small. -/

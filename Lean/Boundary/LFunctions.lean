@@ -45,6 +45,7 @@ import Boundary.LFunctions.ZetaZeroSideDefinitions
 import Boundary.LFunctions.ZetaEntireJensen
 import Boundary.LFunctions.ZetaZeroSideContribution
 import Boundary.LFunctions.ZetaZeroOrbitContribution
+import Boundary.LFunctions.ZetaAutocorrelationSpectralLocalization
 import Boundary.LFunctions.ZetaZeroTail
 import Boundary.LFunctions.ZetaZeroOrbitRemainder
 import Boundary.LFunctions.ZetaCompletedBoundaryDefect
