@@ -449,6 +449,20 @@ noncomputable def zetaPaleyWienerVerticalLineIBPDerivativeIntegral
     zetaPaleyWienerVerticalLineIBPDerivative f x t *
       zetaPaleyWienerVerticalOscillation y t
 
+/-- Vertical-line integration by parts as a norm identity.
+
+After absorbing the horizontal factor into the source on `re z = x`, integration by
+parts on the vertical oscillation gives one inverse vertical-frequency factor. -/
+theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (z : ℂ)
+    (hzstrip : zetaPaleyWienerInVerticalStrip a b z)
+    (hzhigh : 1 ≤ ‖z.im‖) :
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
+      ‖(z.im : ℂ)⁻¹ *
+        zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ := by
+  sorry
+
 /-- One vertical-line integration-by-parts norm comparison.
 
 On the line `re z = x`, the horizontal exponential is part of the source and the remaining
@@ -462,6 +476,34 @@ theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normComparison
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
       ‖(z.im : ℂ)⁻¹‖ *
         ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ := by
+  have hidentity :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
+        ‖(z.im : ℂ)⁻¹ *
+          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ :=
+    zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
+      f I a b z hzstrip hzhigh
+  have hmul :
+      ‖(z.im : ℂ)⁻¹ *
+          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ =
+        ‖(z.im : ℂ)⁻¹‖ *
+          ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ :=
+    norm_mul
+      ((z.im : ℂ)⁻¹)
+      (zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im)
+  exact le_of_eq (hidentity.trans hmul)
+
+/-- Uniform compact-strip decay for the derivative integral produced by vertical-line
+integration by parts, expressed directly in the real line coordinates `(x,y)`. -/
+theorem zetaPaleyWienerVerticalLineIBPDerivativeIntegral_compactStrip_uniformDecay
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ x y : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y‖
+          ≤ C * (1 + ‖y‖) ^ (-(N : ℤ)) := by
   sorry
 
 /-- Uniform compact-strip control of the derivative integral produced by one vertical-line
@@ -479,7 +521,12 @@ theorem zetaPaleyWienerVerticalLineIBPDerivativeIntegral_supportInterval_decay
         zetaPaleyWienerInVerticalStrip a b z →
         ‖zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖
           ≤ C * zetaPaleyWienerVerticalWeight z N := by
-  sorry
+  rcases zetaPaleyWienerVerticalLineIBPDerivativeIntegral_compactStrip_uniformDecay
+      f I a b N with ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro z hz
+  unfold zetaPaleyWienerVerticalWeight
+  exact hCbound z.re z.im hz.1 hz.2
 
 /-- High-frequency Paley-Wiener control from vertical-line integration by parts on a compact
 real-part strip.
