@@ -12,6 +12,23 @@ namespace LFunctions
 
 noncomputable section
 
+/-- Localizing around a finite orbit preserves its autocorrelation contribution exactly while
+making the complementary orbit tail arbitrarily small. -/
+theorem exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution_owner
+    (ρ : ℂ)
+    (f₀ : ZetaAdmissibleFunction) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        zetaZeroOrbitContributionRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+          zetaZeroOrbitContributionRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) ∧
+          |
+            zetaZeroOrbitRemainderRe ρ
+              (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          | < ε := by
+  sorry
+
 /-- Localizing around a finite-orbit negative-margin autocorrelation probe
 preserves that margin and makes the orbit remainder arbitrarily small. -/
 theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
@@ -30,7 +47,23 @@ theorem exists_zeroOrbit_autocorrelation_remainder_small_near_margin_probe_owner
             zetaZeroOrbitRemainderRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f)
           | < ε := by
-  sorry
+  intro ε hε
+  rcases
+    exists_zeroOrbit_autocorrelation_tail_small_preserving_orbitContribution_owner
+      ρ f₀ ε hε with
+    ⟨f, hcontribution, htail⟩
+  have hmargin_f :
+      zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
+    calc
+      zetaZeroOrbitContributionRe ρ
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+          zetaZeroOrbitContributionRe ρ
+            (ZetaAdmissibleFunction.convolutionAutocorrelation f₀) := by
+        exact hcontribution
+      _ ≤ -δ := by
+        exact hmargin
+  exact ⟨f, hmargin_f, htail⟩
 
 end
 

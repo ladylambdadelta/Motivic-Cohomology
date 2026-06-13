@@ -640,6 +640,15 @@ theorem polynomialHeightDecay_nonnegative
     (add_nonneg zero_le_one (norm_nonneg ((ι.height : ℕ) : ℝ)))
     (-(k + 3 : ℤ))
 
+/-- Rectangular-height decay is pointwise strictly positive. -/
+theorem polynomialHeightDecay_pos
+    (k : ℕ) (ι : ZetaPrimePowerIndex) :
+    0 < polynomialHeightDecay k ι := by
+  unfold polynomialHeightDecay
+  exact zpow_pos
+    (one_add_nat_norm_pos ι.height)
+    (-(k + 3 : ℤ))
+
 /-- Increasing the requested polynomial decay exponent only decreases the
 rectangular-height decay majorant. -/
 theorem polynomialHeightDecay_le_of_le

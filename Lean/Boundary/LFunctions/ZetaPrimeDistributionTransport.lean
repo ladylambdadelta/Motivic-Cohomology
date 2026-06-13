@@ -566,6 +566,104 @@ theorem completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoef
         exact zetaCompletedPrimeTwoFaceGNSBoundaryCoordinate_tsum_eq_boundaryCoefficient f
   exact congrArg Complex.re hsum
 
+/-- A finitely supported real prime-power family is bounded by a rectangular-height
+polynomial majorant.
+
+This is the finite-support owner lemma behind raw time-side prime-coordinate
+localization: on the finite support choose one constant dominating the finitely many
+ratios by the strictly positive height decay; off the support the family vanishes. -/
+theorem exists_rawHeightPolynomialBound_of_finsetSupport
+    (u : ZetaPrimePowerIndex → ℝ)
+    (s : Finset ZetaPrimePowerIndex)
+    (hsupport : ∀ ι : ZetaPrimePowerIndex, ι ∉ s → u ι = 0) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖u ι‖ ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  let d : ZetaPrimePowerIndex → ℝ :=
+    fun ι => ZetaPrimePowerIndex.polynomialHeightDecay 0 ι
+  let q : ZetaPrimePowerIndex → ℝ :=
+    fun ι => ‖u ι‖ / d ι
+  let C : ℝ := (∑ ι in s, q ι) + 1
+  have hq_nonnegative :
+      ∀ ι : ZetaPrimePowerIndex, 0 ≤ q ι := by
+    intro ι
+    exact div_nonneg
+      (norm_nonneg (u ι))
+      (le_of_lt (ZetaPrimePowerIndex.polynomialHeightDecay_pos 0 ι))
+  have hsum_nonnegative : 0 ≤ ∑ ι in s, q ι := by
+    exact Finset.sum_nonneg
+      (fun ι _hι => hq_nonnegative ι)
+  have hC_positive : 0 < C := by
+    exact add_pos_of_nonneg_of_pos hsum_nonnegative zero_lt_one
+  refine ⟨C, 0, hC_positive, ?_⟩
+  intro ι
+  have hd_positive : 0 < d ι :=
+    ZetaPrimePowerIndex.polynomialHeightDecay_pos 0 ι
+  by_cases hι : ι ∈ s
+  · have hq_le_sum : q ι ≤ ∑ η in s, q η := by
+      exact Finset.single_le_sum
+        (fun η _hη => hq_nonnegative η)
+        hι
+    have hq_le_C : q ι ≤ C := by
+      exact le_trans hq_le_sum
+        (le_add_of_nonneg_right zero_le_one)
+    have hscaled : q ι * d ι ≤ C * d ι := by
+      exact mul_le_mul_of_nonneg_right hq_le_C (le_of_lt hd_positive)
+    have hrecover : q ι * d ι = ‖u ι‖ := by
+      exact div_mul_cancel₀ (‖u ι‖) (ne_of_gt hd_positive)
+    calc
+      ‖u ι‖ = q ι * d ι := by
+        exact hrecover.symm
+      _ ≤ C * d ι := by
+        exact hscaled
+  · have hu_zero : u ι = 0 :=
+      hsupport ι hι
+    have hnorm_zero : ‖u ι‖ = 0 :=
+      congrArg norm hu_zero
+    have hright_nonnegative : 0 ≤ C * d ι :=
+      mul_nonneg (le_of_lt hC_positive) (le_of_lt hd_positive)
+    calc
+      ‖u ι‖ = 0 := by
+        exact hnorm_zero
+      _ ≤ C * d ι := by
+        exact hright_nonnegative
+
+/-- Raw height-polynomial localization for the contour-realized prime distribution
+coordinate. -/
+theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourRealizedTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  sorry
+
+/-- Raw height-polynomial localization for the time-side prime distribution coordinate. -/
+theorem exists_completedPrimeTimeDistributionCoordinate_rawHeightBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f)‖ ≤
+          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
+  exact
+    match exists_convolutionAutocorrelationKernelSupportUpperBound f with
+    | ⟨B, hB⟩ =>
+      exists_rawHeightPolynomialBound_of_finsetSupport
+        (fun ι : ZetaPrimePowerIndex =>
+          completedPrimeTimeDistributionCoordinate
+            ι (convolutionAutocorrelation f))
+        (zetaPrimeOffDiagonalSupportFinsetOfBound f B)
+        (fun ι hι =>
+          (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
+            ι f).trans
+            (zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_mem_supportFinsetOfBound
+              ι f hB hι))
+
 end ZetaAdmissibleFunction
 
 end
