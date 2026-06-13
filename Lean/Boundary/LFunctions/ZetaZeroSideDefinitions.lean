@@ -75,6 +75,54 @@ theorem zetaCompletedZeroCenteredHeight_ne_zero
     zetaCompletedZeroCenteredHeight ρ ≠ 0 := by
   exact ne_of_gt (zetaCompletedZeroCenteredHeight_pos ρ)
 
+/-- Completed zeros in the centered vertical height ball of radius `T`. -/
+def completedZerosInCenteredHeightBall (T : ℝ) :
+    Set {ρ : ℂ // ZetaCompletedZero ρ} :=
+  {ρ | zetaCompletedZeroCenteredHeight ρ ≤ T}
+
+/-- Completed zeros are locally finite in centered height balls. -/
+theorem finite_completedZerosInCenteredHeightBall
+    (T : ℝ) :
+    (completedZerosInCenteredHeightBall T).Finite := by
+  sorry
+
+/-- The height-ball multiplicity summand. -/
+noncomputable def completedZeroMultiplicityHeightBallSummand
+    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  if zetaCompletedZeroCenteredHeight ρ ≤ T then
+    (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
+  else
+    0
+
+/-- Completed-zero multiplicity count in a centered height ball. -/
+noncomputable def completedZeroMultiplicityCountingInCenteredHeightBall
+    (T : ℝ) : ℝ :=
+  ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+    completedZeroMultiplicityHeightBallSummand T ρ
+
+/-- Coarse polynomial counting of completed zeros with multiplicity in centered height. -/
+theorem exists_completedZeroMultiplicityCounting_height_bound :
+    ∃ C : ℝ, ∃ d : ℕ,
+      0 < C ∧
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
+  sorry
+
+/-- Polynomial negative-height envelopes are summable over completed zeros once
+the decay exponent is chosen beyond the counting degree. -/
+theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
+    (C : ℝ) (d k : ℕ)
+    (hCpos : 0 < C)
+    (hcount :
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
+    Summable
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
+  sorry
+
 /-- The spectral transform of a test function. -/
 def zetaSpectralTransform : ZetaTestFunction → ℂ → ℂ :=
   zetaLaplaceTransform

@@ -101,34 +101,6 @@ theorem real_term_le_tsum_of_summable_nonnegative
     hv_tsum
     htsum_le
 
-/-- Completed zeros in the centered vertical height ball of radius `T`. -/
-def completedZerosInCenteredHeightBall (T : ℝ) :
-    Set {ρ : ℂ // ZetaCompletedZero ρ} :=
-  {ρ | zetaCompletedZeroCenteredHeight ρ ≤ T}
-
-/-- Completed zeros are locally finite in centered height balls.
-
-This is the local-finiteness part of the zero divisor of the completed zeta
-function, separated from the later summability bookkeeping. -/
-theorem finite_completedZerosInCenteredHeightBall
-    (T : ℝ) :
-    (completedZerosInCenteredHeightBall T).Finite := by
-  sorry
-
-/-- The height-ball multiplicity summand. -/
-noncomputable def completedZeroMultiplicityHeightBallSummand
-    (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
-  if zetaCompletedZeroCenteredHeight ρ ≤ T then
-    (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
-  else
-    0
-
-/-- Completed-zero multiplicity count in a centered height ball. -/
-noncomputable def completedZeroMultiplicityCountingInCenteredHeightBall
-    (T : ℝ) : ℝ :=
-  ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-    completedZeroMultiplicityHeightBallSummand T ρ
-
 /-- Height-ball multiplicity summands are nonnegative. -/
 theorem completedZeroMultiplicityHeightBallSummand_nonnegative
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
@@ -297,19 +269,6 @@ theorem completedZeroMultiplicityCountingInCenteredHeightBall_mono
     (summable_completedZeroMultiplicityHeightBallSummand S)
     (summable_completedZeroMultiplicityHeightBallSummand T)
 
-/-- Coarse polynomial counting of completed zeros with multiplicity in centered height.
-
-This is the analytic owner input supplied by Jensen/finite-order theory for the completed
-zeta function.  The theorem is deliberately multiplicity-aware so individual
-multiplicity growth and zero-tail summability both consume the same source. -/
-theorem exists_completedZeroMultiplicityCounting_height_bound :
-    ∃ C : ℝ, ∃ d : ℕ,
-      0 < C ∧
-      ∀ T : ℝ,
-        1 ≤ T →
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
-  sorry
-
 /-- Each zero's analytic multiplicity is bounded by the height-ball counting function at
 that zero's own height. -/
 theorem zetaZeroMultiplicity_le_countingFunction_at_height
@@ -398,6 +357,35 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting :
     (norm_complex_ofNat_zetaZeroMultiplicity ρ).symm
     hbound_zpow
 
+/-- Every real height at least one belongs to a natural unit shell. -/
+theorem exists_nat_unitShell_of_one_le
+    {x : ℝ}
+    (hx : 1 ≤ x) :
+    ∃ m : ℕ, ((m : ℕ) : ℝ) ≤ x ∧ x < ((m + 1 : ℕ) : ℝ) := by
+  exact ⟨Nat.floor x,
+    Nat.floor_le (le_trans zero_le_one hx),
+    Nat.lt_floor_add_one x⟩
+
+/-- Natural unit shells are disjoint. -/
+theorem nat_unitShell_index_unique
+    {x : ℝ} {m n : ℕ}
+    (hm : ((m : ℕ) : ℝ) ≤ x ∧ x < ((m + 1 : ℕ) : ℝ))
+    (hn : ((n : ℕ) : ℝ) ≤ x ∧ x < ((n + 1 : ℕ) : ℝ)) :
+    m = n := by
+  have hmn_real : ((m : ℕ) : ℝ) < ((n + 1 : ℕ) : ℝ) :=
+    lt_of_le_of_lt hm.1 hn.2
+  have hnm_real : ((n : ℕ) : ℝ) < ((m + 1 : ℕ) : ℝ) :=
+    lt_of_le_of_lt hn.1 hm.2
+  have hmn_succ : m < n + 1 :=
+    Nat.cast_lt.mp hmn_real
+  have hnm_succ : n < m + 1 :=
+    Nat.cast_lt.mp hnm_real
+  have hmn : m ≤ n :=
+    Nat.lt_succ_iff.mp hmn_succ
+  have hnm : n ≤ m :=
+    Nat.lt_succ_iff.mp hnm_succ
+  exact Nat.le_antisymm hmn hnm
+
 /-- The completed-zero shell at integer height `m`, using the centered height
 base `1 + |Im|`. -/
 def completedZeroCenteredHeightShell
@@ -411,7 +399,8 @@ def completedZeroCenteredHeightShell
 theorem exists_completedZeroCenteredHeightShell_index
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ∃ m : ℕ, ρ ∈ completedZeroCenteredHeightShell m := by
-  sorry
+  exact exists_nat_unitShell_of_one_le
+    (zetaCompletedZeroCenteredHeight_ge_one ρ)
 
 /-- Centered-height shells are disjoint. -/
 theorem completedZeroCenteredHeightShell_index_unique
@@ -419,7 +408,34 @@ theorem completedZeroCenteredHeightShell_index_unique
     (hm : ρ ∈ completedZeroCenteredHeightShell m)
     (hn : ρ ∈ completedZeroCenteredHeightShell n) :
     m = n := by
-  sorry
+  exact nat_unitShell_index_unique hm hn
+
+/-- A completed-zero shell is contained in the height ball with the next
+integer radius. -/
+theorem completedZeroCenteredHeightShell_subset_heightBall
+    (m : ℕ) :
+    completedZeroCenteredHeightShell m ⊆
+      completedZerosInCenteredHeightBall ((m + 1 : ℕ) : ℝ) := by
+  intro ρ hρ
+  exact le_of_lt hρ.2
+
+/-- Completed-zero centered-height shells are finite, by containment in finite
+height balls. -/
+theorem finite_completedZeroCenteredHeightShell
+    (m : ℕ) :
+    (completedZeroCenteredHeightShell m).Finite := by
+  exact Set.Finite.subset
+    (finite_completedZerosInCenteredHeightBall ((m + 1 : ℕ) : ℝ))
+    (completedZeroCenteredHeightShell_subset_heightBall m)
+
+/-- A finite set has a finite subtype of its elements. -/
+theorem finite_univ_subtype_of_finite_set
+    {α : Type*} {s : Set α}
+    (hs : s.Finite) :
+    (Set.univ : Set s).Finite := by
+  classical
+  haveI : Fintype s := hs.fintype
+  exact Set.finite_univ
 
 /-- The completed-zero shell fiber at integer height `m`. -/
 def completedZeroCenteredHeightShellFiber
@@ -499,7 +515,8 @@ theorem completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
 theorem finite_completedZeroCenteredHeightShellFiber
     (m : ℕ) :
     (Set.univ : Set (completedZeroCenteredHeightShellFiber m)).Finite := by
-  sorry
+  exact finite_univ_subtype_of_finite_set
+    (finite_completedZeroCenteredHeightShell m)
 
 /-- Decay over a fixed completed-zero centered-height shell fiber is summable. -/
 theorem summable_completedZeroCenteredHeightShellFiberDecay_fixed
@@ -552,7 +569,15 @@ theorem summable_of_bijective_index_transport_real
     (hsurj : Function.Surjective e)
     (hsum : Summable (fun a : α => u (e a))) :
     Summable u := by
-  sorry
+  let E : α ≃ β := Equiv.ofBijective e ⟨hinj, hsurj⟩
+  have hE :
+      (fun a : α => u (E a)) = fun a : α => u (e a) := by
+    rfl
+  exact ((E.symm).summable_iff).mp
+    (Eq.subst
+      (motive := fun v : α → ℝ => Summable v)
+      hE.symm
+      hsum)
 
 /-- Shell-fiber decay is the base negative-height decay after forgetting the
 shell coordinate. -/
@@ -590,20 +615,6 @@ theorem summable_completedZero_centeredHeight_negativePower_of_shellSigma
         exact completedZeroCenteredHeightShellFiberDecay_eq_baseDecay d k x)
       hsigma)
 
-/-- The degree-aware shell masses are summable under the polynomial
-multiplicity-counting bound. -/
-theorem summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
-    (C : ℝ) (d k : ℕ)
-    (hCpos : 0 < C)
-    (hcount :
-      ∀ T : ℝ,
-        1 ≤ T →
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
-    Summable
-      (fun m : ℕ =>
-        completedZeroCenteredHeightShellDecayMass d k m) := by
-  sorry
-
 /-- Summable centered-height shell masses transport to summability over all
 completed zeros. -/
 theorem summable_completedZero_centeredHeight_negativePower_of_shellMass
@@ -620,26 +631,6 @@ theorem summable_completedZero_centeredHeight_negativePower_of_shellMass
     k
     (summable_completedZeroCenteredHeightShellFiberDecay_of_shellMass
       d k hshell)
-
-/-- Polynomial negative-height envelopes are summable over completed zeros once
-the decay exponent is chosen beyond the counting degree.
-
-This is the p-series consequence of multiplicity-aware polynomial zero counting. -/
-theorem summable_completedZero_centeredHeight_negativePower_of_counting_bound
-    (C : ℝ) (d k : ℕ)
-    (hCpos : 0 < C)
-    (hcount :
-      ∀ T : ℝ,
-        1 ≤ T →
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
-    Summable
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        zetaCompletedZeroCenteredHeight ρ ^ (-(d + k + 3 : ℤ))) := by
-  exact summable_completedZero_centeredHeight_negativePower_of_shellMass
-    d
-    k
-    (summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
-      C d k hCpos hcount)
 
 /-- The completed-zero counting theorem supplies a counting degree after which
 all further polynomial negative-height envelopes are summable. -/
