@@ -232,70 +232,6 @@ theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_i
     _ = 0 := by
       exact Complex.zero_re
 
-/-- A real prime-power coordinate family dominated by a rectangular-height polynomial
-majorant is summable. -/
-theorem summable_real_primePower_family_of_rawHeightPolynomialBound
-    (u : ZetaPrimePowerIndex → ℝ)
-    (hbound :
-      ∃ C : ℝ, ∃ k : ℕ,
-        0 < C ∧
-        ∀ ι : ZetaPrimePowerIndex,
-          ‖u ι‖ ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) :
-    Summable u := by
-  match hbound with
-  | ⟨C, k, hCpos, hCbound⟩ =>
-    have hmajorant :
-        Summable
-          (fun ι : ZetaPrimePowerIndex =>
-            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) :=
-      ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
-    exact Summable.of_norm_bounded
-      (fun ι : ZetaPrimePowerIndex =>
-        C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
-      hmajorant
-      (fun ι : ZetaPrimePowerIndex => by
-        have hdecay_nonnegative :
-            0 ≤ ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
-          le_of_lt (ZetaPrimePowerIndex.polynomialHeightDecay_pos k ι)
-        have hmajorant_nonnegative :
-            0 ≤ C * ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
-          mul_nonneg (le_of_lt hCpos) hdecay_nonnegative
-        have hmajorant_norm :
-            ‖C * ZetaPrimePowerIndex.polynomialHeightDecay k ι‖ =
-              C * ZetaPrimePowerIndex.polynomialHeightDecay k ι :=
-          Real.norm_of_nonneg hmajorant_nonnegative
-        exact Eq.subst
-          (motive := fun rhs : ℝ => ‖u ι‖ ≤ rhs)
-          hmajorant_norm.symm
-          (hCbound ι))
-
-/-- Rectangular-height polynomial localization for the completed contour-realized prime
-distribution coordinate.
-
-This is the analytic owner estimate behind summability of the contour-realized spectral
-prime channel: after completed contour realization, the sampled prime-power coordinates
-are dominated by a summable rectangular-height majorant. -/
-theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
-    (g : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourRealizedTimeDistributionCoordinate ι g‖ ≤
-          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
-
-/-- The completed contour-realized prime distribution coordinates are summable. -/
-theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate
-    (g : ZetaAdmissibleFunction) :
-    Summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourRealizedTimeDistributionCoordinate ι g) := by
-  exact
-    summable_real_primePower_family_of_rawHeightPolynomialBound
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourRealizedTimeDistributionCoordinate ι g)
-      (exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound g)
-
 /-- The finite contour-realized prime window is the sum of its contour-realized
 coordinates. -/
 theorem finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
@@ -318,73 +254,16 @@ prime distribution pairing.
 
 This is the spectral distribution owner theorem for the completed contour face.  It is
 separate from horizontal transport: horizontal transport compares this completed contour
-face with the time-side face, while this theorem only says that the finite spectral windows
-converge to their own completed spectral pairing. -/
+face with the time-side face, while this theorem owns the regularized prime-distribution
+limit of the completed contour face.  It is not an ordinary polynomial-summability
+statement for raw real-axis Laplace samples. -/
 theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized
     (g : ZetaAdmissibleFunction) :
     Tendsto
       (fun N : ℕ => finitePrimeContourRealizedTimeDistributionWindow N g)
       atTop
       (𝓝 (completedPrimeContourRealizedTimeDistributionPairing g)) := by
-  have hsum :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g) :=
-    summable_completedPrimeContourRealizedTimeDistributionCoordinate g
-  have hzero :
-      ∀ ι : ZetaPrimePowerIndex,
-        ¬ ZetaPrimePowerIndex.IsGenuine ι →
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g = 0 :=
-    fun ι hι =>
-      completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine
-        ι g hι
-  have hwindow :
-      Tendsto
-        (fun N : ℕ =>
-          ∑ ι in ZetaPrimePowerIndex.window N,
-            completedPrimeContourRealizedTimeDistributionCoordinate ι g)
-        atTop
-        (𝓝
-          (∑' ι : ZetaPrimePowerIndex,
-            completedPrimeContourRealizedTimeDistributionCoordinate ι g)) :=
-    ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
-      (fun ι : ZetaPrimePowerIndex =>
-        completedPrimeContourRealizedTimeDistributionCoordinate ι g)
-      hsum
-      hzero
-  have hfinite :
-      (fun N : ℕ => finitePrimeContourRealizedTimeDistributionWindow N g) =
-        (fun N : ℕ =>
-          ∑ ι in ZetaPrimePowerIndex.window N,
-            completedPrimeContourRealizedTimeDistributionCoordinate ι g) := by
-    funext N
-    exact finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g
-  have hcompleted :
-      completedPrimeContourRealizedTimeDistributionPairing g =
-        ∑' ι : ZetaPrimePowerIndex,
-          completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
-    unfold completedPrimeContourRealizedTimeDistributionPairing
-    unfold completedPrimeSpectralDistributionPairing
-    unfold completedPrimeContourRealizedTimeDistributionCoordinate
-    exact (Complex.tsum_re
-      (fun ι : ZetaPrimePowerIndex =>
-        -((ι.weight : ℂ) *
-          (zetaCompletedSpectralLaplaceTransform g ι.center +
-            star (zetaCompletedSpectralLaplaceTransform g ι.center))))).symm
-  exact Eq.subst
-    (motive := fun u : ℕ → ℝ =>
-      Tendsto u atTop (𝓝 (completedPrimeContourRealizedTimeDistributionPairing g)))
-    hfinite.symm
-    (Eq.subst
-      (motive := fun x : ℝ =>
-        Tendsto
-          (fun N : ℕ =>
-            ∑ ι in ZetaPrimePowerIndex.window N,
-              completedPrimeContourRealizedTimeDistributionCoordinate ι g)
-          atTop
-          (𝓝 x))
-      hcompleted.symm
-      hwindow)
+  sorry
 
 /-- At an autocorrelation probe, the time-side prime coordinate is the physical
 off-diagonal coordinate. -/
