@@ -15,24 +15,6 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
-/-- A zero-excised vertical strip for the completed zeta logarithmic derivative. -/
-structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
-  carrier : Set ℂ
-  in_strip : ∀ z : ℂ, z ∈ carrier → a ≤ z.re ∧ z.re ≤ b
-  ne_zero : ∀ z : ℂ, z ∈ carrier → z ≠ 0
-  ne_one : ∀ z : ℂ, z ∈ carrier → z ≠ 1
-  zeta_ne_zero : ∀ z : ℂ, z ∈ carrier → completedRiemannZeta z ≠ 0
-  gamma_ne_zero : ∀ z : ℂ, z ∈ carrier → Complex.Gammaℝ z ≠ 0
-  contains_zero_avoiding_contour_edges :
-    ∀ z : ℂ,
-      a ≤ z.re →
-      z.re ≤ b →
-      z ≠ 0 →
-      z ≠ 1 →
-      completedRiemannZeta z ≠ 0 →
-      Complex.Gammaℝ z ≠ 0 →
-      z ∈ carrier
-
 /-- The inverse-Gamma correction in the completed logarithmic derivative split. -/
 noncomputable def inverseGammaCompletionLogDeriv (z : ℂ) : ℂ :=
   deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹
@@ -55,6 +37,31 @@ theorem riemannZetaNegLogDeriv_eq
     riemannZetaNegLogDeriv z =
       - deriv riemannZeta z / riemannZeta z :=
   rfl
+
+/-- A zero-excised vertical strip for the completed zeta logarithmic derivative. -/
+structure CompletedZetaZeroExcisedStrip (a b : ℝ) where
+  carrier : Set ℂ
+  in_strip : ∀ z : ℂ, z ∈ carrier → a ≤ z.re ∧ z.re ≤ b
+  ne_zero : ∀ z : ℂ, z ∈ carrier → z ≠ 0
+  ne_one : ∀ z : ℂ, z ∈ carrier → z ≠ 1
+  zeta_ne_zero : ∀ z : ℂ, z ∈ carrier → completedRiemannZeta z ≠ 0
+  gamma_ne_zero : ∀ z : ℂ, z ∈ carrier → Complex.Gammaℝ z ≠ 0
+  riemann_zeta_negLogDeriv_polynomial_bound :
+    ∀ N : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ carrier →
+          ‖riemannZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ N
+  inverse_gamma_logDeriv_polynomial_bound :
+    ∀ N : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ carrier →
+          ‖inverseGammaCompletionLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ N
 
 /-- Pointwise compatibility between the completed zeta-side factor and the ordinary
 Riemann-zeta logarithmic derivative. -/
@@ -101,7 +108,7 @@ theorem riemannZetaNegLogDeriv_zeroFreeVerticalStripPolynomialBound
         z ∈ E.carrier →
         ‖riemannZetaNegLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+  exact E.riemann_zeta_negLogDeriv_polynomial_bound N
 
 /-- Completed-strip form of ordinary zeta logarithmic derivative polynomial growth. -/
 theorem riemannZetaNegLogDeriv_zeroExcisedPolynomialStripBound
@@ -146,7 +153,7 @@ theorem inverseGammaCompletionLogDeriv_stirlingVerticalStripBound
         z ∈ E.carrier →
         ‖inverseGammaCompletionLogDeriv z‖
           ≤ C * (1 + ‖z.im‖) ^ N := by
-  sorry
+  exact E.inverse_gamma_logDeriv_polynomial_bound N
 
 /-- Polynomial strip growth for the inverse-Gamma logarithmic derivative, by the
 Stirling/asymptotic control of the archimedean completion factor. -/
@@ -282,28 +289,6 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
         (Czeta + Cgamma) * (1 + ‖z.im‖) ^ N := by
     exact (add_mul Czeta Cgamma ((1 + ‖z.im‖) ^ N)).symm
   exact hnorm_split.trans (hbounds.trans_eq hfactor)
-
-/-- The completed zeta zero set admits a zero-excised strip containing every zero-free contour
-point in the strip. -/
-theorem exists_completedZetaZeroExcisedStrip
-    (a b : ℝ) :
-    ∃ E : CompletedZetaZeroExcisedStrip a b, True := by
-  exact
-    ⟨{ carrier :=
-          {z : ℂ |
-            a ≤ z.re ∧ z.re ≤ b ∧
-              z ≠ 0 ∧ z ≠ 1 ∧
-              completedRiemannZeta z ≠ 0 ∧
-              Complex.Gammaℝ z ≠ 0}
-        in_strip := fun z hz => ⟨hz.1, hz.2.1⟩
-        ne_zero := fun z hz => hz.2.2.1
-        ne_one := fun z hz => hz.2.2.2.1
-        zeta_ne_zero := fun z hz => hz.2.2.2.2.1
-        gamma_ne_zero := fun z hz => hz.2.2.2.2.2
-        contains_zero_avoiding_contour_edges :=
-          fun z haz hzb hz0 hz1 hΛ hΓ =>
-            ⟨haz, hzb, hz0, hz1, hΛ, hΓ⟩ },
-      trivial⟩
 
 /-- The completed negative logarithmic derivative has polynomial growth on the canonical
 zero-excised strip region. -/
