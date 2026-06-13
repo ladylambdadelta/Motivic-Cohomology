@@ -26,12 +26,36 @@ theorem one_le_one_add_nat_norm
     1 ≤ 1 + ‖((m : ℕ) : ℝ)‖ := by
   exact le_add_of_nonneg_right (norm_nonneg ((m : ℕ) : ℝ))
 
+/-- The reciprocal-square tail over positive natural denominators is summable. -/
+theorem summable_nat_succ_inverse_square :
+    Summable
+      (fun m : ℕ =>
+        ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
+  sorry
+
+/-- The height-base reciprocal-square tail is the usual reciprocal-square tail. -/
+theorem one_add_nat_norm_negative_two_eq_nat_succ_inverse_square
+    (m : ℕ) :
+    (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) =
+      ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ) := by
+  sorry
+
 /-- The reciprocal-square natural tail is summable. -/
 theorem summable_one_add_nat_norm_negative_two :
     Summable
       (fun m : ℕ =>
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ))) := by
-  sorry
+  have hfun :
+      (fun m : ℕ =>
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ))) =
+        (fun m : ℕ =>
+          ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
+    funext m
+    exact one_add_nat_norm_negative_two_eq_nat_succ_inverse_square m
+  exact Eq.subst
+    (motive := fun u : ℕ → ℝ => Summable u)
+    hfun.symm
+    summable_nat_succ_inverse_square
 
 /-- Higher negative powers of the natural height base are dominated by the
 reciprocal-square tail. -/
