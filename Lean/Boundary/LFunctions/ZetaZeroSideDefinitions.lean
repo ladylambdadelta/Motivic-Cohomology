@@ -49,11 +49,43 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
   unfold completedZetaZeroMultiplicity
   exact dif_pos h
 
+/-- A completed zero is not the negative shifted pole. -/
+theorem zetaCompletedZero_ne_negHalf
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (ρ : ℂ) ≠ -(1 / 2 : ℂ) := by
+  sorry
+
+/-- A completed zero is not the positive shifted pole. -/
+theorem zetaCompletedZero_ne_posHalf
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    (ρ : ℂ) ≠ (1 / 2 : ℂ) := by
+  sorry
+
+/-- Away from the shifted poles, the centered completed zeta function is analytic. -/
+theorem centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ))
+    (hzpos : z ≠ (1 / 2 : ℂ)) :
+    AnalyticAt ℂ centeredCompletedRiemannZeta z := by
+  sorry
+
 /-- The centered completed zeta function is analytic at every completed zero
 recorded by the zero-side divisor. -/
 theorem centeredCompletedRiemannZeta_analyticAt_of_completedZero
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     AnalyticAt ℂ centeredCompletedRiemannZeta (ρ : ℂ) := by
+  exact centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
+    (zetaCompletedZero_ne_negHalf ρ)
+    (zetaCompletedZero_ne_posHalf ρ)
+
+/-- Away from the shifted poles, the centered completed zeta function is not
+locally identically zero at a zero. -/
+theorem centeredCompletedRiemannZeta_not_eventually_zero_at_zero_of_ne_shiftedPoles
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ))
+    (hzpos : z ≠ (1 / 2 : ℂ))
+    (hz : centeredCompletedRiemannZeta z = 0) :
+    ¬ ∀ᶠ w in 𝓝 z, centeredCompletedRiemannZeta w = 0 := by
   sorry
 
 /-- The centered completed zeta function is not locally identically zero at a
@@ -61,7 +93,10 @@ completed zero. -/
 theorem centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ¬ ∀ᶠ z in 𝓝 (ρ : ℂ), centeredCompletedRiemannZeta z = 0 := by
-  sorry
+  exact centeredCompletedRiemannZeta_not_eventually_zero_at_zero_of_ne_shiftedPoles
+    (zetaCompletedZero_ne_negHalf ρ)
+    (zetaCompletedZero_ne_posHalf ρ)
+    ρ.2
 
 /-- An analytic zero which is not locally identically zero has positive finite
 order. -/
