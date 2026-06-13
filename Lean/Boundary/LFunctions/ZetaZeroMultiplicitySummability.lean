@@ -73,6 +73,81 @@ theorem one_le_nat_succ_cast_real
     1 ≤ ((m + 1 : ℕ) : ℝ) := by
   exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le m))
 
+/-- On bases at least one, negative natural integer powers are antitone. -/
+theorem real_zpow_negNat_antitone_on_one_le
+    {a b : ℝ} (N : ℕ)
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    b ^ (-(N : ℤ)) ≤ a ^ (-(N : ℤ)) := by
+  have ha_pos : 0 < a :=
+    lt_of_lt_of_le zero_lt_one ha
+  have hpow_le :
+      a ^ N ≤ b ^ N :=
+    pow_le_pow_left₀ (le_of_lt ha_pos) hab N
+  have ha_pow_pos :
+      0 < a ^ N :=
+    pow_pos ha_pos N
+  have hinv :
+      (b ^ N)⁻¹ ≤ (a ^ N)⁻¹ :=
+    inv_anti₀ ha_pow_pos hpow_le
+  have hb_zpow :
+      b ^ (-(N : ℤ)) = (b ^ N)⁻¹ := by
+    have hb_neg :
+        b ^ (-(N : ℤ)) = (b ^ (N : ℤ))⁻¹ :=
+      zpow_neg b (N : ℤ)
+    have hb_nat :
+        b ^ (N : ℤ) = b ^ N :=
+      zpow_natCast b N
+    exact Eq.trans hb_neg (congrArg Inv.inv hb_nat)
+  have ha_zpow :
+      a ^ (-(N : ℤ)) = (a ^ N)⁻¹ := by
+    have ha_neg :
+        a ^ (-(N : ℤ)) = (a ^ (N : ℤ))⁻¹ :=
+      zpow_neg a (N : ℤ)
+    have ha_nat :
+        a ^ (N : ℤ) = a ^ N :=
+      zpow_natCast a N
+    exact Eq.trans ha_neg (congrArg Inv.inv ha_nat)
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ a ^ (-(N : ℤ)))
+    hb_zpow.symm
+    (Eq.subst
+      (motive := fun x : ℝ => (b ^ N)⁻¹ ≤ x)
+      ha_zpow.symm
+      hinv)
+
+/-- The lower shell base is below the centered height of each zero in the shell. -/
+theorem completedZeroCenteredHeightShell_lowerBase_le_height
+    (m : ℕ)
+    (ρ : completedZeroCenteredHeightShellFiber m) :
+    max 1 ‖((m : ℕ) : ℝ)‖ ≤
+      zetaCompletedZeroCenteredHeight
+        (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) := by
+  have hheight_ge_one :
+      1 ≤ zetaCompletedZeroCenteredHeight
+        (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :=
+    zetaCompletedZeroCenteredHeight_ge_one
+      (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+  have hm_cast_le_height :
+      ((m : ℕ) : ℝ) ≤
+        zetaCompletedZeroCenteredHeight
+          (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :=
+    ρ.2.1
+  have hm_norm_eq :
+      ‖((m : ℕ) : ℝ)‖ = ((m : ℕ) : ℝ) :=
+    Real.norm_of_nonneg (Nat.cast_nonneg m)
+  have hm_norm_le_height :
+      ‖((m : ℕ) : ℝ)‖ ≤
+        zetaCompletedZeroCenteredHeight
+          (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ zetaCompletedZeroCenteredHeight
+          (ρ : {ρ : ℂ // ZetaCompletedZero ρ}))
+      hm_norm_eq.symm
+      hm_cast_le_height
+  exact max_le hheight_ge_one hm_norm_le_height
+
 /-- A completed zero in shell `m` has its decay term bounded by the lower shell
 decay factor. -/
 theorem completedZeroCenteredHeightShell_decay_le_lowerDecay
@@ -82,7 +157,122 @@ theorem completedZeroCenteredHeightShell_decay_le_lowerDecay
         (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
         (-(d + k + 3 : ℤ)) ≤
       completedZeroCenteredHeightShellLowerDecay d k m := by
-  sorry
+  unfold completedZeroCenteredHeightShellLowerDecay
+  exact real_zpow_negNat_antitone_on_one_le
+    (d + k + 3)
+    (le_max_left 1 ‖((m : ℕ) : ℝ)‖)
+    (completedZeroCenteredHeightShell_lowerBase_le_height m ρ)
+
+/-- A `tsum` over a finite type is bounded by cardinal times a uniform bound. -/
+theorem real_tsum_le_natCard_mul_of_forall_le
+    {α : Type*} [Fintype α]
+    (u : α → ℝ) (B : ℝ)
+    (hbound : ∀ a : α, u a ≤ B) :
+    (∑' a : α, u a) ≤ (Nat.card α : ℝ) * B := by
+  have htsum :
+      (∑' a : α, u a) = ∑ a : α, u a :=
+    tsum_fintype
+  have hsum :
+      (∑ a : α, u a) ≤ Finset.univ.card • B :=
+    Finset.sum_le_card_nsmul
+      Finset.univ
+      u
+      B
+      (fun a _ha => hbound a)
+  have hcard :
+      Finset.univ.card = Nat.card α :=
+    Eq.trans
+      (Finset.card_univ)
+      (Fintype.card_eq_nat_card)
+  have hsmul :
+      Finset.univ.card • B = (Finset.univ.card : ℝ) * B :=
+    nsmul_eq_mul Finset.univ.card B
+  have hcast :
+      (Finset.univ.card : ℝ) = (Nat.card α : ℝ) :=
+    congrArg Nat.cast hcard
+  have hmul :
+      (Finset.univ.card : ℝ) * B = (Nat.card α : ℝ) * B :=
+    congrArg (fun x : ℝ => x * B) hcast
+  have htarget :
+      Finset.univ.card • B = (Nat.card α : ℝ) * B :=
+    Eq.trans hsmul hmul
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ (Nat.card α : ℝ) * B)
+    htsum
+    (Eq.subst
+      (motive := fun x : ℝ => (∑ a : α, u a) ≤ x)
+      htarget
+      hsum)
+
+/-- A finite `tsum` whose terms are all at least one dominates the cardinality
+of its index type. -/
+theorem natCard_le_real_tsum_of_one_le
+    {α : Type*} [Fintype α]
+    (u : α → ℝ)
+    (hone : ∀ a : α, (1 : ℝ) ≤ u a) :
+    (Nat.card α : ℝ) ≤ ∑' a : α, u a := by
+  have hsum :
+      (∑ a : α, (1 : ℝ)) ≤ ∑ a : α, u a :=
+    Finset.sum_le_sum
+      (fun a _ha => hone a)
+  have hsum_one :
+      (∑ a : α, (1 : ℝ)) = Finset.univ.card • (1 : ℝ) :=
+    Finset.sum_const (1 : ℝ)
+  have hsmul_one :
+      Finset.univ.card • (1 : ℝ) = (Finset.univ.card : ℝ) * (1 : ℝ) :=
+    nsmul_eq_mul Finset.univ.card (1 : ℝ)
+  have hmul_one :
+      (Finset.univ.card : ℝ) * (1 : ℝ) = (Finset.univ.card : ℝ) :=
+    mul_one (Finset.univ.card : ℝ)
+  have hsum_one_card :
+      (∑ a : α, (1 : ℝ)) = (Finset.univ.card : ℝ) :=
+    Eq.trans hsum_one (Eq.trans hsmul_one hmul_one)
+  have hcard :
+      Finset.univ.card = Nat.card α :=
+    Eq.trans
+      (Finset.card_univ)
+      (Fintype.card_eq_nat_card)
+  have hcast :
+      (Finset.univ.card : ℝ) = (Nat.card α : ℝ) :=
+    congrArg Nat.cast hcard
+  have hsum_one_natCard :
+      (∑ a : α, (1 : ℝ)) = (Nat.card α : ℝ) :=
+    Eq.trans hsum_one_card hcast
+  have hnatCard_le_sum :
+      (Nat.card α : ℝ) ≤ ∑ a : α, u a :=
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ∑ a : α, u a)
+      hsum_one_natCard
+      hsum
+  have htsum :
+      (∑' a : α, u a) = ∑ a : α, u a :=
+    tsum_fintype
+  exact Eq.subst
+    (motive := fun x : ℝ => (Nat.card α : ℝ) ≤ x)
+    htsum.symm
+    hnatCard_le_sum
+
+/-- A completed zero in a height ball contributes at least one to the
+multiplicity height-ball summand. -/
+theorem one_le_completedZeroMultiplicityHeightBallSummand_of_mem
+    (T : ℝ)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+    (hρ : ρ ∈ completedZerosInCenteredHeightBall T) :
+    (1 : ℝ) ≤ completedZeroMultiplicityHeightBallSummand T ρ := by
+  unfold completedZeroMultiplicityHeightBallSummand
+  have hpos :
+      0 < zetaZeroMultiplicity (ρ : ℂ) :=
+    zetaZeroMultiplicity_pos_of_completedZero ρ
+  have hone_nat :
+      1 ≤ zetaZeroMultiplicity (ρ : ℂ) :=
+    hpos
+  have hone_real :
+      (1 : ℝ) ≤ (zetaZeroMultiplicity (ρ : ℂ) : ℝ) :=
+    Nat.cast_le.mpr hone_nat
+  exact Eq.subst
+    (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+    (if_pos hρ).symm
+    hone_real
 
 /-- The unweighted shell cardinal is bounded by the multiplicity count in the
 containing height ball. -/
@@ -90,7 +280,53 @@ theorem completedZeroCenteredHeightShell_unweightedCount_le_multiplicityCounting
     (m : ℕ) :
     (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) ≤
       completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) := by
-  sorry
+  haveI : Fintype (completedZeroCenteredHeightShellFiber m) :=
+    (finite_completedZeroCenteredHeightShell m).fintype
+  let T : ℝ := ((m + 1 : ℕ) : ℝ)
+  let i :
+      completedZeroCenteredHeightShellFiber m →
+        {ρ : ℂ // ZetaCompletedZero ρ} :=
+    fun ρ => (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
+  have hi : Function.Injective i := by
+    intro ρ η hρη
+    exact Subtype.ext hρη
+  have hone :
+      ∀ ρ : completedZeroCenteredHeightShellFiber m,
+        (1 : ℝ) ≤
+          completedZeroMultiplicityHeightBallSummand T (i ρ) := by
+    intro ρ
+    have hmem :
+        i ρ ∈ completedZerosInCenteredHeightBall T :=
+      completedZeroCenteredHeightShell_subset_heightBall m ρ.2
+    exact one_le_completedZeroMultiplicityHeightBallSummand_of_mem T (i ρ) hmem
+  have hcard_le_shell_tsum :
+      (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) ≤
+        ∑' ρ : completedZeroCenteredHeightShellFiber m,
+          completedZeroMultiplicityHeightBallSummand T (i ρ) :=
+    natCard_le_real_tsum_of_one_le
+      (fun ρ : completedZeroCenteredHeightShellFiber m =>
+        completedZeroMultiplicityHeightBallSummand T (i ρ))
+      hone
+  have hsummable :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          completedZeroMultiplicityHeightBallSummand T ρ) :=
+    summable_completedZeroMultiplicityHeightBallSummand T
+  have hnonnegative :
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        0 ≤ completedZeroMultiplicityHeightBallSummand T ρ :=
+    completedZeroMultiplicityHeightBallSummand_nonnegative T
+  have hshell_tsum_le_total :
+      (∑' ρ : completedZeroCenteredHeightShellFiber m,
+          completedZeroMultiplicityHeightBallSummand T (i ρ)) ≤
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          completedZeroMultiplicityHeightBallSummand T ρ :=
+    tsum_comp_le_tsum_of_inj
+      hsummable
+      hnonnegative
+      hi
+  unfold completedZeroMultiplicityCountingInCenteredHeightBall
+  exact le_trans hcard_le_shell_tsum hshell_tsum_le_total
 
 /-- A finite nonnegative shell `tsum` is bounded by cardinal times a uniform
 shell bound. -/
@@ -99,7 +335,16 @@ theorem completedZeroCenteredHeightShellDecayMass_le_card_mul_lowerDecay
     completedZeroCenteredHeightShellDecayMass d k m ≤
       (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) *
         completedZeroCenteredHeightShellLowerDecay d k m := by
-  sorry
+  haveI : Fintype (completedZeroCenteredHeightShellFiber m) :=
+    (finite_completedZeroCenteredHeightShell m).fintype
+  unfold completedZeroCenteredHeightShellDecayMass
+  exact real_tsum_le_natCard_mul_of_forall_le
+    (fun ρ : completedZeroCenteredHeightShellFiber m =>
+      zetaCompletedZeroCenteredHeight
+        (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+        (-(d + k + 3 : ℤ)))
+    (completedZeroCenteredHeightShellLowerDecay d k m)
+    (completedZeroCenteredHeightShell_decay_le_lowerDecay d k m)
 
 /-- Shell decay mass is bounded by the cumulative multiplicity count times the
 lower shell decay factor. -/
