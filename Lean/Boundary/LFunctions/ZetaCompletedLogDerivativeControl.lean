@@ -338,6 +338,17 @@ theorem completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound
 
 /-- Strip control data for the completed zeta negative logarithmic derivative. -/
 structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
+  /-- Fixed-degree polynomial growth for the completed negative log derivative on a
+  zero-excised strip.  This is the stable growth API used by rapid-decay products. -/
+  zero_excised_polynomial_growth :
+    ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b),
+      ∃ K : ℕ,
+        ∃ C : ℝ,
+          0 < C ∧
+          ∀ z : ℂ,
+            z ∈ E.carrier →
+            ‖completedZetaNegLogDeriv z‖
+              ≤ C * (1 + ‖z.im‖) ^ K
   /-- Polynomial growth for the completed negative log derivative on a zero-excised strip. -/
   zero_excised_polynomial_strip_bound :
     ∀ (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ),
@@ -347,6 +358,19 @@ structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
           z ∈ E.carrier →
           ‖completedZetaNegLogDeriv z‖
             ≤ C * (1 + ‖z.im‖) ^ N}
+
+/-- The strip-control package exposes fixed-degree zero-excised polynomial growth. -/
+theorem CompletedZetaNegLogDerivControl.zeroExcisedPolynomialGrowth
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
+    ∃ K : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ K := by
+  exact h.zero_excised_polynomial_growth a b E
 
 /-- The strip-control package exposes zero-excised polynomial pointwise growth. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBound

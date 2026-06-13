@@ -37,6 +37,20 @@ def ExplicitFormulaAnalyticPackage.logDerivControl
     CompletedZetaNegLogDerivControl f := by
   exact h.logderiv_control
 
+/-- The analytic package exposes fixed-degree zero-excised polynomial growth for the
+completed negative log derivative. -/
+theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
+    {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
+    ∃ K : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ K := by
+  exact h.logderiv_control.zeroExcisedPolynomialGrowth a b E
+
 /-- The analytic package exposes zero-excised polynomial strip growth for the completed
 negative log derivative. -/
 theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStripBound

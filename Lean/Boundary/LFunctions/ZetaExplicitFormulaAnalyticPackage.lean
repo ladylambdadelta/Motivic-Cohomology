@@ -48,7 +48,10 @@ theorem ExplicitFormulaFamilyAnalyticPackage.logderiv_control_eq
 noncomputable def completedZetaNegLogDerivControl_of_admissible
     (f : ZetaAdmissibleFunction) :
     CompletedZetaNegLogDerivControl f :=
-  { zero_excised_polynomial_strip_bound :=
+  { zero_excised_polynomial_growth :=
+      fun a b E =>
+        completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth a b E
+    zero_excised_polynomial_strip_bound :=
       fun a b E N =>
         completedZetaNegLogDeriv_zeroExcisedPolynomialStripBound a b E N }
 
