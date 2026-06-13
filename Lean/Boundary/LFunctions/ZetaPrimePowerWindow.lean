@@ -501,7 +501,12 @@ theorem ofHeightFiberSigma_toHeightFiberSigma
 theorem toHeightFiberSigma_ofHeightFiberSigma
     (s : Sigma heightFiber) :
     toHeightFiberSigma (ofHeightFiberSigma s) = s := by
-  sorry
+  rcases s with ⟨m, x⟩
+  rcases x with ⟨ι, hι⟩
+  have hheight : ι.height = m :=
+    (mem_heightShell_iff m ι).mp hι
+  cases hheight
+  rfl
 
 /-- The constructive equivalence between raw indices and their height-fiber decomposition. -/
 def heightFiberSigmaEquiv :

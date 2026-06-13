@@ -856,7 +856,7 @@ theorem zetaPaleyWienerLaplaceKernel_integral_eq_transform
 theorem zetaPaleyWienerLaplaceKernel_integrable
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     Integrable (fun t : ℝ => zetaPaleyWienerLaplaceKernel f z t) :=
-  sorry
+  integrable_laplaceKernel_at f z
 
 /-- The pointwise norm of the named Paley-Wiener Laplace kernel is integrable. -/
 theorem zetaPaleyWienerLaplaceKernel_norm_integrable
@@ -894,7 +894,8 @@ noncomputable def zetaPaleyWienerIntervalIndicatorBound
 theorem real_integrable_const_indicator_of_isCompact
     (K : Set ℝ) (hK : IsCompact K) (B : ℝ) :
     Integrable (Set.indicator K (fun _ : ℝ => B)) :=
-  sorry
+  (integrable_indicator_iff hK.isClosed.measurableSet).2
+    (integrableOn_const.2 (Or.inr hK.measure_lt_top))
 
 /-- The certified support of an admissible source is compact. -/
 theorem zetaPaleyWienerSupport_isCompact
@@ -1152,13 +1153,13 @@ theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
 theorem real_volume_Icc_eq_ofReal_sub
     {lower upper : ℝ} (hlu : lower ≤ upper) :
     volume (Set.Icc lower upper) = ENNReal.ofReal (upper - lower) := by
-  sorry
+  exact Real.volume_Icc
 
 /-- The `toReal` of a nonnegative real embedded in `ENNReal` is the original real. -/
 theorem ennreal_toReal_ofReal_of_nonnegative
     {x : ℝ} (hx : 0 ≤ x) :
     (ENNReal.ofReal x).toReal = x := by
-  sorry
+  exact ENNReal.toReal_ofReal hx
 
 /-- Ordered closed real interval volume in `toReal` form. -/
 theorem real_volume_Icc_toReal_eq_sub
