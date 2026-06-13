@@ -168,7 +168,27 @@ theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_own
     completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
       completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) := by
-  sorry
+  have htime :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) :=
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerTomography
+      f
+  have hcontour :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝
+          (completedPrimeContourRealizedTimeDistributionPairing
+            (convolutionAutocorrelation f))) :=
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized
+      (convolutionAutocorrelation f)
+  exact tendsto_nhds_unique htime hcontour
 
 /-- Completed prime holographic scalar reconstruction.
 
