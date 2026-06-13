@@ -26,6 +26,41 @@ theorem zetaZeroTailRe_eq
     zetaZeroTailRe S φ = Complex.re (zetaZeroTail S φ) := by
   rfl
 
+/-- The completed-zero subtype splits into a selected finite part and its complement. -/
+noncomputable def completedZeroSubtypeFiniteComplementEquiv
+    (S : Finset ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    {ρ : ℂ // ZetaCompletedZero ρ} ≃
+      (S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}) := by
+  classical
+  refine
+    { toFun := fun ρ =>
+        if hρ : (ρ : ℂ) ∈ S then
+          Sum.inl ⟨(ρ : ℂ), hρ⟩
+        else
+          Sum.inr ⟨(ρ : ℂ), ρ.2, hρ⟩
+      invFun := fun x =>
+        match x with
+        | Sum.inl η => ⟨(η : ℂ), hS (η : ℂ) η.2⟩
+        | Sum.inr ρ => ⟨(ρ : ℂ), ρ.2.1⟩
+      left_inv := ?_
+      right_inv := ?_ }
+  · intro ρ
+    sorry
+  · intro x
+    sorry
+
+/-- Finite/complement `tsum` transport for the completed-zero subtype. -/
+theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
+    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
+      (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
+        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
+  sorry
+
 /-- Pure finite-excision splitting for a completed-zero-indexed family.
 
 This is the topology/root summability theorem behind zero-tail excision: a summable family
@@ -39,7 +74,8 @@ theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
       (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
-  sorry
+  exact completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
+    S F hS hF
 
 /-- Generic finite-excision splitting for a completed-zero-indexed family.
 
