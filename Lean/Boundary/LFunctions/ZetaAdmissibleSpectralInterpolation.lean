@@ -117,7 +117,10 @@ theorem exists_seed_spectralEval_sample_on_finset_ownerPaleyWiener
     (S : Finset ℂ) (a : ℂ → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
-  sorry
+  rcases
+    exists_zetaLaplaceTransform_sample_on_finset_ownerPaleyWiener S a with
+    ⟨f, hf⟩
+  exact ⟨f, fun z hz => hf z hz⟩
 
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set. -/

@@ -4807,6 +4807,19 @@ theorem zetaPhi_verticalStripRapidDecay_of_admissible_owner
     hphi.symm
     hbound
 
+/-- Finite Paley-Wiener interpolation for admissible Laplace transforms on a finite
+spectral sample set.
+
+This is the interpolation counterpart to the vertical-strip Paley-Wiener decay theorem:
+compactly supported smooth admissible sources can realize arbitrary prescribed Laplace
+transform values on a finite set of spectral parameters. -/
+theorem exists_zetaLaplaceTransform_sample_on_finset_ownerPaleyWiener
+    (S : Finset ℂ) (a : ℂ → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      ∀ z : ℂ, z ∈ S →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z = a z := by
+  sorry
+
 end ZetaAdmissibleFunction
 
 end
