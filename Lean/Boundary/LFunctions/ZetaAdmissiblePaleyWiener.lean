@@ -1683,6 +1683,48 @@ theorem zetaPaleyWienerVerticalFrequency_ne_zero_of_high
     exact not_le_of_gt zero_lt_one
   exact hnot (Eq.subst (motive := fun v : ℝ => 1 ≤ v) hnorm_zero hy)
 
+/-- The vertical oscillation differentiates by multiplication with `I * y`. -/
+theorem hasDerivAt_zetaPaleyWienerVerticalOscillation
+    (y t : ℝ) :
+    HasDerivAt
+      (fun u : ℝ => zetaPaleyWienerVerticalOscillation y u)
+      (Complex.I * (y : ℂ) *
+        zetaPaleyWienerVerticalOscillation y t)
+      t := by
+  sorry
+
+/-- The compact-support boundary term for the horizontal twist vanishes at the support
+interval endpoints after multiplication by the vertical oscillation. -/
+theorem zetaPaleyWienerVerticalLineIBP_boundaryTerm_eq_zero
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x y : ℝ) :
+    zetaPaleyWienerHorizontalTwist f x I.upper *
+        zetaPaleyWienerVerticalOscillation y I.upper -
+      zetaPaleyWienerHorizontalTwist f x I.lower *
+        zetaPaleyWienerVerticalOscillation y I.lower =
+      0 := by
+  sorry
+
+/-- The vertical-line integration-by-parts identity before solving for the kernel
+integral. -/
+theorem zetaPaleyWienerVerticalLineKernel_integral_mul_frequency_eq_derivativeIntegral
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x y : ℝ) :
+    (Complex.I * (y : ℂ)) *
+        (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
+      zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
+  sorry
+
+/-- Solving the vertical-line integration-by-parts identity for the original kernel
+integral introduces the factor `I * y⁻¹`. -/
+theorem zetaPaleyWienerVerticalLineKernel_integral_solve_frequency
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x y : ℝ) (hy : (y : ℂ) ≠ 0) :
+    (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
+      Complex.I * (y : ℂ)⁻¹ *
+        zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
+  sorry
+
 /-- One vertical-line integration-by-parts identity before taking norms.
 
 The oscillatory factor is `exp (I * y * t)`, so differentiating it contributes
@@ -1693,7 +1735,8 @@ theorem zetaPaleyWienerVerticalLineKernel_integral_eq_I_mul_inverse_mul_derivati
     (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
       Complex.I * (y : ℂ)⁻¹ *
         zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
-  sorry
+  exact zetaPaleyWienerVerticalLineKernel_integral_solve_frequency
+    f I x y hy
 
 /-- The complex unit `I` has norm one. -/
 theorem complex_norm_I_eq_one :
