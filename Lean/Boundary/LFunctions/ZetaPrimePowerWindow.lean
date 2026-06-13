@@ -44,6 +44,43 @@ noncomputable def polynomialHeightDecay
     (k : ℕ) (ι : ZetaPrimePowerIndex) : ℝ :=
   (1 + ‖((ι.height : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
 
+/-- The total shell mass allowed at rectangular height `m`.
+
+The shell of indices with `max p n = m` has linear cardinality in `m`; this one-dimensional
+majorant is the honest counting object behind rectangular height summability. -/
+noncomputable def polynomialHeightShellMass
+    (k m : ℕ) : ℝ :=
+  (2 * (m + 1) : ℝ) *
+    (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
+
+/-- Polynomial shell masses are summable over rectangular heights. -/
+theorem summable_polynomialHeightShellMass
+    (k : ℕ) :
+    Summable (fun m : ℕ => polynomialHeightShellMass k m) := by
+  sorry
+
+/-- Rectangular-height decay is summable once the height-shell masses are summable.
+
+This is the shell-counting transport theorem from the two-dimensional raw prime-power
+index to the one-dimensional height majorant. -/
+theorem summable_polynomialHeightDecay_of_shellMass
+    (k : ℕ)
+    (hshell : Summable (fun m : ℕ => polynomialHeightShellMass k m)) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        polynomialHeightDecay k ι) := by
+  sorry
+
+/-- Rectangular-height polynomial decay is summable over raw prime-power indices. -/
+theorem summable_polynomialHeightDecay
+    (k : ℕ) :
+    Summable
+      (fun ι : ZetaPrimePowerIndex =>
+        polynomialHeightDecay k ι) := by
+  exact summable_polynomialHeightDecay_of_shellMass
+    k
+    (summable_polynomialHeightShellMass k)
+
 /-- Constant multiples of rectangular prime-power polynomial height decay are summable.
 
 This is the combinatorial owner theorem behind contour-localization majorants.  The
@@ -54,7 +91,7 @@ theorem summable_const_mul_polynomialHeightDecay
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         C * polynomialHeightDecay k ι) := by
-  sorry
+  exact (summable_polynomialHeightDecay k).const_mul C
 
 /-- The completed explicit-formula prime-power weight. -/
 def weight (ι : ZetaPrimePowerIndex) : ℝ :=
