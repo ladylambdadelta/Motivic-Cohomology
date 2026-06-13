@@ -730,6 +730,125 @@ theorem complex_mul_real_re
       exact congrArg (fun v : ℝ => z.re * t - v) (mul_zero z.im)
     _ = z.re * t := sub_zero (z.re * t)
 
+/-- Multiplication by a real scalar has the expected imaginary part. -/
+theorem complex_mul_real_im
+    (z : ℂ) (t : ℝ) :
+    (z * (t : ℂ)).im = z.im * t := by
+  calc
+    (z * (t : ℂ)).im = z.re * (t : ℂ).im + z.im * (t : ℂ).re := by
+      exact Complex.mul_im z (t : ℂ)
+    _ = z.re * 0 + z.im * (t : ℂ).re := by
+      exact congrArg (fun v : ℝ => z.re * v + z.im * (t : ℂ).re)
+        (Complex.ofReal_im t)
+    _ = z.re * 0 + z.im * t := by
+      exact congrArg (fun v : ℝ => z.re * 0 + z.im * v)
+        (Complex.ofReal_re t)
+    _ = 0 + z.im * t := by
+      exact congrArg (fun v : ℝ => v + z.im * t) (mul_zero z.re)
+    _ = z.im * t := zero_add (z.im * t)
+
+/-- A real multiple of `I` has zero real part. -/
+theorem paley_ofReal_mul_I_re_zero (t : ℝ) :
+    ((t : ℂ) * Complex.I).re = 0 :=
+  Eq.trans
+    (Complex.mul_I_re (t : ℂ))
+    (Eq.trans
+      (congrArg Neg.neg (Complex.ofReal_im t))
+      (neg_zero : -(0 : ℝ) = 0))
+
+/-- A real multiple of `I` has the expected imaginary part. -/
+theorem paley_ofReal_mul_I_im (t : ℝ) :
+    ((t : ℂ) * Complex.I).im = t :=
+  Eq.trans
+    (Complex.mul_I_im (t : ℂ))
+    (Complex.ofReal_re t)
+
+/-- A horizontal real part plus a vertical real multiple of `I` has real part equal to
+the horizontal coordinate. -/
+theorem paley_ofReal_add_mul_I_re (a t : ℝ) :
+    ((a : ℂ) + (t : ℂ) * Complex.I).re = a :=
+  Eq.trans
+    (Complex.add_re (a : ℂ) ((t : ℂ) * Complex.I))
+    (Eq.trans
+      (congrArg₂ HAdd.hAdd (Complex.ofReal_re a) (paley_ofReal_mul_I_re_zero t))
+      (add_zero a))
+
+/-- A horizontal real part plus a vertical real multiple of `I` has imaginary part equal
+to the vertical coordinate. -/
+theorem paley_ofReal_add_mul_I_im (a t : ℝ) :
+    ((a : ℂ) + (t : ℂ) * Complex.I).im = t :=
+  Eq.trans
+    (Complex.add_im (a : ℂ) ((t : ℂ) * Complex.I))
+    (Eq.trans
+      (congrArg₂ HAdd.hAdd (Complex.ofReal_im a) (paley_ofReal_mul_I_im t))
+      (zero_add t))
+
+/-- The real part of the explicit vertical-line decomposition is the horizontal part. -/
+theorem complex_verticalLine_decomposition_rhs_re
+    (z : ℂ) (t : ℝ) :
+    ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).re =
+      z.re * t := by
+  have hIcomm :
+      Complex.I * (z.im : ℂ) * (t : ℂ) =
+        ((z.im * t : ℝ) : ℂ) * Complex.I := by
+    calc
+      Complex.I * (z.im : ℂ) * (t : ℂ) =
+          ((z.im : ℂ) * (t : ℂ)) * Complex.I := by
+        calc
+          Complex.I * (z.im : ℂ) * (t : ℂ) =
+              (z.im : ℂ) * Complex.I * (t : ℂ) := by
+            exact congrArg (fun v : ℂ => v * (t : ℂ))
+              (mul_comm Complex.I (z.im : ℂ))
+          _ = (z.im : ℂ) * ((t : ℂ) * Complex.I) := by
+            exact Eq.trans
+              (mul_assoc (z.im : ℂ) Complex.I (t : ℂ))
+              (congrArg (fun v : ℂ => (z.im : ℂ) * v)
+                (mul_comm Complex.I (t : ℂ)))
+          _ = ((z.im : ℂ) * (t : ℂ)) * Complex.I := by
+            exact (mul_assoc (z.im : ℂ) (t : ℂ) Complex.I).symm
+      _ = ((z.im * t : ℝ) : ℂ) * Complex.I := by
+        exact congrArg (fun v : ℂ => v * Complex.I)
+          (Complex.ofReal_mul z.im t).symm
+  calc
+    ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).re =
+        ((z.re * t : ℂ) + ((z.im * t : ℝ) : ℂ) * Complex.I).re := by
+      exact congrArg (fun v : ℂ => ((z.re * t : ℂ) + v).re) hIcomm
+    _ = z.re * t := by
+      exact paley_ofReal_add_mul_I_re (z.re * t) (z.im * t)
+
+/-- The imaginary part of the explicit vertical-line decomposition is the vertical part. -/
+theorem complex_verticalLine_decomposition_rhs_im
+    (z : ℂ) (t : ℝ) :
+    ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).im =
+      z.im * t := by
+  have hIcomm :
+      Complex.I * (z.im : ℂ) * (t : ℂ) =
+        ((z.im * t : ℝ) : ℂ) * Complex.I := by
+    calc
+      Complex.I * (z.im : ℂ) * (t : ℂ) =
+          ((z.im : ℂ) * (t : ℂ)) * Complex.I := by
+        calc
+          Complex.I * (z.im : ℂ) * (t : ℂ) =
+              (z.im : ℂ) * Complex.I * (t : ℂ) := by
+            exact congrArg (fun v : ℂ => v * (t : ℂ))
+              (mul_comm Complex.I (z.im : ℂ))
+          _ = (z.im : ℂ) * ((t : ℂ) * Complex.I) := by
+            exact Eq.trans
+              (mul_assoc (z.im : ℂ) Complex.I (t : ℂ))
+              (congrArg (fun v : ℂ => (z.im : ℂ) * v)
+                (mul_comm Complex.I (t : ℂ)))
+          _ = ((z.im : ℂ) * (t : ℂ)) * Complex.I := by
+            exact (mul_assoc (z.im : ℂ) (t : ℂ) Complex.I).symm
+      _ = ((z.im * t : ℝ) : ℂ) * Complex.I := by
+        exact congrArg (fun v : ℂ => v * Complex.I)
+          (Complex.ofReal_mul z.im t).symm
+  calc
+    ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).im =
+        ((z.re * t : ℂ) + ((z.im * t : ℝ) : ℂ) * Complex.I).im := by
+      exact congrArg (fun v : ℂ => ((z.re * t : ℂ) + v).im) hIcomm
+    _ = z.im * t := by
+      exact paley_ofReal_add_mul_I_im (z.re * t) (z.im * t)
+
 /-- Norm of the complex exponential on a vertical line is the exponential of the real
 part of the exponent. -/
 theorem zetaPaleyWienerComplexExp_norm_eq_realExp
@@ -1402,14 +1521,18 @@ theorem complex_mul_real_verticalLine_decomposition_re
     (z : ℂ) (t : ℝ) :
     (z * (t : ℂ)).re =
       ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).re := by
-  sorry
+  exact Eq.trans
+    (complex_mul_real_re z t)
+    (complex_verticalLine_decomposition_rhs_re z t).symm
 
 /-- Imaginary coordinate of the vertical-line complex decomposition. -/
 theorem complex_mul_real_verticalLine_decomposition_im
     (z : ℂ) (t : ℝ) :
     (z * (t : ℂ)).im =
       ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).im := by
-  sorry
+  exact Eq.trans
+    (complex_mul_real_im z t)
+    (complex_verticalLine_decomposition_rhs_im z t).symm
 
 /-- Complex multiplication by a real variable splits into horizontal and vertical parts. -/
 theorem complex_mul_real_verticalLine_decomposition
