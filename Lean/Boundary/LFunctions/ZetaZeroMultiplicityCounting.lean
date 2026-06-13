@@ -13,6 +13,15 @@ namespace LFunctions
 
 noncomputable section
 
+/-- A nonnegative summable real family dominates each of its terms by its total `tsum`. -/
+theorem real_term_le_tsum_of_summable_nonnegative
+    {α : Type*} (u : α → ℝ)
+    (hu : Summable u)
+    (h_nonneg : ∀ a : α, 0 ≤ u a)
+    (a : α) :
+    u a ≤ ∑' x : α, u x := by
+  sorry
+
 /-- Completed zeros in the centered vertical height ball of radius `T`. -/
 def completedZerosInCenteredHeightBall (T : ℝ) :
     Set {ρ : ℂ // ZetaCompletedZero ρ} :=
@@ -121,7 +130,13 @@ theorem completedZeroMultiplicityHeightBallSummand_le_counting
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedZeroMultiplicityHeightBallSummand T ρ ≤
       completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  sorry
+  unfold completedZeroMultiplicityCountingInCenteredHeightBall
+  exact real_term_le_tsum_of_summable_nonnegative
+    (fun η : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      completedZeroMultiplicityHeightBallSummand T η)
+    (summable_completedZeroMultiplicityHeightBallSummand T)
+    (completedZeroMultiplicityHeightBallSummand_nonnegative T)
+    ρ
 
 /-- Completed zero multiplicity counts are nonnegative. -/
 theorem completedZeroMultiplicityCountingInCenteredHeightBall_nonnegative
