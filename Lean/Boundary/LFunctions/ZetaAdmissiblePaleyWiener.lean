@@ -866,6 +866,14 @@ theorem zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
         hindicator.symm
         le_rfl)
 
+/-- Real-line integral monotonicity for nonnegative pointwise domination. -/
+theorem real_integral_mono_of_nonnegative_pointwise_le
+    (u v : ℝ → ℝ)
+    (hu_nonneg : ∀ t : ℝ, 0 ≤ u t)
+    (hle : ∀ t : ℝ, u t ≤ v t) :
+    (∫ t : ℝ, u t) ≤ ∫ t : ℝ, v t := by
+  sorry
+
 /-- Pointwise domination of the kernel norm by the support-indicator majorant passes to
 real-line integrals. -/
 theorem zetaPaleyWienerKernelNormIntegral_le_supportIndicatorIntegral
@@ -876,7 +884,11 @@ theorem zetaPaleyWienerKernelNormIntegral_le_supportIndicatorIntegral
           zetaPaleyWienerSupportIndicatorBound f B t) :
     (∫ t : ℝ, ‖zetaPaleyWienerLaplaceKernel f z t‖) ≤
       ∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t := by
-  sorry
+  exact real_integral_mono_of_nonnegative_pointwise_le
+    (fun t : ℝ => ‖zetaPaleyWienerLaplaceKernel f z t‖)
+    (zetaPaleyWienerSupportIndicatorBound f B)
+    (fun t : ℝ => norm_nonneg (zetaPaleyWienerLaplaceKernel f z t))
+    hindicator
 
 /-- Integrating a support-indicator majorant bounds the norm of the real-line Laplace
 integral. -/
@@ -919,6 +931,35 @@ theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
           zetaPaleyWienerIntervalIndicatorBound I B t) :
     (∫ t : ℝ, zetaPaleyWienerSupportIndicatorBound f B t) ≤
       ∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t := by
+  exact real_integral_mono_of_nonnegative_pointwise_le
+    (zetaPaleyWienerSupportIndicatorBound f B)
+    (zetaPaleyWienerIntervalIndicatorBound I B)
+    (fun t : ℝ => by
+      by_cases ht : t ∈ tsupport f.toZetaTestFunction
+      · have hvalue :
+            zetaPaleyWienerSupportIndicatorBound f B t = B := by
+          unfold zetaPaleyWienerSupportIndicatorBound
+          exact Set.indicator_of_mem ht
+        exact Eq.subst
+          (motive := fun v : ℝ => 0 ≤ v)
+          hvalue.symm
+          hB_nonneg
+      · have hvalue :
+            zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
+          unfold zetaPaleyWienerSupportIndicatorBound
+          exact Set.indicator_of_not_mem ht
+        exact Eq.subst
+          (motive := fun v : ℝ => 0 ≤ v)
+          hvalue.symm
+          le_rfl)
+    hpoint
+
+/-- The integral of a nonnegative constant over an interval indicator is constant times
+the interval volume. -/
+theorem real_integral_const_indicator_Icc_eq_const_mul_volume
+    (lower upper B : ℝ) (hB_nonneg : 0 ≤ B) :
+    (∫ t : ℝ, Set.indicator (Set.Icc lower upper) (fun _ : ℝ => B) t) =
+      B * (volume (Set.Icc lower upper)).toReal := by
   sorry
 
 /-- The interval-indicator integral is the constant times the interval volume. -/
@@ -926,6 +967,14 @@ theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) (hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t) =
       B * (volume (Set.Icc I.lower I.upper)).toReal := by
+  unfold zetaPaleyWienerIntervalIndicatorBound
+  exact real_integral_const_indicator_Icc_eq_const_mul_volume
+    I.lower I.upper B hB_nonneg
+
+/-- Ordered closed real interval volume in `toReal` form. -/
+theorem real_volume_Icc_toReal_eq_sub
+    {lower upper : ℝ} (hlu : lower ≤ upper) :
+    (volume (Set.Icc lower upper)).toReal = upper - lower := by
   sorry
 
 /-- The volume of an ordered closed real interval is its endpoint difference. -/
@@ -933,7 +982,7 @@ theorem zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower
     (I : ZetaPaleyWienerSupportInterval f) :
     (volume (Set.Icc I.lower I.upper)).toReal =
       I.upper - I.lower := by
-  sorry
+  exact real_volume_Icc_toReal_eq_sub I.lower_le_upper
 
 /-- The volume of the certified support interval is the certified support interval length. -/
 theorem zetaPaleyWienerIntervalVolume_toReal_eq_supportIntervalLength
