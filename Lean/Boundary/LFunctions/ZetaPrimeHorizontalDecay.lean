@@ -694,7 +694,7 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_
           completedPrimeContourTransportCoordinateRemainderFamily f ι = 0 := by
     intro ι hι
     exact
-      (completedPrimeContourTransportCoordinateRemainderFamily_apply f ι).trans
+      (completedPrimeContourTransportCoordinateRemainderFamily_apply ι f).trans
         (completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine
           ι f hι)
   have htail :
