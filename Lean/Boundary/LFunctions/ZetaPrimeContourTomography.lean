@@ -19,6 +19,116 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Pointwise equality transports through a complex-valued set integral. -/
+theorem complex_setIntegral_congr_of_pointwise_eq
+    {s : Set ℝ} {F G : ℝ → ℂ}
+    (h : ∀ x : ℝ, F x = G x) :
+    (∫ x in s, F x) =
+      ∫ x in s, G x := by
+  exact MeasureTheory.integral_congr_ae
+    (Filter.Eventually.of_forall h)
+
+/-- Pointwise equality transports through a complex-valued integral over a horizontal
+`uIcc` interval. -/
+theorem complex_uIcc_integral_congr_of_pointwise_eq
+    {a b : ℝ} {F G : ℝ → ℂ}
+    (h : ∀ x : ℝ, F x = G x) :
+    (∫ x in Set.uIcc a b, F x) =
+      ∫ x in Set.uIcc a b, G x := by
+  exact complex_setIntegral_congr_of_pointwise_eq h
+
+/-- Negation factors out of a complex-valued set integral. -/
+theorem complex_setIntegral_neg
+    {s : Set ℝ}
+    (F : ℝ → ℂ) :
+    (∫ x in s, -F x) =
+      -(∫ x in s, F x) := by
+  exact integral_neg F
+
+/-- Negation factors out of a complex-valued integral over a horizontal `uIcc` interval. -/
+theorem complex_uIcc_integral_neg
+    {a b : ℝ} (F : ℝ → ℂ) :
+    (∫ x in Set.uIcc a b, -F x) =
+      -(∫ x in Set.uIcc a b, F x) := by
+  exact complex_setIntegral_neg F
+
+/-- Complex conjugation commutes with a complex-valued set integral. -/
+theorem complex_star_setIntegral_eq_setIntegral_star
+    {s : Set ℝ}
+    (F : ℝ → ℂ) :
+    star (∫ x in s, F x) =
+      ∫ x in s, star (F x) := by
+  exact integral_conj
+
+/-- Complex conjugation commutes with a complex-valued integral over a horizontal `uIcc`
+interval. -/
+theorem complex_star_uIcc_integral_eq_integral_star
+    {a b : ℝ} (F : ℝ → ℂ) :
+    star (∫ x in Set.uIcc a b, F x) =
+      ∫ x in Set.uIcc a b, star (F x) := by
+  exact complex_star_setIntegral_eq_setIntegral_star F
+
+/-- If one factor is anti-conjugate and the other is conjugate, the product is
+anti-conjugate. -/
+theorem complex_star_mul_eq_neg_mul_of_star_eq_neg_of_star_eq
+    {A B C D : ℂ}
+    (hA : star A = -C) (hB : star B = D) :
+    star (A * B) = -(C * D) := by
+  calc
+    star (A * B) = star A * star B := by
+      exact map_mul star A B
+    _ = (-C) * D := by
+      exact congrArg₂ (fun x y : ℂ => x * y) hA hB
+    _ = -(C * D) := by
+      exact neg_mul C D
+
+/-- The real part of a complex number plus an embedded real scalar. -/
+theorem complex_re_add_ofReal
+    (z : ℂ) (r : ℝ) :
+    Complex.re (z + (r : ℂ)) = Complex.re z + r := by
+  calc
+    Complex.re (z + (r : ℂ)) = Complex.re z + Complex.re (r : ℂ) := by
+      exact Complex.add_re z (r : ℂ)
+    _ = Complex.re z + r := by
+      exact congrArg (fun x : ℝ => Complex.re z + x) (Complex.ofReal_re r)
+
+/-- Real part of a negated product by an embedded real scalar. -/
+theorem complex_re_ofReal_mul
+    (r : ℝ) (z : ℂ) :
+    Complex.re ((r : ℂ) * z) = r * Complex.re z := by
+  calc
+    Complex.re ((r : ℂ) * z) =
+        Complex.re (r : ℂ) * Complex.re z - Complex.im (r : ℂ) * Complex.im z := by
+      exact Complex.mul_re (r : ℂ) z
+    _ = r * Complex.re z - Complex.im (r : ℂ) * Complex.im z := by
+      exact congrArg
+        (fun x : ℝ => x * Complex.re z - Complex.im (r : ℂ) * Complex.im z)
+        (Complex.ofReal_re r)
+    _ = r * Complex.re z - 0 * Complex.im z := by
+      exact congrArg
+        (fun x : ℝ => r * Complex.re z - x * Complex.im z)
+        (Complex.ofReal_im r)
+    _ = r * Complex.re z - 0 := by
+      exact congrArg
+        (fun x : ℝ => r * Complex.re z - x)
+        (zero_mul (Complex.im z))
+    _ = r * Complex.re z := by
+      exact sub_zero (r * Complex.re z)
+
+/-- The real part of a negated complex number. -/
+theorem complex_re_neg
+    (z : ℂ) :
+    Complex.re (-z) = -Complex.re z := by
+  exact Complex.neg_re z
+
+/-- Real part of a negated product by an embedded real scalar. -/
+theorem complex_re_neg_ofReal_mul
+    (r : ℝ) (z : ℂ) :
+    Complex.re (-((r : ℂ) * z)) = -(r * Complex.re z) := by
+  exact
+    (complex_re_neg ((r : ℂ) * z)).trans
+      (congrArg Neg.neg (complex_re_ofReal_mul r z))
+
 /-- Real subtraction transport: an additive balance is equivalently a subtraction formula
 for the left summand. -/
 theorem real_left_eq_sub_of_add_eq
@@ -427,6 +537,237 @@ theorem sampledHorizontalDifferenceComplex_eq_top_sub_bottom
         sampledHorizontalBottomIntegral N f := by
   rfl
 
+/-- The top horizontal contour integrand along the prime transport rectangle. -/
+noncomputable def primeTransportTopContourIntegrand
+    (N : ℕ) (f : ZetaAdmissibleFunction) (x : ℝ) : ℂ :=
+  completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaTopPath
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+    zetaCompletedExplicitFormulaPhi
+      (convolutionAutocorrelation f)
+      (zetaCompletedExplicitFormulaTopPath
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)
+
+/-- The bottom horizontal contour integrand along the prime transport rectangle. -/
+noncomputable def primeTransportBottomContourIntegrand
+    (N : ℕ) (f : ZetaAdmissibleFunction) (x : ℝ) : ℂ :=
+  completedZetaNegLogDeriv
+      (zetaCompletedExplicitFormulaBottomPath
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) *
+    zetaCompletedExplicitFormulaPhi
+      (convolutionAutocorrelation f)
+      (zetaCompletedExplicitFormulaBottomPath
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)
+
+/-- The top line integral is the interval integral of the named top contour integrand. -/
+theorem primeTransportTopLineIntegral_eq_integral_topContourIntegrand
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        primeTransportTopContourIntegrand N f x := by
+  rfl
+
+/-- The bottom line integral is the interval integral of the named bottom contour
+integrand. -/
+theorem primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        primeTransportBottomContourIntegrand N f x := by
+  rfl
+
+/-- The named top contour-integrand integral along the prime transport rectangle. -/
+noncomputable def primeTransportTopContourIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+      (1 - completedPrimeContourTransportFamily.c),
+    primeTransportTopContourIntegrand N f x
+
+/-- The named bottom contour-integrand integral along the prime transport rectangle. -/
+noncomputable def primeTransportBottomContourIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+      (1 - completedPrimeContourTransportFamily.c),
+    primeTransportBottomContourIntegrand N f x
+
+/-- The top contour integral unfolds to the interval integral of its named integrand. -/
+theorem primeTransportTopContourIntegral_eq_integral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    primeTransportTopContourIntegral N f =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        primeTransportTopContourIntegrand N f x := by
+  rfl
+
+/-- The bottom contour integral unfolds to the interval integral of its named integrand. -/
+theorem primeTransportBottomContourIntegral_eq_integral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    primeTransportBottomContourIntegral N f =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        primeTransportBottomContourIntegrand N f x := by
+  rfl
+
+/-- The top line integral is the named top contour integral. -/
+theorem primeTransportTopLineIntegral_eq_topContourIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaTopLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      primeTransportTopContourIntegral N f := by
+  exact
+    (primeTransportTopLineIntegral_eq_integral_topContourIntegrand N f).trans
+      (primeTransportTopContourIntegral_eq_integral N f).symm
+
+/-- The bottom line integral is the named bottom contour integral. -/
+theorem primeTransportBottomLineIntegral_eq_bottomContourIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
+      primeTransportBottomContourIntegral N f := by
+  exact
+    (primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand N f).trans
+      (primeTransportBottomContourIntegral_eq_integral N f).symm
+
+/-- The finite complex contour-realized prime window before taking its real shadow. -/
+noncomputable def finitePrimeContourRealizedComplexCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) : ℂ :=
+  -((ι.weight : ℂ) *
+    (zetaCompletedSpectralLaplaceTransform g ι.center +
+      star (zetaCompletedSpectralLaplaceTransform g ι.center)))
+
+/-- The finite complex contour-realized prime window before taking its real shadow. -/
+noncomputable def finitePrimeContourRealizedComplexWindow
+    (N : ℕ) (g : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    finitePrimeContourRealizedComplexCoordinate ι g
+
+/-- The finite contour-realized complex coordinate unfolds to the spectral Laplace
+coordinate expression. -/
+theorem finitePrimeContourRealizedComplexCoordinate_eq
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) :
+    finitePrimeContourRealizedComplexCoordinate ι g =
+      -((ι.weight : ℂ) *
+        (zetaCompletedSpectralLaplaceTransform g ι.center +
+          star (zetaCompletedSpectralLaplaceTransform g ι.center))) := by
+  rfl
+
+/-- The real part of one finite contour-realized complex coordinate is the corresponding
+contour-realized real coordinate. -/
+theorem finitePrimeContourRealizedComplexCoordinate_re_eq_contourRealizedCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeContourRealizedComplexCoordinate ι g) =
+      completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
+  rfl
+
+/-- The real part of the finite complex contour-realized prime window is the finite sum of
+contour-realized coordinates. -/
+theorem finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeContourRealizedComplexWindow N g) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
+  exact
+    (Complex.sum_re
+      (fun ι : ZetaPrimePowerIndex =>
+        finitePrimeContourRealizedComplexCoordinate ι g)
+      (ZetaPrimePowerIndex.window N)).trans
+      (Finset.sum_congr
+        rfl
+        (fun ι _ =>
+          finitePrimeContourRealizedComplexCoordinate_re_eq_contourRealizedCoordinate
+            ι g))
+
+/-- The real part of the displayed finite contour-realized complex coordinate sum is the
+finite sum of contour-realized real coordinates. -/
+theorem finitePrimeContourRealizedComplexCoordinateSum_re_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    Complex.re
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeContourRealizedComplexCoordinate ι g) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
+  exact finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum N g
+
+/-- The real part of the finite complex contour-realized prime window is the finite
+contour-realized prime window. -/
+theorem finitePrimeContourRealizedComplexWindow_re_eq_window
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeContourRealizedComplexWindow N g) =
+      finitePrimeContourRealizedTimeDistributionWindow N g := by
+  exact
+    (finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum N g).trans
+      (finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate N g).symm
+
+/-- The finite complex time-side prime window before taking its real shadow. -/
+noncomputable def finitePrimeTimeDistributionComplexCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) : ℂ :=
+  -((ι.weight : ℂ) *
+    (zetaCompletedTimeBoundaryValue g ι.center +
+      star (zetaCompletedTimeBoundaryValue g ι.center)))
+
+/-- The finite complex time-side prime window before taking its real shadow. -/
+noncomputable def finitePrimeTimeDistributionComplexWindow
+    (N : ℕ) (g : ZetaAdmissibleFunction) : ℂ :=
+  ∑ ι in ZetaPrimePowerIndex.window N,
+    finitePrimeTimeDistributionComplexCoordinate ι g
+
+/-- The finite time-side complex coordinate unfolds to the raw time-boundary expression. -/
+theorem finitePrimeTimeDistributionComplexCoordinate_eq
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) :
+    finitePrimeTimeDistributionComplexCoordinate ι g =
+      -((ι.weight : ℂ) *
+        (zetaCompletedTimeBoundaryValue g ι.center +
+          star (zetaCompletedTimeBoundaryValue g ι.center))) := by
+  rfl
+
+/-- The real part of one finite time-side complex coordinate is the corresponding
+time-side distribution coordinate. -/
+theorem finitePrimeTimeDistributionComplexCoordinate_re_eq_timeCoordinate
+    (ι : ZetaPrimePowerIndex) (g : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeTimeDistributionComplexCoordinate ι g) =
+      completedPrimeTimeDistributionCoordinate ι g := by
+  exact complex_re_neg_ofReal_mul
+    ι.weight
+    (zetaCompletedTimeBoundaryValue g ι.center +
+      star (zetaCompletedTimeBoundaryValue g ι.center))
+
+/-- The real part of the finite complex time-side prime window is the finite time-side
+coordinate sum. -/
+theorem finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeTimeDistributionComplexWindow N g) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι g := by
+  exact
+    (Complex.sum_re
+      (fun ι : ZetaPrimePowerIndex =>
+        finitePrimeTimeDistributionComplexCoordinate ι g)
+      (ZetaPrimePowerIndex.window N)).trans
+      (Finset.sum_congr
+        rfl
+        (fun ι _ =>
+          finitePrimeTimeDistributionComplexCoordinate_re_eq_timeCoordinate
+            ι g))
+
+/-- The real part of the displayed finite time-side complex coordinate sum is the finite
+sum of time-side real coordinates. -/
+theorem finitePrimeTimeDistributionComplexCoordinateSum_re_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    Complex.re
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeTimeDistributionComplexCoordinate ι g) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι g := by
+  exact finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum N g
+
 /-- The real part of the sampled horizontal difference is the difference of the real parts
 of the sampled top and bottom edges. -/
 theorem sampledHorizontalDifferenceComplex_re_eq_top_re_sub_bottom_re
@@ -470,6 +811,43 @@ theorem completedPrimeContourTransportCoordinateRemainderTail_eq_spectralTail_ts
           (completedPrimeContourTransportCoordinateRemainderFamily f) N ι := by
   rfl
 
+/-- The finite complex time-side prime window together with the omitted contour-transport
+tail embedded as a complex scalar. -/
+noncomputable def finitePrimeTimeDistributionComplexWindowWithTail
+    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
+  finitePrimeTimeDistributionComplexWindow N (convolutionAutocorrelation f) +
+    (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)
+
+/-- The finite complex time-side window with tail unfolds to the complex window plus the
+embedded real tail. -/
+theorem finitePrimeTimeDistributionComplexWindowWithTail_eq_complexWindow_add_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeTimeDistributionComplexWindowWithTail N f =
+      finitePrimeTimeDistributionComplexWindow N (convolutionAutocorrelation f) +
+        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
+  rfl
+
+/-- The real part of the finite time-side complex window with tail is the finite time-side
+coordinate sum plus the omitted contour-transport tail. -/
+theorem finitePrimeTimeDistributionComplexWindowWithTail_re_eq_coordinateSum_add_tail
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (finitePrimeTimeDistributionComplexWindowWithTail N f) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    Eq.trans
+      (congrArg Complex.re
+        (finitePrimeTimeDistributionComplexWindowWithTail_eq_complexWindow_add_tail
+          N f))
+      ((complex_re_add_ofReal
+        (finitePrimeTimeDistributionComplexWindow N (convolutionAutocorrelation f))
+        (completedPrimeContourTransportCoordinateRemainderTail N f)).trans
+        (congrArg
+          (fun x : ℝ => x + completedPrimeContourTransportCoordinateRemainderTail N f)
+          (finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum
+            N (convolutionAutocorrelation f))))
+
 /-- The finite residue defect reconstructed by the sampled horizontal contour.
 
 This is the sign-sensitive finite object: the horizontal top-minus-bottom sample
@@ -508,131 +886,98 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
-/-- The owner horizontal-edge reconstruction package for a finite prime contour
-transport rectangle.
-
-The three fields are the actual analytic tomography inputs:
-top-edge reconstruction of the contour-realized coordinates, bottom-edge
-reconstruction of the time-side coordinates plus omitted tail, and oriented
-top/bottom conjugation. Downstream sampled-horizontal theorems are algebraic
-projections from this package. -/
-structure PrimeContourHorizontalReconstruction
-    (N : ℕ) (f : ZetaAdmissibleFunction) where
-  top_re :
-    Complex.re
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      ∑ ι in ZetaPrimePowerIndex.window N,
-        completedPrimeContourRealizedTimeDistributionCoordinate
-          ι (convolutionAutocorrelation f)
-  bottom_re :
-    Complex.re
-        (zetaCompletedExplicitFormulaBottomLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
-        completedPrimeContourTransportCoordinateRemainderTail N f
-  top_star_eq_neg_bottom :
-    star
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      -zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ))
-
-/-- Top-edge reconstruction for the finite prime contour transport rectangle. -/
-theorem primeContourHorizontalReconstruction_top_re_ownerTomography
+/-- The top contour integral reconstructs the finite complex contour-realized prime
+window. -/
+theorem primeTransportTopContourIntegral_re_eq_sum_contourRealizedCoordinates_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.re
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+    Complex.re (primeTransportTopContourIntegral N f) =
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f) := by
   sorry
 
-/-- Bottom-edge reconstruction for the finite prime contour transport rectangle.
-
-The bottom edge reconstructs the time-side finite window together with the omitted
-outside-window contour-transport tail. -/
-theorem primeContourHorizontalReconstruction_bottom_re_ownerTomography
+/-- The top contour integral has the same imaginary part as the finite complex
+contour-realized prime window. -/
+theorem primeTransportTopContourIntegral_im_eq_sum_contourRealizedComplexCoordinates_im_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.re
-        (zetaCompletedExplicitFormulaBottomLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
-        completedPrimeContourTransportCoordinateRemainderTail N f := by
+    Complex.im (primeTransportTopContourIntegral N f) =
+      Complex.im
+        (∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeContourRealizedComplexCoordinate
+            ι (convolutionAutocorrelation f)) := by
   sorry
 
-/-- Oriented top/bottom conjugation for the finite prime contour transport rectangle. -/
-theorem primeContourHorizontalReconstruction_top_star_eq_neg_bottom_ownerTomography
+/-- The top contour integral reconstructs the finite complex contour-realized prime
+window. -/
+theorem primeTransportTopContourIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    star
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      -zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
-  sorry
+    primeTransportTopContourIntegral N f =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeContourRealizedComplexCoordinate
+          ι (convolutionAutocorrelation f) := by
+  exact Complex.ext
+    ((primeTransportTopContourIntegral_re_eq_sum_contourRealizedCoordinates_ownerTomography
+      N f).trans
+      (finitePrimeContourRealizedComplexCoordinateSum_re_eq_coordinateSum
+        N (convolutionAutocorrelation f)).symm)
+    (primeTransportTopContourIntegral_im_eq_sum_contourRealizedComplexCoordinates_im_ownerTomography
+      N f)
 
-/-- Owner construction of the horizontal reconstruction package for the finite prime
-contour transport rectangle. -/
-theorem primeContourHorizontalReconstruction
+/-- The top contour integral reconstructs the finite complex contour-realized prime
+window. -/
+theorem primeTransportTopContourIntegral_eq_contourRealizedComplexWindow_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    PrimeContourHorizontalReconstruction N f := by
+    primeTransportTopContourIntegral N f =
+      finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
+  exact primeTransportTopContourIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
+    N f
+
+/-- The real part of the top contour integral reconstructs the finite sum of
+contour-realized prime coordinates. -/
+theorem primeTransportTopContourIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (primeTransportTopContourIntegral N f) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f) := by
   exact
-    { top_re :=
-        primeContourHorizontalReconstruction_top_re_ownerTomography N f
-      bottom_re :=
-        primeContourHorizontalReconstruction_bottom_re_ownerTomography N f
-      top_star_eq_neg_bottom :=
-        primeContourHorizontalReconstruction_top_star_eq_neg_bottom_ownerTomography N f }
+    primeTransportTopContourIntegral_re_eq_sum_contourRealizedCoordinates_ownerTomography
+      N f
 
-/-- Top-edge owner reconstruction for the finite prime contour transport rectangle. -/
-theorem primeContourHorizontalReconstruction_top_re
+/-- The real part of the top contour integral reconstructs the finite contour-realized
+prime window. -/
+theorem primeTransportTopContourIntegral_re_eq_contourRealizedWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (primeTransportTopContourIntegral N f) =
+      finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) := by
+  exact
+    (primeTransportTopContourIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
+      N f).trans
+      (finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
+        N (convolutionAutocorrelation f)).symm
+
+/-- The real part of the top contour-integrand integral reconstructs the finite sum of
+contour-realized prime coordinates. -/
+theorem primeTransportTopContourIntegrand_integral_re_eq_contourRealizedCoordinateSum_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     Complex.re
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+        (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c),
+          primeTransportTopContourIntegrand N f x) =
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f) := by
-  exact primeContourHorizontalReconstruction_top_re_ownerTomography N f
-
-/-- Bottom-edge owner reconstruction for the finite prime contour transport rectangle.
-
-The bottom edge reconstructs the time-side finite window together with the omitted
-outside-window contour-transport tail. -/
-theorem primeContourHorizontalReconstruction_bottom_re
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.re
-        (zetaCompletedExplicitFormulaBottomLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
-        completedPrimeContourTransportCoordinateRemainderTail N f := by
-  exact primeContourHorizontalReconstruction_bottom_re_ownerTomography N f
-
-/-- Oriented top/bottom conjugation for the finite prime contour transport rectangle. -/
-theorem primeContourHorizontalReconstruction_top_star_eq_neg_bottom
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    star
-        (zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
-      -zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
-  exact primeContourHorizontalReconstruction_top_star_eq_neg_bottom_ownerTomography N f
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          ∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f))
+      (primeTransportTopContourIntegral_eq_integral N f)
+      (primeTransportTopContourIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
+        N f)
 
 /-- The real part of the top line integral over the prime transport rectangle reconstructs
 the finite sum of contour-realized prime coordinates. -/
@@ -645,7 +990,16 @@ theorem primeTransportTopLineIntegral_re_eq_contourRealizedCoordinateSum_ownerTo
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f) := by
-  exact primeContourHorizontalReconstruction_top_re_ownerTomography N f
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          ∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeContourRealizedTimeDistributionCoordinate
+              ι (convolutionAutocorrelation f))
+      (primeTransportTopLineIntegral_eq_integral_topContourIntegrand N f).symm
+      (primeTransportTopContourIntegrand_integral_re_eq_contourRealizedCoordinateSum_ownerTomography
+        N f)
 
 /-- The real part of the top line integral over the prime transport rectangle reconstructs
 the finite contour-realized prime window. -/
@@ -680,6 +1034,103 @@ theorem sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography
       (primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
         N f)
 
+/-- The bottom contour integral reconstructs the finite time-side complex coordinate sum
+together with the omitted contour-transport tail. -/
+theorem primeTransportBottomContourIntegral_re_eq_sum_timeCoordinates_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (primeTransportBottomContourIntegral N f) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  sorry
+
+/-- The bottom contour integral has the same imaginary part as the finite time-side complex
+coordinate window with the real tail added. -/
+theorem primeTransportBottomContourIntegral_im_eq_sum_timeComplexCoordinates_add_tail_im_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.im (primeTransportBottomContourIntegral N f) =
+      Complex.im
+        ((∑ ι in ZetaPrimePowerIndex.window N,
+          finitePrimeTimeDistributionComplexCoordinate
+            ι (convolutionAutocorrelation f)) +
+          (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
+  sorry
+
+/-- The bottom contour integral reconstructs the finite time-side complex coordinate sum
+together with the omitted contour-transport tail. -/
+theorem primeTransportBottomContourIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    primeTransportBottomContourIntegral N f =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeTimeDistributionComplexCoordinate
+          ι (convolutionAutocorrelation f)) +
+        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
+  exact Complex.ext
+    ((primeTransportBottomContourIntegral_re_eq_sum_timeCoordinates_add_tail_ownerTomography
+      N f).trans
+      (finitePrimeTimeDistributionComplexWindowWithTail_re_eq_coordinateSum_add_tail
+        N f).symm)
+    (primeTransportBottomContourIntegral_im_eq_sum_timeComplexCoordinates_add_tail_im_ownerTomography
+      N f)
+
+/-- The bottom contour integral reconstructs the finite time-side complex window together
+with the omitted contour-transport tail. -/
+theorem primeTransportBottomContourIntegral_eq_timeComplexWindowWithTail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    primeTransportBottomContourIntegral N f =
+      finitePrimeTimeDistributionComplexWindowWithTail N f := by
+  exact primeTransportBottomContourIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
+    N f
+
+/-- The real part of the bottom contour integral reconstructs the finite time-side
+coordinate sum together with the omitted coordinate-remainder tail. -/
+theorem primeTransportBottomContourIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (primeTransportBottomContourIntegral N f) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    primeTransportBottomContourIntegral_re_eq_sum_timeCoordinates_add_tail_ownerTomography
+      N f
+
+/-- The real part of the bottom contour integral reconstructs the finite time-side prime
+window together with the omitted coordinate-remainder tail. -/
+theorem primeTransportBottomContourIntegral_re_eq_timeWindow_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (primeTransportBottomContourIntegral N f) =
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    (primeTransportBottomContourIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+      N f).trans
+      (congrArg
+        (fun x : ℝ => x + completedPrimeContourTransportCoordinateRemainderTail N f)
+        (finitePrimeTimeDistributionWindow_eq_sum_coordinate
+          N (convolutionAutocorrelation f)).symm)
+
+/-- The real part of the bottom contour-integrand integral reconstructs the finite
+time-side coordinate sum together with the omitted coordinate-remainder tail. -/
+theorem primeTransportBottomContourIntegrand_integral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re
+        (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c),
+          primeTransportBottomContourIntegrand N f x) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f := by
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          (∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+            completedPrimeContourTransportCoordinateRemainderTail N f)
+      (primeTransportBottomContourIntegral_eq_integral N f)
+      (primeTransportBottomContourIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+        N f)
+
 /-- The real part of the bottom line integral over the prime transport rectangle reconstructs
 the finite sum of time-side coordinates together with the omitted coordinate-remainder tail. -/
 theorem primeTransportBottomLineIntegral_re_eq_timeCoordinateSum_add_tail_ownerTomography
@@ -691,7 +1142,16 @@ theorem primeTransportBottomLineIntegral_re_eq_timeCoordinateSum_add_tail_ownerT
       (∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
         completedPrimeContourTransportCoordinateRemainderTail N f := by
-  exact primeContourHorizontalReconstruction_bottom_re_ownerTomography N f
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Complex.re z =
+          (∑ ι in ZetaPrimePowerIndex.window N,
+            completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+            completedPrimeContourTransportCoordinateRemainderTail N f)
+      (primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand N f).symm
+      (primeTransportBottomContourIntegrand_integral_re_eq_timeCoordinateSum_add_tail_ownerTomography
+        N f)
 
 /-- The real part of the bottom line integral over the prime transport rectangle reconstructs
 the finite time-side prime window together with the omitted coordinate-remainder tail. -/
@@ -832,6 +1292,440 @@ theorem complex_im_eq_zero_of_star_eq_self
     | Or.inl htwo => False.elim (two_ne_zero htwo)
     | Or.inr him => him
 
+/-- Conjugation fixes embedded real scalars. -/
+theorem complex_star_ofReal
+    (r : ℝ) :
+    star (r : ℂ) = (r : ℂ) := by
+  exact Complex.conj_ofReal r
+
+/-- Conjugation preserves addition. -/
+theorem complex_star_add
+    (z w : ℂ) :
+    star (z + w) = star z + star w := by
+  exact map_add star z w
+
+/-- Conjugation sends the imaginary unit to its negative. -/
+theorem complex_star_I :
+    star Complex.I = -Complex.I := by
+  exact Complex.conj_I
+
+/-- Conjugation sends a real multiple of the imaginary unit to its negative. -/
+theorem complex_star_ofReal_mul_I
+    (T : ℝ) :
+    star ((T : ℂ) * Complex.I) =
+      -((T : ℂ) * Complex.I) := by
+  calc
+    star ((T : ℂ) * Complex.I) = star (T : ℂ) * star Complex.I := by
+      exact map_mul star (T : ℂ) Complex.I
+    _ = (T : ℂ) * star Complex.I := by
+      exact congrArg (fun z : ℂ => z * star Complex.I) (complex_star_ofReal T)
+    _ = (T : ℂ) * -Complex.I := by
+      exact congrArg (fun z : ℂ => (T : ℂ) * z) complex_star_I
+    _ = -((T : ℂ) * Complex.I) := by
+      exact mul_neg (T : ℂ) Complex.I
+
+/-- Conjugation reflects a horizontal complex point across the real axis. -/
+theorem complex_star_horizontalPoint
+    (x T : ℝ) :
+    star ((x : ℂ) + (T : ℂ) * Complex.I) =
+      (x : ℂ) - (T : ℂ) * Complex.I := by
+  calc
+    star ((x : ℂ) + (T : ℂ) * Complex.I) =
+        star (x : ℂ) + star ((T : ℂ) * Complex.I) := by
+      exact complex_star_add (x : ℂ) ((T : ℂ) * Complex.I)
+    _ = (x : ℂ) + star ((T : ℂ) * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => z + star ((T : ℂ) * Complex.I))
+        (complex_star_ofReal x)
+    _ = (x : ℂ) + -((T : ℂ) * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => (x : ℂ) + z)
+        (complex_star_ofReal_mul_I T)
+    _ = (x : ℂ) - (T : ℂ) * Complex.I := by
+      exact (sub_eq_add_neg (x : ℂ) ((T : ℂ) * Complex.I)).symm
+
+/-- The top horizontal path of a rectangle is conjugate to its bottom horizontal path. -/
+theorem zetaCompletedExplicitFormulaTopPath_star_eq_bottomPath
+    (r : ExplicitFormulaRectangle) :
+    ∀ x : ℝ,
+      star (zetaCompletedExplicitFormulaTopPath r x) =
+        zetaCompletedExplicitFormulaBottomPath r x := by
+  exact fun x : ℝ => complex_star_horizontalPoint x r.T
+
+/-- The top horizontal path of the prime transport rectangle is conjugate to the bottom
+horizontal path. -/
+theorem primeTransportTopPath_star_eq_bottomPath_ownerTomography
+    (N : ℕ) :
+    ∀ x : ℝ,
+      star
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) =
+        zetaCompletedExplicitFormulaBottomPath
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x := by
+  exact
+    zetaCompletedExplicitFormulaTopPath_star_eq_bottomPath
+      (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
+/-- Conjugation preserves subtraction. -/
+theorem complex_star_sub
+    (z w : ℂ) :
+    star (z - w) = star z - star w := by
+  exact map_sub star z w
+
+/-- Conjugation commutes with subtracting an embedded real scalar. -/
+theorem complex_star_sub_ofReal
+    (z : ℂ) (r : ℝ) :
+    star (z - (r : ℂ)) = star z - (r : ℂ) := by
+  exact
+    (complex_star_sub z (r : ℂ)).trans
+      (congrArg (fun w : ℂ => star z - w) (complex_star_ofReal r))
+
+/-- Conjugation commutes with subtracting the real midpoint shift. -/
+theorem complex_star_sub_half
+    (z : ℂ) :
+    star (z - 1 / 2) = star z - 1 / 2 := by
+  exact complex_star_sub_ofReal z (1 / 2)
+
+/-- The shifted top horizontal path of the prime transport rectangle is conjugate to the
+shifted bottom horizontal path. -/
+theorem primeTransportTopPath_shift_star_eq_bottomPath_shift_ownerTomography
+    (N : ℕ) :
+    ∀ x : ℝ,
+      star
+          (zetaCompletedExplicitFormulaTopPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2) =
+        zetaCompletedExplicitFormulaBottomPath
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2 := by
+  exact
+    fun x : ℝ =>
+      (complex_star_sub_half
+        (zetaCompletedExplicitFormulaTopPath
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x)).trans
+        (congrArg
+          (fun z : ℂ => z - 1 / 2)
+          (primeTransportTopPath_star_eq_bottomPath_ownerTomography N x))
+
+/-- The completed zeta negative logarithmic derivative is anti-conjugate across conjugate
+points. -/
+theorem completedZetaNegLogDeriv_star_eq_neg_at_star_ownerTomography
+    (z : ℂ) :
+    star (completedZetaNegLogDeriv z) =
+      -completedZetaNegLogDeriv (star z) := by
+  sorry
+
+/-- Pointwise anti-conjugation of the completed zeta logarithmic derivative on opposite
+horizontal edges of the prime transport rectangle. -/
+theorem primeTransportTopContourLogDerivative_star_eq_neg_bottomContourLogDerivative_ownerTomography
+    (N : ℕ) :
+    ∀ x : ℝ,
+      star
+          (completedZetaNegLogDeriv
+            (zetaCompletedExplicitFormulaTopPath
+              (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x)) =
+        -completedZetaNegLogDeriv
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x) := by
+  exact
+    fun x : ℝ =>
+      (completedZetaNegLogDeriv_star_eq_neg_at_star_ownerTomography
+        (zetaCompletedExplicitFormulaTopPath
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x)).trans
+        (congrArg Neg.neg
+          (congrArg completedZetaNegLogDeriv
+            (primeTransportTopPath_star_eq_bottomPath_ownerTomography N x)))
+
+/-- The autocorrelation spectral Laplace transform has Hermitian conjugation symmetry. -/
+theorem zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_star_eq_at_neg_star_ownerTomography
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    star (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) z) =
+      zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) (-star z) := by
+  have hdouble : -star (-star z) = z := by
+    calc
+      -star (-star z) = -(-star (star z)) := by
+        exact congrArg Neg.neg (map_neg star (star z))
+      _ = -(-z) := by
+        exact congrArg (fun w : ℂ => -(-w)) (star_star z)
+      _ = z := by
+        exact neg_neg z
+  let A : ℂ := zetaCompletedExplicitFormulaPhi f z
+  let B : ℂ := zetaCompletedExplicitFormulaPhi f (-star z)
+  have hleft_to_phi :
+      star (zetaCompletedSpectralLaplaceTransform
+          (convolutionAutocorrelation f) z) =
+        star (zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) z) := by
+    exact congrArg star
+      ((congrFun
+        (zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
+          (convolutionAutocorrelation f))
+        z).symm)
+  have hright_from_phi :
+      zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (-star z) =
+        zetaCompletedSpectralLaplaceTransform
+          (convolutionAutocorrelation f) (-star z) := by
+    exact congrFun
+      (zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
+        (convolutionAutocorrelation f))
+      (-star z)
+  have hfactor_z :
+      zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) z =
+        A * star B := by
+    unfold A
+    unfold B
+    exact zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation f z
+  have hfactor_neg_star :
+      zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (-star z) =
+        B * star A := by
+    unfold A
+    unfold B
+    calc
+      zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (-star z) =
+          zetaCompletedExplicitFormulaPhi f (-star z) *
+            star
+              (zetaCompletedExplicitFormulaPhi f (-star (-star z))) := by
+        exact zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation f (-star z)
+      _ =
+          zetaCompletedExplicitFormulaPhi f (-star z) *
+            star (zetaCompletedExplicitFormulaPhi f z) := by
+        exact congrArg
+          (fun w : ℂ =>
+            zetaCompletedExplicitFormulaPhi f (-star z) *
+              star (zetaCompletedExplicitFormulaPhi f w))
+          hdouble
+  calc
+    star (zetaCompletedSpectralLaplaceTransform
+        (convolutionAutocorrelation f) z) =
+        star (zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) z) := by
+      exact hleft_to_phi
+    _ = star (A * star B) := by
+      exact congrArg star hfactor_z
+    _ = star A * star (star B) := by
+      exact map_mul star A (star B)
+    _ = star A * B := by
+      exact congrArg (fun w : ℂ => star A * w) (star_star B)
+    _ = B * star A := by
+      exact mul_comm (star A) B
+    _ =
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f) (-star z) := by
+      exact hfactor_neg_star.symm
+    _ =
+        zetaCompletedSpectralLaplaceTransform
+          (convolutionAutocorrelation f) (-star z) := by
+      exact hright_from_phi
+
+/-- The prime-transport spectral normalization identifies the Hermitian reflected point
+with the conjugate reflected point for the autocorrelation transform. -/
+theorem zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_neg_star_eq_star_ownerTomography
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) (-star z) =
+      zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) (star z) := by
+  sorry
+
+/-- The autocorrelation spectral Laplace transform is conjugate-symmetric across
+conjugate spectral points. -/
+theorem zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_star_eq_at_star_ownerTomography
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    star (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) z) =
+      zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) (star z) := by
+  exact
+    (zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_star_eq_at_neg_star_ownerTomography
+      f z).trans
+      (zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_neg_star_eq_star_ownerTomography
+        f z)
+
+/-- The autocorrelation transform is conjugate-symmetric across conjugate spectral
+points. -/
+theorem zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_star_eq_at_star_ownerTomography
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    star (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) z) =
+      zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) (star z) := by
+  exact
+    (congrArg star
+      (congrFun
+        (zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
+          (convolutionAutocorrelation f))
+        z)).trans
+      ((zetaCompletedSpectralLaplaceTransform_convolutionAutocorrelation_star_eq_at_star_ownerTomography
+          f z).trans
+        (congrFun
+          (zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
+            (convolutionAutocorrelation f))
+          (star z)).symm)
+
+/-- Pointwise conjugation of the autocorrelation transform on shifted opposite horizontal
+edges of the prime transport rectangle. -/
+theorem primeTransportTopContourPhi_star_eq_bottomContourPhi_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ∀ x : ℝ,
+      star
+          (zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f)
+            (zetaCompletedExplicitFormulaTopPath
+              (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)) =
+        zetaCompletedExplicitFormulaPhi
+          (convolutionAutocorrelation f)
+          (zetaCompletedExplicitFormulaBottomPath
+            (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2) := by
+  exact
+    fun x : ℝ =>
+      (zetaCompletedExplicitFormulaPhi_convolutionAutocorrelation_star_eq_at_star_ownerTomography
+        f
+        (zetaCompletedExplicitFormulaTopPath
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)).trans
+        (congrArg
+          (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f))
+          (primeTransportTopPath_shift_star_eq_bottomPath_shift_ownerTomography
+            N x))
+
+/-- Pointwise oriented conjugation of the top and bottom prime-transport contour
+integrands follows from the log-derivative and autocorrelation-transform symmetries. -/
+theorem primeTransportTopBottomContourIntegrand_star_eq_neg_bottom_of_factors
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (hlog :
+      ∀ x : ℝ,
+        star
+            (completedZetaNegLogDeriv
+              (zetaCompletedExplicitFormulaTopPath
+                (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x)) =
+          -completedZetaNegLogDeriv
+            (zetaCompletedExplicitFormulaBottomPath
+              (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x))
+    (hphi :
+      ∀ x : ℝ,
+        star
+            (zetaCompletedExplicitFormulaPhi
+              (convolutionAutocorrelation f)
+              (zetaCompletedExplicitFormulaTopPath
+                (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)) =
+          zetaCompletedExplicitFormulaPhi
+            (convolutionAutocorrelation f)
+            (zetaCompletedExplicitFormulaBottomPath
+              (completedPrimeContourTransportFamily.rectangle (N : ℝ)) x - 1 / 2)) :
+    ∀ x : ℝ,
+      star (primeTransportTopContourIntegrand N f x) =
+        -primeTransportBottomContourIntegrand N f x := by
+  exact
+    fun x : ℝ =>
+      complex_star_mul_eq_neg_mul_of_star_eq_neg_of_star_eq
+        (hlog x)
+        (hphi x)
+
+/-- Pointwise oriented conjugation of the top and bottom prime-transport contour
+integrands. -/
+theorem primeTransportTopBottomContourIntegrand_star_eq_neg_bottom_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    ∀ x : ℝ,
+      star (primeTransportTopContourIntegrand N f x) =
+        -primeTransportBottomContourIntegrand N f x := by
+  exact
+    primeTransportTopBottomContourIntegrand_star_eq_neg_bottom_of_factors
+      N f
+      (primeTransportTopContourLogDerivative_star_eq_neg_bottomContourLogDerivative_ownerTomography
+        N)
+      (primeTransportTopContourPhi_star_eq_bottomContourPhi_ownerTomography
+        N f)
+
+/-- Pointwise oriented conjugation of horizontal contour integrands integrates to oriented
+conjugation of the top contour integral. -/
+theorem primeTransportTopContourIntegral_star_eq_integral_star_topContourIntegrand
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (primeTransportTopContourIntegral N f) =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        star (primeTransportTopContourIntegrand N f x) := by
+  exact
+    (congrArg star (primeTransportTopContourIntegral_eq_integral N f)).trans
+      (complex_star_uIcc_integral_eq_integral_star
+        (fun x : ℝ => primeTransportTopContourIntegrand N f x))
+
+/-- Pointwise equality of the oriented top and bottom horizontal integrands transports
+through the horizontal integral. -/
+theorem primeTransportTopContourIntegrand_integral_star_eq_integral_neg_bottom
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (hpoint :
+      ∀ x : ℝ,
+        star (primeTransportTopContourIntegrand N f x) =
+          -primeTransportBottomContourIntegrand N f x) :
+    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c),
+      star (primeTransportTopContourIntegrand N f x)) =
+      ∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+          (1 - completedPrimeContourTransportFamily.c),
+        -primeTransportBottomContourIntegrand N f x := by
+  exact complex_uIcc_integral_congr_of_pointwise_eq hpoint
+
+/-- Negation factors out of the bottom horizontal contour integral. -/
+theorem primeTransportBottomContourIntegrand_integral_neg_eq_neg_bottomContourIntegral
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+        (1 - completedPrimeContourTransportFamily.c),
+      -primeTransportBottomContourIntegrand N f x) =
+      -primeTransportBottomContourIntegral N f := by
+  exact
+    (complex_uIcc_integral_neg
+      (fun x : ℝ => primeTransportBottomContourIntegrand N f x)).trans
+      (congrArg Neg.neg (primeTransportBottomContourIntegral_eq_integral N f).symm)
+
+/-- Pointwise oriented conjugation of horizontal contour integrands integrates to oriented
+conjugation of the named contour integrals. -/
+theorem primeTransportTopContourIntegral_star_eq_neg_bottomContourIntegral_of_integrand
+    (N : ℕ) (f : ZetaAdmissibleFunction)
+    (hpoint :
+      ∀ x : ℝ,
+        star (primeTransportTopContourIntegrand N f x) =
+          -primeTransportBottomContourIntegrand N f x) :
+    star (primeTransportTopContourIntegral N f) =
+      -primeTransportBottomContourIntegral N f := by
+  exact
+    (primeTransportTopContourIntegral_star_eq_integral_star_topContourIntegrand
+      N f).trans
+      ((primeTransportTopContourIntegrand_integral_star_eq_integral_neg_bottom
+        N f hpoint).trans
+        (primeTransportBottomContourIntegrand_integral_neg_eq_neg_bottomContourIntegral
+          N f))
+
+/-- The top contour integral is conjugate to the oppositely oriented bottom contour
+integral. -/
+theorem primeTransportTopContourIntegral_star_eq_neg_bottomContourIntegral_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star (primeTransportTopContourIntegral N f) =
+      -primeTransportBottomContourIntegral N f := by
+  exact
+    primeTransportTopContourIntegral_star_eq_neg_bottomContourIntegral_of_integrand
+      N f
+      (primeTransportTopBottomContourIntegrand_star_eq_neg_bottom_ownerTomography
+        N f)
+
+/-- The top contour-integrand integral is conjugate to the oppositely oriented bottom
+contour-integrand integral. -/
+theorem primeTransportTopContourIntegrand_integral_star_eq_neg_bottomIntegral_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    star
+        (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c),
+          primeTransportTopContourIntegrand N f x) =
+      -(∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+            (1 - completedPrimeContourTransportFamily.c),
+          primeTransportBottomContourIntegrand N f x) := by
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        star z =
+          -(∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+              (1 - completedPrimeContourTransportFamily.c),
+            primeTransportBottomContourIntegrand N f x))
+      (primeTransportTopContourIntegral_eq_integral N f)
+      ((primeTransportTopContourIntegral_star_eq_neg_bottomContourIntegral_ownerTomography
+        N f).trans
+        (congrArg Neg.neg
+          (primeTransportBottomContourIntegral_eq_integral N f)))
+
 /-- The top line integral over the prime transport rectangle is conjugate to the oppositely
 oriented bottom line integral. -/
 theorem primeTransportTopLineIntegral_star_eq_neg_bottomLineIntegral_ownerTomography
@@ -843,7 +1737,14 @@ theorem primeTransportTopLineIntegral_star_eq_neg_bottomLineIntegral_ownerTomogr
       -zetaCompletedExplicitFormulaBottomLineIntegral
         (convolutionAutocorrelation f)
         (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
-  exact primeContourHorizontalReconstruction_top_star_eq_neg_bottom_ownerTomography N f
+  exact
+    Eq.trans
+      (congrArg star
+        (primeTransportTopLineIntegral_eq_integral_topContourIntegrand N f))
+      ((primeTransportTopContourIntegrand_integral_star_eq_neg_bottomIntegral_ownerTomography
+        N f).trans
+        (congrArg Neg.neg
+          (primeTransportBottomLineIntegral_eq_integral_bottomContourIntegrand N f).symm))
 
 /-- The sampled top horizontal edge is conjugate to the oppositely oriented bottom edge. -/
 theorem sampledHorizontalTopIntegral_star_eq_neg_bottom_ownerTomography
