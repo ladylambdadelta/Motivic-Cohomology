@@ -438,6 +438,48 @@ theorem norm_completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
     (completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
       C d k m hCpos hcount)
 
+/-- The canonical tail base `1 + ‖m‖` is controlled by twice the lower shell
+base `max 1 ‖m‖`. -/
+theorem one_add_natNorm_le_two_mul_max_one_natNorm
+    (m : ℕ) :
+    1 + ‖((m : ℕ) : ℝ)‖ ≤
+      (2 : ℝ) * max 1 ‖((m : ℕ) : ℝ)‖ := by
+  by_cases hlarge : 1 ≤ ‖((m : ℕ) : ℝ)‖
+  · have hmax :
+        max 1 ‖((m : ℕ) : ℝ)‖ =
+          ‖((m : ℕ) : ℝ)‖ :=
+      max_eq_right hlarge
+    have hadd :
+        1 + ‖((m : ℕ) : ℝ)‖ ≤
+          ‖((m : ℕ) : ℝ)‖ + ‖((m : ℕ) : ℝ)‖ :=
+      add_le_add_right hlarge ‖((m : ℕ) : ℝ)‖
+    have htwo :
+        ‖((m : ℕ) : ℝ)‖ + ‖((m : ℕ) : ℝ)‖ =
+          (2 : ℝ) * ‖((m : ℕ) : ℝ)‖ :=
+      (two_mul ‖((m : ℕ) : ℝ)‖).symm
+    have htarget :
+        (2 : ℝ) * ‖((m : ℕ) : ℝ)‖ =
+          (2 : ℝ) * max 1 ‖((m : ℕ) : ℝ)‖ :=
+      congrArg (fun x : ℝ => (2 : ℝ) * x) hmax.symm
+    exact le_trans hadd (le_of_eq (Eq.trans htwo htarget))
+  · have hsmall :
+        ‖((m : ℕ) : ℝ)‖ ≤ 1 :=
+      le_of_not_ge hlarge
+    have hmax :
+        max 1 ‖((m : ℕ) : ℝ)‖ = 1 :=
+      max_eq_left hsmall
+    have hadd :
+        1 + ‖((m : ℕ) : ℝ)‖ ≤ 1 + 1 :=
+      add_le_add_left hsmall 1
+    have hone_add_one :
+        (1 : ℝ) + 1 = (2 : ℝ) * 1 :=
+      (two_mul (1 : ℝ)).symm
+    have htarget :
+        (2 : ℝ) * 1 =
+          (2 : ℝ) * max 1 ‖((m : ℕ) : ℝ)‖ :=
+      congrArg (fun x : ℝ => (2 : ℝ) * x) hmax.symm
+    exact le_trans hadd (le_of_eq (Eq.trans hone_add_one htarget))
+
 /-- The normalized shell envelope is bounded by the explicit tail constant once
 all height-base comparisons are written in the canonical base
 `1 + ‖m‖`. -/
