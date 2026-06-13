@@ -380,6 +380,43 @@ theorem zetaPaleyWienerTestFunctionNorm_le_envelope
     happly.symm
     hsource
 
+/-- Absolute value on an interval is bounded by the larger endpoint absolute value. -/
+theorem abs_le_max_abs_endpoints_of_mem_interval
+    (a b x : ℝ) (hxa : a ≤ x) (hxb : x ≤ b) :
+    |x| ≤ max |a| |b| := by
+  sorry
+
+/-- The product of the one-dimensional endpoint absolute-value envelopes dominates the
+rectangle product. -/
+theorem abs_mul_le_endpointEnvelopeProduct_of_mem_interval
+    (a b lower upper x t : ℝ)
+    (hxa : a ≤ x) (hxb : x ≤ b)
+    (ht_lower : lower ≤ t) (ht_upper : t ≤ upper) :
+    |x * t| ≤ max |a| |b| * max |lower| |upper| := by
+  have hx : |x| ≤ max |a| |b| :=
+    abs_le_max_abs_endpoints_of_mem_interval a b x hxa hxb
+  have ht : |t| ≤ max |lower| |upper| :=
+    abs_le_max_abs_endpoints_of_mem_interval lower upper t ht_lower ht_upper
+  have hx_nonneg : 0 ≤ |x| := abs_nonneg x
+  have hendpoint_nonneg : 0 ≤ max |a| |b| :=
+    le_max_of_le_left (abs_nonneg a)
+  have hmul :
+      |x| * |t| ≤ max |a| |b| * max |lower| |upper| :=
+    mul_le_mul hx ht (abs_nonneg t) hendpoint_nonneg
+  exact Eq.subst
+    (motive := fun v : ℝ => v ≤ max |a| |b| * max |lower| |upper|)
+    (abs_mul x t).symm
+    hmul
+
+/-- The product of endpoint absolute-value envelopes is bounded by the four-corner
+absolute-value envelope. -/
+theorem endpointEnvelopeProduct_le_max_corner_abs
+    (a b lower upper : ℝ) :
+    max |a| |b| * max |lower| |upper| ≤
+      max (max (|a * lower|) (|a * upper|))
+        (max (|b * lower|) (|b * upper|)) := by
+  sorry
+
 /-- A rectangle product is bounded in absolute value by the largest absolute product at
 the four corners. -/
 theorem abs_mul_le_max_corner_abs_of_mem_interval
@@ -389,7 +426,16 @@ theorem abs_mul_le_max_corner_abs_of_mem_interval
     |x * t| ≤
       max (max (|a * lower|) (|a * upper|))
         (max (|b * lower|) (|b * upper|)) := by
-  sorry
+  have hproduct :
+      |x * t| ≤ max |a| |b| * max |lower| |upper| :=
+    abs_mul_le_endpointEnvelopeProduct_of_mem_interval
+      a b lower upper x t hxa hxb ht_lower ht_upper
+  have hcorner :
+      max |a| |b| * max |lower| |upper| ≤
+        max (max (|a * lower|) (|a * upper|))
+          (max (|b * lower|) (|b * upper|)) :=
+    endpointEnvelopeProduct_le_max_corner_abs a b lower upper
+  exact le_trans hproduct hcorner
 
 /-- The unsigned rectangle product is bounded by the corner absolute-value envelope. -/
 theorem mul_le_max_corner_abs_of_mem_interval
@@ -431,7 +477,18 @@ theorem complexExp_norm_eq_realExp_re
 theorem complex_mul_real_re
     (z : ℂ) (t : ℝ) :
     (z * (t : ℂ)).re = z.re * t := by
-  sorry
+  calc
+    (z * (t : ℂ)).re = z.re * (t : ℂ).re - z.im * (t : ℂ).im := by
+      exact Complex.mul_re z (t : ℂ)
+    _ = z.re * t - z.im * (t : ℂ).im := by
+      exact congrArg (fun v : ℝ => z.re * v - z.im * (t : ℂ).im)
+        (Complex.ofReal_re t)
+    _ = z.re * t - z.im * 0 := by
+      exact congrArg (fun v : ℝ => z.re * t - z.im * v)
+        (Complex.ofReal_im t)
+    _ = z.re * t - 0 := by
+      exact congrArg (fun v : ℝ => z.re * t - v) (mul_zero z.im)
+    _ = z.re * t := sub_zero (z.re * t)
 
 /-- Norm of the complex exponential on a vertical line is the exponential of the real
 part of the exponent. -/
