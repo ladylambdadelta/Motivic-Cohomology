@@ -186,8 +186,8 @@ theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_own
         (𝓝
           (completedPrimeContourRealizedTimeDistributionPairing
             (convolutionAutocorrelation f))) :=
-    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized
-      (convolutionAutocorrelation f)
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized_autocorrelation
+      f
   exact tendsto_nhds_unique htime hcontour
 
 /-- Completed prime holographic scalar reconstruction.

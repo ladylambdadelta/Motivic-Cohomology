@@ -249,20 +249,21 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
             star (zetaCompletedSpectralLaplaceTransform g ι.center))))
       (ZetaPrimePowerIndex.window N)
 
-/-- Finite contour-realized prime windows converge to the completed contour-realized
-prime distribution pairing.
+/-- Autocorrelation-specialized completed contour prime-window convergence.
 
-This is the spectral distribution owner theorem for the completed contour face.  It is
-separate from horizontal transport: horizontal transport compares this completed contour
-face with the time-side face, while this theorem owns the regularized prime-distribution
-limit of the completed contour face.  It is not an ordinary polynomial-summability
-statement for raw real-axis Laplace samples. -/
-theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized
-    (g : ZetaAdmissibleFunction) :
+This is the long-term prime-distribution convergence surface: the completed contour prime
+channel is used in the RH lane only after passing to the completed autocorrelation probe,
+where the two-face/GNS reconstruction controls the realized prime distribution. -/
+theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealized_autocorrelation
+    (f : ZetaAdmissibleFunction) :
     Tendsto
-      (fun N : ℕ => finitePrimeContourRealizedTimeDistributionWindow N g)
+      (fun N : ℕ =>
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f))
       atTop
-      (𝓝 (completedPrimeContourRealizedTimeDistributionPairing g)) := by
+      (𝓝
+        (completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f))) := by
   sorry
 
 /-- At an autocorrelation probe, the time-side prime coordinate is the physical
