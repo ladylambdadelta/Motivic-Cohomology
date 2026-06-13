@@ -519,6 +519,48 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
+/-- The owner horizontal-edge reconstruction package for a finite prime contour
+transport rectangle.
+
+The three fields are the actual analytic tomography inputs:
+top-edge reconstruction of the contour-realized coordinates, bottom-edge
+reconstruction of the time-side coordinates plus omitted tail, and oriented
+top/bottom conjugation. Downstream sampled-horizontal theorems are algebraic
+projections from this package. -/
+structure PrimeContourHorizontalReconstruction
+    (N : ℕ) (f : ZetaAdmissibleFunction) where
+  top_re :
+    Complex.re
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeContourRealizedTimeDistributionCoordinate
+          ι (convolutionAutocorrelation f)
+  bottom_re :
+    Complex.re
+        (zetaCompletedExplicitFormulaBottomLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      (∑ ι in ZetaPrimePowerIndex.window N,
+        completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
+        completedPrimeContourTransportCoordinateRemainderTail N f
+  top_star_eq_neg_bottom :
+    star
+        (zetaCompletedExplicitFormulaTopLineIntegral
+          (convolutionAutocorrelation f)
+          (completedPrimeContourTransportFamily.rectangle (N : ℝ))) =
+      -zetaCompletedExplicitFormulaBottomLineIntegral
+        (convolutionAutocorrelation f)
+        (completedPrimeContourTransportFamily.rectangle (N : ℝ))
+
+/-- Owner construction of the horizontal reconstruction package for the finite prime
+contour transport rectangle. -/
+theorem primeContourHorizontalReconstruction
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    PrimeContourHorizontalReconstruction N f := by
+  sorry
+
 /-- The real part of the top line integral over the prime transport rectangle reconstructs
 the finite sum of contour-realized prime coordinates. -/
 theorem primeTransportTopLineIntegral_re_eq_contourRealizedCoordinateSum_ownerTomography
@@ -530,7 +572,7 @@ theorem primeTransportTopLineIntegral_re_eq_contourRealizedCoordinateSum_ownerTo
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeContourRealizedTimeDistributionCoordinate
           ι (convolutionAutocorrelation f) := by
-  sorry
+  exact (primeContourHorizontalReconstruction N f).top_re
 
 /-- The real part of the top line integral over the prime transport rectangle reconstructs
 the finite contour-realized prime window. -/
@@ -576,7 +618,7 @@ theorem primeTransportBottomLineIntegral_re_eq_timeCoordinateSum_add_tail_ownerT
       (∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f)) +
         completedPrimeContourTransportCoordinateRemainderTail N f := by
-  sorry
+  exact (primeContourHorizontalReconstruction N f).bottom_re
 
 /-- The real part of the bottom line integral over the prime transport rectangle reconstructs
 the finite time-side prime window together with the omitted coordinate-remainder tail. -/
@@ -728,7 +770,7 @@ theorem primeTransportTopLineIntegral_star_eq_neg_bottomLineIntegral_ownerTomogr
       -zetaCompletedExplicitFormulaBottomLineIntegral
         (convolutionAutocorrelation f)
         (completedPrimeContourTransportFamily.rectangle (N : ℝ)) := by
-  sorry
+  exact (primeContourHorizontalReconstruction N f).top_star_eq_neg_bottom
 
 /-- The sampled top horizontal edge is conjugate to the oppositely oriented bottom edge. -/
 theorem sampledHorizontalTopIntegral_star_eq_neg_bottom_ownerTomography
