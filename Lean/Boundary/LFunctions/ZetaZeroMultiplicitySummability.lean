@@ -18,6 +18,103 @@ noncomputable def completedZeroCenteredHeightShellCountingEnvelope
   C * (((m + 1 : ℕ) : ℝ) ^ d) *
     (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))
 
+/-- The lower decay factor attached to a centered-height shell. -/
+noncomputable def completedZeroCenteredHeightShellLowerDecay
+    (d k m : ℕ) : ℝ :=
+  (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))
+
+/-- The lower shell decay factor is nonnegative. -/
+theorem completedZeroCenteredHeightShellLowerDecay_nonnegative
+    (d k m : ℕ) :
+    0 ≤ completedZeroCenteredHeightShellLowerDecay d k m := by
+  unfold completedZeroCenteredHeightShellLowerDecay
+  exact zpow_nonneg
+    (le_trans zero_le_one (le_max_left 1 ‖((m : ℕ) : ℝ)‖))
+    (-(d + k + 3 : ℤ))
+
+/-- A centered-height shell decay mass is nonnegative. -/
+theorem completedZeroCenteredHeightShellDecayMass_nonnegative
+    (d k m : ℕ) :
+    0 ≤ completedZeroCenteredHeightShellDecayMass d k m := by
+  unfold completedZeroCenteredHeightShellDecayMass
+  exact tsum_nonneg
+    (fun x : completedZeroCenteredHeightShellFiber m =>
+      zpow_nonneg
+        (le_trans zero_le_one
+          (zetaCompletedZeroCenteredHeight_ge_one
+            (x : {ρ : ℂ // ZetaCompletedZero ρ})))
+        (-(d + k + 3 : ℤ)))
+
+/-- The norm of a centered-height shell decay mass is the mass itself. -/
+theorem norm_completedZeroCenteredHeightShellDecayMass_eq_self
+    (d k m : ℕ) :
+    ‖completedZeroCenteredHeightShellDecayMass d k m‖ =
+      completedZeroCenteredHeightShellDecayMass d k m := by
+  exact Real.norm_of_nonneg
+    (completedZeroCenteredHeightShellDecayMass_nonnegative d k m)
+
+/-- A successor natural, cast to `ℝ`, is at least one. -/
+theorem one_le_nat_succ_cast_real
+    (m : ℕ) :
+    1 ≤ ((m + 1 : ℕ) : ℝ) := by
+  exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le m))
+
+/-- Shell decay mass is bounded by the cumulative multiplicity count times the
+lower shell decay factor. -/
+theorem completedZeroCenteredHeightShellDecayMass_le_counting_mul_lowerDecay
+    (d k m : ℕ) :
+    completedZeroCenteredHeightShellDecayMass d k m ≤
+      completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
+        completedZeroCenteredHeightShellLowerDecay d k m := by
+  sorry
+
+/-- Applying a counting bound converts the counting-times-decay expression into
+the named cumulative shell envelope. -/
+theorem completedZeroMultiplicityCounting_mul_lowerDecay_le_countingEnvelope
+    (C : ℝ) (d k m : ℕ)
+    (hcount_m :
+      completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) ≤
+        C * (((m + 1 : ℕ) : ℝ) ^ d)) :
+    completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
+        completedZeroCenteredHeightShellLowerDecay d k m ≤
+      completedZeroCenteredHeightShellCountingEnvelope C d k m := by
+  have hdecay_nonnegative :
+      0 ≤ completedZeroCenteredHeightShellLowerDecay d k m :=
+    completedZeroCenteredHeightShellLowerDecay_nonnegative d k m
+  have hmul :
+      completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
+          completedZeroCenteredHeightShellLowerDecay d k m ≤
+        (C * (((m + 1 : ℕ) : ℝ) ^ d)) *
+          completedZeroCenteredHeightShellLowerDecay d k m :=
+    mul_le_mul_of_nonneg_right hcount_m hdecay_nonnegative
+  exact hmul
+
+/-- Multiplicity-aware counting bounds the real shell decay mass by the raw
+cumulative shell envelope. -/
+theorem completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
+    (C : ℝ) (d k m : ℕ)
+    (hCpos : 0 < C)
+    (hcount :
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
+    completedZeroCenteredHeightShellDecayMass d k m ≤
+      completedZeroCenteredHeightShellCountingEnvelope C d k m := by
+  have hshell :
+      completedZeroCenteredHeightShellDecayMass d k m ≤
+        completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
+          completedZeroCenteredHeightShellLowerDecay d k m :=
+    completedZeroCenteredHeightShellDecayMass_le_counting_mul_lowerDecay d k m
+  have hcount_m :
+      completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) ≤
+        C * (((m + 1 : ℕ) : ℝ) ^ d) :=
+    hcount
+      ((m + 1 : ℕ) : ℝ)
+      (one_le_nat_succ_cast_real m)
+  exact le_trans hshell
+    (completedZeroMultiplicityCounting_mul_lowerDecay_le_countingEnvelope
+      C d k m hcount_m)
+
 /-- Multiplicity-aware counting dominates the unweighted shell decay by the
 raw cumulative shell envelope. -/
 theorem norm_completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
@@ -29,7 +126,12 @@ theorem norm_completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
     ‖completedZeroCenteredHeightShellDecayMass d k m‖ ≤
       completedZeroCenteredHeightShellCountingEnvelope C d k m := by
-  sorry
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ completedZeroCenteredHeightShellCountingEnvelope C d k m)
+    (norm_completedZeroCenteredHeightShellDecayMass_eq_self d k m).symm
+    (completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
+      C d k m hCpos hcount)
 
 /-- The cumulative shell envelope is bounded by a one-dimensional polynomial
 tail after increasing the constant. -/
