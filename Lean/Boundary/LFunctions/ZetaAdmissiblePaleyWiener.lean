@@ -959,6 +959,28 @@ noncomputable def zetaPaleyWienerVerticalOscillation
     (y t : ℝ) : ℂ :=
   Complex.exp (Complex.I * (y : ℂ) * (t : ℂ))
 
+/-- The vertical-line kernel after splitting the horizontal exponential from the oscillatory
+factor. -/
+noncomputable def zetaPaleyWienerVerticalLineKernel
+    (f : ZetaAdmissibleFunction) (x y t : ℝ) : ℂ :=
+  zetaPaleyWienerHorizontalTwist f x t *
+    zetaPaleyWienerVerticalOscillation y t
+
+/-- The original Laplace kernel factors into horizontal twist times vertical oscillation on
+the vertical line through `z.re`. -/
+theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel
+    (f : ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
+    zetaPaleyWienerLaplaceKernel f z t =
+      zetaPaleyWienerVerticalLineKernel f z.re z.im t := by
+  sorry
+
+/-- The zeta Laplace transform is the integral of the vertical-line kernel. -/
+theorem zetaLaplaceTransform_eq_verticalLineKernelIntegral
+    (f : ZetaAdmissibleFunction) (z : ℂ) :
+    Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+      ∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t := by
+  sorry
+
 /-- The derivative source used by vertical-line integration by parts after the horizontal
 factor has been absorbed into the source. -/
 noncomputable def zetaPaleyWienerVerticalLineIBPDerivative
@@ -972,6 +994,52 @@ noncomputable def zetaPaleyWienerVerticalLineIBPDerivativeIntegral
     zetaPaleyWienerVerticalLineIBPDerivative f x t *
       zetaPaleyWienerVerticalOscillation y t
 
+/-- The nonzero vertical-frequency condition used by one integration-by-parts step. -/
+theorem zetaPaleyWienerVerticalFrequency_ne_zero_of_high
+    {y : ℝ} (hy : 1 ≤ ‖y‖) :
+    (y : ℂ) ≠ 0 := by
+  intro hyzero
+  have hy_real_zero : y = 0 := by
+    have hre :
+        ((y : ℂ).re) = (0 : ℂ).re :=
+      congrArg Complex.re hyzero
+    exact Eq.trans (Complex.ofReal_re y).symm (hre.trans Complex.zero_re)
+  have hnorm_zero : ‖y‖ = 0 := by
+    exact (congrArg (fun v : ℝ => ‖v‖) hy_real_zero).trans norm_zero
+  have hnot : ¬ (1 : ℝ) ≤ 0 := by
+    exact not_le_of_gt zero_lt_one
+  exact hnot (Eq.subst (motive := fun v : ℝ => 1 ≤ v) hnorm_zero hy)
+
+/-- One vertical-line integration-by-parts identity before taking norms. -/
+theorem zetaPaleyWienerVerticalLineKernel_integral_eq_inverse_mul_derivativeIntegral
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (x y : ℝ) (hy : (y : ℂ) ≠ 0) :
+    (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
+      (y : ℂ)⁻¹ * zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y := by
+  sorry
+
+/-- Vertical-line integration by parts after substituting the spectral parameter `z`. -/
+theorem zetaLaplaceTransform_eq_inverse_mul_verticalLineIBPDerivativeIntegral
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (z : ℂ) (hzhigh : 1 ≤ ‖z.im‖) :
+    Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+      (z.im : ℂ)⁻¹ *
+        zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im := by
+  have htransform :
+      Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+        ∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t :=
+    zetaLaplaceTransform_eq_verticalLineKernelIntegral f z
+  have hfreq :
+      (z.im : ℂ) ≠ 0 :=
+    zetaPaleyWienerVerticalFrequency_ne_zero_of_high hzhigh
+  have hibp :
+      (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f z.re z.im t) =
+        (z.im : ℂ)⁻¹ *
+          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im :=
+    zetaPaleyWienerVerticalLineKernel_integral_eq_inverse_mul_derivativeIntegral
+      f I z.re z.im hfreq
+  exact htransform.trans hibp
+
 /-- Vertical-line integration by parts as a norm identity.
 
 After absorbing the horizontal factor into the source on `re z = x`, integration by
@@ -984,7 +1052,13 @@ theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
       ‖(z.im : ℂ)⁻¹ *
         zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im‖ := by
-  sorry
+  have hidentity :
+      Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+        (z.im : ℂ)⁻¹ *
+          zetaPaleyWienerVerticalLineIBPDerivativeIntegral f z.re z.im :=
+    zetaLaplaceTransform_eq_inverse_mul_verticalLineIBPDerivativeIntegral
+      f I z hzhigh
+  exact congrArg (fun v : ℂ => ‖v‖) hidentity
 
 /-- One vertical-line integration-by-parts norm comparison.
 
