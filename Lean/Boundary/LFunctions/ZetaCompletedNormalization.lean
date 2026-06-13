@@ -67,6 +67,20 @@ theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
       exact congrArg (fun x : ℂ => 1 / (1 / 2 + s) + x)
         (congrArg (fun x : ℂ => 1 / x) h3.symm)
 
+/-- Completed zeta has no zeros in the left half-plane. -/
+theorem completedRiemannZeta_ne_zero_of_re_lt_zero
+    (s : ℂ)
+    (hsre : s.re < 0) :
+    completedRiemannZeta s ≠ 0 := by
+  sorry
+
+/-- Completed zeta has no zeros in the half-plane to the right of `1`. -/
+theorem completedRiemannZeta_ne_zero_of_one_lt_re
+    (s : ℂ)
+    (hsre : 1 < s.re) :
+    completedRiemannZeta s ≠ 0 := by
+  sorry
+
 /-- Completed-zeta zeros lie in the ordinary critical strip.
 
 This is the standard unconditional critical-strip theorem for zeros of the
@@ -75,7 +89,13 @@ theorem completedRiemannZeta_zero_re_mem_criticalStrip
     (s : ℂ)
     (hs : completedRiemannZeta s = 0) :
     0 ≤ s.re ∧ s.re ≤ (1 : ℝ) := by
-  sorry
+  have hnot_left : ¬ s.re < 0 := by
+    intro hsre
+    exact completedRiemannZeta_ne_zero_of_re_lt_zero s hsre hs
+  have hnot_right : ¬ (1 : ℝ) < s.re := by
+    intro hsre
+    exact completedRiemannZeta_ne_zero_of_one_lt_re s hsre hs
+  exact ⟨le_of_not_gt hnot_left, le_of_not_gt hnot_right⟩
 
 /-- The real coordinate of the uncentered argument is the centered real
 coordinate shifted by `1/2`. -/
