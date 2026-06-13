@@ -1,4 +1,5 @@
 import Boundary.LFunctions.ZetaAdmissibleFunction
+import Boundary.LFunctions.ZetaAnalyticOrder
 import Boundary.LFunctions.ZetaCenteredZero
 import Boundary.LFunctions.ZetaCenteredZeroOrbit
 import Boundary.LFunctions.ZetaCenteredZeroCounting
@@ -97,16 +98,6 @@ theorem centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero
     (zetaCompletedZero_ne_negHalf ρ)
     (zetaCompletedZero_ne_posHalf ρ)
     ρ.2
-
-/-- An analytic zero which is not locally identically zero has positive finite
-order. -/
-theorem analyticAt_order_toNat_pos_of_zero_not_eventually_zero
-    {f : ℂ → ℂ} {z : ℂ}
-    (hf : AnalyticAt ℂ f z)
-    (hz : f z = 0)
-    (hnot : ¬ ∀ᶠ w in 𝓝 z, f w = 0) :
-    0 < hf.order.toNat := by
-  sorry
 
 /-- A completed zero has positive analytic multiplicity. -/
 theorem zetaZeroMultiplicity_pos_of_completedZero
