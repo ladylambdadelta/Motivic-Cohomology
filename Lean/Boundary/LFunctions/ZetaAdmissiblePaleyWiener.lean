@@ -295,7 +295,14 @@ def zetaPaleyWienerSupportNormSet
 /-- A source-size envelope for the compact support, expressed without choosing a maximizer. -/
 noncomputable def zetaPaleyWienerSupportNormEnvelope
     (f : ZetaAdmissibleFunction) : ℝ :=
-  sSup (zetaPaleyWienerSupportNormSet f)
+  max (sSup (zetaPaleyWienerSupportNormSet f)) 0
+
+/-- The support-norm envelope is nonnegative by construction. -/
+theorem zetaPaleyWienerSupportNormEnvelope_nonnegative
+    (f : ZetaAdmissibleFunction) :
+    0 ≤ zetaPaleyWienerSupportNormEnvelope f := by
+  unfold zetaPaleyWienerSupportNormEnvelope
+  exact le_max_right (sSup (zetaPaleyWienerSupportNormSet f)) 0
 
 /-- Source norms on the support are bounded above. -/
 theorem zetaPaleyWienerSupportNormSet_bddAbove
@@ -341,10 +348,66 @@ theorem zetaPaleyWienerSupportNorm_le_envelope
       t ∈ tsupport f.toZetaTestFunction →
       ‖f.toZetaTestFunction t‖ ≤ zetaPaleyWienerSupportNormEnvelope f := by
   intro t ht
-  unfold zetaPaleyWienerSupportNormEnvelope
-  exact le_csSup
-    (zetaPaleyWienerSupportNormSet_bddAbove f)
-    (zetaPaleyWienerSupportNorm_mem_supportNormSet f t ht)
+  have hsSup :
+      ‖f.toZetaTestFunction t‖ ≤
+        sSup (zetaPaleyWienerSupportNormSet f) :=
+    le_csSup
+      (zetaPaleyWienerSupportNormSet_bddAbove f)
+      (zetaPaleyWienerSupportNorm_mem_supportNormSet f t ht)
+  have hsSup_le_envelope :
+      sSup (zetaPaleyWienerSupportNormSet f) ≤
+        zetaPaleyWienerSupportNormEnvelope f := by
+    unfold zetaPaleyWienerSupportNormEnvelope
+    exact le_max_left (sSup (zetaPaleyWienerSupportNormSet f)) 0
+  exact le_trans hsSup hsSup_le_envelope
+
+/-- The test-function wrapper has the same pointwise norm envelope as the admissible source. -/
+theorem zetaPaleyWienerTestFunctionNorm_le_envelope
+    (f : ZetaAdmissibleFunction) :
+    ∀ t : ℝ,
+      t ∈ tsupport f.toZetaTestFunction →
+      ‖f.toZetaTestFunction' t‖ ≤ zetaPaleyWienerSupportNormEnvelope f := by
+  intro t ht
+  have hsource :
+      ‖f.toZetaTestFunction t‖ ≤ zetaPaleyWienerSupportNormEnvelope f :=
+    zetaPaleyWienerSupportNorm_le_envelope f t ht
+  have happly :
+      f.toZetaTestFunction' t = f.toZetaTestFunction t :=
+    ZetaAdmissibleFunction.toZetaTestFunction'_apply f t
+  exact Eq.subst
+    (motive := fun v : ℂ =>
+      ‖v‖ ≤ zetaPaleyWienerSupportNormEnvelope f)
+    happly.symm
+    hsource
+
+/-- A rectangle product is bounded in absolute value by the largest absolute product at
+the four corners. -/
+theorem abs_mul_le_max_corner_abs_of_mem_interval
+    (a b lower upper x t : ℝ)
+    (hxa : a ≤ x) (hxb : x ≤ b)
+    (ht_lower : lower ≤ t) (ht_upper : t ≤ upper) :
+    |x * t| ≤
+      max (max (|a * lower|) (|a * upper|))
+        (max (|b * lower|) (|b * upper|)) := by
+  sorry
+
+/-- The unsigned rectangle product is bounded by the corner absolute-value envelope. -/
+theorem mul_le_max_corner_abs_of_mem_interval
+    (a b lower upper x t : ℝ)
+    (hxa : a ≤ x) (hxb : x ≤ b)
+    (ht_lower : lower ≤ t) (ht_upper : t ≤ upper) :
+    x * t ≤
+      max (max (|a * lower|) (|a * upper|))
+        (max (|b * lower|) (|b * upper|)) := by
+  have hle_abs : x * t ≤ |x * t| :=
+    le_abs_self (x * t)
+  have habs :
+      |x * t| ≤
+        max (max (|a * lower|) (|a * upper|))
+          (max (|b * lower|) (|b * upper|)) :=
+    abs_mul_le_max_corner_abs_of_mem_interval
+      a b lower upper x t hxa hxb ht_lower ht_upper
+  exact le_trans hle_abs habs
 
 /-- The real exponent `x * t` is bounded by the endpoint envelope on the strip rectangle. -/
 theorem zetaPaleyWienerStripProduct_le_endpointEnvelope
@@ -355,6 +418,19 @@ theorem zetaPaleyWienerStripProduct_le_endpointEnvelope
     x * t ≤
       max (max (|a * I.lower|) (|a * I.upper|))
         (max (|b * I.lower|) (|b * I.upper|)) := by
+  exact mul_le_max_corner_abs_of_mem_interval
+    a b I.lower I.upper x t hxa hxb ht_lower ht_upper
+
+/-- Norm of the complex exponential is the exponential of the real part. -/
+theorem complexExp_norm_eq_realExp_re
+    (w : ℂ) :
+    ‖Complex.exp w‖ = Real.exp w.re := by
+  sorry
+
+/-- Multiplication by a real scalar has the expected real part. -/
+theorem complex_mul_real_re
+    (z : ℂ) (t : ℝ) :
+    (z * (t : ℂ)).re = z.re * t := by
   sorry
 
 /-- Norm of the complex exponential on a vertical line is the exponential of the real
@@ -363,7 +439,14 @@ theorem zetaPaleyWienerComplexExp_norm_eq_realExp
     (z : ℂ) (t : ℝ) :
     ‖Complex.exp (z * (t : ℂ))‖ =
       Real.exp (z.re * t) := by
-  sorry
+  have hnorm :
+      ‖Complex.exp (z * (t : ℂ))‖ =
+        Real.exp (z * (t : ℂ)).re :=
+    complexExp_norm_eq_realExp_re (z * (t : ℂ))
+  have hre :
+      (z * (t : ℂ)).re = z.re * t :=
+    complex_mul_real_re z t
+  exact hnorm.trans (congrArg Real.exp hre)
 
 /-- The strip exponential envelope bounds the horizontal exponential on the support
 interval. -/
@@ -411,7 +494,10 @@ theorem zetaPaleyWienerRawKernelEnvelope_nonnegative
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) :
     0 ≤ zetaPaleyWienerRawKernelEnvelope f I a b := by
-  sorry
+  unfold zetaPaleyWienerRawKernelEnvelope
+  exact mul_nonneg
+    (zetaPaleyWienerSupportNormEnvelope_nonnegative f)
+    (le_of_lt (zetaPaleyWienerStripExponentialEnvelope_pos I a b))
 
 /-- Pointwise kernel domination on the compact support interval. -/
 theorem zetaLaplaceKernel_norm_le_rawEnvelope_on_support
@@ -423,7 +509,39 @@ theorem zetaLaplaceKernel_norm_le_rawEnvelope_on_support
         t ∈ tsupport f.toZetaTestFunction →
         ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ ≤
           zetaPaleyWienerRawKernelEnvelope f I a b := by
-  sorry
+  intro z hz t ht
+  have hsource :
+      ‖f.toZetaTestFunction' t‖ ≤ zetaPaleyWienerSupportNormEnvelope f :=
+    zetaPaleyWienerTestFunctionNorm_le_envelope f t ht
+  have hexp :
+      ‖Complex.exp (z * (t : ℂ))‖ ≤
+        zetaPaleyWienerStripExponentialEnvelope I a b :=
+    zetaPaleyWienerStripExponential_norm_le_envelope
+      f I a b z hz t (I.lower_mem t ht) (I.upper_mem t ht)
+  have hsourceEnvelope_nonneg :
+      0 ≤ zetaPaleyWienerSupportNormEnvelope f :=
+    zetaPaleyWienerSupportNormEnvelope_nonnegative f
+  have hexp_norm_nonneg :
+      0 ≤ ‖Complex.exp (z * (t : ℂ))‖ :=
+    norm_nonneg (Complex.exp (z * (t : ℂ)))
+  have hproduct :
+      ‖f.toZetaTestFunction' t‖ *
+          ‖Complex.exp (z * (t : ℂ))‖ ≤
+        zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b :=
+    mul_le_mul hsource hexp hexp_norm_nonneg hsourceEnvelope_nonneg
+  have hnorm :
+      ‖f.toZetaTestFunction' t * Complex.exp (z * (t : ℂ))‖ =
+        ‖f.toZetaTestFunction' t‖ *
+          ‖Complex.exp (z * (t : ℂ))‖ :=
+    norm_mul (f.toZetaTestFunction' t) (Complex.exp (z * (t : ℂ)))
+  unfold zetaPaleyWienerRawKernelEnvelope
+  exact Eq.subst
+    (motive := fun v : ℝ =>
+      v ≤ zetaPaleyWienerSupportNormEnvelope f *
+        zetaPaleyWienerStripExponentialEnvelope I a b)
+    hnorm.symm
+    hproduct
 
 /-- Integral-norm transport from a pointwise compact-support kernel bound. -/
 theorem zetaLaplaceTransform_norm_le_supportIntervalLength_mul_bound
