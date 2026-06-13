@@ -140,6 +140,21 @@ def ExplicitFormulaFamilyAnalyticPackage.logDerivControl
     CompletedZetaNegLogDerivControl f := by
   exact h.logderiv_control
 
+/-- The family-level package exposes fixed-degree zero-excised polynomial growth for the
+completed negative log derivative. -/
+theorem ExplicitFormulaFamilyAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedPolynomialGrowth
+    {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
+    (h : ExplicitFormulaFamilyAnalyticPackage f F)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) :
+    ∃ K : ℕ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          z ∈ E.carrier →
+          ‖completedZetaNegLogDeriv z‖
+            ≤ C * (1 + ‖z.im‖) ^ K := by
+  exact h.logderiv_control.zeroExcisedPolynomialGrowth a b E
+
 /-- The analytic package induces the family package for every contour family. -/
 def ExplicitFormulaAnalyticPackage.toFamilyPackage
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
