@@ -73,6 +73,34 @@ theorem one_le_nat_succ_cast_real
     1 ≤ ((m + 1 : ℕ) : ℝ) := by
   exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le m))
 
+/-- A completed zero in shell `m` has its decay term bounded by the lower shell
+decay factor. -/
+theorem completedZeroCenteredHeightShell_decay_le_lowerDecay
+    (d k m : ℕ)
+    (ρ : completedZeroCenteredHeightShellFiber m) :
+    zetaCompletedZeroCenteredHeight
+        (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) ^
+        (-(d + k + 3 : ℤ)) ≤
+      completedZeroCenteredHeightShellLowerDecay d k m := by
+  sorry
+
+/-- The unweighted shell cardinal is bounded by the multiplicity count in the
+containing height ball. -/
+theorem completedZeroCenteredHeightShell_unweightedCount_le_multiplicityCounting
+    (m : ℕ) :
+    (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) ≤
+      completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) := by
+  sorry
+
+/-- A finite nonnegative shell `tsum` is bounded by cardinal times a uniform
+shell bound. -/
+theorem completedZeroCenteredHeightShellDecayMass_le_card_mul_lowerDecay
+    (d k m : ℕ) :
+    completedZeroCenteredHeightShellDecayMass d k m ≤
+      (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) *
+        completedZeroCenteredHeightShellLowerDecay d k m := by
+  sorry
+
 /-- Shell decay mass is bounded by the cumulative multiplicity count times the
 lower shell decay factor. -/
 theorem completedZeroCenteredHeightShellDecayMass_le_counting_mul_lowerDecay
@@ -80,7 +108,25 @@ theorem completedZeroCenteredHeightShellDecayMass_le_counting_mul_lowerDecay
     completedZeroCenteredHeightShellDecayMass d k m ≤
       completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
         completedZeroCenteredHeightShellLowerDecay d k m := by
-  sorry
+  have hcard :
+      completedZeroCenteredHeightShellDecayMass d k m ≤
+        (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) *
+          completedZeroCenteredHeightShellLowerDecay d k m :=
+    completedZeroCenteredHeightShellDecayMass_le_card_mul_lowerDecay d k m
+  have hcount :
+      (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) ≤
+        completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) :=
+    completedZeroCenteredHeightShell_unweightedCount_le_multiplicityCounting m
+  have hdecay_nonnegative :
+      0 ≤ completedZeroCenteredHeightShellLowerDecay d k m :=
+    completedZeroCenteredHeightShellLowerDecay_nonnegative d k m
+  have hmul :
+      (Nat.card (completedZeroCenteredHeightShellFiber m) : ℝ) *
+          completedZeroCenteredHeightShellLowerDecay d k m ≤
+        completedZeroMultiplicityCountingInCenteredHeightBall ((m + 1 : ℕ) : ℝ) *
+          completedZeroCenteredHeightShellLowerDecay d k m :=
+    mul_le_mul_of_nonneg_right hcount hdecay_nonnegative
+  exact le_trans hcard hmul
 
 /-- Applying a counting bound converts the counting-times-decay expression into
 the named cumulative shell envelope. -/
@@ -147,6 +193,17 @@ theorem norm_completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
     (completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
       C d k m hCpos hcount)
 
+/-- The normalized shell envelope is bounded by the explicit tail constant once
+all height-base comparisons are written in the canonical base
+`1 + ‖m‖`. -/
+theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heightBase
+    (C : ℝ) (d k m : ℕ)
+    (hCpos : 0 < C) :
+    completedZeroCenteredHeightShellCountingEnvelope C d k m ≤
+      completedZeroCenteredHeightShellTailConstant C d k *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
+  sorry
+
 /-- The shell counting envelope is bounded by the explicit polynomial tail
 constant. -/
 theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant
@@ -155,7 +212,8 @@ theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant
     completedZeroCenteredHeightShellCountingEnvelope C d k m ≤
       completedZeroCenteredHeightShellTailConstant C d k *
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
-  sorry
+  exact completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant_of_heightBase
+    C d k m hCpos
 
 /-- The cumulative shell envelope is bounded by a one-dimensional polynomial
 tail after increasing the constant. -/
