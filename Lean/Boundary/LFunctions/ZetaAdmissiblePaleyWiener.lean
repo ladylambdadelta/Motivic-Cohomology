@@ -346,6 +346,25 @@ theorem zetaPaleyWienerSupportNorm_le_envelope
     (zetaPaleyWienerSupportNormSet_bddAbove f)
     (zetaPaleyWienerSupportNorm_mem_supportNormSet f t ht)
 
+/-- The real exponent `x * t` is bounded by the endpoint envelope on the strip rectangle. -/
+theorem zetaPaleyWienerStripProduct_le_endpointEnvelope
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b x t : ℝ)
+    (hxa : a ≤ x) (hxb : x ≤ b)
+    (ht_lower : I.lower ≤ t) (ht_upper : t ≤ I.upper) :
+    x * t ≤
+      max (max (|a * I.lower|) (|a * I.upper|))
+        (max (|b * I.lower|) (|b * I.upper|)) := by
+  sorry
+
+/-- Norm of the complex exponential on a vertical line is the exponential of the real
+part of the exponent. -/
+theorem zetaPaleyWienerComplexExp_norm_eq_realExp
+    (z : ℂ) (t : ℝ) :
+    ‖Complex.exp (z * (t : ℂ))‖ =
+      Real.exp (z.re * t) := by
+  sorry
+
 /-- The strip exponential envelope bounds the horizontal exponential on the support
 interval. -/
 theorem zetaPaleyWienerStripExponential_norm_le_envelope
@@ -358,7 +377,27 @@ theorem zetaPaleyWienerStripExponential_norm_le_envelope
         t ≤ I.upper →
         ‖Complex.exp (z * (t : ℂ))‖ ≤
           zetaPaleyWienerStripExponentialEnvelope I a b := by
-  sorry
+  intro z hz t ht_lower ht_upper
+  have hnorm :
+      ‖Complex.exp (z * (t : ℂ))‖ =
+        Real.exp (z.re * t) :=
+    zetaPaleyWienerComplexExp_norm_eq_realExp z t
+  have hproduct :
+      z.re * t ≤
+        max (max (|a * I.lower|) (|a * I.upper|))
+          (max (|b * I.lower|) (|b * I.upper|)) :=
+    zetaPaleyWienerStripProduct_le_endpointEnvelope
+      f I a b z.re t hz.1 hz.2 ht_lower ht_upper
+  have hexp :
+      Real.exp (z.re * t) ≤
+        zetaPaleyWienerStripExponentialEnvelope I a b := by
+    unfold zetaPaleyWienerStripExponentialEnvelope
+    exact Real.exp_le_exp.mpr hproduct
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ zetaPaleyWienerStripExponentialEnvelope I a b)
+    hnorm.symm
+    hexp
 
 /-- Raw zero-order compact-support product bound for the Laplace transform.
 
