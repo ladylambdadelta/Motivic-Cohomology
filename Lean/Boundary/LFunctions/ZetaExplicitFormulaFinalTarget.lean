@@ -1,5 +1,6 @@
 import Boundary.LFunctions.ZetaExplicitFormulaGeometry
 import Boundary.LFunctions.ZetaExplicitFormulaComplexAnalysis
+import Boundary.LFunctions.ZetaExplicitFormulaVerticalTransport
 import Boundary.LFunctions.ZetaExplicitFormulaResidueBridge
 
 /-!
@@ -42,12 +43,6 @@ theorem zetaCompletedZeroKreinGram_eq_completedResidueBoundarySum
       (zetaCompletedResidueBoundarySum f : ℂ) := by
   exact congrArg (fun x : ℝ => (x : ℂ))
     (zetaCompletedZeroKreinGram_eq_residueBoundarySum f)
-
-/-- The vertical side difference along a contour family. -/
-noncomputable def explicitFormulaFamilyVerticalDifference
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) (T : ℝ) : ℂ :=
-  zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
-    zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)
 
 /-- The horizontal side difference along a contour family. -/
 noncomputable def explicitFormulaFamilyHorizontalDifference
@@ -177,18 +172,6 @@ theorem explicitFormulaFamilyHorizontalDifference_tendsto_zero
       (f := f) (F := F)
       (h := explicitFormulaFamilyAnalyticPackage_of_admissible f F)
       1
-
-/-- Owner vertical-channel contour transport theorem.
-
-The vertical side of the contour family converges to the analytic
-prime/archimedean/correction boundary scalar. -/
-theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_ownerVerticalTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
-    Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
-      atTop
-      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  sorry
 
 /-- Owner residue theorem for the completed explicit-formula contour family.
 
