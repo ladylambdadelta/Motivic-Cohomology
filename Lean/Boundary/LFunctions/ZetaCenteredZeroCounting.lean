@@ -149,6 +149,19 @@ theorem centeredZetaZeros_subset_countable_union :
         {z : ℂ | z ≠ -(1 / 2 : ℂ) ∧ z ≠ (1 / 2 : ℂ) ∧ centeredCompletedRiemannZeta z = 0} := by
   exact centeredZetaZeros_subset_poles_union_nontrivial
 
+/-- Centered zeros in the vertical height ball of radius `T`, expressed on
+the underlying complex zero set. -/
+def centeredZetaZerosInCenteredHeightBall (T : ℝ) : Set ℂ :=
+  {z : ℂ |
+    centeredCompletedRiemannZeta z = 0 ∧
+      1 + ‖(z - (1 / 2 : ℂ)).im‖ ≤ T}
+
+/-- Centered completed-zeta zeros are finite in every centered vertical height ball. -/
+theorem finite_centeredZetaZerosInCenteredHeightBall
+    (T : ℝ) :
+    (centeredZetaZerosInCenteredHeightBall T).Finite := by
+  sorry
+
 /-- The union of the poles and the nontrivial centered zeros is countable. -/
 theorem centeredZetaZeros_union_countable :
     (({z : ℂ | z = -(1 / 2 : ℂ) ∨ z = (1 / 2 : ℂ)} : Set ℂ) ∪
