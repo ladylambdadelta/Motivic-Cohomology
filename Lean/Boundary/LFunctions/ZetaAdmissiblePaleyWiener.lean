@@ -297,6 +297,22 @@ noncomputable def zetaPaleyWienerSupportNormEnvelope
     (f : ZetaAdmissibleFunction) : ℝ :=
   sSup (zetaPaleyWienerSupportNormSet f)
 
+/-- Source norms on the support are bounded above. -/
+theorem zetaPaleyWienerSupportNormSet_bddAbove
+    (f : ZetaAdmissibleFunction) :
+    BddAbove (zetaPaleyWienerSupportNormSet f) := by
+  sorry
+
+/-- The pointwise source norm at a support point belongs to the support-norm set. -/
+theorem zetaPaleyWienerSupportNorm_mem_supportNormSet
+    (f : ZetaAdmissibleFunction) :
+    ∀ t : ℝ,
+      t ∈ tsupport f.toZetaTestFunction →
+      ‖f.toZetaTestFunction t‖ ∈ zetaPaleyWienerSupportNormSet f := by
+  intro t ht
+  unfold zetaPaleyWienerSupportNormSet
+  exact ⟨t, ht, rfl⟩
+
 /-- The zero-order compact-support envelope used for the Paley-Wiener integral bound. -/
 noncomputable def zetaPaleyWienerZeroOrderEnvelope
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
@@ -324,7 +340,11 @@ theorem zetaPaleyWienerSupportNorm_le_envelope
     ∀ t : ℝ,
       t ∈ tsupport f.toZetaTestFunction →
       ‖f.toZetaTestFunction t‖ ≤ zetaPaleyWienerSupportNormEnvelope f := by
-  sorry
+  intro t ht
+  unfold zetaPaleyWienerSupportNormEnvelope
+  exact le_csSup
+    (zetaPaleyWienerSupportNormSet_bddAbove f)
+    (zetaPaleyWienerSupportNorm_mem_supportNormSet f t ht)
 
 /-- The strip exponential envelope bounds the horizontal exponential on the support
 interval. -/
