@@ -45,17 +45,15 @@ theorem exists_zetaCompletedZero_fixed_vertical_strip :
   exact ⟨-(1 / 2 : ℝ), (1 / 2 : ℝ),
     zetaCompletedZero_re_mem_centeredCriticalStrip⟩
 
-/-- The centered completed-zero spectral evaluation points lie in one fixed vertical
-strip. -/
-theorem exists_zetaCenteredZero_fixed_vertical_strip :
-    ∃ a : ℝ, ∃ b : ℝ,
+/-- Transport a completed-zero real-part strip through the centering map. -/
+theorem zetaCenteredZero_mem_centered_transport_strip
+    (a b : ℝ)
+    (hstrip :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
-          (zetaCenteredZero (ρ : ℂ)).re ≤ b := by
-  rcases exists_zetaCompletedZero_fixed_vertical_strip with
-    ⟨a, b, hstrip⟩
-  refine ⟨a - (1 / 2 : ℝ), b - (1 / 2 : ℝ), ?_⟩
-  intro ρ
+        a ≤ (ρ : ℂ).re ∧ (ρ : ℂ).re ≤ b)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    a - (1 / 2 : ℝ) ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
+      (zetaCenteredZero (ρ : ℂ)).re ≤ b - (1 / 2 : ℝ) := by
   have hρ : a ≤ (ρ : ℂ).re ∧ (ρ : ℂ).re ≤ b :=
     hstrip ρ
   have hleft : a - (1 / 2 : ℝ) ≤ (ρ : ℂ).re - (1 / 2 : ℝ) :=
@@ -74,6 +72,19 @@ theorem exists_zetaCenteredZero_fixed_vertical_strip :
       (motive := fun x : ℝ => x ≤ b - (1 / 2 : ℝ))
       hre.symm
       hright⟩
+
+/-- The centered completed-zero spectral evaluation points lie in one fixed vertical
+strip. -/
+theorem exists_zetaCenteredZero_fixed_vertical_strip :
+    ∃ a : ℝ, ∃ b : ℝ,
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
+          (zetaCenteredZero (ρ : ℂ)).re ≤ b := by
+  rcases exists_zetaCompletedZero_fixed_vertical_strip with
+    ⟨a, b, hstrip⟩
+  refine ⟨a - (1 / 2 : ℝ), b - (1 / 2 : ℝ), ?_⟩
+  intro ρ
+  exact zetaCenteredZero_mem_centered_transport_strip a b hstrip ρ
 
 end
 
