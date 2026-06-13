@@ -23,42 +23,19 @@ def autocorrelationSpectralFiniteSample
   fun z : P =>
     zetaSpectralEval (convolutionAutocorrelation f) (z : ℂ)
 
-/-- The finite target vector induced by a function on the ambient spectral plane. -/
-def autocorrelationSpectralFiniteTarget
-    (P : Finset ℂ) (a : ℂ → ℂ) :
-    P → ℂ :=
-  fun z : P => a (z : ℂ)
-
-/-- Runge/Paley-Wiener localization for finite autocorrelation spectral sample vectors,
-with zero-tail control. -/
-theorem exists_autocorrelation_spectralFiniteSample_zeroTail_small_ownerRunge
+/-- Runge localization preserving the finite autocorrelation spectral-sample vector of a
+given source. -/
+theorem exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_ownerRunge
     (S : Finset ℂ)
     (P : Finset ℂ)
-    (aP : P → ℂ) :
+    (f₀ : ZetaAdmissibleFunction) :
     ∀ ε : ℝ, 0 < ε →
       ∃ f : ZetaAdmissibleFunction,
-        autocorrelationSpectralFiniteSample P f = aP ∧
+        autocorrelationSpectralFiniteSample P f =
+            autocorrelationSpectralFiniteSample P f₀ ∧
           |Complex.re
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
   sorry
-
-/-- Autocorrelation spectral localization with arbitrary finite prescribed samples and
-zero-tail control. -/
-theorem exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
-    (S : Finset ℂ)
-    (P : Finset ℂ)
-    (a : ℂ → ℂ) :
-    ∀ ε : ℝ, 0 < ε →
-      ∃ f : ZetaAdmissibleFunction,
-        (∀ z : ℂ, z ∈ P →
-          zetaSpectralEval (convolutionAutocorrelation f) z = a z) ∧
-          |Complex.re
-            (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
-  intro ε hε
-  rcases exists_autocorrelation_spectralFiniteSample_zeroTail_small_ownerRunge
-      S P (autocorrelationSpectralFiniteTarget P a) ε hε with
-    ⟨f, hfSample, hfTail⟩
-  exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩
 
 /-- Autocorrelation spectral localization with zero-tail control.
 
@@ -77,9 +54,11 @@ theorem exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
             zetaSpectralEval (convolutionAutocorrelation f₀) z) ∧
           |Complex.re
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
-  exact exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
-    S P
-    (fun z : ℂ => zetaSpectralEval (convolutionAutocorrelation f₀) z)
+  intro ε hε
+  rcases exists_autocorrelation_spectralFiniteSample_preserved_zeroTail_small_ownerRunge
+      S P f₀ ε hε with
+    ⟨f, hfSample, hfTail⟩
+  exact ⟨f, fun z hz => congrFun hfSample ⟨z, hz⟩, hfTail⟩
 
 end ZetaAdmissibleFunction
 

@@ -4819,11 +4819,23 @@ def zetaLaplaceTransformFiniteTarget
     S → ℂ :=
   fun z : S => a (z : ℂ)
 
+/-- Finite Paley-Wiener interpolation in finite-vector form.
+
+This is the constructive basis/interpolant owner theorem: every target vector on a finite
+spectral sample set is realized by the finite Laplace-transform sample vector of an
+admissible function. -/
+theorem exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
+    (S : Finset ℂ) (aS : S → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      zetaLaplaceTransformFiniteSample S f = aS := by
+  sorry
+
 /-- Finite Paley-Wiener interpolation says the finite Laplace-sample map is surjective. -/
 theorem zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
     (S : Finset ℂ) :
     Function.Surjective (zetaLaplaceTransformFiniteSample S) := by
-  sorry
+  exact fun aS : S → ℂ =>
+    exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener S aS
 
 /-- Finite Paley-Wiener interpolation for admissible Laplace transforms on a finite
 spectral sample set.

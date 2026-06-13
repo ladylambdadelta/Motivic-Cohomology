@@ -108,6 +108,47 @@ theorem zetaSpectralEval_sum
       (fun x _hx => integrable_laplaceKernel_at (F x) z)
   exact hforget.trans hsum
 
+/-- The finite seed spectral-evaluation vector of an admissible function. -/
+def seedSpectralEvalFiniteSample
+    (S : Finset ℂ) (f : ZetaAdmissibleFunction) :
+    S → ℂ :=
+  fun z : S => zetaSpectralEval f (z : ℂ)
+
+/-- The finite target vector induced by a function on the ambient spectral plane. -/
+def seedSpectralEvalFiniteTarget
+    (S : Finset ℂ) (a : ℂ → ℂ) :
+    S → ℂ :=
+  fun z : S => a (z : ℂ)
+
+/-- Finite Paley-Wiener interpolation for seed spectral-evaluation vectors. -/
+theorem exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener
+    (S : Finset ℂ) (aS : S → ℂ) :
+    ∃ f : ZetaAdmissibleFunction,
+      seedSpectralEvalFiniteSample S f = aS := by
+  rcases exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
+      S aS with
+    ⟨f, hf⟩
+  refine ⟨f, ?_⟩
+  funext z
+  calc
+    seedSpectralEvalFiniteSample S f z =
+        zetaSpectralEval f (z : ℂ) := by
+      rfl
+    _ = Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) := by
+      exact zetaSpectralEval_eq_laplace f (z : ℂ)
+    _ = zetaLaplaceTransformFiniteSample S f z := by
+      rfl
+    _ = aS z := by
+      exact congrFun hf z
+
+/-- Finite Paley-Wiener interpolation says the finite seed spectral-sample map is
+surjective. -/
+theorem seedSpectralEvalFiniteSample_surjective_ownerPaleyWiener
+    (S : Finset ℂ) :
+    Function.Surjective (seedSpectralEvalFiniteSample S) := by
+  exact fun aS : S → ℂ =>
+    exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener S aS
+
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set.
 
@@ -117,10 +158,11 @@ theorem exists_seed_spectralEval_sample_on_finset_ownerPaleyWiener
     (S : Finset ℂ) (a : ℂ → ℂ) :
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S → zetaSpectralEval f z = a z := by
-  rcases
-    exists_zetaLaplaceTransform_sample_on_finset_ownerPaleyWiener S a with
+  rcases exists_seedSpectralEvalFiniteSample_eq_ownerPaleyWiener
+      S (seedSpectralEvalFiniteTarget S a) with
     ⟨f, hf⟩
-  exact ⟨f, fun z hz => hf z hz⟩
+  exact ⟨f, fun z hz =>
+    congrFun hf ⟨z, hz⟩⟩
 
 /-- Finite Paley-Wiener interpolation for seed spectral evaluations on a finite spectral
 sample set. -/
