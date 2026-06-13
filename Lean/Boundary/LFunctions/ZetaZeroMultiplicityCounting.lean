@@ -1,3 +1,4 @@
+import Boundary.LFunctions.ZetaPolynomialTailSummability
 import Boundary.LFunctions.ZetaZeroSideDefinitions
 
 /-!
@@ -131,14 +132,6 @@ theorem completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem
   unfold completedZerosInCenteredHeightBall at hρ
   unfold completedZeroMultiplicityHeightBallSummand
   exact if_neg hρ
-
-/-- A real family supported on a finite set is summable. -/
-theorem summable_of_finite_support_real
-    {α : Type*} (u : α → ℝ) (s : Set α)
-    (hs : s.Finite)
-    (hsupport : ∀ a : α, a ∉ s → u a = 0) :
-    Summable u := by
-  sorry
 
 /-- Finite height balls make the height-ball multiplicity summand summable. -/
 theorem summable_completedZeroMultiplicityHeightBallSummand_of_finite_heightBall
