@@ -159,8 +159,41 @@ noncomputable def completedZeroSubtypeFiniteComplementEquiv
         exact Eq.subst
           (motive := fun y : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
             y = Sum.inr ρ)
-          hif.symm
+        hif.symm
           (congrArg Sum.inr (Subtype.ext rfl))
+
+/-- Transport the completed-zero `tsum` across the finite/complement equivalence. -/
+theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
+    (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
+      (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+        F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) := by
+  sorry
+
+/-- Split the finite/complement sum-type `tsum` into the selected finite side and the
+complementary tail side. -/
+theorem completedZeroFiniteComplement_sumType_tsum_eq_add
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η)
+    (hF : Summable F) :
+    (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+        F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) =
+      (∑' η : S.attach, F ⟨η, hS η η.2⟩) +
+        (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
+  sorry
+
+/-- The selected finite side of the completed-zero split is a finite sum over `S.attach`. -/
+theorem completedZeroFiniteSubtype_tsum_eq_finset_sum
+    (S : Finset ℂ)
+    (F : {ρ : ℂ // ZetaCompletedZero ρ} → ℂ)
+    (hS : ∀ η : ℂ, η ∈ S → ZetaCompletedZero η) :
+    (∑' η : S.attach, F ⟨η, hS η η.2⟩) =
+      ∑ η in S.attach, F ⟨η, hS η η.2⟩ := by
+  sorry
 
 /-- Finite/complement `tsum` transport for the completed-zero subtype. -/
 theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
@@ -171,7 +204,29 @@ theorem completedZeroSubtype_tsum_eq_finiteSubtype_add_complement_of_equiv
     (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
       (∑ η in S.attach, F ⟨η, hS η η.2⟩) +
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) := by
-  sorry
+  have htransport :
+      (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, F ρ) =
+        (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+          F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) :=
+    completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv S F hS hF
+  have hsplit :
+      (∑' x : S.attach ⊕ {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+          F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) =
+        (∑' η : S.attach, F ⟨η, hS η η.2⟩) +
+          (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S}, F ⟨ρ, ρ.2.1⟩) :=
+    completedZeroFiniteComplement_sumType_tsum_eq_add S F hS hF
+  have hfinite :
+      (∑' η : S.attach, F ⟨η, hS η η.2⟩) =
+        ∑ η in S.attach, F ⟨η, hS η η.2⟩ :=
+    completedZeroFiniteSubtype_tsum_eq_finset_sum S F hS
+  exact htransport.trans
+    (hsplit.trans
+      (congrArg
+        (fun x : ℂ =>
+          x +
+            (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+              F ⟨ρ, ρ.2.1⟩))
+        hfinite))
 
 /-- Pure finite-excision splitting for a completed-zero-indexed family.
 
