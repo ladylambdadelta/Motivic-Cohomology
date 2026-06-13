@@ -84,6 +84,121 @@ def zetaPaleyWienerVerticalWeight (z : ℂ) (N : ℕ) : ℝ :=
 def zetaPaleyWienerInVerticalStrip (a b : ℝ) (z : ℂ) : Prop :=
   a ≤ z.re ∧ z.re ≤ b
 
+/-- The Paley-Wiener vertical weight is nonnegative. -/
+theorem zetaPaleyWienerVerticalWeight_nonnegative (z : ℂ) (N : ℕ) :
+    0 ≤ zetaPaleyWienerVerticalWeight z N := by
+  unfold zetaPaleyWienerVerticalWeight
+  have hbase : 0 ≤ 1 + ‖z.im‖ :=
+    add_nonneg zero_le_one (norm_nonneg z.im)
+  exact zpow_nonneg hbase (-(N : ℤ))
+
+/-- Low-frequency weight comparison for one Paley-Wiener successor step. -/
+theorem zetaPaleyWienerVerticalWeight_le_successor_lowFrequency
+    (z : ℂ) (N : ℕ) (hz : ‖z.im‖ ≤ 1) :
+    zetaPaleyWienerVerticalWeight z N ≤
+      2 * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  let X : ℝ := 1 + ‖z.im‖
+  have hX_nonzero : X ≠ 0 := by
+    have hX_pos : 0 < X :=
+      lt_of_lt_of_le zero_lt_one
+        (le_add_of_nonneg_right (norm_nonneg z.im))
+    exact ne_of_gt hX_pos
+  have hX_le_two : X ≤ 2 := by
+    calc
+      X = 1 + ‖z.im‖ := rfl
+      _ ≤ 1 + 1 := add_le_add_left hz 1
+      _ = 2 := one_add_one_eq_two
+  have hweight_nonneg :
+      0 ≤ X ^ (-(N + 1 : ℤ)) :=
+    zpow_nonneg (le_trans zero_le_one
+      (le_add_of_nonneg_right (norm_nonneg z.im))) (-(N + 1 : ℤ))
+  have hexp :
+      (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ) := by
+    omega
+  have hcombine :
+      X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
+    calc
+      X * X ^ (-(N + 1 : ℤ)) =
+          X ^ (1 : ℤ) * X ^ (-(N + 1 : ℤ)) := by
+        exact congrArg
+          (fun y : ℝ => y * X ^ (-(N + 1 : ℤ)))
+          (zpow_one X).symm
+      _ = X ^ ((1 : ℤ) + (-(N + 1 : ℤ))) := by
+        exact (zpow_add₀ hX_nonzero (1 : ℤ) (-(N + 1 : ℤ))).symm
+      _ = X ^ (-(N : ℤ)) := by
+        exact congrArg (fun e : ℤ => X ^ e) hexp
+  have hscaled :
+      X * X ^ (-(N + 1 : ℤ)) ≤
+        2 * X ^ (-(N + 1 : ℤ)) :=
+    mul_le_mul_of_nonneg_right hX_le_two hweight_nonneg
+  unfold zetaPaleyWienerVerticalWeight
+  change X ^ (-(N : ℤ)) ≤ 2 * X ^ (-(N + 1 : ℤ))
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ 2 * X ^ (-(N + 1 : ℤ)))
+    hcombine
+    hscaled
+
+/-- Base high-frequency inverse estimate for the vertical variable. -/
+theorem zetaPaleyWiener_inverseIm_times_verticalBase_le_two_highFrequency
+    (z : ℂ) (hz : 1 ≤ ‖z.im‖) :
+    ‖(z.im : ℂ)⁻¹‖ * (1 + ‖z.im‖) ≤ 2 := by
+  sorry
+
+/-- High-frequency inverse weight comparison for one Paley-Wiener successor step. -/
+theorem zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency
+    (z : ℂ) (N : ℕ) (hz : 1 ≤ ‖z.im‖) :
+    ‖(z.im : ℂ)⁻¹‖ * zetaPaleyWienerVerticalWeight z N ≤
+      2 * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  let X : ℝ := 1 + ‖z.im‖
+  have hX_nonzero : X ≠ 0 := by
+    have hX_pos : 0 < X :=
+      lt_of_lt_of_le zero_lt_one
+        (le_add_of_nonneg_right (norm_nonneg z.im))
+    exact ne_of_gt hX_pos
+  have hweight_nonneg :
+      0 ≤ X ^ (-(N + 1 : ℤ)) :=
+    zpow_nonneg (le_trans zero_le_one
+      (le_add_of_nonneg_right (norm_nonneg z.im))) (-(N + 1 : ℤ))
+  have hexp :
+      (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ) := by
+    omega
+  have hcombine :
+      X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
+    calc
+      X * X ^ (-(N + 1 : ℤ)) =
+          X ^ (1 : ℤ) * X ^ (-(N + 1 : ℤ)) := by
+        exact congrArg
+          (fun y : ℝ => y * X ^ (-(N + 1 : ℤ)))
+          (zpow_one X).symm
+      _ = X ^ ((1 : ℤ) + (-(N + 1 : ℤ))) := by
+        exact (zpow_add₀ hX_nonzero (1 : ℤ) (-(N + 1 : ℤ))).symm
+      _ = X ^ (-(N : ℤ)) := by
+        exact congrArg (fun e : ℤ => X ^ e) hexp
+  have hbase :
+      ‖(z.im : ℂ)⁻¹‖ * X ≤ 2 :=
+    zetaPaleyWiener_inverseIm_times_verticalBase_le_two_highFrequency z hz
+  have hscaled :
+      (‖(z.im : ℂ)⁻¹‖ * X) * X ^ (-(N + 1 : ℤ)) ≤
+        2 * X ^ (-(N + 1 : ℤ)) :=
+    mul_le_mul_of_nonneg_right hbase hweight_nonneg
+  have hrearrange :
+      ‖(z.im : ℂ)⁻¹‖ * X ^ (-(N : ℤ)) =
+        (‖(z.im : ℂ)⁻¹‖ * X) * X ^ (-(N + 1 : ℤ)) := by
+    calc
+      ‖(z.im : ℂ)⁻¹‖ * X ^ (-(N : ℤ)) =
+          ‖(z.im : ℂ)⁻¹‖ * (X * X ^ (-(N + 1 : ℤ))) := by
+        exact congrArg (fun y : ℝ => ‖(z.im : ℂ)⁻¹‖ * y) hcombine.symm
+      _ = (‖(z.im : ℂ)⁻¹‖ * X) * X ^ (-(N + 1 : ℤ)) := by
+        exact (mul_assoc ‖(z.im : ℂ)⁻¹‖ X
+          (X ^ (-(N + 1 : ℤ)))).symm
+  unfold zetaPaleyWienerVerticalWeight
+  change ‖(z.im : ℂ)⁻¹‖ * X ^ (-(N : ℤ)) ≤
+    2 * X ^ (-(N + 1 : ℤ))
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ 2 * X ^ (-(N + 1 : ℤ)))
+    hrearrange
+    hscaled
+
 /-- A named vertical-strip bound for the admissible Laplace transform. -/
 def zetaLaplaceTransformHasVerticalStripDecayConstant
     (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ) (C : ℝ) : Prop :=
@@ -208,12 +323,235 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_step
               ≤ C * zetaPaleyWienerVerticalWeight z N := by
   sorry
 
+/-- Low-frequency successor transport: on `|im z| ≤ 1`, the current decay estimate can be
+renormalized into the successor estimate by enlarging the constant. -/
+theorem zetaLaplaceTransform_supportInterval_successor_lowFrequency_decay_from_current
+    (f : ZetaAdmissibleFunction)
+    (a b : ℝ) (N : ℕ)
+    (hcurrent :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖z.im‖ ≤ 1 →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  rcases hcurrent with ⟨C, hC_pos, hC⟩
+  refine ⟨C * 2, mul_pos hC_pos zero_lt_two, ?_⟩
+  intro z hzstrip hzlow
+  have hbound :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+        ≤ C * zetaPaleyWienerVerticalWeight z N :=
+    hC z hzstrip
+  have hweight :
+      zetaPaleyWienerVerticalWeight z N ≤
+        2 * zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaPaleyWienerVerticalWeight_le_successor_lowFrequency z N hzlow
+  have hC_nonneg : 0 ≤ C :=
+    le_of_lt hC_pos
+  have hrenorm :
+      C * zetaPaleyWienerVerticalWeight z N ≤
+        C * (2 * zetaPaleyWienerVerticalWeight z (N + 1)) :=
+    mul_le_mul_of_nonneg_left hweight hC_nonneg
+  have hreassociate :
+      C * (2 * zetaPaleyWienerVerticalWeight z (N + 1)) =
+        (C * 2) * zetaPaleyWienerVerticalWeight z (N + 1) := by
+    exact (mul_assoc C 2 (zetaPaleyWienerVerticalWeight z (N + 1))).symm
+  exact hbound.trans (hrenorm.trans_eq hreassociate)
+
+/-- The integration-by-parts identity gives the high-frequency norm comparison before the
+vertical-weight estimate is applied. -/
+theorem zetaLaplaceTransform_supportInterval_highFrequency_norm_from_parts
+    (f derivativeProbe : ZetaAdmissibleFunction)
+    (a b : ℝ)
+    (hidentity :
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        z.im ≠ 0 →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+          (z.im : ℂ)⁻¹ *
+            Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z)
+    (z : ℂ)
+    (hzstrip : zetaPaleyWienerInVerticalStrip a b z)
+    (hzhigh : 1 ≤ ‖z.im‖) :
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+      ‖(z.im : ℂ)⁻¹‖ *
+        ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖ := by
+  have hzne : z.im ≠ 0 := by
+    intro hzero
+    have hnorm_zero : ‖z.im‖ = 0 := by
+      exact congrArg (fun y : ℝ => ‖y‖) hzero
+    have hone_le_zero : (1 : ℝ) ≤ 0 :=
+      Eq.subst (motive := fun y : ℝ => 1 ≤ y) hnorm_zero hzhigh
+    exact (not_lt_of_ge hone_le_zero) zero_lt_one
+  have hid :
+      Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+        (z.im : ℂ)⁻¹ *
+          Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z :=
+    hidentity z hzstrip hzne
+  calc
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
+        ‖(z.im : ℂ)⁻¹ *
+          Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖ := by
+      exact congrArg (fun w : ℂ => ‖w‖) hid
+    _ = ‖(z.im : ℂ)⁻¹‖ *
+        ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖ := by
+      exact norm_mul (z.im : ℂ)⁻¹
+        (Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z)
+
+/-- High-frequency successor transport: away from zero vertical frequency, integration by
+parts trades one factor of `im z` for one additional Paley-Wiener decay power. -/
+theorem zetaLaplaceTransform_supportInterval_successor_highFrequency_decay_from_parts
+    (f derivativeProbe : ZetaAdmissibleFunction)
+    (a b : ℝ) (N : ℕ)
+    (hidentity :
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        z.im ≠ 0 →
+        Boundary.zetaLaplaceTransform f.toZetaTestFunction' z =
+          (z.im : ℂ)⁻¹ *
+            Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z)
+    (hderiv :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        1 ≤ ‖z.im‖ →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  rcases hderiv with ⟨C, hC_pos, hC⟩
+  refine ⟨C * 2, mul_pos hC_pos zero_lt_two, ?_⟩
+  intro z hzstrip hzhigh
+  have hparts :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+        ‖(z.im : ℂ)⁻¹‖ *
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖ :=
+    zetaLaplaceTransform_supportInterval_highFrequency_norm_from_parts
+      f derivativeProbe a b hidentity z hzstrip hzhigh
+  have hderivativeBound :
+      ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+        ≤ C * zetaPaleyWienerVerticalWeight z N :=
+    hC z hzstrip
+  have hinv_nonneg : 0 ≤ ‖(z.im : ℂ)⁻¹‖ :=
+    norm_nonneg ((z.im : ℂ)⁻¹)
+  have hboundWithInv :
+      ‖(z.im : ℂ)⁻¹‖ *
+          ‖Boundary.zetaLaplaceTransform derivativeProbe.toZetaTestFunction' z‖
+        ≤ ‖(z.im : ℂ)⁻¹‖ *
+          (C * zetaPaleyWienerVerticalWeight z N) :=
+    mul_le_mul_of_nonneg_left hderivativeBound hinv_nonneg
+  have hC_nonneg : 0 ≤ C :=
+    le_of_lt hC_pos
+  have hweight :
+      ‖(z.im : ℂ)⁻¹‖ * zetaPaleyWienerVerticalWeight z N ≤
+        2 * zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency z N hzhigh
+  have hrearrange :
+      ‖(z.im : ℂ)⁻¹‖ * (C * zetaPaleyWienerVerticalWeight z N) =
+        C * (‖(z.im : ℂ)⁻¹‖ * zetaPaleyWienerVerticalWeight z N) := by
+    calc
+      ‖(z.im : ℂ)⁻¹‖ * (C * zetaPaleyWienerVerticalWeight z N) =
+          (‖(z.im : ℂ)⁻¹‖ * C) * zetaPaleyWienerVerticalWeight z N := by
+        exact (mul_assoc ‖(z.im : ℂ)⁻¹‖ C
+          (zetaPaleyWienerVerticalWeight z N)).symm
+      _ = (C * ‖(z.im : ℂ)⁻¹‖) * zetaPaleyWienerVerticalWeight z N := by
+        exact congrArg (fun y : ℝ => y * zetaPaleyWienerVerticalWeight z N)
+          (mul_comm ‖(z.im : ℂ)⁻¹‖ C)
+      _ = C * (‖(z.im : ℂ)⁻¹‖ * zetaPaleyWienerVerticalWeight z N) := by
+        exact mul_assoc C ‖(z.im : ℂ)⁻¹‖
+          (zetaPaleyWienerVerticalWeight z N)
+  have hrenorm :
+      C * (‖(z.im : ℂ)⁻¹‖ * zetaPaleyWienerVerticalWeight z N) ≤
+        C * (2 * zetaPaleyWienerVerticalWeight z (N + 1)) :=
+    mul_le_mul_of_nonneg_left hweight hC_nonneg
+  have htarget :
+      C * (2 * zetaPaleyWienerVerticalWeight z (N + 1)) =
+        (C * 2) * zetaPaleyWienerVerticalWeight z (N + 1) := by
+    exact (mul_assoc C 2 (zetaPaleyWienerVerticalWeight z (N + 1))).symm
+  exact hparts.trans (hboundWithInv.trans (Eq.subst
+    (motive := fun y : ℝ => y ≤ (C * 2) * zetaPaleyWienerVerticalWeight z (N + 1))
+    hrearrange.symm
+    (hrenorm.trans_eq htarget)))
+
+/-- The low/high frequency successor estimates combine into the global successor estimate. -/
+theorem zetaLaplaceTransform_supportInterval_successor_decay_from_low_high
+    (f : ZetaAdmissibleFunction)
+    (a b : ℝ) (N : ℕ)
+    (hlow :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖z.im‖ ≤ 1 →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z (N + 1))
+    (hhigh :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          1 ≤ ‖z.im‖ →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z (N + 1)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
+  rcases hlow with ⟨Clow, hClow_pos, hClow⟩
+  rcases hhigh with ⟨Chigh, hChigh_pos, hChigh⟩
+  refine ⟨max Clow Chigh, lt_of_lt_of_le hClow_pos (le_max_left Clow Chigh), ?_⟩
+  intro z hz
+  have hweight : 0 ≤ zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaPaleyWienerVerticalWeight_nonnegative z (N + 1)
+  by_cases hlow_region : ‖z.im‖ ≤ 1
+  · have hbound :
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Clow * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      hClow z hz hlow_region
+    have hconstant :
+        Clow * zetaPaleyWienerVerticalWeight z (N + 1) ≤
+          max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      mul_le_mul_of_nonneg_right (le_max_left Clow Chigh) hweight
+    exact hbound.trans hconstant
+  · have hhigh_region : 1 ≤ ‖z.im‖ :=
+      le_of_lt (lt_of_not_ge hlow_region)
+    have hbound :
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      hChigh z hz hhigh_region
+    have hconstant :
+        Chigh * zetaPaleyWienerVerticalWeight z (N + 1) ≤
+          max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      mul_le_mul_of_nonneg_right (le_max_right Clow Chigh) hweight
+    exact hbound.trans hconstant
+
 /-- The one-step Paley-Wiener frequency estimate converts integration-by-parts and
 derivative-probe decay into successor vertical decay. -/
 theorem zetaLaplaceTransform_supportInterval_successor_decay_from_parts
     (f derivativeProbe : ZetaAdmissibleFunction)
     (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (N : ℕ)
+    (hcurrent :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z N)
     (hidentity :
       ∀ z : ℂ,
         zetaPaleyWienerInVerticalStrip a b z →
@@ -234,7 +572,28 @@ theorem zetaLaplaceTransform_supportInterval_successor_decay_from_parts
         zetaPaleyWienerInVerticalStrip a b z →
         ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
           ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
-  sorry
+  have hlow :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          ‖z.im‖ ≤ 1 →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaLaplaceTransform_supportInterval_successor_lowFrequency_decay_from_current
+      f a b N hcurrent
+  have hhigh :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          zetaPaleyWienerInVerticalStrip a b z →
+          1 ≤ ‖z.im‖ →
+          ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+            ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaLaplaceTransform_supportInterval_successor_highFrequency_decay_from_parts
+      f derivativeProbe a b N hidentity hderiv
+  exact zetaLaplaceTransform_supportInterval_successor_decay_from_low_high
+    f a b N hlow hhigh
 
 /-- One integration-by-parts step for Paley-Wiener control on a fixed compact support
 interval.
@@ -262,7 +621,7 @@ theorem zetaLaplaceTransform_supportInterval_integrationByParts_successor
       f I a b N hN with
     ⟨derivativeProbe, hidentity, hderivativeDecay⟩
   exact zetaLaplaceTransform_supportInterval_successor_decay_from_parts
-    f derivativeProbe I a b N hidentity hderivativeDecay
+    f derivativeProbe I a b N hN hidentity hderivativeDecay
 
 /-- The oscillatory integration-by-parts estimate on a fixed support interval.
 
