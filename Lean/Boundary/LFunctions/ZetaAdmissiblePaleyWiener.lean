@@ -318,6 +318,43 @@ theorem zetaPaleyWienerZeroOrderEnvelope_pos
       zetaPaleyWienerStripExponentialEnvelope I a b *
       zetaPaleyWienerSupportIntervalLength I)
 
+/-- The support-norm envelope bounds the admissible source on its support. -/
+theorem zetaPaleyWienerSupportNorm_le_envelope
+    (f : ZetaAdmissibleFunction) :
+    ∀ t : ℝ,
+      t ∈ tsupport f.toZetaTestFunction →
+      ‖f.toZetaTestFunction t‖ ≤ zetaPaleyWienerSupportNormEnvelope f := by
+  sorry
+
+/-- The strip exponential envelope bounds the horizontal exponential on the support
+interval. -/
+theorem zetaPaleyWienerStripExponential_norm_le_envelope
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∀ z : ℂ,
+      zetaPaleyWienerInVerticalStrip a b z →
+      ∀ t : ℝ,
+        I.lower ≤ t →
+        t ≤ I.upper →
+        ‖Complex.exp (z * (t : ℂ))‖ ≤
+          zetaPaleyWienerStripExponentialEnvelope I a b := by
+  sorry
+
+/-- Raw zero-order compact-support product bound for the Laplace transform.
+
+This is the un-bumped estimate: source norm envelope, horizontal exponential envelope,
+and support interval length multiply to dominate the integral norm. -/
+theorem zetaLaplaceTransform_supportInterval_zeroOrder_le_rawEnvelope
+    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
+    ∀ z : ℂ,
+      zetaPaleyWienerInVerticalStrip a b z →
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+        zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+          zetaPaleyWienerSupportIntervalLength I := by
+  sorry
+
 /-- The concrete zero-order integral estimate from compact support.
 
 The source norm is bounded by `zetaPaleyWienerSupportNormEnvelope`, the horizontal
@@ -330,7 +367,19 @@ theorem zetaLaplaceTransform_supportInterval_zeroOrder_le_envelope
       zetaPaleyWienerInVerticalStrip a b z →
       ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
         zetaPaleyWienerZeroOrderEnvelope f I a b := by
-  sorry
+  intro z hz
+  have hraw :
+      ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ ≤
+        zetaPaleyWienerSupportNormEnvelope f *
+          zetaPaleyWienerStripExponentialEnvelope I a b *
+          zetaPaleyWienerSupportIntervalLength I :=
+    zetaLaplaceTransform_supportInterval_zeroOrder_le_rawEnvelope f I a b z hz
+  unfold zetaPaleyWienerZeroOrderEnvelope
+  exact weightedLaplaceKernel_bound_le_bump
+    (zetaPaleyWienerSupportNormEnvelope f *
+      zetaPaleyWienerStripExponentialEnvelope I a b *
+      zetaPaleyWienerSupportIntervalLength I)
+    hraw
 
 /-- Zero-order compact-support control for the admissible Laplace transform on a fixed
 support interval.
