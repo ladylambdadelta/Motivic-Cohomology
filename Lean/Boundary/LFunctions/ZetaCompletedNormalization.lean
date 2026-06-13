@@ -67,6 +67,57 @@ theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
       exact congrArg (fun x : ℂ => 1 / (1 / 2 + s) + x)
         (congrArg (fun x : ℂ => 1 / x) h3.symm)
 
+/-- Completed-zeta zeros lie in the ordinary critical strip.
+
+This is the standard unconditional critical-strip theorem for zeros of the
+completed Riemann zeta normalization. -/
+theorem completedRiemannZeta_zero_re_mem_criticalStrip
+    (s : ℂ)
+    (hs : completedRiemannZeta s = 0) :
+    0 ≤ s.re ∧ s.re ≤ (1 : ℝ) := by
+  sorry
+
+/-- The real coordinate of the uncentered argument is the centered real
+coordinate shifted by `1/2`. -/
+theorem centeredCompletedRiemannZeta_uncenter_re
+    (s : ℂ) :
+    ((1 / 2 : ℂ) + s).re = (1 / 2 : ℝ) + s.re := by
+  calc
+    ((1 / 2 : ℂ) + s).re = (1 / 2 : ℂ).re + s.re := by
+      exact Complex.add_re (1 / 2 : ℂ) s
+    _ = (1 / 2 : ℝ) + s.re := by
+      exact congrArg (fun x : ℝ => x + s.re) Complex.ofReal_re
+
+/-- If the uncentered coordinate lies in `[0,1]`, the centered coordinate lies
+in `[-1/2,1/2]`. -/
+theorem centered_re_mem_centeredCriticalStrip_of_uncentered_re_mem_criticalStrip
+    {x : ℝ}
+    (hleft : 0 ≤ (1 / 2 : ℝ) + x)
+    (hright : (1 / 2 : ℝ) + x ≤ 1) :
+    -(1 / 2 : ℝ) ≤ x ∧ x ≤ (1 / 2 : ℝ) := by
+  have hleft' :
+      -(1 / 2 : ℝ) ≤ x :=
+    (neg_le_iff_add_nonneg).2 hleft
+  have hright_comm :
+      x + (1 / 2 : ℝ) ≤ 1 :=
+    Eq.subst
+      (motive := fun y : ℝ => y ≤ 1)
+      (add_comm (1 / 2 : ℝ) x)
+      hright
+  have hright_sub :
+      x ≤ (1 : ℝ) - (1 / 2 : ℝ) :=
+    (le_sub_iff_add_le).2 hright_comm
+  have hhalf :
+      (1 : ℝ) - (1 / 2 : ℝ) = (1 / 2 : ℝ) :=
+    sub_half (1 : ℝ)
+  have hright' :
+      x ≤ (1 / 2 : ℝ) :=
+    Eq.subst
+      (motive := fun y : ℝ => x ≤ y)
+      hhalf
+      hright_sub
+  exact ⟨hleft', hright'⟩
+
 /-- Centered completed-zeta zeros lie in the centered critical strip.
 
 This is the standard unconditional critical-strip theorem for nontrivial zeta
@@ -76,7 +127,33 @@ theorem centeredCompletedRiemannZeta_zero_re_mem_centeredCriticalStrip
     (s : ℂ)
     (hs : centeredCompletedRiemannZeta s = 0) :
     -(1 / 2 : ℝ) ≤ s.re ∧ s.re ≤ (1 / 2 : ℝ) := by
-  sorry
+  have huncentered_zero :
+      completedRiemannZeta ((1 / 2 : ℂ) + s) = 0 := by
+    exact hs
+  have hstrip :
+      0 ≤ ((1 / 2 : ℂ) + s).re ∧
+        ((1 / 2 : ℂ) + s).re ≤ (1 : ℝ) :=
+    completedRiemannZeta_zero_re_mem_criticalStrip
+      ((1 / 2 : ℂ) + s)
+      huncentered_zero
+  have hre :
+      ((1 / 2 : ℂ) + s).re = (1 / 2 : ℝ) + s.re :=
+    centeredCompletedRiemannZeta_uncenter_re s
+  have hleft :
+      0 ≤ (1 / 2 : ℝ) + s.re :=
+    Eq.subst
+      (motive := fun x : ℝ => 0 ≤ x)
+      hre
+      hstrip.1
+  have hright :
+      (1 / 2 : ℝ) + s.re ≤ 1 :=
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ (1 : ℝ))
+      hre
+      hstrip.2
+  exact centered_re_mem_centeredCriticalStrip_of_uncentered_re_mem_criticalStrip
+    hleft
+    hright
 
 end
 end LFunctions

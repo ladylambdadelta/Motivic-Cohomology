@@ -71,7 +71,7 @@ theorem summable_nat_succ_inverse_square :
       Summable
         (fun n : ℕ =>
           ((n : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
-    exact summable_nat_pow_inv.mpr (by norm_num : 1 < (2 : ℕ))
+    exact summable_nat_pow_inv.mpr (by decide : 1 < (2 : ℕ))
   exact hs.comp_injective
     (fun a b h => Nat.succ.inj h)
 
