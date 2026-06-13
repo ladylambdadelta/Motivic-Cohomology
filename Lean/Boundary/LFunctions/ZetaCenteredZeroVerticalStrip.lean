@@ -32,7 +32,7 @@ theorem zetaCompletedZero_re_mem_centeredCriticalStrip
       (ρ : ℂ).re ≤ (1 / 2 : ℝ) := by
   exact centeredCompletedRiemannZeta_zero_re_mem_centeredCriticalStrip
     (ρ : ℂ)
-    ρ.2
+    (zetaCompletedZero_zero ρ)
 
 /-- Completed-zero coordinates lie in one fixed vertical strip.
 

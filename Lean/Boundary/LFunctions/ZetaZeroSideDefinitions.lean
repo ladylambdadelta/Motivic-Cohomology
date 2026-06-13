@@ -24,8 +24,76 @@ noncomputable section
 open MeasureTheory
 open scoped Topology
 
-/-- The centered completed zeta zero predicate used by the zero-side definitions. -/
-abbrev ZetaCompletedZero (ρ : ℂ) : Prop := centeredCompletedRiemannZeta ρ = 0
+/-- The centered completed zeta zero predicate used by the zero-side
+definitions. Completed zero-side coordinates exclude the shifted pole
+locations; the shifted poles are handled by the pole/correction channels. -/
+abbrev ZetaCompletedZero (ρ : ℂ) : Prop :=
+  ρ ≠ -(1 / 2 : ℂ) ∧
+    ρ ≠ (1 / 2 : ℂ) ∧
+      centeredCompletedRiemannZeta ρ = 0
+
+/-- A completed zero is a zero of the centered completed zeta function. -/
+theorem zetaCompletedZero_zero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    centeredCompletedRiemannZeta (ρ : ℂ) = 0 :=
+  ρ.2.2.2
+
+/-- Constructor for completed zeros after the shifted poles have been excluded. -/
+theorem zetaCompletedZero_mk
+    {ρ : ℂ}
+    (hneg : ρ ≠ -(1 / 2 : ℂ))
+    (hpos : ρ ≠ (1 / 2 : ℂ))
+    (hzero : centeredCompletedRiemannZeta ρ = 0) :
+    ZetaCompletedZero ρ :=
+  ⟨hneg, hpos, hzero⟩
+
+/-- A raw completed-zero proof carries the zero equation. -/
+theorem zetaCompletedZero_zero_of_prop
+    {ρ : ℂ}
+    (hρ : ZetaCompletedZero ρ) :
+    centeredCompletedRiemannZeta ρ = 0 :=
+  hρ.2.2
+
+/-- A raw completed-zero proof excludes the negative shifted pole. -/
+theorem zetaCompletedZero_ne_negHalf_of_prop
+    {ρ : ℂ}
+    (hρ : ZetaCompletedZero ρ) :
+    ρ ≠ -(1 / 2 : ℂ) :=
+  hρ.1
+
+/-- A raw completed-zero proof excludes the positive shifted pole. -/
+theorem zetaCompletedZero_ne_posHalf_of_prop
+    {ρ : ℂ}
+    (hρ : ZetaCompletedZero ρ) :
+    ρ ≠ (1 / 2 : ℂ) :=
+  hρ.2.1
+
+/-- The completed-zero locus is stable under centered negation. -/
+theorem zetaCompletedZero_neg
+    {ρ : ℂ}
+    (hρ : ZetaCompletedZero ρ) :
+    ZetaCompletedZero (-ρ) := by
+  refine zetaCompletedZero_mk ?_ ?_ ?_
+  · intro hneg
+    have hρpos : ρ = (1 / 2 : ℂ) := by
+      calc
+        ρ = -(-ρ) := by rw [neg_neg]
+        _ = - (-(1 / 2 : ℂ)) := by
+          exact congrArg Neg.neg hneg
+        _ = (1 / 2 : ℂ) := by ring
+    exact zetaCompletedZero_ne_posHalf_of_prop hρ hρpos
+  · intro hpos
+    have hρneg : ρ = -(1 / 2 : ℂ) := by
+      calc
+        ρ = -(-ρ) := by rw [neg_neg]
+        _ = - (1 / 2 : ℂ) := by
+          exact congrArg Neg.neg hpos
+    exact zetaCompletedZero_ne_negHalf_of_prop hρ hρneg
+  · calc
+      centeredCompletedRiemannZeta (-ρ) =
+          centeredCompletedRiemannZeta ρ := by
+        exact centeredCompletedRiemannZeta_neg ρ
+      _ = 0 := zetaCompletedZero_zero_of_prop hρ
 
 /-- The multiplicity of a completed zeta zero.
 
@@ -54,21 +122,13 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
 theorem zetaCompletedZero_ne_negHalf
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     (ρ : ℂ) ≠ -(1 / 2 : ℂ) := by
-  sorry
+  exact ρ.2.1
 
 /-- A completed zero is not the positive shifted pole. -/
 theorem zetaCompletedZero_ne_posHalf
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     (ρ : ℂ) ≠ (1 / 2 : ℂ) := by
-  sorry
-
-/-- Away from the shifted poles, the centered completed zeta function is analytic. -/
-theorem centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
-    {z : ℂ}
-    (hzneg : z ≠ -(1 / 2 : ℂ))
-    (hzpos : z ≠ (1 / 2 : ℂ)) :
-    AnalyticAt ℂ centeredCompletedRiemannZeta z := by
-  sorry
+  exact ρ.2.2.1
 
 /-- The centered completed zeta function is analytic at every completed zero
 recorded by the zero-side divisor. -/
@@ -87,7 +147,62 @@ theorem centeredCompletedRiemannZeta_not_eventually_zero_at_zero_of_ne_shiftedPo
     (hzpos : z ≠ (1 / 2 : ℂ))
     (hz : centeredCompletedRiemannZeta z = 0) :
     ¬ ∀ᶠ w in 𝓝 z, centeredCompletedRiemannZeta w = 0 := by
-  sorry
+  intro hzero
+  have hs0 : (1 / 2 : ℂ) + z ≠ 0 := by
+    intro h
+    have hz_eq : z = -(1 / 2 : ℂ) := by
+      calc
+        z = ((1 / 2 : ℂ) + z) - (1 / 2 : ℂ) := by ring
+        _ = 0 - (1 / 2 : ℂ) := by
+          exact congrArg (fun w : ℂ => w - (1 / 2 : ℂ)) h
+        _ = -(1 / 2 : ℂ) := by ring
+    exact hzneg hz_eq
+  have hs1 : (1 / 2 : ℂ) + z ≠ 1 := by
+    intro h
+    have hz_eq : z = (1 / 2 : ℂ) := by
+      have hz_sub : z - (1 / 2 : ℂ) = 0 := by
+        calc
+          z - (1 / 2 : ℂ) =
+              (1 : ℂ) - ((1 / 2 : ℂ) + z) := by ring
+          _ = 0 := by rw [h]
+      calc
+        z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
+        _ = 0 + (1 / 2 : ℂ) := by
+          exact congrArg (fun w : ℂ => w + (1 / 2 : ℂ)) hz_sub
+        _ = (1 / 2 : ℂ) := by ring
+    exact hzpos hz_eq
+  have hshift_zero :
+      ∀ᶠ s in 𝓝 ((1 / 2 : ℂ) + z), completedRiemannZeta s = 0 := by
+    have ht :
+        Tendsto
+          (fun s : ℂ => s - (1 / 2 : ℂ))
+          (𝓝 ((1 / 2 : ℂ) + z))
+          (𝓝 z) := by
+      simpa
+        using
+          ((continuous_id.sub continuous_const).continuousAt.tendsto :
+            Tendsto
+              (fun s : ℂ => s - (1 / 2 : ℂ))
+              (𝓝 ((1 / 2 : ℂ) + z))
+              (𝓝 (((1 / 2 : ℂ) + z) - (1 / 2 : ℂ))))
+    have hpre :
+        ∀ᶠ s in 𝓝 ((1 / 2 : ℂ) + z),
+          centeredCompletedRiemannZeta (s - (1 / 2 : ℂ)) = 0 :=
+      ht hzero
+    exact hpre.mono
+      (fun s hs => by
+        have hs_completed :
+            completedRiemannZeta ((1 / 2 : ℂ) + (s - (1 / 2 : ℂ))) = 0 := by
+          simpa [centeredCompletedRiemannZeta] using hs
+        exact Eq.subst
+          (motive := fun w : ℂ => completedRiemannZeta w = 0)
+          (by ring : (1 / 2 : ℂ) + (s - (1 / 2 : ℂ)) = s)
+          hs_completed)
+  exact completedRiemannZeta_not_eventually_zero
+    ((1 / 2 : ℂ) + z)
+    hs0
+    hs1
+    hshift_zero
 
 /-- The centered completed zeta function is not locally identically zero at a
 completed zero. -/
@@ -97,7 +212,7 @@ theorem centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero
   exact centeredCompletedRiemannZeta_not_eventually_zero_at_zero_of_ne_shiftedPoles
     (zetaCompletedZero_ne_negHalf ρ)
     (zetaCompletedZero_ne_posHalf ρ)
-    ρ.2
+    (zetaCompletedZero_zero ρ)
 
 /-- A completed zero has positive analytic multiplicity. -/
 theorem zetaZeroMultiplicity_pos_of_completedZero
@@ -110,7 +225,7 @@ theorem zetaZeroMultiplicity_pos_of_completedZero
       0 < hanalytic.order.toNat :=
     analyticAt_order_toNat_pos_of_zero_not_eventually_zero
       hanalytic
-      ρ.2
+      (zetaCompletedZero_zero ρ)
       (centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero ρ)
   unfold zetaZeroMultiplicity
   exact Eq.subst
@@ -166,7 +281,7 @@ theorem finite_completedZerosInCenteredHeightBall
     · exact Eq.subst
         (motive := fun w : ℂ => centeredCompletedRiemannZeta w = 0)
         hzρ
-        ρ.2
+        (zetaCompletedZero_zero ρ)
     · have hheight :
           1 + ‖((ρ : ℂ) - (1 / 2 : ℂ)).im‖ ≤ T := by
         exact Eq.subst
@@ -203,25 +318,6 @@ noncomputable def completedZeroMultiplicityCountingInCenteredHeightBall
     (T : ℝ) : ℝ :=
   ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
     completedZeroMultiplicityHeightBallSummand T ρ
-
-/-- Finite-order/Jensen zero counting for the centered completed zeta divisor,
-with analytic multiplicities and centered vertical height. -/
-theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound :
-    ∃ C : ℝ, ∃ d : ℕ,
-      0 < C ∧
-      ∀ T : ℝ,
-        1 ≤ T →
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
-  sorry
-
-/-- Coarse polynomial counting of completed zeros with multiplicity in centered height. -/
-theorem exists_completedZeroMultiplicityCounting_height_bound :
-    ∃ C : ℝ, ∃ d : ℕ,
-      0 < C ∧
-      ∀ T : ℝ,
-        1 ≤ T →
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
-  exact centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
 
 /-- The spectral transform of a test function. -/
 def zetaSpectralTransform : ZetaTestFunction → ℂ → ℂ :=

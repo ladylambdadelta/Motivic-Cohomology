@@ -293,7 +293,10 @@ theorem exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_of
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) <
             - zetaZeroOrbitContributionRe z.point
               (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-  sorry
+  exact exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation
+    z.point
+    (exists_uniform_zeroOrbit_autocorrelation_separator
+      z.point hcompleted z.offCritical horbit)
 
 /-- Off-critical zero separation after isolating the finite zero orbit.
 
@@ -312,20 +315,8 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
     exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
       z hcompleted horbit with
     ⟨f, _hfinite_negative, hremainder_dominated⟩
-  refine ⟨f, ?_⟩
-  let A : ℝ :=
-    zetaZeroOrbitContributionRe z.point
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-  let R : ℝ :=
-    zetaZeroOrbitRemainderRe z.point
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-  have hR : R < -A := by
-    exact hremainder_dominated
-  have hsum_lt : A + R < A + -A := by
-    exact add_lt_add_left hR A
-  have hzero : A + -A = 0 := by
-    exact add_neg_cancel A
-  exact hsum_lt.trans_eq hzero
+  exact ⟨f, zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg
+    hremainder_dominated⟩
 
 /-- The shifted coordinate of an off-critical centered zero avoids the completed
 normalization singularity. -/
@@ -353,10 +344,27 @@ theorem offCriticalCenteredZero_gamma_ne_zero
 theorem offCriticalCenteredZero_completedZero
     (z : OffCriticalCenteredZetaZero) :
     ZetaCompletedZero z.point := by
-  exact centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
-    (offCriticalCenteredZero_shift_ne_zero z)
-    (offCriticalCenteredZero_gamma_ne_zero z)
-    z.zeta_zero
+  refine zetaCompletedZero_mk ?_ ?_ ?_
+  · intro hpoint
+    exact offCriticalCenteredZero_shift_ne_zero z
+      (by
+        calc
+          (1 / 2 : ℂ) + z.point =
+              (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by
+            exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
+          _ = 0 := by ring)
+  · intro hpoint
+    exact z.not_pole
+      (by
+        calc
+          (1 / 2 : ℂ) + z.point =
+              (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
+            exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
+          _ = 1 := by ring)
+  · exact centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+      (offCriticalCenteredZero_shift_ne_zero z)
+      (offCriticalCenteredZero_gamma_ne_zero z)
+      z.zeta_zero
 
 /-- The centered reflection orbit of an off-critical centered zero lies in the centered
 completed-zero locus. -/
@@ -374,12 +382,7 @@ theorem offCriticalCenteredZero_orbit_completedZero
       hpos.symm
       hcompleted
   · have hnegzero : ZetaCompletedZero (-z.point) := by
-      unfold ZetaCompletedZero
-      calc
-        centeredCompletedRiemannZeta (-z.point) =
-            centeredCompletedRiemannZeta z.point := by
-          exact centeredCompletedRiemannZeta_neg z.point
-        _ = 0 := hcompleted
+      exact zetaCompletedZero_neg hcompleted
     exact Eq.subst
       (motive := fun x : ℂ => ZetaCompletedZero x)
       hneg.symm
@@ -407,31 +410,15 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
   rcases exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
       z hcompleted horbit with
     ⟨f, hf⟩
-  refine ⟨f, ?_⟩
-  have hsplit :
-      zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        zetaZeroOrbitContributionRe z.point
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-          zetaZeroOrbitRemainderRe z.point
-            (ZetaAdmissibleFunction.convolutionAutocorrelation f) :=
-    have hsum :
-        Summable
-          (fun η : {η : ℂ // ZetaCompletedZero η} =>
-            zetaZeroSideContribution
-              (η : ℂ)
-              (ZetaAdmissibleFunction.convolutionAutocorrelation f)) :=
-      summable_zetaZeroSideContribution
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-    zetaCompletedZeroSideRe_eq_orbitContribution_add_orbitRemainderRe
+  exact ⟨f,
+    zetaCompletedZeroSideRe_lt_zero_of_orbitContribution_add_remainderRe_lt_zero
       z.point
       (ZetaAdmissibleFunction.convolutionAutocorrelation f)
       hcompleted
       horbit
-      hsum
-  exact Eq.subst
-    (motive := fun x : ℝ => x < 0)
-    hsplit.symm
-    hf
+      (summable_zetaZeroSideContribution
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+      hf⟩
 
 /-- The zero-detecting direction of Weil's criterion.
 

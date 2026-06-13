@@ -28,6 +28,176 @@ theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
   exact completedRiemannZeta_eq (1 / 2 + s)
 
+/-- Away from the shifted poles, the centered completed zeta function is
+analytic. The owner proof is the completed-zeta decomposition into an entire
+part and two rational pole terms. -/
+theorem centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ))
+    (hzpos : z ≠ (1 / 2 : ℂ)) :
+    AnalyticAt ℂ centeredCompletedRiemannZeta z := by
+  have hlinear :
+      AnalyticAt ℂ (fun w : ℂ => (1 / 2 : ℂ) + w) z :=
+    analyticAt_const.add analyticAt_id
+  have hcenteredEntire :
+      AnalyticAt ℂ centeredCompletedRiemannZeta₀ z := by
+    unfold centeredCompletedRiemannZeta₀
+    exact (differentiable_completedZeta₀.analyticAt ((1 / 2 : ℂ) + z)).comp hlinear
+  have hden_left :
+      (1 / 2 : ℂ) + z ≠ 0 := by
+    intro hzero
+    have hz_eq : z = -(1 / 2 : ℂ) := by
+      calc
+        z = ((1 / 2 : ℂ) + z) - (1 / 2 : ℂ) := by ring
+        _ = 0 - (1 / 2 : ℂ) := by
+          exact congrArg (fun w : ℂ => w - (1 / 2 : ℂ)) hzero
+        _ = -(1 / 2 : ℂ) := by ring
+    exact hzneg hz_eq
+  have hden_right :
+      1 - ((1 / 2 : ℂ) + z) ≠ 0 := by
+    intro hzero
+    have hz_eq : z = (1 / 2 : ℂ) := by
+      have hz_add : z - (1 / 2 : ℂ) = 0 := by
+        calc
+          z - (1 / 2 : ℂ) =
+              (1 : ℂ) - ((1 / 2 : ℂ) + z) := by ring
+          _ = 0 := hzero
+      calc
+        z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
+        _ = 0 + (1 / 2 : ℂ) := by
+          exact congrArg (fun w : ℂ => w + (1 / 2 : ℂ)) hz_add
+        _ = (1 / 2 : ℂ) := by ring
+    exact hzpos hz_eq
+  have hleftPole :
+      AnalyticAt ℂ (fun w : ℂ => 1 / ((1 / 2 : ℂ) + w)) z := by
+    exact (analyticAt_const.div (analyticAt_const.add analyticAt_id) hden_left)
+  have hrightPole :
+      AnalyticAt ℂ (fun w : ℂ => 1 / (1 - ((1 / 2 : ℂ) + w))) z := by
+    have hden :
+        AnalyticAt ℂ (fun w : ℂ => 1 - ((1 / 2 : ℂ) + w)) z :=
+      analyticAt_const.sub (analyticAt_const.add analyticAt_id)
+    exact analyticAt_const.div hden hden_right
+  have hformula :
+      centeredCompletedRiemannZeta =
+        (fun w : ℂ =>
+          centeredCompletedRiemannZeta₀ w -
+            1 / ((1 / 2 : ℂ) + w) -
+              1 / (1 - ((1 / 2 : ℂ) + w))) := by
+    funext w
+    exact centeredCompletedRiemannZeta_eq w
+  exact Eq.subst
+    (motive := fun F : ℂ → ℂ => AnalyticAt ℂ F z)
+    hformula.symm
+    ((hcenteredEntire.sub hleftPole).sub hrightPole)
+
+/-- If `(s - a)f(s)` tends to a nonzero limit on the punctured neighborhood of
+`a`, then `f` is eventually nonzero on that punctured neighborhood. -/
+theorem eventually_ne_zero_of_tendsto_sub_mul_ne_zero
+    {f : ℂ → ℂ} {a c : ℂ}
+    (hc : c ≠ 0)
+    (hlim : Tendsto (fun s : ℂ => (s - a) * f s) (𝓝[≠] a) (𝓝 c)) :
+    ∀ᶠ s in 𝓝 a, s ≠ a → f s ≠ 0 := by
+  have hprod :
+      ∀ᶠ s in 𝓝[≠] a, (s - a) * f s ≠ 0 :=
+    hlim.eventually_ne hc
+  rw [eventually_nhdsWithin_iff] at hprod
+  exact hprod.mono
+    (fun s hs hs_ne hf_zero =>
+      hs
+        (by
+          exact hs_ne)
+        (by
+          rw [hf_zero, mul_zero]))
+
+/-- The completed zeta normalization has residue `-1` at `0`. -/
+theorem completedRiemannZeta_residue_zero :
+    Tendsto
+      (fun s : ℂ => s * completedRiemannZeta s)
+      (𝓝[≠] (0 : ℂ))
+      (𝓝 (-(1 : ℂ))) := by
+  simpa [completedRiemannZeta]
+    using completedHurwitzZetaEven_residue_zero (a := (0 : UnitAddCircle))
+
+/-- The centered completed zeta function is nonzero in a punctured neighborhood
+of the negative shifted pole. -/
+theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_negHalf :
+    ∀ᶠ w in 𝓝 (-(1 / 2 : ℂ)),
+      w ≠ -(1 / 2 : ℂ) → centeredCompletedRiemannZeta w ≠ 0 := by
+  have hmap :
+      Tendsto
+        (fun w : ℂ => (1 / 2 : ℂ) + w)
+        (𝓝[≠] (-(1 / 2 : ℂ)))
+        (𝓝[≠] (0 : ℂ)) := by
+    simpa [Homeomorph.coe_addLeft]
+      using ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq
+        (-(1 / 2 : ℂ))).le
+  have hlim :
+      Tendsto
+        (fun w : ℂ =>
+          ((1 / 2 : ℂ) + w) *
+            completedRiemannZeta ((1 / 2 : ℂ) + w))
+        (𝓝[≠] (-(1 / 2 : ℂ)))
+        (𝓝 (-(1 : ℂ))) :=
+    completedRiemannZeta_residue_zero.comp hmap
+  have hcentered :
+      Tendsto
+        (fun w : ℂ =>
+          (w - (-(1 / 2 : ℂ))) * centeredCompletedRiemannZeta w)
+        (𝓝[≠] (-(1 / 2 : ℂ)))
+        (𝓝 (-(1 : ℂ))) := by
+    exact hlim.congr'
+      (Eventually.of_forall
+        (fun w : ℂ => by
+          unfold centeredCompletedRiemannZeta
+          congr 1
+          ring))
+  exact eventually_ne_zero_of_tendsto_sub_mul_ne_zero
+    (f := centeredCompletedRiemannZeta)
+    (a := -(1 / 2 : ℂ))
+    (c := -(1 : ℂ))
+    (by norm_num)
+    hcentered
+
+/-- The centered completed zeta function is nonzero in a punctured neighborhood
+of the positive shifted pole. -/
+theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_posHalf :
+    ∀ᶠ w in 𝓝 ((1 / 2 : ℂ)),
+      w ≠ (1 / 2 : ℂ) → centeredCompletedRiemannZeta w ≠ 0 := by
+  have hmap :
+      Tendsto
+        (fun w : ℂ => (1 / 2 : ℂ) + w)
+        (𝓝[≠] ((1 / 2 : ℂ)))
+        (𝓝[≠] (1 : ℂ)) := by
+    simpa [Homeomorph.coe_addLeft]
+      using ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq
+        ((1 / 2 : ℂ))).le
+  have hlim :
+      Tendsto
+        (fun w : ℂ =>
+          (((1 / 2 : ℂ) + w) - 1) *
+            completedRiemannZeta ((1 / 2 : ℂ) + w))
+        (𝓝[≠] ((1 / 2 : ℂ)))
+        (𝓝 (1 : ℂ)) :=
+    completedRiemannZeta_residue_one.comp hmap
+  have hcentered :
+      Tendsto
+        (fun w : ℂ =>
+          (w - (1 / 2 : ℂ)) * centeredCompletedRiemannZeta w)
+        (𝓝[≠] ((1 / 2 : ℂ)))
+        (𝓝 (1 : ℂ)) := by
+    exact hlim.congr'
+      (Eventually.of_forall
+        (fun w : ℂ => by
+          unfold centeredCompletedRiemannZeta
+          congr 1
+          ring))
+  exact eventually_ne_zero_of_tendsto_sub_mul_ne_zero
+    (f := centeredCompletedRiemannZeta)
+    (a := (1 / 2 : ℂ))
+    (c := (1 : ℂ))
+    one_ne_zero
+    hcentered
+
 theorem centeredCompletedRiemannZeta_neg (s : ℂ) :
     centeredCompletedRiemannZeta (-s) = centeredCompletedRiemannZeta s := by
   have hsub : (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s := by

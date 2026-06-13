@@ -107,14 +107,93 @@ theorem finite_centeredZetaShiftedPolesInCenteredHeightBall
 theorem isClosed_centeredCriticalHeightBox
     (T : ℝ) :
     IsClosed (centeredCriticalHeightBox T) := by
-  sorry
+  have hleft :
+      IsClosed ({z : ℂ | -(1 / 2 : ℝ) ≤ z.re} : Set ℂ) :=
+    isClosed_le continuous_const Complex.continuous_re
+  have hright :
+      IsClosed ({z : ℂ | z.re ≤ (1 / 2 : ℝ)} : Set ℂ) :=
+    isClosed_le Complex.continuous_re continuous_const
+  have him :
+      Continuous
+        (fun z : ℂ => 1 + ‖(z - (1 / 2 : ℂ)).im‖) :=
+    continuous_const.add
+      ((Complex.continuous_im.comp
+        (continuous_id.sub continuous_const)).norm)
+  have hheight :
+      IsClosed
+        ({z : ℂ | 1 + ‖(z - (1 / 2 : ℂ)).im‖ ≤ T} : Set ℂ) :=
+    isClosed_le him continuous_const
+  change
+    IsClosed
+      (({z : ℂ | -(1 / 2 : ℝ) ≤ z.re} : Set ℂ) ∩
+        ({z : ℂ | z.re ≤ (1 / 2 : ℝ)} ∩
+          {z : ℂ | 1 + ‖(z - (1 / 2 : ℂ)).im‖ ≤ T}))
+  exact hleft.inter (hright.inter hheight)
+
+/-- The real coordinate of a point in the centered critical height box is
+bounded by one in absolute value. -/
+theorem centeredCriticalHeightBox_abs_re_le_one
+    {T : ℝ} {z : ℂ}
+    (hz : z ∈ centeredCriticalHeightBox T) :
+    |z.re| ≤ (1 : ℝ) := by
+  have hnegOne_le_negHalf : (-(1 : ℝ)) ≤ -(1 / 2 : ℝ) := by
+    norm_num
+  have hhalf_le_one : (1 / 2 : ℝ) ≤ (1 : ℝ) := by
+    norm_num
+  exact abs_le.mpr
+    ⟨hnegOne_le_negHalf.trans hz.1,
+      hz.2.1.trans hhalf_le_one⟩
+
+/-- The imaginary coordinate of a point in the centered critical height box is
+bounded by the absolute height parameter. -/
+theorem centeredCriticalHeightBox_abs_im_le_abs_height
+    {T : ℝ} {z : ℂ}
+    (hz : z ∈ centeredCriticalHeightBox T) :
+    |z.im| ≤ |T| := by
+  have hcenter_le_height :
+      ‖(z - (1 / 2 : ℂ)).im‖ ≤ T :=
+    (le_add_of_nonneg_left zero_le_one).trans hz.2.2
+  have hcenter_le_abs_height :
+      ‖(z - (1 / 2 : ℂ)).im‖ ≤ |T| :=
+    hcenter_le_height.trans (le_abs_self T)
+  have him_eq : (z - (1 / 2 : ℂ)).im = z.im := by
+    rw [Complex.sub_im, Complex.ofReal_im, sub_zero]
+  have him_norm_le_abs_height :
+      ‖z.im‖ ≤ |T| :=
+    Eq.subst
+      (motive := fun x : ℝ => ‖x‖ ≤ |T|)
+      him_eq
+      hcenter_le_abs_height
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ |T|)
+    (Real.norm_eq_abs z.im)
+    him_norm_le_abs_height
+
+/-- The norm of a point in the centered critical height box is bounded by an
+explicit radius depending only on the height parameter. -/
+theorem centeredCriticalHeightBox_norm_le_radius
+    {T : ℝ} {z : ℂ}
+    (hz : z ∈ centeredCriticalHeightBox T) :
+    ‖z‖ ≤ 2 + |T| := by
+  have hre : |z.re| ≤ (1 : ℝ) :=
+    centeredCriticalHeightBox_abs_re_le_one hz
+  have him : |z.im| ≤ |T| :=
+    centeredCriticalHeightBox_abs_im_le_abs_height hz
+  calc
+    ‖z‖ = Complex.abs z := Complex.norm_eq_abs z
+    _ ≤ |z.re| + |z.im| := Complex.abs_le_abs_re_add_abs_im z
+    _ ≤ 1 + |T| := add_le_add hre him
+    _ ≤ 2 + |T| := add_le_add_right one_le_two |T|
 
 /-- The centered critical height box is contained in an explicit closed ball. -/
 theorem centeredCriticalHeightBox_subset_closedBall
     (T : ℝ) :
     ∃ R : ℝ,
       centeredCriticalHeightBox T ⊆ Metric.closedBall (0 : ℂ) R := by
-  sorry
+  refine ⟨2 + |T|, ?_⟩
+  intro z hz
+  exact mem_closedBall_zero_iff.mpr
+    (centeredCriticalHeightBox_norm_le_radius hz)
 
 /-- A closed subset of a compact closed ball is compact. -/
 theorem isCompact_centeredCriticalHeightBox_of_closed_subset_closedBall
@@ -122,7 +201,7 @@ theorem isCompact_centeredCriticalHeightBox_of_closed_subset_closedBall
     (hclosed : IsClosed (centeredCriticalHeightBox T))
     (hsubset : centeredCriticalHeightBox T ⊆ Metric.closedBall (0 : ℂ) R) :
     IsCompact (centeredCriticalHeightBox T) := by
-  sorry
+  exact (isCompact_closedBall (0 : ℂ) R).of_isClosed_subset hclosed hsubset
 
 /-- The centered critical height box is compact. -/
 theorem isCompact_centeredCriticalHeightBox
@@ -135,22 +214,101 @@ theorem isCompact_centeredCriticalHeightBox
     (isClosed_centeredCriticalHeightBox T)
     hsubset
 
-/-- A compact discrete subtype is finite. -/
-theorem finite_of_compact_discrete_subtype
+/-- A compact set has finite intersection with a closed discrete subtype. -/
+theorem finite_of_compact_closed_discrete_subtype
     {S K : Set ℂ}
     (hcompact : IsCompact K)
+    (hclosed : IsClosed S)
     (hdiscrete : DiscreteTopology S) :
     (S ∩ K).Finite := by
-  sorry
+  have hcompact_KS : IsCompact (K ∩ S) :=
+    hcompact.inter_right hclosed
+  have hdiscrete_KS : DiscreteTopology (K ∩ S) :=
+    DiscreteTopology.of_subset hdiscrete Set.inter_subset_right
+  have hfinite_KS : (K ∩ S).Finite :=
+    IsCompact.finite hcompact_KS hdiscrete_KS
+  exact Eq.subst
+    (motive := fun U : Set ℂ => U.Finite)
+    (Set.inter_comm K S)
+    hfinite_KS
+
+/-- Away from the shifted poles and away from a zero value, continuity gives a
+neighborhood avoiding the nontrivial centered zero set. -/
+theorem eventually_not_mem_centeredZetaNontrivialZeroSet_of_ne_shiftedPoles
+    {z : ℂ}
+    (hzneg : z ≠ -(1 / 2 : ℂ))
+    (hzpos : z ≠ (1 / 2 : ℂ))
+    (hzeta : centeredCompletedRiemannZeta z ≠ 0) :
+    ∀ᶠ w in 𝓝 z, w ∉ centeredZetaNontrivialZeroSet := by
+  have hanalytic :
+      AnalyticAt ℂ centeredCompletedRiemannZeta z :=
+    centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles
+      hzneg
+      hzpos
+  have hcontinuous :
+      ContinuousAt centeredCompletedRiemannZeta z :=
+    hanalytic.continuousAt
+  have hne :
+      ∀ᶠ w in 𝓝 z, centeredCompletedRiemannZeta w ≠ 0 :=
+    hcontinuous.eventually_ne hzeta
+  exact hne.mono
+    (fun w hw hmem => hw hmem.2.2)
+
+/-- The negative shifted pole has a neighborhood avoiding the nontrivial
+centered zero set. -/
+theorem eventually_not_mem_centeredZetaNontrivialZeroSet_negHalf :
+    ∀ᶠ w in 𝓝 (-(1 / 2 : ℂ)), w ∉ centeredZetaNontrivialZeroSet := by
+  exact centeredCompletedRiemannZeta_eventually_ne_zero_punctured_negHalf.mono
+    (fun w hw hmem =>
+      hw hmem.1 hmem.2.2)
+
+/-- The positive shifted pole has a neighborhood avoiding the nontrivial
+centered zero set. -/
+theorem eventually_not_mem_centeredZetaNontrivialZeroSet_posHalf :
+    ∀ᶠ w in 𝓝 ((1 / 2 : ℂ)), w ∉ centeredZetaNontrivialZeroSet := by
+  exact centeredCompletedRiemannZeta_eventually_ne_zero_punctured_posHalf.mono
+    (fun w hw hmem =>
+      hw hmem.2.1 hmem.2.2)
+
+/-- The nontrivial centered zero set has no accumulation at the shifted poles,
+and away from the shifted poles it is closed by continuity of the centered
+completed zeta function. -/
+theorem isClosed_centeredZetaNontrivialZeroSet :
+    IsClosed centeredZetaNontrivialZeroSet := by
+  rw [← isOpen_compl_iff]
+  rw [isOpen_iff_mem_nhds]
+  intro z hz
+  by_cases hzneg : z = -(1 / 2 : ℂ)
+  · exact Eq.subst
+      (motive := fun w : ℂ =>
+        centeredZetaNontrivialZeroSetᶜ ∈ 𝓝 w)
+      hzneg.symm
+      eventually_not_mem_centeredZetaNontrivialZeroSet_negHalf
+  · by_cases hzpos : z = (1 / 2 : ℂ)
+    · exact Eq.subst
+        (motive := fun w : ℂ =>
+          centeredZetaNontrivialZeroSetᶜ ∈ 𝓝 w)
+        hzpos.symm
+        eventually_not_mem_centeredZetaNontrivialZeroSet_posHalf
+    · have hzeta : centeredCompletedRiemannZeta z ≠ 0 := by
+        intro hzeta_zero
+        have hmem : z ∈ centeredZetaNontrivialZeroSet :=
+          ⟨hzneg, hzpos, hzeta_zero⟩
+        exact hz hmem
+      exact eventually_not_mem_centeredZetaNontrivialZeroSet_of_ne_shiftedPoles
+        hzneg
+        hzpos
+        hzeta
 
 /-- A discrete nontrivial centered zero set has finite intersection with the
 compact centered critical height box. -/
 theorem finite_centeredZetaNontrivialZeroSet_inter_compact_of_discrete
     (T : ℝ)
     (hcompact : IsCompact (centeredCriticalHeightBox T))
+    (hclosed : IsClosed centeredZetaNontrivialZeroSet)
     (hdiscrete : DiscreteTopology centeredZetaNontrivialZeroSet) :
     (centeredZetaNontrivialZeroSet ∩ centeredCriticalHeightBox T).Finite := by
-  exact finite_of_compact_discrete_subtype hcompact hdiscrete
+  exact finite_of_compact_closed_discrete_subtype hcompact hclosed hdiscrete
 
 /-- Isolated nontrivial centered zeros have finite intersection with the compact
 centered critical height box. -/
@@ -159,11 +317,14 @@ theorem finite_centeredZetaNontrivialZeroSet_inter_compactCriticalHeightBox
     (centeredZetaNontrivialZeroSet ∩ centeredCriticalHeightBox T).Finite := by
   have hcompact : IsCompact (centeredCriticalHeightBox T) :=
     isCompact_centeredCriticalHeightBox T
+  have hclosed : IsClosed centeredZetaNontrivialZeroSet :=
+    isClosed_centeredZetaNontrivialZeroSet
   have hdiscrete : DiscreteTopology centeredZetaNontrivialZeroSet :=
     centeredZetaNontrivialZeroSet_discreteTopology
   exact finite_centeredZetaNontrivialZeroSet_inter_compact_of_discrete
     (T := T)
     hcompact
+    hclosed
     hdiscrete
 
 /-- Nontrivial centered zeros have finite intersection with each centered
