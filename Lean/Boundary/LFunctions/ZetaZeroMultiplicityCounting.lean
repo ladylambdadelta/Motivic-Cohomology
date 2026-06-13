@@ -14,6 +14,48 @@ namespace LFunctions
 
 noncomputable section
 
+/-- The singleton-supported real family at `a` has sum `u a`. -/
+theorem hasSum_singletonSupport_real
+    {α : Type*} (u : α → ℝ) (a : α) :
+    HasSum
+      (fun x : α => if x = a then u a else 0)
+      (u a) := by
+  classical
+  let s : Finset α := {a}
+  have hoff :
+      ∀ x : α, x ∉ s →
+        (if x = a then u a else 0) = 0 := by
+    intro x hx
+    have hne : x ≠ a := by
+      intro hxa
+      have hxmem : x ∈ s :=
+        Eq.subst
+          (motive := fun y : α => x ∈ ({y} : Finset α))
+          hxa.symm
+          (Finset.mem_singleton_self x)
+      exact hx hxmem
+    exact if_neg hne
+  have hsum :
+      HasSum
+        (fun x : α => if x = a then u a else 0)
+        (∑ x in s, if x = a then u a else 0) :=
+    hasSum_sum_of_ne_finset_zero hoff
+  have hfinite :
+      (∑ x in s, if x = a then u a else 0) = u a := by
+    have hsingleton :
+        (∑ x in s, if x = a then u a else 0) =
+          (if a = a then u a else 0) :=
+      Finset.sum_singleton (fun x : α => if x = a then u a else 0)
+    have hvalue :
+        (if a = a then u a else 0) = u a :=
+      if_pos rfl
+    exact Eq.trans hsingleton hvalue
+  exact Eq.subst
+    (motive := fun t : ℝ =>
+      HasSum (fun x : α => if x = a then u a else 0) t)
+    hfinite
+    hsum
+
 /-- A nonnegative summable real family dominates each of its terms by its total `tsum`. -/
 theorem real_term_le_tsum_of_summable_nonnegative
     {α : Type*} (u : α → ℝ)
@@ -21,7 +63,43 @@ theorem real_term_le_tsum_of_summable_nonnegative
     (h_nonneg : ∀ a : α, 0 ≤ u a)
     (a : α) :
     u a ≤ ∑' x : α, u x := by
-  sorry
+  classical
+  let v : α → ℝ := fun x : α => if x = a then u a else 0
+  have hv_hasSum : HasSum v (u a) :=
+    hasSum_singletonSupport_real u a
+  have hv_summable : Summable v :=
+    ⟨u a, hv_hasSum⟩
+  have hv_tsum : (∑' x : α, v x) = u a :=
+    hv_hasSum.tsum_eq
+  have hv_le_u : ∀ x : α, v x ≤ u x := by
+    intro x
+    by_cases hxa : x = a
+    · have hxvalue : v x = u a := by
+        unfold v
+        exact if_pos hxa
+      have htarget : u a = u x :=
+        congrArg u hxa.symm
+      exact Eq.subst
+        (motive := fun y : ℝ => v x ≤ y)
+        htarget
+        (Eq.subst
+          (motive := fun y : ℝ => y ≤ u a)
+          hxvalue
+          (le_refl (u a)))
+    · have hxvalue : v x = 0 := by
+        unfold v
+        exact if_neg hxa
+      exact Eq.subst
+        (motive := fun y : ℝ => y ≤ u x)
+        hxvalue.symm
+        (h_nonneg x)
+  have htsum_le :
+      (∑' x : α, v x) ≤ ∑' x : α, u x :=
+    tsum_le_tsum hv_le_u hv_summable hu
+  exact Eq.subst
+    (motive := fun t : ℝ => t ≤ ∑' x : α, u x)
+    hv_tsum
+    htsum_le
 
 /-- Completed zeros in the centered vertical height ball of radius `T`. -/
 def completedZerosInCenteredHeightBall (T : ℝ) :
