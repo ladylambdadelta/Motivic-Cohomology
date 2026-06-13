@@ -1,4 +1,5 @@
 import Boundary.LFunctions.ZetaCenteredNormalization
+import Boundary.LFunctions.ZetaPolynomialTailSummability
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Sqrt
@@ -462,14 +463,6 @@ theorem summable_of_nonnegative_le_summable_real
           (motive := fun rhs : ℝ => a n ≤ rhs)
           hb_norm.symm
           (hab n)))
-
-/-- The one-dimensional polynomial tail with one spare power is summable. -/
-theorem summable_one_add_nat_norm_negative_zpow_succ
-    (k : ℕ) :
-    Summable
-      (fun m : ℕ =>
-        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) := by
-  sorry
 
 /-- The linear cardinal majorant is bounded by twice the height base. -/
 theorem linear_shell_card_factor_le_two_mul_heightBase
