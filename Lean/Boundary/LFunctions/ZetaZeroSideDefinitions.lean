@@ -51,6 +51,30 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
   ρ - (1 / 2 : ℂ)
 
+/-- Vertical height of a completed zero after centering. -/
+noncomputable def zetaCompletedZeroCenteredHeight
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) : ℝ :=
+  1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖
+
+/-- Completed-zero centered height is at least one. -/
+theorem zetaCompletedZeroCenteredHeight_ge_one
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    1 ≤ zetaCompletedZeroCenteredHeight ρ := by
+  unfold zetaCompletedZeroCenteredHeight
+  exact le_add_of_nonneg_right (norm_nonneg ((zetaCenteredZero (ρ : ℂ)).im))
+
+/-- Completed-zero centered height is positive. -/
+theorem zetaCompletedZeroCenteredHeight_pos
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    0 < zetaCompletedZeroCenteredHeight ρ := by
+  exact lt_of_lt_of_le zero_lt_one (zetaCompletedZeroCenteredHeight_ge_one ρ)
+
+/-- Completed-zero centered height is nonzero. -/
+theorem zetaCompletedZeroCenteredHeight_ne_zero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    zetaCompletedZeroCenteredHeight ρ ≠ 0 := by
+  exact ne_of_gt (zetaCompletedZeroCenteredHeight_pos ρ)
+
 /-- The spectral transform of a test function. -/
 def zetaSpectralTransform : ZetaTestFunction → ℂ → ℂ :=
   zetaLaplaceTransform
