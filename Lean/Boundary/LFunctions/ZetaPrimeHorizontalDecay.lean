@@ -166,6 +166,17 @@ theorem summable_completedPrimeContourLocalizationMajorant
         completedPrimeContourLocalizationMajorant C k ι) := by
   exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
 
+/-- Completed contour localization bounds the norm of every coordinate remainder by a
+height-polynomial majorant. -/
+theorem exists_completedPrimeContourRemainderNorm_heightPolynomialBound
+    (f : ZetaAdmissibleFunction) :
+    ∃ C : ℝ, ∃ k : ℕ,
+      0 < C ∧
+      ∀ ι : ZetaPrimePowerIndex,
+        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
+          completedPrimeContourLocalizationMajorant C k ι := by
+  sorry
+
 /-- Completed contour localization gives a polynomially summable coordinate majorant.
 
 This is the owner analytic estimate: product-form horizontal decay, prime-power counting, and
@@ -178,7 +189,12 @@ theorem exists_completedPrimeContourLocalizationMajorant_bound
       ∀ ι : ZetaPrimePowerIndex,
         completedPrimeContourTransportCoordinateRemainderMajorant ι f ≤
           completedPrimeContourLocalizationMajorant C k ι := by
-  sorry
+  rcases exists_completedPrimeContourRemainderNorm_heightPolynomialBound f with
+    ⟨C, k, hCpos, hbound⟩
+  refine ⟨C, k, hCpos, ?_⟩
+  intro ι
+  unfold completedPrimeContourTransportCoordinateRemainderMajorant
+  exact hbound ι
 
 /-- The coordinate-remainder majorant is summable from the completed contour-localization
 estimate for the contour-transport family.
