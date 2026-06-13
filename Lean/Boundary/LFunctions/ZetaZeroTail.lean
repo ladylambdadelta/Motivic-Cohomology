@@ -675,20 +675,24 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound :
   unfold zetaZeroMultiplicityGrowthEnvelope
   exact hbound ρ
 
-/-- Paley-Wiener decay bounds the spectral transform on the completed-zero locus. -/
-theorem exists_zetaZeroSpectralEvalDecayEnvelope_bound
-    (φ : ZetaAdmissibleFunction) (N : ℕ) :
-    ∃ B : ℝ,
-      0 < B ∧
+/-- A Paley-Wiener vertical-strip decay constant bounds spectral evaluation on the
+centered completed-zero locus. -/
+theorem zetaZeroSpectralEval_norm_le_of_verticalStripDecayConstant
+    (φ : ZetaAdmissibleFunction) (N : ℕ)
+    (a b C : ℝ)
+    (hCbound :
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖Boundary.zetaLaplaceTransform φ.toZetaTestFunction' z‖
+          ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)))
+    (hstrip :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
-        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
-          zetaZeroSpectralEvalDecayEnvelope B N ρ := by
-  rcases exists_zetaCenteredZero_fixed_vertical_strip with
-    ⟨a, b, hstrip⟩
-  rcases zetaLaplaceTransform_verticalStripRapidDecay_of_compactSupport_smooth
-      φ a b N with ⟨C, hCpos, hCbound⟩
-  refine ⟨C, hCpos, ?_⟩
-  intro ρ
+        a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
+          (zetaCenteredZero (ρ : ℂ)).re ≤ b)
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
+      zetaZeroSpectralEvalDecayEnvelope C N ρ := by
   have hρstrip :
       a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
         (zetaCenteredZero (ρ : ℂ)).re ≤ b :=
@@ -711,6 +715,23 @@ theorem exists_zetaZeroSpectralEvalDecayEnvelope_bound
       ‖x‖ ≤ C * (1 + ‖(zetaCenteredZero (ρ : ℂ)).im‖) ^ (-(N : ℤ)))
     heval.symm
     hbound
+
+/-- Paley-Wiener decay bounds the spectral transform on the completed-zero locus. -/
+theorem exists_zetaZeroSpectralEvalDecayEnvelope_bound
+    (φ : ZetaAdmissibleFunction) (N : ℕ) :
+    ∃ B : ℝ,
+      0 < B ∧
+      ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+        ‖zetaSpectralEval φ (zetaCenteredZero (ρ : ℂ))‖ ≤
+          zetaZeroSpectralEvalDecayEnvelope B N ρ := by
+  rcases exists_zetaCenteredZero_fixed_vertical_strip with
+    ⟨a, b, hstrip⟩
+  rcases zetaLaplaceTransform_verticalStripRapidDecay_of_compactSupport_smooth
+      φ a b N with ⟨C, hCpos, hCbound⟩
+  refine ⟨C, hCpos, ?_⟩
+  intro ρ
+  exact zetaZeroSpectralEval_norm_le_of_verticalStripDecayConstant
+    φ N a b C hCbound hstrip ρ
 
 /-- Separate multiplicity and spectral bounds give a product-envelope bound for the
 multiplicity-weighted transform majorant. -/
