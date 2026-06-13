@@ -18,6 +18,20 @@ noncomputable def completedZeroCenteredHeightShellCountingEnvelope
   C * (((m + 1 : ℕ) : ℝ) ^ d) *
     (max 1 ‖((m : ℕ) : ℝ)‖) ^ (-(d + k + 3 : ℤ))
 
+/-- The explicit constant used to dominate the shell counting envelope by a
+one-dimensional polynomial tail. -/
+noncomputable def completedZeroCenteredHeightShellTailConstant
+    (C : ℝ) (d k : ℕ) : ℝ :=
+  C * (2 : ℝ) ^ (d + k + 3)
+
+/-- The explicit shell-tail constant is positive when `C` is positive. -/
+theorem completedZeroCenteredHeightShellTailConstant_pos
+    (C : ℝ) (d k : ℕ)
+    (hCpos : 0 < C) :
+    0 < completedZeroCenteredHeightShellTailConstant C d k := by
+  unfold completedZeroCenteredHeightShellTailConstant
+  exact mul_pos hCpos (pow_pos zero_lt_two (d + k + 3))
+
 /-- The lower decay factor attached to a centered-height shell. -/
 noncomputable def completedZeroCenteredHeightShellLowerDecay
     (d k m : ℕ) : ℝ :=
@@ -133,6 +147,16 @@ theorem norm_completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
     (completedZeroCenteredHeightShellDecayMass_le_countingEnvelope
       C d k m hCpos hcount)
 
+/-- The shell counting envelope is bounded by the explicit polynomial tail
+constant. -/
+theorem completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant
+    (C : ℝ) (d k m : ℕ)
+    (hCpos : 0 < C) :
+    completedZeroCenteredHeightShellCountingEnvelope C d k m ≤
+      completedZeroCenteredHeightShellTailConstant C d k *
+        (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
+  sorry
+
 /-- The cumulative shell envelope is bounded by a one-dimensional polynomial
 tail after increasing the constant. -/
 theorem exists_completedZeroCenteredHeightShellCountingEnvelope_le_polynomialTail
@@ -143,7 +167,11 @@ theorem exists_completedZeroCenteredHeightShellCountingEnvelope_le_polynomialTai
       ∀ m : ℕ,
         completedZeroCenteredHeightShellCountingEnvelope C d k m ≤
           A * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
-  sorry
+  exact ⟨completedZeroCenteredHeightShellTailConstant C d k,
+    completedZeroCenteredHeightShellTailConstant_pos C d k hCpos,
+    fun m =>
+      completedZeroCenteredHeightShellCountingEnvelope_le_tailConstant
+        C d k m hCpos⟩
 
 /-- Multiplicity-aware counting dominates the unweighted shell decay by a
 one-dimensional polynomial tail after increasing the constant.
