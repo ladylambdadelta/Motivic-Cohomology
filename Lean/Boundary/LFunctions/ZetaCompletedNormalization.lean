@@ -67,6 +67,17 @@ theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
       exact congrArg (fun x : ℂ => 1 / (1 / 2 + s) + x)
         (congrArg (fun x : ℂ => 1 / x) h3.symm)
 
+/-- Centered completed-zeta zeros lie in the centered critical strip.
+
+This is the standard unconditional critical-strip theorem for nontrivial zeta
+zeros, expressed in the centered completed-zeta normalization used by the
+zero-side explicit formula. -/
+theorem centeredCompletedRiemannZeta_zero_re_mem_centeredCriticalStrip
+    (s : ℂ)
+    (hs : centeredCompletedRiemannZeta s = 0) :
+    -(1 / 2 : ℝ) ≤ s.re ∧ s.re ≤ (1 / 2 : ℝ) := by
+  sorry
+
 end
 end LFunctions
 end Boundary

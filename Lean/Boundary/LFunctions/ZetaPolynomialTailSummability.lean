@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Order.Filter.AtTopBot
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
 
@@ -66,7 +67,13 @@ theorem summable_nat_succ_inverse_square :
     Summable
       (fun m : ℕ =>
         ((m + 1 : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
-  sorry
+  have hs :
+      Summable
+        (fun n : ℕ =>
+          ((n : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
+    exact summable_nat_pow_inv.mpr (by norm_num : 1 < (2 : ℕ))
+  exact hs.comp_injective
+    (fun a b h => Nat.succ.inj h)
 
 /-- A negative second integer power is a reciprocal square. -/
 theorem real_zpow_neg_two_eq_inv_square
