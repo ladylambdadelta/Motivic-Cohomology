@@ -53,24 +53,71 @@ noncomputable def polynomialHeightShellMass
   (2 * (m + 1) : ℝ) *
     (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))
 
+/-- The unfiltered rectangular box of raw prime-power coordinates. -/
+def rawBox (N : ℕ) : Finset ZetaPrimePowerIndex :=
+  ((Finset.range (N + 1)).product (Finset.range (N + 1))).map
+    ⟨fun q => ⟨q.1, q.2⟩, by
+      intro q r hqr
+      cases q
+      cases r
+      cases hqr
+      rfl⟩
+
+/-- Membership in the raw rectangular box is coordinatewise boundedness. -/
+theorem mem_rawBox_iff (N : ℕ) (ι : ZetaPrimePowerIndex) :
+    ι ∈ rawBox N ↔ ι.p < N + 1 ∧ ι.n < N + 1 := by
+  constructor
+  · intro hι
+    unfold rawBox at hι
+    rcases Finset.mem_map.mp hι with ⟨q, hq, hqι⟩
+    rcases q with ⟨p, n⟩
+    have hp : p < N + 1 :=
+      Finset.mem_range.mp (Finset.mem_product.mp hq).1
+    have hn : n < N + 1 :=
+      Finset.mem_range.mp (Finset.mem_product.mp hq).2
+    cases hqι
+    exact ⟨hp, hn⟩
+  · intro hι
+    unfold rawBox
+    refine Finset.mem_map.mpr ?_
+    refine ⟨(ι.p, ι.n), ?_, rfl⟩
+    exact Finset.mem_product.mpr
+      ⟨Finset.mem_range.mpr hι.1, Finset.mem_range.mpr hι.2⟩
+
 /-- The finite rectangular shell of raw prime-power coordinates at exact height `m`. -/
 def heightShell (m : ℕ) : Finset ZetaPrimePowerIndex :=
-  ((Finset.range (m + 1)).product (Finset.range (m + 1))).filter
-    (fun q : ℕ × ℕ => max q.1 q.2 = m)
-    |>.map
-      ⟨fun q => ⟨q.1, q.2⟩, by
-        intro q r hqr
-        cases q
-        cases r
-        cases hqr
-        rfl⟩
+  (rawBox m).filter (fun ι => ι.height = m)
+
+/-- The vertical edge of the rectangular shell, where the prime coordinate realizes the
+height. -/
+def heightShellVerticalEdge (m : ℕ) : Finset ZetaPrimePowerIndex :=
+  (rawBox m).filter (fun ι => ι.p = m)
+
+/-- The horizontal edge of the rectangular shell, where the exponent coordinate realizes the
+height. -/
+def heightShellHorizontalEdge (m : ℕ) : Finset ZetaPrimePowerIndex :=
+  (rawBox m).filter (fun ι => ι.n = m)
 
 /-- Membership in an exact rectangular height shell is exactly equality of rectangular
 height with the shell parameter. -/
 theorem mem_heightShell_iff
     (m : ℕ) (ι : ZetaPrimePowerIndex) :
     ι ∈ heightShell m ↔ ι.height = m := by
-  sorry
+  constructor
+  · intro hι
+    unfold heightShell at hι
+    exact (Finset.mem_filter.mp hι).2
+  · intro hheight
+    unfold heightShell
+    refine Finset.mem_filter.mpr ?_
+    have hp_le : ι.p ≤ m :=
+      le_trans (Nat.le_max_left ι.p ι.n) (le_of_eq hheight)
+    have hn_le : ι.n ≤ m :=
+      le_trans (Nat.le_max_right ι.p ι.n) (le_of_eq hheight)
+    have hraw : ι ∈ rawBox m :=
+      (mem_rawBox_iff m ι).mpr
+        ⟨Nat.lt_succ_of_le hp_le, Nat.lt_succ_of_le hn_le⟩
+    exact ⟨hraw, hheight⟩
 
 /-- Rectangular-height decay is constant on an exact height shell. -/
 theorem polynomialHeightDecay_eq_on_heightShell
@@ -85,11 +132,51 @@ theorem polynomialHeightDecay_eq_on_heightShell
     (fun h : ℕ => (1 + ‖((h : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)))
     hheight
 
+/-- The exact height shell is covered by its two rectangular edges. -/
+theorem card_heightShell_le_edgeCard_sum
+    (m : ℕ) :
+    (heightShell m).card ≤
+      (heightShellVerticalEdge m).card + (heightShellHorizontalEdge m).card := by
+  sorry
+
+/-- The vertical edge of an exact height shell has at most `m + 1` points. -/
+theorem card_heightShellVerticalEdge_le
+    (m : ℕ) :
+    (heightShellVerticalEdge m).card ≤ m + 1 := by
+  sorry
+
+/-- The horizontal edge of an exact height shell has at most `m + 1` points. -/
+theorem card_heightShellHorizontalEdge_le
+    (m : ℕ) :
+    (heightShellHorizontalEdge m).card ≤ m + 1 := by
+  sorry
+
+/-- Twice a successor is the sum of two copies of that successor. -/
+theorem add_succ_self_eq_two_mul_succ
+    (m : ℕ) :
+    (m + 1) + (m + 1) = 2 * (m + 1) := by
+  sorry
+
 /-- Exact rectangular height shells have at most linear cardinality. -/
 theorem card_heightShell_le_linear
     (m : ℕ) :
     (heightShell m).card ≤ 2 * (m + 1) := by
-  sorry
+  have hcover :
+      (heightShell m).card ≤
+        (heightShellVerticalEdge m).card + (heightShellHorizontalEdge m).card :=
+    card_heightShell_le_edgeCard_sum m
+  have hvertical :
+      (heightShellVerticalEdge m).card ≤ m + 1 :=
+    card_heightShellVerticalEdge_le m
+  have hhorizontal :
+      (heightShellHorizontalEdge m).card ≤ m + 1 :=
+    card_heightShellHorizontalEdge_le m
+  have hedge :
+      (heightShellVerticalEdge m).card + (heightShellHorizontalEdge m).card ≤
+        (m + 1) + (m + 1) :=
+    add_le_add hvertical hhorizontal
+  exact le_trans hcover
+    (le_trans hedge (le_of_eq (add_succ_self_eq_two_mul_succ m)))
 
 /-- The linear shell cardinality bound transported to real scalars. -/
 theorem card_heightShell_le_linear_real
@@ -230,33 +317,12 @@ def window (N : ℕ) : Finset ZetaPrimePowerIndex :=
 /-- The unfiltered rectangular box of prime-power coordinates.  Unlike `window`, this exhausts
 all raw indices and is the correct object for generic `HasSum`/`tsum` exhaustion. -/
 def box (N : ℕ) : Finset ZetaPrimePowerIndex :=
-  ((Finset.range (N + 1)).product (Finset.range (N + 1))).map
-    ⟨fun q => ⟨q.1, q.2⟩, by
-      intro q r hqr
-      cases q
-      cases r
-      cases hqr
-      rfl⟩
+  rawBox N
 
 theorem mem_box_iff (N : ℕ) (ι : ZetaPrimePowerIndex) :
     ι ∈ box N ↔ ι.p < N + 1 ∧ ι.n < N + 1 := by
-  constructor
-  · intro hι
-    unfold box at hι
-    rcases Finset.mem_map.mp hι with ⟨q, hq, hqι⟩
-    rcases q with ⟨p, n⟩
-    have hp : p < N + 1 := by
-      exact Finset.mem_range.mp (Finset.mem_product.mp hq).1
-    have hn : n < N + 1 := by
-      exact Finset.mem_range.mp (Finset.mem_product.mp hq).2
-    cases hqι
-    exact ⟨hp, hn⟩
-  · intro hι
-    unfold box
-    refine Finset.mem_map.mpr ?_
-    refine ⟨(ι.p, ι.n), ?_, rfl⟩
-    exact Finset.mem_product.mpr
-      ⟨Finset.mem_range.mpr hι.1, Finset.mem_range.mpr hι.2⟩
+  unfold box
+  exact mem_rawBox_iff N ι
 
 /-- Rectangular raw prime-power boxes are monotone in the cutoff. -/
 theorem box_mono {N M : ℕ} (hNM : N ≤ M) :
