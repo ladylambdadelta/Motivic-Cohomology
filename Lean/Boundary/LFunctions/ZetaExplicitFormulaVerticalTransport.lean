@@ -38,7 +38,6 @@ theorem explicitFormulaFamilyVerticalDifference_eq_boundary_add_transportRemaind
         explicitFormulaFamilyVerticalTransportRemainder f F T := by
   let V : ℂ := explicitFormulaFamilyVerticalDifference f F T
   let B : ℂ := zetaCompletedExplicitFormulaBoundarySumAnalytic f
-  unfold explicitFormulaFamilyVerticalTransportRemainder
   change V = B + (V - B)
   calc
     V = V + 0 := by
@@ -52,6 +51,71 @@ theorem explicitFormulaFamilyVerticalDifference_eq_boundary_add_transportRemaind
     _ = B + (V - B) := by
       exact congrArg (fun x : ℂ => B + x) (sub_eq_add_neg V B).symm
 
+/-- If the vertical side difference converges to the analytic boundary scalar, then
+the vertical-transport remainder tends to zero. -/
+theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hvertical :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
+      atTop
+      (𝓝 0) := by
+  have hconst :
+      Tendsto
+        (fun _T : ℝ => zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    tendsto_const_nhds
+  have hsub :
+      Tendsto
+        (fun T : ℝ =>
+          explicitFormulaFamilyVerticalDifference f F T -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic f -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    hvertical.sub hconst
+  have htarget :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f -
+          zetaCompletedExplicitFormulaBoundarySumAnalytic f =
+        0 := by
+    exact sub_self _
+  have hpointwise :
+      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T) =
+        (fun T : ℝ =>
+          explicitFormulaFamilyVerticalDifference f F T -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
+    funext T
+    rfl
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun T : ℝ =>
+            explicitFormulaFamilyVerticalDifference f F T -
+              zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+          atTop
+          (𝓝 z))
+      htarget
+      hsub)
+
+/-- Owner vertical-limit theorem: along an admissible contour family, the vertical side
+difference converges to the analytic prime/archimedean/correction boundary scalar. -/
+theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    Tendsto
+      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      atTop
+      (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
+  sorry
+
 /-- Owner vertical-transport theorem: along an admissible contour family, the named
 vertical-transport remainder tends to zero. -/
 theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_ownerVerticalTransport
@@ -60,7 +124,10 @@ theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_ownerVertic
       (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
       atTop
       (𝓝 0) := by
-  sorry
+  exact explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit
+    f F
+    (explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
+      f F)
 
 /-- If the vertical-transport remainder tends to zero, then the vertical side difference
 converges to the analytic boundary scalar. -/
@@ -124,64 +191,8 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_ownerVertica
       (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  exact explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_of_remainderLimit
+  exact explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
     f F
-    (explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_ownerVerticalTransport f F)
-
-/-- If the vertical side difference converges to the analytic boundary scalar, then
-the vertical-transport remainder tends to zero. -/
-theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (hvertical :
-      Tendsto
-        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
-    Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
-      atTop
-      (𝓝 0) := by
-  have hconst :
-      Tendsto
-        (fun _T : ℝ => zetaCompletedExplicitFormulaBoundarySumAnalytic f)
-        atTop
-        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
-    tendsto_const_nhds
-  have hsub :
-      Tendsto
-        (fun T : ℝ =>
-          explicitFormulaFamilyVerticalDifference f F T -
-            zetaCompletedExplicitFormulaBoundarySumAnalytic f)
-        atTop
-        (𝓝
-          (zetaCompletedExplicitFormulaBoundarySumAnalytic f -
-            zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
-    hvertical.sub hconst
-  have htarget :
-      zetaCompletedExplicitFormulaBoundarySumAnalytic f -
-          zetaCompletedExplicitFormulaBoundarySumAnalytic f =
-        0 := by
-    exact sub_self _
-  have hpointwise :
-      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T) =
-        (fun T : ℝ =>
-          explicitFormulaFamilyVerticalDifference f F T -
-            zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-    funext T
-    rfl
-  exact Eq.subst
-    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
-    hpointwise.symm
-    (Eq.subst
-      (motive := fun z : ℂ =>
-        Tendsto
-          (fun T : ℝ =>
-            explicitFormulaFamilyVerticalDifference f F T -
-              zetaCompletedExplicitFormulaBoundarySumAnalytic f)
-          atTop
-          (𝓝 z))
-      htarget
-      hsub)
 
 /-- The vertical-channel transport remainder vanishes along the contour family. -/
 theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero

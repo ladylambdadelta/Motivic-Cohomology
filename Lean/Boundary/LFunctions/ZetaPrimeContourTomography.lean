@@ -29,42 +29,6 @@ theorem complex_re_add_ofReal
     _ = Complex.re z + r := by
       exact congrArg (fun x : ℝ => Complex.re z + x) (Complex.ofReal_re r)
 
-/-- A complex subtraction vanishes exactly when the two terms are equal, in the
-orientation used by tomography errors. -/
-theorem complex_eq_of_sub_eq_zero
-    (L W : ℂ)
-    (h : L - W = 0) :
-    L = W := by
-  have hsub_add : L - W + W = 0 + W := by
-    exact congrArg (fun z : ℂ => z + W) h
-  have hleft : L - W + W = L := by
-    calc
-      L - W + W = (L + -W) + W := by
-        exact congrArg (fun z : ℂ => z + W) (sub_eq_add_neg L W)
-      _ = L + (-W + W) := by
-        exact add_assoc L (-W) W
-      _ = L + 0 := by
-        exact congrArg (fun z : ℂ => L + z) (neg_add_cancel W)
-      _ = L := by
-        exact add_zero L
-  have hright : 0 + W = W := by
-    exact zero_add W
-  exact Eq.trans hleft.symm (Eq.trans hsub_add hright)
-
-/-- A complex subtraction vanishes when the two terms are equal, in the orientation used
-by tomography errors. -/
-theorem complex_sub_eq_zero_of_eq
-    (L W : ℂ)
-    (h : L = W) :
-    L - W = 0 := by
-  calc
-    L - W = W - W := by
-      exact congrArg (fun z : ℂ => z - W) h
-    _ = W + -W := by
-      exact sub_eq_add_neg W W
-    _ = 0 := by
-      exact add_neg_cancel W
-
 /-- Real part of a negated product by an embedded real scalar. -/
 theorem complex_re_ofReal_mul
     (r : ℝ) (z : ℂ) :
@@ -664,6 +628,27 @@ theorem finitePrimeContourRealizedComplexWindow_eq_symmetrizedSpectral
         (fun a : ℝ => zetaCompletedSpectralLaplaceTransform g a) := by
   rfl
 
+/-- The contour-realized complex window is the finite sum of contour-realized complex
+coordinates. -/
+theorem finitePrimeContourRealizedComplexWindow_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeContourRealizedComplexWindow N g =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeContourRealizedComplexCoordinate ι g := by
+  rfl
+
+/-- The symmetrized spectral window is the finite sum of contour-realized complex
+coordinates. -/
+theorem finitePrimeSymmetrizedSpectralWindow_eq_contourRealizedComplexCoordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeSymmetrizedComplexWindow N
+        (fun a : ℝ => zetaCompletedSpectralLaplaceTransform g a) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeContourRealizedComplexCoordinate ι g := by
+  exact
+    (finitePrimeContourRealizedComplexWindow_eq_symmetrizedSpectral N g).symm.trans
+      (finitePrimeContourRealizedComplexWindow_eq_coordinateSum N g)
+
 /-- The finite contour-realized complex coordinate unfolds to the spectral Laplace
 coordinate expression. -/
 theorem finitePrimeContourRealizedComplexCoordinate_eq
@@ -748,6 +733,26 @@ theorem finitePrimeTimeDistributionComplexWindow_eq_symmetrizedTime
       finitePrimeSymmetrizedComplexWindow N
         (fun a : ℝ => zetaCompletedTimeBoundaryValue g a) := by
   rfl
+
+/-- The time-side complex window is the finite sum of time-side complex coordinates. -/
+theorem finitePrimeTimeDistributionComplexWindow_eq_coordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeTimeDistributionComplexWindow N g =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeTimeDistributionComplexCoordinate ι g := by
+  rfl
+
+/-- The symmetrized time-boundary window is the finite sum of time-side complex
+coordinates. -/
+theorem finitePrimeSymmetrizedTimeWindow_eq_timeComplexCoordinateSum
+    (N : ℕ) (g : ZetaAdmissibleFunction) :
+    finitePrimeSymmetrizedComplexWindow N
+        (fun a : ℝ => zetaCompletedTimeBoundaryValue g a) =
+      ∑ ι in ZetaPrimePowerIndex.window N,
+        finitePrimeTimeDistributionComplexCoordinate ι g := by
+  exact
+    (finitePrimeTimeDistributionComplexWindow_eq_symmetrizedTime N g).symm.trans
+      (finitePrimeTimeDistributionComplexWindow_eq_coordinateSum N g)
 
 /-- The finite time-side complex coordinate unfolds to the raw time-boundary expression. -/
 theorem finitePrimeTimeDistributionComplexCoordinate_eq
@@ -916,181 +921,19 @@ theorem finitePrimeContourTransportComplexResidueDefect_im
     Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
   exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
 
-/-- The top horizontal tomography error measured against the symmetrized spectral prime
-boundary window. -/
-noncomputable def primeTransportTopLineIntegralSymmetrizedWindowTomographyError
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaTopLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-    finitePrimeSymmetrizedComplexWindow N
-      (fun a : ℝ =>
-        zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a)
-
-/-- The top symmetrized-window tomography error unfolds to line integral minus the
+/-- The real part of the top contour-integrand integral reconstructs the real part of the
 symmetrized spectral prime boundary window. -/
-theorem primeTransportTopLineIntegralSymmetrizedWindowTomographyError_eq
+theorem primeTransportTopContourIntegrand_integral_re_eq_symmetrizedSpectralWindow_re_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopLineIntegralSymmetrizedWindowTomographyError N f =
-      zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-        finitePrimeSymmetrizedComplexWindow N
-          (fun a : ℝ =>
-            zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a) := by
-  rfl
-
-/-- The top horizontal tomography error: the difference between the actual top
-line integral and the named finite contour-realized complex window. -/
-noncomputable def primeTransportTopLineIntegralTomographyError
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaTopLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-    finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f)
-
-/-- The top tomography error unfolds to top line integral minus contour-realized
-window. -/
-theorem primeTransportTopLineIntegralTomographyError_eq
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopLineIntegralTomographyError N f =
-      zetaCompletedExplicitFormulaTopLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-        finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
-  rfl
-
-/-- The named top tomography error is the symmetrized spectral-window tomography error. -/
-theorem primeTransportTopLineIntegralTomographyError_eq_symmetrizedWindowError
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopLineIntegralTomographyError N f =
-      primeTransportTopLineIntegralSymmetrizedWindowTomographyError N f := by
-  rfl
-
-/-- Vanishing of the top tomography error is exactly the top finite-window
-reconstruction statement. -/
-theorem primeTransportTopLineIntegral_eq_contourRealizedComplexWindow_of_tomographyError_eq_zero
-    (N : ℕ) (f : ZetaAdmissibleFunction)
-    (herror : primeTransportTopLineIntegralTomographyError N f = 0) :
-    zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
-  exact
-    complex_eq_of_sub_eq_zero
-      (zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
-      (finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f))
-      herror
-
-/-- The top contour-integrand integral reconstructs the symmetrized spectral prime
-boundary window. -/
-theorem primeTransportTopContourIntegrand_integral_eq_symmetrizedSpectralWindow_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+    Complex.re
+      (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
         (1 - completedPrimeContourTransportFamily.c),
-      primeTransportTopContourIntegrand N f x) =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a) := by
-  sorry
-
-/-- The named top contour integral reconstructs the symmetrized spectral prime boundary
-window. -/
-theorem primeTransportTopContourIntegral_eq_symmetrizedSpectralWindow_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopContourIntegral N f =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a) := by
-  exact
-    (primeTransportTopContourIntegral_eq_integral N f).trans
-      (primeTransportTopContourIntegrand_integral_eq_symmetrizedSpectralWindow_ownerTomography
-        N f)
-
-/-- The top horizontal line integral reconstructs the symmetrized spectral prime boundary
-window. -/
-theorem primeTransportTopLineIntegral_eq_symmetrizedSpectralWindow_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a) := by
-  exact
-    (primeTransportTopLineIntegral_eq_topContourIntegral N f).trans
-      (primeTransportTopContourIntegral_eq_symmetrizedSpectralWindow_ownerTomography
-        N f)
-
-/-- The top symmetrized spectral-window tomography error vanishes. -/
-theorem primeTransportTopLineIntegralSymmetrizedWindowTomographyError_eq_zero_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopLineIntegralSymmetrizedWindowTomographyError N f = 0 := by
-  exact
-    complex_sub_eq_zero_of_eq
-      (zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
+        primeTransportTopContourIntegrand N f x) =
+      Complex.re
       (finitePrimeSymmetrizedComplexWindow N
         (fun a : ℝ =>
-          zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a))
-      (primeTransportTopLineIntegral_eq_symmetrizedSpectralWindow_ownerTomography
-        N f)
-
-/-- The top horizontal tomography error vanishes. -/
-theorem primeTransportTopLineIntegralTomographyError_eq_zero_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopLineIntegralTomographyError N f = 0 := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ => z = 0)
-      (primeTransportTopLineIntegralTomographyError_eq_symmetrizedWindowError N f).symm
-      (primeTransportTopLineIntegralSymmetrizedWindowTomographyError_eq_zero_ownerTomography
-        N f)
-
-/-- The top horizontal line integral reconstructs the named finite contour-realized complex
-window. -/
-theorem primeTransportTopLineIntegral_eq_contourRealizedComplexWindow_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
-  exact
-    (primeTransportTopLineIntegral_eq_symmetrizedSpectralWindow_ownerTomography
-      N f).trans
-      (finitePrimeContourRealizedComplexWindow_eq_symmetrizedSpectral
-        N (convolutionAutocorrelation f)).symm
-
-/-- The top horizontal line integral reconstructs the finite contour-realized complex
-coordinate sum. -/
-theorem primeTransportTopLineIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaTopLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      ∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeContourRealizedComplexCoordinate
-          ι (convolutionAutocorrelation f) := by
-  exact
-    primeTransportTopLineIntegral_eq_contourRealizedComplexWindow_ownerTomography
-      N f
-
-/-- The top contour-integrand integral reconstructs the finite contour-realized complex
-coordinate window. -/
-theorem primeTransportTopContourIntegrand_integral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c),
-      primeTransportTopContourIntegrand N f x) =
-      ∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeContourRealizedComplexCoordinate
-          ι (convolutionAutocorrelation f) := by
-  exact
-    primeTransportTopContourIntegrand_integral_eq_symmetrizedSpectralWindow_ownerTomography
-      N f
+          zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f) a)) := by
+  sorry
 
 /-- The top contour-integrand integral reconstructs the finite contour-realized real
 coordinate window after taking real parts. -/
@@ -1104,9 +947,11 @@ theorem primeTransportTopContourIntegrand_integral_re_eq_sum_contourRealizedComp
         (∑ ι in ZetaPrimePowerIndex.window N,
           finitePrimeContourRealizedComplexCoordinate
             ι (convolutionAutocorrelation f)) := by
-  exact congrArg Complex.re
-    (primeTransportTopContourIntegrand_integral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-      N f)
+  exact
+    (primeTransportTopContourIntegrand_integral_re_eq_symmetrizedSpectralWindow_re_ownerTomography
+      N f).trans
+      (finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum
+        N (convolutionAutocorrelation f)).symm
 
 /-- The top contour-integrand integral reconstructs the finite contour-realized real
 coordinate sum. -/
@@ -1143,71 +988,6 @@ theorem primeTransportTopContourIntegral_re_eq_sum_contourRealizedCoordinates_ow
       (primeTransportTopContourIntegral_eq_integral N f)
       (primeTransportTopContourIntegrand_integral_re_eq_sum_contourRealizedCoordinates_ownerTomography
         N f)
-
-/-- The top contour-integrand integral has the same imaginary part as the finite complex
-contour-realized coordinate window. -/
-theorem primeTransportTopContourIntegrand_integral_im_eq_sum_contourRealizedComplexCoordinates_im_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.im
-        (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
-            (1 - completedPrimeContourTransportFamily.c),
-          primeTransportTopContourIntegrand N f x) =
-      Complex.im
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          finitePrimeContourRealizedComplexCoordinate
-            ι (convolutionAutocorrelation f)) := by
-  exact congrArg Complex.im
-    (primeTransportTopContourIntegrand_integral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-      N f)
-
-/-- The top contour integral has the same imaginary part as the finite complex
-contour-realized coordinate window. -/
-theorem primeTransportTopContourIntegral_im_eq_sum_contourRealizedComplexCoordinates_im_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.im (primeTransportTopContourIntegral N f) =
-      Complex.im
-        (∑ ι in ZetaPrimePowerIndex.window N,
-          finitePrimeContourRealizedComplexCoordinate
-            ι (convolutionAutocorrelation f)) := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        Complex.im z =
-          Complex.im
-            (∑ ι in ZetaPrimePowerIndex.window N,
-              finitePrimeContourRealizedComplexCoordinate
-                ι (convolutionAutocorrelation f)))
-      (primeTransportTopContourIntegral_eq_integral N f)
-      (primeTransportTopContourIntegrand_integral_im_eq_sum_contourRealizedComplexCoordinates_im_ownerTomography
-        N f)
-
-/-- The top contour integral reconstructs the finite complex contour-realized prime
-window. -/
-theorem primeTransportTopContourIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopContourIntegral N f =
-      ∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeContourRealizedComplexCoordinate
-          ι (convolutionAutocorrelation f) := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        z =
-          ∑ ι in ZetaPrimePowerIndex.window N,
-            finitePrimeContourRealizedComplexCoordinate
-              ι (convolutionAutocorrelation f))
-      (primeTransportTopContourIntegral_eq_integral N f)
-      (primeTransportTopContourIntegrand_integral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-        N f)
-
-/-- The top contour integral reconstructs the finite complex contour-realized prime
-window. -/
-theorem primeTransportTopContourIntegral_eq_contourRealizedComplexWindow_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportTopContourIntegral N f =
-      finitePrimeContourRealizedComplexWindow N (convolutionAutocorrelation f) := by
-  exact primeTransportTopContourIntegral_eq_sum_contourRealizedComplexCoordinates_ownerTomography
-    N f
 
 /-- The real part of the top contour integral reconstructs the finite sum of
 contour-realized prime coordinates. -/
@@ -1311,194 +1091,20 @@ theorem sampledHorizontalTopIntegral_re_eq_contourRealizedWindow_ownerTomography
       (primeTransportTopLineIntegral_re_eq_contourRealizedWindow_ownerTomography
         N f)
 
-/-- The bottom horizontal tomography error measured against the symmetrized time-boundary
-prime window with the omitted real tail. -/
-noncomputable def primeTransportBottomLineIntegralSymmetrizedWindowTomographyError
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaBottomLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-    (finitePrimeSymmetrizedComplexWindow N
-      (fun a : ℝ =>
-        zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-      (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ))
-
-/-- The bottom symmetrized-window tomography error unfolds to bottom line integral minus
-the symmetrized time-boundary prime window with tail. -/
-theorem primeTransportBottomLineIntegralSymmetrizedWindowTomographyError_eq
+/-- The real part of the bottom contour-integrand integral reconstructs the real part of
+the symmetrized time-boundary prime window with the omitted real tail. -/
+theorem primeTransportBottomContourIntegrand_integral_re_eq_symmetrizedTimeWindow_add_tail_re_ownerTomography
     (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomLineIntegralSymmetrizedWindowTomographyError N f =
-      zetaCompletedExplicitFormulaBottomLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-        (finitePrimeSymmetrizedComplexWindow N
-          (fun a : ℝ =>
-            zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-          (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
-  rfl
-
-/-- The bottom horizontal tomography error: the difference between the actual bottom
-line integral and the named finite time-side complex window with tail. -/
-noncomputable def primeTransportBottomLineIntegralTomographyError
-    (N : ℕ) (f : ZetaAdmissibleFunction) : ℂ :=
-  zetaCompletedExplicitFormulaBottomLineIntegral
-      (convolutionAutocorrelation f)
-      (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-    finitePrimeTimeDistributionComplexWindowWithTail N f
-
-/-- The bottom tomography error unfolds to bottom line integral minus the time-side
-complex window with tail. -/
-theorem primeTransportBottomLineIntegralTomographyError_eq
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomLineIntegralTomographyError N f =
-      zetaCompletedExplicitFormulaBottomLineIntegral
-          (convolutionAutocorrelation f)
-          (completedPrimeContourTransportFamily.rectangle (N : ℝ)) -
-        finitePrimeTimeDistributionComplexWindowWithTail N f := by
-  rfl
-
-/-- The named bottom tomography error is the symmetrized time-window tomography error. -/
-theorem primeTransportBottomLineIntegralTomographyError_eq_symmetrizedWindowError
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomLineIntegralTomographyError N f =
-      primeTransportBottomLineIntegralSymmetrizedWindowTomographyError N f := by
-  rfl
-
-/-- Vanishing of the bottom tomography error is exactly the bottom finite-window
-reconstruction statement. -/
-theorem primeTransportBottomLineIntegral_eq_timeComplexWindowWithTail_of_tomographyError_eq_zero
-    (N : ℕ) (f : ZetaAdmissibleFunction)
-    (herror : primeTransportBottomLineIntegralTomographyError N f = 0) :
-    zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeTimeDistributionComplexWindowWithTail N f := by
-  exact
-    complex_eq_of_sub_eq_zero
-      (zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
-      (finitePrimeTimeDistributionComplexWindowWithTail N f)
-      herror
-
-/-- The bottom contour-integrand integral reconstructs the symmetrized time-boundary
-prime window with the omitted real tail. -/
-theorem primeTransportBottomContourIntegrand_integral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
+    Complex.re
+      (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
         (1 - completedPrimeContourTransportFamily.c),
-      primeTransportBottomContourIntegrand N f x) =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  sorry
-
-/-- The named bottom contour integral reconstructs the symmetrized time-boundary prime
-window with the omitted real tail. -/
-theorem primeTransportBottomContourIntegral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomContourIntegral N f =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  exact
-    (primeTransportBottomContourIntegral_eq_integral N f).trans
-      (primeTransportBottomContourIntegrand_integral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-        N f)
-
-/-- The bottom horizontal line integral reconstructs the symmetrized time-boundary prime
-window with the omitted real tail. -/
-theorem primeTransportBottomLineIntegral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeSymmetrizedComplexWindow N
-        (fun a : ℝ =>
-          zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  exact
-    (primeTransportBottomLineIntegral_eq_bottomContourIntegral N f).trans
-      (primeTransportBottomContourIntegral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-        N f)
-
-/-- The bottom symmetrized time-window tomography error vanishes. -/
-theorem primeTransportBottomLineIntegralSymmetrizedWindowTomographyError_eq_zero_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomLineIntegralSymmetrizedWindowTomographyError N f = 0 := by
-  exact
-    complex_sub_eq_zero_of_eq
-      (zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)))
+        primeTransportBottomContourIntegrand N f x) =
+      Complex.re
       (finitePrimeSymmetrizedComplexWindow N
         (fun a : ℝ =>
           zetaCompletedTimeBoundaryValue (convolutionAutocorrelation f) a) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ))
-      (primeTransportBottomLineIntegral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-        N f)
-
-/-- The bottom horizontal tomography error vanishes. -/
-theorem primeTransportBottomLineIntegralTomographyError_eq_zero_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomLineIntegralTomographyError N f = 0 := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ => z = 0)
-      (primeTransportBottomLineIntegralTomographyError_eq_symmetrizedWindowError N f).symm
-      (primeTransportBottomLineIntegralSymmetrizedWindowTomographyError_eq_zero_ownerTomography
-        N f)
-
-/-- The bottom horizontal line integral reconstructs the named finite time-side complex
-window with the omitted real tail. -/
-theorem primeTransportBottomLineIntegral_eq_timeComplexWindowWithTail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      finitePrimeTimeDistributionComplexWindowWithTail N f := by
-  exact
-    (primeTransportBottomLineIntegral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-      N f).trans
-      ((congrArg
-        (fun z : ℂ =>
-          z + (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ))
-        (finitePrimeTimeDistributionComplexWindow_eq_symmetrizedTime
-          N (convolutionAutocorrelation f)).symm).trans
-        (finitePrimeTimeDistributionComplexWindowWithTail_eq_complexWindow_add_tail
-          N f).symm)
-
-/-- The bottom horizontal line integral reconstructs the finite time-side complex
-coordinate sum with the omitted real tail. -/
-theorem primeTransportBottomLineIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    zetaCompletedExplicitFormulaBottomLineIntegral
-        (convolutionAutocorrelation f)
-        (completedPrimeContourTransportFamily.rectangle (N : ℝ)) =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeTimeDistributionComplexCoordinate
-          ι (convolutionAutocorrelation f)) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  exact
-    primeTransportBottomLineIntegral_eq_timeComplexWindowWithTail_ownerTomography
-      N f
-
-/-- The bottom contour-integrand integral reconstructs the finite time-side complex
-coordinate window with the omitted real tail. -/
-theorem primeTransportBottomContourIntegrand_integral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
-        (1 - completedPrimeContourTransportFamily.c),
-      primeTransportBottomContourIntegrand N f x) =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeTimeDistributionComplexCoordinate
-          ι (convolutionAutocorrelation f)) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  exact
-    primeTransportBottomContourIntegrand_integral_eq_symmetrizedTimeWindow_add_tail_ownerTomography
-      N f
+        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
+  sorry
 
 /-- The bottom contour-integrand integral reconstructs the finite time-side real
 coordinate window with tail after taking real parts. -/
@@ -1513,9 +1119,11 @@ theorem primeTransportBottomContourIntegrand_integral_re_eq_sum_timeComplexCoord
           finitePrimeTimeDistributionComplexCoordinate
             ι (convolutionAutocorrelation f)) +
           (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
-  exact congrArg Complex.re
-    (primeTransportBottomContourIntegrand_integral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-      N f)
+  exact
+    (primeTransportBottomContourIntegrand_integral_re_eq_symmetrizedTimeWindow_add_tail_re_ownerTomography
+      N f).trans
+      (finitePrimeTimeDistributionComplexWindowWithTail_re_eq_coordinateSum_add_tail
+        N f).symm
 
 /-- The bottom contour-integrand integral reconstructs the finite time-side real
 coordinate sum together with the omitted contour-transport tail. -/
@@ -1552,76 +1160,6 @@ theorem primeTransportBottomContourIntegral_re_eq_sum_timeCoordinates_add_tail_o
       (primeTransportBottomContourIntegral_eq_integral N f)
       (primeTransportBottomContourIntegrand_integral_re_eq_sum_timeCoordinates_add_tail_ownerTomography
         N f)
-
-/-- The bottom contour-integrand integral has the same imaginary part as the finite
-time-side complex coordinate window with the real tail added. -/
-theorem primeTransportBottomContourIntegrand_integral_im_eq_sum_timeComplexCoordinates_add_tail_im_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.im
-        (∫ x in Set.uIcc completedPrimeContourTransportFamily.c
-            (1 - completedPrimeContourTransportFamily.c),
-          primeTransportBottomContourIntegrand N f x) =
-      Complex.im
-        ((∑ ι in ZetaPrimePowerIndex.window N,
-          finitePrimeTimeDistributionComplexCoordinate
-            ι (convolutionAutocorrelation f)) +
-          (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
-  exact congrArg Complex.im
-    (primeTransportBottomContourIntegrand_integral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-      N f)
-
-/-- The bottom contour integral has the same imaginary part as the finite time-side complex
-coordinate window with the real tail added. -/
-theorem primeTransportBottomContourIntegral_im_eq_sum_timeComplexCoordinates_add_tail_im_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    Complex.im (primeTransportBottomContourIntegral N f) =
-      Complex.im
-        ((∑ ι in ZetaPrimePowerIndex.window N,
-          finitePrimeTimeDistributionComplexCoordinate
-            ι (convolutionAutocorrelation f)) +
-          (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)) := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        Complex.im z =
-          Complex.im
-            ((∑ ι in ZetaPrimePowerIndex.window N,
-              finitePrimeTimeDistributionComplexCoordinate
-                ι (convolutionAutocorrelation f)) +
-              (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ)))
-      (primeTransportBottomContourIntegral_eq_integral N f)
-      (primeTransportBottomContourIntegrand_integral_im_eq_sum_timeComplexCoordinates_add_tail_im_ownerTomography
-        N f)
-
-/-- The bottom contour integral reconstructs the finite time-side complex coordinate sum
-together with the omitted contour-transport tail. -/
-theorem primeTransportBottomContourIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomContourIntegral N f =
-      (∑ ι in ZetaPrimePowerIndex.window N,
-        finitePrimeTimeDistributionComplexCoordinate
-          ι (convolutionAutocorrelation f)) +
-        (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ) := by
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        z =
-          (∑ ι in ZetaPrimePowerIndex.window N,
-            finitePrimeTimeDistributionComplexCoordinate
-              ι (convolutionAutocorrelation f)) +
-            (completedPrimeContourTransportCoordinateRemainderTail N f : ℂ))
-      (primeTransportBottomContourIntegral_eq_integral N f)
-      (primeTransportBottomContourIntegrand_integral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-        N f)
-
-/-- The bottom contour integral reconstructs the finite time-side complex window together
-with the omitted contour-transport tail. -/
-theorem primeTransportBottomContourIntegral_eq_timeComplexWindowWithTail_ownerTomography
-    (N : ℕ) (f : ZetaAdmissibleFunction) :
-    primeTransportBottomContourIntegral N f =
-      finitePrimeTimeDistributionComplexWindowWithTail N f := by
-  exact primeTransportBottomContourIntegral_eq_sum_timeComplexCoordinates_add_tail_ownerTomography
-    N f
 
 /-- The real part of the bottom contour integral reconstructs the finite time-side
 coordinate sum together with the omitted coordinate-remainder tail. -/

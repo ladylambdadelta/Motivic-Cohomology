@@ -16,6 +16,20 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- Autocorrelation spectral localization with arbitrary finite prescribed samples and
+zero-tail control. -/
+theorem exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
+    (S : Finset ℂ)
+    (P : Finset ℂ)
+    (a : ℂ → ℂ) :
+    ∀ ε : ℝ, 0 < ε →
+      ∃ f : ZetaAdmissibleFunction,
+        (∀ z : ℂ, z ∈ P →
+          zetaSpectralEval (convolutionAutocorrelation f) z = a z) ∧
+          |Complex.re
+            (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
+  sorry
+
 /-- Autocorrelation spectral localization with zero-tail control.
 
 This is the analytic Runge/Paley-Wiener localization input: while preserving a
@@ -33,7 +47,9 @@ theorem exists_autocorrelation_spectralEval_preserved_zeroTail_small_ownerRunge
             zetaSpectralEval (convolutionAutocorrelation f₀) z) ∧
           |Complex.re
             (zetaZeroTail S (convolutionAutocorrelation f))| < ε := by
-  sorry
+  exact exists_autocorrelation_spectralEval_sample_zeroTail_small_ownerRunge
+    S P
+    (fun z : ℂ => zetaSpectralEval (convolutionAutocorrelation f₀) z)
 
 end ZetaAdmissibleFunction
 
