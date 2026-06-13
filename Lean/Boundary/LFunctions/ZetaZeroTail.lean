@@ -173,6 +173,71 @@ theorem completedZeroSubtype_tsum_eq_sumType_tsum_of_equiv
         F ((completedZeroSubtypeFiniteComplementEquiv S hS).symm x)) := by
   exact ((completedZeroSubtypeFiniteComplementEquiv S hS).symm.tsum_eq F).symm
 
+/-- The left summand is equivalent to the range of the left injection. -/
+def sumInlRangeEquiv (α β : Type*) :
+    α ≃ Set.range (Sum.inl : α → α ⊕ β) where
+  toFun := fun a => ⟨Sum.inl a, ⟨a, rfl⟩⟩
+  invFun := fun x =>
+    match x.1 with
+    | Sum.inl a => a
+    | Sum.inr _ =>
+        False.elim
+          (by
+            rcases x.2 with ⟨a, ha⟩
+            cases ha)
+  left_inv := by
+    intro a
+    rfl
+  right_inv := by
+    intro x
+    cases x with
+    | mk y hy =>
+        cases y with
+        | inl a => rfl
+        | inr b =>
+            exfalso
+            rcases hy with ⟨a, ha⟩
+            cases ha
+
+/-- The right summand is equivalent to the complement of the left-injection range. -/
+def sumInlRangeComplEquiv (α β : Type*) :
+    β ≃ ((Set.range (Sum.inl : α → α ⊕ β))ᶜ : Set (α ⊕ β)) where
+  toFun := fun b =>
+    ⟨Sum.inr b,
+      fun h =>
+        match h with
+        | ⟨_, ha⟩ => by cases ha⟩
+  invFun := fun x =>
+    match x.1 with
+    | Sum.inl a => False.elim (x.2 ⟨a, rfl⟩)
+    | Sum.inr b => b
+  left_inv := by
+    intro b
+    rfl
+  right_inv := by
+    intro x
+    cases x with
+    | mk y hy =>
+        cases y with
+        | inl a =>
+            exfalso
+            exact hy ⟨a, rfl⟩
+        | inr b => rfl
+
+/-- Summability on both summands gives summability on their sum type. -/
+theorem complex_summable_sum_type_of_summable_faces
+    {α β : Type*}
+    (G : α ⊕ β → ℂ)
+    (hleft : Summable (fun a : α => G (Sum.inl a)))
+    (hright : Summable (fun b : β => G (Sum.inr b))) :
+    Summable G := by
+  let s : Set (α ⊕ β) := Set.range (Sum.inl : α → α ⊕ β)
+  have hleftSubtype : Summable (fun x : s => G x) := by
+    exact ((sumInlRangeEquiv α β).summable_iff).mp hleft
+  have hrightSubtype : Summable (fun x : sᶜ => G x) := by
+    exact ((sumInlRangeComplEquiv α β).summable_iff).mp hright
+  exact summable_subtype_and_compl.1 ⟨hleftSubtype, hrightSubtype⟩
+
 /-- A complex-valued `tsum` over a sum type splits into its two oriented faces.
 
 This is the generic topology owner lemma behind finite/complement decompositions. -/
@@ -184,7 +249,24 @@ theorem complex_tsum_sum_type_eq_add_of_summable_faces
     (∑' x : α ⊕ β, G x) =
       (∑' a : α, G (Sum.inl a)) +
         (∑' b : β, G (Sum.inr b)) := by
-  sorry
+  let s : Set (α ⊕ β) := Set.range (Sum.inl : α → α ⊕ β)
+  have htotal : Summable G :=
+    complex_summable_sum_type_of_summable_faces G hleft hright
+  have hsplit :
+      (∑' x : s, G x) + (∑' x : sᶜ, G x) =
+        (∑' x : α ⊕ β, G x) :=
+    tsum_subtype_add_tsum_subtype_compl htotal s
+  have hleft_tsum :
+      (∑' x : s, G x) = ∑' a : α, G (Sum.inl a) :=
+    ((sumInlRangeEquiv α β).tsum_eq (fun x : s => G x)).symm
+  have hright_tsum :
+      (∑' x : sᶜ, G x) = ∑' b : β, G (Sum.inr b) :=
+    ((sumInlRangeComplEquiv α β).tsum_eq (fun x : sᶜ => G x)).symm
+  exact hsplit.symm.trans
+    (congrArg₂
+      (fun u v : ℂ => u + v)
+      hleft_tsum
+      hright_tsum)
 
 /-- Restricting a summable completed-zero family to the selected finite face is summable. -/
 theorem completedZeroFiniteFace_summable
