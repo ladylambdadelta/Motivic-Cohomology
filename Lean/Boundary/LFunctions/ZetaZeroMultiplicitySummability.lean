@@ -12,6 +12,22 @@ namespace LFunctions
 
 noncomputable section
 
+/-- Multiplicity-aware counting dominates the unweighted shell decay by a
+one-dimensional polynomial tail.
+
+This is the exact estimate where positive zero multiplicity, shell containment,
+and exponent bookkeeping meet. -/
+theorem norm_completedZeroCenteredHeightShellDecayMass_le_polynomialTail_of_counting_bound
+    (C : ℝ) (d k m : ℕ)
+    (hCpos : 0 < C)
+    (hcount :
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d) :
+    ‖completedZeroCenteredHeightShellDecayMass d k m‖ ≤
+      C * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) := by
+  sorry
+
 /-- The degree-aware shell masses are summable under the polynomial
 multiplicity-counting bound. -/
 theorem summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
@@ -24,7 +40,18 @@ theorem summable_completedZeroCenteredHeightShellDecayMass_of_counting_bound
     Summable
       (fun m : ℕ =>
         completedZeroCenteredHeightShellDecayMass d k m) := by
-  sorry
+  have htail :
+      Summable
+        (fun m : ℕ =>
+          C * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) :=
+    (summable_one_add_nat_norm_negative_zpow_succ k).const_mul C
+  exact Summable.of_norm_bounded
+    (fun m : ℕ =>
+      C * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)))
+    htail
+    (fun m : ℕ =>
+      norm_completedZeroCenteredHeightShellDecayMass_le_polynomialTail_of_counting_bound
+        C d k m hCpos hcount)
 
 /-- Polynomial negative-height envelopes are summable over completed zeros once
 the decay exponent is chosen beyond the counting degree.

@@ -47,6 +47,12 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
   unfold completedZetaZeroMultiplicity
   exact dif_pos h
 
+/-- A completed zero has positive analytic multiplicity. -/
+theorem zetaZeroMultiplicity_pos_of_completedZero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    0 < zetaZeroMultiplicity (ρ : ℂ) := by
+  sorry
+
 /-- The centered zero coordinate. -/
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
   ρ - (1 / 2 : ℂ)
