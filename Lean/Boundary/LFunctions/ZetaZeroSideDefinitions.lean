@@ -21,6 +21,7 @@ namespace LFunctions
 noncomputable section
 
 open MeasureTheory
+open scoped Topology
 
 /-- The centered completed zeta zero predicate used by the zero-side definitions. -/
 abbrev ZetaCompletedZero (ρ : ℂ) : Prop := centeredCompletedRiemannZeta ρ = 0
@@ -48,11 +49,48 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
   unfold completedZetaZeroMultiplicity
   exact dif_pos h
 
+/-- The centered completed zeta function is analytic at every completed zero
+recorded by the zero-side divisor. -/
+theorem centeredCompletedRiemannZeta_analyticAt_of_completedZero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    AnalyticAt ℂ centeredCompletedRiemannZeta (ρ : ℂ) := by
+  sorry
+
+/-- The centered completed zeta function is not locally identically zero at a
+completed zero. -/
+theorem centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero
+    (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
+    ¬ ∀ᶠ z in 𝓝 (ρ : ℂ), centeredCompletedRiemannZeta z = 0 := by
+  sorry
+
+/-- An analytic zero which is not locally identically zero has positive finite
+order. -/
+theorem analyticAt_order_toNat_pos_of_zero_not_eventually_zero
+    {f : ℂ → ℂ} {z : ℂ}
+    (hf : AnalyticAt ℂ f z)
+    (hz : f z = 0)
+    (hnot : ¬ ∀ᶠ w in 𝓝 z, f w = 0) :
+    0 < hf.order.toNat := by
+  sorry
+
 /-- A completed zero has positive analytic multiplicity. -/
 theorem zetaZeroMultiplicity_pos_of_completedZero
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 < zetaZeroMultiplicity (ρ : ℂ) := by
-  sorry
+  have hanalytic :
+      AnalyticAt ℂ centeredCompletedRiemannZeta (ρ : ℂ) :=
+    centeredCompletedRiemannZeta_analyticAt_of_completedZero ρ
+  have horder_pos :
+      0 < hanalytic.order.toNat :=
+    analyticAt_order_toNat_pos_of_zero_not_eventually_zero
+      hanalytic
+      ρ.2
+      (centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero ρ)
+  unfold zetaZeroMultiplicity
+  exact Eq.subst
+    (motive := fun n : ℕ => 0 < n)
+    (completedZetaZeroMultiplicity_eq_order (ρ : ℂ) hanalytic).symm
+    horder_pos
 
 /-- The centered zero coordinate. -/
 def zetaCenteredZero (ρ : ℂ) : ℂ :=
@@ -140,6 +178,16 @@ noncomputable def completedZeroMultiplicityCountingInCenteredHeightBall
   ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
     completedZeroMultiplicityHeightBallSummand T ρ
 
+/-- Finite-order/Jensen zero counting for the centered completed zeta divisor,
+with analytic multiplicities and centered vertical height. -/
+theorem centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound :
+    ∃ C : ℝ, ∃ d : ℕ,
+      0 < C ∧
+      ∀ T : ℝ,
+        1 ≤ T →
+        completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
+  sorry
+
 /-- Coarse polynomial counting of completed zeros with multiplicity in centered height. -/
 theorem exists_completedZeroMultiplicityCounting_height_bound :
     ∃ C : ℝ, ∃ d : ℕ,
@@ -147,7 +195,7 @@ theorem exists_completedZeroMultiplicityCounting_height_bound :
       ∀ T : ℝ,
         1 ≤ T →
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C * T ^ d := by
-  sorry
+  exact centeredCompletedRiemannZeta_finiteOrder_zeroMultiplicityCounting_height_bound
 
 /-- The spectral transform of a test function. -/
 def zetaSpectralTransform : ZetaTestFunction → ℂ → ℂ :=
