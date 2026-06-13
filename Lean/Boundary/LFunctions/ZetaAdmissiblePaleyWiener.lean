@@ -1398,11 +1398,46 @@ noncomputable def zetaPaleyWienerVerticalLineKernel
     zetaPaleyWienerVerticalOscillation y t
 
 /-- Complex multiplication by a real variable splits into horizontal and vertical parts. -/
+theorem complex_mul_real_verticalLine_decomposition_re
+    (z : ℂ) (t : ℝ) :
+    (z * (t : ℂ)).re =
+      ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).re := by
+  sorry
+
+/-- Imaginary coordinate of the vertical-line complex decomposition. -/
+theorem complex_mul_real_verticalLine_decomposition_im
+    (z : ℂ) (t : ℝ) :
+    (z * (t : ℂ)).im =
+      ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)).im := by
+  sorry
+
+/-- Complex multiplication by a real variable splits into horizontal and vertical parts. -/
 theorem complex_mul_real_verticalLine_decomposition
     (z : ℂ) (t : ℝ) :
     z * (t : ℂ) =
       (z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ) := by
-  sorry
+  exact Complex.ext
+    (complex_mul_real_verticalLine_decomposition_re z t)
+    (complex_mul_real_verticalLine_decomposition_im z t)
+
+/-- The exponential on a vertical line splits into horizontal and oscillatory factors. -/
+theorem complex_exp_verticalLine_decomposition_from_add
+    (z : ℂ) (t : ℝ) :
+    Complex.exp ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)) =
+      (Real.exp (z.re * t) : ℂ) *
+        Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
+  have hadd :
+      Complex.exp ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)) =
+        Complex.exp (z.re * t : ℂ) *
+          Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) :=
+    Complex.exp_add (z.re * t : ℂ) (Complex.I * (z.im : ℂ) * (t : ℂ))
+  have hreal :
+      Complex.exp (z.re * t : ℂ) = (Real.exp (z.re * t) : ℂ) :=
+    Complex.ofReal_exp (z.re * t)
+  exact Eq.trans hadd
+    (congrArg
+      (fun v : ℂ => v * Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)))
+      hreal)
 
 /-- The exponential on a vertical line splits into horizontal and oscillatory factors. -/
 theorem complex_exp_verticalLine_decomposition
@@ -1410,7 +1445,13 @@ theorem complex_exp_verticalLine_decomposition
     Complex.exp (z * (t : ℂ)) =
       (Real.exp (z.re * t) : ℂ) *
         Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
-  sorry
+  have hdecomp :
+      z * (t : ℂ) =
+        (z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ) :=
+    complex_mul_real_verticalLine_decomposition z t
+  exact Eq.trans
+    (congrArg Complex.exp hdecomp)
+    (complex_exp_verticalLine_decomposition_from_add z t)
 
 /-- The Laplace kernel equals the explicit vertical-line product pointwise. -/
 theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel_pointwise
@@ -1452,7 +1493,7 @@ theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel
 theorem complex_integral_congr_of_pointwise_eq
     (u v : ℝ → ℂ) (h : ∀ t : ℝ, u t = v t) :
     (∫ t : ℝ, u t) = ∫ t : ℝ, v t := by
-  sorry
+  exact integral_congr_ae (Filter.Eventually.of_forall h)
 
 /-- The zeta Laplace transform is the integral of the vertical-line kernel. -/
 theorem zetaLaplaceTransform_eq_verticalLineKernelIntegral
@@ -1512,7 +1553,7 @@ theorem zetaPaleyWienerVerticalLineKernel_integral_eq_I_mul_inverse_mul_derivati
 /-- The complex unit `I` has norm one. -/
 theorem complex_norm_I_eq_one :
     ‖Complex.I‖ = (1 : ℝ) := by
-  sorry
+  exact Eq.trans (complex_norm_eq_abs Complex.I) Complex.abs_I
 
 /-- Multiplication by `I` does not change the norm. -/
 theorem norm_I_mul_eq_norm

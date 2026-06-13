@@ -448,10 +448,20 @@ theorem summable_of_nonnegative_le_summable_real
     (hb : Summable b) :
     Summable a := by
   exact Summable.of_norm_bounded b hb
-    (fun n => Eq.subst
-      (motive := fun v : ℝ => v ≤ b n)
-      (Real.norm_of_nonneg (ha_nonneg n)).symm
-      (hab n))
+    (fun n => by
+      have hb_nonneg : 0 ≤ b n :=
+        le_trans (ha_nonneg n) (hab n)
+      have ha_norm : ‖a n‖ = a n :=
+        Real.norm_of_nonneg (ha_nonneg n)
+      have hb_norm : ‖b n‖ = b n :=
+        Real.norm_of_nonneg hb_nonneg
+      exact Eq.subst
+        (motive := fun lhs : ℝ => lhs ≤ ‖b n‖)
+        ha_norm.symm
+        (Eq.subst
+          (motive := fun rhs : ℝ => a n ≤ rhs)
+          hb_norm.symm
+          (hab n)))
 
 /-- The one-dimensional polynomial shell mass sequence is summable. -/
 theorem summable_linear_polynomialShellMassSequence
