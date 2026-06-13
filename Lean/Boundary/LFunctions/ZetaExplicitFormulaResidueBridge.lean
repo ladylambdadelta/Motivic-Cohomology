@@ -26,55 +26,50 @@ theorem zetaCompletedZeroKreinGram_eq_residueBoundarySum
       zetaCompletedResidueBoundarySum f := by
   rfl
 
-/-- Real-part residue-to-boundary comparison. -/
-theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re_owner
-    (f : ZetaAdmissibleFunction) :
-    zetaCompletedResidueBoundarySum f =
-      Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-  sorry
-
-/-- Imaginary-part residue-to-boundary comparison. -/
-theorem zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero_owner
-    (f : ZetaAdmissibleFunction) :
-    Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic f) = 0 := by
-  sorry
-
 /-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
 the same completed boundary scalar.
 
 This is the residue-to-boundary comparison root.  It is the single complex owner theorem;
 the real- and imaginary-part forms below are projections of this statement, not independent
 analytic inputs. -/
+theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner
+    (f : ZetaAdmissibleFunction) :
+    (zetaCompletedResidueBoundarySum f : ℂ) =
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
+  sorry
+
+/-- The residue boundary sum and the analytic prime/archimedean/correction boundary sum are
+the same completed boundary scalar. -/
 theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic
     (f : ZetaAdmissibleFunction) :
     (zetaCompletedResidueBoundarySum f : ℂ) =
       zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
-  apply Complex.ext
-  · calc
-      Complex.re ((zetaCompletedResidueBoundarySum f : ℂ)) =
-          zetaCompletedResidueBoundarySum f := by
-        exact Complex.ofReal_re (zetaCompletedResidueBoundarySum f)
-      _ = Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-        exact zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re_owner f
-  · calc
-      Complex.im ((zetaCompletedResidueBoundarySum f : ℂ)) = 0 := by
-        exact Complex.ofReal_im (zetaCompletedResidueBoundarySum f)
-      _ = Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-        exact
-          (zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero_owner f).symm
+  exact zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_owner f
 
 /-- The analytic boundary sum attached to a residue probe is real-valued. -/
 theorem zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero
     (f : ZetaAdmissibleFunction) :
     Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic f) = 0 := by
-  exact zetaCompletedResidueBoundarySum_boundarySumAnalytic_im_eq_zero_owner f
+  calc
+    Complex.im (zetaCompletedExplicitFormulaBoundarySumAnalytic f) =
+        Complex.im ((zetaCompletedResidueBoundarySum f : ℂ)) := by
+      exact congrArg Complex.im
+        (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic f).symm
+    _ = 0 := by
+      exact Complex.ofReal_im (zetaCompletedResidueBoundarySum f)
 
 /-- Real-part form of the residue-to-boundary comparison. -/
 theorem zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re
     (f : ZetaAdmissibleFunction) :
     zetaCompletedResidueBoundarySum f =
       Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
-  exact zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic_re_owner f
+  calc
+    zetaCompletedResidueBoundarySum f =
+        Complex.re ((zetaCompletedResidueBoundarySum f : ℂ)) := by
+      exact (Complex.ofReal_re (zetaCompletedResidueBoundarySum f)).symm
+    _ = Complex.re (zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
+      exact congrArg Complex.re
+        (zetaCompletedResidueBoundarySum_eq_boundarySumAnalytic f)
 
 end ZetaAdmissibleFunction
 
