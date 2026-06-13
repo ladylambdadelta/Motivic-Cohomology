@@ -230,101 +230,6 @@ theorem completedPrimeContourLocalizationMajorant_nonnegative
     _ = completedPrimeContourLocalizationMajorant C k ι := by
       exact (completedPrimeContourLocalizationMajorant_eq_const_mul_decay C k ι).symm
 
-/-- Pointwise coordinate bounds combine into a pointwise bound for the contour-transport
-coordinate remainder, after passing to the common decay exponent. -/
-theorem completedPrimeContourTransportCoordinateRemainder_norm_le_combined_coordinateBound
-    (f : ZetaAdmissibleFunction)
-    (C₁ : ℝ) (k₁ : ℕ) (C₂ : ℝ) (k₂ : ℕ)
-    (hC₁ : 0 < C₁) (hC₂ : 0 < C₂)
-    (hcontour_bound :
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ ≤
-          C₁ * ZetaPrimePowerIndex.polynomialHeightDecay k₁ ι)
-    (htime_bound :
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ ≤
-          C₂ * ZetaPrimePowerIndex.polynomialHeightDecay k₂ ι)
-    (ι : ZetaPrimePowerIndex) :
-    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-      (C₁ + C₂) * ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι := by
-  have hsplit :
-      ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-        ‖completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ +
-          ‖completedPrimeTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ :=
-    norm_completedPrimeContourTransportCoordinateRemainder_le_contour_add_time ι f
-  have hdecay₁ :
-      ZetaPrimePowerIndex.polynomialHeightDecay k₁ ι ≤
-        ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι :=
-    ZetaPrimePowerIndex.polynomialHeightDecay_le_of_le
-      (min_le_left k₁ k₂) ι
-  have hdecay₂ :
-      ZetaPrimePowerIndex.polynomialHeightDecay k₂ ι ≤
-        ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι :=
-    ZetaPrimePowerIndex.polynomialHeightDecay_le_of_le
-      (min_le_right k₁ k₂) ι
-  have hcontour_common :
-      ‖completedPrimeContourRealizedTimeDistributionCoordinate
-          ι (convolutionAutocorrelation f)‖ ≤
-        C₁ * ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι :=
-    le_trans (hcontour_bound ι)
-      (mul_le_mul_of_nonneg_left hdecay₁ (le_of_lt hC₁))
-  have htime_common :
-      ‖completedPrimeTimeDistributionCoordinate
-          ι (convolutionAutocorrelation f)‖ ≤
-        C₂ * ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι :=
-    le_trans (htime_bound ι)
-      (mul_le_mul_of_nonneg_left hdecay₂ (le_of_lt hC₂))
-  calc
-    ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-        ‖completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ +
-          ‖completedPrimeTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ := hsplit
-    _ ≤
-        C₁ * ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι +
-          C₂ * ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι := by
-      exact add_le_add hcontour_common htime_common
-    _ =
-        (C₁ + C₂) *
-          ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι := by
-      exact (add_mul C₁ C₂
-        (ZetaPrimePowerIndex.polynomialHeightDecay (min k₁ k₂) ι)).symm
-
-/-- Two coordinate height-polynomial estimates combine into a height-polynomial
-estimate for the contour-transport coordinate remainder. -/
-theorem exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound_of_coordinateBounds
-    (f : ZetaAdmissibleFunction)
-    (hcontour :
-      ∃ C : ℝ, ∃ k : ℕ,
-        0 < C ∧
-        ∀ ι : ZetaPrimePowerIndex,
-          ‖completedPrimeContourRealizedTimeDistributionCoordinate
-              ι (convolutionAutocorrelation f)‖ ≤
-            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι)
-    (htime :
-      ∃ C : ℝ, ∃ k : ℕ,
-        0 < C ∧
-        ∀ ι : ZetaPrimePowerIndex,
-          ‖completedPrimeTimeDistributionCoordinate
-              ι (convolutionAutocorrelation f)‖ ≤
-            C * ZetaPrimePowerIndex.polynomialHeightDecay k ι) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
-          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  exact
-    match hcontour, htime with
-    | ⟨C₁, k₁, hC₁, hcontour_bound⟩,
-      ⟨C₂, k₂, hC₂, htime_bound⟩ =>
-        ⟨C₁ + C₂, min k₁ k₂, add_pos hC₁ hC₂, fun ι =>
-          completedPrimeContourTransportCoordinateRemainder_norm_le_combined_coordinateBound
-            f C₁ k₁ C₂ k₂ hC₁ hC₂ hcontour_bound htime_bound ι⟩
-
 /-- Raw height-polynomial localization for the contour-transport coordinate
 remainder. -/
 theorem exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound
@@ -334,10 +239,7 @@ theorem exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound
       ∀ ι : ZetaPrimePowerIndex,
         ‖completedPrimeContourTransportCoordinateRemainder ι f‖ ≤
           C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  exact exists_completedPrimeContourTransportCoordinateRemainder_rawHeightBound_of_coordinateBounds
-    f
-    (exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound f)
-    (exists_completedPrimeTimeDistributionCoordinate_rawHeightBound f)
+  sorry
 
 /-- The raw height-polynomial coordinate estimate is exactly the named
 localization-majorant estimate. -/
@@ -641,6 +543,31 @@ theorem finitePrimeContourTransportComplexResidueDefect_re
       finitePrimeContourTransportResidueDefect N f := by
   exact Complex.ofReal_re (finitePrimeContourTransportResidueDefect N f)
 
+/-- The imaginary part of the complex finite residue defect vanishes because the defect is
+the real residue defect embedded in `ℂ`. -/
+theorem finitePrimeContourTransportComplexResidueDefect_im
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.im (finitePrimeContourTransportComplexResidueDefect N f) = 0 := by
+  exact Complex.ofReal_im (finitePrimeContourTransportResidueDefect N f)
+
+/-- Real-part sampled contour tomography reconstructs the finite residue defect.
+
+This is the real residue-balance content of the horizontal contour tomography theorem. -/
+theorem sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.re (sampledHorizontalDifferenceComplex N f) =
+      finitePrimeContourTransportResidueDefect N f := by
+  sorry
+
+/-- The sampled horizontal contour difference has no imaginary residue defect component.
+
+This is the imaginary-part contour symmetry input needed to upgrade real tomography to the
+complex representative equality. -/
+theorem sampledHorizontalDifferenceComplex_im_eq_zero_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    Complex.im (sampledHorizontalDifferenceComplex N f) = 0 := by
+  sorry
+
 /-- Complex sampled contour tomography reconstructs the complex finite residue defect.
 
 This is the analytic tomography root before passing to the real shadow used by the prime
@@ -649,7 +576,12 @@ theorem sampledHorizontalDifferenceComplex_eq_complexResidueDefect_ownerTomograp
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     sampledHorizontalDifferenceComplex N f =
       finitePrimeContourTransportComplexResidueDefect N f := by
-  sorry
+  exact Complex.ext
+    ((sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
+      N f).trans
+      (finitePrimeContourTransportComplexResidueDefect_re N f).symm)
+    ((sampledHorizontalDifferenceComplex_im_eq_zero_ownerTomography N f).trans
+      (finitePrimeContourTransportComplexResidueDefect_im N f).symm)
 
 /-- Complex sampled contour tomography reconstructs the finite residue defect after taking
 the real part.
@@ -661,13 +593,9 @@ theorem sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResi
     (N : ℕ) (f : ZetaAdmissibleFunction) :
     Complex.re (sampledHorizontalDifferenceComplex N f) =
       finitePrimeContourTransportResidueDefect N f := by
-  calc
-    Complex.re (sampledHorizontalDifferenceComplex N f) =
-        Complex.re (finitePrimeContourTransportComplexResidueDefect N f) := by
-      exact congrArg Complex.re
-        (sampledHorizontalDifferenceComplex_eq_complexResidueDefect_ownerTomography N f)
-    _ = finitePrimeContourTransportResidueDefect N f := by
-      exact finitePrimeContourTransportComplexResidueDefect_re N f
+  exact
+    sampledHorizontalDifferenceComplex_re_eq_finitePrimeContourTransportResidueDefect_ownerTomography_core
+      N f
 
 /-- Complex sampled contour tomography reconstructs the coordinate-remainder
 window after adding the omitted coordinate-remainder tail. -/

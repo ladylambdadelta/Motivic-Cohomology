@@ -629,18 +629,6 @@ theorem exists_rawHeightPolynomialBound_of_finsetSupport
       _ ≤ C * d ι := by
         exact hright_nonnegative
 
-/-- Raw height-polynomial localization for the contour-realized prime distribution
-coordinate. -/
-theorem exists_completedPrimeContourRealizedTimeDistributionCoordinate_rawHeightBound
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 < C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourRealizedTimeDistributionCoordinate
-            ι (convolutionAutocorrelation f)‖ ≤
-          C * ZetaPrimePowerIndex.polynomialHeightDecay k ι := by
-  sorry
-
 /-- Raw height-polynomial localization for the time-side prime distribution coordinate. -/
 theorem exists_completedPrimeTimeDistributionCoordinate_rawHeightBound
     (f : ZetaAdmissibleFunction) :
