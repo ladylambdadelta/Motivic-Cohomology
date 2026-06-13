@@ -157,6 +157,19 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributio
     finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerHorizontalDecay
       f
 
+/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
+boundary coefficient.
+
+This is the prime holographic reconstruction root: the completed real time-side coordinate
+sum and the completed spectral/two-face boundary coefficient are the same reconstructed
+prime boundary scalar. -/
+theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    (∑' ι : ZetaPrimePowerIndex,
+        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
+      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
+  sorry
+
 /-- Completed prime holographic scalar reconstruction.
 
 The completed prime time-side projection and the completed two-face boundary projection
@@ -167,7 +180,10 @@ theorem completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ow
     (f : ZetaAdmissibleFunction) :
     completedPrimeTimeTomographyProjection f =
       completedPrimeTwoFaceTomographyProjection f := by
-  sorry
+  unfold completedPrimeTimeTomographyProjection
+  unfold completedPrimeTwoFaceTomographyProjection
+  exact completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
+    f
 
 /-- Completed prime contour transport identifies the completed time-side prime distribution
 with the completed contour-realized distribution.
@@ -216,27 +232,6 @@ theorem completedPrimeTimeTomographyClass_eq_twoFaceTomographyClass_ownerTomogra
           completedPrimeTomographyClassScalar
             (completedPrimeTwoFaceTomographyClass f) := by
         exact (completedPrimeTomographyClassScalar_twoFace f).symm)
-
-/-- The completed time-side two-face coordinate sum reconstructs the completed two-face
-boundary coefficient.
-
-This is the prime holographic reconstruction root: the completed real time-side coordinate
-sum and the completed spectral/two-face boundary coefficient are the same reconstructed
-prime boundary scalar. -/
-theorem completedPrimeTwoFaceBoundaryRealCoordinate_tsum_eq_coefficient_re_ownerTomography
-    (f : ZetaAdmissibleFunction) :
-    (∑' ι : ZetaPrimePowerIndex,
-        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
-      Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  calc
-    (∑' ι : ZetaPrimePowerIndex,
-        completedPrimeTwoFaceGNSBoundaryRealCoordinate ι f) =
-        completedPrimeTimeTomographyProjection f := by
-      rfl
-    _ = completedPrimeTwoFaceTomographyProjection f := by
-      exact completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography f
-    _ = Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-      rfl
 
 /-- Completed prime channel tomography.
 
