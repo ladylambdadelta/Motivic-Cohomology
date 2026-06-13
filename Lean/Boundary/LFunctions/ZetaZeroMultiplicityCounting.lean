@@ -127,14 +127,47 @@ theorem completedZeroMultiplicityHeightBallSummand_le_counting
 theorem completedZeroMultiplicityCountingInCenteredHeightBall_nonnegative
     (T : ℝ) :
     0 ≤ completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  sorry
+  unfold completedZeroMultiplicityCountingInCenteredHeightBall
+  have hzeroSummable :
+      Summable
+        (fun _ρ : {ρ : ℂ // ZetaCompletedZero ρ} => (0 : ℝ)) :=
+    summable_zero
+  have hsummand :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          completedZeroMultiplicityHeightBallSummand T ρ) :=
+    summable_completedZeroMultiplicityHeightBallSummand T
+  have hle :
+      (∑' _ρ : {ρ : ℂ // ZetaCompletedZero ρ}, (0 : ℝ)) ≤
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          completedZeroMultiplicityHeightBallSummand T ρ :=
+    tsum_le_tsum
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+        completedZeroMultiplicityHeightBallSummand_nonnegative T ρ)
+      hzeroSummable
+      hsummand
+  have hzero :
+      (∑' _ρ : {ρ : ℂ // ZetaCompletedZero ρ}, (0 : ℝ)) = 0 :=
+    tsum_zero
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          completedZeroMultiplicityHeightBallSummand T ρ)
+    hzero.symm
+    hle
 
 /-- Completed zero multiplicity counts are monotone in the height radius. -/
 theorem completedZeroMultiplicityCountingInCenteredHeightBall_mono
     {S T : ℝ} (hST : S ≤ T) :
     completedZeroMultiplicityCountingInCenteredHeightBall S ≤
       completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  sorry
+  unfold completedZeroMultiplicityCountingInCenteredHeightBall
+  exact tsum_le_tsum
+    (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+      completedZeroMultiplicityHeightBallSummand_mono hST ρ)
+    (summable_completedZeroMultiplicityHeightBallSummand S)
+    (summable_completedZeroMultiplicityHeightBallSummand T)
 
 /-- Coarse polynomial counting of completed zeros with multiplicity in centered height.
 
