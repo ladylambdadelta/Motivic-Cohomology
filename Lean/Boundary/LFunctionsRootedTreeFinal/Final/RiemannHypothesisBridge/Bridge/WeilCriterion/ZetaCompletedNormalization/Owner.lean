@@ -4401,7 +4401,7 @@ theorem boundaryLineOnePointRealParam_cutoff_inv_le_one
   have hcutoff_pos : 0 < ⌊2 + ‖t‖⌋₊ :=
     boundaryLineOnePointRealParam_cutoff_pos t
   have hone_le_cutoff_nat : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
-    hcutoff_pos
+    Nat.succ_le_of_lt hcutoff_pos
   have hone_le_cutoff_real : (1 : ℝ) ≤ (⌊2 + ‖t‖⌋₊ : ℝ) := by
     exact_mod_cast hone_le_cutoff_nat
   calc
