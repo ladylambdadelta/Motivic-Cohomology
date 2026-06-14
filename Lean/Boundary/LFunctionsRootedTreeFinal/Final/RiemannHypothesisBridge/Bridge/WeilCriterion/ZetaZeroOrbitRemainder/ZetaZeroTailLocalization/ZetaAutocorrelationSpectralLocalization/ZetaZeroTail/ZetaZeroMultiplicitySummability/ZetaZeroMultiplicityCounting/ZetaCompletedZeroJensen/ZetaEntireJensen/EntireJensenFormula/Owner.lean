@@ -3276,6 +3276,23 @@ theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt
               t := by
   sorry
 
+/-- Interval integrability of the endpoint derivative integrand on the radial
+segment. -/
+theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegrable
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        IntervalIntegrable
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+          volume
+          (0 : ℝ)
+          1 := by
+  sorry
+
 /-- Interval FTC for the radial primitive along a center-to-endpoint segment. -/
 theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
     (φ : ℂ → ℂ)
@@ -3288,7 +3305,35 @@ theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
           complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t) =
           complex_centerSegmentIntegral_radialFTCPrimitive φ z 1 -
             complex_centerSegmentIntegral_radialFTCPrimitive φ z 0 := by
-  sorry
+  intro z hz
+  have hderiv :
+      ∀ t : ℝ,
+        t ∈ [[(0 : ℝ), 1]] →
+          HasDerivAt
+            (fun u : ℝ =>
+              complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
+            (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+            t := by
+    intro t ht
+    have ht_Icc : t ∈ Set.Icc (0 : ℝ) 1 :=
+      Eq.subst
+        (motive := fun u : Set ℝ => t ∈ u)
+        (Set.uIcc_of_le (show (0 : ℝ) ≤ 1 from zero_le_one))
+        ht
+    exact
+      complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt
+        φ hstar hφ z hz t ht_Icc
+  have hint :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+        volume
+        (0 : ℝ)
+        1 :=
+    complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegrable
+      φ hstar hφ z hz
+  exact
+    intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
 
 /-- Endpoint calculation for the radial FTC primitive. -/
 theorem complex_centerSegmentIntegral_radialFTC_endpoint_sub_base
@@ -3355,6 +3400,26 @@ theorem complex_centerSegmentIntegral_endpointDerivativeIntegral_eq
       φ hstar hφ z hz)
     (complex_centerSegmentIntegral_radialFTC_endpoint_sub_base φ z)
 
+/-- Local endpoint differentiability supplied by the same parametric integral
+argument near a fixed segment endpoint. -/
+theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ u : Set ℂ,
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              HasDerivAt
+                (complex_centerSegmentIntegral φ)
+                (∫ t in (0 : ℝ)..1,
+                  complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+                w := by
+  sorry
+
 /-- Cauchy--FTC endpoint derivative for the center-segment primitive.
 
 This is the concrete differential core of primitive existence on a
@@ -3395,7 +3460,14 @@ theorem complex_starConvex_centerSegmentIntegral_differentiableOn_nhd
         ∃ u : Set ℂ,
           u ∈ 𝓝 z ∧
           DifferentiableOn ℂ (complex_centerSegmentIntegral φ) u := by
-  sorry
+  intro z hz
+  rcases
+    complex_centerSegmentIntegral_hasDerivAt_on_nhd
+      φ hstar hφ z hz with
+    ⟨u, hu_nhds, hu_deriv⟩
+  refine ⟨u, hu_nhds, ?_⟩
+  intro w hw
+  exact (hu_deriv w hw).differentiableAt.differentiableWithinAt
 
 /-- Holomorphic parameter-integral regularity for the center-segment
 primitive.
@@ -8894,6 +8966,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
     ∃ E : Finset ℝ,
       ∀ θ : ℝ,
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) →
         θ ∉ E →
           entireFunctionJensenBoundaryLogIntegrand F ρ θ =
             Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
@@ -8904,7 +8977,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
                   Real.log
                     ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
   -- Deep pointwise product-log sink: build the finite set of boundary
-  -- parameters where extracted factors vanish, then split `log ‖Q * ∏‖`.
+  -- parameters in the fundamental interval where extracted factors vanish,
+  -- then split `log ‖Q * ∏‖` there.
   sorry
 
 /-- A.e. boundary product-log congruence from the finite exception set. -/
@@ -8922,7 +8996,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
             entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
               F hF hF0 ρ w)
     (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
-    entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[MeasureTheory.volume]
+    entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[
+        MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi))]
       (fun θ : ℝ =>
         Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
           (∑ z in
@@ -8934,11 +9009,19 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
   obtain ⟨E, hE⟩ :=
     entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_pointwise_offException_ownerRoot
       F Q hF hF0 ρ hρ hfactor hzero
-  have hnot_mem :
+  have hnot_mem_volume :
       ∀ᵐ θ ∂MeasureTheory.volume, θ ∉ (E : Set ℝ) :=
     E.finite_toSet.countable.ae_not_mem MeasureTheory.volume
-  filter_upwards [hnot_mem] with θ hθ
-  exact hE θ hθ
+  have hnot_mem :
+      ∀ᵐ θ ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi)),
+        θ ∉ (E : Set ℝ) :=
+    MeasureTheory.ae_restrict_of_ae hnot_mem_volume
+  have hmem_interval :
+      ∀ᵐ θ ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi)),
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) :=
+    MeasureTheory.ae_restrict_mem measurableSet_uIoc
+  filter_upwards [hnot_mem, hmem_interval] with θ hθ_not hθ_interval
+  exact hE θ hθ_interval hθ_not
 
 /-- Interval-integrability of the closed-support product-log summands with
 finite boundary exceptions. -/
