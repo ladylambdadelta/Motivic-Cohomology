@@ -17521,6 +17521,38 @@ noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
   -((z - 1) * z) *
     eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z
 
+/-- Subtracting a left summand from a two-term sum leaves the right summand. -/
+theorem complex_add_sub_left_cancel
+    (S R : ℂ) :
+    (S + R) - S = R := by
+  calc
+    (S + R) - S = S + R + -S := by
+      exact sub_eq_add_neg (S + R) S
+    _ = S + (R + -S) := by
+      exact add_assoc S R (-S)
+    _ = S + (-S + R) := by
+      exact congrArg (fun x : ℂ => S + x) (add_comm R (-S))
+    _ = (S + -S) + R := by
+      exact (add_assoc S (-S) R).symm
+    _ = 0 + R := by
+      exact congrArg (fun x : ℂ => x + R) (add_neg_cancel S)
+    _ = R := by
+      exact zero_add R
+
+/-- First-order Euler-Maclaurin formula for the pole-cleared zeta on
+`1 ≤ Re s ≤ 2`, with cutoff `⌊2 + ‖s‖⌋₊` and explicit Bernoulli integral
+remainder. -/
+theorem eulerMaclaurin_poleClearedRiemannZeta_formula_with_bernoulliIntegralRemainder_standard
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2) :
+    poleClearedRiemannZeta z =
+      eulerMaclaurinPoleClearedZetaFinitePart z +
+        eulerMaclaurinPoleClearedZetaMainTerm z +
+        eulerMaclaurinPoleClearedZetaEndpointTerm z +
+        eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  sorry
+
 /-- Euler-Maclaurin formula identifies the difference-defined pole-cleared
 remainder with the explicit Bernoulli-periodic integral remainder. -/
 theorem eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
@@ -17529,6 +17561,34 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
     (hz_two : z.re ≤ 2) :
     eulerMaclaurinPoleClearedZetaRemainderTerm z =
       eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  unfold eulerMaclaurinPoleClearedZetaRemainderTerm
+  let S : ℂ :=
+    eulerMaclaurinPoleClearedZetaFinitePart z +
+      eulerMaclaurinPoleClearedZetaMainTerm z +
+      eulerMaclaurinPoleClearedZetaEndpointTerm z
+  let R : ℂ := eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z
+  have hformula :
+      poleClearedRiemannZeta z = S + R :=
+    eulerMaclaurin_poleClearedRiemannZeta_formula_with_bernoulliIntegralRemainder_standard
+      z hz_one hz_two
+  have hsub :
+      poleClearedRiemannZeta z - S = (S + R) - S :=
+    congrArg (fun w : ℂ => w - S) hformula
+  have hcancel : (S + R) - S = R :=
+    complex_add_sub_left_cancel S R
+  exact Eq.trans hsub hcancel
+
+/-- Scalar improper-integral tail estimate for the first periodic Bernoulli
+Euler-Maclaurin kernel.
+
+This is the real-variable analytic input behind the zeta remainder bound:
+`|B₁({x})| ≤ 1`, positivity of the cutoff, the positive-real `cpow` norm
+formula, and the tail estimate for `∫_N^∞ x^{-σ-1} dx` with `σ ≥ 1`. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_integral_norm_le_one_standard
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2) :
+    ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤ 1 := by
   sorry
 
 /-- Standard Bernoulli-periodic tail majorant for the Euler-Maclaurin zeta
@@ -17538,7 +17598,9 @@ theorem eulerMaclaurinPoleClearedZetaBernoulliIntegralCore_norm_le_one
     (hz_one : 1 ≤ z.re)
     (hz_two : z.re ≤ 2) :
     ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤ 1 := by
-  sorry
+  exact
+    eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_integral_norm_le_one_standard
+      z hz_one hz_two
 
 /-- Polynomial bound for the explicit Bernoulli-periodic integral remainder.
 
