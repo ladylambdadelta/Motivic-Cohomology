@@ -2098,6 +2098,207 @@ theorem entireFunctionJensenRadialGapSum_eq_zero_of_no_nonzero_zeros_in_disk
       · exact if_pos hz0
       · exact Eq.trans (if_neg hz0) (if_neg (hzero z hz0)))
 
+/-- The finite closed-disk divisor supporting the nonzero multiplicity summand.
+
+This is the closed-disk divisor side of Jensen's formula after the origin
+factor has been removed: it is exactly the finite support of the nonzero
+closed-disk multiplicity family. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+    F hF hF0 R).toFinset
+
+/-- The closed-disk finite divisor contains the support of the nonzero
+multiplicity summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 R : Set (EntireFunctionZero F)) := by
+  intro z hz
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+  exact
+    (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+      F hF hF0 R).mem_toFinset.2 hz
+
+/-- The nonzero closed-disk multiplicity family has the finite sum over its
+closed-disk divisor as its infinite sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummand_hasSum_supportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    HasSum
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 R,
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  exact hasSum_sum_of_ne_finset_zero
+    (s :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 R)
+    (f := fun z : EntireFunctionZero F =>
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
+    (fun z hz_not_mem => by
+      by_contra hz_ne
+      have hz_support :
+          z ∈ Function.support
+            (fun w : EntireFunctionZero F =>
+              entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R w) :=
+        hz_ne
+      have hz_mem :
+          z ∈
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+              F hF hF0 R :=
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+          F hF hF0 R hz_support
+      exact hz_not_mem hz_mem)
+
+/-- The finite zero divisor supporting the Jensen radial-gap summand.
+
+This is the finite divisor used in the product side of Jensen's formula: it is
+the support of the nonzero zero factors strictly inside the Jensen circle. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).toFinset
+
+/-- The radial-gap finite divisor contains the support of the Jensen radial-gap
+summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ : Set (EntireFunctionZero F)) := by
+  intro z hz
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+  exact
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).mem_toFinset.2 hz
+
+/-- The radial-gap summand has the finite product divisor sum as its infinite
+sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummand_hasSum_supportFiniteProductRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    HasSum
+      (fun z : EntireFunctionZero F =>
+        entireFunctionJensenRadialGapSummand F hF ρ z)
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ)) := by
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  exact hasSum_sum_of_ne_finset_zero
+    (s :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ)
+    (f := fun z : EntireFunctionZero F =>
+      entireFunctionJensenRadialGapSummand F hF ρ z)
+    (fun z hz_not_mem => by
+      by_contra hz_ne
+      have hz_support :
+          z ∈ Function.support
+            (fun w : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ w) :=
+        hz_ne
+      have hz_mem :
+          z ∈
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ :=
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+          F hF hF0 ρ hz_support
+      exact hz_not_mem hz_mem)
+
+/-- The infinite Jensen radial-gap sum is the finite product sum over the
+support divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_supportFiniteProductRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunctionJensenRadialGapSum F hF ρ =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) := by
+  exact
+    entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support_subset
+      F hF ρ
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ)
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+        F hF hF0 ρ)
+
+/-- The support finite product sum expands into the explicit zero-factor
+radial contributions. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_explicit_sum_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) =
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        if (z : ℂ) = 0 then
+          0
+        else if ‖(z : ℂ)‖ < ρ then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log (ρ / ‖(z : ℂ)‖)
+        else
+          0 := by
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_explicit_sum_identity
+      F hF ρ
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ)
+
+/-- The infinite radial-gap sum is the explicit finite zero-factor sum over its
+support divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_supportFiniteProduct_explicit_sum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunctionJensenRadialGapSum F hF ρ =
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        if (z : ℂ) = 0 then
+          0
+        else if ‖(z : ℂ)‖ < ρ then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log (ρ / ‖(z : ℂ)‖)
+        else
+          0 := by
+  exact Eq.trans
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_supportFiniteProductRadialGapSum
+      F hF hF0 ρ)
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_explicit_sum_identity
+      F hF hF0 ρ)
+
 /-- Analytic-log/harmonic mean-value form of the classical Jensen product theorem.
 
 Proof chain:

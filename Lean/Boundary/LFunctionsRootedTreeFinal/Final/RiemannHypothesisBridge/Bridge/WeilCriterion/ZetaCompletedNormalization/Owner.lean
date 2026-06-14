@@ -521,7 +521,7 @@ sectorial Stirling expansion for `log Γ(w)` on a closed sector avoiding the
 negative real axis, specialized to `0 ≤ w.re` and converted to a log-norm
 upper bound.  The radius is written as `2 * ‖w‖` so the downstream
 half-argument transport is formula-level; cf. DLMF §5.11. -/
-theorem Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_standard :
+theorem Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_classical :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
@@ -530,6 +530,19 @@ theorem Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_standard 
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   sorry
+
+/-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
+
+This is name transport from the classical sectorial `log Γ` estimate. -/
+theorem Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_standard :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_classical
 
 /-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
@@ -2233,6 +2246,26 @@ theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
       ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
   exact congrArg norm (Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded t)
 
+/-- The two-sided fixed-real-part vertical Stirling norm estimates for `Complex.Gamma`.
+
+This is the exact classical special-function input after all downstream algebra has
+been peeled off: for fixed real part `a`, `Γ(a + i b)` has vertical decay
+`exp (-π |b| / 2)` and its reciprocal has the opposite exponential envelope,
+with the dual polynomial powers; cf. DLMF §5.11. -/
+theorem verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard
+    (a : ℝ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ b : ℝ,
+        1 / 2 ≤ ‖b‖ →
+        ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+          C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+            (1 + ‖b‖) ^ (a - 1 / 2) ∧
+        ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+          C * Real.exp ((Real.pi / 2) * ‖b‖) *
+            (1 + ‖b‖) ^ (1 / 2 - a) := by
+  sorry
+
 /-- The direct fixed-real-part vertical Stirling norm estimate for `Complex.Gamma`.
 
 This is the canonical special-function owner input after the `π`-normalization has
@@ -2248,7 +2281,11 @@ theorem verticalComplexGammaStirling_fixedRealPart_norm_core_bound_standard
         ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
           C * Real.exp (-(Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (a - 1 / 2) := by
-  sorry
+  rcases verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
+    ⟨C, hC_pos, hC⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro b hb
+  exact (hC b hb).1
 
 /-- The reciprocal fixed-real-part vertical Stirling estimate for `Complex.Gamma`.
 
@@ -2264,7 +2301,11 @@ theorem verticalComplexGammaStirling_fixedRealPart_reciprocal_core_bound_standar
         ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
           C * Real.exp ((Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (1 / 2 - a) := by
-  sorry
+  rcases verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
+    ⟨C, hC_pos, hC⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro b hb
+  exact (hC b hb).2
 
 /-- The fixed-real-part direct Stirling envelope factor is nonnegative. -/
 theorem fixedRealPart_gamma_norm_envelope_nonneg
@@ -4475,19 +4516,58 @@ theorem abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
   exact abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
     t ha hab hf_diff hf_int
 
-/-- The exact Abel/Euler-Maclaurin tail estimate after truncation at
+/-- Abel summation with the canonical boundary-line cutoff as the left endpoint.
+The floor terms are kept visible so this remains a direct transport of mathlib's
+finite Abel identity. -/
+theorem abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
+    (t : ℝ)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hf_diff :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
+    (hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ))) :
+    ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
+      ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
+          (∑ k ∈ Finset.Icc 0 ⌊((M : ℕ) : ℝ)⌋₊,
+            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+        (((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          (∑ k ∈ Finset.Icc 0 ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊,
+            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+        ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
+              (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+  exact abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
+    t hNM hf_diff hf_int
+
+/-- Classical Euler-Maclaurin tail estimate after truncation at
 `N = ⌊2 + |t|⌋₊`.
 
 This is the remaining analytic input: Abel summation controls the oscillatory tail
 on `1 + it`, and Euler-Maclaurin bounds the endpoint remainder uniformly; cf.
 Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
-theorem eulerMaclaurin_riemannZeta_one_add_it_tail_after_cutoff_norm_le_one
+theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
   sorry
+
+/-- The exact Abel/Euler-Maclaurin tail estimate after truncation at
+`N = ⌊2 + |t|⌋₊`. -/
+theorem eulerMaclaurin_riemannZeta_one_add_it_tail_after_cutoff_norm_le_one
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+      ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
+  exact eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate t ht
 
 /-- Public Abel/Euler-Maclaurin zeta-tail root.  The proof is now only name
 transport from the canonical Euler-Maclaurin tail estimate at the exact cutoff. -/
