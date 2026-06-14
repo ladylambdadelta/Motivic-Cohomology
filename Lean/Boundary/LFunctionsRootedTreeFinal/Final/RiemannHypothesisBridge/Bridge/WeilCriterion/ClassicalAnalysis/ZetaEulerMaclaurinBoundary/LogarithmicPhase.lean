@@ -744,13 +744,72 @@ theorem Complex.realPhase_inv_norm_le_of_denominator_lower_bound
     _ = 2 * λ⁻¹ :=
       hhalf_inv
 
+/-- The `(-π, π]` representative is obtained by subtracting an integral
+multiple of `2π`. -/
+theorem Complex.realPhase_twoPi_toIocMod_integerDistance
+    (θ : ℝ) :
+    ∃ k : ℤ,
+      θ - (2 * Real.pi * (k : ℝ)) =
+        toIocMod Real.two_pi_pos (-Real.pi) θ := by
+  sorry
+
+/-- Chord estimate for a reduced angle in `(-π, π]`. -/
+theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
+    {ψ : ℝ}
+    (hψ : ψ ∈ Set.Ioc (-Real.pi) Real.pi) :
+    ‖ψ‖ ≤
+      2 * ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ := by
+  sorry
+
+/-- Period transport for the chord denominator. -/
+theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
+    (θ : ℝ) :
+    ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ =
+      ‖1 -
+        Complex.exp
+          (Complex.I *
+            (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ := by
+  sorry
+
 /-- Nearest-period representative chord estimate for the real unit circle. -/
 theorem Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm
     (θ : ℝ) :
     ∃ k : ℤ,
       ‖θ - (2 * Real.pi * (k : ℝ))‖ ≤
         2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
-  sorry
+  rcases Complex.realPhase_twoPi_toIocMod_integerDistance θ with ⟨k, hk⟩
+  refine ⟨k, ?_⟩
+  have hmem :
+      toIocMod Real.two_pi_pos (-Real.pi) θ ∈ Set.Ioc (-Real.pi) Real.pi := by
+    convert toIocMod_mem_Ioc Real.two_pi_pos (-Real.pi) θ using 1
+    ring
+  have hred :
+      ‖toIocMod Real.two_pi_pos (-Real.pi) θ‖ ≤
+        2 *
+          ‖1 -
+            Complex.exp
+              (Complex.I *
+                (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ :=
+    Complex.realPhase_reducedAngle_le_two_mul_chord_norm hmem
+  have hperiod :
+      2 *
+          ‖1 -
+            Complex.exp
+              (Complex.I *
+                (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ =
+        2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
+    exact congrArg (fun r : ℝ => 2 * r)
+      (Complex.realPhase_geometricDenominator_norm_eq_toIocMod θ).symm
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        ‖x‖ ≤ 2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖)
+      hk.symm
+      (Eq.subst
+        (motive := fun target : ℝ =>
+          ‖toIocMod Real.two_pi_pos (-Real.pi) θ‖ ≤ target)
+        hperiod
+        hred)
 
 /-- Chord lower bound on the unit circle from separation from `2πℤ`.
 
@@ -803,6 +862,62 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound
           exact (le_mul_iff_one_le_left hsum_nonneg).mpr (by norm_num)
         _ = 2 * (λ⁻¹ + 1) := rfl)
 
+/-- Finite Abel-transform norm assembly for one prefix. -/
+theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
+    {S boundary variation : ℂ}
+    {λ : ℝ}
+    (hS : S = boundary + variation)
+    (hboundary : ‖boundary‖ ≤ 2 * (λ⁻¹ + 1))
+    (hvariation : ‖variation‖ ≤ 6 * (λ⁻¹ + 1)) :
+    ‖S‖ ≤ 8 * (λ⁻¹ + 1) := by
+  have hnorm :
+      ‖S‖ ≤ ‖boundary‖ + ‖variation‖ := by
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ ‖boundary‖ + ‖variation‖)
+      hS.symm
+      (norm_add_le boundary variation)
+  have hsum :
+      ‖boundary‖ + ‖variation‖ ≤
+        2 * (λ⁻¹ + 1) + 6 * (λ⁻¹ + 1) :=
+    add_le_add hboundary hvariation
+  have hcombine :
+      2 * (λ⁻¹ + 1) + 6 * (λ⁻¹ + 1) =
+        8 * (λ⁻¹ + 1) := by
+    ring
+  exact le_trans hnorm
+    (Eq.subst
+      (motive := fun target : ℝ =>
+        ‖boundary‖ + ‖variation‖ ≤ target)
+      hcombine.symm
+      hsum)
+
+/-- The finite Abel transform supplies boundary and variation terms satisfying
+the needed prefix bounds. -/
+theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab_lt : a < b)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹) :
+    ∃ boundary variation : ℂ,
+      (∑ n ∈ Finset.Icc a m,
+        Complex.exp (Complex.I * (φ n : ℂ))) =
+          boundary + variation ∧
+      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+  sorry
+
 /-- Prefix-sum form of the finite monotone-increment Dirichlet estimate.
 
 This is the actual finite summation-by-parts theorem: every initial segment of
@@ -827,7 +942,13 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
     ‖∑ n ∈ Finset.Icc a m,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
-  sorry
+  rcases
+    Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
+      φ ha hab_lt hm hλ_pos hinc_mono hden with
+    ⟨boundary, variation, hS, hboundary, hvariation⟩
+  exact
+    Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
+      hS hboundary hvariation
 
 /-- Norm estimate after the finite Abel transform for monotone adjacent
 frequencies. -/

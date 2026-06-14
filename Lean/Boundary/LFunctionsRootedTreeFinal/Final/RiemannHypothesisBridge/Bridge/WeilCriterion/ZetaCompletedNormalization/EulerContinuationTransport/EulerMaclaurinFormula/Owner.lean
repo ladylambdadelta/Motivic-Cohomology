@@ -764,6 +764,81 @@ theorem eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg
     _ = (n : ℂ) ^ (-z) := by
       exact (Complex.cpow_neg (n : ℂ) z).symm
 
+/-- Pointwise transport between the Euler-Maclaurin function-tail notation and
+the Dirichlet reciprocal notation after a positive cutoff. -/
+theorem eulerMaclaurin_cpow_neg_postCutoffTail_terms_eq_one_div
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N) :
+    (fun n : ℕ =>
+      if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+      (fun n : ℕ =>
+        if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) := by
+  exact funext
+    (fun n : ℕ => by
+      by_cases hn : N < n
+      · have hn_pos : 0 < n :=
+          lt_trans hN hn
+        have hif_left :
+            (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+              (((n : ℕ) : ℝ) : ℂ) ^ (-z) :=
+          if_pos hn
+        have hif_right :
+            (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) =
+              (1 : ℂ) / ((n : ℂ) ^ z) :=
+          if_pos hn
+        have hcast : (((n : ℕ) : ℝ) : ℂ) = (n : ℂ) :=
+          Complex.ofReal_natCast n
+        have hpow :
+            (((n : ℕ) : ℝ) : ℂ) ^ (-z) =
+              (n : ℂ) ^ (-z) :=
+          congrArg (fun w : ℂ => w ^ (-z)) hcast
+        have hrecip :
+            (1 : ℂ) / ((n : ℂ) ^ z) = (n : ℂ) ^ (-z) :=
+          eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hn_pos
+        exact Eq.trans hif_left
+          (Eq.trans hpow (Eq.trans hrecip.symm hif_right.symm))
+      · have hif_left :
+            (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) = 0 :=
+          if_neg hn
+        have hif_right :
+            (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) = 0 :=
+          if_neg hn
+        exact Eq.trans hif_left hif_right.symm)
+
+/-- `HasSum` transport between the Euler-Maclaurin function-tail notation and
+the Dirichlet reciprocal notation after a positive cutoff. -/
+theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (S : ℂ) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
+      S ↔
+    HasSum
+      (fun n : ℕ =>
+        if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0)
+      S := by
+  have hterms :
+      (fun n : ℕ =>
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+        (fun n : ℕ =>
+          if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) :=
+    eulerMaclaurin_cpow_neg_postCutoffTail_terms_eq_one_div z N hN
+  constructor
+  · intro hsum
+    exact Eq.subst
+      (motive := fun f : ℕ → ℂ => HasSum f S)
+      hterms
+      hsum
+  · intro hsum
+    exact Eq.subst
+      (motive := fun f : ℕ → ℂ => HasSum f S)
+      hterms.symm
+      hsum
+
 /-- Standard first-order Euler-Maclaurin formula for the zeta complex-power
 post-cutoff tail in function notation.
 
@@ -898,38 +973,8 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
           if N < n then
             (1 : ℂ) / ((n : ℂ) ^ z)
           else
-            0) := by
-    exact funext
-      (fun n : ℕ => by
-        by_cases hn : N < n
-        · have hn_pos : 0 < n :=
-            lt_trans hN hn
-          have hif_left :
-              (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
-                (((n : ℕ) : ℝ) : ℂ) ^ (-z) :=
-            if_pos hn
-          have hif_right :
-              (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) =
-                (1 : ℂ) / ((n : ℂ) ^ z) :=
-            if_pos hn
-          have hcast : (((n : ℕ) : ℝ) : ℂ) = (n : ℂ) :=
-            Complex.ofReal_natCast n
-          have hpow :
-              (((n : ℕ) : ℝ) : ℂ) ^ (-z) =
-                (n : ℂ) ^ (-z) :=
-            congrArg (fun w : ℂ => w ^ (-z)) hcast
-          have hrecip :
-              (1 : ℂ) / ((n : ℂ) ^ z) = (n : ℂ) ^ (-z) :=
-            eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hn_pos
-          exact Eq.trans hif_left
-            (Eq.trans hpow (Eq.trans hrecip.symm hif_right.symm))
-        · have hif_left :
-              (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) = 0 :=
-            if_neg hn
-          have hif_right :
-              (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) = 0 :=
-            if_neg hn
-          exact Eq.trans hif_left hif_right.symm)
+            0) :=
+    eulerMaclaurin_cpow_neg_postCutoffTail_terms_eq_one_div z N hN
   have hsum_eq :
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +

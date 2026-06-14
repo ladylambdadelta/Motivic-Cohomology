@@ -70,6 +70,168 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
   exact
     Complex.Gamma_binetSecondFormula_positiveReal_classical_identity hx
 
+/-- The principal complex arctangent has derivative `1 / (1 + z^2)` away from
+its branch points `±I`. -/
+theorem Complex.arctan_hasDerivAt_of_ne_I_negI
+    {z : ℂ}
+    (hzI : z ≠ Complex.I)
+    (hznegI : z ≠ -Complex.I) :
+    HasDerivAt
+      Complex.arctan
+      ((1 : ℂ) / (1 + z ^ 2)) z := by
+  sorry
+
+/-- A point in the open right half-plane is nonzero. -/
+theorem Complex.ne_zero_of_re_pos
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    w ≠ 0 := by
+  intro hw
+  have hre_zero : w.re = 0 := by
+    simpa [hw]
+  exact (lt_irrefl (0 : ℝ)) (hw_re_pos.trans_eq hre_zero)
+
+/-- Adding a purely imaginary number to a point in the open right half-plane
+cannot give zero. -/
+theorem Complex.add_real_mul_I_ne_zero_of_re_pos
+    {w : ℂ} {t : ℝ}
+    (hw_re_pos : 0 < w.re) :
+    w + (t : ℂ) * Complex.I ≠ 0 := by
+  intro hzero
+  have hre_zero : (w + (t : ℂ) * Complex.I).re = 0 := by
+    simpa [hzero]
+  have hre_eq : (w + (t : ℂ) * Complex.I).re = w.re := by
+    simp [Complex.add_re, Complex.mul_re]
+  exact (lt_irrefl (0 : ℝ)) (hw_re_pos.trans_eq (hre_eq.symm.trans hre_zero))
+
+/-- Subtracting a purely imaginary number from a point in the open right
+half-plane cannot give zero. -/
+theorem Complex.sub_real_mul_I_ne_zero_of_re_pos
+    {w : ℂ} {t : ℝ}
+    (hw_re_pos : 0 < w.re) :
+    w - (t : ℂ) * Complex.I ≠ 0 := by
+  intro hzero
+  have hre_zero : (w - (t : ℂ) * Complex.I).re = 0 := by
+    simpa [hzero]
+  have hre_eq : (w - (t : ℂ) * Complex.I).re = w.re := by
+    simp [Complex.sub_re, Complex.mul_re]
+  exact (lt_irrefl (0 : ℝ)) (hw_re_pos.trans_eq (hre_eq.symm.trans hre_zero))
+
+/-- The algebraic denominator `w^2 + t^2` in the differentiated Binet kernel
+does not vanish in the open right half-plane. -/
+theorem Complex.binet_arctan_derivative_denominator_ne_zero
+    {t : ℝ} {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    w ^ 2 + (t : ℂ) ^ 2 ≠ 0 := by
+  have hplus :
+      w + (t : ℂ) * Complex.I ≠ 0 :=
+    Complex.add_real_mul_I_ne_zero_of_re_pos hw_re_pos
+  have hminus :
+      w - (t : ℂ) * Complex.I ≠ 0 :=
+    Complex.sub_real_mul_I_ne_zero_of_re_pos hw_re_pos
+  have hfactor :
+      (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I) =
+        w ^ 2 + (t : ℂ) ^ 2 := by
+    calc
+      (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I)
+          = w ^ 2 - ((t : ℂ) * Complex.I) ^ 2 := by
+            ring
+      _ = w ^ 2 + (t : ℂ) ^ 2 := by
+            simp [Complex.I_mul_I]
+  intro hzero
+  have hprod_zero :
+      (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I) = 0 :=
+    hfactor.trans hzero
+  exact
+    (mul_ne_zero hplus hminus) hprod_zero
+
+/-- For `t > 0`, the Binet arctangent argument avoids the branch point `I`
+in the open right half-plane. -/
+theorem Complex.binet_arctan_argument_ne_I
+    {t : ℝ} {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    (t : ℂ) / w ≠ Complex.I := by
+  intro h
+  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
+  have hzero : w + (t : ℂ) * Complex.I = 0 := by
+    have hmul : (t : ℂ) = Complex.I * w := by
+      calc
+        (t : ℂ) = ((t : ℂ) / w) * w := by
+          rw [div_mul_cancel₀ _ hw_ne]
+        _ = Complex.I * w := by
+          rw [h]
+    calc
+      w + (t : ℂ) * Complex.I
+          = w + (Complex.I * w) * Complex.I := by
+            rw [hmul]
+      _ = 0 := by
+            ring_nf
+  exact (Complex.add_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
+
+/-- For `t > 0`, the Binet arctangent argument avoids the branch point `-I`
+in the open right half-plane. -/
+theorem Complex.binet_arctan_argument_ne_negI
+    {t : ℝ} {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    (t : ℂ) / w ≠ -Complex.I := by
+  intro h
+  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
+  have hzero : w - (t : ℂ) * Complex.I = 0 := by
+    have hmul : (t : ℂ) = -Complex.I * w := by
+      calc
+        (t : ℂ) = ((t : ℂ) / w) * w := by
+          rw [div_mul_cancel₀ _ hw_ne]
+        _ = -Complex.I * w := by
+          rw [h]
+    calc
+      w - (t : ℂ) * Complex.I
+          = w - (-Complex.I * w) * Complex.I := by
+            rw [hmul]
+      _ = 0 := by
+            ring_nf
+  exact (Complex.sub_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
+
+/-- The arctangent derivative needed for the Binet kernel after composing
+`Complex.arctan` with `z ↦ (t : ℂ) / z` on the open right half-plane. -/
+theorem Complex.arctan_t_div_hasDerivAt
+    {t : ℝ} {w : ℂ}
+    (ht : 0 < t)
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ => Complex.arctan ((t : ℂ) / z))
+      (-(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) w := by
+  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
+  have harg_ne_I : (t : ℂ) / w ≠ Complex.I :=
+    Complex.binet_arctan_argument_ne_I hw_re_pos
+  have harg_ne_negI : (t : ℂ) / w ≠ -Complex.I :=
+    Complex.binet_arctan_argument_ne_negI hw_re_pos
+  have h_inner :
+      HasDerivAt
+        (fun z : ℂ => (t : ℂ) / z)
+        (-(t : ℂ) / w ^ 2) w := by
+    simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using
+      (hasDerivAt_inv hw_ne).const_mul (t : ℂ)
+  have h_outer :
+      HasDerivAt
+        Complex.arctan
+        ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) ((t : ℂ) / w) :=
+    Complex.arctan_hasDerivAt_of_ne_I_negI harg_ne_I harg_ne_negI
+  have hcomp :
+      HasDerivAt
+        (fun z : ℂ => Complex.arctan ((t : ℂ) / z))
+        (((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) *
+          (-(t : ℂ) / w ^ 2)) w := by
+    simpa [Function.comp_def] using h_outer.comp w h_inner
+  have hden_ne : w ^ 2 + (t : ℂ) ^ 2 ≠ 0 :=
+    Complex.binet_arctan_derivative_denominator_ne_zero hw_re_pos
+  have halg :
+      ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) *
+          (-(t : ℂ) / w ^ 2) =
+        -(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2) := by
+    field_simp [hw_ne, hden_ne]
+    ring
+  exact halg ▸ hcomp
+
 /-- Pointwise derivative of the arctangent kernel in Binet's second-formula
 remainder.  This is the branch-sensitive local analytic statement for
 `Complex.arctan`, specialized to the open right half-plane. -/
@@ -82,6 +244,77 @@ theorem Complex.binetSecondFormula_arctanKernel_hasDerivAt
         Complex.arctan ((t : ℂ) / z) /
           (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
       (Complex.binetSecondFormulaDerivativeKernel t w) w := by
+  simpa [Complex.binetSecondFormulaDerivativeKernel] using
+    (Complex.arctan_t_div_hasDerivAt ht hw_re_pos).div_const
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
+/-- A small ball around a point in the open right half-plane remains in the
+open right half-plane. -/
+theorem Complex.exists_ball_subset_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ, 0 < ε ∧ ∀ z : ℂ, ‖z - w‖ < ε → 0 < z.re := by
+  refine ⟨w.re / 2, half_pos hw_re_pos, ?_⟩
+  intro z hz
+  have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
+    simpa [Complex.norm_eq_abs, sub_re] using
+      (abs_re_le_abs (z - w))
+  have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
+    lt_of_le_of_lt hre_le_norm hz
+  have hre_lower : -(w.re / 2) < z.re - w.re :=
+    (abs_lt.mp hre_abs_lt).1
+  have hw_half_pos : 0 < w.re / 2 :=
+    half_pos hw_re_pos
+  have hhalf_lt_z : w.re / 2 < z.re := by
+    calc
+      w.re / 2 = w.re + (-(w.re / 2)) := by ring
+      _ < w.re + (z.re - w.re) :=
+        add_lt_add_left hre_lower w.re
+      _ = z.re := by ring
+  exact hw_half_pos.trans hhalf_lt_z
+
+/-- Local differentiability of the Binet arctangent kernel throughout a ball
+inside the open right half-plane, in the form required by mathlib's
+parameter-integral differentiation theorem. -/
+theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+      ∀ z : ℂ,
+        ‖z - w‖ < ε →
+          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            HasDerivAt
+              (fun u : ℂ =>
+                Complex.arctan ((t : ℂ) / u) /
+                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+              (Complex.binetSecondFormulaDerivativeKernel t z) z := by
+  rcases Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
+    ⟨ε, hε_pos, hε_subset⟩
+  refine ⟨ε, hε_pos, ?_⟩
+  intro z hz
+  filter_upwards
+    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
+    with t ht
+  exact
+    Complex.binetSecondFormula_arctanKernel_hasDerivAt
+      ht (hε_subset z hz)
+
+/-- Local integrable domination for the differentiated arctangent kernel on
+the positive `t`-axis, stated pointwise before passing to the restricted
+almost-everywhere filter. -/
+theorem Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+      ∃ g : ℝ → ℝ,
+        IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
+        ∀ z : ℂ,
+          ‖z - w‖ < ε →
+            ∀ t : ℝ,
+              t ∈ Set.Ioi (0 : ℝ) →
+                ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
   sorry
 
 /-- Local integrable domination for the differentiated arctangent kernel on
@@ -98,20 +331,32 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
           ‖z - w‖ < ε →
             ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
               ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
-  sorry
+  rcases
+    Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
+      hw_re_pos with
+    ⟨ε, hε_pos, g, hg_int, hg_bound⟩
+  refine ⟨ε, hε_pos, g, hg_int, ?_⟩
+  intro z hz
+  filter_upwards
+    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
+    with t ht
+  exact hg_bound z hz t ht
 
 /-- Integral derivative transport for the Binet second-formula remainder from
 the pointwise arctangent-kernel derivative and its local integrable majorant. -/
 theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
     {w : ℂ}
     (hkernel :
-      ∀ {t : ℝ},
-        0 < t →
-          HasDerivAt
-            (fun z : ℂ =>
-              Complex.arctan ((t : ℂ) / z) /
-                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
-            (Complex.binetSecondFormulaDerivativeKernel t w) w)
+      ∃ ε : ℝ,
+        0 < ε ∧
+        ∀ z : ℂ,
+          ‖z - w‖ < ε →
+            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+              HasDerivAt
+                (fun u : ℂ =>
+                  Complex.arctan ((t : ℂ) / u) /
+                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+                (Complex.binetSecondFormulaDerivativeKernel t z) z)
     (hdominated :
       ∃ ε : ℝ,
         0 < ε ∧
@@ -136,9 +381,8 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
   exact
     Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
-      (fun ht =>
-        Complex.binetSecondFormula_arctanKernel_hasDerivAt
-          ht hw_re_pos)
+      (Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
+        hw_re_pos)
       (Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
         hw_re_pos)
 
