@@ -2473,8 +2473,34 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_algebra
       congrArg
         (fun u : ℂ => deriv G z * (u * (G z)⁻¹))
         hreconstruct_z
-    _ = G 0 * (Complex.exp (P z) * (deriv G z * (G z)⁻¹)) := by
-      sorry
+    _ = deriv G z * ((G 0 * Complex.exp (P z)) * (G z)⁻¹) :=
+      congrArg
+        (fun u : ℂ => deriv G z * u)
+        (mul_assoc (G 0) (Complex.exp (P z)) (G z)⁻¹)
+    _ = deriv G z * (G 0 * (Complex.exp (P z) * (G z)⁻¹)) :=
+      congrArg
+        (fun u : ℂ => deriv G z * u)
+        (mul_assoc (G 0) (Complex.exp (P z)) (G z)⁻¹).symm
+    _ = (deriv G z * G 0) * (Complex.exp (P z) * (G z)⁻¹) :=
+      (mul_assoc (deriv G z) (G 0) (Complex.exp (P z) * (G z)⁻¹)).symm
+    _ = (G 0 * deriv G z) * (Complex.exp (P z) * (G z)⁻¹) :=
+      congrArg
+        (fun u : ℂ => u * (Complex.exp (P z) * (G z)⁻¹))
+        (mul_comm (deriv G z) (G 0))
+    _ = G 0 * (deriv G z * (Complex.exp (P z) * (G z)⁻¹)) :=
+      mul_assoc (G 0) (deriv G z) (Complex.exp (P z) * (G z)⁻¹)
+    _ = G 0 * ((deriv G z * Complex.exp (P z)) * (G z)⁻¹) :=
+      congrArg
+        (fun u : ℂ => G 0 * u)
+        (mul_assoc (deriv G z) (Complex.exp (P z)) (G z)⁻¹).symm
+    _ = G 0 * ((Complex.exp (P z) * deriv G z) * (G z)⁻¹) :=
+      congrArg
+        (fun u : ℂ => G 0 * (u * (G z)⁻¹))
+        (mul_comm (deriv G z) (Complex.exp (P z)))
+    _ = G 0 * (Complex.exp (P z) * (deriv G z * (G z)⁻¹)) :=
+      congrArg
+        (fun u : ℂ => G 0 * u)
+        (mul_assoc (Complex.exp (P z)) (deriv G z) (G z)⁻¹)
 
 /-- Normalized ODE reconstruction root for the logarithmic derivative model on a
 convex Jensen disk.  The proof is the radial FTC argument for
@@ -2545,6 +2571,32 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
       G P (hzero z hz) hreconstruct_z
   exact Eq.trans halgebra (Eq.symm hmodel_formula)
 
+/-- Radial FTC owner lemma for equality propagation on a convex Jensen disk.
+
+For a fixed endpoint `z`, apply the real interval fundamental theorem of
+calculus to
+`t ↦ F ((t : ℂ) • z) - H ((t : ℂ) • z)` on `[0,1]`.  Convexity keeps the
+radial segment in the closed disk, the complex chain rule identifies the real
+derivative with the complex derivative paired with `z`, and `hderiv` makes that
+derivative zero.  The interval value is therefore constant, so the endpoint
+value equals the center value. -/
+theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center
+    (F H : ℂ → ℂ)
+    {ρ : ℝ}
+    (hF : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ F z)
+    (hH : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ H z)
+    (hρ : 0 ≤ ρ)
+    (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
+    (hderiv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv F z = deriv H z)
+    (hcenter : F 0 = H 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    F z = H z := by
+  sorry
+
 /-- Radial identity principle on the Jensen disk.  This is the canonical
 closed-disk propagation root: restrict to the segment `t ↦ t • z`, integrate
 the derivative of `F - H`, and use convexity to keep the segment inside the
@@ -2564,7 +2616,9 @@ theorem entireFunction_convexClosedDisk_eq_on_radialSegment_of_deriv_eq_and_cent
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       F z = H z := by
-  sorry
+  fun z hz =>
+    entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center
+      F H hF hH hρ hconvex hderiv hcenter hz
 
 /-- Equality propagation on a convex Jensen disk from derivative equality and a
 center value. -/
@@ -4750,9 +4804,41 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
           (w - (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ) •
             g w := by
-  -- Deep local analytic root: support membership gives a genuine isolated
-  -- finite-order zero, so `AnalyticAt.order_eq_nat_iff` supplies the first
-  -- nonzero Taylor factor with the file's multiplicity exponent.
+  have horder :
+      (hF (z : ℂ)).order =
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ENat) := by
+    -- Deep local analytic root: support membership gives a genuine isolated
+    -- finite-order zero, so the analytic order is the finite multiplicity
+    -- exponent used in the Jensen divisor.
+    sorry
+  exact
+    entireFunction_localMultiplicityFactorization
+      F hF (z : ℂ) horder
+
+/-- Canonical finite removable quotient after extracting the Jensen support
+divisor.
+
+The construction removes the finite set of quotient singularities by the local
+Taylor factors at the support zeros and agrees with the raw quotient away from
+that finite support. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w) ∧
+      Q 0 = F 0 := by
+  -- Deep finite removable-extension root: destruct the local multiplicity
+  -- factors at the finite Jensen support and glue them with the raw quotient
+  -- on the complement.
   sorry
 
 /-- Away from the finite support, the raw quotient is the required local
@@ -4831,9 +4917,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w) ∧
       Q 0 = F 0 := by
-  -- Deep removable-singularity root: extend the punctured quotient across the
-  -- finite support using the local multiplicity factors above.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_ownerRoot
+      F hF hF0 ρ hρ
 
 /-- Maximal-multiplicity zero-freeness for the removable quotient.
 

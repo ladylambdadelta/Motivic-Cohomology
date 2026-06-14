@@ -1,4 +1,7 @@
 import Mathlib.Analysis.Analytic.IsolatedZeros
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.Complex.ReImTopology
+import Mathlib.Data.Complex.Basic
 
 /-!
 # Analytic order lemmas for zeta-side zero multiplicities

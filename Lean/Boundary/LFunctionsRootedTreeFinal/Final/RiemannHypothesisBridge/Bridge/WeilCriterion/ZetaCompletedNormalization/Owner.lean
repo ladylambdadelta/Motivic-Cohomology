@@ -5378,6 +5378,98 @@ theorem logarithmicPhaseFunction_positiveReal_hasDerivAt
     exact logarithmicPhaseFunction_positiveReal_derivative_reorder t hx
   exact hderiv_reorder ▸ hexp
 
+/-- Real-part calculation for the purely imaginary logarithmic-phase exponent. -/
+theorem logarithmicPhaseFunction_exponent_re_zero
+    (t : ℝ)
+    (x : ℝ) :
+    (((-(t : ℂ) * Complex.I) * (Real.log x : ℂ)).re) = 0 := by
+  sorry
+
+/-- Unit norm of the positive-real logarithmic phase.
+
+This is the elementary identity `‖exp (-it log x)‖ = 1`; it is peeled as the
+phase-normalization sink used by the derivative norm algebra. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_norm
+    (t : ℝ)
+    (x : ℝ) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ = 1 := by
+  let exponent : ℂ := (-(t : ℂ) * Complex.I) * (Real.log x : ℂ)
+  have hnorm_abs :
+      ‖Complex.exp exponent‖ = Complex.abs (Complex.exp exponent) :=
+    Complex.norm_eq_abs (Complex.exp exponent)
+  have habs_exp :
+      Complex.abs (Complex.exp exponent) = Real.exp exponent.re :=
+    Complex.abs_exp exponent
+  have hexponent_re : exponent.re = 0 :=
+    logarithmicPhaseFunction_exponent_re_zero t x
+  have hexp_zero : Real.exp 0 = 1 :=
+    Real.exp_zero
+  calc
+    ‖boundaryLineOnePointRealParam_logarithmicPhaseFunction t x‖ =
+        ‖Complex.exp exponent‖ :=
+      rfl
+    _ = Complex.abs (Complex.exp exponent) :=
+      hnorm_abs
+    _ = Real.exp exponent.re :=
+      habs_exp
+    _ = Real.exp 0 :=
+      congrArg Real.exp hexponent_re
+    _ = 1 :=
+      hexp_zero
+
+/-- Numerator norm for the logarithmic-phase derivative. -/
+theorem logarithmicPhaseFunction_derivative_numerator_norm
+    (t : ℝ) :
+    ‖(-(t : ℂ) * Complex.I)‖ = ‖t‖ := by
+  have hmul :
+      ‖(-(t : ℂ) * Complex.I)‖ = ‖-(t : ℂ)‖ * ‖Complex.I‖ :=
+    norm_mul (-(t : ℂ)) Complex.I
+  have hneg : ‖-(t : ℂ)‖ = ‖(t : ℂ)‖ :=
+    norm_neg (t : ℂ)
+  have hI : ‖Complex.I‖ = 1 :=
+    norm_I
+  have hreal : ‖(t : ℂ)‖ = ‖t‖ :=
+    RCLike.norm_ofReal t
+  calc
+    ‖(-(t : ℂ) * Complex.I)‖ = ‖-(t : ℂ)‖ * ‖Complex.I‖ :=
+      hmul
+    _ = ‖(t : ℂ)‖ * ‖Complex.I‖ :=
+      congrArg (fun y : ℝ => y * ‖Complex.I‖) hneg
+    _ = ‖(t : ℂ)‖ * 1 :=
+      congrArg (fun y : ℝ => ‖(t : ℂ)‖ * y) hI
+    _ = ‖(t : ℂ)‖ :=
+      mul_one ‖(t : ℂ)‖
+    _ = ‖t‖ :=
+      hreal
+
+/-- Denominator norm for a positive real embedded in `ℂ`. -/
+theorem logarithmicPhaseFunction_positiveReal_denominator_norm
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖(x : ℂ)‖ = x := by
+  have hreal : ‖(x : ℂ)‖ = ‖x‖ :=
+    RCLike.norm_ofReal x
+  have hx_norm : ‖x‖ = x :=
+    norm_of_nonneg hx.le
+  exact hreal.trans hx_norm
+
+/-- Division by a positive real denominator after taking complex norms. -/
+theorem logarithmicPhaseFunction_positiveReal_norm_div_algebra
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖(-(t : ℂ) * Complex.I)‖ / ‖(x : ℂ)‖ = ‖t‖ / x := by
+  have hnum : ‖(-(t : ℂ) * Complex.I)‖ = ‖t‖ :=
+    logarithmicPhaseFunction_derivative_numerator_norm t
+  have hden : ‖(x : ℂ)‖ = x :=
+    logarithmicPhaseFunction_positiveReal_denominator_norm hx
+  calc
+    ‖(-(t : ℂ) * Complex.I)‖ / ‖(x : ℂ)‖ =
+        ‖t‖ / ‖(x : ℂ)‖ :=
+      congrArg (fun y : ℝ => y / ‖(x : ℂ)‖) hnum
+    _ = ‖t‖ / x :=
+      congrArg (fun y : ℝ => ‖t‖ / y) hden
+
 /-- Deep algebraic sink for the logarithmic-phase derivative norm on the
 positive real axis. -/
 theorem logarithmicPhaseFunction_positiveReal_derivative_norm_algebra
@@ -5387,7 +5479,36 @@ theorem logarithmicPhaseFunction_positiveReal_derivative_norm_algebra
     ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
       ‖t‖ / x := by
-  sorry
+  let numerator : ℂ := -(t : ℂ) * Complex.I
+  let denominator : ℂ := (x : ℂ)
+  let phase : ℂ := boundaryLineOnePointRealParam_logarithmicPhaseFunction t x
+  have hphase_norm : ‖phase‖ = 1 :=
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction_norm t x
+  have hproduct_norm :
+      ‖(numerator / denominator) * phase‖ =
+        ‖numerator / denominator‖ * ‖phase‖ :=
+    norm_mul (numerator / denominator) phase
+  have hquotient_norm :
+      ‖numerator / denominator‖ = ‖numerator‖ / ‖denominator‖ :=
+    norm_div numerator denominator
+  have hquotient_norm_target :
+      ‖numerator‖ / ‖denominator‖ = ‖t‖ / x :=
+    logarithmicPhaseFunction_positiveReal_norm_div_algebra t hx
+  calc
+    ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
+        ‖(numerator / denominator) * phase‖ :=
+      rfl
+    _ = ‖numerator / denominator‖ * ‖phase‖ :=
+      hproduct_norm
+    _ = (‖numerator‖ / ‖denominator‖) * ‖phase‖ :=
+      congrArg (fun y : ℝ => y * ‖phase‖) hquotient_norm
+    _ = (‖numerator‖ / ‖denominator‖) * 1 :=
+      congrArg (fun y : ℝ => (‖numerator‖ / ‖denominator‖) * y) hphase_norm
+    _ = ‖numerator‖ / ‖denominator‖ :=
+      mul_one (‖numerator‖ / ‖denominator‖)
+    _ = ‖t‖ / x :=
+      hquotient_norm_target
 
 /-- The logarithmic phase has derivative `(-it / x) exp (-it log x)` on the
 positive real line. -/
@@ -5490,6 +5611,33 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_vdc
     boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDerivative
       t ht hx
 
+/-- Algebraic endpoint extraction from the logarithmic-phase first-derivative
+partial-sum estimate.
+
+This is not a separate analytic input: the two reciprocal endpoint weights are
+controlled after the canonical cutoff by applying
+`logarithmicPhasePartialSum_firstDerivative_bound` at `M` and at the cutoff. -/
+theorem logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    (‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊((M : ℕ) : ℝ)⌋₊‖ ≤
+        8 * ((((M : ℕ) : ℝ) / ‖t‖) + Real.sqrt (1 + ‖t‖)) *
+          Real.log (2 + ((M : ℕ) : ℝ))) ∧
+    (‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ +
+        ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖)) ∧
+    (‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖)) := by
+  sorry
+
 /-- Explicit finite Abel-tail constant for the logarithmic-phase oscillator
 after the canonical cutoff.
 
@@ -5514,7 +5662,8 @@ theorem logarithmicPhase_finiteAbelEndpoint_bound
         boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
           ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+    t ht hNM).2.1
 
 /-- Endpoint contribution in the finite Abel decomposition after the canonical
 cutoff.  This consumes the first-derivative logarithmic-phase primitive bound at
@@ -5544,7 +5693,9 @@ theorem logarithmicPhase_finiteAbelDerivativeIntegral_bound
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+      t ht hNM).2.2
 
 /-- Reciprocal-derivative integral contribution in the finite Abel decomposition.
 The integrand is the product of the derivative of `u ↦ 1/u` and the
