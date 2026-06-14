@@ -717,10 +717,8 @@ theorem eventuallyEq_punctured_nhdsWithin_has_subinterval_aeEq
         ∀ᵐ x ∂MeasureTheory.volume.restrict (Ι u' v'), x ≠ c :=
       MeasureTheory.ae_restrict_of_ae
         ((Set.countable_singleton c).ae_not_mem MeasureTheory.volume)
-    filter_upwards [hne] with x hxc
+    filter_upwards [hne, MeasureTheory.ae_restrict_mem measurableSet_uIoc] with x hxc hx_uIoc
     have hx_lr : x ∈ Set.Ioo l r := by
-      have hx_uIoc : x ∈ Ι u' v' := by
-        exact Filter.mem_of_superset self_mem_nhdsWithin (fun y hy => hy) x
       have hx_uIcc : x ∈ [[u', v']] := Set.uIoc_subset_uIcc hx_uIoc
       have hx_Icc : x ∈ Set.Icc u' v' := by
         rw [Set.uIcc_of_le (le_of_lt (hu'_c.trans hc_v'))] at hx_uIcc
@@ -983,6 +981,11 @@ theorem doubled_radius_pos_of_one_le {R : ℝ} (hR : 1 ≤ R) :
     0 < 2 * R := by
   nlinarith
 
+/-- The doubled radius is at least one for `R ≥ 1`. -/
+theorem one_le_doubled_radius_of_one_le {R : ℝ} (hR : 1 ≤ R) :
+    1 ≤ 2 * R := by
+  nlinarith
+
 /-- A nonzero point in the closed disk of radius `R` has at least the standard
 `log 2` radial Jensen gap when the boundary radius is `2R`. -/
 theorem log_two_le_log_doubled_radius_div_norm
@@ -1148,6 +1151,23 @@ theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
         exact hF0 hzF
       exact if_neg hz₀
     exact hzero.symm ▸ summable_zero
+
+/-- The origin multiplicity contribution used when the Jensen radial-gap sum is
+written only over nonzero zeros. -/
+noncomputable def entireFunctionOriginMultiplicityLogContribution
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z) : ℝ :=
+  (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2
+
+/-- The origin Taylor-factor contribution on the Jensen circle of radius `ρ`.
+
+For `F(z)=z^m G(z)` near the origin, this term is `m log ρ` in the boundary
+logarithmic average. -/
+noncomputable def entireFunctionOriginMultiplicityLogRadiusContribution
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) : ℝ :=
+  (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log ρ
 
 /-- The origin-supported closed-disk summand is bounded by the fixed origin
 Taylor contribution. -/
@@ -1408,13 +1428,6 @@ theorem entireFunctionNonzeroZeroMultiplicityCountingInClosedDisk_mul_log_two_le
           F hF hR z)
       hclosed_scaled
       hgap)
-
-/-- The origin multiplicity contribution used when the Jensen radial-gap sum is
-written only over nonzero zeros. -/
-noncomputable def entireFunctionOriginMultiplicityLogContribution
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z) : ℝ :=
-  (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2
 
 /-- Reattaching the origin Taylor factor: the full closed-disk count is bounded
 by the non-origin count plus the fixed origin contribution. -/
