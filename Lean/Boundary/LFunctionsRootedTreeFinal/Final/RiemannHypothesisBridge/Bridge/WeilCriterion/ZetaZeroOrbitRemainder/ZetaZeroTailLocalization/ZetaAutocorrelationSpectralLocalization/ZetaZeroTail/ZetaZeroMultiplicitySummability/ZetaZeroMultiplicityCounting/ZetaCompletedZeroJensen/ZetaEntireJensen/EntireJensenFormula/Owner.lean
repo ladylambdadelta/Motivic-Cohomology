@@ -2671,7 +2671,16 @@ theorem unitCircleLogKernel_halfSineLog_intervalIntegrable :
       ((0 : ℝ) / (1 / 2)) = 0 ∧ Real.pi / (1 / 2) = 2 * Real.pi := by
     constructor
     · exact zero_div (1 / 2)
-    · sorry
+    · have hhalf_ne : (1 / 2 : ℝ) ≠ 0 :=
+        one_div_ne_zero two_ne_zero
+      have hmul :
+          (2 * Real.pi) * (1 / 2 : ℝ) = Real.pi := by
+        calc
+          (2 * Real.pi) * (1 / 2 : ℝ) = (2 * Real.pi) / 2 := by
+            exact mul_one_div (2 * Real.pi) 2
+          _ = Real.pi := by
+            exact mul_div_cancel_left₀ Real.pi two_ne_zero
+      exact ((eq_div_iff_mul_eq hhalf_ne).2 hmul).symm
   have harg :
       (fun θ : ℝ => Real.log |Real.sin (θ * (1 / 2))|) =
         (fun θ : ℝ => Real.log |Real.sin (θ / 2)|) := by
