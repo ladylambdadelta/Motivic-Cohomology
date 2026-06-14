@@ -2555,6 +2555,48 @@ def Complex.fixedRealPartVerticalGammaLowerRatio
   ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
     Complex.fixedRealPartVerticalStirlingEnvelope a b
 
+/-- The fixed-line compact-height set is compact. -/
+theorem Complex.fixedRealPartVerticalCompactHeightSet_isCompact
+    (H : ℝ) :
+    IsCompact (Complex.fixedRealPartVerticalCompactHeightSet H) := by
+  have hclosed_inner : IsClosed {b : ℝ | (1 / 2 : ℝ) ≤ ‖b‖} :=
+    isClosed_Ici.preimage continuous_norm
+  have hclosed_outer : IsClosed {b : ℝ | ‖b‖ ≤ H} :=
+    isClosed_Iic.preimage continuous_norm
+  have hclosed :
+      IsClosed (Complex.fixedRealPartVerticalCompactHeightSet H) :=
+    hclosed_inner.inter hclosed_outer
+  have hsubset :
+      Complex.fixedRealPartVerticalCompactHeightSet H ⊆ Set.Icc (-H) H := by
+    intro b hb
+    have hb_abs_le : |b| ≤ H := by
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ H)
+        (Real.norm_eq_abs b)
+        hb.2
+    exact abs_le.mp hb_abs_le
+  exact isCompact_Icc.of_isClosed_subset hclosed hsubset
+
+/-- The fixed-line compact-height set is nonempty once `H ≥ 1 / 2`. -/
+theorem Complex.fixedRealPartVerticalCompactHeightSet_nonempty
+    {H : ℝ}
+    (hH : (1 / 2 : ℝ) ≤ H) :
+    (Complex.fixedRealPartVerticalCompactHeightSet H).Nonempty := by
+  refine ⟨(1 / 2 : ℝ), ?_⟩
+  have hhalf_nonneg : (0 : ℝ) ≤ 1 / 2 :=
+    le_of_lt (half_pos zero_lt_one)
+  have hnorm_half : ‖(1 / 2 : ℝ)‖ = 1 / 2 :=
+    Real.norm_of_nonneg hhalf_nonneg
+  exact
+    ⟨Eq.subst
+        (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+        hnorm_half.symm
+        (le_refl (1 / 2 : ℝ)),
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ H)
+        hnorm_half.symm
+        hH⟩
+
 /-- `Gamma` is nonzero on the fixed-line compact-height strip. -/
 theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
     {a H b : ℝ}
@@ -2590,6 +2632,162 @@ theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
         (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
         hnorm_zero hb.1)
 
+/-- The fixed-line Gamma ratio is continuous on compact-height sets. -/
+theorem Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight
+    (a H : ℝ) :
+    ContinuousOn
+      (fun b : ℝ =>
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
+          Complex.fixedRealPartVerticalStirlingEnvelope a b)
+      (Complex.fixedRealPartVerticalCompactHeightSet H) := by
+  intro b hb
+  have hgamma_ne :
+      Complex.Gamma (Complex.fixedRealPartVerticalPoint a b) ≠ 0 :=
+    Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight hb
+  have hpole_free :
+      ∀ n : ℕ, Complex.fixedRealPartVerticalPoint a b ≠ -n := by
+    intro n hn
+    exact hgamma_ne ((Complex.Gamma_eq_zero_iff
+      (Complex.fixedRealPartVerticalPoint a b)).mpr ⟨n, hn⟩)
+  have hpoint_cont :
+      ContinuousAt (fun x : ℝ => Complex.fixedRealPartVerticalPoint a x) b := by
+    unfold Complex.fixedRealPartVerticalPoint
+    exact continuousAt_const.add
+      (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
+  have hgamma_cont :
+      ContinuousAt
+        (fun x : ℝ => Complex.Gamma (Complex.fixedRealPartVerticalPoint a x))
+        b :=
+    (Complex.differentiableAt_Gamma
+      (Complex.fixedRealPartVerticalPoint a b) hpole_free).continuousAt.comp
+      hpoint_cont
+  have hnum_cont :
+      ContinuousAt
+        (fun x : ℝ => ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a x)‖)
+        b :=
+    hgamma_cont.norm
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  have henv_cont :
+      ContinuousAt
+        (fun x : ℝ => Complex.fixedRealPartVerticalStirlingEnvelope a x)
+        b := by
+    unfold Complex.fixedRealPartVerticalStirlingEnvelope
+    have hexp_arg_cont :
+        ContinuousAt (fun x : ℝ => (-(Real.pi / 2)) * ‖x‖) b :=
+      continuousAt_const.mul continuousAt_id.norm
+    have hpow_base_cont :
+        ContinuousAt (fun x : ℝ => 1 + ‖x‖) b :=
+      continuousAt_const.add continuousAt_id.norm
+    exact
+      hexp_arg_cont.rexp.mul
+        (hpow_base_cont.rpow_const (Or.inl hbase_pos.ne'))
+  have henv_ne :
+      Complex.fixedRealPartVerticalStirlingEnvelope a b ≠ 0 :=
+    ne_of_gt (Complex.fixedRealPartVerticalStirlingEnvelope_pos a b)
+  exact (hnum_cont.div henv_cont henv_ne).continuousWithinAt
+
+/-- The upper ratio is continuous on compact-height sets. -/
+theorem Complex.continuousOn_fixedRealPartVerticalGammaUpperRatio_compactHeight
+    (a H : ℝ) :
+    ContinuousOn
+      (fun b : ℝ => Complex.fixedRealPartVerticalGammaUpperRatio a b)
+      (Complex.fixedRealPartVerticalCompactHeightSet H) :=
+  Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight a H
+
+/-- The lower ratio is continuous on compact-height sets. -/
+theorem Complex.continuousOn_fixedRealPartVerticalGammaLowerRatio_compactHeight
+    (a H : ℝ) :
+    ContinuousOn
+      (fun b : ℝ => Complex.fixedRealPartVerticalGammaLowerRatio a b)
+      (Complex.fixedRealPartVerticalCompactHeightSet H) :=
+  Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight a H
+
+/-- The fixed-line Gamma ratio is nonnegative on compact-height sets. -/
+theorem Complex.fixedRealPartVerticalGammaRatio_nonneg_on_compactHeight
+    (a H : ℝ)
+    {b : ℝ}
+    (_hb : b ∈ Complex.fixedRealPartVerticalCompactHeightSet H) :
+    0 ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
+  have hnum_nonneg :
+      0 ≤ ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+    norm_nonneg (Complex.Gamma (Complex.fixedRealPartVerticalPoint a b))
+  have hden_pos :
+      0 < Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    Complex.fixedRealPartVerticalStirlingEnvelope_pos a b
+  have hden_nonneg :
+      0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    le_of_lt hden_pos
+  exact div_nonneg hnum_nonneg hden_nonneg
+
+/-- The fixed-line Gamma ratio is positive on compact-height sets. -/
+theorem Complex.fixedRealPartVerticalGammaRatio_pos_on_compactHeight
+    (a H : ℝ)
+    {b : ℝ}
+    (hb : b ∈ Complex.fixedRealPartVerticalCompactHeightSet H) :
+    0 < Complex.fixedRealPartVerticalGammaLowerRatio a b := by
+  have hgamma_ne :
+      Complex.Gamma (Complex.fixedRealPartVerticalPoint a b) ≠ 0 :=
+    Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight hb
+  have hnum_pos :
+      0 < ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+    norm_pos_iff.mpr hgamma_ne
+  have hden_pos :
+      0 < Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    Complex.fixedRealPartVerticalStirlingEnvelope_pos a b
+  exact div_pos hnum_pos hden_pos
+
+/-- Compact-height upper ratio has a positive global upper bound. -/
+theorem Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
+    (a H : ℝ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ b : ℝ,
+        b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
+          Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C := by
+  rcases IsCompact.exists_bound_of_continuousOn
+      (Complex.fixedRealPartVerticalCompactHeightSet_isCompact H)
+      (Complex.continuousOn_fixedRealPartVerticalGammaUpperRatio_compactHeight
+        a H) with
+    ⟨M, hM⟩
+  let C : ℝ := max 1 M
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le zero_lt_one (le_max_left 1 M)
+  refine ⟨C, hC_pos, ?_⟩
+  intro b hb
+  exact le_trans (hM b hb) (le_max_right 1 M)
+
+/-- Compact-height lower ratio has a positive global lower bound. -/
+theorem Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
+    (a H : ℝ)
+    (hH_half : (1 / 2 : ℝ) ≤ H) :
+    ∃ c : ℝ,
+      0 < c ∧
+      ∀ b : ℝ,
+        b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
+          c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
+  have hcompact :
+      IsCompact (Complex.fixedRealPartVerticalCompactHeightSet H) :=
+    Complex.fixedRealPartVerticalCompactHeightSet_isCompact H
+  have hnonempty :
+      (Complex.fixedRealPartVerticalCompactHeightSet H).Nonempty :=
+    Complex.fixedRealPartVerticalCompactHeightSet_nonempty hH_half
+  have hcont :
+      ContinuousOn
+        (fun b : ℝ => Complex.fixedRealPartVerticalGammaLowerRatio a b)
+        (Complex.fixedRealPartVerticalCompactHeightSet H) :=
+    Complex.continuousOn_fixedRealPartVerticalGammaLowerRatio_compactHeight
+      a H
+  rcases hcompact.exists_isMinOn hnonempty hcont with
+    ⟨b₀, hb₀, hb₀_min⟩
+  let c : ℝ := Complex.fixedRealPartVerticalGammaLowerRatio a b₀
+  have hc_pos : 0 < c :=
+    Complex.fixedRealPartVerticalGammaRatio_pos_on_compactHeight a H hb₀
+  refine ⟨c, hc_pos, ?_⟩
+  intro b hb
+  exact hb₀_min b hb
+
 /-- Canonical compact-height ratio theorem for a fixed vertical line.
 
 The proof is the standard compactness argument: the height set is compact,
@@ -2605,7 +2803,25 @@ theorem Complex.fixedRealPartVerticalGammaRatio_compactHeight_bounds
         b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
           Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
           c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
-  sorry
+  rcases
+      Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
+        a H with
+    ⟨C, hC_pos, hC⟩
+  by_cases hH_half : (1 / 2 : ℝ) ≤ H
+  · rcases
+        Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
+          a H hH_half with
+      ⟨c, hc_pos, hc⟩
+    exact ⟨C, c, hC_pos, hc_pos, fun b hb => ⟨hC b hb, hc b hb⟩⟩
+  · have hhalf_lt_H : H < (1 / 2 : ℝ) :=
+      lt_of_not_ge hH_half
+    have hone_pos : (0 : ℝ) < 1 :=
+      zero_lt_one
+    refine ⟨C, 1, hC_pos, hone_pos, ?_⟩
+    intro b hb
+    have hle : (1 / 2 : ℝ) ≤ H :=
+      le_trans hb.1 hb.2
+    exact False.elim ((not_lt_of_ge hle) hhalf_lt_H)
 
 /-- Ratio bounds on the compact-height part of a fixed vertical line.
 
@@ -9183,6 +9399,16 @@ theorem abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
           0 := by
   sorry
 
+/-- The Abel damping parameter `r = exp (1 - σ)` tends to `1` from the left as
+`σ` tends to `1` from the right. -/
+theorem abel_damping_parameter_tendsto_left
+    :
+    Tendsto
+      (fun σ : ℝ => Real.exp (1 - σ))
+      (𝓝[>] (1 : ℝ))
+      (𝓝[<] (1 : ℝ)) := by
+  sorry
+
 /-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
 damped tail as `σ → 1+`. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
@@ -9195,7 +9421,44 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
             ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
-  sorry
+  have habstract :
+      ∀ᶠ r : ℝ in 𝓝[<] (1 : ℝ),
+        ‖∑' k : ℕ,
+          if ⌊2 + ‖t‖⌋₊ < k then
+            ((r : ℂ) ^ k) *
+              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+          else
+            0‖ ≤ C :=
+    abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
+      (u := fun k : ℕ =>
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+      (N := ⌊2 + ‖t‖⌋₊)
+      (C := C)
+      hfinite
+  have hpullback :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ‖∑' k : ℕ,
+          if ⌊2 + ‖t‖⌋₊ < k then
+            (((Real.exp (1 - σ) : ℝ) : ℂ) ^ k) *
+              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+          else
+            0‖ ≤ C :=
+    abel_damping_parameter_tendsto_left habstract
+  filter_upwards [self_mem_nhdsWithin, hpullback] with σ hσ hbound
+  have htail_eq :
+      abelBoundary_logarithmicPhase_dampedTail t σ =
+        ∑' k : ℕ,
+          if ⌊2 + ‖t‖⌋₊ < k then
+            (((Real.exp (1 - σ) : ℝ) : ℂ) ^ k) *
+              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+          else
+            0 :=
+    abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
+      t σ hσ
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ C)
+    htail_eq.symm
+    hbound
 
 /-- Abel damping theorem for a tail with bounded finite partial sums.
 
@@ -11432,6 +11695,30 @@ noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
     ((z - 1) / (((1 : ℂ) - z) - 1)) *
       (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
 
+/-- Nonzero left-half-plane normalization identity for the raw completed
+functional-equation multiplier.
+
+This is the exact algebraic identity obtained by unfolding
+`completedRiemannZeta_one_sub`, `riemannZeta_def_of_ne_zero`, and the
+pole-cleared definition away from both removable points. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0) :
+    poleClearedRiemannZeta z =
+      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
+/-- The removable point `z = 0` satisfies the pole-cleared completed-functional
+equation identity by the chosen multiplier value. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_zero :
+    poleClearedRiemannZeta 0 =
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 *
+        poleClearedRiemannZeta ((1 : ℂ) - 0) := by
+  sorry
+
 /-- Exact normalization identity for the removable completed-functional-equation
 multiplier of the pole-cleared zeta factor.
 
@@ -11443,13 +11730,74 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity
     poleClearedRiemannZeta z =
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
-  sorry
+  by_cases hz_zero : z = 0
+  · exact Eq.subst
+      (motive := fun w : ℂ =>
+        poleClearedRiemannZeta w =
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier w *
+            poleClearedRiemannZeta ((1 : ℂ) - w))
+      hz_zero.symm
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_zero
+  · have hraw :
+        poleClearedRiemannZeta z =
+          (((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+            poleClearedRiemannZeta ((1 : ℂ) - z) :=
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
+        hz hz_zero
+    have hM :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      exact if_neg hz_zero
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        poleClearedRiemannZeta z =
+          w * poleClearedRiemannZeta ((1 : ℂ) - z))
+      hM.symm
+      hraw
 
 /-- Finite-order envelope for the removable completed-functional-equation
 multiplier on the left half-plane.
 
 Analytically this is exactly the Gamma-ratio/Stirling estimate plus the
 removable boundedness at `z = 0`; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
+    (hraw :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          z ≠ 0 →
+          ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Raw multiplier finite-order growth on the left half-plane away from the
+removable point.  This is the exact place where Gamma/Stirling and the
+elementary pole-clearing factor enter. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -11458,6 +11806,67 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
         z.re ≤ 0 →
         ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
+
+/-- Finite-order envelopes are stable under the affine reflection `z ↦ 1 - z`
+on the left half-plane.
+
+This is the real-variable comparison needed by the completed-functional-equation
+transport: `z.re ≤ 0` implies `1 ≤ (1 - z).re`, and the affine height
+`1 + ‖1 - z‖` is controlled by a fixed polynomial in `1 + ‖z‖`. -/
+theorem finiteOrder_leftHalfPlane_reflection_growth_bound
+    (f : ℂ → ℂ)
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ w : ℂ,
+          1 ≤ w.re →
+          ‖f w‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖f ((1 : ℂ) - z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Product transport for a completed-functional-equation identity on a left
+half-plane.
+
+Once the multiplier has finite-order growth and the reflected function has
+finite-order growth, their product has finite-order growth.  This theorem is
+the reusable bookkeeping layer for the pole-cleared zeta transport. -/
+theorem finiteOrder_leftHalfPlane_growth_of_multiplier_reflection_identity
+    (f M : ℂ → ℂ)
+    (hM :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖M z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hreflected :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖f ((1 : ℂ) - z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hidentity :
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        f z = M z * f ((1 : ℂ) - z)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
@@ -11520,7 +11929,13 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunc
         z.re ≤ 0 →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases htransport with ⟨M, hM, hidentity⟩
+  exact
+    finiteOrder_leftHalfPlane_growth_of_multiplier_reflection_identity
+      poleClearedRiemannZeta M hM
+      (finiteOrder_leftHalfPlane_reflection_growth_bound
+        poleClearedRiemannZeta hright)
+      hidentity
 
 theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,

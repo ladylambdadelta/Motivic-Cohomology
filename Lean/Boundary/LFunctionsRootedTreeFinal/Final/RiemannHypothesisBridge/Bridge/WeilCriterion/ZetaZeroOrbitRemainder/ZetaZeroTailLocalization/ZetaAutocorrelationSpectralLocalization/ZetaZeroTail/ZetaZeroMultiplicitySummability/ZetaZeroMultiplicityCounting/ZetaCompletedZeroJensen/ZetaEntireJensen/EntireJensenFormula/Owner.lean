@@ -2471,9 +2471,114 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
         F hF hF0 ρ ∪
       entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
         F hF hF0 ρ := by
-  -- Finset split root: partition the closed support by `‖z‖ < ρ` and its
-  -- complement.
+  apply Finset.ext
+  intro z
+  constructor
+  · intro hz
+    by_cases hzρ : ‖(z : ℂ)‖ < ρ
+    · exact Finset.mem_union.2
+        (Or.inl (Finset.mem_filter.2 ⟨hz, hzρ⟩))
+    · exact Finset.mem_union.2
+        (Or.inr (Finset.mem_filter.2 ⟨hz, hzρ⟩))
+  · intro hz
+    rcases Finset.mem_union.1 hz with hz_int | hz_bd
+    · exact (Finset.mem_filter.1 hz_int).1
+    · exact (Finset.mem_filter.1 hz_bd).1
+
+/-- A nonzero zero strictly inside the Jensen circle has nonzero radial-gap
+summand. -/
+theorem entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) ≠ 0)
+    (hzρ : ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z ≠ 0 := by
+  -- Radial support membership root: analytic multiplicity at a zero is
+  -- positive, and `Real.log (ρ / ‖z‖)` is positive for `0 < ‖z‖ < ρ`.
   sorry
+
+/-- A closed-disk interior support member is a radial-gap support member. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor_subset_radialGapSupportFiniteZeroDivisor_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+      F hF hF0 ρ : Set (EntireFunctionZero F)) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ : Set (EntireFunctionZero F)) := by
+  intro z hz
+  have hz_closed :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ :=
+    (Finset.mem_filter.1 hz).1
+  have hzρ : ‖(z : ℂ)‖ < ρ :=
+    (Finset.mem_filter.1 hz).2
+  have hz0 : (z : ℂ) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
+      F hF hF0 ρ z hz_closed
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+    entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoot
+      F hF hF0 ρ z hz0 hzρ
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+      F hF hF0 ρ hsupport
+
+/-- A nonzero zero in the closed disk has nonzero nonzero-closed-disk
+multiplicity summand. -/
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zero_norm_le_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) ≠ 0)
+    (hzρ : ‖(z : ℂ)‖ ≤ ρ) :
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z ≠ 0 := by
+    -- Closed-support membership root: the nonzero closed-disk summand is the
+  -- positive analytic multiplicity of `F` at the nonzero zero `z`.
+  sorry
+
+/-- A radial-gap support member is a closed-disk interior support member. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+      F hF hF0 ρ : Set (EntireFunctionZero F)) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+        F hF hF0 ρ : Set (EntireFunctionZero F)) := by
+  intro z hz
+  have hz0 : (z : ℂ) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+      F hF hF0 ρ z hz
+  have hzρ : ‖(z : ℂ)‖ < ρ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
+      F hF hF0 ρ z hz
+  have hclosed_support :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ w) := by
+    have hzle : ‖(z : ℂ)‖ ≤ ρ :=
+      le_of_lt hzρ
+    exact
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zero_norm_le_ownerRoot
+        F hF hF0 ρ z hz0 hzle
+  have hz_closed :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+      F hF hF0 ρ hclosed_support
+  exact Finset.mem_filter.2 ⟨hz_closed, hzρ⟩
 
 /-- The strict-interior part of the closed-disk support agrees with the
 radial-gap support. -/
@@ -2486,9 +2591,17 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorS
         F hF hF0 ρ =
       entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
         F hF hF0 ρ := by
-  -- Support-identification root: both sides are the same finite set of
-  -- nonzero zeros with `‖z‖ < ρ` and positive multiplicity.
-  sorry
+  apply Finset.ext
+  intro z
+  constructor
+  · intro hz
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor_subset_radialGapSupportFiniteZeroDivisor_ownerRoot
+        F hF hF0 ρ hz
+  · intro hz
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor
+        F hF hF0 ρ hz
 
 /-- The radial-gap summand has the finite product divisor sum as its infinite
 sum. -/
@@ -2725,6 +2838,61 @@ noncomputable def complex_starConvexClosedBall_radialPrimitive
     (z : ℂ) : ℂ :=
   ∫ t in (0 : ℝ)..1, z * φ ((t : ℂ) • z)
 
+/-- The radial primitive is normalized to vanish at the center. -/
+theorem complex_starConvexClosedBall_radialPrimitive_zero
+    (φ : ℂ → ℂ) :
+    complex_starConvexClosedBall_radialPrimitive φ 0 = 0 := by
+  unfold complex_starConvexClosedBall_radialPrimitive
+  have hzero_integrand :
+      EqOn
+        (fun t : ℝ => (0 : ℂ) * φ ((t : ℂ) • (0 : ℂ)))
+        (fun _ : ℝ => (0 : ℂ))
+        [[(0 : ℝ), 1]] :=
+    fun t ht => zero_mul (φ ((t : ℂ) • (0 : ℂ)))
+  exact Eq.trans
+    (intervalIntegral.integral_congr hzero_integrand)
+    intervalIntegral.integral_zero
+
+/-- Analyticity of the radial segment primitive as a function of its endpoint. -/
+theorem complex_starConvexClosedBall_radialPrimitive_analyticAt
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z := by
+  sorry
+
+/-- Cauchy/FTC path-integral step for the radial primitive derivative. -/
+theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z := by
+  sorry
+
+/-- Derivative formula for the radial segment primitive. -/
+theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z :=
+  complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
+    φ hρ hstar hφ
+
 /-- Path-integral primitive theorem over radial segments in a star-convex
 closed ball.
 
@@ -2745,7 +2913,12 @@ theorem holomorphicOn_starConvexClosedBall_radialPrimitive
       ‖z‖ ≤ ρ →
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) ∧
     complex_starConvexClosedBall_radialPrimitive φ 0 = 0 := by
-  sorry
+  exact
+    ⟨complex_starConvexClosedBall_radialPrimitive_analyticAt
+        φ hρ hstar hφ,
+      complex_starConvexClosedBall_radialPrimitive_deriv_eq
+        φ hρ hstar hφ,
+      complex_starConvexClosedBall_radialPrimitive_zero φ⟩
 
 /-- Canonical primitive theorem for analytic functions on a star-convex closed
 ball.
