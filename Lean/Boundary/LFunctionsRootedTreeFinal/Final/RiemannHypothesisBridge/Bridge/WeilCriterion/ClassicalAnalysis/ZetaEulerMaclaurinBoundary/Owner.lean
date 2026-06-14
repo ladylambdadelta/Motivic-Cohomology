@@ -9,6 +9,7 @@ This file owns the classical estimates for zeta on the boundary line
 Dirichlet-series or tail statement here applies at `t = 0`.
 -/
 
+namespace Boundary
 namespace LFunctions
 
 noncomputable section
@@ -93,3 +94,4 @@ theorem Complex.poleClearedRiemannZeta_boundaryLine_growth_bound :
 end
 
 end LFunctions
+end Boundary
