@@ -501,6 +501,18 @@ theorem logLinearEnvelope_add_constants
     _ = (A + B) * H * L := by
       rfl
 
+/-- The log-linear envelope is monotone in its constant when the envelope
+factors are nonnegative. -/
+theorem logLinearEnvelope_mono_constant
+    {A B H L : ℝ}
+    (hAB : A ≤ B)
+    (hH : 0 ≤ H)
+    (hL : 0 ≤ L) :
+    A * H * L ≤ B * H * L := by
+  have hAH_le_BH : A * H ≤ B * H :=
+    mul_le_mul_of_nonneg_right hAB hH
+  exact mul_le_mul_of_nonneg_right hAH_le_BH hL
+
 /-- The logarithmic envelope on `2 + ‖z‖` has argument at least one. -/
 theorem one_le_two_add_complex_norm
     (z : ℂ) :
@@ -679,6 +691,219 @@ theorem Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStir
       (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
       herror
 
+/-- The normalized factor appearing in sectorial exponential Stirling for
+`Complex.Gamma`. -/
+def Complex.normalizedGammaStirlingFactor (w : ℂ) : ℂ :=
+  Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)
+
+/-- The logarithmic denominator loss incurred when solving the normalized
+Stirling factor for `log ‖Γ(w)‖`. -/
+def Complex.normalizedGammaStirlingLogLoss (w : ℂ) : ℝ :=
+  -w.re - Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖
+
+/-- A norm bound for the normalized Stirling factor gives the corresponding
+logarithmic bound. -/
+theorem Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
+    (B : ℝ)
+    {w : ℂ}
+    (hfactor_pos : 0 < ‖Complex.normalizedGammaStirlingFactor w‖)
+    (hbound : ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B) :
+    Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
+  Real.log_le_log hfactor_pos hbound
+
+/-- Nonvanishing of the normalized Stirling factor in the closed right
+half-plane away from the origin.
+
+This is the exact nonvanishing input for the large-radius extraction: `Γ` has
+no zeros off the nonpositive integers, `exp` never vanishes, and `w^α` is
+nonzero for `w ≠ 0`. -/
+theorem Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSector_largeRadius
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀)
+    {w : ℂ}
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_radius : R₀ ≤ ‖w‖) :
+    Complex.normalizedGammaStirlingFactor w ≠ 0 := by
+  sorry
+
+/-- Exact logarithmic extraction from the normalized Stirling factor.
+
+After expanding
+`‖Γ(w) exp(w) w^(1/2-w)‖`, this inequality solves for
+`log ‖Γ(w)‖`.  The loss term is precisely the exponential denominator
+`log ‖exp w‖ = w.re` and the principal-power denominator
+`log ‖w^(1/2-w)‖`. -/
+theorem Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
+    (w : ℂ)
+    (hfactor_ne : Complex.normalizedGammaStirlingFactor w ≠ 0) :
+    Real.log ‖Complex.Gamma w‖ ≤
+      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+        Complex.normalizedGammaStirlingLogLoss w := by
+  sorry
+
+/-- The branch/cpow logarithmic loss from normalized Stirling is absorbed by
+the standard log-linear envelope on the large-radius closed right half-plane. -/
+theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound
+    (B R₀ : ℝ)
+    (hB_pos : 0 < B)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Large-radius extraction from a normalized Stirling-factor bound to a
+logarithmic Gamma envelope.
+
+This is the branch-sensitive analytic core of the normalized-factor route:
+from
+`‖Γ(w) exp(w) w^(1/2-w)‖ ≤ B`, one expands the norm of `exp(w)` and the
+principal-branch norm of `w^(1/2-w)`, then bounds the resulting real part by
+`(1 + 2 ‖w‖) log (2 + 2 ‖w‖)` on the closed right half-plane. -/
+theorem Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound_largeRadius
+    (B R₀ : ℝ)
+    (hB_pos : 0 < B)
+    (hR₀_pos : 0 < R₀)
+    (hfactor :
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤ B) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  rcases Complex.normalizedGammaStirlingLogLoss_absorbs_logBound
+      B R₀ hB_pos hR₀_pos with
+    ⟨C, hC_pos, hloss⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro w hw_sector hw_radius
+  have hfactor_ne :
+      Complex.normalizedGammaStirlingFactor w ≠ 0 :=
+    Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSector_largeRadius
+      R₀ hR₀_pos hw_sector hw_radius
+  have hfactor_pos :
+      0 < ‖Complex.normalizedGammaStirlingFactor w‖ :=
+    norm_pos_iff.mpr hfactor_ne
+  have hfactor_bound :
+      ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B :=
+    hfactor w hw_sector hw_radius
+  have hfactor_log :
+      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
+    Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
+      B hfactor_pos hfactor_bound
+  have hgamma_extract :
+      Real.log ‖Complex.Gamma w‖ ≤
+        Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+          Complex.normalizedGammaStirlingLogLoss w :=
+    Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
+      w hfactor_ne
+  have hlog_plus_loss :
+      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+          Complex.normalizedGammaStirlingLogLoss w ≤
+        Real.log B + Complex.normalizedGammaStirlingLogLoss w :=
+    add_le_add_right hfactor_log
+      (Complex.normalizedGammaStirlingLogLoss w)
+  exact
+    le_trans hgamma_extract
+      (le_trans hlog_plus_loss (hloss w hw_sector hw_radius))
+
+/-- Compact annulus absorption for the logarithmic Gamma envelope in the closed
+right half-plane sector.
+
+This owns the local boundedness part omitted by the large-radius normalized
+Stirling estimate: on the compact annulus
+`0 ≤ re w`, `1 / 2 ≤ ‖w‖`, `‖w‖ ≤ R₀`, continuity of `Γ` and nonvanishing of
+`Γ` give a finite bound for `log ‖Γ(w)‖`, which is absorbed by the positive
+logarithmic envelope. -/
+theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        ‖w‖ ≤ R₀ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Assembly of large-radius extraction and compact-annulus absorption. -/
+theorem Complex.Gamma_log_norm_bound_of_largeRadius_and_compactAnnulus
+    (R₀ : ℝ)
+    (hlarge :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          R₀ ≤ ‖w‖ →
+          Real.log ‖Complex.Gamma w‖ ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖))
+    (hannulus :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          (1 / 2 : ℝ) ≤ ‖w‖ →
+          ‖w‖ ≤ R₀ →
+          Real.log ‖Complex.Gamma w‖ ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  rcases hlarge with ⟨Clarge, hClarge_pos, hlarge_bound⟩
+  rcases hannulus with ⟨Cannulus, hCannulus_pos, hannulus_bound⟩
+  refine ⟨max Clarge Cannulus,
+    lt_of_lt_of_le hClarge_pos (le_max_left Clarge Cannulus), ?_⟩
+  intro w hw_sector hw_norm
+  have htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
+    mul_nonneg zero_le_two (norm_nonneg w)
+  have hH_nonneg : 0 ≤ 1 + 2 * ‖w‖ :=
+    add_nonneg zero_le_one htwo_norm_nonneg
+  have hlog_arg_ge_one : (1 : ℝ) ≤ 2 + 2 * ‖w‖ := by
+    exact le_trans one_le_two (le_add_of_nonneg_right htwo_norm_nonneg)
+  have hL_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+    Real.log_nonneg hlog_arg_ge_one
+  by_cases hlarge_radius : R₀ ≤ ‖w‖
+  · have hraw :
+        Real.log ‖Complex.Gamma w‖ ≤
+          Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      hlarge_bound w hw_sector hlarge_radius
+    have hmono :
+        Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+          max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      logLinearEnvelope_mono_constant
+        (le_max_left Clarge Cannulus)
+        hH_nonneg
+        hL_nonneg
+    exact le_trans hraw hmono
+  · have hannulus_radius : ‖w‖ ≤ R₀ :=
+      le_of_not_ge hlarge_radius
+    have hraw :
+        Real.log ‖Complex.Gamma w‖ ≤
+          Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      hannulus_bound w hw_sector hw_norm hannulus_radius
+    have hmono :
+        Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+          max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      logLinearEnvelope_mono_constant
+        (le_max_right Clarge Cannulus)
+        hH_nonneg
+        hL_nonneg
+    exact le_trans hraw hmono
+
 /-- The remaining real/branch extraction from a uniform bound for
 `Γ(w) exp(w) w^(1/2-w)` to the logarithmic Gamma norm envelope.
 
@@ -702,7 +927,30 @@ theorem Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  have hlarge :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          R₀ ≤ ‖w‖ →
+          Real.log ‖Complex.Gamma w‖ ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound_largeRadius
+      B R₀ hB_pos hR₀_pos hfactor
+  have hannulus :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          (1 / 2 : ℝ) ≤ ‖w‖ →
+          ‖w‖ ≤ R₀ →
+          Real.log ‖Complex.Gamma w‖ ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus
+      R₀ hR₀_pos
+  exact
+    Complex.Gamma_log_norm_bound_of_largeRadius_and_compactAnnulus
+      R₀ hlarge hannulus
 
 /-- The elementary cutoff inequality used in the exponential-Stirling extraction:
 if the radius dominates `2K / sqrt (2π)`, then the normalized error term
@@ -8253,6 +8501,177 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
     ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
 
+/-- Pure real eventual domination of finite-order vertical envelopes by a
+double-exponential envelope.
+
+This is the exact real-variable core behind the admissible-growth conversion:
+for every `0 < c`, polynomial height in the exponent,
+`B * (1 + T)^m`, is eventually dominated by `D * exp (c * T)`.
+After exponentiating, the ordinary finite-order envelope is controlled by the
+subcritical Phragmen-Lindelöf growth envelope. -/
+theorem finiteOrder_verticalEnvelope_isBigO_doubleExponential
+    (A B c : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      (fun T : ℝ => A * Real.exp (B * (1 + T) ^ m)) =O[Filter.atTop]
+        fun T : ℝ => Real.exp (D * Real.exp (c * T)) := by
+  sorry
+
+/-- Bounded-strip height comparison in the exact form used by the
+finite-order-to-admissible-envelope transport. -/
+theorem strip_norm_height_le_vertical_height_envelope
+    (a b : ℝ)
+    {z : ℂ}
+    (hza : a ≤ z.re)
+    (hzb : z.re ≤ b) :
+    1 + ‖z‖ ≤ (|a| + |b| + 2) * (1 + ‖z.im‖) :=
+  strip_basicHeight_le_verticalHeight a b hza hzb
+
+/-- Bounded-strip finite-order envelopes are admissible double-exponential
+envelopes after reducing complex height to vertical height.
+
+The proof first uses `finiteOrder_norm_envelope_le_strip_vertical_envelope` to
+replace `1 + ‖z‖` by a fixed multiple of `1 + ‖im z‖` on the strip, then uses
+the pure real eventual domination theorem for the vertical envelope. -/
+theorem finiteOrder_stripEnvelope_isBigO_doubleExponential
+    (A B c a b : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      (fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m)) =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
+        fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
+
+/-- A pointwise finite-order bound on a strip gives the matching `IsBigO`
+bound against the finite-order envelope on the same strip filter. -/
+theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
+    (f : ℂ → ℂ)
+    (A B a b : ℝ)
+    (m : ℕ)
+    (hbound :
+      ∀ z : ℂ,
+        a ≤ z.re →
+        z.re ≤ b →
+        ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    f =O[
+        Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+          𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
+      fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- The closed-strip envelope domination can be used on the open-strip filter. -/
+theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
+    (A B c a b : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      (fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m)) =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
+        fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
+
+/-- The half-width Phragmen-Lindelöf growth parameter is strictly below the
+strip threshold. -/
+theorem real_pi_div_two_width_lt_pi_div_width
+    {a b : ℝ}
+    (hab : a < b) :
+    Real.pi / (2 * (b - a)) < Real.pi / (b - a) := by
+  sorry
+
+/-- Ordinary finite-order growth in a bounded vertical strip gives the
+subcritical double-exponential admissible-growth hypothesis used by the
+bounded-boundary Phragmen-Lindelöf theorem.
+
+This is the generic envelope conversion: on a fixed-width strip, every
+polynomial/exponential finite-order envelope
+`A * exp (B * (1 + ‖z‖)^m)` is eventually dominated by
+`exp (D * exp (c * |im z|))` for any positive `c`, so one chooses a small
+`c < π / (b - a)`. -/
+theorem strip_admissible_doubleExponential_growth_of_finiteOrder_growth
+    (f : ℂ → ℂ)
+    (a b : ℝ)
+    (hab : a < b)
+    (hfinite :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          a ≤ z.re →
+          z.re ≤ b →
+          ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ c : ℝ,
+      c < Real.pi / (b - a) ∧
+      ∃ D : ℝ,
+        f =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  rcases hfinite with ⟨A, B, m, hA, hB, hbound⟩
+  let c : ℝ := Real.pi / (2 * (b - a))
+  have hwidth_pos : 0 < b - a :=
+    sub_pos.mpr hab
+  have hc_pos : 0 < c := by
+    exact div_pos Real.pi_pos (mul_pos two_pos hwidth_pos)
+  have hc_lt : c < Real.pi / (b - a) :=
+    real_pi_div_two_width_lt_pi_div_width hab
+  rcases finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
+      A B c a b m hA hB hc_pos with
+    ⟨D, henv⟩
+  have hfunction :
+      f =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
+        fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+    finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
+      f A B a b m hbound
+  refine ⟨c, hc_lt, D, ?_⟩
+  exact hfunction.trans henv
+
+/-- Global finite-order growth for the pole-cleared Riemann zeta factor.
+
+This is the canonical standard zeta theorem behind the strip-local growth
+input: `(s - 1)ζ(s)` is an entire function of finite order.  Analytically this
+is proved from the meromorphic finite-order theory of `ζ`, using
+Euler-Maclaurin/Abel estimates in the right half-plane, the functional equation
+and Gamma/Stirling transport in the left half-plane, and local boundedness near
+the removable pole. -/
+theorem poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Zeta-specific ordinary finite-order growth for the pole-cleared factor in
+the right critical strip.
+
+This is only the restriction of the global finite-order theorem for
+`(s - 1)ζ(s)` to the closed right critical strip. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases poleClearedRiemannZeta_globalFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin with
+    ⟨A, B, m, hA, hB, hbound⟩
+  exact ⟨A, B, m, hA, hB, fun z _hz_left _hz_right => hbound z⟩
+
 /-- Standard finite-order theorem for the pole-cleared Riemann zeta factor in the right
 critical strip.
 
@@ -8267,10 +8686,13 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible
       c < Real.pi / (2 - 0) ∧
       ∃ D : ℝ,
         poleClearedRiemannZeta =O[
-            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
-              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  exact
+    strip_admissible_doubleExponential_growth_of_finiteOrder_growth
+      poleClearedRiemannZeta 0 2 zero_lt_two
+      poleClearedRiemannZeta_rightCriticalStrip_ordinaryFiniteOrder_growth_from_functionalEquation_and_EulerMaclaurin
 
 /-- Standard zeta finite-order input for the pole-cleared factor inside the right
 critical strip.

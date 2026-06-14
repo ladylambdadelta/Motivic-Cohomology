@@ -2387,8 +2387,8 @@ theorem entireFunction_jensenClosedDisk_starConvex_center
 the Jensen disk. -/
 theorem entireFunction_zeroFreeOnClosedDisk_reciprocal_analyticAt
     (G : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -2408,9 +2408,9 @@ path independence. The normalization is the empty path at the center. Cf.
 Titchmarsh, *The Theory of Functions*, §5. -/
 theorem entireFunction_convexClosedDisk_exists_logDerivPrimitive
     (G : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hstar :
       StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
     (hrecip :
@@ -2765,9 +2765,9 @@ on the convex disk, the closed holomorphic one-form `(G' / G) dz` has a
 single-valued primitive.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
 theorem entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
     (G : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -2796,9 +2796,9 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
 function by exponentiating and multiplying by the center value. -/
 theorem entireFunction_zeroFreeOnClosedDisk_exp_logDerivPrimitive_reconstruct
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -2883,9 +2883,9 @@ holomorphic zero-free map from the disk to `ℂˣ` lifts through
 `Complex.exp : ℂ → ℂˣ`.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
 theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simplyConnectedDisk
     (G : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -2962,9 +2962,9 @@ center.  The intended proof is the classical lifting of `G : D → ℂˣ` throug
 Functions*, §5. -/
 theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
     (G : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
+    (hG : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3002,7 +3002,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog
       (L 0).re = Real.log ‖G 0‖ := by
   exact
     entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
-      G hG hρ hzero
+      G (fun z hz => hG z) hρ hzero
 
 /-- Pointwise analyticity on Jensen's closed disk gives the `DiffContOnCl`
 package needed by Cauchy's integral formula on the corresponding open disk. -/
