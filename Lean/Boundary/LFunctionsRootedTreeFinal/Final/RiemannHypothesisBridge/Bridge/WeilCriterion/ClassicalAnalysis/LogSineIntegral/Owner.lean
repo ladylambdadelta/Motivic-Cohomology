@@ -37,6 +37,12 @@ noncomputable def Real.sinePowerEulerBetaIntegral
     (s : ℝ) : ℝ :=
   (Complex.betaIntegral (((s + 1) / 2 : ℝ) : ℂ) ((1 / 2 : ℝ) : ℂ)).re
 
+/-- The real unit-interval Beta integral obtained after `t = sin² u`. -/
+noncomputable def Real.sinePowerEulerBetaRealIntegral
+    (s : ℝ) : ℝ :=
+  ∫ t in (0 : ℝ)..1,
+    t ^ (((s + 1) / 2) - 1) * (1 - t) ^ ((1 / 2 : ℝ) - 1)
+
 /-- The Gamma-ratio associated to the sine-power integral. -/
 noncomputable def Real.sinePowerGammaRatio
     (s : ℝ) : ℝ :=
@@ -111,6 +117,76 @@ theorem Real.sinePowerEulerBeta_parameter_sum
     _ = s / 2 + 1 := by
       exact congrArg (fun x : ℝ => s / 2 + x) (div_self two_ne_zero)
 
+/-- Positivity of the Gamma-ratio denominator parameter. -/
+theorem Real.sinePowerGammaRatio_denominatorParameter_pos
+    {s : ℝ}
+    (hs : -1 < s) :
+    0 < s / 2 + 1 := by
+  have hleft : 0 < (s + 1) / 2 :=
+    Real.sinePowerEulerBeta_leftParameter_pos hs
+  have hright : 0 < (1 / 2 : ℝ) :=
+    Real.sinePowerEulerBeta_rightParameter_pos
+  have hsum :
+      (s + 1) / 2 + (1 / 2 : ℝ) = s / 2 + 1 :=
+    Real.sinePowerEulerBeta_parameter_sum s
+  exact Eq.subst
+    (motive := fun x : ℝ => 0 < x)
+    hsum
+    (add_pos hleft hright)
+
+/-- Positivity of the Gamma-ratio denominator at exponent `0`. -/
+theorem Real.sinePowerGammaRatio_denominatorParameter_zero_pos :
+    0 < (0 : ℝ) / 2 + 1 := by
+  have hzero_gt : -1 < (0 : ℝ) :=
+    neg_lt_zero.mpr one_pos
+  exact Real.sinePowerGammaRatio_denominatorParameter_pos hzero_gt
+
+/-- Endpoint normalization for reflecting `[0, π/2]` across `π/2`. -/
+theorem Real.pi_sub_half :
+    Real.pi - Real.pi / 2 = Real.pi / 2 := by
+  have hhalf : Real.pi / 2 + Real.pi / 2 = Real.pi :=
+    add_halves Real.pi
+  calc
+    Real.pi - Real.pi / 2 =
+        (Real.pi / 2 + Real.pi / 2) - Real.pi / 2 := by
+      exact congrArg (fun x : ℝ => x - Real.pi / 2) hhalf.symm
+    _ = Real.pi / 2 := by
+      exact add_sub_cancel (Real.pi / 2) (Real.pi / 2)
+
+/-- Right endpoint normalization for reflecting by `u ↦ π-u`. -/
+theorem Real.pi_sub_zero :
+    Real.pi - 0 = Real.pi :=
+  sub_zero Real.pi
+
+/-- Integrability of the model endpoint singularity `u^s` near `0`. -/
+theorem Real.sinePowerEndpointModel_intervalIntegrable_zero_half
+    (s : ℝ)
+    (hs : -1 < s) :
+    IntervalIntegrable
+      (fun u : ℝ => u ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (Real.pi / 2) := by
+  sorry
+
+/-- Local comparison of `sin u ^ s` with the model endpoint singularity near
+`0`, in the integrability form needed for the left half-interval. -/
+theorem Real.sinePowerKernel_intervalIntegrable_zero_half_from_endpointModel
+    (s : ℝ)
+    (hs : -1 < s)
+    (hmodel :
+      IntervalIntegrable
+        (fun u : ℝ => u ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2)) :
+    IntervalIntegrable
+      (fun u : ℝ => (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (Real.pi / 2) := by
+  sorry
+
 /-- Endpoint integrability of the sine-power kernel on `[0,π/2]`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_zero_half
     (s : ℝ)
@@ -120,6 +196,27 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half
       MeasureTheory.volume
       (0 : ℝ)
       (Real.pi / 2) := by
+  exact
+    Real.sinePowerKernel_intervalIntegrable_zero_half_from_endpointModel
+      s hs
+      (Real.sinePowerEndpointModel_intervalIntegrable_zero_half s hs)
+
+/-- Reflection transports left endpoint integrability to the right endpoint
+near `π`. -/
+theorem Real.sinePowerKernel_intervalIntegrable_half_pi_from_reflection
+    (s : ℝ)
+    (hs : -1 < s)
+    (hleft :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2)) :
+    IntervalIntegrable
+      (fun u : ℝ => (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (Real.pi / 2)
+      Real.pi := by
   sorry
 
 /-- Endpoint integrability of the sine-power kernel on `[π/2,π]`. -/
@@ -131,7 +228,10 @@ theorem Real.sinePowerKernel_intervalIntegrable_half_pi
       MeasureTheory.volume
       (Real.pi / 2)
       Real.pi := by
-  sorry
+  exact
+    Real.sinePowerKernel_intervalIntegrable_half_pi_from_reflection
+      s hs
+      (Real.sinePowerKernel_intervalIntegrable_zero_half s hs)
 
 /-- Adjacent-interval additivity for the sine-power kernel at `π/2`. -/
 theorem Real.sinePowerIntegral_split_at_half_from_intervalIntegrable
@@ -182,7 +282,29 @@ theorem Real.sinePowerIntegral_upperHalf_reflection_changeOfVariables
     (hs : -1 < s) :
     (∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s) =
       ∫ u in (0 : ℝ)..(Real.pi / 2), (Real.sin (Real.pi - u)) ^ s := by
-  sorry
+  let f : ℝ → ℝ := fun u : ℝ => (Real.sin u) ^ s
+  have hchange :
+      (∫ u in (0 : ℝ)..(Real.pi / 2), f (Real.pi - u)) =
+        ∫ u in (Real.pi - Real.pi / 2)..(Real.pi - 0), f u :=
+    intervalIntegral.integral_comp_sub_left
+      (f := f)
+      (a := (0 : ℝ))
+      (b := Real.pi / 2)
+      Real.pi
+  calc
+    (∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s) =
+        ∫ u in (Real.pi - Real.pi / 2)..Real.pi, f u := by
+      exact congrArg
+        (fun a : ℝ => ∫ u in a..Real.pi, f u)
+        Real.pi_sub_half.symm
+    _ = ∫ u in (Real.pi - Real.pi / 2)..(Real.pi - 0), f u := by
+      exact congrArg
+        (fun b : ℝ => ∫ u in (Real.pi - Real.pi / 2)..b, f u)
+        Real.pi_sub_zero.symm
+    _ = ∫ u in (0 : ℝ)..(Real.pi / 2), f (Real.pi - u) := by
+      exact hchange.symm
+    _ = ∫ u in (0 : ℝ)..(Real.pi / 2), (Real.sin (Real.pi - u)) ^ s := by
+      rfl
 
 /-- The reflected lower-half integrand has the same interval integral as the
 ordinary lower-half sine-power integrand. -/
@@ -241,6 +363,36 @@ theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral
       (Real.sinePowerIntegral_split_at_half s hs)
       (Real.sinePowerIntegral_reflected_upperHalf_eq_half s hs)
 
+/-- The real-variable `t = sin² u` substitution on `[0,π/2]`. -/
+theorem Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstitution
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerHalfIntegral s =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
+  sorry
+
+/-- Identification of the real unit-interval Beta integral with the real part
+of mathlib's complex Beta integral. -/
+theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerEulerBetaRealIntegral s =
+      Real.sinePowerEulerBetaIntegral s := by
+  sorry
+
+/-- Multiplying the unit-interval Beta identification by the half-factor. -/
+theorem Real.sinePowerHalfIntegral_betaRealIntegral_eq_eulerBetaIntegral
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaIntegral s := by
+  exact congrArg
+    (fun x : ℝ => (1 / 2 : ℝ) * x)
+    (Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral s hleft hright)
+
 /-- The Euler-Beta substitution for the lower half-interval after the
 parameters have been proved positive. -/
 theorem Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral_from_sinSqSubstitution
@@ -249,7 +401,12 @@ theorem Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral_from_sinSqSubstitut
     (hright : 0 < (1 / 2 : ℝ)) :
     Real.sinePowerHalfIntegral s =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaIntegral s := by
-  sorry
+  exact
+    Eq.trans
+      (Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstitution
+        s hleft hright)
+      (Real.sinePowerHalfIntegral_betaRealIntegral_eq_eulerBetaIntegral
+        s hleft hright)
 
 /-- Euler-Beta substitution for the half sine-power integral with explicit
 positive Beta parameters. -/
@@ -297,9 +454,9 @@ theorem Real.sinePowerIntegral_eq_eulerBetaIntegral
     _ = Real.sinePowerEulerBetaIntegral s := by
       exact Real.two_mul_one_half_mul (Real.sinePowerEulerBetaIntegral s)
 
-/-- Complex Beta/Gamma comparison specialized to the sine-power parameters,
-before taking real Gamma normalizations. -/
-theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_of_posParameters
+/-- Complex Beta/Gamma comparison after dividing by the nonzero Gamma value at
+the sum of the two positive real parameters. -/
+theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_from_complexBetaGamma
     (s : ℝ)
     (hleft : 0 < (s + 1) / 2)
     (hright : 0 < (1 / 2 : ℝ)) :
@@ -307,6 +464,46 @@ theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_of_posParameters
       (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
           Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
         Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re := by
+  sorry
+
+/-- Real Gamma at `1/2` in the normalization used by the sine-power formula. -/
+theorem Real.Gamma_one_half_eq_sqrt_pi :
+    Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi := by
+  sorry
+
+/-- Complex Gamma on positive real inputs has real part equal to real Gamma in
+the normalization used by this file. -/
+theorem Real.Complex_Gamma_ofReal_re_eq_Real_Gamma_of_pos
+    {x : ℝ}
+    (hx : 0 < x) :
+      (Complex.Gamma (x : ℂ)).re = Real.Gamma x := by
+  sorry
+
+/-- Complex Beta/Gamma comparison specialized to the sine-power parameters,
+before taking real Gamma normalizations. -/
+theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_of_posParameters
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerEulerBetaIntegral s =
+    (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+          Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+        Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re := by
+  exact
+    Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_from_complexBetaGamma
+      s hleft hright
+
+/-- Conversion of the complex Gamma quotient to the real Gamma-ratio after all
+real/complex Gamma coercions and the `Γ(1/2)` normalization are exposed. -/
+theorem Real.sinePowerGammaQuotient_re_eq_gammaRatio_from_realCoercions
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ))
+    (hsum : (s + 1) / 2 + (1 / 2 : ℝ) = s / 2 + 1) :
+    (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+          Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+        Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re =
+      Real.sinePowerGammaRatio s := by
   sorry
 
 /-- Real-part conversion of the complex Gamma quotient to the real Gamma-ratio
@@ -320,7 +517,9 @@ theorem Real.sinePowerGammaQuotient_re_eq_gammaRatio
           Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
         Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re =
       Real.sinePowerGammaRatio s := by
-  sorry
+  exact
+    Real.sinePowerGammaQuotient_re_eq_gammaRatio_from_realCoercions
+      s hleft hright hsum
 
 /-- Beta/Gamma comparison with the positive parameters exposed. -/
 theorem Real.sinePowerEulerBetaIntegral_eq_gammaRatio_of_posParameters
@@ -500,6 +699,43 @@ theorem Real.sinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two :
     _ = -Real.pi * Real.log 2 := by
       exact neg_mul_eq_neg_mul Real.pi (Real.log 2)
 
+/-- Value of the Gamma-ratio at exponent `0`. -/
+theorem Real.sinePowerGammaRatio_zero_eq_pi :
+    Real.sinePowerGammaRatio 0 = Real.pi := by
+  sorry
+
+/-- Derivative of the numerator Gamma factor in the sine-power Gamma-ratio. -/
+theorem Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero :
+    HasDerivAt
+      (fun s : ℝ => Real.Gamma ((s + 1) / 2))
+      ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2))
+      0 := by
+  sorry
+
+/-- Derivative of the denominator Gamma factor in the sine-power Gamma-ratio. -/
+theorem Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero :
+    HasDerivAt
+      (fun s : ℝ => Real.Gamma (s / 2 + 1))
+      ((1 / 2 : ℝ) * deriv Real.Gamma 1)
+      0 := by
+  sorry
+
+/-- Nonvanishing of the denominator Gamma factor at exponent `0`. -/
+theorem Real.sinePowerGammaRatio_denominatorGamma_zero_ne :
+    Real.Gamma ((0 : ℝ) / 2 + 1) ≠ 0 :=
+  Real.Gamma_ne_zero_of_pos
+    Real.sinePowerGammaRatio_denominatorParameter_zero_pos
+
+/-- Quotient-rule assembly of the sine-power Gamma-ratio derivative from its
+component Gamma derivatives. -/
+theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_quotientRule :
+    HasDerivAt
+      Real.sinePowerGammaRatio
+      (Real.pi *
+        ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2))
+      0 := by
+  sorry
+
 /-- Component-wise differentiation of the sine-power Gamma-ratio at exponent
 `0`, before inserting the Legendre duplication value. -/
 theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_componentDerivatives :
@@ -508,7 +744,7 @@ theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_componentDerivatives :
       (Real.pi *
         ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2))
       0 := by
-  sorry
+  exact Real.sinePowerGammaRatio_hasDerivAt_zero_from_quotientRule
 
 /-- Derivative of the sine-power Gamma-ratio in logarithmic-derivative form. -/
 theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_logDeriv :
