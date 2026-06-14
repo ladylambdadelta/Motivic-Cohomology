@@ -315,6 +315,23 @@ theorem one_le_norm_of_one_le_norm_im
     (Eq.subst (motive := fun x : ℝ => 1 ≤ x) him_norm_eq hz_im)
     him_abs_le_norm
 
+/-- Classical Stirling growth for the completed real Gamma factor after unfolding
+`Gammaℝ`.
+
+This is the precise complex-Stirling analytic estimate used by the right-half-plane
+normalization lane:
+`Gammaℝ z = π^(-z/2) Γ(z/2)`, and on `0 ≤ re z`, away from `0`, the logarithm of
+this normalized Gamma factor has log-linear growth. -/
+theorem classicalStirling_unfoldedGammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  sorry
+
 /-- Classical right-half-plane logarithmic Stirling growth for the completed real Gamma
 factor away from `0`, in the usual fixed-degree log-linear Stirling shape. -/
 theorem classicalStirling_Gammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one :
@@ -325,7 +342,16 @@ theorem classicalStirling_Gammaℝ_rightHalfPlane_log_linear_growth_bound_degree
         1 ≤ ‖z‖ →
         Real.log ‖Complex.Gammaℝ z‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  sorry
+  rcases classicalStirling_unfoldedGammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one with
+    ⟨C, hC_pos, hC⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hz_re hz_norm
+  calc
+    Real.log ‖Complex.Gammaℝ z‖ =
+        Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ := by
+      rw [Complex.Gammaℝ_def]
+    _ ≤ C * (1 + ‖z‖) * Real.log (2 + ‖z‖) :=
+      hC z hz_re hz_norm
 
 /-- Standard right-half-plane logarithmic Stirling growth for the completed real Gamma
 factor away from `0`, in the usual fixed-degree log-linear Stirling shape.
@@ -1468,6 +1494,32 @@ theorem vertical_polynomial_growth_bound_to_exponential_growth_bound
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
   exact le_trans (hbound z hz_re hz_im) hscaled
 
+/-- A point on the left boundary line is its vertical coordinate times `I`. -/
+theorem leftBoundary_eq_im_mul_I
+    (z : ℂ)
+    (hz_re : z.re = 0) :
+    z = (z.im : ℂ) * Complex.I := by
+  ext
+  · exact hz_re
+  · rfl
+
+/-- Classical vertical Stirling control for the completed real Gamma ratio, stated on
+the real parameter of the left boundary line.
+
+This is the exact special-function input: after `z = it`, the Deligne real Gamma ratio
+`Γℝ(1 - it) / Γℝ(it)` has at most linear growth in `|t|`.  It follows from the
+standard two-sided vertical Stirling formula for `Complex.Gamma`, together with
+`Gammaℝ_def`. -/
+theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound_realParam :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
+            Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ ≤
+          A * (1 + ‖t‖) := by
+  sorry
+
 /-- Classical two-sided vertical Stirling control for the completed real Gamma ratio on
 the left boundary line, in the sharp polynomial degree needed by the critical-line
 functional-equation transport. -/
@@ -1479,7 +1531,23 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) := by
-  sorry
+  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound_realParam with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro z hz_re hz_im
+  have hz_axis : z = (z.im : ℂ) * Complex.I :=
+    leftBoundary_eq_im_mul_I z hz_re
+  have haxis_bound :
+      ‖Complex.Gammaℝ ((1 : ℂ) - (z.im : ℂ) * Complex.I) /
+          Complex.Gammaℝ ((z.im : ℂ) * Complex.I)‖ ≤
+        A * (1 + ‖z.im‖) :=
+    hbound z.im hz_im
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖Complex.Gammaℝ ((1 : ℂ) - w) / Complex.Gammaℝ w‖ ≤
+        A * (1 + ‖z.im‖))
+    hz_axis.symm
+    haxis_bound
 
 /-- A vertical linear bound is the degree-one polynomial envelope used downstream. -/
 theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
@@ -1944,11 +2012,15 @@ theorem boundaryLine_one_sub_one_norm_le_vertical_height
   exact le_trans hnorm_le_im
     (le_add_of_nonneg_left zero_le_one)
 
-/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`.
+/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`,
+in the standard partial-summation/truncation form.
 
-This is the standard boundary-line estimate `ζ(1 + it) = O(log(2 + |t|))` on
-the vertical tail. -/
-theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound :
+This is the analytic number-theory input usually proved by Euler-Maclaurin or
+Abel/partial summation for the Dirichlet series, with the truncation point
+chosen at height comparable to `|t|`.  Mathlib supplies the zeta Dirichlet
+series, Euler-product, and residue APIs used elsewhere in this file, but not
+this boundary-line estimate as a ready theorem. -/
+theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation :
     ∃ A : ℝ,
       0 < A ∧
       ∀ w : ℂ,
@@ -1956,6 +2028,19 @@ theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound :
         1 ≤ ‖w.im‖ →
         ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
   sorry
+
+/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`.
+
+This is the standard boundary-line estimate `ζ(1 + it) = O(log(2 + |t|))` on
+the vertical tail, consumed by the pole-cleared normalization chain. -/
+theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
+  classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation
 
 /-- The logarithmic boundary-line zeta estimate gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
