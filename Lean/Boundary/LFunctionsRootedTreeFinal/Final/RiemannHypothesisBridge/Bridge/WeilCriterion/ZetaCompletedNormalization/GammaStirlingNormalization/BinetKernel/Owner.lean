@@ -877,6 +877,72 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty :
   exact
     Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_of_tail_bound
 
+/-- Exponential tail integral bound for the scaled decay `exp (-π t)`.
+
+The exact formula is
+`∫ t in Ioi a, exp (-π t) = π⁻¹ * exp (-π a)`; this bound is the only
+form needed for the Binet majorant tail estimate. -/
+theorem Real.exp_neg_pi_tail_integral_le_exp
+    (a : ℝ) :
+    ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) ≤
+      Real.exp (-Real.pi * a) := by
+  sorry
+
+/-- The Binet majorant tail integral decays exponentially from any lower
+cutoff at least `1`.
+
+This is the real inequality that will eventually feed the full-sector tail
+absorption theorem. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
+    {a : ℝ}
+    (ha : 1 ≤ a) :
+    ∫ t : ℝ in Set.Ioi a,
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      2 * Real.exp (-Real.pi * a) := by
+  have htail_bound :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi a →
+          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
+            2 * Real.exp (-Real.pi * t) := by
+    intro t ht
+    exact Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
+      (lt_of_le_of_lt ha ht.1)
+  have hexp_int :
+      IntegrableOn (fun t : ℝ => 2 * Real.exp (-Real.pi * t)) (Set.Ioi a) := by
+    have hpos : 0 < Real.pi := Real.pi_pos
+    have htail : IntegrableOn (fun t : ℝ => Real.exp (-Real.pi * t)) (Set.Ioi a) :=
+      exp_neg_integrableOn_Ioi a hpos
+    simpa [mul_comm, mul_left_comm, mul_assoc] using htail.const_mul (2 : ℝ)
+  have hmono :
+      ∫ t : ℝ in Set.Ioi a,
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      ∫ t : ℝ in Set.Ioi a, 2 * Real.exp (-Real.pi * t) := by
+    exact setIntegral_mono
+      (fun t ht => by
+        have hnonneg : 0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+          exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local
+            (lt_trans zero_lt_one (lt_of_le_of_lt ha ht.1)))
+        exact hnonneg)
+      (fun t ht => by
+        exact mul_nonneg (by norm_num : (0 : ℝ) ≤ 2)
+          (le_of_lt (Real.exp_pos (-Real.pi * t))))
+      (fun t ht => by
+        exact (htail_bound t ht))
+  have hexp_tail :
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) ≤
+        Real.exp (-Real.pi * a) :=
+    Real.exp_neg_pi_tail_integral_le_exp a
+  have hscaled_tail :
+      ∫ t : ℝ in Set.Ioi a, 2 * Real.exp (-Real.pi * t) ≤
+        2 * Real.exp (-Real.pi * a) := by
+    calc
+      ∫ t : ℝ in Set.Ioi a, 2 * Real.exp (-Real.pi * t) =
+          2 * ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) := by
+        exact integral_const_mul 2 (fun t : ℝ => Real.exp (-Real.pi * t))
+      _ ≤ 2 * Real.exp (-Real.pi * a) :=
+        mul_le_mul_of_nonneg_left hexp_tail (by norm_num : (0 : ℝ) ≤ 2)
+  exact le_trans hmono hscaled_tail
+
 /-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
     IntegrableOn
