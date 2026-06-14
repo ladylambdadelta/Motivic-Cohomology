@@ -48,11 +48,91 @@ theorem Real.four_div_add_four_div_eq_eight_div
     4 * J / r + 4 * J / r = 8 * J / r := by
   ring
 
+/-- The cutoff conversion arithmetic for turning a bounded tail estimate into
+a linear estimate. -/
+theorem Real.two_mul_div_mul_half_eq
+    {B r : ℝ}
+    (hr : r ≠ 0) :
+    (2 * B / r) * (r / 2) = B := by
+  field_simp [hr]
+
 /-- Distributing the leading Binet factor over a split complex integral. -/
 theorem Complex.two_mul_add_eq_add_two_mul
     (a b : ℂ) :
     2 * (a + b) = 2 * a + 2 * b := by
   ring
+
+/-- Along the fixed open-half-plane ray `t / w`, the principal arctangent is
+uniformly separated from the arctangent branch singularities on the upper split
+interval. -/
+theorem Complex.binetSecondFormula_arctan_tail_branch_separation
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ δ : ℝ,
+      0 < δ ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          δ ≤ ‖1 - ((t : ℂ) / w) * Complex.I‖ ∧
+          δ ≤ ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
+  sorry
+
+/-- Fixed-ray branch separation gives a uniform bound for the principal
+arctangent on the upper split interval. -/
+theorem Complex.binetSecondFormula_arctan_tail_bounded_of_branch_separation
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.arctan ((t : ℂ) / w)‖ ≤ B := by
+  sorry
+
+/-- A uniform arctangent bound on the upper split interval becomes a linear
+bound because the split cutoff is strictly positive in the open right
+half-plane. -/
+theorem Complex.binetSecondFormula_arctan_tail_linear_bound_of_bounded
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hbounded :
+      ∃ B : ℝ,
+        0 ≤ B ∧
+        ∀ t : ℝ,
+          t ∈ Set.Ioi (‖w‖ / 2) →
+            ‖Complex.arctan ((t : ℂ) / w)‖ ≤ B) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t := by
+  rcases hbounded with ⟨B, hB_nonneg, hB⟩
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  let C : ℝ := 2 * B / ‖w‖
+  have hC_nonneg : 0 ≤ C :=
+    div_nonneg (mul_nonneg Real.zero_le_two_real hB_nonneg)
+      (le_of_lt hw_norm_pos)
+  refine ⟨C, hC_nonneg, ?_⟩
+  intro t ht_tail
+  have ht_lower : ‖w‖ / 2 ≤ t :=
+    le_of_lt ht_tail
+  have hC_mul_lower : B ≤ C * t := by
+    have hmul :
+        B ≤ C * (‖w‖ / 2) := by
+      calc
+        B = (2 * B / ‖w‖) * (‖w‖ / 2) :=
+          (Real.two_mul_div_mul_half_eq
+            (B := B) (r := ‖w‖) hw_norm_pos.ne').symm
+        _ = C * (‖w‖ / 2) := rfl
+    have hC_mul_mono :
+        C * (‖w‖ / 2) ≤ C * t :=
+      mul_le_mul_of_nonneg_left ht_lower hC_nonneg
+    exact le_trans hmul hC_mul_mono
+  exact le_trans (hB t ht_tail) hC_mul_lower
 
 /-- Along the fixed open-half-plane ray `t / w`, the principal arctangent is
 linearly bounded on the upper split interval. -/
@@ -64,7 +144,11 @@ theorem Complex.binetSecondFormula_arctan_tail_linear_bound
       ∀ t : ℝ,
         t ∈ Set.Ioi (‖w‖ / 2) →
           ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t := by
-  sorry
+  exact
+    Complex.binetSecondFormula_arctan_tail_linear_bound_of_bounded
+      hw_re_pos
+      (Complex.binetSecondFormula_arctan_tail_bounded_of_branch_separation
+        hw_re_pos)
 
 /-- The Binet kernel is integrable on the lower split interval. -/
 theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval

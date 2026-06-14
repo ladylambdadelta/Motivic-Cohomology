@@ -509,7 +509,25 @@ theorem heightBase_mul_negative_zpow_succ_le_negative_zpow
     ne_of_gt hX_pos
   have hint :
       (1 : ℤ) + (-(k + 3 : ℤ)) = -(k + 2 : ℤ) := by
-    omega
+    have hsucc :
+        (k + 3 : ℤ) = (k + 2 : ℤ) + 1 := by
+      exact_mod_cast (Nat.add_assoc k 2 1).symm
+    calc
+      (1 : ℤ) + (-(k + 3 : ℤ)) =
+          1 + -((k + 2 : ℤ) + 1) := by
+        exact congrArg (fun x : ℤ => 1 + -x) hsucc
+      _ = 1 + (-(k + 2 : ℤ) + -1) := by
+        exact congrArg (fun x : ℤ => 1 + x)
+          (neg_add (k + 2 : ℤ) 1)
+      _ = (1 + -1) + -(k + 2 : ℤ) := by
+        exact Eq.trans
+          (add_assoc 1 (-(k + 2 : ℤ)) (-1))
+          (congrArg (fun x : ℤ => x + -(k + 2 : ℤ))
+            (add_comm 1 (-1)))
+      _ = 0 + -(k + 2 : ℤ) := by
+        exact congrArg (fun x : ℤ => x + -(k + 2 : ℤ))
+          (add_right_neg 1)
+      _ = -(k + 2 : ℤ) := zero_add (-(k + 2 : ℤ))
   have hcombine :
       X * X ^ (-(k + 3 : ℤ)) =
         X ^ ((1 : ℤ) + (-(k + 3 : ℤ))) := by
@@ -658,7 +676,11 @@ theorem polynomialHeightDecay_le_of_le
   have hX_one : 1 ≤ X := by
     exact le_add_of_nonneg_right (norm_nonneg ((ι.height : ℕ) : ℝ))
   have hexp : (-(k + 3 : ℤ)) ≤ -(l + 3 : ℤ) := by
-    omega
+    have hnat : l + 3 ≤ k + 3 :=
+      Nat.add_le_add_right hlk 3
+    have hint : (l + 3 : ℤ) ≤ (k + 3 : ℤ) :=
+      Int.ofNat_le.mpr hnat
+    exact neg_le_neg hint
   unfold polynomialHeightDecay
   change X ^ (-(k + 3 : ℤ)) ≤ X ^ (-(l + 3 : ℤ))
   exact zpow_le_zpow_right₀ hX_one hexp
@@ -1404,13 +1426,30 @@ theorem mem_window_isGenuine
   intro hι
   exact isGenuine_of_mem_window N ι hι
 
+/-- The natural number `1` is at most `2`. -/
+theorem one_le_two_nat : (1 : ℕ) ≤ 2 :=
+  Nat.succ_le_succ (Nat.zero_le 1)
+
+/-- The natural number `0` is strictly less than `2`. -/
+theorem zero_lt_two_nat : (0 : ℕ) < 2 :=
+  Nat.lt.step Nat.zero_lt_one
+
+/-- The real number `1` is strictly less than `2`. -/
+theorem one_lt_two_real : (1 : ℝ) < 2 :=
+  Nat.cast_lt.mp (show ((1 : ℕ) : ℝ) < ((2 : ℕ) : ℝ) from
+    Nat.cast_lt.mpr (Nat.lt.base 1))
+
+/-- The real number `2` is positive. -/
+theorem zero_lt_two_real : (0 : ℝ) < 2 :=
+  lt_trans zero_lt_one one_lt_two_real
+
 /-- Genuine prime-power centers are nonnegative. -/
 theorem center_nonnegative_of_isGenuine
     (ι : ZetaPrimePowerIndex) (hι : IsGenuine ι) :
     0 ≤ center ι := by
   have hp_two : 2 ≤ ι.p := Nat.Prime.two_le hι.1
   have hp_one_real : (1 : ℝ) ≤ ι.p := by
-    exact_mod_cast le_trans (by decide : 1 ≤ 2) hp_two
+    exact_mod_cast le_trans one_le_two_nat hp_two
   have hn_nonneg : 0 ≤ (ι.n : ℝ) := Nat.cast_nonneg ι.n
   have hlog_nonneg : 0 ≤ Real.log (ι.p : ℝ) := Real.log_nonneg hp_one_real
   unfold center
@@ -1423,7 +1462,7 @@ theorem prime_le_exp_of_isGenuine_center_le
     (hι : IsGenuine ι) (hcenter : center ι ≤ B) :
     (ι.p : ℝ) ≤ Real.exp B := by
   have hp_two : 2 ≤ ι.p := Nat.Prime.two_le hι.1
-  have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le (by decide : 0 < 2) hp_two
+  have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le zero_lt_two_nat hp_two
   have hp_pos_real : 0 < (ι.p : ℝ) := by
     exact_mod_cast hp_pos_nat
   have hp_one_real : (1 : ℝ) ≤ ι.p := by
@@ -1449,11 +1488,11 @@ theorem exponent_le_div_log_two_of_isGenuine_center_le
     (hι : IsGenuine ι) (hcenter : center ι ≤ B) :
     (ι.n : ℝ) ≤ B / Real.log 2 := by
   have hp_two : 2 ≤ ι.p := Nat.Prime.two_le hι.1
-  have hlog_two_pos : 0 < Real.log 2 := Real.log_pos (by norm_num : (1 : ℝ) < 2)
+  have hlog_two_pos : 0 < Real.log 2 := Real.log_pos one_lt_two_real
   have hp_pos_real : 0 < (ι.p : ℝ) := by
-    have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le (by decide : 0 < 2) hp_two
+    have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le zero_lt_two_nat hp_two
     exact_mod_cast hp_pos_nat
-  have htwo_pos : 0 < (2 : ℝ) := by norm_num
+  have htwo_pos : 0 < (2 : ℝ) := zero_lt_two_real
   have htwo_le_p : (2 : ℝ) ≤ ι.p := by
     exact_mod_cast hp_two
   have hlog_two_le_log_p : Real.log (2 : ℝ) ≤ Real.log (ι.p : ℝ) := by
@@ -1517,7 +1556,7 @@ theorem weight_nonnegative (ι : ZetaPrimePowerIndex) :
   by_cases hp : Nat.Prime ι.p
   · by_cases hn : 1 ≤ ι.n
     · have hp_two : 2 ≤ ι.p := Nat.Prime.two_le hp
-      have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le (by decide : (0 : ℕ) < 2) hp_two
+      have hp_pos_nat : 0 < ι.p := lt_of_lt_of_le zero_lt_two_nat hp_two
       have hp_one_real : (1 : ℝ) ≤ ι.p := by exact_mod_cast Nat.succ_le_of_lt hp_pos_nat
       have hlog : 0 ≤ Real.log ι.p := Real.log_nonneg hp_one_real
       have hsqrt : 0 ≤ Real.sqrt (ι.p ^ ι.n) := Real.sqrt_nonneg _

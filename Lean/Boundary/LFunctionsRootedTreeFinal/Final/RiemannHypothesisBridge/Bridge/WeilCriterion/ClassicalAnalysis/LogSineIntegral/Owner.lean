@@ -588,6 +588,54 @@ theorem Real.sinePower_sinSubstitution_source_intervalIntegrable
       s
       (Real.sinePowerExponent_gt_neg_one_of_leftParameter_pos hleft)
 
+/-- Complex endpoint integrability for the Beta kernel with the sine-power
+parameters. -/
+theorem Real.sinePower_betaComplexKernel_intervalIntegrable
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  have hleft_complex :
+      0 < Complex.re (((s + 1) / 2 : ℝ) : ℂ) := by
+    calc
+      0 < (s + 1) / 2 := hleft
+      _ = Complex.re (((s + 1) / 2 : ℝ) : ℂ) := by
+        rfl
+  have hright_complex :
+      0 < Complex.re (((1 / 2 : ℝ) : ℂ)) := by
+    calc
+      0 < (1 / 2 : ℝ) := hright
+      _ = Complex.re (((1 / 2 : ℝ) : ℂ)) := by
+        rfl
+  exact Complex.betaIntegral_convergent hleft_complex hright_complex
+
+/-- Transport of complex Beta-kernel endpoint integrability to the real-part
+kernel on `[0,1]`. -/
+theorem Real.sinePower_betaRealKernel_intervalIntegrable_from_complex
+    (s : ℝ)
+    (hcomplex :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+            (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  sorry
+
 /-- The Beta-kernel endpoint integrability on `[0,1]` in real variables. -/
 theorem Real.sinePower_betaRealKernel_intervalIntegrable
     (s : ℝ)
@@ -600,7 +648,11 @@ theorem Real.sinePower_betaRealKernel_intervalIntegrable
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
-  sorry
+  exact
+    Real.sinePower_betaRealKernel_intervalIntegrable_from_complex
+      s
+      (Real.sinePower_betaComplexKernel_intervalIntegrable
+        s hleft hright)
 
 /-- Positivity of `1 - x²` on the open unit interval. -/
 theorem Real.one_sub_sq_pos_of_mem_Ioo_zero_one
@@ -629,7 +681,23 @@ theorem Real.sinePower_sinSubstitution_invSqrt_eq_rpow
     (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
     1 / Real.sqrt (1 - x ^ 2) =
       (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  have hpos : 0 < 1 - x ^ 2 :=
+    Real.one_sub_sq_pos_of_mem_Ioo_zero_one hx
+  have hnonneg : 0 ≤ 1 - x ^ 2 :=
+    le_of_lt hpos
+  have hexp : -(1 / 2 : ℝ) = ((-1 : ℝ) / 2) :=
+    (neg_div 1 2).symm
+  calc
+    1 / Real.sqrt (1 - x ^ 2) =
+        (Real.sqrt (1 - x ^ 2))⁻¹ := by
+      exact one_div (Real.sqrt (1 - x ^ 2))
+    _ = ((1 - x ^ 2) ^ (1 / 2 : ℝ))⁻¹ := by
+      exact congrArg (fun y : ℝ => y⁻¹)
+        (Real.sqrt_eq_rpow (1 - x ^ 2))
+    _ = (1 - x ^ 2) ^ (-(1 / 2 : ℝ)) := by
+      exact (Real.rpow_neg hnonneg (1 / 2 : ℝ)).symm
+    _ = (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+      exact congrArg (fun e : ℝ => (1 - x ^ 2) ^ e) hexp
 
 /-- The sine/arcsine part of the inverse sine substitution. -/
 theorem Real.sinePower_sin_arcsin_rpow_eq
@@ -764,12 +832,60 @@ theorem Real.sinePower_squareSubstitution_sq_rpow_eq
     (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
     (x ^ 2) ^ (((s + 1) / 2) - 1) =
       x ^ (s - 1) := by
-  sorry
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx.1
+  have hexp :
+      (2 : ℝ) * (((s + 1) / 2) - 1) = s - 1 := by
+    calc
+      (2 : ℝ) * (((s + 1) / 2) - 1) =
+          2 * ((s + 1) / 2) - 2 * 1 := by
+        exact mul_sub 2 ((s + 1) / 2) 1
+      _ = ((s + 1) / 2) * 2 - 2 := by
+        exact congrArg₂
+          (fun a b : ℝ => a - b)
+          (mul_comm 2 ((s + 1) / 2))
+          (mul_one 2)
+      _ = (s + 1) - 2 := by
+        exact congrArg (fun y : ℝ => y - 2)
+          (div_mul_cancel₀ (s + 1) two_ne_zero)
+      _ = (s + 1) - (1 + 1) := by
+        exact congrArg (fun y : ℝ => (s + 1) - y)
+          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+      _ = ((s + 1) - 1) - 1 := by
+        exact sub_add_eq_sub_sub (s + 1) 1 1
+      _ = s - 1 := by
+        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel s 1)
+  calc
+    (x ^ 2) ^ (((s + 1) / 2) - 1) =
+        (x ^ (2 : ℝ)) ^ (((s + 1) / 2) - 1) := by
+      exact congrArg
+        (fun y : ℝ => y ^ (((s + 1) / 2) - 1))
+        (Real.rpow_natCast x 2).symm
+    _ = x ^ ((2 : ℝ) * (((s + 1) / 2) - 1)) := by
+      exact (Real.rpow_mul hx_nonneg 2 (((s + 1) / 2) - 1)).symm
+    _ = x ^ (s - 1) := by
+      exact congrArg (fun e : ℝ => x ^ e) hexp
 
 /-- The right endpoint exponent in the square substitution. -/
 theorem Real.sinePower_squareSubstitution_rightExponent_eq :
     ((1 / 2 : ℝ) - 1) = ((-1 : ℝ) / 2) := by
-  sorry
+  calc
+    (1 / 2 : ℝ) - 1 = (1 / 2 : ℝ) - (2 / 2 : ℝ) := by
+      exact congrArg (fun y : ℝ => (1 / 2 : ℝ) - y)
+        (by
+          exact (div_self two_ne_zero).symm)
+    _ = (1 - 2 : ℝ) / 2 := by
+      exact (sub_div 1 2 2).symm
+    _ = (1 - (1 + 1) : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => (1 - y) / 2)
+        (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+    _ = ((1 - 1) - 1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => y / 2)
+        (sub_add_eq_sub_sub 1 1 1)
+    _ = (0 - 1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => (y - 1) / 2) (sub_self 1)
+    _ = (-1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => y / 2) (zero_sub 1)
 
 /-- The scalar Jacobian cancellation in the square substitution. -/
 theorem Real.sinePower_squareSubstitution_scalar_cancel
@@ -805,7 +921,14 @@ theorem Real.sinePower_squareSubstitution_leftPower_mul_eq
     (s x : ℝ)
     (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
     x ^ (s - 1) * x = x ^ s := by
-  sorry
+  calc
+    x ^ (s - 1) * x = x ^ (s - 1) * x ^ (1 : ℝ) := by
+      exact congrArg (fun y : ℝ => x ^ (s - 1) * y)
+        (Real.rpow_one x).symm
+    _ = x ^ ((s - 1) + 1) := by
+      exact (Real.rpow_add hx.1 (s - 1) 1).symm
+    _ = x ^ s := by
+      exact congrArg (fun e : ℝ => x ^ e) (sub_add_cancel s 1)
 
 /-- Reassociation of the square-substitution integrand after the scalar
 Jacobian has been cancelled. -/
