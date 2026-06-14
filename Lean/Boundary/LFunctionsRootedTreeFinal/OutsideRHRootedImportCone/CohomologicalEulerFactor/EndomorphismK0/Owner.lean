@@ -1,0 +1,12 @@
+import Boundary.LFunctionsRootedTreeFinal.OutsideRHRootedImportCone.CohomologicalEulerFactor.EndomorphismK0.EndomorphismK0Core.Owner
+import Boundary.LFunctionsRootedTreeFinal.OutsideRHRootedImportCone.CohomologicalEulerFactor.EndomorphismK0.EndomorphismK0Relations.Owner
+import Boundary.LFunctionsRootedTreeFinal.OutsideRHRootedImportCone.CohomologicalEulerFactor.EndomorphismK0.EndomorphismK0ShortExact.Owner
+import Boundary.LFunctionsRootedTreeFinal.OutsideRHRootedImportCone.CohomologicalEulerFactor.EndomorphismK0.EndomorphismK0Characters.Owner
+
+namespace Boundary
+namespace EndomorphismK0
+
+-- Root import surface for the split library.
+
+end EndomorphismK0
+end Boundary
