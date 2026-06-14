@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Complex.PhragmenLindelof
+import Mathlib.Algebra.GeomSum
 import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -531,9 +532,15 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expans
           K / ‖w‖ := by
   sorry
 
-/-- Sectorial log-norm consequence of closed-sector Stirling for `Complex.Gamma`
-on the closed right half-plane. -/
-theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+/-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
+
+This is the remaining classical logarithmic special-function input after peeling
+the downstream growth theory: Stirling's expansion for `log Γ(w)` on a closed
+sector avoiding the negative real axis gives a uniform
+`O((1 + ‖w‖) log (2 + ‖w‖))` bound on the closed right half-plane; cf. DLMF
+§5.11.  The bound is stated for `log ‖Γ(w)‖`, the real part of `log Γ(w)`, so
+later Gamma-real normalization steps do not need a branch of `logGamma`. -/
+theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
@@ -542,6 +549,181 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   sorry
+
+/-- Sectorial log-norm consequence of closed-sector logarithmic Stirling for
+`Complex.Gamma` on the closed right half-plane. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical
+
+/-- Fixed-real-part vertical Stirling upper bound for `Complex.Gamma`.
+
+This is the direct fixed-line classical estimate: for each fixed real part `a`,
+`Γ(a + i b)` has vertical decay `exp (-π |b| / 2)` and polynomial factor
+`(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
+theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
+    ∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+            C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) := by
+  sorry
+
+/-- Fixed-real-part vertical Stirling lower bound for `Complex.Gamma`.
+
+This is the lower half of the classical fixed-line estimate, isolated so the
+reciprocal estimate is a norm-order transport rather than an independent
+primitive. -/
+theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
+    ∀ a : ℝ,
+      ∃ c : ℝ,
+        0 < c ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) ≤
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
+  sorry
+
+/-- `Complex.Gamma` is nonzero on fixed vertical lines away from the real-axis
+pole convention when `|b| ≥ 1/2`. -/
+theorem Complex.Gamma_fixedRealPart_vertical_ne_zero_of_half_le_norm
+    (a b : ℝ)
+    (hb : (1 / 2 : ℝ) ≤ ‖b‖) :
+    Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I) ≠ 0 := by
+  intro hzero
+  rcases (Complex.Gamma_eq_zero_iff ((a : ℂ) + (b : ℂ) * Complex.I)).mp hzero with
+    ⟨n, hn⟩
+  have him_eq : (((a : ℂ) + (b : ℂ) * Complex.I).im) = (-(n : ℂ)).im :=
+    congrArg Complex.im hn
+  have hleft_im :
+      (((a : ℂ) + (b : ℂ) * Complex.I).im) = b := by
+    calc
+      (((a : ℂ) + (b : ℂ) * Complex.I).im) =
+          (a : ℂ).im + ((b : ℂ) * Complex.I).im := Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
+      _ = 0 + b := by
+        exact congrArg (fun x : ℝ => 0 + x) (Complex.ofReal_mul_I_im b)
+      _ = b := zero_add b
+  have hright_im : (-(n : ℂ)).im = 0 := by
+    calc
+      (-(n : ℂ)).im = -((n : ℂ).im) := Complex.neg_im (n : ℂ)
+      _ = -0 := congrArg Neg.neg (Complex.ofReal_im (n : ℝ))
+      _ = 0 := neg_zero
+  have hb_zero : b = 0 :=
+    Eq.trans hleft_im.symm (Eq.trans him_eq hright_im)
+  have hnorm_zero : ‖b‖ = 0 :=
+    congrArg norm hb_zero
+  have hhalf_pos : (0 : ℝ) < 1 / 2 :=
+    half_pos zero_lt_one
+  have hnot : ¬ (1 / 2 : ℝ) ≤ 0 :=
+    not_le.mpr hhalf_pos
+  exact hnot (Eq.subst (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x) hnorm_zero hb)
+
+/-- Reciprocal transport for fixed-real-part vertical Gamma estimates.
+
+A lower Stirling bound and nonvanishing of `Γ(a + i b)` imply the corresponding
+upper bound for the reciprocal. -/
+theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
+    {a c : ℝ}
+    (hc_pos : 0 < c)
+    (hlower :
+      ∀ b : ℝ,
+        1 / 2 ≤ ‖b‖ →
+        c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+            (1 + ‖b‖) ^ (a - 1 / 2) ≤
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖) :
+    ∀ b : ℝ,
+      1 / 2 ≤ ‖b‖ →
+      ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+        c⁻¹ * Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a) := by
+  intro b hb
+  let x : ℝ := (Real.pi / 2) * ‖b‖
+  let H : ℝ := 1 + ‖b‖
+  let G : ℂ := Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)
+  have hH_pos : 0 < H :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  have hexp_pos : 0 < Real.exp (-x) :=
+    Real.exp_pos (-x)
+  have hrpow_pos : 0 < H ^ (a - 1 / 2) :=
+    Real.rpow_pos_of_pos hH_pos (a - 1 / 2)
+  have henvelope_pos :
+      0 < c * Real.exp (-x) * H ^ (a - 1 / 2) :=
+    mul_pos (mul_pos hc_pos hexp_pos) hrpow_pos
+  have hG_lower :
+      c * Real.exp (-x) * H ^ (a - 1 / 2) ≤ ‖G‖ := by
+    exact hlower b hb
+  have hG_inv_norm :
+      ‖G⁻¹‖ = ‖G‖⁻¹ :=
+    norm_inv G
+  have hreciprocal_le :
+      ‖G‖⁻¹ ≤ (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ :=
+    inv_le_inv_of_le henvelope_pos hG_lower
+  have htarget_eq :
+      (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ =
+        c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := by
+    have hexp_neg_eq : Real.exp (-x) = (Real.exp x)⁻¹ :=
+      Real.exp_neg x
+    have hpow_neg_eq :
+        H ^ (1 / 2 - a) = (H ^ (a - 1 / 2))⁻¹ := by
+      have hneg : 1 / 2 - a = -(a - 1 / 2) := by
+        exact (neg_sub a (1 / 2)).symm
+      exact Eq.trans
+        (congrArg (fun y : ℝ => H ^ y) hneg)
+        (Real.rpow_neg (le_of_lt hH_pos) (a - 1 / 2))
+    calc
+      (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ =
+          (c * Real.exp (-x))⁻¹ * (H ^ (a - 1 / 2))⁻¹ := by
+            exact inv_mul_eq_inv_mul_inv (c * Real.exp (-x)) (H ^ (a - 1 / 2))
+      _ = (c⁻¹ * (Real.exp (-x))⁻¹) * (H ^ (a - 1 / 2))⁻¹ := by
+            exact congrArg
+              (fun y : ℝ => y * (H ^ (a - 1 / 2))⁻¹)
+              (inv_mul_eq_inv_mul_inv c (Real.exp (-x)))
+      _ = (c⁻¹ * Real.exp x) * (H ^ (a - 1 / 2))⁻¹ := by
+            exact congrArg
+              (fun y : ℝ => (c⁻¹ * y) * (H ^ (a - 1 / 2))⁻¹)
+              (congrArg Inv.inv hexp_neg_eq)
+      _ = (c⁻¹ * Real.exp x) * H ^ (1 / 2 - a) := by
+            exact congrArg
+              (fun y : ℝ => (c⁻¹ * Real.exp x) * y)
+              hpow_neg_eq.symm
+      _ = c⁻¹ * Real.exp x * H ^ (1 / 2 - a) := by
+            exact (mul_assoc c⁻¹ (Real.exp x) (H ^ (1 / 2 - a))).symm
+  exact Eq.subst
+    (motive := fun y : ℝ => ‖G⁻¹‖ ≤ y)
+    htarget_eq
+    (Eq.subst
+      (motive := fun y : ℝ => y ≤
+        (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹)
+      hG_inv_norm.symm
+      hreciprocal_le)
+
+/-- Fixed-real-part reciprocal vertical Stirling bound for `Complex.Gamma`, obtained
+from the lower fixed-line estimate by reciprocal transport. -/
+theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical :
+    ∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+            C * Real.exp ((Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (1 / 2 - a) := by
+  intro a
+  rcases Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+    ⟨c, hc_pos, hlower⟩
+  refine ⟨c⁻¹, inv_pos.mpr hc_pos, ?_⟩
+  exact Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound hc_pos hlower
 
 /-- Fixed-real-part vertical Stirling bounds for `Complex.Gamma` and its
 reciprocal. -/
@@ -557,7 +739,101 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical 
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
                 (1 + ‖b‖) ^ (1 / 2 - a) := by
-  sorry
+  intro a
+  rcases Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+    ⟨Cu, hCu_pos, hCu⟩
+  rcases Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical a with
+    ⟨Cr, hCr_pos, hCr⟩
+  let C : ℝ := Cu + Cr
+  have hC_pos : 0 < C :=
+    add_pos hCu_pos hCr_pos
+  have hCu_le_C : Cu ≤ C :=
+    le_add_of_nonneg_right (le_of_lt hCr_pos)
+  have hCr_le_C : Cr ≤ C :=
+    le_add_of_nonneg_left (le_of_lt hCu_pos)
+  refine ⟨C, hC_pos, ?_⟩
+  intro b hb
+  have hdirect_envelope_nonneg :
+      0 ≤ Real.exp (-(Real.pi / 2) * ‖b‖) *
+        (1 + ‖b‖) ^ (a - 1 / 2) := by
+    have hbase_pos : 0 < 1 + ‖b‖ :=
+      lt_of_lt_of_le zero_lt_one
+        (le_add_of_nonneg_right (norm_nonneg b))
+    exact mul_nonneg
+      (le_of_lt (Real.exp_pos (-(Real.pi / 2) * ‖b‖)))
+      (le_of_lt (Real.rpow_pos_of_pos hbase_pos (a - 1 / 2)))
+  have hreciprocal_envelope_nonneg :
+      0 ≤ Real.exp ((Real.pi / 2) * ‖b‖) *
+        (1 + ‖b‖) ^ (1 / 2 - a) := by
+    have hbase_pos : 0 < 1 + ‖b‖ :=
+      lt_of_lt_of_le zero_lt_one
+        (le_add_of_nonneg_right (norm_nonneg b))
+    exact mul_nonneg
+      (le_of_lt (Real.exp_pos ((Real.pi / 2) * ‖b‖)))
+      (le_of_lt (Real.rpow_pos_of_pos hbase_pos (1 / 2 - a)))
+  have hdirect_scaled :
+      Cu * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2)) ≤
+        C * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2)) :=
+    mul_le_mul_of_nonneg_right hCu_le_C hdirect_envelope_nonneg
+  have hreciprocal_scaled :
+      Cr * (Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a)) ≤
+        C * (Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a)) :=
+    mul_le_mul_of_nonneg_right hCr_le_C hreciprocal_envelope_nonneg
+  have hdirect_source_assoc :
+      Cu * Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2) =
+        Cu * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2)) :=
+    mul_assoc Cu (Real.exp (-(Real.pi / 2) * ‖b‖))
+      ((1 + ‖b‖) ^ (a - 1 / 2))
+  have hdirect_target_assoc :
+      C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2) =
+        C * (Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2)) :=
+    mul_assoc C (Real.exp (-(Real.pi / 2) * ‖b‖))
+      ((1 + ‖b‖) ^ (a - 1 / 2))
+  have hreciprocal_source_assoc :
+      Cr * Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a) =
+        Cr * (Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a)) :=
+    mul_assoc Cr (Real.exp ((Real.pi / 2) * ‖b‖))
+      ((1 + ‖b‖) ^ (1 / 2 - a))
+  have hreciprocal_target_assoc :
+      C * Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a) =
+        C * (Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a)) :=
+    mul_assoc C (Real.exp ((Real.pi / 2) * ‖b‖))
+      ((1 + ‖b‖) ^ (1 / 2 - a))
+  constructor
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
+      hdirect_target_assoc.symm
+      (le_trans
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
+          hdirect_source_assoc
+          (hCu b hb))
+        hdirect_scaled)
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
+      hreciprocal_target_assoc.symm
+      (le_trans
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
+          hreciprocal_source_assoc
+          (hCr b hb))
+        hreciprocal_scaled)
 
 /-- Classical closed-sector Stirling expansion for `Complex.Gamma`, with the
 sectorial and fixed-line consequences used by the normalization chain.
@@ -4570,6 +4846,86 @@ theorem boundaryLineOnePointRealParam_cutoff_inv_le_one
     _ ≤ 1 := by
           exact inv_le_one_of_one_le₀ hone_le_cutoff_real
 
+/-- Reciprocal weights are monotone decreasing along the positive natural tail. -/
+theorem positive_nat_reciprocal_antitone
+    {m n : ℕ}
+    (hm : 0 < m)
+    (hmn : m ≤ n) :
+    (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (m : ℝ) := by
+  have hm_real_pos : (0 : ℝ) < (m : ℝ) := by
+    exact_mod_cast hm
+  have hmn_real : (m : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast hmn
+  exact one_div_le_one_div_of_le hm_real_pos hmn_real
+
+/-- Past the Abel/Euler-Maclaurin cutoff, all reciprocal weights are bounded by
+the reciprocal of the cutoff endpoint. -/
+theorem boundaryLineOnePointRealParam_post_cutoff_reciprocal_le_cutoff
+    (t : ℝ)
+    {n : ℕ}
+    (hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n) :
+    (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (⌊2 + ‖t‖⌋₊ : ℝ) := by
+  have hcutoff_pos : 0 < ⌊2 + ‖t‖⌋₊ :=
+    boundaryLineOnePointRealParam_cutoff_pos t
+  have hcutoff_le_n : ⌊2 + ‖t‖⌋₊ ≤ n :=
+    Nat.le_of_lt hcutoff_lt_n
+  exact positive_nat_reciprocal_antitone hcutoff_pos hcutoff_le_n
+
+/-- The geometric primitive for a finite oscillatory sequence.  This is the
+algebraic cancellation core used before estimating `∑ n^{-it}` away from zero
+frequency. -/
+theorem finite_geometric_oscillatory_primitive_eq
+    {q : ℂ}
+    (hq : q ≠ 1)
+    (M : ℕ) :
+    (∑ k ∈ Finset.range (M + 1), q ^ k) =
+      (q ^ (M + 1) - 1) / (q - 1) := by
+  exact geom_sum_eq hq (M + 1)
+
+/-- If every power of the oscillator lies on the unit circle and the oscillator is
+not `1`, its geometric primitive is bounded by the inverse distance from `1`. -/
+theorem finite_geometric_oscillatory_primitive_norm_le
+    {q : ℂ}
+    (hq : q ≠ 1)
+    (hqpow_norm : ∀ n : ℕ, ‖q ^ n‖ = 1)
+    (M : ℕ) :
+    ‖∑ k ∈ Finset.range (M + 1), q ^ k‖ ≤ 2 / ‖q - 1‖ := by
+  have hformula :
+      (∑ k ∈ Finset.range (M + 1), q ^ k) =
+        (q ^ (M + 1) - 1) / (q - 1) :=
+    finite_geometric_oscillatory_primitive_eq hq M
+  have hden_ne_zero : q - 1 ≠ 0 := by
+    intro hden
+    have hq_eq_one : q = 1 := by
+      exact sub_eq_zero.mp hden
+    exact hq hq_eq_one
+  have hden_norm_pos : 0 < ‖q - 1‖ :=
+    norm_pos_iff.mpr hden_ne_zero
+  have hnum_norm_le :
+      ‖q ^ (M + 1) - 1‖ ≤ 2 := by
+    calc
+      ‖q ^ (M + 1) - 1‖ ≤ ‖q ^ (M + 1)‖ + ‖(1 : ℂ)‖ :=
+        norm_sub_le (q ^ (M + 1)) 1
+      _ = 1 + ‖(1 : ℂ)‖ := by
+        exact congrArg (fun x : ℝ => x + ‖(1 : ℂ)‖)
+          (hqpow_norm (M + 1))
+      _ = 1 + 1 := by
+        exact congrArg (fun x : ℝ => 1 + x)
+          (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+      _ = 2 := rfl
+  have hdiv_le :
+      ‖(q ^ (M + 1) - 1) / (q - 1)‖ ≤ 2 / ‖q - 1‖ := by
+    calc
+      ‖(q ^ (M + 1) - 1) / (q - 1)‖ =
+          ‖q ^ (M + 1) - 1‖ / ‖q - 1‖ :=
+        norm_div (q ^ (M + 1) - 1) (q - 1)
+      _ ≤ 2 / ‖q - 1‖ :=
+        div_le_div_of_nonneg_right hnum_norm_le (le_of_lt hden_norm_pos)
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 / ‖q - 1‖)
+    hformula.symm
+    hdiv_le
+
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
 coefficients are the oscillatory partial sums of `n^{-it}` and the weight is `1/x`. -/
 theorem abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
@@ -4995,10 +5351,13 @@ boundary-line zeta remainder.
 Intended proof chain:
 apply `abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity` to
 finite tails, bound the oscillatory partial sums
-`∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|`, pass to the post-cutoff limit
-using the preceding `HasSum` identity, and combine the endpoint and integral
-estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of the Riemann
-Zeta-function*, §3.5. -/
+`∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|` by reducing each dyadic block to
+the geometric primitive
+`finite_geometric_oscillatory_primitive_norm_le`, use
+`positive_nat_reciprocal_antitone` for the decreasing Abel weight, pass to the
+post-cutoff limit using the preceding `HasSum` identity, and combine the endpoint
+and integral estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of the
+Riemann Zeta-function*, §3.5. -/
 theorem abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_one
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :

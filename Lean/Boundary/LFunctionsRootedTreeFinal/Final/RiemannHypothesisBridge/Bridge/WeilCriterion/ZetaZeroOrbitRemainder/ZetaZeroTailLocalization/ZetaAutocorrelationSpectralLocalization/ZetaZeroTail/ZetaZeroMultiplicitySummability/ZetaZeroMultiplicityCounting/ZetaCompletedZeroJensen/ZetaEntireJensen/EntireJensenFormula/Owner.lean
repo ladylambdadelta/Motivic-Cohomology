@@ -2430,6 +2430,92 @@ theorem entireFunction_analyticLog_cauchy_center_circleIntegral
     Metric.mem_ball_self hρ_pos
   exact hdiff.two_pi_i_inv_smul_circleIntegral_sub_inv_smul hzero_mem
 
+/-- Parametrization of the Cauchy kernel on Jensen's boundary circle.
+
+This is the exact boundary cancellation used to pass from Cauchy's
+`circleIntegral` normalization to the ordinary angular integral.  The proof is
+the direct expansion of `circleIntegral`, `circleMap 0 ρ θ`, and
+`deriv_circleMap`, followed by cancellation of the nonzero boundary point. -/
+theorem entireFunction_cauchyKernel_circleMap_boundaryCancellation
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (θ : ℝ) :
+    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+      Complex.I := by
+  -- Owner-level circle-map computation:
+  -- `deriv_circleMap` gives `circleMap 0 ρ θ * Complex.I`; `circleMap_ne_center`
+  -- applies because `1 ≤ ρ`, and the inverse factor cancels.
+  sorry
+
+/-- Circle-integral transport for the holomorphic mean value formula on the
+Jensen boundary.
+
+This lemma isolates the only parametrization work in the complex mean-value
+step: after the Cauchy-kernel cancellation, the circle integral is exactly
+`Complex.I` times the angular boundary integral. -/
+theorem entireFunction_cauchyCircleIntegral_eq_I_smul_boundaryIntervalIntegral
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    (∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
+      Complex.I •
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
+  -- Expand `circleIntegral`, identify `circleMap 0 ρ θ` with
+  -- `(ρ : ℂ) * exp (θ * I)`, and use
+  -- `entireFunction_cauchyKernel_circleMap_boundaryCancellation` pointwise.
+  sorry
+
+/-- Scalar normalization after the Cauchy boundary parametrization. -/
+theorem entireFunction_two_pi_I_inv_smul_I_smul_eq_two_pi_inv_smul
+    (w : ℂ) :
+    ((2 * Real.pi * Complex.I : ℂ)⁻¹ • (Complex.I • w)) =
+      ((2 * Real.pi : ℂ)⁻¹ • w) := by
+  -- The nonzero real scalar `2π` and `Complex.I * Complex.I⁻¹` reduce the
+  -- Cauchy normalization to the angular mean normalization.
+  sorry
+
+/-- The Cauchy center formula after circle parametrization and scalar
+normalization. -/
+theorem entireFunction_analyticLog_complex_holomorphicMeanValue_circle_from_cauchyKernel
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    ((2 * Real.pi : ℂ)⁻¹ •
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+      L 0 := by
+  have hcauchy :
+      ((2 * Real.pi * Complex.I : ℂ)⁻¹ •
+          ∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
+        L 0 :=
+    entireFunction_analyticLog_cauchy_center_circleIntegral L hρ hL
+  have hcircle :
+      (∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
+        Complex.I •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) :=
+    entireFunction_cauchyCircleIntegral_eq_I_smul_boundaryIntervalIntegral
+      L hρ
+  have hnormalized :
+      ((2 * Real.pi * Complex.I : ℂ)⁻¹ •
+          (Complex.I •
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              L ((ρ : ℂ) * Complex.exp (θ * Complex.I))))) =
+        ((2 * Real.pi : ℂ)⁻¹ •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) :=
+    entireFunction_two_pi_I_inv_smul_I_smul_eq_two_pi_inv_smul
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+  exact Eq.trans hnormalized.symm (Eq.trans (congrArg (fun w : ℂ =>
+    ((2 * Real.pi * Complex.I : ℂ)⁻¹ • w)) hcircle.symm) hcauchy)
+
 /-- The Cauchy center formula rewritten as the normalized complex boundary mean
 of the holomorphic function. -/
 theorem entireFunction_analyticLog_complex_holomorphicMeanValue_circle
@@ -2444,12 +2530,97 @@ theorem entireFunction_analyticLog_complex_holomorphicMeanValue_circle
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
       L 0 := by
-  -- This is the remaining parametrization transport:
-  -- `circleIntegral` unfolds to `∫ deriv (circleMap 0 ρ) θ • _`,
-  -- `deriv (circleMap 0 ρ) θ = circleMap 0 ρ θ * Complex.I`, and the
-  -- Cauchy kernel `(circleMap 0 ρ θ - 0)⁻¹` cancels the nonzero boundary
-  -- factor because `1 ≤ ρ`.
+  exact
+    entireFunction_analyticLog_complex_holomorphicMeanValue_circle_from_cauchyKernel
+      L hρ hL
+
+/-- The real part of the Jensen angular interval integral is the interval
+integral of the real part.
+
+This is the canonical `intervalIntegral`/`Complex.re` transport needed after
+the complex mean-value formula. -/
+theorem entireFunction_boundaryIntervalIntegral_re
+    (L : ℂ → ℂ)
+    (ρ : ℝ) :
+    ((∫ θ in (0 : ℝ)..(2 * Real.pi),
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      ∫ θ in (0 : ℝ)..(2 * Real.pi),
+        (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re := by
+  -- This is `integral_re` after unfolding `intervalIntegral` to the oriented
+  -- integral over `uIoc`, with the orientation real scalar acting by
+  -- `Complex.real_smul`.
   sorry
+
+/-- Real part of a complex mean with a real scalar coefficient. -/
+theorem entireFunction_complexMean_realScalar_re
+    (c : ℝ)
+    (w : ℂ) :
+    (((c : ℂ) • w).re) = c * w.re := by
+  -- This is the scalar-coercion normal form for the real part map on `ℂ`.
+  sorry
+
+/-- The complex inverse of the real Jensen normalizing scalar is the coercion
+of the real inverse. -/
+theorem entireFunction_complex_twoPi_inv_eq_real_twoPi_inv :
+    ((2 * Real.pi : ℂ)⁻¹) = (((2 * Real.pi)⁻¹ : ℝ) : ℂ) := by
+  -- This is `Complex.ofReal_inv` for the nonzero real number `2π`.
+  sorry
+
+/-- Real-part transport for the normalized complex boundary mean, isolated from
+the analytic Cauchy input. -/
+theorem entireFunction_complexMeanValue_re_part_transport_from_integral_re
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hcomplex :
+      ((2 * Real.pi : ℂ)⁻¹ •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+        L 0) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      (L 0).re := by
+  have hreal_scalar :
+      ((((2 * Real.pi)⁻¹ : ℝ) : ℂ) •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))).re =
+        (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re :=
+    entireFunction_complexMean_realScalar_re
+      ((2 * Real.pi)⁻¹)
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+  have hintegral_re :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re :=
+    entireFunction_boundaryIntervalIntegral_re L ρ
+  have hleft :
+      ((((2 * Real.pi)⁻¹ : ℝ) : ℂ) •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))).re =
+        (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) :=
+    Eq.trans hreal_scalar
+      (congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) hintegral_re)
+  have hcomplex_re :
+      ((((2 * Real.pi)⁻¹ : ℝ) : ℂ) •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))).re =
+        (L 0).re :=
+    congrArg Complex.re
+      (Eq.trans
+        (congrArg
+          (fun c : ℂ =>
+            c •
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                L ((ρ : ℂ) * Complex.exp (θ * Complex.I))))
+          entireFunction_complex_twoPi_inv_eq_real_twoPi_inv.symm)
+        hcomplex)
+  exact Eq.trans hleft.symm hcomplex_re
 
 /-- Real-part transport for the normalized complex boundary mean. -/
 theorem entireFunction_complexMeanValue_re_part_transport
@@ -2464,11 +2635,9 @@ theorem entireFunction_complexMeanValue_re_part_transport
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
       (L 0).re := by
-  -- This is the pure interval-integral/real-part transport from the complex
-  -- mean-value identity: apply real parts to `hcomplex`, move `Complex.re`
-  -- through the interval integral, and read the real scalar action by
-  -- `(2 * Real.pi : ℂ)⁻¹` as multiplication by `(2 * Real.pi)⁻¹`.
-  sorry
+  exact
+    entireFunction_complexMeanValue_re_part_transport_from_integral_re
+      L hcomplex
 
 /-- Cauchy mean-value theorem for the real part of a holomorphic function on a
 Jensen circle.
@@ -2517,6 +2686,96 @@ theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle
     entireFunction_analyticLog_re_holomorphicMeanValue_circle_from_cauchyIntegral
       L hρ hL
 
+/-- Boundary factorization for a single nonzero Jensen zero inside the circle. -/
+theorem entireFunction_singleZeroFactor_boundary_factorization
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (θ : ℝ) :
+    1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
+      -(((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) *
+        (1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) := by
+  -- Algebraic factorization of the boundary linear term, with `a ≠ 0`.
+  sorry
+
+/-- The boundary factor has norm `ρ / ‖a‖`. -/
+theorem entireFunction_singleZeroFactor_outer_norm
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (hρ_pos : 0 < ρ)
+    (θ : ℝ) :
+    ‖-(((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖ =
+      ρ / ‖a‖ := by
+  -- Use `norm_div`, `Complex.normSq_exp`, and `Complex.abs_exp` on the unit
+  -- complex exponential; positivity of `ρ` removes the absolute value.
+  sorry
+
+/-- Splitting the logarithm of one boundary factor into the constant outer
+radial term and the inner disk logarithmic term. -/
+theorem entireFunction_singleZeroFactor_boundary_log_split
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (hρ_pos : 0 < ρ)
+    (θ : ℝ) :
+    Real.log
+        ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖ =
+      Real.log (ρ / ‖a‖) +
+        Real.log ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖ := by
+  -- Apply the boundary factorization, the outer norm computation, and
+  -- `Real.log_mul`; the inner factor is nonzero when `‖a‖ < ρ`.
+  sorry
+
+/-- The logarithmic power-series mean for an inside-disk linear factor
+vanishes on the Jensen boundary. -/
+theorem entireFunction_singleZeroFactor_inner_log_mean_zero_from_powerSeries
+    {a : ℂ}
+    {ρ : ℝ}
+    (haρ : ‖a‖ < ρ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log
+            ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) =
+      0 := by
+  -- Expand `log (1 - z)` as `-∑ n≥1 z^n/n` for `‖a/ρ‖ < 1`.
+  -- The angular mean of every nonzero Fourier mode is zero, so the real part
+  -- of the logarithmic mean is zero.
+  sorry
+
+/-- Integrating the split single-factor boundary logarithm leaves only the
+outer Jensen radial term. -/
+theorem entireFunction_singleZeroFactor_boundaryAverage_from_log_split
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (haρ : ‖a‖ < ρ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
+      Real.log (ρ / ‖a‖) := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_le_of_lt (norm_nonneg a) haρ
+  have hsplit :
+      ∀ θ : ℝ,
+        Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖ =
+          Real.log (ρ / ‖a‖) +
+            Real.log ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖ :=
+    fun θ : ℝ =>
+      entireFunction_singleZeroFactor_boundary_log_split ha0 hρ_pos θ
+  have hinner :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) =
+        0 :=
+    entireFunction_singleZeroFactor_inner_log_mean_zero_from_powerSeries haρ
+  -- Transport `hsplit` through interval integration, integrate the constant
+  -- term over `[0, 2π]`, and use `hinner`.
+  sorry
+
 /-- The single-factor Poisson-Jensen circle integral.
 
 For `0 < ‖a‖ < ρ`, the normalized boundary average of
@@ -2535,8 +2794,8 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_identity_from_logPowerSe
           Real.log
             ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
       Real.log (ρ / ‖a‖) := by
-  -- Poisson/Jensen circle integral for one linear factor.
-  sorry
+  exact
+    entireFunction_singleZeroFactor_boundaryAverage_from_log_split ha0 haρ
 
 /-- The normalized boundary average of one extracted nonzero linear zero factor
 is its Jensen radial logarithm. -/
