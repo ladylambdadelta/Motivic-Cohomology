@@ -67,14 +67,14 @@ theorem zetaAdmissibleDagger_dagger (f : ZetaAdmissibleFunction) :
   ext t
   exact zetaAdmissibleDagger_dagger_apply f t
 
-/-- The legacy pointwise autocorrelation kernel attached to an admissible function.
+/-- The pointwise autocorrelation presentation attached to an admissible function.
 
 This is not the convolution autocorrelation kernel used by the RH-lane
 holography theorem. -/
 def zetaAutocorrelationKernel (f : ZetaAdmissibleFunction) : ℝ → ℂ :=
   fun t => f t * zetaAdmissibleDagger f t
 
-/-- The legacy autocorrelation kernel is pointwise the product with the dagger. -/
+/-- The pointwise autocorrelation kernel is the product with the dagger. -/
 theorem zetaAutocorrelationKernel_apply (f : ZetaAdmissibleFunction) (t : ℝ) :
     zetaAutocorrelationKernel f t = f t * zetaAdmissibleDagger f t := by
   exact Eq.refl _

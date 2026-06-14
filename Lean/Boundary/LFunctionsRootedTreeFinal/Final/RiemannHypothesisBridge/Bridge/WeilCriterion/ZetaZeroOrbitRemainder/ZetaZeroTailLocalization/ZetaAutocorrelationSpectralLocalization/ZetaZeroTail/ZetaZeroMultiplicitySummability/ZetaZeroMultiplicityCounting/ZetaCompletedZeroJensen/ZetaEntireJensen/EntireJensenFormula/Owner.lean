@@ -1,5 +1,6 @@
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Analysis.SpecialFunctions.Integrals
@@ -2338,6 +2339,31 @@ theorem entireFunction_zeroFreeQuotient_boundaryLog_eq_analyticLog_re
     _ = (L z).re :=
       complex_log_norm_exp_eq_re (L z)
 
+/-- Analytic-log existence on a simply connected Jensen disk.
+
+This is the exact topological/complex-analytic owner root needed by Jensen's
+formula: a holomorphic zero-free function on a neighborhood of the closed disk
+has a holomorphic logarithm on that disk, with the real part normalized at the
+center.  The intended proof is the classical lifting of `G : D → ℂˣ` through
+`Complex.exp : ℂ → ℂˣ` on the simply connected disk, followed by the identity
+`Real.log ‖Complex.exp w‖ = w.re`.  Cf. Titchmarsh, *The Theory of
+Functions*, §5. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
+    (G : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0) :
+    ∃ L : ℂ → ℂ,
+      (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
+      (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) ∧
+      (L 0).re = Real.log ‖G 0‖ := by
+  -- Classical analytic logarithm on a simply connected zero-free disk.
+  sorry
+
 /-- A zero-free holomorphic function on a closed disk admits a holomorphic
 logarithm on a neighborhood of that disk, normalized at the center.
 
@@ -2357,7 +2383,32 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog
       (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
       (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) ∧
       (L 0).re = Real.log ‖G 0‖ := by
-  -- Classical zero-free disk logarithm; cf. Titchmarsh, §5.
+  exact
+    entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
+      G hG hρ hzero
+
+/-- Cauchy mean-value theorem for the real part of a holomorphic function on a
+Jensen circle.
+
+This is the analytic mean-value owner root in the exact interval-integral
+normalization used in this file.  The intended proof applies Cauchy's integral
+formula to `L` at `0` on `C(0, ρ)`, rewrites the circle integral through
+`circleMap 0 ρ θ = (ρ : ℂ) * Complex.exp (θ * Complex.I)`, cancels the
+nonzero boundary factor, and then applies `MeasureTheory.integral_re`.
+Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle_from_cauchyIntegral
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      (L 0).re := by
+  -- Cauchy's integral formula plus real-part transport for the circle map.
   sorry
 
 /-- Mean-value theorem for the real part of a holomorphic function on a disk,
@@ -2374,7 +2425,29 @@ theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
       (L 0).re := by
-  -- Holomorphic mean-value theorem applied to `Complex.re ∘ L`.
+  exact
+    entireFunction_analyticLog_re_holomorphicMeanValue_circle_from_cauchyIntegral
+      L hρ hL
+
+/-- The single-factor Poisson-Jensen circle integral.
+
+For `0 < ‖a‖ < ρ`, the normalized boundary average of
+`θ ↦ log ‖1 - ρ e^{iθ}/a‖` is `log (ρ / ‖a‖)`.  Equivalently, after factoring
+`ρ/a`, this is the vanishing mean of
+`log ‖1 - (a/ρ)e^{-iθ}‖` for `‖a/ρ‖ < 1`, obtained from the real part of the
+convergent logarithmic power series.  Cf. Titchmarsh, *The Theory of
+Functions*, §5. -/
+theorem entireFunction_singleZeroFactor_boundaryAverage_identity_from_logPowerSeries
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (haρ : ‖a‖ < ρ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
+      Real.log (ρ / ‖a‖) := by
+  -- Poisson/Jensen circle integral for one linear factor.
   sorry
 
 /-- The normalized boundary average of one extracted nonzero linear zero factor
@@ -2389,8 +2462,9 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_identity
           Real.log
             ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
       Real.log (ρ / ‖a‖) := by
-  -- Poisson/Jensen circle integral for one linear factor.
-  sorry
+  exact
+    entireFunction_singleZeroFactor_boundaryAverage_identity_from_logPowerSeries
+      ha0 haρ
 
 /-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
 classical Jensen product theorem.
@@ -2404,6 +2478,24 @@ mean value on the boundary circle -> the single zero-factor boundary average
 This statement keeps the classical analytic heart separate from the already
 proved finite support and summability transports in this owner file.  Cf.
 Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_finiteProductAssembly_from_constituents
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Finite zero divisor extraction, zero-free quotient, Cauchy mean-value,
+  -- one-factor Poisson-Jensen integral, and support-controlled `tsum`.
+  sorry
+
+/-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
+classical Jensen product theorem.
+
+This public theorem is intentionally a thin wrapper over the finite-product
+assembly root, after the three analytic constituents have been isolated above. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_from_analyticLogHarmonicMeanValue_and_zeroFactorCircleAverage
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -2413,8 +2505,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_bo
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ := by
-  -- Classical Jensen product theorem after finite divisor extraction.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_finiteProductAssembly_from_constituents
+      F hF hF0
 
 /-- Analytic-log/harmonic mean-value form of the classical Jensen product
 theorem. -/

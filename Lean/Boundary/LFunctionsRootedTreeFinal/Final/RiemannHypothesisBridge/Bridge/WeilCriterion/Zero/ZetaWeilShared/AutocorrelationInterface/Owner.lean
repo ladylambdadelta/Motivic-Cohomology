@@ -20,7 +20,7 @@ def IsZetaConvolutionAutocorrelationProbe (φ : ZetaProbe) : Prop :=
       (ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction'
 
 /-- Historical name for convolution-autocorrelation probes. The RH-lane autocorrelation
-surface is now the convolution autocorrelation, not the legacy pointwise square. -/
+surface is the convolution autocorrelation, not the pointwise presentation. -/
 abbrev IsZetaAutocorrelationProbe (φ : ZetaProbe) : Prop :=
   IsZetaConvolutionAutocorrelationProbe φ
 

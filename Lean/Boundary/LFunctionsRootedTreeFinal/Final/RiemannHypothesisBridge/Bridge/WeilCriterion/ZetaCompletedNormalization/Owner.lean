@@ -514,6 +514,36 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
+/-- Classical closed-sector Stirling estimates for `Complex.Gamma`.
+
+This is the single classical special-function owner input for the Gamma lane.
+It packages the sectorial log-norm consequence of Stirling's expansion in the
+closed right half-plane together with the fixed-real-part vertical two-sided
+estimates obtained from the same expansion.  The sector avoids the negative
+real axis, and the fixed-line bounds are the usual
+`Γ(a + i b) = O(exp (-π |b| / 2) |b|^(a - 1/2))` estimate and its reciprocal
+dual; cf. DLMF §5.11. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_and_vertical_stirling_bounds_classical :
+    (∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) ∧
+    (∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+              C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (a - 1 / 2) ∧
+          ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+              C * Real.exp ((Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (1 / 2 - a)) := by
+  sorry
+
 /-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
 This is the standard special-function input closest to the literature: the
@@ -529,7 +559,8 @@ theorem Complex.Gamma_sectorial_rightHalfPlane_stirling_log_norm_bound_classical
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  exact
+    Complex.Gamma_closedRightHalfPlane_sectorial_and_vertical_stirling_bounds_classical.1
 
 /-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
@@ -2264,7 +2295,8 @@ theorem verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard
         ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
           C * Real.exp ((Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (1 / 2 - a) := by
-  sorry
+  exact
+    Complex.Gamma_closedRightHalfPlane_sectorial_and_vertical_stirling_bounds_classical.2 a
 
 /-- The direct fixed-real-part vertical Stirling norm estimate for `Complex.Gamma`.
 
@@ -4545,15 +4577,102 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
   exact abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
     t hNM hf_diff hf_int
 
-/-- Classical Euler-Maclaurin/Abel estimate for the exact oscillatory tail after
-the cutoff `N = ⌊2 + |t|⌋₊`.
+/-- Pointwise transport of the post-cutoff boundary-line Dirichlet tail to the
+Abel-normalized oscillatory tail. -/
+theorem boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscillation
+    (t : ℝ)
+    (n : ℕ) :
+    (if ⌊2 + ‖t‖⌋₊ < n then
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+      else
+        0) =
+      if ⌊2 + ‖t‖⌋₊ < n then
+        ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+      else
+        0 := by
+  by_cases hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n
+  · have hn_pos : 0 < n :=
+      lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hcutoff_lt_n
+    have hleft :
+        (if ⌊2 + ‖t‖⌋₊ < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0) =
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) :=
+      if_pos hcutoff_lt_n
+    have hterm :
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) =
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+      boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left
+        t hn_pos
+    have hright :
+        (if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0) =
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+      if_pos hcutoff_lt_n
+    exact Eq.trans hleft (Eq.trans hterm hright.symm)
+  · have hleft :
+        (if ⌊2 + ‖t‖⌋₊ < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0) =
+          0 :=
+      if_neg hcutoff_lt_n
+    have hright :
+        (if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0) =
+          0 :=
+      if_neg hcutoff_lt_n
+    exact Eq.trans hleft hright.symm
 
-This is the remaining classical analytic input in its peeled form.  The summand is
-the Abel-normalized boundary-line term `n⁻¹ n⁻ⁱᵗ`, and the theorem asserts both the
-identification of the infinite post-cutoff tail with the analytically continued
-zeta value minus the finite truncation, and the uniform endpoint bound produced by
-Euler-Maclaurin after Abel summation; cf. Titchmarsh, *The Theory of the Riemann
+/-- Dirichlet-series continuation identity for the exact post-cutoff oscillatory
+boundary-line tail.
+
+Intended proof chain:
+start from `LSeriesHasSum_zeta` on `1 < re s`, subtract the finite truncation
+`∑_{1 ≤ n ≤ N} n^{-s}`, continue the identity to `s = 1 + it` with `t ≠ 0`,
+and transport each surviving post-cutoff term through
+`boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left`. -/
+theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+  sorry
+
+/-- Sharp Abel/Euler-Maclaurin estimate for the exact post-cutoff oscillatory
+boundary-line zeta remainder.
+
+Intended proof chain:
+apply `abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity` to
+finite tails, bound the oscillatory partial sums
+`∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|`, pass to the post-cutoff limit
+using the preceding `HasSum` identity, and combine the endpoint and integral
+estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of the Riemann
 Zeta-function*, §3.5. -/
+theorem abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_one
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1 := by
+  sorry
+
+/-- Exact post-cutoff oscillatory tail after the cutoff `N = ⌊2 + |t|⌋₊`.
+
+The proof is now only the conjunction of the peeled Dirichlet-continuation
+identity and the sharp Abel/Euler-Maclaurin endpoint/integral estimate. -/
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_one
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
@@ -4569,7 +4688,11 @@ theorem eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cuto
       ‖riemannZeta (boundaryLineOnePointRealParam t) -
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1 := by
-  sorry
+  exact And.intro
+    (boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder
+      t ht)
+    (abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_one
+      t ht)
 
 /-- Transport a boundary-line tail norm estimate from the Abel-normalized oscillatory
 finite truncation back to the original Dirichlet monomials. -/
