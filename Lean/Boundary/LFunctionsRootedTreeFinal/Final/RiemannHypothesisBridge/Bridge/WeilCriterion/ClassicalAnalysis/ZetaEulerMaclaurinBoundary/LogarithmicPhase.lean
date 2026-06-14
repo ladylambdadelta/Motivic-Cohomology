@@ -983,12 +983,59 @@ theorem Complex.logarithmicPhase_dyadic_block_cover_bound
       Complex.logarithmicPhase_single_block_le_dyadic_cover_expression t N
     exact le_trans hsingle hcover
 
+/-- Numerical lower bound used to show `log (2+N)` is uniformly positive. -/
+theorem Complex.real_exp_half_le_two :
+    Real.exp (1 / 2 : ℝ) ≤ 2 := by
+  have hexp_one_le_four : Real.exp (1 : ℝ) ≤ 4 :=
+    le_trans
+      (le_of_lt Real.exp_one_lt_d9)
+      (by norm_num)
+  have hsqrt_le_two : Real.sqrt (Real.exp (1 : ℝ)) ≤ 2 :=
+    (Real.sqrt_le_left (by norm_num : (0 : ℝ) ≤ 2)).mpr
+      (by
+        calc
+          Real.exp (1 : ℝ) ≤ 4 := hexp_one_le_four
+          _ = (2 : ℝ) ^ 2 := by norm_num)
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ 2)
+      (Real.exp_half (1 : ℝ)).symm
+      hsqrt_le_two
+
 /-- The standard logarithmic factor is bounded below uniformly on natural
 cutoffs. -/
 theorem Complex.logarithmicPhase_standardLog_half_le
     (N : ℕ) :
     (1 / 2 : ℝ) ≤ Real.log (2 + N) := by
+  have hpos : 0 < (2 : ℝ) + N :=
+    lt_of_lt_of_le zero_lt_two (le_add_of_nonneg_right (Nat.cast_nonneg N))
+  have hexp_le : Real.exp (1 / 2 : ℝ) ≤ (2 : ℝ) + N :=
+    le_trans Complex.real_exp_half_le_two
+      (le_add_of_nonneg_right (Nat.cast_nonneg N))
+  exact (Real.le_log_iff_exp_le hpos).mpr hexp_le
+
+/-- Dyadic integer logarithm is dominated by a fixed multiple of the natural
+logarithm on the shifted natural cutoff. -/
+theorem Complex.nat_log2_add_one_le_two_log
+    (N : ℕ) :
+    (Nat.log2 (N + 1) : ℝ) + 1 ≤ 2 * Real.log (2 + N) := by
   sorry
+
+/-- The transition square-root factor is at least `2` at nonzero boundary
+frequency. -/
+theorem Complex.two_le_two_mul_sqrt_one_add_norm
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    2 ≤ 2 * Real.sqrt (1 + ‖t‖) := by
+  have hone_le : (1 : ℝ) ≤ Real.sqrt (1 + ‖t‖) := by
+    have hone_arg : (1 : ℝ) ≤ 1 + ‖t‖ :=
+      le_add_of_nonneg_right (norm_nonneg t)
+    exact (Real.one_le_sqrt).mpr hone_arg
+  exact
+    Eq.subst
+      (motive := fun lhs : ℝ => lhs ≤ 2 * Real.sqrt (1 + ‖t‖))
+      (mul_one 2).symm
+      (mul_le_mul_of_nonneg_left hone_le zero_le_two)
 
 /-- The dyadic counting term is absorbed by the standard
 `sqrt(1 + |t|) log(2+N)` transition factor. -/
@@ -998,7 +1045,19 @@ theorem Complex.logarithmicPhase_log2_add_one_le_sqrt_transition
     (N : ℕ) :
     (Nat.log2 (N + 1) : ℝ) + 1 ≤
       2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
-  sorry
+  have hlog2 :
+      (Nat.log2 (N + 1) : ℝ) + 1 ≤ 2 * Real.log (2 + N) :=
+    Complex.nat_log2_add_one_le_two_log N
+  have htarget :
+      2 * Real.log (2 + N) ≤
+        2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
+    have hlog_nonneg : 0 ≤ Real.log (2 + N) :=
+      le_trans (show (0 : ℝ) ≤ 1 / 2 by norm_num)
+        (Complex.logarithmicPhase_standardLog_half_le N)
+    have hsqrt_factor : 2 ≤ 2 * Real.sqrt (1 + ‖t‖) :=
+      Complex.two_le_two_mul_sqrt_one_add_norm t ht
+    exact mul_le_mul_of_nonneg_right hsqrt_factor hlog_nonneg
+  exact le_trans hlog2 htarget
 
 /-- The quotient term in the dyadic-cover expression is absorbed by the
 standard logarithmic factor. -/
@@ -1008,7 +1067,27 @@ theorem Complex.logarithmicPhase_quotient_term_le_standard
     (N : ℕ) :
     8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) ≤
       16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) := by
-  sorry
+  have hlog_half : (1 / 2 : ℝ) ≤ Real.log (2 + N) :=
+    Complex.logarithmicPhase_standardLog_half_le N
+  have hquot_nonneg : 0 ≤ (((N + 1 : ℕ) : ℝ) / ‖t‖) := by
+    have ht_pos : 0 < ‖t‖ :=
+      lt_of_lt_of_le zero_lt_one ht
+    exact div_nonneg (Nat.cast_nonneg (N + 1)) ht_pos.le
+  have hscaled :
+      16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * (1 / 2 : ℝ) ≤
+        16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) := by
+    have hfactor_nonneg : 0 ≤ 16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) :=
+      mul_nonneg (Nat.cast_nonneg 16) hquot_nonneg
+    exact mul_le_mul_of_nonneg_left hlog_half hfactor_nonneg
+  have hleft :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) =
+        16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * (1 / 2 : ℝ) := by
+    ring
+  exact Eq.subst
+    (motive := fun lhs : ℝ =>
+      lhs ≤ 16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N))
+    hleft.symm
+    hscaled
 
 /-- The dyadic counting term in the cover expression is absorbed by the
 standard transition factor. -/
@@ -1018,7 +1097,25 @@ theorem Complex.logarithmicPhase_counting_term_le_standard
     (N : ℕ) :
     8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
       16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
-  sorry
+  have htransition :
+      (Nat.log2 (N + 1) : ℝ) + 1 ≤
+        2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) :=
+    Complex.logarithmicPhase_log2_add_one_le_sqrt_transition t ht N
+  have hleft_nonneg : (0 : ℝ) ≤ 8 :=
+    Nat.cast_nonneg 8
+  have hscaled :
+      8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
+        8 * (2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N)) :=
+    mul_le_mul_of_nonneg_left htransition hleft_nonneg
+  have hright :
+      8 * (2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N)) =
+        16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
+    ring
+  exact Eq.subst
+    (motive := fun rhs : ℝ =>
+      8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤ rhs)
+    hright
+    hscaled
 
 /-- Elementary comparison from the dyadic block-cover expression to the
 standard logarithmic first-derivative bound. -/

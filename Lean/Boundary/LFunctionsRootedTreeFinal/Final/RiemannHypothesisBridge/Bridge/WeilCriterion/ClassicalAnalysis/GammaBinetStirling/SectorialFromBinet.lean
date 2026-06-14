@@ -56,6 +56,57 @@ theorem Real.two_mul_div_mul_half_eq
     (2 * B / r) * (r / 2) = B := by
   field_simp [hr]
 
+/-- Upper bound for a quotient from an upper numerator bound and a lower
+denominator bound. -/
+theorem Real.div_le_div_of_le_of_le
+    {a A d n : ℝ}
+    (ha_pos : 0 < a)
+    (hn_nonneg : 0 ≤ n)
+    (hnA : n ≤ A)
+    (had : a ≤ d) :
+    n / d ≤ A / a := by
+  have hd_pos : 0 < d := lt_of_lt_of_le ha_pos had
+  have hA_nonneg : 0 ≤ A := le_trans hn_nonneg hnA
+  rw [div_le_div_iff₀ hd_pos ha_pos]
+  exact
+    le_trans
+      (mul_le_mul_of_nonneg_right hnA (le_of_lt ha_pos))
+      (mul_le_mul_of_nonneg_left had hA_nonneg)
+
+/-- Lower bound for a quotient from a lower numerator bound and an upper
+denominator bound. -/
+theorem Real.div_le_div_of_le_of_le'
+    {a A d n : ℝ}
+    (ha_pos : 0 < a)
+    (hA_pos : 0 < A)
+    (hd_pos : 0 < d)
+    (had : d ≤ A)
+    (han : a ≤ n) :
+    a / A ≤ n / d := by
+  rw [div_le_div_iff₀ hA_pos hd_pos]
+  exact
+    le_trans
+      (mul_le_mul_of_nonneg_left had (le_of_lt ha_pos))
+      (mul_le_mul_of_nonneg_right han (le_of_lt hA_pos))
+
+/-- The real number `3` is positive. -/
+theorem Real.zero_lt_three : (0 : ℝ) < 3 :=
+  Nat.cast_pos.mpr (Nat.succ_pos 2)
+
+/-- Multiplying by `1 / 3` cancels a leading factor `3`. -/
+theorem Real.one_div_three_mul_three_mul
+    (x : ℝ) :
+    (1 / 3 : ℝ) * (3 * x) = x := by
+  calc
+    (1 / 3 : ℝ) * (3 * x)
+        = ((1 / 3 : ℝ) * 3) * x :=
+            mul_assoc (1 / 3 : ℝ) 3 x
+    _ = 1 * x := by
+            exact congrArg (fun y : ℝ => y * x)
+              (one_div_mul_cancel (ne_of_gt Real.zero_lt_three))
+    _ = x :=
+            one_mul x
+
 /-- Distributing the leading Binet factor over a split complex integral. -/
 theorem Complex.two_mul_add_eq_add_two_mul
     (a b : ℂ) :
@@ -417,7 +468,132 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
               (w - (t : ℂ) * Complex.I)‖ ∧
           ‖(w + (t : ℂ) * Complex.I) /
               (w - (t : ℂ) * Complex.I)‖ ≤ M := by
-  sorry
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  let m : ℝ := min (w.re / (3 * ‖w‖)) (1 / 3)
+  let M : ℝ := max (3 * ‖w‖ / w.re) 3
+  have hthree_pos : (0 : ℝ) < 3 := Real.zero_lt_three
+  have hden_const_pos : 0 < 3 * ‖w‖ :=
+    mul_pos hthree_pos hw_norm_pos
+  have hm_pos : 0 < m := by
+    dsimp [m]
+    exact
+      lt_min
+        (div_pos hw_re_pos hden_const_pos)
+        (div_pos zero_lt_one hthree_pos)
+  have hM_ge_three : 3 ≤ M := by
+    dsimp [M]
+    exact le_max_right _ _
+  have hm_le_third : m ≤ (1 / 3 : ℝ) := by
+    dsimp [m]
+    exact min_le_right _ _
+  have hm_le_bounded : m ≤ w.re / (3 * ‖w‖) := by
+    dsimp [m]
+    exact min_le_left _ _
+  have hbounded_le_M : 3 * ‖w‖ / w.re ≤ M := by
+    dsimp [M]
+    exact le_max_left _ _
+  refine ⟨m, M, hm_pos, ?_, ?_⟩
+  · exact le_trans (le_of_lt hm_pos) hM_ge_three
+  · intro t ht_tail
+    have ht_nonneg : 0 ≤ t := by
+      have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
+        div_nonneg (norm_nonneg w) Real.zero_le_two_real
+      exact le_trans hcut_nonneg (le_of_lt ht_tail)
+    have hnum_lower :
+        w.re ≤ ‖w + (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
+        hw_re_pos t
+    have hden_lower :
+        w.re ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
+        hw_re_pos t
+    have hden_pos : 0 < ‖w - (t : ℂ) * Complex.I‖ :=
+      lt_of_lt_of_le hw_re_pos hden_lower
+    by_cases ht_bounded : t ≤ 2 * ‖w‖
+    · have hnum_upper :
+          ‖w + (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+        Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
+          ht_nonneg ht_bounded
+      have hden_upper :
+          ‖w - (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+        Complex.binetSecondFormula_arctan_tail_denominator_le_three_norm
+          ht_nonneg ht_bounded
+      constructor
+      · have hlower :
+            w.re / (3 * ‖w‖) ≤
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ :=
+          Real.div_le_div_of_le_of_le'
+            hw_re_pos hden_const_pos hden_pos
+            hden_upper hnum_lower
+        calc
+          m ≤ w.re / (3 * ‖w‖) := hm_le_bounded
+          _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := hlower
+          _ = ‖(w + (t : ℂ) * Complex.I) /
+                (w - (t : ℂ) * Complex.I)‖ := by
+            rw [norm_div]
+      · have hupper :
+            ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ ≤
+              3 * ‖w‖ / w.re :=
+          Real.div_le_div_of_le_of_le
+            hw_re_pos (norm_nonneg _)
+            hnum_upper hden_lower
+        calc
+          ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ =
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+            rw [norm_div]
+          _ ≤ 3 * ‖w‖ / w.re := hupper
+          _ ≤ M := hbounded_le_M
+    · have ht_far : 2 * ‖w‖ ≤ t := le_of_not_ge ht_bounded
+      rcases
+          Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
+            (w := w) (t := t) ht_far with
+        ⟨hnum_le, hden_le⟩
+      constructor
+      · have hthird :
+            (1 / 3 : ℝ) ≤
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+          rw [le_div_iff₀ hden_pos]
+          calc
+            (1 / 3 : ℝ) *
+                ‖w - (t : ℂ) * Complex.I‖ ≤
+                (1 / 3 : ℝ) *
+                  (3 * ‖w + (t : ℂ) * Complex.I‖) :=
+              mul_le_mul_of_nonneg_left hden_le
+                (div_nonneg zero_le_one (le_of_lt hthree_pos))
+            _ = ‖w + (t : ℂ) * Complex.I‖ :=
+              Real.one_div_three_mul_three_mul
+                ‖w + (t : ℂ) * Complex.I‖
+        calc
+          m ≤ (1 / 3 : ℝ) := hm_le_third
+          _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := hthird
+          _ = ‖(w + (t : ℂ) * Complex.I) /
+                (w - (t : ℂ) * Complex.I)‖ := by
+            rw [norm_div]
+      · have hthree :
+            ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ ≤ 3 := by
+          rw [div_le_iff₀ hden_pos]
+          exact hnum_le
+        calc
+          ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ =
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+            rw [norm_div]
+          _ ≤ 3 := hthree
+          _ ≤ M := hM_ge_three
 
 /-- On the fixed upper split interval the Möbius ratio entering the arctangent
 has norm bounded above and below by positive constants depending only on `w`.
@@ -498,7 +674,7 @@ theorem Complex.binetSecondFormula_arctan_tail_bounded_of_log_ratio_bound
       simp [norm_div, Complex.normSq]
     calc
       ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := hfactor_norm
-      _ ≤ 1 := by norm_num
+      _ ≤ 1 := by linarith [zero_le_one]
   have hmul :
       ‖(-Complex.I / 2 : ℂ) *
           Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤

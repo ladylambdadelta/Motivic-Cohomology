@@ -1083,6 +1083,53 @@ theorem Real.sinePower_sinSubstitution_inverseJacobian_eq
         (fun y : ℝ => x ^ s * y)
         (Real.sinePower_sinSubstitution_invSqrt_eq_rpow hx)
 
+/-- On `(0,π/2)`, the sine value lies in `(0,1)`. -/
+theorem Real.sinePower_sin_mem_Ioo_zero_one_of_mem_Ioo_zero_halfPi
+    {u : ℝ}
+    (hu : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2)) :
+    Real.sin u ∈ Set.Ioo (0 : ℝ) 1 := by
+  have hu_lt_pi : u < Real.pi :=
+    lt_trans hu.2 (half_lt_self Real.pi_pos)
+  have hsin_pos : 0 < Real.sin u :=
+    Real.sin_pos_of_pos_of_lt_pi hu.1 hu_lt_pi
+  have hneg_half_le_u : -(Real.pi / 2) ≤ u :=
+    le_trans
+      (le_of_lt (neg_lt_zero.mpr Real.pi_div_two_pos))
+      (le_of_lt hu.1)
+  have hsin_lt :
+      Real.sin u < Real.sin (Real.pi / 2) :=
+    Real.sin_lt_sin_of_lt_of_le_pi_div_two
+      hneg_half_le_u
+      le_rfl
+      hu.2
+  have hsin_lt_one : Real.sin u < 1 := by
+    calc
+      Real.sin u < Real.sin (Real.pi / 2) := hsin_lt
+      _ = 1 := Real.sin_pi_div_two
+  exact ⟨hsin_pos, hsin_lt_one⟩
+
+/-- On `(0,π/2)`, `sqrt (1 - sin² u)` is `cos u`. -/
+theorem Real.sinePower_sqrt_one_sub_sin_sq_eq_cos
+    {u : ℝ}
+    (hu : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2)) :
+    Real.sqrt (1 - (Real.sin u) ^ 2) = Real.cos u :=
+  (Real.cos_eq_sqrt_one_sub_sin_sq
+    (le_trans
+      (le_of_lt (neg_lt_zero.mpr Real.pi_div_two_pos))
+      (le_of_lt hu.1))
+    (le_of_lt hu.2)).symm
+
+/-- Cosine is nonzero on `(0,π/2)`. -/
+theorem Real.sinePower_cos_ne_zero_of_mem_Ioo_zero_halfPi
+    {u : ℝ}
+    (hu : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2)) :
+    Real.cos u ≠ 0 := by
+  have hneg_half_lt_u : -(Real.pi / 2) < u :=
+    lt_trans (neg_lt_zero.mpr Real.pi_div_two_pos) hu.1
+  exact
+    (Real.cos_pos_of_mem_Ioo
+      ⟨hneg_half_lt_u, hu.2⟩).ne'
+
 /-- On `(0,π/2)`, the sine-substitution singular factor is the reciprocal of
 the cosine factor. -/
 theorem Real.sinePower_sinSubstitution_singularFactor_mul_cos_eq_one
@@ -1091,13 +1138,73 @@ theorem Real.sinePower_sinSubstitution_singularFactor_mul_cos_eq_one
     (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2) *
         Real.cos u =
       1 := by
-  sorry
+  have hsin_mem :
+      Real.sin u ∈ Set.Ioo (0 : ℝ) 1 :=
+    Real.sinePower_sin_mem_Ioo_zero_one_of_mem_Ioo_zero_halfPi hu
+  have hinv :
+      (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2) =
+        1 / Real.sqrt (1 - (Real.sin u) ^ 2) :=
+    (Real.sinePower_sinSubstitution_invSqrt_eq_rpow hsin_mem).symm
+  have hsqrt :
+      Real.sqrt (1 - (Real.sin u) ^ 2) = Real.cos u :=
+    Real.sinePower_sqrt_one_sub_sin_sq_eq_cos hu
+  have hcos_ne :
+      Real.cos u ≠ 0 :=
+    Real.sinePower_cos_ne_zero_of_mem_Ioo_zero_halfPi hu
+  calc
+    (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2) *
+        Real.cos u =
+        (1 / Real.sqrt (1 - (Real.sin u) ^ 2)) *
+          Real.cos u := by
+      exact congrArg (fun y : ℝ => y * Real.cos u) hinv
+    _ = (1 / Real.cos u) * Real.cos u := by
+      exact congrArg
+        (fun y : ℝ => (1 / y) * Real.cos u)
+        hsqrt
+    _ = (Real.cos u)⁻¹ * Real.cos u := by
+      exact congrArg
+        (fun y : ℝ => y * Real.cos u)
+        (one_div (Real.cos u))
+    _ = 1 := by
+      exact inv_mul_cancel₀ hcos_ne
 
 /-- Reassociation for the sine-substitution forward Jacobian. -/
 theorem Real.sinePower_sinSubstitution_forward_reassociate
     (a b c : ℝ) :
     (a * b) * c = a * (b * c) :=
   mul_assoc a b c
+
+/-- Direct owner wrapper around mathlib's singular scalar change-of-variables
+theorem, with the exact image and pullback integrability hypotheses it needs. -/
+theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
+    {a b : ℝ}
+    {f f' g source : ℝ → ℝ}
+    (hf_cont : ContinuousOn f [[a, b]])
+    (hf_deriv :
+      ∀ x ∈ Set.Ioo (min a b) (max a b),
+        HasDerivWithinAt f (f' x) (Set.Ioi x) x)
+    (hg_cont :
+      ContinuousOn g (f '' Set.Ioo (min a b) (max a b)))
+    (hg_image :
+      MeasureTheory.IntegrableOn g (f '' [[a, b]]) MeasureTheory.volume)
+    (hpullback :
+      MeasureTheory.IntegrableOn
+        (fun x : ℝ => (g ∘ f) x * f' x)
+        [[a, b]]
+        MeasureTheory.volume)
+    (hpoint :
+      EqOn (fun x : ℝ => (g ∘ f) x * f' x) source [[a, b]]) :
+    (∫ x in a..b, source x) =
+      ∫ y in f a..f b, g y := by
+  have hsubstitution :
+      (∫ x in a..b, (g ∘ f) x * f' x) =
+        ∫ y in f a..f b, g y :=
+    intervalIntegral.integral_comp_mul_deriv'''
+      hf_cont hf_deriv hg_cont hg_image hpullback
+  exact
+    Eq.trans
+      (intervalIntegral.integral_congr hpoint.symm)
+      hsubstitution
 
 /-- Owner-level interval substitution theorem for singular scalar kernels,
 using explicit source and target interval-integrability hypotheses. -/
