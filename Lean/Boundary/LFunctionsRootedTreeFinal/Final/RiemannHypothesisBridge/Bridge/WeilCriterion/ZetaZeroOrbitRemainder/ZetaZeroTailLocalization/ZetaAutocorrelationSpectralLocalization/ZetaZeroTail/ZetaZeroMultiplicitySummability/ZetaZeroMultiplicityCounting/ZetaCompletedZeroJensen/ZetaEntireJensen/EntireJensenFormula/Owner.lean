@@ -3235,6 +3235,76 @@ noncomputable def complex_centerSegmentIntegral_radialFTCPrimitive
     (t : ℝ) : ℂ :=
   (t : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t)
 
+/-- Pointwise endpoint derivative of the center-segment integrand.
+
+For fixed parameter `t`, differentiating
+`w ↦ w * φ(lineMap 0 w t)` gives the displayed endpoint derivative
+integrand. -/
+theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun w : ℂ =>
+                w * φ (AffineMap.lineMap (0 : ℂ) w t))
+              (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+              z := by
+  sorry
+
+/-- Local parameter-integral hypotheses for differentiating the
+center-segment integral with respect to its endpoint.
+
+This packages exactly the hypotheses required by
+`intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le` for the
+integrand `F w t = w * φ(lineMap 0 w t)` and derivative
+`F' w t = endpointDerivativeIntegrand φ w t`. -/
+theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ ε : ℝ,
+          0 < ε ∧
+          (∀ᶠ w in 𝓝 z,
+            AEStronglyMeasurable
+              (fun t : ℝ =>
+                w * φ (AffineMap.lineMap (0 : ℂ) w t))
+              (volume.restrict (Ι (0 : ℝ) 1))) ∧
+          IntervalIntegrable
+            (fun t : ℝ =>
+              z * φ (AffineMap.lineMap (0 : ℂ) z t))
+            volume
+            (0 : ℝ)
+            1 ∧
+          AEStronglyMeasurable
+            (fun t : ℝ =>
+              complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+            (volume.restrict (Ι (0 : ℝ) 1)) ∧
+          ∃ bound : ℝ → ℝ,
+            (∀ᵐ t ∂volume,
+              t ∈ Ι (0 : ℝ) 1 →
+                ∀ w ∈ ball z ε,
+                  ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                    φ w t‖ ≤ bound t) ∧
+            IntervalIntegrable bound volume (0 : ℝ) 1 ∧
+            (∀ᵐ t ∂volume,
+              t ∈ Ι (0 : ℝ) 1 →
+                ∀ w ∈ ball z ε,
+                  HasDerivAt
+                    (fun x : ℂ =>
+                      x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                    (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ w t)
+                    w) := by
+  sorry
+
 /-- Local dominated differentiation under the endpoint-parametrized segment
 integral.
 
@@ -3261,7 +3331,66 @@ theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd_dominatedParametricInteg
                 (∫ t in (0 : ℝ)..1,
                   complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
                 w := by
-  sorry
+  intro z hz
+  rcases
+    complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
+      φ hstar hφ z hz with
+    ⟨ε, hε_pos, hF_meas, hF_int, hF'_meas, bound, h_bound,
+      hbound_int, h_diff⟩
+  let u : Set ℂ := ball z ε
+  have hz_mem : z ∈ u :=
+    mem_ball_self hε_pos
+  have hu_nhds : u ∈ 𝓝 z :=
+    Metric.ball_mem_nhds z hε_pos
+  have hu_deriv :
+      ∀ w : ℂ,
+        w ∈ u →
+          HasDerivAt
+            (complex_centerSegmentIntegral φ)
+            (∫ t in (0 : ℝ)..1,
+              complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+            w := by
+    intro w hw
+    have hF_meas_w :
+        ∀ᶠ x in 𝓝 w,
+          AEStronglyMeasurable
+            (fun t : ℝ =>
+              x * φ (AffineMap.lineMap (0 : ℂ) x t))
+            (volume.restrict (Ι (0 : ℝ) 1)) :=
+      hF_meas
+    have hF_int_w :
+        IntervalIntegrable
+          (fun t : ℝ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          volume
+          (0 : ℝ)
+          1 := by
+      sorry
+    have hF'_meas_w :
+        AEStronglyMeasurable
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+          (volume.restrict (Ι (0 : ℝ) 1)) := by
+      sorry
+    have hparam :=
+      intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
+        (μ := volume)
+        (a := (0 : ℝ))
+        (b := 1)
+        (ε_pos := hε_pos)
+        (F := fun x : ℂ => fun t : ℝ =>
+          x * φ (AffineMap.lineMap (0 : ℂ) x t))
+        (F' := fun x : ℂ => fun t : ℝ =>
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ x t)
+        (x₀ := w)
+        hF_meas_w
+        hF_int_w
+        hF'_meas_w
+        h_bound
+        hbound_int
+        h_diff
+    exact hparam.2
+  exact ⟨u, hz_mem, hu_nhds, hu_deriv⟩
 
 /-- Local endpoint differentiability supplied by the parametric interval
 integral theorem near a fixed segment endpoint. -/
@@ -9467,6 +9596,48 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖ := by
       rfl
 
+/-- Finiteness of boundary exception parameters for one normalized factor. -/
+theorem entireFunction_normalizedSingleFactor_boundaryExceptionParameters_finite
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (hρ : 0 < ρ) :
+    Set.Finite
+      {θ : ℝ |
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) ∧
+          1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) = 0} := by
+  let G : ℂ → ℂ := fun w => 1 - w / a
+  have hG : ∀ w : ℂ, AnalyticAt ℂ G w := by
+    intro w
+    dsimp [G]
+    exact analyticAt_const.sub (analyticAt_id.mul analyticAt_const)
+  have hnontrivial : ∃ w : ℂ, G w ≠ 0 := by
+    refine ⟨0, ?_⟩
+    dsimp [G]
+    exact sub_ne_zero.mpr one_ne_zero
+  have hzeros : Set.Finite {w : ℂ | ‖w‖ = ρ ∧ G w = 0} :=
+    entireFunction_finite_circle_zeros G hG hnontrivial ρ
+  have hρ_nonneg : 0 ≤ ρ :=
+    hρ.le
+  have hfiniteQuotient :
+      (entireFunctionJensenQuotientBoundaryZeroParameters G ρ).Finite :=
+    entireFunctionJensenQuotientBoundaryZeroParameters_finite_of_injectiveOn
+      G ρ hρ_nonneg
+      (entireFunction_boundaryCircleParam_injectiveOn_Ioc hρ)
+      hzeros
+  refine hfiniteQuotient.subset ?_
+  intro θ hθ
+  have hθ_uIcc : θ ∈ Set.uIcc (0 : ℝ) (2 * Real.pi) :=
+    Set.uIoc_subset_uIcc hθ.1
+  have hθ_Icc : θ ∈ Set.Icc (0 : ℝ) (2 * Real.pi) := by
+    have hle : (0 : ℝ) ≤ 2 * Real.pi :=
+      mul_nonneg zero_le_two Real.pi_pos.le
+    exact Eq.subst
+      (motive := fun s : Set ℝ => θ ∈ s)
+      (Set.uIcc_of_le hle)
+      hθ_uIcc
+  exact ⟨hθ_Icc, hθ.2⟩
+
 /-- Finiteness of the exact interval-scoped exception parameters for the
 closed-support product.
 
@@ -9488,10 +9659,32 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
                 F hF hF0 ρ ∧
               1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ)) = 0} := by
-  -- Deep finite-parameter sink: prove by finite union over the closed-support
-  -- divisor and injectivity of `θ ↦ ρ exp(iθ)` on the fundamental arc, with the
-  -- endpoint represented by the adjoined interval endpoint.
-  sorry
+  let S : Finset (EntireFunctionZero F) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+      F hF hF0 ρ
+  let E : EntireFunctionZero F → Set ℝ :=
+    fun z =>
+      {θ : ℝ |
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) ∧
+          1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ)) = 0}
+  have hρ_pos : 0 < ρ :=
+    lt_of_lt_of_le zero_lt_one hρ
+  have hEfinite : ∀ z : EntireFunctionZero F, z ∈ (S : Set (EntireFunctionZero F)) →
+      (E z).Finite := by
+    intro z hz
+    have hzS : z ∈ S := hz
+    have hz0 : (z : ℂ) ≠ 0 :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
+        F hF hF0 ρ z hzS
+    exact
+      entireFunction_normalizedSingleFactor_boundaryExceptionParameters_finite
+        hz0 hρ_pos
+  have hfiniteUnion : (⋃ z ∈ (S : Set (EntireFunctionZero F)), E z).Finite :=
+    S.finite_toSet.biUnion hEfinite
+  refine hfiniteUnion.subset ?_
+  intro θ hθ
+  rcases hθ.2 with ⟨z, hz, hzvanish⟩
+  exact Set.mem_biUnion hz ⟨hθ.1, hzvanish⟩
 
 /-- Interval-scoped boundary exception set for closed-support factors.
 

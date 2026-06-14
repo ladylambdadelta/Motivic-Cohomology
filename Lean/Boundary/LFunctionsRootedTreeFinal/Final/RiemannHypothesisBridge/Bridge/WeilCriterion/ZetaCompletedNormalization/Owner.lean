@@ -3965,6 +3965,28 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
     norm_pos_iff.mpr hcpow_ne
   exact mul_pos hexp_pos hcpow_pos
 
+/-- Additive quantitative argument-defect estimate for shifted right-half-plane
+vertical strips.
+
+This is the exact arctangent-defect form behind the exponential comparison:
+`-arg(w) y` differs from `-(π/2)|y|` by a bounded amount on every shifted
+bounded vertical strip. -/
+theorem Complex.shiftedVertical_arg_linear_defect_bounded
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ D : ℝ,
+      0 < H ∧
+      0 ≤ D ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          -(Complex.arg w * y) ≤ D + (-(Real.pi / 2) * ‖y‖) ∧
+          (-(Real.pi / 2) * ‖y‖) - D ≤ -(Complex.arg w * y) := by
+  sorry
+
 /-- Quantitative arctangent-defect comparison for shifted right-half-plane
 vertical strips.
 
@@ -3990,7 +4012,44 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
             C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
           c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
             Real.exp (-(Complex.arg w * y)) := by
-  sorry
+  rcases Complex.shiftedVertical_arg_linear_defect_bounded A B with
+    ⟨H, D, hH_pos, hD_nonneg, hdefect⟩
+  refine ⟨H, Real.exp D, Real.exp (-D), hH_pos,
+    Real.exp_pos D, Real.exp_pos (-D), ?_⟩
+  intro x y hxA hxB hy
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  let b : ℝ := -(Real.pi / 2) * ‖y‖
+  have hdef := hdefect x y hxA hxB hy
+  constructor
+  · have hexp_le :
+        Real.exp (-(Complex.arg w * y)) ≤ Real.exp (D + b) :=
+      Real.exp_le_exp.mpr hdef.1
+    have hsplit :
+        Real.exp (D + b) =
+          Real.exp D * Real.exp b :=
+      Real.exp_add D b
+    exact le_trans hexp_le
+      (le_of_eq
+        (Eq.trans hsplit
+          (by
+            rfl)))
+  · have hlower_exp :
+        Real.exp (b - D) ≤ Real.exp (-(Complex.arg w * y)) :=
+      Real.exp_le_exp.mpr hdef.2
+    have hsplit :
+        Real.exp (b - D) =
+          Real.exp (-D) * Real.exp b := by
+      calc
+        Real.exp (b - D) =
+            Real.exp (b + -D) := by
+          exact congrArg Real.exp (sub_eq_add_neg b D)
+        _ = Real.exp b * Real.exp (-D) :=
+          Real.exp_add b (-D)
+        _ = Real.exp (-D) * Real.exp b :=
+          mul_comm (Real.exp b) (Real.exp (-D))
+    exact le_trans (le_of_eq hsplit.symm) hlower_exp
 
 /-- Quantitative vertical argument-defect estimate for shifted right-half-plane
 strip points.
@@ -11515,7 +11574,20 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant_of_pointwise
       ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         ((1 : ℝ) / x ^ 2) *
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
-  sorry
+  let s : Set ℝ :=
+    Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)
+  let f : ℝ → ℂ := fun x =>
+    deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊
+  let g : ℝ → ℝ := fun x =>
+    ((1 : ℝ) / x ^ 2) *
+      (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+  have hg : Integrable g (volume.restrict s) := by
+    fun_prop
+  have hbound : ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun x hx => hpointwise x hx)
+  exact norm_integral_le_of_norm_le hg hbound
 
 /-- Bochner norm domination for the reciprocal-density logarithmic-phase
 integral. -/
@@ -11544,9 +11616,14 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant
       (reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
         t hpartial hNM hreciprocal_density)
 
-/-- Real calculus estimate for the scalar reciprocal-density majorant after
-the canonical logarithmic-phase cutoff. -/
-theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff_calculus
+/-- Finite real calculus estimate for the scalar reciprocal-density majorant.
+
+The coarse first-derivative partial-sum majorant contains an `x / |t|` term, so
+integrating it against `x⁻²` produces logarithmic growth in the right endpoint.
+This is the honest scalar comparison; the uniform Abel/Euler-Maclaurin integral
+bound must use the oscillatory cancellation theorem below, not this coarse
+majorant alone. -/
+theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {M : ℕ}
@@ -11554,21 +11631,35 @@ theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff_calculus
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         ((1 : ℝ) / x ^ 2) *
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
-      2 + 8 * Real.log (3 + ‖t‖) := by
+      8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
+        8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
   sorry
 
-/-- Scalar reciprocal-density integral comparison for the logarithmic-phase
-majorant after the canonical cutoff. -/
-theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff
+/-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
+
+This is not a consequence of integrating the coarse scalar majorant: that scalar
+integral grows with the right endpoint.  The uniform bound is the
+Euler-Maclaurin/first-derivative cancellation estimate for the concrete
+reciprocal-amplitude term. -/
+theorem reciprocalDensityIntegral_oscillatory_le_log_cutoff
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        ((1 : ℝ) / x ^ 2) *
-          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  exact reciprocalDensityIntegral_scalar_majorant_le_log_cutoff_calculus t ht hNM
+  sorry
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
@@ -11591,10 +11682,8 @@ theorem reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    le_trans
-      (reciprocalDensityIntegral_norm_le_scalar_majorant
-        t hpartial hNM hreciprocal_density)
-      (reciprocalDensityIntegral_scalar_majorant_le_log_cutoff t ht hNM)
+    reciprocalDensityIntegral_oscillatory_le_log_cutoff
+      t ht hpartial hNM hreciprocal_density
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
@@ -16712,6 +16801,102 @@ noncomputable def eulerMaclaurinPoleClearedZetaEndpointTerm
   ((z - 1) / 2) *
     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
 
+/-- The bounded-strip Euler-Maclaurin cutoff is always at least one. -/
+theorem eulerMaclaurinPoleClearedZetaCutoff_pos
+    (z : ℂ) :
+    0 < eulerMaclaurinPoleClearedZetaCutoff z := by
+  have hone_le_two : (1 : ℝ) ≤ 2 := by
+    calc
+      (1 : ℝ) ≤ 1 + 1 :=
+        le_add_of_nonneg_right zero_le_one
+      _ = 2 := rfl
+  have hone_le : (1 : ℝ) ≤ 2 + ‖z‖ :=
+    le_trans hone_le_two (le_add_of_nonneg_right (norm_nonneg z))
+  exact (Nat.one_le_floor_iff zero_lt_one).mpr hone_le
+
+/-- The bounded-strip Euler-Maclaurin cutoff is at least one as a real number. -/
+theorem one_le_eulerMaclaurinPoleClearedZetaCutoff_real
+    (z : ℂ) :
+    (1 : ℝ) ≤ (eulerMaclaurinPoleClearedZetaCutoff z : ℝ) :=
+  Nat.cast_le.mpr (eulerMaclaurinPoleClearedZetaCutoff_pos z)
+
+/-- The cutoff main Euler-Maclaurin power has norm at most one on `1 ≤ Re z`. -/
+theorem eulerMaclaurinPoleClearedZetaMainTerm_norm_le_one
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re) :
+    ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ 1 := by
+  unfold eulerMaclaurinPoleClearedZetaMainTerm
+  let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
+  have hN_pos : 0 < N :=
+    eulerMaclaurinPoleClearedZetaCutoff_pos z
+  have hN_one : (1 : ℝ) ≤ (N : ℝ) :=
+    one_le_eulerMaclaurinPoleClearedZetaCutoff_real z
+  have hnorm :
+      ‖((N : ℕ) : ℂ) ^ ((1 : ℂ) - z)‖ =
+        (N : ℝ) ^ (((1 : ℂ) - z).re) :=
+    Complex.norm_natCast_cpow_of_pos hN_pos ((1 : ℂ) - z)
+  have hre :
+      (((1 : ℂ) - z).re) = 1 - z.re := by
+    calc
+      (((1 : ℂ) - z).re) = (1 : ℂ).re - z.re :=
+        Complex.sub_re (1 : ℂ) z
+      _ = 1 - z.re := by
+        exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
+  have hexponent_nonpos : 1 - z.re ≤ 0 :=
+    sub_nonpos.mpr hz_one
+  have hpow_le :
+      (N : ℝ) ^ (((1 : ℂ) - z).re) ≤ 1 :=
+    Eq.subst
+      (motive := fun e : ℝ => (N : ℝ) ^ e ≤ 1)
+      hre.symm
+      (Real.rpow_le_one_of_one_le_of_nonpos hN_one hexponent_nonpos)
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 1)
+    hnorm.symm
+    hpow_le
+
+/-- The reciprocal cutoff power in the endpoint correction is bounded by one
+on `1 ≤ Re z`. -/
+theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re) :
+    ‖1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)‖ ≤ 1 := by
+  let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
+  have hN_pos : 0 < N :=
+    eulerMaclaurinPoleClearedZetaCutoff_pos z
+  have hN_one : (1 : ℝ) ≤ (N : ℝ) :=
+    one_le_eulerMaclaurinPoleClearedZetaCutoff_real z
+  have hnorm_cpow :
+      ‖((N : ℕ) : ℂ) ^ z‖ = (N : ℝ) ^ z.re :=
+    Complex.norm_natCast_cpow_of_pos hN_pos z
+  have hpow_one : 1 ≤ (N : ℝ) ^ z.re :=
+    Real.one_le_rpow hN_one hz_one
+  have hpow_pos : 0 < (N : ℝ) ^ z.re :=
+    Real.rpow_pos_of_pos (Nat.cast_pos.mpr hN_pos) z.re
+  have hnorm_pos : 0 < ‖((N : ℕ) : ℂ) ^ z‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => 0 < x)
+      hnorm_cpow.symm
+      hpow_pos
+  have hnorm_inv :
+      ‖1 / (((N : ℕ) : ℂ) ^ z)‖ =
+        1 / ‖((N : ℕ) : ℂ) ^ z‖ := by
+    calc
+      ‖1 / (((N : ℕ) : ℂ) ^ z)‖ =
+          ‖(1 : ℂ)‖ / ‖((N : ℕ) : ℂ) ^ z‖ := by
+        exact norm_div (1 : ℂ) (((N : ℕ) : ℂ) ^ z)
+      _ = 1 / ‖((N : ℕ) : ℂ) ^ z‖ := by
+        exact congrArg
+          (fun x : ℝ => x / ‖((N : ℕ) : ℂ) ^ z‖)
+          (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+  have hinv_le :
+      1 / ‖((N : ℕ) : ℂ) ^ z‖ ≤ 1 :=
+    one_div_le_one hnorm_pos hpow_one
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 1)
+    hnorm_inv.symm
+    hinv_le
+
 /-- Bernoulli-periodic remainder term in the pole-cleared Euler-Maclaurin
 continuation.
 
@@ -16769,7 +16954,22 @@ theorem eulerMaclaurinPoleClearedZetaMainTerm_one_two_strip_polynomial_bound :
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  refine ⟨1, 0, zero_lt_one, ?_⟩
+  intro z hz_one _hz_two
+  have hterm :
+      ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ 1 :=
+    eulerMaclaurinPoleClearedZetaMainTerm_norm_le_one z hz_one
+  have hright : (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) = 1 := by
+    calc
+      (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) =
+          (1 + ‖z‖) ^ (0 : ℕ) := by
+        exact one_mul ((1 + ‖z‖) ^ (0 : ℕ))
+      _ = 1 := by
+        exact pow_zero (1 + ‖z‖)
+  exact Eq.subst
+    (motive := fun x : ℝ => ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ x)
+    hright.symm
+    hterm
 
 /-- Polynomial bound for the endpoint correction in the bounded
 Euler-Maclaurin strip. -/
@@ -16780,7 +16980,83 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  refine ⟨1, 1, zero_lt_one, ?_⟩
+  intro z hz_one _hz_two
+  unfold eulerMaclaurinPoleClearedZetaEndpointTerm
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hsub_norm : ‖z - 1‖ ≤ H := by
+    calc
+      ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ :=
+        norm_sub_le z (1 : ℂ)
+      _ = ‖z‖ + 1 := by
+        exact congrArg (fun x : ℝ => ‖z‖ + x) (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+      _ = H := by
+        exact add_comm ‖z‖ 1
+  have hdiv_two_norm : ‖(z - 1) / (2 : ℂ)‖ ≤ ‖z - 1‖ := by
+    have hnorm_div :
+        ‖(z - 1) / (2 : ℂ)‖ = ‖z - 1‖ / ‖(2 : ℂ)‖ :=
+      norm_div (z - 1) (2 : ℂ)
+    have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) := by
+      calc
+        ‖(2 : ℂ)‖ = ‖((2 : ℝ) : ℂ)‖ := rfl
+        _ = ‖(2 : ℝ)‖ := by
+          exact Complex.norm_ofReal 2
+        _ = 2 := by
+          exact Real.norm_of_nonneg zero_le_two
+    have hraw : ‖z - 1‖ / ‖(2 : ℂ)‖ ≤ ‖z - 1‖ := by
+      have htwo_pos : (0 : ℝ) < ‖(2 : ℂ)‖ :=
+        Eq.subst
+          (motive := fun x : ℝ => 0 < x)
+          htwo_norm.symm
+          zero_lt_two
+      have hone_le_two : (1 : ℝ) ≤ ‖(2 : ℂ)‖ :=
+        Eq.subst
+          (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+          htwo_norm.symm
+          one_le_two
+      exact div_le_self (norm_nonneg (z - 1)) hone_le_two
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖z - 1‖)
+      hnorm_div.symm
+      hraw
+  have hfactor : ‖(z - 1) / (2 : ℂ)‖ ≤ H :=
+    le_trans hdiv_two_norm hsub_norm
+  have hrecip :
+      ‖1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)‖ ≤ 1 :=
+    eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one z hz_one
+  have hproduct :
+      ‖(z - 1) / (2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ ≤
+        H := by
+    calc
+      ‖(z - 1) / (2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ =
+          ‖(z - 1) / (2 : ℂ)‖ *
+            ‖1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)‖ := by
+        exact norm_mul ((z - 1) / (2 : ℂ))
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
+      _ ≤ H * 1 :=
+        mul_le_mul hfactor hrecip
+          (norm_nonneg (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)))
+          hH_nonneg
+      _ = H := by
+        exact mul_one H
+  have hright : (1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ) = H := by
+    calc
+      (1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ) =
+          (1 + ‖z‖) ^ (1 : ℕ) := by
+        exact one_mul ((1 + ‖z‖) ^ (1 : ℕ))
+      _ = 1 + ‖z‖ := by
+        exact pow_one (1 + ‖z‖)
+      _ = H := rfl
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      ‖(z - 1) / (2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ ≤ x)
+    hright.symm
+    hproduct
 
 /-- Polynomial bound for the Bernoulli-periodic Euler-Maclaurin remainder in
 the bounded strip. -/
