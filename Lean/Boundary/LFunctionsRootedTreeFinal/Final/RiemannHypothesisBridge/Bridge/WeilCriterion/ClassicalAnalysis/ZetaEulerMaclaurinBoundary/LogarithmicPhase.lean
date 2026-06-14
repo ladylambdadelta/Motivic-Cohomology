@@ -1030,6 +1030,24 @@ theorem Complex.real_log_two_pos :
     0 < Real.log (2 : ℝ) := by
   exact Real.log_pos one_lt_two
 
+/-- Defect function for the sharp dyadic-log comparison.  The target inequality
+is exactly nonnegativity of this function on `[0,∞)`. -/
+def Complex.realLogDyadicComparisonDefect
+    (x : ℝ) : ℝ :=
+  (2 * Real.log (x + 2)) * Real.log (2 : ℝ) -
+    Real.log (2 * (x + 1))
+
+/-- One-variable calculus root for the sharp dyadic-log comparison.
+
+The derivative is
+`2 log 2 / (x + 2) - 1 / (x + 1)`, so the unique critical point on
+`[0,∞)` gives the global minimum; evaluating there is positive. -/
+theorem Complex.realLogDyadicComparisonDefect_nonneg
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    0 ≤ Complex.realLogDyadicComparisonDefect x := by
+  sorry
+
 /-- The exact real inequality behind the dyadic-log comparison.
 
 Equivalently, `log (2 * (x + 1)) / log 2 ≤ 2 log (x + 2)` for `x ≥ 0`.
@@ -1040,7 +1058,12 @@ theorem Complex.real_log_two_mul_one_add_le_two_log_shift_mul_log_two
     (hx : 0 ≤ x) :
     Real.log (2 * (x + 1)) ≤
       (2 * Real.log (x + 2)) * Real.log (2 : ℝ) := by
-  sorry
+  have hdefect :
+      0 ≤
+        (2 * Real.log (x + 2)) * Real.log (2 : ℝ) -
+          Real.log (2 * (x + 1)) := by
+    exact Complex.realLogDyadicComparisonDefect_nonneg hx
+  exact sub_nonneg.mp hdefect
 
 /-- Natural-number specialization of the real logarithmic comparison behind
 the dyadic-log estimate. -/
