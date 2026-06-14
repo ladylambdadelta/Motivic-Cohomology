@@ -11138,9 +11138,104 @@ theorem complex_closedBall_radial_punctured_avoidFinite_frequently
       w ≠ a ∧
       ‖w‖ ≤ ρ ∧
         ∀ z : ℂ, z ∈ T → w ≠ z := by
-  -- Deep radial transport theorem: map the real finite-avoidance lemma along
-  -- `t ↦ (t : ℂ) * a`, using `0 ≤ t < 1` to stay inside `closedBall 0 ρ`.
-  sorry
+  let badScalars : Finset ℝ :=
+    T.image (fun z : ℂ => (z / a).re)
+  have hreal :
+      ∃ᶠ t in 𝓝[<] (1 : ℝ),
+        0 ≤ t ∧
+        t < 1 ∧
+          ∀ r : ℝ, r ∈ badScalars → t ≠ r :=
+    real_leftNhds_one_avoidFinite_frequently badScalars
+  have htendsto_nhds :
+      Tendsto (fun t : ℝ => (t : ℂ) * a) (𝓝[<] (1 : ℝ)) (𝓝 a) := by
+    have hcont :
+        ContinuousAt (fun t : ℝ => (t : ℂ) * a) (1 : ℝ) :=
+      (Complex.continuous_ofReal.continuousAt).mul continuousAt_const
+    have hvalue :
+        (fun t : ℝ => (t : ℂ) * a) 1 = a := by
+      exact one_mul a
+    exact hvalue ▸ hcont.tendsto.mono_left nhdsWithin_le_nhds
+  have heventually_punctured :
+      ∀ᶠ t in 𝓝[<] (1 : ℝ), (t : ℂ) * a ∈ ({a}ᶜ : Set ℂ) := by
+    exact
+      (eventually_mem_nhdsWithin : ∀ᶠ t in 𝓝[<] (1 : ℝ), t ∈ Set.Iio (1 : ℝ)).mono
+        (fun t ht h_eq =>
+          have hscalar_complex : (t : ℂ) = 1 :=
+            mul_right_cancel₀ ha0 h_eq
+          have ht_eq_one : t = 1 :=
+            Complex.ofReal_injective hscalar_complex
+          have hnot : ¬ t = 1 :=
+            ne_of_lt ht
+          hnot ht_eq_one)
+  have htendsto :
+      Tendsto (fun t : ℝ => (t : ℂ) * a) (𝓝[<] (1 : ℝ)) (𝓝[≠] a) :=
+    tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
+      (fun t : ℝ => (t : ℂ) * a)
+      htendsto_nhds
+      heventually_punctured
+  exact
+    htendsto.frequently
+      (hreal.mono
+        (fun t ht =>
+          have ht_nonneg : 0 ≤ t :=
+            ht.1
+          have ht_lt_one : t < 1 :=
+            ht.2.1
+          have ht_abs_le_one : |t| ≤ 1 :=
+            abs_le.2 ⟨ht_nonneg, ht_lt_one.le⟩
+          have hnorm_scalar : ‖(t : ℂ)‖ = |t| := by
+            by_cases ht_sign : 0 ≤ t
+            · exact complex_norm_ofReal_of_nonnegative ht_sign
+            · have ht_abs : |t| = -t :=
+                abs_of_neg (lt_of_not_ge ht_sign)
+              have hnorm_neg :
+                  ‖(t : ℂ)‖ = -t := by
+                have hneg_nonneg : 0 ≤ -t :=
+                  neg_nonneg.2 (le_of_lt (lt_of_not_ge ht_sign))
+                have hneg_eq : ((-t : ℝ) : ℂ) = -(t : ℂ) :=
+                  Complex.ofReal_neg t
+                have hnorm_neg_eq :
+                    ‖((-t : ℝ) : ℂ)‖ = ‖(t : ℂ)‖ := by
+                  calc
+                    ‖((-t : ℝ) : ℂ)‖ = ‖-(t : ℂ)‖ := by
+                      exact congrArg norm hneg_eq
+                    _ = ‖(t : ℂ)‖ := norm_neg (t : ℂ)
+                exact
+                  hnorm_neg_eq.symm.trans
+                    (complex_norm_ofReal_of_nonnegative hneg_nonneg)
+              exact hnorm_neg.trans ht_abs.symm
+          have hnorm_le_a : ‖(t : ℂ) * a‖ ≤ ‖a‖ := by
+            calc
+              ‖(t : ℂ) * a‖ = ‖(t : ℂ)‖ * ‖a‖ := by
+                exact norm_mul (t : ℂ) a
+              _ = |t| * ‖a‖ := by
+                exact congrArg (fun r : ℝ => r * ‖a‖) hnorm_scalar
+              _ ≤ 1 * ‖a‖ :=
+                mul_le_mul_of_nonneg_right ht_abs_le_one (norm_nonneg a)
+              _ = ‖a‖ := one_mul ‖a‖
+          have hnorm_le_ρ : ‖(t : ℂ) * a‖ ≤ ρ :=
+            hnorm_le_a.trans haρ
+          ⟨fun h_eq =>
+              have hscalar_complex : (t : ℂ) = 1 :=
+                mul_right_cancel₀ ha0 h_eq
+              have ht_eq_one : t = 1 :=
+                Complex.ofReal_injective hscalar_complex
+              have hnot : ¬ t = 1 :=
+                ne_of_lt ht_lt_one
+              hnot ht_eq_one,
+            hnorm_le_ρ,
+            fun z hz h_eq =>
+              have hz_bad :
+                  (z / a).re ∈ badScalars :=
+                Finset.mem_image.2 ⟨z, hz, rfl⟩
+              have hz_div_eq : z / a = (t : ℂ) := by
+                calc
+                  z / a = ((t : ℂ) * a) / a := by
+                    exact congrArg (fun q : ℂ => q / a) h_eq.symm
+                  _ = (t : ℂ) := mul_div_cancel_right₀ (t : ℂ) ha0
+              have ht_re_eq : t = (z / a).re := by
+                exact (congrArg Complex.re hz_div_eq).symm
+              ht.2.2 (z / a).re hz_bad ht_re_eq⟩))
 
 /-- Good punctured closed-disk points near a nonzero support point.
 

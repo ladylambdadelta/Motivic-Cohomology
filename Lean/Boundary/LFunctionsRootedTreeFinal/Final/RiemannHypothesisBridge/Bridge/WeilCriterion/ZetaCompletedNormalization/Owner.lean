@@ -612,6 +612,26 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
   exact ⟨hlog w hw_sector hRlog_le,
     hbound w hw_sector hRbound_le⟩
 
+/-- Exponentiated Binet formula in normalized Stirling-factor form.
+
+This is the branch-bookkeeping identity behind sectorial Stirling: using
+`exp (Log Γ(w)) = Γ(w)` and `w^(1/2-w) = exp (Log w * (1/2-w))`, Binet's
+main term cancels against the normalizing factors and leaves the exponential
+of the Binet remainder. -/
+theorem Complex.normalizedGammaStirlingFactor_eq_sqrt_two_pi_mul_exp_binetRemainder
+    {w : ℂ}
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hw_ne : w ≠ 0)
+    (hbinet :
+      Complex.log (Complex.Gamma w) =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w) :
+    Complex.Gamma w * Complex.exp w *
+        w ^ ((1 / 2 : ℂ) - w) =
+      (Real.sqrt (2 * Real.pi) : ℂ) *
+        Complex.exp (Complex.binetSecondFormulaRemainder w) := by
+  sorry
+
 /-- Exponentiating Binet's logarithmic formula gives the exact normalized
 Gamma-factor error in terms of the Binet remainder.
 
@@ -630,7 +650,25 @@ theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemain
         w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
       (Real.sqrt (2 * Real.pi) : ℂ) *
         (Complex.exp (Complex.binetSecondFormulaRemainder w) - 1) := by
-  sorry
+  let C : ℂ := (Real.sqrt (2 * Real.pi) : ℂ)
+  let E : ℂ := Complex.exp (Complex.binetSecondFormulaRemainder w)
+  have hfactor :
+      Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) = C * E :=
+    Complex.normalizedGammaStirlingFactor_eq_sqrt_two_pi_mul_exp_binetRemainder
+      hGamma_ne hw_ne hbinet
+  calc
+    Complex.Gamma w * Complex.exp w *
+        w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
+        C * E - C := by
+      exact congrArg (fun z : ℂ => z - C) hfactor
+    _ = C * E - C * 1 := by
+      exact congrArg (fun z : ℂ => C * E - z) (mul_one C).symm
+    _ = C * (E - 1) :=
+      (mul_sub C E 1).symm
+    _ =
+        (Real.sqrt (2 * Real.pi) : ℂ) *
+          (Complex.exp (Complex.binetSecondFormulaRemainder w) - 1) := rfl
 
 /-- Small complex exponential errors are bounded linearly in their exponent,
 with the Stirling constant attached. -/
@@ -12743,6 +12781,32 @@ theorem real_log_two_add_div_sq_nonneg_of_two_le
     sq_nonneg x
   exact div_nonneg hlog_nonneg hx_sq_nonneg
 
+/-- Concrete finite integration-by-parts identity for
+`u(x)=log(2+x)` and `v(x)=-1/x` on `[2,b]`. -/
+theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) =
+      ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+        ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
+  sorry
+
+/-- Algebraic normalization of the scalar reciprocal-density integrand. -/
+theorem real_integral_Ioc_log_two_add_div_sq_eq_mul_inv_sq
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+      ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) := by
+  sorry
+
+/-- Interval/set normalization for the by-parts remainder term. -/
+theorem real_intervalIntegral_one_div_mul_two_add_eq_Ioc
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+      ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) := by
+  exact intervalIntegral.integral_of_le hb
+
 /-- Integration-by-parts identity for the finite scalar tail
 `∫ log(2+x)/x²`.
 
@@ -12755,7 +12819,25 @@ theorem real_integral_Ioc_log_two_add_div_sq_eq_by_parts
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
       ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
         ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) := by
-  sorry
+  have hmain :
+      ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+        ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) :=
+    real_integral_Ioc_log_two_add_div_sq_eq_mul_inv_sq hb
+  have hparts :
+      ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) =
+        ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) :=
+    real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts hb
+  have hremainder :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+        ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) :=
+    real_intervalIntegral_one_div_mul_two_add_eq_Ioc hb
+  exact Eq.trans hmain
+    (Eq.trans hparts
+      (congrArg
+        (fun R : ℝ =>
+          ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) + R)
+        hremainder))
 
 /-- Elementary endpoint bound for the finite scalar tail after the
 integration-by-parts identity. -/
@@ -20065,13 +20147,25 @@ parameter on the punctured strip.
 This is the standard parameter-integral theorem: the lower limit is fixed, the
 Bernoulli factor is bounded, and the complex-power kernel has locally uniform
 integrable majorants on vertical compacta. -/
-theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_holomorphicOn_puncturedStrip
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_parameter_holomorphic_standard
     (N : ℕ)
     (hN : 0 < N) :
     DifferentiableOn ℂ
       (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
   sorry
+
+/-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
+parameter on the punctured strip. -/
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  exact
+    eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_parameter_holomorphic_standard
+      N hN
 
 /-- Fixed-cutoff Bernoulli remainder is holomorphic on the punctured strip. -/
 theorem eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff_holomorphicOn_puncturedStrip
@@ -20142,7 +20236,7 @@ This is the standard complex-analysis step: the fixed-cutoff defect is
 holomorphic on the punctured strip and vanishes on the nonempty open subset
 `1 < Re z < 2`, hence it vanishes throughout the connected component of the
 punctured strip. -/
-theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncturedStrip_standard
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticContinuation_zero_on_puncturedStrip_standard
     (N : ℕ)
     (hN : 0 < N)
     (z : ℂ)
@@ -20151,6 +20245,20 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncture
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
   sorry
+
+/-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
+connected punctured strip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncturedStrip_standard
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hz_re_pos : 0 < z.re)
+    (hz_re_lt_two : z.re < 2)
+    (hz_ne_one : z ≠ 1) :
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
+  exact
+    eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticContinuation_zero_on_puncturedStrip_standard
+      N hN z hz_re_pos hz_re_lt_two hz_ne_one
 
 /-- Fixed-cutoff defect vanishes on the convergent half-plane by the
 Dirichlet-series split and the fixed-cutoff Euler-Maclaurin formula. -/
