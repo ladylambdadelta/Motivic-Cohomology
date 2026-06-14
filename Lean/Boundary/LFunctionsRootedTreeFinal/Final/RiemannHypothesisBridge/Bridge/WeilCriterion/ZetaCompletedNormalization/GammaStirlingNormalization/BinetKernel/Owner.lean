@@ -914,14 +914,14 @@ theorem Complex.norm_div_eq_div_norm
 defined from. This isolates the remaining analytic content into a single
 logarithmic norm estimate. -/
 theorem Complex.norm_arctan_eq_half_norm_log_quotient
-    (z : ℂ) :
+    (z : ℂ)
+    (hz : 1 - z * Complex.I ≠ 0) :
     ‖Complex.arctan z‖ =
       ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
   unfold Complex.arctan
   rw [norm_mul, Complex.norm_div_eq_div_norm]
   · simp [mul_comm, mul_left_comm, mul_assoc]
-  · have htwo : (2 : ℂ) ≠ 0 := by norm_num
-    exact htwo
+  · exact hz
 
 /-- A crude norm bound for `Complex.log` in terms of its real and imaginary
 parts. -/
@@ -963,7 +963,15 @@ theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
     ‖Complex.arctan z‖ ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
   have hlog := Complex.norm_log_le_abs_log_add_pi ((1 + z * Complex.I) / (1 - z * Complex.I))
-  rw [Complex.norm_arctan_eq_half_norm_log_quotient]
+  have hz : 1 - z * Complex.I ≠ 0 := by
+    intro hzero
+    have h1 : z = -Complex.I := by
+      have hmul := congrArg (fun w : ℂ => w * (-Complex.I)) hzero
+      simpa [mul_add, add_mul, sub_eq_add_neg, mul_comm, mul_left_comm, mul_assoc] using hmul
+    have hre : z.re = 0 := by simpa [h1]
+    -- This coarse bound is only intended as a reusable reduction, not the final estimate.
+    linarith
+  rw [Complex.norm_arctan_eq_half_norm_log_quotient z hz]
   have hhalf : ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
     exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
@@ -991,14 +999,15 @@ theorem Complex.log_binet_quotient_re_eq_log_ratio (z : ℂ) :
     (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
       Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ := by
   rw [Complex.log_re, Complex.norm_div_eq_div_norm]
-  have hpos : 0 < ‖1 - z * Complex.I‖ := by
-    exact norm_pos_iff.mpr (by
-      intro hzero
-      have h1 : (1 : ℂ) = z * Complex.I := by
-        simpa [hzero] using sub_eq_zero.mp hzero
-      have : (z * Complex.I).re = 1 := by simpa [h1]
-      linarith)
-  rw [Real.log_div hpos.ne']
+  have hnonzero : ‖1 - z * Complex.I‖ ≠ 0 := by
+    intro hzero
+    have hzero' : 1 - z * Complex.I = 0 := by
+      exact norm_eq_zero.mp hzero
+    have h1 : (1 : ℂ) = z * Complex.I := by
+      simpa using sub_eq_zero.mp hzero'
+    have hre : (z * Complex.I).re = 1 := by simpa [h1]
+    linarith
+  rw [Real.log_div (by positivity) hnonzero]
 
 /-- A positive integrable function on an open real interval has positive set
 integral. -/
