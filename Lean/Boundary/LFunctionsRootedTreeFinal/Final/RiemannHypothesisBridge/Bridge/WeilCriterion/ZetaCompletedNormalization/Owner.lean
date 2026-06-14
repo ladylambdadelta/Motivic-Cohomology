@@ -12303,6 +12303,95 @@ theorem real_log_two_add_div_self_le_log_sq_derivative_density
               (div_eq_mul_one_div 2 (2 + x)).symm)
       hscaled)
 
+/-- Derivative of the square of the shifted logarithm. -/
+theorem real_hasDerivAt_log_two_add_sq
+    {x : ℝ}
+    (hx : (0 : ℝ) < 2 + x) :
+    HasDerivAt
+      (fun y : ℝ => (Real.log (2 + y)) ^ 2)
+      (2 * Real.log (2 + x) / (2 + x))
+      x := by
+  have hshift_ne : 2 + x ≠ 0 :=
+    ne_of_gt hx
+  have hshift :
+      HasDerivAt (fun y : ℝ => 2 + y) 1 x :=
+    (hasDerivAt_id x).const_add 2
+  have hlog :
+      HasDerivAt (fun y : ℝ => Real.log (2 + y)) ((2 + x)⁻¹) x :=
+    (hasDerivAt_log hshift_ne).comp x hshift
+  have hpow :
+      HasDerivAt
+        (fun y : ℝ => (Real.log (2 + y)) ^ 2)
+        (((2 : ℝ) * (Real.log (2 + x)) ^ (2 - 1)) * ((2 + x)⁻¹))
+        x :=
+    (hasDerivAt_pow 2 (Real.log (2 + x))).comp x hlog
+  have hcoeff :
+      ((2 : ℝ) * (Real.log (2 + x)) ^ (2 - 1)) * ((2 + x)⁻¹) =
+        2 * Real.log (2 + x) / (2 + x) := by
+    calc
+      ((2 : ℝ) * (Real.log (2 + x)) ^ (2 - 1)) * ((2 + x)⁻¹) =
+          (2 * Real.log (2 + x)) * ((2 + x)⁻¹) := by
+        rfl
+      _ = 2 * Real.log (2 + x) / (2 + x) := by
+        exact (div_eq_mul_inv (2 * Real.log (2 + x)) (2 + x)).symm
+  exact hcoeff ▸ hpow
+
+/-- Integral evaluation for the shifted-log square derivative density. -/
+theorem real_intervalIntegral_log_sq_derivative_density_eq_sub
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in a..b, 2 * Real.log (2 + x) / (2 + x) =
+      (Real.log (2 + b)) ^ 2 - (Real.log (2 + a)) ^ 2 := by
+  let F : ℝ → ℝ := fun x => (Real.log (2 + x)) ^ 2
+  let G : ℝ → ℝ := fun x => 2 * Real.log (2 + x) / (2 + x)
+  have hderiv :
+      ∀ x ∈ Set.uIcc a b, HasDerivAt F (G x) x := by
+    intro x hx
+    have hmin_left : min a b = a :=
+      min_eq_left hab
+    have hax_min : min a b ≤ x :=
+      (Set.mem_uIcc.mp hx).1
+    have hax : a ≤ x :=
+      Eq.subst
+        (motive := fun y : ℝ => y ≤ x)
+        hmin_left
+        hax_min
+    have htwo_le_x : (2 : ℝ) ≤ x :=
+      le_trans ha hax
+    have hpos : (0 : ℝ) < 2 + x :=
+      add_pos_of_pos_of_nonneg zero_lt_two
+        (le_trans (show (0 : ℝ) ≤ 2 by exact le_of_lt zero_lt_two) htwo_le_x)
+    exact real_hasDerivAt_log_two_add_sq hpos
+  have hint : IntervalIntegrable G volume a b := by
+    fun_prop
+  exact intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
+
+theorem real_integral_Ioc_log_sq_derivative_density_le_endpoint_sq
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc a b, 2 * Real.log (2 + x) / (2 + x) ≤
+      (Real.log (2 + b)) ^ 2 := by
+  have hset_interval :
+      ∫ x in Set.Ioc a b, 2 * Real.log (2 + x) / (2 + x) =
+        ∫ x in a..b, 2 * Real.log (2 + x) / (2 + x) :=
+    (intervalIntegral.integral_of_le hab).symm
+  have heval :
+      ∫ x in a..b, 2 * Real.log (2 + x) / (2 + x) =
+        (Real.log (2 + b)) ^ 2 - (Real.log (2 + a)) ^ 2 :=
+    real_intervalIntegral_log_sq_derivative_density_eq_sub ha hab
+  have hlower_nonneg : 0 ≤ (Real.log (2 + a)) ^ 2 :=
+    sq_nonneg (Real.log (2 + a))
+  have hsub :
+      (Real.log (2 + b)) ^ 2 - (Real.log (2 + a)) ^ 2 ≤
+        (Real.log (2 + b)) ^ 2 :=
+    sub_le_self ((Real.log (2 + b)) ^ 2) hlower_nonneg
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ (Real.log (2 + b)) ^ 2)
+    hset_interval.symm
+    (le_trans (le_of_eq heval) hsub)
+
 /-- Fundamental-theorem comparison for the finite `log(2+x)/x` integral. -/
 theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
     {a b : ℝ}
@@ -12314,7 +12403,20 @@ theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
           2 * Real.log (2 + x) / (2 + x)) :
     ∫ x in Set.Ioc a b, Real.log (2 + x) / x ≤
       (Real.log (2 + b)) ^ 2 := by
-  sorry
+  let f : ℝ → ℝ := fun x => Real.log (2 + x) / x
+  let g : ℝ → ℝ := fun x => 2 * Real.log (2 + x) / (2 + x)
+  have hf : Integrable f (volume.restrict (Set.Ioc a b)) := by
+    fun_prop
+  have hg : Integrable g (volume.restrict (Set.Ioc a b)) := by
+    fun_prop
+  have hle : f ≤ᵐ[volume.restrict (Set.Ioc a b)] g :=
+    (ae_restrict_mem measurableSet_Ioc).mono hpointwise
+  have hmono :
+      ∫ x in Set.Ioc a b, Real.log (2 + x) / x ≤
+        ∫ x in Set.Ioc a b, 2 * Real.log (2 + x) / (2 + x) :=
+    integral_mono_ae hf hg hle
+  exact le_trans hmono
+    (real_integral_Ioc_log_sq_derivative_density_le_endpoint_sq ha hab)
 
 /-- Canonical real-variable comparison for the finite `log(2+x)/x` integral.
 
@@ -12335,19 +12437,92 @@ theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq
         real_log_two_add_div_self_le_log_sq_derivative_density
           (le_trans ha (le_of_lt hx.1)))
 
-/-- Canonical real tail estimate for `log(2+x)/x²` after a positive cutoff.
+/-- Nonnegativity of the reciprocal-density scalar integrand after `2`. -/
+theorem real_log_two_add_div_sq_nonneg_of_two_le
+    {x : ℝ}
+    (hx : (2 : ℝ) ≤ x) :
+    0 ≤ Real.log (2 + x) / x ^ 2 := by
+  have hlog_nonneg : 0 ≤ Real.log (2 + x) :=
+    real_log_two_add_nonneg_of_two_le hx
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le zero_lt_two hx
+  have hx_sq_nonneg : 0 ≤ x ^ 2 :=
+    sq_nonneg x
+  exact div_nonneg hlog_nonneg hx_sq_nonneg
 
-This is the reusable real-analysis input for the reciprocal-density tail.  A
-standard proof integrates by parts and uses monotonicity of
-`x ↦ log(2+x)/x²`; equivalently it bounds the finite interval by the improper
-tail beginning at `a`. -/
+/-- Fixed improper-tail bound from the canonical cutoff `2`. -/
+theorem real_integral_Ioc_two_log_two_add_div_sq_tail_bound
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 ≤
+      Real.log 4 := by
+  sorry
+
+/-- Adjacent `Ioc` intervals split the finite reciprocal-density scalar
+integral. -/
+theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+      ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
+        ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 := by
+  sorry
+
+/-- Improper-tail comparison for `log(2+x)/x²` after the cutoff `2`.
+
+This is the canonical real-analysis theorem behind the reciprocal-density
+scalar estimate.  It is independent of zeta and is normally proved by
+integration by parts:
+`d(-log(2+x)/x) = log(2+x)/x² - 1/(x(2+x))`, followed by nonnegativity of the
+remainder and endpoint evaluation at `x = 2`. -/
+theorem real_integral_Ioc_log_two_add_div_sq_tail_bound_of_two_le
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
+      Real.log 4 := by
+  have htwo_le_b : (2 : ℝ) ≤ b :=
+    le_trans ha hab
+  have hnonneg :
+      0 ≤ᵐ[volume.restrict (Set.Ioc (2 : ℝ) a)]
+        (fun x : ℝ => Real.log (2 + x) / x ^ 2) :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun x hx =>
+        real_log_two_add_div_sq_nonneg_of_two_le (le_of_lt hx.1))
+  have htail_split :
+      ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+        ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
+          ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 := by
+    exact real_integral_Ioc_log_two_add_div_sq_adjacent_split ha hab
+  have hleft_nonneg :
+      0 ≤ ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 :=
+    integral_nonneg_of_ae hnonneg
+  have hle_tail :
+      ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
+        ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 := by
+    have hadd :
+        ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
+          ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
+            ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 :=
+      le_add_of_nonneg_left hleft_nonneg
+    exact Eq.subst
+      (motive := fun y : ℝ =>
+        ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤ y)
+      htail_split.symm
+      hadd
+  exact le_trans hle_tail
+    (real_integral_Ioc_two_log_two_add_div_sq_tail_bound htwo_le_b)
+
 theorem real_integral_Ioc_log_two_add_div_sq_tail_bound
     {a b : ℝ}
     (ha : (2 : ℝ) ≤ a)
     (hab : a ≤ b) :
     ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
       Real.log 4 := by
-  sorry
+  exact
+    real_integral_Ioc_log_two_add_div_sq_tail_bound_of_two_le
+      ha hab
 
 /-- Canonical real-variable comparison for the finite `log(2+x)/x²` integral.
 
@@ -18686,6 +18861,85 @@ theorem eulerMaclaurin_cpow_neg_deriv_eq
           (congrArg (fun E : ℂ => ((x : ℂ) ^ E)) hexponent)
   exact Eq.trans hreal.deriv hvalue
 
+/-- Positive natural reciprocal as a negative complex power.
+
+This is the pointwise bridge between the Dirichlet summand notation
+`1 / n^z` and the Euler-Maclaurin function notation `n^{-z}`. -/
+theorem eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg
+    (z : ℂ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    (1 : ℂ) / ((n : ℂ) ^ z) = (n : ℂ) ^ (-z) := by
+  have hn_ne : (n : ℂ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn)
+  calc
+    (1 : ℂ) / ((n : ℂ) ^ z) = (((n : ℂ) ^ z)⁻¹) := by
+      exact one_div (((n : ℂ) ^ z))
+    _ = (n : ℂ) ^ (-z) := by
+      exact (Complex.cpow_neg (n : ℂ) z).symm
+
+/-- Standard first-order Euler-Maclaurin formula for an infinite post-cutoff
+tail.
+
+For a `C¹` function `f` on the positive ray with derivative `f'`, this is the
+canonical periodic-Bernoulli form
+`∑_{n>N} f(n) = ∫_N^∞ f(x) dx + (1/2)f(N) + ∫_N^∞ B₁({x}) f'(x) dx`.
+This is the reusable owner theorem that the zeta specialization consumes. -/
+theorem eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
+    (f f' : ℝ → ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hderiv : ∀ x : ℝ, ((N : ℝ) < x) → deriv f x = f' x) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then f ((n : ℕ) : ℝ) else 0)
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)), f x) +
+        ((1 / 2 : ℂ) * f ((N : ℕ) : ℝ)) +
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) := by
+  sorry
+
+/-- Specialization of the first-order Euler-Maclaurin theorem to
+`f(x)=x^{-z}` in function notation. -/
+theorem eulerMaclaurin_cpow_neg_postCutoffTail_function_hasSum_standard
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+  let f : ℝ → ℂ := fun x : ℝ => (((x : ℝ) : ℂ) ^ (-z))
+  let f' : ℝ → ℂ := fun x : ℝ => -z * (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have hderiv : ∀ x : ℝ, ((N : ℝ) < x) → deriv f x = f' x := by
+    intro x hx
+    have hx_pos : 0 < x :=
+      lt_trans (Nat.cast_pos.mpr hN) hx
+    exact eulerMaclaurin_cpow_neg_deriv_eq z hx_pos
+  exact
+    eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
+      f f' N hN hderiv
+
+/-- Fold the derivative into the periodic-Bernoulli integral for
+`f(x)=x^{-z}`. -/
+theorem eulerMaclaurin_cpow_neg_derivative_integral_eq_factored_remainder
+    (z : ℂ)
+    (N : ℕ) :
+    (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+        (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+      -z *
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((x : ℝ) : ℂ) ^ (-(z + 1)))) := by
+  sorry
+
 /-- Generic first-order Euler-Maclaurin formula for the infinite post-cutoff
 tail of `x ↦ x^{-z}`.
 
@@ -18711,7 +18965,105 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
           (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
-  sorry
+  have hfunction :
+      HasSum
+        (fun n : ℕ =>
+          if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
+        ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            (((x : ℝ) : ℂ) ^ (-z))) +
+          ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) :=
+    eulerMaclaurin_cpow_neg_postCutoffTail_function_hasSum_standard
+      z N hN hhalf_plane
+  have hterm_eq :
+      (fun n : ℕ =>
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0) := by
+    exact funext
+      (fun n : ℕ => by
+        by_cases hn : N < n
+        · have hn_pos : 0 < n :=
+            lt_trans hN hn
+          have hif_left :
+              (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+                (((n : ℕ) : ℝ) : ℂ) ^ (-z) :=
+            if_pos hn
+          have hif_right :
+              (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) =
+                (1 : ℂ) / ((n : ℂ) ^ z) :=
+            if_pos hn
+          have hcast : (((n : ℕ) : ℝ) : ℂ) = (n : ℂ) :=
+            Complex.ofReal_natCast n
+          have hpow :
+              (((n : ℕ) : ℝ) : ℂ) ^ (-z) =
+                (n : ℂ) ^ (-z) :=
+            congrArg (fun w : ℂ => w ^ (-z)) hcast
+          have hrecip :
+              (1 : ℂ) / ((n : ℂ) ^ z) = (n : ℂ) ^ (-z) :=
+            eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hn_pos
+          exact Eq.trans hif_left
+            (Eq.trans hpow (Eq.trans hrecip.symm hif_right.symm))
+        · have hif_left :
+              (if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) = 0 :=
+            if_neg hn
+          have hif_right :
+              (if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) = 0 :=
+            if_neg hn
+          exact Eq.trans hif_left hif_right.symm)
+  have hsum_eq :
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) =
+        ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+        (-z *
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+    have hendpoint :
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) =
+          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) := by
+      have hcast : (((N : ℕ) : ℝ) : ℂ) = (N : ℂ) :=
+        Complex.ofReal_natCast N
+      have hpow :
+          ((((N : ℕ) : ℝ) : ℂ) ^ (-z)) =
+            (N : ℂ) ^ (-z) :=
+        congrArg (fun w : ℂ => w ^ (-z)) hcast
+      have hrecip :
+          (1 : ℂ) / ((N : ℂ) ^ z) = (N : ℂ) ^ (-z) :=
+        eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hN
+      exact congrArg (fun W : ℂ => (1 / 2 : ℂ) * W)
+        (Eq.trans hpow hrecip.symm)
+    have hremainder :
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+          -z *
+            (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))) :=
+      eulerMaclaurin_cpow_neg_derivative_integral_eq_factored_remainder z N
+    exact congrArg₂
+      (fun A B : ℂ =>
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) + A + B)
+      hendpoint
+      hremainder
+  exact
+    Eq.subst
+      (motive := fun p : (ℕ → ℂ) × ℂ => HasSum p.1 p.2)
+      (Prod.ext hterm_eq hsum_eq)
+      hfunction
 
 /-- Specialization of the generic Euler-Maclaurin tail formula to the owner
 cutoff `⌊2 + ‖z‖⌋₊`, before folding the Bernoulli integral into the named core. -/
@@ -22562,6 +22914,36 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
     hnorm_eq.symm
     (hproduct s (le_trans zero_le_one hs_re) hs_norm)
 
+/-- The norm of a complex exponential is bounded by the exponential of the
+norm of its exponent. -/
+theorem complex_exp_norm_le_exp_norm
+    (w : ℂ) :
+    ‖Complex.exp w‖ ≤ Real.exp ‖w‖ := by
+  have hnorm_abs : ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
+    Complex.norm_eq_abs (Complex.exp w)
+  have habs_exp : Complex.abs (Complex.exp w) = Real.exp w.re :=
+    Complex.abs_exp w
+  have hre_le_norm : w.re ≤ ‖w‖ := by
+    have hre_abs_le : |w.re| ≤ Complex.abs w :=
+      Complex.abs_re_le_abs w
+    have hre_le_abs : w.re ≤ |w.re| :=
+      le_abs_self w.re
+    have habs_eq_norm : Complex.abs w = ‖w‖ :=
+      (Complex.norm_eq_abs w).symm
+    exact hre_le_abs.trans (hre_abs_le.trans_eq habs_eq_norm)
+  calc
+    ‖Complex.exp w‖ = Complex.abs (Complex.exp w) := hnorm_abs
+    _ = Real.exp w.re := habs_exp
+    _ ≤ Real.exp ‖w‖ := Real.exp_le_exp.mpr hre_le_norm
+
+/-- Norm absorption for the affine exponents appearing in
+`Complex.cos (πs/2)`. -/
+theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
+    (s : ℂ) :
+    ‖(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) ∧
+      ‖-(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) := by
+  sorry
+
 /-- Finite-order growth for the two exponential terms in the definition of
 `Complex.cos (πs/2)`.
 
@@ -22578,7 +22960,36 @@ theorem complex_cos_pi_mul_div_two_exp_terms_rightHalfPlane_finiteOrder_growth_b
         ‖Complex.exp ((π * s / 2) * Complex.I)‖ +
             ‖Complex.exp (-(π * s / 2) * Complex.I)‖ ≤
           A * Real.exp (B * (1 + ‖s‖) ^ m) := by
-  sorry
+  refine ⟨2, Real.pi + 1, 1, zero_lt_two,
+    add_pos Real.pi_pos zero_lt_one, ?_⟩
+  intro s _hs_re _hs_norm
+  let E : ℝ := (Real.pi + 1) * (1 + ‖s‖)
+  rcases complex_cos_pi_mul_div_two_exp_argument_norm_bound s with
+    ⟨harg_pos, harg_neg⟩
+  have hpos_exp :
+      ‖Complex.exp ((π * s / 2) * Complex.I)‖ ≤ Real.exp E :=
+    (complex_exp_norm_le_exp_norm ((π * s / 2) * Complex.I)).trans
+      (Real.exp_le_exp.mpr harg_pos)
+  have hneg_exp :
+      ‖Complex.exp (-(π * s / 2) * Complex.I)‖ ≤ Real.exp E :=
+    (complex_exp_norm_le_exp_norm (-(π * s / 2) * Complex.I)).trans
+      (Real.exp_le_exp.mpr harg_neg)
+  have hsum :
+      ‖Complex.exp ((π * s / 2) * Complex.I)‖ +
+          ‖Complex.exp (-(π * s / 2) * Complex.I)‖ ≤
+        Real.exp E + Real.exp E :=
+    add_le_add hpos_exp hneg_exp
+  have htarget_eq :
+      Real.exp E + Real.exp E =
+        2 * Real.exp ((Real.pi + 1) * (1 + ‖s‖) ^ (1 : ℕ)) := by
+    have hpow_one : (1 + ‖s‖) ^ (1 : ℕ) = 1 + ‖s‖ :=
+      pow_one (1 + ‖s‖)
+    calc
+      Real.exp E + Real.exp E = 2 * Real.exp E := (two_mul (Real.exp E)).symm
+      _ = 2 * Real.exp ((Real.pi + 1) * (1 + ‖s‖) ^ (1 : ℕ)) := by
+        exact congrArg (fun x : ℝ => 2 * Real.exp ((Real.pi + 1) * x))
+          hpow_one.symm
+  exact hsum.trans_eq htarget_eq
 
 /-- The exponential-term estimate for `cos` implies the finite-order growth of
 the cosine factor itself. -/
@@ -22683,7 +23094,67 @@ theorem finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption
       ∀ z : ℂ,
         z.re ≤ 0 →
         ‖f ((1 : ℂ) - z)‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases hright with ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B * (2 : ℝ) ^ m, m, hA, ?_, ?_⟩
+  · exact mul_pos hB (pow_pos zero_lt_two m)
+  intro z hz_re
+  let s : ℂ := (1 : ℂ) - z
+  let H : ℝ := 1 + ‖z‖
+  have hs_re : 1 ≤ s.re :=
+    one_sub_leftHalfPlane_re_one_le hz_re
+  have hs_norm : 1 ≤ ‖s‖ :=
+    one_sub_leftHalfPlane_norm_one_le hz_re
+  have hraw : ‖f s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m) :=
+    hbound s hs_re hs_norm
+  have hs_norm_le : ‖s‖ ≤ 1 + ‖z‖ := by
+    calc
+      ‖s‖ = ‖(1 : ℂ) - z‖ := rfl
+      _ ≤ ‖(1 : ℂ)‖ + ‖z‖ := norm_sub_le (1 : ℂ) z
+      _ = 1 + ‖z‖ := by
+        exact congrArg (fun x : ℝ => x + ‖z‖)
+          (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+  have hbase_le : 1 + ‖s‖ ≤ 2 * H := by
+    calc
+      1 + ‖s‖ ≤ 1 + (1 + ‖z‖) :=
+        add_le_add_left hs_norm_le 1
+      _ = 2 + ‖z‖ := by
+        exact add_assoc 1 1 ‖z‖
+      _ ≤ 2 + (2 * ‖z‖) := by
+        exact add_le_add_left
+          (by
+            calc
+              ‖z‖ ≤ ‖z‖ + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
+              _ = 2 * ‖z‖ := (two_mul ‖z‖).symm)
+          2
+      _ = 2 * H := by
+        calc
+          2 + 2 * ‖z‖ = 2 * 1 + 2 * ‖z‖ := by
+            exact congrArg (fun x : ℝ => x + 2 * ‖z‖) (mul_one 2).symm
+          _ = 2 * (1 + ‖z‖) := (mul_add 2 1 ‖z‖).symm
+          _ = 2 * H := rfl
+  have hleft_nonneg : 0 ≤ 1 + ‖s‖ :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg s))
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hpow_le : (1 + ‖s‖) ^ m ≤ (2 * H) ^ m :=
+    pow_le_pow_left₀ hleft_nonneg hbase_le m
+  have hmul_pow : (2 * H) ^ m = (2 : ℝ) ^ m * H ^ m :=
+    mul_pow 2 H m
+  have hpow_target : (1 + ‖s‖) ^ m ≤ (2 : ℝ) ^ m * H ^ m :=
+    hpow_le.trans_eq hmul_pow
+  have hexponent_le :
+      B * (1 + ‖s‖) ^ m ≤ (B * (2 : ℝ) ^ m) * H ^ m := by
+    calc
+      B * (1 + ‖s‖) ^ m ≤ B * ((2 : ℝ) ^ m * H ^ m) :=
+        mul_le_mul_of_nonneg_left hpow_target (le_of_lt hB)
+      _ = (B * (2 : ℝ) ^ m) * H ^ m := mul_assoc B ((2 : ℝ) ^ m) (H ^ m)
+  have henv :
+      A * Real.exp (B * (1 + ‖s‖) ^ m) ≤
+        A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
+    mul_le_mul_of_nonneg_left
+      (Real.exp_le_exp.mpr hexponent_le)
+      (le_of_lt hA)
+  exact hraw.trans henv
 
 /-- Affine reflection transport for right-half-plane finite-order envelopes.
 

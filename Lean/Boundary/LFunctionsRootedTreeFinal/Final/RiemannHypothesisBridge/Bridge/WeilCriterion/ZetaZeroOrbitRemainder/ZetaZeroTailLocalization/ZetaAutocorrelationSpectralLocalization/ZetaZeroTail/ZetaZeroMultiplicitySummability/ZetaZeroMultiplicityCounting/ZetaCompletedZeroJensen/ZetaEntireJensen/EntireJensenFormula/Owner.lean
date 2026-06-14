@@ -2475,10 +2475,34 @@ on the fundamental Jensen interval. -/
 theorem unitCircleLogKernel_halfSine_zero_ae_ne :
     ∀ᵐ θ ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi)),
       Real.sin (θ / 2) ≠ 0 := by
-  -- The equation `sin (θ/2)=0` forces `θ = 2 n π`; in the fundamental
-  -- interval `Ι 0 (2π)` only endpoint representatives can occur, hence the
-  -- exceptional set is finite and null.
-  sorry
+  have hne_endpoint :
+      ∀ᵐ θ ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi)),
+        θ ≠ 2 * Real.pi :=
+    MeasureTheory.ae_restrict_of_ae
+      ((Set.countable_singleton (2 * Real.pi)).ae_not_mem MeasureTheory.volume)
+  filter_upwards [hne_endpoint, MeasureTheory.ae_restrict_mem measurableSet_uIoc]
+    with θ hθ_ne_endpoint hθ_interval
+  have hθ_cases :
+      0 < θ ∧ θ ≤ 2 * Real.pi ∨ 2 * Real.pi < θ ∧ θ ≤ 0 :=
+    Set.mem_uIoc.1 hθ_interval
+  match hθ_cases with
+  | Or.inl hmain =>
+      have hθ_lt_endpoint : θ < 2 * Real.pi :=
+        lt_of_le_of_ne hmain.2 (Ne.symm hθ_ne_endpoint)
+      have hhalf_pos : 0 < θ / 2 :=
+        div_pos hmain.1 zero_lt_two
+      have hhalf_lt_pi : θ / 2 < Real.pi := by
+        have hθ_lt_pi_mul_two : θ < Real.pi * 2 :=
+          lt_of_lt_of_eq hθ_lt_endpoint (mul_comm 2 Real.pi)
+        exact (div_lt_iff₀ zero_lt_two).2 hθ_lt_pi_mul_two
+      exact
+        (Real.sin_pos_of_pos_of_lt_pi hhalf_pos hhalf_lt_pi).ne'
+  | Or.inr hrev =>
+      have hendpoint_le_zero : 2 * Real.pi ≤ 0 :=
+        hrev.1.le.trans hrev.2
+      have hendpoint_pos : 0 < 2 * Real.pi :=
+        mul_pos zero_lt_two Real.pi_pos
+      exact False.elim ((not_lt_of_ge hendpoint_le_zero) hendpoint_pos)
 
 /-- Restricted-a.e. logarithmic split of the unit-circle kernel on the
 fundamental interval.
@@ -2517,9 +2541,26 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
 theorem real_sin_pos_ae_zero_pi :
     ∀ᵐ u ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi),
       0 < Real.sin u := by
-  -- On the interior `(0,π)` this is `Real.sin_pos_of_pos_of_lt_pi`; the
-  -- interval-integral measure ignores the finite endpoint discrepancy.
-  sorry
+  have hne_pi :
+      ∀ᵐ u ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi),
+        u ≠ Real.pi :=
+    MeasureTheory.ae_restrict_of_ae
+      ((Set.countable_singleton Real.pi).ae_not_mem MeasureTheory.volume)
+  filter_upwards [hne_pi, MeasureTheory.ae_restrict_mem measurableSet_uIoc]
+    with u hu_ne_pi hu_interval
+  have hu_cases :
+      0 < u ∧ u ≤ Real.pi ∨ Real.pi < u ∧ u ≤ 0 :=
+    Set.mem_uIoc.1 hu_interval
+  match hu_cases with
+  | Or.inl hmain =>
+      exact
+        Real.sin_pos_of_pos_of_lt_pi
+          hmain.1
+          (lt_of_le_of_ne hmain.2 (Ne.symm hu_ne_pi))
+  | Or.inr hrev =>
+      have hpi_le_zero : Real.pi ≤ 0 :=
+        hrev.1.le.trans hrev.2
+      exact False.elim ((not_lt_of_ge hpi_le_zero) Real.pi_pos)
 
 /-- A.e. removal of the absolute value in the sine-log integral on `[0,π]`. -/
 theorem real_log_abs_sin_ae_eq_log_sin_zero_pi :
@@ -10769,6 +10810,71 @@ theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
     (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
   exact hfg_nhds.filter_mono nhdsWithin_le_nhds
 
+/-- Good punctured closed-disk points near a nonzero support point.
+
+This is the topology input for finite normalized-factor cancellation: near a
+nonzero point `a` with `‖a‖ ≤ ρ`, points of the closed disk that avoid `a` and
+the finitely many other support centers occur frequently in the punctured
+neighborhood of `a`. -/
+theorem entireFunction_closedDisk_puncturedGoodPoints_frequently
+    (F : ℂ → ℂ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (ha0 : (a : ℂ) ≠ 0)
+    (ρ : ℝ)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ) :
+    ∃ᶠ w in 𝓝[≠] (a : ℂ),
+      w ≠ (a : ℂ) ∧
+      ‖w‖ ≤ ρ ∧
+        ∀ z : EntireFunctionZero F,
+          z ∈ S.erase a →
+            w ≠ (z : ℂ) := by
+  -- Deep topology lemma: approach `a` from the radial interior of the closed
+  -- disk and avoid the finite set `S.erase a`.
+  sorry
+
+/-- Pointwise cancellation of the local multiplicity factor against the finite
+normalized product away from the support centers. -/
+theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_pointwise
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (ha0 : (a : ℂ) ≠ 0)
+    (g : ℂ → ℂ)
+    {w : ℂ}
+    (hwρ : ‖w‖ ≤ ρ)
+    (hwa : w ≠ (a : ℂ))
+    (hw_erase :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S.erase a →
+          w ≠ (z : ℂ))
+    (hg_factor_w :
+      F w =
+        (w - (a : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (a : ℂ) •
+          g w) :
+    Q w =
+      g w /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (w : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep algebraic cancellation lemma: split the finite product at `a`, use
+  -- `(1 - w/a)^m = (-a⁻¹)^m (w-a)^m`, and cancel the nonzero factors
+  -- `(w-a)^m` and the erased support product.
+  sorry
+
 /-- Closed-disk punctured cancellation for a finite normalized factorization.
 
 This is the pointwise algebraic cancellation statement on the accumulating
@@ -10805,11 +10911,33 @@ theorem entireFunction_finiteNormalizedFactorization_frequentlyEq_localRemovable
             (∏ z in S.erase a,
               (1 - (w : ℂ) / (z : ℂ)) ^
                 entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep cancellation-frequency theorem: choose points of the closed disk
-  -- approaching `a`, apply the disk factorization and local Taylor
-  -- factorization, split the finite product by `S.erase a`, and cancel the
-  -- nonzero punctured local factor.
-  sorry
+  have ha0 : (a : ℂ) ≠ 0 :=
+    hS0 a ha
+  have hgood :
+      ∃ᶠ w in 𝓝[≠] (a : ℂ),
+        w ≠ (a : ℂ) ∧
+        ‖w‖ ≤ ρ ∧
+          ∀ z : EntireFunctionZero F,
+            z ∈ S.erase a →
+              w ≠ (z : ℂ) :=
+    entireFunction_closedDisk_puncturedGoodPoints_frequently
+      F S a ha ha0 ρ haρ
+  have hlocal_punctured :
+      ∀ᶠ w in 𝓝[≠] (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w :=
+    hg_factor.filter_mono nhdsWithin_le_nhds
+  exact
+    (hgood.and_eventually hlocal_punctured).mono
+      (fun w hw =>
+        entireFunction_finiteNormalizedFactorization_puncturedCancellation_pointwise
+          F Q hF ρ S hfactor a ha ha0 g
+          hw.1.2.1
+          hw.1.1
+          hw.1.2.2
+          hw.2)
 
 /-- Analyticity of the explicit local removable model at a support point.
 
