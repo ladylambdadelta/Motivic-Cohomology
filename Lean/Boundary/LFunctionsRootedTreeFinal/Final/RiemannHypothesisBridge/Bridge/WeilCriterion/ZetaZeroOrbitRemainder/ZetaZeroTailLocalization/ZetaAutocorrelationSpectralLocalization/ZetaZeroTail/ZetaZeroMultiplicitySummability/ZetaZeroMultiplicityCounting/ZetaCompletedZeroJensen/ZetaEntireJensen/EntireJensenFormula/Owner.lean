@@ -2951,737 +2951,6 @@ theorem intervalIntegral_finiteException_const_add_eq_twoPi_smul_add
       intervalIntegral_const_add_eq_length_smul_add
         v c (0 : ℝ) (2 * Real.pi) hv
 
-/-- Unnormalized boundary-integral transport through the origin Taylor factor,
-after deleting the finite quotient boundary-zero exceptional set.
-
-This is the analytic finite-exception congruence root.  The proof belongs to
-the logarithmic-singularity layer: off the finite exceptional set the
-integrands differ by the constant origin contribution, and the finite
-logarithmic singularities do not change the interval integral. -/
-theorem entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
-    (F G : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
-    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
-    (hfactor :
-      ∀ z : ℂ,
-        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
-    {ρ : ℝ}
-    (hρ : 1 ≤ ρ) :
-    entireFunctionJensenBoundaryLogIntegral F ρ =
-      (2 * Real.pi) *
-          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-        entireFunctionJensenBoundaryLogIntegral G ρ := by
-  sorry
-
-/-- Normalized boundary-integral transport through the origin Taylor factor,
-after deleting the finite boundary-zero exceptional set.
-
-This is the analytic congruence theorem underneath the boundary-average
-transport: off the finite quotient-zero parameter set the logarithmic
-integrands differ by the constant origin contribution, and the finite
-logarithmic singularities do not change the interval integral. -/
-theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
-    (F G : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
-    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
-    (hfactor :
-      ∀ z : ℂ,
-        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
-    {ρ : ℝ}
-    (hρ : 1 ≤ ρ) :
-    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
-      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-        (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := by
-  let c : ℝ := (2 * Real.pi)⁻¹
-  let d : ℝ := 2 * Real.pi
-  have hd_ne : d ≠ 0 :=
-    ne_of_gt Real.two_pi_pos
-  have hcd : c * d = 1 := by
-    exact inv_mul_cancel₀ hd_ne
-  have hintegral :
-      entireFunctionJensenBoundaryLogIntegral F ρ =
-        d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          entireFunctionJensenBoundaryLogIntegral G ρ :=
-    entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
-      F G hF hG hGnontrivial hfactor hρ
-  calc
-    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
-        c * entireFunctionJensenBoundaryLogIntegral F ρ := rfl
-    _ =
-        c *
-          (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            entireFunctionJensenBoundaryLogIntegral G ρ) := by
-      exact congrArg (fun x : ℝ => c * x) hintegral
-    _ =
-        c * (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ) +
-          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
-      exact mul_add c
-        (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
-        (entireFunctionJensenBoundaryLogIntegral G ρ)
-    _ =
-        (c * d) * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
-      exact congrArg
-        (fun x : ℝ =>
-          x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
-        (mul_assoc c d
-          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
-    _ =
-        1 * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
-      exact congrArg
-        (fun x : ℝ =>
-          x * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            c * entireFunctionJensenBoundaryLogIntegral G ρ)
-        hcd
-    _ =
-        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
-      exact congrArg
-        (fun x : ℝ => x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
-        (one_mul (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
-    _ =
-        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := rfl
-
-/-- Boundary-average transport through the origin Taylor factor, stated as the
-finite-exception integral theorem it really is.
-
-The pointwise logarithmic identity holds away from the finite parameter set
-where the quotient vanishes on the boundary circle.  At those exceptional
-parameters `Real.log 0` makes the pointwise formula false, so the owner
-statement is an interval-integral transport theorem modulo finite logarithmic
-singularities, followed by the constant-integral normalization. -/
-theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
-    (F G : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
-    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
-    (hfactor :
-      ∀ z : ℂ,
-        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
-    {ρ : ℝ}
-    (hρ : 1 ≤ ρ) :
-    entireFunctionJensenBoundaryLogAverage F ρ =
-      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-        entireFunctionJensenBoundaryLogAverage G ρ := by
-  exact
-    entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
-      F G hF hG hGnontrivial hfactor hρ
-
-/-- Boundary logarithmic averages transport through the global origin Taylor
-quotient with the explicit `m log ρ` contribution from the removed origin
-factor. -/
-theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
-    (F G : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
-    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
-    (hfactor :
-      ∀ z : ℂ,
-        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
-    {ρ : ℝ}
-    (hρ : 1 ≤ ρ) :
-    entireFunctionJensenBoundaryLogAverage F ρ =
-      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-        entireFunctionJensenBoundaryLogAverage G ρ := by
-  exact
-    entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
-      F G hF hG hGnontrivial hfactor hρ
-
-/-- Origin Taylor-factor transport after the global entire quotient at the
-origin has been explicitly constructed.
-
-The hypotheses are exactly the output of the removable-singularity origin
-quotient construction.  This theorem owns the comparison between `F` and its
-normalized entire quotient: nonzero zeros away from the origin, radial-gap
-sums, and boundary logarithmic averages are transported through the global
-factorization, while the separated power contributes `m log ρ`. -/
-theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
-    (G : ℂ → ℂ)
-    (hG_entire : ∀ z : ℂ, AnalyticAt ℂ G z)
-    (hG_ne : G 0 ≠ 0)
-    (hfactor :
-      ∀ z : ℂ,
-        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
-    ∃ C : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-              C =
-            entireFunctionJensenBoundaryLogAverage F ρ) := by
-  rcases
-      entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
-        G hG_entire hG_ne with
-    ⟨C, hclosedG, hidentityG⟩
-  refine ⟨C, ?_, ?_⟩
-  · intro R hR
-    exact
-      entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
-        F G hF hG_entire hfactor hR (hclosedG R hR)
-  · intro ρ hρ
-    rcases hidentityG ρ hρ with ⟨hradialG, hGidentity⟩
-    rcases
-        entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
-          F G hF hG_entire hfactor hρ hradialG with
-      ⟨hradialF, hradial_eq⟩
-    refine ⟨hradialF, ?_⟩
-    have hboundary :
-        entireFunctionJensenBoundaryLogAverage F ρ =
-          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            entireFunctionJensenBoundaryLogAverage G ρ :=
-      entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
-        F G hF hG_entire ⟨0, hG_ne⟩ hfactor hρ
-    calc
-      entireFunctionJensenRadialGapSum F hF ρ +
-          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
-          entireFunctionJensenRadialGapSum G hG_entire ρ +
-            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C := by
-        exact congrArg
-          (fun x : ℝ =>
-            x + entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C)
-          hradial_eq
-      _ =
-          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
-        calc
-          entireFunctionJensenRadialGapSum G hG_entire ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
-              (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-                entireFunctionJensenRadialGapSum G hG_entire ρ) + C := by
-            exact congrArg
-              (fun x : ℝ => x + C)
-              (add_comm
-                (entireFunctionJensenRadialGapSum G hG_entire ρ)
-                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
-          _ =
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-                (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
-            exact
-              (add_assoc
-                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
-                (entireFunctionJensenRadialGapSum G hG_entire ρ)
-                C).symm
-      _ =
-          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            entireFunctionJensenBoundaryLogAverage G ρ := by
-        exact congrArg
-          (fun x : ℝ =>
-            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + x)
-          hGidentity
-      _ =
-          entireFunctionJensenBoundaryLogAverage F ρ :=
-        hboundary.symm
-
-/-- Origin Taylor-factor transport in the genuine origin-zero case.
-
-This is the remaining transport step after the nonzero-origin case is removed:
-factor the origin zero by `AnalyticAt.order_eq_nat_iff`, apply the nonzero
-Jensen formula to the analytic unit, and compare nonzero zero multisets and
-boundary averages. -/
-theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hF0 : F 0 = 0)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ C : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-              C =
-            entireFunctionJensenBoundaryLogAverage F ρ) := by
-  rcases entireFunction_originTaylorFactor_entireQuotient F hF hnontrivial with
-    ⟨G, hG_entire, hG_ne, hfactor⟩
-  exact
-    entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
-      F hF hnontrivial G hG_entire hG_ne hfactor
-
-/-- Transport of the nonzero-at-origin Jensen identity through the origin
-Taylor factor.
-
-If `F(z) = z^m G(z)` near the origin and `G 0 ≠ 0`, the boundary average gains
-the explicit term `m log ρ`, while the nonzero radial-gap and closed-disk
-summability data are transported unchanged from the normalized factor.  This is
-the exact owner theorem that separates the algebraic origin factor from the
-classical Jensen identity for a function nonzero at the origin. -/
-theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ C : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-              C =
-            entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Factor `F` by its origin order and apply the nonzero-at-origin Jensen
-  -- identity to the analytic unit.  The origin power contributes exactly
-  -- `m * log ρ` to the boundary average.
-  by_cases hF0 : F 0 = 0
-  · exact
-      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
-        F hF hF0 hnontrivial
-  · exact
-      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_nonzeroAtOrigin
-        F hF hF0
-
-/-- Origin-factored classical Jensen formula as an exact radial-gap identity.
-
-This is the genuinely analytic theorem: for a nontrivial entire function,
-after separating the origin Taylor factor, Jensen's formula identifies the
-boundary logarithmic average with the non-origin multiplicity-weighted radial
-gap sum plus the origin radius term and one fixed normalization constant. -/
-theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ C : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-              C =
-            entireFunctionJensenBoundaryLogAverage F ρ) := by
-  exact
-    entireFunction_classicalJensenFormula_originTaylorFactor_transport
-      F hF hnontrivial
-
-/-- Origin-factored classical Jensen formula in radial-gap bound form.
-
-For large radii, the origin radius term is nonnegative, so the exact Jensen
-identity implies a radial-gap upper bound with one absolute-value constant. -/
-theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ ≤
-            J + entireFunctionJensenBoundaryLogAverage F ρ) := by
-  rcases
-      entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
-        F hF hnontrivial with
-    ⟨C, hclosed, hidentity⟩
-  refine ⟨|C|, hclosed, ?_⟩
-  intro ρ hρ
-  rcases hidentity ρ hρ with ⟨hgap, hJensen⟩
-  refine ⟨hgap, ?_⟩
-  have horigin_nonneg :
-      0 ≤ entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := by
-    unfold entireFunctionOriginMultiplicityLogRadiusContribution
-    exact mul_nonneg
-      (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
-      (Real.log_nonneg hρ)
-  have hC_nonneg : 0 ≤ |C| + C := by
-    have hneg : -C ≤ |C| := neg_le_abs C
-    have hsub : 0 ≤ |C| - (-C) := sub_nonneg.mpr hneg
-    have hsub_eq : |C| - (-C) = |C| + C := by
-      ring
-    exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hsub_eq hsub
-  have htail_nonneg :
-      0 ≤
-        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-          (|C| + C) :=
-    add_nonneg horigin_nonneg hC_nonneg
-  have hle_add :
-      entireFunctionJensenRadialGapSum F hF ρ ≤
-        entireFunctionJensenRadialGapSum F hF ρ +
-          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            (|C| + C)) :=
-    le_add_of_nonneg_right htail_nonneg
-  have htarget :
-      entireFunctionJensenRadialGapSum F hF ρ +
-          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            (|C| + C)) =
-        |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
-    calc
-      entireFunctionJensenRadialGapSum F hF ρ +
-          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-            (|C| + C)) =
-          |C| +
-            (entireFunctionJensenRadialGapSum F hF ρ +
-              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
-              C) := by
-        ring
-      _ = |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
-        exact congrArg (fun x : ℝ => |C| + x) hJensen
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      entireFunctionJensenRadialGapSum F hF ρ ≤ x)
-    htarget
-    hle_add
-
-/-- Classical Jensen formula in radial-gap form, with multiplicities and with
-the first nonzero Taylor factor at the origin absorbed into an additive
-constant.
-
-This is the precise large-radius analytic input after removing the origin
-factor: Jensen's formula identifies the multiplicity-weighted radial gap sum
-with the boundary logarithmic average up to a fixed additive normalization
-constant. The restriction `1 ≤ ρ` is the exact place where the origin-radius
-term is nonnegative and can be absorbed. -/
-theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      (∀ R : ℝ,
-        1 ≤ R →
-        Summable
-          (fun z : EntireFunctionZero F =>
-            entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)) ∧
-      (∀ ρ : ℝ,
-          1 ≤ ρ →
-          Summable
-            (fun z : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-          entireFunctionJensenRadialGapSum F hF ρ ≤
-            J + entireFunctionJensenBoundaryLogAverage F ρ) ∧
-      (∀ R : ℝ,
-          1 ≤ R →
-          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-            J + entireFunctionJensenRadialGapSum F hF (2 * R)) := by
-  rcases
-      entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boundaryLogAverage
-        F hF hnontrivial with
-    ⟨J, hclosed_nonzero, hradial⟩
-  refine
-    ⟨entireFunctionOriginMultiplicityLogContribution F hF + |J|, ?_, ?_, ?_⟩
-  · intro R hR
-    exact
-      entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSummable
-        F hF (hclosed_nonzero R hR)
-  · intro ρ hρ
-    rcases hradial ρ hρ with ⟨hgap, hbound⟩
-    refine ⟨hgap, ?_⟩
-    have hJ_le :
-        J + entireFunctionJensenBoundaryLogAverage F ρ ≤
-          entireFunctionOriginMultiplicityLogContribution F hF + |J| +
-            entireFunctionJensenBoundaryLogAverage F ρ := by
-      have hJ_abs : J ≤ |J| := le_abs_self J
-      have horigin_nonneg : 0 ≤ entireFunctionOriginMultiplicityLogContribution F hF := by
-        unfold entireFunctionOriginMultiplicityLogContribution
-        exact mul_nonneg
-          (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
-          real_log_two_pos.le
-      have hJ_shift :
-          J + entireFunctionJensenBoundaryLogAverage F ρ ≤
-            |J| + entireFunctionJensenBoundaryLogAverage F ρ :=
-        add_le_add_right hJ_abs
-          (entireFunctionJensenBoundaryLogAverage F ρ)
-      have horigin_shift :
-          |J| + entireFunctionJensenBoundaryLogAverage F ρ ≤
-            entireFunctionOriginMultiplicityLogContribution F hF +
-              (|J| + entireFunctionJensenBoundaryLogAverage F ρ) :=
-        le_add_of_nonneg_left horigin_nonneg
-      have hassoc :
-          entireFunctionOriginMultiplicityLogContribution F hF +
-              (|J| + entireFunctionJensenBoundaryLogAverage F ρ) =
-            entireFunctionOriginMultiplicityLogContribution F hF + |J| +
-              entireFunctionJensenBoundaryLogAverage F ρ :=
-        (add_assoc
-          (entireFunctionOriginMultiplicityLogContribution F hF)
-          |J|
-          (entireFunctionJensenBoundaryLogAverage F ρ)).symm
-      exact le_trans hJ_shift (Eq.subst
-        (motive := fun x : ℝ =>
-          |J| + entireFunctionJensenBoundaryLogAverage F ρ ≤ x)
-        hassoc
-        horigin_shift)
-    exact le_trans hbound hJ_le
-  · intro R hR
-    have hρ : 1 ≤ 2 * R :=
-      one_le_doubled_radius_of_one_le hR
-    rcases hradial (2 * R) hρ with ⟨hgap, hbound⟩
-    have hcount :
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-          entireFunctionOriginMultiplicityLogContribution F hF +
-            entireFunctionJensenRadialGapSum F hF (2 * R) :=
-      entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_originContribution_plus_radialGapSum
-        F hF hR (hclosed_nonzero R hR) hgap
-    have habs_nonneg : 0 ≤ |J| := abs_nonneg J
-    have hshift :
-        entireFunctionOriginMultiplicityLogContribution F hF +
-            entireFunctionJensenRadialGapSum F hF (2 * R) ≤
-          entireFunctionOriginMultiplicityLogContribution F hF +
-            (|J| + entireFunctionJensenRadialGapSum F hF (2 * R)) :=
-      add_le_add_left
-        (le_add_of_nonneg_left habs_nonneg)
-        (entireFunctionOriginMultiplicityLogContribution F hF)
-    have hassoc :
-        entireFunctionOriginMultiplicityLogContribution F hF +
-            (|J| + entireFunctionJensenRadialGapSum F hF (2 * R)) =
-          entireFunctionOriginMultiplicityLogContribution F hF + |J| +
-            entireFunctionJensenRadialGapSum F hF (2 * R) :=
-      (add_assoc
-        (entireFunctionOriginMultiplicityLogContribution F hF)
-        |J|
-        (entireFunctionJensenRadialGapSum F hF (2 * R))).symm
-    exact le_trans hcount (Eq.subst
-      (motive := fun x : ℝ =>
-        entireFunctionOriginMultiplicityLogContribution F hF +
-          entireFunctionJensenRadialGapSum F hF (2 * R) ≤ x)
-      hassoc
-      hshift)
-
-/-- Jensen's radial-gap formula supplies summability of closed-disk
-multiplicity summands. -/
-theorem entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∀ R : ℝ,
-      1 ≤ R →
-      Summable
-        (fun z : EntireFunctionZero F =>
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) := by
-  intro R hR
-  rcases entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
-      F hF hnontrivial with ⟨J, hclosed, hradial, hcount⟩
-  exact hclosed R hR
-
-/-- The doubled-radius algebra converting the weighted Jensen radial-gap bound
-into the closed-disk zero-counting estimate. -/
-theorem entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hweighted :
-      ∃ J : ℝ,
-        ∀ R : ℝ,
-          1 ≤ R →
-          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-            J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
-          J + (Real.log 2)⁻¹ *
-            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  rcases hweighted with ⟨J, hJ⟩
-  refine ⟨(Real.log 2)⁻¹ * J, ?_⟩
-  intro R hR
-  have hlog_pos : 0 < Real.log 2 :=
-    real_log_two_pos
-  have hscaled :
-      (Real.log 2)⁻¹ *
-          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) ≤
-        (Real.log 2)⁻¹ *
-          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) := by
-    exact mul_le_mul_of_nonneg_left (hJ R hR) real_log_two_inv_nonneg
-  have hleft :
-      (Real.log 2)⁻¹ *
-          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
-    calc
-      (Real.log 2)⁻¹ *
-          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
-          ((Real.log 2)⁻¹ * Real.log 2) *
-            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
-        ring
-      _ = 1 * entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
-        exact congrArg
-          (fun x : ℝ => x *
-            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R)
-          (inv_mul_cancel₀ hlog_pos.ne')
-      _ = entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
-        exact one_mul _
-  have hright :
-      (Real.log 2)⁻¹ *
-          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
-        (Real.log 2)⁻¹ * J +
-          (Real.log 2)⁻¹ * entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-    ring
-  exact hleft ▸ hright ▸ hscaled
-
-/-- Classical Jensen formula in the weighted doubled-radius counting form.
-
-This is the genuine classical Jensen formula input after factoring the first
-nonzero Taylor term at the origin: the Jensen radial-gap sum on the circle of
-radius `2R` dominates the multiplicity count in `closedDisk R` by the uniform
-gap `log 2`, with a constant absorbing the origin factor; cf. Titchmarsh, *The
-Theory of Functions*, §5. -/
-theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  rcases
-    entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
-      F hF hnontrivial with
-    ⟨J, hclosed, hradial, hcount⟩
-  refine ⟨J + J, ?_⟩
-  intro R hR
-  have hρ : 1 ≤ 2 * R :=
-    one_le_doubled_radius_of_one_le hR
-  rcases hradial (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
-  have hcount_gap :
-      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-        J + entireFunctionJensenRadialGapSum F hF (2 * R) :=
-    hcount R hR
-  have hbound :
-      J + entireFunctionJensenRadialGapSum F hF (2 * R) ≤
-        J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :=
-    add_le_add_left hgap_bound J
-  have htarget :
-      J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
-        J + J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-    ring
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤ x)
-    htarget
-    (le_trans hcount_gap hbound)
-
-/-- Classical weighted Jensen zero-counting estimate on the doubled disk. -/
-theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  exact
-    entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
-      F hF hnontrivial
-
-/-- Standard Jensen formula with multiplicity counting on the doubled disk.
-
-After factoring the first nonzero Taylor term at the origin, Jensen's formula
-gives the weighted sum of logarithmic radial gaps for zeros in the doubled
-disk.  Since every zero in `closedDisk R` contributes at least `log 2` to that
-sum when the boundary radius is `2R`, the stated inequality follows with a
-constant absorbing the origin factor. -/
-theorem entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
-          J + (Real.log 2)⁻¹ *
-            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  have hweighted :
-      ∃ J : ℝ,
-        ∀ R : ℝ,
-          1 ≤ R →
-          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-            J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-    exact
-      entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
-        F hF hnontrivial
-  exact
-    entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-      F hF hweighted
-
-/-- Classical Jensen formula zero-counting estimate, including the doubled-radius
-`log 2` loss.
-
-This is the deepest remaining analytic input: Jensen's formula for a nonzero
-entire function, with multiplicities, after comparing zeros in `closedDisk R`
-to the boundary integral on the circle of radius `2R`; cf. Titchmarsh, *The
-Theory of Functions*, §5. -/
-theorem entireFunction_classicalJensenFormula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
-          J + (Real.log 2)⁻¹ *
-            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  exact
-    entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-      F hF hnontrivial
-
-/-- Standard Jensen zero-counting estimate for nontrivial entire functions,
-including the algebraic doubled-radius `log 2` loss. -/
-theorem entireFunction_standardJensen_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
-          J + (Real.log 2)⁻¹ *
-            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  exact
-    entireFunction_classicalJensenFormula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-      F hF hnontrivial
-
-/-- Classical Jensen zero-counting estimate for nontrivial entire functions,
-with the doubled-radius `log 2` loss. -/
-theorem entireFunction_jensen_formula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
-    ∃ J : ℝ,
-      ∀ R : ℝ,
-        1 ≤ R →
-        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
-          J + (Real.log 2)⁻¹ *
-            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  exact
-    entireFunction_standardJensen_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
-      F hF hnontrivial
-
 /-- A nonnegative real radius has the same norm after embedding in `ℂ`. -/
 theorem complex_norm_ofReal_of_nonnegative
     {r : ℝ}
@@ -4875,6 +4144,865 @@ theorem entireFunction_jensenBoundaryLogAverage_regularity
       F hF hnontrivial R
       (lt_of_lt_of_le zero_lt_one hR)
       (entireFunction_jensenCircleZeros_finite F hF hnontrivial R)
+
+/-- Interval-integrability of the boundary logarithmic integrand at an arbitrary
+positive radius, obtained from the doubled-radius Jensen API by using the
+half-radius. -/
+theorem entireFunction_boundaryLogIntegrand_intervalIntegrable_of_finiteCircleZeros
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    {r : ℝ}
+    (hr : 0 < r)
+    (hzeros : Set.Finite {z : ℂ | ‖z‖ = r ∧ F z = 0}) :
+    IntervalIntegrable
+      (entireFunctionJensenBoundaryLogIntegrand F r)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  let R : ℝ := r / 2
+  have hR : 0 < R :=
+    half_pos hr
+  have hscale : 2 * R = r := by
+    calc
+      2 * R = 2 * (r / 2) := rfl
+      _ = r / 2 + r / 2 := two_mul (r / 2)
+      _ = r := add_halves r
+  have hzerosR :
+      Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0} := by
+    exact Eq.subst
+      (motive := fun s : ℝ =>
+        Set.Finite {z : ℂ | ‖z‖ = s ∧ F z = 0})
+      hscale.symm
+      hzeros
+  have hIntR :
+      IntervalIntegrable
+        (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi) :=
+    entireFunction_jensenBoundaryLogAverage_intervalIntegrable_of_finiteCircleZeros
+      F hF hnontrivial R hR hzerosR
+  exact Eq.subst
+    (motive := fun s : ℝ =>
+      IntervalIntegrable
+        (entireFunctionJensenBoundaryLogIntegrand F s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi))
+    hscale
+    hIntR
+
+/-- Unnormalized boundary-integral transport through the origin Taylor factor,
+after deleting the finite quotient boundary-zero exceptional set.
+
+This is the analytic finite-exception congruence root.  The proof belongs to
+the logarithmic-singularity layer: off the finite exceptional set the
+integrands differ by the constant origin contribution, and the finite
+logarithmic singularities do not change the interval integral. -/
+theorem entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogIntegral F ρ =
+      (2 * Real.pi) *
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogIntegral G ρ := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_lt_of_le zero_lt_one hρ
+  have hInj :
+      Set.InjOn
+        (fun θ : ℝ => (ρ : ℂ) * Complex.exp (θ * Complex.I))
+        (Set.Ioc 0 (2 * Real.pi)) :=
+    entireFunction_boundaryCircleParam_injectiveOn_Ioc hρ_pos
+  have hCircle :
+      Set.Finite {z : ℂ | ‖z‖ = ρ ∧ G z = 0} :=
+    entireFunction_circleZeros_finite G hG hGnontrivial ρ
+  have hcert :
+      (entireFunctionJensenQuotientBoundaryZeroParameters G ρ).Finite ∧
+        ∀ θ : ℝ,
+          θ ∈ Set.Icc 0 (2 * Real.pi) →
+          θ ∉ entireFunctionJensenQuotientBoundaryZeroParameters G ρ →
+          entireFunctionJensenBoundaryLogIntegrand F ρ θ =
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              entireFunctionJensenBoundaryLogIntegrand G ρ θ :=
+    entireFunction_originTaylorFactor_boundaryLogIntegrand_finiteExceptionCertificate
+      F G hF hfactor hρ_pos hInj hCircle
+  have hGint :
+      IntervalIntegrable
+        (entireFunctionJensenBoundaryLogIntegrand G ρ)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi) :=
+    entireFunction_boundaryLogIntegrand_intervalIntegrable_of_finiteCircleZeros
+      G hG hGnontrivial hρ_pos hCircle
+  unfold entireFunctionJensenBoundaryLogIntegral
+  have htransport :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          entireFunctionJensenBoundaryLogIntegrand F ρ θ) =
+        (2 * Real.pi - 0) •
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi),
+            entireFunctionJensenBoundaryLogIntegrand G ρ θ :=
+    intervalIntegral_finiteException_const_add_eq_twoPi_smul_add
+      (entireFunctionJensenBoundaryLogIntegrand F ρ)
+      (entireFunctionJensenBoundaryLogIntegrand G ρ)
+      (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+      (entireFunctionJensenQuotientBoundaryZeroParameters G ρ)
+      hcert.1
+      hcert.2
+      hGint
+  have hlength :
+      (2 * Real.pi - 0) •
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ =
+        (2 * Real.pi) *
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := by
+    calc
+      (2 * Real.pi - 0) •
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ =
+          (2 * Real.pi) •
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := by
+        exact congrArg
+          (fun x : ℝ =>
+            x • entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+          (sub_zero (2 * Real.pi))
+      _ =
+          (2 * Real.pi) *
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := rfl
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        entireFunctionJensenBoundaryLogIntegrand F ρ θ) =
+        (2 * Real.pi - 0) •
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi),
+            entireFunctionJensenBoundaryLogIntegrand G ρ θ :=
+      htransport
+    _ =
+        (2 * Real.pi) *
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi),
+            entireFunctionJensenBoundaryLogIntegrand G ρ θ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x +
+            ∫ θ in (0 : ℝ)..(2 * Real.pi),
+              entireFunctionJensenBoundaryLogIntegrand G ρ θ)
+        hlength
+
+/-- Normalized boundary-integral transport through the origin Taylor factor,
+after deleting the finite boundary-zero exceptional set.
+
+This is the analytic congruence theorem underneath the boundary-average
+transport: off the finite quotient-zero parameter set the logarithmic
+integrands differ by the constant origin contribution, and the finite
+logarithmic singularities do not change the interval integral. -/
+theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := by
+  let c : ℝ := (2 * Real.pi)⁻¹
+  let d : ℝ := 2 * Real.pi
+  have hd_ne : d ≠ 0 :=
+    ne_of_gt Real.two_pi_pos
+  have hcd : c * d = 1 := by
+    exact inv_mul_cancel₀ hd_ne
+  have hintegral :
+      entireFunctionJensenBoundaryLogIntegral F ρ =
+        d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          entireFunctionJensenBoundaryLogIntegral G ρ :=
+    entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
+      F G hF hG hGnontrivial hfactor hρ
+  calc
+    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
+        c * entireFunctionJensenBoundaryLogIntegral F ρ := rfl
+    _ =
+        c *
+          (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogIntegral G ρ) := by
+      exact congrArg (fun x : ℝ => c * x) hintegral
+    _ =
+        c * (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ) +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact mul_add c
+        (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+        (entireFunctionJensenBoundaryLogIntegral G ρ)
+    _ =
+        (c * d) * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        (mul_assoc c d
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+    _ =
+        1 * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        hcd
+    _ =
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ => x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        (one_mul (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+    _ =
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := rfl
+
+/-- Boundary-average transport through the origin Taylor factor, stated as the
+finite-exception integral theorem it really is.
+
+The pointwise logarithmic identity holds away from the finite parameter set
+where the quotient vanishes on the boundary circle.  At those exceptional
+parameters `Real.log 0` makes the pointwise formula false, so the owner
+statement is an interval-integral transport theorem modulo finite logarithmic
+singularities, followed by the constant-integral normalization. -/
+theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogAverage G ρ := by
+  exact
+    entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
+      F G hF hG hGnontrivial hfactor hρ
+
+/-- Boundary logarithmic averages transport through the global origin Taylor
+quotient with the explicit `m log ρ` contribution from the removed origin
+factor. -/
+theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogAverage G ρ := by
+  exact
+    entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
+      F G hF hG hGnontrivial hfactor hρ
+
+/-- Origin Taylor-factor transport after the global entire quotient at the
+origin has been explicitly constructed.
+
+The hypotheses are exactly the output of the removable-singularity origin
+quotient construction.  This theorem owns the comparison between `F` and its
+normalized entire quotient: nonzero zeros away from the origin, radial-gap
+sums, and boundary logarithmic averages are transported through the global
+factorization, while the separated power contributes `m log ρ`. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (G : ℂ → ℂ)
+    (hG_entire : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hG_ne : G 0 ≠ 0)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  rcases
+      entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+        G hG_entire hG_ne with
+    ⟨C, hclosedG, hidentityG⟩
+  refine ⟨C, ?_, ?_⟩
+  · intro R hR
+    exact
+      entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
+        F G hF hG_entire hfactor hR (hclosedG R hR)
+  · intro ρ hρ
+    rcases hidentityG ρ hρ with ⟨hradialG, hGidentity⟩
+    rcases
+        entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
+          F G hF hG_entire hfactor hρ hradialG with
+      ⟨hradialF, hradial_eq⟩
+    refine ⟨hradialF, ?_⟩
+    have hboundary :
+        entireFunctionJensenBoundaryLogAverage F ρ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogAverage G ρ :=
+      entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
+        F G hF hG_entire ⟨0, hG_ne⟩ hfactor hρ
+    calc
+      entireFunctionJensenRadialGapSum F hF ρ +
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
+          entireFunctionJensenRadialGapSum G hG_entire ρ +
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C := by
+        exact congrArg
+          (fun x : ℝ =>
+            x + entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C)
+          hradial_eq
+      _ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
+        calc
+          entireFunctionJensenRadialGapSum G hG_entire ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
+              (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+                entireFunctionJensenRadialGapSum G hG_entire ρ) + C := by
+            exact congrArg
+              (fun x : ℝ => x + C)
+              (add_comm
+                (entireFunctionJensenRadialGapSum G hG_entire ρ)
+                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+          _ =
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+                (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
+            exact
+              (add_assoc
+                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+                (entireFunctionJensenRadialGapSum G hG_entire ρ)
+                C).symm
+      _ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogAverage G ρ := by
+        exact congrArg
+          (fun x : ℝ =>
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + x)
+          hGidentity
+      _ =
+          entireFunctionJensenBoundaryLogAverage F ρ :=
+        hboundary.symm
+
+/-- Origin Taylor-factor transport in the genuine origin-zero case.
+
+This is the remaining transport step after the nonzero-origin case is removed:
+factor the origin zero by `AnalyticAt.order_eq_nat_iff`, apply the nonzero
+Jensen formula to the analytic unit, and compare nonzero zero multisets and
+boundary averages. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 = 0)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  rcases entireFunction_originTaylorFactor_entireQuotient F hF hnontrivial with
+    ⟨G, hG_entire, hG_ne, hfactor⟩
+  exact
+    entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
+      F hF hnontrivial G hG_entire hG_ne hfactor
+
+/-- Transport of the nonzero-at-origin Jensen identity through the origin
+Taylor factor.
+
+If `F(z) = z^m G(z)` near the origin and `G 0 ≠ 0`, the boundary average gains
+the explicit term `m log ρ`, while the nonzero radial-gap and closed-disk
+summability data are transported unchanged from the normalized factor.  This is
+the exact owner theorem that separates the algebraic origin factor from the
+classical Jensen identity for a function nonzero at the origin. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Factor `F` by its origin order and apply the nonzero-at-origin Jensen
+  -- identity to the analytic unit.  The origin power contributes exactly
+  -- `m * log ρ` to the boundary average.
+  by_cases hF0 : F 0 = 0
+  · exact
+      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
+        F hF hF0 hnontrivial
+  · exact
+      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_nonzeroAtOrigin
+        F hF hF0
+
+/-- Origin-factored classical Jensen formula as an exact radial-gap identity.
+
+This is the genuinely analytic theorem: for a nontrivial entire function,
+after separating the origin Taylor factor, Jensen's formula identifies the
+boundary logarithmic average with the non-origin multiplicity-weighted radial
+gap sum plus the origin radius term and one fixed normalization constant. -/
+theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  exact
+    entireFunction_classicalJensenFormula_originTaylorFactor_transport
+      F hF hnontrivial
+
+/-- Origin-factored classical Jensen formula in radial-gap bound form.
+
+For large radii, the origin radius term is nonnegative, so the exact Jensen
+identity implies a radial-gap upper bound with one absolute-value constant. -/
+theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ ≤
+            J + entireFunctionJensenBoundaryLogAverage F ρ) := by
+  rcases
+      entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
+        F hF hnontrivial with
+    ⟨C, hclosed, hidentity⟩
+  refine ⟨|C|, hclosed, ?_⟩
+  intro ρ hρ
+  rcases hidentity ρ hρ with ⟨hgap, hJensen⟩
+  refine ⟨hgap, ?_⟩
+  have horigin_nonneg :
+      0 ≤ entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := by
+    unfold entireFunctionOriginMultiplicityLogRadiusContribution
+    exact mul_nonneg
+      (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
+      (Real.log_nonneg hρ)
+  have hC_nonneg : 0 ≤ |C| + C := by
+    have hneg : -C ≤ |C| := neg_le_abs C
+    have hsub : 0 ≤ |C| - (-C) := sub_nonneg.mpr hneg
+    have hsub_eq : |C| - (-C) = |C| + C := by
+      ring
+    exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hsub_eq hsub
+  have htail_nonneg :
+      0 ≤
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          (|C| + C) :=
+    add_nonneg horigin_nonneg hC_nonneg
+  have hle_add :
+      entireFunctionJensenRadialGapSum F hF ρ ≤
+        entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) :=
+    le_add_of_nonneg_right htail_nonneg
+  have htarget :
+      entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) =
+        |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
+    calc
+      entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) =
+          |C| +
+            (entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C) := by
+        ring
+      _ = |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
+        exact congrArg (fun x : ℝ => |C| + x) hJensen
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      entireFunctionJensenRadialGapSum F hF ρ ≤ x)
+    htarget
+    hle_add
+
+/-- Classical Jensen formula in radial-gap form, with multiplicities and with
+the first nonzero Taylor factor at the origin absorbed into an additive
+constant.
+
+This is the precise large-radius analytic input after removing the origin
+factor: Jensen's formula identifies the multiplicity-weighted radial gap sum
+with the boundary logarithmic average up to a fixed additive normalization
+constant. The restriction `1 ≤ ρ` is the exact place where the origin-radius
+term is nonnegative and can be absorbed. -/
+theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ ≤
+            J + entireFunctionJensenBoundaryLogAverage F ρ) ∧
+      (∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenRadialGapSum F hF (2 * R)) := by
+  rcases
+      entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boundaryLogAverage
+        F hF hnontrivial with
+    ⟨J, hclosed_nonzero, hradial⟩
+  refine
+    ⟨entireFunctionOriginMultiplicityLogContribution F hF + |J|, ?_, ?_, ?_⟩
+  · intro R hR
+    exact
+      entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSummable
+        F hF (hclosed_nonzero R hR)
+  · intro ρ hρ
+    rcases hradial ρ hρ with ⟨hgap, hbound⟩
+    refine ⟨hgap, ?_⟩
+    have hJ_le :
+        J + entireFunctionJensenBoundaryLogAverage F ρ ≤
+          entireFunctionOriginMultiplicityLogContribution F hF + |J| +
+            entireFunctionJensenBoundaryLogAverage F ρ := by
+      have hJ_abs : J ≤ |J| := le_abs_self J
+      have horigin_nonneg : 0 ≤ entireFunctionOriginMultiplicityLogContribution F hF := by
+        unfold entireFunctionOriginMultiplicityLogContribution
+        exact mul_nonneg
+          (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
+          real_log_two_pos.le
+      have hJ_shift :
+          J + entireFunctionJensenBoundaryLogAverage F ρ ≤
+            |J| + entireFunctionJensenBoundaryLogAverage F ρ :=
+        add_le_add_right hJ_abs
+          (entireFunctionJensenBoundaryLogAverage F ρ)
+      have horigin_shift :
+          |J| + entireFunctionJensenBoundaryLogAverage F ρ ≤
+            entireFunctionOriginMultiplicityLogContribution F hF +
+              (|J| + entireFunctionJensenBoundaryLogAverage F ρ) :=
+        le_add_of_nonneg_left horigin_nonneg
+      have hassoc :
+          entireFunctionOriginMultiplicityLogContribution F hF +
+              (|J| + entireFunctionJensenBoundaryLogAverage F ρ) =
+            entireFunctionOriginMultiplicityLogContribution F hF + |J| +
+              entireFunctionJensenBoundaryLogAverage F ρ :=
+        (add_assoc
+          (entireFunctionOriginMultiplicityLogContribution F hF)
+          |J|
+          (entireFunctionJensenBoundaryLogAverage F ρ)).symm
+      exact le_trans hJ_shift (Eq.subst
+        (motive := fun x : ℝ =>
+          |J| + entireFunctionJensenBoundaryLogAverage F ρ ≤ x)
+        hassoc
+        horigin_shift)
+    exact le_trans hbound hJ_le
+  · intro R hR
+    have hρ : 1 ≤ 2 * R :=
+      one_le_doubled_radius_of_one_le hR
+    rcases hradial (2 * R) hρ with ⟨hgap, hbound⟩
+    have hcount :
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+          entireFunctionOriginMultiplicityLogContribution F hF +
+            entireFunctionJensenRadialGapSum F hF (2 * R) :=
+      entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_originContribution_plus_radialGapSum
+        F hF hR (hclosed_nonzero R hR) hgap
+    have habs_nonneg : 0 ≤ |J| := abs_nonneg J
+    have hshift :
+        entireFunctionOriginMultiplicityLogContribution F hF +
+            entireFunctionJensenRadialGapSum F hF (2 * R) ≤
+          entireFunctionOriginMultiplicityLogContribution F hF +
+            (|J| + entireFunctionJensenRadialGapSum F hF (2 * R)) :=
+      add_le_add_left
+        (le_add_of_nonneg_left habs_nonneg)
+        (entireFunctionOriginMultiplicityLogContribution F hF)
+    have hassoc :
+        entireFunctionOriginMultiplicityLogContribution F hF +
+            (|J| + entireFunctionJensenRadialGapSum F hF (2 * R)) =
+          entireFunctionOriginMultiplicityLogContribution F hF + |J| +
+            entireFunctionJensenRadialGapSum F hF (2 * R) :=
+      (add_assoc
+        (entireFunctionOriginMultiplicityLogContribution F hF)
+        |J|
+        (entireFunctionJensenRadialGapSum F hF (2 * R))).symm
+    exact le_trans hcount (Eq.subst
+      (motive := fun x : ℝ =>
+        entireFunctionOriginMultiplicityLogContribution F hF +
+          entireFunctionJensenRadialGapSum F hF (2 * R) ≤ x)
+      hassoc
+      hshift)
+
+/-- Jensen's radial-gap formula supplies summability of closed-disk
+multiplicity summands. -/
+theorem entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) := by
+  intro R hR
+  rcases entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+      F hF hnontrivial with ⟨J, hclosed, hradial, hcount⟩
+  exact hclosed R hR
+
+/-- The doubled-radius algebra converting the weighted Jensen radial-gap bound
+into the closed-disk zero-counting estimate. -/
+theorem entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hweighted :
+      ∃ J : ℝ,
+        ∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  rcases hweighted with ⟨J, hJ⟩
+  refine ⟨(Real.log 2)⁻¹ * J, ?_⟩
+  intro R hR
+  have hlog_pos : 0 < Real.log 2 :=
+    real_log_two_pos
+  have hscaled :
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) ≤
+        (Real.log 2)⁻¹ *
+          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) := by
+    exact mul_le_mul_of_nonneg_left (hJ R hR) real_log_two_inv_nonneg
+  have hleft :
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+    calc
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
+          ((Real.log 2)⁻¹ * Real.log 2) *
+            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        ring
+      _ = 1 * entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        exact congrArg
+          (fun x : ℝ => x *
+            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R)
+          (inv_mul_cancel₀ hlog_pos.ne')
+      _ = entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        exact one_mul _
+  have hright :
+      (Real.log 2)⁻¹ *
+          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
+        (Real.log 2)⁻¹ * J +
+          (Real.log 2)⁻¹ * entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    ring
+  exact hleft ▸ hright ▸ hscaled
+
+/-- Classical Jensen formula in the weighted doubled-radius counting form.
+
+This is the genuine classical Jensen formula input after factoring the first
+nonzero Taylor term at the origin: the Jensen radial-gap sum on the circle of
+radius `2R` dominates the multiplicity count in `closedDisk R` by the uniform
+gap `log 2`, with a constant absorbing the origin factor; cf. Titchmarsh, *The
+Theory of Functions*, §5. -/
+theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  rcases
+    entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+      F hF hnontrivial with
+    ⟨J, hclosed, hradial, hcount⟩
+  refine ⟨J + J, ?_⟩
+  intro R hR
+  have hρ : 1 ≤ 2 * R :=
+    one_le_doubled_radius_of_one_le hR
+  rcases hradial (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
+  have hcount_gap :
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+        J + entireFunctionJensenRadialGapSum F hF (2 * R) :=
+    hcount R hR
+  have hbound :
+      J + entireFunctionJensenRadialGapSum F hF (2 * R) ≤
+        J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :=
+    add_le_add_left hgap_bound J
+  have htarget :
+      J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
+        J + J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    ring
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤ x)
+    htarget
+    (le_trans hcount_gap hbound)
+
+/-- Classical weighted Jensen zero-counting estimate on the doubled disk. -/
+theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  exact
+    entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+      F hF hnontrivial
+
+/-- Standard Jensen formula with multiplicity counting on the doubled disk.
+
+After factoring the first nonzero Taylor term at the origin, Jensen's formula
+gives the weighted sum of logarithmic radial gaps for zeros in the doubled
+disk.  Since every zero in `closedDisk R` contributes at least `log 2` to that
+sum when the boundary radius is `2R`, the stated inequality follows with a
+constant absorbing the origin factor. -/
+theorem entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  have hweighted :
+      ∃ J : ℝ,
+        ∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    exact
+      entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+        F hF hnontrivial
+  exact
+    entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+      F hF hweighted
+
+/-- Classical Jensen formula zero-counting estimate, including the doubled-radius
+`log 2` loss.
+
+This is the deepest remaining analytic input: Jensen's formula for a nonzero
+entire function, with multiplicities, after comparing zeros in `closedDisk R`
+to the boundary integral on the circle of radius `2R`; cf. Titchmarsh, *The
+Theory of Functions*, §5. -/
+theorem entireFunction_classicalJensenFormula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  exact
+    entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+      F hF hnontrivial
+
+/-- Standard Jensen zero-counting estimate for nontrivial entire functions,
+including the algebraic doubled-radius `log 2` loss. -/
+theorem entireFunction_standardJensen_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  exact
+    entireFunction_classicalJensenFormula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+      F hF hnontrivial
+
+/-- Classical Jensen zero-counting estimate for nontrivial entire functions,
+with the doubled-radius `log 2` loss. -/
+theorem entireFunction_jensen_formula_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  exact
+    entireFunction_standardJensen_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+      F hF hnontrivial
+
 
 /-- Jensen's formula relates multiplicity-aware closed-disk zero counting to the
 normalized logarithmic boundary average on the doubled circle, with the standard
