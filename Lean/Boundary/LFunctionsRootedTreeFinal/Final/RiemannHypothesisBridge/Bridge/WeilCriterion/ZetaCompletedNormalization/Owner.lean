@@ -1899,6 +1899,116 @@ theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
   exact le_trans (hbound w hw_re hw_im) hscaled
 
+/-- On the boundary line `re = 1`, the pole-clearing factor has norm controlled by the
+vertical height. -/
+theorem boundaryLine_one_sub_one_norm_le_vertical_height
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    ‖w - 1‖ ≤ 1 + ‖w.im‖ := by
+  have hnorm_le_abs :
+      ‖w - 1‖ ≤ |(w - 1).re| + |(w - 1).im| := by
+    simpa [Complex.norm_eq_abs] using
+      Complex.abs_le_abs_re_add_abs_im (w - 1)
+  have hre_zero : (w - 1).re = 0 := by
+    calc
+      (w - 1).re = w.re - (1 : ℂ).re := by
+        exact Complex.sub_re w 1
+      _ = 1 - 1 := by
+        exact congrArg (fun x : ℝ => x - (1 : ℂ).re) hw_re
+      _ = 0 := by
+        norm_num
+  have hre_abs_zero : |(w - 1).re| = 0 :=
+    congrArg abs hre_zero
+  have him_eq : (w - 1).im = w.im := by
+    calc
+      (w - 1).im = w.im - (1 : ℂ).im := by
+        exact Complex.sub_im w 1
+      _ = w.im - 0 := by
+        norm_num
+      _ = w.im := by
+        exact sub_zero w.im
+  have him_abs_eq_norm : |(w - 1).im| = ‖w.im‖ := by
+    calc
+      |(w - 1).im| = |w.im| := by
+        exact congrArg abs him_eq
+      _ = ‖w.im‖ := (Real.norm_eq_abs w.im).symm
+  have hsum_eq :
+      |(w - 1).re| + |(w - 1).im| = ‖w.im‖ := by
+    calc
+      |(w - 1).re| + |(w - 1).im| = 0 + ‖w.im‖ := by
+        exact congrArg₂ (fun x y : ℝ => x + y) hre_abs_zero him_abs_eq_norm
+      _ = ‖w.im‖ := zero_add ‖w.im‖
+  have hnorm_le_im :
+      ‖w - 1‖ ≤ ‖w.im‖ := by
+    exact le_trans hnorm_le_abs (le_of_eq hsum_eq)
+  exact le_trans hnorm_le_im
+    (le_add_of_nonneg_left zero_le_one)
+
+/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`.
+
+This is the standard boundary-line estimate `ζ(1 + it) = O(log(2 + |t|))` on
+the vertical tail. -/
+theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
+  sorry
+
+/-- The logarithmic boundary-line zeta estimate gives the log-linear estimate for the
+pole-cleared product `(s - 1)ζ(s)`. -/
+theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_of_zeta_log
+    (hzeta :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ w : ℂ,
+          w.re = 1 →
+          1 ≤ ‖w.im‖ →
+          ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖)) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+  rcases hzeta with ⟨A, hA_pos, hzeta_bound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro w hw_re hw_im
+  have hpole_norm :
+      ‖w - 1‖ ≤ 1 + ‖w.im‖ :=
+    boundaryLine_one_sub_one_norm_le_vertical_height hw_re
+  have hzeta_norm :
+      ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
+    hzeta_bound w hw_re hw_im
+  have hzeta_rhs_nonneg :
+      0 ≤ A * Real.log (2 + ‖w.im‖) :=
+    le_trans (norm_nonneg (riemannZeta w)) hzeta_norm
+  have hheight_nonneg : 0 ≤ 1 + ‖w.im‖ :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
+  have hmul :
+      ‖w - 1‖ * ‖riemannZeta w‖ ≤
+        (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) :=
+    mul_le_mul hpole_norm hzeta_norm hzeta_rhs_nonneg hheight_nonneg
+  have htarget_eq :
+      (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
+        A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+    ring
+  have hnorm_eq :
+      ‖(w - 1) * riemannZeta w‖ = ‖w - 1‖ * ‖riemannZeta w‖ :=
+    norm_mul (w - 1) (riemannZeta w)
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      ‖(w - 1) * riemannZeta w‖ ≤ x)
+    htarget_eq
+    (Eq.subst
+      (motive := fun x : ℝ => x ≤
+        (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)))
+      hnorm_eq.symm
+      hmul)
+
 /-- Classical log-linear vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`.  This is the standard boundary-line zeta estimate in the form needed before
 coarsening to a finite polynomial envelope. -/
@@ -1910,7 +2020,8 @@ theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bo
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-  sorry
+  exact classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_of_zeta_log
+    classicalZeta_boundaryLine_one_vertical_log_growth_bound
 
 /-- A log-linear vertical-height boundary estimate gives the coarser polynomial envelope
 used by the normalization chain. -/
