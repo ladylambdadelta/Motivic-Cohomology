@@ -316,6 +316,91 @@ theorem Complex.binetSecondFormulaRemainder_norm_bound_large_openRightHalfPlane 
               C * (1 + ‖z‖) ^ m := by
   sorry
 
+/-- Binet's formula plus direct polynomial norm bounds for the main term and
+remainder give polynomial growth for `log (Gamma z)`. -/
+theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula_and_norm_bounds :
+    ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
+      0 < R ∧ 0 < C ∧
+      ∀ z : ℂ,
+        0 < z.re →
+          R ≤ ‖z‖ →
+            ‖Complex.log (Complex.Gamma z)‖ ≤
+              C * (1 + ‖z‖) ^ m := by
+  rcases Complex.Gamma_binetSecondFormula_closedRightHalfPlane with
+    ⟨Rb, hRb_pos, hBinet⟩
+  rcases Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane with
+    ⟨Rm, Cm, mm, hRm_pos, hCm_pos, hmain⟩
+  rcases Complex.binetSecondFormulaRemainder_norm_bound_large_openRightHalfPlane with
+    ⟨Rr, Cr, mr, hRr_pos, hCr_pos, hrem⟩
+  let R : ℝ := max Rb (max Rm Rr)
+  let C : ℝ := Cm + Cr
+  let m : ℕ := mm + mr
+  refine ⟨R, C, m, ?_, ?_, ?_⟩
+  · exact lt_of_lt_of_le hRb_pos (le_max_left Rb (max Rm Rr))
+  · exact add_pos hCm_pos hCr_pos
+  · intro z hz_re hRz
+    have hRbz : Rb ≤ ‖z‖ :=
+      le_trans (le_max_left Rb (max Rm Rr)) hRz
+    have hRmz : Rm ≤ ‖z‖ :=
+      le_trans
+        (le_trans (le_max_left Rm Rr) (le_max_right Rb (max Rm Rr)))
+        hRz
+    have hRrz : Rr ≤ ‖z‖ :=
+      le_trans
+        (le_trans (le_max_right Rm Rr) (le_max_right Rb (max Rm Rr)))
+        hRz
+    have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
+      linarith [norm_nonneg z]
+    have hmain_bound :
+        ‖Complex.binetLogGammaMainTerm z‖ ≤
+          Cm * (1 + ‖z‖) ^ m := by
+      have hpow :
+          (1 + ‖z‖) ^ mm ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase_ge_one (Nat.le_add_right mm mr)
+      exact
+        le_trans (hmain z hz_re hRmz)
+          (mul_le_mul_of_nonneg_left hpow (le_of_lt hCm_pos))
+    have hrem_bound :
+        ‖Complex.binetSecondFormulaRemainder z‖ ≤
+          Cr * (1 + ‖z‖) ^ m := by
+      have hmr_le : mr ≤ m := by
+        dsimp [m]
+        rw [Nat.add_comm]
+        exact Nat.le_add_left mr mm
+      have hpow :
+          (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
+        pow_le_pow_right₀ hbase_ge_one hmr_le
+      exact
+        le_trans (hrem z hz_re hRrz)
+          (mul_le_mul_of_nonneg_left hpow (le_of_lt hCr_pos))
+    have hsum :
+        ‖Complex.binetLogGammaMainTerm z‖ +
+          ‖Complex.binetSecondFormulaRemainder z‖ ≤
+            C * (1 + ‖z‖) ^ m := by
+      calc
+        ‖Complex.binetLogGammaMainTerm z‖ +
+            ‖Complex.binetSecondFormulaRemainder z‖
+            ≤ Cm * (1 + ‖z‖) ^ m +
+                Cr * (1 + ‖z‖) ^ m :=
+          add_le_add hmain_bound hrem_bound
+        _ = C * (1 + ‖z‖) ^ m := by
+          dsimp [C]
+          ring
+    have hformula :
+        Complex.log (Complex.Gamma z) =
+          Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z :=
+      hBinet z hz_re hRbz
+    calc
+      ‖Complex.log (Complex.Gamma z)‖ =
+          ‖Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z‖ := by
+        rw [hformula]
+      _ ≤ ‖Complex.binetLogGammaMainTerm z‖ +
+          ‖Complex.binetSecondFormulaRemainder z‖ :=
+        norm_add_le _ _
+      _ ≤ C * (1 + ‖z‖) ^ m := hsum
+
 /-- Binet's principal-log identity and direct component norm bounds give
 polynomial growth for `log (Gamma z)` after a large-radius cutoff. -/
 theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_components :
@@ -326,7 +411,8 @@ theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_compone
           R ≤ ‖z‖ →
             ‖Complex.log (Complex.Gamma z)‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  sorry
+  exact
+    Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula_and_norm_bounds
 
 /-- Passing from a norm bound on the principal logarithm to a bound on
 `Real.log ‖Gamma z‖`. -/

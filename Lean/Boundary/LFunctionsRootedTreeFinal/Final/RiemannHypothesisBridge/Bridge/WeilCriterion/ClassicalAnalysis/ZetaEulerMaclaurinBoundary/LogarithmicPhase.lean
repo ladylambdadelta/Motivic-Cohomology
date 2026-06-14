@@ -1394,13 +1394,149 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_add_two_eq :
   field_simp [hden_ne]
   ring
 
-/-- Entropy-form inequality behind the dyadic critical value. -/
-theorem Complex.real_log_two_le_entropyExpression_on_one_two
+/-- Entropy-form expression behind the dyadic critical value. -/
+def Complex.realLogDyadicEntropyExpression
+    (y : ℝ) : ℝ :=
+  y * Real.log y - (y - 1) * Real.log (y - 1)
+
+/-- Derivative formula for the entropy-form expression. -/
+theorem Complex.realLogDyadicEntropyExpression_hasDerivAt
     {y : ℝ}
-    (hy_one : 1 < y)
+    (hy : 1 < y) :
+    HasDerivAt
+      Complex.realLogDyadicEntropyExpression
+      (Real.log y - Real.log (y - 1))
+      y := by
+  have hy_ne : y ≠ 0 :=
+    ne_of_gt (lt_trans zero_lt_one hy)
+  have hy_sub_pos : 0 < y - 1 :=
+    sub_pos.mpr hy
+  have hy_sub_ne : y - 1 ≠ 0 :=
+    ne_of_gt hy_sub_pos
+  have hleft :
+      HasDerivAt (fun z : ℝ => z * Real.log z) (Real.log y + 1) y :=
+    Real.hasDerivAt_mul_log hy_ne
+  have hshift : HasDerivAt (fun z : ℝ => z - 1) 1 y :=
+    (hasDerivAt_id y).sub_const 1
+  have hright :
+      HasDerivAt
+        (fun z : ℝ => (z - 1) * Real.log (z - 1))
+        (Real.log (y - 1) + 1)
+        y := by
+    have hmul_log :
+        HasDerivAt (fun u : ℝ => u * Real.log u)
+          (Real.log (y - 1) + 1)
+          (y - 1) :=
+      Real.hasDerivAt_mul_log hy_sub_ne
+    have hcomp :
+        HasDerivAt
+          (fun z : ℝ => (fun u : ℝ => u * Real.log u) (z - 1))
+          ((Real.log (y - 1) + 1) * 1)
+          y :=
+      hmul_log.comp y hshift
+    exact Eq.subst
+      (motive := fun d : ℝ =>
+        HasDerivAt
+          (fun z : ℝ => (z - 1) * Real.log (z - 1))
+          d
+          y)
+      (mul_one (Real.log (y - 1) + 1))
+      hcomp
+  have hsub :
+      HasDerivAt
+        (fun z : ℝ => z * Real.log z - (z - 1) * Real.log (z - 1))
+        ((Real.log y + 1) - (Real.log (y - 1) + 1))
+        y :=
+    hleft.sub hright
+  have hderiv :
+      (Real.log y + 1) - (Real.log (y - 1) + 1) =
+        Real.log y - Real.log (y - 1) := by
+    ring
+  exact Eq.subst
+    (motive := fun d : ℝ =>
+      HasDerivAt Complex.realLogDyadicEntropyExpression d y)
+    hderiv
+    hsub
+
+/-- The entropy-form derivative is nonnegative on `(1,∞)`. -/
+theorem Complex.realLogDyadicEntropyExpression_deriv_nonneg
+    {y : ℝ}
+    (hy : 1 < y) :
+    0 ≤ Real.log y - Real.log (y - 1) := by
+  have hy_sub_pos : 0 < y - 1 :=
+    sub_pos.mpr hy
+  have hsub_le_y : y - 1 ≤ y := by
+    linarith
+  have hlog_le : Real.log (y - 1) ≤ Real.log y :=
+    Real.log_le_log hy_sub_pos hsub_le_y
+  exact sub_nonneg.mpr hlog_le
+
+/-- The entropy-form expression is monotone on the interval actually used by
+the critical-point argument. -/
+theorem Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_two_log :
+    MonotoneOn
+      Complex.realLogDyadicEntropyExpression
+      (Set.Ici (2 * Real.log (2 : ℝ))) := by
+  exact
+    monotoneOn_of_deriv_nonneg
+      (convex_Ici (2 * Real.log (2 : ℝ)))
+      (fun y hy =>
+        (Complex.realLogDyadicEntropyExpression_hasDerivAt
+          (lt_of_lt_of_le
+            (sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos)
+            hy)).continuousAt.continuousWithinAt)
+      (fun y hy =>
+        (Complex.realLogDyadicEntropyExpression_hasDerivAt
+          (lt_of_lt_of_le
+            (sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos)
+            hy)).differentiableAt.differentiableWithinAt)
+      (fun y hy =>
+        Eq.subst
+          (motive := fun d : ℝ => 0 ≤ d)
+          (Complex.realLogDyadicEntropyExpression_hasDerivAt
+            (lt_of_lt_of_le
+              (sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos)
+              hy)).deriv.symm
+          (Complex.realLogDyadicEntropyExpression_deriv_nonneg
+            (lt_of_lt_of_le
+              (sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos)
+              hy)))
+
+/-- The entropy-form inequality at the lower endpoint `2 log 2`. -/
+theorem Complex.real_log_two_le_entropyExpression_at_two_log :
+    Real.log (2 : ℝ) ≤
+      Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) := by
+  sorry
+
+/-- Entropy-form inequality behind the dyadic critical value on the true
+interval needed by the critical point: `2 log 2 ≤ y ≤ 2`.
+
+The stronger-looking statement on all of `(1,2]` is false, since the
+entropy-form expression is increasing and tends to `0` as `y → 1+`. -/
+theorem Complex.real_log_two_le_entropyExpression_on_two_log_two
+    {y : ℝ}
+    (hy_lower : 2 * Real.log (2 : ℝ) ≤ y)
     (hy_two : y ≤ 2) :
     Real.log (2 : ℝ) ≤ y * Real.log y - (y - 1) * Real.log (y - 1) := by
-  sorry
+  have hbase :
+      Real.log (2 : ℝ) ≤
+        Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) :=
+    Complex.real_log_two_le_entropyExpression_at_two_log
+  have hmono :
+      Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) ≤
+        Complex.realLogDyadicEntropyExpression y :=
+    Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_two_log
+      le_rfl
+      hy_lower
+      hy_lower
+  have hdef :
+      Complex.realLogDyadicEntropyExpression y =
+        y * Real.log y - (y - 1) * Real.log (y - 1) := by
+    rfl
+  exact Eq.subst
+    (motive := fun target : ℝ => Real.log (2 : ℝ) ≤ target)
+    hdef
+    (le_trans hbase hmono)
 
 /-- The critical expression is the entropy-form expression at
 `y = 2 log 2`. -/
@@ -1478,7 +1614,7 @@ theorem Complex.realLogDyadicComparisonCriticalExpression_nonneg :
         (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
           ((2 * Real.log (2 : ℝ)) - 1) *
             Real.log ((2 * Real.log (2 : ℝ)) - 1) :=
-    Complex.real_log_two_le_entropyExpression_on_one_two hY_one hY_two
+    Complex.real_log_two_le_entropyExpression_on_two_log_two le_rfl hY_two
   have hnormalized_nonneg :
       0 ≤
         (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
