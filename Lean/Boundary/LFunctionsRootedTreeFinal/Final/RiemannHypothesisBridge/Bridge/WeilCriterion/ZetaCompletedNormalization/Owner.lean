@@ -12239,6 +12239,35 @@ theorem scalarReciprocalDensity_Icc_point_pos
     0 < x := by
   exact lt_of_lt_of_le (scalarReciprocalDensity_cutoff_real_pos t) hx.1
 
+/-- Canonical real-variable comparison for the finite `log(2+x)/x` integral.
+
+On `2 ≤ a ≤ b`, the integrand is dominated by the derivative of
+`(Real.log (2+x))^2`, since `1/x ≤ 2/(2+x)` and `Real.log (2+x) ≥ 0`.
+This is the reusable scalar calculus theorem; the zeta cutoff theorem below is
+only an endpoint instantiation. -/
+theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc a b, Real.log (2 + x) / x ≤
+      (Real.log (2 + b)) ^ 2 := by
+  sorry
+
+/-- Canonical real-variable comparison for the finite `log(2+x)/x²` integral.
+
+On any interval beginning after `2`, the tail integral is bounded uniformly by
+the full tail from `2` to infinity; that tail is below `Real.log 4`.  The
+displayed height parameter is only used through `1 ≤ H`, hence
+`Real.log 4 ≤ Real.log (3+H)`. -/
+theorem real_integral_Ioc_log_two_add_div_sq_le_log_three_add_height
+    {H a b : ℝ}
+    (hH : (1 : ℝ) ≤ H)
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
+      Real.log (3 + H) := by
+  sorry
+
 /-- Scalar calculus owner for the `log(2+x)/x` post-cutoff integral.
 
 Proof route: on the post-cutoff interval, `2 ≤ x`, hence
@@ -12253,7 +12282,15 @@ theorem scalarReciprocalDensity_log_over_x_integral_bound_calculus
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         Real.log (2 + x) / x ≤
       (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 := by
-  sorry
+  have hN_two :
+      (2 : ℝ) ≤ (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    scalarReciprocalDensity_two_le_cutoff_real t
+  have hNM_real :
+      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ ((M : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hNM
+  exact
+    real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq
+      hN_two hNM_real
 
 /-- Scalar calculus owner for the `log(2+x)/x²` post-cutoff integral.
 
@@ -12270,7 +12307,16 @@ theorem scalarReciprocalDensity_log_over_x_sq_integral_bound_calculus
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         Real.log (2 + x) / x ^ 2 ≤
       Real.log (3 + ‖t‖) := by
-  sorry
+  have hN_two :
+      (2 : ℝ) ≤ (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    scalarReciprocalDensity_two_le_cutoff_real t
+  have hNM_real :
+      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ ((M : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hNM
+  exact
+    real_integral_Ioc_log_two_add_div_sq_le_log_three_add_height
+      ht hN_two hNM_real
+
 
 /-- Finite-endpoint calculus bound for the `log(2+x)/x` contribution. -/
 theorem scalarReciprocalDensity_log_over_x_integral_bound
@@ -18361,6 +18407,89 @@ theorem eulerMaclaurin_riemannZeta_halfPlane_finite_split_tail_hasSum
   unfold eulerMaclaurinZetaFinitePart
   exact htail_if
 
+/-- The exponent `-z` is integrable at infinity exactly in the half-plane
+`1 < Re z`. -/
+theorem eulerMaclaurin_cpow_neg_re_lt_neg_one_of_one_lt_re
+    {z : ℂ}
+    (hhalf_plane : 1 < z.re) :
+    (-z).re < -1 := by
+  have hneg : -z.re < -1 :=
+    neg_lt_neg hhalf_plane
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x < -1)
+      (Complex.neg_re z).symm
+      hneg
+
+/-- The Euler-Maclaurin cutoff is a positive lower endpoint for improper
+integrals. -/
+theorem eulerMaclaurinPoleClearedZetaCutoff_real_pos
+    (z : ℂ) :
+    0 < (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)) := by
+  exact Nat.cast_pos.mpr (eulerMaclaurinPoleClearedZetaCutoff_pos z)
+
+/-- Mathlib's improper-integral formula applied to the zeta tail exponent
+`-z`. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_integral_cpow_neg_formula
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    (∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+        (((x : ℝ) : ℂ) ^ (-z))) =
+      -((((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ) : ℂ) ^
+          ((-z) + 1)) /
+        ((-z) + 1) := by
+  exact
+    integral_Ioi_cpow_of_lt
+      (eulerMaclaurin_cpow_neg_re_lt_neg_one_of_one_lt_re hhalf_plane)
+      (eulerMaclaurinPoleClearedZetaCutoff_real_pos z)
+
+/-- Algebraic normalization of the improper-integral value.
+
+This is the remaining `cpow` and division transport from mathlib's
+`-N^((-z)+1)/((-z)+1)` to the owner term `N^(1-z)/(z-1)`. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_integralFormula_eq_mainTerm
+    (z : ℂ) :
+    -((((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ) : ℂ) ^
+          ((-z) + 1)) /
+        ((-z) + 1) =
+      eulerMaclaurinZetaMainTerm z := by
+  unfold eulerMaclaurinZetaMainTerm
+  let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
+  let A : ℂ := ((N : ℕ) : ℂ)
+  have hbase :
+      (((N : ℕ) : ℝ) : ℂ) = A :=
+    Complex.ofReal_natCast N
+  have hexponent :
+      (-z) + 1 = (1 : ℂ) - z := by
+    calc
+      (-z) + 1 = (1 : ℂ) + (-z) := by
+        exact add_comm (-z) (1 : ℂ)
+      _ = (1 : ℂ) - z := by
+        exact (sub_eq_add_neg (1 : ℂ) z).symm
+  have hden :
+      (-z) + 1 = -((z - 1)) := by
+    calc
+      (-z) + 1 = (1 : ℂ) - z :=
+        hexponent
+      _ = -(z - 1) := by
+        exact (neg_sub z (1 : ℂ)).symm
+  have hpow :
+      ((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) =
+        A ^ ((1 : ℂ) - z) := by
+    exact congrArg₂ (fun b e : ℂ => b ^ e) hbase hexponent
+  calc
+    -((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) / ((-z) + 1) =
+        -(A ^ ((1 : ℂ) - z)) / ((-z) + 1) := by
+      exact congrArg
+        (fun W : ℂ => -W / ((-z) + 1))
+        hpow
+    _ = -(A ^ ((1 : ℂ) - z)) / (-(z - 1)) := by
+      exact congrArg
+        (fun D : ℂ => -(A ^ ((1 : ℂ) - z)) / D)
+        hden
+    _ = A ^ ((1 : ℂ) - z) / (z - 1) := by
+      exact neg_div_neg_eq (A ^ ((1 : ℂ) - z)) (z - 1)
+
 /-- The Euler-Maclaurin integral main term for the post-cutoff tail.
 
 For `N = ⌊2 + ‖z‖⌋₊`, mathlib's improper-integral formula for
@@ -18374,7 +18503,11 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_integralMain_eq_mainTerm_stand
     (∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
         (((x : ℝ) : ℂ) ^ (-z))) =
       eulerMaclaurinZetaMainTerm z := by
-  sorry
+  exact
+    Eq.trans
+      (eulerMaclaurin_riemannZeta_postCutoffTail_integral_cpow_neg_formula
+        z hhalf_plane)
+      (eulerMaclaurin_riemannZeta_postCutoffTail_integralFormula_eq_mainTerm z)
 
 /-- Endpoint normalization for the first-order Euler-Maclaurin tail.
 
@@ -18399,6 +18532,73 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_remainderSign_eq_remainderTerm
   unfold eulerMaclaurinZetaBernoulliIntegralRemainder
   rfl
 
+/-- Derivative of the complex power profile used in the zeta tail.
+
+On the positive real ray, the derivative of `x ↦ x^{-z}` is
+`-z · x^{-z-1}`.  This is the calculus input in the first-order
+Euler-Maclaurin formula. -/
+theorem eulerMaclaurin_cpow_neg_deriv_eq
+    (z : ℂ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    deriv (fun t : ℝ => (((t : ℝ) : ℂ) ^ (-z))) x =
+      -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+  sorry
+
+/-- Generic first-order Euler-Maclaurin formula for the infinite post-cutoff
+tail of `x ↦ x^{-z}`.
+
+For any positive natural cutoff `N` and `1 < Re z`, the Dirichlet tail after
+`N` has sum equal to the improper integral, the endpoint correction, and the
+periodic Bernoulli derivative remainder.  This is the canonical non-zeta
+Euler-Maclaurin owner theorem consumed by the zeta cutoff specialization. -/
+theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+        (-z *
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
+  sorry
+
+/-- Specialization of the generic Euler-Maclaurin tail formula to the owner
+cutoff `⌊2 + ‖z‖⌋₊`, before folding the Bernoulli integral into the named core. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_firstOrder_unfolded_hasSum
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if eulerMaclaurinPoleClearedZetaCutoff z < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      ((∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) +
+        (-z *
+          (∫ x in Set.Ioi
+            (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+  exact
+    eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
+      z
+      (eulerMaclaurinPoleClearedZetaCutoff z)
+      (eulerMaclaurinPoleClearedZetaCutoff_pos z)
+      hhalf_plane
+
 /-- Standard first-order Euler-Maclaurin formula for the convergent
 post-cutoff Dirichlet tail of `x ↦ x^{-z}`.
 
@@ -18422,7 +18622,10 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_firstOrder_hasSum_standard
         ((1 / 2 : ℂ) *
           (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) +
         (-z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z)) := by
-  sorry
+  unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
+  exact
+    eulerMaclaurin_riemannZeta_postCutoffTail_firstOrder_unfolded_hasSum
+      z hhalf_plane
 
 /-- Transport the standard first-order Euler-Maclaurin tail formula into the
 raw owner terms `MainTerm`, `EndpointTerm`, and
@@ -21973,6 +22176,198 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_eq_Gammaℂ_cos
     hone_sub_sub
     hdeligne
 
+/-- Product of two right-half-plane finite-order envelopes is again a
+right-half-plane finite-order envelope. -/
+theorem finiteOrder_rightHalfPlane_product_growth_bound
+    {f g : ℂ → ℂ}
+    (hf :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          1 ≤ ‖z‖ →
+          ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hg :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          1 ≤ ‖z‖ →
+          ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        ‖f z * g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hf with ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩
+  rcases hg with ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩
+  refine ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
+    mul_pos hAf hAg,
+    mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one), ?_⟩
+  intro z hz_re hz_norm
+  let H : ℝ := 1 + ‖z‖
+  have hBf_nonneg : 0 ≤ Bf := le_of_lt hBf
+  have hBg_nonneg : 0 ≤ Bg := le_of_lt hBg
+  have hAf_nonneg : 0 ≤ Af := le_of_lt hAf
+  have hAg_nonneg : 0 ≤ Ag := le_of_lt hAg
+  have hf_enlarge :
+      Af * Real.exp (Bf * H ^ mf) ≤
+        Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+      hAf_nonneg
+      (le_refl Af)
+      (by
+        calc
+          Bf ≤ Bf + Bg := le_add_of_nonneg_right hBg_nonneg
+          _ ≤ Bf + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+      hBf_nonneg
+      (Nat.le_add_right mf mg)
+  have hmg_le : mg ≤ mf + mg := by
+    exact Eq.subst
+      (motive := fun d : ℕ => mg ≤ d)
+      (Nat.add_comm mg mf)
+      (Nat.le_add_right mg mf)
+  have hg_enlarge :
+      Ag * Real.exp (Bg * H ^ mg) ≤
+        Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+      hAg_nonneg
+      (le_refl Ag)
+      (by
+        calc
+          Bg ≤ Bf + Bg := le_add_of_nonneg_left hBf_nonneg
+          _ ≤ Bf + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+      hBg_nonneg
+      hmg_le
+  have hf_target :
+      ‖f z‖ ≤ Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    (hf_bound z hz_re hz_norm).trans hf_enlarge
+  have hg_target :
+      ‖g z‖ ≤ Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    (hg_bound z hz_re hz_norm).trans hg_enlarge
+  have hnorm :
+      ‖f z * g z‖ = ‖f z‖ * ‖g z‖ :=
+    norm_mul (f z) (g z)
+  have hproduct :
+      ‖f z‖ * ‖g z‖ ≤
+        (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) :=
+    mul_le_mul hf_target hg_target (norm_nonneg (g z))
+      (mul_nonneg hAf_nonneg
+        (le_of_lt (Real.exp_pos ((Bf + Bg + 1) * H ^ (mf + mg)))))
+  have hcollapse :
+      (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) =
+        Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
+    finiteOrderGrowthProductEnvelope_exp_collapse
+      Af Ag ((Bf + Bg + 1) * H ^ (mf + mg))
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)))
+    hnorm.symm
+    (hproduct.trans_eq hcollapse)
+
+/-- Right-half-plane finite-order growth for Deligne's complex Gamma factor
+`Gammaℂ`. -/
+theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ s : ℂ,
+        1 ≤ s.re →
+        1 ≤ ‖s‖ →
+        ‖Complex.Gammaℂ s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  rcases finiteOrder_rightHalfPlane_product_growth_bound
+      Gammaℝ_rightHalfPlane_stirling_growth_bound
+      (by
+        rcases Gammaℝ_rightHalfPlane_stirling_growth_bound with
+          ⟨A, B, m, hA, hB, hbound⟩
+        refine ⟨A, B, m, hA, hB, ?_⟩
+        intro s hs_re _hs_norm
+        have hs_add_re : 0 ≤ (s + 1).re := by
+          have hs_add_re_eq : (s + 1).re = s.re + 1 := by
+            calc
+              (s + 1).re = s.re + (1 : ℂ).re := Complex.add_re s (1 : ℂ)
+              _ = s.re + 1 := by
+                exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
+          have hs_add_nonneg : 0 ≤ s.re + 1 :=
+            le_trans zero_le_one (le_add_of_nonneg_right (le_trans zero_le_one hs_re))
+          exact Eq.subst
+            (motive := fun x : ℝ => 0 ≤ x)
+            hs_add_re_eq.symm
+            hs_add_nonneg
+        have hs_add_norm : 1 ≤ ‖s + 1‖ := by
+          have hs_add_re_one : 1 ≤ (s + 1).re := by
+            have hs_add_re_eq : (s + 1).re = s.re + 1 := by
+              calc
+                (s + 1).re = s.re + (1 : ℂ).re := Complex.add_re s (1 : ℂ)
+                _ = s.re + 1 := by
+                  exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
+            have hone_le_add : (1 : ℝ) ≤ s.re + 1 :=
+              le_add_of_nonneg_left (le_trans zero_le_one hs_re)
+            exact Eq.subst
+              (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+              hs_add_re_eq.symm
+              hone_le_add
+          exact one_le_norm_of_one_le_re hs_add_re_one
+        exact hbound (s + 1) hs_add_re hs_add_norm) with
+    ⟨A, B, m, hA, hB, hproduct⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro s hs_re hs_norm
+  have hmul :
+      Complex.Gammaℝ s * Complex.Gammaℝ (s + 1) =
+        Complex.Gammaℂ s :=
+    Complex.Gammaℝ_mul_Gammaℝ_add_one s
+  have hnorm_eq :
+      ‖Complex.Gammaℂ s‖ =
+        ‖Complex.Gammaℝ s * Complex.Gammaℝ (s + 1)‖ :=
+    congrArg norm hmul.symm
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖s‖) ^ m))
+    hnorm_eq.symm
+    (hproduct s (le_trans zero_le_one hs_re) hs_norm)
+
+/-- Elementary finite-order growth of the cosine factor occurring in Deligne's
+real-Gamma reflection identity. -/
+theorem complex_cos_pi_mul_div_two_rightHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ s : ℂ,
+        1 ≤ s.re →
+        1 ≤ ‖s‖ →
+        ‖Complex.cos (π * s / 2)‖ ≤
+          A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  sorry
+
+/-- Affine reflection transport for right-half-plane finite-order envelopes.
+
+This is the deterministic comparison behind the map `z ↦ 1 - z`: the
+reflected point has real part at least one on the closed left half-plane, and
+its norm is bounded by a fixed affine function of `‖z‖`, which is absorbed into
+the finite-order exponential envelope. -/
+theorem finiteOrder_reflectedLeftHalfPlane_growth_bound_of_rightHalfPlane
+    (f : ℂ → ℂ)
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ s : ℂ,
+          1 ≤ s.re →
+          1 ≤ ‖s‖ →
+          ‖f s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖f ((1 : ℂ) - z)‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 /-- Right-half-plane finite-order growth for the Deligne quotient factor
 `Gammaℂ s * cos (πs/2)`.
 
@@ -21989,7 +22384,10 @@ theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound :
         1 ≤ ‖s‖ →
         ‖Complex.Gammaℂ s * Complex.cos (π * s / 2)‖ ≤
           A * Real.exp (B * (1 + ‖s‖) ^ m) := by
-  sorry
+  exact
+    finiteOrder_rightHalfPlane_product_growth_bound
+      Gammaℂ_rightHalfPlane_finiteOrder_growth_bound
+      complex_cos_pi_mul_div_two_rightHalfPlane_finiteOrder_growth_bound
 
 /-- Reflected-left-half-plane finite-order form of the right-half-plane
 `Gammaℂ·cos` Deligne factor.
@@ -22006,7 +22404,10 @@ theorem Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound :
         ‖Complex.Gammaℂ ((1 : ℂ) - z) *
             Complex.cos (π * ((1 : ℂ) - z) / 2)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact
+    finiteOrder_reflectedLeftHalfPlane_growth_bound_of_rightHalfPlane
+      (fun s : ℂ => Complex.Gammaℂ s * Complex.cos (π * s / 2))
+      Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound
 
 /-- Deligne reflection/recurrence algebra for the left-half-plane `Gammaℝ`
 ratio, isolated from the analytic Stirling estimates.

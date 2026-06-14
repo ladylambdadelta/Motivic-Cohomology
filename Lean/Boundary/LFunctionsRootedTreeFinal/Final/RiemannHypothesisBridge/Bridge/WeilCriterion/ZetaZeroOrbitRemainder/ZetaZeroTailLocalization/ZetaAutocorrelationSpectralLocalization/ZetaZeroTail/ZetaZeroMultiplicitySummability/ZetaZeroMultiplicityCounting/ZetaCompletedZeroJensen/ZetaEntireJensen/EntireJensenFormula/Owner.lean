@@ -4066,6 +4066,27 @@ theorem complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
 
 /-- Integrability and measurability of continuous finite-tube interval
 integrands. -/
+theorem complex_interval_aestronglyMeasurable_of_continuousOn_Icc
+    {f : ℝ → ℂ} :
+    ContinuousOn f (Set.Icc (0 : ℝ) 1) →
+      AEStronglyMeasurable f (volume.restrict (Ι (0 : ℝ) 1)) := by
+  intro hf
+  exact
+    (hf.mono Ioc_subset_Icc_self).aestronglyMeasurable
+      measurableSet_Ioc
+
+/-- Interval integrability of a complex-valued function continuous on
+`[0,1]`. -/
+theorem complex_interval_intervalIntegrable_of_continuousOn_Icc
+    {f : ℝ → ℂ} :
+    ContinuousOn f (Set.Icc (0 : ℝ) 1) →
+      IntervalIntegrable f volume (0 : ℝ) 1 := by
+  intro hf
+  exact
+    ContinuousOn.intervalIntegrable_of_Icc
+      (show (0 : ℝ) ≤ 1 from zero_le_one)
+      hf
+
 theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
     (φ : ℂ → ℂ)
     (centers : Finset ℂ) :
@@ -4099,7 +4120,32 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
           (volume.restrict (Ι (0 : ℝ) 1)) := by
-  sorry
+  intro w hcont_eventually hcont_base hcont_deriv
+  have hmeas_eventually :
+      ∀ᶠ x in 𝓝 w,
+        AEStronglyMeasurable
+          (fun t : ℝ =>
+            x * φ (AffineMap.lineMap (0 : ℂ) x t))
+          (volume.restrict (Ι (0 : ℝ) 1)) :=
+    hcont_eventually.mono
+      (fun x hx =>
+        complex_interval_aestronglyMeasurable_of_continuousOn_Icc hx)
+  have hint :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          w * φ (AffineMap.lineMap (0 : ℂ) w t))
+        volume
+        (0 : ℝ)
+        1 :=
+    complex_interval_intervalIntegrable_of_continuousOn_Icc hcont_base
+  have hderiv_meas :
+      AEStronglyMeasurable
+        (fun t : ℝ =>
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand
+            φ w t)
+        (volume.restrict (Ι (0 : ℝ) 1)) :=
+    complex_interval_aestronglyMeasurable_of_continuousOn_Icc hcont_deriv
+  exact ⟨hmeas_eventually, hint, hderiv_meas⟩
 
 /-- Measurability and interval integrability for the center-segment integrand
 on endpoints lying in a finite analytic tube. -/
@@ -4151,6 +4197,60 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
         φ centers w htube)
       (complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
         φ centers w htube)
+
+/-- Compactness of the closed endpoint ball times `[0,1]`. -/
+theorem complex_centerSegmentIntegral_endpointBall_Icc_isCompact
+    (w : ℂ)
+    (r : ℝ) :
+    IsCompact
+      (Metric.closedBall w r ×ˢ Set.Icc (0 : ℝ) 1) := by
+  exact
+    (isCompact_closedBall w r).prod isCompact_Icc
+
+/-- Continuity of the endpoint derivative norm on a compact endpoint ball
+times the parameter interval, assuming the finite analytic tube contains all
+segments from that ball. -/
+theorem complex_centerSegmentIntegral_endpointDerivative_norm_continuousOn_tube
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ r : ℝ,
+        (∀ x : ℂ,
+          x ∈ Metric.closedBall w r →
+            ∀ t : ℝ,
+              t ∈ Set.Icc (0 : ℝ) 1 →
+                AffineMap.lineMap (0 : ℂ) x t ∈
+                  ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+          ContinuousOn
+            (fun p : ℂ × ℝ =>
+              ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                φ p.1 p.2‖)
+            (Metric.closedBall w r ×ˢ Set.Icc (0 : ℝ) 1) := by
+  sorry
+
+/-- Compact boundedness of the endpoint derivative norm on the endpoint-ball
+parameter domain. -/
+theorem complex_centerSegmentIntegral_endpointDerivative_norm_bddAbove_tube
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ r : ℝ,
+        (∀ x : ℂ,
+          x ∈ Metric.closedBall w r →
+            ∀ t : ℝ,
+              t ∈ Set.Icc (0 : ℝ) 1 →
+                AffineMap.lineMap (0 : ℂ) x t ∈
+                  ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+          BddAbove
+            ((fun p : ℂ × ℝ =>
+              ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                φ p.1 p.2‖) ''
+              (Metric.closedBall w r ×ˢ Set.Icc (0 : ℝ) 1)) := by
+  intro w r htube_closed
+  exact
+    (complex_centerSegmentIntegral_endpointBall_Icc_isCompact w r).bddAbove_image
+      (complex_centerSegmentIntegral_endpointDerivative_norm_continuousOn_tube
+        φ centers w r htube_closed)
 
 /-- Compact boundedness of the endpoint derivative integrand on an endpoint
 ball times the parameter interval.
