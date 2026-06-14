@@ -514,18 +514,57 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
+/-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
+
+This is the formula-level special-function owner input: Stirling's expansion
+with a uniform `O(1 / ‖w‖)` remainder on the closed right half-plane, viewed as a
+closed sector avoiding the negative real axis; cf. DLMF §5.11. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  sorry
+
+/-- Sectorial log-norm consequence of closed-sector Stirling for `Complex.Gamma`
+on the closed right half-plane. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Fixed-real-part vertical Stirling bounds for `Complex.Gamma` and its
+reciprocal. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical :
+    ∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+              C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (a - 1 / 2) ∧
+          ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+              C * Real.exp ((Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (1 / 2 - a) := by
+  sorry
+
 /-- Classical closed-sector Stirling expansion for `Complex.Gamma`, with the
 sectorial and fixed-line consequences used by the normalization chain.
 
-This is the true classical special-function owner input for the Gamma lane.
-The first component is the exponential form of Stirling's expansion with a
-uniform `O(1 / ‖w‖)` remainder on the closed right half-plane, a closed sector
-avoiding the negative real axis.  The second and third components are the
-standard consequences needed below: the sectorial log-norm envelope and the
-two-sided fixed-real-part vertical estimates for `Γ(a + i b)` and its
-reciprocal.  Classically, these consequences are obtained from the same
-sectorial Stirling expansion after taking norms and then specializing to
-vertical lines; cf. DLMF §5.11. -/
+This owner theorem is now only the product assembly of the formula-level
+Stirling input, its sectorial log-norm consequence, and the fixed-line vertical
+estimates; cf. DLMF §5.11. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical :
     (∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -554,7 +593,10 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_ver
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
                 (1 + ‖b‖) ^ (1 / 2 - a)) := by
-  sorry
+  exact
+    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical,
+      Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical,
+      Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical⟩
 
 /-- Classical closed-sector Stirling estimates for `Complex.Gamma`.
 
@@ -4673,6 +4715,175 @@ theorem boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscil
       if_neg hcutoff_lt_n
     exact Eq.trans hleft hright.symm
 
+/-- The zeroth boundary-line Dirichlet monomial vanishes.  This is the only extra
+index left after removing `Icc 1 N` from the natural-indexed Dirichlet series. -/
+theorem boundaryLineOnePointRealParam_dirichletTerm_zero
+    (t : ℝ) :
+    (1 : ℂ) / ((0 : ℂ) ^ boundaryLineOnePointRealParam t) = 0 := by
+  have hpoint_ne_zero : boundaryLineOnePointRealParam t ≠ 0 := by
+    intro hpoint_zero
+    have hre_zero :
+        (boundaryLineOnePointRealParam t).re = (0 : ℂ).re :=
+      congrArg Complex.re hpoint_zero
+    have hre_one :
+        (boundaryLineOnePointRealParam t).re = 1 :=
+      boundaryLineOnePointRealParam_re t
+    have hone_eq_zero : (1 : ℝ) = 0 :=
+      Eq.trans hre_one.symm hre_zero
+    exact one_ne_zero hone_eq_zero
+  have hpow_zero :
+      (0 : ℂ) ^ boundaryLineOnePointRealParam t = 0 := by
+    exact (cpow_eq_zero_iff).mpr ⟨rfl, hpoint_ne_zero⟩
+  calc
+    (1 : ℂ) / ((0 : ℂ) ^ boundaryLineOnePointRealParam t) =
+        (1 : ℂ) / 0 := by
+          exact congrArg (fun z : ℂ => (1 : ℂ) / z) hpow_zero
+    _ = 0 := by
+          exact div_zero (1 : ℂ)
+
+/-- The complement indicator obtained from removing `Icc 1 N` from the natural-indexed
+Dirichlet series is exactly the post-cutoff tail indicator. -/
+theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
+    (t : ℝ)
+    (N n : ℕ) :
+    ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator
+        (fun m : ℕ =>
+          (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t)) n) =
+      if N < n then
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+      else
+        0 := by
+  by_cases hN_lt_n : N < n
+  · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+      intro hn_mem
+      have hn_le_N : n ≤ N :=
+        (Finset.mem_Icc.mp hn_mem).2
+      exact (Nat.not_lt_of_ge hn_le_N) hN_lt_n
+    have hn_mem_tail : n ∈ {m : ℕ | m ∉ Finset.Icc 1 N} :=
+      hn_not_mem
+    have hleft :
+        ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator
+            (fun m : ℕ =>
+              (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t)) n) =
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) :=
+      Set.indicator_of_mem hn_mem_tail
+        (fun m : ℕ =>
+          (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t))
+    have hright :
+        (if N < n then
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+        else
+          0) =
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) :=
+      if_pos hN_lt_n
+    exact Eq.trans hleft hright.symm
+  · by_cases hn_zero : n = 0
+    · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+        intro hn_mem
+        have hone_le_n : 1 ≤ n :=
+          (Finset.mem_Icc.mp hn_mem).1
+        have hone_le_zero : (1 : ℕ) ≤ 0 :=
+          Eq.subst (motive := fun m : ℕ => 1 ≤ m) hn_zero hone_le_n
+        exact (Nat.not_succ_le_zero 0) hone_le_zero
+      have hn_mem_tail : n ∈ {m : ℕ | m ∉ Finset.Icc 1 N} :=
+        hn_not_mem
+      have hleft :
+          ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator
+              (fun m : ℕ =>
+                (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t)) n) =
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) :=
+        Set.indicator_of_mem hn_mem_tail
+          (fun m : ℕ =>
+            (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t))
+      have hterm_zero :
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) = 0 :=
+        Eq.subst
+          (motive := fun m : ℕ =>
+            (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t) = 0)
+          hn_zero.symm
+          (boundaryLineOnePointRealParam_dirichletTerm_zero t)
+      have hright :
+          (if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0) =
+            0 :=
+        if_neg hN_lt_n
+      exact Eq.trans hleft (Eq.trans hterm_zero hright.symm)
+    · have hn_pos : 0 < n :=
+        Nat.pos_of_ne_zero hn_zero
+      have hone_le_n : 1 ≤ n :=
+        Nat.succ_le_of_lt hn_pos
+      have hn_le_N : n ≤ N :=
+        Nat.le_of_not_gt hN_lt_n
+      have hn_mem_Icc : n ∈ Finset.Icc 1 N :=
+        Finset.mem_Icc.mpr ⟨hone_le_n, hn_le_N⟩
+      have hn_not_mem_tail : n ∉ {m : ℕ | m ∉ Finset.Icc 1 N} := by
+        intro hn_mem_tail
+        exact hn_mem_tail hn_mem_Icc
+      have hleft :
+          ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator
+              (fun m : ℕ =>
+                (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t)) n) =
+            0 :=
+        Set.indicator_of_not_mem hn_not_mem_tail
+          (fun m : ℕ =>
+            (1 : ℂ) / ((m : ℂ) ^ boundaryLineOnePointRealParam t))
+      have hright :
+          (if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0) =
+            0 :=
+        if_neg hN_lt_n
+      exact Eq.trans hleft hright.symm
+
+/-- Removing a finite Dirichlet truncation from a natural-indexed boundary-line
+Dirichlet series gives the exact post-cutoff Dirichlet tail. -/
+theorem boundaryLineOnePointRealParam_dirichlet_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
+    (t : ℝ)
+    (N : ℕ)
+    (hζ :
+      HasSum
+        (fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t))) :
+    HasSum
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} =>
+          (1 : ℂ) / (((x : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hζ
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator
+          (fun n : ℕ =>
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)))
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))).mp
+        htail_compl
+  exact htail_indicator.congr_fun
+    (fun n : ℕ =>
+      (boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
+        t N n).symm)
+
 /-- Conditional Dirichlet-series identity on the boundary line `s = 1 + it`.
 
 The intended proof is the classical Abel limit at the boundary:
@@ -4708,7 +4919,50 @@ theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_
         (riemannZeta (boundaryLineOnePointRealParam t) -
           ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
             ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  sorry
+  have hdir_tail :
+      HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
+    boundaryLineOnePointRealParam_dirichlet_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
+      t ⌊2 + ‖t‖⌋₊ hζ
+  have hosc_tail :
+      HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
+    hdir_tail.congr_fun
+      (fun n : ℕ =>
+        (boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscillation
+          t n).symm)
+  have hfinite :
+      (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    boundaryLineOnePointRealParam_finite_truncation_eq_inv_mul_oscillation_sum
+      t ⌊2 + ‖t‖⌋₊
+  exact Eq.subst
+    (motive := fun S : ℂ =>
+      HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) - S))
+    hfinite
+    hosc_tail
 
 /-- Dirichlet-series continuation identity for the exact post-cutoff oscillatory
 boundary-line tail.

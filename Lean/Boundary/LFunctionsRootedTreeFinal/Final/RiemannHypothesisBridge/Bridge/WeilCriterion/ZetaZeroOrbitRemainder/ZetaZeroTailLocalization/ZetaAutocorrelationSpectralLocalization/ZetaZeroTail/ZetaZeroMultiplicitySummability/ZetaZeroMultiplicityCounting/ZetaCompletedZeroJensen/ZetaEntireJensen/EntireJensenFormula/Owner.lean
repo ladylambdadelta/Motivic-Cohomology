@@ -2387,6 +2387,89 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog
     entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
       G hG hρ hzero
 
+/-- Pointwise analyticity on Jensen's closed disk gives the `DiffContOnCl`
+package needed by Cauchy's integral formula on the corresponding open disk. -/
+theorem entireFunction_analyticOnClosedDisk_diffContOnCl
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    DiffContOnCl ℂ L (Metric.ball (0 : ℂ) ρ) := by
+  refine DiffContOnCl.mk_ball ?hdiff ?hcont
+  · intro z hz
+    have hz_norm_lt : ‖z‖ < ρ :=
+      mem_ball_zero_iff.mp hz
+    have hz_norm_le : ‖z‖ ≤ ρ :=
+      le_of_lt hz_norm_lt
+    exact (hL z hz_norm_le).differentiableAt.differentiableWithinAt
+  · intro z hz
+    have hz_norm_le : ‖z‖ ≤ ρ :=
+      mem_closedBall_zero_iff.mp hz
+    exact (hL z hz_norm_le).continuousAt.continuousWithinAt
+
+/-- Cauchy's integral formula at the center of the Jensen disk, in the
+`circleIntegral` normalization. -/
+theorem entireFunction_analyticLog_cauchy_center_circleIntegral
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    ((2 * Real.pi * Complex.I : ℂ)⁻¹ •
+        ∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
+      L 0 := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_lt_of_le zero_lt_one hρ
+  have hdiff : DiffContOnCl ℂ L (Metric.ball (0 : ℂ) ρ) :=
+    entireFunction_analyticOnClosedDisk_diffContOnCl L hL
+  have hzero_mem : (0 : ℂ) ∈ Metric.ball (0 : ℂ) ρ :=
+    Metric.mem_ball_self hρ_pos
+  exact hdiff.two_pi_i_inv_smul_circleIntegral_sub_inv_smul hzero_mem
+
+/-- The Cauchy center formula rewritten as the normalized complex boundary mean
+of the holomorphic function. -/
+theorem entireFunction_analyticLog_complex_holomorphicMeanValue_circle
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    ((2 * Real.pi : ℂ)⁻¹ •
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+      L 0 := by
+  -- This is the remaining parametrization transport:
+  -- `circleIntegral` unfolds to `∫ deriv (circleMap 0 ρ) θ • _`,
+  -- `deriv (circleMap 0 ρ) θ = circleMap 0 ρ θ * Complex.I`, and the
+  -- Cauchy kernel `(circleMap 0 ρ θ - 0)⁻¹` cancels the nonzero boundary
+  -- factor because `1 ≤ ρ`.
+  sorry
+
+/-- Real-part transport for the normalized complex boundary mean. -/
+theorem entireFunction_complexMeanValue_re_part_transport
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hcomplex :
+      ((2 * Real.pi : ℂ)⁻¹ •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+        L 0) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      (L 0).re := by
+  -- This is the pure interval-integral/real-part transport from the complex
+  -- mean-value identity: apply real parts to `hcomplex`, move `Complex.re`
+  -- through the interval integral, and read the real scalar action by
+  -- `(2 * Real.pi : ℂ)⁻¹` as multiplication by `(2 * Real.pi)⁻¹`.
+  sorry
+
 /-- Cauchy mean-value theorem for the real part of a holomorphic function on a
 Jensen circle.
 
@@ -2408,8 +2491,13 @@ theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle_from_cauchyInt
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
       (L 0).re := by
-  -- Cauchy's integral formula plus real-part transport for the circle map.
-  sorry
+  have hcomplex :
+      ((2 * Real.pi : ℂ)⁻¹ •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+        L 0 :=
+    entireFunction_analyticLog_complex_holomorphicMeanValue_circle L hρ hL
+  exact entireFunction_complexMeanValue_re_part_transport L hcomplex
 
 /-- Mean-value theorem for the real part of a holomorphic function on a disk,
 with Jensen's boundary parametrization and normalization. -/
@@ -2466,6 +2554,212 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_identity
     entireFunction_singleZeroFactor_boundaryAverage_identity_from_logPowerSeries
       ha0 haρ
 
+/-- A member of the radial-gap support divisor is a genuine support point of
+the Jensen radial-gap summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) := by
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor at hz
+  exact
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).mem_toFinset.1
+      hz
+
+/-- Every zero in the radial-gap support divisor is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    (z : ℂ) ≠ 0 := by
+  intro hz0
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+      F hF hF0 ρ z hz
+  have hzero :
+      entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContribution_eq_zero
+      F hF ρ z hz0
+  exact hsupport hzero
+
+/-- Every zero in the radial-gap support divisor lies strictly inside the
+Jensen circle. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    ‖(z : ℂ)‖ < ρ := by
+  by_contra hzρ
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+      F hF hF0 ρ z hz
+  have hzero :
+      entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
+      F hF ρ z hzρ
+  exact hsupport hzero
+
+/-- The finite product radial-gap sum is the finite sum of normalized
+single-factor boundary averages, for any divisor whose members are nonzero and
+strictly inside the Jensen circle. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum_eq_singleFactorBoundaryAverageSum_of_mem_zeroInside
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F))
+    (hs0 : ∀ z : EntireFunctionZero F, z ∈ s → (z : ℂ) ≠ 0)
+    (hsρ : ∀ z : EntireFunctionZero F, z ∈ s → ‖(z : ℂ)‖ < ρ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          ((2 * Real.pi)⁻¹ *
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) := by
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  refine Finset.sum_congr rfl ?_
+  intro z hz
+  have hz0 : (z : ℂ) ≠ 0 := hs0 z hz
+  have hzρ : ‖(z : ℂ)‖ < ρ := hsρ z hz
+  have hradial :
+      entireFunctionJensenRadialGapSummand F hF ρ z =
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log (ρ / ‖(z : ℂ)‖) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_identity
+      F hF ρ z hz0 hzρ
+  have havg :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) =
+        Real.log (ρ / ‖(z : ℂ)‖) :=
+    entireFunction_singleZeroFactor_boundaryAverage_identity
+      (a := (z : ℂ)) (ρ := ρ) hz0 hzρ
+  exact Eq.trans hradial
+    (congrArg
+      (fun x : ℝ =>
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) * x)
+      havg.symm)
+
+/-- The support finite product radial-gap sum is exactly the finite sum of
+single-factor Poisson-Jensen boundary averages. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProductRadialGapSum_eq_singleFactorBoundaryAverageSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) =
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          ((2 * Real.pi)⁻¹ *
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) := by
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum_eq_singleFactorBoundaryAverageSum_of_mem_zeroInside
+      F hF ρ
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ)
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+          F hF hF0 ρ z hz)
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
+          F hF hF0 ρ z hz)
+
+/-- Finite-product boundary-average identity over the support divisor.
+
+This is the quotient/product construction in the assembly chain.  Its proof is
+the classical finite divisor factorization on the Jensen disk, construction of
+the zero-free quotient, analytic-log mean value for the quotient term, boundary
+log decomposition into the quotient and the extracted linear factors, and the
+finite single-factor average theorem above.  Cf. Titchmarsh, *The Theory of
+Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_boundaryAverage_identity_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) -
+        Real.log ‖F 0‖ := by
+  -- Finite divisor factorization, quotient zero-freeness on the closed disk,
+  -- boundary log decomposition, and finite single-factor averaging.
+  sorry
+
+/-- Support-controlled finite-product boundary identity implies the standard
+Jensen boundary mean-log identity by replacing the finite support divisor sum
+with the infinite radial-gap sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_from_supportFiniteProduct_boundaryAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hboundary :
+      entireFunctionJensenBoundaryLogAverage F ρ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) -
+          Real.log ‖F 0‖) :
+    entireFunctionJensenRadialGapSum F hF ρ -
+        Real.log ‖F 0‖ =
+      entireFunctionJensenBoundaryLogAverage F ρ := by
+  have hsupport :
+      entireFunctionJensenRadialGapSum F hF ρ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_supportFiniteProductRadialGapSum
+      F hF hF0 ρ
+  calc
+    entireFunctionJensenRadialGapSum F hF ρ - Real.log ‖F 0‖ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) -
+          Real.log ‖F 0‖ := by
+      exact congrArg (fun x : ℝ => x - Real.log ‖F 0‖) hsupport
+    _ = entireFunctionJensenBoundaryLogAverage F ρ :=
+      hboundary.symm
+
 /-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
 classical Jensen product theorem.
 
@@ -2487,9 +2781,12 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_bo
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ := by
-  -- Finite zero divisor extraction, zero-free quotient, Cauchy mean-value,
-  -- one-factor Poisson-Jensen integral, and support-controlled `tsum`.
-  sorry
+  intro ρ hρ
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_from_supportFiniteProduct_boundaryAverage
+      F hF hF0 ρ
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_boundaryAverage_identity_ownerRoot
+        F hF hF0 ρ hρ)
 
 /-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
 classical Jensen product theorem.
