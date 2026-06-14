@@ -776,12 +776,237 @@ theorem Complex.binetSecondFormula_arctan_tail_linear_bound
       (Complex.binetSecondFormula_arctan_tail_bounded_of_branch_separation
         hw_re_pos)
 
+/-- On a fixed separated wedge, the arctangent ratio has two-sided norm
+bounds independent of the scale of `w`. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ m M : ℝ,
+      0 < m ∧
+      m ≤ M ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          ∀ t : ℝ,
+            t ∈ Set.Ioi (‖w‖ / 2) →
+              m ≤
+                ‖(1 + ((t : ℂ) / w) * Complex.I) /
+                  (1 - ((t : ℂ) / w) * Complex.I)‖ ∧
+              ‖(1 + ((t : ℂ) / w) * Complex.I) /
+                  (1 - ((t : ℂ) / w) * Complex.I)‖ ≤ M := by
+  let m : ℝ := min (ε / 3) (1 / 3)
+  let M : ℝ := max (3 / ε) 3
+  have hthree_pos : (0 : ℝ) < 3 := Real.zero_lt_three
+  have hm_pos : 0 < m := by
+    dsimp [m]
+    exact
+      lt_min
+        (div_pos hε hthree_pos)
+        (div_pos zero_lt_one hthree_pos)
+  have hM_ge_three : 3 ≤ M := by
+    dsimp [M]
+    exact le_max_right _ _
+  have hm_le_eps_third : m ≤ ε / 3 := by
+    dsimp [m]
+    exact min_le_left _ _
+  have hm_le_third : m ≤ (1 / 3 : ℝ) := by
+    dsimp [m]
+    exact min_le_right _ _
+  have hthree_div_eps_le_M : 3 / ε ≤ M := by
+    dsimp [M]
+    exact le_max_left _ _
+  refine ⟨m, M, hm_pos, ?_, ?_⟩
+  · exact le_trans (le_of_lt hm_pos) hM_ge_three
+  · intro w hw_re_pos hw_sep t ht_tail
+    have hw_ne_zero : w ≠ 0 := by
+      intro hw_zero
+      rw [hw_zero] at hw_re_pos
+      exact (lt_irrefl (0 : ℝ)) hw_re_pos
+    have hw_norm_pos : 0 < ‖w‖ :=
+      norm_pos_iff.mpr hw_ne_zero
+    have ht_nonneg : 0 ≤ t := by
+      have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
+        div_nonneg (norm_nonneg w) Real.zero_le_two_real
+      exact le_trans hcut_nonneg (le_of_lt ht_tail)
+    have hnum_lower :
+        w.re ≤ ‖w + (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
+        hw_re_pos t
+    have hden_lower :
+        w.re ≤ ‖w - (t : ℂ) * Complex.I‖ :=
+      Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
+        hw_re_pos t
+    have hden_pos : 0 < ‖w - (t : ℂ) * Complex.I‖ :=
+      lt_of_lt_of_le hw_re_pos hden_lower
+    have hsep_mul : ε * ‖w‖ ≤ w.re := by
+      rw [le_div_iff₀ hw_norm_pos] at hw_sep
+      exact hw_sep
+    have heps_third_lower :
+        ε / 3 ≤ w.re / (3 * ‖w‖) := by
+      have hden_pos : 0 < 3 * ‖w‖ :=
+        mul_pos hthree_pos hw_norm_pos
+      rw [div_le_div_iff₀ hthree_pos hden_pos]
+      calc
+        ε * (3 * ‖w‖) = 3 * (ε * ‖w‖) := by ring
+        _ ≤ 3 * w.re :=
+          mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
+    have hbounded_upper_const :
+        3 * ‖w‖ / w.re ≤ 3 / ε := by
+      rw [div_le_div_iff₀ hw_re_pos hε]
+      calc
+        3 * ‖w‖ * ε = 3 * (ε * ‖w‖) := by ring
+        _ ≤ 3 * w.re :=
+          mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
+    by_cases ht_bounded : t ≤ 2 * ‖w‖
+    · have hnum_upper :
+          ‖w + (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+        Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
+          ht_nonneg ht_bounded
+      have hden_upper :
+          ‖w - (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
+        Complex.binetSecondFormula_arctan_tail_denominator_le_three_norm
+          ht_nonneg ht_bounded
+      constructor
+      · have hden_const_pos : 0 < 3 * ‖w‖ :=
+          mul_pos hthree_pos hw_norm_pos
+        have hlower :
+            w.re / (3 * ‖w‖) ≤
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ :=
+          Real.div_le_div_of_le_of_le'
+            hw_re_pos hden_const_pos hden_pos
+            hden_upper hnum_lower
+        calc
+          m ≤ ε / 3 := hm_le_eps_third
+          _ ≤ w.re / (3 * ‖w‖) := heps_third_lower
+          _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := hlower
+          _ = ‖(1 + ((t : ℂ) / w) * Complex.I) /
+                (1 - ((t : ℂ) / w) * Complex.I)‖ := by
+            rw [Complex.binetSecondFormula_arctan_tail_ratio_eq, norm_div]
+      · have hupper :
+            ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ ≤
+              3 * ‖w‖ / w.re :=
+          Real.div_le_div_of_le_of_le
+            hw_re_pos (norm_nonneg _)
+            hnum_upper hden_lower
+        calc
+          ‖(1 + ((t : ℂ) / w) * Complex.I) /
+              (1 - ((t : ℂ) / w) * Complex.I)‖ =
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+            rw [Complex.binetSecondFormula_arctan_tail_ratio_eq, norm_div]
+          _ ≤ 3 * ‖w‖ / w.re := hupper
+          _ ≤ 3 / ε := hbounded_upper_const
+          _ ≤ M := hthree_div_eps_le_M
+    · have ht_far : 2 * ‖w‖ ≤ t := le_of_not_ge ht_bounded
+      rcases
+          Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
+            (w := w) (t := t) ht_far with
+        ⟨hnum_le, hden_le⟩
+      constructor
+      · have hthird :
+            (1 / 3 : ℝ) ≤
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+          rw [le_div_iff₀ hden_pos]
+          calc
+            (1 / 3 : ℝ) *
+                ‖w - (t : ℂ) * Complex.I‖ ≤
+                (1 / 3 : ℝ) *
+                  (3 * ‖w + (t : ℂ) * Complex.I‖) :=
+              mul_le_mul_of_nonneg_left hden_le
+                (div_nonneg zero_le_one (le_of_lt hthree_pos))
+            _ = ‖w + (t : ℂ) * Complex.I‖ :=
+              Real.one_div_three_mul_three_mul
+                ‖w + (t : ℂ) * Complex.I‖
+        calc
+          m ≤ (1 / 3 : ℝ) := hm_le_third
+          _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := hthird
+          _ = ‖(1 + ((t : ℂ) / w) * Complex.I) /
+                (1 - ((t : ℂ) / w) * Complex.I)‖ := by
+            rw [Complex.binetSecondFormula_arctan_tail_ratio_eq, norm_div]
+      · have hthree :
+            ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ ≤ 3 := by
+          rw [div_le_iff₀ hden_pos]
+          exact hnum_le
+        calc
+          ‖(1 + ((t : ℂ) / w) * Complex.I) /
+              (1 - ((t : ℂ) / w) * Complex.I)‖ =
+              ‖w + (t : ℂ) * Complex.I‖ /
+                ‖w - (t : ℂ) * Complex.I‖ := by
+            rw [Complex.binetSecondFormula_arctan_tail_ratio_eq, norm_div]
+          _ ≤ 3 := hthree
+          _ ≤ M := hM_ge_three
+
+/-- On a fixed separated wedge, the principal arctangent is bounded uniformly
+on the upper split interval, independently of the scale of `w`. -/
+theorem Complex.binetSecondFormula_arctan_tail_bounded_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          ∀ t : ℝ,
+            t ∈ Set.Ioi (‖w‖ / 2) →
+              ‖Complex.arctan ((t : ℂ) / w)‖ ≤ B := by
+  rcases
+      Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
+        ε hε with
+    ⟨m, M, hm_pos, hmM, hbounds⟩
+  let B : ℝ := max |Real.log m| |Real.log M| + Real.pi
+  have hB_nonneg : 0 ≤ B :=
+    add_nonneg (le_max_of_le_left (abs_nonneg _)) Real.pi_pos.le
+  refine ⟨B, hB_nonneg, ?_⟩
+  intro w hw_re_pos hw_sep t ht_tail
+  let z : ℂ := (t : ℂ) / w
+  rcases hbounds w hw_re_pos hw_sep t ht_tail with ⟨hlower, hupper⟩
+  have hlog :
+      ‖Complex.log
+        ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤ B :=
+    Complex.log_norm_le_of_norm_bounds hm_pos hmM hlower hupper
+  have hfactor_norm_le_one : ‖(-Complex.I / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+    have hfactor_norm : ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := by
+      simp [norm_div, Complex.normSq]
+    calc
+      ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := hfactor_norm
+      _ ≤ 1 := by linarith [zero_le_one]
+  have hmul :
+      ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤
+        ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+    calc
+      ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤
+          ‖(-Complex.I / 2 : ℂ)‖ *
+            ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ :=
+        norm_mul_le _ _
+      _ ≤ 1 *
+            ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ :=
+        mul_le_mul_of_nonneg_right hfactor_norm_le_one (norm_nonneg _)
+      _ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+        rw [one_mul]
+  calc
+    ‖Complex.arctan ((t : ℂ) / w)‖ =
+        ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+      simp [Complex.arctan, z]
+    _ ≤ ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := hmul
+    _ ≤ B := hlog
+
 /-- Uniform arctangent tail linear bound on a fixed wedge of the open
 right half-plane.
 
 The constant depends only on the wedge separation parameter `ε`, not on the
 particular point `w`.  This is the sector-uniform replacement for the
 fixed-`w` tail constant in `Complex.binetSecondFormula_arctan_tail_linear_bound`.
+The large-radius hypothesis is necessary because the conclusion is linear in
+the unscaled variable `t`.
 -/
 theorem Complex.binetSecondFormula_arctan_tail_linear_bound_sectorSeparated
     (ε : ℝ)
@@ -791,10 +1016,29 @@ theorem Complex.binetSecondFormula_arctan_tail_linear_bound_sectorSeparated
       ∀ w : ℂ,
         0 < w.re →
           ε ≤ w.re / ‖w‖ →
+          1 ≤ ‖w‖ →
           ∀ t : ℝ,
             t ∈ Set.Ioi (‖w‖ / 2) →
               ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_bounded_sectorSeparated
+        ε hε with
+    ⟨B, hB_nonneg, hB⟩
+  refine ⟨2 * B, mul_nonneg Real.zero_le_two_real hB_nonneg, ?_⟩
+  intro w hw_re_pos hw_sep hw_large t ht_tail
+  have ht_lower : (1 / 2 : ℝ) ≤ t := by
+    calc
+      (1 / 2 : ℝ) ≤ ‖w‖ / 2 :=
+        div_le_div_of_nonneg_right hw_large Real.zero_le_two_real
+      _ ≤ t := le_of_lt ht_tail
+  have hB_le : B ≤ (2 * B) * t := by
+    have hB_eq : B = (2 * B) * (1 / 2 : ℝ) := by ring
+    calc
+      B = (2 * B) * (1 / 2 : ℝ) := hB_eq
+      _ ≤ (2 * B) * t :=
+        mul_le_mul_of_nonneg_left ht_lower
+          (mul_nonneg Real.zero_le_two_real hB_nonneg)
+  exact le_trans (hB w hw_re_pos hw_sep t ht_tail) hB_le
 
 /-- The Binet kernel is integrable on the lower split interval. -/
 theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval
@@ -922,6 +1166,7 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
       ∀ w : ℂ,
         0 < w.re →
           ε ≤ w.re / ‖w‖ →
+          1 ≤ ‖w‖ →
           ∀ t : ℝ,
             t ∈ Set.Ioi (‖w‖ / 2) →
               ‖Complex.arctan ((t : ℂ) / w) /
@@ -933,7 +1178,7 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
         ε hε with
     ⟨C, hC_nonneg, harctan_bound⟩
   refine ⟨C, hC_nonneg, ?_⟩
-  intro w hw_re_pos hw_sep t ht_tail
+  intro w hw_re_pos hw_sep hw_large t ht_tail
   have ht_pos : 0 < t :=
     lt_of_le_of_lt
       (div_nonneg (norm_nonneg w) Real.zero_le_two_real)
@@ -952,7 +1197,7 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
     le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht_pos)
   have harctan :
       ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t :=
-    harctan_bound w hw_re_pos hw_sep t ht_tail
+    harctan_bound w hw_re_pos hw_sep hw_large t ht_tail
   calc
     ‖Complex.arctan ((t : ℂ) / w) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
@@ -1284,6 +1529,7 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majoran
       ∀ w : ℂ,
         0 < w.re →
           ε ≤ w.re / ‖w‖ →
+          1 ≤ ‖w‖ →
           ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
               Complex.arctan ((t : ℂ) / w) /
                 (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
@@ -1297,7 +1543,7 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majoran
         ε hε with
     ⟨C, hC_nonneg, htail_bound⟩
   refine ⟨C, hC_nonneg, ?_⟩
-  intro w hw_re_pos hw_sep
+  intro w hw_re_pos hw_sep hw_large
   let K : ℝ → ℂ := fun t : ℝ =>
     Complex.arctan ((t : ℂ) / w) /
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
@@ -1313,7 +1559,7 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majoran
       ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
         ‖K t‖ ≤ C * M t :=
     (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht => htail_bound w hw_re_pos hw_sep t ht)
+      (fun t ht => htail_bound w hw_re_pos hw_sep hw_large t ht)
   have hnorm_integral :
       ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ ≤
         ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t :=
@@ -1484,7 +1730,7 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
       exact le_trans hsmall_raw hdiv_le
     have htail_bound :
         ‖T‖ ≤ 2 * Ct * J :=
-      htail w hw_re_pos hw_sep
+      htail w hw_re_pos hw_sep hw_large
     have hsum :
         ‖S + T‖ ≤ 4 * J + 2 * Ct * J := by
       calc
