@@ -615,6 +615,106 @@ theorem Real.sinePower_betaComplexKernel_intervalIntegrable
         rfl
   exact Complex.betaIntegral_convergent hleft_complex hright_complex
 
+/-- Interval integrability transports through real part for complex-valued
+functions on real intervals. -/
+theorem Real.intervalIntegrable_complex_re
+    {f : ℝ → ℂ}
+    {a b : ℝ}
+    (hf : IntervalIntegrable f MeasureTheory.volume a b) :
+    IntervalIntegrable
+      (fun x : ℝ => (f x).re)
+      MeasureTheory.volume
+      a
+      b := by
+  exact ⟨hf.1.re, hf.2.re⟩
+
+/-- Pointwise comparison between the real Beta kernel and the real part of the
+complex Beta kernel on `[0,1]`. -/
+theorem Real.sinePower_betaRealKernel_eq_complexRe
+    (s t : ℝ)
+    (ht0 : 0 ≤ t)
+    (ht1 : t ≤ 1) :
+    t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1) =
+      ((t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1)).re := by
+  have ht1_nonneg : 0 ≤ 1 - t :=
+    sub_nonneg.mpr ht1
+  have hleft_exp :
+      ((((s + 1) / 2 : ℝ) : ℂ) - 1) =
+        ((((s + 1) / 2) - 1 : ℝ) : ℂ) := by
+    calc
+      ((((s + 1) / 2 : ℝ) : ℂ) - 1) =
+          (((s + 1) / 2 : ℝ) : ℂ) - ((1 : ℝ) : ℂ) := by
+        rfl
+      _ = ((((s + 1) / 2) - 1 : ℝ) : ℂ) := by
+        exact (Complex.ofReal_sub ((s + 1) / 2) 1).symm
+  have hright_exp :
+      (((1 / 2 : ℝ) : ℂ) - 1) =
+        (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+    calc
+      (((1 / 2 : ℝ) : ℂ) - 1) =
+          (((1 / 2 : ℝ) : ℂ) - ((1 : ℝ) : ℂ)) := by
+        rfl
+      _ = (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+        exact (Complex.ofReal_sub (1 / 2 : ℝ) 1).symm
+  have ht_cpow :
+      ((t ^ (((s + 1) / 2) - 1) : ℝ) : ℂ) =
+        (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) := by
+    calc
+      ((t ^ (((s + 1) / 2) - 1) : ℝ) : ℂ) =
+          (t : ℂ) ^ (((((s + 1) / 2) - 1 : ℝ) : ℂ)) := by
+        exact Complex.ofReal_cpow ht0 (((s + 1) / 2) - 1)
+      _ = (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) := by
+        exact congrArg (fun z : ℂ => (t : ℂ) ^ z) hleft_exp.symm
+  have h1_cpow :
+      (((1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ) =
+        (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1) := by
+    calc
+      (((1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ) =
+          ((1 - t : ℝ) : ℂ) ^
+            (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+        exact Complex.ofReal_cpow ht1_nonneg ((1 / 2 : ℝ) - 1)
+      _ =
+          ((1 - t : ℝ) : ℂ) ^
+            (((1 / 2 : ℝ) : ℂ) - 1) := by
+        exact congrArg (fun z : ℂ => ((1 - t : ℝ) : ℂ) ^ z)
+          hright_exp.symm
+      _ =
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1) := by
+        exact congrArg
+          (fun z : ℂ => z ^ (((1 / 2 : ℝ) : ℂ) - 1))
+          (Complex.ofReal_sub 1 t)
+  have hprod :
+      (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)) =
+        (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1) := by
+    calc
+      (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)) =
+          ((t ^ (((s + 1) / 2) - 1) : ℝ) : ℂ) *
+            (((1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ) := by
+        exact Complex.ofReal_mul
+          (t ^ (((s + 1) / 2) - 1))
+          ((1 - t) ^ ((1 / 2 : ℝ) - 1))
+      _ =
+          (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+            (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1) := by
+        exact congrArg₂ (fun a b : ℂ => a * b) ht_cpow h1_cpow
+  calc
+    t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1) =
+        (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)).re := by
+      exact (Complex.ofReal_re
+        (t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))).symm
+    _ =
+        ((t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1)).re := by
+      exact congrArg Complex.re hprod
+
 /-- Transport of complex Beta-kernel endpoint integrability to the real-part
 kernel on `[0,1]`. -/
 theorem Real.sinePower_betaRealKernel_intervalIntegrable_from_complex
@@ -634,7 +734,29 @@ theorem Real.sinePower_betaRealKernel_intervalIntegrable_from_complex
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
-  sorry
+  have hre :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          ((t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+            (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1)).re)
+        MeasureTheory.volume
+        (0 : ℝ)
+        1 :=
+    Real.intervalIntegrable_complex_re hcomplex
+  exact
+    hre.congr
+      (by
+        rw [Set.uIoc_of_le zero_le_one]
+        filter_upwards
+          [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc]
+          with t ht
+        have ht0 : 0 ≤ t :=
+          le_of_lt ht.1
+        have ht1 : t ≤ 1 :=
+          ht.2
+        exact
+          (Real.sinePower_betaRealKernel_eq_complexRe
+            s t ht0 ht1).symm)
 
 /-- The Beta-kernel endpoint integrability on `[0,1]` in real variables. -/
 theorem Real.sinePower_betaRealKernel_intervalIntegrable
@@ -712,6 +834,25 @@ theorem Real.sinePower_sin_arcsin_rpow_eq
   exact congrArg (fun y : ℝ => y ^ s)
     (Real.sin_arcsin hx_left hx_right)
 
+/-- Pullback endpoint integrability of the Beta kernel along `x ↦ x²`, in the
+form needed for the sine-substitution target integrand. -/
+theorem Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
+    (s : ℝ)
+    (hbeta :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    IntervalIntegrable
+      (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  sorry
+
 /-- Target-side interval integrability for the sine substitution. -/
 theorem Real.sinePower_sinSubstitution_target_intervalIntegrable
     (s : ℝ)
@@ -722,7 +863,11 @@ theorem Real.sinePower_sinSubstitution_target_intervalIntegrable
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
-  sorry
+  exact
+    Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
+      s
+      (Real.sinePower_betaRealKernel_intervalIntegrable
+        s hleft hright)
 
 /-- Open-interval Jacobian identity for the inverse sine substitution. -/
 theorem Real.sinePower_sinSubstitution_inverseJacobian_eq

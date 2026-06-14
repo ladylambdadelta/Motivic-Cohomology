@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ZetaPacketLabels.ZetaCenteredNormalization.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaPolynomialTailSummability.Owner
+import Mathlib.Algebra.BigOperators.Group.Finset
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Sqrt
@@ -19,6 +20,7 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+open scoped BigOperators
 
 /-- A prime-power coordinate before imposing primality and positive exponent conditions. -/
 structure ZetaPrimePowerIndex where
@@ -250,11 +252,10 @@ theorem card_heightShellVerticalEdgeModel
     (heightShellVerticalEdgeModel m).card = m + 1 := by
   unfold heightShellVerticalEdgeModel
   exact Finset.card_map
-    ⟨fun n => ⟨m, n⟩, by
+    (⟨fun n => ⟨m, n⟩, by
       intro n₁ n₂ hn
       cases hn
-      rfl⟩
-    (Finset.range (m + 1))
+      rfl⟩ : ℕ ↪ ZetaPrimePowerIndex)
 
 /-- The horizontal edge model has exactly `m + 1` points. -/
 theorem card_heightShellHorizontalEdgeModel
@@ -262,11 +263,10 @@ theorem card_heightShellHorizontalEdgeModel
     (heightShellHorizontalEdgeModel m).card = m + 1 := by
   unfold heightShellHorizontalEdgeModel
   exact Finset.card_map
-    ⟨fun p => ⟨p, m⟩, by
+    (⟨fun p => ⟨p, m⟩, by
       intro p₁ p₂ hp
       cases hp
-      rfl⟩
-    (Finset.range (m + 1))
+      rfl⟩ : ℕ ↪ ZetaPrimePowerIndex)
 
 /-- The exact height shell is covered by its two rectangular edges. -/
 theorem card_heightShell_le_edgeCard_sum
@@ -345,9 +345,9 @@ theorem card_heightShell_le_linear_real
 /-- Summing a real constant over a finite set gives cardinality times that constant. -/
 theorem finset_sum_const_real
     {α : Type} (s : Finset α) (c : ℝ) :
-    (∑ _ in s, c) = (s.card : ℝ) * c := by
+    (∑ x in s, c) = (s.card : ℝ) * c := by
   calc
-    (∑ _ in s, c) = s.card • c := by
+    (∑ x in s, c) = s.card • c := by
       exact Finset.sum_const c
     _ = (s.card : ℝ) * c := by
       exact nsmul_eq_mul s.card c
@@ -361,7 +361,7 @@ noncomputable def polynomialHeightShellSum
 theorem polynomialHeightShellSum_eq_sum_const_decay
     (k m : ℕ) :
     polynomialHeightShellSum k m =
-      ∑ _ in heightShell m,
+      ∑ ι in heightShell m,
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
   unfold polynomialHeightShellSum
   exact Finset.sum_congr rfl
@@ -375,11 +375,11 @@ theorem polynomialHeightShellSum_eq_card_mul_decay
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
   have hsum :
       polynomialHeightShellSum k m =
-        ∑ _ in heightShell m,
+        ∑ ι in heightShell m,
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
     polynomialHeightShellSum_eq_sum_const_decay k m
   have hconst :
-      (∑ _ in heightShell m,
+      (∑ ι in heightShell m,
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) =
         ((heightShell m).card : ℝ) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
@@ -519,14 +519,14 @@ theorem heightBase_mul_negative_zpow_succ_le_negative_zpow
       _ = 1 + (-(k + 2 : ℤ) + -1) := by
         exact congrArg (fun x : ℤ => 1 + x)
           (neg_add (k + 2 : ℤ) 1)
-      _ = (1 + -1) + -(k + 2 : ℤ) := by
-        exact Eq.trans
-          (add_assoc 1 (-(k + 2 : ℤ)) (-1))
-          (congrArg (fun x : ℤ => x + -(k + 2 : ℤ))
-            (add_comm 1 (-1)))
+      _ = 1 + (-1 + -(k + 2 : ℤ)) := by
+        exact congrArg (fun x : ℤ => 1 + x)
+          (add_comm (-(k + 2 : ℤ)) (-1))
+      _ = (1 + -1) + -(k + 2 : ℤ) :=
+        (add_assoc 1 (-1) (-(k + 2 : ℤ))).symm
       _ = 0 + -(k + 2 : ℤ) := by
         exact congrArg (fun x : ℤ => x + -(k + 2 : ℤ))
-          (add_right_neg 1)
+          (add_neg_cancel 1)
       _ = -(k + 2 : ℤ) := zero_add (-(k + 2 : ℤ))
   have hcombine :
       X * X ^ (-(k + 3 : ℤ)) =
@@ -1436,8 +1436,7 @@ theorem zero_lt_two_nat : (0 : ℕ) < 2 :=
 
 /-- The real number `1` is strictly less than `2`. -/
 theorem one_lt_two_real : (1 : ℝ) < 2 :=
-  Nat.cast_lt.mp (show ((1 : ℕ) : ℝ) < ((2 : ℕ) : ℝ) from
-    Nat.cast_lt.mpr (Nat.lt.base 1))
+  one_lt_two
 
 /-- The real number `2` is positive. -/
 theorem zero_lt_two_real : (0 : ℝ) < 2 :=

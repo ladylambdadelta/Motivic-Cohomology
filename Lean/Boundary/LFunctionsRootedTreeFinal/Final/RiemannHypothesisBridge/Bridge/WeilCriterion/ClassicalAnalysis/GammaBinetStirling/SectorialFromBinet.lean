@@ -62,6 +62,96 @@ theorem Complex.two_mul_add_eq_add_two_mul
     2 * (a + b) = 2 * a + 2 * b := by
   ring
 
+/-- Algebraic normalization of the first arctangent branch denominator. -/
+theorem Complex.one_sub_real_div_mul_I_eq
+    (w : ℂ)
+    (t : ℝ) :
+    1 - ((t : ℂ) / w) * Complex.I =
+      (w - (t : ℂ) * Complex.I) / w := by
+  by_cases hw : w = 0
+  · subst w
+    simp
+  · field_simp [hw]
+    ring
+
+/-- Algebraic normalization of the second arctangent branch denominator. -/
+theorem Complex.one_add_real_div_mul_I_eq
+    (w : ℂ)
+    (t : ℝ) :
+    1 + ((t : ℂ) / w) * Complex.I =
+      (w + (t : ℂ) * Complex.I) / w := by
+  by_cases hw : w = 0
+  · subst w
+    simp
+  · field_simp [hw]
+    ring
+
+/-- The first normalized branch denominator is bounded below by the real part
+of the fixed open-half-plane point. -/
+theorem Complex.one_sub_real_div_mul_I_norm_lower
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    w.re / ‖w‖ ≤ ‖1 - ((t : ℂ) / w) * Complex.I‖ := by
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  have hre_nonneg : 0 ≤ (w - (t : ℂ) * Complex.I).re := by
+    simpa using le_of_lt hw_re_pos
+  have hre_abs_eq :
+      |(w - (t : ℂ) * Complex.I).re| = w.re := by
+    simp [Complex.sub_re, Complex.mul_re, hre_nonneg]
+  have hre_le_norm :
+      w.re ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+    calc
+      w.re = |(w - (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
+      _ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+        simpa [Complex.normSq, norm_eq_abs] using
+          Complex.abs_re_le_abs (w - (t : ℂ) * Complex.I)
+  calc
+    w.re / ‖w‖ ≤ ‖w - (t : ℂ) * Complex.I‖ / ‖w‖ :=
+      div_le_div_of_nonneg_right hre_le_norm (le_of_lt hw_norm_pos)
+    _ = ‖(w - (t : ℂ) * Complex.I) / w‖ := by
+      rw [norm_div]
+    _ = ‖1 - ((t : ℂ) / w) * Complex.I‖ := by
+      rw [Complex.one_sub_real_div_mul_I_eq]
+
+/-- The second normalized branch denominator is bounded below by the real part
+of the fixed open-half-plane point. -/
+theorem Complex.one_add_real_div_mul_I_norm_lower
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    w.re / ‖w‖ ≤ ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  have hre_nonneg : 0 ≤ (w + (t : ℂ) * Complex.I).re := by
+    simpa using le_of_lt hw_re_pos
+  have hre_abs_eq :
+      |(w + (t : ℂ) * Complex.I).re| = w.re := by
+    simp [Complex.add_re, Complex.mul_re, hre_nonneg]
+  have hre_le_norm :
+      w.re ≤ ‖w + (t : ℂ) * Complex.I‖ := by
+    calc
+      w.re = |(w + (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
+      _ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
+        simpa [Complex.normSq, norm_eq_abs] using
+          Complex.abs_re_le_abs (w + (t : ℂ) * Complex.I)
+  calc
+    w.re / ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ / ‖w‖ :=
+      div_le_div_of_nonneg_right hre_le_norm (le_of_lt hw_norm_pos)
+    _ = ‖(w + (t : ℂ) * Complex.I) / w‖ := by
+      rw [norm_div]
+    _ = ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
+      rw [Complex.one_add_real_div_mul_I_eq]
+
 /-- Along the fixed open-half-plane ray `t / w`, the principal arctangent is
 uniformly separated from the arctangent branch singularities on the upper split
 interval. -/
@@ -74,7 +164,82 @@ theorem Complex.binetSecondFormula_arctan_tail_branch_separation
         t ∈ Set.Ioi (‖w‖ / 2) →
           δ ≤ ‖1 - ((t : ℂ) / w) * Complex.I‖ ∧
           δ ≤ ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  refine ⟨w.re / ‖w‖, div_pos hw_re_pos hw_norm_pos, ?_⟩
+  intro t ht
+  exact
+    ⟨Complex.one_sub_real_div_mul_I_norm_lower hw_re_pos t,
+      Complex.one_add_real_div_mul_I_norm_lower hw_re_pos t⟩
+
+/-- Fixed-ray branch separation gives a uniform bound for the principal
+arctangent on the upper split interval. -/
+theorem Complex.binetSecondFormula_arctan_tail_log_ratio_bounded
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ L : ℝ,
+      0 ≤ L ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.log
+            ((1 + ((t : ℂ) / w) * Complex.I) /
+              (1 - ((t : ℂ) / w) * Complex.I))‖ ≤ L := by
   sorry
+
+/-- A uniform logarithm bound for the separated arctangent ratio bounds the
+principal arctangent itself. -/
+theorem Complex.binetSecondFormula_arctan_tail_bounded_of_log_ratio_bound
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (hlog :
+      ∃ L : ℝ,
+        0 ≤ L ∧
+        ∀ t : ℝ,
+          t ∈ Set.Ioi (‖w‖ / 2) →
+            ‖Complex.log
+              ((1 + ((t : ℂ) / w) * Complex.I) /
+                (1 - ((t : ℂ) / w) * Complex.I))‖ ≤ L) :
+    ∃ B : ℝ,
+      0 ≤ B ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.arctan ((t : ℂ) / w)‖ ≤ B := by
+  rcases hlog with ⟨L, hL_nonneg, hL⟩
+  refine ⟨L, hL_nonneg, ?_⟩
+  intro t ht_tail
+  let z : ℂ := (t : ℂ) / w
+  have hfactor_norm_le_one : ‖(-Complex.I / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+    have hfactor_norm : ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := by
+      simp [norm_div, Complex.normSq]
+    calc
+      ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := hfactor_norm
+      _ ≤ 1 := by norm_num
+  have hmul :
+      ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤
+        ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+    calc
+      ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤
+          ‖(-Complex.I / 2 : ℂ)‖ *
+            ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ :=
+        norm_mul_le _ _
+      _ ≤ 1 *
+            ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ :=
+        mul_le_mul_of_nonneg_right hfactor_norm_le_one (norm_nonneg _)
+      _ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+        rw [one_mul]
+  calc
+    ‖Complex.arctan ((t : ℂ) / w)‖ =
+        ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+      simp [Complex.arctan, z]
+    _ ≤ ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := hmul
+    _ ≤ L := hL t ht_tail
 
 /-- Fixed-ray branch separation gives a uniform bound for the principal
 arctangent on the upper split interval. -/
@@ -86,7 +251,11 @@ theorem Complex.binetSecondFormula_arctan_tail_bounded_of_branch_separation
       ∀ t : ℝ,
         t ∈ Set.Ioi (‖w‖ / 2) →
           ‖Complex.arctan ((t : ℂ) / w)‖ ≤ B := by
-  sorry
+  exact
+    Complex.binetSecondFormula_arctan_tail_bounded_of_log_ratio_bound
+      hw_re_pos
+      (Complex.binetSecondFormula_arctan_tail_log_ratio_bounded
+        hw_re_pos)
 
 /-- A uniform arctangent bound on the upper split interval becomes a linear
 bound because the split cutoff is strictly positive in the open right

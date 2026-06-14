@@ -82,9 +82,13 @@ theorem Complex.riemannZetaBoundaryLineTruncation_eq_weighted_logarithmicPhase_s
     Complex.boundaryLineOnePointRealParam_dirichletTerm_eq_reciprocal_mul_oscillation
       t hn_pos
 
-/-- Finite partial-summation primitive for reciprocal weights applied to the
-standard logarithmic-phase partial-sum estimate. -/
-theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_phase_standard :
+/-- Blockwise finite partial summation for reciprocal weights applied to the
+logarithmic phase.
+
+This is the honest Abel-summation input: the global first-derivative estimate
+alone has a square-root transition term and is not the right primitive for the
+uniform logarithmic boundary tail. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_block_phase :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -98,6 +102,23 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_phase_st
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) := by
   sorry
+
+/-- Finite partial-summation primitive for reciprocal weights applied to the
+standard logarithmic-phase input. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_phase_standard :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ M : ℕ,
+                N ≤ M →
+                  ‖∑ n ∈ Finset.Ioc N M,
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                    A * Real.log (2 + ‖t‖) := by
+  exact Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_block_phase
 
 /-- Finite Abel-summation estimate for the post-cutoff reciprocal-weighted
 logarithmic phase.

@@ -36,6 +36,40 @@ def Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction
     (x : ℝ) : ℂ :=
   Complex.exp ((-(t : ℂ) * Complex.I) * (Real.log x : ℂ))
 
+/-- The real scalar phase behind the boundary-line oscillator. -/
+def Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase
+    (t : ℝ)
+    (x : ℝ) : ℝ :=
+  -t * Real.log x
+
+/-- The complex logarithmic phase is the exponential of the real scalar phase. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_realPhase
+    (t : ℝ)
+    (x : ℝ) :
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t x : ℂ)) := by
+  have hphase :
+      (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t x : ℂ)) =
+        (-(t : ℂ) * Complex.I) * (Real.log x : ℂ) := by
+    calc
+      Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t x : ℂ) =
+          Complex.I * ((-t * Real.log x : ℝ) : ℂ) := by
+        rfl
+      _ = Complex.I * ((-t : ℝ) : ℂ) * (Real.log x : ℂ) := by
+        exact congrArg (fun z : ℂ => Complex.I * z)
+          (map_mul (Complex.ofRealHom) (-t) (Real.log x))
+      _ = ((-t : ℝ) : ℂ) * Complex.I * (Real.log x : ℂ) := by
+        exact congrArg (fun z : ℂ => z * (Real.log x : ℂ))
+          (mul_comm Complex.I ((-t : ℝ) : ℂ))
+      _ = (-(t : ℂ) * Complex.I) * (Real.log x : ℂ) := by
+        exact congrArg (fun z : ℂ => (z * Complex.I) * (Real.log x : ℂ))
+          (Complex.ofReal_neg t)
+  exact congrArg Complex.exp hphase
+
 /-- Positive real samples of the logarithmic phase agree with the complex-power
 notation used in the Dirichlet-polynomial partial sums. -/
 theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
@@ -291,6 +325,69 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_nor
     _ = ‖t‖ / x := by
       exact congrArg (fun y : ℝ => ‖t‖ / y) hden
 
+/-- Derivative of the real scalar logarithmic phase. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_hasDerivAt
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    HasDerivAt
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      (-t / x)
+      x := by
+  have hlog : HasDerivAt Real.log x⁻¹ x :=
+    Real.hasDerivAt_log hx.ne'
+  have hmul :
+      HasDerivAt
+        (fun y : ℝ => -t * Real.log y)
+        ((-t) * x⁻¹)
+        x :=
+    hlog.const_mul (-t)
+  have hderiv : (-t) * x⁻¹ = -t / x :=
+    (div_eq_mul_inv (-t) x).symm
+  exact Eq.subst
+    (motive := fun d : ℝ =>
+      HasDerivAt
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+        d
+        x)
+    hderiv
+    hmul
+
+/-- Derivative formula for the real scalar logarithmic phase. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+      -t / x := by
+  exact
+    (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_hasDerivAt
+      t hx).deriv
+
+/-- Absolute derivative of the real scalar phase is `|t| / x`. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_norm_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ =
+      ‖t‖ / x := by
+  have hderiv :
+      deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x =
+        -t / x :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq t hx
+  have hx_norm : ‖x‖ = x :=
+    norm_of_nonneg hx.le
+  calc
+    ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ =
+        ‖-t / x‖ := by
+      exact congrArg norm hderiv
+    _ = ‖-t‖ / ‖x‖ :=
+      norm_div (-t) x
+    _ = ‖t‖ / ‖x‖ := by
+      exact congrArg (fun y : ℝ => y / ‖x‖) (norm_neg t)
+    _ = ‖t‖ / x := by
+      exact congrArg (fun y : ℝ => ‖t‖ / y) hx_norm
+
 /-- The logarithmic-phase derivative magnitude `|t| / x` is decreasing on the
 positive real axis. -/
 theorem Complex.logarithmicPhase_derivativeMagnitude_antitoneOn_positive
@@ -419,6 +516,112 @@ theorem Complex.logarithmicPhase_deriv_norm_antitoneOn_integer_block
       hy_deriv.symm
       hphase)
 
+/-- The real scalar logarithmic-phase derivative has the same lower bound on
+positive integer blocks. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_norm_block_lower_bound
+    (t : ℝ)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    {x : ℝ}
+    (hx : x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) :
+    ((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ)) ≤
+      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ := by
+  have ha_pos_nat : 0 < a :=
+    Nat.lt_of_succ_le ha
+  have hb_pos_nat : 0 < b + 1 :=
+    Nat.succ_pos b
+  have ha_pos_real : 0 < (a : ℝ) := by
+    exact_mod_cast ha_pos_nat
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos_real hx.1
+  have hderiv_norm :
+      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ =
+        ‖t‖ / x :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_norm_eq
+      t hx_pos
+  have hblock :
+      ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖t‖ / x :=
+    Complex.logarithmicPhase_derivativeMagnitude_block_lower_bound
+      t
+      (by exact_mod_cast hb_pos_nat)
+      hx
+  exact Eq.subst
+    (motive := fun target : ℝ => ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ target)
+    hderiv_norm.symm
+    hblock
+
+/-- The absolute real scalar-phase derivative is monotone on every positive
+integer block. -/
+theorem Complex.logarithmicPhaseRealPhase_deriv_norm_antitoneOn_integer_block
+    (t : ℝ)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b) :
+    AntitoneOn
+      (fun x : ℝ =>
+        ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖)
+      (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)) := by
+  intro x hx y hy hxy
+  have ha_pos_nat : 0 < a :=
+    Nat.lt_of_succ_le ha
+  have ha_pos_real : 0 < (a : ℝ) := by
+    exact_mod_cast ha_pos_nat
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha_pos_real hx.1
+  have hy_pos : 0 < y :=
+    lt_of_lt_of_le ha_pos_real hy.1
+  have hx_deriv :
+      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ =
+        ‖t‖ / x :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_norm_eq
+      t hx_pos
+  have hy_deriv :
+      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) y‖ =
+        ‖t‖ / y :=
+    Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_norm_eq
+      t hy_pos
+  have hphase :
+      ‖t‖ / y ≤ ‖t‖ / x :=
+    Complex.logarithmicPhase_derivativeMagnitude_antitoneOn_positive t
+      hx_pos hy_pos hxy
+  exact Eq.subst
+    (motive := fun target : ℝ =>
+      ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) y‖ ≤
+        target)
+    hx_deriv.symm
+    (Eq.subst
+      (motive := fun source : ℝ => source ≤ ‖t‖ / x)
+      hy_deriv.symm
+      hphase)
+
+/-- Real first-derivative-test primitive for the logarithmic scalar phase on
+one integer block. -/
+theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {a b : ℕ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ =>
+          ‖deriv
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖)
+        (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)))
+    (hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          ((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ)) ≤
+            ‖deriv
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp
+        (Complex.I *
+          (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+        8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
+  sorry
+
 /-- Continuous first-derivative-test primitive for the sampled logarithmic
 phase on one integer block.
 
@@ -446,7 +649,34 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
     ‖∑ n ∈ Finset.Icc a b,
       Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t n‖ ≤
         8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
-  sorry
+  have hphase :
+      (∑ n ∈ Finset.Icc a b,
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t n) =
+        ∑ n ∈ Finset.Icc a b,
+          Complex.exp
+            (Complex.I *
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ)) := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn
+    exact
+      Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_realPhase
+        t n
+  have hreal_block :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+          8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) :=
+    Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
+      t ht ha hab
+      (Complex.logarithmicPhaseRealPhase_deriv_norm_antitoneOn_integer_block t ha hab)
+      (fun x hx =>
+        Complex.logarithmicPhaseRealPhase_deriv_norm_block_lower_bound t ha hab hx)
+  exact Eq.subst
+    (motive := fun S : ℂ =>
+      ‖S‖ ≤ 8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1))
+    hphase.symm
+    hreal_block
 
 /-- Standard first-derivative estimate on one monotone logarithmic-phase block.
 
