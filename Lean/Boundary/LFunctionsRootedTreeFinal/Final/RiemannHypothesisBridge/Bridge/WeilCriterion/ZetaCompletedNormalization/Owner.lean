@@ -620,6 +620,8 @@ This is the branch-bookkeeping step: after expanding
 Stirling main term and leave `sqrt(2π) * (exp J(w) - 1)`. -/
 theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
     {w : ℂ}
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hw_ne : w ≠ 0)
     (hbinet :
       Complex.log (Complex.Gamma w) =
         Complex.binetLogGammaMainTerm w +
@@ -734,12 +736,42 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
     have hdiv_le_one : K / ‖w‖ ≤ 1 :=
       (div_le_one₀ hnorm_pos.le).mpr hK_le
     exact hrem.trans hdiv_le_one
+  have hw_ne : w ≠ 0 :=
+    norm_pos_iff.mp hnorm_pos
+  have hGamma_ne : Complex.Gamma w ≠ 0 := by
+    intro hzero
+    rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
+    subst w
+    cases n with
+    | zero =>
+        exact hw_ne (neg_zero : -((0 : ℂ)) = 0)
+    | succ n =>
+        have hre_eq :
+            (-(((Nat.succ n : ℕ) : ℂ))).re =
+              -(((Nat.succ n : ℕ) : ℝ)) := by
+          calc
+            (-(((Nat.succ n : ℕ) : ℂ))).re =
+                -(((Nat.succ n : ℕ) : ℂ).re) :=
+              Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
+            _ = -(((Nat.succ n : ℕ) : ℝ)) := by
+              exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
+        have hre_nonneg :
+            (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+          Eq.subst
+            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+            hre_eq
+            hw_sector
+        have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
+          Nat.cast_pos.mpr (Nat.succ_pos n)
+        have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
+          neg_neg_of_pos hsucc_pos
+        exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
   have hidentity :
       Complex.Gamma w * Complex.exp w *
           w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
         (Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1) :=
     Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
-      hlog
+      hGamma_ne hw_ne hlog
   have hleft :
       ‖Complex.Gamma w * Complex.exp w *
           w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ =
