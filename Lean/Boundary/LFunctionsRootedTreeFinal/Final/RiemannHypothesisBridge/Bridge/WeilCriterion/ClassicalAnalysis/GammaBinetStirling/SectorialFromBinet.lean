@@ -245,6 +245,180 @@ theorem Complex.log_norm_le_of_norm_bounds
     _ ≤ max |Real.log m| |Real.log M| + Real.pi :=
       add_le_add_right hlog _
 
+/-- The upper-tail ratio can be rewritten without the common factor `w`.
+
+This is the algebraic normalization used by all subsequent real estimates. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_eq
+    (w : ℂ)
+    (t : ℝ) :
+    ((1 + ((t : ℂ) / w) * Complex.I) /
+        (1 - ((t : ℂ) / w) * Complex.I)) =
+      (w + (t : ℂ) * Complex.I) /
+        (w - (t : ℂ) * Complex.I) := by
+  by_cases hw : w = 0
+  · subst w
+    simp
+  · rw [Complex.one_add_real_div_mul_I_eq,
+      Complex.one_sub_real_div_mul_I_eq]
+    field_simp [hw]
+
+/-- The numerator in the arctangent ratio has norm bounded below by the fixed
+positive real part. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    w.re ≤ ‖w + (t : ℂ) * Complex.I‖ := by
+  have hre_nonneg : 0 ≤ (w + (t : ℂ) * Complex.I).re := by
+    simpa using le_of_lt hw_re_pos
+  have hre_abs_eq :
+      |(w + (t : ℂ) * Complex.I).re| = w.re := by
+    simp [Complex.add_re, Complex.mul_re, hre_nonneg]
+  calc
+    w.re = |(w + (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
+    _ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
+      simpa [Complex.normSq, norm_eq_abs] using
+        Complex.abs_re_le_abs (w + (t : ℂ) * Complex.I)
+
+/-- The denominator in the arctangent ratio has norm bounded below by the fixed
+positive real part. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re)
+    (t : ℝ) :
+    w.re ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+  have hre_nonneg : 0 ≤ (w - (t : ℂ) * Complex.I).re := by
+    simpa using le_of_lt hw_re_pos
+  have hre_abs_eq :
+      |(w - (t : ℂ) * Complex.I).re| = w.re := by
+    simp [Complex.sub_re, Complex.mul_re, hre_nonneg]
+  calc
+    w.re = |(w - (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
+    _ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+      simpa [Complex.normSq, norm_eq_abs] using
+        Complex.abs_re_le_abs (w - (t : ℂ) * Complex.I)
+
+/-- On the bounded part of the tail, the unnormalized numerator is bounded by
+`3 * ‖w‖`. -/
+theorem Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
+    {w : ℂ}
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    ‖w + (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ := by
+  have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+    simp [norm_mul, ht_nonneg]
+  calc
+    ‖w + (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ :=
+      norm_add_le _ _
+    _ = ‖w‖ + t := by rw [htI_norm]
+    _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
+    _ = 3 * ‖w‖ := by ring
+
+/-- On the bounded part of the tail, the unnormalized denominator is bounded
+by `3 * ‖w‖`. -/
+theorem Complex.binetSecondFormula_arctan_tail_denominator_le_three_norm
+    {w : ℂ}
+    {t : ℝ}
+    (ht_nonneg : 0 ≤ t)
+    (ht_le : t ≤ 2 * ‖w‖) :
+    ‖w - (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ := by
+  have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+    simp [norm_mul, ht_nonneg]
+  calc
+    ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+      simpa [sub_eq_add_neg] using norm_add_le w (-((t : ℂ) * Complex.I))
+    _ = ‖w‖ + t := by rw [norm_neg, htI_norm]
+    _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
+    _ = 3 * ‖w‖ := by ring
+
+/-- On the far part of the tail, the two unnormalized branch distances are
+within a factor `3` of one another. -/
+theorem Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
+    {w : ℂ}
+    {t : ℝ}
+    (ht_far : 2 * ‖w‖ ≤ t) :
+    ‖w + (t : ℂ) * Complex.I‖ ≤
+        3 * ‖w - (t : ℂ) * Complex.I‖ ∧
+      ‖w - (t : ℂ) * Complex.I‖ ≤
+        3 * ‖w + (t : ℂ) * Complex.I‖ := by
+  have ht_nonneg : 0 ≤ t :=
+    le_trans (mul_nonneg Real.zero_le_two_real (norm_nonneg w)) ht_far
+  have htI_norm : ‖(t : ℂ) * Complex.I‖ = t := by
+    simp [norm_mul, ht_nonneg]
+  have htail_sub_nonneg : 0 ≤ t - ‖w‖ := by
+    linarith [norm_nonneg w, ht_far]
+  have htail_upper : ‖w‖ + t ≤ 3 * (t - ‖w‖) := by
+    linarith [ht_far]
+  have hminus_lower :
+      t - ‖w‖ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
+    have hrev :
+        ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤
+          ‖(t : ℂ) * Complex.I - w‖ :=
+      norm_sub_norm_le ((t : ℂ) * Complex.I) w
+    have hnorm_eq :
+        ‖(t : ℂ) * Complex.I - w‖ =
+          ‖w - (t : ℂ) * Complex.I‖ := by
+      rw [← norm_neg (w - (t : ℂ) * Complex.I)]
+      congr 1
+      abel
+    simpa [htI_norm, hnorm_eq] using hrev
+  have hplus_lower :
+      t - ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
+    have hrev :
+        ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤
+          ‖(t : ℂ) * Complex.I - (-w)‖ :=
+      norm_sub_norm_le ((t : ℂ) * Complex.I) (-w)
+    have hnorm_eq :
+        ‖(t : ℂ) * Complex.I - (-w)‖ =
+          ‖w + (t : ℂ) * Complex.I‖ := by
+      rw [← norm_neg (w + (t : ℂ) * Complex.I)]
+      congr 1
+      abel
+    simpa [htI_norm, hnorm_eq] using hrev
+  have hplus_upper :
+      ‖w + (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := by
+    calc
+      ‖w + (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ :=
+        norm_add_le _ _
+      _ = ‖w‖ + t := by rw [htI_norm]
+  have hminus_upper :
+      ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := by
+    calc
+      ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+        simpa [sub_eq_add_neg] using norm_add_le w (-((t : ℂ) * Complex.I))
+      _ = ‖w‖ + t := by rw [norm_neg, htI_norm]
+  constructor
+  · calc
+      ‖w + (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := hplus_upper
+      _ ≤ 3 * (t - ‖w‖) := htail_upper
+      _ ≤ 3 * ‖w - (t : ℂ) * Complex.I‖ :=
+        mul_le_mul_of_nonneg_left hminus_lower
+          (by linarith [Real.zero_le_two_real])
+  · calc
+      ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := hminus_upper
+      _ ≤ 3 * (t - ‖w‖) := htail_upper
+      _ ≤ 3 * ‖w + (t : ℂ) * Complex.I‖ :=
+        mul_le_mul_of_nonneg_left hplus_lower
+          (by linarith [Real.zero_le_two_real])
+
+/-- The fixed-tail ratio bound, expressed after clearing the common factor
+`w`.  The interval is split into `t ≤ 2‖w‖` and `2‖w‖ ≤ t`; the bounded part
+uses real-part separation and the far part uses triangle comparison. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ m M : ℝ,
+      0 < m ∧
+      m ≤ M ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          m ≤ ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ ∧
+          ‖(w + (t : ℂ) * Complex.I) /
+              (w - (t : ℂ) * Complex.I)‖ ≤ M := by
+  sorry
+
 /-- On the fixed upper split interval the Möbius ratio entering the arctangent
 has norm bounded above and below by positive constants depending only on `w`.
 
@@ -264,7 +438,14 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds
               (1 - ((t : ℂ) / w) * Complex.I)‖ ∧
           ‖(1 + ((t : ℂ) / w) * Complex.I) /
               (1 - ((t : ℂ) / w) * Complex.I)‖ ≤ M := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
+        hw_re_pos with
+    ⟨m, M, hm_pos, hmM, hbounds⟩
+  refine ⟨m, M, hm_pos, hmM, ?_⟩
+  intro t ht_tail
+  simpa [Complex.binetSecondFormula_arctan_tail_ratio_eq] using
+    hbounds t ht_tail
 
 /-- Fixed-ray branch separation gives a uniform bound for the principal
 arctangent on the upper split interval. -/

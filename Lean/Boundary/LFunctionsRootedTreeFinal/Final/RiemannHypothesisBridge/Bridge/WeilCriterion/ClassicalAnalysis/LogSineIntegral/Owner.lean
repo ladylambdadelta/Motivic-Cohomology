@@ -843,7 +843,145 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
         ((x ^ 2) ^ (((s + 1) / 2) - 1) *
           (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
         (2 * x) := by
-  sorry
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx.1
+  have hsq_exp :
+      (2 : ℝ) * (((s + 1) / 2) - 1) = s - 1 := by
+    calc
+      (2 : ℝ) * (((s + 1) / 2) - 1) =
+          2 * ((s + 1) / 2) - 2 * 1 := by
+        exact mul_sub 2 ((s + 1) / 2) 1
+      _ = ((s + 1) / 2) * 2 - 2 := by
+        exact congrArg₂
+          (fun a b : ℝ => a - b)
+          (mul_comm 2 ((s + 1) / 2))
+          (mul_one 2)
+      _ = (s + 1) - 2 := by
+        exact congrArg (fun y : ℝ => y - 2)
+          (div_mul_cancel₀ (s + 1) two_ne_zero)
+      _ = (s + 1) - (1 + 1) := by
+        exact congrArg (fun y : ℝ => (s + 1) - y)
+          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+      _ = ((s + 1) - 1) - 1 := by
+        exact sub_add_eq_sub_sub (s + 1) 1 1
+      _ = s - 1 := by
+        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel s 1)
+  have hsq :
+      (x ^ 2) ^ (((s + 1) / 2) - 1) =
+        x ^ (s - 1) := by
+    calc
+      (x ^ 2) ^ (((s + 1) / 2) - 1) =
+          (x ^ (2 : ℝ)) ^ (((s + 1) / 2) - 1) := by
+        exact congrArg
+          (fun y : ℝ => y ^ (((s + 1) / 2) - 1))
+          (Real.rpow_natCast x 2).symm
+      _ = x ^ ((2 : ℝ) * (((s + 1) / 2) - 1)) := by
+        exact (Real.rpow_mul hx_nonneg 2 (((s + 1) / 2) - 1)).symm
+      _ = x ^ (s - 1) := by
+        exact congrArg (fun e : ℝ => x ^ e) hsq_exp
+  have hright_exp :
+      ((1 / 2 : ℝ) - 1) = ((-1 : ℝ) / 2) := by
+    calc
+      (1 / 2 : ℝ) - 1 = (1 / 2 : ℝ) - (2 / 2 : ℝ) := by
+        exact congrArg (fun y : ℝ => (1 / 2 : ℝ) - y)
+          (by
+            exact (div_self two_ne_zero).symm)
+      _ = (1 - 2 : ℝ) / 2 := by
+        exact (sub_div 1 2 2).symm
+      _ = (1 - (1 + 1) : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => (1 - y) / 2)
+          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+      _ = ((1 - 1) - 1 : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => y / 2)
+          (sub_add_eq_sub_sub 1 1 1)
+      _ = (0 - 1 : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => (y - 1) / 2) (sub_self 1)
+      _ = (-1 : ℝ) / 2 := by
+        exact congrArg (fun y : ℝ => y / 2) (zero_sub 1)
+  have hright :
+      (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1) =
+        (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
+    congrArg
+      (fun e : ℝ => (1 - x ^ 2) ^ e)
+      hright_exp
+  have hleft_mul :
+      x ^ (s - 1) * x = x ^ s := by
+    calc
+      x ^ (s - 1) * x =
+          x ^ (s - 1) * x ^ (1 : ℝ) := by
+        exact congrArg (fun y : ℝ => x ^ (s - 1) * y)
+          (Real.rpow_one x).symm
+      _ = x ^ ((s - 1) + 1) := by
+        exact (Real.rpow_add hx.1 (s - 1) 1).symm
+      _ = x ^ s := by
+        exact congrArg (fun e : ℝ => x ^ e) (sub_add_cancel s 1)
+  have hhalf_two : (1 / 2 : ℝ) * 2 = 1 := by
+    calc
+      (1 / 2 : ℝ) * 2 = (2 : ℝ)⁻¹ * 2 := by
+        exact congrArg (fun z : ℝ => z * 2) (one_div 2)
+      _ = 1 := by
+        exact inv_mul_cancel₀ two_ne_zero
+  have hscalar :
+      ∀ y : ℝ, ((1 / 2 : ℝ) * y) * (2 * x) = y * x := by
+    intro y
+    calc
+      ((1 / 2 : ℝ) * y) * (2 * x) =
+          (((1 / 2 : ℝ) * y) * 2) * x := by
+        exact mul_assoc ((1 / 2 : ℝ) * y) 2 x
+      _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
+        exact congrArg (fun z : ℝ => z * x)
+          (mul_assoc (1 / 2 : ℝ) y 2)
+      _ = ((1 / 2 : ℝ) * (2 * y)) * x := by
+        exact congrArg
+          (fun z : ℝ => ((1 / 2 : ℝ) * z) * x)
+          (mul_comm y 2)
+      _ = (((1 / 2 : ℝ) * 2) * y) * x := by
+        exact congrArg (fun z : ℝ => z * x)
+          (mul_assoc (1 / 2 : ℝ) 2 y).symm
+      _ = (1 * y) * x := by
+        exact congrArg (fun z : ℝ => (z * y) * x) hhalf_two
+      _ = y * x := by
+        exact congrArg (fun z : ℝ => z * x) (one_mul y)
+  have hreassoc :
+      ∀ a b : ℝ, (a * b) * x = (a * x) * b := by
+    intro a b
+    calc
+      (a * b) * x = a * (b * x) := by
+        exact mul_assoc a b x
+      _ = a * (x * b) := by
+        exact congrArg (fun z : ℝ => a * z) (mul_comm b x)
+      _ = (a * x) * b := by
+        exact (mul_assoc a x b).symm
+  calc
+    x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) =
+        (x ^ (s - 1) * x) *
+          (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+      exact congrArg
+        (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        hleft_mul.symm
+    _ =
+        (x ^ (s - 1) *
+          (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) * x := by
+      exact (hreassoc (x ^ (s - 1))
+        ((1 - x ^ 2) ^ ((-1 : ℝ) / 2))).symm
+    _ =
+        ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+          (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1)) * x := by
+      exact congrArg
+        (fun y : ℝ => y * x)
+        (congrArg₂
+          (fun a b : ℝ => a * b)
+          hsq.symm
+          hright.symm)
+    _ =
+        ((1 / 2 : ℝ) *
+          ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+            (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+          (2 * x) := by
+      exact
+        (hscalar
+          ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+            (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))).symm
 
 /-- Endpoint integrability of the square-root pullback of the Beta kernel.
 This is the non-circular integrability input for the substitution `t = x²`. -/
@@ -945,6 +1083,44 @@ theorem Real.sinePower_sinSubstitution_inverseJacobian_eq
         (fun y : ℝ => x ^ s * y)
         (Real.sinePower_sinSubstitution_invSqrt_eq_rpow hx)
 
+/-- On `(0,π/2)`, the sine-substitution singular factor is the reciprocal of
+the cosine factor. -/
+theorem Real.sinePower_sinSubstitution_singularFactor_mul_cos_eq_one
+    (u : ℝ)
+    (hu : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2)) :
+    (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2) *
+        Real.cos u =
+      1 := by
+  sorry
+
+/-- Reassociation for the sine-substitution forward Jacobian. -/
+theorem Real.sinePower_sinSubstitution_forward_reassociate
+    (a b c : ℝ) :
+    (a * b) * c = a * (b * c) :=
+  mul_assoc a b c
+
+/-- Owner-level interval substitution theorem for singular scalar kernels,
+using explicit source and target interval-integrability hypotheses. -/
+theorem Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
+    {a b : ℝ}
+    {f f' g source : ℝ → ℝ}
+    (hf_cont : ContinuousOn f [[a, b]])
+    (hf_deriv :
+      ∀ x ∈ Set.Ioo (min a b) (max a b),
+        HasDerivWithinAt f (f' x) (Set.Ioi x) x)
+    (hg_cont :
+      ContinuousOn g (f '' Set.Ioo (min a b) (max a b)))
+    (htarget :
+      IntervalIntegrable g MeasureTheory.volume (f a) (f b))
+    (hsource :
+      IntervalIntegrable source MeasureTheory.volume a b)
+    (hpoint :
+      ∀ x ∈ Set.Ioo (min a b) (max a b),
+        (g ∘ f) x * f' x = source x) :
+    (∫ x in a..b, source x) =
+      ∫ y in f a..f b, g y := by
+  sorry
+
 /-- Forward Jacobian identity for the substitution `x = sin u` on
 `(0,π/2)`. -/
 theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
@@ -954,7 +1130,25 @@ theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
         (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2)) *
         Real.cos u =
       (Real.sin u) ^ s := by
-  sorry
+  calc
+    ((Real.sin u) ^ s *
+        (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2)) *
+        Real.cos u =
+        (Real.sin u) ^ s *
+          ((1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2) *
+            Real.cos u) := by
+      exact
+        Real.sinePower_sinSubstitution_forward_reassociate
+          ((Real.sin u) ^ s)
+          ((1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2))
+          (Real.cos u)
+    _ = (Real.sin u) ^ s * 1 := by
+      exact congrArg
+        (fun y : ℝ => (Real.sin u) ^ s * y)
+        (Real.sinePower_sinSubstitution_singularFactor_mul_cos_eq_one
+          u hu)
+    _ = (Real.sin u) ^ s := by
+      exact mul_one ((Real.sin u) ^ s)
 
 /-- General owner-level change-of-variables lemma for the sine substitution
 with singular endpoint target. -/

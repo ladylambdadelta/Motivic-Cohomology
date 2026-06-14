@@ -595,6 +595,78 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_norm_antitoneOn_integer_block
       hy_deriv.symm
       hphase)
 
+/-- The real exponential attached to a scalar phase has unit norm. -/
+theorem Complex.realPhase_exp_I_norm
+    (φ : ℝ → ℝ)
+    (x : ℝ) :
+    ‖Complex.exp (Complex.I * (φ x : ℂ))‖ = 1 := by
+  have hexp_re : (Complex.I * (φ x : ℂ)).re = 0 := by
+    calc
+      (Complex.I * (φ x : ℂ)).re = -((φ x : ℂ).im) :=
+        Complex.I_mul_re (φ x : ℂ)
+      _ = -0 := by
+        exact congrArg Neg.neg (Complex.ofReal_im (φ x))
+      _ = 0 :=
+        neg_zero
+  calc
+    ‖Complex.exp (Complex.I * (φ x : ℂ))‖ =
+        Complex.abs (Complex.exp (Complex.I * (φ x : ℂ))) :=
+      Complex.norm_eq_abs (Complex.exp (Complex.I * (φ x : ℂ)))
+    _ = Real.exp (Complex.I * (φ x : ℂ)).re :=
+      Complex.abs_exp (Complex.I * (φ x : ℂ))
+    _ = Real.exp 0 :=
+      congrArg Real.exp hexp_re
+    _ = 1 :=
+      Real.exp_zero
+
+/-- Finite exponential sums are trivially bounded by the length of their
+indexing interval.  This is the nonoscillatory endpoint of the first derivative
+argument. -/
+theorem Complex.realPhase_integer_block_bound_by_card
+    (φ : ℝ → ℝ)
+    {a b : ℕ} :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        ((Finset.Icc a b).card : ℝ) := by
+  calc
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        ∑ n ∈ Finset.Icc a b,
+          ‖Complex.exp (Complex.I * (φ n : ℂ))‖ :=
+      norm_sum_le (Finset.Icc a b)
+        (fun n => Complex.exp (Complex.I * (φ n : ℂ)))
+    _ = ∑ n ∈ Finset.Icc a b, (1 : ℝ) := by
+      refine Finset.sum_congr rfl ?_
+      intro n hn
+      exact Complex.realPhase_exp_I_norm φ n
+    _ = ((Finset.Icc a b).card : ℝ) :=
+      Finset.sum_const_one
+
+/-- Kusmin-Landau/van der Corput finite first-derivative core for real phases.
+
+This is the genuine oscillatory analytic primitive: the phase derivative stays
+monotone in absolute value and is bounded below by `λ`, so cancellation gives
+a reciprocal-derivative bound independent of the length of the block. -/
+theorem Complex.realPhase_kusminLandau_integer_block_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hλ_pos : 0 < λ)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ => ‖deriv φ x‖)
+        (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)))
+    (hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          λ ≤ ‖deriv φ x‖) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * λ⁻¹ := by
+  sorry
+
 /-- General finite first-derivative estimate for a real phase sampled on an
 integer block.
 
@@ -620,7 +692,22 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
-  sorry
+  have hosc :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+          8 * λ⁻¹ :=
+    Complex.realPhase_kusminLandau_integer_block_bound
+      φ ha hab hλ_pos hderiv_antitone hderiv_lower
+  have hnonneg_one : (0 : ℝ) ≤ 1 :=
+    zero_le_one
+  have hle :
+      8 * λ⁻¹ ≤ 8 * (λ⁻¹ + 1) := by
+    have hleft_nonneg : (0 : ℝ) ≤ (8 : ℝ) :=
+      Nat.cast_nonneg 8
+    have hscale : λ⁻¹ ≤ λ⁻¹ + 1 :=
+      le_add_of_nonneg_right hnonneg_one
+    exact mul_le_mul_of_nonneg_left hscale hleft_nonneg
+  exact le_trans hosc hle
 
 /-- The logarithmic block lower-bound parameter is positive away from
 zero frequency. -/
@@ -806,6 +893,28 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
     hsample.symm
     hblock
 
+/-- The one-block estimate is already bounded by the dyadic-cover expression
+used by the global theorem. -/
+theorem Complex.logarithmicPhase_single_block_le_dyadic_cover_expression
+    (t : ℝ)
+    (N : ℕ) :
+    8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + 1) ≤
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) := by
+  have hlog_nonneg : (0 : ℝ) ≤ (Nat.log2 (N + 1) : ℝ) :=
+    Nat.cast_nonneg (Nat.log2 (N + 1))
+  have hinside :
+      ((N + 1 : ℕ) : ℝ) / ‖t‖ + 1 ≤
+        ((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1 := by
+    calc
+      ((N + 1 : ℕ) : ℝ) / ‖t‖ + 1 ≤
+          ((N + 1 : ℕ) : ℝ) / ‖t‖ + (Nat.log2 (N + 1) : ℝ) + 1 := by
+        exact add_le_add_right
+          (le_add_of_nonneg_right hlog_nonneg)
+          1
+      _ = ((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1 :=
+        rfl
+  exact mul_le_mul_of_nonneg_left hinside (Nat.cast_nonneg 8)
+
 /-- Dyadic block cover primitive for logarithmic-phase partial sums.
 
 This isolates the finite combinatorics of decomposing `[1,N]` into dyadic
@@ -827,6 +936,88 @@ theorem Complex.logarithmicPhase_dyadic_block_cover_bound
             ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
               8 *
                 (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) := by
+  intro t ht N
+  by_cases hN : N = 0
+  · have hsum_zero :
+        (∑ n ∈ Finset.Icc 1 N,
+          ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) = 0 := by
+      exact Finset.sum_eq_zero
+        (fun n hn => by
+          have hn_bounds : 1 ≤ n ∧ n ≤ N :=
+            Finset.mem_Icc.mp hn
+          have hn_le_zero : n ≤ 0 :=
+            Eq.subst (motive := fun k : ℕ => n ≤ k) hN hn_bounds.2
+          have hn_not_one : ¬ 1 ≤ n :=
+            Nat.not_succ_le_zero n hn_le_zero
+          exact False.elim (hn_not_one hn_bounds.1))
+    have htarget_nonneg :
+        0 ≤ 8 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) := by
+      have hnorm_pos : 0 < ‖t‖ :=
+        lt_of_lt_of_le zero_lt_one ht
+      have hquot_nonneg :
+          0 ≤ ((N + 1 : ℕ) : ℝ) / ‖t‖ :=
+        div_nonneg (Nat.cast_nonneg (N + 1)) hnorm_pos.le
+      have hlog_nonneg : 0 ≤ (Nat.log2 (N + 1) : ℝ) :=
+        Nat.cast_nonneg (Nat.log2 (N + 1))
+      have hinside_nonneg :
+          0 ≤ ((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1 :=
+        add_nonneg (add_nonneg hquot_nonneg hlog_nonneg) zero_le_one
+      exact mul_nonneg (Nat.cast_nonneg 8) hinside_nonneg
+    exact Eq.subst
+      (motive := fun S : ℂ =>
+        ‖S‖ ≤
+          8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1))
+      hsum_zero.symm
+      htarget_nonneg
+  · have hN_pos : 1 ≤ N :=
+      Nat.succ_le_of_lt (Nat.pos_of_ne_zero hN)
+    have hsingle :
+        ‖∑ n ∈ Finset.Icc 1 N,
+          ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+            8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + 1) :=
+      hblock t ht (by decide : 1 ≤ 1) hN_pos
+    have hcover :
+        8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + 1) ≤
+          8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+      Complex.logarithmicPhase_single_block_le_dyadic_cover_expression t N
+    exact le_trans hsingle hcover
+
+/-- The standard logarithmic factor is bounded below uniformly on natural
+cutoffs. -/
+theorem Complex.logarithmicPhase_standardLog_half_le
+    (N : ℕ) :
+    (1 / 2 : ℝ) ≤ Real.log (2 + N) := by
+  sorry
+
+/-- The dyadic counting term is absorbed by the standard
+`sqrt(1 + |t|) log(2+N)` transition factor. -/
+theorem Complex.logarithmicPhase_log2_add_one_le_sqrt_transition
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ) :
+    (Nat.log2 (N + 1) : ℝ) + 1 ≤
+      2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
+  sorry
+
+/-- The quotient term in the dyadic-cover expression is absorbed by the
+standard logarithmic factor. -/
+theorem Complex.logarithmicPhase_quotient_term_le_standard
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ) :
+    8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) ≤
+      16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) := by
+  sorry
+
+/-- The dyadic counting term in the cover expression is absorbed by the
+standard transition factor. -/
+theorem Complex.logarithmicPhase_counting_term_le_standard
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ) :
+    8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
+      16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
   sorry
 
 /-- Elementary comparison from the dyadic block-cover expression to the
@@ -839,7 +1030,45 @@ theorem Complex.logarithmicPhase_dyadic_cover_expression_le_standard
       16 *
         (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
           Real.log (2 + N) := by
-  sorry
+  have hquot :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) ≤
+        16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) :=
+    Complex.logarithmicPhase_quotient_term_le_standard t ht N
+  have hcount :
+      8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
+        16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) :=
+    Complex.logarithmicPhase_counting_term_le_standard t ht N
+  have hsum :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) +
+          8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤
+        16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) +
+          16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) :=
+    add_le_add hquot hcount
+  have hleft :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) =
+        8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) +
+          8 * ((Nat.log2 (N + 1) : ℝ) + 1) := by
+    ring
+  have hright :
+      16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) +
+          16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) =
+        16 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) := by
+    ring
+  exact Eq.subst
+    (motive := fun lhs : ℝ =>
+      lhs ≤
+        16 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N))
+    hleft.symm
+    (Eq.subst
+      (motive := fun rhs : ℝ =>
+        8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) +
+            8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤ rhs)
+      hright
+      hsum)
 
 /-- Dyadic summation primitive that turns the one-block first-derivative
 estimate into the global logarithmic-phase partial-sum estimate. -/
