@@ -284,13 +284,66 @@ theorem Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
           ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ ≤ B) :
     ‖∑' n : ℕ,
       if N < n then a n * (w n : ℂ) else 0‖ ≤ B := by
-  /-
-  Intended proof chain:
-  `hsummable.hasSum` identifies the `tsum` as the limit of finite partial
-  sums; finite range sums are transported to strict tail sums over `Ioc N M`,
-  and `le_of_tendsto_of_tendsto'` closes the bound.
-  -/
-  sorry
+  let f : ℕ → ℂ := fun n : ℕ =>
+    if N < n then a n * (w n : ℂ) else 0
+  have hlim :
+      Tendsto
+        (fun K : ℕ => ∑ n ∈ Finset.range (K + (N + 1)), f n)
+        atTop
+        (𝓝 (∑' n : ℕ, f n)) := by
+    exact hsummable.hasSum.tendsto_sum_nat.comp
+      (tendsto_add_atTop_nat (N + 1))
+  have hbounded :
+      ∀ K : ℕ,
+        ‖∑ n ∈ Finset.range (K + (N + 1)), f n‖ ≤ B := by
+    intro K
+    have hsum_eq :
+        (∑ n ∈ Finset.range (K + (N + 1)), f n) =
+          ∑ n ∈ Finset.Ioc N (N + K), a n * (w n : ℂ) := by
+      have hfilter :
+          (Finset.range (K + (N + 1))).filter (fun n : ℕ => N < n) =
+            Finset.Ioc N (N + K) := by
+        ext n
+        constructor
+        · intro hn
+          have hn_range : n < K + (N + 1) :=
+            Finset.mem_range.mp (Finset.mem_filter.mp hn).1
+          have hNn : N < n :=
+            (Finset.mem_filter.mp hn).2
+          have hn_le : n ≤ N + K := by omega
+          exact Finset.mem_Ioc.mpr ⟨hNn, hn_le⟩
+        · intro hn
+          have hNn : N < n := (Finset.mem_Ioc.mp hn).1
+          have hn_le : n ≤ N + K := (Finset.mem_Ioc.mp hn).2
+          exact Finset.mem_filter.mpr
+            ⟨Finset.mem_range.mpr (by omega), hNn⟩
+      calc
+        (∑ n ∈ Finset.range (K + (N + 1)), f n) =
+            ∑ n ∈ (Finset.range (K + (N + 1))).filter
+              (fun n : ℕ => N < n), a n * (w n : ℂ) := by
+          rw [Finset.sum_filter]
+          refine Finset.sum_congr rfl ?_
+          intro n hn
+          by_cases hNn : N < n
+          · rw [if_pos hNn, f, if_pos hNn]
+          · rw [if_neg hNn, f, if_neg hNn]
+        _ = ∑ n ∈ Finset.Ioc N (N + K), a n * (w n : ℂ) := by
+          exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n * (w n : ℂ)) hfilter
+    have hNK : N ≤ N + K := by omega
+    exact hsum_eq.trans_le (hfinite_weighted (N + K) hNK)
+  have hnorm_lim :
+      Tendsto
+        (fun K : ℕ => ‖∑ n ∈ Finset.range (K + (N + 1)), f n‖)
+        atTop
+        (𝓝 ‖∑' n : ℕ, f n‖) :=
+    hlim.norm
+  have hconst :
+      Tendsto (fun _ : ℕ => B) atTop (𝓝 B) :=
+    tendsto_const_nhds
+  have hle :
+      ‖∑' n : ℕ, f n‖ ≤ B :=
+    le_of_tendsto_of_tendsto' hnorm_lim hconst hbounded
+  simpa [f] using hle
 
 /-- Abstract Abel damping lemma with explicit weight hypotheses. -/
 theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'

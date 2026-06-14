@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Basic
+import Mathlib.Analysis.Calculus.MeanValue
+import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
 import Mathlib.MeasureTheory.Integral.ExpDecay
 
@@ -55,6 +57,33 @@ theorem Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
       0 w := by
   sorry
 
+/-- A complex function with zero derivative on the open right half-plane is
+constant there.  This is the convex-domain mean-value theorem specialized to
+the right half-plane. -/
+theorem Complex.openRightHalfPlane_eq_of_hasDerivAt_zero
+    {F : ℂ → ℂ}
+    (hderiv : ∀ {z : ℂ}, 0 < z.re → HasDerivAt F 0 z) :
+    ∀ {z w : ℂ}, 0 < z.re → 0 < w.re → F z = F w := by
+  intro z w hz hw
+  let S : Set ℂ := {u : ℂ | 0 < u.re}
+  have hconv : Convex ℝ S := by
+    simpa [S] using (convex_halfSpace_re_gt (r := 0))
+  have hopen : IsOpen S := by
+    simpa [S] using
+      (isOpen_lt continuous_const Complex.continuous_re :
+        IsOpen {u : ℂ | (0 : ℝ) < u.re})
+  have hdiff : DifferentiableOn ℂ F S := by
+    intro u hu
+    exact (hderiv hu).differentiableAt.differentiableWithinAt
+  have hzero :
+      ∀ u ∈ S, fderivWithin ℂ F S u = 0 := by
+    intro u hu
+    have hunique : UniqueDiffWithinAt ℂ S u :=
+      hopen.uniqueDiffWithinAt hu
+    exact
+      (hderiv hu).hasFDerivAt.hasFDerivWithinAt.fderivWithin hunique
+  exact hconv.is_const_of_fderivWithin_eq_zero hdiff hzero hz hw
+
 /-- The two sides of Binet's second formula have the same complex derivative
 on the open right half-plane.
 
@@ -98,7 +127,25 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  intro w hw
+  let F : ℂ → ℂ :=
+    fun z : ℂ =>
+      Complex.log (Complex.Gamma z) -
+        (Complex.binetLogGammaMainTerm z +
+          Complex.binetSecondFormulaRemainder z)
+  have hbase_re : 0 < (w.re : ℂ).re := by
+    simpa using hw
+  have hconstant : F (w.re : ℂ) = F w :=
+    Complex.openRightHalfPlane_eq_of_hasDerivAt_zero
+      (F := F)
+      (fun hz => hderiv hz)
+      hbase_re hw
+  have hbase_zero : F (w.re : ℂ) = 0 := by
+    dsimp [F]
+    exact sub_eq_zero.mpr (hreal hw)
+  have hw_zero : F w = 0 := by
+    exact Eq.trans hconstant.symm hbase_zero
+  exact sub_eq_zero.mp hw_zero
 
 /-- The open right half-plane is connected to the positive real axis by
 paths along which the principal-log Binet difference has zero derivative.
