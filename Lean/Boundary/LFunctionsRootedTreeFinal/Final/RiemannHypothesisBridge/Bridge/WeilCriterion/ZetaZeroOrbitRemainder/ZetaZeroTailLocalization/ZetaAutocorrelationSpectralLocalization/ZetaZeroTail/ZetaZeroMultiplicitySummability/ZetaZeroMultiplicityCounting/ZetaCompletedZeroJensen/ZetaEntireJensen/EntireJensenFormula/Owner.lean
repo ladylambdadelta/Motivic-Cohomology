@@ -2598,6 +2598,28 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
           entireFunctionJensenRadialGapSummand G hG ρ z :=
       entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum G hG ρ
 
+/-- Unnormalized boundary-integral transport through the origin Taylor factor,
+after deleting the finite quotient boundary-zero exceptional set.
+
+This is the analytic finite-exception congruence root.  The proof belongs to
+the logarithmic-singularity layer: off the finite exceptional set the
+integrands differ by the constant origin contribution, and the finite
+logarithmic singularities do not change the interval integral. -/
+theorem entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogIntegral F ρ =
+      (2 * Real.pi) *
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogIntegral G ρ := by
+  sorry
+
 /-- Normalized boundary-integral transport through the origin Taylor factor,
 after deleting the finite boundary-zero exceptional set.
 
@@ -2617,13 +2639,57 @@ theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origi
     (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
       entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
         (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := by
-  -- This is the remaining finite-exception integral congruence root.  The
-  -- proof should assemble:
-  -- * quotient boundary-zero finiteness;
-  -- * off-exception log-integrand factorization;
-  -- * interval-integral congruence modulo that finite set;
-  -- * the constant-integral normalization on `[0, 2π]`.
-  sorry
+  let c : ℝ := (2 * Real.pi)⁻¹
+  let d : ℝ := 2 * Real.pi
+  have hd_ne : d ≠ 0 :=
+    ne_of_gt Real.two_pi_pos
+  have hcd : c * d = 1 := by
+    exact inv_mul_cancel₀ hd_ne
+  have hintegral :
+      entireFunctionJensenBoundaryLogIntegral F ρ =
+        d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          entireFunctionJensenBoundaryLogIntegral G ρ :=
+    entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
+      F G hF hG hfactor hρ
+  calc
+    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
+        c * entireFunctionJensenBoundaryLogIntegral F ρ := rfl
+    _ =
+        c *
+          (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogIntegral G ρ) := by
+      exact congrArg (fun x : ℝ => c * x) hintegral
+    _ =
+        c * (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ) +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact mul_add c
+        (d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+        (entireFunctionJensenBoundaryLogIntegral G ρ)
+    _ =
+        (c * d) * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        (mul_assoc c d
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+    _ =
+        1 * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        hcd
+    _ =
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          c * entireFunctionJensenBoundaryLogIntegral G ρ := by
+      exact congrArg
+        (fun x : ℝ => x + c * entireFunctionJensenBoundaryLogIntegral G ρ)
+        (one_mul (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+    _ =
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := rfl
 
 /-- Boundary-average transport through the origin Taylor factor, stated as the
 finite-exception integral theorem it really is.
