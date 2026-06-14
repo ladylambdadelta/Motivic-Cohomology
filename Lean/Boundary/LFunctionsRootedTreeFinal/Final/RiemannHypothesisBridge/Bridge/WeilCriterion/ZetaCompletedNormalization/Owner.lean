@@ -12272,7 +12272,112 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
         (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
       8 * (Real.log (2 + x) / x) +
         8 * Real.sqrt (1 + ‖t‖) * (Real.log (2 + x) / x ^ 2) := by
-  sorry
+  let L : ℝ := Real.log (2 + x)
+  let S : ℝ := Real.sqrt (1 + ‖t‖)
+  let T : ℝ := ‖t‖
+  have hT_pos : 0 < T :=
+    lt_of_lt_of_le zero_lt_one ht
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx
+  have hx_sq_pos : 0 < x ^ 2 :=
+    sq_pos_of_pos hx
+  have hx_sq_nonneg : 0 ≤ x ^ 2 :=
+    le_of_lt hx_sq_pos
+  have hL_nonneg : 0 ≤ L := by
+    have hone_le_two : (1 : ℝ) ≤ 2 := by
+      calc
+        (1 : ℝ) ≤ 1 + 1 := le_add_of_nonneg_right zero_le_one
+        _ = 2 := by
+          rfl
+    have htwo_le_two_add : (2 : ℝ) ≤ 2 + x :=
+      add_le_add_left hx_nonneg 2
+    exact Real.log_nonneg (le_trans hone_le_two htwo_le_two_add)
+  have hS_nonneg : 0 ≤ S :=
+    Real.sqrt_nonneg (1 + ‖t‖)
+  have height_nonneg : 0 ≤ (8 : ℝ) :=
+    ofNat_nonneg 8
+  have hweight_nonneg : 0 ≤ (1 : ℝ) / x ^ 2 := by
+    exact div_nonneg zero_le_one hx_sq_nonneg
+  have hfirst_ratio : x / T ≤ x := by
+    have hmul_le : x ≤ x * T := by
+      calc
+        x = x * 1 := by
+          exact (mul_one x).symm
+        _ ≤ x * T :=
+          mul_le_mul_of_nonneg_left ht hx_nonneg
+    exact (div_le_iff₀ hT_pos).mpr hmul_le
+  have hsum_le : (x / T) + S ≤ x + S :=
+    add_le_add_right hfirst_ratio S
+  have hmajor_le :
+      8 * ((x / T) + S) * L ≤ 8 * (x + S) * L := by
+    have hscaled :
+        8 * ((x / T) + S) ≤ 8 * (x + S) :=
+      mul_le_mul_of_nonneg_left hsum_le height_nonneg
+    exact mul_le_mul_of_nonneg_right hscaled hL_nonneg
+  have hweighted_major :
+      ((1 : ℝ) / x ^ 2) * (8 * ((x / T) + S) * L) ≤
+        ((1 : ℝ) / x ^ 2) * (8 * (x + S) * L) :=
+    mul_le_mul_of_nonneg_left hmajor_le hweight_nonneg
+  have hexpanded_bound :
+      ((1 : ℝ) / x ^ 2) * (8 * (x + S) * L) =
+        8 * (L / x) + 8 * S * (L / x ^ 2) := by
+    calc
+      ((1 : ℝ) / x ^ 2) * (8 * (x + S) * L) =
+          ((1 : ℝ) / x ^ 2) * ((8 * x + 8 * S) * L) := by
+        exact congrArg
+          (fun y : ℝ => ((1 : ℝ) / x ^ 2) * (y * L))
+          (mul_add 8 x S)
+      _ = ((1 : ℝ) / x ^ 2) * (8 * x * L + 8 * S * L) := by
+        exact congrArg
+          (fun y : ℝ => ((1 : ℝ) / x ^ 2) * y)
+          (add_mul (8 * x) (8 * S) L)
+      _ =
+          ((1 : ℝ) / x ^ 2) * (8 * x * L) +
+            ((1 : ℝ) / x ^ 2) * (8 * S * L) := by
+        exact mul_add ((1 : ℝ) / x ^ 2) (8 * x * L) (8 * S * L)
+      _ = 8 * (L / x) +
+            ((1 : ℝ) / x ^ 2) * (8 * S * L) := by
+        have hx_ne : x ≠ 0 :=
+          ne_of_gt hx
+        have hx_sq_ne : x ^ 2 ≠ 0 :=
+          pow_ne_zero 2 hx_ne
+        have hfirst :
+            ((1 : ℝ) / x ^ 2) * (8 * x * L) = 8 * (L / x) := by
+          calc
+            ((1 : ℝ) / x ^ 2) * (8 * x * L) =
+                8 * L * (x / x ^ 2) := by
+              ac_rfl
+            _ = 8 * L * (1 / x) := by
+              have hx_cancel : x / x ^ 2 = 1 / x := by
+                calc
+                  x / x ^ 2 = x / (x * x) := by
+                    exact congrArg (fun y : ℝ => x / y) (sq x)
+                  _ = 1 / x := by
+                    exact div_mul_cancel_left₀ hx_ne x
+              exact congrArg (fun y : ℝ => 8 * L * y) hx_cancel
+            _ = 8 * (L / x) := by
+              calc
+                8 * L * (1 / x) = 8 * (L * (1 / x)) := by
+                  exact mul_assoc 8 L (1 / x)
+                _ = 8 * (L / x) := by
+                  exact congrArg (fun y : ℝ => 8 * y) (div_eq_mul_one_div L x).symm
+        exact congrArg
+          (fun y : ℝ => y + ((1 : ℝ) / x ^ 2) * (8 * S * L))
+          hfirst
+      _ = 8 * (L / x) + 8 * S * (L / x ^ 2) := by
+        have hsecond :
+            ((1 : ℝ) / x ^ 2) * (8 * S * L) =
+              8 * S * (L / x ^ 2) := by
+          calc
+            ((1 : ℝ) / x ^ 2) * (8 * S * L) =
+                8 * S * (L * ((1 : ℝ) / x ^ 2)) := by
+              ac_rfl
+            _ = 8 * S * (L / x ^ 2) := by
+              exact congrArg
+                (fun y : ℝ => 8 * S * y)
+                (div_eq_mul_one_div L (x ^ 2)).symm
+        exact congrArg (fun y : ℝ => 8 * (L / x) + y) hsecond
+  exact le_trans hweighted_major (le_of_eq hexpanded_bound)
 
 /-- Integral transport of the pointwise scalar split over the post-cutoff
 interval. -/
@@ -18147,6 +18252,119 @@ theorem complex_eq_add_of_sub_eq
     _ = B + C := by
       exact congrArg (fun w : ℂ => B + w) h
 
+/-- The zeroth Dirichlet monomial vanishes in the convergent half-plane. -/
+theorem riemannZeta_dirichletTerm_zero_of_one_lt_re
+    {z : ℂ}
+    (hz : 1 < z.re) :
+    (1 : ℂ) / ((0 : ℂ) ^ z) = 0 := by
+  have hz_ne_zero : z ≠ 0 :=
+    Complex.ne_zero_of_one_lt_re hz
+  have hpow_zero : (0 : ℂ) ^ z = 0 :=
+    (cpow_eq_zero_iff).mpr ⟨rfl, hz_ne_zero⟩
+  calc
+    (1 : ℂ) / ((0 : ℂ) ^ z) = (1 : ℂ) / 0 := by
+      exact congrArg (fun w : ℂ => (1 : ℂ) / w) hpow_zero
+    _ = 0 := by
+      exact div_zero (1 : ℂ)
+
+/-- In the convergent half-plane, removing the finite Dirichlet window from
+`ζ(s)` leaves the post-cutoff Dirichlet tail as a `HasSum`. -/
+theorem eulerMaclaurin_riemannZeta_halfPlane_finite_split_tail_hasSum
+    (z : ℂ)
+    (hz : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if eulerMaclaurinPoleClearedZetaCutoff z < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      (riemannZeta z - eulerMaclaurinZetaFinitePart z) := by
+  let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
+  let f : ℕ → ℂ := fun n : ℕ => (1 : ℂ) / ((n : ℂ) ^ z)
+  have hf_summable : Summable f :=
+    (Complex.summable_one_div_nat_cpow (p := z)).mpr hz
+  have hζ_eq : riemannZeta z = ∑' n : ℕ, f n :=
+    zeta_eq_tsum_one_div_nat_cpow hz
+  have hf_has_tsum : HasSum f (∑' n : ℕ, f n) :=
+    hf_summable.hasSum
+  have hf_has_zeta : HasSum f (riemannZeta z) :=
+    Eq.subst
+      (motive := fun S : ℂ => HasSum f S)
+      hζ_eq.symm
+      hf_has_tsum
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} => f x)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hf_has_zeta
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := f)).mp
+        htail_compl
+  have hf_zero : f 0 = 0 := by
+    exact riemannZeta_dirichletTerm_zero_of_one_lt_re hz
+  have hindicator :
+      ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) =
+        (fun k : ℕ => if N < k then f k else 0) :=
+    funext
+      (fun n : ℕ =>
+        nat_not_Icc_one_indicator_eq_cutoff_if_of_zero f N n hf_zero)
+  have htail_if :
+      HasSum
+        (fun k : ℕ => if N < k then f k else 0)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    Eq.subst
+      (motive := fun g : ℕ → ℂ =>
+        HasSum g (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n))
+      hindicator
+      htail_indicator
+  unfold eulerMaclaurinZetaFinitePart
+  exact htail_if
+
+/-- First-order Euler-Maclaurin evaluation of the convergent post-cutoff
+Dirichlet tail.
+
+This is the standard Euler-Maclaurin theorem for `x ↦ x^{-z}` on the ray
+`[N,∞)`, with `N = eulerMaclaurinPoleClearedZetaCutoff z`:
+the post-cutoff Dirichlet tail has sum
+`N^(1-z)/(z-1) + (1/2)N^{-z} - z∫_N^∞ B₁({x})x^{-z-1}dx`. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if eulerMaclaurinPoleClearedZetaCutoff z < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      (eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z) := by
+  sorry
+
+/-- Boundary-line analytic continuation of the first-order Euler-Maclaurin
+tail identity.
+
+At `Re z = 1`, the ordinary Dirichlet tail is no longer absolutely summable;
+the equality is the Abel/Euler-Maclaurin continuation of the half-plane tail
+formula, away from the pole `z = 1`. -/
+theorem eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_with_bernoulliIntegralRemainder_standard
+    (z : ℂ)
+    (hz_re : z.re = 1)
+    (hz_ne_one : z ≠ 1) :
+    riemannZeta z - eulerMaclaurinZetaFinitePart z =
+      eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+  sorry
+
 /-- First-order Euler-Maclaurin tail identity for the Riemann zeta function at
 the owner cutoff `N = ⌊2 + ‖s‖⌋₊`.
 
@@ -18166,7 +18384,36 @@ theorem eulerMaclaurin_riemannZeta_tail_identity_with_bernoulliIntegralRemainder
       eulerMaclaurinZetaMainTerm z +
         eulerMaclaurinZetaEndpointTerm z +
         eulerMaclaurinZetaBernoulliIntegralRemainder z := by
-  sorry
+  by_cases hhalf_plane : 1 < z.re
+  · have hsplit :
+        HasSum
+          (fun n : ℕ =>
+            if eulerMaclaurinPoleClearedZetaCutoff z < n then
+              (1 : ℂ) / ((n : ℂ) ^ z)
+            else
+              0)
+          (riemannZeta z - eulerMaclaurinZetaFinitePart z) :=
+      eulerMaclaurin_riemannZeta_halfPlane_finite_split_tail_hasSum z hhalf_plane
+    have htail :
+        HasSum
+          (fun n : ℕ =>
+            if eulerMaclaurinPoleClearedZetaCutoff z < n then
+              (1 : ℂ) / ((n : ℂ) ^ z)
+            else
+              0)
+          (eulerMaclaurinZetaMainTerm z +
+            eulerMaclaurinZetaEndpointTerm z +
+            eulerMaclaurinZetaBernoulliIntegralRemainder z) :=
+      eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
+        z hz_one hz_two hhalf_plane
+    exact hsplit.unique htail
+  · have hz_re_le_one : z.re ≤ 1 :=
+      le_of_not_gt hhalf_plane
+    have hz_re_eq_one : z.re = 1 :=
+      le_antisymm hz_re_le_one hz_one
+    exact
+      eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_with_bernoulliIntegralRemainder_standard
+        z hz_re_eq_one hz_ne_one
 
 /-- First-order Euler-Maclaurin formula for the raw Riemann zeta away from its
 pole, with owner cutoff `N = ⌊2 + ‖s‖⌋₊`.
@@ -21392,6 +21639,181 @@ theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_boun
         mul_le_mul_of_nonneg_left hone_le_exp (le_of_lt zero_lt_two)
   exact hratio_poly.trans (htarget_factor.trans hpoly_exp)
 
+/-- Reflection sends the closed left half-plane into the right half-plane
+needed by Deligne's real-Gamma quotient identity. -/
+theorem one_sub_leftHalfPlane_re_one_le
+    {z : ℂ}
+    (hz_re : z.re ≤ 0) :
+    1 ≤ ((1 : ℂ) - z).re := by
+  have hre_eq : ((1 : ℂ) - z).re = 1 - z.re := by
+    calc
+      ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := Complex.sub_re (1 : ℂ) z
+      _ = 1 - z.re := by
+        exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
+  have hone_le : (1 : ℝ) ≤ 1 - z.re := by
+    calc
+      (1 : ℝ) = 1 - 0 := (sub_zero 1).symm
+      _ ≤ 1 - z.re := sub_le_sub_left hz_re 1
+  exact Eq.subst
+    (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+    hre_eq.symm
+    hone_le
+
+/-- The reflected left-half-plane point is automatically in the
+right-half-plane Stirling region at radius at least one. -/
+theorem one_sub_leftHalfPlane_norm_one_le
+    {z : ℂ}
+    (hz_re : z.re ≤ 0) :
+    1 ≤ ‖(1 : ℂ) - z‖ :=
+  one_le_norm_of_one_le_re (one_sub_leftHalfPlane_re_one_le hz_re)
+
+/-- The reflected point `1 - z` never meets the negative odd integers when
+`z` is in the closed left half-plane.  This is exactly the side condition in
+mathlib's Deligne identity `Gammaℝ_div_Gammaℝ_one_sub`. -/
+theorem one_sub_leftHalfPlane_ne_negative_odd
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (n : ℕ) :
+    (1 : ℂ) - z ≠ -(2 * n + 1) := by
+  intro hodd
+  have hz_re_eq : z.re = 2 * (n : ℝ) + 2 := by
+    have hsub_re :
+        ((1 : ℂ) - z).re = (-(2 * n + 1 : ℂ)).re :=
+      congrArg Complex.re hodd
+    have hleft_re : ((1 : ℂ) - z).re = 1 - z.re := by
+      calc
+        ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := Complex.sub_re (1 : ℂ) z
+        _ = 1 - z.re := by
+          exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
+    have hright_re : (-(2 * n + 1 : ℂ)).re = -(2 * (n : ℝ) + 1) := by
+      calc
+        (-(2 * n + 1 : ℂ)).re = -((2 * n + 1 : ℂ).re) :=
+          Complex.neg_re (2 * n + 1 : ℂ)
+        _ = -(2 * (n : ℝ) + 1) := by
+          exact congrArg Neg.neg (by
+            calc
+              ((2 * n + 1 : ℂ).re) =
+                  ((2 : ℂ) * (n : ℂ) + (1 : ℂ)).re := rfl
+              _ = ((2 : ℂ) * (n : ℂ)).re + (1 : ℂ).re :=
+                  Complex.add_re ((2 : ℂ) * (n : ℂ)) (1 : ℂ)
+              _ = ((2 : ℂ).re * (n : ℂ).re - (2 : ℂ).im * (n : ℂ).im) + 1 := by
+                  exact congrArg (fun x : ℝ => x + (1 : ℂ).re)
+                    (Complex.mul_re (2 : ℂ) (n : ℂ))
+              _ = (2 * (n : ℝ) - 0 * 0) + 1 := by
+                  exact congrArg (fun x : ℝ => x + 1)
+                    (congrArg (fun x : ℝ => 2 * (n : ℝ) - 0 * x)
+                      (Complex.ofReal_im (n : ℝ))).symm
+              _ = 2 * (n : ℝ) + 1 := by
+                  exact congrArg (fun x : ℝ => x + 1) (sub_zero (2 * (n : ℝ)))))
+    have hsub_real : 1 - z.re = -(2 * (n : ℝ) + 1) :=
+      Eq.trans hleft_re.symm (Eq.trans hsub_re hright_re)
+    have hadd : (1 - z.re) + z.re = -(2 * (n : ℝ) + 1) + z.re :=
+      congrArg (fun x : ℝ => x + z.re) hsub_real
+    have hone_eq : 1 = -(2 * (n : ℝ) + 1) + z.re := by
+      exact Eq.trans (sub_add_cancel 1 z.re).symm hadd
+    have hsolve :
+        z.re = 1 + (2 * (n : ℝ) + 1) := by
+      calc
+        z.re = z.re + 0 := (add_zero z.re).symm
+        _ = z.re + ((2 * (n : ℝ) + 1) + -(2 * (n : ℝ) + 1)) := by
+          exact congrArg (fun x : ℝ => z.re + x)
+            (add_neg_cancel (2 * (n : ℝ) + 1)).symm
+        _ = (z.re + -(2 * (n : ℝ) + 1)) + (2 * (n : ℝ) + 1) := by
+          calc
+            z.re + ((2 * (n : ℝ) + 1) + -(2 * (n : ℝ) + 1)) =
+                z.re + (-(2 * (n : ℝ) + 1) + (2 * (n : ℝ) + 1)) := by
+              exact congrArg (fun x : ℝ => z.re + x)
+                (add_comm (2 * (n : ℝ) + 1) (-(2 * (n : ℝ) + 1)))
+            _ = (z.re + -(2 * (n : ℝ) + 1)) + (2 * (n : ℝ) + 1) :=
+              add_assoc z.re (-(2 * (n : ℝ) + 1)) (2 * (n : ℝ) + 1)
+        _ = (-(2 * (n : ℝ) + 1) + z.re) + (2 * (n : ℝ) + 1) := by
+          exact congrArg (fun x : ℝ => x + (2 * (n : ℝ) + 1))
+            (add_comm z.re (-(2 * (n : ℝ) + 1)))
+        _ = 1 + (2 * (n : ℝ) + 1) := by
+          exact congrArg (fun x : ℝ => x + (2 * (n : ℝ) + 1)) hone_eq.symm
+    calc
+      z.re = 1 + (2 * (n : ℝ) + 1) := hsolve
+      _ = 2 * (n : ℝ) + 2 := by
+        calc
+          1 + (2 * (n : ℝ) + 1) = (1 + 1) + 2 * (n : ℝ) := by
+            exact Eq.trans (add_assoc 1 (2 * (n : ℝ)) 1).symm
+              (congrArg (fun x : ℝ => x + 2 * (n : ℝ))
+                (add_comm 1 1))
+          _ = 2 * (n : ℝ) + 2 := by
+            exact add_comm (1 + 1) (2 * (n : ℝ))
+  have hz_re_pos : 0 < z.re := by
+    have htwo_nonneg : 0 ≤ 2 * (n : ℝ) :=
+      mul_nonneg zero_le_two (Nat.cast_nonneg n)
+    have hright_pos : 0 < 2 * (n : ℝ) + 2 :=
+      add_pos_of_nonneg_of_pos htwo_nonneg zero_lt_two
+    exact Eq.subst
+      (motive := fun x : ℝ => 0 < x)
+      hz_re_eq.symm
+      hright_pos
+  exact not_lt_of_ge hz_re hz_re_pos
+
+/-- Deligne reflection gives the raw left-half-plane real-Gamma quotient as
+a right-half-plane `Gammaℂ` factor times the elementary cosine factor. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_eq_Gammaℂ_cos
+    {z : ℂ}
+    (hz_re : z.re ≤ 0) :
+    Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z =
+      Complex.Gammaℂ ((1 : ℂ) - z) *
+        Complex.cos (π * ((1 : ℂ) - z) / 2) := by
+  have hodd :
+      ∀ n : ℕ, (1 : ℂ) - z ≠ -(2 * n + 1) :=
+    fun n => one_sub_leftHalfPlane_ne_negative_odd hz_re n
+  have hdeligne :
+      Complex.Gammaℝ ((1 : ℂ) - z) /
+          Complex.Gammaℝ (1 - ((1 : ℂ) - z)) =
+        Complex.Gammaℂ ((1 : ℂ) - z) *
+          Complex.cos (π * ((1 : ℂ) - z) / 2) :=
+    Complex.Gammaℝ_div_Gammaℝ_one_sub hodd
+  have hone_sub_sub : (1 : ℂ) - ((1 : ℂ) - z) = z := by
+    exact sub_sub_cancel (1 : ℂ) z
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ w =
+        Complex.Gammaℂ ((1 : ℂ) - z) *
+          Complex.cos (π * ((1 : ℂ) - z) / 2))
+    hone_sub_sub
+    hdeligne
+
+/-- Right-half-plane finite-order growth for the Deligne quotient factor
+`Gammaℂ s * cos (πs/2)`.
+
+The Gamma part is obtained from `Gammaℝ s * Gammaℝ (s+1) = Gammaℂ s` and the
+right-half-plane Stirling envelope already proved above.  The cosine part is
+the elementary exponential estimate following from the definitions of complex
+trigonometric functions. -/
+theorem Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ s : ℂ,
+        1 ≤ s.re →
+        1 ≤ ‖s‖ →
+        ‖Complex.Gammaℂ s * Complex.cos (π * s / 2)‖ ≤
+          A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  sorry
+
+/-- Reflected-left-half-plane finite-order form of the right-half-plane
+`Gammaℂ·cos` Deligne factor.
+
+This is the affine-envelope transport `s = 1 - z` applied to
+`Gammaℂ_cos_rightHalfPlane_finiteOrder_growth_bound`; the only estimates are
+`1 ≤ Re (1-z)` and the elementary norm comparison for `1 - z`. -/
+theorem Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖Complex.Gammaℂ ((1 : ℂ) - z) *
+            Complex.cos (π * ((1 : ℂ) - z) / 2)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 /-- Deligne reflection/recurrence algebra for the left-half-plane `Gammaℝ`
 ratio, isolated from the analytic Stirling estimates.
 
@@ -21411,7 +21833,20 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Delig
         1 ≤ ‖z‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases Gammaℂ_cos_reflectedLeftHalfPlane_finiteOrder_growth_bound with
+    ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro z hz_re _hz_ne_zero _hz_norm
+  have hquot :
+      Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z =
+        Complex.Gammaℂ ((1 : ℂ) - z) *
+          Complex.cos (π * ((1 : ℂ) - z) / 2) :=
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_eq_Gammaℂ_cos hz_re
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    hquot.symm
+    (hbound z hz_re)
 
 /-- Large-radius Stirling branch for the completed-functional-equation real-Gamma
 ratio on the closed left half plane.

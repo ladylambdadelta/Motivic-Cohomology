@@ -2392,13 +2392,59 @@ theorem real_integral_log_sin_zero_pi :
   -- Deep classical Fourier/Beta integral.
   sorry
 
+/-- Squared chord length for the unit-circle logarithmic kernel.
+
+This is the coordinate norm-square calculation:
+`|1 - e^{iθ}|² = (2 |sin(θ/2)|)²`. -/
+theorem unitCircleLogKernel_norm_sq_eq_two_abs_sin_half_sq
+    (θ : ℝ) :
+    ‖1 - Complex.exp (θ * Complex.I)‖ ^ 2 =
+      (2 * |Real.sin (θ / 2)|) ^ 2 := by
+  -- Expand `Complex.exp_mul_I`, compute `Complex.normSq`, and use
+  -- `Real.sin_sq_eq_half_sub` / `Real.abs_sin_half`.
+  sorry
+
 /-- Unit-circle kernel norm as the sine half-angle expression. -/
 theorem unitCircleLogKernel_norm_eq_two_abs_sin_half
     (θ : ℝ) :
     ‖1 - Complex.exp (θ * Complex.I)‖ =
       2 * |Real.sin (θ / 2)| := by
-  -- Trigonometric norm computation from
-  -- `exp(iθ) = cos θ + i sin θ` and `1 - cos θ = 2 sin²(θ/2)`.
+  have hleft_nonneg :
+      0 ≤ ‖1 - Complex.exp (θ * Complex.I)‖ :=
+    norm_nonneg (1 - Complex.exp (θ * Complex.I))
+  have htwo_nonneg : (0 : ℝ) ≤ 2 :=
+    zero_le_two
+  have hright_nonneg :
+      0 ≤ 2 * |Real.sin (θ / 2)| :=
+    mul_nonneg htwo_nonneg (abs_nonneg (Real.sin (θ / 2)))
+  exact
+    (sq_eq_sq₀ hleft_nonneg hright_nonneg).1
+      (unitCircleLogKernel_norm_sq_eq_two_abs_sin_half_sq θ)
+
+/-- Integral split after the pointwise half-angle norm identity. -/
+theorem unitCircleLogKernel_integral_eq_const_plus_halfSineLog :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+      ∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log 2 + Real.log |Real.sin (θ / 2)| := by
+  -- Pointwise use of `unitCircleLogKernel_norm_eq_two_abs_sin_half` and
+  -- `Real.log_mul` away from the finite endpoint singularities.
+  sorry
+
+/-- Half-angle interval substitution for the sine-log kernel. -/
+theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log |Real.sin (θ / 2)|) =
+      2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
+  -- Change variables `θ = 2u`; on `[0,π]`, `sin u` is nonnegative, so the
+  -- absolute value may be removed.
+  sorry
+
+/-- Constant part of the unit-circle kernel integral. -/
+theorem unitCircleLogKernel_const_integral_eq :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
+      2 * Real.pi * Real.log 2 := by
+  -- Constant interval integral over `[0, 2π]`.
   sorry
 
 /-- Integral form of the unit-circle kernel after the sine half-angle
@@ -2408,9 +2454,55 @@ theorem unitCircleLogKernel_integral_eq_sineLogIntegral :
       Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
       2 * Real.pi * Real.log 2 +
         2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
-  -- Use `unitCircleLogKernel_norm_eq_two_abs_sin_half`, positivity of
-  -- `sin` on `(0,π)`, and the change of variables `θ = 2u`.
-  sorry
+  have hsplit :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log 2 + Real.log |Real.sin (θ / 2)| :=
+    unitCircleLogKernel_integral_eq_const_plus_halfSineLog
+  have hsum :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log 2 + Real.log |Real.sin (θ / 2)|) =
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log |Real.sin (θ / 2)|) := by
+    -- Additivity of interval integrals for the finite-log-singularity
+    -- integrable summands.
+    sorry
+  have hconst :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
+        2 * Real.pi * Real.log 2 :=
+    unitCircleLogKernel_const_integral_eq
+  have hhalf :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log |Real.sin (θ / 2)|) =
+        2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) :=
+    unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log 2 + Real.log |Real.sin (θ / 2)| := hsplit
+    _ =
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log |Real.sin (θ / 2)|) := hsum
+    _ =
+        2 * Real.pi * Real.log 2 +
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log |Real.sin (θ / 2)|) := by
+      exact congrArg
+        (fun x : ℝ =>
+          x +
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              Real.log |Real.sin (θ / 2)|))
+        hconst
+    _ =
+        2 * Real.pi * Real.log 2 +
+          2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
+      exact congrArg
+        (fun x : ℝ => 2 * Real.pi * Real.log 2 + x)
+        hhalf
 
 /-- Arithmetic endpoint of the unit-circle kernel reduction. -/
 theorem unitCircleLogKernel_integral_eq_zero_from_sineLogIntegral :
@@ -3658,6 +3750,37 @@ theorem complex_centerSegment_finiteAnalyticAtCover
         (complex_starConvex_centerSegment_analyticAt
           φ hstar hφ hz ht)
 
+/-- Continuity of the two-parameter center-segment map
+`(x,t) ↦ lineMap 0 x t`. -/
+theorem complex_centerSegment_endpointParameter_continuous :
+    Continuous
+      (fun p : ℂ × ℝ =>
+        AffineMap.lineMap (0 : ℂ) p.1 p.2) := by
+  have hmul :
+      Continuous
+        (fun p : ℂ × ℝ => (p.2 : ℂ) * p.1) :=
+    (continuous_ofReal.comp continuous_snd).mul continuous_fst
+  have hfun :
+      (fun p : ℂ × ℝ =>
+        AffineMap.lineMap (0 : ℂ) p.1 p.2) =
+        fun p : ℂ × ℝ => (p.2 : ℂ) * p.1 :=
+    funext fun p : ℂ × ℝ =>
+      calc
+        AffineMap.lineMap (0 : ℂ) p.1 p.2 =
+            p.2 • (p.1 - 0) + 0 :=
+          AffineMap.lineMap_apply_module' (0 : ℂ) p.1 p.2
+        _ = (p.2 : ℂ) * (p.1 - 0) + 0 :=
+          rfl
+        _ = (p.2 : ℂ) * p.1 + 0 :=
+          congrArg (fun a : ℂ => (p.2 : ℂ) * a + 0) (sub_zero p.1)
+        _ = (p.2 : ℂ) * p.1 :=
+          add_zero ((p.2 : ℂ) * p.1)
+  exact
+    Eq.subst
+      (motive := fun f : ℂ × ℝ → ℂ => Continuous f)
+      hfun.symm
+      hmul
+
 /-- Endpoint stability for center segments into an arbitrary open tube around
 the compact base segment.
 
@@ -3684,7 +3807,42 @@ theorem complex_centerSegment_endpointStability_openTube
                 ∀ t : ℝ,
                   t ∈ Set.Icc (0 : ℝ) 1 →
                     AffineMap.lineMap (0 : ℂ) x t ∈ U := by
-  sorry
+  let n : Set (ℂ × ℝ) :=
+    {p : ℂ × ℝ | AffineMap.lineMap (0 : ℂ) p.1 p.2 ∈ U}
+  have hn : IsOpen n :=
+    hU_open.preimage complex_centerSegment_endpointParameter_continuous
+  have hprod :
+      ({z} : Set ℂ) ×ˢ Set.Icc (0 : ℝ) 1 ⊆ n := by
+    intro p hp
+    exact
+      hseg
+        ⟨p.2, hp.2,
+          Eq.subst
+            (motive := fun q : ℂ =>
+              q = AffineMap.lineMap (0 : ℂ) p.1 p.2)
+            (Set.mem_singleton_iff.1 hp.1)
+            rfl⟩
+  rcases
+    generalized_tube_lemma
+      (isCompact_singleton (a := z))
+      isCompact_Icc
+      hn
+      hprod with
+    ⟨u, v, hu_open, _hv_open, hz_subset, hv_subset, huv⟩
+  have hz_mem : z ∈ u :=
+    singleton_subset_iff.1 hz_subset
+  have hu_nhds : u ∈ 𝓝 z :=
+    hu_open.mem_nhds hz_mem
+  refine ⟨u, hz_mem, hu_nhds, ?_⟩
+  intro w hw
+  rcases Metric.isOpen_iff.1 hu_open w hw with ⟨ε, hε_pos, hε_subset⟩
+  exact
+    ⟨ε, hε_pos,
+      fun x hx t ht =>
+        huv
+          (mk_mem_prod
+            (hε_subset hx)
+            (hv_subset ht))⟩
 
 /-- Endpoint stability for center segments into a finite analytic tube.
 
