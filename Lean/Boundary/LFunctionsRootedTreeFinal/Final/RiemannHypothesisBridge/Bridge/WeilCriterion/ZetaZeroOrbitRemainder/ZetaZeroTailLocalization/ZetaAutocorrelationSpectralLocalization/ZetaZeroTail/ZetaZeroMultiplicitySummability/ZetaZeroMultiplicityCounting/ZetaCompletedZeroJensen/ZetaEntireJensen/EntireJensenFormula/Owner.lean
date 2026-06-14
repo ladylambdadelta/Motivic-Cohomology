@@ -1832,6 +1832,41 @@ theorem entireFunction_originTaylorFactor_entireQuotient
   -- `F z / z^m` at the origin.
   sorry
 
+/-- Away from the origin, zeros of an entire function agree with zeros of its
+global origin Taylor quotient. -/
+theorem entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {z : ℂ}
+    (hz : z ≠ 0) :
+    F z = 0 ↔ G z = 0 := by
+  have hpow : z ^ entireFunctionZeroMultiplicity F hF 0 ≠ 0 :=
+    pow_ne_zero (entireFunctionZeroMultiplicity F hF 0) hz
+  constructor
+  · intro hFz
+    have hmul :
+        z ^ entireFunctionZeroMultiplicity F hF 0 * G z = 0 := by
+      calc
+        z ^ entireFunctionZeroMultiplicity F hF 0 * G z =
+            z ^ entireFunctionZeroMultiplicity F hF 0 • G z := by
+          exact (smul_eq_mul
+            (z ^ entireFunctionZeroMultiplicity F hF 0) (G z)).symm
+        _ = F z := (hfactor z).symm
+        _ = 0 := hFz
+    exact (mul_eq_zero.mp hmul).resolve_left hpow
+  · intro hGz
+    calc
+      F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z := hfactor z
+      _ = z ^ entireFunctionZeroMultiplicity F hF 0 • 0 := by
+        exact congrArg
+          (fun w : ℂ => z ^ entireFunctionZeroMultiplicity F hF 0 • w)
+          hGz
+      _ = 0 :=
+        smul_zero (z ^ entireFunctionZeroMultiplicity F hF 0)
+
 /-- Origin Taylor-factor transport after the global entire quotient at the
 origin has been explicitly constructed.
 
