@@ -187,6 +187,33 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_nonneg
       (fun _ => Or.inr hs_nonneg)
   exact hcontinuous.intervalIntegrable (0 : ℝ) (Real.pi / 2)
 
+/-- Pointwise domination of negative sine powers by the endpoint model on
+`(0,π/2]`, with the explicit Jordan constant. -/
+theorem Real.sinePowerKernel_neg_le_endpointModel_const
+    (s u : ℝ)
+    (hs_neg : s < 0)
+    (hu0 : 0 < u)
+    (huhalf : u ≤ Real.pi / 2) :
+    (Real.sin u) ^ s ≤
+      (2 / Real.pi : ℝ) ^ s * u ^ s := by
+  have hc_pos : 0 < (2 / Real.pi : ℝ) :=
+    div_pos zero_lt_two Real.pi_pos
+  have hc_nonneg : 0 ≤ (2 / Real.pi : ℝ) :=
+    le_of_lt hc_pos
+  have hu_nonneg : 0 ≤ u :=
+    le_of_lt hu0
+  have hcu_pos : 0 < (2 / Real.pi : ℝ) * u :=
+    mul_pos hc_pos hu0
+  have hsin_lower : (2 / Real.pi : ℝ) * u ≤ Real.sin u :=
+    Real.mul_le_sin hu_nonneg huhalf
+  have hpow :
+      (Real.sin u) ^ s ≤ ((2 / Real.pi : ℝ) * u) ^ s :=
+    Real.rpow_le_rpow_of_nonpos hcu_pos hsin_lower (le_of_lt hs_neg)
+  calc
+    (Real.sin u) ^ s ≤ ((2 / Real.pi : ℝ) * u) ^ s := hpow
+    _ = (2 / Real.pi : ℝ) ^ s * u ^ s := by
+      exact Real.mul_rpow hc_nonneg hu_nonneg
+
 /-- Negative sine powers on `[0,π/2]` are dominated by the endpoint model via
 Jordan's lower bound `2/π * u ≤ sin u`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointModel
@@ -204,7 +231,48 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
       MeasureTheory.volume
       (0 : ℝ)
       (Real.pi / 2) := by
-  sorry
+  have hle : (0 : ℝ) ≤ Real.pi / 2 :=
+    le_of_lt Real.pi_div_two_pos
+  rw [intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hle]
+  have hmodel_const :
+      IntervalIntegrable
+        (fun u : ℝ => (2 / Real.pi : ℝ) ^ s * u ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) :=
+    hmodel.const_mul ((2 / Real.pi : ℝ) ^ s)
+  rw [intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hle] at hmodel_const
+  have hcontinuousOn :
+      ContinuousOn
+        (fun u : ℝ => (Real.sin u) ^ s)
+        (Set.Ioc (0 : ℝ) (Real.pi / 2)) := by
+    intro u hu
+    have hu0 : 0 < u := hu.1
+    have hupi : u < Real.pi :=
+      lt_of_le_of_lt hu.2 (half_lt_self Real.pi_pos)
+    have hsin_ne : Real.sin u ≠ 0 :=
+      (Real.sin_pos_of_pos_of_lt_pi hu0 hupi).ne'
+    exact
+      (Real.continuous_sin.continuousAt.rpow_const
+        (Or.inl hsin_ne)).continuousWithinAt
+  exact
+    Integrable.mono' hmodel_const
+      (hcontinuousOn.aestronglyMeasurable measurableSet_Ioc)
+      (by
+        filter_upwards [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc] with u hu
+        have hdom :
+            (Real.sin u) ^ s ≤
+              (2 / Real.pi : ℝ) ^ s * u ^ s :=
+          Real.sinePowerKernel_neg_le_endpointModel_const
+            s u hs_neg hu.1 hu.2
+        have hnonneg : 0 ≤ (Real.sin u) ^ s :=
+          Real.rpow_nonneg
+            (Real.sin_nonneg_of_nonneg_of_le_pi
+              (le_of_lt hu.1)
+              (le_trans hu.2 (half_le_self Real.pi_pos.le)))
+            s
+        exact
+          (Real.norm_of_nonneg hnonneg).trans_le hdom)
 
 /-- Local comparison of `sin u ^ s` with the model endpoint singularity near
 `0`, in the integrability form needed for the left half-interval. -/

@@ -598,6 +598,54 @@ theorem entireFunction_insertNormalizedFactor_glue_localDivision
       entireFunction_insertNormalizedFactor_gluedQuotient_zero
         F Qold Qloc hF a ha0 hQold_zero
 
+/-- Cancellation identity for the inserted local quotient model.
+
+This is the algebra behind replacing the old local quotient
+`(q * g) / p` divided by the inserted normalized factor `c * q` with the
+filled inserted local model `g / (c * p)`. -/
+theorem complex_insertedLocalModel_division_cancellation
+    (g q c p : ℂ)
+    (hq : q ≠ 0)
+    (hc : c ≠ 0)
+    (hp : p ≠ 0) :
+    g / (c * p) = ((q * g) / p) / (c * q) := by
+  have hcp : c * p ≠ 0 :=
+    mul_ne_zero hc hp
+  have hcq : c * q ≠ 0 :=
+    mul_ne_zero hc hq
+  have hright_mul :
+      (((q * g) / p) / (c * q)) * (c * q) =
+        (q * g) / p := by
+    exact div_mul_cancel₀ ((q * g) / p) hcq
+  have hleft_mul :
+      (g / (c * p)) * (c * q) =
+        (q * g) / p := by
+    calc
+      (g / (c * p)) * (c * q)
+          = (g * (c * p)⁻¹) * (c * q) := by
+            exact congrArg (fun x : ℂ => x * (c * q)) (div_eq_mul_inv g (c * p))
+      _ = (g * (p⁻¹ * c⁻¹)) * (c * q) := by
+            exact congrArg (fun x : ℂ => (g * x) * (c * q)) (mul_inv_rev c p)
+      _ = ((g * p⁻¹) * c⁻¹) * (c * q) := by
+            exact congrArg (fun x : ℂ => x * (c * q)) (mul_assoc g p⁻¹ c⁻¹)
+      _ = (g * p⁻¹) * (c⁻¹ * (c * q)) := by
+            exact mul_assoc (g * p⁻¹) c⁻¹ (c * q)
+      _ = (g * p⁻¹) * ((c⁻¹ * c) * q) := by
+            exact congrArg (fun x : ℂ => (g * p⁻¹) * x) (mul_assoc c⁻¹ c q).symm
+      _ = (g * p⁻¹) * (1 * q) := by
+            exact congrArg (fun x : ℂ => (g * p⁻¹) * (x * q)) (inv_mul_cancel₀ hc)
+      _ = (g * p⁻¹) * q := by
+            exact congrArg (fun x : ℂ => (g * p⁻¹) * x) (one_mul q)
+      _ = q * (g * p⁻¹) := by
+            exact mul_comm (g * p⁻¹) q
+      _ = (q * g) * p⁻¹ := by
+            exact (mul_assoc q g p⁻¹).symm
+      _ = (q * g) / p := by
+            exact (div_eq_mul_inv (q * g) p).symm
+  exact
+    mul_left_cancel₀ hcq
+      (Eq.trans hleft_mul hright_mul.symm)
+
 /-- Local removable division package for the inserted normalized factor,
 constructed from the old quotient and the local Taylor unit. -/
 theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and_localUnit
@@ -806,7 +854,15 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
                 g w / (((-(a : ℂ)⁻¹) ^ m) * oldProduct w) := rfl
             _ = (((w - (a : ℂ)) ^ m * g w) / oldProduct w) /
                 (((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m) := by
-              field_simp [hpow_ne, hcoeff_ne, hprod_ne]
+              exact
+                complex_insertedLocalModel_division_cancellation
+                  (g w)
+                  ((w - (a : ℂ)) ^ m)
+                  ((-(a : ℂ)⁻¹) ^ m)
+                  (oldProduct w)
+                  hpow_ne
+                  hcoeff_ne
+                  hprod_ne
             _ = Qold w /
                 (((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m) := by
               exact
