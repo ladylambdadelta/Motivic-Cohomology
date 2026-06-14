@@ -15,6 +15,28 @@ noncomputable section
 
 open scoped Topology
 
+/-- Binet's second logarithmic formula on the open right half-plane. -/
+theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane :
+    ∀ w : ℂ,
+      0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
+/-- Closed-sector continuation of Binet's second logarithmic formula after a
+large-radius cutoff. -/
+theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation :
+    ∃ R : ℝ,
+      0 < R ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
 /-- Binet's second logarithmic formula for Gamma in the closed right
 half-plane, away from the origin and after a fixed large-radius cutoff. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
@@ -26,6 +48,45 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
+  exact
+    Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation
+
+/-- The arctangent part of the Binet kernel is bounded by `t / ‖w‖` in the
+open right half-plane. -/
+theorem Complex.binetSecondFormula_arctan_norm_le
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∀ t : ℝ,
+      0 < t →
+        ‖Complex.arctan ((t : ℂ) / w)‖ ≤ t / ‖w‖ := by
+  sorry
+
+/-- Norm of the Binet exponential denominator agrees with the positive real
+denominator. -/
+theorem Complex.binetSecondFormula_exp_denominator_norm_eq
+    (t : ℝ) :
+    ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+      ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
+  sorry
+
+/-- Positivity removes the norm from the Binet real denominator. -/
+theorem Real.binetSecondFormula_exp_denominator_norm_eq
+    {t : ℝ}
+    (ht : 0 < t) :
+    ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ =
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  sorry
+
+/-- Division of the arctangent estimate by the positive Binet denominator. -/
+theorem Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∀ t : ℝ,
+      0 < t →
+        ‖Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+          (t / ‖w‖) /
+            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   sorry
 
 /-- Pointwise kernel estimate for Binet's second-formula remainder. -/
@@ -38,7 +99,8 @@ theorem Complex.binetSecondFormula_kernel_norm_le
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
           (t / ‖w‖) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+  exact
+    Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le hw_re_pos
 
 /-- Sector form of the Binet-kernel estimate on the open right half-plane.
 
@@ -102,6 +164,23 @@ theorem Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi :
   intro t ht
   exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht)
 
+/-- Exponential lower bound giving cancellation of the zero of
+`exp (2πt) - 1` at the origin. -/
+theorem Real.two_pi_mul_le_exp_two_pi_mul_sub_one
+    {t : ℝ}
+    (ht : 0 ≤ t) :
+    (2 : ℝ) * Real.pi * t ≤
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  sorry
+
+/-- Division form of the zero-cancellation estimate for the Binet majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
+    {t : ℝ}
+    (ht : 0 < t) :
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      1 / ((2 : ℝ) * Real.pi) := by
+  sorry
+
 /-- Pointwise zero-cancellation bound for the Binet majorant on `(0,1]`.
 
 The analytic root is the elementary inequality
@@ -112,7 +191,18 @@ theorem Real.binetSecondFormula_kernel_majorant_zero_cancellation_pointwise
     (ht : t ∈ Set.Ioc (0 : ℝ) 1) :
     ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
       1 / ((2 : ℝ) * Real.pi) := by
-  sorry
+  have hpos :
+      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht.1)
+  have hle :
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        1 / ((2 : ℝ) * Real.pi) :=
+    Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi ht.1
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ 1 / ((2 : ℝ) * Real.pi))
+      (Real.norm_of_nonneg hpos).symm
+      hle
 
 /-- The Binet majorant is bounded near zero after cancellation of the simple
 zero in `exp (2πt)-1`. -/
@@ -179,6 +269,31 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one :
   exact
     Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation
 
+/-- On the Binet tail, `exp (2πt) - 1` is bounded below by
+`(1/2) exp (2πt)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    (Real.exp ((2 : ℝ) * Real.pi * t)) / 2 ≤
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  sorry
+
+/-- The linear factor on the Binet tail is absorbed by `exp (πt)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    t ≤ Real.exp (Real.pi * t) := by
+  sorry
+
+/-- Pointwise tail domination after separating the denominator lower bound
+and the linear/exponential absorption. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      2 * Real.exp (-Real.pi * t) := by
+  sorry
+
 /-- Pointwise exponential tail domination for the Binet majorant with the
 concrete constant `2`. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
@@ -186,7 +301,20 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
     (ht : t ∈ Set.Ioi (1 : ℝ)) :
     ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
       2 * Real.exp (-Real.pi * t) := by
-  sorry
+  have ht_pos : 0 < t :=
+    lt_trans zero_lt_one ht
+  have hnonneg :
+      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+  have hle :
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        2 * Real.exp (-Real.pi * t) :=
+    Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower ht
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ 2 * Real.exp (-Real.pi * t))
+      (Real.norm_of_nonneg hnonneg).symm
+      hle
 
 /-- The Binet real majorant has an exponentially decaying tail. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_le_exp :
