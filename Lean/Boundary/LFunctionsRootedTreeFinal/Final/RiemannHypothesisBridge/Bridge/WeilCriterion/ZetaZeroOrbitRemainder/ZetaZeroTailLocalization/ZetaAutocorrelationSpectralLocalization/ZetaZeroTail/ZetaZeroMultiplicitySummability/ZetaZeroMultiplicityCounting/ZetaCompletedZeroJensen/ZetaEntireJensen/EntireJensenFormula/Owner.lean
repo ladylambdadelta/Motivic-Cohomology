@@ -1925,9 +1925,87 @@ theorem entireFunction_originTaylorFactor_entireQuotient_ownerRoot
       (∀ z : ℂ,
         F z =
           z ^ entireFunctionZeroMultiplicity F hF 0 • G z) := by
-  -- Remove the finite origin order and fill the removable singularity of
-  -- `F z / z^m` at the origin.
-  sorry
+  let m : ℕ := entireFunctionZeroMultiplicity F hF 0
+  have horder : (hF 0).order = (m : ENat) :=
+    entireFunction_origin_order_eq_multiplicity_of_nontrivial F hF hnontrivial
+  rcases (hF 0).order_eq_nat_iff m |>.mp horder with
+    ⟨g, hg_an, hg_ne, hg_factor⟩
+  let G : ℂ → ℂ :=
+    fun z =>
+      if z = 0 then
+        g 0
+      else
+        entireFunction_originTaylorPuncturedQuotient F hF z
+  have hG_eq_g_nhds : G =ᶠ[𝓝 (0 : ℂ)] g := by
+    filter_upwards [hg_factor] with z hz_factor
+    by_cases hz : z = 0
+    · calc
+        G z = g 0 := by
+          exact if_pos hz
+        _ = g z := by
+          exact congrArg g hz.symm
+    · have hpow : z ^ m ≠ 0 :=
+        pow_ne_zero m hz
+      calc
+        G z =
+            entireFunction_originTaylorPuncturedQuotient F hF z := by
+          exact if_neg hz
+        _ = (z ^ m)⁻¹ • F z := rfl
+        _ = (z ^ m)⁻¹ • (z ^ m • g z) := by
+          exact congrArg (fun w : ℂ => (z ^ m)⁻¹ • w) hz_factor
+        _ = ((z ^ m)⁻¹ * z ^ m) • g z := by
+          exact smul_smul (z ^ m)⁻¹ (z ^ m) (g z)
+        _ = (1 : ℂ) • g z := by
+          exact congrArg (fun a : ℂ => a • g z) (inv_mul_cancel₀ hpow)
+        _ = g z := by
+          exact one_smul ℂ (g z)
+  have hG_origin_an : AnalyticAt ℂ G 0 :=
+    hg_an.congr hG_eq_g_nhds.symm
+  have hG_ne : G 0 ≠ 0 := by
+    have hG0 : G 0 = g 0 := by
+      exact if_pos rfl
+    exact fun hzero => hg_ne (Eq.trans hG0.symm hzero)
+  have hG_off_origin_an :
+      ∀ z : ℂ, z ≠ 0 → AnalyticAt ℂ G z := by
+    intro z hz
+    have hpow_ne : z ^ m ≠ 0 :=
+      pow_ne_zero m hz
+    have hquot_an :
+        AnalyticAt ℂ (fun w : ℂ => (w ^ m)⁻¹ * F w) z := by
+      have hpow_an : AnalyticAt ℂ (fun w : ℂ => w ^ m) z :=
+        (analyticAt_id : AnalyticAt ℂ (fun w : ℂ => w) z).pow m
+      exact (hpow_an.inv hpow_ne).mul (hF z)
+    refine hquot_an.congr ?_
+    filter_upwards [isOpen_ne.mem_nhds hz] with w hw
+    calc
+      (w ^ m)⁻¹ * F w =
+          (w ^ m)⁻¹ • F w := by
+        exact (smul_eq_mul (w ^ m)⁻¹ (F w)).symm
+      _ = entireFunction_originTaylorPuncturedQuotient F hF w := rfl
+      _ = G w := by
+        exact (if_neg hw).symm
+  have hG_an : ∀ z : ℂ, AnalyticAt ℂ G z := by
+    intro z
+    by_cases hz : z = 0
+    · exact Eq.subst (motive := fun w : ℂ => AnalyticAt ℂ G w) hz.symm hG_origin_an
+    · exact hG_off_origin_an z hz
+  have hfactor : ∀ z : ℂ, F z = z ^ m • G z := by
+    intro z
+    by_cases hz : z = 0
+    · have hlocal_at_origin : F 0 = (0 - 0) ^ m • g 0 :=
+        Filter.Eventually.self_of_nhds hg_factor
+      calc
+        F z = F 0 := by
+          exact congrArg F hz
+        _ = (0 - 0) ^ m • g 0 :=
+          hlocal_at_origin
+        _ = z ^ m • G z := by
+          subst hz
+          rfl
+    · exact
+        entireFunction_originTaylorPuncturedQuotient_factorization_of_ne_zero
+          F hF hz
+  exact ⟨G, hG_an, hG_ne, hfactor⟩
 
 /-- Global removal of the origin Taylor factor for a nontrivial entire
 function.
@@ -3297,6 +3375,89 @@ theorem entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_of_quotient_ne
           x + Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖)
         (Real.log_pow R (entireFunctionZeroMultiplicity F hF 0))
 
+/-- Boundary parameters where the quotient factor vanishes on the Jensen
+circle.  These are exactly the finite exceptional parameters for the
+origin-factor boundary-integral transport. -/
+def entireFunctionJensenQuotientBoundaryZeroParameters
+    (G : ℂ → ℂ)
+    (R : ℝ) : Set ℝ :=
+  {θ : ℝ | θ ∈ Set.Icc 0 (2 * Real.pi) ∧
+    G ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0}
+
+/-- Outside the quotient boundary-zero parameter set, the quotient sample is
+nonzero. -/
+theorem entireFunctionJensenQuotientBoundary_sample_ne_of_not_mem_zeroParameters
+    (G : ℂ → ℂ)
+    {R θ : ℝ}
+    (hθ :
+      θ ∉ entireFunctionJensenQuotientBoundaryZeroParameters G R)
+    (hθI : θ ∈ Set.Icc 0 (2 * Real.pi)) :
+    G ((R : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 := by
+  intro hzero
+  exact hθ ⟨hθI, hzero⟩
+
+/-- Off the finite quotient boundary-zero set, the origin Taylor factor gives
+the pointwise logarithmic boundary identity. -/
+theorem entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_off_quotientZeroParameters
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R θ : ℝ}
+    (hR : 0 < R)
+    (hθ :
+      θ ∉ entireFunctionJensenQuotientBoundaryZeroParameters G R)
+    (hθI : θ ∈ Set.Icc 0 (2 * Real.pi)) :
+    entireFunctionJensenBoundaryLogIntegrand F R θ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF R +
+        entireFunctionJensenBoundaryLogIntegrand G R θ := by
+  have hG :
+      G ((R : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 :=
+    entireFunctionJensenQuotientBoundary_sample_ne_of_not_mem_zeroParameters
+      G hθ hθI
+  exact
+    entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_of_quotient_ne
+      F G hF hfactor hR hG
+
+/-- If the boundary parametrization is injective on the fundamental arc and
+the circle zero set is finite, then the quotient boundary-zero parameters are
+finite. -/
+theorem entireFunctionJensenQuotientBoundaryZeroParameters_finite_of_injectiveOn
+    (G : ℂ → ℂ)
+    (R : ℝ)
+    (hR : 0 ≤ R)
+    (hInj :
+      Set.InjOn
+        (fun θ : ℝ => (R : ℂ) * Complex.exp (θ * Complex.I))
+        (Set.Ioc 0 (2 * Real.pi)))
+    (hCircle : Set.Finite {z : ℂ | ‖z‖ = R ∧ G z = 0}) :
+    (entireFunctionJensenQuotientBoundaryZeroParameters G R).Finite := by
+  let f : {θ : ℝ // θ ∈ Set.Ioc 0 (2 * Real.pi)} → ℂ :=
+    fun θ => (R : ℂ) * Complex.exp (θ * Complex.I)
+  have hInjSubtype : Function.Injective f := by
+    intro a b hEq
+    apply Subtype.ext
+    exact hInj a.2 b.2 hEq
+  have hpre : (f ⁻¹' {z : ℂ | ‖z‖ = R ∧ G z = 0}).Finite :=
+    hCircle.preimage fun _ _ _ _ hEq => hInjSubtype hEq
+  have hIocFinite :
+      {θ : ℝ | θ ∈ Set.Ioc 0 (2 * Real.pi) ∧
+        G ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0}.Finite := by
+    simpa [f, Set.preimage, entireFunctionJensenBoundaryCircle_norm hR]
+      using hpre
+  have hsubset :
+      entireFunctionJensenQuotientBoundaryZeroParameters G R ⊆
+        insert (0 : ℝ)
+          {θ : ℝ | θ ∈ Set.Ioc 0 (2 * Real.pi) ∧
+            G ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0} := by
+    intro θ hθ
+    by_cases hθ0 : θ = 0
+    · exact hθ0 ▸ Set.mem_insert (0 : ℝ) _
+    · exact Set.mem_insert_iff.mpr
+        (Or.inr ⟨⟨lt_of_le_of_ne hθ.1.1 hθ0.symm, hθ.1.2⟩, hθ.2⟩)
+  exact (hIocFinite.insert (0 : ℝ)).subset hsubset
+
 /-- A positive-radius Jensen boundary sample is away from the origin. -/
 theorem entireFunctionJensenBoundaryCircle_sample_ne_zero_of_pos
     {R θ : ℝ}
@@ -3548,6 +3709,66 @@ theorem entireFunction_jensenCircleZeros_discreteTopology
       exact hw hsw.2)
   exact (Filter.disjoint_principal_right).2 hScompl
 
+/-- The zero set of a nontrivial entire function is discrete on each fixed
+circle of radius `r`. -/
+theorem entireFunction_circleZeros_discreteTopology
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (r : ℝ) :
+    DiscreteTopology {z : ℂ | ‖z‖ = r ∧ F z = 0} := by
+  refine (discreteTopology_subtype_iff).2 ?_
+  intro x hx
+  rcases hx with ⟨hxnorm, hxzero⟩
+  have hne : ∀ᶠ w in 𝓝[≠] x, F w ≠ 0 := by
+    rcases (hF x).eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+    · exfalso
+      have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) := fun z _ => hF z
+      have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
+        hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+          isPreconnected_univ (by simp) hzero
+      rcases hnontrivial with ⟨z0, hz0⟩
+      exact hz0 (hEq (by simp))
+    · exact hne
+  have hScompl :
+      ({z : ℂ | ‖z‖ = r ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
+    exact Filter.mem_of_superset hne (by
+      intro w hw
+      intro hsw
+      exact hw hsw.2)
+  exact (Filter.disjoint_principal_right).2 hScompl
+
+/-- The zero set of a nontrivial entire function meets each fixed circle in a
+finite set. -/
+theorem entireFunction_circleZeros_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (r : ℝ) :
+    Set.Finite {z : ℂ | ‖z‖ = r ∧ F z = 0} := by
+  have hdisc := entireFunction_circleZeros_discreteTopology F hF hnontrivial r
+  have hcircleClosed : IsClosed {z : ℂ | ‖z‖ = r} := by
+    change IsClosed ((fun z : ℂ => ‖z‖) ⁻¹' ({r} : Set ℝ))
+    exact (continuous_norm : Continuous fun z : ℂ => ‖z‖).isClosed_preimage
+      (isClosed_singleton : IsClosed ({r} : Set ℝ))
+  have hzeroClosed : IsClosed {z : ℂ | F z = 0} := by
+    have hcontF : Continuous F :=
+      continuous_iff_continuousAt.mpr (fun z => (hF z).continuousAt)
+    change IsClosed (F ⁻¹' ({0} : Set ℂ))
+    exact hcontF.isClosed_preimage (isClosed_singleton : IsClosed ({0} : Set ℂ))
+  have hclosed : IsClosed {z : ℂ | ‖z‖ = r ∧ F z = 0} := by
+    change IsClosed ({z : ℂ | ‖z‖ = r} ∩ {z : ℂ | F z = 0})
+    exact hcircleClosed.inter hzeroClosed
+  have hsubset :
+      {z : ℂ | ‖z‖ = r ∧ F z = 0} ⊆ Metric.closedBall (0 : ℂ) r := by
+    intro z hz
+    have hnorm_le : ‖(z : ℂ)‖ ≤ r := hz.1.le
+    simpa [Metric.mem_closedBall, dist_eq_norm] using hnorm_le
+  have hcomp : IsCompact {z : ℂ | ‖z‖ = r ∧ F z = 0} :=
+    (isCompact_closedBall (0 : ℂ) r).of_isClosed_subset hclosed hsubset
+  exact entireFunction_zeroSet_finite_on_compact_of_discrete
+    (S := {z : ℂ | ‖z‖ = r ∧ F z = 0}) hdisc hcomp
+
 /-- The zero set of a nontrivial entire function meets each doubled Jensen circle
 in a finite set. This is the compactness-and-isolated-zeros input behind the
 boundary regularity theorem. -/
@@ -3557,28 +3778,7 @@ theorem entireFunction_jensenCircleZeros_finite
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
     (R : ℝ) :
     Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0} := by
-  have hdisc := entireFunction_jensenCircleZeros_discreteTopology F hF hnontrivial R
-  have hcircleClosed : IsClosed {z : ℂ | ‖z‖ = 2 * R} := by
-    change IsClosed ((fun z : ℂ => ‖z‖) ⁻¹' ({2 * R} : Set ℝ))
-    exact (continuous_norm : Continuous fun z : ℂ => ‖z‖).isClosed_preimage
-      (isClosed_singleton : IsClosed ({2 * R} : Set ℝ))
-  have hzeroClosed : IsClosed {z : ℂ | F z = 0} := by
-    have hcontF : Continuous F :=
-      continuous_iff_continuousAt.mpr (fun z => (hF z).continuousAt)
-    change IsClosed (F ⁻¹' ({0} : Set ℂ))
-    exact hcontF.isClosed_preimage (isClosed_singleton : IsClosed ({0} : Set ℂ))
-  have hclosed : IsClosed {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0} := by
-    change IsClosed ({z : ℂ | ‖z‖ = 2 * R} ∩ {z : ℂ | F z = 0})
-    exact hcircleClosed.inter hzeroClosed
-  have hsubset :
-      {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0} ⊆ Metric.closedBall (0 : ℂ) (2 * R) := by
-    intro z hz
-    have hnorm_le : ‖(z : ℂ)‖ ≤ 2 * R := hz.1.le
-    simpa [Metric.mem_closedBall, dist_eq_norm] using hnorm_le
-  have hcomp : IsCompact {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0} :=
-    (isCompact_closedBall (0 : ℂ) (2 * R)).of_isClosed_subset hclosed hsubset
-  exact entireFunction_zeroSet_finite_on_compact_of_discrete
-    (S := {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) hdisc hcomp
+  exact entireFunction_circleZeros_finite F hF hnontrivial (2 * R)
 
 /-- The Jensen boundary logarithmic integrand is continuous when the doubled circle
 contains no zeros. -/
