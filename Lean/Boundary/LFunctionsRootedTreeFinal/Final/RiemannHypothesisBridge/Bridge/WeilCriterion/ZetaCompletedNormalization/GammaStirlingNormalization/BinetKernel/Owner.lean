@@ -1397,17 +1397,33 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       (w := w) hw_re_pos
 
+/-- Branch-uniform full-sector tail majorant for the Binet arctangent kernel.
+
+This is the precise remaining analytic input: after the split at `‖w‖ / 2`,
+the continued or contour-deformed tail kernel must be uniformly dominated by
+the real Binet majorant with an explicit `1 / ‖w‖` factor on the full open
+right half-plane.  The literal principal `Complex.arctan` kernel has a branch
+obstruction near the imaginary axis, so this theorem is the owner-level place
+where the continued-kernel comparison belongs. -/
+theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant :
+    ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            (C / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  sorry
+
 /-- Full-sector tail absorption for the Binet remainder split at `‖w‖ / 2`.
 
-This is the deepest remaining analytic root for the completed-normalization
-mirror.  It is stronger than the existing fixed-`w` tail bound and different
-from the wedge-separated bound: it must hold uniformly throughout the open
-right half-plane, including vertical-line regimes where `w.re / ‖w‖ → 0`.
-
-For the literal principal-arctangent kernel, the obstruction is the branch
-singularity approached on the imaginary axis.  A proof must either replace this
-with the correct continued Binet boundary kernel or prove a contour-deformation
-tail estimate whose constant is uniform in the full right half-plane. -/
+The only analytic root used here is the branch-uniform integrated tail
+majorant above.  The remaining argument is real-variable tail absorption: the
+Binet majorant tail decays exponentially from `‖w‖ / 2`, hence is bounded by a
+constant for large `‖w‖`, leaving the explicit `1 / ‖w‖` factor. -/
 theorem Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -1416,7 +1432,74 @@ theorem Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm :
         0 < w.re →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant with
+    ⟨Rtail, Ctail, hRtail, hCtail, htail_majorant⟩
+  refine ⟨max Rtail 2, 2 * Ctail, ?_, ?_, ?_⟩
+  · exact lt_of_lt_of_le hRtail (le_max_left Rtail 2)
+  · exact mul_pos two_pos hCtail
+  intro w hw_re_pos hw_norm_large
+  have hRtail_le : Rtail ≤ ‖w‖ :=
+    le_trans (le_max_left Rtail 2) hw_norm_large
+  have htwo_le_norm : (2 : ℝ) ≤ ‖w‖ :=
+    le_trans (le_max_right Rtail 2) hw_norm_large
+  have hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 := by
+    exact (le_div_iff₀' two_pos).mpr htwo_le_norm
+  have htail :
+      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+        (Ctail / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+    htail_majorant w hw_re_pos hRtail_le
+  have hreal_tail :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        2 * Real.exp (-Real.pi * (‖w‖ / 2)) :=
+    Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
+      (a := ‖w‖ / 2) hhalf_ge_one
+  have hcoeff_nonneg : 0 ≤ Ctail / ‖w‖ :=
+    div_nonneg (le_of_lt hCtail) (norm_nonneg w)
+  have htail_exp :
+      (Ctail / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) ≤
+        (Ctail / ‖w‖) *
+          (2 * Real.exp (-Real.pi * (‖w‖ / 2))) :=
+    mul_le_mul_of_nonneg_left hreal_tail hcoeff_nonneg
+  have hexponent_nonpos : -Real.pi * (‖w‖ / 2) ≤ 0 := by
+    have hproduct_nonneg : 0 ≤ Real.pi * (‖w‖ / 2) :=
+      mul_nonneg (le_of_lt Real.pi_pos)
+        (div_nonneg (norm_nonneg w) zero_le_two)
+    calc
+      -Real.pi * (‖w‖ / 2) = -(Real.pi * (‖w‖ / 2)) := by
+        exact neg_mul Real.pi (‖w‖ / 2)
+      _ ≤ 0 := neg_nonpos.mpr hproduct_nonneg
+  have hexp_le_one :
+      Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 1 :=
+    Real.exp_le_one_iff.mpr hexponent_nonpos
+  have htwo_exp_le_two :
+      2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ (2 : ℝ) :=
+    calc
+      2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 2 * 1 :=
+        mul_le_mul_of_nonneg_left hexp_le_one zero_le_two
+      _ = 2 := mul_one 2
+  have htail_const :
+      (Ctail / ‖w‖) *
+          (2 * Real.exp (-Real.pi * (‖w‖ / 2))) ≤
+        (Ctail / ‖w‖) * 2 :=
+    mul_le_mul_of_nonneg_left htwo_exp_le_two hcoeff_nonneg
+  have htarget :
+      (Ctail / ‖w‖) * 2 = (2 * Ctail) / ‖w‖ := by
+    calc
+      (Ctail / ‖w‖) * 2 = (Ctail * 2) / ‖w‖ := by
+        exact (mul_div_assoc Ctail 2 ‖w‖).symm
+      _ = (2 * Ctail) / ‖w‖ := by
+        exact congrArg (fun x : ℝ => x / ‖w‖) (mul_comm Ctail 2)
+  exact
+    le_trans htail
+      (le_trans htail_exp
+        (le_trans htail_const
+          (le_of_eq htarget)))
 
 /-- Root marking the missing comparison from the honest split Binet remainder
 bound to a pure open-right-half-plane `O(1 / ‖w‖)` estimate.

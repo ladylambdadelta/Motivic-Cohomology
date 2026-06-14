@@ -2005,6 +2005,146 @@ after the canonical cutoff.
 The constant is intentionally not normalized to `1`: the owner estimate must
 record the actual Abel endpoint and reciprocal-derivative contribution rather
 than hiding it behind a false unit-bound surface. -/
+def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
+    (t : ℝ) : ℝ :=
+  4 + 16 * Real.log (3 + ‖t‖)
+
+/-- Owner API: endpoint contribution in the finite Abel decomposition after the
+canonical cutoff. -/
+theorem reciprocalDensity_logarithmicPhase_finiteAbelEndpoint_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊‖ +
+      ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+      t ht hNM).2.1
+
+/-- Owner API: reciprocal-derivative integral contribution in the finite Abel
+decomposition after the canonical cutoff. -/
+theorem reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+      t ht hNM).2.2
+
+/-- Finite reciprocal-weighted logarithmic-phase tail estimate after the
+canonical cutoff.
+
+This is the owner theorem needed by Abel transport: the finite tail of
+`n⁻¹ n^{-it}` is controlled by the endpoint and reciprocal-derivative terms in
+the Abel/Euler-Maclaurin identity. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  let N : ℕ := ⌊2 + ‖t‖⌋₊
+  let SM : ℂ :=
+    ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+        ⌊((M : ℕ) : ℝ)⌋₊
+  let SN : ℂ :=
+    (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+        ⌊(((N : ℕ) : ℝ))⌋₊
+  let J : ℂ :=
+    ∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+      deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊
+  have hf_diff :
+      ∀ x ∈ Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x := by
+    intro x hx
+    fun_prop
+  have hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    fun_prop
+  have hidentity :
+      (∑ k ∈ Finset.Ioc ⌊(((N : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        SM - SN - J := by
+    exact
+      abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_endpoint_derivative_identity
+        t hNM hf_diff hf_int
+  have hendpoint :
+      ‖SM‖ + ‖SN‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+    exact
+      reciprocalDensity_logarithmicPhase_finiteAbelEndpoint_bound
+        t ht hNM
+  have hintegral :
+      ‖J‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+    exact
+      reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
+        t ht hNM
+  have htriangle :
+      ‖SM - SN - J‖ ≤ ‖SM‖ + ‖SN‖ + ‖J‖ := by
+    have hfirst : ‖SM - SN - J‖ ≤ ‖SM - SN‖ + ‖J‖ :=
+      norm_sub_le (SM - SN) J
+    have hsecond : ‖SM - SN‖ ≤ ‖SM‖ + ‖SN‖ :=
+      norm_sub_le SM SN
+    exact le_trans hfirst (add_le_add_right hsecond ‖J‖)
+  have hpost_triangle :
+      ‖SM‖ + ‖SN‖ + ‖J‖ ≤
+        (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) := by
+    exact add_le_add hendpoint hintegral
+  have hconstant :
+      (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) =
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+    let L : ℝ := Real.log (3 + ‖t‖)
+    have hadd :
+        (2 + 8 * L) + (2 + 8 * L) =
+          (2 + 2) + (8 * L + 8 * L) := by
+      ac_rfl
+    have htwo : (2 : ℝ) + 2 = 4 := by
+      rfl
+    have height_coeff : (8 : ℝ) + 8 = 16 := by
+      rfl
+    have height : (8 : ℝ) * L + 8 * L = 16 * L := by
+      calc
+        (8 : ℝ) * L + 8 * L = ((8 : ℝ) + 8) * L := by
+          exact (add_mul (8 : ℝ) 8 L).symm
+        _ = 16 * L := by
+          exact congrArg (fun c : ℝ => c * L) height_coeff
+    calc
+      (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) =
+          (2 + 8 * L) + (2 + 8 * L) := by
+        rfl
+      _ = (2 + 2) + (8 * L + 8 * L) :=
+        hadd
+      _ = 4 + (8 * L + 8 * L) := by
+        exact congrArg (fun x : ℝ => x + (8 * L + 8 * L)) htwo
+      _ = 4 + 16 * L := by
+        exact congrArg (fun x : ℝ => 4 + x) height
+      _ = boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+        rfl
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤ boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
+    hidentity.symm
+    (le_trans htriangle (le_trans hpost_triangle (le_of_eq hconstant)))
 
 end
 end LFunctions
