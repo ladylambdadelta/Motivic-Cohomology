@@ -3218,16 +3218,14 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
-/-- The standard Cauchy--FTC theorem for the endpoint-parametrized segment
-integral on a star-convex complex domain.
+/-- Standard star-convex primitive theorem for the center-segment integral.
 
-This is the canonical owner API for the local analytic primitive construction:
-the function
-`z ↦ ∫ t in 0..1, z * φ(lineMap 0 z t)` is analytic and has derivative
-`φ z` at each endpoint whose center segment lies in the star-convex domain.
-It packages the parametric interval-integral differentiation theorem together
-with Cauchy's theorem on the triangular homotopy of center segments. -/
-theorem complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+This is the canonical owner API corresponding to the classical proof of
+primitive existence on a star-convex domain: integrate `φ` along the affine
+segment from the center to the endpoint, then use Cauchy's theorem on the
+small triangle swept out by moving the endpoint to identify the endpoint
+derivative with `φ`. -/
+theorem complex_starConvex_centerSegmentIntegral_isPrimitive
     (φ : ℂ → ℂ)
     {s : Set ℂ}
     (hstar : StarConvex ℝ (0 : ℂ) s)
@@ -3240,6 +3238,28 @@ theorem complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starC
           (φ z)
           z := by
   sorry
+
+/-- The standard Cauchy--FTC theorem for the endpoint-parametrized segment
+integral on a star-convex complex domain.
+
+This wrapper gives the parameter-integral name used by the Jensen primitive
+lane while delegating the mathematics to the owner theorem
+`complex_starConvex_centerSegmentIntegral_isPrimitive`. -/
+theorem complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        AnalyticAt ℂ (complex_centerSegmentIntegral φ) z ∧
+        HasDerivAt
+          (complex_centerSegmentIntegral φ)
+          (φ z)
+          z := by
+  exact
+    complex_starConvex_centerSegmentIntegral_isPrimitive
+      φ hstar hφ
 
 /-- Parametric interval-integral derivative theorem for the center-segment
 primitive.
@@ -8523,6 +8543,45 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
                         ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
           horigin.symm
 
+/-- Finite-exception product-log splitting for a closed-support divisor.
+
+This is the analytic integration sink behind the closed-support boundary-log
+decomposition.  The proof is pointwise product-log splitting away from the
+finite set of boundary parameters where extracted boundary factors vanish,
+followed by finite logarithmic-singularity interval-integrability and a.e.
+congruence of interval integrals. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_productSplit_finiteException_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+  -- Deep finite-exception product-log sink: construct the finite exceptional
+  -- parameter set for boundary factors, prove the pointwise identity off that
+  -- set, prove interval-integrability of each logarithmic singularity, and
+  -- exchange the finite sum with the interval integral.
+  sorry
+
 /-- Closed-support finite-product boundary-log decomposition with finite
 boundary exceptions made explicit.
 
@@ -8558,11 +8617,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Deep finite-exception product-log theorem: outside the finite boundary
-  -- zero parameter set, use the exact product factorization and `log ‖∏‖ =
-  -- ∑ log ‖·‖`; then extend over the finite set by logarithmic-singularity
-  -- integrability and a.e. congruence.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_productSplit_finiteException_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
 
 /-- Closed-support finite-product boundary-log decomposition before applying
 the zero-free quotient mean theorem. -/

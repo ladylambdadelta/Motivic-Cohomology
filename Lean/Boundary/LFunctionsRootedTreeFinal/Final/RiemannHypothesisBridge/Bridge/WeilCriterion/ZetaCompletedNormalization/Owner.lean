@@ -3412,6 +3412,151 @@ theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHei
       hnorm_zero
       hy)
 
+/-- The deterministic strip shift written as a local abbreviation for the
+vertical-strip Stirling transport. -/
+def Complex.verticalStripTransportShift (A : ℝ) : ℕ :=
+  Complex.verticalStripRightShift A
+
+/-- The deterministic transport shift moves the strip into the closed right
+half-plane. -/
+theorem Complex.verticalStripTransportShift_closedRightHalfPlaneSector
+    {A x y : ℝ}
+    (hx : A ≤ x) :
+    Complex.closedRightHalfPlaneSector
+      (Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripTransportShift A) y) := by
+  unfold Complex.verticalStripTransportShift
+  exact
+    Complex.fixedRealPartVerticalPoint_verticalStripRightShift_closedRightHalfPlaneSector
+      hx
+
+/-- Large vertical height gives the sectorial radius cutoff after the
+deterministic transport shift. -/
+theorem Complex.verticalStripTransportShift_radius_ge_of_height_ge
+    {A x y H : ℝ}
+    (hH : H ≤ ‖y‖) :
+    H ≤
+      ‖Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripTransportShift A) y‖ := by
+  unfold Complex.verticalStripTransportShift
+  exact
+    Complex.fixedRealPartVerticalPoint_verticalStripRightShift_radius_ge_of_height_ge
+      hH
+
+/-- The deterministic transport shift is the complex horizontal translation
+appearing in the finite Gamma recurrence. -/
+theorem Complex.fixedRealPartVerticalPoint_add_verticalStripTransportShift
+    (A x y : ℝ) :
+    Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripTransportShift A) y =
+      Complex.fixedRealPartVerticalPoint x y +
+        (Complex.verticalStripTransportShift A : ℂ) := by
+  unfold Complex.verticalStripTransportShift
+  exact Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift A x y
+
+/-- Sectorial normalized Stirling, on the shifted closed-right-half-plane
+points, gives the raw two-sided Gamma envelope with shifted real part.
+
+This is the branch/exponential extraction layer: it converts control of
+`Γ(w) e^w w^(1/2-w)` into the classical
+`exp (-π |y| / 2) (1 + |y|)^(Re w - 1/2)` profile for
+`w = x + N + i y`.  The only analytic input is the sectorial Stirling
+hypothesis; the rest is principal-branch norm algebra. -/
+theorem Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
+    (hStirling : ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ≤
+            ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ := by
+  sorry
+
+/-- Finite recurrence transport from shifted raw Gamma bounds and recurrence
+product bounds back to the original vertical strip.
+
+The shifted envelope has power `x + N - 1/2`; division by the recurrence product
+contributes exactly a fixed polynomial factor of degree `N`, which is absorbed
+into strip-dependent constants and recovers the unshifted envelope. -/
+theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProduct
+    (A B : ℝ)
+    (N : ℕ)
+    (hshift_eq : N = Complex.verticalStripTransportShift A)
+    (hshifted :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ ≤
+              C * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖)
+    (hproduct :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ‖Complex.gammaRecurrenceProduct
+                (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+              C * (1 + ‖y‖) ^ (N : ℝ) ∧
+            c * (1 + ‖y‖) ^ (N : ℝ) ≤
+              ‖Complex.gammaRecurrenceProduct
+                (Complex.fixedRealPartVerticalPoint x y) N‖)
+    (hfactor_ne :
+      ∃ H : ℝ,
+        0 < H ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ∀ j : ℕ,
+              j < N →
+                Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
+  sorry
+
 /-- Sectorial Stirling at the deterministic right shift, transported back
 through the finite Gamma recurrence product.
 
@@ -3441,7 +3586,49 @@ theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  sorry
+  let N : ℕ := Complex.verticalStripTransportShift A
+  have hshifted_transport :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ ≤
+              C * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
+              ‖Complex.Gamma
+                (Complex.fixedRealPartVerticalPoint (x + N) y)‖ := by
+    exact
+      Eq.subst
+        (motive := fun M : ℕ =>
+          ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+            0 < H ∧
+            0 < C ∧
+            0 < c ∧
+            ∀ x y : ℝ,
+              A ≤ x →
+              x ≤ B →
+              H ≤ ‖y‖ →
+                ‖Complex.Gamma
+                    (Complex.fixedRealPartVerticalPoint (x + M) y)‖ ≤
+                  C * Complex.fixedRealPartVerticalStirlingEnvelope (x + M) y ∧
+                c * Complex.fixedRealPartVerticalStirlingEnvelope (x + M) y ≤
+                  ‖Complex.Gamma
+                    (Complex.fixedRealPartVerticalPoint (x + M) y)‖)
+        (show Complex.verticalStripTransportShift A = N from rfl)
+        (Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
+          hStirling A B)
+  exact
+    Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProduct
+      A B N rfl
+      hshifted_transport
+      (Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds A B N)
+      (Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHeight
+        A B N)
 
 /-- Deterministic finite-recurrence transport from closed-right-half-plane
 sectorial Stirling to a vertical strip.
@@ -10422,6 +10609,52 @@ theorem abel_left_neighborhood_eventually_nonnegative :
     (eventually_nhdsWithin_of_eventually_nhds hpositive_nhds).mono
       (fun r hr => le_of_lt hr)
 
+/-- Algebraic step in the shifted finite Abel transform. -/
+theorem abel_positive_weighted_tail_step_algebra
+    (p q A B x : ℂ) :
+    p * A + B + p * x =
+      q * (A + x) + (B + (p - q) * (A + x)) := by
+  have hcombine :
+      q * (A + x) + (p - q) * (A + x) =
+        p * (A + x) := by
+    calc
+      q * (A + x) + (p - q) * (A + x)
+          = (q + (p - q)) * (A + x) :=
+            (add_mul q (p - q) (A + x)).symm
+      _ = p * (A + x) := by
+        exact congrArg (fun z : ℂ => z * (A + x)) (add_sub_cancel_left q p)
+  have hright :
+      q * (A + x) + (B + (p - q) * (A + x)) =
+        B + (q * (A + x) + (p - q) * (A + x)) := by
+    calc
+      q * (A + x) + (B + (p - q) * (A + x))
+          = (q * (A + x) + B) + (p - q) * (A + x) :=
+            (add_assoc (q * (A + x)) B ((p - q) * (A + x))).symm
+      _ = (B + q * (A + x)) + (p - q) * (A + x) := by
+        exact congrArg (fun z : ℂ => z + (p - q) * (A + x))
+          (add_comm (q * (A + x)) B)
+      _ = B + (q * (A + x) + (p - q) * (A + x)) :=
+        add_assoc B (q * (A + x)) ((p - q) * (A + x))
+  have hleft :
+      p * A + B + p * x =
+        B + (p * A + p * x) := by
+    calc
+      p * A + B + p * x
+          = (B + p * A) + p * x := by
+            exact congrArg (fun z : ℂ => z + p * x)
+              (add_comm (p * A) B)
+      _ = B + (p * A + p * x) :=
+        add_assoc B (p * A) (p * x)
+  calc
+    p * A + B + p * x
+        = B + (p * A + p * x) := hleft
+    _ = B + p * (A + x) := by
+      exact congrArg (fun z : ℂ => B + z) (mul_add p A x).symm
+    _ = B + (q * (A + x) + (p - q) * (A + x)) := by
+      exact congrArg (fun z : ℂ => B + z) hcombine.symm
+    _ = q * (A + x) + (B + (p - q) * (A + x)) :=
+      hright.symm
+
 /-- Finite Abel summation identity for positive real weights on a natural tail.
 
 The weighted finite tail is a convex positive combination of the finite partial
@@ -10438,7 +10671,146 @@ theorem abel_positive_weighted_tail_finite_summation_by_parts
         ∑ k ∈ Finset.Ioc N M,
           (((w k - w (k + 1) : ℝ) : ℂ) *
             (∑ j ∈ Finset.Ioc N k, u j)) := by
-  sorry
+  refine Nat.le_induction ?base ?step M hNM
+  · have hinterval : Finset.Ioc N N = ∅ :=
+      Finset.Ioc_self N
+    have hleft :
+        (∑ k ∈ Finset.Ioc N N, ((w k : ℝ) : ℂ) * u k) = 0 := by
+      exact Eq.trans
+        (congrArg
+          (fun s : Finset ℕ => ∑ k ∈ s, ((w k : ℝ) : ℂ) * u k)
+          hinterval)
+        (Finset.sum_empty (fun k : ℕ => ((w k : ℝ) : ℂ) * u k))
+    have hpartial :
+        (∑ k ∈ Finset.Ioc N N, u k) = 0 := by
+      exact Eq.trans
+        (congrArg (fun s : Finset ℕ => ∑ k ∈ s, u k) hinterval)
+        (Finset.sum_empty u)
+    have hvariation :
+        (∑ k ∈ Finset.Ioc N N,
+          (((w k - w (k + 1) : ℝ) : ℂ) *
+            (∑ j ∈ Finset.Ioc N k, u j))) = 0 := by
+      exact Eq.trans
+        (congrArg
+          (fun s : Finset ℕ =>
+            ∑ k ∈ s,
+              (((w k - w (k + 1) : ℝ) : ℂ) *
+                (∑ j ∈ Finset.Ioc N k, u j)))
+          hinterval)
+        (Finset.sum_empty
+          (fun k : ℕ =>
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))))
+    have hright :
+        ((w (N + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N N, u k) +
+          ∑ k ∈ Finset.Ioc N N,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j)) = 0 := by
+      calc
+        ((w (N + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N N, u k) +
+          ∑ k ∈ Finset.Ioc N N,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))
+            =
+          ((w (N + 1) : ℝ) : ℂ) * 0 + 0 := by
+            exact congrArg₂ (fun x y : ℂ => x + y)
+              (congrArg (fun z : ℂ => ((w (N + 1) : ℝ) : ℂ) * z) hpartial)
+              hvariation
+        _ = 0 + 0 := by
+          exact congrArg (fun z : ℂ => z + 0)
+            (mul_zero ((w (N + 1) : ℝ) : ℂ))
+        _ = 0 := zero_add 0
+    exact hleft.trans hright.symm
+  · intro M hNM ih
+    have hleft_step :
+        (∑ k ∈ Finset.Ioc N (M + 1), ((w k : ℝ) : ℂ) * u k) =
+          (∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k) +
+            ((w (M + 1) : ℝ) : ℂ) * u (M + 1) := by
+      exact Finset.sum_Ioc_succ_top hNM
+    have hpartial_step :
+        (∑ k ∈ Finset.Ioc N (M + 1), u k) =
+          (∑ k ∈ Finset.Ioc N M, u k) + u (M + 1) := by
+      exact Finset.sum_Ioc_succ_top hNM
+    have hvariation_step :
+        (∑ k ∈ Finset.Ioc N (M + 1),
+          (((w k - w (k + 1) : ℝ) : ℂ) *
+            (∑ j ∈ Finset.Ioc N k, u j))) =
+          (∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))) +
+            (((w (M + 1) - w ((M + 1) + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N (M + 1), u j)) := by
+      exact Finset.sum_Ioc_succ_top hNM
+    have hdiff_cast :
+        ((w (M + 1) - w ((M + 1) + 1) : ℝ) : ℂ) =
+          ((w (M + 1) : ℝ) : ℂ) -
+            ((w ((M + 1) + 1) : ℝ) : ℂ) :=
+      Complex.ofReal_sub (w (M + 1)) (w ((M + 1) + 1))
+    let A : ℂ := ∑ k ∈ Finset.Ioc N M, u k
+    let B : ℂ :=
+      ∑ k ∈ Finset.Ioc N M,
+        (((w k - w (k + 1) : ℝ) : ℂ) *
+          (∑ j ∈ Finset.Ioc N k, u j))
+    let p : ℂ := ((w (M + 1) : ℝ) : ℂ)
+    let q : ℂ := ((w ((M + 1) + 1) : ℝ) : ℂ)
+    let x : ℂ := u (M + 1)
+    have htarget_algebra :
+        p * A + B + p * x =
+          q * (A + x) + (B + (p - q) * (A + x)) :=
+      abel_positive_weighted_tail_step_algebra p q A B x
+    calc
+      (∑ k ∈ Finset.Ioc N (M + 1), ((w k : ℝ) : ℂ) * u k)
+          =
+        (∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k) +
+          ((w (M + 1) : ℝ) : ℂ) * u (M + 1) := hleft_step
+      _ =
+        (((w (M + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N M, u k) +
+          ∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))) +
+          ((w (M + 1) : ℝ) : ℂ) * u (M + 1) := by
+        exact congrArg
+          (fun z : ℂ => z + ((w (M + 1) : ℝ) : ℂ) * u (M + 1))
+          ih
+      _ =
+        ((w ((M + 1) + 1) : ℝ) : ℂ) *
+            ((∑ k ∈ Finset.Ioc N M, u k) + u (M + 1)) +
+          ((∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))) +
+            ((((w (M + 1) : ℝ) : ℂ) -
+              ((w ((M + 1) + 1) : ℝ) : ℂ)) *
+              ((∑ k ∈ Finset.Ioc N M, u k) + u (M + 1)))) := by
+        exact htarget_algebra
+      _ =
+        ((w ((M + 1) + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N (M + 1), u k) +
+          ((∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))) +
+            (((w (M + 1) - w ((M + 1) + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N (M + 1), u j))) := by
+        exact congrArg₂ (fun x y : ℂ => x + y)
+          (congrArg
+            (fun z : ℂ => ((w ((M + 1) + 1) : ℝ) : ℂ) * z)
+            hpartial_step.symm)
+          (congrArg₂ (fun x y : ℂ => x + y)
+            rfl
+            (congrArg₂ (fun x y : ℂ => x * y) hdiff_cast.symm hpartial_step.symm))
+      _ =
+        ((w ((M + 1) + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N (M + 1), u k) +
+          ∑ k ∈ Finset.Ioc N (M + 1),
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j)) := by
+        exact congrArg
+          (fun z : ℂ =>
+            ((w ((M + 1) + 1) : ℝ) : ℂ) *
+              (∑ k ∈ Finset.Ioc N (M + 1), u k) + z)
+          hvariation_step.symm
 
 /-- Bounded tail partial sums force the bounding constant to be nonnegative. -/
 theorem abel_positive_weighted_tail_bound_constant_nonneg
@@ -14089,6 +14461,77 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity
         hz hz_zero
     exact hraw
 
+/-- Compact norm boundedness from a continuous extension on a closed ball.
+
+This is the reusable local-boundedness API used for removable analytic factors:
+once the removable extension is continuous on the compact closed ball, its norm
+is bounded there. -/
+theorem compact_closedBall_norm_bound_of_continuousOn
+    (F : ℂ → ℂ)
+    (r : ℝ)
+    (hF : ContinuousOn F (Metric.closedBall (0 : ℂ) r)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        ‖z‖ ≤ r →
+        ‖F z‖ ≤ C := by
+  have hcompact : IsCompact (Metric.closedBall (0 : ℂ) r) :=
+    ProperSpace.isCompact_closedBall (0 : ℂ) r
+  rcases IsCompact.exists_bound_of_continuousOn hcompact hF with
+    ⟨C0, hC0⟩
+  refine ⟨max C0 0 + 1, ?_, ?_⟩
+  · exact add_pos_of_nonneg_of_pos (le_max_right C0 0) zero_lt_one
+  intro z hz_norm
+  have hz_mem : z ∈ Metric.closedBall (0 : ℂ) r :=
+    mem_closedBall_zero_iff.mpr hz_norm
+  have hraw : ‖F z‖ ≤ C0 :=
+    hC0 z hz_mem
+  exact le_trans hraw
+    (le_trans (le_max_left C0 0) (le_add_of_nonneg_right zero_le_one))
+
+/-- A compact removable extension controls the original punctured function on
+the same closed ball. -/
+theorem compact_closedBall_punctured_norm_bound_of_removable_extension
+    (f F : ℂ → ℂ)
+    (r : ℝ)
+    (hF : ContinuousOn F (Metric.closedBall (0 : ℂ) r))
+    (hrem :
+      ∀ z : ℂ,
+        z ≠ 0 →
+        ‖z‖ ≤ r →
+        F z = f z) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z ≠ 0 →
+        ‖z‖ ≤ r →
+        ‖f z‖ ≤ C := by
+  rcases compact_closedBall_norm_bound_of_continuousOn F r hF with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hz_ne_zero hz_norm
+  have hF_eq : F z = f z :=
+    hrem z hz_ne_zero hz_norm
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ C)
+    hF_eq
+    (hC_bound z hz_norm)
+
+/-- Trivial-zero cancellation for the pole-cleared zeta factor at nonzero
+`Gammaℝ` zero faces in the left half-plane.
+
+This is the standard classical input: `Gammaℝ z = 0` means `z` is a
+nonpositive even integer; after excluding `0`, these are exactly the negative
+even integers, where `ζ` has its trivial zeros.  The pole-cleared factor has no
+pole at such points, so it vanishes. -/
+theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_zero : Complex.Gammaℝ z = 0) :
+    poleClearedRiemannZeta z = 0 := by
+  sorry
+
 /-- Finite-order envelope for the removable completed-functional-equation
 multiplier on the left half-plane.
 
@@ -14104,7 +14547,36 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBr
         Complex.Gammaℝ z = 0 →
         ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  refine ⟨1, 1, 0, zero_lt_one, zero_lt_one, ?_⟩
+  intro z hz_re hz_ne_zero hGamma_zero
+  have hnumerator_zero :
+      poleClearedRiemannZeta z = 0 :=
+    poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
+      hz_re hz_ne_zero hGamma_zero
+  have hquot_zero :
+      poleClearedRiemannZeta z /
+          poleClearedRiemannZeta ((1 : ℂ) - z) = 0 := by
+    calc
+      poleClearedRiemannZeta z /
+          poleClearedRiemannZeta ((1 : ℂ) - z) =
+          0 / poleClearedRiemannZeta ((1 : ℂ) - z) := by
+        exact congrArg
+          (fun w : ℂ => w / poleClearedRiemannZeta ((1 : ℂ) - z))
+          hnumerator_zero
+      _ = 0 := by
+        exact zero_div (poleClearedRiemannZeta ((1 : ℂ) - z))
+  have hnorm_zero :
+      ‖poleClearedRiemannZeta z /
+          poleClearedRiemannZeta ((1 : ℂ) - z)‖ = 0 :=
+    congrArg norm hquot_zero
+  have htarget_pos :
+      0 < (1 : ℝ) * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) :=
+    mul_pos zero_lt_one (Real.exp_pos ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)))
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ (1 : ℝ) * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)))
+    hnorm_zero.symm
+    (le_of_lt htarget_pos)
 
 /-- Gamma-zero branch growth from discreteness of the trivial-zero faces and
 local boundedness of the removable quotient. -/
@@ -14505,13 +14977,24 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
 
-/-- Near-origin finite-order control of the completed functional-equation raw
-multiplier.
+/-- Removable continuous extension of the raw completed-functional-equation
+multiplier on the closed unit ball.
 
-This is the removable local-control input missing from a naive product proof:
-the pole-clearing rational factor has a pole at `0`, so the product must be
-controlled near `0` as a completed multiplier, not by separately bounding the
-rational factor. -/
+This is the local analytic owner input for the near-origin branch: the apparent
+pole of `(z - 1) / (((1 : ℂ) - z) - 1)` at `0` is cancelled by the completed
+functional-equation Gamma ratio, so the raw product has a continuous removable
+extension on `‖z‖ ≤ 1`. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOrigin_removable_extension :
+    ∃ F : ℂ → ℂ,
+      ContinuousOn F (Metric.closedBall (0 : ℂ) 1) ∧
+      ∀ z : ℂ,
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        F z =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+  sorry
+
 /-- Compact/removable local boundedness of the raw completed-functional-equation
 multiplier near the origin.
 
@@ -14529,7 +15012,33 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
         ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOrigin_removable_extension with
+    ⟨F, hF_cont, hF_eq⟩
+  let f : ℂ → ℂ := fun z : ℂ =>
+    ((z - 1) / (((1 : ℂ) - z) - 1)) *
+      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
+  rcases compact_closedBall_punctured_norm_bound_of_removable_extension
+      f F 1 hF_cont hF_eq with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, 1, 0, hC_pos, zero_lt_one, ?_⟩
+  intro z _hz_re hz_ne_zero hz_norm
+  have hraw_bound :
+      ‖f z‖ ≤ C :=
+    hC_bound z hz_ne_zero hz_norm
+  have hfactor_ge_one :
+      (1 : ℝ) ≤ Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+    have hexponent_nonneg :
+        0 ≤ (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) :=
+      mul_nonneg zero_le_one
+        (pow_nonneg
+          (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z)))
+          0)
+    exact le_trans (le_of_eq Real.exp_zero.symm)
+      (Real.exp_le_exp.mpr hexponent_nonneg)
+  have hscaled :
+      C ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) :=
+    le_mul_of_one_le_right (le_of_lt hC_pos) hfactor_ge_one
+  exact hraw_bound.trans hscaled
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
