@@ -2391,6 +2391,11 @@ noncomputable def realSinePowerIntegral
     (s : ℝ) : ℝ :=
   ∫ u in (0 : ℝ)..Real.pi, (Real.sin u) ^ s
 
+/-- The half-interval sine-power integral on `[0, π/2]`. -/
+noncomputable def realSinePowerHalfIntegral
+    (s : ℝ) : ℝ :=
+  ∫ u in (0 : ℝ)..(Real.pi / 2), (Real.sin u) ^ s
+
 /-- The Gamma-ratio appearing in the classical sine-power integral.
 
 For `-1 < s`, it is equal to `∫₀^π sin(u)^s du`. -/
@@ -2400,6 +2405,14 @@ noncomputable def realSinePowerGammaRatio
     Real.Gamma ((s + 1) / 2) /
       Real.Gamma (s / 2 + 1)
 
+/-- The real Euler-Beta integral attached to the sine-power exponent.
+
+Mathlib's owner Beta integral is complex-valued; for the real positive
+parameters used here, the real part is the classical real Beta integral. -/
+noncomputable def realSinePowerEulerBetaIntegral
+    (s : ℝ) : ℝ :=
+  (Complex.betaIntegral (((s + 1) / 2 : ℝ) : ℂ) ((1 / 2 : ℝ) : ℂ)).re
+
 /-- Real logarithmic derivative of the Gamma function on its regular locus.
 
 This is the classical digamma function `ψ(x) = Γ'(x) / Γ(x)`, expressed using
@@ -2408,6 +2421,114 @@ This is the classical digamma function `ψ(x) = Γ'(x) / Γ(x)`, expressed using
 noncomputable def realGammaLogDeriv
     (x : ℝ) : ℝ :=
   deriv Real.Gamma x / Real.Gamma x
+
+/-- Elementary scalar cancellation for the half-interval normalization. -/
+theorem real_two_mul_one_half_mul
+    (x : ℝ) :
+    2 * ((1 / 2 : ℝ) * x) = x := by
+  have htwo_half : (2 : ℝ) * (1 / 2 : ℝ) = 1 := by
+    calc
+      (2 : ℝ) * (1 / 2 : ℝ) = (2 : ℝ) * (2 : ℝ)⁻¹ := by
+        exact congrArg (fun y : ℝ => (2 : ℝ) * y) (one_div (2 : ℝ))
+      _ = 1 := by
+        exact mul_inv_cancel₀ (2 : ℝ) two_ne_zero
+  calc
+    2 * ((1 / 2 : ℝ) * x) = (2 * (1 / 2 : ℝ)) * x := by
+      exact (mul_assoc (2 : ℝ) (1 / 2 : ℝ) x).symm
+    _ = 1 * x := by
+      exact congrArg (fun y : ℝ => y * x) htwo_half
+    _ = x := by
+      exact one_mul x
+
+/-- Strict lower bound for the left Euler-Beta parameter in the sine-power integral. -/
+theorem realSinePowerEulerBeta_leftParameter_pos
+    {s : ℝ}
+    (hs : -1 < s) :
+    0 < (s + 1) / 2 := by
+  have hshift : (-1 : ℝ) + 1 < s + 1 :=
+    add_lt_add_right hs 1
+  have hsum : 0 < s + 1 := by
+    have hzero : (-1 : ℝ) + 1 = 0 :=
+      neg_add_cancel 1
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x < s + 1)
+        hzero
+        hshift
+  exact div_pos hsum zero_lt_two
+
+/-- Strict lower bound for the right Euler-Beta parameter in the sine-power integral. -/
+theorem realSinePowerEulerBeta_rightParameter_pos :
+    0 < (1 / 2 : ℝ) :=
+  one_half_pos
+
+/-- Symmetry of the sine-power integral about `π/2`.
+
+For `-1 < s`, the endpoint singularities are integrable and the substitution
+`u ↦ π - u` identifies the two halves of `[0,π]`. -/
+theorem realSinePowerIntegral_eq_two_mul_halfIntegral
+    (s : ℝ)
+    (hs : -1 < s) :
+    realSinePowerIntegral s =
+      2 * realSinePowerHalfIntegral s := by
+  -- Standard interval-integral symmetry:
+  -- split `[0,π]` at `π/2`, reflect `[π/2,π]` by `u ↦ π-u`, and use
+  -- `sin (π-u) = sin u`; the condition `-1 < s` supplies endpoint
+  -- integrability.
+  sorry
+
+/-- Euler-Beta substitution for the half sine-power integral.
+
+The substitution `t = sin² u` on `[0,π/2]` gives
+`∫₀^{π/2} sin(u)^s du = 1/2 * B((s+1)/2, 1/2)`. -/
+theorem realSinePowerHalfIntegral_eq_half_eulerBetaIntegral
+    (s : ℝ)
+    (hs : -1 < s) :
+    realSinePowerHalfIntegral s =
+      (1 / 2 : ℝ) * realSinePowerEulerBetaIntegral s := by
+  -- Standard monotone substitution on `[0,π/2]`:
+  -- first use `x = sin u`, then `t = x^2`; endpoint integrability is exactly
+  -- `0 < (s+1)/2` and `0 < 1/2`.
+  sorry
+
+/-- The sine-power integral is the corresponding Euler-Beta integral. -/
+theorem realSinePowerIntegral_eq_eulerBetaIntegral
+    (s : ℝ)
+    (hs : -1 < s) :
+    realSinePowerIntegral s =
+      realSinePowerEulerBetaIntegral s := by
+  have hsplit :
+      realSinePowerIntegral s =
+        2 * realSinePowerHalfIntegral s :=
+    realSinePowerIntegral_eq_two_mul_halfIntegral s hs
+  have hhalf :
+      realSinePowerHalfIntegral s =
+        (1 / 2 : ℝ) * realSinePowerEulerBetaIntegral s :=
+    realSinePowerHalfIntegral_eq_half_eulerBetaIntegral s hs
+  calc
+    realSinePowerIntegral s =
+        2 * realSinePowerHalfIntegral s := hsplit
+    _ = 2 * ((1 / 2 : ℝ) * realSinePowerEulerBetaIntegral s) := by
+      exact congrArg (fun x : ℝ => 2 * x) hhalf
+    _ = realSinePowerEulerBetaIntegral s := by
+      exact real_two_mul_one_half_mul (realSinePowerEulerBetaIntegral s)
+
+/-- Beta/Gamma comparison for the sine-power Euler-Beta integral.
+
+This is the specialization of
+`Complex.Gamma_mul_Gamma_eq_betaIntegral` to the positive real parameters
+`(s+1)/2` and `1/2`, followed by `Γ(1/2)=sqrt π` and the identity
+`(s+1)/2 + 1/2 = s/2 + 1`. -/
+theorem realSinePowerEulerBetaIntegral_eq_gammaRatio
+    (s : ℝ)
+    (hs : -1 < s) :
+    realSinePowerEulerBetaIntegral s =
+      realSinePowerGammaRatio s := by
+  -- Standard Beta/Gamma comparison on positive real parameters:
+  -- use `Complex.Gamma_mul_Gamma_eq_betaIntegral`, nonvanishing of Gamma on
+  -- the positive real axis, `Real.Gamma_one_half_eq`, and the denominator
+  -- parameter identity.
+  sorry
 
 /-- Beta/Gamma evaluation of the sine-power integral.
 
@@ -2421,10 +2542,10 @@ theorem real_integral_sin_rpow_zero_pi_eq_gammaRatio
     (hs : -1 < s) :
     realSinePowerIntegral s =
       realSinePowerGammaRatio s := by
-  -- Deep standard Beta/Gamma integral:
-  -- `2 ∫₀^{π/2} sin(u)^s du = B((s+1)/2, 1/2)` and
-  -- `B(x,y) = Γ x Γ y / Γ(x+y)`, with `Γ(1/2)=sqrt π`.
-  sorry
+  exact
+    Eq.trans
+      (realSinePowerIntegral_eq_eulerBetaIntegral s hs)
+      (realSinePowerEulerBetaIntegral_eq_gammaRatio s hs)
 
 /-- Near exponent `0`, the sine-power integral is represented by the
 Beta/Gamma ratio. -/
