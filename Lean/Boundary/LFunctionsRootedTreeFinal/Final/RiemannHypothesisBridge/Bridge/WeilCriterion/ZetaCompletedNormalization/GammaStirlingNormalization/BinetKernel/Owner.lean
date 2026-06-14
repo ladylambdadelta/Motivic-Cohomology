@@ -886,7 +886,47 @@ theorem Real.exp_neg_pi_tail_integral_le_exp
     (a : ℝ) :
     ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) ≤
       Real.exp (-Real.pi * a) := by
-  sorry
+  have hpi_pos : 0 < Real.pi :=
+    Real.pi_pos
+  have hchange :
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) =
+        Real.pi⁻¹ * ∫ u : ℝ in Set.Ioi (Real.pi * a), Real.exp (-u) := by
+    calc
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) =
+          ∫ t : ℝ in Set.Ioi a, (fun u : ℝ => Real.exp (-u)) (Real.pi * t) := by
+        rfl
+      _ =
+          Real.pi⁻¹ •
+            ∫ u : ℝ in Set.Ioi (Real.pi * a), Real.exp (-u) :=
+        integral_comp_mul_left_Ioi
+          (fun u : ℝ => Real.exp (-u)) a hpi_pos
+      _ =
+          Real.pi⁻¹ * ∫ u : ℝ in Set.Ioi (Real.pi * a), Real.exp (-u) := by
+        rfl
+  have htail_exact :
+      ∫ u : ℝ in Set.Ioi (Real.pi * a), Real.exp (-u) =
+        Real.exp (-(Real.pi * a)) :=
+    integral_exp_neg_Ioi (Real.pi * a)
+  have htail_scaled :
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) =
+        Real.pi⁻¹ * Real.exp (-Real.pi * a) := by
+    calc
+      ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) =
+          Real.pi⁻¹ * ∫ u : ℝ in Set.Ioi (Real.pi * a), Real.exp (-u) :=
+        hchange
+      _ = Real.pi⁻¹ * Real.exp (-(Real.pi * a)) := by
+        exact congrArg (fun x : ℝ => Real.pi⁻¹ * x) htail_exact
+      _ = Real.pi⁻¹ * Real.exp (-Real.pi * a) := by
+        rfl
+  have hpi_inv_le_one : Real.pi⁻¹ ≤ 1 :=
+    inv_le_one_of_one_le₀ (le_of_lt Real.one_lt_pi)
+  have hexp_nonneg : 0 ≤ Real.exp (-Real.pi * a) :=
+    le_of_lt (Real.exp_pos (-Real.pi * a))
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ Real.exp (-Real.pi * a))
+      htail_scaled.symm
+      (mul_le_of_le_one_left hexp_nonneg hpi_inv_le_one)
 
 /-- The Binet majorant tail integral decays exponentially from any lower
 cutoff at least `1`.
@@ -1260,17 +1300,41 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
           2 * C *
             (∫ t : ℝ in Set.Ioi (0 : ℝ),
               t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  /-
-  True owner theorem:
-  `Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane` from
-  `ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet`.
-
-  This mirror still duplicates the Binet roots above, so importing the
-  classical package here creates declaration-name conflicts.  The structural
-  cleanup is to delete those duplicated roots and turn this theorem into a thin
-  alias.
-  -/
-  sorry
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (0 : ℝ),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let S : ℂ := Complex.binetSecondFormulaSmallRemainder w
+  let T : ℂ := Complex.binetSecondFormulaTailRemainder w
+  have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
+    simpa [S, T, Complex.binetSecondFormulaSmallRemainder,
+      Complex.binetSecondFormulaTailRemainder] using
+      Complex.binetSecondFormulaRemainder_eq_small_add_tail
+        (w := w) hw_re_pos
+  have hS : ‖S‖ ≤ 4 * J / ‖w‖ := by
+    simpa [S, J] using
+      Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
+        (w := w) hw_re_pos
+  rcases
+      Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
+        (w := w) hw_re_pos with
+    ⟨C, hC_nonneg, hT⟩
+  refine ⟨C, hC_nonneg, ?_⟩
+  have hT_named :
+      ‖T‖ ≤ 2 * C * J := by
+    simpa [T, J, Complex.binetSecondFormulaTailRemainder] using hT
+  have hsum : ‖S + T‖ ≤ 4 * J / ‖w‖ + 2 * C * J := by
+    calc
+      ‖S + T‖ ≤ ‖S‖ + ‖T‖ :=
+        norm_add_le S T
+      _ ≤ 4 * J / ‖w‖ + 2 * C * J :=
+        add_le_add hS hT_named
+  exact
+    Eq.subst
+      (motive := fun z : ℂ =>
+        ‖z‖ ≤
+          4 * J / ‖w‖ + 2 * C * J)
+      hsplit.symm
+      hsum
 
 /-- The Binet majorant integral is a positive finite constant. -/
 theorem Real.binetSecondFormula_kernel_majorant_integral_pos :

@@ -1025,6 +1025,87 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
       hcombine.symm
       hsum)
 
+/-- Singleton prefix in the finite Abel transform: the whole prefix is an
+endpoint term and the variation term is zero. -/
+theorem Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
+    (φ : ℝ → ℝ)
+    (a : ℕ)
+    {λ : ℝ}
+    (hλ_pos : 0 < λ) :
+    ∃ boundary variation : ℂ,
+      (∑ n ∈ Finset.Icc a a,
+        Complex.exp (Complex.I * (φ n : ℂ))) =
+          boundary + variation ∧
+      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+  let boundary : ℂ :=
+    ∑ n ∈ Finset.Icc a a,
+      Complex.exp (Complex.I * (φ n : ℂ))
+  let variation : ℂ := 0
+  refine ⟨boundary, variation, ?_, ?_, ?_⟩
+  · exact (add_zero boundary).symm
+  · have hblock :
+        ‖∑ n ∈ Finset.Icc a a,
+          Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+            ((Finset.Icc a a).card : ℝ) :=
+      Complex.realPhase_integer_block_bound_by_card φ
+    have hcard : ((Finset.Icc a a).card : ℝ) = 1 := by
+      have hIcc : Finset.Icc a a = ({a} : Finset ℕ) :=
+        Finset.Icc_self a
+      have hcard_nat : (Finset.Icc a a).card = 1 := by
+        calc
+          (Finset.Icc a a).card = ({a} : Finset ℕ).card :=
+            congrArg Finset.card hIcc
+          _ = 1 :=
+            Finset.card_singleton a
+      exact congrArg Nat.cast hcard_nat
+    have hone_bound :
+        (1 : ℝ) ≤ 2 * (λ⁻¹ + 1) :=
+      Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound hλ_pos
+    exact le_trans hblock
+      (Eq.subst
+        (motive := fun c : ℝ => c ≤ 2 * (λ⁻¹ + 1))
+        hcard.symm
+        hone_bound)
+  · have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
+      inv_nonneg.mpr hλ_pos.le
+    have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
+      add_nonneg hλ_inv_nonneg zero_le_one
+    have htarget_nonneg : 0 ≤ 6 * (λ⁻¹ + 1) :=
+      mul_nonneg (by norm_num : (0 : ℝ) ≤ 6) hsum_nonneg
+    exact Eq.subst
+      (motive := fun r : ℝ => r ≤ 6 * (λ⁻¹ + 1))
+      (norm_zero : ‖(0 : ℂ)‖ = 0).symm
+      htarget_nonneg
+
+/-- Non-singleton prefix in the finite Abel transform.  This is the remaining
+finite summation-by-parts identity plus monotone-variation estimate. -/
+theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab_lt : a < b)
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹) :
+    ∃ boundary variation : ℂ,
+      (∑ n ∈ Finset.Icc a m,
+        Complex.exp (Complex.I * (φ n : ℂ))) =
+          boundary + variation ∧
+      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+  sorry
+
 /-- The finite Abel transform supplies boundary and variation terms satisfying
 the needed prefix bounds. -/
 theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
@@ -1050,7 +1131,25 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
           boundary + variation ∧
       ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
       ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
-  sorry
+  by_cases hma : m = a
+  · exact Eq.subst
+      (motive := fun r : ℕ =>
+        ∃ boundary variation : ℂ,
+          (∑ n ∈ Finset.Icc a r,
+            Complex.exp (Complex.I * (φ n : ℂ))) =
+              boundary + variation ∧
+          ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
+          ‖variation‖ ≤ 6 * (λ⁻¹ + 1))
+      hma.symm
+      (Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
+        φ a hλ_pos)
+  · have hm_bounds : a ≤ m ∧ m ≤ b :=
+      Finset.mem_Icc.mp hm
+    have ham : a < m :=
+      lt_of_le_of_ne hm_bounds.1 (Ne.symm hma)
+    exact
+      Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
+        φ ha hab_lt ham hm hλ_pos hinc_mono hden
 
 /-- Prefix-sum form of the finite monotone-increment Dirichlet estimate.
 
