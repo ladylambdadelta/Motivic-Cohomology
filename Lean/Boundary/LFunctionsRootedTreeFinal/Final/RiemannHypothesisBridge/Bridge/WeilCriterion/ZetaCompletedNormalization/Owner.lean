@@ -4114,7 +4114,133 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
         e ≤ U →
           R ^ e ≤ K * Y ^ e ∧
           k * Y ^ e ≤ R ^ e := by
-  sorry
+  let E : ℝ := max |L| |U|
+  let M : ℝ := |Real.log c| + |Real.log C|
+  let K : ℝ := Real.exp (E * M)
+  let k : ℝ := Real.exp (-(E * M))
+  have hE_nonneg : 0 ≤ E :=
+    le_trans (abs_nonneg L) (le_max_left |L| |U|)
+  have hM_nonneg : 0 ≤ M :=
+    add_nonneg (abs_nonneg (Real.log c)) (abs_nonneg (Real.log C))
+  have hEM_nonneg : 0 ≤ E * M :=
+    mul_nonneg hE_nonneg hM_nonneg
+  refine ⟨K, k, Real.exp_pos (E * M), Real.exp_pos (-(E * M)), ?_⟩
+  intro R Y e hY_pos hlow hhigh hL hU
+  let q : ℝ := R / Y
+  have hY_nonneg : 0 ≤ Y :=
+    le_of_lt hY_pos
+  have hY_ne : Y ≠ 0 :=
+    ne_of_gt hY_pos
+  have hq_lower : c ≤ q := by
+    calc
+      c = (c * Y) / Y := by
+        exact (mul_div_cancel_right₀ c hY_ne).symm
+      _ ≤ R / Y :=
+        div_le_div_of_nonneg_right hlow hY_nonneg
+  have hq_upper : q ≤ C := by
+    calc
+      q = R / Y := rfl
+      _ ≤ (C * Y) / Y :=
+        div_le_div_of_nonneg_right hhigh hY_nonneg
+      _ = C := by
+        exact mul_div_cancel_right₀ C hY_ne
+  have hq_pos : 0 < q :=
+    lt_of_lt_of_le hc_pos hq_lower
+  have hq_nonneg : 0 ≤ q :=
+    le_of_lt hq_pos
+  have hR_eq : R = q * Y := by
+    calc
+      R = (R / Y) * Y := by
+        exact (div_mul_cancel₀ R hY_ne).symm
+      _ = q * Y := rfl
+  have he_abs : |e| ≤ E :=
+    real_abs_le_max_abs_of_mem_Icc hL hU
+  have hlog_abs : |Real.log q| ≤ M := by
+    by_cases hlog_nonneg : 0 ≤ Real.log q
+    · have hlog_le_C : Real.log q ≤ Real.log C :=
+        Real.log_le_log hq_pos hq_upper
+      have hlog_abs_eq : |Real.log q| = Real.log q :=
+        abs_of_nonneg hlog_nonneg
+      have hC_le_abs : Real.log C ≤ |Real.log C| :=
+        le_abs_self (Real.log C)
+      calc
+        |Real.log q| = Real.log q := hlog_abs_eq
+        _ ≤ Real.log C := hlog_le_C
+        _ ≤ |Real.log C| := hC_le_abs
+        _ ≤ |Real.log c| + |Real.log C| :=
+          le_add_of_nonneg_left (abs_nonneg (Real.log c))
+    · have hlog_nonpos : Real.log q ≤ 0 :=
+        le_of_not_ge hlog_nonneg
+      have hlog_c_le : Real.log c ≤ Real.log q :=
+        Real.log_le_log hc_pos hq_lower
+      have hneg_le : -Real.log q ≤ -Real.log c :=
+        neg_le_neg hlog_c_le
+      have hneg_c_le_abs : -Real.log c ≤ |Real.log c| :=
+        neg_le_abs (Real.log c)
+      have hlog_abs_eq : |Real.log q| = -Real.log q :=
+        abs_of_nonpos hlog_nonpos
+      calc
+        |Real.log q| = -Real.log q := hlog_abs_eq
+        _ ≤ -Real.log c := hneg_le
+        _ ≤ |Real.log c| := hneg_c_le_abs
+        _ ≤ |Real.log c| + |Real.log C| :=
+          le_add_of_nonneg_right (abs_nonneg (Real.log C))
+  have hmul_abs :
+      |e * Real.log q| ≤ E * M := by
+    calc
+      |e * Real.log q| = |e| * |Real.log q| :=
+        abs_mul e (Real.log q)
+      _ ≤ E * M :=
+        mul_le_mul he_abs hlog_abs hM_nonneg (abs_nonneg e)
+  have hupper_exp_arg : e * Real.log q ≤ E * M :=
+    le_trans (le_abs_self (e * Real.log q)) hmul_abs
+  have hlower_exp_arg : -(E * M) ≤ e * Real.log q := by
+    have hneg_abs : -|e * Real.log q| ≤ e * Real.log q :=
+      neg_abs_le (e * Real.log q)
+    have hneg_bound : -(E * M) ≤ -|e * Real.log q| :=
+      neg_le_neg hmul_abs
+    exact le_trans hneg_bound hneg_abs
+  have hq_pow_upper : q ^ e ≤ K := by
+    have hq_pow_eq : q ^ e = Real.exp (Real.log q * e) :=
+      Real.rpow_def_of_pos hq_pos e
+    have hcomm : Real.log q * e = e * Real.log q :=
+      mul_comm (Real.log q) e
+    exact Eq.subst
+      (motive := fun t : ℝ => t ≤ K)
+      hq_pow_eq.symm
+      (Eq.subst
+        (motive := fun t : ℝ => Real.exp t ≤ K)
+        hcomm
+        (Real.exp_le_exp.mpr hupper_exp_arg))
+  have hq_pow_lower : k ≤ q ^ e := by
+    have hq_pow_eq : q ^ e = Real.exp (Real.log q * e) :=
+      Real.rpow_def_of_pos hq_pos e
+    have hcomm : Real.log q * e = e * Real.log q :=
+      mul_comm (Real.log q) e
+    exact Eq.subst
+      (motive := fun t : ℝ => k ≤ t)
+      hq_pow_eq.symm
+      (Eq.subst
+        (motive := fun t : ℝ => k ≤ Real.exp t)
+        hcomm
+        (Real.exp_le_exp.mpr hlower_exp_arg))
+  have hY_pow_nonneg : 0 ≤ Y ^ e :=
+    Real.rpow_nonneg hY_nonneg e
+  have hR_pow_eq : R ^ e = q ^ e * Y ^ e := by
+    calc
+      R ^ e = (q * Y) ^ e := by
+        exact congrArg (fun t : ℝ => t ^ e) hR_eq
+      _ = q ^ e * Y ^ e :=
+        Real.mul_rpow hq_nonneg hY_nonneg
+  constructor
+  · exact Eq.subst
+      (motive := fun t : ℝ => t ≤ K * Y ^ e)
+      hR_pow_eq.symm
+      (mul_le_mul_of_nonneg_right hq_pow_upper hY_pow_nonneg)
+  · exact Eq.subst
+      (motive := fun t : ℝ => k * Y ^ e ≤ t)
+      hR_pow_eq.symm
+      (mul_le_mul_of_nonneg_right hq_pow_lower hY_pow_nonneg)
 
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
@@ -11304,6 +11430,93 @@ theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
     Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
   exact reciprocalDerivative_norm_eq_on_positive_interval hcutoff_pos hx
 
+/-- Pointwise scalar majorization of the reciprocal-density integrand on the
+post-cutoff interval. -/
+theorem reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
+    (t : ℝ)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ∀ x ∈ Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
+  intro x hx
+  have hx_Icc :
+      x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ) :=
+    ⟨le_of_lt hx.1, hx.2⟩
+  have hleft :
+      (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ≤ x :=
+    le_of_lt hx.1
+  have hdensity :
+      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+        (1 : ℝ) / x ^ 2 :=
+    hreciprocal_density x hx_Icc
+  have hpartial_x :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) :=
+    hpartial hleft
+  have hnorm_mul :
+      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ =
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ *
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ :=
+    norm_mul
+      (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
+      (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊)
+  have hdensity_nonneg :
+      0 ≤ (1 : ℝ) / x ^ 2 := by
+    exact Eq.subst
+      (motive := fun u : ℝ => 0 ≤ u)
+      hdensity
+      (norm_nonneg (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x))
+  have hmul :
+      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ *
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :=
+    Eq.subst
+      (motive := fun u : ℝ =>
+        u * ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+          ((1 : ℝ) / x ^ 2) *
+            (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)))
+      hdensity.symm
+      (mul_le_mul_of_nonneg_left hpartial_x hdensity_nonneg)
+  exact Eq.subst
+    (motive := fun u : ℝ =>
+      u ≤ ((1 : ℝ) / x ^ 2) *
+        (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)))
+    hnorm_mul.symm
+    hmul
+
+/-- Measure-theoretic norm domination for the reciprocal-density integral from
+the pointwise scalar majorant. -/
+theorem reciprocalDensityIntegral_norm_le_scalar_majorant_of_pointwise
+    (t : ℝ)
+    {M : ℕ}
+    (hpointwise :
+      ∀ x ∈ Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+          ((1 : ℝ) / x ^ 2) *
+            (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
+  sorry
+
 /-- Bochner norm domination for the reciprocal-density logarithmic-phase
 integral. -/
 theorem reciprocalDensityIntegral_norm_le_scalar_majorant
@@ -11325,6 +11538,23 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant
       ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         ((1 : ℝ) / x ^ 2) *
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
+  exact
+    reciprocalDensityIntegral_norm_le_scalar_majorant_of_pointwise
+      t
+      (reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
+        t hpartial hNM hreciprocal_density)
+
+/-- Real calculus estimate for the scalar reciprocal-density majorant after
+the canonical logarithmic-phase cutoff. -/
+theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff_calculus
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
 
 /-- Scalar reciprocal-density integral comparison for the logarithmic-phase
@@ -11338,7 +11568,7 @@ theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff
         ((1 : ℝ) / x ^ 2) *
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact reciprocalDensityIntegral_scalar_majorant_le_log_cutoff_calculus t ht hNM
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
@@ -16454,6 +16684,275 @@ theorem poleClearedRiemannZeta_one_two_strip_diffContOnCl :
       intro z hz
       exact ⟨lt_trans zero_lt_one hz.1, hz.2⟩)
 
+/-- Euler-Maclaurin cutoff used in the bounded strip `1 ≤ Re s ≤ 2`.
+
+The choice is height-comparable and avoids the zero cutoff; it is the same
+classical scale as the boundary-line Abel/Euler-Maclaurin truncation. -/
+noncomputable def eulerMaclaurinPoleClearedZetaCutoff
+    (z : ℂ) : ℕ :=
+  ⌊2 + ‖z‖⌋₊
+
+/-- Finite Dirichlet-polynomial part of the Euler-Maclaurin continuation for
+`ζ(s)`, after multiplying by the pole-clearing factor `s - 1`. -/
+noncomputable def eulerMaclaurinPoleClearedZetaFinitePart
+    (z : ℂ) : ℂ :=
+  (z - 1) *
+    ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+      1 / (((n : ℕ) : ℂ) ^ z)
+
+/-- Pole-cancelling main term `(s - 1) · N^(1-s)/(s-1) = N^(1-s)` in the
+Euler-Maclaurin continuation. -/
+noncomputable def eulerMaclaurinPoleClearedZetaMainTerm
+    (z : ℂ) : ℂ :=
+  ((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ ((1 : ℂ) - z)
+
+/-- Endpoint correction in the pole-cleared Euler-Maclaurin continuation. -/
+noncomputable def eulerMaclaurinPoleClearedZetaEndpointTerm
+    (z : ℂ) : ℂ :=
+  ((z - 1) / 2) *
+    (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
+
+/-- Bernoulli-periodic remainder term in the pole-cleared Euler-Maclaurin
+continuation.
+
+This name isolates the standard remainder estimate.  The exact analytic
+construction is the usual `B₁({x})` integral after multiplying by `s - 1`; the
+owner theorem below records the formula identity and the polynomial bound used
+by the finite-order chain. -/
+noncomputable def eulerMaclaurinPoleClearedZetaRemainderTerm
+    (z : ℂ) : ℂ :=
+  poleClearedRiemannZeta z -
+    (eulerMaclaurinPoleClearedZetaFinitePart z +
+      eulerMaclaurinPoleClearedZetaMainTerm z +
+      eulerMaclaurinPoleClearedZetaEndpointTerm z)
+
+/-- The pole-cleared Euler-Maclaurin continuation formula in the `1 ≤ Re s ≤ 2`
+strip, with the four canonical terms separated. -/
+theorem poleClearedRiemannZeta_eq_eulerMaclaurin_one_two_strip_terms
+    (z : ℂ) :
+    poleClearedRiemannZeta z =
+      eulerMaclaurinPoleClearedZetaFinitePart z +
+        eulerMaclaurinPoleClearedZetaMainTerm z +
+        eulerMaclaurinPoleClearedZetaEndpointTerm z +
+        eulerMaclaurinPoleClearedZetaRemainderTerm z := by
+  unfold eulerMaclaurinPoleClearedZetaRemainderTerm
+  let S : ℂ :=
+    (eulerMaclaurinPoleClearedZetaFinitePart z +
+      eulerMaclaurinPoleClearedZetaMainTerm z +
+      eulerMaclaurinPoleClearedZetaEndpointTerm z)
+  have hsub :
+      poleClearedRiemannZeta z = (poleClearedRiemannZeta z - S) + S :=
+    (sub_add_cancel (poleClearedRiemannZeta z) S).symm
+  have hcomm :
+      (poleClearedRiemannZeta z - S) + S =
+        S + (poleClearedRiemannZeta z - S) :=
+    add_comm (poleClearedRiemannZeta z - S) S
+  exact Eq.trans hsub hcomm
+
+/-- Polynomial bound for the finite Dirichlet-polynomial piece in the bounded
+Euler-Maclaurin strip. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_one_two_strip_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Polynomial bound for the pole-cancelling main term in the bounded
+Euler-Maclaurin strip. -/
+theorem eulerMaclaurinPoleClearedZetaMainTerm_one_two_strip_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Polynomial bound for the endpoint correction in the bounded
+Euler-Maclaurin strip. -/
+theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Polynomial bound for the Bernoulli-periodic Euler-Maclaurin remainder in
+the bounded strip. -/
+theorem eulerMaclaurinPoleClearedZetaRemainderTerm_one_two_strip_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Four polynomial Euler-Maclaurin term bounds assemble to a polynomial bound
+for the pole-cleared zeta factor. -/
+theorem poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_term_bounds
+    (hfinite :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m)
+    (hmain :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ C * (1 + ‖z‖) ^ m)
+    (hendpoint :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ ≤ C * (1 + ‖z‖) ^ m)
+    (hremainder :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m) :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  rcases hfinite with ⟨Cf, mf, hCf, hf⟩
+  rcases hmain with ⟨Cm, mm, hCm, hm⟩
+  rcases hendpoint with ⟨Ce, me, hCe, he⟩
+  rcases hremainder with ⟨Cr, mr, hCr, hr⟩
+  let C : ℝ := Cf + Cm + Ce + Cr
+  let m : ℕ := mf + mm + me + mr
+  have hCf_nonneg : 0 ≤ Cf := le_of_lt hCf
+  have hCm_nonneg : 0 ≤ Cm := le_of_lt hCm
+  have hCe_nonneg : 0 ≤ Ce := le_of_lt hCe
+  have hCr_nonneg : 0 ≤ Cr := le_of_lt hCr
+  refine ⟨C, m, add_pos (add_pos (add_pos hCf hCm) hCe) hCr, ?_⟩
+  intro z hz_one hz_two
+  let H : ℝ := 1 + ‖z‖
+  have hH_ge_one : (1 : ℝ) ≤ H :=
+    le_add_of_nonneg_right (norm_nonneg z)
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one hH_ge_one
+  have hmf : H ^ mf ≤ H ^ m :=
+    pow_le_pow_right₀ hH_ge_one (Nat.le_add_right mf (mm + me + mr))
+  have hmm : H ^ mm ≤ H ^ m := by
+    have hmm_le : mm ≤ mf + mm + me + mr := by
+      exact le_trans
+        (le_add_of_nonneg_left (Nat.zero_le mf))
+        (Nat.le_add_right (mf + mm) (me + mr))
+    exact pow_le_pow_right₀ hH_ge_one hmm_le
+  have hme : H ^ me ≤ H ^ m := by
+    have hme_le : me ≤ mf + mm + me + mr := by
+      exact le_trans
+        (le_add_of_nonneg_left (Nat.zero_le (mf + mm)))
+        (Nat.le_add_right (mf + mm + me) mr)
+    exact pow_le_pow_right₀ hH_ge_one hme_le
+  have hmr : H ^ mr ≤ H ^ m := by
+    have hmr_le : mr ≤ (mf + mm + me) + mr :=
+      Nat.le_add_left mr (mf + mm + me)
+    exact Eq.subst
+      (motive := fun d : ℕ => H ^ mr ≤ H ^ d)
+      (show (mf + mm + me) + mr = mf + mm + me + mr from rfl)
+      (pow_le_pow_right₀ hH_ge_one hmr_le)
+  have hf' :
+      ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ Cf * H ^ m :=
+    le_trans (hf z hz_one hz_two)
+      (mul_le_mul_of_nonneg_left hmf hCf_nonneg)
+  have hm' :
+      ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ ≤ Cm * H ^ m :=
+    le_trans (hm z hz_one hz_two)
+      (mul_le_mul_of_nonneg_left hmm hCm_nonneg)
+  have he' :
+      ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ ≤ Ce * H ^ m :=
+    le_trans (he z hz_one hz_two)
+      (mul_le_mul_of_nonneg_left hme hCe_nonneg)
+  have hr' :
+      ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ Cr * H ^ m :=
+    le_trans (hr z hz_one hz_two)
+      (mul_le_mul_of_nonneg_left hmr hCr_nonneg)
+  have hformula :
+      poleClearedRiemannZeta z =
+        eulerMaclaurinPoleClearedZetaFinitePart z +
+          eulerMaclaurinPoleClearedZetaMainTerm z +
+          eulerMaclaurinPoleClearedZetaEndpointTerm z +
+          eulerMaclaurinPoleClearedZetaRemainderTerm z :=
+    poleClearedRiemannZeta_eq_eulerMaclaurin_one_two_strip_terms z
+  have htriangle :
+      ‖poleClearedRiemannZeta z‖ ≤
+        ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ +
+          ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ +
+          ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ +
+          ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ := by
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        ‖w‖ ≤
+          ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ +
+            ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ +
+            ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ +
+            ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖)
+      hformula.symm
+      (le_trans
+        (norm_add_le
+          (eulerMaclaurinPoleClearedZetaFinitePart z +
+            eulerMaclaurinPoleClearedZetaMainTerm z +
+            eulerMaclaurinPoleClearedZetaEndpointTerm z)
+          (eulerMaclaurinPoleClearedZetaRemainderTerm z))
+        (add_le_add_right
+          (le_trans
+            (norm_add_le
+              (eulerMaclaurinPoleClearedZetaFinitePart z +
+                eulerMaclaurinPoleClearedZetaMainTerm z)
+              (eulerMaclaurinPoleClearedZetaEndpointTerm z))
+            (add_le_add_right
+              (norm_add_le
+                (eulerMaclaurinPoleClearedZetaFinitePart z)
+                (eulerMaclaurinPoleClearedZetaMainTerm z))
+              ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖))
+          ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖))
+  have hsum_bound :
+      ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ +
+          ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ +
+          ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ +
+          ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤
+        C * H ^ m := by
+    have hsum :
+        ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ +
+            ‖eulerMaclaurinPoleClearedZetaMainTerm z‖ +
+            ‖eulerMaclaurinPoleClearedZetaEndpointTerm z‖ +
+            ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤
+          Cf * H ^ m + Cm * H ^ m + Ce * H ^ m + Cr * H ^ m :=
+      add_le_add (add_le_add (add_le_add hf' hm') he') hr'
+    have hcombine :
+        Cf * H ^ m + Cm * H ^ m + Ce * H ^ m + Cr * H ^ m =
+          C * H ^ m := by
+      calc
+        Cf * H ^ m + Cm * H ^ m + Ce * H ^ m + Cr * H ^ m =
+            (Cf + Cm) * H ^ m + Ce * H ^ m + Cr * H ^ m := by
+          exact congrArg (fun x : ℝ => x + Ce * H ^ m + Cr * H ^ m)
+            (add_mul Cf Cm (H ^ m)).symm
+        _ = (Cf + Cm + Ce) * H ^ m + Cr * H ^ m := by
+          exact congrArg (fun x : ℝ => x + Cr * H ^ m)
+            (add_mul (Cf + Cm) Ce (H ^ m)).symm
+        _ = (Cf + Cm + Ce + Cr) * H ^ m := by
+          exact (add_mul (Cf + Cm + Ce) Cr (H ^ m)).symm
+        _ = C * H ^ m := rfl
+    exact hsum.trans_eq hcombine
+  exact le_trans htriangle hsum_bound
+
 /-- Euler-Maclaurin formula/remainder polynomial bound for the pole-cleared zeta
 factor on the closed strip `1 ≤ Re s ≤ 2`.
 
@@ -16474,7 +16973,12 @@ theorem eulerMaclaurin_poleClearedRiemannZeta_one_two_strip_formula_remainder_po
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  exact
+    poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_term_bounds
+      eulerMaclaurinPoleClearedZetaFinitePart_one_two_strip_polynomial_bound
+      eulerMaclaurinPoleClearedZetaMainTerm_one_two_strip_polynomial_bound
+      eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
+      eulerMaclaurinPoleClearedZetaRemainderTerm_one_two_strip_polynomial_bound
 
 /-- Polynomial Euler-Maclaurin growth on the closed strip implies the
 finite-order exponential envelope used by the strip admissibility API. -/
