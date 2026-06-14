@@ -839,6 +839,31 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
       hterms.symm
       hsum
 
+/-- First-periodic-Bernoulli integration-by-parts form of the finite
+first-order Euler-Maclaurin formula on a natural `Ioc` interval.
+
+This is the genuine finite calculus theorem behind the owner formula: on each
+unit interval the derivative of `x - n - 1/2` is `1`, and summing the resulting
+integration-by-parts identities gives the `Ioc` endpoint signs. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_integrationByParts_Ioc
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
+    (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  sorry
+
 /-- Generic finite first-order Euler-Maclaurin identity on a natural `Ioc`
 interval, with the first periodic Bernoulli remainder.
 
@@ -862,7 +887,9 @@ theorem eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
         (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-  sorry
+  exact
+    eulerMaclaurin_firstPeriodicBernoulli_integrationByParts_Ioc
+      f f' N M hNM hf_cont hf_deriv hf'_int
 
 /-- Continuity of the zeta complex-power profile on a positive finite real
 interval. -/
