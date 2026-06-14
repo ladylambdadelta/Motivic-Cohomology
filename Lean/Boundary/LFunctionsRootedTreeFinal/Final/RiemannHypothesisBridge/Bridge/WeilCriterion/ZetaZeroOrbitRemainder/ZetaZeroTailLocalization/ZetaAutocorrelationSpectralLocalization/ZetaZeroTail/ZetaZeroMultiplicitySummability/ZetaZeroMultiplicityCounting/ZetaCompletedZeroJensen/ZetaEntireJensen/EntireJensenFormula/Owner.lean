@@ -2339,6 +2339,71 @@ theorem entireFunction_zeroFreeQuotient_boundaryLog_eq_analyticLog_re
     _ = (L z).re :=
       complex_log_norm_exp_eq_re (L z)
 
+/-- Holomorphic logarithm existence on a zero-free simply connected Jensen disk.
+
+This is the canonical analytic-log construction used by Jensen's formula: a
+holomorphic zero-free map from the disk to `ℂˣ` lifts through
+`Complex.exp : ℂ → ℂˣ`.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simplyConnectedDisk
+    (G : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0) :
+    ∃ L : ℂ → ℂ,
+      (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
+      (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) := by
+  -- Classical lifting of the zero-free holomorphic disk map to a holomorphic
+  -- logarithm through the exponential covering of `ℂˣ`.
+  sorry
+
+/-- The real part of any chosen analytic logarithm is the logarithm of the
+norm of the original zero-free function. -/
+theorem entireFunction_analyticLogBranch_re_eq_log_norm
+    (G L : ℂ → ℂ)
+    {ρ : ℝ}
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ)
+    (hlog :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        G w = Complex.exp (L w)) :
+    (L z).re = Real.log ‖G z‖ := by
+  have hzlog : G z = Complex.exp (L z) :=
+    hlog z hz
+  have hnorm_log :
+      Real.log ‖G z‖ = Real.log ‖Complex.exp (L z)‖ := by
+    exact congrArg (fun w : ℂ => Real.log ‖w‖) hzlog
+  have hexp_log :
+      Real.log ‖Complex.exp (L z)‖ = (L z).re :=
+    complex_log_norm_exp_eq_re (L z)
+  exact (Eq.trans hnorm_log hexp_log).symm
+
+/-- The analytic logarithm branch supplied on a Jensen disk is automatically
+normalized in real part at the center. -/
+theorem entireFunction_analyticLogBranch_center_re_eq_log_norm
+    (G L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hlog :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        G w = Complex.exp (L w)) :
+    (L 0).re = Real.log ‖G 0‖ := by
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans zero_le_one hρ
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ :=
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ρ)
+      (norm_zero : ‖(0 : ℂ)‖ = 0).symm
+      hρ_nonneg
+  exact
+    entireFunction_analyticLogBranch_re_eq_log_norm
+      G L hzero_mem hlog
+
 /-- Analytic-log existence on a simply connected Jensen disk.
 
 This is the exact topological/complex-analytic owner root needed by Jensen's
@@ -2361,8 +2426,13 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnec
       (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
       (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) ∧
       (L 0).re = Real.log ‖G 0‖ := by
-  -- Classical analytic logarithm on a simply connected zero-free disk.
-  sorry
+  rcases
+      entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simplyConnectedDisk
+        G hG hρ hzero
+      with ⟨L, hL_an, hL_log⟩
+  exact
+    ⟨L, hL_an, hL_log,
+      entireFunction_analyticLogBranch_center_re_eq_log_norm G L hρ hL_log⟩
 
 /-- A zero-free holomorphic function on a closed disk admits a holomorphic
 logarithm on a neighborhood of that disk, normalized at the center.
@@ -3166,6 +3236,81 @@ theorem entireFunction_singleZeroFactor_boundary_log_split
             Real.log ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖)
         houter_norm
 
+/-- The Fourier-mode logarithmic mean for a contracting inner disk factor.
+
+For `‖q‖ < 1`, the branch
+`log (1 - q * exp (-θ I)) = -∑ n≥1 q^n exp (-n θ I) / n` is uniformly
+convergent on the Jensen circle.  Every nonzero Fourier mode has zero angular
+mean, hence the real logarithmic norm has zero normalized mean.  Cf.
+Titchmarsh, *The Theory of Functions*, §5. -/
+theorem complex_log_one_sub_contracting_fourier_mean_zero
+    {q : ℂ}
+    (hq : ‖q‖ < 1) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - q * Complex.exp (-(θ * Complex.I))‖) =
+      0 := by
+  -- Power-series expansion of the holomorphic logarithm on the unit disk,
+  -- uniform boundary convergence for `‖q‖ < 1`, and vanishing of the angular
+  -- mean of each nonzero Fourier mode.
+  sorry
+
+/-- The normalized zero location `a / ρ` is strictly inside the unit disk. -/
+theorem entireFunction_singleZeroFactor_normalized_zero_norm_lt_one
+    {a : ℂ}
+    {ρ : ℝ}
+    (haρ : ‖a‖ < ρ) :
+    ‖a / (ρ : ℂ)‖ < 1 := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_le_of_lt (norm_nonneg a) haρ
+  have hnorm_div :
+      ‖a / (ρ : ℂ)‖ = ‖a‖ / ρ := by
+    calc
+      ‖a / (ρ : ℂ)‖ = ‖a‖ / ‖(ρ : ℂ)‖ := by
+        exact norm_div a (ρ : ℂ)
+      _ = ‖a‖ / |ρ| := by
+        exact congrArg (fun x : ℝ => ‖a‖ / x) (Complex.norm_real ρ)
+      _ = ‖a‖ / ρ := by
+        exact congrArg (fun x : ℝ => ‖a‖ / x) (abs_of_pos hρ_pos)
+  have hratio_lt : ‖a‖ / ρ < 1 :=
+    (div_lt_one hρ_pos).mpr haρ
+  exact Eq.subst
+    (motive := fun x : ℝ => x < 1)
+    hnorm_div.symm
+    hratio_lt
+
+/-- Algebraic transport from the Jensen inner factor to the normalized
+contracting Fourier factor. -/
+theorem entireFunction_singleZeroFactor_inner_eq_contracting_fourier_factor
+    {a : ℂ}
+    {ρ : ℝ}
+    (haρ : ‖a‖ < ρ)
+    (θ : ℝ) :
+    1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I))) =
+      1 - (a / (ρ : ℂ)) * Complex.exp (-(θ * Complex.I)) := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_le_of_lt (norm_nonneg a) haρ
+  have hdiv :
+      a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)) =
+        (a / (ρ : ℂ)) * Complex.exp (-(θ * Complex.I)) := by
+    calc
+      a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)) =
+          a * (((ρ : ℂ) * Complex.exp (θ * Complex.I))⁻¹) := by
+        exact div_eq_mul_inv a ((ρ : ℂ) * Complex.exp (θ * Complex.I))
+      _ = a * ((ρ : ℂ)⁻¹ * (Complex.exp (θ * Complex.I))⁻¹) := by
+        exact congrArg (fun x : ℂ => a * x)
+          (mul_inv_rev (ρ : ℂ) (Complex.exp (θ * Complex.I)))
+      _ = (a * (ρ : ℂ)⁻¹) * (Complex.exp (θ * Complex.I))⁻¹ := by
+        exact mul_assoc a (ρ : ℂ)⁻¹ (Complex.exp (θ * Complex.I))⁻¹
+      _ = (a / (ρ : ℂ)) * (Complex.exp (θ * Complex.I))⁻¹ := by
+        exact congrArg
+          (fun x : ℂ => x * (Complex.exp (θ * Complex.I))⁻¹)
+          (div_eq_mul_inv a (ρ : ℂ)).symm
+      _ = (a / (ρ : ℂ)) * Complex.exp (-(θ * Complex.I)) := by
+        exact congrArg (fun x : ℂ => (a / (ρ : ℂ)) * x)
+          (Complex.exp_neg (θ * Complex.I)).symm
+  exact congrArg (fun x : ℂ => 1 - x) hdiv
+
 /-- The logarithmic power-series mean for an inside-disk linear factor
 vanishes on the Jensen boundary. -/
 theorem entireFunction_singleZeroFactor_inner_log_mean_zero_from_powerSeries
@@ -3177,10 +3322,144 @@ theorem entireFunction_singleZeroFactor_inner_log_mean_zero_from_powerSeries
           Real.log
             ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) =
       0 := by
-  -- Expand `log (1 - z)` as `-∑ n≥1 z^n/n` for `‖a/ρ‖ < 1`.
-  -- The angular mean of every nonzero Fourier mode is zero, so the real part
-  -- of the logarithmic mean is zero.
-  sorry
+  have hq : ‖a / (ρ : ℂ)‖ < 1 :=
+    entireFunction_singleZeroFactor_normalized_zero_norm_lt_one haρ
+  have hmean :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log ‖1 - (a / (ρ : ℂ)) *
+              Complex.exp (-(θ * Complex.I))‖) =
+        0 :=
+    complex_log_one_sub_contracting_fourier_mean_zero hq
+  have hintegrand :
+      (fun θ : ℝ =>
+        Real.log
+          ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) =
+      (fun θ : ℝ =>
+        Real.log ‖1 - (a / (ρ : ℂ)) *
+          Complex.exp (-(θ * Complex.I))‖) := by
+    funext θ
+    exact congrArg (fun z : ℂ => Real.log ‖z‖)
+      (entireFunction_singleZeroFactor_inner_eq_contracting_fourier_factor
+        haρ θ)
+  exact Eq.subst
+    (motive := fun f : ℝ → ℝ =>
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), f θ) =
+        0)
+    hintegrand.symm
+    hmean
+
+/-- The inner single-zero logarithmic boundary factor is continuous on the
+Jensen parameter interval. -/
+theorem entireFunction_singleZeroFactor_inner_log_continuous
+    {a : ℂ}
+    {ρ : ℝ}
+    (haρ : ‖a‖ < ρ) :
+    Continuous
+      (fun θ : ℝ =>
+        Real.log
+          ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) := by
+  have hρ_pos : 0 < ρ :=
+    lt_of_le_of_lt (norm_nonneg a) haρ
+  have hden_ne :
+      ∀ θ : ℝ, ((ρ : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 :=
+    fun θ : ℝ =>
+      entireFunction_singleZeroFactor_boundary_point_ne_zero hρ_pos θ
+  have hinner_ne :
+      ∀ θ : ℝ,
+        1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I))) ≠ 0 :=
+    fun θ : ℝ =>
+      entireFunction_singleZeroFactor_inner_ne_zero haρ θ
+  let q : ℝ → ℂ :=
+    fun θ : ℝ => 1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+  have hq_cont : Continuous q :=
+    continuous_const.sub
+      (continuous_const.div
+        ((continuous_const.mul
+          (Complex.continuous_exp.comp
+            ((continuous_ofReal.comp continuous_id).mul continuous_const))))
+        hden_ne)
+  have hnorm_cont : Continuous (fun θ : ℝ => ‖q θ‖) :=
+    hq_cont.norm
+  exact continuous_iff_continuousAt.mpr
+    (fun θ : ℝ =>
+      (Real.continuousAt_log
+        (norm_ne_zero_iff.mpr (hinner_ne θ))).comp θ hnorm_cont.continuousAt)
+
+/-- The inner single-zero logarithmic boundary factor is interval-integrable on
+the Jensen parameter interval. -/
+theorem entireFunction_singleZeroFactor_inner_log_intervalIntegrable
+    {a : ℂ}
+    {ρ : ℝ}
+    (haρ : ‖a‖ < ρ) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        Real.log
+          ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  exact
+    (entireFunction_singleZeroFactor_inner_log_continuous haρ).intervalIntegrable
+      (0 : ℝ)
+      (2 * Real.pi)
+
+/-- Normalized constant-plus Jensen interval integral when the normalized
+remainder mean vanishes. -/
+theorem entireFunction_normalized_const_add_integral_eq_const_of_mean_zero
+    (v : ℝ → ℝ)
+    (c : ℝ)
+    (hv :
+      IntervalIntegrable v MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi))
+    (hmean :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), v θ) =
+        0) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) =
+      c := by
+  have hintegral :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) =
+        (2 * Real.pi - 0) • c +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ :=
+    intervalIntegral_const_add_eq_length_smul_add
+      v c (0 : ℝ) (2 * Real.pi) hv
+  have htwo_ne : 2 * Real.pi ≠ 0 :=
+    ne_of_gt Real.two_pi_pos
+  have hconst :
+      (2 * Real.pi)⁻¹ * ((2 * Real.pi - 0) • c) = c := by
+    calc
+      (2 * Real.pi)⁻¹ * ((2 * Real.pi - 0) • c) =
+          (2 * Real.pi)⁻¹ * ((2 * Real.pi) * c) := by
+        exact congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * (x • c)) (sub_zero (2 * Real.pi))
+      _ = ((2 * Real.pi)⁻¹ * (2 * Real.pi)) * c := by
+        exact (mul_assoc (2 * Real.pi)⁻¹ (2 * Real.pi) c).symm
+      _ = 1 * c := by
+        exact congrArg (fun x : ℝ => x * c) (inv_mul_cancel₀ htwo_ne)
+      _ = c :=
+        one_mul c
+  calc
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) =
+      (2 * Real.pi)⁻¹ *
+        ((2 * Real.pi - 0) • c +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ) := by
+      exact congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) hintegral
+    _ =
+      (2 * Real.pi)⁻¹ * ((2 * Real.pi - 0) • c) +
+        (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), v θ) := by
+      exact left_distrib
+        (2 * Real.pi)⁻¹
+        ((2 * Real.pi - 0) • c)
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), v θ)
+    _ = c + 0 := by
+      exact congrArg₂ (fun x y : ℝ => x + y) hconst hmean
+    _ = c :=
+      add_zero c
 
 /-- Integrating the split single-factor boundary logarithm leaves only the
 outer Jensen radial term. -/
@@ -3211,9 +3490,38 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_from_log_split
               ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖) =
         0 :=
     entireFunction_singleZeroFactor_inner_log_mean_zero_from_powerSeries haρ
-  -- Transport `hsplit` through interval integration, integrate the constant
-  -- term over `[0, 2π]`, and use `hinner`.
-  sorry
+  let u : ℝ → ℝ :=
+    fun θ : ℝ =>
+      Real.log
+        ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖
+  let v : ℝ → ℝ :=
+    fun θ : ℝ =>
+      Real.log
+        ‖1 - (a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)))‖
+  let c : ℝ := Real.log (ρ / ‖a‖)
+  have hv :
+      IntervalIntegrable v MeasureTheory.volume
+        (0 : ℝ) (2 * Real.pi) :=
+    entireFunction_singleZeroFactor_inner_log_intervalIntegrable haρ
+  have htransport :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ := by
+    exact intervalIntegral.integral_congr
+      (fun θ _hθ => hsplit θ)
+  have hmean_v :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), v θ) =
+        0 :=
+    hinner
+  calc
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+      (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) := by
+      exact congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) htransport
+    _ = c :=
+      entireFunction_normalized_const_add_integral_eq_const_of_mean_zero
+        v c hv hmean_v
 
 /-- The single-factor Poisson-Jensen circle integral.
 
@@ -3397,6 +3705,192 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
         entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
           F hF hF0 ρ z hz)
 
+/-- The finite zero-factor product attached to the radial-gap support divisor.
+
+This is the product side of Jensen's finite divisor assembly: each zero inside
+the Jensen circle contributes the linear factor
+`1 - w / z`, repeated with analytic multiplicity. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ) : ℂ :=
+  ∏ z in
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+      F hF hF0 ρ,
+    (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)
+
+/-- The finite zero-factor product is definitionally the product over the
+support divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_def
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w =
+      ∏ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
+  rfl
+
+/-- The finite zero-free quotient after extracting the support divisor. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ) : ℂ :=
+  F w /
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+      F hF hF0 ρ w
+
+/-- The finite quotient is definitionally `F` divided by the extracted finite
+zero-factor product. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_def
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w =
+      F w /
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w := by
+  rfl
+
+/-- Canonical finite product factorization on Jensen's closed disk.
+
+This is the remaining owner-level complex-analytic construction: from the
+finite zero divisor in the disk, factor `F` as the explicit finite zero-factor
+product times a quotient that is zero-free on the closed disk.  Cf.
+Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    (∀ w : ℂ,
+      ‖w‖ ≤ ρ →
+      F w =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w) ∧
+    (∀ w : ℂ,
+      ‖w‖ ≤ ρ →
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+          F hF hF0 ρ w ≠ 0) ∧
+    (entireFunctionJensenBoundaryLogAverage F ρ =
+      Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ 0‖ +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)))) ∧
+    (Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ 0‖ =
+      -Real.log ‖F 0‖) := by
+  -- Canonical root: finite Weierstrass/Jensen divisor factorization on the
+  -- closed disk, with the quotient zero-free after all zeros in the support
+  -- divisor have been extracted.  The final two projections record the
+  -- boundary logarithm decomposition and the origin normalization supplied by
+  -- that same factorization.
+  sorry
+
+/-- The finite divisor quotient is zero-free on Jensen's closed disk. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_zeroFreeOnClosedDisk
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    ∀ w : ℂ,
+      ‖w‖ ≤ ρ →
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+          F hF hF0 ρ w ≠ 0 := by
+  exact
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
+      F hF hF0 ρ hρ).2.1
+
+/-- Boundary logarithm decomposition after the finite divisor has been
+extracted.
+
+The quotient term is zero-free on the closed disk, so its boundary mean is
+handled by the analytic-log mean-value theorem; the remaining terms are the
+finite sum of single zero-factor boundary averages. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_boundaryLog_decomposition_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ 0‖ +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+  exact
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
+      F hF hF0 ρ hρ).2.2.1
+
+/-- Origin normalization for the finite quotient in Jensen's product
+factorization. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_origin_log_norm
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ 0‖ =
+      -Real.log ‖F 0‖ := by
+  exact
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
+      F hF hF0 ρ hρ).2.2.2
+
+/-- The finite support divisor sum of single-factor boundary averages is the
+support finite radial-gap product sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_singleFactorBoundaryAverageSum_eq_radialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) := by
+  exact
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProductRadialGapSum_eq_singleFactorBoundaryAverageSum
+      F hF hF0 ρ).symm
+
 /-- Finite-product boundary-average identity over the support divisor.
 
 This is the quotient/product construction in the assembly chain.  Its proof is
@@ -3417,9 +3911,86 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ) -
         Real.log ‖F 0‖ := by
-  -- Finite divisor factorization, quotient zero-freeness on the closed disk,
-  -- boundary log decomposition, and finite single-factor averaging.
-  sorry
+  have hboundary :
+      entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log
+          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+              F hF hF0 ρ 0‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              ((2 * Real.pi)⁻¹ *
+                (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_boundaryLog_decomposition_ownerRoot
+      F hF hF0 ρ hρ
+  have hsum :
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          ((2 * Real.pi)⁻¹ *
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_singleFactorBoundaryAverageSum_eq_radialGapSum
+      F hF hF0 ρ
+  have hquotient_origin :
+      Real.log
+          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+              F hF hF0 ρ 0‖ =
+        -Real.log ‖F 0‖ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_origin_log_norm
+      F hF hF0 ρ hρ
+  let S : ℝ :=
+    ∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+  have hboundaryS :
+      entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log
+          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+              F hF hF0 ρ 0‖ + S :=
+    hboundary
+  have hsumS :
+      S =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) :=
+    hsum
+  calc
+    entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log
+          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+              F hF hF0 ρ 0‖ + S := by
+      exact hboundaryS
+    _ = -Real.log ‖F 0‖ + S := by
+      exact congrArg
+        (fun x : ℝ => x + S)
+        hquotient_origin
+    _ = S - Real.log ‖F 0‖ := by
+      exact
+        (add_comm (-Real.log ‖F 0‖) S).trans
+          (sub_eq_add_neg S (Real.log ‖F 0‖)).symm
+    _ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ) -
+          Real.log ‖F 0‖ := by
+      exact congrArg (fun x : ℝ => x - Real.log ‖F 0‖) hsum
 
 /-- Support-controlled finite-product boundary identity implies the standard
 Jensen boundary mean-log identity by replacing the finite support divisor sum
