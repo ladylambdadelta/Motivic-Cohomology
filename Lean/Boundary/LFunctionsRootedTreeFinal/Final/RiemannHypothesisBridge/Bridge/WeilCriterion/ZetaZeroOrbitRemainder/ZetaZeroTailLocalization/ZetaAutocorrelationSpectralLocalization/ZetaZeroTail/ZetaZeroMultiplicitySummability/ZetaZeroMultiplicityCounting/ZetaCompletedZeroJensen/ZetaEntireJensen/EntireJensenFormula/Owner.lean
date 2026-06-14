@@ -11199,8 +11199,10 @@ theorem complex_closedBall_radial_punctured_avoidFinite_frequently
     exact
       (eventually_mem_nhdsWithin : ∀ᶠ t in 𝓝[<] (1 : ℝ), t ∈ Set.Iio (1 : ℝ)).mono
         (fun t ht h_eq =>
+          have h_eq_one_mul : (t : ℂ) * a = 1 * a :=
+            h_eq.trans (one_mul a).symm
           have hscalar_complex : (t : ℂ) = 1 :=
-            mul_right_cancel₀ ha0 h_eq
+            mul_right_cancel₀ ha0 h_eq_one_mul
           have ht_eq_one : t = 1 :=
             Complex.ofReal_injective hscalar_complex
           have hnot : ¬ t = 1 :=
@@ -11238,8 +11240,10 @@ theorem complex_closedBall_radial_punctured_avoidFinite_frequently
           have hnorm_le_ρ : ‖(t : ℂ) * a‖ ≤ ρ :=
             hnorm_le_a.trans haρ
           ⟨fun h_eq =>
+              have h_eq_one_mul : (t : ℂ) * a = 1 * a :=
+                h_eq.trans (one_mul a).symm
               have hscalar_complex : (t : ℂ) = 1 :=
-                mul_right_cancel₀ ha0 h_eq
+                mul_right_cancel₀ ha0 h_eq_one_mul
               have ht_eq_one : t = 1 :=
                 Complex.ofReal_injective hscalar_complex
               have hnot : ¬ t = 1 :=
