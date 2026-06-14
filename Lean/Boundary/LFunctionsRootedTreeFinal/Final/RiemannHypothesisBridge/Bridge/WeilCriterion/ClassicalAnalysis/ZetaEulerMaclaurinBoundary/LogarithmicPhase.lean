@@ -1577,6 +1577,114 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
     nlinarith
   exact le_trans hboundary htarget
 
+/-- Separation from `2πℤ` descends to separation of the reduced increment from
+zero in the fundamental interval. -/
+theorem Complex.realPhase_reducedIntegerIncrement_norm_lower_bound
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {λ : ℝ}
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hn : n ∈ Finset.Ico a b) :
+    λ ≤ ‖Complex.realPhase_reducedIntegerIncrement φ n‖ := by
+  rcases
+    Complex.realPhase_twoPi_toIocMod_integerDistance
+      (Complex.realPhase_integerIncrement φ n) with
+    ⟨k, hk⟩
+  have hsep_k :
+      λ ≤
+        ‖Complex.realPhase_integerIncrement φ n -
+          (2 * Real.pi * (k : ℝ))‖ :=
+    hsep n hn k
+  exact Eq.subst
+    (motive := fun x : ℝ => λ ≤ ‖x‖)
+    hk
+    hsep_k
+
+/-- The inverse geometric denominator is unchanged by reducing the increment
+to the fundamental interval. -/
+theorem Complex.realPhase_inverseGeometricDenominator_eq_reduced
+    (φ : ℝ → ℝ)
+    (n : ℕ) :
+    Complex.realPhase_inverseGeometricDenominator φ n =
+      (1 -
+        Complex.exp
+          (Complex.I *
+            (Complex.realPhase_reducedIntegerIncrement φ n : ℂ)))⁻¹ := by
+  unfold Complex.realPhase_inverseGeometricDenominator
+    Complex.realPhase_reducedIntegerIncrement
+  let θ : ℝ := Complex.realPhase_integerIncrement φ n
+  let k : ℤ := toIocDiv Real.two_pi_pos (-Real.pi) θ
+  have hmod :
+      θ - k • ((2 * Real.pi) : ℝ) =
+        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+    self_sub_toIocDiv_zsmul Real.two_pi_pos (-Real.pi) θ
+  have hperiod :
+      Complex.exp
+          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) =
+        Complex.exp ((θ : ℂ) * Complex.I) := by
+    have hraw :
+        Complex.exp (((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) * Complex.I) =
+          Complex.exp ((θ : ℂ) * Complex.I) := by
+      exact Complex.exp_mul_I_periodic.sub_zsmul_eq k
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Complex.exp ((x : ℂ) * Complex.I) =
+          Complex.exp ((θ : ℂ) * Complex.I))
+      hmod
+      hraw
+  have hleft_comm :
+      Complex.exp (Complex.I * (θ : ℂ)) =
+        Complex.exp ((θ : ℂ) * Complex.I) :=
+    congrArg Complex.exp (mul_comm Complex.I (θ : ℂ))
+  have hright_comm :
+      Complex.exp
+          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) =
+        Complex.exp
+          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) :=
+    congrArg Complex.exp
+      (mul_comm Complex.I (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))
+  have hexp :
+      Complex.exp (Complex.I * (θ : ℂ)) =
+        Complex.exp
+          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) :=
+    Eq.trans hleft_comm (Eq.trans hperiod hright_comm.symm)
+  exact congrArg Inv.inv
+    (congrArg (fun z : ℂ => 1 - z) hexp)
+
+/-- Exact reduced-arc variation lemma for the inverse geometric denominator.
+
+This is the genuine no-winding analytic core: a monotone finite sequence in the
+fundamental interval, separated from `0`, has controlled total variation under
+`ψ ↦ (1 - exp(iψ))⁻¹`. -/
+theorem Complex.reducedArc_inverseGeometricDenominator_variation_bound
+    (ψ : ℕ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hψ_mem :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ψ n ∈ Set.Ioc (-Real.pi) Real.pi)
+    (hψ_mono :
+      MonotoneOn (fun n : ℕ => ψ n) (Finset.Ico a b : Set ℕ) ∨
+      AntitoneOn (fun n : ℕ => ψ n) (Finset.Ico a b : Set ℕ))
+    (hψ_sep :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          λ ≤ ‖ψ n‖)
+    (hψ_den :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹) :
+    (∑ n ∈ Finset.Ioo a m,
+      ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ -
+        (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹‖) ≤
+        4 * (λ⁻¹ + 1) := by
+  sorry
+
 /-- Reduced no-winding monotone separated increments control the total variation
 of the inverse geometric denominators appearing in the finite Abel transform.
 
@@ -1601,7 +1709,72 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
       ‖Complex.realPhase_inverseGeometricDenominator φ n -
         Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
         4 * (λ⁻¹ + 1) := by
-  sorry
+  let ψ : ℕ → ℝ := Complex.realPhase_reducedIntegerIncrement φ
+  have hψ_mem :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ψ n ∈ Set.Ioc (-Real.pi) Real.pi := by
+    intro n hn
+    unfold ψ Complex.realPhase_reducedIntegerIncrement
+    convert
+      toIocMod_mem_Ioc Real.two_pi_pos (-Real.pi)
+        (Complex.realPhase_integerIncrement φ n) using 1
+    ring
+  have hψ_sep :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          λ ≤ ‖ψ n‖ := by
+    intro n hn
+    unfold ψ
+    exact
+      Complex.realPhase_reducedIntegerIncrement_norm_lower_bound
+        φ hsep hn
+  have hψ_den :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹ := by
+    intro n hn
+    have htransport :
+        Complex.realPhase_inverseGeometricDenominator φ n =
+          (1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ := by
+      unfold ψ
+      exact Complex.realPhase_inverseGeometricDenominator_eq_reduced φ n
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ 2 * λ⁻¹)
+      htransport
+      (hden n hn)
+  have hcore :
+      (∑ n ∈ Finset.Ioo a m,
+        ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ -
+          (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹‖) ≤
+          4 * (λ⁻¹ + 1) :=
+    Complex.reducedArc_inverseGeometricDenominator_variation_bound
+      ψ ham hm hλ_pos hψ_mem hred_mono hψ_sep hψ_den
+  have hterms :
+      (∑ n ∈ Finset.Ioo a m,
+        ‖Complex.realPhase_inverseGeometricDenominator φ n -
+          Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) =
+        ∑ n ∈ Finset.Ioo a m,
+          ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ -
+            (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹‖ := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn
+    have hn :
+        Complex.realPhase_inverseGeometricDenominator φ n =
+          (1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ := by
+      unfold ψ
+      exact Complex.realPhase_inverseGeometricDenominator_eq_reduced φ n
+    have hpred :
+        Complex.realPhase_inverseGeometricDenominator φ (n - 1) =
+          (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹ := by
+      unfold ψ
+      exact Complex.realPhase_inverseGeometricDenominator_eq_reduced φ (n - 1)
+    exact congrArg norm (congrArg₂ Sub.sub hn hpred)
+  exact Eq.subst
+    (motive := fun r : ℝ => r ≤ 4 * (λ⁻¹ + 1))
+    hterms.symm
+    hcore
 
 /-- Variation estimate for the explicit finite Abel variation term. -/
 theorem Complex.realPhase_prefixAbelVariation_norm_bound

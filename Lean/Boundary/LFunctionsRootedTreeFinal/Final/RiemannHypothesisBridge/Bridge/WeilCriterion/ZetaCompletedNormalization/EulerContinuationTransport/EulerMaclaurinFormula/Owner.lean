@@ -839,12 +839,50 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
       hterms.symm
       hsum
 
+/-- On a unit interval between consecutive natural numbers, the first periodic
+Bernoulli sawtooth is the affine function `x - n - 1/2`. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_eq_sub_nat_sub_half_on_Ioo
+    (n : ℕ)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))) :
+    eulerMaclaurinFirstPeriodicBernoulli x =
+      x - ((n : ℕ) : ℝ) - 1 / 2 := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  have hfract_shift :
+      Int.fract (x - ((n : ℕ) : ℝ)) = Int.fract x :=
+    Int.fract_sub_nat x n
+  have hshift_nonneg : 0 ≤ x - ((n : ℕ) : ℝ) :=
+    le_of_lt (sub_pos.mpr hx.1)
+  have hshift_lt_one : x - ((n : ℕ) : ℝ) < 1 := by
+    have hsucc :
+        (((n + 1 : ℕ) : ℝ)) = ((n : ℕ) : ℝ) + 1 := by
+      exact Nat.cast_add_one n
+    calc
+      x - ((n : ℕ) : ℝ) <
+          (((n + 1 : ℕ) : ℝ)) - ((n : ℕ) : ℝ) := by
+        exact sub_lt_sub_right hx.2 (((n : ℕ) : ℝ))
+      _ = (((n : ℕ) : ℝ) + 1) - ((n : ℕ) : ℝ) := by
+        exact congrArg (fun t : ℝ => t - ((n : ℕ) : ℝ)) hsucc
+      _ = 1 := by
+        exact add_sub_cancel_left 1 (((n : ℕ) : ℝ))
+  have hfract_self :
+      Int.fract (x - ((n : ℕ) : ℝ)) =
+        x - ((n : ℕ) : ℝ) :=
+    (Int.fract_eq_self).mpr ⟨hshift_nonneg, hshift_lt_one⟩
+  calc
+    Int.fract x - 1 / 2 =
+        Int.fract (x - ((n : ℕ) : ℝ)) - 1 / 2 := by
+      exact congrArg (fun t : ℝ => t - 1 / 2) hfract_shift.symm
+    _ = x - ((n : ℕ) : ℝ) - 1 / 2 := by
+      exact congrArg (fun t : ℝ => t - 1 / 2) hfract_self
+
 /-- One-unit-interval integration-by-parts identity for the first periodic
 Bernoulli factor.
 
 On `(n, n+1]`, `Int.fract x = x - n`, so the sawtooth is
 `x - n - 1/2`.  Integrating by parts against `f'` gives the local
-Euler-Maclaurin correction with the right-endpoint sample `f(n+1)`. -/
+Euler-Maclaurin correction with the strict-right endpoint convention
+`+ f(n)/2 - f(n+1)/2`. -/
 theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
     (f f' : ℝ → ℂ)
     (n : ℕ)
@@ -858,7 +896,7 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
     f (((n + 1 : ℕ) : ℝ)) =
       (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
         ((1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
-        ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
   sorry

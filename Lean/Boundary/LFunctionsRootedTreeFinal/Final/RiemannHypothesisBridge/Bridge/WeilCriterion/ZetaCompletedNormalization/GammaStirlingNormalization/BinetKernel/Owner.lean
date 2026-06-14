@@ -1412,6 +1412,18 @@ of Binet's arctangent integral, not from a wedge restriction on `w`. -/
 abbrev Complex.BinetSecondFormulaContourDeformedTailKernel :=
   ℂ → ℝ → ℂ
 
+/-- Concrete branch-safe tail majorant kernel.
+
+This is the contour-deformed target used by the mirror owner: it is the real
+Binet tail majorant with the full-sector `1 / ‖w‖` factor, embedded in `ℂ`.
+The analytic contour-deformation input is exactly the comparison from the
+literal principal tail kernel to this branch-safe majorant on the tail support. -/
+noncomputable def Complex.binetSecondFormulaContourTailMajorantKernel
+    (w : ℂ)
+    (t : ℝ) : ℂ :=
+  (((1 : ℝ) / ‖w‖) *
+    (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
+
 /-- A.e. branch comparison between the literal principal tail kernel and a
 contour-deformed tail kernel on the split tail. -/
 def Complex.BinetSecondFormulaContourTailComparisonAE
@@ -1436,6 +1448,70 @@ def Complex.BinetSecondFormulaContourTailUniformMajorant
           (C / ‖w‖) *
             (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
 
+/-- The remaining analytic contour-deformation comparison.
+
+It says that, on the full open right half-plane and on the split tail, the
+literal principal-branch arctangent kernel is a.e. dominated by the branch-safe
+contour majorant kernel. -/
+theorem Complex.binetSecondFormula_principalTailKernel_norm_le_contourTailMajorantKernel_ae :
+    Complex.BinetSecondFormulaContourTailComparisonAE
+      Complex.binetSecondFormulaContourTailMajorantKernel 2 := by
+  sorry
+
+/-- The concrete contour tail majorant kernel has the uniform full-sector
+`1 / ‖w‖` pointwise bound. -/
+theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
+    Complex.BinetSecondFormulaContourTailUniformMajorant
+      Complex.binetSecondFormulaContourTailMajorantKernel 2 1 := by
+  intro w _hw_re_pos _hw_norm
+  exact
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht => by
+        have ht_pos : 0 < t :=
+          lt_of_le_of_lt
+            (div_nonneg (norm_nonneg w) zero_le_two)
+            ht
+        have hmajorant_nonneg :
+            0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+          le_of_lt
+            (Real.binetSecondFormula_kernel_majorant_pos_local ht_pos)
+        have hcoeff_nonneg : 0 ≤ (1 : ℝ) / ‖w‖ :=
+          div_nonneg zero_le_one (norm_nonneg w)
+        have hkernel_nonneg :
+            0 ≤
+              ((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+          mul_nonneg hcoeff_nonneg hmajorant_nonneg
+        have hnorm_eq :
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+              ((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+          calc
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+                ‖(((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℂ)‖ := by
+              rfl
+            _ =
+                |((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| := by
+              exact RCLike.norm_ofReal
+                (((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+            _ =
+                ((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+              abs_of_nonneg hkernel_nonneg
+        exact
+          Eq.subst
+            (motive := fun x : ℝ =>
+              x ≤
+                ((1 : ℝ) / ‖w‖) *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
+            hnorm_eq.symm
+            (le_refl
+              (((1 : ℝ) / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))))
+
 /-- Existence of a branch-safe contour-deformed Binet tail kernel with
 uniform full-sector comparison and majorization.
 
@@ -1449,7 +1525,11 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
       0 < C ∧
       Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  sorry
+  exact
+    ⟨Complex.binetSecondFormulaContourTailMajorantKernel, 2, 1,
+      two_pos, zero_lt_one,
+      Complex.binetSecondFormula_principalTailKernel_norm_le_contourTailMajorantKernel_ae,
+      Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
 
 /-- Positivity of the radius supplied by the contour-deformed tail kernel
 existence theorem. -/
