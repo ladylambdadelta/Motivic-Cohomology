@@ -1181,6 +1181,274 @@ theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
     _ = u := by
       field_simp [hden_ne]
 
+/-- Inverse geometric denominator attached to an adjacent integer phase
+increment. -/
+def Complex.realPhase_inverseGeometricDenominator
+    (φ : ℝ → ℝ)
+    (n : ℕ) : ℂ :=
+  (1 -
+    Complex.exp
+      (Complex.I *
+        (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹
+
+/-- Unit-modulus phase sample used in the finite Abel transform. -/
+def Complex.realPhase_integerUnit
+    (φ : ℝ → ℝ)
+    (n : ℕ) : ℂ :=
+  Complex.exp (Complex.I * (φ n : ℂ))
+
+/-- Endpoint term in the non-singleton finite Abel transform. -/
+def Complex.realPhase_prefixAbelBoundary
+    (φ : ℝ → ℝ)
+    (a m : ℕ) : ℂ :=
+  Complex.realPhase_inverseGeometricDenominator φ a *
+      Complex.realPhase_integerUnit φ a +
+    (1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
+      Complex.realPhase_integerUnit φ m
+
+/-- Variation term in the non-singleton finite Abel transform. -/
+def Complex.realPhase_prefixAbelVariation
+    (φ : ℝ → ℝ)
+    (a m : ℕ) : ℂ :=
+  ∑ n ∈ Finset.Ioo a m,
+    (Complex.realPhase_inverseGeometricDenominator φ n -
+        Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
+      Complex.realPhase_integerUnit φ n
+
+/-- The exact finite Abel identity for the non-singleton phase prefix. -/
+theorem Complex.realPhase_prefixAbel_identity
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (∑ n ∈ Finset.Icc a m,
+      Complex.realPhase_integerUnit φ n) =
+        Complex.realPhase_prefixAbelBoundary φ a m +
+          Complex.realPhase_prefixAbelVariation φ a m := by
+  sorry
+
+/-- Endpoint estimate for the explicit finite Abel boundary term. -/
+theorem Complex.realPhase_prefixAbelBoundary_norm_bound
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
+            2 * λ⁻¹) :
+    ‖Complex.realPhase_prefixAbelBoundary φ a m‖ ≤
+      4 * (λ⁻¹ + 1) := by
+  have hm_bounds : a ≤ m ∧ m ≤ b :=
+    Finset.mem_Icc.mp hm
+  have ha_mem : a ∈ Finset.Ico a b :=
+    Finset.mem_Ico.mpr ⟨le_rfl, lt_of_lt_of_le ham hm_bounds.2⟩
+  have hm_pred_mem : m - 1 ∈ Finset.Ico a b := by
+    have ha_pred : a ≤ m - 1 :=
+      Nat.le_pred_of_lt ham
+    have hm_pos : 0 < m :=
+      lt_of_le_of_lt (Nat.zero_le a) ham
+    have hpred_lt_m : m - 1 < m :=
+      Nat.pred_lt hm_pos
+    have hpred_lt_b : m - 1 < b :=
+      lt_of_lt_of_le hpred_lt_m hm_bounds.2
+    exact Finset.mem_Ico.mpr ⟨ha_pred, hpred_lt_b⟩
+  have ha_den :
+      ‖Complex.realPhase_inverseGeometricDenominator φ a‖ ≤
+        2 * λ⁻¹ :=
+    hden a ha_mem
+  have hm_den :
+      ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
+        2 * λ⁻¹ :=
+    hden (m - 1) hm_pred_mem
+  have ha_unit :
+      ‖Complex.realPhase_integerUnit φ a‖ = 1 :=
+    Complex.realPhase_exp_I_norm φ a
+  have hm_unit :
+      ‖Complex.realPhase_integerUnit φ m‖ = 1 :=
+    Complex.realPhase_exp_I_norm φ m
+  have hfirst :
+      ‖Complex.realPhase_inverseGeometricDenominator φ a *
+        Complex.realPhase_integerUnit φ a‖ ≤ 2 * λ⁻¹ := by
+    calc
+      ‖Complex.realPhase_inverseGeometricDenominator φ a *
+        Complex.realPhase_integerUnit φ a‖ =
+          ‖Complex.realPhase_inverseGeometricDenominator φ a‖ *
+            ‖Complex.realPhase_integerUnit φ a‖ :=
+        norm_mul
+          (Complex.realPhase_inverseGeometricDenominator φ a)
+          (Complex.realPhase_integerUnit φ a)
+      _ = ‖Complex.realPhase_inverseGeometricDenominator φ a‖ * 1 := by
+        exact congrArg
+          (fun r : ℝ =>
+            ‖Complex.realPhase_inverseGeometricDenominator φ a‖ * r)
+          ha_unit
+      _ = ‖Complex.realPhase_inverseGeometricDenominator φ a‖ :=
+        mul_one _
+      _ ≤ 2 * λ⁻¹ :=
+        ha_den
+  have hsecond :
+      ‖(1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
+        Complex.realPhase_integerUnit φ m‖ ≤ 1 + 2 * λ⁻¹ := by
+    have hfactor :
+        ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
+          1 + 2 * λ⁻¹ := by
+      calc
+        ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
+            ‖(1 : ℂ)‖ +
+              ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ := by
+          exact norm_sub_le 1
+            (Complex.realPhase_inverseGeometricDenominator φ (m - 1))
+        _ = 1 +
+              ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ := by
+          exact congrArg
+            (fun r : ℝ =>
+              r + ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖)
+            norm_one
+        _ ≤ 1 + 2 * λ⁻¹ :=
+          add_le_add_left hm_den 1
+    calc
+      ‖(1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
+        Complex.realPhase_integerUnit φ m‖ =
+          ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ *
+            ‖Complex.realPhase_integerUnit φ m‖ :=
+        norm_mul
+          (1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1))
+          (Complex.realPhase_integerUnit φ m)
+      _ = ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ * 1 := by
+        exact congrArg
+          (fun r : ℝ =>
+            ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ * r)
+          hm_unit
+      _ = ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ :=
+        mul_one _
+      _ ≤ 1 + 2 * λ⁻¹ :=
+        hfactor
+  have hboundary :
+      ‖Complex.realPhase_prefixAbelBoundary φ a m‖ ≤
+        2 * λ⁻¹ + (1 + 2 * λ⁻¹) := by
+    unfold Complex.realPhase_prefixAbelBoundary
+    exact le_trans
+      (norm_add_le
+        (Complex.realPhase_inverseGeometricDenominator φ a *
+          Complex.realPhase_integerUnit φ a)
+        ((1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
+          Complex.realPhase_integerUnit φ m))
+      (add_le_add hfirst hsecond)
+  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
+    inv_nonneg.mpr hλ_pos.le
+  have htarget :
+      2 * λ⁻¹ + (1 + 2 * λ⁻¹) ≤
+        4 * (λ⁻¹ + 1) := by
+    nlinarith
+  exact le_trans hboundary htarget
+
+/-- Monotone separated increments control the total variation of the inverse
+geometric denominators appearing in the finite Abel transform. -/
+theorem Complex.realPhase_monotoneSeparated_inverseGeometricDenominator_variation_bound
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
+            2 * λ⁻¹) :
+    (∑ n ∈ Finset.Ioo a m,
+      ‖Complex.realPhase_inverseGeometricDenominator φ n -
+        Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
+        4 * (λ⁻¹ + 1) := by
+  sorry
+
+/-- Variation estimate for the explicit finite Abel variation term. -/
+theorem Complex.realPhase_prefixAbelVariation_norm_bound
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
+            2 * λ⁻¹) :
+    ‖Complex.realPhase_prefixAbelVariation φ a m‖ ≤
+      4 * (λ⁻¹ + 1) := by
+  have hsum_norm :
+      ‖Complex.realPhase_prefixAbelVariation φ a m‖ ≤
+        ∑ n ∈ Finset.Ioo a m,
+          ‖(Complex.realPhase_inverseGeometricDenominator φ n -
+              Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
+            Complex.realPhase_integerUnit φ n‖ := by
+    unfold Complex.realPhase_prefixAbelVariation
+    exact norm_sum_le (Finset.Ioo a m)
+      (fun n =>
+        (Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
+          Complex.realPhase_integerUnit φ n)
+  have hunit :
+      (∑ n ∈ Finset.Ioo a m,
+          ‖(Complex.realPhase_inverseGeometricDenominator φ n -
+              Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
+            Complex.realPhase_integerUnit φ n‖) =
+        ∑ n ∈ Finset.Ioo a m,
+          ‖Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖ := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn
+    have hunit_norm :
+        ‖Complex.realPhase_integerUnit φ n‖ = 1 := by
+      exact Complex.realPhase_exp_I_norm φ n
+    calc
+      ‖(Complex.realPhase_inverseGeometricDenominator φ n -
+          Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
+        Complex.realPhase_integerUnit φ n‖ =
+          ‖Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖ *
+            ‖Complex.realPhase_integerUnit φ n‖ :=
+        norm_mul
+          (Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1))
+          (Complex.realPhase_integerUnit φ n)
+      _ =
+          ‖Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖ * 1 := by
+        exact congrArg
+          (fun r : ℝ =>
+            ‖Complex.realPhase_inverseGeometricDenominator φ n -
+              Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖ * r)
+          hunit_norm
+      _ =
+          ‖Complex.realPhase_inverseGeometricDenominator φ n -
+            Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖ :=
+        mul_one _
+  have hvariation :
+      (∑ n ∈ Finset.Ioo a m,
+        ‖Complex.realPhase_inverseGeometricDenominator φ n -
+          Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
+          4 * (λ⁻¹ + 1) :=
+    Complex.realPhase_monotoneSeparated_inverseGeometricDenominator_variation_bound
+      φ ham hm hλ_pos hinc_mono hsep hden
+  exact le_trans hsum_norm
+    (Eq.subst
+      (motive := fun r : ℝ => r ≤ 4 * (λ⁻¹ + 1))
+      hunit.symm
+      hvariation)
+
 /-- Non-singleton prefix in the finite Abel transform.  This is the remaining
 finite summation-by-parts identity plus monotone-variation estimate. -/
 theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
@@ -1208,7 +1476,36 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
           boundary + variation ∧
       ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
       ‖variation‖ ≤ 4 * (λ⁻¹ + 1) := by
-  sorry
+  let boundary : ℂ := Complex.realPhase_prefixAbelBoundary φ a m
+  let variation : ℂ := Complex.realPhase_prefixAbelVariation φ a m
+  refine ⟨boundary, variation, ?_, ?_, ?_⟩
+  · have hidentity :
+        (∑ n ∈ Finset.Icc a m,
+          Complex.realPhase_integerUnit φ n) =
+            boundary + variation :=
+      Complex.realPhase_prefixAbel_identity
+        φ ham hm hλ_pos hsep
+    exact hidentity
+  · have hden' :
+        ∀ n : ℕ,
+          n ∈ Finset.Ico a b →
+            ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
+              2 * λ⁻¹ := by
+      intro n hn
+      exact hden n hn
+    exact
+      Complex.realPhase_prefixAbelBoundary_norm_bound
+        φ ham hm hλ_pos hden'
+  · have hden' :
+        ∀ n : ℕ,
+          n ∈ Finset.Ico a b →
+            ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
+              2 * λ⁻¹ := by
+      intro n hn
+      exact hden n hn
+    exact
+      Complex.realPhase_prefixAbelVariation_norm_bound
+        φ ham hm hλ_pos hinc_mono hsep hden'
 
 /-- The finite Abel transform supplies boundary and variation terms satisfying
 the needed prefix bounds. -/

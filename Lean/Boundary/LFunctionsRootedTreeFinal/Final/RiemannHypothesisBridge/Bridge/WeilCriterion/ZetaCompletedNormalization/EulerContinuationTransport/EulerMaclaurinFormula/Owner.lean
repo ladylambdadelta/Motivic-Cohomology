@@ -839,6 +839,55 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
       hterms.symm
       hsum
 
+/-- One-unit-interval integration-by-parts identity for the first periodic
+Bernoulli factor.
+
+On `(n, n+1]`, `Int.fract x = x - n`, so the sawtooth is
+`x - n - 1/2`.  Integrating by parts against `f'` gives the local
+Euler-Maclaurin correction with the right-endpoint sample `f(n+1)`. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
+    (f f' : ℝ → ℂ)
+    (n : ℕ)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)))) :
+    f (((n + 1 : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
+        ((1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  sorry
+
+/-- Finite summation of the one-interval first-periodic-Bernoulli
+integration-by-parts identities over a natural `Ioc` interval.
+
+Summing the local formula over `n = N, ..., M - 1` telescopes the half-endpoint
+terms to `+ f(N)/2 - f(M)/2`, matching the strict post-cutoff convention
+`N < n ≤ M`. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
+    (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  sorry
+
 /-- First-periodic-Bernoulli integration-by-parts form of the finite
 first-order Euler-Maclaurin formula on a natural `Ioc` interval.
 
@@ -862,7 +911,9 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_integrationByParts_Ioc
         (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-  sorry
+  exact
+    eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc
+      f f' N M hNM hf_cont hf_deriv hf'_int
 
 /-- Generic finite first-order Euler-Maclaurin identity on a natural `Ioc`
 interval, with the first periodic Bernoulli remainder.
@@ -1025,6 +1076,53 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standa
     eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
       f f' N M hNM hf_cont hf_deriv hf'_int
 
+/-- The upper endpoint correction in the finite post-cutoff complex-power
+Euler-Maclaurin identity vanishes as the upper cutoff tends to infinity. -/
+theorem eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    Tendsto
+      (fun M : ℕ => (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
+      atTop
+      (𝓝 0) := by
+  sorry
+
+/-- The finite main integral over `(N, M]` tends to the improper main integral
+over `(N, ∞)`. -/
+theorem eulerMaclaurin_cpow_neg_integral_Ioc_tendsto_integral_Ioi
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    Tendsto
+      (fun M : ℕ =>
+        ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z)))
+      atTop
+      (𝓝
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z)))) := by
+  sorry
+
+/-- The finite Bernoulli remainder integral over `(N, M]` tends to the
+improper Bernoulli remainder integral over `(N, ∞)`. -/
+theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    Tendsto
+      (fun M : ℕ =>
+        ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))
+      atTop
+      (𝓝
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+  sorry
+
 /-- Limit passage from the finite strict-tail Euler-Maclaurin identity to the
 improper post-cutoff `HasSum`.
 
@@ -1058,6 +1156,36 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
     exact
       eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standard
         z N M hN hNM
+  have hendpoint :
+      Tendsto
+        (fun M : ℕ => (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
+        atTop
+        (𝓝 0) :=
+    eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero z hhalf_plane
+  have hmain :
+      Tendsto
+        (fun M : ℕ =>
+          ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+            (((x : ℝ) : ℂ) ^ (-z)))
+        atTop
+        (𝓝
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            (((x : ℝ) : ℂ) ^ (-z)))) :=
+    eulerMaclaurin_cpow_neg_integral_Ioc_tendsto_integral_Ioi
+      z N hN hhalf_plane
+  have hremainder :
+      Tendsto
+        (fun M : ℕ =>
+          ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))
+        atTop
+        (𝓝
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) :=
+    eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
+      z N hN hhalf_plane
   sorry
 
 /-- Standard first-order Euler-Maclaurin formula for the zeta complex-power
