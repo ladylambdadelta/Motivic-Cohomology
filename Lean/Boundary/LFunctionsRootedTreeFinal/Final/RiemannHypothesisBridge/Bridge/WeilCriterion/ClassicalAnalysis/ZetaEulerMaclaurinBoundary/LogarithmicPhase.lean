@@ -1025,12 +1025,75 @@ theorem Complex.nat_log2_add_one_eq_nat_log_two_mul_succ
     _ = Nat.log 2 ((N + 1) * 2) := by
       exact (Nat.log_mul_base Nat.one_lt_two (Nat.succ_ne_zero N)).symm
 
+/-- Positivity of the natural logarithm of the dyadic base. -/
+theorem Complex.real_log_two_pos :
+    0 < Real.log (2 : ℝ) := by
+  exact Real.log_pos one_lt_two
+
+/-- The exact real inequality behind the dyadic-log comparison.
+
+Equivalently, `log (2 * (x + 1)) / log 2 ≤ 2 log (x + 2)` for `x ≥ 0`.
+This is the monotonic one-variable estimate needed to keep the downstream
+constant `2`. -/
+theorem Complex.real_log_two_mul_one_add_le_two_log_shift_mul_log_two
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    Real.log (2 * (x + 1)) ≤
+      (2 * Real.log (x + 2)) * Real.log (2 : ℝ) := by
+  sorry
+
+/-- Natural-number specialization of the real logarithmic comparison behind
+the dyadic-log estimate. -/
+theorem Complex.real_log_two_mul_nat_succ_le_two_log_shift_mul_log_two
+    (N : ℕ) :
+    Real.log ((((N + 1) * 2 : ℕ) : ℝ)) ≤
+      (2 * Real.log (2 + N)) * Real.log (2 : ℝ) := by
+  have hreal :
+      Real.log (2 * (((N : ℝ) + 1))) ≤
+        (2 * Real.log ((N : ℝ) + 2)) * Real.log (2 : ℝ) :=
+    Complex.real_log_two_mul_one_add_le_two_log_shift_mul_log_two
+      (Nat.cast_nonneg N)
+  have harg :
+      ((((N + 1) * 2 : ℕ) : ℝ)) = 2 * (((N : ℝ) + 1)) := by
+    norm_num [Nat.cast_add, Nat.cast_mul, mul_comm, mul_left_comm, mul_assoc]
+  have hshift :
+      ((N : ℝ) + 2) = 2 + N := by
+    ring
+  exact Eq.subst
+    (motive := fun arg : ℝ =>
+      Real.log arg ≤ (2 * Real.log (2 + N)) * Real.log (2 : ℝ))
+    harg.symm
+    (Eq.subst
+      (motive := fun shift : ℝ =>
+        Real.log (2 * ((N : ℝ) + 1)) ≤
+          (2 * Real.log shift) * Real.log (2 : ℝ))
+      hshift
+      hreal)
+
 /-- Real-logarithm comparison for the doubled shifted natural cutoff. -/
 theorem Complex.real_logb_two_mul_nat_succ_le_two_log_shift
     (N : ℕ) :
     Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) ≤
       2 * Real.log (2 + N) := by
-  sorry
+  have hlog2_pos : 0 < Real.log (2 : ℝ) :=
+    Complex.real_log_two_pos
+  have hraw :
+      Real.log ((((N + 1) * 2 : ℕ) : ℝ)) ≤
+        (2 * Real.log (2 + N)) * Real.log (2 : ℝ) :=
+    Complex.real_log_two_mul_nat_succ_le_two_log_shift_mul_log_two N
+  have hdiv :
+      Real.log ((((N + 1) * 2 : ℕ) : ℝ)) / Real.log (2 : ℝ) ≤
+        2 * Real.log (2 + N) := by
+    exact (div_le_iff₀ hlog2_pos).mpr hraw
+  have hlogb :
+      Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) =
+        Real.log ((((N + 1) * 2 : ℕ) : ℝ)) / Real.log (2 : ℝ) := by
+    rfl
+  exact Eq.subst
+    (motive := fun lhs : ℝ => lhs ≤ 2 * Real.log (2 + N))
+    hlogb.symm
+    hdiv
+
 
 /-- Dyadic integer logarithm is dominated by twice the natural logarithm on the
 shifted natural cutoff. -/
