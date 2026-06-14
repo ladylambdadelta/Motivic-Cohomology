@@ -4080,6 +4080,63 @@ theorem Complex.shiftedVertical_realPartExp_bounded
         hw_re.symm
         hexp_lower⟩
 
+/-- Real algebra behind the reciprocal denominator after the exponential and
+principal-power norm formulas have been substituted. -/
+theorem real_stirlingDenominator_reciprocal_shape
+    (R x θ y : ℝ)
+    (hR_pos : 0 < R) :
+    1 / (Real.exp x *
+        (R ^ (1 / 2 - x) / Real.exp (θ * (-y)))) =
+      Real.exp (-(θ * y)) * R ^ (x - 1 / 2) * Real.exp (-x) := by
+  let E : ℝ := Real.exp x
+  let Q : ℝ := R ^ (1 / 2 - x)
+  let F : ℝ := Real.exp (θ * (-y))
+  have hQ_pos : 0 < Q :=
+    Real.rpow_pos_of_pos hR_pos (1 / 2 - x)
+  have hF_pos : 0 < F :=
+    Real.exp_pos (θ * (-y))
+  have hE_pos : 0 < E :=
+    Real.exp_pos x
+  have htheta : θ * (-y) = -(θ * y) := by
+    exact mul_neg θ y
+  have hF_eq : F = Real.exp (-(θ * y)) := by
+    exact congrArg Real.exp htheta
+  have hQ_inv :
+      Q⁻¹ = R ^ (x - 1 / 2) := by
+    have hexp : x - 1 / 2 = -(1 / 2 - x) := by
+      calc
+        x - 1 / 2 = x + -(1 / 2) := sub_eq_add_neg x (1 / 2)
+        _ = -(1 / 2) + x := add_comm x (-(1 / 2))
+        _ = -(1 / 2 + -x) := by
+          exact (neg_add (1 / 2) (-x)).symm
+        _ = -(1 / 2 - x) := by
+          exact congrArg Neg.neg (sub_eq_add_neg (1 / 2) x).symm
+    have hneg :
+        R ^ (-(1 / 2 - x)) = Q⁻¹ :=
+      Real.rpow_neg (le_of_lt hR_pos) (1 / 2 - x)
+    exact Eq.trans hneg.symm (congrArg (fun t : ℝ => R ^ t) hexp).symm
+  have hE_inv : E⁻¹ = Real.exp (-x) := by
+    exact (Real.exp_neg x).symm
+  calc
+    1 / (Real.exp x * (R ^ (1 / 2 - x) / Real.exp (θ * (-y)))) =
+        1 / (E * (Q / F)) := rfl
+    _ = (E * (Q / F))⁻¹ := by
+      exact one_div (E * (Q / F))
+    _ = (Q / F)⁻¹ * E⁻¹ := by
+      exact mul_inv_rev E (Q / F)
+    _ = (F * Q⁻¹) * E⁻¹ := by
+      have hdiv_inv : (Q / F)⁻¹ = F * Q⁻¹ := by
+        calc
+          (Q / F)⁻¹ = F / Q := inv_div Q F
+          _ = F * Q⁻¹ := div_eq_mul_inv F Q
+      exact congrArg (fun t : ℝ => t * E⁻¹) hdiv_inv
+    _ = F * Q⁻¹ * E⁻¹ := by
+      rfl
+    _ = Real.exp (-(θ * y)) * R ^ (x - 1 / 2) * Real.exp (-x) := by
+      exact congrArg₂ HMul.hMul
+        (congrArg₂ HMul.hMul hF_eq hQ_inv)
+        hE_inv
+
 /-- Exact reciprocal shape of the normalized-Stirling denominator on a fixed
 vertical point, after expanding `‖exp w‖` and the principal-branch power norm. -/
 theorem Complex.stirlingDenominator_reciprocal_shape_fixedVertical
@@ -4090,7 +4147,43 @@ theorem Complex.stirlingDenominator_reciprocal_shape_fixedVertical
     1 / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) =
       Real.exp (-(Complex.arg w * y)) *
         ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) := by
-  sorry
+  have hR_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne
+  have hexp_norm :
+      ‖Complex.exp w‖ = Real.exp w.re :=
+    Complex.norm_exp_eq_exp_re w
+  have hre_exp :
+      ((1 / 2 : ℂ) - w).re = 1 / 2 - w.re :=
+    Complex.half_minus_self_re w
+  have him_exp :
+      ((1 / 2 : ℂ) - w).im = -y := by
+    exact Eq.trans (Complex.half_minus_self_im w) (congrArg Neg.neg hw_im)
+  have hcpow_norm :
+      ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+        ‖w‖ ^ (1 / 2 - w.re) /
+          Real.exp (Complex.arg w * (-y)) := by
+    have hraw :
+        ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+          ‖w‖ ^ (((1 / 2 : ℂ) - w).re) /
+            Real.exp (Complex.arg w * (((1 / 2 : ℂ) - w).im)) :=
+      Complex.norm_cpow_eq_norm_rpow_div_exp_arg_mul_im_of_ne_zero hw_ne
+    exact Eq.trans hraw
+      (congrArg₂ HDiv.hDiv
+        (congrArg (fun t : ℝ => ‖w‖ ^ t) hre_exp)
+        (congrArg (fun t : ℝ => Real.exp (Complex.arg w * t)) him_exp))
+  calc
+    1 / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) =
+        1 / (Real.exp w.re *
+          (‖w‖ ^ (1 / 2 - w.re) /
+            Real.exp (Complex.arg w * (-y)))) := by
+      exact congrArg
+        (fun t : ℝ => 1 / t)
+        (congrArg₂ HMul.hMul hexp_norm hcpow_norm)
+    _ =
+        Real.exp (-(Complex.arg w * y)) *
+          ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) :=
+      real_stirlingDenominator_reciprocal_shape
+        ‖w‖ w.re (Complex.arg w) y hR_pos
 
 /-- Reciprocal denominator comparison for the shifted vertical Stirling
 normalization.
@@ -4344,7 +4437,88 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
       have hleft_eq :
           ((ca * cr) * ce) * (Eexp * P) =
             (ca * Eexp) * (cr * P) * ce := by
-        sorry
+        calc
+          ((ca * cr) * ce) * (Eexp * P) =
+              (ca * cr) * (ce * (Eexp * P)) :=
+            (mul_assoc (ca * cr) ce (Eexp * P)).symm
+          _ = (ca * cr) * ((Eexp * P) * ce) := by
+            exact congrArg
+              (fun t : ℝ => (ca * cr) * t)
+              (mul_comm ce (Eexp * P))
+          _ = ((ca * cr) * (Eexp * P)) * ce :=
+            mul_assoc (ca * cr) (Eexp * P) ce
+          _ = (ca * (cr * (Eexp * P))) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_assoc ca cr (Eexp * P))
+          _ = (ca * ((Eexp * P) * cr)) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * t) * ce)
+              (mul_comm cr (Eexp * P))
+          _ = (ca * (Eexp * (P * cr))) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * t) * ce)
+              (mul_assoc Eexp P cr)
+          _ = (ca * (Eexp * (cr * P))) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * (Eexp * t)) * ce)
+              (mul_comm P cr)
+          _ = (ca * ((Eexp * cr) * P)) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * t) * ce)
+              (mul_assoc Eexp cr P).symm
+          _ = (ca * ((cr * Eexp) * P)) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * (t * P)) * ce)
+              (mul_comm Eexp cr)
+          _ = (ca * (cr * (Eexp * P))) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * t) * ce)
+              (mul_assoc cr Eexp P)
+          _ = ((ca * cr) * (Eexp * P)) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_assoc ca cr (Eexp * P)).symm
+          _ = ((ca * cr) * (P * Eexp)) * ce := by
+            exact congrArg
+              (fun t : ℝ => ((ca * cr) * t) * ce)
+              (mul_comm Eexp P)
+          _ = (ca * cr) * (P * Eexp) * ce := rfl
+          _ = (ca * (cr * P) * Eexp) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (by
+                calc
+                  (ca * cr) * (P * Eexp) =
+                      ca * (cr * (P * Eexp)) :=
+                    (mul_assoc ca cr (P * Eexp)).symm
+                  _ = ca * ((cr * P) * Eexp) := by
+                    exact congrArg
+                      (fun t : ℝ => ca * t)
+                      (mul_assoc cr P Eexp)
+                  _ = ca * (cr * P) * Eexp :=
+                    mul_assoc ca (cr * P) Eexp)
+          _ = (Eexp * (ca * (cr * P))) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_comm (ca * (cr * P)) Eexp)
+          _ = ((ca * (cr * P)) * Eexp) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_comm Eexp (ca * (cr * P)))
+          _ = (ca * ((cr * P) * Eexp)) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_assoc ca (cr * P) Eexp).symm
+          _ = (ca * (Eexp * (cr * P))) * ce := by
+            exact congrArg
+              (fun t : ℝ => (ca * t) * ce)
+              (mul_comm (cr * P) Eexp)
+          _ = ((ca * Eexp) * (cr * P)) * ce := by
+            exact congrArg
+              (fun t : ℝ => t * ce)
+              (mul_assoc ca Eexp (cr * P))
+          _ = (ca * Eexp) * (cr * P) * ce := rfl
       have hfirst :
           (ca * Eexp) * (cr * P) ≤
             Real.exp (-(Complex.arg w * y)) *
@@ -10571,15 +10745,14 @@ theorem logarithmicPhase_endpoint_trivial_bound
       hdiv_le
   exact le_trans hmul_norm hratio_le_two
 
-/-- Concrete first-derivative/Euler-Maclaurin estimate for the logarithmic
-phase.
+/-- Standard first-derivative test for the concrete logarithmic phase.
 
 This is the standard one-dimensional oscillatory-sum input for the concrete
 phase `u ↦ exp (-i t log u)`: the phase derivative is exactly `-it/u`, its
 magnitude is `|t|/u`, and the monotone first-derivative argument gives the
 displayed partial-sum bound after the canonical cutoff; cf. Titchmarsh,
 *The Theory of the Riemann Zeta-function*, §3.5. -/
-theorem firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
+theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hphase_deriv :
@@ -10596,6 +10769,28 @@ theorem firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
+
+/-- Concrete first-derivative/Euler-Maclaurin estimate for the logarithmic
+phase. -/
+theorem firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  exact
+    standardFirstDerivativeTest_logarithmicPhase_partialSum_bound
+      t ht hphase_deriv hphase_deriv_norm hx
 
 /-- Deep analytic owner estimate for logarithmic-phase partial sums.
 
@@ -10810,14 +11005,13 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound t ht hNM
 
-/-- Concrete total-variation estimate for the reciprocal-amplitude term after
-the logarithmic-phase first-derivative bound.
+/-- Concrete reciprocal total-variation integral estimate.
 
 This is the real-variable Abel/Euler-Maclaurin variation step for the concrete
 amplitude `u ↦ 1 / u`: after the cutoff `N = ⌊2 + |t|⌋₊`, the normalized
 reciprocal derivative has total variation small enough that the first-derivative
 partial-sum majorant gives the displayed logarithmic bound. -/
-theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_partialSums
+theorem concreteReciprocalVariation_logarithmicPhase_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hpartial :
@@ -10840,6 +11034,34 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
+
+/-- Concrete total-variation estimate for the reciprocal-amplitude term after
+the logarithmic-phase first-derivative bound. -/
+theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_partialSums
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    (hreciprocal_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
+          (-(1 : ℂ) / (u : ℂ) ^ 2))
+    (hreciprocal_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
+          (1 : ℝ) / u ^ 2)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    concreteReciprocalVariation_logarithmicPhase_integral_bound
+      t ht hpartial hreciprocal_deriv hreciprocal_deriv_norm hNM
 
 /-- Concrete reciprocal-variation integral estimate for the logarithmic phase.
 
@@ -15777,6 +15999,26 @@ theorem riemannZeta_poleCleared_rightHalfPlane_two_le_finiteOrder_growth_from_di
     hpole
     (hbound w hw_two)
 
+/-- Bounded-width Euler-Maclaurin/PL growth for the removable pole-cleared zeta
+normalization on `1 ≤ Re s ≤ 2`.
+
+This is the exact strip owner input: Euler-Maclaurin gives the boundary-line
+estimate at `Re s = 1`, the Dirichlet-series estimate gives the right edge at
+`Re s = 2`, and the generic vertical-strip Phragmen-Lindelöf finite-order API
+transports these boundary estimates across the strip.  The removable
+normalization is essential at `s = 1`; the raw product is recovered only after
+this theorem. -/
+theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        w.re ≤ 2 →
+        ‖poleClearedRiemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  sorry
+
 /-- Bounded-width Euler-Maclaurin/continuation growth for the raw pole-cleared
 zeta product on `1 ≤ Re s ≤ 2`.
 
@@ -15794,7 +16036,40 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growt
         w.re ≤ 2 →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  sorry
+  rcases poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL with
+    ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro w hw_one hw_two
+  by_cases hw_eq_one : w = 1
+  · have hraw_zero :
+        (w - 1) * riemannZeta w = 0 := by
+      have hfactor_zero : w - 1 = 0 := by
+        exact sub_eq_zero.mpr hw_eq_one
+      exact Eq.subst
+        (motive := fun u : ℂ => u * riemannZeta w = 0)
+        hfactor_zero.symm
+        (zero_mul (riemannZeta w))
+    have htarget_nonneg :
+        0 ≤ A * Real.exp (B * (1 + ‖w‖) ^ m) :=
+      mul_nonneg (le_of_lt hA)
+        (le_of_lt (Real.exp_pos (B * (1 + ‖w‖) ^ m)))
+    exact Eq.subst
+      (motive := fun u : ℂ =>
+        ‖u‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+      hraw_zero.symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          x ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+        (norm_zero : ‖(0 : ℂ)‖ = (0 : ℝ)).symm
+        htarget_nonneg)
+  · have hpole :
+        poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
+      poleClearedRiemannZeta_eq_of_ne_one hw_eq_one
+    exact Eq.subst
+      (motive := fun u : ℂ =>
+        ‖u‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+      hpole
+      (hbound w hw_one hw_two)
 
 /-- Patch `1 ≤ Re s ≤ 2` Euler-Maclaurin/PL growth with the far-right
 Dirichlet-series growth to obtain the full right half-plane. -/
