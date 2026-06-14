@@ -612,6 +612,70 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
   exact ⟨hlog w hw_sector hRlog_le,
     hbound w hw_sector hRbound_le⟩
 
+/-- Exponentiating Binet's logarithmic identity separates the main term from
+the Binet remainder. -/
+theorem Complex.Gamma_eq_exp_binetLogGammaMainTerm_mul_exp_binetRemainder
+    {w : ℂ}
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hbinet :
+      Complex.log (Complex.Gamma w) =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w) :
+    Complex.Gamma w =
+      Complex.exp (Complex.binetLogGammaMainTerm w) *
+        Complex.exp (Complex.binetSecondFormulaRemainder w) := by
+  calc
+    Complex.Gamma w =
+        Complex.exp (Complex.log (Complex.Gamma w)) :=
+      (Complex.exp_log hGamma_ne).symm
+    _ =
+        Complex.exp
+          (Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w) :=
+      congrArg Complex.exp hbinet
+    _ =
+        Complex.exp (Complex.binetLogGammaMainTerm w) *
+          Complex.exp (Complex.binetSecondFormulaRemainder w) :=
+      Complex.exp_add
+        (Complex.binetLogGammaMainTerm w)
+        (Complex.binetSecondFormulaRemainder w)
+
+/-- The Binet main term is exactly cancelled by the normalized Stirling
+factors, leaving the constant `sqrt (2π)`.
+
+This is the principal-branch algebraic identity using
+`w^(1/2-w) = exp (Log w * (1/2-w))` and
+`exp ((log (2π))/2) = sqrt (2π)`. -/
+theorem Complex.exp_binetLogGammaMainTerm_mul_exp_mul_cpow_eq_sqrt_two_pi
+    {w : ℂ}
+    (hw_ne : w ≠ 0) :
+    Complex.exp (Complex.binetLogGammaMainTerm w) *
+        Complex.exp w * w ^ ((1 / 2 : ℂ) - w) =
+      (Real.sqrt (2 * Real.pi) : ℂ) := by
+  sorry
+
+/-- Reassociation of the four factors occurring after exponentiating Binet's
+formula. -/
+theorem Complex.binetMain_remainder_normalizer_reassociate
+    (A E B C : ℂ) :
+    (A * E) * B * C = (A * B * C) * E := by
+  calc
+    (A * E) * B * C =
+        ((A * E) * B) * C := rfl
+    _ = (A * (E * B)) * C := by
+      exact congrArg (fun z : ℂ => z * C) (mul_assoc A E B)
+    _ = (A * (B * E)) * C := by
+      exact congrArg (fun z : ℂ => (A * z) * C) (mul_comm E B)
+    _ = ((A * B) * E) * C := by
+      exact congrArg (fun z : ℂ => z * C) (mul_assoc A B E).symm
+    _ = (A * B) * (E * C) := by
+      exact mul_assoc (A * B) E C
+    _ = (A * B) * (C * E) := by
+      exact congrArg (fun z : ℂ => (A * B) * z) (mul_comm E C)
+    _ = ((A * B) * C) * E := by
+      exact (mul_assoc (A * B) C E).symm
+    _ = (A * B * C) * E := rfl
+
 /-- Exponentiated Binet formula in normalized Stirling-factor form.
 
 This is the branch-bookkeeping identity behind sectorial Stirling: using
@@ -630,7 +694,33 @@ theorem Complex.normalizedGammaStirlingFactor_eq_sqrt_two_pi_mul_exp_binetRemain
         w ^ ((1 / 2 : ℂ) - w) =
       (Real.sqrt (2 * Real.pi) : ℂ) *
         Complex.exp (Complex.binetSecondFormulaRemainder w) := by
-  sorry
+  let A : ℂ := Complex.exp (Complex.binetLogGammaMainTerm w)
+  let E : ℂ := Complex.exp (Complex.binetSecondFormulaRemainder w)
+  let B : ℂ := Complex.exp w
+  let C : ℂ := w ^ ((1 / 2 : ℂ) - w)
+  have hGamma :
+      Complex.Gamma w = A * E :=
+    Complex.Gamma_eq_exp_binetLogGammaMainTerm_mul_exp_binetRemainder
+      hGamma_ne hbinet
+  have hreassoc :
+      (A * E) * B * C = (A * B * C) * E :=
+    Complex.binetMain_remainder_normalizer_reassociate A E B C
+  have hmain :
+      A * B * C = (Real.sqrt (2 * Real.pi) : ℂ) :=
+    Complex.exp_binetLogGammaMainTerm_mul_exp_mul_cpow_eq_sqrt_two_pi
+      hw_ne
+  calc
+    Complex.Gamma w * Complex.exp w *
+        w ^ ((1 / 2 : ℂ) - w) =
+        (A * E) * B * C := by
+      exact congrArg (fun z : ℂ => z * B * C) hGamma
+    _ = (A * B * C) * E :=
+      hreassoc
+    _ = (Real.sqrt (2 * Real.pi) : ℂ) * E := by
+      exact congrArg (fun z : ℂ => z * E) hmain
+    _ =
+        (Real.sqrt (2 * Real.pi) : ℂ) *
+          Complex.exp (Complex.binetSecondFormulaRemainder w) := rfl
 
 /-- Exponentiating Binet's logarithmic formula gives the exact normalized
 Gamma-factor error in terms of the Binet remainder.
@@ -12783,13 +12873,54 @@ theorem real_log_two_add_div_sq_nonneg_of_two_le
 
 /-- Concrete finite integration-by-parts identity for
 `u(x)=log(2+x)` and `v(x)=-1/x` on `[2,b]`. -/
+theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    let u : ℝ → ℝ := fun x => Real.log (2 + x)
+    let v : ℝ → ℝ := fun x => -(1 / x)
+    let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+    let v' : ℝ → ℝ := fun x => 1 / x ^ 2
+    ∫ x in (2 : ℝ)..b, u x * v' x =
+      u b * v b - u 2 * v 2 -
+        ∫ x in (2 : ℝ)..b, u' x * v x := by
+  sorry
+
+/-- Algebraic normalization of the finite by-parts RHS for
+`u(x)=log(2+x)` and `v(x)=-1/x`. -/
+theorem real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    let u : ℝ → ℝ := fun x => Real.log (2 + x)
+    let v : ℝ → ℝ := fun x => -(1 / x)
+    let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+    u b * v b - u 2 * v 2 -
+        ∫ x in (2 : ℝ)..b, u' x * v x =
+      ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+        ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
+  sorry
+
 theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts
     {b : ℝ}
     (hb : (2 : ℝ) ≤ b) :
     ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) =
       ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
         ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
-  sorry
+  let u : ℝ → ℝ := fun x => Real.log (2 + x)
+  let v : ℝ → ℝ := fun x => -(1 / x)
+  let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+  let v' : ℝ → ℝ := fun x => 1 / x ^ 2
+  have hparts :
+      ∫ x in (2 : ℝ)..b, u x * v' x =
+        u b * v b - u 2 * v 2 -
+          ∫ x in (2 : ℝ)..b, u' x * v x :=
+    real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core hb
+  have hnormal :
+      u b * v b - u 2 * v 2 -
+          ∫ x in (2 : ℝ)..b, u' x * v x =
+        ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) :=
+    real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize hb
+  exact Eq.trans hparts hnormal
 
 /-- Algebraic normalization of the scalar reciprocal-density integrand. -/
 theorem real_integral_Ioc_log_two_add_div_sq_eq_mul_inv_sq
@@ -20242,6 +20373,30 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_p
       N hN
   exact (hzeta.sub hfinite).sub ((hmain.add hendpoint).add hremainder)
 
+/-- The fixed punctured vertical strip used for the Euler-Maclaurin defect is open. -/
+theorem eulerMaclaurin_fixedCutoff_puncturedStrip_isOpen :
+    IsOpen ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  have hleft : IsOpen {z : ℂ | 0 < z.re} :=
+    isOpen_lt continuous_const Complex.continuous_re
+  have hright : IsOpen {z : ℂ | z.re < 2} :=
+    isOpen_lt Complex.continuous_re continuous_const
+  have hpole : IsOpen {z : ℂ | z ≠ 1} :=
+    isOpen_compl_singleton
+  exact (hleft.inter hright).inter hpole
+
+/-- The fixed-cutoff Euler-Maclaurin defect is analytic on a neighborhood of
+the punctured strip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticOnNhd_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    AnalyticOnNhd ℂ
+      (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  exact
+    (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_puncturedStrip_standard
+      N hN).analyticOnNhd
+      eulerMaclaurin_fixedCutoff_puncturedStrip_isOpen
+
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip.
 
@@ -20249,7 +20404,7 @@ This is the standard complex-analysis step: the fixed-cutoff defect is
 holomorphic on the punctured strip and vanishes on the nonempty open subset
 `1 < Re z < 2`, hence it vanishes throughout the connected component of the
 punctured strip. -/
-theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticContinuation_zero_on_puncturedStrip_standard
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_from_halfPlaneZero_standard
     (N : ℕ)
     (hN : 0 < N)
     (z : ℂ)
@@ -20258,6 +20413,20 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticContinuation_zero_o
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
   sorry
+
+/-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
+connected punctured strip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticContinuation_zero_on_puncturedStrip_standard
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hz_re_pos : 0 < z.re)
+    (hz_re_lt_two : z.re < 2)
+    (hz_ne_one : z ≠ 1) :
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
+  exact
+    eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_from_halfPlaneZero_standard
+      N hN z hz_re_pos hz_re_lt_two hz_ne_one
 
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip. -/

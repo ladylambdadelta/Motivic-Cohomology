@@ -2760,6 +2760,81 @@ theorem real_log_abs_sin_continuousOn_Icc_compl_endpoints :
   exact
     ContinuousOn.log habs_cont hsin_ne
 
+/-- Local logarithmic model for `log |sin u|` at `0`.
+
+The remainder is `log |sin u / u|`, extended at `0`; its continuity follows
+from the standard sine-ratio limit. -/
+theorem real_log_abs_sin_localModel_zero :
+    ∃ n : ℕ, ∃ g : ℝ → ℝ,
+      (∃ u v : ℝ,
+        u < (0 : ℝ) ∧ (0 : ℝ) < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v) ∧
+      ∀ᶠ θ in 𝓝[≠] (0 : ℝ),
+        Real.log |Real.sin θ| =
+          (n : ℝ) * Real.log |θ - 0| + g θ := by
+  -- Endpoint model:
+  -- `log |sin θ| = log |θ| + log |sin θ / θ|` on a punctured
+  -- neighborhood of `0`; the second term is continuous since
+  -- `sin θ / θ → 1`.
+  sorry
+
+/-- Local logarithmic model for `log |sin u|` at `π`.
+
+This is transported from the model at `0` using
+`sin u = sin (π - u)` and `|π - u| = |u - π|`. -/
+theorem real_log_abs_sin_localModel_pi :
+    ∃ n : ℕ, ∃ g : ℝ → ℝ,
+      (∃ u v : ℝ,
+        u < Real.pi ∧ Real.pi < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v) ∧
+      ∀ᶠ θ in 𝓝[≠] Real.pi,
+        Real.log |Real.sin θ| =
+          (n : ℝ) * Real.log |θ - Real.pi| + g θ := by
+  -- Endpoint model transported by `θ ↦ π - θ`.
+  sorry
+
+/-- Endpoint local logarithmic models for the finite singular set
+`{0, π}` of `log |sin|` on `[0,π]`. -/
+theorem real_log_abs_sin_endpoint_localModel
+    (θ₀ : ℝ)
+    (hθ₀ : θ₀ ∈ ({0, Real.pi} : Set ℝ)) :
+    ∃ n : ℕ, ∃ g : ℝ → ℝ,
+      (∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v) ∧
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        Real.log |Real.sin θ| =
+          (n : ℝ) * Real.log |θ - θ₀| + g θ := by
+  have hcases : θ₀ = 0 ∨ θ₀ = Real.pi :=
+    Set.mem_insert_iff.1 hθ₀
+  match hcases with
+  | Or.inl hzero =>
+      exact
+        Eq.subst
+          (motive := fun x : ℝ =>
+            ∃ n : ℕ, ∃ g : ℝ → ℝ,
+              (∃ u v : ℝ,
+                u < x ∧ x < v ∧
+                IntervalIntegrable g MeasureTheory.volume u v) ∧
+              ∀ᶠ θ in 𝓝[≠] x,
+                Real.log |Real.sin θ| =
+                  (n : ℝ) * Real.log |θ - x| + g θ)
+          hzero.symm
+          real_log_abs_sin_localModel_zero
+  | Or.inr hpi =>
+      exact
+        Eq.subst
+          (motive := fun x : ℝ =>
+            ∃ n : ℕ, ∃ g : ℝ → ℝ,
+              (∃ u v : ℝ,
+                u < x ∧ x < v ∧
+                IntervalIntegrable g MeasureTheory.volume u v) ∧
+              ∀ᶠ θ in 𝓝[≠] x,
+                Real.log |Real.sin θ| =
+                  (n : ℝ) * Real.log |θ - x| + g θ)
+          hpi.symm
+          real_log_abs_sin_localModel_pi
+
 /-- Standard interval-integrability of the logarithmic sine kernel on
 `[0,π]`.
 
@@ -2771,8 +2846,16 @@ theorem real_log_abs_sin_intervalIntegrable_zero_pi :
       MeasureTheory.volume
       0
       Real.pi := by
-  -- Standard endpoint logarithmic-singularity integrability for `log |sin|`.
-  sorry
+  exact
+    intervalIntegrable_of_finite_log_singularities_on_compact
+      (fun u : ℝ => Real.log |Real.sin u|)
+      0
+      Real.pi
+      ({0, Real.pi} : Set ℝ)
+      (le_of_lt Real.pi_pos)
+      ((Set.finite_singleton Real.pi).insert 0)
+      real_log_abs_sin_endpoint_localModel
+      real_log_abs_sin_continuousOn_Icc_compl_endpoints
 
 /-- Half-angle interval substitution for the sine-log kernel. -/
 theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
@@ -10164,6 +10247,59 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Insert one normalized zero factor into an analytic finite factorization.
+
+This is the canonical local analytic-division construction used by the
+single-insert step.  Given a quotient for the finite product over `S`, and a
+Taylor-order factorization of `F` at the new nonzero support point `a`, it
+constructs the quotient for `insert a S`.  The removable value at `a` is forced
+by the local unit and the normalized-factor identity
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`; away from `a`, the quotient is the old
+quotient divided by the inserted normalized factor. -/
+theorem entireFunction_insertNormalizedFactor_removableQuotient_of_localTaylorFactorization
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep removable-division construction: define the new quotient as the old
+  -- quotient divided by the inserted normalized factor away from `a`, fill in
+  -- the forced local Taylor value at `a`, and use the identity principle on
+  -- the punctured neighborhood to prove analyticity at the filled point.
+  sorry
+
 /-- Single-insert analytic division by a normalized finite zero factor.
 
 This is the canonical removable-quotient theorem for one new nonzero support
@@ -10209,8 +10345,9 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_localAnalyticDiv
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep single-zero removable division theorem for normalized factors.
-  sorry
+  exact
+    entireFunction_insertNormalizedFactor_removableQuotient_of_localTaylorFactorization
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- Canonical removable quotient after inserting one normalized zero factor.
 
