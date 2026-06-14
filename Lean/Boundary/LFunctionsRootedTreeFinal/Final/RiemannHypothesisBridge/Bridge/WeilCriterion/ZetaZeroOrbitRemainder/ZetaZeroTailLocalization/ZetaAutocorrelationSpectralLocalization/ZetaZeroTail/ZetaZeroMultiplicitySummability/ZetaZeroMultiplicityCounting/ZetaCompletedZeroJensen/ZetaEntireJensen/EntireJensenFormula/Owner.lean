@@ -2392,6 +2392,64 @@ theorem real_integral_log_sin_zero_pi :
   -- Deep classical Fourier/Beta integral.
   sorry
 
+/-- Unit-circle kernel norm as the sine half-angle expression. -/
+theorem unitCircleLogKernel_norm_eq_two_abs_sin_half
+    (θ : ℝ) :
+    ‖1 - Complex.exp (θ * Complex.I)‖ =
+      2 * |Real.sin (θ / 2)| := by
+  -- Trigonometric norm computation from
+  -- `exp(iθ) = cos θ + i sin θ` and `1 - cos θ = 2 sin²(θ/2)`.
+  sorry
+
+/-- Integral form of the unit-circle kernel after the sine half-angle
+substitution. -/
+theorem unitCircleLogKernel_integral_eq_sineLogIntegral :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+      2 * Real.pi * Real.log 2 +
+        2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
+  -- Use `unitCircleLogKernel_norm_eq_two_abs_sin_half`, positivity of
+  -- `sin` on `(0,π)`, and the change of variables `θ = 2u`.
+  sorry
+
+/-- Arithmetic endpoint of the unit-circle kernel reduction. -/
+theorem unitCircleLogKernel_integral_eq_zero_from_sineLogIntegral :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+      0 := by
+  let S : ℝ := ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)
+  let A : ℝ := 2 * Real.pi * Real.log 2
+  have hkernel :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        A + 2 * S :=
+    unitCircleLogKernel_integral_eq_sineLogIntegral
+  have hsine :
+      S = -Real.pi * Real.log 2 :=
+    real_integral_log_sin_zero_pi
+  have htwice_sine :
+      2 * S = -A := by
+    calc
+      2 * S = 2 * (-Real.pi * Real.log 2) := by
+        exact congrArg (fun x : ℝ => 2 * x) hsine
+      _ = (2 * -Real.pi) * Real.log 2 := by
+        exact (mul_assoc 2 (-Real.pi) (Real.log 2)).symm
+      _ = (-(2 * Real.pi)) * Real.log 2 := by
+        exact congrArg (fun x : ℝ => x * Real.log 2)
+          (mul_neg 2 Real.pi)
+      _ = -(2 * Real.pi * Real.log 2) := by
+        exact neg_mul (2 * Real.pi) (Real.log 2)
+      _ = -A := by
+        rfl
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        A + 2 * S := hkernel
+    _ = A + -A := by
+      exact congrArg (fun x : ℝ => A + x) htwice_sine
+    _ = 0 := by
+      exact add_right_neg A
+
 /-- Reduction of the unshifted unit-circle logarithmic kernel to the
 classical sine-log integral. -/
 theorem unitCircleLogKernel_mean_zero_from_sineLogIntegral :
@@ -2399,10 +2457,19 @@ theorem unitCircleLogKernel_mean_zero_from_sineLogIntegral :
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
       0 := by
-  -- Deep reduction theorem: use
-  -- `‖1 - exp(iθ)‖ = 2 * |sin(θ/2)|`, change variables `θ = 2u`,
-  -- and consume `real_integral_log_sin_zero_pi`.
-  sorry
+  have hzero :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        0 :=
+    unitCircleLogKernel_integral_eq_zero_from_sineLogIntegral
+  calc
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+        (2 * Real.pi)⁻¹ * 0 := by
+      exact congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) hzero
+    _ = 0 := by
+      exact mul_zero (2 * Real.pi)⁻¹
 
 /-- Unshifted unit-circle logarithmic kernel mean.
 
@@ -3591,6 +3658,34 @@ theorem complex_centerSegment_finiteAnalyticAtCover
         (complex_starConvex_centerSegment_analyticAt
           φ hstar hφ hz ht)
 
+/-- Endpoint stability for center segments into an arbitrary open tube around
+the compact base segment.
+
+This is the pure topology lemma behind the finite analytic tube construction:
+if an open set `U` contains the compact segment from `0` to `z`, then endpoints
+near `z` have a small ball of nearby endpoints whose whole center segments
+remain in `U`. -/
+theorem complex_centerSegment_endpointStability_openTube
+    (z : ℂ)
+    (U : Set ℂ)
+    (hU_open : IsOpen U)
+    (hseg :
+      ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+          Set.Icc (0 : ℝ) 1) ⊆ U) :
+    ∃ u : Set ℂ,
+      z ∈ u ∧
+      u ∈ 𝓝 z ∧
+      ∀ w : ℂ,
+        w ∈ u →
+          ∃ ε : ℝ,
+            0 < ε ∧
+            ∀ x : ℂ,
+              x ∈ ball w ε →
+                ∀ t : ℝ,
+                  t ∈ Set.Icc (0 : ℝ) 1 →
+                    AffineMap.lineMap (0 : ℂ) x t ∈ U := by
+  sorry
+
 /-- Endpoint stability for center segments into a finite analytic tube.
 
 If a finite union of analytic-at neighborhoods covers the compact center
@@ -3618,6 +3713,82 @@ theorem complex_centerSegment_endpointStability_finiteAnalyticTube
                   t ∈ Set.Icc (0 : ℝ) 1 →
                     AffineMap.lineMap (0 : ℂ) x t ∈
                       ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
+  exact
+    complex_centerSegment_endpointStability_openTube
+      z
+      (⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q})
+      (isOpen_iUnion fun c =>
+        isOpen_iUnion fun _hc =>
+          isOpen_analyticAt ℂ φ)
+      hcover
+
+/-- Continuity on the parameter interval of the center-segment integrand on a
+finite analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      (∀ t : ℝ,
+        t ∈ Set.Icc (0 : ℝ) 1 →
+          AffineMap.lineMap (0 : ℂ) w t ∈
+            ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+        ContinuousOn
+          (fun t : ℝ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          (Set.Icc (0 : ℝ) 1) := by
+  sorry
+
+/-- Continuity on the parameter interval of the endpoint derivative integrand
+on a finite analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      (∀ t : ℝ,
+        t ∈ Set.Icc (0 : ℝ) 1 →
+          AffineMap.lineMap (0 : ℂ) w t ∈
+            ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+        ContinuousOn
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+          (Set.Icc (0 : ℝ) 1) := by
+  sorry
+
+/-- Integrability and measurability of continuous finite-tube interval
+integrands. -/
+theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      (∀ᶠ x in 𝓝 w,
+        ContinuousOn
+          (fun t : ℝ =>
+            x * φ (AffineMap.lineMap (0 : ℂ) x t))
+          (Set.Icc (0 : ℝ) 1)) →
+      ContinuousOn
+        (fun t : ℝ =>
+          w * φ (AffineMap.lineMap (0 : ℂ) w t))
+        (Set.Icc (0 : ℝ) 1) →
+      ContinuousOn
+        (fun t : ℝ =>
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+        (Set.Icc (0 : ℝ) 1) →
+        (∀ᶠ x in 𝓝 w,
+          AEStronglyMeasurable
+            (fun t : ℝ =>
+              x * φ (AffineMap.lineMap (0 : ℂ) x t))
+            (volume.restrict (Ι (0 : ℝ) 1))) ∧
+        IntervalIntegrable
+          (fun t : ℝ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          volume
+          (0 : ℝ)
+          1 ∧
+        AEStronglyMeasurable
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand
+              φ w t)
+          (volume.restrict (Ι (0 : ℝ) 1)) := by
   sorry
 
 /-- Measurability and interval integrability for the center-segment integrand
@@ -3648,6 +3819,35 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
           (volume.restrict (Ι (0 : ℝ) 1)) := by
   sorry
 
+/-- Compact boundedness of the endpoint derivative integrand on an endpoint
+ball times the parameter interval.
+
+This is the compact supremum step for the dominated-parameter theorem: if all
+center segments from `ball w ε` lie in the finite analytic tube, then the map
+`(x,t) ↦ endpointDerivativeIntegrand φ x t` is continuous on the compact
+parameter set `closedBall w (ε / 2) × [0,1]`, hence admits an integrable
+constant bound. -/
+theorem complex_centerSegmentIntegral_finiteTube_compactBound
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ x : ℂ,
+            x ∈ ball w ε →
+              ∀ t : ℝ,
+                t ∈ Set.Icc (0 : ℝ) 1 →
+                  AffineMap.lineMap (0 : ℂ) x t ∈
+                    ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+            ∃ bound : ℝ → ℝ,
+              (∀ᵐ t ∂volume,
+                t ∈ Ι (0 : ℝ) 1 →
+                  ∀ x ∈ ball w ε,
+                    ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ x t‖ ≤ bound t) ∧
+              IntervalIntegrable bound volume (0 : ℝ) 1 := by
+  sorry
+
 /-- Compact constant bound for the endpoint derivative integrand on a finite
 analytic tube. -/
 theorem complex_centerSegmentIntegral_finiteTube_constantBound
@@ -3669,7 +3869,9 @@ theorem complex_centerSegmentIntegral_finiteTube_constantBound
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
               IntervalIntegrable bound volume (0 : ℝ) 1 := by
-  sorry
+  exact
+    complex_centerSegmentIntegral_finiteTube_compactBound
+      φ centers
 
 /-- Pointwise endpoint derivative almost everywhere in the parameter for
 endpoints whose center segments stay in a finite analytic tube. -/
@@ -9913,15 +10115,29 @@ theorem analyticAt_eq_at_of_eventuallyEq_punctured
   exact
     tendsto_nhds_unique hf_tendsto_punctured hf_tendsto_g_value
 
-/-- Punctured local quotient identity forced by a finite normalized
-factorization.
+/-- Analytic identity theorem in local punctured-germ form.
 
-This is the exact cancellation theorem for the finite divisor at a support
-point.  On punctured points near `a`, the local Taylor factor
-`(w-a)^m`, the normalized factor identity
-`(1-w/a)^m = (-(a⁻¹))^m (w-a)^m`, and the nonvanishing of all other finite
-factors cancel to identify `Q` with the explicit local removable model. -/
-theorem entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovableModel
+If two analytic germs agree frequently in the punctured neighborhood of the
+center, then they agree eventually in the punctured neighborhood. -/
+theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
+    {f g : ℂ → ℂ}
+    {a : ℂ}
+    (hf : AnalyticAt ℂ f a)
+    (hg : AnalyticAt ℂ g a)
+    (hfg : ∃ᶠ w in 𝓝[≠] a, f w = g w) :
+    f =ᶠ[𝓝[≠] a] g := by
+  have hfg_nhds :
+      ∀ᶠ w in 𝓝 a, f w = g w :=
+    (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
+  exact hfg_nhds.filter_mono nhdsWithin_le_nhds
+
+/-- Closed-disk punctured cancellation for a finite normalized factorization.
+
+This is the pointwise algebraic cancellation statement on the accumulating
+closed-disk side of a support point.  It combines the finite-product erase
+formula, the normalized/local factor identity, and cancellation of
+`(w-a)^m` away from `a`. -/
+theorem entireFunction_finiteNormalizedFactorization_frequentlyEq_localRemovableModel
     (F Q : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
@@ -9944,17 +10160,17 @@ theorem entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovable
           (w - (a : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (a : ℂ) •
             g w) :
-    Q =ᶠ[𝓝[≠] (a : ℂ)]
-      fun w : ℂ =>
+    ∃ᶠ w in 𝓝[≠] (a : ℂ),
+      Q w =
         g w /
           (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
             (∏ z in S.erase a,
               (1 - (w : ℂ) / (z : ℂ)) ^
                 entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep cancellation theorem: produce a punctured neighborhood inside the
-  -- closed disk, rewrite the finite product as the `a`-factor times
-  -- `S.erase a`, use the normalized-factor/local-factor identity, and cancel
-  -- the nonzero punctured local factor.
+  -- Deep cancellation-frequency theorem: choose points of the closed disk
+  -- approaching `a`, apply the disk factorization and local Taylor
+  -- factorization, split the finite product by `S.erase a`, and cancel the
+  -- nonzero punctured local factor.
   sorry
 
 /-- Analyticity of the explicit local removable model at a support point.
@@ -10015,6 +10231,67 @@ theorem entireFunction_finiteNormalizedFactorization_localRemovableModel_analyti
       F hF S hS0 a ha
   exact hg_an.div hden_an hden_ne
 
+/-- Punctured local quotient identity forced by a finite normalized
+factorization.
+
+This is the exact cancellation theorem for the finite divisor at a support
+point.  On punctured points near `a`, the local Taylor factor
+`(w-a)^m`, the normalized factor identity
+`(1-w/a)^m = (-(a⁻¹))^m (w-a)^m`, and the nonvanishing of all other finite
+factors cancel to identify `Q` with the explicit local removable model. -/
+theorem entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovableModel
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q =ᶠ[𝓝[≠] (a : ℂ)]
+      fun w : ℂ =>
+        g w /
+          (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in S.erase a,
+              (1 - (w : ℂ) / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  let localModel : ℂ → ℂ :=
+    fun w : ℂ =>
+      g w /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - w / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ)))
+  have hQ_at : AnalyticAt ℂ Q (a : ℂ) :=
+    hQ_an (a : ℂ) haρ
+  have hmodel_at : AnalyticAt ℂ localModel (a : ℂ) := by
+    exact
+      entireFunction_finiteNormalizedFactorization_localRemovableModel_analyticAt
+        F hF S hS0 a ha g hg_an
+  have hfreq :
+      ∃ᶠ w in 𝓝[≠] (a : ℂ), Q w = localModel w :=
+    entireFunction_finiteNormalizedFactorization_frequentlyEq_localRemovableModel
+      F Q hF ρ S hS0 hfactor a ha haρ g hg_factor
+  exact
+    analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
+      hQ_at hmodel_at hfreq
+
 /-- Local removable value forced by a closed-disk factorization.
 
 This is the identity-principle/removable-value cut behind support-point
@@ -10070,7 +10347,7 @@ theorem entireFunction_finiteNormalizedFactorization_forces_localRemovableValue
   have hpunctured :
       Q =ᶠ[𝓝[≠] (a : ℂ)] localModel :=
     entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovableModel
-      F Q hF ρ S hS0 hfactor a ha haρ g hg_factor
+      F Q hF ρ S hS0 hQ_an hfactor a ha haρ g hg_an hg_factor
   exact
     analyticAt_eq_at_of_eventuallyEq_punctured
       hQ_at hmodel_at hpunctured
