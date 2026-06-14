@@ -1776,6 +1776,119 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
+/-- The zero set of a nontrivial entire function inside a closed disk is
+discrete. -/
+theorem entireFunction_closedDiskZeros_discreteTopology
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ) :
+    DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+  refine (discreteTopology_subtype_iff).2 ?_
+  intro x hx
+  rcases hx with ⟨_hxnorm, hxzero⟩
+  have hne : ∀ᶠ w in 𝓝[≠] x, F w ≠ 0 := by
+    rcases (hF x).eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+    · exfalso
+      have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) := fun z _ => hF z
+      have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
+        hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+          isPreconnected_univ (by simp) hzero
+      rcases hnontrivial with ⟨z0, hz0⟩
+      exact hz0 (hEq (by simp))
+    · exact hne
+  have hScompl :
+      ({z : ℂ | ‖z‖ ≤ R ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
+    exact Filter.mem_of_superset hne (by
+      intro w hw
+      intro hsw
+      exact hw hsw.2)
+  exact (Filter.disjoint_principal_right).2 hScompl
+
+/-- A nontrivial entire function has only finitely many zeros in each closed
+disk. -/
+theorem entireFunction_closedDiskZeros_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ) :
+    Set.Finite {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+  have hdisc :
+      DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} :=
+    entireFunction_closedDiskZeros_discreteTopology F hF hnontrivial R
+  have hclosedDisk : IsClosed {z : ℂ | ‖z‖ ≤ R} := by
+    change IsClosed ((fun z : ℂ => ‖z‖) ⁻¹' Set.Iic R)
+    exact (continuous_norm : Continuous fun z : ℂ => ‖z‖).isClosed_preimage
+      isClosed_Iic
+  have hzeroClosed : IsClosed {z : ℂ | F z = 0} := by
+    have hcontF : Continuous F :=
+      continuous_iff_continuousAt.mpr (fun z => (hF z).continuousAt)
+    change IsClosed (F ⁻¹' ({0} : Set ℂ))
+    exact hcontF.isClosed_preimage (isClosed_singleton : IsClosed ({0} : Set ℂ))
+  have hclosed : IsClosed {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+    change IsClosed ({z : ℂ | ‖z‖ ≤ R} ∩ {z : ℂ | F z = 0})
+    exact hclosedDisk.inter hzeroClosed
+  have hsubset :
+      {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} ⊆ Metric.closedBall (0 : ℂ) R := by
+    intro z hz
+    simpa [Metric.mem_closedBall, dist_eq_norm] using hz.1
+  have hcomp : IsCompact {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} :=
+    (isCompact_closedBall (0 : ℂ) R).of_isClosed_subset hclosed hsubset
+  haveI : DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := hdisc
+  exact hcomp.finite_of_discrete
+
+/-- The nonzero closed-disk multiplicity summand has finite support. -/
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    (Function.support
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)).Finite := by
+  have hzeros :
+      Set.Finite {w : ℂ | ‖w‖ ≤ R ∧ F w = 0} :=
+    entireFunction_closedDiskZeros_finite F hF ⟨0, hF0⟩ R
+  have hpre :
+      ((fun z : EntireFunctionZero F => (z : ℂ)) ⁻¹'
+        {w : ℂ | ‖w‖ ≤ R ∧ F w = 0}).Finite :=
+    hzeros.preimage (fun _ _ _ _ hEq => Subtype.ext hEq)
+  exact hpre.subset (by
+    intro z hz
+    unfold Function.support at hz
+    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand at hz
+    by_cases hz0 : (z : ℂ) = 0
+    · exact False.elim (hz (if_pos hz0))
+    · by_cases hle : ‖(z : ℂ)‖ ≤ R
+      · exact ⟨hle, z.2⟩
+      · exact False.elim (hz (if_neg hle)))
+
+/-- The Jensen radial-gap summand has finite support. -/
+theorem entireFunctionJensenRadialGapSummand_support_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (Function.support
+      (fun z : EntireFunctionZero F =>
+        entireFunctionJensenRadialGapSummand F hF ρ z)).Finite := by
+  have hzeros :
+      Set.Finite {w : ℂ | ‖w‖ ≤ ρ ∧ F w = 0} :=
+    entireFunction_closedDiskZeros_finite F hF ⟨0, hF0⟩ ρ
+  have hpre :
+      ((fun z : EntireFunctionZero F => (z : ℂ)) ⁻¹'
+        {w : ℂ | ‖w‖ ≤ ρ ∧ F w = 0}).Finite :=
+    hzeros.preimage (fun _ _ _ _ hEq => Subtype.ext hEq)
+  exact hpre.subset (by
+    intro z hz
+    unfold Function.support at hz
+    unfold entireFunctionJensenRadialGapSummand at hz
+    by_cases hz0 : (z : ℂ) = 0
+    · exact False.elim (hz (if_pos hz0))
+    · by_cases hlt : ‖(z : ℂ)‖ < ρ
+      · exact ⟨le_of_lt hlt, z.2⟩
+      · exact False.elim (hz (if_neg hz0 ▸ if_neg hlt)))
+
 /-- Classical Jensen finite-zero divisor input in a closed disk, with
 multiplicities.
 
@@ -1792,10 +1905,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisor_c
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
-  -- Classical isolated-zero divisor finiteness on compact disks, with the
-  -- origin summand removed because `F 0 ≠ 0`; cf. Titchmarsh, The Theory of
-  -- Functions, §5.
-  sorry
+  intro R _hR
+  exact summable_of_finite_support
+    (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+      F hF hF0 R)
 
 /-- Classical Jensen radial-gap divisor summability for a nonzero value at the
 origin.
@@ -1811,10 +1924,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummabilit
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF ρ z) := by
-  -- This is the summability consequence of the finite zero divisor in
-  -- `closedDisk ρ`, since the radial-gap summand vanishes outside the disk and
-  -- at the origin.
-  sorry
+  intro ρ _hρ
+  exact summable_of_finite_support
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ)
 
 /-- Classical Jensen product/radial-gap identity for a nonzero value at the
 origin, including the explicit constant.
