@@ -12204,6 +12204,39 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant
       (reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
         t hpartial hNM hreciprocal_density)
 
+/-- The canonical Abel/Euler-Maclaurin cutoff is positive as a real endpoint. -/
+theorem scalarReciprocalDensity_cutoff_real_pos
+    (t : ℝ) :
+    0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) := by
+  exact Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
+
+/-- The canonical Abel/Euler-Maclaurin cutoff is at least two as a real
+endpoint. -/
+theorem scalarReciprocalDensity_two_le_cutoff_real
+    (t : ℝ) :
+    (2 : ℝ) ≤ (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) := by
+  exact Nat.cast_le.mpr (boundaryLineOnePointRealParam_two_le_cutoff t)
+
+/-- Points in the post-cutoff interval are positive. -/
+theorem scalarReciprocalDensity_Ioc_point_pos
+    (t : ℝ)
+    {M : ℕ}
+    {x : ℝ}
+    (hx :
+      x ∈ Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :
+    0 < x := by
+  exact lt_trans (scalarReciprocalDensity_cutoff_real_pos t) hx.1
+
+/-- Points in the closed post-cutoff interval are positive. -/
+theorem scalarReciprocalDensity_Icc_point_pos
+    (t : ℝ)
+    {M : ℕ}
+    {x : ℝ}
+    (hx :
+      x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :
+    0 < x := by
+  exact lt_of_lt_of_le (scalarReciprocalDensity_cutoff_real_pos t) hx.1
+
 /-- Finite-endpoint calculus bound for the `log(2+x)/x` contribution. -/
 theorem scalarReciprocalDensity_log_over_x_integral_bound
     (t : ℝ)
@@ -12226,6 +12259,58 @@ theorem scalarReciprocalDensity_log_over_x_sq_integral_bound
       Real.log (3 + ‖t‖) := by
   sorry
 
+/-- Pointwise algebraic split of the coarse reciprocal-density majorant.
+
+The factor `x / |t|` contributes the `log(2+x)/x` term, using `1 ≤ |t|`; the
+remaining `sqrt(1+|t|)` term contributes `log(2+x)/x²`. -/
+theorem scalarReciprocalDensityMajorant_pointwise_split
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ((1 : ℝ) / x ^ 2) *
+        (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      8 * (Real.log (2 + x) / x) +
+        8 * Real.sqrt (1 + ‖t‖) * (Real.log (2 + x) / x ^ 2) := by
+  sorry
+
+/-- Integral transport of the pointwise scalar split over the post-cutoff
+interval. -/
+theorem scalarReciprocalDensityMajorant_integral_split_le_components
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        (8 * (Real.log (2 + x) / x) +
+          8 * Real.sqrt (1 + ‖t‖) * (Real.log (2 + x) / x ^ 2)) := by
+  sorry
+
+/-- The component integral bounds imply the finite-endpoint bound for the
+split scalar majorant. -/
+theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hlog_over_x :
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          Real.log (2 + x) / x ≤
+        (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2)
+    (hlog_over_x_sq :
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          Real.log (2 + x) / x ^ 2 ≤
+        Real.log (3 + ‖t‖)) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        (8 * (Real.log (2 + x) / x) +
+          8 * Real.sqrt (1 + ‖t‖) * (Real.log (2 + x) / x ^ 2)) ≤
+      8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
+        8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Algebraic split of the coarse reciprocal-density scalar majorant into the
 two real calculus integrals it requires. -/
 theorem scalarReciprocalDensityMajorant_integral_split_bound
@@ -12246,7 +12331,11 @@ theorem scalarReciprocalDensityMajorant_integral_split_bound
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
       8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
         8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    le_trans
+      (scalarReciprocalDensityMajorant_integral_split_le_components t ht hNM)
+      (scalarReciprocalDensityMajorant_components_le_endpoint_bound
+        t ht hNM hlog_over_x hlog_over_x_sq)
 
 /-- Finite-endpoint real calculus bound for the coarse reciprocal-density
 majorant.
@@ -12829,6 +12918,24 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       ‖z‖ ≤ boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
     hidentity.symm
     (le_trans htriangle (le_trans hpost_triangle (le_of_eq hconstant)))
+
+/-- Concrete finite Abel-tail estimate obtained through Mathlib's Abel
+summation theorem.
+
+The finite summation-by-parts identity is supplied by
+`sum_mul_eq_sub_sub_integral_mul`, via
+`abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_endpoint_derivative_identity`;
+this theorem only exposes that canonical route under an explicit owner name. -/
+theorem mathlibAbelSummation_boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+    t ht hNM
 
 /-- The completed Abel/Euler-Maclaurin tail package for the logarithmic-phase
 oscillator after the canonical cutoff.
@@ -17506,6 +17613,26 @@ noncomputable def eulerMaclaurinPoleClearedZetaEndpointTerm
   ((z - 1) / 2) *
     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
 
+/-- Finite Dirichlet-polynomial part in the raw first-order Euler-Maclaurin
+formula for `ζ(s)` at the owner cutoff. -/
+noncomputable def eulerMaclaurinZetaFinitePart
+    (z : ℂ) : ℂ :=
+  ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+    1 / (((n : ℕ) : ℂ) ^ z)
+
+/-- Integral main term `N^(1-s)/(s-1)` in the raw Euler-Maclaurin formula
+away from the pole. -/
+noncomputable def eulerMaclaurinZetaMainTerm
+    (z : ℂ) : ℂ :=
+  (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ ((1 : ℂ) - z)) /
+    (z - 1)
+
+/-- Endpoint correction `1/2 · N^{-s}` in the raw Euler-Maclaurin formula. -/
+noncomputable def eulerMaclaurinZetaEndpointTerm
+    (z : ℂ) : ℂ :=
+  (1 / 2 : ℂ) *
+    (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
+
 /-- The bounded-strip Euler-Maclaurin cutoff is always at least one. -/
 theorem eulerMaclaurinPoleClearedZetaCutoff_pos
     (z : ℂ) :
@@ -17846,6 +17973,12 @@ noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
     ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
       (((x : ℝ) : ℂ) ^ (-(z + 1)))
 
+/-- Raw first-order Euler-Maclaurin Bernoulli-periodic remainder
+`-s ∫_N^∞ B₁({x}) x^{-s-1} dx`. -/
+noncomputable def eulerMaclaurinZetaBernoulliIntegralRemainder
+    (z : ℂ) : ℂ :=
+  -z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z
+
 /-- Explicit Bernoulli-periodic integral remainder for the pole-cleared zeta
 Euler-Maclaurin formula.
 
@@ -17856,6 +17989,189 @@ noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
     (z : ℂ) : ℂ :=
   -((z - 1) * z) *
     eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z
+
+/-- The pole-cleared finite Euler-Maclaurin term is `(s - 1)` times the raw
+finite Dirichlet window. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_eq_mul_raw
+    (z : ℂ) :
+    eulerMaclaurinPoleClearedZetaFinitePart z =
+      (z - 1) * eulerMaclaurinZetaFinitePart z := by
+  unfold eulerMaclaurinPoleClearedZetaFinitePart
+  unfold eulerMaclaurinZetaFinitePart
+  rfl
+
+/-- Away from `s = 1`, the pole-cleared main term is `(s - 1)` times the raw
+Euler-Maclaurin integral main term. -/
+theorem eulerMaclaurinPoleClearedZetaMainTerm_eq_mul_raw
+    {z : ℂ}
+    (hz_ne_one : z ≠ 1) :
+    eulerMaclaurinPoleClearedZetaMainTerm z =
+      (z - 1) * eulerMaclaurinZetaMainTerm z := by
+  unfold eulerMaclaurinPoleClearedZetaMainTerm
+  unfold eulerMaclaurinZetaMainTerm
+  let A : ℂ :=
+    ((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ ((1 : ℂ) - z)
+  have hden_ne : z - 1 ≠ 0 :=
+    sub_ne_zero.mpr hz_ne_one
+  calc
+    A = A := rfl
+    _ = (z - 1) * (A / (z - 1)) := by
+      exact (mul_div_cancel₀ A hden_ne).symm
+
+/-- The pole-cleared endpoint correction is `(s - 1)` times the raw endpoint
+correction. -/
+theorem eulerMaclaurinPoleClearedZetaEndpointTerm_eq_mul_raw
+    (z : ℂ) :
+    eulerMaclaurinPoleClearedZetaEndpointTerm z =
+      (z - 1) * eulerMaclaurinZetaEndpointTerm z := by
+  unfold eulerMaclaurinPoleClearedZetaEndpointTerm
+  unfold eulerMaclaurinZetaEndpointTerm
+  let U : ℂ :=
+    1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)
+  calc
+    ((z - 1) / 2) * U =
+        ((z - 1) * (1 / 2 : ℂ)) * U := by
+      exact congrArg (fun w : ℂ => w * U) (div_eq_mul_inv (z - 1) 2)
+    _ = (z - 1) * ((1 / 2 : ℂ) * U) := by
+      exact (mul_assoc (z - 1) (1 / 2 : ℂ) U).symm
+
+/-- The pole-cleared Bernoulli remainder is `(s - 1)` times the raw
+Euler-Maclaurin Bernoulli remainder. -/
+theorem eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder_eq_mul_raw
+    (z : ℂ) :
+    eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z =
+      (z - 1) * eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+  unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
+  unfold eulerMaclaurinZetaBernoulliIntegralRemainder
+  let I : ℂ := eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z
+  calc
+    -((z - 1) * z) * I =
+        ((z - 1) * -z) * I := by
+      exact congrArg (fun w : ℂ => w * I) (mul_neg (z - 1) z).symm
+    _ = (z - 1) * (-z * I) := by
+      exact (mul_assoc (z - 1) (-z) I).symm
+
+/-- First-order Euler-Maclaurin formula for the raw Riemann zeta away from its
+pole, with owner cutoff `N = ⌊2 + ‖s‖⌋₊`.
+
+This is the canonical analytic input: split the Dirichlet series at `N`, apply
+Euler-Maclaurin to the tail of `x ↦ x^{-s}`, and write the remainder as the
+periodic Bernoulli integral `-s ∫_N^∞ B₁({x}) x^{-s-1} dx`; cf. Apostol,
+Analytic Number Theory, Ch. 3, and Titchmarsh, Ch. 2. -/
+theorem eulerMaclaurin_riemannZeta_formula_with_bernoulliIntegralRemainder_standard
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2)
+    (hz_ne_one : z ≠ 1) :
+    riemannZeta z =
+      eulerMaclaurinZetaFinitePart z +
+        eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+  sorry
+
+/-- Multiplication by `s - 1` transports the raw non-pole
+Euler-Maclaurin formula to the existing pole-cleared term definitions. -/
+theorem eulerMaclaurin_poleCleared_formula_of_raw_formula
+    {z : ℂ}
+    (hz_ne_one : z ≠ 1)
+    (hraw :
+      riemannZeta z =
+        eulerMaclaurinZetaFinitePart z +
+          eulerMaclaurinZetaMainTerm z +
+          eulerMaclaurinZetaEndpointTerm z +
+          eulerMaclaurinZetaBernoulliIntegralRemainder z) :
+    poleClearedRiemannZeta z =
+      eulerMaclaurinPoleClearedZetaFinitePart z +
+        eulerMaclaurinPoleClearedZetaMainTerm z +
+        eulerMaclaurinPoleClearedZetaEndpointTerm z +
+        eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  let a : ℂ := z - 1
+  let F : ℂ := eulerMaclaurinZetaFinitePart z
+  let M : ℂ := eulerMaclaurinZetaMainTerm z
+  let E : ℂ := eulerMaclaurinZetaEndpointTerm z
+  let R : ℂ := eulerMaclaurinZetaBernoulliIntegralRemainder z
+  have hpole :
+      poleClearedRiemannZeta z = a * riemannZeta z := by
+    exact poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
+  have hraw_local : riemannZeta z = F + M + E + R :=
+    hraw
+  have hmul_raw :
+      a * riemannZeta z = a * (F + M + E + R) :=
+    congrArg (fun w : ℂ => a * w) hraw_local
+  have hdistribute :
+      a * (F + M + E + R) =
+        a * F + a * M + a * E + a * R := by
+    calc
+      a * (F + M + E + R) = a * ((F + M + E) + R) := rfl
+      _ = a * (F + M + E) + a * R := by
+        exact mul_add a (F + M + E) R
+      _ = (a * (F + M) + a * E) + a * R := by
+        exact congrArg (fun w : ℂ => w + a * R) (mul_add a (F + M) E)
+      _ = ((a * F + a * M) + a * E) + a * R := by
+        exact congrArg
+          (fun w : ℂ => (w + a * E) + a * R)
+          (mul_add a F M)
+      _ = a * F + a * M + a * E + a * R := rfl
+  have hF :
+      a * F = eulerMaclaurinPoleClearedZetaFinitePart z :=
+    (eulerMaclaurinPoleClearedZetaFinitePart_eq_mul_raw z).symm
+  have hM :
+      a * M = eulerMaclaurinPoleClearedZetaMainTerm z :=
+    (eulerMaclaurinPoleClearedZetaMainTerm_eq_mul_raw hz_ne_one).symm
+  have hE :
+      a * E = eulerMaclaurinPoleClearedZetaEndpointTerm z :=
+    (eulerMaclaurinPoleClearedZetaEndpointTerm_eq_mul_raw z).symm
+  have hR :
+      a * R = eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z :=
+    (eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder_eq_mul_raw z).symm
+  have hterms :
+      a * F + a * M + a * E + a * R =
+        eulerMaclaurinPoleClearedZetaFinitePart z +
+          eulerMaclaurinPoleClearedZetaMainTerm z +
+          eulerMaclaurinPoleClearedZetaEndpointTerm z +
+          eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+    calc
+      a * F + a * M + a * E + a * R =
+          eulerMaclaurinPoleClearedZetaFinitePart z + a * M + a * E + a * R := by
+        exact congrArg
+          (fun w : ℂ => w + a * M + a * E + a * R)
+          hF
+      _ = eulerMaclaurinPoleClearedZetaFinitePart z +
+            eulerMaclaurinPoleClearedZetaMainTerm z + a * E + a * R := by
+        exact congrArg
+          (fun w : ℂ => eulerMaclaurinPoleClearedZetaFinitePart z + w + a * E + a * R)
+          hM
+      _ = eulerMaclaurinPoleClearedZetaFinitePart z +
+            eulerMaclaurinPoleClearedZetaMainTerm z +
+            eulerMaclaurinPoleClearedZetaEndpointTerm z + a * R := by
+        exact congrArg
+          (fun w : ℂ =>
+            eulerMaclaurinPoleClearedZetaFinitePart z +
+              eulerMaclaurinPoleClearedZetaMainTerm z + w + a * R)
+          hE
+      _ = eulerMaclaurinPoleClearedZetaFinitePart z +
+            eulerMaclaurinPoleClearedZetaMainTerm z +
+            eulerMaclaurinPoleClearedZetaEndpointTerm z +
+            eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+        exact congrArg
+          (fun w : ℂ =>
+            eulerMaclaurinPoleClearedZetaFinitePart z +
+              eulerMaclaurinPoleClearedZetaMainTerm z +
+              eulerMaclaurinPoleClearedZetaEndpointTerm z + w)
+          hR
+  calc
+    poleClearedRiemannZeta z = a * riemannZeta z :=
+      hpole
+    _ = a * (F + M + E + R) :=
+      hmul_raw
+    _ = a * F + a * M + a * E + a * R :=
+      hdistribute
+    _ = eulerMaclaurinPoleClearedZetaFinitePart z +
+          eulerMaclaurinPoleClearedZetaMainTerm z +
+          eulerMaclaurinPoleClearedZetaEndpointTerm z +
+          eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z :=
+      hterms
 
 /-- Subtracting a left summand from a two-term sum leaves the right summand. -/
 theorem complex_add_sub_left_cancel
@@ -17875,6 +18191,110 @@ theorem complex_add_sub_left_cancel
     _ = R := by
       exact zero_add R
 
+/-- Removable value of the pole-cleared first-order Euler-Maclaurin formula at
+`s = 1`.
+
+This is the endpoint cancellation of the raw formula after multiplying by
+`s - 1`: the finite, endpoint, and Bernoulli terms vanish and the main term
+has value `N^0 = 1`, matching the residue-normalized removable value
+`poleClearedRiemannZeta 1 = 1`. -/
+theorem eulerMaclaurin_poleCleared_formula_at_one_from_removable_value :
+    poleClearedRiemannZeta (1 : ℂ) =
+      eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+        eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) +
+        eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) +
+        eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder (1 : ℂ) := by
+  have hpole : poleClearedRiemannZeta (1 : ℂ) = 1 :=
+    poleClearedRiemannZeta_one
+  have hfinite :
+      eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) = 0 := by
+    unfold eulerMaclaurinPoleClearedZetaFinitePart
+    let S : ℂ :=
+      ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff (1 : ℂ)),
+        1 / (((n : ℕ) : ℂ) ^ (1 : ℂ))
+    calc
+      ((1 : ℂ) - 1) * S = 0 * S := by
+        exact congrArg (fun w : ℂ => w * S) (sub_self (1 : ℂ))
+      _ = 0 := by
+        exact zero_mul S
+  have hmain :
+      eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) = 1 := by
+    unfold eulerMaclaurinPoleClearedZetaMainTerm
+    let N : ℂ := ((eulerMaclaurinPoleClearedZetaCutoff (1 : ℂ) : ℕ) : ℂ)
+    calc
+      N ^ ((1 : ℂ) - 1) = N ^ (0 : ℂ) := by
+        exact congrArg (fun w : ℂ => N ^ w) (sub_self (1 : ℂ))
+      _ = 1 := by
+        exact Complex.cpow_zero N
+  have hendpoint :
+      eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) = 0 := by
+    unfold eulerMaclaurinPoleClearedZetaEndpointTerm
+    let U : ℂ :=
+      1 / (((eulerMaclaurinPoleClearedZetaCutoff (1 : ℂ) : ℕ) : ℂ) ^ (1 : ℂ))
+    calc
+      (((1 : ℂ) - 1) / 2) * U = (0 / 2 : ℂ) * U := by
+        exact congrArg (fun w : ℂ => (w / 2) * U) (sub_self (1 : ℂ))
+      _ = 0 * U := by
+        exact congrArg (fun w : ℂ => w * U) (zero_div (2 : ℂ))
+      _ = 0 := by
+        exact zero_mul U
+  have hremainder :
+      eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder (1 : ℂ) = 0 := by
+    unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
+    let I : ℂ := eulerMaclaurinPoleClearedZetaBernoulliIntegralCore (1 : ℂ)
+    calc
+      -(((1 : ℂ) - 1) * 1) * I = -(0 * 1) * I := by
+        exact congrArg (fun w : ℂ => -(w * 1) * I) (sub_self (1 : ℂ))
+      _ = -0 * I := by
+        exact congrArg (fun w : ℂ => -w * I) (zero_mul (1 : ℂ))
+      _ = 0 * I := by
+        exact congrArg (fun w : ℂ => w * I) (neg_zero : -(0 : ℂ) = 0)
+      _ = 0 := by
+        exact zero_mul I
+  calc
+    poleClearedRiemannZeta (1 : ℂ) = 1 :=
+      hpole
+    _ = 0 + 1 + 0 + 0 := by
+      calc
+        (1 : ℂ) = 0 + 1 := by
+          exact (zero_add (1 : ℂ)).symm
+        _ = 0 + 1 + 0 := by
+          exact (add_zero (0 + (1 : ℂ))).symm
+        _ = 0 + 1 + 0 + 0 := by
+          exact (add_zero (0 + (1 : ℂ) + 0)).symm
+    _ = eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+          eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) +
+          eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) +
+          eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder (1 : ℂ) := by
+      calc
+        0 + 1 + 0 + 0 =
+            eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) + 1 + 0 + 0 := by
+          exact congrArg (fun w : ℂ => w + 1 + 0 + 0) hfinite.symm
+        _ = eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) + 0 + 0 := by
+          exact congrArg
+            (fun w : ℂ =>
+              eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) + w + 0 + 0)
+            hmain.symm
+        _ = eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) + 0 := by
+          exact congrArg
+            (fun w : ℂ =>
+              eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+                eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) + w + 0)
+            hendpoint.symm
+        _ = eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) +
+              eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder (1 : ℂ) := by
+          exact congrArg
+            (fun w : ℂ =>
+              eulerMaclaurinPoleClearedZetaFinitePart (1 : ℂ) +
+                eulerMaclaurinPoleClearedZetaMainTerm (1 : ℂ) +
+                eulerMaclaurinPoleClearedZetaEndpointTerm (1 : ℂ) + w)
+            hremainder.symm
+
 /-- First-order Euler-Maclaurin formula for the pole-cleared zeta on
 `1 ≤ Re s ≤ 2`, with cutoff `⌊2 + ‖s‖⌋₊` and explicit Bernoulli integral
 remainder. -/
@@ -17887,7 +18307,27 @@ theorem eulerMaclaurin_poleClearedRiemannZeta_formula_with_bernoulliIntegralRema
         eulerMaclaurinPoleClearedZetaMainTerm z +
         eulerMaclaurinPoleClearedZetaEndpointTerm z +
         eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
-  sorry
+  by_cases hz_ne_one : z ≠ 1
+  · have hraw :
+        riemannZeta z =
+          eulerMaclaurinZetaFinitePart z +
+            eulerMaclaurinZetaMainTerm z +
+            eulerMaclaurinZetaEndpointTerm z +
+            eulerMaclaurinZetaBernoulliIntegralRemainder z :=
+      eulerMaclaurin_riemannZeta_formula_with_bernoulliIntegralRemainder_standard
+        z hz_one hz_two hz_ne_one
+    exact eulerMaclaurin_poleCleared_formula_of_raw_formula hz_ne_one hraw
+  · have hz_eq_one : z = 1 :=
+      of_not_not hz_ne_one
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        poleClearedRiemannZeta w =
+          eulerMaclaurinPoleClearedZetaFinitePart w +
+            eulerMaclaurinPoleClearedZetaMainTerm w +
+            eulerMaclaurinPoleClearedZetaEndpointTerm w +
+            eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder w)
+      hz_eq_one.symm
+      eulerMaclaurin_poleCleared_formula_at_one_from_removable_value
 
 /-- Euler-Maclaurin formula identifies the difference-defined pole-cleared
 remainder with the explicit Bernoulli-periodic integral remainder. -/
@@ -20788,13 +21228,73 @@ theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_boun
         mul_le_mul_of_nonneg_left hone_le_exp (le_of_lt zero_lt_two)
   exact hratio_poly.trans (htarget_factor.trans hpoly_exp)
 
-/-- Left-half-plane Gamma-ratio Stirling growth for the completed-functional
-equation multiplier.
+/-- Compact/removable branch for the completed-functional-equation multiplier
+on the closed left half-plane.
 
-This is the global half-plane transport form of vertical/sectorial Stirling for
-the completed real-Gamma ratio.  Unlike the boundary-line theorem above, this
-statement quantifies all `Re z ≤ 0`; its proof belongs to the sectorial/strip
-Stirling transport layer. -/
+The raw `Gammaℝ ((1 : ℂ) - z) / Gammaℝ z` quotient is not the compact object at
+the zero face `z = 0`; the pole-clearing rational factor supplies the classical
+removable cancellation.  This theorem records the compact branch in that
+truthful removable form. -/
+theorem completedFunctionalEquationMultiplier_Gammaℝ_ratio_compactNorm_removable_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth
+
+/-- Deligne reflection/recurrence algebra for the left-half-plane `Gammaℝ`
+ratio, isolated from the analytic Stirling estimates.
+
+The proof uses mathlib's `Gamma/Deligne.lean` identities
+`Gammaℝ_add_two`, `Gammaℝ_mul_Gammaℝ_add_one`,
+`Gammaℝ_one_sub_mul_Gammaℝ_one_add`, `Gammaℝ_div_Gammaℝ_one_sub`,
+`inv_Gammaℝ_one_sub`, and `inv_Gammaℝ_two_sub` to rewrite the quotient into
+right-half-plane Gamma factors and elementary trigonometric/exponential
+factors. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        1 ≤ ‖z‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Large-radius Stirling branch for the completed-functional-equation real-Gamma
+ratio on the closed left half plane.
+
+This branch is name transport from the Deligne reflection/recurrence algebra
+plus sectorial/vertical Stirling growth.  The owner proof separates the
+sectorial Gamma estimate from the Deligne Gamma bookkeeping; cf. DLMF §5.11
+and Titchmarsh, Ch. 2. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        1 ≤ ‖z‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_Deligne_transport_growth_bound
+
+/-- Large-radius left-half-plane Gamma-ratio Stirling growth for the
+completed-functional-equation multiplier.
+
+This is the raw Gamma-ratio branch used away from the removable zero face.  The
+finite-radius branch belongs to the pole-cleared completed multiplier above. -/
 theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -20802,15 +21302,18 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling
       ∀ z : ℂ,
         z.re ≤ 0 →
         z ≠ 0 →
+        1 ≤ ‖z‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_largeNorm_stirling_growth_bound
 
-/-- Left-half-plane Gamma-ratio Stirling growth for the completed-functional
-equation multiplier.
+/-- Large-radius left-half-plane Gamma-ratio Stirling growth for the
+completed-functional-equation multiplier.
 
-This public owner theorem is only name transport from the global sectorial/strip
-Stirling estimate for the completed real-Gamma ratio. -/
+This public owner theorem is only name transport from the sectorial/strip
+Stirling estimate for the raw completed real-Gamma ratio away from the
+removable zero face. -/
 theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -20818,6 +21321,7 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth
       ∀ z : ℂ,
         z.re ≤ 0 →
         z ≠ 0 →
+        1 ≤ ‖z‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
@@ -20956,6 +21460,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
         ∀ z : ℂ,
           z.re ≤ 0 →
           z ≠ 0 →
+          1 ≤ ‖z‖ →
           ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
             A * Real.exp (B * (1 + ‖z‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
@@ -21012,7 +21517,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
       hratio_bound z hz_left hz_ne_zero hlarge
     have hgamma_z :
         ‖G‖ ≤ Ag * Real.exp (Bg * H ^ mg) :=
-      hgamma_bound z hz_left hz_ne_zero
+      hgamma_bound z hz_left hz_ne_zero hlarge
     have hratio_enlarge :
         Ar * Real.exp (Br * H ^ mr) ≤
           Ar * Real.exp ((Br + Bg + 1) * H ^ mfar) :=
