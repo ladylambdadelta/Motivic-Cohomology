@@ -934,7 +934,51 @@ theorem Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
         R₀ ≤ ‖w‖ →
         Real.log B ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  let δ : ℝ := Real.log 2
+  let C : ℝ := max (Real.log B / δ) 1
+  have hδ_pos : 0 < δ :=
+    Real.log_pos one_lt_two
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le zero_lt_one (le_max_right (Real.log B / δ) 1)
+  refine ⟨C, hC_pos, ?_⟩
+  intro w _hw_sector _hw_radius
+  have htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
+    mul_nonneg zero_le_two (norm_nonneg w)
+  have hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
+    le_add_of_nonneg_right htwo_norm_nonneg
+  have harg_ge_two : (2 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+    le_add_of_nonneg_right htwo_norm_nonneg
+  have hlog_ge_delta :
+      δ ≤ Real.log (2 + 2 * ‖w‖) :=
+    Real.log_le_log zero_lt_two harg_ge_two
+  have hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+    le_trans (le_of_lt hδ_pos) hlog_ge_delta
+  have hdelta_le_envelope :
+      δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+    have hlog_le_envelope :
+        Real.log (2 + 2 * ‖w‖) ≤
+          (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+      calc
+        Real.log (2 + 2 * ‖w‖) =
+            1 * Real.log (2 + 2 * ‖w‖) :=
+          (one_mul (Real.log (2 + 2 * ‖w‖))).symm
+        _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
+    exact le_trans hlog_ge_delta hlog_le_envelope
+  have hlogB_div_le_C : Real.log B / δ ≤ C :=
+    le_max_left (Real.log B / δ) 1
+  have hlogB_le_Cδ : Real.log B ≤ C * δ :=
+    (div_le_iff₀ hδ_pos).mp hlogB_div_le_C
+  have hCδ_le_Cenv :
+      C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
+    mul_le_mul_of_nonneg_left hdelta_le_envelope (le_of_lt hC_pos)
+  have hCenv_eq :
+      C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
+        C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+  exact
+    le_trans hlogB_le_Cδ
+      (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq))
 
 /-- The principal-branch logarithmic loss in normalized Stirling is absorbed by
 the large-radius log-linear envelope. -/

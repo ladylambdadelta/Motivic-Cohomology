@@ -5406,10 +5406,58 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Deep boundary analytic root: combine the zero-free analytic logarithm for
-  -- `Q`, the pointwise boundary factorization, and the single-factor Jensen
-  -- circle average.
-  sorry
+  have hboundary :
+      entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log ‖F 0‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              ((2 * Real.pi)⁻¹ *
+                (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_boundaryLog_decomposition_ownerRoot
+      F hF hF0 ρ hρ
+  have horigin :
+      Real.log ‖Q 0‖ = Real.log ‖F 0‖ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_origin_log_norm_ownerRoot
+      F Q hF hF0 ρ hρ hfactor
+  calc
+    entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log ‖F 0‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              ((2 * Real.pi)⁻¹ *
+                (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+      exact hboundary
+    _ =
+        Real.log ‖Q 0‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              ((2 * Real.pi)⁻¹ *
+                (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+      exact
+        congrArg
+          (fun x : ℝ =>
+            x +
+              (∑ z in
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+                  F hF hF0 ρ,
+                (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                  ((2 * Real.pi)⁻¹ *
+                    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                      Real.log
+                        ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
+          horigin.symm
 
 /-- Removable quotient after extracting the finite Jensen support divisor.
 
