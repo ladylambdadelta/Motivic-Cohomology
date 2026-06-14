@@ -1,5 +1,6 @@
 import Mathlib.Analysis.Analytic.IsolatedZeros
 import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
@@ -1873,6 +1874,39 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_no
         (add_zero (entireFunctionJensenRadialGapSum F hF ρ))
     _ = entireFunctionJensenBoundaryLogAverage F ρ :=
       hradial
+
+/-- The canonical punctured quotient obtained by dividing an entire function by
+its origin Taylor power away from the origin.  The removable-singularity owner
+root extends this object across `0`. -/
+noncomputable def entireFunction_originTaylorPuncturedQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z : ℂ) : ℂ :=
+  (z ^ entireFunctionZeroMultiplicity F hF 0)⁻¹ • F z
+
+/-- Away from the origin, the punctured quotient reconstructs the original
+function by multiplying back the origin Taylor power. -/
+theorem entireFunction_originTaylorPuncturedQuotient_factorization_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {z : ℂ}
+    (hz : z ≠ 0) :
+    F z =
+      z ^ entireFunctionZeroMultiplicity F hF 0 •
+        entireFunction_originTaylorPuncturedQuotient F hF z := by
+  let a : ℂ := z ^ entireFunctionZeroMultiplicity F hF 0
+  have ha : a ≠ 0 :=
+    pow_ne_zero (entireFunctionZeroMultiplicity F hF 0) hz
+  calc
+    F z = (1 : ℂ) • F z := by
+      exact (one_smul ℂ (F z)).symm
+    _ = (a * a⁻¹) • F z := by
+      exact congrArg (fun c : ℂ => c • F z) (mul_inv_cancel₀ ha).symm
+    _ = a • (a⁻¹ • F z) := by
+      exact (smul_smul a a⁻¹ (F z)).symm
+    _ =
+        z ^ entireFunctionZeroMultiplicity F hF 0 •
+          entireFunction_originTaylorPuncturedQuotient F hF z := rfl
 
 /-- Global removal of the origin Taylor factor for a nontrivial entire
 function.
