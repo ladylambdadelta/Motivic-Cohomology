@@ -1655,6 +1655,68 @@ theorem eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_local
     hnorm.symm
     habs
 
+/-- The first periodic Bernoulli sawtooth is measurable. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_measurable :
+    Measurable eulerMaclaurinFirstPeriodicBernoulli := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  exact measurable_fract.sub measurable_const
+
+/-- The complex-valued first periodic Bernoulli factor is strongly measurable
+on every measurable restricted tail. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_cast_aestronglyMeasurable_restrict
+    (s : Set ℝ)
+    (hs : MeasurableSet s) :
+    AEStronglyMeasurable
+      (fun x : ℝ => ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+      (volume.restrict s) := by
+  exact
+    ((Complex.continuous_ofReal.comp
+      eulerMaclaurinFirstPeriodicBernoulli_measurable).aestronglyMeasurable)
+
+/-- The positive-tail complex-power kernel is continuous on any positive
+cutoff tail. -/
+theorem eulerMaclaurin_cpow_tail_continuousOn_Ioi
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ) :
+    ContinuousOn
+      (fun x : ℝ => (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      (Set.Ioi (((N : ℕ) : ℝ))) := by
+  intro x hx
+  have hx_pos : 0 < x :=
+    lt_trans (Nat.cast_pos.mpr hN) hx
+  exact
+    (Complex.continuousAt_ofReal_cpow_const x (-(z + 1))
+      (Or.inr (ne_of_gt hx_pos))).continuousWithinAt
+
+/-- The positive-tail complex-power kernel is a.e.-strongly measurable on a
+fixed positive cutoff tail. -/
+theorem eulerMaclaurin_cpow_tail_aestronglyMeasurable
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ) :
+    AEStronglyMeasurable
+      (fun x : ℝ => (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) :=
+  (eulerMaclaurin_cpow_tail_continuousOn_Ioi N hN z).aestronglyMeasurable
+    measurableSet_Ioi
+
+/-- The fixed-parameter Bernoulli/cpow kernel is a.e.-strongly measurable on
+a positive cutoff tail. -/
+theorem eulerMaclaurinBernoulliKernel_aestronglyMeasurable
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ) :
+    AEStronglyMeasurable
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+  exact
+    (eulerMaclaurinFirstPeriodicBernoulli_cast_aestronglyMeasurable_restrict
+      (Set.Ioi (((N : ℕ) : ℝ))) measurableSet_Ioi).mul
+      (eulerMaclaurin_cpow_tail_aestronglyMeasurable N hN z)
+
 /-- A positive natural cutoff tail starts at least at one. -/
 theorem eulerMaclaurin_one_le_of_mem_Ioi_nat_cast
     (N : ℕ)

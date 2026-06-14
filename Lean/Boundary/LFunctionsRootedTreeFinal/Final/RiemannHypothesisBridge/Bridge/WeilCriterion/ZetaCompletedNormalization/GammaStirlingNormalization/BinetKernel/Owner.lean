@@ -959,30 +959,21 @@ theorem Complex.norm_log_le_abs_log_add_pi (z : ℂ) :
 /-- A coarse norm bound for `Complex.arctan` in terms of the logarithm size
 and the universal `π` angle bound. -/
 theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
-    (z : ℂ) :
+    (z : ℂ)
+    (hz : 1 - z * Complex.I ≠ 0) :
     ‖Complex.arctan z‖ ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
   have hlog := Complex.norm_log_le_abs_log_add_pi ((1 + z * Complex.I) / (1 - z * Complex.I))
-  have hz : 1 - z * Complex.I ≠ 0 := by
-    intro hzero
-    have h1 : z = -Complex.I := by
-      have hmul := congrArg (fun w : ℂ => w * (-Complex.I)) hzero
-      simpa [mul_add, add_mul, sub_eq_add_neg, mul_comm, mul_left_comm, mul_assoc] using hmul
-    have hre : z.re = 0 := by simpa [h1]
-    -- This coarse bound is only intended as a reusable reduction, not the final estimate.
-    linarith
   rw [Complex.norm_arctan_eq_half_norm_log_quotient z hz]
   have hhalf : ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
     exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
-  exact le_trans (le_of_eq rfl) hhalf
+  simpa using hhalf
 
-/-- The argument of the Binet quotient is controlled by the argument of its
-factors. -/
+/-- The argument of the Binet quotient is always within `[-π, π]`. -/
 theorem Complex.arg_binet_quotient_le_pi
     (z : ℂ) :
-    |(Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im| ≤ π := by
-  rw [Complex.log_im]
+    |arg ((1 + z * Complex.I) / (1 - z * Complex.I))| ≤ π := by
   exact abs_arg_le_pi _
 
 /-- The Binet quotient log norm is controlled by its real part and the
@@ -995,19 +986,51 @@ theorem Complex.norm_log_binet_quotient_le_abs_re_add_pi
 
 /-- The real part of the Binet quotient logarithm is the log of the ratio of
 its numerator and denominator norms. -/
-theorem Complex.log_binet_quotient_re_eq_log_ratio (z : ℂ) :
+theorem Complex.log_binet_quotient_re_eq_log_ratio (z : ℂ)
+    (h1 : 1 + z * Complex.I ≠ 0) (h2 : 1 - z * Complex.I ≠ 0) :
     (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
       Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ := by
-  rw [Complex.log_re, Complex.norm_div_eq_div_norm]
-  have hnonzero : ‖1 - z * Complex.I‖ ≠ 0 := by
-    intro hzero
-    have hzero' : 1 - z * Complex.I = 0 := by
-      exact norm_eq_zero.mp hzero
-    have h1 : (1 : ℂ) = z * Complex.I := by
-      simpa using sub_eq_zero.mp hzero'
-    have hre : (z * Complex.I).re = 1 := by simpa [h1]
-    linarith
-  rw [Real.log_div (by positivity) hnonzero]
+  rw [Complex.log_re, Complex.norm_div_eq_div_norm h2]
+  rw [Real.log_div (norm_pos_iff.mpr h1) (norm_pos_iff.mpr h2)]
+
+/-- The imaginary part of the Binet quotient logarithm is its argument. -/
+theorem Complex.log_binet_quotient_im_eq_arg_ratio (z : ℂ) :
+    (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im =
+      arg ((1 + z * Complex.I) / (1 - z * Complex.I)) := by
+  rw [Complex.log_im]
+
+/-- The Binet quotient logarithm is exactly the pair of its real and imaginary
+coordinate formulas. -/
+theorem Complex.log_binet_quotient_coords (z : ℂ)
+    (h1 : 1 + z * Complex.I ≠ 0) (h2 : 1 - z * Complex.I ≠ 0) :
+    Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I)) =
+      (Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖) +
+        arg ((1 + z * Complex.I) / (1 - z * Complex.I)) * Complex.I := by
+  apply Complex.ext <;>
+    simp [Complex.log_binet_quotient_re_eq_log_ratio z h1 h2,
+      Complex.log_binet_quotient_im_eq_arg_ratio z]
+
+/-- The Binet quotient factors are automatically nonzero as soon as the
+denominator is nonzero. -/
+theorem Complex.binet_quotient_factors_ne_zero
+    (z : ℂ)
+    (hz : 1 - z * Complex.I ≠ 0) :
+    1 + z * Complex.I ≠ 0 ∧ 1 - z * Complex.I ≠ 0 := by
+  constructor
+  · intro h1
+    have hsum : (1 + z * Complex.I) + (1 - z * Complex.I) = (2 : ℂ) := by ring
+    have hzero : (2 : ℂ) = 0 := by
+      simpa [h1] using hsum
+    norm_num at hzero
+  · exact hz
+
+/-- The Binet quotient factors are both nonzero whenever the denominator is
+nonzero. -/
+theorem Complex.binet_quotient_factors_ne_zero_of_denominator_ne_zero
+    (z : ℂ)
+    (hz : 1 - z * Complex.I ≠ 0) :
+    1 + z * Complex.I ≠ 0 := by
+  exact (Complex.binet_quotient_factors_ne_zero z hz).1
 
 /-- A positive integrable function on an open real interval has positive set
 integral. -/
