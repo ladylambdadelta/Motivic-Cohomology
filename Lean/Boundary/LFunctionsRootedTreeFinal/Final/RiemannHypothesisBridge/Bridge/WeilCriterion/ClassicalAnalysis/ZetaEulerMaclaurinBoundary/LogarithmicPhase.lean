@@ -1053,6 +1053,11 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_den_nonneg :
     exact (le_div_iff₀' zero_lt_two).mp hhalf
   exact sub_nonneg.mpr htwice
 
+/-- Strict positivity of the critical-point denominator. -/
+theorem Complex.realLogDyadicComparisonCriticalPoint_den_pos :
+    0 < 2 * Real.log (2 : ℝ) - 1 := by
+  sorry
+
 /-- The numerator in the explicit critical point is nonnegative. -/
 theorem Complex.realLogDyadicComparisonCriticalPoint_num_nonneg :
     0 ≤ 2 - 2 * Real.log (2 : ℝ) := by
@@ -1082,6 +1087,45 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_nonneg :
     Complex.realLogDyadicComparisonCriticalPoint_num_nonneg
     Complex.realLogDyadicComparisonCriticalPoint_den_nonneg
 
+/-- Elementary cancellation used in the derivative of `log (2 * (x + 1))`. -/
+theorem Complex.two_div_two_mul_eq_one_div
+    {u : ℝ}
+    (hu : u ≠ 0) :
+    (2 : ℝ) / (2 * u) = 1 / u := by
+  calc
+    (2 : ℝ) / (2 * u) = (2 : ℝ) * (2 * u)⁻¹ :=
+      div_eq_mul_inv 2 (2 * u)
+    _ = (2 : ℝ) * (u⁻¹ * (2 : ℝ)⁻¹) := by
+      exact congrArg (fun z : ℝ => (2 : ℝ) * z) (mul_inv_rev 2 u)
+    _ = ((2 : ℝ) * (2 : ℝ)⁻¹) * u⁻¹ := by
+      ring
+    _ = (1 : ℝ) * u⁻¹ := by
+      exact congrArg (fun z : ℝ => z * u⁻¹) (mul_inv_cancel₀ two_ne_zero)
+    _ = u⁻¹ :=
+      one_mul u⁻¹
+    _ = 1 / u :=
+      (one_div u).symm
+
+/-- Positive denominator for the dyadic defect derivative on `[0,∞)`. -/
+theorem Complex.realLogDyadicComparisonDefect_deriv_den_pos
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    0 < (x + 2) * (x + 1) := by
+  have hx_two : 0 < x + 2 := by linarith
+  have hx_one : 0 < x + 1 := by linarith
+  exact mul_pos hx_two hx_one
+
+/-- Exact factorization of the dyadic defect derivative around the critical
+point. -/
+theorem Complex.realLogDyadicComparisonDefect_deriv_factorization
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) =
+      ((2 * Real.log (2 : ℝ) - 1) *
+        (x - Complex.realLogDyadicComparisonCriticalPoint)) /
+          ((x + 2) * (x + 1)) := by
+  sorry
+
 /-- Derivative formula for the dyadic-log comparison defect on `(0,∞)`. -/
 theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
     {x : ℝ}
@@ -1090,21 +1134,168 @@ theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
       Complex.realLogDyadicComparisonDefect
       (2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1))
       x := by
-  sorry
+  have hx_two_pos : 0 < x + 2 := by linarith
+  have hx_one_pos : 0 < x + 1 := by linarith
+  have hlog_shift :
+      HasDerivAt (fun y : ℝ => Real.log (y + 2)) (1 / (x + 2)) x := by
+    have hshift : HasDerivAt (fun y : ℝ => y + 2) 1 x :=
+      (hasDerivAt_id x).add_const 2
+    have hne : x + 2 ≠ 0 :=
+      ne_of_gt hx_two_pos
+    exact hshift.log hne
+  have hleft :
+      HasDerivAt
+        (fun y : ℝ => (2 * Real.log (y + 2)) * Real.log (2 : ℝ))
+        (2 * Real.log (2 : ℝ) / (x + 2))
+        x := by
+    have hscaled :
+        HasDerivAt
+          (fun y : ℝ => (2 * Real.log (y + 2)) * Real.log (2 : ℝ))
+          ((2 * (1 / (x + 2))) * Real.log (2 : ℝ))
+          x :=
+      (hlog_shift.const_mul 2).const_mul (Real.log (2 : ℝ))
+    have hderiv :
+        ((2 * (1 / (x + 2))) * Real.log (2 : ℝ)) =
+          2 * Real.log (2 : ℝ) / (x + 2) := by
+      ring
+    exact Eq.subst
+      (motive := fun d : ℝ =>
+        HasDerivAt
+          (fun y : ℝ => (2 * Real.log (y + 2)) * Real.log (2 : ℝ))
+          d
+          x)
+      hderiv
+      hscaled
+  have hlog_linear :
+      HasDerivAt (fun y : ℝ => Real.log (2 * (y + 1))) (1 / (x + 1)) x := by
+    have hshift : HasDerivAt (fun y : ℝ => y + 1) 1 x :=
+      (hasDerivAt_id x).add_const 1
+    have hlinear : HasDerivAt (fun y : ℝ => 2 * (y + 1)) 2 x := by
+      have hscaled : HasDerivAt (fun y : ℝ => 2 * (y + 1)) (2 * 1) x :=
+        hshift.const_mul 2
+      exact Eq.subst
+        (motive := fun d : ℝ => HasDerivAt (fun y : ℝ => 2 * (y + 1)) d x)
+        (mul_one 2)
+        hscaled
+    have hne : 2 * (x + 1) ≠ 0 :=
+      mul_ne_zero two_ne_zero (ne_of_gt hx_one_pos)
+    have hlog : HasDerivAt (fun y : ℝ => Real.log (2 * (y + 1))) (2 / (2 * (x + 1))) x :=
+      hlinear.log hne
+    have hderiv : 2 / (2 * (x + 1)) = 1 / (x + 1) := by
+      exact Complex.two_div_two_mul_eq_one_div (ne_of_gt hx_one_pos)
+    exact Eq.subst
+      (motive := fun d : ℝ =>
+        HasDerivAt (fun y : ℝ => Real.log (2 * (y + 1))) d x)
+      hderiv
+      hlog
+  have hsub :
+      HasDerivAt
+        (fun y : ℝ =>
+          (2 * Real.log (y + 2)) * Real.log (2 : ℝ) -
+            Real.log (2 * (y + 1)))
+        (2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1))
+        x :=
+    hleft.sub hlog_linear
+  exact hsub
+
+/-- Algebraic sign of the dyadic defect derivative before the critical point. -/
+theorem Complex.realLogDyadicComparisonDefect_deriv_nonpos_on_left
+    {x : ℝ}
+    (hx : x ∈ Set.Icc 0 Complex.realLogDyadicComparisonCriticalPoint) :
+    2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) ≤ 0 := by
+  have hfactor :
+      2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) =
+        ((2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint)) /
+            ((x + 2) * (x + 1)) :=
+    Complex.realLogDyadicComparisonDefect_deriv_factorization hx.1
+  have hnum_nonpos :
+      (2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint) ≤ 0 := by
+    have hden_nonneg : 0 ≤ 2 * Real.log (2 : ℝ) - 1 :=
+      le_of_lt Complex.realLogDyadicComparisonCriticalPoint_den_pos
+    have hdiff_nonpos : x - Complex.realLogDyadicComparisonCriticalPoint ≤ 0 :=
+      sub_nonpos.mpr hx.2
+    exact mul_nonpos_of_nonneg_of_nonpos hden_nonneg hdiff_nonpos
+  have hden_pos : 0 < (x + 2) * (x + 1) :=
+    Complex.realLogDyadicComparisonDefect_deriv_den_pos hx.1
+  have hquot_nonpos :
+      ((2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint)) /
+            ((x + 2) * (x + 1)) ≤ 0 :=
+    div_nonpos_of_nonpos_of_nonneg hnum_nonpos hden_pos.le
+  exact Eq.subst (motive := fun d : ℝ => d ≤ 0) hfactor.symm hquot_nonpos
+
+/-- Algebraic sign of the dyadic defect derivative after the critical point. -/
+theorem Complex.realLogDyadicComparisonDefect_deriv_nonneg_on_right
+    {x : ℝ}
+    (hx : x ∈ Set.Ici Complex.realLogDyadicComparisonCriticalPoint) :
+    0 ≤ 2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) := by
+  have hx_nonneg : 0 ≤ x :=
+    le_trans Complex.realLogDyadicComparisonCriticalPoint_nonneg hx
+  have hfactor :
+      2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) =
+        ((2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint)) /
+            ((x + 2) * (x + 1)) :=
+    Complex.realLogDyadicComparisonDefect_deriv_factorization hx_nonneg
+  have hnum_nonneg :
+      0 ≤
+        (2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint) := by
+    have hden_nonneg : 0 ≤ 2 * Real.log (2 : ℝ) - 1 :=
+      le_of_lt Complex.realLogDyadicComparisonCriticalPoint_den_pos
+    have hdiff_nonneg : 0 ≤ x - Complex.realLogDyadicComparisonCriticalPoint :=
+      sub_nonneg.mpr hx
+    exact mul_nonneg hden_nonneg hdiff_nonneg
+  have hden_pos : 0 < (x + 2) * (x + 1) :=
+    Complex.realLogDyadicComparisonDefect_deriv_den_pos hx_nonneg
+  have hquot_nonneg :
+      0 ≤
+        ((2 * Real.log (2 : ℝ) - 1) *
+          (x - Complex.realLogDyadicComparisonCriticalPoint)) /
+            ((x + 2) * (x + 1)) :=
+    div_nonneg hnum_nonneg hden_pos.le
+  exact Eq.subst (motive := fun d : ℝ => 0 ≤ d) hfactor.symm hquot_nonneg
 
 /-- The dyadic-log comparison defect is antitone until its critical point. -/
 theorem Complex.realLogDyadicComparisonDefect_antitoneOn_left :
     AntitoneOn
       Complex.realLogDyadicComparisonDefect
       (Set.Icc 0 Complex.realLogDyadicComparisonCriticalPoint) := by
-  sorry
+  exact
+    antitoneOn_of_deriv_nonpos
+      (convex_Icc 0 Complex.realLogDyadicComparisonCriticalPoint)
+      (fun x hx =>
+        (Complex.realLogDyadicComparisonDefect_hasDerivAt hx.1).continuousAt.continuousWithinAt)
+      (fun x hx =>
+        (Complex.realLogDyadicComparisonDefect_hasDerivAt hx.1).differentiableAt.differentiableWithinAt)
+      (fun x hx =>
+        Eq.subst
+          (motive := fun d : ℝ => d ≤ 0)
+          (Complex.realLogDyadicComparisonDefect_hasDerivAt hx.1).deriv.symm
+          (Complex.realLogDyadicComparisonDefect_deriv_nonpos_on_left hx))
 
 /-- The dyadic-log comparison defect is monotone after its critical point. -/
 theorem Complex.realLogDyadicComparisonDefect_monotoneOn_right :
     MonotoneOn
       Complex.realLogDyadicComparisonDefect
       (Set.Ici Complex.realLogDyadicComparisonCriticalPoint) := by
-  sorry
+  exact
+    monotoneOn_of_deriv_nonneg
+      (convex_Ici Complex.realLogDyadicComparisonCriticalPoint)
+      (fun x hx =>
+        (Complex.realLogDyadicComparisonDefect_hasDerivAt
+          (le_trans Complex.realLogDyadicComparisonCriticalPoint_nonneg hx)).continuousAt.continuousWithinAt)
+      (fun x hx =>
+        (Complex.realLogDyadicComparisonDefect_hasDerivAt
+          (le_trans Complex.realLogDyadicComparisonCriticalPoint_nonneg hx)).differentiableAt.differentiableWithinAt)
+      (fun x hx =>
+        Eq.subst
+          (motive := fun d : ℝ => 0 ≤ d)
+          (Complex.realLogDyadicComparisonDefect_hasDerivAt
+            (le_trans Complex.realLogDyadicComparisonCriticalPoint_nonneg hx)).deriv.symm
+          (Complex.realLogDyadicComparisonDefect_deriv_nonneg_on_right hx))
 
 /-- The endpoint value of the dyadic-log comparison defect is nonnegative. -/
 theorem Complex.realLogDyadicComparisonDefect_zero_nonneg :

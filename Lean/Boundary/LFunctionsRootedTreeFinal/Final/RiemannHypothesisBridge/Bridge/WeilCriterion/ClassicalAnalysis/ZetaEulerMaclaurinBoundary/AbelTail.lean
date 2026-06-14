@@ -392,6 +392,21 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
                 A * Real.log (2 + ‖t‖) := by
   exact Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAbel
 
+/-- One-sided Abel boundary value of the zeta Dirichlet series on `1 + it`.
+
+This is the owner statement for the analytic-continuation boundary passage; it
+does not assert ordinary convergence of the Dirichlet series on `re = 1`. -/
+theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tendsto_riemannZeta_from_dirichletContinuation
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    Tendsto
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹)
+      (𝓝[>] (1 : ℝ))
+      (𝓝 (riemannZeta (Complex.boundaryLineOnePointRealParam t))) := by
+  sorry
+
 /-- Abel boundary value of the boundary-line Dirichlet series at `1 + it`.
 
 This is deliberately a one-sided Abel limit, not ordinary convergence of the
@@ -405,7 +420,75 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tends
           ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹)
       (𝓝[>] (1 : ℝ))
       (𝓝 (riemannZeta (Complex.boundaryLineOnePointRealParam t))) := by
+  exact
+    Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tendsto_riemannZeta_from_dirichletContinuation
+      t ht
+
+/-- Pointwise finite-truncation identity for Abel-damped boundary Dirichlet
+series.  The tail is the full Abel series minus the boundary-line truncation. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_eq_series_sub_truncation
+    (t σ : ℝ)
+    (N : ℕ)
+    (hN : 1 ≤ N) :
+    (∑' n : ℕ,
+      if N < n then
+        ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+      else
+        0) =
+      (∑' n : ℕ,
+        ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) -
+        Complex.riemannZetaBoundaryLineTruncation t N := by
   sorry
+
+/-- Removing the first `N` terms from a one-sided Abel-damped Dirichlet series
+is compatible with the Abel boundary limit. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_tendsto_zeta_remainder_from_series
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ)
+    (hN : 1 ≤ N)
+    (hseries :
+      Tendsto
+        (fun σ : ℝ =>
+          ∑' n : ℕ,
+            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹)
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (riemannZeta (Complex.boundaryLineOnePointRealParam t)))) :
+    Tendsto
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          if N < n then
+            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+          else
+            0)
+      (𝓝[>] (1 : ℝ))
+      (𝓝
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          Complex.riemannZetaBoundaryLineTruncation t N)) := by
+  have htail_eq :
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          if N < n then
+            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+          else
+            0) =
+        (fun σ : ℝ =>
+          (∑' n : ℕ,
+            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) -
+            Complex.riemannZetaBoundaryLineTruncation t N) := by
+    funext σ
+    exact
+      Complex.boundaryLineOnePointRealParam_abelDampedTail_eq_series_sub_truncation
+        t σ N hN
+  exact
+    Eq.subst
+      (motive := fun F : ℝ → ℂ =>
+        Tendsto F (𝓝[>] (1 : ℝ))
+          (𝓝
+            (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+              Complex.riemannZetaBoundaryLineTruncation t N)))
+      htail_eq.symm
+      (hseries.sub tendsto_const_nhds)
 
 /-- Removing a finite truncation from the Abel-damped Dirichlet series leaves
 the Abel-damped post-cutoff tail. -/
@@ -425,7 +508,11 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_tendsto_zeta_remain
       (𝓝
         (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
           Complex.riemannZetaBoundaryLineTruncation t N)) := by
-  sorry
+  exact
+    Complex.boundaryLineOnePointRealParam_abelDampedTail_tendsto_zeta_remainder_from_series
+      t ht N hN
+      (Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tendsto_riemannZeta
+        t ht)
 
 /-- The Abel boundary tail has the zeta-remainder boundary value. -/
 theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_abel_tendsto_zeta_remainder
