@@ -67,7 +67,31 @@ theorem Complex.binetSecondFormula_exp_denominator_norm_eq
     (t : ℝ) :
     ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
       ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
-  sorry
+  calc
+    ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+        ‖((Real.exp ((2 : ℝ) * Real.pi * t) - 1 : ℝ) : ℂ)‖ := by
+      simp [Complex.ofReal_exp, Complex.ofReal_sub]
+    _ = ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
+      simp [Complex.normSq, Real.norm_eq_abs]
+
+/-- Strict positivity of the Binet real exponential denominator at every
+positive point. -/
+theorem Real.binetSecondFormula_exp_denominator_pos
+    {t : ℝ}
+    (ht : 0 < t) :
+    0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
+    mul_pos two_pos Real.pi_pos
+  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
+    mul_pos htwo_pi_pos ht
+  have hone_lt_exp :
+      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
+    calc
+      1 = Real.exp 0 := by
+        exact Real.exp_zero.symm
+      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
+        Real.exp_lt_exp.mpr hexponent_pos
+  exact sub_pos.mpr hone_lt_exp
 
 /-- Positivity removes the norm from the Binet real denominator. -/
 theorem Real.binetSecondFormula_exp_denominator_norm_eq
@@ -75,7 +99,9 @@ theorem Real.binetSecondFormula_exp_denominator_norm_eq
     (ht : 0 < t) :
     ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ =
       Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  sorry
+  exact
+    Real.norm_of_nonneg
+      (le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht))
 
 /-- Division of the arctangent estimate by the positive Binet denominator. -/
 theorem Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le
@@ -87,7 +113,34 @@ theorem Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
           (t / ‖w‖) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+  intro t ht
+  have harctan :
+      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ t / ‖w‖ :=
+    Complex.binetSecondFormula_arctan_norm_le hw_re_pos t ht
+  have hden_norm :
+      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+        Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+    calc
+      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+          ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ :=
+        Complex.binetSecondFormula_exp_denominator_norm_eq t
+      _ = Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+        Real.binetSecondFormula_exp_denominator_norm_eq ht
+  have hden_nonneg :
+      0 ≤ Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+    le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht)
+  calc
+    ‖Complex.arctan ((t : ℂ) / w) /
+        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
+        ‖Complex.arctan ((t : ℂ) / w)‖ /
+          ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
+      exact norm_div _ _
+    _ = ‖Complex.arctan ((t : ℂ) / w)‖ /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+      rw [hden_norm]
+    _ ≤ (t / ‖w‖) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+      div_le_div_of_nonneg_right harctan hden_nonneg
 
 /-- Pointwise kernel estimate for Binet's second-formula remainder. -/
 theorem Complex.binetSecondFormula_kernel_norm_le
@@ -126,18 +179,7 @@ theorem Real.binetSecondFormula_kernel_majorant_denominator_pos
     {t : ℝ}
     (ht : 0 < t) :
     0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
-    mul_pos two_pos Real.pi_pos
-  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
-    mul_pos htwo_pi_pos ht
-  have hone_lt_exp :
-      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
-    calc
-      1 = Real.exp 0 := by
-        exact Real.exp_zero.symm
-      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
-        Real.exp_lt_exp.mpr hexponent_pos
-  exact sub_pos.mpr hone_lt_exp
+  exact Real.binetSecondFormula_exp_denominator_pos ht
 
 /-- Nonvanishing of the Binet majorant denominator at every positive point. -/
 theorem Real.binetSecondFormula_kernel_majorant_denominator_ne_zero
@@ -171,7 +213,13 @@ theorem Real.two_pi_mul_le_exp_two_pi_mul_sub_one
     (ht : 0 ≤ t) :
     (2 : ℝ) * Real.pi * t ≤
       Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  sorry
+  let x : ℝ := (2 : ℝ) * Real.pi * t
+  have hx_nonneg : 0 ≤ x :=
+    mul_nonneg (le_of_lt (mul_pos two_pos Real.pi_pos)) ht
+  have hlower : x + 1 ≤ Real.exp x :=
+    Real.add_one_le_exp x
+  change x ≤ Real.exp x - 1
+  linarith
 
 /-- Division form of the zero-cancellation estimate for the Binet majorant. -/
 theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
@@ -179,7 +227,27 @@ theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
     (ht : 0 < t) :
     t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
       1 / ((2 : ℝ) * Real.pi) := by
-  sorry
+  let a : ℝ := (2 : ℝ) * Real.pi
+  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have ha_pos : 0 < a :=
+    mul_pos two_pos Real.pi_pos
+  have hd_pos : 0 < d :=
+    Real.binetSecondFormula_kernel_majorant_denominator_pos ht
+  have had_le : a * t ≤ d := by
+    exact Real.two_pi_mul_le_exp_two_pi_mul_sub_one (le_of_lt ht)
+  have hmul : a * (t / d) ≤ 1 := by
+    have hle_div : a * t / d ≤ d / d :=
+      div_le_div_of_nonneg_right had_le (le_of_lt hd_pos)
+    have hd_div : d / d = 1 :=
+      div_self (ne_of_gt hd_pos)
+    calc
+      a * (t / d) = a * t / d := by ring
+      _ ≤ d / d := hle_div
+      _ = 1 := hd_div
+  have hdiv :
+      t / d ≤ 1 / a := by
+    exact (le_div_iff₀ ha_pos).mpr hmul
+  exact hdiv
 
 /-- Pointwise zero-cancellation bound for the Binet majorant on `(0,1]`.
 
@@ -276,14 +344,46 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
     (ht : t ∈ Set.Ioi (1 : ℝ)) :
     (Real.exp ((2 : ℝ) * Real.pi * t)) / 2 ≤
       Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  sorry
+  let x : ℝ := (2 : ℝ) * Real.pi * t
+  have hx_ge_two_pi : (2 : ℝ) * Real.pi ≤ x := by
+    have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
+      le_of_lt (mul_pos two_pos Real.pi_pos)
+    calc
+      (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 := by ring
+      _ ≤ (2 : ℝ) * Real.pi * t :=
+        mul_le_mul_of_nonneg_left (le_of_lt ht) hcoeff_nonneg
+      _ = x := rfl
+  have hlog_two_le_two_pi : Real.log 2 ≤ (2 : ℝ) * Real.pi := by
+    have hlog_two_lt_two : Real.log 2 < (2 : ℝ) := by
+      exact Real.log_lt_self (by norm_num : (1 : ℝ) < 2)
+    exact le_trans (le_of_lt hlog_two_lt_two) (le_of_lt (by positivity : (2 : ℝ) < 2 * Real.pi))
+  have hlog_two_le_x : Real.log 2 ≤ x :=
+    le_trans hlog_two_le_two_pi hx_ge_two_pi
+  have htwo_le_exp : (2 : ℝ) ≤ Real.exp x := by
+    have htwo_pos : (0 : ℝ) < 2 := by norm_num
+    exact (Real.log_le_iff_le_exp htwo_pos).mp hlog_two_le_x
+  change Real.exp x / 2 ≤ Real.exp x - 1
+  nlinarith [Real.exp_pos x]
 
 /-- The linear factor on the Binet tail is absorbed by `exp (πt)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
     {t : ℝ}
     (ht : t ∈ Set.Ioi (1 : ℝ)) :
     t ≤ Real.exp (Real.pi * t) := by
-  sorry
+  have ht_nonneg : 0 ≤ t :=
+    le_of_lt (lt_trans zero_lt_one ht)
+  have hpi_t_ge_t : t ≤ Real.pi * t := by
+    have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
+      le_of_lt Real.one_lt_pi
+    calc
+      t = 1 * t := by ring
+      _ ≤ Real.pi * t :=
+        mul_le_mul_of_nonneg_right hone_le_pi ht_nonneg
+  have ht_le_add : t ≤ Real.pi * t + 1 :=
+    le_trans hpi_t_ge_t (le_add_of_nonneg_right zero_le_one)
+  have hadd_le_exp : Real.pi * t + 1 ≤ Real.exp (Real.pi * t) :=
+    Real.add_one_le_exp (Real.pi * t)
+  exact le_trans ht_le_add hadd_le_exp
 
 /-- Pointwise tail domination after separating the denominator lower bound
 and the linear/exponential absorption. -/
@@ -292,7 +392,39 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_l
     (ht : t ∈ Set.Ioi (1 : ℝ)) :
     t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
       2 * Real.exp (-Real.pi * t) := by
-  sorry
+  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t)
+  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have hE_pos : 0 < E :=
+    Real.exp_pos ((2 : ℝ) * Real.pi * t)
+  have hd_pos : 0 < d :=
+    Real.binetSecondFormula_kernel_majorant_denominator_pos
+      (lt_trans zero_lt_one ht)
+  have hd_lower : E / 2 ≤ d :=
+    Real.binetSecondFormula_kernel_majorant_tail_denominator_lower ht
+  have ht_le_exp : t ≤ Real.exp (Real.pi * t) :=
+    Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi ht
+  have hdiv_le : t / d ≤ t / (E / 2) :=
+    div_le_div_of_nonneg_left
+      (le_of_lt (lt_trans zero_lt_one ht))
+      (div_pos hE_pos two_pos)
+      hd_lower
+  have hrewrite : t / (E / 2) = 2 * (t / E) := by
+    field_simp [hE_pos.ne']
+  have ht_over_E_le :
+      t / E ≤ Real.exp (-Real.pi * t) := by
+    have hmul_le :
+        t ≤ E * Real.exp (-Real.pi * t) := by
+      calc
+        t ≤ Real.exp (Real.pi * t) := ht_le_exp
+        _ = E * Real.exp (-Real.pi * t) := by
+          simp [E, ← Real.exp_add]
+          ring_nf
+    exact (div_le_iff₀ hE_pos).mpr hmul_le
+  calc
+    t / d ≤ t / (E / 2) := hdiv_le
+    _ = 2 * (t / E) := hrewrite
+    _ ≤ 2 * Real.exp (-Real.pi * t) :=
+      mul_le_mul_of_nonneg_left ht_over_E_le (by norm_num : (0 : ℝ) ≤ 2)
 
 /-- Pointwise exponential tail domination for the Binet majorant with the
 concrete constant `2`. -/

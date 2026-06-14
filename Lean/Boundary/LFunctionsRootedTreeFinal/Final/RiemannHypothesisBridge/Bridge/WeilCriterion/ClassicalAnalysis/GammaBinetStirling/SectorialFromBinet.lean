@@ -47,7 +47,22 @@ theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
     (h_integrable : IntegrableOn f (Set.Ioo a b))
     (hpos : ∀ t : ℝ, t ∈ Set.Ioo a b → 0 < f t) :
     0 < ∫ t : ℝ in Set.Ioo a b, f t := by
-  sorry
+  have hnonneg_ae :
+      0 ≤ᵐ[volume.restrict (Set.Ioo a b)] f :=
+    (ae_restrict_mem measurableSet_Ioo).mono
+      (fun t ht => le_of_lt (hpos t ht))
+  have hsupport_pos :
+      0 < volume (Function.support f ∩ Set.Ioo a b) := by
+    have hIoo_pos : 0 < volume (Set.Ioo a b) :=
+      (Measure.measure_Ioo_pos volume).mpr hab
+    have hsubset :
+        Set.Ioo a b ⊆ Function.support f ∩ Set.Ioo a b := by
+      intro t ht
+      exact ⟨fun hzero => (ne_of_gt (hpos t ht)) hzero, ht⟩
+    exact lt_of_lt_of_le hIoo_pos (measure_mono hsubset)
+  exact
+    (setIntegral_pos_iff_support_of_nonneg_ae
+      hnonneg_ae h_integrable).mpr hsupport_pos
 
 /-- The Binet majorant is integrable on `(0,1)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_Ioo_zero_one :
@@ -85,7 +100,18 @@ theorem Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
           0 ≤ f t) :
     0 <
       ∫ t : ℝ in Set.Ioi (0 : ℝ), f t := by
-  sorry
+  have hnonneg_ae :
+      0 ≤ᵐ[volume.restrict (Set.Ioi (0 : ℝ))] f :=
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht => hnonneg t ht)
+  have hsubset_ae :
+      Set.Ioo (0 : ℝ) 1 ≤ᵐ[volume] Set.Ioi (0 : ℝ) :=
+    Eventually.of_forall (fun t ht => ht.1)
+  have hmono :
+      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t ≤
+        ∫ t : ℝ in Set.Ioi (0 : ℝ), f t :=
+    setIntegral_mono_set h_integrable hnonneg_ae hsubset_ae
+  exact lt_of_lt_of_le hpos_subinterval hmono
 
 /-- Positivity on `(0,1)` propagates to positivity of the half-line integral
 for the nonnegative Binet majorant. -/

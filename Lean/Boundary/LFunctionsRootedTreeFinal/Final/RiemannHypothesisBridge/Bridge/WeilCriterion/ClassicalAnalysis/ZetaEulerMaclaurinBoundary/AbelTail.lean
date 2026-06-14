@@ -126,6 +126,122 @@ phase.
 This is the genuine limiting analytic root: finite Abel tail bounds are
 transported through Abel damping and the Dirichlet-continuation boundary value
 of `ζ(1 + it)`. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+                ‖∑' n : ℕ,
+                  if N < n then
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                  else
+                    0‖ ≤
+                  A * Real.log (2 + ‖t‖) := by
+  sorry
+
+/-- The Abel-damped post-cutoff logarithmic-phase tail tends to the
+analytic-continuation boundary remainder of `ζ(1 + it)`.
+
+This is the boundary Dirichlet-continuation theorem: it is not a definitional
+unfolding of `riemannZeta` at `re = 1`. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_tendsto_zeta_remainder
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ)
+    (hN : 1 ≤ N) :
+    Tendsto
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          if N < n then
+            ((n : ℂ)⁻¹ : ℂ) *
+              ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+          else
+            0)
+      (𝓝[>] (1 : ℝ))
+      (𝓝
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            ((n : ℂ)⁻¹ : ℂ) *
+              ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
+  sorry
+
+/-- Transport an eventually uniform Abel-damped bound to the boundary
+remainder. -/
+theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped
+    (hbounded :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+            ∀ N : ℕ,
+              1 ≤ N →
+                ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+                  ‖∑' n : ℕ,
+                    if N < n then
+                      ((n : ℂ)⁻¹ : ℂ) *
+                        ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                          ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                    else
+                      0‖ ≤
+                    A * Real.log (2 + ‖t‖)) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+                ∑ n ∈ Finset.Icc 1 N,
+                  ((n : ℂ)⁻¹ : ℂ) *
+                    ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A * Real.log (2 + ‖t‖) := by
+  rcases hbounded with ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht N hN
+  have htendsto :
+      Tendsto
+        (fun σ : ℝ =>
+          ∑' n : ℕ,
+            if N < n then
+              ((n : ℂ)⁻¹ : ℂ) *
+                ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                  ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            else
+              0)
+        (𝓝[>] (1 : ℝ))
+        (𝓝
+          (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+            ∑ n ∈ Finset.Icc 1 N,
+              ((n : ℂ)⁻¹ : ℂ) *
+                ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) :=
+    Complex.boundaryLineOnePointRealParam_abelDampedTail_tendsto_zeta_remainder
+      t ht N hN
+  have heventually :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ‖∑' n : ℕ,
+          if N < n then
+            ((n : ℂ)⁻¹ : ℂ) *
+              ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+          else
+            0‖ ≤
+          A * Real.log (2 + ‖t‖) :=
+    hbound t ht N hN
+  exact
+    le_of_tendsto_of_tendsto'
+      (tendsto_const_nhds : Tendsto (fun _ : ℝ => A * Real.log (2 + ‖t‖))
+        (𝓝[>] (1 : ℝ)) (𝓝 (A * Real.log (2 + ‖t‖))))
+      (htendsto.norm)
+      heventually
+
+/-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
+phase. -/
 theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAbel :
     ∃ A : ℝ,
       0 < A ∧
@@ -138,7 +254,9 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAb
                   ((n : ℂ)⁻¹ : ℂ) *
                     ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                 A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact
+    Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_damped
+      Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel
 
 /-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
 phase. -/
@@ -158,7 +276,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
 
 /-- Transport from the Abel boundary remainder to the post-cutoff `tsum` tail
 written in boundary-line Dirichlet monomials. -/
-theorem Complex.boundaryLineOnePointRealParam_tsumTail_eq_zeta_remainder
+theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_eq_zeta_remainder
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (N : ℕ)
@@ -171,6 +289,24 @@ theorem Complex.boundaryLineOnePointRealParam_tsumTail_eq_zeta_remainder
       riemannZeta (Complex.boundaryLineOnePointRealParam t) -
         Complex.riemannZetaBoundaryLineTruncation t N := by
   sorry
+
+/-- Transport from the boundary Dirichlet-series tail theorem to the concrete
+`tsum` spelling used by the Euler package. -/
+theorem Complex.boundaryLineOnePointRealParam_tsumTail_eq_zeta_remainder
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ)
+    (hN : 1 ≤ N) :
+    (∑' n : ℕ,
+        if N < n then
+          ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
+        else
+          0) =
+      riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+        Complex.riemannZetaBoundaryLineTruncation t N := by
+  exact
+    Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_eq_zeta_remainder
+      t ht N hN
 
 /-- Transport from the Abel boundary remainder to the post-cutoff `tsum` tail
 written in boundary-line Dirichlet monomials. -/
