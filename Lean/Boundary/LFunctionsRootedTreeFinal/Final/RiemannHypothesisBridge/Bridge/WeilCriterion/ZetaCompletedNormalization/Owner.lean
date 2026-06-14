@@ -2653,6 +2653,87 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
 def Complex.gammaRecurrenceProduct (z : ℂ) (N : ℕ) : ℂ :=
   ∏ j ∈ Finset.range N, z + (j : ℂ)
 
+/-- The recurrence product is nonzero when all its factors are nonzero. -/
+theorem Complex.gammaRecurrenceProduct_ne_zero
+    {z : ℂ}
+    {N : ℕ}
+    (hfactor_ne :
+      ∀ j : ℕ,
+        j < N →
+          z + (j : ℂ) ≠ 0) :
+    Complex.gammaRecurrenceProduct z N ≠ 0 := by
+  unfold Complex.gammaRecurrenceProduct
+  exact Finset.prod_ne_zero_iff.mpr
+    (fun j hj =>
+      hfactor_ne j (Finset.mem_range.mp hj))
+
+/-- Multiplicative form of the finite Gamma recurrence. -/
+theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
+    {z : ℂ}
+    (N : ℕ)
+    (hfactor_ne :
+      ∀ j : ℕ,
+        j < N →
+          z + (j : ℂ) ≠ 0) :
+    Complex.Gamma (z + (N : ℂ)) =
+      Complex.gammaRecurrenceProduct z N * Complex.Gamma z := by
+  induction N with
+  | zero =>
+      calc
+        Complex.Gamma (z + ((0 : ℕ) : ℂ)) =
+            Complex.Gamma z :=
+          congrArg Complex.Gamma (add_zero z)
+        _ = 1 * Complex.Gamma z :=
+          (one_mul (Complex.Gamma z)).symm
+        _ = Complex.gammaRecurrenceProduct z 0 * Complex.Gamma z := by
+          unfold Complex.gammaRecurrenceProduct
+          exact congrArg (fun t : ℂ => t * Complex.Gamma z)
+            (Finset.prod_range_zero (fun j : ℕ => z + (j : ℂ))).symm
+  | succ N ih =>
+      have hfactor_prev :
+          ∀ j : ℕ, j < N → z + (j : ℂ) ≠ 0 := by
+        intro j hj
+        exact hfactor_ne j (Nat.lt_trans hj (Nat.lt_succ_self N))
+      have hN_factor : z + (N : ℂ) ≠ 0 :=
+        hfactor_ne N (Nat.lt_succ_self N)
+      have hsucc_arg :
+          z + ((Nat.succ N : ℕ) : ℂ) =
+            (z + (N : ℂ)) + 1 := by
+        calc
+          z + ((Nat.succ N : ℕ) : ℂ) =
+              z + ((N : ℂ) + 1) := by
+            exact congrArg (fun t : ℂ => z + t) (Nat.cast_succ N)
+          _ = (z + (N : ℂ)) + 1 :=
+            (add_assoc z (N : ℂ) 1).symm
+      have hgamma_step :
+          Complex.Gamma (z + ((Nat.succ N : ℕ) : ℂ)) =
+            (z + (N : ℂ)) * Complex.Gamma (z + (N : ℂ)) := by
+        exact Eq.trans
+          (congrArg Complex.Gamma hsucc_arg)
+          (Complex.Gamma_add_one (z + (N : ℂ)) hN_factor)
+      have hprod_step :
+          Complex.gammaRecurrenceProduct z (Nat.succ N) =
+            Complex.gammaRecurrenceProduct z N * (z + (N : ℂ)) := by
+        unfold Complex.gammaRecurrenceProduct
+        exact Finset.prod_range_succ (fun j : ℕ => z + (j : ℂ)) N
+      calc
+        Complex.Gamma (z + ((Nat.succ N : ℕ) : ℂ)) =
+            (z + (N : ℂ)) * Complex.Gamma (z + (N : ℂ)) :=
+          hgamma_step
+        _ = (z + (N : ℂ)) *
+              (Complex.gammaRecurrenceProduct z N * Complex.Gamma z) := by
+          exact congrArg (fun t : ℂ => (z + (N : ℂ)) * t)
+            (ih hfactor_prev)
+        _ =
+            (Complex.gammaRecurrenceProduct z N * (z + (N : ℂ))) *
+              Complex.Gamma z := by
+          exact (mul_left_comm (z + (N : ℂ))
+            (Complex.gammaRecurrenceProduct z N) (Complex.Gamma z)).symm
+        _ =
+            Complex.gammaRecurrenceProduct z (Nat.succ N) *
+              Complex.Gamma z := by
+          exact congrArg (fun t : ℂ => t * Complex.Gamma z) hprod_step.symm
+
 /-- The deterministic shift as a complex horizontal translation. -/
 theorem Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift
     (A x y : ℝ) :
@@ -2719,7 +2800,24 @@ theorem Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct
     Complex.Gamma z =
       Complex.Gamma (z + (N : ℂ)) /
         Complex.gammaRecurrenceProduct z N := by
-  sorry
+  have hprod_ne :
+      Complex.gammaRecurrenceProduct z N ≠ 0 :=
+    Complex.gammaRecurrenceProduct_ne_zero hfactor_ne
+  have hshift :
+      Complex.Gamma (z + (N : ℂ)) =
+        Complex.gammaRecurrenceProduct z N * Complex.Gamma z :=
+    Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul N hfactor_ne
+  exact
+    (calc
+      Complex.Gamma (z + (N : ℂ)) /
+          Complex.gammaRecurrenceProduct z N =
+          (Complex.gammaRecurrenceProduct z N * Complex.Gamma z) /
+            Complex.gammaRecurrenceProduct z N := by
+        exact congrArg
+          (fun t : ℂ => t / Complex.gammaRecurrenceProduct z N)
+          hshift
+      _ = Complex.Gamma z :=
+        mul_div_cancel_left₀ (Complex.Gamma z) hprod_ne).symm
 
 /-- Finite recurrence products have uniform polynomial upper/lower bounds on a
 fixed vertical strip after a deterministic shift.
@@ -2760,7 +2858,38 @@ theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHei
           ∀ j : ℕ,
             j < N →
               Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
-  sorry
+  refine ⟨1, zero_lt_one, ?_⟩
+  intro x y _hxA _hxB hy j _hj
+  intro hzero
+  have him_eq :
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
+    congrArg Complex.im hzero
+  have hleft_im :
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y := by
+    calc
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im =
+          (Complex.fixedRealPartVerticalPoint x y).im + (j : ℂ).im :=
+        Complex.add_im (Complex.fixedRealPartVerticalPoint x y) (j : ℂ)
+      _ = y + (j : ℂ).im := by
+        exact congrArg
+          (fun t : ℝ => t + (j : ℂ).im)
+          (Complex.fixedRealPartVerticalPoint_im x y)
+      _ = y + 0 := by
+        exact congrArg (fun t : ℝ => y + t) (Complex.natCast_im j)
+      _ = y := add_zero y
+  have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
+    Complex.zero_im
+  have hy_zero : y = 0 :=
+    Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
+  have hnorm_zero : ‖y‖ = 0 :=
+    congrArg norm hy_zero
+  have hnot : ¬ (1 : ℝ) ≤ 0 :=
+    not_le.mpr zero_lt_one
+  exact hnot
+    (Eq.subst
+      (motive := fun t : ℝ => (1 : ℝ) ≤ t)
+      hnorm_zero
+      hy)
 
 /-- Sectorial Stirling at the deterministic right shift, transported back
 through the finite Gamma recurrence product.
@@ -9943,6 +10072,18 @@ theorem abelBoundary_logarithmicPhase_dirichletWeight_succ_le_one
       hone_le_base
       hexponent_nonpos
 
+/-- The additive cancellation used in adjacent-difference telescoping. -/
+theorem real_adjacent_difference_telescope_step
+    (a b c : ℝ) :
+    a + (b + (c - a)) = c + b := by
+  calc
+    a + (b + (c - a)) = a + ((c - a) + b) := by
+      exact congrArg (fun x : ℝ => a + x) (add_comm b (c - a))
+    _ = (a + (c - a)) + b := by
+      exact (add_assoc a (c - a) b).symm
+    _ = c + b := by
+      exact congrArg (fun x : ℝ => x + b) (add_sub_cancel_left a c)
+
 /-- Finite variation of any adjacent-difference tail telescopes on `Ioc`. -/
 theorem finset_Ioc_adjacent_difference_telescope
     (w : ℕ → ℝ)
@@ -9950,7 +10091,43 @@ theorem finset_Ioc_adjacent_difference_telescope
     (hNM : N ≤ M) :
     w (M + 1) + ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) =
       w (N + 1) := by
-  sorry
+  refine Nat.le_induction ?_ ?_ M hNM
+  · have hinterval : Finset.Ioc N N = ∅ :=
+      Finset.Ioc_self N
+    have hsum :
+        (∑ k ∈ Finset.Ioc N N, (w k - w (k + 1))) = 0 := by
+      exact Eq.trans
+        (congrArg
+          (fun s : Finset ℕ => ∑ k ∈ s, (w k - w (k + 1)))
+          hinterval)
+        (Finset.sum_empty (fun k : ℕ => w k - w (k + 1)))
+    calc
+      w (N + 1) + ∑ k ∈ Finset.Ioc N N, (w k - w (k + 1)) =
+          w (N + 1) + 0 := by
+        exact congrArg (fun x : ℝ => w (N + 1) + x) hsum
+      _ = w (N + 1) := by
+        exact add_zero (w (N + 1))
+  · intro M hNM hM
+    have hsum_succ :
+        (∑ k ∈ Finset.Ioc N (M + 1), (w k - w (k + 1))) =
+          (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) +
+            (w (M + 1) - w ((M + 1) + 1)) := by
+      exact Finset.sum_Ioc_succ_top hNM
+        (fun k : ℕ => w k - w (k + 1))
+    calc
+      w ((M + 1) + 1) +
+          ∑ k ∈ Finset.Ioc N (M + 1), (w k - w (k + 1)) =
+          w ((M + 1) + 1) +
+            ((∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) +
+              (w (M + 1) - w ((M + 1) + 1))) := by
+        exact congrArg (fun x : ℝ => w ((M + 1) + 1) + x) hsum_succ
+      _ = w (M + 1) +
+            ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) := by
+        exact real_adjacent_difference_telescope_step
+          (w ((M + 1) + 1))
+          (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)))
+          (w (M + 1))
+      _ = w (N + 1) := hM
 
 /-- The finite variation of Dirichlet weights on a post-cutoff tail is at most
 the first weight, hence at most `1`. -/
@@ -12496,8 +12673,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
     (hz_ne_zero : z ≠ 0)
     (hGamma_zero : Complex.Gammaℝ z = 0) :
     poleClearedRiemannZeta z =
-      (((z - 1) / (((1 : ℂ) - z) - 1)) *
-          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
   sorry
 
@@ -12506,13 +12682,28 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
     (hz_re : z.re ≤ 0)
     (hz_ne_zero : z ≠ 0) :
     poleClearedRiemannZeta z =
-      (((z - 1) / (((1 : ℂ) - z) - 1)) *
-          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
   by_cases hGamma_ne : Complex.Gammaℝ z ≠ 0
-  · exact
+  · have hraw :
+        poleClearedRiemannZeta z =
+          (((z - 1) / (((1 : ℂ) - z) - 1)) *
+              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+            poleClearedRiemannZeta ((1 : ℂ) - z) :=
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_ne_zero
         hz_re hz_ne_zero hGamma_ne
+    have hM :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      exact if_neg hz_ne_zero
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        poleClearedRiemannZeta z =
+          w * poleClearedRiemannZeta ((1 : ℂ) - z))
+      hM.symm
+      hraw
   · exact
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_zero
         hz_re hz_ne_zero (not_not.mp hGamma_ne)
@@ -12572,23 +12763,11 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_zero
   · have hraw :
         poleClearedRiemannZeta z =
-          (((z - 1) / (((1 : ℂ) - z) - 1)) *
-              (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
             poleClearedRiemannZeta ((1 : ℂ) - z) :=
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
         hz hz_zero
-    have hM :
-        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
-          ((z - 1) / (((1 : ℂ) - z) - 1)) *
-            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-      exact if_neg hz_zero
-    exact Eq.subst
-      (motive := fun w : ℂ =>
-        poleClearedRiemannZeta z =
-          w * poleClearedRiemannZeta ((1 : ℂ) - z))
-      hM.symm
-      hraw
+    exact hraw
 
 /-- Finite-order envelope for the removable completed-functional-equation
 multiplier on the left half-plane.
@@ -12686,33 +12865,6 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
         ‖w‖ ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m))
       hM_raw.symm
       (hraw_z.trans henlarge)
-
-/-- Raw multiplier finite-order growth on the left half-plane away from the
-removable point.  This is the exact place where Gamma/Stirling and the
-elementary pole-clearing factor enter. -/
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        z.re ≤ 0 →
-        z ≠ 0 →
-        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
-            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
-
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        z.re ≤ 0 →
-        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact
-    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
-      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
 
 /-- Product-envelope exponential collapse for finite-order growth estimates.
 
@@ -13011,7 +13163,157 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
         ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases hnear with ⟨An, Bn, mn, hAn, hBn, hnear_bound⟩
+  rcases hratio with ⟨Ar, Br, mr, hAr, hBr, hratio_bound⟩
+  rcases hgamma with ⟨Ag, Bg, mg, hAg, hBg, hgamma_bound⟩
+  let Afar : ℝ := Ar * Ag
+  let Bfar : ℝ := 2 * (Br + Bg + 1)
+  let mfar : ℕ := mr + mg
+  let A : ℝ := An + Afar
+  let B : ℝ := Bn + Bfar
+  let m : ℕ := mn + mfar
+  have hAfar_pos : 0 < Afar := mul_pos hAr hAg
+  have hBfar_pos : 0 < Bfar :=
+    mul_pos zero_lt_two (add_pos (add_pos hBr hBg) zero_lt_one)
+  refine ⟨A, B, m, add_pos hAn hAfar_pos, add_pos hBn hBfar_pos, ?_⟩
+  intro z hz_left hz_ne_zero
+  have hAn_nonneg : 0 ≤ An := le_of_lt hAn
+  have hAfar_nonneg : 0 ≤ Afar := le_of_lt hAfar_pos
+  have hBn_nonneg : 0 ≤ Bn := le_of_lt hBn
+  have hBfar_nonneg : 0 ≤ Bfar := le_of_lt hBfar_pos
+  have hAn_le_A : An ≤ A := le_add_of_nonneg_right hAfar_nonneg
+  have hAfar_le_A : Afar ≤ A := le_add_of_nonneg_left hAn_nonneg
+  have hBn_le_B : Bn ≤ B := le_add_of_nonneg_right hBfar_nonneg
+  have hBfar_le_B : Bfar ≤ B := le_add_of_nonneg_left hBn_nonneg
+  by_cases hsmall : ‖z‖ ≤ 1
+  · have hnear_z :
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          An * Real.exp (Bn * (1 + ‖z‖) ^ mn) :=
+      hnear_bound z hz_left hz_ne_zero hsmall
+    exact hnear_z.trans
+      (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hAn_nonneg hAn_le_A hBn_le_B hBn_nonneg
+        (Nat.le_add_right mn mfar))
+  · have hlarge : 1 ≤ ‖z‖ := le_of_not_ge hsmall
+    let R : ℂ := (z - 1) / (((1 : ℂ) - z) - 1)
+    let G : ℂ := Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z
+    let H : ℝ := 1 + ‖z‖
+    have hBr_nonneg : 0 ≤ Br := le_of_lt hBr
+    have hBg_nonneg : 0 ≤ Bg := le_of_lt hBg
+    have hAr_nonneg : 0 ≤ Ar := le_of_lt hAr
+    have hAg_nonneg : 0 ≤ Ag := le_of_lt hAg
+    have hratio_z :
+        ‖R‖ ≤ Ar * Real.exp (Br * H ^ mr) :=
+      hratio_bound z hz_left hz_ne_zero hlarge
+    have hgamma_z :
+        ‖G‖ ≤ Ag * Real.exp (Bg * H ^ mg) :=
+      hgamma_bound z hz_left hz_ne_zero
+    have hratio_enlarge :
+        Ar * Real.exp (Br * H ^ mr) ≤
+          Ar * Real.exp ((Br + Bg + 1) * H ^ mfar) :=
+      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hAr_nonneg
+        (le_refl Ar)
+        (by
+          calc
+            Br ≤ Br + Bg := le_add_of_nonneg_right hBg_nonneg
+            _ ≤ Br + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+        hBr_nonneg
+        (Nat.le_add_right mr mg)
+    have hmg_le_mfar : mg ≤ mfar := by
+      exact Eq.subst
+        (motive := fun d : ℕ => mg ≤ d)
+        (Nat.add_comm mg mr)
+        (Nat.le_add_right mg mr)
+    have hgamma_enlarge :
+        Ag * Real.exp (Bg * H ^ mg) ≤
+          Ag * Real.exp ((Br + Bg + 1) * H ^ mfar) :=
+      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hAg_nonneg
+        (le_refl Ag)
+        (by
+          calc
+            Bg ≤ Br + Bg := le_add_of_nonneg_left hBr_nonneg
+            _ ≤ Br + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+        hBg_nonneg
+        hmg_le_mfar
+    have hR_target :
+        ‖R‖ ≤ Ar * Real.exp ((Br + Bg + 1) * H ^ mfar) :=
+      hratio_z.trans hratio_enlarge
+    have hG_target :
+        ‖G‖ ≤ Ag * Real.exp ((Br + Bg + 1) * H ^ mfar) :=
+      hgamma_z.trans hgamma_enlarge
+    have hproduct :
+        ‖R * G‖ ≤
+          (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+            (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) := by
+      have hnorm : ‖R * G‖ = ‖R‖ * ‖G‖ := norm_mul R G
+      have hmul :
+          ‖R‖ * ‖G‖ ≤
+            (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+              (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) :=
+        mul_le_mul hR_target hG_target (norm_nonneg G)
+          (mul_nonneg hAr_nonneg
+            (le_of_lt (Real.exp_pos ((Br + Bg + 1) * H ^ mfar))))
+      exact Eq.subst
+        (motive := fun x : ℝ =>
+          x ≤
+            (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+              (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)))
+        hnorm.symm
+        hmul
+    have hcollapse :
+        (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+            (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
+          Afar * Real.exp (Bfar * H ^ mfar) := by
+      exact finiteOrderGrowthProductEnvelope_exp_collapse
+        Ar Ag ((Br + Bg + 1) * H ^ mfar)
+    have hfar :
+        ‖R * G‖ ≤ Afar * Real.exp (Bfar * H ^ mfar) :=
+      hproduct.trans_eq hcollapse
+    have henlarge :
+        Afar * Real.exp (Bfar * (1 + ‖z‖) ^ mfar) ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hAfar_nonneg hAfar_le_A hBfar_le_B hBfar_nonneg
+        (by
+          exact Eq.subst
+            (motive := fun d : ℕ => mfar ≤ d)
+            (Nat.add_comm mfar mn)
+            (Nat.le_add_right mfar mn))
+    exact hfar.trans henlarge
+
+/-- Raw multiplier finite-order growth on the left half-plane away from the
+removable point.  This is the exact place where Gamma/Stirling and the
+elementary pole-clearing factor enter. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth_of_ratio_and_gamma
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth
+      leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_bound
+      Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound
+
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
 
 /-- Finite-order envelopes are stable under the affine reflection `z ↦ 1 - z`
 on the left half-plane.

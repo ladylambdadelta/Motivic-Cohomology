@@ -2382,6 +2382,23 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (Finset.mem_filter.1 hz).2
   exact le_antisymm hle (le_of_not_gt hnot_lt)
 
+/-- Unit-circle boundary-zero logarithmic mean.
+
+This is the exact classical singular integral used for boundary zeros:
+`average log |1 - exp(i(t - α))| = 0`.  The logarithmic singularity at
+`t = α` is integrable and is interpreted by the finite-exception boundary
+integrability machinery in this file. -/
+theorem entireFunction_unitCircle_boundaryZero_log_mean_zero_ownerRoot
+    (α : ℝ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
+      0 := by
+  -- Deep boundary-zero Jensen integral: reduce to
+  -- `log (2 |sin((θ - α)/2)|)`, prove the translated logarithmic singularity
+  -- is integrable, and use the classical unit-circle mean.
+  sorry
+
 /-- Boundary zero single-factor mean.
 
 When `‖a‖ = ρ`, the Jensen boundary factor
@@ -2399,10 +2416,121 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_eq_zero_of_norm_eq_radiu
           Real.log
             ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
       0 := by
-  -- Deep boundary single-factor theorem: reduce to
-  -- `log ‖1 - exp(i(θ - θ₀))‖`, prove local log-singularity
-  -- integrability, and use the classical unit-circle Jensen mean.
-  sorry
+  have hρ_pos : 0 < ρ :=
+    Eq.subst (motive := fun x : ℝ => 0 < x) haρ
+      (norm_pos_iff.mpr ha0)
+  obtain ⟨α, hα⟩ := Complex.exists_norm_eq_mul_exp_arg a ha0
+  have hρ_ne : (ρ : ℂ) ≠ 0 :=
+    ofReal_ne_zero.mpr hρ_pos.ne'
+  have ha_eq : a = (ρ : ℂ) * Complex.exp (α * Complex.I) := by
+    have hnorm_eq : (‖a‖ : ℂ) = (ρ : ℂ) :=
+      congrArg (fun x : ℝ => (x : ℂ)) haρ
+    exact Eq.trans hα (congrArg (fun x : ℂ => x * Complex.exp (α * Complex.I)) hnorm_eq)
+  have hintegrand :
+      (fun θ : ℝ =>
+        Real.log
+          ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
+      (fun θ : ℝ =>
+        Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) := by
+    funext θ
+    have hdiv :
+        (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
+          Complex.exp ((θ - α) * Complex.I) := by
+      calc
+        (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
+            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) /
+              ((ρ : ℂ) * Complex.exp (α * Complex.I)) := by
+          exact congrArg (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) / x) ha_eq
+        _ =
+            (((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+              (((ρ : ℂ) * Complex.exp (α * Complex.I))⁻¹)) := by
+          exact div_eq_mul_inv
+            ((ρ : ℂ) * Complex.exp (θ * Complex.I))
+            ((ρ : ℂ) * Complex.exp (α * Complex.I))
+        _ =
+            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+              ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) := by
+          exact congrArg
+            (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) * x)
+            (mul_inv_rev (ρ : ℂ) (Complex.exp (α * Complex.I)))
+        _ =
+            (((ρ : ℂ) * (ρ : ℂ)⁻¹) *
+              (Complex.exp (θ * Complex.I) *
+                (Complex.exp (α * Complex.I))⁻¹)) := by
+          calc
+            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+                ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) =
+                (ρ : ℂ) *
+                  (Complex.exp (θ * Complex.I) *
+                    ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)) := by
+              exact mul_assoc (ρ : ℂ) (Complex.exp (θ * Complex.I))
+                ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)
+            _ =
+                (ρ : ℂ) *
+                  ((Complex.exp (θ * Complex.I) * (ρ : ℂ)⁻¹) *
+                    (Complex.exp (α * Complex.I))⁻¹) := by
+              exact congrArg (fun x : ℂ => (ρ : ℂ) * x)
+                (mul_assoc (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹
+                  (Complex.exp (α * Complex.I))⁻¹)
+            _ =
+                (ρ : ℂ) *
+                  (((ρ : ℂ)⁻¹ * Complex.exp (θ * Complex.I)) *
+                    (Complex.exp (α * Complex.I))⁻¹) := by
+              exact congrArg
+                (fun x : ℂ =>
+                  (ρ : ℂ) * (x * (Complex.exp (α * Complex.I))⁻¹))
+                (mul_comm (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹)
+            _ =
+                ((ρ : ℂ) * (ρ : ℂ)⁻¹) *
+                  (Complex.exp (θ * Complex.I) *
+                    (Complex.exp (α * Complex.I))⁻¹) := by
+              exact (mul_assoc (ρ : ℂ) (ρ : ℂ)⁻¹
+                (Complex.exp (θ * Complex.I) *
+                  (Complex.exp (α * Complex.I))⁻¹)).symm
+        _ =
+            1 *
+              (Complex.exp (θ * Complex.I) *
+                (Complex.exp (α * Complex.I))⁻¹) := by
+          exact congrArg
+            (fun x : ℂ =>
+              x *
+                (Complex.exp (θ * Complex.I) *
+                  (Complex.exp (α * Complex.I))⁻¹))
+            (mul_inv_cancel₀ hρ_ne)
+        _ =
+            Complex.exp (θ * Complex.I) *
+              (Complex.exp (α * Complex.I))⁻¹ := by
+          exact one_mul
+            (Complex.exp (θ * Complex.I) *
+              (Complex.exp (α * Complex.I))⁻¹)
+        _ =
+            Complex.exp (θ * Complex.I) *
+              Complex.exp (-(α * Complex.I)) := by
+          exact congrArg (fun x : ℂ => Complex.exp (θ * Complex.I) * x)
+            (Complex.exp_neg (α * Complex.I)).symm
+        _ =
+            Complex.exp (θ * Complex.I + -(α * Complex.I)) := by
+          exact (Complex.exp_add (θ * Complex.I) (-(α * Complex.I))).symm
+        _ =
+            Complex.exp ((θ - α) * Complex.I) := by
+          have harg :
+              θ * Complex.I + -(α * Complex.I) = (θ - α) * Complex.I := by
+            calc
+              θ * Complex.I + -(α * Complex.I) =
+                  θ * Complex.I + (-α) * Complex.I := by
+                exact congrArg (fun x : ℂ => θ * Complex.I + x)
+                  (neg_mul_eq_neg_mul (α : ℂ) Complex.I).symm
+              _ = ((θ : ℂ) + (-α : ℂ)) * Complex.I := by
+                exact (add_mul (θ : ℂ) (-α : ℂ) Complex.I).symm
+              _ = (θ - α) * Complex.I := by
+                exact congrArg (fun x : ℂ => x * Complex.I) (sub_eq_add_neg θ α).symm
+          exact congrArg Complex.exp harg
+    exact congrArg (fun x : ℂ => Real.log ‖1 - x‖) hdiv
+  exact Eq.subst
+    (motive := fun f : ℝ → ℝ =>
+      (2 * Real.pi)⁻¹ * (∫ θ in (0 : ℝ)..(2 * Real.pi), f θ) = 0)
+    hintegrand.symm
+    (entireFunction_unitCircle_boundaryZero_log_mean_zero_ownerRoot α)
 
 /-- A closed-boundary support factor has zero normalized boundary mean. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor_boundaryAverage_eq_zero
@@ -2986,6 +3114,34 @@ theorem complex_starConvexClosedBall_radialSegment_norm_le
   mem_closedBall_zero_iff.mp
     (complex_starConvexClosedBall_radialSegment_mem hρ hz ht)
 
+/-- Segment integral of `φ` along the affine segment from the origin to `z`. -/
+noncomputable def complex_centerSegmentIntegral
+    (φ : ℂ → ℂ)
+    (z : ℂ) : ℂ :=
+  ∫ t in (0 : ℝ)..1,
+    z * φ (AffineMap.lineMap (0 : ℂ) z t)
+
+/-- The affine-segment integral from `0` to `z` is the current radial
+primitive expression. -/
+theorem complex_centerSegmentIntegral_eq_radialPrimitive
+    (φ : ℂ → ℂ)
+    (z : ℂ) :
+    complex_centerSegmentIntegral φ z =
+      complex_starConvexClosedBall_radialPrimitive φ z := by
+  unfold complex_centerSegmentIntegral
+  unfold complex_starConvexClosedBall_radialPrimitive
+  have hintegrand :
+      EqOn
+        (fun t : ℝ =>
+          z * φ (AffineMap.lineMap (0 : ℂ) z t))
+        (fun t : ℝ =>
+          z * φ ((t : ℂ) • z))
+        [[(0 : ℝ), 1]] :=
+    fun t ht =>
+      congrArg (fun w : ℂ => z * φ w)
+        (complex_starConvexClosedBall_lineMap_zero_eq_radial z t)
+  exact intervalIntegral.integral_congr hintegrand
+
 /-- The radial primitive is normalized to vanish at the center. -/
 theorem complex_starConvexClosedBall_radialPrimitive_zero
     (φ : ℂ → ℂ) :
@@ -3000,6 +3156,25 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
   exact Eq.trans
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
+
+/-- Fundamental theorem for holomorphic segment integrals on star-convex
+domains.
+
+This is the standard path-integral result: for a holomorphic function on a
+star-convex domain, the segment integral from the star center is analytic and
+has derivative equal to the endpoint integrand. -/
+theorem complex_segmentIntegral_primitive_hasDerivAt_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    (∀ z : ℂ,
+      z ∈ s →
+      AnalyticAt ℂ (complex_centerSegmentIntegral φ) z) ∧
+    (∀ z : ℂ,
+      z ∈ s →
+      deriv (complex_centerSegmentIntegral φ) z = φ z) := by
+  sorry
 
 /-- Standard segment-integral primitive theorem for holomorphic functions on a
 star-convex complex domain, specialized to the radial primitive from the
@@ -3019,7 +3194,31 @@ theorem complex_segmentIntegral_primitive_isPrimitive_of_holomorphicOn_starConve
     (∀ z : ℂ,
       z ∈ s →
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) := by
-  sorry
+  have hseg :
+      (∀ z : ℂ,
+        z ∈ s →
+        AnalyticAt ℂ (complex_centerSegmentIntegral φ) z) ∧
+      (∀ z : ℂ,
+        z ∈ s →
+        deriv (complex_centerSegmentIntegral φ) z = φ z) :=
+    complex_segmentIntegral_primitive_hasDerivAt_of_holomorphicOn_starConvex
+      φ hstar hφ
+  have heq :
+      ∀ z : ℂ,
+        complex_centerSegmentIntegral φ z =
+          complex_starConvexClosedBall_radialPrimitive φ z :=
+    fun z => complex_centerSegmentIntegral_eq_radialPrimitive φ z
+  exact
+    ⟨fun z hz =>
+      (hseg.1 z hz).congr
+        (Filter.Eventually.of_forall
+          (fun w : ℂ => heq w)),
+      fun z hz =>
+        Eq.trans
+          (Filter.EventuallyEq.deriv_eq
+            (Filter.Eventually.of_forall
+              (fun w : ℂ => (heq w).symm)))
+          (hseg.2 z hz)⟩
 
 /-- Canonical star-convex radial primitive theorem on a closed complex ball.
 
