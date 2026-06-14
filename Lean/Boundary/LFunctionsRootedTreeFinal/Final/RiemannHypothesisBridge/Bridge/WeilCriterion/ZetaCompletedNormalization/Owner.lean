@@ -1278,6 +1278,27 @@ theorem Complex.abs_im_le_norm
       hnorm_eq_abs.symm
       him_abs_le_abs
 
+/-- Pure real logarithmic envelope for a radius bounded below away from zero. -/
+theorem real_abs_log_le_largeRadius_log_envelope
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
+  sorry
+
+/-- Uniform version of the real logarithmic envelope on a large-radius region. -/
+theorem real_abs_log_le_largeRadius_log_envelope_uniform
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ r : ℝ,
+        R₀ ≤ r →
+        ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
+  sorry
+
 /-- The logarithm of the radius is absorbed by the logarithmic envelope on any
 large-radius region bounded away from zero. -/
 theorem Complex.log_norm_le_log_envelope
@@ -1288,7 +1309,128 @@ theorem Complex.log_norm_le_log_envelope
       ∀ w : ℂ,
         R₀ ≤ ‖w‖ →
         ‖Real.log ‖w‖‖ ≤ C * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  exact real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos
+
+/-- If `0 ≤ x ≤ r`, then the shifted coordinate `x - 1/2` is bounded by
+`r + 1/2` in absolute value. -/
+theorem real_abs_sub_half_le_radius_add_half
+    (x r : ℝ)
+    (hx_nonneg : 0 ≤ x)
+    (hx_le_r : x ≤ r) :
+    |x - 1 / 2| ≤ r + 1 / 2 := by
+  have hr_nonneg : 0 ≤ r :=
+    le_trans hx_nonneg hx_le_r
+  have hneg_r_le_x : -r ≤ x :=
+    le_trans (neg_nonpos.mpr hr_nonneg) hx_nonneg
+  have hneg_half_le_half : -(1 / 2 : ℝ) ≤ 1 / 2 :=
+    neg_le_self (le_of_lt one_half_pos)
+  have hlower : -(r + 1 / 2) ≤ x - 1 / 2 := by
+    calc
+      -(r + 1 / 2) = -r + -(1 / 2 : ℝ) :=
+        neg_add r (1 / 2)
+      _ ≤ x + -(1 / 2 : ℝ) :=
+        add_le_add_right hneg_r_le_x (-(1 / 2 : ℝ))
+      _ = x - 1 / 2 :=
+        (sub_eq_add_neg x (1 / 2)).symm
+  have hupper : x - 1 / 2 ≤ r + 1 / 2 := by
+    calc
+      x - 1 / 2 ≤ r - 1 / 2 :=
+        sub_le_sub_right hx_le_r (1 / 2)
+      _ = r + -(1 / 2 : ℝ) :=
+        sub_eq_add_neg r (1 / 2)
+      _ ≤ r + 1 / 2 :=
+        add_le_add_left hneg_half_le_half r
+  exact abs_le.mpr ⟨hlower, hupper⟩
+
+/-- Radius part of the branch loss is bounded by the norm-log majorant. -/
+theorem real_radiusTerm_le_norm_log_majorant
+    (x r : ℝ)
+    (hx_nonneg : 0 ≤ x)
+    (hx_le_r : x ≤ r) :
+    (x - 1 / 2) * Real.log r ≤
+      (r + 1 / 2) * ‖Real.log r‖ := by
+  have hterm_le_abs :
+      (x - 1 / 2) * Real.log r ≤
+        |(x - 1 / 2) * Real.log r| :=
+    le_abs_self ((x - 1 / 2) * Real.log r)
+  have habs_mul :
+      |(x - 1 / 2) * Real.log r| =
+        |x - 1 / 2| * |Real.log r| :=
+    abs_mul (x - 1 / 2) (Real.log r)
+  have habs_log_eq_norm :
+      |Real.log r| = ‖Real.log r‖ :=
+    (Real.norm_eq_abs (Real.log r)).symm
+  have hshift :
+      |x - 1 / 2| ≤ r + 1 / 2 :=
+    real_abs_sub_half_le_radius_add_half x r hx_nonneg hx_le_r
+  have hmajor :
+      |x - 1 / 2| * |Real.log r| ≤
+        (r + 1 / 2) * ‖Real.log r‖ := by
+    have hlog_nonneg : 0 ≤ ‖Real.log r‖ :=
+      norm_nonneg (Real.log r)
+    have hmul :
+        |x - 1 / 2| * ‖Real.log r‖ ≤
+          (r + 1 / 2) * ‖Real.log r‖ :=
+      mul_le_mul_of_nonneg_right hshift hlog_nonneg
+    exact
+      Eq.subst
+        (motive := fun y : ℝ =>
+          |x - 1 / 2| * y ≤ (r + 1 / 2) * ‖Real.log r‖)
+        habs_log_eq_norm.symm
+        hmul
+  exact le_trans hterm_le_abs
+    (le_trans (le_of_eq habs_mul) hmajor)
+
+/-- Angular part of the branch loss is bounded by the sectorial angle majorant. -/
+theorem real_argumentTerm_le_sectorial_majorant
+    (θ y r : ℝ)
+    (hy_abs_le_r : |y| ≤ r)
+    (hθ_abs_le : |θ| ≤ Real.pi / 2) :
+    -θ * y ≤ (Real.pi / 2) * r := by
+  have hneg_product_le_abs :
+      -θ * y ≤ |θ * y| := by
+    calc
+      -θ * y = -(θ * y) :=
+        (neg_mul θ y).symm
+      _ ≤ |θ * y| :=
+        neg_le_abs (θ * y)
+  have habs_product :
+      |θ * y| = |θ| * |y| :=
+    abs_mul θ y
+  have hpi_half_nonneg : 0 ≤ Real.pi / 2 :=
+    le_of_lt (div_pos Real.pi_pos two_pos)
+  have habs_product_le :
+      |θ| * |y| ≤ (Real.pi / 2) * r :=
+    mul_le_mul hθ_abs_le hy_abs_le_r (abs_nonneg y) hpi_half_nonneg
+  exact le_trans hneg_product_le_abs
+    (le_trans (le_of_eq habs_product) habs_product_le)
+
+/-- Pure real radius/argument majorization after replacing coordinates by norm
+bounds and the argument by its sectorial bound. -/
+theorem real_radiusArgumentLoss_le_norm_log_majorant
+    (x y θ r : ℝ)
+    (hx_nonneg : 0 ≤ x)
+    (hx_le_r : x ≤ r)
+    (hy_abs_le_r : |y| ≤ r)
+    (hθ_abs_le : |θ| ≤ Real.pi / 2) :
+    (x - 1 / 2) * Real.log r - θ * y ≤
+      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r := by
+  have hradius :
+      (x - 1 / 2) * Real.log r ≤
+        (r + 1 / 2) * ‖Real.log r‖ :=
+    real_radiusTerm_le_norm_log_majorant x r hx_nonneg hx_le_r
+  have hangle :
+      -θ * y ≤ (Real.pi / 2) * r :=
+    real_argumentTerm_le_sectorial_majorant θ y r hy_abs_le_r hθ_abs_le
+  have hleft_eq :
+      (x - 1 / 2) * Real.log r - θ * y =
+        (x - 1 / 2) * Real.log r + (-θ * y) := by
+    exact sub_eq_add_neg ((x - 1 / 2) * Real.log r) (θ * y)
+  have hsum :
+      (x - 1 / 2) * Real.log r + (-θ * y) ≤
+        (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r :=
+    add_le_add hradius hangle
+  exact le_trans (le_of_eq hleft_eq) hsum
 
 /-- Coordinate domination of the Stirling radius/argument loss by the elementary
 norm majorant. -/
@@ -1297,6 +1439,37 @@ theorem Complex.radiusArgumentLoss_le_norm_log_majorant
     (hw_sector : Complex.closedRightHalfPlaneSector w) :
     (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im ≤
       (‖w‖ + 1 / 2) * ‖Real.log ‖w‖‖ + (Real.pi / 2) * ‖w‖ := by
+  exact
+    real_radiusArgumentLoss_le_norm_log_majorant
+      w.re w.im (Complex.arg w) ‖w‖
+      hw_sector
+      (Complex.re_le_norm w)
+      (Complex.abs_im_le_norm w)
+      (Complex.abs_arg_le_pi_div_two_of_closedRightHalfPlaneSector hw_sector)
+
+/-- Pure real absorption of the norm-log majorant into the standard log-linear
+envelope, using a lower radius cutoff. -/
+theorem real_linear_log_absorption
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    ∃ C : ℝ,
+      0 < C ∧
+      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
+        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+  sorry
+
+/-- Uniform pure real absorption of the norm-log majorant into the standard
+log-linear envelope on a large-radius region. -/
+theorem real_linear_log_absorption_uniform
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ r : ℝ,
+        R₀ ≤ r →
+        (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
+          C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
   sorry
 
 /-- The elementary norm-log majorant is absorbed by the standard log-linear
@@ -1310,7 +1483,7 @@ theorem Complex.linear_log_absorption
         R₀ ≤ ‖w‖ →
         (‖w‖ + 1 / 2) * ‖Real.log ‖w‖‖ + (Real.pi / 2) * ‖w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  exact real_linear_log_absorption_uniform R₀ hR₀_pos
 
 /-- Pure real domination of the radius/argument loss by the standard
 log-linear envelope on the closed right half-plane.
@@ -8284,12 +8457,38 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_rie
         t ht,
       rfl⟩
 
-/-- Abel-limit identity after subtracting the fixed cutoff prefix.
+/-- The Abel-damped finite cutoff prefix. -/
+def abelBoundary_logarithmicPhase_dampedPrefix
+    (t σ : ℝ) : ℂ :=
+  ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+    (1 : ℂ) /
+      ((n : ℂ) ^
+        boundaryLineOnePointRealParam_abscissaShift σ t)
+
+/-- The boundary finite cutoff prefix. -/
+def abelBoundary_logarithmicPhase_boundaryPrefix
+    (t : ℝ) : ℂ :=
+  ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+    ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+
+/-- The Abel-damped prefix tends to the boundary prefix as `σ → 1+`.
+
+This is finite-sum continuity plus the term identity at the boundary point. -/
+theorem abelBoundary_logarithmicPhase_dampedPrefix_tendsto_boundaryPrefix
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    Tendsto
+      (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedPrefix t σ)
+      (𝓝[>] (1 : ℝ))
+      (𝓝 (abelBoundary_logarithmicPhase_boundaryPrefix t)) := by
+  sorry
+
+/-- Abel-limit identity after subtracting the damped cutoff prefix.
 
 This is pure limit algebra from the Abel convergence of the Dirichlet
-presentation: subtracting the finite prefix from the Abel family subtracts the
-same prefix from the analytic-continuation boundary value. -/
-theorem abelBoundary_dirichletSeries_cutoffPrefix_subtracted_tendsto_zeta_remainder
+presentation: subtracting the damped finite prefix from the Abel family
+subtracts the boundary prefix in the limit. -/
+theorem abelBoundary_dirichletSeries_dampedPrefix_subtracted_tendsto_zeta_remainder
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (habel :
@@ -8307,23 +8506,34 @@ theorem abelBoundary_dirichletSeries_cutoffPrefix_subtracted_tendsto_zeta_remain
           (1 : ℂ) /
             ((n : ℂ) ^
               boundaryLineOnePointRealParam_abscissaShift σ t)) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))
+          abelBoundary_logarithmicPhase_dampedPrefix t σ)
       (𝓝[>] (1 : ℝ))
       (𝓝
         (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
-  exact habel.sub tendsto_const_nhds
+          abelBoundary_logarithmicPhase_boundaryPrefix t)) := by
+  exact habel.sub
+    (abelBoundary_logarithmicPhase_dampedPrefix_tendsto_boundaryPrefix t ht)
+
+/-- The Abel-damped post-cutoff logarithmic-phase tail.
+
+This is a right-half-plane object: the ordinary boundary tail at `σ = 1` is
+not asserted to converge. -/
+def abelBoundary_logarithmicPhase_dampedTail
+    (t σ : ℝ) : ℂ :=
+  (∑' n : ℕ,
+    (1 : ℂ) /
+      ((n : ℂ) ^
+        boundaryLineOnePointRealParam_abscissaShift σ t)) -
+    abelBoundary_logarithmicPhase_dampedPrefix t σ
 
 /-- Abel-tail normalization after removing the fixed cutoff prefix.
 
 This theorem owns the index and term normalization between the Abel-regularized
-Dirichlet remainder and the logarithmic-phase post-cutoff tail.  It is the
-place where `Icc 1 N` prefix subtraction, `Ioc N M` finite tails, and the
-identity between `n^{-(σ+it)}` and the damped reciprocal logarithmic oscillator
-are matched.  No ordinary boundary `HasSum` is asserted here. -/
-theorem abelBoundary_logarithmicPhase_finiteAbel_tail_index_normalization
+Dirichlet remainder and the damped logarithmic-phase post-cutoff tail.  It is
+the place where `Icc 1 N` prefix subtraction and the identity between
+`n^{-(σ+it)}` and the damped reciprocal logarithmic oscillator are matched.  No
+ordinary boundary `HasSum` or undamped tail convergence is asserted here. -/
+theorem abelBoundary_logarithmicPhase_dampedTail_index_normalization
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hprefix :
@@ -8333,34 +8543,30 @@ theorem abelBoundary_logarithmicPhase_finiteAbel_tail_index_normalization
             (1 : ℂ) /
               ((n : ℂ) ^
                 boundaryLineOnePointRealParam_abscissaShift σ t)) -
-            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))
+            abelBoundary_logarithmicPhase_dampedPrefix t σ)
         (𝓝[>] (1 : ℝ))
         (𝓝
           (riemannZeta (boundaryLineOnePointRealParam t) -
-            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))))) :
+            abelBoundary_logarithmicPhase_boundaryPrefix t))) :
     Tendsto
-      (fun M : ℕ =>
-        ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-      atTop
+      (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedTail t σ)
+      (𝓝[>] (1 : ℝ))
       (𝓝
         (riemannZeta (boundaryLineOnePointRealParam t) -
           ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
             ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
-  sorry
+  exact hprefix
 
-/-- Owner convergence theorem for finite Abel tails after the canonical cutoff.
+/-- Owner convergence theorem for Abel-damped tails after the canonical cutoff.
 
 This is the exact limiting statement behind the Abel boundary transport: the
-finite post-cutoff Abel tails converge to the analytic-continuation zeta value
-with the finite cutoff truncation removed.  The proof is partial summation on
-`Re s > 1`, the identity between Dirichlet terms and reciprocal logarithmic
-oscillators, and the Abel limit
+post-cutoff Abel-damped tail converges to the analytic-continuation zeta value
+with the finite cutoff truncation removed.  The proof is the fixed-prefix Abel
+limit, the identity between Dirichlet terms and damped reciprocal logarithmic
+oscillators in the half-plane, and the Abel limit
 `boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta`.
 It deliberately does not assert ordinary boundary `HasSum`. -/
-theorem abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
+theorem abelBoundary_logarithmicPhase_dampedTail_tendsto_zeta_remainder
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (habel :
@@ -8373,10 +8579,8 @@ theorem abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
         (𝓝[>] (1 : ℝ))
         (𝓝 (riemannZeta (boundaryLineOnePointRealParam t)))) :
     Tendsto
-      (fun M : ℕ =>
-        ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-      atTop
+      (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedTail t σ)
+      (𝓝[>] (1 : ℝ))
       (𝓝
         (riemannZeta (boundaryLineOnePointRealParam t) -
           ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
@@ -8388,17 +8592,15 @@ theorem abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
             (1 : ℂ) /
               ((n : ℂ) ^
                 boundaryLineOnePointRealParam_abscissaShift σ t)) -
-            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))
+            abelBoundary_logarithmicPhase_dampedPrefix t σ)
         (𝓝[>] (1 : ℝ))
         (𝓝
           (riemannZeta (boundaryLineOnePointRealParam t) -
-            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) :=
-    abelBoundary_dirichletSeries_cutoffPrefix_subtracted_tendsto_zeta_remainder
+            abelBoundary_logarithmicPhase_boundaryPrefix t)) :=
+    abelBoundary_dirichletSeries_dampedPrefix_subtracted_tendsto_zeta_remainder
       t ht habel
   exact
-    abelBoundary_logarithmicPhase_finiteAbel_tail_index_normalization
+    abelBoundary_logarithmicPhase_dampedTail_index_normalization
       t ht hprefix
 
 /-- A complex limit of an eventually norm-bounded family is norm-bounded by the
@@ -8420,27 +8622,23 @@ theorem complex_norm_le_of_eventually_norm_le_of_tendsto
     isClosed_le continuous_norm continuous_const
   exact hclosed.mem_of_tendsto hu hbound
 
-/-- Norm transport from a uniformly bounded finite-Abel tail family to its Abel
+/-- Norm transport from a uniformly bounded Abel-damped tail family to its Abel
 boundary limit.
 
-This is the topological endpoint of the Abel argument: once the finite tails are
-uniformly bounded from the cutoff onward and the finite-Abel tails converge to
-the analytic boundary remainder, the same bound holds for the remainder. -/
-theorem abelBoundary_logarithmicPhase_finiteAbel_uniform_bound_transport
+This is the topological endpoint of the Abel argument: once the damped tails are
+eventually uniformly bounded as `σ → 1+` and converge to the analytic boundary
+remainder, the same bound holds for the remainder. -/
+theorem abelBoundary_logarithmicPhase_dampedTail_uniform_bound_transport
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (hfinite :
-      ∀ M : ℕ,
-        ⌊2 + ‖t‖⌋₊ ≤ M →
-        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+    (hdamped_bound :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤
           boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
-    (htails :
+    (hdamped :
       Tendsto
-        (fun M : ℕ =>
-          ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-        atTop
+        (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedTail t σ)
+        (𝓝[>] (1 : ℝ))
         (𝓝
           (riemannZeta (boundaryLineOnePointRealParam t) -
             ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
@@ -8449,29 +8647,40 @@ theorem abelBoundary_logarithmicPhase_finiteAbel_uniform_bound_transport
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  let tail : ℕ → ℂ :=
-    fun M : ℕ =>
-      ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))
   let limit : ℂ :=
     riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-  have htail_tendsto : Tendsto tail atTop (𝓝 limit) :=
-    htails
-  have htail_bound :
-      ∀ᶠ M : ℕ in atTop,
-        ‖tail M‖ ≤
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    exact
-      (eventually_atTop.2
-        ⟨⌊2 + ‖t‖⌋₊,
-          fun M hM =>
-            hfinite M hM⟩)
+  have htail_tendsto :
+      Tendsto
+        (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedTail t σ)
+        (𝓝[>] (1 : ℝ))
+        (𝓝 limit) :=
+    hdamped
   exact
     complex_norm_le_of_eventually_norm_le_of_tendsto
       htail_tendsto
-      htail_bound
+      hdamped_bound
+
+/-- Abel damping comparison for the logarithmic-phase post-cutoff tail.
+
+This is the honest bridge from uniformly bounded finite post-cutoff Abel sums to
+an eventual bound for the Abel-damped post-cutoff tail as `σ → 1+`.  Its proof
+is Abel's theorem for bounded partial sums applied to the cutoff tail, not
+ordinary convergence of the undamped boundary series. -/
+theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_finiteAbel
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hfinite :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t) :
+    ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  sorry
 
 /-- Deep Abel-limit transport for the canonical post-cutoff logarithmic-phase
 tail.
@@ -8504,19 +8713,23 @@ theorem abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound_of_fin
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   have htails :
       Tendsto
-        (fun M : ℕ =>
-          ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
-            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-        atTop
+        (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedTail t σ)
+        (𝓝[>] (1 : ℝ))
         (𝓝
           (riemannZeta (boundaryLineOnePointRealParam t) -
             ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) :=
-    abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
+    abelBoundary_logarithmicPhase_dampedTail_tendsto_zeta_remainder
       t ht habel
+  have hdamped_bound :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤
+          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t :=
+    abelBoundary_logarithmicPhase_dampedTail_bound_of_finiteAbel
+      t ht hfinite
   exact
-    abelBoundary_logarithmicPhase_finiteAbel_uniform_bound_transport
-      t ht hfinite htails
+    abelBoundary_logarithmicPhase_dampedTail_uniform_bound_transport
+      t ht hdamped_bound htails
 
 /-- Owner Abel-boundary API for the canonical post-cutoff oscillatory tail.
 
@@ -9541,7 +9754,7 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
         z.re = (1 : ℂ).re := by
           exact congrArg Complex.re hz_eq
         _ = 1 := by
-          norm_num
+          exact Complex.one_re
     have hzero_eq_one : (0 : ℝ) = 1 := by
       calc
         (0 : ℝ) = z.re := hz_re.symm
@@ -9856,7 +10069,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_growth_bound :
         z.re = (1 : ℂ).re := by
           exact congrArg Complex.re hz_eq
         _ = 1 := by
-          norm_num
+          exact Complex.one_re
     have htwo_eq_one : (2 : ℝ) = 1 := by
       calc
         (2 : ℝ) = z.re := hz_re.symm
@@ -10540,7 +10753,75 @@ theorem poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMacla
         2 ≤ z.re →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases riemannZeta_farRightHalfPlane_dirichletSeries_bound with
+    ⟨A, hA, hzeta_bound⟩
+  refine ⟨A, 1, 1, hA, zero_lt_one, ?_⟩
+  intro z hz_far
+  have hz_ne_one : z ≠ 1 := by
+    intro hz_eq
+    have hz_re_one : z.re = 1 := by
+      calc
+        z.re = (1 : ℂ).re := by
+          exact congrArg Complex.re hz_eq
+        _ = 1 := by
+          exact Complex.one_re
+    have htwo_le_one : (2 : ℝ) ≤ 1 := by
+      exact hz_far.trans_eq hz_re_one
+    exact (not_le_of_gt one_lt_two) htwo_le_one
+  have hpc :
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+    poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
+  let H : ℝ := 1 + ‖z‖
+  have hH_ge_one : (1 : ℝ) ≤ H :=
+    le_add_of_nonneg_right (norm_nonneg z)
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one hH_ge_one
+  have hzeta : ‖riemannZeta z‖ ≤ A :=
+    hzeta_bound z hz_far
+  have hsub_norm : ‖z - 1‖ ≤ H := by
+    calc
+      ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ :=
+        norm_sub_le z (1 : ℂ)
+      _ = ‖z‖ + 1 := by
+        exact congrArg (fun x : ℝ => ‖z‖ + x) (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+      _ = H := by
+        exact add_comm ‖z‖ 1
+  have hproduct :
+      ‖(z - 1) * riemannZeta z‖ ≤ H * A := by
+    calc
+      ‖(z - 1) * riemannZeta z‖ =
+          ‖z - 1‖ * ‖riemannZeta z‖ := by
+        exact norm_mul (z - 1) (riemannZeta z)
+      _ ≤ H * A :=
+        mul_le_mul hsub_norm hzeta (norm_nonneg (riemannZeta z)) hH_nonneg
+  have hH_le_expH : H ≤ Real.exp H :=
+    le_trans (le_add_of_nonneg_right zero_le_one) (add_one_le_exp H)
+  have hscaled :
+      H * A ≤ A * Real.exp H := by
+    calc
+      H * A = A * H := by
+        exact mul_comm H A
+      _ ≤ A * Real.exp H :=
+        mul_le_mul_of_nonneg_left hH_le_expH (le_of_lt hA)
+  have hexponent :
+      (1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ) = H := by
+    calc
+      (1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ) =
+          (1 + ‖z‖) ^ (1 : ℕ) := by
+        exact one_mul ((1 + ‖z‖) ^ (1 : ℕ))
+      _ = 1 + ‖z‖ := by
+        exact pow_one (1 + ‖z‖)
+      _ = H := rfl
+  have hraw :
+      ‖poleClearedRiemannZeta z‖ ≤ A * Real.exp H :=
+    Eq.subst
+      (motive := fun w : ℂ => ‖w‖ ≤ A * Real.exp H)
+      hpc.symm
+      (le_trans hproduct hscaled)
+  exact Eq.subst
+    (motive := fun x : ℝ => ‖poleClearedRiemannZeta z‖ ≤ A * Real.exp x)
+    hexponent.symm
+    hraw
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
 
@@ -10548,7 +10829,7 @@ This is the functional-equation side of the standard finite-order theorem:
 transport the right half-plane Euler-Maclaurin/Dirichlet-series control across
 the completed functional equation and use the exposed Gamma/Stirling owner
 estimates; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
-theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation :
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -10557,6 +10838,143 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalE
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
+
+/-- Left half-plane finite-order growth for the pole-cleared zeta factor.
+
+This is only name transport from the completed functional equation plus the
+Gamma/Stirling owner estimates. -/
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling
+
+/-- Compact core of the central strip for the pole-cleared zeta factor.
+
+This is the finite-height local boundedness part: continuity of the removable
+pole-cleared normalization on the compact rectangle `0 ≤ Re z ≤ 2`,
+`|Im z| ≤ 1`, converted to a degree-zero finite-order envelope. -/
+theorem poleClearedRiemannZeta_centralStrip_compactCore_finiteOrder_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 2 →
+        ‖z.im‖ ≤ 1 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, 1, 0, hC_pos, zero_lt_one, ?_⟩
+  intro z hz0 hz2 hzim
+  have hz_mem : z ∈ completedRiemannZeta₀_rightCriticalStripCompactSet :=
+    ⟨hz0, hz2, hzim⟩
+  have hraw : ‖poleClearedRiemannZeta z‖ ≤ C :=
+    hC_bound z hz_mem
+  have hfactor_ge_one :
+      (1 : ℝ) ≤ Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+    have hexponent_nonneg :
+        0 ≤ (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) :=
+      mul_nonneg zero_le_one
+        (pow_nonneg (add_nonneg zero_le_one (norm_nonneg z)) 0)
+    exact le_trans
+      (le_of_eq Real.exp_zero.symm)
+      (Real.exp_le_exp.mpr hexponent_nonneg)
+  have hC_le_target :
+      C ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+    calc
+      C = C * 1 := by
+        exact (mul_one C).symm
+      _ ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) :=
+        mul_le_mul_of_nonneg_left hfactor_ge_one (le_of_lt hC_pos)
+  exact le_trans hraw hC_le_target
+
+/-- Vertical-tail finite-order growth in the central strip for the pole-cleared zeta factor.
+
+This is the unbounded-height part of the central strip.  Its proof belongs to
+the standard zeta strip-growth theorem: combine the left boundary obtained from
+the completed functional equation and Gamma/Stirling owner estimates with the
+right boundary obtained from the Dirichlet-series/Euler-Maclaurin side, then use
+the generic strip finite-order/Phragmen-Lindelöf API. -/
+theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from_boundary_inputs :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 2 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Compact core and vertical tails patch to finite-order growth on the whole
+central strip. -/
+theorem poleClearedRiemannZeta_centralStrip_finiteOrder_growth_of_compactCore_and_verticalTail
+    (hcompact :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 2 →
+          ‖z.im‖ ≤ 1 →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (htail :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          z.re ≤ 2 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hcompact with ⟨Ac, Bc, mc, hAc, hBc, hc⟩
+  rcases htail with ⟨At, Bt, mt, hAt, hBt, ht⟩
+  refine ⟨Ac + At, Bc + Bt, mc + mt, add_pos hAc hAt, add_pos hBc hBt, ?_⟩
+  intro z hz0 hz2
+  have hAc_nonneg : 0 ≤ Ac := le_of_lt hAc
+  have hAt_nonneg : 0 ≤ At := le_of_lt hAt
+  have hBc_nonneg : 0 ≤ Bc := le_of_lt hBc
+  have hBt_nonneg : 0 ≤ Bt := le_of_lt hBt
+  match le_total ‖z.im‖ 1 with
+  | Or.inl hcompact_im =>
+      exact le_trans (hc z hz0 hz2 hcompact_im)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+          hAc_nonneg
+          (le_add_of_nonneg_right hAt_nonneg)
+          (le_add_of_nonneg_right hBt_nonneg)
+          hBc_nonneg
+          (Nat.le_add_right mc mt))
+  | Or.inr htail_im =>
+      have hdegree : mt ≤ mc + mt := by
+        exact Eq.subst
+          (motive := fun d : ℕ => mt ≤ d)
+          (Nat.add_comm mt mc)
+          (Nat.le_add_right mt mc)
+      exact le_trans (ht z hz0 hz2 htail_im)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+          hAt_nonneg
+          (le_add_of_nonneg_left hAc_nonneg)
+          (le_add_of_nonneg_left hBc_nonneg)
+          hBt_nonneg
+          hdegree)
 
 /-- Central compact-strip finite-order growth for the pole-cleared zeta factor.
 
@@ -10573,7 +10991,10 @@ theorem poleClearedRiemannZeta_centralStrip_finiteOrder_growth_from_localBounded
         z.re ≤ 2 →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact
+    poleClearedRiemannZeta_centralStrip_finiteOrder_growth_of_compactCore_and_verticalTail
+      poleClearedRiemannZeta_centralStrip_compactCore_finiteOrder_growth
+      poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from_boundary_inputs
 
 /-- Patch left, central, and right finite-order envelopes into a global envelope. -/
 theorem poleClearedRiemannZeta_globalFiniteOrder_growth_of_left_central_right
