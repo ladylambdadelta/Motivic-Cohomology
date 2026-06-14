@@ -13,27 +13,32 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped Filter Topology
+open scoped Filter Topology Convex
 
 /-- The real inequality `2 < 3`, written without numeric automation. -/
 theorem real_two_lt_three :
     (2 : ℝ) < 3 := by
   calc
     (2 : ℝ) = 1 + 1 := by
-      rfl
+      exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
     _ < 1 + 2 := add_lt_add_left one_lt_two 1
     _ = 3 := by
-      rfl
+      exact (congrArg (fun x : ℝ => 1 + x) (one_add_one_eq_two : (1 : ℝ) + 1 = 2)).trans
+        (show (1 : ℝ) + (1 + 1) = 3 from two_add_one_eq_three)
 
 /-- The real inequality `3 < 4`, written without numeric automation. -/
 theorem real_three_lt_four :
     (3 : ℝ) < 4 := by
   calc
     (3 : ℝ) = 1 + 2 := by
-      rfl
+      exact
+        (show (1 : ℝ) + 2 = 3 by
+          calc
+            (1 : ℝ) + 2 = 2 + 1 := add_comm 1 2
+            _ = 3 := two_add_one_eq_three).symm
     _ < 2 + 2 := add_lt_add_right one_lt_two 2
     _ = 4 := by
-      rfl
+      exact two_add_two_eq_four
 
 /-- The punctured vertical strip used by the Euler-Maclaurin identity theorem:
 `0 < Re z < 2`, with the point `1` removed. -/
@@ -160,7 +165,7 @@ theorem puncturedVerticalStrip_rightCorridor_re_lt_two :
       (calc
         (3 : ℝ) < 4 := real_three_lt_four
         _ = 2 * 2 := by
-          rfl)
+          exact (two_mul (2 : ℝ)).symm)
 
 /-- The left safe vertical corridor is not the deleted point. -/
 theorem puncturedVerticalStrip_leftCorridor_ne_one
@@ -198,10 +203,10 @@ theorem puncturedVerticalStrip_rightCorridor_mem
 theorem complex_lineMap_re
     (z w : ℂ)
     (t : ℝ) :
-    (lineMap z w t).re = (1 - t) * z.re + t * w.re := by
+    (AffineMap.lineMap z w t).re = (1 - t) * z.re + t * w.re := by
   calc
-    (lineMap z w t).re = ((1 - t) • z + t • w).re :=
-      congrArg Complex.re (lineMap_apply z w t)
+    (AffineMap.lineMap z w t).re = ((1 - t) • z + t • w).re :=
+      congrArg Complex.re (AffineMap.lineMap_apply_module z w t)
     _ = ((1 - t) • z).re + (t • w).re :=
       Complex.add_re ((1 - t) • z) (t • w)
     _ = (1 - t) * z.re + t * w.re := by
@@ -211,10 +216,10 @@ theorem complex_lineMap_re
 theorem complex_lineMap_im
     (z w : ℂ)
     (t : ℝ) :
-    (lineMap z w t).im = (1 - t) * z.im + t * w.im := by
+    (AffineMap.lineMap z w t).im = (1 - t) * z.im + t * w.im := by
   calc
-    (lineMap z w t).im = ((1 - t) • z + t • w).im :=
-      congrArg Complex.im (lineMap_apply z w t)
+    (AffineMap.lineMap z w t).im = ((1 - t) • z + t • w).im :=
+      congrArg Complex.im (AffineMap.lineMap_apply_module z w t)
     _ = ((1 - t) • z).im + (t • w).im :=
       Complex.add_im ((1 - t) • z) (t • w)
     _ = (1 - t) * z.im + t * w.im := by
@@ -279,7 +284,13 @@ theorem real_affine_combination_mem_Icc_of_le
     (1 - t) * x + t * y ∈ Set.Icc x y := by
   have hx : x ∈ Set.Icc x y := ⟨le_rfl, hxy⟩
   have hy : y ∈ Set.Icc x y := ⟨hxy, le_rfl⟩
-  exact (convex_Icc x y).lineMap_mem hx hy ht
+  have hline :
+      AffineMap.lineMap x y t ∈ Set.Icc x y :=
+    (convex_Icc x y).lineMap_mem hx hy ht
+  exact Eq.subst
+    (motive := fun u : ℝ => u ∈ Set.Icc x y)
+    (AffineMap.lineMap_apply_ring x y t)
+    hline
 
 /-- If `t ∈ [0,1]`, then `1 - t ∈ [0,1]`. -/
 theorem one_sub_mem_Icc_zero_one

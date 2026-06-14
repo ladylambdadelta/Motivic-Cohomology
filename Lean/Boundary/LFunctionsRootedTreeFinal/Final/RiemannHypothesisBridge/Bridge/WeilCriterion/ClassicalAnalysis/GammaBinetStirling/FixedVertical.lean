@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SectorialLogNorm
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.FixedVerticalEnvelope.Owner
 
 /-!
 # Fixed-vertical-line Gamma bounds
@@ -11,7 +12,100 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped Topology
+open scoped Filter Topology
+
+/-- A fixed real power is eventually bounded by a slightly larger exponential
+after the harmless shift `x ↦ 1 + x`. -/
+theorem Real.one_add_rpow_le_exp_mul_of_large
+    (s b : ℝ)
+    (hb : 0 < b) :
+    ∃ T : ℝ,
+      0 < T ∧
+      ∀ x : ℝ,
+        T ≤ x →
+          (1 + x) ^ s ≤ Real.exp ((2 * b) * x) := by
+  have hsmall :
+      (fun y : ℝ => y ^ s) =o[atTop] fun y : ℝ => Real.exp (b * y) :=
+    Real.isLittleO_rpow_exp_pos_mul_atTop s hb
+  have hbound_eventually :
+      (fun y : ℝ => ‖y ^ s‖) ≤ᶠ[atTop]
+        fun y : ℝ => ‖Real.exp (b * y)‖ :=
+    hsmall.bound zero_lt_one
+  have hnonneg_eventually : ∀ᶠ y : ℝ in atTop, 0 ≤ y :=
+    eventually_ge_atTop 0
+  have heventually :
+      ∀ᶠ y : ℝ in atTop,
+        ‖y ^ s‖ ≤ ‖Real.exp (b * y)‖ ∧ 0 ≤ y :=
+    hbound_eventually.and hnonneg_eventually
+  rw [eventually_atTop] at heventually
+  rcases heventually with ⟨Y, hY⟩
+  let T : ℝ := max 1 (Y - 1)
+  refine ⟨T, ?_, ?_⟩
+  · exact lt_of_lt_of_le zero_lt_one (le_max_left 1 (Y - 1))
+  · intro x hx
+    have hx_one : 1 ≤ x :=
+      le_trans (le_max_left 1 (Y - 1)) hx
+    have hy_ge : Y ≤ 1 + x := by
+      have hYminus : Y - 1 ≤ x :=
+        le_trans (le_max_right 1 (Y - 1)) hx
+      linarith
+    rcases hY (1 + x) hy_ge with ⟨hbound, hy_nonneg⟩
+    have hrpow_nonneg : 0 ≤ (1 + x) ^ s :=
+      Real.rpow_nonneg hy_nonneg s
+    have hnorm_rpow : ‖(1 + x) ^ s‖ = (1 + x) ^ s :=
+      Real.norm_of_nonneg hrpow_nonneg
+    have hnorm_exp : ‖Real.exp (b * (1 + x))‖ = Real.exp (b * (1 + x)) :=
+      Real.norm_of_nonneg (le_of_lt (Real.exp_pos (b * (1 + x))))
+    have hexponent_le : b * (1 + x) ≤ (2 * b) * x := by
+      nlinarith [hb, hx_one]
+    calc
+      (1 + x) ^ s = ‖(1 + x) ^ s‖ := hnorm_rpow.symm
+      _ ≤ ‖Real.exp (b * (1 + x))‖ := hbound
+      _ = Real.exp (b * (1 + x)) := hnorm_exp
+      _ ≤ Real.exp ((2 * b) * x) :=
+        Real.exp_le_exp.mpr hexponent_le
+
+/-- The fixed-line direct Stirling envelope is bounded by a polynomial on the
+large vertical tail. -/
+theorem Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
+    (σ : ℝ) :
+    ∃ m : ℕ,
+      ∀ t : ℝ,
+        (1 / 2 : ℝ) ≤ ‖t‖ →
+          Real.exp (-(Real.pi / 2) * ‖t‖) *
+              (1 + ‖t‖) ^ (σ - 1 / 2) ≤
+            (1 + ‖t‖) ^ m := by
+  let m : ℕ := Nat.ceil (σ - 1 / 2)
+  have hexponent_le : σ - 1 / 2 ≤ (m : ℝ) := by
+    exact Nat.le_ceil (σ - 1 / 2)
+  refine ⟨m, ?_⟩
+  intro t _ht
+  have hbase_one : 1 ≤ 1 + ‖t‖ := by
+    linarith [norm_nonneg t]
+  have hbase_nonneg : 0 ≤ 1 + ‖t‖ :=
+    le_trans zero_le_one hbase_one
+  have hrpow_nonneg : 0 ≤ (1 + ‖t‖) ^ (σ - 1 / 2) :=
+    Real.rpow_nonneg hbase_nonneg (σ - 1 / 2)
+  have hexp_le_one :
+      Real.exp (-(Real.pi / 2) * ‖t‖) ≤ 1 := by
+    calc
+      Real.exp (-(Real.pi / 2) * ‖t‖) ≤ Real.exp 0 :=
+        Real.exp_le_exp.mpr (by positivity)
+      _ = 1 := Real.exp_zero
+  have hrpow_le_nat :
+      (1 + ‖t‖) ^ (σ - 1 / 2) ≤ (1 + ‖t‖) ^ m := by
+    calc
+      (1 + ‖t‖) ^ (σ - 1 / 2) ≤ (1 + ‖t‖) ^ (m : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le hbase_one hexponent_le
+      _ = (1 + ‖t‖) ^ m := by
+        exact (Real.rpow_natCast (1 + ‖t‖) m).symm
+  calc
+    Real.exp (-(Real.pi / 2) * ‖t‖) *
+        (1 + ‖t‖) ^ (σ - 1 / 2) ≤
+        1 * (1 + ‖t‖) ^ (σ - 1 / 2) :=
+      mul_le_mul_of_nonneg_right hexp_le_one hrpow_nonneg
+    _ = (1 + ‖t‖) ^ (σ - 1 / 2) := one_mul _
+    _ ≤ (1 + ‖t‖) ^ m := hrpow_le_nat
 
 /-- Large-vertical polynomial upper bound on a fixed positive real-part line,
 obtained from the sectorial Binet/Stirling estimate. -/
@@ -24,7 +118,38 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
         T ≤ ‖t‖ →
           ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
             C * (1 + ‖t‖) ^ m := by
-  sorry
+  rcases
+      Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical
+        σ with
+    ⟨C, hC_pos, hstirling⟩
+  rcases
+      Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
+        σ with
+    ⟨m, henvelope⟩
+  refine ⟨1 / 2, C, m, half_pos zero_lt_one, hC_pos, ?_⟩
+  intro t ht
+  have hstirling_t :
+      ‖Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I)‖ ≤
+        C * Real.exp (-(Real.pi / 2) * ‖t‖) *
+          (1 + ‖t‖) ^ (σ - 1 / 2) :=
+    hstirling t ht
+  have henvelope_t :
+      Real.exp (-(Real.pi / 2) * ‖t‖) *
+          (1 + ‖t‖) ^ (σ - 1 / 2) ≤
+        (1 + ‖t‖) ^ m :=
+    henvelope t ht
+  have htarget :
+      C * Real.exp (-(Real.pi / 2) * ‖t‖) *
+          (1 + ‖t‖) ^ (σ - 1 / 2) ≤
+        C * (1 + ‖t‖) ^ m := by
+    calc
+      C * Real.exp (-(Real.pi / 2) * ‖t‖) *
+          (1 + ‖t‖) ^ (σ - 1 / 2) =
+          C * (Real.exp (-(Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (σ - 1 / 2)) := by ring
+      _ ≤ C * (1 + ‖t‖) ^ m :=
+        mul_le_mul_of_nonneg_left henvelope_t (le_of_lt hC_pos)
+  exact le_trans hstirling_t htarget
 
 /-- Compact-interval upper bound on a fixed positive real-part vertical line. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
@@ -157,7 +282,73 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
         T ≤ ‖t‖ →
           ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
             C * Real.exp (A * ‖t‖) := by
-  sorry
+  rcases
+      Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
+        σ with
+    ⟨C0, hC0_pos, hstirling⟩
+  let b : ℝ := Real.pi / 4
+  have hb_pos : 0 < b := by
+    dsimp [b]
+    positivity
+  rcases
+      Real.one_add_rpow_le_exp_mul_of_large
+        (1 / 2 - σ) b hb_pos with
+    ⟨T0, hT0_pos, hpoly_exp⟩
+  let T : ℝ := max (1 / 2) T0
+  let A : ℝ := Real.pi
+  refine ⟨T, C0, A, ?_, hC0_pos, Real.pi_pos, ?_⟩
+  · exact lt_of_lt_of_le (half_pos zero_lt_one) (le_max_left (1 / 2) T0)
+  · intro t ht
+    have ht_half : (1 / 2 : ℝ) ≤ ‖t‖ :=
+      le_trans (le_max_left (1 / 2) T0) ht
+    have ht_T0 : T0 ≤ ‖t‖ :=
+      le_trans (le_max_right (1 / 2) T0) ht
+    have hstirling_t :
+        ‖(Complex.Gamma ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹‖ ≤
+          C0 * Real.exp ((Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (1 / 2 - σ) :=
+      hstirling t ht_half
+    have hpoly :
+        (1 + ‖t‖) ^ (1 / 2 - σ) ≤
+          Real.exp ((2 * b) * ‖t‖) :=
+      hpoly_exp ‖t‖ ht_T0
+    have hpoly_nonneg :
+        0 ≤ (1 + ‖t‖) ^ (1 / 2 - σ) := by
+      exact Real.rpow_nonneg
+        (add_nonneg zero_le_one (norm_nonneg t)) (1 / 2 - σ)
+    have hexp_nonneg :
+        0 ≤ Real.exp ((Real.pi / 2) * ‖t‖) :=
+      le_of_lt (Real.exp_pos ((Real.pi / 2) * ‖t‖))
+    have henvelope :
+        Real.exp ((Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (1 / 2 - σ) ≤
+          Real.exp (A * ‖t‖) := by
+      calc
+        Real.exp ((Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (1 / 2 - σ) ≤
+            Real.exp ((Real.pi / 2) * ‖t‖) *
+              Real.exp ((2 * b) * ‖t‖) :=
+          mul_le_mul_of_nonneg_left hpoly hexp_nonneg
+        _ = Real.exp (((Real.pi / 2) + (2 * b)) * ‖t‖) := by
+          rw [← Real.exp_add]
+          congr 1
+          ring
+        _ = Real.exp (A * ‖t‖) := by
+          congr 1
+          dsimp [A, b]
+          ring
+    have htarget :
+        C0 * Real.exp ((Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (1 / 2 - σ) ≤
+          C0 * Real.exp (A * ‖t‖) := by
+      calc
+        C0 * Real.exp ((Real.pi / 2) * ‖t‖) *
+            (1 + ‖t‖) ^ (1 / 2 - σ) =
+            C0 * (Real.exp ((Real.pi / 2) * ‖t‖) *
+              (1 + ‖t‖) ^ (1 / 2 - σ)) := by ring
+        _ ≤ C0 * Real.exp (A * ‖t‖) :=
+          mul_le_mul_of_nonneg_left henvelope (le_of_lt hC0_pos)
+    exact le_trans hstirling_t htarget
 
 /-- Compact-interval reciprocal bound on a fixed positive real-part vertical
 line, using nonvanishing of Gamma on the open right half-plane. -/
