@@ -980,6 +980,40 @@ theorem Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
     le_trans hlogB_le_Cδ
       (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq))
 
+/-- In the closed right half-plane, the real-part contribution to the
+normalized Stirling loss is nonpositive, so the loss is bounded by the
+principal-power logarithmic loss alone. -/
+theorem Complex.normalizedGammaStirlingLogLoss_le_neg_cpow_log
+    {w : ℂ}
+    (hw_sector : Complex.closedRightHalfPlaneSector w) :
+    Complex.normalizedGammaStirlingLogLoss w ≤
+      -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+  have hneg_re_nonpos : -w.re ≤ 0 :=
+    neg_nonpos.mpr hw_sector
+  calc
+    Complex.normalizedGammaStirlingLogLoss w =
+        -w.re + -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+      exact sub_eq_add_neg (-w.re) (Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+    _ ≤ 0 + -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+      add_le_add_right hneg_re_nonpos
+        (-Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+    _ = -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+      zero_add (-Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+
+/-- Principal-power logarithmic loss for `w^(1/2-w)` is absorbed by the
+large-radius log-linear envelope. -/
+theorem Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLinearEnvelope
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
 /-- The principal-branch logarithmic loss in normalized Stirling is absorbed by
 the large-radius log-linear envelope. -/
 theorem Complex.normalizedGammaStirlingLogLoss_absorbed_by_largeRadius_logLinearEnvelope
@@ -992,7 +1026,15 @@ theorem Complex.normalizedGammaStirlingLogLoss_absorbed_by_largeRadius_logLinear
         R₀ ≤ ‖w‖ →
         Complex.normalizedGammaStirlingLogLoss w ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  rcases
+      Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLinearEnvelope
+        R₀ hR₀_pos with
+    ⟨C, hC_pos, hcpow⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro w hw_sector hw_radius
+  exact le_trans
+    (Complex.normalizedGammaStirlingLogLoss_le_neg_cpow_log hw_sector)
+    (hcpow w hw_sector hw_radius)
 
 /-- Assembly of constant-log absorption and principal-branch loss absorption. -/
 theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound_of_constant_and_loss
@@ -9297,7 +9339,42 @@ theorem finiteOrder_stripEnvelope_isBigO_verticalEnvelope
           𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
       fun z : ℂ =>
         A * Real.exp ((B * (|a| + |b| + 2) ^ m) * (1 + ‖z.im‖) ^ m) := by
-  sorry
+  exact
+    IsBigO.of_bound 1
+      (eventually_inf_principal.mpr
+        (Filter.Eventually.of_forall
+          (fun z hz =>
+            let E₁ : ℝ := A * Real.exp (B * (1 + ‖z‖) ^ m)
+            let E₂ : ℝ :=
+              A * Real.exp ((B * (|a| + |b| + 2) ^ m) * (1 + ‖z.im‖) ^ m)
+            have hpoint : E₁ ≤ E₂ :=
+              finiteOrder_norm_envelope_le_strip_vertical_envelope
+                (le_of_lt hA)
+                (le_of_lt hB)
+                hz.1
+                hz.2
+            have hE₁_nonneg : 0 ≤ E₁ :=
+              mul_nonneg (le_of_lt hA)
+                (le_of_lt (Real.exp_pos (B * (1 + ‖z‖) ^ m)))
+            have hE₂_nonneg : 0 ≤ E₂ :=
+              le_trans hE₁_nonneg hpoint
+            have hE₁_norm : ‖E₁‖ = E₁ :=
+              Real.norm_of_nonneg hE₁_nonneg
+            have hE₂_norm : ‖E₂‖ = E₂ :=
+              Real.norm_of_nonneg hE₂_nonneg
+            have hone_norm : 1 * ‖E₂‖ = E₂ := by
+              calc
+                1 * ‖E₂‖ = ‖E₂‖ :=
+                  one_mul ‖E₂‖
+                _ = E₂ :=
+                  hE₂_norm
+            Eq.subst
+              (motive := fun x : ℝ => ‖E₁‖ ≤ x)
+              hone_norm.symm
+              (Eq.subst
+                (motive := fun x : ℝ => x ≤ E₂)
+                hE₁_norm.symm
+                hpoint))))
 
 /-- The real vertical double-exponential domination transports through
 `z ↦ |im z|` to the closed-strip filter. -/
@@ -9417,7 +9494,28 @@ theorem isBigO_on_openStrip_of_isBigO_on_closedStrip
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
         G := by
-  sorry
+  let L : Filter ℂ :=
+    Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop
+  have hopen_subset_closed :
+      Complex.re ⁻¹' Set.Ioo a b ⊆ {z : ℂ | a ≤ z.re ∧ z.re ≤ b} := by
+    intro z hz
+    exact openStrip_mem_closedStrip_bounds hz
+  have hprincipal :
+      𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤
+        𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b} :=
+    principal_mono.2 hopen_subset_closed
+  have hle_left :
+      L ⊓ 𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤ L :=
+    inf_le_left
+  have hle_right :
+      L ⊓ 𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤
+        𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b} :=
+    le_trans inf_le_right hprincipal
+  have hle :
+      L ⊓ 𝓟 (Complex.re ⁻¹' Set.Ioo a b) ≤
+        L ⊓ 𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b} :=
+    le_inf hle_left hle_right
+  exact h.mono hle
 
 /-- The closed-strip envelope domination can be used on the open-strip filter. -/
 theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
