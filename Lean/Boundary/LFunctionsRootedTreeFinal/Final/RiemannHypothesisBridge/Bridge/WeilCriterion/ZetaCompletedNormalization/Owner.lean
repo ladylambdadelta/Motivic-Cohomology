@@ -12589,6 +12589,8 @@ noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
     (z : ℂ) : ℂ :=
   if z = 0 then
     poleClearedRiemannZeta 0
+  else if Complex.Gammaℝ z = 0 then
+    poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)
   else
     ((z - 1) / (((1 : ℂ) - z) - 1)) *
       (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
@@ -12697,7 +12699,7 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
           ((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
       unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-      exact if_neg hz_ne_zero
+      exact Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_ne)
     exact Eq.subst
       (motive := fun w : ℂ =>
         poleClearedRiemannZeta z =
