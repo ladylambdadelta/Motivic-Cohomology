@@ -2777,6 +2777,41 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
           entireFunctionJensenRadialGapSummand G hG ρ z :=
       entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum G hG ρ
 
+/-- Interval-integral transport across a finite exceptional set.
+
+This theorem is the measure-theoretic root underneath the origin-factor
+boundary integral comparison.  Once a finite set `S` contains all logarithmic
+singular parameters and the two integrands agree off `S` on `[0,2π]`, the
+interval integral sees only the off-exception identity. -/
+theorem intervalIntegral_eq_of_finite_exception_congr
+    (u v : ℝ → ℝ)
+    (S : Set ℝ)
+    (hS : S.Finite)
+    (hcongr :
+      ∀ θ : ℝ,
+        θ ∈ Set.Icc 0 (2 * Real.pi) →
+        θ ∉ S →
+        u θ = v θ) :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+      ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ := by
+  refine intervalIntegral.integral_congr_ae ?_
+  have hAeNotMem :
+      ∀ᵐ θ ∂MeasureTheory.volume, θ ∉ S :=
+    hS.countable.ae_not_mem MeasureTheory.volume
+  filter_upwards [hAeNotMem] with θ hθ_not_mem hθ_interval
+  have hθ_uIcc :
+      θ ∈ Set.uIcc (0 : ℝ) (2 * Real.pi) :=
+    Set.uIoc_subset_uIcc hθ_interval
+  have hθ_Icc :
+      θ ∈ Set.Icc (0 : ℝ) (2 * Real.pi) := by
+    have hle : (0 : ℝ) ≤ 2 * Real.pi :=
+      le_of_lt Real.two_pi_pos
+    exact Eq.subst
+      (motive := fun T : Set ℝ => θ ∈ T)
+      (Set.uIcc_of_le hle)
+      hθ_uIcc
+  exact hcongr θ hθ_Icc hθ_not_mem
+
 /-- Unnormalized boundary-integral transport through the origin Taylor factor,
 after deleting the finite quotient boundary-zero exceptional set.
 
