@@ -393,6 +393,67 @@ noncomputable def eulerMaclaurinFirstPeriodicBernoulli
     (x : ℝ) : ℝ :=
   Int.fract x - 1 / 2
 
+/-- Early finite-section version of the first-periodic Bernoulli bound.
+
+This is intentionally placed near the definition so finite Euler-Maclaurin
+calculus lemmas can use it without depending on later tail-estimate API. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_finite
+    (x : ℝ) :
+    ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  have hfract_nonneg : 0 ≤ Int.fract x :=
+    Int.fract_nonneg x
+  have hfract_le_one : Int.fract x ≤ 1 :=
+    le_of_lt (Int.fract_lt_one x)
+  have hlower : -(1 : ℝ) ≤ Int.fract x - 1 / 2 := by
+    have hneg_half : -(1 : ℝ) ≤ -(1 / 2 : ℝ) :=
+      neg_le_neg one_half_le_one
+    have hshift : -(1 / 2 : ℝ) ≤ Int.fract x - 1 / 2 := by
+      calc
+        -(1 / 2 : ℝ) = 0 - 1 / 2 := by
+          exact (zero_sub (1 / 2 : ℝ)).symm
+        _ ≤ Int.fract x - 1 / 2 :=
+          sub_le_sub_right hfract_nonneg (1 / 2 : ℝ)
+    exact le_trans hneg_half hshift
+  have hupper : Int.fract x - 1 / 2 ≤ 1 := by
+    have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) :=
+      one_half_nonneg
+    calc
+      Int.fract x - 1 / 2 ≤ Int.fract x :=
+        sub_le_self (Int.fract x) hhalf_nonneg
+      _ ≤ 1 :=
+        hfract_le_one
+  have habs :
+      |Int.fract x - 1 / 2| ≤ 1 :=
+    abs_le.mpr ⟨hlower, hupper⟩
+  have hnorm :
+      ‖((Int.fract x - 1 / 2 : ℝ) : ℂ)‖ =
+        |Int.fract x - 1 / 2| :=
+    Complex.norm_ofReal (Int.fract x - 1 / 2)
+  exact Eq.subst
+    (motive := fun t : ℝ => t ≤ 1)
+    hnorm.symm
+    habs
+
+/-- Early finite-section version of measurability for the first periodic
+Bernoulli sawtooth. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_measurable_finite :
+    Measurable eulerMaclaurinFirstPeriodicBernoulli := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  exact measurable_fract.sub measurable_const
+
+/-- Early finite-section version of restricted strong measurability for the
+complex-valued first periodic Bernoulli factor. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_cast_aestronglyMeasurable_restrict_finite
+    (s : Set ℝ)
+    (hs : MeasurableSet s) :
+    AEStronglyMeasurable
+      (fun x : ℝ => ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+      (volume.restrict s) := by
+  exact
+    ((Complex.continuous_ofReal.measurable.comp
+      eulerMaclaurinFirstPeriodicBernoulli_measurable_finite).aestronglyMeasurable)
+
 /-- The bare Bernoulli-periodic tail integral in the Euler-Maclaurin zeta
 remainder, before multiplication by `-(z - 1) z`. -/
 noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
@@ -886,6 +947,221 @@ theorem eulerMaclaurinFirstPeriodicBernoulli_eq_sub_nat_sub_half_on_Ioo
     _ = x - ((n : ℕ) : ℝ) - 1 / 2 := by
       exact congrArg (fun t : ℝ => t - 1 / 2) hfract_self
 
+/-- Affine one-unit-interval integration by parts in set-integral form.
+
+This is the direct interval-calculus input for the first-order finite
+Euler-Maclaurin formula.  It is the specialization of mathlib's interval
+integration-by-parts theorem to `u(x)=x-n-1/2`, where `u'=1`,
+`u(n)=-1/2`, and `u(n+1)=1/2`. -/
+theorem eulerMaclaurin_affineSawtooth_oneInterval_integrationByParts
+    (f f' : ℝ → ℂ)
+    (n : ℕ)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)))) :
+    f (((n + 1 : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
+        (-(1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) := by
+  let a : ℝ := ((n : ℕ) : ℝ)
+  let b : ℝ := (((n + 1 : ℕ) : ℝ))
+  let u : ℝ → ℂ := fun x : ℝ => ((x - a - 1 / 2 : ℝ) : ℂ)
+  let u' : ℝ → ℂ := fun _ : ℝ => (1 : ℂ)
+  have hab : a ≤ b := by
+    unfold a b
+    exact_mod_cast Nat.le_succ n
+  have hb_eq : b = a + 1 := by
+    unfold a b
+    exact_mod_cast Nat.cast_add_one n
+  have hu_cont : ContinuousOn u (uIcc a b) := by
+    exact
+      (continuous_ofReal.comp
+        ((continuous_id.sub continuous_const).sub continuous_const)).continuousOn
+  have hf_cont_uIcc : ContinuousOn f (uIcc a b) := by
+    have huIcc_eq : uIcc a b = Set.Icc a b := by
+      exact uIcc_of_le hab
+    exact Eq.subst
+      (motive := fun s : Set ℝ => ContinuousOn f s)
+      huIcc_eq.symm
+      (by
+        unfold a b
+        exact hf_cont)
+  have hu_deriv : ∀ x ∈ Set.Ioo (min a b) (max a b),
+      HasDerivAt u (u' x) x := by
+    intro x hx
+    have hbase : HasDerivAt (fun y : ℝ => y - a - 1 / 2) (1 : ℝ) x := by
+      exact ((hasDerivAt_id x).sub_const a).sub_const (1 / 2)
+    exact hbase.ofReal
+  have hf_deriv_ab : ∀ x ∈ Set.Ioo (min a b) (max a b),
+      HasDerivAt f (f' x) x := by
+    intro x hx
+    have hmin : min a b = a := min_eq_left hab
+    have hmax : max a b = b := max_eq_right hab
+    have hx_ab : x ∈ Set.Ioo a b := by
+      exact Eq.subst
+        (motive := fun t : ℝ => x ∈ Set.Ioo t (max a b))
+        hmin
+        (Eq.subst
+          (motive := fun t : ℝ => x ∈ Set.Ioo (min a b) t)
+          hmax
+          hx)
+    unfold a b at hx_ab
+    exact hf_deriv x hx_ab
+  have hu'_int : IntervalIntegrable u' volume a b := by
+    have hcont : ContinuousOn u' (uIcc a b) := by
+      exact continuous_const.continuousOn
+    exact hcont.intervalIntegrable
+  have hf'_intervalInt : IntervalIntegrable f' volume a b := by
+    exact
+      (intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hab).mpr
+        (by
+          unfold a b
+          exact hf'_int)
+  have hparts :
+      (∫ x in a..b, u x * f' x) =
+        u b * f b - u a * f a - ∫ x in a..b, u' x * f x :=
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt
+      hu_cont hf_cont_uIcc hu_deriv hf_deriv_ab hu'_int hf'_intervalInt
+  have hu_a : u a = (-(1 / 2 : ℂ)) := by
+    unfold u
+    have hreal : a - a - 1 / 2 = (-(1 / 2) : ℝ) := by
+      exact sub_self a ▸ rfl
+    exact congrArg Complex.ofReal hreal
+  have hu_b : u b = (1 / 2 : ℂ) := by
+    unfold u
+    have hreal : b - a - 1 / 2 = (1 / 2 : ℝ) := by
+      calc
+        b - a - 1 / 2 = (a + 1) - a - 1 / 2 := by
+          exact congrArg (fun t : ℝ => t - a - 1 / 2) hb_eq
+        _ = 1 - 1 / 2 := by
+          exact congrArg (fun t : ℝ => t - 1 / 2) (add_sub_cancel_left 1 a)
+        _ = 1 / 2 := by norm_num
+    exact congrArg Complex.ofReal hreal
+  have hu'_mul_integral :
+      (∫ x in a..b, u' x * f x) =
+        ∫ x in Set.Ioc a b, f x := by
+    have hpoint : ∀ x : ℝ, u' x * f x = f x := by
+      intro x
+      unfold u'
+      exact one_mul (f x)
+    have hinterval :
+        (∫ x in a..b, u' x * f x) =
+          ∫ x in Set.Ioc a b, u' x * f x :=
+      intervalIntegral.integral_of_le hab
+    exact Eq.trans hinterval
+      (setIntegral_congr_fun measurableSet_Ioc
+        (fun x hx => hpoint x))
+  have hu_mul_integral :
+      (∫ x in a..b, u x * f' x) =
+        ∫ x in Set.Ioc a b,
+          (((x - a - 1 / 2 : ℝ) : ℂ) * f' x) :=
+    intervalIntegral.integral_of_le hab
+  have hsolved :
+      f b =
+        (∫ x in Set.Ioc a b, f x) +
+          (-(1 / 2 : ℂ) * f a) +
+          ((1 / 2 : ℂ) * f b) +
+          (∫ x in Set.Ioc a b,
+            (((x - a - 1 / 2 : ℝ) : ℂ) * f' x)) := by
+    have hparts_set :
+        (∫ x in Set.Ioc a b,
+          (((x - a - 1 / 2 : ℝ) : ℂ) * f' x)) =
+          (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a -
+            ∫ x in Set.Ioc a b, f x := by
+      have hboundary :
+          u b * f b - u a * f a =
+            (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a := by
+        calc
+          u b * f b - u a * f a =
+              (1 / 2 : ℂ) * f b - u a * f a := by
+            exact congrArg (fun t : ℂ => t * f b - u a * f a) hu_b
+          _ = (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a := by
+            exact congrArg (fun t : ℂ => (1 / 2 : ℂ) * f b - t * f a) hu_a
+      have hparts_boundary :
+          (∫ x in a..b, u x * f' x) =
+            (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a -
+              ∫ x in a..b, u' x * f x := by
+        exact Eq.trans hparts
+          (congrArg
+            (fun q : ℂ => q - ∫ x in a..b, u' x * f x)
+            hboundary)
+      have hparts_integral :
+          (∫ x in a..b, u x * f' x) =
+            (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a -
+              ∫ x in Set.Ioc a b, f x := by
+        exact Eq.trans hparts_boundary
+          (congrArg
+            (fun q : ℂ =>
+              (1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a - q)
+            hu'_mul_integral)
+      exact Eq.trans hu_mul_integral.symm hparts_integral
+    calc
+      f b =
+          (∫ x in Set.Ioc a b, f x) +
+            (-(1 / 2 : ℂ) * f a) +
+            ((1 / 2 : ℂ) * f b) +
+            ((1 / 2 : ℂ) * f b - (-(1 / 2 : ℂ)) * f a -
+              ∫ x in Set.Ioc a b, f x) := by ring
+      _ =
+          (∫ x in Set.Ioc a b, f x) +
+            (-(1 / 2 : ℂ) * f a) +
+            ((1 / 2 : ℂ) * f b) +
+            (∫ x in Set.Ioc a b,
+              (((x - a - 1 / 2 : ℝ) : ℂ) * f' x)) := by
+        exact congrArg
+          (fun r : ℂ =>
+            (∫ x in Set.Ioc a b, f x) +
+              (-(1 / 2 : ℂ) * f a) +
+              ((1 / 2 : ℂ) * f b) + r)
+          hparts_set.symm
+  unfold a b at hsolved
+  exact hsolved
+
+/-- On a unit interval, replacing the affine sawtooth by the first periodic
+Bernoulli sawtooth does not change the derivative-remainder integral.  The
+two factors agree on the open interval; the endpoint discrepancy is a null
+set for the `Ioc` integral. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_remainder_integral_eq_affine
+    (f' : ℝ → ℂ)
+    (n : ℕ)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)))) :
+    (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) := by
+  let a : ℝ := ((n : ℕ) : ℝ)
+  let b : ℝ := (((n + 1 : ℕ) : ℝ))
+  have h_ae :
+      ∀ᵐ x : ℝ, x ∈ Set.Ioc a b →
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x =
+          (((x - a - 1 / 2 : ℝ) : ℂ) * f' x) := by
+    filter_upwards
+      [(compl_mem_ae_iff.mpr
+        (Set.Subsingleton.measure_zero (Set.subsingleton_singleton b) volume))]
+      with x hx_not_endpoint hx_interval
+    have hx_open : x ∈ Set.Ioo a b := by
+      exact ⟨hx_interval.1, lt_of_le_of_ne hx_interval.2
+        (fun hxb : b = x => hx_not_endpoint (hxb.symm ▸ Set.mem_singleton b))⟩
+    have hsaw :
+        eulerMaclaurinFirstPeriodicBernoulli x =
+          x - ((n : ℕ) : ℝ) - 1 / 2 := by
+      exact
+        eulerMaclaurinFirstPeriodicBernoulli_eq_sub_nat_sub_half_on_Ioo
+          n
+          (by
+            unfold a b at hx_open
+            exact hx_open)
+    exact congrArg (fun c : ℂ => c * f' x) (congrArg Complex.ofReal hsaw)
+  exact
+    setIntegral_congr_ae measurableSet_Ioc h_ae
+
 /-- One-unit-interval integration-by-parts identity for the first periodic
 Bernoulli factor.
 
@@ -909,7 +1185,466 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
         ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-  sorry
+  have haffine :
+      f (((n + 1 : ℕ) : ℝ)) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
+          (-(1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+          (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+            (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) :=
+    eulerMaclaurin_affineSawtooth_oneInterval_integrationByParts
+      f f' n hf_cont hf_deriv hf'_int
+  have hremainder :
+      (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+        (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
+          (((x - ((n : ℕ) : ℝ) - 1 / 2 : ℝ) : ℂ) * f' x)) :=
+    eulerMaclaurin_firstPeriodicBernoulli_oneInterval_remainder_integral_eq_affine
+      f' n hf'_int
+  exact
+    Eq.subst
+      (motive := fun R : ℂ =>
+        f (((n + 1 : ℕ) : ℝ)) =
+          (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
+            (-(1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+            R)
+      hremainder.symm
+      haffine
+
+/-- Splitting the strict natural endpoint sum at the last endpoint. -/
+theorem eulerMaclaurin_sum_Ioc_succ_top
+    (f : ℕ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M) :
+    (∑ n in Finset.Ioc N (M + 1), f n) =
+      (∑ n in Finset.Ioc N M, f n) + f (M + 1) := by
+  rw [← Finset.sum_Ioc_consecutive _ hNM (Nat.le_succ M)]
+  rw [Nat.Ioc_succ_singleton, Finset.sum_singleton]
+
+/-- Splitting a set integral over adjacent natural `Ioc` intervals. -/
+theorem eulerMaclaurin_integral_Ioc_succ_top
+    (g : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hg_left : IntegrableOn g
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hg_right : IntegrableOn g
+      (Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), g x) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), g x) +
+        (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), g x) := by
+  let a : ℝ := ((N : ℕ) : ℝ)
+  let b : ℝ := ((M : ℕ) : ℝ)
+  let c : ℝ := (((M + 1 : ℕ) : ℝ))
+  have hab : a ≤ b := by
+    unfold a b
+    exact_mod_cast hNM
+  have hbc : b ≤ c := by
+    unfold b c
+    exact_mod_cast Nat.le_succ M
+  have hleft_interval : IntervalIntegrable g volume a b := by
+    exact
+      (intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hab).mpr
+        (by
+          unfold a b
+          exact hg_left)
+  have hright_interval : IntervalIntegrable g volume b c := by
+    exact
+      (intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hbc).mpr
+        (by
+          unfold b c
+          exact hg_right)
+  have hconcat :
+      (∫ x in a..b, g x) + (∫ x in b..c, g x) =
+        ∫ x in a..c, g x :=
+    intervalIntegral.integral_add_adjacent_intervals
+      hleft_interval hright_interval
+  have hleft_set :
+      (∫ x in a..b, g x) =
+        ∫ x in Set.Ioc a b, g x :=
+    intervalIntegral.integral_of_le hab
+  have hright_set :
+      (∫ x in b..c, g x) =
+        ∫ x in Set.Ioc b c, g x :=
+    intervalIntegral.integral_of_le hbc
+  have hac : a ≤ c := le_trans hab hbc
+  have hwhole_set :
+      (∫ x in a..c, g x) =
+        ∫ x in Set.Ioc a c, g x :=
+    intervalIntegral.integral_of_le hac
+  have hset :
+      (∫ x in Set.Ioc a c, g x) =
+        (∫ x in Set.Ioc a b, g x) +
+          (∫ x in Set.Ioc b c, g x) := by
+    exact Eq.trans hwhole_set.symm
+      (Eq.trans hconcat.symm
+        (congrArg₂ HAdd.hAdd hleft_set hright_set))
+  unfold a b c at hset
+  exact hset
+
+/-- Endpoint half-corrections telescope in the last-step induction for the
+strict-right Euler-Maclaurin convention. -/
+theorem eulerMaclaurin_endpoint_half_telescope_succ
+    (f : ℕ → ℂ)
+    (N M : ℕ) :
+    (-(1 / 2 : ℂ) * f N) + ((1 / 2 : ℂ) * f M) +
+        (-(1 / 2 : ℂ) * f M) + ((1 / 2 : ℂ) * f (M + 1)) =
+      (-(1 / 2 : ℂ) * f N) + ((1 / 2 : ℂ) * f (M + 1)) := by
+  ring
+
+/-- Continuity on a larger natural closed interval restricts to the left
+closed subinterval. -/
+theorem eulerMaclaurin_continuousOn_Icc_left_of_succ
+    (f : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) := by
+  exact hf_cont.mono
+    (fun x hx => by
+      constructor
+      · exact hx.1
+      · exact le_trans hx.2 (by exact_mod_cast Nat.le_succ M))
+
+/-- Continuity on a larger natural closed interval restricts to the last
+unit closed subinterval. -/
+theorem eulerMaclaurin_continuousOn_Icc_right_of_succ
+    (f : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    ContinuousOn f
+      (Set.Icc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ)))) := by
+  exact hf_cont.mono
+    (fun x hx => by
+      constructor
+      · exact le_trans (by exact_mod_cast hNM) hx.1
+      · exact hx.2)
+
+/-- The open left subinterval inherits the derivative hypothesis from the
+larger natural open interval. -/
+theorem eulerMaclaurin_deriv_Ioo_left_of_succ
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))) →
+        HasDerivAt f (f' x) x) :
+    ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x := by
+  intro x hx
+  exact hf_deriv x
+    ⟨hx.1, lt_of_lt_of_le hx.2 (by exact_mod_cast Nat.le_succ M)⟩
+
+/-- The last unit open subinterval inherits the derivative hypothesis from
+the larger natural open interval. -/
+theorem eulerMaclaurin_deriv_Ioo_right_of_succ
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))) →
+        HasDerivAt f (f' x) x) :
+    ∀ x : ℝ,
+      x ∈ Set.Ioo (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))) →
+        HasDerivAt f (f' x) x := by
+  intro x hx
+  exact hf_deriv x
+    ⟨lt_of_le_of_lt (by exact_mod_cast hNM) hx.1, hx.2⟩
+
+/-- Integrability on a larger natural `Ioc` interval restricts to the left
+subinterval. -/
+theorem eulerMaclaurin_integrableOn_Ioc_left_of_succ
+    (g : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hg : IntegrableOn g
+      (Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    IntegrableOn g
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) := by
+  exact hg.mono_set
+    (fun x hx => by
+      exact ⟨hx.1, le_trans hx.2 (by exact_mod_cast Nat.le_succ M)⟩)
+
+/-- Integrability on a larger natural `Ioc` interval restricts to the last
+unit `Ioc` interval. -/
+theorem eulerMaclaurin_integrableOn_Ioc_right_of_succ
+    (g : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hg : IntegrableOn g
+      (Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    IntegrableOn g
+      (Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ)))) := by
+  exact hg.mono_set
+    (fun x hx => by
+      exact ⟨lt_of_le_of_lt (by exact_mod_cast hNM) hx.1, hx.2⟩)
+
+/-- Multiplication by the bounded first-periodic Bernoulli factor preserves
+finite `Ioc` integrability. -/
+theorem eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
+    (g : ℝ → ℂ)
+    (A B : ℝ)
+    (hg : IntegrableOn g (Set.Ioc A B)) :
+    IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * g x)
+      (Set.Ioc A B) := by
+  let s : Set ℝ := Set.Ioc A B
+  have hg_integrable : Integrable g (volume.restrict s) := by
+    unfold s
+    exact hg
+  have hB_meas :
+      AEStronglyMeasurable
+        (fun x : ℝ =>
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+        (volume.restrict s) :=
+    eulerMaclaurinFirstPeriodicBernoulli_cast_aestronglyMeasurable_restrict_finite
+      s measurableSet_Ioc
+  have hB_bound :
+      ∃ C : ℝ,
+        ∀ x : ℝ,
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ C := by
+    exact ⟨1, eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_finite⟩
+  have hmul :
+      Integrable
+        (fun x : ℝ =>
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * g x)
+        (volume.restrict s) :=
+    Integrable.bdd_mul hg_integrable hB_meas hB_bound
+  unfold s at hmul
+  exact hmul
+
+/-- Base case for the finite first-periodic-Bernoulli Euler-Maclaurin sum:
+the strict interval `(N, N]` is empty and the endpoint half-terms cancel. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_base
+    (f f' : ℝ → ℂ)
+    (N : ℕ) :
+    (∑ n in Finset.Ioc N N, f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((N : ℕ) : ℝ)), f x) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  simp
+
+/-- Successor step for the finite first-periodic-Bernoulli Euler-Maclaurin
+sum.  This lemma owns exactly the finite partition and endpoint-telescoping
+assembly, assuming the formula has already been proved on the left interval. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_succ
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hleft :
+      (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+          (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x))
+    (hright :
+      f ((((M + 1 : ℕ) : ℝ)) =
+        (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+          (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+          (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)))
+    (hf_left_int : IntegrableOn f
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_right_int : IntegrableOn f
+      (Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ)))))
+    (hrem_left_int : IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hrem_right_int : IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+      (Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))))) :
+    (∑ n in Finset.Ioc N (M + 1), f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  have hsum_split :
+      (∑ n in Finset.Ioc N (M + 1), f ((n : ℕ) : ℝ)) =
+        (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) +
+          f ((((M + 1 : ℕ) : ℝ)) :=
+    eulerMaclaurin_sum_Ioc_succ_top
+      (fun n : ℕ => f ((n : ℕ) : ℝ)) N M hNM
+  have hf_integral_split :
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) =
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+          (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) :=
+    eulerMaclaurin_integral_Ioc_succ_top f N M hNM
+      hf_left_int hf_right_int
+  have hrem_integral_split :
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) =
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) +
+          (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) :=
+    eulerMaclaurin_integral_Ioc_succ_top
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+      N M hNM hrem_left_int hrem_right_int
+  have hendpoints :
+      (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+          (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) =
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) :=
+    eulerMaclaurin_endpoint_half_telescope_succ
+      (fun n : ℕ => f ((n : ℕ) : ℝ)) N M
+  calc
+    (∑ n in Finset.Ioc N (M + 1), f ((n : ℕ) : ℝ)) =
+        (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) +
+          f ((((M + 1 : ℕ) : ℝ)) := hsum_split
+    _ =
+        ((∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+            (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) +
+          ((∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+            (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) := by
+      exact congrArg₂ HAdd.hAdd hleft hright
+    _ =
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+          (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+      rw [hf_integral_split, hrem_integral_split]
+      ring_nf
+
+/-- Summing the one-interval first-periodic-Bernoulli identities over
+`n = N, ..., M - 1` gives the finite natural-interval `Ioc` identity.  This
+lemma owns the finite interval partition, additivity of adjacent `Ioc`
+integrals, and endpoint telescoping. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_from_local
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
+    (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  let P : ℕ → Prop := fun K : ℕ =>
+    N ≤ K →
+      ContinuousOn f (Set.Icc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) →
+      (∀ x : ℝ,
+        x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)) →
+          HasDerivAt f (f' x) x) →
+      IntegrableOn f' (Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) →
+      (∑ n in Finset.Ioc N K, f ((n : ℕ) : ℝ)) =
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)), f x) +
+          (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+          ((1 / 2 : ℂ) * f (((K : ℕ) : ℝ))) +
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+  have hbase : P N := by
+    intro hNN hf_cont_N hf_deriv_N hf'_int_N
+    exact eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_base
+      f f' N
+  have hstep : ∀ K : ℕ, N ≤ K → P K → P (K + 1) := by
+    intro K hNK hIH
+    intro hNsucc hf_cont_succ hf_deriv_succ hf'_int_succ
+    have hf_cont_left :
+        ContinuousOn f
+          (Set.Icc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) :=
+      eulerMaclaurin_continuousOn_Icc_left_of_succ
+        f N K hNK hf_cont_succ
+    have hf_cont_right :
+        ContinuousOn f
+          (Set.Icc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ)))) :=
+      eulerMaclaurin_continuousOn_Icc_right_of_succ
+        f N K hNK hf_cont_succ
+    have hf_deriv_left :
+        ∀ x : ℝ,
+          x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)) →
+            HasDerivAt f (f' x) x :=
+      eulerMaclaurin_deriv_Ioo_left_of_succ
+        f f' N K hf_deriv_succ
+    have hf_deriv_right :
+        ∀ x : ℝ,
+          x ∈ Set.Ioo (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ))) →
+            HasDerivAt f (f' x) x :=
+      eulerMaclaurin_deriv_Ioo_right_of_succ
+        f f' N K hNK hf_deriv_succ
+    have hf'_int_left :
+        IntegrableOn f'
+          (Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) :=
+      eulerMaclaurin_integrableOn_Ioc_left_of_succ
+        f' N K hNK hf'_int_succ
+    have hf'_int_right :
+        IntegrableOn f'
+          (Set.Ioc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ)))) :=
+      eulerMaclaurin_integrableOn_Ioc_right_of_succ
+        f' N K hNK hf'_int_succ
+    have hleft :
+        (∑ n in Finset.Ioc N K, f ((n : ℕ) : ℝ)) =
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)), f x) +
+            (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f (((K : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) :=
+      hIH hNK hf_cont_left hf_deriv_left hf'_int_left
+    have hright :
+        f ((((K + 1 : ℕ) : ℝ)) =
+          (∫ x in Set.Ioc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ))), f x) +
+            (-(1 / 2 : ℂ) * f (((K : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f ((((K + 1 : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ))),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) :=
+      eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
+        f f' K hf_cont_right hf_deriv_right hf'_int_right
+    have hf_left_int : IntegrableOn f
+        (Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) := by
+      exact
+        (ContinuousOn.integrableOn_Icc hf_cont_left).mono_set
+          Ioc_subset_Icc_self
+    have hf_right_int : IntegrableOn f
+        (Set.Ioc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ)))) := by
+      exact
+        (ContinuousOn.integrableOn_Icc hf_cont_right).mono_set
+          Ioc_subset_Icc_self
+    have hrem_left_int : IntegrableOn
+        (fun x : ℝ =>
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+        (Set.Ioc (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ))) :=
+      eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
+        f' (((N : ℕ) : ℝ)) (((K : ℕ) : ℝ)) hf'_int_left
+    have hrem_right_int : IntegrableOn
+        (fun x : ℝ =>
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)
+        (Set.Ioc (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ)))) :=
+      eulerMaclaurin_bernoulli_mul_integrableOn_Ioc
+        f' (((K : ℕ) : ℝ)) ((((K + 1 : ℕ) : ℝ))) hf'_int_right
+    exact
+      eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_succ
+        f f' N K hNK hleft hright
+        hf_left_int hf_right_int hrem_left_int hrem_right_int
+  exact Nat.le_induction hbase hstep M hNM hNM hf_cont hf_deriv hf'_int
 
 /-- Finite summation of the one-interval first-periodic-Bernoulli
 integration-by-parts identities over a natural `Ioc` interval.
@@ -934,7 +1669,9 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc
         ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-  sorry
+  exact
+    eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_from_local
+      f f' N M hNM hf_cont hf_deriv hf'_int
 
 /-- First-periodic-Bernoulli integration-by-parts form of the finite
 first-order Euler-Maclaurin formula on a natural `Ioc` interval.
