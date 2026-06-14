@@ -261,6 +261,97 @@ theorem entireFunction_eq_zero_of_eventually_zero_nhds
   intro z
   exact hEq (by simp)
 
+/-- A positive-radius exponential arc is locally injective in a punctured real
+neighborhood of the base parameter. -/
+theorem positiveRadius_exp_arc_eventually_ne_base
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ) :
+    ∀ᶠ θ in 𝓝[≠] θ₀,
+      (r : ℂ) * Complex.exp (θ * Complex.I) ≠
+        (r : ℂ) * Complex.exp (θ₀ * Complex.I) := by
+  have hclose :
+      ∀ᶠ θ in 𝓝 θ₀, |θ - θ₀| < 2 * Real.pi := by
+    exact
+      (Metric.eventually_nhds_iff_ball.mpr
+        ⟨2 * Real.pi, Real.two_pi_pos, by
+          intro θ hθ
+          simpa [Real.dist_eq] using hθ⟩)
+  filter_upwards
+    [hclose.filter_mono nhdsWithin_le_nhds, self_mem_nhdsWithin]
+    with θ hθclose hθne hEq
+  have hrC : (r : ℂ) ≠ 0 := by
+    exact_mod_cast hr.ne'
+  have hExp :
+      Complex.exp (θ * Complex.I) =
+        Complex.exp (θ₀ * Complex.I) := by
+    apply mul_left_cancel₀ hrC
+    simpa [mul_assoc] using hEq
+  rcases (Complex.exp_eq_exp_iff_exists_int.mp hExp) with ⟨n, hn⟩
+  have hnC :
+      (θ : ℂ) * Complex.I =
+        ((θ₀ + n * (2 * Real.pi)) : ℂ) * Complex.I := by
+    simpa [mul_add, add_mul, mul_assoc, add_comm, add_left_comm, add_assoc] using hn
+  have hθC : (θ : ℂ) = ((θ₀ + n * (2 * Real.pi)) : ℂ) := by
+    apply mul_right_cancel₀ Complex.I_ne_zero
+    exact hnC
+  have hθ : θ = θ₀ + n * (2 * Real.pi) := by
+    have hθ' := congrArg Complex.re hθC
+    simpa using hθ'
+  have hdiff : θ - θ₀ = n * (2 * Real.pi) := by
+    linarith
+  have hn0 : n = 0 := by
+    by_contra hn0
+    have h1 : (1 : ℝ) ≤ |(n : ℝ)| := by
+      exact_mod_cast Int.one_le_abs hn0
+    have hperiod :
+        |θ - θ₀| = |(n : ℝ)| * (2 * Real.pi) := by
+      calc
+        |θ - θ₀| = |(n : ℝ) * (2 * Real.pi)| := by
+          exact congrArg abs hdiff
+        _ = |(n : ℝ)| * |2 * Real.pi| := by
+          exact abs_mul (n : ℝ) (2 * Real.pi)
+        _ = |(n : ℝ)| * (2 * Real.pi) := by
+          exact congrArg (fun x : ℝ => |(n : ℝ)| * x)
+            (abs_of_pos Real.two_pi_pos)
+    have hle : 2 * Real.pi ≤ |θ - θ₀| := by
+      calc
+        2 * Real.pi = 1 * (2 * Real.pi) := by ring
+        _ ≤ |(n : ℝ)| * (2 * Real.pi) := by
+          exact mul_le_mul_of_nonneg_right h1 Real.two_pi_pos.le
+        _ = |θ - θ₀| := hperiod.symm
+    exact not_lt_of_ge hle hθclose
+  subst hn0
+  exact hθne (by linarith)
+
+/-- Pulling a punctured complex-neighborhood nonvanishing statement back along a
+positive-radius exponential arc gives punctured real-neighborhood
+nonvanishing. -/
+theorem positiveRadius_exp_arc_eventually_ne_zero_pullback
+    (F : ℂ → ℂ)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hne :
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
+    ∀ᶠ θ in 𝓝[≠] θ₀,
+      F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 := by
+  let γ : ℝ → ℂ := fun θ => (r : ℂ) * Complex.exp (θ * Complex.I)
+  have hγ_cont : ContinuousAt γ θ₀ := by
+    fun_prop
+  have hγ_tendsto_nhds : Tendsto γ (𝓝 θ₀) (𝓝 (γ θ₀)) :=
+    hγ_cont
+  have hne_base : ∀ᶠ θ in 𝓝[≠] θ₀, γ θ ≠ γ θ₀ :=
+    positiveRadius_exp_arc_eventually_ne_base r hr θ₀
+  have hγ_tendsto_punctured :
+      Tendsto γ (𝓝[≠] θ₀) (𝓝[≠] γ θ₀) := by
+    rw [nhdsWithin]
+    exact
+      Tendsto.inf
+        (hγ_tendsto_nhds.mono_left nhdsWithin_le_nhds)
+        (tendsto_principal.mpr hne_base)
+  exact hγ_tendsto_punctured.eventually hne
+
 /-- A positive-radius exponential arc has genuine punctured real parameters
 arbitrarily close to its base point, and its image remains in the punctured
 complex neighborhood of the base circle point.
@@ -278,7 +369,19 @@ theorem positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
     (hne :
       ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
     False := by
-  sorry
+  have hzero :
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0 :=
+    hlocal_zero.filter_mono nhdsWithin_le_nhds
+  have hnonzero :
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 :=
+    positiveRadius_exp_arc_eventually_ne_zero_pullback F r hr θ₀ hne
+  have hfalse : ∀ᶠ θ in 𝓝[≠] θ₀, False := by
+    filter_upwards [hzero, hnonzero] with θ hθzero hθnonzero
+    exact hθnonzero hθzero
+  exact
+    (Filter.not_eventually_false (𝓝[≠] θ₀)) hfalse
 
 /-- Local real-arc vanishing at positive radius excludes the nontrivial
 isolated-zero branch of an entire function at the corresponding circle point. -/
