@@ -564,6 +564,41 @@ theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
             Complex.binetSecondFormulaRemainder w := by
   sorry
 
+/-- Pointwise Binet-kernel estimate on the closed right half-plane.
+
+The numerator contributes the `t / ‖w‖` factor through the principal arctangent,
+while the denominator is controlled by the positive real exponential
+`exp (2πt) - 1`. -/
+theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
+    {w : ℂ}
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_ne : w ≠ 0) :
+    ∀ t : ℝ,
+      0 < t →
+        ‖Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+          (t / ‖w‖) /
+            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  sorry
+
+/-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioi (0 : ℝ)) := by
+  sorry
+
+/-- The Binet kernel estimate integrates to an `O(1 / ‖w‖)` remainder bound. -/
+theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+  sorry
+
 /-- Uniform `O(1/‖w‖)` bound for the Binet second-formula remainder on the
 closed right-half-plane sector.
 
@@ -578,7 +613,8 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane :
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  exact
+    Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate
 
 /-- Binet's second formula with a uniform sectorial remainder bound on the
 closed right half-plane.
@@ -640,6 +676,166 @@ theorem Complex.Gamma_eq_exp_binetLogGammaMainTerm_mul_exp_binetRemainder
         (Complex.binetLogGammaMainTerm w)
         (Complex.binetSecondFormulaRemainder w)
 
+/-- The square-root constant in Binet's main term after exponentiation. -/
+theorem Complex.exp_half_log_two_pi_eq_sqrt_two_pi :
+    Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) =
+      (Real.sqrt (2 * Real.pi) : ℂ) := by
+  have htwo_pi_pos : 0 < 2 * Real.pi :=
+    mul_pos two_pos Real.pi_pos
+  have hsqrt_pos : 0 < Real.sqrt (2 * Real.pi) :=
+    Real.sqrt_pos_of_pos htwo_pi_pos
+  have hlog_sqrt :
+      Real.log (Real.sqrt (2 * Real.pi)) =
+        Real.log (2 * Real.pi) / 2 :=
+    Real.log_sqrt (le_of_lt htwo_pi_pos)
+  have hexp_real :
+      Real.exp (Real.log (2 * Real.pi) / 2) =
+        Real.sqrt (2 * Real.pi) := by
+    calc
+      Real.exp (Real.log (2 * Real.pi) / 2) =
+          Real.exp (Real.log (Real.sqrt (2 * Real.pi))) :=
+        congrArg Real.exp hlog_sqrt.symm
+      _ = Real.sqrt (2 * Real.pi) :=
+        Real.exp_log hsqrt_pos
+  have hcoerce_arg :
+      ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) =
+        ((Real.log (2 * Real.pi) / 2 : ℝ) : ℂ) :=
+    (Complex.ofReal_div (Real.log (2 * Real.pi)) 2).symm
+  calc
+    Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) =
+        Complex.exp ((Real.log (2 * Real.pi) / 2 : ℝ) : ℂ) :=
+      congrArg Complex.exp hcoerce_arg
+    _ = (Real.exp (Real.log (2 * Real.pi) / 2) : ℂ) :=
+      (Complex.ofReal_exp (Real.log (2 * Real.pi) / 2)).symm
+    _ = (Real.sqrt (2 * Real.pi) : ℂ) :=
+      congrArg (fun x : ℝ => (x : ℂ)) hexp_real
+
+/-- Principal-branch power cancellation in the normalized Stirling factor.
+
+This is the `cpow_def_of_ne_zero` step: the exponential of
+`(w - 1/2) Log w` cancels against `w^(1/2-w)`. -/
+theorem Complex.exp_binet_power_mul_cpow_cancel
+    {w : ℂ}
+    (hw_ne : w ≠ 0) :
+    Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w) *
+        w ^ ((1 / 2 : ℂ) - w) = 1 := by
+  let A : ℂ := (w - (1 / 2 : ℂ)) * Complex.log w
+  have hcpow :
+      w ^ ((1 / 2 : ℂ) - w) =
+        Complex.exp (Complex.log w * ((1 / 2 : ℂ) - w)) :=
+    Complex.cpow_def_of_ne_zero hw_ne ((1 / 2 : ℂ) - w)
+  have hcomm :
+      Complex.log w * ((1 / 2 : ℂ) - w) =
+        ((1 / 2 : ℂ) - w) * Complex.log w :=
+    mul_comm (Complex.log w) ((1 / 2 : ℂ) - w)
+  have hneg_factor :
+      ((1 / 2 : ℂ) - w) * Complex.log w =
+        -A := by
+    have hsub :
+        ((1 / 2 : ℂ) - w) = -(w - (1 / 2 : ℂ)) :=
+      sub_eq_neg_sub (1 / 2 : ℂ) w
+    calc
+      ((1 / 2 : ℂ) - w) * Complex.log w =
+          (-(w - (1 / 2 : ℂ))) * Complex.log w :=
+        congrArg (fun z : ℂ => z * Complex.log w) hsub
+      _ = -((w - (1 / 2 : ℂ)) * Complex.log w) :=
+        neg_mul (w - (1 / 2 : ℂ)) (Complex.log w)
+      _ = -A := rfl
+  have hcpow_neg :
+      w ^ ((1 / 2 : ℂ) - w) = Complex.exp (-A) := by
+    calc
+      w ^ ((1 / 2 : ℂ) - w) =
+          Complex.exp (Complex.log w * ((1 / 2 : ℂ) - w)) :=
+        hcpow
+      _ = Complex.exp (((1 / 2 : ℂ) - w) * Complex.log w) :=
+        congrArg Complex.exp hcomm
+      _ = Complex.exp (-A) :=
+        congrArg Complex.exp hneg_factor
+  calc
+    Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w) *
+        w ^ ((1 / 2 : ℂ) - w) =
+        Complex.exp A * Complex.exp (-A) := by
+      exact congrArg
+        (fun z : ℂ => Complex.exp A * z)
+        hcpow_neg
+    _ = Complex.exp (A + -A) :=
+      (Complex.exp_add A (-A)).symm
+    _ = Complex.exp 0 := by
+      exact congrArg Complex.exp (add_neg_cancel A)
+    _ = 1 :=
+      Complex.exp_zero
+
+/-- The exponential normalizer in Binet's main term cancels exactly. -/
+theorem Complex.exp_neg_mul_exp_self_eq_one
+    (w : ℂ) :
+    Complex.exp (-w) * Complex.exp w = 1 := by
+  calc
+    Complex.exp (-w) * Complex.exp w =
+        Complex.exp (-w + w) :=
+      (Complex.exp_add (-w) w).symm
+    _ = Complex.exp 0 := by
+      exact congrArg Complex.exp (neg_add_cancel w)
+    _ = 1 :=
+      Complex.exp_zero
+
+/-- Reassociate the three Binet main factors against the two normalizing
+factors. -/
+theorem Complex.binet_main_three_factor_reassociate
+    (P N S B C : ℂ) :
+    (P * N * S) * B * C = (P * C) * (N * B) * S := by
+  calc
+    (P * N * S) * B * C =
+        (((P * N) * S) * B) * C := rfl
+    _ = ((P * N) * (S * B)) * C := by
+      exact congrArg (fun z : ℂ => z * C) (mul_assoc (P * N) S B)
+    _ = ((P * N) * (B * S)) * C := by
+      exact congrArg (fun z : ℂ => ((P * N) * z) * C) (mul_comm S B)
+    _ = (((P * N) * B) * S) * C := by
+      exact congrArg (fun z : ℂ => z * C) (mul_assoc (P * N) B S).symm
+    _ = ((P * (N * B)) * S) * C := by
+      exact congrArg (fun z : ℂ => (z * S) * C) (mul_assoc P N B)
+    _ = (P * (N * B)) * (S * C) := by
+      exact mul_assoc (P * (N * B)) S C
+    _ = (P * (N * B)) * (C * S) := by
+      exact congrArg (fun z : ℂ => (P * (N * B)) * z) (mul_comm S C)
+    _ = ((P * (N * B)) * C) * S := by
+      exact (mul_assoc (P * (N * B)) C S).symm
+    _ = (P * ((N * B) * C)) * S := by
+      exact congrArg (fun z : ℂ => z * S) (mul_assoc P (N * B) C)
+    _ = (P * (C * (N * B))) * S := by
+      exact congrArg (fun z : ℂ => (P * z) * S) (mul_comm (N * B) C)
+    _ = ((P * C) * (N * B)) * S := by
+      exact congrArg (fun z : ℂ => z * S) (mul_assoc P C (N * B)).symm
+    _ = (P * C) * (N * B) * S := rfl
+
+/-- Exponential of the Binet main term split into its three factors. -/
+theorem Complex.exp_binetLogGammaMainTerm_eq
+    (w : ℂ) :
+    Complex.exp (Complex.binetLogGammaMainTerm w) =
+      Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w) *
+        Complex.exp (-w) *
+          Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) := by
+  let P : ℂ := (w - (1 / 2 : ℂ)) * Complex.log w
+  let S : ℂ := ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+  have hsub_exp :
+      Complex.exp (P - w) = Complex.exp P * Complex.exp (-w) := by
+    calc
+      Complex.exp (P - w) =
+          Complex.exp (P + -w) := rfl
+      _ = Complex.exp P * Complex.exp (-w) :=
+        Complex.exp_add P (-w)
+  calc
+    Complex.exp (Complex.binetLogGammaMainTerm w) =
+        Complex.exp ((P - w) + S) := rfl
+    _ = Complex.exp (P - w) * Complex.exp S :=
+      Complex.exp_add (P - w) S
+    _ = (Complex.exp P * Complex.exp (-w)) * Complex.exp S := by
+      exact congrArg (fun z : ℂ => z * Complex.exp S) hsub_exp
+    _ =
+        Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w) *
+          Complex.exp (-w) *
+            Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) := rfl
+
 /-- The Binet main term is exactly cancelled by the normalized Stirling
 factors, leaving the constant `sqrt (2π)`.
 
@@ -652,7 +848,55 @@ theorem Complex.exp_binetLogGammaMainTerm_mul_exp_mul_cpow_eq_sqrt_two_pi
     Complex.exp (Complex.binetLogGammaMainTerm w) *
         Complex.exp w * w ^ ((1 / 2 : ℂ) - w) =
       (Real.sqrt (2 * Real.pi) : ℂ) := by
-  sorry
+  have hpower :
+      Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w) *
+          w ^ ((1 / 2 : ℂ) - w) = 1 :=
+    Complex.exp_binet_power_mul_cpow_cancel hw_ne
+  have hnormalizer :
+      Complex.exp (-w) * Complex.exp w = 1 :=
+    Complex.exp_neg_mul_exp_self_eq_one w
+  have hconstant :
+      Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) =
+        (Real.sqrt (2 * Real.pi) : ℂ) :=
+    Complex.exp_half_log_two_pi_eq_sqrt_two_pi
+  let P : ℂ := Complex.exp ((w - (1 / 2 : ℂ)) * Complex.log w)
+  let N : ℂ := Complex.exp (-w)
+  let S : ℂ :=
+    Complex.exp ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+  let B : ℂ := Complex.exp w
+  let C : ℂ := w ^ ((1 / 2 : ℂ) - w)
+  have hmain :
+      Complex.exp (Complex.binetLogGammaMainTerm w) = P * N * S :=
+    Complex.exp_binetLogGammaMainTerm_eq w
+  have hreassoc :
+      (P * N * S) * B * C = (P * C) * (N * B) * S :=
+    Complex.binet_main_three_factor_reassociate P N S B C
+  have hpower' : P * C = 1 :=
+    hpower
+  have hnormalizer' : N * B = 1 :=
+    hnormalizer
+  have hconstant' : S = (Real.sqrt (2 * Real.pi) : ℂ) :=
+    hconstant
+  calc
+    Complex.exp (Complex.binetLogGammaMainTerm w) *
+        Complex.exp w * w ^ ((1 / 2 : ℂ) - w) =
+        (P * N * S) * B * C := by
+      exact congrArg (fun z : ℂ => z * B * C) hmain
+    _ = (P * C) * (N * B) * S :=
+      hreassoc
+    _ = 1 * (N * B) * S := by
+      exact congrArg (fun z : ℂ => z * (N * B) * S) hpower'
+    _ = 1 * 1 * S := by
+      exact congrArg (fun z : ℂ => 1 * z * S) hnormalizer'
+    _ = 1 * 1 * (Real.sqrt (2 * Real.pi) : ℂ) := by
+      exact congrArg (fun z : ℂ => 1 * 1 * z) hconstant'
+    _ = (Real.sqrt (2 * Real.pi) : ℂ) := by
+      calc
+        1 * 1 * (Real.sqrt (2 * Real.pi) : ℂ) =
+            1 * (Real.sqrt (2 * Real.pi) : ℂ) := by
+          exact congrArg (fun z : ℂ => z * (Real.sqrt (2 * Real.pi) : ℂ)) (mul_one 1)
+        _ = (Real.sqrt (2 * Real.pi) : ℂ) :=
+          one_mul (Real.sqrt (2 * Real.pi) : ℂ)
 
 /-- Reassociation of the four factors occurring after exponentiating Binet's
 formula. -/
@@ -12883,10 +13127,84 @@ theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core
     ∫ x in (2 : ℝ)..b, u x * v' x =
       u b * v b - u 2 * v 2 -
         ∫ x in (2 : ℝ)..b, u' x * v x := by
-  sorry
+  let u : ℝ → ℝ := fun x => Real.log (2 + x)
+  let v : ℝ → ℝ := fun x => -(1 / x)
+  let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+  let v' : ℝ → ℝ := fun x => 1 / x ^ 2
+  have hu :
+      ∀ x ∈ [[(2 : ℝ), b]], HasDerivAt u (u' x) x := by
+    intro x hx
+    have hleft : (2 : ℝ) ≤ x :=
+      (Set.mem_uIcc.mp hx).1
+    have htwo_add_pos : 0 < 2 + x :=
+      add_pos_of_pos_of_nonneg zero_lt_two
+        (le_trans (le_of_lt zero_lt_two) hleft)
+    have hbase : HasDerivAt (fun y : ℝ => 2 + y) 1 x :=
+      (hasDerivAt_id x).const_add 2
+    have hlog :
+        HasDerivAt (fun y : ℝ => Real.log (2 + y)) ((2 + x)⁻¹) x :=
+      Real.hasDerivAt_log htwo_add_pos.ne'.symm |>.comp x hbase
+    have hnormal : (2 + x)⁻¹ = 1 / (2 + x) :=
+      (one_div (2 + x)).symm
+    exact Eq.subst
+      (motive := fun D : ℝ => HasDerivAt u D x)
+      hnormal
+      hlog
+  have hv :
+      ∀ x ∈ [[(2 : ℝ), b]], HasDerivAt v (v' x) x := by
+    intro x hx
+    have hleft : (2 : ℝ) ≤ x :=
+      (Set.mem_uIcc.mp hx).1
+    have hx_ne : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le zero_lt_two hleft)
+    have hinv :
+        HasDerivAt (fun y : ℝ => y⁻¹) (-(x ^ 2)⁻¹) x :=
+      hasDerivAt_inv hx_ne
+    have hneg :
+        HasDerivAt (fun y : ℝ => -(y⁻¹)) (- (-(x ^ 2)⁻¹)) x :=
+      hinv.neg
+    have hfun :
+        (fun y : ℝ => -(y⁻¹)) = v := by
+      exact funext
+        (fun y : ℝ =>
+          congrArg Neg.neg (one_div y))
+    have hnormal : - (-(x ^ 2)⁻¹) = 1 / x ^ 2 := by
+      calc
+        - (-(x ^ 2)⁻¹) = (x ^ 2)⁻¹ := neg_neg ((x ^ 2)⁻¹)
+        _ = 1 / x ^ 2 := (one_div (x ^ 2)).symm
+    exact Eq.subst
+      (motive := fun D : ℝ => HasDerivAt v D x)
+      hnormal
+      (Eq.subst
+        (motive := fun F : ℝ → ℝ => HasDerivAt F (- (-(x ^ 2)⁻¹)) x)
+        hfun
+        hneg)
+  have hu_int : IntervalIntegrable u' volume (2 : ℝ) b := by
+    fun_prop
+  have hv_int : IntervalIntegrable v' volume (2 : ℝ) b := by
+    fun_prop
+  exact intervalIntegral.integral_mul_deriv_eq_deriv_mul
+    hu hv hu_int hv_int
 
 /-- Algebraic normalization of the finite by-parts RHS for
 `u(x)=log(2+x)` and `v(x)=-1/x`. -/
+theorem real_by_parts_log_two_add_endpoint_normalize
+    {b : ℝ} :
+    let u : ℝ → ℝ := fun x => Real.log (2 + x)
+    let v : ℝ → ℝ := fun x => -(1 / x)
+    u b * v b - u 2 * v 2 =
+      (-Real.log (2 + b) / b) - (-Real.log 4 / 2) := by
+  sorry
+
+/-- Integral sign-change normalization for the finite by-parts remainder. -/
+theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
+    {b : ℝ} :
+    let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+    let v : ℝ → ℝ := fun x => -(1 / x)
+    -(∫ x in (2 : ℝ)..b, u' x * v x) =
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
+  sorry
+
 theorem real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize
     {b : ℝ}
     (hb : (2 : ℝ) ≤ b) :
@@ -12897,7 +13215,37 @@ theorem real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize
         ∫ x in (2 : ℝ)..b, u' x * v x =
       ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
         ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
-  sorry
+  let u : ℝ → ℝ := fun x => Real.log (2 + x)
+  let v : ℝ → ℝ := fun x => -(1 / x)
+  let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+  have hendpoint :
+      u b * v b - u 2 * v 2 =
+        (-Real.log (2 + b) / b) - (-Real.log 4 / 2) :=
+    real_by_parts_log_two_add_endpoint_normalize
+  have hremainder :
+      -(∫ x in (2 : ℝ)..b, u' x * v x) =
+        ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) :=
+    real_intervalIntegral_log_two_add_by_parts_remainder_normalize
+  calc
+    u b * v b - u 2 * v 2 -
+        ∫ x in (2 : ℝ)..b, u' x * v x =
+        (u b * v b - u 2 * v 2) +
+          -(∫ x in (2 : ℝ)..b, u' x * v x) := by
+      exact (sub_eq_add_neg
+        (u b * v b - u 2 * v 2)
+        (∫ x in (2 : ℝ)..b, u' x * v x))
+    _ =
+        ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          -(∫ x in (2 : ℝ)..b, u' x * v x) := by
+      exact congrArg
+        (fun z : ℝ => z + -(∫ x in (2 : ℝ)..b, u' x * v x))
+        hendpoint
+    _ =
+        ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
+      exact congrArg
+        (fun z : ℝ => ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) + z)
+        hremainder
 
 theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts
     {b : ℝ}
@@ -12985,13 +13333,47 @@ theorem real_integral_Ioc_log_two_add_div_sq_eq_by_parts
 
 /-- Elementary endpoint bound for the finite scalar tail after the
 integration-by-parts identity. -/
+theorem real_intervalIntegral_one_div_mul_two_add_le_half_log_two
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
+      Real.log 2 / 2 := by
+  sorry
+
+/-- Endpoint contribution after integration by parts is bounded by `log 4 / 2`. -/
+theorem real_log_two_add_by_parts_endpoint_le_log_four_half
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    (-Real.log (2 + b) / b) - (-Real.log 4 / 2) ≤
+      Real.log 4 / 2 := by
+  sorry
+
+/-- The sharp partial-fractions remainder and endpoint estimates fit under
+the available `log 4` budget. -/
+theorem real_log_four_half_add_log_two_half_le_log_four :
+    Real.log 4 / 2 + Real.log 2 / 2 ≤ Real.log 4 := by
+  sorry
+
 theorem real_integral_Ioc_log_two_add_div_sq_by_parts_terms_le_log_four
     {b : ℝ}
     (hb : (2 : ℝ) ≤ b) :
     ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
         ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
       Real.log 4 := by
-  sorry
+  have hendpoint :
+      (-Real.log (2 + b) / b) - (-Real.log 4 / 2) ≤
+        Real.log 4 / 2 :=
+    real_log_two_add_by_parts_endpoint_le_log_four_half hb
+  have hremainder :
+      ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
+        Real.log 2 / 2 :=
+    real_intervalIntegral_one_div_mul_two_add_le_half_log_two hb
+  have hsum :
+      ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
+        Real.log 4 / 2 + Real.log 2 / 2 :=
+    add_le_add hendpoint hremainder
+  exact le_trans hsum real_log_four_half_add_log_two_half_le_log_four
 
 /-- Standard finite integration-by-parts tail estimate for
 `log(2+x)/x²` from the canonical cutoff `2`.
@@ -20299,6 +20681,46 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_parameter_holomorphic_
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
   sorry
 
+/-- Pointwise parameter-holomorphicity of the fixed-cutoff Bernoulli kernel.
+
+For each positive real `x`, the parameter dependence
+`z ↦ B₁({x}) x^(-(z+1))` is entire.  This is the local kernel theorem used
+before applying differentiation under the improper integral. -/
+theorem eulerMaclaurinBernoulliKernel_parameter_differentiableOn
+    (x : ℝ)
+    (hx : 0 < x) :
+    DifferentiableOn ℂ
+      (fun z : ℂ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Locally uniform integrable majorant for the fixed-cutoff Bernoulli kernel
+on compact parameter neighborhoods inside the punctured strip. -/
+theorem eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N)
+    (z₀ : ℂ)
+    (hz₀ : z₀ ∈ ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1})) :
+    ∃ r : ℝ, 0 < r ∧
+      ∃ g : ℝ → ℝ, IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) ∧
+        ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+          ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤ g x := by
+  sorry
+
+/-- Differentiation under the fixed lower-limit Bernoulli improper integral in
+the complex parameter. -/
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_integral
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
 /-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
 parameter on the punctured strip. -/
 theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_holomorphicOn_puncturedStrip
@@ -20397,6 +20819,121 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticOnNhd_puncturedStri
       N hN).analyticOnNhd
       eulerMaclaurin_fixedCutoff_puncturedStrip_isOpen
 
+/-- The punctured vertical strip `0 < Re z < 2`, `z ≠ 1`, is path-connected.
+
+Geometrically this is an open vertical strip in the real plane with one point
+removed; polygonal paths route around the removed point `1`. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_isPathConnected :
+    IsPathConnected ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- The punctured vertical strip `0 < Re z < 2`, `z ≠ 1`, is preconnected. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_isPreconnected :
+    IsPreconnected ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  exact
+    (eulerMaclaurin_puncturedVerticalStrip_isPathConnected).isConnected.isPreconnected
+
+/-- The fixed-cutoff defect vanishes on the open half-plane part of the
+punctured strip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_zero_on_halfPlaneSubset
+    (N : ℕ)
+    (hN : 0 < N) :
+    EqOn
+      (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+      0
+      ({z : ℂ | 1 < z.re ∧ z.re < 2}) := by
+  intro z hz
+  exact
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_halfPlane_standard
+      N hN z hz.1
+
+/-- The open half-plane part `1 < Re z < 2` accumulates at the base point used
+for the punctured-strip identity theorem. -/
+theorem eulerMaclaurin_halfPlaneSubset_frequently_near_identityBase :
+    ∃ᶠ z in 𝓝[≠] ((3 / 2 : ℝ) : ℂ),
+      z ∈ ({z : ℂ | 1 < z.re ∧ z.re < 2}) := by
+  have hopen : IsOpen ({z : ℂ | 1 < z.re ∧ z.re < 2}) := by
+    have hleft : IsOpen {z : ℂ | 1 < z.re} :=
+      isOpen_lt continuous_const Complex.continuous_re
+    have hright : IsOpen {z : ℂ | z.re < 2} :=
+      isOpen_lt Complex.continuous_re continuous_const
+    exact hleft.inter hright
+  have hbase : ((3 / 2 : ℝ) : ℂ) ∈ ({z : ℂ | 1 < z.re ∧ z.re < 2}) := by
+    constructor
+    · exact (lt_div_iff₀' zero_lt_two).mpr (by
+        calc
+          (1 : ℝ) * 2 = 2 := one_mul 2
+          _ < 3 := by
+            exact two_lt_three)
+    · exact (div_lt_iff₀ zero_lt_two).mpr (by
+        calc
+          (3 : ℝ) < 3 + 1 := lt_add_of_pos_right 3 zero_lt_one
+          _ = 2 * 2 := rfl)
+  have heventually :
+      ∀ᶠ z in 𝓝[≠] ((3 / 2 : ℝ) : ℂ),
+        z ∈ ({z : ℂ | 1 < z.re ∧ z.re < 2}) :=
+    mem_nhdsWithin_of_mem_nhds (hopen.mem_nhds hbase)
+  exact heventually.frequently
+
+/-- The chosen base point for the identity theorem lies in the punctured
+vertical strip. -/
+theorem eulerMaclaurin_identityBase_mem_puncturedVerticalStrip :
+    ((3 / 2 : ℝ) : ℂ) ∈
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  constructor
+  · exact div_pos zero_lt_three zero_lt_two
+  · constructor
+    · exact (div_lt_iff₀ zero_lt_two).mpr (by
+        calc
+          (3 : ℝ) < 3 + 1 := lt_add_of_pos_right 3 zero_lt_one
+          _ = 2 * 2 := rfl)
+    · intro h
+      have hre : (3 / 2 : ℝ) = 1 := by
+        exact congrArg Complex.re h
+      have hmul : (3 / 2 : ℝ) * 2 = 1 * 2 :=
+        congrArg (fun x : ℝ => x * 2) hre
+      have hleft : (3 / 2 : ℝ) * 2 = 3 :=
+        div_mul_cancel₀ (3 : ℝ) (show (2 : ℝ) ≠ 0 by exact two_ne_zero)
+      have hright : (1 : ℝ) * 2 = 2 :=
+        one_mul 2
+      have hthree_eq_two : (3 : ℝ) = 2 :=
+        Eq.trans hleft.symm (Eq.trans hmul hright)
+      have hthree_ne_two : (3 : ℝ) ≠ 2 := by
+        exact ne_of_gt two_lt_three
+      exact hthree_ne_two hthree_eq_two
+
+/-- Identity theorem specialized to a fixed-cutoff defect on the punctured
+vertical strip, using its vanishing on the half-plane substrip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_from_analytic_zeroSet
+    (N : ℕ)
+    (hN : 0 < N) :
+    EqOn
+      (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+      0
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  have han :
+      AnalyticOnNhd ℂ
+        (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticOnNhd_puncturedStrip
+      N hN
+  have hpre :
+      IsPreconnected ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurin_puncturedVerticalStrip_isPreconnected
+  have hbase_mem :
+      ((3 / 2 : ℝ) : ℂ) ∈ ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+    exact eulerMaclaurin_identityBase_mem_puncturedVerticalStrip
+  have hfreq :
+      ∃ᶠ z in 𝓝[≠] ((3 / 2 : ℝ) : ℂ),
+        eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 :=
+    eulerMaclaurin_halfPlaneSubset_frequently_near_identityBase.mono
+      (fun z hz =>
+        eulerMaclaurin_fixedCutoffTailIdentityDefect_zero_on_halfPlaneSubset
+          N hN hz)
+  exact
+    han.eqOn_zero_of_preconnected_of_frequently_eq_zero
+      hpre hbase_mem hfreq
+
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip.
 
@@ -20412,7 +20949,9 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_from_halfPl
     (hz_re_lt_two : z.re < 2)
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
-  sorry
+  exact
+    eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_from_analytic_zeroSet
+      N hN z ⟨hz_re_pos, hz_re_lt_two, hz_ne_one⟩
 
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip. -/

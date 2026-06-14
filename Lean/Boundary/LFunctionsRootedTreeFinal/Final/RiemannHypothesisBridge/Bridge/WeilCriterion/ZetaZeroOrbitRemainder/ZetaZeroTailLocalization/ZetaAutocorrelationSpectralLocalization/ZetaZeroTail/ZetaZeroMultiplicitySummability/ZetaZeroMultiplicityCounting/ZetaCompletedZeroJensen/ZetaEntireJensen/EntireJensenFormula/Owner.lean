@@ -2760,6 +2760,259 @@ theorem real_log_abs_sin_continuousOn_Icc_compl_endpoints :
   exact
     ContinuousOn.log habs_cont hsin_ne
 
+/-- The sine quotient filled by value `1` at the origin is continuous at `0`.
+
+This is the derivative-slope form of `sin θ / θ → 1`. -/
+theorem real_filled_sin_div_self_continuousAt_zero :
+    ContinuousAt
+      (Function.update (fun x : ℝ => Real.sin x / x) 0 1)
+      0 := by
+  have hslope :
+      ContinuousAt
+        (Function.update
+          (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+          0
+          (Real.cos 0))
+        0 :=
+    (Real.hasDerivAt_sin 0).continuousAt_div
+  have hfun :
+      Function.update
+          (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+          0
+          (Real.cos 0) =
+        Function.update (fun x : ℝ => Real.sin x / x) 0 1 := by
+    funext x
+    by_cases hx : x = 0
+    · exact
+        Eq.trans
+          (congrFun
+            (Function.update_eq_self
+              (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+              0
+              (Real.cos 0))
+            x)
+          (by
+            subst x
+            exact Real.cos_zero)
+    · have hleft :
+          Function.update
+              (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+              0
+              (Real.cos 0) x =
+            (Real.sin x - Real.sin 0) / (x - 0) :=
+        Function.update_of_ne hx (Real.cos 0)
+          (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+      have hright :
+          Function.update (fun x : ℝ => Real.sin x / x) 0 1 x =
+            Real.sin x / x :=
+        Function.update_of_ne hx 1 (fun x : ℝ => Real.sin x / x)
+      calc
+        Function.update
+            (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+            0
+            (Real.cos 0) x =
+            (Real.sin x - Real.sin 0) / (x - 0) := hleft
+        _ = Real.sin x / x := by
+          exact congrArg₂ HDiv.hDiv
+            (sub_eq_self.2 Real.sin_zero)
+            (sub_zero x)
+        _ = Function.update (fun x : ℝ => Real.sin x / x) 0 1 x := hright.symm
+  exact
+    Eq.subst
+      (motive := fun f : ℝ → ℝ => ContinuousAt f 0)
+      hfun
+      hslope
+
+/-- A continuous real-valued function that is nonzero at `c` has locally
+interval-integrable logarithmic absolute value near `c`. -/
+theorem real_log_abs_local_intervalIntegrable_of_continuous_nonzero
+    (f : ℝ → ℝ)
+    (c : ℝ)
+    (hf : Continuous f)
+    (hfc : f c ≠ 0) :
+    ∃ u v : ℝ,
+      u < c ∧ c < v ∧
+      IntervalIntegrable
+        (fun x : ℝ => Real.log |f x|)
+        MeasureTheory.volume
+        u
+        v := by
+  have hne_event :
+      ∀ᶠ x in 𝓝 c, f x ≠ 0 :=
+    hf.continuousAt.eventually_ne hfc
+  obtain ⟨ε, hε_pos, hball⟩ :=
+    Metric.mem_nhds_iff.1 hne_event
+  let δ : ℝ := ε / 2
+  let u : ℝ := c - δ
+  let v : ℝ := c + δ
+  have hδ_pos : 0 < δ :=
+    half_pos hε_pos
+  have hδ_nonneg : 0 ≤ δ :=
+    hδ_pos.le
+  have hδ_lt : δ < ε :=
+    half_lt_self hε_pos
+  have hu_lt_c : u < c := by
+    exact sub_lt_self c hδ_pos
+  have hc_lt_v : c < v := by
+    exact lt_add_of_pos_right c hδ_pos
+  have huv_le : u ≤ v :=
+    hu_lt_c.le.trans hc_lt_v.le
+  have huIcc_eq_closed :
+      Set.uIcc u v = Metric.closedBall c δ := by
+    calc
+      Set.uIcc u v = Set.Icc u v := by
+        exact Set.uIcc_of_le huv_le
+      _ = Set.Icc (c - δ) (c + δ) := by
+        exact rfl
+      _ = Metric.closedBall c δ := by
+        exact (Real.closedBall_eq_Icc (x := c) (r := δ)).symm
+  have hcont_abs :
+      ContinuousOn
+        (fun x : ℝ => |f x|)
+        (Set.uIcc u v) :=
+    hf.continuousOn.abs
+  have hnonzero_abs :
+      ∀ x : ℝ, x ∈ Set.uIcc u v → |f x| ≠ 0 := by
+    intro x hx
+    have hx_closed : x ∈ Metric.closedBall c δ :=
+      huIcc_eq_closed ▸ hx
+    have hx_ball : x ∈ Metric.ball c ε :=
+      Metric.closedBall_subset_ball hδ_lt hx_closed
+    exact abs_ne_zero.mpr (hball hx_ball)
+  refine ⟨u, v, hu_lt_c, hc_lt_v, ?_⟩
+  exact
+    (ContinuousOn.log hcont_abs hnonzero_abs).intervalIntegrable
+
+/-- The sine quotient filled by value `1` at the origin is continuous. -/
+theorem real_filled_sin_div_self_continuous :
+    Continuous
+      (Function.update (fun x : ℝ => Real.sin x / x) 0 1) := by
+  exact
+    continuous_iff_continuousAt.2
+      (fun x : ℝ =>
+        match Classical.decEq ℝ x 0 with
+        | isTrue hx =>
+            Eq.subst
+              (motive := fun y : ℝ =>
+                ContinuousAt
+                  (Function.update (fun x : ℝ => Real.sin x / x) 0 1)
+                  y)
+              hx.symm
+              real_filled_sin_div_self_continuousAt_zero
+        | isFalse hx =>
+            (continuousAt_update_of_ne hx).2
+              (Real.continuous_sin.continuousAt.div continuousAt_id hx))
+
+/-- The filled sine-ratio logarithm is locally interval-integrable near `0`.
+
+The filled ratio is continuous at `0` by applying
+`HasDerivAt.continuousAt_div` to `Real.hasDerivAt_sin 0`; the value at `0` is
+`1`, so the logarithm is locally continuous and hence locally
+interval-integrable. -/
+theorem real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero :
+    ∃ u v : ℝ,
+      u < (0 : ℝ) ∧ (0 : ℝ) < v ∧
+      IntervalIntegrable
+        (fun θ : ℝ =>
+          Real.log |Function.update (fun x : ℝ => Real.sin x / x) 0 1 θ|)
+        MeasureTheory.volume
+        u
+        v := by
+  have hvalue :
+      Function.update (fun x : ℝ => Real.sin x / x) 0 1 0 = 1 :=
+    Function.update_same 0 1 (fun x : ℝ => Real.sin x / x)
+  have hnonzero :
+      Function.update (fun x : ℝ => Real.sin x / x) 0 1 0 ≠ 0 := by
+    exact hvalue ▸ one_ne_zero
+  exact
+    real_log_abs_local_intervalIntegrable_of_continuous_nonzero
+      (Function.update (fun x : ℝ => Real.sin x / x) 0 1)
+      0
+      real_filled_sin_div_self_continuous
+      hnonzero
+
+/-- The derivative-slope quotient for `sin` filled at `π` is continuous. -/
+theorem real_filled_sin_sub_pi_div_sub_pi_continuous :
+    Continuous
+      (Function.update
+        (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+        Real.pi
+        (Real.cos Real.pi)) := by
+  have hcont_at_pi :
+      ContinuousAt
+        (Function.update
+          (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+          Real.pi
+          (Real.cos Real.pi))
+        Real.pi :=
+    (Real.hasDerivAt_sin Real.pi).continuousAt_div
+  exact
+    continuous_iff_continuousAt.2
+      (fun x : ℝ =>
+        match Classical.decEq ℝ x Real.pi with
+        | isTrue hx =>
+            Eq.subst
+              (motive := fun y : ℝ =>
+                ContinuousAt
+                  (Function.update
+                    (fun x : ℝ =>
+                      (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+                    Real.pi
+                    (Real.cos Real.pi))
+                  y)
+              hx.symm
+              hcont_at_pi
+        | isFalse hx =>
+            (continuousAt_update_of_ne hx).2
+              ((Real.continuous_sin.continuousAt.sub continuousAt_const).div
+                (continuousAt_id.sub continuousAt_const)
+                (sub_ne_zero.mpr hx)))
+
+/-- The filled derivative-slope logarithm for `sin` is locally
+interval-integrable near `π`. -/
+theorem real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi :
+    ∃ u v : ℝ,
+      u < Real.pi ∧ Real.pi < v ∧
+      IntervalIntegrable
+        (fun θ : ℝ =>
+          Real.log |
+            Function.update
+              (fun x : ℝ =>
+                (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+              Real.pi
+              (Real.cos Real.pi)
+              θ|)
+        MeasureTheory.volume
+        u
+        v := by
+  have hvalue :
+      Function.update
+          (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+          Real.pi
+          (Real.cos Real.pi)
+          Real.pi =
+        Real.cos Real.pi :=
+    Function.update_same Real.pi (Real.cos Real.pi)
+      (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+  have hcos_nonzero : Real.cos Real.pi ≠ 0 := by
+    exact Real.cos_pi ▸ neg_ne_zero.mpr one_ne_zero
+  have hnonzero :
+      Function.update
+          (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+          Real.pi
+          (Real.cos Real.pi)
+          Real.pi ≠ 0 := by
+    exact hvalue ▸ hcos_nonzero
+  exact
+    real_log_abs_local_intervalIntegrable_of_continuous_nonzero
+      (Function.update
+        (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+        Real.pi
+        (Real.cos Real.pi))
+      Real.pi
+      real_filled_sin_sub_pi_div_sub_pi_continuous
+      hnonzero
+
 /-- Local logarithmic model for `log |sin u|` at `0`.
 
 The remainder is `log |sin u / u|`, extended at `0`; its continuity follows
@@ -2772,11 +3025,65 @@ theorem real_log_abs_sin_localModel_zero :
       ∀ᶠ θ in 𝓝[≠] (0 : ℝ),
         Real.log |Real.sin θ| =
           (n : ℝ) * Real.log |θ - 0| + g θ := by
-  -- Endpoint model:
-  -- `log |sin θ| = log |θ| + log |sin θ / θ|` on a punctured
-  -- neighborhood of `0`; the second term is continuous since
-  -- `sin θ / θ → 1`.
-  sorry
+  let g : ℝ → ℝ :=
+    fun θ : ℝ =>
+      Real.log |Function.update (fun x : ℝ => Real.sin x / x) 0 1 θ|
+  refine ⟨1, g, ?_, ?_⟩
+  · exact real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero
+  · have hsmall :
+        ∀ᶠ θ in 𝓝[≠] (0 : ℝ), θ ∈ Set.Ioo (-Real.pi) Real.pi :=
+      mem_of_superset
+        (nhdsWithin_le_nhds (s := {0}ᶜ)
+          (Ioo_mem_nhds (neg_lt_zero.mpr Real.pi_pos) Real.pi_pos))
+        (fun θ hθ => hθ)
+    filter_upwards [self_mem_nhdsWithin, hsmall] with θ hθ hθ_small
+    have hθ_ne : θ ≠ 0 :=
+      hθ
+    have hsin_ne : Real.sin θ ≠ 0 := by
+      have hzero_iff : Real.sin θ = 0 ↔ θ = 0 :=
+        Real.sin_eq_zero_iff_of_lt_of_lt hθ_small.1 hθ_small.2
+      intro hsin_zero
+      exact hθ_ne (hzero_iff.1 hsin_zero)
+    have hupdate :
+        Function.update (fun x : ℝ => Real.sin x / x) 0 1 θ =
+          Real.sin θ / θ := by
+      exact Function.update_of_ne hθ_ne 1 (fun x : ℝ => Real.sin x / x)
+    have hsin_factor :
+        Real.sin θ = θ * (Real.sin θ / θ) := by
+      exact (mul_div_cancel₀ (Real.sin θ) hθ_ne).symm
+    have habs_factor :
+        |Real.sin θ| = |θ| * |Real.sin θ / θ| := by
+      calc
+        |Real.sin θ| = |θ * (Real.sin θ / θ)| := by
+          exact congrArg abs hsin_factor
+        _ = |θ| * |Real.sin θ / θ| := by
+          exact abs_mul θ (Real.sin θ / θ)
+    have hθ_abs_ne : |θ| ≠ 0 :=
+      abs_ne_zero.mpr hθ_ne
+    have hratio_ne : |Real.sin θ / θ| ≠ 0 := by
+      exact abs_ne_zero.mpr (div_ne_zero hsin_ne hθ_ne)
+    calc
+      Real.log |Real.sin θ| =
+          Real.log (|θ| * |Real.sin θ / θ|) := by
+        exact congrArg Real.log habs_factor
+      _ = Real.log |θ| + Real.log |Real.sin θ / θ| := by
+        exact Real.log_mul hθ_abs_ne hratio_ne
+      _ = (1 : ℝ) * Real.log |θ - 0| + g θ := by
+        have htheta_sub : |θ - 0| = |θ| :=
+          congrArg abs (sub_zero θ)
+        have hgθ : g θ = Real.log |Real.sin θ / θ| := by
+          exact congrArg (fun x : ℝ => Real.log |x|) hupdate
+        calc
+          Real.log |θ| + Real.log |Real.sin θ / θ| =
+              Real.log |θ - 0| + Real.log |Real.sin θ / θ| := by
+            exact congrArg (fun x : ℝ => Real.log x + Real.log |Real.sin θ / θ|)
+              htheta_sub.symm
+          _ = (1 : ℝ) * Real.log |θ - 0| + Real.log |Real.sin θ / θ| := by
+            exact congrArg (fun x : ℝ => x + Real.log |Real.sin θ / θ|)
+              (Eq.symm (one_mul (Real.log |θ - 0|)))
+          _ = (1 : ℝ) * Real.log |θ - 0| + g θ := by
+            exact congrArg (fun x : ℝ => (1 : ℝ) * Real.log |θ - 0| + x)
+              hgθ.symm
 
 /-- Local logarithmic model for `log |sin u|` at `π`.
 
@@ -2790,8 +3097,116 @@ theorem real_log_abs_sin_localModel_pi :
       ∀ᶠ θ in 𝓝[≠] Real.pi,
         Real.log |Real.sin θ| =
           (n : ℝ) * Real.log |θ - Real.pi| + g θ := by
-  -- Endpoint model transported by `θ ↦ π - θ`.
-  sorry
+  let g : ℝ → ℝ :=
+    fun θ : ℝ =>
+      Real.log |
+        Function.update
+          (fun x : ℝ =>
+            (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+          Real.pi
+          (Real.cos Real.pi)
+          θ|
+  refine ⟨1, g, ?_, ?_⟩
+  · exact real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi
+  · have hsmall :
+        ∀ᶠ θ in 𝓝[≠] Real.pi, θ ∈ Set.Ioo 0 (2 * Real.pi) :=
+      mem_of_superset
+        (nhdsWithin_le_nhds (s := {Real.pi}ᶜ)
+          (Ioo_mem_nhds Real.pi_pos
+            (lt_of_eq_of_lt
+              (Eq.symm (one_mul Real.pi))
+              (mul_lt_mul_of_pos_right one_lt_two Real.pi_pos))))
+        (fun θ hθ => hθ)
+    filter_upwards [self_mem_nhdsWithin, hsmall] with θ hθ hθ_small
+    have hθ_ne : θ ≠ Real.pi :=
+      hθ
+    have hsin_ne : Real.sin θ ≠ 0 := by
+      have hsub_small : θ - Real.pi ∈ Set.Ioo (-Real.pi) Real.pi := by
+        constructor
+        · exact neg_lt_sub_iff_lt_add.2
+            (lt_of_lt_of_eq hθ_small.1 (zero_add Real.pi).symm)
+        · exact sub_lt_iff_lt_add.2
+            (lt_of_lt_of_eq hθ_small.2 (Eq.symm (two_mul Real.pi)))
+      have hsub_ne : θ - Real.pi ≠ 0 :=
+        sub_ne_zero.mpr hθ_ne
+      have hzero_iff : Real.sin (θ - Real.pi) = 0 ↔ θ - Real.pi = 0 :=
+        Real.sin_eq_zero_iff_of_lt_of_lt hsub_small.1 hsub_small.2
+      intro hsin_zero
+      have hsin_sub_zero : Real.sin (θ - Real.pi) = 0 := by
+        exact Eq.trans (Real.sin_sub_pi θ) (neg_eq_zero.mpr hsin_zero)
+      exact hsub_ne (hzero_iff.1 hsin_sub_zero)
+    have hupdate :
+        Function.update
+            (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+            Real.pi
+            (Real.cos Real.pi)
+            θ =
+          (Real.sin θ - Real.sin Real.pi) / (θ - Real.pi) := by
+      exact
+        Function.update_of_ne hθ_ne (Real.cos Real.pi)
+          (fun x : ℝ => (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
+    have hsin_factor :
+        Real.sin θ = (θ - Real.pi) *
+          ((Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)) := by
+      calc
+        Real.sin θ = Real.sin θ - Real.sin Real.pi := by
+          exact (sub_eq_self.2 Real.sin_pi).symm
+        _ = (θ - Real.pi) *
+            ((Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)) := by
+          exact (mul_div_cancel₀ (Real.sin θ - Real.sin Real.pi)
+            (sub_ne_zero.mpr hθ_ne)).symm
+    have habs_factor :
+        |Real.sin θ| =
+          |θ - Real.pi| *
+            |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| := by
+      calc
+        |Real.sin θ| =
+            |(θ - Real.pi) *
+              ((Real.sin θ - Real.sin Real.pi) / (θ - Real.pi))| := by
+          exact congrArg abs hsin_factor
+        _ = |θ - Real.pi| *
+            |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| := by
+          exact abs_mul (θ - Real.pi)
+            ((Real.sin θ - Real.sin Real.pi) / (θ - Real.pi))
+    have hθ_abs_ne : |θ - Real.pi| ≠ 0 :=
+      abs_ne_zero.mpr (sub_ne_zero.mpr hθ_ne)
+    have hratio_ne :
+        |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| ≠ 0 := by
+      have hnum_ne : Real.sin θ - Real.sin Real.pi ≠ 0 := by
+        intro hdiff_zero
+        have hsin_eq_pi : Real.sin θ = Real.sin Real.pi :=
+          sub_eq_zero.1 hdiff_zero
+        exact hsin_ne (Eq.trans hsin_eq_pi Real.sin_pi)
+      exact abs_ne_zero.mpr (div_ne_zero hnum_ne (sub_ne_zero.mpr hθ_ne))
+    calc
+      Real.log |Real.sin θ| =
+          Real.log
+            (|θ - Real.pi| *
+              |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)|) := by
+        exact congrArg Real.log habs_factor
+      _ = Real.log |θ - Real.pi| +
+          Real.log |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| := by
+        exact Real.log_mul hθ_abs_ne hratio_ne
+      _ = (1 : ℝ) * Real.log |θ - Real.pi| + g θ := by
+        have hgθ :
+            g θ =
+              Real.log
+                |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| := by
+          exact congrArg (fun x : ℝ => Real.log |x|) hupdate
+        calc
+          Real.log |θ - Real.pi| +
+              Real.log |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| =
+              (1 : ℝ) * Real.log |θ - Real.pi| +
+                Real.log |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)| := by
+            exact congrArg
+              (fun x : ℝ =>
+                x + Real.log
+                  |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)|)
+              (Eq.symm (one_mul (Real.log |θ - Real.pi|)))
+          _ = (1 : ℝ) * Real.log |θ - Real.pi| + g θ := by
+            exact congrArg
+              (fun x : ℝ => (1 : ℝ) * Real.log |θ - Real.pi| + x)
+              hgθ.symm
 
 /-- Endpoint local logarithmic models for the finite singular set
 `{0, π}` of `log |sin|` on `[0,π]`. -/
@@ -10244,8 +10659,222 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
       _ =
           F w *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-              F hF ∅ w := by
+          F hF ∅ w := by
         rfl
+
+/-- The normalized extracted factor has value `1` at the origin. -/
+theorem entireFunction_normalizedFactor_pow_at_zero
+    {a : ℂ}
+    (m : ℕ) :
+    (1 - (0 : ℂ) / a) ^ m = 1 := by
+  have hzero_div : (0 : ℂ) / a = 0 :=
+    zero_div a
+  have hbase : 1 - (0 : ℂ) / a = 1 := by
+    calc
+      1 - (0 : ℂ) / a = 1 - 0 := by
+        exact congrArg (fun x : ℂ => 1 - x) hzero_div
+      _ = 1 := sub_zero 1
+  calc
+    (1 - (0 : ℂ) / a) ^ m = (1 : ℂ) ^ m := by
+      exact congrArg (fun x : ℂ => x ^ m) hbase
+    _ = 1 := one_pow m
+
+/-- Inserting one normalized nonzero factor does not change the finite product
+at the origin. -/
+theorem entireFunction_finiteZeroDivisorProduct_insert_at_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha : a ∉ S) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF (insert a S) 0 =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF S 0 := by
+  have hinsert :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) 0 =
+        (1 - (0 : ℂ) / (a : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (a : ℂ) *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF S 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+      F hF S a ha 0
+  have hfactor_one :
+      (1 - (0 : ℂ) / (a : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (a : ℂ) = 1 :=
+    entireFunction_normalizedFactor_pow_at_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+  calc
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF (insert a S) 0 =
+        (1 - (0 : ℂ) / (a : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (a : ℂ) *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF S 0 := hinsert
+    _ =
+        1 *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF S 0 := by
+      exact
+        congrArg
+          (fun x : ℂ =>
+            x *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S 0)
+          hfactor_one
+    _ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S 0 :=
+      one_mul
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S 0)
+
+/-- The old finite normalized product is nonzero at a newly inserted support
+point. -/
+theorem entireFunction_finiteZeroDivisorProduct_nonzero_at_newSupport
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF S (a : ℂ) ≠ 0 := by
+  have hprod :
+      (∏ z in S,
+        (1 - (a : ℂ) / (z : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 := by
+    exact
+      Finset.prod_ne_zero_iff.mpr
+        (fun z hz =>
+          pow_ne_zero
+            (entireFunctionZeroMultiplicity F hF (z : ℂ))
+            (fun hfactor =>
+              have ha_eq_z : (a : ℂ) = (z : ℂ) :=
+                (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
+                  F hF S hS0 z hz (a : ℂ)).1 hfactor
+              have haz : a = z :=
+                Subtype.ext ha_eq_z
+              ha_not_mem (Eq.subst (motive := fun y : EntireFunctionZero F => y ∈ S) haz.symm hz)))
+  exact
+    Eq.subst
+      (motive := fun x : ℂ => x ≠ 0)
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_def
+        F hF S (a : ℂ)).symm
+      hprod
+
+/-- Nonvanishing of the leading coefficient for the inserted normalized
+finite product at the inserted point. -/
+theorem entireFunction_insertedFiniteZeroDivisorProduct_localLeadingCoeff_nonzero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0) :
+    ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S (a : ℂ) ≠ 0 := by
+  have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+    inv_ne_zero ha0
+  have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+    neg_ne_zero.mpr hinv_ne
+  have hpow_ne :
+      (-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) ≠ 0 :=
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+      hneg_ne
+  have hprod_ne :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S (a : ℂ) ≠ 0 :=
+    entireFunction_finiteZeroDivisorProduct_nonzero_at_newSupport
+      F hF S a ha_not_mem hS0
+  exact mul_ne_zero hpow_ne hprod_ne
+
+/-- Local removable division by a normalized centered power.
+
+This is the analytic-algebra core of inserting a Jensen normalized factor.  If
+`Qold * P` has local centered-power factorization `(w-a)^m g(w)` and `P a ≠ 0`,
+then `Qold / (1 - w/a)^m` has a removable singularity at `a`; its removable
+value is `g a / ((-a⁻¹)^m * P a)`.  This is the standard removable-singularity
+step, using
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m` on the punctured neighborhood. -/
+theorem analyticAt_removable_div_normalizedCenteredPower
+    (Qold P g : ℂ → ℂ)
+    {a : ℂ}
+    (m : ℕ)
+    (ha0 : a ≠ 0)
+    (hQold_an : AnalyticAt ℂ Qold a)
+    (hP_an : AnalyticAt ℂ P a)
+    (hP_ne : P a ≠ 0)
+    (hg_an : AnalyticAt ℂ g a)
+    (hfactor :
+      ∀ᶠ w in 𝓝 a,
+        Qold w * P w = (w - a) ^ m • g w) :
+    ∃ Q : ℂ → ℂ,
+      AnalyticAt ℂ Q a ∧
+      Q =ᶠ[𝓝[≠] a]
+        (fun w : ℂ => Qold w / ((1 - w / a) ^ m)) ∧
+      Q a =
+        g a / (((-a⁻¹) ^ m) * P a) := by
+  -- Deep local theorem: apply `Mathlib.Analysis.Complex.RemovableSingularity`
+  -- to the punctured quotient.  The local equality follows from `hfactor` and
+  -- `entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor`.
+  sorry
+
+/-- Explicit old-quotient/local-unit form of one-step normalized removable
+division.
+
+This is the true analytic construction behind the finite insertion step.  The
+old quotient `Qold` is divided by the inserted normalized factor away from
+`a`; the local Taylor unit `g` supplies the filled value at `a` after the
+identity
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`.  The resulting quotient is analytic on the
+closed disk and preserves the origin normalization because the inserted factor
+has value `1` at `0`. -/
+theorem entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient_and_localUnit
+    (F Qold g : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w)
+    (hQold_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Qold w)
+    (hQold_factor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Qold w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (hQold_zero : Qold 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep local analytic algebra theorem: construct `Q` by
+  -- `Qold / (1 - w/a)^m` on the punctured neighborhood and fill the point `a`
+  -- with `g a / (((-a⁻¹)^m) * ∏_{z ∈ S.erase a} (1 - a/z)^m_z)`.
+  -- The proof is removable singularity plus the normalized-factor identity.
+  sorry
 
 /-- Insert one normalized zero factor into an analytic finite factorization.
 
@@ -10294,11 +10923,19 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_of_localTaylorFa
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep removable-division construction: define the new quotient as the old
-  -- quotient divided by the inserted normalized factor away from `a`, fill in
-  -- the forced local Taylor value at `a`, and use the identity principle on
-  -- the punctured neighborhood to prove analyticity at the filled point.
-  sorry
+  rcases hlocal_a with
+  | intro g hg =>
+      rcases hS with
+      | intro Qold hQold =>
+          exact
+            entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient_and_localUnit
+              F Qold g hF ρ hρ S a ha_not_mem hS0 ha0
+              hg.1
+              hg.2.1
+              hg.2.2
+              hQold.1
+              hQold.2.1
+              hQold.2.2
 
 /-- Single-insert analytic division by a normalized finite zero factor.
 
