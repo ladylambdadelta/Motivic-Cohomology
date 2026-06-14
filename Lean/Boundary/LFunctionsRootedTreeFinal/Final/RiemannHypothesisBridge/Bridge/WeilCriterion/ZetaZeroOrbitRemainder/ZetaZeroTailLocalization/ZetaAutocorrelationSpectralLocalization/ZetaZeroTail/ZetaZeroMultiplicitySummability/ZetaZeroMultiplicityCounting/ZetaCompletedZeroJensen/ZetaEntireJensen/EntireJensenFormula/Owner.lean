@@ -1779,10 +1779,34 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
 /-- Classical Jensen boundary-log-average identity for a nonzero value at the
 origin.
 
-This is the analytic identity part of Jensen's formula in the normalization of
-this file: the multiplicity-weighted radial gap sum equals the normalized
-boundary logarithmic average up to a constant depending only on `F`; cf.
-Titchmarsh, *The Theory of Functions*, §5. -/
+This is the exact classical Jensen package in the normalization of this file:
+the nonzero closed-disk multiplicity summands are summable, the radial-gap
+summands are summable, and the multiplicity-weighted radial gap sum equals the
+normalized boundary logarithmic average up to the origin constant
+`-log ‖F 0‖`; cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
+  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
+  -- Functions, §5.
+  sorry
+
+/-- Boundary-log-average identity projected from the standard Jensen package. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogAverage_identity_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1792,10 +1816,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogAverage_
           1 ≤ ρ →
           entireFunctionJensenRadialGapSum F hF ρ + C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
-  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
-  -- Functions, §5.
-  sorry
+  rcases
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
+        F hF hF0 with
+    ⟨C, _hclosed, hradial⟩
+  exact ⟨C, fun ρ hρ => (hradial ρ hρ).2⟩
 
 /-- Closed-disk summability of the nonzero zero-multiplicity summand in the
 standard Jensen setting. -/
@@ -1808,10 +1833,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummabili
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
-  -- This is the finite closed-disk zero-counting consequence of Jensen's
-  -- theorem for nonzero-origin entire functions; cf. Titchmarsh, The Theory
-  -- of Functions, §5.
-  sorry
+  rcases
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
+        F hF hF0 with
+    ⟨_C, hclosed, _hradial⟩
+  exact hclosed
 
 /-- Radial-gap summability of the Jensen summand in the standard nonzero-origin
 setting. -/
@@ -1824,9 +1850,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummabilit
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF ρ z) := by
-  -- This is the radial summability component of the same classical Jensen
-  -- theorem; cf. Titchmarsh, The Theory of Functions, §5.
-  sorry
+  rcases
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
+        F hF hF0 with
+    ⟨_C, _hclosed, hradial⟩
+  exact fun ρ hρ => (hradial ρ hρ).1
 
 /-- Standard Jensen formula for a nontrivial entire function whose value at the
 origin is nonzero.
@@ -4482,6 +4510,46 @@ theorem entireFunction_jensenBoundaryCircleParam_injectiveOn_Ioc
     linarith
   subst hn0
   linarith
+
+/-- The circle parametrization is injective on the open fundamental arc
+`(0, 2π]` at an arbitrary positive radius.
+
+This is the radius-normalized form consumed by the finite-exception
+origin-factor transport; it is just the doubled Jensen parametrization applied
+at half radius. -/
+theorem entireFunction_boundaryCircleParam_injectiveOn_Ioc
+    {R : ℝ}
+    (hR : 0 < R) :
+    Set.InjOn
+      (fun θ : ℝ => (R : ℂ) * Complex.exp (θ * Complex.I))
+      (Set.Ioc 0 (2 * Real.pi)) := by
+  have hhalf : 0 < R / 2 :=
+    half_pos hR
+  have hJensen :
+      Set.InjOn
+        (fun θ : ℝ => (2 * (R / 2) : ℂ) * Complex.exp (θ * Complex.I))
+        (Set.Ioc 0 (2 * Real.pi)) :=
+    entireFunction_jensenBoundaryCircleParam_injectiveOn_Ioc hhalf
+  intro θ₁ hθ₁ θ₂ hθ₂ hEq
+  apply hJensen hθ₁ hθ₂
+  have hscaleReal : 2 * (R / 2) = R := by
+    calc
+      2 * (R / 2) = R / 2 + R / 2 := two_mul (R / 2)
+      _ = R := add_halves R
+  have hscaleComplex : ((2 * (R / 2) : ℝ) : ℂ) = (R : ℂ) :=
+    congrArg (fun x : ℝ => (x : ℂ)) hscaleReal
+  calc
+    (2 * (R / 2) : ℂ) * Complex.exp (θ₁ * Complex.I) =
+        (R : ℂ) * Complex.exp (θ₁ * Complex.I) := by
+      exact congrArg
+        (fun x : ℂ => x * Complex.exp (θ₁ * Complex.I))
+        hscaleComplex
+    _ = (R : ℂ) * Complex.exp (θ₂ * Complex.I) :=
+      hEq
+    _ = (2 * (R / 2) : ℂ) * Complex.exp (θ₂ * Complex.I) := by
+      exact congrArg
+        (fun x : ℂ => x * Complex.exp (θ₂ * Complex.I))
+        hscaleComplex.symm
 
 /-- The finite circle-zero set induces a finite parameter singular set on the
 fundamental boundary arc. -/
