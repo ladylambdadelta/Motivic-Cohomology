@@ -445,6 +445,104 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
           _ < 0 := hneg_succ_lt_zero
       exact (not_lt_of_ge hz_half_re) hcontr
 
+/-- Norm transport for the half-argument. -/
+theorem two_mul_norm_halfArgument
+    (z : ℂ) :
+    2 * ‖z / 2‖ = ‖z‖ := by
+  have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) := by
+    calc
+      ‖(2 : ℂ)‖ = ‖(2 : ℝ)‖ := by
+        exact Complex.norm_real 2
+      _ = (2 : ℝ) :=
+        Real.norm_of_nonneg zero_le_two
+  calc
+    2 * ‖z / 2‖ = ‖(2 : ℂ)‖ * ‖z / 2‖ := by
+      exact congrArg (fun x : ℝ => x * ‖z / 2‖) htwo_norm.symm
+    _ = ‖(2 : ℂ) * (z / 2)‖ := by
+      exact (norm_mul (2 : ℂ) (z / 2)).symm
+    _ = ‖z‖ := by
+      have hmul : (2 : ℂ) * (z / 2) = z := by
+        calc
+          (2 : ℂ) * (z / 2) = z / 2 * (2 : ℂ) := by
+            exact mul_comm (2 : ℂ) (z / 2)
+          _ = z := div_mul_cancel₀ z (by exact two_ne_zero)
+      exact congrArg norm hmul
+
+/-- The half-argument is in the large sectorial region measured at radius `1 / 2`. -/
+theorem halfArgument_norm_ge_one_half_of_one_le_norm
+    {z : ℂ}
+    (hz_norm : 1 ≤ ‖z‖) :
+    (1 / 2 : ℝ) ≤ ‖z / 2‖ := by
+  have htwo_pos : (0 : ℝ) < 2 := zero_lt_two
+  have htransport : 2 * ‖z / 2‖ = ‖z‖ :=
+    two_mul_norm_halfArgument z
+  have hone_le_two_mul : (1 : ℝ) ≤ 2 * ‖z / 2‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+      htransport.symm
+      hz_norm
+  exact (div_le_iff₀' htwo_pos).mpr hone_le_two_mul
+
+/-- The standard sectorial complex-Stirling input for `Complex.Gamma` in the closed
+right half-plane.
+
+This is the genuine upstream special-function theorem missing from the current local and
+Mathlib API: sectorial Stirling gives logarithmic linear growth for `Γ(w)` away from the
+origin in any closed sector avoiding the negative real axis; here it is specialized to
+`0 ≤ w.re`, with the radius written as `2 * ‖w‖` for direct half-argument transport.
+cf. DLMF §5.11. -/
+theorem sectorialComplexGammaStirling_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Transport the sectorial `Complex.Gamma` estimate from `w` to the half-argument
+`w = z / 2`. -/
+theorem sectorialComplexGammaStirling_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one_of_sectorial
+    (hsector :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          0 ≤ w.re →
+          (1 / 2 : ℝ) ≤ ‖w‖ →
+          Real.log ‖Complex.Gamma w‖ ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖Complex.Gamma (z / 2)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  rcases hsector with ⟨C, hC_pos, hC⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hz_re hz_norm
+  have hz_half_re : 0 ≤ (z / 2).re :=
+    halfArgument_re_nonneg_of_re_nonneg hz_re
+  have hz_half_norm : (1 / 2 : ℝ) ≤ ‖z / 2‖ :=
+    halfArgument_norm_ge_one_half_of_one_le_norm hz_norm
+  have hraw :
+      Real.log ‖Complex.Gamma (z / 2)‖ ≤
+        C * (1 + 2 * ‖z / 2‖) * Real.log (2 + 2 * ‖z / 2‖) :=
+    hC (z / 2) hz_half_re hz_half_norm
+  have htwo_norm : 2 * ‖z / 2‖ = ‖z‖ :=
+    two_mul_norm_halfArgument z
+  have htarget_eq :
+      C * (1 + 2 * ‖z / 2‖) * Real.log (2 + 2 * ‖z / 2‖) =
+        C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+    exact congrArg
+      (fun x : ℝ => C * (1 + x) * Real.log (2 + x))
+      htwo_norm
+  exact Eq.subst
+    (motive := fun x : ℝ => Real.log ‖Complex.Gamma (z / 2)‖ ≤ x)
+    htarget_eq
+    hraw
+
 /-- Classical sectorial log-Gamma growth for the half-argument in the closed right
 half-plane.
 
@@ -459,7 +557,9 @@ theorem sectorialComplexGammaStirling_halfArgument_rightHalfPlane_log_linear_gro
         1 ≤ ‖z‖ →
         Real.log ‖Complex.Gamma (z / 2)‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  sorry
+  exact
+    sectorialComplexGammaStirling_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one_of_sectorial
+      sectorialComplexGammaStirling_rightHalfPlane_log_linear_growth_bound_degree_one
 
 /-- The `π ^ (-z / 2)` normalization contributes no positive log-growth in the right
 half-plane. -/
@@ -2063,6 +2163,192 @@ theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
       ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
   exact congrArg norm (Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded t)
 
+/-- Vertical Stirling upper bound for the named numerator in the unfolded left-boundary
+Gamma quotient.
+
+This is one of the exact classical special-function inputs: Stirling on the vertical
+line `((1 - it) / 2)`, including the `π` normalization; cf. DLMF §5.11. -/
+theorem twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤
+          A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
+  sorry
+
+/-- Vertical Stirling reciprocal bound for the named denominator in the unfolded
+left-boundary Gamma quotient.
+
+This is the matching exact classical special-function input: Stirling on the vertical
+line `(it / 2)`, inverted and normalized so the quotient algebra has the expected
+square-root growth; cf. DLMF §5.11. -/
+theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound :
+    ∃ B : ℝ,
+      0 < B ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
+          B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
+  sorry
+
+/-- Algebraic quotient estimate obtained from the numerator bound and denominator
+reciprocal bound.  The exponential factors cancel, leaving the square-root envelope. -/
+theorem unfoldedGammaℝLeftBoundaryRatioRealParam_sqrt_growth_bound_of_numerator_and_denominator
+    (hnum :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+          ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤
+            A * Real.exp (-(Real.pi / 4) * ‖t‖))
+    (hden :
+      ∃ B : ℝ,
+        0 < B ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+          ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
+            B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖)) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ ≤
+          A * Real.sqrt (1 + ‖t‖) := by
+  rcases hnum with ⟨Anum, hAnum_pos, hAnum⟩
+  rcases hden with ⟨Bden, hBden_pos, hBden⟩
+  refine ⟨Anum * Bden, mul_pos hAnum_pos hBden_pos, ?_⟩
+  intro t ht
+  let Eminus : ℝ := Real.exp (-(Real.pi / 4) * ‖t‖)
+  let Eplus : ℝ := Real.exp ((Real.pi / 4) * ‖t‖)
+  let S : ℝ := Real.sqrt (1 + ‖t‖)
+  have hnum_bound :
+      ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤ Anum * Eminus :=
+    hAnum t ht
+  have hden_bound :
+      ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
+        Bden * Eplus * S :=
+    hBden t ht
+  have hden_inv_nonneg :
+      0 ≤ ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ :=
+    norm_nonneg _
+  have hquot_eq :
+      ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ =
+        ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ *
+          ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ := by
+    calc
+      ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ =
+          ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t /
+            unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t‖ :=
+        norm_unfoldedGammaℝLeftBoundaryRatioRealParam_eq_named_quotient t
+      _ = ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t *
+            (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ := by
+        rfl
+      _ = ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ *
+          ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ := by
+        exact norm_mul
+          (unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t)
+          (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹
+  have hmul_bound :
+      ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ *
+          ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
+        (Anum * Eminus) * (Bden * Eplus * S) :=
+    mul_le_mul hnum_bound hden_bound hden_inv_nonneg
+      (mul_nonneg (le_of_lt hAnum_pos) (Real.exp_pos _).le)
+  have hexp_cancel :
+      Eminus * Eplus = 1 := by
+    have hsum_exp :
+        (-(Real.pi / 4) * ‖t‖) + ((Real.pi / 4) * ‖t‖) = 0 := by
+      have hneg :
+          -(Real.pi / 4) * ‖t‖ =
+            -((Real.pi / 4) * ‖t‖) :=
+        neg_mul (Real.pi / 4) ‖t‖
+      calc
+        (-(Real.pi / 4) * ‖t‖) + ((Real.pi / 4) * ‖t‖) =
+            -((Real.pi / 4) * ‖t‖) + ((Real.pi / 4) * ‖t‖) := by
+          exact congrArg
+            (fun x : ℝ => x + ((Real.pi / 4) * ‖t‖))
+            hneg
+        _ = 0 :=
+          add_left_neg ((Real.pi / 4) * ‖t‖)
+    calc
+      Eminus * Eplus =
+          Real.exp ((-(Real.pi / 4) * ‖t‖) + ((Real.pi / 4) * ‖t‖)) := by
+        exact (Real.exp_add (-(Real.pi / 4) * ‖t‖) ((Real.pi / 4) * ‖t‖)).symm
+      _ = Real.exp 0 := by
+        exact congrArg Real.exp hsum_exp
+      _ = 1 := Real.exp_zero
+  have htarget_eq :
+      (Anum * Eminus) * (Bden * Eplus * S) = (Anum * Bden) * S := by
+    have hcomm :
+        (Anum * Eminus) * (Bden * Eplus * S) =
+          (Anum * Bden) * (Eminus * Eplus) * S := by
+      calc
+        (Anum * Eminus) * (Bden * Eplus * S) =
+            Anum * (Eminus * (Bden * Eplus * S)) := by
+          exact mul_assoc Anum Eminus (Bden * Eplus * S)
+        _ = Anum * (Bden * (Eminus * Eplus * S)) := by
+          exact congrArg (fun x : ℝ => Anum * x)
+            (calc
+              Eminus * (Bden * Eplus * S) =
+                  Eminus * (Bden * (Eplus * S)) := by
+                exact congrArg (fun x : ℝ => Eminus * x)
+                  (mul_assoc Bden Eplus S)
+              _ = Bden * (Eminus * (Eplus * S)) := by
+                exact mul_left_comm Eminus Bden (Eplus * S)
+              _ = Bden * ((Eminus * Eplus) * S) := by
+                exact congrArg (fun x : ℝ => Bden * x)
+                  (mul_assoc Eminus Eplus S).symm)
+        _ = (Anum * Bden) * (Eminus * Eplus * S) := by
+          exact (mul_assoc Anum Bden (Eminus * Eplus * S)).symm
+        _ = (Anum * Bden) * ((Eminus * Eplus) * S) := by
+          exact congrArg (fun x : ℝ => (Anum * Bden) * x)
+            (mul_assoc Eminus Eplus S).symm
+        _ = (Anum * Bden) * (Eminus * Eplus) * S := by
+          exact mul_assoc (Anum * Bden) (Eminus * Eplus) S
+    calc
+      (Anum * Eminus) * (Bden * Eplus * S) =
+          (Anum * Bden) * (Eminus * Eplus) * S :=
+        hcomm
+      _ = (Anum * Bden) * 1 * S := by
+        exact congrArg (fun x : ℝ => (Anum * Bden) * x * S) hexp_cancel
+      _ = (Anum * Bden) * S := by
+        exact congrArg (fun x : ℝ => x * S)
+          (mul_one (Anum * Bden))
+  exact Eq.subst
+    (motive := fun x : ℝ => ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ ≤ x)
+    htarget_eq
+    (Eq.subst
+      (motive := fun x : ℝ => x ≤ (Anum * Eminus) * (Bden * Eplus * S))
+      hquot_eq.symm
+      hmul_bound)
+
+/-- Inline form of the quotient algebra for the left-boundary two-Gamma expression. -/
+theorem inline_twoGammaQuotient_sqrt_growth_bound_of_unfolded
+    (hunfolded :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+          ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ ≤
+            A * Real.sqrt (1 + ‖t‖)) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+            (π ^ (-((t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
+          A * Real.sqrt (1 + ‖t‖) := by
+  rcases hunfolded with ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
+    (norm_inline_twoGammaQuotient_eq_norm_unfoldedGammaℝLeftBoundaryRatioRealParam t)
+    (hbound t ht)
+
 /-- Vertical Stirling quotient corollary for the completed real-Gamma boundary
 ratio.
 
@@ -2078,7 +2364,10 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_twoGammaQuotient_sqrt_
             (π ^ (-((t : ℂ) * Complex.I) / 2) *
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  sorry
+  exact inline_twoGammaQuotient_sqrt_growth_bound_of_unfolded
+    (unfoldedGammaℝLeftBoundaryRatioRealParam_sqrt_growth_bound_of_numerator_and_denominator
+      twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound
+      twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound)
 
 /-- The historical owner-root spelling for the left-boundary two-Gamma quotient estimate.
 
@@ -2875,7 +3164,10 @@ theorem one_le_two_add_norm
   have hnorm : 0 ≤ ‖t‖ :=
     norm_nonneg t
   have htwo_le : (1 : ℝ) ≤ 2 := by
-    norm_num
+    calc
+      (1 : ℝ) ≤ 1 + 1 :=
+        le_add_of_nonneg_right zero_le_one
+      _ = 2 := rfl
   exact le_trans htwo_le (le_add_of_nonneg_right hnorm)
 
 /-- Harmonic control at the boundary-line truncation height `2 + |t|`. -/
@@ -2883,6 +3175,200 @@ theorem harmonic_boundaryLine_truncation_le_one_add_log
     (t : ℝ) :
     harmonic ⌊2 + ‖t‖⌋₊ ≤ 1 + Real.log (2 + ‖t‖) := by
   exact harmonic_truncation_floor_le_one_add_log (one_le_two_add_norm t)
+
+/-- Each Dirichlet monomial on the boundary line `re = 1` has norm `1 / n`. -/
+theorem boundaryLineOnePointRealParam_dirichletTerm_norm_eq_inv
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    ‖(1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ = 1 / (n : ℝ) := by
+  have hnorm_pow :
+      ‖(n : ℂ) ^ boundaryLineOnePointRealParam t‖ = (n : ℝ) ^ (1 : ℝ) := by
+    calc
+      ‖(n : ℂ) ^ boundaryLineOnePointRealParam t‖ =
+          (n : ℝ) ^ (boundaryLineOnePointRealParam t).re := by
+            exact Complex.norm_natCast_cpow_of_pos hn (boundaryLineOnePointRealParam t)
+      _ = (n : ℝ) ^ (1 : ℝ) := by
+            exact congrArg (fun x : ℝ => (n : ℝ) ^ x)
+              (boundaryLineOnePointRealParam_re t)
+  have hpow_one : (n : ℝ) ^ (1 : ℝ) = (n : ℝ) := by
+    exact Real.rpow_one (n : ℝ)
+  calc
+    ‖(1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ =
+        ‖(1 : ℂ)‖ / ‖(n : ℂ) ^ boundaryLineOnePointRealParam t‖ := by
+          exact norm_div (1 : ℂ) ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+    _ = 1 / ‖(n : ℂ) ^ boundaryLineOnePointRealParam t‖ := by
+          exact congrArg
+            (fun x : ℝ => x / ‖(n : ℂ) ^ boundaryLineOnePointRealParam t‖)
+            (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+    _ = 1 / ((n : ℝ) ^ (1 : ℝ)) := by
+          exact congrArg (fun x : ℝ => 1 / x) hnorm_pow
+    _ = 1 / (n : ℝ) := by
+          exact congrArg (fun x : ℝ => 1 / x) hpow_one
+
+/-- The finite Dirichlet truncation on `re = 1` is bounded by the corresponding
+positive harmonic majorant. -/
+theorem boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_harmonic
+    (t : ℝ)
+    (N : ℕ) :
+    ‖∑ n ∈ Finset.Icc 1 N,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
+      harmonic N := by
+  have hsum_norm :
+      ‖∑ n ∈ Finset.Icc 1 N,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
+        ∑ n ∈ Finset.Icc 1 N,
+          ‖(1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ := by
+    exact norm_sum_le _ _
+  have hterm_sum :
+      (∑ n ∈ Finset.Icc 1 N,
+          ‖(1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖) =
+        ∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ)) := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn_mem
+    have hn_one_le : 1 ≤ n :=
+      (Finset.mem_Icc.mp hn_mem).1
+    have hn_pos : 0 < n :=
+      Nat.lt_of_succ_le hn_one_le
+    exact boundaryLineOnePointRealParam_dirichletTerm_norm_eq_inv t hn_pos
+  have hharmonic :
+      (∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ))) = harmonic N := by
+    calc
+      (∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ))) =
+          ∑ n ∈ Finset.Icc 1 N, ((n : ℚ)⁻¹ : ℝ) := by
+            refine Finset.sum_congr rfl ?_
+            intro n hn_mem
+            have hn_one_le : 1 ≤ n :=
+              (Finset.mem_Icc.mp hn_mem).1
+            have hn_pos : 0 < n :=
+              Nat.lt_of_succ_le hn_one_le
+            have hn_rat_ne : (n : ℚ) ≠ 0 := by
+              exact_mod_cast Nat.ne_of_gt hn_pos
+            calc
+              (1 / (n : ℝ)) = ((n : ℝ)⁻¹) := by
+                exact one_div (n : ℝ)
+              _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+                exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm
+      _ = harmonic N := by
+            exact_mod_cast (harmonic_eq_sum_Icc (n := N)).symm
+  exact le_trans hsum_norm (le_of_eq (hterm_sum.trans hharmonic))
+
+/-- The finite Dirichlet truncation at the Abel/Euler-Maclaurin boundary cutoff is
+bounded by `1 + log (2 + |t|)`. -/
+theorem boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_one_add_log
+    (t : ℝ) :
+    ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
+      1 + Real.log (2 + ‖t‖) := by
+  exact le_trans
+    (boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_harmonic
+      t ⌊2 + ‖t‖⌋₊)
+    (harmonic_boundaryLine_truncation_le_one_add_log t)
+
+/-- On the logarithmic boundary range used below, `1 ≤ log (2 + |t|)`. -/
+theorem one_le_log_two_add_norm_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    (1 : ℝ) ≤ Real.log (2 + ‖t‖) := by
+  have hthree_le : (3 : ℝ) ≤ 2 + ‖t‖ := by
+    calc
+      (3 : ℝ) = 2 + 1 := rfl
+      _ ≤ 2 + ‖t‖ :=
+        add_le_add_left ht 2
+  have hexp_one_le_three : Real.exp (1 : ℝ) ≤ 3 := by
+    have hexp_le_d9 : Real.exp (1 : ℝ) ≤ 2.7182818286 :=
+      le_of_lt Real.exp_one_lt_d9
+    have hd9_eq :
+        (2.7182818286 : ℝ) =
+          (27182818286 : ℝ) / 10000000000 := rfl
+    have hden_pos : (0 : ℝ) < 10000000000 := by
+      exact_mod_cast (show (0 : ℕ) < 10000000000 by decide)
+    have hnum_le :
+        (27182818286 : ℝ) ≤ 3 * (10000000000 : ℝ) := by
+      exact_mod_cast
+        (show (27182818286 : ℕ) ≤ 3 * 10000000000 by decide)
+    have hd9_le_three : (2.7182818286 : ℝ) ≤ 3 := by
+      have hfrac :
+          (27182818286 : ℝ) / 10000000000 ≤ 3 :=
+        (div_le_iff₀ hden_pos).mpr hnum_le
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ 3)
+        hd9_eq.symm
+        hfrac
+    exact le_trans hexp_le_d9 hd9_le_three
+  have hexp_one_le : Real.exp (1 : ℝ) ≤ 2 + ‖t‖ :=
+    le_trans hexp_one_le_three hthree_le
+  exact Real.le_log_of_exp_le
+    (lt_of_lt_of_le Real.exp_pos hexp_one_le)
+    hexp_one_le
+
+/-- The exact Abel/Euler-Maclaurin tail estimate after truncation at
+`N = ⌊2 + |t|⌋₊`.
+
+This is the remaining analytic input: Abel summation controls the oscillatory tail
+on `1 + it`, and Euler-Maclaurin bounds the endpoint remainder uniformly; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_one
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+      ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
+  sorry
+
+/-- The finite truncation plus the Abel/Euler-Maclaurin tail gives the logarithmic
+boundary estimate with an explicit absolute constant. -/
+theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+      3 * Real.log (2 + ‖t‖) := by
+  let S : ℂ :=
+    ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+      (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+  have hsplit :
+      riemannZeta (boundaryLineOnePointRealParam t) =
+        (riemannZeta (boundaryLineOnePointRealParam t) - S) + S := by
+    exact (sub_add_cancel (riemannZeta (boundaryLineOnePointRealParam t)) S).symm
+  have hnorm_split :
+      ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+        ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ + ‖S‖ := by
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        ‖w‖ ≤ ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ + ‖S‖)
+      hsplit.symm
+      (norm_add_le (riemannZeta (boundaryLineOnePointRealParam t) - S) S)
+  have htail :
+      ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ ≤ 1 := by
+    exact abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_one t ht
+  have hfinite :
+      ‖S‖ ≤ 1 + Real.log (2 + ‖t‖) := by
+    exact boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_one_add_log t
+  have hsum :
+      ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+        2 + Real.log (2 + ‖t‖) := by
+    exact le_trans hnorm_split (add_le_add htail hfinite)
+  have hlog_one : (1 : ℝ) ≤ Real.log (2 + ‖t‖) :=
+    one_le_log_two_add_norm_of_one_le_norm ht
+  have htwo_le_two_log : (2 : ℝ) ≤ 2 * Real.log (2 + ‖t‖) := by
+    calc
+      (2 : ℝ) = 2 * 1 := by
+        exact (mul_one 2).symm
+      _ ≤ 2 * Real.log (2 + ‖t‖) :=
+        mul_le_mul_of_nonneg_left hlog_one zero_le_two
+  have htwo_add_log_le_three_log :
+      2 + Real.log (2 + ‖t‖) ≤ 3 * Real.log (2 + ‖t‖) := by
+    let L : ℝ := Real.log (2 + ‖t‖)
+    have htwo_le_twoL : (2 : ℝ) ≤ 2 * L := htwo_le_two_log
+    calc
+      2 + Real.log (2 + ‖t‖) = 2 + L := rfl
+      _ ≤ 2 * L + L :=
+        add_le_add_right htwo_le_twoL L
+      _ = (2 + 1) * L := by
+        exact (add_mul 2 1 L).symm
+      _ = 3 * L := rfl
+      _ = 3 * Real.log (2 + ‖t‖) := rfl
+  exact le_trans hsum htwo_add_log_le_three_log
 
 /-- The exact analytic Abel/Euler-Maclaurin tail estimate on `ζ(1 + it)`.
 
@@ -2898,7 +3384,10 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_anal
         1 ≤ ‖t‖ →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
-  sorry
+  refine ⟨3, ?_, ?_⟩
+  · exact zero_lt_three
+  intro t ht
+  exact abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit t ht
 
 /-- Euler-Maclaurin/Abel-truncation boundary estimate for the Riemann zeta function on
 `1 + it`.
