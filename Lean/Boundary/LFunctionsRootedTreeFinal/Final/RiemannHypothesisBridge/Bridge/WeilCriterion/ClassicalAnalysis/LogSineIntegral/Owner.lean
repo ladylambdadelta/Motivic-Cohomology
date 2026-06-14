@@ -676,7 +676,86 @@ theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_integralRe
     (hright : 0 < (1 / 2 : ℝ)) :
     Real.sinePowerEulerBetaRealIntegral s =
       Real.sinePowerEulerBetaIntegral s := by
-  sorry
+  let a : ℂ := (((s + 1) / 2 : ℝ) : ℂ)
+  let b : ℂ := (((1 / 2 : ℝ) : ℝ) : ℂ)
+  let F : ℝ → ℂ :=
+    fun t : ℝ =>
+      (t : ℂ) ^ (a - 1) * (1 - (t : ℂ)) ^ (b - 1)
+  have ha : 0 < Complex.re a := by
+    calc
+      0 < (s + 1) / 2 := hleft
+      _ = Complex.re a := by
+        rfl
+  have hb : 0 < Complex.re b := by
+    calc
+      0 < (1 / 2 : ℝ) := hright
+      _ = Complex.re b := by
+        rfl
+  have hF_int :
+      IntervalIntegrable F MeasureTheory.volume (0 : ℝ) 1 :=
+    Complex.betaIntegral_convergent ha hb
+  have hreal_eq_re :
+      Real.sinePowerEulerBetaRealIntegral s =
+        ∫ t in (0 : ℝ)..1, (F t).re := by
+    unfold Real.sinePowerEulerBetaRealIntegral
+    exact
+      intervalIntegral.integral_congr
+        (fun t ht => by
+          have htIcc : t ∈ Set.Icc (0 : ℝ) 1 := by
+            rwa [Set.uIcc_of_le zero_le_one] at ht
+          have ht0 : 0 ≤ t := htIcc.1
+          have ht1 : 0 ≤ 1 - t :=
+            sub_nonneg.mpr htIcc.2
+          have ha_exp :
+              a - 1 = ((((s + 1) / 2) - 1 : ℝ) : ℂ) := by
+            calc
+              a - 1 =
+                  (((s + 1) / 2 : ℝ) : ℂ) - ((1 : ℝ) : ℂ) := by
+                rfl
+              _ = ((((s + 1) / 2) - 1 : ℝ) : ℂ) := by
+                exact (Complex.ofReal_sub ((s + 1) / 2) 1).symm
+          have hb_exp :
+              b - 1 = (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+            calc
+              b - 1 =
+                  (((1 / 2 : ℝ) : ℝ) : ℂ) - ((1 : ℝ) : ℂ) := by
+                rfl
+              _ = (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+                exact (Complex.ofReal_sub (1 / 2 : ℝ) 1).symm
+          have hF_point :
+              (F t).re =
+                ((t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+                  (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ)).re := by
+            exact congrArg Complex.re
+              (congrArg₂
+                (fun x y : ℂ => x * y)
+                (congrArg (fun z : ℂ => (t : ℂ) ^ z) ha_exp)
+                (congrArg (fun z : ℂ => (1 - (t : ℂ)) ^ z) hb_exp))
+          have hpoint :
+              (F t).re =
+                t ^ (((s + 1) / 2) - 1) *
+                  (1 - t) ^ ((1 / 2 : ℝ) - 1) := by
+            exact
+              Eq.trans hF_point
+                (Real.sinePowerEulerBetaReal_integrand_re_eq s t ht0 ht1)
+          exact hpoint.symm)
+  have hre_transport :
+      (∫ t in (0 : ℝ)..1, (F t).re) =
+        (∫ t in (0 : ℝ)..1, F t).re := by
+    exact
+      (@RCLike.reCLM ℂ _).intervalIntegral_comp_comm hF_int
+  have hbeta_unfold :
+      (∫ t in (0 : ℝ)..1, F t) =
+        Complex.betaIntegral a b := by
+    rfl
+  calc
+    Real.sinePowerEulerBetaRealIntegral s =
+        ∫ t in (0 : ℝ)..1, (F t).re := hreal_eq_re
+    _ = (∫ t in (0 : ℝ)..1, F t).re := hre_transport
+    _ = (Complex.betaIntegral a b).re := by
+      exact congrArg Complex.re hbeta_unfold
+    _ = Real.sinePowerEulerBetaIntegral s := by
+      rfl
 
 /-- Real/complex comparison for the unit-interval Beta integrand, using
 `Complex.ofReal_cpow` on the positive interval `(0,1)`. -/
