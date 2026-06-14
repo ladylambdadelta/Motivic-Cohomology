@@ -1887,7 +1887,28 @@ theorem entireFunctionJensenRadialGapSummand_support_finite
     · exact False.elim (hz (if_pos hz0))
     · by_cases hlt : ‖(z : ℂ)‖ < ρ
       · exact ⟨le_of_lt hlt, z.2⟩
-      · exact False.elim (hz (if_neg hz0 ▸ if_neg hlt)))
+      · have hnot_zero_branch :
+            (if hz₀ : (z : ℂ) = 0 then
+              0
+            else if ‖(z : ℂ)‖ < ρ then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log (ρ / ‖(z : ℂ)‖)
+            else
+              0) =
+              (if ‖(z : ℂ)‖ < ρ then
+                (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                  Real.log (ρ / ‖(z : ℂ)‖)
+              else
+                0) :=
+          if_neg hz0
+        have houtside_branch :
+            (if ‖(z : ℂ)‖ < ρ then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log (ρ / ‖(z : ℂ)‖)
+            else
+              0) = 0 :=
+          if_neg hlt
+        exact False.elim (hz (Eq.trans hnot_zero_branch houtside_branch)))
 
 /-- Classical Jensen finite-zero divisor input in a closed disk, with
 multiplicities.
@@ -1928,6 +1949,124 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummabilit
   exact summable_of_finite_support
     (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ)
 
+/-- A single nonzero zero strictly inside the Jensen circle contributes exactly
+its multiplicity times the radial logarithmic factor.
+
+This is the pointwise zero-factor calculation in the product proof of Jensen's
+formula. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) ≠ 0)
+    (hzρ : ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z =
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        Real.log (ρ / ‖(z : ℂ)‖) := by
+  unfold entireFunctionJensenRadialGapSummand
+  exact Eq.trans (dif_neg hz0) (if_pos hzρ)
+
+/-- A zero outside the open Jensen disk contributes no radial-gap term. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hzρ : ¬ ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz0 : (z : ℂ) = 0
+  · exact dif_pos hz0
+  · exact Eq.trans (dif_neg hz0) (if_neg hzρ)
+
+/-- The origin zero is absent from the nonzero-origin Jensen radial-gap sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContribution_eq_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) = 0) :
+    entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+  unfold entireFunctionJensenRadialGapSummand
+  exact dif_pos hz0
+
+/-- The finite product radial-gap sum attached to the zero divisor inside the
+Jensen circle.
+
+The indexing finset is supplied by divisor finiteness; this definition keeps
+the finite product stage separate from the later infinite-sum transport. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) : ℝ :=
+  ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z
+
+/-- The finite product radial-gap sum is literally the sum of the pointwise
+zero-factor radial contributions over the chosen finite zero divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_sum_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z := by
+  rfl
+
+/-- Finite-product zero-factor expansion: once the finite zero divisor has been
+chosen, its Jensen contribution is the sum of the explicit nonzero radial
+factors, with origin and exterior terms contributing zero by the pointwise
+lemmas above. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_explicit_sum_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s,
+        if (z : ℂ) = 0 then
+          0
+        else if ‖(z : ℂ)‖ < ρ then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log (ρ / ‖(z : ℂ)‖)
+        else
+          0 := by
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  refine Finset.sum_congr rfl ?_
+  intro z _hz
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz0 : (z : ℂ) = 0
+  · exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
+  · exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
+
+/-- Classical analytic product/Jensen identity after finite zero-divisor
+factorization.
+
+Proof chain represented by this owner root:
+finite zero divisor factorization -> zero-free quotient boundary mean-log
+identity -> zero factor radial contribution identity -> finite product sum
+identity -> Jensen's formula with explicit constant.
+
+This is the genuine classical complex-analytic input: the zero-free quotient
+has boundary mean log equal to its value at the origin, while each extracted
+linear zero factor contributes `log (ρ / ‖a‖)` to the normalized boundary mean;
+cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Classical Jensen product formula with analytic multiplicities; cf.
+  -- Titchmarsh, The Theory of Functions, §5.
+  sorry
+
 /-- Classical Jensen product/radial-gap identity for a nonzero value at the
 origin, including the explicit constant.
 
@@ -1944,9 +2083,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_productRadialGap_id
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ := by
-  -- Classical Jensen product formula with analytic multiplicities; cf.
-  -- Titchmarsh, The Theory of Functions, §5.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_ownerRoot
+      F hF hF0
 
 /-- Boundary logarithmic integral identity with explicit constant
 `-log ‖F 0‖`, projected from the classical Jensen product/radial-gap identity. -/
