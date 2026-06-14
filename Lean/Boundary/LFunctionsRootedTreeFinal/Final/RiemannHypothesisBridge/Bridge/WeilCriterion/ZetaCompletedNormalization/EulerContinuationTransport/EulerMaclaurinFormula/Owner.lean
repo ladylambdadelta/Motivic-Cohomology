@@ -1910,6 +1910,250 @@ theorem eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStri
         N hN z₀ r δ hδ_pos hre_lower z hz
   exact ⟨r, hr_pos, g, hg_integrable, hmajorant⟩
 
+/-- Parameter derivative of the fixed-cutoff Bernoulli kernel.
+
+For fixed positive `x`, differentiating
+`z ↦ B₁({x}) x^(-(z+1))` in the complex parameter contributes the scalar
+factor `-Log x`.  This is the pointwise derivative kernel needed before
+applying dominated differentiation to the fixed lower-limit improper integral. -/
+noncomputable def eulerMaclaurinBernoulliKernel_parameterDerivative
+    (x z : ℂ) : ℂ :=
+  -Complex.log x *
+    (((eulerMaclaurinFirstPeriodicBernoulli x.re : ℝ) : ℂ) *
+      (x ^ (-(z + 1))))
+
+/-- Real-tail form of the parameter derivative kernel. -/
+noncomputable def eulerMaclaurinBernoulliKernel_realTailParameterDerivative
+    (x : ℝ)
+    (z : ℂ) : ℂ :=
+  -Complex.log ((x : ℝ) : ℂ) *
+    (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      ((((x : ℝ) : ℂ) ^ (-(z + 1)))))
+
+/-- Pointwise complex derivative of the fixed-tail Bernoulli kernel in the
+parameter.
+
+This is the owner-level chain-rule input for dominated differentiation.  The
+remaining work inside this theorem is only the explicit `cpow` derivative
+calculation on the positive real ray; no global analytic assumption is hidden
+in a wrapper. -/
+theorem eulerMaclaurinBernoulliKernel_hasDerivAt_parameter
+    (x : ℝ)
+    (hx : 0 < x)
+    (z : ℂ) :
+    HasDerivAt
+      (fun w : ℂ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(w + 1))))
+      (eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z)
+      z := by
+  sorry
+
+/-- Logarithmic power tail dominating the parameter derivative kernel on a
+local parameter ball. -/
+noncomputable def eulerMaclaurinBernoulliKernel_derivativeMajorant
+    (δ : ℝ) : ℝ → ℝ :=
+  fun x : ℝ => Real.log x * x ^ (-(δ + 1))
+
+/-- The logarithmic power tail is integrable on every positive cutoff tail.
+
+Classically this follows from the comparison
+`log x ≤ x^(δ/2)` for large `x`, reducing the tail to
+`x^(-(1+δ/2))`, plus local integrability on the compact initial segment. -/
+theorem eulerMaclaurin_integrableOn_Ioi_log_rpow_neg_delta_add_one
+    (N : ℕ)
+    (hN : 0 < N)
+    (δ : ℝ)
+    (hδ : 0 < δ) :
+    IntegrableOn
+      (eulerMaclaurinBernoulliKernel_derivativeMajorant δ)
+      (Set.Ioi (((N : ℕ) : ℝ))) := by
+  sorry
+
+/-- On a parameter ball with `δ ≤ re z`, the fixed-cutoff Bernoulli parameter
+derivative kernel is dominated on the tail by the logarithmic power majorant. -/
+theorem eulerMaclaurinBernoulliKernel_parameterDerivative_ae_le_log_rpow_majorant_of_ball_re_lower
+    (N : ℕ)
+    (hN : 0 < N)
+    (z₀ : ℂ)
+    (r δ : ℝ)
+    (hδ : 0 < δ)
+    (hre_lower : ∀ z : ℂ, z ∈ Metric.ball z₀ r → δ ≤ z.re) :
+    ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+      ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+        ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z‖ ≤
+          eulerMaclaurinBernoulliKernel_derivativeMajorant δ x := by
+  exact ae_restrict_of_forall_mem measurableSet_Ioi
+    (fun x hx_tail z hz_ball => by
+      have hx_one : 1 ≤ x :=
+        eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx_tail
+      have hx_pos : 0 < x :=
+        lt_of_lt_of_le zero_lt_one hx_one
+      have hδz : δ ≤ z.re :=
+        hre_lower z hz_ball
+      have hB :
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 :=
+        eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_local x
+      have hcpow :
+          ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ x ^ (-(δ + 1)) :=
+        eulerMaclaurin_norm_real_cpow_le_rpow_of_re_lower
+          hx_pos hx_one z hδz
+      have hlog_norm :
+          ‖-Complex.log ((x : ℝ) : ℂ)‖ = Real.log x := by
+        have hlog_ofReal :
+            Complex.log ((x : ℝ) : ℂ) = (Real.log x : ℂ) :=
+          Complex.ofReal_log hx_pos.le
+        calc
+          ‖-Complex.log ((x : ℝ) : ℂ)‖ =
+              ‖Complex.log ((x : ℝ) : ℂ)‖ := by
+            exact norm_neg (Complex.log ((x : ℝ) : ℂ))
+          _ = ‖(Real.log x : ℂ)‖ := by
+            exact congrArg norm hlog_ofReal
+          _ = |Real.log x| := by
+            exact Complex.norm_ofReal (Real.log x)
+          _ = Real.log x := by
+            exact abs_of_nonneg (Real.log_nonneg hx_one)
+      have hkernel_norm :
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤
+            x ^ (-(δ + 1)) := by
+        have hcpow_nonneg :
+            0 ≤ ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ :=
+          norm_nonneg (((x : ℝ) : ℂ) ^ (-(z + 1)))
+        have htarget_nonneg :
+            0 ≤ x ^ (-(δ + 1)) :=
+          Real.rpow_nonneg (le_of_lt hx_pos) (-(δ + 1))
+        calc
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ =
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ := by
+            exact norm_mul
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))
+          _ ≤ 1 * (x ^ (-(δ + 1))) :=
+            mul_le_mul hB hcpow hcpow_nonneg htarget_nonneg
+          _ = x ^ (-(δ + 1)) := by
+            exact one_mul (x ^ (-(δ + 1)))
+      have hlog_nonneg : 0 ≤ Real.log x :=
+        Real.log_nonneg hx_one
+      calc
+        ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z‖ =
+            ‖-Complex.log ((x : ℝ) : ℂ)‖ *
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ := by
+          unfold eulerMaclaurinBernoulliKernel_realTailParameterDerivative
+          exact norm_mul
+            (-Complex.log ((x : ℝ) : ℂ))
+            (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1))))
+        _ = Real.log x *
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ := by
+          exact congrArg
+            (fun t : ℝ =>
+              t *
+                ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                  (((x : ℝ) : ℂ) ^ (-(z + 1)))‖)
+            hlog_norm
+        _ ≤ Real.log x * x ^ (-(δ + 1)) :=
+          mul_le_mul_of_nonneg_left hkernel_norm hlog_nonneg
+        _ = eulerMaclaurinBernoulliKernel_derivativeMajorant δ x := by
+          rfl)
+
+/-- Local integrable majorant for the parameter derivative of the fixed-cutoff
+Bernoulli kernel on compact parameter neighborhoods inside the punctured
+strip. -/
+theorem eulerMaclaurinBernoulliKernel_parameterDerivative_local_integrable_majorant_on_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N)
+    (z₀ : ℂ)
+    (hz₀ : z₀ ∈ ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1})) :
+    ∃ r : ℝ, 0 < r ∧
+      ∃ g : ℝ → ℝ, IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) ∧
+        ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+          ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+            ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z‖ ≤
+              g x := by
+  have hz₀_pos : 0 < z₀.re :=
+    hz₀.1
+  rcases eulerMaclaurin_ball_realPart_lowerBound_of_pos_re z₀ hz₀_pos with
+    ⟨r, δ, hr_pos, hδ_pos, hre_lower⟩
+  let g : ℝ → ℝ := eulerMaclaurinBernoulliKernel_derivativeMajorant δ
+  have hg_integrable :
+      IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) :=
+    eulerMaclaurin_integrableOn_Ioi_log_rpow_neg_delta_add_one
+      N hN δ hδ_pos
+  have hmajorant :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+          ‖eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z‖ ≤
+            g x :=
+    eulerMaclaurinBernoulliKernel_parameterDerivative_ae_le_log_rpow_majorant_of_ball_re_lower
+      N hN z₀ r δ hδ_pos hre_lower
+  exact ⟨r, hr_pos, g, hg_integrable, hmajorant⟩
+
+/-- Fixed lower-limit dominated differentiation for an improper parameter
+integral over a positive tail.
+
+This is the measure-theoretic owner API needed by the Euler-Maclaurin
+Bernoulli kernel: the lower limit is fixed, the measure is
+`volume.restrict (Ioi N)`, and the hypotheses are pointwise parameter
+derivatives plus a local integrable majorant for those derivatives. -/
+theorem hasDerivAt_integral_Ioi_of_local_integrable_derivative_majorant
+    (N : ℕ)
+    (F F' : ℂ → ℝ → ℂ)
+    (z : ℂ)
+    (r : ℝ)
+    (hr : 0 < r)
+    (g : ℝ → ℝ)
+    (hF_meas :
+      ∀ᶠ w in 𝓝 z,
+        AEStronglyMeasurable
+          (F w)
+          (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))))
+    (hF_int :
+      Integrable
+        (F z)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))))
+    (hF'_meas :
+      AEStronglyMeasurable
+        (F' z)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))))
+    (hg :
+      IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ)))
+        volume)
+    (hbound :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ∀ w ∈ Metric.ball z r, ‖F' w x‖ ≤ g x)
+    (hderiv :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ∀ w ∈ Metric.ball z r,
+          HasDerivAt (fun u : ℂ => F u x) (F' w x) w) :
+    HasDerivAt
+      (fun w : ℂ =>
+        ∫ x in Set.Ioi (((N : ℕ) : ℝ)), F w x)
+      (∫ x in Set.Ioi (((N : ℕ) : ℝ)), F' z x)
+      z := by
+  have hg_restrict :
+      Integrable g (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) :=
+    hg
+  have hparam :=
+    hasDerivAt_integral_of_dominated_loc_of_deriv_le
+      (μ := volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))
+      (F := F)
+      (F' := F')
+      (x₀ := z)
+      (bound := g)
+      hr
+      hF_meas
+      hF_int
+      hF'_meas
+      hbound
+      hg_restrict
+      hderiv
+  exact hparam.2
+
 /-- Dominated differentiation for the fixed-cutoff Bernoulli kernel, using
 the local integrable majorant and the pointwise parameter differentiability
 already owned above.
@@ -1926,28 +2170,66 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
   intro z hz
   rcases
-    eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
+    eulerMaclaurinBernoulliKernel_parameterDerivative_local_integrable_majorant_on_puncturedStrip
       N hN z hz with
     ⟨r, hr_pos, g, hg_integrable, hmajorant⟩
-  have hpointwise :
-      ∀ x : ℝ, x ∈ Set.Ioi (((N : ℕ) : ℝ)) →
-        DifferentiableWithinAt ℂ
-          (fun w : ℂ =>
-            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-              (((x : ℝ) : ℂ) ^ (-(w + 1))))
-          ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1})
-          z := by
-    intro x hx
-    have hx_pos : 0 < x := by
-      exact lt_of_lt_of_le zero_lt_one
-        (eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx)
-    exact
-      (eulerMaclaurinBernoulliKernel_parameter_differentiableOn x hx_pos)
-        z hz
-  -- Remaining analytic API gap: turn `hpointwise` plus the local integrable
-  -- majorant `hmajorant` into differentiability of the improper parameter
-  -- integral with fixed lower limit.
-  sorry
+  let F : ℂ → ℝ → ℂ := fun w x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(w + 1)))
+  let F' : ℂ → ℝ → ℂ :=
+    fun w x : ℝ =>
+      eulerMaclaurinBernoulliKernel_realTailParameterDerivative x w
+  have hderiv :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ∀ w ∈ Metric.ball z r,
+          HasDerivAt (fun u : ℂ => F u x) (F' w x) w := by
+    exact ae_restrict_of_forall_mem measurableSet_Ioi
+      (fun x hx_tail w hw => by
+        have hx_pos : 0 < x := by
+          exact lt_of_lt_of_le zero_lt_one
+            (eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx_tail)
+        exact eulerMaclaurinBernoulliKernel_hasDerivAt_parameter x hx_pos w)
+  have hbound :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ∀ w ∈ Metric.ball z r, ‖F' w x‖ ≤ g x := by
+    exact hmajorant.mono
+      (fun x hx w hw => hx w hw)
+  have hF_meas :
+      ∀ᶠ w in 𝓝 z,
+        AEStronglyMeasurable
+          (F w)
+          (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    sorry
+  have hF_int :
+      Integrable
+        (F z)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    sorry
+  have hF'_meas :
+      AEStronglyMeasurable
+        (F' z)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    sorry
+  have hhasDeriv :
+      HasDerivAt
+        (fun w : ℂ =>
+          ∫ x in Set.Ioi (((N : ℕ) : ℝ)), F w x)
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)), F' z x)
+        z :=
+    hasDerivAt_integral_Ioi_of_local_integrable_derivative_majorant
+      N F F' z r hr_pos g hF_meas hF_int hF'_meas
+      hg_integrable hbound hderiv
+  have hsame :
+      (fun w : ℂ =>
+        ∫ x in Set.Ioi (((N : ℕ) : ℝ)), F w x) =
+        eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N := by
+    funext w
+    rfl
+  exact
+    (Eq.subst
+      (motive := fun H : ℂ → ℂ => DifferentiableAt ℂ H z)
+      hsame
+      hhasDeriv.differentiableAt).differentiableWithinAt
 
 /-- Differentiation under the fixed lower-limit Bernoulli improper integral in
 the complex parameter. -/
