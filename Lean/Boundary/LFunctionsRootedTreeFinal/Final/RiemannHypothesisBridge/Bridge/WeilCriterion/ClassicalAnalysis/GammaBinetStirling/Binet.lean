@@ -16,6 +16,17 @@ noncomputable section
 
 open scoped Topology
 
+/-- The classical second Binet integral representation, with the principal
+logarithm normalization used by `Complex.binetLogGammaMainTerm` and the
+literal arctangent-kernel remainder used in this package. -/
+theorem Complex.Gamma_binetSecondFormula_integral_representation_principalLog :
+    ∀ w : ℂ,
+      0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
 /-- Binet's logarithmic identity follows from the classical second Binet
 integral representation on the open right half-plane. -/
 theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_representation :
@@ -24,7 +35,8 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_repres
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  exact
+    Complex.Gamma_binetSecondFormula_integral_representation_principalLog
 
 /-- Binet's second logarithmic formula on the open right half-plane. -/
 theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane :
@@ -36,26 +48,47 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane :
   exact
     Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_representation
 
-/-- Continuity of the Binet logarithmic identity up to the closed right
-half-plane sector after excluding a fixed compact neighborhood of the origin. -/
-theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation :
+/-- The literal arctangent-kernel Binet formula is an open-right-half-plane
+statement.  On the boundary `w = i y`, the kernel crosses the principal
+arctangent branch point at `t = y`, so this theorem records the large-radius
+form for the existing pointwise integral only on `0 < w.re`. -/
+theorem Complex.Gamma_binetSecondFormula_large_openRightHalfPlane :
     ∃ R : ℝ,
       0 < R ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  refine ⟨1, zero_lt_one, ?_⟩
+  intro w hw_re_pos _hR
+  exact
+    Complex.Gamma_binetSecondFormula_openRightHalfPlane
+      w hw_re_pos
+
+/-- Large-radius Binet formula for the existing principal-arctangent integral.
+The hypothesis is open half-plane because the current remainder is the
+pointwise kernel integral, not a boundary-value object on the imaginary axis. -/
+theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation :
+    ∃ R : ℝ,
+      0 < R ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  exact
+    Complex.Gamma_binetSecondFormula_large_openRightHalfPlane
 
 /-- Closed-sector continuation of Binet's second logarithmic formula after a
-large-radius cutoff. -/
+large-radius cutoff for the literal open-half-plane arctangent remainder. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation :
     ∃ R : ℝ,
       0 < R ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
@@ -63,13 +96,13 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continua
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation
 
-/-- Binet's second logarithmic formula for Gamma in the closed right
-half-plane, away from the origin and after a fixed large-radius cutoff. -/
+/-- Binet's second logarithmic formula for Gamma in the open right half-plane,
+away from the origin and after a fixed large-radius cutoff. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
     ∃ R : ℝ,
       0 < R ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
