@@ -410,9 +410,7 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
           (t / ‖w‖) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
-      hw_re_pos
+  exact Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane hw_re_pos
 
 /-- The positive half-line decomposes into the local Binet interval `(0,1]`
 and the tail interval `(1,∞)`. -/
@@ -1016,6 +1014,17 @@ theorem Complex.binetSecondFormula_remainder_norm_le_integral_majorant
       2 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  /-
+  This historical mirror statement is stronger than the currently proved
+  classical owner theorem.  The attempted proof divided the pointwise Binet
+  kernel estimate by `‖w‖` after applying a bound which did not contain that
+  factor, thereby forcing a false global tail estimate.
+
+  The true owner theorem to consume is
+  `Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane` from
+  `ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet`, which keeps the
+  small-argument `1 / ‖w‖` contribution separate from the fixed-tail majorant.
+  -/
   sorry
 
 /-- The Binet majorant integral is a positive finite constant. -/

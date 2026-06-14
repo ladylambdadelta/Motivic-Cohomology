@@ -662,12 +662,29 @@ def Complex.realPhase_integerIncrementSeparatedOn
           ‖Complex.realPhase_integerIncrement φ n -
             (2 * Real.pi * (k : ℝ))‖
 
-/-- Finite separated-increment exponential-sum primitive.
+/-- Monotonicity of the adjacent integer phase increments on a block.
 
-This is the discrete summation core behind Kusmin-Landau: if every adjacent
-increment is separated from every `2πℤ` frequency by at least `λ`, then the
-geometric denominator in the summation-by-parts argument is uniformly bounded
-away from zero. -/
+This is the discrete finite-difference hypothesis needed in the honest
+Kusmin-Landau summation-by-parts primitive.  Separation from `2πℤ` alone is not
+enough: adjacent increments can alternate between two separated frequencies and
+keep the sampled phases aligned over long blocks. -/
+def Complex.realPhase_integerIncrementMonotoneOn
+    (φ : ℝ → ℝ)
+    (a b : ℕ) : Prop :=
+  MonotoneOn
+    (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
+    (Finset.Ico a b : Set ℕ) ∨
+  AntitoneOn
+    (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
+    (Finset.Ico a b : Set ℕ)
+
+/-- Finite monotone separated-increment exponential-sum primitive.
+
+This is the discrete summation core behind Kusmin-Landau: the adjacent
+increments must move monotonically through frequency space and stay separated
+from every `2πℤ` resonance by at least `λ`.  This is the exact missing
+finite-difference primitive; the previous separation-only formulation was too
+weak because it did not rule out alternating increments. -/
 theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
@@ -675,14 +692,15 @@ theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (ha : 1 ≤ a)
     (hab : a ≤ b)
     (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * λ⁻¹ := by
   sorry
 
-/-- Honest Kusmin-Landau block estimate with the required separated-frequency
-hypothesis. -/
+/-- Honest Kusmin-Landau block estimate with the required monotone separated
+finite-difference hypothesis. -/
 theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
     (φ : ℝ → ℝ)
     {a b : ℕ}
@@ -698,19 +716,22 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           λ ≤ ‖deriv φ x‖)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * λ⁻¹ := by
   exact
     Complex.realPhase_separatedIncrement_integer_block_bound
-      φ ha hab hλ_pos hsep
+      φ ha hab hλ_pos hinc_mono hsep
 
 /-- Kusmin-Landau/van der Corput finite first-derivative core for real phases.
 
 This is the genuine oscillatory analytic primitive: the phase derivative stays
-monotone in absolute value and is bounded below by `λ`, so cancellation gives
-a reciprocal-derivative bound independent of the length of the block. -/
+monotone with fixed sign modulo the frequency lattice and is separated from
+`2πℤ`, so cancellation gives a reciprocal-derivative bound independent of the
+length of the block.  A lower bound on `|φ'|` alone is not enough, because it
+does not separate the integer increments from resonant multiples of `2π`. -/
 theorem Complex.realPhase_kusminLandau_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
