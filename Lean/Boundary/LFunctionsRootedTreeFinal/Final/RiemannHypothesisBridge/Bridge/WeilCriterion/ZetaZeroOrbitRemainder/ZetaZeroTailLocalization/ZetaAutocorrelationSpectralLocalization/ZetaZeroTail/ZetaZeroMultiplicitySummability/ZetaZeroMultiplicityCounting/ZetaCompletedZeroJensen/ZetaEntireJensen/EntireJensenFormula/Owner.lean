@@ -654,6 +654,50 @@ theorem intervalIntegrable_log_singularity_model_on_compact
   exact
     (intervalIntegrable_nat_mul_log_abs_sub_const_on_compact n hac hcb).add hg
 
+/-- Interval-integrability is unchanged when two functions agree on the
+punctured neighborhood of the only point where the local model is singular.
+
+The excluded point is null for Lebesgue measure, so the punctured equality is
+enough for interval-integrability on a sufficiently small interval around the
+center. -/
+theorem intervalIntegrable_congr_of_eventuallyEq_nhdsWithin_punctured
+    {f g : ℝ → ℝ}
+    {c u v : ℝ}
+    (huc : u < c)
+    (hcv : c < v)
+    (hfg : ∀ᶠ θ in 𝓝[≠] c, f θ = g θ)
+    (hg : IntervalIntegrable g MeasureTheory.volume u v) :
+    ∃ u' v' : ℝ,
+      u < u' ∧ u' < c ∧ c < v' ∧ v' < v ∧
+      IntervalIntegrable f MeasureTheory.volume u' v' := by
+  sorry
+
+/-- Local logarithmic model integrability on a smaller interval inside a
+remainder-integrability interval. -/
+theorem intervalIntegrable_log_singularity_model_eventually_on_subinterval
+    (f : ℝ → ℝ)
+    {c u v : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (huc : u < c)
+    (hcv : c < v)
+    (hg : IntervalIntegrable g MeasureTheory.volume u v)
+    (hmodel :
+      ∀ᶠ θ in 𝓝[≠] c,
+        f θ = (n : ℝ) * Real.log |θ - c| + g θ) :
+    ∃ u' v' : ℝ,
+      u < u' ∧ u' < c ∧ c < v' ∧ v' < v ∧
+      IntervalIntegrable f MeasureTheory.volume u' v' := by
+  have hcompact :
+      IntervalIntegrable
+        (fun x : ℝ => (n : ℝ) * Real.log |x - c| + g x)
+        MeasureTheory.volume u v :=
+    intervalIntegrable_log_singularity_model_on_compact
+      n g huc.le hcv.le hg
+  exact
+    intervalIntegrable_congr_of_eventuallyEq_nhdsWithin_punctured
+      huc hcv hmodel hcompact
+
 /-- The compact-continuity base case of finite logarithmic-singularity gluing:
 if there are no singular points in the compact interval, ordinary continuity on
 that compact interval gives interval-integrability. -/
@@ -671,7 +715,7 @@ theorem intervalIntegrable_of_empty_log_singularities_on_compact
   exact hcontIcc.intervalIntegrable_of_Icc hab
 
 /-- Local integrability near one logarithmic singularity from the punctured
-local model and continuity of the remainder at the singular point.
+local model and a locally integrable remainder.
 
 This is the local owner cut used by the finite gluing theorem.  The point value
 of `f` at `c` is irrelevant for interval integrability; on a small punctured
@@ -682,14 +726,22 @@ theorem intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin
     {c : ℝ}
     (n : ℕ)
     (g : ℝ → ℝ)
-    (hg : ContinuousAt g c)
+    (hg :
+      ∃ u v : ℝ,
+        u < c ∧ c < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v)
     (hmodel :
       ∀ᶠ θ in 𝓝[≠] c,
         f θ = (n : ℝ) * Real.log |θ - c| + g θ) :
     ∃ u v : ℝ,
       u < c ∧ c < v ∧
       IntervalIntegrable f MeasureTheory.volume u v := by
-  sorry
+  rcases hg with ⟨u, v, huc, hcv, hgint⟩
+  rcases
+      intervalIntegrable_log_singularity_model_eventually_on_subinterval
+        f n g huc hcv hgint hmodel with
+    ⟨u', v', hu_u', hu'_c, hc_v', hv'_v, hfint⟩
+  exact ⟨u', v', hu'_c, hc_v', hfint⟩
 
 /-- Removing one point from a finite singular set leaves a finite singular set
 on each compact side of the isolated point.  This is the finite-set separation
@@ -702,6 +754,68 @@ theorem finite_log_singularity_set_isolates_point_in_compact
     ∃ u v : ℝ,
       u < c ∧ c < v ∧
       (Set.Ioo u v ∩ S) ⊆ {c} := by
+  let T : Finset ℝ := hS.toFinset.erase c
+  by_cases hT : T = ∅
+  · refine ⟨c - 1, c + 1, by linarith, by linarith, ?_⟩
+    intro x hx
+    have hxS : x ∈ S := hx.2
+    by_contra hxc
+    have hxT : x ∈ T := by
+      dsimp [T]
+      exact Finset.mem_erase.2 ⟨by simpa using hxc, by simpa using hxS⟩
+    have hxEmpty : x ∈ (∅ : Finset ℝ) := by
+      rw [hT] at hxT
+      exact hxT
+    exact Finset.not_mem_empty x hxEmpty
+  · let D : Finset ℝ := T.image fun x => dist x c
+    have hD : D.Nonempty := by
+      rcases Finset.nonempty_iff_ne_empty.mpr hT with ⟨x, hxT⟩
+      exact ⟨dist x c, Finset.mem_image.2 ⟨x, hxT, rfl⟩⟩
+    have hDpos : 0 < D.min' hD := by
+      have hmin_mem : D.min' hD ∈ D := Finset.min'_mem D hD
+      rcases Finset.mem_image.1 hmin_mem with ⟨x, hxT, hdist⟩
+      have hxc : x ≠ c := (Finset.mem_erase.1 hxT).1
+      rw [← hdist]
+      exact dist_pos.2 hxc
+    refine ⟨c - D.min' hD / 2, c + D.min' hD / 2, ?_, ?_, ?_⟩
+    · linarith
+    · linarith
+    intro x hx
+    have hxS : x ∈ S := hx.2
+    by_contra hxc
+    have hxT : x ∈ T := by
+      dsimp [T]
+      exact Finset.mem_erase.2 ⟨by simpa using hxc, by simpa using hxS⟩
+    have hxD : dist x c ∈ D := Finset.mem_image.2 ⟨x, hxT, rfl⟩
+    have hmin_le : D.min' hD ≤ dist x c := Finset.min'_le D (dist x c) hxD
+    have hxleft : c - D.min' hD / 2 < x := hx.1.1
+    have hxright : x < c + D.min' hD / 2 := hx.1.2
+    have habs : |x - c| < D.min' hD := by
+      rw [abs_sub_lt_iff]
+      constructor <;> linarith
+    have hdist_lt : dist x c < D.min' hD := by
+      simpa [Real.dist_eq] using habs
+    linarith
+
+/-- Gluing interval-integrability across a finite isolated singular set, once
+each singular point has a locally integrable logarithmic model and the function
+is continuous on the complement.
+
+This is the measure-theoretic cover/gluing theorem behind the Jensen finite
+singularity argument.  It contains no complex analysis: all analytic content has
+already been reduced to local logarithmic models. -/
+theorem intervalIntegrable_of_finite_log_singularity_cover
+    (f : ℝ → ℝ)
+    (a b : ℝ)
+    (S : Set ℝ)
+    (hS : S.Finite)
+    (hlocalInt :
+      ∀ θ₀ ∈ S, ∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable f MeasureTheory.volume u v)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
   sorry
 
 /-- Finite compact-interval gluing once each singular point has a logarithmic
@@ -720,21 +834,34 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
     (hS : S.Finite)
     (hlocal :
       ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
-        ContinuousAt g θ₀ ∧
+        (∃ u v : ℝ,
+          u < θ₀ ∧ θ₀ < v ∧
+          IntervalIntegrable g MeasureTheory.volume u v) ∧
         ∀ᶠ θ in 𝓝[≠] θ₀,
           f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ)
     (hcont :
       ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
     IntervalIntegrable f MeasureTheory.volume a b := by
-  sorry
+  have hlocalInt :
+      ∀ θ₀ ∈ S, ∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable f MeasureTheory.volume u v := by
+    intro θ₀ hθ₀
+    rcases hlocal θ₀ hθ₀ with ⟨n, g, hg, hmodel⟩
+    exact
+      intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin
+        f n g hg hmodel
+  exact
+    intervalIntegrable_of_finite_log_singularity_cover
+      f a b S hS hlocalInt hcont
 
 /-- Finite compact-interval gluing for logarithmic singularities.
 
 The local hypotheses say that every singular parameter has a punctured
-neighborhood model `n * log |θ - θ₀| + g θ` with continuous remainder, and the
-complement is continuous.  The conclusion follows from the interval
-integrability of the translated logarithm, continuity of each remainder on a
-small compact interval, and a finite subcover of `[a,b]`. -/
+neighborhood model `n * log |θ - θ₀| + g θ` with a locally integrable
+remainder, and the complement is continuous.  The conclusion follows from the
+interval integrability of the translated logarithm, local integrability of each
+remainder, and finite interval gluing on `[a,b]`. -/
 theorem intervalIntegrable_of_finite_log_singularities_on_compact
     (f : ℝ → ℝ)
     (a b : ℝ)
@@ -742,7 +869,9 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     (hS : S.Finite)
     (hlocal :
       ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
-        ContinuousAt g θ₀ ∧
+        (∃ u v : ℝ,
+          u < θ₀ ∧ θ₀ < v ∧
+          IntervalIntegrable g MeasureTheory.volume u v) ∧
         ∀ᶠ θ in 𝓝[≠] θ₀,
           f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ)
     (hcont :
@@ -784,6 +913,249 @@ theorem log_two_le_log_doubled_radius_div_norm
       exact mul_le_mul_of_nonneg_left hz_le (by norm_num)
     exact (le_div_iff₀ hz_pos).mpr hmul_le
   exact Real.log_le_log (by norm_num) htwo_le
+
+/-- Multiplicity-weighted Jensen radial-gap summand for a zero on the
+comparison circle of radius `ρ`.
+
+The zero at the origin is omitted here: in Jensen's formula it is the factored
+Taylor root and contributes to the additive constant, not to the radial-gap
+sum. -/
+noncomputable def entireFunctionJensenRadialGapSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if hz₀ : (z : ℂ) = 0 then
+    0
+  else if ‖(z : ℂ)‖ < ρ then
+    (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+      Real.log (ρ / ‖(z : ℂ)‖)
+  else
+    0
+
+/-- Multiplicity-weighted Jensen radial-gap sum inside the comparison circle. -/
+noncomputable def entireFunctionJensenRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) : ℝ :=
+  ∑' z : EntireFunctionZero F,
+    entireFunctionJensenRadialGapSummand F hF ρ z
+
+/-- A nonzero zero in `closedDisk R` contributes at least its multiplicity times
+`log 2` to the doubled-radius Jensen radial-gap sum.
+
+This is the pointwise radial-gap comparison; it is independent of Jensen's
+formula itself. -/
+theorem entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (z : EntireFunctionZero F) :
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 ≤
+      entireFunctionJensenRadialGapSummand F hF (2 * R) z := by
+  unfold entireFunctionZeroMultiplicityClosedDiskSummand
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz_disk : ‖(z : ℂ)‖ ≤ R
+  · by_cases hz₀ : (z : ℂ) = 0
+    · exact Eq.subst
+        (motive := fun x : ℝ =>
+          x * Real.log 2 ≤
+            if hz₀' : (z : ℂ) = 0 then
+              0
+            else if ‖(z : ℂ)‖ < 2 * R then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log ((2 * R) / ‖(z : ℂ)‖)
+            else
+              0)
+        (if_pos hz_disk).symm
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log 2 ≤ x)
+          (if_pos hz₀).symm
+          (by
+            have hmul_nonneg :
+                0 ≤
+                  (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                    Real.log 2 :=
+              mul_nonneg
+                (Nat.cast_nonneg
+                  (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+                real_log_two_pos.le
+            exact hmul_nonneg))
+    · have hgap :
+          Real.log 2 ≤ Real.log ((2 * R) / ‖(z : ℂ)‖) :=
+        log_two_le_log_doubled_radius_div_norm hR hz₀ hz_disk
+      have hstrict : ‖(z : ℂ)‖ < 2 * R := by
+        have hR_pos : 0 < R := lt_of_lt_of_le zero_lt_one hR
+        have hR_lt_twoR : R < 2 * R := by nlinarith
+        exact lt_of_le_of_lt hz_disk hR_lt_twoR
+      exact Eq.subst
+        (motive := fun x : ℝ =>
+          x * Real.log 2 ≤
+            if hz₀' : (z : ℂ) = 0 then
+              0
+            else if ‖(z : ℂ)‖ < 2 * R then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log ((2 * R) / ‖(z : ℂ)‖)
+            else
+              0)
+        (if_pos hz_disk).symm
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log 2 ≤ x)
+          (if_neg hz₀).symm
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log 2 ≤ x)
+            (if_pos hstrict).symm
+            (mul_le_mul_of_nonneg_left
+              hgap
+              (Nat.cast_nonneg
+                (entireFunctionZeroMultiplicity F hF (z : ℂ))))))
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          if hz₀ : (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < 2 * R then
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log ((2 * R) / ‖(z : ℂ)‖)
+          else
+            0)
+      (if_neg hz_disk).symm
+      (by
+        rw [zero_mul]
+        by_cases hz₀ : (z : ℂ) = 0
+        · exact Eq.subst
+            (motive := fun x : ℝ => 0 ≤ x)
+            (if_pos hz₀).symm
+            (le_refl (0 : ℝ))
+        · by_cases hstrict : ‖(z : ℂ)‖ < 2 * R
+          · exact Eq.subst
+              (motive := fun x : ℝ => 0 ≤ x)
+              (if_neg hz₀).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_pos hstrict).symm
+                (mul_nonneg
+                  (Nat.cast_nonneg
+                    (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+                  (Real.log_nonneg
+                    (by
+                      have hz_norm_pos : 0 < ‖(z : ℂ)‖ :=
+                        norm_pos_iff.mpr hz₀
+                      exact
+                        (one_le_div₀ hz_norm_pos).mpr hstrict.le))))
+          · exact Eq.subst
+              (motive := fun x : ℝ => 0 ≤ x)
+              (if_neg hz₀).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_neg hstrict).symm
+                (le_refl (0 : ℝ))))
+
+/-- Closed-disk multiplicity weighted by `log 2` is dominated by the
+doubled-radius Jensen radial-gap sum.
+
+This is the finite/counting part of the Jensen estimate. The analytic Jensen
+formula enters only through an upper bound on the radial-gap sum. -/
+theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (hclosed :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z))
+    (hgap :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF (2 * R) z)) :
+    entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+      entireFunctionJensenRadialGapSum F hF (2 * R) := by
+  unfold entireFunctionZeroMultiplicityCountingInClosedDisk
+  unfold entireFunctionJensenRadialGapSum
+  have hclosed_scaled :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z *
+            Real.log 2) :=
+    hclosed.mul_left (Real.log 2)
+  have htsum_mul :
+      (∑' z : EntireFunctionZero F,
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) *
+          Real.log 2 =
+        ∑' z : EntireFunctionZero F,
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z *
+            Real.log 2 := by
+    exact (tsum_mul_left (Real.log 2)
+      (fun z : EntireFunctionZero F =>
+        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)).symm
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤
+        ∑' z : EntireFunctionZero F,
+          entireFunctionJensenRadialGapSummand F hF (2 * R) z)
+    htsum_mul
+    (tsum_le_tsum
+      (fun z : EntireFunctionZero F =>
+        entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+          F hF hR z)
+      hclosed_scaled
+      hgap)
+
+/-- Classical Jensen formula in radial-gap form, with multiplicities and with
+the first nonzero Taylor factor at the origin absorbed into an additive
+constant.
+
+This is the precise classical analytic input: after removing the origin factor,
+Jensen's formula identifies the multiplicity-weighted radial gap sum with the
+boundary logarithmic average up to a fixed additive normalization constant. -/
+theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ ρ : ℝ,
+        0 < ρ →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+        entireFunctionJensenRadialGapSum F hF ρ ≤
+          J + entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Classical Jensen formula for nonzero entire functions, with zeros counted
+  -- by analytic multiplicity and the origin Taylor factor separated.
+  sorry
+
+/-- Jensen's radial-gap formula supplies summability of closed-disk
+multiplicity summands. -/
+theorem entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) := by
+  intro R hR
+  rcases entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+      F hF hnontrivial with ⟨J, hJ⟩
+  rcases hJ (2 * R) (doubled_radius_pos_of_one_le hR) with ⟨hgap, _⟩
+  refine Summable.of_nonneg_of_le
+    (fun z : EntireFunctionZero F =>
+      entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative F hF R z)
+    (fun z : EntireFunctionZero F =>
+      ?_)
+    hgap
+  exact
+    entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+      F hF hR z
 
 /-- The doubled-radius algebra converting the weighted Jensen radial-gap bound
 into the closed-disk zero-counting estimate. -/
@@ -854,9 +1226,27 @@ theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultipl
         1 ≤ R →
         entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
           J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  -- Classical Jensen formula for nonzero entire functions, with
-  -- multiplicities and the doubled-radius `log 2` radial-gap comparison.
-  sorry
+  rcases
+    entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
+      F hF hnontrivial with
+    ⟨J, hJ⟩
+  refine ⟨J, ?_⟩
+  intro R hR
+  have hρ : 0 < 2 * R :=
+    doubled_radius_pos_of_one_le hR
+  rcases hJ (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
+  have hclosed_summable :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) :=
+    entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
+      F hF hnontrivial R hR
+  have hcount_gap :
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+        entireFunctionJensenRadialGapSum F hF (2 * R) :=
+    entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
+      F hF hR hclosed_summable hgap_summable
+  exact le_trans hcount_gap hgap_bound
 
 /-- Classical weighted Jensen zero-counting estimate on the doubled disk. -/
 theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
@@ -1292,6 +1682,25 @@ theorem jensenBoundaryLogSample_localLogContribution
     _ = (n : ℝ) * Real.log |θ - θ₀| + Real.log ‖u θ‖ := by
       simp [Real.log_pow, norm_eq_abs]
 
+/-- The analytic unit remainder in the local Jensen logarithmic model is
+locally interval-integrable near the singular parameter. -/
+theorem jensenBoundaryLogSample_localLogContribution_remainder_intervalIntegrable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (θ₀ : ℝ)
+    (hnot :
+      ¬ ∀ᶠ θ in 𝓝 θ₀,
+        F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
+    ∃ n : ℕ, ∃ g : ℝ → ℝ,
+      (∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v) ∧
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        Real.log ‖F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+          (n : ℝ) * Real.log |θ - θ₀| + g θ := by
+  sorry
+
 /-- The sampled Jensen boundary function is not eventually zero near a singular
 parameter once the entire function is nontrivial. -/
 theorem jensenBoundaryLogSample_not_eventually_zero_of_nontrivial
@@ -1375,6 +1784,44 @@ theorem jensenBoundaryLogIntegrand_eventually_eq_logDistance_plus_continuousAt_n
         F hF R θ₀ n g hg hmodel with
     ⟨g', hg', hg'eventually⟩
   exact ⟨n, g', hg', hg'eventually⟩
+
+/-- The Jensen boundary logarithmic integrand has a punctured local
+log-distance model with a locally interval-integrable remainder near each
+singular parameter. -/
+theorem jensenBoundaryLogIntegrand_eventually_eq_logDistance_plus_intervalIntegrable_near_parameterZero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ)
+    (hR : 0 < R)
+    (θ₀ : ℝ)
+    (hθ₀ :
+      θ₀ ∈ Set.Icc 0 (2 * Real.pi) ∧
+        F ((2 * R : ℂ) * Complex.exp (θ₀ * Complex.I)) = 0) :
+    ∃ n : ℕ, ∃ g : ℝ → ℝ,
+      (∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v) ∧
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        entireFunctionJensenBoundaryLogIntegrand F (2 * R) θ =
+          (n : ℝ) * Real.log |θ - θ₀| + g θ := by
+  have hnot :
+      ¬ ∀ᶠ θ in 𝓝 θ₀,
+        F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0 := by
+    intro hzero
+    have htwoR : 0 < 2 * R := by
+      nlinarith
+    have hglobal :
+        ∀ z : ℂ, F z = 0 :=
+      entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
+        F hF (2 * R) htwoR θ₀ hzero
+    rcases hnontrivial with ⟨z, hz⟩
+    exact hz (hglobal z)
+  rcases
+      jensenBoundaryLogSample_localLogContribution_remainder_intervalIntegrable
+        F hF R θ₀ hnot with
+    ⟨n, g, hg, hmodel⟩
+  exact ⟨n, g, hg, hmodel⟩
 
 /-- The doubled-circle parametrization is injective on the open fundamental arc
 `(0, 2π]`. This is the bookkeeping input that turns a finite circle zero set into a
@@ -1503,28 +1950,16 @@ theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularitie
     exact (hT.insert (0 : ℝ)).subset hsubset
   have hlocal :
       ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
-        ContinuousAt g θ₀ ∧
+        (∃ u v : ℝ,
+          u < θ₀ ∧ θ₀ < v ∧
+          IntervalIntegrable g MeasureTheory.volume u v) ∧
         ∀ᶠ θ in 𝓝[≠] θ₀,
           entireFunctionJensenBoundaryLogIntegrand F (2 * R) θ =
             (n : ℝ) * Real.log |θ - θ₀| + g θ := by
     intro θ₀ hθ₀
-    have hnot :
-        ¬ ∀ᶠ θ in 𝓝 θ₀,
-          F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0 := by
-      intro hzero
-      have htwoR : 0 < 2 * R := by
-        nlinarith
-      have hglobal :
-          ∀ z : ℂ, F z = 0 :=
-        entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
-          F hF (2 * R) htwoR θ₀ hzero
-      rcases hnontrivial with ⟨z, hz⟩
-      exact hz (hglobal z)
-    rcases jensenBoundaryLogSample_localLogContribution F hF R θ₀ hnot with
-      ⟨n, g, hg, hmodel⟩
     exact
-      jensenBoundaryLogIntegrand_continuousAt_localRemainder
-        F hF R θ₀ n g hg hmodel
+      jensenBoundaryLogIntegrand_eventually_eq_logDistance_plus_intervalIntegrable_near_parameterZero
+        F hF hnontrivial R hR θ₀ hθ₀
   have hcont :
       ContinuousOn (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
         ({θ : ℝ | θ ∈ Set.Icc (0 : ℝ) (2 * Real.pi) ∧ θ ∉ S}) := by
