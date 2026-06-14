@@ -1,0 +1,2393 @@
+import Mathlib.Analysis.Analytic.IsolatedZeros
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.Analysis.SpecialFunctions.Complex.Log
+import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
+import Mathlib.Analysis.SpecialFunctions.Integrals
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.Topology.Compactness.Compact
+import Mathlib.Topology.Constructions
+import Mathlib.Topology.Algebra.InfiniteSum.Basic
+
+/-!
+# Entire-function zero multiplicity and radial-gap core
+
+This file is a sequential owner sublayer split from the Jensen formula owner.
+Declaration order is preserved so downstream import behavior remains routed
+through `EntireJensenFormula.Owner`.
+-/
+
+namespace Boundary
+namespace LFunctions
+
+noncomputable section
+
+open scoped Topology
+
+abbrev EntireFunctionZero
+    (F : ℂ → ℂ) : Type :=
+  {z : ℂ // F z = 0}
+
+/-- Analytic multiplicity of a zero of an entire function. -/
+noncomputable def entireFunctionZeroMultiplicity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z : ℂ) : ℕ :=
+  (hF z).order.toNat
+
+/-- Nonzero zeros of an entire function.  This is the canonical index for
+Jensen terms after the origin Taylor factor has been separated. -/
+abbrev EntireFunctionNonzeroZero
+    (F : ℂ → ℂ) : Type :=
+  {z : ℂ // F z = 0 ∧ z ≠ 0}
+
+/-- Forgetting the nonzero condition gives an ordinary zero. -/
+def EntireFunctionNonzeroZero.toZero
+    (F : ℂ → ℂ)
+    (z : EntireFunctionNonzeroZero F) : EntireFunctionZero F :=
+  ⟨z, z.property.1⟩
+
+/-- The forgetful map from nonzero zeros to all zeros is injective. -/
+theorem EntireFunctionNonzeroZero.toZero_injective
+    (F : ℂ → ℂ) :
+    Function.Injective (EntireFunctionNonzeroZero.toZero F) := by
+  intro z w hzw
+  exact Subtype.ext (congrArg Subtype.val hzw)
+
+/-- An ordinary zero lies in the range of the nonzero-zero forgetful map exactly
+when its value is nonzero. -/
+theorem EntireFunctionNonzeroZero.mem_range_toZero_iff
+    (F : ℂ → ℂ)
+    (z : EntireFunctionZero F) :
+    z ∈ Set.range (EntireFunctionNonzeroZero.toZero F) ↔ (z : ℂ) ≠ 0 := by
+  constructor
+  · intro hz
+    rcases hz with ⟨w, hw⟩
+    exact Eq.subst
+      (motive := fun x : ℂ => x ≠ 0)
+      (congrArg Subtype.val hw)
+      w.property.2
+  · intro hz
+    exact ⟨⟨z, z.property, hz⟩, Subtype.ext rfl⟩
+
+/-- The local first-nonzero Taylor factor at a point where the analytic order is `n`.
+
+This is the local multiplicity input used by Jensen's formula: near `z`, an
+analytic function with vanishing order `n` is `(w - z)^n` times an analytic
+factor nonzero at `z`. -/
+theorem entireFunction_localTaylorFactorization_of_order_eq_nat
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z : ℂ)
+    (n : ℕ)
+    (horder : (hF z).order = (n : ENat)) :
+    ∃ g : ℂ → ℂ,
+      AnalyticAt ℂ g z ∧
+      g z ≠ 0 ∧
+      ∀ᶠ w in 𝓝 z, F w = (w - z) ^ n • g w := by
+  exact ((hF z).order_eq_nat_iff n).mp horder
+
+/-- The local first-nonzero Taylor factor stated with the file's multiplicity
+definition. -/
+theorem entireFunction_localMultiplicityFactorization
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z : ℂ)
+    (horder :
+      (hF z).order =
+        (entireFunctionZeroMultiplicity F hF z : ENat)) :
+    ∃ g : ℂ → ℂ,
+      AnalyticAt ℂ g z ∧
+      g z ≠ 0 ∧
+      ∀ᶠ w in 𝓝 z,
+        F w =
+          (w - z) ^ entireFunctionZeroMultiplicity F hF z • g w := by
+  exact
+    entireFunction_localTaylorFactorization_of_order_eq_nat
+      F hF z (entireFunctionZeroMultiplicity F hF z) horder
+
+/-- The norm contribution of the local Taylor factor. -/
+theorem entireFunction_localTaylorFactor_norm
+    (F : ℂ → ℂ)
+    (z : ℂ)
+    (n : ℕ)
+    (g : ℂ → ℂ)
+    (hfactor :
+      ∀ᶠ w in 𝓝 z, F w = (w - z) ^ n • g w) :
+    ∀ᶠ w in 𝓝 z,
+      ‖F w‖ = ‖w - z‖ ^ n * ‖g w‖ := by
+  filter_upwards [hfactor] with w hw
+  calc
+    ‖F w‖ = ‖(w - z) ^ n • g w‖ := by
+      exact congrArg norm hw
+    _ = ‖(w - z) ^ n‖ * ‖g w‖ := by
+      exact norm_smul ((w - z) ^ n) (g w)
+    _ = ‖w - z‖ ^ n * ‖g w‖ := by
+      exact congrArg (fun x : ℝ => x * ‖g w‖) (norm_pow (w - z) n)
+
+/-- The logarithmic local contribution of the first nonzero Taylor factor away
+from its zero. -/
+theorem entireFunction_localTaylorFactor_logContribution
+    (F : ℂ → ℂ)
+    (z : ℂ)
+    (n : ℕ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g z)
+    (hg_ne : g z ≠ 0)
+    (hfactor :
+      ∀ᶠ w in 𝓝 z, F w = (w - z) ^ n • g w) :
+    ∀ᶠ w in 𝓝[≠] z,
+      Real.log ‖F w‖ =
+        (n : ℝ) * Real.log ‖w - z‖ + Real.log ‖g w‖ := by
+  have hnorm :
+      ∀ᶠ w in 𝓝 z, ‖F w‖ = ‖w - z‖ ^ n * ‖g w‖ :=
+    entireFunction_localTaylorFactor_norm F z n g hfactor
+  have hg_eventually_ne : ∀ᶠ w in 𝓝 z, g w ≠ 0 :=
+    hg_an.continuousAt.eventually_ne hg_ne
+  filter_upwards
+    [hnorm.filter_mono nhdsWithin_le_nhds,
+      hg_eventually_ne.filter_mono nhdsWithin_le_nhds,
+      self_mem_nhdsWithin]
+    with w hnorm_w hg_w_ne hw_ne
+  have hsub_ne : w - z ≠ 0 :=
+    sub_ne_zero.mpr hw_ne
+  have hnorm_sub_ne : ‖w - z‖ ≠ 0 :=
+    norm_ne_zero_iff.mpr hsub_ne
+  have hpow_ne : ‖w - z‖ ^ n ≠ 0 :=
+    pow_ne_zero n hnorm_sub_ne
+  have hg_norm_ne : ‖g w‖ ≠ 0 :=
+    norm_ne_zero_iff.mpr hg_w_ne
+  calc
+    Real.log ‖F w‖ =
+        Real.log (‖w - z‖ ^ n * ‖g w‖) := by
+      exact congrArg Real.log hnorm_w
+    _ = Real.log (‖w - z‖ ^ n) + Real.log ‖g w‖ := by
+      exact Real.log_mul hpow_ne hg_norm_ne
+    _ = (n : ℝ) * Real.log ‖w - z‖ + Real.log ‖g w‖ := by
+      exact congrArg (fun x : ℝ => x + Real.log ‖g w‖)
+        (Real.log_pow ‖w - z‖ n)
+
+/-- Multiplicity summand for entire-function zeros inside a closed disk. -/
+noncomputable def entireFunctionZeroMultiplicityClosedDiskSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if ‖(z : ℂ)‖ ≤ R then
+    (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
+  else
+    0
+
+/-- Multiplicity count for entire-function zeros inside a closed disk. -/
+noncomputable def entireFunctionZeroMultiplicityCountingInClosedDisk
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ) : ℝ :=
+  ∑' z : EntireFunctionZero F,
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
+
+/-- Entire-function closed-disk multiplicity summands are nonnegative. -/
+theorem entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) :
+    0 ≤ entireFunctionZeroMultiplicityClosedDiskSummand F hF R z := by
+  unfold entireFunctionZeroMultiplicityClosedDiskSummand
+  by_cases hz : ‖(z : ℂ)‖ ≤ R
+  · exact Eq.subst
+      (motive := fun x : ℝ => 0 ≤ x)
+      (if_pos hz).symm
+      (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+  · exact Eq.subst
+      (motive := fun x : ℝ => 0 ≤ x)
+      (if_neg hz).symm
+      (le_refl (0 : ℝ))
+
+/-- Entire-function closed-disk multiplicity summands are monotone in the disk radius. -/
+theorem entireFunctionZeroMultiplicityClosedDiskSummand_mono
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R S : ℝ}
+    (hRS : R ≤ S)
+    (z : EntireFunctionZero F) :
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z ≤
+      entireFunctionZeroMultiplicityClosedDiskSummand F hF S z := by
+  unfold entireFunctionZeroMultiplicityClosedDiskSummand
+  by_cases hzR : ‖(z : ℂ)‖ ≤ R
+  · have hzS : ‖(z : ℂ)‖ ≤ S :=
+      le_trans hzR hRS
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ if ‖(z : ℂ)‖ ≤ S then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) else 0)
+      (if_pos hzR).symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) ≤ x)
+        (if_pos hzS).symm
+        (le_refl (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)))
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ if ‖(z : ℂ)‖ ≤ S then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) else 0)
+      (if_neg hzR).symm
+      (entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative F hF S z)
+
+/-- Entire-function closed-disk multiplicity counts are monotone when the two summand
+families are summable. The analytic Jensen root supplies such finiteness in applications. -/
+theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mono_of_summable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R S : ℝ}
+    (hRS : R ≤ S)
+    (hR :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z))
+    (hS :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF S z)) :
+    entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF S := by
+  unfold entireFunctionZeroMultiplicityCountingInClosedDisk
+  exact tsum_le_tsum
+    (fun z : EntireFunctionZero F =>
+      entireFunctionZeroMultiplicityClosedDiskSummand_mono F hF hRS z)
+    hR
+    hS
+
+/-- Logarithmic maximum modulus of an entire function on the circle of radius `R`. -/
+noncomputable def entireFunctionLogMaxOnCircle
+    (F : ℂ → ℂ)
+    (R : ℝ) : ℝ :=
+  sSup {x : ℝ | ∃ z : ℂ, ‖z‖ = R ∧ x = Real.log ‖F z‖}
+
+/-- The logarithmic boundary integrand in Jensen's formula on the circle of radius `R`. -/
+noncomputable def entireFunctionJensenBoundaryLogIntegrand
+    (F : ℂ → ℂ)
+    (R : ℝ)
+    (θ : ℝ) : ℝ :=
+  Real.log ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖
+
+/-- The normalized logarithmic boundary average in Jensen's formula. -/
+noncomputable def entireFunctionJensenBoundaryLogIntegral
+    (F : ℂ → ℂ)
+    (R : ℝ) : ℝ :=
+  ∫ θ in (0 : ℝ)..(2 * Real.pi),
+    entireFunctionJensenBoundaryLogIntegrand F R θ
+
+/-- The normalized logarithmic boundary average in Jensen's formula. -/
+noncomputable def entireFunctionJensenBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (R : ℝ) : ℝ :=
+  (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F R
+
+/-- Open-neighborhood identity theorem for entire functions.
+
+Once an entire function vanishes on a complex neighborhood of one point,
+preconnectedness of `ℂ` propagates the vanishing globally. -/
+theorem entireFunction_eq_zero_of_eventually_zero_nhds
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z₀ : ℂ)
+    (hlocal_zero : ∀ᶠ z in 𝓝 z₀, F z = 0) :
+    ∀ z : ℂ, F z = 0 := by
+  have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) :=
+    fun z _ => hF z
+  have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
+    hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+      isPreconnected_univ (by simp) hlocal_zero
+  intro z
+  exact hEq (by simp)
+
+/-- A nontrivial entire function has finite analytic order at the origin. -/
+theorem entireFunction_origin_order_ne_top_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    (hF 0).order ≠ ⊤ := by
+  intro htop
+  have hlocal_zero : ∀ᶠ z in 𝓝 (0 : ℂ), F z = 0 := by
+    exact ((hF 0).order_eq_top_iff).mp htop
+  have hglobal_zero : ∀ z : ℂ, F z = 0 :=
+    entireFunction_eq_zero_of_eventually_zero_nhds F hF 0 hlocal_zero
+  rcases hnontrivial with ⟨z, hz⟩
+  exact hz (hglobal_zero z)
+
+/-- For a nontrivial entire function, the file's origin multiplicity is the
+finite analytic order at the origin. -/
+theorem entireFunction_origin_order_eq_multiplicity_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    (hF 0).order =
+      (entireFunctionZeroMultiplicity F hF 0 : ENat) := by
+  have hfinite : (hF 0).order ≠ ⊤ :=
+    entireFunction_origin_order_ne_top_of_nontrivial F hF hnontrivial
+  unfold entireFunctionZeroMultiplicity
+  exact (ENat.coe_toNat hfinite).symm
+
+/-- A nontrivial entire function has finite analytic order at every point. -/
+theorem entireFunction_order_ne_top_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (z₀ : ℂ) :
+    (hF z₀).order ≠ ⊤ := by
+  intro htop
+  have hlocal_zero : ∀ᶠ z in 𝓝 z₀, F z = 0 := by
+    exact ((hF z₀).order_eq_top_iff).mp htop
+  have hglobal_zero : ∀ z : ℂ, F z = 0 :=
+    entireFunction_eq_zero_of_eventually_zero_nhds F hF z₀ hlocal_zero
+  match hnontrivial with
+  | ⟨z, hz⟩ => exact hz (hglobal_zero z)
+
+/-- For a nontrivial entire function, the file's multiplicity is the finite
+analytic order at every point. -/
+theorem entireFunction_order_eq_multiplicity_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (z₀ : ℂ) :
+    (hF z₀).order =
+      (entireFunctionZeroMultiplicity F hF z₀ : ENat) := by
+  have hfinite : (hF z₀).order ≠ ⊤ :=
+    entireFunction_order_ne_top_of_nontrivial F hF hnontrivial z₀
+  unfold entireFunctionZeroMultiplicity
+  exact (ENat.coe_toNat hfinite).symm
+
+/-- At an actual zero of a nontrivial entire function, the finite analytic
+multiplicity is nonzero. -/
+theorem entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    {z₀ : ℂ}
+    (hz₀ : F z₀ = 0) :
+    entireFunctionZeroMultiplicity F hF z₀ ≠ 0 := by
+  intro hmult_zero
+  have horder_eq_multiplicity :
+      (hF z₀).order =
+        (entireFunctionZeroMultiplicity F hF z₀ : ENat) :=
+    entireFunction_order_eq_multiplicity_of_nontrivial F hF hnontrivial z₀
+  have horder_zero :
+      (hF z₀).order = (0 : ENat) :=
+    Eq.trans horder_eq_multiplicity
+      (congrArg (fun n : ℕ => (n : ENat)) hmult_zero)
+  obtain ⟨g, _hg_an, hg_ne, hg_factor⟩ :=
+    entireFunction_localTaylorFactorization_of_order_eq_nat
+      F hF z₀ 0 horder_zero
+  have hfactor_at_center :
+      F z₀ = (z₀ - z₀) ^ 0 • g z₀ :=
+    Filter.Eventually.self_of_nhds hg_factor
+  have hpow :
+      (z₀ - z₀) ^ 0 = (1 : ℂ) :=
+    pow_zero (z₀ - z₀)
+  have hfactor_one :
+      (z₀ - z₀) ^ 0 • g z₀ = (1 : ℂ) • g z₀ :=
+    congrArg (fun a : ℂ => a • g z₀) hpow
+  have hF_eq_g :
+      F z₀ = g z₀ :=
+    Eq.trans (Eq.trans hfactor_at_center hfactor_one) (one_smul ℂ (g z₀))
+  have hg_zero :
+      g z₀ = 0 :=
+    Eq.trans hF_eq_g.symm hz₀
+  exact hg_ne hg_zero
+
+/-- A positive-radius exponential arc is locally injective in a punctured real
+neighborhood of the base parameter. -/
+theorem positiveRadius_exp_arc_eventually_ne_base
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ) :
+    ∀ᶠ θ in 𝓝[≠] θ₀,
+      (r : ℂ) * Complex.exp (θ * Complex.I) ≠
+        (r : ℂ) * Complex.exp (θ₀ * Complex.I) := by
+  have hclose :
+      ∀ᶠ θ in 𝓝 θ₀, |θ - θ₀| < 2 * Real.pi := by
+    exact
+      (Metric.eventually_nhds_iff_ball.mpr
+        ⟨2 * Real.pi, Real.two_pi_pos, by
+          intro θ hθ
+          simpa [Real.dist_eq] using hθ⟩)
+  filter_upwards
+    [hclose.filter_mono nhdsWithin_le_nhds, self_mem_nhdsWithin]
+    with θ hθclose hθne hEq
+  have hrC : (r : ℂ) ≠ 0 := by
+    exact_mod_cast hr.ne'
+  have hExp :
+      Complex.exp (θ * Complex.I) =
+        Complex.exp (θ₀ * Complex.I) := by
+    apply mul_left_cancel₀ hrC
+    simpa [mul_assoc] using hEq
+  rcases (Complex.exp_eq_exp_iff_exists_int.mp hExp) with ⟨n, hn⟩
+  have hnC :
+      (θ : ℂ) * Complex.I =
+        ((θ₀ + n * (2 * Real.pi)) : ℂ) * Complex.I := by
+    simpa [mul_add, add_mul, mul_assoc, add_comm, add_left_comm, add_assoc] using hn
+  have hθC : (θ : ℂ) = ((θ₀ + n * (2 * Real.pi)) : ℂ) := by
+    apply mul_right_cancel₀ Complex.I_ne_zero
+    exact hnC
+  have hθ : θ = θ₀ + n * (2 * Real.pi) := by
+    have hθ' := congrArg Complex.re hθC
+    simpa using hθ'
+  have hdiff : θ - θ₀ = n * (2 * Real.pi) := by
+    linarith
+  have hn0 : n = 0 := by
+    by_contra hn0
+    have h1 : (1 : ℝ) ≤ |(n : ℝ)| := by
+      exact_mod_cast Int.one_le_abs hn0
+    have hperiod :
+        |θ - θ₀| = |(n : ℝ)| * (2 * Real.pi) := by
+      calc
+        |θ - θ₀| = |(n : ℝ) * (2 * Real.pi)| := by
+          exact congrArg abs hdiff
+        _ = |(n : ℝ)| * |2 * Real.pi| := by
+          exact abs_mul (n : ℝ) (2 * Real.pi)
+        _ = |(n : ℝ)| * (2 * Real.pi) := by
+          exact congrArg (fun x : ℝ => |(n : ℝ)| * x)
+            (abs_of_pos Real.two_pi_pos)
+    have hle : 2 * Real.pi ≤ |θ - θ₀| := by
+      calc
+        2 * Real.pi = 1 * (2 * Real.pi) := by ring
+        _ ≤ |(n : ℝ)| * (2 * Real.pi) := by
+          exact mul_le_mul_of_nonneg_right h1 Real.two_pi_pos.le
+        _ = |θ - θ₀| := hperiod.symm
+    exact not_lt_of_ge hle hθclose
+  subst hn0
+  exact hθne (by linarith)
+
+/-- Pulling a punctured complex-neighborhood nonvanishing statement back along a
+positive-radius exponential arc gives punctured real-neighborhood
+nonvanishing. -/
+theorem positiveRadius_exp_arc_eventually_ne_zero_pullback
+    (F : ℂ → ℂ)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hne :
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
+    ∀ᶠ θ in 𝓝[≠] θ₀,
+      F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 := by
+  let γ : ℝ → ℂ := fun θ => (r : ℂ) * Complex.exp (θ * Complex.I)
+  have hγ_cont : ContinuousAt γ θ₀ := by
+    fun_prop
+  have hγ_tendsto_nhds : Tendsto γ (𝓝 θ₀) (𝓝 (γ θ₀)) :=
+    hγ_cont
+  have hne_base : ∀ᶠ θ in 𝓝[≠] θ₀, γ θ ≠ γ θ₀ :=
+    positiveRadius_exp_arc_eventually_ne_base r hr θ₀
+  have hγ_tendsto_punctured :
+      Tendsto γ (𝓝[≠] θ₀) (𝓝[≠] γ θ₀) := by
+    rw [nhdsWithin]
+    exact
+      Tendsto.inf
+        (hγ_tendsto_nhds.mono_left nhdsWithin_le_nhds)
+        (tendsto_principal.mpr hne_base)
+  exact hγ_tendsto_punctured.eventually hne
+
+/-- A positive-radius exponential arc has genuine punctured real parameters
+arbitrarily close to its base point, and its image remains in the punctured
+complex neighborhood of the base circle point.
+
+This is the real-arc accumulation input needed to turn local vanishing of the
+sampled function into a contradiction with isolated complex zeros. -/
+theorem positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
+    (F : ℂ → ℂ)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0)
+    (hne :
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
+    False := by
+  have hzero :
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0 :=
+    hlocal_zero.filter_mono nhdsWithin_le_nhds
+  have hnonzero :
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 :=
+    positiveRadius_exp_arc_eventually_ne_zero_pullback F r hr θ₀ hne
+  have hfalse : ∀ᶠ θ in 𝓝[≠] θ₀, False := by
+    filter_upwards [hzero, hnonzero] with θ hθzero hθnonzero
+    exact hθnonzero hθzero
+  exact
+    (Filter.not_eventually_false (𝓝[≠] θ₀)) hfalse
+
+/-- Local real-arc vanishing at positive radius excludes the nontrivial
+isolated-zero branch of an entire function at the corresponding circle point. -/
+theorem entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
+    ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 := by
+  rcases
+      (hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I))).eventually_eq_zero_or_eventually_ne_zero
+      with hzero | hne
+  · exact hzero
+  · exact False.elim
+      (positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
+        F r hr θ₀ hlocal_zero hne)
+
+/-- Real-arc identity theorem for a positive-radius exponential arc.
+
+This is the analytic-continuation bridge between a real-variable local zero
+of the boundary sample and the complex identity theorem.  The proof chain is:
+the positive-radius exponential parametrization maps any real neighborhood of
+`θ₀` to a nonconstant analytic arc with an accumulation point in `ℂ`; the
+sample vanishes on that arc; hence the zero set of the entire function has an
+accumulation point and the complex identity theorem forces global vanishing. -/
+theorem entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
+    ∀ z : ℂ, F z = 0 := by
+  have hcircle_zero :
+      ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 :=
+    entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
+      F hF r hr θ₀ hlocal_zero
+  exact
+    entireFunction_eq_zero_of_eventually_zero_nhds
+      F hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I)) hcircle_zero
+
+/-- Arc identity theorem for an entire function sampled on a positive-radius
+Jensen circle.
+
+This is the precise analytic-continuation bridge needed here: a real-analytic
+circle arc has an accumulation point in `ℂ`, so local vanishing of the sampled
+entire function forces global vanishing by the complex identity theorem. -/
+theorem entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero_arcIdentity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (hR : 0 < R)
+    (θ₀ : ℝ)
+    (hθ₀ : θ₀ ∈ Set.Ioc 0 (2 * Real.pi))
+    (hsample :
+      AnalyticAt ℝ
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ₀)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ = 0) :
+    ∀ z : ℂ, F z = 0 := by
+  have htwoR : 0 < 2 * R := by
+    nlinarith
+  exact
+    entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
+      F hF (2 * R) htwoR θ₀ hlocal_zero
+
+/-- Identity propagation from a locally vanishing Jensen boundary sample to a
+globally vanishing entire function. This is the exact analytic identity-theorem
+input needed to exclude the identically-zero local model under the global
+nontriviality hypothesis.
+
+The positive-radius hypothesis is essential: at radius zero the boundary sample
+only sees the single value `F 0`. -/
+theorem entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (hR : 0 < R)
+    (θ₀ : ℝ)
+    (hθ₀ : θ₀ ∈ Set.Ioc 0 (2 * Real.pi))
+    (hsample :
+      AnalyticAt ℝ
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ₀)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ = 0) :
+    ∀ z : ℂ, F z = 0 := by
+  exact
+    entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero_arcIdentity
+      F hF R hR θ₀ hθ₀ hsample hlocal_zero
+
+/-- The true local remnant statement carried by a punctured Jensen log model.
+
+The punctured identity alone cannot determine a globally continuous function on
+the whole fundamental interval, nor can it force an unpunctured identity at the
+singular parameter.  The owner-level fact is therefore the local continuous
+remainder together with the original punctured equality. -/
+theorem continuousRemainderExtensionOn_Icc_of_puncturedLocalModel
+    (f : ℝ → ℝ)
+    (θ₀ : ℝ)
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (hg : ContinuousAt g θ₀)
+    (hmodel :
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ) :
+    ∃ g' : ℝ → ℝ,
+      ContinuousAt g' θ₀ ∧
+      ∀ᶠ θ in 𝓝[≠] θ₀,
+        f θ = (n : ℝ) * Real.log |θ - θ₀| + g' θ := by
+  exact ⟨g, hg, hmodel⟩
+
+/-- The logarithmic singularity `-log` is interval-integrable on `[0,1]`. -/
+theorem real_intervalIntegrable_neg_log_unitInterval :
+    IntervalIntegrable (fun x : ℝ => -Real.log x) MeasureTheory.volume 0 1 := by
+  have hcont :
+      ContinuousOn (fun x : ℝ => x - x * Real.log x) (Set.Icc (0 : ℝ) 1) := by
+    simpa [sub_eq_add_neg] using
+      (continuous_id.sub Real.continuous_mul_log).continuousOn
+  have hderiv :
+      ∀ x ∈ Set.Ioo (0 : ℝ) 1,
+        HasDerivAt (fun x : ℝ => x - x * Real.log x) (-Real.log x) x := by
+    intro x hx
+    have hx0 : x ≠ 0 := (Set.mem_Ioo.mp hx).1.ne'
+    have hmul : HasDerivAt (fun x : ℝ => x * Real.log x) (Real.log x + 1) x :=
+      Real.hasDerivAt_mul_log hx0
+    have hsub :
+        HasDerivAt (fun x : ℝ => x - x * Real.log x) (1 - (Real.log x + 1)) x := by
+      simpa [sub_eq_add_neg] using (hasDerivAt_id x).sub hmul
+    convert hsub using 1 <;> ring
+  have hnonneg : ∀ x ∈ Set.Ioo (0 : ℝ) 1, 0 ≤ -Real.log x := by
+    intro x hx
+    have hx0 : 0 < x := (Set.mem_Ioo.mp hx).1
+    have hx1 : x ≤ 1 := (Set.mem_Ioo.mp hx).2.le
+    exact neg_nonneg.mpr (Real.log_nonpos hx0.le hx1)
+  simpa using
+    (intervalIntegral.intervalIntegrable_deriv_of_nonneg hcont hderiv hnonneg)
+
+/-- The real logarithm is interval-integrable on `[0,1]`. -/
+theorem real_intervalIntegrable_log_unitInterval :
+    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 1 := by
+  simpa using real_intervalIntegrable_neg_log_unitInterval.neg
+
+/-- The real logarithm is interval-integrable on a compact interval starting at `0`.
+This is the translated endpoint-singularity input used in the Jensen local
+gluing theorem. -/
+theorem real_intervalIntegrable_log_Icc {t : ℝ} (ht : 0 ≤ t) :
+    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 t := by
+  rcases lt_or_eq_of_le ht with hpos | rfl
+  · have hscaled :
+        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹)) MeasureTheory.volume 0 t := by
+      simpa using
+        (real_intervalIntegrable_log_unitInterval.comp_mul_right (t⁻¹))
+    have hconst : IntervalIntegrable (fun _ : ℝ => Real.log t) MeasureTheory.volume 0 t :=
+      intervalIntegrable_const
+    have hsum :
+        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹) + Real.log t)
+          MeasureTheory.volume 0 t :=
+      hscaled.add hconst
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hpos.le] at hsum ⊢
+    refine IntegrableOn.congr_fun hsum ?_ measurableSet_Ioc
+    intro x hx
+    have hx0 : x ≠ 0 := (mem_Ioc.mp hx).1.ne'
+    have ht0 : t ≠ 0 := hpos.ne'
+    calc
+      Real.log x = Real.log (x * t⁻¹) + Real.log t := by
+        rw [Real.log_mul hx0 (inv_ne_zero ht0), Real.log_inv]
+        ring
+      _ = Real.log (x * t⁻¹) + Real.log t := rfl
+  · rw [intervalIntegrable_iff_integrableOn_Ioc_of_le le_rfl, Ioc_eq_empty_of_le le_rfl]
+    exact integrableOn_empty
+
+/-- The translated absolute-distance logarithm is interval-integrable on a
+compact interval. This is the one-dimensional singularity model used in the
+Jensen local gluing theorem. -/
+theorem intervalIntegrable_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable (fun x : ℝ => Real.log |x - c|) MeasureTheory.volume a b := by
+  have hab : a ≤ b := hac.trans hcb
+  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hab]
+  rw [← Ioc_union_Ioc_eq_Ioc hac hcb, integrableOn_union]
+  constructor
+  · have hleft :
+        IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume a c := by
+      have hbase :
+          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (c - a) := by
+        exact real_intervalIntegrable_log_Icc (by linarith)
+      have htrans :
+          IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume c a :=
+        hbase.comp_sub_left c
+      exact htrans.symm
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hac] at hleft ⊢
+    exact hleft.congr_fun
+      (by
+        intro x hx
+        have hxle : x - c ≤ 0 := by
+          have hx' : x ≤ c := (mem_Ioc.mp hx).2
+          linarith
+        have habs : |x - c| = c - x := by
+          rw [abs_of_nonpos hxle]
+          linarith
+        rw [habs])
+      measurableSet_Ioc
+  · have hright :
+        IntervalIntegrable (fun x : ℝ => Real.log (x - c)) MeasureTheory.volume c b := by
+      have hbase :
+          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (b - c) := by
+        exact real_intervalIntegrable_log_Icc (by linarith)
+      simpa using hbase.comp_sub_right c
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hcb] at hright ⊢
+    exact hright.congr_fun
+      (by
+        intro x hx
+        have hxge : 0 ≤ x - c := by
+          have hx' : c ≤ x := (mem_Ioc.mp hx).1
+          linarith
+        have habs : |x - c| = x - c := by
+          rw [abs_of_nonneg hxge]
+        rw [habs])
+      measurableSet_Ioc
+
+/-- A real scalar multiple of the translated logarithmic singularity is
+interval-integrable on every compact interval containing the singular point. -/
+theorem intervalIntegrable_const_mul_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (A : ℝ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable
+      (fun x : ℝ => A * Real.log |x - c|)
+      MeasureTheory.volume a b := by
+  exact
+    (intervalIntegrable_log_abs_sub_const_on_compact hac hcb).const_mul A
+
+/-- The natural-multiplicity logarithmic term in a local Jensen model is
+interval-integrable on every compact interval containing the singular point. -/
+theorem intervalIntegrable_nat_mul_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (n : ℕ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable
+      (fun x : ℝ => (n : ℝ) * Real.log |x - c|)
+      MeasureTheory.volume a b := by
+  exact
+    intervalIntegrable_const_mul_log_abs_sub_const_on_compact
+      (n : ℝ) hac hcb
+
+/-- Adding an already interval-integrable remainder to a logarithmic
+singularity preserves interval-integrability on the compact model interval. -/
+theorem intervalIntegrable_log_singularity_model_on_compact
+    {a b c : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b)
+    (hg : IntervalIntegrable g MeasureTheory.volume a b) :
+    IntervalIntegrable
+      (fun x : ℝ => (n : ℝ) * Real.log |x - c| + g x)
+      MeasureTheory.volume a b := by
+  exact
+    (intervalIntegrable_nat_mul_log_abs_sub_const_on_compact n hac hcb).add hg
+
+/-- Interval-integrability restricts to a smaller unordered compact interval
+whose endpoints both lie in the original unordered compact interval. -/
+theorem intervalIntegrable_mono_of_uIcc_endpoint_mem
+    {f : ℝ → ℝ}
+    {a b u v : ℝ}
+    (hf : IntervalIntegrable f MeasureTheory.volume a b)
+    (hu : u ∈ [[a, b]])
+    (hv : v ∈ [[a, b]]) :
+    IntervalIntegrable f MeasureTheory.volume u v := by
+  exact hf.mono_set (Set.uIcc_subset_uIcc hu hv)
+
+/-- A punctured-neighborhood equality can be shrunk to a compact subinterval
+on which the two functions are equal almost everywhere.
+
+This is the topological/null-set extraction behind punctured logarithmic local
+models: the equality holds on a deleted neighborhood of `c`, and the missing
+center point is null for Lebesgue measure. -/
+theorem eventuallyEq_punctured_nhdsWithin_has_subinterval_aeEq
+    {f g : ℝ → ℝ}
+    {c u v : ℝ}
+    (huc : u < c)
+    (hcv : c < v)
+    (hfg : ∀ᶠ θ in 𝓝[≠] c, f θ = g θ) :
+    ∃ u' v' : ℝ,
+      u < u' ∧ u' < c ∧ c < v' ∧ v' < v ∧
+      g =ᵐ[MeasureTheory.volume.restrict (Ι u' v')] f := by
+  rw [eventuallyEq_nhdsWithin_iff] at hfg
+  rcases mem_nhds_iff_exists_Ioo_subset.1 hfg with
+    ⟨l, r, hc_lr, hsub_lr⟩
+  let leftBound : ℝ := max u l
+  let rightBound : ℝ := min v r
+  let u' : ℝ := (leftBound + c) / 2
+  let v' : ℝ := (c + rightBound) / 2
+  have hleft_lt_c : leftBound < c := max_lt huc hc_lr.1
+  have hc_lt_right : c < rightBound := lt_min hcv hc_lr.2
+  have hu_u' : u < u' := by
+    dsimp [u', leftBound]
+    have hu_left : u ≤ max u l := le_max_left u l
+    linarith
+  have hu'_c : u' < c := by
+    dsimp [u']
+    linarith
+  have hc_v' : c < v' := by
+    dsimp [v']
+    linarith
+  have hv'_v : v' < v := by
+    dsimp [v', rightBound]
+    have hright_v : min v r ≤ v := min_le_left v r
+    linarith
+  have hu'_gt_l : l < u' := by
+    dsimp [u', leftBound]
+    have hl_left : l ≤ max u l := le_max_right u l
+    linarith
+  have hv'_lt_r : v' < r := by
+    dsimp [v', rightBound]
+    have hright_r : min v r ≤ r := min_le_right v r
+    linarith
+  have hgf_ae :
+      g =ᵐ[MeasureTheory.volume.restrict (Ι u' v')] f := by
+    have hne :
+        ∀ᵐ x ∂MeasureTheory.volume.restrict (Ι u' v'), x ≠ c :=
+      MeasureTheory.ae_restrict_of_ae
+        ((Set.countable_singleton c).ae_not_mem MeasureTheory.volume)
+    filter_upwards [hne, MeasureTheory.ae_restrict_mem measurableSet_uIoc] with x hxc hx_uIoc
+    have hx_lr : x ∈ Set.Ioo l r := by
+      have hx_uIcc : x ∈ [[u', v']] := Set.uIoc_subset_uIcc hx_uIoc
+      have hx_Icc : x ∈ Set.Icc u' v' := by
+        rw [Set.uIcc_of_le (le_of_lt (hu'_c.trans hc_v'))] at hx_uIcc
+        exact hx_uIcc
+      exact ⟨hu'_gt_l.trans_le hx_Icc.1, hx_Icc.2.trans_lt hv'_lt_r⟩
+    exact (hsub_lr hx_lr hxc).symm
+  exact ⟨u', v', hu_u', hu'_c, hc_v', hv'_v, hgf_ae⟩
+
+/-- Interval-integrability is unchanged when two functions agree on the
+punctured neighborhood of the only point where the local model is singular.
+
+The excluded point is null for Lebesgue measure, so the punctured equality is
+enough for interval-integrability on a sufficiently small interval around the
+center. -/
+theorem intervalIntegrable_congr_of_eventuallyEq_nhdsWithin_punctured
+    {f g : ℝ → ℝ}
+    {c u v : ℝ}
+    (huc : u < c)
+    (hcv : c < v)
+    (hfg : ∀ᶠ θ in 𝓝[≠] c, f θ = g θ)
+    (hg : IntervalIntegrable g MeasureTheory.volume u v) :
+    ∃ u' v' : ℝ,
+      u < u' ∧ u' < c ∧ c < v' ∧ v' < v ∧
+      IntervalIntegrable f MeasureTheory.volume u' v' := by
+  rcases
+      eventuallyEq_punctured_nhdsWithin_has_subinterval_aeEq
+        (f := f) (g := g) huc hcv hfg with
+    ⟨u', v', hu_u', hu'_c, hc_v', hv'_v, hgf_ae⟩
+  have hu'_mem : u' ∈ [[u, v]] :=
+    Set.mem_uIcc_of_le hu_u'.le (hu'_c.le.trans hcv.le)
+  have hv'_mem : v' ∈ [[u, v]] :=
+    Set.mem_uIcc_of_le (huc.le.trans hc_v'.le) hv'_v.le
+  have hg_small : IntervalIntegrable g MeasureTheory.volume u' v' :=
+    intervalIntegrable_mono_of_uIcc_endpoint_mem hg hu'_mem hv'_mem
+  exact ⟨u', v', hu_u', hu'_c, hc_v', hv'_v, hg_small.congr hgf_ae⟩
+
+/-- Local logarithmic model integrability on a smaller interval inside a
+remainder-integrability interval. -/
+theorem intervalIntegrable_log_singularity_model_eventually_on_subinterval
+    (f : ℝ → ℝ)
+    {c u v : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (huc : u < c)
+    (hcv : c < v)
+    (hg : IntervalIntegrable g MeasureTheory.volume u v)
+    (hmodel :
+      ∀ᶠ θ in 𝓝[≠] c,
+        f θ = (n : ℝ) * Real.log |θ - c| + g θ) :
+    ∃ u' v' : ℝ,
+      u < u' ∧ u' < c ∧ c < v' ∧ v' < v ∧
+      IntervalIntegrable f MeasureTheory.volume u' v' := by
+  have hcompact :
+      IntervalIntegrable
+        (fun x : ℝ => (n : ℝ) * Real.log |x - c| + g x)
+        MeasureTheory.volume u v :=
+    intervalIntegrable_log_singularity_model_on_compact
+      n g huc.le hcv.le hg
+  exact
+    intervalIntegrable_congr_of_eventuallyEq_nhdsWithin_punctured
+      huc hcv hmodel hcompact
+
+/-- The compact-continuity base case of finite logarithmic-singularity gluing:
+if there are no singular points in the compact interval, ordinary continuity on
+that compact interval gives interval-integrability. -/
+theorem intervalIntegrable_of_empty_log_singularities_on_compact
+    (f : ℝ → ℝ)
+    {a b : ℝ}
+    (hab : a ≤ b)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ (∅ : Set ℝ)})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hcontIcc : ContinuousOn f (Set.Icc a b) := by
+    refine hcont.mono ?_
+    intro θ hθ
+    exact ⟨hθ, by simp⟩
+  exact hcontIcc.intervalIntegrable_of_Icc hab
+
+/-- Local integrability near one logarithmic singularity from the punctured
+local model and a locally integrable remainder.
+
+This is the local owner cut used by the finite gluing theorem.  The point value
+of `f` at `c` is irrelevant for interval integrability; on a small punctured
+neighborhood, `f` agrees with the standard logarithmic model, and the model is
+interval-integrable by `intervalIntegrable_log_singularity_model_on_compact`. -/
+theorem intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin
+    (f : ℝ → ℝ)
+    {c : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (hg :
+      ∃ u v : ℝ,
+        u < c ∧ c < v ∧
+        IntervalIntegrable g MeasureTheory.volume u v)
+    (hmodel :
+      ∀ᶠ θ in 𝓝[≠] c,
+        f θ = (n : ℝ) * Real.log |θ - c| + g θ) :
+    ∃ u v : ℝ,
+      u < c ∧ c < v ∧
+      IntervalIntegrable f MeasureTheory.volume u v := by
+  rcases hg with ⟨u, v, huc, hcv, hgint⟩
+  rcases
+      intervalIntegrable_log_singularity_model_eventually_on_subinterval
+        f n g huc hcv hgint hmodel with
+    ⟨u', v', hu_u', hu'_c, hc_v', hv'_v, hfint⟩
+  exact ⟨u', v', hu'_c, hc_v', hfint⟩
+
+/-- Removing one point from a finite singular set leaves a finite singular set
+on each compact side of the isolated point.  This is the finite-set separation
+cut behind the compact gluing induction. -/
+theorem finite_log_singularity_set_isolates_point_in_compact
+    {a b c : ℝ}
+    {S : Set ℝ}
+    (hS : S.Finite)
+    (hcS : c ∈ S) :
+    ∃ u v : ℝ,
+      u < c ∧ c < v ∧
+      (Set.Ioo u v ∩ S) ⊆ {c} := by
+  let T : Finset ℝ := hS.toFinset.erase c
+  by_cases hT : T = ∅
+  · refine ⟨c - 1, c + 1, by linarith, by linarith, ?_⟩
+    intro x hx
+    have hxS : x ∈ S := hx.2
+    by_contra hxc
+    have hxT : x ∈ T := by
+      dsimp [T]
+      exact Finset.mem_erase.2 ⟨by simpa using hxc, by simpa using hxS⟩
+    have hxEmpty : x ∈ (∅ : Finset ℝ) := by
+      rw [hT] at hxT
+      exact hxT
+    exact Finset.not_mem_empty x hxEmpty
+  · let D : Finset ℝ := T.image fun x => dist x c
+    have hD : D.Nonempty := by
+      rcases Finset.nonempty_iff_ne_empty.mpr hT with ⟨x, hxT⟩
+      exact ⟨dist x c, Finset.mem_image.2 ⟨x, hxT, rfl⟩⟩
+    have hDpos : 0 < D.min' hD := by
+      have hmin_mem : D.min' hD ∈ D := Finset.min'_mem D hD
+      rcases Finset.mem_image.1 hmin_mem with ⟨x, hxT, hdist⟩
+      have hxc : x ≠ c := (Finset.mem_erase.1 hxT).1
+      rw [← hdist]
+      exact dist_pos.2 hxc
+    refine ⟨c - D.min' hD / 2, c + D.min' hD / 2, ?_, ?_, ?_⟩
+    · linarith
+    · linarith
+    intro x hx
+    have hxS : x ∈ S := hx.2
+    by_contra hxc
+    have hxT : x ∈ T := by
+      dsimp [T]
+      exact Finset.mem_erase.2 ⟨by simpa using hxc, by simpa using hxS⟩
+    have hxD : dist x c ∈ D := Finset.mem_image.2 ⟨x, hxT, rfl⟩
+    have hmin_le : D.min' hD ≤ dist x c := Finset.min'_le D (dist x c) hxD
+    have hxleft : c - D.min' hD / 2 < x := hx.1.1
+    have hxright : x < c + D.min' hD / 2 := hx.1.2
+    have habs : |x - c| < D.min' hD := by
+      rw [abs_sub_lt_iff]
+      constructor <;> linarith
+    have hdist_lt : dist x c < D.min' hD := by
+      simpa [Real.dist_eq] using habs
+    linarith
+
+/-- A locally interval-integrable neighborhood gives integrability at the
+`Icc`-neighborhood filter of the center. -/
+theorem integrableAtFilter_Icc_of_intervalIntegrable_neighborhood
+    {f : ℝ → ℝ}
+    {a b x u v : ℝ}
+    (hux : u < x)
+    (hxv : x < v)
+    (hfint : IntervalIntegrable f MeasureTheory.volume u v) :
+    IntegrableAtFilter f (𝓝[Set.Icc a b] x) MeasureTheory.volume := by
+  have huv : u ≤ v := (hux.trans hxv).le
+  have hIoo_nhds : Set.Ioo u v ∈ 𝓝 x :=
+    Ioo_mem_nhds hux hxv
+  have hIoc_nhds : Ι u v ∈ 𝓝 x := by
+    refine mem_of_superset hIoo_nhds ?_
+    intro y hy
+    rw [Set.uIoc_of_le huv]
+    exact ⟨hy.1.le, hy.2⟩
+  exact ⟨Ι u v, mem_nhdsWithin_of_mem_nhds hIoc_nhds, hfint.def'⟩
+
+/-- At a point of `[a,b]` away from a finite singular set, continuity on the
+finite-set complement gives integrability at the `[a,b]`-neighborhood filter. -/
+theorem integrableAtFilter_Icc_of_continuousOn_finite_complement
+    {f : ℝ → ℝ}
+    {a b x : ℝ}
+    {S : Set ℝ}
+    (hS : S.Finite)
+    (hxIcc : x ∈ Set.Icc a b)
+    (hxS : x ∉ S)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntegrableAtFilter f (𝓝[Set.Icc a b] x) MeasureTheory.volume := by
+  let K : Set ℝ := {θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S}
+  have hxK : x ∈ K := ⟨hxIcc, hxS⟩
+  have hKmeas : MeasurableSet K := by
+    have hSclosed : IsClosed S := hS.isClosed
+    exact measurableSet_Icc.inter hSclosed.isOpen_compl.measurableSet
+  have hlocK : IntegrableAtFilter f (𝓝[K] x) MeasureTheory.volume :=
+    (hcont.locallyIntegrableOn hKmeas) x hxK
+  have hScompl_nhds : Sᶜ ∈ 𝓝 x :=
+    hS.isClosed.isOpen_compl.mem_nhds hxS
+  have hScompl_within : Sᶜ ∈ 𝓝[Set.Icc a b] x :=
+    mem_nhdsWithin_of_mem_nhds hScompl_nhds
+  have hfilter :
+      𝓝[K] x = 𝓝[Set.Icc a b] x := by
+    have hraw :
+        𝓝[Set.Icc a b ∩ Sᶜ] x = 𝓝[Set.Icc a b] x :=
+      nhdsWithin_inter_of_mem' hScompl_within
+    simpa [K, Set.inter_comm, Set.compl_setOf] using hraw
+  exact Eq.subst (motive := fun l : Filter ℝ =>
+      IntegrableAtFilter f l MeasureTheory.volume) hfilter hlocK
+
+/-- Local integrability at every point of a compact ordered interval implies
+interval-integrability on that interval. -/
+theorem intervalIntegrable_of_locallyIntegrableOn_Icc
+    {f : ℝ → ℝ}
+    {a b : ℝ}
+    (hab : a ≤ b)
+    (hloc :
+      MeasureTheory.LocallyIntegrableOn
+        f (Set.Icc a b) MeasureTheory.volume) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hint : IntegrableOn f (Set.Icc a b) MeasureTheory.volume :=
+    hloc.integrableOn_isCompact isCompact_Icc
+  exact (intervalIntegrable_iff_integrableOn_Icc_of_le hab).2 hint
+
+/-- Gluing interval-integrability across a finite isolated singular set, once
+each singular point has a locally integrable logarithmic model and the function
+is continuous on the complement.
+
+This is the measure-theoretic cover/gluing theorem behind the Jensen finite
+singularity argument.  It contains no complex analysis: all analytic content has
+already been reduced to local logarithmic models. -/
+theorem intervalIntegrable_of_finite_log_singularity_cover
+    (f : ℝ → ℝ)
+    (a b : ℝ)
+    (S : Set ℝ)
+    (hab : a ≤ b)
+    (hS : S.Finite)
+    (hlocalInt :
+      ∀ θ₀ ∈ S, ∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable f MeasureTheory.volume u v)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hloc :
+      MeasureTheory.LocallyIntegrableOn
+        f (Set.Icc a b) MeasureTheory.volume := by
+    intro x hxIcc
+    by_cases hxS : x ∈ S
+    · rcases hlocalInt x hxS with ⟨u, v, hux, hxv, hfint⟩
+      exact
+        integrableAtFilter_Icc_of_intervalIntegrable_neighborhood
+          (a := a) (b := b) hux hxv hfint
+    · exact
+        integrableAtFilter_Icc_of_continuousOn_finite_complement
+          hS hxIcc hxS hcont
+  exact intervalIntegrable_of_locallyIntegrableOn_Icc hab hloc
+
+/-- Finite compact-interval gluing once each singular point has a logarithmic
+local model and the complement is continuous.
+
+The proof is by finite induction on `S`: the empty case is
+`intervalIntegrable_of_empty_log_singularities_on_compact`; the step isolates
+one singular point, uses
+`intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin` on the
+central interval, applies the induction hypothesis to the two side intervals,
+and glues the three interval-integrability statements by interval splitting. -/
+theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
+    (f : ℝ → ℝ)
+    (a b : ℝ)
+    (S : Set ℝ)
+    (hab : a ≤ b)
+    (hS : S.Finite)
+    (hlocal :
+      ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
+        (∃ u v : ℝ,
+          u < θ₀ ∧ θ₀ < v ∧
+          IntervalIntegrable g MeasureTheory.volume u v) ∧
+        ∀ᶠ θ in 𝓝[≠] θ₀,
+          f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hlocalInt :
+      ∀ θ₀ ∈ S, ∃ u v : ℝ,
+        u < θ₀ ∧ θ₀ < v ∧
+        IntervalIntegrable f MeasureTheory.volume u v := by
+    intro θ₀ hθ₀
+    rcases hlocal θ₀ hθ₀ with ⟨n, g, hg, hmodel⟩
+    exact
+      intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin
+        f n g hg hmodel
+  exact
+    intervalIntegrable_of_finite_log_singularity_cover
+      f a b S hab hS hlocalInt hcont
+
+/-- Finite compact-interval gluing for logarithmic singularities.
+
+The local hypotheses say that every singular parameter has a punctured
+neighborhood model `n * log |θ - θ₀| + g θ` with a locally integrable
+remainder, and the complement is continuous.  The conclusion follows from the
+interval integrability of the translated logarithm, local integrability of each
+remainder, and finite interval gluing on `[a,b]`. -/
+theorem intervalIntegrable_of_finite_log_singularities_on_compact
+    (f : ℝ → ℝ)
+    (a b : ℝ)
+    (S : Set ℝ)
+    (hab : a ≤ b)
+    (hS : S.Finite)
+    (hlocal :
+      ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
+        (∃ u v : ℝ,
+          u < θ₀ ∧ θ₀ < v ∧
+          IntervalIntegrable g MeasureTheory.volume u v) ∧
+        ∀ᶠ θ in 𝓝[≠] θ₀,
+          f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  exact
+    intervalIntegrable_of_finite_log_singularities_on_compact_glue
+      f a b S hab hS hlocal hcont
+
+/-- The doubled-radius Jensen loss has a positive logarithmic denominator. -/
+theorem real_log_two_pos : 0 < Real.log 2 := by
+  exact Real.log_pos (by norm_num)
+
+/-- The doubled-radius Jensen loss has a nonzero logarithmic denominator. -/
+theorem real_log_two_ne_zero : Real.log 2 ≠ 0 := by
+  exact real_log_two_pos.ne'
+
+/-- The reciprocal of the doubled-radius Jensen loss is nonnegative. -/
+theorem real_log_two_inv_nonneg : 0 ≤ (Real.log 2)⁻¹ := by
+  exact inv_nonneg.mpr real_log_two_pos.le
+
+/-- Radii used in the doubled Jensen circle are positive for `R ≥ 1`. -/
+theorem doubled_radius_pos_of_one_le {R : ℝ} (hR : 1 ≤ R) :
+    0 < 2 * R := by
+  nlinarith
+
+/-- The doubled radius is at least one for `R ≥ 1`. -/
+theorem one_le_doubled_radius_of_one_le {R : ℝ} (hR : 1 ≤ R) :
+    1 ≤ 2 * R := by
+  nlinarith
+
+/-- A nonzero point in the closed disk of radius `R` has at least the standard
+`log 2` radial Jensen gap when the boundary radius is `2R`. -/
+theorem log_two_le_log_doubled_radius_div_norm
+    {R : ℝ}
+    {z : ℂ}
+    (hR : 1 ≤ R)
+    (hz_ne : z ≠ 0)
+    (hz_le : ‖z‖ ≤ R) :
+    Real.log 2 ≤ Real.log ((2 * R) / ‖z‖) := by
+  have hz_pos : 0 < ‖z‖ := norm_pos_iff.mpr hz_ne
+  have htwo_le : 2 ≤ (2 * R) / ‖z‖ := by
+    have hmul_le : 2 * ‖z‖ ≤ 2 * R := by
+      exact mul_le_mul_of_nonneg_left hz_le (by norm_num)
+    exact (le_div_iff₀ hz_pos).mpr hmul_le
+  exact Real.log_le_log (by norm_num) htwo_le
+
+/-- Multiplicity-weighted Jensen radial-gap summand for a zero on the
+comparison circle of radius `ρ`.
+
+The zero at the origin is omitted here: in Jensen's formula it is the factored
+Taylor root and contributes to the additive constant, not to the radial-gap
+sum. -/
+noncomputable def entireFunctionJensenRadialGapSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if hz₀ : (z : ℂ) = 0 then
+    0
+  else if ‖(z : ℂ)‖ < ρ then
+    (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+      Real.log (ρ / ‖(z : ℂ)‖)
+  else
+    0
+
+/-- Multiplicity-weighted Jensen radial-gap sum inside the comparison circle. -/
+noncomputable def entireFunctionJensenRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) : ℝ :=
+  ∑' z : EntireFunctionZero F,
+    entireFunctionJensenRadialGapSummand F hF ρ z
+
+/-- Closed-disk multiplicity summand with the origin Taylor factor removed.
+
+The omitted origin contribution is exactly the finite Taylor-root term that is
+absorbed into the additive Jensen constant. -/
+noncomputable def entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if (z : ℂ) = 0 then
+    0
+  else
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
+
+/-- The origin-supported closed-disk multiplicity summand.
+
+This is the finite Taylor-root contribution omitted from the nonzero radial-gap
+sum.  It is supported on the unique zero-subtype point whose value is `0`,
+when such a point exists. -/
+noncomputable def entireFunctionOriginZeroMultiplicityClosedDiskSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if (z : ℂ) = 0 then
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
+  else
+    0
+
+/-- The closed-disk summand splits into its nonzero and origin-supported
+parts. -/
+theorem entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) :
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z =
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z +
+        entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z := by
+  unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+  unfold entireFunctionOriginZeroMultiplicityClosedDiskSummand
+  by_cases hz₀ : (z : ℂ) = 0
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z = 0 + x)
+      (if_pos hz₀).symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z = x)
+        (zero_add
+          (entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)).symm
+        rfl)
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z = x + 0)
+      (if_neg hz₀).symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z = x)
+        (add_zero
+          (entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)).symm
+        rfl)
+
+/-- The origin-supported closed-disk summand is summable. -/
+theorem entireFunctionOriginZeroMultiplicityClosedDiskSummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) := by
+  by_cases hF0 : F 0 = 0
+  · let z₀ : EntireFunctionZero F := ⟨0, hF0⟩
+    have hsingle :
+        Summable
+          (fun z : EntireFunctionZero F =>
+            if z = z₀ then
+              entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
+            else
+              0) :=
+      (hasSum_ite_eq z₀
+        (entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀)).summable
+    exact hsingle.congr
+      (fun z => by
+        unfold entireFunctionOriginZeroMultiplicityClosedDiskSummand
+        by_cases hz : z = z₀
+        · have hz₀ : (z : ℂ) = 0 := by
+            exact congrArg Subtype.val hz
+          exact Eq.trans
+            (if_pos hz₀)
+            (Eq.symm
+              (Eq.subst
+                (motive := fun x : ℝ =>
+                  x = if z = z₀ then
+                    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
+                  else
+                    0)
+                (congrArg
+                  (fun w : EntireFunctionZero F =>
+                    entireFunctionZeroMultiplicityClosedDiskSummand F hF R w)
+                  hz).symm
+                (if_pos hz)))
+        · have hz₀ : (z : ℂ) ≠ 0 := by
+            intro hval
+            exact hz (Subtype.ext hval)
+          exact Eq.trans
+            (if_neg hz₀)
+            (Eq.symm (if_neg hz)))
+  · have hzero :
+        (fun z : EntireFunctionZero F =>
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z)
+          =
+        (fun _ : EntireFunctionZero F => 0) := by
+      funext z
+      unfold entireFunctionOriginZeroMultiplicityClosedDiskSummand
+      have hz₀ : (z : ℂ) ≠ 0 := by
+        intro hval
+        have hzF : F 0 = 0 := by
+          exact Eq.subst (motive := fun w : ℂ => F w = 0) hval z.property
+        exact hF0 hzF
+      exact if_neg hz₀
+    exact hzero.symm ▸ summable_zero
+
+/-- The origin multiplicity contribution used when the Jensen radial-gap sum is
+written only over nonzero zeros. -/
+noncomputable def entireFunctionOriginMultiplicityLogContribution
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z) : ℝ :=
+  (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2
+
+/-- The origin Taylor-factor contribution on the Jensen circle of radius `ρ`.
+
+For `F(z)=z^m G(z)` near the origin, this term is `m log ρ` in the boundary
+logarithmic average. -/
+noncomputable def entireFunctionOriginMultiplicityLogRadiusContribution
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) : ℝ :=
+  (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log ρ
+
+/-- A nonzero value at the origin has analytic multiplicity zero. -/
+theorem entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    entireFunctionZeroMultiplicity F hF 0 = 0 := by
+  have horder : (hF 0).order = (0 : ENat) := by
+    exact
+      ((hF 0).order_eq_nat_iff 0).mpr
+        ⟨F, hF 0, hF0, eventually_of_forall
+          (fun w => by
+            calc
+              F w = 1 • F w := (one_smul ℂ (F w)).symm
+              _ = (w - 0) ^ 0 • F w := by
+                exact congrArg (fun a : ℂ => a • F w) (pow_zero (w - 0)).symm)⟩
+  unfold entireFunctionZeroMultiplicity
+  rw [horder]
+  rfl
+
+/-- The fixed origin Taylor contribution vanishes when `F 0 ≠ 0`. -/
+theorem entireFunctionOriginMultiplicityLogContribution_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    entireFunctionOriginMultiplicityLogContribution F hF = 0 := by
+  unfold entireFunctionOriginMultiplicityLogContribution
+  rw [entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero F hF hF0]
+  rfl
+
+/-- The radius-dependent origin Taylor contribution vanishes when `F 0 ≠ 0`. -/
+theorem entireFunctionOriginMultiplicityLogRadiusContribution_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ = 0 := by
+  unfold entireFunctionOriginMultiplicityLogRadiusContribution
+  rw [entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero F hF hF0]
+  rfl
+
+/-- The origin-supported closed-disk summand is bounded by the fixed origin
+Taylor contribution. -/
+theorem entireFunctionOriginZeroMultiplicityClosedDisk_tsum_mul_log_two_le_originContribution
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R) :
+    (∑' z : EntireFunctionZero F,
+        entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) *
+        Real.log 2 ≤
+      entireFunctionOriginMultiplicityLogContribution F hF := by
+  unfold entireFunctionOriginMultiplicityLogContribution
+  by_cases hF0 : F 0 = 0
+  · let z₀ : EntireFunctionZero F := ⟨0, hF0⟩
+    have horigin_eq :
+        (∑' z : EntireFunctionZero F,
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) =
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀ := by
+      have hsingle :
+          (∑' z : EntireFunctionZero F,
+            entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) =
+            ∑' z : EntireFunctionZero F,
+              if z = z₀ then
+                entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
+              else
+                0 := by
+        exact tsum_congr
+          (fun z => by
+            unfold entireFunctionOriginZeroMultiplicityClosedDiskSummand
+            by_cases hz : z = z₀
+            · have hz₀ : (z : ℂ) = 0 := congrArg Subtype.val hz
+              exact Eq.trans
+                (if_pos hz₀)
+                (Eq.symm
+                  (Eq.subst
+                    (motive := fun x : ℝ =>
+                      x = if z = z₀ then
+                        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀
+                      else
+                        0)
+                    (congrArg
+                      (fun w : EntireFunctionZero F =>
+                        entireFunctionZeroMultiplicityClosedDiskSummand F hF R w)
+                      hz).symm
+                    (if_pos hz)))
+            · have hz₀ : (z : ℂ) ≠ 0 := by
+                intro hval
+                exact hz (Subtype.ext hval)
+              exact Eq.trans (if_neg hz₀) (Eq.symm (if_neg hz)))
+      exact Eq.trans hsingle (tsum_ite_eq z₀ _)
+    have hz₀_disk :
+        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z₀ =
+          (entireFunctionZeroMultiplicity F hF 0 : ℝ) := by
+      unfold entireFunctionZeroMultiplicityClosedDiskSummand
+      have hzero_le : ‖(z₀ : ℂ)‖ ≤ R := by
+        change ‖(0 : ℂ)‖ ≤ R
+        exact le_trans (by norm_num) (le_trans zero_le_one hR)
+      exact if_pos hzero_le
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2)
+      (Eq.trans horigin_eq hz₀_disk)
+      (le_refl
+        ((entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2))
+  · have horigin_zero :
+        (∑' z : EntireFunctionZero F,
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) =
+          0 := by
+      have hzero :
+          (fun z : EntireFunctionZero F =>
+            entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z)
+            =
+          (fun _ : EntireFunctionZero F => 0) := by
+        funext z
+        unfold entireFunctionOriginZeroMultiplicityClosedDiskSummand
+        have hz₀ : (z : ℂ) ≠ 0 := by
+          intro hval
+          have hzF : F 0 = 0 :=
+            Eq.subst (motive := fun w : ℂ => F w = 0) hval z.property
+          exact hF0 hzF
+        exact if_neg hz₀
+      exact Eq.trans (tsum_congr (fun z => congrFun hzero z)) tsum_zero
+    have hlog_nonneg : 0 ≤ Real.log 2 :=
+      Real.log_nonneg (by norm_num)
+    have horigin_nonneg :
+        0 ≤ (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2 :=
+      mul_nonneg
+        (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
+        hlog_nonneg
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2)
+      horigin_zero
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          x ≤ (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log 2)
+        (zero_mul (Real.log 2)).symm
+        horigin_nonneg)
+
+/-- A nonzero zero in `closedDisk R` contributes at least its multiplicity times
+`log 2` to the doubled-radius Jensen radial-gap sum.
+
+This is the pointwise radial-gap comparison; it is independent of Jensen's
+formula itself. -/
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (z : EntireFunctionZero F) :
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 ≤
+      entireFunctionJensenRadialGapSummand F hF (2 * R) z := by
+  unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+  unfold entireFunctionZeroMultiplicityClosedDiskSummand
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz₀ : (z : ℂ) = 0
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          if hz₀' : (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < 2 * R then
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log ((2 * R) / ‖(z : ℂ)‖)
+          else
+            0)
+      (if_pos hz₀).symm
+      (Eq.subst
+        (motive := fun x : ℝ => 0 ≤ x)
+        (if_pos hz₀).symm
+        (le_refl (0 : ℝ)))
+  by_cases hz_disk : ‖(z : ℂ)‖ ≤ R
+  · have hgap :
+        Real.log 2 ≤ Real.log ((2 * R) / ‖(z : ℂ)‖) :=
+      log_two_le_log_doubled_radius_div_norm hR hz₀ hz_disk
+    have hstrict : ‖(z : ℂ)‖ < 2 * R := by
+      have hR_pos : 0 < R := lt_of_lt_of_le zero_lt_one hR
+      have hR_lt_twoR : R < 2 * R := by nlinarith
+      exact lt_of_le_of_lt hz_disk hR_lt_twoR
+    exact Eq.subst
+        (motive := fun x : ℝ =>
+          x * Real.log 2 ≤
+            if hz₀' : (z : ℂ) = 0 then
+              0
+            else if ‖(z : ℂ)‖ < 2 * R then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log ((2 * R) / ‖(z : ℂ)‖)
+            else
+              0)
+        (if_pos hz_disk).symm
+        (Eq.subst
+          (motive := fun x : ℝ =>
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log 2 ≤ x)
+          (if_neg hz₀).symm
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log 2 ≤ x)
+            (if_pos hstrict).symm
+            (mul_le_mul_of_nonneg_left
+              hgap
+              (Nat.cast_nonneg
+                (entireFunctionZeroMultiplicity F hF (z : ℂ))))))
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          if hz₀ : (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < 2 * R then
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log ((2 * R) / ‖(z : ℂ)‖)
+          else
+            0)
+      (if_neg hz_disk).symm
+      (by
+        rw [zero_mul]
+        by_cases hz₀ : (z : ℂ) = 0
+        · exact Eq.subst
+            (motive := fun x : ℝ => 0 ≤ x)
+            (if_pos hz₀).symm
+            (le_refl (0 : ℝ))
+        · by_cases hstrict : ‖(z : ℂ)‖ < 2 * R
+          · exact Eq.subst
+              (motive := fun x : ℝ => 0 ≤ x)
+              (if_neg hz₀).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_pos hstrict).symm
+                (mul_nonneg
+                  (Nat.cast_nonneg
+                    (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+                  (Real.log_nonneg
+                    (by
+                      have hz_norm_pos : 0 < ‖(z : ℂ)‖ :=
+                        norm_pos_iff.mpr hz₀
+                      exact
+                        (one_le_div₀ hz_norm_pos).mpr hstrict.le))))
+          · exact Eq.subst
+              (motive := fun x : ℝ => 0 ≤ x)
+              (if_neg hz₀).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_neg hstrict).symm
+                (le_refl (0 : ℝ))))
+
+/-- Non-origin closed-disk multiplicity weighted by `log 2` is dominated by
+the doubled-radius Jensen radial-gap sum.
+
+This is the finite/counting part of the Jensen estimate. The analytic Jensen
+formula enters only through an upper bound on the radial-gap sum. -/
+theorem entireFunctionNonzeroZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (hclosed :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z))
+    (hgap :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF (2 * R) z)) :
+    (∑' z : EntireFunctionZero F,
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+        Real.log 2 ≤
+      entireFunctionJensenRadialGapSum F hF (2 * R) := by
+  unfold entireFunctionJensenRadialGapSum
+  have hclosed_scaled :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z *
+            Real.log 2) :=
+    hclosed.mul_left (Real.log 2)
+  have htsum_mul :
+      (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+          Real.log 2 =
+        ∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z *
+            Real.log 2 := by
+    exact (tsum_mul_left (Real.log 2)
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)).symm
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤
+        ∑' z : EntireFunctionZero F,
+          entireFunctionJensenRadialGapSummand F hF (2 * R) z)
+    htsum_mul
+    (tsum_le_tsum
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+          F hF hR z)
+      hclosed_scaled
+      hgap)
+
+/-- Reattaching the origin Taylor factor: the full closed-disk count is bounded
+by the non-origin count plus the fixed origin contribution. -/
+theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_originContribution_plus_nonzeroCount
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (hclosed :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) :
+    entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+      entireFunctionOriginMultiplicityLogContribution F hF +
+        (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+            Real.log 2 := by
+  have horigin_summable :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) :=
+    entireFunctionOriginZeroMultiplicityClosedDiskSummable F hF R
+  have hfull_summable :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) :=
+    (hclosed.add horigin_summable).congr
+      (fun z => by
+        exact
+          (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
+            F hF R z).symm)
+  have hcount_split :
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R =
+        (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) +
+          ∑' z : EntireFunctionZero F,
+            entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z := by
+    unfold entireFunctionZeroMultiplicityCountingInClosedDisk
+    exact Eq.trans
+      (tsum_congr
+        (fun z =>
+          entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
+            F hF R z))
+      (tsum_add hclosed horigin_summable)
+  have horigin_bound :
+      (∑' z : EntireFunctionZero F,
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) *
+          Real.log 2 ≤
+        entireFunctionOriginMultiplicityLogContribution F hF :=
+    entireFunctionOriginZeroMultiplicityClosedDisk_tsum_mul_log_two_le_originContribution
+      F hF hR
+  have hsplit_mul :
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 =
+        (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+            Real.log 2 +
+          (∑' z : EntireFunctionZero F,
+            entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) *
+            Real.log 2 := by
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 =
+          x * Real.log 2)
+      hcount_split
+      (mul_add
+        (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
+        (∑' z : EntireFunctionZero F,
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z)
+        (Real.log 2)).symm
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤
+        entireFunctionOriginMultiplicityLogContribution F hF +
+          (∑' z : EntireFunctionZero F,
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+              Real.log 2)
+    hsplit_mul
+    (by
+      have hright :
+          (∑' z : EntireFunctionZero F,
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+              Real.log 2 +
+            (∑' z : EntireFunctionZero F,
+              entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) *
+              Real.log 2
+            ≤
+          (∑' z : EntireFunctionZero F,
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+              Real.log 2 +
+            entireFunctionOriginMultiplicityLogContribution F hF :=
+        add_le_add_left horigin_bound _
+      exact le_trans hright
+        (le_of_eq
+          (add_comm
+            ((∑' z : EntireFunctionZero F,
+              entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+                Real.log 2)
+            (entireFunctionOriginMultiplicityLogContribution F hF))))
+
+/-- Full closed-disk multiplicity weighted by `log 2` is bounded by the
+doubled-radius radial-gap sum, up to the fixed origin Taylor contribution. -/
+theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_originContribution_plus_radialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (hclosed :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z))
+    (hgap :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF (2 * R) z)) :
+    entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+      entireFunctionOriginMultiplicityLogContribution F hF +
+        entireFunctionJensenRadialGapSum F hF (2 * R) := by
+  have horigin :
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+        entireFunctionOriginMultiplicityLogContribution F hF +
+          (∑' z : EntireFunctionZero F,
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+              Real.log 2 :=
+    entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_originContribution_plus_nonzeroCount
+      F hF hR hclosed
+  have hnonzero :
+      (∑' z : EntireFunctionZero F,
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+          Real.log 2 ≤
+        entireFunctionJensenRadialGapSum F hF (2 * R) :=
+    entireFunctionNonzeroZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
+      F hF hR hclosed hgap
+  exact le_trans horigin (add_le_add_left hnonzero _)
+
+/-- Adding back the single origin summand preserves closed-disk summability. -/
+theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    {R : ℝ}
+    (hclosed :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) := by
+  have horigin_summable :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionOriginZeroMultiplicityClosedDiskSummand F hF R z) :=
+    entireFunctionOriginZeroMultiplicityClosedDiskSummable F hF R
+  exact
+    (hclosed.add horigin_summable).congr
+      (fun z => by
+        exact
+          (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
+            F hF R z).symm)
+
+/-- The zero set of a nontrivial entire function inside a closed disk is
+discrete. -/
+theorem entireFunction_closedDiskZeros_discreteTopology
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ) :
+    DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+  refine (discreteTopology_subtype_iff).2 ?_
+  intro x hx
+  rcases hx with ⟨_hxnorm, hxzero⟩
+  have hne : ∀ᶠ w in 𝓝[≠] x, F w ≠ 0 := by
+    rcases (hF x).eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+    · exfalso
+      have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) := fun z _ => hF z
+      have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
+        hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+          isPreconnected_univ (by simp) hzero
+      rcases hnontrivial with ⟨z0, hz0⟩
+      exact hz0 (hEq (by simp))
+    · exact hne
+  have hScompl :
+      ({z : ℂ | ‖z‖ ≤ R ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
+    exact Filter.mem_of_superset hne (by
+      intro w hw
+      intro hsw
+      exact hw hsw.2)
+  exact (Filter.disjoint_principal_right).2 hScompl
+
+/-- A nontrivial entire function has only finitely many zeros in each closed
+disk. -/
+theorem entireFunction_closedDiskZeros_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ) :
+    Set.Finite {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+  have hdisc :
+      DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} :=
+    entireFunction_closedDiskZeros_discreteTopology F hF hnontrivial R
+  have hclosedDisk : IsClosed {z : ℂ | ‖z‖ ≤ R} := by
+    change IsClosed ((fun z : ℂ => ‖z‖) ⁻¹' Set.Iic R)
+    exact (continuous_norm : Continuous fun z : ℂ => ‖z‖).isClosed_preimage
+      isClosed_Iic
+  have hzeroClosed : IsClosed {z : ℂ | F z = 0} := by
+    have hcontF : Continuous F :=
+      continuous_iff_continuousAt.mpr (fun z => (hF z).continuousAt)
+    change IsClosed (F ⁻¹' ({0} : Set ℂ))
+    exact hcontF.isClosed_preimage (isClosed_singleton : IsClosed ({0} : Set ℂ))
+  have hclosed : IsClosed {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := by
+    change IsClosed ({z : ℂ | ‖z‖ ≤ R} ∩ {z : ℂ | F z = 0})
+    exact hclosedDisk.inter hzeroClosed
+  have hsubset :
+      {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} ⊆ Metric.closedBall (0 : ℂ) R := by
+    intro z hz
+    simpa [Metric.mem_closedBall, dist_eq_norm] using hz.1
+  have hcomp : IsCompact {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} :=
+    (isCompact_closedBall (0 : ℂ) R).of_isClosed_subset hclosed hsubset
+  haveI : DiscreteTopology {z : ℂ | ‖z‖ ≤ R ∧ F z = 0} := hdisc
+  exact hcomp.finite_of_discrete
+
+/-- The nonzero closed-disk multiplicity summand has finite support. -/
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    (Function.support
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)).Finite := by
+  have hzeros :
+      Set.Finite {w : ℂ | ‖w‖ ≤ R ∧ F w = 0} :=
+    entireFunction_closedDiskZeros_finite F hF ⟨0, hF0⟩ R
+  have hpre :
+      ((fun z : EntireFunctionZero F => (z : ℂ)) ⁻¹'
+        {w : ℂ | ‖w‖ ≤ R ∧ F w = 0}).Finite :=
+    hzeros.preimage (fun _ _ _ _ hEq => Subtype.ext hEq)
+  exact hpre.subset (by
+    intro z hz
+    unfold Function.support at hz
+    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand at hz
+    by_cases hz0 : (z : ℂ) = 0
+    · exact False.elim (hz (if_pos hz0))
+    · by_cases hle : ‖(z : ℂ)‖ ≤ R
+      · exact ⟨hle, z.2⟩
+      · exact False.elim (hz (if_neg hle)))
+
+/-- The Jensen radial-gap summand has finite support. -/
+theorem entireFunctionJensenRadialGapSummand_support_finite
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (Function.support
+      (fun z : EntireFunctionZero F =>
+        entireFunctionJensenRadialGapSummand F hF ρ z)).Finite := by
+  have hzeros :
+      Set.Finite {w : ℂ | ‖w‖ ≤ ρ ∧ F w = 0} :=
+    entireFunction_closedDiskZeros_finite F hF ⟨0, hF0⟩ ρ
+  have hpre :
+      ((fun z : EntireFunctionZero F => (z : ℂ)) ⁻¹'
+        {w : ℂ | ‖w‖ ≤ ρ ∧ F w = 0}).Finite :=
+    hzeros.preimage (fun _ _ _ _ hEq => Subtype.ext hEq)
+  exact hpre.subset (by
+    intro z hz
+    unfold Function.support at hz
+    unfold entireFunctionJensenRadialGapSummand at hz
+    by_cases hz0 : (z : ℂ) = 0
+    · exact False.elim (hz (if_pos hz0))
+    · by_cases hlt : ‖(z : ℂ)‖ < ρ
+      · exact ⟨le_of_lt hlt, z.2⟩
+      · have hnot_zero_branch :
+            (if hz₀ : (z : ℂ) = 0 then
+              0
+            else if ‖(z : ℂ)‖ < ρ then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log (ρ / ‖(z : ℂ)‖)
+            else
+              0) =
+              (if ‖(z : ℂ)‖ < ρ then
+                (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                  Real.log (ρ / ‖(z : ℂ)‖)
+              else
+                0) :=
+          if_neg hz0
+        have houtside_branch :
+            (if ‖(z : ℂ)‖ < ρ then
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log (ρ / ‖(z : ℂ)‖)
+            else
+              0) = 0 :=
+          if_neg hlt
+        exact False.elim (hz (Eq.trans hnot_zero_branch houtside_branch)))
+
+/-- Classical Jensen finite-zero divisor input in a closed disk, with
+multiplicities.
+
+This is the divisor-finiteness part of the nonzero-origin Jensen package: a
+nontrivial entire function has only finitely many zeros in each compact disk,
+and the closed-disk multiplicity family is therefore summable after the origin
+summand is removed. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisor_closedDiskMultiplicitySummable_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  intro R _hR
+  exact summable_of_finite_support
+    (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+      F hF hF0 R)
+
+/-- Classical Jensen radial-gap divisor summability for a nonzero value at the
+origin.
+
+The radial-gap summand is supported on the finite zero divisor in the open
+disk of radius `ρ`, counted by analytic multiplicity. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_from_finiteZeroDivisor_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) := by
+  intro ρ _hρ
+  exact summable_of_finite_support
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ)
+
+/-- A single nonzero zero strictly inside the Jensen circle contributes exactly
+its multiplicity times the radial logarithmic factor.
+
+This is the pointwise zero-factor calculation in the product proof of Jensen's
+formula. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) ≠ 0)
+    (hzρ : ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z =
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        Real.log (ρ / ‖(z : ℂ)‖) := by
+  unfold entireFunctionJensenRadialGapSummand
+  exact Eq.trans (dif_neg hz0) (if_pos hzρ)
+
+/-- A zero outside the open Jensen disk contributes no radial-gap term. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hzρ : ¬ ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz0 : (z : ℂ) = 0
+  · exact dif_pos hz0
+  · exact Eq.trans (dif_neg hz0) (if_neg hzρ)
+
+/-- The origin zero is absent from the nonzero-origin Jensen radial-gap sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContribution_eq_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) = 0) :
+    entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+  unfold entireFunctionJensenRadialGapSummand
+  exact dif_pos hz0
+
+/-- The finite product radial-gap sum attached to the zero divisor inside the
+Jensen circle.
+
+The indexing finset is supplied by divisor finiteness; this definition keeps
+the finite product stage separate from the later infinite-sum transport. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) : ℝ :=
+  ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z
+
+/-- The finite product radial-gap sum is literally the sum of the pointwise
+zero-factor radial contributions over the chosen finite zero divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_sum_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z := by
+  rfl
+
+/-- Finite-product zero-factor expansion: once the finite zero divisor has been
+chosen, its Jensen contribution is the sum of the explicit nonzero radial
+factors, with origin and exterior terms contributing zero by the pointwise
+lemmas above. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_explicit_sum_identity
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s,
+        if (z : ℂ) = 0 then
+          0
+        else if ‖(z : ℂ)‖ < ρ then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log (ρ / ‖(z : ℂ)‖)
+        else
+          0 := by
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  refine Finset.sum_congr rfl ?_
+  intro z _hz
+  unfold entireFunctionJensenRadialGapSummand
+  by_cases hz0 : (z : ℂ) = 0
+  · exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
+  · exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
+
+/-- If a finite zero divisor contains the support of the Jensen radial-gap
+summand, the infinite radial-gap sum is the corresponding finite product
+radial-gap sum.
+
+This is the constructive support-controlled bridge from divisor finiteness to
+the product formula: the product stage may use any explicit finite support
+certificate, without choosing a canonical enumeration of zeros. -/
+theorem entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support_subset
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F))
+    (hsupport :
+      Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) ⊆
+        (s : Set (EntireFunctionZero F))) :
+    entireFunctionJensenRadialGapSum F hF ρ =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s := by
+  unfold entireFunctionJensenRadialGapSum
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  exact tsum_eq_sum
+    (s := s)
+    (fun z hz_not_mem => by
+      by_contra hz_ne_zero
+      have hz_support :
+          z ∈ Function.support
+            (fun w : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ w) :=
+        hz_ne_zero
+      exact hz_not_mem (hsupport hz_support))
+
+/-- If the Jensen disk contains no nonzero zeros, the radial-gap divisor sum is
+zero.
+
+This is the zero-free quotient special case of the finite-divisor product
+bridge: once all possible nonzero zero factors are absent from the disk, the
+entire radial-gap contribution vanishes term by term. -/
+theorem entireFunctionJensenRadialGapSum_eq_zero_of_no_nonzero_zeros_in_disk
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hzero :
+      ∀ z : EntireFunctionZero F,
+        (z : ℂ) ≠ 0 →
+        ¬ ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSum F hF ρ = 0 := by
+  unfold entireFunctionJensenRadialGapSum
+  exact tsum_eq_zero
+    (fun z => by
+      unfold entireFunctionJensenRadialGapSummand
+      by_cases hz0 : (z : ℂ) = 0
+      · exact if_pos hz0
+      · exact Eq.trans (if_neg hz0) (if_neg (hzero z hz0)))
+
+/-- The finite closed-disk divisor supporting the nonzero multiplicity summand.
+
+This is the closed-disk divisor side of Jensen's formula after the origin
+factor has been removed: it is exactly the finite support of the nonzero
+closed-disk multiplicity family. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+    F hF hF0 R).toFinset
+
+/-- The closed-disk finite divisor contains the support of the nonzero
+multiplicity summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 R : Set (EntireFunctionZero F)) := by
+  intro z hz
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+  exact
+    (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+      F hF hF0 R).mem_toFinset.2 hz
+
+/-- The nonzero closed-disk multiplicity family has the finite sum over its
+closed-disk divisor as its infinite sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummand_hasSum_supportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (R : ℝ) :
+    HasSum
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 R,
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  exact hasSum_sum_of_ne_finset_zero
+    (s :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 R)
+    (f := fun z : EntireFunctionZero F =>
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)
+    (fun z hz_not_mem => by
+      by_contra hz_ne
+      have hz_support :
+          z ∈ Function.support
+            (fun w : EntireFunctionZero F =>
+              entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R w) :=
+        hz_ne
+      have hz_mem :
+          z ∈
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+              F hF hF0 R :=
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+          F hF hF0 R hz_support
+      exact hz_not_mem hz_mem)
+
+/-- The finite zero divisor supporting the Jensen radial-gap summand.
+
+This is the finite divisor used in the product side of Jensen's formula: it is
+the support of the nonzero zero factors strictly inside the Jensen circle. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).toFinset
+
+/-- The radial-gap finite divisor contains the support of the Jensen radial-gap
+summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) ⊆
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ : Set (EntireFunctionZero F)) := by
+  intro z hz
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+  exact
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).mem_toFinset.2 hz
+
+/-- The strictly interior part of the closed-disk zero divisor.  This is the
+closed-support side that should compare with the radial-gap divisor. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+    F hF hF0 ρ).filter
+    (fun z : EntireFunctionZero F => ‖(z : ℂ)‖ < ρ)
+
+/-- The boundary part of the closed-disk zero divisor.  These zeros are
+extracted by the closed-support quotient but contribute no radial-gap summand. -/
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) : Finset (EntireFunctionZero F) :=
+  (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+    F hF hF0 ρ).filter
+    (fun z : EntireFunctionZero F => ¬ ‖(z : ℂ)‖ < ρ)
+
+/-- Boundary members of the closed-disk divisor have zero radial-gap summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor_radialGapSummand_eq_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+  have hz_not_lt : ¬ ‖(z : ℂ)‖ < ρ :=
+    (Finset.mem_filter.1 hz).2
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
+      F hF ρ z hz_not_lt
+
+/-- Every closed-disk support divisor member is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    (z : ℂ) ≠ 0 := by
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ w) := by
+    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor at hz
+    exact
+      (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+        F hF hF0 ρ).mem_toFinset.1 hz
+  unfold Function.support at hsupport
+  intro hz0
+  unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand at hsupport
+  exact hsupport (if_pos hz0)
+
+/-- Every closed-disk support divisor member lies in the closed disk. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_norm_le
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    ‖(z : ℂ)‖ ≤ ρ := by
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ w) := by
+    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor at hz
+    exact
+      (entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_support_finite
+        F hF hF0 ρ).mem_toFinset.1 hz
+  unfold Function.support at hsupport
+  unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand at hsupport
+  by_cases hz0 : (z : ℂ) = 0
+  · exact False.elim (hsupport (if_pos hz0))
+  · by_cases hle : ‖(z : ℂ)‖ ≤ ρ
+    · exact hle
+    · have hzero :
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z = 0 := by
+        unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+        unfold entireFunctionZeroMultiplicityClosedDiskSummand
+        exact Eq.trans (if_neg hz0) (if_neg hle)
+      exact False.elim (hsupport hzero)
+
+/-- Boundary support members lie exactly on the Jensen boundary circle. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor_mem_norm_eq
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    ‖(z : ℂ)‖ = ρ := by
+  have hz_closed :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ :=
+    (Finset.mem_filter.1 hz).1
+  have hle : ‖(z : ℂ)‖ ≤ ρ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_norm_le
+      F hF hF0 ρ z hz_closed
+  have hnot_lt : ¬ ‖(z : ℂ)‖ < ρ :=
+    (Finset.mem_filter.1 hz).2
+  exact le_antisymm hle (le_of_not_gt hnot_lt)
+
+/-- The sine-power integral on `[0,π]`.
+
+This is the exponent family whose derivative at exponent `0` gives the
+log-sine integral. -/
+
+end
+end LFunctions
+end Boundary
