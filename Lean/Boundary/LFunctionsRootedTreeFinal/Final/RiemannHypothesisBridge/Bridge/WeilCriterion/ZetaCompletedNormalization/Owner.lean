@@ -1278,15 +1278,142 @@ theorem Complex.abs_im_le_norm
       hnorm_eq_abs.symm
       him_abs_le_abs
 
-/-- Pure real logarithmic envelope for a radius bounded below away from zero. -/
-theorem real_abs_log_le_largeRadius_log_envelope
+/-- A positive lower radius cutoff makes the logarithmic envelope positive. -/
+theorem real_largeRadius_log_envelope_pos
     (R₀ r : ℝ)
     (hR₀_pos : 0 < R₀)
     (hr : R₀ ≤ r) :
+    0 < Real.log (2 + 2 * r) := by
+  have hr_pos : 0 < r :=
+    lt_of_lt_of_le hR₀_pos hr
+  have htwo_r_pos : 0 < 2 * r :=
+    mul_pos two_pos hr_pos
+  have hone_lt_arg : (1 : ℝ) < 2 + 2 * r := by
+    calc
+      (1 : ℝ) < 2 := one_lt_two
+      _ ≤ 2 + 2 * r := le_add_of_nonneg_right (le_of_lt htwo_r_pos)
+  exact Real.log_pos hone_lt_arg
+
+/-- The large-radius log envelope is nonnegative. -/
+theorem real_largeRadius_log_envelope_nonneg
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    0 ≤ Real.log (2 + 2 * r) :=
+  le_of_lt (real_largeRadius_log_envelope_pos R₀ r hR₀_pos hr)
+
+/-- On a positive large-radius region, the log envelope is at least `log 2`. -/
+theorem real_log_two_le_largeRadius_log_envelope
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    Real.log 2 ≤ Real.log (2 + 2 * r) := by
+  have hr_nonneg : 0 ≤ r :=
+    le_of_lt (lt_of_lt_of_le hR₀_pos hr)
+  have harg_le : (2 : ℝ) ≤ 2 + 2 * r :=
+    le_add_of_nonneg_right (mul_nonneg zero_le_two hr_nonneg)
+  exact Real.log_le_log zero_lt_two harg_le
+
+/-- Positive lower radius cutoff gives nonnegative radius. -/
+theorem real_nonneg_of_largeRadius
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    0 ≤ r :=
+  le_of_lt (lt_of_lt_of_le hR₀_pos hr)
+
+/-- The linear factor `r + 1/2` is dominated by the standard height factor
+`1 + 2r` on nonnegative radii. -/
+theorem real_radius_add_half_le_one_add_two_mul
+    (r : ℝ)
+    (hr_nonneg : 0 ≤ r) :
+    r + 1 / 2 ≤ 1 + 2 * r := by
+  have hhalf_le_one : (1 / 2 : ℝ) ≤ 1 :=
+    one_half_le_one
+  have hr_le_two_r : r ≤ 2 * r := by
+    calc
+      r = 1 * r := (one_mul r).symm
+      _ ≤ 2 * r := mul_le_mul_of_nonneg_right one_le_two hr_nonneg
+  calc
+    r + 1 / 2 ≤ 2 * r + 1 :=
+      add_le_add hr_le_two_r hhalf_le_one
+    _ = 1 + 2 * r :=
+      add_comm (2 * r) 1
+
+/-- The radius itself is dominated by the standard height factor. -/
+theorem real_radius_le_one_add_two_mul
+    (r : ℝ)
+    (hr_nonneg : 0 ≤ r) :
+    r ≤ 1 + 2 * r := by
+  calc
+    r ≤ 2 * r :=
+      calc
+        r = 1 * r := (one_mul r).symm
+        _ ≤ 2 * r := mul_le_mul_of_nonneg_right one_le_two hr_nonneg
+    _ ≤ 1 + 2 * r :=
+      le_add_of_nonneg_left zero_le_one
+
+/-- The angular linear term is absorbed by the standard log-linear envelope on
+any positive large-radius region. -/
+theorem real_pi_radius_absorbed_by_logLinearEnvelope_uniform
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
     ∃ C : ℝ,
       0 < C ∧
-      ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
-  sorry
+      ∀ r : ℝ,
+        R₀ ≤ r →
+        (Real.pi / 2) * r ≤
+          C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+  let C : ℝ := (Real.pi / 2) / Real.log 2
+  have hlog_two_pos : 0 < Real.log 2 :=
+    Real.log_pos one_lt_two
+  have hpi_half_pos : 0 < Real.pi / 2 :=
+    div_pos Real.pi_pos two_pos
+  have hC_pos : 0 < C :=
+    div_pos hpi_half_pos hlog_two_pos
+  refine ⟨C, hC_pos, ?_⟩
+  intro r hr
+  have hr_nonneg : 0 ≤ r :=
+    real_nonneg_of_largeRadius R₀ r hR₀_pos hr
+  have hH_nonneg : 0 ≤ 1 + 2 * r :=
+    add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
+  have hr_le_H : r ≤ 1 + 2 * r :=
+    real_radius_le_one_add_two_mul r hr_nonneg
+  have hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
+    real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
+  have hC_log_two : C * Real.log 2 = Real.pi / 2 := by
+    calc
+      C * Real.log 2 =
+          ((Real.pi / 2) / Real.log 2) * Real.log 2 := rfl
+      _ = Real.pi / 2 :=
+        div_mul_cancel₀ (Real.pi / 2) (ne_of_gt hlog_two_pos)
+  have hpi_half_le_CL :
+      Real.pi / 2 ≤ C * Real.log (2 + 2 * r) := by
+    have hmul : C * Real.log 2 ≤ C * Real.log (2 + 2 * r) :=
+      mul_le_mul_of_nonneg_left hL_lower (le_of_lt hC_pos)
+    exact le_trans (le_of_eq hC_log_two.symm) hmul
+  have hleft_to_H :
+      (Real.pi / 2) * r ≤ (Real.pi / 2) * (1 + 2 * r) :=
+    mul_le_mul_of_nonneg_left hr_le_H (le_of_lt hpi_half_pos)
+  have hH_scale :
+      (Real.pi / 2) * (1 + 2 * r) ≤
+        (C * Real.log (2 + 2 * r)) * (1 + 2 * r) :=
+    mul_le_mul_of_nonneg_right hpi_half_le_CL hH_nonneg
+  have htarget_eq :
+      (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
+        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+    calc
+      (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
+          C * (Real.log (2 + 2 * r) * (1 + 2 * r)) :=
+        (mul_assoc C (Real.log (2 + 2 * r)) (1 + 2 * r)).symm
+      _ = C * ((1 + 2 * r) * Real.log (2 + 2 * r)) := by
+        exact congrArg
+          (fun x : ℝ => C * x)
+          (mul_comm (Real.log (2 + 2 * r)) (1 + 2 * r))
+      _ = C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+        exact mul_assoc C (1 + 2 * r) (Real.log (2 + 2 * r))
+  exact le_trans hleft_to_H
+    (le_trans hH_scale (le_of_eq htarget_eq))
 
 /-- Uniform version of the real logarithmic envelope on a large-radius region. -/
 theorem real_abs_log_le_largeRadius_log_envelope_uniform
@@ -1297,7 +1424,95 @@ theorem real_abs_log_le_largeRadius_log_envelope_uniform
       ∀ r : ℝ,
         R₀ ≤ r →
         ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
-  sorry
+  let C : ℝ := max 1 (R₀⁻¹ / Real.log 2)
+  have hlog_two_pos : 0 < Real.log 2 :=
+    Real.log_pos one_lt_two
+  have hR₀_inv_nonneg : 0 ≤ R₀⁻¹ :=
+    inv_nonneg.mpr (le_of_lt hR₀_pos)
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le zero_lt_one (le_max_left 1 (R₀⁻¹ / Real.log 2))
+  refine ⟨C, hC_pos, ?_⟩
+  intro r hr
+  have hr_pos : 0 < r :=
+    lt_of_lt_of_le hR₀_pos hr
+  have hr_nonneg : 0 ≤ r :=
+    le_of_lt hr_pos
+  have hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
+    real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
+  have hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
+    real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
+  by_cases hone_le_r : (1 : ℝ) ≤ r
+  · have hlog_nonneg : 0 ≤ Real.log r :=
+      Real.log_nonneg hone_le_r
+    have hnorm_log : ‖Real.log r‖ = Real.log r :=
+      Real.norm_of_nonneg hlog_nonneg
+    have hr_le_arg : r ≤ 2 + 2 * r := by
+      calc
+        r ≤ 2 * r :=
+          calc
+            r = 1 * r := (one_mul r).symm
+            _ ≤ 2 * r := mul_le_mul_of_nonneg_right one_le_two hr_nonneg
+        _ ≤ 2 + 2 * r :=
+          le_add_of_nonneg_left zero_le_two
+    have hlog_le_L : Real.log r ≤ Real.log (2 + 2 * r) :=
+      Real.log_le_log hr_pos hr_le_arg
+    have hC_ge_one : (1 : ℝ) ≤ C :=
+      le_max_left 1 (R₀⁻¹ / Real.log 2)
+    have hL_le_CL : Real.log (2 + 2 * r) ≤ C * Real.log (2 + 2 * r) := by
+      calc
+        Real.log (2 + 2 * r) =
+            1 * Real.log (2 + 2 * r) :=
+          (one_mul (Real.log (2 + 2 * r))).symm
+        _ ≤ C * Real.log (2 + 2 * r) :=
+          mul_le_mul_of_nonneg_right hC_ge_one hL_nonneg
+    exact le_trans (le_of_eq hnorm_log)
+      (le_trans hlog_le_L hL_le_CL)
+  · have hr_le_one : r ≤ 1 :=
+      le_of_not_ge hone_le_r
+    have hlog_nonpos : Real.log r ≤ 0 :=
+      (Real.log_nonpos_iff hr_pos).mpr hr_le_one
+    have hnorm_log : ‖Real.log r‖ = -Real.log r :=
+      Real.norm_of_nonpos hlog_nonpos
+    have hneg_log_le_inv : -Real.log r ≤ r⁻¹ := by
+      have hneg_inv_le_log : -r⁻¹ ≤ Real.log r :=
+        Real.neg_inv_le_log hr_nonneg
+      exact neg_le.mp hneg_inv_le_log
+    have hinv_le_R₀_inv : r⁻¹ ≤ R₀⁻¹ :=
+      one_div_le_one_div_of_le hR₀_pos hr
+    have hsmall : ‖Real.log r‖ ≤ R₀⁻¹ :=
+      le_trans (le_of_eq hnorm_log) (le_trans hneg_log_le_inv hinv_le_R₀_inv)
+    have hratio_le_C : R₀⁻¹ / Real.log 2 ≤ C :=
+      le_max_right 1 (R₀⁻¹ / Real.log 2)
+    have hR₀_inv_le_ratio_L :
+        R₀⁻¹ ≤ (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) := by
+      have hR₀_inv_div_mul :
+          R₀⁻¹ = (R₀⁻¹ / Real.log 2) * Real.log 2 := by
+        exact (div_mul_cancel₀ R₀⁻¹ (ne_of_gt hlog_two_pos)).symm
+      have hmul :
+          (R₀⁻¹ / Real.log 2) * Real.log 2 ≤
+            (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) :=
+        mul_le_mul_of_nonneg_left hL_lower
+          (div_nonneg hR₀_inv_nonneg (le_of_lt hlog_two_pos))
+      exact le_trans (le_of_eq hR₀_inv_div_mul)
+        hmul
+    have hratio_L_le_CL :
+        (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) ≤
+          C * Real.log (2 + 2 * r) :=
+      mul_le_mul_of_nonneg_right hratio_le_C hL_nonneg
+    exact le_trans hsmall
+      (le_trans hR₀_inv_le_ratio_L hratio_L_le_CL)
+
+/-- Pure real logarithmic envelope for a radius bounded below away from zero. -/
+theorem real_abs_log_le_largeRadius_log_envelope
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
+  rcases real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos with
+    ⟨C, hC_pos, hC⟩
+  exact ⟨C, hC_pos, hC r hr⟩
 
 /-- The logarithm of the radius is absorbed by the logarithmic envelope on any
 large-radius region bounded away from zero. -/
@@ -1447,18 +1662,6 @@ theorem Complex.radiusArgumentLoss_le_norm_log_majorant
       (Complex.abs_im_le_norm w)
       (Complex.abs_arg_le_pi_div_two_of_closedRightHalfPlaneSector hw_sector)
 
-/-- Pure real absorption of the norm-log majorant into the standard log-linear
-envelope, using a lower radius cutoff. -/
-theorem real_linear_log_absorption
-    (R₀ r : ℝ)
-    (hR₀_pos : 0 < R₀)
-    (hr : R₀ ≤ r) :
-    ∃ C : ℝ,
-      0 < C ∧
-      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
-        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-  sorry
-
 /-- Uniform pure real absorption of the norm-log majorant into the standard
 log-linear envelope on a large-radius region. -/
 theorem real_linear_log_absorption_uniform
@@ -1470,7 +1673,83 @@ theorem real_linear_log_absorption_uniform
         R₀ ≤ r →
         (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
           C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-  sorry
+  rcases real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos with
+    ⟨Clog, hClog_pos, hlog⟩
+  rcases real_pi_radius_absorbed_by_logLinearEnvelope_uniform R₀ hR₀_pos with
+    ⟨Cpi, hCpi_pos, hpi⟩
+  refine ⟨Clog + Cpi, add_pos hClog_pos hCpi_pos, ?_⟩
+  intro r hr
+  have hr_nonneg : 0 ≤ r :=
+    real_nonneg_of_largeRadius R₀ r hR₀_pos hr
+  have hH_nonneg : 0 ≤ 1 + 2 * r :=
+    add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
+  have hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
+    real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
+  have hfactor_nonneg : 0 ≤ r + 1 / 2 :=
+    add_nonneg hr_nonneg (le_of_lt one_half_pos)
+  have hfactor_le_H : r + 1 / 2 ≤ 1 + 2 * r :=
+    real_radius_add_half_le_one_add_two_mul r hr_nonneg
+  have hlog_bound :
+      ‖Real.log r‖ ≤ Clog * Real.log (2 + 2 * r) :=
+    hlog r hr
+  have hfirst_step :
+      (r + 1 / 2) * ‖Real.log r‖ ≤
+        (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) :=
+    mul_le_mul_of_nonneg_left hlog_bound hfactor_nonneg
+  have hClogL_nonneg :
+      0 ≤ Clog * Real.log (2 + 2 * r) :=
+    mul_nonneg (le_of_lt hClog_pos) hL_nonneg
+  have hfirst_factor :
+      (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) ≤
+        (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) :=
+    mul_le_mul_of_nonneg_right hfactor_le_H hClogL_nonneg
+  have hfirst_assoc :
+      (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
+        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+    calc
+      (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
+          ((1 + 2 * r) * Clog) * Real.log (2 + 2 * r) :=
+        mul_assoc (1 + 2 * r) Clog (Real.log (2 + 2 * r))
+      _ = (Clog * (1 + 2 * r)) * Real.log (2 + 2 * r) := by
+        exact congrArg
+          (fun x : ℝ => x * Real.log (2 + 2 * r))
+          (mul_comm (1 + 2 * r) Clog)
+      _ = Clog * (1 + 2 * r) * Real.log (2 + 2 * r) := rfl
+  have hfirst :
+      (r + 1 / 2) * ‖Real.log r‖ ≤
+        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+    le_trans hfirst_step
+      (le_trans hfirst_factor (le_of_eq hfirst_assoc))
+  have hsecond :
+      (Real.pi / 2) * r ≤
+        Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+    hpi r hr
+  have hsum :
+      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
+        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
+          Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+    add_le_add hfirst hsecond
+  have hcombine :
+      Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
+          Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) =
+        (Clog + Cpi) * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+    logLinearEnvelope_add_constants
+      Clog Cpi (1 + 2 * r) (Real.log (2 + 2 * r))
+  exact le_trans hsum (le_of_eq hcombine)
+
+/-- Pure real absorption of the norm-log majorant into the standard log-linear
+envelope, using a lower radius cutoff. -/
+theorem real_linear_log_absorption
+    (R₀ r : ℝ)
+    (hR₀_pos : 0 < R₀)
+    (hr : R₀ ≤ r) :
+    ∃ C : ℝ,
+      0 < C ∧
+      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
+        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+  rcases real_linear_log_absorption_uniform R₀ hR₀_pos with
+    ⟨C, hC_pos, hC⟩
+  exact ⟨C, hC_pos, hC r hr⟩
 
 /-- The elementary norm-log majorant is absorbed by the standard log-linear
 envelope on every large-radius region. -/
@@ -7419,6 +7698,27 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_rightPartial_bound
     Nat.cast_le.mpr hNM
   exact logarithmicPhasePartialSum_firstDerivative_bound t ht hreal
 
+/-- Sharper endpoint estimate in the logarithmic-phase partial-summation
+package.
+
+This is not obtained by multiplying the coarse primitive bound by the reciprocal
+endpoint weights.  It is the endpoint part of the oscillatory
+Euler-Maclaurin/partial-summation argument, where cancellation at the cutoff and
+right endpoint is retained. -/
+theorem oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ +
+        ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Endpoint arithmetic after the logarithmic-phase first-derivative
 Euler-Maclaurin estimate.
 
@@ -7439,6 +7739,24 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
             ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
+  exact oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound t ht hNM
+
+/-- Sharper reciprocal-derivative integral estimate in the logarithmic-phase
+partial-summation package.
+
+This is the variation part of the oscillatory Euler-Maclaurin argument.  The
+estimate keeps cancellation in the logarithmic phase before integrating against
+the reciprocal derivative; it is not a consequence of the coarse primitive
+majorant alone. -/
+theorem oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
 
 /-- Integral arithmetic for the reciprocal-derivative term in the finite Abel
@@ -7458,7 +7776,7 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound t ht hNM
 
 /-- Deep Euler-Maclaurin arithmetic owner for the finite Abel endpoint and
 reciprocal-derivative integral terms.
@@ -8471,6 +8789,46 @@ def abelBoundary_logarithmicPhase_boundaryPrefix
   ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
     ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
 
+/-- Termwise Abel-prefix continuity at the boundary point `σ = 1`.
+
+For a fixed positive integer `n`, the half-plane term
+`n^(-σ-it)` tends to its boundary logarithmic-phase value
+`n⁻¹ n^(-it)`. -/
+theorem abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    Tendsto
+      (fun σ : ℝ =>
+        (1 : ℂ) /
+          ((n : ℂ) ^
+            boundaryLineOnePointRealParam_abscissaShift σ t))
+      (𝓝[>] (1 : ℝ))
+      (𝓝 (((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
+  sorry
+
+/-- Finite-sum Abel-prefix continuity over a fixed cutoff interval. -/
+theorem abelBoundary_logarithmicPhase_dampedPrefix_sum_tendsto
+    (t : ℝ)
+    (N : ℕ) :
+    Tendsto
+      (fun σ : ℝ =>
+        ∑ n ∈ Finset.Icc 1 N,
+          (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift σ t))
+      (𝓝[>] (1 : ℝ))
+      (𝓝
+        (∑ n ∈ Finset.Icc 1 N,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
+  refine Finset.Tendsto.sum ?_
+  intro n hn_mem
+  have hn_one_le : 1 ≤ n :=
+    (Finset.mem_Icc.mp hn_mem).1
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hn_one_le
+  exact abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto t hn_pos
+
 /-- The Abel-damped prefix tends to the boundary prefix as `σ → 1+`.
 
 This is finite-sum continuity plus the term identity at the boundary point. -/
@@ -8481,7 +8839,8 @@ theorem abelBoundary_logarithmicPhase_dampedPrefix_tendsto_boundaryPrefix
       (fun σ : ℝ => abelBoundary_logarithmicPhase_dampedPrefix t σ)
       (𝓝[>] (1 : ℝ))
       (𝓝 (abelBoundary_logarithmicPhase_boundaryPrefix t)) := by
-  sorry
+  exact abelBoundary_logarithmicPhase_dampedPrefix_sum_tendsto
+    t ⌊2 + ‖t‖⌋₊
 
 /-- Abel-limit identity after subtracting the damped cutoff prefix.
 
@@ -8662,6 +9021,25 @@ theorem abelBoundary_logarithmicPhase_dampedTail_uniform_bound_transport
       htail_tendsto
       hdamped_bound
 
+/-- Abel damping theorem for a tail with bounded finite partial sums.
+
+If every finite tail partial sum after the cutoff is bounded by `C`, then the
+Abel-damped tail is eventually bounded by `C` as the damping parameter tends to
+the boundary from the right.  This is the positive-weight Abel summation
+principle: the damped tail is obtained as the limit of convex weighted averages
+of the bounded finite partial sums. -/
+theorem abel_damped_tail_norm_le_of_bounded_finite_tail_sums
+    (t : ℝ)
+    (C : ℝ)
+    (hfinite :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
+    ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
+  sorry
+
 /-- Abel damping comparison for the logarithmic-phase post-cutoff tail.
 
 This is the honest bridge from uniformly bounded finite post-cutoff Abel sums to
@@ -8680,7 +9058,11 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_finiteAbel
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  sorry
+  exact
+    abel_damped_tail_norm_le_of_bounded_finite_tail_sums
+      t
+      (boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
+      hfinite
 
 /-- Deep Abel-limit transport for the canonical post-cutoff logarithmic-phase
 tail.
@@ -10823,13 +11205,70 @@ theorem poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMacla
     hexponent.symm
     hraw
 
+/-- Reflected right half-plane finite-order growth for the pole-cleared zeta factor.
+
+This is the right-side input needed by the functional equation on the left
+half-plane: after reflection `w = 1 - z`, one only has `1 ≤ Re w`.  The proof is
+the Euler-Maclaurin/Abel finite-order theorem in the half-plane of meromorphic
+continuation, with the pole at `1` removed. -/
+theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        ‖poleClearedRiemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  sorry
+
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
 
 This is the functional-equation side of the standard finite-order theorem:
 transport the right half-plane Euler-Maclaurin/Dirichlet-series control across
 the completed functional equation and use the exposed Gamma/Stirling owner
 estimates; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
-theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling :
+theorem poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity :
+    ∃ M : ℂ → ℂ,
+      (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖M z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        poleClearedRiemannZeta z =
+          M z * poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
+/-- Functional-equation transport of finite-order growth from the reflected right
+half-plane to the left half-plane.
+
+The multiplier `M` is the completed functional-equation/Gamma-ratio factor
+together with the pole-clearing rational terms.  This theorem is pure
+finite-order bookkeeping once the exact identity and multiplier estimate are
+available. -/
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunctionalEquation_transport
+    (htransport :
+      ∃ M : ℂ → ℂ,
+        (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+          0 < A ∧
+          0 < B ∧
+          ∀ z : ℂ,
+            z.re ≤ 0 →
+            ‖M z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          poleClearedRiemannZeta z =
+            M z * poleClearedRiemannZeta ((1 : ℂ) - z))
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ w : ℂ,
+          1 ≤ w.re →
+          ‖poleClearedRiemannZeta w‖ ≤
+            A * Real.exp (B * (1 + ‖w‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -10838,6 +11277,19 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFu
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
+
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunctionalEquation_transport
+      poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity
+      poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
 
@@ -10902,6 +11354,81 @@ the standard zeta strip-growth theorem: combine the left boundary obtained from
 the completed functional equation and Gamma/Stirling owner estimates with the
 right boundary obtained from the Dirichlet-series/Euler-Maclaurin side, then use
 the generic strip finite-order/Phragmen-Lindelöf API. -/
+theorem poleClearedRiemannZeta_centralStrip_verticalTail_growth_from_PL_transport
+    (hhol :
+      DiffContOnCl ℂ poleClearedRiemannZeta
+        (Complex.re ⁻¹' Set.Ioo 0 2))
+    (hfinite :
+      ∃ c : ℝ,
+        c < Real.pi / (2 - 0) ∧
+        ∃ D : ℝ,
+          poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+            fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)))
+    (hleft :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 2 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        z.re ≤ 2 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+    poleClearedRiemannZeta 0 2 zero_lt_two hhol hfinite hleft hright
+
+/-- The exact PL input package for the central-strip vertical tail.
+
+The left edge is the completed-functional-equation/Gamma-Stirling estimate; the
+right edge is the Dirichlet-series/Euler-Maclaurin estimate; the interior
+admissible growth is the finite-order zeta input already isolated above. -/
+theorem poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package :
+    DiffContOnCl ℂ poleClearedRiemannZeta
+        (Complex.re ⁻¹' Set.Ioo 0 2) ∧
+      (∃ c : ℝ,
+        c < Real.pi / (2 - 0) ∧
+        ∃ D : ℝ,
+          poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+            fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|))) ∧
+      (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) ∧
+      (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 2 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) := by
+  sorry
+
 theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from_boundary_inputs :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -10912,7 +11439,11 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from
         1 ≤ ‖z.im‖ →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package with
+    ⟨hhol, hfinite, hleft, hright⟩
+  exact
+    poleClearedRiemannZeta_centralStrip_verticalTail_growth_from_PL_transport
+      hhol hfinite hleft hright
 
 /-- Compact core and vertical tails patch to finite-order growth on the whole
 central strip. -/
