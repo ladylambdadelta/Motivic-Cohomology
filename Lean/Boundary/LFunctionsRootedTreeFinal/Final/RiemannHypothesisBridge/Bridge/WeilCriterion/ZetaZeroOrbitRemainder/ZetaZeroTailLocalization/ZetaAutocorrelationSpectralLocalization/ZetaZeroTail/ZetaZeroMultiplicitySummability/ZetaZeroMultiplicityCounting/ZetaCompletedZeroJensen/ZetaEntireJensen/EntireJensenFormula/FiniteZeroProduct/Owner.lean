@@ -15,11 +15,6 @@ noncomputable section
 
 open scoped Topology
 
-          F hF hF0 ρ z hz)
-      (fun z hz =>
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
-          F hF hF0 ρ z hz)
-
 /-- The finite zero-factor product attached to the radial-gap support divisor.
 
 This is the product side of Jensen's finite divisor assembly: each zero inside

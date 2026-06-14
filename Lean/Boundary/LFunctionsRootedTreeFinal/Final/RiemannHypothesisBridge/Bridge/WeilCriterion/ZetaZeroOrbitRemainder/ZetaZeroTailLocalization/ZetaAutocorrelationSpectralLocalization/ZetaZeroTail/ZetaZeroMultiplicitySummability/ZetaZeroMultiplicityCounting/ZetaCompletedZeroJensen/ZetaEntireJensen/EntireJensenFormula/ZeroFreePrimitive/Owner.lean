@@ -5437,6 +5437,10 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
         F hF hF0 ρ)
       (fun z hz =>
         entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+          F hF hF0 ρ z hz)
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
+          F hF hF0 ρ z hz)
 
 end
 end LFunctions
