@@ -1173,6 +1173,20 @@ theorem eulerMaclaurin_cpow_neg_integral_Ioc_tendsto_integral_Ioi
     exact hinterval.symm
   exact h_interval.congr' hset_eq.symm
 
+/-- Integrability of the first-order Bernoulli derivative remainder tail in
+the convergent zeta half-plane. -/
+theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_integrableOn_Ioi
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))
+      (Set.Ioi (((N : ℕ) : ℝ))) := by
+  sorry
+
 /-- The finite Bernoulli remainder integral over `(N, M]` tends to the
 improper Bernoulli remainder integral over `(N, ∞)`. -/
 theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
@@ -1190,7 +1204,36 @@ theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
-  sorry
+  let a : ℝ := ((N : ℕ) : ℝ)
+  let f : ℝ → ℂ := fun x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))
+  have hf_int : IntegrableOn f (Set.Ioi a) :=
+    eulerMaclaurin_cpow_neg_bernoulliRemainder_integrableOn_Ioi
+      z N hN hhalf_plane
+  have h_interval :
+      Tendsto
+        (fun M : ℕ => ∫ x in a..((M : ℕ) : ℝ), f x)
+        atTop
+        (𝓝 (∫ x in Set.Ioi a, f x)) :=
+    intervalIntegral_tendsto_integral_Ioi
+      a hf_int tendsto_natCast_atTop_atTop
+  have hset_eq :
+      (fun M : ℕ =>
+        ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =ᶠ[atTop]
+        (fun M : ℕ => ∫ x in a..((M : ℕ) : ℝ), f x) := by
+    filter_upwards [eventually_ge_atTop N] with M hNM
+    have hle : a ≤ ((M : ℕ) : ℝ) := by
+      unfold a
+      exact_mod_cast hNM
+    have hinterval :
+        (∫ x in a..((M : ℕ) : ℝ), f x) =
+          ∫ x in Set.Ioc a (((M : ℕ) : ℝ)), f x :=
+      intervalIntegral.integral_of_le hle
+    exact hinterval.symm
+  exact h_interval.congr' hset_eq.symm
 
 /-- Limit passage from the finite strict-tail Euler-Maclaurin identity to the
 improper post-cutoff `HasSum`.

@@ -1630,6 +1630,33 @@ theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
         8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
   exact scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound t ht hNM
 
+/-- Standard Abel/Dirichlet variation estimate for the reciprocal-amplitude
+integral after the canonical cutoff.
+
+This is the genuine remaining analytic sink: it is not the coarse scalar
+majorant estimate above.  The proof should use the bounded primitive of the
+logarithmic phase together with the total variation of `x ↦ 1 / x`, keeping the
+endpoint contribution and variation contribution separate. -/
+theorem reciprocalAmplitude_boundedPrimitive_variation_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
 
 This is not a consequence of integrating the coarse scalar majorant: that scalar
@@ -1654,7 +1681,9 @@ theorem partialSummation_reciprocalAmplitude_oscillatoryIntegral_bound
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    reciprocalAmplitude_boundedPrimitive_variation_integral_bound
+      t ht hpartial hNM hreciprocal_density
 
 /-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
 
@@ -2571,9 +2600,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
         exact Nat.floor_natCast C
       have hM_floor : ⌊((M : ℕ) : ℝ)⌋₊ = M := by
         exact Nat.floor_natCast M
-  have hcut :
-      ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+      have hcut :
+          ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
+            boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
         simpa only [f, C, hC_floor, hM_floor] using
           (boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
             t ht hC_le_M)

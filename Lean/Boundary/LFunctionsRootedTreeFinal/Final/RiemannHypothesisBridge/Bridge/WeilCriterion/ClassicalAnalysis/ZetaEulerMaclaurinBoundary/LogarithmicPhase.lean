@@ -1215,6 +1215,16 @@ def Complex.realPhase_prefixAbelVariation
         Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
       Complex.realPhase_integerUnit φ n
 
+/-- Generic finite Abel telescoping identity over `Ico`. -/
+theorem Complex.finiteAbel_Ico_mul_sub_telescope
+    (A u : ℕ → ℂ)
+    {a m : ℕ}
+    (ham : a < m) :
+    (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
+      A a * u a - A (m - 1) * u m +
+        ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n := by
+  sorry
+
 /-- Exact `Ico` telescoping form of the finite Abel transform. -/
 theorem Complex.realPhase_prefixAbel_Ico_telescope
     (φ : ℝ → ℝ)
@@ -1228,10 +1238,55 @@ theorem Complex.realPhase_prefixAbel_Ico_telescope
       Complex.realPhase_integerUnit φ n) =
         Complex.realPhase_inverseGeometricDenominator φ a *
           Complex.realPhase_integerUnit φ a -
+          Complex.realPhase_inverseGeometricDenominator φ (m - 1) *
+          Complex.realPhase_integerUnit φ m +
+        Complex.realPhase_prefixAbelVariation φ a m := by
+  let A : ℕ → ℂ := Complex.realPhase_inverseGeometricDenominator φ
+  let u : ℕ → ℂ := Complex.realPhase_integerUnit φ
+  have hm_bounds : a ≤ m ∧ m ≤ b :=
+    Finset.mem_Icc.mp hm
+  have hterm :
+      (∑ n ∈ Finset.Ico a m, u n) =
+        ∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1)) := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn
+    have hn_bounds : a ≤ n ∧ n < m :=
+      Finset.mem_Ico.mp hn
+    have hn_block : n ∈ Finset.Ico a b :=
+      Finset.mem_Ico.mpr
+        ⟨hn_bounds.1, lt_of_lt_of_le hn_bounds.2 hm_bounds.2⟩
+    have hstep :
+        A n * (u n - u (n + 1)) = u n := by
+      unfold A u Complex.realPhase_inverseGeometricDenominator
+        Complex.realPhase_integerUnit
+      exact
+        Complex.realPhase_geometricDenominator_inv_mul_step_difference
+          φ hλ_pos hsep hn_block
+    exact hstep.symm
+  have htelescope :
+      (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
+        A a * u a - A (m - 1) * u m +
+          ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n :=
+    Complex.finiteAbel_Ico_mul_sub_telescope A u ham
+  calc
+    (∑ n ∈ Finset.Ico a m,
+      Complex.realPhase_integerUnit φ n) =
+        (∑ n ∈ Finset.Ico a m, u n) := by
+      rfl
+    _ = ∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1)) :=
+      hterm
+    _ =
+        A a * u a - A (m - 1) * u m +
+          ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n :=
+      htelescope
+    _ =
+        Complex.realPhase_inverseGeometricDenominator φ a *
+          Complex.realPhase_integerUnit φ a -
         Complex.realPhase_inverseGeometricDenominator φ (m - 1) *
           Complex.realPhase_integerUnit φ m +
         Complex.realPhase_prefixAbelVariation φ a m := by
-  sorry
+      unfold A u Complex.realPhase_prefixAbelVariation
+      rfl
 
 /-- The exact finite Abel identity for the non-singleton phase prefix. -/
 theorem Complex.realPhase_prefixAbel_identity

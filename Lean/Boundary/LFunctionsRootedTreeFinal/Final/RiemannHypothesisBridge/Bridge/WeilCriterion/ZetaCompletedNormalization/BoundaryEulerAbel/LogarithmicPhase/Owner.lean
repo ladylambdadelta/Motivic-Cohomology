@@ -654,7 +654,9 @@ theorem finiteFirstDerivativeTest_exp_sum_norm_le
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact
+    standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antitone
+      t ht hphase_deriv hphase_deriv_norm hphase_deriv_antitone hx
 
 /-- Monotone-phase first-derivative test for the concrete logarithmic phase. -/
 theorem monotonePhase_firstDerivativeTest_partialSum_bound

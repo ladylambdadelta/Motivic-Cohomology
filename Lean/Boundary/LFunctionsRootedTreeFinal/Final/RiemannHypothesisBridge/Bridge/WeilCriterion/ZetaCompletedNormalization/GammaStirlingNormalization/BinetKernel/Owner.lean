@@ -1397,12 +1397,109 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       (w := w) hw_re_pos
 
-/-- Contour-deformed Binet tail kernel package for the full right half-plane.
+/-- The literal principal-branch Binet tail kernel after the split at
+`‖w‖ / 2`. -/
+noncomputable def Complex.binetSecondFormulaPrincipalTailKernel
+    (w : ℂ)
+    (t : ℝ) : ℂ :=
+  Complex.arctan ((t : ℂ) / w) /
+    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
+/-- Type of a contour-deformed Binet tail kernel.
+
+The concrete construction should come from the branch-safe contour deformation
+of Binet's arctangent integral, not from a wedge restriction on `w`. -/
+abbrev Complex.BinetSecondFormulaContourDeformedTailKernel :=
+  ℂ → ℝ → ℂ
+
+/-- A.e. branch comparison between the literal principal tail kernel and a
+contour-deformed tail kernel on the split tail. -/
+def Complex.BinetSecondFormulaContourTailComparisonAE
+    (K : Complex.BinetSecondFormulaContourDeformedTailKernel)
+    (R : ℝ) : Prop :=
+  ∀ w : ℂ,
+    0 < w.re →
+    R ≤ ‖w‖ →
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤ ‖K w t‖
+
+/-- Uniform full-sector pointwise majorant for a contour-deformed Binet tail
+kernel. -/
+def Complex.BinetSecondFormulaContourTailUniformMajorant
+    (K : Complex.BinetSecondFormulaContourDeformedTailKernel)
+    (R C : ℝ) : Prop :=
+  ∀ w : ℂ,
+    0 < w.re →
+    R ≤ ‖w‖ →
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        ‖K w t‖ ≤
+          (C / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+
+/-- Existence of a branch-safe contour-deformed Binet tail kernel with
+uniform full-sector comparison and majorization.
 
 This is the exact branch input missing from the principal-arctangent proof.
-It supplies a deformed tail kernel, an a.e. comparison from the literal
-principal tail kernel to that deformed kernel on the split tail, and the
-uniform `C / ‖w‖` pointwise majorant for the deformed kernel. -/
+It is the minimal analytic contour-deformation theorem: construct the deformed
+kernel, prove that it dominates the literal principal branch a.e. on the split
+tail, and prove its full-sector `C / ‖w‖` majorant. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
+    ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
+  sorry
+
+/-- Positivity of the radius supplied by the contour-deformed tail kernel
+existence theorem. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_radius_pos :
+    ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ,
+      0 < R ∧
+      ∃ C : ℝ,
+        0 < C ∧
+        Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+        Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
+  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
+  exact ⟨K, R, hR, C, hC, hcompare, hmajorant⟩
+
+/-- Positivity of the uniform majorant constant supplied by the
+contour-deformed tail kernel existence theorem. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_constant_pos :
+    ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
+      0 < C ∧
+      0 < R ∧
+      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
+  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
+  exact ⟨K, R, C, hC, hR, hcompare, hmajorant⟩
+
+/-- Principal-tail comparison supplied by the contour-deformed kernel
+existence theorem. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_principal_comparison_ae :
+    ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
+  exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
+
+/-- Uniform pointwise majorant supplied by the contour-deformed kernel
+existence theorem. -/
+theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_uniform_majorant :
+    ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
+  exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
+
+/-- Contour-deformed Binet tail kernel package for the full right half-plane.
+
+This theorem is now only a bundling wrapper around the explicit owner-level
+contour-deformed kernel predicates. -/
 theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
@@ -1411,14 +1508,15 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
         0 < w.re →
         R ≤ ‖w‖ →
           (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-            ‖Complex.arctan ((t : ℂ) / w) /
-                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
               ‖K w t‖) ∧
           (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
             ‖K w t‖ ≤
               (C / ‖w‖) *
                 (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))) := by
-  sorry
+  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
+  exact ⟨K, R, C, hR, hC, fun w hw hRle => ⟨hcompare w hw hRle, hmajorant w hw hRle⟩⟩
 
 /-- Branch-uniform full-sector pointwise tail majorant for the Binet
 arctangent kernel.
@@ -1449,7 +1547,9 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwis
   rcases hpackage w hw_re_pos hRtail_le with ⟨hcompare, hbound⟩
   exact
     (hcompare.and hbound).mono
-      (fun t ht => le_trans ht.1 ht.2)
+      (fun t ht => by
+        simpa [Complex.binetSecondFormulaPrincipalTailKernel] using
+          le_trans ht.1 ht.2)
 
 /-- Integrated form of the branch-uniform full-sector tail majorant.
 

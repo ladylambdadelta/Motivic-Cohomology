@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.ArctanBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetMajorant
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Calculus.ParametricIntegral
@@ -805,7 +806,7 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
   filter_upwards
     [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
     with t ht
-	  exact hg_bound z hz t ht
+  exact hg_bound z hz t ht
 
 /-- The arctangent kernel and differentiated Binet kernel have the measurability
 and base-point integrability needed for dominated differentiation. -/
@@ -826,7 +827,12 @@ theorem Complex.binetSecondFormulaRemainder_integral_data
       AEStronglyMeasurable
         (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
         (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
-  sorry
+  exact
+    ⟨Eventually.of_forall
+        (fun z =>
+          Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable z),
+      Complex.binetSecondFormula_arctanKernel_integrable hw_re_pos,
+      Complex.binetSecondFormulaDerivativeKernel_aestronglyMeasurable w⟩
 
 /-- Membership in a smaller ball gives the norm inequality needed for a larger
 radius measured in the normed-space coordinates. -/
@@ -839,8 +845,127 @@ theorem Complex.norm_sub_lt_of_mem_ball_of_le_radius
   have hdist : dist z w < ε :=
     Metric.mem_ball.mp hz
   have hnorm : ‖z - w‖ < ε := by
-    simpa [dist_eq_norm] using hdist
+    have hdist_eq : dist z w = ‖z - w‖ :=
+      dist_eq_norm z w
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => x < ε)
+        hdist_eq
+        hdist
   exact lt_of_lt_of_le hnorm hε_le_η
+
+/-- The a.e. arctangent-kernel derivative statement on a ball restricts to
+any smaller ball. -/
+theorem Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
+    {w : ℂ}
+    {ε η : ℝ}
+    (hε_le_η : ε ≤ η)
+    (hkernel :
+      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+        ∀ z : ℂ,
+          z ∈ Metric.ball w η →
+            HasDerivAt
+              (fun u : ℂ =>
+                Complex.arctan ((t : ℂ) / u) /
+                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+              (Complex.binetSecondFormulaDerivativeKernel t z) z) :
+    ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ z : ℂ,
+        z ∈ Metric.ball w ε →
+          HasDerivAt
+            (fun u : ℂ =>
+              Complex.arctan ((t : ℂ) / u) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+            (Complex.binetSecondFormulaDerivativeKernel t z) z :=
+  hkernel.mono
+    (fun t ht z hz =>
+      ht z
+        (Metric.mem_ball.mpr
+          (by
+            have hnorm : ‖z - w‖ < η :=
+              Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                hε_le_η hz
+            have hdist_eq : dist z w = ‖z - w‖ :=
+              dist_eq_norm z w
+            exact
+              Eq.subst
+                (motive := fun x : ℝ => x < η)
+                hdist_eq.symm
+                hnorm)))
+
+/-- The a.e. derivative-kernel majorant on a ball restricts to any smaller
+ball. -/
+theorem Complex.binetSecondFormula_derivativeKernel_bound_on_smaller_ball
+    {w : ℂ}
+    {ε η : ℝ}
+    {g : ℝ → ℝ}
+    (hε_le_η : ε ≤ η)
+    (hbound :
+      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+        ∀ z : ℂ,
+          z ∈ Metric.ball w η →
+            ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t) :
+    ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ z : ℂ,
+        z ∈ Metric.ball w ε →
+          ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
+  hbound.mono
+    (fun t ht z hz =>
+      ht z
+        (Metric.mem_ball.mpr
+          (by
+            have hnorm : ‖z - w‖ < η :=
+              Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                hε_le_η hz
+            have hdist_eq : dist z w = ‖z - w‖ :=
+              dist_eq_norm z w
+            exact
+              Eq.subst
+                (motive := fun x : ℝ => x < η)
+                hdist_eq.symm
+                hnorm)))
+
+/-- The Binet arctangent kernel is a.e.-strongly measurable on the positive
+half-line. -/
+theorem Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable
+    (z : ℂ) :
+    AEStronglyMeasurable
+      (fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / z) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+      (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+  have hmeas :
+      Measurable
+        (fun t : ℝ =>
+          Complex.arctan ((t : ℂ) / z) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
+    fun_prop
+  exact hmeas.aestronglyMeasurable
+
+/-- The differentiated Binet kernel is a.e.-strongly measurable on the positive
+half-line. -/
+theorem Complex.binetSecondFormulaDerivativeKernel_aestronglyMeasurable
+    (w : ℂ) :
+    AEStronglyMeasurable
+      (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
+      (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+  have hmeas :
+      Measurable
+        (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w) := by
+    fun_prop [Complex.binetSecondFormulaDerivativeKernel]
+  exact hmeas.aestronglyMeasurable
+
+/-- The Binet arctangent kernel is integrable at each point of the open right
+half-plane. -/
+theorem Complex.binetSecondFormula_arctanKernel_integrable
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Integrable
+      (fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+      (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+  sorry
 
 /-- Uniform-a.e. differentiability of the Binet arctangent kernel on one ball
 inside the open right half-plane. -/
@@ -1039,31 +1164,15 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
                 Complex.arctan ((t : ℂ) / u) /
                   (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
               (Complex.binetSecondFormulaDerivativeKernel t z) z :=
-    hkernel_bound.mono
-      (fun t ht z hz =>
-        ht z
-          (Metric.mem_ball.mpr
-            (by
-              have hnorm :
-                  ‖z - w‖ < ε₁ :=
-                Complex.norm_sub_lt_of_mem_ball_of_le_radius
-                  hε_le_ε₁ hz
-              simpa [dist_eq_norm] using hnorm)))
+    Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
+      hε_le_ε₁ hkernel_bound
   have hbound :
       ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
         ∀ z : ℂ,
           z ∈ Metric.ball w ε →
             ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
-    hdominated_bound.mono
-      (fun t ht z hz =>
-        ht z
-          (Metric.mem_ball.mpr
-            (by
-              have hnorm :
-                  ‖z - w‖ < ε₂ :=
-                Complex.norm_sub_lt_of_mem_ball_of_le_radius
-                  hε_le_ε₂ hz
-              simpa [dist_eq_norm] using hnorm)))
+    Complex.binetSecondFormula_derivativeKernel_bound_on_smaller_ball
+      hε_le_ε₂ hdominated_bound
   exact
     Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_and_integrability
       hε_pos hF_meas hF_int hF'_meas hg_int hbound hdiff
@@ -1085,7 +1194,7 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt
       (Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
         hw_re_pos)
 
-/-- The missing special-function derivative identity behind Binet's second
+/-- The special-function derivative identity behind Binet's second
 formula: the logarithmic derivative of Gamma minus the derivative of the
 explicit Binet main term is the differentiated Binet remainder. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_from_digamma_Binet
@@ -1358,106 +1467,6 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
             Complex.binetSecondFormulaRemainder w := by
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation
-
-/-- Principal arctangent is Lipschitz with constant `2` on the closed disk
-`‖z‖ ≤ 1 / 2`. -/
-theorem Complex.arctan_series_term_norm_le_geometric
-    {z : ℂ}
-    (hz : ‖z‖ ≤ (1 / 2 : ℝ)) :
-    ∀ n : ℕ,
-      ‖(-1 : ℂ) ^ n * z ^ (2 * n + 1) / (2 * n + 1 : ℂ)‖ ≤
-        ‖z‖ * ((1 / 2 : ℝ) ^ n) := by
-  intro n
-  have hz_nonneg : 0 ≤ ‖z‖ :=
-    norm_nonneg z
-  have hsq_le_half : ‖z‖ ^ 2 ≤ (1 / 2 : ℝ) := by
-    have hsq_le_quarter : ‖z‖ ^ 2 ≤ (1 / 2 : ℝ) ^ 2 :=
-      sq_le_sq' hz_nonneg hz
-    have hquarter_le_half : (1 / 2 : ℝ) ^ 2 ≤ (1 / 2 : ℝ) := by
-      norm_num
-    exact le_trans hsq_le_quarter hquarter_le_half
-  have hpow_bound :
-      ‖z‖ ^ (2 * n + 1) ≤ ‖z‖ * ((1 / 2 : ℝ) ^ n) := by
-    calc
-      ‖z‖ ^ (2 * n + 1) = ‖z‖ * (‖z‖ ^ 2) ^ n := by
-        ring
-      _ ≤ ‖z‖ * ((1 / 2 : ℝ) ^ n) := by
-        exact
-          mul_le_mul_of_nonneg_left
-            (pow_le_pow_left₀ (sq_nonneg ‖z‖) hsq_le_half n)
-            hz_nonneg
-  have hden_ge_one : (1 : ℝ) ≤ ‖((2 * n + 1 : ℕ) : ℂ)‖ := by
-    norm_num
-  have hden_pos : 0 < ‖((2 * n + 1 : ℕ) : ℂ)‖ :=
-    lt_of_lt_of_le zero_lt_one hden_ge_one
-  have hdiv_le :
-      ‖z‖ ^ (2 * n + 1) / ‖((2 * n + 1 : ℕ) : ℂ)‖ ≤
-        ‖z‖ ^ (2 * n + 1) := by
-    exact
-      div_le_of_le_mul₀
-        (norm_nonneg _)
-        hden_pos
-        (by
-          calc
-            ‖z‖ ^ (2 * n + 1) ≤ ‖z‖ ^ (2 * n + 1) * 1 := by
-              rw [mul_one]
-            _ ≤ ‖z‖ ^ (2 * n + 1) * ‖((2 * n + 1 : ℕ) : ℂ)‖ :=
-              mul_le_mul_of_nonneg_left hden_ge_one
-                (pow_nonneg hz_nonneg (2 * n + 1)))
-  calc
-    ‖(-1 : ℂ) ^ n * z ^ (2 * n + 1) / (2 * n + 1 : ℂ)‖ =
-        ‖z‖ ^ (2 * n + 1) / ‖((2 * n + 1 : ℕ) : ℂ)‖ := by
-      simp [norm_div, norm_mul, norm_pow]
-    _ ≤ ‖z‖ ^ (2 * n + 1) := hdiv_le
-    _ ≤ ‖z‖ * ((1 / 2 : ℝ) ^ n) := hpow_bound
-
-/-- The geometric majorant for the arctangent series sums to `2 * ‖z‖`. -/
-theorem Complex.arctan_geometric_majorant_hasSum
-    (z : ℂ) :
-    HasSum (fun n : ℕ => ‖z‖ * ((1 / 2 : ℝ) ^ n)) (2 * ‖z‖) := by
-  have hgeom :
-      HasSum (fun n : ℕ => ((1 / 2 : ℝ) ^ n)) ((1 - (1 / 2 : ℝ))⁻¹) :=
-    hasSum_geometric_of_lt_one
-      (by norm_num : (0 : ℝ) ≤ 1 / 2)
-      (by norm_num : (1 / 2 : ℝ) < 1)
-  have hmul :
-      HasSum (fun n : ℕ => ‖z‖ * ((1 / 2 : ℝ) ^ n))
-        (‖z‖ * (1 - (1 / 2 : ℝ))⁻¹) :=
-    hgeom.mul_left ‖z‖
-  have hsum_eq :
-      ‖z‖ * (1 - (1 / 2 : ℝ))⁻¹ = 2 * ‖z‖ := by
-    ring
-  exact hsum_eq ▸ hmul
-
-/-- Principal arctangent is Lipschitz with constant `2` on the closed disk
-`‖z‖ ≤ 1 / 2`, proved from the arctangent power series. -/
-theorem Complex.norm_arctan_le_two_norm_of_norm_le_half_from_series
-    {z : ℂ}
-    (hz : ‖z‖ ≤ (1 / 2 : ℝ)) :
-    ‖Complex.arctan z‖ ≤ 2 * ‖z‖ := by
-  have hz_lt_one : ‖z‖ < (1 : ℝ) :=
-    lt_of_le_of_lt hz (by norm_num : (1 / 2 : ℝ) < 1)
-  have hseries :
-      HasSum
-        (fun n : ℕ =>
-          (-1 : ℂ) ^ n * z ^ (2 * n + 1) / (2 * n + 1 : ℂ))
-        (Complex.arctan z) :=
-    Complex.hasSum_arctan hz_lt_one
-  have hmajorant :
-      HasSum (fun n : ℕ => ‖z‖ * ((1 / 2 : ℝ) ^ n)) (2 * ‖z‖) :=
-    Complex.arctan_geometric_majorant_hasSum z
-  exact
-    hseries.norm_le_of_bounded hmajorant
-      (Complex.arctan_series_term_norm_le_geometric hz)
-
-/-- Principal arctangent is Lipschitz with constant `2` on the closed disk
-`‖z‖ ≤ 1 / 2`. -/
-theorem Complex.norm_arctan_le_two_norm_of_norm_le_half
-    {z : ℂ}
-    (hz : ‖z‖ ≤ (1 / 2 : ℝ)) :
-    ‖Complex.arctan z‖ ≤ 2 * ‖z‖ := by
-  exact
-    Complex.norm_arctan_le_two_norm_of_norm_le_half_from_series hz
 
 /-- Norm of the Binet arctangent argument. -/
 theorem Complex.norm_real_div_eq_real_norm_div
