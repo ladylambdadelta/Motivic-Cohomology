@@ -48,9 +48,19 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_local
         entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a) :
     entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a
       =ᶠ[𝓝 (a : ℂ)] Qloc := by
-  -- Exact root: lift the punctured-neighborhood equality to a full
-  -- neighborhood equality by using the `if w = a` branch at the center.
-  sorry
+  rw [eventuallyEq_nhdsWithin_iff] at hQloc_eq
+  exact
+    hQloc_eq.mono
+      (fun w hw =>
+        by
+          by_cases hw_eq : w = (a : ℂ)
+          · calc
+              entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+                  Qloc w := if_pos hw_eq
+          · calc
+              entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+                  entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w := if_neg hw_eq
+              _ = Qloc w := (hw hw_eq).symm)
 
 /-- Analyticity of the glued quotient at the inserted point. -/
 theorem entireFunction_insertNormalizedFactor_gluedQuotient_analyticAt_insertedPoint
@@ -97,9 +107,36 @@ theorem entireFunction_insertNormalizedFactor_rawQuotient_analyticAt_of_ne
     AnalyticAt ℂ
       (entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a)
       w := by
-  -- Exact root: analytic division by `(1 - w/a)^m`, using `hw_ne` and
-  -- `ha0` in the caller to prove nonvanishing of the normalized factor.
-  sorry
+  have hbase_ne : 1 - w / (a : ℂ) ≠ 0 := by
+    intro hbase_zero
+    have hdiv_eq_one : w / (a : ℂ) = 1 := by
+      exact (eq_of_sub_eq_zero hbase_zero).symm
+    have hw_eq : w = (a : ℂ) := by
+      calc
+        w = (w / (a : ℂ)) * (a : ℂ) := by
+          exact (div_mul_cancel₀ w ha0).symm
+        _ = 1 * (a : ℂ) := by
+          exact congrArg (fun x : ℂ => x * (a : ℂ)) hdiv_eq_one
+        _ = (a : ℂ) := one_mul (a : ℂ)
+    exact hw_ne hw_eq
+  have hden_ne :
+      (fun x : ℂ =>
+        (1 - x / (a : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (a : ℂ)) w ≠ 0 :=
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+      hbase_ne
+  have hden_an :
+      AnalyticAt ℂ
+        (fun x : ℂ =>
+          (1 - x / (a : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (a : ℂ))
+        w := by
+    exact
+      ((analyticAt_const.sub
+        (analyticAt_id.div analyticAt_const ha0)).pow
+          (entireFunctionZeroMultiplicity F hF (a : ℂ)))
+  exact hQold_an.div hden_an hden_ne
 
 /-- Closed-disk analyticity of the glued quotient, by the inserted-point /
 off-point case split. -/
@@ -135,6 +172,67 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_analyticOn_closedDis
         F Qold hF a ha0 hw_eq (hQold_an w hwρ)).congr
         (entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_raw_of_ne
           F Qold Qloc hF a hw_eq).symm
+
+/-- Off the inserted point, the glued quotient satisfies the inserted product
+identity by ordinary division and the finite-product insertion identity. -/
+theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
+    (F Qold Qloc g : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hQold_factor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Qold w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    {w : ℂ}
+    (hw_ne : w ≠ (a : ℂ))
+    (hwρ : ‖w‖ ≤ ρ) :
+    F w =
+      entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w *
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) w := by
+  -- Exact algebra root: unfold the raw quotient branch and use
+  -- `finiteZeroDivisorProduct_insert`, then cancel the nonzero normalized
+  -- inserted factor.
+  sorry
+
+/-- At the inserted point, the glued quotient satisfies the inserted product
+identity with the removable value prescribed by the local Taylor unit. -/
+theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_insertedPoint
+    (F Qold Qloc g : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hQloc_value :
+      Qloc (a : ℂ) =
+        g (a : ℂ) /
+          (((-(a : ℂ)⁻¹) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S (a : ℂ)))
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    F (a : ℂ) =
+      entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a (a : ℂ) *
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) (a : ℂ) := by
+  -- Exact algebra root: use the center branch, `hQloc_value`, the local
+  -- Taylor factorization evaluated at `a`, and the inserted-product leading
+  -- coefficient.
+  sorry
 
 /-- Product identity for the glued quotient after inserting one normalized
 factor. -/
@@ -172,10 +270,21 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
         entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w *
           entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
             F hF (insert a S) w := by
-  -- Exact root: off `a`, unfold the raw quotient and use
-  -- `finiteZeroDivisorProduct_insert`; at `a`, use `hQloc_value`, the local
-  -- Taylor factorization, and the inserted-product leading coefficient.
-  sorry
+  intro w hwρ
+  by_cases hw_eq : w = (a : ℂ)
+  · exact
+      Eq.subst
+        (motive := fun x : ℂ =>
+          F x =
+            entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a x *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF (insert a S) x)
+        hw_eq.symm
+        (entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_insertedPoint
+          F Qold Qloc g hF ρ S a ha_not_mem ha0 hQloc_value hg_factor)
+  · exact
+      entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
+        F Qold Qloc g hF ρ S a ha_not_mem ha0 hQold_factor hw_eq hwρ
 
 /-- Origin normalization of the glued quotient. -/
 theorem entireFunction_insertNormalizedFactor_gluedQuotient_zero
@@ -289,6 +398,7 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
     (ha_not_mem : a ∉ S)
     (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (ha0 : (a : ℂ) ≠ 0)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
     (hg_an : AnalyticAt ℂ g (a : ℂ))
     (hg_ne : g (a : ℂ) ≠ 0)
     (hg_factor :
@@ -322,6 +432,42 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
   -- on punctured good points near `a`, and
   -- `complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq` to identify
   -- the punctured quotient with the constant local model forced by `g`.
+  sorry
+
+/-- If the inserted zero lies outside the closed disk, insertion is ordinary
+division by a nonvanishing analytic normalized factor throughout the disk. -/
+theorem entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
+    (F Qold g : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (haρ_not : ¬ ‖(a : ℂ)‖ ≤ ρ)
+    (hQold_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Qold w)
+    (hQold_factor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Qold w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (hQold_zero : Qold 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Exact root: define `Q = rawQuotient`; for every disk point `w`, `w ≠ a`
+  -- follows from `haρ_not`, and the raw quotient is analytic by ordinary
+  -- division.  Product identity and zero normalization are the off-point
+  -- special cases above.
   sorry
 
 /-- Explicit old-quotient/local-unit form of one-step normalized removable
@@ -370,27 +516,32 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  have hlocal_div :
-      ∃ Qloc : ℂ → ℂ,
-        AnalyticAt ℂ Qloc (a : ℂ) ∧
-        Qloc =ᶠ[𝓝[≠] (a : ℂ)]
-          (fun w : ℂ =>
-            Qold w /
-              ((1 - w / (a : ℂ)) ^
-                entireFunctionZeroMultiplicity F hF (a : ℂ))) ∧
-        Qloc (a : ℂ) =
-          g (a : ℂ) /
-            (((-(a : ℂ)⁻¹) ^
-                entireFunctionZeroMultiplicity F hF (a : ℂ)) *
-              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-                F hF S (a : ℂ)) :=
-    entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and_localUnit
-      F Qold g hF ρ S a ha_not_mem hS0 ha0 hg_an hg_ne hg_factor
-      hQold_an hQold_factor
-  exact
-    entireFunction_insertNormalizedFactor_glue_localDivision
-      F Qold g hF ρ hρ S a ha_not_mem hS0 ha0 hg_an hg_ne hg_factor
-      hQold_an hQold_factor hQold_zero hlocal_div
+  by_cases haρ : ‖(a : ℂ)‖ ≤ ρ
+  · have hlocal_div :
+        ∃ Qloc : ℂ → ℂ,
+          AnalyticAt ℂ Qloc (a : ℂ) ∧
+          Qloc =ᶠ[𝓝[≠] (a : ℂ)]
+            (fun w : ℂ =>
+              Qold w /
+                ((1 - w / (a : ℂ)) ^
+                  entireFunctionZeroMultiplicity F hF (a : ℂ))) ∧
+          Qloc (a : ℂ) =
+            g (a : ℂ) /
+              (((-(a : ℂ)⁻¹) ^
+                  entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                  F hF S (a : ℂ)) :=
+      entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and_localUnit
+        F Qold g hF ρ S a ha_not_mem hS0 ha0 haρ
+        hg_an hg_ne hg_factor hQold_an hQold_factor
+    exact
+      entireFunction_insertNormalizedFactor_glue_localDivision
+        F Qold g hF ρ hρ S a ha_not_mem hS0 ha0 hg_an hg_ne hg_factor
+        hQold_an hQold_factor hQold_zero hlocal_div
+  · exact
+      entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
+        F Qold g hF ρ S a ha_not_mem hS0 ha0 haρ
+        hQold_an hQold_factor hQold_zero
 
 /-- Insert one normalized zero factor into an analytic finite factorization.
 
