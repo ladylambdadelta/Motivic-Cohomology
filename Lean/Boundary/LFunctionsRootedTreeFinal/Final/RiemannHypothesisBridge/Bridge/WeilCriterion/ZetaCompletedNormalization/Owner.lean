@@ -514,6 +514,48 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
+/-- Classical closed-sector Stirling expansion for `Complex.Gamma`, with the
+sectorial and fixed-line consequences used by the normalization chain.
+
+This is the true classical special-function owner input for the Gamma lane.
+The first component is the exponential form of Stirling's expansion with a
+uniform `O(1 / ‖w‖)` remainder on the closed right half-plane, a closed sector
+avoiding the negative real axis.  The second and third components are the
+standard consequences needed below: the sectorial log-norm envelope and the
+two-sided fixed-real-part vertical estimates for `Γ(a + i b)` and its
+reciprocal.  Classically, these consequences are obtained from the same
+sectorial Stirling expansion after taking norms and then specializing to
+vertical lines; cf. DLMF §5.11. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical :
+    (∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖) ∧
+    (∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) ∧
+    (∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+              C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (a - 1 / 2) ∧
+          ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+              C * Real.exp ((Real.pi / 2) * ‖b‖) *
+                (1 + ‖b‖) ^ (1 / 2 - a)) := by
+  sorry
+
 /-- Classical closed-sector Stirling estimates for `Complex.Gamma`.
 
 This is the single classical special-function owner input for the Gamma lane.
@@ -542,7 +584,9 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_and_vertical_stirling_bound
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
                 (1 + ‖b‖) ^ (1 / 2 - a)) := by
-  sorry
+  exact
+    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical.2.1,
+      Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical.2.2⟩
 
 /-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
@@ -4629,6 +4673,43 @@ theorem boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscil
       if_neg hcutoff_lt_n
     exact Eq.trans hleft hright.symm
 
+/-- Conditional Dirichlet-series identity on the boundary line `s = 1 + it`.
+
+The intended proof is the classical Abel limit at the boundary:
+first establish the identity for `1 < re s` from
+`zeta_eq_tsum_one_div_nat_add_one_cpow`, then pass to `s = 1 + it`,
+`t ≠ 0`, using Abel summation/Dirichlet convergence for
+`∑ n^{-1-it}` and the analytic continuation of `riemannZeta` away from
+the pole at `1`. -/
+theorem boundaryLineOnePointRealParam_dirichlet_series_hasSum_riemannZeta
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    HasSum
+        (fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t)) := by
+  sorry
+
+/-- Finite-tail subtraction from the boundary-line Dirichlet series, followed by
+the pointwise transport from `n^{-1-it}` to the Abel-normalized oscillatory tail. -/
+theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
+    (t : ℝ)
+    (hζ :
+      HasSum
+        (fun n : ℕ =>
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
+        (riemannZeta (boundaryLineOnePointRealParam t))) :
+    HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+  sorry
+
 /-- Dirichlet-series continuation identity for the exact post-cutoff oscillatory
 boundary-line tail.
 
@@ -4649,7 +4730,10 @@ theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_
         (riemannZeta (boundaryLineOnePointRealParam t) -
           ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
             ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
+      t
+      (boundaryLineOnePointRealParam_dirichlet_series_hasSum_riemannZeta t ht)
 
 /-- Sharp Abel/Euler-Maclaurin estimate for the exact post-cutoff oscillatory
 boundary-line zeta remainder.
