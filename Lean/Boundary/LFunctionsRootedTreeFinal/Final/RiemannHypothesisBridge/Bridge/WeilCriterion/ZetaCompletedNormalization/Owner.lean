@@ -3965,6 +3965,33 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
     norm_pos_iff.mpr hcpow_ne
   exact mul_pos hexp_pos hcpow_pos
 
+/-- Quantitative arctangent-defect comparison for shifted right-half-plane
+vertical strips.
+
+For `w = x + N + i y` with `x` in a fixed bounded strip and `N` the deterministic
+right-half-plane shift, the classical estimate
+`|arg w - sign(y) · π/2| = O(1 / |y|)` gives a bounded multiplicative loss in
+`exp (-arg(w) y)`.  This is the precise geometric input needed by the normalized
+Stirling denominator comparison. -/
+theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          Real.exp (-(Complex.arg w * y)) ≤
+            C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
+          c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
+            Real.exp (-(Complex.arg w * y)) := by
+  sorry
+
 /-- Quantitative vertical argument-defect estimate for shifted right-half-plane
 strip points.
 
@@ -3989,6 +4016,33 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable
             C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
           c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
             Real.exp (-(Complex.arg w * y)) := by
+  exact
+    Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
+      A B
+
+/-- Bounded-exponent radius-power comparison for shifted vertical strips.
+
+On a bounded shifted strip, `‖x + N + i y‖` is comparable to `1 + |y|`, while
+the exponent `x + N - 1/2` ranges over a fixed compact real interval.  The
+standard logarithmic/rpow comparison therefore gives uniform two-sided
+constants for the radius power. -/
+theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          ‖w‖ ^ (w.re - 1 / 2) ≤
+            C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
+          c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
+            ‖w‖ ^ (w.re - 1 / 2) := by
   sorry
 
 /-- In a fixed shifted vertical strip, the radial polynomial factor in the
@@ -4010,7 +4064,9 @@ theorem Complex.shiftedVertical_radiusPower_comparable
             C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
           c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
             ‖w‖ ^ (w.re - 1 / 2) := by
-  sorry
+  exact
+    Complex.shiftedVertical_radiusPower_comparable_boundedExponent
+      A B
 
 /-- On a fixed shifted vertical strip, the real-part exponential factor
 `exp (-Re w)` is bounded above and below by positive constants. -/
@@ -10745,6 +10801,50 @@ theorem logarithmicPhase_endpoint_trivial_bound
       hdiv_le
   exact le_trans hmul_norm hratio_le_two
 
+/-- The logarithmic-phase derivative magnitude `|t| / u` is decreasing on the
+positive real axis. -/
+theorem logarithmicPhase_derivativeMagnitude_antitoneOn_positive
+    (t : ℝ) :
+    AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0) := by
+  intro x hx y hy hxy
+  have hreciprocal : (1 : ℝ) / y ≤ (1 : ℝ) / x :=
+    one_div_le_one_div_of_le hy hxy
+  have hnorm_nonneg : 0 ≤ ‖t‖ :=
+    norm_nonneg t
+  have hleft : ‖t‖ / y = ‖t‖ * ((1 : ℝ) / y) :=
+    div_eq_mul_one_div ‖t‖ y
+  have hright : ‖t‖ / x = ‖t‖ * ((1 : ℝ) / x) :=
+    div_eq_mul_one_div ‖t‖ x
+  exact Eq.subst
+    (motive := fun target : ℝ => ‖t‖ / y ≤ target)
+    hright.symm
+    (Eq.subst
+      (motive := fun source : ℝ => source ≤ ‖t‖ * ((1 : ℝ) / x))
+      hleft.symm
+      (mul_le_mul_of_nonneg_left hreciprocal hnorm_nonneg))
+
+/-- Standard first-derivative test for the concrete logarithmic phase, after
+the phase derivative and its monotonicity have been isolated. -/
+theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antitone
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    (hphase_deriv_antitone :
+      AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  sorry
+
 /-- Standard first-derivative test for the concrete logarithmic phase.
 
 This is the standard one-dimensional oscillatory-sum input for the concrete
@@ -10768,7 +10868,10 @@ theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact
+    standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antitone
+      t ht hphase_deriv hphase_deriv_norm
+      (logarithmicPhase_derivativeMagnitude_antitoneOn_positive t) hx
 
 /-- Concrete first-derivative/Euler-Maclaurin estimate for the logarithmic
 phase. -/
@@ -11005,6 +11108,57 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound t ht hNM
 
+/-- The reciprocal derivative has the expected positive variation density on
+the post-cutoff interval. -/
+theorem reciprocalDerivative_norm_eq_on_positive_interval
+    {a b x : ℝ}
+    (ha : 0 < a)
+    (hx : x ∈ Set.Icc a b) :
+    ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+      (1 : ℝ) / x ^ 2 := by
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le ha hx.1
+  exact complexReciprocalOfReal_deriv_norm_eq hx_pos
+
+/-- Concrete reciprocal variation bound on a finite post-cutoff interval.
+
+This is the non-oscillatory real-variable input used by partial summation:
+the total variation density of `u ↦ 1 / u` is `1/u^2` on the positive interval
+starting at the canonical cutoff. -/
+theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
+    (t : ℝ)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+      ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+        (1 : ℝ) / x ^ 2 := by
+  intro x hx
+  have hcutoff_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
+  exact reciprocalDerivative_norm_eq_on_positive_interval hcutoff_pos hx
+
+/-- Concrete reciprocal total-variation integral estimate after the
+reciprocal derivative density has been identified. -/
+theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Concrete reciprocal total-variation integral estimate.
 
 This is the real-variable Abel/Euler-Maclaurin variation step for the concrete
@@ -11033,7 +11187,10 @@ theorem concreteReciprocalVariation_logarithmicPhase_integral_bound
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
+      t ht hpartial hNM
+      (concreteReciprocalVariation_density_bound_on_cutoff_interval t hNM)
 
 /-- Concrete total-variation estimate for the reciprocal-amplitude term after
 the logarithmic-phase first-derivative bound. -/
@@ -15999,6 +16156,210 @@ theorem riemannZeta_poleCleared_rightHalfPlane_two_le_finiteOrder_growth_from_di
     hpole
     (hbound w hw_two)
 
+/-- Left boundary finite-order growth for the removable pole-cleared zeta on
+`Re s = 1`, from the Abel/Euler-Maclaurin boundary estimate. -/
+theorem poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re = 1 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive with
+    ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro z hz_re hz_im
+  have hz_ne_one : z ≠ 1 := by
+    intro hz_one
+    have hz_im_zero : z.im = 0 := by
+      calc
+        z.im = (1 : ℂ).im := by
+          exact congrArg Complex.im hz_one
+        _ = 0 := by
+          exact Complex.one_im
+    have hz_im_norm_zero : ‖z.im‖ = 0 := by
+      calc
+        ‖z.im‖ = ‖(0 : ℝ)‖ := by
+          exact congrArg norm hz_im_zero
+        _ = 0 := by
+          exact norm_zero
+    have hone_le_zero : (1 : ℝ) ≤ 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+        hz_im_norm_zero
+        hz_im
+    exact not_lt_of_ge hone_le_zero zero_lt_one
+  have hpole :
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+    poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    hpole.symm
+    (hbound z hz_re hz_im)
+
+/-- Right boundary finite-order growth for the removable pole-cleared zeta on
+`Re s = 2`, from the Dirichlet-series estimate. -/
+theorem poleClearedRiemannZeta_one_two_strip_rightBoundary_growth_from_dirichletSeries :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re = 2 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_growth_bound
+
+/-- Holomorphicity of the removable pole-cleared zeta on the open strip
+`1 < Re s < 2`, inherited from the larger right-critical strip. -/
+theorem poleClearedRiemannZeta_one_two_strip_diffContOnCl :
+    DiffContOnCl ℂ poleClearedRiemannZeta
+      (Complex.re ⁻¹' Set.Ioo 1 2) := by
+  exact poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl.mono
+    (by
+      intro z hz
+      exact ⟨lt_trans zero_lt_one hz.1, hz.2⟩)
+
+/-- Interior admissible-growth input for the `1 < Re s < 2` strip.
+
+This is the exact remaining growth hypothesis consumed by the generic
+Phragmen-Lindelöf API.  Analytically it is the subcritical strip growth of the
+removable pole-cleared zeta in the bounded strip, obtained from the standard
+Euler-Maclaurin continuation estimates. -/
+theorem poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaurin_continuation :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 1) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo 1 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
+
+/-- Vertical-tail finite-order growth for the removable pole-cleared zeta on
+`1 ≤ Re s ≤ 2`, obtained from the two boundary estimates and strip PL. -/
+theorem poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        1 ≤ ‖z.im‖ →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
+    poleClearedRiemannZeta 1 2 one_lt_two
+    poleClearedRiemannZeta_one_two_strip_diffContOnCl
+    poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaurin_continuation
+    poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMaclaurin
+    poleClearedRiemannZeta_one_two_strip_rightBoundary_growth_from_dirichletSeries
+
+/-- Compact-height finite-order growth for the removable pole-cleared zeta on
+`1 ≤ Re s ≤ 2`. -/
+theorem poleClearedRiemannZeta_one_two_strip_compactCore_growth_from_localBoundedness :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖z.im‖ ≤ 1 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, 1, 0, hC_pos, zero_lt_one, ?_⟩
+  intro z hz_one hz_two hz_im
+  have hz_zero : 0 ≤ z.re :=
+    le_trans zero_le_one hz_one
+  have hz_mem : z ∈ completedRiemannZeta₀_rightCriticalStripCompactSet :=
+    ⟨hz_zero, hz_two, hz_im⟩
+  have hraw : ‖poleClearedRiemannZeta z‖ ≤ C :=
+    hC_bound z hz_mem
+  have hfactor_ge_one :
+      (1 : ℝ) ≤ Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+    have hexponent_nonneg :
+        0 ≤ (1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ) :=
+      mul_nonneg zero_le_one
+        (pow_nonneg (add_nonneg zero_le_one (norm_nonneg z)) 0)
+    exact le_trans
+      (le_of_eq Real.exp_zero.symm)
+      (Real.exp_le_exp.mpr hexponent_nonneg)
+  have hC_le_target :
+      C ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
+    calc
+      C = C * 1 := by
+        exact (mul_one C).symm
+      _ ≤ C * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) :=
+        mul_le_mul_of_nonneg_left hfactor_ge_one (le_of_lt hC_pos)
+  exact le_trans hraw hC_le_target
+
+/-- Compact core and PL vertical tail patch to finite-order growth on the
+whole bounded strip `1 ≤ Re s ≤ 2`. -/
+theorem poleClearedRiemannZeta_one_two_strip_growth_of_compactCore_and_verticalTail
+    (hcompact :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖z.im‖ ≤ 1 →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (htail :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          1 ≤ ‖z.im‖ →
+          ‖poleClearedRiemannZeta z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hcompact with ⟨Ac, Bc, mc, hAc, hBc, hc⟩
+  rcases htail with ⟨At, Bt, mt, hAt, hBt, ht⟩
+  refine ⟨Ac + At, Bc + Bt, mc + mt, add_pos hAc hAt, add_pos hBc hBt, ?_⟩
+  intro z hz_one hz_two
+  have hAc_nonneg : 0 ≤ Ac := le_of_lt hAc
+  have hAt_nonneg : 0 ≤ At := le_of_lt hAt
+  have hBc_nonneg : 0 ≤ Bc := le_of_lt hBc
+  have hBt_nonneg : 0 ≤ Bt := le_of_lt hBt
+  match le_total ‖z.im‖ 1 with
+  | Or.inl hcompact_im =>
+      exact le_trans (hc z hz_one hz_two hcompact_im)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+          hAc_nonneg
+          (le_add_of_nonneg_right hAt_nonneg)
+          (le_add_of_nonneg_right hBt_nonneg)
+          hBc_nonneg
+          (Nat.le_add_right mc mt))
+  | Or.inr htail_im =>
+      have hdegree : mt ≤ mc + mt := by
+        exact Eq.subst
+          (motive := fun d : ℕ => mt ≤ d)
+          (Nat.add_comm mt mc)
+          (Nat.le_add_right mt mc)
+      exact le_trans (ht z hz_one hz_two htail_im)
+        (exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+          hAt_nonneg
+          (le_add_of_nonneg_left hAc_nonneg)
+          (le_add_of_nonneg_left hBc_nonneg)
+          hBt_nonneg
+          hdegree)
+
 /-- Bounded-width Euler-Maclaurin/PL growth for the removable pole-cleared zeta
 normalization on `1 ≤ Re s ≤ 2`.
 
@@ -16017,7 +16378,10 @@ theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclau
         w.re ≤ 2 →
         ‖poleClearedRiemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  sorry
+  exact
+    poleClearedRiemannZeta_one_two_strip_growth_of_compactCore_and_verticalTail
+      poleClearedRiemannZeta_one_two_strip_compactCore_growth_from_localBoundedness
+      poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL
 
 /-- Bounded-width Euler-Maclaurin/continuation growth for the raw pole-cleared
 zeta product on `1 ≤ Re s ≤ 2`.
@@ -17966,9 +18330,11 @@ theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_boun
 /-- Left-half-plane Gamma-ratio Stirling growth for the completed-functional
 equation multiplier.
 
-This is the exact Gamma/Stirling owner input consumed by the zeta transport
-layer; it is where sectorial or fixed-line Stirling estimates belong. -/
-theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound :
+This is the global half-plane transport form of vertical/sectorial Stirling for
+the completed real-Gamma ratio.  Unlike the boundary-line theorem above, this
+statement quantifies all `Re z ≤ 0`; its proof belongs to the sectorial/strip
+Stirling transport layer. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -17978,6 +18344,23 @@ theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
+
+/-- Left-half-plane Gamma-ratio Stirling growth for the completed-functional
+equation multiplier.
+
+This public owner theorem is only name transport from the global sectorial/strip
+Stirling estimate for the completed real-Gamma ratio. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_global_stirling_growth_bound
 
 /-- Removable continuous extension of the raw completed-functional-equation
 multiplier on the closed unit ball.

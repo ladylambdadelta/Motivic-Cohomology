@@ -3377,6 +3377,34 @@ theorem complex_starConvex_centerSegment_deriv_phi_continuousOn
     ((complex_starConvex_centerSegment_deriv_phi_continuousAt
       φ hstar hφ z hz t ht).comp hline_cont).continuousWithinAt
 
+/-- Real derivative of the affine segment map from `0` to `z`. -/
+theorem complex_centerSegment_lineMap_hasDerivAt_real
+    (z : ℂ)
+    (t : ℝ) :
+    HasDerivAt
+      (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
+      z
+      t := by
+  exact AffineMap.hasDerivAt_lineMap (a := (0 : ℂ)) (b := z) (x := t)
+
+/-- Real chain rule for a holomorphic function composed with the affine
+center-to-endpoint segment. -/
+theorem complex_starConvex_centerSegment_phi_hasDerivAt_real_chainRule
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun u : ℝ =>
+                φ (AffineMap.lineMap (0 : ℂ) z u))
+              (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+              t := by
+  sorry
+
 /-- Real chain rule for `φ` along a center-to-endpoint segment. -/
 theorem complex_starConvex_centerSegment_phi_hasDerivAt_real
     (φ : ℂ → ℂ)
@@ -3391,6 +3419,26 @@ theorem complex_starConvex_centerSegment_phi_hasDerivAt_real
               (fun u : ℝ =>
                 φ (AffineMap.lineMap (0 : ℂ) z u))
               (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+              t := by
+  exact
+    complex_starConvex_centerSegment_phi_hasDerivAt_real_chainRule
+      φ hstar hφ
+
+/-- Product rule for the radial FTC primitive after the segment pullback
+derivative has been computed. -/
+theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule_core
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun u : ℝ =>
+                complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
+              (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
               t := by
   sorry
 
@@ -3409,7 +3457,9 @@ theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule
                 complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
               (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
               t := by
-  sorry
+  exact
+    complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule_core
+      φ hstar hφ
 
 /-- Real derivative of the radial FTC primitive.
 
@@ -9399,9 +9449,13 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
       MeasureTheory.volume
       0
       (2 * Real.pi) := by
-  -- Finite sum of interval-integrable functions, using the single-factor
-  -- logarithmic integrability theorem for each support element.
-  sorry
+  exact
+    IntervalIntegrable.sum
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 ρ)
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_singleFactor_intervalIntegrable_ownerRoot
+          F hF hF0 ρ z hz)
 
 /-- Interval-integrability of the finite closed-support factor-sum boundary
 term. -/
@@ -9451,10 +9505,43 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
       MeasureTheory.volume
       0
       (2 * Real.pi) := by
-  -- Integrability algebra sink: use the restricted-a.e. product-log identity,
-  -- integrability of the boundary log of `F`, and integrability of the finite
-  -- factor sum to isolate the quotient term.
-  sorry
+  let q : ℝ → ℝ :=
+    fun θ : ℝ =>
+      Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖
+  let fs : ℝ → ℝ :=
+    fun θ : ℝ =>
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖
+  have hcombined :
+      IntervalIntegrable
+        (fun θ : ℝ => q θ + fs θ)
+        MeasureTheory.volume
+        0
+        (2 * Real.pi) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_finiteException_intervalIntegrable_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
+  have hfs :
+      IntervalIntegrable fs MeasureTheory.volume 0 (2 * Real.pi) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_factorSum_intervalIntegrable_ownerRoot
+      F hF hF0 ρ
+  have hdiff :
+      IntervalIntegrable
+        (fun θ : ℝ => (q θ + fs θ) - fs θ)
+        MeasureTheory.volume
+        0
+        (2 * Real.pi) :=
+    hcombined.sub hfs
+  have hpoint :
+      (fun θ : ℝ => (q θ + fs θ) - fs θ) =ᵐ[
+          MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi))]
+        q :=
+    Filter.Eventually.of_forall
+      (fun θ : ℝ => add_sub_cancel_right (q θ) (fs θ))
+  exact hdiff.congr hpoint
 
 /-- Interval-integrability of the quotient boundary logarithm after the
 closed-support product-log split.
