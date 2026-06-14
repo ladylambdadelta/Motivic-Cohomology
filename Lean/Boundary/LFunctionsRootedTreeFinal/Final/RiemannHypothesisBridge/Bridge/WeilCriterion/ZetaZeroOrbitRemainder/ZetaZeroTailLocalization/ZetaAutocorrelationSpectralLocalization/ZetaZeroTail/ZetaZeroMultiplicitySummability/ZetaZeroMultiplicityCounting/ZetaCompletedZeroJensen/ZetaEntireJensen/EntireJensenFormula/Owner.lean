@@ -261,6 +261,45 @@ theorem entireFunction_eq_zero_of_eventually_zero_nhds
   intro z
   exact hEq (by simp)
 
+/-- A positive-radius exponential arc has genuine punctured real parameters
+arbitrarily close to its base point, and its image remains in the punctured
+complex neighborhood of the base circle point.
+
+This is the real-arc accumulation input needed to turn local vanishing of the
+sampled function into a contradiction with isolated complex zeros. -/
+theorem positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
+    (F : ℂ → ℂ)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0)
+    (hne :
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
+    False := by
+  sorry
+
+/-- Local real-arc vanishing at positive radius excludes the nontrivial
+isolated-zero branch of an entire function at the corresponding circle point. -/
+theorem entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (r : ℝ)
+    (hr : 0 < r)
+    (θ₀ : ℝ)
+    (hlocal_zero :
+      ∀ᶠ θ in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
+    ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 := by
+  rcases
+      (hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I))).eventually_eq_zero_or_eventually_ne_zero
+      with hzero | hne
+  · exact hzero
+  · exact False.elim
+      (positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
+        F r hr θ₀ hlocal_zero hne)
+
 /-- Real-arc identity theorem for a positive-radius exponential arc.
 
 This is the analytic-continuation bridge between a real-variable local zero
@@ -279,7 +318,13 @@ theorem entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
       ∀ᶠ θ in 𝓝 θ₀,
         F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
     ∀ z : ℂ, F z = 0 := by
-  sorry
+  have hcircle_zero :
+      ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 :=
+    entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
+      F hF r hr θ₀ hlocal_zero
+  exact
+    entireFunction_eq_zero_of_eventually_zero_nhds
+      F hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I)) hcircle_zero
 
 /-- Arc identity theorem for an entire function sampled on a positive-radius
 Jensen circle.
@@ -463,6 +508,48 @@ theorem intervalIntegrable_log_abs_sub_const_on_compact
           rw [abs_of_nonneg hxge]
         rw [habs])
       measurableSet_Ioc
+
+/-- A real scalar multiple of the translated logarithmic singularity is
+interval-integrable on every compact interval containing the singular point. -/
+theorem intervalIntegrable_const_mul_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (A : ℝ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable
+      (fun x : ℝ => A * Real.log |x - c|)
+      MeasureTheory.volume a b := by
+  exact
+    (intervalIntegrable_log_abs_sub_const_on_compact hac hcb).const_mul A
+
+/-- The natural-multiplicity logarithmic term in a local Jensen model is
+interval-integrable on every compact interval containing the singular point. -/
+theorem intervalIntegrable_nat_mul_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (n : ℕ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable
+      (fun x : ℝ => (n : ℝ) * Real.log |x - c|)
+      MeasureTheory.volume a b := by
+  exact
+    intervalIntegrable_const_mul_log_abs_sub_const_on_compact
+      (n : ℝ) hac hcb
+
+/-- Adding an already interval-integrable remainder to a logarithmic
+singularity preserves interval-integrability on the compact model interval. -/
+theorem intervalIntegrable_log_singularity_model_on_compact
+    {a b c : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (hac : a ≤ c)
+    (hcb : c ≤ b)
+    (hg : IntervalIntegrable g MeasureTheory.volume a b) :
+    IntervalIntegrable
+      (fun x : ℝ => (n : ℝ) * Real.log |x - c| + g x)
+      MeasureTheory.volume a b := by
+  exact
+    (intervalIntegrable_nat_mul_log_abs_sub_const_on_compact n hac hcb).add hg
 
 /-- Finite compact-interval gluing for logarithmic singularities.
 
