@@ -24,15 +24,19 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
           C * (1 + ‖t‖) ^ m := by
   sorry
 
-/-- Fixed-real-part vertical lower reciprocal bound for Gamma. -/
+/-- Fixed-real-part vertical reciprocal bound for Gamma.
+
+The reciprocal has exponential, not polynomial, vertical growth:
+`1 / Γ(σ + it)` grows like `exp (π |t| / 2)` up to powers of `|t|`.
+This owner statement records the correct classical growth scale. -/
 theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
     (σ : ℝ)
     (hσ : 0 < σ) :
-    ∃ C : ℝ, ∃ m : ℕ,
-      0 < C ∧
+    ∃ C : ℝ, ∃ A : ℝ,
+      0 < C ∧ 0 < A ∧
       ∀ t : ℝ,
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
-          C * (1 + ‖t‖) ^ m := by
+          C * Real.exp (A * ‖t‖) := by
   sorry
 
 end
