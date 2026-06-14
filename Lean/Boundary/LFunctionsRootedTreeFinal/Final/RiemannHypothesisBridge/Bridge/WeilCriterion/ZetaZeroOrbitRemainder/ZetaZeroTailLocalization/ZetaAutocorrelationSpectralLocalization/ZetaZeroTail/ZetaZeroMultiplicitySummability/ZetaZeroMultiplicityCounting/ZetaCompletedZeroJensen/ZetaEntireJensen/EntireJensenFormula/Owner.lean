@@ -331,6 +331,35 @@ theorem entireFunction_origin_order_eq_multiplicity_of_nontrivial
   unfold entireFunctionZeroMultiplicity
   exact (ENat.coe_toNat hfinite).symm
 
+/-- A nontrivial entire function has finite analytic order at every point. -/
+theorem entireFunction_order_ne_top_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (z₀ : ℂ) :
+    (hF z₀).order ≠ ⊤ := by
+  intro htop
+  have hlocal_zero : ∀ᶠ z in 𝓝 z₀, F z = 0 := by
+    exact ((hF z₀).order_eq_top_iff).mp htop
+  have hglobal_zero : ∀ z : ℂ, F z = 0 :=
+    entireFunction_eq_zero_of_eventually_zero_nhds F hF z₀ hlocal_zero
+  match hnontrivial with
+  | ⟨z, hz⟩ => exact hz (hglobal_zero z)
+
+/-- For a nontrivial entire function, the file's multiplicity is the finite
+analytic order at every point. -/
+theorem entireFunction_order_eq_multiplicity_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (z₀ : ℂ) :
+    (hF z₀).order =
+      (entireFunctionZeroMultiplicity F hF z₀ : ENat) := by
+  have hfinite : (hF z₀).order ≠ ⊤ :=
+    entireFunction_order_ne_top_of_nontrivial F hF hnontrivial z₀
+  unfold entireFunctionZeroMultiplicity
+  exact (ENat.coe_toNat hfinite).symm
+
 /-- A positive-radius exponential arc is locally injective in a punctured real
 neighborhood of the base parameter. -/
 theorem positiveRadius_exp_arc_eventually_ne_base
@@ -2502,10 +2531,37 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_algebra
         (fun u : ℂ => G 0 * u)
         (mul_assoc (Complex.exp (P z)) (deriv G z) (G z)⁻¹)
 
-/-- Normalized ODE reconstruction root for the logarithmic derivative model on a
-convex Jensen disk.  The proof is the radial FTC argument for
-`G / (G 0 * exp P)`: the quotient has derivative zero along each segment from
-the center because `P' = G'/G`, and the center value is one. -/
+/-- Radial FTC owner root for exponential reconstruction from a logarithmic
+derivative primitive.
+
+For a fixed endpoint `z`, restrict to the segment `t ↦ t • z` and apply the
+real interval derivative-zero constant theorem to
+`t ↦ G (t • z) / (G 0 * exp (P (t • z)))`.  Convexity keeps the segment in the
+closed disk, the chain rule and `P' = G'/G` make the real derivative vanish,
+and the normalization `P 0 = 0` fixes the center value. -/
+theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endpoint_eq
+    (G P : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hP_deriv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv P z = deriv G z * (G z)⁻¹)
+    (hP_zero : P 0 = 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    G z = G 0 * Complex.exp (P z) := by
+  sorry
+
+/-- Normalized exponential reconstruction from the radial FTC owner root. -/
 theorem entireFunction_exp_logDerivPrimitive_model_value_eq
     (G P : ℂ → ℂ)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
@@ -2526,7 +2582,9 @@ theorem entireFunction_exp_logDerivPrimitive_model_value_eq
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       G z = G 0 * Complex.exp (P z) := by
-  sorry
+  fun z hz =>
+    entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endpoint_eq
+      G P hG hzero hP_an hP_deriv hP_zero hz
 
 /-- Derivative comparison between `G` and the exponential model induced by a
 normalized primitive of the logarithmic derivative.
@@ -2670,25 +2728,9 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_reconstruct
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       G z = G 0 * Complex.exp (P z) := by
-  have hmodel_an :
-      ∀ z : ℂ,
-        ‖z‖ ≤ ρ →
-        AnalyticAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
-    fun z hz =>
-      analyticAt_const.mul ((hP_an z hz).cexp)
-  have hderiv :
-      ∀ z : ℂ,
-        ‖z‖ ≤ ρ →
-        deriv G z = deriv (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
-    entireFunction_exp_logDerivPrimitive_model_deriv_eq
-      G P hG hzero hP_an hP_deriv hP_zero
-  have hcenter :
-      G 0 = (fun w : ℂ => G 0 * Complex.exp (P w)) 0 :=
-    entireFunction_exp_logDerivPrimitive_reconstruct_center G P hP_zero
   exact
-    entireFunction_convexClosedDisk_eq_of_deriv_eq_and_center
-      G (fun w : ℂ => G 0 * Complex.exp (P w))
-      (fun z _ => hG z) hmodel_an hρ hconvex hderiv hcenter
+    entireFunction_exp_logDerivPrimitive_model_value_eq
+      G P hG hzero hP_an hP_deriv hP_zero
 
 /-- The logarithmic derivative of a zero-free holomorphic function on a Jensen
 closed disk has a primitive on that disk, normalized at the disk center.
@@ -4537,7 +4579,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_zero_imp_function_zero
       F hF hF0 ρ z hz w hfactor
 
-/-- The finite zero-free quotient after extracting the support divisor. -/
+/-- The punctured quotient after extracting the support divisor.
+
+This is only the raw divided expression away from the support zeros; the
+removable zero-free quotient is supplied later by the removable-extension
+theorem. -/
 noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -4807,10 +4853,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
   have horder :
       (hF (z : ℂ)).order =
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ENat) := by
-    -- Deep local analytic root: support membership gives a genuine isolated
-    -- finite-order zero, so the analytic order is the finite multiplicity
-    -- exponent used in the Jensen divisor.
-    sorry
+    exact
+      entireFunction_order_eq_multiplicity_of_nontrivial
+        F hF ⟨0, hF0⟩ (z : ℂ)
   exact
     entireFunction_localMultiplicityFactorization
       F hF (z : ℂ) horder
