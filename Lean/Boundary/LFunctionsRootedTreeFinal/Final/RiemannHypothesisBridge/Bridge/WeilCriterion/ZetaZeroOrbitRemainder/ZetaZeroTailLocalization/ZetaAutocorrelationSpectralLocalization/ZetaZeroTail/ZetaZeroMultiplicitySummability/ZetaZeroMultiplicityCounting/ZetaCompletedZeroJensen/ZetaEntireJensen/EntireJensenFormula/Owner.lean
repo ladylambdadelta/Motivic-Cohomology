@@ -1869,6 +1869,18 @@ theorem entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
 
 /-- Multiplication by a local analytic unit preserves analytic zero
 order. -/
+theorem complex_smul_smul_eq_smul_mul
+    (a b c : ℂ) :
+    a • (b • c) = b • (a * c) := by
+  calc
+    a • (b • c) = a * (b * c) := by
+      exact congrArg (fun x : ℂ => a * x) (smul_eq_mul b c)
+    _ = (a * b) * c := (mul_assoc a b c).symm
+    _ = (b * a) * c := by
+      exact congrArg (fun x : ℂ => x * c) (mul_comm a b)
+    _ = b * (a * c) := mul_assoc b a c
+    _ = b • (a * c) := (smul_eq_mul b (a * c)).symm
+
 theorem analyticAt_order_eq_of_eventually_eq_unit_smul
     (F G u : ℂ → ℂ)
     {z : ℂ}
@@ -1878,11 +1890,33 @@ theorem analyticAt_order_eq_of_eventually_eq_unit_smul
     (hu_ne : u z ≠ 0)
     (hfactor : ∀ᶠ w in 𝓝 z, F w = u w • G w) :
     hF.order = hG.order := by
-  -- Compare the `AnalyticAt.order_eq_nat_iff` local Taylor models for `G`
-  -- and `F`; the unit `u` multiplies the nonvanishing analytic factor and
-  -- therefore leaves the unique exponent unchanged, including the locally-zero
-  -- `⊤` case.
-  sorry
+  by_cases hG_top : hG.order = ⊤
+  · have hG_zero : ∀ᶠ w in 𝓝 z, G w = 0 :=
+      (hG.order_eq_top_iff).mp hG_top
+    have hF_zero : ∀ᶠ w in 𝓝 z, F w = 0 := by
+      filter_upwards [hfactor, hG_zero] with w hFw hGw
+      calc
+        F w = u w • G w := hFw
+        _ = u w • 0 := congrArg (fun x : ℂ => u w • x) hGw
+        _ = 0 := smul_zero (u w)
+    exact Eq.trans ((hF.order_eq_top_iff).mpr hF_zero) hG_top.symm
+  · let n : ℕ := hG.order.untop hG_top
+    have hG_order : hG.order = (n : ENat) := by
+      exact (WithTop.coe_untop hG.order hG_top).symm
+    rcases (hG.order_eq_nat_iff n).mp hG_order with
+      ⟨g, hg_an, hg_ne, hg_model⟩
+    have hF_order : hF.order = (n : ENat) := by
+      refine (hF.order_eq_nat_iff n).mpr ?_
+      refine ⟨fun w : ℂ => u w * g w, hu.mul hg_an, ?_, ?_⟩
+      · exact mul_ne_zero hu_ne hg_ne
+      · filter_upwards [hfactor, hg_model] with w hFw hGw
+        calc
+          F w = u w • G w := hFw
+          _ = u w • ((w - z) ^ n • g w) := by
+            exact congrArg (fun x : ℂ => u w • x) hGw
+          _ = (w - z) ^ n • (u w * g w) :=
+            complex_smul_smul_eq_smul_mul (u w) ((w - z) ^ n) (g w)
+    exact Eq.trans hF_order hG_order.symm
 
 /-- Multiplication by a local analytic unit preserves the file's entire-function
 zero multiplicity. -/
