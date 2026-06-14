@@ -3,6 +3,7 @@ import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
+import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
@@ -2382,6 +2383,112 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (Finset.mem_filter.1 hz).2
   exact le_antisymm hle (le_of_not_gt hnot_lt)
 
+/-- The sine-power integral on `[0,π]`.
+
+This is the exponent family whose derivative at exponent `0` gives the
+log-sine integral. -/
+noncomputable def realSinePowerIntegral
+    (s : ℝ) : ℝ :=
+  ∫ u in (0 : ℝ)..Real.pi, (Real.sin u) ^ s
+
+/-- The Gamma-ratio appearing in the classical sine-power integral.
+
+For `-1 < s`, it is equal to `∫₀^π sin(u)^s du`. -/
+noncomputable def realSinePowerGammaRatio
+    (s : ℝ) : ℝ :=
+  Real.sqrt Real.pi *
+    Real.Gamma ((s + 1) / 2) /
+      Real.Gamma (s / 2 + 1)
+
+/-- Beta/Gamma evaluation of the sine-power integral.
+
+This is the standard formula
+`∫₀^π sin(u)^s du =
+sqrt(π) Γ((s+1)/2) / Γ(s/2+1)`, valid for `-1 < s`.
+Classically it follows by symmetry, the substitution `t = sin² u` on
+`[0,π/2]`, and Euler's Beta integral. -/
+theorem real_integral_sin_rpow_zero_pi_eq_gammaRatio
+    (s : ℝ)
+    (hs : -1 < s) :
+    realSinePowerIntegral s =
+      realSinePowerGammaRatio s := by
+  -- Deep standard Beta/Gamma integral:
+  -- `2 ∫₀^{π/2} sin(u)^s du = B((s+1)/2, 1/2)` and
+  -- `B(x,y) = Γ x Γ y / Γ(x+y)`, with `Γ(1/2)=sqrt π`.
+  sorry
+
+/-- Near exponent `0`, the sine-power integral is represented by the
+Beta/Gamma ratio. -/
+theorem realSinePowerIntegral_eventuallyEq_gammaRatio_at_zero :
+    (fun s : ℝ => realSinePowerIntegral s) =ᶠ[𝓝 (0 : ℝ)]
+      (fun s : ℝ => realSinePowerGammaRatio s) := by
+  have hnear :
+      ∀ᶠ s in 𝓝 (0 : ℝ), -1 < s :=
+    Ioi_mem_nhds (show -1 < (0 : ℝ) by exact neg_lt_zero.mpr one_pos)
+  exact
+    hnear.mono
+      (fun s hs =>
+        real_integral_sin_rpow_zero_pi_eq_gammaRatio s hs)
+
+/-- Differentiating the sine-power integral at exponent `0` gives the
+log-sine integral.
+
+This is the standard differentiation-under-the-integral step:
+`d/ds sin(u)^s |_{s=0} = log(sin u)`, with endpoint domination supplied by
+the logarithmic endpoint models. -/
+theorem realSinePowerIntegral_hasDerivAt_zero :
+    HasDerivAt
+      realSinePowerIntegral
+      (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
+      0 := by
+  -- Deep dominated-convergence/differentiation theorem for the exponent
+  -- family `sin(u)^s` at `s = 0`.
+  sorry
+
+/-- Derivative at zero of the Gamma-ratio for the sine-power integral.
+
+Using the Legendre duplication formula in logarithmic derivative form at
+`s = 0`, the derivative of
+`sqrt(π) Γ((s+1)/2) / Γ(s/2+1)` is `-π log 2`. -/
+theorem realSinePowerGammaRatio_hasDerivAt_zero :
+    HasDerivAt
+      realSinePowerGammaRatio
+      (-Real.pi * Real.log 2)
+      0 := by
+  -- Deep Gamma-ratio derivative: differentiate the Beta/Gamma formula at
+  -- `0` using `Real.Gamma_mul_Gamma_add_half` (Legendre duplication).
+  sorry
+
+/-- Identification of the derivative of the sine-power integral with the
+derivative of its Gamma-ratio model at exponent `0`. -/
+theorem realSinePowerIntegral_logDerivative_eq_gammaRatio_derivative :
+    (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) =
+      -Real.pi * Real.log 2 := by
+  have hsin :
+      HasDerivAt
+        realSinePowerIntegral
+        (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
+        0 :=
+    realSinePowerIntegral_hasDerivAt_zero
+  have hgamma :
+      HasDerivAt
+        realSinePowerGammaRatio
+        (-Real.pi * Real.log 2)
+        0 :=
+    realSinePowerGammaRatio_hasDerivAt_zero
+  have heq :
+      (fun s : ℝ => realSinePowerIntegral s) =ᶠ[𝓝 (0 : ℝ)]
+        (fun s : ℝ => realSinePowerGammaRatio s) :=
+    realSinePowerIntegral_eventuallyEq_gammaRatio_at_zero
+  have hsin_as_gamma :
+      HasDerivAt
+        realSinePowerGammaRatio
+        (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
+        0 :=
+    hsin.congr_of_eventuallyEq heq
+  exact
+    HasDerivAt.unique hsin_as_gamma hgamma
+
 /-- The classical sine-log integral on `[0, π]`.
 
 This is the deepest real-variable integral behind the boundary-zero Jensen
@@ -2389,8 +2496,7 @@ kernel: `∫₀^π log(sin u) du = -π log 2`. -/
 theorem real_integral_log_sin_zero_pi :
     (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) =
       -Real.pi * Real.log 2 := by
-  -- Deep classical Fourier/Beta integral.
-  sorry
+  exact realSinePowerIntegral_logDerivative_eq_gammaRatio_derivative
 
 /-- Elementary real algebra used in the unit-circle chord norm-square
 calculation. -/
@@ -10793,6 +10899,68 @@ theorem entireFunction_insertedFiniteZeroDivisorProduct_localLeadingCoeff_nonzer
       F hF S a ha_not_mem hS0
   exact mul_ne_zero hpow_ne hprod_ne
 
+/-- Algebraic cancellation for the local normalized centered-power quotient. -/
+theorem complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq
+    {Qold P g a w : ℂ}
+    {m : ℕ}
+    (ha0 : a ≠ 0)
+    (hw_ne : w ≠ a)
+    (hP_ne : P ≠ 0)
+    (hfactor : Qold * P = (w - a) ^ m * g) :
+    Qold / ((1 - w / a) ^ m) =
+      g / (((-a⁻¹) ^ m) * P) := by
+  have hcenter_ne : w - a ≠ 0 :=
+    sub_ne_zero.mpr hw_ne
+  have hpow_ne : (w - a) ^ m ≠ 0 :=
+    pow_ne_zero m hcenter_ne
+  have hcoeff_ne : (-a⁻¹) ^ m ≠ 0 := by
+    have hinv_ne : a⁻¹ ≠ 0 :=
+      inv_ne_zero ha0
+    have hneg_ne : -a⁻¹ ≠ 0 :=
+      neg_ne_zero.mpr hinv_ne
+    exact pow_ne_zero m hneg_ne
+  have hnormFactor :
+      (1 - w / a) ^ m = (-a⁻¹) ^ m * (w - a) ^ m :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+      ha0 m
+  have hden_ne :
+      ((-a⁻¹) ^ m) * (w - a) ^ m ≠ 0 :=
+    mul_ne_zero hcoeff_ne hpow_ne
+  have hcoeffP_ne :
+      ((-a⁻¹) ^ m) * P ≠ 0 :=
+    mul_ne_zero hcoeff_ne hP_ne
+  have hQold_eq :
+      Qold = ((w - a) ^ m * g) / P := by
+    calc
+      Qold = (Qold * P) / P := by
+        exact (mul_div_cancel₀ Qold hP_ne).symm
+      _ = ((w - a) ^ m * g) / P := by
+        exact congrArg (fun x : ℂ => x / P) hfactor
+  calc
+    Qold / ((1 - w / a) ^ m) =
+        Qold / (((-a⁻¹) ^ m) * (w - a) ^ m) := by
+      exact congrArg (fun x : ℂ => Qold / x) hnormFactor
+    _ = (((w - a) ^ m * g) / P) /
+        (((-a⁻¹) ^ m) * (w - a) ^ m) := by
+      exact congrArg (fun x : ℂ => x / (((-a⁻¹) ^ m) * (w - a) ^ m)) hQold_eq
+    _ = (((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m)) / P := by
+      exact div_div_eq_div_div_swap ((w - a) ^ m * g) P (((-a⁻¹) ^ m) * (w - a) ^ m)
+    _ = (g / ((-a⁻¹) ^ m)) / P := by
+      have hcancel :
+          ((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m) =
+            g / ((-a⁻¹) ^ m) := by
+        calc
+          ((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m) =
+              ((w - a) ^ m * g) / ((w - a) ^ m * ((-a⁻¹) ^ m)) := by
+            exact congrArg
+              (fun x : ℂ => ((w - a) ^ m * g) / x)
+              (mul_comm ((-a⁻¹) ^ m) ((w - a) ^ m))
+          _ = g / ((-a⁻¹) ^ m) := by
+            exact mul_div_mul_left g ((-a⁻¹) ^ m) hpow_ne
+      exact congrArg (fun x : ℂ => x / P) hcancel
+    _ = g / (((-a⁻¹) ^ m) * P) := by
+      exact (div_mul_eq_div_div g ((-a⁻¹) ^ m) P).symm
+
 /-- Local removable division by a normalized centered power.
 
 This is the analytic-algebra core of inserting a Jensen normalized factor.  If
@@ -10819,10 +10987,61 @@ theorem analyticAt_removable_div_normalizedCenteredPower
         (fun w : ℂ => Qold w / ((1 - w / a) ^ m)) ∧
       Q a =
         g a / (((-a⁻¹) ^ m) * P a) := by
-  -- Deep local theorem: apply `Mathlib.Analysis.Complex.RemovableSingularity`
-  -- to the punctured quotient.  The local equality follows from `hfactor` and
-  -- `entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor`.
-  sorry
+  let Q : ℂ → ℂ :=
+    fun w : ℂ => g w / (((-a⁻¹) ^ m) * P w)
+  have hcoeff_an :
+      AnalyticAt ℂ (fun _w : ℂ => (-a⁻¹) ^ m) a :=
+    analyticAt_const
+  have hden_an :
+      AnalyticAt ℂ (fun w : ℂ => ((-a⁻¹) ^ m) * P w) a :=
+    hcoeff_an.mul hP_an
+  have hcoeff_ne : (-a⁻¹) ^ m ≠ 0 := by
+    have hinv_ne : a⁻¹ ≠ 0 :=
+      inv_ne_zero ha0
+    have hneg_ne : -a⁻¹ ≠ 0 :=
+      neg_ne_zero.mpr hinv_ne
+    exact pow_ne_zero m hneg_ne
+  have hden_ne : ((-a⁻¹) ^ m) * P a ≠ 0 :=
+    mul_ne_zero hcoeff_ne hP_ne
+  have hQ_an : AnalyticAt ℂ Q a :=
+    hg_an.div hden_an hden_ne
+  have hP_eventually_ne :
+      ∀ᶠ w in 𝓝 a, P w ≠ 0 :=
+    hP_an.continuousAt.eventually_ne hP_ne
+  have hpunctured :
+      Q =ᶠ[𝓝[≠] a]
+        (fun w : ℂ => Qold w / ((1 - w / a) ^ m)) := by
+    have hlocal :
+        ∀ᶠ w in 𝓝 a,
+          Qold w * P w = (w - a) ^ m * g w :=
+      hfactor.mono
+        (fun w hw =>
+          Eq.trans hw (smul_eq_mul ((w - a) ^ m) (g w)))
+    have hlocal_punctured :
+        ∀ᶠ w in 𝓝[≠] a,
+          Qold w * P w = (w - a) ^ m * g w :=
+      hlocal.filter_mono nhdsWithin_le_nhds
+    have hP_punctured :
+        ∀ᶠ w in 𝓝[≠] a, P w ≠ 0 :=
+      hP_eventually_ne.filter_mono nhdsWithin_le_nhds
+    exact
+      (self_mem_nhdsWithin.and_eventually
+        (hlocal_punctured.and_eventually hP_punctured)).mono
+        (fun w hw =>
+          have hw_ne : w ≠ a :=
+            hw.1
+          have hlocal_w : Qold w * P w = (w - a) ^ m * g w :=
+            hw.2.1
+          have hP_w_ne : P w ≠ 0 :=
+            hw.2.2
+          have hraw_eq :
+              Qold w / ((1 - w / a) ^ m) =
+                g w / (((-a⁻¹) ^ m) * P w) :=
+            complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq
+              ha0 hw_ne hP_w_ne hlocal_w
+          hraw_eq.symm)
+  refine ⟨Q, hQ_an, hpunctured, ?_⟩
+  rfl
 
 /-- Explicit old-quotient/local-unit form of one-step normalized removable
 division.

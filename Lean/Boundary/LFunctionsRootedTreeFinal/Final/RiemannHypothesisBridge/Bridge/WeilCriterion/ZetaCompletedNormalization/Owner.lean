@@ -564,11 +564,28 @@ theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
             Complex.binetSecondFormulaRemainder w := by
   sorry
 
-/-- Pointwise Binet-kernel estimate on the closed right half-plane.
+/-- Pointwise Binet-kernel estimate in the open right half-plane.
 
 The numerator contributes the `t / ‖w‖` factor through the principal arctangent,
 while the denominator is controlled by the positive real exponential
-`exp (2πt) - 1`. -/
+`exp (2πt) - 1`.  The open half-plane hypothesis avoids the principal
+arctangent singularities on the imaginary boundary. -/
+theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∀ t : ℝ,
+      0 < t →
+        ‖Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+          (t / ‖w‖) /
+            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  sorry
+
+/-- Boundary-continuation form of the Binet-kernel estimate.
+
+The literal principal-arctangent kernel has boundary singularities on the
+imaginary axis, so the closed-sector estimate is obtained as the boundary
+value of the open-right-half-plane kernel. -/
 theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
     {w : ℂ}
     (hw_sector : Complex.closedRightHalfPlaneSector w)
@@ -582,10 +599,63 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
   sorry
 
 /-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
+    (hlocal :
+      IntegrableOn
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        (Set.Ioc (0 : ℝ) 1))
+    (htail :
+      IntegrableOn
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+        (Set.Ioi (1 : ℝ))) :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioi (0 : ℝ)) := by
+  sorry
+
+/-- Local integrability of the Binet majorant near zero.
+
+This is the standard cancellation
+`exp (2πt) - 1 ∼ 2πt`, so the quotient is bounded on `(0,1]`. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioc (0 : ℝ) 1) := by
+  sorry
+
+/-- Exponential decay of the Binet majorant at infinity. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioi (1 : ℝ)) := by
+  sorry
+
+/-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
     IntegrableOn
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (Set.Ioi (0 : ℝ)) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
+      Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one
+      Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty
+
+/-- Integration of the pointwise Binet-kernel majorant. -/
+theorem Complex.binetSecondFormula_remainder_norm_le_integral_majorant
+    {w : ℂ}
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_ne : w ≠ 0) :
+    ‖Complex.binetSecondFormulaRemainder w‖ ≤
+      2 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  sorry
+
+/-- The Binet majorant integral is a positive finite constant. -/
+theorem Real.binetSecondFormula_kernel_majorant_integral_pos :
+    0 <
+      ∫ t : ℝ in Set.Ioi (0 : ℝ),
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   sorry
 
 /-- The Binet kernel estimate integrates to an `O(1 / ‖w‖)` remainder bound. -/
@@ -597,7 +667,29 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_ker
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (0 : ℝ),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let R : ℝ := 1
+  let K : ℝ := 2 * J
+  have hR : 0 < R :=
+    zero_lt_one
+  have hJ_pos : 0 < J :=
+    Real.binetSecondFormula_kernel_majorant_integral_pos
+  have hK : 0 < K :=
+    mul_pos two_pos hJ_pos
+  refine ⟨R, K, hR, hK, ?_⟩
+  intro w hw_sector hw_radius
+  have hw_norm_pos : 0 < ‖w‖ :=
+    lt_of_lt_of_le hR hw_radius
+  have hw_ne : w ≠ 0 :=
+    norm_pos_iff.mp hw_norm_pos
+  have hmajorant :
+      ‖Complex.binetSecondFormulaRemainder w‖ ≤
+        2 * J / ‖w‖ :=
+    Complex.binetSecondFormula_remainder_norm_le_integral_majorant
+      hw_sector hw_ne
+  exact hmajorant
 
 /-- Uniform `O(1/‖w‖)` bound for the Binet second-formula remainder on the
 closed right-half-plane sector.
@@ -13194,7 +13286,36 @@ theorem real_by_parts_log_two_add_endpoint_normalize
     let v : ℝ → ℝ := fun x => -(1 / x)
     u b * v b - u 2 * v 2 =
       (-Real.log (2 + b) / b) - (-Real.log 4 / 2) := by
-  sorry
+  let u : ℝ → ℝ := fun x => Real.log (2 + x)
+  let v : ℝ → ℝ := fun x => -(1 / x)
+  have hvb : v b = -(1 / b) := rfl
+  have hv2 : v 2 = -(1 / (2 : ℝ)) := rfl
+  have hu2 : u 2 = Real.log 4 := by
+    exact congrArg Real.log (show (2 : ℝ) + 2 = 4 by rfl)
+  have hleft :
+      u b * v b = -Real.log (2 + b) / b := by
+    calc
+      u b * v b = Real.log (2 + b) * (-(1 / b)) := rfl
+      _ = -(Real.log (2 + b) * (1 / b)) :=
+        (mul_neg (Real.log (2 + b)) (1 / b))
+      _ = -(Real.log (2 + b) / b) := by
+        exact congrArg Neg.neg
+          (div_eq_mul_one_div (Real.log (2 + b)) b).symm
+      _ = -Real.log (2 + b) / b :=
+        (neg_div (Real.log (2 + b)) b).symm
+  have hright :
+      u 2 * v 2 = -Real.log 4 / 2 := by
+    calc
+      u 2 * v 2 = Real.log 4 * (-(1 / (2 : ℝ))) := by
+        exact congrArg₂ (fun a c : ℝ => a * c) hu2 hv2
+      _ = -(Real.log 4 * (1 / (2 : ℝ))) :=
+        (mul_neg (Real.log 4) (1 / (2 : ℝ)))
+      _ = -(Real.log 4 / 2) := by
+        exact congrArg Neg.neg
+          (div_eq_mul_one_div (Real.log 4) (2 : ℝ)).symm
+      _ = -Real.log 4 / 2 :=
+        (neg_div (Real.log 4) (2 : ℝ)).symm
+  exact congrArg₂ (fun a c : ℝ => a - c) hleft hright
 
 /-- Integral sign-change normalization for the finite by-parts remainder. -/
 theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
@@ -13203,7 +13324,34 @@ theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
     let v : ℝ → ℝ := fun x => -(1 / x)
     -(∫ x in (2 : ℝ)..b, u' x * v x) =
       ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) := by
-  sorry
+  let u' : ℝ → ℝ := fun x => 1 / (2 + x)
+  let v : ℝ → ℝ := fun x => -(1 / x)
+  let r : ℝ → ℝ := fun x => (1 : ℝ) / (x * (2 + x))
+  have hpoint : (fun x : ℝ => u' x * v x) = (fun x : ℝ => -r x) := by
+    exact funext
+      (fun x : ℝ =>
+        calc
+          u' x * v x = (1 / (2 + x)) * (-(1 / x)) := rfl
+          _ = -((1 / (2 + x)) * (1 / x)) :=
+            mul_neg (1 / (2 + x)) (1 / x)
+          _ = -((1 : ℝ) / (x * (2 + x))) := by
+            exact congrArg Neg.neg
+              (one_div_mul_one_div_rev (a := (2 + x)) (b := x))
+          _ = -r x := rfl)
+  have hintegral :
+      ∫ x in (2 : ℝ)..b, u' x * v x =
+        ∫ x in (2 : ℝ)..b, -r x :=
+    congrArg
+      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
+      hpoint
+  calc
+    -(∫ x in (2 : ℝ)..b, u' x * v x) =
+        -(∫ x in (2 : ℝ)..b, -r x) := by
+      exact congrArg Neg.neg hintegral
+    _ = - (-(∫ x in (2 : ℝ)..b, r x)) := by
+      exact congrArg Neg.neg (intervalIntegral.integral_neg r)
+    _ = ∫ x in (2 : ℝ)..b, r x :=
+      neg_neg (∫ x in (2 : ℝ)..b, r x)
 
 theorem real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize
     {b : ℝ}
@@ -13346,13 +13494,48 @@ theorem real_log_two_add_by_parts_endpoint_le_log_four_half
     (hb : (2 : ℝ) ≤ b) :
     (-Real.log (2 + b) / b) - (-Real.log 4 / 2) ≤
       Real.log 4 / 2 := by
-  sorry
+  have hb_pos : 0 < b :=
+    lt_of_lt_of_le zero_lt_two hb
+  have hlog_nonneg : 0 ≤ Real.log (2 + b) :=
+    real_log_two_add_nonneg_of_two_le hb
+  have hdiv_nonneg : 0 ≤ Real.log (2 + b) / b :=
+    div_nonneg hlog_nonneg (le_of_lt hb_pos)
+  have hneg_nonpos : -Real.log (2 + b) / b ≤ 0 := by
+    have hneg : -(Real.log (2 + b) / b) ≤ 0 :=
+      neg_nonpos.mpr hdiv_nonneg
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ 0)
+      (neg_div (Real.log (2 + b)) b)
+      hneg
+  calc
+    (-Real.log (2 + b) / b) - (-Real.log 4 / 2) =
+        (-Real.log (2 + b) / b) + Real.log 4 / 2 := by
+      exact sub_neg_eq_add (-Real.log (2 + b) / b) (Real.log 4 / 2)
+    _ ≤ 0 + Real.log 4 / 2 :=
+      add_le_add_right hneg_nonpos (Real.log 4 / 2)
+    _ = Real.log 4 / 2 :=
+      zero_add (Real.log 4 / 2)
 
 /-- The sharp partial-fractions remainder and endpoint estimates fit under
 the available `log 4` budget. -/
 theorem real_log_four_half_add_log_two_half_le_log_four :
     Real.log 4 / 2 + Real.log 2 / 2 ≤ Real.log 4 := by
-  sorry
+  have hlog_two_le_log_four : Real.log 2 ≤ Real.log 4 :=
+    Real.log_le_log zero_lt_two
+      (Eq.subst
+        (motive := fun y : ℝ => (2 : ℝ) ≤ y)
+        (show (2 : ℝ) + 2 = 4 by rfl)
+        (le_add_of_nonneg_right (le_of_lt zero_lt_two)))
+  have hhalf_nonneg : (0 : ℝ) ≤ 2 :=
+    le_of_lt zero_lt_two
+  have hhalf :
+      Real.log 2 / 2 ≤ Real.log 4 / 2 :=
+    div_le_div_of_nonneg_right hlog_two_le_log_four hhalf_nonneg
+  have hsum :
+      Real.log 4 / 2 + Real.log 2 / 2 ≤
+        Real.log 4 / 2 + Real.log 4 / 2 :=
+    add_le_add_left hhalf (Real.log 4 / 2)
+  exact le_trans hsum (le_of_eq (add_halves (Real.log 4)))
 
 theorem real_integral_Ioc_log_two_add_div_sq_by_parts_terms_le_log_four
     {b : ℝ}
@@ -20667,20 +20850,6 @@ theorem eulerMaclaurinZetaEndpointTermWithCutoff_holomorphicOn_puncturedStrip
     differentiableOn_const (1 / 2 : ℂ)
   exact hhalf.mul hrecip
 
-/-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
-parameter on the punctured strip.
-
-This is the standard parameter-integral theorem: the lower limit is fixed, the
-Bernoulli factor is bounded, and the complex-power kernel has locally uniform
-integrable majorants on vertical compacta. -/
-theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_parameter_holomorphic_standard
-    (N : ℕ)
-    (hN : 0 < N) :
-    DifferentiableOn ℂ
-      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
-      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
-
 /-- Pointwise parameter-holomorphicity of the fixed-cutoff Bernoulli kernel.
 
 For each positive real `x`, the parameter dependence
@@ -20694,7 +20863,35 @@ theorem eulerMaclaurinBernoulliKernel_parameter_differentiableOn
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (((x : ℝ) : ℂ) ^ (-(z + 1))))
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  have hbase_ne : ((x : ℝ) : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (ne_of_gt hx)
+  have hid :
+      DifferentiableOn ℂ
+        (fun z : ℂ => z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_id
+  have hone :
+      DifferentiableOn ℂ
+        (fun _ : ℂ => (1 : ℂ))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_const (1 : ℂ)
+  have hexponent :
+      DifferentiableOn ℂ
+        (fun z : ℂ => -(z + 1))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    (hid.add hone).neg
+  have hpow :
+      DifferentiableOn ℂ
+        (fun z : ℂ => (((x : ℝ) : ℂ) ^ (-(z + 1))))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hexponent.const_cpow (Or.inl hbase_ne)
+  have hfactor :
+      DifferentiableOn ℂ
+        (fun _ : ℂ => ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_const
+      (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
+  exact hfactor.mul hpow
 
 /-- Locally uniform integrable majorant for the fixed-cutoff Bernoulli kernel
 on compact parameter neighborhoods inside the punctured strip. -/
@@ -20720,6 +20917,22 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
       (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
   sorry
+
+/-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
+parameter on the punctured strip.
+
+This is the standard parameter-integral theorem: the lower limit is fixed, the
+Bernoulli factor is bounded, and the complex-power kernel has locally uniform
+integrable majorants on vertical compacta. -/
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_parameter_holomorphic_standard
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  exact
+    eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_integral
+      N hN
 
 /-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
 parameter on the punctured strip. -/
