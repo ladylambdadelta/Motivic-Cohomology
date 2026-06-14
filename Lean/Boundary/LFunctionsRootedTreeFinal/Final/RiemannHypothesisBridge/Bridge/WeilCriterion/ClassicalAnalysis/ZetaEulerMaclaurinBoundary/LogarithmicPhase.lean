@@ -1030,12 +1030,131 @@ theorem Complex.real_log_two_pos :
     0 < Real.log (2 : ℝ) := by
   exact Real.log_pos one_lt_two
 
+/-- Upper numerical bound for `log 2`. -/
+theorem Complex.real_log_two_le_one :
+    Real.log (2 : ℝ) ≤ 1 := by
+  have htwo_pos : (0 : ℝ) < 2 :=
+    zero_lt_two
+  have htwo_le_exp : (2 : ℝ) ≤ Real.exp (1 : ℝ) :=
+    le_of_lt (lt_trans (by norm_num : (2 : ℝ) < 2.7182818283) Real.exp_one_gt_d9)
+  exact (Real.log_le_iff_le_exp htwo_pos).mpr htwo_le_exp
+
+/-- Lower numerical bound for `log 2`. -/
+theorem Complex.one_half_le_real_log_two :
+    (1 / 2 : ℝ) ≤ Real.log (2 : ℝ) := by
+  exact Complex.logarithmicPhase_standardLog_half_le 0
+
+/-- The denominator in the explicit critical point is nonnegative. -/
+theorem Complex.realLogDyadicComparisonCriticalPoint_den_nonneg :
+    0 ≤ 2 * Real.log (2 : ℝ) - 1 := by
+  have hhalf : (1 / 2 : ℝ) ≤ Real.log (2 : ℝ) :=
+    Complex.one_half_le_real_log_two
+  have htwice : (1 : ℝ) ≤ 2 * Real.log (2 : ℝ) := by
+    exact (le_div_iff₀' zero_lt_two).mp hhalf
+  exact sub_nonneg.mpr htwice
+
+/-- The numerator in the explicit critical point is nonnegative. -/
+theorem Complex.realLogDyadicComparisonCriticalPoint_num_nonneg :
+    0 ≤ 2 - 2 * Real.log (2 : ℝ) := by
+  have hlog_le_one : Real.log (2 : ℝ) ≤ 1 :=
+    Complex.real_log_two_le_one
+  have htwice : 2 * Real.log (2 : ℝ) ≤ (2 : ℝ) * 1 :=
+    mul_le_mul_of_nonneg_left hlog_le_one zero_le_two
+  have htwice' : 2 * Real.log (2 : ℝ) ≤ 2 := by
+    exact Eq.subst (motive := fun rhs : ℝ => 2 * Real.log (2 : ℝ) ≤ rhs) (mul_one 2) htwice
+  exact sub_nonneg.mpr htwice'
+
 /-- Defect function for the sharp dyadic-log comparison.  The target inequality
 is exactly nonnegativity of this function on `[0,∞)`. -/
 def Complex.realLogDyadicComparisonDefect
     (x : ℝ) : ℝ :=
   (2 * Real.log (x + 2)) * Real.log (2 : ℝ) -
     Real.log (2 * (x + 1))
+
+/-- Critical point of the dyadic-log comparison defect. -/
+def Complex.realLogDyadicComparisonCriticalPoint : ℝ :=
+  (2 - 2 * Real.log (2 : ℝ)) / (2 * Real.log (2 : ℝ) - 1)
+
+/-- The dyadic-log comparison critical point lies in the nonnegative interval. -/
+theorem Complex.realLogDyadicComparisonCriticalPoint_nonneg :
+    0 ≤ Complex.realLogDyadicComparisonCriticalPoint := by
+  exact div_nonneg
+    Complex.realLogDyadicComparisonCriticalPoint_num_nonneg
+    Complex.realLogDyadicComparisonCriticalPoint_den_nonneg
+
+/-- Derivative formula for the dyadic-log comparison defect on `(0,∞)`. -/
+theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    HasDerivAt
+      Complex.realLogDyadicComparisonDefect
+      (2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1))
+      x := by
+  sorry
+
+/-- The dyadic-log comparison defect is antitone until its critical point. -/
+theorem Complex.realLogDyadicComparisonDefect_antitoneOn_left :
+    AntitoneOn
+      Complex.realLogDyadicComparisonDefect
+      (Set.Icc 0 Complex.realLogDyadicComparisonCriticalPoint) := by
+  sorry
+
+/-- The dyadic-log comparison defect is monotone after its critical point. -/
+theorem Complex.realLogDyadicComparisonDefect_monotoneOn_right :
+    MonotoneOn
+      Complex.realLogDyadicComparisonDefect
+      (Set.Ici Complex.realLogDyadicComparisonCriticalPoint) := by
+  sorry
+
+/-- The endpoint value of the dyadic-log comparison defect is nonnegative. -/
+theorem Complex.realLogDyadicComparisonDefect_zero_nonneg :
+    0 ≤ Complex.realLogDyadicComparisonDefect 0 := by
+  have hdef :
+      Complex.realLogDyadicComparisonDefect 0 =
+        (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
+          Real.log (2 : ℝ) := by
+    have harg_two : (0 : ℝ) + 2 = 2 := by ring
+    have hmul : (2 : ℝ) * (0 + 1) = 2 := by ring
+    calc
+      Complex.realLogDyadicComparisonDefect 0 =
+          (2 * Real.log ((0 : ℝ) + 2)) * Real.log (2 : ℝ) -
+            Real.log ((2 : ℝ) * (0 + 1)) := by
+        rfl
+      _ = (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
+            Real.log ((2 : ℝ) * (0 + 1)) := by
+        exact congrArg
+          (fun z : ℝ => (2 * Real.log z) * Real.log (2 : ℝ) -
+            Real.log ((2 : ℝ) * (0 + 1)))
+          harg_two
+      _ = (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
+            Real.log (2 : ℝ) := by
+        exact congrArg
+          (fun z : ℝ => (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
+            Real.log z)
+          hmul
+  have hlog_nonneg : 0 ≤ Real.log (2 : ℝ) :=
+    le_of_lt Complex.real_log_two_pos
+  have hfactor_nonneg : 0 ≤ 2 * Real.log (2 : ℝ) - 1 :=
+    Complex.realLogDyadicComparisonCriticalPoint_den_nonneg
+  have hprod :
+      0 ≤ Real.log (2 : ℝ) * (2 * Real.log (2 : ℝ) - 1) :=
+    mul_nonneg hlog_nonneg hfactor_nonneg
+  have halg :
+      (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
+          Real.log (2 : ℝ) =
+        Real.log (2 : ℝ) * (2 * Real.log (2 : ℝ) - 1) := by
+    ring
+  exact Eq.subst
+    (motive := fun target : ℝ => 0 ≤ target)
+    hdef.symm
+    (Eq.subst (motive := fun target : ℝ => 0 ≤ target) halg.symm hprod)
+
+/-- The critical value of the dyadic-log comparison defect is nonnegative. -/
+theorem Complex.realLogDyadicComparisonDefect_critical_nonneg :
+    0 ≤
+      Complex.realLogDyadicComparisonDefect
+        Complex.realLogDyadicComparisonCriticalPoint := by
+  sorry
 
 /-- One-variable calculus root for the sharp dyadic-log comparison.
 
@@ -1046,7 +1165,29 @@ theorem Complex.realLogDyadicComparisonDefect_nonneg
     {x : ℝ}
     (hx : 0 ≤ x) :
     0 ≤ Complex.realLogDyadicComparisonDefect x := by
-  sorry
+  by_cases hx_left : x ≤ Complex.realLogDyadicComparisonCriticalPoint
+  · have hanti :
+        Complex.realLogDyadicComparisonDefect
+            Complex.realLogDyadicComparisonCriticalPoint ≤
+          Complex.realLogDyadicComparisonDefect x :=
+      Complex.realLogDyadicComparisonDefect_antitoneOn_left
+        ⟨hx, hx_left⟩
+        ⟨Complex.realLogDyadicComparisonCriticalPoint_nonneg, le_rfl⟩
+        hx_left
+    exact le_trans Complex.realLogDyadicComparisonDefect_critical_nonneg hanti
+  · have hx_right :
+        Complex.realLogDyadicComparisonCriticalPoint ≤ x :=
+      (lt_of_not_ge hx_left).le
+    have hmono :
+        Complex.realLogDyadicComparisonDefect
+            Complex.realLogDyadicComparisonCriticalPoint ≤
+          Complex.realLogDyadicComparisonDefect x :=
+      Complex.realLogDyadicComparisonDefect_monotoneOn_right
+        (show Complex.realLogDyadicComparisonCriticalPoint ∈
+            Set.Ici Complex.realLogDyadicComparisonCriticalPoint from le_rfl)
+        hx_right
+        hx_right
+    exact le_trans Complex.realLogDyadicComparisonDefect_critical_nonneg hmono
 
 /-- The exact real inequality behind the dyadic-log comparison.
 
