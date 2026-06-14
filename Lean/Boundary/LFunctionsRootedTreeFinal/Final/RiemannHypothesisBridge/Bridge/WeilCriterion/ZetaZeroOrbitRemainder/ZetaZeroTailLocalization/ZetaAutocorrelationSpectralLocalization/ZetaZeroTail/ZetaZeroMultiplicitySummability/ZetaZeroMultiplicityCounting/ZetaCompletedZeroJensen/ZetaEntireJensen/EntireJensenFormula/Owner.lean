@@ -3235,6 +3235,75 @@ noncomputable def complex_centerSegmentIntegral_radialFTCPrimitive
     (t : ℝ) : ℂ :=
   (t : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t)
 
+/-- Complex endpoint derivative of `w ↦ lineMap 0 w t`. -/
+theorem complex_centerSegment_lineMap_hasDerivAt_endpoint
+    (z : ℂ)
+    (t : ℝ) :
+    HasDerivAt
+      (fun w : ℂ => AffineMap.lineMap (0 : ℂ) w t)
+      (t : ℂ)
+      z := by
+  have hmul :
+      HasDerivAt
+        (fun w : ℂ => (t : ℂ) * w)
+        ((t : ℂ) * (1 : ℂ))
+        z :=
+    HasDerivAt.const_mul (t : ℂ) (hasDerivAt_id' z)
+  have hmul_one :
+      HasDerivAt
+        (fun w : ℂ => (t : ℂ) * w)
+        (t : ℂ)
+        z :=
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt
+          (fun w : ℂ => (t : ℂ) * w)
+          d
+          z)
+      (mul_one (t : ℂ))
+      hmul
+  have hfun :
+      (fun w : ℂ => AffineMap.lineMap (0 : ℂ) w t) =
+        fun w : ℂ => (t : ℂ) * w :=
+    funext fun w : ℂ =>
+      calc
+        AffineMap.lineMap (0 : ℂ) w t = (t : ℂ) * (w - 0) + 0 :=
+          AffineMap.lineMap_apply_ring' (0 : ℂ) w (t : ℂ)
+        _ = (t : ℂ) * w :=
+          congrArg (fun a : ℂ => (t : ℂ) * a + 0) (sub_zero w)
+  exact
+    Eq.subst
+      (motive := fun f : ℂ → ℂ =>
+        HasDerivAt f (t : ℂ) z)
+      hfun.symm
+      hmul_one
+
+/-- Algebraic normalization for the complex endpoint derivative of
+`w * φ(lineMap 0 w t)`. -/
+theorem complex_centerSegmentIntegral_endpointDerivative_eq_productRule
+    (φ : ℂ → ℂ)
+    (z : ℂ)
+    (t : ℝ) :
+    (1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+      z * ((t : ℂ) * deriv φ (AffineMap.lineMap (0 : ℂ) z t)) =
+      complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t := by
+  let x : ℂ := AffineMap.lineMap (0 : ℂ) z t
+  let d : ℂ := deriv φ x
+  have hfirst :
+      (1 : ℂ) * φ x = φ x :=
+    one_mul (φ x)
+  have hsecond :
+      z * ((t : ℂ) * d) = z * (t : ℂ) * d :=
+    (mul_assoc z (t : ℂ) d).symm
+  calc
+    (1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+        z * ((t : ℂ) *
+          deriv φ (AffineMap.lineMap (0 : ℂ) z t)) =
+        φ x + z * (t : ℂ) * d :=
+      congrArg₂ (fun a b : ℂ => a + b) hfirst hsecond
+    _ = complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t :=
+      rfl
+
 /-- Pointwise endpoint derivative of the center-segment integrand.
 
 For fixed parameter `t`, differentiating
@@ -3254,15 +3323,55 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
                 w * φ (AffineMap.lineMap (0 : ℂ) w t))
               (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
               z := by
-  sorry
+  intro z hz t ht
+  let x : ℂ := AffineMap.lineMap (0 : ℂ) z t
+  have hφ_at :
+      HasDerivAt φ (deriv φ x) x :=
+    (complex_starConvex_centerSegment_analyticAt
+      φ hstar hφ hz ht).differentiableAt.hasDerivAt
+  have hline :
+      HasDerivAt
+        (fun w : ℂ => AffineMap.lineMap (0 : ℂ) w t)
+        (t : ℂ)
+        z :=
+    complex_centerSegment_lineMap_hasDerivAt_endpoint z t
+  have hcomp :
+      HasDerivAt
+        (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+        ((t : ℂ) * deriv φ x)
+        z :=
+    hφ_at.comp z hline
+  have hid :
+      HasDerivAt (fun w : ℂ => w) (1 : ℂ) z :=
+    hasDerivAt_id' z
+  have hprod :
+      HasDerivAt
+        (fun w : ℂ =>
+          w * φ (AffineMap.lineMap (0 : ℂ) w t))
+        ((1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+          z * ((t : ℂ) * deriv φ x))
+        z :=
+    hid.mul hcomp
+  exact
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt
+          (fun w : ℂ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          d
+          z)
+      (complex_centerSegmentIntegral_endpointDerivative_eq_productRule
+        φ z t)
+      hprod
 
-/-- Local parameter-integral hypotheses for differentiating the
-center-segment integral with respect to its endpoint.
+/-- Local dominated differentiation for the exact center-segment integrand.
 
-This packages exactly the hypotheses required by
-`intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le` for the
-integrand `F w t = w * φ(lineMap 0 w t)` and derivative
-`F' w t = endpointDerivativeIntegrand φ w t`. -/
+This is the standard parameter-integral theorem specialized to
+`F w t = w * φ(lineMap 0 w t)` and
+`F' w t = endpointDerivativeIntegrand φ w t`.  It owns the compact-family
+analyticity, measurability, integrability, and domination hypotheses needed to
+apply `intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le`
+near every endpoint in the star-convex domain. -/
 theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
     (φ : ℂ → ℂ)
     {s : Set ℂ}
@@ -3270,39 +3379,19 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
     (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
     ∀ z : ℂ,
       z ∈ s →
-        ∃ ε : ℝ,
-          0 < ε ∧
-          (∀ᶠ w in 𝓝 z,
-            AEStronglyMeasurable
-              (fun t : ℝ =>
-                w * φ (AffineMap.lineMap (0 : ℂ) w t))
-              (volume.restrict (Ι (0 : ℝ) 1))) ∧
-          IntervalIntegrable
-            (fun t : ℝ =>
-              z * φ (AffineMap.lineMap (0 : ℂ) z t))
-            volume
-            (0 : ℝ)
-            1 ∧
-          AEStronglyMeasurable
-            (fun t : ℝ =>
-              complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
-            (volume.restrict (Ι (0 : ℝ) 1)) ∧
-          ∃ bound : ℝ → ℝ,
-            (∀ᵐ t ∂volume,
-              t ∈ Ι (0 : ℝ) 1 →
-                ∀ w ∈ ball z ε,
-                  ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
-                    φ w t‖ ≤ bound t) ∧
-            IntervalIntegrable bound volume (0 : ℝ) 1 ∧
-            (∀ᵐ t ∂volume,
-              t ∈ Ι (0 : ℝ) 1 →
-                ∀ w ∈ ball z ε,
-                  HasDerivAt
-                    (fun x : ℂ =>
-                      x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (complex_centerSegmentIntegral_endpointDerivativeIntegrand
-                      φ w t)
-                    w) := by
+        ∃ u : Set ℂ,
+          z ∈ u ∧
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              HasDerivAt
+                (fun x : ℂ =>
+                  ∫ t in (0 : ℝ)..1,
+                    x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                (∫ t in (0 : ℝ)..1,
+                  complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                    φ w t)
+                w := by
   sorry
 
 /-- Local dominated differentiation under the endpoint-parametrized segment
@@ -3335,13 +3424,7 @@ theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd_dominatedParametricInteg
   rcases
     complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
       φ hstar hφ z hz with
-    ⟨ε, hε_pos, hF_meas, hF_int, hF'_meas, bound, h_bound,
-      hbound_int, h_diff⟩
-  let u : Set ℂ := ball z ε
-  have hz_mem : z ∈ u :=
-    mem_ball_self hε_pos
-  have hu_nhds : u ∈ 𝓝 z :=
-    Metric.ball_mem_nhds z hε_pos
+    ⟨u, hz_mem, hu_nhds, hu_deriv_integral⟩
   have hu_deriv :
       ∀ w : ℂ,
         w ∈ u →
@@ -3351,45 +3434,7 @@ theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd_dominatedParametricInteg
               complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
             w := by
     intro w hw
-    have hF_meas_w :
-        ∀ᶠ x in 𝓝 w,
-          AEStronglyMeasurable
-            (fun t : ℝ =>
-              x * φ (AffineMap.lineMap (0 : ℂ) x t))
-            (volume.restrict (Ι (0 : ℝ) 1)) :=
-      hF_meas
-    have hF_int_w :
-        IntervalIntegrable
-          (fun t : ℝ =>
-            w * φ (AffineMap.lineMap (0 : ℂ) w t))
-          volume
-          (0 : ℝ)
-          1 := by
-      sorry
-    have hF'_meas_w :
-        AEStronglyMeasurable
-          (fun t : ℝ =>
-            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
-          (volume.restrict (Ι (0 : ℝ) 1)) := by
-      sorry
-    have hparam :=
-      intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
-        (μ := volume)
-        (a := (0 : ℝ))
-        (b := 1)
-        (ε_pos := hε_pos)
-        (F := fun x : ℂ => fun t : ℝ =>
-          x * φ (AffineMap.lineMap (0 : ℂ) x t))
-        (F' := fun x : ℂ => fun t : ℝ =>
-          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ x t)
-        (x₀ := w)
-        hF_meas_w
-        hF_int_w
-        hF'_meas_w
-        h_bound
-        hbound_int
-        h_diff
-    exact hparam.2
+    exact hu_deriv_integral w hw
   exact ⟨u, hz_mem, hu_nhds, hu_deriv⟩
 
 /-- Local endpoint differentiability supplied by the parametric interval
@@ -8252,6 +8297,56 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Single-zero normalized-factor removable quotient.
+
+This is the local removable-singularity construction for inserting one
+nonzero zero into a finite normalized divisor.  It is the analytic step:
+combine the Taylor-order factorization at `a` with
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`, divide by the old finite divisor, and fill
+the removable value at `a`. -/
+theorem entireFunction_singleZeroNormalizedFactor_removableQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep removable-singularity construction: use the local Taylor unit at
+  -- `a`, the normalized/local factor identity, and Riemann removability to
+  -- fill the quotient by the inserted normalized factor.
+  sorry
+
 /-- Single-zero removable quotient after normalized factor extraction.
 
 This is the local analytic theorem behind one insertion in the finite divisor.
@@ -8297,10 +8392,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalize
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep single-zero removable theorem: use the normalized-factor identity,
-  -- the local order factorization at `a`, and removable singularity filling
-  -- for the quotient already constructed over `S`.
-  sorry
+  exact
+    entireFunction_singleZeroNormalizedFactor_removableQuotient
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- Single insertion removable quotient theorem for a finite normalized
 divisor.
@@ -8999,6 +9093,49 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
 
+/-- Value of a single normalized removable quotient at the removed zero.
+
+The local Taylor unit `g` determines the filled quotient value at `a`: after
+substituting
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`, all remaining factors are nonzero at `a`,
+so analytic continuation forces the displayed quotient value. -/
+theorem entireFunction_singleZeroNormalizedFactor_removableValue
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q (a : ℂ) =
+      g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep removable-value theorem: cancel the punctured local factorization
+  -- against the finite normalized divisor, then identify the value by
+  -- continuity of the analytic removable extension at `a`.
+  sorry
+
 /-- Single-zero removable value after normalized factor extraction.
 
 This is the value form of the normalized-factor removable theorem.  It says
@@ -9037,10 +9174,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalize
           (∏ z in S.erase a,
             (1 - (a : ℂ) / (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep value sink: cancel the local factor on a punctured neighborhood
-  -- using the normalized-factor identity and pass to the analytic value at
-  -- the removable point.
-  sorry
+  exact
+    entireFunction_singleZeroNormalizedFactor_removableValue
+      F Q hF ρ S hS0 hQ_an hfactor a ha haρ g hg_an hg_ne hg_factor
 
 /-- Local removable quotient value after extracting an arbitrary finite
 normalized divisor.

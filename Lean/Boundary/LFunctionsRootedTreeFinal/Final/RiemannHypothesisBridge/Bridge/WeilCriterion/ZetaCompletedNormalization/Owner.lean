@@ -705,15 +705,15 @@ theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
     _ = C * E / d := hmul_div
     _ = (C / d) * E := hdiv_mul
 
-/-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
-right half-plane.
+/-- Classical sectorial Stirling estimate for the normalized Gamma factor on
+the closed right half-plane.
 
-This is the deepest classical special-function root for the sectorial Gamma
-lane: on closed subsectors avoiding the negative real axis, `log Γ(w)` has the
-usual Stirling expansion with a uniform `O(1 / ‖w‖)` remainder.  In the closed
-right half-plane this gives the formula below after exponentiating the
-remainder; cf. DLMF §5.11 and Whittaker-Watson, Ch. XII. -/
-theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
+This is the canonical sectorial Stirling input in the exact normalized form
+used by the owner API:
+`Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the closed
+right half-plane for large radius; cf. DLMF §5.11 and Whittaker-Watson,
+Ch. XII. -/
+theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
@@ -724,6 +724,24 @@ theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
           K / ‖w‖ := by
   sorry
+
+/-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
+right half-plane.
+
+This public owner theorem is the normalized-factor consequence of the canonical
+sectorial Stirling estimate.  The logarithmic formulation and this exponential
+normalization are equivalent on the large closed right-half-plane sector. -/
+theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  exact Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane
 
 /-- If a complex number is within `sqrt (2π)` of `sqrt (2π)`, then its norm is
 bounded by `2 sqrt (2π)`.
@@ -3965,6 +3983,18 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
     norm_pos_iff.mpr hcpow_ne
   exact mul_pos hexp_pos hcpow_pos
 
+/-- Principal-argument defect on a right-half-plane vertical ray.
+
+For `u ≥ 0`, the angle of `u + i y` differs from `sign(y) · π/2` by at most
+`u / |y|`; multiplying by `|y|` gives the displayed scale-free bound.  This is
+the canonical `arg` geometry lemma behind the shifted-strip exponential defect. -/
+theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_le_re
+    {u y : ℝ}
+    (hu : 0 ≤ u) :
+    |(Real.pi / 2) * ‖y‖ -
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| ≤ u := by
+  sorry
+
 /-- Additive quantitative argument-defect estimate for shifted right-half-plane
 vertical strips.
 
@@ -3985,7 +4015,87 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
               (x + Complex.verticalStripTransportShift A) y
           -(Complex.arg w * y) ≤ D + (-(Real.pi / 2) * ‖y‖) ∧
           (-(Real.pi / 2) * ‖y‖) - D ≤ -(Complex.arg w * y) := by
-  sorry
+  let D : ℝ :=
+    max |A + Complex.verticalStripTransportShift A|
+      |B + Complex.verticalStripTransportShift A|
+  refine ⟨1, D, zero_lt_one, ?_, ?_⟩
+  · exact le_trans (abs_nonneg (A + Complex.verticalStripTransportShift A))
+      (le_max_left
+        |A + Complex.verticalStripTransportShift A|
+        |B + Complex.verticalStripTransportShift A|)
+  intro x y hxA hxB _hy
+  let u : ℝ := x + Complex.verticalStripTransportShift A
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  have hu_nonneg : 0 ≤ u := by
+    unfold Complex.verticalStripTransportShift
+    have hshift : -A ≤ (Complex.verticalStripRightShift A : ℝ) :=
+      Complex.neg_lower_le_verticalStripRightShift A
+    calc
+      0 = A + -A := by
+        exact (add_right_neg A).symm
+      _ ≤ x + (Complex.verticalStripRightShift A : ℝ) :=
+        add_le_add hxA hshift
+  have hu_abs_le_D : |u| ≤ D := by
+    exact real_abs_le_max_abs_of_mem_Icc
+      (add_le_add_right hxA (Complex.verticalStripTransportShift A))
+      (add_le_add_right hxB (Complex.verticalStripTransportShift A))
+  have hu_le_D : u ≤ D :=
+    le_trans (le_abs_self u) hu_abs_le_D
+  have hdef_abs :
+      |(Real.pi / 2) * ‖y‖ - Complex.arg w * y| ≤ D := by
+    have hray :
+        |(Real.pi / 2) * ‖y‖ -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| ≤ u :=
+      Complex.rightHalfPlaneVertical_arg_linear_defect_abs_le_re hu_nonneg
+    exact le_trans hray hu_le_D
+  have hdef_upper :
+      (Real.pi / 2) * ‖y‖ - Complex.arg w * y ≤ D :=
+    le_trans (le_abs_self ((Real.pi / 2) * ‖y‖ - Complex.arg w * y))
+      hdef_abs
+  have hdef_lower :
+      -D ≤ (Real.pi / 2) * ‖y‖ - Complex.arg w * y := by
+    have hneg_abs :
+        -|(Real.pi / 2) * ‖y‖ - Complex.arg w * y| ≤
+          (Real.pi / 2) * ‖y‖ - Complex.arg w * y :=
+      neg_abs_le ((Real.pi / 2) * ‖y‖ - Complex.arg w * y)
+    have hneg_bound :
+        -D ≤ -|(Real.pi / 2) * ‖y‖ - Complex.arg w * y| :=
+      neg_le_neg hdef_abs
+    exact le_trans hneg_bound hneg_abs
+  constructor
+  · have htarget :
+        - (Complex.arg w * y) ≤
+          D + (-(Real.pi / 2) * ‖y‖) := by
+      calc
+        -(Complex.arg w * y) =
+            ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+              (-(Real.pi / 2) * ‖y‖) := by
+          exact (add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
+            (-(Complex.arg w * y))).symm
+        _ ≤ D + (-(Real.pi / 2) * ‖y‖) :=
+          add_le_add_right hdef_upper (-(Real.pi / 2) * ‖y‖)
+    exact htarget
+  · have htarget :
+        (-(Real.pi / 2) * ‖y‖) - D ≤
+          -(Complex.arg w * y) := by
+      calc
+        (-(Real.pi / 2) * ‖y‖) - D =
+            -D + (-(Real.pi / 2) * ‖y‖) := by
+          calc
+            (-(Real.pi / 2) * ‖y‖) - D =
+                (-(Real.pi / 2) * ‖y‖) + -D :=
+              sub_eq_add_neg (-(Real.pi / 2) * ‖y‖) D
+            _ = -D + (-(Real.pi / 2) * ‖y‖) :=
+              add_comm (-(Real.pi / 2) * ‖y‖) (-D)
+        _ ≤ ((Real.pi / 2) * ‖y‖ - Complex.arg w * y) +
+              (-(Real.pi / 2) * ‖y‖) :=
+          add_le_add_right hdef_lower (-(Real.pi / 2) * ‖y‖)
+        _ = -(Complex.arg w * y) := by
+          exact add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
+            (-(Complex.arg w * y))
+    exact htarget
 
 /-- Quantitative arctangent-defect comparison for shifted right-half-plane
 vertical strips.
@@ -11153,7 +11263,7 @@ theorem logarithmicPhase_derivativeMagnitude_antitoneOn_positive
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
-theorem firstDerivativeTest_logarithmicPhase_partialSum_bound_of_monotone_phase
+theorem monotonePhase_firstDerivativeTest_partialSum_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hphase_deriv :
@@ -11172,6 +11282,30 @@ theorem firstDerivativeTest_logarithmicPhase_partialSum_bound_of_monotone_phase
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
+
+/-- Standard first-derivative test for the concrete logarithmic phase, after
+the phase derivative and its monotonicity have been isolated. -/
+theorem firstDerivativeTest_logarithmicPhase_partialSum_bound_of_monotone_phase
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    (hphase_deriv_antitone :
+      AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  exact
+    monotonePhase_firstDerivativeTest_partialSum_bound
+      t ht hphase_deriv hphase_deriv_norm hphase_deriv_antitone hx
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
@@ -11616,14 +11750,15 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant
       (reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
         t hpartial hNM hreciprocal_density)
 
-/-- Finite real calculus estimate for the scalar reciprocal-density majorant.
+/-- Finite-endpoint real calculus bound for the coarse reciprocal-density
+majorant.
 
 The coarse first-derivative partial-sum majorant contains an `x / |t|` term, so
 integrating it against `x⁻²` produces logarithmic growth in the right endpoint.
 This is the honest scalar comparison; the uniform Abel/Euler-Maclaurin integral
 bound must use the oscillatory cancellation theorem below, not this coarse
 majorant alone. -/
-theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
+theorem scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {M : ℕ}
@@ -11635,13 +11770,29 @@ theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
         8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
   sorry
 
+/-- Finite real calculus estimate for the scalar reciprocal-density majorant.
+
+This wrapper keeps the older local name while the owner theorem records the
+finite-endpoint growth explicitly. -/
+theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
+        8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
+  exact scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound t ht hNM
+
 /-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
 
 This is not a consequence of integrating the coarse scalar majorant: that scalar
 integral grows with the right endpoint.  The uniform bound is the
 Euler-Maclaurin/first-derivative cancellation estimate for the concrete
 reciprocal-amplitude term. -/
-theorem reciprocalDensityIntegral_oscillatory_le_log_cutoff
+theorem oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hpartial :
@@ -11660,6 +11811,31 @@ theorem reciprocalDensityIntegral_oscillatory_le_log_cutoff
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
+
+/-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
+
+This local wrapper exposes the owner theorem under the reciprocal-density API. -/
+theorem reciprocalDensityIntegral_oscillatory_le_log_cutoff
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
+      t ht hpartial hNM hreciprocal_density
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
@@ -16818,7 +16994,7 @@ theorem eulerMaclaurinPoleClearedZetaCutoff_pos
 theorem one_le_eulerMaclaurinPoleClearedZetaCutoff_real
     (z : ℂ) :
     (1 : ℝ) ≤ (eulerMaclaurinPoleClearedZetaCutoff z : ℝ) :=
-  Nat.cast_le.mpr (eulerMaclaurinPoleClearedZetaCutoff_pos z)
+  Nat.cast_le.mpr (Nat.succ_le_iff.mpr (eulerMaclaurinPoleClearedZetaCutoff_pos z))
 
 /-- The cutoff main Euler-Maclaurin power has norm at most one on `1 ≤ Re z`. -/
 theorem eulerMaclaurinPoleClearedZetaMainTerm_norm_le_one
@@ -16878,6 +17054,11 @@ theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
       (motive := fun x : ℝ => 0 < x)
       hnorm_cpow.symm
       hpow_pos
+  have hnorm_one : 1 ≤ ‖((N : ℕ) : ℂ) ^ z‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 ≤ x)
+      hnorm_cpow.symm
+      hpow_one
   have hnorm_inv :
       ‖1 / (((N : ℕ) : ℂ) ^ z)‖ =
         1 / ‖((N : ℕ) : ℂ) ^ z‖ := by
@@ -16891,11 +17072,28 @@ theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
           (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
   have hinv_le :
       1 / ‖((N : ℕ) : ℂ) ^ z‖ ≤ 1 :=
-    one_div_le_one hnorm_pos hpow_one
+    le_trans
+      (one_div_le_one_div_of_le zero_lt_one hnorm_one)
+      (le_of_eq (div_one (1 : ℝ)))
   exact Eq.subst
     (motive := fun x : ℝ => x ≤ 1)
     hnorm_inv.symm
     hinv_le
+
+/-- Uniform polynomial control for the finite Euler-Maclaurin Dirichlet window.
+
+This is the canonical finite-window estimate: on `1 ≤ Re z ≤ 2`, each summand
+`n^{-z}` has norm at most `1` for `1 ≤ n`, the window cardinality is controlled
+by the height-comparable cutoff `⌊2 + ‖z‖⌋₊`, and the pole-clearing factor
+`z - 1` contributes only one more power of `1 + ‖z‖`. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_cardinality_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
 
 /-- Bernoulli-periodic remainder term in the pole-cleared Euler-Maclaurin
 continuation.
@@ -16910,6 +17108,22 @@ noncomputable def eulerMaclaurinPoleClearedZetaRemainderTerm
     (eulerMaclaurinPoleClearedZetaFinitePart z +
       eulerMaclaurinPoleClearedZetaMainTerm z +
       eulerMaclaurinPoleClearedZetaEndpointTerm z)
+
+/-- Polynomial control for the pole-cleared Euler-Maclaurin remainder from the
+standard Bernoulli-periodic integral majorant.
+
+Analytically this is the estimate for
+`(s - 1) · s ∫_N^∞ B₁({x}) x^{-s-1} dx` with
+`N = ⌊2 + ‖s‖⌋₊`, using boundedness of `B₁`, `1 ≤ Re s ≤ 2`, and the
+height-comparable cutoff. -/
+theorem eulerMaclaurinPoleClearedZetaRemainderTerm_integral_majorant_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
 
 /-- The pole-cleared Euler-Maclaurin continuation formula in the `1 ≤ Re s ≤ 2`
 strip, with the four canonical terms separated. -/
@@ -16943,7 +17157,7 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_one_two_strip_polynomial_bound :
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  exact eulerMaclaurinPoleClearedZetaFinitePart_sum_cardinality_polynomial_bound
 
 /-- Polynomial bound for the pole-cancelling main term in the bounded
 Euler-Maclaurin strip. -/
@@ -17067,7 +17281,7 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_one_two_strip_polynomial_boun
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  exact eulerMaclaurinPoleClearedZetaRemainderTerm_integral_majorant_polynomial_bound
 
 /-- Four polynomial Euler-Maclaurin term bounds assemble to a polynomial bound
 for the pole-cleared zeta factor. -/
