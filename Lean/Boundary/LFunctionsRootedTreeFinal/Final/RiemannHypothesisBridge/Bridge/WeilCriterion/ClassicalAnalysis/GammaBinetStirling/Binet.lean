@@ -51,14 +51,18 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation
 
-/-- The arctangent part of the Binet kernel is bounded by `t / ‖w‖` in the
-open right half-plane. -/
+/-- Small-argument arctangent bound for the Binet kernel.
+
+The principal arctangent has branch singularities at `±I`, so the honest
+pointwise estimate is a small-argument sector estimate, not a global
+open-half-plane estimate. -/
 theorem Complex.binetSecondFormula_arctan_norm_le
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     ∀ t : ℝ,
       0 < t →
-        ‖Complex.arctan ((t : ℂ) / w)‖ ≤ t / ‖w‖ := by
+        ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ) →
+        ‖Complex.arctan ((t : ℂ) / w)‖ ≤ 2 * (t / ‖w‖) := by
   sorry
 
 /-- Norm of the Binet exponential denominator agrees with the positive real
@@ -106,17 +110,18 @@ theorem Real.binetSecondFormula_exp_denominator_norm_eq
 /-- Division of the arctangent estimate by the positive Binet denominator. -/
 theorem Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hsmall : ∀ t : ℝ, 0 < t → ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ)) :
     ∀ t : ℝ,
       0 < t →
         ‖Complex.arctan ((t : ℂ) / w) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (t / ‖w‖) /
+          (2 * (t / ‖w‖)) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   intro t ht
   have harctan :
-      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ t / ‖w‖ :=
-    Complex.binetSecondFormula_arctan_norm_le hw_re_pos t ht
+      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ 2 * (t / ‖w‖) :=
+    Complex.binetSecondFormula_arctan_norm_le hw_re_pos t ht (hsmall t ht)
   have hden_norm :
       ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
         Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
@@ -138,41 +143,45 @@ theorem Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le
     _ = ‖Complex.arctan ((t : ℂ) / w)‖ /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
       rw [hden_norm]
-    _ ≤ (t / ‖w‖) /
+    _ ≤ (2 * (t / ‖w‖)) /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
       div_le_div_of_nonneg_right harctan hden_nonneg
 
-/-- Pointwise kernel estimate for Binet's second-formula remainder. -/
+/-- Small-argument pointwise kernel estimate for Binet's second-formula
+remainder. -/
 theorem Complex.binetSecondFormula_kernel_norm_le
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hsmall : ∀ t : ℝ, 0 < t → ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ)) :
     ∀ t : ℝ,
       0 < t →
         ‖Complex.arctan ((t : ℂ) / w) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (t / ‖w‖) /
+          (2 * (t / ‖w‖)) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   exact
-    Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le hw_re_pos
+    Complex.binetSecondFormula_kernel_norm_le_of_arctan_norm_le hw_re_pos hsmall
 
-/-- Sector form of the Binet-kernel estimate on the open right half-plane.
+/-- Small-argument sector form of the Binet-kernel estimate on the open right
+half-plane.
 
 The literal closed-boundary principal-arctangent kernel has singular boundary
 values on the imaginary axis, so the pointwise owner estimate stays in the
-open half-plane.  Closed-sector estimates are obtained later by the
-continued Binet remainder, not by evaluating this kernel pointwise on the
-boundary. -/
+open half-plane and away from the arctangent branch singularities.  Closed
+sector estimates are obtained later by the continued Binet remainder, not by
+evaluating this kernel pointwise on the boundary. -/
 theorem Complex.binetSecondFormula_kernel_norm_le_openRightHalfPlaneSector
     {w : ℂ}
     (hw_sector : Complex.closedRightHalfPlaneSector w)
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hsmall : ∀ t : ℝ, 0 < t → ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ)) :
     ∀ t : ℝ,
       0 < t →
         ‖Complex.arctan ((t : ℂ) / w) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (t / ‖w‖) /
+          (2 * (t / ‖w‖)) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact Complex.binetSecondFormula_kernel_norm_le hw_re_pos
+  exact Complex.binetSecondFormula_kernel_norm_le hw_re_pos hsmall
 
 /-- Strict positivity of the Binet majorant denominator at every positive point. -/
 theorem Real.binetSecondFormula_kernel_majorant_denominator_pos
