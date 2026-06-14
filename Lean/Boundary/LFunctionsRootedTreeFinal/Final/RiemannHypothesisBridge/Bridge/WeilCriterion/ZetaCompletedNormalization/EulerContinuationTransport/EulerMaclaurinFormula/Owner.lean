@@ -37,7 +37,7 @@ noncomputable def eulerMaclaurinPoleClearedZetaMainTerm
 /-- Endpoint correction in the pole-cleared Euler-Maclaurin continuation. -/
 noncomputable def eulerMaclaurinPoleClearedZetaEndpointTerm
     (z : ℂ) : ℂ :=
-  ((z - 1) / 2) *
+  (-((z - 1) / 2)) *
     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
 
 /-- Finite Dirichlet-polynomial part in the raw first-order Euler-Maclaurin
@@ -54,10 +54,11 @@ noncomputable def eulerMaclaurinZetaMainTerm
   (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ ((1 : ℂ) - z)) /
     (z - 1)
 
-/-- Endpoint correction `1/2 · N^{-s}` in the raw Euler-Maclaurin formula. -/
+/-- Endpoint correction `-1/2 · N^{-s}` in the strict post-cutoff raw
+Euler-Maclaurin formula. -/
 noncomputable def eulerMaclaurinZetaEndpointTerm
     (z : ℂ) : ℂ :=
-  (1 / 2 : ℂ) *
+  (-(1 / 2 : ℂ)) *
     (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))
 
 /-- The bounded-strip Euler-Maclaurin cutoff is always at least one. -/
@@ -456,11 +457,19 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_eq_mul_raw
   let U : ℂ :=
     1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)
   calc
-    ((z - 1) / 2) * U =
-        ((z - 1) * (1 / 2 : ℂ)) * U := by
-      exact congrArg (fun w : ℂ => w * U) (div_eq_mul_inv (z - 1) 2)
-    _ = (z - 1) * ((1 / 2 : ℂ) * U) := by
-      exact (mul_assoc (z - 1) (1 / 2 : ℂ) U).symm
+    (-((z - 1) / 2)) * U =
+        ((z - 1) * (-(1 / 2 : ℂ))) * U := by
+      have hdiv :
+          (z - 1) / 2 = (z - 1) * (1 / 2 : ℂ) :=
+        div_eq_mul_inv (z - 1) 2
+      calc
+        (-((z - 1) / 2)) * U =
+            (-((z - 1) * (1 / 2 : ℂ))) * U := by
+          exact congrArg (fun w : ℂ => (-w) * U) hdiv
+        _ = ((z - 1) * (-(1 / 2 : ℂ))) * U := by
+          exact congrArg (fun w : ℂ => w * U) (mul_neg (z - 1) (1 / 2 : ℂ)).symm
+    _ = (z - 1) * ((-(1 / 2 : ℂ)) * U) := by
+      exact (mul_assoc (z - 1) (-(1 / 2 : ℂ)) U).symm
 
 /-- The pole-cleared Bernoulli remainder is `(s - 1)` times the raw
 Euler-Maclaurin Bernoulli remainder. -/
@@ -679,12 +688,13 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_integralMain_eq_mainTerm_stand
         z hhalf_plane)
       (eulerMaclaurin_riemannZeta_postCutoffTail_integralFormula_eq_mainTerm z)
 
-/-- Endpoint normalization for the first-order Euler-Maclaurin tail.
+/-- Endpoint normalization for the strict post-cutoff first-order
+Euler-Maclaurin tail.
 
-The endpoint correction is exactly `(1/2)N^{-z}` in the owner notation. -/
+The endpoint correction is exactly `-(1/2)N^{-z}` in the owner notation. -/
 theorem eulerMaclaurin_riemannZeta_postCutoffTail_endpoint_eq_endpointTerm
     (z : ℂ) :
-    (1 / 2 : ℂ) *
+    (-(1 / 2 : ℂ)) *
         (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) =
       eulerMaclaurinZetaEndpointTerm z := by
   unfold eulerMaclaurinZetaEndpointTerm
@@ -879,10 +889,10 @@ theorem eulerMaclaurinFirstPeriodicBernoulli_eq_sub_nat_sub_half_on_Ioo
 /-- One-unit-interval integration-by-parts identity for the first periodic
 Bernoulli factor.
 
-On `(n, n+1]`, `Int.fract x = x - n`, so the sawtooth is
+On `(n, n+1)`, `Int.fract x = x - n`, so the sawtooth is
 `x - n - 1/2`.  Integrating by parts against `f'` gives the local
 Euler-Maclaurin correction with the strict-right endpoint convention
-`+ f(n)/2 - f(n+1)/2`. -/
+`- f(n)/2 + f(n+1)/2`. -/
 theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
     (f f' : ℝ → ℂ)
     (n : ℕ)
@@ -895,8 +905,8 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
       (Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)))) :
     f (((n + 1 : ℕ) : ℝ)) =
       (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)), f x) +
-        ((1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
-        (-(1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((n : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((n + 1 : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((n : ℕ) : ℝ)) (((n + 1 : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
   sorry
@@ -905,7 +915,7 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_oneInterval_integrationByParts
 integration-by-parts identities over a natural `Ioc` interval.
 
 Summing the local formula over `n = N, ..., M - 1` telescopes the half-endpoint
-terms to `+ f(N)/2 - f(M)/2`, matching the strict post-cutoff convention
+terms to `- f(N)/2 + f(M)/2`, matching the strict post-cutoff convention
 `N < n ≤ M`. -/
 theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc
     (f f' : ℝ → ℂ)
@@ -920,8 +930,8 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc
       (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
     (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
       (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
-        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
-        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
   sorry
@@ -945,8 +955,8 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_integrationByParts_Ioc
       (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
     (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
       (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
-        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
-        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
   exact
@@ -972,8 +982,8 @@ theorem eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
       (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
     (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
       (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
-        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
-        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
   exact
@@ -1090,8 +1100,8 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standa
     (∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z)) =
       (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
-        (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
@@ -1120,7 +1130,7 @@ theorem eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero
     (z : ℂ)
     (hhalf_plane : 1 < z.re) :
     Tendsto
-      (fun M : ℕ => (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
+      (fun M : ℕ => ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
       atTop
       (𝓝 0) := by
   let f : ℕ → ℂ := fun M : ℕ => (1 : ℂ) / ((M : ℂ) ^ z)
@@ -1148,20 +1158,20 @@ theorem eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero
     hf_tendsto.congr' hterms
   have hmul :
       Tendsto
-        (fun M : ℕ => (-(1 / 2 : ℂ)) *
+        (fun M : ℕ => (1 / 2 : ℂ) *
           ((((M : ℕ) : ℝ) : ℂ) ^ (-z)))
         atTop
-        (𝓝 ((-(1 / 2 : ℂ)) * 0)) :=
+        (𝓝 ((1 / 2 : ℂ) * 0)) :=
     tendsto_const_nhds.mul hpow_tendsto
   exact
     Eq.subst
       (motive := fun L : ℂ =>
         Tendsto
-          (fun M : ℕ => (-(1 / 2 : ℂ)) *
+          (fun M : ℕ => (1 / 2 : ℂ) *
             ((((M : ℕ) : ℝ) : ℂ) ^ (-z)))
           atTop
           (𝓝 L))
-      (mul_zero (-(1 / 2 : ℂ)))
+      (mul_zero (1 / 2 : ℂ))
       hmul
 
 /-- The finite main integral over `(N, M]` tends to the improper main integral
@@ -1493,7 +1503,7 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
         if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
@@ -1502,8 +1512,8 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
         (∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z)) =
           (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
               (((x : ℝ) : ℂ) ^ (-z))) +
-            ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
-            (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
             (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
                 (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
@@ -1513,7 +1523,7 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
         z N M hN hNM
   have hendpoint :
       Tendsto
-        (fun M : ℕ => (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
+        (fun M : ℕ => ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
         atTop
         (𝓝 0) :=
     eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero z hhalf_plane
@@ -1545,7 +1555,7 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
     ∫ x in Set.Ioi (((N : ℕ) : ℝ)),
       (((x : ℝ) : ℂ) ^ (-z))
   let B : ℂ :=
-    (1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))
+    -(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))
   let C : ℂ :=
     ∫ x in Set.Ioi (((N : ℕ) : ℝ)),
       ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1562,9 +1572,9 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
           =ᶠ[atTop]
         (fun M : ℕ =>
           (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
-              (((x : ℝ) : ℂ) ^ (-z))) +
+            (((x : ℝ) : ℂ) ^ (-z))) +
             B +
-            (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
             (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
                 (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
@@ -1576,7 +1586,7 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
             (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
                 (((x : ℝ) : ℂ) ^ (-z))) +
               B +
-              (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+              ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
               (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
                 ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
                   (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))))
@@ -1652,7 +1662,7 @@ theorem eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
         if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
@@ -1672,7 +1682,7 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_function_hasSum_standard
         if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
@@ -1746,7 +1756,7 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
           0)
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+        (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
         (-z *
           (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -1757,7 +1767,7 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
           if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
         ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             (((x : ℝ) : ℂ) ^ (-z))) +
-          ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+          (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
           (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) :=
@@ -1775,20 +1785,20 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
   have hsum_eq :
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) =
         ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+        (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
         (-z *
           (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
     have hendpoint :
-        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) =
-          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) := by
+        (-(1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) =
+          (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) := by
       have hcast : (((N : ℕ) : ℝ) : ℂ) = (N : ℂ) :=
         Complex.ofReal_natCast N
       have hpow :
@@ -1798,7 +1808,7 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
       have hrecip :
           (1 : ℂ) / ((N : ℂ) ^ z) = (N : ℂ) ^ (-z) :=
         eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hN
-      exact congrArg (fun W : ℂ => (1 / 2 : ℂ) * W)
+      exact congrArg (fun W : ℂ => -(1 / 2 : ℂ) * W)
         (Eq.trans hpow hrecip.symm)
     have hremainder :
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
@@ -1976,7 +1986,7 @@ noncomputable def eulerMaclaurinZetaMainTermWithCutoff
 noncomputable def eulerMaclaurinZetaEndpointTermWithCutoff
     (N : ℕ)
     (z : ℂ) : ℂ :=
-  (1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))
+  (-(1 / 2 : ℂ)) * (1 / (((N : ℕ) : ℂ) ^ z))
 
 /-- Fixed-cutoff Bernoulli integral core. -/
 noncomputable def eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff
@@ -2163,7 +2173,7 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoff_postCutoffTail_ownerTerms_hasSum
             0)
         ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
             (((x : ℝ) : ℂ) ^ (-z))) +
-          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+          (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
           (-z *
             (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
@@ -2176,7 +2186,7 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoff_postCutoffTail_ownerTerms_hasSum
         eulerMaclaurinZetaMainTermWithCutoff N z :=
     eulerMaclaurin_fixedCutoff_integralMain_eq_mainTerm N hN z hhalf_plane
   have hendpoint :
-      ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) =
+      (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) =
         eulerMaclaurinZetaEndpointTermWithCutoff N z := by
     unfold eulerMaclaurinZetaEndpointTermWithCutoff
     rfl
@@ -2192,7 +2202,7 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoff_postCutoffTail_ownerTerms_hasSum
   have hsum_eq :
       ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
-          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+          (-(1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
           (-z *
             (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
