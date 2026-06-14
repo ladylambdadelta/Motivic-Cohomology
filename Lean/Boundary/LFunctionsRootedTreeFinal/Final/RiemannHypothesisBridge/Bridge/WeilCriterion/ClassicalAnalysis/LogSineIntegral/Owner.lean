@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 
 /-!
@@ -170,6 +171,41 @@ theorem Real.sinePowerEndpointModel_intervalIntegrable_zero_half
       (Real.pi / 2) := by
   exact intervalIntegral.intervalIntegrable_rpow' hs
 
+/-- Nonnegative sine powers are continuous, hence interval-integrable on the
+left half interval. -/
+theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_nonneg
+    (s : ℝ)
+    (hs_nonneg : 0 ≤ s) :
+    IntervalIntegrable
+      (fun u : ℝ => (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (Real.pi / 2) := by
+  have hcontinuous :
+      Continuous (fun u : ℝ => (Real.sin u) ^ s) :=
+    Real.continuous_sin.rpow_const
+      (fun _ => Or.inr hs_nonneg)
+  exact hcontinuous.intervalIntegrable (0 : ℝ) (Real.pi / 2)
+
+/-- Negative sine powers on `[0,π/2]` are dominated by the endpoint model via
+Jordan's lower bound `2/π * u ≤ sin u`. -/
+theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointModel
+    (s : ℝ)
+    (hs : -1 < s)
+    (hs_neg : s < 0)
+    (hmodel :
+      IntervalIntegrable
+        (fun u : ℝ => u ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2)) :
+    IntervalIntegrable
+      (fun u : ℝ => (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      (Real.pi / 2) := by
+  sorry
+
 /-- Local comparison of `sin u ^ s` with the model endpoint singularity near
 `0`, in the integrability form needed for the left half-interval. -/
 theorem Real.sinePowerKernel_intervalIntegrable_zero_half_from_endpointModel
@@ -186,7 +222,15 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_from_endpointModel
       MeasureTheory.volume
       (0 : ℝ)
       (Real.pi / 2) := by
-  sorry
+  by_cases hs_nonneg : 0 ≤ s
+  · exact
+      Real.sinePowerKernel_intervalIntegrable_zero_half_of_nonneg
+        s hs_nonneg
+  · have hs_neg : s < 0 :=
+      lt_of_not_ge hs_nonneg
+    exact
+      Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointModel
+        s hs hs_neg hmodel
 
 /-- Endpoint integrability of the sine-power kernel on `[0,π/2]`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_zero_half
@@ -384,12 +428,48 @@ theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral
       (Real.sinePowerIntegral_reflected_upperHalf_eq_half s hs)
 
 /-- The real-variable `t = sin² u` substitution on `[0,π/2]`. -/
+theorem Real.sinePowerHalfIntegral_eq_sinSubstitutionIntegral
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerHalfIntegral s =
+      ∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  sorry
+
+/-- The real-variable `t = x²` substitution converting the sine-substitution
+integral into the unit-interval Beta integral. -/
+theorem Real.sinePowerSinSubstitutionIntegral_eq_half_betaRealIntegral
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    (∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
+  sorry
+
+/-- The real-variable `t = sin² u` substitution on `[0,π/2]`. -/
 theorem Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstitution
     (s : ℝ)
     (hleft : 0 < (s + 1) / 2)
     (hright : 0 < (1 / 2 : ℝ)) :
     Real.sinePowerHalfIntegral s =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
+  exact
+    Eq.trans
+      (Real.sinePowerHalfIntegral_eq_sinSubstitutionIntegral
+        s hleft hright)
+      (Real.sinePowerSinSubstitutionIntegral_eq_half_betaRealIntegral
+        s hleft hright)
+
+/-- Real/complex comparison for the unit-interval Beta integrand, using
+`Complex.ofReal_cpow` on the positive interval `(0,1)`. -/
+theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_ofRealCpow
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerEulerBetaRealIntegral s =
+      Real.sinePowerEulerBetaIntegral s := by
   sorry
 
 /-- Identification of the real unit-interval Beta integral with the real part
@@ -400,7 +480,9 @@ theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral
     (hright : 0 < (1 / 2 : ℝ)) :
     Real.sinePowerEulerBetaRealIntegral s =
       Real.sinePowerEulerBetaIntegral s := by
-  sorry
+  exact
+    Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_ofRealCpow
+      s hleft hright
 
 /-- Multiplying the unit-interval Beta identification by the half-factor. -/
 theorem Real.sinePowerHalfIntegral_betaRealIntegral_eq_eulerBetaIntegral

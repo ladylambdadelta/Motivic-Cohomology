@@ -14,6 +14,81 @@ noncomputable section
 
 open scoped Topology
 
+/-- The complex Binet kernel is integrable on the positive half-line in the
+open right half-plane. -/
+theorem Complex.binetSecondFormula_kernel_integrableOn_Ioi_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    IntegrableOn
+      (fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+      (Set.Ioi (0 : ℝ)) := by
+  sorry
+
+/-- The Binet remainder integral splits at `‖w‖ / 2` into its small-argument
+and tail pieces. -/
+theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    Complex.binetSecondFormulaRemainder w =
+      2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+          Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) +
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+  let K : ℝ → ℂ := fun t : ℝ =>
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  have hK_integrable_Ioi : IntegrableOn K (Set.Ioi (0 : ℝ)) :=
+    Complex.binetSecondFormula_kernel_integrableOn_Ioi_openRightHalfPlane
+      hw_re_pos
+  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) (by norm_num : (0 : ℝ) ≤ 2)
+  have hsmall_integrable :
+      IntegrableOn K (Set.Ioc (0 : ℝ) (‖w‖ / 2)) :=
+    hK_integrable_Ioi.mono_set Ioc_subset_Ioi_self
+  have htail_integrable :
+      IntegrableOn K (Set.Ioi (‖w‖ / 2)) :=
+    hK_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)
+  have hsplit :
+      ∫ t : ℝ in Set.Ioi (0 : ℝ), K t =
+        ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
+          ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+    have hunion :
+        Set.Ioc (0 : ℝ) (‖w‖ / 2) ∪ Set.Ioi (‖w‖ / 2) =
+          Set.Ioi (0 : ℝ) :=
+      Set.Ioc_union_Ioi_eq_Ioi hcut_nonneg
+    have hdisjoint :
+        Disjoint (Set.Ioc (0 : ℝ) (‖w‖ / 2))
+          (Set.Ioi (‖w‖ / 2)) :=
+      Ioc_disjoint_Ioi le_rfl
+    calc
+      ∫ t : ℝ in Set.Ioi (0 : ℝ), K t =
+          ∫ t : ℝ in
+            Set.Ioc (0 : ℝ) (‖w‖ / 2) ∪ Set.Ioi (‖w‖ / 2), K t := by
+        rw [hunion]
+      _ =
+          ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
+            ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+        exact
+          setIntegral_union hdisjoint measurableSet_Ioi
+            hsmall_integrable htail_integrable
+  calc
+    Complex.binetSecondFormulaRemainder w =
+        2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t := by
+      rfl
+    _ =
+        2 *
+            (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
+              ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t) := by
+      rw [hsplit]
+    _ =
+        2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
+          2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+      ring
+
 /-- Small-argument part of the Binet remainder integral, where the principal
 arctangent is controlled by its power-series disk estimate. -/
 theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
@@ -50,7 +125,35 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
       8 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  sorry
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (0 : ℝ),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let S : ℂ :=
+    2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      Complex.arctan ((t : ℂ) / w) /
+        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  let T : ℂ :=
+    2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+      Complex.arctan ((t : ℂ) / w) /
+        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
+    exact Complex.binetSecondFormulaRemainder_eq_small_add_tail hw_re_pos
+  have hS : ‖S‖ ≤ 4 * J / ‖w‖ :=
+    Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+      hw_re_pos
+  have hT : ‖T‖ ≤ 4 * J / ‖w‖ :=
+    Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
+      hw_re_pos
+  have hsum : ‖S + T‖ ≤ 8 * J / ‖w‖ := by
+    calc
+      ‖S + T‖ ≤ ‖S‖ + ‖T‖ := norm_add_le S T
+      _ ≤ 4 * J / ‖w‖ + 4 * J / ‖w‖ := add_le_add hS hT
+      _ = 8 * J / ‖w‖ := by ring
+  exact
+    Eq.subst
+      (motive := fun x : ℂ => ‖x‖ ≤ 8 * J / ‖w‖)
+      hsplit.symm
+      hsum
 
 /-- The pointwise Binet-kernel majorant integrates to a norm bound for the
 Binet remainder in the open right half-plane. -/
