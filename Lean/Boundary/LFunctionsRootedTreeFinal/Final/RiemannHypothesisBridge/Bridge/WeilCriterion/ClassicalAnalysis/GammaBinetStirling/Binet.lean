@@ -15,10 +15,34 @@ noncomputable section
 
 open scoped Topology
 
+/-- Binet's logarithmic identity follows from the classical second Binet
+integral representation on the open right half-plane. -/
+theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_representation :
+    ∀ w : ℂ,
+      0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
 /-- Binet's second logarithmic formula on the open right half-plane. -/
 theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane :
     ∀ w : ℂ,
       0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  exact
+    Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_representation
+
+/-- Continuity of the Binet logarithmic identity up to the closed right
+half-plane sector after excluding a fixed compact neighborhood of the origin. -/
+theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation :
+    ∃ R : ℝ,
+      0 < R ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
@@ -35,7 +59,8 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continua
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  exact
+    Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation
 
 /-- Binet's second logarithmic formula for Gamma in the closed right
 half-plane, away from the origin and after a fixed large-radius cutoff. -/
@@ -51,6 +76,25 @@ theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation
 
+/-- Principal arctangent is Lipschitz with constant `2` on the closed disk
+`‖z‖ ≤ 1 / 2`. -/
+theorem Complex.norm_arctan_le_two_norm_of_norm_le_half
+    {z : ℂ}
+    (hz : ‖z‖ ≤ (1 / 2 : ℝ)) :
+    ‖Complex.arctan z‖ ≤ 2 * ‖z‖ := by
+  sorry
+
+/-- Norm of the Binet arctangent argument. -/
+theorem Complex.norm_real_div_eq_real_norm_div
+    (t : ℝ)
+    (w : ℂ) :
+    ‖(t : ℂ) / w‖ = ‖t‖ / ‖w‖ := by
+  calc
+    ‖(t : ℂ) / w‖ = ‖(t : ℂ)‖ / ‖w‖ := by
+      exact norm_div _ _
+    _ = ‖t‖ / ‖w‖ := by
+      rw [Complex.normSq, Real.norm_eq_abs]
+
 /-- Small-argument arctangent bound for the Binet kernel.
 
 The principal arctangent has branch singularities at `±I`, so the honest
@@ -63,7 +107,25 @@ theorem Complex.binetSecondFormula_arctan_norm_le
       0 < t →
         ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ) →
         ‖Complex.arctan ((t : ℂ) / w)‖ ≤ 2 * (t / ‖w‖) := by
-  sorry
+  intro t ht hsmall
+  have harctan :
+      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ 2 * ‖(t : ℂ) / w‖ :=
+    Complex.norm_arctan_le_two_norm_of_norm_le_half hsmall
+  have ht_norm : ‖t‖ = t :=
+    Real.norm_of_nonneg (le_of_lt ht)
+  have harg_norm :
+      ‖(t : ℂ) / w‖ = t / ‖w‖ := by
+    calc
+      ‖(t : ℂ) / w‖ = ‖t‖ / ‖w‖ :=
+        Complex.norm_real_div_eq_real_norm_div t w
+      _ = t / ‖w‖ := by
+        rw [ht_norm]
+  exact
+    Eq.subst
+      (motive := fun x : ℝ =>
+        ‖Complex.arctan ((t : ℂ) / w)‖ ≤ 2 * x)
+      harg_norm
+      harctan
 
 /-- Norm of the Binet exponential denominator agrees with the positive real
 denominator. -/

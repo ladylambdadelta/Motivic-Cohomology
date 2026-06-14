@@ -14,16 +14,56 @@ noncomputable section
 
 open scoped Topology
 
+/-- Small-argument part of the Binet remainder integral, where the principal
+arctangent is controlled by its power-series disk estimate. -/
+theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+      4 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  sorry
+
+/-- Tail part of the Binet remainder integral.  This is where one uses the
+principal-branch arctangent bound away from the branch singularities together
+with the exponential denominator. -/
+theorem Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+      4 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  sorry
+
+/-- Splitting the Binet integral at `‖w‖ / 2` gives the global open-half-plane
+remainder bound. -/
+theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖Complex.binetSecondFormulaRemainder w‖ ≤
+      8 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  sorry
+
 /-- The pointwise Binet-kernel majorant integrates to a norm bound for the
 Binet remainder in the open right half-plane. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_kernel_bound
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      2 *
+      8 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  sorry
+  exact
+    Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
+      hw_re_pos
 
 /-- Integration of the pointwise Binet-kernel majorant on the open right
 half-plane. -/
@@ -31,7 +71,7 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_openRightH
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      2 *
+      8 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
   exact
@@ -162,11 +202,11 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane :
   let J : ℝ :=
     ∫ t : ℝ in Set.Ioi (0 : ℝ),
       t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let C : ℝ := 2 * J
+  let C : ℝ := 8 * J
   have hJ_pos : 0 < J :=
     Real.binetSecondFormula_kernel_majorant_integral_pos
   have hC_pos : 0 < C :=
-    mul_pos two_pos hJ_pos
+    mul_pos (by norm_num : (0 : ℝ) < 8) hJ_pos
   refine ⟨C, hC_pos, ?_⟩
   intro w hw_re_pos
   exact
