@@ -815,6 +815,123 @@ theorem Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound_largeRadi
     le_trans hgamma_extract
       (le_trans hlog_plus_loss (hloss w hw_sector hw_radius))
 
+/-- The closed right-half-plane Gamma annulus used to absorb small radii in the
+normalized Stirling extraction. -/
+def Complex.closedRightHalfPlaneGammaAnnulus (R₀ : ℝ) : Set ℂ :=
+  {w : ℂ | Complex.closedRightHalfPlaneSector w ∧ (1 / 2 : ℝ) ≤ ‖w‖ ∧ ‖w‖ ≤ R₀}
+
+/-- The closed right-half-plane Gamma annulus is closed. -/
+theorem Complex.closedRightHalfPlaneGammaAnnulus_isClosed
+    (R₀ : ℝ) :
+    IsClosed (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
+  have hsector : IsClosed {w : ℂ | Complex.closedRightHalfPlaneSector w} := by
+    exact isClosed_le continuous_const Complex.continuous_re
+  have hinner : IsClosed {w : ℂ | (1 / 2 : ℝ) ≤ ‖w‖} := by
+    exact isClosed_le continuous_const continuous_norm
+  have houter : IsClosed {w : ℂ | ‖w‖ ≤ R₀} := by
+    exact isClosed_le continuous_norm continuous_const
+  have hset :
+      Complex.closedRightHalfPlaneGammaAnnulus R₀ =
+        {w : ℂ | Complex.closedRightHalfPlaneSector w} ∩
+          {w : ℂ | (1 / 2 : ℝ) ≤ ‖w‖} ∩
+            {w : ℂ | ‖w‖ ≤ R₀} := by
+    ext w
+    constructor
+    · intro hw
+      exact ⟨⟨hw.1, hw.2.1⟩, hw.2.2⟩
+    · intro hw
+      exact ⟨hw.1.1, hw.1.2, hw.2⟩
+  exact Eq.subst
+    (motive := fun S : Set ℂ => IsClosed S)
+    hset.symm
+    ((hsector.inter hinner).inter houter)
+
+/-- The closed right-half-plane Gamma annulus is bounded. -/
+theorem Complex.closedRightHalfPlaneGammaAnnulus_isBounded
+    (R₀ : ℝ) :
+    Bornology.IsBounded (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
+  refine isBounded_iff_forall_norm_le.2 ⟨max R₀ 0 + 1, ?_⟩
+  intro w hw
+  have hraw : ‖w‖ ≤ R₀ := hw.2.2
+  exact le_trans hraw
+    (le_trans (le_max_left R₀ 0) (le_add_of_nonneg_right zero_le_one))
+
+/-- The closed right-half-plane Gamma annulus is compact. -/
+theorem Complex.closedRightHalfPlaneGammaAnnulus_isCompact
+    (R₀ : ℝ) :
+    IsCompact (Complex.closedRightHalfPlaneGammaAnnulus R₀) :=
+  Metric.isCompact_of_isClosed_isBounded
+    (Complex.closedRightHalfPlaneGammaAnnulus_isClosed R₀)
+    (Complex.closedRightHalfPlaneGammaAnnulus_isBounded R₀)
+
+/-- `Gamma` is nonzero on the closed right-half-plane Gamma annulus. -/
+theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
+    (R₀ : ℝ)
+    {w : ℂ}
+    (hw : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀) :
+    Complex.Gamma w ≠ 0 := by
+  sorry
+
+/-- The function `w ↦ log ‖Γ(w)‖` is continuous on the closed right-half-plane
+Gamma annulus. -/
+theorem Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus
+    (R₀ : ℝ) :
+    ContinuousOn
+      (fun w : ℂ => Real.log ‖Complex.Gamma w‖)
+      (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
+  sorry
+
+/-- Compact boundedness of `log ‖Γ(w)‖` on the closed right-half-plane Gamma
+annulus. -/
+theorem Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound
+    (R₀ : ℝ) :
+    ∃ M : ℝ,
+      ∀ w : ℂ,
+        w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
+        Real.log ‖Complex.Gamma w‖ ≤ M := by
+  rcases IsCompact.exists_bound_of_continuousOn
+      (Complex.closedRightHalfPlaneGammaAnnulus_isCompact R₀)
+      (Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus R₀) with
+    ⟨M, hM⟩
+  refine ⟨M, ?_⟩
+  intro w hw
+  exact hM w hw
+
+/-- The log-linear Gamma envelope has a positive lower bound on the compact
+annulus. -/
+theorem Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ δ : ℝ,
+      0 < δ ∧
+      ∀ w : ℂ,
+        w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
+        δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- A bounded numerator and positive envelope lower bound give a constant
+multiple bound on the compact Gamma annulus. -/
+theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_of_bound_and_lower
+    (R₀ M δ : ℝ)
+    (hδ_pos : 0 < δ)
+    (hM :
+      ∀ w : ℂ,
+        w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
+        Real.log ‖Complex.Gamma w‖ ≤ M)
+    (hδ :
+      ∀ w : ℂ,
+        w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
+        δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        ‖w‖ ≤ R₀ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
 /-- Compact annulus absorption for the logarithmic Gamma envelope in the closed
 right half-plane sector.
 
@@ -834,7 +951,14 @@ theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus
         ‖w‖ ≤ R₀ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  rcases Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound R₀ with
+    ⟨M, hM⟩
+  rcases Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
+      R₀ hR₀_pos with
+    ⟨δ, hδ_pos, hδ⟩
+  exact
+    Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_of_bound_and_lower
+      R₀ M δ hδ_pos hM hδ
 
 /-- Assembly of large-radius extraction and compact-annulus absorption. -/
 theorem Complex.Gamma_log_norm_bound_of_largeRadius_and_compactAnnulus
@@ -8549,6 +8673,15 @@ theorem finiteOrder_stripEnvelope_isBigO_doubleExponential
         fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
   sorry
 
+/-- Membership in the open vertical strip gives the corresponding closed-strip
+inequalities needed by finite-order pointwise bounds. -/
+theorem openStrip_mem_closedStrip_bounds
+    {a b : ℝ}
+    {z : ℂ}
+    (hz : z ∈ Complex.re ⁻¹' Set.Ioo a b) :
+    a ≤ z.re ∧ z.re ≤ b :=
+  ⟨le_of_lt hz.1, le_of_lt hz.2⟩
+
 /-- A pointwise finite-order bound on a strip gives the matching `IsBigO`
 bound against the finite-order envelope on the same strip filter. -/
 theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
@@ -8564,7 +8697,25 @@ theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
         Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
           𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
       fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact
+    IsBigO.of_bound 1
+      (Filter.Eventually.of_forall
+        (fun z =>
+          by
+            intro hz
+            have hstrip : a ≤ z.re ∧ z.re ≤ b :=
+              openStrip_mem_closedStrip_bounds hz
+            have hpoint :
+                ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+              hbound z hstrip.1 hstrip.2
+            have hright_nonneg :
+                0 ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+              le_trans (norm_nonneg (f z)) hpoint
+            exact Eq.subst
+              (motive := fun x : ℝ =>
+                ‖f z‖ ≤ x)
+              (one_mul (A * Real.exp (B * (1 + ‖z‖) ^ m))).symm
+              hpoint))
 
 /-- The closed-strip envelope domination can be used on the open-strip filter. -/
 theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
@@ -8586,7 +8737,19 @@ theorem real_pi_div_two_width_lt_pi_div_width
     {a b : ℝ}
     (hab : a < b) :
     Real.pi / (2 * (b - a)) < Real.pi / (b - a) := by
-  sorry
+  let w : ℝ := b - a
+  have hw_pos : 0 < w :=
+    sub_pos.mpr hab
+  have hw_lt_two_w : w < 2 * w := by
+    calc
+      w = 1 * w := (one_mul w).symm
+      _ < 2 * w := mul_lt_mul_of_pos_right one_lt_two hw_pos
+  exact
+    div_lt_div₀'
+      (le_refl Real.pi)
+      hw_lt_two_w
+      Real.pi_pos
+      hw_pos
 
 /-- Ordinary finite-order growth in a bounded vertical strip gives the
 subcritical double-exponential admissible-growth hypothesis used by the
