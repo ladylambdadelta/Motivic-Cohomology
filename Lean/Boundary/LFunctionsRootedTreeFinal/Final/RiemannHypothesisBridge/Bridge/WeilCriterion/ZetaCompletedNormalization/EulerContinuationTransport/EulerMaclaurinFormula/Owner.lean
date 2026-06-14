@@ -839,6 +839,124 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
       hterms.symm
       hsum
 
+/-- Generic finite first-order Euler-Maclaurin identity on a natural `Ioc`
+interval, with the first periodic Bernoulli remainder.
+
+This is the exact finite calculus theorem needed by the zeta specialization:
+the function is continuous on the compact interval, has the stated derivative
+on the open interval, and the derivative is integrable. -/
+theorem eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
+    (f f' : ℝ → ℂ)
+    (N M : ℕ)
+    (hNM : N ≤ M)
+    (hf_cont : ContinuousOn f
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))))
+    (hf_deriv : ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt f (f' x) x)
+    (hf'_int : IntegrableOn f'
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)))) :
+    (∑ n in Finset.Ioc N M, f ((n : ℕ) : ℝ)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+        ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+  sorry
+
+/-- Continuity of the zeta complex-power profile on a positive finite real
+interval. -/
+theorem eulerMaclaurin_cpow_neg_continuousOn_Icc_nat
+    (z : ℂ)
+    (N M : ℕ)
+    (hN : 0 < N) :
+    ContinuousOn
+      (fun x : ℝ => (((x : ℝ) : ℂ) ^ (-z)))
+      (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) := by
+  intro x hx
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le (Nat.cast_pos.mpr hN) hx.1
+  exact
+    (Complex.continuousAt_ofReal_cpow_const x (-z)
+      (Or.inr (ne_of_gt hx_pos))).continuousWithinAt
+
+/-- Pointwise derivative of the zeta complex-power profile on a positive
+finite real interval. -/
+theorem eulerMaclaurin_cpow_neg_hasDerivAt_on_Ioo_nat
+    (z : ℂ)
+    (N M : ℕ)
+    (hN : 0 < N) :
+    ∀ x : ℝ,
+      x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+        HasDerivAt
+          (fun t : ℝ => (((t : ℝ) : ℂ) ^ (-z)))
+          (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))
+          x := by
+  intro x hx
+  have hx_pos : 0 < x :=
+    lt_trans (Nat.cast_pos.mpr hN) hx.1
+  have hslit : ((x : ℂ) : ℂ) ∈ slitPlane :=
+    ofReal_mem_slitPlane.mpr hx_pos
+  have hcomplex :
+      HasDerivAt
+        (fun w : ℂ => w ^ (-z))
+        ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1)
+        (x : ℂ) :=
+    (hasDerivAt_id (x : ℂ)).cpow_const hslit
+  have hreal :
+      HasDerivAt
+        (fun t : ℝ => (((t : ℝ) : ℂ) ^ (-z)))
+        ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1)
+        x :=
+    hcomplex.comp_ofReal
+  have hexponent :
+      ((-z) - 1) = -(z + 1) := by
+    calc
+      ((-z) - 1) = (-z) + (-(1 : ℂ)) := by
+        exact sub_eq_add_neg (-z) (1 : ℂ)
+      _ = -(z + 1) := by
+        exact (neg_add z (1 : ℂ)).symm
+  have hvalue :
+      ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1) =
+        -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+    calc
+      ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1) =
+          (-z) * ((x : ℂ) ^ ((-z) - 1)) := by
+        exact mul_one ((-z) * ((x : ℂ) ^ ((-z) - 1)))
+      _ = -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+        exact congrArg
+          (fun W : ℂ => -z * W)
+          (congrArg (fun E : ℂ => ((x : ℂ) ^ E)) hexponent)
+  exact hreal.congr_deriv hvalue
+
+/-- Integrability of the derivative profile on a positive finite real
+interval. -/
+theorem eulerMaclaurin_cpow_neg_derivative_integrableOn_Ioc_nat
+    (z : ℂ)
+    (N M : ℕ)
+    (hN : 0 < N) :
+    IntegrableOn
+      (fun x : ℝ => -z * (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) := by
+  have hcont :
+      ContinuousOn
+        (fun x : ℝ => -z * (((x : ℝ) : ℂ) ^ (-(z + 1))))
+        (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) := by
+    intro x hx
+    have hx_pos : 0 < x :=
+      lt_of_lt_of_le (Nat.cast_pos.mpr hN) hx.1
+    exact
+      ((Complex.continuousAt_ofReal_cpow_const x (-(z + 1))
+        (Or.inr (ne_of_gt hx_pos))).const_mul (-z)).continuousWithinAt
+  have hcompact : IsCompact (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) :=
+    isCompact_Icc
+  have hsubset :
+      Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) ⊆
+        Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) := by
+    intro x hx
+    exact ⟨le_of_lt hx.1, hx.2⟩
+  exact (hcompact.integrableOn hcont).mono_set hsubset
+
 /-- Finite first-order Euler-Maclaurin identity for the strict post-cutoff
 complex-power tail.
 
@@ -857,11 +975,28 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standa
       (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z))) +
         ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
-        ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
-  sorry
+  let f : ℝ → ℂ := fun x : ℝ => (((x : ℝ) : ℂ) ^ (-z))
+  let f' : ℝ → ℂ := fun x : ℝ => -z * (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have hf_cont :
+      ContinuousOn f
+        (Set.Icc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) :=
+    eulerMaclaurin_cpow_neg_continuousOn_Icc_nat z N M hN
+  have hf_deriv :
+      ∀ x : ℝ,
+        x ∈ Set.Ioo (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)) →
+          HasDerivAt f (f' x) x :=
+    eulerMaclaurin_cpow_neg_hasDerivAt_on_Ioo_nat z N M hN
+  have hf'_int :
+      IntegrableOn f'
+        (Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ))) :=
+    eulerMaclaurin_cpow_neg_derivative_integrableOn_Ioc_nat z N M hN
+  exact
+    eulerMaclaurin_firstOrder_finite_Ioc_identity_of_hasDerivAt
+      f f' N M hNM hf_cont hf_deriv hf'_int
 
 /-- Limit passage from the finite strict-tail Euler-Maclaurin identity to the
 improper post-cutoff `HasSum`.
@@ -888,7 +1023,7 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
           (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
               (((x : ℝ) : ℂ) ^ (-z))) +
             ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
-            ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
             (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
               ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
                 (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
