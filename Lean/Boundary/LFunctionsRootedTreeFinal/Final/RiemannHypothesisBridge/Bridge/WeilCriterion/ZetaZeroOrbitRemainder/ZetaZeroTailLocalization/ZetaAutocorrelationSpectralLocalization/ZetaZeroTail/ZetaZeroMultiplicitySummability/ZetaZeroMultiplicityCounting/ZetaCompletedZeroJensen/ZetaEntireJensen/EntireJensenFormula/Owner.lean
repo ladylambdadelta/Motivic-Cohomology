@@ -3455,6 +3455,76 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
         φ z t)
       hprod
 
+/-- Compactness of the affine center-to-endpoint segment. -/
+theorem complex_centerSegment_image_Icc_isCompact
+    (z : ℂ) :
+    IsCompact
+      ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+        Set.Icc (0 : ℝ) 1) := by
+  exact
+    isCompact_Icc.image
+      (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := z))
+
+/-- Finite analytic tube and domination package over a compact center
+segment.
+
+This is the finite-subcover step after the segment compactness lemma.  Local
+analyticity at each point of the compact segment supplies finitely many
+analytic charts.  A small endpoint ball keeps all nearby center segments in
+that finite tube, gives continuity of both the integrand and endpoint
+derivative integrand on the parameter interval, and gives a constant
+dominating function for the derivative integrand. -/
+theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        IsCompact
+          ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+            Set.Icc (0 : ℝ) 1) →
+        ∃ u : Set ℂ,
+          z ∈ u ∧
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              ∃ ε : ℝ,
+                0 < ε ∧
+                (∀ᶠ x in 𝓝 w,
+                  AEStronglyMeasurable
+                    (fun t : ℝ =>
+                      x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                IntervalIntegrable
+                  (fun t : ℝ =>
+                    w * φ (AffineMap.lineMap (0 : ℂ) w t))
+                  volume
+                  (0 : ℝ)
+                  1 ∧
+                AEStronglyMeasurable
+                  (fun t : ℝ =>
+                    complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ w t)
+                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                ∃ bound : ℝ → ℝ,
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                          φ x t‖ ≤ bound t) ∧
+                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        HasDerivAt
+                          (fun y : ℂ =>
+                            y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                          (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                            φ x t)
+                          x) := by
+  sorry
+
 /-- Compact finite-tube domination for center-segment endpoint derivatives.
 
 This is the standard compactness step behind differentiating the segment
@@ -3510,7 +3580,11 @@ theorem complex_centerSegmentIntegral_compactFiniteTube_dominatedPackage
                           (complex_centerSegmentIntegral_endpointDerivativeIntegrand
                             φ x t)
                           x) := by
-  sorry
+  intro z hz
+  exact
+    complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
+      φ hstar hφ z hz
+      (complex_centerSegment_image_Icc_isCompact z)
 
 /-- Compact analytic tube around nearby center segments.
 

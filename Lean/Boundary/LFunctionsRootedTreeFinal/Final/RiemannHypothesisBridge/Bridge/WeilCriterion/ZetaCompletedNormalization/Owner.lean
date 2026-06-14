@@ -17578,6 +17578,83 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
     complex_add_sub_left_cancel S R
   exact Eq.trans hsub hcancel
 
+/-- The first periodic Bernoulli sawtooth is bounded by one in absolute value. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_abs_le_one
+    (x : ℝ) :
+    |eulerMaclaurinFirstPeriodicBernoulli x| ≤ 1 := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  have hfract_nonneg : 0 ≤ Int.fract x :=
+    Int.fract_nonneg x
+  have hfract_le_one : Int.fract x ≤ 1 :=
+    le_of_lt (Int.fract_lt_one x)
+  have hlower : -(1 : ℝ) ≤ Int.fract x - 1 / 2 := by
+    have hneg_half : -(1 : ℝ) ≤ -(1 / 2 : ℝ) := by
+      exact neg_le_neg one_half_le_one
+    have hshift : -(1 / 2 : ℝ) ≤ Int.fract x - 1 / 2 := by
+      calc
+        -(1 / 2 : ℝ) = 0 - 1 / 2 := by
+          exact (zero_sub (1 / 2 : ℝ)).symm
+        _ ≤ Int.fract x - 1 / 2 :=
+          sub_le_sub_right hfract_nonneg (1 / 2 : ℝ)
+    exact le_trans hneg_half hshift
+  have hupper : Int.fract x - 1 / 2 ≤ 1 := by
+    have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) :=
+      one_half_nonneg
+    calc
+      Int.fract x - 1 / 2 ≤ Int.fract x :=
+        sub_le_self (Int.fract x) hhalf_nonneg
+      _ ≤ 1 :=
+        hfract_le_one
+  exact abs_le.mpr ⟨hlower, hupper⟩
+
+/-- Positive-real complex powers in the Euler-Maclaurin tail are bounded by the
+corresponding real power majorant. -/
+theorem norm_real_cpow_neg_z_add_one_le_rpow
+    {x : ℝ}
+    (hx : 0 < x)
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re) :
+    ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ x ^ (-(z.re + 1)) := by
+  have hnorm :
+      ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ =
+        x ^ (-(z + 1)).re := by
+    calc
+      ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ =
+          Complex.abs (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+        exact Complex.norm_eq_abs (((x : ℝ) : ℂ) ^ (-(z + 1)))
+      _ = x ^ (-(z + 1)).re := by
+        exact Complex.abs_cpow_eq_rpow_re_of_pos hx (-(z + 1))
+  have hre : (-(z + 1)).re = -(z.re + 1) := by
+    calc
+      (-(z + 1)).re = -((z + 1).re) := by
+        exact Complex.neg_re (z + 1)
+      _ = -(z.re + (1 : ℂ).re) := by
+        exact congrArg Neg.neg (Complex.add_re z 1)
+      _ = -(z.re + 1) := by
+        exact congrArg (fun t : ℝ => -(z.re + t)) Complex.one_re
+  exact le_of_eq
+    (Eq.trans hnorm (congrArg (fun e : ℝ => x ^ e) hre))
+
+/-- Scalar tail integral bound for the real power majorant after a cutoff
+`N ≥ 1` and exponent `σ ≥ 1`. -/
+theorem integral_Ioi_rpow_neg_re_add_one_le_one_of_one_le_cutoff
+    {N σ : ℝ}
+    (hN : 1 ≤ N)
+    (hσ : 1 ≤ σ) :
+    ∫ x in Set.Ioi N, x ^ (-(σ + 1)) ≤ 1 := by
+  sorry
+
+/-- Bochner norm domination for the Bernoulli-periodic Euler-Maclaurin core by
+the scalar real-power tail integral. -/
+theorem eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_norm_integral_domination
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2) :
+    ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤
+      ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+        x ^ (-(z.re + 1)) := by
+  sorry
+
 /-- Scalar improper-integral tail estimate for the first periodic Bernoulli
 Euler-Maclaurin kernel.
 
@@ -17589,7 +17666,21 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_integral_norm_le_one_sta
     (hz_one : 1 ≤ z.re)
     (hz_two : z.re ≤ 2) :
     ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤ 1 := by
-  sorry
+  have hdom :
+      ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤
+        ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          x ^ (-(z.re + 1)) :=
+    eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_norm_integral_domination
+      z hz_one hz_two
+  have hcutoff :
+      (1 : ℝ) ≤ ((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ) :=
+    one_le_eulerMaclaurinPoleClearedZetaCutoff_real z
+  have htail :
+      ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          x ^ (-(z.re + 1)) ≤ 1 :=
+    integral_Ioi_rpow_neg_re_add_one_le_one_of_one_le_cutoff
+      hcutoff hz_one
+  exact le_trans hdom htail
 
 /-- Standard Bernoulli-periodic tail majorant for the Euler-Maclaurin zeta
 remainder core on the closed strip `1 ≤ Re z ≤ 2`. -/
