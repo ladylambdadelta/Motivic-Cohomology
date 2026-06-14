@@ -23,7 +23,7 @@ def Complex.riemannZetaBoundaryLineTruncation
     (t : ℝ)
     (N : ℕ) : ℂ :=
   ∑ n ∈ Finset.Icc 1 N,
-    ((n : ℂ) ^ (-(Complex.boundaryLineOnePointRealParam t)))⁻¹
+    ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
 
 end
 

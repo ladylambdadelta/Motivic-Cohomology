@@ -12,6 +12,76 @@ namespace LFunctions
 
 noncomputable section
 
+/-- The boundary-line Dirichlet monomial is the reciprocal weight times the
+logarithmic oscillator. -/
+theorem Complex.boundaryLineOnePointRealParam_dirichletTerm_eq_reciprocal_mul_oscillation
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹ =
+      ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+  have hn_complex_ne : (n : ℂ) ≠ 0 := by
+    exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn)
+  have hpoint :
+      Complex.boundaryLineOnePointRealParam t = 1 + (t : ℂ) * Complex.I := by
+    rfl
+  have hpow_add :
+      (n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t) =
+        (n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I) := by
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        (n : ℂ) ^ z =
+          (n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I))
+      hpoint.symm
+      (Complex.cpow_add (1 : ℂ) ((t : ℂ) * Complex.I) hn_complex_ne)
+  have hinv_osc :
+      ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ =
+        (n : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+    have hneg :
+        -((t : ℂ) * Complex.I) = -(t : ℂ) * Complex.I := by
+      exact neg_mul (t : ℂ) Complex.I
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ = (n : ℂ) ^ z)
+      hneg
+      (Complex.cpow_neg (n : ℂ) ((t : ℂ) * Complex.I)).symm
+  calc
+    ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹ =
+        ((n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ := by
+      exact congrArg Inv.inv hpow_add
+    _ = ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ *
+          ((n : ℂ) ^ (1 : ℂ))⁻¹ := by
+      exact mul_inv_rev ((n : ℂ) ^ (1 : ℂ)) ((n : ℂ) ^ ((t : ℂ) * Complex.I))
+    _ = (n : ℂ) ^ (-(t : ℂ) * Complex.I) *
+          ((n : ℂ) ^ (1 : ℂ))⁻¹ := by
+      exact congrArg
+        (fun z : ℂ => z * ((n : ℂ) ^ (1 : ℂ))⁻¹)
+        hinv_osc
+    _ = (n : ℂ) ^ (-(t : ℂ) * Complex.I) * (n : ℂ)⁻¹ := by
+      exact congrArg
+        (fun z : ℂ => (n : ℂ) ^ (-(t : ℂ) * Complex.I) * z⁻¹)
+        (Complex.cpow_one (n : ℂ))
+    _ = ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+      exact mul_comm ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) ((n : ℂ)⁻¹ : ℂ)
+
+/-- Finite boundary-line Dirichlet truncations are exactly the
+reciprocal-weighted logarithmic-phase sums. -/
+theorem Complex.riemannZetaBoundaryLineTruncation_eq_weighted_logarithmicPhase_sum
+    (t : ℝ)
+    (N : ℕ) :
+    Complex.riemannZetaBoundaryLineTruncation t N =
+      ∑ n ∈ Finset.Icc 1 N,
+        ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+  refine Finset.sum_congr rfl ?_
+  intro n hn_mem
+  have hn_one_le : 1 ≤ n :=
+    (Finset.mem_Icc.mp hn_mem).1
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hn_one_le
+  exact
+    Complex.boundaryLineOnePointRealParam_dirichletTerm_eq_reciprocal_mul_oscillation
+      t hn_pos
+
 /-- Finite Abel-summation estimate for the post-cutoff reciprocal-weighted
 logarithmic phase.
 
@@ -65,7 +135,7 @@ theorem Complex.boundaryLineOnePointRealParam_tsumTail_bound_of_abelBoundary :
             1 ≤ N →
               ‖∑' n : ℕ,
                 if N < n then
-                  ((n : ℂ) ^ (-(Complex.boundaryLineOnePointRealParam t)))⁻¹
+                  ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
                 else
                   0‖ ≤
                 A * Real.log (2 + ‖t‖) := by
@@ -86,7 +156,7 @@ theorem Complex.boundaryLineOnePointRealParam_eulerMaclaurinTail_bound :
             1 ≤ N →
               ‖∑' n : ℕ,
                 if N < n then
-                  ((n : ℂ) ^ (-(Complex.boundaryLineOnePointRealParam t)))⁻¹
+                  ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
                 else
                   0‖ ≤
                 A * Real.log (2 + ‖t‖) := by
@@ -104,7 +174,28 @@ theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound_of_
               ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
                 Complex.riemannZetaBoundaryLineTruncation t N‖ ≤
                   A * Real.log (2 + ‖t‖) := by
-  sorry
+  rcases Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht N hN
+  have htrunc :
+      Complex.riemannZetaBoundaryLineTruncation t N =
+        ∑ n ∈ Finset.Icc 1 N,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    Complex.riemannZetaBoundaryLineTruncation_eq_weighted_logarithmicPhase_sum
+      t N
+  have hnorm :
+      ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N,
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+        A * Real.log (2 + ‖t‖) :=
+    hbound t ht N hN
+  exact Eq.subst
+    (motive := fun S : ℂ =>
+      ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) - S‖ ≤
+        A * Real.log (2 + ‖t‖))
+    htrunc.symm
+    hnorm
 
 /-- Guarded finite truncation comparison for zeta on the boundary line. -/
 theorem Complex.riemannZeta_boundaryLine_truncated_dirichlet_remainder_bound :
