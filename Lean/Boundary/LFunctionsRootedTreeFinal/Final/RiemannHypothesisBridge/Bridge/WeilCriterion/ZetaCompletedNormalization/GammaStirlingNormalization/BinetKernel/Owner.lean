@@ -902,6 +902,27 @@ theorem Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi :
   intro t ht
   exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht)
 
+/-- A reusable norm-transport lemma for complex quotients. -/
+theorem Complex.norm_div_eq_div_norm
+    {z w : ℂ}
+    (hw : w ≠ 0) :
+    ‖z / w‖ = ‖z‖ / ‖w‖ := by
+  rw [div_eq_mul_inv, norm_mul, norm_inv, div_eq_mul_inv]
+  exact mul_inv_eq_div _ _
+
+/-- `Complex.arctan` is a scalar multiple of the logarithmic quotient it is
+defined from. This isolates the remaining analytic content into a single
+logarithmic norm estimate. -/
+theorem Complex.norm_arctan_eq_half_norm_log_quotient
+    (z : ℂ) :
+    ‖Complex.arctan z‖ =
+      ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
+  unfold Complex.arctan
+  rw [norm_mul, Complex.norm_div_eq_div_norm]
+  · simp [mul_comm, mul_left_comm, mul_assoc]
+  · have htwo : (2 : ℂ) ≠ 0 := by norm_num
+    exact htwo
+
 /-- A positive integrable function on an open real interval has positive set
 integral. -/
 theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
