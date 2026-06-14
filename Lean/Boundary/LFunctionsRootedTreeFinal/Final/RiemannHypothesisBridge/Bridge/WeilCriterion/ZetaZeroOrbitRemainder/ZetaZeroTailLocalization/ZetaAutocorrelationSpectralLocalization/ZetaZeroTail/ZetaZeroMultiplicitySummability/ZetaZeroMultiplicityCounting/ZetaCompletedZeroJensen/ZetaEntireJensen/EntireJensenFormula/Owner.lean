@@ -3227,6 +3227,14 @@ noncomputable def complex_centerSegmentIntegral_endpointDerivativeIntegrand
   φ (AffineMap.lineMap (0 : ℂ) z t) +
     z * (t : ℂ) * deriv φ (AffineMap.lineMap (0 : ℂ) z t)
 
+/-- The scalar radial primitive whose real derivative is the endpoint
+derivative integrand. -/
+noncomputable def complex_centerSegmentIntegral_radialFTCPrimitive
+    (φ : ℂ → ℂ)
+    (z : ℂ)
+    (t : ℝ) : ℂ :=
+  (t : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t)
+
 /-- Derivative under the endpoint parameter for the center-segment integral.
 
 This is the parametric interval-integral theorem specialized to
@@ -3247,6 +3255,85 @@ theorem complex_centerSegmentIntegral_hasDerivAt_integral_endpointDerivative
           z := by
   sorry
 
+/-- Real derivative of the radial FTC primitive.
+
+This is the chain-rule computation
+`d/dt (t * φ(tz)) = φ(tz) + z * t * φ'(tz)`, written using the affine segment
+map from `0` to `z`. -/
+theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun u : ℝ =>
+                complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
+              (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+              t := by
+  sorry
+
+/-- Interval FTC for the radial primitive along a center-to-endpoint segment. -/
+theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        (∫ t in (0 : ℝ)..1,
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t) =
+          complex_centerSegmentIntegral_radialFTCPrimitive φ z 1 -
+            complex_centerSegmentIntegral_radialFTCPrimitive φ z 0 := by
+  sorry
+
+/-- Endpoint calculation for the radial FTC primitive. -/
+theorem complex_centerSegmentIntegral_radialFTC_endpoint_sub_base
+    (φ : ℂ → ℂ)
+    (z : ℂ) :
+    complex_centerSegmentIntegral_radialFTCPrimitive φ z 1 -
+      complex_centerSegmentIntegral_radialFTCPrimitive φ z 0 =
+      φ z := by
+  have hline_one :
+      AffineMap.lineMap (0 : ℂ) z (1 : ℝ) = z :=
+    Eq.trans
+      (complex_starConvexClosedBall_lineMap_zero_eq_radial z 1)
+      (one_smul ℂ z)
+  have hline_zero :
+      AffineMap.lineMap (0 : ℂ) z (0 : ℝ) = 0 :=
+    Eq.trans
+      (complex_starConvexClosedBall_lineMap_zero_eq_radial z 0)
+      (zero_smul ℂ z)
+  have hleft :
+      ((1 : ℂ) *
+        φ (AffineMap.lineMap (0 : ℂ) z (1 : ℝ))) =
+        φ z :=
+    Eq.trans
+      (congrArg
+        (fun w : ℂ => (1 : ℂ) * φ w)
+        hline_one)
+      (one_mul (φ z))
+  have hright :
+      ((0 : ℂ) *
+        φ (AffineMap.lineMap (0 : ℂ) z (0 : ℝ))) =
+        0 :=
+    zero_mul (φ (AffineMap.lineMap (0 : ℂ) z (0 : ℝ)))
+  calc
+    complex_centerSegmentIntegral_radialFTCPrimitive φ z 1 -
+        complex_centerSegmentIntegral_radialFTCPrimitive φ z 0 =
+        ((1 : ℂ) *
+          φ (AffineMap.lineMap (0 : ℂ) z (1 : ℝ))) -
+          ((0 : ℂ) *
+            φ (AffineMap.lineMap (0 : ℂ) z (0 : ℝ))) :=
+      rfl
+    _ = φ z - 0 :=
+      congrArg₂ (fun a b : ℂ => a - b) hleft hright
+    _ = φ z :=
+      sub_zero (φ z)
+
 /-- Radial FTC identity for the differentiated center-segment integrand.
 
 For holomorphic `φ`, the derivative of the endpoint-parametrized segment
@@ -3262,7 +3349,11 @@ theorem complex_centerSegmentIntegral_endpointDerivativeIntegral_eq
         (∫ t in (0 : ℝ)..1,
           complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t) =
           φ z := by
-  sorry
+  intro z hz
+  exact Eq.trans
+    (complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
+      φ hstar hφ z hz)
+    (complex_centerSegmentIntegral_radialFTC_endpoint_sub_base φ z)
 
 /-- Cauchy--FTC endpoint derivative for the center-segment primitive.
 
@@ -8877,9 +8968,33 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
       MeasureTheory.volume
       0
       (2 * Real.pi) := by
-  -- Apply the finite logarithmic-singularity gluing theorem already available
-  -- in this file to the finite set of boundary-zero parameters.
-  sorry
+  have hρ_pos : 0 < ρ :=
+    lt_of_lt_of_le zero_lt_one hρ
+  have hF_nontrivial : ∃ z : ℂ, F z ≠ 0 :=
+    ⟨0, hF0⟩
+  have hzeros : Set.Finite {z : ℂ | ‖z‖ = ρ ∧ F z = 0} :=
+    entireFunction_circleZeros_finite F hF hF_nontrivial ρ
+  have hF_int :
+      IntervalIntegrable
+        (entireFunctionJensenBoundaryLogIntegrand F ρ)
+        MeasureTheory.volume
+        0
+        (2 * Real.pi) :=
+    entireFunction_boundaryLogIntegrand_intervalIntegrable_of_finiteCircleZeros
+      F hF hF_nontrivial hρ_pos hzeros
+  have hae :
+      entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[MeasureTheory.volume]
+        (fun θ : ℝ =>
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
+            (∑ z in
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+                F hF hF0 ρ,
+              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_aeEq_from_pointwise_offException_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
+  exact hF_int.congr hae
 
 /-- Finite sum/integral exchange for the closed-support boundary factor sum. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_sum_integral_exchange_ownerRoot

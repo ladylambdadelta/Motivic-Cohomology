@@ -1040,6 +1040,19 @@ theorem Complex.log_norm_exp_eq_re
     _ = w.re :=
       Real.log_exp w.re
 
+/-- Norm of the complex exponential. -/
+theorem Complex.norm_exp_eq_exp_re
+    (w : ℂ) :
+    ‖Complex.exp w‖ = Real.exp w.re := by
+  have hnorm_eq_abs :
+      ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
+    norm_eq_abs (Complex.exp w)
+  calc
+    ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
+      hnorm_eq_abs
+    _ = Real.exp w.re :=
+      Complex.abs_exp w
+
 /-- Exact log expansion of the normalized Gamma Stirling factor. -/
 theorem Complex.normalizedGammaStirlingFactor_log_eq
     (w : ℂ)
@@ -1393,6 +1406,32 @@ theorem Complex.log_abs_cpow_eq_re_mul_log_abs_sub_arg_mul_im_of_ne_zero
       exact congrArg
         (fun x : ℝ => a.re * Real.log (Complex.abs z) - x)
         (Real.log_exp (Complex.arg z * a.im))
+
+/-- Principal-branch norm formula for complex powers. -/
+theorem Complex.norm_cpow_eq_norm_rpow_div_exp_arg_mul_im_of_ne_zero
+    {z a : ℂ}
+    (hz_ne : z ≠ 0) :
+    ‖z ^ a‖ =
+      ‖z‖ ^ a.re / Real.exp (Complex.arg z * a.im) := by
+  have hnorm_cpow_abs :
+      ‖z ^ a‖ = Complex.abs (z ^ a) :=
+    Complex.norm_eq_abs (z ^ a)
+  have hnorm_z_abs :
+      ‖z‖ = Complex.abs z :=
+    Complex.norm_eq_abs z
+  have habs_cpow :
+      Complex.abs (z ^ a) =
+        Complex.abs z ^ a.re / Real.exp (Complex.arg z * a.im) :=
+    Complex.abs_cpow_of_ne_zero hz_ne a
+  calc
+    ‖z ^ a‖ = Complex.abs (z ^ a) :=
+      hnorm_cpow_abs
+    _ = Complex.abs z ^ a.re / Real.exp (Complex.arg z * a.im) :=
+      habs_cpow
+    _ = ‖z‖ ^ a.re / Real.exp (Complex.arg z * a.im) := by
+      exact congrArg
+        (fun r : ℝ => r ^ a.re / Real.exp (Complex.arg z * a.im))
+        hnorm_z_abs.symm
 
 /-- Principal-branch norm formula for complex powers in logarithmic form. -/
 theorem Complex.log_norm_cpow_eq_re_mul_log_norm_sub_arg_mul_im_of_ne_zero
@@ -3909,6 +3948,42 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
       Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
         R K hStirling_pointwise w hw_sector hw_R herror_half
 
+/-- Reciprocal denominator comparison for the shifted vertical Stirling
+normalization.
+
+For `w = x + N + i y` in a fixed shifted right-half-plane strip, the
+principal-branch identity
+`log ‖w^(1/2-w)‖ = (1/2 - Re w) log ‖w‖ + arg(w) Im w`, together with
+`‖exp w‖ = exp (Re w)`, shows that
+`1 / (‖exp w‖ ‖w^(1/2-w)‖)` is comparable to
+`exp (-π |y| / 2) (1 + |y|)^(Re w - 1/2)`.  This is the sharp vertical-line
+branch comparison left after the normalized sectorial Stirling estimate has
+been extracted. -/
+theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          0 < ‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖ ∧
+          1 / (‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ≤
+            1 / (‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
+  sorry
+
 /-- Sectorial normalized Stirling, on the shifted closed-right-half-plane
 points, gives the raw two-sided Gamma envelope with shifted real part.
 
@@ -3946,7 +4021,85 @@ theorem Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
             ‖Complex.Gamma
               (Complex.fixedRealPartVerticalPoint
                 (x + Complex.verticalStripTransportShift A) y)‖ := by
-  sorry
+  rcases
+      Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
+        hStirling A B with
+    ⟨Hn, Cn, cn, hHn_pos, hCn_pos, hcn_pos, hnormalized⟩
+  rcases
+      Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
+        A B with
+    ⟨Hd, Cd, cd, hHd_pos, hCd_pos, hcd_pos, hdenom⟩
+  let H : ℝ := max Hn Hd
+  refine ⟨H, Cn * Cd, cn * cd,
+    lt_of_lt_of_le hHn_pos (le_max_left Hn Hd),
+    mul_pos hCn_pos hCd_pos,
+    mul_pos hcn_pos hcd_pos, ?_⟩
+  intro x y hxA hxB hy
+  have hy_n : Hn ≤ ‖y‖ :=
+    le_trans (le_max_left Hn Hd) hy
+  have hy_d : Hd ≤ ‖y‖ :=
+    le_trans (le_max_right Hn Hd) hy
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  let E : ℝ :=
+    Complex.fixedRealPartVerticalStirlingEnvelope
+      (x + Complex.verticalStripTransportShift A) y
+  let D : ℝ :=
+    ‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖
+  have hnormalized_xy := hnormalized x y hxA hxB hy_n
+  have hdenom_xy := hdenom x y hxA hxB hy_d
+  have hD_pos : 0 < D :=
+    hdenom_xy.1
+  have hrecip_upper : 1 / D ≤ Cd * E :=
+    hdenom_xy.2.1
+  have hrecip_lower : cd * E ≤ 1 / D :=
+    hdenom_xy.2.2
+  have hgamma_upper_raw :
+      ‖Complex.Gamma w‖ ≤ Cn / D :=
+    Complex.Gamma_norm_le_of_normalizedGammaStirlingFactor_norm_le
+      w Cn hnormalized_xy.1 hD_pos
+  have hgamma_lower_raw :
+      cn / D ≤ ‖Complex.Gamma w‖ :=
+    Complex.Gamma_norm_ge_of_normalizedGammaStirlingFactor_norm_ge
+      w cn hnormalized_xy.2 hD_pos
+  have hCn_nonneg : 0 ≤ Cn :=
+    le_of_lt hCn_pos
+  have hcn_nonneg : 0 ≤ cn :=
+    le_of_lt hcn_pos
+  have hupper_scale :
+      Cn / D ≤ (Cn * Cd) * E := by
+    have hdiv_eq : Cn / D = Cn * (1 / D) := by
+      calc
+        Cn / D = Cn * D⁻¹ := div_eq_mul_inv Cn D
+        _ = Cn * (1 / D) := by
+          exact congrArg (fun u : ℝ => Cn * u) (one_div D).symm
+    have hmul :
+        Cn * (1 / D) ≤ Cn * (Cd * E) :=
+      mul_le_mul_of_nonneg_left hrecip_upper hCn_nonneg
+    have htarget :
+        Cn * (Cd * E) = (Cn * Cd) * E :=
+      mul_assoc Cn Cd E
+    exact le_trans (le_of_eq hdiv_eq)
+      (le_trans hmul (le_of_eq htarget))
+  have hlower_scale :
+      (cn * cd) * E ≤ cn / D := by
+    have hleft_assoc :
+        (cn * cd) * E = cn * (cd * E) :=
+      (mul_assoc cn cd E).symm
+    have hmul :
+        cn * (cd * E) ≤ cn * (1 / D) :=
+      mul_le_mul_of_nonneg_left hrecip_lower hcn_nonneg
+    have hdiv_eq : cn * (1 / D) = cn / D := by
+      calc
+        cn * (1 / D) = cn * D⁻¹ := by
+          exact congrArg (fun u : ℝ => cn * u) (one_div D)
+        _ = cn / D := (div_eq_mul_inv cn D).symm
+    exact le_trans (le_of_eq hleft_assoc)
+      (le_trans hmul (le_of_eq hdiv_eq))
+  constructor
+  · exact le_trans hgamma_upper_raw hupper_scale
+  · exact le_trans hlower_scale hgamma_lower_raw
 
 /-- Finite recurrence transport from shifted raw Gamma bounds and recurrence
 product bounds back to the original vertical strip.
@@ -9766,6 +9919,170 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_e
       ‖t‖ / x := by
   exact logarithmicPhaseFunction_positiveReal_derivative_norm_eq t hx
 
+/-- Integer samples of the logarithmic phase have norm at most one. -/
+theorem logarithmicPhase_nat_sample_norm_le_one
+    (t : ℝ)
+    (k : ℕ) :
+    ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ 1 := by
+  by_cases hk : k = 0
+  · have hterm :
+        (k : ℂ) ^ (-(t : ℂ) * Complex.I) =
+          (0 : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+      exact congrArg (fun n : ℕ => (n : ℂ) ^ (-(t : ℂ) * Complex.I)) hk
+    have hnorm_nonneg :
+        0 ≤ ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ :=
+      norm_nonneg ((k : ℂ) ^ (-(t : ℂ) * Complex.I))
+    exact le_trans hnorm_nonneg zero_le_one
+  · have hk_pos : 0 < k :=
+      Nat.pos_of_ne_zero hk
+    have hnorm :
+        ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ = (k : ℝ) ^ ((-(t : ℂ) * Complex.I).re) :=
+      Complex.norm_natCast_cpow_of_pos hk_pos (-(t : ℂ) * Complex.I)
+    have hre : (-(t : ℂ) * Complex.I).re = 0 := by
+      have hneg_im : (-(t : ℂ)).im = 0 := by
+        calc
+          (-(t : ℂ)).im = -((t : ℂ).im) :=
+            Complex.neg_im (t : ℂ)
+          _ = -0 :=
+            congrArg Neg.neg (Complex.ofReal_im t)
+          _ = 0 :=
+            neg_zero
+      calc
+        (-(t : ℂ) * Complex.I).re = - (-(t : ℂ)).im :=
+          Complex.mul_I_re (-(t : ℂ))
+        _ = -0 :=
+          congrArg Neg.neg hneg_im
+        _ = 0 :=
+          neg_zero
+    have hpow_zero : (k : ℝ) ^ ((-(t : ℂ) * Complex.I).re) = 1 := by
+      exact Eq.subst
+        (motive := fun x : ℝ => (k : ℝ) ^ x = 1)
+        hre.symm
+        (Real.rpow_zero (k : ℝ))
+    exact le_of_eq (hnorm.trans hpow_zero)
+
+/-- Trivial cardinality bound for logarithmic-phase partial sums. -/
+theorem logarithmicPhasePartialSum_norm_le_card
+    (t : ℝ)
+    (M : ℕ) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M‖ ≤
+      (M + 1 : ℝ) := by
+  have hsum :
+      ‖∑ k ∈ Finset.Icc 0 M, (k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤
+        ∑ k ∈ Finset.Icc 0 M, ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ :=
+    norm_sum_le (Finset.Icc 0 M)
+      (fun k : ℕ => (k : ℂ) ^ (-(t : ℂ) * Complex.I))
+  have hterms :
+      (∑ k ∈ Finset.Icc 0 M, ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖) ≤
+        ∑ k ∈ Finset.Icc 0 M, (1 : ℝ) := by
+    exact Finset.sum_le_sum
+      (fun k _hk => logarithmicPhase_nat_sample_norm_le_one t k)
+  have hcard :
+      (∑ k ∈ Finset.Icc 0 M, (1 : ℝ)) = (M + 1 : ℝ) := by
+    calc
+      (∑ k ∈ Finset.Icc 0 M, (1 : ℝ)) =
+          ((Finset.Icc 0 M).card : ℝ) := by
+        exact Finset.sum_const_nat (Finset.Icc 0 M) 1
+      _ = (M + 1 : ℝ) := by
+        exact congrArg (fun n : ℕ => (n : ℝ)) (Finset.card_Icc 0 M)
+  exact le_trans hsum (le_trans hterms (le_of_eq hcard))
+
+/-- Reciprocal endpoint times the trivial cardinality bound is at most two. -/
+theorem logarithmicPhase_endpoint_trivial_bound
+    (t : ℝ)
+    {M : ℕ}
+    (hM : 1 ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊‖ ≤ 2 := by
+  have hfloor : ⌊((M : ℕ) : ℝ)⌋₊ = M :=
+    Nat.floor_natCast M
+  have hpartial :
+      ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊‖ ≤ (M + 1 : ℝ) := by
+    exact Eq.subst
+      (motive := fun R : ℕ =>
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t R‖ ≤
+          (M + 1 : ℝ))
+      hfloor.symm
+      (logarithmicPhasePartialSum_norm_le_card t M)
+  have hM_pos : 0 < M :=
+    Nat.lt_of_succ_le hM
+  have hM_real_pos : (0 : ℝ) < (M : ℝ) :=
+    Nat.cast_pos.mpr hM_pos
+  have hnorm_inv :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ = (1 : ℝ) / (M : ℝ) := by
+    have hnorm_real : ‖(((M : ℕ) : ℝ) : ℂ)‖ = (M : ℝ) := by
+      exact Complex.norm_ofReal_of_nonneg (Nat.cast_nonneg M)
+    calc
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
+          (‖(((M : ℕ) : ℝ) : ℂ)‖)⁻¹ := by
+        exact norm_inv ((((M : ℕ) : ℝ) : ℂ))
+      _ = ((M : ℝ))⁻¹ := by
+        exact congrArg Inv.inv hnorm_real
+      _ = (1 : ℝ) / (M : ℝ) := by
+        exact (one_div (M : ℝ)).symm
+  have hmul_norm :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ ≤
+        ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ) := by
+    have hnorm_mul :
+        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+              ⌊((M : ℕ) : ℝ)⌋₊‖ =
+          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ *
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+              ⌊((M : ℕ) : ℝ)⌋₊‖ :=
+      norm_mul (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))
+        (boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊)
+    have hscaled :
+        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ *
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+              ⌊((M : ℕ) : ℝ)⌋₊‖ ≤
+          ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ) :=
+      mul_le_mul
+        (le_of_eq hnorm_inv)
+        hpartial
+        (Nat.cast_nonneg (M + 1))
+        (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ))
+      hnorm_mul.symm
+      hscaled
+  have hratio_le_two :
+      ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ) ≤ 2 := by
+    have hM_plus_le : (M + 1 : ℝ) ≤ 2 * (M : ℝ) := by
+      have hone_le_M_real : (1 : ℝ) ≤ (M : ℝ) :=
+        Nat.cast_le.mpr hM
+      calc
+        (M + 1 : ℝ) = (M : ℝ) + 1 := by
+          exact Nat.cast_add M 1
+        _ ≤ (M : ℝ) + (M : ℝ) :=
+          add_le_add_left hone_le_M_real (M : ℝ)
+        _ = 2 * (M : ℝ) := by
+          exact (two_mul (M : ℝ)).symm
+    have hdiv_le : (M + 1 : ℝ) / (M : ℝ) ≤ 2 :=
+      (div_le_iff₀ hM_real_pos).mpr
+        (Eq.subst
+          (motive := fun x : ℝ => (M + 1 : ℝ) ≤ x)
+          (mul_comm (2 : ℝ) (M : ℝ))
+          hM_plus_le)
+    have hmul_eq : ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ) =
+        (M + 1 : ℝ) / (M : ℝ) := by
+      calc
+        ((1 : ℝ) / (M : ℝ)) * (M + 1 : ℝ) =
+            (M + 1 : ℝ) * ((1 : ℝ) / (M : ℝ)) := by
+          exact mul_comm ((1 : ℝ) / (M : ℝ)) (M + 1 : ℝ)
+        _ = (M + 1 : ℝ) / (M : ℝ) := by
+          exact (mul_one_div (M + 1 : ℝ) (M : ℝ)).symm
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ 2)
+      hmul_eq.symm
+      hdiv_le
+  exact le_trans hmul_norm hratio_le_two
+
 /-- Deep analytic owner estimate for logarithmic-phase partial sums.
 
 This is the first-derivative/Euler-Maclaurin bound for
@@ -9865,7 +10182,92 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
             ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  have hcutoff_one : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
+    Nat.succ_le_of_lt (boundaryLineOnePointRealParam_cutoff_pos t)
+  have hM_one : 1 ≤ M :=
+    le_trans hcutoff_one hNM
+  have hright :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ ≤ 2 :=
+    logarithmicPhase_endpoint_trivial_bound t hM_one
+  have hleft :
+      ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤ 2 :=
+    logarithmicPhase_endpoint_trivial_bound t hcutoff_one
+  have hsum_le_four :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ +
+        ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+        4 := by
+    have htwo_add_two : (2 : ℝ) + 2 = 4 := by
+      rfl
+    exact (add_le_add hright hleft).trans_eq htwo_add_two
+  have hlog_two : (1 : ℝ) ≤ Real.log (2 + ‖t‖) :=
+    one_le_log_two_add_norm_of_one_le_norm ht
+  have htwo_add_le_three_add : 2 + ‖t‖ ≤ 3 + ‖t‖ := by
+    exact add_le_add_right (show (2 : ℝ) ≤ 3 by
+      calc
+        (2 : ℝ) ≤ 2 + 1 := le_add_of_nonneg_right zero_le_one
+        _ = 3 := rfl) ‖t‖
+  have hlog_mono :
+      Real.log (2 + ‖t‖) ≤ Real.log (3 + ‖t‖) := by
+    have hpos : 0 < 2 + ‖t‖ :=
+      lt_of_lt_of_le zero_lt_one (one_le_two_add_norm t)
+    exact Real.log_le_log hpos htwo_add_le_three_add
+  have hlog_one : (1 : ℝ) ≤ Real.log (3 + ‖t‖) :=
+    le_trans hlog_two hlog_mono
+  have height_nonneg : 0 ≤ Real.log (3 + ‖t‖) :=
+    le_trans zero_le_one hlog_one
+  have hfour_le :
+      (4 : ℝ) ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+    have htwo_le_eight_log : (2 : ℝ) ≤ 8 * Real.log (3 + ‖t‖) := by
+      have htwo_le_eight : (2 : ℝ) ≤ 8 := by
+        calc
+          (2 : ℝ) ≤ 2 + 6 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 6 by
+            calc
+              (0 : ℝ) ≤ 1 := zero_le_one
+              _ ≤ 6 := by
+                calc
+                  (1 : ℝ) ≤ 1 + 5 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 5 by
+                    calc
+                      (0 : ℝ) ≤ 1 := zero_le_one
+                      _ ≤ 5 := by
+                        calc
+                          (1 : ℝ) ≤ 1 + 4 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 4 by
+                            calc
+                              (0 : ℝ) ≤ 1 := zero_le_one
+                              _ ≤ 4 := by
+                                calc
+                                  (1 : ℝ) ≤ 1 + 3 := le_add_of_nonneg_right (show (0 : ℝ) ≤ 3 by
+                                    calc
+                                      (0 : ℝ) ≤ 1 := zero_le_one
+                                      _ ≤ 3 := by
+                                        calc
+                                          (1 : ℝ) ≤ 1 + 2 := le_add_of_nonneg_right (le_of_lt two_pos)
+                                          _ = 3 := rfl)
+                                  _ = 4 := rfl)
+                          _ = 5 := rfl)
+                  _ = 6 := rfl)
+          _ = 8 := rfl
+      calc
+        (2 : ℝ) ≤ 8 * 1 := by
+          exact Eq.subst (motive := fun x : ℝ => 2 ≤ x) (mul_one (8 : ℝ)).symm htwo_le_eight
+        _ ≤ 8 * Real.log (3 + ‖t‖) :=
+          mul_le_mul_of_nonneg_left hlog_one
+            (show (0 : ℝ) ≤ 8 by
+              calc
+                (0 : ℝ) ≤ 1 := zero_le_one
+                _ ≤ 8 := le_trans zero_le_one htwo_le_eight)
+    calc
+      (4 : ℝ) = 2 + 2 := rfl
+      _ ≤ 2 + 8 * Real.log (3 + ‖t‖) :=
+        add_le_add_left htwo_le_eight_log 2
+  exact le_trans hsum_le_four hfour_le
 
 /-- Endpoint arithmetic after the logarithmic-phase first-derivative
 Euler-Maclaurin estimate.
@@ -15472,7 +15874,32 @@ def poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftS
 /-- Compactness of the closed left half-unit ball. -/
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet_isCompact :
     IsCompact poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
-  sorry
+  have hclosed_left : IsClosed {z : ℂ | z.re ≤ 0} :=
+    isClosed_le Complex.continuous_re continuous_const
+  have hclosed_ball : IsClosed {z : ℂ | ‖z‖ ≤ 1} :=
+    isClosed_le continuous_norm continuous_const
+  have hclosed :
+      IsClosed poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
+    have hset :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet =
+          {z : ℂ | z.re ≤ 0} ∩ {z : ℂ | ‖z‖ ≤ 1} := by
+      ext z
+      constructor
+      · intro hz
+        exact ⟨hz.1, hz.2⟩
+      · intro hz
+        exact ⟨hz.1, hz.2⟩
+    exact Eq.subst
+      (motive := fun S : Set ℂ => IsClosed S)
+      hset.symm
+      (hclosed_left.inter hclosed_ball)
+  have hbounded :
+      Bornology.IsBounded
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
+    refine isBounded_iff_forall_norm_le.2 ⟨1, ?_⟩
+    intro z hz
+    exact hz.2
+  exact Metric.isCompact_of_isClosed_isBounded hclosed hbounded
 
 /-- Compact norm boundedness from a continuous extension on the closed left
 half-unit ball. -/
@@ -15633,6 +16060,25 @@ theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
       have htwo_le_one : (2 : ℝ) ≤ 1 :=
         le_trans htwo_le_norm hz_norm
       exact not_lt_of_ge htwo_le_one one_lt_two
+
+/-- Away from `0` inside the closed left half-unit ball, the completed
+functional-equation multiplier is locally the raw Gamma-ratio expression and is
+continuous there. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousWithinAt_nearOriginLeftSet_of_ne_zero
+    {z : ℂ}
+    (hz_mem :
+      z ∈ poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet)
+    (hz_ne_zero : z ≠ 0) :
+    ContinuousWithinAt poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet z := by
+  sorry
+
+/-- Removable continuity of the completed-functional-equation multiplier at the
+origin on the closed left half-unit ball. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousWithinAt_zero_nearOriginLeftSet :
+    ContinuousWithinAt poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet 0 := by
+  sorry
 
 /-- Trivial-zero cancellation for the pole-cleared zeta factor at nonzero
 `Gammaℝ` zero faces in the left half-plane.
@@ -16146,7 +16592,18 @@ extension on `‖z‖ ≤ 1`. -/
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_nearOriginLeftSet :
     ContinuousOn poleClearedRiemannZeta_completedFunctionalEquationMultiplier
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
-  sorry
+  intro z hz_mem
+  by_cases hz_zero : z = 0
+  · exact Eq.subst
+      (motive := fun w : ℂ =>
+        ContinuousWithinAt
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet w)
+      hz_zero.symm
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousWithinAt_zero_nearOriginLeftSet
+  · exact
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousWithinAt_nearOriginLeftSet_of_ne_zero
+        hz_mem hz_zero
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOrigin_removable_extension :
     ∃ F : ℂ → ℂ,
