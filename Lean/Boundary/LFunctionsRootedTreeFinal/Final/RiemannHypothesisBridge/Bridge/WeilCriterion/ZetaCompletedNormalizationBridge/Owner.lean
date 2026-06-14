@@ -119,6 +119,111 @@ theorem deriv_zetaSideFactor_at {s : ℂ}
     deriv_mul (differentiableAt_completedZeta hs0 hs1)
       differentiable_Gammaℝ_inv.differentiableAt
 
+/-- Algebraic cancellation for removing an inverse factor from a negative logarithmic
+derivative. -/
+theorem complex_negLogDeriv_mul_inv_sub_correction
+    (A B C D : ℂ)
+    (hB : B ≠ 0) (hC : C ≠ 0) :
+    -((A * C⁻¹ + B * D) / (B * C⁻¹)) =
+      -A / B - D / C⁻¹ := by
+  have hCinv : C⁻¹ ≠ 0 :=
+    inv_ne_zero hC
+  have hden : B * C⁻¹ ≠ 0 :=
+    mul_ne_zero hB hCinv
+  have hA_cancel :
+      (A * C⁻¹) / (B * C⁻¹) = A / B := by
+    calc
+      (A * C⁻¹) / (B * C⁻¹)
+          = (A * C⁻¹) * (B * C⁻¹)⁻¹ := by
+            exact div_eq_mul_inv (A * C⁻¹) (B * C⁻¹)
+      _ = (A * C⁻¹) * (C * B⁻¹) := by
+            exact congrArg (fun x : ℂ => (A * C⁻¹) * x)
+              (calc
+                (B * C⁻¹)⁻¹ = (C⁻¹)⁻¹ * B⁻¹ := by
+                  exact mul_inv_rev B C⁻¹
+                _ = C * B⁻¹ := by
+                  exact congrArg (fun x : ℂ => x * B⁻¹) (inv_inv C))
+      _ = A * (C⁻¹ * C) * B⁻¹ := by
+            exact Eq.trans (mul_assoc A C⁻¹ (C * B⁻¹))
+              (congrArg (fun x : ℂ => A * x) (mul_assoc C⁻¹ C B⁻¹).symm)
+      _ = A * 1 * B⁻¹ := by
+            exact congrArg (fun x : ℂ => A * x * B⁻¹) (inv_mul_cancel₀ hC)
+      _ = A * B⁻¹ := by
+            exact congrArg (fun x : ℂ => x * B⁻¹) (mul_one A)
+      _ = A / B := by
+            exact (div_eq_mul_inv A B).symm
+  have hD_cancel :
+      (B * D) / (B * C⁻¹) = D / C⁻¹ := by
+    calc
+      (B * D) / (B * C⁻¹)
+          = (B * D) * (B * C⁻¹)⁻¹ := by
+            exact div_eq_mul_inv (B * D) (B * C⁻¹)
+      _ = (B * D) * (C * B⁻¹) := by
+            exact congrArg (fun x : ℂ => (B * D) * x)
+              (calc
+                (B * C⁻¹)⁻¹ = (C⁻¹)⁻¹ * B⁻¹ := by
+                  exact mul_inv_rev B C⁻¹
+                _ = C * B⁻¹ := by
+                  exact congrArg (fun x : ℂ => x * B⁻¹) (inv_inv C))
+      _ = D * (B * B⁻¹) * C := by
+            calc
+              (B * D) * (C * B⁻¹)
+                  = D * B * (B⁻¹ * C) := by
+                    exact Eq.trans
+                      (mul_left_comm B D (C * B⁻¹))
+                      (Eq.trans
+                        (congrArg (fun x : ℂ => D * x) (mul_comm B (C * B⁻¹)))
+                        (congrArg (fun x : ℂ => D * x)
+                          (Eq.trans (mul_assoc (C * B⁻¹) B 1).symm
+                            (by
+                              calc
+                                C * B⁻¹ * B * 1 = C * (B⁻¹ * B) * 1 := by
+                                  exact congrArg (fun x : ℂ => x * 1) (mul_assoc C B⁻¹ B)
+                                _ = C * 1 * 1 := by
+                                  exact congrArg (fun x : ℂ => C * x * 1) (inv_mul_cancel₀ hB)
+                                _ = C := by
+                                  exact Eq.trans (congrArg (fun x : ℂ => x * 1) (mul_one C)) (mul_one C)
+                                _ = B * B⁻¹ * C := by
+                                  exact (congrArg (fun x : ℂ => x * C) (mul_inv_cancel₀ hB)).symm)))))
+              _ = D * (B * B⁻¹) * C := by
+                    exact mul_assoc D B B⁻¹
+      _ = D * 1 * C := by
+            exact congrArg (fun x : ℂ => D * x * C) (mul_inv_cancel₀ hB)
+      _ = D * C := by
+            exact congrArg (fun x : ℂ => x * C) (mul_one D)
+      _ = D / C⁻¹ := by
+            exact
+              (calc
+                D / C⁻¹ = D * (C⁻¹)⁻¹ := by
+                  exact div_eq_mul_inv D C⁻¹
+                _ = D * C := by
+                  exact congrArg (fun x : ℂ => D * x) (inv_inv C)).symm
+  have hsplit :
+      (A * C⁻¹ + B * D) / (B * C⁻¹) =
+        (A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹) := by
+    calc
+      (A * C⁻¹ + B * D) / (B * C⁻¹)
+          = (A * C⁻¹ + B * D) * (B * C⁻¹)⁻¹ := by
+            exact div_eq_mul_inv (A * C⁻¹ + B * D) (B * C⁻¹)
+      _ = (A * C⁻¹) * (B * C⁻¹)⁻¹ + (B * D) * (B * C⁻¹)⁻¹ := by
+            exact add_mul (A * C⁻¹) (B * D) (B * C⁻¹)⁻¹
+      _ = (A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹) := by
+            exact congrArg₂ HAdd.hAdd
+              (div_eq_mul_inv (A * C⁻¹) (B * C⁻¹)).symm
+              (div_eq_mul_inv (B * D) (B * C⁻¹)).symm
+  calc
+    -((A * C⁻¹ + B * D) / (B * C⁻¹))
+        = -((A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹)) := by
+          exact congrArg Neg.neg hsplit
+    _ = -((A * C⁻¹) / (B * C⁻¹)) - ((B * D) / (B * C⁻¹)) := by
+          exact neg_add ((A * C⁻¹) / (B * C⁻¹)) ((B * D) / (B * C⁻¹))
+    _ = -(A / B) - ((B * D) / (B * C⁻¹)) := by
+          exact congrArg (fun x : ℂ => -x - ((B * D) / (B * C⁻¹))) hA_cancel
+    _ = -(A / B) - (D / C⁻¹) := by
+          exact congrArg (fun x : ℂ => -(A / B) - x) hD_cancel
+    _ = -A / B - D / C⁻¹ := by
+          exact congrArg (fun x : ℂ => x - D / C⁻¹) (neg_div A B).symm
+
 /-- Removing the Gamma factor adds the explicit archimedean correction to the negative
 logarithmic derivative. This inverse-Gamma form is the owner-level statement available from
 Mathlib's `Gammaℝ` API; it is equivalent to the usual `+ Γ'/Γ` correction once a direct
@@ -132,8 +237,14 @@ theorem zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
   unfold zetaSideNegLogDeriv completedZetaNegLogDeriv
   rw [deriv_zetaSideFactor_at hs0 hs1 hΓ]
   unfold zetaSideFactor
-  field_simp [hΛ, hΓ]
-  ring
+  exact
+    complex_negLogDeriv_mul_inv_sub_correction
+      (deriv completedRiemannZeta s)
+      (completedRiemannZeta s)
+      (Gammaℝ s)
+      (deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s)
+      hΛ
+      hΓ
 
 end ZetaAdmissibleFunction
 
@@ -152,7 +263,13 @@ theorem riemannZeta_zero_eq_neg_half :
 /-- The value `-1/2` is nonzero in the complex normalization. -/
 theorem complex_neg_half_ne_zero :
     (-1 / 2 : ℂ) ≠ 0 := by
-  norm_num
+  have hone : (1 : ℂ) ≠ 0 :=
+    one_ne_zero
+  have htwo : (2 : ℂ) ≠ 0 :=
+    two_ne_zero
+  have hdiv : (1 / 2 : ℂ) ≠ 0 :=
+    div_ne_zero hone htwo
+  exact neg_ne_zero.mpr hdiv
 
 /-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
 theorem riemannZeta_zero_ne_zero :

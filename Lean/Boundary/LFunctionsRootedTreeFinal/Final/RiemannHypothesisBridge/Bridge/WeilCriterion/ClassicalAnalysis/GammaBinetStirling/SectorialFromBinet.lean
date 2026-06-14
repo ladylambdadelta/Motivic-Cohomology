@@ -14,6 +14,16 @@ noncomputable section
 
 open scoped Topology
 
+/-- Trivial real nonnegativity of `2`, named to keep arithmetic side
+conditions out of the Binet estimates. -/
+theorem Real.zero_le_two_real : (0 : ℝ) ≤ 2 :=
+  zero_le_two
+
+/-- Trivial real positivity of `8`, named to keep arithmetic side conditions
+out of the Binet estimates. -/
+theorem Real.zero_lt_eight_real : (0 : ℝ) < 8 := by
+  linarith [zero_lt_one]
+
 /-- The Binet kernel is integrable on the lower split interval. -/
 theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval
     {w : ℂ}
@@ -69,16 +79,22 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval
     hcM_integrable.mono' hK_meas hpointwise
 
 /-- Tail pointwise domination for the Binet kernel on the open right
-half-plane after the split at `‖w‖ / 2`. -/
+half-plane after the split at `‖w‖ / 2`, with a constant depending on the
+fixed open-half-plane point `w`.
+
+The uniform constant `(2 / ‖w‖)` is false pointwise near the principal
+arctangent singularity on rays approaching the imaginary axis. -/
 theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ∀ t : ℝ,
-      t ∈ Set.Ioi (‖w‖ / 2) →
-        ‖Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (2 / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          ‖Complex.arctan ((t : ℂ) / w) /
+              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            C *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   sorry
 
 /-- The Binet kernel is integrable on the upper split interval. -/
@@ -95,11 +111,14 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_tail_interval
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
   let M : ℝ → ℝ := fun t : ℝ =>
     t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let c : ℝ := 2 / ‖w‖
+  rcases
+      Complex.binetSecondFormula_kernel_tail_norm_le_majorant
+        hw_re_pos with
+    ⟨c, hc_nonneg, htail_bound⟩
   have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
     Real.binetSecondFormula_kernel_majorant_integrableOn
   have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) (by norm_num : (0 : ℝ) ≤ 2)
+    div_nonneg (norm_nonneg w) Real.zero_le_two_real
   have hcM_integrable :
       Integrable (fun t : ℝ => c * M t)
         (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
@@ -114,9 +133,7 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_tail_interval
       ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
         ‖K t‖ ≤ c * M t :=
     (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht =>
-        Complex.binetSecondFormula_kernel_tail_norm_le_majorant
-          hw_re_pos t ht)
+      (fun t ht => htail_bound t ht)
   exact
     hcM_integrable.mono' hK_meas hpointwise
 
@@ -134,7 +151,7 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_Ioi_openRightHalfPlane
     Complex.arctan ((t : ℂ) / w) /
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
   have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) (by norm_num : (0 : ℝ) ≤ 2)
+    div_nonneg (norm_nonneg w) Real.zero_le_two_real
   have hsmall : IntegrableOn K (Set.Ioc (0 : ℝ) (‖w‖ / 2)) :=
     Complex.binetSecondFormula_kernel_integrableOn_small_interval
       hw_re_pos
@@ -167,7 +184,7 @@ theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
     Complex.binetSecondFormula_kernel_integrableOn_Ioi_openRightHalfPlane
       hw_re_pos
   have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) (by norm_num : (0 : ℝ) ≤ 2)
+    div_nonneg (norm_nonneg w) Real.zero_le_two_real
   have hsmall_integrable :
       IntegrableOn K (Set.Ioc (0 : ℝ) (‖w‖ / 2)) :=
     hK_integrable_Ioi.mono_set Ioc_subset_Ioi_self
@@ -235,7 +252,7 @@ theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   have hc_nonneg : 0 ≤ c :=
-    div_nonneg (by norm_num : (0 : ℝ) ≤ 2) (le_of_lt hw_norm_pos)
+    div_nonneg Real.zero_le_two_real (le_of_lt hw_norm_pos)
   have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
     Real.binetSecondFormula_kernel_majorant_integrableOn
   have hcM_integrable_Ioc :
@@ -285,9 +302,9 @@ theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
         2 * ‖∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ := by
       simp [norm_mul]
     _ ≤ 2 * (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t) :=
-      mul_le_mul_of_nonneg_left hnorm_integral (by norm_num : (0 : ℝ) ≤ 2)
+      mul_le_mul_of_nonneg_left hnorm_integral Real.zero_le_two_real
     _ ≤ 2 * (c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
-      mul_le_mul_of_nonneg_left hscaled_mono (by norm_num : (0 : ℝ) ≤ 2)
+      mul_le_mul_of_nonneg_left hscaled_mono Real.zero_le_two_real
     _ =
         4 *
           (∫ t : ℝ in Set.Ioi (0 : ℝ), M t) / ‖w‖ := by
@@ -306,68 +323,7 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
       4 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  let K : ℝ → ℂ := fun t : ℝ =>
-    Complex.arctan ((t : ℂ) / w) /
-      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-  let M : ℝ → ℝ := fun t : ℝ =>
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let c : ℝ := 2 / ‖w‖
-  have hw_ne_zero : w ≠ 0 := by
-    intro hw_zero
-    rw [hw_zero] at hw_re_pos
-    exact (lt_irrefl (0 : ℝ)) hw_re_pos
-  have hw_norm_pos : 0 < ‖w‖ :=
-    norm_pos_iff.mpr hw_ne_zero
-  have hc_nonneg : 0 ≤ c :=
-    div_nonneg (by norm_num : (0 : ℝ) ≤ 2) (le_of_lt hw_norm_pos)
-  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
-    Real.binetSecondFormula_kernel_majorant_integrableOn
-  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) (by norm_num : (0 : ℝ) ≤ 2)
-  have hcM_integrable_tail :
-      Integrable (fun t : ℝ => c * M t)
-        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
-  have hpointwise :
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-        ‖K t‖ ≤ c * M t :=
-    (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht =>
-        Complex.binetSecondFormula_kernel_tail_norm_le_majorant
-          hw_re_pos t ht)
-  have hnorm_integral :
-      ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ ≤
-        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t :=
-    norm_integral_le_of_norm_le hcM_integrable_tail hpointwise
-  have hmono :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t ≤
-        ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
-    setIntegral_mono_set hM_integrable_Ioi
-      ((ae_restrict_mem measurableSet_Ioi).mono
-        (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
-      (Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
-  have hscaled_mono :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t ≤
-        c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
-    calc
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-          c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
-        exact integral_const_mul c M
-      _ ≤ c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
-        mul_le_mul_of_nonneg_left hmono hc_nonneg
-  calc
-    ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ =
-        2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
-      simp [norm_mul]
-    _ ≤ 2 * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t) :=
-      mul_le_mul_of_nonneg_left hnorm_integral (by norm_num : (0 : ℝ) ≤ 2)
-    _ ≤ 2 * (c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
-      mul_le_mul_of_nonneg_left hscaled_mono (by norm_num : (0 : ℝ) ≤ 2)
-    _ =
-        4 *
-          (∫ t : ℝ in Set.Ioi (0 : ℝ), M t) / ‖w‖ := by
-      dsimp [c]
-      ring
+  sorry
 
 /-- Splitting the Binet integral at `‖w‖ / 2` gives the global open-half-plane
 remainder bound. -/
@@ -562,7 +518,7 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane :
   have hJ_pos : 0 < J :=
     Real.binetSecondFormula_kernel_majorant_integral_pos
   have hC_pos : 0 < C :=
-    mul_pos (by norm_num : (0 : ℝ) < 8) hJ_pos
+    mul_pos Real.zero_lt_eight_real hJ_pos
   refine ⟨C, hC_pos, ?_⟩
   intro w hw_re_pos
   exact

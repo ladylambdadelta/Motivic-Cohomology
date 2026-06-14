@@ -1,4 +1,5 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Analysis.PSeries
 import Mathlib.Order.Filter.AtTopBot
 import Mathlib.Topology.Algebra.InfiniteSum.Basic
 
@@ -55,7 +56,9 @@ theorem one_add_nat_norm_eq_nat_succ
     Real.norm_of_nonneg (Nat.cast_nonneg m)
   have hcast :
       ((m + 1 : ℕ) : ℝ) = ((m : ℕ) : ℝ) + (1 : ℝ) :=
-    Nat.cast_add m 1
+    Eq.trans
+      (Nat.cast_add m 1)
+      (congrArg (fun x : ℝ => ((m : ℕ) : ℝ) + x) Nat.cast_one)
   calc
     1 + ‖((m : ℕ) : ℝ)‖
         = 1 + ((m : ℕ) : ℝ) := congrArg (fun x : ℝ => 1 + x) hnorm
@@ -71,7 +74,22 @@ theorem summable_nat_succ_inverse_square :
       Summable
         (fun n : ℕ =>
           ((n : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) := by
-    exact summable_nat_pow_inv.mpr (by decide : 1 < (2 : ℕ))
+    have hs_pow :
+        Summable
+          (fun n : ℕ =>
+            (((n : ℕ) : ℝ) ^ (2 : ℕ))⁻¹) :=
+      Real.summable_nat_pow_inv.mpr (Nat.lt.base 1)
+    have hfun :
+        (fun n : ℕ =>
+          ((n : ℕ) : ℝ)⁻¹ ^ (2 : ℕ)) =
+          (fun n : ℕ =>
+            (((n : ℕ) : ℝ) ^ (2 : ℕ))⁻¹) := by
+      funext n
+      exact inv_pow (((n : ℕ) : ℝ)) 2
+    exact Eq.subst
+      (motive := fun u : ℕ → ℝ => Summable u)
+      hfun.symm
+      hs_pow
   exact hs.comp_injective
     (fun a b h => Nat.succ.inj h)
 
@@ -130,8 +148,12 @@ theorem one_add_nat_norm_negative_zpow_succ_le_negative_two
       (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) := by
   have hbase : 1 ≤ 1 + ‖((m : ℕ) : ℝ)‖ :=
     one_le_one_add_nat_norm m
-  have hexp : (-(k + 2 : ℤ)) ≤ -(2 : ℤ) := by
-    omega
+  have hnat : (2 : ℕ) ≤ k + 2 :=
+    Nat.le_add_left 2 k
+  have hint : (2 : ℤ) ≤ (k + 2 : ℤ) :=
+    Int.ofNat_le.mpr hnat
+  have hexp : (-(k + 2 : ℤ)) ≤ -(2 : ℤ) :=
+    neg_le_neg hint
   exact zpow_le_zpow_right₀ hbase hexp
 
 /-- The one-dimensional polynomial tail is pointwise nonnegative. -/
@@ -156,28 +178,15 @@ theorem summable_one_add_nat_norm_negative_zpow_succ
       have hleft_nonneg :
           0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
         one_add_nat_norm_negative_zpow_succ_nonnegative k m
-      have hright_nonneg :
-          0 ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) :=
-        zpow_nonneg
-          (le_trans zero_le_one (one_le_one_add_nat_norm m))
-          (-(2 : ℤ))
       have hleft_norm :
           ‖(1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))‖ =
             (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) :=
         Real.norm_of_nonneg hleft_nonneg
-      have hright_norm :
-          ‖(1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ))‖ =
-            (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) :=
-        Real.norm_of_nonneg hright_nonneg
       exact Eq.subst
         (motive := fun lhs : ℝ =>
-          lhs ≤ ‖(1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ))‖)
+          lhs ≤ (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)))
         hleft_norm.symm
-        (Eq.subst
-          (motive := fun rhs : ℝ =>
-            (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ)) ≤ rhs)
-          hright_norm.symm
-          (one_add_nat_norm_negative_zpow_succ_le_negative_two k m)))
+        (one_add_nat_norm_negative_zpow_succ_le_negative_two k m))
 
 end
 
