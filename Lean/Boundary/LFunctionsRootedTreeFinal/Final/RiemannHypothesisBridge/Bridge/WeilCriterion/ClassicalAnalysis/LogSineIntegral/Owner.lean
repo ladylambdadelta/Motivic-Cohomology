@@ -88,6 +88,60 @@ theorem Real.sinePowerEulerBeta_rightParameter_pos :
     0 < (1 / 2 : ℝ) :=
   one_half_pos
 
+/-- The denominator parameter in the sine-power Beta/Gamma formula. -/
+theorem Real.sinePowerEulerBeta_parameter_sum
+    (s : ℝ) :
+    (s + 1) / 2 + (1 / 2 : ℝ) = s / 2 + 1 := by
+  calc
+    (s + 1) / 2 + (1 / 2 : ℝ) =
+        (s + 1 + 1) / 2 := by
+      exact (add_div (s + 1) 1 2).symm
+    _ = (s + 2) / 2 := by
+      exact congrArg (fun x : ℝ => x / 2) (add_assoc s 1 1)
+    _ = s / 2 + 2 / 2 := by
+      exact add_div s 2 2
+    _ = s / 2 + 1 := by
+      exact congrArg (fun x : ℝ => s / 2 + x) (div_self two_ne_zero)
+
+/-- Interval additivity for the sine-power integral at `π/2`. -/
+theorem Real.sinePowerIntegral_split_at_half
+    (s : ℝ)
+    (hs : -1 < s) :
+    Real.sinePowerIntegral s =
+      Real.sinePowerHalfIntegral s +
+        ∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s := by
+  sorry
+
+/-- Reflection of the upper half-interval by `u ↦ π - u`. -/
+theorem Real.sinePowerIntegral_reflected_upperHalf_eq_half
+    (s : ℝ)
+    (hs : -1 < s) :
+    (∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s) =
+      Real.sinePowerHalfIntegral s := by
+  sorry
+
+/-- Algebra converting the split/reflected sine-power integral into twice the
+half-interval integral. -/
+theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral_of_split_reflection
+    (s : ℝ)
+    (hsplit :
+      Real.sinePowerIntegral s =
+        Real.sinePowerHalfIntegral s +
+          ∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s)
+    (hreflect :
+      (∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s) =
+        Real.sinePowerHalfIntegral s) :
+    Real.sinePowerIntegral s =
+      2 * Real.sinePowerHalfIntegral s := by
+  calc
+    Real.sinePowerIntegral s =
+        Real.sinePowerHalfIntegral s +
+          ∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s := hsplit
+    _ = Real.sinePowerHalfIntegral s + Real.sinePowerHalfIntegral s := by
+      exact congrArg (fun x : ℝ => Real.sinePowerHalfIntegral s + x) hreflect
+    _ = 2 * Real.sinePowerHalfIntegral s := by
+      exact (two_mul (Real.sinePowerHalfIntegral s)).symm
+
 /-- Reflection symmetry splits the sine-power integral into twice the
 half-interval integral. -/
 theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral
@@ -95,6 +149,20 @@ theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral
     (hs : -1 < s) :
     Real.sinePowerIntegral s =
       2 * Real.sinePowerHalfIntegral s := by
+  exact
+    Real.sinePowerIntegral_eq_two_mul_halfIntegral_of_split_reflection
+      s
+      (Real.sinePowerIntegral_split_at_half s hs)
+      (Real.sinePowerIntegral_reflected_upperHalf_eq_half s hs)
+
+/-- Euler-Beta substitution for the half sine-power integral with explicit
+positive Beta parameters. -/
+theorem Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral_of_posParameters
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerHalfIntegral s =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaIntegral s := by
   sorry
 
 /-- Euler-Beta substitution for the half sine-power integral. -/
@@ -103,7 +171,11 @@ theorem Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral
     (hs : -1 < s) :
     Real.sinePowerHalfIntegral s =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaIntegral s := by
-  sorry
+  exact
+    Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral_of_posParameters
+      s
+      (Real.sinePowerEulerBeta_leftParameter_pos hs)
+      Real.sinePowerEulerBeta_rightParameter_pos
 
 /-- The sine-power integral is the Euler-Beta integral. -/
 theorem Real.sinePowerIntegral_eq_eulerBetaIntegral
@@ -127,13 +199,32 @@ theorem Real.sinePowerIntegral_eq_eulerBetaIntegral
     _ = Real.sinePowerEulerBetaIntegral s := by
       exact Real.two_mul_one_half_mul (Real.sinePowerEulerBetaIntegral s)
 
+/-- Beta/Gamma comparison with the positive parameters exposed. -/
+theorem Real.sinePowerEulerBetaIntegral_eq_gammaRatio_of_posParameters
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ))
+    (hsum : (s + 1) / 2 + (1 / 2 : ℝ) = s / 2 + 1) :
+    Real.sinePowerEulerBetaIntegral s =
+      Real.sinePowerGammaRatio s := by
+  sorry
+
 /-- Beta/Gamma comparison for the sine-power Euler-Beta integral. -/
 theorem Real.sinePowerEulerBetaIntegral_eq_gammaRatio
     (s : ℝ)
     (hs : -1 < s) :
     Real.sinePowerEulerBetaIntegral s =
       Real.sinePowerGammaRatio s := by
-  sorry
+  have hleft : 0 < (s + 1) / 2 :=
+    Real.sinePowerEulerBeta_leftParameter_pos hs
+  have hright : 0 < (1 / 2 : ℝ) :=
+    Real.sinePowerEulerBeta_rightParameter_pos
+  have hsum :
+      (s + 1) / 2 + (1 / 2 : ℝ) = s / 2 + 1 :=
+    Real.sinePowerEulerBeta_parameter_sum s
+  exact
+    Real.sinePowerEulerBetaIntegral_eq_gammaRatio_of_posParameters
+      s hleft hright hsum
 
 /-- Beta/Gamma evaluation of the sine-power integral. -/
 theorem Real.sinePowerIntegral_eq_gammaRatio
@@ -147,12 +238,20 @@ theorem Real.sinePowerIntegral_eq_gammaRatio
       (Real.sinePowerEulerBetaIntegral_eq_gammaRatio s hs)
 
 /-- Differentiating the sine-power integral at exponent `0`. -/
-theorem Real.sinePowerIntegral_hasDerivAt_zero :
+theorem Real.sinePowerIntegral_hasDerivAt_zero_from_differentiationUnderIntegral :
     HasDerivAt
       Real.sinePowerIntegral
       (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
       0 := by
   sorry
+
+/-- Differentiating the sine-power integral at exponent `0`. -/
+theorem Real.sinePowerIntegral_hasDerivAt_zero :
+    HasDerivAt
+      Real.sinePowerIntegral
+      (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
+      0 := by
+  exact Real.sinePowerIntegral_hasDerivAt_zero_from_differentiationUnderIntegral
 
 /-- Legendre duplication in logarithmic-derivative form at `1/2`. -/
 theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two :
@@ -218,11 +317,45 @@ theorem Real.sinePowerGammaRatio_hasDerivAt_zero :
       Real.sinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two
       hder
 
+/-- Near exponent `0`, the sine-power integral is represented by the
+Beta/Gamma ratio. -/
+theorem Real.sinePowerIntegral_eventuallyEq_gammaRatio_at_zero :
+    (fun s : ℝ => Real.sinePowerIntegral s) =ᶠ[𝓝 (0 : ℝ)]
+      (fun s : ℝ => Real.sinePowerGammaRatio s) := by
+  have hnear :
+      ∀ᶠ s in 𝓝 (0 : ℝ), -1 < s :=
+    Ioi_mem_nhds (show -1 < (0 : ℝ) by exact neg_lt_zero.mpr one_pos)
+  exact
+    hnear.mono
+      (fun s hs =>
+        Real.sinePowerIntegral_eq_gammaRatio s hs)
+
+/-- Transport the Gamma-ratio derivative to the sine-power integral using the
+local Beta/Gamma identity near exponent `0`. -/
+theorem Real.sinePowerIntegral_hasDerivAt_zero_from_gammaRatio :
+    HasDerivAt
+      Real.sinePowerIntegral
+      (-Real.pi * Real.log 2)
+      0 := by
+  exact
+    Real.sinePowerGammaRatio_hasDerivAt_zero.congr_of_eventuallyEq
+      Real.sinePowerIntegral_eventuallyEq_gammaRatio_at_zero
+
+/-- Derivative uniqueness identifies the two derivative values of the
+sine-power integral at exponent `0`. -/
+theorem Real.integral_log_sin_zero_pi_eq_gammaRatio_derivative :
+    (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) =
+      -Real.pi * Real.log 2 := by
+  exact
+    HasDerivAt.unique
+      Real.sinePowerIntegral_hasDerivAt_zero
+      Real.sinePowerIntegral_hasDerivAt_zero_from_gammaRatio
+
 /-- The classical log-sine integral on `[0,π]`. -/
 theorem Real.integral_log_sin_zero_pi :
     ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u) =
       -Real.pi * Real.log 2 := by
-  sorry
+  exact Real.integral_log_sin_zero_pi_eq_gammaRatio_derivative
 
 end
 
