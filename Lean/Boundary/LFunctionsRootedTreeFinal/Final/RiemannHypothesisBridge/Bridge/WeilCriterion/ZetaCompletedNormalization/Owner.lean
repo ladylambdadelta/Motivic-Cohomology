@@ -18652,7 +18652,39 @@ theorem eulerMaclaurin_cpow_neg_deriv_eq
     (hx : 0 < x) :
     deriv (fun t : ℝ => (((t : ℝ) : ℂ) ^ (-z))) x =
       -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
-  sorry
+  have hslit : ((x : ℂ) : ℂ) ∈ slitPlane :=
+    ofReal_mem_slitPlane.mpr hx
+  have hcomplex :
+      HasDerivAt
+        (fun w : ℂ => w ^ (-z))
+        ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1)
+        (x : ℂ) :=
+    (hasDerivAt_id (x : ℂ)).cpow_const hslit
+  have hreal :
+      HasDerivAt
+        (fun t : ℝ => (((t : ℝ) : ℂ) ^ (-z)))
+        ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1)
+        x :=
+    hcomplex.comp_ofReal
+  have hexponent :
+      ((-z) - 1) = -(z + 1) := by
+    calc
+      ((-z) - 1) = (-z) + (-(1 : ℂ)) := by
+        exact sub_eq_add_neg (-z) (1 : ℂ)
+      _ = -(z + 1) := by
+        exact (neg_add z (1 : ℂ)).symm
+  have hvalue :
+      ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1) =
+        -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+    calc
+      ((-z) * ((x : ℂ) ^ ((-z) - 1)) * 1) =
+          (-z) * ((x : ℂ) ^ ((-z) - 1)) := by
+        exact mul_one ((-z) * ((x : ℂ) ^ ((-z) - 1)))
+      _ = -z * (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+        exact congrArg
+          (fun W : ℂ => -z * W)
+          (congrArg (fun E : ℂ => ((x : ℂ) ^ E)) hexponent)
+  exact Eq.trans hreal.deriv hvalue
 
 /-- Generic first-order Euler-Maclaurin formula for the infinite post-cutoff
 tail of `x ↦ x^{-z}`.
@@ -18809,6 +18841,65 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
       hsum_eq
       hstandard
 
+/-- Defect of the raw zeta Euler-Maclaurin tail identity.  The boundary-line
+continuation theorem is stated as vanishing of this holomorphic defect. -/
+noncomputable def eulerMaclaurin_riemannZeta_tailIdentityDefect
+    (z : ℂ) : ℂ :=
+  (riemannZeta z - eulerMaclaurinZetaFinitePart z) -
+    (eulerMaclaurinZetaMainTerm z +
+      eulerMaclaurinZetaEndpointTerm z +
+      eulerMaclaurinZetaBernoulliIntegralRemainder z)
+
+/-- Vanishing of the Euler-Maclaurin tail defect is exactly the desired
+tail identity. -/
+theorem eulerMaclaurin_riemannZeta_tailIdentity_of_defect_eq_zero
+    {z : ℂ}
+    (hdefect : eulerMaclaurin_riemannZeta_tailIdentityDefect z = 0) :
+    riemannZeta z - eulerMaclaurinZetaFinitePart z =
+      eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+  unfold eulerMaclaurin_riemannZeta_tailIdentityDefect at hdefect
+  exact sub_eq_zero.mp hdefect
+
+/-- In the convergent half-plane, the Euler-Maclaurin tail defect vanishes by
+uniqueness of the post-cutoff `HasSum`: the Dirichlet split and the
+Euler-Maclaurin tail formula have the same summand. -/
+theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_eq_zero_on_halfPlane
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    eulerMaclaurin_riemannZeta_tailIdentityDefect z = 0 := by
+  have hsplit :
+      HasSum
+        (fun n : ℕ =>
+          if eulerMaclaurinPoleClearedZetaCutoff z < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        (riemannZeta z - eulerMaclaurinZetaFinitePart z) :=
+    eulerMaclaurin_riemannZeta_halfPlane_finite_split_tail_hasSum
+      z hhalf_plane
+  have htail :
+      HasSum
+        (fun n : ℕ =>
+          if eulerMaclaurinPoleClearedZetaCutoff z < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        (eulerMaclaurinZetaMainTerm z +
+          eulerMaclaurinZetaEndpointTerm z +
+          eulerMaclaurinZetaBernoulliIntegralRemainder z) :=
+    eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
+      z hhalf_plane
+  have hidentity :
+      riemannZeta z - eulerMaclaurinZetaFinitePart z =
+        eulerMaclaurinZetaMainTerm z +
+          eulerMaclaurinZetaEndpointTerm z +
+          eulerMaclaurinZetaBernoulliIntegralRemainder z :=
+    hsplit.unique htail
+  unfold eulerMaclaurin_riemannZeta_tailIdentityDefect
+  exact sub_eq_zero.mpr hidentity
+
 /-- First-order Euler-Maclaurin evaluation of the convergent post-cutoff
 Dirichlet tail.
 
@@ -18834,6 +18925,32 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
     eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
       z hhalf_plane
 
+/-- Holomorphicity of the Euler-Maclaurin tail defect on the punctured closed
+strip owner domain.
+
+The summand finite part, main term, endpoint term, and Bernoulli-integral
+remainder are holomorphic there, and the only excluded point is the zeta pole
+`z = 1`. -/
+theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_holomorphicOn_puncturedStrip_standard :
+    DifferentiableOn ℂ
+      eulerMaclaurin_riemannZeta_tailIdentityDefect
+      ({z : ℂ | 1 ≤ z.re ∧ z.re ≤ 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Boundary-line vanishing of the Euler-Maclaurin tail defect by analytic
+continuation.
+
+The defect is holomorphic on the punctured strip, vanishes on the connected
+open subset `1 < Re z ≤ 2` by the half-plane Dirichlet-series calculation, and
+therefore vanishes at the non-pole boundary points on `Re z = 1` by the
+identity theorem/continuity of the owner continuation. -/
+theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_boundaryLine_eq_zero_by_identityTheorem_standard
+    (z : ℂ)
+    (hz_re : z.re = 1)
+    (hz_ne_one : z ≠ 1) :
+    eulerMaclaurin_riemannZeta_tailIdentityDefect z = 0 := by
+  sorry
+
 /-- Boundary-line analytic-continuation uniqueness for the first-order
 Euler-Maclaurin zeta tail.
 
@@ -18851,7 +18968,10 @@ theorem eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_by_analyticContinu
       eulerMaclaurinZetaMainTerm z +
         eulerMaclaurinZetaEndpointTerm z +
         eulerMaclaurinZetaBernoulliIntegralRemainder z := by
-  sorry
+  exact
+    eulerMaclaurin_riemannZeta_tailIdentity_of_defect_eq_zero
+      (eulerMaclaurin_riemannZeta_tailIdentityDefect_boundaryLine_eq_zero_by_identityTheorem_standard
+        z hz_re hz_ne_one)
 
 /-- Boundary-line analytic continuation of the first-order Euler-Maclaurin
 tail identity.
@@ -22442,6 +22562,94 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
     hnorm_eq.symm
     (hproduct s (le_trans zero_le_one hs_re) hs_norm)
 
+/-- Finite-order growth for the two exponential terms in the definition of
+`Complex.cos (πs/2)`.
+
+This is the elementary estimate obtained from
+`Complex.abs_exp z = exp z.re`, the formulas for real and imaginary parts of
+`(πs/2) * I` and `-(πs/2) * I`, and the bound `|s.im| ≤ ‖s‖`. -/
+theorem complex_cos_pi_mul_div_two_exp_terms_rightHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ s : ℂ,
+        1 ≤ s.re →
+        1 ≤ ‖s‖ →
+        ‖Complex.exp ((π * s / 2) * Complex.I)‖ +
+            ‖Complex.exp (-(π * s / 2) * Complex.I)‖ ≤
+          A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  sorry
+
+/-- The exponential-term estimate for `cos` implies the finite-order growth of
+the cosine factor itself. -/
+theorem complex_cos_pi_mul_div_two_finiteOrder_growth_bound_of_exp_terms
+    (hexp :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ s : ℂ,
+          1 ≤ s.re →
+          1 ≤ ‖s‖ →
+          ‖Complex.exp ((π * s / 2) * Complex.I)‖ +
+              ‖Complex.exp (-(π * s / 2) * Complex.I)‖ ≤
+            A * Real.exp (B * (1 + ‖s‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ s : ℂ,
+        1 ≤ s.re →
+        1 ≤ ‖s‖ →
+        ‖Complex.cos (π * s / 2)‖ ≤
+          A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  rcases hexp with ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro s hs_re hs_norm
+  let u : ℂ := π * s / 2
+  have hcos_def :
+      Complex.cos u =
+        (Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)) / 2 := rfl
+  have hnorm_div :
+      ‖Complex.cos u‖ ≤
+        (‖Complex.exp (u * Complex.I)‖ +
+          ‖Complex.exp (-u * Complex.I)‖) / 2 := by
+    calc
+      ‖Complex.cos u‖ =
+          ‖(Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)) / 2‖ := by
+        exact congrArg norm hcos_def
+      _ = ‖Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)‖ /
+            ‖(2 : ℂ)‖ := norm_div
+          (Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)) (2 : ℂ)
+      _ = ‖Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)‖ / 2 := by
+        exact congrArg
+          (fun x : ℝ =>
+            ‖Complex.exp (u * Complex.I) + Complex.exp (-u * Complex.I)‖ / x)
+          (show ‖(2 : ℂ)‖ = (2 : ℝ) from norm_ofNat 2)
+      _ ≤ (‖Complex.exp (u * Complex.I)‖ +
+            ‖Complex.exp (-u * Complex.I)‖) / 2 :=
+        div_le_div_of_nonneg_right
+          (norm_add_le (Complex.exp (u * Complex.I)) (Complex.exp (-u * Complex.I)))
+          zero_le_two
+  have hhalf_le :
+      (‖Complex.exp (u * Complex.I)‖ +
+          ‖Complex.exp (-u * Complex.I)‖) / 2 ≤
+        ‖Complex.exp (u * Complex.I)‖ +
+          ‖Complex.exp (-u * Complex.I)‖ := by
+    have hsum_nonneg :
+        0 ≤ ‖Complex.exp (u * Complex.I)‖ +
+          ‖Complex.exp (-u * Complex.I)‖ :=
+      add_nonneg (norm_nonneg _) (norm_nonneg _)
+    exact div_le_self hsum_nonneg one_le_two
+  have hrewrite :
+      ‖Complex.exp (u * Complex.I)‖ +
+          ‖Complex.exp (-u * Complex.I)‖ =
+        ‖Complex.exp ((π * s / 2) * Complex.I)‖ +
+          ‖Complex.exp (-(π * s / 2) * Complex.I)‖ := rfl
+  exact (hnorm_div.trans hhalf_le).trans
+    (Eq.subst
+      (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖s‖) ^ m))
+      hrewrite.symm
+      (hbound s hs_re hs_norm))
+
 /-- Elementary finite-order growth of the cosine factor occurring in Deligne's
 real-Gamma reflection identity. -/
 theorem complex_cos_pi_mul_div_two_rightHalfPlane_finiteOrder_growth_bound :
@@ -22453,6 +22661,28 @@ theorem complex_cos_pi_mul_div_two_rightHalfPlane_finiteOrder_growth_bound :
         1 ≤ ‖s‖ →
         ‖Complex.cos (π * s / 2)‖ ≤
           A * Real.exp (B * (1 + ‖s‖) ^ m) := by
+  exact
+    complex_cos_pi_mul_div_two_finiteOrder_growth_bound_of_exp_terms
+      complex_cos_pi_mul_div_two_exp_terms_rightHalfPlane_finiteOrder_growth_bound
+
+/-- Pure affine-norm absorption for finite-order envelopes under
+`z ↦ 1 - z` on the left half-plane. -/
+theorem finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption
+    (f : ℂ → ℂ)
+    (hright :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ s : ℂ,
+          1 ≤ s.re →
+          1 ≤ ‖s‖ →
+          ‖f s‖ ≤ A * Real.exp (B * (1 + ‖s‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖f ((1 : ℂ) - z)‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
 
 /-- Affine reflection transport for right-half-plane finite-order envelopes.
@@ -22477,7 +22707,7 @@ theorem finiteOrder_reflectedLeftHalfPlane_growth_bound_of_rightHalfPlane
       ∀ z : ℂ,
         z.re ≤ 0 →
         ‖f ((1 : ℂ) - z)‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact finiteOrder_reflectedLeftHalfPlane_affine_norm_absorption f hright
 
 /-- Right-half-plane finite-order growth for the Deligne quotient factor
 `Gammaℂ s * cos (πs/2)`.

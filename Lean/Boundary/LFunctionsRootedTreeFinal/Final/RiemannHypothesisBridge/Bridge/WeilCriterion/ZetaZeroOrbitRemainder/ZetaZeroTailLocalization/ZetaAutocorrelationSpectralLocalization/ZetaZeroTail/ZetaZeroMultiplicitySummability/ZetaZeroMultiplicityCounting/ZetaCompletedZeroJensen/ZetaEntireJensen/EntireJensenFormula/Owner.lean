@@ -2470,6 +2470,16 @@ theorem unitCircleLogKernel_log_eq_const_plus_halfSineLog_of_sin_ne_zero
     _ = Real.log 2 + Real.log |Real.sin (θ / 2)| := by
       exact Real.log_mul htwo habs
 
+/-- The endpoint singularity set of the half-angle unit-circle kernel is null
+on the fundamental Jensen interval. -/
+theorem unitCircleLogKernel_halfSine_zero_ae_ne :
+    ∀ᵐ θ ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi)),
+      Real.sin (θ / 2) ≠ 0 := by
+  -- The equation `sin (θ/2)=0` forces `θ = 2 n π`; in the fundamental
+  -- interval `Ι 0 (2π)` only endpoint representatives can occur, hence the
+  -- exceptional set is finite and null.
+  sorry
+
 /-- Restricted-a.e. logarithmic split of the unit-circle kernel on the
 fundamental interval.
 
@@ -2479,9 +2489,10 @@ theorem unitCircleLogKernel_log_eq_const_plus_halfSineLog_ae :
     (fun θ : ℝ => Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =ᵐ[
         MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi))]
       (fun θ : ℝ => Real.log 2 + Real.log |Real.sin (θ / 2)|) := by
-  -- The zero set of `sin (θ/2)` in `Ι 0 (2π)` is finite; away from it use
-  -- `unitCircleLogKernel_log_eq_const_plus_halfSineLog_of_sin_ne_zero`.
-  sorry
+  exact
+    unitCircleLogKernel_halfSine_zero_ae_ne.mono
+      (fun θ hθ =>
+        unitCircleLogKernel_log_eq_const_plus_halfSineLog_of_sin_ne_zero θ hθ)
 
 /-- Integral split after the pointwise half-angle norm identity. -/
 theorem unitCircleLogKernel_integral_eq_const_plus_halfSineLog :
@@ -2502,14 +2513,32 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
   -- normalize the endpoints `0 / 2` and `(2π) / 2`.
   sorry
 
+/-- The sine is a.e. positive on the open Jensen sine interval. -/
+theorem real_sin_pos_ae_zero_pi :
+    ∀ᵐ u ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi),
+      0 < Real.sin u := by
+  -- On the interior `(0,π)` this is `Real.sin_pos_of_pos_of_lt_pi`; the
+  -- interval-integral measure ignores the finite endpoint discrepancy.
+  sorry
+
+/-- A.e. removal of the absolute value in the sine-log integral on `[0,π]`. -/
+theorem real_log_abs_sin_ae_eq_log_sin_zero_pi :
+    (fun u : ℝ => Real.log |Real.sin u|) =ᵐ[
+        MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi)]
+      (fun u : ℝ => Real.log (Real.sin u)) := by
+  exact
+    real_sin_pos_ae_zero_pi.mono
+      (fun u hu =>
+        congrArg Real.log (abs_of_pos hu))
+
 /-- On `[0,π]`, replacing `log |sin u|` by `log (sin u)` changes only the
 finite endpoint singularities. -/
 theorem real_integral_log_abs_sin_zero_pi_eq_log_sin :
     (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) =
       ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u) := by
-  -- The sine is nonnegative on `[0,π]` and positive on the interior; the
-  -- endpoints are a null finite set.
-  sorry
+  exact
+    intervalIntegral.integral_congr_ae
+      real_log_abs_sin_ae_eq_log_sin_zero_pi
 
 /-- Half-angle interval substitution for the sine-log kernel. -/
 theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
@@ -4266,6 +4295,83 @@ theorem complex_centerSegmentIntegral_endpointBall_Icc_isCompact
   exact
     (isCompact_closedBall w r).prod isCompact_Icc
 
+/-- Membership in the finite analytic tube gives the local analytic chart
+carried by one of its pieces. -/
+theorem complex_analyticAt_of_mem_finiteAnalyticTube
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ)
+    {q : ℂ} :
+    q ∈ ⋃ c ∈ centers, {p : ℂ | AnalyticAt ℂ φ p} →
+      AnalyticAt ℂ φ q := by
+  intro hq
+  match Set.mem_iUnion.1 hq with
+  | ⟨_c, hc_mem⟩ =>
+    match Set.mem_iUnion.1 hc_mem with
+    | ⟨_hc, hpoint⟩ => exact hpoint
+
+/-- Continuity of the endpoint derivative integrand on a compact endpoint
+ball times the parameter interval, assuming all corresponding segments lie in
+the finite analytic tube. -/
+theorem complex_centerSegmentIntegral_endpointDerivative_continuousOn_tube
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ r : ℝ,
+        (∀ x : ℂ,
+          x ∈ Metric.closedBall w r →
+            ∀ t : ℝ,
+              t ∈ Set.Icc (0 : ℝ) 1 →
+                AffineMap.lineMap (0 : ℂ) x t ∈
+                  ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+          ContinuousOn
+            (fun p : ℂ × ℝ =>
+              complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                φ p.1 p.2)
+            (Metric.closedBall w r ×ˢ Set.Icc (0 : ℝ) 1) := by
+  intro w r htube p hp
+  have hline_mem :
+      AffineMap.lineMap (0 : ℂ) p.1 p.2 ∈
+        ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} :=
+    htube p.1 hp.1 p.2 hp.2
+  have hanalytic :
+      AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) p.1 p.2) :=
+    complex_analyticAt_of_mem_finiteAnalyticTube
+      φ centers hline_mem
+  have hline_cont :
+      ContinuousAt
+        (fun q : ℂ × ℝ =>
+          AffineMap.lineMap (0 : ℂ) q.1 q.2)
+        p :=
+    complex_centerSegment_endpointParameter_continuous.continuousAt
+  have hφ_cont :
+      ContinuousAt
+        (fun q : ℂ × ℝ =>
+          φ (AffineMap.lineMap (0 : ℂ) q.1 q.2))
+        p :=
+    hanalytic.differentiableAt.continuousAt.comp hline_cont
+  have hderiv_analytic :
+      AnalyticAt ℂ
+        (fun q : ℂ => deriv φ q)
+        (AffineMap.lineMap (0 : ℂ) p.1 p.2) :=
+    complex_deriv_analyticAt_of_analyticAt φ hanalytic
+  have hderiv_cont :
+      ContinuousAt
+        (fun q : ℂ × ℝ =>
+          deriv φ (AffineMap.lineMap (0 : ℂ) q.1 q.2))
+        p :=
+    hderiv_analytic.differentiableAt.continuousAt.comp hline_cont
+  have hendpoint_cont :
+      ContinuousAt (fun q : ℂ × ℝ => q.1) p :=
+    continuous_fst.continuousAt
+  have hparameter_cont :
+      ContinuousAt (fun q : ℂ × ℝ => (q.2 : ℂ)) p :=
+    (continuous_ofReal.comp continuous_snd).continuousAt
+  have hfactor_cont :
+      ContinuousAt (fun q : ℂ × ℝ => q.1 * (q.2 : ℂ)) p :=
+    hendpoint_cont.mul hparameter_cont
+  exact
+    (hφ_cont.add (hfactor_cont.mul hderiv_cont)).continuousWithinAt
+
 /-- Continuity of the endpoint derivative norm on a compact endpoint ball
 times the parameter interval, assuming the finite analytic tube contains all
 segments from that ball. -/
@@ -4285,7 +4391,11 @@ theorem complex_centerSegmentIntegral_endpointDerivative_norm_continuousOn_tube
               ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                 φ p.1 p.2‖)
             (Metric.closedBall w r ×ˢ Set.Icc (0 : ℝ) 1) := by
-  sorry
+  intro w r htube_closed
+  exact
+    continuous_norm.comp_continuousOn
+      (complex_centerSegmentIntegral_endpointDerivative_continuousOn_tube
+        φ centers w r htube_closed)
 
 /-- Compact boundedness of the endpoint derivative norm on the endpoint-ball
 parameter domain. -/
