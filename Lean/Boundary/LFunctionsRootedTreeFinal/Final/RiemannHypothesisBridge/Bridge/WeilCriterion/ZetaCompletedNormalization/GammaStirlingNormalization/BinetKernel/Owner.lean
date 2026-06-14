@@ -419,17 +419,18 @@ and the tail interval `(1,∞)`. -/
 theorem Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one :
     Set.Ioi (0 : ℝ) =
       Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) := by
-  exact
-    Set.ext
-      (fun x =>
-        ⟨fun hx =>
-            Or.elim (lt_or_ge (1 : ℝ) x)
-              (fun hlt_one_x => Or.inr hlt_one_x)
-              (fun hx_le_one => Or.inl ⟨hx, hx_le_one⟩),
-          fun hx =>
-            Or.elim hx
-              (fun hx_local => hx_local.1)
-              (fun hx_tail => lt_trans zero_lt_one hx_tail)⟩)
+  ext x
+  constructor
+  · intro hx
+    by_cases hle : x ≤ 1
+    · left
+      exact ⟨hx, hle⟩
+    · right
+      exact lt_of_not_ge hle
+  · intro hx
+    cases hx with
+    | inl h => exact h.1
+    | inr h => exact h
 
 /-- Joining local integrability on `(0,1]` with tail integrability on `(1,∞)`
 gives integrability on `(0,∞)`. -/

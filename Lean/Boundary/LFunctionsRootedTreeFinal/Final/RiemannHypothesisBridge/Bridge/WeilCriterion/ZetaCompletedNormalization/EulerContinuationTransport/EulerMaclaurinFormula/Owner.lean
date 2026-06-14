@@ -1618,6 +1618,119 @@ theorem eulerMaclaurinBernoulliKernel_parameter_differentiableOn
       (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
   exact hfactor.mul hpow
 
+/-- A small complex ball around a point with positive real part has a uniform
+positive lower bound on real parts.
+
+The intended radius and lower bound are both `z₀.re / 2`.  This is the local
+geometric input needed for Euler-Maclaurin dominated estimates on the full
+punctured strip `0 < re z < 2`, where no global `1 ≤ re z` lower bound is
+available. -/
+theorem eulerMaclaurin_ball_realPart_lowerBound_of_pos_re
+    (z₀ : ℂ)
+    (hz₀_pos : 0 < z₀.re) :
+    ∃ r δ : ℝ, 0 < r ∧ 0 < δ ∧
+      ∀ z : ℂ, z ∈ Metric.ball z₀ r → δ ≤ z.re := by
+  let r : ℝ := z₀.re / 2
+  let δ : ℝ := z₀.re / 2
+  have hr_pos : 0 < r := by
+    exact half_pos hz₀_pos
+  have hδ_pos : 0 < δ := by
+    exact half_pos hz₀_pos
+  refine ⟨r, δ, hr_pos, hδ_pos, ?_⟩
+  intro z hz
+  have hdist : dist z z₀ < r :=
+    hz
+  have hnorm : ‖z - z₀‖ < r := by
+    exact Eq.subst
+      (motive := fun t : ℝ => t < r)
+      (dist_eq_norm z z₀)
+      hdist
+  have habs_re :
+      |(z - z₀).re| < r := by
+    have hle_abs :
+        |(z - z₀).re| ≤ Complex.abs (z - z₀) :=
+      Complex.abs_re_le_abs (z - z₀)
+    have habs_norm :
+        Complex.abs (z - z₀) = ‖z - z₀‖ := by
+      exact (Complex.norm_eq_abs (z - z₀)).symm
+    exact lt_of_le_of_lt hle_abs
+      (Eq.subst
+        (motive := fun t : ℝ => t < r)
+        habs_norm.symm
+        hnorm)
+  have hre_sub_lt : z₀.re - z.re < r := by
+    have hneg :
+        -(z.re - z₀.re) ≤ |z.re - z₀.re| :=
+      neg_le_abs (z.re - z₀.re)
+    have hsub_re :
+        (z - z₀).re = z.re - z₀.re := by
+      exact Complex.sub_re z z₀
+    have hrewrite :
+        |(z - z₀).re| = |z.re - z₀.re| := by
+      exact congrArg abs hsub_re
+    have hneg_lt :
+        -(z.re - z₀.re) < r :=
+      lt_of_le_of_lt hneg
+        (Eq.subst
+          (motive := fun t : ℝ => t < r)
+          hrewrite
+          habs_re)
+    calc
+      z₀.re - z.re = -(z.re - z₀.re) := by
+        exact (neg_sub z.re z₀.re).symm
+      _ < r := hneg_lt
+  have hre_lower : z₀.re - r < z.re := by
+    exact sub_lt_iff_lt_add.mp hre_sub_lt
+  have hdelta_eq : δ = z₀.re - r := by
+    unfold δ r
+    calc
+      z₀.re / 2 = z₀.re - z₀.re / 2 := by
+        exact (eq_sub_iff_add_eq.mpr (add_halves z₀.re).symm).symm
+  exact le_of_lt
+    (Eq.subst
+      (motive := fun t : ℝ => t < z.re)
+      hdelta_eq
+      hre_lower)
+
+/-- The real power tail with exponent `-(δ + 1)` is integrable on any positive
+Euler-Maclaurin cutoff tail when `δ > 0`. -/
+theorem eulerMaclaurin_integrableOn_Ioi_rpow_neg_delta_add_one
+    (N : ℕ)
+    (hN : 0 < N)
+    (δ : ℝ)
+    (hδ : 0 < δ) :
+    IntegrableOn
+      (fun x : ℝ => x ^ (-(δ + 1)))
+      (Set.Ioi (((N : ℕ) : ℝ))) := by
+  have hcutoff_pos : 0 < (((N : ℕ) : ℝ)) := by
+    exact_mod_cast hN
+  have hexponent_lt :
+      -(δ + 1) < -(1 : ℝ) := by
+    exact neg_lt_neg (lt_add_of_pos_left 1 hδ)
+  exact integrableOn_Ioi_rpow_of_lt hexponent_lt hcutoff_pos
+
+/-- On a parameter ball with `δ ≤ re z`, the fixed-cutoff Bernoulli kernel is
+dominated on the tail by the scalar integrable power `x ^ (-(δ + 1))`.
+
+This is the analytic sink for the local punctured-strip majorant: it combines
+`|B₁({x})| ≤ 1`, positivity of the real tail variable, the positive-real
+`cpow` norm formula, and monotonicity of `x ^ s` in the exponent for `x ≥ N ≥ 1`.
+It deliberately uses only the local lower bound `δ > 0`, not the later
+closed-strip hypothesis `1 ≤ re z`. -/
+theorem eulerMaclaurinBernoulliKernel_ae_le_rpow_majorant_of_ball_re_lower
+    (N : ℕ)
+    (hN : 0 < N)
+    (z₀ : ℂ)
+    (r δ : ℝ)
+    (hδ : 0 < δ)
+    (hre_lower : ∀ z : ℂ, z ∈ Metric.ball z₀ r → δ ≤ z.re) :
+    ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤
+            x ^ (-(δ + 1)) := by
+  sorry
+
 /-- Locally uniform integrable majorant for the fixed-cutoff Bernoulli kernel
 on compact parameter neighborhoods inside the punctured strip. -/
 theorem eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
@@ -1631,7 +1744,25 @@ theorem eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStri
           ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
             ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
               (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤ g x := by
-  sorry
+  have hz₀_pos : 0 < z₀.re :=
+    hz₀.1
+  rcases eulerMaclaurin_ball_realPart_lowerBound_of_pos_re z₀ hz₀_pos with
+    ⟨r, δ, hr_pos, hδ_pos, hre_lower⟩
+  let g : ℝ → ℝ := fun x : ℝ => x ^ (-(δ + 1))
+  have hg_integrable :
+      IntegrableOn g (Set.Ioi (((N : ℕ) : ℝ))) :=
+    eulerMaclaurin_integrableOn_Ioi_rpow_neg_delta_add_one
+      N hN δ hδ_pos
+  have hmajorant :
+      ∀ z : ℂ, z ∈ Metric.ball z₀ r →
+        ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤ g x := by
+    intro z hz
+    exact
+      eulerMaclaurinBernoulliKernel_ae_le_rpow_majorant_of_ball_re_lower
+        N hN z₀ r δ hδ_pos hre_lower z hz
+  exact ⟨r, hr_pos, g, hg_integrable, hmajorant⟩
 
 /-- Dominated differentiation for the fixed-cutoff Bernoulli kernel, using
 the local integrable majorant and the pointwise parameter differentiability

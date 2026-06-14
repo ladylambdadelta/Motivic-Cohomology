@@ -1067,7 +1067,30 @@ theorem Complex.one_half_lt_real_log_two :
 /-- A rational lower bound for `log 2` used at the dyadic entropy checkpoint. -/
 theorem Complex.two_thirds_le_real_log_two :
     (2 / 3 : ℝ) ≤ Real.log (2 : ℝ) := by
-  sorry
+  have hexp_two_le_eight : Real.exp (2 : ℝ) ≤ 8 := by
+    have hsq :
+        Real.exp (2 : ℝ) = Real.exp (1 : ℝ) ^ 2 := by
+      calc
+        Real.exp (2 : ℝ) = Real.exp ((2 : ℕ) * (1 : ℝ)) := by norm_num
+        _ = Real.exp (1 : ℝ) ^ 2 :=
+          Real.exp_nat_mul (1 : ℝ) 2
+    have hsq_bound : Real.exp (1 : ℝ) ^ 2 < (8 : ℝ) := by
+      calc
+        Real.exp (1 : ℝ) ^ 2 < (2.7182818286 : ℝ) ^ 2 := by
+          exact pow_lt_pow_left₀ (Real.exp_pos 1).le Real.exp_one_lt_d9 (by decide : 0 < 2)
+        _ < (8 : ℝ) := by norm_num
+    exact le_of_lt (Eq.subst (motive := fun z : ℝ => z < 8) hsq.symm hsq_bound)
+  have hlog_eight : (2 : ℝ) ≤ Real.log (8 : ℝ) :=
+    (Real.le_log_iff_exp_le (by norm_num : (0 : ℝ) < 8)).mpr hexp_two_le_eight
+  have hlog_pow :
+      Real.log (8 : ℝ) = 3 * Real.log (2 : ℝ) := by
+    calc
+      Real.log (8 : ℝ) = Real.log ((2 : ℝ) ^ 3) := by norm_num
+      _ = (3 : ℝ) * Real.log (2 : ℝ) :=
+        Real.log_pow (2 : ℝ) 3
+  have htwo_le_three_log : (2 : ℝ) ≤ 3 * Real.log (2 : ℝ) :=
+    Eq.subst (motive := fun target : ℝ => (2 : ℝ) ≤ target) hlog_pow hlog_eight
+  exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 3)).mp htwo_le_three_log
 
 /-- The denominator in the explicit critical point is nonnegative. -/
 theorem Complex.realLogDyadicComparisonCriticalPoint_den_nonneg :
@@ -1534,7 +1557,90 @@ theorem Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_of_one_lt
 theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
     Real.log (2 : ℝ) ≤
       Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) := by
-  sorry
+  have hlog_three_le :
+      Real.log (3 : ℝ) ≤ (5 / 3 : ℝ) * Real.log (2 : ℝ) := by
+    have hlog_27_le_32 : Real.log (27 : ℝ) ≤ Real.log (32 : ℝ) :=
+      Real.log_le_log (by norm_num : (0 : ℝ) < 27) (by norm_num : (27 : ℝ) ≤ 32)
+    have hlog_27 : Real.log (27 : ℝ) = (3 : ℝ) * Real.log (3 : ℝ) := by
+      calc
+        Real.log (27 : ℝ) = Real.log ((3 : ℝ) ^ 3) := by norm_num
+        _ = (3 : ℝ) * Real.log (3 : ℝ) :=
+          Real.log_pow (3 : ℝ) 3
+    have hlog_32 : Real.log (32 : ℝ) = (5 : ℝ) * Real.log (2 : ℝ) := by
+      calc
+        Real.log (32 : ℝ) = Real.log ((2 : ℝ) ^ 5) := by norm_num
+        _ = (5 : ℝ) * Real.log (2 : ℝ) :=
+          Real.log_pow (2 : ℝ) 5
+    have hthree :
+        (3 : ℝ) * Real.log (3 : ℝ) ≤ (5 : ℝ) * Real.log (2 : ℝ) :=
+      Eq.subst
+        (motive := fun lhs : ℝ => lhs ≤ (5 : ℝ) * Real.log (2 : ℝ))
+        hlog_27
+        (Eq.subst
+          (motive := fun rhs : ℝ => Real.log (27 : ℝ) ≤ rhs)
+          hlog_32
+          hlog_27_le_32)
+    exact (le_div_iff₀' (by norm_num : (0 : ℝ) < 3)).mp hthree
+  have hvalue :
+      Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) =
+        (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
+    have hfour_ne : (4 / 3 : ℝ) ≠ 0 := by norm_num
+    have hone_ne : ((4 / 3 : ℝ) - 1) ≠ 0 := by norm_num
+    have hlog_four_thirds :
+        Real.log (4 / 3 : ℝ) = 2 * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
+      calc
+        Real.log (4 / 3 : ℝ) = Real.log ((4 : ℝ) / 3) := by norm_num
+        _ = Real.log (4 : ℝ) - Real.log (3 : ℝ) :=
+          Real.log_div (by norm_num : (4 : ℝ) ≠ 0) (by norm_num : (3 : ℝ) ≠ 0)
+        _ = 2 * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
+          have hlog_four : Real.log (4 : ℝ) = 2 * Real.log (2 : ℝ) := by
+            calc
+              Real.log (4 : ℝ) = Real.log ((2 : ℝ) ^ 2) := by norm_num
+              _ = (2 : ℝ) * Real.log (2 : ℝ) :=
+                Real.log_pow (2 : ℝ) 2
+          exact congrArg (fun z : ℝ => z - Real.log (3 : ℝ)) hlog_four
+    have hlog_one_third :
+        Real.log ((4 / 3 : ℝ) - 1) = - Real.log (3 : ℝ) := by
+      calc
+        Real.log ((4 / 3 : ℝ) - 1) = Real.log ((1 : ℝ) / 3) := by norm_num
+        _ = Real.log (1 : ℝ) - Real.log (3 : ℝ) :=
+          Real.log_div one_ne_zero (by norm_num : (3 : ℝ) ≠ 0)
+        _ = - Real.log (3 : ℝ) := by
+          rw [Real.log_one, zero_sub]
+    calc
+      Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) =
+          (4 / 3 : ℝ) * Real.log (4 / 3 : ℝ) -
+            ((4 / 3 : ℝ) - 1) * Real.log ((4 / 3 : ℝ) - 1) := by
+        rfl
+      _ = (4 / 3 : ℝ) * (2 * Real.log (2 : ℝ) - Real.log (3 : ℝ)) -
+            ((4 / 3 : ℝ) - 1) * (- Real.log (3 : ℝ)) := by
+        exact congrArg₂ Sub.sub
+          (congrArg (fun z : ℝ => (4 / 3 : ℝ) * z) hlog_four_thirds)
+          (congrArg (fun z : ℝ => ((4 / 3 : ℝ) - 1) * z) hlog_one_third)
+      _ = (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
+        ring
+  have htarget :
+      Real.log (2 : ℝ) ≤ (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
+    have hmove :
+        Real.log (2 : ℝ) + Real.log (3 : ℝ) ≤
+          (8 / 3 : ℝ) * Real.log (2 : ℝ) := by
+      have hsum :
+          Real.log (2 : ℝ) + Real.log (3 : ℝ) ≤
+            Real.log (2 : ℝ) + (5 / 3 : ℝ) * Real.log (2 : ℝ) :=
+        add_le_add_left hlog_three_le (Real.log (2 : ℝ))
+      have halg :
+          Real.log (2 : ℝ) + (5 / 3 : ℝ) * Real.log (2 : ℝ) =
+            (8 / 3 : ℝ) * Real.log (2 : ℝ) := by
+        ring
+      exact Eq.subst
+        (motive := fun rhs : ℝ => Real.log (2 : ℝ) + Real.log (3 : ℝ) ≤ rhs)
+        halg
+        hsum
+    exact (le_sub_iff_add_le).mpr hmove
+  exact Eq.subst
+    (motive := fun target : ℝ => Real.log (2 : ℝ) ≤ target)
+    hvalue.symm
+    htarget
 
 /-- The entropy-form inequality at the lower endpoint `2 log 2`. -/
 theorem Complex.real_log_two_le_entropyExpression_at_two_log :
