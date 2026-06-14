@@ -1868,7 +1868,24 @@ theorem entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
         smul_zero (z ^ entireFunctionZeroMultiplicity F hF 0)
 
 /-- Multiplication by a local analytic unit preserves analytic zero
-multiplicity. -/
+order. -/
+theorem analyticAt_order_eq_of_eventually_eq_unit_smul
+    (F G u : ℂ → ℂ)
+    {z : ℂ}
+    (hF : AnalyticAt ℂ F z)
+    (hG : AnalyticAt ℂ G z)
+    (hu : AnalyticAt ℂ u z)
+    (hu_ne : u z ≠ 0)
+    (hfactor : ∀ᶠ w in 𝓝 z, F w = u w • G w) :
+    hF.order = hG.order := by
+  -- Compare the `AnalyticAt.order_eq_nat_iff` local Taylor models for `G`
+  -- and `F`; the unit `u` multiplies the nonvanishing analytic factor and
+  -- therefore leaves the unique exponent unchanged, including the locally-zero
+  -- `⊤` case.
+  sorry
+
+/-- Multiplication by a local analytic unit preserves the file's entire-function
+zero multiplicity. -/
 theorem entireFunctionZeroMultiplicity_eq_of_eventually_eq_unit_smul
     (F G u : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1879,10 +1896,10 @@ theorem entireFunctionZeroMultiplicity_eq_of_eventually_eq_unit_smul
     (hfactor : ∀ᶠ w in 𝓝 z, F w = u w • G w) :
     entireFunctionZeroMultiplicity F hF z =
       entireFunctionZeroMultiplicity G hG z := by
-  -- Compare the `AnalyticAt.order_eq_nat_iff` local Taylor models for `G`
-  -- and `F`; the unit `u` multiplies the nonvanishing analytic factor and
-  -- therefore leaves the unique exponent unchanged.
-  sorry
+  unfold entireFunctionZeroMultiplicity
+  exact congrArg (fun e : ENat => e.toNat)
+    (analyticAt_order_eq_of_eventually_eq_unit_smul
+      F G u (hF z) (hG z) hu hu_ne hfactor)
 
 /-- Away from the origin, removing the origin Taylor factor preserves analytic
 zero multiplicity. -/
