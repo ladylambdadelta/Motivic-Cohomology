@@ -305,24 +305,36 @@ theorem Complex.binetLogGammaMainTerm_log_norm_bound_large_openRightHalfPlane :
   exact ⟨R, Clog, mlog, hR_pos, hClog_pos, hlog⟩
 
 /-- Uniform direct polynomial norm growth for the Binet remainder after a
-large-radius cutoff in the open right half-plane. -/
-theorem Complex.binetSecondFormulaRemainder_norm_bound_large_openRightHalfPlane :
+large-radius cutoff in a fixed open wedge of the right half-plane.
+
+The separation hypothesis `ε ≤ z.re / ‖z‖` is necessary: the principal
+arctangent kernel has boundary singularities as rays approach the imaginary
+axis, and the open-half-plane pointwise remainder bound has constants depending
+on this separation. -/
+theorem Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             ‖Complex.binetSecondFormulaRemainder z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   sorry
 
 /-- Binet's formula plus direct polynomial norm bounds for the main term and
-remainder give polynomial growth for `log (Gamma z)`. -/
-theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula_and_norm_bounds :
+remainder give polynomial growth for `log (Gamma z)` in a fixed right-half
+plane wedge. -/
+theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_and_norm_bounds
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             ‖Complex.log (Complex.Gamma z)‖ ≤
               C * (1 + ‖z‖) ^ m := by
@@ -330,7 +342,8 @@ theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula
     ⟨Rb, hRb_pos, hBinet⟩
   rcases Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane with
     ⟨Rm, Cm, mm, hRm_pos, hCm_pos, hmain⟩
-  rcases Complex.binetSecondFormulaRemainder_norm_bound_large_openRightHalfPlane with
+  rcases Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
+      ε hε with
     ⟨Rr, Cr, mr, hRr_pos, hCr_pos, hrem⟩
   let R : ℝ := max Rb (max Rm Rr)
   let C : ℝ := Cm + Cr
@@ -338,7 +351,7 @@ theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula
   refine ⟨R, C, m, ?_, ?_, ?_⟩
   · exact lt_of_lt_of_le hRb_pos (le_max_left Rb (max Rm Rr))
   · exact add_pos hCm_pos hCr_pos
-  · intro z hz_re hRz
+  · intro z hz_re hz_sep hRz
     have hRbz : Rb ≤ ‖z‖ :=
       le_trans (le_max_left Rb (max Rm Rr)) hRz
     have hRmz : Rm ≤ ‖z‖ :=
@@ -371,7 +384,7 @@ theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula
           (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
         pow_le_pow_right₀ hbase_ge_one hmr_le
       exact
-        le_trans (hrem z hz_re hRrz)
+        le_trans (hrem z hz_re hz_sep hRrz)
           (mul_le_mul_of_nonneg_left hpow (le_of_lt hCr_pos))
     have hsum :
         ‖Complex.binetLogGammaMainTerm z‖ +
@@ -402,33 +415,42 @@ theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula
       _ ≤ C * (1 + ‖z‖) ^ m := hsum
 
 /-- Binet's principal-log identity and direct component norm bounds give
-polynomial growth for `log (Gamma z)` after a large-radius cutoff. -/
-theorem Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_components :
+polynomial growth for `log (Gamma z)` after a large-radius cutoff in a fixed
+wedge. -/
+theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_components
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             ‖Complex.log (Complex.Gamma z)‖ ≤
               C * (1 + ‖z‖) ^ m := by
   exact
-    Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_formula_and_norm_bounds
+    Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_and_norm_bounds
+      ε hε
 
 /-- Passing from a norm bound on the principal logarithm to a bound on
-`Real.log ‖Gamma z‖`. -/
-theorem Complex.Gamma_log_norm_bound_large_openRightHalfPlane_from_log_Gamma_norm :
+`Real.log ‖Gamma z‖` in a fixed wedge. -/
+theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.Gamma z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   rcases
-    Complex.log_Gamma_norm_bound_large_openRightHalfPlane_from_Binet_components with
+    Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_components
+      ε hε with
     ⟨R, C, m, hR_pos, hC_pos, hlog_norm⟩
   refine ⟨R, C, m, hR_pos, hC_pos, ?_⟩
-  intro z hz_re hRz
+  intro z hz_re hz_sep hRz
   have hre_le_norm :
       (Complex.log (Complex.Gamma z)).re ≤
         ‖Complex.log (Complex.Gamma z)‖ := by
@@ -441,84 +463,124 @@ theorem Complex.Gamma_log_norm_bound_large_openRightHalfPlane_from_log_Gamma_nor
         (Complex.log (Complex.Gamma z)).re := by
     rw [Complex.log_re]
   exact
-    le_trans (le_of_eq hlog_eq) (le_trans hre_le_norm (hlog_norm z hz_re hRz))
+    le_trans (le_of_eq hlog_eq)
+      (le_trans hre_le_norm (hlog_norm z hz_re hz_sep hRz))
 
 /-- The Binet remainder has polynomial logarithmic growth after a large-radius
-cutoff in the open right half-plane. -/
-theorem Complex.binetSecondFormulaRemainder_log_norm_bound_large_openRightHalfPlane :
+cutoff in a fixed right-half-plane wedge. -/
+theorem Complex.binetSecondFormulaRemainder_log_norm_bound_large_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.binetSecondFormulaRemainder z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   rcases
-    Complex.binetSecondFormulaRemainder_norm_bound_large_openRightHalfPlane with
+    Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
+      ε hε with
     ⟨R, C, m, hR_pos, hC_pos, hbound⟩
-  rcases
-    Real.log_norm_bound_of_norm_bound_polynomial
-      hC_pos hbound with
-    ⟨Clog, mlog, hClog_pos, hlog⟩
-  exact ⟨R, Clog, mlog, hR_pos, hClog_pos, hlog⟩
+  refine ⟨R, C + |Real.log C| + 1, m + 1, hR_pos, ?_, ?_⟩
+  · have hnonneg_abs : 0 ≤ |Real.log C| := abs_nonneg _
+    linarith
+  · intro z hz_re hz_sep hRz
+    by_cases hzero : Complex.binetSecondFormulaRemainder z = 0
+    · rw [hzero, norm_zero, Real.log_zero]
+      have hpoly_nonneg : 0 ≤ (1 + ‖z‖) ^ (m + 1) :=
+        pow_nonneg (by positivity) (m + 1)
+      have hC_nonneg : 0 ≤ C + |Real.log C| + 1 := by
+        linarith [hC_pos, abs_nonneg (Real.log C)]
+      exact mul_nonneg hC_nonneg hpoly_nonneg
+    · have hnorm_pos : 0 < ‖Complex.binetSecondFormulaRemainder z‖ :=
+        norm_pos_iff.mpr hzero
+      have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
+        linarith [norm_nonneg z]
+      have hpoly_pos : 0 < C * (1 + ‖z‖) ^ m :=
+        mul_pos hC_pos
+          (pow_pos (lt_of_lt_of_le zero_lt_one hbase_ge_one) m)
+      have hlog_le :
+          Real.log ‖Complex.binetSecondFormulaRemainder z‖ ≤
+            Real.log (C * (1 + ‖z‖) ^ m) :=
+        Real.log_norm_le_of_norm_le_pos
+          hnorm_pos hpoly_pos (hbound z hz_re hz_sep hRz)
+      exact
+        le_trans hlog_le
+          (Real.log_polynomial_bound_le_polynomial_bound
+            hC_pos hbase_ge_one)
 
 /-- The Binet formula plus polynomial norm bounds for the main term and
-remainder give logarithmic Gamma growth after a large-radius cutoff. -/
-theorem Complex.Gamma_log_norm_bound_large_openRightHalfPlane_from_Binet_norm_components :
+remainder give logarithmic Gamma growth after a large-radius cutoff in a fixed
+wedge. -/
+theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_norm_components
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.Gamma z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   exact
-    Complex.Gamma_log_norm_bound_large_openRightHalfPlane_from_log_Gamma_norm
+    Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
+      ε hε
 
 /-- Addition preserves polynomial logarithmic growth for the Binet main term
-and remainder after a common large-radius cutoff. -/
-theorem Complex.Gamma_openRightHalfPlane_log_norm_bound_from_Binet_components :
+and remainder after a common large-radius cutoff in a fixed wedge. -/
+theorem Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet_components
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.Gamma z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   exact
-    Complex.Gamma_log_norm_bound_large_openRightHalfPlane_from_Binet_norm_components
+    Complex.Gamma_log_norm_bound_large_sectorSeparated_from_Binet_norm_components
+      ε hε
 
-/-- Open-right-half-plane logarithmic Gamma growth from the principal-log
-Binet formula and the open-half-plane remainder estimates, away from the
-origin.  A large-radius cutoff is necessary because `Gamma` has a pole at
-zero. -/
-theorem Complex.Gamma_openRightHalfPlane_log_norm_bound_from_Binet :
+/-- Wedge-separated logarithmic Gamma growth from the principal-log Binet
+formula and the wedge-separated remainder estimates, away from the origin. -/
+theorem Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.Gamma z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   exact
-    Complex.Gamma_openRightHalfPlane_log_norm_bound_from_Binet_components
+    Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet_components
+      ε hε
 
-/-- Open-right-half-plane logarithmic Gamma growth from Binet-Stirling.
+/-- Wedge-separated logarithmic Gamma growth from Binet-Stirling.
 
 The literal principal-arctangent Binet remainder in this package is not a
 closed-boundary kernel on the imaginary axis, so the sectorial log-norm owner
-statement is intentionally open in the real part.  The large-radius cutoff is
-also necessary because `Gamma` has a pole at zero. -/
-theorem Complex.Gamma_closedRightHalfPlane_log_norm_bound_classical :
+statement requires quantitative separation from that boundary. -/
+theorem Complex.Gamma_closedRightHalfPlane_log_norm_bound_classical
+    (ε : ℝ)
+    (hε : 0 < ε) :
     ∃ R : ℝ, ∃ C : ℝ, ∃ m : ℕ,
       0 < R ∧ 0 < C ∧
       ∀ z : ℂ,
         0 < z.re →
+          ε ≤ z.re / ‖z‖ →
           R ≤ ‖z‖ →
             Real.log ‖Complex.Gamma z‖ ≤
               C * (1 + ‖z‖) ^ m := by
   exact
-    Complex.Gamma_openRightHalfPlane_log_norm_bound_from_Binet
+    Complex.Gamma_sectorSeparated_log_norm_bound_from_Binet ε hε
 
 end
 
