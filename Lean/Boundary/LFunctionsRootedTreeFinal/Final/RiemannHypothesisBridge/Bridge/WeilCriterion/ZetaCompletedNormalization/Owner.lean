@@ -707,15 +707,15 @@ theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
     _ = C * E / d := hmul_div
     _ = (C / d) * E := hdiv_mul
 
-/-- Classical sectorial Stirling estimate for the normalized Gamma factor on
-the closed right half-plane.
+/-- Sectorial Stirling estimate for the normalized Gamma factor on the closed
+right half-plane.
 
 This is the canonical sectorial Stirling input in the exact normalized form
 used by the owner API:
 `Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the closed
 right half-plane for large radius; cf. DLMF §5.11 and Whittaker-Watson,
 Ch. XII. -/
-theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane :
+theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
@@ -726,6 +726,22 @@ theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
           K / ‖w‖ := by
   sorry
+
+/-- Classical sectorial Stirling estimate for the normalized Gamma factor on
+the closed right half-plane.
+
+This is only name transport to the canonical sectorial Stirling theorem above. -/
+theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  exact Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane
 
 /-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
 right half-plane.
@@ -18938,7 +18954,39 @@ theorem eulerMaclaurin_cpow_neg_derivative_integral_eq_factored_remainder
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (((x : ℝ) : ℂ) ^ (-(z + 1)))) := by
-  sorry
+  let g : ℝ → ℂ := fun x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have hpoint :
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+        (fun x : ℝ => -z * g x) := by
+    exact funext
+      (fun x : ℝ => by
+        let a : ℂ := ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+        let b : ℂ := (((x : ℝ) : ℂ) ^ (-(z + 1)))
+        calc
+          a * (-z * b) = (a * -z) * b := by
+            exact (mul_assoc a (-z) b).symm
+          _ = (-z * a) * b := by
+            exact congrArg (fun w : ℂ => w * b) (mul_comm a (-z))
+          _ = -z * (a * b) := by
+            exact mul_assoc (-z) a b)
+  have hintegral_point :
+      (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+        ∫ x in Set.Ioi (((N : ℕ) : ℝ)), -z * g x := by
+    exact congrArg
+      (fun F : ℝ → ℂ => ∫ x in Set.Ioi (((N : ℕ) : ℝ)), F x)
+      hpoint
+  have hlinear :
+      (∫ x in Set.Ioi (((N : ℕ) : ℝ)), -z * g x) =
+        -z *
+          (∫ x in Set.Ioi (((N : ℕ) : ℝ)), g x) := by
+    exact integral_mul_left (-z) g
+  exact Eq.trans hintegral_point hlinear
 
 /-- Generic first-order Euler-Maclaurin formula for the infinite post-cutoff
 tail of `x ↦ x^{-z}`.
