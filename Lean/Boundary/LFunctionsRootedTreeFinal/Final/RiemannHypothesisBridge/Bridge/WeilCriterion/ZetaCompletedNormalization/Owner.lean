@@ -711,6 +711,44 @@ theorem Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
     Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
   Real.log_le_log hfactor_pos hbound
 
+/-- `Gamma` is nonzero at nonzero points in the closed right half-plane.
+
+The only zeros of mathlib's completed finite-valued `Gamma` are the
+nonpositive integers; the closed right half-plane excludes the negative
+integers, and the explicit nonzero hypothesis excludes `0`. -/
+theorem Complex.Gamma_ne_zero_of_closedRightHalfPlaneSector_of_ne_zero
+    {w : ℂ}
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_ne : w ≠ 0) :
+    Complex.Gamma w ≠ 0 := by
+  intro hzero
+  rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
+  subst w
+  cases n with
+  | zero =>
+      exact hw_ne (neg_zero : -((0 : ℂ)) = 0)
+  | succ n =>
+      have hre_eq :
+          (-(((Nat.succ n : ℕ) : ℂ))).re =
+            -(((Nat.succ n : ℕ) : ℝ)) := by
+        calc
+          (-(((Nat.succ n : ℕ) : ℂ))).re =
+              -(((Nat.succ n : ℕ) : ℂ).re) :=
+            Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
+          _ = -(((Nat.succ n : ℕ) : ℝ)) := by
+            exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
+      have hre_nonneg :
+          (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+        Eq.subst
+          (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+          hre_eq
+          hw_sector
+      have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
+        Nat.cast_pos.mpr (Nat.succ_pos n)
+      have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
+        neg_neg_of_pos hsucc_pos
+      exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
+
 /-- Nonvanishing of the normalized Stirling factor in the closed right
 half-plane away from the origin.
 
@@ -724,6 +762,114 @@ theorem Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSec
     (hw_sector : Complex.closedRightHalfPlaneSector w)
     (hw_radius : R₀ ≤ ‖w‖) :
     Complex.normalizedGammaStirlingFactor w ≠ 0 := by
+  have hw_norm_pos : 0 < ‖w‖ :=
+    lt_of_lt_of_le hR₀_pos hw_radius
+  have hw_ne : w ≠ 0 :=
+    norm_pos_iff.mp hw_norm_pos
+  have hGamma_ne : Complex.Gamma w ≠ 0 :=
+    Complex.Gamma_ne_zero_of_closedRightHalfPlaneSector_of_ne_zero
+      hw_sector hw_ne
+  have hexp_ne : Complex.exp w ≠ 0 :=
+    Complex.exp_ne_zero w
+  have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
+    intro hzero
+    have hbase_zero : w = 0 :=
+      ((cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
+    exact hw_ne hbase_zero
+  show
+      Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) ≠ 0
+  exact mul_ne_zero (mul_ne_zero hGamma_ne hexp_ne) hcpow_ne
+
+/-- Norm expansion for the normalized Gamma Stirling factor. -/
+theorem Complex.normalizedGammaStirlingFactor_norm_eq
+    (w : ℂ) :
+    ‖Complex.normalizedGammaStirlingFactor w‖ =
+      ‖Complex.Gamma w‖ * ‖Complex.exp w‖ *
+        ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+  calc
+    ‖Complex.normalizedGammaStirlingFactor w‖ =
+        ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ := rfl
+    _ = ‖Complex.Gamma w * Complex.exp w‖ *
+          ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+      norm_mul (Complex.Gamma w * Complex.exp w)
+        (w ^ ((1 / 2 : ℂ) - w))
+    _ = ‖Complex.Gamma w‖ * ‖Complex.exp w‖ *
+          ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+      exact congrArg
+        (fun x : ℝ => x * ‖w ^ ((1 / 2 : ℂ) - w)‖)
+        (norm_mul (Complex.Gamma w) (Complex.exp w))
+
+/-- Log norm of the complex exponential is its real part. -/
+theorem Complex.log_norm_exp_eq_re
+    (w : ℂ) :
+    Real.log ‖Complex.exp w‖ = w.re := by
+  have hnorm_eq_abs :
+      ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
+    norm_eq_abs (Complex.exp w)
+  have habs_eq_exp :
+      Complex.abs (Complex.exp w) = Real.exp w.re :=
+    Complex.abs_exp w
+  calc
+    Real.log ‖Complex.exp w‖ =
+        Real.log (Complex.abs (Complex.exp w)) :=
+      congrArg Real.log hnorm_eq_abs
+    _ = Real.log (Real.exp w.re) :=
+      congrArg Real.log habs_eq_exp
+    _ = w.re :=
+      Real.log_exp w.re
+
+/-- Exact log expansion of the normalized Gamma Stirling factor. -/
+theorem Complex.normalizedGammaStirlingFactor_log_eq
+    (w : ℂ)
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0) :
+    Real.log ‖Complex.normalizedGammaStirlingFactor w‖ =
+      Real.log ‖Complex.Gamma w‖ + w.re +
+        Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+  have hGamma_norm_ne : ‖Complex.Gamma w‖ ≠ 0 :=
+    ne_of_gt (norm_pos_iff.mpr hGamma_ne)
+  have hexp_norm_ne : ‖Complex.exp w‖ ≠ 0 :=
+    ne_of_gt (norm_pos_iff.mpr (Complex.exp_ne_zero w))
+  have hcpow_norm_ne : ‖w ^ ((1 / 2 : ℂ) - w)‖ ≠ 0 :=
+    ne_of_gt (norm_pos_iff.mpr hcpow_ne)
+  have hGamma_exp_norm_ne :
+      ‖Complex.Gamma w‖ * ‖Complex.exp w‖ ≠ 0 :=
+    mul_ne_zero hGamma_norm_ne hexp_norm_ne
+  calc
+    Real.log ‖Complex.normalizedGammaStirlingFactor w‖ =
+        Real.log
+          (‖Complex.Gamma w‖ * ‖Complex.exp w‖ *
+            ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
+      congrArg Real.log (Complex.normalizedGammaStirlingFactor_norm_eq w)
+    _ =
+        Real.log (‖Complex.Gamma w‖ * ‖Complex.exp w‖) +
+          Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+      Real.log_mul hGamma_exp_norm_ne hcpow_norm_ne
+    _ =
+        (Real.log ‖Complex.Gamma w‖ + Real.log ‖Complex.exp w‖) +
+          Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+      exact congrArg
+        (fun x : ℝ => x + Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+        (Real.log_mul hGamma_norm_ne hexp_norm_ne)
+    _ =
+        (Real.log ‖Complex.Gamma w‖ + w.re) +
+          Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := by
+      exact congrArg
+        (fun x : ℝ => (Real.log ‖Complex.Gamma w‖ + x) +
+          Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+        (Complex.log_norm_exp_eq_re w)
+    _ =
+        Real.log ‖Complex.Gamma w‖ + w.re +
+          Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := rfl
+
+/-- Exact logarithmic extraction identity from the normalized Stirling factor. -/
+theorem Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
+    (w : ℂ)
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0) :
+    Real.log ‖Complex.Gamma w‖ =
+      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+        Complex.normalizedGammaStirlingLogLoss w := by
   sorry
 
 /-- Exact logarithmic extraction from the normalized Stirling factor.
@@ -739,7 +885,41 @@ theorem Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
     Real.log ‖Complex.Gamma w‖ ≤
       Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
         Complex.normalizedGammaStirlingLogLoss w := by
-  sorry
+  have hGamma_ne : Complex.Gamma w ≠ 0 := by
+    intro hGamma_zero
+    have hfactor_zero :
+        Complex.normalizedGammaStirlingFactor w = 0 := by
+      calc
+        Complex.normalizedGammaStirlingFactor w =
+            Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
+        _ = 0 * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) :=
+          congrArg
+            (fun x : ℂ => x * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
+            hGamma_zero
+        _ = (0 : ℂ) * w ^ ((1 / 2 : ℂ) - w) := by
+          exact congrArg
+            (fun x : ℂ => x * w ^ ((1 / 2 : ℂ) - w))
+            (zero_mul (Complex.exp w))
+        _ = 0 :=
+          zero_mul (w ^ ((1 / 2 : ℂ) - w))
+    exact hfactor_ne hfactor_zero
+  have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
+    intro hcpow_zero
+    have hfactor_zero :
+        Complex.normalizedGammaStirlingFactor w = 0 := by
+      calc
+        Complex.normalizedGammaStirlingFactor w =
+            Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
+        _ = Complex.Gamma w * Complex.exp w * 0 :=
+          congrArg
+            (fun x : ℂ => Complex.Gamma w * Complex.exp w * x)
+            hcpow_zero
+        _ = 0 :=
+          mul_zero (Complex.Gamma w * Complex.exp w)
+    exact hfactor_ne hfactor_zero
+  exact le_of_eq
+    (Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
+      w hGamma_ne hcpow_ne)
 
 /-- The branch/cpow logarithmic loss from normalized Stirling is absorbed by
 the standard log-linear envelope on the large-radius closed right half-plane. -/
@@ -2699,7 +2879,7 @@ theorem strip_common_boundary_envelope_vertical_height_bound
     have hsum_nonneg : 0 ≤ |a| + |b| :=
       add_nonneg (abs_nonneg a) (abs_nonneg b)
     have htwo_pos : (0 : ℝ) < 2 := by
-      norm_num
+      exact zero_lt_two
     have htwo_le : (2 : ℝ) ≤ K := by
       change (2 : ℝ) ≤ |a| + |b| + 2
       exact le_add_of_nonneg_left hsum_nonneg
@@ -8727,6 +8907,68 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
     ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
 
+/-- Real exponent comparison behind finite-order versus double-exponential
+domination.
+
+This is the canonical real-analysis core: a polynomial in `1 + T`, after
+adding the fixed logarithmic constant `log A`, is eventually bounded by a
+positive multiple of `exp (cT)`.  It is the only growth-rate input needed for
+the vertical finite-order envelope domination below. -/
+theorem finiteOrder_verticalExponent_eventually_le_doubleExponentialExponent
+    (A B c : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      0 < D ∧
+      ∀ᶠ T : ℝ in Filter.atTop,
+        Real.log A + B * (1 + T) ^ m ≤ D * Real.exp (c * T) := by
+  sorry
+
+/-- Exponentiating the real finite-order/double-exponential comparison gives
+eventual domination of the vertical envelopes. -/
+theorem finiteOrder_verticalEnvelope_eventually_le_doubleExponential
+    (A B c : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      0 < D ∧
+      ∀ᶠ T : ℝ in Filter.atTop,
+        A * Real.exp (B * (1 + T) ^ m) ≤
+          Real.exp (D * Real.exp (c * T)) := by
+  rcases finiteOrder_verticalExponent_eventually_le_doubleExponentialExponent
+      A B c m hA hB hc with
+    ⟨D, hD_pos, hcompare⟩
+  refine ⟨D, hD_pos, ?_⟩
+  exact hcompare.mono
+    (fun T hT =>
+      by
+        have hA_exp_log : A = Real.exp (Real.log A) :=
+          (Real.exp_log hA).symm
+        have hleft_exp :
+            A * Real.exp (B * (1 + T) ^ m) =
+              Real.exp (Real.log A + B * (1 + T) ^ m) := by
+          calc
+            A * Real.exp (B * (1 + T) ^ m) =
+                Real.exp (Real.log A) * Real.exp (B * (1 + T) ^ m) := by
+              exact congrArg
+                (fun x : ℝ => x * Real.exp (B * (1 + T) ^ m))
+                hA_exp_log
+            _ = Real.exp (Real.log A + B * (1 + T) ^ m) :=
+              (Real.exp_add (Real.log A) (B * (1 + T) ^ m)).symm
+        have hexp_le :
+            Real.exp (Real.log A + B * (1 + T) ^ m) ≤
+              Real.exp (D * Real.exp (c * T)) :=
+          Real.exp_le_exp.mpr hT
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ Real.exp (D * Real.exp (c * T)))
+          hleft_exp.symm
+          hexp_le)
+
 /-- Pure real eventual domination of finite-order vertical envelopes by a
 double-exponential envelope.
 
@@ -8744,7 +8986,36 @@ theorem finiteOrder_verticalEnvelope_isBigO_doubleExponential
     ∃ D : ℝ,
       (fun T : ℝ => A * Real.exp (B * (1 + T) ^ m)) =O[Filter.atTop]
         fun T : ℝ => Real.exp (D * Real.exp (c * T)) := by
-  sorry
+  rcases finiteOrder_verticalEnvelope_eventually_le_doubleExponential
+      A B c m hA hB hc with
+    ⟨D, _hD_pos, hdom⟩
+  refine ⟨D, ?_⟩
+  exact
+    IsBigO.of_bound 1
+      (hdom.mono
+        (fun T hT =>
+          by
+            let R : ℝ := Real.exp (D * Real.exp (c * T))
+            have hR_nonneg : 0 ≤ R :=
+              le_of_lt (Real.exp_pos (D * Real.exp (c * T)))
+            have hR_norm : ‖R‖ = R :=
+              Real.norm_of_nonneg hR_nonneg
+            have hone_norm : 1 * ‖R‖ = R := by
+              calc
+                1 * ‖R‖ = ‖R‖ :=
+                  one_mul ‖R‖
+                _ = R :=
+                  hR_norm
+            Eq.subst
+              (motive := fun x : ℝ =>
+                ‖A * Real.exp (B * (1 + T) ^ m)‖ ≤ x)
+              hone_norm.symm
+              (le_trans
+                (le_of_eq
+                  (Real.norm_of_nonneg
+                    (mul_nonneg (le_of_lt hA)
+                      (le_of_lt (Real.exp_pos (B * (1 + T) ^ m))))))
+                hT)))
 
 /-- Bounded-strip height comparison in the exact form used by the
 finite-order-to-admissible-envelope transport. -/
@@ -8755,6 +9026,35 @@ theorem strip_norm_height_le_vertical_height_envelope
     (hzb : z.re ≤ b) :
     1 + ‖z‖ ≤ (|a| + |b| + 2) * (1 + ‖z.im‖) :=
   strip_basicHeight_le_verticalHeight a b hza hzb
+
+/-- On a closed bounded strip, the finite-order complex-height envelope is
+`O` of the corresponding vertical-height envelope. -/
+theorem finiteOrder_stripEnvelope_isBigO_verticalEnvelope
+    (A B a b : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B) :
+    (fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m)) =O[
+        Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+          𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
+      fun z : ℂ =>
+        A * Real.exp ((B * (|a| + |b| + 2) ^ m) * (1 + ‖z.im‖) ^ m) := by
+  sorry
+
+/-- The real vertical double-exponential domination transports through
+`z ↦ |im z|` to the closed-strip filter. -/
+theorem finiteOrder_verticalEnvelope_comp_im_isBigO_doubleExponential_on_closedStrip
+    (A B c a b : ℝ)
+    (m : ℕ)
+    (hA : 0 < A)
+    (hB : 0 < B)
+    (hc : 0 < c) :
+    ∃ D : ℝ,
+      (fun z : ℂ => A * Real.exp (B * (1 + ‖z.im‖) ^ m)) =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
+        fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
 
 /-- Bounded-strip finite-order envelopes are admissible double-exponential
 envelopes after reducing complex height to vertical height.
@@ -8773,7 +9073,28 @@ theorem finiteOrder_stripEnvelope_isBigO_doubleExponential
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
         fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  let Bv : ℝ := B * (|a| + |b| + 2) ^ m
+  have hK_pos : 0 < |a| + |b| + 2 := by
+    have hsum_nonneg : 0 ≤ |a| + |b| :=
+      add_nonneg (abs_nonneg a) (abs_nonneg b)
+    have htwo_pos : (0 : ℝ) < 2 :=
+      zero_lt_two
+    have htwo_le : (2 : ℝ) ≤ |a| + |b| + 2 :=
+      le_add_of_nonneg_left hsum_nonneg
+    exact lt_of_lt_of_le htwo_pos htwo_le
+  have hBv_pos : 0 < Bv :=
+    mul_pos hB (pow_pos hK_pos m)
+  have hstrip_to_vertical :
+      (fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m)) =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
+        fun z : ℂ => A * Real.exp (Bv * (1 + ‖z.im‖) ^ m) :=
+    finiteOrder_stripEnvelope_isBigO_verticalEnvelope
+      A B a b m hA hB
+  rcases finiteOrder_verticalEnvelope_comp_im_isBigO_doubleExponential_on_closedStrip
+      A Bv c a b m hA hBv_pos hc with
+    ⟨D, hvertical_to_double⟩
+  exact ⟨D, hstrip_to_vertical.trans hvertical_to_double⟩
 
 /-- Membership in the open vertical strip gives the corresponding closed-strip
 inequalities needed by finite-order pointwise bounds. -/
@@ -8824,6 +9145,22 @@ theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
               hone_norm.symm
               hpoint)))
 
+/-- An `IsBigO` statement on the closed-strip principal filter restricts to
+the corresponding open-strip principal filter. -/
+theorem isBigO_on_openStrip_of_isBigO_on_closedStrip
+    {F G : ℂ → ℝ}
+    {a b : ℝ}
+    (h :
+      F =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
+        G) :
+      F =O[
+          Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+            𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
+        G := by
+  sorry
+
 /-- The closed-strip envelope domination can be used on the open-strip filter. -/
 theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
     (A B c a b : ℝ)
@@ -8836,7 +9173,10 @@ theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 (Complex.re ⁻¹' Set.Ioo a b)]
         fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  rcases finiteOrder_stripEnvelope_isBigO_doubleExponential
+      A B c a b m hA hB hc with
+    ⟨D, hclosed⟩
+  exact ⟨D, isBigO_on_openStrip_of_isBigO_on_closedStrip hclosed⟩
 
 /-- The half-width Phragmen-Lindelöf growth parameter is strictly below the
 strip threshold. -/
@@ -9110,13 +9450,12 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_verticalTail_growth_bound :
         z.im = (1 : ℂ).im := by
           exact congrArg Complex.im hz_eq
         _ = 0 := by
-          norm_num
+          rfl
     have hnorm_im_zero : ‖z.im‖ = 0 := by
-      rw [him_zero]
-      exact norm_zero
+      exact (congrArg norm him_zero).trans norm_zero
     have hle_zero : (1 : ℝ) ≤ 0 :=
       hzim.trans_eq hnorm_im_zero
-    norm_num at hle_zero
+    exact (not_le_of_gt zero_lt_one) hle_zero
   have hpc :
       poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
     poleClearedRiemannZeta_eq_of_ne_one hz_ne_one

@@ -5266,10 +5266,65 @@ theorem entireFunction_zeroFreeOnClosedDisk_boundaryLogAverage_eq_origin_log_nor
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) =
       Real.log ‖Q 0‖ := by
-  -- Deep boundary-log theorem: choose a holomorphic logarithm for the
-  -- zero-free quotient on the disk and apply harmonic mean value to its real
-  -- part.
-  sorry
+  rcases
+      entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simplyConnectedDisk
+        Q hρ hQ_an hzero
+      with ⟨L, hL_an, hL_log⟩
+  have hboundary :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) =
+        (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) := by
+    exact congrArg
+      (fun x : ℝ => (2 * Real.pi)⁻¹ * x)
+      (by
+        apply intervalIntegral.integral_congr
+        intro θ hθ
+        have hcircle_norm :
+            ‖((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ ≤ ρ := by
+          have hρ_nonneg : 0 ≤ ρ :=
+            le_trans zero_le_one hρ
+          have hnorm_eq : ‖((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ = ρ := by
+            calc
+              ‖((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ =
+                  ‖(ρ : ℂ)‖ * ‖Complex.exp (θ * Complex.I)‖ := by
+                exact norm_mul (ρ : ℂ) (Complex.exp (θ * Complex.I))
+              _ = ρ * ‖Complex.exp (θ * Complex.I)‖ := by
+                exact congrArg
+                  (fun x : ℝ => x * ‖Complex.exp (θ * Complex.I)‖)
+                  (Complex.norm_ofReal_of_nonneg hρ_nonneg)
+              _ = ρ * 1 := by
+                exact congrArg (fun x : ℝ => ρ * x)
+                  (Complex.norm_exp_ofReal_mul_I θ)
+              _ = ρ := by
+                exact mul_one ρ
+          exact le_of_eq hnorm_eq
+        exact
+          (entireFunction_analyticLogBranch_re_eq_log_norm
+            Q L hcircle_norm hL_log).symm)
+  have hmean :
+      (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+        (L 0).re :=
+    entireFunction_analyticLog_re_holomorphicMeanValue_circle
+      L hρ hL_an
+  have hcenter :
+      (L 0).re = Real.log ‖Q 0‖ :=
+    entireFunction_analyticLogBranch_center_re_eq_log_norm
+      Q L hρ hL_log
+  calc
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) =
+        (2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) :=
+      hboundary
+    _ = (L 0).re := hmean
+    _ = Real.log ‖Q 0‖ := hcenter
 
 /-- Origin normalization for any removable quotient whose closed-disk
 factorization is normalized by the finite product. -/
