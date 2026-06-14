@@ -353,6 +353,117 @@ theorem continuousRemainderExtensionOn_Icc_of_puncturedLocalModel
         f θ = (n : ℝ) * Real.log |θ - θ₀| + g' θ := by
   exact ⟨g, hg, hmodel⟩
 
+/-- The logarithmic singularity `-log` is interval-integrable on `[0,1]`. -/
+theorem real_intervalIntegrable_neg_log_unitInterval :
+    IntervalIntegrable (fun x : ℝ => -Real.log x) MeasureTheory.volume 0 1 := by
+  have hcont :
+      ContinuousOn (fun x : ℝ => x - x * Real.log x) (Set.Icc (0 : ℝ) 1) := by
+    simpa [sub_eq_add_neg] using
+      (continuous_id.sub Real.continuous_mul_log).continuousOn
+  have hderiv :
+      ∀ x ∈ Set.Ioo (0 : ℝ) 1,
+        HasDerivAt (fun x : ℝ => x - x * Real.log x) (-Real.log x) x := by
+    intro x hx
+    have hx0 : x ≠ 0 := (Set.mem_Ioo.mp hx).1.ne'
+    have hmul : HasDerivAt (fun x : ℝ => x * Real.log x) (Real.log x + 1) x :=
+      Real.hasDerivAt_mul_log hx0
+    have hsub :
+        HasDerivAt (fun x : ℝ => x - x * Real.log x) (1 - (Real.log x + 1)) x := by
+      simpa [sub_eq_add_neg] using (hasDerivAt_id x).sub hmul
+    convert hsub using 1 <;> ring
+  have hnonneg : ∀ x ∈ Set.Ioo (0 : ℝ) 1, 0 ≤ -Real.log x := by
+    intro x hx
+    have hx0 : 0 < x := (Set.mem_Ioo.mp hx).1
+    have hx1 : x ≤ 1 := (Set.mem_Ioo.mp hx).2.le
+    exact neg_nonneg.mpr (Real.log_nonpos hx0.le hx1)
+  simpa using
+    (intervalIntegral.intervalIntegrable_deriv_of_nonneg hcont hderiv hnonneg)
+
+/-- The real logarithm is interval-integrable on `[0,1]`. -/
+theorem real_intervalIntegrable_log_unitInterval :
+    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 1 := by
+  simpa using real_intervalIntegrable_neg_log_unitInterval.neg
+
+/-- The real logarithm is interval-integrable on a compact interval starting at `0`.
+This is the translated endpoint-singularity input used in the Jensen local
+gluing theorem. -/
+theorem real_intervalIntegrable_log_Icc {t : ℝ} (ht : 0 ≤ t) :
+    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 t := by
+  rcases lt_or_eq_of_le ht with hpos | rfl
+  · have hscaled :
+        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹)) MeasureTheory.volume 0 t := by
+      simpa using
+        (real_intervalIntegrable_log_unitInterval.comp_mul_right (t⁻¹))
+    have hconst : IntervalIntegrable (fun _ : ℝ => Real.log t) MeasureTheory.volume 0 t :=
+      intervalIntegrable_const
+    have hsum :
+        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹) + Real.log t)
+          MeasureTheory.volume 0 t :=
+      hscaled.add hconst
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hpos.le] at hsum ⊢
+    refine IntegrableOn.congr_fun hsum ?_ measurableSet_Ioc
+    intro x hx
+    have hx0 : x ≠ 0 := (mem_Ioc.mp hx).1.ne'
+    have ht0 : t ≠ 0 := hpos.ne'
+    calc
+      Real.log x = Real.log (x * t⁻¹) + Real.log t := by
+        rw [Real.log_mul hx0 (inv_ne_zero ht0), Real.log_inv]
+        ring
+      _ = Real.log (x * t⁻¹) + Real.log t := rfl
+  · rw [intervalIntegrable_iff_integrableOn_Ioc_of_le le_rfl, Ioc_eq_empty_of_le le_rfl]
+    exact integrableOn_empty
+
+/-- The translated absolute-distance logarithm is interval-integrable on a
+compact interval. This is the one-dimensional singularity model used in the
+Jensen local gluing theorem. -/
+theorem intervalIntegrable_log_abs_sub_const_on_compact
+    {a b c : ℝ}
+    (hac : a ≤ c)
+    (hcb : c ≤ b) :
+    IntervalIntegrable (fun x : ℝ => Real.log |x - c|) MeasureTheory.volume a b := by
+  have hab : a ≤ b := hac.trans hcb
+  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hab]
+  rw [← Ioc_union_Ioc_eq_Ioc hac hcb, integrableOn_union]
+  constructor
+  · have hleft :
+        IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume a c := by
+      have hbase :
+          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (c - a) := by
+        exact real_intervalIntegrable_log_Icc (by linarith)
+      have htrans :
+          IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume c a :=
+        hbase.comp_sub_left c
+      exact htrans.symm
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hac] at hleft ⊢
+    exact hleft.congr_fun
+      (by
+        intro x hx
+        have hxle : x - c ≤ 0 := by
+          have hx' : x ≤ c := (mem_Ioc.mp hx).2
+          linarith
+        have habs : |x - c| = c - x := by
+          rw [abs_of_nonpos hxle]
+          linarith
+        rw [habs])
+      measurableSet_Ioc
+  · have hright :
+        IntervalIntegrable (fun x : ℝ => Real.log (x - c)) MeasureTheory.volume c b := by
+      have hbase :
+          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (b - c) := by
+        exact real_intervalIntegrable_log_Icc (by linarith)
+      simpa using hbase.comp_sub_right c
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hcb] at hright ⊢
+    exact hright.congr_fun
+      (by
+        intro x hx
+        have hxge : 0 ≤ x - c := by
+          have hx' : c ≤ x := (mem_Ioc.mp hx).1
+          linarith
+        have habs : |x - c| = x - c := by
+          rw [abs_of_nonneg hxge]
+        rw [habs])
+      measurableSet_Ioc
+
 /-- Finite compact-interval gluing for logarithmic singularities.
 
 The local hypotheses say that every singular parameter has a punctured
@@ -709,37 +820,6 @@ theorem entireFunction_jensenBoundaryLogSet_bddAbove
     exact hM ⟨z, hzball, rfl⟩
   exact le_trans (Real.log_le_self (norm_nonneg (F z))) hnorm_le
 
-/-- The logarithmic singularity `-log` is interval-integrable on `[0,1]`. -/
-theorem real_intervalIntegrable_neg_log_unitInterval :
-    IntervalIntegrable (fun x : ℝ => -Real.log x) MeasureTheory.volume 0 1 := by
-  have hcont :
-      ContinuousOn (fun x : ℝ => x - x * Real.log x) (Set.Icc (0 : ℝ) 1) := by
-    simpa [sub_eq_add_neg] using
-      (continuous_id.sub Real.continuous_mul_log).continuousOn
-  have hderiv :
-      ∀ x ∈ Set.Ioo (0 : ℝ) 1,
-        HasDerivAt (fun x : ℝ => x - x * Real.log x) (-Real.log x) x := by
-    intro x hx
-    have hx0 : x ≠ 0 := (Set.mem_Ioo.mp hx).1.ne'
-    have hmul : HasDerivAt (fun x : ℝ => x * Real.log x) (Real.log x + 1) x :=
-      Real.hasDerivAt_mul_log hx0
-    have hsub :
-        HasDerivAt (fun x : ℝ => x - x * Real.log x) (1 - (Real.log x + 1)) x := by
-      simpa [sub_eq_add_neg] using (hasDerivAt_id x).sub hmul
-    convert hsub using 1 <;> ring
-  have hnonneg : ∀ x ∈ Set.Ioo (0 : ℝ) 1, 0 ≤ -Real.log x := by
-    intro x hx
-    have hx0 : 0 < x := (Set.mem_Ioo.mp hx).1
-    have hx1 : x ≤ 1 := (Set.mem_Ioo.mp hx).2.le
-    exact neg_nonneg.mpr (Real.log_nonpos hx0.le hx1)
-  simpa using
-    (intervalIntegral.intervalIntegrable_deriv_of_nonneg hcont hderiv hnonneg)
-
-/-- The real logarithm is interval-integrable on `[0,1]`. -/
-theorem real_intervalIntegrable_log_unitInterval :
-    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 1 := by
-  simpa using real_intervalIntegrable_neg_log_unitInterval.neg
-
 /-- The zero set of a nontrivial entire function meets each doubled Jensen circle
 in a finite set. This is the compactness-and-isolated-zeros input behind the
 boundary regularity theorem. -/
@@ -846,87 +926,6 @@ theorem entireFunction_jensenBoundaryLogAverage_intervalIntegrable_of_circleZero
   exact
     (entireFunction_jensenBoundaryLogIntegrand_continuous_of_circleZeroFree F hF R hzero)
       .intervalIntegrable_of_Icc (show (0 : ℝ) ≤ 2 * Real.pi by exact le_of_lt Real.two_pi_pos)
-
-/-- The real logarithm is interval-integrable on a compact interval starting at `0`.
-This is the translated endpoint-singularity input used in the Jensen local
-gluing theorem. -/
-theorem real_intervalIntegrable_log_Icc {t : ℝ} (ht : 0 ≤ t) :
-    IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 t := by
-  rcases lt_or_eq_of_le ht with hpos | rfl
-  · have hscaled :
-        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹)) MeasureTheory.volume 0 t := by
-      simpa using
-        (real_intervalIntegrable_log_unitInterval.comp_mul_right (t⁻¹))
-    have hconst : IntervalIntegrable (fun _ : ℝ => Real.log t) MeasureTheory.volume 0 t :=
-      intervalIntegrable_const
-    have hsum :
-        IntervalIntegrable (fun x : ℝ => Real.log (x * t⁻¹) + Real.log t)
-          MeasureTheory.volume 0 t :=
-      hscaled.add hconst
-    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hpos.le] at hsum ⊢
-    refine IntegrableOn.congr_fun hsum ?_ measurableSet_Ioc
-    intro x hx
-    have hx0 : x ≠ 0 := (mem_Ioc.mp hx).1.ne'
-    have ht0 : t ≠ 0 := hpos.ne'
-    calc
-      Real.log x = Real.log (x * t⁻¹) + Real.log t := by
-        rw [Real.log_mul hx0 (inv_ne_zero ht0), Real.log_inv]
-        ring
-      _ = Real.log (x * t⁻¹) + Real.log t := rfl
-  · rw [intervalIntegrable_iff_integrableOn_Ioc_of_le le_rfl, Ioc_eq_empty_of_le le_rfl]
-    exact integrableOn_empty
-  -- fallback for zero-length intervals
-
-/-- The translated absolute-distance logarithm is interval-integrable on a
-compact interval. This is the one-dimensional singularity model used in the
-Jensen local gluing theorem. -/
-theorem intervalIntegrable_log_abs_sub_const_on_compact
-    {a b c : ℝ}
-    (hac : a ≤ c)
-    (hcb : c ≤ b) :
-    IntervalIntegrable (fun x : ℝ => Real.log |x - c|) MeasureTheory.volume a b := by
-  have hab : a ≤ b := hac.trans hcb
-  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hab]
-  rw [← Ioc_union_Ioc_eq_Ioc hac hcb, integrableOn_union]
-  constructor
-  · have hleft :
-        IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume a c := by
-      have hbase :
-          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (c - a) := by
-        exact real_intervalIntegrable_log_Icc (by linarith)
-      have htrans :
-          IntervalIntegrable (fun x : ℝ => Real.log (c - x)) MeasureTheory.volume c a :=
-        hbase.comp_sub_left c
-      exact htrans.symm
-    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hac] at hleft ⊢
-    exact hleft.congr_fun
-      (by
-        intro x hx
-        have hxle : x - c ≤ 0 := by
-          have hx' : x ≤ c := (mem_Ioc.mp hx).2
-          linarith
-        have habs : |x - c| = c - x := by
-          rw [abs_of_nonpos hxle]
-          linarith
-        rw [habs])
-      measurableSet_Ioc
-  · have hright :
-        IntervalIntegrable (fun x : ℝ => Real.log (x - c)) MeasureTheory.volume c b := by
-      have hbase :
-          IntervalIntegrable (fun x : ℝ => Real.log x) MeasureTheory.volume 0 (b - c) := by
-        exact real_intervalIntegrable_log_Icc (by linarith)
-      simpa using hbase.comp_sub_right c
-    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hcb] at hright ⊢
-      exact hright.congr_fun
-      (by
-        intro x hx
-        have hxge : 0 ≤ x - c := by
-          have hx' : c ≤ x := (mem_Ioc.mp hx).1
-          linarith
-        have habs : |x - c| = x - c := by
-          rw [abs_of_nonneg hxge]
-        rw [habs])
-      measurableSet_Ioc
 
 /-- The boundary sample `θ ↦ F((2R) · exp(iθ))` is analytic as a real-variable
 function. This is the owner-level transport input for the Jensen local model. -/
