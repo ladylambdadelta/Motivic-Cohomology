@@ -468,6 +468,73 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and
     Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
       hlocal htail
 
+/-- Strict positivity of the Binet majorant denominator at every positive point. -/
+theorem Real.binetSecondFormula_kernel_majorant_denominator_pos_local
+    {t : ℝ}
+    (ht : 0 < t) :
+    0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
+    mul_pos two_pos Real.pi_pos
+  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
+    mul_pos htwo_pi_pos ht
+  have hone_lt_exp :
+      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
+    calc
+      1 = Real.exp 0 := by
+        exact Real.exp_zero.symm
+      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
+        Real.exp_lt_exp.mpr hexponent_pos
+  exact sub_pos.mpr hone_lt_exp
+
+/-- Positivity of the Binet real majorant on the positive half-line. -/
+theorem Real.binetSecondFormula_kernel_majorant_pos_local
+    {t : ℝ}
+    (ht : 0 < t) :
+    0 < t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  exact
+    div_pos ht
+      (Real.binetSecondFormula_kernel_majorant_denominator_pos_local ht)
+
+/-- Exponential lower bound giving cancellation of the zero of
+`exp (2πt) - 1` at the origin. -/
+theorem Real.two_pi_mul_le_exp_two_pi_mul_sub_one
+    {t : ℝ}
+    (ht : 0 ≤ t) :
+    (2 : ℝ) * Real.pi * t ≤
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  let x : ℝ := (2 : ℝ) * Real.pi * t
+  have hx_nonneg : 0 ≤ x :=
+    mul_nonneg (le_of_lt (mul_pos two_pos Real.pi_pos)) ht
+  have hlower : x + 1 ≤ Real.exp x :=
+    Real.add_one_le_exp x
+  change x ≤ Real.exp x - 1
+  linarith
+
+/-- Division form of the zero-cancellation estimate for the Binet majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
+    {t : ℝ}
+    (ht : 0 < t) :
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      1 / ((2 : ℝ) * Real.pi) := by
+  let a : ℝ := (2 : ℝ) * Real.pi
+  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have ha_pos : 0 < a :=
+    mul_pos two_pos Real.pi_pos
+  have hd_pos : 0 < d :=
+    Real.binetSecondFormula_kernel_majorant_denominator_pos_local ht
+  have had_le : a * t ≤ d := by
+    exact Real.two_pi_mul_le_exp_two_pi_mul_sub_one (le_of_lt ht)
+  have hmul : a * (t / d) ≤ 1 := by
+    have hle_div : a * t / d ≤ d / d :=
+      div_le_div_of_nonneg_right had_le (le_of_lt hd_pos)
+    have hd_div : d / d = 1 :=
+      div_self (ne_of_gt hd_pos)
+    calc
+      a * (t / d) = a * t / d := by ring
+      _ ≤ d / d := hle_div
+      _ = 1 := hd_div
+  exact (le_div_iff₀ ha_pos).mpr hmul
+
 /-- Pointwise zero-cancellation bound for the Binet majorant on `(0,1]`.
 
 The proof is the elementary inequality `x + 1 ≤ exp x`, applied to
@@ -477,7 +544,18 @@ theorem Real.binetSecondFormula_kernel_majorant_zero_cancellation_pointwise
     (ht : t ∈ Set.Ioc (0 : ℝ) 1) :
     ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
       1 / ((2 : ℝ) * Real.pi) := by
-  sorry
+  have hpos :
+      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local ht.1)
+  have hle :
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        1 / ((2 : ℝ) * Real.pi) :=
+    Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi ht.1
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ 1 / ((2 : ℝ) * Real.pi))
+      (Real.norm_of_nonneg hpos).symm
+      hle
 
 /-- The Binet majorant is bounded near zero after cancellation of the simple
 zero in `exp (2πt)-1`. -/
@@ -512,14 +590,26 @@ theorem Real.integrableOn_Ioc_of_aestronglyMeasurable_norm_le_const
     (hC : 0 ≤ C)
     (hbound : ∀ x : ℝ, x ∈ Set.Ioc a b → ‖f x‖ ≤ C) :
     IntegrableOn f (Set.Ioc a b) := by
-  sorry
+  refine ⟨hmeas, ?_⟩
+  exact
+    hasFiniteIntegral_restrict_of_bounded
+      (μ := volume)
+      (s := Set.Ioc a b)
+      (C := C)
+      measure_Ioc_lt_top
+      ((ae_restrict_mem measurableSet_Ioc).mono
+        (fun x hx => hbound x hx))
 
 /-- The Binet majorant is a.e.-measurable on the local interval `(0,1]`. -/
 theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_zero_one :
     AEStronglyMeasurable
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
-  sorry
+  have hmeas :
+      Measurable
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+    fun_prop
+  exact hmeas.aestronglyMeasurable
 
 /-- A bounded Binet majorant on the finite interval `(0,1]` is integrable. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation :
@@ -554,6 +644,96 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one :
   exact
     Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_of_bounded
 
+/-- On the Binet tail, `exp (2πt) - 1` is bounded below by
+`(1/2) exp (2πt)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    (Real.exp ((2 : ℝ) * Real.pi * t)) / 2 ≤
+      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  let x : ℝ := (2 : ℝ) * Real.pi * t
+  have hx_ge_two_pi : (2 : ℝ) * Real.pi ≤ x := by
+    have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
+      le_of_lt (mul_pos two_pos Real.pi_pos)
+    calc
+      (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 := by ring
+      _ ≤ (2 : ℝ) * Real.pi * t :=
+        mul_le_mul_of_nonneg_left (le_of_lt ht) hcoeff_nonneg
+      _ = x := rfl
+  have hlog_two_le_two_pi : Real.log 2 ≤ (2 : ℝ) * Real.pi := by
+    have hlog_two_lt_two : Real.log 2 < (2 : ℝ) := by
+      exact Real.log_lt_self (by norm_num : (1 : ℝ) < 2)
+    exact le_trans (le_of_lt hlog_two_lt_two)
+      (le_of_lt (by positivity : (2 : ℝ) < 2 * Real.pi))
+  have hlog_two_le_x : Real.log 2 ≤ x :=
+    le_trans hlog_two_le_two_pi hx_ge_two_pi
+  have htwo_le_exp : (2 : ℝ) ≤ Real.exp x := by
+    have htwo_pos : (0 : ℝ) < 2 := by norm_num
+    exact (Real.log_le_iff_le_exp htwo_pos).mp hlog_two_le_x
+  change Real.exp x / 2 ≤ Real.exp x - 1
+  nlinarith [Real.exp_pos x]
+
+/-- The linear factor on the Binet tail is absorbed by `exp (πt)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    t ≤ Real.exp (Real.pi * t) := by
+  have ht_nonneg : 0 ≤ t :=
+    le_of_lt (lt_trans zero_lt_one ht)
+  have hpi_t_ge_t : t ≤ Real.pi * t := by
+    have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
+      le_of_lt Real.one_lt_pi
+    calc
+      t = 1 * t := by ring
+      _ ≤ Real.pi * t :=
+        mul_le_mul_of_nonneg_right hone_le_pi ht_nonneg
+  have ht_le_add : t ≤ Real.pi * t + 1 :=
+    le_trans hpi_t_ge_t (le_add_of_nonneg_right zero_le_one)
+  have hadd_le_exp : Real.pi * t + 1 ≤ Real.exp (Real.pi * t) :=
+    Real.add_one_le_exp (Real.pi * t)
+  exact le_trans ht_le_add hadd_le_exp
+
+/-- Pointwise tail domination after separating the denominator lower bound
+and the linear/exponential absorption. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower
+    {t : ℝ}
+    (ht : t ∈ Set.Ioi (1 : ℝ)) :
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+      2 * Real.exp (-Real.pi * t) := by
+  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t)
+  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
+  have hE_pos : 0 < E :=
+    Real.exp_pos ((2 : ℝ) * Real.pi * t)
+  have hd_pos : 0 < d :=
+    Real.binetSecondFormula_kernel_majorant_denominator_pos_local
+      (lt_trans zero_lt_one ht)
+  have hd_lower : E / 2 ≤ d :=
+    Real.binetSecondFormula_kernel_majorant_tail_denominator_lower ht
+  have ht_le_exp : t ≤ Real.exp (Real.pi * t) :=
+    Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi ht
+  have hdiv_le : t / d ≤ t / (E / 2) :=
+    div_le_div_of_nonneg_left
+      (le_of_lt (lt_trans zero_lt_one ht))
+      (div_pos hE_pos two_pos)
+      hd_lower
+  have hrewrite : t / (E / 2) = 2 * (t / E) := by
+    field_simp [hE_pos.ne']
+  have ht_over_E_le :
+      t / E ≤ Real.exp (-Real.pi * t) := by
+    have hmul_le :
+        t ≤ E * Real.exp (-Real.pi * t) := by
+      calc
+        t ≤ Real.exp (Real.pi * t) := ht_le_exp
+        _ = E * Real.exp (-Real.pi * t) := by
+          simp [E, ← Real.exp_add]
+          ring_nf
+    exact (div_le_iff₀ hE_pos).mpr hmul_le
+  calc
+    t / d ≤ t / (E / 2) := hdiv_le
+    _ = 2 * (t / E) := hrewrite
+    _ ≤ 2 * Real.exp (-Real.pi * t) :=
+      mul_le_mul_of_nonneg_left ht_over_E_le (by norm_num : (0 : ℝ) ≤ 2)
+
 /-- Pointwise exponential tail domination for the Binet majorant with the
 concrete constant `2`. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
@@ -561,7 +741,20 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
     (ht : t ∈ Set.Ioi (1 : ℝ)) :
     ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
       2 * Real.exp (-Real.pi * t) := by
-  sorry
+  have ht_pos : 0 < t :=
+    lt_trans zero_lt_one ht
+  have hnonneg :
+      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local ht_pos)
+  have hle :
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+        2 * Real.exp (-Real.pi * t) :=
+    Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower ht
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ 2 * Real.exp (-Real.pi * t))
+      (Real.norm_of_nonneg hnonneg).symm
+      hle
 
 /-- Exponential tail domination for the Binet majorant. -/
 theorem Real.binetSecondFormula_kernel_majorant_exponential_tail_dominated :
@@ -600,14 +793,29 @@ theorem Real.integrableOn_Ioi_of_aestronglyMeasurable_norm_le_exp_tail
         t ∈ Set.Ioi a →
           ‖f t‖ ≤ C * Real.exp (-b * t)) :
     IntegrableOn f (Set.Ioi a) := by
-  sorry
+  have h_exp :
+      IntegrableOn (fun t : ℝ => Real.exp (-b * t)) (Set.Ioi a) :=
+    exp_neg_integrableOn_Ioi a hb
+  have h_bound_integrable :
+      Integrable (fun t : ℝ => C * Real.exp (-b * t))
+        (volume.restrict (Set.Ioi a)) :=
+    h_exp.integrable.const_mul C
+  exact
+    h_bound_integrable.mono'
+      hmeas
+      ((ae_restrict_mem measurableSet_Ioi).mono
+        (fun t ht => hbound t ht))
 
 /-- The Binet majorant is a.e.-measurable on the tail interval `(1,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_one_infty :
     AEStronglyMeasurable
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (volume.restrict (Set.Ioi (1 : ℝ))) := by
-  sorry
+  have hmeas :
+      Measurable
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+    fun_prop
+  exact hmeas.aestronglyMeasurable
 
 /-- Exponential tail domination implies tail integrability of the Binet
 majorant. -/
@@ -704,7 +912,22 @@ theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
     (h_integrable : IntegrableOn f (Set.Ioo a b))
     (hpos : ∀ t : ℝ, t ∈ Set.Ioo a b → 0 < f t) :
     0 < ∫ t : ℝ in Set.Ioo a b, f t := by
-  sorry
+  have hnonneg_ae :
+      0 ≤ᵐ[volume.restrict (Set.Ioo a b)] f :=
+    (ae_restrict_mem measurableSet_Ioo).mono
+      (fun t ht => le_of_lt (hpos t ht))
+  have hsupport_pos :
+      0 < volume (Function.support f ∩ Set.Ioo a b) := by
+    have hIoo_pos : 0 < volume (Set.Ioo a b) :=
+      (Measure.measure_Ioo_pos volume).mpr hab
+    have hsubset :
+        Set.Ioo a b ⊆ Function.support f ∩ Set.Ioo a b := by
+      intro t ht
+      exact ⟨fun hzero => (ne_of_gt (hpos t ht)) hzero, ht⟩
+    exact lt_of_lt_of_le hIoo_pos (measure_mono hsubset)
+  exact
+    (setIntegral_pos_iff_support_of_nonneg_ae
+      hnonneg_ae h_integrable).mpr hsupport_pos
 
 /-- The Binet majorant is integrable on `(0,1)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_Ioo_zero_one :
@@ -752,7 +975,18 @@ theorem Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
           0 ≤ f t) :
     0 <
       ∫ t : ℝ in Set.Ioi (0 : ℝ), f t := by
-  sorry
+  have hnonneg_ae :
+      0 ≤ᵐ[volume.restrict (Set.Ioi (0 : ℝ))] f :=
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht => hnonneg t ht)
+  have hsubset_ae :
+      Set.Ioo (0 : ℝ) 1 ≤ᵐ[volume] Set.Ioi (0 : ℝ) :=
+    Eventually.of_forall (fun t ht => ht.1)
+  have hmono :
+      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t ≤
+        ∫ t : ℝ in Set.Ioi (0 : ℝ), f t :=
+    setIntegral_mono_set h_integrable hnonneg_ae hsubset_ae
+  exact lt_of_lt_of_le hpos_subinterval hmono
 
 /-- A strict lower bound on `(0,1)` propagates to `(0,∞)` for the
 nonnegative Binet majorant. -/

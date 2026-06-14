@@ -1018,10 +1018,9 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
     intro x hx
     have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
       rwa [Set.uIcc_of_le zero_le_one] at hx
-    have hcont : Continuous fun y : ℝ => y ^ 2 := by
-      simpa using (continuous_id.pow 2)
     have hderiv_at : HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
-      simpa using (hcont.hasDerivAt hx').pow 2
+      simpa [pow_two, mul_comm, mul_left_comm, mul_assoc] using
+        ((hasDerivAt_id x).mul (hasDerivAt_id x))
     exact hderiv_at.hasDerivWithinAt
   have hinj : InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
     intro x hx y hy hxy
@@ -1029,25 +1028,31 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
       rwa [Set.uIcc_of_le zero_le_one] at hx
     have hy' : y ∈ Set.Icc (0 : ℝ) 1 := by
       rwa [Set.uIcc_of_le zero_le_one] at hy
-    have hx_nonneg : 0 ≤ x := hx'.1
-    have hy_nonneg : 0 ≤ y := hy'.1
-    have hx_le : x ≤ 1 := hx'.2
-    have hy_le : y ≤ 1 := hy'.2
-    exact sq_eq_sq_iff_eq_or_eq_neg.mp hxy |>.resolve_right (by
-      have hneg : ¬ x = -y := by
-        intro h
-        have hyneg : y ≤ 0 := by
-          have := congrArg Neg.neg h
-          simpa [neg_neg] using this
-        exact not_le_of_gt (lt_of_le_of_lt hy_nonneg (by linarith)) hyneg
-      exact hneg)
+    have hsq : x ^ 2 = y ^ 2 := hxy
+    rcases sq_eq_sq_iff_eq_or_eq_neg.mp hsq with hxy' | hxy'
+    · exact hxy'
+    · exfalso
+      have hy_nonneg : 0 ≤ y := hy'.1
+      linarith
   have habs :
       MeasureTheory.IntegrableOn
         (fun x : ℝ => |2 * x| • g (x ^ 2))
         [[(0 : ℝ), 1]]
         MeasureTheory.volume :=
     (integrableOn_image_iff_integrableOn_abs_deriv_smul hs hderiv hinj g).mp hg
-  simpa [abs_of_nonneg (mul_nonneg zero_le_two (by positivity))] using habs
+  have heq :
+      EqOn
+        (fun x : ℝ => |2 * x| • g (x ^ 2))
+        (fun x : ℝ => g (x ^ 2) * (2 * x))
+        [[(0 : ℝ), 1]] := by
+    intro x hx
+    have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+      rwa [Set.uIcc_of_le zero_le_one] at hx
+    have hnonneg : 0 ≤ (2 : ℝ) * x := by
+      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+      exact mul_nonneg htwo_nonneg hx'.1
+    simp [Real.smul_eq_mul, abs_of_nonneg hnonneg, mul_comm, mul_left_comm, mul_assoc]
+  exact habs.congr_fun heq measurableSet_uIcc
 
 /-- Endpoint integrability of the square-root pullback of the Beta kernel.
 This is the non-circular integrability input for the substitution `t = x²`. -/
