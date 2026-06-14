@@ -4436,7 +4436,7 @@ theorem complex_centerSegmentIntegral_finiteTube_compactBound
       ∀ ε : ℝ,
         0 < ε →
           (∀ x : ℂ,
-            x ∈ ball w ε →
+            x ∈ Metric.closedBall w ε →
               ∀ t : ℝ,
                 t ∈ Set.Icc (0 : ℝ) 1 →
                   AffineMap.lineMap (0 : ℂ) x t ∈
@@ -4448,7 +4448,19 @@ theorem complex_centerSegmentIntegral_finiteTube_compactBound
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
               IntervalIntegrable bound volume (0 : ℝ) 1 := by
-  sorry
+  intro w ε hε_pos htube_closed
+  rcases
+    complex_centerSegmentIntegral_endpointDerivative_norm_bddAbove_tube
+      φ centers w ε htube_closed with
+  | intro C hC =>
+    refine ⟨fun _t : ℝ => C, ?_, intervalIntegrable_const⟩
+    exact
+      Filter.Eventually.of_forall
+        (fun t ht_interval x hx =>
+          hC
+            ⟨(x, t),
+              ⟨ball_subset_closedBall hx, Ioc_subset_Icc_self ht_interval⟩,
+              rfl⟩)
 
 /-- Compact constant bound for the endpoint derivative integrand on a finite
 analytic tube. -/
@@ -4459,7 +4471,7 @@ theorem complex_centerSegmentIntegral_finiteTube_constantBound
       ∀ ε : ℝ,
         0 < ε →
           (∀ x : ℂ,
-            x ∈ ball w ε →
+            x ∈ Metric.closedBall w ε →
               ∀ t : ℝ,
                 t ∈ Set.Icc (0 : ℝ) 1 →
                   AffineMap.lineMap (0 : ℂ) x t ∈
@@ -4484,7 +4496,7 @@ theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
       ∀ ε : ℝ,
         0 < ε →
           (∀ x : ℂ,
-            x ∈ ball w ε →
+            x ∈ Metric.closedBall w ε →
               ∀ t : ℝ,
                 t ∈ Set.Icc (0 : ℝ) 1 →
                   AffineMap.lineMap (0 : ℂ) x t ∈
@@ -4502,7 +4514,7 @@ theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
   exact
     Filter.Eventually.of_forall
       (fun t ht x hx =>
-        let hanalytic_mem := htube x hx t ht
+        let hanalytic_mem := htube x (ball_subset_closedBall hx) t ht
         let hanalytic :=
           match Set.mem_iUnion.1 hanalytic_mem with
           | ⟨_c, hc_mem⟩ =>
@@ -4520,7 +4532,7 @@ theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
       ∀ ε : ℝ,
         0 < ε →
           (∀ x : ℂ,
-            x ∈ ball w ε →
+            x ∈ Metric.closedBall w ε →
               ∀ t : ℝ,
                 t ∈ Set.Icc (0 : ℝ) 1 →
                   AffineMap.lineMap (0 : ℂ) x t ∈
@@ -4623,6 +4635,28 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
   refine ⟨u, hz_mem, hu_nhds, ?_⟩
   intro w hw
   rcases hu_stable w hw with ⟨ε, hε_pos, hε_stable⟩
+  have hδ_pos : 0 < ε / 2 :=
+    half_pos hε_pos
+  have hδ_lt : ε / 2 < ε :=
+    half_lt_self hε_pos
+  have hδ_stable_ball :
+      ∀ x : ℂ,
+        x ∈ ball w (ε / 2) →
+          ∀ t : ℝ,
+            t ∈ Set.Icc (0 : ℝ) 1 →
+              AffineMap.lineMap (0 : ℂ) x t ∈
+                ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
+    intro x hx t ht
+    exact hε_stable x (ball_subset_ball hδ_lt hx) t ht
+  have hδ_stable_closed :
+      ∀ x : ℂ,
+        x ∈ Metric.closedBall w (ε / 2) →
+          ∀ t : ℝ,
+            t ∈ Set.Icc (0 : ℝ) 1 →
+              AffineMap.lineMap (0 : ℂ) x t ∈
+                ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
+    intro x hx t ht
+    exact hε_stable x (closedBall_subset_ball hδ_lt hx) t ht
   have hw_stable :
       ∀ t : ℝ,
         t ∈ Set.Icc (0 : ℝ) 1 →
@@ -4633,13 +4667,13 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
   have hintegrability :=
     complex_centerSegmentIntegral_finiteTube_integrability
       φ centers w hw_stable
-      ((Metric.ball_mem_nhds w hε_pos).mono
-        (fun x hx t ht => hε_stable x hx t ht))
+      ((Metric.ball_mem_nhds w hδ_pos).mono
+        (fun x hx t ht => hδ_stable_ball x hx t ht))
   have hdom :=
     complex_centerSegmentIntegral_finiteTube_domination_and_derivative
-      φ centers w ε hε_pos hε_stable
+      φ centers w (ε / 2) hδ_pos hδ_stable_closed
   exact
-    ⟨ε, hε_pos, hintegrability.1, hintegrability.2.1,
+    ⟨ε / 2, hδ_pos, hintegrability.1, hintegrability.2.1,
       hintegrability.2.2, hdom⟩
 
 /-- Compact finite-tube domination for center-segment endpoint derivatives.
