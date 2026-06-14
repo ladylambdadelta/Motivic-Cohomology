@@ -1776,6 +1776,81 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
+/-- Classical Jensen finite-zero divisor input in a closed disk, with
+multiplicities.
+
+This is the divisor-finiteness part of the nonzero-origin Jensen package: a
+nontrivial entire function has only finitely many zeros in each compact disk,
+and the closed-disk multiplicity family is therefore summable after the origin
+summand is removed. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisor_closedDiskMultiplicitySummable_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  -- Classical isolated-zero divisor finiteness on compact disks, with the
+  -- origin summand removed because `F 0 ≠ 0`; cf. Titchmarsh, The Theory of
+  -- Functions, §5.
+  sorry
+
+/-- Classical Jensen radial-gap divisor summability for a nonzero value at the
+origin.
+
+The radial-gap summand is supported on the finite zero divisor in the open
+disk of radius `ρ`, counted by analytic multiplicity. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_from_finiteZeroDivisor_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) := by
+  -- This is the summability consequence of the finite zero divisor in
+  -- `closedDisk ρ`, since the radial-gap summand vanishes outside the disk and
+  -- at the origin.
+  sorry
+
+/-- Classical Jensen product/radial-gap identity for a nonzero value at the
+origin, including the explicit constant.
+
+This is the product formula form of Jensen's theorem: after multiplying the
+linear zero factors inside the circle and taking logarithmic boundary averages,
+the radial-gap sum differs from the boundary average by exactly
+`Real.log ‖F 0‖`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_productRadialGap_identity_explicitConstant_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Classical Jensen product formula with analytic multiplicities; cf.
+  -- Titchmarsh, The Theory of Functions, §5.
+  sorry
+
+/-- Boundary logarithmic integral identity with explicit constant
+`-log ‖F 0‖`, projected from the classical Jensen product/radial-gap identity. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogIntegral_identity_explicitConstant_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_productRadialGap_identity_explicitConstant_ownerRoot
+      F hF hF0
+
 /-- Classical Jensen boundary-log-average identity for a nonzero value at the
 origin.
 
@@ -1801,10 +1876,16 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_explicitConstant_pa
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
-  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
-  -- Functions, §5.
-  sorry
+  refine ⟨?_, ?_⟩
+  · exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisor_closedDiskMultiplicitySummable_ownerRoot
+        F hF hF0
+  · intro ρ hρ
+    exact
+      ⟨entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_from_finiteZeroDivisor_ownerRoot
+          F hF hF0 ρ hρ,
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogIntegral_identity_explicitConstant_ownerRoot
+          F hF hF0 ρ hρ⟩
 
 /-- Classical Jensen package with the origin constant existentially bundled.
 

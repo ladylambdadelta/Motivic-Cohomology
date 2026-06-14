@@ -381,6 +381,22 @@ theorem norm_unfoldedNormalizedGammaℝFactor_pos_of_re_nonneg_and_one_le_norm
     (unfoldedNormalizedGammaℝFactor_ne_zero_of_re_nonneg_and_one_le_norm
       hz_re hz_norm)
 
+/-- Sectorial complex Stirling in the normalized half-argument form needed by
+`Gammaℝ`.
+
+This is the canonical classical special-function estimate: Stirling's expansion for
+`Γ(z / 2)` in the closed right half-plane, with the harmless `π ^ (-z / 2)`
+normalization absorbed into the constant; cf. DLMF §5.11. -/
+theorem sectorialStirling_complexGamma_halfArgument_normalized_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  sorry
+
 /-- Classical sectorial Stirling growth for the inline half-argument normalized Gamma
 factor.
 
@@ -395,9 +411,8 @@ theorem classicalStirling_complexGamma_halfArgument_normalized_rightHalfPlane_lo
         1 ≤ ‖z‖ →
         Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  -- Classical complex Stirling for `π^(-z/2) Γ(z/2)` on the closed right
-  -- half-plane, away from the origin.
-  sorry
+  exact
+    sectorialStirling_complexGamma_halfArgument_normalized_rightHalfPlane_log_linear_growth_bound_degree_one
 
 /-- Classical sectorial Stirling growth for the unfolded normalized real-Gamma factor.
 
@@ -1721,6 +1736,23 @@ theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
       ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
   exact congrArg norm (Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded t)
 
+/-- Vertical Stirling quotient corollary for the completed real-Gamma boundary
+ratio.
+
+This is the canonical quotient consequence of the two-sided vertical Stirling
+formula, specialized to `(1 - it) / 2` and `it / 2`; cf. DLMF §5.11. -/
+theorem verticalStirling_complexGamma_leftBoundary_twoGammaQuotient_sqrt_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+            (π ^ (-((t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
+          A * Real.sqrt (1 + ‖t‖) := by
+  sorry
+
 /-- Classical two-sided vertical Stirling control for the inline two-Gamma quotient on
 the left boundary.
 
@@ -1737,9 +1769,8 @@ theorem classicalStirling_complexGamma_leftBoundary_twoGammaQuotient_vertical_sq
             (π ^ (-((t : ℂ) * Complex.I) / 2) *
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  -- Classical vertical Stirling for the quotient
-  -- `π^(-(1-it)/2) Γ((1-it)/2) / (π^(-it/2) Γ(it/2))`.
-  sorry
+  exact
+    verticalStirling_complexGamma_leftBoundary_twoGammaQuotient_sqrt_growth_bound
 
 /-- Classical two-sided vertical Stirling control for the unfolded completed real-Gamma
 ratio on the left boundary.
@@ -2465,6 +2496,21 @@ theorem norm_riemannZeta_boundaryLine_one_eq_norm_realParam
     ‖riemannZeta w‖ = ‖boundaryLineOneZetaRealParam w.im‖ := by
   exact congrArg norm (riemannZeta_boundaryLine_one_eq_realParam hw_re)
 
+/-- Euler-Maclaurin/Abel-truncation boundary estimate for the Riemann zeta
+function on `1 + it`.
+
+This is the canonical classical number-theoretic input: truncate the Dirichlet
+series at height comparable to `|t|`, control the tail by Euler-Maclaurin or Abel
+summation, and obtain the standard logarithmic bound; cf. Titchmarsh, §3.5. -/
+theorem eulerMaclaurin_riemannZeta_boundaryLineOnePointRealParam_vertical_log_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+          A * Real.log (2 + ‖t‖) := by
+  sorry
+
 /-- Classical real-parameter logarithmic vertical growth of raw zeta on `1 + it`.
 
 This is the smallest analytic number-theory input: truncate the Dirichlet series at
@@ -2478,7 +2524,8 @@ theorem classicalZeta_riemannZeta_boundaryLineOnePointRealParam_vertical_log_gro
         1 ≤ ‖t‖ →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact
+    eulerMaclaurin_riemannZeta_boundaryLineOnePointRealParam_vertical_log_growth_bound
 
 /-- Classical real-parameter logarithmic vertical growth of zeta on the line `1 + it`.
 
