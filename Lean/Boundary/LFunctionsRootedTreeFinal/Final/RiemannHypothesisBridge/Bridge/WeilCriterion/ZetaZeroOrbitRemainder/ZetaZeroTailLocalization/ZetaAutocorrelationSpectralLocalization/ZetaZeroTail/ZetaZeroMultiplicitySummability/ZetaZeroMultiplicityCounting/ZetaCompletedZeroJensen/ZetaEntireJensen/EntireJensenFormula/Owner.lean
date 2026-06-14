@@ -272,12 +272,17 @@ noncomputable def entireFunctionJensenBoundaryLogIntegrand
   Real.log ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖
 
 /-- The normalized logarithmic boundary average in Jensen's formula. -/
+noncomputable def entireFunctionJensenBoundaryLogIntegral
+    (F : ℂ → ℂ)
+    (R : ℝ) : ℝ :=
+  ∫ θ in (0 : ℝ)..(2 * Real.pi),
+    entireFunctionJensenBoundaryLogIntegrand F R θ
+
+/-- The normalized logarithmic boundary average in Jensen's formula. -/
 noncomputable def entireFunctionJensenBoundaryLogAverage
     (F : ℂ → ℂ)
     (R : ℝ) : ℝ :=
-  (2 * Real.pi)⁻¹ *
-    ∫ θ in (0 : ℝ)..(2 * Real.pi),
-      entireFunctionJensenBoundaryLogIntegrand F R θ
+  (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F R
 
 /-- Open-neighborhood identity theorem for entire functions.
 
@@ -1773,13 +1778,10 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
 /-- Classical Jensen formula for a nontrivial entire function whose value at
 the origin is nonzero.
 
-This is the standard analytic Jensen identity before the origin Taylor factor
-is separated: the multiplicity-weighted radial gap over nonzero zeros equals
-the boundary logarithmic average up to the fixed normalization constant
-`log ‖F 0‖`.  The current statement records that constant existentially so the
-downstream zero-counting lane does not depend on a particular normalization of
-the logarithmic average. -/
-theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+This is the analytic owner root: before any origin Taylor-factor transport, the
+nonzero-origin Jensen identity gives one fixed normalization constant and the
+radial-gap identity for all comparison radii. -/
+theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0) :
@@ -1799,6 +1801,32 @@ theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_bo
   -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
   -- counted by analytic multiplicity.
   sorry
+
+/-- Classical Jensen formula for a nontrivial entire function whose value at
+the origin is nonzero.
+
+This compatibility theorem is intentionally a thin wrapper over
+`entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot`; downstream
+zero-counting code should depend on this stable public name, while the analytic
+proof remains owned by the root theorem above. -/
+theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  exact entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot F hF hF0
 
 /-- The origin-factor transport theorem is mechanical when the origin is not a
 zero: the explicit origin Taylor contribution is zero. -/
@@ -1853,7 +1881,7 @@ This is the owner construction needed for Jensen transport: the local unit
 supplied by `AnalyticAt.order_eq_nat_iff` extends to a global entire quotient
 after dividing out the origin power, with the removable singularity filled in
 at the origin. -/
-theorem entireFunction_originTaylorFactor_entireQuotient
+theorem entireFunction_originTaylorFactor_entireQuotient_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
@@ -1866,6 +1894,24 @@ theorem entireFunction_originTaylorFactor_entireQuotient
   -- Remove the finite origin order and fill the removable singularity of
   -- `F z / z^m` at the origin.
   sorry
+
+/-- Global removal of the origin Taylor factor for a nontrivial entire
+function.
+
+This public theorem is a thin wrapper over the removable-singularity owner root
+above.  All later zero-set, multiplicity, and Jensen-transport lemmas consume
+this stable public API rather than reproving the quotient construction. -/
+theorem entireFunction_originTaylorFactor_entireQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ G : ℂ → ℂ,
+      (∀ z : ℂ, AnalyticAt ℂ G z) ∧
+      G 0 ≠ 0 ∧
+      (∀ z : ℂ,
+        F z =
+          z ^ entireFunctionZeroMultiplicity F hF 0 • G z) := by
+  exact entireFunction_originTaylorFactor_entireQuotient_ownerRoot F hF hnontrivial
 
 /-- Away from the origin, zeros of an entire function agree with zeros of its
 global origin Taylor quotient. -/
@@ -2440,6 +2486,33 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
           entireFunctionJensenRadialGapSummand G hG ρ z :=
       entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum G hG ρ
 
+/-- Normalized boundary-integral transport through the origin Taylor factor,
+after deleting the finite boundary-zero exceptional set.
+
+This is the analytic congruence theorem underneath the boundary-average
+transport: off the finite quotient-zero parameter set the logarithmic
+integrands differ by the constant origin contribution, and the finite
+logarithmic singularities do not change the interval integral. -/
+theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral G ρ := by
+  -- This is the remaining finite-exception integral congruence root.  The
+  -- proof should assemble:
+  -- * quotient boundary-zero finiteness;
+  -- * off-exception log-integrand factorization;
+  -- * interval-integral congruence modulo that finite set;
+  -- * the constant-integral normalization on `[0, 2π]`.
+  sorry
+
 /-- Boundary-average transport through the origin Taylor factor, stated as the
 finite-exception integral theorem it really is.
 
@@ -2460,10 +2533,9 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
     entireFunctionJensenBoundaryLogAverage F ρ =
       entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
         entireFunctionJensenBoundaryLogAverage G ρ := by
-  -- This is the honest owner root: prove the interval-integral equality from
-  -- the finite quotient boundary-zero set, using the off-exception pointwise
-  -- Taylor-factor log identity and finite-log-singularity gluing.
-  sorry
+  exact
+    entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
+      F G hF hG hfactor hρ
 
 /-- Boundary logarithmic averages transport through the global origin Taylor
 quotient with the explicit `m log ρ` contribution from the removed origin
