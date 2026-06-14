@@ -461,6 +461,26 @@ theorem entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogA
     ring
   exact hleft ▸ hright ▸ hscaled
 
+/-- Classical weighted Jensen zero-counting estimate on the doubled disk.
+
+This is the genuine classical Jensen formula input after factoring the first
+nonzero Taylor term at the origin: the Jensen radial-gap sum on the circle of
+radius `2R` dominates the multiplicity count in `closedDisk R` by the uniform
+gap `log 2`, with a constant absorbing the origin factor; cf. Titchmarsh, *The
+Theory of Functions*, §5. -/
+theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  -- Classical Jensen formula for nonzero entire functions, with
+  -- multiplicities and the doubled-radius `log 2` radial-gap comparison.
+  sorry
+
 /-- Standard Jensen formula with multiplicity counting on the doubled disk.
 
 After factoring the first nonzero Taylor term at the origin, Jensen's formula
@@ -484,9 +504,9 @@ theorem entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCount
           1 ≤ R →
           entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
             J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-    -- This is the remaining classical Jensen formula input, after factoring
-    -- the first nonzero Taylor term at the origin; cf. Titchmarsh, §5.
-    sorry
+    exact
+      entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+        F hF hnontrivial
   exact
     entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
       F hF hweighted
