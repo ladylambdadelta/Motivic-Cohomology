@@ -2408,7 +2408,10 @@ theorem entireFunction_exp_logDerivPrimitive_reconstruct_center
       congrArg (fun w : ℂ => G 0 * Complex.exp w) hP_zero.symm
 
 /-- Derivative comparison between `G` and the exponential model induced by a
-primitive of the logarithmic derivative. -/
+normalized primitive of the logarithmic derivative.
+
+The normalization is mathematically necessary: replacing `P` by `P + C` leaves
+`P' = G'/G` unchanged but rescales the model by `exp C`. -/
 theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
     (G P : ℂ → ℂ)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
@@ -2424,7 +2427,8 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
     (hP_deriv :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
-        deriv P z = deriv G z * (G z)⁻¹) :
+        deriv P z = deriv G z * (G z)⁻¹)
+    (hP_zero : P 0 = 0) :
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       deriv G z = deriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
@@ -2489,7 +2493,7 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_reconstruct
         ‖z‖ ≤ ρ →
         deriv G z = deriv (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
     entireFunction_exp_logDerivPrimitive_model_deriv_eq
-      G P hG hzero hP_an hP_deriv
+      G P hG hzero hP_an hP_deriv hP_zero
   have hcenter :
       G 0 = (fun w : ℂ => G 0 * Complex.exp (P w)) 0 :=
     entireFunction_exp_logDerivPrimitive_reconstruct_center G P hP_zero
@@ -4585,12 +4589,50 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_ne_zero
         F hF hF0 ρ w hproduct).symm
 
+/-- Removable quotient after extracting the finite Jensen support divisor.
+
+This is the owner-level removable-singularity factor theorem needed by the
+finite-product Jensen proof.  The quotient is supplied existentially, not by
+globally choosing the raw expression `F / P`; at the support zeros the raw
+division expression has the wrong value because division sends `0 / 0` to `0`.
+The construction removes those singularities with the matched local
+multiplicities and returns the boundary decomposition used downstream.
+Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_exists_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w) ∧
+      (∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) ∧
+      (entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log ‖Q 0‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              ((2 * Real.pi)⁻¹ *
+                (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)))) ∧
+      (Real.log ‖Q 0‖ = Real.log ‖F 0‖) := by
+  -- Deep removable-singularity root: construct the analytic extension of
+  -- `F / P` after matching all finite support multiplicities, prove that the
+  -- extension is zero-free on the Jensen disk, and transport the boundary log
+  -- through the finite product decomposition.
+  sorry
+
 /-- Canonical finite product factorization on Jensen's closed disk.
 
-This is the remaining owner-level complex-analytic construction: from the
-finite zero divisor in the disk, factor `F` as the explicit finite zero-factor
-product times a quotient that is zero-free on the closed disk.  Cf.
-Titchmarsh, *The Theory of Functions*, §5. -/
+The quotient is obtained by locally destructing the removable quotient package;
+no global choice of a raw quotient is made. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -4616,35 +4658,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
                   Real.log
                     ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)))) ∧
       (Real.log ‖Q 0‖ = Real.log ‖F 0‖) := by
-  have hproduct_zero_imp_zero :
-      ∀ w : ℂ,
-        ‖w‖ ≤ ρ →
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-            F hF hF0 ρ w = 0 →
-        F w = 0 :=
-    fun w _hw hproduct =>
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_zero_imp_function_zero
-        F hF hF0 ρ w hproduct
-  have hfactorization :
-      ∀ w : ℂ,
-        ‖w‖ ≤ ρ →
-        F w =
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ w *
-            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-              F hF hF0 ρ w :=
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_zero_imp_zero
-      F hF hF0 ρ hproduct_zero_imp_zero
-  have horigin :
-      Real.log
-          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ 0‖ =
-        Real.log ‖F 0‖ :=
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_origin_log_norm_from_def
-      F hF hF0 ρ
-  -- Construct the removable extension of the raw quotient `F / P` and prove
-  -- its zero-freeness and boundary-log decomposition.
-  sorry
+  rcases
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_exists_ownerRoot
+        F hF hF0 ρ hρ with
+    ⟨Q, hfactor, hzero, hboundary, horigin⟩
+  exact ⟨Q, hfactor, hzero, hboundary, horigin⟩
 
 /-- There is a removable finite divisor quotient which is zero-free on Jensen's
 closed disk. -/
@@ -4763,9 +4781,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
           F hF hF0 ρ) := by
   have hboundary :
       entireFunctionJensenBoundaryLogAverage F ρ =
-        Real.log
-          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ 0‖ +
+        Real.log ‖F 0‖ +
           (∑ z in
             entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
               F hF hF0 ρ,
@@ -4791,13 +4807,6 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
             F hF hF0 ρ) :=
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_singleFactorBoundaryAverageSum_eq_radialGapSum
       F hF hF0 ρ
-  have hquotient_origin :
-      Real.log
-          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ 0‖ =
-        Real.log ‖F 0‖ :=
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_origin_log_norm
-      F hF hF0 ρ hρ
   let S : ℝ :=
     ∑ z in
       entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
@@ -4809,9 +4818,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
               ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
   have hboundaryS :
       entireFunctionJensenBoundaryLogAverage F ρ =
-        Real.log
-          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ 0‖ + S :=
+        Real.log ‖F 0‖ + S :=
     hboundary
   have hsumS :
       S =
@@ -4822,14 +4829,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
     hsum
   calc
     entireFunctionJensenBoundaryLogAverage F ρ =
-        Real.log
-          ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
-              F hF hF0 ρ 0‖ + S := by
+        Real.log ‖F 0‖ + S := by
       exact hboundaryS
-    _ = Real.log ‖F 0‖ + S := by
-      exact congrArg
-        (fun x : ℝ => x + S)
-        hquotient_origin
     _ =
         Real.log ‖F 0‖ +
           entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum

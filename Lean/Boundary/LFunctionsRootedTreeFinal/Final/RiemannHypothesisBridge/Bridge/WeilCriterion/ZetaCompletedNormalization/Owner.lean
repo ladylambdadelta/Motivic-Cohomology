@@ -595,6 +595,26 @@ theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_nonneg
     0 ≤ Complex.fixedRealPartVerticalReciprocalStirlingEnvelope a b :=
   le_of_lt (Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_pos a b)
 
+/-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
+right half-plane.
+
+This is the deepest classical special-function root for the sectorial Gamma
+lane: on closed subsectors avoiding the negative real axis, `log Γ(w)` has the
+usual Stirling expansion with a uniform `O(1 / ‖w‖)` remainder.  In the closed
+right half-plane this gives the formula below after exponentiating the
+remainder; cf. DLMF §5.11 and Whittaker-Watson, Ch. XII. -/
+theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  sorry
+
 /-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
 
 This is the formula-level sectorial asymptotic root for the Gamma lane:
@@ -611,6 +631,21 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expans
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
           K / ‖w‖ := by
+  exact Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
+
+/-- Sectorial Gamma exponential envelope on the closed right half-plane.
+
+This is the classical growth consequence of sectorial logarithmic Stirling:
+the real part of `log Γ(w)` is bounded by a linear-logarithmic envelope on the
+closed right half-plane, uniformly away from the origin; cf. DLMF §5.11. -/
+theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   sorry
 
 /-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
@@ -629,6 +664,21 @@ theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane
+
+/-- Fixed-line vertical upper envelope for `Complex.Gamma`.
+
+For each fixed real part `a`, Stirling's formula on the vertical line
+`a + i b` gives exponential decay `exp (-π |b| / 2)` and polynomial factor
+`(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
+theorem Complex.fixedLineVerticalGammaUpperEnvelope :
+    ∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
   sorry
 
 /-- Fixed-real-part vertical Stirling upper bound for `Complex.Gamma`.
@@ -645,6 +695,21 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
           ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
             C * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) := by
+  exact Complex.fixedLineVerticalGammaUpperEnvelope
+
+/-- Fixed-line vertical lower envelope for `Complex.Gamma`.
+
+For each fixed real part `a`, the lower half of vertical Stirling gives the
+matching positive constant in front of the same exponential-polynomial
+envelope; cf. DLMF §5.11. -/
+theorem Complex.fixedLineVerticalGammaLowerEnvelope :
+    ∀ a : ℝ,
+      ∃ c : ℝ,
+        0 < c ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
   sorry
 
 /-- Fixed-real-part vertical Stirling lower bound for `Complex.Gamma`.
@@ -661,7 +726,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
             ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
-  sorry
+  exact Complex.fixedLineVerticalGammaLowerEnvelope
 
 /-- Two-sided fixed-real-part vertical Stirling bounds for `Complex.Gamma`, with the
 fixed-line point and envelope named by the owner API.
@@ -2359,6 +2424,34 @@ theorem poleClearedRiemannZeta_continuousOn_rightCriticalStripCompactSet :
       completedRiemannZeta₀_rightCriticalStripCompactSet := by
   intro z _hz
   exact (poleClearedRiemannZeta_continuousAt z).continuousWithinAt
+
+/-- Removable-pole holomorphy of the pole-cleared zeta factor on the open right
+critical strip.
+
+This is the zeta-side holomorphy input for the strip Phragmen-Lindelöf theorem: away
+from `1` it is `(s - 1)ζ(s)`, and at `1` the removable value is the zeta residue. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl :
+    DiffContOnCl ℂ poleClearedRiemannZeta
+      (Complex.re ⁻¹' Set.Ioo 0 2) := by
+  sorry
+
+/-- Interior admissible finite-order envelope for the pole-cleared zeta factor in the
+right critical strip.
+
+This is the damping-side zeta-growth root consumed by the generic strip
+Phragmen-Lindelöf theorem.  Its proof belongs to the pole-cleared zeta API: use the
+classical finite-order meromorphic growth of `ζ`, the residue normalization at `1`,
+and the bounded-width strip geometry to obtain an admissible sub-critical
+double-exponential envelope. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
 
 /-- Compact boundedness for the removable pole-cleared zeta factor. -/
 theorem poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound :
@@ -5047,6 +5140,19 @@ def boundaryLineOnePointRealParam_logarithmicPhaseFunction
     (x : ℝ) : ℂ :=
   Complex.exp ((-(t : ℂ) * Complex.I) * (Real.log x : ℂ))
 
+/-- Owner API: positive real samples of the logarithmic phase are the complex
+power samples used by the Dirichlet-polynomial primitive.
+
+This is the branch-normalization calculation for the principal complex power on
+the positive real axis. -/
+theorem logarithmicPhaseFunction_positiveReal_cpow
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+      (x : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+  sorry
+
 /-- Positive real samples of the logarithmic phase agree with the complex-power
 notation used in the Dirichlet-polynomial partial sums. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
@@ -5055,6 +5161,18 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
     (hx : 0 < x) :
     boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
       (x : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+  exact logarithmicPhaseFunction_positiveReal_cpow t hx
+
+/-- Owner API: derivative of the logarithmic phase on the positive real axis. -/
+theorem logarithmicPhaseFunction_positiveReal_hasDerivAt
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    HasDerivAt
+      (boundaryLineOnePointRealParam_logarithmicPhaseFunction t)
+      (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)
+      x := by
   sorry
 
 /-- The logarithmic phase has derivative `(-it / x) exp (-it log x)` on the
@@ -5068,6 +5186,19 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
       (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)
       x := by
+  exact logarithmicPhaseFunction_positiveReal_hasDerivAt t hx
+
+/-- Owner API: the derivative magnitude of the logarithmic phase is `|t| / x`.
+
+The proof combines the positive-real logarithmic branch normalization with
+`‖exp (iθ)‖ = 1` and the reciprocal norm of a positive real. -/
+theorem logarithmicPhaseFunction_positiveReal_derivative_norm_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
+      ‖t‖ / x := by
   sorry
 
 /-- The derivative magnitude of the logarithmic phase is exactly `|t| / x`. -/
@@ -5078,6 +5209,20 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_e
     ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
       ‖t‖ / x := by
+  exact logarithmicPhaseFunction_positiveReal_derivative_norm_eq t hx
+
+/-- Deep analytic owner estimate for logarithmic-phase partial sums.
+
+This is the first-derivative/Euler-Maclaurin bound for
+`u ↦ exp (-i t log u)` after the canonical cutoff; cf. Titchmarsh,
+*The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem logarithmicPhasePartialSum_firstDerivative_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
 
 /-- Standard first-derivative/Euler-Maclaurin estimate for the logarithmic
@@ -5093,7 +5238,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDe
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact logarithmicPhasePartialSum_firstDerivative_bound t ht hx
 
 /-- First-derivative/Euler-Maclaurin owner estimate for the logarithmic phase
 `u ↦ exp (-i t log u)`.
@@ -5141,6 +5286,22 @@ def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
     (t : ℝ) : ℝ :=
   4 + 16 * Real.log (3 + ‖t‖)
 
+/-- Owner API: endpoint contribution in the finite Abel decomposition after the
+canonical cutoff. -/
+theorem logarithmicPhase_finiteAbelEndpoint_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊‖ +
+      ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Endpoint contribution in the finite Abel decomposition after the canonical
 cutoff.  This consumes the first-derivative logarithmic-phase primitive bound at
 the two natural endpoints and the reciprocal endpoint weights. -/
@@ -5156,6 +5317,19 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelEndpoint_norm_l
         boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
           ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
+  exact logarithmicPhase_finiteAbelEndpoint_bound t ht hNM
+
+/-- Owner API: reciprocal-derivative integral contribution in the finite Abel
+decomposition after the canonical cutoff. -/
+theorem logarithmicPhase_finiteAbelDerivativeIntegral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
 
 /-- Reciprocal-derivative integral contribution in the finite Abel decomposition.
@@ -5170,7 +5344,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelDerivativeInteg
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact logarithmicPhase_finiteAbelDerivativeIntegral_bound t ht hNM
 
 /-- Finite Abel-tail estimate obtained from the exact Abel identity, endpoint
 bounds, and reciprocal-derivative integral bound. -/
@@ -6004,6 +6178,23 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_rie
         t ht,
       rfl⟩
 
+/-- Owner Abel-boundary API for the canonical post-cutoff oscillatory tail.
+
+This is the boundary-value passage from finite Abel tails to the analytic
+continuation value of `ζ(1 + it)`, after the endpoint and derivative-integral
+Abel estimates have been isolated. The proof chain is Abel summation for finite
+tails, the logarithmic-phase first-derivative estimate, Abel limiting from the
+right half-plane, and the Dirichlet-continuation boundary identity; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  sorry
+
 /-- Explicit Abel/Euler-Maclaurin estimate for the exact post-cutoff oscillatory
 boundary-line zeta remainder.
 
@@ -6023,7 +6214,7 @@ theorem abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  sorry
+  exact abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound t ht
 
 /-- Exact post-cutoff oscillatory tail after the cutoff `N = ⌊2 + |t|⌋₊`.
 
@@ -7419,8 +7610,12 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound :
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   rcases poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound with
     ⟨hleft, hright⟩
-  exact strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
-    poleClearedRiemannZeta 0 2 zero_lt_two hhol hfinite hleft hright
+  exact
+    poleClearedRiemannZeta_rightCriticalStrip_verticalTail_growth_bound_of_strip_inputs
+      poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl
+      poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth
+      hleft
+      hright
 
 /-- Vertical-tail pole-cleared zeta strip estimate.
 
