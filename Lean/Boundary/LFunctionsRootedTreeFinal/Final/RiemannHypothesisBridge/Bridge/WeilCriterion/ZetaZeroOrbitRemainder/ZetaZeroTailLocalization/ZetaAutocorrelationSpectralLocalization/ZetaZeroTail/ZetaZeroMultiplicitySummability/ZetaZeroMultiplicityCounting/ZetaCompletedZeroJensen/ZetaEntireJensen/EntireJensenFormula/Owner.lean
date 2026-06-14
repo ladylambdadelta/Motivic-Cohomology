@@ -1694,9 +1694,11 @@ theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boun
 the first nonzero Taylor factor at the origin absorbed into an additive
 constant.
 
-This is the precise classical analytic input: after removing the origin factor,
-Jensen's formula identifies the multiplicity-weighted radial gap sum with the
-boundary logarithmic average up to a fixed additive normalization constant. -/
+This is the precise large-radius analytic input after removing the origin
+factor: Jensen's formula identifies the multiplicity-weighted radial gap sum
+with the boundary logarithmic average up to a fixed additive normalization
+constant. The restriction `1 ≤ ρ` is the exact place where the origin-radius
+term is nonnegative and can be absorbed. -/
 theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1708,7 +1710,7 @@ theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
           (fun z : EntireFunctionZero F =>
             entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)) ∧
       (∀ ρ : ℝ,
-          0 < ρ →
+          1 ≤ ρ →
           Summable
             (fun z : EntireFunctionZero F =>
               entireFunctionJensenRadialGapSummand F hF ρ z) ∧
@@ -1767,8 +1769,8 @@ theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
         horigin_shift)
     exact le_trans hbound hJ_le
   · intro R hR
-    have hρ : 0 < 2 * R :=
-      doubled_radius_pos_of_one_le hR
+    have hρ : 1 ≤ 2 * R :=
+      one_le_doubled_radius_of_one_le hR
     rcases hradial (2 * R) hρ with ⟨hgap, hbound⟩
     have hcount :
         entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
@@ -1892,8 +1894,8 @@ theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultipl
     ⟨J, hclosed, hradial, hcount⟩
   refine ⟨J + J, ?_⟩
   intro R hR
-  have hρ : 0 < 2 * R :=
-    doubled_radius_pos_of_one_le hR
+  have hρ : 1 ≤ 2 * R :=
+    one_le_doubled_radius_of_one_le hR
   rcases hradial (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
   have hcount_gap :
       entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
