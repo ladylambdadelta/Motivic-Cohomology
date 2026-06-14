@@ -514,6 +514,87 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
+/-- The closed right half-plane sector used for the owner Gamma/Stirling roots. -/
+def Complex.closedRightHalfPlaneSector (w : ℂ) : Prop :=
+  0 ≤ w.re
+
+/-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
+Stirling estimates definitionally aligned. -/
+def Complex.fixedRealPartVerticalPoint (a b : ℝ) : ℂ :=
+  (a : ℂ) + (b : ℂ) * Complex.I
+
+/-- The fixed-line point has real coordinate `a`. -/
+theorem Complex.fixedRealPartVerticalPoint_re
+    (a b : ℝ) :
+    (Complex.fixedRealPartVerticalPoint a b).re = a := by
+  calc
+    (Complex.fixedRealPartVerticalPoint a b).re =
+        ((a : ℂ) + (b : ℂ) * Complex.I).re := rfl
+    _ = (a : ℂ).re + ((b : ℂ) * Complex.I).re :=
+        Complex.add_re (a : ℂ) ((b : ℂ) * Complex.I)
+    _ = a + 0 := by
+        exact congrArg
+          (fun x : ℝ => a + x)
+          (Complex.ofReal_mul_I_re b)
+    _ = a := add_zero a
+
+/-- The fixed-line point has imaginary coordinate `b`. -/
+theorem Complex.fixedRealPartVerticalPoint_im
+    (a b : ℝ) :
+    (Complex.fixedRealPartVerticalPoint a b).im = b := by
+  calc
+    (Complex.fixedRealPartVerticalPoint a b).im =
+        ((a : ℂ) + (b : ℂ) * Complex.I).im := rfl
+    _ = (a : ℂ).im + ((b : ℂ) * Complex.I).im :=
+        Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
+    _ = 0 + b := by
+        exact congrArg
+          (fun x : ℝ => 0 + x)
+          (Complex.ofReal_mul_I_im b)
+    _ = b := zero_add b
+
+/-- The direct fixed-real-part vertical Stirling envelope. -/
+def Complex.fixedRealPartVerticalStirlingEnvelope (a b : ℝ) : ℝ :=
+  Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (a - 1 / 2)
+
+/-- The reciprocal fixed-real-part vertical Stirling envelope. -/
+def Complex.fixedRealPartVerticalReciprocalStirlingEnvelope (a b : ℝ) : ℝ :=
+  Real.exp ((Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (1 / 2 - a)
+
+/-- The fixed-real-part direct Stirling envelope is positive. -/
+theorem Complex.fixedRealPartVerticalStirlingEnvelope_pos
+    (a b : ℝ) :
+    0 < Complex.fixedRealPartVerticalStirlingEnvelope a b := by
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  exact mul_pos
+    (Real.exp_pos (-(Real.pi / 2) * ‖b‖))
+    (Real.rpow_pos_of_pos hbase_pos (a - 1 / 2))
+
+/-- The fixed-real-part direct Stirling envelope is nonnegative. -/
+theorem Complex.fixedRealPartVerticalStirlingEnvelope_nonneg
+    (a b : ℝ) :
+    0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+  le_of_lt (Complex.fixedRealPartVerticalStirlingEnvelope_pos a b)
+
+/-- The fixed-real-part reciprocal Stirling envelope is positive. -/
+theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_pos
+    (a b : ℝ) :
+    0 < Complex.fixedRealPartVerticalReciprocalStirlingEnvelope a b := by
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  exact mul_pos
+    (Real.exp_pos ((Real.pi / 2) * ‖b‖))
+    (Real.rpow_pos_of_pos hbase_pos (1 / 2 - a))
+
+/-- The fixed-real-part reciprocal Stirling envelope is nonnegative. -/
+theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_nonneg
+    (a b : ℝ) :
+    0 ≤ Complex.fixedRealPartVerticalReciprocalStirlingEnvelope a b :=
+  le_of_lt (Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_pos a b)
+
 /-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
 
 This is the formula-level sectorial asymptotic root for the Gamma lane:
@@ -581,6 +662,31 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
             ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
   sorry
+
+/-- Two-sided fixed-real-part vertical Stirling bounds for `Complex.Gamma`, with the
+fixed-line point and envelope named by the owner API.
+
+This is the reusable bundled form of the classical fixed-line asymptotic estimates:
+downstream reciprocal and quotient arguments should consume this statement rather
+than repeatedly unpacking the two split roots. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_owner
+    (a : ℝ) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  rcases Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+    ⟨C, hC_pos, hupper⟩
+  rcases Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+    ⟨c, hc_pos, hlower⟩
+  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  intro b hb
+  exact ⟨hupper b hb, hlower b hb⟩
 
 /-- Classical Gamma/Stirling owner package on the closed right half-plane.
 
@@ -4934,6 +5040,61 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq
         (k : ℂ) ^ (-(t : ℂ) * Complex.I) := by
   rfl
 
+/-- The continuous logarithmic phase whose integer samples are `n^{-it}` away
+from the origin. -/
+def boundaryLineOnePointRealParam_logarithmicPhaseFunction
+    (t : ℝ)
+    (x : ℝ) : ℂ :=
+  Complex.exp ((-(t : ℂ) * Complex.I) * (Real.log x : ℂ))
+
+/-- Positive real samples of the logarithmic phase agree with the complex-power
+notation used in the Dirichlet-polynomial partial sums. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+      (x : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+  sorry
+
+/-- The logarithmic phase has derivative `(-it / x) exp (-it log x)` on the
+positive real line. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    HasDerivAt
+      (boundaryLineOnePointRealParam_logarithmicPhaseFunction t)
+      (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)
+      x := by
+  sorry
+
+/-- The derivative magnitude of the logarithmic phase is exactly `|t| / x`. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
+      ‖t‖ / x := by
+  sorry
+
+/-- Standard first-derivative/Euler-Maclaurin estimate for the logarithmic
+phase partial sums.
+
+The proof is the classical monotone first-derivative argument for
+`φ(x) = -t log x`, with the Euler-Maclaurin endpoint correction; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDerivative_core
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  sorry
+
 /-- First-derivative/Euler-Maclaurin owner estimate for the logarithmic phase
 `u ↦ exp (-i t log u)`.
 
@@ -4948,7 +5109,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDe
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDerivative_core
+      t ht hx
 
 /-- Euler-Maclaurin / van-der-Corput bound for the logarithmic-phase oscillator.
 
@@ -5019,7 +5182,95 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  sorry
+  let N : ℕ := ⌊2 + ‖t‖⌋₊
+  let SM : ℂ :=
+    ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) *
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+        ⌊((M : ℕ) : ℝ)⌋₊
+  let SN : ℂ :=
+    (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+      boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+        ⌊(((N : ℕ) : ℝ))⌋₊
+  let J : ℂ :=
+    ∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+      deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊
+  have hf_diff :
+      ∀ x ∈ Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x := by
+    intro x hx
+    fun_prop
+  have hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    fun_prop
+  have hidentity :
+      (∑ k ∈ Finset.Ioc ⌊(((N : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        SM - SN - J := by
+    exact
+      abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_endpoint_derivative_identity
+        t hNM hf_diff hf_int
+  have hendpoint :
+      ‖SM‖ + ‖SN‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+    exact
+      boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelEndpoint_norm_le
+        t ht hNM
+  have hintegral :
+      ‖J‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
+    exact
+      boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelDerivativeIntegral_norm_le
+        t ht hNM
+  have htriangle :
+      ‖SM - SN - J‖ ≤ ‖SM‖ + ‖SN‖ + ‖J‖ := by
+    have hfirst : ‖SM - SN - J‖ ≤ ‖SM - SN‖ + ‖J‖ :=
+      norm_sub_le (SM - SN) J
+    have hsecond : ‖SM - SN‖ ≤ ‖SM‖ + ‖SN‖ :=
+      norm_sub_le SM SN
+    exact le_trans hfirst (add_le_add_right hsecond ‖J‖)
+  have hpost_triangle :
+      ‖SM‖ + ‖SN‖ + ‖J‖ ≤
+        (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) := by
+    exact add_le_add hendpoint hintegral
+  have hconstant :
+      (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) =
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+    let L : ℝ := Real.log (3 + ‖t‖)
+    have hadd :
+        (2 + 8 * L) + (2 + 8 * L) =
+          (2 + 2) + (8 * L + 8 * L) := by
+      ac_rfl
+    have htwo : (2 : ℝ) + 2 = 4 := by
+      rfl
+    have height_coeff : (8 : ℝ) + 8 = 16 := by
+      rfl
+    have height : (8 : ℝ) * L + 8 * L = 16 * L := by
+      calc
+        (8 : ℝ) * L + 8 * L = ((8 : ℝ) + 8) * L := by
+          exact (add_mul (8 : ℝ) 8 L).symm
+        _ = 16 * L := by
+          exact congrArg (fun c : ℝ => c * L) height_coeff
+    calc
+      (2 + 8 * Real.log (3 + ‖t‖)) +
+          (2 + 8 * Real.log (3 + ‖t‖)) =
+          (2 + 8 * L) + (2 + 8 * L) := by
+        rfl
+      _ = (2 + 2) + (8 * L + 8 * L) :=
+        hadd
+      _ = 4 + (8 * L + 8 * L) := by
+        exact congrArg (fun x : ℝ => x + (8 * L + 8 * L)) htwo
+      _ = 4 + 16 * L := by
+        exact congrArg (fun x : ℝ => 4 + x) height
+      _ = boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+        rfl
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤ boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
+    hidentity.symm
+    (le_trans htriangle (le_trans hpost_triangle (le_of_eq hconstant)))
 
 /-- The completed Abel/Euler-Maclaurin tail package for the logarithmic-phase
 oscillator after the canonical cutoff.
