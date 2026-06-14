@@ -4012,6 +4012,74 @@ theorem Complex.shiftedVertical_radiusPower_comparable
             ‖w‖ ^ (w.re - 1 / 2) := by
   sorry
 
+/-- On a fixed shifted vertical strip, the real-part exponential factor
+`exp (-Re w)` is bounded above and below by positive constants. -/
+theorem Complex.shiftedVertical_realPartExp_bounded
+    (A B : ℝ) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          Real.exp (-w.re) ≤ C ∧
+          c ≤ Real.exp (-w.re) := by
+  let N : ℝ := Complex.verticalStripTransportShift A
+  let C : ℝ := max (Real.exp (-(A + N))) (Real.exp (-(B + N)))
+  let c : ℝ := min (Real.exp (-(A + N))) (Real.exp (-(B + N)))
+  have hEA_pos : 0 < Real.exp (-(A + N)) :=
+    Real.exp_pos (-(A + N))
+  have hEB_pos : 0 < Real.exp (-(B + N)) :=
+    Real.exp_pos (-(B + N))
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le hEA_pos (le_max_left (Real.exp (-(A + N))) (Real.exp (-(B + N))))
+  have hc_pos : 0 < c :=
+    lt_min hEA_pos hEB_pos
+  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  intro x y hxA hxB
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  have hw_re :
+      w.re = x + N := by
+    exact Complex.fixedRealPartVerticalPoint_re
+      (x + Complex.verticalStripTransportShift A) y
+  have hleft : A + N ≤ x + N :=
+    add_le_add_right hxA N
+  have hright : x + N ≤ B + N :=
+    add_le_add_right hxB N
+  have hneg_upper : -(B + N) ≤ -(x + N) :=
+    neg_le_neg hright
+  have hneg_lower : -(x + N) ≤ -(A + N) :=
+    neg_le_neg hleft
+  have hexp_upper_A :
+      Real.exp (-(x + N)) ≤ Real.exp (-(A + N)) :=
+    Real.exp_le_exp.mpr hneg_lower
+  have hexp_upper :
+      Real.exp (-(x + N)) ≤ C :=
+    le_trans hexp_upper_A
+      (le_max_left (Real.exp (-(A + N))) (Real.exp (-(B + N))))
+  have hexp_lower_B :
+      Real.exp (-(B + N)) ≤ Real.exp (-(x + N)) :=
+    Real.exp_le_exp.mpr hneg_upper
+  have hexp_lower :
+      c ≤ Real.exp (-(x + N)) :=
+    le_trans
+      (min_le_right (Real.exp (-(A + N))) (Real.exp (-(B + N))))
+      hexp_lower_B
+  exact
+    ⟨Eq.subst
+        (motive := fun t : ℝ => Real.exp (-t) ≤ C)
+        hw_re.symm
+        hexp_upper,
+      Eq.subst
+        (motive := fun t : ℝ => c ≤ Real.exp (-t))
+        hw_re.symm
+        hexp_lower⟩
+
 /-- Reciprocal denominator comparison for the shifted vertical Stirling
 normalization.
 
@@ -4050,11 +4118,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     ⟨Ha, Ca, ca, hHa_pos, hCa_pos, hca_pos, harg⟩
   rcases Complex.shiftedVertical_radiusPower_comparable A B with
     ⟨Hr, Cr, cr, hHr_pos, hCr_pos, hcr_pos, hradius⟩
+  rcases Complex.shiftedVertical_realPartExp_bounded A B with
+    ⟨Ce, ce, hCe_pos, hce_pos, hexpRe⟩
   let H : ℝ := max Ha Hr
-  refine ⟨H, Ca * Cr, ca * cr,
+  refine ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
     lt_of_lt_of_le hHa_pos (le_max_left Ha Hr),
-    mul_pos hCa_pos hCr_pos,
-    mul_pos hca_pos hcr_pos, ?_⟩
+    mul_pos (mul_pos hCa_pos hCr_pos) hCe_pos,
+    mul_pos (mul_pos hca_pos hcr_pos) hce_pos, ?_⟩
   intro x y hxA hxB hy
   have hy_a : Ha ≤ ‖y‖ :=
     le_trans (le_max_left Ha Hr) hy
@@ -4068,6 +4138,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     (x + Complex.verticalStripTransportShift A - 1 / 2)
   have harg_xy := harg x y hxA hxB hy_a
   have hradius_xy := hradius x y hxA hxB hy_r
+  have hexpRe_xy := hexpRe x y hxA hxB
   have hw_re :
       w.re = x + Complex.verticalStripTransportShift A :=
     Complex.fixedRealPartVerticalPoint_re
@@ -4104,10 +4175,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     have harg_upper :
         Real.exp (-(Complex.arg w * y)) ≤ Ca * Eexp :=
       harg_xy.1
+    have hexpRe_upper :
+        Real.exp (-w.re) ≤ Ce :=
+      hexpRe_xy.1
     have hshape_bound :
         Real.exp (-(Complex.arg w * y)) *
             ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) ≤
-          (Ca * Cr) *
+          ((Ca * Cr) * Ce) *
             (Eexp * P) := by
       sorry
     have henv_eq :
@@ -4117,15 +4191,15 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
       rfl
     exact Eq.subst
       (motive := fun t : ℝ =>
-        t ≤ (Ca * Cr) *
+        t ≤ ((Ca * Cr) * Ce) *
           Complex.fixedRealPartVerticalStirlingEnvelope
             (x + Complex.verticalStripTransportShift A) y)
       hreciprocal_shape.symm
       (Eq.subst
         (motive := fun t : ℝ =>
-          Real.exp (-(Complex.arg w * y)) *
-              ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) ≤
-            (Ca * Cr) * t)
+            Real.exp (-(Complex.arg w * y)) *
+                ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) ≤
+            ((Ca * Cr) * Ce) * t)
         henv_eq
         hshape_bound)
   · have hrad_lower :
@@ -4137,8 +4211,11 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     have harg_lower :
         ca * Eexp ≤ Real.exp (-(Complex.arg w * y)) :=
       harg_xy.2
+    have hexpRe_lower :
+        ce ≤ Real.exp (-w.re) :=
+      hexpRe_xy.2
     have hshape_bound :
-        (ca * cr) *
+        ((ca * cr) * ce) *
             (Eexp * P) ≤
           Real.exp (-(Complex.arg w * y)) *
             ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) := by
@@ -4150,13 +4227,13 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
       rfl
     exact Eq.subst
       (motive := fun t : ℝ =>
-        (ca * cr) *
+        ((ca * cr) * ce) *
           Complex.fixedRealPartVerticalStirlingEnvelope
             (x + Complex.verticalStripTransportShift A) y ≤ t)
       hreciprocal_shape.symm
       (Eq.subst
         (motive := fun t : ℝ =>
-          (ca * cr) * t ≤
+          ((ca * cr) * ce) * t ≤
             Real.exp (-(Complex.arg w * y)) *
               ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re))
         henv_eq
@@ -10354,6 +10431,32 @@ theorem logarithmicPhase_endpoint_trivial_bound
       hdiv_le
   exact le_trans hmul_norm hratio_le_two
 
+/-- Concrete first-derivative/Euler-Maclaurin estimate for the logarithmic
+phase.
+
+This is the standard one-dimensional oscillatory-sum input for the concrete
+phase `u ↦ exp (-i t log u)`: the phase derivative is exactly `-it/u`, its
+magnitude is `|t|/u`, and the monotone first-derivative argument gives the
+displayed partial-sum bound after the canonical cutoff; cf. Titchmarsh,
+*The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  sorry
+
 /-- Deep analytic owner estimate for logarithmic-phase partial sums.
 
 This is the first-derivative/Euler-Maclaurin bound for
@@ -10366,7 +10469,12 @@ theorem logarithmicPhasePartialSum_firstDerivative_bound
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact
+    firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
+      t ht
+      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hu)
+      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hu)
+      hx
 
 /-- Standard first-derivative/Euler-Maclaurin estimate for the logarithmic
 phase partial sums.
@@ -10562,6 +10670,41 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound t ht hNM
 
+/-- Concrete reciprocal-variation integral estimate for the logarithmic phase.
+
+This is the variation term in Abel/Euler-Maclaurin summation for the amplitude
+`u ↦ 1 / u` and the concrete oscillator `u ↦ exp (-i t log u)`.  The
+reciprocal derivative is normalized as `‖(1/u)'‖ = 1/u^2`; the remaining
+analytic input is the same first-derivative cancellation used for the
+logarithmic-phase partial sums. -/
+theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    (hreciprocal_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
+          (-(1 : ℂ) / (u : ℂ) ^ 2))
+    (hreciprocal_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
+          (1 : ℝ) / u ^ 2)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Sharper reciprocal-derivative integral estimate in the logarithmic-phase
 partial-summation package.
 
@@ -10578,7 +10721,14 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
+      t ht
+      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hu)
+      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hu)
+      (fun hu => complexReciprocalOfReal_deriv_eq hu)
+      (fun hu => complexReciprocalOfReal_deriv_norm_eq hu)
+      hNM
 
 /-- Integral arithmetic for the reciprocal-derivative term in the finite Abel
 decomposition.
@@ -15409,6 +15559,60 @@ theorem poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMacla
     hexponent.symm
     hraw
 
+/-- Far-right finite-order growth for the raw pole-cleared zeta product.
+
+This is the Dirichlet-series half-plane estimate on `2 ≤ Re s`, with the
+elementary pole-clearing factor absorbed into the finite-order envelope. -/
+theorem riemannZeta_poleCleared_rightHalfPlane_two_le_finiteOrder_growth_from_dirichletSeries :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        2 ≤ w.re →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  rcases poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMaclaurin with
+    ⟨A, B, m, hA, hB, hbound⟩
+  refine ⟨A, B, m, hA, hB, ?_⟩
+  intro w hw_two
+  have hw_ne_one : w ≠ 1 := by
+    intro hw_one
+    have hw_re_one : w.re = 1 := by
+      calc
+        w.re = (1 : ℂ).re := by
+          exact congrArg Complex.re hw_one
+        _ = 1 := by
+          exact Complex.one_re
+    have htwo_le_one : (2 : ℝ) ≤ 1 :=
+      hw_two.trans_eq hw_re_one
+    exact (not_le_of_gt one_lt_two) htwo_le_one
+  have hpole :
+      poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
+    poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
+  exact Eq.subst
+    (motive := fun u : ℂ =>
+      ‖u‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+    hpole
+    (hbound w hw_two)
+
+/-- Classical Euler-Maclaurin half-plane finite-order theorem for the raw
+pole-cleared Riemann zeta factor.
+
+This is the exact analytic owner input absent from mathlib in the required
+form.  It is the standard theorem that Euler-Maclaurin summation gives
+polynomial, hence finite-order, growth for `(s - 1)ζ(s)` uniformly on
+`Re s ≥ 1`; the factor `(s - 1)` removes the simple pole at `1`.  See
+Titchmarsh, Ch. 3, or Edwards, Ch. 1. -/
+theorem classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  sorry
+
 /-- Euler-Maclaurin finite-order growth for the pole-cleared zeta factor on the
 full reflected right half-plane `1 ≤ Re s`.
 
@@ -15426,7 +15630,8 @@ theorem riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_Eu
         1 ≤ w.re →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  sorry
+  exact
+    classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
 
 /-- The standard Euler-Maclaurin bound for `(s - 1)ζ(s)` gives the removable
 pole-cleared zeta bound on `1 ≤ Re s`. -/

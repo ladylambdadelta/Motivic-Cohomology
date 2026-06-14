@@ -3235,6 +3235,27 @@ noncomputable def complex_centerSegmentIntegral_radialFTCPrimitive
     (t : ℝ) : ℂ :=
   (t : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t)
 
+/-- Local endpoint differentiability supplied by the parametric interval
+integral theorem near a fixed segment endpoint. -/
+theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd_parametricIntegral
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ u : Set ℂ,
+          z ∈ u ∧
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              HasDerivAt
+                (complex_centerSegmentIntegral φ)
+                (∫ t in (0 : ℝ)..1,
+                  complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
+                w := by
+  sorry
+
 /-- Derivative under the endpoint parameter for the center-segment integral.
 
 This is the parametric interval-integral theorem specialized to
@@ -3253,7 +3274,12 @@ theorem complex_centerSegmentIntegral_hasDerivAt_integral_endpointDerivative
           (∫ t in (0 : ℝ)..1,
             complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
           z := by
-  sorry
+  intro z hz
+  rcases
+    complex_centerSegmentIntegral_hasDerivAt_on_nhd_parametricIntegral
+      φ hstar hφ z hz with
+    ⟨u, hz_mem, _hu_nhds, hu_deriv⟩
+  exact hu_deriv z hz_mem
 
 /-- Real derivative of the radial FTC primitive.
 
@@ -3276,6 +3302,20 @@ theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt
               t := by
   sorry
 
+/-- Continuity of the endpoint derivative integrand on the radial segment. -/
+theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_continuousOn
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ContinuousOn
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+          (Set.Icc (0 : ℝ) 1) := by
+  sorry
+
 /-- Interval integrability of the endpoint derivative integrand on the radial
 segment. -/
 theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegrable
@@ -3291,7 +3331,12 @@ theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_intervalIntegr
           volume
           (0 : ℝ)
           1 := by
-  sorry
+  intro z hz
+  exact
+    ContinuousOn.intervalIntegrable_of_Icc
+      (show (0 : ℝ) ≤ 1 from zero_le_one)
+      (complex_centerSegmentIntegral_endpointDerivativeIntegrand_continuousOn
+        φ hstar hφ z hz)
 
 /-- Interval FTC for the radial primitive along a center-to-endpoint segment. -/
 theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
@@ -3418,7 +3463,12 @@ theorem complex_centerSegmentIntegral_hasDerivAt_on_nhd
                 (∫ t in (0 : ℝ)..1,
                   complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
                 w := by
-  sorry
+  intro z hz
+  rcases
+    complex_centerSegmentIntegral_hasDerivAt_on_nhd_parametricIntegral
+      φ hstar hφ z hz with
+    ⟨u, _hz_mem, hu_nhds, hu_deriv⟩
+  exact ⟨u, hu_nhds, hu_deriv⟩
 
 /-- Cauchy--FTC endpoint derivative for the center-segment primitive.
 
@@ -9066,7 +9116,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     entireFunction_boundaryLogIntegrand_intervalIntegrable_of_finiteCircleZeros
       F hF hF_nontrivial hρ_pos hzeros
   have hae :
-      entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[MeasureTheory.volume]
+      entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[
+          MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi))]
         (fun θ : ℝ =>
           Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
             (∑ z in
@@ -9078,6 +9129,35 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_aeEq_from_pointwise_offException_ownerRoot
       F Q hF hF0 ρ hρ hfactor hzero
   exact hF_int.congr hae
+
+/-- Interval-integrability of one closed-support boundary logarithmic factor.
+
+This is the single-factor input for exchanging the finite closed-support sum
+with the interval integral.  Interior factors are continuous; boundary factors
+have one logarithmic singularity on the fundamental interval and are handled by
+the finite logarithmic-singularity API. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_singleFactor_intervalIntegrable_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)
+      MeasureTheory.volume
+      0
+      (2 * Real.pi) := by
+  -- Single-factor finite logarithmic-singularity theorem: interior zeros give
+  -- continuous factors; boundary zeros give one integrable logarithmic
+  -- singularity on the fundamental interval.
+  sorry
 
 /-- Finite sum/integral exchange for the closed-support boundary factor sum. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_sum_integral_exchange_ownerRoot
@@ -9099,8 +9179,42 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
             Real.log
               ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
-  -- Finite interval-integral exchange for logarithmic single-factor summands.
-  sorry
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) =
+        ∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          ∫ θ in (0 : ℝ)..(2 * Real.pi),
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖ := by
+      exact
+        intervalIntegral.integral_finset_sum
+          (fun z hz =>
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_singleFactor_intervalIntegrable_ownerRoot
+              F hF hF0 ρ z hz)
+    _ =
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
+      refine Finset.sum_congr rfl ?_
+      intro z _hz
+      exact
+        intervalIntegral.integral_const_mul
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
+          (fun θ : ℝ =>
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)
 
 /-- Finite-exception product-log splitting for a closed-support divisor.
 
