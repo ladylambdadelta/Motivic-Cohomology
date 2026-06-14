@@ -13338,8 +13338,26 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
         (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
             (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
           Afar * Real.exp (Bfar * H ^ mfar) := by
-      exact finiteOrderGrowthProductEnvelope_exp_collapse
-        Ar Ag ((Br + Bg + 1) * H ^ mfar)
+      have hraw :
+          (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+              (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
+            Ar * Ag * Real.exp (2 * ((Br + Bg + 1) * H ^ mfar)) :=
+        finiteOrderGrowthProductEnvelope_exp_collapse
+          Ar Ag ((Br + Bg + 1) * H ^ mfar)
+      have hexponent :
+          2 * ((Br + Bg + 1) * H ^ mfar) =
+            Bfar * H ^ mfar := by
+        calc
+          2 * ((Br + Bg + 1) * H ^ mfar) =
+              (2 * (Br + Bg + 1)) * H ^ mfar := by
+            exact (mul_assoc 2 (Br + Bg + 1) (H ^ mfar)).symm
+          _ = Bfar * H ^ mfar := rfl
+      calc
+        (Ar * Real.exp ((Br + Bg + 1) * H ^ mfar)) *
+            (Ag * Real.exp ((Br + Bg + 1) * H ^ mfar)) =
+          Ar * Ag * Real.exp (2 * ((Br + Bg + 1) * H ^ mfar)) := hraw
+        _ = Afar * Real.exp (Bfar * H ^ mfar) := by
+          exact congrArg (fun x : ℝ => Afar * Real.exp x) hexponent
     have hfar :
         ‖R * G‖ ≤ Afar * Real.exp (Bfar * H ^ mfar) :=
       hproduct.trans_eq hcollapse
