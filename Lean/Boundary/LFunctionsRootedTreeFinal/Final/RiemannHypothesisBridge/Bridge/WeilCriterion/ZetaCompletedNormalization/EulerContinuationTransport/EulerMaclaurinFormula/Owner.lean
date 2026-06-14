@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.PuncturedVerticalStrip.Geometry
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner
 
 /-!
@@ -1884,7 +1885,9 @@ theorem eulerMaclaurin_puncturedVerticalStrip_leftHalf_joined
     JoinedIn
       ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
       z w := by
-  sorry
+  exact
+    puncturedVerticalStrip_leftHalf_joined
+      (z := z) (w := w) hz hw hz_left hw_left
 
 /-- Points in the right component `1 < Re z < 2` of the punctured strip are
 joined inside the punctured strip. -/
@@ -1897,7 +1900,9 @@ theorem eulerMaclaurin_puncturedVerticalStrip_rightHalf_joined
     JoinedIn
       ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
       z w := by
-  sorry
+  exact
+    puncturedVerticalStrip_rightHalf_joined
+      (z := z) (w := w) hz hw hz_right hw_right
 
 /-- Horizontal segments at nonzero height cross safely between any two real
 parts in the open strip. -/
@@ -1912,7 +1917,9 @@ theorem eulerMaclaurin_puncturedVerticalStrip_nonzeroHeight_horizontalJoined
       ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
       (Complex.mk x₁ h)
       (Complex.mk x₂ h) := by
-  sorry
+  exact
+    puncturedVerticalStrip_nonzeroHeight_horizontalJoined
+      hx₁_left hx₁_right hx₂_left hx₂_right hh
 
 /-- The left safe corridor has positive real coordinate. -/
 theorem real_zero_lt_one_half_for_puncturedVerticalStrip :

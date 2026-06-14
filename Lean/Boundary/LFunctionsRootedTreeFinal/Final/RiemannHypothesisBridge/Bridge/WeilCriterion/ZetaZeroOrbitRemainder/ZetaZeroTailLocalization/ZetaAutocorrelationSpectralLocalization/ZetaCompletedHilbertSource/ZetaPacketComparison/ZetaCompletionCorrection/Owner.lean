@@ -48,15 +48,52 @@ theorem zetaCompletionCorrection_zero :
     _ = 1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) :=
       congrArg₂ (fun a b : ℂ => a + b) hleft hright
 
+/-- The inverse of the centered half is two. -/
+theorem complex_one_div_half_eq_two :
+    1 / (1 / 2 : ℂ) = 2 := by
+  exact one_div_one_div (2 : ℂ)
+
+/-- The complement of the centered half is again the centered half. -/
+theorem complex_one_sub_half_eq_half :
+    1 - (1 / 2 : ℂ) = 1 / 2 := by
+  exact sub_half (1 : ℂ)
+
+/-- The inverse of the complement of the centered half is two. -/
+theorem complex_one_div_one_sub_half_eq_two :
+    1 / (1 - (1 / 2 : ℂ)) = 2 := by
+  have hsub : 1 - (1 / 2 : ℂ) = 1 / 2 :=
+    complex_one_sub_half_eq_half
+  exact Eq.trans
+    (congrArg (fun z : ℂ => 1 / z) hsub)
+    complex_one_div_half_eq_two
+
+/-- The centered basepoint correction has complex value four. -/
+theorem zetaCompletionCorrection_zero_eq_four :
+    zetaCompletionCorrection 0 = (4 : ℂ) := by
+  calc
+    zetaCompletionCorrection 0 =
+        1 / (1 / 2 : ℂ) + 1 / (1 - (1 / 2 : ℂ)) :=
+      zetaCompletionCorrection_zero
+    _ = (2 : ℂ) + 2 :=
+      congrArg₂ (fun a b : ℂ => a + b)
+        complex_one_div_half_eq_two
+        complex_one_div_one_sub_half_eq_two
+    _ = (4 : ℂ) :=
+      two_add_two_eq_four
+
 /-- The centered basepoint correction is real. -/
 theorem zetaCompletionCorrection_zero_im :
     Complex.im (zetaCompletionCorrection 0) = 0 := by
-  norm_num [zetaCompletionCorrection_zero]
+  exact Eq.trans
+    (congrArg Complex.im zetaCompletionCorrection_zero_eq_four)
+    (Complex.ofReal_im 4)
 
 /-- The centered basepoint correction has real value four. -/
 theorem zetaCompletionCorrection_zero_re :
     Complex.re (zetaCompletionCorrection 0) = 4 := by
-  norm_num [zetaCompletionCorrection_zero]
+  exact Eq.trans
+    (congrArg Complex.re zetaCompletionCorrection_zero_eq_four)
+    (Complex.ofReal_re 4)
 
 /-- The centered basepoint correction is fixed by complex conjugation. -/
 theorem zetaCompletionCorrection_zero_star :
@@ -89,7 +126,9 @@ theorem zetaCompletionCorrectionPacketCoordinate_sq :
   calc
     zetaCompletionCorrectionPacketCoordinate *
         zetaCompletionCorrectionPacketCoordinate = 4 := by
-      norm_num [zetaCompletionCorrectionPacketCoordinate]
+      exact Eq.trans
+        (mul_two (2 : ℝ))
+        (two_add_two_eq_four : (2 : ℝ) + 2 = 4)
     _ = Complex.re (zetaCompletionCorrection 0) := by
       exact zetaCompletionCorrection_zero_re.symm
 
