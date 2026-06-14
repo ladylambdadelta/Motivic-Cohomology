@@ -33,20 +33,42 @@ theorem zetaCriticalCenter_one_half : zetaCriticalCenter (1 / 2 : ℂ) = 0 := by
   change ((1 / 2 : ℂ) - (1 / 2 : ℂ)) = 0
   exact sub_self _
 
+/-- The critical-line reflection sends the centered coordinate to its negative. -/
+theorem complex_criticalCenter_reflection_sub_half
+    (s : ℂ) :
+    ((1 : ℂ) + -s) - (1 / 2 : ℂ) =
+      - (s - (1 / 2 : ℂ)) := by
+  have hone_sub_half :
+      (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) :=
+    eq_sub_iff_add_eq.mpr (add_halves (1 : ℂ)).symm
+  have hone_add_neg_half :
+      (1 : ℂ) + -(1 / 2 : ℂ) = (1 / 2 : ℂ) :=
+    Eq.trans
+      (sub_eq_add_neg (1 : ℂ) (1 / 2 : ℂ)).symm
+      hone_sub_half
+  have hneg_sub :
+      - (s - (1 / 2 : ℂ)) = (1 / 2 : ℂ) + -s :=
+    neg_sub s (1 / 2 : ℂ)
+  calc
+    ((1 : ℂ) + -s) - (1 / 2 : ℂ) =
+        ((1 : ℂ) + -s) + -(1 / 2 : ℂ) :=
+      sub_eq_add_neg ((1 : ℂ) + -s) (1 / 2 : ℂ)
+    _ = (-s + (1 : ℂ)) + -(1 / 2 : ℂ) := by
+      exact congrArg (fun x : ℂ => x + -(1 / 2 : ℂ))
+        (add_comm (1 : ℂ) (-s))
+    _ = -s + ((1 : ℂ) + -(1 / 2 : ℂ)) :=
+      add_assoc (-s) (1 : ℂ) (-(1 / 2 : ℂ))
+    _ = -s + (1 / 2 : ℂ) :=
+      congrArg (fun x : ℂ => -s + x) hone_add_neg_half
+    _ = (1 / 2 : ℂ) + -s :=
+      add_comm (-s) (1 / 2 : ℂ)
+    _ = - (s - (1 / 2 : ℂ)) :=
+      hneg_sub.symm
+
 theorem zetaCriticalCenter_one_sub (s : ℂ) :
     zetaCriticalCenter (1 - s) = - zetaCriticalCenter s := by
   change ((1 : ℂ) + -s) - (1 / 2 : ℂ) = - (s - (1 / 2 : ℂ))
-  have hhalf : (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) := by
-    norm_num
-  calc
-    (1 : ℂ) + -s + -(1 / 2 : ℂ) = -s + (1 : ℂ) + -(1 / 2 : ℂ) := by
-      abel
-    _ = -s + ((1 : ℂ) + -(1 / 2 : ℂ)) := by
-      rw [add_assoc]
-    _ = -s + (1 / 2 : ℂ) := by
-      rw [show (1 : ℂ) + -(1 / 2 : ℂ) = (1 / 2 : ℂ) by norm_num]
-    _ = - (s - (1 / 2 : ℂ)) := by
-      rw [sub_eq_add_neg, neg_add, neg_neg]
+  exact complex_criticalCenter_reflection_sub_half s
 
 theorem zetaAdditiveCoordinate_exp (x : ℝ) :
     zetaAdditiveCoordinate (Real.exp x) = x := by
@@ -74,15 +96,24 @@ theorem zetaPrimePacketCenter_pow {p : ℝ} (n : ℕ) :
   change (n : ℝ) * Real.log p = Real.log (p ^ n)
   exact (Real.log_pow p n).symm
 
+/-- Successor packet centers add one logarithmic step. -/
+theorem real_nat_succ_mul_log_eq_nat_mul_log_add_log
+    (p : ℝ) (n : ℕ) :
+    ((↑n + 1 : ℝ) * Real.log p) =
+      ↑n * Real.log p + Real.log p := by
+  calc
+    ((↑n + 1 : ℝ) * Real.log p) =
+        ↑n * Real.log p + 1 * Real.log p :=
+      add_mul (↑n : ℝ) 1 (Real.log p)
+    _ = ↑n * Real.log p + Real.log p :=
+      congrArg (fun x : ℝ => ↑n * Real.log p + x)
+        (one_mul (Real.log p))
+
 theorem zetaPrimePacketCenter_succ {p : ℝ} (n : ℕ) :
     zetaPrimePacketCenter p (n + 1) =
       zetaPrimePacketCenter p n + Real.log p := by
   change ((↑n + 1) * Real.log p = ↑n * Real.log p + Real.log p)
-  calc
-    ((↑n + 1 : ℝ) * Real.log p) = (↑n * Real.log p + 1 * Real.log p) := by
-      rw [add_mul]
-    _ = ↑n * Real.log p + Real.log p := by
-      rw [one_mul]
+  exact real_nat_succ_mul_log_eq_nat_mul_log_add_log p n
 
 theorem zetaPrimePacketCenter_zero (p : ℝ) :
     zetaPrimePacketCenter p 0 = 0 := by
