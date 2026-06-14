@@ -545,14 +545,46 @@ noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
   (w - (1 / 2 : ℂ)) * Complex.log w - w +
     (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
 
+/-- Binet's second logarithmic formula for `Gamma` on the closed
+right-half-plane sector, away from the origin.
+
+This is the standard integral representation:
+`Log Γ(w) = (w - 1/2) Log w - w + (1/2)log(2π) + J(w)`, where `J` is the
+Binet second-formula remainder.  The closed-sector large-radius statement is
+the form needed for sectorial Stirling; it includes the boundary rays by
+continuation from the open right half-plane. -/
+theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
+    ∃ R : ℝ,
+      0 < R ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
+/-- Uniform `O(1/‖w‖)` bound for the Binet second-formula remainder on the
+closed right-half-plane sector.
+
+This is the standard estimate obtained from the Binet kernel
+`atan(t / w)/(exp(2πt)-1)`: for `Re w ≥ 0` and large radius, the remainder is
+bounded by a constant multiple of `1/‖w‖`. -/
+theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+  sorry
+
 /-- Binet's second formula with a uniform sectorial remainder bound on the
 closed right half-plane.
 
-This is the standard complex-analysis input behind the owner Stirling API:
-on the closed right half-plane and for large radius, the principal-branch
-log-Gamma expansion has Binet remainder `O(1/‖w‖)`.  The closed right
-half-plane avoids the negative real axis, and the large-radius condition avoids
-the origin. -/
+This wrapper combines the right-half-plane Binet representation with the
+sectorial `O(1/‖w‖)` remainder estimate. -/
 theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -564,7 +596,21 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
             Complex.binetLogGammaMainTerm w +
               Complex.binetSecondFormulaRemainder w ∧
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
+    ⟨Rlog, hRlog, hlog⟩
+  rcases Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane with
+    ⟨Rbound, K, hRbound, hK, hbound⟩
+  let R : ℝ := max Rlog Rbound
+  have hR : 0 < R :=
+    lt_of_lt_of_le hRlog (le_max_left Rlog Rbound)
+  refine ⟨R, K, hR, hK, ?_⟩
+  intro w hw_sector hw_norm
+  have hRlog_le : Rlog ≤ ‖w‖ :=
+    le_trans (le_max_left Rlog Rbound) hw_norm
+  have hRbound_le : Rbound ≤ ‖w‖ :=
+    le_trans (le_max_right Rlog Rbound) hw_norm
+  exact ⟨hlog w hw_sector hRlog_le,
+    hbound w hw_sector hRbound_le⟩
 
 /-- Binet's logarithmic formula implies the normalized sectorial Stirling
 estimate for `Γ`.
@@ -12530,13 +12576,27 @@ theorem real_log_two_add_div_sq_nonneg_of_two_le
     sq_nonneg x
   exact div_nonneg hlog_nonneg hx_sq_nonneg
 
+/-- Standard finite integration-by-parts tail estimate for
+`log(2+x)/x²` from the canonical cutoff `2`.
+
+The proof is the real-variable identity
+`d(-log(2+x)/x) = log(2+x)/x² - 1/(x(2+x))`, followed by the elementary
+endpoint estimate
+`log 4 / 2 + ∫₂^∞ 1/(x(2+x)) ≤ log 4`. -/
+theorem real_integral_Ioc_two_log_two_add_div_sq_tail_bound_by_parts
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 ≤
+      Real.log 4 := by
+  sorry
+
 /-- Fixed improper-tail bound from the canonical cutoff `2`. -/
 theorem real_integral_Ioc_two_log_two_add_div_sq_tail_bound
     {b : ℝ}
     (hb : (2 : ℝ) ≤ b) :
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 ≤
       Real.log 4 := by
-  sorry
+  exact real_integral_Ioc_two_log_two_add_div_sq_tail_bound_by_parts hb
 
 /-- Adjacent `Ioc` intervals split the finite reciprocal-density scalar
 integral. -/
@@ -19686,6 +19746,32 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_p
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
   sorry
 
+/-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
+connected punctured strip.
+
+This is the standard complex-analysis step: the fixed-cutoff defect is
+holomorphic on the punctured strip and vanishes on the nonempty open subset
+`1 < Re z < 2`, hence it vanishes throughout the connected component of the
+punctured strip. -/
+theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncturedStrip_standard
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hz_re_pos : 0 < z.re)
+    (hz_re_lt_two : z.re < 2)
+    (hz_ne_one : z ≠ 1)
+    (hhol :
+      DifferentiableOn ℂ
+        (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+        ({w : ℂ | 0 < w.re ∧ w.re < 2 ∧ w ≠ 1}))
+    (hzero :
+      ∀ w : ℂ,
+        1 < w.re →
+        w.re < 2 →
+        eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N w = 0) :
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
+  sorry
+
 /-- Fixed-cutoff defect vanishes on the convergent half-plane by the
 Dirichlet-series split and the fixed-cutoff Euler-Maclaurin formula. -/
 theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_halfPlane_standard
@@ -19735,7 +19821,24 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_punc
     (hz_re_lt_two : z.re < 2)
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
-  sorry
+  have hhol :
+      DifferentiableOn ℂ
+        (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+        ({w : ℂ | 0 < w.re ∧ w.re < 2 ∧ w ≠ 1}) :=
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_puncturedStrip_standard
+      N hN
+  have hzero :
+      ∀ w : ℂ,
+        1 < w.re →
+        w.re < 2 →
+        eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N w = 0 := by
+    intro w hw_one _hw_two
+    exact
+      eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_halfPlane_standard
+        N hN w hw_one
+  exact
+    eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncturedStrip_standard
+      N hN z hz_re_pos hz_re_lt_two hz_ne_one hhol hzero
 
 /-- Boundary-line vanishing of the Euler-Maclaurin tail defect by analytic
 continuation.

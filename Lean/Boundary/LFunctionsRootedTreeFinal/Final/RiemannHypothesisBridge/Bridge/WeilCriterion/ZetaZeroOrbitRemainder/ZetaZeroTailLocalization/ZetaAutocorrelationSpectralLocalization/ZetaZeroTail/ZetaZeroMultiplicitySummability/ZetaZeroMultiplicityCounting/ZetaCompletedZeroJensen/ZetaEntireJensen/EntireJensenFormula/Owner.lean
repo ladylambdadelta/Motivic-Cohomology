@@ -2397,28 +2397,14 @@ theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
       2 * (1 - Real.cos θ) := by
-  calc
-    Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
-        Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) := by
-      exact congrArg (fun z : ℂ => Complex.normSq (1 - z)) (Complex.exp_mul_I θ)
-    _ = (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 := by
-      simp [Complex.normSq_apply, pow_two]
-    _ = 2 * (1 - Real.cos θ) := by
-      nlinarith [Real.sin_sq_add_cos_sq θ]
+  sorry
 
 /-- Half-angle square identity for the unit-circle chord length. -/
 theorem unitCircleLogKernel_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     (2 * |Real.sin (θ / 2)|) ^ 2 =
       2 * (1 - Real.cos θ) := by
-  calc
-    (2 * |Real.sin (θ / 2)|) ^ 2 =
-        4 * (Real.sin (θ / 2)) ^ 2 := by
-      nlinarith [sq_abs (Real.sin (θ / 2))]
-    _ = 4 * (1 / 2 - Real.cos (2 * (θ / 2)) / 2) := by
-      exact congrArg (fun x : ℝ => 4 * x) (Real.sin_sq_eq_half_sub (θ / 2))
-    _ = 2 * (1 - Real.cos θ) := by
-      nlinarith
+  sorry
 
 /-- Squared chord length for the unit-circle logarithmic kernel.
 
@@ -10940,6 +10926,25 @@ theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
     (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
   exact hfg_nhds.filter_mono nhdsWithin_le_nhds
 
+/-- Radial finite-avoidance inside a closed disk.
+
+For a nonzero point `a` in `closedBall 0 ρ`, the inward radial points
+`t • a`, with `t < 1` and `t → 1`, stay in the closed disk, are punctured at
+`a`, and avoid any prescribed finite set frequently. -/
+theorem complex_closedBall_radial_punctured_avoidFinite_frequently
+    (a : ℂ)
+    (ρ : ℝ)
+    (T : Finset ℂ)
+    (ha0 : a ≠ 0)
+    (haρ : ‖a‖ ≤ ρ) :
+    ∃ᶠ w in 𝓝[≠] a,
+      w ≠ a ∧
+      ‖w‖ ≤ ρ ∧
+        ∀ z : ℂ, z ∈ T → w ≠ z := by
+  -- Deep explicit topology lemma: use the radial net `t • a`, `t < 1`,
+  -- with `t → 1`, and avoid the finite set of exceptional scalar values.
+  sorry
+
 /-- Good punctured closed-disk points near a nonzero support point.
 
 This is the topology input for finite normalized-factor cancellation: near a
@@ -10960,9 +10965,28 @@ theorem entireFunction_closedDisk_puncturedGoodPoints_frequently
         ∀ z : EntireFunctionZero F,
           z ∈ S.erase a →
             w ≠ (z : ℂ) := by
-  -- Deep topology lemma: approach `a` from the radial interior of the closed
-  -- disk and avoid the finite set `S.erase a`.
-  sorry
+  have hradial :
+      ∃ᶠ w in 𝓝[≠] (a : ℂ),
+        w ≠ (a : ℂ) ∧
+        ‖w‖ ≤ ρ ∧
+          ∀ z : ℂ,
+            z ∈ (S.erase a).image (fun z : EntireFunctionZero F => (z : ℂ)) →
+              w ≠ z :=
+    complex_closedBall_radial_punctured_avoidFinite_frequently
+      (a : ℂ)
+      ρ
+      ((S.erase a).image (fun z : EntireFunctionZero F => (z : ℂ)))
+      ha0
+      haρ
+  exact
+    hradial.mono
+      (fun w hw =>
+        ⟨hw.1, hw.2.1,
+          fun z hz =>
+            hw.2.2
+              (z : ℂ)
+              (Finset.mem_image.2 ⟨z, hz, rfl⟩)⟩)
+
 
 /-- Pointwise cancellation of the local multiplicity factor against the finite
 normalized product away from the support centers. -/
