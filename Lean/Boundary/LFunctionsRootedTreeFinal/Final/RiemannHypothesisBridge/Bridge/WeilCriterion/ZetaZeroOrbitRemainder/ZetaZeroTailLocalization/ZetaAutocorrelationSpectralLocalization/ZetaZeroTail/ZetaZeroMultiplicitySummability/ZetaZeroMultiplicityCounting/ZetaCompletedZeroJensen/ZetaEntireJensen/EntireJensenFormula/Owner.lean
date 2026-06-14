@@ -1811,25 +1811,45 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_no
     _ = entireFunctionJensenBoundaryLogAverage F ρ :=
       hradial
 
-/-- Origin Taylor-factor transport after the analytic unit at the origin has
-been explicitly constructed.
+/-- Global removal of the origin Taylor factor for a nontrivial entire
+function.
 
-The hypotheses are exactly the output of `AnalyticAt.order_eq_nat_iff` at the
-origin for a nontrivial entire function.  This theorem owns the comparison
-between `F` and its normalized analytic unit: nonzero zeros away from the
-origin, radial-gap sums, and boundary logarithmic averages are transported
-through the local factorization, while the separated power contributes
-`m log ρ`. -/
-theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_localFactor
+This is the owner construction needed for Jensen transport: the local unit
+supplied by `AnalyticAt.order_eq_nat_iff` extends to a global entire quotient
+after dividing out the origin power, with the removable singularity filled in
+at the origin. -/
+theorem entireFunction_originTaylorFactor_entireQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ G : ℂ → ℂ,
+      (∀ z : ℂ, AnalyticAt ℂ G z) ∧
+      G 0 ≠ 0 ∧
+      (∀ z : ℂ,
+        F z =
+          z ^ entireFunctionZeroMultiplicity F hF 0 • G z) := by
+  -- Remove the finite origin order and fill the removable singularity of
+  -- `F z / z^m` at the origin.
+  sorry
+
+/-- Origin Taylor-factor transport after the global entire quotient at the
+origin has been explicitly constructed.
+
+The hypotheses are exactly the output of the removable-singularity origin
+quotient construction.  This theorem owns the comparison between `F` and its
+normalized entire quotient: nonzero zeros away from the origin, radial-gap
+sums, and boundary logarithmic averages are transported through the global
+factorization, while the separated power contributes `m log ρ`. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0)
     (G : ℂ → ℂ)
-    (hG_an : AnalyticAt ℂ G 0)
+    (hG_entire : ∀ z : ℂ, AnalyticAt ℂ G z)
     (hG_ne : G 0 ≠ 0)
     (hfactor :
-      ∀ᶠ z in 𝓝 (0 : ℂ),
-        F z = (z - 0) ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
     ∃ C : ℝ,
       (∀ R : ℝ,
         1 ≤ R →
@@ -1845,8 +1865,8 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_
               entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
               C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Transport Jensen from the analytic unit `G` back through the explicitly
-  -- constructed origin Taylor factor for `F`.
+  -- Transport Jensen from the global entire quotient `G` back through the
+  -- explicitly constructed origin Taylor factor for `F`.
   sorry
 
 /-- Origin Taylor-factor transport in the genuine origin-zero case.
@@ -1875,17 +1895,11 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_ze
               entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
               C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  have horder :
-      (hF 0).order =
-        (entireFunctionZeroMultiplicity F hF 0 : ENat) :=
-    entireFunction_origin_order_eq_multiplicity_of_nontrivial
-      F hF hnontrivial
-  rcases
-      entireFunction_localMultiplicityFactorization F hF 0 horder with
-    ⟨G, hG_an, hG_ne, hfactor⟩
+  rcases entireFunction_originTaylorFactor_entireQuotient F hF hnontrivial with
+    ⟨G, hG_entire, hG_ne, hfactor⟩
   exact
-    entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_localFactor
-      F hF hnontrivial G hG_an hG_ne hfactor
+    entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_entireQuotient
+      F hF hnontrivial G hG_entire hG_ne hfactor
 
 /-- Transport of the nonzero-at-origin Jensen identity through the origin
 Taylor factor.
