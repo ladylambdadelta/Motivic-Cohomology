@@ -1,8 +1,7 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Basic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetMajorant
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
-import Mathlib.MeasureTheory.Integral.ExpDecay
 
 /-!
 # Binet formula and kernel estimates
@@ -214,6 +213,132 @@ theorem Complex.binet_arctan_derivative_denominator_ne_zero
   exact
     (mul_ne_zero hplus hminus) hprod_zero
 
+/-- A nonnegative real part gives a lower bound for the complex norm. -/
+theorem Complex.re_le_norm_of_nonneg_re
+    {z : ℂ}
+    (hz_re_nonneg : 0 ≤ z.re) :
+    z.re ≤ ‖z‖ := by
+  have hre_abs_eq : |z.re| = z.re :=
+    abs_of_nonneg hz_re_nonneg
+  have hre_abs_le_norm : |z.re| ≤ ‖z‖ := by
+    simpa [Complex.normSq, norm_eq_abs] using
+      Complex.abs_re_le_abs z
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖z‖)
+      hre_abs_eq
+      hre_abs_le_norm
+
+/-- Adding a purely imaginary real multiple preserves the real-part lower
+bound for the complex norm. -/
+theorem Complex.re_le_norm_add_real_mul_I
+    {z : ℂ}
+    (hz_re_nonneg : 0 ≤ z.re)
+    (t : ℝ) :
+    z.re ≤ ‖z + (t : ℂ) * Complex.I‖ := by
+  have hsum_re_nonneg : 0 ≤ (z + (t : ℂ) * Complex.I).re := by
+    simpa [Complex.add_re, Complex.mul_re] using hz_re_nonneg
+  have hnorm :
+      (z + (t : ℂ) * Complex.I).re ≤
+        ‖z + (t : ℂ) * Complex.I‖ :=
+    Complex.re_le_norm_of_nonneg_re hsum_re_nonneg
+  have hre :
+      (z + (t : ℂ) * Complex.I).re = z.re := by
+    simp [Complex.add_re, Complex.mul_re]
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖z + (t : ℂ) * Complex.I‖)
+      hre
+      hnorm
+
+/-- Subtracting a purely imaginary real multiple preserves the real-part lower
+bound for the complex norm. -/
+theorem Complex.re_le_norm_sub_real_mul_I
+    {z : ℂ}
+    (hz_re_nonneg : 0 ≤ z.re)
+    (t : ℝ) :
+    z.re ≤ ‖z - (t : ℂ) * Complex.I‖ := by
+  have hdiff_re_nonneg : 0 ≤ (z - (t : ℂ) * Complex.I).re := by
+    simpa [Complex.sub_re, Complex.mul_re] using hz_re_nonneg
+  have hnorm :
+      (z - (t : ℂ) * Complex.I).re ≤
+        ‖z - (t : ℂ) * Complex.I‖ :=
+    Complex.re_le_norm_of_nonneg_re hdiff_re_nonneg
+  have hre :
+      (z - (t : ℂ) * Complex.I).re = z.re := by
+    simp [Complex.sub_re, Complex.mul_re]
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖z - (t : ℂ) * Complex.I‖)
+      hre
+      hnorm
+
+/-- Factoring `z^2 + t^2` into the two imaginary translates. -/
+theorem Complex.add_mul_sub_real_mul_I_eq_sq_add_sq
+    (z : ℂ)
+    (t : ℝ) :
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I) =
+      z ^ 2 + (t : ℂ) ^ 2 := by
+  calc
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I)
+        = z ^ 2 - ((t : ℂ) * Complex.I) ^ 2 := by
+          ring
+    _ = z ^ 2 + (t : ℂ) ^ 2 := by
+          simp [Complex.I_mul_I]
+
+/-- Lower bound for the differentiated Binet denominator from a real-part
+margin. -/
+theorem Complex.binet_arctan_derivative_denominator_norm_lower
+    {z : ℂ}
+    {δ t : ℝ}
+    (hδ_nonneg : 0 ≤ δ)
+    (hδ_le_re : δ ≤ z.re) :
+    δ ^ 2 ≤ ‖z ^ 2 + (t : ℂ) ^ 2‖ := by
+  have hz_re_nonneg : 0 ≤ z.re :=
+    le_trans hδ_nonneg hδ_le_re
+  have hplus :
+      δ ≤ ‖z + (t : ℂ) * Complex.I‖ :=
+    le_trans hδ_le_re
+      (Complex.re_le_norm_add_real_mul_I hz_re_nonneg t)
+  have hminus :
+      δ ≤ ‖z - (t : ℂ) * Complex.I‖ :=
+    le_trans hδ_le_re
+      (Complex.re_le_norm_sub_real_mul_I hz_re_nonneg t)
+  have hmul :
+      δ * δ ≤
+        ‖z + (t : ℂ) * Complex.I‖ *
+          ‖z - (t : ℂ) * Complex.I‖ :=
+    mul_le_mul hplus hminus
+      hδ_nonneg
+      (norm_nonneg (z + (t : ℂ) * Complex.I))
+  have hnorm_mul :
+      ‖(z + (t : ℂ) * Complex.I) *
+          (z - (t : ℂ) * Complex.I)‖ =
+        ‖z + (t : ℂ) * Complex.I‖ *
+          ‖z - (t : ℂ) * Complex.I‖ :=
+    norm_mul
+      (z + (t : ℂ) * Complex.I)
+      (z - (t : ℂ) * Complex.I)
+  have hfactor :
+      (z + (t : ℂ) * Complex.I) *
+          (z - (t : ℂ) * Complex.I) =
+        z ^ 2 + (t : ℂ) ^ 2 :=
+    Complex.add_mul_sub_real_mul_I_eq_sq_add_sq z t
+  have htarget :
+      δ * δ ≤ ‖z ^ 2 + (t : ℂ) ^ 2‖ :=
+    Eq.subst
+      (motive := fun x : ℂ => δ * δ ≤ ‖x‖)
+      hfactor
+      (Eq.subst
+        (motive := fun x : ℝ => δ * δ ≤ x)
+        hnorm_mul.symm
+        hmul)
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ‖z ^ 2 + (t : ℂ) ^ 2‖)
+      (sq δ).symm
+      htarget
+
 /-- For `t > 0`, the Binet arctangent argument avoids the branch point `I`
 in the open right half-plane. -/
 theorem Complex.binet_arctan_argument_ne_I
@@ -260,6 +385,30 @@ theorem Complex.binet_arctan_argument_ne_negI
             ring_nf
   exact (Complex.sub_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
 
+/-- The denominator in the Cayley transform defining `Complex.arctan` is
+nonzero away from the branch point `-I`. -/
+theorem Complex.one_sub_mul_I_ne_zero_of_ne_negI
+    {z : ℂ}
+    (hz : z ≠ -Complex.I) :
+    1 - z * Complex.I ≠ 0 := by
+  intro hzero
+  have hmul : z * Complex.I = 1 :=
+    (sub_eq_zero.mp hzero).symm
+  have harg : z = -Complex.I := by
+    have hmul' := congrArg (fun u : ℂ => u * (-Complex.I)) hmul
+    simpa [mul_assoc, Complex.I_mul_I] using hmul'
+  exact hz harg
+
+/-- Imaginary part of the Cayley transform used in the principal-log
+definition of complex arctangent. -/
+theorem Complex.arctan_cayley_im_eq
+    (z : ℂ) :
+    ((1 + z * Complex.I) / (1 - z * Complex.I)).im =
+      2 * z.re / Complex.normSq (1 - z * Complex.I) := by
+  rw [Complex.div_im]
+  simp [Complex.mul_re, Complex.mul_im]
+  ring
+
 /-- For `t > 0` and `0 < w.re`, the Cayley transform appearing in the
 principal-log definition of `Complex.arctan ((t : ℂ) / w)` lies in the slit
 plane, so the principal logarithm is differentiable there. -/
@@ -269,7 +418,58 @@ theorem Complex.binet_arctan_log_argument_mem_slitPlane
     (hw_re_pos : 0 < w.re) :
     (1 + ((t : ℂ) / w) * Complex.I) /
         (1 - ((t : ℂ) / w) * Complex.I) ∈ Complex.slitPlane := by
-  sorry
+  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
+  have harg_ne_negI : (t : ℂ) / w ≠ -Complex.I :=
+    Complex.binet_arctan_argument_ne_negI hw_re_pos
+  have hden_ne :
+      1 - ((t : ℂ) / w) * Complex.I ≠ 0 :=
+    Complex.one_sub_mul_I_ne_zero_of_ne_negI harg_ne_negI
+  have hq_im_pos :
+      0 <
+        (1 + ((t : ℂ) / w) * Complex.I) /
+          (1 - ((t : ℂ) / w) * Complex.I) |>.im := by
+    have ha_re_pos : 0 < ((t : ℂ) / w).re := by
+      rw [Complex.div_re, Complex.ofReal_re, Complex.ofReal_im,
+        zero_mul, zero_div, add_zero]
+      exact
+        div_pos
+          (mul_pos (by exact ht) hw_re_pos)
+          (Complex.normSq_pos.mpr hw_ne)
+    have hcalc :
+        (1 + ((t : ℂ) / w) * Complex.I) /
+            (1 - ((t : ℂ) / w) * Complex.I) |>.im =
+          2 * ((t : ℂ) / w).re /
+            Complex.normSq (1 - ((t : ℂ) / w) * Complex.I) := by
+      exact Complex.arctan_cayley_im_eq ((t : ℂ) / w)
+    rw [hcalc]
+    exact
+      div_pos
+        (mul_pos two_pos ha_re_pos)
+        (Complex.normSq_pos.mpr hden_ne)
+  have hnot_nonpos :
+      ¬
+        (1 + ((t : ℂ) / w) * Complex.I) /
+          (1 - ((t : ℂ) / w) * Complex.I) ≤ 0 := by
+    intro hle
+    have him_zero :
+        (1 + ((t : ℂ) / w) * Complex.I) /
+          (1 - ((t : ℂ) / w) * Complex.I) |>.im = 0 := by
+      exact (Complex.nonpos_iff.mp hle).2
+    linarith
+  exact (Complex.mem_slitPlane_iff_not_le_zero).2 hnot_nonpos
+
+/-- The rational factor appearing in the Binet arctangent argument has the
+expected derivative on the open right half-plane. -/
+theorem Complex.binet_arctan_argument_derivative
+    {t : ℝ} {w : ℂ}
+    (ht : 0 < t)
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ => (t : ℂ) / z)
+      (-(t : ℂ) / w ^ 2) w := by
+  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
+  simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using
+    (hasDerivAt_inv hw_ne).const_mul (t : ℂ)
 
 /-- The arctangent derivative needed for the Binet kernel after composing
 `Complex.arctan` with `z ↦ (t : ℂ) / z` on the open right half-plane. -/
@@ -293,14 +493,14 @@ theorem Complex.arctan_t_div_hasDerivAt
       HasDerivAt
         (fun z : ℂ => (t : ℂ) / z)
         (-(t : ℂ) / w ^ 2) w := by
-    simpa [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc] using
-      (hasDerivAt_inv hw_ne).const_mul (t : ℂ)
+    exact Complex.binet_arctan_argument_derivative ht hw_re_pos
   have h_outer :
       HasDerivAt
         Complex.arctan
-        ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) ((t : ℂ) / w) :=
-    Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
-      harg_ne_I harg_ne_negI harg_slit
+        ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) ((t : ℂ) / w) := by
+    exact
+      Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
+        harg_ne_I harg_ne_negI harg_slit
   have hcomp :
       HasDerivAt
         (fun z : ℂ => Complex.arctan ((t : ℂ) / z))

@@ -1397,14 +1397,33 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       (w := w) hw_re_pos
 
-/-- Branch-uniform full-sector tail majorant for the Binet arctangent kernel.
+/-- Branch-uniform full-sector pointwise tail majorant for the Binet
+arctangent kernel.
 
-This is the precise remaining analytic input: after the split at `‖w‖ / 2`,
-the continued or contour-deformed tail kernel must be uniformly dominated by
-the real Binet majorant with an explicit `1 / ‖w‖` factor on the full open
-right half-plane.  The literal principal `Complex.arctan` kernel has a branch
-obstruction near the imaginary axis, so this theorem is the owner-level place
-where the continued-kernel comparison belongs. -/
+This is the precise remaining analytic input.  The existing principal-branch
+proofs give either fixed-`w` constants or wedge-separated uniform constants.
+The full vertical-line API needs this a.e. tail bound with the explicit
+`1 / ‖w‖` factor throughout the open right half-plane; for the literal
+principal branch this is exactly where the continued or contour-deformed
+kernel comparison must enter. -/
+theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwise_majorant :
+    ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+            ‖Complex.arctan ((t : ℂ) / w) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            (C / ‖w‖) *
+              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  sorry
+
+/-- Integrated form of the branch-uniform full-sector tail majorant.
+
+This theorem contains no branch analysis: it transports the a.e. pointwise
+kernel majorant through the Bochner integral defining the tail remainder. -/
 theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant :
     ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
@@ -1416,7 +1435,75 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
             (C / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                 t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwise_majorant with
+    ⟨Rtail, Ctail, hRtail, hCtail, hpointwise⟩
+  refine ⟨Rtail, 2 * Ctail, hRtail, ?_, ?_⟩
+  · exact mul_pos two_pos hCtail
+  intro w hw_re_pos hRtail_le
+  let K : ℝ → ℂ := fun t : ℝ =>
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let c : ℝ := Ctail / ‖w‖
+  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn
+  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) zero_le_two
+  have hcM_integrable :
+      Integrable (fun t : ℝ => c * M t)
+        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
+    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
+  have hnorm_integral :
+      ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ ≤
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
+    exact
+      norm_integral_le_of_norm_le hcM_integrable
+        (by
+          simpa [K, M, c] using
+            hpointwise w hw_re_pos hRtail_le)
+  have htail_as_integral :
+      Complex.binetSecondFormulaTailRemainder w =
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+    rfl
+  have hnorm_tail :
+      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
+    calc
+      ‖Complex.binetSecondFormulaTailRemainder w‖ =
+          ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
+        exact congrArg norm htail_as_integral
+      _ = 2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
+        rw [norm_mul, RCLike.norm_two]
+      _ ≤ 2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t :=
+        mul_le_mul_of_nonneg_left hnorm_integral zero_le_two
+  have hintegral_const_mul :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+        c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
+    exact integral_const_mul c M
+  have hscale :
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+        (2 * Ctail / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+    calc
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+          2 * (c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact congrArg (fun x : ℝ => 2 * x) hintegral_const_mul
+      _ = (2 * c) * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact (mul_assoc 2 c (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t)).symm
+      _ = (2 * Ctail / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact congrArg
+          (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
+          (by
+            dsimp [c]
+            exact mul_div_assoc 2 Ctail ‖w‖)
+  exact
+    le_trans hnorm_tail
+      (le_of_eq
+        (by
+          simpa [M] using hscale))
 
 /-- Full-sector tail absorption for the Binet remainder split at `‖w‖ / 2`.
 
