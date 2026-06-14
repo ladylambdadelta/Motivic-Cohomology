@@ -218,7 +218,26 @@ theorem Real.sinePowerKernel_intervalIntegrable_half_pi_from_reflection
       MeasureTheory.volume
       (Real.pi / 2)
       Real.pi := by
-  sorry
+  have hreflected :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin (Real.pi - u)) ^ s)
+        MeasureTheory.volume
+        (Real.pi / 2)
+        Real.pi := by
+    have hraw :
+        IntervalIntegrable
+          (fun u : ℝ => (Real.sin (Real.pi - u)) ^ s)
+          MeasureTheory.volume
+          Real.pi
+          (Real.pi / 2) := by
+      simpa [Real.pi_sub_zero, Real.pi_sub_half] using
+        (IntervalIntegrable.comp_sub_left hleft Real.pi)
+    exact hraw.symm
+  exact
+    hreflected.congr
+      (Filter.Eventually.of_forall
+        (fun u => by
+          exact congrArg (fun x : ℝ => x ^ s) (Real.sin_pi_sub u)))
 
 /-- Endpoint integrability of the sine-power kernel on `[π/2,π]`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_half_pi
@@ -980,6 +999,43 @@ theorem Real.sinePowerGammaRatio_denominatorGamma_zero_ne :
   Real.Gamma_ne_zero_of_pos
     Real.sinePowerGammaRatio_denominatorParameter_zero_pos
 
+/-- Algebraic normalization of the quotient-rule derivative for the
+sine-power Gamma-ratio at exponent `0`. -/
+theorem Real.sinePowerGammaRatio_quotientRule_derivativeValue :
+    ((Real.sqrt Real.pi *
+          ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2)) *
+        Real.Gamma ((0 : ℝ) / 2 + 1) -
+      (Real.sqrt Real.pi *
+          Real.Gamma (((0 : ℝ) + 1) / 2)) *
+        ((1 / 2 : ℝ) * deriv Real.Gamma 1)) /
+      Real.Gamma ((0 : ℝ) / 2 + 1) ^ 2 =
+      Real.pi *
+        ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2) := by
+  have hnum_arg : (((0 : ℝ) + 1) / 2) = (1 / 2 : ℝ) := by
+    exact congrArg (fun x : ℝ => x / 2) (zero_add 1)
+  have hden_arg : (0 : ℝ) / 2 + 1 = (1 : ℝ) := by
+    calc
+      (0 : ℝ) / 2 + 1 = 0 + 1 := by
+        exact congrArg (fun x : ℝ => x + 1) (zero_div 2)
+      _ = 1 := by
+        exact zero_add 1
+  have hsqrt_sq :
+      Real.sqrt Real.pi * Real.sqrt Real.pi = Real.pi := by
+    calc
+      Real.sqrt Real.pi * Real.sqrt Real.pi =
+          (Real.sqrt Real.pi) ^ 2 := by
+        exact (pow_two (Real.sqrt Real.pi)).symm
+      _ = Real.pi := by
+        exact Real.sq_sqrt Real.pi_pos.le
+  have hsqrt_ne : Real.sqrt Real.pi ≠ 0 :=
+    (Real.sqrt_pos.mpr Real.pi_pos).ne'
+  rw [hnum_arg, hden_arg, Real.Gamma_one, Real.Gamma_one_half_eq_sqrt_pi,
+    Real.gammaLogDeriv]
+  rw [Real.Gamma_one, Real.Gamma_one_half_eq_sqrt_pi]
+  field_simp [hsqrt_ne]
+  rw [hsqrt_sq]
+  ring
+
 /-- Quotient-rule assembly of the sine-power Gamma-ratio derivative from its
 component Gamma derivatives. -/
 theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_quotientRule :
@@ -988,7 +1044,37 @@ theorem Real.sinePowerGammaRatio_hasDerivAt_zero_from_quotientRule :
       (Real.pi *
         ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2))
       0 := by
-  sorry
+  have hnum :
+      HasDerivAt
+        (fun s : ℝ => Real.sqrt Real.pi * Real.Gamma ((s + 1) / 2))
+        (Real.sqrt Real.pi *
+          ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2)))
+        0 :=
+    Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero.const_mul
+      (Real.sqrt Real.pi)
+  have hden :
+      HasDerivAt
+        (fun s : ℝ => Real.Gamma (s / 2 + 1))
+        ((1 / 2 : ℝ) * deriv Real.Gamma 1)
+        0 :=
+    Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero
+  have hraw :
+      HasDerivAt
+        (fun s : ℝ =>
+          (Real.sqrt Real.pi * Real.Gamma ((s + 1) / 2)) /
+            Real.Gamma (s / 2 + 1))
+        (((Real.sqrt Real.pi *
+              ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2))) *
+            Real.Gamma ((0 : ℝ) / 2 + 1) -
+          (Real.sqrt Real.pi *
+              Real.Gamma (((0 : ℝ) + 1) / 2)) *
+            ((1 / 2 : ℝ) * deriv Real.Gamma 1)) /
+          Real.Gamma ((0 : ℝ) / 2 + 1) ^ 2)
+        0 :=
+    hnum.div hden Real.sinePowerGammaRatio_denominatorGamma_zero_ne
+  exact
+    hraw.congr_deriv
+      Real.sinePowerGammaRatio_quotientRule_derivativeValue
 
 /-- Component-wise differentiation of the sine-power Gamma-ratio at exponent
 `0`, before inserting the Legendre duplication value. -/
