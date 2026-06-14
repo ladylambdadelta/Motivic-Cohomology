@@ -13,6 +13,18 @@ noncomputable section
 
 open scoped Topology
 
+/-- Fixed-real-part vertical upper bound obtained by combining open-sector
+Binet estimates for large `|t|` with compact-interval boundedness. -/
+theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
+    (σ : ℝ)
+    (hσ : 0 < σ) :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ t : ℝ,
+        ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
+          C * (1 + ‖t‖) ^ m := by
+  sorry
+
 /-- Fixed-real-part vertical upper bound for Gamma. -/
 theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
     (σ : ℝ)
@@ -22,6 +34,20 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_classical
       ∀ t : ℝ,
         ‖Complex.Gamma (σ + t * Complex.I)‖ ≤
           C * (1 + ‖t‖) ^ m := by
+  exact
+    Complex.Gamma_fixedRealPart_vertical_upper_bound_from_openSector_and_compact
+      σ hσ
+
+/-- Fixed-real-part reciprocal bound from nonvanishing, compact-interval
+control, and the large-vertical Stirling/Binet estimate. -/
+theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
+    (σ : ℝ)
+    (hσ : 0 < σ) :
+    ∃ C : ℝ, ∃ A : ℝ,
+      0 < C ∧ 0 < A ∧
+      ∀ t : ℝ,
+        ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
+          C * Real.exp (A * ‖t‖) := by
   sorry
 
 /-- Fixed-real-part vertical reciprocal bound for Gamma.
@@ -37,7 +63,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_lower_bound_classical
       ∀ t : ℝ,
         ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤
           C * Real.exp (A * ‖t‖) := by
-  sorry
+  exact
+    Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_from_nonvanishing_and_stirling
+      σ hσ
 
 end
 
