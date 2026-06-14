@@ -2683,6 +2683,144 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_analyticA
     (hP_an z hz).cexp.const_mul (G 0)
   exact (hG z).div hden_an hden_ne
 
+/-- Real interval derivative-zero constant theorem on `[0,1]`, in endpoint
+form.
+
+This is the one-dimensional FTC input used by the radial segment argument:
+continuity on the closed interval plus right-derivative zero on `Ico 0 1`
+forces the endpoint values to agree. -/
+theorem complex_interval_endpoint_eq_of_hasDerivWithinAt_zero
+    (φ : ℝ → ℂ)
+    (hcont : ContinuousOn φ (Set.Icc (0 : ℝ) 1))
+    (hderiv :
+      ∀ t : ℝ,
+        t ∈ Set.Ico (0 : ℝ) 1 →
+        HasDerivWithinAt φ 0 (Set.Ici t) t) :
+    φ 1 = φ 0 :=
+  constant_of_has_deriv_right_zero hcont hderiv 1
+    (Set.right_mem_Icc.mpr zero_le_one)
+
+/-- The radial closed-disk difference function attached to two analytic
+functions. -/
+def entireFunction_convexClosedDisk_radialDifference
+    (F H : ℂ → ℂ)
+    (z : ℂ) :
+    ℝ → ℂ :=
+  fun t : ℝ => F ((t : ℂ) • z) - H ((t : ℂ) • z)
+
+/-- Center value of the radial difference. -/
+theorem entireFunction_convexClosedDisk_radialDifference_zero
+    (F H : ℂ → ℂ)
+    (hcenter : F 0 = H 0)
+    (z : ℂ) :
+    entireFunction_convexClosedDisk_radialDifference F H z 0 = 0 := by
+  calc
+    entireFunction_convexClosedDisk_radialDifference F H z 0 =
+        F ((0 : ℂ) • z) - H ((0 : ℂ) • z) := rfl
+    _ = F 0 - H 0 :=
+      congrArg₂ (fun u v : ℂ => F u - H v) (zero_smul ℂ z) (zero_smul ℂ z)
+    _ = H 0 - H 0 :=
+      congrArg (fun u : ℂ => u - H 0) hcenter
+    _ = 0 :=
+      sub_self (H 0)
+
+/-- Endpoint value of the radial difference. -/
+theorem entireFunction_convexClosedDisk_radialDifference_one
+    (F H : ℂ → ℂ)
+    (z : ℂ) :
+    entireFunction_convexClosedDisk_radialDifference F H z 1 = F z - H z := by
+  calc
+    entireFunction_convexClosedDisk_radialDifference F H z 1 =
+        F ((1 : ℂ) • z) - H ((1 : ℂ) • z) := rfl
+    _ = F z - H z :=
+      congrArg₂ (fun u v : ℂ => F u - H v) (one_smul ℂ z) (one_smul ℂ z)
+
+/-- Turning constancy of the radial difference into endpoint equality. -/
+theorem entireFunction_convexClosedDisk_endpoint_eq_of_radialDifference_endpoint_eq
+    (F H : ℂ → ℂ)
+    (hcenter : F 0 = H 0)
+    {z : ℂ}
+    (hdiff_endpoint :
+      entireFunction_convexClosedDisk_radialDifference F H z 1 =
+        entireFunction_convexClosedDisk_radialDifference F H z 0) :
+    F z = H z := by
+  have hleft :
+      entireFunction_convexClosedDisk_radialDifference F H z 1 = F z - H z :=
+    entireFunction_convexClosedDisk_radialDifference_one F H z
+  have hright :
+      entireFunction_convexClosedDisk_radialDifference F H z 0 = 0 :=
+    entireFunction_convexClosedDisk_radialDifference_zero F H hcenter z
+  have hsub_zero : F z - H z = 0 := by
+    exact Eq.trans (Eq.symm hleft) (Eq.trans hdiff_endpoint hright)
+  exact sub_eq_zero.mp hsub_zero
+
+/-- Real-interval calculus package for a radial segment difference.
+
+The missing analytic work in the FTC branch is exactly to show that the radial
+difference is continuous on `[0,1]` and has right-derivative zero on `Ico 0 1`.
+That proof is the complex chain rule along `t ↦ t • z`, plus convexity of the
+disk segment and the hypothesis `deriv F = deriv H`. -/
+theorem entireFunction_convexClosedDisk_radialDifference_intervalCalculus
+    (F H : ℂ → ℂ)
+    {ρ : ℝ}
+    (hF : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ F z)
+    (hH : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ H z)
+    (hρ : 0 ≤ ρ)
+    (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
+    (hderiv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv F z = deriv H z)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    ContinuousOn
+        (entireFunction_convexClosedDisk_radialDifference F H z)
+        (Set.Icc (0 : ℝ) 1) ∧
+      (∀ t : ℝ,
+        t ∈ Set.Ico (0 : ℝ) 1 →
+        HasDerivWithinAt
+          (entireFunction_convexClosedDisk_radialDifference F H z)
+          0
+          (Set.Ici t)
+          t) := by
+  sorry
+
+/-- Constancy of the radial difference on `[0,1]` from the interval calculus
+package. -/
+theorem entireFunction_convexClosedDisk_radialDifference_endpoint_eq
+    (F H : ℂ → ℂ)
+    {ρ : ℝ}
+    (hF : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ F z)
+    (hH : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ H z)
+    (hρ : 0 ≤ ρ)
+    (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
+    (hderiv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv F z = deriv H z)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    entireFunction_convexClosedDisk_radialDifference F H z 1 =
+      entireFunction_convexClosedDisk_radialDifference F H z 0 := by
+  have hcalc :
+      ContinuousOn
+          (entireFunction_convexClosedDisk_radialDifference F H z)
+          (Set.Icc (0 : ℝ) 1) ∧
+        (∀ t : ℝ,
+          t ∈ Set.Ico (0 : ℝ) 1 →
+          HasDerivWithinAt
+            (entireFunction_convexClosedDisk_radialDifference F H z)
+            0
+            (Set.Ici t)
+            t) :=
+    entireFunction_convexClosedDisk_radialDifference_intervalCalculus
+      F H hF hH hρ hconvex hderiv hz
+  exact
+    complex_interval_endpoint_eq_of_hasDerivWithinAt_zero
+      (entireFunction_convexClosedDisk_radialDifference F H z)
+      hcalc.1
+      hcalc.2
+
 /-- Deep real-interval FTC core for radial equality propagation on a convex
 Jensen disk.
 
@@ -2705,7 +2843,14 @@ theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_an
     {z : ℂ}
     (hz : ‖z‖ ≤ ρ) :
     F z = H z := by
-  sorry
+  have hdiff_endpoint :
+      entireFunction_convexClosedDisk_radialDifference F H z 1 =
+        entireFunction_convexClosedDisk_radialDifference F H z 0 :=
+    entireFunction_convexClosedDisk_radialDifference_endpoint_eq
+      F H hF hH hρ hconvex hderiv hz
+  exact
+    entireFunction_convexClosedDisk_endpoint_eq_of_radialDifference_endpoint_eq
+      F H hcenter hdiff_endpoint
 
 /-- Radial FTC owner root for exponential reconstruction from a logarithmic
 derivative primitive.
@@ -5034,6 +5179,42 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
       F hF hF0 ρ a ha
   exact div_ne_zero hg_ne hden_ne
 
+/-- A quotient whose support-point value is the local removable value is
+nonzero at that support point. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_nonzero_at_support_of_removableValue
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (a : EntireFunctionZero F)
+    (ha :
+      a ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ)
+    (g : ℂ → ℂ)
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hQ_value :
+      Q (a : ℂ) =
+        g (a : ℂ) /
+          (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in
+              (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+                F hF hF0 ρ).erase a,
+              (1 - (a : ℂ) / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ)))) :
+    Q (a : ℂ) ≠ 0 := by
+  have hvalue_ne :
+      g (a : ℂ) /
+          (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in
+              (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+                F hF hF0 ρ).erase a,
+              (1 - (a : ℂ) / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ))) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
+      F hF hF0 ρ a ha g hg_ne
+  exact fun hQ_zero => hvalue_ne (Eq.trans hQ_value.symm hQ_zero)
+
 /-- The punctured quotient after extracting the support divisor.
 
 This is only the raw divided expression away from the support zeros; the
@@ -5293,6 +5474,48 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
           (zero_mul
             (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w))))
+
+/-- Off the support divisor, a zero of a factored removable quotient forces a
+zero of the original function. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_zero_imp_function_zero_of_not_mem_support
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (w : ℂ)
+    (hwρ : ‖w‖ ≤ ρ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ)))
+    (hQw : Q w = 0) :
+    F w = 0 := by
+  have hfactor_w :
+      F w =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w :=
+    hfactor w hwρ
+  exact
+    Eq.trans hfactor_w
+      (Eq.trans
+        (congrArg
+          (fun x : ℂ =>
+            x *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                F hF hF0 ρ w)
+          hQw)
+        (zero_mul
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w)))
 
 /-- At a zero of the extracted finite product, quotient-product reconstruction
 reduces to the matching zero of `F`. -/
@@ -5593,6 +5816,41 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
   exact
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_ownerRoot
       F hF hF0 ρ hρ
+
+/-- Zero-freeness split over the finite support image.
+
+The off-support branch is supplied by the punctured quotient/product
+factorization; the support branch is supplied by the local removable value
+calculation at the indexed support zero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_zeroFree_from_support_split
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hoff :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        w ∉
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ).image
+            (fun z : EntireFunctionZero F => (z : ℂ)) →
+        Q w ≠ 0)
+    (hon :
+      ∀ z : EntireFunctionZero F,
+        z ∈
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ →
+        Q (z : ℂ) ≠ 0) :
+    ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
+  intro w hwρ
+  by_cases hw :
+      w ∈
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ))
+  · rcases Finset.mem_image.1 hw with ⟨z, hz, hzw⟩
+    exact Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw.symm (hon z hz)
+  · exact hoff w hwρ hw
 
 /-- Maximal-multiplicity zero-freeness for the quotient after finite removable
 gluing.
