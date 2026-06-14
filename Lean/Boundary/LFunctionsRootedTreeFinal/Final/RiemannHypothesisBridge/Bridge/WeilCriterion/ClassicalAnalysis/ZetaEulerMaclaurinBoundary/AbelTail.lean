@@ -587,8 +587,12 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'
     Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
       N hσ_summable hfinite_weighted
 
-/-- Dirichlet-test summability for Abel weights against a sequence with
-uniformly bounded strict tails. -/
+/-- Explicit unordered summability carrier for Abel weights.
+
+Bounded ordinary Dirichlet tails give ordered Nat partial-sum convergence, not
+unordered `Summable` in the sense needed by `tsum`; the latter is kept as an
+honest hypothesis and supplied by absolute convergence in the boundary-line
+application. -/
 theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
     {a : ℕ → ℂ}
     (N : ℕ)
@@ -597,6 +601,13 @@ theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
         ∀ M : ℕ,
           N ≤ M →
             ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ B) :
+    (∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      Summable
+        (fun n : ℕ =>
+          if N < n then
+            a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+          else
+            0)) →
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       Summable
         (fun n : ℕ =>
@@ -604,15 +615,8 @@ theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
             a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
           else
             0) := by
-  /-
-  Owner proof chain:
-  bounded strict tails
-  -> finite Abel identity on every interval `[L, M]`
-  -> coefficient mass bounded by `(L + 1)^(-(σ - 1))`
-  -> this tends to `0` as `L → ∞` for `σ > 1`
-  -> Cauchy criterion for the damped series.
-  -/
-  sorry
+  intro hsummable
+  exact hsummable
 
 /-- Abel damping by the concrete weights `n ^ (-(σ - 1))` preserves a uniform
 finite-tail bound. -/
@@ -621,6 +625,14 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
     {B : ℝ}
     (N : ℕ)
     (hN : 1 ≤ N)
+    (hsummable :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        Summable
+          (fun n : ℕ =>
+            if N < n then
+              a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            else
+              0))
     (hfinite :
       ∀ M : ℕ,
         N ≤ M →
@@ -641,7 +653,7 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
               0) := by
     simpa using
       Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
-        (a := a) N ⟨B, hfinite⟩
+        (a := a) N ⟨B, hfinite⟩ hsummable
   have hw_nonneg :
       ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
         ∀ n : ℕ, N < n → 0 ≤ (n : ℝ) ^ (-(σ - 1)) := by
@@ -707,6 +719,42 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
           ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ A * Real.log (2 + ‖t‖) := by
     intro M hNM
     exact hfinite t ht N hN M hNM
+  have hsummable_tail :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        Summable
+          (fun n : ℕ =>
+            if N < n then
+              a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+            else
+              0) := by
+    filter_upwards [eventually_mem_nhdsWithin] with σ hσ
+    have hdirichlet :
+        Summable
+          (fun n : ℕ =>
+            ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) :=
+      Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_tail
+        t σ hσ
+    have htail_dirichlet :
+        Summable
+          (fun n : ℕ =>
+            if N < n then
+              ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
+            else
+              0) := by
+      refine hdirichlet.congr_cofinite ?_
+      filter_upwards [eventually_ge_atTop (N + 1)] with n hn
+      have hn_tail : N < n := Nat.lt_of_succ_le hn
+      rw [if_pos hn_tail]
+    refine htail_dirichlet.congr ?_
+    intro n
+    by_cases hn_tail : N < n
+    · have hn_pos : 0 < n :=
+        Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
+      rw [if_pos hn_tail, if_pos hn_tail, a]
+      exact
+        (Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
+          t σ hn_pos).symm
+    · rw [if_neg hn_tail, if_neg hn_tail]
   have hdamped :
       ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
         ‖∑' n : ℕ,
@@ -716,7 +764,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
             0‖ ≤
           A * Real.log (2 + ‖t‖) :=
     Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
-      N hN hfinite_tail
+      N hN hsummable_tail hfinite_tail
   refine hdamped.mono ?_
   intro σ hσ
   simpa [a] using hσ
