@@ -2534,9 +2534,31 @@ theorem entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoo
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ < ρ) :
     entireFunctionJensenRadialGapSummand F hF ρ z ≠ 0 := by
-  -- Radial support membership root: analytic multiplicity at a zero is
-  -- positive, and `Real.log (ρ / ‖z‖)` is positive for `0 < ‖z‖ < ρ`.
-  sorry
+  have hvalue :
+      entireFunctionJensenRadialGapSummand F hF ρ z =
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log (ρ / ‖(z : ℂ)‖) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_identity
+      F hF ρ z hz0 hzρ
+  have hmult_nat_ne :
+      entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 :=
+    entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
+      F hF ⟨0, hF0⟩ z.property
+  have hmult_real_ne :
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr hmult_nat_ne
+  have hnorm_pos : 0 < ‖(z : ℂ)‖ :=
+    norm_pos_iff.mpr hz0
+  have hdiv_gt_one : 1 < ρ / ‖(z : ℂ)‖ :=
+    (one_lt_div hnorm_pos).mpr hzρ
+  have hlog_ne : Real.log (ρ / ‖(z : ℂ)‖) ≠ 0 :=
+    (Real.log_pos hdiv_gt_one).ne'
+  have hproduct_ne :
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log (ρ / ‖(z : ℂ)‖) ≠ 0 :=
+    mul_ne_zero hmult_real_ne hlog_ne
+  intro hzero
+  exact hproduct_ne (Eq.trans hvalue.symm hzero)
 
 /-- A closed-disk interior support member is a radial-gap support member. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor_subset_radialGapSupportFiniteZeroDivisor_ownerRoot
@@ -2580,9 +2602,21 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zer
     (hz0 : (z : ℂ) ≠ 0)
     (hzρ : ‖(z : ℂ)‖ ≤ ρ) :
     entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z ≠ 0 := by
-    -- Closed-support membership root: the nonzero closed-disk summand is the
-  -- positive analytic multiplicity of `F` at the nonzero zero `z`.
-  sorry
+  have hvalue :
+      entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) := by
+    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+    unfold entireFunctionZeroMultiplicityClosedDiskSummand
+    exact Eq.trans (if_neg hz0) (if_pos hzρ)
+  have hmult_nat_ne :
+      entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 :=
+    entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
+      F hF ⟨0, hF0⟩ z.property
+  have hmult_real_ne :
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr hmult_nat_ne
+  intro hzero
+  exact hmult_real_ne (Eq.trans hvalue.symm hzero)
 
 /-- A radial-gap support member is a closed-disk interior support member. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor

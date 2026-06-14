@@ -1333,6 +1333,58 @@ theorem Complex.fixedRealPartVerticalPoint_sectorialRadius_ge_of_height_ge
   le_trans hR_le_H
     (Complex.fixedRealPartVerticalPoint_radius_ge_of_height_ge hH)
 
+/-- Shifting a fixed vertical point by a natural number shifts only its real
+coordinate. -/
+theorem Complex.fixedRealPartVerticalPoint_natShift_re
+    (x y : ℝ)
+    (N : ℕ) :
+    (Complex.fixedRealPartVerticalPoint (x + N) y).re =
+      x + (N : ℝ) := by
+  exact Complex.fixedRealPartVerticalPoint_re (x + N) y
+
+/-- Shifting a fixed vertical point by a natural number preserves its imaginary
+coordinate. -/
+theorem Complex.fixedRealPartVerticalPoint_natShift_im
+    (x y : ℝ)
+    (N : ℕ) :
+    (Complex.fixedRealPartVerticalPoint (x + N) y).im = y := by
+  exact Complex.fixedRealPartVerticalPoint_im (x + N) y
+
+/-- A natural right shift moves the whole real strip into the closed right
+half-plane. -/
+theorem Complex.fixedRealPartVerticalPoint_natShift_closedRightHalfPlaneSector
+    {A x y : ℝ}
+    {N : ℕ}
+    (hA : -A ≤ (N : ℝ))
+    (hx : A ≤ x) :
+    Complex.closedRightHalfPlaneSector
+      (Complex.fixedRealPartVerticalPoint (x + N) y) := by
+  have hnonneg : 0 ≤ x + (N : ℝ) := by
+    have hneg_x_le_N : -x ≤ (N : ℝ) :=
+      le_trans (neg_le_neg hx) hA
+    exact neg_le.mp hneg_x_le_N
+  exact
+    Complex.fixedRealPartVerticalPoint_closedRightHalfPlaneSector hnonneg
+
+/-- The shifted vertical point has radius bounded below by the same height. -/
+theorem Complex.fixedRealPartVerticalPoint_natShift_radius_ge_of_height_ge
+    {x y H : ℝ}
+    {N : ℕ}
+    (hH : H ≤ ‖y‖) :
+    H ≤ ‖Complex.fixedRealPartVerticalPoint (x + N) y‖ :=
+  Complex.fixedRealPartVerticalPoint_radius_ge_of_height_ge hH
+
+/-- Bounded real part in a strip remains bounded after a fixed natural shift. -/
+theorem real_natShift_mem_strip_of_mem_strip
+    {A B x : ℝ}
+    (N : ℕ)
+    (hxA : A ≤ x)
+    (hxB : x ≤ B) :
+    A + (N : ℝ) ≤ x + (N : ℝ) ∧
+      x + (N : ℝ) ≤ B + (N : ℝ) :=
+  ⟨add_le_add_right hxA (N : ℝ),
+    add_le_add_right hxB (N : ℝ)⟩
+
 /-- A positive lower radius cutoff makes the logarithmic envelope positive. -/
 theorem real_largeRadius_log_envelope_pos
     (R₀ r : ℝ)
@@ -2553,6 +2605,39 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
     Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
       Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
 
+/-- Vertical-strip two-sided Stirling bounds as a consequence of sectorial
+log-Gamma Stirling.
+
+For a strip that crosses the left half-plane, choose a natural shift `N` with
+`-A ≤ N`.  The shifted points `z + N` lie in the closed right half-plane and
+the sectorial logarithmic Stirling theorem applies there; the finite Gamma
+recurrence product transports the estimate back to `z`.  The coordinate and
+radius facts above supply the non-Stirling geometry of this reduction. -/
+theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds
+    (hStirling : ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
+  sorry
+
 /-- Standard vertical-strip specialization of sectorial Stirling.
 
 On every compact real strip `A ≤ Re z ≤ B`, the vertical tails lie in closed
@@ -2574,7 +2659,9 @@ theorem Complex.sectorialStirling_verticalStrip_largeHeight_classical
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  sorry
+  exact
+    Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds
+      Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane A B
 
 /-- Classical large-height fixed-real-part vertical Stirling theorem.
 
@@ -9480,24 +9567,26 @@ theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_core
 /-- Abstract Abel transform bound from bounded finite tail sums.
 
 This is the positive-weight summation-by-parts core: for a tail sequence whose
-finite partial sums from `N` onward are bounded by `C`, the Abel-damped tail
-with weights `r^n`, `0 < r < 1`, is bounded by the same `C`.  This is the
-convex-combination form of Abel's theorem for bounded partial sums. -/
+finite partial sums from `N` onward are bounded by `C`, a positive decreasing
+weight family of total variation at most `1` gives a weighted tail bounded by
+the same `C`.  This is the convex-combination form of Abel's theorem for
+bounded partial sums. -/
 theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
     {u : ℕ → ℂ}
+    {w : ℕ → ℝ}
     {N : ℕ}
     {C : ℝ}
     (hpartial :
       ∀ M : ℕ,
         N ≤ M →
         ‖∑ k ∈ Finset.Ioc N M, u k‖ ≤ C) :
-    ∀ᶠ r : ℝ in 𝓝[<] (1 : ℝ),
-      ‖∑' k : ℕ, if N < k then ((r : ℂ) ^ k) * u k else 0‖ ≤ C := by
-  filter_upwards [self_mem_nhdsWithin, abel_left_neighborhood_eventually_nonnegative]
-    with r hr_lt_one hr_nonneg
-  exact
-    abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_core
-      hpartial hr_nonneg hr_lt_one
+    (hw_nonneg : ∀ k : ℕ, N < k → 0 ≤ w k)
+    (hw_antitone : ∀ k l : ℕ, N < k → k ≤ l → w l ≤ w k)
+    (hw_variation : ∀ M : ℕ, N ≤ M → w (M + 1) +
+        ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1)
+    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0)) :
+    ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
+  sorry
 
 /-- Removing the damped finite prefix from the half-plane Dirichlet series gives
 the damped post-cutoff tail as an indicator `tsum`. -/
@@ -9514,7 +9603,13 @@ theorem abelBoundary_logarithmicPhase_dampedTail_eq_indicator_tsum
           0 := by
   sorry
 
-/-- A right-half-plane post-cutoff term is the Abel weight times the boundary
+/-- The Dirichlet damping weight for a fixed abscissa. -/
+def abelBoundary_logarithmicPhase_dirichletWeight
+    (σ : ℝ)
+    (k : ℕ) : ℝ :=
+  ((k : ℝ) ^ (1 - σ : ℝ))
+
+/-- A right-half-plane post-cutoff term is the Dirichlet damping weight times the boundary
 oscillatory term. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
     (t σ : ℝ)
@@ -9523,7 +9618,7 @@ theorem abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
     (1 : ℂ) /
         ((k : ℂ) ^
           boundaryLineOnePointRealParam_abscissaShift σ t) =
-      ((Real.exp (1 - σ) : ℂ) ^ k) *
+      ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
         (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
   sorry
 
@@ -9540,7 +9635,7 @@ theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weig
           0) =
       ∑' k : ℕ,
         if ⌊2 + ‖t‖⌋₊ < k then
-          ((Real.exp (1 - σ) : ℂ) ^ k) *
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
             (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
         else
           0 := by
@@ -9549,15 +9644,14 @@ theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weig
 /-- Identification of the logarithmic-phase damped tail with the abstract Abel
 weighted tail.
 
-For `σ > 1`, writing `r = exp (1 - σ)` converts the half-plane Dirichlet tail
-after the cutoff into the Abel weighted boundary-line oscillator tail. -/
+For `σ > 1`, the damping weight is `k^(1 - σ)`, not a geometric weight. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
     (t σ : ℝ)
     (hσ : 1 < σ) :
     abelBoundary_logarithmicPhase_dampedTail t σ =
       ∑' k : ℕ,
         if ⌊2 + ‖t‖⌋₊ < k then
-          ((Real.exp (1 - σ) : ℂ) ^ k) *
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
             (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
         else
           0 := by
@@ -9566,48 +9660,49 @@ theorem abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
     (abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weighted_tail
       t σ hσ)
 
-/-- The Abel damping parameter `r = exp (1 - σ)` tends to `1` from the left as
-`σ` tends to `1` from the right. -/
-theorem abel_damping_parameter_tendsto_left
-    :
+/-- Dirichlet weights after the cutoff are nonnegative. -/
+theorem abelBoundary_logarithmicPhase_dirichletWeight_nonneg
+    (σ : ℝ)
+    {k : ℕ}
+    (hk : 0 < k) :
+    0 ≤ abelBoundary_logarithmicPhase_dirichletWeight σ k := by
+  sorry
+
+/-- Dirichlet weights are decreasing on the post-cutoff tail for `σ > 1`. -/
+theorem abelBoundary_logarithmicPhase_dirichletWeight_antitone
+    (σ : ℝ)
+    (hσ : 1 < σ) :
+    ∀ k l : ℕ,
+      0 < k →
+      k ≤ l →
+      abelBoundary_logarithmicPhase_dirichletWeight σ l ≤
+        abelBoundary_logarithmicPhase_dirichletWeight σ k := by
+  sorry
+
+/-- The finite variation of Dirichlet weights on a post-cutoff tail is at most
+the first weight, hence at most `1`. -/
+theorem abelBoundary_logarithmicPhase_dirichletWeight_variation_le_one
+    (σ : ℝ)
+    (hσ : 1 < σ)
+    (N : ℕ) :
+    ∀ M : ℕ,
+      N ≤ M →
+      abelBoundary_logarithmicPhase_dirichletWeight σ (M + 1) +
+          ∑ k ∈ Finset.Ioc N M,
+            (abelBoundary_logarithmicPhase_dirichletWeight σ k -
+              abelBoundary_logarithmicPhase_dirichletWeight σ (k + 1)) ≤
+        1 := by
+  sorry
+
+/-- Dirichlet weights tend to zero for `σ > 1`. -/
+theorem abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero
+    (σ : ℝ)
+    (hσ : 1 < σ) :
     Tendsto
-      (fun σ : ℝ => Real.exp (1 - σ))
-      (𝓝[>] (1 : ℝ))
-      (𝓝[<] (1 : ℝ)) := by
-  have hcontinuous :
-      Tendsto
-        (fun σ : ℝ => Real.exp (1 - σ))
-        (𝓝 (1 : ℝ))
-        (𝓝 (Real.exp (1 - (1 : ℝ)))) :=
-    (Real.continuous_exp.continuousAt.comp
-      (continuousAt_const.sub continuousAt_id)).tendsto
-  have htarget_eq :
-      Real.exp (1 - (1 : ℝ)) = (1 : ℝ) := by
-    calc
-      Real.exp (1 - (1 : ℝ)) = Real.exp (0 : ℝ) :=
-        congrArg Real.exp (sub_self (1 : ℝ))
-      _ = (1 : ℝ) :=
-        Real.exp_zero
-  have hnhds :
-      Tendsto
-        (fun σ : ℝ => Real.exp (1 - σ))
-        (𝓝[>] (1 : ℝ))
-        (𝓝 (1 : ℝ)) :=
-    Eq.subst
-      (motive := fun x : ℝ =>
-        Tendsto
-          (fun σ : ℝ => Real.exp (1 - σ))
-          (𝓝[>] (1 : ℝ))
-          (𝓝 x))
-      htarget_eq
-      (hcontinuous.mono_left nhdsWithin_le_nhds)
-  have hwithin :
-      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ), Real.exp (1 - σ) ∈ Set.Iio (1 : ℝ) := by
-    filter_upwards [self_mem_nhdsWithin] with σ hσ
-    have hnegative : 1 - σ < (0 : ℝ) :=
-      sub_neg.mpr hσ
-    exact Real.exp_lt_one_iff.mpr hnegative
-  exact tendsto_nhdsWithin_iff.mpr ⟨hnhds, hwithin⟩
+      (fun k : ℕ => abelBoundary_logarithmicPhase_dirichletWeight σ k)
+      atTop
+      (𝓝 0) := by
+  sorry
 
 /-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
 damped tail as `σ → 1+`. -/
@@ -9622,34 +9717,38 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
   have habstract :
-      ∀ᶠ r : ℝ in 𝓝[<] (1 : ℝ),
+      ∀ σ : ℝ,
+        1 < σ →
         ‖∑' k : ℕ,
           if ⌊2 + ‖t‖⌋₊ < k then
-            ((r : ℂ) ^ k) *
+            ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
               (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
           else
-            0‖ ≤ C :=
+            0‖ ≤ C := by
+    intro σ hσ
     abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
       (u := fun k : ℕ =>
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+      (w := abelBoundary_logarithmicPhase_dirichletWeight σ)
       (N := ⌊2 + ‖t‖⌋₊)
       (C := C)
       hfinite
-  have hpullback :
-      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
-        ‖∑' k : ℕ,
-          if ⌊2 + ‖t‖⌋₊ < k then
-            (((Real.exp (1 - σ) : ℝ) : ℂ) ^ k) *
-              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-          else
-            0‖ ≤ C :=
-    abel_damping_parameter_tendsto_left habstract
-  filter_upwards [self_mem_nhdsWithin, hpullback] with σ hσ hbound
+      (fun k hk =>
+        abelBoundary_logarithmicPhase_dirichletWeight_nonneg σ
+          (lt_trans (Nat.pos_of_ne_zero (fun hk0 => by
+            exact Nat.not_succ_le_zero N (Eq.subst (motive := fun x : ℕ => N + 1 ≤ x) hk0 (Nat.succ_le_of_lt hk)))) hk))
+      (fun k l hk hkl =>
+        abelBoundary_logarithmicPhase_dirichletWeight_antitone σ hσ k l
+          (lt_of_lt_of_le (Nat.lt_of_succ_le (Nat.succ_le_of_lt hk)) hkl) hkl)
+      (abelBoundary_logarithmicPhase_dirichletWeight_variation_le_one σ hσ
+        ⌊2 + ‖t‖⌋₊)
+      (abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero σ hσ)
+  filter_upwards [self_mem_nhdsWithin] with σ hσ
   have htail_eq :
       abelBoundary_logarithmicPhase_dampedTail t σ =
         ∑' k : ℕ,
           if ⌊2 + ‖t‖⌋₊ < k then
-            (((Real.exp (1 - σ) : ℝ) : ℂ) ^ k) *
+            ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
               (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
           else
             0 :=
@@ -9658,7 +9757,7 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
   exact Eq.subst
     (motive := fun z : ℂ => ‖z‖ ≤ C)
     htail_eq.symm
-    hbound
+    (habstract σ hσ)
 
 /-- Abel damping theorem for a tail with bounded finite partial sums.
 
@@ -11854,6 +11953,89 @@ boundary line `Re s = 1` into the half-plane `Re s ≥ 1`.  The far-right
 Dirichlet-series theorem above only proves the easier subregion `2 ≤ Re s`;
 the transport across the functional equation genuinely needs this full
 half-plane statement. -/
+theorem riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  sorry
+
+/-- The standard Euler-Maclaurin bound for `(s - 1)ζ(s)` gives the removable
+pole-cleared zeta bound on `1 ≤ Re s`. -/
+theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_EulerMaclaurin
+    (hraw :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ w : ℂ,
+          1 ≤ w.re →
+          ‖(w - 1) * riemannZeta w‖ ≤
+            A * Real.exp (B * (1 + ‖w‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        ‖poleClearedRiemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  rcases hraw with ⟨A, B, m, hA, hB, hraw_bound⟩
+  refine ⟨A + 1, B, m, add_pos hA zero_lt_one, hB, ?_⟩
+  intro w hw_re
+  have hA_nonneg : 0 ≤ A := le_of_lt hA
+  have hA_le : A ≤ A + 1 :=
+    le_add_of_nonneg_right zero_le_one
+  by_cases hw_one : w = 1
+  · have hpole_one :
+        poleClearedRiemannZeta w = 1 := by
+      exact Eq.subst
+        (motive := fun u : ℂ => poleClearedRiemannZeta u = 1)
+        hw_one.symm
+        poleClearedRiemannZeta_one
+    have hfactor_ge_one :
+        (1 : ℝ) ≤ Real.exp (B * (1 + ‖w‖) ^ m) := by
+      have hbase_nonneg : 0 ≤ 1 + ‖w‖ :=
+        le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w))
+      have hexponent_nonneg : 0 ≤ B * (1 + ‖w‖) ^ m :=
+        mul_nonneg (le_of_lt hB) (pow_nonneg hbase_nonneg m)
+      exact le_trans (le_of_eq Real.exp_zero.symm)
+        (Real.exp_le_exp.mpr hexponent_nonneg)
+    have hone_le_A : (1 : ℝ) ≤ A + 1 :=
+      le_add_of_nonneg_left hA_nonneg
+    have htarget :
+        (1 : ℝ) ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m) := by
+      calc
+        (1 : ℝ) ≤ A + 1 := hone_le_A
+        _ = (A + 1) * 1 := by
+          exact (mul_one (A + 1)).symm
+        _ ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m) :=
+          mul_le_mul_of_nonneg_left hfactor_ge_one
+            (le_trans zero_le_one hone_le_A)
+    exact Eq.subst
+      (motive := fun u : ℂ =>
+        ‖u‖ ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m))
+      hpole_one.symm
+      (Eq.subst
+        (motive := fun x : ℝ =>
+          x ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m))
+        (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ)).symm
+        htarget)
+  · have hpole_raw :
+        poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
+      poleClearedRiemannZeta_eq_of_ne_one hw_one
+    have henlarge :
+        A * Real.exp (B * (1 + ‖w‖) ^ m) ≤
+          (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m) :=
+      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hA_nonneg hA_le (le_refl B) (le_of_lt hB) (le_refl m)
+    exact Eq.subst
+      (motive := fun u : ℂ =>
+        ‖u‖ ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m))
+      hpole_raw.symm
+      ((hraw_bound w hw_re).trans henlarge)
+
 theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -11862,7 +12044,9 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_Eul
         1 ≤ w.re →
         ‖poleClearedRiemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  sorry
+  exact
+    poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_EulerMaclaurin
+      riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard
 
 /-- Reflected right half-plane finite-order growth for the pole-cleared zeta factor.
 
@@ -12007,7 +12191,79 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
         z.re ≤ 0 →
         ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  rcases hraw with ⟨A, B, m, hA, hB, hraw_bound⟩
+  let C : ℝ := ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖
+  refine ⟨A + C + 1, B, m, ?_, hB, ?_⟩
+  · have hC_one_pos : 0 < C + 1 :=
+      add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one
+    have hA_add_pos : 0 < A + (C + 1) :=
+      add_pos hA hC_one_pos
+    exact Eq.subst
+      (motive := fun x : ℝ => 0 < x)
+      (add_assoc A C 1).symm
+      hA_add_pos
+  intro z hz_left
+  have hA_nonneg : 0 ≤ A := le_of_lt hA
+  have hC_nonneg : 0 ≤ C := norm_nonneg _
+  have hA_le : A ≤ A + C + 1 := by
+    calc
+      A ≤ A + C := le_add_of_nonneg_right hC_nonneg
+      _ ≤ A + C + 1 := le_add_of_nonneg_right zero_le_one
+  by_cases hz_zero : z = 0
+  · have hM_zero :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+          poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0 := by
+      exact congrArg poleClearedRiemannZeta_completedFunctionalEquationMultiplier hz_zero
+    have hnorm_eq :
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ = C := by
+      exact congrArg norm hM_zero
+    have hC_le_A : C ≤ A + C + 1 := by
+      calc
+        C ≤ A + C := le_add_of_nonneg_left hA_nonneg
+        _ ≤ A + C + 1 := le_add_of_nonneg_right zero_le_one
+    have hfactor_ge_one :
+        (1 : ℝ) ≤ Real.exp (B * (1 + ‖z‖) ^ m) := by
+      have hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
+        le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+      have hexponent_nonneg : 0 ≤ B * (1 + ‖z‖) ^ m :=
+        mul_nonneg (le_of_lt hB) (pow_nonneg hbase_nonneg m)
+      exact le_trans (le_of_eq Real.exp_zero.symm)
+        (Real.exp_le_exp.mpr hexponent_nonneg)
+    have htarget :
+        C ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) := by
+      calc
+        C ≤ A + C + 1 := hC_le_A
+        _ = (A + C + 1) * 1 := by
+          exact (mul_one (A + C + 1)).symm
+        _ ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) :=
+          mul_le_mul_of_nonneg_left hfactor_ge_one
+            (le_trans hC_nonneg hC_le_A)
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        x ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m))
+      hnorm_eq.symm
+      htarget
+  · have hM_raw :
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+          ((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      exact if_neg hz_zero
+    have hraw_z :
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+      hraw_bound z hz_left hz_zero
+    have henlarge :
+        A * Real.exp (B * (1 + ‖z‖) ^ m) ≤
+          (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) :=
+      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+        hA_nonneg hA_le (le_refl B) (le_of_lt hB) (le_refl m)
+    exact Eq.subst
+      (motive := fun w : ℂ =>
+        ‖w‖ ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m))
+      hM_raw.symm
+      (hraw_z.trans henlarge)
 
 /-- Raw multiplier finite-order growth on the left half-plane away from the
 removable point.  This is the exact place where Gamma/Stirling and the
@@ -12142,6 +12398,42 @@ theorem finiteOrder_leftHalfPlane_reflection_growth_bound
     mul_le_mul_of_nonneg_left hexp_le (le_of_lt hA)
   exact hraw_bound.trans htarget_bound
 
+/-- Product-envelope exponential collapse for finite-order growth estimates.
+
+This is the named algebra sink used when multiplying two estimates after both
+have been enlarged to the same exponential envelope. -/
+theorem finiteOrderGrowthProductEnvelope_exp_collapse
+    (a b c : ℝ) :
+    (a * Real.exp c) * (b * Real.exp c) =
+      a * b * Real.exp (2 * c) := by
+  let E : ℝ := Real.exp c
+  have hleft :
+      (a * E) * (b * E) = (a * b) * (E * E) := by
+    calc
+      (a * E) * (b * E) = ((a * E) * b) * E := by
+        exact mul_assoc (a * E) b E
+      _ = (a * (E * b)) * E := by
+        exact congrArg (fun y : ℝ => y * E) (mul_assoc a E b)
+      _ = (a * (b * E)) * E := by
+        exact congrArg (fun y : ℝ => (a * y) * E) (mul_comm E b)
+      _ = ((a * b) * E) * E := by
+        exact congrArg (fun y : ℝ => y * E) (mul_assoc a b E).symm
+      _ = (a * b) * (E * E) := by
+        exact (mul_assoc (a * b) E E).symm
+  have hdouble : c + c = 2 * c := by
+    exact (two_mul c).symm
+  calc
+    (a * Real.exp c) * (b * Real.exp c) =
+        (a * E) * (b * E) := rfl
+    _ = (a * b) * (E * E) := hleft
+    _ = (a * b) * Real.exp (c + c) := by
+      exact congrArg (fun y : ℝ => (a * b) * y)
+        (Real.exp_add c c).symm
+    _ = (a * b) * Real.exp (2 * c) := by
+      exact congrArg (fun y : ℝ => (a * b) * Real.exp y) hdouble
+    _ = a * b * Real.exp (2 * c) := by
+      exact mul_assoc a b (Real.exp (2 * c))
+
 /-- Product transport for a completed-functional-equation identity on a left
 half-plane.
 
@@ -12237,44 +12529,8 @@ theorem finiteOrder_leftHalfPlane_growth_of_multiplier_reflection_identity
       (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
           (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
         AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
-    let X : ℝ := (BM + Bf + 1) * H ^ (mM + mf)
-    let E : ℝ := Real.exp X
-    have hleft :
-        (AM * E) * (Af * E) = (AM * Af) * (E * E) := by
-      calc
-        (AM * E) * (Af * E) = ((AM * E) * Af) * E := by
-          exact mul_assoc (AM * E) Af E
-        _ = (AM * (E * Af)) * E := by
-          exact congrArg (fun y : ℝ => y * E) (mul_assoc AM E Af)
-        _ = (AM * (Af * E)) * E := by
-          exact congrArg (fun y : ℝ => (AM * y) * E) (mul_comm E Af)
-        _ = ((AM * Af) * E) * E := by
-          exact congrArg (fun y : ℝ => y * E) (mul_assoc AM Af E).symm
-        _ = (AM * Af) * (E * E) := by
-          exact (mul_assoc (AM * Af) E E).symm
-    have hdouble :
-        X + X = (2 * (BM + Bf + 1)) * H ^ (mM + mf) := by
-      calc
-        X + X = 2 * X := by
-          exact (two_mul X).symm
-        _ = 2 * ((BM + Bf + 1) * H ^ (mM + mf)) := rfl
-        _ = (2 * (BM + Bf + 1)) * H ^ (mM + mf) := by
-          exact (mul_assoc 2 (BM + Bf + 1) (H ^ (mM + mf))).symm
-    calc
-      (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
-          (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
-          (AM * E) * (Af * E) := rfl
-      _ = (AM * Af) * (E * E) := hleft
-      _ = (AM * Af) * Real.exp (X + X) := by
-        exact congrArg (fun y : ℝ => (AM * Af) * y)
-          (Real.exp_add X X).symm
-      _ = (AM * Af) *
-          Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
-        exact congrArg (fun y : ℝ => (AM * Af) * Real.exp y) hdouble
-      _ = AM * Af *
-          Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
-        exact mul_assoc AM Af
-          (Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
+    exact finiteOrderGrowthProductEnvelope_exp_collapse
+      AM Af ((BM + Bf + 1) * H ^ (mM + mf))
   exact Eq.subst
     (motive := fun x : ℝ =>
       x ≤ AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
