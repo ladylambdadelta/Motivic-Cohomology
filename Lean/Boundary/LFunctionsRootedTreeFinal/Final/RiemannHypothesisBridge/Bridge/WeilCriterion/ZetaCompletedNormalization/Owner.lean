@@ -316,11 +316,24 @@ theorem one_le_norm_of_one_le_norm_im
     him_abs_le_norm
 
 /-- Standard right-half-plane logarithmic Stirling growth for the completed real Gamma
-factor away from `0`, in the usual log-linear Stirling shape.
+factor away from `0`, in the usual fixed-degree log-linear Stirling shape.
 
 The exclusion `1 ≤ ‖z‖` is necessary for the classical right-half-plane Stirling
 region; in Mathlib's finite-valued `Gammaℝ`, the classical pole faces are represented by
 zeros, and this region avoids the zero at `0`. -/
+theorem Gammaℝ_rightHalfPlane_stirling_log_linear_growth_bound_degree_one_standard :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖Complex.Gammaℝ z‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  sorry
+
+/-- Standard right-half-plane logarithmic Stirling growth for the completed real Gamma
+factor away from `0`, converted from the fixed-degree owner statement into the finite
+degree envelope used downstream. -/
 theorem Gammaℝ_rightHalfPlane_stirling_log_linear_growth_bound_standard :
     ∃ C : ℝ, ∃ m : ℕ,
       0 < C ∧
@@ -329,7 +342,17 @@ theorem Gammaℝ_rightHalfPlane_stirling_log_linear_growth_bound_standard :
         1 ≤ ‖z‖ →
         Real.log ‖Complex.Gammaℝ z‖ ≤
           C * (1 + ‖z‖) ^ m * Real.log (2 + ‖z‖) := by
-  sorry
+  rcases Gammaℝ_rightHalfPlane_stirling_log_linear_growth_bound_degree_one_standard with
+    ⟨C, hC_pos, hbound⟩
+  refine ⟨C, 1, hC_pos, ?_⟩
+  intro z hz_re hz_norm
+  have hpow_one : (1 + ‖z‖) ^ (1 : ℕ) = 1 + ‖z‖ := by
+    exact pow_one (1 + ‖z‖)
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Real.log ‖Complex.Gammaℝ z‖ ≤ C * x * Real.log (2 + ‖z‖))
+    hpow_one.symm
+    (hbound z hz_re hz_norm)
 
 /-- The log-linear right-half-plane Stirling estimate implies the coarser finite-power
 logarithmic envelope used by the completed-zeta normalization chain. -/
@@ -1395,8 +1418,61 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
     _ ≤ 2 * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ)) := by
       exact le_mul_of_one_le_right (by norm_num : (0 : ℝ) ≤ 2) hone_le_exp
 
-/-- Standard finite-order Stirling control for the completed real Gamma ratio on the left
+/-- A positive polynomial vertical-height bound is an exponential finite-order bound in the
+same vertical-height variable. -/
+theorem vertical_polynomial_growth_bound_to_exponential_growth_bound
+    {f : ℂ → ℂ}
+    (hpoly :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          ‖f z‖ ≤ A * (1 + ‖z.im‖) ^ m) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) := by
+  rcases hpoly with ⟨A, m, hA_pos, hbound⟩
+  refine ⟨A, 1, m, hA_pos, zero_lt_one, ?_⟩
+  intro z hz_re hz_im
+  let H : ℝ := (1 + ‖z.im‖) ^ m
+  have hH_nonneg : 0 ≤ H :=
+    pow_nonneg
+      (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z.im)))
+      m
+  have hH_le_exp : H ≤ Real.exp ((1 : ℝ) * H) := by
+    have hone_mul : (1 : ℝ) * H = H := by
+      exact one_mul H
+    exact Eq.subst
+      (motive := fun x : ℝ => H ≤ Real.exp x)
+      hone_mul.symm
+      (Real.le_exp_self H)
+  have hscaled :
+      A * H ≤ A * Real.exp ((1 : ℝ) * H) :=
+    mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
+  exact le_trans (hbound z hz_re hz_im) hscaled
+
+/-- Standard polynomial Stirling control for the completed real Gamma ratio on the left
 vertical tail.
+
+This is the classical two-sided vertical Gamma-ratio estimate after substituting the
+left boundary line `z = it`: the ratio is controlled by a fixed polynomial in `|t|`. -/
+theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_stirling_growth_bound_standard :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * (1 + ‖z.im‖) ^ m := by
+  sorry
+
+/-- Standard finite-order Stirling control for the completed real Gamma ratio on the left
+vertical tail, converted from the polynomial vertical-height Stirling statement.
 
 This is the exact analytic statement left after the elementary pole-clearing ratio has
 been separated from the completed-functional-equation multiplier. -/
@@ -1409,7 +1485,8 @@ theorem Gammaℝ_leftBoundary_ratio_vertical_stirling_growth_bound_standard :
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z.im‖) ^ m) := by
-  sorry
+  exact vertical_polynomial_growth_bound_to_exponential_growth_bound
+    Gammaℝ_leftBoundary_ratio_vertical_polynomial_stirling_growth_bound_standard
 
 /-- A vertical-height Gamma-ratio Stirling estimate implies the complex-height envelope
 used by the completed-functional-equation multiplier. -/
@@ -1730,8 +1807,61 @@ theorem leftBoundary_finiteOrder_product_growth_bound
     le_rfl
   exact le_trans hmul (hcollapse ▸ htarget_guard)
 
-/-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
+/-- A positive polynomial vertical-height bound on the boundary line `re = 1` is an
+exponential finite-order bound in the same vertical-height variable. -/
+theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
+    {f : ℂ → ℂ}
+    (hpoly :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ w : ℂ,
+          w.re = 1 →
+          1 ≤ ‖w.im‖ →
+          ‖f w‖ ≤ A * (1 + ‖w.im‖) ^ m) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖f w‖ ≤ A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
+  rcases hpoly with ⟨A, m, hA_pos, hbound⟩
+  refine ⟨A, 1, m, hA_pos, zero_lt_one, ?_⟩
+  intro w hw_re hw_im
+  let H : ℝ := (1 + ‖w.im‖) ^ m
+  have hH_nonneg : 0 ≤ H :=
+    pow_nonneg
+      (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im)))
+      m
+  have hH_le_exp : H ≤ Real.exp ((1 : ℝ) * H) := by
+    have hone_mul : (1 : ℝ) * H = H := by
+      exact one_mul H
+    exact Eq.subst
+      (motive := fun x : ℝ => H ≤ Real.exp x)
+      hone_mul.symm
+      (Real.le_exp_self H)
+  have hscaled :
+      A * H ≤ A * Real.exp ((1 : ℝ) * H) :=
+    mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
+  exact le_trans (hbound w hw_re hw_im) hscaled
+
+/-- Standard polynomial vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`.
+
+This is the classical boundary-line estimate for the removable meromorphic factor
+`(s - 1)ζ(s)`, stated before conversion to the coarser finite-order envelope. -/
+theorem riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_standard :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * (1 + ‖w.im‖) ^ m := by
+  sorry
+
+/-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
+line `re = 1`, converted from the polynomial boundary-line estimate.
 
 This is the zeta-side finite-order theorem that must come from boundary-line estimates
 for the pole-cleared meromorphic zeta function, not from the false far-right `re = 2`
@@ -1745,7 +1875,8 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_growth_bound_standard 
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
-  sorry
+  exact boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
+    riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_standard
 
 /-- The standard vertical-height finite-order estimate for `(s - 1)ζ(s)` on `re = 1`
 implies the complex-height envelope consumed by the strip-normalization chain. -/

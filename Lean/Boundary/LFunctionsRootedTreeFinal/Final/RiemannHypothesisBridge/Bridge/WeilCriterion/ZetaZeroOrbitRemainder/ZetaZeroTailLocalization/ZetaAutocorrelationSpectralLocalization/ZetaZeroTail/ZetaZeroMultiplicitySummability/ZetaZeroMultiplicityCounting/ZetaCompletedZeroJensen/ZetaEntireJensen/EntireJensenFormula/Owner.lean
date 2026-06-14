@@ -243,6 +243,24 @@ noncomputable def entireFunctionJensenBoundaryLogAverage
     ∫ θ in (0 : ℝ)..(2 * Real.pi),
       entireFunctionJensenBoundaryLogIntegrand F R θ
 
+/-- Open-neighborhood identity theorem for entire functions.
+
+Once an entire function vanishes on a complex neighborhood of one point,
+preconnectedness of `ℂ` propagates the vanishing globally. -/
+theorem entireFunction_eq_zero_of_eventually_zero_nhds
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z₀ : ℂ)
+    (hlocal_zero : ∀ᶠ z in 𝓝 z₀, F z = 0) :
+    ∀ z : ℂ, F z = 0 := by
+  have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) :=
+    fun z _ => hF z
+  have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
+    hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+      isPreconnected_univ (by simp) hlocal_zero
+  intro z
+  exact hEq (by simp)
+
 /-- Real-arc identity theorem for a positive-radius exponential arc.
 
 This is the analytic-continuation bridge between a real-variable local zero
@@ -390,6 +408,59 @@ theorem log_two_le_log_doubled_radius_div_norm
     exact (le_div_iff₀ hz_pos).mpr hmul_le
   exact Real.log_le_log (by norm_num) htwo_le
 
+/-- The doubled-radius algebra converting the weighted Jensen radial-gap bound
+into the closed-disk zero-counting estimate. -/
+theorem entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hweighted :
+      ∃ J : ℝ,
+        ∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
+          J + (Real.log 2)⁻¹ *
+            entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  rcases hweighted with ⟨J, hJ⟩
+  refine ⟨(Real.log 2)⁻¹ * J, ?_⟩
+  intro R hR
+  have hlog_pos : 0 < Real.log 2 :=
+    real_log_two_pos
+  have hscaled :
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) ≤
+        (Real.log 2)⁻¹ *
+          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) := by
+    exact mul_le_mul_of_nonneg_left (hJ R hR) real_log_two_inv_nonneg
+  have hleft :
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+    calc
+      (Real.log 2)⁻¹ *
+          (entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2) =
+          ((Real.log 2)⁻¹ * Real.log 2) *
+            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        ring
+      _ = 1 * entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        exact congrArg
+          (fun x : ℝ => x *
+            entireFunctionZeroMultiplicityCountingInClosedDisk F hF R)
+          (inv_mul_cancel₀ hlog_pos.ne')
+      _ = entireFunctionZeroMultiplicityCountingInClosedDisk F hF R := by
+        exact one_mul _
+  have hright :
+      (Real.log 2)⁻¹ *
+          (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
+        (Real.log 2)⁻¹ * J +
+          (Real.log 2)⁻¹ * entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    ring
+  exact hleft ▸ hright ▸ hscaled
+
 /-- Standard Jensen formula with multiplicity counting on the doubled disk.
 
 After factoring the first nonzero Taylor term at the origin, Jensen's formula
@@ -407,7 +478,18 @@ theorem entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCount
         entireFunctionZeroMultiplicityCountingInClosedDisk F hF R ≤
           J + (Real.log 2)⁻¹ *
             entireFunctionJensenBoundaryLogAverage F (2 * R) := by
-  sorry
+  have hweighted :
+      ∃ J : ℝ,
+        ∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    -- This is the remaining classical Jensen formula input, after factoring
+    -- the first nonzero Taylor term at the origin; cf. Titchmarsh, §5.
+    sorry
+  exact
+    entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogAverage
+      F hF hweighted
 
 /-- Classical Jensen formula zero-counting estimate, including the doubled-radius
 `log 2` loss.
