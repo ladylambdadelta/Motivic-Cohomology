@@ -4871,9 +4871,11 @@ theorem boundaryLineOnePointRealParam_post_cutoff_reciprocal_le_cutoff
     Nat.le_of_lt hcutoff_lt_n
   exact positive_nat_reciprocal_antitone hcutoff_pos hcutoff_le_n
 
-/-- The geometric primitive for a finite oscillatory sequence.  This is the
-algebraic cancellation core used before estimating `∑ n^{-it}` away from zero
-frequency. -/
+/-- The geometric primitive for a finite constant-ratio oscillatory sequence.
+
+This is a reusable algebraic cancellation lemma.  It is not, by itself, the
+primitive estimate for `∑ n^{-it}`, whose phase is logarithmic rather than
+constant-ratio. -/
 theorem finite_geometric_oscillatory_primitive_eq
     {q : ℂ}
     (hq : q ≠ 1)
@@ -4926,8 +4928,28 @@ theorem finite_geometric_oscillatory_primitive_norm_le
     hformula.symm
     hdiv_le
 
+/-- The same geometric primitive estimate in the `Icc 0 M` form used by Abel summation. -/
+theorem finite_geometric_oscillatory_primitive_Icc_norm_le
+    {q : ℂ}
+    (hq : q ≠ 1)
+    (hqpow_norm : ∀ n : ℕ, ‖q ^ n‖ = 1)
+    (M : ℕ) :
+    ‖∑ k ∈ Finset.Icc 0 M, q ^ k‖ ≤ 2 / ‖q - 1‖ := by
+  have hrange :
+      Finset.range (M + 1) = Finset.Icc 0 M :=
+    Finset.range_eq_Icc_zero_sub_one (M + 1) (Nat.succ_ne_zero M)
+  have hsum :
+      (∑ k ∈ Finset.range (M + 1), q ^ k) =
+        ∑ k ∈ Finset.Icc 0 M, q ^ k :=
+    congrArg (fun S : Finset ℕ => ∑ k ∈ S, q ^ k) hrange
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 2 / ‖q - 1‖)
+    hsum
+    (finite_geometric_oscillatory_primitive_norm_le hq hqpow_norm M)
+
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
-coefficients are the oscillatory partial sums of `n^{-it}` and the weight is `1/x`. -/
+coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
+the weight is `1/x`. -/
 theorem abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
     (t : ℝ)
     {a b : ℝ}
@@ -5018,6 +5040,153 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
               (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
   exact abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
     t hNM hf_diff hf_int
+
+/-- Finite Abel reduction for the post-cutoff boundary-line oscillatory tail.
+
+This is the algebraic/order part of the Euler-Maclaurin tail route: once the
+oscillatory primitives
+`∑_{0 ≤ k ≤ floor x} k^{-it}` and the reciprocal-derivative integral have been
+bounded, the finite weighted tail is bounded by the two endpoint terms and the
+integral term. -/
+theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_norm_le
+    (t : ℝ)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hf_diff :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
+    (hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)))
+    (K I : ℝ)
+    (hK_nonneg : 0 ≤ K)
+    (hpartial :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ) →
+        ‖∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
+          (k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ K)
+    (hintegral :
+      ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
+              (k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ I) :
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      (1 / (M : ℝ)) * K +
+        (1 / (⌊2 + ‖t‖⌋₊ : ℝ)) * K + I := by
+  let N : ℕ := ⌊2 + ‖t‖⌋₊
+  let a : ℝ := ((N : ℕ) : ℝ)
+  let b : ℝ := ((M : ℕ) : ℝ)
+  let SM : ℂ :=
+    ∑ k ∈ Finset.Icc 0 ⌊b⌋₊,
+      (k : ℂ) ^ (-(t : ℂ) * Complex.I)
+  let SN : ℂ :=
+    ∑ k ∈ Finset.Icc 0 ⌊a⌋₊,
+      (k : ℂ) ^ (-(t : ℂ) * Complex.I)
+  let J : ℂ :=
+    ∫ x in Set.Ioc a b,
+      deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+        (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
+          (k : ℂ) ^ (-(t : ℂ) * Complex.I))
+  have hidentity :
+      (∑ k ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊,
+          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        ((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ) * SM -
+          (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN - J := by
+    exact abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
+      t hNM hf_diff hf_int
+  have hM_mem :
+      b ∈ Set.Icc a b := by
+    exact ⟨by exact_mod_cast hNM, le_rfl⟩
+  have hN_mem :
+      a ∈ Set.Icc a b := by
+    exact ⟨le_rfl, by exact_mod_cast hNM⟩
+  have hSM_norm : ‖SM‖ ≤ K :=
+    hpartial b hM_mem
+  have hSN_norm : ‖SN‖ ≤ K :=
+    hpartial a hN_mem
+  have hM_factor :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ = 1 / (M : ℝ) := by
+    calc
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
+          ‖((((M : ℕ) : ℝ) : ℂ))‖⁻¹ := by
+        exact norm_inv ((((M : ℕ) : ℝ) : ℂ))
+      _ = ‖((M : ℝ))‖⁻¹ := by
+        exact congrArg Inv.inv (Complex.norm_ofReal (M : ℝ))
+      _ = (M : ℝ)⁻¹ := by
+        have hM_nonneg : 0 ≤ (M : ℝ) :=
+          Nat.cast_nonneg M
+        exact congrArg Inv.inv (Real.norm_of_nonneg hM_nonneg)
+      _ = 1 / (M : ℝ) := by
+        exact (one_div (M : ℝ)).symm
+  have hN_factor :
+      ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ = 1 / (N : ℝ) := by
+    calc
+      ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ =
+          ‖((((N : ℕ) : ℝ) : ℂ))‖⁻¹ := by
+        exact norm_inv ((((N : ℕ) : ℝ) : ℂ))
+      _ = ‖((N : ℝ))‖⁻¹ := by
+        exact congrArg Inv.inv (Complex.norm_ofReal (N : ℝ))
+      _ = (N : ℝ)⁻¹ := by
+        have hN_nonneg : 0 ≤ (N : ℝ) :=
+          Nat.cast_nonneg N
+        exact congrArg Inv.inv (Real.norm_of_nonneg hN_nonneg)
+      _ = 1 / (N : ℝ) := by
+        exact (one_div (N : ℝ)).symm
+  have hM_term :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ ≤
+        (1 / (M : ℝ)) * K := by
+    calc
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ =
+          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ * ‖SM‖ := by
+        exact norm_mul (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) SM
+      _ ≤ (1 / (M : ℝ)) * K := by
+        exact mul_le_mul (le_of_eq hM_factor) hSM_norm hK_nonneg
+          (norm_nonneg (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+  have hN_term :
+      ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ ≤
+        (1 / (N : ℝ)) * K := by
+    calc
+      ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ =
+          ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ))‖ * ‖SN‖ := by
+        exact norm_mul (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) SN
+      _ ≤ (1 / (N : ℝ)) * K := by
+        exact mul_le_mul (le_of_eq hN_factor) hSN_norm hK_nonneg
+          (norm_nonneg (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)))
+  have htriangle :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
+          (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN - J‖ ≤
+        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
+          ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ := by
+    have hfirst :
+        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
+            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN - J‖ ≤
+          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
+            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ :=
+      norm_sub_le
+        (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
+          (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN)
+        J
+    have hsecond :
+        ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM -
+            (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ ≤
+          ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
+            ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ :=
+      norm_sub_le
+        (((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM)
+        (((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN)
+    exact le_trans hfirst (add_le_add_right hsecond ‖J‖)
+  have hterms :
+      ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SM‖ +
+          ‖(((((N : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) * SN‖ + ‖J‖ ≤
+        (1 / (M : ℝ)) * K + (1 / (N : ℝ)) * K + I :=
+    add_le_add (add_le_add hM_term hN_term) hintegral
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      ‖z‖ ≤ (1 / (M : ℝ)) * K + (1 / (N : ℝ)) * K + I)
+    hidentity.symm
+    (le_trans htriangle hterms)
 
 /-- Pointwise transport of the post-cutoff boundary-line Dirichlet tail to the
 Abel-normalized oscillatory tail. -/
@@ -5351,9 +5520,8 @@ boundary-line zeta remainder.
 Intended proof chain:
 apply `abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity` to
 finite tails, bound the oscillatory partial sums
-`∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|` by reducing each dyadic block to
-the geometric primitive
-`finite_geometric_oscillatory_primitive_norm_le`, use
+`∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|` by the logarithmic-phase
+Euler/van-der-Corput estimate, use
 `positive_nat_reciprocal_antitone` for the decreasing Abel weight, pass to the
 post-cutoff limit using the preceding `HasSum` identity, and combine the endpoint
 and integral estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of the

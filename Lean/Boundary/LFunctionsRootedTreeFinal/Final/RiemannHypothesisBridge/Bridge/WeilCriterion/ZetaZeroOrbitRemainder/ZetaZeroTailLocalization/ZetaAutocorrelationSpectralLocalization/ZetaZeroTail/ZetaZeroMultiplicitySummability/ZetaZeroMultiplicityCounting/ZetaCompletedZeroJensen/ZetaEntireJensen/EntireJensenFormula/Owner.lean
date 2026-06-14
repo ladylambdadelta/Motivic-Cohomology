@@ -2443,10 +2443,57 @@ theorem entireFunction_cauchyKernel_circleMap_boundaryCancellation
     deriv (Complex.circleMap (0 : ℂ) ρ) θ •
         (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
       Complex.I := by
-  -- Owner-level circle-map computation:
-  -- `deriv_circleMap` gives `circleMap 0 ρ θ * Complex.I`; `circleMap_ne_center`
-  -- applies because `1 ≤ ρ`, and the inverse factor cancels.
-  sorry
+  have hρ_pos : 0 < ρ :=
+    lt_of_lt_of_le zero_lt_one hρ
+  have hρ_ne : ρ ≠ 0 :=
+    hρ_pos.ne'
+  have hcircle_ne :
+      Complex.circleMap (0 : ℂ) ρ θ ≠ 0 :=
+    Complex.circleMap_ne_center hρ_ne
+  have hsub :
+      Complex.circleMap (0 : ℂ) ρ θ - 0 =
+        Complex.circleMap (0 : ℂ) ρ θ :=
+    Complex.circleMap_sub_center (0 : ℂ) ρ θ
+  have hderiv :
+      deriv (Complex.circleMap (0 : ℂ) ρ) θ =
+        Complex.circleMap (0 : ℂ) ρ θ * Complex.I :=
+    Complex.deriv_circleMap (0 : ℂ) ρ θ
+  have hcancel :
+      (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ =
+        Complex.I := by
+    calc
+      (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ =
+          (Complex.I * Complex.circleMap (0 : ℂ) ρ θ) *
+            (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ := by
+        exact congrArg
+          (fun z : ℂ => z * (Complex.circleMap (0 : ℂ) ρ θ)⁻¹)
+          (mul_comm (Complex.circleMap (0 : ℂ) ρ θ) Complex.I)
+      _ = Complex.I := by
+        exact mul_inv_cancel_right₀ hcircle_ne Complex.I
+  calc
+    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+        deriv (Complex.circleMap (0 : ℂ) ρ) θ *
+          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
+      exact smul_eq_mul
+        (deriv (Complex.circleMap (0 : ℂ) ρ) θ)
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)
+    _ =
+        (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
+      exact congrArg
+        (fun z : ℂ => z * (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ))
+        hderiv
+    _ =
+        (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ := by
+      exact congrArg
+        (fun z : ℂ => (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) * z)
+        (congrArg Inv.inv hsub)
+    _ = Complex.I :=
+      hcancel
 
 /-- Circle-integral transport for the holomorphic mean value formula on the
 Jensen boundary.
@@ -2472,9 +2519,27 @@ theorem entireFunction_two_pi_I_inv_smul_I_smul_eq_two_pi_inv_smul
     (w : ℂ) :
     ((2 * Real.pi * Complex.I : ℂ)⁻¹ • (Complex.I • w)) =
       ((2 * Real.pi : ℂ)⁻¹ • w) := by
-  -- The nonzero real scalar `2π` and `Complex.I * Complex.I⁻¹` reduce the
-  -- Cauchy normalization to the angular mean normalization.
-  sorry
+  have hcoeff :
+      ((2 * Real.pi * Complex.I : ℂ)⁻¹ * Complex.I) =
+        ((2 * Real.pi : ℂ)⁻¹) := by
+    calc
+      ((2 * Real.pi * Complex.I : ℂ)⁻¹ * Complex.I) =
+          (((2 * Real.pi : ℂ)⁻¹ * Complex.I⁻¹) * Complex.I) := by
+        exact congrArg (fun z : ℂ => z * Complex.I)
+          (mul_inv_rev (2 * Real.pi : ℂ) Complex.I)
+      _ = ((2 * Real.pi : ℂ)⁻¹ * (Complex.I⁻¹ * Complex.I)) := by
+        exact mul_assoc ((2 * Real.pi : ℂ)⁻¹) Complex.I⁻¹ Complex.I
+      _ = ((2 * Real.pi : ℂ)⁻¹ * 1) := by
+        exact congrArg (fun z : ℂ => ((2 * Real.pi : ℂ)⁻¹ * z))
+          (inv_mul_cancel₀ Complex.I_ne_zero)
+      _ = ((2 * Real.pi : ℂ)⁻¹) := by
+        exact mul_one ((2 * Real.pi : ℂ)⁻¹)
+  calc
+    ((2 * Real.pi * Complex.I : ℂ)⁻¹ • (Complex.I • w)) =
+        (((2 * Real.pi * Complex.I : ℂ)⁻¹ * Complex.I) • w) := by
+      exact smul_smul (2 * Real.pi * Complex.I : ℂ)⁻¹ Complex.I w
+    _ = ((2 * Real.pi : ℂ)⁻¹ • w) := by
+      exact congrArg (fun z : ℂ => z • w) hcoeff
 
 /-- The Cauchy center formula after circle parametrization and scalar
 normalization. -/
@@ -2534,43 +2599,106 @@ theorem entireFunction_analyticLog_complex_holomorphicMeanValue_circle
     entireFunction_analyticLog_complex_holomorphicMeanValue_circle_from_cauchyKernel
       L hρ hL
 
+/-- Real-part transport across an interval integral, in the mathematically
+correct form with interval integrability of the complex integrand. -/
+theorem entireFunction_boundaryIntervalIntegral_re_of_intervalIntegrable
+    (L : ℂ → ℂ)
+    (ρ : ℝ)
+    (hL_int :
+      IntervalIntegrable
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi)) :
+    ((∫ θ in (0 : ℝ)..(2 * Real.pi),
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      ∫ θ in (0 : ℝ)..(2 * Real.pi),
+        (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re := by
+  have hmap :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Complex.reCLM
+            (L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
+        Complex.reCLM
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
+    exact ContinuousLinearMap.intervalIntegral_comp_comm Complex.reCLM hL_int
+  exact hmap.symm
+
 /-- The real part of the Jensen angular interval integral is the interval
-integral of the real part.
+integral of the real part, under the necessary integrability hypothesis.
 
 This is the canonical `intervalIntegral`/`Complex.re` transport needed after
 the complex mean-value formula. -/
 theorem entireFunction_boundaryIntervalIntegral_re
     (L : ℂ → ℂ)
-    (ρ : ℝ) :
+    (ρ : ℝ)
+    (hL_int :
+      IntervalIntegrable
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi)) :
     ((∫ θ in (0 : ℝ)..(2 * Real.pi),
         L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
       ∫ θ in (0 : ℝ)..(2 * Real.pi),
         (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re := by
-  -- This is `integral_re` after unfolding `intervalIntegral` to the oriented
-  -- integral over `uIoc`, with the orientation real scalar acting by
-  -- `Complex.real_smul`.
+  exact entireFunction_boundaryIntervalIntegral_re_of_intervalIntegrable L ρ hL_int
+
+/-- Analyticity on Jensen's closed disk makes the angular boundary
+parametrization interval-integrable. -/
+theorem entireFunction_boundaryIntervalIntegrable_of_analyticOnClosedDisk
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    IntervalIntegrable
+      (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  -- The boundary path is continuous and lies in the closed disk by
+  -- `Complex.abs_circleMap_zero`; analytic functions are continuous on that
+  -- image, hence the compact interval parametrization is interval-integrable.
   sorry
+
+/-- Real scalar multiplication in `ℂ`, viewed by real parts. -/
+theorem entireFunction_complexMean_realScalar_re_mul
+    (c : ℝ)
+    (w : ℂ) :
+    (((c : ℂ) * w).re) = c * w.re := by
+  exact Complex.re_ofReal_mul c w
 
 /-- Real part of a complex mean with a real scalar coefficient. -/
 theorem entireFunction_complexMean_realScalar_re
     (c : ℝ)
     (w : ℂ) :
     (((c : ℂ) • w).re) = c * w.re := by
-  -- This is the scalar-coercion normal form for the real part map on `ℂ`.
-  sorry
+  have hsmul : ((c : ℂ) • w) = (c : ℂ) * w :=
+    smul_eq_mul (c : ℂ) w
+  exact Eq.trans
+    (congrArg Complex.re hsmul)
+    (entireFunction_complexMean_realScalar_re_mul c w)
 
 /-- The complex inverse of the real Jensen normalizing scalar is the coercion
 of the real inverse. -/
 theorem entireFunction_complex_twoPi_inv_eq_real_twoPi_inv :
     ((2 * Real.pi : ℂ)⁻¹) = (((2 * Real.pi)⁻¹ : ℝ) : ℂ) := by
-  -- This is `Complex.ofReal_inv` for the nonzero real number `2π`.
-  sorry
+  exact (Complex.ofReal_inv (2 * Real.pi)).symm
 
 /-- Real-part transport for the normalized complex boundary mean, isolated from
 the analytic Cauchy input. -/
 theorem entireFunction_complexMeanValue_re_part_transport_from_integral_re
     (L : ℂ → ℂ)
     {ρ : ℝ}
+    (hL_int :
+      IntervalIntegrable
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi))
     (hcomplex :
       ((2 * Real.pi : ℂ)⁻¹ •
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -2596,7 +2724,7 @@ theorem entireFunction_complexMeanValue_re_part_transport_from_integral_re
           L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re =
         ∫ θ in (0 : ℝ)..(2 * Real.pi),
           (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re :=
-    entireFunction_boundaryIntervalIntegral_re L ρ
+    entireFunction_boundaryIntervalIntegral_re L ρ hL_int
   have hleft :
       ((((2 * Real.pi)⁻¹ : ℝ) : ℂ) •
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -2626,6 +2754,12 @@ theorem entireFunction_complexMeanValue_re_part_transport_from_integral_re
 theorem entireFunction_complexMeanValue_re_part_transport
     (L : ℂ → ℂ)
     {ρ : ℝ}
+    (hL_int :
+      IntervalIntegrable
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi))
     (hcomplex :
       ((2 * Real.pi : ℂ)⁻¹ •
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -2637,7 +2771,7 @@ theorem entireFunction_complexMeanValue_re_part_transport
       (L 0).re := by
   exact
     entireFunction_complexMeanValue_re_part_transport_from_integral_re
-      L hcomplex
+      L hL_int hcomplex
 
 /-- Cauchy mean-value theorem for the real part of a holomorphic function on a
 Jensen circle.
@@ -2666,7 +2800,14 @@ theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle_from_cauchyInt
             L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))) =
         L 0 :=
     entireFunction_analyticLog_complex_holomorphicMeanValue_circle L hρ hL
-  exact entireFunction_complexMeanValue_re_part_transport L hcomplex
+  have hL_int :
+      IntervalIntegrable
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
+        MeasureTheory.volume
+        (0 : ℝ)
+        (2 * Real.pi) :=
+    entireFunction_boundaryIntervalIntegrable_of_analyticOnClosedDisk L hρ hL
+  exact entireFunction_complexMeanValue_re_part_transport L hL_int hcomplex
 
 /-- Mean-value theorem for the real part of a holomorphic function on a disk,
 with Jensen's boundary parametrization and normalization. -/
