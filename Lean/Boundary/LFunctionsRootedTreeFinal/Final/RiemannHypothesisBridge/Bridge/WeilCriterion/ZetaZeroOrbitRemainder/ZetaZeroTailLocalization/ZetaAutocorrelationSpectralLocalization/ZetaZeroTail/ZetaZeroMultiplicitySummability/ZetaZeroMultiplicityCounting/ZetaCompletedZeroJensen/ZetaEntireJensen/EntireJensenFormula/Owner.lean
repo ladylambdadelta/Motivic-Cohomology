@@ -2419,13 +2419,36 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_eq_zero_of_norm_eq_radiu
   have hρ_pos : 0 < ρ :=
     Eq.subst (motive := fun x : ℝ => 0 < x) haρ
       (norm_pos_iff.mpr ha0)
-  obtain ⟨α, hα⟩ := Complex.exists_norm_eq_mul_exp_arg a ha0
+  let α : ℝ := Complex.arg a
   have hρ_ne : (ρ : ℂ) ≠ 0 :=
     ofReal_ne_zero.mpr hρ_pos.ne'
   have ha_eq : a = (ρ : ℂ) * Complex.exp (α * Complex.I) := by
+    have hpolar :
+        a = (‖a‖ : ℂ) * Complex.exp (α * Complex.I) := by
+      have hexp_log : Complex.exp (Complex.log a) = a :=
+        Complex.exp_log ha0
+      have hlog :
+          Complex.log a = (Real.log ‖a‖ : ℂ) + α * Complex.I := by
+        rfl
+      have hexp_split :
+          Complex.exp (Complex.log a) =
+            Complex.exp (Real.log ‖a‖ : ℂ) *
+              Complex.exp (α * Complex.I) := by
+        exact Eq.trans
+          (congrArg Complex.exp hlog)
+          (Complex.exp_add (Real.log ‖a‖ : ℂ) (α * Complex.I))
+      have hexp_re :
+          Complex.exp (Real.log ‖a‖ : ℂ) = (‖a‖ : ℂ) := by
+        exact Complex.ofReal_exp (Real.log ‖a‖) ▸
+          congrArg (fun x : ℝ => (x : ℂ))
+            (Real.exp_log (norm_pos_iff.mpr ha0))
+      exact Eq.trans hexp_log.symm
+        (Eq.trans hexp_split
+          (congrArg (fun x : ℂ => x * Complex.exp (α * Complex.I)) hexp_re))
     have hnorm_eq : (‖a‖ : ℂ) = (ρ : ℂ) :=
       congrArg (fun x : ℝ => (x : ℂ)) haρ
-    exact Eq.trans hα (congrArg (fun x : ℂ => x * Complex.exp (α * Complex.I)) hnorm_eq)
+    exact Eq.trans hpolar
+      (congrArg (fun x : ℂ => x * Complex.exp (α * Complex.I)) hnorm_eq)
   have hintegrand :
       (fun θ : ℝ =>
         Real.log

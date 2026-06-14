@@ -12776,7 +12776,29 @@ multiplier on the left half-plane.
 
 Analytically this is exactly the Gamma-ratio/Stirling estimate plus the
 removable boundedness at `z = 0`; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBranch_leftHalfPlane_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        Complex.Gammaℝ z = 0 →
+        ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
+    (hgammaZero :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          z ≠ 0 →
+          Complex.Gammaℝ z = 0 →
+          ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
     (hraw :
       ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
         0 < A ∧
@@ -12794,24 +12816,43 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
         z.re ≤ 0 →
         ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hgammaZero with ⟨Az, Bz, mz, hAz, hBz, hgammaZero_bound⟩
   rcases hraw with ⟨A, B, m, hA, hB, hraw_bound⟩
   let C : ℝ := ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier 0‖
-  refine ⟨A + C + 1, B, m, ?_, hB, ?_⟩
+  refine ⟨Az + A + C + 1, Bz + B, mz + m, ?_, add_pos hBz hB, ?_⟩
   · have hC_one_pos : 0 < C + 1 :=
       add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one
-    have hA_add_pos : 0 < A + (C + 1) :=
+    have hA_C_pos : 0 < A + (C + 1) :=
       add_pos hA hC_one_pos
+    have hA_add_pos : 0 < Az + (A + (C + 1)) :=
+      add_pos hAz hA_C_pos
     exact Eq.subst
       (motive := fun x : ℝ => 0 < x)
-      (add_assoc A C 1).symm
+      (by
+        calc
+          Az + (A + (C + 1)) = Az + ((A + C) + 1) := by
+            exact congrArg (fun x : ℝ => Az + x) (add_assoc A C 1).symm
+          _ = Az + (A + C) + 1 := by
+            exact add_assoc Az (A + C) 1
+          _ = Az + A + C + 1 := by
+            exact congrArg (fun x : ℝ => x + 1) (add_assoc Az A C).symm)
       hA_add_pos
   intro z hz_left
+  have hAz_nonneg : 0 ≤ Az := le_of_lt hAz
   have hA_nonneg : 0 ≤ A := le_of_lt hA
   have hC_nonneg : 0 ≤ C := norm_nonneg _
-  have hA_le : A ≤ A + C + 1 := by
+  have hA_le : A ≤ Az + A + C + 1 := by
     calc
-      A ≤ A + C := le_add_of_nonneg_right hC_nonneg
-      _ ≤ A + C + 1 := le_add_of_nonneg_right zero_le_one
+      A ≤ Az + A := le_add_of_nonneg_left hAz_nonneg
+      _ ≤ Az + A + C := le_add_of_nonneg_right hC_nonneg
+      _ ≤ Az + A + C + 1 := le_add_of_nonneg_right zero_le_one
+  have hAz_le : Az ≤ Az + A + C + 1 := by
+    calc
+      Az ≤ Az + A := le_add_of_nonneg_right hA_nonneg
+      _ ≤ Az + A + C := le_add_of_nonneg_right hC_nonneg
+      _ ≤ Az + A + C + 1 := le_add_of_nonneg_right zero_le_one
+  have hB_le : B ≤ Bz + B := le_add_of_nonneg_left (le_of_lt hBz)
+  have hBz_le : Bz ≤ Bz + B := le_add_of_nonneg_right (le_of_lt hB)
   by_cases hz_zero : z = 0
   · have hM_zero :
         poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
@@ -12820,53 +12861,81 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
     have hnorm_eq :
         ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ = C := by
       exact congrArg norm hM_zero
-    have hC_le_A : C ≤ A + C + 1 := by
+    have hC_le_A : C ≤ Az + A + C + 1 := by
       calc
         C ≤ A + C := le_add_of_nonneg_left hA_nonneg
-        _ ≤ A + C + 1 := le_add_of_nonneg_right zero_le_one
+        _ ≤ Az + (A + C) := le_add_of_nonneg_left hAz_nonneg
+        _ = Az + A + C := (add_assoc Az A C).symm
+        _ ≤ Az + A + C + 1 := le_add_of_nonneg_right zero_le_one
     have hfactor_ge_one :
-        (1 : ℝ) ≤ Real.exp (B * (1 + ‖z‖) ^ m) := by
+        (1 : ℝ) ≤ Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)) := by
       have hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
         le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
-      have hexponent_nonneg : 0 ≤ B * (1 + ‖z‖) ^ m :=
-        mul_nonneg (le_of_lt hB) (pow_nonneg hbase_nonneg m)
+      have hexponent_nonneg : 0 ≤ (Bz + B) * (1 + ‖z‖) ^ (mz + m) :=
+        mul_nonneg (le_of_lt (add_pos hBz hB)) (pow_nonneg hbase_nonneg (mz + m))
       exact le_trans (le_of_eq Real.exp_zero.symm)
         (Real.exp_le_exp.mpr hexponent_nonneg)
     have htarget :
-        C ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) := by
+        C ≤ (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)) := by
       calc
-        C ≤ A + C + 1 := hC_le_A
-        _ = (A + C + 1) * 1 := by
-          exact (mul_one (A + C + 1)).symm
-        _ ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) :=
+        C ≤ Az + A + C + 1 := hC_le_A
+        _ = (Az + A + C + 1) * 1 := by
+          exact (mul_one (Az + A + C + 1)).symm
+        _ ≤ (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)) :=
           mul_le_mul_of_nonneg_left hfactor_ge_one
             (le_trans hC_nonneg hC_le_A)
     exact Eq.subst
       (motive := fun x : ℝ =>
-        x ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m))
+        x ≤ (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)))
       hnorm_eq.symm
       htarget
-  · have hM_raw :
-        poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
-          ((z - 1) / (((1 : ℂ) - z) - 1)) *
-            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-      unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-      exact if_neg hz_zero
-    have hraw_z :
-        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
-            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) :=
-      hraw_bound z hz_left hz_zero
-    have henlarge :
-        A * Real.exp (B * (1 + ‖z‖) ^ m) ≤
-          (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m) :=
-      exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
-        hA_nonneg hA_le (le_refl B) (le_of_lt hB) (le_refl m)
-    exact Eq.subst
-      (motive := fun w : ℂ =>
-        ‖w‖ ≤ (A + C + 1) * Real.exp (B * (1 + ‖z‖) ^ m))
-      hM_raw.symm
-      (hraw_z.trans henlarge)
+  · by_cases hGamma_zero : Complex.Gammaℝ z = 0
+      · have hM_gamma :
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+              poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z) := by
+          unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+          exact Eq.trans (if_neg hz_zero) (if_pos hGamma_zero)
+        have hbranch :
+            ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+              Az * Real.exp (Bz * (1 + ‖z‖) ^ mz) :=
+          hgammaZero_bound z hz_left hz_zero hGamma_zero
+        have henlarge :
+            Az * Real.exp (Bz * (1 + ‖z‖) ^ mz) ≤
+              (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)) :=
+          exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+            (le_of_lt hAz) hAz_le hBz_le (le_of_lt hBz)
+            (Nat.le_add_right mz m)
+        exact Eq.subst
+          (motive := fun w : ℂ =>
+            ‖w‖ ≤ (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)))
+          hM_gamma.symm
+          (hbranch.trans henlarge)
+      · have hM_raw :
+            poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+              ((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+          unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+          exact Eq.trans (if_neg hz_zero) (if_neg hGamma_zero)
+        have hraw_z :
+            ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+                (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+              A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+          hraw_bound z hz_left hz_zero
+        have henlarge :
+            A * Real.exp (B * (1 + ‖z‖) ^ m) ≤
+              (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)) :=
+          exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+            hA_nonneg hA_le hB_le (le_of_lt hB)
+            (by
+              exact Eq.subst
+                (motive := fun d : ℕ => m ≤ d)
+                (Nat.add_comm m mz)
+                (Nat.le_add_right m mz))
+        exact Eq.subst
+          (motive := fun w : ℂ =>
+            ‖w‖ ≤ (Az + A + C + 1) * Real.exp ((Bz + B) * (1 + ‖z‖) ^ (mz + m)))
+          hM_raw.symm
+          (hraw_z.trans henlarge)
 
 /-- Product-envelope exponential collapse for finite-order growth estimates.
 
