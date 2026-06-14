@@ -1173,6 +1173,93 @@ theorem eulerMaclaurin_cpow_neg_integral_Ioc_tendsto_integral_Ioi
     exact hinterval.symm
   exact h_interval.congr' hset_eq.symm
 
+/-- Integrability of the unfactored Bernoulli/cpow kernel on a positive
+post-cutoff tail in the convergent half-plane.
+
+The proof is the direct majorant estimate
+`|B₁({x}) x^{-(z+1)}| ≤ x^{-(Re z + 1)}` on `x ≥ N ≥ 1`, followed by the
+standard real-power tail integrability for exponent below `-1`. -/
+theorem eulerMaclaurin_cpow_neg_bernoulliKernel_integrableOn_Ioi
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    IntegrableOn
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (((x : ℝ) : ℂ) ^ (-(z + 1))))
+      (Set.Ioi (((N : ℕ) : ℝ))) := by
+  let s : Set ℝ := Set.Ioi (((N : ℕ) : ℝ))
+  let f : ℝ → ℂ := fun x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  let g : ℝ → ℝ := fun x : ℝ => x ^ (-(z.re + 1))
+  have hN_one_nat : 1 ≤ N :=
+    Nat.succ_le_of_lt hN
+  have hN_one_real : (1 : ℝ) ≤ ((N : ℕ) : ℝ) := by
+    exact_mod_cast hN_one_nat
+  have hN_pos_real : 0 < (((N : ℕ) : ℝ)) := by
+    exact_mod_cast hN
+  have htwo_le : (2 : ℝ) ≤ z.re + 1 := by
+    have hone_le : (1 : ℝ) ≤ z.re :=
+      le_of_lt hhalf_plane
+    calc
+      (2 : ℝ) = 1 + 1 := by
+        exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
+      _ ≤ z.re + 1 :=
+        add_le_add hone_le le_rfl
+  have hone_lt : (1 : ℝ) < z.re + 1 :=
+    lt_of_lt_of_le one_lt_two htwo_le
+  have hexponent_lt : -(z.re + 1) < -(1 : ℝ) :=
+    neg_lt_neg hone_lt
+  have hg_integrable : IntegrableOn g s :=
+    integrableOn_Ioi_rpow_of_lt hexponent_lt hN_pos_real
+  have hf_meas :
+      AEStronglyMeasurable f (volume.restrict s) := by
+    simpa [f, s] using
+      eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
+  have hbound :
+      ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x := by
+    exact (ae_restrict_mem measurableSet_Ioi).mono
+      (fun x hx_tail => by
+        have hx_one : 1 ≤ x :=
+          le_trans hN_one_real (le_of_lt hx_tail)
+        have hx_pos : 0 < x :=
+          lt_of_lt_of_le zero_lt_one hx_one
+        have hB :
+            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 :=
+          eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_local x
+        have hcpow :
+            ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ g x :=
+          eulerMaclaurin_norm_real_cpow_le_rpow_of_re_lower
+            hx_pos hx_one z (le_of_lt hhalf_plane)
+        have hmul :
+            ‖f x‖ =
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ := by
+          exact norm_mul
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+            (((x : ℝ) : ℂ) ^ (-(z + 1)))
+        have hg_nonneg : 0 ≤ g x :=
+          Real.rpow_nonneg (le_of_lt hx_pos) (-(z.re + 1))
+        have hproduct :
+            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤
+              1 * g x :=
+          mul_le_mul hB hcpow
+            (norm_nonneg (((x : ℝ) : ℂ) ^ (-(z + 1))))
+            hg_nonneg
+        exact Eq.subst
+          (motive := fun y : ℝ => y ≤ g x)
+          hmul.symm
+          (Eq.subst
+            (motive := fun y : ℝ =>
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                  ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ y)
+            (one_mul (g x)).symm
+            hproduct))
+  exact Integrable.mono' hg_integrable hf_meas hbound
+
 /-- Integrability of the first-order Bernoulli derivative remainder tail in
 the convergent zeta half-plane. -/
 theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_integrableOn_Ioi
@@ -1185,7 +1272,38 @@ theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_integrableOn_Ioi
         ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))
       (Set.Ioi (((N : ℕ) : ℝ))) := by
-  sorry
+  let f : ℝ → ℂ := fun x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have hf_int : IntegrableOn f (Set.Ioi (((N : ℕ) : ℝ))) :=
+    eulerMaclaurin_cpow_neg_bernoulliKernel_integrableOn_Ioi
+      z N hN hhalf_plane
+  have hpoint :
+      (fun x : ℝ =>
+        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+          (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+      (fun x : ℝ => -z * f x) := by
+    exact funext
+      (fun x : ℝ => by
+        let a : ℂ := ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+        let b : ℂ := (((x : ℝ) : ℂ) ^ (-(z + 1)))
+        calc
+          a * (-z * b) = (a * -z) * b := by
+            exact (mul_assoc a (-z) b).symm
+          _ = (-z * a) * b := by
+            exact congrArg (fun y : ℂ => y * b) (mul_comm a (-z))
+          _ = -z * (a * b) := by
+            exact mul_assoc (-z) a b)
+  have hconst :
+      IntegrableOn
+        (fun x : ℝ => -z * f x)
+        (Set.Ioi (((N : ℕ) : ℝ))) :=
+    hf_int.const_mul (-z)
+  exact Eq.subst
+    (motive := fun F : ℝ → ℂ =>
+      IntegrableOn F (Set.Ioi (((N : ℕ) : ℝ))))
+    hpoint.symm
+    hconst
 
 /-- The finite Bernoulli remainder integral over `(N, M]` tends to the
 improper Bernoulli remainder integral over `(N, ∞)`. -/
@@ -1234,6 +1352,93 @@ theorem eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
       intervalIntegral.integral_of_le hle
     exact hinterval.symm
   exact h_interval.congr' hset_eq.symm
+
+/-- Range partial sums of a zero-extended strict tail are the corresponding
+`Ioc` sums. -/
+theorem sum_range_succ_strictTail_eq_sum_Ioc
+    (f : ℕ → ℂ)
+    (N M : ℕ) :
+    (∑ n in Finset.range (M + 1), if N < n then f n else 0) =
+      ∑ n in Finset.Ioc N M, f n := by
+  classical
+  calc
+    (∑ n in Finset.range (M + 1), if N < n then f n else 0) =
+        ∑ n in (Finset.range (M + 1)).filter (fun n : ℕ => N < n), f n := by
+      exact (Finset.sum_filter (s := Finset.range (M + 1))
+        (p := fun n : ℕ => N < n) (f := f)).symm
+    _ = ∑ n in Finset.Ioc N M, f n := by
+      have hset :
+          (Finset.range (M + 1)).filter (fun n : ℕ => N < n) =
+            Finset.Ioc N M := by
+        ext n
+        constructor
+        · intro hn
+          have hn_range : n ∈ Finset.range (M + 1) :=
+            (Finset.mem_filter.mp hn).1
+          have hn_gt : N < n :=
+            (Finset.mem_filter.mp hn).2
+          have hn_le : n ≤ M :=
+            Nat.lt_succ_iff.mp (Finset.mem_range.mp hn_range)
+          exact Finset.mem_Ioc.mpr ⟨hn_gt, hn_le⟩
+        · intro hn
+          have hn_gt : N < n :=
+            (Finset.mem_Ioc.mp hn).1
+          have hn_le : n ≤ M :=
+            (Finset.mem_Ioc.mp hn).2
+          have hn_range : n ∈ Finset.range (M + 1) :=
+            Finset.mem_range.mpr (Nat.lt_succ_iff.mpr hn_le)
+          exact Finset.mem_filter.mpr ⟨hn_range, hn_gt⟩
+      exact congrArg (fun s : Finset ℕ => ∑ n in s, f n) hset
+
+/-- Ordered finite strict-tail sums over `Ioc N M` give the unconditional
+`HasSum` of the zero-extended post-cutoff sequence once the latter is
+absolutely summable.
+
+This is the index bridge between the sequential Euler-Maclaurin finite-window
+limit and mathlib's unordered `HasSum` over `ℕ`. -/
+theorem hasSum_of_Ioc_strictTail_tendsto_of_summable_norm
+    (f : ℕ → ℂ)
+    (N : ℕ)
+    (S : ℂ)
+    (hsummable_norm : Summable
+      (fun n : ℕ => ‖if N < n then f n else 0‖))
+    (htendsto :
+      Tendsto
+        (fun M : ℕ => ∑ n in Finset.Ioc N M, f n)
+        atTop
+        (𝓝 S)) :
+    HasSum
+      (fun n : ℕ => if N < n then f n else 0)
+      S := by
+  let g : ℕ → ℂ := fun n : ℕ => if N < n then f n else 0
+  have hshift :
+      Tendsto
+        (fun M : ℕ => ∑ n in Finset.range (M + 1), g n)
+        atTop
+        (𝓝 S) := by
+    have hpoint :
+        (fun M : ℕ => ∑ n in Finset.range (M + 1), g n) =
+        (fun M : ℕ => ∑ n in Finset.Ioc N M, f n) := by
+      exact funext
+        (fun M : ℕ => by
+          unfold g
+          exact sum_range_succ_strictTail_eq_sum_Ioc f N M)
+    exact Eq.subst
+      (motive := fun F : ℕ → ℂ => Tendsto F atTop (𝓝 S))
+      hpoint.symm
+      htendsto
+  have hunshift :
+      Tendsto
+        (fun M : ℕ => ∑ n in Finset.range M, g n)
+        atTop
+        (𝓝 S) := by
+    exact (tendsto_add_atTop_iff_nat (f :=
+      fun M : ℕ => ∑ n in Finset.range M, g n) 1).mp hshift
+  have hhas :
+      HasSum g S :=
+    (hasSum_iff_tendsto_nat_of_summable_norm hsummable_norm).mpr
+      hunshift
+  exact hhas
 
 /-- Limit passage from the finite strict-tail Euler-Maclaurin identity to the
 improper post-cutoff `HasSum`.
@@ -1298,7 +1503,98 @@ theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
               (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) :=
     eulerMaclaurin_cpow_neg_bernoulliRemainder_Ioc_tendsto_integral_Ioi
       z N hN hhalf_plane
-  sorry
+  let A : ℂ :=
+    ∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+      (((x : ℝ) : ℂ) ^ (-z))
+  let B : ℂ :=
+    (1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))
+  let C : ℂ :=
+    ∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+        (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))
+  have hfinite_tendsto :
+      Tendsto
+        (fun M : ℕ =>
+          ∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z))
+        atTop
+        (𝓝 (A + B + C)) := by
+    have hfinite_eventually :
+        (fun M : ℕ =>
+          ∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z))
+          =ᶠ[atTop]
+        (fun M : ℕ =>
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              (((x : ℝ) : ℂ) ^ (-z))) +
+            B +
+            (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+      filter_upwards [eventually_ge_atTop N] with M hNM
+      exact hfinite M hNM
+    have hassembled :
+        Tendsto
+          (fun M : ℕ =>
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+                (((x : ℝ) : ℂ) ^ (-z))) +
+              B +
+              (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+              (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+                ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                  (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))))
+          atTop
+          (𝓝 (A + B + 0 + C)) := by
+      exact
+        (((hmain.add tendsto_const_nhds).add hendpoint).add hremainder)
+    have htarget : A + B + 0 + C = A + B + C := by
+      calc
+        A + B + 0 + C = A + B + C := by
+          exact congrArg (fun x : ℂ => x + C) (add_zero (A + B))
+    exact
+      Eq.subst
+        (motive := fun T : ℂ =>
+          Tendsto
+            (fun M : ℕ =>
+              ∑ n in Finset.Ioc N M,
+                (((n : ℕ) : ℝ) : ℂ) ^ (-z))
+            atTop
+            (𝓝 T))
+        htarget
+        (hassembled.congr' hfinite_eventually.symm)
+  have hsummable_tail :
+      Summable
+        (fun n : ℕ =>
+          if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) := by
+    have hone_div_summable :
+        Summable
+          (fun n : ℕ =>
+            if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) := by
+      let f : ℕ → ℂ := fun n : ℕ => (1 : ℂ) / ((n : ℂ) ^ z)
+      have hf_summable : Summable f :=
+        (Complex.summable_one_div_nat_cpow (p := z)).mpr hhalf_plane
+      exact hf_summable.indicator (fun n : ℕ => N < n)
+    have hterms :
+        (fun n : ℕ =>
+          if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0) =
+        (fun n : ℕ =>
+          if N < n then (1 : ℂ) / ((n : ℂ) ^ z) else 0) :=
+      eulerMaclaurin_cpow_neg_postCutoffTail_terms_eq_one_div z N hN
+    exact Eq.subst
+      (motive := fun F : ℕ → ℂ => Summable F)
+      hterms.symm
+      hone_div_summable
+  have hsummable_norm :
+      Summable
+        (fun n : ℕ =>
+          ‖if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0‖) :=
+    summable_norm_iff.mpr hsummable_tail
+  exact
+    hasSum_of_Ioc_strictTail_tendsto_of_summable_norm
+      (fun n : ℕ => (((n : ℕ) : ℝ) : ℂ) ^ (-z))
+      N
+      (A + B + C)
+      hsummable_norm
+      hfinite_tendsto
 
 /-- Standard first-order Euler-Maclaurin formula for the zeta complex-power
 post-cutoff tail in function notation.
