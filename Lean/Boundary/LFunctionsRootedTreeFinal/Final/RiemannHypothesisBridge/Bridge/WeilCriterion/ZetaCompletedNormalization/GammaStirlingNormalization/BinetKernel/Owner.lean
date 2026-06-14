@@ -1397,6 +1397,29 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       (w := w) hw_re_pos
 
+/-- Contour-deformed Binet tail kernel package for the full right half-plane.
+
+This is the exact branch input missing from the principal-arctangent proof.
+It supplies a deformed tail kernel, an a.e. comparison from the literal
+principal tail kernel to that deformed kernel on the split tail, and the
+uniform `C / ‖w‖` pointwise majorant for the deformed kernel. -/
+theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package :
+    ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
+      0 < R ∧
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+            ‖Complex.arctan ((t : ℂ) / w) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+              ‖K w t‖) ∧
+          (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+            ‖K w t‖ ≤
+              (C / ‖w‖) *
+                (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))) := by
+  sorry
+
 /-- Branch-uniform full-sector pointwise tail majorant for the Binet
 arctangent kernel.
 
@@ -1418,7 +1441,15 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwis
                 (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
             (C / ‖w‖) *
               (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package with
+    ⟨K, Rtail, Ctail, hRtail, hCtail, hpackage⟩
+  refine ⟨Rtail, Ctail, hRtail, hCtail, ?_⟩
+  intro w hw_re_pos hRtail_le
+  rcases hpackage w hw_re_pos hRtail_le with ⟨hcompare, hbound⟩
+  exact
+    (hcompare.and hbound).mono
+      (fun t ht => le_trans ht.1 ht.2)
 
 /-- Integrated form of the branch-uniform full-sector tail majorant.
 

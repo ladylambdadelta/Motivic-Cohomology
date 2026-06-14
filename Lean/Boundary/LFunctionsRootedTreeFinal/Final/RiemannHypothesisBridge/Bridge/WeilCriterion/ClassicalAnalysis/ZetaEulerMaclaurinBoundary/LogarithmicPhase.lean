@@ -1215,6 +1215,24 @@ def Complex.realPhase_prefixAbelVariation
         Complex.realPhase_inverseGeometricDenominator φ (n - 1)) *
       Complex.realPhase_integerUnit φ n
 
+/-- Exact `Ico` telescoping form of the finite Abel transform. -/
+theorem Complex.realPhase_prefixAbel_Ico_telescope
+    (φ : ℝ → ℝ)
+    {a b m : ℕ}
+    {λ : ℝ}
+    (ham : a < m)
+    (hm : m ∈ Finset.Icc a b)
+    (hλ_pos : 0 < λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (∑ n ∈ Finset.Ico a m,
+      Complex.realPhase_integerUnit φ n) =
+        Complex.realPhase_inverseGeometricDenominator φ a *
+          Complex.realPhase_integerUnit φ a -
+        Complex.realPhase_inverseGeometricDenominator φ (m - 1) *
+          Complex.realPhase_integerUnit φ m +
+        Complex.realPhase_prefixAbelVariation φ a m := by
+  sorry
+
 /-- The exact finite Abel identity for the non-singleton phase prefix. -/
 theorem Complex.realPhase_prefixAbel_identity
     (φ : ℝ → ℝ)
@@ -1228,7 +1246,70 @@ theorem Complex.realPhase_prefixAbel_identity
       Complex.realPhase_integerUnit φ n) =
         Complex.realPhase_prefixAbelBoundary φ a m +
           Complex.realPhase_prefixAbelVariation φ a m := by
-  sorry
+  have hm_bounds : a ≤ m ∧ m ≤ b :=
+    Finset.mem_Icc.mp hm
+  have hsplit :
+      (∑ n ∈ Finset.Icc a m,
+        Complex.realPhase_integerUnit φ n) =
+          (∑ n ∈ Finset.Ico a m,
+            Complex.realPhase_integerUnit φ n) +
+            Complex.realPhase_integerUnit φ m := by
+    have hinsert :
+        Finset.insert m (Finset.Ico a m) = Finset.Icc a m :=
+      Finset.Ico_insert_right hm_bounds.1
+    have hnot : m ∉ Finset.Ico a m :=
+      Finset.right_not_mem_Ico
+    calc
+      (∑ n ∈ Finset.Icc a m,
+        Complex.realPhase_integerUnit φ n) =
+          ∑ n ∈ Finset.insert m (Finset.Ico a m),
+            Complex.realPhase_integerUnit φ n := by
+        exact congrArg
+          (fun s : Finset ℕ =>
+            ∑ n ∈ s, Complex.realPhase_integerUnit φ n)
+          hinsert.symm
+      _ =
+          Complex.realPhase_integerUnit φ m +
+            ∑ n ∈ Finset.Ico a m,
+              Complex.realPhase_integerUnit φ n :=
+        Finset.sum_insert hnot
+      _ =
+          (∑ n ∈ Finset.Ico a m,
+            Complex.realPhase_integerUnit φ n) +
+            Complex.realPhase_integerUnit φ m :=
+        add_comm _ _
+  have htelescope :
+      (∑ n ∈ Finset.Ico a m,
+        Complex.realPhase_integerUnit φ n) =
+          Complex.realPhase_inverseGeometricDenominator φ a *
+            Complex.realPhase_integerUnit φ a -
+          Complex.realPhase_inverseGeometricDenominator φ (m - 1) *
+            Complex.realPhase_integerUnit φ m +
+          Complex.realPhase_prefixAbelVariation φ a m :=
+    Complex.realPhase_prefixAbel_Ico_telescope
+      φ ham hm hλ_pos hsep
+  calc
+    (∑ n ∈ Finset.Icc a m,
+      Complex.realPhase_integerUnit φ n) =
+        (∑ n ∈ Finset.Ico a m,
+          Complex.realPhase_integerUnit φ n) +
+          Complex.realPhase_integerUnit φ m :=
+      hsplit
+    _ =
+        (Complex.realPhase_inverseGeometricDenominator φ a *
+            Complex.realPhase_integerUnit φ a -
+          Complex.realPhase_inverseGeometricDenominator φ (m - 1) *
+            Complex.realPhase_integerUnit φ m +
+          Complex.realPhase_prefixAbelVariation φ a m) +
+          Complex.realPhase_integerUnit φ m := by
+      exact congrArg
+        (fun z : ℂ => z + Complex.realPhase_integerUnit φ m)
+        htelescope
+    _ =
+        Complex.realPhase_prefixAbelBoundary φ a m +
+          Complex.realPhase_prefixAbelVariation φ a m := by
+      unfold Complex.realPhase_prefixAbelBoundary
+      ring
 
 /-- Endpoint estimate for the explicit finite Abel boundary term. -/
 theorem Complex.realPhase_prefixAbelBoundary_norm_bound

@@ -1085,7 +1085,46 @@ theorem eulerMaclaurin_cpow_neg_upperEndpoint_tendsto_zero
       (fun M : ℕ => (-(1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))))
       atTop
       (𝓝 0) := by
-  sorry
+  let f : ℕ → ℂ := fun M : ℕ => (1 : ℂ) / ((M : ℂ) ^ z)
+  have hf_summable : Summable f :=
+    (Complex.summable_one_div_nat_cpow (p := z)).mpr hhalf_plane
+  have hf_tendsto : Tendsto f atTop (𝓝 0) :=
+    hf_summable.tendsto_atTop_zero
+  have hterms :
+      f =ᶠ[atTop]
+        (fun M : ℕ => ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) := by
+    filter_upwards [eventually_gt_atTop (0 : ℕ)] with M hM
+    have hM_pos : 0 < M :=
+      hM
+    have hcast : (((M : ℕ) : ℝ) : ℂ) = (M : ℂ) :=
+      Complex.ofReal_natCast M
+    have hrecip :
+        (1 : ℂ) / ((M : ℂ) ^ z) = (M : ℂ) ^ (-z) :=
+      eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg z hM_pos
+    exact Eq.trans hrecip (congrArg (fun w : ℂ => w ^ (-z)) hcast.symm)
+  have hpow_tendsto :
+      Tendsto
+        (fun M : ℕ => ((((M : ℕ) : ℝ) : ℂ) ^ (-z)))
+        atTop
+        (𝓝 0) :=
+    hf_tendsto.congr' hterms
+  have hmul :
+      Tendsto
+        (fun M : ℕ => (-(1 / 2 : ℂ)) *
+          ((((M : ℕ) : ℝ) : ℂ) ^ (-z)))
+        atTop
+        (𝓝 ((-(1 / 2 : ℂ)) * 0)) :=
+    tendsto_const_nhds.mul hpow_tendsto
+  exact
+    Eq.subst
+      (motive := fun L : ℂ =>
+        Tendsto
+          (fun M : ℕ => (-(1 / 2 : ℂ)) *
+            ((((M : ℕ) : ℝ) : ℂ) ^ (-z)))
+          atTop
+          (𝓝 L))
+      (mul_zero (-(1 / 2 : ℂ)))
+      hmul
 
 /-- The finite main integral over `(N, M]` tends to the improper main integral
 over `(N, ∞)`. -/
@@ -1102,7 +1141,37 @@ theorem eulerMaclaurin_cpow_neg_integral_Ioc_tendsto_integral_Ioi
       (𝓝
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           (((x : ℝ) : ℂ) ^ (-z)))) := by
-  sorry
+  let a : ℝ := ((N : ℕ) : ℝ)
+  let f : ℝ → ℂ := fun x : ℝ => (((x : ℝ) : ℂ) ^ (-z))
+  have ha_pos : 0 < a := by
+    unfold a
+    exact Nat.cast_pos.mpr hN
+  have hf_int : IntegrableOn f (Set.Ioi a) :=
+    integrableOn_Ioi_cpow_of_lt
+      (eulerMaclaurin_cpow_neg_re_lt_neg_one_of_one_lt_re hhalf_plane)
+      ha_pos
+  have h_interval :
+      Tendsto
+        (fun M : ℕ => ∫ x in a..((M : ℕ) : ℝ), f x)
+        atTop
+        (𝓝 (∫ x in Set.Ioi a, f x)) :=
+    intervalIntegral_tendsto_integral_Ioi
+      a hf_int tendsto_natCast_atTop_atTop
+  have hset_eq :
+      (fun M : ℕ =>
+        ∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) =ᶠ[atTop]
+        (fun M : ℕ => ∫ x in a..((M : ℕ) : ℝ), f x) := by
+    filter_upwards [eventually_ge_atTop N] with M hNM
+    have hle : a ≤ ((M : ℕ) : ℝ) := by
+      unfold a
+      exact_mod_cast hNM
+    have hinterval :
+        (∫ x in a..((M : ℕ) : ℝ), f x) =
+          ∫ x in Set.Ioc a (((M : ℕ) : ℝ)), f x :=
+      intervalIntegral.integral_of_le hle
+    exact hinterval.symm
+  exact h_interval.congr' hset_eq.symm
 
 /-- The finite Bernoulli remainder integral over `(N, M]` tends to the
 improper Bernoulli remainder integral over `(N, ∞)`. -/
