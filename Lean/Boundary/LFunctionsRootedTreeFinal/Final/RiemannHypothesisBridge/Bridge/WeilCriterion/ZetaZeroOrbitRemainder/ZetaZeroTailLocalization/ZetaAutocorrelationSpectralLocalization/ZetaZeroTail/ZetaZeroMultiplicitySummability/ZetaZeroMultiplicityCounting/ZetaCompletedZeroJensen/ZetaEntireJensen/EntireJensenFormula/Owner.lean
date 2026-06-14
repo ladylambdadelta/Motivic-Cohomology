@@ -9661,10 +9661,41 @@ theorem entireFunction_finiteNormalizedFactorization_localRemovableModel_analyti
               (1 - w / (z : ℂ)) ^
                 entireFunctionZeroMultiplicity F hF (z : ℂ))))
       (a : ℂ) := by
-  -- Deep finite-product analyticity theorem for the explicit local model:
-  -- each remaining normalized factor is analytic and nonzero at `a`, while
-  -- the extracted leading coefficient is nonzero because `a` is nonzero.
-  sorry
+  have hcoeff_an :
+      AnalyticAt ℂ
+        (fun _w : ℂ =>
+          (-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ))
+        (a : ℂ) :=
+    analyticAt_const
+  have hprod_an :
+      AnalyticAt ℂ
+        (fun w : ℂ =>
+          ∏ z in S.erase a,
+            (1 - w / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))
+        (a : ℂ) :=
+    (S.erase a).analyticAt_prod
+      (fun z _hz =>
+        (analyticAt_const.sub
+          (analyticAt_id.mul analyticAt_const)).pow
+            (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+  have hden_an :
+      AnalyticAt ℂ
+        (fun w : ℂ =>
+          ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in S.erase a,
+              (1 - w / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ)))
+        (a : ℂ) :=
+    hcoeff_an.mul hprod_an
+  have hden_ne :
+      ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_localLeadingCoeff_nonzero_at_support
+      F hF S hS0 a ha
+  exact hg_an.div hden_an hden_ne
 
 /-- Local removable value forced by a closed-disk factorization.
 
