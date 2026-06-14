@@ -691,6 +691,125 @@ theorem Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStir
       (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
       herror
 
+/-- If a complex number is within half of `sqrt (2π)` from `sqrt (2π)`, then
+its norm is bounded below by the same half-constant. -/
+theorem Complex.half_sqrt_two_pi_le_norm_of_norm_sub_sqrt_two_pi_le_half
+    (A : ℂ)
+    (hA :
+      ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+        Real.sqrt (2 * Real.pi) / 2) :
+    Real.sqrt (2 * Real.pi) / 2 ≤ ‖A‖ := by
+  let s : ℝ := Real.sqrt (2 * Real.pi)
+  have hs_nonneg : 0 ≤ s :=
+    Real.sqrt_nonneg (2 * Real.pi)
+  have hs_norm : ‖(s : ℂ)‖ = s :=
+    Complex.norm_ofReal_of_nonneg hs_nonneg
+  have htriangle :
+      ‖(s : ℂ)‖ ≤ ‖A‖ + ‖A - (s : ℂ)‖ := by
+    calc
+      ‖(s : ℂ)‖ = ‖A - (A - (s : ℂ))‖ := by
+        exact congrArg norm (sub_sub_cancel A (s : ℂ)).symm
+      _ ≤ ‖A‖ + ‖A - (s : ℂ)‖ :=
+        norm_sub_le A (A - (s : ℂ))
+  have hs_le_sum : s ≤ ‖A‖ + s / 2 := by
+    calc
+      s = ‖(s : ℂ)‖ := hs_norm.symm
+      _ ≤ ‖A‖ + ‖A - (s : ℂ)‖ := htriangle
+      _ ≤ ‖A‖ + s / 2 := add_le_add_left hA ‖A‖
+  have hhalf_le_sub : s - s / 2 ≤ ‖A‖ :=
+    sub_le_iff_le_add.mpr hs_le_sum
+  have hhalf_eq : s - s / 2 = s / 2 := by
+    calc
+      s - s / 2 = s * 1 - s * (1 / 2) := by
+        exact congrArg₂ HSub.hSub (mul_one s).symm (mul_one_div s 2).symm
+      _ = s * (1 - 1 / 2) := by
+        exact (mul_sub s 1 (1 / 2)).symm
+      _ = s * (1 / 2) := by
+        exact congrArg (fun t : ℝ => s * t) (sub_eq_self.mpr ?_)
+      _ = s / 2 := by
+        exact mul_one_div s 2
+    · exact sub_eq_zero.mpr (one_div_two_add_one_div_two.symm)
+  exact
+    Eq.subst
+      (motive := fun t : ℝ => t ≤ ‖A‖)
+      hhalf_eq
+      hhalf_le_sub
+
+/-- Pointwise lower normalized Gamma-factor bound extracted from an exponential
+Stirling estimate once the error term is at most half of `sqrt (2π)`. -/
+theorem Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
+    (R K : ℝ)
+    (hStirling :
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (w : ℂ)
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_R : R ≤ ‖w‖)
+    (hw_error : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) / 2) :
+    Real.sqrt (2 * Real.pi) / 2 ≤
+      ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ := by
+  have herror :
+      ‖Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+        Real.sqrt (2 * Real.pi) / 2 :=
+    le_trans (hStirling w hw_sector hw_R) hw_error
+  exact
+    Complex.half_sqrt_two_pi_le_norm_of_norm_sub_sqrt_two_pi_le_half
+      (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
+      herror
+
+/-- A cutoff radius that makes `K / r` at most half of `sqrt (2π)`. -/
+theorem real_stirlingError_div_norm_le_half_sqrt_two_pi_of_cutoff
+    (K r : ℝ)
+    (hK_pos : 0 < K)
+    (hr_pos : 0 < r)
+    (hr_cutoff : 4 * K / Real.sqrt (2 * Real.pi) ≤ r) :
+    K / r ≤ Real.sqrt (2 * Real.pi) / 2 := by
+  let s : ℝ := Real.sqrt (2 * Real.pi)
+  have hs_pos : 0 < s :=
+    Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos)
+  have hcutoff_mul : 4 * K ≤ r * s :=
+    (div_le_iff₀ hs_pos).mp hr_cutoff
+  have htwoK_le_fourK : 2 * K ≤ 4 * K := by
+    have hK_nonneg : 0 ≤ K :=
+      le_of_lt hK_pos
+    have htwo_le_four : (2 : ℝ) ≤ 4 := by
+      calc
+        (2 : ℝ) ≤ 2 + 2 := le_add_of_nonneg_right (le_of_lt two_pos)
+        _ = 4 := rfl
+    calc
+      2 * K ≤ 4 * K :=
+        mul_le_mul_of_nonneg_right htwo_le_four hK_nonneg
+  have htwoK_le_rs : 2 * K ≤ r * s :=
+    le_trans htwoK_le_fourK hcutoff_mul
+  have htwoK_div_r_le_s : 2 * K / r ≤ s :=
+    (div_le_iff₀ hr_pos).mpr
+      (Eq.subst
+        (motive := fun t : ℝ => 2 * K ≤ t)
+        (mul_comm s r)
+        htwoK_le_rs)
+  have htwo_pos : 0 < (2 : ℝ) :=
+    two_pos
+  have hK_div_eq : 2 * (K / r) = 2 * K / r := by
+    calc
+      2 * (K / r) = (2 * K) / r := by
+        exact (mul_div_assoc 2 K r).symm
+  have htwice_le : 2 * (K / r) ≤ s :=
+    Eq.subst
+      (motive := fun t : ℝ => t ≤ s)
+      hK_div_eq.symm
+      htwoK_div_r_le_s
+  exact
+    (le_div_iff₀ htwo_pos).mpr
+      (Eq.subst
+        (motive := fun t : ℝ => t ≤ s)
+        (mul_comm (K / r) 2)
+        htwice_le)
+
 /-- The normalized factor appearing in sectorial exponential Stirling for
 `Complex.Gamma`. -/
 def Complex.normalizedGammaStirlingFactor (w : ℂ) : ℂ :=
@@ -974,6 +1093,69 @@ theorem Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
   exact le_of_eq
     (Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
       w hGamma_ne hcpow_ne)
+
+/-- Solving the normalized Stirling factor for an upper bound on `‖Γ(w)‖`.
+
+The denominator is `‖exp w‖ * ‖w^(1/2-w)‖`, positive away from `w = 0`. -/
+theorem Complex.Gamma_norm_le_of_normalizedGammaStirlingFactor_norm_le
+    (w : ℂ)
+    (B : ℝ)
+    (hbound : ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B)
+    (hden_pos :
+      0 < ‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :
+    ‖Complex.Gamma w‖ ≤
+      B / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
+  have hnorm :
+      ‖Complex.normalizedGammaStirlingFactor w‖ =
+        ‖Complex.Gamma w‖ *
+          (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
+    calc
+      ‖Complex.normalizedGammaStirlingFactor w‖ =
+          ‖Complex.Gamma w‖ * ‖Complex.exp w‖ *
+            ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+        Complex.normalizedGammaStirlingFactor_norm_eq w
+      _ =
+          ‖Complex.Gamma w‖ *
+            (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
+        mul_assoc ‖Complex.Gamma w‖ ‖Complex.exp w‖
+          ‖w ^ ((1 / 2 : ℂ) - w)‖
+  have hmul_le :
+      ‖Complex.Gamma w‖ *
+          (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤ B :=
+    Eq.subst
+      (motive := fun t : ℝ => t ≤ B)
+      hnorm
+      hbound
+  exact (le_div_iff₀ hden_pos).mpr hmul_le
+
+/-- Solving the normalized Stirling factor for a lower bound on `‖Γ(w)‖`. -/
+theorem Complex.Gamma_norm_ge_of_normalizedGammaStirlingFactor_norm_ge
+    (w : ℂ)
+    (b : ℝ)
+    (hlower : b ≤ ‖Complex.normalizedGammaStirlingFactor w‖)
+    (hden_pos :
+      0 < ‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :
+    b / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤
+      ‖Complex.Gamma w‖ := by
+  have hnorm :
+      ‖Complex.normalizedGammaStirlingFactor w‖ =
+        ‖Complex.Gamma w‖ *
+          (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
+    calc
+      ‖Complex.normalizedGammaStirlingFactor w‖ =
+          ‖Complex.Gamma w‖ * ‖Complex.exp w‖ *
+            ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
+        Complex.normalizedGammaStirlingFactor_norm_eq w
+      _ =
+          ‖Complex.Gamma w‖ *
+            (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
+        mul_assoc ‖Complex.Gamma w‖ ‖Complex.exp w‖
+          ‖w ^ ((1 / 2 : ℂ) - w)‖
+  have hle_mul :
+      b ≤ ‖Complex.Gamma w‖ *
+          (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
+    le_trans hlower (le_of_eq hnorm)
+  exact (div_le_iff₀ hden_pos).mpr hle_mul
 
 /-- Constant logarithmic terms are absorbed by the large-radius log-linear
 envelope on the closed right half-plane. -/
@@ -2818,6 +3000,33 @@ theorem Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct
           hshift
       _ = Complex.Gamma z :=
         mul_div_cancel_left₀ (Complex.Gamma z) hprod_ne).symm
+
+/-- Norm form of the finite Gamma recurrence transport. -/
+theorem Complex.Gamma_norm_eq_shifted_norm_div_gammaRecurrenceProduct_norm
+    {z : ℂ}
+    (N : ℕ)
+    (hfactor_ne :
+      ∀ j : ℕ,
+        j < N →
+          z + (j : ℂ) ≠ 0) :
+    ‖Complex.Gamma z‖ =
+      ‖Complex.Gamma (z + (N : ℂ))‖ /
+        ‖Complex.gammaRecurrenceProduct z N‖ := by
+  have hgamma :
+      Complex.Gamma z =
+        Complex.Gamma (z + (N : ℂ)) /
+          Complex.gammaRecurrenceProduct z N :=
+    Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct N hfactor_ne
+  calc
+    ‖Complex.Gamma z‖ =
+        ‖Complex.Gamma (z + (N : ℂ)) /
+          Complex.gammaRecurrenceProduct z N‖ :=
+      congrArg norm hgamma
+    _ =
+        ‖Complex.Gamma (z + (N : ℂ))‖ /
+          ‖Complex.gammaRecurrenceProduct z N‖ :=
+      norm_div (Complex.Gamma (z + (N : ℂ)))
+        (Complex.gammaRecurrenceProduct z N)
 
 /-- The imaginary coordinate of a deterministic recurrence factor is the
 vertical height. -/
@@ -11022,6 +11231,42 @@ theorem abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
     hidentity.symm
     (le_trans htriangle hvariation_mul)
 
+/-- Sequential finite partial-sum bounds pass to an existing infinite sum.
+
+This is the topological closure step separated from Abel summation itself.  It
+does not assert conditional Dirichlet convergence as a `tsum`; that input must
+be supplied by a genuine `HasSum`/summability theorem for the concrete weighted
+tail. -/
+theorem complex_norm_le_of_hasSum_and_range_partial_bounds
+    {f : ℕ → ℂ}
+    {S : ℂ}
+    {C : ℝ}
+    (hf : HasSum f S)
+    (hbound : ∀ n : ℕ, ‖∑ k ∈ Finset.range n, f k‖ ≤ C) :
+    ‖S‖ ≤ C := by
+  exact
+    le_of_tendsto
+      hf.tendsto_sum_nat.norm
+      (Eventually.of_forall hbound)
+
+/-- Existing `HasSum` plus sequential partial-sum bounds gives the corresponding
+`tsum` norm bound. -/
+theorem complex_norm_tsum_le_of_hasSum_and_range_partial_bounds
+    {f : ℕ → ℂ}
+    {S : ℂ}
+    {C : ℝ}
+    (hf : HasSum f S)
+    (hbound : ∀ n : ℕ, ‖∑ k ∈ Finset.range n, f k‖ ≤ C) :
+    ‖∑' k : ℕ, f k‖ ≤ C := by
+  have hS_bound : ‖S‖ ≤ C :=
+    complex_norm_le_of_hasSum_and_range_partial_bounds hf hbound
+  have hS_eq_tsum : S = ∑' k : ℕ, f k :=
+    hf.tsum_eq
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ C)
+    hS_eq_tsum
+    hS_bound
+
 /-- The abstract Abel theorem reduced to finite summation by parts and the
 standard `tsum` limit passage. -/
 theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_from_finite
@@ -11037,9 +11282,20 @@ theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_from_finite
     (hw_antitone : ∀ k l : ℕ, N < k → k ≤ l → w l ≤ w k)
     (hw_variation : ∀ M : ℕ, N ≤ M → w (M + 1) +
         ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1)
-    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0)) :
+    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0))
+    (hhas :
+      HasSum
+        (fun k : ℕ => if N < k then ((w k : ℝ) : ℂ) * u k else 0)
+        (∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0))
+    (hrange_bound :
+      ∀ n : ℕ,
+        ‖∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C) :
     ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
-  sorry
+  exact
+    complex_norm_tsum_le_of_hasSum_and_range_partial_bounds
+      hhas
+      hrange_bound
 
 /-- Abstract Abel transform bound from bounded finite tail sums.
 
@@ -11061,11 +11317,20 @@ theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
     (hw_antitone : ∀ k l : ℕ, N < k → k ≤ l → w l ≤ w k)
     (hw_variation : ∀ M : ℕ, N ≤ M → w (M + 1) +
         ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1)
-    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0)) :
+    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0))
+    (hhas :
+      HasSum
+        (fun k : ℕ => if N < k then ((w k : ℝ) : ℂ) * u k else 0)
+        (∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0))
+    (hrange_bound :
+      ∀ n : ℕ,
+        ‖∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C) :
     ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
   exact
     abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_from_finite
-      hpartial hw_nonneg hw_antitone hw_variation hw_tendsto
+      hpartial hw_nonneg hw_antitone hw_variation hw_tendsto hhas
+      hrange_bound
 
 /-- Complement of `Icc 1 N` as a post-cutoff indicator for functions whose
 zeroth term vanishes. -/
@@ -11548,6 +11813,53 @@ theorem abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero
         congrArg (fun exponent : ℝ => ((k : ℝ) ^ exponent))
           (neg_sub σ 1)))
 
+/-- The concrete Abel-damped logarithmic-phase tail is an honest `HasSum`.
+
+This is the summability input missing from the generic Abel API: for `σ > 1`
+the damped tail is absolutely summable, so its `tsum` is represented by a
+genuine `HasSum`. -/
+theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_hasSum
+    (t σ : ℝ)
+    (hσ : 1 < σ) :
+    HasSum
+      (fun k : ℕ =>
+        if ⌊2 + ‖t‖⌋₊ < k then
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+            (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        else
+          0)
+      (∑' k : ℕ,
+        if ⌊2 + ‖t‖⌋₊ < k then
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+            (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        else
+          0) := by
+  sorry
+
+/-- Concrete range partial sums of the Abel-damped logarithmic-phase tail are
+bounded by the finite Abel estimate.
+
+This is the range-index bridge needed to feed the topological `HasSum` limit
+passage. The proof is finite index bookkeeping: a range partial sum of the
+post-cutoff indicator tail is either empty or an `Ioc` finite tail, and the
+finite Abel estimate applies to that terminal index. -/
+theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_finiteAbel
+    (t σ C : ℝ)
+    (hσ : 1 < σ)
+    (hfinite :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
+    ∀ n : ℕ,
+      ‖∑ k ∈ Finset.range n,
+        if ⌊2 + ‖t‖⌋₊ < k then
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+            (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        else
+          0‖ ≤ C := by
+  sorry
+
 /-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
 damped tail as `σ → 1+`. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
@@ -11619,6 +11931,9 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
       (abelBoundary_logarithmicPhase_dirichletWeight_variation_le_one σ hσ
         ⌊2 + ‖t‖⌋₊)
       (abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero σ hσ)
+      (abelBoundary_logarithmicPhase_abstract_weighted_tail_hasSum t σ hσ)
+      (abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_finiteAbel
+        t σ C hσ hpartial)
   filter_upwards [self_mem_nhdsWithin] with σ hσ
   have htail_eq :
       abelBoundary_logarithmicPhase_dampedTail t σ =
@@ -14517,6 +14832,107 @@ theorem compact_closedBall_punctured_norm_bound_of_removable_extension
     hF_eq
     (hC_bound z hz_norm)
 
+/-- The real coordinate is bounded by the complex norm. -/
+theorem complex_abs_re_le_norm
+    (z : ℂ) :
+    |z.re| ≤ ‖z‖ := by
+  have habs : |z.re| ≤ Complex.abs z :=
+    Complex.abs_re_le_abs z
+  have hnorm : ‖z‖ = Complex.abs z :=
+    Complex.norm_eq_abs z
+  exact Eq.subst
+    (motive := fun x : ℝ => |z.re| ≤ x)
+    hnorm.symm
+    habs
+
+/-- `Gammaℝ` has no zero in the punctured closed unit ball. -/
+theorem Gammaℝ_ne_zero_of_ne_zero_norm_le_one
+    {z : ℂ}
+    (hz_ne_zero : z ≠ 0)
+    (hz_norm : ‖z‖ ≤ 1) :
+    Complex.Gammaℝ z ≠ 0 := by
+  intro hGamma_zero
+  rcases Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with ⟨n, hz_eq⟩
+  cases n with
+  | zero =>
+      have hz_zero : z = 0 := by
+        calc
+          z = -(2 * ((0 : ℕ) : ℂ)) := hz_eq
+          _ = -0 := by
+            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+          _ = 0 := by
+            exact neg_zero
+      exact hz_ne_zero hz_zero
+  | succ n =>
+      have hprod_re :
+          (2 * ((Nat.succ n : ℕ) : ℂ)).re =
+            (2 : ℝ) * (Nat.succ n : ℝ) := by
+        calc
+          (2 * ((Nat.succ n : ℕ) : ℂ)).re =
+              (2 : ℂ).re * ((Nat.succ n : ℕ) : ℂ).re -
+                (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im := by
+            exact Complex.mul_re (2 : ℂ) ((Nat.succ n : ℕ) : ℂ)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) -
+                (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im := by
+            exact congrArg
+              (fun x : ℝ =>
+                x * ((Nat.succ n : ℕ) : ℂ).re -
+                  (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im)
+              (Complex.natCast_re 2)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) -
+                (2 : ℂ).im * 0 := by
+            exact congrArg
+              (fun x : ℝ =>
+                (2 : ℝ) * (Nat.succ n : ℝ) - (2 : ℂ).im * x)
+              (Complex.natCast_im (Nat.succ n))
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) - 0 * 0 := by
+            exact congrArg
+              (fun x : ℝ =>
+                (2 : ℝ) * (Nat.succ n : ℝ) - x * 0)
+              (Complex.natCast_im 2)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) - 0 := by
+            exact congrArg
+              (fun x : ℝ => (2 : ℝ) * (Nat.succ n : ℝ) - x)
+              (zero_mul 0)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) := by
+            exact sub_zero ((2 : ℝ) * (Nat.succ n : ℝ))
+      have hz_re_eq :
+          z.re = -((2 : ℝ) * (Nat.succ n : ℝ)) := by
+        calc
+          z.re = (-(2 * ((Nat.succ n : ℕ) : ℂ))).re := by
+            exact congrArg Complex.re hz_eq
+          _ = -((2 * ((Nat.succ n : ℕ) : ℂ)).re) := by
+            exact Complex.neg_re (2 * ((Nat.succ n : ℕ) : ℂ))
+          _ = -((2 : ℝ) * (Nat.succ n : ℝ)) := by
+            exact congrArg Neg.neg hprod_re
+      have hsucc_ge_one : (1 : ℝ) ≤ (Nat.succ n : ℝ) :=
+        Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le n))
+      have htwo_le_prod : (2 : ℝ) ≤ (2 : ℝ) * (Nat.succ n : ℝ) := by
+        calc
+          (2 : ℝ) = 2 * 1 := by
+            exact (mul_one 2).symm
+          _ ≤ 2 * (Nat.succ n : ℝ) := by
+            exact mul_le_mul_of_nonneg_left hsucc_ge_one (le_of_lt zero_lt_two)
+      have hprod_nonneg : 0 ≤ (2 : ℝ) * (Nat.succ n : ℝ) :=
+        le_trans (le_of_lt zero_lt_two) htwo_le_prod
+      have habs_eq :
+          |z.re| = (2 : ℝ) * (Nat.succ n : ℝ) := by
+        calc
+          |z.re| = |-((2 : ℝ) * (Nat.succ n : ℝ))| := by
+            exact congrArg abs hz_re_eq
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) := by
+            exact abs_of_nonneg hprod_nonneg
+      have htwo_le_norm : (2 : ℝ) ≤ ‖z‖ := by
+        exact le_trans
+          (Eq.subst
+            (motive := fun x : ℝ => (2 : ℝ) ≤ x)
+            habs_eq.symm
+            htwo_le_prod)
+          (complex_abs_re_le_norm z)
+      have htwo_le_one : (2 : ℝ) ≤ 1 :=
+        le_trans htwo_le_norm hz_norm
+      exact not_lt_of_ge htwo_le_one one_lt_two
+
 /-- Trivial-zero cancellation for the pole-cleared zeta factor at nonzero
 `Gammaℝ` zero faces in the left half-plane.
 
@@ -14530,7 +14946,49 @@ theorem poleClearedRiemannZeta_trivialZero_of_gammaZero_leftHalfPlane
     (hz_ne_zero : z ≠ 0)
     (hGamma_zero : Complex.Gammaℝ z = 0) :
     poleClearedRiemannZeta z = 0 := by
-  sorry
+  rcases Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with ⟨n, hz_eq⟩
+  cases n with
+  | zero =>
+      have hz_zero : z = 0 := by
+        calc
+          z = -(2 * ((0 : ℕ) : ℂ)) := hz_eq
+          _ = -0 := by
+            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+          _ = 0 := by
+            exact neg_zero
+      exact False.elim (hz_ne_zero hz_zero)
+  | succ n =>
+      have hz_ne_one : z ≠ 1 := by
+        intro hz_one
+        have hz_re_one : z.re = 1 := by
+          calc
+            z.re = (1 : ℂ).re := by
+              exact congrArg Complex.re hz_one
+            _ = 1 := by
+              exact Complex.one_re
+        have hone_le_zero : (1 : ℝ) ≤ 0 :=
+          Eq.subst
+            (motive := fun x : ℝ => x ≤ 0)
+            hz_re_one.symm
+            hz_re
+        exact not_lt_of_ge hone_le_zero zero_lt_one
+      have hpole :
+          poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+        poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
+      have hzeta_zero_at :
+          riemannZeta (-(2 * ((Nat.succ n : ℕ) : ℂ))) = 0 :=
+        riemannZeta_neg_two_mul_nat_add_one n
+      have hzeta_zero : riemannZeta z = 0 := by
+        exact Eq.subst
+          (motive := fun w : ℂ => riemannZeta w = 0)
+          hz_eq.symm
+          hzeta_zero_at
+      calc
+        poleClearedRiemannZeta z = (z - 1) * riemannZeta z := hpole
+        _ = (z - 1) * 0 := by
+          exact congrArg (fun w : ℂ => (z - 1) * w) hzeta_zero
+        _ = 0 := by
+          exact mul_zero (z - 1)
 
 /-- Finite-order envelope for the removable completed-functional-equation
 multiplier on the left half-plane.
@@ -14984,6 +15442,11 @@ This is the local analytic owner input for the near-origin branch: the apparent
 pole of `(z - 1) / (((1 : ℂ) - z) - 1)` at `0` is cancelled by the completed
 functional-equation Gamma ratio, so the raw product has a continuous removable
 extension on `‖z‖ ≤ 1`. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_closedUnitBall :
+    ContinuousOn poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+      (Metric.closedBall (0 : ℂ) 1) := by
+  sorry
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOrigin_removable_extension :
     ∃ F : ℂ → ℂ,
       ContinuousOn F (Metric.closedBall (0 : ℂ) 1) ∧
@@ -14993,7 +15456,14 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOri
         F z =
           ((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
-  sorry
+  refine ⟨poleClearedRiemannZeta_completedFunctionalEquationMultiplier,
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_closedUnitBall,
+    ?_⟩
+  intro z hz_ne_zero hz_norm
+  have hGamma_ne : Complex.Gammaℝ z ≠ 0 :=
+    Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_norm
+  unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+  exact Eq.trans (if_neg hz_ne_zero) (if_neg hGamma_ne)
 
 /-- Compact/removable local boundedness of the raw completed-functional-equation
 multiplier near the origin.

@@ -3218,6 +3218,41 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
+/-- Cauchy--FTC endpoint derivative for the center-segment primitive.
+
+This is the concrete differential core of primitive existence on a
+star-convex complex domain.  Its proof is the standard triangular Cauchy
+argument, equivalently differentiating the endpoint-parametrized interval
+integral and using the one-dimensional FTC along the radial segment. -/
+theorem complex_starConvex_centerSegmentIntegral_hasDerivAt_cauchyFTC
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        HasDerivAt
+          (complex_centerSegmentIntegral φ)
+          (φ z)
+          z := by
+  sorry
+
+/-- Holomorphic parameter-integral regularity for the center-segment
+primitive.
+
+This is the analytic regularity core accompanying the Cauchy--FTC derivative:
+local analyticity of the integrand along the compact center segment gives
+analyticity of the endpoint-parametrized segment integral. -/
+theorem complex_starConvex_centerSegmentIntegral_analyticAt_parameterIntegral
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
+  sorry
+
 /-- Standard star-convex primitive theorem for the center-segment integral.
 
 This is the canonical owner API corresponding to the classical proof of
@@ -3237,7 +3272,13 @@ theorem complex_starConvex_centerSegmentIntegral_isPrimitive
           (complex_centerSegmentIntegral φ)
           (φ z)
           z := by
-  sorry
+  intro z hz
+  exact
+    And.intro
+      (complex_starConvex_centerSegmentIntegral_analyticAt_parameterIntegral
+        φ hstar hφ z hz)
+      (complex_starConvex_centerSegmentIntegral_hasDerivAt_cauchyFTC
+        φ hstar hφ z hz)
 
 /-- The standard Cauchy--FTC theorem for the endpoint-parametrized segment
 integral on a star-convex complex domain.
@@ -6925,6 +6966,21 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
       F hF S hS0 a ha
   exact div_ne_zero hg_ne hden_ne
 
+/-- Normalized finite-factor identity at a nonzero center.
+
+The extracted Jensen factor `1 - w / a` is the local linear factor `w - a`
+multiplied by the nonzero constant `-(a⁻¹)`.  This is the algebraic bridge
+between the normalized product used globally and the local analytic order
+factorization used at `a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+    {a w : ℂ}
+    (ha0 : a ≠ 0)
+    (m : ℕ) :
+    (1 - w / a) ^ m = (-(a⁻¹)) ^ m * (w - a) ^ m := by
+  -- Deep normalized-factor algebra sink: prove
+  -- `1 - w / a = -(a⁻¹) * (w-a)` and raise both sides to `m`.
+  sorry
+
 /-- The punctured quotient after extracting the support divisor.
 
 This is only the raw divided expression away from the support zeros; the
@@ -7425,6 +7481,56 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Single-zero removable quotient after normalized factor extraction.
+
+This is the local analytic theorem behind one insertion in the finite divisor.
+The proof combines the order factorization
+`F(w) = (w-a)^m g(w)` with
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`, then fills the removable value at `a`.
+All remaining already-extracted factors are analytic and nonzero at `a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalizedFactor_removableQuotient_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep single-zero removable theorem: use the normalized-factor identity,
+  -- the local order factorization at `a`, and removable singularity filling
+  -- for the quotient already constructed over `S`.
+  sorry
+
 /-- Single insertion removable quotient theorem for a finite normalized
 divisor.
 
@@ -7470,10 +7576,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep removable-gluing sink: this is the one-place proof that local
-  -- analytic order cancellation for `(1 - w / a)^m` patches across `a` while
-  -- preserving the finite product factorization already constructed for `S`.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalizedFactor_removableQuotient_ownerRoot
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- One-step finite divisor extraction.
 
@@ -8123,6 +8228,49 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
 
+/-- Single-zero removable value after normalized factor extraction.
+
+This is the value form of the normalized-factor removable theorem.  It says
+that once a quotient is known to satisfy the finite divisor factorization, its
+value at a support zero is forced by the local analytic unit and the leading
+coefficient of the normalized extracted divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalizedFactor_removableValue_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q (a : ℂ) =
+      g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep value sink: cancel the local factor on a punctured neighborhood
+  -- using the normalized-factor identity and pass to the analytic value at
+  -- the removable point.
+  sorry
+
 /-- Local removable quotient value after extracting an arbitrary finite
 normalized divisor.
 
@@ -8162,10 +8310,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
           (∏ z in S.erase a,
             (1 - (a : ℂ) / (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep local removable-value sink: combine the local order factorization
-  -- with `(1 - w / a)^m = (-(a⁻¹))^m * (w-a)^m`, cancel on the punctured
-  -- neighborhood of `a`, and identify the analytic continuation value of `Q`.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_singleZeroNormalizedFactor_removableValue_ownerRoot
+      F Q hF ρ S hS0 hQ_an hfactor a ha haρ g hg_an hg_ne hg_factor
 
 /-- The support-point value of a removable quotient is the local Taylor unit
 divided by the leading coefficient of the extracted finite divisor.
@@ -8543,6 +8690,128 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
                         ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
           horigin.symm
 
+/-- Pointwise product-log identity away from the finite boundary-exception set.
+
+Off the parameters where a boundary factor vanishes, the closed-support
+factorization gives a nonzero product and the logarithm of the norm splits as
+the quotient logarithm plus the finite sum of single-factor logarithms. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_pointwise_offException_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    ∃ E : Finset ℝ,
+      ∀ θ : ℝ,
+        θ ∉ E →
+          entireFunctionJensenBoundaryLogIntegrand F ρ θ =
+            Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
+              (∑ z in
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+                  F hF hF0 ρ,
+                (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
+  -- Deep pointwise product-log sink: build the finite set of boundary
+  -- parameters where extracted factors vanish, then split `log ‖Q * ∏‖`.
+  sorry
+
+/-- A.e. boundary product-log congruence from the finite exception set. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_aeEq_from_pointwise_offException_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    entireFunctionJensenBoundaryLogIntegrand F ρ =ᵐ[MeasureTheory.volume]
+      (fun θ : ℝ =>
+        Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) := by
+  obtain ⟨E, hE⟩ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_pointwise_offException_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
+  have hnot_mem :
+      ∀ᵐ θ ∂MeasureTheory.volume, θ ∉ (E : Set ℝ) :=
+    E.finite_toSet.countable.ae_not_mem MeasureTheory.volume
+  filter_upwards [hnot_mem] with θ hθ
+  exact hE θ hθ
+
+/-- Interval-integrability of the closed-support product-log summands with
+finite boundary exceptions. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_finiteException_intervalIntegrable_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+      MeasureTheory.volume
+      0
+      (2 * Real.pi) := by
+  -- Apply the finite logarithmic-singularity gluing theorem already available
+  -- in this file to the finite set of boundary-zero parameters.
+  sorry
+
+/-- Finite sum/integral exchange for the closed-support boundary factor sum. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_sum_integral_exchange_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)) =
+      ∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
+  -- Finite interval-integral exchange for logarithmic single-factor summands.
+  sorry
+
 /-- Finite-exception product-log splitting for a closed-support divisor.
 
 This is the analytic integration sink behind the closed-support boundary-log
@@ -8576,10 +8845,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Deep finite-exception product-log sink: construct the finite exceptional
-  -- parameter set for boundary factors, prove the pointwise identity off that
-  -- set, prove interval-integrability of each logarithmic singularity, and
-  -- exchange the finite sum with the interval integral.
+  -- Product-log assembly sink: combine off-exception pointwise splitting,
+  -- finite-exception a.e. congruence, finite log-singularity integrability,
+  -- and finite sum/integral exchange.
   sorry
 
 /-- Closed-support finite-product boundary-log decomposition with finite
