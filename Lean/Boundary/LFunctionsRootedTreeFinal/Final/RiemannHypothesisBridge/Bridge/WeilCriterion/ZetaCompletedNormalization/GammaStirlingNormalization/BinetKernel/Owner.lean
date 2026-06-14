@@ -377,7 +377,10 @@ theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  exact
+    ⟨1, zero_lt_one, fun w hw_re_pos _hw_norm =>
+      Complex.Gamma_binetSecondFormula_large_openRightHalfPlane
+        w hw_re_pos _hw_norm⟩
 
 /-- Pointwise Binet-kernel estimate in the open right half-plane.
 
@@ -1172,9 +1175,9 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
   `ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet`.
 
   This mirror still duplicates the Binet roots above, so importing the
-  classical package here would currently create declaration-name conflicts.
-  The next structural cleanup is to delete those duplicated roots and turn
-  this theorem into a thin alias.
+  classical package here creates declaration-name conflicts.  The structural
+  cleanup is to delete those duplicated roots and turn this theorem into a thin
+  alias.
   -/
   sorry
 

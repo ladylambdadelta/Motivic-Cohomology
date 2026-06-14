@@ -678,6 +678,64 @@ def Complex.realPhase_integerIncrementMonotoneOn
     (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
     (Finset.Ico a b : Set ℕ)
 
+/-- Endpoint control for a one-point exponential block. -/
+theorem Complex.realPhase_singleton_integer_block_bound
+    (φ : ℝ → ℝ)
+    (a : ℕ)
+    {λ : ℝ}
+    (hλ_pos : 0 < λ) :
+    ‖∑ n ∈ Finset.Icc a a,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
+  have hblock :
+      ‖∑ n ∈ Finset.Icc a a,
+        Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+          ((Finset.Icc a a).card : ℝ) :=
+    Complex.realPhase_integer_block_bound_by_card φ
+  have hcard : ((Finset.Icc a a).card : ℝ) = 1 := by
+    have hIcc : Finset.Icc a a = ({a} : Finset ℕ) :=
+      Finset.Icc_self a
+    have hcard_nat : (Finset.Icc a a).card = 1 := by
+      calc
+        (Finset.Icc a a).card = ({a} : Finset ℕ).card :=
+          congrArg Finset.card hIcc
+        _ = 1 :=
+          Finset.card_singleton a
+    exact congrArg Nat.cast hcard_nat
+  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
+    inv_nonneg.mpr hλ_pos.le
+  have hone_le_eight : (1 : ℝ) ≤ 8 * 1 := by
+    norm_num
+  have hone_le_target : (1 : ℝ) ≤ 8 * (λ⁻¹ + 1) := by
+    have hone_le_sum : (1 : ℝ) ≤ λ⁻¹ + 1 :=
+      le_add_of_nonneg_left hλ_inv_nonneg
+    exact le_trans hone_le_eight
+      (mul_le_mul_of_nonneg_left hone_le_sum (by norm_num : (0 : ℝ) ≤ 8))
+  exact le_trans hblock
+    (Eq.subst
+      (motive := fun c : ℝ => c ≤ 8 * (λ⁻¹ + 1))
+      hcard.symm
+      hone_le_target)
+
+/-- Nontrivial monotone separated-increment Dirichlet-test primitive.
+
+This is the genuine finite summation-by-parts case: at least one adjacent
+increment is present, so the separation hypothesis supplies the geometric
+denominators and monotonicity controls the variation term. -/
+theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab_lt : a < b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
+  sorry
+
 /-- Finite Dirichlet-test primitive for monotone separated increments.
 
 This is the discrete summation core behind Kusmin-Landau: the adjacent
@@ -696,7 +754,18 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
-  sorry
+  rcases lt_or_eq_of_le hab with hab_lt | hab_eq
+  · exact
+      Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
+        φ ha hab_lt hλ_pos hinc_mono hsep
+  · exact
+      Eq.subst
+        (motive := fun c : ℕ =>
+          ‖∑ n ∈ Finset.Icc a c,
+            Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+              8 * (λ⁻¹ + 1))
+        hab_eq.symm
+        (Complex.realPhase_singleton_integer_block_bound φ a hλ_pos)
 
 /-- Finite monotone separated-increment exponential-sum primitive.
 
