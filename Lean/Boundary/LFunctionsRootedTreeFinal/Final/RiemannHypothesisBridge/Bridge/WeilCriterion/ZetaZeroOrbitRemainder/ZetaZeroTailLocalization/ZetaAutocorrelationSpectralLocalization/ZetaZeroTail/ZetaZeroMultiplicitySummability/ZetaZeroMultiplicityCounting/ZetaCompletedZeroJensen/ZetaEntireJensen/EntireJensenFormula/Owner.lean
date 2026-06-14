@@ -3403,7 +3403,35 @@ theorem complex_starConvex_centerSegment_phi_hasDerivAt_real_chainRule
                 φ (AffineMap.lineMap (0 : ℂ) z u))
               (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t))
               t := by
-  sorry
+  intro z hz t ht
+  let x : ℂ := AffineMap.lineMap (0 : ℂ) z t
+  have hφ_at :
+      HasDerivAt φ (deriv φ x) x :=
+    (complex_starConvex_centerSegment_analyticAt
+      φ hstar hφ hz ht).differentiableAt.hasDerivAt
+  have hline_at :
+      HasDerivAt
+        (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
+        z
+        t :=
+    complex_centerSegment_lineMap_hasDerivAt_real z t
+  have hcomp_fderiv :=
+    hφ_at.comp_hasFDerivAt t hline_at.hasFDerivAt
+  have hcomp_deriv :
+      HasDerivAt
+        (φ ∘ fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
+        ((deriv φ x) * z)
+        t :=
+    hcomp_fderiv.hasDerivAt
+  exact
+    Eq.subst
+      (motive := fun v : ℂ =>
+        HasDerivAt
+          (fun u : ℝ => φ (AffineMap.lineMap (0 : ℂ) z u))
+          v
+          t)
+      (mul_comm (deriv φ x) z)
+      hcomp_deriv
 
 /-- Real chain rule for `φ` along a center-to-endpoint segment. -/
 theorem complex_starConvex_centerSegment_phi_hasDerivAt_real
@@ -9285,9 +9313,39 @@ theorem finiteComplexProduct_log_norm_eq_sum_log_norm_of_nonzero
     (hf : ∀ i : ι, i ∈ S → f i ≠ 0) :
     Real.log ‖∏ i in S, f i‖ =
       ∑ i in S, Real.log ‖f i‖ := by
-  -- Finite product-log algebra sink: induct over `S`, using `Real.log_mul`
-  -- and nonvanishing of each factor.
-  sorry
+  refine Finset.induction_on S ?base ?step
+  · calc
+      Real.log ‖∏ i in (∅ : Finset ι), f i‖ = Real.log ‖(1 : ℂ)‖ := by
+        rfl
+      _ = 0 := by
+        exact Real.log_one
+      _ = ∑ i in (∅ : Finset ι), Real.log ‖f i‖ := by
+        rfl
+  · intro a S ha_not_mem ih
+    have ha_ne : f a ≠ 0 :=
+      hf a (Finset.mem_insert.2 (Or.inl rfl))
+    have hS_ne : ∀ i : ι, i ∈ S → f i ≠ 0 := by
+      intro i hi
+      exact hf i (Finset.mem_insert.2 (Or.inr hi))
+    have hprod_ne : (∏ i in S, f i) ≠ 0 :=
+      Finset.prod_ne_zero_iff.mpr hS_ne
+    have hnorm_a_ne : ‖f a‖ ≠ 0 :=
+      norm_ne_zero_iff.mpr ha_ne
+    have hnorm_prod_ne : ‖∏ i in S, f i‖ ≠ 0 :=
+      norm_ne_zero_iff.mpr hprod_ne
+    calc
+      Real.log ‖∏ i in insert a S, f i‖ =
+          Real.log ‖f a * ∏ i in S, f i‖ := by
+        exact congrArg (fun x : ℂ => Real.log ‖x‖)
+          (Finset.prod_insert ha_not_mem)
+      _ = Real.log (‖f a‖ * ‖∏ i in S, f i‖) := by
+        exact congrArg Real.log (norm_mul (f a) (∏ i in S, f i))
+      _ = Real.log ‖f a‖ + Real.log ‖∏ i in S, f i‖ := by
+        exact Real.log_mul hnorm_a_ne hnorm_prod_ne
+      _ = Real.log ‖f a‖ + ∑ i in S, Real.log ‖f i‖ := by
+        exact congrArg (fun x : ℝ => Real.log ‖f a‖ + x) (ih hS_ne)
+      _ = ∑ i in insert a S, Real.log ‖f i‖ := by
+        exact (Finset.sum_insert ha_not_mem).symm
 
 /-- Pointwise closed-support factor product-log identity away from boundary
 exceptions.
@@ -9316,9 +9374,68 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
         (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
           Real.log
             ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
-  -- Product-log with multiplicities: apply the finite product-log identity to
-  -- `(1 - sample/z)^multiplicity`, then use `Real.log_pow`.
-  sorry
+  let S : Finset (EntireFunctionZero F) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+      F hF hF0 ρ
+  let sample : ℂ := (ρ : ℂ) * Complex.exp (θ * Complex.I)
+  let factor : EntireFunctionZero F → ℂ :=
+    fun z => (1 - sample / (z : ℂ)) ^
+      entireFunctionZeroMultiplicity F hF (z : ℂ)
+  have hfactor_nonzero : ∀ z : EntireFunctionZero F, z ∈ S → factor z ≠ 0 := by
+    intro z hz
+    exact
+      pow_ne_zero
+        (entireFunctionZeroMultiplicity F hF (z : ℂ))
+        (hfactor_ne z hz)
+  have hproduct_log :
+      Real.log ‖∏ z in S, factor z‖ =
+        ∑ z in S, Real.log ‖factor z‖ :=
+    finiteComplexProduct_log_norm_eq_sum_log_norm_of_nonzero
+      S factor hfactor_nonzero
+  have hsummand :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S →
+          Real.log ‖factor z‖ =
+            (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+              Real.log ‖1 - sample / (z : ℂ)‖ := by
+    intro z _hz
+    calc
+      Real.log ‖factor z‖ =
+          Real.log (‖1 - sample / (z : ℂ)‖ ^
+            entireFunctionZeroMultiplicity F hF (z : ℂ)) := by
+        exact congrArg Real.log
+          (norm_pow
+            (1 - sample / (z : ℂ))
+            (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+      _ =
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log ‖1 - sample / (z : ℂ)‖ := by
+        exact Real.log_pow
+          ‖1 - sample / (z : ℂ)‖
+          (entireFunctionZeroMultiplicity F hF (z : ℂ))
+  calc
+    Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+            F hF hF0 ρ ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ =
+        Real.log ‖∏ z in S, factor z‖ := by
+      rfl
+    _ = ∑ z in S, Real.log ‖factor z‖ :=
+      hproduct_log
+    _ =
+        ∑ z in S,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log ‖1 - sample / (z : ℂ)‖ := by
+      refine Finset.sum_congr rfl ?_
+      intro z hz
+      exact hsummand z hz
+    _ =
+        ∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖ := by
+      rfl
 
 /-- Interval-scoped boundary exception set for closed-support factors.
 

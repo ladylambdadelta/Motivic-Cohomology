@@ -4093,6 +4093,29 @@ theorem Complex.shiftedVertical_radius_base_comparable
         hlower_raw
   exact ⟨hupper_final, hlower_final⟩
 
+/-- Real bounded-exponent transport for radius powers.
+
+If `R` is uniformly comparable to the height scale `Y`, and the exponent `e`
+stays in a fixed bounded interval, then `R^e` is uniformly comparable to
+`Y^e`.  This is the purely real step needed after the shifted-strip radius
+comparison has removed all complex geometry. -/
+theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
+    (C c L U : ℝ)
+    (hC_pos : 0 < C)
+    (hc_pos : 0 < c) :
+    ∃ K : ℝ, ∃ k : ℝ,
+      0 < K ∧
+      0 < k ∧
+      ∀ R Y e : ℝ,
+        0 < Y →
+        c * Y ≤ R →
+        R ≤ C * Y →
+        L ≤ e →
+        e ≤ U →
+          R ^ e ≤ K * Y ^ e ∧
+          k * Y ^ e ≤ R ^ e := by
+  sorry
+
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
 On a bounded shifted strip, `‖x + N + i y‖` is comparable to `1 + |y|`, while
@@ -4116,7 +4139,54 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
             C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
           c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
             ‖w‖ ^ (w.re - 1 / 2) := by
-  sorry
+  rcases Complex.shiftedVertical_radius_base_comparable A B with
+    ⟨Hbase, Cbase, cbase, hHbase_pos, hCbase_pos, hcbase_pos, hbase⟩
+  let L : ℝ := A + Complex.verticalStripTransportShift A - 1 / 2
+  let U : ℝ := B + Complex.verticalStripTransportShift A - 1 / 2
+  rcases
+      real_rpow_comparable_of_base_comparable_and_bounded_exponent
+        Cbase cbase L U hCbase_pos hcbase_pos with
+    ⟨K, k, hK_pos, hk_pos, hrpow⟩
+  refine ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, ?_⟩
+  intro x y hxA hxB hy
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  let Y : ℝ := 1 + ‖y‖
+  let e : ℝ := x + Complex.verticalStripTransportShift A - 1 / 2
+  have hbase_xy := hbase x y hxA hxB hy
+  have hY_pos : 0 < Y :=
+    add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg y)
+  have hw_re :
+      w.re = x + Complex.verticalStripTransportShift A :=
+    Complex.fixedRealPartVerticalPoint_re
+      (x + Complex.verticalStripTransportShift A) y
+  have heq :
+      w.re - 1 / 2 = e := by
+    exact congrArg (fun t : ℝ => t - 1 / 2) hw_re
+  have hL : L ≤ e :=
+    add_le_add_right
+      (add_le_add_right hxA (Complex.verticalStripTransportShift A))
+      (-(1 / 2 : ℝ))
+  have hU : e ≤ U :=
+    add_le_add_right
+      (add_le_add_right hxB (Complex.verticalStripTransportShift A))
+      (-(1 / 2 : ℝ))
+  have hr :
+      ‖w‖ ^ e ≤ K * Y ^ e ∧
+        k * Y ^ e ≤ ‖w‖ ^ e :=
+    hrpow ‖w‖ Y e hY_pos hbase_xy.2 hbase_xy.1 hL hU
+  exact
+    ⟨Eq.subst
+        (motive := fun t : ℝ =>
+          ‖w‖ ^ t ≤ K * Y ^ e)
+        heq.symm
+        hr.1,
+      Eq.subst
+        (motive := fun t : ℝ =>
+          k * Y ^ e ≤ ‖w‖ ^ t)
+        heq.symm
+        hr.2⟩
 
 /-- In a fixed shifted vertical strip, the radial polynomial factor in the
 principal-power denominator is comparable to the standard height polynomial. -/
@@ -11234,6 +11304,42 @@ theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
     Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
   exact reciprocalDerivative_norm_eq_on_positive_interval hcutoff_pos hx
 
+/-- Bochner norm domination for the reciprocal-density logarithmic-phase
+integral. -/
+theorem reciprocalDensityIntegral_norm_le_scalar_majorant
+    (t : ℝ)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) := by
+  sorry
+
+/-- Scalar reciprocal-density integral comparison for the logarithmic-phase
+majorant after the canonical cutoff. -/
+theorem reciprocalDensityIntegral_scalar_majorant_le_log_cutoff
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
 theorem reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
@@ -11254,7 +11360,11 @@ theorem reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    le_trans
+      (reciprocalDensityIntegral_norm_le_scalar_majorant
+        t hpartial hNM hreciprocal_density)
+      (reciprocalDensityIntegral_scalar_majorant_le_log_cutoff t ht hNM)
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
@@ -16344,6 +16454,71 @@ theorem poleClearedRiemannZeta_one_two_strip_diffContOnCl :
       intro z hz
       exact ⟨lt_trans zero_lt_one hz.1, hz.2⟩)
 
+/-- Euler-Maclaurin formula/remainder polynomial bound for the pole-cleared zeta
+factor on the closed strip `1 ≤ Re s ≤ 2`.
+
+This is the precise classical analytic input behind the strip continuation
+estimate.  In standard notation it comes from the Euler-Maclaurin continuation
+formula
+`ζ(s) = Σ_{n<N} n^{-s} + N^{1-s}/(s-1) + O(N^{-σ}) +
+  s ∫_N^∞ B₁({x}) x^{-s-1} dx`,
+after multiplying by `s - 1` and taking `N` comparable to `2 + |Im s|`.
+The finite Dirichlet polynomial, the pole-cancelling term `N^{1-s}`, the
+endpoint correction, and the Bernoulli-remainder integral are all polynomially
+bounded in `1 + ‖s‖` uniformly for `1 ≤ σ ≤ 2`; cf. Titchmarsh, §3.5 and
+Davenport, Ch. 12. -/
+theorem eulerMaclaurin_poleClearedRiemannZeta_one_two_strip_formula_remainder_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
+/-- Polynomial Euler-Maclaurin growth on the closed strip implies the
+finite-order exponential envelope used by the strip admissibility API. -/
+theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_of_polynomial_bound
+    (hpoly :
+      ∃ C : ℝ, ∃ m : ℕ,
+        0 < C ∧
+        ∀ z : ℂ,
+          1 ≤ z.re →
+          z.re ≤ 2 →
+          ‖poleClearedRiemannZeta z‖ ≤ C * (1 + ‖z‖) ^ m) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  rcases hpoly with ⟨C, m, hC, hbound⟩
+  refine ⟨C, 1, m, hC, zero_lt_one, ?_⟩
+  intro z hz_one hz_two
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hpow_nonneg : 0 ≤ H ^ m :=
+    pow_nonneg hH_nonneg m
+  have hone_le_exp :
+      (1 : ℝ) ≤ Real.exp ((1 : ℝ) * H ^ m) := by
+    have hexponent_nonneg : 0 ≤ (1 : ℝ) * H ^ m :=
+      mul_nonneg zero_le_one hpow_nonneg
+    exact le_trans
+      (le_of_eq Real.exp_zero.symm)
+      (Real.exp_le_exp.mpr hexponent_nonneg)
+  have hHpow_le_exp :
+      H ^ m ≤ Real.exp ((1 : ℝ) * H ^ m) := by
+    exact le_trans
+      (le_add_of_nonneg_right zero_le_one)
+      (Real.add_one_le_exp (H ^ m))
+  have htarget :
+      C * H ^ m ≤ C * Real.exp ((1 : ℝ) * H ^ m) :=
+    mul_le_mul_of_nonneg_left hHpow_le_exp (le_of_lt hC)
+  exact le_trans (hbound z hz_one hz_two) htarget
+
 /-- Pointwise finite-order Euler-Maclaurin continuation estimate for the
 removable pole-cleared zeta on `1 ≤ Re s ≤ 2`.
 
@@ -16360,7 +16535,9 @@ theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclau
         z.re ≤ 2 →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  sorry
+  exact
+    poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_of_polynomial_bound
+      eulerMaclaurin_poleClearedRiemannZeta_one_two_strip_formula_remainder_polynomial_bound
 
 /-- Interior admissible-growth input for the `1 < Re s < 2` strip.
 
