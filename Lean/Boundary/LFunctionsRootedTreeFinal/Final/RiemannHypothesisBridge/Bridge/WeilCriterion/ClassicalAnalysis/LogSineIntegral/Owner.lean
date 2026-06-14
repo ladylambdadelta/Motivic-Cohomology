@@ -1183,7 +1183,51 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
     (hpoint :
       EqOn f g (Set.Ioo (min a b) (max a b))) :
     ∀ᵐ x ∂MeasureTheory.volume, x ∈ Ι a b → f x = g x := by
-  sorry
+  refine MeasureTheory.ae_uIoc_iff.mpr ⟨?_, ?_⟩
+  · by_cases hab : a < b
+    · have hmin : min a b = a :=
+        min_eq_left hab.le
+      have hmax : max a b = b :=
+        max_eq_right hab.le
+      have hae :
+          Set.Ioo a b =ᵐ[MeasureTheory.volume] Set.Ioc a b :=
+        MeasureTheory.Ioo_ae_eq_Ioc
+      filter_upwards [hae] with x hx hmem
+      exact hpoint
+        (Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          (hx.mpr hmem))
+    · have hle : b ≤ a :=
+        le_of_not_gt hab
+      exact MeasureTheory.ae_of_all
+        MeasureTheory.volume
+        (fun x hmem =>
+          False.elim
+            ((not_lt_of_ge hle)
+              (lt_of_lt_of_le hmem.1 hmem.2)))
+  · by_cases hba : b < a
+    · have hmin : min a b = b :=
+        min_eq_right hba.le
+      have hmax : max a b = a :=
+        max_eq_left hba.le
+      have hae :
+          Set.Ioo b a =ᵐ[MeasureTheory.volume] Set.Ioc b a :=
+        MeasureTheory.Ioo_ae_eq_Ioc
+      filter_upwards [hae] with x hx hmem
+      exact hpoint
+        (Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          (hx.mpr hmem))
+    · have hle : a ≤ b :=
+        le_of_not_gt hba
+      exact MeasureTheory.ae_of_all
+        MeasureTheory.volume
+        (fun x hmem =>
+          False.elim
+            ((not_lt_of_ge hle)
+              (lt_of_lt_of_le hmem.1 hmem.2)))
 
 /-- Direct owner wrapper around mathlib's singular scalar change-of-variables
 theorem, with the exact image and pullback integrability hypotheses it needs. -/
