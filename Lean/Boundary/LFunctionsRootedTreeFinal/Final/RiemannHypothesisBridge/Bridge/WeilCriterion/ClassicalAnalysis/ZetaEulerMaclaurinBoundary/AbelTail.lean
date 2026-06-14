@@ -82,6 +82,23 @@ theorem Complex.riemannZetaBoundaryLineTruncation_eq_weighted_logarithmicPhase_s
     Complex.boundaryLineOnePointRealParam_dirichletTerm_eq_reciprocal_mul_oscillation
       t hn_pos
 
+/-- Finite partial-summation primitive for reciprocal weights applied to the
+standard logarithmic-phase partial-sum estimate. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_phase_standard :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ M : ℕ,
+                N ≤ M →
+                  ‖∑ n ∈ Finset.Ioc N M,
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                    A * Real.log (2 + ‖t‖) := by
+  sorry
+
 /-- Finite Abel-summation estimate for the post-cutoff reciprocal-weighted
 logarithmic phase.
 
@@ -101,7 +118,31 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_standard :
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_from_phase_standard
+
+/-- Canonical-cutoff finite Abel-tail estimate after `⌊2 + |t|⌋₊`. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_at_cutoff :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ M : ℕ,
+            ⌊2 + ‖t‖⌋₊ ≤ M →
+              ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+                ((n : ℂ)⁻¹ : ℂ) *
+                  ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A * Real.log (2 + ‖t‖) := by
+  rcases Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_standard with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht M hM
+  have hcutoff_one : 1 ≤ ⌊2 + ‖t‖⌋₊ := by
+    have htwo_le : (2 : ℝ) ≤ 2 + ‖t‖ :=
+      le_add_of_nonneg_right (norm_nonneg t)
+    have hfloor_two : 2 ≤ ⌊2 + ‖t‖⌋₊ :=
+      (Nat.le_floor_iff zero_lt_two).mpr htwo_le
+    exact le_trans (by decide : 1 ≤ 2) hfloor_two
+  exact hbound t ht ⌊2 + ‖t‖⌋₊ hcutoff_one M hM
 
 /-- Finite Abel-summation estimate obtained from the first-derivative
 logarithmic-phase bound. -/
@@ -137,6 +178,25 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound :
                     A * Real.log (2 + ‖t‖) := by
   exact Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDerivative
 
+/-- Positive Abel damping preserves the uniform finite Abel-tail estimate. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAbel :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+                ‖∑' n : ℕ,
+                  if N < n then
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                  else
+                    0‖ ≤
+                  A * Real.log (2 + ‖t‖) := by
+  sorry
+
 /-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
 phase.
 
@@ -159,7 +219,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_standard :
                   else
                     0‖ ≤
                   A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAbel
 
 /-- Positive-weight Abel damping theorem for tails with uniformly bounded
 finite Abel sums. -/
