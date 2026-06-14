@@ -1064,6 +1064,11 @@ theorem Complex.one_half_lt_real_log_two :
     zero_lt_two
   exact (Real.log_lt_iff_lt_exp htwo_pos).mpr hexp_half_lt_two
 
+/-- A rational lower bound for `log 2` used at the dyadic entropy checkpoint. -/
+theorem Complex.two_thirds_le_real_log_two :
+    (2 / 3 : ℝ) ≤ Real.log (2 : ℝ) := by
+  sorry
+
 /-- The denominator in the explicit critical point is nonnegative. -/
 theorem Complex.realLogDyadicComparisonCriticalPoint_den_nonneg :
     0 ≤ 2 * Real.log (2 : ℝ) - 1 := by
@@ -1502,11 +1507,56 @@ theorem Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_two_log :
               (sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos)
               hy)))
 
+/-- The entropy-form expression is monotone on any interval `[a,∞)` with
+`1 < a`. -/
+theorem Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_of_one_lt
+    {a : ℝ}
+    (ha : 1 < a) :
+    MonotoneOn Complex.realLogDyadicEntropyExpression (Set.Ici a) := by
+  exact
+    monotoneOn_of_deriv_nonneg
+      (convex_Ici a)
+      (fun y hy =>
+        (Complex.realLogDyadicEntropyExpression_hasDerivAt
+          (lt_of_lt_of_le ha hy)).continuousAt.continuousWithinAt)
+      (fun y hy =>
+        (Complex.realLogDyadicEntropyExpression_hasDerivAt
+          (lt_of_lt_of_le ha hy)).differentiableAt.differentiableWithinAt)
+      (fun y hy =>
+        Eq.subst
+          (motive := fun d : ℝ => 0 ≤ d)
+          (Complex.realLogDyadicEntropyExpression_hasDerivAt
+            (lt_of_lt_of_le ha hy)).deriv.symm
+          (Complex.realLogDyadicEntropyExpression_deriv_nonneg
+            (lt_of_lt_of_le ha hy)))
+
+/-- Rational checkpoint for the entropy-form expression. -/
+theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
+    Real.log (2 : ℝ) ≤
+      Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) := by
+  sorry
+
 /-- The entropy-form inequality at the lower endpoint `2 log 2`. -/
 theorem Complex.real_log_two_le_entropyExpression_at_two_log :
     Real.log (2 : ℝ) ≤
       Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) := by
-  sorry
+  have hfour_thirds_lt : (1 : ℝ) < 4 / 3 := by norm_num
+  have hfour_thirds_le :
+      (4 / 3 : ℝ) ≤ 2 * Real.log (2 : ℝ) := by
+    have hlog : (2 / 3 : ℝ) ≤ Real.log (2 : ℝ) :=
+      Complex.two_thirds_le_real_log_two
+    exact (le_div_iff₀' zero_lt_two).mp hlog
+  have hmono :
+      Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) ≤
+        Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) :=
+    Complex.realLogDyadicEntropyExpression_monotoneOn_Ici_of_one_lt
+      hfour_thirds_lt
+      le_rfl
+      hfour_thirds_le
+      hfour_thirds_le
+  exact le_trans
+    Complex.real_log_two_le_entropyExpression_at_four_thirds
+    hmono
 
 /-- Entropy-form inequality behind the dyadic critical value on the true
 interval needed by the critical point: `2 log 2 ≤ y ≤ 2`.
