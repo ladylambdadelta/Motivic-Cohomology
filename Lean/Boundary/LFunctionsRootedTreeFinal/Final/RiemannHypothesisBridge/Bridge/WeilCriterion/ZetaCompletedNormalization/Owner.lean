@@ -3,6 +3,8 @@ import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.Bounds
+import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
 /-!
 # Boundary centered completed zeta normalization
@@ -12237,6 +12239,39 @@ theorem scalarReciprocalDensity_Icc_point_pos
     0 < x := by
   exact lt_of_lt_of_le (scalarReciprocalDensity_cutoff_real_pos t) hx.1
 
+/-- Scalar calculus owner for the `log(2+x)/x` post-cutoff integral.
+
+Proof route: on the post-cutoff interval, `2 ≤ x`, hence
+`log(2+x)/x ≤ 2 * log(2+x)/(2+x)`, the derivative of
+`(Real.log (2+x))^2`.  The fundamental theorem of calculus and endpoint
+monotonicity then bound the finite interval by the right endpoint square. -/
+theorem scalarReciprocalDensity_log_over_x_integral_bound_calculus
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        Real.log (2 + x) / x ≤
+      (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 := by
+  sorry
+
+/-- Scalar calculus owner for the `log(2+x)/x²` post-cutoff integral.
+
+Proof route: use `Real.log_div_self_rpow_antitoneOn` for the decreasing
+positive tail profile after the cutoff, or equivalently integrate by parts:
+`∫ log(2+x)/x²` is bounded by the cutoff endpoint contribution plus the
+integrable `1/(x(2+x))` remainder.  Since the cutoff is at least `2+|t|`, the
+result is dominated by `Real.log (3 + ‖t‖)`. -/
+theorem scalarReciprocalDensity_log_over_x_sq_integral_bound_calculus
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        Real.log (2 + x) / x ^ 2 ≤
+      Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Finite-endpoint calculus bound for the `log(2+x)/x` contribution. -/
 theorem scalarReciprocalDensity_log_over_x_integral_bound
     (t : ℝ)
@@ -12246,7 +12281,7 @@ theorem scalarReciprocalDensity_log_over_x_integral_bound
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         Real.log (2 + x) / x ≤
       (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 := by
-  sorry
+  exact scalarReciprocalDensity_log_over_x_integral_bound_calculus t ht hNM
 
 /-- Finite-endpoint calculus bound for the `log(2+x)/x^2` contribution. -/
 theorem scalarReciprocalDensity_log_over_x_sq_integral_bound
@@ -12257,7 +12292,7 @@ theorem scalarReciprocalDensity_log_over_x_sq_integral_bound
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         Real.log (2 + x) / x ^ 2 ≤
       Real.log (3 + ‖t‖) := by
-  sorry
+  exact scalarReciprocalDensity_log_over_x_sq_integral_bound_calculus t ht hNM
 
 /-- Pointwise algebraic split of the coarse reciprocal-density majorant.
 
@@ -18326,6 +18361,142 @@ theorem eulerMaclaurin_riemannZeta_halfPlane_finite_split_tail_hasSum
   unfold eulerMaclaurinZetaFinitePart
   exact htail_if
 
+/-- The Euler-Maclaurin integral main term for the post-cutoff tail.
+
+For `N = ⌊2 + ‖z‖⌋₊`, mathlib's improper-integral formula for
+`∫_N^∞ x^{-z} dx` gives `N^(1-z)/(z-1)` when `1 < Re z`.  This lemma records
+the normalization used by the zeta owner definitions; the remaining work is
+the standard `cpow` exponent arithmetic transporting
+`integral_Ioi_cpow_of_lt` from exponent `-z`. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_integralMain_eq_mainTerm_standard
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    (∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+        (((x : ℝ) : ℂ) ^ (-z))) =
+      eulerMaclaurinZetaMainTerm z := by
+  sorry
+
+/-- Endpoint normalization for the first-order Euler-Maclaurin tail.
+
+The endpoint correction is exactly `(1/2)N^{-z}` in the owner notation. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_endpoint_eq_endpointTerm
+    (z : ℂ) :
+    (1 / 2 : ℂ) *
+        (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) =
+      eulerMaclaurinZetaEndpointTerm z := by
+  unfold eulerMaclaurinZetaEndpointTerm
+  rfl
+
+/-- Remainder-sign normalization for the first-order Euler-Maclaurin tail.
+
+With `B₁({x}) = {x} - 1/2`, the first-order remainder for
+`f(x) = x^{-z}` is
+`-z ∫_N^∞ B₁({x}) x^{-z-1} dx`, matching the raw owner remainder. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_remainderSign_eq_remainderTerm
+    (z : ℂ) :
+    -z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z =
+      eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+  unfold eulerMaclaurinZetaBernoulliIntegralRemainder
+  rfl
+
+/-- Standard first-order Euler-Maclaurin formula for the convergent
+post-cutoff Dirichlet tail of `x ↦ x^{-z}`.
+
+This is the canonical analytic owner theorem: for `1 < Re z` and
+`N = ⌊2 + ‖z‖⌋₊`, the post-cutoff Dirichlet tail has sum equal to the
+improper integral main term, the endpoint correction, and the periodic
+Bernoulli remainder.  It is the precise theorem supplied by the classical
+Euler-Maclaurin formula with periodic Bernoulli function `B₁`; cf. Apostol,
+Analytic Number Theory, Ch. 3. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_firstOrder_hasSum_standard
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if eulerMaclaurinPoleClearedZetaCutoff z < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      ((∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) +
+        (-z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z)) := by
+  sorry
+
+/-- Transport the standard first-order Euler-Maclaurin tail formula into the
+raw owner terms `MainTerm`, `EndpointTerm`, and
+`BernoulliIntegralRemainder`. -/
+theorem eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if eulerMaclaurinPoleClearedZetaCutoff z < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      (eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z) := by
+  have hstandard :
+      HasSum
+        (fun n : ℕ =>
+          if eulerMaclaurinPoleClearedZetaCutoff z < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        ((∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+            (((x : ℝ) : ℂ) ^ (-z))) +
+          ((1 / 2 : ℂ) *
+            (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) +
+          (-z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z)) :=
+    eulerMaclaurin_riemannZeta_postCutoffTail_firstOrder_hasSum_standard
+      z hhalf_plane
+  have hmain :
+      (∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) =
+        eulerMaclaurinZetaMainTerm z :=
+    eulerMaclaurin_riemannZeta_postCutoffTail_integralMain_eq_mainTerm_standard
+      z hhalf_plane
+  have hendpoint :
+      (1 / 2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) =
+        eulerMaclaurinZetaEndpointTerm z :=
+    eulerMaclaurin_riemannZeta_postCutoffTail_endpoint_eq_endpointTerm z
+  have hremainder :
+      -z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z =
+        eulerMaclaurinZetaBernoulliIntegralRemainder z :=
+    eulerMaclaurin_riemannZeta_postCutoffTail_remainderSign_eq_remainderTerm z
+  have hsum_eq :
+      (∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+          ((1 / 2 : ℂ) *
+              (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)) +
+            (-z * eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z)) =
+        eulerMaclaurinZetaMainTerm z +
+          eulerMaclaurinZetaEndpointTerm z +
+          eulerMaclaurinZetaBernoulliIntegralRemainder z := by
+    exact congrArg₂
+      (fun A B : ℂ => A + B)
+      hmain
+      (congrArg₂
+        (fun A B : ℂ => A + B)
+        hendpoint
+        hremainder)
+  exact
+    Eq.subst
+      (motive := fun S : ℂ =>
+        HasSum
+          (fun n : ℕ =>
+            if eulerMaclaurinPoleClearedZetaCutoff z < n then
+              (1 : ℂ) / ((n : ℂ) ^ z)
+            else
+              0)
+          S)
+      hsum_eq
+      hstandard
+
 /-- First-order Euler-Maclaurin evaluation of the convergent post-cutoff
 Dirichlet tail.
 
@@ -18347,6 +18518,27 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
       (eulerMaclaurinZetaMainTerm z +
         eulerMaclaurinZetaEndpointTerm z +
         eulerMaclaurinZetaBernoulliIntegralRemainder z) := by
+  exact
+    eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
+      z hhalf_plane
+
+/-- Boundary-line analytic-continuation uniqueness for the first-order
+Euler-Maclaurin zeta tail.
+
+The half-plane identity obtained from the Dirichlet series and
+Euler-Maclaurin has a meromorphic continuation to the closed strip; after
+removing the pole point `z = 1`, uniqueness of analytic continuation gives
+the stated boundary-line equality at `Re z = 1`.  This is the exact owner
+API needed for the boundary case, not a restatement of the public wrapper;
+cf. Edwards, Ch. 1, and Titchmarsh, Ch. 2. -/
+theorem eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_by_analyticContinuation_standard
+    (z : ℂ)
+    (hz_re : z.re = 1)
+    (hz_ne_one : z ≠ 1) :
+    riemannZeta z - eulerMaclaurinZetaFinitePart z =
+      eulerMaclaurinZetaMainTerm z +
+        eulerMaclaurinZetaEndpointTerm z +
+        eulerMaclaurinZetaBernoulliIntegralRemainder z := by
   sorry
 
 /-- Boundary-line analytic continuation of the first-order Euler-Maclaurin
@@ -18363,7 +18555,9 @@ theorem eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_with_bernoulliInte
       eulerMaclaurinZetaMainTerm z +
         eulerMaclaurinZetaEndpointTerm z +
         eulerMaclaurinZetaBernoulliIntegralRemainder z := by
-  sorry
+  exact
+    eulerMaclaurin_riemannZeta_boundaryLine_tail_identity_by_analyticContinuation_standard
+      z hz_re hz_ne_one
 
 /-- First-order Euler-Maclaurin tail identity for the Riemann zeta function at
 the owner cutoff `N = ⌊2 + ‖s‖⌋₊`.

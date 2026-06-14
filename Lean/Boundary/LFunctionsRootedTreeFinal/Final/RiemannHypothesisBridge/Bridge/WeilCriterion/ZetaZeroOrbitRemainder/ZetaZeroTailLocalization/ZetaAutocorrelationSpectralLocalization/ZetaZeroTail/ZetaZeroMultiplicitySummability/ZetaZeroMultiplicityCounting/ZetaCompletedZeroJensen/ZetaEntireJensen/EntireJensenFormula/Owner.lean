@@ -2392,6 +2392,25 @@ theorem real_integral_log_sin_zero_pi :
   -- Deep classical Fourier/Beta integral.
   sorry
 
+/-- Complex norm-square chord calculation on the unit circle. -/
+theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
+    (θ : ℝ) :
+    Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
+      2 * (1 - Real.cos θ) := by
+  -- Expand `Complex.exp_mul_I`; the real and imaginary parts are
+  -- `1 - cos θ` and `-sin θ`, so the norm-square is
+  -- `(1-cos θ)^2 + sin^2 θ = 2*(1-cos θ)`.
+  sorry
+
+/-- Half-angle square identity for the unit-circle chord length. -/
+theorem unitCircleLogKernel_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
+    (θ : ℝ) :
+    (2 * |Real.sin (θ / 2)|) ^ 2 =
+      2 * (1 - Real.cos θ) := by
+  -- Use `Real.sin_sq_eq_half_sub` (or `Real.abs_sin_half`) to identify
+  -- `4 * sin²(θ/2)` with `2*(1-cos θ)`.
+  sorry
+
 /-- Squared chord length for the unit-circle logarithmic kernel.
 
 This is the coordinate norm-square calculation:
@@ -2400,9 +2419,17 @@ theorem unitCircleLogKernel_norm_sq_eq_two_abs_sin_half_sq
     (θ : ℝ) :
     ‖1 - Complex.exp (θ * Complex.I)‖ ^ 2 =
       (2 * |Real.sin (θ / 2)|) ^ 2 := by
-  -- Expand `Complex.exp_mul_I`, compute `Complex.normSq`, and use
-  -- `Real.sin_sq_eq_half_sub` / `Real.abs_sin_half`.
-  sorry
+  let z : ℂ := 1 - Complex.exp (θ * Complex.I)
+  calc
+    ‖1 - Complex.exp (θ * Complex.I)‖ ^ 2 =
+        Complex.abs z ^ 2 := by
+      exact congrArg (fun x : ℝ => x ^ 2) (Complex.norm_eq_abs z)
+    _ = Complex.normSq z := by
+      exact Complex.sq_abs z
+    _ = 2 * (1 - Real.cos θ) := by
+      exact unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos θ
+    _ = (2 * |Real.sin (θ / 2)|) ^ 2 := by
+      exact (unitCircleLogKernel_two_abs_sin_half_sq_eq_two_mul_one_sub_cos θ).symm
 
 /-- Unit-circle kernel norm as the sine half-angle expression. -/
 theorem unitCircleLogKernel_norm_eq_two_abs_sin_half
@@ -2444,8 +2471,45 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
 theorem unitCircleLogKernel_const_integral_eq :
     (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
       2 * Real.pi * Real.log 2 := by
-  -- Constant interval integral over `[0, 2π]`.
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
+        ((2 * Real.pi) - 0) • Real.log 2 := by
+      exact intervalIntegral.integral_const (Real.log 2)
+    _ = (2 * Real.pi) • Real.log 2 := by
+      exact congrArg (fun x : ℝ => x • Real.log 2)
+        (sub_zero (2 * Real.pi))
+    _ = 2 * Real.pi * Real.log 2 := by
+      rfl
+
+/-- Interval-integrability of the half-angle sine logarithm on the
+fundamental Jensen interval.
+
+The only singularities are the endpoint logarithmic singularities of
+`sin (θ/2)` at `0` and `2π`; this is the exact integrability input needed for
+additivity of the kernel integral split. -/
+theorem unitCircleLogKernel_halfSineLog_intervalIntegrable :
+    IntervalIntegrable
+      (fun θ : ℝ => Real.log |Real.sin (θ / 2)|)
+      MeasureTheory.volume
+      0
+      (2 * Real.pi) := by
+  -- This follows from the finite logarithmic singularity API applied at the
+  -- two endpoint singularities after the local model
+  -- `sin (θ/2) ~ θ/2` at `0` and
+  -- `sin (θ/2) ~ (2π - θ)/2` at `2π`.
   sorry
+
+/-- Additivity for the constant plus half-angle sine-log kernel split. -/
+theorem unitCircleLogKernel_integral_add_const_halfSineLog :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log 2 + Real.log |Real.sin (θ / 2)|) =
+      (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log |Real.sin (θ / 2)|) := by
+  exact
+    intervalIntegral.integral_add
+      intervalIntegrable_const
+      unitCircleLogKernel_halfSineLog_intervalIntegrable
 
 /-- Integral form of the unit-circle kernel after the sine half-angle
 substitution. -/
@@ -2466,9 +2530,7 @@ theorem unitCircleLogKernel_integral_eq_sineLogIntegral :
         (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
             Real.log |Real.sin (θ / 2)|) := by
-    -- Additivity of interval integrals for the finite-log-singularity
-    -- integrable summands.
-    sorry
+    exact unitCircleLogKernel_integral_add_const_halfSineLog
   have hconst :
       (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
         2 * Real.pi * Real.log 2 :=
@@ -3894,7 +3956,28 @@ theorem complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
           (fun t : ℝ =>
             w * φ (AffineMap.lineMap (0 : ℂ) w t))
           (Set.Icc (0 : ℝ) 1) := by
-  sorry
+  intro w htube t ht
+  have hanalytic_mem :
+      AffineMap.lineMap (0 : ℂ) w t ∈
+        ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} :=
+    htube t ht
+  have hanalytic :
+      AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) w t) :=
+    match Set.mem_iUnion.1 hanalytic_mem with
+    | ⟨_c, hc_mem⟩ =>
+      match Set.mem_iUnion.1 hc_mem with
+      | ⟨_hc, hpoint⟩ => hpoint
+  have hline_cont :
+      ContinuousAt
+        (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
+        t :=
+    (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+  have hφ_cont :
+      ContinuousAt
+        (fun u : ℝ => φ (AffineMap.lineMap (0 : ℂ) w u))
+        t :=
+    hanalytic.differentiableAt.continuousAt.comp hline_cont
+  exact (continuousAt_const.mul hφ_cont).continuousWithinAt
 
 /-- Continuity on the parameter interval of the endpoint derivative integrand
 on a finite analytic tube. -/
@@ -3910,7 +3993,76 @@ theorem complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand φ w t)
           (Set.Icc (0 : ℝ) 1) := by
-  sorry
+  intro w htube
+  have hφ_seg :
+      ContinuousOn
+        (fun t : ℝ =>
+          φ (AffineMap.lineMap (0 : ℂ) w t))
+        (Set.Icc (0 : ℝ) 1) := by
+    intro t ht
+    have hanalytic_mem :
+        AffineMap.lineMap (0 : ℂ) w t ∈
+          ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} :=
+      htube t ht
+    have hanalytic :
+        AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) w t) :=
+      match Set.mem_iUnion.1 hanalytic_mem with
+      | ⟨_c, hc_mem⟩ =>
+        match Set.mem_iUnion.1 hc_mem with
+        | ⟨_hc, hpoint⟩ => hpoint
+    have hline_cont :
+        ContinuousAt
+          (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
+          t :=
+      (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+    exact (hanalytic.differentiableAt.continuousAt.comp hline_cont).continuousWithinAt
+  have hderiv_seg :
+      ContinuousOn
+        (fun t : ℝ =>
+          deriv φ (AffineMap.lineMap (0 : ℂ) w t))
+        (Set.Icc (0 : ℝ) 1) := by
+    intro t ht
+    have hanalytic_mem :
+        AffineMap.lineMap (0 : ℂ) w t ∈
+          ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} :=
+      htube t ht
+    have hanalytic :
+        AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) w t) :=
+      match Set.mem_iUnion.1 hanalytic_mem with
+      | ⟨_c, hc_mem⟩ =>
+        match Set.mem_iUnion.1 hc_mem with
+        | ⟨_hc, hpoint⟩ => hpoint
+    have hderiv_analytic :
+        AnalyticAt ℂ
+          (fun q : ℂ => deriv φ q)
+          (AffineMap.lineMap (0 : ℂ) w t) :=
+      complex_deriv_analyticAt_of_analyticAt φ hanalytic
+    have hline_cont :
+        ContinuousAt
+          (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
+          t :=
+      (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+    exact
+      (hderiv_analytic.differentiableAt.continuousAt.comp
+        hline_cont).continuousWithinAt
+  have ht_complex :
+      ContinuousOn
+        (fun t : ℝ => (t : ℂ))
+        (Set.Icc (0 : ℝ) 1) :=
+    continuous_ofReal.continuousOn
+  have hw_mul_t :
+      ContinuousOn
+        (fun t : ℝ => w * (t : ℂ))
+        (Set.Icc (0 : ℝ) 1) :=
+    continuousOn_const.mul ht_complex
+  have hsecond :
+      ContinuousOn
+        (fun t : ℝ =>
+          w * (t : ℂ) *
+            deriv φ (AffineMap.lineMap (0 : ℂ) w t))
+        (Set.Icc (0 : ℝ) 1) :=
+    hw_mul_t.mul hderiv_seg
+  exact hφ_seg.add hsecond
 
 /-- Integrability and measurability of continuous finite-tube interval
 integrands. -/
@@ -3959,6 +4111,11 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
         t ∈ Set.Icc (0 : ℝ) 1 →
           AffineMap.lineMap (0 : ℂ) w t ∈
             ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+      (∀ᶠ x in 𝓝 w,
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            AffineMap.lineMap (0 : ℂ) x t ∈
+              ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
         (∀ᶠ x in 𝓝 w,
           AEStronglyMeasurable
             (fun t : ℝ =>
@@ -3975,7 +4132,25 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
           (volume.restrict (Ι (0 : ℝ) 1)) := by
-  sorry
+  intro w htube htube_eventually
+  have hcont_eventually :
+      ∀ᶠ x in 𝓝 w,
+        ContinuousOn
+          (fun t : ℝ =>
+            x * φ (AffineMap.lineMap (0 : ℂ) x t))
+          (Set.Icc (0 : ℝ) 1) :=
+    htube_eventually.mono
+      (fun x hx =>
+        complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
+          φ centers x hx)
+  exact
+    complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
+      φ centers w
+      hcont_eventually
+      (complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
+        φ centers w htube)
+      (complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
+        φ centers w htube)
 
 /-- Compact boundedness of the endpoint derivative integrand on an endpoint
 ball times the parameter interval.
@@ -4189,6 +4364,8 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
   have hintegrability :=
     complex_centerSegmentIntegral_finiteTube_integrability
       φ centers w hw_stable
+      ((Metric.ball_mem_nhds w hε_pos).mono
+        (fun x hx t ht => hε_stable x hx t ht))
   have hdom :=
     complex_centerSegmentIntegral_finiteTube_domination_and_derivative
       φ centers w ε hε_pos hε_stable
