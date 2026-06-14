@@ -1176,6 +1176,19 @@ theorem Real.sinePower_sinSubstitution_forward_reassociate
 
 /-- Direct owner wrapper around mathlib's singular scalar change-of-variables
 theorem, with the exact image and pullback integrability hypotheses it needs. -/
+theorem Real.intervalIntegral_congr_of_eqOn_Ioo
+    {a b : ℝ}
+    {f g : ℝ → ℝ}
+    (hpoint :
+      EqOn f g (Set.Ioo (min a b) (max a b))) :
+    (∫ x in a..b, f x) =
+      ∫ x in a..b, g x := by
+  sorry
+
+/-- Direct owner wrapper around mathlib's singular scalar change-of-variables
+theorem, with the exact image and pullback integrability hypotheses it needs
+and only open-interval pointwise equality.  The endpoints are ignored by the
+interval integral. -/
 theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
     {a b : ℝ}
     {f f' g source : ℝ → ℝ}
@@ -1193,7 +1206,10 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
         [[a, b]]
         MeasureTheory.volume)
     (hpoint :
-      EqOn (fun x : ℝ => (g ∘ f) x * f' x) source [[a, b]]) :
+      EqOn
+        (fun x : ℝ => (g ∘ f) x * f' x)
+        source
+        (Set.Ioo (min a b) (max a b))) :
     (∫ x in a..b, source x) =
       ∫ y in f a..f b, g y := by
   have hsubstitution :
@@ -1203,7 +1219,7 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
       hf_cont hf_deriv hg_cont hg_image hpullback
   exact
     Eq.trans
-      (intervalIntegral.integral_congr hpoint.symm)
+      (Real.intervalIntegral_congr_of_eqOn_Ioo hpoint.symm)
       hsubstitution
 
 /-- Owner-level interval substitution theorem for singular scalar kernels.
@@ -1232,7 +1248,7 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
         [[a, b]]
         MeasureTheory.volume)
     (hpoint :
-      ∀ x ∈ [[a, b]],
+      ∀ x ∈ Set.Ioo (min a b) (max a b),
         (g ∘ f) x * f' x = source x) :
     (∫ x in a..b, source x) =
       ∫ y in f a..f b, g y := by
@@ -1309,15 +1325,23 @@ theorem Real.sinePower_sinSubstitution_pullback_integrableOn
       MeasureTheory.volume := by
   sorry
 
-/-- Pointwise equality on the closed sine-substitution interval. -/
-theorem Real.sinePower_sinSubstitution_closedInterval_pointwise
+/-- Pointwise equality on the open sine-substitution interval. -/
+theorem Real.sinePower_sinSubstitution_openInterval_pointwise
     (s u : ℝ)
-    (hu : u ∈ [[(0 : ℝ), Real.pi / 2]]) :
+    (hu : u ∈
+      Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+        (max (0 : ℝ) (Real.pi / 2))) :
     (((fun x : ℝ =>
       x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
         Real.cos u =
       (Real.sin u) ^ s := by
-  sorry
+  have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+    min_eq_left (le_of_lt Real.pi_div_two_pos)
+  have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+    max_eq_right (le_of_lt Real.pi_div_two_pos)
+  have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+    rwa [hmin, hmax] at hu
+  exact Real.sinePower_sinSubstitution_forwardJacobian_eq s u hu'
 
 /-- Continuity of the sine-substitution target kernel on the open image. -/
 theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
@@ -1375,7 +1399,7 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
       (Real.sinePower_sinSubstitution_image_integrableOn s htarget)
       (Real.sinePower_sinSubstitution_pullback_integrableOn
         s hsource hforward)
-      (Real.sinePower_sinSubstitution_closedInterval_pointwise s)
+      (Real.sinePower_sinSubstitution_openInterval_pointwise s)
 
 /-- The interval substitution theorem for `x = sin u` on `[0,π/2]`, after
 isolating the endpoint integrability and open-interval Jacobian packages. -/
@@ -1693,10 +1717,10 @@ theorem Real.sinePower_squareSubstitution_pullback_integrableOn
       MeasureTheory.volume := by
   sorry
 
-/-- Pointwise equality on the closed square-substitution interval. -/
-theorem Real.sinePower_squareSubstitution_closedInterval_pointwise
+/-- Pointwise equality on the open square-substitution interval. -/
+theorem Real.sinePower_squareSubstitution_openInterval_pointwise
     (s x : ℝ)
-    (hx : x ∈ [[(0 : ℝ), 1]]) :
+    (hx : x ∈ Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) :
     (((fun t : ℝ =>
       (1 / 2 : ℝ) *
         (t ^ (((s + 1) / 2) - 1) *
@@ -1704,7 +1728,13 @@ theorem Real.sinePower_squareSubstitution_closedInterval_pointwise
         (fun y : ℝ => y ^ 2)) x) *
         (2 * x) =
       x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  have hmin : min (0 : ℝ) 1 = 0 :=
+    min_eq_left zero_le_one
+  have hmax : max (0 : ℝ) 1 = 1 :=
+    max_eq_right zero_le_one
+  have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+    rwa [hmin, hmax] at hx
+  exact Real.sinePower_squareSubstitution_jacobian_eq s x hx'
 
 /-- Continuity of the square-substitution target kernel including its scalar
 `1/2` factor. -/
@@ -1759,6 +1789,20 @@ theorem Real.sinePower_squareSubstitution_scaledTarget_image_integrableOn
             (1 - t) ^ ((1 / 2 : ℝ) - 1)))
       ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
       MeasureTheory.volume := by
+  sorry
+
+/-- Scalar normalization after the square substitution. -/
+theorem Real.sinePower_squareSubstitution_scaledIntegral_eq
+    (s : ℝ) :
+    (∫ t in ((fun y : ℝ => y ^ 2) (0 : ℝ))..
+        ((fun y : ℝ => y ^ 2) 1),
+        (1 / 2 : ℝ) *
+          (t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))) =
+      (1 / 2 : ℝ) *
+        ∫ t in (0 : ℝ)..1,
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1) := by
   sorry
 
 /-- General owner-level change-of-variables lemma for the square substitution
@@ -1823,8 +1867,10 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVari
         s htarget)
       (Real.sinePower_squareSubstitution_pullback_integrableOn
         s hsource hjac)
-      (Real.sinePower_squareSubstitution_closedInterval_pointwise s)
-  sorry
+      (Real.sinePower_squareSubstitution_openInterval_pointwise s)
+  exact
+    Eq.trans hraw
+      (Real.sinePower_squareSubstitution_scaledIntegral_eq s)
 
 /-- The interval substitution theorem for `t = x²` on `[0,1]`, after
 isolating endpoint integrability and the Jacobian computation. -/
