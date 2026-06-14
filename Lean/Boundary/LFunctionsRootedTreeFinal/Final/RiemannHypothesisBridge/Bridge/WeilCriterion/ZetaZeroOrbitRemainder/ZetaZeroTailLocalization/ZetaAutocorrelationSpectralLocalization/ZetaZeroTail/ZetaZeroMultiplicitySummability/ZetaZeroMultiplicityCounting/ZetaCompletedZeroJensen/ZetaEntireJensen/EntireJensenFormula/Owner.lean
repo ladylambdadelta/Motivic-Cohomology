@@ -1776,13 +1776,15 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
-/-- Classical Jensen formula for a nontrivial entire function whose value at
-the origin is nonzero.
+/-- Standard Jensen formula for a nontrivial entire function whose value at the
+origin is nonzero.
 
-This is the analytic owner root: before any origin Taylor-factor transport, the
-nonzero-origin Jensen identity gives one fixed normalization constant and the
-radial-gap identity for all comparison radii. -/
-theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot
+This is the analytic owner root, in the exact normalization used by this file:
+for every radius at least `1`, the nonzero-zero radial gap sum is summable and
+equals the normalized boundary logarithmic average up to the fixed origin
+constant.  The closed-disk summability statement is included because it is the
+finite-zero-counting consequence of the same standard Jensen package. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hF0 : F 0 ≠ 0) :
@@ -1800,8 +1802,127 @@ theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot
           entireFunctionJensenRadialGapSum F hF ρ + C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
   -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
-  -- counted by analytic multiplicity.
+  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
+  -- Functions, §5.
   sorry
+
+/-- Closed-disk multiplicity summability extracted from the standard
+nonzero-origin Jensen package. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (C : ℝ)
+    (hJ :
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ))
+    (R : ℝ)
+    (hR : 1 ≤ R) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) :=
+  hJ.1 R hR
+
+/-- Radial-gap summability extracted from the standard nonzero-origin Jensen
+package. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummable
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (C : ℝ)
+    (hJ :
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ))
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionJensenRadialGapSummand F hF ρ z) :=
+  (hJ.2 ρ hρ).1
+
+/-- Radial-gap identity extracted from the standard nonzero-origin Jensen
+package. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (C : ℝ)
+    (hJ :
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ))
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenRadialGapSum F hF ρ + C =
+      entireFunctionJensenBoundaryLogAverage F ρ :=
+  (hJ.2 ρ hρ).2
+
+/-- Classical Jensen formula for a nontrivial entire function whose value at
+the origin is nonzero.
+
+This is now a thin assembly theorem over the exact standard Jensen owner root:
+the analytic content is isolated in
+`entireFunction_standardJensenFormula_nonzeroAtOrigin_ownerRoot`, while this
+name preserves the downstream classical-Jensen API. -/
+theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  match entireFunction_standardJensenFormula_nonzeroAtOrigin_ownerRoot F hF hF0 with
+  | ⟨C, hJ⟩ =>
+      refine ⟨C, ?_, ?_⟩
+      · intro R hR
+        exact
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummable
+            F hF hF0 C hJ R hR
+      · intro ρ hρ
+        exact
+          ⟨entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummable
+              F hF hF0 C hJ ρ hρ,
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+              F hF hF0 C hJ ρ hρ⟩
 
 /-- Classical Jensen formula for a nontrivial entire function whose value at
 the origin is nonzero.
