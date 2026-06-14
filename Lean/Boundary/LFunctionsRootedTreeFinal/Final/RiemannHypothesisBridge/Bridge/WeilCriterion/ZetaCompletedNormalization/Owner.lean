@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Complex.PhragmenLindelof
+import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.Bounds
@@ -483,14 +484,14 @@ theorem halfArgument_norm_ge_one_half_of_one_le_norm
       hz_norm
   exact (div_le_iff₀' htwo_pos).mpr hone_le_two_mul
 
-/-- Sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
+/-- Standard sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
 This is the standard special-function input closest to the literature: the
 sectorial Stirling expansion for `log Γ(w)` on a closed sector avoiding the
 negative real axis, specialized to `0 ≤ w.re` and converted to a log-norm
 upper bound.  The radius is written as `2 * ‖w‖` so the downstream
 half-argument transport is formula-level; cf. DLMF §5.11. -/
-theorem Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound :
+theorem Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound_standard :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
@@ -499,6 +500,21 @@ theorem Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound :
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   sorry
+
+/-- Sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
+
+This is the canonical sectorial Gamma root for the normalization chain.  It is
+formula-level transport from the standard Mathlib-shaped sectorial Stirling
+estimate for `Complex.Gamma`; cf. DLMF §5.11. -/
+theorem Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound_standard
 
 /-- The standard sectorial complex-Stirling input for `Complex.Gamma` in the closed
 right half-plane.
@@ -2177,6 +2193,179 @@ theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
       ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
   exact congrArg norm (Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded t)
 
+/-- Vertical complex Stirling on fixed real lines, in the two norm forms needed for
+left-boundary Gamma transport.
+
+This is the canonical special-function owner input after the `π`-normalization has
+been peeled off: for fixed real part `a`, the norm of `Γ(a + i b)` has the standard
+`exp (-π |b| / 2)` vertical decay with polynomial factor `(1 + |b|)^(a - 1/2)`,
+and the reciprocal has the dual envelope.  The two roots below are only the
+`a = 1/2` numerator and `a = 0` denominator specializations; cf. DLMF §5.11. -/
+theorem verticalComplexGammaStirling_fixedRealPart_core_bounds
+    (a : ℝ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ b : ℝ,
+        1 / 2 ≤ ‖b‖ →
+        ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+          C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+            (1 + ‖b‖) ^ (a - 1 / 2) ∧
+        ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
+          C * Real.exp ((Real.pi / 2) * ‖b‖) *
+            (1 + ‖b‖) ^ (1 / 2 - a) := by
+  sorry
+
+/-- The numerator Gamma argument on the left boundary is the fixed-real-part
+vertical point `1/2 + i(-t/2)`. -/
+theorem leftBoundary_numerator_complexGamma_argument_eq_fixedRealPart
+    (t : ℝ) :
+    (((1 : ℂ) - (t : ℂ) * Complex.I) / 2) =
+      ((1 / 2 : ℝ) : ℂ) + ((-t / 2 : ℝ) : ℂ) * Complex.I := by
+  apply Complex.ext
+  · calc
+      ((((1 : ℂ) - (t : ℂ) * Complex.I) / 2)).re =
+          (((1 : ℂ) - (t : ℂ) * Complex.I).re) / 2 := by
+        exact Complex.div_re_ofReal ((1 : ℂ) - (t : ℂ) * Complex.I) 2
+      _ = 1 / 2 := by
+        exact congrArg (fun x : ℝ => x / 2)
+          (by
+            calc
+              (((1 : ℂ) - (t : ℂ) * Complex.I).re) =
+                  (1 : ℂ).re - ((t : ℂ) * Complex.I).re := by
+                exact Complex.sub_re (1 : ℂ) ((t : ℂ) * Complex.I)
+              _ = 1 - ((t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im) := by
+                exact congrArg
+                  (fun x : ℝ => x - ((t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im))
+                  Complex.one_re
+              _ = 1 - (t * 0 - 0 * 1) := rfl
+              _ = 1 := by
+                calc
+                  1 - (t * 0 - 0 * 1) = 1 - (0 - 0 * 1) := by
+                    exact congrArg (fun x : ℝ => 1 - (x - 0 * 1)) (mul_zero t)
+                  _ = 1 - (0 - 0) := by
+                    exact congrArg (fun x : ℝ => 1 - (0 - x)) (zero_mul 1)
+                  _ = 1 - 0 := by
+                    exact congrArg (fun x : ℝ => 1 - x) (sub_zero 0)
+                  _ = 1 := sub_zero 1)
+      _ = (((1 / 2 : ℝ) : ℂ) + ((-t / 2 : ℝ) : ℂ) * Complex.I).re := by
+        rfl
+  · calc
+      ((((1 : ℂ) - (t : ℂ) * Complex.I) / 2)).im =
+          (((1 : ℂ) - (t : ℂ) * Complex.I).im) / 2 := by
+        exact Complex.div_im_ofReal ((1 : ℂ) - (t : ℂ) * Complex.I) 2
+      _ = -t / 2 := by
+        exact congrArg (fun x : ℝ => x / 2)
+          (by
+            calc
+              (((1 : ℂ) - (t : ℂ) * Complex.I).im) =
+                  (1 : ℂ).im - ((t : ℂ) * Complex.I).im := by
+                exact Complex.sub_im (1 : ℂ) ((t : ℂ) * Complex.I)
+              _ = 0 - ((t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re) := by
+                exact congrArg
+                  (fun x : ℝ => x - ((t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re))
+                  Complex.one_im
+              _ = 0 - (t * 1 + 0 * 0) := rfl
+              _ = 0 - (t + 0 * 0) := by
+                exact congrArg (fun x : ℝ => 0 - (x + 0 * 0)) (mul_one t)
+              _ = 0 - (t + 0) := by
+                exact congrArg (fun x : ℝ => 0 - (t + x)) (zero_mul 0)
+              _ = 0 - t := by
+                exact congrArg (fun x : ℝ => 0 - x) (add_zero t)
+              _ = -t := by
+                exact zero_sub t)
+      _ = (((1 / 2 : ℝ) : ℂ) + ((-t / 2 : ℝ) : ℂ) * Complex.I).im := by
+        rfl
+
+/-- The denominator Gamma argument on the left boundary is the fixed-real-part
+vertical point `0 + i(t/2)`. -/
+theorem leftBoundary_denominator_complexGamma_argument_eq_fixedRealPart
+    (t : ℝ) :
+    (((t : ℂ) * Complex.I) / 2) =
+      ((0 : ℝ) : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I := by
+  apply Complex.ext
+  · calc
+      (((t : ℂ) * Complex.I) / 2).re =
+          (((t : ℂ) * Complex.I).re) / 2 := by
+        exact Complex.div_re_ofReal ((t : ℂ) * Complex.I) 2
+      _ = (t * 0 - 0 * 1) / 2 := by
+        exact congrArg (fun x : ℝ => x / 2)
+          (by
+            calc
+              (((t : ℂ) * Complex.I).re) =
+                  (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
+                exact Complex.mul_re (t : ℂ) Complex.I
+              _ = t * 0 - 0 * 1 := rfl)
+      _ = 0 := by
+        calc
+          (t * 0 - 0 * 1) / 2 = (0 - 0 * 1) / 2 := by
+            exact congrArg (fun x : ℝ => (x - 0 * 1) / 2) (mul_zero t)
+          _ = (0 - 0) / 2 := by
+            exact congrArg (fun x : ℝ => (0 - x) / 2) (zero_mul 1)
+          _ = 0 / 2 := by
+            exact congrArg (fun x : ℝ => x / 2) (sub_zero 0)
+          _ = 0 := zero_div 2
+      _ = (((0 : ℝ) : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I).re := by
+        rfl
+  · calc
+      (((t : ℂ) * Complex.I) / 2).im =
+          (((t : ℂ) * Complex.I).im) / 2 := by
+        exact Complex.div_im_ofReal ((t : ℂ) * Complex.I) 2
+      _ = (t * 1 + 0 * 0) / 2 := by
+        exact congrArg (fun x : ℝ => x / 2)
+          (by
+            calc
+              (((t : ℂ) * Complex.I).im) =
+                  (t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re := by
+                exact Complex.mul_im (t : ℂ) Complex.I
+              _ = t * 1 + 0 * 0 := rfl)
+      _ = t / 2 := by
+        calc
+          (t * 1 + 0 * 0) / 2 = (t + 0 * 0) / 2 := by
+            exact congrArg (fun x : ℝ => (x + 0 * 0) / 2) (mul_one t)
+          _ = (t + 0) / 2 := by
+            exact congrArg (fun x : ℝ => (t + x) / 2) (zero_mul 0)
+          _ = t / 2 := by
+            exact congrArg (fun x : ℝ => x / 2) (add_zero t)
+      _ = (((0 : ℝ) : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I).im := by
+        rfl
+
+/-- The half-scaled vertical coordinate has norm at least `1/2` on the
+left-boundary vertical-tail range. -/
+theorem half_norm_ge_one_half_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    (1 / 2 : ℝ) ≤ ‖t / 2‖ := by
+  have htwo_pos : (0 : ℝ) < 2 := zero_lt_two
+  have hnorm_div : ‖t / 2‖ = ‖t‖ / 2 := by
+    calc
+      ‖t / 2‖ = ‖t‖ / ‖(2 : ℝ)‖ := by
+        exact norm_div t 2
+      _ = ‖t‖ / 2 := by
+        exact congrArg (fun x : ℝ => ‖t‖ / x)
+          (Real.norm_of_nonneg (le_of_lt htwo_pos))
+  exact Eq.subst
+    (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+    hnorm_div.symm
+    ((div_le_div_right htwo_pos).mpr ht)
+
+/-- Negating the half-scaled vertical coordinate preserves the half-tail bound. -/
+theorem neg_half_norm_ge_one_half_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    (1 / 2 : ℝ) ≤ ‖-t / 2‖ := by
+  have hneg_div : -t / 2 = -(t / 2) := by
+    exact neg_div t 2
+  have hnorm : ‖-t / 2‖ = ‖t / 2‖ := by
+    calc
+      ‖-t / 2‖ = ‖-(t / 2)‖ := by
+        exact congrArg norm hneg_div
+      _ = ‖t / 2‖ :=
+        norm_neg (t / 2)
+  exact Eq.subst
+    (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+    hnorm.symm
+    (half_norm_ge_one_half_of_one_le_norm ht)
+
 /-- The numerator vertical line for the left-boundary quotient, before the `π`
 normalization is attached.
 
@@ -2190,7 +2379,87 @@ theorem verticalComplexGammaStirling_leftBoundary_numerator_core_bound :
         1 ≤ ‖t‖ →
         ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ ≤
           A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
-  sorry
+  rcases verticalComplexGammaStirling_fixedRealPart_core_bounds (1 / 2) with
+    ⟨A, hA_pos, hA⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht
+  have htail : (1 / 2 : ℝ) ≤ ‖-t / 2‖ :=
+    neg_half_norm_ge_one_half_of_one_le_norm ht
+  have hbound :
+      ‖Complex.Gamma (((1 / 2 : ℝ) : ℂ) + ((-t / 2 : ℝ) : ℂ) * Complex.I)‖ ≤
+        A * Real.exp (-(Real.pi / 2) * ‖-t / 2‖) *
+          (1 + ‖-t / 2‖) ^ ((1 / 2 : ℝ) - 1 / 2) :=
+    (hA (-t / 2) htail).1
+  have harg :
+      Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2) =
+        Complex.Gamma (((1 / 2 : ℝ) : ℂ) + ((-t / 2 : ℝ) : ℂ) * Complex.I) := by
+    exact congrArg Complex.Gamma
+      (leftBoundary_numerator_complexGamma_argument_eq_fixedRealPart t)
+  have hpow :
+      (1 + ‖-t / 2‖) ^ ((1 / 2 : ℝ) - 1 / 2) = 1 := by
+    have hexponent :
+        ((1 / 2 : ℝ) - 1 / 2) = 0 :=
+      sub_self (1 / 2 : ℝ)
+    exact Eq.subst
+      (motive := fun x : ℝ => (1 + ‖-t / 2‖) ^ x = 1)
+      hexponent.symm
+      (Real.rpow_zero (1 + ‖-t / 2‖))
+  have hexp :
+      Real.exp (-(Real.pi / 2) * ‖-t / 2‖) =
+        Real.exp (-(Real.pi / 4) * ‖t‖) := by
+    have hnorm : ‖-t / 2‖ = ‖t‖ / 2 := by
+      have hneg_div : -t / 2 = -(t / 2) := by
+        exact neg_div t 2
+      have htwo_nonneg : (0 : ℝ) ≤ 2 :=
+        le_of_lt zero_lt_two
+      calc
+        ‖-t / 2‖ = ‖-(t / 2)‖ := by
+          exact congrArg norm hneg_div
+        _ = ‖t / 2‖ :=
+          norm_neg (t / 2)
+        _ = ‖t‖ / ‖(2 : ℝ)‖ := by
+          exact norm_div t 2
+        _ = ‖t‖ / 2 := by
+          exact congrArg (fun x : ℝ => ‖t‖ / x)
+            (Real.norm_of_nonneg htwo_nonneg)
+    have hexponent :
+        -(Real.pi / 2) * (‖t‖ / 2) = -(Real.pi / 4) * ‖t‖ := by
+      have hdiv :
+          (Real.pi / 2) / 2 = Real.pi / ((2 : ℝ) * 2) :=
+        div_div_eq_div_mul Real.pi 2 2
+      have hnegdiv :
+          -(Real.pi / 2) / 2 = -(Real.pi / ((2 : ℝ) * 2)) :=
+        congrArg Neg.neg hdiv
+      have hfour :
+          ((2 : ℝ) * 2) = 4 :=
+        rfl
+      calc
+        -(Real.pi / 2) * (‖t‖ / 2) =
+            (-(Real.pi / 2) / 2) * ‖t‖ := by
+          exact (mul_div_assoc (-(Real.pi / 2)) ‖t‖ 2).symm
+        _ = (-(Real.pi / (2 * 2))) * ‖t‖ := by
+          exact congrArg (fun x : ℝ => x * ‖t‖)
+            hnegdiv
+        _ = -(Real.pi / 4) * ‖t‖ := by
+          exact congrArg (fun x : ℝ => -(Real.pi / x) * ‖t‖)
+            hfour
+    exact congrArg Real.exp
+      (Eq.trans
+        (congrArg (fun x : ℝ => -(Real.pi / 2) * x) hnorm)
+        hexponent)
+  exact Eq.subst
+    (motive := fun x : ℂ => ‖x‖ ≤ A * Real.exp (-(Real.pi / 4) * ‖t‖))
+    harg.symm
+    (Eq.subst
+      (motive := fun x : ℝ => ‖Complex.Gamma (((1 / 2 : ℝ) : ℂ) +
+        ((-t / 2 : ℝ) : ℂ) * Complex.I)‖ ≤ A * x)
+      hexp
+      (Eq.subst
+        (motive := fun x : ℝ => ‖Complex.Gamma (((1 / 2 : ℝ) : ℂ) +
+          ((-t / 2 : ℝ) : ℂ) * Complex.I)‖ ≤
+            A * Real.exp (-(Real.pi / 2) * ‖-t / 2‖) * x)
+        hpow
+        hbound))
 
 /-- The denominator vertical line for the left-boundary quotient, before the `π`
 normalization is attached.
@@ -2204,7 +2473,100 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
         1 ≤ ‖t‖ →
         ‖(Complex.Gamma (((t : ℂ) * Complex.I) / 2))⁻¹‖ ≤
           B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
-  sorry
+  rcases verticalComplexGammaStirling_fixedRealPart_core_bounds 0 with
+    ⟨B, hB_pos, hB⟩
+  refine ⟨B, hB_pos, ?_⟩
+  intro t ht
+  have htail : (1 / 2 : ℝ) ≤ ‖t / 2‖ :=
+    half_norm_ge_one_half_of_one_le_norm ht
+  have hbound :
+      ‖(Complex.Gamma (((0 : ℝ) : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I))⁻¹‖ ≤
+        B * Real.exp ((Real.pi / 2) * ‖t / 2‖) *
+          (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) :=
+    (hB (t / 2) htail).2
+  have harg :
+      Complex.Gamma (((t : ℂ) * Complex.I) / 2) =
+        Complex.Gamma (((0 : ℝ) : ℂ) + ((t / 2 : ℝ) : ℂ) * Complex.I) := by
+    exact congrArg Complex.Gamma
+      (leftBoundary_denominator_complexGamma_argument_eq_fixedRealPart t)
+  have hnorm_half : ‖t / 2‖ = ‖t‖ / 2 := by
+    have htwo_nonneg : (0 : ℝ) ≤ 2 :=
+      le_of_lt zero_lt_two
+    calc
+      ‖t / 2‖ = ‖t‖ / ‖(2 : ℝ)‖ := by
+        exact norm_div t 2
+      _ = ‖t‖ / 2 := by
+        exact congrArg (fun x : ℝ => ‖t‖ / x)
+          (Real.norm_of_nonneg htwo_nonneg)
+  have hexp :
+      Real.exp ((Real.pi / 2) * ‖t / 2‖) =
+        Real.exp ((Real.pi / 4) * ‖t‖) := by
+    have hexponent :
+        (Real.pi / 2) * (‖t‖ / 2) = (Real.pi / 4) * ‖t‖ := by
+      have hdiv :
+          (Real.pi / 2) / 2 = Real.pi / ((2 : ℝ) * 2) :=
+        div_div_eq_div_mul Real.pi 2 2
+      have hfour :
+          ((2 : ℝ) * 2) = 4 :=
+        rfl
+      calc
+        (Real.pi / 2) * (‖t‖ / 2) =
+            ((Real.pi / 2) / 2) * ‖t‖ := by
+          exact (mul_div_assoc (Real.pi / 2) ‖t‖ 2).symm
+        _ = (Real.pi / ((2 : ℝ) * 2)) * ‖t‖ := by
+          exact congrArg (fun x : ℝ => x * ‖t‖) hdiv
+        _ = (Real.pi / 4) * ‖t‖ := by
+          exact congrArg (fun x : ℝ => (Real.pi / x) * ‖t‖) hfour
+    exact congrArg Real.exp
+      (Eq.trans
+        (congrArg (fun x : ℝ => (Real.pi / 2) * x) hnorm_half)
+        hexponent)
+  have hsqrt :
+      (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) ≤ Real.sqrt (1 + ‖t‖) := by
+    have hbase_nonneg : 0 ≤ 1 + ‖t / 2‖ :=
+      add_nonneg zero_le_one (norm_nonneg (t / 2))
+    have hhalf_le : ‖t‖ / 2 ≤ ‖t‖ :=
+      div_le_self (norm_nonneg t) one_le_two
+    have hbase_le : 1 + ‖t / 2‖ ≤ 1 + ‖t‖ := by
+      exact add_le_add_left
+        (Eq.subst
+          (motive := fun x : ℝ => x ≤ ‖t‖)
+          hnorm_half.symm
+          hhalf_le)
+        1
+    have hexponent :
+        ((1 / 2 : ℝ) - 0) = 1 / 2 :=
+      sub_zero (1 / 2 : ℝ)
+    have hrpow :
+        (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) =
+          Real.sqrt (1 + ‖t / 2‖) :=
+      Eq.subst
+        (motive := fun x : ℝ =>
+          (1 + ‖t / 2‖) ^ x = Real.sqrt (1 + ‖t / 2‖))
+        hexponent.symm
+        (Real.rpow_one_div_two hbase_nonneg)
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ Real.sqrt (1 + ‖t‖))
+      hrpow.symm
+      (Real.sqrt_le_sqrt hbase_le)
+  have hscaled :
+      B * Real.exp ((Real.pi / 2) * ‖t / 2‖) *
+          (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) ≤
+        B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
+    have hleft_nonneg :
+        0 ≤ B * Real.exp ((Real.pi / 2) * ‖t / 2‖) :=
+      mul_nonneg (le_of_lt hB_pos) (le_of_lt (Real.exp_pos _))
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        B * x * (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) ≤
+          B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
+      hexp
+      (mul_le_mul_of_nonneg_left hsqrt hleft_nonneg)
+  exact Eq.subst
+    (motive := fun x : ℂ =>
+      ‖x⁻¹‖ ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
+    harg.symm
+    (le_trans hbound hscaled)
 
 /-- The real part of the numerator `π`-normalizing exponent is `-1/2`. -/
 theorem leftBoundary_numerator_piExponent_re
@@ -3582,6 +3944,160 @@ theorem one_le_log_two_add_norm_of_one_le_norm
     (lt_of_lt_of_le Real.exp_pos hexp_one_le)
     hexp_one_le
 
+/-- The Abel/Euler-Maclaurin cutoff `⌊2 + |t|⌋₊` is nonzero. -/
+theorem boundaryLineOnePointRealParam_cutoff_pos
+    (t : ℝ) :
+    0 < ⌊2 + ‖t‖⌋₊ := by
+  have hone_le : (1 : ℝ) ≤ 2 + ‖t‖ :=
+    one_le_two_add_norm t
+  exact (Nat.one_le_floor_iff zero_lt_one).mpr hone_le
+
+/-- The Abel/Euler-Maclaurin cutoff dominates `2`. -/
+theorem boundaryLineOnePointRealParam_two_le_cutoff
+    (t : ℝ) :
+    2 ≤ ⌊2 + ‖t‖⌋₊ := by
+  have htwo_le : (2 : ℝ) ≤ 2 + ‖t‖ :=
+    le_add_of_nonneg_right (norm_nonneg t)
+  exact (Nat.le_floor_iff zero_lt_two).mpr htwo_le
+
+/-- Transport the finite Dirichlet truncation from `Icc 1 N` to the successor-indexed
+form used by analytic Dirichlet-series tails. -/
+theorem boundaryLineOnePointRealParam_dirichlet_truncation_eq_sum_range_add_one
+    (t : ℝ)
+    (N : ℕ) :
+    (∑ n ∈ Finset.Icc 1 N,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
+      ∑ n ∈ Finset.range N,
+        (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t) := by
+  induction N with
+  | zero =>
+      have hleft :
+          (∑ n ∈ Finset.Icc 1 0,
+              (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) = 0 := by
+        exact Finset.sum_eq_zero
+          (fun n hn => by
+            have hn_bounds : 1 ≤ n ∧ n ≤ 0 :=
+              Finset.mem_Icc.mp hn
+            have hone_le_zero : (1 : ℕ) ≤ 0 :=
+              le_trans hn_bounds.1 hn_bounds.2
+            exact False.elim
+              ((Nat.not_succ_le_zero 0) hone_le_zero))
+      have hright :
+          (∑ n ∈ Finset.range 0,
+              (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t)) = 0 := by
+        exact Eq.subst
+          (motive := fun s : Finset ℕ =>
+            (∑ n ∈ s,
+              (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t)) = 0)
+          (Finset.range_zero.symm)
+          rfl
+      exact Eq.trans hleft hright.symm
+  | succ N ih =>
+      have hleft :
+          (∑ n ∈ Finset.Icc 1 (N + 1),
+              (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
+            (∑ n ∈ Finset.Icc 1 N,
+              (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) +
+              (1 : ℂ) / (((N + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t) := by
+        exact Finset.sum_Icc_succ_top (Nat.succ_pos N)
+          (fun n : ℕ => (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
+      have hright :
+          (∑ n ∈ Finset.range (N + 1),
+              (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t)) =
+            (∑ n ∈ Finset.range N,
+              (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t)) +
+              (1 : ℂ) / (((N + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t) := by
+        exact Finset.sum_range_succ
+          (fun n : ℕ =>
+            (1 : ℂ) / (((n + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t))
+          N
+      exact Eq.trans hleft (Eq.trans (congrArg
+        (fun z : ℂ =>
+          z + (1 : ℂ) / (((N + 1 : ℕ) : ℂ) ^ boundaryLineOnePointRealParam t))
+        ih) hright.symm)
+
+/-- The oscillatory coefficient in the boundary-line Dirichlet term is exactly `n^{-it}`
+after the real part `1` is peeled off. -/
+theorem boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation
+    (t : ℝ)
+    {n : ℕ}
+    (hn : 0 < n) :
+    (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) =
+      ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) / (n : ℂ) := by
+  have hn_complex_ne : (n : ℂ) ≠ 0 := by
+    exact_mod_cast Nat.ne_of_gt hn
+  have hpoint :
+      boundaryLineOnePointRealParam t = 1 + (t : ℂ) * Complex.I := by
+    exact Complex.ext rfl rfl
+  have hpow_add :
+      (n : ℂ) ^ boundaryLineOnePointRealParam t =
+        (n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I) := by
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        (n : ℂ) ^ z =
+          (n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I))
+      hpoint.symm
+      (Complex.cpow_add (1 : ℂ) ((t : ℂ) * Complex.I) hn_complex_ne)
+  have hinv_osc :
+      ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ =
+        (n : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+    have hneg :
+        -((t : ℂ) * Complex.I) = -(t : ℂ) * Complex.I := by
+      exact neg_mul (t : ℂ) Complex.I
+    exact Eq.subst
+      (motive := fun z : ℂ =>
+        ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ = (n : ℂ) ^ z)
+      hneg
+      (Complex.cpow_neg (n : ℂ) ((t : ℂ) * Complex.I)).symm
+  calc
+    (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) =
+        ((n : ℂ) ^ boundaryLineOnePointRealParam t)⁻¹ := by
+          exact one_div ((n : ℂ) ^ boundaryLineOnePointRealParam t)
+    _ = ((n : ℂ) ^ (1 : ℂ) * (n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ := by
+          exact congrArg Inv.inv hpow_add
+    _ = ((n : ℂ) ^ ((t : ℂ) * Complex.I))⁻¹ * ((n : ℂ) ^ (1 : ℂ))⁻¹ := by
+          exact mul_inv_rev ((n : ℂ) ^ (1 : ℂ)) ((n : ℂ) ^ ((t : ℂ) * Complex.I))
+    _ = (n : ℂ) ^ (-(t : ℂ) * Complex.I) * ((n : ℂ) ^ (1 : ℂ))⁻¹ := by
+          exact congrArg
+            (fun z : ℂ => z * ((n : ℂ) ^ (1 : ℂ))⁻¹)
+            hinv_osc
+    _ = (n : ℂ) ^ (-(t : ℂ) * Complex.I) / (n : ℂ) := by
+          exact congrArg
+            (fun z : ℂ => (n : ℂ) ^ (-(t : ℂ) * Complex.I) * z⁻¹)
+            (Complex.cpow_one (n : ℂ))
+
+/-- Abel summation in the precise finite form needed for the boundary-line tail:
+coefficients are the oscillatory partial sums of `n^{-it}` and the weight is `1/x`. -/
+theorem abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
+    (t : ℝ)
+    {a b : ℝ}
+    (ha : 0 ≤ a)
+    (hab : a ≤ b)
+    (hf_diff :
+      ∀ x ∈ Set.Icc a b, DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x)
+    (hf_int :
+      IntegrableOn
+        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+        (Set.Icc a b)) :
+    ∑ k ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)) =
+      ((b : ℂ)⁻¹ : ℂ) *
+          (∑ k ∈ Finset.Icc 0 ⌊b⌋₊,
+            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+        ((a : ℂ)⁻¹ : ℂ) *
+          (∑ k ∈ Finset.Icc 0 ⌊a⌋₊,
+            (k : ℂ) ^ (-(t : ℂ) * Complex.I)) -
+        ∫ x in Set.Ioc a b,
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            (∑ k ∈ Finset.Icc 0 ⌊x⌋₊,
+              (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+  exact sum_mul_eq_sub_sub_integral_mul
+    (fun k : ℕ => (k : ℂ) ^ (-(t : ℂ) * Complex.I))
+    ha
+    hab
+    hf_diff
+    hf_int
+
 /-- The exact Abel/Euler-Maclaurin tail estimate after truncation at
 `N = ⌊2 + |t|⌋₊`.
 
@@ -3596,13 +4112,16 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_one
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
   sorry
 
-/-- The finite truncation plus the Abel/Euler-Maclaurin tail gives the logarithmic
-boundary estimate with an explicit absolute constant. -/
-theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+/-- Triangle-inequality split of `ζ(1+it)` into its Abel/Euler-Maclaurin tail
+and finite Dirichlet truncation. -/
+theorem boundaryLineOnePointRealParam_zeta_norm_le_tail_plus_truncation
+    (t : ℝ) :
     ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
-      3 * Real.log (2 + ‖t‖) := by
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ +
+      ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ := by
   let S : ℂ :=
     ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
       (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
@@ -3610,45 +4129,104 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_expl
       riemannZeta (boundaryLineOnePointRealParam t) =
         (riemannZeta (boundaryLineOnePointRealParam t) - S) + S := by
     exact (sub_add_cancel (riemannZeta (boundaryLineOnePointRealParam t)) S).symm
-  have hnorm_split :
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖w‖ ≤ ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ + ‖S‖)
+    hsplit.symm
+    (norm_add_le (riemannZeta (boundaryLineOnePointRealParam t) - S) S)
+
+/-- The analytic tail estimate and finite harmonic majorant give the intermediate
+`2 + log` boundary estimate. -/
+theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_two_add_log_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+      2 + Real.log (2 + ‖t‖) := by
+  have hsplit :
       ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
-        ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ + ‖S‖ := by
-    exact Eq.subst
-      (motive := fun w : ℂ =>
-        ‖w‖ ≤ ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ + ‖S‖)
-      hsplit.symm
-      (norm_add_le (riemannZeta (boundaryLineOnePointRealParam t) - S) S)
+        ‖riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ +
+        ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ :=
+    boundaryLineOnePointRealParam_zeta_norm_le_tail_plus_truncation t
   have htail :
-      ‖riemannZeta (boundaryLineOnePointRealParam t) - S‖ ≤ 1 := by
-    exact abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_one t ht
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 :=
+    abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_one t ht
   have hfinite :
-      ‖S‖ ≤ 1 + Real.log (2 + ‖t‖) := by
-    exact boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_one_add_log t
-  have hsum :
-      ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+      ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
+        1 + Real.log (2 + ‖t‖) :=
+    boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_one_add_log t
+  have htail_plus_finite :
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ +
+        ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
+        1 + (1 + Real.log (2 + ‖t‖)) :=
+    add_le_add htail hfinite
+  have hone_add_one_add_log_eq :
+      1 + (1 + Real.log (2 + ‖t‖)) =
         2 + Real.log (2 + ‖t‖) := by
-    exact le_trans hnorm_split (add_le_add htail hfinite)
-  have hlog_one : (1 : ℝ) ≤ Real.log (2 + ‖t‖) :=
+    calc
+      1 + (1 + Real.log (2 + ‖t‖)) =
+          (1 + 1) + Real.log (2 + ‖t‖) := by
+        exact add_assoc 1 1 (Real.log (2 + ‖t‖))
+      _ = 2 + Real.log (2 + ‖t‖) := rfl
+  exact le_trans hsplit
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        ‖riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ +
+        ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ x)
+      hone_add_one_add_log_eq
+      htail_plus_finite)
+
+/-- On the large vertical range, the intermediate `2 + log` bound is absorbed by
+`3 * log`. -/
+theorem two_add_log_two_add_norm_le_three_mul_log_two_add_norm_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    2 + Real.log (2 + ‖t‖) ≤
+      3 * Real.log (2 + ‖t‖) := by
+  let L : ℝ := Real.log (2 + ‖t‖)
+  have hlog_one : (1 : ℝ) ≤ L :=
     one_le_log_two_add_norm_of_one_le_norm ht
-  have htwo_le_two_log : (2 : ℝ) ≤ 2 * Real.log (2 + ‖t‖) := by
+  have htwo_le_twoL : (2 : ℝ) ≤ 2 * L := by
     calc
       (2 : ℝ) = 2 * 1 := by
         exact (mul_one 2).symm
-      _ ≤ 2 * Real.log (2 + ‖t‖) :=
+      _ ≤ 2 * L :=
         mul_le_mul_of_nonneg_left hlog_one zero_le_two
-  have htwo_add_log_le_three_log :
+  calc
+    2 + Real.log (2 + ‖t‖) = 2 + L := rfl
+    _ ≤ 2 * L + L :=
+      add_le_add_right htwo_le_twoL L
+    _ = (2 + 1) * L := by
+      exact (add_mul 2 1 L).symm
+    _ = 3 * L := rfl
+    _ = 3 * Real.log (2 + ‖t‖) := rfl
+
+/-- The finite truncation plus the Abel/Euler-Maclaurin tail gives the logarithmic
+boundary estimate with an explicit absolute constant. -/
+theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+      3 * Real.log (2 + ‖t‖) := by
+  have htwo_add_log :
+      ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+        2 + Real.log (2 + ‖t‖) :=
+    abelEulerMaclaurin_riemannZeta_one_add_it_vertical_two_add_log_bound t ht
+  have habsorb :
       2 + Real.log (2 + ‖t‖) ≤ 3 * Real.log (2 + ‖t‖) := by
-    let L : ℝ := Real.log (2 + ‖t‖)
-    have htwo_le_twoL : (2 : ℝ) ≤ 2 * L := htwo_le_two_log
-    calc
-      2 + Real.log (2 + ‖t‖) = 2 + L := rfl
-      _ ≤ 2 * L + L :=
-        add_le_add_right htwo_le_twoL L
-      _ = (2 + 1) * L := by
-        exact (add_mul 2 1 L).symm
-      _ = 3 * L := rfl
-      _ = 3 * Real.log (2 + ‖t‖) := rfl
-  exact le_trans hsum htwo_add_log_le_three_log
+    exact two_add_log_two_add_norm_le_three_mul_log_two_add_norm_of_one_le_norm ht
+  exact le_trans htwo_add_log habsorb
 
 /-- The exact analytic Abel/Euler-Maclaurin tail estimate on `ζ(1 + it)`.
 
