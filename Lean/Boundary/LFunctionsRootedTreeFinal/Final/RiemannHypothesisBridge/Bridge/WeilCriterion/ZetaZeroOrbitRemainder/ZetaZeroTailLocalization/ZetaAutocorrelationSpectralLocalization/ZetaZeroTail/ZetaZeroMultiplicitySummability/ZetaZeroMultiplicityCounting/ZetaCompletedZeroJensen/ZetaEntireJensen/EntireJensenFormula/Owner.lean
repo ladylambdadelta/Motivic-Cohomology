@@ -3424,6 +3424,39 @@ theorem complex_starConvex_centerSegment_phi_hasDerivAt_real
     complex_starConvex_centerSegment_phi_hasDerivAt_real_chainRule
       φ hstar hφ
 
+/-- Algebraic normalization of the product-rule derivative for the radial FTC
+primitive. -/
+theorem complex_centerSegmentIntegral_radialFTCProduct_derivative_eq_endpointDerivative
+    (φ : ℂ → ℂ)
+    (z : ℂ)
+    (t : ℝ) :
+    (1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+      (t : ℂ) *
+        (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t)) =
+      complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t := by
+  let w : ℂ := AffineMap.lineMap (0 : ℂ) z t
+  let d : ℂ := deriv φ w
+  have hfirst :
+      (1 : ℂ) * φ w = φ w :=
+    one_mul (φ w)
+  have hsecond :
+      (t : ℂ) * (z * d) = z * (t : ℂ) * d := by
+    calc
+      (t : ℂ) * (z * d) = ((t : ℂ) * z) * d :=
+        (mul_assoc (t : ℂ) z d).symm
+      _ = (z * (t : ℂ)) * d :=
+        congrArg (fun a : ℂ => a * d) (mul_comm (t : ℂ) z)
+      _ = z * (t : ℂ) * d :=
+        rfl
+  calc
+    (1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+        (t : ℂ) *
+          (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t)) =
+        φ w + z * (t : ℂ) * d :=
+      congrArg₂ (fun a b : ℂ => a + b) hfirst hsecond
+    _ = complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t :=
+      rfl
+
 /-- Product rule for the radial FTC primitive after the segment pullback
 derivative has been computed. -/
 theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule_core
@@ -3440,7 +3473,41 @@ theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule_
                 complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
               (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
               t := by
-  sorry
+  intro z hz t ht
+  have hleft :
+      HasDerivAt
+        (fun u : ℝ => (u : ℂ))
+        (1 : ℂ)
+        t :=
+    Complex.ofRealCLM.hasDerivAt
+  have hright :
+      HasDerivAt
+        (fun u : ℝ =>
+          φ (AffineMap.lineMap (0 : ℂ) z u))
+        (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+        t :=
+    complex_starConvex_centerSegment_phi_hasDerivAt_real
+      φ hstar hφ z hz t ht
+  have hprod :
+      HasDerivAt
+        (fun u : ℝ =>
+          (u : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z u))
+        ((1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+          (t : ℂ) *
+            (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t)))
+        t :=
+    hleft.mul hright
+  exact
+    Eq.subst
+      (motive := fun v : ℂ =>
+        HasDerivAt
+          (fun u : ℝ =>
+            complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
+          v
+          t)
+      (complex_centerSegmentIntegral_radialFTCProduct_derivative_eq_endpointDerivative
+        φ z t)
+      hprod
 
 /-- Product-rule form of the radial FTC derivative. -/
 theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule
@@ -9207,6 +9274,108 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
                         ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
           horigin.symm
 
+/-- Pointwise logarithm of a finite product of nonzero complex factors.
+
+This is the algebraic product-log identity used after the finite boundary
+exception set has removed every vanishing boundary factor. -/
+theorem finiteComplexProduct_log_norm_eq_sum_log_norm_of_nonzero
+    {ι : Type*}
+    (S : Finset ι)
+    (f : ι → ℂ)
+    (hf : ∀ i : ι, i ∈ S → f i ≠ 0) :
+    Real.log ‖∏ i in S, f i‖ =
+      ∑ i in S, Real.log ‖f i‖ := by
+  -- Finite product-log algebra sink: induct over `S`, using `Real.log_mul`
+  -- and nonvanishing of each factor.
+  sorry
+
+/-- Pointwise closed-support factor product-log identity away from boundary
+exceptions.
+
+At a parameter where every extracted closed-support boundary factor is
+nonzero, the logarithm of the closed-support finite product is the finite sum
+of the logarithms of its normalized factors, with multiplicity. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_factorProduct_pointwise_of_nonzero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (θ : ℝ)
+    (hfactor_ne :
+      ∀ z : EntireFunctionZero F,
+        z ∈
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ →
+        1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ)) ≠ 0) :
+    Real.log
+        ‖entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+            F hF hF0 ρ ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ =
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
+  -- Product-log with multiplicities: apply the finite product-log identity to
+  -- `(1 - sample/z)^multiplicity`, then use `Real.log_pow`.
+  sorry
+
+/-- Interval-scoped boundary exception set for closed-support factors.
+
+This constructs the finite set of parameters in the fundamental interval where
+some extracted closed-support factor vanishes.  Away from this set, every
+factor in the closed-support product is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryExceptionSet_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    ∃ E : Finset ℝ,
+      ∀ θ : ℝ,
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) →
+        θ ∉ E →
+          ∀ z : EntireFunctionZero F,
+            z ∈
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+                F hF hF0 ρ →
+            1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ)) ≠ 0 := by
+  -- Finite exception-set sink: for each closed-support zero, the equation
+  -- `ρ exp(iθ) = z` has at most one solution on the fundamental interval.
+  sorry
+
+/-- Pointwise product-log identity after removing the interval-scoped boundary
+exception set. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_pointwise_from_exceptionSet_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    ∃ E : Finset ℝ,
+      ∀ θ : ℝ,
+        θ ∈ Ι (0 : ℝ) (2 * Real.pi) →
+        θ ∉ E →
+          entireFunctionJensenBoundaryLogIntegrand F ρ θ =
+            Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ +
+              (∑ z in
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+                  F hF hF0 ρ,
+                (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+                  Real.log
+                    ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
+  -- Pointwise product-log assembly sink: use the exception set to make the
+  -- product nonzero, apply `hfactor` on the boundary, split `log ‖Q*P‖`, and
+  -- apply the finite product-log identity for the extracted factors.
+  sorry
+
 /-- Pointwise product-log identity away from the finite boundary-exception set.
 
 Off the parameters where a boundary factor vanishes, the closed-support
@@ -9238,10 +9407,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
                 (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
                   Real.log
                     ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖) := by
-  -- Deep pointwise product-log sink: build the finite set of boundary
-  -- parameters in the fundamental interval where extracted factors vanish,
-  -- then split `log ‖Q * ∏‖` there.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_pointwise_from_exceptionSet_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
 
 /-- A.e. boundary product-log congruence from the finite exception set. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_aeEq_from_pointwise_offException_ownerRoot

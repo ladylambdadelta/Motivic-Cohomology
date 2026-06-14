@@ -4020,6 +4020,79 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable
     Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
       A B
 
+/-- On a deterministically shifted vertical strip, the radius is comparable to
+`1 + |y|`.
+
+This is the base geometric input for the radius-power comparison; the remaining
+power step only has to transport this through `rpow` with bounded exponent. -/
+theorem Complex.shiftedVertical_radius_base_comparable
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          ‖w‖ ≤ C * (1 + ‖y‖) ∧
+          c * (1 + ‖y‖) ≤ ‖w‖ := by
+  rcases
+      Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
+        (A + Complex.verticalStripTransportShift A)
+        (B + Complex.verticalStripTransportShift A)
+        1 with
+    ⟨C, hC_pos, hupper⟩
+  refine ⟨1, C, 1 / 2, zero_lt_one, hC_pos, one_div_pos.mpr two_pos, ?_⟩
+  intro x y hxA hxB hy
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  have hxA_shift :
+      A + Complex.verticalStripTransportShift A ≤
+        x + Complex.verticalStripTransportShift A :=
+    add_le_add_right hxA (Complex.verticalStripTransportShift A)
+  have hxB_shift :
+      x + Complex.verticalStripTransportShift A ≤
+        B + Complex.verticalStripTransportShift A :=
+    add_le_add_right hxB (Complex.verticalStripTransportShift A)
+  have hzero_lt_one_nat : (0 : ℕ) < 1 :=
+    Nat.zero_lt_one
+  have hupper_w :
+      ‖Complex.fixedRealPartVerticalPoint
+          (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ ≤
+        C * (1 + ‖y‖) :=
+    hupper (x + Complex.verticalStripTransportShift A) y
+      hxA_shift hxB_shift 0 hzero_lt_one_nat
+  have hzero_add :
+      Complex.fixedRealPartVerticalPoint
+          (x + Complex.verticalStripTransportShift A) y + (0 : ℂ) =
+        w :=
+    add_zero w
+  have hupper_final :
+      ‖w‖ ≤ C * (1 + ‖y‖) :=
+    Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ C * (1 + ‖y‖))
+      hzero_add
+      hupper_w
+  have hlower_final :
+      (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖w‖ := by
+    have hlower_raw :
+        (1 / 2 : ℝ) * (1 + ‖y‖) ≤
+          ‖Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
+      Complex.gammaRecurrenceProduct_factor_largeHeight_lower 0 hy
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖z‖)
+        hzero_add
+        hlower_raw
+  exact ⟨hupper_final, hlower_final⟩
+
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
 On a bounded shifted strip, `‖x + N + i y‖` is comparable to `1 + |y|`, while
@@ -10825,7 +10898,7 @@ theorem logarithmicPhase_derivativeMagnitude_antitoneOn_positive
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
-theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antitone
+theorem firstDerivativeTest_logarithmicPhase_partialSum_bound_of_monotone_phase
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hphase_deriv :
@@ -10844,6 +10917,30 @@ theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antiton
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
+
+/-- Standard first-derivative test for the concrete logarithmic phase, after
+the phase derivative and its monotonicity have been isolated. -/
+theorem standardFirstDerivativeTest_logarithmicPhase_partialSum_bound_of_antitone
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    (hphase_deriv_antitone :
+      AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  exact
+    firstDerivativeTest_logarithmicPhase_partialSum_bound_of_monotone_phase
+      t ht hphase_deriv hphase_deriv_norm hphase_deriv_antitone hx
 
 /-- Standard first-derivative test for the concrete logarithmic phase.
 
@@ -11139,7 +11236,7 @@ theorem concreteReciprocalVariation_density_bound_on_cutoff_interval
 
 /-- Concrete reciprocal total-variation integral estimate after the
 reciprocal derivative density has been identified. -/
-theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
+theorem reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hpartial :
@@ -11158,6 +11255,30 @@ theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
+
+/-- Concrete reciprocal total-variation integral estimate after the
+reciprocal derivative density has been identified. -/
+theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
+      t ht hpartial hNM hreciprocal_density
 
 /-- Concrete reciprocal total-variation integral estimate.
 
@@ -16223,6 +16344,24 @@ theorem poleClearedRiemannZeta_one_two_strip_diffContOnCl :
       intro z hz
       exact ⟨lt_trans zero_lt_one hz.1, hz.2⟩)
 
+/-- Pointwise finite-order Euler-Maclaurin continuation estimate for the
+removable pole-cleared zeta on `1 ≤ Re s ≤ 2`.
+
+This is the exact standard continuation estimate behind the strip admissibility
+input: Euler-Maclaurin gives finite-order growth for the meromorphic zeta
+continuation on the closed bounded-width strip, and the pole-cleared
+normalization removes the singularity at `s = 1`. -/
+theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_continuation :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖poleClearedRiemannZeta z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 /-- Interior admissible-growth input for the `1 < Re s < 2` strip.
 
 This is the exact remaining growth hypothesis consumed by the generic
@@ -16237,7 +16376,10 @@ theorem poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaur
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 (Complex.re ⁻¹' Set.Ioo 1 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  exact
+    strip_admissible_doubleExponential_growth_of_finiteOrder_growth
+      poleClearedRiemannZeta 1 2 one_lt_two
+      poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_continuation
 
 /-- Vertical-tail finite-order growth for the removable pole-cleared zeta on
 `1 ≤ Re s ≤ 2`, obtained from the two boundary estimates and strip PL. -/
