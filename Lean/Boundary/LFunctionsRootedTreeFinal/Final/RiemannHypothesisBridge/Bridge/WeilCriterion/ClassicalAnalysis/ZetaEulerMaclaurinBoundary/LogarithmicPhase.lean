@@ -679,6 +679,29 @@ def Complex.realPhase_integerIncrementMonotoneOn
     (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
     (Finset.Ico a b : Set ℕ)
 
+/-- Adjacent phase increment reduced to the fundamental interval `(-π, π]`.
+
+This is the no-winding coordinate needed by the Abel-variation proof.  Raw
+monotonicity of increments is not enough: the inverse denominator is periodic
+and can wind around `2πℤ` many times. -/
+def Complex.realPhase_reducedIntegerIncrement
+    (φ : ℝ → ℝ)
+    (n : ℕ) : ℝ :=
+  toIocMod Real.two_pi_pos (-Real.pi)
+    (Complex.realPhase_integerIncrement φ n)
+
+/-- No-winding monotonicity of adjacent increments after reduction to
+`(-π, π]`. -/
+def Complex.realPhase_reducedIntegerIncrementMonotoneOn
+    (φ : ℝ → ℝ)
+    (a b : ℕ) : Prop :=
+  MonotoneOn
+    (fun n : ℕ => Complex.realPhase_reducedIntegerIncrement φ n)
+    (Finset.Ico a b : Set ℕ) ∨
+  AntitoneOn
+    (fun n : ℕ => Complex.realPhase_reducedIntegerIncrement φ n)
+    (Finset.Ico a b : Set ℕ)
+
 /-- Endpoint control for a one-point exponential block. -/
 theorem Complex.realPhase_singleton_integer_block_bound
     (φ : ℝ → ℝ)
@@ -1223,7 +1246,76 @@ theorem Complex.finiteAbel_Ico_mul_sub_telescope
     (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
       A a * u a - A (m - 1) * u m +
         ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n := by
-  sorry
+  revert a
+  induction m with
+  | zero =>
+      intro a ham
+      exact False.elim ((Nat.not_lt_zero a) ham)
+  | succ m ih =>
+      intro a ham
+      rcases lt_or_eq_of_le (Nat.le_of_lt_succ ham) with ham_strict | rfl
+      · have hIco :
+            Finset.Ico a (m + 1) = Finset.insert m (Finset.Ico a m) := by
+          exact Nat.Ico_succ_right_eq_insert_Ico (Nat.le_of_lt ham_strict)
+        have hIoo :
+            Finset.Ioo a (m + 1) = Finset.insert m (Finset.Ioo a m) := by
+          ext n
+          simp only [Finset.mem_Ioo, Finset.mem_insert]
+          omega
+        have hm_not_Ico : m ∉ Finset.Ico a m :=
+          Finset.right_not_mem_Ico
+        have hm_not_Ioo : m ∉ Finset.Ioo a m := by
+          exact (Finset.mem_Ioo.not.mpr (by omega))
+        have hind :
+            (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
+              A a * u a - A (m - 1) * u m +
+                ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n :=
+          ih a ham_strict
+        calc
+          (∑ n ∈ Finset.Ico a (m + 1), A n * (u n - u (n + 1))) =
+              ∑ n ∈ Finset.insert m (Finset.Ico a m),
+                A n * (u n - u (n + 1)) := by
+            exact congrArg
+              (fun s : Finset ℕ =>
+                ∑ n ∈ s, A n * (u n - u (n + 1)))
+              hIco
+          _ =
+              A m * (u m - u (m + 1)) +
+                ∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1)) :=
+            Finset.sum_insert hm_not_Ico
+          _ =
+              A m * (u m - u (m + 1)) +
+                (A a * u a - A (m - 1) * u m +
+                  ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n) := by
+            exact congrArg
+              (fun z : ℂ => A m * (u m - u (m + 1)) + z)
+              hind
+          _ =
+              A a * u a - A m * u (m + 1) +
+                ∑ n ∈ Finset.insert m (Finset.Ioo a m),
+                  (A n - A (n - 1)) * u n := by
+            rw [Finset.sum_insert hm_not_Ioo]
+            ring
+          _ =
+              A a * u a - A ((m + 1) - 1) * u (m + 1) +
+                ∑ n ∈ Finset.Ioo a (m + 1), (A n - A (n - 1)) * u n := by
+            rw [hIoo]
+            simp
+      · have hIco : Finset.Ico m (m + 1) = ({m} : Finset ℕ) :=
+          Nat.Ico_succ_singleton
+        have hIoo : Finset.Ioo m (m + 1) = (∅ : Finset ℕ) := by
+          exact Finset.Ioo_eq_empty (by omega)
+        calc
+          (∑ n ∈ Finset.Ico m (m + 1), A n * (u n - u (n + 1))) =
+              A m * (u m - u (m + 1)) := by
+            rw [hIco]
+            simp
+          _ =
+              A m * u m - A ((m + 1) - 1) * u (m + 1) +
+                ∑ n ∈ Finset.Ioo m (m + 1), (A n - A (n - 1)) * u n := by
+            rw [hIoo]
+            simp
+            ring
 
 /-- Exact `Ico` telescoping form of the finite Abel transform. -/
 theorem Complex.realPhase_prefixAbel_Ico_telescope
@@ -1485,16 +1577,20 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
     nlinarith
   exact le_trans hboundary htarget
 
-/-- Monotone separated increments control the total variation of the inverse
-geometric denominators appearing in the finite Abel transform. -/
-theorem Complex.realPhase_monotoneSeparated_inverseGeometricDenominator_variation_bound
+/-- Reduced no-winding monotone separated increments control the total variation
+of the inverse geometric denominators appearing in the finite Abel transform.
+
+The reduced monotonicity hypothesis is essential: raw monotone increments can
+wind through many periods and make this total variation grow with the number of
+turns. -/
+theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_variation_bound
     (φ : ℝ → ℝ)
     {a b m : ℕ}
     {λ : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
-    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1516,6 +1612,7 @@ theorem Complex.realPhase_prefixAbelVariation_norm_bound
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1577,8 +1674,8 @@ theorem Complex.realPhase_prefixAbelVariation_norm_bound
         ‖Complex.realPhase_inverseGeometricDenominator φ n -
           Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
           4 * (λ⁻¹ + 1) :=
-    Complex.realPhase_monotoneSeparated_inverseGeometricDenominator_variation_bound
-      φ ham hm hλ_pos hinc_mono hsep hden
+    Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_variation_bound
+      φ ham hm hλ_pos hred_mono hsep hden
   exact le_trans hsum_norm
     (Eq.subst
       (motive := fun r : ℝ => r ≤ 4 * (λ⁻¹ + 1))
@@ -1597,6 +1694,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1641,7 +1739,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
       exact hden n hn
     exact
       Complex.realPhase_prefixAbelVariation_norm_bound
-        φ ham hm hλ_pos hinc_mono hsep hden'
+        φ ham hm hλ_pos hinc_mono hred_mono hsep hden'
 
 /-- The finite Abel transform supplies boundary and variation terms satisfying
 the needed prefix bounds. -/
@@ -1654,6 +1752,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1687,7 +1786,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
       lt_of_le_of_ne hm_bounds.1 (Ne.symm hma)
     exact
       Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
-        φ ha hab_lt ham hm hλ_pos hinc_mono hsep hden
+        φ ha hab_lt ham hm hλ_pos hinc_mono hred_mono hsep hden
 
 /-- Prefix-sum form of the finite monotone-increment Dirichlet estimate.
 
@@ -1702,6 +1801,7 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1716,7 +1816,7 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
         8 * (λ⁻¹ + 1) := by
   rcases
     Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
-      φ ha hab_lt hm hλ_pos hinc_mono hsep hden with
+      φ ha hab_lt hm hλ_pos hinc_mono hred_mono hsep hden with
     ⟨boundary, variation, hS, hboundary, hvariation⟩
   exact
     Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
@@ -1732,6 +1832,7 @@ theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
     (hab_lt : a < b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1748,7 +1849,7 @@ theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
     Finset.mem_Icc.mpr ⟨le_of_lt hab_lt, le_rfl⟩
   exact
     Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
-      φ ha hab_lt hb_mem hλ_pos hinc_mono hsep hden
+      φ ha hab_lt hb_mem hλ_pos hinc_mono hred_mono hsep hden
 
 /-- Monotone-frequency finite Dirichlet-test core.
 
@@ -1763,6 +1864,7 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
     (hab_lt : a < b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
@@ -1777,7 +1879,7 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
         8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
-      φ ha hab_lt hλ_pos hinc_mono hsep hden
+      φ ha hab_lt hλ_pos hinc_mono hred_mono hsep hden
 
 /-- Nontrivial monotone separated-increment Dirichlet-test primitive.
 
@@ -1792,6 +1894,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
     (hab_lt : a < b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
@@ -1811,7 +1914,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
         (hsep n hn)
   exact
     Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
-      φ ha hab_lt hλ_pos hinc_mono hsep hden
+      φ ha hab_lt hλ_pos hinc_mono hred_mono hsep hden
 
 /-- Finite Dirichlet-test primitive for monotone separated increments.
 
@@ -1827,6 +1930,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
     (hab : a ≤ b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
@@ -1834,7 +1938,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
   rcases lt_or_eq_of_le hab with hab_lt | hab_eq
   · exact
       Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
-        φ ha hab_lt hλ_pos hinc_mono hsep
+        φ ha hab_lt hλ_pos hinc_mono hred_mono hsep
   · exact
       Eq.subst
         (motive := fun c : ℕ =>
@@ -1857,13 +1961,14 @@ theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (hab : a ≤ b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
-      φ ha hab hλ_pos hinc_mono hsep
+      φ ha hab hλ_pos hinc_mono hred_mono hsep
 
 /-- Honest Kusmin-Landau block estimate with the required monotone separated
 finite-difference hypothesis. -/
@@ -1883,13 +1988,14 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           λ ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_separatedIncrement_integer_block_bound
-      φ ha hab hλ_pos hinc_mono hsep
+      φ ha hab hλ_pos hinc_mono hred_mono hsep
 
 /-- Kusmin-Landau/van der Corput finite first-derivative core for real phases.
 
@@ -1914,13 +2020,14 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           λ ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
-      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
+      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
 
 /-- General finite first-derivative estimate for a real phase sampled on an
 integer block.
@@ -1945,6 +2052,7 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           λ ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
@@ -1954,7 +2062,7 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
         Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
           8 * (λ⁻¹ + 1) :=
     Complex.realPhase_kusminLandau_integer_block_bound
-      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
+      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
   exact hosc
 
 /-- The logarithmic block lower-bound parameter is positive away from
@@ -2014,6 +2122,9 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
     (hinc_mono :
       Complex.realPhase_integerIncrementMonotoneOn
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
     (hsep :
       Complex.realPhase_integerIncrementSeparatedOn
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
@@ -2038,6 +2149,7 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
       hderiv_antitone
       hderiv_lower
       hinc_mono
+      hred_mono
       hsep
   have hλ_inv :
       λ⁻¹ = ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
@@ -2079,6 +2191,9 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
     (hinc_mono :
       Complex.realPhase_integerIncrementMonotoneOn
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
     (hsep :
       Complex.realPhase_integerIncrementSeparatedOn
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
@@ -2110,6 +2225,7 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
       (fun x hx =>
         Complex.logarithmicPhaseRealPhase_deriv_norm_block_lower_bound t ha hab hx)
       hinc_mono
+      hred_mono
       hsep
   exact Eq.subst
     (motive := fun S : ℂ =>
@@ -2130,6 +2246,9 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
     (hab : a ≤ b)
     (hinc_mono :
       Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hred_mono :
+      Complex.realPhase_reducedIntegerIncrementMonotoneOn
         (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
     (hsep :
       Complex.realPhase_integerIncrementSeparatedOn
@@ -2161,6 +2280,7 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
       (fun x hx =>
         Complex.logarithmicPhase_deriv_norm_block_lower_bound t ha hab hx)
       hinc_mono
+      hred_mono
       hsep
   exact Eq.subst
     (motive := fun S : ℂ =>
@@ -3449,6 +3569,8 @@ theorem Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
               a ≤ b →
                 Complex.realPhase_integerIncrementMonotoneOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_reducedIntegerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
                   (‖t‖ / ((b + 1 : ℕ) : ℝ)))
@@ -3463,7 +3585,7 @@ theorem Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
       (fun t ht {a} {b} ha hab =>
         let hfd := hfiniteDifference t ht ha hab
         Complex.logarithmicPhase_monotone_firstDerivative_block_bound
-          t ht ha hab hfd.1 hfd.2)
+          t ht ha hab hfd.1 hfd.2.1 hfd.2.2)
       t ht N
 
 /-- Classical first-derivative estimate for the concrete logarithmic phase
@@ -3480,6 +3602,8 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteD
             1 ≤ a →
               a ≤ b →
                 Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_reducedIntegerIncrementMonotoneOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
@@ -3521,6 +3645,8 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
               a ≤ b →
                 Complex.realPhase_integerIncrementMonotoneOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_reducedIntegerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
                   (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
@@ -3549,6 +3675,8 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
             1 ≤ a →
               a ≤ b →
                 Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_reducedIntegerIncrementMonotoneOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
                 Complex.realPhase_integerIncrementSeparatedOn
                   (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
@@ -3585,6 +3713,8 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
           1 ≤ a →
             a ≤ b →
               Complex.realPhase_integerIncrementMonotoneOn
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+              Complex.realPhase_reducedIntegerIncrementMonotoneOn
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
               Complex.realPhase_integerIncrementSeparatedOn
                 (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
