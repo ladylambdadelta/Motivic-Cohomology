@@ -1867,6 +1867,74 @@ theorem entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
       _ = 0 :=
         smul_zero (z ^ entireFunctionZeroMultiplicity F hF 0)
 
+/-- Closed-disk nonzero-zero summability transports from the global origin
+Taylor quotient back to the original entire function. -/
+theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R : ℝ}
+    (hR : 1 ≤ R)
+    (hGsum :
+      Summable
+        (fun z : EntireFunctionZero G =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand G hG R z)) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  -- Transport the summable family through the explicit bijection between
+  -- nonzero zeros of `F` and nonzero zeros of the global quotient `G`; the
+  -- multiplicities agree because the removed factor is supported only at the
+  -- origin.
+  sorry
+
+/-- Radial-gap summability and radial-gap sums transport through the global
+origin Taylor quotient. -/
+theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hGsum :
+      Summable
+        (fun z : EntireFunctionZero G =>
+          entireFunctionJensenRadialGapSummand G hG ρ z)) :
+    Summable
+      (fun z : EntireFunctionZero F =>
+        entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+      entireFunctionJensenRadialGapSum F hF ρ =
+        entireFunctionJensenRadialGapSum G hG ρ := by
+  -- The nonzero-zero bijection preserves the radial coordinate and the
+  -- analytic multiplicity away from the removed origin factor.
+  sorry
+
+/-- Boundary logarithmic averages transport through the global origin Taylor
+quotient with the explicit `m log ρ` contribution from the removed origin
+factor. -/
+theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogAverage G ρ := by
+  -- Use the pointwise quotient factorization away from the finite set of
+  -- quotient boundary zeros, and the finite-log-singularity gluing API to
+  -- identify the interval integrals across those singular parameters.
+  sorry
+
 /-- Origin Taylor-factor transport after the global entire quotient at the
 origin has been explicitly constructed.
 
@@ -1900,9 +1968,68 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_
               entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
               C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Transport Jensen from the global entire quotient `G` back through the
-  -- explicitly constructed origin Taylor factor for `F`.
-  sorry
+  rcases
+      entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+        G hG_entire hG_ne with
+    ⟨C, hclosedG, hidentityG⟩
+  refine ⟨C, ?_, ?_⟩
+  · intro R hR
+    exact
+      entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
+        F G hF hG_entire hfactor hR (hclosedG R hR)
+  · intro ρ hρ
+    rcases hidentityG ρ hρ with ⟨hradialG, hGidentity⟩
+    rcases
+        entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
+          F G hF hG_entire hfactor hρ hradialG with
+      ⟨hradialF, hradial_eq⟩
+    refine ⟨hradialF, ?_⟩
+    have hboundary :
+        entireFunctionJensenBoundaryLogAverage F ρ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogAverage G ρ :=
+      entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
+        F G hF hG_entire hfactor hρ
+    calc
+      entireFunctionJensenRadialGapSum F hF ρ +
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
+          entireFunctionJensenRadialGapSum G hG_entire ρ +
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C := by
+        exact congrArg
+          (fun x : ℝ =>
+            x + entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C)
+          hradial_eq
+      _ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
+        calc
+          entireFunctionJensenRadialGapSum G hG_entire ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
+              (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+                entireFunctionJensenRadialGapSum G hG_entire ρ) + C := by
+            exact congrArg
+              (fun x : ℝ => x + C)
+              (add_comm
+                (entireFunctionJensenRadialGapSum G hG_entire ρ)
+                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ))
+          _ =
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+                (entireFunctionJensenRadialGapSum G hG_entire ρ + C) := by
+            exact
+              (add_assoc
+                (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ)
+                (entireFunctionJensenRadialGapSum G hG_entire ρ)
+                C).symm
+      _ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            entireFunctionJensenBoundaryLogAverage G ρ := by
+        exact congrArg
+          (fun x : ℝ =>
+            entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + x)
+          hGidentity
+      _ =
+          entireFunctionJensenBoundaryLogAverage F ρ :=
+        hboundary.symm
 
 /-- Origin Taylor-factor transport in the genuine origin-zero case.
 
@@ -2514,6 +2641,102 @@ theorem entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_of_quotient_ne
         (fun x : ℝ =>
           x + Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖)
         (Real.log_pow R (entireFunctionZeroMultiplicity F hF 0))
+
+/-- A positive-radius Jensen boundary sample is away from the origin. -/
+theorem entireFunctionJensenBoundaryCircle_sample_ne_zero_of_pos
+    {R θ : ℝ}
+    (hR : 0 < R) :
+    (R : ℂ) * Complex.exp (θ * Complex.I) ≠ 0 := by
+  have hnorm :
+      ‖(R : ℂ) * Complex.exp (θ * Complex.I)‖ = R :=
+    entireFunctionJensenBoundaryCircle_norm hR.le
+  intro hzero
+  have hR_zero : R = 0 := by
+    calc
+      R = ‖(R : ℂ) * Complex.exp (θ * Complex.I)‖ := hnorm.symm
+      _ = ‖(0 : ℂ)‖ := congrArg norm hzero
+      _ = 0 := norm_zero
+  exact hR.ne' hR_zero
+
+/-- On a positive-radius Jensen circle, the origin Taylor quotient has the
+same boundary-zero parameters as the original function. -/
+theorem entireFunction_originTaylorFactor_boundaryCircle_zero_iff_quotient_zero
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R θ : ℝ}
+    (hR : 0 < R) :
+    F ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0 ↔
+      G ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0 := by
+  exact
+    entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+      F G hF hfactor
+      (entireFunctionJensenBoundaryCircle_sample_ne_zero_of_pos hR)
+
+/-- A point on a positive-radius circle is away from the origin. -/
+theorem complex_ne_zero_of_norm_eq_pos_radius
+    {z : ℂ}
+    {R : ℝ}
+    (hR : 0 < R)
+    (hz : ‖z‖ = R) :
+    z ≠ 0 := by
+  intro hzero
+  have hR_zero : R = 0 := by
+    calc
+      R = ‖z‖ := hz.symm
+      _ = ‖(0 : ℂ)‖ := congrArg norm hzero
+      _ = 0 := norm_zero
+  exact hR.ne' hR_zero
+
+/-- On a positive-radius circle, the origin Taylor quotient has exactly the
+same circle-zero set as the original function. -/
+theorem entireFunction_originTaylorFactor_circleZeroSet_eq_quotient_circleZeroSet
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R : ℝ}
+    (hR : 0 < R) :
+    {z : ℂ | ‖z‖ = R ∧ F z = 0} =
+      {z : ℂ | ‖z‖ = R ∧ G z = 0} := by
+  ext z
+  constructor
+  · intro hz
+    have hz_ne : z ≠ 0 :=
+      complex_ne_zero_of_norm_eq_pos_radius hR hz.1
+    exact
+      ⟨hz.1,
+        (entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+          F G hF hfactor hz_ne).mp hz.2⟩
+  · intro hz
+    have hz_ne : z ≠ 0 :=
+      complex_ne_zero_of_norm_eq_pos_radius hR hz.1
+    exact
+      ⟨hz.1,
+        (entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+          F G hF hfactor hz_ne).mpr hz.2⟩
+
+/-- Finiteness of quotient zeros on a positive-radius circle transports back
+through the origin Taylor factor. -/
+theorem entireFunction_originTaylorFactor_circleZeroSet_finite_of_quotient
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R : ℝ}
+    (hR : 0 < R)
+    (hGfinite : Set.Finite {z : ℂ | ‖z‖ = R ∧ G z = 0}) :
+    Set.Finite {z : ℂ | ‖z‖ = R ∧ F z = 0} := by
+  exact
+    Eq.subst
+      (motive := fun S : Set ℂ => Set.Finite S)
+      (entireFunction_originTaylorFactor_circleZeroSet_eq_quotient_circleZeroSet
+        F G hF hfactor hR).symm
+      hGfinite
 
 /-- The boundary logarithmic integrand is bounded by the logarithmic maximum once the
 circle log set is known to be bounded above. -/
