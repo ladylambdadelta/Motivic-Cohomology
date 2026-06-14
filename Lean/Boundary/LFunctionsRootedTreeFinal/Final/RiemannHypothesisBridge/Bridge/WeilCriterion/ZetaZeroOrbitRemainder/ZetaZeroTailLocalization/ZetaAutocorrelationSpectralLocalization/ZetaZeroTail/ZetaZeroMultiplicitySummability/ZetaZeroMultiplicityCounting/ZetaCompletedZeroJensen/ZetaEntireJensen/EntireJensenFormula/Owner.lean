@@ -9919,6 +9919,54 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Single-insert analytic division by a normalized finite zero factor.
+
+This is the canonical removable-quotient theorem for one new nonzero support
+point.  The proof is local analytic algebra: use the Taylor-order factorization
+at `a`, rewrite `(1 - w/a)^m` as `(-a⁻¹)^m (w-a)^m`, divide the old quotient
+by the normalized inserted factor away from `a`, and fill the removable value
+at `a` with the local Taylor unit divided by the nonzero leading coefficient. -/
+theorem entireFunction_insertNormalizedFactor_removableQuotient_localAnalyticDivision
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep single-zero removable division theorem for normalized factors.
+  sorry
+
 /-- Canonical removable quotient after inserting one normalized zero factor.
 
 This is the true single-insert removable construction.  Starting from a
@@ -9963,10 +10011,9 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep removable quotient theorem: construct the quotient away from `a`,
-  -- fill it at `a` using the local Taylor unit divided by the normalized
-  -- leading coefficient, and prove the product factorization across the disk.
-  sorry
+  exact
+    entireFunction_insertNormalizedFactor_removableQuotient_localAnalyticDivision
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- Single-zero normalized-factor removable quotient.
 

@@ -19202,6 +19202,71 @@ noncomputable def eulerMaclaurin_riemannZeta_tailIdentityDefect
       eulerMaclaurinZetaEndpointTerm z +
       eulerMaclaurinZetaBernoulliIntegralRemainder z)
 
+/-- Fixed-cutoff finite Dirichlet window.  This is the holomorphic object used
+in the identity theorem; unlike the height-dependent owner cutoff, `N` is a
+parameter and therefore does not introduce floor-jump discontinuities. -/
+noncomputable def eulerMaclaurinZetaFinitePartWithCutoff
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  ∑ n ∈ Finset.Icc 1 N, 1 / (((n : ℕ) : ℂ) ^ z)
+
+/-- Fixed-cutoff integral main term for the raw zeta Euler-Maclaurin formula. -/
+noncomputable def eulerMaclaurinZetaMainTermWithCutoff
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  (((N : ℕ) : ℂ) ^ ((1 : ℂ) - z)) / (z - 1)
+
+/-- Fixed-cutoff endpoint term for the raw zeta Euler-Maclaurin formula. -/
+noncomputable def eulerMaclaurinZetaEndpointTermWithCutoff
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  (1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))
+
+/-- Fixed-cutoff Bernoulli integral core. -/
+noncomputable def eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  ∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+
+/-- Fixed-cutoff Bernoulli remainder for the raw zeta Euler-Maclaurin formula. -/
+noncomputable def eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  -z * eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N z
+
+/-- Fixed-cutoff Euler-Maclaurin tail defect.  This is the correct object for
+holomorphic identity-theorem arguments. -/
+noncomputable def eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+    (N : ℕ)
+    (z : ℂ) : ℂ :=
+  (riemannZeta z - eulerMaclaurinZetaFinitePartWithCutoff N z) -
+    (eulerMaclaurinZetaMainTermWithCutoff N z +
+      eulerMaclaurinZetaEndpointTermWithCutoff N z +
+      eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z)
+
+/-- The height-dependent owner defect agrees pointwise with the fixed-cutoff
+defect at the cutoff chosen by that point. -/
+theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_eq_fixedCutoffDefect
+    (z : ℂ) :
+    eulerMaclaurin_riemannZeta_tailIdentityDefect z =
+      eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+        (eulerMaclaurinPoleClearedZetaCutoff z) z := by
+  unfold eulerMaclaurin_riemannZeta_tailIdentityDefect
+  unfold eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+  unfold eulerMaclaurinZetaFinitePartWithCutoff
+  unfold eulerMaclaurinZetaMainTermWithCutoff
+  unfold eulerMaclaurinZetaEndpointTermWithCutoff
+  unfold eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff
+  unfold eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff
+  unfold eulerMaclaurinZetaFinitePart
+  unfold eulerMaclaurinZetaMainTerm
+  unfold eulerMaclaurinZetaEndpointTerm
+  unfold eulerMaclaurinZetaBernoulliIntegralRemainder
+  unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
+  rfl
+
 /-- Vanishing of the Euler-Maclaurin tail defect is exactly the desired
 tail identity. -/
 theorem eulerMaclaurin_riemannZeta_tailIdentity_of_defect_eq_zero
@@ -19277,16 +19342,35 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
     eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
       z hhalf_plane
 
-/-- Holomorphicity of the Euler-Maclaurin tail defect on the punctured closed
-strip owner domain.
-
-The summand finite part, main term, endpoint term, and Bernoulli-integral
-remainder are holomorphic there, and the only excluded point is the zeta pole
-`z = 1`. -/
-theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_holomorphicOn_puncturedStrip_standard :
+/-- Fixed-cutoff defect is holomorphic on the punctured vertical strip. -/
+theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_puncturedStrip_standard
+    (N : ℕ)
+    (hN : 0 < N) :
     DifferentiableOn ℂ
-      eulerMaclaurin_riemannZeta_tailIdentityDefect
-      ({z : ℂ | 1 ≤ z.re ∧ z.re ≤ 2 ∧ z ≠ 1}) := by
+      (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Fixed-cutoff defect vanishes on the convergent half-plane by the
+Dirichlet-series split and the fixed-cutoff Euler-Maclaurin formula. -/
+theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_halfPlane_standard
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
+  sorry
+
+/-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
+connected punctured strip. -/
+theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_puncturedStrip_by_identityTheorem_standard
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hz_re_pos : 0 < z.re)
+    (hz_re_lt_two : z.re < 2)
+    (hz_ne_one : z ≠ 1) :
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
   sorry
 
 /-- Boundary-line vanishing of the Euler-Maclaurin tail defect by analytic
@@ -19301,7 +19385,20 @@ theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_boundaryLine_eq_zero_by_id
     (hz_re : z.re = 1)
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_tailIdentityDefect z = 0 := by
-  sorry
+  have hfixed :
+      eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+        (eulerMaclaurinPoleClearedZetaCutoff z) z = 0 :=
+    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_puncturedStrip_by_identityTheorem_standard
+      (eulerMaclaurinPoleClearedZetaCutoff z)
+      (eulerMaclaurinPoleClearedZetaCutoff_pos z)
+      z
+      (Eq.subst (motive := fun x : ℝ => 0 < x) hz_re.symm zero_lt_one)
+      (Eq.subst (motive := fun x : ℝ => x < 2) hz_re.symm one_lt_two)
+      hz_ne_one
+  exact
+    Eq.trans
+      (eulerMaclaurin_riemannZeta_tailIdentityDefect_eq_fixedCutoffDefect z)
+      hfixed
 
 /-- Boundary-line analytic-continuation uniqueness for the first-order
 Euler-Maclaurin zeta tail.
@@ -22942,7 +23039,86 @@ theorem complex_cos_pi_mul_div_two_exp_argument_norm_bound
     (s : ℂ) :
     ‖(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) ∧
       ‖-(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) := by
-  sorry
+  have hpi_nonneg : 0 ≤ Real.pi :=
+    le_of_lt Real.pi_pos
+  have hpi_one_nonneg : 0 ≤ Real.pi + 1 :=
+    add_nonneg hpi_nonneg zero_le_one
+  have hbase_nonneg : 0 ≤ 1 + ‖s‖ :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg s))
+  have harg_core :
+      ‖(π * s / 2) * Complex.I‖ ≤ (Real.pi + 1) * (1 + ‖s‖) := by
+    have hI_norm : ‖Complex.I‖ = (1 : ℝ) :=
+      norm_I
+    have hmulI :
+        ‖(π * s / 2) * Complex.I‖ = ‖π * s / 2‖ := by
+      calc
+        ‖(π * s / 2) * Complex.I‖ =
+            ‖π * s / 2‖ * ‖Complex.I‖ :=
+          norm_mul (π * s / 2) Complex.I
+        _ = ‖π * s / 2‖ * 1 := by
+          exact congrArg (fun x : ℝ => ‖π * s / 2‖ * x) hI_norm
+        _ = ‖π * s / 2‖ := mul_one ‖π * s / 2‖
+    have hdiv_le : ‖π * s / 2‖ ≤ ‖π * s‖ := by
+      have hnorm_div :
+          ‖π * s / 2‖ = ‖π * s‖ / ‖(2 : ℂ)‖ :=
+        norm_div (π * s) (2 : ℂ)
+      have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
+        norm_ofNat 2
+      have hdiv_two : ‖π * s‖ / ‖(2 : ℂ)‖ = ‖π * s‖ / 2 := by
+        exact congrArg (fun x : ℝ => ‖π * s‖ / x) htwo_norm
+      have hle_self : ‖π * s‖ / 2 ≤ ‖π * s‖ := by
+        have hnorm_nonneg : 0 ≤ ‖π * s‖ :=
+          norm_nonneg (π * s)
+        calc
+          ‖π * s‖ / 2 ≤ ‖π * s‖ / 1 :=
+            div_le_div_of_nonneg_left hnorm_nonneg zero_lt_one.le one_le_two
+          _ = ‖π * s‖ := div_one ‖π * s‖
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ ‖π * s‖)
+        (Eq.trans hnorm_div hdiv_two).symm
+        hle_self
+    have hmul_norm :
+        ‖π * s‖ = Real.pi * ‖s‖ := by
+      have hnorm_mul : ‖π * s‖ = ‖(π : ℂ)‖ * ‖s‖ :=
+        norm_mul (π : ℂ) s
+      have hpi_norm : ‖(π : ℂ)‖ = Real.pi :=
+        Complex.norm_ofReal_of_nonneg hpi_nonneg
+      calc
+        ‖π * s‖ = ‖(π : ℂ)‖ * ‖s‖ := hnorm_mul
+        _ = Real.pi * ‖s‖ := by
+          exact congrArg (fun x : ℝ => x * ‖s‖) hpi_norm
+    have hpi_le :
+        Real.pi * ‖s‖ ≤ (Real.pi + 1) * ‖s‖ :=
+      mul_le_mul_of_nonneg_right
+        (le_add_of_nonneg_right zero_le_one)
+        (norm_nonneg s)
+    have hheight_le :
+        (Real.pi + 1) * ‖s‖ ≤ (Real.pi + 1) * (1 + ‖s‖) :=
+      mul_le_mul_of_nonneg_left
+        (le_add_of_nonneg_left zero_le_one)
+        hpi_one_nonneg
+    have hmid :
+        ‖π * s / 2‖ ≤ (Real.pi + 1) * (1 + ‖s‖) :=
+      hdiv_le.trans
+        (Eq.subst
+          (motive := fun x : ℝ => x ≤ (Real.pi + 1) * (1 + ‖s‖))
+          hmul_norm.symm
+          (hpi_le.trans hheight_le))
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ (Real.pi + 1) * (1 + ‖s‖))
+      hmulI.symm
+      hmid
+  have harg_neg :
+      ‖-(π * s / 2) * Complex.I‖ = ‖(π * s / 2) * Complex.I‖ := by
+    calc
+      ‖-(π * s / 2) * Complex.I‖ = ‖-((π * s / 2) * Complex.I)‖ := by
+        exact congrArg norm (neg_mul (π * s / 2) Complex.I).symm
+      _ = ‖(π * s / 2) * Complex.I‖ := norm_neg ((π * s / 2) * Complex.I)
+  exact ⟨harg_core,
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ (Real.pi + 1) * (1 + ‖s‖))
+      harg_neg.symm
+      harg_core⟩
 
 /-- Finite-order growth for the two exponential terms in the definition of
 `Complex.cos (πs/2)`.
