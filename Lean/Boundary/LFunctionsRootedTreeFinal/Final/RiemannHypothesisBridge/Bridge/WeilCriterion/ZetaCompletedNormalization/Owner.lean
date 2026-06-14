@@ -1469,8 +1469,28 @@ theorem vertical_polynomial_growth_bound_to_exponential_growth_bound
   exact le_trans (hbound z hz_re hz_im) hscaled
 
 /-- Classical two-sided vertical Stirling control for the completed real Gamma ratio on
-the left boundary line. -/
-theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound :
+the left boundary line, in the sharp polynomial degree needed by the critical-line
+functional-equation transport. -/
+theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * (1 + ‖z.im‖) := by
+  sorry
+
+/-- A vertical linear bound is the degree-one polynomial envelope used downstream. -/
+theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
+    (hlinear :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+            A * (1 + ‖z.im‖)) :
     ∃ A : ℝ, ∃ m : ℕ,
       0 < A ∧
       ∀ z : ℂ,
@@ -1478,7 +1498,16 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) ^ m := by
-  sorry
+  rcases hlinear with ⟨A, hA_pos, hbound⟩
+  refine ⟨A, 1, hA_pos, ?_⟩
+  intro z hz_re hz_im
+  have hpow_one : (1 + ‖z.im‖) ^ (1 : ℕ) = 1 + ‖z.im‖ := by
+    exact pow_one (1 + ‖z.im‖)
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤ A * x)
+    hpow_one.symm
+    (hbound z hz_re hz_im)
 
 /-- Standard polynomial Stirling control for the completed real Gamma ratio on the left
 vertical tail.
@@ -1493,7 +1522,8 @@ theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_stirling_growth_bound_st
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) ^ m := by
-  exact classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound
+  exact Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
+    classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound
 
 /-- Standard finite-order Stirling control for the completed real Gamma ratio on the left
 vertical tail, converted from the polynomial vertical-height Stirling statement.
@@ -1869,17 +1899,73 @@ theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
   exact le_trans (hbound w hw_re hw_im) hscaled
 
-/-- Classical polynomial vertical growth of the pole-cleared zeta factor on the boundary
-line `re = 1`. -/
-theorem classicalZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound :
-    ∃ A : ℝ, ∃ m : ℕ,
+/-- Classical log-linear vertical growth of the pole-cleared zeta factor on the boundary
+line `re = 1`.  This is the standard boundary-line zeta estimate in the form needed before
+coarsening to a finite polynomial envelope. -/
+theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound :
+    ∃ A : ℝ,
       0 < A ∧
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
-          A * (1 + ‖w.im‖) ^ m := by
+          A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
   sorry
+
+/-- A log-linear vertical-height boundary estimate gives the coarser polynomial envelope
+used by the normalization chain. -/
+theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
+    {f : ℂ → ℂ}
+    (hlog :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ w : ℂ,
+          w.re = 1 →
+          1 ≤ ‖w.im‖ →
+          ‖f w‖ ≤ A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖)) :
+    ∃ A : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖f w‖ ≤ A * (1 + ‖w.im‖) ^ m := by
+  rcases hlog with ⟨A, hA_pos, hbound⟩
+  refine ⟨2 * A, 2, ?_, ?_⟩
+  · exact mul_pos two_pos hA_pos
+  intro w hw_re hw_im
+  let H : ℝ := 1 + ‖w.im‖
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
+  have hH_ge_one : (1 : ℝ) ≤ H :=
+    le_add_of_nonneg_right (norm_nonneg w.im)
+  have hlog_arg_pos : 0 < 2 + ‖w.im‖ := by
+    exact add_pos_of_pos_of_nonneg (by norm_num : (0 : ℝ) < 2) (norm_nonneg w.im)
+  have hlog_le_arg :
+      Real.log (2 + ‖w.im‖) ≤ 2 + ‖w.im‖ :=
+    Real.log_le_self hlog_arg_pos.le
+  have harg_eq : 2 + ‖w.im‖ = H + 1 := by
+    change 2 + ‖w.im‖ = (1 + ‖w.im‖) + 1
+    ring
+  have harg_le_twoH : 2 + ‖w.im‖ ≤ 2 * H := by
+    rw [harg_eq]
+    nlinarith
+  have hlog_le_twoH :
+      Real.log (2 + ‖w.im‖) ≤ 2 * H :=
+    le_trans hlog_le_arg harg_le_twoH
+  have hleft_nonneg : 0 ≤ A * H :=
+    mul_nonneg (le_of_lt hA_pos) hH_nonneg
+  have hmul_log_le :
+      A * H * Real.log (2 + ‖w.im‖) ≤ A * H * (2 * H) :=
+    mul_le_mul_of_nonneg_left hlog_le_twoH hleft_nonneg
+  have htarget_eq :
+      A * H * (2 * H) = (2 * A) * H ^ (2 : ℕ) := by
+    ring
+  exact le_trans (hbound w hw_re hw_im)
+    (Eq.subst
+      (motive := fun x : ℝ =>
+        A * H * Real.log (2 + ‖w.im‖) ≤ x)
+      htarget_eq
+      hmul_log_le)
 
 /-- Standard polynomial vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`.
@@ -1894,7 +1980,8 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_boun
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) ^ m := by
-  exact classicalZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound
+  exact boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
+    classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound
 
 /-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`, converted from the polynomial boundary-line estimate.
