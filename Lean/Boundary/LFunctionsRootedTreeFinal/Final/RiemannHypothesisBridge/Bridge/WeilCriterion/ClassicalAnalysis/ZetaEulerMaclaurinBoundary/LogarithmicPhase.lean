@@ -1,4 +1,5 @@
 import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryLine
+import Mathlib.Analysis.Complex.Angle
 
 /-!
 # Logarithmic phase estimates
@@ -751,7 +752,25 @@ theorem Complex.realPhase_twoPi_toIocMod_integerDistance
     ∃ k : ℤ,
       θ - (2 * Real.pi * (k : ℝ)) =
         toIocMod Real.two_pi_pos (-Real.pi) θ := by
-  sorry
+  let k : ℤ := toIocDiv Real.two_pi_pos (-Real.pi) θ
+  refine ⟨k, ?_⟩
+  have howner :
+      θ - k • ((2 * Real.pi) : ℝ) =
+        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+    self_sub_toIocDiv_zsmul Real.two_pi_pos (-Real.pi) θ
+  have hzsmul :
+      k • ((2 * Real.pi) : ℝ) = 2 * Real.pi * (k : ℝ) := by
+    calc
+      k • ((2 * Real.pi) : ℝ) = (k : ℝ) * (2 * Real.pi) := by
+        exact zsmul_eq_mul k (2 * Real.pi)
+      _ = 2 * Real.pi * (k : ℝ) := by
+        ring
+  exact
+    Eq.subst
+      (motive := fun r : ℝ =>
+        θ - r = toIocMod Real.two_pi_pos (-Real.pi) θ)
+      hzsmul
+      howner
 
 /-- Chord estimate for a reduced angle in `(-π, π]`. -/
 theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
@@ -759,7 +778,87 @@ theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
     (hψ : ψ ∈ Set.Ioc (-Real.pi) Real.pi) :
     ‖ψ‖ ≤
       2 * ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ := by
-  sorry
+  have hψ_mod :
+      toIocMod Real.two_pi_pos (-Real.pi) ψ = ψ := by
+    exact (toIocMod_eq_self Real.two_pi_pos).mpr
+      (by
+        convert hψ using 1
+        ring)
+  have hangle :
+      Complex.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 = ‖ψ‖ := by
+    have hangle_abs :
+        Complex.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 =
+          |toIocMod Real.two_pi_pos (-Real.pi) ψ| :=
+      Complex.angle_exp_one ψ
+    have habs_norm :
+        |toIocMod Real.two_pi_pos (-Real.pi) ψ| = ‖ψ‖ := by
+      calc
+        |toIocMod Real.two_pi_pos (-Real.pi) ψ| = |ψ| :=
+          congrArg abs hψ_mod
+        _ = ‖ψ‖ :=
+          (Real.norm_eq_abs ψ).symm
+    exact hangle_abs.trans habs_norm
+  have hunit :
+      ‖Complex.exp ((ψ : ℂ) * Complex.I)‖ = 1 := by
+    have hcomm :
+        Complex.exp ((ψ : ℂ) * Complex.I) =
+          Complex.exp (Complex.I * (ψ : ℂ)) :=
+      congrArg Complex.exp (mul_comm (ψ : ℂ) Complex.I)
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ = 1)
+      hcomm.symm
+      (Complex.realPhase_exp_I_norm (fun _ : ℝ => ψ) 0)
+  have harc :
+      ‖ψ‖ ≤
+        Real.pi / 2 *
+          ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ := by
+    exact Eq.subst
+      (motive := fun r : ℝ =>
+        r ≤ Real.pi / 2 *
+          ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖)
+      hangle
+      (Complex.angle_le_mul_norm_sub hunit norm_one)
+  have hconstant :
+      Real.pi / 2 *
+          ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ ≤
+        2 * ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ := by
+    have hpi_half : Real.pi / 2 ≤ (2 : ℝ) := by
+      exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 2)).mpr
+        (by
+          calc
+            Real.pi ≤ (4 : ℝ) :=
+              Real.pi_le_four
+            _ = 2 * 2 := by
+              norm_num)
+    exact mul_le_mul_of_nonneg_right hpi_half
+      (norm_nonneg (Complex.exp ((ψ : ℂ) * Complex.I) - 1))
+  have hnorm_transport :
+      2 * ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ =
+        2 * ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ := by
+    have hcomm_exp :
+        Complex.exp ((ψ : ℂ) * Complex.I) =
+          Complex.exp (Complex.I * (ψ : ℂ)) :=
+      congrArg Complex.exp (mul_comm (ψ : ℂ) Complex.I)
+    have hnorm :
+        ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ =
+          ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ := by
+      calc
+        ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ =
+            ‖Complex.exp (Complex.I * (ψ : ℂ)) - 1‖ :=
+          congrArg (fun z : ℂ => ‖z - 1‖) hcomm_exp
+        _ = ‖-(1 - Complex.exp (Complex.I * (ψ : ℂ)))‖ := by
+          congr 1
+          ring
+        _ = ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ :=
+          norm_neg (1 - Complex.exp (Complex.I * (ψ : ℂ)))
+    exact congrArg (fun r : ℝ => 2 * r) hnorm
+  exact le_trans harc
+    (Eq.subst
+      (motive := fun target : ℝ =>
+        Real.pi / 2 *
+          ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ ≤ target)
+      hnorm_transport
+      hconstant)
 
 /-- Period transport for the chord denominator. -/
 theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
@@ -769,7 +868,42 @@ theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
         Complex.exp
           (Complex.I *
             (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ := by
-  sorry
+  let k : ℤ := toIocDiv Real.two_pi_pos (-Real.pi) θ
+  have hmod :
+      θ - k • ((2 * Real.pi) : ℝ) =
+        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+    self_sub_toIocDiv_zsmul Real.two_pi_pos (-Real.pi) θ
+  have hperiod :
+      Complex.exp
+          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) =
+        Complex.exp ((θ : ℂ) * Complex.I) := by
+    have hraw :
+        Complex.exp (((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) * Complex.I) =
+          Complex.exp ((θ : ℂ) * Complex.I) := by
+      exact Complex.exp_mul_I_periodic.sub_zsmul_eq k
+    exact Eq.subst
+      (motive := fun x : ℝ =>
+        Complex.exp ((x : ℂ) * Complex.I) =
+          Complex.exp ((θ : ℂ) * Complex.I))
+      hmod
+      hraw
+  have hleft_comm :
+      Complex.exp (Complex.I * (θ : ℂ)) =
+        Complex.exp ((θ : ℂ) * Complex.I) := by
+    exact congrArg Complex.exp (mul_comm Complex.I (θ : ℂ))
+  have hright_comm :
+      Complex.exp
+          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) =
+        Complex.exp
+          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) := by
+    exact congrArg Complex.exp
+      (mul_comm Complex.I (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))
+  have hexp :
+      Complex.exp (Complex.I * (θ : ℂ)) =
+        Complex.exp
+          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) := by
+    exact Eq.trans hleft_comm (Eq.trans hperiod hright_comm.symm)
+  exact congrArg (fun z : ℂ => ‖1 - z‖) hexp
 
 /-- Nearest-period representative chord estimate for the real unit circle. -/
 theorem Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm

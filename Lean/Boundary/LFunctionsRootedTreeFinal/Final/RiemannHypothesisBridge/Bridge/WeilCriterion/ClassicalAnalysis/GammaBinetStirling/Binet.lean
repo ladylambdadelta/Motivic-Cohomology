@@ -70,16 +70,85 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
   exact
     Complex.Gamma_binetSecondFormula_positiveReal_classical_identity hx
 
-/-- The principal complex arctangent has derivative `1 / (1 + z^2)` away from
-its branch points `±I`. -/
-theorem Complex.arctan_hasDerivAt_of_ne_I_negI
+/-- The principal complex arctangent has derivative `1 / (1 + z^2)` at points
+where its defining logarithm is differentiable.  The extra `slitPlane`
+hypothesis is essential for the principal branch of `Complex.log`. -/
+theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
     {z : ℂ}
     (hzI : z ≠ Complex.I)
-    (hznegI : z ≠ -Complex.I) :
+    (hznegI : z ≠ -Complex.I)
+    (hzslit :
+      (1 + z * Complex.I) / (1 - z * Complex.I) ∈ Complex.slitPlane) :
     HasDerivAt
       Complex.arctan
       ((1 : ℂ) / (1 + z ^ 2)) z := by
-  sorry
+  have hnum_ne : 1 + z * Complex.I ≠ 0 := by
+    intro hzero
+    have hz_eq : z = Complex.I := by
+      calc
+        z = z * Complex.I / Complex.I := by
+          rw [mul_div_cancel_right₀ _ Complex.I_ne_zero]
+        _ = (-1 : ℂ) / Complex.I := by
+          have hzI_eq : z * Complex.I = -1 := by
+            exact add_eq_zero_iff_eq_neg.mp hzero
+          rw [hzI_eq]
+        _ = Complex.I := by
+          field_simp [Complex.I_ne_zero, Complex.I_mul_I]
+    exact hzI hz_eq
+  have hden_ne : 1 - z * Complex.I ≠ 0 := by
+    intro hzero
+    have hz_eq : z = -Complex.I := by
+      calc
+        z = z * Complex.I / Complex.I := by
+          rw [mul_div_cancel_right₀ _ Complex.I_ne_zero]
+        _ = (1 : ℂ) / Complex.I := by
+          have hzI_eq : z * Complex.I = 1 := by
+            exact sub_eq_zero.mp hzero
+          rw [hzI_eq]
+        _ = -Complex.I := by
+          field_simp [Complex.I_ne_zero, Complex.I_mul_I]
+    exact hznegI hz_eq
+  let q : ℂ → ℂ :=
+    fun u : ℂ => (1 + u * Complex.I) / (1 - u * Complex.I)
+  have hq :
+      HasDerivAt q
+        ((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) z := by
+    have hnum :
+        HasDerivAt (fun u : ℂ => 1 + u * Complex.I) Complex.I z := by
+      exact ((hasDerivAt_id' z).mul_const Complex.I).const_add 1
+    have hden :
+        HasDerivAt (fun u : ℂ => 1 - u * Complex.I) (-Complex.I) z := by
+      exact ((hasDerivAt_id' z).mul_const Complex.I).const_sub 1
+    have hdiv := hnum.div hden hden_ne
+    simpa [q] using hdiv
+  have hlog :
+      HasDerivAt
+        (fun u : ℂ => Complex.log (q u))
+        (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+          ((1 + z * Complex.I) / (1 - z * Complex.I))) z :=
+    hq.clog hzslit
+  have hscaled :
+      HasDerivAt
+        (fun u : ℂ => (-Complex.I / 2) * Complex.log (q u))
+        ((-Complex.I / 2) *
+          (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+            ((1 + z * Complex.I) / (1 - z * Complex.I)))) z :=
+    hlog.const_mul (-Complex.I / 2)
+  have halg :
+      (-Complex.I / 2) *
+          (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+            ((1 + z * Complex.I) / (1 - z * Complex.I))) =
+        (1 : ℂ) / (1 + z ^ 2) := by
+    have hprod_ne : 1 + z ^ 2 ≠ 0 := by
+      have hfactor :
+          (1 - z * Complex.I) * (1 + z * Complex.I) = 1 + z ^ 2 := by
+        ring_nf
+      intro hzero
+      exact (mul_ne_zero hden_ne hnum_ne) (hfactor.trans hzero)
+    field_simp [hnum_ne, hden_ne, hprod_ne]
+    ring_nf
+  simpa [Complex.arctan, q, halg]
+    using hscaled
 
 /-- A point in the open right half-plane is nonzero. -/
 theorem Complex.ne_zero_of_re_pos
@@ -191,6 +260,17 @@ theorem Complex.binet_arctan_argument_ne_negI
             ring_nf
   exact (Complex.sub_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
 
+/-- For `t > 0` and `0 < w.re`, the Cayley transform appearing in the
+principal-log definition of `Complex.arctan ((t : ℂ) / w)` lies in the slit
+plane, so the principal logarithm is differentiable there. -/
+theorem Complex.binet_arctan_log_argument_mem_slitPlane
+    {t : ℝ} {w : ℂ}
+    (ht : 0 < t)
+    (hw_re_pos : 0 < w.re) :
+    (1 + ((t : ℂ) / w) * Complex.I) /
+        (1 - ((t : ℂ) / w) * Complex.I) ∈ Complex.slitPlane := by
+  sorry
+
 /-- The arctangent derivative needed for the Binet kernel after composing
 `Complex.arctan` with `z ↦ (t : ℂ) / z` on the open right half-plane. -/
 theorem Complex.arctan_t_div_hasDerivAt
@@ -205,6 +285,10 @@ theorem Complex.arctan_t_div_hasDerivAt
     Complex.binet_arctan_argument_ne_I hw_re_pos
   have harg_ne_negI : (t : ℂ) / w ≠ -Complex.I :=
     Complex.binet_arctan_argument_ne_negI hw_re_pos
+  have harg_slit :
+      (1 + ((t : ℂ) / w) * Complex.I) /
+          (1 - ((t : ℂ) / w) * Complex.I) ∈ Complex.slitPlane :=
+    Complex.binet_arctan_log_argument_mem_slitPlane ht hw_re_pos
   have h_inner :
       HasDerivAt
         (fun z : ℂ => (t : ℂ) / z)
@@ -215,7 +299,8 @@ theorem Complex.arctan_t_div_hasDerivAt
       HasDerivAt
         Complex.arctan
         ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) ((t : ℂ) / w) :=
-    Complex.arctan_hasDerivAt_of_ne_I_negI harg_ne_I harg_ne_negI
+    Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
+      harg_ne_I harg_ne_negI harg_slit
   have hcomp :
       HasDerivAt
         (fun z : ℂ => Complex.arctan ((t : ℂ) / z))
@@ -303,7 +388,7 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
 /-- Local integrable domination for the differentiated arctangent kernel on
 the positive `t`-axis, stated pointwise before passing to the restricted
 almost-everywhere filter. -/
-theorem Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
+theorem Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     ∃ ε : ℝ,
@@ -316,6 +401,25 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
               t ∈ Set.Ioi (0 : ℝ) →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
   sorry
+
+/-- Local integrable domination for the differentiated arctangent kernel on
+the positive `t`-axis, stated pointwise before passing to the restricted
+almost-everywhere filter. -/
+theorem Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+      ∃ g : ℝ → ℝ,
+        IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
+        ∀ z : ℂ,
+          ‖z - w‖ < ε →
+            ∀ t : ℝ,
+              t ∈ Set.Ioi (0 : ℝ) →
+                ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
+  exact
+    Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
+      hw_re_pos
 
 /-- Local integrable domination for the differentiated arctangent kernel on
 the positive `t`-axis, sufficient for differentiating the Binet remainder under
@@ -386,6 +490,19 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt
       (Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
         hw_re_pos)
 
+/-- The missing special-function derivative identity behind Binet's second
+formula: the logarithmic derivative of Gamma minus the derivative of the
+explicit Binet main term is the differentiated Binet remainder. -/
+theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_from_digamma_Binet
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.log (Complex.Gamma z) -
+          Complex.binetLogGammaMainTerm z)
+      (Complex.binetSecondFormulaRemainderDerivative w) w := by
+  sorry
+
 /-- The logarithmic Gamma side and explicit Binet main term have the
 derivative prescribed by the differentiated Binet remainder. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
@@ -396,7 +513,9 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
         Complex.log (Complex.Gamma z) -
           Complex.binetLogGammaMainTerm z)
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
-  sorry
+  exact
+    Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_from_digamma_Binet
+      hw_re_pos
 
 /-- The logarithmic Gamma side, after subtracting the explicit Binet main
 term, has derivative equal to the differentiated Binet remainder. -/

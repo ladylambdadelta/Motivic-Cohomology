@@ -839,6 +839,65 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_hasSum_iff_one_div
       hterms.symm
       hsum
 
+/-- Finite first-order Euler-Maclaurin identity for the strict post-cutoff
+complex-power tail.
+
+This is the finite owner construction missing from the local file: for
+`f(x) = x^{-z}` and positive cutoffs `N ≤ M`, the finite strict tail
+`N < n ≤ M` is expressed as the finite integral, the two half-endpoint
+corrections, and the first-periodic-Bernoulli derivative remainder.  The
+infinite post-cutoff formula below is obtained by sending `M → ∞` in this
+identity. -/
+theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standard
+    (z : ℂ)
+    (N M : ℕ)
+    (hN : 0 < N)
+    (hNM : N ≤ M) :
+    (∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z)) =
+      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
+  sorry
+
+/-- Limit passage from the finite strict-tail Euler-Maclaurin identity to the
+improper post-cutoff `HasSum`.
+
+The analytic inputs are exactly the finite identity above, decay in the
+half-plane `1 < Re z`, and integrability of the Bernoulli derivative tail. -/
+theorem eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
+    (z : ℂ)
+    (N : ℕ)
+    (hN : 0 < N)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
+  have hfinite :
+      ∀ M : ℕ, N ≤ M →
+        (∑ n in Finset.Ioc N M, (((n : ℕ) : ℝ) : ℂ) ^ (-z)) =
+          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              (((x : ℝ) : ℂ) ^ (-z))) +
+            ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            ((1 / 2 : ℂ) * ((((M : ℕ) : ℝ) : ℂ) ^ (-z))) +
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (-z * (((x : ℝ) : ℂ) ^ (-(z + 1))))) := by
+    intro M hNM
+    exact
+      eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_identity_standard
+        z N M hN hNM
+  sorry
+
 /-- Standard first-order Euler-Maclaurin formula for the zeta complex-power
 post-cutoff tail in function notation.
 
@@ -861,7 +920,9 @@ theorem eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
-  sorry
+  exact
+    eulerMaclaurin_firstOrder_cpow_neg_finite_postCutoffTail_tendsto_hasSum
+      z N hN hhalf_plane
 
 /-- Specialization of the first-order Euler-Maclaurin theorem to
 `f(x)=x^{-z}` in function notation. -/
