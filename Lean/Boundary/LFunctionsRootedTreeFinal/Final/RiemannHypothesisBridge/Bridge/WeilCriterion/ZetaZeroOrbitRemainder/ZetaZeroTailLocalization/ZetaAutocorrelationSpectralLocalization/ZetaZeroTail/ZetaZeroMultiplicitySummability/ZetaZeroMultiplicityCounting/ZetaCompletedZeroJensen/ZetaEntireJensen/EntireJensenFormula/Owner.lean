@@ -2042,6 +2042,39 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProduct_expli
   · exact Eq.trans (dif_pos hz0) (if_pos hz0).symm
   · exact Eq.trans (dif_neg hz0) (if_neg hz0).symm
 
+/-- If a finite zero divisor contains the support of the Jensen radial-gap
+summand, the infinite radial-gap sum is the corresponding finite product
+radial-gap sum.
+
+This is the constructive support-controlled bridge from divisor finiteness to
+the product formula: the product stage may use any explicit finite support
+certificate, without choosing a canonical enumeration of zeros. -/
+theorem entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support_subset
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F))
+    (hsupport :
+      Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) ⊆
+        (s : Set (EntireFunctionZero F))) :
+    entireFunctionJensenRadialGapSum F hF ρ =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s := by
+  unfold entireFunctionJensenRadialGapSum
+  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+  exact tsum_eq_sum
+    (s := s)
+    (fun z hz_not_mem => by
+      by_contra hz_ne_zero
+      have hz_support :
+          z ∈ Function.support
+            (fun w : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ w) :=
+        hz_ne_zero
+      exact hz_not_mem (hsupport hz_support))
+
 /-- Classical analytic product/Jensen identity after finite zero-divisor
 factorization.
 

@@ -1,6 +1,7 @@
 import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.NumberTheory.Harmonic.Bounds
 
 /-!
 # Boundary centered completed zeta normalization
@@ -381,6 +382,209 @@ theorem norm_unfoldedNormalizedGammaℝFactor_pos_of_re_nonneg_and_one_le_norm
     (unfoldedNormalizedGammaℝFactor_ne_zero_of_re_nonneg_and_one_le_norm
       hz_re hz_norm)
 
+/-- The half-argument has nonnegative real part in the right half-plane. -/
+theorem halfArgument_re_nonneg_of_re_nonneg
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re) :
+    0 ≤ (z / 2).re := by
+  have htwo_pos : (0 : ℝ) < 2 := by norm_num
+  rw [Complex.div_re_ofReal]
+  exact div_nonneg hz_re (le_of_lt htwo_pos)
+
+/-- The half-argument is nonzero in the large right-half-plane Stirling region. -/
+theorem halfArgument_ne_zero_of_one_le_norm
+    {z : ℂ}
+    (hz_norm : 1 ≤ ‖z‖) :
+    z / 2 ≠ 0 := by
+  intro hzero
+  have hz_zero : z = 0 := by
+    have hmul := congrArg (fun w : ℂ => w * (2 : ℂ)) hzero
+    calc
+      z = (z / 2) * (2 : ℂ) := by
+        exact (div_mul_cancel₀ z (by norm_num : (2 : ℂ) ≠ 0)).symm
+      _ = 0 * (2 : ℂ) := by
+        exact hmul
+      _ = 0 := zero_mul (2 : ℂ)
+  have hnorm_zero : ‖z‖ = 0 := by
+    exact congrArg norm hz_zero
+  have hnot : ¬ (1 : ℝ) ≤ 0 := by norm_num
+  exact hnot (Eq.subst (motive := fun x : ℝ => 1 ≤ x) hnorm_zero hz_norm)
+
+/-- `Complex.Gamma (z / 2)` is nonzero on the large right-half-plane Stirling region. -/
+theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re)
+    (hz_norm : 1 ≤ ‖z‖) :
+    Complex.Gamma (z / 2) ≠ 0 := by
+  have hz_half_re : 0 ≤ (z / 2).re :=
+    halfArgument_re_nonneg_of_re_nonneg hz_re
+  have hz_half_ne : z / 2 ≠ 0 :=
+    halfArgument_ne_zero_of_one_le_norm hz_norm
+  intro hzero
+  rcases (Complex.Gamma_eq_zero_iff (z / 2)).mp hzero with ⟨n, hn⟩
+  have hhalf_re_eq : (z / 2).re = (-(n : ℂ)).re := congrArg Complex.re hn
+  have hn_re : (-(n : ℂ)).re = -(n : ℝ) := by simp
+  have hz_half_re_nonpos : (z / 2).re ≤ 0 := by
+    calc
+      (z / 2).re = (-(n : ℂ)).re := hhalf_re_eq
+      _ = -(n : ℝ) := hn_re
+      _ ≤ 0 := neg_nonpos.mpr (Nat.cast_nonneg n)
+  have hz_half_re_zero : (z / 2).re = 0 :=
+    le_antisymm hz_half_re_nonpos hz_half_re
+  cases n with
+  | zero =>
+      have hhalf_zero : z / 2 = 0 := by
+        simpa using hn
+      exact hz_half_ne hhalf_zero
+  | succ n =>
+      have hneg_succ_lt_zero : (-(Nat.succ n : ℂ)).re < 0 := by
+        simp
+      have hcontr : (z / 2).re < 0 := by
+        calc
+          (z / 2).re = (-(Nat.succ n : ℂ)).re := hhalf_re_eq
+          _ < 0 := hneg_succ_lt_zero
+      exact (not_lt_of_ge hz_half_re) hcontr
+
+/-- Classical sectorial log-Gamma growth for the half-argument in the closed right
+half-plane.
+
+This is the exact missing special-function theorem: sectorial Stirling for
+`Γ(w)` on `0 ≤ w.re`, transported to `w = z / 2` and measured against `‖z‖`;
+cf. DLMF §5.11. -/
+theorem sectorialComplexGammaStirling_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖Complex.Gamma (z / 2)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  sorry
+
+/-- The `π ^ (-z / 2)` normalization contributes no positive log-growth in the right
+half-plane. -/
+theorem pi_cpow_neg_halfArgument_rightHalfPlane_log_norm_nonpos
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re) :
+    Real.log ‖π ^ (-z / 2 : ℂ)‖ ≤ 0 := by
+  have hpi_pos : (0 : ℝ) < π := Real.pi_pos
+  have hpi_one_lt : (1 : ℝ) < π := Real.one_lt_pi
+  have hre_nonpos : (-z / 2 : ℂ).re ≤ 0 := by
+    rw [Complex.div_re_ofReal, Complex.neg_re]
+    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hz_re) (by norm_num : (0 : ℝ) ≤ 2)
+  have hnorm_eq : ‖π ^ (-z / 2 : ℂ)‖ = π ^ (-z / 2 : ℂ).re := by
+    simpa [Complex.norm_eq_abs] using
+      Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos (-z / 2 : ℂ)
+  have hnorm_le_one : ‖π ^ (-z / 2 : ℂ)‖ ≤ 1 := by
+    rw [hnorm_eq]
+    exact Real.rpow_le_one_of_one_le_of_nonpos (le_of_lt hpi_one_lt) hre_nonpos
+  have hnorm_pos : 0 < ‖π ^ (-z / 2 : ℂ)‖ := by
+    rw [hnorm_eq]
+    exact Real.rpow_pos_of_pos hpi_pos (-z / 2 : ℂ).re
+  exact Real.log_nonpos hnorm_pos.le hnorm_le_one
+
+/-- The `π ^ (-z / 2)` normalization is bounded by the same log-linear envelope. -/
+theorem pi_cpow_neg_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖π ^ (-z / 2 : ℂ)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  refine ⟨1, zero_lt_one, ?_⟩
+  intro z hz_re hz_norm
+  have hlog_nonpos :
+      Real.log ‖π ^ (-z / 2 : ℂ)‖ ≤ 0 :=
+    pi_cpow_neg_halfArgument_rightHalfPlane_log_norm_nonpos hz_re
+  have hnorm_nonneg : 0 ≤ ‖z‖ := norm_nonneg z
+  have hleft_nonneg : 0 ≤ 1 + ‖z‖ :=
+    add_nonneg zero_le_one hnorm_nonneg
+  have hlog_arg_ge_one : (1 : ℝ) ≤ 2 + ‖z‖ := by
+    linarith
+  have hlog_nonneg : 0 ≤ Real.log (2 + ‖z‖) :=
+    Real.log_nonneg hlog_arg_ge_one
+  have htarget_nonneg :
+      0 ≤ (1 : ℝ) * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+    exact mul_nonneg (mul_nonneg zero_le_one hleft_nonneg) hlog_nonneg
+  exact le_trans hlog_nonpos htarget_nonneg
+
+/-- Log norm of the normalized half-argument Gamma factor splits into the normalization
+term and the Gamma term on the right-half-plane Stirling region. -/
+theorem log_norm_halfArgument_normalized_complexGamma_le_sum_log_norm_factors
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re)
+    (hz_norm : 1 ≤ ‖z‖) :
+    Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
+      Real.log ‖π ^ (-z / 2 : ℂ)‖ +
+        Real.log ‖Complex.Gamma (z / 2)‖ := by
+  have hpi_pos : 0 < ‖π ^ (-z / 2 : ℂ)‖ := by
+    have hpi_pos_real : (0 : ℝ) < π := Real.pi_pos
+    have hnorm_eq : ‖π ^ (-z / 2 : ℂ)‖ = π ^ (-z / 2 : ℂ).re := by
+      simpa [Complex.norm_eq_abs] using
+        Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos_real (-z / 2 : ℂ)
+    rw [hnorm_eq]
+    exact Real.rpow_pos_of_pos hpi_pos_real (-z / 2 : ℂ).re
+  have hgamma_pos : 0 < ‖Complex.Gamma (z / 2)‖ :=
+    norm_pos_iff.mpr
+      (ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm hz_re hz_norm)
+  calc
+    Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ =
+        Real.log (‖π ^ (-z / 2 : ℂ)‖ * ‖Complex.Gamma (z / 2)‖) := by
+      rw [norm_mul]
+    _ = Real.log ‖π ^ (-z / 2 : ℂ)‖ +
+        Real.log ‖Complex.Gamma (z / 2)‖ := by
+      exact Real.log_mul hpi_pos.ne' hgamma_pos.ne'
+
+/-- Combining the sectorial Gamma estimate and the `π` normalization gives the normalized
+half-argument estimate. -/
+theorem halfArgument_normalized_rightHalfPlane_log_linear_growth_bound_degree_one_of_Gamma_and_pi
+    (hGamma :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          1 ≤ ‖z‖ →
+          Real.log ‖Complex.Gamma (z / 2)‖ ≤
+            C * (1 + ‖z‖) * Real.log (2 + ‖z‖))
+    (hPi :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          1 ≤ ‖z‖ →
+          Real.log ‖π ^ (-z / 2 : ℂ)‖ ≤
+            C * (1 + ‖z‖) * Real.log (2 + ‖z‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  rcases hGamma with ⟨CGamma, hCGamma_pos, hCGamma⟩
+  rcases hPi with ⟨CPi, hCPi_pos, hCPi⟩
+  refine ⟨CPi + CGamma, add_pos hCPi_pos hCGamma_pos, ?_⟩
+  intro z hz_re hz_norm
+  have hsplit :
+      Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
+        Real.log ‖π ^ (-z / 2 : ℂ)‖ +
+          Real.log ‖Complex.Gamma (z / 2)‖ :=
+    log_norm_halfArgument_normalized_complexGamma_le_sum_log_norm_factors
+      hz_re hz_norm
+  have hsum :
+      Real.log ‖π ^ (-z / 2 : ℂ)‖ +
+          Real.log ‖Complex.Gamma (z / 2)‖ ≤
+        CPi * (1 + ‖z‖) * Real.log (2 + ‖z‖) +
+          CGamma * (1 + ‖z‖) * Real.log (2 + ‖z‖) :=
+    add_le_add (hCPi z hz_re hz_norm) (hCGamma z hz_re hz_norm)
+  have hcombine :
+      CPi * (1 + ‖z‖) * Real.log (2 + ‖z‖) +
+          CGamma * (1 + ‖z‖) * Real.log (2 + ‖z‖) =
+        (CPi + CGamma) * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+    ring
+  exact le_trans hsplit (le_trans hsum (le_of_eq hcombine))
+
 /-- Sectorial complex Stirling in the normalized half-argument form needed by `Gammaℝ`.
 
 This is the canonical classical special-function estimate: Stirling's expansion for
@@ -394,7 +598,10 @@ theorem sectorialComplexGammaStirling_halfArgument_normalized_rightHalfPlane_log
         1 ≤ ‖z‖ →
         Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  sorry
+  exact
+    halfArgument_normalized_rightHalfPlane_log_linear_growth_bound_degree_one_of_Gamma_and_pi
+      sectorialComplexGammaStirling_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one
+      pi_cpow_neg_halfArgument_rightHalfPlane_log_linear_growth_bound_degree_one
 
 /-- The historical owner-root spelling for the sectorial complex Stirling estimate.
 
@@ -1722,6 +1929,112 @@ theorem unfoldedGammaℝLeftBoundaryRatioRealParam_eq_named_quotient
         unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t := by
   rfl
 
+/-- The named numerator is the unfolded `Gammaℝ` factor at the reflected left-boundary
+point. -/
+theorem unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam_eq_Gammaℝ
+    (t : ℝ) :
+    unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t =
+      Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) := by
+  exact (Complex.Gammaℝ_def ((1 : ℂ) - (t : ℂ) * Complex.I)).symm
+
+/-- The named denominator is the unfolded `Gammaℝ` factor at the left-boundary point. -/
+theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_eq_Gammaℝ
+    (t : ℝ) :
+    unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t =
+      Complex.Gammaℝ ((t : ℂ) * Complex.I) := by
+  exact (Complex.Gammaℝ_def ((t : ℂ) * Complex.I)).symm
+
+/-- The denominator in the unfolded left-boundary Gamma quotient is nonzero on the
+vertical-tail range. -/
+theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t ≠ 0 := by
+  have haxis_re : (((t : ℂ) * Complex.I).re) = 0 := by
+    calc
+      (((t : ℂ) * Complex.I).re) =
+          (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
+        exact Complex.mul_re (t : ℂ) Complex.I
+      _ = t * 0 - 0 * 1 := by
+        rw [Complex.ofReal_re, Complex.I_re, Complex.ofReal_im, Complex.I_im]
+      _ = 0 := by
+        ring
+  have haxis_im_norm : ‖((t : ℂ) * Complex.I).im‖ = ‖t‖ := by
+    have him : ((t : ℂ) * Complex.I).im = t := by
+      calc
+        ((t : ℂ) * Complex.I).im =
+            (t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re := by
+          exact Complex.mul_im (t : ℂ) Complex.I
+        _ = t * 1 + 0 * 0 := by
+          rw [Complex.ofReal_re, Complex.I_im, Complex.ofReal_im, Complex.I_re]
+        _ = t := by
+          ring
+    exact congrArg norm him
+  have haxis_im : 1 ≤ ‖((t : ℂ) * Complex.I).im‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 ≤ x)
+      haxis_im_norm.symm
+      ht
+  have hGamma_ne :
+      Complex.Gammaℝ ((t : ℂ) * Complex.I) ≠ 0 :=
+    (Gammaℝ_leftBoundary_nonzero_of_verticalTail haxis_re haxis_im).2.2.1
+  intro hzero
+  exact hGamma_ne
+    (Eq.trans
+      (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_eq_Gammaℝ t).symm
+      hzero)
+
+/-- The denominator in the unfolded left-boundary Gamma quotient has positive norm on
+the vertical-tail range. -/
+theorem norm_unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_pos_of_one_le_norm
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    0 < ‖unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t‖ :=
+  norm_pos_iff.mpr
+    (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_norm ht)
+
+/-- Norm of the unfolded left-boundary Gamma quotient after naming numerator and
+denominator. -/
+theorem norm_unfoldedGammaℝLeftBoundaryRatioRealParam_eq_named_quotient
+    (t : ℝ) :
+    ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ =
+      ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t /
+        unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t‖ := by
+  exact congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_named_quotient t)
+
+/-- Norm of the named unfolded left-boundary Gamma quotient is the quotient of the named
+numerator and denominator norms. -/
+theorem norm_unfoldedGammaℝLeftBoundaryRatio_named_quotient_eq_norm_div
+    (t : ℝ) :
+    ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t /
+        unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t‖ =
+      ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ /
+        ‖unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t‖ := by
+  exact norm_div
+    (unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t)
+    (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)
+
+/-- The π-normalized two-Gamma quotient is exactly the named unfolded quotient. -/
+theorem inline_twoGammaQuotient_eq_unfoldedGammaℝLeftBoundaryRatioRealParam
+    (t : ℝ) :
+    (π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+          Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+        (π ^ (-((t : ℂ) * Complex.I) / 2) *
+          Complex.Gamma (((t : ℂ) * Complex.I) / 2)) =
+      unfoldedGammaℝLeftBoundaryRatioRealParam t := by
+  rfl
+
+/-- Norm transport from the inline π-normalized two-Gamma quotient to the named unfolded
+quotient. -/
+theorem norm_inline_twoGammaQuotient_eq_norm_unfoldedGammaℝLeftBoundaryRatioRealParam
+    (t : ℝ) :
+    ‖(π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+          Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+        (π ^ (-((t : ℂ) * Complex.I) / 2) *
+          Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ =
+      ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
+  exact congrArg norm (inline_twoGammaQuotient_eq_unfoldedGammaℝLeftBoundaryRatioRealParam t)
+
 /-- The real-parameter unfolded Gamma-ratio is exactly the inline two-Gamma formula. -/
 theorem unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline
     (t : ℝ) :
@@ -2500,6 +2813,24 @@ theorem boundaryLine_one_sub_one_norm_le_vertical_height
 def boundaryLineOnePointRealParam (t : ℝ) : ℂ :=
   ⟨1, t⟩
 
+/-- Real coordinate of the canonical point `1 + it` on the boundary line. -/
+theorem boundaryLineOnePointRealParam_re
+    (t : ℝ) :
+    (boundaryLineOnePointRealParam t).re = 1 := by
+  rfl
+
+/-- Imaginary coordinate of the canonical point `1 + it` on the boundary line. -/
+theorem boundaryLineOnePointRealParam_im
+    (t : ℝ) :
+    (boundaryLineOnePointRealParam t).im = t := by
+  rfl
+
+/-- The vertical height of the canonical point `1 + it` is the absolute value of `t`. -/
+theorem boundaryLineOnePointRealParam_vertical_height
+    (t : ℝ) :
+    ‖(boundaryLineOnePointRealParam t).im‖ = ‖t‖ := by
+  rfl
+
 /-- A point on the boundary line `re = 1` is the canonical real-parameter boundary
 point attached to its vertical coordinate. -/
 theorem boundaryLine_one_eq_realParam_point
@@ -2527,6 +2858,48 @@ theorem norm_riemannZeta_boundaryLine_one_eq_norm_realParam
     ‖riemannZeta w‖ = ‖boundaryLineOneZetaRealParam w.im‖ := by
   exact congrArg norm (riemannZeta_boundaryLine_one_eq_realParam hw_re)
 
+/-- Harmonic sums are controlled by the logarithm at the natural cutoff `⌊y⌋₊`.
+
+This is the finite-sum side of the Abel/Euler-Maclaurin estimate: after truncating
+at a real height `y`, the positive harmonic majorant is at most `1 + log y`. -/
+theorem harmonic_truncation_floor_le_one_add_log
+    {y : ℝ}
+    (hy : 1 ≤ y) :
+    harmonic ⌊y⌋₊ ≤ 1 + Real.log y := by
+  exact harmonic_floor_le_one_add_log y hy
+
+/-- The cutoff `2 + |t|` is always in the range where the harmonic-log comparison applies. -/
+theorem one_le_two_add_norm
+    (t : ℝ) :
+    (1 : ℝ) ≤ 2 + ‖t‖ := by
+  have hnorm : 0 ≤ ‖t‖ :=
+    norm_nonneg t
+  have htwo_le : (1 : ℝ) ≤ 2 := by
+    norm_num
+  exact le_trans htwo_le (le_add_of_nonneg_right hnorm)
+
+/-- Harmonic control at the boundary-line truncation height `2 + |t|`. -/
+theorem harmonic_boundaryLine_truncation_le_one_add_log
+    (t : ℝ) :
+    harmonic ⌊2 + ‖t‖⌋₊ ≤ 1 + Real.log (2 + ‖t‖) := by
+  exact harmonic_truncation_floor_le_one_add_log (one_le_two_add_norm t)
+
+/-- The exact analytic Abel/Euler-Maclaurin tail estimate on `ζ(1 + it)`.
+
+Intended proof chain:
+Dirichlet truncation at `N = ⌊2 + |t|⌋₊`, Abel summation for the oscillatory tail
+`∑ n^{-1-it}`, Euler-Maclaurin control of the endpoint remainder, the harmonic
+majorant for the finite part, and the standard logarithmic normalization; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_analytic :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+          A * Real.log (2 + ‖t‖) := by
+  sorry
+
 /-- Euler-Maclaurin/Abel-truncation boundary estimate for the Riemann zeta function on
 `1 + it`.
 
@@ -2540,7 +2913,7 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound :
         1 ≤ ‖t‖ →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_analytic
 
 /-- The historical owner-root spelling for the boundary-line logarithmic zeta estimate.
 
