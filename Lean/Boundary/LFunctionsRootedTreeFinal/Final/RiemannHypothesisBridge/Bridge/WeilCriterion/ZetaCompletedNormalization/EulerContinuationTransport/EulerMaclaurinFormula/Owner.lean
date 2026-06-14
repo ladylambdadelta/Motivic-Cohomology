@@ -2144,6 +2144,87 @@ noncomputable def eulerMaclaurinBernoulliKernel_derivativeMajorant
     (δ : ℝ) : ℝ → ℝ :=
   fun x : ℝ => Real.log x * x ^ (-(δ + 1))
 
+/-- Pointwise logarithmic-power domination on the positive ray.
+
+This is the elementary comparison `log x ≤ x^η / η`, with `η = δ / 2`,
+multiplied by the positive factor `x^-(δ+1)`. -/
+theorem eulerMaclaurin_log_rpow_neg_delta_add_one_le_rpow_tail
+    {x δ : ℝ}
+    (hx : 0 < x)
+    (hx_one : 1 ≤ x)
+    (hδ : 0 < δ) :
+    ‖Real.log x * x ^ (-(δ + 1))‖ ≤
+      (2 / δ) * x ^ (-(δ / 2 + 1)) := by
+  let η : ℝ := δ / 2
+  have hη_pos : 0 < η := by
+    exact div_pos hδ two_pos
+  have hx_nonneg : 0 ≤ x := le_of_lt hx
+  have hpow_nonneg : 0 ≤ x ^ (-(δ + 1)) :=
+    Real.rpow_nonneg hx_nonneg (-(δ + 1))
+  have hlog_le : Real.log x ≤ x ^ η / η :=
+    Real.log_le_rpow_div hx_nonneg hη_pos
+  have hmul_le :
+      Real.log x * x ^ (-(δ + 1)) ≤
+        (x ^ η / η) * x ^ (-(δ + 1)) :=
+    mul_le_mul_of_nonneg_right hlog_le hpow_nonneg
+  have htarget_eq :
+      (x ^ η / η) * x ^ (-(δ + 1)) =
+        (2 / δ) * x ^ (-(δ / 2 + 1)) := by
+    have hη_ne : η ≠ 0 := ne_of_gt hη_pos
+    have hpow :
+        x ^ η * x ^ (-(δ + 1)) =
+          x ^ (-(δ / 2 + 1)) := by
+      calc
+        x ^ η * x ^ (-(δ + 1)) =
+            x ^ (η + (-(δ + 1))) := by
+          exact (Real.rpow_add hx η (-(δ + 1))).symm
+        _ = x ^ (-(δ / 2 + 1)) := by
+          have hexp : η + (-(δ + 1)) = -(δ / 2 + 1) := by
+            calc
+              η + (-(δ + 1)) = δ / 2 + (-(δ + 1)) := by
+                rfl
+              _ = -(δ / 2 + 1) := by
+                ring
+          exact congrArg (fun e : ℝ => x ^ e) hexp
+    calc
+      (x ^ η / η) * x ^ (-(δ + 1)) =
+          (η⁻¹) * (x ^ η * x ^ (-(δ + 1))) := by
+        calc
+          (x ^ η / η) * x ^ (-(δ + 1)) =
+              (x ^ η * η⁻¹) * x ^ (-(δ + 1)) := by
+            exact congrArg (fun t : ℝ => t * x ^ (-(δ + 1)))
+              (div_eq_mul_inv (x ^ η) η)
+          _ = η⁻¹ * (x ^ η * x ^ (-(δ + 1))) := by
+            calc
+              (x ^ η * η⁻¹) * x ^ (-(δ + 1)) =
+                  η⁻¹ * x ^ η * x ^ (-(δ + 1)) := by
+                exact congrArg (fun t : ℝ => t * x ^ (-(δ + 1)))
+                  (mul_comm (x ^ η) η⁻¹)
+              _ = η⁻¹ * (x ^ η * x ^ (-(δ + 1))) := by
+                exact mul_assoc η⁻¹ (x ^ η) (x ^ (-(δ + 1)))
+      _ = η⁻¹ * x ^ (-(δ / 2 + 1)) := by
+        exact congrArg (fun t : ℝ => η⁻¹ * t) hpow
+      _ = (2 / δ) * x ^ (-(δ / 2 + 1)) := by
+        have hη_inv : η⁻¹ = 2 / δ := by
+          unfold η
+          field_simp [ne_of_gt hδ]
+        exact congrArg (fun t : ℝ => t * x ^ (-(δ / 2 + 1))) hη_inv
+  have hlog_nonneg : 0 ≤ Real.log x :=
+    Real.log_nonneg hx_one
+  have hleft_nonneg :
+      0 ≤ Real.log x * x ^ (-(δ + 1)) :=
+    mul_nonneg hlog_nonneg hpow_nonneg
+  calc
+    ‖Real.log x * x ^ (-(δ + 1))‖ =
+        |Real.log x * x ^ (-(δ + 1))| := by
+      exact Real.norm_eq_abs (Real.log x * x ^ (-(δ + 1)))
+    _ = Real.log x * x ^ (-(δ + 1)) := by
+      exact abs_of_nonneg hleft_nonneg
+    _ ≤ (x ^ η / η) * x ^ (-(δ + 1)) :=
+      hmul_le
+    _ = (2 / δ) * x ^ (-(δ / 2 + 1)) :=
+      htarget_eq
+
 /-- The logarithmic power tail is integrable on every positive cutoff tail.
 
 Classically this follows from the comparison
@@ -2157,7 +2238,50 @@ theorem eulerMaclaurin_integrableOn_Ioi_log_rpow_neg_delta_add_one
     IntegrableOn
       (eulerMaclaurinBernoulliKernel_derivativeMajorant δ)
       (Set.Ioi (((N : ℕ) : ℝ))) := by
-  sorry
+  have hN_pos_real : 0 < (((N : ℕ) : ℝ)) := by
+    exact_mod_cast hN
+  let b : ℝ → ℝ := fun x : ℝ => (2 / δ) * x ^ (-(δ / 2 + 1))
+  have hb_integrable :
+      IntegrableOn b (Set.Ioi (((N : ℕ) : ℝ))) := by
+    have hexp_lt : -(δ / 2 + 1) < -(1 : ℝ) := by
+      have hδ_half_pos : 0 < δ / 2 := div_pos hδ two_pos
+      exact neg_lt_neg (lt_add_of_pos_left 1 hδ_half_pos)
+    exact
+      (integrableOn_Ioi_rpow_of_lt hexp_lt hN_pos_real).const_mul (2 / δ)
+  have hmeas :
+      AEStronglyMeasurable
+        (eulerMaclaurinBernoulliKernel_derivativeMajorant δ)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    have hcont :
+        ContinuousOn
+          (eulerMaclaurinBernoulliKernel_derivativeMajorant δ)
+          (Set.Ioi (((N : ℕ) : ℝ))) := by
+      unfold eulerMaclaurinBernoulliKernel_derivativeMajorant
+      have hlog :
+          ContinuousOn Real.log (Set.Ioi (((N : ℕ) : ℝ))) := by
+        intro x hx
+        have hx_pos : 0 < x := lt_trans hN_pos_real hx
+        exact (Real.continuousAt_log (ne_of_gt hx_pos)).continuousWithinAt
+      have hrpow :
+          ContinuousOn
+            (fun x : ℝ => x ^ (-(δ + 1)))
+            (Set.Ioi (((N : ℕ) : ℝ))) := by
+        exact continuousOn_id.rpow_const
+          (fun x hx => Or.inl (ne_of_gt (lt_trans hN_pos_real hx)))
+      exact hlog.mul hrpow
+    exact hcont.aestronglyMeasurable measurableSet_Ioi
+  have hbound :
+      ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+        ‖eulerMaclaurinBernoulliKernel_derivativeMajorant δ x‖ ≤ b x := by
+    exact ae_restrict_of_forall_mem measurableSet_Ioi
+      (fun x hx => by
+        have hx_pos : 0 < x := lt_trans hN_pos_real hx
+        have hx_one : 1 ≤ x :=
+          eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx
+        unfold eulerMaclaurinBernoulliKernel_derivativeMajorant b
+        exact eulerMaclaurin_log_rpow_neg_delta_add_one_le_rpow_tail
+          hx_pos hx_one hδ)
+  exact Integrable.mono' hb_integrable hmeas hbound
 
 /-- On a parameter ball with `δ ≤ re z`, the fixed-cutoff Bernoulli parameter
 derivative kernel is dominated on the tail by the logarithmic power majorant. -/

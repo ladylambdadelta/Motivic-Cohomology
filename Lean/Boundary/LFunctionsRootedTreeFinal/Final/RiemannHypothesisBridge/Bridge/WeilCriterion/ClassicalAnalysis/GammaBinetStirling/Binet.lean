@@ -18,6 +18,32 @@ noncomputable section
 
 open scoped Topology
 
+/-- The derivative kernel obtained by differentiating
+`arctan ((t : ℂ) / w)` in Binet's second-formula remainder. -/
+noncomputable def Complex.binetSecondFormulaDerivativeKernel
+    (t : ℝ) (w : ℂ) : ℂ :=
+  (-(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) /
+    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
+/-- The candidate derivative of the Binet second-formula remainder after
+differentiating under the integral sign. -/
+noncomputable def Complex.binetSecondFormulaRemainderDerivative
+    (w : ℂ) : ℂ :=
+  2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
+    Complex.binetSecondFormulaDerivativeKernel t w
+
+/-- The exact classical positive-real Binet identity in the normalization used
+by this file.  This is the classical analytic input; mathlib currently exposes
+Gamma integral and Bohr-Mollerup infrastructure but not this arctangent-kernel
+Binet formula as a theorem. -/
+theorem Complex.Gamma_binetSecondFormula_positiveReal_from_classical_Binet
+    {x : ℝ}
+    (hx : 0 < x) :
+    Complex.log (Complex.Gamma (x : ℂ)) =
+      Complex.binetLogGammaMainTerm (x : ℂ) +
+        Complex.binetSecondFormulaRemainder (x : ℂ) := by
+  sorry
+
 /-- Classical Binet's second formula on the positive real axis, with the
 principal logarithm and the arctangent-kernel remainder as normalized in this
 file. -/
@@ -27,7 +53,8 @@ theorem Complex.Gamma_binetSecondFormula_positiveReal_classical_identity
     Complex.log (Complex.Gamma (x : ℂ)) =
       Complex.binetLogGammaMainTerm (x : ℂ) +
         Complex.binetSecondFormulaRemainder (x : ℂ) := by
-  sorry
+  exact
+    Complex.Gamma_binetSecondFormula_positiveReal_from_classical_Binet hx
 
 /-- Binet's second formula on the positive real axis with the principal-log
 normalization used in this package.
@@ -43,6 +70,104 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
   exact
     Complex.Gamma_binetSecondFormula_positiveReal_classical_identity hx
 
+/-- Pointwise derivative of the arctangent kernel in Binet's second-formula
+remainder.  This is the branch-sensitive local analytic statement for
+`Complex.arctan`, specialized to the open right half-plane. -/
+theorem Complex.binetSecondFormula_arctanKernel_hasDerivAt
+    {t : ℝ} {w : ℂ}
+    (ht : 0 < t)
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.arctan ((t : ℂ) / z) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+      (Complex.binetSecondFormulaDerivativeKernel t w) w := by
+  sorry
+
+/-- Local integrable domination for the differentiated arctangent kernel on
+the positive `t`-axis, sufficient for differentiating the Binet remainder under
+the integral sign near `w` in the open right half-plane. -/
+theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+      ∃ g : ℝ → ℝ,
+        IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
+        ∀ z : ℂ,
+          ‖z - w‖ < ε →
+            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+              ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
+  sorry
+
+/-- Integral derivative transport for the Binet second-formula remainder from
+the pointwise arctangent-kernel derivative and its local integrable majorant. -/
+theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
+    {w : ℂ}
+    (hkernel :
+      ∀ {t : ℝ},
+        0 < t →
+          HasDerivAt
+            (fun z : ℂ =>
+              Complex.arctan ((t : ℂ) / z) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+            (Complex.binetSecondFormulaDerivativeKernel t w) w)
+    (hdominated :
+      ∃ ε : ℝ,
+        0 < ε ∧
+        ∃ g : ℝ → ℝ,
+          IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
+          ∀ z : ℂ,
+            ‖z - w‖ < ε →
+              ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+                ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t) :
+    HasDerivAt
+      Complex.binetSecondFormulaRemainder
+      (Complex.binetSecondFormulaRemainderDerivative w) w := by
+  sorry
+
+/-- Differentiation under the integral sign for the Binet second-formula
+remainder. -/
+theorem Complex.binetSecondFormulaRemainder_hasDerivAt
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      Complex.binetSecondFormulaRemainder
+      (Complex.binetSecondFormulaRemainderDerivative w) w := by
+  exact
+    Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
+      (fun ht =>
+        Complex.binetSecondFormula_arctanKernel_hasDerivAt
+          ht hw_re_pos)
+      (Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
+        hw_re_pos)
+
+/-- The logarithmic Gamma side and explicit Binet main term have the
+derivative prescribed by the differentiated Binet remainder. -/
+theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.log (Complex.Gamma z) -
+          Complex.binetLogGammaMainTerm z)
+      (Complex.binetSecondFormulaRemainderDerivative w) w := by
+  sorry
+
+/-- The logarithmic Gamma side, after subtracting the explicit Binet main
+term, has derivative equal to the differentiated Binet remainder. -/
+theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_remainderDerivative
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.log (Complex.Gamma z) -
+          Complex.binetLogGammaMainTerm z)
+      (Complex.binetSecondFormulaRemainderDerivative w) w := by
+  exact
+    Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
+      hw_re_pos
+
 /-- Differentiating the arctangent-kernel integral under the integral sign
 gives the same logarithmic derivative as the Gamma side after subtracting the
 explicit Binet main term. -/
@@ -55,7 +180,21 @@ theorem Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
           (Complex.binetLogGammaMainTerm z +
             Complex.binetSecondFormulaRemainder z))
       0 w := by
-  sorry
+  have hlog_main :
+      HasDerivAt
+        (fun z : ℂ =>
+          Complex.log (Complex.Gamma z) -
+            Complex.binetLogGammaMainTerm z)
+        (Complex.binetSecondFormulaRemainderDerivative w) w :=
+    Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_remainderDerivative
+      hw_re_pos
+  have hremainder :
+      HasDerivAt
+        Complex.binetSecondFormulaRemainder
+        (Complex.binetSecondFormulaRemainderDerivative w) w :=
+    Complex.binetSecondFormulaRemainder_hasDerivAt
+      hw_re_pos
+  simpa [sub_eq_add_neg, add_assoc] using hlog_main.sub hremainder
 
 /-- A complex function with zero derivative on the open right half-plane is
 constant there.  This is the convex-domain mean-value theorem specialized to

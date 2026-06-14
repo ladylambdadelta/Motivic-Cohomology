@@ -1511,6 +1511,68 @@ theorem completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound :
     riemannZeta_farRightHalfPlane_dirichletSeries_bound
     Gammaℝ_farRightHalfPlane_stirling_growth_bound
 
+/-- Right half-plane finite-order growth for the uncentered entire completed-zeta part. -/
+theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound_of_strip_and_farRight
+    completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
+    completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound
+
+/-- Left half-plane finite-order growth for the uncentered entire completed-zeta part. -/
+theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_rightHalfPlane
+    completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
+
+/-- Owner finite-order growth for the uncentered entire completed-zeta part.
+
+This is the analytic finite-order input actually used by completed-zeta zero counting in
+the RH lane.  A more general Hurwitz finite-order theorem may imply it, but the zeta
+normalization layer only needs this specialization. -/
+theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
+    completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
+    completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
+
+/-- Finite-order growth for the uncentered entire completed-zeta part. -/
+theorem completedRiemannZeta₀_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        ‖completedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
+
+/-- Finite-order growth for the centered entire completed-zeta part. -/
+theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        ‖centeredCompletedRiemannZeta₀ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
+    completedRiemannZeta₀_finiteOrder_growth_bound
+
 /-- Multiplying a finite-order entire part by the quadratic clearing factor and subtracting
 `1` preserves exponential finite-order growth. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_growth_bound_of_factor_and_entirePart

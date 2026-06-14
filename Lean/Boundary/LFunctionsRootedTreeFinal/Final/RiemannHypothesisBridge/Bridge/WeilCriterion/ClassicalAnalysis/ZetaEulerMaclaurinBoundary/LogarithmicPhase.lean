@@ -717,6 +717,45 @@ theorem Complex.realPhase_singleton_integer_block_bound
       hcard.symm
       hone_le_target)
 
+/-- Reciprocal norm control from a positive denominator lower bound. -/
+theorem Complex.realPhase_inv_norm_le_of_denominator_lower_bound
+    {z : ℂ}
+    {λ : ℝ}
+    (hλ_pos : 0 < λ)
+    (hden : λ ≤ 2 * ‖z‖) :
+    ‖z⁻¹‖ ≤ 2 * λ⁻¹ := by
+  have hhalf_pos : 0 < λ / 2 := by
+    exact div_pos hλ_pos (by norm_num : (0 : ℝ) < 2)
+  have hnorm_lower : λ / 2 ≤ ‖z‖ := by
+    exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 2)).mpr hden
+  have hnorm_pos : 0 < ‖z‖ :=
+    lt_of_lt_of_le hhalf_pos hnorm_lower
+  have hinv_mono : ‖z‖⁻¹ ≤ (λ / 2)⁻¹ :=
+    inv_anti₀ hhalf_pos hnorm_lower
+  have hhalf_inv : (λ / 2)⁻¹ = 2 * λ⁻¹ := by
+    have hλ_ne : λ ≠ 0 :=
+      ne_of_gt hλ_pos
+    field_simp [hλ_ne]
+  calc
+    ‖z⁻¹‖ = ‖z‖⁻¹ :=
+      norm_inv z
+    _ ≤ (λ / 2)⁻¹ :=
+      hinv_mono
+    _ = 2 * λ⁻¹ :=
+      hhalf_inv
+
+/-- Chord lower bound on the unit circle from separation from `2πℤ`.
+
+This is the real trigonometric core behind the geometric denominator estimate:
+the nearest `2πℤ` distance to `θ` is controlled by the chord length
+`|1 - exp(iθ)|`. -/
+theorem Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
+    {θ λ : ℝ}
+    (hλ_pos : 0 < λ)
+    (hsep : ∀ k : ℤ, λ ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
+    λ ≤ 2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
+  sorry
+
 /-- Geometric denominator lower bound from separation from all `2πℤ`
 frequencies.
 
@@ -730,6 +769,51 @@ theorem Complex.realPhase_geometricDenominator_inv_norm_bound
     (hsep : ∀ k : ℤ, λ ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
     ‖(1 - Complex.exp (Complex.I * (θ : ℂ)))⁻¹‖ ≤
       2 * λ⁻¹ := by
+  exact
+    Complex.realPhase_inv_norm_le_of_denominator_lower_bound
+      hλ_pos
+      (Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
+        hλ_pos hsep)
+
+/-- Endpoint contribution in the finite monotone-increment Dirichlet test. -/
+theorem Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound
+    {λ : ℝ}
+    (hλ_pos : 0 < λ) :
+    (1 : ℝ) ≤ 2 * (λ⁻¹ + 1) := by
+  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
+    inv_nonneg.mpr hλ_pos.le
+  have hone_le_sum : (1 : ℝ) ≤ λ⁻¹ + 1 :=
+    le_add_of_nonneg_left hλ_inv_nonneg
+  exact le_trans hone_le_sum
+    (by
+      have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
+        add_nonneg hλ_inv_nonneg zero_le_one
+      calc
+        λ⁻¹ + 1 ≤ 2 * (λ⁻¹ + 1) := by
+          exact (le_mul_iff_one_le_left hsum_nonneg).mpr (by norm_num)
+        _ = 2 * (λ⁻¹ + 1) := rfl)
+
+/-- Norm estimate after the finite Abel transform for monotone adjacent
+frequencies. -/
+theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab_lt : a < b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
   sorry
 
 /-- Monotone-frequency finite Dirichlet-test core.
@@ -756,7 +840,9 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
-  sorry
+  exact
+    Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
+      φ ha hab_lt hλ_pos hinc_mono hden
 
 /-- Nontrivial monotone separated-increment Dirichlet-test primitive.
 

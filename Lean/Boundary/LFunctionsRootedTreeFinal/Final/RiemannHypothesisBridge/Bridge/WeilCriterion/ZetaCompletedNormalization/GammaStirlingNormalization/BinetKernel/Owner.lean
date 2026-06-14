@@ -1238,9 +1238,10 @@ theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRig
 bound to a pure open-right-half-plane `O(1 / ‖w‖)` estimate.
 
 The split owner theorem does not imply this statement on the whole open
-right half-plane: the fixed-tail term is not divided by `‖w‖`.  Any proof here
-must add a genuine tail-absorption theorem, such as a sector-separated bound,
-not repeat the unsafe post-hoc division. -/
+right half-plane by algebra alone.  The missing upstream content is a genuine
+Binet-kernel tail-absorption theorem strong enough for the full closed
+right-half-plane sector used by vertical-line Stirling, not merely a wedge
+separated from the imaginary axis. -/
 theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -1254,9 +1255,9 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires
 /-- Root marking the missing pure-decay Binet/log-Gamma comparison.
 
 Use `Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane`
-for the currently proved mirror statement.  This theorem requires an additional
-tail-absorption theorem converting the split Binet estimate into pure
-`O(1 / ‖w‖)` decay. -/
+for the currently proved mirror statement.  This theorem requires the same
+full-sector tail-absorption theorem converting the split Binet estimate into
+pure `O(1 / ‖w‖)` decay. -/
 theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane_requires_tail_absorption :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -1686,6 +1687,27 @@ theorem Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one
     hmul_norm.symm
     (hscaled.trans_eq htarget_eq)
 
+/-- Small Binet remainder gives a linear normalized Stirling error.
+
+This is the local error-extraction step used by the normalized Stirling
+bridge: once the Binet remainder is small, the normalized factor is close to
+`sqrt (2π)` with a linear bound in `‖J(w)‖`. -/
+theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRemainder_norm_le_one
+    {w : ℂ}
+    (hGamma_ne : Complex.Gamma w ≠ 0)
+    (hw_ne : w ≠ 0)
+    (hbinet :
+      Complex.log (Complex.Gamma w) =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w)
+    (hE : ‖Complex.binetSecondFormulaRemainder w‖ ≤ 1) :
+    ‖Complex.Gamma w * Complex.exp w *
+        w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+      2 * Real.sqrt (2 * Real.pi) * ‖Complex.binetSecondFormulaRemainder w‖ := by
+  rw [Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
+    hGamma_ne hw_ne hbinet]
+  exact Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE
+
 /-- Binet's logarithmic formula implies the normalized sectorial Stirling
 estimate for `Γ`.
 
@@ -1709,9 +1731,9 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
   `Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane`,
   whose remainder estimate has a fixed-tail term.  To recover this pure
   `O(1 / ‖w‖)` normalized Stirling statement one must prove a real
-  tail-absorption theorem, or restrict to a sector-separated region where the
-  classical owner already controls the tail.  The previous proof incorrectly
-  consumed a false pure Binet-remainder bound.
+  full-sector tail-absorption theorem.  Restricting to
+  `ε ≤ w.re / ‖w‖` is not acceptable here because the downstream vertical-line
+  estimates have fixed real part and `w.re / ‖w‖ → 0`.
   -/
   sorry
 

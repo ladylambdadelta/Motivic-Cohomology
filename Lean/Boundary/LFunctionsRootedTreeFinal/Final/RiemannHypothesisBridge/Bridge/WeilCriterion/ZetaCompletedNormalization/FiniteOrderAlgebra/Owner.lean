@@ -146,19 +146,6 @@ theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound_of_strip
           hBf_nonneg
           hdegree)
 
-/-- Right half-plane finite-order growth for the uncentered entire completed-zeta part. -/
-theorem completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        0 ≤ z.re →
-        ‖completedRiemannZeta₀ z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound_of_strip_and_farRight
-    completedRiemannZeta₀_rightCriticalStrip_finiteOrder_growth_bound
-    completedRiemannZeta₀_farRightHalfPlane_finiteOrder_growth_bound
-
 /-- The reflected point `1 - z` lies in the right half-plane when `z` lies in the left
 half-plane. -/
 theorem completedRiemannZeta₀_reflected_re_nonnegative_of_leftHalfPlane
@@ -271,18 +258,6 @@ theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_rightH
     hreflect_norm.symm
     (hraw.trans hscaled)
 
-/-- Left half-plane finite-order growth for the uncentered entire completed-zeta part. -/
-theorem completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        z.re ≤ 0 →
-        ‖completedRiemannZeta₀ z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound_of_rightHalfPlane
-    completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-
 /-- Half-plane finite-order estimates combine to a global finite-order estimate. -/
 theorem completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
     (hright :
@@ -345,32 +320,6 @@ theorem completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
           hB_left_le
           hBl_nonneg
           hdegree)
-
-/-- Owner finite-order growth for the uncentered entire completed-zeta part.
-
-This is the analytic finite-order input actually used by completed-zeta zero counting in
-the RH lane.  A more general Hurwitz finite-order theorem may imply it, but the zeta
-normalization layer only needs this specialization. -/
-theorem completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        ‖completedRiemannZeta₀ z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact completedRiemannZeta₀_global_finiteOrder_growth_bound_of_halfPlanes
-    completedRiemannZeta₀_rightHalfPlane_finiteOrder_growth_bound
-    completedRiemannZeta₀_leftHalfPlane_finiteOrder_growth_bound
-
-/-- Finite-order growth for the uncentered entire completed-zeta part. -/
-theorem completedRiemannZeta₀_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        ‖completedRiemannZeta₀ z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact completedRiemannZeta₀_finiteOrder_growth_bound_ownerZeta
 
 /-- The centered affine shift is controlled by the basic centered height. -/
 theorem centeredCompletedRiemannZeta₀_shiftedBasicHeight_le
@@ -459,21 +408,10 @@ theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
         A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m) :=
     mul_le_mul_of_nonneg_left hexp_le (le_of_lt hApos)
   exact Eq.subst
-    (motive := fun x : ℂ =>
-      ‖x‖ ≤ A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m))
+    (motive := fun x : ℝ =>
+      x ≤ A * Real.exp ((B * (2 : ℝ) ^ m) * H ^ m))
     hcenter.symm
     (hraw.trans hscale_exp)
-
-/-- Finite-order growth for the centered entire completed-zeta part. -/
-theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound :
-    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
-      0 < A ∧
-      0 < B ∧
-      ∀ z : ℂ,
-        ‖centeredCompletedRiemannZeta₀ z‖ ≤
-          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  exact centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
-    completedRiemannZeta₀_finiteOrder_growth_bound
 
 /-- Each linear factor in the zero-carrier clearing factor is controlled by
 `2 * (1 + ‖z‖)`. -/
@@ -560,7 +498,7 @@ theorem centeredCompletedRiemannZeta_basicHeight_nonnegative
 theorem centeredCompletedRiemannZeta_basicHeight_pow_ge_one
     (z : ℂ) (m : ℕ) :
     (1 : ℝ) ≤ (1 + ‖z‖) ^ m := by
-  exact one_le_pow₀ (centeredCompletedRiemannZeta_basicHeight_ge_one z) m
+  exact one_le_pow₀ (centeredCompletedRiemannZeta_basicHeight_ge_one z)
 
 /-- The quadratic clearing factor has polynomial growth. -/
 theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
@@ -597,9 +535,11 @@ theorem polynomialGrowth_mul
     exact centeredCompletedRiemannZeta_basicHeight_nonnegative z
   have hB_pow_nonneg : 0 ≤ B * H ^ n := by
     exact mul_nonneg (le_of_lt hB_pos) (pow_nonneg hH_nonneg n)
+  have hA_pow_nonneg : 0 ≤ A * H ^ m := by
+    exact mul_nonneg (le_of_lt hA_pos) (pow_nonneg hH_nonneg m)
   have hmul_bound :
       ‖u z‖ * ‖v z‖ ≤ (A * H ^ m) * (B * H ^ n) :=
-    mul_le_mul (hA_bound z) (hB_bound z) (norm_nonneg _) hB_pow_nonneg
+    mul_le_mul (hA_bound z) (hB_bound z) (norm_nonneg _) hA_pow_nonneg
   have hnorm :
       ‖u z * v z‖ = ‖u z‖ * ‖v z‖ :=
     norm_mul (u z) (v z)
@@ -671,8 +611,8 @@ theorem centeredCompletedRiemannZeta_basicHeight_pow_le_exp_pow_add
   have hle_exp :
       H ^ (m + n) ≤ Real.exp (H ^ (m + n)) :=
     le_trans
-      (centeredCompletedRiemannZeta_basicHeight_pow_ge_one z (m + n))
-      (one_le_exp_of_nonnegative_exponent hpow_nonneg)
+      (le_add_of_nonneg_right zero_le_one)
+      (Real.add_one_le_exp (H ^ (m + n)))
   exact le_trans hpow_le hle_exp
 
 /-- Multiplying an exponential finite-order function by a polynomial-growth function
@@ -733,13 +673,16 @@ theorem exponentialFiniteOrder_mul_polynomialGrowth
   have hright_nonneg :
       0 ≤ B * Real.exp (C * H ^ n) :=
     mul_nonneg (le_of_lt hB_pos) (le_of_lt (Real.exp_pos (C * H ^ n)))
+  have hleft_nonneg :
+      0 ≤ A * H ^ m :=
+    mul_nonneg (le_of_lt hA_pos) (pow_nonneg hH_nonneg m)
   have hnorm_mul :
       ‖u z * v z‖ = ‖u z‖ * ‖v z‖ :=
     norm_mul (u z) (v z)
   have hproduct_bound :
       ‖u z‖ * ‖v z‖ ≤
         (A * H ^ m) * (B * Real.exp (C * H ^ n)) :=
-    mul_le_mul (hA_bound z) (hB_bound z) (norm_nonneg _) hright_nonneg
+    mul_le_mul (hA_bound z) (hB_bound z) (norm_nonneg _) hleft_nonneg
   have hconstant_power :
       (A * H ^ m) * (B * Real.exp (C * H ^ n)) =
         (A * B) * (H ^ m * Real.exp (C * H ^ n)) := by

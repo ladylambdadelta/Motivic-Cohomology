@@ -240,6 +240,34 @@ positive decreasing weight.
 This is the abstract finite form of the convex-combination argument: summation
 by parts rewrites the weighted tail as a nonnegative linear combination of
 undamped finite tails, with total mass bounded by the initial weight. -/
+theorem Complex.zeroExtended_tail_prefix_sum_eq_Ioc
+    {a : ℕ → ℂ}
+    (N k : ℕ) :
+    (∑ n ∈ Finset.range (k + 1), if N < n then a n else 0) =
+      ∑ n ∈ Finset.Ioc N k, a n := by
+  have hfilter :
+      (Finset.range (k + 1)).filter (fun n : ℕ => N < n) =
+        Finset.Ioc N k := by
+    ext n
+    constructor
+    · intro hn
+      have hn_range : n < k + 1 :=
+        Finset.mem_range.mp (Finset.mem_filter.mp hn).1
+      have hNn : N < n :=
+        (Finset.mem_filter.mp hn).2
+      exact Finset.mem_Ioc.mpr ⟨hNn, Nat.le_of_lt_succ hn_range⟩
+    · intro hn
+      have hNn : N < n := (Finset.mem_Ioc.mp hn).1
+      have hnk : n ≤ k := (Finset.mem_Ioc.mp hn).2
+      exact Finset.mem_filter.mpr
+        ⟨Finset.mem_range.mpr (Nat.lt_succ_of_le hnk), hNn⟩
+  calc
+    (∑ n ∈ Finset.range (k + 1), if N < n then a n else 0) =
+        ∑ n ∈ (Finset.range (k + 1)).filter (fun n : ℕ => N < n), a n := by
+      rw [Finset.sum_filter]
+    _ = ∑ n ∈ Finset.Ioc N k, a n := by
+      exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hfilter
+
 theorem Complex.finite_weighted_tail_abel_identity
     {a : ℕ → ℂ}
     {w : ℕ → ℝ}
@@ -254,10 +282,82 @@ theorem Complex.finite_weighted_tail_abel_identity
   This is the finite Abel transform for the zero-extended tail sequence.
   It is the owner identity needed by the norm estimate below.
   -/
-  sorry
+  let b : ℕ → ℂ := fun n : ℕ => if N < n then a n else 0
+  have hparts :=
+    Finset.sum_Ioc_by_parts
+      (fun n : ℕ => (w n : ℂ))
+      b
+      hNM
+  have hprefix_N :
+      (∑ i ∈ Finset.range (N + 1), b i) = 0 := by
+    rw [Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N N]
+    rw [Finset.Ioc_self, Finset.sum_empty]
+  have hprefix_M :
+      (∑ i ∈ Finset.range (M + 1), b i) =
+        ∑ n ∈ Finset.Ioc N M, a n :=
+    Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N M
+  have hprefix :
+      ∀ k : ℕ,
+        (∑ i ∈ Finset.range (k + 1), b i) =
+          ∑ n ∈ Finset.Ioc N k, a n := by
+    intro k
+    exact Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N k
+  have hlhs :
+      (∑ n ∈ Finset.Ioc N M, (w n : ℂ) • b n) =
+        ∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ) := by
+    refine Finset.sum_congr rfl ?_
+    intro n hn
+    have hNn : N < n := (Finset.mem_Ioc.mp hn).1
+    rw [b, if_pos hNn]
+    exact mul_comm (w n : ℂ) (a n)
+  have hrhs :
+      (w M : ℂ) • (∑ i ∈ Finset.range (M + 1), b i) -
+          (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
+            ∑ i ∈ Finset.Ioc N (M - 1),
+              (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                (∑ x ∈ Finset.range (i + 1), b x)) =
+        (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
+          ∑ k ∈ Finset.Ioc N (M - 1),
+            ((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ n ∈ Finset.Ioc N k, a n) := by
+    rw [hprefix_M, hprefix_N, smul_eq_mul, smul_eq_mul, mul_zero, sub_zero]
+    simp_rw [hprefix]
+    rw [sub_eq_add_neg]
+    congr 1
+    rw [Finset.neg_sum]
+    refine Finset.sum_congr rfl ?_
+    intro k hk
+    rw [smul_eq_mul, neg_mul, ← sub_eq_neg_sub, Complex.ofReal_sub]
+  exact Eq.trans hlhs.symm (Eq.trans hparts hrhs)
 
 /-- The coefficient mass in the finite Abel identity is bounded by the initial
 weight when the weights are positive and decreasing. -/
+theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
+    {w : ℕ → ℝ}
+    (N M : ℕ)
+    (hNM : N < M) :
+    w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) = w (N + 1) := by
+  have hstart : N + 1 ≤ M := Nat.succ_le_of_lt hNM
+  refine Nat.le_induction ?base ?step M hstart
+  · have htop : (N + 1) - 1 = N := Nat.succ_sub_one N
+    rw [htop, Finset.Ioc_self, Finset.sum_empty, add_zero]
+  · intro m hm ih
+    have hNm : N < m := Nat.lt_of_succ_le hm
+    have hNm_pred : N ≤ m - 1 := Nat.le_sub_one_of_lt hNm
+    have hsub : (m + 1) - 1 = m := Nat.succ_sub_one m
+    calc
+      w (m + 1) + ∑ k ∈ Finset.Ioc N ((m + 1) - 1), (w k - w (k + 1)) =
+          w (m + 1) + ∑ k ∈ Finset.Ioc N m, (w k - w (k + 1)) := by
+        rw [hsub]
+      _ = w (m + 1) +
+          (∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
+            (w m - w (m + 1))) := by
+        rw [← Nat.sub_add_cancel (Nat.succ_le_of_lt hNm)]
+        rw [sum_Ioc_succ_top hNm_pred]
+      _ = w m + ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) := by
+        ring
+      _ = w (N + 1) := ih
+
 theorem Complex.finite_weighted_tail_abel_coefficient_mass_le_one
     {w : ℕ → ℝ}
     (N M : ℕ)
@@ -266,11 +366,11 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_le_one
     (hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
     (hw_initial : ∀ n : ℕ, N < n → w n ≤ 1) :
     w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) ≤ 1 := by
-  /-
-  The sum telescopes to `w (N+1)` when `N < M`; the initial-bound hypothesis
-  then gives `≤ 1`.
-  -/
-  sorry
+  calc
+    w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) =
+        w (N + 1) :=
+      Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial N M hNM
+    _ ≤ 1 := hw_initial (N + 1) (Nat.lt_succ_self N)
 
 theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
     {a : ℕ → ℂ}
@@ -487,6 +587,33 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'
     Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
       N hσ_summable hfinite_weighted
 
+/-- Dirichlet-test summability for Abel weights against a sequence with
+uniformly bounded strict tails. -/
+theorem Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
+    {a : ℕ → ℂ}
+    (N : ℕ)
+    (hfinite :
+      ∃ B : ℝ,
+        ∀ M : ℕ,
+          N ≤ M →
+            ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ B) :
+    ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      Summable
+        (fun n : ℕ =>
+          if N < n then
+            a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+          else
+            0) := by
+  /-
+  Owner proof chain:
+  bounded strict tails
+  -> finite Abel identity on every interval `[L, M]`
+  -> coefficient mass bounded by `(L + 1)^(-(σ - 1))`
+  -> this tends to `0` as `L → ∞` for `σ > 1`
+  -> Cauchy criterion for the damped series.
+  -/
+  sorry
+
 /-- Abel damping by the concrete weights `n ^ (-(σ - 1))` preserves a uniform
 finite-tail bound. -/
 theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
@@ -504,13 +631,50 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
           a n * ((n : ℝ) ^ (-(σ - 1)) : ℂ)
         else
           0‖ ≤ B := by
-  /-
-  Intended proof chain:
-  instantiate the abstract Abel damping lemma with
-  `w σ n = n ^ (-(σ - 1))`; prove positivity, antitonicity, initial bound
-  `w σ n ≤ 1`, and summability from `σ > 1`.
-  -/
-  sorry
+  have hsummable :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        Summable
+          (fun n : ℕ =>
+            if N < n then
+              a n * (((fun σ n => (n : ℝ) ^ (-(σ - 1))) σ n) : ℂ)
+            else
+              0) := by
+    simpa using
+      Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
+        (a := a) N ⟨B, hfinite⟩
+  have hw_nonneg :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ n : ℕ, N < n → 0 ≤ (n : ℝ) ^ (-(σ - 1)) := by
+    filter_upwards [eventually_mem_nhdsWithin] with σ hσ n hn
+    exact Real.rpow_nonneg (Nat.cast_nonneg n) (-(σ - 1))
+  have hw_antitone :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ {m n : ℕ}, N < m → m ≤ n →
+          (n : ℝ) ^ (-(σ - 1)) ≤ (m : ℝ) ^ (-(σ - 1)) := by
+    filter_upwards [eventually_mem_nhdsWithin] with σ hσ m n hm hmn
+    have hm_pos : 0 < (m : ℝ) := by
+      exact_mod_cast Nat.lt_of_lt_of_le (Nat.zero_lt_succ N) (Nat.succ_le_of_lt hm)
+    have hmn_real : (m : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hmn
+    have hexp_nonpos : -(σ - 1) ≤ 0 := by
+      linarith
+    exact Real.rpow_le_rpow_of_nonpos hm_pos hmn_real hexp_nonpos
+  have hw_initial :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ n : ℕ, N < n → (n : ℝ) ^ (-(σ - 1)) ≤ 1 := by
+    filter_upwards [eventually_mem_nhdsWithin] with σ hσ n hn
+    have hn_one : 1 ≤ (n : ℝ) := by
+      have hn_nat : 1 ≤ n := le_trans hN (Nat.succ_le_of_lt hn)
+      exact_mod_cast hn_nat
+    have hexp_nonpos : -(σ - 1) ≤ 0 := by
+      linarith
+    exact Real.rpow_le_one_of_one_le_of_nonpos hn_one hexp_nonpos
+  exact
+    Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'
+      (a := a)
+      (B := B)
+      (w := fun σ n => (n : ℝ) ^ (-(σ - 1)))
+      N hN hw_nonneg hw_antitone hw_initial hsummable hfinite
 
 /-- Positive Abel damping preserves the uniform finite Abel-tail estimate. -/
 theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAbel :
