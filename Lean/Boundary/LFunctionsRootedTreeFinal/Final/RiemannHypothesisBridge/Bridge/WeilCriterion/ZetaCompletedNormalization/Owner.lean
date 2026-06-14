@@ -21459,17 +21459,31 @@ theorem real_one_half_lt_two_for_puncturedVerticalStrip :
 /-- The right safe corridor has positive real coordinate. -/
 theorem real_zero_lt_three_halves_for_puncturedVerticalStrip :
     (0 : ℝ) < 3 / 2 := by
-  sorry
+  exact div_pos (show (0 : ℝ) < 3 by
+    calc
+      (0 : ℝ) < 1 := zero_lt_one
+      _ < 3 := lt_trans one_lt_two (show (2 : ℝ) < 3 by
+        exact lt_add_of_pos_right 2 zero_lt_one)) two_pos
 
 /-- The right safe corridor lies right of the deleted vertical line. -/
 theorem real_one_lt_three_halves_for_puncturedVerticalStrip :
     (1 : ℝ) < 3 / 2 := by
-  sorry
+  exact
+    (lt_div_iff₀ two_pos).2
+      (show (1 : ℝ) * 2 < 3 by
+        calc
+          (1 : ℝ) * 2 = 2 := one_mul 2
+          _ < 3 := lt_add_of_pos_right 2 zero_lt_one)
 
 /-- The right safe corridor lies inside the right strip boundary. -/
 theorem real_three_halves_lt_two_for_puncturedVerticalStrip :
     (3 / 2 : ℝ) < 2 := by
-  sorry
+  exact
+    (div_lt_iff₀ two_pos).2
+      (show (3 : ℝ) < 2 * 2 by
+        calc
+          (3 : ℝ) < 4 := lt_add_of_pos_right 3 zero_lt_one
+          _ = 2 * 2 := (show (4 : ℝ) = 2 * 2 by rfl))
 
 /-- The left safe corridor real coordinate is not the deleted coordinate. -/
 theorem real_one_half_ne_one_for_puncturedVerticalStrip :
