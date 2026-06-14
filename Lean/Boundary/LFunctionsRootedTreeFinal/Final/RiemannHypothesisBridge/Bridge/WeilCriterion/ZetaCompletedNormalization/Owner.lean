@@ -12504,6 +12504,95 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPla
     poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth
 
+/-- Product of two left-half-plane finite-order envelopes is again finite-order.
+
+This is the half-plane analogue of the boundary product lemma, used for the
+completed-functional-equation multiplier. -/
+theorem finiteOrder_leftHalfPlane_product_growth_bound
+    {f g : ℂ → ℂ}
+    (hf :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hg :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖f z * g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Elementary finite-order growth of the pole-clearing rational factor on the
+left half-plane away from the removable denominator. -/
+theorem leftHalfPlane_completedFunctionalEquation_poleClearing_ratio_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Left-half-plane Gamma-ratio Stirling growth for the completed-functional
+equation multiplier.
+
+This is the exact Gamma/Stirling owner input consumed by the zeta transport
+layer; it is where sectorial or fixed-line Stirling estimates belong. -/
+theorem Gammaℝ_leftHalfPlane_completedFunctionalEquation_ratio_stirling_growth_bound :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
+/-- Raw multiplier growth from the elementary pole-clearing ratio and the
+Gamma-ratio/Stirling estimate. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_finiteOrder_growth_of_ratio_and_gamma
+    (hratio :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          z ≠ 0 →
+          ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hgamma :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re ≤ 0 →
+          z ≠ 0 →
+          ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+            A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  sorry
+
 /-- Finite-order envelopes are stable under the affine reflection `z ↦ 1 - z`
 on the left half-plane.
 
