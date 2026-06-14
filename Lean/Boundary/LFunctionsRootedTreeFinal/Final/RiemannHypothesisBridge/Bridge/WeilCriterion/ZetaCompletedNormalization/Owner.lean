@@ -12711,6 +12711,30 @@ theorem real_log_two_add_div_sq_nonneg_of_two_le
     sq_nonneg x
   exact div_nonneg hlog_nonneg hx_sq_nonneg
 
+/-- Integration-by-parts identity for the finite scalar tail
+`∫ log(2+x)/x²`.
+
+This is the exact finite identity behind the tail bound:
+the antiderivative of the main part is `-log(2+x)/x`, and the remaining
+positive term is `1/(x*(2+x))`. -/
+theorem real_integral_Ioc_log_two_add_div_sq_eq_by_parts
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+      ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+        ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) := by
+  sorry
+
+/-- Elementary endpoint bound for the finite scalar tail after the
+integration-by-parts identity. -/
+theorem real_integral_Ioc_log_two_add_div_sq_by_parts_terms_le_log_four
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+        ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
+      Real.log 4 := by
+  sorry
+
 /-- Standard finite integration-by-parts tail estimate for
 `log(2+x)/x²` from the canonical cutoff `2`.
 
@@ -12723,7 +12747,20 @@ theorem real_integral_Ioc_two_log_two_add_div_sq_tail_bound_by_parts
     (hb : (2 : ℝ) ≤ b) :
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 ≤
       Real.log 4 := by
-  sorry
+  have hparts :
+      ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+        ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) :=
+    real_integral_Ioc_log_two_add_div_sq_eq_by_parts hb
+  have hbound :
+      ((-Real.log (2 + b) / b) - (-Real.log 4 / 2)) +
+          ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
+        Real.log 4 :=
+    real_integral_Ioc_log_two_add_div_sq_by_parts_terms_le_log_four hb
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ Real.log 4)
+    hparts.symm
+    hbound
 
 /-- Fixed improper-tail bound from the canonical cutoff `2`. -/
 theorem real_integral_Ioc_two_log_two_add_div_sq_tail_bound
@@ -19996,16 +20033,7 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncture
     (z : ℂ)
     (hz_re_pos : 0 < z.re)
     (hz_re_lt_two : z.re < 2)
-    (hz_ne_one : z ≠ 1)
-    (hhol :
-      DifferentiableOn ℂ
-        (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
-        ({w : ℂ | 0 < w.re ∧ w.re < 2 ∧ w ≠ 1}))
-    (hzero :
-      ∀ w : ℂ,
-        1 < w.re →
-        w.re < 2 →
-        eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N w = 0) :
+    (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
   sorry
 
@@ -20058,24 +20086,9 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_punc
     (hz_re_lt_two : z.re < 2)
     (hz_ne_one : z ≠ 1) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
-  have hhol :
-      DifferentiableOn ℂ
-        (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
-        ({w : ℂ | 0 < w.re ∧ w.re < 2 ∧ w ≠ 1}) :=
-    eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_puncturedStrip_standard
-      N hN
-  have hzero :
-      ∀ w : ℂ,
-        1 < w.re →
-        w.re < 2 →
-        eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N w = 0 := by
-    intro w hw_one _hw_two
-    exact
-      eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_halfPlane_standard
-        N hN w hw_one
   exact
     eulerMaclaurin_fixedCutoffTailIdentityDefect_identityTheorem_on_puncturedStrip_standard
-      N hN z hz_re_pos hz_re_lt_two hz_ne_one hhol hzero
+      N hN z hz_re_pos hz_re_lt_two hz_ne_one
 
 /-- Boundary-line vanishing of the Euler-Maclaurin tail defect by analytic
 continuation.

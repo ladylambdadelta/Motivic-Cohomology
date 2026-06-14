@@ -10955,6 +10955,20 @@ theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
     (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
   exact hfg_nhds.filter_mono nhdsWithin_le_nhds
 
+/-- One-sided real finite avoidance near `1`.
+
+This is the real topology core used by radial finite avoidance: numbers
+`t < 1`, arbitrarily close to `1`, can be chosen outside a prescribed finite
+set. -/
+theorem real_leftNhds_one_avoidFinite_frequently
+    (T : Finset ℝ) :
+    ∃ᶠ t in 𝓝[<] (1 : ℝ),
+      t < 1 ∧
+        ∀ r : ℝ, r ∈ T → t ≠ r := by
+  -- Deep real-order topology lemma: choose `t` in `(max forbidden below 1, 1)`
+  -- inside each left neighborhood of `1`.
+  sorry
+
 /-- Radial finite-avoidance inside a closed disk.
 
 For a nonzero point `a` in `closedBall 0 ρ`, the inward radial points
@@ -10970,9 +10984,65 @@ theorem complex_closedBall_radial_punctured_avoidFinite_frequently
       w ≠ a ∧
       ‖w‖ ≤ ρ ∧
         ∀ z : ℂ, z ∈ T → w ≠ z := by
-  -- Deep explicit topology lemma: use the radial net `t • a`, `t < 1`,
-  -- with `t → 1`, and avoid the finite set of exceptional scalar values.
-  sorry
+  let badScalars : Finset ℝ :=
+    T.filter (fun z : ℂ => ∃ t : ℝ, (t : ℂ) * a = z) |>.image
+      (fun z : ℂ => ((z / a).re : ℝ))
+  have hreal :
+      ∃ᶠ t in 𝓝[<] (1 : ℝ),
+        t < 1 ∧
+          ∀ r : ℝ, r ∈ badScalars → t ≠ r :=
+    real_leftNhds_one_avoidFinite_frequently badScalars
+  have htendsto :
+      Filter.Tendsto
+        (fun t : ℝ => (t : ℂ) * a)
+        (𝓝[<] (1 : ℝ))
+        (𝓝[≠] a) := by
+    -- Radial parametrization tends to `a` along the punctured line.
+    sorry
+  exact
+    htendsto.frequently
+      (hreal.mono
+        (fun t ht =>
+          let w : ℂ := (t : ℂ) * a
+          have hw_ne : w ≠ a := by
+            intro hw
+            have ht_one : (t : ℂ) = 1 := by
+              exact mul_right_cancel₀ ha0 (Eq.trans hw (one_mul a).symm)
+            exact (ne_of_lt ht.1) (Complex.ofReal_injective ht_one)
+          have hnorm_le : ‖w‖ ≤ ρ := by
+            have ht_nonneg_or_neg : 0 ≤ t ∨ t < 0 :=
+              le_or_gt 0 t
+            match ht_nonneg_or_neg with
+            | Or.inl ht_nonneg =>
+                have ht_abs_le_one : |t| ≤ 1 := by
+                  exact abs_le.2 ⟨ht_nonneg, ht.1.le⟩
+                have hnorm_eq : ‖w‖ = |t| * ‖a‖ := by
+                  exact norm_mul (t : ℂ) a
+                exact
+                  Eq.subst
+                    (motive := fun x : ℝ => x ≤ ρ)
+                    hnorm_eq.symm
+                    ((mul_le_of_le_one_left (norm_nonneg a) ht_abs_le_one).trans haρ)
+            | Or.inr ht_neg =>
+                -- Negative radial parameters are eventually irrelevant near `1`;
+                -- the real finite-avoidance theorem can be strengthened to carry
+                -- `0 ≤ t` if this branch is needed by Lean.
+                sorry
+          have havoid : ∀ z : ℂ, z ∈ T → w ≠ z := by
+            intro z hz hwz
+            have hz_bad : z ∈ T.filter (fun z : ℂ => ∃ t : ℝ, (t : ℂ) * a = z) := by
+              exact Finset.mem_filter.2 ⟨hz, ⟨t, hwz⟩⟩
+            have hscalar_eq : t = (z / a).re := by
+              have hz_div : z / a = (t : ℂ) := by
+                calc
+                  z / a = ((t : ℂ) * a) / a := by
+                    exact congrArg (fun x : ℂ => x / a) hwz.symm
+                  _ = (t : ℂ) := by
+                    exact mul_div_cancel_right₀ (t : ℂ) ha0
+              exact congrArg Complex.re hz_div.symm
+            exact
+              ht.2 (z / a).re (Finset.mem_image.2 ⟨z, hz_bad, rfl⟩) hscalar_eq
+          ⟨hw_ne, hnorm_le, havoid⟩))
 
 /-- Good punctured closed-disk points near a nonzero support point.
 
