@@ -2531,6 +2531,182 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_algebra
         (fun u : ℂ => G 0 * u)
         (mul_assoc (Complex.exp (P z)) (deriv G z) (G z)⁻¹)
 
+/-- Core quotient derivative-zero calculation for exponential reconstruction
+from a logarithmic-derivative primitive.
+
+The quotient `G / (G 0 * exp P)` has zero derivative wherever the primitive
+identity `P' = G'/G` holds and `G` is zero-free on the disk.  This is the
+radial FTC input before any endpoint reconstruction is used. -/
+theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
+    (G P : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hP_deriv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv P z = deriv G z * (G z)⁻¹)
+    (hP_zero : P 0 = 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 ∧
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans (norm_nonneg z) hz
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ := by
+    calc
+      ‖(0 : ℂ)‖ = 0 := norm_zero
+      _ ≤ ρ := hρ_nonneg
+  have hG0_ne : G 0 ≠ 0 :=
+    hzero 0 hzero_mem
+  have hGz_ne : G z ≠ 0 :=
+    hzero z hz
+  have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
+    exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
+  have hdiffG : DifferentiableAt ℂ G z :=
+    (hG z).differentiableAt
+  have hdiffP : DifferentiableAt ℂ P z :=
+    (hP_an z hz).differentiableAt
+  have hdiffExp : DifferentiableAt ℂ (fun w : ℂ => Complex.exp (P w)) z :=
+    hdiffP.cexp
+  have hdiffModel : DifferentiableAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
+    hdiffExp.const_mul (G 0)
+  have hlogExp : logDeriv (fun w : ℂ => Complex.exp (P w)) z = deriv P z := by
+    calc
+      logDeriv (fun w : ℂ => Complex.exp (P w)) z =
+          logDeriv (Complex.exp) (P z) * deriv P z := by
+            exact
+              logDeriv_comp (f := Complex.exp) (g := P) (x := z)
+                (Complex.differentiableAt_exp (P z)) hdiffP
+      _ = 1 * deriv P z := by
+            exact congrArg (fun t : ℂ => t * deriv P z)
+              (congrArg (fun f : ℂ → ℂ => f (P z)) Complex.LogDeriv_exp)
+      _ = deriv P z := by
+            exact one_mul (deriv P z)
+  have hlogModel : logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
+      deriv G z * (G z)⁻¹ := by
+    calc
+      logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
+          logDeriv (fun w : ℂ => Complex.exp (P w)) z := by
+            exact logDeriv_const_mul (f := fun w : ℂ => Complex.exp (P w)) z (G 0) hG0_ne
+      _ = deriv P z := hlogExp
+      _ = deriv G z * (G z)⁻¹ := hP_deriv z hz
+  have hlogG : logDeriv G z = deriv G z * (G z)⁻¹ := by
+    calc
+      logDeriv G z = deriv G z / G z := rfl
+      _ = deriv G z * (G z)⁻¹ := by
+            exact (div_eq_mul_inv _ _).symm
+  have hsame :
+      logDeriv G z = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
+    calc
+      logDeriv G z = deriv G z * (G z)⁻¹ := hlogG
+      _ = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := hlogModel.symm
+  have hlogQ :
+      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
+    calc
+      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z =
+          logDeriv G z -
+            logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
+              exact
+                logDeriv_div z hGz_ne hden_ne hdiffG hdiffModel
+      _ = 0 := by
+            exact sub_eq_zero.mpr hsame
+  have hderiv_zero :
+      deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
+    have hquot_ne :
+        G z / (G 0 * Complex.exp (P z)) ≠ 0 := by
+      exact div_ne_zero hGz_ne hden_ne
+    have hdiv_zero :
+        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
+          (G z / (G 0 * Complex.exp (P z))) = 0 := by
+      calc
+        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
+            (G z / (G 0 * Complex.exp (P z))) =
+          logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z := by
+            rfl
+        _ = 0 := hlogQ
+    exact (div_eq_zero_iff hquot_ne).mp hdiv_zero
+  have hcenter :
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
+    have hden0 : G 0 * Complex.exp (P 0) = G 0 := by
+      calc
+        G 0 * Complex.exp (P 0) = G 0 * Complex.exp 0 := by
+          exact congrArg (fun t : ℂ => G 0 * Complex.exp t) hP_zero
+        _ = G 0 * 1 := by
+          exact congrArg (fun t : ℂ => G 0 * t) Complex.exp_zero
+        _ = G 0 := by
+          exact mul_one (G 0)
+    calc
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 =
+          G 0 / (G 0 * Complex.exp (P 0)) := rfl
+      _ = G 0 / G 0 := by
+          exact congrArg (fun t : ℂ => G 0 / t) hden0
+      _ = 1 := by
+          exact div_self hG0_ne
+  exact ⟨hderiv_zero, hcenter⟩
+
+/-- Analyticity of the exponential reconstruction quotient on the zero-free
+closed disk. -/
+theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_analyticAt
+    (G P : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hρ : 0 ≤ ρ) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z := by
+  intro z hz
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ := by
+    calc
+      ‖(0 : ℂ)‖ = 0 := norm_zero
+      _ ≤ ρ := hρ
+  have hG0_ne : G 0 ≠ 0 :=
+    hzero 0 hzero_mem
+  have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
+    exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
+  have hden_an : AnalyticAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
+    (hP_an z hz).cexp.const_mul (G 0)
+  exact (hG z).div hden_an hden_ne
+
+/-- Deep real-interval FTC core for radial equality propagation on a convex
+Jensen disk.
+
+This is the reusable radial theorem underneath both generic derivative-equality
+propagation and quotient reconstruction: restrict to `t ↦ t • z`, use convexity
+to stay in the disk, and apply the real derivative-zero constant theorem on
+`[0,1]`. -/
+theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center_ftc_core
+    (F H : ℂ → ℂ)
+    {ρ : ℝ}
+    (hF : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ F z)
+    (hH : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ H z)
+    (hρ : 0 ≤ ρ)
+    (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
+    (hderiv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv F z = deriv H z)
+    (hcenter : F 0 = H 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    F z = H z := by
+  sorry
+
 /-- Radial FTC owner root for exponential reconstruction from a logarithmic
 derivative primitive.
 
@@ -2559,7 +2735,51 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endp
     {z : ℂ}
     (hz : ‖z‖ ≤ ρ) :
     G z = G 0 * Complex.exp (P z) := by
-  sorry
+  have hρ : 0 ≤ ρ :=
+    le_trans (norm_nonneg z) hz
+  have hquot_an :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        AnalyticAt ℂ (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) w :=
+    entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_analyticAt
+      G P hG hzero hP_an hρ
+  have hquot_deriv :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        deriv (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) w =
+          deriv (fun _ : ℂ => (1 : ℂ)) w := by
+    intro w hw
+    have hcore :
+        deriv (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) w = 0 ∧
+          (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) 0 = 1 :=
+      entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
+        G P hG hzero hP_an hP_deriv hP_zero hw
+    exact Eq.trans hcore.1 (Eq.symm (deriv_const' (1 : ℂ) w))
+  have hquot_center :
+      (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) 0 =
+        (fun _ : ℂ => (1 : ℂ)) 0 :=
+    (entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
+      G P hG hzero hP_an hP_deriv hP_zero hz).2
+  have hquot_endpoint :
+      (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) z =
+        (fun _ : ℂ => (1 : ℂ)) z :=
+    entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center_ftc_core
+      (fun u : ℂ => G u / (G 0 * Complex.exp (P u)))
+      (fun _ : ℂ => (1 : ℂ))
+      hquot_an
+      (fun _ _ => analyticAt_const)
+      hρ
+      (entireFunction_jensenClosedDisk_convex ρ)
+      hquot_deriv
+      hquot_center
+      hz
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ := by
+    calc
+      ‖(0 : ℂ)‖ = 0 := norm_zero
+      _ ≤ ρ := hρ
+  have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
+    exact mul_ne_zero (hzero 0 hzero_mem) (Complex.exp_ne_zero (P z))
+  exact (div_eq_one_iff_eq hden_ne).mp hquot_endpoint
 
 /-- Normalized exponential reconstruction from the radial FTC owner root. -/
 theorem entireFunction_exp_logDerivPrimitive_model_value_eq
@@ -2658,99 +2878,9 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zer
     (hz : ‖z‖ ≤ ρ) :
     deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 ∧
       (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
-  have hρ_nonneg : 0 ≤ ρ :=
-    le_trans (norm_nonneg z) hz
-  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ := by
-    calc
-      ‖(0 : ℂ)‖ = 0 := norm_zero
-      _ ≤ ρ := hρ_nonneg
-  have hG0_ne : G 0 ≠ 0 :=
-    hzero 0 hzero_mem
-  have hGz_ne : G z ≠ 0 :=
-    hzero z hz
-  have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
-    exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
-  have hdiffG : DifferentiableAt ℂ G z :=
-    (hG z hz).differentiableAt
-  have hdiffP : DifferentiableAt ℂ P z :=
-    (hP_an z hz).differentiableAt
-  have hdiffExp : DifferentiableAt ℂ (fun w : ℂ => Complex.exp (P w)) z :=
-    hdiffP.cexp
-  have hdiffModel : DifferentiableAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
-    hdiffExp.const_mul (G 0)
-  have hlogExp : logDeriv (fun w : ℂ => Complex.exp (P w)) z = deriv P z := by
-    calc
-      logDeriv (fun w : ℂ => Complex.exp (P w)) z =
-          logDeriv (Complex.exp) (P z) * deriv P z := by
-            exact
-              logDeriv_comp (f := Complex.exp) (g := P) (x := z)
-                (Complex.differentiableAt_exp (P z)) hdiffP
-      _ = 1 * deriv P z := by
-            exact congrArg (fun t : ℂ => t * deriv P z)
-              (congrArg (fun f : ℂ → ℂ => f (P z)) Complex.LogDeriv_exp)
-      _ = deriv P z := by
-            exact one_mul (deriv P z)
-  have hlogModel : logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
-      deriv G z * (G z)⁻¹ := by
-    calc
-      logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
-          logDeriv (fun w : ℂ => Complex.exp (P w)) z := by
-            exact logDeriv_const_mul (f := fun w : ℂ => Complex.exp (P w)) z (G 0) hG0_ne
-      _ = deriv P z := hlogExp
-      _ = deriv G z * (G z)⁻¹ := hP_deriv z hz
-  have hlogG : logDeriv G z = deriv G z * (G z)⁻¹ := by
-    calc
-      logDeriv G z = deriv G z / G z := rfl
-      _ = deriv G z * (G z)⁻¹ := by
-            exact (div_eq_mul_inv _ _).symm
-  have hsame :
-      logDeriv G z = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
-    calc
-      logDeriv G z = deriv G z * (G z)⁻¹ := hlogG
-      _ = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := hlogModel.symm
-  have hlogQ :
-      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
-    calc
-      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z =
-          logDeriv G z -
-            logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
-              exact
-                logDeriv_div z hGz_ne hden_ne hdiffG hdiffModel
-      _ = 0 := by
-            exact sub_eq_zero.mpr hsame
-  have hderiv_zero :
-      deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
-    have hquot_ne :
-        G z / (G 0 * Complex.exp (P z)) ≠ 0 := by
-      exact div_ne_zero hGz_ne hden_ne
-    have hdiv_zero :
-        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
-          (G z / (G 0 * Complex.exp (P z))) = 0 := by
-      calc
-        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
-            (G z / (G 0 * Complex.exp (P z))) =
-          logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z := by
-            rfl
-        _ = 0 := hlogQ
-    exact (div_eq_zero_iff hquot_ne).mp hdiv_zero
-  have hcenter :
-      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
-    have hden0 : G 0 * Complex.exp (P 0) = G 0 := by
-      calc
-        G 0 * Complex.exp (P 0) = G 0 * Complex.exp 0 := by
-          exact congrArg (fun t : ℂ => G 0 * Complex.exp t) hP_zero
-        _ = G 0 * 1 := by
-          exact congrArg (fun t : ℂ => G 0 * t) Complex.exp_zero
-        _ = G 0 := by
-          exact mul_one (G 0)
-    calc
-      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 =
-          G 0 / (G 0 * Complex.exp (P 0)) := rfl
-      _ = G 0 / G 0 := by
-          exact congrArg (fun t : ℂ => G 0 / t) hden0
-      _ = 1 := by
-          exact div_self hG0_ne
-  exact ⟨hderiv_zero, hcenter⟩
+  exact
+    entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
+      G P hG hzero hP_an hP_deriv hP_zero hz
 
 /-- Real-interval FTC core for radial equality propagation on a convex Jensen
 disk.
@@ -2773,7 +2903,9 @@ theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_an
     {z : ℂ}
     (hz : ‖z‖ ≤ ρ) :
     F z = H z := by
-  sorry
+  exact
+    entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center_ftc_core
+      F H hF hH hρ hconvex hderiv hcenter hz
 
 /-- Radial FTC owner lemma for equality propagation on a convex Jensen disk.
 
@@ -4727,6 +4859,181 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_zero_imp_function_zero
       F hF hF0 ρ z hz w hfactor
 
+/-- Off-support nonvanishing for the extracted finite zero-factor product.
+
+Away from the support divisor, the finite product has no zero factors, so the
+support product itself is nonzero. This is the easy analytic half of the
+quotient zero-free argument. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_nonzero_of_not_mem_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ))) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w ≠ 0 := by
+  intro hproduct
+  have hproduct_expanded :
+      (∏ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) = 0 := by
+    exact Eq.trans
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_def
+        F hF hF0 ρ w).symm
+      hproduct
+  rcases Finset.prod_eq_zero_iff.mp hproduct_expanded with ⟨z, hz, hfactor_power⟩
+  have hfactor : 1 - w / (z : ℂ) = 0 :=
+    pow_eq_zero hfactor_power
+  have hw_eq_z : w = (z : ℂ) :=
+    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
+      F hF hF0 ρ z hz w).1 hfactor
+  exact hw ⟨z, hz, hw_eq_z⟩
+
+/-- At a support point, every other extracted support factor is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_other_factor_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (a z : EntireFunctionZero F)
+    (ha :
+      a ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ)
+    (hz :
+      z ∈
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).erase a) :
+    (1 - (a : ℂ) / (z : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 := by
+  have hz_support :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ :=
+    (Finset.mem_erase.1 hz).2
+  have hza : z ≠ a :=
+    (Finset.mem_erase.1 hz).1
+  have hbase_ne : 1 - (a : ℂ) / (z : ℂ) ≠ 0 := by
+    intro hbase
+    have ha_eq_z : (a : ℂ) = (z : ℂ) :=
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
+        F hF hF0 ρ z hz_support (a : ℂ)).1 hbase
+    exact hza (Subtype.ext ha_eq_z)
+  exact
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (z : ℂ))
+      hbase_ne
+
+/-- At a support point, the product of all extracted factors except the indexed
+one is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_otherFactors_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (a : EntireFunctionZero F)
+    (ha :
+      a ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    (∏ z in
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ).erase a,
+      (1 - (a : ℂ) / (z : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 := by
+  exact
+    Finset.prod_ne_zero_iff.mpr
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_other_factor_nonzero_at_support
+          F hF hF0 ρ a z ha hz)
+
+/-- The leading constant of the extracted support divisor at a support point is
+nonzero.
+
+Locally at `a`, the indexed factor is
+`1 - w / a = (-(a⁻¹)) * (w - a)`, and all other support factors are nonzero at
+`a`.  This is the denominator used by the removable value of the quotient at
+`a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_localLeadingCoeff_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (a : EntireFunctionZero F)
+    (ha :
+      a ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+        (∏ z in
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ).erase a,
+          (1 - (a : ℂ) / (z : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 := by
+  have ha0 : (a : ℂ) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+      F hF hF0 ρ a ha
+  have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+    inv_ne_zero ha0
+  have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+    neg_ne_zero.mpr hinv_ne
+  have hpow_ne :
+      (-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) ≠ 0 :=
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+      hneg_ne
+  have hother_ne :
+      (∏ z in
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).erase a,
+        (1 - (a : ℂ) / (z : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_otherFactors_nonzero_at_support
+      F hF hF0 ρ a ha
+  exact mul_ne_zero hpow_ne hother_ne
+
+/-- The removable quotient value prescribed by the local support factorization
+is nonzero at a support point.
+
+The numerator is the local analytic unit `g a` from the multiplicity
+factorization of `F`; the denominator is the nonzero leading coefficient of the
+finite divisor product at `a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (a : EntireFunctionZero F)
+    (ha :
+      a ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ)
+    (g : ℂ → ℂ)
+    (hg_ne : g (a : ℂ) ≠ 0) :
+    g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in
+            (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ).erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) ≠ 0 := by
+  have hden_ne :
+      ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in
+            (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+              F hF hF0 ρ).erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_localLeadingCoeff_nonzero_at_support
+      F hF hF0 ρ a ha
+  exact div_ne_zero hg_ne hden_ne
+
 /-- The punctured quotient after extracting the support divisor.
 
 This is only the raw divided expression away from the support zeros; the
@@ -4899,6 +5206,93 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
       exact congrArg (fun x : ℂ => x * P) hquotient
     _ = F w := by
       exact div_mul_cancel₀ (F w) hP_ne
+
+/-- Off the support divisor, product nonvanishing and function nonvanishing
+make the raw finite quotient nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_nonzero_of_not_mem_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ)))
+    (hFw : F w ≠ 0) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w ≠ 0 := by
+  have hproduct_ne :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_nonzero_of_not_mem_support
+      F hF hF0 ρ w hw
+  have hreconstruct :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+          F hF hF0 ρ w *
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w =
+        F w :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_ne_zero
+      F hF hF0 ρ w hproduct_ne
+  exact fun hQ_zero =>
+    hFw
+      (Eq.trans hreconstruct.symm
+        (Eq.trans
+          (congrArg
+            (fun x : ℂ =>
+              x *
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                  F hF hF0 ρ w)
+            hQ_zero)
+          (zero_mul
+            (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w))))
+
+/-- If a closed-disk point is off the support and `F` is nonzero there, then
+any quotient satisfying the exact finite-product factorization is nonzero
+there. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_nonzero_of_not_mem_support
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (w : ℂ)
+    (hwρ : ‖w‖ ≤ ρ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ)))
+    (hFw : F w ≠ 0) :
+    Q w ≠ 0 := by
+  have hfactor_w :
+      F w =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w :=
+    hfactor w hwρ
+  exact fun hQ_zero =>
+    hFw
+      (Eq.trans hfactor_w
+        (Eq.trans
+          (congrArg
+            (fun x : ℂ =>
+              x *
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                  F hF hF0 ρ w)
+            hQ_zero)
+          (zero_mul
+            (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w))))
 
 /-- At a zero of the extracted finite product, quotient-product reconstruction
 reduces to the matching zero of `F`. -/

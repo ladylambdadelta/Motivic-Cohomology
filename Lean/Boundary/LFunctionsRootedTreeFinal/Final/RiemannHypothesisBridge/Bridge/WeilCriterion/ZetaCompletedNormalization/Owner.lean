@@ -862,6 +862,36 @@ theorem Complex.normalizedGammaStirlingFactor_log_eq
         Real.log ‖Complex.Gamma w‖ + w.re +
           Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ := rfl
 
+/-- Real cancellation used when solving the normalized Stirling-factor logarithm
+for the original Gamma logarithm. -/
+theorem real_add_add_add_neg_add_neg_cancel
+    (A B C : ℝ) :
+    (A + B + C) + (-B + -C) = A := by
+  have hC_cancel :
+      C + (-B + -C) = -B := by
+    calc
+      C + (-B + -C) =
+          C + (-C + -B) :=
+        congrArg (fun x : ℝ => C + x) (add_comm (-B) (-C))
+      _ = (C + -C) + -B :=
+        (add_assoc C (-C) (-B)).symm
+      _ = 0 + -B :=
+        congrArg (fun x : ℝ => x + -B) (add_right_neg C)
+      _ = -B :=
+        zero_add (-B)
+  calc
+    (A + B + C) + (-B + -C) =
+        (A + B) + (C + (-B + -C)) :=
+      add_assoc (A + B) C (-B + -C)
+    _ = (A + B) + -B :=
+      congrArg (fun x : ℝ => (A + B) + x) hC_cancel
+    _ = A + (B + -B) :=
+      add_assoc A B (-B)
+    _ = A + 0 :=
+      congrArg (fun x : ℝ => A + x) (add_right_neg B)
+    _ = A :=
+      add_zero A
+
 /-- Exact logarithmic extraction identity from the normalized Stirling factor. -/
 theorem Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
     (w : ℂ)
@@ -870,7 +900,31 @@ theorem Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
     Real.log ‖Complex.Gamma w‖ =
       Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
         Complex.normalizedGammaStirlingLogLoss w := by
-  sorry
+  let A : ℝ := Real.log ‖Complex.Gamma w‖
+  let B : ℝ := w.re
+  let C : ℝ := Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖
+  have hfactor :
+      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ =
+        A + B + C :=
+    Complex.normalizedGammaStirlingFactor_log_eq w hGamma_ne hcpow_ne
+  have hloss :
+      Complex.normalizedGammaStirlingLogLoss w = -B + -C := by
+    exact sub_eq_add_neg (-w.re) (Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
+  calc
+    Real.log ‖Complex.Gamma w‖ = A := rfl
+    _ = (A + B + C) + (-B + -C) :=
+      (real_add_add_add_neg_add_neg_cancel A B C).symm
+    _ =
+        Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+          (-B + -C) :=
+      congrArg (fun x : ℝ => x + (-B + -C)) hfactor.symm
+    _ =
+        Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+          Complex.normalizedGammaStirlingLogLoss w :=
+      congrArg
+        (fun x : ℝ =>
+          Real.log ‖Complex.normalizedGammaStirlingFactor w‖ + x)
+        hloss.symm
 
 /-- Exact logarithmic extraction from the normalized Stirling factor.
 
@@ -1000,6 +1054,180 @@ theorem Complex.normalizedGammaStirlingLogLoss_le_neg_cpow_log
     _ = -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
       zero_add (-Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖)
 
+/-- Positive radius lower bound excludes the origin. -/
+theorem Complex.ne_zero_of_pos_le_norm
+    {R : ℝ}
+    (hR_pos : 0 < R)
+    {z : ℂ}
+    (hz_radius : R ≤ ‖z‖) :
+    z ≠ 0 :=
+  norm_pos_iff.mp (lt_of_lt_of_le hR_pos hz_radius)
+
+/-- The closed right half-plane is exactly the principal-argument sector
+`|arg z| ≤ π / 2`. -/
+theorem Complex.abs_arg_le_pi_div_two_of_closedRightHalfPlaneSector
+    {z : ℂ}
+    (hz_sector : Complex.closedRightHalfPlaneSector z) :
+    |Complex.arg z| ≤ Real.pi / 2 :=
+  Complex.abs_arg_le_pi_div_two_iff.mpr hz_sector
+
+/-- Principal-branch norm formula for complex powers in logarithmic form. -/
+theorem Complex.log_norm_cpow_eq_re_mul_log_norm_sub_arg_mul_im_of_ne_zero
+    {z a : ℂ}
+    (hz_ne : z ≠ 0) :
+    Real.log ‖z ^ a‖ =
+      a.re * Real.log ‖z‖ - Complex.arg z * a.im := by
+  sorry
+
+/-- Real coordinate of the Stirling power exponent `(1/2) - w`. -/
+theorem Complex.half_minus_self_re
+    (w : ℂ) :
+    ((1 / 2 : ℂ) - w).re = (1 / 2 : ℝ) - w.re := by
+  calc
+    ((1 / 2 : ℂ) - w).re =
+        (1 / 2 : ℂ).re - w.re :=
+      Complex.sub_re (1 / 2 : ℂ) w
+    _ = (1 / 2 : ℝ) - w.re := by
+      exact congrArg (fun x : ℝ => x - w.re) (Complex.ofReal_re (1 / 2))
+
+/-- Imaginary coordinate of the Stirling power exponent `(1/2) - w`. -/
+theorem Complex.half_minus_self_im
+    (w : ℂ) :
+    ((1 / 2 : ℂ) - w).im = -w.im := by
+  calc
+    ((1 / 2 : ℂ) - w).im =
+        (1 / 2 : ℂ).im - w.im :=
+      Complex.sub_im (1 / 2 : ℂ) w
+    _ = 0 - w.im := by
+      exact congrArg (fun x : ℝ => x - w.im) (Complex.ofReal_im (1 / 2))
+    _ = -w.im :=
+      zero_sub w.im
+
+/-- Algebraic rearrangement of the cpow logarithmic formula for the Stirling
+exponent. -/
+theorem Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss_of_log_norm_cpow
+    {w : ℂ}
+    (hw_ne : w ≠ 0)
+    (hlog :
+      Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+        ((1 / 2 : ℂ) - w).re * Real.log ‖w‖ -
+          Complex.arg w * ((1 / 2 : ℂ) - w).im) :
+    -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+      (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im := by
+  have hre :
+      ((1 / 2 : ℂ) - w).re = (1 / 2 : ℝ) - w.re :=
+    Complex.half_minus_self_re w
+  have him :
+      ((1 / 2 : ℂ) - w).im = -w.im :=
+    Complex.half_minus_self_im w
+  have hcoordinate :
+      ((1 / 2 : ℂ) - w).re * Real.log ‖w‖ -
+          Complex.arg w * ((1 / 2 : ℂ) - w).im =
+        ((1 / 2 : ℝ) - w.re) * Real.log ‖w‖ -
+          Complex.arg w * (-w.im) := by
+    exact congrArg₂
+      (fun x y : ℝ => x * Real.log ‖w‖ - Complex.arg w * y)
+      hre
+      him
+  have hneg_coordinate :
+      -(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖ -
+          Complex.arg w * (-w.im)) =
+        (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im := by
+    calc
+      -(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖ -
+          Complex.arg w * (-w.im)) =
+          -(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖) +
+            Complex.arg w * (-w.im) := by
+        exact neg_sub
+          (((1 / 2 : ℝ) - w.re) * Real.log ‖w‖)
+          (Complex.arg w * (-w.im))
+      _ = (-((1 / 2 : ℝ) - w.re)) * Real.log ‖w‖ +
+            Complex.arg w * (-w.im) := by
+        exact congrArg
+          (fun x : ℝ => x + Complex.arg w * (-w.im))
+          (neg_mul ((1 / 2 : ℝ) - w.re) (Real.log ‖w‖))
+      _ = (-(1 / 2 : ℝ) + w.re) * Real.log ‖w‖ +
+            Complex.arg w * (-w.im) := by
+        exact congrArg
+          (fun x : ℝ => x * Real.log ‖w‖ + Complex.arg w * (-w.im))
+          (neg_sub (1 / 2 : ℝ) w.re)
+      _ = (w.re - 1 / 2) * Real.log ‖w‖ +
+            Complex.arg w * (-w.im) := by
+        exact congrArg
+          (fun x : ℝ => x * Real.log ‖w‖ + Complex.arg w * (-w.im))
+          (sub_eq_add_neg w.re (1 / 2)).symm
+      _ = (w.re - 1 / 2) * Real.log ‖w‖ +
+            (-(Complex.arg w * w.im)) := by
+        exact congrArg
+          (fun x : ℝ => (w.re - 1 / 2) * Real.log ‖w‖ + x)
+          (mul_neg (Complex.arg w) w.im)
+      _ = (w.re - 1 / 2) * Real.log ‖w‖ -
+            Complex.arg w * w.im := by
+        exact sub_eq_add_neg
+          ((w.re - 1 / 2) * Real.log ‖w‖)
+          (Complex.arg w * w.im)
+  calc
+    -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+        -(((1 / 2 : ℂ) - w).re * Real.log ‖w‖ -
+          Complex.arg w * ((1 / 2 : ℂ) - w).im) :=
+      congrArg Neg.neg hlog
+    _ =
+        -(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖ -
+          Complex.arg w * (-w.im)) :=
+      congrArg Neg.neg hcoordinate
+    _ = (w.re - 1 / 2) * Real.log ‖w‖ -
+          Complex.arg w * w.im :=
+      hneg_coordinate
+
+/-- The exact branch-loss expression for `w^(1/2-w)`.  This is the
+coordinate form of the principal logarithm contribution: the radius part is
+`(Re w - 1/2) log ‖w‖`, and the angular part is `- arg(w) Im w`. -/
+theorem Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss
+    {w : ℂ}
+    (hw_ne : w ≠ 0) :
+    -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ =
+      (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im := by
+  exact
+    Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss_of_log_norm_cpow
+      hw_ne
+      (Complex.log_norm_cpow_eq_re_mul_log_norm_sub_arg_mul_im_of_ne_zero
+        hw_ne)
+
+/-- Pure real domination of the radius/argument loss by the standard
+log-linear envelope on the closed right half-plane.
+
+This is now the deepest real-inequality sink in the normalized Stirling
+extraction.  It combines `0 ≤ Re w`, `|arg w| ≤ π/2`, `|Re w|, |Im w| ≤ ‖w‖`,
+and lower-radius control to absorb the possible small-radius logarithmic term
+into a constant multiple of `(1 + 2 ‖w‖) log (2 + 2 ‖w‖)`. -/
+theorem Complex.radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- The branch-loss radius/argument expression is absorbed by the standard
+large-radius log-linear envelope on the closed right half-plane. -/
+theorem Complex.cpow_half_minus_self_radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact
+    Complex.radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
+      R₀ hR₀_pos
+
 /-- Principal-power logarithmic loss for `w^(1/2-w)` is absorbed by the
 large-radius log-linear envelope. -/
 theorem Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLinearEnvelope
@@ -1012,7 +1240,19 @@ theorem Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLin
         R₀ ≤ ‖w‖ →
         -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  rcases
+      Complex.cpow_half_minus_self_radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
+        R₀ hR₀_pos with
+    ⟨C, hC_pos, hbranch_bound⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro w hw_sector hw_radius
+  have hw_ne : w ≠ 0 :=
+    Complex.ne_zero_of_pos_le_norm hR₀_pos hw_radius
+  exact le_trans
+    (le_of_eq
+      (Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss
+        hw_ne))
+    (hbranch_bound w hw_sector hw_radius)
 
 /-- The principal-branch logarithmic loss in normalized Stirling is absorbed by
 the large-radius log-linear envelope. -/
@@ -1701,6 +1941,91 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_large
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
   sorry
 
+/-- The compact-height part of a fixed vertical line. -/
+def Complex.fixedRealPartVerticalCompactHeightSet
+    (H : ℝ) : Set ℝ :=
+  {b : ℝ | (1 / 2 : ℝ) ≤ ‖b‖ ∧ ‖b‖ ≤ H}
+
+/-- Upper ratio of the fixed-line Gamma norm by the positive Stirling envelope. -/
+def Complex.fixedRealPartVerticalGammaUpperRatio
+    (a b : ℝ) : ℝ :=
+  ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
+    Complex.fixedRealPartVerticalStirlingEnvelope a b
+
+/-- Lower ratio of the fixed-line Gamma norm by the positive Stirling envelope. -/
+def Complex.fixedRealPartVerticalGammaLowerRatio
+    (a b : ℝ) : ℝ :=
+  ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
+    Complex.fixedRealPartVerticalStirlingEnvelope a b
+
+/-- Ratio bounds on the compact-height part of a fixed vertical line.
+
+This is the compactness/nonvanishing owner certificate: continuity supplies a
+finite upper bound for the upper ratio, while nonvanishing of `Γ` and the
+strictly positive Stirling envelope supply a positive lower bound. -/
+theorem Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
+    (a H : ℝ)
+    (hH_pos : 0 < H) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
+          Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
+          c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
+  sorry
+
+/-- Ratio bounds convert to two-sided envelope bounds on the compact-height
+part of a fixed vertical line. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight_of_ratio_bounds
+    (a H C c : ℝ)
+    (hC_pos : 0 < C)
+    (hc_pos : 0 < c)
+    (hratio :
+      ∀ b : ℝ,
+        b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
+          Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
+          c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b) :
+    ∀ b : ℝ,
+      (1 / 2 : ℝ) ≤ ‖b‖ →
+      ‖b‖ ≤ H →
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+          C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+        c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  intro b hb_inner hb_outer
+  have hb_mem :
+      b ∈ Complex.fixedRealPartVerticalCompactHeightSet H :=
+    ⟨hb_inner, hb_outer⟩
+  have hratio_b :
+      Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
+        c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b :=
+    hratio b hb_mem
+  have hE_pos :
+      0 < Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    Complex.fixedRealPartVerticalStirlingEnvelope_pos a b
+  have hE_nonneg :
+      0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    le_of_lt hE_pos
+  have hupper_div :
+      ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
+          Complex.fixedRealPartVerticalStirlingEnvelope a b ≤ C :=
+    hratio_b.1
+  have hlower_div :
+      c ≤
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
+          Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    hratio_b.2
+  have hupper :
+      ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+        C * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    (div_le_iff₀ hE_pos).mp hupper_div
+  have hlower :
+      c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+    (le_div_iff₀ hE_pos).mp hlower_div
+  exact ⟨hupper, hlower⟩
+
 /-- Compact-height patch for fixed-real-part vertical Stirling bounds.
 
 On the compact set `1 / 2 ≤ |b| ≤ H`, continuity and nonvanishing of `Γ` on
@@ -1719,7 +2044,14 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compa
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  sorry
+  rcases
+      Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
+        a H hH_pos with
+    ⟨C, c, hC_pos, hc_pos, hratio⟩
+  exact
+    ⟨C, c, hC_pos, hc_pos,
+      Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight_of_ratio_bounds
+        a H C c hC_pos hc_pos hratio⟩
 
 /-- Assembly of large-height fixed-line Stirling and compact-height patching. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_large_and_compact
@@ -6789,6 +7121,47 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_rightPartial_bound
     Nat.cast_le.mpr hNM
   exact logarithmicPhasePartialSum_firstDerivative_bound t ht hreal
 
+/-- Endpoint arithmetic after the logarithmic-phase first-derivative
+Euler-Maclaurin estimate.
+
+The two terms are the reciprocal endpoint contributions at the right endpoint
+`M` and at the canonical cutoff `⌊2 + |t|⌋₊`.  The analytic input is only the
+first-derivative primitive estimate; this theorem owns the subsequent
+reciprocal-weight and cutoff arithmetic.  Cf. Apostol, *Introduction to
+Analytic Number Theory*, partial summation, and Titchmarsh, Ch. 3. -/
+theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ +
+        ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
+/-- Integral arithmetic for the reciprocal-derivative term in the finite Abel
+decomposition.
+
+This is the variation side of partial summation for the weight `x ↦ 1 / x`.
+After the first-derivative Euler-Maclaurin estimate bounds the logarithmic-phase
+primitive, this theorem owns the monotone reciprocal-variation integral and the
+normalization to the cutoff logarithm.  Cf. Edwards, *Riemann's Zeta Function*,
+Euler-Maclaurin derivations. -/
+theorem eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Deep Euler-Maclaurin arithmetic owner for the finite Abel endpoint and
 reciprocal-derivative integral terms.
 
@@ -6812,7 +7185,9 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖)) := by
-  sorry
+  exact
+    ⟨eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound t ht hNM,
+      eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound t ht hNM⟩
 
 /-- Exact endpoint arithmetic for the finite Abel package.  This is the
 reciprocal-weight endpoint part after the first-derivative estimate has been
@@ -7784,6 +8159,69 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_rie
         t ht,
       rfl⟩
 
+/-- Owner convergence theorem for finite Abel tails after the canonical cutoff.
+
+This is the exact limiting statement behind the Abel boundary transport: the
+finite post-cutoff Abel tails converge to the analytic-continuation zeta value
+with the finite cutoff truncation removed.  The proof is partial summation on
+`Re s > 1`, the identity between Dirichlet terms and reciprocal logarithmic
+oscillators, and the Abel limit
+`boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta`.
+It deliberately does not assert ordinary boundary `HasSum`. -/
+theorem abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (habel :
+      Tendsto
+        (fun σ : ℝ =>
+          ∑' n : ℕ,
+            (1 : ℂ) /
+              ((n : ℂ) ^
+                boundaryLineOnePointRealParam_abscissaShift σ t))
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (riemannZeta (boundaryLineOnePointRealParam t)))) :
+    Tendsto
+      (fun M : ℕ =>
+        ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+          ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+      atTop
+      (𝓝
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
+  sorry
+
+/-- Norm transport from a uniformly bounded finite-Abel tail family to its Abel
+boundary limit.
+
+This is the topological endpoint of the Abel argument: once the finite tails are
+uniformly bounded from the cutoff onward and the finite-Abel tails converge to
+the analytic boundary remainder, the same bound holds for the remainder. -/
+theorem abelBoundary_logarithmicPhase_finiteAbel_uniform_bound_transport
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hfinite :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t)
+    (htails :
+      Tendsto
+        (fun M : ℕ =>
+          ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        atTop
+        (𝓝
+          (riemannZeta (boundaryLineOnePointRealParam t) -
+            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))))) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  sorry
+
 /-- Deep Abel-limit transport for the canonical post-cutoff logarithmic-phase
 tail.
 
@@ -7813,7 +8251,21 @@ theorem abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound_of_fin
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  sorry
+  have htails :
+      Tendsto
+        (fun M : ℕ =>
+          ∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        atTop
+        (𝓝
+          (riemannZeta (boundaryLineOnePointRealParam t) -
+            ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) :=
+    abelBoundary_logarithmicPhase_finiteAbel_tails_tendsto_zeta_remainder
+      t ht habel
+  exact
+    abelBoundary_logarithmicPhase_finiteAbel_uniform_bound_transport
+      t ht hfinite htails
 
 /-- Owner Abel-boundary API for the canonical post-cutoff oscillatory tail.
 
@@ -9207,6 +9659,171 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
     ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
 
+/-- A real `IsBigO` bound against a positive exponential envelope gives an
+eventual raw inequality with a positive multiplicative constant. -/
+theorem real_isBigO_exp_eventually_le_pos_mul
+    {f : ℝ → ℝ}
+    (c : ℝ)
+    (h : f =O[Filter.atTop] fun T : ℝ => Real.exp (c * T)) :
+    ∃ D : ℝ,
+      0 < D ∧
+      ∀ᶠ T : ℝ in Filter.atTop,
+        f T ≤ D * Real.exp (c * T) := by
+  rcases h.isBigOWith with ⟨C, hC⟩
+  refine ⟨|C| + 1, ?_, ?_⟩
+  · exact add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one
+  have hnonneg :
+      ∀ᶠ T : ℝ in Filter.atTop,
+        0 ≤ Real.exp (c * T) :=
+    Filter.Eventually.of_forall
+      (fun T => le_of_lt (Real.exp_pos (c * T)))
+  exact
+    (hC.bound.and hnonneg).mono
+      (fun T hT =>
+        by
+          let G : ℝ := Real.exp (c * T)
+          let D : ℝ := |C| + 1
+          have hf_le_norm : f T ≤ ‖f T‖ :=
+            Real.le_norm_self (f T)
+          have hC_le_abs : C ≤ |C| :=
+            le_abs_self C
+          have hC_le_D : C ≤ D :=
+            le_trans hC_le_abs (le_add_of_nonneg_right zero_le_one)
+          have hG_norm_nonneg : 0 ≤ ‖G‖ :=
+            norm_nonneg G
+          have hmul_le : C * ‖G‖ ≤ D * ‖G‖ :=
+            mul_le_mul_of_nonneg_right hC_le_D hG_norm_nonneg
+          have hG_norm : ‖G‖ = G :=
+            Real.norm_of_nonneg hT.2
+          have hmul_eq : D * ‖G‖ = D * G :=
+            congrArg (fun x : ℝ => D * x) hG_norm
+          calc
+            f T ≤ ‖f T‖ :=
+              hf_le_norm
+            _ ≤ C * ‖G‖ :=
+              hT.1
+            _ ≤ D * ‖G‖ :=
+              hmul_le
+            _ = D * G :=
+              hmul_eq)
+
+/-- Standard shifted-polynomial/exponential comparison used in finite-order
+envelope domination. -/
+theorem finiteOrder_shiftedPower_isBigO_scaledPower
+    (c : ℝ)
+    (m : ℕ)
+    (hc : 0 < c) :
+    (fun T : ℝ => (1 + T) ^ m) =O[Filter.atTop]
+      fun T : ℝ => (c * T) ^ m := by
+  let K : ℝ := (2 / c) ^ m
+  have hK_nonneg : 0 ≤ K :=
+    pow_nonneg (le_of_lt (div_pos two_pos hc)) m
+  refine
+    IsBigO.of_bound K
+      (eventually_atTop.2
+        ⟨1, fun T hT => ?_⟩)
+  have hT_nonneg : 0 ≤ T :=
+    le_trans zero_le_one hT
+  have hcT_nonneg : 0 ≤ c * T :=
+    mul_nonneg (le_of_lt hc) hT_nonneg
+  have hleft_nonneg : 0 ≤ (1 + T) ^ m :=
+    pow_nonneg (add_nonneg zero_le_one hT_nonneg) m
+  have hnorm_left :
+      ‖(1 + T) ^ m‖ = (1 + T) ^ m :=
+    Real.norm_of_nonneg hleft_nonneg
+  have hnorm_right_base :
+      ‖(c * T) ^ m‖ = (c * T) ^ m :=
+    Real.norm_of_nonneg (pow_nonneg hcT_nonneg m)
+  have hshift_le_twoT : 1 + T ≤ 2 * T := by
+    calc
+      1 + T ≤ T + T :=
+        add_le_add_right hT T
+      _ = 2 * T :=
+        (two_mul T).symm
+  have htwoT_eq :
+      2 * T = (2 / c) * (c * T) := by
+    calc
+      (2 / c) * (c * T) = ((2 / c) * c) * T :=
+        mul_assoc (2 / c) c T
+      _ = 2 * T := by
+        exact congrArg (fun x : ℝ => x * T) (div_mul_cancel₀ 2 (ne_of_gt hc))
+  have hbase_le :
+      1 + T ≤ (2 / c) * (c * T) :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 + T ≤ x)
+      htwoT_eq
+      hshift_le_twoT
+  have hpow_le :
+      (1 + T) ^ m ≤ ((2 / c) * (c * T)) ^ m :=
+    pow_le_pow_left₀ (add_nonneg zero_le_one hT_nonneg) hbase_le m
+  have hmul_pow :
+      ((2 / c) * (c * T)) ^ m = K * (c * T) ^ m :=
+    mul_pow (2 / c) (c * T) m
+  have hraw :
+      (1 + T) ^ m ≤ K * (c * T) ^ m :=
+    Eq.subst
+      (motive := fun x : ℝ => (1 + T) ^ m ≤ x)
+      hmul_pow
+      hpow_le
+  have htarget :
+      ‖(1 + T) ^ m‖ ≤ K * ‖(c * T) ^ m‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => ‖(1 + T) ^ m‖ ≤ K * x)
+      hnorm_right_base.symm
+      (Eq.subst
+        (motive := fun x : ℝ => x ≤ K * (c * T) ^ m)
+        hnorm_left.symm
+        hraw)
+  exact htarget
+
+/-- Positive linear changes of variable preserve the standard polynomial-versus-exponential
+comparison at infinity. -/
+theorem finiteOrder_scaledPower_isBigO_exp_scaled
+    (c : ℝ)
+    (m : ℕ)
+    (hc : 0 < c) :
+    (fun T : ℝ => (c * T) ^ m) =O[Filter.atTop]
+      fun T : ℝ => Real.exp (c * T) := by
+  exact
+    (Real.isLittleO_pow_exp_atTop (n := m)).isBigO.comp_tendsto
+      (Filter.Tendsto.const_mul_atTop hc tendsto_id)
+
+/-- Shifted polynomial height is `O(exp (cT))` for every positive `c`. -/
+theorem finiteOrder_shiftedPower_isBigO_exp
+    (c : ℝ)
+    (m : ℕ)
+    (hc : 0 < c) :
+    (fun T : ℝ => (1 + T) ^ m) =O[Filter.atTop]
+      fun T : ℝ => Real.exp (c * T) := by
+  exact
+    (finiteOrder_shiftedPower_isBigO_scaledPower c m hc).trans
+      (finiteOrder_scaledPower_isBigO_exp_scaled c m hc)
+
+theorem finiteOrder_verticalExponent_isBigO_exp
+    (A B c : ℝ)
+    (m : ℕ)
+    (hc : 0 < c) :
+    (fun T : ℝ => Real.log A + B * (1 + T) ^ m) =O[Filter.atTop]
+      fun T : ℝ => Real.exp (c * T) := by
+  have hconst :
+      (fun _T : ℝ => Real.log A) =O[Filter.atTop]
+        fun T : ℝ => Real.exp (c * T) := by
+    have hone :
+        (fun _T : ℝ => (1 : ℝ)) =O[Filter.atTop]
+          fun T : ℝ => Real.exp (c * T) := by
+      exact
+        Real.isBigO_one_exp_comp.2
+          ((Filter.Tendsto.const_mul_atTop hc tendsto_id))
+    exact
+      (isBigO_const_mul_self (Real.log A)
+        (fun _T : ℝ => (1 : ℝ)) Filter.atTop).trans hone
+  have hpoly :
+      (fun T : ℝ => B * (1 + T) ^ m) =O[Filter.atTop]
+        fun T : ℝ => Real.exp (c * T) := by
+    exact
+      (finiteOrder_shiftedPower_isBigO_exp c m hc).const_mul_left B
+  exact IsBigO.add hconst hpoly
+
 /-- Real exponent comparison behind finite-order versus double-exponential
 domination.
 
@@ -9224,7 +9841,8 @@ theorem finiteOrder_verticalExponent_eventually_le_doubleExponentialExponent
       0 < D ∧
       ∀ᶠ T : ℝ in Filter.atTop,
         Real.log A + B * (1 + T) ^ m ≤ D * Real.exp (c * T) := by
-  sorry
+  exact real_isBigO_exp_eventually_le_pos_mul c
+    (finiteOrder_verticalExponent_isBigO_exp A B c m hc)
 
 /-- Exponentiating the real finite-order/double-exponential comparison gives
 eventual domination of the vertical envelopes. -/
@@ -9389,7 +10007,59 @@ theorem finiteOrder_verticalEnvelope_comp_im_isBigO_doubleExponential_on_closedS
           Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
             𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b}]
         fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  rcases finiteOrder_verticalEnvelope_eventually_le_doubleExponential
+      A B c m hA hB hc with
+    ⟨D, _hD_pos, hdom⟩
+  refine ⟨D, ?_⟩
+  have hcomap :
+      ∀ᶠ z : ℂ in Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop,
+        A * Real.exp (B * (1 + |z.im|) ^ m) ≤
+          Real.exp (D * Real.exp (c * |z.im|)) :=
+    hdom.comap (_root_.abs ∘ Complex.im)
+  have hclosed :
+      ∀ᶠ z : ℂ in
+        Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+          𝓟 {z : ℂ | a ≤ z.re ∧ z.re ≤ b},
+        A * Real.exp (B * (1 + |z.im|) ^ m) ≤
+          Real.exp (D * Real.exp (c * |z.im|)) :=
+    hcomap.filter_mono inf_le_left
+  exact
+    IsBigO.of_bound 1
+      (hclosed.mono
+        (fun z hz =>
+          by
+            let E : ℝ := A * Real.exp (B * (1 + ‖z.im‖) ^ m)
+            let R : ℝ := Real.exp (D * Real.exp (c * |z.im|))
+            have him_norm_eq_abs : ‖z.im‖ = |z.im| :=
+              Real.norm_eq_abs z.im
+            have hraw : E ≤ R :=
+              Eq.subst
+                (motive := fun x : ℝ =>
+                  A * Real.exp (B * (1 + x) ^ m) ≤ R)
+                him_norm_eq_abs.symm
+                hz
+            have hE_nonneg : 0 ≤ E :=
+              mul_nonneg (le_of_lt hA)
+                (le_of_lt (Real.exp_pos (B * (1 + ‖z.im‖) ^ m)))
+            have hR_nonneg : 0 ≤ R :=
+              le_of_lt (Real.exp_pos (D * Real.exp (c * |z.im|)))
+            have hE_norm : ‖E‖ = E :=
+              Real.norm_of_nonneg hE_nonneg
+            have hR_norm : ‖R‖ = R :=
+              Real.norm_of_nonneg hR_nonneg
+            have hone_norm : 1 * ‖R‖ = R := by
+              calc
+                1 * ‖R‖ = ‖R‖ :=
+                  one_mul ‖R‖
+                _ = R :=
+                  hR_norm
+            Eq.subst
+              (motive := fun x : ℝ => ‖E‖ ≤ x)
+              hone_norm.symm
+              (Eq.subst
+                (motive := fun x : ℝ => x ≤ R)
+                hE_norm.symm
+                hraw)))
 
 /-- Bounded-strip finite-order envelopes are admissible double-exponential
 envelopes after reducing complex height to vertical height.
