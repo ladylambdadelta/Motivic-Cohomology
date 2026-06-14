@@ -907,7 +907,31 @@ theorem Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
       ∀ w : ℂ,
         w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
         δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  refine ⟨Real.log 3, Real.log_pos one_lt_three, ?_⟩
+  intro w hw
+  have htwo_norm_ge_one : (1 : ℝ) ≤ 2 * ‖w‖ :=
+    (div_le_iff₀' zero_lt_two).mp hw.2.1
+  have hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
+    le_add_of_nonneg_right (mul_nonneg zero_le_two (norm_nonneg w))
+  have harg_ge_three : (3 : ℝ) ≤ 2 + 2 * ‖w‖ := by
+    calc
+      (3 : ℝ) = 2 + 1 := rfl
+      _ ≤ 2 + 2 * ‖w‖ :=
+        add_le_add_left htwo_norm_ge_one 2
+  have hlog_le :
+      Real.log 3 ≤ Real.log (2 + 2 * ‖w‖) :=
+    Real.log_le_log zero_lt_three harg_ge_three
+  have hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+    le_trans (le_of_lt (Real.log_pos one_lt_three)) hlog_le
+  have hone_mul :
+      Real.log (2 + 2 * ‖w‖) ≤
+        (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+    calc
+      Real.log (2 + 2 * ‖w‖) = 1 * Real.log (2 + 2 * ‖w‖) :=
+        (one_mul (Real.log (2 + 2 * ‖w‖))).symm
+      _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+        mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
+  exact le_trans hlog_le hone_mul
 
 /-- A bounded numerator and positive envelope lower bound give a constant
 multiple bound on the compact Gamma annulus. -/
@@ -930,7 +954,34 @@ theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_o
         ‖w‖ ≤ R₀ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  let C : ℝ := max (M / δ) 1
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le zero_lt_one (le_max_right (M / δ) 1)
+  refine ⟨C, hC_pos, ?_⟩
+  intro w hw_sector hw_inner hw_outer
+  have hw_annulus : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ :=
+    ⟨hw_sector, hw_inner, hw_outer⟩
+  have hraw :
+      Real.log ‖Complex.Gamma w‖ ≤ M :=
+    hM w hw_annulus
+  have hM_div_le_C : M / δ ≤ C :=
+    le_max_left (M / δ) 1
+  have hM_le_Cδ : M ≤ C * δ :=
+    (div_le_iff₀ hδ_pos).mp hM_div_le_C
+  have hδ_le_env :
+      δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    hδ w hw_annulus
+  have hCδ_le_Cenv :
+      C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
+    mul_le_mul_of_nonneg_left hδ_le_env (le_of_lt hC_pos)
+  have hCenv_eq :
+      C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
+        C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+  exact
+    le_trans hraw
+      (le_trans hM_le_Cδ
+        (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq)))
 
 /-- Compact annulus absorption for the logarithmic Gamma envelope in the closed
 right half-plane sector.
@@ -8699,23 +8750,28 @@ theorem finiteOrder_function_isBigO_stripEnvelope_of_pointwise_strip_bound
       fun z : ℂ => A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     IsBigO.of_bound 1
-      (Filter.Eventually.of_forall
-        (fun z =>
-          by
-            intro hz
+      (eventually_inf_principal.mpr
+        (Filter.Eventually.of_forall
+          (fun z hz =>
+            let E : ℝ := A * Real.exp (B * (1 + ‖z‖) ^ m)
             have hstrip : a ≤ z.re ∧ z.re ≤ b :=
               openStrip_mem_closedStrip_bounds hz
-            have hpoint :
-                ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+            have hpoint : ‖f z‖ ≤ E :=
               hbound z hstrip.1 hstrip.2
-            have hright_nonneg :
-                0 ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) :=
+            have hE_nonneg : 0 ≤ E :=
               le_trans (norm_nonneg (f z)) hpoint
-            exact Eq.subst
-              (motive := fun x : ℝ =>
-                ‖f z‖ ≤ x)
-              (one_mul (A * Real.exp (B * (1 + ‖z‖) ^ m))).symm
-              hpoint))
+            have hE_norm : ‖E‖ = E :=
+              Real.norm_of_nonneg hE_nonneg
+            have hone_norm : 1 * ‖E‖ = E := by
+              calc
+                1 * ‖E‖ = ‖E‖ :=
+                  one_mul ‖E‖
+                _ = E :=
+                  hE_norm
+            Eq.subst
+              (motive := fun x : ℝ => ‖f z‖ ≤ x)
+              hone_norm.symm
+              hpoint)))
 
 /-- The closed-strip envelope domination can be used on the open-strip filter. -/
 theorem finiteOrder_stripEnvelope_isBigO_doubleExponential_on_openStrip
