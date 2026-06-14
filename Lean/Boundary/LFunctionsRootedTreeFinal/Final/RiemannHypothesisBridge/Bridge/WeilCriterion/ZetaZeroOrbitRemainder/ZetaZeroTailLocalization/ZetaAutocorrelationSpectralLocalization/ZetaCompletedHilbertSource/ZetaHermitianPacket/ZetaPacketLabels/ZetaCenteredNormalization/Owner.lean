@@ -40,7 +40,7 @@ theorem complex_criticalCenter_reflection_sub_half
       - (s - (1 / 2 : ℂ)) := by
   have hone_sub_half :
       (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) :=
-    eq_sub_iff_add_eq.mpr (add_halves (1 : ℂ)).symm
+    (eq_sub_iff_add_eq.mpr (add_halves (1 : ℂ))).symm
   have hone_add_neg_half :
       (1 : ℂ) + -(1 / 2 : ℂ) = (1 / 2 : ℂ) :=
     Eq.trans
