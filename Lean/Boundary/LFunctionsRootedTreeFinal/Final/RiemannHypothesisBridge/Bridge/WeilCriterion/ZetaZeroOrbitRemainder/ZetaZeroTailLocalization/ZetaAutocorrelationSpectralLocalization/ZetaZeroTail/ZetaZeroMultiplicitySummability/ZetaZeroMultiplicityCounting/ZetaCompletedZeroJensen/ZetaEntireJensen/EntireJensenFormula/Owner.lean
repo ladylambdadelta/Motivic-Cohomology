@@ -262,6 +262,33 @@ theorem entireFunction_eq_zero_of_eventually_zero_nhds
   intro z
   exact hEq (by simp)
 
+/-- A nontrivial entire function has finite analytic order at the origin. -/
+theorem entireFunction_origin_order_ne_top_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    (hF 0).order ≠ ⊤ := by
+  intro htop
+  have hlocal_zero : ∀ᶠ z in 𝓝 (0 : ℂ), F z = 0 := by
+    exact ((hF 0).order_eq_top_iff).mp htop
+  have hglobal_zero : ∀ z : ℂ, F z = 0 :=
+    entireFunction_eq_zero_of_eventually_zero_nhds F hF 0 hlocal_zero
+  rcases hnontrivial with ⟨z, hz⟩
+  exact hz (hglobal_zero z)
+
+/-- For a nontrivial entire function, the file's origin multiplicity is the
+finite analytic order at the origin. -/
+theorem entireFunction_origin_order_eq_multiplicity_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    (hF 0).order =
+      (entireFunctionZeroMultiplicity F hF 0 : ENat) := by
+  have hfinite : (hF 0).order ≠ ⊤ :=
+    entireFunction_origin_order_ne_top_of_nontrivial F hF hnontrivial
+  unfold entireFunctionZeroMultiplicity
+  exact (ENat.coe_toNat hfinite).symm
+
 /-- A positive-radius exponential arc is locally injective in a punctured real
 neighborhood of the base parameter. -/
 theorem positiveRadius_exp_arc_eventually_ne_base
@@ -1738,6 +1765,128 @@ theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_bo
   -- counted by analytic multiplicity.
   sorry
 
+/-- The origin-factor transport theorem is mechanical when the origin is not a
+zero: the explicit origin Taylor contribution is zero. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_nonzeroAtOrigin
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  rcases
+      entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+        F hF hF0 with
+    ⟨C, hclosed, hidentity⟩
+  refine ⟨C, hclosed, ?_⟩
+  intro ρ hρ
+  rcases hidentity ρ hρ with ⟨hsum, hradial⟩
+  refine ⟨hsum, ?_⟩
+  have horigin :
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ = 0 :=
+    entireFunctionOriginMultiplicityLogRadiusContribution_eq_zero_of_ne_zero
+      F hF hF0 ρ
+  calc
+    entireFunctionJensenRadialGapSum F hF ρ +
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =
+        entireFunctionJensenRadialGapSum F hF ρ + 0 + C := by
+      exact congrArg
+        (fun x : ℝ => entireFunctionJensenRadialGapSum F hF ρ + x + C)
+        horigin
+    _ = entireFunctionJensenRadialGapSum F hF ρ + C := by
+      exact congrArg (fun x : ℝ => x + C)
+        (add_zero (entireFunctionJensenRadialGapSum F hF ρ))
+    _ = entireFunctionJensenBoundaryLogAverage F ρ :=
+      hradial
+
+/-- Origin Taylor-factor transport after the analytic unit at the origin has
+been explicitly constructed.
+
+The hypotheses are exactly the output of `AnalyticAt.order_eq_nat_iff` at the
+origin for a nontrivial entire function.  This theorem owns the comparison
+between `F` and its normalized analytic unit: nonzero zeros away from the
+origin, radial-gap sums, and boundary logarithmic averages are transported
+through the local factorization, while the separated power contributes
+`m log ρ`. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_localFactor
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (G : ℂ → ℂ)
+    (hG_an : AnalyticAt ℂ G 0)
+    (hG_ne : G 0 ≠ 0)
+    (hfactor :
+      ∀ᶠ z in 𝓝 (0 : ℂ),
+        F z = (z - 0) ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Transport Jensen from the analytic unit `G` back through the explicitly
+  -- constructed origin Taylor factor for `F`.
+  sorry
+
+/-- Origin Taylor-factor transport in the genuine origin-zero case.
+
+This is the remaining transport step after the nonzero-origin case is removed:
+factor the origin zero by `AnalyticAt.order_eq_nat_iff`, apply the nonzero
+Jensen formula to the analytic unit, and compare nonzero zero multisets and
+boundary averages. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 = 0)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  have horder :
+      (hF 0).order =
+        (entireFunctionZeroMultiplicity F hF 0 : ENat) :=
+    entireFunction_origin_order_eq_multiplicity_of_nontrivial
+      F hF hnontrivial
+  rcases
+      entireFunction_localMultiplicityFactorization F hF 0 horder with
+    ⟨G, hG_an, hG_ne, hfactor⟩
+  exact
+    entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_localFactor
+      F hF hnontrivial G hG_an hG_ne hfactor
+
 /-- Transport of the nonzero-at-origin Jensen identity through the origin
 Taylor factor.
 
@@ -1768,7 +1917,13 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport
   -- Factor `F` by its origin order and apply the nonzero-at-origin Jensen
   -- identity to the analytic unit.  The origin power contributes exactly
   -- `m * log ρ` to the boundary average.
-  sorry
+  by_cases hF0 : F 0 = 0
+  · exact
+      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_zeroAtOrigin
+        F hF hF0 hnontrivial
+  · exact
+      entireFunction_classicalJensenFormula_originTaylorFactor_transport_of_nonzeroAtOrigin
+        F hF hF0
 
 /-- Origin-factored classical Jensen formula as an exact radial-gap identity.
 
