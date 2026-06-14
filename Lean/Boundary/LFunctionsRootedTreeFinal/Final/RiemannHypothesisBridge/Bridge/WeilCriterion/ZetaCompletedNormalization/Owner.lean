@@ -369,14 +369,17 @@ This is the precise right-half-plane analytic input used by the normalization la
 after unfolding `Gammaℝ z = π^(-z/2) Γ(z/2)`, complex Stirling on the closed
 right half-plane away from the origin gives log-linear growth for the normalized
 factor; cf. DLMF §5.11. -/
-axiom classicalStirling_unfoldedNormalizedGammaℝFactor_rightHalfPlane_log_linear_growth_bound_degree_one :
+theorem classicalStirling_unfoldedNormalizedGammaℝFactor_rightHalfPlane_log_linear_growth_bound_degree_one :
     ∃ C : ℝ,
       0 < C ∧
       ∀ z : ℂ,
         0 ≤ z.re →
         1 ≤ ‖z‖ →
         Real.log ‖unfoldedNormalizedGammaℝFactor z‖ ≤
-          C * (1 + ‖z‖) * Real.log (2 + ‖z‖)
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  -- Classical complex Stirling for the unfolded completed real-Gamma factor
+  -- on the right half-plane.
+  sorry
 
 /-- Classical Stirling growth for the completed real Gamma factor after unfolding
 `Gammaℝ`.
@@ -1676,6 +1679,34 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
       (le_of_lt hA_pos)
   exact le_trans (hbound t ht) hsqrt_to_linear
 
+/-- The real-parameter square-root Stirling estimate transported to the full left
+boundary line. -/
+theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
+          A * Real.sqrt (1 + ‖z.im‖) := by
+  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro z hz_re hz_im
+  have hz_axis : z = (z.im : ℂ) * Complex.I :=
+    leftBoundary_eq_im_mul_I z hz_re
+  have haxis_bound :
+      ‖Complex.Gammaℝ ((1 : ℂ) - (z.im : ℂ) * Complex.I) /
+          Complex.Gammaℝ ((z.im : ℂ) * Complex.I)‖ ≤
+        A * Real.sqrt (1 + ‖z.im‖) :=
+    hbound z.im hz_im
+  exact Eq.subst
+    (motive := fun w : ℂ =>
+      ‖Complex.Gammaℝ ((1 : ℂ) - w) / Complex.Gammaℝ w‖ ≤
+        A * Real.sqrt (1 + ‖z.im‖))
+    hz_axis.symm
+    haxis_bound
+
 /-- Classical two-sided vertical Stirling control for the completed real Gamma ratio on
 the left boundary line, in the sharp polynomial degree needed by the critical-line
 functional-equation transport. -/
@@ -1687,23 +1718,16 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) := by
-  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound_realParam with
+  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound with
     ⟨A, hA_pos, hbound⟩
   refine ⟨A, hA_pos, ?_⟩
   intro z hz_re hz_im
-  have hz_axis : z = (z.im : ℂ) * Complex.I :=
-    leftBoundary_eq_im_mul_I z hz_re
-  have haxis_bound :
-      ‖Complex.Gammaℝ ((1 : ℂ) - (z.im : ℂ) * Complex.I) /
-          Complex.Gammaℝ ((z.im : ℂ) * Complex.I)‖ ≤
-        A * (1 + ‖z.im‖) :=
-    hbound z.im hz_im
-  exact Eq.subst
-    (motive := fun w : ℂ =>
-      ‖Complex.Gammaℝ ((1 : ℂ) - w) / Complex.Gammaℝ w‖ ≤
-        A * (1 + ‖z.im‖))
-    hz_axis.symm
-    haxis_bound
+  have hsqrt_to_linear :
+      A * Real.sqrt (1 + ‖z.im‖) ≤ A * (1 + ‖z.im‖) :=
+    mul_le_mul_of_nonneg_left
+      (sqrt_one_add_norm_le_one_add_norm z.im)
+      (le_of_lt hA_pos)
+  exact le_trans (hbound z hz_re hz_im) hsqrt_to_linear
 
 /-- A vertical linear bound is the degree-one polynomial envelope used downstream. -/
 theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
@@ -2123,80 +2147,91 @@ theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
   exact le_trans (hbound w hw_re hw_im) hscaled
 
+/-- On the boundary line `re = 1`, the pole-clearing factor has zero real part. -/
+theorem boundaryLine_one_sub_one_re_eq_zero
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    (w - 1).re = 0 := by
+  have hone_re : (1 : ℂ).re = 1 :=
+    rfl
+  calc
+    (w - 1).re = w.re - (1 : ℂ).re := by
+      exact Complex.sub_re w 1
+    _ = 1 - (1 : ℂ).re := by
+      exact congrArg (fun x : ℝ => x - (1 : ℂ).re) hw_re
+    _ = 1 - 1 := by
+      exact congrArg (fun x : ℝ => 1 - x) hone_re
+    _ = 0 := by
+      exact sub_self 1
+
+/-- On the boundary line `re = 1`, the pole-clearing factor keeps the original
+imaginary coordinate. -/
+theorem boundaryLine_one_sub_one_im_eq
+    (w : ℂ) :
+    (w - 1).im = w.im := by
+  have hone_im : (1 : ℂ).im = 0 :=
+    rfl
+  calc
+    (w - 1).im = w.im - (1 : ℂ).im := by
+      exact Complex.sub_im w 1
+    _ = w.im - 0 := by
+      exact congrArg (fun x : ℝ => w.im - x) hone_im
+    _ = w.im := by
+      exact sub_zero w.im
+
+/-- On the boundary line `re = 1`, the pole-clearing factor has exactly the vertical
+height as norm. -/
+theorem boundaryLine_one_sub_one_norm_eq_vertical_height
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    ‖w - 1‖ = ‖w.im‖ := by
+  have hre_zero : (w - 1).re = 0 :=
+    boundaryLine_one_sub_one_re_eq_zero hw_re
+  have him_eq : (w - 1).im = w.im :=
+    boundaryLine_one_sub_one_im_eq w
+  have habs_eq_im :
+      Complex.abs (w - 1) = |(w - 1).im| :=
+    (Complex.abs_im_eq_abs.mpr hre_zero).symm
+  have him_abs_eq_norm : |(w - 1).im| = ‖w.im‖ := by
+    calc
+      |(w - 1).im| = |w.im| := by
+        exact congrArg abs him_eq
+      _ = ‖w.im‖ := (Real.norm_eq_abs w.im).symm
+  calc
+    ‖w - 1‖ = Complex.abs (w - 1) := by
+      exact Complex.norm_eq_abs (w - 1)
+    _ = |(w - 1).im| := habs_eq_im
+    _ = ‖w.im‖ := him_abs_eq_norm
+
 /-- On the boundary line `re = 1`, the pole-clearing factor has norm controlled by the
 vertical height. -/
 theorem boundaryLine_one_sub_one_norm_le_vertical_height
     {w : ℂ}
     (hw_re : w.re = 1) :
     ‖w - 1‖ ≤ 1 + ‖w.im‖ := by
-  have hnorm_le_abs :
-      ‖w - 1‖ ≤ |(w - 1).re| + |(w - 1).im| := by
-    simpa [Complex.norm_eq_abs] using
-      Complex.abs_le_abs_re_add_abs_im (w - 1)
-  have hre_zero : (w - 1).re = 0 := by
-    calc
-      (w - 1).re = w.re - (1 : ℂ).re := by
-        exact Complex.sub_re w 1
-      _ = 1 - 1 := by
-        exact congrArg (fun x : ℝ => x - (1 : ℂ).re) hw_re
-      _ = 0 := by
-        norm_num
-  have hre_abs_zero : |(w - 1).re| = 0 :=
-    congrArg abs hre_zero
-  have him_eq : (w - 1).im = w.im := by
-    calc
-      (w - 1).im = w.im - (1 : ℂ).im := by
-        exact Complex.sub_im w 1
-      _ = w.im - 0 := by
-        norm_num
-      _ = w.im := by
-        exact sub_zero w.im
-  have him_abs_eq_norm : |(w - 1).im| = ‖w.im‖ := by
-    calc
-      |(w - 1).im| = |w.im| := by
-        exact congrArg abs him_eq
-      _ = ‖w.im‖ := (Real.norm_eq_abs w.im).symm
-  have hsum_eq :
-      |(w - 1).re| + |(w - 1).im| = ‖w.im‖ := by
-    calc
-      |(w - 1).re| + |(w - 1).im| = 0 + ‖w.im‖ := by
-        exact congrArg₂ (fun x y : ℝ => x + y) hre_abs_zero him_abs_eq_norm
-      _ = ‖w.im‖ := zero_add ‖w.im‖
-  have hnorm_le_im :
-      ‖w - 1‖ ≤ ‖w.im‖ := by
-    exact le_trans hnorm_le_abs (le_of_eq hsum_eq)
-  exact le_trans hnorm_le_im
+  have hnorm_eq :
+      ‖w - 1‖ = ‖w.im‖ :=
+    boundaryLine_one_sub_one_norm_eq_vertical_height hw_re
+  exact le_trans (le_of_eq hnorm_eq)
     (le_add_of_nonneg_left zero_le_one)
 
-/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`,
-in the standard partial-summation/truncation form.
+/-- Classical log-linear vertical growth of the pole-cleared zeta factor on the boundary
+line `re = 1`, in the standard partial-summation/truncation form.
 
 This is the analytic number-theory input usually proved by Euler-Maclaurin or
 Abel/partial summation for the Dirichlet series, with the truncation point
-chosen at height comparable to `|t|`.  Mathlib supplies the zeta Dirichlet
-series, Euler-product, and residue APIs used elsewhere in this file, but not
-this boundary-line estimate as a ready theorem. -/
-theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation :
+chosen at height comparable to `|t|`.  The statement is deliberately owned at
+the pole-cleared level: the normalization chain needs `(s - 1)ζ(s)` on the
+boundary line, not an indirect far-right substitute. -/
+theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_from_truncation :
     ∃ A : ℝ,
       0 < A ∧
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
-        ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
+        ‖(w - 1) * riemannZeta w‖ ≤
+          A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
   sorry
-
-/-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`.
-
-This is the standard boundary-line estimate `ζ(1 + it) = O(log(2 + |t|))` on
-the vertical tail, consumed by the pole-cleared normalization chain. -/
-theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound :
-    ∃ A : ℝ,
-      0 < A ∧
-      ∀ w : ℂ,
-        w.re = 1 →
-        1 ≤ ‖w.im‖ →
-        ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
-  classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation
 
 /-- The logarithmic boundary-line zeta estimate gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
@@ -2261,8 +2296,7 @@ theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bo
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-  exact classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_of_zeta_log
-    classicalZeta_boundaryLine_one_vertical_log_growth_bound
+  exact classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_from_truncation
 
 /-- A log-linear vertical-height boundary estimate gives the coarser polynomial envelope
 used by the normalization chain. -/
