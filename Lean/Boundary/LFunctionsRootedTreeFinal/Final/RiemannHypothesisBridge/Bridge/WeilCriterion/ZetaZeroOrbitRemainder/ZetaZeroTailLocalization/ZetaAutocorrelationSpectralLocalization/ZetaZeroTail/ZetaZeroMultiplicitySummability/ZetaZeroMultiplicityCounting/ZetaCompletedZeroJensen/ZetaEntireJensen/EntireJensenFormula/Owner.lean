@@ -2718,6 +2718,35 @@ theorem complex_starConvexClosedBall_logDeriv_analyticAt
     hrecip z hz
   exact hderiv.mul hinv
 
+/-- The radial segment integral used as the primitive on a star-convex closed
+ball. -/
+noncomputable def complex_starConvexClosedBall_radialPrimitive
+    (φ : ℂ → ℂ)
+    (z : ℂ) : ℂ :=
+  ∫ t in (0 : ℝ)..1, z * φ ((t : ℂ) • z)
+
+/-- Path-integral primitive theorem over radial segments in a star-convex
+closed ball.
+
+The primitive is the line integral of `φ` over the segment from `0` to `z`.
+Star-convexity keeps the segment inside the closed ball; Cauchy's theorem on
+star-shaped domains identifies its complex derivative with `φ`. -/
+theorem holomorphicOn_starConvexClosedBall_radialPrimitive
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z) ∧
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) ∧
+    complex_starConvexClosedBall_radialPrimitive φ 0 = 0 := by
+  sorry
+
 /-- Canonical primitive theorem for analytic functions on a star-convex closed
 ball.
 
@@ -2735,7 +2764,10 @@ theorem holomorphicOn_starConvexClosedBall_hasPrimitive
       (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ P z) ∧
       (∀ z : ℂ, ‖z‖ ≤ ρ → deriv P z = φ z) ∧
       P 0 = 0 := by
-  sorry
+  exact
+    ⟨complex_starConvexClosedBall_radialPrimitive φ,
+      holomorphicOn_starConvexClosedBall_radialPrimitive
+        φ hρ hstar hφ⟩
 
 /-- Canonical closed-ball logarithmic-derivative primitive theorem.
 
