@@ -3,6 +3,7 @@ import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.InverseDeriv
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 
 /-!
@@ -495,6 +496,68 @@ theorem Real.sinePowerIntegral_eq_two_mul_halfIntegral
       (Real.sinePowerIntegral_split_at_half s hs)
       (Real.sinePowerIntegral_reflected_upperHalf_eq_half s hs)
 
+/-- Left endpoint for the sine substitution `x = sin u`. -/
+theorem Real.sinePower_sinSubstitution_leftEndpoint :
+    Real.sin (0 : ℝ) = 0 :=
+  Real.sin_zero
+
+/-- Right endpoint for the sine substitution `x = sin u`. -/
+theorem Real.sinePower_sinSubstitution_rightEndpoint :
+    Real.sin (Real.pi / 2) = 1 :=
+  Real.sin_pi_div_two
+
+/-- Derivative used in the sine substitution `x = sin u`. -/
+theorem Real.sinePower_sinSubstitution_hasDerivAt
+    (u : ℝ) :
+    HasDerivAt Real.sin (Real.cos u) u :=
+  Real.hasDerivAt_sin u
+
+/-- Left endpoint for the square substitution `t = x²`. -/
+theorem Real.sinePower_squareSubstitution_leftEndpoint :
+    (0 : ℝ) ^ 2 = 0 := by
+  exact zero_pow two_ne_zero
+
+/-- Right endpoint for the square substitution `t = x²`. -/
+theorem Real.sinePower_squareSubstitution_rightEndpoint :
+    (1 : ℝ) ^ 2 = 1 := by
+  exact one_pow 2
+
+/-- Derivative used in the square substitution `t = x²`. -/
+theorem Real.sinePower_squareSubstitution_hasDerivAt
+    (x : ℝ) :
+    HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
+  have hid : HasDerivAt (fun y : ℝ => y) 1 x :=
+    hasDerivAt_id' x
+  have hmul :
+      HasDerivAt (fun y : ℝ => y * y) (1 * x + x * 1) x :=
+    hid.mul hid
+  have hpow :
+      (fun y : ℝ => y ^ 2) = (fun y : ℝ => y * y) := by
+    funext y
+    exact pow_two y
+  have hderiv : 1 * x + x * 1 = 2 * x := by
+    calc
+      1 * x + x * 1 = x + x := by
+        exact congrArg₂ (fun a b : ℝ => a + b) (one_mul x) (mul_one x)
+      _ = 2 * x := by
+        exact (two_mul x).symm
+  exact
+    Eq.subst
+      (motive := fun f : ℝ → ℝ => HasDerivAt f (2 * x) x)
+      hpow.symm
+      (hmul.congr_deriv hderiv)
+
+/-- The raw change-of-variables statement for `x = sin u` on `[0,π/2]`.
+The remaining work is the singular endpoint continuity/integrability package. -/
+theorem Real.sinePower_sinSubstitution_changeOfVariables
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerHalfIntegral s =
+      ∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  sorry
+
 /-- The real-variable `t = sin² u` substitution on `[0,π/2]`. -/
 theorem Real.sinePowerHalfIntegral_eq_sinSubstitutionIntegral
     (s : ℝ)
@@ -503,6 +566,19 @@ theorem Real.sinePowerHalfIntegral_eq_sinSubstitutionIntegral
     Real.sinePowerHalfIntegral s =
       ∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  exact
+    Real.sinePower_sinSubstitution_changeOfVariables
+      s hleft hright
+
+/-- The raw change-of-variables statement for `t = x²` on `[0,1]`.
+The remaining work is the singular endpoint continuity/integrability package. -/
+theorem Real.sinePower_squareSubstitution_changeOfVariables
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    (∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
   sorry
 
 /-- The real-variable `t = x²` substitution converting the sine-substitution
@@ -514,7 +590,9 @@ theorem Real.sinePowerSinSubstitutionIntegral_eq_half_betaRealIntegral
     (∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
-  sorry
+  exact
+    Real.sinePower_squareSubstitution_changeOfVariables
+      s hleft hright
 
 /-- The real-variable `t = sin² u` substitution on `[0,π/2]`. -/
 theorem Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstitution
@@ -532,13 +610,85 @@ theorem Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstituti
 
 /-- Real/complex comparison for the unit-interval Beta integrand, using
 `Complex.ofReal_cpow` on the positive interval `(0,1)`. -/
-theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_ofRealCpow
+/-- Pointwise real-part comparison for the unit-interval Beta integrands. -/
+theorem Real.sinePowerEulerBetaReal_integrand_re_eq
+    (s t : ℝ)
+    (ht0 : 0 ≤ t)
+    (ht1 : 0 ≤ 1 - t) :
+    ((t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+        (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ)).re =
+      t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1) := by
+  have ht_cpow :
+      ((t ^ (((s + 1) / 2) - 1) : ℝ) : ℂ) =
+        (t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) :=
+    Complex.ofReal_cpow ht0 (((s + 1) / 2) - 1)
+  have h1_cpow :
+      (((1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ) =
+        ((1 - t : ℝ) : ℂ) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) :=
+    Complex.ofReal_cpow ht1 ((1 / 2 : ℝ) - 1)
+  have hsub_coe : ((1 - t : ℝ) : ℂ) = 1 - (t : ℂ) := by
+    exact Complex.ofReal_sub 1 t
+  have hprod :
+      (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)) =
+        (t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+          (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+    calc
+      (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)) =
+          ((t ^ (((s + 1) / 2) - 1) : ℝ) : ℂ) *
+            (((1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ) := by
+        exact Complex.ofReal_mul
+          (t ^ (((s + 1) / 2) - 1))
+          ((1 - t) ^ ((1 / 2 : ℝ) - 1))
+      _ =
+          (t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+            (((1 - t : ℝ) : ℂ) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ)) := by
+        exact congrArg₂ (fun a b : ℂ => a * b) ht_cpow h1_cpow
+      _ =
+          (t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+            (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ) := by
+        exact congrArg
+          (fun z : ℂ =>
+            (t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+              z ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ))
+          hsub_coe
+  calc
+    ((t : ℂ) ^ ((((s + 1) / 2) - 1 : ℝ) : ℂ) *
+        (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) - 1 : ℝ) : ℂ)).re =
+        (((t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1) : ℝ) : ℂ)).re := by
+      exact congrArg Complex.re hprod.symm
+    _ =
+      t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1) := by
+      exact Complex.ofReal_re
+        (t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+
+/-- Integral-level real/complex comparison for the unit-interval Beta
+integrand. The remaining work is transporting real part through the improper
+endpoint integral. -/
+theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_integralRe
     (s : ℝ)
     (hleft : 0 < (s + 1) / 2)
     (hright : 0 < (1 / 2 : ℝ)) :
     Real.sinePowerEulerBetaRealIntegral s =
       Real.sinePowerEulerBetaIntegral s := by
   sorry
+
+/-- Real/complex comparison for the unit-interval Beta integrand, using
+`Complex.ofReal_cpow` on the positive interval `(0,1)`. -/
+theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_ofRealCpow
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    Real.sinePowerEulerBetaRealIntegral s =
+      Real.sinePowerEulerBetaIntegral s := by
+  exact
+    Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_integralRe
+      s hleft hright
 
 /-- Identification of the real unit-interval Beta integral with the real part
 of mathlib's complex Beta integral. -/
