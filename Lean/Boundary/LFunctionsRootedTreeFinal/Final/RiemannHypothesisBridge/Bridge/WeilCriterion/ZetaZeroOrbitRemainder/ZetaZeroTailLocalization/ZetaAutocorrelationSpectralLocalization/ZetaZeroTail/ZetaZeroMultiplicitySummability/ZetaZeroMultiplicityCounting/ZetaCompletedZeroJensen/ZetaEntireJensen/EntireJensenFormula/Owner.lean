@@ -8542,6 +8542,55 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Canonical removable quotient after inserting one normalized zero factor.
+
+This is the true single-insert removable construction.  Starting from a
+quotient for `S`, it divides by the normalized factor `(1 - w/a)^m`; near `a`
+the local Taylor factorization of `F` and the algebraic identity
+`(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m` provide the removable value. -/
+theorem entireFunction_insertNormalizedFactor_removableQuotient
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep removable quotient theorem: construct the quotient away from `a`,
+  -- fill it at `a` using the local Taylor unit divided by the normalized
+  -- leading coefficient, and prove the product factorization across the disk.
+  sorry
+
 /-- Single-zero normalized-factor removable quotient.
 
 This is the local removable-singularity construction for inserting one
@@ -8587,10 +8636,9 @@ theorem entireFunction_singleZeroNormalizedFactor_removableQuotient
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep removable-singularity construction: use the local Taylor unit at
-  -- `a`, the normalized/local factor identity, and Riemann removability to
-  -- fill the quotient by the inserted normalized factor.
-  sorry
+  exact
+    entireFunction_insertNormalizedFactor_removableQuotient
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- Single-zero removable quotient after normalized factor extraction.
 
@@ -9338,6 +9386,50 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
 
+/-- Local removable value forced by a closed-disk factorization.
+
+This is the identity-principle/removable-value cut behind support-point
+zero-freeness.  A quotient analytic at `a` that satisfies the exact finite
+factorization on the closed disk has, at the support point, the value dictated
+by the local Taylor unit and the leading coefficient of the normalized finite
+divisor. -/
+theorem entireFunction_finiteNormalizedFactorization_forces_localRemovableValue
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q (a : ℂ) =
+      g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep local identity theorem: compare the analytic germ `Q` to the
+  -- explicit local quotient `g / leadingCoeff` on punctured points of the
+  -- closed disk accumulating at `a`, then pass to the analytic value.
+  sorry
+
 /-- Value of a single normalized removable quotient at the removed zero.
 
 The local Taylor unit `g` determines the filled quotient value at `a`: after
@@ -9376,10 +9468,9 @@ theorem entireFunction_singleZeroNormalizedFactor_removableValue
           (∏ z in S.erase a,
             (1 - (a : ℂ) / (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep removable-value theorem: cancel the punctured local factorization
-  -- against the finite normalized divisor, then identify the value by
-  -- continuity of the analytic removable extension at `a`.
-  sorry
+  exact
+    entireFunction_finiteNormalizedFactorization_forces_localRemovableValue
+      F Q hF ρ S hS0 hQ_an hfactor a ha haρ g hg_an hg_ne hg_factor
 
 /-- Single-zero removable value after normalized factor extraction.
 

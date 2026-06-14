@@ -17502,6 +17502,14 @@ noncomputable def eulerMaclaurinFirstPeriodicBernoulli
     (x : ℝ) : ℝ :=
   Int.fract x - 1 / 2
 
+/-- The bare Bernoulli-periodic tail integral in the Euler-Maclaurin zeta
+remainder, before multiplication by `-(z - 1) z`. -/
+noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
+    (z : ℂ) : ℂ :=
+  ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+
 /-- Explicit Bernoulli-periodic integral remainder for the pole-cleared zeta
 Euler-Maclaurin formula.
 
@@ -17511,9 +17519,7 @@ Euler-Maclaurin remainder after multiplying by the pole-clearing factor. -/
 noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
     (z : ℂ) : ℂ :=
   -((z - 1) * z) *
-    ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
-      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
-        (((x : ℝ) : ℂ) ^ (-(z + 1)))
+    eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z
 
 /-- Euler-Maclaurin formula identifies the difference-defined pole-cleared
 remainder with the explicit Bernoulli-periodic integral remainder. -/
@@ -17523,6 +17529,15 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
     (hz_two : z.re ≤ 2) :
     eulerMaclaurinPoleClearedZetaRemainderTerm z =
       eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  sorry
+
+/-- Standard Bernoulli-periodic tail majorant for the Euler-Maclaurin zeta
+remainder core on the closed strip `1 ≤ Re z ≤ 2`. -/
+theorem eulerMaclaurinPoleClearedZetaBernoulliIntegralCore_norm_le_one
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2) :
+    ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤ 1 := by
   sorry
 
 /-- Polynomial bound for the explicit Bernoulli-periodic integral remainder.
@@ -17539,7 +17554,58 @@ theorem eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder_polynomial_bound
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z‖ ≤
           C * (1 + ‖z‖) ^ m := by
-  sorry
+  refine ⟨1, 2, zero_lt_one, ?_⟩
+  intro z hz_one hz_two
+  unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hz_norm : ‖z‖ ≤ H :=
+    le_add_of_nonneg_left zero_le_one
+  have hz_sub_norm : ‖z - 1‖ ≤ H :=
+    eulerMaclaurinPoleClearedZetaFinitePart_poleFactor_norm_le_height z
+  have hleft :
+      ‖(z - 1) * z‖ ≤ H * H := by
+    calc
+      ‖(z - 1) * z‖ = ‖z - 1‖ * ‖z‖ := by
+        exact norm_mul (z - 1) z
+      _ ≤ H * H :=
+        mul_le_mul hz_sub_norm hz_norm (norm_nonneg z) hH_nonneg
+  have hcore :
+      ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤ 1 :=
+    eulerMaclaurinPoleClearedZetaBernoulliIntegralCore_norm_le_one z hz_one hz_two
+  have hprod :
+      ‖-((z - 1) * z) *
+          eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤
+        (H * H) * 1 := by
+    calc
+      ‖-((z - 1) * z) *
+          eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ =
+          ‖-((z - 1) * z)‖ *
+            ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ := by
+        exact norm_mul (-((z - 1) * z))
+          (eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z)
+      _ = ‖(z - 1) * z‖ *
+            ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ := by
+        exact congrArg
+          (fun x : ℝ =>
+            x * ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖)
+          (norm_neg ((z - 1) * z))
+      _ ≤ (H * H) * 1 :=
+        mul_le_mul hleft hcore
+          (norm_nonneg (eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z))
+          (mul_nonneg hH_nonneg hH_nonneg)
+  have hcollapse : (H * H) * 1 = (1 : ℝ) * H ^ (2 : ℕ) := by
+    calc
+      (H * H) * 1 = H * H := by
+        exact mul_one (H * H)
+      _ = H ^ (2 : ℕ) := by
+        exact (pow_two H).symm
+      _ = (1 : ℝ) * H ^ (2 : ℕ) := by
+        exact (one_mul (H ^ (2 : ℕ))).symm
+  have htarget : (1 : ℝ) * H ^ (2 : ℕ) =
+      (1 : ℝ) * (1 + ‖z‖) ^ (2 : ℕ) := rfl
+  exact le_trans hprod (le_of_eq (hcollapse.trans htarget))
 
 /-- Standard Euler-Maclaurin Bernoulli-periodic integral estimate for the
 pole-cleared remainder on `1 ≤ Re s ≤ 2`.
