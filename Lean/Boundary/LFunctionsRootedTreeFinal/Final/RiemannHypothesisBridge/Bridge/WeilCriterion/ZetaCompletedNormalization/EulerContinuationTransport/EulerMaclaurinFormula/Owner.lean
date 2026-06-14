@@ -1670,7 +1670,7 @@ theorem eulerMaclaurinFirstPeriodicBernoulli_cast_aestronglyMeasurable_restrict
       (fun x : ℝ => ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
       (volume.restrict s) := by
   exact
-    ((Complex.continuous_ofReal.comp
+    ((Complex.continuous_ofReal.measurable.comp
       eulerMaclaurinFirstPeriodicBernoulli_measurable).aestronglyMeasurable)
 
 /-- The positive-tail complex-power kernel is continuous on any positive
@@ -2422,7 +2422,9 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
       AEStronglyMeasurable
         (F' z)
         (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-    sorry
+    simpa [F'] using
+      eulerMaclaurinBernoulliKernel_parameterDerivative_aestronglyMeasurable
+        N hN z
   have hhasDeriv :
       HasDerivAt
         (fun w : ℂ =>

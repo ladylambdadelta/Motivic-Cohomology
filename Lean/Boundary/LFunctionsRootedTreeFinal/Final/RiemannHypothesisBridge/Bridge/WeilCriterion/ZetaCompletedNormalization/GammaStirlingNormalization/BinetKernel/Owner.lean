@@ -393,11 +393,15 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
     (hw_re_pos : 0 < w.re) :
     ∀ t : ℝ,
       0 < t →
-        ‖Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (t / ‖w‖) /
-            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+        ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ) →
+          ‖Complex.arctan ((t : ℂ) / w) /
+              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            (t / ‖w‖) /
+              (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  intro t ht hsmall
+  exact
+    Complex.binetSecondFormula_kernel_norm_le_of_small_argument
+      (w := w) hw_re_pos ht hsmall
 
 /-- Open-half-plane form of the Binet-kernel estimate kept under the historical
 name used by downstream normalization code.
@@ -409,10 +413,11 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
     (hw_re_pos : 0 < w.re) :
     ∀ t : ℝ,
       0 < t →
-        ‖Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-          (t / ‖w‖) /
-            (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+        ‖(t : ℂ) / w‖ ≤ (1 / 2 : ℝ) →
+          ‖Complex.arctan ((t : ℂ) / w) /
+              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            (t / ‖w‖) /
+              (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   exact Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane hw_re_pos
 
 /-- The positive half-line decomposes into the local Binet interval `(0,1]`
