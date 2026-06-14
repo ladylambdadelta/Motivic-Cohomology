@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner
 
 /-!
 # Reciprocal-density variation estimates
@@ -1655,7 +1656,9 @@ theorem reciprocalAmplitude_boundedPrimitive_variation_integral_bound
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
+      t ht hpartial hNM hreciprocal_density
 
 /-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
 
@@ -1709,213 +1712,9 @@ theorem oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    partialSummation_reciprocalAmplitude_oscillatoryIntegral_bound
-      t ht hpartial hNM hreciprocal_density
-
-/-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
-
-This local wrapper exposes the owner theorem under the reciprocal-density API. -/
-theorem reciprocalDensityIntegral_oscillatory_le_log_cutoff
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    (hreciprocal_density :
-      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
-          (1 : ℝ) / x ^ 2) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
-    oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
-      t ht hpartial hNM hreciprocal_density
-
-/-- Concrete reciprocal total-variation integral estimate after the
-reciprocal derivative density has been identified. -/
-theorem reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    (hreciprocal_density :
-      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
-          (1 : ℝ) / x ^ 2) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
-    reciprocalDensityIntegral_oscillatory_le_log_cutoff
-      t ht hpartial hNM hreciprocal_density
-
-/-- Concrete reciprocal total-variation integral estimate after the
-reciprocal derivative density has been identified. -/
-theorem concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
-    (hreciprocal_density :
-      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
-          (1 : ℝ) / x ^ 2) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
-    reciprocalDensityIntegral_logarithmicPhase_bound_of_partialSum_majorant
-      t ht hpartial hNM hreciprocal_density
-
-/-- Concrete reciprocal total-variation integral estimate.
-
-This is the real-variable Abel/Euler-Maclaurin variation step for the concrete
-amplitude `u ↦ 1 / u`: after the cutoff `N = ⌊2 + |t|⌋₊`, the normalized
-reciprocal derivative has total variation small enough that the first-derivative
-partial-sum majorant gives the displayed logarithmic bound. -/
-theorem concreteReciprocalVariation_logarithmicPhase_integral_bound
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    (hreciprocal_deriv :
-      ∀ {u : ℝ}, 0 < u →
-        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
-          (-(1 : ℂ) / (u : ℂ) ^ 2))
-    (hreciprocal_deriv_norm :
-      ∀ {u : ℝ}, 0 < u →
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
-          (1 : ℝ) / u ^ 2)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
     concreteReciprocalVariation_logarithmicPhase_integral_bound_of_density
-      t ht hpartial hNM
-      (concreteReciprocalVariation_density_bound_on_cutoff_interval t hNM)
+      t ht hpartial hNM hreciprocal_density
 
-/-- Concrete total-variation estimate for the reciprocal-amplitude term after
-the logarithmic-phase first-derivative bound. -/
-theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_partialSums
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-    (hreciprocal_deriv :
-      ∀ {u : ℝ}, 0 < u →
-        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
-          (-(1 : ℂ) / (u : ℂ) ^ 2))
-    (hreciprocal_deriv_norm :
-      ∀ {u : ℝ}, 0 < u →
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
-          (1 : ℝ) / u ^ 2)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
-    concreteReciprocalVariation_logarithmicPhase_integral_bound
-      t ht hpartial hreciprocal_deriv hreciprocal_deriv_norm hNM
-
-/-- Concrete reciprocal-variation integral estimate for the logarithmic phase.
-
-This is the variation term in Abel/Euler-Maclaurin summation for the amplitude
-`u ↦ 1 / u` and the concrete oscillator `u ↦ exp (-i t log u)`.  The
-reciprocal derivative is normalized as `‖(1/u)'‖ = 1/u^2`; the remaining
-analytic input is the same first-derivative cancellation used for the
-logarithmic-phase partial sums. -/
-theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    (hphase_deriv :
-      ∀ {u : ℝ}, 0 < u →
-        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
-          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
-            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
-    (hphase_deriv_norm :
-      ∀ {u : ℝ}, 0 < u →
-        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
-          ‖t‖ / u)
-    (hreciprocal_deriv :
-      ∀ {u : ℝ}, 0 < u →
-        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
-          (-(1 : ℂ) / (u : ℂ) ^ 2))
-    (hreciprocal_deriv_norm :
-      ∀ {u : ℝ}, 0 < u →
-        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u‖ =
-          (1 : ℝ) / u ^ 2)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  have hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-    intro x hx
-    exact
-      firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
-        t ht hphase_deriv hphase_deriv_norm hx
-  exact
-    oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_partialSums
-      t ht hpartial hreciprocal_deriv hreciprocal_deriv_norm hNM
-
-/-- Sharper reciprocal-derivative integral estimate in the logarithmic-phase
-partial-summation package.
-
-This is the variation part of the oscillatory Euler-Maclaurin argument.  The
-estimate keeps cancellation in the logarithmic phase before integrating against
-the reciprocal derivative; it is not a consequence of the coarse primitive
-majorant alone. -/
-theorem oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    {M : ℕ}
-    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-        2 + 8 * Real.log (3 + ‖t‖) := by
-  exact
-    oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
-      t ht
-      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hu)
-      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hu)
-      (fun hu => complexReciprocalOfReal_deriv_eq hu)
-      (fun hu => complexReciprocalOfReal_deriv_norm_eq hu)
-      hNM
 
 /-- Integral arithmetic for the reciprocal-derivative term in the finite Abel
 decomposition.
