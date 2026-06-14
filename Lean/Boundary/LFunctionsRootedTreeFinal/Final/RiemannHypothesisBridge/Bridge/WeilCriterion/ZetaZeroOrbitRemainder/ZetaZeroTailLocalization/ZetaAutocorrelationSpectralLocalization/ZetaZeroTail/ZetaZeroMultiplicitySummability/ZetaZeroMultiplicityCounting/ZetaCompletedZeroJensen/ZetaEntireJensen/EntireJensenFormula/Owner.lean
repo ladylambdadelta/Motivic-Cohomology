@@ -654,6 +654,80 @@ theorem intervalIntegrable_log_singularity_model_on_compact
   exact
     (intervalIntegrable_nat_mul_log_abs_sub_const_on_compact n hac hcb).add hg
 
+/-- The compact-continuity base case of finite logarithmic-singularity gluing:
+if there are no singular points in the compact interval, ordinary continuity on
+that compact interval gives interval-integrability. -/
+theorem intervalIntegrable_of_empty_log_singularities_on_compact
+    (f : ℝ → ℝ)
+    {a b : ℝ}
+    (hab : a ≤ b)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ (∅ : Set ℝ)})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hcontIcc : ContinuousOn f (Set.Icc a b) := by
+    refine hcont.mono ?_
+    intro θ hθ
+    exact ⟨hθ, by simp⟩
+  exact hcontIcc.intervalIntegrable_of_Icc hab
+
+/-- Local integrability near one logarithmic singularity from the punctured
+local model and continuity of the remainder at the singular point.
+
+This is the local owner cut used by the finite gluing theorem.  The point value
+of `f` at `c` is irrelevant for interval integrability; on a small punctured
+neighborhood, `f` agrees with the standard logarithmic model, and the model is
+interval-integrable by `intervalIntegrable_log_singularity_model_on_compact`. -/
+theorem intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin
+    (f : ℝ → ℝ)
+    {c : ℝ}
+    (n : ℕ)
+    (g : ℝ → ℝ)
+    (hg : ContinuousAt g c)
+    (hmodel :
+      ∀ᶠ θ in 𝓝[≠] c,
+        f θ = (n : ℝ) * Real.log |θ - c| + g θ) :
+    ∃ u v : ℝ,
+      u < c ∧ c < v ∧
+      IntervalIntegrable f MeasureTheory.volume u v := by
+  sorry
+
+/-- Removing one point from a finite singular set leaves a finite singular set
+on each compact side of the isolated point.  This is the finite-set separation
+cut behind the compact gluing induction. -/
+theorem finite_log_singularity_set_isolates_point_in_compact
+    {a b c : ℝ}
+    {S : Set ℝ}
+    (hS : S.Finite)
+    (hcS : c ∈ S) :
+    ∃ u v : ℝ,
+      u < c ∧ c < v ∧
+      (Set.Ioo u v ∩ S) ⊆ {c} := by
+  sorry
+
+/-- Finite compact-interval gluing once each singular point has a logarithmic
+local model and the complement is continuous.
+
+The proof is by finite induction on `S`: the empty case is
+`intervalIntegrable_of_empty_log_singularities_on_compact`; the step isolates
+one singular point, uses
+`intervalIntegrable_of_log_singularity_model_eventually_nhdsWithin` on the
+central interval, applies the induction hypothesis to the two side intervals,
+and glues the three interval-integrability statements by interval splitting. -/
+theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
+    (f : ℝ → ℝ)
+    (a b : ℝ)
+    (S : Set ℝ)
+    (hS : S.Finite)
+    (hlocal :
+      ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
+        ContinuousAt g θ₀ ∧
+        ∀ᶠ θ in 𝓝[≠] θ₀,
+          f θ = (n : ℝ) * Real.log |θ - θ₀| + g θ)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  sorry
+
 /-- Finite compact-interval gluing for logarithmic singularities.
 
 The local hypotheses say that every singular parameter has a punctured
@@ -674,7 +748,9 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     (hcont :
       ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
     IntervalIntegrable f MeasureTheory.volume a b := by
-  sorry
+  exact
+    intervalIntegrable_of_finite_log_singularities_on_compact_glue
+      f a b S hS hlocal hcont
 
 /-- The doubled-radius Jensen loss has a positive logarithmic denominator. -/
 theorem real_log_two_pos : 0 < Real.log 2 := by
@@ -762,14 +838,14 @@ theorem entireFunction_zeroMultiplicityCounting_closedDisk_le_scaledBoundaryLogA
     ring
   exact hleft ▸ hright ▸ hscaled
 
-/-- Classical weighted Jensen zero-counting estimate on the doubled disk.
+/-- Classical Jensen formula in the weighted doubled-radius counting form.
 
 This is the genuine classical Jensen formula input after factoring the first
 nonzero Taylor term at the origin: the Jensen radial-gap sum on the circle of
 radius `2R` dominates the multiplicity count in `closedDisk R` by the uniform
 gap `log 2`, with a constant absorbing the origin factor; cf. Titchmarsh, *The
 Theory of Functions*, §5. -/
-theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
@@ -781,6 +857,20 @@ theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_
   -- Classical Jensen formula for nonzero entire functions, with
   -- multiplicities and the doubled-radius `log 2` radial-gap comparison.
   sorry
+
+/-- Classical weighted Jensen zero-counting estimate on the doubled disk. -/
+theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ J : ℝ,
+      ∀ R : ℝ,
+        1 ≤ R →
+        entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+          J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+  exact
+    entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
+      F hF hnontrivial
 
 /-- Standard Jensen formula with multiplicity counting on the doubled disk.
 
