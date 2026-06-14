@@ -4242,7 +4242,169 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
     |(Real.pi / 2) * ‖y‖ -
         Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
       ‖y‖ * Real.arctan (u / ‖y‖) := by
-  sorry
+  rcases lt_trichotomy y 0 with hy_neg | hy_zero | hy_pos
+  · let n : ℝ := ‖y‖
+    let a : ℝ := Real.arctan (u / n)
+    let p : ℝ := Real.pi / 2
+    have hn_pos : 0 < n :=
+      Real.norm_pos_iff.mpr (ne_of_lt hy_neg)
+    have hy_eq_neg_n : y = -n := by
+      have hnorm : ‖y‖ = -y :=
+        Real.norm_of_nonpos (le_of_lt hy_neg)
+      have hneg_norm : -n = y := by
+        calc
+          -n = -‖y‖ := rfl
+          _ = -(-y) := congrArg Neg.neg hnorm
+          _ = y := neg_neg y
+      exact hneg_norm.symm
+    have harg :
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) = -p + a :=
+      Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_arctan
+        hu hy_neg
+    have ha_nonneg : 0 ≤ a := by
+      have hratio_nonneg : 0 ≤ u / n :=
+        div_nonneg hu (le_of_lt hn_pos)
+      have hzero_le :
+          Real.arctan 0 ≤ Real.arctan (u / n) :=
+        Real.arctan_strictMono.monotone hratio_nonneg
+      exact Eq.subst
+        (motive := fun r : ℝ => r ≤ a)
+        Real.arctan_zero
+        hzero_le
+    have hprod_nonneg : 0 ≤ a * n :=
+      mul_nonneg ha_nonneg (le_of_lt hn_pos)
+    have harg_mul :
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+          p * n - a * n := by
+      calc
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+            (-p + a) * (-n) := by
+          exact congrArg₂
+            (fun r s : ℝ => r * s)
+            harg
+            hy_eq_neg_n
+        _ = -((-p + a) * n) := by
+          exact mul_neg (-p + a) n
+        _ = -((-p) * n + a * n) := by
+          exact congrArg Neg.neg (add_mul (-p) a n)
+        _ = -((-p) * n) + -(a * n) := by
+          exact neg_add ((-p) * n) (a * n)
+        _ = p * n + -(a * n) := by
+          have hneg_left : -((-p) * n) = p * n := by
+            calc
+              -((-p) * n) = -(-(p * n)) := by
+                exact congrArg Neg.neg (neg_mul p n)
+              _ = p * n := neg_neg (p * n)
+          exact congrArg (fun r : ℝ => r + -(a * n)) hneg_left
+        _ = p * n - a * n := (sub_eq_add_neg (p * n) (a * n)).symm
+    have hinside :
+        (Real.pi / 2) * ‖y‖ -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+          a * n := by
+      calc
+        (Real.pi / 2) * ‖y‖ -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+            p * n - (p * n - a * n) := by
+          exact congrArg₂
+            (fun r s : ℝ => r - s)
+            rfl
+            harg_mul
+        _ = a * n := sub_sub_self (p * n) (a * n)
+    calc
+      |(Real.pi / 2) * ‖y‖ -
+          Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+          |a * n| := congrArg abs hinside
+      _ = a * n := abs_of_nonneg hprod_nonneg
+      _ = n * a := mul_comm a n
+      _ = ‖y‖ * Real.arctan (u / ‖y‖) := rfl
+  · have hy_subst : y = 0 := hy_zero
+    subst y
+    have hnorm_zero : ‖(0 : ℝ)‖ = 0 :=
+      norm_zero
+    calc
+      |(Real.pi / 2) * ‖(0 : ℝ)‖ -
+          Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)| =
+          |(Real.pi / 2) * 0 -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)| := by
+        exact congrArg
+          (fun r : ℝ =>
+            |(Real.pi / 2) * r -
+              Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)|)
+          hnorm_zero
+      _ = |0 - 0| := by
+        have hleft : (Real.pi / 2) * (0 : ℝ) = 0 :=
+          mul_zero (Real.pi / 2)
+        have hright :
+            Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ) = 0 :=
+          mul_zero (Complex.arg (Complex.fixedRealPartVerticalPoint u 0))
+        exact congrArg₂ (fun r s : ℝ => |r - s|) hleft hright
+      _ = 0 := by
+        exact Eq.trans (congrArg abs (sub_zero (0 : ℝ))) abs_zero
+      _ = ‖(0 : ℝ)‖ * Real.arctan (u / ‖(0 : ℝ)‖) := by
+        have hright :
+            ‖(0 : ℝ)‖ * Real.arctan (u / ‖(0 : ℝ)‖) = 0 := by
+          exact Eq.trans
+            (congrArg
+              (fun r : ℝ => r * Real.arctan (u / ‖(0 : ℝ)‖))
+              hnorm_zero)
+            (zero_mul (Real.arctan (u / ‖(0 : ℝ)‖)))
+        exact hright.symm
+  · let n : ℝ := ‖y‖
+    let a : ℝ := Real.arctan (u / y)
+    let p : ℝ := Real.pi / 2
+    have hn_eq_y : n = y :=
+      Real.norm_of_nonneg (le_of_lt hy_pos)
+    have hn_pos : 0 < n :=
+      Eq.subst
+        (motive := fun r : ℝ => 0 < r)
+        hn_eq_y.symm
+        hy_pos
+    have harg :
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) = p - a :=
+      Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arctan
+        hu hy_pos
+    have ha_nonneg : 0 ≤ a := by
+      have hratio_nonneg : 0 ≤ u / y :=
+        div_nonneg hu (le_of_lt hy_pos)
+      have hzero_le :
+          Real.arctan 0 ≤ Real.arctan (u / y) :=
+        Real.arctan_strictMono.monotone hratio_nonneg
+      exact Eq.subst
+        (motive := fun r : ℝ => r ≤ a)
+        Real.arctan_zero
+        hzero_le
+    have hprod_nonneg : 0 ≤ a * y :=
+      mul_nonneg ha_nonneg (le_of_lt hy_pos)
+    have harg_mul :
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+          p * y - a * y := by
+      calc
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+            (p - a) * y := by
+          exact congrArg (fun r : ℝ => r * y) harg
+        _ = p * y - a * y := sub_mul p a y
+    have hinside :
+        (Real.pi / 2) * ‖y‖ -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+          a * y := by
+      calc
+        (Real.pi / 2) * ‖y‖ -
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+            p * y - (p * y - a * y) := by
+          have hleft : (Real.pi / 2) * ‖y‖ = p * y := by
+            exact congrArg (fun r : ℝ => (Real.pi / 2) * r) hn_eq_y
+          exact congrArg₂ (fun r s : ℝ => r - s) hleft harg_mul
+        _ = a * y := sub_sub_self (p * y) (a * y)
+    calc
+      |(Real.pi / 2) * ‖y‖ -
+          Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+          |a * y| := congrArg abs hinside
+      _ = a * y := abs_of_nonneg hprod_nonneg
+      _ = y * a := mul_comm a y
+      _ = ‖y‖ * Real.arctan (u / ‖y‖) := by
+        have harg_eq : a = Real.arctan (u / ‖y‖) := by
+          exact congrArg (fun r : ℝ => Real.arctan (u / r)) hn_eq_y.symm
+        exact congrArg₂ (fun r s : ℝ => r * s) hn_eq_y.symm harg_eq
 
 /-- Principal-argument defect on a right-half-plane vertical ray.
 
