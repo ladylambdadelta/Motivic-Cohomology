@@ -2392,19 +2392,48 @@ theorem real_integral_log_sin_zero_pi :
   -- Deep classical Fourier/Beta integral.
   sorry
 
+/-- Elementary real algebra used in the unit-circle chord norm-square
+calculation. -/
+theorem real_one_sub_cos_sq_add_neg_sin_sq_eq_two_mul_one_sub_cos
+    (θ : ℝ) :
+    (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 =
+      2 * (1 - Real.cos θ) := by
+  -- Elementary polynomial identity using
+  -- `Real.sin_sq_add_cos_sq θ`.
+  sorry
+
+/-- Elementary real algebra used in the half-angle chord identity. -/
+theorem real_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
+    (θ : ℝ) :
+    (2 * |Real.sin (θ / 2)|) ^ 2 =
+      2 * (1 - Real.cos θ) := by
+  -- Elementary polynomial identity using
+  -- `sq_abs` and `Real.sin_sq_eq_half_sub (θ / 2)`.
+  sorry
+
 /-- Complex norm-square chord calculation on the unit circle. -/
 theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
       2 * (1 - Real.cos θ) := by
-  sorry
+  calc
+    Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
+        Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) := by
+      exact congrArg (fun z : ℂ => Complex.normSq (1 - z)) (Complex.exp_mul_I θ)
+    _ = (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 := by
+      change
+        Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) =
+          (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2
+      exact rfl
+    _ = 2 * (1 - Real.cos θ) := by
+      exact real_one_sub_cos_sq_add_neg_sin_sq_eq_two_mul_one_sub_cos θ
 
 /-- Half-angle square identity for the unit-circle chord length. -/
 theorem unitCircleLogKernel_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     (2 * |Real.sin (θ / 2)|) ^ 2 =
       2 * (1 - Real.cos θ) := by
-  sorry
+  exact real_two_abs_sin_half_sq_eq_two_mul_one_sub_cos θ
 
 /-- Squared chord length for the unit-circle logarithmic kernel.
 

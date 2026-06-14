@@ -612,6 +612,84 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
   exact ⟨hlog w hw_sector hRlog_le,
     hbound w hw_sector hRbound_le⟩
 
+/-- Exponentiating Binet's logarithmic formula gives the exact normalized
+Gamma-factor error in terms of the Binet remainder.
+
+This is the branch-bookkeeping step: after expanding
+`binetLogGammaMainTerm`, the factors `exp w` and `w^(1/2-w)` cancel the
+Stirling main term and leave `sqrt(2π) * (exp J(w) - 1)`. -/
+theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
+    {w : ℂ}
+    (hbinet :
+      Complex.log (Complex.Gamma w) =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w) :
+    Complex.Gamma w * Complex.exp w *
+        w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
+      (Real.sqrt (2 * Real.pi) : ℂ) *
+        (Complex.exp (Complex.binetSecondFormulaRemainder w) - 1) := by
+  sorry
+
+/-- Small complex exponential errors are bounded linearly in their exponent,
+with the Stirling constant attached. -/
+theorem Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one
+    {E : ℂ}
+    (hE : ‖E‖ ≤ 1) :
+    ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ ≤
+      2 * Real.sqrt (2 * Real.pi) * ‖E‖ := by
+  have hsqrt_nonneg : 0 ≤ Real.sqrt (2 * Real.pi) :=
+    Real.sqrt_nonneg (2 * Real.pi)
+  have hnorm_const :
+      ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ = Real.sqrt (2 * Real.pi) :=
+    Complex.norm_ofReal_of_nonneg hsqrt_nonneg
+  have hnorm_exp_abs : ‖Complex.exp E - 1‖ = Complex.abs (Complex.exp E - 1) :=
+    Complex.norm_eq_abs (Complex.exp E - 1)
+  have hE_abs_bound : Complex.abs E ≤ 1 := by
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ 1)
+      (Complex.norm_eq_abs E)
+      hE
+  have hexp_bound_abs :
+      Complex.abs (Complex.exp E - 1) ≤ 2 * Complex.abs E :=
+    Complex.abs_exp_sub_one_le hE_abs_bound
+  have hexp_bound_norm :
+      ‖Complex.exp E - 1‖ ≤ 2 * ‖E‖ := by
+    exact Eq.subst
+      (motive := fun x : ℝ => ‖Complex.exp E - 1‖ ≤ 2 * x)
+      (Complex.norm_eq_abs E).symm
+      (Eq.subst
+        (motive := fun x : ℝ => x ≤ 2 * Complex.abs E)
+        hnorm_exp_abs.symm
+        hexp_bound_abs)
+  have hmul_norm :
+      ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ =
+        Real.sqrt (2 * Real.pi) * ‖Complex.exp E - 1‖ := by
+    calc
+      ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ =
+          ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ * ‖Complex.exp E - 1‖ :=
+        norm_mul (Real.sqrt (2 * Real.pi) : ℂ) (Complex.exp E - 1)
+      _ = Real.sqrt (2 * Real.pi) * ‖Complex.exp E - 1‖ := by
+        exact congrArg (fun x : ℝ => x * ‖Complex.exp E - 1‖) hnorm_const
+  have hscaled :
+      Real.sqrt (2 * Real.pi) * ‖Complex.exp E - 1‖ ≤
+        Real.sqrt (2 * Real.pi) * (2 * ‖E‖) :=
+    mul_le_mul_of_nonneg_left hexp_bound_norm hsqrt_nonneg
+  have htarget_eq :
+      Real.sqrt (2 * Real.pi) * (2 * ‖E‖) =
+        2 * Real.sqrt (2 * Real.pi) * ‖E‖ := by
+    calc
+      Real.sqrt (2 * Real.pi) * (2 * ‖E‖) =
+          (Real.sqrt (2 * Real.pi) * 2) * ‖E‖ :=
+        mul_assoc (Real.sqrt (2 * Real.pi)) 2 ‖E‖
+      _ = (2 * Real.sqrt (2 * Real.pi)) * ‖E‖ := by
+        exact congrArg (fun x : ℝ => x * ‖E‖)
+          (mul_comm (Real.sqrt (2 * Real.pi)) 2)
+      _ = 2 * Real.sqrt (2 * Real.pi) * ‖E‖ := rfl
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 2 * Real.sqrt (2 * Real.pi) * ‖E‖)
+    hmul_norm.symm
+    (hscaled.trans_eq htarget_eq)
+
 /-- Binet's logarithmic formula implies the normalized sectorial Stirling
 estimate for `Γ`.
 
@@ -632,9 +710,66 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
   rcases
     Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane
     with ⟨R, K, hR, hK, hBinet⟩
-  -- The remaining work is the standard branch bookkeeping and exponential
-  -- extraction from Binet's logarithmic formula.
-  sorry
+  let R' : ℝ := max R K
+  let K' : ℝ := 2 * Real.sqrt (2 * Real.pi) * K
+  have hR' : 0 < R' :=
+    lt_of_lt_of_le hR (le_max_left R K)
+  have hsqrt_pos : 0 < Real.sqrt (2 * Real.pi) := by
+    exact Real.sqrt_pos_of_pos (mul_pos two_pos Real.pi_pos)
+  have hK' : 0 < K' := by
+    have htwo_sqrt_pos : 0 < 2 * Real.sqrt (2 * Real.pi) :=
+      mul_pos two_pos hsqrt_pos
+    exact mul_pos htwo_sqrt_pos hK
+  refine ⟨R', K', hR', hK', ?_⟩
+  intro w hw_sector hw_radius
+  have hR_le : R ≤ ‖w‖ :=
+    le_trans (le_max_left R K) hw_radius
+  have hK_le : K ≤ ‖w‖ :=
+    le_trans (le_max_right R K) hw_radius
+  rcases hBinet w hw_sector hR_le with ⟨hlog, hrem⟩
+  let E : ℂ := Complex.binetSecondFormulaRemainder w
+  have hnorm_pos : 0 < ‖w‖ :=
+    lt_of_lt_of_le hR' hw_radius
+  have hsmall : ‖E‖ ≤ 1 := by
+    have hdiv_le_one : K / ‖w‖ ≤ 1 :=
+      (div_le_one₀ hnorm_pos.le).mpr hK_le
+    exact hrem.trans hdiv_le_one
+  have hidentity :
+      Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
+        (Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1) :=
+    Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
+      hlog
+  have hleft :
+      ‖Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ =
+        ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ :=
+    congrArg norm hidentity
+  have hexp :
+      ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ ≤
+        2 * Real.sqrt (2 * Real.pi) * ‖E‖ :=
+    Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hsmall
+  have hscale :
+      2 * Real.sqrt (2 * Real.pi) * ‖E‖ ≤
+        K' / ‖w‖ := by
+    have hconst_nonneg : 0 ≤ 2 * Real.sqrt (2 * Real.pi) :=
+      le_of_lt (mul_pos two_pos hsqrt_pos)
+    have hmul_rem :
+        2 * Real.sqrt (2 * Real.pi) * ‖E‖ ≤
+          2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) :=
+      mul_le_mul_of_nonneg_left hrem hconst_nonneg
+    have htarget_eq :
+        2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) = K' / ‖w‖ := by
+      calc
+        2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) =
+            (2 * Real.sqrt (2 * Real.pi) * K) / ‖w‖ := by
+          exact (mul_div_assoc (2 * Real.sqrt (2 * Real.pi)) K ‖w‖).symm
+        _ = K' / ‖w‖ := rfl
+    exact hmul_rem.trans_eq htarget_eq
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ K' / ‖w‖)
+    hleft.symm
+    (hexp.trans hscale)
 
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/
@@ -19737,6 +19872,81 @@ theorem eulerMaclaurin_riemannZeta_postCutoffTail_eulerMaclaurin_hasSum_standard
     eulerMaclaurin_riemannZeta_postCutoffTail_ownerTerms_hasSum
       z hhalf_plane
 
+/-- `ζ` is holomorphic on the fixed-cutoff punctured strip, where the pole
+point `1` is excluded. -/
+theorem eulerMaclaurin_riemannZeta_holomorphicOn_fixedCutoff_puncturedStrip :
+    DifferentiableOn ℂ
+      riemannZeta
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  intro z hz
+  exact (differentiableAt_riemannZeta hz.2.2).differentiableWithinAt
+
+/-- Fixed finite Dirichlet polynomial is holomorphic in the complex variable. -/
+theorem eulerMaclaurinZetaFinitePartWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaFinitePartWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Fixed-cutoff main term is holomorphic on the punctured strip. -/
+theorem eulerMaclaurinZetaMainTermWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaMainTermWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Fixed-cutoff endpoint term is holomorphic on the punctured strip. -/
+theorem eulerMaclaurinZetaEndpointTermWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaEndpointTermWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
+parameter on the punctured strip.
+
+This is the standard parameter-integral theorem: the lower limit is fixed, the
+Bernoulli factor is bounded, and the complex-power kernel has locally uniform
+integrable majorants on vertical compacta. -/
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
+/-- Fixed-cutoff Bernoulli remainder is holomorphic on the punctured strip. -/
+theorem eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff_holomorphicOn_puncturedStrip
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  unfold eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff
+  have hid :
+      DifferentiableOn ℂ
+        (fun z : ℂ => z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_id
+  have hneg_id :
+      DifferentiableOn ℂ
+        (fun z : ℂ => -z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hid.neg
+  have hcore :
+      DifferentiableOn ℂ
+        (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_holomorphicOn_puncturedStrip
+      N hN
+  exact hneg_id.mul hcore
+
 /-- Fixed-cutoff defect is holomorphic on the punctured vertical strip. -/
 theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_puncturedStrip_standard
     (N : ℕ)
@@ -19744,7 +19954,34 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_holomorphicOn_p
     DifferentiableOn ℂ
       (eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  unfold eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+  have hzeta :
+      DifferentiableOn ℂ
+        riemannZeta
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurin_riemannZeta_holomorphicOn_fixedCutoff_puncturedStrip
+  have hfinite :
+      DifferentiableOn ℂ
+        (eulerMaclaurinZetaFinitePartWithCutoff N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurinZetaFinitePartWithCutoff_holomorphicOn_puncturedStrip N
+  have hmain :
+      DifferentiableOn ℂ
+        (eulerMaclaurinZetaMainTermWithCutoff N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurinZetaMainTermWithCutoff_holomorphicOn_puncturedStrip N hN
+  have hendpoint :
+      DifferentiableOn ℂ
+        (eulerMaclaurinZetaEndpointTermWithCutoff N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurinZetaEndpointTermWithCutoff_holomorphicOn_puncturedStrip N hN
+  have hremainder :
+      DifferentiableOn ℂ
+        (eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff_holomorphicOn_puncturedStrip
+      N hN
+  exact (hzeta.sub hfinite).sub ((hmain.add hendpoint).add hremainder)
 
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip.
