@@ -3218,6 +3218,52 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
+/-- The explicit endpoint derivative integrand obtained by differentiating
+`w ↦ w * φ(lineMap 0 w t)` at `z`. -/
+noncomputable def complex_centerSegmentIntegral_endpointDerivativeIntegrand
+    (φ : ℂ → ℂ)
+    (z : ℂ)
+    (t : ℝ) : ℂ :=
+  φ (AffineMap.lineMap (0 : ℂ) z t) +
+    z * (t : ℂ) * deriv φ (AffineMap.lineMap (0 : ℂ) z t)
+
+/-- Derivative under the endpoint parameter for the center-segment integral.
+
+This is the parametric interval-integral theorem specialized to
+`w ↦ ∫ t in 0..1, w * φ(lineMap 0 w t)`.  The compact segment is covered by
+analytic neighborhoods of `φ`, giving the uniform differentiability and
+integrable bounds required by mathlib's parametric-integral API. -/
+theorem complex_centerSegmentIntegral_hasDerivAt_integral_endpointDerivative
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        HasDerivAt
+          (complex_centerSegmentIntegral φ)
+          (∫ t in (0 : ℝ)..1,
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+          z := by
+  sorry
+
+/-- Radial FTC identity for the differentiated center-segment integrand.
+
+For holomorphic `φ`, the derivative of the endpoint-parametrized segment
+integral reduces to the one-dimensional identity
+`∫₀¹ d/dt (t * φ(tz)) dt = φ z`. -/
+theorem complex_centerSegmentIntegral_endpointDerivativeIntegral_eq
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        (∫ t in (0 : ℝ)..1,
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t) =
+          φ z := by
+  sorry
+
 /-- Cauchy--FTC endpoint derivative for the center-segment primitive.
 
 This is the concrete differential core of primitive existence on a
@@ -3235,6 +3281,29 @@ theorem complex_starConvex_centerSegmentIntegral_hasDerivAt_cauchyFTC
           (complex_centerSegmentIntegral φ)
           (φ z)
           z := by
+  intro z hz
+  exact
+    (complex_centerSegmentIntegral_endpointDerivativeIntegral_eq
+      φ hstar hφ z hz) ▸
+      (complex_centerSegmentIntegral_hasDerivAt_integral_endpointDerivative
+        φ hstar hφ z hz)
+
+/-- Local differentiability of the center-segment primitive near each endpoint.
+
+This is the neighborhood form needed to turn complex differentiability into
+analyticity.  It follows from the same compact-segment parameter-integral
+argument as the endpoint derivative theorem, applied uniformly on a small
+endpoint neighborhood. -/
+theorem complex_starConvex_centerSegmentIntegral_differentiableOn_nhd
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ u : Set ℂ,
+          u ∈ 𝓝 z ∧
+          DifferentiableOn ℂ (complex_centerSegmentIntegral φ) u := by
   sorry
 
 /-- Holomorphic parameter-integral regularity for the center-segment
@@ -3251,7 +3320,12 @@ theorem complex_starConvex_centerSegmentIntegral_analyticAt_parameterIntegral
     ∀ z : ℂ,
       z ∈ s →
         AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
-  sorry
+  intro z hz
+  rcases
+    complex_starConvex_centerSegmentIntegral_differentiableOn_nhd
+      φ hstar hφ z hz with
+    ⟨u, hu_nhds, hu_diff⟩
+  exact hu_diff.analyticAt hu_nhds
 
 /-- Standard star-convex primitive theorem for the center-segment integral.
 
@@ -6977,9 +7051,27 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_po
     (ha0 : a ≠ 0)
     (m : ℕ) :
     (1 - w / a) ^ m = (-(a⁻¹)) ^ m * (w - a) ^ m := by
-  -- Deep normalized-factor algebra sink: prove
-  -- `1 - w / a = -(a⁻¹) * (w-a)` and raise both sides to `m`.
-  sorry
+  have hbase : 1 - w / a = -(a⁻¹) * (w - a) := by
+    calc
+      1 - w / a = 1 - w * a⁻¹ := by
+        exact congrArg (fun x : ℂ => 1 - x) (div_eq_mul_inv w a)
+      _ = a * a⁻¹ - w * a⁻¹ := by
+        exact congrArg (fun x : ℂ => x - w * a⁻¹) (mul_inv_cancel₀ ha0).symm
+      _ = (a - w) * a⁻¹ := by
+        exact (sub_mul a w a⁻¹).symm
+      _ = (-(w - a)) * a⁻¹ := by
+        exact congrArg (fun x : ℂ => x * a⁻¹) (neg_sub w a).symm
+      _ = a⁻¹ * (-(w - a)) := by
+        exact mul_comm (-(w - a)) a⁻¹
+      _ = -(a⁻¹ * (w - a)) := by
+        exact mul_neg a⁻¹ (w - a)
+      _ = -(a⁻¹) * (w - a) := by
+        exact (neg_mul a⁻¹ (w - a)).symm
+  calc
+    (1 - w / a) ^ m = (-(a⁻¹) * (w - a)) ^ m := by
+      exact congrArg (fun x : ℂ => x ^ m) hbase
+    _ = (-(a⁻¹)) ^ m * (w - a) ^ m := by
+      exact mul_pow (-(a⁻¹)) (w - a) m
 
 /-- The punctured quotient after extracting the support divisor.
 

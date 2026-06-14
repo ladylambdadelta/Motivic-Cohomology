@@ -602,6 +602,109 @@ theorem Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_nonneg
     0 ≤ Complex.fixedRealPartVerticalReciprocalStirlingEnvelope a b :=
   le_of_lt (Complex.fixedRealPartVerticalReciprocalStirlingEnvelope_pos a b)
 
+/-- Shifting the fixed real part by a natural number multiplies the Stirling
+envelope by the corresponding power of the vertical polynomial scale. -/
+theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_eq
+    (a b : ℝ)
+    (N : ℕ) :
+    Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b =
+      Complex.fixedRealPartVerticalStirlingEnvelope a b *
+        (1 + ‖b‖) ^ (N : ℝ) := by
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  have hexponent :
+      a + (N : ℝ) - 1 / 2 =
+        (a - 1 / 2) + (N : ℝ) := by
+    calc
+      a + (N : ℝ) - 1 / 2 =
+          (a + (N : ℝ)) + -(1 / 2) := by
+        exact sub_eq_add_neg (a + (N : ℝ)) (1 / 2)
+      _ = a + ((N : ℝ) + -(1 / 2)) := by
+        exact add_assoc a (N : ℝ) (-(1 / 2))
+      _ = a + (-(1 / 2) + (N : ℝ)) := by
+        exact congrArg (fun t : ℝ => a + t) (add_comm (N : ℝ) (-(1 / 2)))
+      _ = (a + -(1 / 2)) + (N : ℝ) := by
+        exact (add_assoc a (-(1 / 2)) (N : ℝ)).symm
+      _ = (a - 1 / 2) + (N : ℝ) := by
+        exact congrArg (fun t : ℝ => t + (N : ℝ))
+          (sub_eq_add_neg a (1 / 2)).symm
+  unfold Complex.fixedRealPartVerticalStirlingEnvelope
+  calc
+    Real.exp (-(Real.pi / 2) * ‖b‖) *
+        (1 + ‖b‖) ^ (a + (N : ℝ) - 1 / 2) =
+      Real.exp (-(Real.pi / 2) * ‖b‖) *
+        (1 + ‖b‖) ^ ((a - 1 / 2) + (N : ℝ)) := by
+      exact congrArg
+        (fun t : ℝ =>
+          Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ t)
+        hexponent
+    _ =
+      Real.exp (-(Real.pi / 2) * ‖b‖) *
+        ((1 + ‖b‖) ^ (a - 1 / 2) *
+          (1 + ‖b‖) ^ (N : ℝ)) := by
+      exact congrArg
+        (fun t : ℝ => Real.exp (-(Real.pi / 2) * ‖b‖) * t)
+        (Real.rpow_add hbase_pos (a - 1 / 2) (N : ℝ))
+    _ =
+      (Real.exp (-(Real.pi / 2) * ‖b‖) *
+        (1 + ‖b‖) ^ (a - 1 / 2)) *
+          (1 + ‖b‖) ^ (N : ℝ) := by
+      exact mul_assoc (Real.exp (-(Real.pi / 2) * ‖b‖))
+        ((1 + ‖b‖) ^ (a - 1 / 2))
+        ((1 + ‖b‖) ^ (N : ℝ))
+
+/-- Cancelling the polynomial scale introduced by a natural real-part shift in
+the vertical Stirling envelope. -/
+theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
+    (a b : ℝ)
+    (N : ℕ)
+    (C d : ℝ)
+    (hd_pos : 0 < d) :
+    C * Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b /
+        (d * (1 + ‖b‖) ^ (N : ℝ)) =
+      (C / d) * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
+  let E : ℝ := Complex.fixedRealPartVerticalStirlingEnvelope a b
+  let T : ℝ := (1 + ‖b‖) ^ (N : ℝ)
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg b)
+  have hT_pos : 0 < T :=
+    Real.rpow_pos_of_pos hbase_pos (N : ℝ)
+  have hT_ne : T ≠ 0 :=
+    ne_of_gt hT_pos
+  have hshift :
+      Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b = E * T :=
+    Complex.fixedRealPartVerticalStirlingEnvelope_natShift_eq a b N
+  have hmul_div :
+      C * (E * T) / (d * T) = C * E / d := by
+    calc
+      C * (E * T) / (d * T) = (C * E) * T / (d * T) := by
+        exact congrArg (fun u : ℝ => u / (d * T)) (mul_assoc C E T).symm
+      _ = C * E / d := by
+        exact mul_div_mul_right (C * E) d hT_ne
+  have hdiv_mul :
+      C * E / d = (C / d) * E := by
+    calc
+      C * E / d = (C * E) * d⁻¹ := by
+        exact div_eq_mul_inv (C * E) d
+      _ = C * (E * d⁻¹) := by
+        exact mul_assoc C E d⁻¹
+      _ = C * (d⁻¹ * E) := by
+        exact congrArg (fun u : ℝ => C * u) (mul_comm E d⁻¹)
+      _ = (C * d⁻¹) * E := by
+        exact (mul_assoc C d⁻¹ E).symm
+      _ = (C / d) * E := by
+        exact congrArg (fun u : ℝ => u * E) (div_eq_mul_inv C d).symm
+  calc
+    C * Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b /
+        (d * (1 + ‖b‖) ^ (N : ℝ)) =
+      C * (E * T) / (d * T) := by
+      exact congrArg
+        (fun u : ℝ => C * u / (d * T))
+        hshift
+    _ = C * E / d := hmul_div
+    _ = (C / d) * E := hdiv_mul
+
 /-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
 right half-plane.
 
@@ -2967,6 +3070,46 @@ theorem Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift
                 (Complex.verticalStripRightShift A : ℂ))
               (Eq.trans (congrArg₂ HAdd.hAdd hleft hright) (add_zero y))).symm)
 
+/-- A natural real-part shift is the corresponding complex horizontal
+translation of a fixed vertical point. -/
+theorem Complex.fixedRealPartVerticalPoint_add_natCast
+    (x y : ℝ)
+    (N : ℕ) :
+    Complex.fixedRealPartVerticalPoint (x + N) y =
+      Complex.fixedRealPartVerticalPoint x y + (N : ℂ) := by
+  exact Complex.ext
+    (by
+      calc
+        (Complex.fixedRealPartVerticalPoint (x + N) y).re =
+            x + (N : ℝ) :=
+          Complex.fixedRealPartVerticalPoint_re (x + N) y
+        _ =
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ)).re := by
+          have hleft :
+              (Complex.fixedRealPartVerticalPoint x y).re = x :=
+            Complex.fixedRealPartVerticalPoint_re x y
+          have hright : ((N : ℂ)).re = (N : ℝ) :=
+            Complex.natCast_re N
+          exact
+            (Eq.trans
+              (Complex.add_re (Complex.fixedRealPartVerticalPoint x y) (N : ℂ))
+              (congrArg₂ HAdd.hAdd hleft hright)).symm)
+    (by
+      calc
+        (Complex.fixedRealPartVerticalPoint (x + N) y).im = y :=
+          Complex.fixedRealPartVerticalPoint_im (x + N) y
+        _ =
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ)).im := by
+          have hleft :
+              (Complex.fixedRealPartVerticalPoint x y).im = y :=
+            Complex.fixedRealPartVerticalPoint_im x y
+          have hright : ((N : ℂ)).im = 0 :=
+            Complex.natCast_im N
+          exact
+            (Eq.trans
+              (Complex.add_im (Complex.fixedRealPartVerticalPoint x y) (N : ℂ))
+              (Eq.trans (congrArg₂ HAdd.hAdd hleft hright) (add_zero y))).symm)
+
 /-- Gamma recurrence over a deterministic finite product.
 
 For large vertical height the factors `z + j` avoid zero, so iterating
@@ -3663,6 +3806,109 @@ theorem Complex.fixedRealPartVerticalPoint_add_verticalStripTransportShift
   unfold Complex.verticalStripTransportShift
   exact Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift A x y
 
+/-- Sectorial Stirling gives uniform two-sided bounds for the normalized
+Stirling factor on the deterministically shifted vertical strip. -/
+theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
+    (hStirling : ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) *
+              Complex.exp
+                (Complex.fixedRealPartVerticalPoint
+                  (x + Complex.verticalStripTransportShift A) y) *
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) ^
+                ((1 / 2 : ℂ) -
+                  Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y)‖ ≤ C ∧
+          c ≤
+            ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) *
+              Complex.exp
+                (Complex.fixedRealPartVerticalPoint
+                  (x + Complex.verticalStripTransportShift A) y) *
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) ^
+                ((1 / 2 : ℂ) -
+                  Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y)‖ := by
+  rcases hStirling with ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩
+  let s : ℝ := Real.sqrt (2 * Real.pi)
+  let H : ℝ := max R (max (4 * K / s) 1)
+  refine ⟨H, 2 * s, s / 2, ?_, ?_, ?_, ?_⟩
+  · exact lt_of_lt_of_le zero_lt_one
+      (le_trans
+        (le_max_right (4 * K / s) 1)
+        (le_max_right R (max (4 * K / s) 1)))
+  · exact mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  · exact half_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  intro x y hxA _hxB hy
+  let w : ℂ :=
+    Complex.fixedRealPartVerticalPoint
+      (x + Complex.verticalStripTransportShift A) y
+  have hw_sector : Complex.closedRightHalfPlaneSector w :=
+    Complex.verticalStripTransportShift_closedRightHalfPlaneSector hxA
+  have hw_radius_H : H ≤ ‖w‖ :=
+    Complex.verticalStripTransportShift_radius_ge_of_height_ge hy
+  have hw_R : R ≤ ‖w‖ :=
+    le_trans (le_max_left R (max (4 * K / s) 1)) hw_radius_H
+  have hw_one : 1 ≤ ‖w‖ :=
+    le_trans
+      (le_trans
+        (le_max_right (4 * K / s) 1)
+        (le_max_right R (max (4 * K / s) 1)))
+      hw_radius_H
+  have hw_norm_pos : 0 < ‖w‖ :=
+    lt_of_lt_of_le zero_lt_one hw_one
+  have hw_cutoff_half : 4 * K / s ≤ ‖w‖ :=
+    le_trans
+      (le_trans
+        (le_max_left (4 * K / s) 1)
+        (le_max_right R (max (4 * K / s) 1)))
+      hw_radius_H
+  have herror_half :
+      K / ‖w‖ ≤ s / 2 :=
+    real_stirlingError_div_norm_le_half_sqrt_two_pi_of_cutoff
+      K ‖w‖ hK_pos hw_norm_pos hw_cutoff_half
+  have hhalf_le_s : s / 2 ≤ s := by
+    have hs_nonneg : 0 ≤ s :=
+      Real.sqrt_nonneg (2 * Real.pi)
+    exact
+      (div_le_iff₀ zero_lt_two).mpr
+        (by
+          calc
+            s ≤ s + s := le_add_of_nonneg_right hs_nonneg
+            _ = 2 * s := (two_mul s).symm
+            _ = s * 2 := mul_comm 2 s)
+  have herror_full :
+      K / ‖w‖ ≤ s :=
+    le_trans herror_half hhalf_le_s
+  constructor
+  · exact
+      Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
+        R K hStirling_pointwise w hw_sector hw_R herror_full
+  · exact
+      Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
+        R K hStirling_pointwise w hw_sector hw_R herror_half
+
 /-- Sectorial normalized Stirling, on the shifted closed-right-half-plane
 points, gives the raw two-sided Gamma envelope with shifted real part.
 
@@ -3764,7 +4010,176 @@ theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProdu
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  sorry
+  rcases hshifted with ⟨Hs, Cs, cs, hHs_pos, hCs_pos, hcs_pos, hshifted_bound⟩
+  rcases hproduct with ⟨Hp, Cp, cp, hHp_pos, hCp_pos, hcp_pos, hproduct_bound⟩
+  rcases hfactor_ne with ⟨Hn, hHn_pos, hfactor_ne_pointwise⟩
+  let H : ℝ := max Hs (max Hp Hn)
+  refine ⟨H, Cs / cp, cs / Cp, ?_, div_pos hCs_pos hcp_pos,
+    div_pos hcs_pos hCp_pos, ?_⟩
+  · exact lt_of_lt_of_le hHs_pos (le_max_left Hs (max Hp Hn))
+  intro x y hxA hxB hy
+  have hy_s : Hs ≤ ‖y‖ :=
+    le_trans (le_max_left Hs (max Hp Hn)) hy
+  have hy_p : Hp ≤ ‖y‖ :=
+    le_trans (le_trans (le_max_left Hp Hn) (le_max_right Hs (max Hp Hn))) hy
+  have hy_n : Hn ≤ ‖y‖ :=
+    le_trans (le_trans (le_max_right Hp Hn) (le_max_right Hs (max Hp Hn))) hy
+  have hshifted_xy := hshifted_bound x y hxA hxB hy_s
+  have hproduct_xy := hproduct_bound x y hxA hxB hy_p
+  have hfactor_xy :
+      ∀ j : ℕ,
+        j < N →
+          Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 :=
+    hfactor_ne_pointwise x y hxA hxB hy_n
+  have hnorm_rec :
+      ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ =
+        ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+          ‖Complex.gammaRecurrenceProduct
+            (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+    Complex.Gamma_norm_eq_shifted_norm_div_gammaRecurrenceProduct_norm
+      N hfactor_xy
+  have hshift_point :
+      Complex.fixedRealPartVerticalPoint x y + (N : ℂ) =
+        Complex.fixedRealPartVerticalPoint (x + N) y := by
+    exact (Complex.fixedRealPartVerticalPoint_add_natCast x y N).symm
+  have hshifted_norm :
+      ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ =
+        ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint (x + N) y)‖ :=
+    congrArg (fun z : ℂ => ‖Complex.Gamma z‖) hshift_point
+  let R : ℝ := 1 + ‖y‖
+  have hR_pos : 0 < R :=
+    add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg y)
+  have hRpow_pos : 0 < R ^ (N : ℝ) :=
+    Real.rpow_pos_of_pos hR_pos (N : ℝ)
+  have hprod_lower_pos :
+      0 < cp * R ^ (N : ℝ) :=
+    mul_pos hcp_pos hRpow_pos
+  have hprod_upper_pos :
+      0 < Cp * R ^ (N : ℝ) :=
+    mul_pos hCp_pos hRpow_pos
+  have hprod_norm_pos :
+      0 <
+        ‖Complex.gammaRecurrenceProduct
+          (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+    lt_of_lt_of_le hprod_lower_pos hproduct_xy.2
+  have hshifted_upper :
+      ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ ≤
+        Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y :=
+    Eq.subst
+      (motive := fun t : ℝ =>
+        t ≤ Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y)
+      hshifted_norm.symm
+      hshifted_xy.1
+  have hshifted_lower :
+      cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤
+        ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ :=
+    Eq.subst
+      (motive := fun t : ℝ =>
+        cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y ≤ t)
+      hshifted_norm.symm
+      hshifted_xy.2
+  have hupper_div :
+      ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+          ‖Complex.gammaRecurrenceProduct
+            (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+        Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+          (cp * R ^ (N : ℝ)) := by
+    have hstep_den :
+        ‖Complex.Gamma
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+          ‖Complex.Gamma
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+            (cp * R ^ (N : ℝ)) :=
+      div_le_div_of_nonneg_left
+        (norm_nonneg
+          (Complex.Gamma
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))))
+        hprod_lower_pos
+        hproduct_xy.2
+    have hstep_num :
+        ‖Complex.Gamma
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+            (cp * R ^ (N : ℝ)) ≤
+          Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            (cp * R ^ (N : ℝ)) :=
+      div_le_div_of_nonneg_right hshifted_upper (le_of_lt hprod_lower_pos)
+    exact le_trans hstep_den hstep_num
+  have hlower_div :
+      cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+          (Cp * R ^ (N : ℝ)) ≤
+        ‖Complex.Gamma
+          (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+          ‖Complex.gammaRecurrenceProduct
+            (Complex.fixedRealPartVerticalPoint x y) N‖ := by
+    have hnum_nonneg :
+        0 ≤ cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y :=
+      mul_nonneg (le_of_lt hcs_pos)
+        (Complex.fixedRealPartVerticalStirlingEnvelope_nonneg (x + N) y)
+    have hstep_den :
+        cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            (Cp * R ^ (N : ℝ)) ≤
+          cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+      div_le_div_of_nonneg_left
+        hnum_nonneg
+        hprod_norm_pos
+        hproduct_xy.1
+    have hstep_num :
+        cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+          ‖Complex.Gamma
+            (Complex.fixedRealPartVerticalPoint x y + (N : ℂ))‖ /
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+      div_le_div_of_nonneg_right hshifted_lower
+        (le_of_lt hprod_norm_pos)
+    exact le_trans hstep_den hstep_num
+  constructor
+  · have htarget :
+        Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            (cp * R ^ (N : ℝ)) =
+          (Cs / cp) * Complex.fixedRealPartVerticalStirlingEnvelope x y :=
+      Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
+        x y N Cs cp hcp_pos
+    exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤ t)
+        htarget
+        (Eq.subst
+          (motive := fun t : ℝ =>
+            t ≤
+              Cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+                (cp * R ^ (N : ℝ)))
+          hnorm_rec.symm
+          hupper_div)
+  · have htarget :
+        cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+            (Cp * R ^ (N : ℝ)) =
+          (cs / Cp) * Complex.fixedRealPartVerticalStirlingEnvelope x y :=
+      Complex.fixedRealPartVerticalStirlingEnvelope_natShift_div_scale_eq
+        x y N cs Cp hCp_pos
+    exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          t ≤ ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖)
+        htarget
+        (Eq.subst
+          (motive := fun t : ℝ =>
+            cs * Complex.fixedRealPartVerticalStirlingEnvelope (x + N) y /
+                (Cp * R ^ (N : ℝ)) ≤ t)
+          hnorm_rec.symm
+          hlower_div)
 
 /-- Sectorial Stirling at the deterministic right shift, transported back
 through the finite Gamma recurrence product.
@@ -11834,7 +12249,98 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_hasSum
             (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
         else
           0) := by
-  sorry
+  let p : ℂ := boundaryLineOnePointRealParam_abscissaShift σ t
+  let f : ℕ → ℂ := fun k : ℕ => (1 : ℂ) / ((k : ℂ) ^ p)
+  let g : ℕ → ℂ := fun k : ℕ =>
+    if ⌊2 + ‖t‖⌋₊ < k then f k else 0
+  let h : ℕ → ℂ := fun k : ℕ =>
+    if ⌊2 + ‖t‖⌋₊ < k then
+      ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+        (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+    else
+      0
+  have hp_re : p.re = σ := by
+    rfl
+  have hp_half_plane : 1 < p.re :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 < x)
+      hp_re.symm
+      hσ
+  have hf_summable : Summable f :=
+    (Complex.summable_one_div_nat_cpow (p := p)).mpr hp_half_plane
+  have hg_summable : Summable g :=
+    Summable.indicator hf_summable {k : ℕ | ⌊2 + ‖t‖⌋₊ < k}
+  have h_eq_g : h = g := by
+    exact funext
+      (fun k : ℕ => by
+        by_cases hk : ⌊2 + ‖t‖⌋₊ < k
+        · have hk_pos : 0 < k :=
+            lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hk
+          have hfactor :
+              f k =
+                ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+                  (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
+            abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
+              t σ hk_pos
+          have hh :
+              h k =
+                ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+                  (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
+            if_pos hk
+          have hg :
+              g k = f k :=
+            if_pos hk
+          exact Eq.trans hh (Eq.trans hfactor.symm hg.symm)
+        · have hh : h k = 0 :=
+            if_neg hk
+          have hg : g k = 0 :=
+            if_neg hk
+          exact Eq.trans hh hg.symm)
+  have hh_summable : Summable h :=
+    Summable.congr hg_summable
+      (fun k : ℕ => (congrFun h_eq_g k).symm)
+  have htarget_eq : h =
+      (fun k : ℕ =>
+        if ⌊2 + ‖t‖⌋₊ < k then
+          ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+            (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        else
+          0) :=
+    rfl
+  exact Eq.subst
+    (motive := fun q : ℕ → ℂ => HasSum q (∑' k : ℕ, q k))
+    htarget_eq
+    hh_summable.hasSum
+
+/-- Filtering a finite range by a strict post-cutoff condition gives the
+corresponding `Ioc` interval with terminal index `n - 1`. -/
+theorem finset_range_filter_strict_cutoff_eq_Ioc_pred
+    (N n : ℕ)
+    (hn : 0 < n) :
+    (Finset.range n).filter (fun k : ℕ => N < k) =
+      Finset.Ioc N (n - 1) := by
+  ext k
+  constructor
+  · intro hk
+    have hk_range : k ∈ Finset.range n :=
+      (Finset.mem_filter.mp hk).1
+    have hN_lt_k : N < k :=
+      (Finset.mem_filter.mp hk).2
+    have hk_lt_n : k < n :=
+      Finset.mem_range.mp hk_range
+    have hk_le_pred : k ≤ n - 1 :=
+      (Nat.lt_iff_le_pred hn).mp hk_lt_n
+    exact Finset.mem_Ioc.mpr ⟨hN_lt_k, hk_le_pred⟩
+  · intro hk
+    have hN_lt_k : N < k :=
+      (Finset.mem_Ioc.mp hk).1
+    have hk_le_pred : k ≤ n - 1 :=
+      (Finset.mem_Ioc.mp hk).2
+    have hk_lt_n : k < n :=
+      (Nat.lt_iff_le_pred hn).mpr hk_le_pred
+    have hk_range : k ∈ Finset.range n :=
+      Finset.mem_range.mpr hk_lt_n
+    exact Finset.mem_filter.mpr ⟨hk_range, hN_lt_k⟩
 
 /-- Concrete range partial sums of the Abel-damped logarithmic-phase tail are
 bounded by the finite Abel estimate.
@@ -11858,7 +12364,102 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_fini
             (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
         else
           0‖ ≤ C := by
-  sorry
+  let N : ℕ := ⌊2 + ‖t‖⌋₊
+  let u : ℕ → ℂ := fun k : ℕ =>
+    ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))
+  let w : ℕ → ℝ := abelBoundary_logarithmicPhase_dirichletWeight σ
+  have hC_nonneg : 0 ≤ C :=
+    abel_positive_weighted_tail_bound_constant_nonneg
+      (u := u) (N := N) hfinite
+  intro n
+  by_cases hn_zero : n = 0
+  · have hrange_empty : Finset.range n = ∅ := by
+      exact Eq.subst
+        (motive := fun m : ℕ => Finset.range m = ∅)
+        hn_zero.symm
+        Finset.range_zero
+    have hsum_zero :
+        (∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0) = 0 := by
+      exact Eq.trans
+        (congrArg
+          (fun s : Finset ℕ =>
+            ∑ k ∈ s, if N < k then ((w k : ℝ) : ℂ) * u k else 0)
+          hrange_empty)
+        (Finset.sum_empty
+          (fun k : ℕ => if N < k then ((w k : ℝ) : ℂ) * u k else 0))
+    have hnorm_zero :
+        ‖∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ = 0 :=
+      congrArg norm hsum_zero
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ C)
+      hnorm_zero.symm
+      hC_nonneg
+  · have hn_pos : 0 < n :=
+      Nat.pos_of_ne_zero hn_zero
+    have hsum_filter :
+        (∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0) =
+          ∑ k ∈ (Finset.range n).filter (fun k : ℕ => N < k),
+            ((w k : ℝ) : ℂ) * u k := by
+      exact (Finset.sum_filter (s := Finset.range n)
+        (p := fun k : ℕ => N < k)
+        (f := fun k : ℕ => ((w k : ℝ) : ℂ) * u k)).symm
+    have hfilter_eq :
+        (Finset.range n).filter (fun k : ℕ => N < k) =
+          Finset.Ioc N (n - 1) :=
+      finset_range_filter_strict_cutoff_eq_Ioc_pred N n hn_pos
+    have hsum_ioc :
+        (∑ k ∈ Finset.range n,
+          if N < k then ((w k : ℝ) : ℂ) * u k else 0) =
+          ∑ k ∈ Finset.Ioc N (n - 1), ((w k : ℝ) : ℂ) * u k :=
+      Eq.trans hsum_filter
+        (congrArg
+          (fun s : Finset ℕ => ∑ k ∈ s, ((w k : ℝ) : ℂ) * u k)
+          hfilter_eq)
+    by_cases hN_le_pred : N ≤ n - 1
+    · have hfinite_bound :
+          ‖∑ k ∈ Finset.Ioc N (n - 1), ((w k : ℝ) : ℂ) * u k‖ ≤ C :=
+        abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
+          (u := u) (w := w) (N := N) (M := n - 1) (C := C)
+          hN_le_pred
+          hfinite
+          (fun k hk =>
+            abelBoundary_logarithmicPhase_dirichletWeight_nonneg σ
+              (lt_of_le_of_lt (Nat.zero_le N) hk))
+          (fun k l hk hkl =>
+            abelBoundary_logarithmicPhase_dirichletWeight_antitone σ hσ k l
+              (lt_of_le_of_lt (Nat.zero_le N) hk) hkl)
+          (abelBoundary_logarithmicPhase_dirichletWeight_variation_le_one σ hσ
+            N (n - 1) hN_le_pred)
+      exact Eq.subst
+        (motive := fun z : ℂ => ‖z‖ ≤ C)
+        hsum_ioc.symm
+        hfinite_bound
+    · have hpred_le_N : n - 1 ≤ N :=
+        Nat.le_of_lt (Nat.lt_of_not_ge hN_le_pred)
+      have hioc_empty : Finset.Ioc N (n - 1) = ∅ :=
+        Finset.Ioc_eq_empty_of_le hpred_le_N
+      have hsum_ioc_zero :
+          (∑ k ∈ Finset.Ioc N (n - 1), ((w k : ℝ) : ℂ) * u k) = 0 := by
+        exact Eq.trans
+          (congrArg
+            (fun s : Finset ℕ => ∑ k ∈ s, ((w k : ℝ) : ℂ) * u k)
+            hioc_empty)
+          (Finset.sum_empty (fun k : ℕ => ((w k : ℝ) : ℂ) * u k))
+      have hsum_zero :
+          (∑ k ∈ Finset.range n,
+            if N < k then ((w k : ℝ) : ℂ) * u k else 0) = 0 :=
+        Eq.trans hsum_ioc hsum_ioc_zero
+      have hnorm_zero :
+          ‖∑ k ∈ Finset.range n,
+            if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ = 0 :=
+        congrArg norm hsum_zero
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ C)
+        hnorm_zero.symm
+        hC_nonneg
 
 /-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
 damped tail as `σ → 1+`. -/
@@ -14832,6 +15433,106 @@ theorem compact_closedBall_punctured_norm_bound_of_removable_extension
     hF_eq
     (hC_bound z hz_norm)
 
+/-- A compact removable extension controls the original punctured function on a
+specified region inside the closed ball. -/
+theorem compact_closedBall_punctured_region_norm_bound_of_removable_extension
+    (f F : ℂ → ℂ)
+    (r : ℝ)
+    (P : ℂ → Prop)
+    (hF : ContinuousOn F (Metric.closedBall (0 : ℂ) r))
+    (hrem :
+      ∀ z : ℂ,
+        P z →
+        z ≠ 0 →
+        ‖z‖ ≤ r →
+        F z = f z) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        P z →
+        z ≠ 0 →
+        ‖z‖ ≤ r →
+        ‖f z‖ ≤ C := by
+  rcases compact_closedBall_norm_bound_of_continuousOn F r hF with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hzP hz_ne_zero hz_norm
+  have hF_eq : F z = f z :=
+    hrem z hzP hz_ne_zero hz_norm
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ C)
+    hF_eq
+    (hC_bound z hz_norm)
+
+/-- The closed left half of the unit ball used for the near-origin multiplier. -/
+def poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet :
+    Set ℂ :=
+  {z : ℂ | z.re ≤ 0 ∧ ‖z‖ ≤ 1}
+
+/-- Compactness of the closed left half-unit ball. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet_isCompact :
+    IsCompact poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
+  sorry
+
+/-- Compact norm boundedness from a continuous extension on the closed left
+half-unit ball. -/
+theorem compact_nearOriginLeftSet_norm_bound_of_continuousOn
+    (F : ℂ → ℂ)
+    (hF :
+      ContinuousOn F
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖z‖ ≤ 1 →
+        ‖F z‖ ≤ C := by
+  rcases IsCompact.exists_bound_of_continuousOn
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet_isCompact
+      hF with
+    ⟨C0, hC0⟩
+  refine ⟨max C0 0 + 1, ?_, ?_⟩
+  · exact add_pos_of_nonneg_of_pos (le_max_right C0 0) zero_lt_one
+  intro z hz_re hz_norm
+  have hz_mem :
+      z ∈ poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet :=
+    ⟨hz_re, hz_norm⟩
+  have hraw : ‖F z‖ ≤ C0 :=
+    hC0 z hz_mem
+  exact le_trans hraw
+    (le_trans (le_max_left C0 0) (le_add_of_nonneg_right zero_le_one))
+
+/-- A compact removable extension on the closed left half-unit ball controls
+the punctured raw branch there. -/
+theorem compact_nearOriginLeftSet_punctured_norm_bound_of_removable_extension
+    (f F : ℂ → ℂ)
+    (hF :
+      ContinuousOn F
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet)
+    (hrem :
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        F z = f z) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        ‖f z‖ ≤ C := by
+  rcases compact_nearOriginLeftSet_norm_bound_of_continuousOn F hF with
+    ⟨C, hC_pos, hC_bound⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hz_re hz_ne_zero hz_norm
+  have hF_eq : F z = f z :=
+    hrem z hz_re hz_ne_zero hz_norm
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ C)
+    hF_eq
+    (hC_bound z hz_re hz_norm)
+
 /-- The real coordinate is bounded by the complex norm. -/
 theorem complex_abs_re_le_norm
     (z : ℂ) :
@@ -15442,24 +16143,26 @@ This is the local analytic owner input for the near-origin branch: the apparent
 pole of `(z - 1) / (((1 : ℂ) - z) - 1)` at `0` is cancelled by the completed
 functional-equation Gamma ratio, so the raw product has a continuous removable
 extension on `‖z‖ ≤ 1`. -/
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_closedUnitBall :
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_nearOriginLeftSet :
     ContinuousOn poleClearedRiemannZeta_completedFunctionalEquationMultiplier
-      (Metric.closedBall (0 : ℂ) 1) := by
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet := by
   sorry
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_nearOrigin_removable_extension :
     ∃ F : ℂ → ℂ,
-      ContinuousOn F (Metric.closedBall (0 : ℂ) 1) ∧
+      ContinuousOn F
+        poleClearedRiemannZeta_completedFunctionalEquationMultiplier_nearOriginLeftSet ∧
       ∀ z : ℂ,
+        z.re ≤ 0 →
         z ≠ 0 →
         ‖z‖ ≤ 1 →
         F z =
           ((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
   refine ⟨poleClearedRiemannZeta_completedFunctionalEquationMultiplier,
-    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_closedUnitBall,
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_continuousOn_nearOriginLeftSet,
     ?_⟩
-  intro z hz_ne_zero hz_norm
+  intro z _hz_re hz_ne_zero hz_norm
   have hGamma_ne : Complex.Gammaℝ z ≠ 0 :=
     Gammaℝ_ne_zero_of_ne_zero_norm_le_one hz_ne_zero hz_norm
   unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
@@ -15487,14 +16190,14 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
   let f : ℂ → ℂ := fun z : ℂ =>
     ((z - 1) / (((1 : ℂ) - z) - 1)) *
       (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
-  rcases compact_closedBall_punctured_norm_bound_of_removable_extension
-      f F 1 hF_cont hF_eq with
+  rcases compact_nearOriginLeftSet_punctured_norm_bound_of_removable_extension
+      f F hF_cont hF_eq with
     ⟨C, hC_pos, hC_bound⟩
   refine ⟨C, 1, 0, hC_pos, zero_lt_one, ?_⟩
-  intro z _hz_re hz_ne_zero hz_norm
+  intro z hz_re hz_ne_zero hz_norm
   have hraw_bound :
       ‖f z‖ ≤ C :=
-    hC_bound z hz_ne_zero hz_norm
+    hC_bound z hz_re hz_ne_zero hz_norm
   have hfactor_ge_one :
       (1 : ℝ) ≤ Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (0 : ℕ)) := by
     have hexponent_nonneg :
