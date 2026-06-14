@@ -2369,6 +2369,122 @@ theorem entireFunction_zeroFreeOnClosedDisk_reciprocal_analyticAt
     AnalyticAt ℂ (fun w : ℂ => (G w)⁻¹) z :=
   (hG z).inv (hzero z hz)
 
+/-- The logarithmic derivative of a zero-free holomorphic function on a Jensen
+closed disk has a primitive on that disk, normalized at the disk center.
+
+This is the analytic integration step in the simply-connected disk proof:
+on the convex disk, the closed holomorphic one-form `(G' / G) dz` has a
+single-valued primitive.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
+    (G : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0) :
+    ∃ P : ℂ → ℂ,
+      (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ P z) ∧
+      (∀ z : ℂ, ‖z‖ ≤ ρ → deriv P z = deriv G z * (G z)⁻¹) ∧
+      P 0 = 0 := by
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans zero_le_one hρ
+  have hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ) :=
+    entireFunction_jensenClosedDisk_starConvex_center hρ_nonneg
+  have hrecip :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ (fun w : ℂ => (G w)⁻¹) z :=
+    fun z hz =>
+      entireFunction_zeroFreeOnClosedDisk_reciprocal_analyticAt
+        G hG hzero hz
+  -- Classical path-integral primitive on a star-convex disk, applied to
+  -- the holomorphic logarithmic derivative `G' / G`.
+  sorry
+
+/-- A normalized primitive of `G' / G` reconstructs the zero-free holomorphic
+function by exponentiating and multiplying by the center value. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exp_logDerivPrimitive_reconstruct
+    (G P : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hP_deriv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv P z = deriv G z * (G z)⁻¹)
+    (hP_zero : P 0 = 0) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      G z = G 0 * Complex.exp (P z) := by
+  -- Apply the identity theorem on the convex disk to
+  -- `G` and `G 0 * exp P`: their derivatives agree because `P' = G'/G`,
+  -- and they agree at the center by the normalization `P 0 = 0`.
+  sorry
+
+/-- A normalized primitive of the logarithmic derivative gives an analytic
+logarithm branch after adding one logarithm of the nonzero center value. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_of_logDerivPrimitive
+    (G P : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hP_reconstruct :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z = G 0 * Complex.exp (P z)) :
+    ∃ L : ℂ → ℂ,
+      (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
+      (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) := by
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans zero_le_one hρ
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ :=
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ ρ)
+      (norm_zero : ‖(0 : ℂ)‖ = 0).symm
+      hρ_nonneg
+  have hG_zero_ne : G 0 ≠ 0 :=
+    hzero 0 hzero_mem
+  let L : ℂ → ℂ := fun z => Complex.log (G 0) + P z
+  have hL_an :
+      ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z :=
+    fun z hz =>
+      analyticAt_const.add (hP_an z hz)
+  have hL_log :
+      ∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z) := by
+    intro z hz
+    have hrec : G z = G 0 * Complex.exp (P z) :=
+      hP_reconstruct z hz
+    have hcenter_exp : Complex.exp (Complex.log (G 0)) = G 0 :=
+      Complex.exp_log hG_zero_ne
+    calc
+      G z = G 0 * Complex.exp (P z) :=
+        hrec
+      _ = Complex.exp (Complex.log (G 0)) * Complex.exp (P z) :=
+        congrArg (fun w : ℂ => w * Complex.exp (P z)) hcenter_exp.symm
+      _ = Complex.exp (Complex.log (G 0) + P z) :=
+        (Complex.exp_add (Complex.log (G 0)) (P z)).symm
+      _ = Complex.exp (L z) :=
+        congrArg Complex.exp rfl
+  exact ⟨L, hL_an, hL_log⟩
+
 /-- Holomorphic logarithm existence on a zero-free simply connected Jensen disk.
 
 This is the canonical analytic-log construction used by Jensen's formula: a
@@ -2386,9 +2502,19 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simply
     ∃ L : ℂ → ℂ,
       (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
       (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) := by
-  -- Classical lifting of the zero-free holomorphic disk map to a holomorphic
-  -- logarithm through the exponential covering of `ℂˣ`.
-  sorry
+  rcases
+      entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
+        G hG hρ hzero
+      with ⟨P, hP_an, hP_deriv, hP_zero⟩
+  have hP_reconstruct :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z = G 0 * Complex.exp (P z) :=
+    entireFunction_zeroFreeOnClosedDisk_exp_logDerivPrimitive_reconstruct
+      G P hG hρ hzero hP_an hP_deriv hP_zero
+  exact
+    entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_of_logDerivPrimitive
+      G P hρ hzero hP_an hP_reconstruct
 
 /-- The real part of any chosen analytic logarithm is the logarithm of the
 norm of the original zero-free function. -/
@@ -4124,6 +4250,114 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
       (congrArg norm
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_origin
           F hF hF0 ρ))
+
+/-- Away from zeros of the extracted finite product, the quotient definition
+reconstructs `F` by direct cancellation. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ)
+    (hproduct :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w ≠ 0) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w *
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w =
+      F w := by
+  let P : ℂ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+      F hF hF0 ρ w
+  have hquotient :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+          F hF hF0 ρ w =
+        F w / P :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_def
+      F hF hF0 ρ w
+  have hP_ne : P ≠ 0 :=
+    hproduct
+  calc
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w *
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w =
+        (F w / P) * P := by
+      exact congrArg (fun x : ℂ => x * P) hquotient
+    _ = F w := by
+      exact div_mul_cancel₀ (F w) hP_ne
+
+/-- At a zero of the extracted finite product, quotient-product reconstruction
+reduces to the matching zero of `F`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (w : ℂ)
+    (hproduct :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w = 0)
+    (hF_zero : F w = 0) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w *
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w =
+      F w := by
+  let Q : ℂ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+      F hF hF0 ρ w
+  let P : ℂ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+      F hF hF0 ρ w
+  have hP_zero : P = 0 :=
+    hproduct
+  calc
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+        F hF hF0 ρ w *
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+        F hF hF0 ρ w =
+        Q * P := by
+      rfl
+    _ = Q * 0 := by
+      exact congrArg (fun x : ℂ => Q * x) hP_zero
+    _ = 0 := by
+      exact mul_zero Q
+    _ = F w := by
+      exact hF_zero.symm
+
+/-- Quotient-product reconstruction on Jensen's disk after the finite divisor
+zero set has been matched with the zero set of `F`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_zero_imp_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hproduct_zero_imp_zero :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w = 0 →
+        F w = 0) :
+    ∀ w : ℂ,
+      ‖w‖ ≤ ρ →
+      F w =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient
+            F hF hF0 ρ w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w := by
+  intro w hw
+  by_cases hproduct :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w = 0
+  · exact
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_zero
+        F hF hF0 ρ w hproduct
+        (hproduct_zero_imp_zero w hw hproduct)).symm
+  · exact
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_ne_zero
+        F hF hF0 ρ w hproduct).symm
 
 /-- Canonical finite product factorization on Jensen's closed disk.
 

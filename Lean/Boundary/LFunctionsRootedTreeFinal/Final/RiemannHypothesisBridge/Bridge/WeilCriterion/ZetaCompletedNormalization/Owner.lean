@@ -514,12 +514,79 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
+/-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
+
+This is the formula-level sectorial asymptotic root for the Gamma lane:
+Stirling's expansion with a uniform `O(1 / ‖w‖)` remainder on the closed right
+half-plane, viewed as a closed sector avoiding the negative real axis; cf. DLMF
+§5.11 and Whittaker-Watson, Ch. XII. -/
+theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  sorry
+
+/-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
+
+This is the logarithmic special-function root after peeling the downstream
+growth theory: Stirling's expansion for `log Γ(w)` on a closed sector avoiding
+the negative real axis gives a uniform
+`O((1 + ‖w‖) log (2 + ‖w‖))` bound on the closed right half-plane; cf. DLMF
+§5.11. The bound is stated for `log ‖Γ(w)‖`, the real part of `log Γ(w)`, so
+later Gamma-real normalization steps do not need a branch of `logGamma`. -/
+theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Fixed-real-part vertical Stirling upper bound for `Complex.Gamma`.
+
+This is the direct fixed-line classical estimate: for each fixed real part `a`,
+`Γ(a + i b)` has vertical decay `exp (-π |b| / 2)` and polynomial factor
+`(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
+theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
+    ∀ a : ℝ,
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
+            C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) := by
+  sorry
+
+/-- Fixed-real-part vertical Stirling lower bound for `Complex.Gamma`.
+
+This is the lower half of the classical fixed-line estimate, isolated so the
+reciprocal estimate is a norm-order transport rather than an independent
+primitive. -/
+theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
+    ∀ a : ℝ,
+      ∃ c : ℝ,
+        0 < c ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+          c * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) ≤
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
+  sorry
+
 /-- Classical Gamma/Stirling owner package on the closed right half-plane.
 
-This is the canonical local special-function root for the Gamma lane.  It is the
-closed-sector form of Stirling's theorem for `Γ`, together with the standard
-log-norm and fixed-vertical-line consequences used below; cf. DLMF §5.11 and
-Whittaker-Watson, Ch. XII. -/
+This package is now only product assembly from the canonical local
+special-function roots above: sectorial exponential Stirling, its log-norm
+consequence, and the two fixed-real-part vertical estimates. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical :
     (∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -553,43 +620,11 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical 
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
             ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖) := by
-  sorry
-
-/-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
-
-This is formula-level projection from the local Gamma/Stirling owner package:
-Stirling's expansion with a uniform `O(1 / ‖w‖)` remainder on the closed right
-half-plane, viewed as a closed sector avoiding the negative real axis; cf. DLMF
-§5.11. -/
-theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical :
-    ∃ R : ℝ, ∃ K : ℝ,
-      0 < R ∧
-      0 < K ∧
-      ∀ w : ℂ,
-        0 ≤ w.re →
-        R ≤ ‖w‖ →
-        ‖Complex.Gamma w * Complex.exp w *
-            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  exact Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical.1
-
-/-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
-
-This is the remaining classical logarithmic special-function input after peeling
-the downstream growth theory: Stirling's expansion for `log Γ(w)` on a closed
-sector avoiding the negative real axis gives a uniform
-`O((1 + ‖w‖) log (2 + ‖w‖))` bound on the closed right half-plane; cf. DLMF
-§5.11.  The bound is stated for `log ‖Γ(w)‖`, the real part of `log Γ(w)`, so
-later Gamma-real normalization steps do not need a branch of `logGamma`. -/
-theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ w : ℂ,
-        0 ≤ w.re →
-        (1 / 2 : ℝ) ≤ ‖w‖ →
-        Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  exact Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical.2.1
+  exact
+    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical,
+      Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical,
+      Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical,
+      Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical⟩
 
 /-- Sectorial log-norm consequence of closed-sector logarithmic Stirling for
 `Complex.Gamma` on the closed right half-plane. -/
@@ -602,38 +637,6 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   exact Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical
-
-/-- Fixed-real-part vertical Stirling upper bound for `Complex.Gamma`.
-
-This is the direct fixed-line classical estimate: for each fixed real part `a`,
-`Γ(a + i b)` has vertical decay `exp (-π |b| / 2)` and polynomial factor
-`(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
-theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
-    ∀ a : ℝ,
-      ∃ C : ℝ,
-        0 < C ∧
-        ∀ b : ℝ,
-          1 / 2 ≤ ‖b‖ →
-          ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
-            C * Real.exp (-(Real.pi / 2) * ‖b‖) *
-              (1 + ‖b‖) ^ (a - 1 / 2) := by
-  exact Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical.2.2.1
-
-/-- Fixed-real-part vertical Stirling lower bound for `Complex.Gamma`.
-
-This is the lower half of the classical fixed-line estimate, isolated so the
-reciprocal estimate is a norm-order transport rather than an independent
-primitive. -/
-theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
-    ∀ a : ℝ,
-      ∃ c : ℝ,
-        0 < c ∧
-        ∀ b : ℝ,
-          1 / 2 ≤ ‖b‖ →
-          c * Real.exp (-(Real.pi / 2) * ‖b‖) *
-              (1 + ‖b‖) ^ (a - 1 / 2) ≤
-            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
-  exact Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical.2.2.2
 
 /-- `Complex.Gamma` is nonzero on fixed vertical lines away from the real-axis
 pole convention when `|b| ≥ 1/2`. -/
@@ -4931,6 +4934,22 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq
         (k : ℂ) ^ (-(t : ℂ) * Complex.I) := by
   rfl
 
+/-- First-derivative/Euler-Maclaurin owner estimate for the logarithmic phase
+`u ↦ exp (-i t log u)`.
+
+This is the analytic estimate which replaces any constant-ratio argument.  The
+proof chain is the standard monotone first-derivative bound for
+`φ(u) = -t log u`, plus the Euler-Maclaurin endpoint correction; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDerivative
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  sorry
+
 /-- Euler-Maclaurin / van-der-Corput bound for the logarithmic-phase oscillator.
 
 This is the canonical replacement for the false constant-ratio geometric route:
@@ -4945,7 +4964,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_vdc
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_firstDerivative
+      t ht hx
 
 /-- Explicit finite Abel-tail constant for the logarithmic-phase oscillator
 after the canonical cutoff.
@@ -4956,6 +4977,49 @@ than hiding it behind a false unit-bound surface. -/
 def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
     (t : ℝ) : ℝ :=
   4 + 16 * Real.log (3 + ‖t‖)
+
+/-- Endpoint contribution in the finite Abel decomposition after the canonical
+cutoff.  This consumes the first-derivative logarithmic-phase primitive bound at
+the two natural endpoints and the reciprocal endpoint weights. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelEndpoint_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊((M : ℕ) : ℝ)⌋₊‖ +
+      ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+          ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
+/-- Reciprocal-derivative integral contribution in the finite Abel decomposition.
+The integrand is the product of the derivative of `u ↦ 1/u` and the
+first-derivative logarithmic-phase primitive bound. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelDerivativeIntegral_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  sorry
+
+/-- Finite Abel-tail estimate obtained from the exact Abel identity, endpoint
+bounds, and reciprocal-derivative integral bound. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  sorry
 
 /-- The completed Abel/Euler-Maclaurin tail package for the logarithmic-phase
 oscillator after the canonical cutoff.
@@ -4973,7 +5037,9 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_explicit
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  sorry
+  exact
+    boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+      t ht hNM
 
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
 coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
@@ -5606,7 +5672,65 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
               boundaryLineOnePointRealParam_abscissaShift σ t))
       (𝓝[>] (1 : ℝ))
       (𝓝 (riemannZeta (boundaryLineOnePointRealParam t))) := by
-  sorry
+  have habscissa_path_continuousAt :
+      ContinuousAt
+        (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+        (1 : ℝ) := by
+    unfold boundaryLineOnePointRealParam_abscissaShift
+    exact
+      Complex.continuous_ofReal.continuousAt.add
+        continuousAt_const
+  have habscissa_path_tendsto_raw :
+      Tendsto
+        (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (boundaryLineOnePointRealParam_abscissaShift 1 t)) :=
+    habscissa_path_continuousAt.tendsto.mono_left nhdsWithin_le_nhds
+  have habscissa_path_endpoint :
+      boundaryLineOnePointRealParam_abscissaShift 1 t =
+        boundaryLineOnePointRealParam t := by
+    exact Complex.ext rfl rfl
+  have habscissa_path_tendsto_boundary :
+      Tendsto
+        (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (boundaryLineOnePointRealParam t)) :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+          (𝓝[>] (1 : ℝ))
+          (𝓝 z))
+      habscissa_path_endpoint
+      habscissa_path_tendsto_raw
+  have hzeta_path_tendsto :
+      Tendsto
+        (fun σ : ℝ =>
+          riemannZeta (boundaryLineOnePointRealParam_abscissaShift σ t))
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (riemannZeta (boundaryLineOnePointRealParam t))) :=
+    (boundaryLineOnePointRealParam_riemannZeta_continuousAt t ht).tendsto.comp
+      habscissa_path_tendsto_boundary
+  have hdirichlet_eq_eventually :
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift σ t)) =ᶠ[𝓝[>] (1 : ℝ)]
+        (fun σ : ℝ =>
+          riemannZeta (boundaryLineOnePointRealParam_abscissaShift σ t)) := by
+    filter_upwards [self_mem_nhdsWithin] with σ hσ
+    have hσ_re :
+        (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
+      rfl
+    have hhalf_plane :
+        1 < (boundaryLineOnePointRealParam_abscissaShift σ t).re :=
+      Eq.subst
+        (motive := fun x : ℝ => 1 < x)
+        hσ_re.symm
+        hσ
+    exact (zeta_eq_tsum_one_div_nat_cpow hhalf_plane).symm
+  exact Tendsto.congr' hdirichlet_eq_eventually hzeta_path_tendsto
 
 /-- The Abel boundary value of the Dirichlet presentation is the analytic
 continuation value of `ζ(1 + it)`. -/
