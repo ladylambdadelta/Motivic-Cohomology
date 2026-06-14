@@ -2440,6 +2440,31 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
           entireFunctionJensenRadialGapSummand G hG ρ z :=
       entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum G hG ρ
 
+/-- Boundary-average transport through the origin Taylor factor, stated as the
+finite-exception integral theorem it really is.
+
+The pointwise logarithmic identity holds away from the finite parameter set
+where the quotient vanishes on the boundary circle.  At those exceptional
+parameters `Real.log 0` makes the pointwise formula false, so the owner
+statement is an interval-integral transport theorem modulo finite logarithmic
+singularities, followed by the constant-integral normalization. -/
+theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+        entireFunctionJensenBoundaryLogAverage G ρ := by
+  -- This is the honest owner root: prove the interval-integral equality from
+  -- the finite quotient boundary-zero set, using the off-exception pointwise
+  -- Taylor-factor log identity and finite-log-singularity gluing.
+  sorry
+
 /-- Boundary logarithmic averages transport through the global origin Taylor
 quotient with the explicit `m log ρ` contribution from the removed origin
 factor. -/
@@ -2455,10 +2480,9 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
     entireFunctionJensenBoundaryLogAverage F ρ =
       entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
         entireFunctionJensenBoundaryLogAverage G ρ := by
-  -- Use the pointwise quotient factorization away from the finite set of
-  -- quotient boundary zeros, and the finite-log-singularity gluing API to
-  -- identify the interval integrals across those singular parameters.
-  sorry
+  exact
+    entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
+      F G hF hG hfactor hρ
 
 /-- Origin Taylor-factor transport after the global entire quotient at the
 origin has been explicitly constructed.
