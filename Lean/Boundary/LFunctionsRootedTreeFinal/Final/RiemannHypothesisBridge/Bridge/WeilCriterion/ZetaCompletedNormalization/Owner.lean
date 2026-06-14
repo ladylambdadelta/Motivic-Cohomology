@@ -19956,7 +19956,32 @@ theorem eulerMaclaurinZetaFinitePartWithCutoff_holomorphicOn_puncturedStrip
     DifferentiableOn ℂ
       (eulerMaclaurinZetaFinitePartWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  unfold eulerMaclaurinZetaFinitePartWithCutoff
+  exact
+    DifferentiableOn.sum
+      (fun n hn => by
+        have hn_bounds : n ∈ Finset.Icc 1 N := hn
+        have hn_one : 1 ≤ n := (Finset.mem_Icc.mp hn_bounds).1
+        have hn_pos : 0 < n := lt_of_lt_of_le Nat.zero_lt_one hn_one
+        have hbase_ne : ((n : ℕ) : ℂ) ≠ 0 :=
+          Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
+        have hden :
+            DifferentiableOn ℂ
+              (fun z : ℂ => (((n : ℕ) : ℂ) ^ z))
+              ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+          differentiableOn_id.const_cpow (Or.inl hbase_ne)
+        have hnum :
+            DifferentiableOn ℂ
+              (fun _ : ℂ => (1 : ℂ))
+              ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+          differentiableOn_const (1 : ℂ)
+        exact
+          hnum.div hden
+            (fun z hz => by
+              intro hzero
+              have hbase_zero : ((n : ℕ) : ℂ) = 0 :=
+                (Complex.cpow_eq_zero_iff ((n : ℕ) : ℂ) z).mp hzero |>.1
+              exact hbase_ne hbase_zero))
 
 /-- Fixed-cutoff main term is holomorphic on the punctured strip. -/
 theorem eulerMaclaurinZetaMainTermWithCutoff_holomorphicOn_puncturedStrip
@@ -19965,7 +19990,37 @@ theorem eulerMaclaurinZetaMainTermWithCutoff_holomorphicOn_puncturedStrip
     DifferentiableOn ℂ
       (eulerMaclaurinZetaMainTermWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  unfold eulerMaclaurinZetaMainTermWithCutoff
+  have hbase_ne : ((N : ℕ) : ℂ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr (Nat.ne_of_gt hN)
+  have hone :
+      DifferentiableOn ℂ
+        (fun _ : ℂ => (1 : ℂ))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_const (1 : ℂ)
+  have hid :
+      DifferentiableOn ℂ
+        (fun z : ℂ => z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_id
+  have hexponent :
+      DifferentiableOn ℂ
+        (fun z : ℂ => (1 : ℂ) - z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hone.sub hid
+  have hnum :
+      DifferentiableOn ℂ
+        (fun z : ℂ => ((N : ℕ) : ℂ) ^ ((1 : ℂ) - z))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hexponent.const_cpow (Or.inl hbase_ne)
+  have hden :
+      DifferentiableOn ℂ
+        (fun z : ℂ => z - 1)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hid.sub hone
+  exact
+    hnum.div hden
+      (fun z hz => sub_ne_zero.mpr hz.2.2)
 
 /-- Fixed-cutoff endpoint term is holomorphic on the punctured strip. -/
 theorem eulerMaclaurinZetaEndpointTermWithCutoff_holomorphicOn_puncturedStrip
@@ -19974,7 +20029,35 @@ theorem eulerMaclaurinZetaEndpointTermWithCutoff_holomorphicOn_puncturedStrip
     DifferentiableOn ℂ
       (eulerMaclaurinZetaEndpointTermWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  unfold eulerMaclaurinZetaEndpointTermWithCutoff
+  have hbase_ne : ((N : ℕ) : ℂ) ≠ 0 :=
+    Nat.cast_ne_zero.mpr (Nat.ne_of_gt hN)
+  have hid :
+      DifferentiableOn ℂ
+        (fun z : ℂ => z)
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_id
+  have hden :
+      DifferentiableOn ℂ
+        (fun z : ℂ => (((N : ℕ) : ℂ) ^ z))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    hid.const_cpow (Or.inl hbase_ne)
+  have hrecip :
+      DifferentiableOn ℂ
+        (fun z : ℂ => (1 : ℂ) / (((N : ℕ) : ℂ) ^ z))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    (differentiableOn_const (1 : ℂ)).div hden
+      (fun z hz => by
+        intro hzero
+        have hbase_zero : ((N : ℕ) : ℂ) = 0 :=
+          (Complex.cpow_eq_zero_iff ((N : ℕ) : ℂ) z).mp hzero |>.1
+        exact hbase_ne hbase_zero)
+  have hhalf :
+      DifferentiableOn ℂ
+        (fun _ : ℂ => (1 / 2 : ℂ))
+        ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) :=
+    differentiableOn_const (1 / 2 : ℂ)
+  exact hhalf.mul hrecip
 
 /-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
 parameter on the punctured strip.

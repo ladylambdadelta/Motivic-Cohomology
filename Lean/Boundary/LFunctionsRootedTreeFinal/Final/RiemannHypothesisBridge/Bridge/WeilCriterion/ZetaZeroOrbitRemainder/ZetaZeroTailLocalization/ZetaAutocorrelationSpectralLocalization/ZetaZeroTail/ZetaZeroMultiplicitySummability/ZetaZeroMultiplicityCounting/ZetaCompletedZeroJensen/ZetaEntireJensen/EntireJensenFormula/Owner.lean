@@ -2398,18 +2398,126 @@ theorem real_one_sub_cos_sq_add_neg_sin_sq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 =
       2 * (1 - Real.cos θ) := by
-  -- Elementary polynomial identity using
-  -- `Real.sin_sq_add_cos_sq θ`.
-  sorry
+  let c : ℝ := Real.cos θ
+  let s : ℝ := Real.sin θ
+  have hs_sq : s ^ 2 = 1 - c ^ 2 := by
+    exact Real.sin_sq θ
+  have hneg_sq : (-s) ^ 2 = s ^ 2 :=
+    neg_sq s
+  have hsub_sq : (1 - c) ^ 2 = 1 ^ 2 - 2 * 1 * c + c ^ 2 :=
+    sub_sq 1 c
+  have hone_sq : (1 : ℝ) ^ 2 = 1 :=
+    one_pow 2
+  have htwo_one_mul : 2 * (1 : ℝ) * c = 2 * c := by
+    exact congrArg (fun x : ℝ => x * c) (mul_one 2)
+  have hleft_expand :
+      (1 - c) ^ 2 + (-s) ^ 2 =
+        (1 - 2 * c + c ^ 2) + s ^ 2 := by
+    calc
+      (1 - c) ^ 2 + (-s) ^ 2 =
+          (1 ^ 2 - 2 * 1 * c + c ^ 2) + (-s) ^ 2 := by
+        exact congrArg (fun x : ℝ => x + (-s) ^ 2) hsub_sq
+      _ = (1 - 2 * 1 * c + c ^ 2) + (-s) ^ 2 := by
+        exact congrArg (fun x : ℝ => (x - 2 * 1 * c + c ^ 2) + (-s) ^ 2) hone_sq
+      _ = (1 - 2 * c + c ^ 2) + (-s) ^ 2 := by
+        exact congrArg (fun x : ℝ => (1 - x + c ^ 2) + (-s) ^ 2) htwo_one_mul
+      _ = (1 - 2 * c + c ^ 2) + s ^ 2 := by
+        exact congrArg (fun x : ℝ => (1 - 2 * c + c ^ 2) + x) hneg_sq
+  have hgroup :
+      (1 - 2 * c + c ^ 2) + s ^ 2 =
+        1 - 2 * c + (c ^ 2 + s ^ 2) := by
+    calc
+      (1 - 2 * c + c ^ 2) + s ^ 2 =
+          ((1 - 2 * c) + c ^ 2) + s ^ 2 := by
+        exact rfl
+      _ = (1 - 2 * c) + (c ^ 2 + s ^ 2) := by
+        exact add_assoc (1 - 2 * c) (c ^ 2) (s ^ 2)
+      _ = 1 - 2 * c + (c ^ 2 + s ^ 2) := by
+        exact rfl
+  have hcos_sin : c ^ 2 + s ^ 2 = 1 := by
+    exact Eq.trans (add_comm (c ^ 2) (s ^ 2)) (Real.sin_sq_add_cos_sq θ)
+  have hcollapse :
+      1 - 2 * c + (c ^ 2 + s ^ 2) = 1 - 2 * c + 1 := by
+    exact congrArg (fun x : ℝ => 1 - 2 * c + x) hcos_sin
+  have hfinal :
+      1 - 2 * c + 1 = 2 * (1 - c) := by
+    calc
+      1 - 2 * c + 1 = (1 + 1) - 2 * c := by
+        exact (sub_add_eq_add_sub 1 (2 * c) 1).symm
+      _ = 2 - 2 * c := by
+        exact congrArg (fun x : ℝ => x - 2 * c) (one_add_one_eq_two)
+      _ = 2 * 1 - 2 * c := by
+        exact congrArg (fun x : ℝ => x - 2 * c) (Eq.symm (mul_one 2))
+      _ = 2 * (1 - c) := by
+        exact (mul_sub 2 1 c).symm
+  calc
+    (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 =
+        (1 - c) ^ 2 + (-s) ^ 2 := by
+      exact rfl
+    _ = (1 - 2 * c + c ^ 2) + s ^ 2 := by
+      exact hleft_expand
+    _ = 1 - 2 * c + (c ^ 2 + s ^ 2) := by
+      exact hgroup
+    _ = 1 - 2 * c + 1 := by
+      exact hcollapse
+    _ = 2 * (1 - c) := by
+      exact hfinal
+    _ = 2 * (1 - Real.cos θ) := by
+      exact rfl
 
 /-- Elementary real algebra used in the half-angle chord identity. -/
 theorem real_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     (2 * |Real.sin (θ / 2)|) ^ 2 =
       2 * (1 - Real.cos θ) := by
-  -- Elementary polynomial identity using
-  -- `sq_abs` and `Real.sin_sq_eq_half_sub (θ / 2)`.
-  sorry
+  let u : ℝ := θ / 2
+  have habs_sq : |Real.sin u| ^ 2 = (Real.sin u) ^ 2 :=
+    sq_abs (Real.sin u)
+  have hmul_sq :
+      (2 * |Real.sin u|) ^ 2 = 2 ^ 2 * |Real.sin u| ^ 2 :=
+    mul_pow 2 |Real.sin u| 2
+  have htwo_sq : (2 : ℝ) ^ 2 = 4 :=
+    rfl
+  have hsin_half :
+      (Real.sin u) ^ 2 = 1 / 2 - Real.cos (2 * u) / 2 :=
+    Real.sin_sq_eq_half_sub u
+  have htheta : 2 * u = θ := by
+    calc
+      2 * u = 2 * (θ / 2) := by
+        exact rfl
+      _ = θ := by
+        exact mul_div_cancel_left₀ θ two_ne_zero
+  have hcos_theta :
+      Real.cos (2 * u) = Real.cos θ :=
+    congrArg Real.cos htheta
+  have hfour_mul :
+      4 * (1 / 2 - Real.cos θ / 2) =
+        2 * (1 - Real.cos θ) := by
+    calc
+      4 * (1 / 2 - Real.cos θ / 2) =
+          4 * ((1 - Real.cos θ) / 2) := by
+        exact congrArg (fun x : ℝ => 4 * x) (Eq.symm (sub_div 1 (Real.cos θ) 2))
+      _ = (4 / 2) * (1 - Real.cos θ) := by
+        exact (div_mul_eq_mul_div 4 (1 - Real.cos θ) 2).symm
+      _ = 2 * (1 - Real.cos θ) := by
+        exact congrArg (fun x : ℝ => x * (1 - Real.cos θ))
+          (mul_div_cancel_left₀ (2 : ℝ) two_ne_zero)
+  calc
+    (2 * |Real.sin (θ / 2)|) ^ 2 =
+        (2 * |Real.sin u|) ^ 2 := by
+      exact rfl
+    _ = 2 ^ 2 * |Real.sin u| ^ 2 := by
+      exact hmul_sq
+    _ = 4 * |Real.sin u| ^ 2 := by
+      exact congrArg (fun x : ℝ => x * |Real.sin u| ^ 2) htwo_sq
+    _ = 4 * (Real.sin u) ^ 2 := by
+      exact congrArg (fun x : ℝ => 4 * x) habs_sq
+    _ = 4 * (1 / 2 - Real.cos (2 * u) / 2) := by
+      exact congrArg (fun x : ℝ => 4 * x) hsin_half
+    _ = 4 * (1 / 2 - Real.cos θ / 2) := by
+      exact congrArg (fun x : ℝ => 4 * (1 / 2 - x / 2)) hcos_theta
+    _ = 2 * (1 - Real.cos θ) := by
+      exact hfour_mul
 
 /-- Complex norm-square chord calculation on the unit circle. -/
 theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
@@ -10955,6 +11063,35 @@ theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
     (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
   exact hfg_nhds.filter_mono nhdsWithin_le_nhds
 
+/-- Every nonempty real open interval contains a point outside a prescribed
+finite set. -/
+theorem real_Ioo_avoidFinite_nonempty
+    (T : Finset ℝ)
+    {u v : ℝ}
+    (huv : u < v) :
+    ∃ t : ℝ,
+      t ∈ Set.Ioo u v ∧
+        ∀ r : ℝ, r ∈ T → t ≠ r := by
+  have hcount :
+      Set.Countable ((T : Set ℝ)) :=
+    T.finite_toSet.countable
+  have hdense :
+      Dense (((T : Set ℝ))ᶜ) :=
+    hcount.dense_compl
+  have hnonempty :
+      (Set.Ioo u v).Nonempty :=
+    Set.nonempty_Ioo.2 huv
+  rcases hdense.inter_open_nonempty (Set.Ioo u v) isOpen_Ioo hnonempty with
+  | intro t ht =>
+      exact
+        ⟨t, ht.2,
+          fun r hr htr =>
+            ht.1
+              (Eq.subst
+                (motive := fun x : ℝ => x ∈ (T : Set ℝ))
+                htr
+                hr)⟩
+
 /-- One-sided real finite avoidance near `1`.
 
 This is the real topology core used by radial finite avoidance: numbers
@@ -10966,9 +11103,25 @@ theorem real_leftNhds_one_avoidFinite_frequently
       0 ≤ t ∧
       t < 1 ∧
         ∀ r : ℝ, r ∈ T → t ≠ r := by
-  -- Deep real-order topology lemma: choose `t` in `(max forbidden below 1, 1)`
-  -- inside each left neighborhood of `1`.
-  sorry
+  refine Filter.frequently_iff.2 ?_
+  intro U hU
+  rcases
+    (mem_nhdsWithin_Iio_iff_exists_Ioo_subset (a := (1 : ℝ)) (s := U)).1 hU with
+  | intro l hl =>
+      have hl_lt_one : l < 1 :=
+        hl.1
+      have hmax_lt_one : max l 0 < 1 :=
+        max_lt hl_lt_one zero_lt_one
+      rcases real_Ioo_avoidFinite_nonempty T hmax_lt_one with
+      | intro t ht =>
+          have ht_mem_U : t ∈ U :=
+            hl.2 t
+              ⟨lt_of_le_of_lt (le_max_left l 0) ht.1.1, ht.1.2⟩
+          have ht_nonneg : 0 ≤ t :=
+            (le_max_right l 0).trans ht.1.1.le
+          exact
+            ⟨t, ht_mem_U, ht_nonneg, ht.1.2, ht.2⟩
+
 
 /-- Radial finite-avoidance inside a closed disk.
 
