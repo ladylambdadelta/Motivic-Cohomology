@@ -4893,29 +4893,32 @@ theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq
 
 This is the canonical replacement for the false constant-ratio geometric route:
 the proof studies the phase `x ↦ -t log x` and obtains a partial-sum bound
-uniform enough for Abel summation after the cutoff `N = ⌊2 + |t|⌋₊`; cf.
-Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
-theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_sqrt_height_log
+with the necessary long-range `x / |t|` term.  The latter term is unavoidable:
+the primitive of `u^{-it}` has size comparable to `x / |t|` for large `x`;
+cf. Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_vdc
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {x : ℝ}
     (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + x) := by
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
 
-/-- Integral form of the Abel tail contribution controlled by the
-logarithmic-phase partial-sum estimate and the derivative of the reciprocal
-weight. -/
-theorem boundaryLineOnePointRealParam_reciprocal_derivative_logarithmicPhase_integral_norm_le
+/-- The completed Abel/Euler-Maclaurin tail package for the logarithmic-phase
+oscillator after the canonical cutoff.
+
+The pointwise primitive has an unavoidable `x / |t|` component, so the final
+unit bound is not a direct corollary of a uniform primitive estimate.  The
+classical proof combines Abel summation with cancellation in the endpoint and
+reciprocal-derivative terms at `N = ⌊2 + |t|⌋₊`. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_one
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
-    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
-        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
-          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-      1 - (1 / (⌊2 + ‖t‖⌋₊ : ℝ)) := by
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1 := by
   sorry
 
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
