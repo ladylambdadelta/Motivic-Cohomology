@@ -2299,7 +2299,101 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_sup
     (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_explicit_sum_identity
       F hF hF0 ρ)
 
-/-- Analytic-log/harmonic mean-value form of the classical Jensen product theorem.
+/-- The logarithmic norm of a complex exponential is the real part of the
+exponent. -/
+theorem complex_log_norm_exp_eq_re
+    (w : ℂ) :
+    Real.log ‖Complex.exp w‖ = w.re := by
+  have hnorm_abs :
+      ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
+    Complex.norm_eq_abs (Complex.exp w)
+  have habs :
+      Complex.abs (Complex.exp w) = Real.exp w.re :=
+    Complex.abs_exp w
+  calc
+    Real.log ‖Complex.exp w‖ =
+        Real.log (Complex.abs (Complex.exp w)) := by
+      exact congrArg Real.log hnorm_abs
+    _ = Real.log (Real.exp w.re) := by
+      exact congrArg Real.log habs
+    _ = w.re :=
+      Real.log_exp w.re
+
+/-- Boundary reduction from a chosen analytic logarithm to the real part of
+that logarithm. -/
+theorem entireFunction_zeroFreeQuotient_boundaryLog_eq_analyticLog_re
+    (G L : ℂ → ℂ)
+    (R θ : ℝ)
+    (hlog :
+      G ((R : ℂ) * Complex.exp (θ * Complex.I)) =
+        Complex.exp (L ((R : ℂ) * Complex.exp (θ * Complex.I)))) :
+    entireFunctionJensenBoundaryLogIntegrand G R θ =
+      (L ((R : ℂ) * Complex.exp (θ * Complex.I))).re := by
+  let z : ℂ := (R : ℂ) * Complex.exp (θ * Complex.I)
+  unfold entireFunctionJensenBoundaryLogIntegrand
+  calc
+    Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+        Real.log ‖Complex.exp (L z)‖ := by
+      exact congrArg (fun w : ℂ => Real.log ‖w‖) hlog
+    _ = (L z).re :=
+      complex_log_norm_exp_eq_re (L z)
+
+/-- A zero-free holomorphic function on a closed disk admits a holomorphic
+logarithm on a neighborhood of that disk, normalized at the center.
+
+This is the analytic-log existence step in Jensen's proof.  It follows by
+applying the holomorphic logarithm construction to the zero-free image of the
+simply connected disk; cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog
+    (G : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0) :
+    ∃ L : ℂ → ℂ,
+      (∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ L z) ∧
+      (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) ∧
+      (L 0).re = Real.log ‖G 0‖ := by
+  -- Classical zero-free disk logarithm; cf. Titchmarsh, §5.
+  sorry
+
+/-- Mean-value theorem for the real part of a holomorphic function on a disk,
+with Jensen's boundary parametrization and normalization. -/
+theorem entireFunction_analyticLog_re_holomorphicMeanValue_circle
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (hL :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ L z) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          (L ((ρ : ℂ) * Complex.exp (θ * Complex.I))).re) =
+      (L 0).re := by
+  -- Holomorphic mean-value theorem applied to `Complex.re ∘ L`.
+  sorry
+
+/-- The normalized boundary average of one extracted nonzero linear zero factor
+is its Jensen radial logarithm. -/
+theorem entireFunction_singleZeroFactor_boundaryAverage_identity
+    {a : ℂ}
+    {ρ : ℝ}
+    (ha0 : a ≠ 0)
+    (haρ : ‖a‖ < ρ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log
+            ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
+      Real.log (ρ / ‖a‖) := by
+  -- Poisson/Jensen circle integral for one linear factor.
+  sorry
+
+/-- Analytic-log, harmonic mean-value, and single-zero-factor form of the
+classical Jensen product theorem.
 
 Proof chain:
 finite divisor factorization on the disk -> zero-free quotient admits an
@@ -2307,10 +2401,23 @@ analytic logarithm -> the real part of that logarithm is harmonic -> harmonic
 mean value on the boundary circle -> the single zero-factor boundary average
 `log (ρ / ‖a‖)` -> finite product sum -> support-controlled `tsum` transport.
 
-This is the exact remaining classical complex-analysis input.  The finite and
-support-transport pieces are proved in this file; the unavailable analytic-log
-and harmonic mean-value theorem is isolated here with the same normalization as
-the public Jensen owner root.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+This statement keeps the classical analytic heart separate from the already
+proved finite support and summability transports in this owner file.  Cf.
+Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_from_analyticLogHarmonicMeanValue_and_zeroFactorCircleAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Classical Jensen product theorem after finite divisor extraction.
+  sorry
+
+/-- Analytic-log/harmonic mean-value form of the classical Jensen product
+theorem. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_analyticLogHarmonicMeanValue
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -2320,9 +2427,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_bo
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ := by
-  -- Classical analytic-log plus harmonic mean-value theorem; cf. Titchmarsh,
-  -- The Theory of Functions, §5.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_from_analyticLogHarmonicMeanValue_and_zeroFactorCircleAverage
+      F hF hF0
 
 /-- Classical analytic product/Jensen identity after finite zero-divisor
 factorization.

@@ -4545,19 +4545,84 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity
   exact abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
     t hNM hf_diff hf_int
 
+/-- Classical Euler-Maclaurin/Abel estimate for the exact oscillatory tail after
+the cutoff `N = ⌊2 + |t|⌋₊`.
+
+This is the remaining classical analytic input in its peeled form.  The summand is
+the Abel-normalized boundary-line term `n⁻¹ n⁻ⁱᵗ`, and the theorem asserts both the
+identification of the infinite post-cutoff tail with the analytically continued
+zeta value minus the finite truncation, and the uniform endpoint bound produced by
+Euler-Maclaurin after Abel summation; cf. Titchmarsh, *The Theory of the Riemann
+Zeta-function*, §3.5. -/
+theorem eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_one
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    HasSum
+        (fun n : ℕ =>
+          if ⌊2 + ‖t‖⌋₊ < n then
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
+          else
+            0)
+        (riemannZeta (boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) ∧
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1 := by
+  sorry
+
+/-- Transport a boundary-line tail norm estimate from the Abel-normalized oscillatory
+finite truncation back to the original Dirichlet monomials. -/
+theorem boundaryLineOnePointRealParam_tail_norm_le_one_of_oscillatory_tail_norm_le_one
+    (t : ℝ)
+    (hosc :
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1) :
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
+      ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+        (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
+  have hfinite :
+      (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    boundaryLineOnePointRealParam_finite_truncation_eq_inv_mul_oscillation_sum
+      t ⌊2 + ‖t‖⌋₊
+  have htail_transport :
+      riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) =
+      riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
+    congrArg
+      (fun S : ℂ => riemannZeta (boundaryLineOnePointRealParam t) - S)
+      hfinite
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ 1)
+    htail_transport.symm
+    hosc
+
 /-- Classical Euler-Maclaurin tail estimate after truncation at
 `N = ⌊2 + |t|⌋₊`.
 
-This is the remaining analytic input: Abel summation controls the oscillatory tail
-on `1 + it`, and Euler-Maclaurin bounds the endpoint remainder uniformly; cf.
-Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+This is now only the mechanical transport from the oscillatory Abel-tail form
+`n⁻¹ n⁻ⁱᵗ` back to the original boundary-line Dirichlet monomials. -/
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤ 1 := by
-  sorry
+  have htail :
+      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ 1 :=
+    (eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_one
+      t ht).2
+  exact boundaryLineOnePointRealParam_tail_norm_le_one_of_oscillatory_tail_norm_le_one
+    t htail
 
 /-- The exact Abel/Euler-Maclaurin tail estimate after truncation at
 `N = ⌊2 + |t|⌋₊`. -/
