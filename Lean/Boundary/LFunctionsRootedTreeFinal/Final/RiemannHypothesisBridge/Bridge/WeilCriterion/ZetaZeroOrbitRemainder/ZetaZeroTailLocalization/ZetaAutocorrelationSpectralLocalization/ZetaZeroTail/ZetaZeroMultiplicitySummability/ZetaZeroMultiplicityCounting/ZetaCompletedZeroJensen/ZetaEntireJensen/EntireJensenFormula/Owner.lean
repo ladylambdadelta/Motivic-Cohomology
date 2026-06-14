@@ -2064,6 +2064,96 @@ theorem entireFunction_originTaylorFactor_nonzeroRadialGapSummand_equiv
         hmult)
       rfl
 
+/-- Closed-disk summability on the canonical nonzero-zero index transports
+through the origin Taylor quotient. -/
+theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_canonical
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R : ℝ}
+    (hGsum :
+      Summable
+        (fun z : EntireFunctionNonzeroZero G =>
+          entireFunctionNonzeroZeroClosedDiskSummand G hG R z)) :
+    Summable
+      (fun z : EntireFunctionNonzeroZero F =>
+        entireFunctionNonzeroZeroClosedDiskSummand F hF R z) := by
+  let e : EntireFunctionNonzeroZero F ≃ EntireFunctionNonzeroZero G :=
+    entireFunction_originTaylorFactor_nonzeroZeroEquiv F G hF hfactor
+  have hcomp :
+      Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroClosedDiskSummand G hG R (e z)) :=
+    (e.summable_iff).mpr hGsum
+  exact hcomp.congr
+    (fun z =>
+      entireFunction_originTaylorFactor_nonzeroClosedDiskSummand_equiv
+        F G hF hG hfactor R z)
+
+/-- Radial-gap summability on the canonical nonzero-zero index transports
+through the origin Taylor quotient. -/
+theorem entireFunction_originTaylorFactor_nonzeroRadialGapSummable_canonical
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {ρ : ℝ}
+    (hGsum :
+      Summable
+        (fun z : EntireFunctionNonzeroZero G =>
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ z)) :
+    Summable
+      (fun z : EntireFunctionNonzeroZero F =>
+        entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) := by
+  let e : EntireFunctionNonzeroZero F ≃ EntireFunctionNonzeroZero G :=
+    entireFunction_originTaylorFactor_nonzeroZeroEquiv F G hF hfactor
+  have hcomp :
+      Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ (e z)) :=
+    (e.summable_iff).mpr hGsum
+  exact hcomp.congr
+    (fun z =>
+      entireFunction_originTaylorFactor_nonzeroRadialGapSummand_equiv
+        F G hF hG hfactor ρ z)
+
+/-- The old `EntireFunctionZero` nonzero closed-disk summability surface is
+equivalent to summability on the canonical nonzero-zero index. -/
+theorem entireFunctionNonzeroZeroClosedDiskSummable_canonical_iff_zeroSubtype
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ) :
+    Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroClosedDiskSummand F hF R z) ↔
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  -- The two indexings differ only by the single origin zero, whose nonzero
+  -- summand is definitionally zero.
+  sorry
+
+/-- The old `EntireFunctionZero` radial-gap summability surface is equivalent
+to summability on the canonical nonzero-zero index. -/
+theorem entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) :
+    Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) ↔
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) := by
+  -- The two indexings differ only by the single origin zero, whose radial-gap
+  -- summand is definitionally zero.
+  sorry
+
 /-- Closed-disk nonzero-zero summability transports from the global origin
 Taylor quotient back to the original entire function. -/
 theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
@@ -2082,11 +2172,21 @@ theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
     Summable
       (fun z : EntireFunctionZero F =>
         entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
-  -- Transport the summable family through the explicit bijection between
-  -- nonzero zeros of `F` and nonzero zeros of the global quotient `G`; the
-  -- multiplicities agree because the removed factor is supported only at the
-  -- origin.
-  sorry
+  have hGcanonical :
+      Summable
+        (fun z : EntireFunctionNonzeroZero G =>
+          entireFunctionNonzeroZeroClosedDiskSummand G hG R z) :=
+    (entireFunctionNonzeroZeroClosedDiskSummable_canonical_iff_zeroSubtype
+      G hG R).mpr hGsum
+  have hFcanonical :
+      Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroClosedDiskSummand F hF R z) :=
+    entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_canonical
+      F G hF hG hfactor hGcanonical
+  exact
+    (entireFunctionNonzeroZeroClosedDiskSummable_canonical_iff_zeroSubtype
+      F hF R).mp hFcanonical
 
 /-- Radial-gap summability and radial-gap sums transport through the global
 origin Taylor quotient. -/
