@@ -2721,6 +2721,45 @@ theorem real_integral_log_abs_sin_zero_pi_eq_log_sin :
     intervalIntegral.integral_congr_ae
       real_log_abs_sin_ae_eq_log_sin_zero_pi
 
+/-- Away from the endpoint zeros, the logarithmic sine kernel is continuous on
+the Jensen sine interval. -/
+theorem real_log_abs_sin_continuousOn_Icc_compl_endpoints :
+    ContinuousOn
+      (fun u : ℝ => Real.log |Real.sin u|)
+      ({u : ℝ | u ∈ Set.Icc (0 : ℝ) Real.pi ∧
+        u ∉ ({0, Real.pi} : Set ℝ)}) := by
+  have hsin_ne :
+      ∀ u : ℝ,
+        u ∈ {u : ℝ | u ∈ Set.Icc (0 : ℝ) Real.pi ∧
+          u ∉ ({0, Real.pi} : Set ℝ)} →
+          |Real.sin u| ≠ 0 := by
+    intro u hu
+    have huIcc : u ∈ Set.Icc (0 : ℝ) Real.pi :=
+      hu.1
+    have hu_not_end : u ∉ ({0, Real.pi} : Set ℝ) :=
+      hu.2
+    have hu0_ne : u ≠ 0 := by
+      intro hu0
+      exact hu_not_end (Or.inl hu0)
+    have hupi_ne : u ≠ Real.pi := by
+      intro hupi
+      exact hu_not_end (Or.inr hupi)
+    have h0_lt_u : 0 < u :=
+      lt_of_le_of_ne huIcc.1 (Ne.symm hu0_ne)
+    have hu_lt_pi : u < Real.pi :=
+      lt_of_le_of_ne huIcc.2 hupi_ne
+    have hsin_pos : 0 < Real.sin u :=
+      Real.sin_pos_of_pos_of_lt_pi h0_lt_u hu_lt_pi
+    exact abs_ne_zero.mpr hsin_pos.ne'
+  have habs_cont :
+      ContinuousOn
+        (fun u : ℝ => |Real.sin u|)
+        ({u : ℝ | u ∈ Set.Icc (0 : ℝ) Real.pi ∧
+          u ∉ ({0, Real.pi} : Set ℝ)}) :=
+    (Real.continuous_sin.continuousOn).abs
+  exact
+    ContinuousOn.log habs_cont hsin_ne
+
 /-- Standard interval-integrability of the logarithmic sine kernel on
 `[0,π]`.
 
@@ -11184,26 +11223,9 @@ theorem complex_closedBall_radial_punctured_avoidFinite_frequently
           have ht_abs_le_one : |t| ≤ 1 :=
             abs_le.2 ⟨ht_nonneg, ht_lt_one.le⟩
           have hnorm_scalar : ‖(t : ℂ)‖ = |t| := by
-            by_cases ht_sign : 0 ≤ t
-            · exact complex_norm_ofReal_of_nonnegative ht_sign
-            · have ht_abs : |t| = -t :=
-                abs_of_neg (lt_of_not_ge ht_sign)
-              have hnorm_neg :
-                  ‖(t : ℂ)‖ = -t := by
-                have hneg_nonneg : 0 ≤ -t :=
-                  neg_nonneg.2 (le_of_lt (lt_of_not_ge ht_sign))
-                have hneg_eq : ((-t : ℝ) : ℂ) = -(t : ℂ) :=
-                  Complex.ofReal_neg t
-                have hnorm_neg_eq :
-                    ‖((-t : ℝ) : ℂ)‖ = ‖(t : ℂ)‖ := by
-                  calc
-                    ‖((-t : ℝ) : ℂ)‖ = ‖-(t : ℂ)‖ := by
-                      exact congrArg norm hneg_eq
-                    _ = ‖(t : ℂ)‖ := norm_neg (t : ℂ)
-                exact
-                  hnorm_neg_eq.symm.trans
-                    (complex_norm_ofReal_of_nonnegative hneg_nonneg)
-              exact hnorm_neg.trans ht_abs.symm
+            exact
+              (complex_norm_ofReal_of_nonnegative ht_nonneg).trans
+                (abs_of_nonneg ht_nonneg).symm
           have hnorm_le_a : ‖(t : ℂ) * a‖ ≤ ‖a‖ := by
             calc
               ‖(t : ℂ) * a‖ = ‖(t : ℂ)‖ * ‖a‖ := by

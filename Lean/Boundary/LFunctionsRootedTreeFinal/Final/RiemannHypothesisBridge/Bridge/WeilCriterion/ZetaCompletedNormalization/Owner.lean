@@ -12797,7 +12797,20 @@ theorem real_integral_Ioc_log_two_add_div_sq_eq_mul_inv_sq
     (hb : (2 : ℝ) ≤ b) :
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
       ∫ x in (2 : ℝ)..b, Real.log (2 + x) * (1 / x ^ 2) := by
-  sorry
+  have hset :
+      ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+        ∫ x in (2 : ℝ)..b, Real.log (2 + x) / x ^ 2 :=
+    (intervalIntegral.integral_of_le hb).symm
+  have hpoint :
+      (fun x : ℝ => Real.log (2 + x) / x ^ 2) =
+        (fun x : ℝ => Real.log (2 + x) * (1 / x ^ 2)) := by
+    exact funext
+      (fun x : ℝ =>
+        div_eq_mul_one_div (Real.log (2 + x)) (x ^ 2))
+  exact Eq.trans hset
+    (congrArg
+      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
+      hpoint)
 
 /-- Interval/set normalization for the by-parts remainder term. -/
 theorem real_intervalIntegral_one_div_mul_two_add_eq_Ioc
