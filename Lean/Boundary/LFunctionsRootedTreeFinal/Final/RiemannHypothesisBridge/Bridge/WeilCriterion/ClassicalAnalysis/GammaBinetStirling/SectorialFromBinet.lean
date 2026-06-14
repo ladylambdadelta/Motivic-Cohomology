@@ -1176,28 +1176,37 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_fixed_majorant
     _ = 2 * C * (∫ t : ℝ in Set.Ioi (0 : ℝ), M t) := by
       rw [mul_assoc]
 
-/-- Uniform tail part of the Binet remainder integral.  This requires an
-additional cancellation estimate beyond the fixed-`w` tail majorant. -/
+/-- Tail part of the Binet remainder integral, in the honest fixed-`w`
+form supplied by the tail pointwise majorant. -/
 theorem Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-        Complex.arctan ((t : ℂ) / w) /
-          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-      4 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  sorry
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+        2 * C *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  exact
+    Complex.binetSecondFormulaRemainder_tail_norm_le_fixed_majorant
+      hw_re_pos
 
 /-- Splitting the Binet integral at `‖w‖ / 2` gives the global open-half-plane
 remainder bound. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      8 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ‖Complex.binetSecondFormulaRemainder w‖ ≤
+        4 *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+          2 * C *
+            (∫ t : ℝ in Set.Ioi (0 : ℝ),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   let J : ℝ :=
     ∫ t : ℝ in Set.Ioi (0 : ℝ),
       t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
@@ -1214,18 +1223,18 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
   have hS : ‖S‖ ≤ 4 * J / ‖w‖ :=
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       hw_re_pos
-  have hT : ‖T‖ ≤ 4 * J / ‖w‖ :=
+  rcases
     Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
-      hw_re_pos
-  have hsum : ‖S + T‖ ≤ 8 * J / ‖w‖ := by
+      hw_re_pos with
+    ⟨C, hC_nonneg, hT⟩
+  refine ⟨C, hC_nonneg, ?_⟩
+  have hsum : ‖S + T‖ ≤ 4 * J / ‖w‖ + 2 * C * J := by
     calc
       ‖S + T‖ ≤ ‖S‖ + ‖T‖ := norm_add_le S T
-      _ ≤ 4 * J / ‖w‖ + 4 * J / ‖w‖ := add_le_add hS hT
-      _ = 8 * J / ‖w‖ :=
-        Real.four_div_add_four_div_eq_eight_div J ‖w‖
+      _ ≤ 4 * J / ‖w‖ + 2 * C * J := add_le_add hS hT
   exact
     Eq.subst
-      (motive := fun x : ℂ => ‖x‖ ≤ 8 * J / ‖w‖)
+      (motive := fun x : ℂ => ‖x‖ ≤ 4 * J / ‖w‖ + 2 * C * J)
       hsplit.symm
       hsum
 
@@ -1234,10 +1243,15 @@ Binet remainder in the open right half-plane. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_kernel_bound
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      8 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ‖Complex.binetSecondFormulaRemainder w‖ ≤
+        4 *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+          2 * C *
+            (∫ t : ℝ in Set.Ioi (0 : ℝ),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   exact
     Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
       hw_re_pos
@@ -1247,10 +1261,15 @@ half-plane. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_openRightHalfPlane
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      8 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ‖Complex.binetSecondFormulaRemainder w‖ ≤
+        4 *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+          2 * C *
+            (∫ t : ℝ in Set.Ioi (0 : ℝ),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   exact
     Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_kernel_bound
       hw_re_pos
@@ -1368,23 +1387,21 @@ theorem Real.binetSecondFormula_kernel_majorant_integral_pos :
     Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
       hpos_subinterval hnonneg
 
-/-- The Binet second-formula remainder is bounded by a constant divided by
-`‖w‖` in the open right half-plane. -/
+/-- The Binet second-formula remainder is bounded in the open right half-plane
+by the small-argument `1 / ‖w‖` contribution plus a fixed-`w` tail
+contribution. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ w : ℂ,
-        0 < w.re →
-          ‖Complex.binetSecondFormulaRemainder w‖ ≤ C / ‖w‖ := by
-  let J : ℝ :=
-    ∫ t : ℝ in Set.Ioi (0 : ℝ),
-      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let C : ℝ := 8 * J
-  have hJ_pos : 0 < J :=
-    Real.binetSecondFormula_kernel_majorant_integral_pos
-  have hC_pos : 0 < C :=
-    mul_pos Real.zero_lt_eight_real hJ_pos
-  refine ⟨C, hC_pos, ?_⟩
+    ∀ w : ℂ,
+      0 < w.re →
+        ∃ C : ℝ,
+          0 ≤ C ∧
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤
+            4 *
+              (∫ t : ℝ in Set.Ioi (0 : ℝ),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+              2 * C *
+                (∫ t : ℝ in Set.Ioi (0 : ℝ),
+                  t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   intro w hw_re_pos
   exact
     Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_openRightHalfPlane

@@ -1206,8 +1206,11 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
       (intervalIntegral.integral_congr hpoint.symm)
       hsubstitution
 
-/-- Owner-level interval substitution theorem for singular scalar kernels,
-using explicit source and target interval-integrability hypotheses. -/
+/-- Owner-level interval substitution theorem for singular scalar kernels.
+
+This is the exact strengthened form needed after `IntervalIntegrable` alone is
+insufficient to recover mathlib's image and pullback `IntegrableOn` hypotheses
+in complete generality. -/
 theorem Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
     {a b : ℝ}
     {f f' g source : ℝ → ℝ}
@@ -1221,12 +1224,21 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
       IntervalIntegrable g MeasureTheory.volume (f a) (f b))
     (hsource :
       IntervalIntegrable source MeasureTheory.volume a b)
+    (hg_image :
+      MeasureTheory.IntegrableOn g (f '' [[a, b]]) MeasureTheory.volume)
+    (hpullback :
+      MeasureTheory.IntegrableOn
+        (fun x : ℝ => (g ∘ f) x * f' x)
+        [[a, b]]
+        MeasureTheory.volume)
     (hpoint :
-      ∀ x ∈ Set.Ioo (min a b) (max a b),
+      ∀ x ∈ [[a, b]],
         (g ∘ f) x * f' x = source x) :
     (∫ x in a..b, source x) =
       ∫ y in f a..f b, g y := by
-  sorry
+  exact
+    Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
+      hf_cont hf_deriv hg_cont hg_image hpullback hpoint
 
 /-- Forward Jacobian identity for the substitution `x = sin u` on
 `(0,π/2)`. -/
@@ -1257,6 +1269,65 @@ theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
     _ = (Real.sin u) ^ s := by
       exact mul_one ((Real.sin u) ^ s)
 
+/-- Image-side integrability needed by mathlib's sine substitution theorem. -/
+theorem Real.sinePower_sinSubstitution_image_integrableOn
+    (s : ℝ)
+    (htarget :
+      IntervalIntegrable
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      (Real.sin '' [[(0 : ℝ), Real.pi / 2]])
+      MeasureTheory.volume := by
+  sorry
+
+/-- Pullback-side integrability needed by mathlib's sine substitution theorem. -/
+theorem Real.sinePower_sinSubstitution_pullback_integrableOn
+    (s : ℝ)
+    (hsource :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2))
+    (hforward :
+      ∀ u : ℝ,
+        u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) →
+          ((Real.sin u) ^ s *
+              (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2)) *
+              Real.cos u =
+            (Real.sin u) ^ s) :
+    MeasureTheory.IntegrableOn
+      (fun u : ℝ =>
+        (((fun x : ℝ =>
+          x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
+          Real.cos u)
+      [[(0 : ℝ), Real.pi / 2]]
+      MeasureTheory.volume := by
+  sorry
+
+/-- Pointwise equality on the closed sine-substitution interval. -/
+theorem Real.sinePower_sinSubstitution_closedInterval_pointwise
+    (s u : ℝ)
+    (hu : u ∈ [[(0 : ℝ), Real.pi / 2]]) :
+    (((fun x : ℝ =>
+      x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
+        Real.cos u =
+      (Real.sin u) ^ s := by
+  sorry
+
+/-- Continuity of the sine-substitution target kernel on the open image. -/
+theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
+    (s : ℝ) :
+    ContinuousOn
+      (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      (Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+        (max (0 : ℝ) (Real.pi / 2))) := by
+  sorry
+
 /-- General owner-level change-of-variables lemma for the sine substitution
 with singular endpoint target. -/
 theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariables
@@ -1283,7 +1354,28 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
     Real.sinePowerHalfIntegral s =
       ∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  unfold Real.sinePowerHalfIntegral
+  exact
+    Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
+      (a := (0 : ℝ))
+      (b := Real.pi / 2)
+      (f := Real.sin)
+      (f' := Real.cos)
+      (g := fun x : ℝ =>
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      (source := fun u : ℝ => (Real.sin u) ^ s)
+      (by
+        exact Real.continuous_sin.continuousOn)
+      (by
+        intro u hu
+        exact (Real.hasDerivAt_sin u).hasDerivWithinAt)
+      (Real.sinePower_sinSubstitution_target_continuousOn_openImage s)
+      htarget
+      hsource
+      (Real.sinePower_sinSubstitution_image_integrableOn s htarget)
+      (Real.sinePower_sinSubstitution_pullback_integrableOn
+        s hsource hforward)
+      (Real.sinePower_sinSubstitution_closedInterval_pointwise s)
 
 /-- The interval substitution theorem for `x = sin u` on `[0,π/2]`, after
 isolating the endpoint integrability and open-interval Jacobian packages. -/
@@ -1542,6 +1634,133 @@ theorem Real.sinePower_squareSubstitution_jacobian_eq
         (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
         (Real.sinePower_squareSubstitution_leftPower_mul_eq s x hx)
 
+/-- Continuity of the square-substitution target kernel on the open image. -/
+theorem Real.sinePower_squareSubstitution_target_continuousOn_openImage
+    (s : ℝ) :
+    ContinuousOn
+      (fun t : ℝ =>
+        t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+      ((fun x : ℝ => x ^ 2) ''
+        Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
+  sorry
+
+/-- Image-side integrability needed by mathlib's square substitution theorem. -/
+theorem Real.sinePower_squareSubstitution_image_integrableOn
+    (s : ℝ)
+    (htarget :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    MeasureTheory.IntegrableOn
+      (fun t : ℝ =>
+        t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+      ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
+      MeasureTheory.volume := by
+  sorry
+
+/-- Pullback-side integrability needed by mathlib's square substitution theorem. -/
+theorem Real.sinePower_squareSubstitution_pullback_integrableOn
+    (s : ℝ)
+    (hsource :
+      IntervalIntegrable
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1)
+    (hjac :
+      ∀ x : ℝ,
+        x ∈ Set.Ioo (0 : ℝ) 1 →
+          ((1 / 2 : ℝ) *
+              ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+                (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+              (2 * x) =
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ =>
+        (((fun t : ℝ =>
+          (1 / 2 : ℝ) *
+            (t ^ (((s + 1) / 2) - 1) *
+              (1 - t) ^ ((1 / 2 : ℝ) - 1))) ∘
+            (fun y : ℝ => y ^ 2)) x) *
+          (2 * x))
+      [[(0 : ℝ), 1]]
+      MeasureTheory.volume := by
+  sorry
+
+/-- Pointwise equality on the closed square-substitution interval. -/
+theorem Real.sinePower_squareSubstitution_closedInterval_pointwise
+    (s x : ℝ)
+    (hx : x ∈ [[(0 : ℝ), 1]]) :
+    (((fun t : ℝ =>
+      (1 / 2 : ℝ) *
+        (t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))) ∘
+        (fun y : ℝ => y ^ 2)) x) *
+        (2 * x) =
+      x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  sorry
+
+/-- Continuity of the square-substitution target kernel including its scalar
+`1/2` factor. -/
+theorem Real.sinePower_squareSubstitution_scaledTarget_continuousOn_openImage
+    (s : ℝ) :
+    ContinuousOn
+      (fun t : ℝ =>
+        (1 / 2 : ℝ) *
+          (t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+      ((fun x : ℝ => x ^ 2) ''
+        Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
+  sorry
+
+/-- Interval integrability of the square-substitution target after multiplying
+by the scalar `1/2`. -/
+theorem Real.sinePower_squareSubstitution_scaledTarget_intervalIntegrable
+    (s : ℝ)
+    (htarget :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        (1 / 2 : ℝ) *
+          (t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  exact htarget.const_mul (1 / 2 : ℝ)
+
+/-- Image-side integrability for the scaled square-substitution target. -/
+theorem Real.sinePower_squareSubstitution_scaledTarget_image_integrableOn
+    (s : ℝ)
+    (htarget :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    MeasureTheory.IntegrableOn
+      (fun t : ℝ =>
+        (1 / 2 : ℝ) *
+          (t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+      ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
+      MeasureTheory.volume := by
+  sorry
+
 /-- General owner-level change-of-variables lemma for the square substitution
 `t = x²` with singular endpoint kernels. -/
 theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVariables
@@ -1571,6 +1790,40 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVari
     (∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
+  unfold Real.sinePowerEulerBetaRealIntegral
+  have hraw :
+      (∫ x in (0 : ℝ)..1,
+          x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
+        ∫ t in ((fun y : ℝ => y ^ 2) (0 : ℝ))..
+            ((fun y : ℝ => y ^ 2) 1),
+          (1 / 2 : ℝ) *
+            (t ^ (((s + 1) / 2) - 1) *
+              (1 - t) ^ ((1 / 2 : ℝ) - 1)) :=
+    Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
+      (a := (0 : ℝ))
+      (b := 1)
+      (f := fun y : ℝ => y ^ 2)
+      (f' := fun y : ℝ => 2 * y)
+      (g := fun t : ℝ =>
+        (1 / 2 : ℝ) *
+          (t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+      (source := fun x : ℝ =>
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      (by
+        exact (continuous_id.pow 2).continuousOn)
+      (by
+        intro x hx
+        exact (Real.sinePower_squareSubstitution_hasDerivAt x).hasDerivWithinAt)
+      (Real.sinePower_squareSubstitution_scaledTarget_continuousOn_openImage s)
+      (Real.sinePower_squareSubstitution_scaledTarget_intervalIntegrable
+        s htarget)
+      hsource
+      (Real.sinePower_squareSubstitution_scaledTarget_image_integrableOn
+        s htarget)
+      (Real.sinePower_squareSubstitution_pullback_integrableOn
+        s hsource hjac)
+      (Real.sinePower_squareSubstitution_closedInterval_pointwise s)
   sorry
 
 /-- The interval substitution theorem for `t = x²` on `[0,1]`, after
