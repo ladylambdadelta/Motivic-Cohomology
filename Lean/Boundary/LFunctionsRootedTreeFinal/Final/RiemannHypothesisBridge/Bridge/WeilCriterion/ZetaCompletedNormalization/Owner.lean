@@ -22295,7 +22295,7 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
               _ = s.re + 1 := by
                 exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
           have hs_add_nonneg : 0 ≤ s.re + 1 :=
-            le_trans zero_le_one (le_add_of_nonneg_right (le_trans zero_le_one hs_re))
+            add_nonneg (le_trans zero_le_one hs_re) zero_le_one
           exact Eq.subst
             (motive := fun x : ℝ => 0 ≤ x)
             hs_add_re_eq.symm
@@ -22308,7 +22308,9 @@ theorem Gammaℂ_rightHalfPlane_finiteOrder_growth_bound :
                 _ = s.re + 1 := by
                   exact congrArg (fun x : ℝ => s.re + x) Complex.one_re
             have hone_le_add : (1 : ℝ) ≤ s.re + 1 :=
-              le_add_of_nonneg_left (le_trans zero_le_one hs_re)
+              calc
+                (1 : ℝ) = 0 + 1 := (zero_add 1).symm
+                _ ≤ s.re + 1 := add_le_add_right (le_trans zero_le_one hs_re) 1
             exact Eq.subst
               (motive := fun x : ℝ => (1 : ℝ) ≤ x)
               hs_add_re_eq.symm

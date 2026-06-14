@@ -2448,14 +2448,67 @@ theorem unitCircleLogKernel_norm_eq_two_abs_sin_half
     (sq_eq_sq₀ hleft_nonneg hright_nonneg).1
       (unitCircleLogKernel_norm_sq_eq_two_abs_sin_half_sq θ)
 
+/-- Pointwise logarithmic split of the unit-circle kernel away from the
+finite endpoint singularities. -/
+theorem unitCircleLogKernel_log_eq_const_plus_halfSineLog_of_sin_ne_zero
+    (θ : ℝ)
+    (hθ : Real.sin (θ / 2) ≠ 0) :
+    Real.log ‖1 - Complex.exp (θ * Complex.I)‖ =
+      Real.log 2 + Real.log |Real.sin (θ / 2)| := by
+  have hnorm :
+      ‖1 - Complex.exp (θ * Complex.I)‖ =
+        2 * |Real.sin (θ / 2)| :=
+    unitCircleLogKernel_norm_eq_two_abs_sin_half θ
+  have htwo : (2 : ℝ) ≠ 0 :=
+    two_ne_zero
+  have habs : |Real.sin (θ / 2)| ≠ 0 :=
+    abs_ne_zero.mpr hθ
+  calc
+    Real.log ‖1 - Complex.exp (θ * Complex.I)‖ =
+        Real.log (2 * |Real.sin (θ / 2)|) := by
+      exact congrArg Real.log hnorm
+    _ = Real.log 2 + Real.log |Real.sin (θ / 2)| := by
+      exact Real.log_mul htwo habs
+
+/-- Restricted-a.e. logarithmic split of the unit-circle kernel on the
+fundamental interval.
+
+The exceptional set is the finite set of endpoint singularities where
+`sin (θ/2) = 0`. -/
+theorem unitCircleLogKernel_log_eq_const_plus_halfSineLog_ae :
+    (fun θ : ℝ => Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =ᵐ[
+        MeasureTheory.volume.restrict (Ι (0 : ℝ) (2 * Real.pi))]
+      (fun θ : ℝ => Real.log 2 + Real.log |Real.sin (θ / 2)|) := by
+  -- The zero set of `sin (θ/2)` in `Ι 0 (2π)` is finite; away from it use
+  -- `unitCircleLogKernel_log_eq_const_plus_halfSineLog_of_sin_ne_zero`.
+  sorry
+
 /-- Integral split after the pointwise half-angle norm identity. -/
 theorem unitCircleLogKernel_integral_eq_const_plus_halfSineLog :
     (∫ θ in (0 : ℝ)..(2 * Real.pi),
       Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
       ∫ θ in (0 : ℝ)..(2 * Real.pi),
         Real.log 2 + Real.log |Real.sin (θ / 2)| := by
-  -- Pointwise use of `unitCircleLogKernel_norm_eq_two_abs_sin_half` and
-  -- `Real.log_mul` away from the finite endpoint singularities.
+  exact
+    intervalIntegral.integral_congr_ae
+      unitCircleLogKernel_log_eq_const_plus_halfSineLog_ae
+
+/-- Half-angle linear substitution before removing the absolute value. -/
+theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log |Real.sin (θ / 2)|) =
+      2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) := by
+  -- Apply `intervalIntegral.integral_comp_div` with divisor `2`, then
+  -- normalize the endpoints `0 / 2` and `(2π) / 2`.
+  sorry
+
+/-- On `[0,π]`, replacing `log |sin u|` by `log (sin u)` changes only the
+finite endpoint singularities. -/
+theorem real_integral_log_abs_sin_zero_pi_eq_log_sin :
+    (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) =
+      ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u) := by
+  -- The sine is nonnegative on `[0,π]` and positive on the interior; the
+  -- endpoints are a null finite set.
   sorry
 
 /-- Half-angle interval substitution for the sine-log kernel. -/
@@ -2463,9 +2516,15 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
     (∫ θ in (0 : ℝ)..(2 * Real.pi),
       Real.log |Real.sin (θ / 2)|) =
       2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
-  -- Change variables `θ = 2u`; on `[0,π]`, `sin u` is nonnegative, so the
-  -- absolute value may be removed.
-  sorry
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log |Real.sin (θ / 2)|) =
+        2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) :=
+      unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog
+    _ =
+        2 * (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) := by
+      exact congrArg (fun x : ℝ => 2 * x)
+        real_integral_log_abs_sin_zero_pi_eq_log_sin
 
 /-- Constant part of the unit-circle kernel integral. -/
 theorem unitCircleLogKernel_const_integral_eq :
