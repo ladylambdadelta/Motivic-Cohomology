@@ -5583,150 +5583,51 @@ theorem boundaryLineOnePointRealParam_riemannZeta_continuousAt
     (differentiableAt_riemannZeta
       (boundaryLineOnePointRealParam_ne_one_of_one_le_norm t ht)).continuousAt
 
-/-- Dirichlet convergence of the boundary series `∑ n^{-1-it}` for `|t| ≥ 1`.
-
-The proof root is the standard Dirichlet test: the phase partial sums
-`∑_{n < N} n^{-it}` are bounded for nonzero `t`, while the Abel weight `1 / n`
-is monotone and tends to zero. -/
-theorem boundaryLineOnePointRealParam_dirichlet_series_hasSum
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
-    ∃ S : ℂ,
-      HasSum
-        (fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
-        S := by
-  sorry
+/-- The right-half-plane Abel family approaching the boundary point `1 + it`. -/
+def boundaryLineOnePointRealParam_abscissaShift
+    (σ t : ℝ) : ℂ :=
+  (σ : ℂ) + (t : ℂ) * Complex.I
 
 /-- Abel continuation of the half-plane Dirichlet identity to the boundary point
 `1 + it`.
 
-The proof chain is:
-`zeta_eq_tsum_one_div_nat_cpow` on `1 < re s`, Abel's limit theorem for the
-Dirichlet series with coefficients `n^{-it}`, and
-`boundaryLineOnePointRealParam_riemannZeta_continuousAt` for the analytic
-continuation side. -/
-theorem boundaryLineOnePointRealParam_dirichlet_series_abel_continuation_sum_eq_riemannZeta
+The ordinary boundary series `∑ n^{-1-it}` is not asserted to converge.  The
+correct owner statement is the Abel-limit theorem: the half-plane sums
+`∑ n^{-σ-it}` tend to the analytic-continuation value of `ζ` as
+`σ ↓ 1`. -/
+theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
-    {S : ℂ}
-    (hS :
-      HasSum
-        (fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
-        S) :
-    S = riemannZeta (boundaryLineOnePointRealParam t) := by
+    (ht : 1 ≤ ‖t‖) :
+    Tendsto
+      (fun σ : ℝ =>
+        ∑' n : ℕ,
+          (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift σ t))
+      (𝓝[>] (1 : ℝ))
+      (𝓝 (riemannZeta (boundaryLineOnePointRealParam t))) := by
   sorry
 
-/-- Conditional Dirichlet-series identity on the boundary line `s = 1 + it`. -/
-theorem boundaryLineOnePointRealParam_dirichlet_series_hasSum_riemannZeta
+/-- The Abel boundary value of the Dirichlet presentation is the analytic
+continuation value of `ζ(1 + it)`. -/
+theorem boundaryLineOnePointRealParam_dirichlet_series_abel_boundaryValue_eq_riemannZeta
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
-    HasSum
-        (fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
-        (riemannZeta (boundaryLineOnePointRealParam t)) := by
-  let f : ℕ → ℂ :=
-    fun n : ℕ =>
-      (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
-  rcases boundaryLineOnePointRealParam_dirichlet_series_hasSum t ht with
-    ⟨S, hS⟩
-  have hS_eq :
-      S = riemannZeta (boundaryLineOnePointRealParam t) :=
-    boundaryLineOnePointRealParam_dirichlet_series_abel_continuation_sum_eq_riemannZeta
-      t ht hS
-  exact Eq.subst
-    (motive := fun z : ℂ => HasSum f z)
-    hS_eq
-    hS
-
-/-- Finite-tail subtraction from the boundary-line Dirichlet series, followed by
-the pointwise transport from `n^{-1-it}` to the Abel-normalized oscillatory tail. -/
-theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
-    (t : ℝ)
-    (hζ :
-      HasSum
-        (fun n : ℕ =>
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t))
-        (riemannZeta (boundaryLineOnePointRealParam t))) :
-    HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  have hdir_tail :
-      HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
-    boundaryLineOnePointRealParam_dirichlet_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
-      t ⌊2 + ‖t‖⌋₊ hζ
-  have hosc_tail :
-      HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) :=
-    hdir_tail.congr_fun
-      (fun n : ℕ =>
-        (boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscillation
-          t n).symm)
-  have hfinite :
-      (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-          (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
-        ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
-    boundaryLineOnePointRealParam_finite_truncation_eq_inv_mul_oscillation_sum
-      t ⌊2 + ‖t‖⌋₊
-  exact Eq.subst
-    (motive := fun S : ℂ =>
-      HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) - S))
-    hfinite
-    hosc_tail
-
-/-- Dirichlet-series continuation identity for the exact post-cutoff oscillatory
-boundary-line tail.
-
-Intended proof chain:
-start from `LSeriesHasSum_zeta` on `1 < re s`, subtract the finite truncation
-`∑_{1 ≤ n ≤ N} n^{-s}`, continue the identity to `s = 1 + it` with `t ≠ 0`,
-and transport each surviving post-cutoff term through
-`boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left`. -/
-theorem boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder
-    (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
-    HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+    ∃ V : ℂ,
+      Tendsto
+        (fun σ : ℝ =>
+          ∑' n : ℕ,
+            (1 : ℂ) /
+              ((n : ℂ) ^
+                boundaryLineOnePointRealParam_abscissaShift σ t))
+        (𝓝[>] (1 : ℝ))
+        (𝓝 V) ∧
+      V = riemannZeta (boundaryLineOnePointRealParam t) := by
   exact
-    boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder_of_dirichlet_series
-      t
-      (boundaryLineOnePointRealParam_dirichlet_series_hasSum_riemannZeta t ht)
+    ⟨riemannZeta (boundaryLineOnePointRealParam t),
+      boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
+        t ht,
+      rfl⟩
 
 /-- Explicit Abel/Euler-Maclaurin estimate for the exact post-cutoff oscillatory
 boundary-line zeta remainder.
@@ -5736,8 +5637,8 @@ apply `abelSummation_boundaryLineOnePointRealParam_cutoff_nat_tail_identity` to
 finite tails, bound the oscillatory partial sums
 `∑_{0 ≤ n ≤ M} n^{-it}` on the range `1 ≤ |t|` by the logarithmic-phase
 Euler/van-der-Corput estimate, use
-`positive_nat_reciprocal_antitone` for the decreasing Abel weight, pass to the
-post-cutoff limit using the preceding `HasSum` identity, and combine the endpoint
+`positive_nat_reciprocal_antitone` for the decreasing Abel weight, identify the
+Abel boundary value with the analytic continuation of `ζ`, and combine the endpoint
 and integral estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of the
 Riemann Zeta-function*, §3.5. -/
 theorem abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_explicit
@@ -5756,22 +5657,11 @@ identity and the explicit Abel/Euler-Maclaurin endpoint/integral estimate. -/
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_explicit
     (t : ℝ)
     (ht : 1 ≤ ‖t‖) :
-    HasSum
-        (fun n : ℕ =>
-          if ⌊2 + ‖t‖⌋₊ < n then
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
-          else
-            0)
-        (riemannZeta (boundaryLineOnePointRealParam t) -
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
-            ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))) ∧
-      ‖riemannZeta (boundaryLineOnePointRealParam t) -
+    ‖riemannZeta (boundaryLineOnePointRealParam t) -
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  exact And.intro
-    (boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_zeta_remainder
-      t ht)
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  exact
     (abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_explicit
       t ht)
 
@@ -5828,8 +5718,8 @@ theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t :=
-    (eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_explicit
-      t ht).2
+    eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_explicit
+      t ht
   exact boundaryLineOnePointRealParam_tail_norm_le_explicit_of_oscillatory_tail_norm_le_explicit
     t htail
 
@@ -5941,6 +5831,132 @@ theorem two_add_log_two_add_norm_le_three_mul_log_two_add_norm_of_one_le_norm
     _ = 3 * L := rfl
     _ = 3 * Real.log (2 + ‖t‖) := rfl
 
+/-- The enlarged logarithmic argument `3 + |t|` is absorbed by twice the
+canonical boundary-line logarithm. -/
+theorem log_three_add_norm_le_two_mul_log_two_add_norm
+    (t : ℝ) :
+    Real.log (3 + ‖t‖) ≤
+      2 * Real.log (2 + ‖t‖) := by
+  let x : ℝ := ‖t‖
+  have hx_nonneg : 0 ≤ x :=
+    norm_nonneg t
+  have hleft_pos : 0 < 3 + x := by
+    have hthree_pos : (0 : ℝ) < 3 :=
+      three_pos
+    exact lt_of_lt_of_le hthree_pos (le_add_of_nonneg_right hx_nonneg)
+  have hright_pos : 0 < 2 * (2 + x) := by
+    have htwo_pos : (0 : ℝ) < 2 :=
+      zero_lt_two
+    have harg_pos : 0 < 2 + x :=
+      lt_of_lt_of_le zero_lt_two (le_add_of_nonneg_right hx_nonneg)
+    exact mul_pos htwo_pos harg_pos
+  have harg_ne : (2 : ℝ) + x ≠ 0 :=
+    ne_of_gt (lt_of_lt_of_le zero_lt_two (le_add_of_nonneg_right hx_nonneg))
+  have htwo_ne : (2 : ℝ) ≠ 0 :=
+    ne_of_gt zero_lt_two
+  have harg_ge_two : (2 : ℝ) ≤ 2 + x :=
+    le_add_of_nonneg_right hx_nonneg
+  have hthree_le :
+      3 + x ≤ 2 * (2 + x) := by
+    have hx_le_two_x : x ≤ 2 * x := by
+      calc
+        x = 1 * x := by
+          exact (one_mul x).symm
+        _ ≤ 2 * x :=
+          mul_le_mul_of_nonneg_right one_le_two hx_nonneg
+    calc
+      3 + x ≤ 4 + 2 * x :=
+        add_le_add (by exact three_le_four) hx_le_two_x
+      _ = 2 * (2 + x) := by
+        exact (left_distrib 2 2 x).symm
+  have hlog_le :
+      Real.log (3 + x) ≤ Real.log (2 * (2 + x)) :=
+    Real.log_le_log hleft_pos hthree_le
+  have hlog_mul :
+      Real.log (2 * (2 + x)) =
+        Real.log 2 + Real.log (2 + x) :=
+    Real.log_mul htwo_ne harg_ne
+  have hlog_two_le :
+      Real.log 2 ≤ Real.log (2 + x) :=
+    Real.log_le_log zero_lt_two harg_ge_two
+  have hsum_le :
+      Real.log 2 + Real.log (2 + x) ≤
+        Real.log (2 + x) + Real.log (2 + x) :=
+    add_le_add_right hlog_two_le (Real.log (2 + x))
+  calc
+    Real.log (3 + ‖t‖) = Real.log (3 + x) := rfl
+    _ ≤ Real.log (2 * (2 + x)) :=
+      hlog_le
+    _ = Real.log 2 + Real.log (2 + x) :=
+      hlog_mul
+    _ ≤ Real.log (2 + x) + Real.log (2 + x) :=
+      hsum_le
+    _ = 2 * Real.log (2 + x) := by
+      exact (two_mul (Real.log (2 + x))).symm
+    _ = 2 * Real.log (2 + ‖t‖) := rfl
+
+/-- The explicit Abel-tail constant plus finite-truncation logarithmic term is
+absorbed by an absolute multiple of the canonical logarithm. -/
+theorem boundaryLineOnePointRealParam_explicit_tail_plus_log_le_constant_log
+    {t : ℝ}
+    (ht : 1 ≤ ‖t‖) :
+    boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+        (1 + Real.log (2 + ‖t‖)) ≤
+      38 * Real.log (2 + ‖t‖) := by
+  let L : ℝ := Real.log (2 + ‖t‖)
+  have hL_one : (1 : ℝ) ≤ L :=
+    one_le_log_two_add_norm_of_one_le_norm ht
+  have hL_nonneg : 0 ≤ L :=
+    le_trans zero_le_one hL_one
+  have hfour_le : (4 : ℝ) ≤ 4 * L := by
+    calc
+      (4 : ℝ) = 4 * 1 := by
+        exact (mul_one 4).symm
+      _ ≤ 4 * L :=
+        mul_le_mul_of_nonneg_left hL_one (by exact zero_le_four)
+  have hone_le : (1 : ℝ) ≤ L :=
+    hL_one
+  have hlog_three :
+      Real.log (3 + ‖t‖) ≤ 2 * L := by
+    exact log_three_add_norm_le_two_mul_log_two_add_norm t
+  have hsixteen_log :
+      16 * Real.log (3 + ‖t‖) ≤ 32 * L := by
+    calc
+      16 * Real.log (3 + ‖t‖) ≤ 16 * (2 * L) :=
+        mul_le_mul_of_nonneg_left hlog_three
+          (show (0 : ℝ) ≤ 16 from Nat.cast_nonneg 16)
+      _ = (16 * 2) * L := by
+        exact (mul_assoc 16 2 L).symm
+      _ = 32 * L := rfl
+  have htail :
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
+        36 * L := by
+    calc
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t =
+          4 + 16 * Real.log (3 + ‖t‖) := rfl
+      _ ≤ 4 * L + 32 * L :=
+        add_le_add hfour_le hsixteen_log
+      _ = (4 + 32) * L := by
+        exact (add_mul 4 32 L).symm
+      _ = 36 * L := rfl
+  have hfinite :
+      1 + Real.log (2 + ‖t‖) ≤ 2 * L := by
+    calc
+      1 + Real.log (2 + ‖t‖) = 1 + L := rfl
+      _ ≤ L + L :=
+        add_le_add_right hone_le L
+      _ = 2 * L := by
+        exact (two_mul L).symm
+  calc
+    boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+        (1 + Real.log (2 + ‖t‖)) ≤
+      36 * L + 2 * L :=
+        add_le_add htail hfinite
+    _ = (36 + 2) * L := by
+      exact (add_mul 36 2 L).symm
+    _ = 38 * L := rfl
+    _ = 38 * Real.log (2 + ‖t‖) := rfl
+
 /-- The finite truncation plus the Abel/Euler-Maclaurin tail gives the logarithmic
 boundary estimate with the explicit Abel-tail constant still visible. -/
 theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
@@ -5967,7 +5983,21 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_anal
         1 ≤ ‖t‖ →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
-  sorry
+  refine ⟨38, ?_, ?_⟩
+  · exact Nat.cast_pos.mpr (by decide : (0 : ℕ) < 38)
+  · intro t ht
+    have hexplicit :
+        ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+            (1 + Real.log (2 + ‖t‖)) :=
+      abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
+        t ht
+    have habsorb :
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+            (1 + Real.log (2 + ‖t‖)) ≤
+          38 * Real.log (2 + ‖t‖) :=
+      boundaryLineOnePointRealParam_explicit_tail_plus_log_le_constant_log ht
+    exact le_trans hexplicit habsorb
 
 /-- Euler-Maclaurin/Abel-truncation boundary estimate for the Riemann zeta function on
 `1 + it`.
