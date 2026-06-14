@@ -12239,6 +12239,83 @@ theorem scalarReciprocalDensity_Icc_point_pos
     0 < x := by
   exact lt_of_lt_of_le (scalarReciprocalDensity_cutoff_real_pos t) hx.1
 
+/-- Positivity of the shifted logarithm on the scalar-calculus range. -/
+theorem real_log_two_add_nonneg_of_two_le
+    {x : ℝ}
+    (hx : (2 : ℝ) ≤ x) :
+    0 ≤ Real.log (2 + x) := by
+  have hone_le_two : (1 : ℝ) ≤ 2 := by
+    calc
+      (1 : ℝ) ≤ 1 + 1 := le_add_of_nonneg_right zero_le_one
+      _ = 2 := by
+        rfl
+  have htwo_le_two_add : (2 : ℝ) ≤ 2 + x :=
+    le_trans hx (le_add_of_nonneg_left (show (0 : ℝ) ≤ 2 by
+      calc
+        (0 : ℝ) ≤ 1 := zero_le_one
+        _ ≤ 2 := hone_le_two))
+  exact Real.log_nonneg (le_trans hone_le_two htwo_le_two_add)
+
+/-- On `2 ≤ x`, `log(2+x)/x` is bounded by the derivative density of
+`(log(2+x))²`. -/
+theorem real_log_two_add_div_self_le_log_sq_derivative_density
+    {x : ℝ}
+    (hx : (2 : ℝ) ≤ x) :
+    Real.log (2 + x) / x ≤
+      2 * Real.log (2 + x) / (2 + x) := by
+  have hx_pos : 0 < x :=
+    lt_of_lt_of_le zero_lt_two hx
+  have hshift_pos : 0 < 2 + x :=
+    add_pos_of_pos_of_nonneg zero_lt_two (le_trans (show (0 : ℝ) ≤ 2 by
+      exact le_of_lt zero_lt_two) hx)
+  have hlog_nonneg : 0 ≤ Real.log (2 + x) :=
+    real_log_two_add_nonneg_of_two_le hx
+  have hreciprocal :
+      (1 : ℝ) / x ≤ 2 / (2 + x) := by
+    have hmul :
+        (2 + x) ≤ 2 * x := by
+      calc
+        2 + x ≤ x + x :=
+          add_le_add_right hx x
+        _ = 2 * x := by
+          exact (two_mul x).symm
+    exact (div_le_div_iff₀ hx_pos hshift_pos).mpr hmul
+  have hscaled :
+      Real.log (2 + x) * ((1 : ℝ) / x) ≤
+        Real.log (2 + x) * (2 / (2 + x)) :=
+    mul_le_mul_of_nonneg_left hreciprocal hlog_nonneg
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ 2 * Real.log (2 + x) / (2 + x))
+    (div_eq_mul_one_div (Real.log (2 + x)) x).symm
+    (Eq.subst
+      (motive := fun y : ℝ =>
+        Real.log (2 + x) * (2 / (2 + x)) ≤ y)
+      (by
+        calc
+          2 * Real.log (2 + x) / (2 + x) =
+              (2 * Real.log (2 + x)) * ((1 : ℝ) / (2 + x)) := by
+            exact div_eq_mul_one_div (2 * Real.log (2 + x)) (2 + x)
+          _ = Real.log (2 + x) * (2 * ((1 : ℝ) / (2 + x))) := by
+            ac_rfl
+          _ = Real.log (2 + x) * (2 / (2 + x)) := by
+            exact congrArg
+              (fun y : ℝ => Real.log (2 + x) * y)
+              (div_eq_mul_one_div 2 (2 + x)).symm)
+      hscaled)
+
+/-- Fundamental-theorem comparison for the finite `log(2+x)/x` integral. -/
+theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b)
+    (hpointwise :
+      ∀ x ∈ Set.Ioc a b,
+        Real.log (2 + x) / x ≤
+          2 * Real.log (2 + x) / (2 + x)) :
+    ∫ x in Set.Ioc a b, Real.log (2 + x) / x ≤
+      (Real.log (2 + b)) ^ 2 := by
+  sorry
+
 /-- Canonical real-variable comparison for the finite `log(2+x)/x` integral.
 
 On `2 ≤ a ≤ b`, the integrand is dominated by the derivative of
@@ -12251,6 +12328,25 @@ theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq
     (hab : a ≤ b) :
     ∫ x in Set.Ioc a b, Real.log (2 + x) / x ≤
       (Real.log (2 + b)) ^ 2 := by
+  exact
+    real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
+      ha hab
+      (fun x hx =>
+        real_log_two_add_div_self_le_log_sq_derivative_density
+          (le_trans ha (le_of_lt hx.1)))
+
+/-- Canonical real tail estimate for `log(2+x)/x²` after a positive cutoff.
+
+This is the reusable real-analysis input for the reciprocal-density tail.  A
+standard proof integrates by parts and uses monotonicity of
+`x ↦ log(2+x)/x²`; equivalently it bounds the finite interval by the improper
+tail beginning at `a`. -/
+theorem real_integral_Ioc_log_two_add_div_sq_tail_bound
+    {a b : ℝ}
+    (ha : (2 : ℝ) ≤ a)
+    (hab : a ≤ b) :
+    ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
+      Real.log 4 := by
   sorry
 
 /-- Canonical real-variable comparison for the finite `log(2+x)/x²` integral.
@@ -12266,7 +12362,20 @@ theorem real_integral_Ioc_log_two_add_div_sq_le_log_three_add_height
     (hab : a ≤ b) :
     ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
       Real.log (3 + H) := by
-  sorry
+  have htail :
+      ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤ Real.log 4 :=
+    real_integral_Ioc_log_two_add_div_sq_tail_bound ha hab
+  have hfour_le : (4 : ℝ) ≤ 3 + H := by
+    calc
+      (4 : ℝ) = 3 + 1 := by
+        rfl
+      _ ≤ 3 + H :=
+        add_le_add_left hH 3
+  have hlog_four_le : Real.log 4 ≤ Real.log (3 + H) := by
+    have hfour_pos : (0 : ℝ) < 4 := by
+      exact zero_lt_four
+    exact Real.log_le_log hfour_pos hfour_le
+  exact le_trans htail hlog_four_le
 
 /-- Scalar calculus owner for the `log(2+x)/x` post-cutoff integral.
 
