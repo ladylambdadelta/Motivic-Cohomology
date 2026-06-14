@@ -315,13 +315,74 @@ theorem one_le_norm_of_one_le_norm_im
     (Eq.subst (motive := fun x : ℝ => 1 ≤ x) him_norm_eq hz_im)
     him_abs_le_norm
 
+/-- The unfolded normalized real-Gamma factor. -/
+def unfoldedNormalizedGammaℝFactor (z : ℂ) : ℂ :=
+  π ^ (-z / 2) * Complex.Gamma (z / 2)
+
+/-- `Gammaℝ` is definitionally the unfolded normalized real-Gamma factor. -/
+theorem Gammaℝ_eq_unfoldedNormalizedGammaℝFactor
+    (z : ℂ) :
+    Complex.Gammaℝ z = unfoldedNormalizedGammaℝFactor z := by
+  exact Complex.Gammaℝ_def z
+
+/-- Norm-level form of the unfolded `Gammaℝ` normalization. -/
+theorem norm_Gammaℝ_eq_norm_unfoldedNormalizedGammaℝFactor
+    (z : ℂ) :
+    ‖Complex.Gammaℝ z‖ = ‖unfoldedNormalizedGammaℝFactor z‖ := by
+  exact congrArg norm (Gammaℝ_eq_unfoldedNormalizedGammaℝFactor z)
+
+/-- Log-norm form of the unfolded `Gammaℝ` normalization. -/
+theorem log_norm_Gammaℝ_eq_log_norm_unfoldedNormalizedGammaℝFactor
+    (z : ℂ) :
+    Real.log ‖Complex.Gammaℝ z‖ =
+      Real.log ‖unfoldedNormalizedGammaℝFactor z‖ := by
+  exact congrArg Real.log (norm_Gammaℝ_eq_norm_unfoldedNormalizedGammaℝFactor z)
+
+/-- The unfolded normalized real-Gamma factor is nonzero on the right-half-plane
+Stirling region. -/
+theorem unfoldedNormalizedGammaℝFactor_ne_zero_of_re_nonneg_and_one_le_norm
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re)
+    (hz_norm : 1 ≤ ‖z‖) :
+    unfoldedNormalizedGammaℝFactor z ≠ 0 := by
+  intro hzero
+  have hGammaℝ_ne : Complex.Gammaℝ z ≠ 0 :=
+    Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm hz_re hz_norm
+  have hGammaℝ_zero : Complex.Gammaℝ z = 0 :=
+    Eq.trans (Gammaℝ_eq_unfoldedNormalizedGammaℝFactor z) hzero
+  exact hGammaℝ_ne hGammaℝ_zero
+
+/-- The unfolded normalized real-Gamma factor has positive norm on the right-half-plane
+Stirling region. -/
+theorem norm_unfoldedNormalizedGammaℝFactor_pos_of_re_nonneg_and_one_le_norm
+    {z : ℂ}
+    (hz_re : 0 ≤ z.re)
+    (hz_norm : 1 ≤ ‖z‖) :
+    0 < ‖unfoldedNormalizedGammaℝFactor z‖ := by
+  exact norm_pos_iff.mpr
+    (unfoldedNormalizedGammaℝFactor_ne_zero_of_re_nonneg_and_one_le_norm
+      hz_re hz_norm)
+
+/-- Classical complex-Stirling growth for the unfolded normalized real-Gamma factor.
+
+This is the precise right-half-plane analytic input used by the normalization lane:
+after unfolding `Gammaℝ z = π^(-z/2) Γ(z/2)`, complex Stirling on the closed
+right half-plane away from the origin gives log-linear growth for the normalized
+factor; cf. DLMF §5.11. -/
+axiom classicalStirling_unfoldedNormalizedGammaℝFactor_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖unfoldedNormalizedGammaℝFactor z‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖)
+
 /-- Classical Stirling growth for the completed real Gamma factor after unfolding
 `Gammaℝ`.
 
-This is the precise complex-Stirling analytic estimate used by the right-half-plane
-normalization lane:
-`Gammaℝ z = π^(-z/2) Γ(z/2)`, and on `0 ≤ re z`, away from `0`, the logarithm of
-this normalized Gamma factor has log-linear growth. -/
+This keeps the exact classical input in unfolded normalized form while exposing the
+older formula spelling used by the surrounding normalization wrappers. -/
 theorem classicalStirling_unfoldedGammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one :
     ∃ C : ℝ,
       0 < C ∧
@@ -330,7 +391,35 @@ theorem classicalStirling_unfoldedGammaℝ_rightHalfPlane_log_linear_growth_boun
         1 ≤ ‖z‖ →
         Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  sorry
+  exact classicalStirling_unfoldedNormalizedGammaℝFactor_rightHalfPlane_log_linear_growth_bound_degree_one
+
+/-- The unfolded normalized classical Stirling estimate transfers to `Gammaℝ` by the
+definitional normalization identity. -/
+theorem Gammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one_of_unfoldedNormalized
+    (hStirling :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ z : ℂ,
+          0 ≤ z.re →
+          1 ≤ ‖z‖ →
+          Real.log ‖unfoldedNormalizedGammaℝFactor z‖ ≤
+            C * (1 + ‖z‖) * Real.log (2 + ‖z‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ z : ℂ,
+        0 ≤ z.re →
+        1 ≤ ‖z‖ →
+        Real.log ‖Complex.Gammaℝ z‖ ≤
+          C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
+  rcases hStirling with ⟨C, hC_pos, hC⟩
+  refine ⟨C, hC_pos, ?_⟩
+  intro z hz_re hz_norm
+  calc
+    Real.log ‖Complex.Gammaℝ z‖ =
+        Real.log ‖unfoldedNormalizedGammaℝFactor z‖ :=
+      log_norm_Gammaℝ_eq_log_norm_unfoldedNormalizedGammaℝFactor z
+    _ ≤ C * (1 + ‖z‖) * Real.log (2 + ‖z‖) :=
+      hC z hz_re hz_norm
 
 /-- Classical right-half-plane logarithmic Stirling growth for the completed real Gamma
 factor away from `0`, in the usual fixed-degree log-linear Stirling shape. -/
@@ -342,16 +431,8 @@ theorem classicalStirling_Gammaℝ_rightHalfPlane_log_linear_growth_bound_degree
         1 ≤ ‖z‖ →
         Real.log ‖Complex.Gammaℝ z‖ ≤
           C * (1 + ‖z‖) * Real.log (2 + ‖z‖) := by
-  rcases classicalStirling_unfoldedGammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one with
-    ⟨C, hC_pos, hC⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro z hz_re hz_norm
-  calc
-    Real.log ‖Complex.Gammaℝ z‖ =
-        Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ := by
-      rw [Complex.Gammaℝ_def]
-    _ ≤ C * (1 + ‖z‖) * Real.log (2 + ‖z‖) :=
-      hC z hz_re hz_norm
+  exact Gammaℝ_rightHalfPlane_log_linear_growth_bound_degree_one_of_unfoldedNormalized
+    classicalStirling_unfoldedNormalizedGammaℝFactor_rightHalfPlane_log_linear_growth_bound_degree_one
 
 /-- Standard right-half-plane logarithmic Stirling growth for the completed real Gamma
 factor away from `0`, in the usual fixed-degree log-linear Stirling shape.
@@ -1503,13 +1584,79 @@ theorem leftBoundary_eq_im_mul_I
   · exact hz_re
   · rfl
 
+/-- Classical vertical Stirling control for the unfolded completed real Gamma ratio,
+stated on the real parameter of the left boundary line.
+
+This is the remaining classical special-function input: after `z = it`, unfold
+`Γℝ(s) = π^(-s/2) Γ(s/2)` and apply the two-sided vertical Stirling formula to the
+two Gamma factors.  The sharp polynomial part is square-root growth; the downstream
+linear envelope is obtained separately by an elementary order estimate. -/
+theorem classicalStirling_unfoldedGammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+            (π ^ (-((t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
+          A * Real.sqrt (1 + ‖t‖) := by
+  sorry
+
+/-- The unfolded vertical Stirling estimate is exactly the corresponding `Gammaℝ`
+estimate after applying `Gammaℝ_def`. -/
+theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
+            Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ ≤
+          A * Real.sqrt (1 + ‖t‖) := by
+  rcases classicalStirling_unfoldedGammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht
+  calc
+    ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
+        Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ =
+        ‖(π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)) /
+            (π ^ (-((t : ℂ) * Complex.I) / 2) *
+              Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ := by
+      rw [Complex.Gammaℝ_def, Complex.Gammaℝ_def]
+    _ ≤ A * Real.sqrt (1 + ‖t‖) :=
+      hbound t ht
+
+/-- On the vertical-tail height range, the square-root height envelope is bounded by the
+linear height envelope. -/
+theorem sqrt_one_add_norm_le_one_add_norm
+    (t : ℝ) :
+    Real.sqrt (1 + ‖t‖) ≤ 1 + ‖t‖ := by
+  let H : ℝ := 1 + ‖t‖
+  have hH_ge_one : (1 : ℝ) ≤ H :=
+    le_add_of_nonneg_right (norm_nonneg t)
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one hH_ge_one
+  have hH_le_mul_self : H ≤ H * H := by
+    have hone_mul_le : (1 : ℝ) * H ≤ H * H :=
+      mul_le_mul_of_nonneg_right hH_ge_one hH_nonneg
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ H * H)
+      (one_mul H)
+      hone_mul_le
+  have hH_le_sq : H ≤ H ^ (2 : ℕ) :=
+    Eq.subst
+      (motive := fun x : ℝ => H ≤ x)
+      (pow_two H).symm
+      hH_le_mul_self
+  exact (Real.sqrt_le_left hH_nonneg).mpr hH_le_sq
+
 /-- Classical vertical Stirling control for the completed real Gamma ratio, stated on
 the real parameter of the left boundary line.
 
-This is the exact special-function input: after `z = it`, the Deligne real Gamma ratio
-`Γℝ(1 - it) / Γℝ(it)` has at most linear growth in `|t|`.  It follows from the
-standard two-sided vertical Stirling formula for `Complex.Gamma`, together with
-`Gammaℝ_def`. -/
+This is the linear envelope consumed downstream; its only analytic input is the sharper
+unfolded square-root Stirling estimate. -/
 theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bound_realParam :
     ∃ A : ℝ,
       0 < A ∧
@@ -1518,7 +1665,16 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
         ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
             Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ ≤
           A * (1 + ‖t‖) := by
-  sorry
+  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    ⟨A, hA_pos, hbound⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht
+  have hsqrt_to_linear :
+      A * Real.sqrt (1 + ‖t‖) ≤ A * (1 + ‖t‖) :=
+    mul_le_mul_of_nonneg_left
+      (sqrt_one_add_norm_le_one_add_norm t)
+      (le_of_lt hA_pos)
+  exact le_trans (hbound t ht) hsqrt_to_linear
 
 /-- Classical two-sided vertical Stirling control for the completed real Gamma ratio on
 the left boundary line, in the sharp polynomial degree needed by the critical-line
