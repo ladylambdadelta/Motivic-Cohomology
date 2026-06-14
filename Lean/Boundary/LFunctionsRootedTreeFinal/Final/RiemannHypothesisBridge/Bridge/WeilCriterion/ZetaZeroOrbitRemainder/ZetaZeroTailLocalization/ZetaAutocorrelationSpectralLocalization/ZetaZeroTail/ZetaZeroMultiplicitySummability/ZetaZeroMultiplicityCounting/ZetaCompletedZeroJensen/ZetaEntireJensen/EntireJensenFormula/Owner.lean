@@ -2382,6 +2382,28 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (Finset.mem_filter.1 hz).2
   exact le_antisymm hle (le_of_not_gt hnot_lt)
 
+/-- The classical sine-log integral on `[0, π]`.
+
+This is the deepest real-variable integral behind the boundary-zero Jensen
+kernel: `∫₀^π log(sin u) du = -π log 2`. -/
+theorem real_integral_log_sin_zero_pi :
+    (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u)) =
+      -Real.pi * Real.log 2 := by
+  -- Deep classical Fourier/Beta integral.
+  sorry
+
+/-- Reduction of the unshifted unit-circle logarithmic kernel to the
+classical sine-log integral. -/
+theorem unitCircleLogKernel_mean_zero_from_sineLogIntegral :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+      0 := by
+  -- Deep reduction theorem: use
+  -- `‖1 - exp(iθ)‖ = 2 * |sin(θ/2)|`, change variables `θ = 2u`,
+  -- and consume `real_integral_log_sin_zero_pi`.
+  sorry
+
 /-- Unshifted unit-circle logarithmic kernel mean.
 
 This is the deepest classical Jensen kernel integral used for boundary zeros:
@@ -2391,10 +2413,7 @@ theorem unitCircleLogKernel_mean_zero :
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
       0 := by
-  -- Deep classical Jensen kernel theorem: reduce to `log (2 |sin(θ/2)|)`
-  -- and use
-  -- `∫_0^{2π} log |1 - exp(iθ)| dθ = 0`.
-  sorry
+  exact unitCircleLogKernel_mean_zero_from_sineLogIntegral
 
 /-- Translation invariance of the unit-circle logarithmic kernel mean.
 
@@ -3455,6 +3474,76 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
         φ z t)
       hprod
 
+/-- Pointwise endpoint derivative of the center-segment integrand from local
+analyticity at the segment point.
+
+This is the tube-local version of
+`complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint`; it does not
+need the endpoint itself to lie in the star-convex set, only analyticity of
+`φ` at the current segment point. -/
+theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint_of_analyticAt
+    (φ : ℂ → ℂ) :
+    ∀ z : ℂ,
+      ∀ t : ℝ,
+        AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) z t) →
+          HasDerivAt
+            (fun w : ℂ =>
+              w * φ (AffineMap.lineMap (0 : ℂ) w t))
+            (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+            z := by
+  intro z t hφ_at_segment
+  let x : ℂ := AffineMap.lineMap (0 : ℂ) z t
+  have hφ_at :
+      HasDerivAt φ (deriv φ x) x :=
+    hφ_at_segment.differentiableAt.hasDerivAt
+  have hline :
+      HasDerivAt
+        (fun w : ℂ => AffineMap.lineMap (0 : ℂ) w t)
+        (t : ℂ)
+        z :=
+    complex_centerSegment_lineMap_hasDerivAt_endpoint z t
+  have hcomp_raw :
+      HasDerivAt
+        (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+        (deriv φ x * (t : ℂ))
+        z :=
+    hφ_at.comp z hline
+  have hcomp :
+      HasDerivAt
+        (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+        ((t : ℂ) * deriv φ x)
+        z :=
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt
+          (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+          d
+          z)
+      (mul_comm (deriv φ x) (t : ℂ))
+      hcomp_raw
+  have hid :
+      HasDerivAt (fun w : ℂ => w) (1 : ℂ) z :=
+    hasDerivAt_id' z
+  have hprod :
+      HasDerivAt
+        (fun w : ℂ =>
+          w * φ (AffineMap.lineMap (0 : ℂ) w t))
+        ((1 : ℂ) * φ (AffineMap.lineMap (0 : ℂ) z t) +
+          z * ((t : ℂ) * deriv φ x))
+        z :=
+    hid.mul hcomp
+  exact
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt
+          (fun w : ℂ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          d
+          z)
+      (complex_centerSegmentIntegral_endpointDerivative_eq_productRule
+        φ z t)
+      hprod
+
 /-- Compactness of the affine center-to-endpoint segment. -/
 theorem complex_centerSegment_image_Icc_isCompact
     (z : ℂ) :
@@ -3501,6 +3590,162 @@ theorem complex_centerSegment_finiteAnalyticAtCover
         hwt.symm
         (complex_starConvex_centerSegment_analyticAt
           φ hstar hφ hz ht)
+
+/-- Endpoint stability for center segments into a finite analytic tube.
+
+If a finite union of analytic-at neighborhoods covers the compact center
+segment from `0` to `z`, then after shrinking the endpoint, all center
+segments from `0` to endpoints in a small ball remain inside that finite
+tube.  This is the Lebesgue-number/tube step for the affine segment family. -/
+theorem complex_centerSegment_endpointStability_finiteAnalyticTube
+    (φ : ℂ → ℂ)
+    (z : ℂ)
+    (centers : Finset ℂ)
+    (hcover :
+      ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+          Set.Icc (0 : ℝ) 1) ⊆
+        ⋃ c ∈ centers, {w : ℂ | AnalyticAt ℂ φ w}) :
+    ∃ u : Set ℂ,
+      z ∈ u ∧
+      u ∈ 𝓝 z ∧
+      ∀ w : ℂ,
+        w ∈ u →
+          ∃ ε : ℝ,
+            0 < ε ∧
+            ∀ x : ℂ,
+              x ∈ ball w ε →
+                ∀ t : ℝ,
+                  t ∈ Set.Icc (0 : ℝ) 1 →
+                    AffineMap.lineMap (0 : ℂ) x t ∈
+                      ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
+  sorry
+
+/-- Measurability and interval integrability for the center-segment integrand
+on endpoints lying in a finite analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_integrability
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      (∀ t : ℝ,
+        t ∈ Set.Icc (0 : ℝ) 1 →
+          AffineMap.lineMap (0 : ℂ) w t ∈
+            ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+        (∀ᶠ x in 𝓝 w,
+          AEStronglyMeasurable
+            (fun t : ℝ =>
+              x * φ (AffineMap.lineMap (0 : ℂ) x t))
+            (volume.restrict (Ι (0 : ℝ) 1))) ∧
+        IntervalIntegrable
+          (fun t : ℝ =>
+            w * φ (AffineMap.lineMap (0 : ℂ) w t))
+          volume
+          (0 : ℝ)
+          1 ∧
+        AEStronglyMeasurable
+          (fun t : ℝ =>
+            complex_centerSegmentIntegral_endpointDerivativeIntegrand
+              φ w t)
+          (volume.restrict (Ι (0 : ℝ) 1)) := by
+  sorry
+
+/-- Compact constant bound for the endpoint derivative integrand on a finite
+analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_constantBound
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ x : ℂ,
+            x ∈ ball w ε →
+              ∀ t : ℝ,
+                t ∈ Set.Icc (0 : ℝ) 1 →
+                  AffineMap.lineMap (0 : ℂ) x t ∈
+                    ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+            ∃ bound : ℝ → ℝ,
+              (∀ᵐ t ∂volume,
+                t ∈ Ι (0 : ℝ) 1 →
+                  ∀ x ∈ ball w ε,
+                    ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ x t‖ ≤ bound t) ∧
+              IntervalIntegrable bound volume (0 : ℝ) 1 := by
+  sorry
+
+/-- Pointwise endpoint derivative almost everywhere in the parameter for
+endpoints whose center segments stay in a finite analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ x : ℂ,
+            x ∈ ball w ε →
+              ∀ t : ℝ,
+                t ∈ Set.Icc (0 : ℝ) 1 →
+                  AffineMap.lineMap (0 : ℂ) x t ∈
+                    ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+            ∀ᵐ t ∂volume,
+              t ∈ Ι (0 : ℝ) 1 →
+                ∀ x ∈ ball w ε,
+                  HasDerivAt
+                    (fun y : ℂ =>
+                      y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                    (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ x t)
+                    x := by
+  intro w ε hε_pos htube
+  exact
+    Filter.Eventually.of_forall
+      (fun t ht x hx =>
+        let hanalytic_mem := htube x hx t ht
+        let hanalytic :=
+          match Set.mem_iUnion.1 hanalytic_mem with
+          | ⟨_c, hc_mem⟩ =>
+            match Set.mem_iUnion.1 hc_mem with
+            | ⟨_hc, hpoint⟩ => hpoint
+        complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint_of_analyticAt
+          φ x t hanalytic)
+
+/-- Constant domination and pointwise endpoint differentiability on a finite
+analytic tube. -/
+theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
+    (φ : ℂ → ℂ)
+    (centers : Finset ℂ) :
+    ∀ w : ℂ,
+      ∀ ε : ℝ,
+        0 < ε →
+          (∀ x : ℂ,
+            x ∈ ball w ε →
+              ∀ t : ℝ,
+                t ∈ Set.Icc (0 : ℝ) 1 →
+                  AffineMap.lineMap (0 : ℂ) x t ∈
+                    ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
+            ∃ bound : ℝ → ℝ,
+              (∀ᵐ t ∂volume,
+                t ∈ Ι (0 : ℝ) 1 →
+                  ∀ x ∈ ball w ε,
+                    ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ x t‖ ≤ bound t) ∧
+              IntervalIntegrable bound volume (0 : ℝ) 1 ∧
+              (∀ᵐ t ∂volume,
+                t ∈ Ι (0 : ℝ) 1 →
+                  ∀ x ∈ ball w ε,
+                    HasDerivAt
+                      (fun y : ℂ =>
+                        y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                      (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                        φ x t)
+                      x) := by
+  intro w ε hε_pos htube
+  rcases
+    complex_centerSegmentIntegral_finiteTube_constantBound
+      φ centers w ε hε_pos htube with
+    ⟨bound, hbound, hbound_int⟩
+  exact
+    ⟨bound, hbound, hbound_int,
+      complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
+        φ centers w ε hε_pos htube⟩
 
 /-- Finite analytic tube and domination package over a compact center
 segment.
@@ -3565,7 +3810,31 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                           (complex_centerSegmentIntegral_endpointDerivativeIntegrand
                             φ x t)
                           x) := by
-  sorry
+  intro z hz _hcompact hcover
+  rcases hcover with ⟨centers, _hcenters, hcover_subset⟩
+  rcases
+    complex_centerSegment_endpointStability_finiteAnalyticTube
+      φ z centers hcover_subset with
+    ⟨u, hz_mem, hu_nhds, hu_stable⟩
+  refine ⟨u, hz_mem, hu_nhds, ?_⟩
+  intro w hw
+  rcases hu_stable w hw with ⟨ε, hε_pos, hε_stable⟩
+  have hw_stable :
+      ∀ t : ℝ,
+        t ∈ Set.Icc (0 : ℝ) 1 →
+          AffineMap.lineMap (0 : ℂ) w t ∈
+            ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
+    intro t ht
+    exact hε_stable w (mem_ball_self hε_pos) t ht
+  have hintegrability :=
+    complex_centerSegmentIntegral_finiteTube_integrability
+      φ centers w hw_stable
+  have hdom :=
+    complex_centerSegmentIntegral_finiteTube_domination_and_derivative
+      φ centers w ε hε_pos hε_stable
+  exact
+    ⟨ε, hε_pos, hintegrability.1, hintegrability.2.1,
+      hintegrability.2.2, hdom⟩
 
 /-- Compact finite-tube domination for center-segment endpoint derivatives.
 
@@ -7681,6 +7950,40 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorPr
         (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
   rfl
 
+/-- Finite normalized product after inserting a new support point. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha : a ∉ S)
+    (w : ℂ) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF (insert a S) w =
+      (1 - w / (a : ℂ)) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) *
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w := by
+  exact Finset.prod_insert ha
+
+/-- Finite normalized product split into the factor at a member and the erased
+product. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_mul_erase
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (w : ℂ) :
+    (1 - w / (a : ℂ)) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) *
+        (∏ z in S.erase a,
+          (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) =
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF S w := by
+  exact Finset.mul_prod_erase S
+    (fun z : EntireFunctionZero F =>
+      (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
+    ha
+
 /-- The closed-disk zero-factor product attached to all nonzero zeros in
 `‖z‖ ≤ ρ`.
 
@@ -8219,6 +8522,21 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_po
       exact congrArg (fun x : ℂ => x ^ m) hbase
     _ = (-(a⁻¹)) ^ m * (w - a) ^ m := by
       exact mul_pow (-(a⁻¹)) (w - a) m
+
+/-- Leading coefficient of the inserted finite product at the inserted zero,
+after removing the local factor `(w-a)^m`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_insertedProduct_localLeadingCoeff
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha0 : (a : ℂ) ≠ 0)
+    (w : ℂ) :
+    (1 - w / (a : ℂ)) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) =
+      (-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) *
+        (w - (a : ℂ)) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) :=
+  entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+    ha0 (entireFunctionZeroMultiplicity F hF (a : ℂ))
 
 /-- The punctured quotient after extracting the support divisor.
 
