@@ -1174,6 +1174,17 @@ theorem Real.sinePower_sinSubstitution_forward_reassociate
     (a * b) * c = a * (b * c) :=
   mul_assoc a b c
 
+/-- Endpoint-removal AE form for interval integrals: an equality on the open
+interval gives the interval-integral congruence hypothesis because the two
+endpoints are null. -/
+theorem Real.ae_uIoc_eq_of_eqOn_Ioo
+    {a b : ℝ}
+    {f g : ℝ → ℝ}
+    (hpoint :
+      EqOn f g (Set.Ioo (min a b) (max a b))) :
+    ∀ᵐ x ∂MeasureTheory.volume, x ∈ Ι a b → f x = g x := by
+  sorry
+
 /-- Direct owner wrapper around mathlib's singular scalar change-of-variables
 theorem, with the exact image and pullback integrability hypotheses it needs. -/
 theorem Real.intervalIntegral_congr_of_eqOn_Ioo
@@ -1183,7 +1194,10 @@ theorem Real.intervalIntegral_congr_of_eqOn_Ioo
       EqOn f g (Set.Ioo (min a b) (max a b))) :
     (∫ x in a..b, f x) =
       ∫ x in a..b, g x := by
-  sorry
+  exact
+    intervalIntegral.integral_congr_ae
+      (μ := MeasureTheory.volume)
+      (Real.ae_uIoc_eq_of_eqOn_Ioo hpoint)
 
 /-- Direct owner wrapper around mathlib's singular scalar change-of-variables
 theorem, with the exact image and pullback integrability hypotheses it needs
@@ -1747,7 +1761,9 @@ theorem Real.sinePower_squareSubstitution_scaledTarget_continuousOn_openImage
             (1 - t) ^ ((1 / 2 : ℝ) - 1)))
       ((fun x : ℝ => x ^ 2) ''
         Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
-  sorry
+  exact
+    (Real.sinePower_squareSubstitution_target_continuousOn_openImage s).const_mul
+      (1 / 2 : ℝ)
 
 /-- Interval integrability of the square-substitution target after multiplying
 by the scalar `1/2`. -/
@@ -1803,7 +1819,35 @@ theorem Real.sinePower_squareSubstitution_scaledIntegral_eq
         ∫ t in (0 : ℝ)..1,
           t ^ (((s + 1) / 2) - 1) *
             (1 - t) ^ ((1 / 2 : ℝ) - 1) := by
-  sorry
+  let kernel : ℝ → ℝ :=
+    fun t : ℝ =>
+      t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1)
+  have hleft :
+      ((fun y : ℝ => y ^ 2) (0 : ℝ)) = 0 := by
+    exact zero_pow (Nat.succ_ne_zero 1)
+  have hright :
+      ((fun y : ℝ => y ^ 2) 1) = 1 := by
+    exact one_pow 2
+  have hbounds :
+      (∫ t in ((fun y : ℝ => y ^ 2) (0 : ℝ))..
+          ((fun y : ℝ => y ^ 2) 1),
+          (1 / 2 : ℝ) * kernel t) =
+        ∫ t in (0 : ℝ)..1, (1 / 2 : ℝ) * kernel t :=
+    congrArg₂
+      (fun a b : ℝ =>
+        ∫ t in a..b, (1 / 2 : ℝ) * kernel t)
+      hleft hright
+  have hscale :
+      (∫ t in (0 : ℝ)..1, (1 / 2 : ℝ) * kernel t) =
+        (1 / 2 : ℝ) * ∫ t in (0 : ℝ)..1, kernel t :=
+    intervalIntegral.integral_const_mul
+      (μ := MeasureTheory.volume)
+      (a := (0 : ℝ))
+      (b := 1)
+      (r := (1 / 2 : ℝ))
+      (f := kernel)
+  exact Eq.trans hbounds hscale
 
 /-- General owner-level change-of-variables lemma for the square substitution
 `t = x²` with singular endpoint kernels. -/
