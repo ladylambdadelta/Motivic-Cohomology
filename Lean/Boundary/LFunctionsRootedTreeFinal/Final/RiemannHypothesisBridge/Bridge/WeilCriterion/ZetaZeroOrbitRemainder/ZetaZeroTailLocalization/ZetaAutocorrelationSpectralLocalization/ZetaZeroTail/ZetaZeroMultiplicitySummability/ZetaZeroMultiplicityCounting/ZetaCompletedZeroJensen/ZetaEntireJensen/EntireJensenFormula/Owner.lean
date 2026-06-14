@@ -7405,6 +7405,56 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
               F hF ∅ w := by
         rfl
 
+/-- Single insertion removable quotient theorem for a finite normalized
+divisor.
+
+This is the canonical local-to-global step in finite divisor extraction.  The
+local input is the exact order factorization at the inserted zero `a`; the
+already extracted quotient for `S` is patched through the removable singularity
+created by dividing by `(1 - w / a)^m`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_single_insert_removable_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep removable-gluing sink: this is the one-place proof that local
+  -- analytic order cancellation for `(1 - w / a)^m` patches across `a` while
+  -- preserving the finite product factorization already constructed for `S`.
+  sorry
+
 /-- One-step finite divisor extraction.
 
 Assuming a removable quotient has already been constructed for `S`, this
@@ -7449,10 +7499,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep single-step removable gluing theorem: extract the new factor
-  -- `(1 - w/a)^m`, use the local order factorization at `a`, and patch the
-  -- removable value into the quotient already constructed for `S`.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_single_insert_removable_ownerRoot
+      F hF ρ hρ S a ha_not_mem hS0 ha0 hlocal_a hS
 
 /-- Finset-induction construction of the finite removable quotient.
 
@@ -8041,7 +8090,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w :=
     hfactor w hwρ
-  exact hFw_ne
+      exact hFw_ne
     (Eq.trans hfactor_w
       (Eq.trans
         (congrArg
@@ -8053,6 +8102,50 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
         (zero_mul
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
+
+/-- Local removable quotient value after extracting an arbitrary finite
+normalized divisor.
+
+At a support point `a`, the local order factorization of `F` gives
+`F(w) = (w-a)^m g(w)`.  The normalized divisor has local leading coefficient
+`(-(a⁻¹))^m` times all other support factors evaluated at `a`; hence the
+removable quotient value is the displayed ratio. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_localRemovableValue_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q (a : ℂ) =
+      g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep local removable-value sink: combine the local order factorization
+  -- with `(1 - w / a)^m = (-(a⁻¹))^m * (w-a)^m`, cancel on the punctured
+  -- neighborhood of `a`, and identify the analytic continuation value of `Q`.
+  sorry
 
 /-- The support-point value of a removable quotient is the local Taylor unit
 divided by the leading coefficient of the extracted finite divisor.
@@ -8094,11 +8187,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
           (∏ z in S.erase a,
             (1 - (a : ℂ) / (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep single-zero removable value theorem: use the local Taylor factor
-  -- from `AnalyticAt.order_eq_nat_iff`, divide by the indexed factor
-  -- `(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`, evaluate at `a`, and use
-  -- analyticity of `Q` to identify the removable value.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_localRemovableValue_ownerRoot
+      F Q hF ρ S hS0 hQ_an hfactor a ha haρ g hg_an hg_ne hg_factor
 
 /-- Support-point nonvanishing for a closed-support quotient after extracting
 the exact local multiplicity. -/
