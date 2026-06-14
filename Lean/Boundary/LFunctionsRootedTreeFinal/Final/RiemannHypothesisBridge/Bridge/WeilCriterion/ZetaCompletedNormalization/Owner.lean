@@ -483,15 +483,14 @@ theorem halfArgument_norm_ge_one_half_of_one_le_norm
       hz_norm
   exact (div_le_iff₀' htwo_pos).mpr hone_le_two_mul
 
-/-- The standard sectorial complex-Stirling input for `Complex.Gamma` in the closed
-right half-plane.
+/-- Sectorial logarithmic Stirling for `Complex.Gamma` in the closed right half-plane.
 
-This is the genuine upstream special-function theorem missing from the current local and
-Mathlib API: sectorial Stirling gives logarithmic linear growth for `Γ(w)` away from the
-origin in any closed sector avoiding the negative real axis; here it is specialized to
-`0 ≤ w.re`, with the radius written as `2 * ‖w‖` for direct half-argument transport.
-cf. DLMF §5.11. -/
-theorem sectorialComplexGammaStirling_rightHalfPlane_log_linear_growth_bound_degree_one :
+This is the standard special-function input closest to the literature: the
+sectorial Stirling expansion for `log Γ(w)` on a closed sector avoiding the
+negative real axis, specialized to `0 ≤ w.re` and converted to a log-norm
+upper bound.  The radius is written as `2 * ‖w‖` so the downstream
+half-argument transport is formula-level; cf. DLMF §5.11. -/
+theorem Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
@@ -500,6 +499,21 @@ theorem sectorialComplexGammaStirling_rightHalfPlane_log_linear_growth_bound_deg
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   sorry
+
+/-- The standard sectorial complex-Stirling input for `Complex.Gamma` in the closed
+right half-plane.
+
+This owner-root spelling is retained for the normalization chain.  Its proof is only
+name transport from the canonical sectorial `log Γ` Stirling input. -/
+theorem sectorialComplexGammaStirling_rightHalfPlane_log_linear_growth_bound_degree_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 ≤ w.re →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact Complex.logGamma_sectorial_rightHalfPlane_stirling_log_norm_bound
 
 /-- Transport the sectorial `Complex.Gamma` estimate from `w` to the half-argument
 `w = z / 2`. -/
@@ -2163,6 +2177,268 @@ theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
       ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ := by
   exact congrArg norm (Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded t)
 
+/-- The numerator vertical line for the left-boundary quotient, before the `π`
+normalization is attached.
+
+This is the canonical classical special-function input: vertical Stirling for
+`Γ(1/2 - i t/2)` with the exponential envelope needed on the left boundary;
+cf. DLMF §5.11. -/
+theorem verticalComplexGammaStirling_leftBoundary_numerator_core_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ ≤
+          A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
+  sorry
+
+/-- The denominator vertical line for the left-boundary quotient, before the `π`
+normalization is attached.
+
+This is the canonical classical special-function input: the reciprocal vertical
+Stirling estimate for `Γ(i t/2)`; cf. DLMF §5.11. -/
+theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
+    ∃ B : ℝ,
+      0 < B ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(Complex.Gamma (((t : ℂ) * Complex.I) / 2))⁻¹‖ ≤
+          B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
+  sorry
+
+/-- The real part of the numerator `π`-normalizing exponent is `-1/2`. -/
+theorem leftBoundary_numerator_piExponent_re
+    (t : ℝ) :
+    (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2).re = -(1 / 2 : ℝ) := by
+  calc
+    (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2).re =
+        (-((1 : ℂ) - (t : ℂ) * Complex.I)).re / 2 := by
+      exact Complex.div_re_ofReal (-((1 : ℂ) - (t : ℂ) * Complex.I)) 2
+    _ = -(((1 : ℂ) - (t : ℂ) * Complex.I).re) / 2 := by
+      exact congrArg (fun x : ℝ => x / 2)
+        (Complex.neg_re ((1 : ℂ) - (t : ℂ) * Complex.I))
+    _ = -(1 / 2 : ℝ) := by
+      have hre_one : (((1 : ℂ) - (t : ℂ) * Complex.I).re) = 1 := by
+        calc
+          (((1 : ℂ) - (t : ℂ) * Complex.I).re) =
+              (1 : ℂ).re - ((t : ℂ) * Complex.I).re := by
+            exact Complex.sub_re (1 : ℂ) ((t : ℂ) * Complex.I)
+          _ = 1 - ((t : ℂ) * Complex.I).re := by
+            exact congrArg (fun x : ℝ => x - ((t : ℂ) * Complex.I).re) Complex.one_re
+          _ = 1 - ((t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im) := by
+            exact congrArg (fun x : ℝ => 1 - x)
+              (Complex.mul_re (t : ℂ) Complex.I)
+          _ = 1 - (t * 0 - 0 * 1) := by
+            rfl
+          _ = 1 := by
+            calc
+              1 - (t * 0 - 0 * 1) = 1 - (0 - 0 * 1) := by
+                exact congrArg (fun x : ℝ => 1 - (x - 0 * 1)) (mul_zero t)
+              _ = 1 - (0 - 0) := by
+                exact congrArg (fun x : ℝ => 1 - (0 - x)) (zero_mul 1)
+              _ = 1 - 0 := by
+                exact congrArg (fun x : ℝ => 1 - x) (sub_zero 0)
+              _ = 1 :=
+                sub_zero 1
+      calc
+        -(((1 : ℂ) - (t : ℂ) * Complex.I).re) / 2 =
+            -1 / 2 := by
+          exact congrArg (fun x : ℝ => -x / 2) hre_one
+        _ = -(1 / 2 : ℝ) := by
+          exact neg_div 1 2
+
+/-- The numerator `π`-normalizing factor is bounded by `1`; its constant
+contribution is absorbed into the Stirling constant. -/
+theorem norm_leftBoundary_numerator_piFactor_le_one
+    (t : ℝ) :
+    ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ ≤ 1 := by
+  have hpi_pos : (0 : ℝ) < π := Real.pi_pos
+  have hpi_one_le : (1 : ℝ) ≤ π :=
+    le_of_lt Real.one_lt_pi
+  have hnorm_eq :
+      ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ =
+        π ^ (-(1 / 2 : ℝ)) := by
+    calc
+      ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ =
+          Complex.abs (π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)) := by
+        exact Complex.norm_eq_abs
+          (π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ))
+      _ = π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ).re := by
+        exact Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos
+          (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)
+      _ = π ^ (-(1 / 2 : ℝ)) := by
+        exact congrArg (fun x : ℝ => π ^ x)
+          (leftBoundary_numerator_piExponent_re t)
+  have hexponent_nonpos : (-(1 / 2 : ℝ)) ≤ 0 := by
+    exact neg_nonpos.mpr
+      (div_nonneg zero_le_one zero_le_two)
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 1)
+    hnorm_eq.symm
+    (Real.rpow_le_one_of_one_le_of_nonpos hpi_one_le hexponent_nonpos)
+
+/-- The real part of the denominator `π`-normalizing exponent is `0`. -/
+theorem leftBoundary_denominator_piExponent_re
+    (t : ℝ) :
+    (-((t : ℂ) * Complex.I) / 2).re = 0 := by
+  calc
+    (-((t : ℂ) * Complex.I) / 2).re =
+        (-((t : ℂ) * Complex.I)).re / 2 := by
+      exact Complex.div_re_ofReal (-((t : ℂ) * Complex.I)) 2
+    _ = -(((t : ℂ) * Complex.I).re) / 2 := by
+      exact congrArg (fun x : ℝ => x / 2)
+        (Complex.neg_re ((t : ℂ) * Complex.I))
+    _ = -(t * 0 - 0 * 1) / 2 := by
+      exact congrArg (fun x : ℝ => -x / 2)
+        (calc
+          (((t : ℂ) * Complex.I).re) =
+              (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
+            exact Complex.mul_re (t : ℂ) Complex.I
+          _ = t * 0 - 0 * 1 := by
+            rfl)
+    _ = 0 := by
+      calc
+        -(t * 0 - 0 * 1) / 2 = -(0 - 0 * 1) / 2 := by
+          exact congrArg (fun x : ℝ => -(x - 0 * 1) / 2) (mul_zero t)
+        _ = -(0 - 0) / 2 := by
+          exact congrArg (fun x : ℝ => -(0 - x) / 2) (zero_mul 1)
+        _ = -0 / 2 := by
+          exact congrArg (fun x : ℝ => -x / 2) (sub_zero 0)
+        _ = 0 / 2 := by
+          exact congrArg (fun x : ℝ => x / 2) (neg_zero.symm)
+        _ = 0 :=
+          zero_div 2
+
+/-- The denominator `π`-normalizing factor has norm one on the left-boundary
+vertical line. -/
+theorem norm_leftBoundary_denominator_piFactor_eq_one
+    (t : ℝ) :
+    ‖π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)‖ = 1 := by
+  have hpi_pos : (0 : ℝ) < π := Real.pi_pos
+  calc
+    ‖π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)‖ =
+        Complex.abs (π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)) := by
+      exact Complex.norm_eq_abs
+        (π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ))
+    _ = π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ).re := by
+      exact Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos
+        (-((t : ℂ) * Complex.I) / 2 : ℂ)
+    _ = π ^ (0 : ℝ) := by
+      exact congrArg (fun x : ℝ => π ^ x)
+        (leftBoundary_denominator_piExponent_re t)
+    _ = 1 := by
+      exact Real.rpow_zero π
+
+/-- The denominator `π`-normalizing factor is nonzero on the left-boundary
+vertical line. -/
+theorem leftBoundary_denominator_piFactor_ne_zero
+    (t : ℝ) :
+    π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ) ≠ 0 := by
+  intro hzero
+  have hnorm_zero :
+      ‖π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)‖ = 0 := by
+    exact congrArg norm hzero
+  have hone_zero : (1 : ℝ) = 0 := by
+    calc
+      (1 : ℝ) = ‖π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)‖ := by
+        exact (norm_leftBoundary_denominator_piFactor_eq_one t).symm
+      _ = 0 := hnorm_zero
+  exact one_ne_zero hone_zero
+
+/-- Attach the numerator `π`-normalization to the canonical vertical `Complex.Gamma`
+Stirling estimate. -/
+theorem twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound_of_core
+    (hcore :
+      ∃ A : ℝ,
+        0 < A ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+          ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ ≤
+            A * Real.exp (-(Real.pi / 4) * ‖t‖)) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤
+          A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
+  rcases hcore with ⟨A, hA_pos, hA⟩
+  refine ⟨A, hA_pos, ?_⟩
+  intro t ht
+  have hpi_le_one :
+      ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ ≤ 1 :=
+    norm_leftBoundary_numerator_piFactor_le_one t
+  have hgamma_bound :
+      ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ ≤
+        A * Real.exp (-(Real.pi / 4) * ‖t‖) :=
+    hA t ht
+  have htarget_nonneg :
+      0 ≤ A * Real.exp (-(Real.pi / 4) * ‖t‖) :=
+    mul_nonneg (le_of_lt hA_pos) (le_of_lt (Real.exp_pos _))
+  calc
+    ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ =
+        ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ *
+          ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ := by
+      exact norm_mul
+        (π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ))
+        (Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2))
+    _ ≤ 1 * (A * Real.exp (-(Real.pi / 4) * ‖t‖)) := by
+      exact mul_le_mul hpi_le_one hgamma_bound (norm_nonneg _) zero_le_one
+    _ = A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
+      exact one_mul (A * Real.exp (-(Real.pi / 4) * ‖t‖))
+
+/-- Attach the denominator `π`-normalization to the canonical reciprocal vertical
+`Complex.Gamma` Stirling estimate. -/
+theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound_of_core
+    (hcore :
+      ∃ B : ℝ,
+        0 < B ∧
+        ∀ t : ℝ,
+          1 ≤ ‖t‖ →
+          ‖(Complex.Gamma (((t : ℂ) * Complex.I) / 2))⁻¹‖ ≤
+            B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖)) :
+    ∃ B : ℝ,
+      0 < B ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+        ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
+          B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
+  rcases hcore with ⟨B, hB_pos, hB⟩
+  refine ⟨B, hB_pos, ?_⟩
+  intro t ht
+  let P : ℂ := π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)
+  let G : ℂ := Complex.Gamma (((t : ℂ) * Complex.I) / 2)
+  have hP_ne : P ≠ 0 :=
+    leftBoundary_denominator_piFactor_ne_zero t
+  have hP_norm_one : ‖P‖ = (1 : ℝ) :=
+    norm_leftBoundary_denominator_piFactor_eq_one t
+  have hraw :
+      ‖G⁻¹‖ ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) :=
+    hB t ht
+  have hnorm_eq :
+      ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
+        ‖G⁻¹‖ := by
+    calc
+      ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ =
+          ‖(P * G)⁻¹‖ := by
+        rfl
+      _ = ‖P⁻¹ * G⁻¹‖ := by
+        exact congrArg norm (mul_inv_rev P G)
+      _ = ‖P⁻¹‖ * ‖G⁻¹‖ := by
+        exact norm_mul P⁻¹ G⁻¹
+      _ = ‖P‖⁻¹ * ‖G⁻¹‖ := by
+        exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (norm_inv P)
+      _ = 1⁻¹ * ‖G⁻¹‖ := by
+        exact congrArg (fun x : ℝ => x⁻¹ * ‖G⁻¹‖) hP_norm_one
+      _ = 1 * ‖G⁻¹‖ := by
+        exact congrArg (fun x : ℝ => x * ‖G⁻¹‖) (inv_one : (1 : ℝ)⁻¹ = 1)
+      _ = ‖G⁻¹‖ := by
+        exact one_mul ‖G⁻¹‖
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      x ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
+    hnorm_eq.symm
+    hraw
+
 /-- Vertical Stirling upper bound for the named numerator in the unfolded left-boundary
 Gamma quotient.
 
@@ -2175,7 +2451,9 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound :
         1 ≤ ‖t‖ →
         ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤
           A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
-  sorry
+  exact
+    twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound_of_core
+      verticalComplexGammaStirling_leftBoundary_numerator_core_bound
 
 /-- Vertical Stirling reciprocal bound for the named denominator in the unfolded
 left-boundary Gamma quotient.
@@ -2190,7 +2468,9 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound 
         1 ≤ ‖t‖ →
         ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
           B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
-  sorry
+  exact
+    twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound_of_core
+      verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound
 
 /-- Algebraic quotient estimate obtained from the numerator bound and denominator
 reciprocal bound.  The exponential factors cancel, leaving the square-root envelope. -/

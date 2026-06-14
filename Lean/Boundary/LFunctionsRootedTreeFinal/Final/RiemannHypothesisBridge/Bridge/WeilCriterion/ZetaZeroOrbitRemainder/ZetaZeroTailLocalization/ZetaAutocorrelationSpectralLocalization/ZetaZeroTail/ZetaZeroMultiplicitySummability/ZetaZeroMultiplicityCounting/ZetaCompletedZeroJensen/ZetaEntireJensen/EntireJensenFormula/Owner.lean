@@ -2075,6 +2075,54 @@ theorem entireFunctionJensenRadialGapSum_eq_finiteProductRadialGapSum_of_support
         hz_ne_zero
       exact hz_not_mem (hsupport hz_support))
 
+/-- If the Jensen disk contains no nonzero zeros, the radial-gap divisor sum is
+zero.
+
+This is the zero-free quotient special case of the finite-divisor product
+bridge: once all possible nonzero zero factors are absent from the disk, the
+entire radial-gap contribution vanishes term by term. -/
+theorem entireFunctionJensenRadialGapSum_eq_zero_of_no_nonzero_zeros_in_disk
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hzero :
+      ∀ z : EntireFunctionZero F,
+        (z : ℂ) ≠ 0 →
+        ¬ ‖(z : ℂ)‖ < ρ) :
+    entireFunctionJensenRadialGapSum F hF ρ = 0 := by
+  unfold entireFunctionJensenRadialGapSum
+  exact tsum_eq_zero
+    (fun z => by
+      unfold entireFunctionJensenRadialGapSummand
+      by_cases hz0 : (z : ℂ) = 0
+      · exact if_pos hz0
+      · exact Eq.trans (if_neg hz0) (if_neg (hzero z hz0)))
+
+/-- Analytic-log/harmonic mean-value form of the classical Jensen product theorem.
+
+Proof chain:
+finite divisor factorization on the disk -> zero-free quotient admits an
+analytic logarithm -> the real part of that logarithm is harmonic -> harmonic
+mean value on the boundary circle -> the single zero-factor boundary average
+`log (ρ / ‖a‖)` -> finite product sum -> support-controlled `tsum` transport.
+
+This is the exact remaining classical complex-analysis input.  The finite and
+support-transport pieces are proved in this file; the unavailable analytic-log
+and harmonic mean-value theorem is isolated here with the same normalization as
+the public Jensen owner root.  Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_analyticLogHarmonicMeanValue
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ := by
+  -- Classical analytic-log plus harmonic mean-value theorem; cf. Titchmarsh,
+  -- The Theory of Functions, §5.
+  sorry
+
 /-- Classical analytic product/Jensen identity after finite zero-divisor
 factorization.
 
@@ -2096,9 +2144,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_bo
       entireFunctionJensenRadialGapSum F hF ρ -
           Real.log ‖F 0‖ =
         entireFunctionJensenBoundaryLogAverage F ρ := by
-  -- Classical Jensen product formula with analytic multiplicities; cf.
-  -- Titchmarsh, The Theory of Functions, §5.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFreeQuotient_boundaryMeanLog_identity_analyticLogHarmonicMeanValue
+      F hF hF0
 
 /-- Classical Jensen product/radial-gap identity for a nonzero value at the
 origin, including the explicit constant.
