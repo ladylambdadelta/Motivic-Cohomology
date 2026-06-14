@@ -95,8 +95,7 @@ theorem summable_nat_succ_inverse_square :
 
 /-- A negative second integer power is a reciprocal square. -/
 theorem real_zpow_neg_two_eq_inv_square
-    {x : ℝ}
-    (hx : x ≠ 0) :
+    (x : ℝ) :
     x ^ (-(2 : ℤ)) = x⁻¹ ^ (2 : ℕ) := by
   calc
     x ^ (-(2 : ℤ)) = (x ^ (2 : ℕ))⁻¹ := zpow_neg x 2
@@ -110,16 +109,10 @@ theorem one_add_nat_norm_negative_two_eq_nat_succ_inverse_square
   have hbase :
       1 + ‖((m : ℕ) : ℝ)‖ = ((m + 1 : ℕ) : ℝ) :=
     one_add_nat_norm_eq_nat_succ m
-  have hpos :
-      0 < 1 + ‖((m : ℕ) : ℝ)‖ :=
-    one_add_nat_norm_pos m
-  have hne :
-      1 + ‖((m : ℕ) : ℝ)‖ ≠ 0 :=
-    ne_of_gt hpos
   have hpow :
       (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(2 : ℤ)) =
         (1 + ‖((m : ℕ) : ℝ)‖)⁻¹ ^ (2 : ℕ) :=
-    real_zpow_neg_two_eq_inv_square hne
+    real_zpow_neg_two_eq_inv_square (1 + ‖((m : ℕ) : ℝ)‖)
   exact Eq.trans hpow
     (congrArg (fun x : ℝ => x⁻¹ ^ (2 : ℕ)) hbase)
 

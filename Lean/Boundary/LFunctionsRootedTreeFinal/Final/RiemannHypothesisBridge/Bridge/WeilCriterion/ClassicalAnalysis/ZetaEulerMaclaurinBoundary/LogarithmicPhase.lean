@@ -291,8 +291,6 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_nor
     _ = ‖t‖ / x := by
       exact congrArg (fun y : ℝ => ‖t‖ / y) hden
 
-/-- The first-derivative-test root after the concrete derivative and derivative
-norm have been isolated. -/
 /-- Classical first-derivative estimate for the concrete logarithmic phase
 `x ↦ exp(-it log x)`.
 

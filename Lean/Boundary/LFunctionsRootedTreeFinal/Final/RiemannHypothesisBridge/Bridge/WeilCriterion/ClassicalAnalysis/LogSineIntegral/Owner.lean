@@ -588,6 +588,62 @@ theorem Real.sinePower_sinSubstitution_source_intervalIntegrable
       s
       (Real.sinePowerExponent_gt_neg_one_of_leftParameter_pos hleft)
 
+/-- The Beta-kernel endpoint integrability on `[0,1]` in real variables. -/
+theorem Real.sinePower_betaRealKernel_intervalIntegrable
+    (s : ℝ)
+    (hleft : 0 < (s + 1) / 2)
+    (hright : 0 < (1 / 2 : ℝ)) :
+    IntervalIntegrable
+      (fun t : ℝ =>
+        t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  sorry
+
+/-- Positivity of `1 - x²` on the open unit interval. -/
+theorem Real.one_sub_sq_pos_of_mem_Ioo_zero_one
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    0 < 1 - x ^ 2 := by
+  have hx0 : 0 < x :=
+    hx.1
+  have hx1 : x < 1 :=
+    hx.2
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx0
+  have hx_sq_lt_one : x ^ 2 < 1 := by
+    calc
+      x ^ 2 = x * x := by
+        exact pow_two x
+      _ < 1 * 1 := by
+        exact mul_lt_mul hx1 hx1 hx_nonneg zero_lt_one
+      _ = 1 := by
+        exact one_mul 1
+  exact sub_pos.mpr hx_sq_lt_one
+
+/-- The inverse-square-root factor appearing in the sine substitution. -/
+theorem Real.sinePower_sinSubstitution_invSqrt_eq_rpow
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    1 / Real.sqrt (1 - x ^ 2) =
+      (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  sorry
+
+/-- The sine/arcsine part of the inverse sine substitution. -/
+theorem Real.sinePower_sin_arcsin_rpow_eq
+    (s : ℝ)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    (Real.sin (Real.arcsin x)) ^ s = x ^ s := by
+  have hx_left : -1 ≤ x := by
+    exact le_trans (neg_nonpos.mpr zero_le_one) (le_of_lt hx.1)
+  have hx_right : x ≤ 1 :=
+    le_of_lt hx.2
+  exact congrArg (fun y : ℝ => y ^ s)
+    (Real.sin_arcsin hx_left hx_right)
+
 /-- Target-side interval integrability for the sine substitution. -/
 theorem Real.sinePower_sinSubstitution_target_intervalIntegrable
     (s : ℝ)
@@ -607,7 +663,17 @@ theorem Real.sinePower_sinSubstitution_inverseJacobian_eq
     (Real.sin (Real.arcsin x)) ^ s *
         (1 / Real.sqrt (1 - x ^ 2)) =
       x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  calc
+    (Real.sin (Real.arcsin x)) ^ s *
+        (1 / Real.sqrt (1 - x ^ 2)) =
+        x ^ s * (1 / Real.sqrt (1 - x ^ 2)) := by
+      exact congrArg
+        (fun y : ℝ => y * (1 / Real.sqrt (1 - x ^ 2)))
+        (Real.sinePower_sin_arcsin_rpow_eq s hx)
+    _ = x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+      exact congrArg
+        (fun y : ℝ => x ^ s * y)
+        (Real.sinePower_sinSubstitution_invSqrt_eq_rpow hx)
 
 /-- The interval substitution theorem for `x = sin u` on `[0,π/2]`, after
 isolating the endpoint integrability and open-interval Jacobian packages. -/
@@ -690,7 +756,69 @@ theorem Real.sinePower_squareSubstitution_target_intervalIntegrable
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
+  exact Real.sinePower_betaRealKernel_intervalIntegrable s hleft hright
+
+/-- The power of a square in the square substitution on `(0,1)`. -/
+theorem Real.sinePower_squareSubstitution_sq_rpow_eq
+    (s x : ℝ)
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    (x ^ 2) ^ (((s + 1) / 2) - 1) =
+      x ^ (s - 1) := by
   sorry
+
+/-- The right endpoint exponent in the square substitution. -/
+theorem Real.sinePower_squareSubstitution_rightExponent_eq :
+    ((1 / 2 : ℝ) - 1) = ((-1 : ℝ) / 2) := by
+  sorry
+
+/-- The scalar Jacobian cancellation in the square substitution. -/
+theorem Real.sinePower_squareSubstitution_scalar_cancel
+    (x y : ℝ) :
+    ((1 / 2 : ℝ) * y) * (2 * x) = y * x := by
+  have hhalf_two : (1 / 2 : ℝ) * 2 = 1 := by
+    calc
+      (1 / 2 : ℝ) * 2 = (2 : ℝ)⁻¹ * 2 := by
+        exact congrArg (fun z : ℝ => z * 2) (one_div 2)
+      _ = 1 := by
+        exact inv_mul_cancel₀ two_ne_zero
+  calc
+    ((1 / 2 : ℝ) * y) * (2 * x) =
+        (((1 / 2 : ℝ) * y) * 2) * x := by
+      exact mul_assoc ((1 / 2 : ℝ) * y) 2 x
+    _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
+      exact congrArg (fun z : ℝ => z * x)
+        (mul_assoc (1 / 2 : ℝ) y 2)
+    _ = ((1 / 2 : ℝ) * (2 * y)) * x := by
+      exact congrArg
+        (fun z : ℝ => ((1 / 2 : ℝ) * z) * x)
+        (mul_comm y 2)
+    _ = (((1 / 2 : ℝ) * 2) * y) * x := by
+      exact congrArg (fun z : ℝ => z * x)
+        (mul_assoc (1 / 2 : ℝ) 2 y).symm
+    _ = (1 * y) * x := by
+      exact congrArg (fun z : ℝ => (z * y) * x) hhalf_two
+    _ = y * x := by
+      exact congrArg (fun z : ℝ => z * x) (one_mul y)
+
+/-- The left endpoint power algebra in the square substitution. -/
+theorem Real.sinePower_squareSubstitution_leftPower_mul_eq
+    (s x : ℝ)
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    x ^ (s - 1) * x = x ^ s := by
+  sorry
+
+/-- Reassociation of the square-substitution integrand after the scalar
+Jacobian has been cancelled. -/
+theorem Real.sinePower_squareSubstitution_mul_reassociate
+    (x a b : ℝ) :
+    (a * b) * x = (a * x) * b := by
+  calc
+    (a * b) * x = a * (b * x) := by
+      exact mul_assoc a b x
+    _ = a * (x * b) := by
+      exact congrArg (fun z : ℝ => a * z) (mul_comm b x)
+    _ = (a * x) * b := by
+      exact (mul_assoc a x b).symm
 
 /-- Open-interval Jacobian identity for the square substitution `t = x²`. -/
 theorem Real.sinePower_squareSubstitution_jacobian_eq
@@ -701,7 +829,50 @@ theorem Real.sinePower_squareSubstitution_jacobian_eq
           (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
         (2 * x) =
       x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  have hsq :
+      (x ^ 2) ^ (((s + 1) / 2) - 1) =
+        x ^ (s - 1) :=
+    Real.sinePower_squareSubstitution_sq_rpow_eq s x hx
+  have hright :
+      (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1) =
+        (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
+    congrArg
+      (fun e : ℝ => (1 - x ^ 2) ^ e)
+      Real.sinePower_squareSubstitution_rightExponent_eq
+  calc
+    ((1 / 2 : ℝ) *
+        ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+          (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+        (2 * x) =
+        (((x ^ 2) ^ (((s + 1) / 2) - 1) *
+          (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1)) * x) := by
+      exact
+        Real.sinePower_squareSubstitution_scalar_cancel
+          x
+          ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+            (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))
+    _ =
+        ((x ^ (s - 1) *
+          (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) * x) := by
+      exact congrArg
+        (fun y : ℝ => y * x)
+        (congrArg₂
+          (fun a b : ℝ => a * b)
+          hsq
+          hright)
+    _ =
+        (x ^ (s - 1) * x) *
+          (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+      exact
+        Real.sinePower_squareSubstitution_mul_reassociate
+          x
+          (x ^ (s - 1))
+          ((1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+    _ =
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+      exact congrArg
+        (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        (Real.sinePower_squareSubstitution_leftPower_mul_eq s x hx)
 
 /-- The interval substitution theorem for `t = x²` on `[0,1]`, after
 isolating endpoint integrability and the Jacobian computation. -/

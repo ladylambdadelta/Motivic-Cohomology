@@ -661,7 +661,111 @@ theorem real_one_div_mul_two_add_eq_half_sub
     (hx_two : 2 + x ≠ 0) :
     (1 : ℝ) / (x * (2 + x)) =
       (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
-  sorry
+  have hdiff :
+      (2 + x : ℝ) - x = 2 :=
+    add_sub_cancel_right 2 x
+  have hinv :
+      (1 : ℝ) / x - (1 : ℝ) / (2 + x) =
+        2 / (x * (2 + x)) := by
+    calc
+      (1 : ℝ) / x - (1 : ℝ) / (2 + x)
+          = x⁻¹ - (2 + x)⁻¹ := by
+              rw [one_div, one_div]
+      _ = ((2 + x) - x) / (x * (2 + x)) :=
+              inv_sub_inv hx hx_two
+      _ = 2 / (x * (2 + x)) := by
+              exact congrArg
+                (fun y : ℝ => y / (x * (2 + x)))
+                hdiff
+  calc
+    (1 : ℝ) / (x * (2 + x))
+        = ((1 / 2 : ℝ) * 2) / (x * (2 + x)) := by
+            rw [one_div_mul_cancel two_ne_zero, one_div]
+    _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
+            rw [mul_div_assoc]
+    _ = (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
+            exact congrArg (fun y : ℝ => (1 / 2 : ℝ) * y) hinv.symm
+
+/-- Interval integral of the first reciprocal term in the partial-fraction
+expansion. -/
+theorem real_intervalIntegral_one_div_eq_log_endpoint
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / x =
+      Real.log b - Real.log 2 := by
+  have hb_pos : 0 < b :=
+    lt_of_lt_of_le zero_lt_two hb
+  have hbase : 0 < (2 : ℝ) :=
+    zero_lt_two
+  have hintegral :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / x =
+        Real.log (b / 2) :=
+    Real.integral_one_div_of_pos hbase hb_pos
+  have hlog :
+      Real.log (b / 2) = Real.log b - Real.log 2 :=
+    Real.log_div (ne_of_gt hb_pos) (ne_of_gt hbase)
+  exact Eq.trans hintegral hlog
+
+/-- Interval integral of the translated reciprocal term in the partial-fraction
+expansion. -/
+theorem real_intervalIntegral_one_div_two_add_eq_log_endpoint
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x) =
+      Real.log (2 + b) - Real.log 4 := by
+  have hb_shift_pos : 0 < b + 2 :=
+    add_pos_of_nonneg_of_pos (le_trans (le_of_lt zero_lt_two) hb) zero_lt_two
+  have hfour : ((2 : ℝ) + 2) = 4 :=
+    rfl
+  have hfour_pos : 0 < ((2 : ℝ) + 2) := by
+    exact Eq.subst (motive := fun y : ℝ => 0 < y) hfour.symm zero_lt_four
+  have htranslated :
+      ∫ x in (2 : ℝ)..b, (fun y : ℝ => (1 : ℝ) / y) (x + 2) =
+        ∫ x in ((2 : ℝ) + 2)..(b + 2), (1 : ℝ) / x :=
+    intervalIntegral.integral_comp_add_right
+      (fun y : ℝ => (1 : ℝ) / y) 2
+  have hleft :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x) =
+        ∫ x in (2 : ℝ)..b, (fun y : ℝ => (1 : ℝ) / y) (x + 2) := by
+    exact congrArg
+      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
+      (funext
+        (fun x : ℝ =>
+          congrArg (fun y : ℝ => (1 : ℝ) / y) (add_comm 2 x)))
+  have heval :
+      ∫ x in ((2 : ℝ) + 2)..(b + 2), (1 : ℝ) / x =
+        Real.log (b + 2) - Real.log ((2 : ℝ) + 2) := by
+    have hintegral :
+        ∫ x in ((2 : ℝ) + 2)..(b + 2), (1 : ℝ) / x =
+          Real.log ((b + 2) / ((2 : ℝ) + 2)) :=
+      Real.integral_one_div_of_pos hfour_pos hb_shift_pos
+    have hlog :
+        Real.log ((b + 2) / ((2 : ℝ) + 2)) =
+          Real.log (b + 2) - Real.log ((2 : ℝ) + 2) :=
+      Real.log_div (ne_of_gt hb_shift_pos) (ne_of_gt hfour_pos)
+    exact Eq.trans hintegral hlog
+  have hnormalize :
+      Real.log (b + 2) - Real.log ((2 : ℝ) + 2) =
+        Real.log (2 + b) - Real.log 4 := by
+    have hb_comm : b + 2 = 2 + b :=
+      add_comm b 2
+    exact Eq.trans
+      (congrArg
+        (fun y : ℝ => Real.log y - Real.log ((2 : ℝ) + 2))
+        hb_comm)
+      (congrArg
+        (fun y : ℝ => Real.log (2 + b) - Real.log y)
+        hfour)
+  calc
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x)
+        = ∫ x in (2 : ℝ)..b, (fun y : ℝ => (1 : ℝ) / y) (x + 2) :=
+            hleft
+    _ = ∫ x in ((2 : ℝ) + 2)..(b + 2), (1 : ℝ) / x :=
+            htranslated
+    _ = Real.log (b + 2) - Real.log ((2 : ℝ) + 2) :=
+            heval
+    _ = Real.log (2 + b) - Real.log 4 :=
+            hnormalize
 
 /-- Antiderivative evaluation for the reciprocal-density scalar integrand.
 
