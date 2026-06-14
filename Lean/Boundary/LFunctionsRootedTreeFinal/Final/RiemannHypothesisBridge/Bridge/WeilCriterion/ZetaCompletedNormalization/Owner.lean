@@ -2943,24 +2943,24 @@ theorem real_abs_le_max_abs_of_mem_Icc
 /-- The real part of a deterministic recurrence factor is bounded uniformly on
 the strip and for `j < N`. -/
 theorem Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
-    {A B x : ℝ}
+    {A B x y : ℝ}
     {N j : ℕ}
     (hxA : A ≤ x)
     (hxB : x ≤ B)
     (hj : j < N) :
-    |(Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re| ≤
+    |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| ≤
       max |A| |B| + N := by
   have hre :
-      (Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re =
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re =
         x + (j : ℝ) := by
     calc
-      (Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re =
-          (Complex.fixedRealPartVerticalPoint x (0 : ℝ)).re + (j : ℂ).re :=
-        Complex.add_re (Complex.fixedRealPartVerticalPoint x (0 : ℝ)) (j : ℂ)
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re =
+          (Complex.fixedRealPartVerticalPoint x y).re + (j : ℂ).re :=
+        Complex.add_re (Complex.fixedRealPartVerticalPoint x y) (j : ℂ)
       _ = x + (j : ℂ).re := by
         exact congrArg
           (fun t : ℝ => t + (j : ℂ).re)
-          (Complex.fixedRealPartVerticalPoint_re x 0)
+          (Complex.fixedRealPartVerticalPoint_re x y)
       _ = x + (j : ℝ) := by
         exact congrArg (fun t : ℝ => x + t) (Complex.natCast_re j)
   have hx_abs : |x| ≤ max |A| |B| :=
@@ -3000,7 +3000,95 @@ theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
           j < N →
             ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
               C * (1 + ‖y‖) := by
-  sorry
+  let C₀ : ℝ := max |A| |B| + N
+  refine ⟨C₀ + 1, ?_, ?_⟩
+  · have hC₀_nonneg : 0 ≤ C₀ := by
+      have hmax_nonneg : 0 ≤ max |A| |B| :=
+        le_trans (abs_nonneg A) (le_max_left |A| |B|)
+      have hN_nonneg : 0 ≤ (N : ℝ) :=
+        Nat.cast_nonneg N
+      exact add_nonneg hmax_nonneg hN_nonneg
+    exact add_pos_of_nonneg_of_pos hC₀_nonneg zero_lt_one
+  intro x y hxA hxB j hj
+  have hnorm_coord :
+      ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
+    Eq.subst
+      (motive := fun t : ℝ =>
+        t ≤
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
+      (Complex.norm_eq_abs
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))).symm
+      (Complex.abs_le_abs_re_add_abs_im
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
+  have hre_bound :
+      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| ≤ C₀ :=
+    Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
+      hxA hxB hj
+  have him_eq :
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+    Complex.gammaRecurrenceProduct_factor_im x y j
+  have him_abs_eq_norm :
+      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| = ‖y‖ := by
+    exact
+      Eq.trans
+        (congrArg abs him_eq)
+        (Real.norm_eq_abs y).symm
+  have hcoord_bound :
+      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+        C₀ + ‖y‖ := by
+    exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+              C₀ + t)
+        him_abs_eq_norm.symm
+        (add_le_add_right hre_bound
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
+  have hC₀_nonneg : 0 ≤ C₀ := by
+    have hmax_nonneg : 0 ≤ max |A| |B| :=
+      le_trans (abs_nonneg A) (le_max_left |A| |B|)
+    have hN_nonneg : 0 ≤ (N : ℝ) :=
+      Nat.cast_nonneg N
+    exact add_nonneg hmax_nonneg hN_nonneg
+  have hC_ge_one : 1 ≤ C₀ + 1 := by
+    calc
+      1 = 0 + 1 := (zero_add 1).symm
+      _ ≤ C₀ + 1 := add_le_add_right hC₀_nonneg 1
+  have hy_nonneg : 0 ≤ ‖y‖ :=
+    norm_nonneg y
+  have hlinear_to_product :
+      C₀ + ‖y‖ ≤ (C₀ + 1) * (1 + ‖y‖) := by
+    have hleft_const : C₀ ≤ C₀ + 1 :=
+      le_add_of_nonneg_right zero_le_one
+    have hleft_height : ‖y‖ ≤ (C₀ + 1) * ‖y‖ :=
+      calc
+        ‖y‖ = 1 * ‖y‖ := (one_mul ‖y‖).symm
+        _ ≤ (C₀ + 1) * ‖y‖ :=
+          mul_le_mul_of_nonneg_right hC_ge_one hy_nonneg
+    have hsum :
+        C₀ + ‖y‖ ≤ (C₀ + 1) + (C₀ + 1) * ‖y‖ :=
+      add_le_add hleft_const hleft_height
+    have htarget :
+        (C₀ + 1) + (C₀ + 1) * ‖y‖ =
+          (C₀ + 1) * (1 + ‖y‖) := by
+      calc
+        (C₀ + 1) + (C₀ + 1) * ‖y‖ =
+            (C₀ + 1) * 1 + (C₀ + 1) * ‖y‖ := by
+          exact congrArg (fun t : ℝ => t + (C₀ + 1) * ‖y‖)
+            (mul_one (C₀ + 1)).symm
+        _ = (C₀ + 1) * (1 + ‖y‖) :=
+          (mul_add (C₀ + 1) 1 ‖y‖).symm
+    exact
+      Eq.subst
+        (motive := fun t : ℝ => C₀ + ‖y‖ ≤ t)
+        htarget
+        hsum
+  exact le_trans hnorm_coord (le_trans hcoord_bound hlinear_to_product)
 
 /-- Per-factor two-sided bounds for deterministic recurrence factors on a fixed
 vertical strip. -/
@@ -3029,6 +3117,90 @@ theorem Complex.gammaRecurrenceProduct_factor_twoSided_bounds_on_verticalStrip
   constructor
   · exact hC x y hxA hxB j hj
   · exact Complex.gammaRecurrenceProduct_factor_largeHeight_lower j hy
+
+/-- Norm of the deterministic recurrence product as the finite product of
+factor norms. -/
+theorem Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
+    (z : ℂ)
+    (N : ℕ) :
+    ‖Complex.gammaRecurrenceProduct z N‖ =
+      ∏ j ∈ Finset.range N, ‖z + (j : ℂ)‖ := by
+  unfold Complex.gammaRecurrenceProduct
+  calc
+    ‖∏ j ∈ Finset.range N, z + (j : ℂ)‖ =
+        Complex.abs (∏ j ∈ Finset.range N, z + (j : ℂ)) :=
+      Complex.norm_eq_abs (∏ j ∈ Finset.range N, z + (j : ℂ))
+    _ = ∏ j ∈ Finset.range N, Complex.abs (z + (j : ℂ)) :=
+      Complex.abs_prod (Finset.range N) (fun j : ℕ => z + (j : ℂ))
+    _ = ∏ j ∈ Finset.range N, ‖z + (j : ℂ)‖ :=
+      Finset.prod_congr rfl
+        (fun j hj =>
+          (Complex.norm_eq_abs (z + (j : ℂ))).symm)
+
+/-- Uniform finite-product upper estimate from per-factor upper estimates. -/
+theorem real_finset_range_prod_upper_of_factor_le
+    (N : ℕ)
+    {M : ℝ}
+    {f : ℕ → ℝ}
+    (hM_nonneg : 0 ≤ M)
+    (hf_nonneg : ∀ j : ℕ, j < N → 0 ≤ f j)
+    (hf_le : ∀ j : ℕ, j < N → f j ≤ M) :
+    (∏ j ∈ Finset.range N, f j) ≤ M ^ N := by
+  have hprod_le :
+      (∏ j ∈ Finset.range N, f j) ≤
+        ∏ j ∈ Finset.range N, M :=
+    Finset.prod_le_prod
+      (fun j hj => hf_nonneg j (Finset.mem_range.mp hj))
+      (fun j hj => hf_le j (Finset.mem_range.mp hj))
+  have hconst :
+      (∏ j ∈ Finset.range N, M) = M ^ #(Finset.range N) :=
+    Finset.prod_const M
+  have hcard :
+      #(Finset.range N) = N :=
+    Finset.card_range N
+  have hconst_N :
+      (∏ j ∈ Finset.range N, M) = M ^ N :=
+    Eq.trans hconst (congrArg (fun n : ℕ => M ^ n) hcard)
+  exact le_trans hprod_le (le_of_eq hconst_N)
+
+/-- Uniform finite-product lower estimate from per-factor lower estimates. -/
+theorem real_finset_range_prod_lower_of_factor_ge
+    (N : ℕ)
+    {m : ℝ}
+    {f : ℕ → ℝ}
+    (hm_nonneg : 0 ≤ m)
+    (hf_ge : ∀ j : ℕ, j < N → m ≤ f j) :
+    m ^ N ≤ (∏ j ∈ Finset.range N, f j) := by
+  have hprod_le :
+      (∏ j ∈ Finset.range N, m) ≤
+        ∏ j ∈ Finset.range N, f j :=
+    Finset.prod_le_prod
+      (fun j hj => hm_nonneg)
+      (fun j hj => hf_ge j (Finset.mem_range.mp hj))
+  have hconst :
+      (∏ j ∈ Finset.range N, m) = m ^ #(Finset.range N) :=
+    Finset.prod_const m
+  have hcard :
+      #(Finset.range N) = N :=
+    Finset.card_range N
+  have hconst_N :
+      (∏ j ∈ Finset.range N, m) = m ^ N :=
+    Eq.trans hconst (congrArg (fun n : ℕ => m ^ n) hcard)
+  exact
+    Eq.subst
+      (motive := fun t : ℝ =>
+        t ≤ ∏ j ∈ Finset.range N, f j)
+      hconst_N
+      hprod_le
+
+/-- Convert a natural power to the real-power notation used by the Gamma
+envelope statements. -/
+theorem real_pow_natCast_eq_rpow
+    {r : ℝ}
+    (hr : 0 ≤ r)
+    (N : ℕ) :
+    r ^ N = r ^ (N : ℝ) := by
+  exact Real.rpow_natCast r N
 
 /-- Finite products preserve uniform per-factor polynomial upper/lower bounds
 for the deterministic Gamma recurrence product. -/
@@ -3064,14 +3236,95 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_b
           c * (1 + ‖y‖) ^ (N : ℝ) ≤
             ‖Complex.gammaRecurrenceProduct
               (Complex.fixedRealPartVerticalPoint x y) N‖ := by
-  sorry
+  rcases hfactor with ⟨H, C, c, hH_pos, hC_pos, hc_pos, hfactor_pointwise⟩
+  refine ⟨H, C ^ N, c ^ N, hH_pos, ?_, ?_, ?_⟩
+  · exact pow_pos hC_pos N
+  · exact pow_pos hc_pos N
+  intro x y hxA hxB hy
+  let R : ℝ := 1 + ‖y‖
+  have hR_nonneg : 0 ≤ R :=
+    add_nonneg zero_le_one (norm_nonneg y)
+  have hR_pos : 0 < R :=
+    add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg y)
+  have hCR_nonneg : 0 ≤ C * R :=
+    mul_nonneg (le_of_lt hC_pos) hR_nonneg
+  have hcR_nonneg : 0 ≤ c * R :=
+    mul_nonneg (le_of_lt hc_pos) hR_nonneg
+  have hprod_norm :
+      ‖Complex.gammaRecurrenceProduct
+          (Complex.fixedRealPartVerticalPoint x y) N‖ =
+        ∏ j ∈ Finset.range N,
+          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ :=
+    Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
+      (Complex.fixedRealPartVerticalPoint x y) N
+  have hupper_prod :
+      (∏ j ∈ Finset.range N,
+          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) ≤
+        (C * R) ^ N :=
+    real_finset_range_prod_upper_of_factor_le
+      N
+      hCR_nonneg
+      (fun j hj =>
+        norm_nonneg (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
+      (fun j hj =>
+        (hfactor_pointwise x y hxA hxB hy j hj).1)
+  have hlower_prod :
+      (c * R) ^ N ≤
+        (∏ j ∈ Finset.range N,
+          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
+    real_finset_range_prod_lower_of_factor_ge
+      N
+      hcR_nonneg
+      (fun j hj =>
+        (hfactor_pointwise x y hxA hxB hy j hj).2)
+  have hupper_target :
+      (C * R) ^ N =
+        C ^ N * R ^ (N : ℝ) := by
+    have hmul_pow : (C * R) ^ N = C ^ N * R ^ N :=
+      mul_pow C R N
+    have hR_pow : R ^ N = R ^ (N : ℝ) :=
+      real_pow_natCast_eq_rpow hR_nonneg N
+    exact
+      Eq.trans hmul_pow
+        (congrArg (fun t : ℝ => C ^ N * t) hR_pow)
+  have hlower_target :
+      (c * R) ^ N =
+        c ^ N * R ^ (N : ℝ) := by
+    have hmul_pow : (c * R) ^ N = c ^ N * R ^ N :=
+      mul_pow c R N
+    have hR_pow : R ^ N = R ^ (N : ℝ) :=
+      real_pow_natCast_eq_rpow hR_nonneg N
+    exact
+      Eq.trans hmul_pow
+        (congrArg (fun t : ℝ => c ^ N * t) hR_pow)
+  constructor
+  · exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤ t)
+        hupper_target
+        (Eq.subst
+          (motive := fun t : ℝ => t ≤ (C * R) ^ N)
+          hprod_norm.symm
+          hupper_prod)
+  · exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          t ≤
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖)
+        hlower_target
+        (Eq.subst
+          (motive := fun t : ℝ => (c * R) ^ N ≤ t)
+          hprod_norm
+          hlower_prod)
 
 /-- The exact finite-product geometry estimate for deterministic Gamma
 recurrence factors on a fixed vertical strip.
 
-This is the only remaining finite-product sink: the per-factor lower geometry is
-proved above, and this lemma packages the bounded-real-part upper estimates and
-their finite product over `j < N`. -/
+The per-factor strip geometry is proved above; this theorem packages those
+factor estimates with the finite product algebra over `j < N`. -/
 theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_finiteProductEstimate
     (A B : ℝ)
     (N : ℕ) :
@@ -10187,6 +10440,43 @@ theorem abel_positive_weighted_tail_finite_summation_by_parts
             (∑ j ∈ Finset.Ioc N k, u j)) := by
   sorry
 
+/-- Bounded tail partial sums force the bounding constant to be nonnegative. -/
+theorem abel_positive_weighted_tail_bound_constant_nonneg
+    {u : ℕ → ℂ}
+    {N : ℕ}
+    {C : ℝ}
+    (hpartial :
+      ∀ K : ℕ,
+        N ≤ K →
+        ‖∑ k ∈ Finset.Ioc N K, u k‖ ≤ C) :
+    0 ≤ C := by
+  have hinterval : Finset.Ioc N N = ∅ :=
+    Finset.Ioc_self N
+  have hsum :
+      (∑ k ∈ Finset.Ioc N N, u k) = 0 := by
+    exact Eq.trans
+      (congrArg (fun s : Finset ℕ => ∑ k ∈ s, u k) hinterval)
+      (Finset.sum_empty u)
+  have hnorm :
+      ‖∑ k ∈ Finset.Ioc N N, u k‖ = 0 := by
+    exact congrArg norm hsum
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ C)
+      hnorm.symm
+      (hpartial N le_rfl)
+
+/-- Nonnegative adjacent weight difference from antitonicity. -/
+theorem abel_positive_weighted_tail_weight_difference_nonneg
+    {w : ℕ → ℝ}
+    {N k : ℕ}
+    (hw_antitone : ∀ a b : ℕ, N < a → a ≤ b → w b ≤ w a)
+    (hk : N < k) :
+    0 ≤ w k - w (k + 1) := by
+  have hnext : w (k + 1) ≤ w k :=
+    hw_antitone k (k + 1) hk (Nat.le_succ k)
+  exact sub_nonneg.mpr hnext
+
 /-- Finite positive-weight Abel bound from bounded finite partial tail sums. -/
 theorem abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
     {u : ℕ → ℂ}
@@ -10203,7 +10493,162 @@ theorem abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
     (hw_variation :
       w (M + 1) + ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1) :
     ‖∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k‖ ≤ C := by
-  sorry
+  have hC_nonneg : 0 ≤ C :=
+    abel_positive_weighted_tail_bound_constant_nonneg hpartial
+  have hidentity :
+      (∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k) =
+        ((w (M + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N M, u k) +
+          ∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j)) :=
+    abel_positive_weighted_tail_finite_summation_by_parts hNM
+  have hterminal_nonneg : 0 ≤ w (M + 1) := by
+    exact hw_nonneg (M + 1) (Nat.lt_succ_of_le hNM)
+  have hterminal_norm :
+      ‖((w (M + 1) : ℝ) : ℂ) *
+          (∑ k ∈ Finset.Ioc N M, u k)‖ ≤
+        w (M + 1) * C := by
+    have hmul :
+        ‖((w (M + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N M, u k)‖ =
+          ‖((w (M + 1) : ℝ) : ℂ)‖ *
+            ‖∑ k ∈ Finset.Ioc N M, u k‖ :=
+      norm_mul ((w (M + 1) : ℝ) : ℂ)
+        (∑ k ∈ Finset.Ioc N M, u k)
+    have hreal_norm :
+        ‖((w (M + 1) : ℝ) : ℂ)‖ = w (M + 1) := by
+      have hcomplex_real : ‖((w (M + 1) : ℝ) : ℂ)‖ = ‖w (M + 1)‖ :=
+        RCLike.norm_ofReal (w (M + 1))
+      have hreal_abs : ‖w (M + 1)‖ = w (M + 1) :=
+        Real.norm_of_nonneg hterminal_nonneg
+      exact hcomplex_real.trans hreal_abs
+    have hmul_bound :
+        ‖((w (M + 1) : ℝ) : ℂ)‖ *
+            ‖∑ k ∈ Finset.Ioc N M, u k‖ ≤
+          w (M + 1) * C := by
+      exact mul_le_mul
+        (le_of_eq hreal_norm)
+        (hpartial M hNM)
+        hC_nonneg
+        (norm_nonneg ((w (M + 1) : ℝ) : ℂ))
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ w (M + 1) * C)
+      hmul.symm
+      hmul_bound
+  have hsum_norm :
+      ‖∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ ≤
+        (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C := by
+    have hterm :
+        ∀ k ∈ Finset.Ioc N M,
+          ‖(((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ ≤
+            (w k - w (k + 1)) * C := by
+      intro k hk_mem
+      have hk_tail : N < k :=
+        (Finset.mem_Ioc.mp hk_mem).1
+      have hk_le_M : k ≤ M :=
+        (Finset.mem_Ioc.mp hk_mem).2
+      have hdiff_nonneg : 0 ≤ w k - w (k + 1) :=
+        abel_positive_weighted_tail_weight_difference_nonneg
+          hw_antitone hk_tail
+      have hmul :
+          ‖(((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ =
+            ‖((w k - w (k + 1) : ℝ) : ℂ)‖ *
+              ‖∑ j ∈ Finset.Ioc N k, u j‖ :=
+        norm_mul ((w k - w (k + 1) : ℝ) : ℂ)
+          (∑ j ∈ Finset.Ioc N k, u j)
+      have hreal_norm :
+          ‖((w k - w (k + 1) : ℝ) : ℂ)‖ =
+            w k - w (k + 1) := by
+        have hcomplex_real :
+            ‖((w k - w (k + 1) : ℝ) : ℂ)‖ =
+              ‖w k - w (k + 1)‖ :=
+          RCLike.norm_ofReal (w k - w (k + 1))
+        have hreal_abs : ‖w k - w (k + 1)‖ = w k - w (k + 1) :=
+          Real.norm_of_nonneg hdiff_nonneg
+        exact hcomplex_real.trans hreal_abs
+      have hbound :
+          ‖((w k - w (k + 1) : ℝ) : ℂ)‖ *
+              ‖∑ j ∈ Finset.Ioc N k, u j‖ ≤
+            (w k - w (k + 1)) * C := by
+        exact mul_le_mul
+          (le_of_eq hreal_norm)
+          (hpartial k (Nat.le_of_lt hk_tail))
+          hC_nonneg
+          (norm_nonneg ((w k - w (k + 1) : ℝ) : ℂ))
+      exact Eq.subst
+        (motive := fun x : ℝ => x ≤ (w k - w (k + 1)) * C)
+        hmul.symm
+        hbound
+    have hsum_le :
+        ‖∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ ≤
+          ∑ k ∈ Finset.Ioc N M,
+            ‖(((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ :=
+      norm_sum_le
+        (Finset.Ioc N M)
+        (fun k : ℕ =>
+          (((w k - w (k + 1) : ℝ) : ℂ) *
+            (∑ j ∈ Finset.Ioc N k, u j)))
+    have hsum_bound :
+        (∑ k ∈ Finset.Ioc N M,
+            ‖(((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖) ≤
+          ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) * C :=
+      Finset.sum_le_sum hterm
+    have hfactor :
+        (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) * C) =
+          (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C := by
+      exact (Finset.sum_mul (Finset.Ioc N M)
+        (fun k : ℕ => w k - w (k + 1)) C).symm
+    exact le_trans hsum_le (hsum_bound.trans_eq hfactor)
+  have htriangle :
+      ‖((w (M + 1) : ℝ) : ℂ) *
+            (∑ k ∈ Finset.Ioc N M, u k) +
+          ∑ k ∈ Finset.Ioc N M,
+            (((w k - w (k + 1) : ℝ) : ℂ) *
+              (∑ j ∈ Finset.Ioc N k, u j))‖ ≤
+        w (M + 1) * C +
+          (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C :=
+    (norm_add_le
+      (((w (M + 1) : ℝ) : ℂ) *
+        (∑ k ∈ Finset.Ioc N M, u k))
+      (∑ k ∈ Finset.Ioc N M,
+        (((w k - w (k + 1) : ℝ) : ℂ) *
+          (∑ j ∈ Finset.Ioc N k, u j)))).trans
+      (add_le_add hterminal_norm hsum_norm)
+  have hvariation_mul :
+      w (M + 1) * C +
+          (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C ≤
+        C := by
+    have hfactor :
+        w (M + 1) * C +
+            (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C =
+          (w (M + 1) +
+            ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C := by
+      exact (add_mul (w (M + 1))
+        (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) C).symm
+    have hscaled :
+        (w (M + 1) +
+            ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1))) * C ≤
+          1 * C :=
+      mul_le_mul_of_nonneg_right hw_variation hC_nonneg
+    have hone_mul : (1 : ℝ) * C = C :=
+      one_mul C
+    exact Eq.subst
+      (motive := fun x : ℝ => x ≤ C)
+      hfactor.symm
+      (hscaled.trans_eq hone_mul)
+  exact Eq.subst
+    (motive := fun z : ℂ => ‖z‖ ≤ C)
+    hidentity.symm
+    (le_trans htriangle hvariation_mul)
 
 /-- The abstract Abel theorem reduced to finite summation by parts and the
 standard `tsum` limit passage. -/
@@ -13205,7 +13650,55 @@ theorem riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
     riemannZeta z =
       riemannZeta ((1 : ℂ) - z) *
         Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z := by
-  sorry
+  rcases poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator_data
+      hz_re hz_ne_zero hGamma_ne with
+    ⟨_, hone_sub_ne_zero, _, _⟩
+  have hw_re_eq : ((1 : ℂ) - z).re = 1 - z.re := by
+    calc
+      ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := by
+        exact Complex.sub_re (1 : ℂ) z
+      _ = 1 - z.re := by
+        exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
+  have hz_re_le_one : z.re ≤ 1 :=
+    le_trans hz_re zero_le_one
+  have hw_re_one_le : 1 ≤ ((1 : ℂ) - z).re := by
+    have hone_le_sub : 1 ≤ 1 - z.re := by
+      calc
+        1 = 1 - 0 := by
+          exact (sub_zero 1).symm
+        _ ≤ 1 - z.re := by
+          exact sub_le_sub_left hz_re 1
+    exact Eq.subst
+      (motive := fun x : ℝ => 1 ≤ x)
+      hw_re_eq.symm
+      hone_le_sub
+  have hGamma_reflected_ne :
+      Complex.Gammaℝ ((1 : ℂ) - z) ≠ 0 := by
+    exact Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm
+      (le_trans zero_le_one hw_re_one_le)
+      (one_le_norm_of_one_le_re hw_re_one_le)
+  have hcompleted_symm :
+      completedRiemannZeta z = completedRiemannZeta ((1 : ℂ) - z) := by
+    exact (completedRiemannZeta_one_sub z).symm
+  have hζw := riemannZeta_def_of_ne_zero (s := ((1 : ℂ) - z)) hone_sub_ne_zero
+  calc
+    riemannZeta z =
+        completedRiemannZeta z / Complex.Gammaℝ z := by
+      exact riemannZeta_def_of_ne_zero hz_ne_zero
+    _ = completedRiemannZeta ((1 : ℂ) - z) / Complex.Gammaℝ z := by
+      exact congrArg (fun x : ℂ => x / Complex.Gammaℝ z) hcompleted_symm
+    _ = (riemannZeta ((1 : ℂ) - z) * Complex.Gammaℝ ((1 : ℂ) - z)) /
+        Complex.Gammaℝ z := by
+      have hζw_mul := congrArg
+        (fun x : ℂ => x * Complex.Gammaℝ ((1 : ℂ) - z)) hζw
+      have hζw_completed :
+          riemannZeta ((1 : ℂ) - z) * Complex.Gammaℝ ((1 : ℂ) - z) =
+            completedRiemannZeta ((1 : ℂ) - z) := by
+        exact hζw_mul.trans (div_mul_cancel₀ _ hGamma_reflected_ne)
+      exact congrArg (fun x : ℂ => x / Complex.Gammaℝ z) hζw_completed.symm
+    _ = riemannZeta ((1 : ℂ) - z) *
+        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z := by
+      exact Eq.refl _
 
 /-- Algebraic transport from the zeta quotient functional equation to the
 pole-cleared raw multiplier identity. -/
@@ -13296,7 +13789,11 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identit
       _ = (z - 1) *
           (riemannZeta ((1 : ℂ) - z) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) := by
-        rfl
+        exact congrArg (fun x : ℂ => (z - 1) * x)
+          (mul_div_assoc
+            (riemannZeta ((1 : ℂ) - z))
+            (Complex.Gammaℝ ((1 : ℂ) - z))
+            (Complex.Gammaℝ z))
   calc
     poleClearedRiemannZeta z =
         (z - 1) *
@@ -13330,6 +13827,93 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
       (riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
         hz_re hz_ne_zero hGamma_ne)
 
+/-- Nonzero `Gammaℝ` zero faces on the left reflect strictly into `Re s > 1`.
+
+Mathlib's finite-valued `Gammaℝ` vanishes exactly at the nonpositive even
+integers.  Excluding `z = 0` leaves the negative even integers, whose reflection
+`1 - z` is strictly to the right of the line `Re s = 1`. -/
+theorem Gammaℝ_zero_nonzero_leftHalfPlane_reflection_one_lt_re
+    {z : ℂ}
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_zero : Complex.Gammaℝ z = 0) :
+    1 < ((1 : ℂ) - z).re := by
+  rcases Complex.Gammaℝ_eq_zero_iff.mp hGamma_zero with ⟨n, hz_eq⟩
+  cases n with
+  | zero =>
+      have hz_zero : z = 0 := by
+        calc
+          z = -(2 * ((0 : ℕ) : ℂ)) := hz_eq
+          _ = -0 := by
+            exact congrArg Neg.neg (mul_zero (2 : ℂ))
+          _ = 0 := by
+            exact neg_zero
+      exact False.elim (hz_ne_zero hz_zero)
+  | succ n =>
+      have hprod_re :
+          (2 * ((Nat.succ n : ℕ) : ℂ)).re =
+            (2 : ℝ) * (Nat.succ n : ℝ) := by
+        calc
+          (2 * ((Nat.succ n : ℕ) : ℂ)).re =
+              (2 : ℂ).re * ((Nat.succ n : ℕ) : ℂ).re -
+                (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im := by
+            exact Complex.mul_re (2 : ℂ) ((Nat.succ n : ℕ) : ℂ)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) -
+                (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im := by
+            exact congrArg
+              (fun x : ℝ =>
+                x * ((Nat.succ n : ℕ) : ℂ).re -
+                  (2 : ℂ).im * ((Nat.succ n : ℕ) : ℂ).im)
+              (Complex.natCast_re 2)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) -
+                (2 : ℂ).im * 0 := by
+            exact congrArg
+              (fun x : ℝ =>
+                (2 : ℝ) * (Nat.succ n : ℝ) - (2 : ℂ).im * x)
+              (Complex.natCast_im (Nat.succ n))
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) - 0 * 0 := by
+            exact congrArg
+              (fun x : ℝ =>
+                (2 : ℝ) * (Nat.succ n : ℝ) - x * 0)
+              (Complex.natCast_im 2)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) - 0 := by
+            exact congrArg
+              (fun x : ℝ => (2 : ℝ) * (Nat.succ n : ℝ) - x)
+              (zero_mul 0)
+          _ = (2 : ℝ) * (Nat.succ n : ℝ) := by
+            exact sub_zero ((2 : ℝ) * (Nat.succ n : ℝ))
+      have hz_re_eq :
+          z.re = -((2 : ℝ) * (Nat.succ n : ℝ)) := by
+        calc
+          z.re = (-(2 * ((Nat.succ n : ℕ) : ℂ))).re := by
+            exact congrArg Complex.re hz_eq
+          _ = -((2 * ((Nat.succ n : ℕ) : ℂ)).re) := by
+            exact Complex.neg_re (2 * ((Nat.succ n : ℕ) : ℂ))
+          _ = -((2 : ℝ) * (Nat.succ n : ℝ)) := by
+            exact congrArg Neg.neg hprod_re
+      have hprod_pos : 0 < (2 : ℝ) * (Nat.succ n : ℝ) :=
+        mul_pos zero_lt_two (Nat.cast_pos.mpr (Nat.succ_pos n))
+      have hz_re_neg : z.re < 0 := by
+        exact Eq.subst
+          (motive := fun x : ℝ => x < 0)
+          hz_re_eq.symm
+          (neg_neg_of_pos hprod_pos)
+      have hw_re_eq : ((1 : ℂ) - z).re = 1 - z.re := by
+        calc
+          ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := by
+            exact Complex.sub_re (1 : ℂ) z
+          _ = 1 - z.re := by
+            exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
+      have hone_lt_sub : 1 < 1 - z.re := by
+        exact lt_sub_iff_add_lt'.2
+          (Eq.subst
+            (motive := fun x : ℝ => x < 1)
+            (zero_add (1 : ℝ)).symm
+            (add_lt_add_right hz_re_neg 1))
+      exact Eq.subst
+        (motive := fun x : ℝ => 1 < x)
+        hw_re_eq.symm
+        hone_lt_sub
+
 /-- Reflected pole-cleared zeta nonvanishing at the Gamma-zero faces in the
 left half-plane.
 
@@ -13342,7 +13926,40 @@ theorem poleClearedRiemannZeta_reflected_nonzero_of_gamma_zero_leftHalfPlane
     (hz_ne_zero : z ≠ 0)
     (hGamma_zero : Complex.Gammaℝ z = 0) :
     poleClearedRiemannZeta ((1 : ℂ) - z) ≠ 0 := by
-  sorry
+  have hw_re_gt_one :
+      1 < ((1 : ℂ) - z).re :=
+    Gammaℝ_zero_nonzero_leftHalfPlane_reflection_one_lt_re
+      hz_ne_zero hGamma_zero
+  have hw_ne_one : ((1 : ℂ) - z) ≠ 1 := by
+    intro hw_one
+    have hw_re_one : ((1 : ℂ) - z).re = 1 := by
+      calc
+        ((1 : ℂ) - z).re = (1 : ℂ).re := by
+          exact congrArg Complex.re hw_one
+        _ = 1 := by
+          exact Complex.one_re
+    have hone_lt_one : (1 : ℝ) < 1 :=
+      Eq.subst
+        (motive := fun x : ℝ => 1 < x)
+        hw_re_one
+        hw_re_gt_one
+    exact (lt_irrefl (1 : ℝ)) hone_lt_one
+  have hfactor_ne : (((1 : ℂ) - z) - 1) ≠ 0 := by
+    intro hfactor
+    exact hw_ne_one (sub_eq_zero.mp hfactor)
+  have hzeta_reflected_ne :
+      riemannZeta ((1 : ℂ) - z) ≠ 0 := by
+    intro hzeta_zero
+    exact riemannZeta_ne_zero_of_one_lt_re hw_re_gt_one hzeta_zero
+  have hproduct_ne :
+      (((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z) ≠ 0 :=
+    mul_ne_zero hfactor_ne hzeta_reflected_ne
+  have hpole :
+      poleClearedRiemannZeta ((1 : ℂ) - z) =
+        (((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z) :=
+    poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
+  intro hpole_zero
+  exact hproduct_ne (hpole.symm.trans hpole_zero)
 
 /-- Compatibility of the completed-functional-equation multiplier with the
 Gamma-zero faces in the left half-plane.

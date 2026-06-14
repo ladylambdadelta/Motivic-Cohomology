@@ -3218,6 +3218,29 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
+/-- The standard Cauchy--FTC theorem for the endpoint-parametrized segment
+integral on a star-convex complex domain.
+
+This is the canonical owner API for the local analytic primitive construction:
+the function
+`z ↦ ∫ t in 0..1, z * φ(lineMap 0 z t)` is analytic and has derivative
+`φ z` at each endpoint whose center segment lies in the star-convex domain.
+It packages the parametric interval-integral differentiation theorem together
+with Cauchy's theorem on the triangular homotopy of center segments. -/
+theorem complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        AnalyticAt ℂ (complex_centerSegmentIntegral φ) z ∧
+        HasDerivAt
+          (complex_centerSegmentIntegral φ)
+          (φ z)
+          z := by
+  sorry
+
 /-- Parametric interval-integral derivative theorem for the center-segment
 primitive.
 
@@ -3235,7 +3258,10 @@ theorem complex_centerSegmentIntegral_hasDerivAt_parametricIntegral
         (complex_centerSegmentIntegral φ)
         (φ z)
         z := by
-  sorry
+  intro z hz
+  exact
+    (complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+      φ hstar hφ z hz).2
 
 /-- Holomorphic parameter-integral theorem for the center-segment primitive.
 
@@ -3250,7 +3276,10 @@ theorem complex_centerSegmentIntegral_analyticAt_parameterIntegral
     ∀ z : ℂ,
       z ∈ s →
       AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
-  sorry
+  intro z hz
+  exact
+    (complex_centerSegmentIntegral_parametricPrimitive_of_holomorphicOn_starConvex
+      φ hstar hφ z hz).1
 
 /-- Differentiation under the endpoint parameter for the center segment
 integral. -/
@@ -7347,6 +7376,84 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     entireFunction_localMultiplicityFactorization
       F hF (z : ℂ) horder
 
+/-- Empty finite divisor extraction: the removable quotient is the original
+entire function. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_empty
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF ∅ w) ∧
+      Q 0 = F 0 := by
+  refine ⟨F, ?_, ?_, rfl⟩
+  · intro w _hw
+    exact hF w
+  · intro w _hw
+    calc
+      F w = F w * 1 := by
+        exact (mul_one (F w)).symm
+      _ =
+          F w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF ∅ w := by
+        rfl
+
+/-- One-step finite divisor extraction.
+
+Assuming a removable quotient has already been constructed for `S`, this
+theorem extracts one further nonzero zero `a ∉ S`.  The proof is the local
+single-zero removable quotient theorem applied to the current quotient times
+the remaining product, using the local multiplicity factor of `F` at `a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_insert_step_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hlocal_a :
+      ∃ g : ℂ → ℂ,
+        AnalyticAt ℂ g (a : ℂ) ∧
+        g (a : ℂ) ≠ 0 ∧
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w =
+            (w - (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ) •
+              g w)
+    (hS :
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S w) ∧
+        Q 0 = F 0) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Deep single-step removable gluing theorem: extract the new factor
+  -- `(1 - w/a)^m`, use the local order factorization at `a`, and patch the
+  -- removable value into the quotient already constructed for `S`.
+  sorry
+
 /-- Finset-induction construction of the finite removable quotient.
 
 The induction step removes one indexed nonzero zero using the local factor
@@ -7380,10 +7487,56 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF S w) ∧
       Q 0 = F 0 := by
-  -- Deep finite removable-gluing theorem: prove by induction on `S`, using
-  -- the local Taylor factor at the inserted zero and the nonzero leading
-  -- coefficient of all previously extracted factors at that center.
-  sorry
+  revert hS0 hlocal
+  refine Finset.induction_on S ?base ?step
+  · intro _hS0 _hlocal
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_empty
+        F hF ρ hρ
+  · intro a S ha_not_mem ih hS0 hlocal
+    have hS0_tail :
+        ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0 := by
+      intro z hz
+      exact hS0 z (Finset.mem_insert.2 (Or.inr hz))
+    have ha0 : (a : ℂ) ≠ 0 :=
+      hS0 a (Finset.mem_insert.2 (Or.inl rfl))
+    have hlocal_a :
+        ∃ g : ℂ → ℂ,
+          AnalyticAt ℂ g (a : ℂ) ∧
+          g (a : ℂ) ≠ 0 ∧
+          ∀ᶠ w in 𝓝 (a : ℂ),
+            F w =
+              (w - (a : ℂ)) ^
+                  entireFunctionZeroMultiplicity F hF (a : ℂ) •
+                g w :=
+      hlocal a (Finset.mem_insert.2 (Or.inl rfl))
+    have hlocal_tail :
+        ∀ z : EntireFunctionZero F,
+          z ∈ S →
+            ∃ g : ℂ → ℂ,
+              AnalyticAt ℂ g (z : ℂ) ∧
+              g (z : ℂ) ≠ 0 ∧
+              ∀ᶠ w in 𝓝 (z : ℂ),
+                F w =
+                  (w - (z : ℂ)) ^
+                      entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                    g w := by
+      intro z hz
+      exact hlocal z (Finset.mem_insert.2 (Or.inr hz))
+    have hS :
+        ∃ Q : ℂ → ℂ,
+          (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+          (∀ w : ℂ,
+            ‖w‖ ≤ ρ →
+            F w =
+              Q w *
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                  F hF S w) ∧
+          Q 0 = F 0 :=
+      ih hS0_tail hlocal_tail
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_insert_step_ownerRoot
+        F hF ρ hρ S a ha_not_mem hS0_tail ha0 hlocal_a hS
 
 /-- Parameterized finite removable quotient gluing across a finite set of
 nonzero zeros.
