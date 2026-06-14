@@ -36,7 +36,33 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
       ∀ t : ℝ,
         ‖t‖ ≤ T →
           ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C := by
-  sorry
+  have hcont : Continuous (fun t : ℝ => Complex.Gamma (σ + t * Complex.I)) := by
+    refine continuous_iff_continuousAt.2 ?_
+    intro t
+    have hne : ∀ m : ℕ, (σ + t * Complex.I : ℂ) ≠ -m := by
+      intro m hm
+      have hre : (σ + t * Complex.I : ℂ).re = 0 := by
+        have := congrArg Complex.re hm
+        simpa using this
+      have hpos : 0 < (σ + t * Complex.I : ℂ).re := by
+        simpa using hσ
+      linarith
+    exact (Complex.differentiableAt_Gamma (σ + t * Complex.I) hne).continuousAt
+  have hcompact : IsCompact (Set.Icc (-T) T) :=
+    isCompact_Icc
+  have hbound :
+      ∃ C : ℝ, ∀ t : ℝ, t ∈ Set.Icc (-T) T → ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C :=
+    hcompact.exists_bound_of_continuousOn' hcont.continuousOn
+  rcases hbound with ⟨C0, hC0⟩
+  refine ⟨max C0 1, ?_, ?_⟩
+  · have h1 : (0 : ℝ) < 1 := zero_lt_one
+    exact lt_of_lt_of_le h1 (le_max_right C0 1)
+  · intro t ht
+    have hmem : t ∈ Set.Icc (-T) T := by
+      exact ⟨neg_le.2 (le_of_abs_le ht), le_of_abs_le ht⟩
+    have hleC0 : ‖Complex.Gamma (σ + t * Complex.I)‖ ≤ C0 :=
+      hC0 t hmem
+    exact le_trans hleC0 (le_max_left C0 1)
 
 /-- Compact and large-vertical upper estimates assemble to a global polynomial
 upper bound on a fixed positive real-part vertical line. -/

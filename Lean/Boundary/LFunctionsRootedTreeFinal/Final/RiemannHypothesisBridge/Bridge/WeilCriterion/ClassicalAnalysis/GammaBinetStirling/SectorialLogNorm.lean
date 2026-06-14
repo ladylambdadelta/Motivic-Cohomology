@@ -322,7 +322,19 @@ theorem Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
           R ≤ ‖z‖ →
             ‖Complex.binetSecondFormulaRemainder z‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases
+      Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
+        ε hε with
+    ⟨C, hC_pos, hbound⟩
+  refine ⟨1, C, 0, zero_lt_one, hC_pos, ?_⟩
+  intro z hz_re hz_sep hz_large
+  have hpoly_one : (1 + ‖z‖) ^ (0 : ℕ) = (1 : ℝ) := by
+    rw [pow_zero]
+  calc
+    ‖Complex.binetSecondFormulaRemainder z‖ ≤ C :=
+      hbound z hz_re hz_sep hz_large
+    _ = C * (1 + ‖z‖) ^ (0 : ℕ) := by
+      rw [hpoly_one, mul_one]
 
 /-- Binet's formula plus direct polynomial norm bounds for the main term and
 remainder give polynomial growth for `log (Gamma z)` in a fixed right-half

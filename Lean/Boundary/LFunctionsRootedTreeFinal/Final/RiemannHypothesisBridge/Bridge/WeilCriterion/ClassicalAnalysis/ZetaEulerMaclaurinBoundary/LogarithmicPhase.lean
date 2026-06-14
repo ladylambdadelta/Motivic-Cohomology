@@ -642,6 +642,70 @@ theorem Complex.realPhase_integer_block_bound_by_card
     _ = ((Finset.Icc a b).card : ℝ) :=
       Finset.sum_const_one
 
+/-- Phase increment between adjacent integer samples. -/
+def Complex.realPhase_integerIncrement
+    (φ : ℝ → ℝ)
+    (n : ℕ) : ℝ :=
+  φ (n + 1 : ℕ) - φ n
+
+/-- Separation of all adjacent phase increments from integral multiples of
+`2π`.  This is the missing frequency-separation hypothesis in the honest
+Kusmin-Landau estimate for `exp(i φ(n))`. -/
+def Complex.realPhase_integerIncrementSeparatedOn
+    (φ : ℝ → ℝ)
+    (a b : ℕ)
+    (λ : ℝ) : Prop :=
+  ∀ n : ℕ,
+    n ∈ Finset.Ico a b →
+      ∀ k : ℤ,
+        λ ≤
+          ‖Complex.realPhase_integerIncrement φ n -
+            (2 * Real.pi * (k : ℝ))‖
+
+/-- Finite separated-increment exponential-sum primitive.
+
+This is the discrete summation core behind Kusmin-Landau: if every adjacent
+increment is separated from every `2πℤ` frequency by at least `λ`, then the
+geometric denominator in the summation-by-parts argument is uniformly bounded
+away from zero. -/
+theorem Complex.realPhase_separatedIncrement_integer_block_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hλ_pos : 0 < λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * λ⁻¹ := by
+  sorry
+
+/-- Honest Kusmin-Landau block estimate with the required separated-frequency
+hypothesis. -/
+theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hλ_pos : 0 < λ)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ => ‖deriv φ x‖)
+        (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)))
+    (hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          λ ≤ ‖deriv φ x‖)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * λ⁻¹ := by
+  exact
+    Complex.realPhase_separatedIncrement_integer_block_bound
+      φ ha hab hλ_pos hsep
+
 /-- Kusmin-Landau/van der Corput finite first-derivative core for real phases.
 
 This is the genuine oscillatory analytic primitive: the phase derivative stays

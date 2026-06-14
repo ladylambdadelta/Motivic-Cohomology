@@ -1618,6 +1618,109 @@ theorem eulerMaclaurinBernoulliKernel_parameter_differentiableOn
       (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ))
   exact hfactor.mul hpow
 
+/-- Local version of the first periodic Bernoulli bound, placed before the
+punctured-strip majorant so the local proof does not depend on later
+closed-strip estimates. -/
+theorem eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_local
+    (x : ℝ) :
+    ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 := by
+  unfold eulerMaclaurinFirstPeriodicBernoulli
+  have hfract_nonneg : 0 ≤ Int.fract x :=
+    Int.fract_nonneg x
+  have hfract_le_one : Int.fract x ≤ 1 :=
+    le_of_lt (Int.fract_lt_one x)
+  have hlower : -(1 : ℝ) ≤ Int.fract x - 1 / 2 := by
+    have hneg_half : -(1 : ℝ) ≤ -(1 / 2 : ℝ) := by
+      exact neg_le_neg one_half_le_one
+    have hshift : -(1 / 2 : ℝ) ≤ Int.fract x - 1 / 2 := by
+      calc
+        -(1 / 2 : ℝ) = 0 - 1 / 2 := by
+          exact (zero_sub (1 / 2 : ℝ)).symm
+        _ ≤ Int.fract x - 1 / 2 :=
+          sub_le_sub_right hfract_nonneg (1 / 2 : ℝ)
+    exact le_trans hneg_half hshift
+  have hupper : Int.fract x - 1 / 2 ≤ 1 := by
+    have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) :=
+      one_half_nonneg
+    calc
+      Int.fract x - 1 / 2 ≤ Int.fract x :=
+        sub_le_self (Int.fract x) hhalf_nonneg
+      _ ≤ 1 :=
+        hfract_le_one
+  have habs :
+      |Int.fract x - 1 / 2| ≤ 1 :=
+    abs_le.mpr ⟨hlower, hupper⟩
+  have hnorm :
+      ‖((Int.fract x - 1 / 2 : ℝ) : ℂ)‖ =
+        |Int.fract x - 1 / 2| :=
+    Complex.norm_ofReal (Int.fract x - 1 / 2)
+  exact Eq.subst
+    (motive := fun t : ℝ => t ≤ 1)
+    hnorm.symm
+    habs
+
+/-- A positive natural cutoff tail starts at least at one. -/
+theorem eulerMaclaurin_one_le_of_mem_Ioi_nat_cast
+    (N : ℕ)
+    (hN : 0 < N)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioi (((N : ℕ) : ℝ))) :
+    1 ≤ x := by
+  have hN_one_nat : 1 ≤ N :=
+    Nat.succ_le_of_lt hN
+  have hN_one_real : (1 : ℝ) ≤ ((N : ℕ) : ℝ) := by
+    exact_mod_cast hN_one_nat
+  exact le_trans hN_one_real (le_of_lt hx)
+
+/-- Positive-real complex powers in the local Euler-Maclaurin tail have the
+expected real-power norm. -/
+theorem eulerMaclaurin_norm_real_cpow_neg_add_one_eq_rpow
+    {x : ℝ}
+    (hx : 0 < x)
+    (z : ℂ) :
+    ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ = x ^ (-(z.re + 1)) := by
+  have hnorm :
+      ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ =
+        Complex.abs (((x : ℝ) : ℂ) ^ (-(z + 1))) := by
+    exact Complex.norm_eq_abs (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have habs :
+      Complex.abs (((x : ℝ) : ℂ) ^ (-(z + 1))) =
+        x ^ (-(z + 1)).re :=
+    Complex.abs_cpow_eq_rpow_re_of_pos hx (-(z + 1))
+  have hre : (-(z + 1)).re = -(z.re + 1) := by
+    calc
+      (-(z + 1)).re = -((z + 1).re) := by
+        exact Complex.neg_re (z + 1)
+      _ = -(z.re + (1 : ℂ).re) := by
+        exact congrArg Neg.neg (Complex.add_re z 1)
+      _ = -(z.re + 1) := by
+        exact congrArg (fun t : ℝ => -(z.re + t)) Complex.one_re
+  exact Eq.trans (Eq.trans hnorm habs) (congrArg (fun e : ℝ => x ^ e) hre)
+
+/-- If `δ ≤ re z`, then on a tail with `x ≥ 1` the local complex-power norm
+is bounded by `x ^ (-(δ + 1))`. -/
+theorem eulerMaclaurin_norm_real_cpow_le_rpow_of_re_lower
+    {x δ : ℝ}
+    (hx_pos : 0 < x)
+    (hx_one : 1 ≤ x)
+    (z : ℂ)
+    (hδz : δ ≤ z.re) :
+    ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ x ^ (-(δ + 1)) := by
+  have hnorm :
+      ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ =
+        x ^ (-(z.re + 1)) :=
+    eulerMaclaurin_norm_real_cpow_neg_add_one_eq_rpow hx_pos z
+  have hexponent :
+      -(z.re + 1) ≤ -(δ + 1) := by
+    exact neg_le_neg (add_le_add_right hδz 1)
+  have hpow :
+      x ^ (-(z.re + 1)) ≤ x ^ (-(δ + 1)) :=
+    Real.rpow_le_rpow_of_exponent_le hx_one hexponent
+  exact Eq.subst
+    (motive := fun t : ℝ => t ≤ x ^ (-(δ + 1)))
+    hnorm.symm
+    hpow
+
 /-- A small complex ball around a point with positive real part has a uniform
 positive lower bound on real parts.
 
@@ -1729,7 +1832,50 @@ theorem eulerMaclaurinBernoulliKernel_ae_le_rpow_majorant_of_ball_re_lower
         ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
           (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤
             x ^ (-(δ + 1)) := by
-  sorry
+  intro z hz_ball
+  exact ae_restrict_of_forall_mem measurableSet_Ioi
+    (fun x hx_tail => by
+      have hx_one : 1 ≤ x :=
+        eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx_tail
+      have hx_pos : 0 < x :=
+        lt_of_lt_of_le zero_lt_one hx_one
+      have hδz : δ ≤ z.re :=
+        hre_lower z hz_ball
+      have hB :
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 :=
+        eulerMaclaurinFirstPeriodicBernoulli_norm_cast_le_one_local x
+      have hcpow :
+          ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ x ^ (-(δ + 1)) :=
+        eulerMaclaurin_norm_real_cpow_le_rpow_of_re_lower
+          hx_pos hx_one z hδz
+      have hcpow_nonneg :
+          0 ≤ ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ :=
+        norm_nonneg (((x : ℝ) : ℂ) ^ (-(z + 1)))
+      have htarget_nonneg :
+          0 ≤ x ^ (-(δ + 1)) :=
+        Real.rpow_nonneg (le_of_lt hx_pos) (-(δ + 1))
+      have hmul :
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ =
+            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+              ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ :=
+        norm_mul
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+          (((x : ℝ) : ℂ) ^ (-(z + 1)))
+      have hproduct :
+          ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+              ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤
+            1 * (x ^ (-(δ + 1))) :=
+        mul_le_mul hB hcpow hcpow_nonneg htarget_nonneg
+      exact Eq.subst
+        (motive := fun t : ℝ => t ≤ x ^ (-(δ + 1)))
+        hmul.symm
+        (Eq.subst
+          (motive := fun t : ℝ =>
+            ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ t)
+          (one_mul (x ^ (-(δ + 1)))).symm
+          hproduct))
 
 /-- Locally uniform integrable majorant for the fixed-cutoff Bernoulli kernel
 on compact parameter neighborhoods inside the punctured strip. -/
@@ -1778,6 +1924,29 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
     DifferentiableOn ℂ
       (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  intro z hz
+  rcases
+    eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
+      N hN z hz with
+    ⟨r, hr_pos, g, hg_integrable, hmajorant⟩
+  have hpointwise :
+      ∀ x : ℝ, x ∈ Set.Ioi (((N : ℕ) : ℝ)) →
+        DifferentiableWithinAt ℂ
+          (fun w : ℂ =>
+            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+              (((x : ℝ) : ℂ) ^ (-(w + 1))))
+          ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1})
+          z := by
+    intro x hx
+    have hx_pos : 0 < x := by
+      exact lt_of_lt_of_le zero_lt_one
+        (eulerMaclaurin_one_le_of_mem_Ioi_nat_cast N hN hx)
+    exact
+      (eulerMaclaurinBernoulliKernel_parameter_differentiableOn x hx_pos)
+        z hz
+  -- Remaining analytic API gap: turn `hpointwise` plus the local integrable
+  -- majorant `hmajorant` into differentiability of the improper parameter
+  -- integral with fixed lower limit.
   sorry
 
 /-- Differentiation under the fixed lower-limit Bernoulli improper integral in

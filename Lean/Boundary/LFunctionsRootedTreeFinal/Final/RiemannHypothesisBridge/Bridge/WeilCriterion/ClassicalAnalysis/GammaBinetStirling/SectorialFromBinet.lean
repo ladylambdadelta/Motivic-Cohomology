@@ -776,6 +776,26 @@ theorem Complex.binetSecondFormula_arctan_tail_linear_bound
       (Complex.binetSecondFormula_arctan_tail_bounded_of_branch_separation
         hw_re_pos)
 
+/-- Uniform arctangent tail linear bound on a fixed wedge of the open
+right half-plane.
+
+The constant depends only on the wedge separation parameter `ε`, not on the
+particular point `w`.  This is the sector-uniform replacement for the
+fixed-`w` tail constant in `Complex.binetSecondFormula_arctan_tail_linear_bound`.
+-/
+theorem Complex.binetSecondFormula_arctan_tail_linear_bound_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          ∀ t : ℝ,
+            t ∈ Set.Ioi (‖w‖ / 2) →
+              ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t := by
+  sorry
+
 /-- The Binet kernel is integrable on the lower split interval. -/
 theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval
     {w : ℂ}
@@ -872,6 +892,67 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant
   have harctan :
       ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t :=
     harctan_bound t ht_tail
+  calc
+    ‖Complex.arctan ((t : ℂ) / w) /
+        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
+        ‖Complex.arctan ((t : ℂ) / w)‖ /
+          ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
+      exact norm_div _ _
+    _ =
+        ‖Complex.arctan ((t : ℂ) / w)‖ /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+      rw [hden_norm]
+    _ ≤ (C * t) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+      div_le_div_of_nonneg_right harctan hden_nonneg
+    _ =
+        C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+      rw [mul_div_assoc]
+
+/-- Uniform tail pointwise domination for the Binet kernel on a fixed wedge.
+
+This is the sector-uniform version of
+`Complex.binetSecondFormula_kernel_tail_norm_le_majorant`; the constant depends
+only on `ε`. -/
+theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          ∀ t : ℝ,
+            t ∈ Set.Ioi (‖w‖ / 2) →
+              ‖Complex.arctan ((t : ℂ) / w) /
+                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+                C *
+                  (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  rcases
+      Complex.binetSecondFormula_arctan_tail_linear_bound_sectorSeparated
+        ε hε with
+    ⟨C, hC_nonneg, harctan_bound⟩
+  refine ⟨C, hC_nonneg, ?_⟩
+  intro w hw_re_pos hw_sep t ht_tail
+  have ht_pos : 0 < t :=
+    lt_of_le_of_lt
+      (div_nonneg (norm_nonneg w) Real.zero_le_two_real)
+      ht_tail
+  have hden_norm :
+      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+        Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+    calc
+      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+          ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ :=
+        Complex.binetSecondFormula_exp_denominator_norm_eq t
+      _ = Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+        Real.binetSecondFormula_exp_denominator_norm_eq ht_pos
+  have hden_nonneg :
+      0 ≤ Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+    le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht_pos)
+  have harctan :
+      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t :=
+    harctan_bound w hw_re_pos hw_sep t ht_tail
   calc
     ‖Complex.arctan ((t : ℂ) / w) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
@@ -1193,6 +1274,77 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_tail_norm_le_fixed_majorant
       hw_re_pos
 
+/-- Tail part of the Binet remainder integral with a constant uniform on a
+fixed wedge of the open right half-plane. -/
+theorem Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majorant
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              Complex.arctan ((t : ℂ) / w) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+            2 * C *
+              (∫ t : ℝ in Set.Ioi (0 : ℝ),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  rcases
+      Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
+        ε hε with
+    ⟨C, hC_nonneg, htail_bound⟩
+  refine ⟨C, hC_nonneg, ?_⟩
+  intro w hw_re_pos hw_sep
+  let K : ℝ → ℂ := fun t : ℝ =>
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn
+  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
+    div_nonneg (norm_nonneg w) Real.zero_le_two_real
+  have hCM_integrable_tail :
+      Integrable (fun t : ℝ => C * M t)
+        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
+    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul C
+  have hpointwise :
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        ‖K t‖ ≤ C * M t :=
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht => htail_bound w hw_re_pos hw_sep t ht)
+  have hnorm_integral :
+      ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ ≤
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t :=
+    norm_integral_le_of_norm_le hCM_integrable_tail hpointwise
+  have hmono :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t ≤
+        ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
+    setIntegral_mono_set hM_integrable_Ioi
+      ((ae_restrict_mem measurableSet_Ioi).mono
+        (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
+      (Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
+  have hscaled_mono :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t ≤
+        C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
+    calc
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t =
+          C * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
+        exact integral_const_mul C M
+      _ ≤ C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
+        mul_le_mul_of_nonneg_left hmono hC_nonneg
+  calc
+    ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ =
+        2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
+      simp [norm_mul]
+    _ ≤ 2 * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t) :=
+      mul_le_mul_of_nonneg_left hnorm_integral Real.zero_le_two_real
+    _ ≤ 2 * (C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
+      mul_le_mul_of_nonneg_left hscaled_mono Real.zero_le_two_real
+    _ = 2 * C * (∫ t : ℝ in Set.Ioi (0 : ℝ), M t) := by
+      rw [mul_assoc]
+
 /-- Splitting the Binet integral at `‖w‖ / 2` gives the global open-half-plane
 remainder bound. -/
 theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
@@ -1273,6 +1425,76 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_openRightH
   exact
     Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_kernel_bound
       hw_re_pos
+
+/-- The Binet second-formula remainder is uniformly bounded on each fixed
+wedge of the open right half-plane after a large-radius cutoff. -/
+theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
+    (ε : ℝ)
+    (hε : 0 < ε) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        0 < w.re →
+          ε ≤ w.re / ‖w‖ →
+          1 ≤ ‖w‖ →
+            ‖Complex.binetSecondFormulaRemainder w‖ ≤ C := by
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (0 : ℝ),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  rcases
+      Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majorant
+        ε hε with
+    ⟨Ct, hCt_nonneg, htail⟩
+  refine ⟨4 * J + 2 * Ct * J + 1, ?_, ?_⟩
+  · have hJ_pos : 0 < J :=
+      Real.binetSecondFormula_kernel_majorant_integral_pos
+    have htail_nonneg : 0 ≤ 2 * Ct * J :=
+      mul_nonneg (mul_nonneg Real.zero_le_two_real hCt_nonneg)
+        (le_of_lt hJ_pos)
+    nlinarith
+  · intro w hw_re_pos hw_sep hw_large
+    let S : ℂ :=
+      2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+    let T : ℂ :=
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+    have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
+      exact Complex.binetSecondFormulaRemainder_eq_small_add_tail hw_re_pos
+    have hsmall :
+        ‖S‖ ≤ 4 * J := by
+      have hsmall_raw :
+          ‖S‖ ≤ 4 * J / ‖w‖ :=
+        Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+          hw_re_pos
+      have hJ_nonneg : 0 ≤ J :=
+        le_of_lt Real.binetSecondFormula_kernel_majorant_integral_pos
+      have hfourJ_nonneg : 0 ≤ 4 * J :=
+        mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) hJ_nonneg
+      have hdiv_le : 4 * J / ‖w‖ ≤ 4 * J := by
+        exact div_le_of_le_mul₀ hfourJ_nonneg
+          (lt_of_lt_of_le zero_lt_one hw_large)
+          (by
+            calc
+              4 * J ≤ 4 * J * 1 := by rw [mul_one]
+              _ ≤ 4 * J * ‖w‖ :=
+                mul_le_mul_of_nonneg_left hw_large hfourJ_nonneg)
+      exact le_trans hsmall_raw hdiv_le
+    have htail_bound :
+        ‖T‖ ≤ 2 * Ct * J :=
+      htail w hw_re_pos hw_sep
+    have hsum :
+        ‖S + T‖ ≤ 4 * J + 2 * Ct * J := by
+      calc
+        ‖S + T‖ ≤ ‖S‖ + ‖T‖ := norm_add_le S T
+        _ ≤ 4 * J + 2 * Ct * J := add_le_add hsmall htail_bound
+    calc
+      ‖Complex.binetSecondFormulaRemainder w‖ = ‖S + T‖ := by
+        rw [hsplit]
+      _ ≤ 4 * J + 2 * Ct * J := hsum
+      _ ≤ 4 * J + 2 * Ct * J + 1 := by linarith
 
 /-- A positive integrable function on an open real interval has positive
 integral. -/
