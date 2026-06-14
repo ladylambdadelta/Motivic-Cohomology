@@ -2498,6 +2498,26 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
     Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
       Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
 
+/-- Classical large-height fixed-real-part vertical Stirling theorem.
+
+For arbitrary real part `a`, the vertical line `a + i b` is not contained in
+the closed right half-plane when `a < 0`.  The correct owner input is therefore
+the fixed-line specialization of sectorial Stirling in sectors avoiding the
+negative real axis, with constants depending on `a`; cf. DLMF §5.11. -/
+theorem Complex.fixedRealPartVerticalStirling_largeHeight_classical
+    (a : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        H ≤ ‖b‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  sorry
+
 /-- Large-height fixed-real-part vertical Stirling bounds for `Complex.Gamma`.
 
 For an arbitrary fixed real part `a`, the vertical line `a + ib` eventually
@@ -2516,7 +2536,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_large
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  sorry
+  exact Complex.fixedRealPartVerticalStirling_largeHeight_classical a
 
 /-- The compact-height part of a fixed vertical line. -/
 def Complex.fixedRealPartVerticalCompactHeightSet
@@ -2535,6 +2555,58 @@ def Complex.fixedRealPartVerticalGammaLowerRatio
   ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
     Complex.fixedRealPartVerticalStirlingEnvelope a b
 
+/-- `Gamma` is nonzero on the fixed-line compact-height strip. -/
+theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
+    {a H b : ℝ}
+    (hb : b ∈ Complex.fixedRealPartVerticalCompactHeightSet H) :
+    Complex.Gamma (Complex.fixedRealPartVerticalPoint a b) ≠ 0 := by
+  intro hzero
+  rcases
+      (Complex.Gamma_eq_zero_iff
+        (Complex.fixedRealPartVerticalPoint a b)).mp hzero with
+    ⟨n, hn⟩
+  have him_eq :
+      (Complex.fixedRealPartVerticalPoint a b).im = (-(n : ℂ)).im :=
+    congrArg Complex.im hn
+  have hleft_im :
+      (Complex.fixedRealPartVerticalPoint a b).im = b :=
+    Complex.fixedRealPartVerticalPoint_im a b
+  have hright_im : (-(n : ℂ)).im = 0 := by
+    calc
+      (-(n : ℂ)).im = -((n : ℂ).im) := Complex.neg_im (n : ℂ)
+      _ = -0 := congrArg Neg.neg (Complex.natCast_im n)
+      _ = 0 := neg_zero
+  have hb_zero : b = 0 :=
+    Eq.trans hleft_im.symm (Eq.trans him_eq hright_im)
+  have hnorm_zero : ‖b‖ = 0 :=
+    congrArg norm hb_zero
+  have hhalf_pos : (0 : ℝ) < 1 / 2 :=
+    half_pos zero_lt_one
+  have hnot : ¬ (1 / 2 : ℝ) ≤ 0 :=
+    not_le.mpr hhalf_pos
+  exact
+    hnot
+      (Eq.subst
+        (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+        hnorm_zero hb.1)
+
+/-- Canonical compact-height ratio theorem for a fixed vertical line.
+
+The proof is the standard compactness argument: the height set is compact,
+the Gamma ratio is continuous there, `Gamma` has no zeros on it because
+`|b| ≥ 1/2`, and the fixed-line Stirling envelope is strictly positive. -/
+theorem Complex.fixedRealPartVerticalGammaRatio_compactHeight_bounds
+    (a H : ℝ)
+    (hH_pos : 0 < H) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
+          Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
+          c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
+  sorry
+
 /-- Ratio bounds on the compact-height part of a fixed vertical line.
 
 This is the compactness/nonvanishing owner certificate: continuity supplies a
@@ -2550,7 +2622,7 @@ theorem Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
         b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
           Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
           c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
-  sorry
+  exact Complex.fixedRealPartVerticalGammaRatio_compactHeight_bounds a H hH_pos
 
 /-- Ratio bounds convert to two-sided envelope bounds on the compact-height
 part of a fixed vertical line. -/
@@ -7114,7 +7186,7 @@ theorem boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation
     (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) =
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) / (n : ℂ) := by
   have hn_complex_ne : (n : ℂ) ≠ 0 := by
-    exact_mod_cast Nat.ne_of_gt hn
+    exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn)
   have hpoint :
       boundaryLineOnePointRealParam t = 1 + (t : ℂ) * Complex.I := by
     exact Complex.ext rfl rfl
@@ -8805,7 +8877,62 @@ theorem abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto
             boundaryLineOnePointRealParam_abscissaShift σ t))
       (𝓝[>] (1 : ℝ))
       (𝓝 (((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
-  sorry
+  have hn_complex_ne : (n : ℂ) ≠ 0 := by
+    exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn)
+  have habscissa_cont :
+      ContinuousAt
+        (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+        (1 : ℝ) := by
+    unfold boundaryLineOnePointRealParam_abscissaShift
+    exact
+      Complex.continuous_ofReal.continuousAt.add
+        continuousAt_const
+  have habscissa_tendsto :
+      Tendsto
+        (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
+        (𝓝[>] (1 : ℝ))
+        (𝓝 (boundaryLineOnePointRealParam_abscissaShift 1 t)) :=
+    habscissa_cont.tendsto.mono_left nhdsWithin_le_nhds
+  have hterm_tendsto_raw :
+      Tendsto
+        (fun σ : ℝ =>
+          (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift σ t))
+        (𝓝[>] (1 : ℝ))
+        (𝓝
+          ((1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift 1 t))) := by
+    exact tendsto_const_nhds.div
+      ((continuousAt_const_cpow hn_complex_ne).tendsto.comp
+        habscissa_tendsto)
+  have habscissa_endpoint :
+      boundaryLineOnePointRealParam_abscissaShift 1 t =
+        boundaryLineOnePointRealParam t :=
+    Complex.ext rfl rfl
+  have hboundary_term :
+      (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift 1 t) =
+        ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
+    exact Eq.trans
+      (congrArg
+        (fun z : ℂ => (1 : ℂ) / ((n : ℂ) ^ z))
+        habscissa_endpoint)
+      (boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left
+        t hn)
+  exact Eq.subst
+    (motive := fun z : ℂ =>
+      Tendsto
+        (fun σ : ℝ =>
+          (1 : ℂ) /
+            ((n : ℂ) ^
+              boundaryLineOnePointRealParam_abscissaShift σ t))
+        (𝓝[>] (1 : ℝ))
+        (𝓝 z))
+    hboundary_term
+    hterm_tendsto_raw
 
 /-- Finite-sum Abel-prefix continuity over a fixed cutoff interval. -/
 theorem abelBoundary_logarithmicPhase_dampedPrefix_sum_tendsto
@@ -9021,6 +9148,55 @@ theorem abelBoundary_logarithmicPhase_dampedTail_uniform_bound_transport
       htail_tendsto
       hdamped_bound
 
+/-- Abstract Abel transform bound from bounded finite tail sums.
+
+This is the positive-weight summation-by-parts core: for a tail sequence whose
+finite partial sums from `N` onward are bounded by `C`, the Abel-damped tail
+with weights `r^n`, `0 < r < 1`, is bounded by the same `C`.  This is the
+convex-combination form of Abel's theorem for bounded partial sums. -/
+theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
+    {u : ℕ → ℂ}
+    {N : ℕ}
+    {C : ℝ}
+    (hpartial :
+      ∀ M : ℕ,
+        N ≤ M →
+        ‖∑ k ∈ Finset.Ioc N M, u k‖ ≤ C) :
+    ∀ᶠ r : ℝ in 𝓝[<] (1 : ℝ),
+      ‖∑' k : ℕ, if N < k then ((r : ℂ) ^ k) * u k else 0‖ ≤ C := by
+  sorry
+
+/-- Identification of the logarithmic-phase damped tail with the abstract Abel
+weighted tail.
+
+For `σ > 1`, writing `r = exp (1 - σ)` converts the half-plane Dirichlet tail
+after the cutoff into the Abel weighted boundary-line oscillator tail. -/
+theorem abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
+    (t σ : ℝ)
+    (hσ : 1 < σ) :
+    abelBoundary_logarithmicPhase_dampedTail t σ =
+      ∑' k : ℕ,
+        if ⌊2 + ‖t‖⌋₊ < k then
+          ((Real.exp (1 - σ) : ℂ) ^ k) *
+            (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+        else
+          0 := by
+  sorry
+
+/-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
+damped tail as `σ → 1+`. -/
+theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
+    (t : ℝ)
+    (C : ℝ)
+    (hfinite :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
+    ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
+  sorry
+
 /-- Abel damping theorem for a tail with bounded finite partial sums.
 
 If every finite tail partial sum after the cutoff is bounded by `C`, then the
@@ -9038,7 +9214,8 @@ theorem abel_damped_tail_norm_le_of_bounded_finite_tail_sums
             ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
-  sorry
+  exact abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
+    t C hfinite
 
 /-- Abel damping comparison for the logarithmic-phase post-cutoff tail.
 
@@ -11205,6 +11382,25 @@ theorem poleClearedRiemannZeta_rightHalfPlane_finiteOrder_growth_from_EulerMacla
     hexponent.symm
     hraw
 
+/-- Euler-Maclaurin finite-order growth for the pole-cleared zeta factor on the
+full reflected right half-plane `1 ≤ Re s`.
+
+This is the standard continuation-strength form of the right-side zeta input:
+Euler-Maclaurin/Abel summation controls `(s - 1)ζ(s)` uniformly from the
+boundary line `Re s = 1` into the half-plane `Re s ≥ 1`.  The far-right
+Dirichlet-series theorem above only proves the easier subregion `2 ≤ Re s`;
+the transport across the functional equation genuinely needs this full
+half-plane statement. -/
+theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        1 ≤ w.re →
+        ‖poleClearedRiemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  sorry
+
 /-- Reflected right half-plane finite-order growth for the pole-cleared zeta factor.
 
 This is the right-side input needed by the functional equation on the left
@@ -11219,6 +11415,49 @@ theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_E
         1 ≤ w.re →
         ‖poleClearedRiemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  exact poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
+
+/-- The removable completed-functional-equation multiplier for the pole-cleared
+zeta factor on the left half-plane.
+
+Away from the removable point `z = 0`, this is the raw multiplier obtained by
+writing the completed functional equation as a relation between `(z - 1)ζ(z)`
+and `((1 - z) - 1)ζ(1 - z)`.  At `z = 0` the value is the removable value
+forced by the pole-cleared identity. -/
+noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+    (z : ℂ) : ℂ :=
+  if z = 0 then
+    poleClearedRiemannZeta 0
+  else
+    ((z - 1) / (((1 : ℂ) - z) - 1)) *
+      (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
+
+/-- Exact normalization identity for the removable completed-functional-equation
+multiplier of the pole-cleared zeta factor.
+
+This is the whole-plane version of the left-boundary factorization, with the
+removable value at `z = 0` included in the multiplier. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity
+    {z : ℂ}
+    (hz : z.re ≤ 0) :
+    poleClearedRiemannZeta z =
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
+/-- Finite-order envelope for the removable completed-functional-equation
+multiplier on the left half-plane.
+
+Analytically this is exactly the Gamma-ratio/Stirling estimate plus the
+removable boundedness at `z = 0`; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        ‖poleClearedRiemannZeta_completedFunctionalEquationMultiplier z‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
@@ -11239,7 +11478,12 @@ theorem poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transpo
         z.re ≤ 0 →
         poleClearedRiemannZeta z =
           M z * poleClearedRiemannZeta ((1 : ℂ) - z) := by
-  sorry
+  refine
+    ⟨poleClearedRiemannZeta_completedFunctionalEquationMultiplier,
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_finiteOrder_growth,
+      ?_⟩
+  intro z hz
+  exact poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity hz
 
 /-- Functional-equation transport of finite-order growth from the reflected right
 half-plane to the left half-plane.
@@ -11427,7 +11671,11 @@ theorem poleClearedRiemannZeta_centralStrip_verticalTail_PL_input_package :
           1 ≤ ‖z.im‖ →
           ‖poleClearedRiemannZeta z‖ ≤
             A * Real.exp (B * (1 + ‖z‖) ^ m)) := by
-  sorry
+  refine
+    ⟨poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl,
+      poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth,
+      poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
+      poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
 
 theorem poleClearedRiemannZeta_centralStrip_verticalTail_finiteOrder_growth_from_boundary_inputs :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
