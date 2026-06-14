@@ -5383,7 +5383,46 @@ theorem logarithmicPhaseFunction_exponent_re_zero
     (t : ℝ)
     (x : ℝ) :
     (((-(t : ℂ) * Complex.I) * (Real.log x : ℂ)).re) = 0 := by
-  sorry
+  let u : ℂ := -(t : ℂ) * Complex.I
+  let v : ℂ := (Real.log x : ℂ)
+  have hu_re : u.re = 0 := by
+    have hneg_im : (-(t : ℂ)).im = 0 := by
+      calc
+        (-(t : ℂ)).im = -((t : ℂ).im) :=
+          Complex.neg_im (t : ℂ)
+        _ = -0 :=
+          congrArg Neg.neg (Complex.ofReal_im t)
+        _ = 0 :=
+          neg_zero
+    calc
+      u.re = (-(t : ℂ) * Complex.I).re :=
+        rfl
+      _ = - (-(t : ℂ)).im :=
+        Complex.mul_I_re (-(t : ℂ))
+      _ = -0 :=
+        congrArg Neg.neg hneg_im
+      _ = 0 :=
+        neg_zero
+  have hv_im : v.im = 0 := by
+    calc
+      v.im = ((Real.log x : ℝ) : ℂ).im :=
+        rfl
+      _ = 0 :=
+        Complex.ofReal_im (Real.log x)
+  calc
+    (((-(t : ℂ) * Complex.I) * (Real.log x : ℂ)).re) =
+        u.re * v.re - u.im * v.im := by
+      exact Complex.mul_re u v
+    _ = 0 * v.re - u.im * v.im := by
+      exact congrArg (fun y : ℝ => y * v.re - u.im * v.im) hu_re
+    _ = 0 * v.re - u.im * 0 := by
+      exact congrArg (fun y : ℝ => 0 * v.re - u.im * y) hv_im
+    _ = 0 - u.im * 0 := by
+      exact congrArg (fun y : ℝ => y - u.im * 0) (zero_mul v.re)
+    _ = 0 - 0 := by
+      exact congrArg (fun y : ℝ => 0 - y) (mul_zero u.im)
+    _ = 0 :=
+      sub_zero 0
 
 /-- Unit norm of the positive-real logarithmic phase.
 

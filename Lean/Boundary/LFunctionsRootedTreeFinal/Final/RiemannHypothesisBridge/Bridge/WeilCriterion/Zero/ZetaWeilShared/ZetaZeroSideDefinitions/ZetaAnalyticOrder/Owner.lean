@@ -120,15 +120,15 @@ theorem analyticAt_order_mul_left_finite_factor
       AnalyticAt ℂ b z ∧
       b z ≠ 0 ∧
       ∀ᶠ w in 𝓝 z, u w * f w = (w - z) ^ n • b w := by
-  match (AnalyticAt.order_eq_nat_iff hf n).mp hforder with
-  | ⟨a, ha, haz, hfactor⟩ =>
-      match analyticAt_unit_mul_pow_smul_factor hu ha huz haz with
-      | ⟨b, hb, hbz, hunitFactor⟩ =>
-          have hproductFactor :
-              ∀ᶠ w in 𝓝 z, u w * f w = (w - z) ^ n • b w := by
-            filter_upwards [hfactor, hunitFactor] with w hfactorw hunitw
-            exact (congrArg (fun y : ℂ => u w * y) hfactorw).trans hunitw
-          exact ⟨b, hb, hbz, hproductFactor⟩
+  rcases (AnalyticAt.order_eq_nat_iff hf n).mp hforder with
+    ⟨a, ha, haz, hfactor⟩
+  rcases analyticAt_unit_mul_pow_smul_factor hu ha huz haz with
+    ⟨b, hb, hbz, hunitFactor⟩
+  have hproductFactor :
+      ∀ᶠ w in 𝓝 z, u w * f w = (w - z) ^ n • b w := by
+    filter_upwards [hfactor, hunitFactor] with w hfactorw hunitw
+    exact (congrArg (fun y : ℂ => u w * y) hfactorw).trans hunitw
+  exact ⟨b, hb, hbz, hproductFactor⟩
 
 /-- Multiplication by an analytic unit on the left preserves analytic order. -/
 theorem analyticAt_order_mul_left_eq
