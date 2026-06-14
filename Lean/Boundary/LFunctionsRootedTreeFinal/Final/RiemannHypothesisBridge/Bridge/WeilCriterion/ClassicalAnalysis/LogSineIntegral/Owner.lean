@@ -1000,6 +1000,33 @@ theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
 /-- Integrability transport for the square substitution `t = x²` with its
 Jacobian factor on `[0,1]`. This is the exact owner-level input needed for the
 singular Beta kernel pullback. -/
+theorem Real.squareSubstitution_weightedPullback_derivWithin
+    (x : ℝ) :
+    HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
+  have hx : x ∈ uIcc (0 : ℝ) 1 := by
+    simp
+  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+    rwa [Set.uIcc_of_le zero_le_one] at hx
+  have hderiv_at : HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
+    simpa [pow_two, mul_comm, mul_left_comm, mul_assoc] using
+      ((hasDerivAt_id x).mul (hasDerivAt_id x))
+  exact hderiv_at.hasDerivWithinAt
+
+/-- The Jacobian factor for the square substitution on `[0,1]`. -/
+theorem Real.squareSubstitution_weightedPullback_eqOn
+    {g : ℝ → ℝ} :
+    EqOn
+      (fun x : ℝ => |2 * x| • g (x ^ 2))
+      (fun x : ℝ => g (x ^ 2) * (2 * x))
+      [[(0 : ℝ), 1]] := by
+  intro x hx
+  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+    rwa [Set.uIcc_of_le zero_le_one] at hx
+  have hnonneg : 0 ≤ (2 : ℝ) * x := by
+    have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+    exact mul_nonneg htwo_nonneg hx'.1
+  simp [Real.smul_eq_mul, abs_of_nonneg hnonneg, mul_comm, mul_left_comm, mul_assoc]
+
 theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
     {g : ℝ → ℝ}
     (hg :
@@ -1016,12 +1043,7 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
       ∀ x ∈ [[(0 : ℝ), 1]],
         HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
     intro x hx
-    have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-      rwa [Set.uIcc_of_le zero_le_one] at hx
-    have hderiv_at : HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
-      simpa [pow_two, mul_comm, mul_left_comm, mul_assoc] using
-        ((hasDerivAt_id x).mul (hasDerivAt_id x))
-    exact hderiv_at.hasDerivWithinAt
+    exact Real.squareSubstitution_weightedPullback_derivWithin x
   have hinj : InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
     intro x hx y hy hxy
     have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
@@ -1040,19 +1062,7 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
         [[(0 : ℝ), 1]]
         MeasureTheory.volume :=
     (integrableOn_image_iff_integrableOn_abs_deriv_smul hs hderiv hinj g).mp hg
-  have heq :
-      EqOn
-        (fun x : ℝ => |2 * x| • g (x ^ 2))
-        (fun x : ℝ => g (x ^ 2) * (2 * x))
-        [[(0 : ℝ), 1]] := by
-    intro x hx
-    have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-      rwa [Set.uIcc_of_le zero_le_one] at hx
-    have hnonneg : 0 ≤ (2 : ℝ) * x := by
-      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
-      exact mul_nonneg htwo_nonneg hx'.1
-    simp [Real.smul_eq_mul, abs_of_nonneg hnonneg, mul_comm, mul_left_comm, mul_assoc]
-  exact habs.congr_fun heq measurableSet_uIcc
+  exact habs.congr_fun Real.squareSubstitution_weightedPullback_eqOn measurableSet_uIcc
 
 /-- Endpoint integrability of the square-root pullback of the Beta kernel.
 This is the non-circular integrability input for the substitution `t = x²`. -/
