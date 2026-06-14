@@ -2382,21 +2382,33 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
     (Finset.mem_filter.1 hz).2
   exact le_antisymm hle (le_of_not_gt hnot_lt)
 
-/-- Unit-circle boundary-zero logarithmic mean.
+/-- Unshifted unit-circle logarithmic kernel mean.
 
-This is the exact classical singular integral used for boundary zeros:
-`average log |1 - exp(i(t - α))| = 0`.  The logarithmic singularity at
-`t = α` is integrable and is interpreted by the finite-exception boundary
-integrability machinery in this file. -/
-theorem unitCircle_logKernel_mean_zero
+This is the deepest classical Jensen kernel integral used for boundary zeros:
+`average log |1 - exp(iθ)| = 0`. -/
+theorem unitCircleLogKernel_mean_zero :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp (θ * Complex.I)‖) =
+      0 := by
+  -- Deep classical Jensen kernel theorem: reduce to `log (2 |sin(θ/2)|)`
+  -- and use
+  -- `∫_0^{2π} log |1 - exp(iθ)| dθ = 0`.
+  sorry
+
+/-- Translation invariance of the unit-circle logarithmic kernel mean.
+
+This is the endpoint-aware periodicity theorem for the logarithmic kernel with
+its finite singular set.  It transports the unshifted Jensen kernel mean to the
+kernel centered at angle `α`. -/
+theorem unitCircleLogKernel_translated_mean_zero
     (α : ℝ) :
     (2 * Real.pi)⁻¹ *
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
       0 := by
-  -- Deep classical Jensen kernel theorem: reduce to
-  -- `log (2 |sin((θ - α)/2)|)`, translate by periodicity, and use
-  -- `∫_0^{2π} log |1 - exp(iθ)| dθ = 0`.
+  -- Periodic translation of the singular kernel over one full period, using
+  -- the finite-exception integrability API for the endpoint singularity.
   sorry
 
 /-- Unit-circle boundary-zero logarithmic mean.
@@ -2411,7 +2423,7 @@ theorem entireFunction_unitCircle_boundaryZero_log_mean_zero_ownerRoot
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
       0 := by
-  exact unitCircle_logKernel_mean_zero α
+  exact unitCircleLogKernel_translated_mean_zero α
 
 /-- Boundary zero single-factor mean.
 

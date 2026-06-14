@@ -3983,6 +3983,32 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
     norm_pos_iff.mpr hcpow_ne
   exact mul_pos hexp_pos hcpow_pos
 
+/-- Elementary arctangent majorization used to quantify the angular defect of a
+right-half-plane vertical ray. -/
+theorem Real.arctan_le_self_of_nonneg
+    {t : ℝ}
+    (ht : 0 ≤ t) :
+    Real.arctan t ≤ t := by
+  sorry
+
+/-- Multiplicative form of `Real.arctan_le_self_of_nonneg` after the scale
+change `t = u / |y|`. -/
+theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
+    {u y : ℝ}
+    (hu : 0 ≤ u) :
+    ‖y‖ * Real.arctan (u / ‖y‖) ≤ u := by
+  sorry
+
+/-- Exact arctangent form of the principal-argument defect on the ray `u + i y`
+inside the closed right half-plane. -/
+theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
+    {u y : ℝ}
+    (hu : 0 ≤ u) :
+    |(Real.pi / 2) * ‖y‖ -
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+      ‖y‖ * Real.arctan (u / ‖y‖) := by
+  sorry
+
 /-- Principal-argument defect on a right-half-plane vertical ray.
 
 For `u ≥ 0`, the angle of `u + i y` differs from `sign(y) · π/2` by at most
@@ -3993,7 +4019,15 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_le_re
     (hu : 0 ≤ u) :
     |(Real.pi / 2) * ‖y‖ -
         Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| ≤ u := by
-  sorry
+  have hdef_eq :
+      |(Real.pi / 2) * ‖y‖ -
+          Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+        ‖y‖ * Real.arctan (u / ‖y‖) :=
+    Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan hu
+  exact Eq.subst
+    (motive := fun r : ℝ => r ≤ u)
+    hdef_eq.symm
+    (Real.norm_mul_arctan_div_norm_le_self_of_nonneg hu)
 
 /-- Additive quantitative argument-defect estimate for shifted right-half-plane
 vertical strips.
