@@ -360,6 +360,44 @@ theorem entireFunction_order_eq_multiplicity_of_nontrivial
   unfold entireFunctionZeroMultiplicity
   exact (ENat.coe_toNat hfinite).symm
 
+/-- At an actual zero of a nontrivial entire function, the finite analytic
+multiplicity is nonzero. -/
+theorem entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    {z₀ : ℂ}
+    (hz₀ : F z₀ = 0) :
+    entireFunctionZeroMultiplicity F hF z₀ ≠ 0 := by
+  intro hmult_zero
+  have horder_eq_multiplicity :
+      (hF z₀).order =
+        (entireFunctionZeroMultiplicity F hF z₀ : ENat) :=
+    entireFunction_order_eq_multiplicity_of_nontrivial F hF hnontrivial z₀
+  have horder_zero :
+      (hF z₀).order = (0 : ENat) :=
+    Eq.trans horder_eq_multiplicity
+      (congrArg (fun n : ℕ => (n : ENat)) hmult_zero)
+  obtain ⟨g, _hg_an, hg_ne, hg_factor⟩ :=
+    entireFunction_localTaylorFactorization_of_order_eq_nat
+      F hF z₀ 0 horder_zero
+  have hfactor_at_center :
+      F z₀ = (z₀ - z₀) ^ 0 • g z₀ :=
+    Filter.Eventually.self_of_nhds hg_factor
+  have hpow :
+      (z₀ - z₀) ^ 0 = (1 : ℂ) :=
+    pow_zero (z₀ - z₀)
+  have hfactor_one :
+      (z₀ - z₀) ^ 0 • g z₀ = (1 : ℂ) • g z₀ :=
+    congrArg (fun a : ℂ => a • g z₀) hpow
+  have hF_eq_g :
+      F z₀ = g z₀ :=
+    Eq.trans (Eq.trans hfactor_at_center hfactor_one) (one_smul ℂ (g z₀))
+  have hg_zero :
+      g z₀ = 0 :=
+    Eq.trans hF_eq_g.symm hz₀
+  exact hg_ne hg_zero
+
 /-- A positive-radius exponential arc is locally injective in a punctured real
 neighborhood of the base parameter. -/
 theorem positiveRadius_exp_arc_eventually_ne_base

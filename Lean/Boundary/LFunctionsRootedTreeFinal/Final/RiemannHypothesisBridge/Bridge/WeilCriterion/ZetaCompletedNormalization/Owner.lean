@@ -12237,7 +12237,44 @@ theorem finiteOrder_leftHalfPlane_growth_of_multiplier_reflection_identity
       (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
           (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
         AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
-    sorry
+    let X : ℝ := (BM + Bf + 1) * H ^ (mM + mf)
+    let E : ℝ := Real.exp X
+    have hleft :
+        (AM * E) * (Af * E) = (AM * Af) * (E * E) := by
+      calc
+        (AM * E) * (Af * E) = ((AM * E) * Af) * E := by
+          exact mul_assoc (AM * E) Af E
+        _ = (AM * (E * Af)) * E := by
+          exact congrArg (fun y : ℝ => y * E) (mul_assoc AM E Af)
+        _ = (AM * (Af * E)) * E := by
+          exact congrArg (fun y : ℝ => (AM * y) * E) (mul_comm E Af)
+        _ = ((AM * Af) * E) * E := by
+          exact congrArg (fun y : ℝ => y * E) (mul_assoc AM Af E).symm
+        _ = (AM * Af) * (E * E) := by
+          exact (mul_assoc (AM * Af) E E).symm
+    have hdouble :
+        X + X = (2 * (BM + Bf + 1)) * H ^ (mM + mf) := by
+      calc
+        X + X = 2 * X := by
+          exact (two_mul X).symm
+        _ = 2 * ((BM + Bf + 1) * H ^ (mM + mf)) := rfl
+        _ = (2 * (BM + Bf + 1)) * H ^ (mM + mf) := by
+          exact (mul_assoc 2 (BM + Bf + 1) (H ^ (mM + mf))).symm
+    calc
+      (AM * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) *
+          (Af * Real.exp ((BM + Bf + 1) * H ^ (mM + mf))) =
+          (AM * E) * (Af * E) := rfl
+      _ = (AM * Af) * (E * E) := hleft
+      _ = (AM * Af) * Real.exp (X + X) := by
+        exact congrArg (fun y : ℝ => (AM * Af) * y)
+          (Real.exp_add X X).symm
+      _ = (AM * Af) *
+          Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
+        exact congrArg (fun y : ℝ => (AM * Af) * Real.exp y) hdouble
+      _ = AM * Af *
+          Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)) := by
+        exact mul_assoc AM Af
+          (Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
   exact Eq.subst
     (motive := fun x : ℝ =>
       x ≤ AM * Af * Real.exp ((2 * (BM + Bf + 1)) * H ^ (mM + mf)))
