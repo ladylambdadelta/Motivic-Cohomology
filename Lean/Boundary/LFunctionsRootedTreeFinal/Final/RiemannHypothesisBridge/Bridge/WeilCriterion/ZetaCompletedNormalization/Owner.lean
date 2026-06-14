@@ -9946,6 +9946,14 @@ def abelBoundary_logarithmicPhase_dirichletWeight
     (k : ℕ) : ℝ :=
   ((k : ℝ) ^ (1 - σ : ℝ))
 
+/-- Exponent normal form for the Abel-damped logarithmic-phase factorization. -/
+theorem abelBoundary_logarithmicPhase_damped_exponent_eq
+    (t σ : ℝ) :
+    ((1 - σ : ℝ) : ℂ) + (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
+      -boundaryLineOnePointRealParam_abscissaShift σ t := by
+  unfold boundaryLineOnePointRealParam_abscissaShift
+  exact Complex.ext rfl rfl
+
 /-- Positive-natural complex-power normalization for the Abel-damped boundary
 term.
 
@@ -9961,7 +9969,83 @@ theorem abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
           boundaryLineOnePointRealParam_abscissaShift σ t) =
       ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
         (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  sorry
+  let x : ℂ := (k : ℂ)
+  have hx_ne : x ≠ 0 :=
+    Nat.cast_ne_zero.mpr (Nat.ne_of_gt hk)
+  have hk_nonneg : (0 : ℝ) ≤ (k : ℝ) :=
+    Nat.cast_nonneg k
+  have hweight :
+      ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) =
+        x ^ (((1 - σ : ℝ) : ℂ)) := by
+    exact Complex.ofReal_cpow hk_nonneg (1 - σ)
+  have hinv :
+      ((k : ℂ)⁻¹ : ℂ) = x ^ (-1 : ℂ) := by
+    exact (Complex.cpow_neg_one x).symm
+  have hproduct_one :
+      ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+          (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
+        x ^ (((1 - σ : ℝ) : ℂ)) *
+          (x ^ (-1 : ℂ) * x ^ (-(t : ℂ) * Complex.I)) := by
+    exact congrArg₂ (fun a b : ℂ => a * b) hweight
+      (congrArg₂ (fun a b : ℂ => a * b) hinv rfl)
+  have hproduct_two :
+      x ^ (((1 - σ : ℝ) : ℂ)) *
+          (x ^ (-1 : ℂ) * x ^ (-(t : ℂ) * Complex.I)) =
+        x ^ ((((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) +
+          (-(t : ℂ) * Complex.I)) := by
+    have hleft :
+        x ^ (((1 - σ : ℝ) : ℂ)) * x ^ (-1 : ℂ) =
+          x ^ (((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) :=
+      (Complex.cpow_add (((1 - σ : ℝ) : ℂ)) (-1 : ℂ) hx_ne).symm
+    have hright :
+        x ^ ((((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) +
+            (-(t : ℂ) * Complex.I)) =
+          x ^ (((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) *
+            x ^ (-(t : ℂ) * Complex.I) :=
+      Complex.cpow_add
+        (((1 - σ : ℝ) : ℂ) + (-1 : ℂ))
+        (-(t : ℂ) * Complex.I)
+        hx_ne
+    calc
+      x ^ (((1 - σ : ℝ) : ℂ)) *
+          (x ^ (-1 : ℂ) * x ^ (-(t : ℂ) * Complex.I)) =
+          (x ^ (((1 - σ : ℝ) : ℂ)) * x ^ (-1 : ℂ)) *
+            x ^ (-(t : ℂ) * Complex.I) := by
+        exact (mul_assoc
+          (x ^ (((1 - σ : ℝ) : ℂ)))
+          (x ^ (-1 : ℂ))
+          (x ^ (-(t : ℂ) * Complex.I))).symm
+      _ = x ^ (((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) *
+            x ^ (-(t : ℂ) * Complex.I) := by
+        exact congrArg
+          (fun y : ℂ => y * x ^ (-(t : ℂ) * Complex.I))
+          hleft
+      _ = x ^ ((((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) +
+            (-(t : ℂ) * Complex.I)) := by
+        exact hright.symm
+  have hproduct_three :
+      x ^ ((((1 - σ : ℝ) : ℂ) + (-1 : ℂ)) +
+          (-(t : ℂ) * Complex.I)) =
+        x ^ (-boundaryLineOnePointRealParam_abscissaShift σ t) := by
+    exact congrArg (fun z : ℂ => x ^ z)
+      (abelBoundary_logarithmicPhase_damped_exponent_eq t σ)
+  have hleft :
+      (1 : ℂ) /
+          ((k : ℂ) ^
+            boundaryLineOnePointRealParam_abscissaShift σ t) =
+        x ^ (-boundaryLineOnePointRealParam_abscissaShift σ t) := by
+    calc
+      (1 : ℂ) /
+          ((k : ℂ) ^
+            boundaryLineOnePointRealParam_abscissaShift σ t) =
+          ((x ^ boundaryLineOnePointRealParam_abscissaShift σ t)⁻¹) := by
+        exact one_div (x ^ boundaryLineOnePointRealParam_abscissaShift σ t)
+      _ = x ^ (-boundaryLineOnePointRealParam_abscissaShift σ t) := by
+        exact (Complex.cpow_neg x
+          (boundaryLineOnePointRealParam_abscissaShift σ t)).symm
+  exact Eq.trans hleft
+    (Eq.trans hproduct_three.symm
+      (Eq.trans hproduct_two.symm hproduct_one.symm))
 
 /-- A right-half-plane post-cutoff term is the Dirichlet damping weight times the boundary
 oscillatory term. -/
@@ -12652,6 +12736,32 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator
 
 /-- Algebraic division of the completed zeta functional equation into the
 raw pole-cleared multiplier, away from Gamma zero faces. -/
+theorem riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_ne : Complex.Gammaℝ z ≠ 0) :
+    riemannZeta z =
+      riemannZeta ((1 : ℂ) - z) *
+        Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z := by
+  sorry
+
+/-- Algebraic transport from the zeta quotient functional equation to the
+pole-cleared raw multiplier identity. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hzeta :
+      riemannZeta z =
+        riemannZeta ((1 : ℂ) - z) *
+          Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) :
+    poleClearedRiemannZeta z =
+      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_ne_zero
     {z : ℂ}
     (hz_re : z.re ≤ 0)
@@ -12661,6 +12771,24 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
       (((z - 1) / (((1 : ℂ) - z) - 1)) *
           (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
+      hz_re hz_ne_zero
+      (riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
+        hz_re hz_ne_zero hGamma_ne)
+
+/-- Reflected pole-cleared zeta nonvanishing at the Gamma-zero faces in the
+left half-plane.
+
+This is the exact nonvanishing fact needed to unfold the removable multiplier
+branch at Gamma-zero points.  Analytically these are the trivial-zero faces on
+the left side reflected to the ordinary right half-plane. -/
+theorem poleClearedRiemannZeta_reflected_nonzero_of_gamma_zero_leftHalfPlane
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_zero : Complex.Gammaℝ z = 0) :
+    poleClearedRiemannZeta ((1 : ℂ) - z) ≠ 0 := by
   sorry
 
 /-- Compatibility of the completed-functional-equation multiplier with the
@@ -12677,7 +12805,27 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
     poleClearedRiemannZeta z =
       poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
-  sorry
+  have hM :
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier z =
+        poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z) := by
+    unfold poleClearedRiemannZeta_completedFunctionalEquationMultiplier
+    exact Eq.trans (if_neg hz_ne_zero) (if_pos hGamma_zero)
+  have hreflected_ne :
+      poleClearedRiemannZeta ((1 : ℂ) - z) ≠ 0 :=
+    poleClearedRiemannZeta_reflected_nonzero_of_gamma_zero_leftHalfPlane
+      hz_re hz_ne_zero hGamma_zero
+  calc
+    poleClearedRiemannZeta z =
+        (poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)) *
+          poleClearedRiemannZeta ((1 : ℂ) - z) := by
+      exact (div_mul_cancel₀
+        (poleClearedRiemannZeta z)
+        hreflected_ne).symm
+    _ = poleClearedRiemannZeta_completedFunctionalEquationMultiplier z *
+          poleClearedRiemannZeta ((1 : ℂ) - z) := by
+      exact congrArg
+        (fun w : ℂ => w * poleClearedRiemannZeta ((1 : ℂ) - z))
+        hM.symm
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
     {z : ℂ}
@@ -12776,7 +12924,7 @@ multiplier on the left half-plane.
 
 Analytically this is exactly the Gamma-ratio/Stirling estimate plus the
 removable boundedness at `z = 0`; cf. Titchmarsh, Ch. 2 and Edwards, Ch. 1. -/
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBranch_leftHalfPlane_growth :
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBranch_leftHalfPlane_growth_from_trivialZero_discrete_localBoundedness :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -12787,6 +12935,21 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBr
         ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
+
+/-- Gamma-zero branch growth from discreteness of the trivial-zero faces and
+local boundedness of the removable quotient. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBranch_leftHalfPlane_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        Complex.Gammaℝ z = 0 →
+        ‖poleClearedRiemannZeta z / poleClearedRiemannZeta ((1 : ℂ) - z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_gammaZeroBranch_leftHalfPlane_growth_from_trivialZero_discrete_localBoundedness
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_leftHalfPlane_growth_of_raw_and_removable
     (hgammaZero :
@@ -13179,7 +13342,13 @@ This is the removable local-control input missing from a naive product proof:
 the pole-clearing rational factor has a pole at `0`, so the product must be
 controlled near `0` as a completed multiplier, not by separately bounding the
 rational factor. -/
-theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth :
+/-- Compact/removable local boundedness of the raw completed-functional-equation
+multiplier near the origin.
+
+This is the true local input: the rational pole at `z = 0` is cancelled by the
+Gamma-ratio/trivial-zero normalization, so the product is locally bounded on
+the punctured closed unit ball. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth_from_removable_localBoundedness :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -13191,6 +13360,20 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHal
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   sorry
+
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re ≤ 0 →
+        z ≠ 0 →
+        ‖z‖ ≤ 1 →
+        ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
+          A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_leftHalfPlane_nearOrigin_growth_from_removable_localBoundedness
 
 /-- Raw multiplier growth from the far-tail pole-clearing ratio, the
 Gamma-ratio/Stirling estimate, and the near-origin removable control. -/

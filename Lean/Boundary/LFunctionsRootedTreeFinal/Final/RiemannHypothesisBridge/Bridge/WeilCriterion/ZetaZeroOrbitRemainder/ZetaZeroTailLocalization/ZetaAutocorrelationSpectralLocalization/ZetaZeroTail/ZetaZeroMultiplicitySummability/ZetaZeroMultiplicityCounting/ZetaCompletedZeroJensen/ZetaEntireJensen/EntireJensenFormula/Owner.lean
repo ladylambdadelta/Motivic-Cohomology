@@ -3165,6 +3165,44 @@ theorem complex_centerSegmentIntegral_eq_radialPrimitive
         (complex_starConvexClosedBall_lineMap_zero_eq_radial z t)
   exact intervalIntegral.integral_congr hintegrand
 
+/-- Star-convexity keeps every center-to-endpoint segment inside the domain. -/
+theorem complex_starConvex_centerSegment_mem
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    {z : ℂ}
+    (hz : z ∈ s)
+    {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    AffineMap.lineMap (0 : ℂ) z t ∈ s := by
+  have h_image :
+      AffineMap.lineMap (0 : ℂ) z t ∈
+        (AffineMap.lineMap (0 : ℂ) z) '' Set.Icc (0 : ℝ) 1 :=
+    Set.mem_image_of_mem (AffineMap.lineMap (0 : ℂ) z) ht
+  have h_segment :
+      AffineMap.lineMap (0 : ℂ) z t ∈
+        segment ℝ (0 : ℂ) z :=
+    Eq.subst
+      (motive := fun u : Set ℂ =>
+        AffineMap.lineMap (0 : ℂ) z t ∈ u)
+      ((segment_eq_image_lineMap (𝕜 := ℝ) (0 : ℂ) z).symm)
+      h_image
+  exact hstar.segment_subset hz h_segment
+
+/-- Holomorphicity of the integrand transported along center-to-endpoint
+segments in a star-convex domain. -/
+theorem complex_starConvex_centerSegment_analyticAt
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z)
+    {z : ℂ}
+    (hz : z ∈ s)
+    {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    AnalyticAt ℂ φ (AffineMap.lineMap (0 : ℂ) z t) :=
+  hφ (AffineMap.lineMap (0 : ℂ) z t)
+    (complex_starConvex_centerSegment_mem hstar hz ht)
+
 /-- The radial primitive is normalized to vanish at the center. -/
 theorem complex_starConvexClosedBall_radialPrimitive_zero
     (φ : ℂ → ℂ) :
@@ -3179,6 +3217,33 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
   exact Eq.trans
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
+
+/-- Differentiation under the endpoint parameter for the center segment
+integral. -/
+theorem complex_centerSegmentIntegral_hasDerivAt_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+      HasDerivAt
+        (complex_centerSegmentIntegral φ)
+        (φ z)
+        z := by
+  sorry
+
+/-- Analyticity of the center segment integral from the endpoint derivative
+theorem. -/
+theorem complex_centerSegmentIntegral_analyticAt_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+      AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
+  sorry
 
 /-- Fundamental theorem for holomorphic segment integrals on star-convex
 domains.
@@ -3197,7 +3262,12 @@ theorem complex_segmentIntegral_primitive_hasDerivAt_of_holomorphicOn_starConvex
     (∀ z : ℂ,
       z ∈ s →
       deriv (complex_centerSegmentIntegral φ) z = φ z) := by
-  sorry
+  exact
+    ⟨complex_centerSegmentIntegral_analyticAt_of_holomorphicOn_starConvex
+        φ hstar hφ,
+      fun z hz =>
+        (complex_centerSegmentIntegral_hasDerivAt_of_holomorphicOn_starConvex
+          φ hstar hφ z hz).deriv⟩
 
 /-- Standard segment-integral primitive theorem for holomorphic functions on a
 star-convex complex domain, specialized to the radial primitive from the
@@ -6628,6 +6698,145 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
       F hF hF0 ρ a ha g hg_ne
   exact fun hQ_zero => hvalue_ne (Eq.trans hQ_value.symm hQ_zero)
+
+/-- A normalized extracted linear factor over an arbitrary nonzero finite
+support vanishes exactly at its indexed zero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (z : EntireFunctionZero F)
+    (hz : z ∈ S)
+    (w : ℂ) :
+    1 - w / (z : ℂ) = 0 ↔ w = (z : ℂ) := by
+  have hz_ne_zero : (z : ℂ) ≠ 0 :=
+    hS0 z hz
+  constructor
+  · intro hfactor
+    have hquotient_eq_one : w / (z : ℂ) = 1 :=
+      (eq_of_sub_eq_zero hfactor).symm
+    calc
+      w = (w / (z : ℂ)) * (z : ℂ) := by
+        exact (div_mul_cancel₀ w hz_ne_zero).symm
+      _ = 1 * (z : ℂ) := by
+        exact congrArg (fun x : ℂ => x * (z : ℂ)) hquotient_eq_one
+      _ = (z : ℂ) := by
+        exact one_mul (z : ℂ)
+  · intro hw
+    have hquotient_eq_one : w / (z : ℂ) = 1 := by
+      calc
+        w / (z : ℂ) = (z : ℂ) / (z : ℂ) := by
+          exact congrArg (fun x : ℂ => x / (z : ℂ)) hw
+        _ = 1 := by
+          exact div_self hz_ne_zero
+    calc
+      1 - w / (z : ℂ) = 1 - 1 := by
+        exact congrArg (fun x : ℂ => 1 - x) hquotient_eq_one
+      _ = 0 := by
+        exact sub_self (1 : ℂ)
+
+/-- For an arbitrary nonzero finite support, every other extracted support
+factor is nonzero at the indexed support point. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_other_factor_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (a z : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (hz : z ∈ S.erase a) :
+    (1 - (a : ℂ) / (z : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 := by
+  have hz_support : z ∈ S :=
+    (Finset.mem_erase.1 hz).2
+  have hza : z ≠ a :=
+    (Finset.mem_erase.1 hz).1
+  have hbase_ne : 1 - (a : ℂ) / (z : ℂ) ≠ 0 := by
+    intro hbase
+    have ha_eq_z : (a : ℂ) = (z : ℂ) :=
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
+        F hF S hS0 z hz_support (a : ℂ)).1 hbase
+    exact hza (Subtype.ext ha_eq_z)
+  exact
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (z : ℂ))
+      hbase_ne
+
+/-- The product of all finite-support factors except the indexed one is
+nonzero at that indexed support point. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_otherFactors_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S) :
+    (∏ z in S.erase a,
+      (1 - (a : ℂ) / (z : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 := by
+  exact
+    Finset.prod_ne_zero_iff.mpr
+      (fun z hz =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_other_factor_nonzero_at_support
+          F hF S hS0 a z ha hz)
+
+/-- The leading coefficient of an arbitrary extracted finite divisor at a
+support point is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_localLeadingCoeff_nonzero_at_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S) :
+    ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+        (∏ z in S.erase a,
+          (1 - (a : ℂ) / (z : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 := by
+  have ha0 : (a : ℂ) ≠ 0 :=
+    hS0 a ha
+  have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+    inv_ne_zero ha0
+  have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+    neg_ne_zero.mpr hinv_ne
+  have hpow_ne :
+      (-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ) ≠ 0 :=
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+      hneg_ne
+  have hother_ne :
+      (∏ z in S.erase a,
+        (1 - (a : ℂ) / (z : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_otherFactors_nonzero_at_support
+      F hF S hS0 a ha
+  exact mul_ne_zero hpow_ne hother_ne
+
+/-- The removable quotient value prescribed by a local factorization over an
+arbitrary finite support is nonzero at a support point. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (g : ℂ → ℂ)
+    (hg_ne : g (a : ℂ) ≠ 0) :
+    g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) ≠ 0 := by
+  have hden_ne :
+      ((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ)) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_localLeadingCoeff_nonzero_at_support
+      F hF S hS0 a ha
+  exact div_ne_zero hg_ne hden_ne
 
 /-- The punctured quotient after extracting the support divisor.
 
