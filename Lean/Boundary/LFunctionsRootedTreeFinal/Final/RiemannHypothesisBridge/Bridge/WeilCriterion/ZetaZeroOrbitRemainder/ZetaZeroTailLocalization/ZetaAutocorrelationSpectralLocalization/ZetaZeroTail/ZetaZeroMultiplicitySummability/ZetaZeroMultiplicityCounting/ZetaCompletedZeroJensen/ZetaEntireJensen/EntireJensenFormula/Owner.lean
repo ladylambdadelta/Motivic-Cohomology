@@ -941,57 +941,61 @@ noncomputable def entireFunctionJensenRadialGapSum
   ∑' z : EntireFunctionZero F,
     entireFunctionJensenRadialGapSummand F hF ρ z
 
+/-- Closed-disk multiplicity summand with the origin Taylor factor removed.
+
+The omitted origin contribution is exactly the finite Taylor-root term that is
+absorbed into the additive Jensen constant. -/
+noncomputable def entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionZero F) : ℝ :=
+  if (z : ℂ) = 0 then
+    0
+  else
+    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z
+
 /-- A nonzero zero in `closedDisk R` contributes at least its multiplicity times
 `log 2` to the doubled-radius Jensen radial-gap sum.
 
 This is the pointwise radial-gap comparison; it is independent of Jensen's
 formula itself. -/
-theorem entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
     (hR : 1 ≤ R)
     (z : EntireFunctionZero F) :
-    entireFunctionZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 ≤
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z * Real.log 2 ≤
       entireFunctionJensenRadialGapSummand F hF (2 * R) z := by
+  unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
   unfold entireFunctionZeroMultiplicityClosedDiskSummand
   unfold entireFunctionJensenRadialGapSummand
-  by_cases hz_disk : ‖(z : ℂ)‖ ≤ R
-  · by_cases hz₀ : (z : ℂ) = 0
-    · exact Eq.subst
-        (motive := fun x : ℝ =>
-          x * Real.log 2 ≤
-            if hz₀' : (z : ℂ) = 0 then
-              0
-            else if ‖(z : ℂ)‖ < 2 * R then
-              (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
-                Real.log ((2 * R) / ‖(z : ℂ)‖)
-            else
-              0)
-        (if_pos hz_disk).symm
-        (Eq.subst
-          (motive := fun x : ℝ =>
+  by_cases hz₀ : (z : ℂ) = 0
+  · exact Eq.subst
+      (motive := fun x : ℝ =>
+        x * Real.log 2 ≤
+          if hz₀' : (z : ℂ) = 0 then
+            0
+          else if ‖(z : ℂ)‖ < 2 * R then
             (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
-              Real.log 2 ≤ x)
-          (if_pos hz₀).symm
-          (by
-            have hmul_nonneg :
-                0 ≤
-                  (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
-                    Real.log 2 :=
-              mul_nonneg
-                (Nat.cast_nonneg
-                  (entireFunctionZeroMultiplicity F hF (z : ℂ)))
-                real_log_two_pos.le
-            exact hmul_nonneg))
-    · have hgap :
-          Real.log 2 ≤ Real.log ((2 * R) / ‖(z : ℂ)‖) :=
-        log_two_le_log_doubled_radius_div_norm hR hz₀ hz_disk
-      have hstrict : ‖(z : ℂ)‖ < 2 * R := by
-        have hR_pos : 0 < R := lt_of_lt_of_le zero_lt_one hR
-        have hR_lt_twoR : R < 2 * R := by nlinarith
-        exact lt_of_le_of_lt hz_disk hR_lt_twoR
-      exact Eq.subst
+              Real.log ((2 * R) / ‖(z : ℂ)‖)
+          else
+            0)
+      (if_pos hz₀).symm
+      (Eq.subst
+        (motive := fun x : ℝ => 0 ≤ x)
+        (if_pos hz₀).symm
+        (le_refl (0 : ℝ)))
+  by_cases hz_disk : ‖(z : ℂ)‖ ≤ R
+  · have hgap :
+        Real.log 2 ≤ Real.log ((2 * R) / ‖(z : ℂ)‖) :=
+      log_two_le_log_doubled_radius_div_norm hR hz₀ hz_disk
+    have hstrict : ‖(z : ℂ)‖ < 2 * R := by
+      have hR_pos : 0 < R := lt_of_lt_of_le zero_lt_one hR
+      have hR_lt_twoR : R < 2 * R := by nlinarith
+      exact lt_of_le_of_lt hz_disk hR_lt_twoR
+    exact Eq.subst
         (motive := fun x : ℝ =>
           x * Real.log 2 ≤
             if hz₀' : (z : ℂ) = 0 then
@@ -1058,12 +1062,12 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGap
                 (if_neg hstrict).symm
                 (le_refl (0 : ℝ))))
 
-/-- Closed-disk multiplicity weighted by `log 2` is dominated by the
-doubled-radius Jensen radial-gap sum.
+/-- Non-origin closed-disk multiplicity weighted by `log 2` is dominated by
+the doubled-radius Jensen radial-gap sum.
 
 This is the finite/counting part of the Jensen estimate. The analytic Jensen
 formula enters only through an upper bound on the radial-gap sum. -/
-theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
+theorem entireFunctionNonzeroZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     {R : ℝ}
@@ -1071,31 +1075,32 @@ theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radial
     (hclosed :
       Summable
         (fun z : EntireFunctionZero F =>
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z))
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z))
     (hgap :
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF (2 * R) z)) :
-    entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+    (∑' z : EntireFunctionZero F,
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
+        Real.log 2 ≤
       entireFunctionJensenRadialGapSum F hF (2 * R) := by
-  unfold entireFunctionZeroMultiplicityCountingInClosedDisk
   unfold entireFunctionJensenRadialGapSum
   have hclosed_scaled :
       Summable
         (fun z : EntireFunctionZero F =>
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z *
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z *
             Real.log 2) :=
     hclosed.mul_left (Real.log 2)
   have htsum_mul :
       (∑' z : EntireFunctionZero F,
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) *
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) *
           Real.log 2 =
         ∑' z : EntireFunctionZero F,
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z *
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z *
             Real.log 2 := by
     exact (tsum_mul_left (Real.log 2)
       (fun z : EntireFunctionZero F =>
-        entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)).symm
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)).symm
   exact Eq.subst
     (motive := fun x : ℝ =>
       x ≤
@@ -1104,7 +1109,7 @@ theorem entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radial
     htsum_mul
     (tsum_le_tsum
       (fun z : EntireFunctionZero F =>
-        entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
           F hF hR z)
       hclosed_scaled
       hgap)
@@ -1121,13 +1126,22 @@ theorem entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
     ∃ J : ℝ,
-      ∀ ρ : ℝ,
-        0 < ρ →
+      (∀ R : ℝ,
+        1 ≤ R →
         Summable
           (fun z : EntireFunctionZero F =>
-            entireFunctionJensenRadialGapSummand F hF ρ z) ∧
-        entireFunctionJensenRadialGapSum F hF ρ ≤
-          J + entireFunctionJensenBoundaryLogAverage F ρ := by
+            entireFunctionZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          0 < ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ ≤
+            J + entireFunctionJensenBoundaryLogAverage F ρ) ∧
+      (∀ R : ℝ,
+          1 ≤ R →
+          entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
+            J + entireFunctionJensenRadialGapSum F hF (2 * R)) := by
   -- Classical Jensen formula for nonzero entire functions, with zeros counted
   -- by analytic multiplicity and the origin Taylor factor separated.
   sorry
@@ -1145,17 +1159,8 @@ theorem entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
           entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) := by
   intro R hR
   rcases entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
-      F hF hnontrivial with ⟨J, hJ⟩
-  rcases hJ (2 * R) (doubled_radius_pos_of_one_le hR) with ⟨hgap, _⟩
-  refine Summable.of_nonneg_of_le
-    (fun z : EntireFunctionZero F =>
-      entireFunctionZeroMultiplicityClosedDiskSummand_nonnegative F hF R z)
-    (fun z : EntireFunctionZero F =>
-      ?_)
-    hgap
-  exact
-    entireFunctionZeroMultiplicityClosedDiskSummand_mul_log_two_le_radialGapSummand
-      F hF hR z
+      F hF hnontrivial with ⟨J, hclosed, hradial, hcount⟩
+  exact hclosed R hR
 
 /-- The doubled-radius algebra converting the weighted Jensen radial-gap bound
 into the closed-disk zero-counting estimate. -/
@@ -1229,24 +1234,29 @@ theorem entireFunction_classicalJensenFormula_weighted_doubledRadius_zeroMultipl
   rcases
     entireFunction_classicalJensenFormula_radialGapSum_le_boundaryLogAverage
       F hF hnontrivial with
-    ⟨J, hJ⟩
-  refine ⟨J, ?_⟩
+    ⟨J, hclosed, hradial, hcount⟩
+  refine ⟨J + J, ?_⟩
   intro R hR
   have hρ : 0 < 2 * R :=
     doubled_radius_pos_of_one_le hR
-  rcases hJ (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
-  have hclosed_summable :
-      Summable
-        (fun z : EntireFunctionZero F =>
-          entireFunctionZeroMultiplicityClosedDiskSummand F hF R z) :=
-    entireFunction_classicalJensenFormula_closedDiskMultiplicitySummable
-      F hF hnontrivial R hR
+  rcases hradial (2 * R) hρ with ⟨hgap_summable, hgap_bound⟩
   have hcount_gap :
       entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤
-        entireFunctionJensenRadialGapSum F hF (2 * R) :=
-    entireFunctionZeroMultiplicityCountingInClosedDisk_mul_log_two_le_radialGapSum
-      F hF hR hclosed_summable hgap_summable
-  exact le_trans hcount_gap hgap_bound
+        J + entireFunctionJensenRadialGapSum F hF (2 * R) :=
+    hcount R hR
+  have hbound :
+      J + entireFunctionJensenRadialGapSum F hF (2 * R) ≤
+        J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) :=
+    add_le_add_left hgap_bound J
+  have htarget :
+      J + (J + entireFunctionJensenBoundaryLogAverage F (2 * R)) =
+        J + J + entireFunctionJensenBoundaryLogAverage F (2 * R) := by
+    ring
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      entireFunctionZeroMultiplicityCountingInClosedDisk F hF R * Real.log 2 ≤ x)
+    htarget
+    (le_trans hcount_gap hbound)
 
 /-- Classical weighted Jensen zero-counting estimate on the doubled disk. -/
 theorem entireFunction_classicalJensenFormula_weighted_zeroMultiplicityCounting_closedDisk_le_boundaryLogAverage
