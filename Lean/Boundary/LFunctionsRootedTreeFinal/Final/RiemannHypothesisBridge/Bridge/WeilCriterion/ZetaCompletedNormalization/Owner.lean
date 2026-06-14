@@ -11263,7 +11263,7 @@ theorem logarithmicPhase_derivativeMagnitude_antitoneOn_positive
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
-theorem monotonePhase_firstDerivativeTest_partialSum_bound
+theorem finiteFirstDerivativeTest_exp_sum_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hphase_deriv :
@@ -11282,6 +11282,29 @@ theorem monotonePhase_firstDerivativeTest_partialSum_bound
     ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
   sorry
+
+/-- Monotone-phase first-derivative test for the concrete logarithmic phase. -/
+theorem monotonePhase_firstDerivativeTest_partialSum_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hphase_deriv :
+      ∀ {u : ℝ}, 0 < u →
+        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
+          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
+            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
+    (hphase_deriv_norm :
+      ∀ {u : ℝ}, 0 < u →
+        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
+          ‖t‖ / u)
+    (hphase_deriv_antitone :
+      AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0))
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
+  exact
+    finiteFirstDerivativeTest_exp_sum_norm_le
+      t ht hphase_deriv hphase_deriv_norm hphase_deriv_antitone hx
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
@@ -11750,6 +11773,50 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant
       (reciprocalDensityIntegral_pointwise_norm_le_scalar_majorant
         t hpartial hNM hreciprocal_density)
 
+/-- Finite-endpoint calculus bound for the `log(2+x)/x` contribution. -/
+theorem scalarReciprocalDensity_log_over_x_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        Real.log (2 + x) / x ≤
+      (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 := by
+  sorry
+
+/-- Finite-endpoint calculus bound for the `log(2+x)/x^2` contribution. -/
+theorem scalarReciprocalDensity_log_over_x_sq_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        Real.log (2 + x) / x ^ 2 ≤
+      Real.log (3 + ‖t‖) := by
+  sorry
+
+/-- Algebraic split of the coarse reciprocal-density scalar majorant into the
+two real calculus integrals it requires. -/
+theorem scalarReciprocalDensityMajorant_integral_split_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hlog_over_x :
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          Real.log (2 + x) / x ≤
+        (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2)
+    (hlog_over_x_sq :
+      ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          Real.log (2 + x) / x ^ 2 ≤
+        Real.log (3 + ‖t‖)) :
+    ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ((1 : ℝ) / x ^ 2) *
+          (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
+      8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
+        8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
+  sorry
+
 /-- Finite-endpoint real calculus bound for the coarse reciprocal-density
 majorant.
 
@@ -11768,7 +11835,11 @@ theorem scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound
           (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) ≤
       8 * (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2 +
         8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    scalarReciprocalDensityMajorant_integral_split_bound
+      t ht hNM
+      (scalarReciprocalDensity_log_over_x_integral_bound t ht hNM)
+      (scalarReciprocalDensity_log_over_x_sq_integral_bound t ht hNM)
 
 /-- Finite real calculus estimate for the scalar reciprocal-density majorant.
 
@@ -11792,7 +11863,7 @@ This is not a consequence of integrating the coarse scalar majorant: that scalar
 integral grows with the right endpoint.  The uniform bound is the
 Euler-Maclaurin/first-derivative cancellation estimate for the concrete
 reciprocal-amplitude term. -/
-theorem oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
+theorem partialSummation_reciprocalAmplitude_oscillatoryIntegral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
     (hpartial :
@@ -11811,6 +11882,33 @@ theorem oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   sorry
+
+/-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
+
+This is the concrete Abel/partial-summation estimate for the reciprocal
+amplitude, consuming the already isolated partial-sum and reciprocal-density
+inputs. -/
+theorem oscillatoryReciprocalDensity_logarithmicPhase_integral_bound
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M)
+    (hreciprocal_density :
+      ∀ x ∈ Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        ‖deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x‖ =
+          (1 : ℝ) / x ^ 2) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      2 + 8 * Real.log (3 + ‖t‖) := by
+  exact
+    partialSummation_reciprocalAmplitude_oscillatoryIntegral_bound
+      t ht hpartial hNM hreciprocal_density
 
 /-- Oscillatory reciprocal-density integral estimate after the canonical cutoff.
 
@@ -17080,6 +17178,146 @@ theorem eulerMaclaurinPoleClearedZetaEndpointReciprocal_norm_le_one
     hnorm_inv.symm
     hinv_le
 
+/-- Each finite-window Euler-Maclaurin Dirichlet summand has norm at most one
+on the strip `1 ≤ Re z`. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
+    (z : ℂ)
+    {n : ℕ}
+    (hn : 1 ≤ n)
+    (hz_one : 1 ≤ z.re) :
+    ‖1 / (((n : ℕ) : ℂ) ^ z)‖ ≤ 1 := by
+  have hn_pos : 0 < n :=
+    Nat.lt_of_succ_le hn
+  have hn_real_one : (1 : ℝ) ≤ (n : ℝ) :=
+    Nat.cast_le.mpr hn
+  have hnorm_cpow :
+      ‖((n : ℕ) : ℂ) ^ z‖ = (n : ℝ) ^ z.re :=
+    Complex.norm_natCast_cpow_of_pos hn_pos z
+  have hpow_one : 1 ≤ (n : ℝ) ^ z.re :=
+    Real.one_le_rpow hn_real_one hz_one
+  have hnorm_one : 1 ≤ ‖((n : ℕ) : ℂ) ^ z‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 ≤ x)
+      hnorm_cpow.symm
+      hpow_one
+  have hnorm_inv :
+      ‖1 / (((n : ℕ) : ℂ) ^ z)‖ =
+        1 / ‖((n : ℕ) : ℂ) ^ z‖ := by
+    calc
+      ‖1 / (((n : ℕ) : ℂ) ^ z)‖ =
+          ‖(1 : ℂ)‖ / ‖((n : ℕ) : ℂ) ^ z‖ := by
+        exact norm_div (1 : ℂ) (((n : ℕ) : ℂ) ^ z)
+      _ = 1 / ‖((n : ℕ) : ℂ) ^ z‖ := by
+        exact congrArg
+          (fun x : ℝ => x / ‖((n : ℕ) : ℂ) ^ z‖)
+          (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+  have hinv_le :
+      1 / ‖((n : ℕ) : ℂ) ^ z‖ ≤ 1 :=
+    le_trans
+      (one_div_le_one_div_of_le zero_lt_one hnorm_one)
+      (le_of_eq (div_one (1 : ℝ)))
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≤ 1)
+    hnorm_inv.symm
+    hinv_le
+
+/-- The norm of the finite Euler-Maclaurin Dirichlet window is bounded by its
+cardinality. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re) :
+    ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+        1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
+      ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) := by
+  have hsum_norm :
+      ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+          1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
+        ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+          ‖1 / (((n : ℕ) : ℂ) ^ z)‖ :=
+    norm_sum_le _ _
+  have hterms :
+      (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+          ‖1 / (((n : ℕ) : ℂ) ^ z)‖) ≤
+        ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z), (1 : ℝ) := by
+    exact Finset.sum_le_sum
+      (fun n hn =>
+        eulerMaclaurinPoleClearedZetaFinitePart_summand_norm_le_one
+          z (Finset.mem_Icc.mp hn).1 hz_one)
+  have hcard :
+      (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z), (1 : ℝ)) =
+        ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) :=
+    Finset.sum_const_nat (Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)) 1
+  exact le_trans hsum_norm (le_trans hterms (le_of_eq hcard))
+
+/-- The finite Euler-Maclaurin window cardinality is controlled by the
+height-comparable cutoff. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_card_le_three_mul_height
+    (z : ℂ) :
+    ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) ≤
+      3 * (1 + ‖z‖) := by
+  let N : ℕ := eulerMaclaurinPoleClearedZetaCutoff z
+  have hsubset : Finset.Icc 1 N ⊆ Finset.Icc 0 N := by
+    intro n hn
+    exact ⟨Nat.zero_le n, (Finset.mem_Icc.mp hn).2⟩
+  have hcard_nat :
+      (Finset.Icc 1 N).card ≤ (Finset.Icc 0 N).card :=
+    Finset.card_le_card hsubset
+  have hcard_zero :
+      (Finset.Icc 0 N).card = N + 1 :=
+    Finset.card_Icc 0 N
+  have hcard_le_nat :
+      ((Finset.Icc 1 N).card : ℝ) ≤ (N + 1 : ℝ) := by
+    exact Nat.cast_le.mpr
+      (le_trans hcard_nat (le_of_eq hcard_zero))
+  have hN_le : (N : ℝ) ≤ 2 + ‖z‖ := by
+    unfold N
+    unfold eulerMaclaurinPoleClearedZetaCutoff
+    have hnonneg : 0 ≤ 2 + ‖z‖ :=
+      le_trans zero_le_one
+        (le_trans (by
+          calc
+            (1 : ℝ) ≤ 2 := one_le_two) (le_add_of_nonneg_right (norm_nonneg z)))
+    exact Nat.floor_le hnonneg
+  have hN_add_le : (N + 1 : ℝ) ≤ 3 + ‖z‖ := by
+    calc
+      (N + 1 : ℝ) = (N : ℝ) + 1 := by
+        exact Nat.cast_add N 1
+      _ ≤ (2 + ‖z‖) + 1 :=
+        add_le_add_right hN_le 1
+      _ = 3 + ‖z‖ := by
+        calc
+          (2 + ‖z‖) + 1 = (2 + 1) + ‖z‖ := by
+            exact add_right_comm 2 ‖z‖ 1
+          _ = 3 + ‖z‖ := rfl
+  have hthree_height : 3 + ‖z‖ ≤ 3 * (1 + ‖z‖) := by
+    calc
+      3 + ‖z‖ ≤ 3 + 3 * ‖z‖ :=
+        add_le_add_left
+          (calc
+            ‖z‖ ≤ 3 * ‖z‖ := by
+              exact le_mul_of_one_le_left (norm_nonneg z) one_le_three)
+          3
+      _ = 3 * (1 + ‖z‖) := by
+        calc
+          3 + 3 * ‖z‖ = 3 * 1 + 3 * ‖z‖ := by
+            exact congrArg (fun x : ℝ => x + 3 * ‖z‖) (mul_one 3).symm
+          _ = 3 * (1 + ‖z‖) := by
+            exact (mul_add 3 1 ‖z‖).symm
+  exact le_trans hcard_le_nat (le_trans hN_add_le hthree_height)
+
+/-- The pole-clearing factor in the finite Euler-Maclaurin part contributes at
+most one factor of the height envelope. -/
+theorem eulerMaclaurinPoleClearedZetaFinitePart_poleFactor_norm_le_height
+    (z : ℂ) :
+    ‖z - 1‖ ≤ 1 + ‖z‖ := by
+  calc
+    ‖z - 1‖ ≤ ‖z‖ + ‖(1 : ℂ)‖ :=
+      norm_sub_le z (1 : ℂ)
+    _ = ‖z‖ + 1 := by
+      exact congrArg (fun x : ℝ => ‖z‖ + x) (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
+    _ = 1 + ‖z‖ := by
+      exact add_comm ‖z‖ 1
+
 /-- Uniform polynomial control for the finite Euler-Maclaurin Dirichlet window.
 
 This is the canonical finite-window estimate: on `1 ≤ Re z ≤ 2`, each summand
@@ -17093,7 +17331,60 @@ theorem eulerMaclaurinPoleClearedZetaFinitePart_sum_cardinality_polynomial_bound
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  refine ⟨3, 2, zero_lt_three, ?_⟩
+  intro z hz_one _hz_two
+  unfold eulerMaclaurinPoleClearedZetaFinitePart
+  let H : ℝ := 1 + ‖z‖
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+  have hpole :
+      ‖z - 1‖ ≤ H :=
+    eulerMaclaurinPoleClearedZetaFinitePart_poleFactor_norm_le_height z
+  have hsum_card :
+      ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+          1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
+        ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) :=
+    eulerMaclaurinPoleClearedZetaFinitePart_sum_norm_le_card z hz_one
+  have hcard :
+      ((Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z)).card : ℝ) ≤
+        3 * H :=
+    eulerMaclaurinPoleClearedZetaFinitePart_card_le_three_mul_height z
+  have hsum : ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+          1 / (((n : ℕ) : ℂ) ^ z)‖ ≤ 3 * H :=
+    le_trans hsum_card hcard
+  have hprod :
+      ‖(z - 1) *
+          ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+            1 / (((n : ℕ) : ℂ) ^ z)‖ ≤
+        H * (3 * H) := by
+    calc
+      ‖(z - 1) *
+          ∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+            1 / (((n : ℕ) : ℂ) ^ z)‖ =
+          ‖z - 1‖ *
+            ‖∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+              1 / (((n : ℕ) : ℂ) ^ z)‖ := by
+        exact norm_mul (z - 1)
+          (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+            1 / (((n : ℕ) : ℂ) ^ z))
+      _ ≤ H * (3 * H) :=
+        mul_le_mul hpole hsum
+          (norm_nonneg
+            (∑ n ∈ Finset.Icc 1 (eulerMaclaurinPoleClearedZetaCutoff z),
+              1 / (((n : ℕ) : ℂ) ^ z)))
+          hH_nonneg
+  have hcollapse : H * (3 * H) = 3 * H ^ (2 : ℕ) := by
+    calc
+      H * (3 * H) = (H * 3) * H := by
+        exact mul_assoc H 3 H
+      _ = (3 * H) * H := by
+        exact congrArg (fun x : ℝ => x * H) (mul_comm H 3)
+      _ = 3 * (H * H) := by
+        exact (mul_assoc 3 H H).symm
+      _ = 3 * H ^ (2 : ℕ) := by
+        exact congrArg (fun x : ℝ => 3 * x) (pow_two H).symm
+  have htarget : 3 * H ^ (2 : ℕ) = 3 * (1 + ‖z‖) ^ (2 : ℕ) := rfl
+  exact le_trans hprod (le_of_eq (hcollapse.trans htarget))
 
 /-- Bernoulli-periodic remainder term in the pole-cleared Euler-Maclaurin
 continuation.
@@ -17109,6 +17400,23 @@ noncomputable def eulerMaclaurinPoleClearedZetaRemainderTerm
       eulerMaclaurinPoleClearedZetaMainTerm z +
       eulerMaclaurinPoleClearedZetaEndpointTerm z)
 
+/-- Standard Euler-Maclaurin Bernoulli-periodic integral estimate for the
+pole-cleared remainder on `1 ≤ Re s ≤ 2`.
+
+This is the analytic owner input: after multiplying the usual
+Euler-Maclaurin remainder
+`s ∫_N^∞ B₁({x}) x^{-s-1} dx` by `s - 1`, the bounded Bernoulli function,
+`‖x^{-s-1}‖ ≤ x^{-Re s - 1}`, and
+`N = ⌊2 + ‖s‖⌋₊ ≥ 1` give a fixed polynomial envelope in `1 + ‖s‖`. -/
+theorem eulerMaclaurinPoleClearedZetaRemainderTerm_bernoulliIntegral_polynomial_bound_standard :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
+  sorry
+
 /-- Polynomial control for the pole-cleared Euler-Maclaurin remainder from the
 standard Bernoulli-periodic integral majorant.
 
@@ -17123,7 +17431,7 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_integral_majorant_polynomial_
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  exact eulerMaclaurinPoleClearedZetaRemainderTerm_bernoulliIntegral_polynomial_bound_standard
 
 /-- The pole-cleared Euler-Maclaurin continuation formula in the `1 ≤ Re s ≤ 2`
 strip, with the four canonical terms separated. -/

@@ -2388,16 +2388,30 @@ This is the exact classical singular integral used for boundary zeros:
 `average log |1 - exp(i(t - α))| = 0`.  The logarithmic singularity at
 `t = α` is integrable and is interpreted by the finite-exception boundary
 integrability machinery in this file. -/
+theorem unitCircle_logKernel_mean_zero
+    (α : ℝ) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
+      0 := by
+  -- Deep classical Jensen kernel theorem: reduce to
+  -- `log (2 |sin((θ - α)/2)|)`, translate by periodicity, and use
+  -- `∫_0^{2π} log |1 - exp(iθ)| dθ = 0`.
+  sorry
+
+/-- Unit-circle boundary-zero logarithmic mean.
+
+This is the exact classical singular integral used for boundary zeros:
+`average log |1 - exp(i(t - α))| = 0`.  The logarithmic singularity at
+`t = α` is integrable and is interpreted by the finite-exception boundary
+integrability machinery in this file. -/
 theorem entireFunction_unitCircle_boundaryZero_log_mean_zero_ownerRoot
     (α : ℝ) :
     (2 * Real.pi)⁻¹ *
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
       0 := by
-  -- Deep boundary-zero Jensen integral: reduce to
-  -- `log (2 |sin((θ - α)/2)|)`, prove the translated logarithmic singularity
-  -- is integrable, and use the classical unit-circle mean.
-  sorry
+  exact unitCircle_logKernel_mean_zero α
 
 /-- Boundary zero single-factor mean.
 
@@ -3381,6 +3395,63 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
         φ z t)
       hprod
 
+/-- Compact-neighborhood hypotheses for applying mathlib's dominated
+parameter-integral derivative theorem to the center-segment integrand.
+
+For each endpoint `z`, one can shrink to an endpoint neighborhood `u` so that
+for every `w ∈ u` there is a ball centered at `w` on which the endpoint
+derivative integrand is pointwise dominated by an interval-integrable bound,
+and the current integrand and derivative integrand have the measurability and
+integrability hypotheses required by
+`intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le`. -/
+theorem complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ u : Set ℂ,
+          z ∈ u ∧
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              ∃ ε : ℝ,
+                0 < ε ∧
+                (∀ᶠ x in 𝓝 w,
+                  AEStronglyMeasurable
+                    (fun t : ℝ =>
+                      x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                IntervalIntegrable
+                  (fun t : ℝ =>
+                    w * φ (AffineMap.lineMap (0 : ℂ) w t))
+                  volume
+                  (0 : ℝ)
+                  1 ∧
+                AEStronglyMeasurable
+                  (fun t : ℝ =>
+                    complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ w t)
+                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                ∃ bound : ℝ → ℝ,
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                          φ x t‖ ≤ bound t) ∧
+                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        HasDerivAt
+                          (fun y : ℂ =>
+                            y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                          (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                            φ x t)
+                          x) := by
+  sorry
+
 /-- Local dominated differentiation for the exact center-segment integrand.
 
 This is the standard parameter-integral theorem specialized to
@@ -3409,7 +3480,45 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                   complex_centerSegmentIntegral_endpointDerivativeIntegrand
                     φ w t)
                 w := by
-  sorry
+  intro z hz
+  rcases
+    complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
+      φ hstar hφ z hz with
+    ⟨u, hz_mem, hu_nhds, hu_hyp⟩
+  have hu_deriv :
+      ∀ w : ℂ,
+        w ∈ u →
+          HasDerivAt
+            (fun x : ℂ =>
+              ∫ t in (0 : ℝ)..1,
+                x * φ (AffineMap.lineMap (0 : ℂ) x t))
+            (∫ t in (0 : ℝ)..1,
+              complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                φ w t)
+            w := by
+    intro w hw
+    rcases hu_hyp w hw with
+      ⟨ε, hε_pos, hF_meas, hF_int, hF'_meas, bound, h_bound,
+        hbound_int, h_diff⟩
+    have hparam :=
+      intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
+        (μ := volume)
+        (a := (0 : ℝ))
+        (b := 1)
+        (ε_pos := hε_pos)
+        (F := fun x : ℂ => fun t : ℝ =>
+          x * φ (AffineMap.lineMap (0 : ℂ) x t))
+        (F' := fun x : ℂ => fun t : ℝ =>
+          complex_centerSegmentIntegral_endpointDerivativeIntegrand φ x t)
+        (x₀ := w)
+        hF_meas
+        hF_int
+        hF'_meas
+        h_bound
+        hbound_int
+        h_diff
+    exact hparam.2
+  exact ⟨u, hz_mem, hu_nhds, hu_deriv⟩
 
 /-- Local dominated differentiation under the endpoint-parametrized segment
 integral.
