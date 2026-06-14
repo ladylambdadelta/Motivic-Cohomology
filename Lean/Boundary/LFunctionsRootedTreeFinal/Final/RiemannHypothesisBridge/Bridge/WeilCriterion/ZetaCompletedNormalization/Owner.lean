@@ -615,6 +615,34 @@ theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
           K / ‖w‖ := by
   sorry
 
+/-- The sectorial exponential Stirling asymptotic gives the standard logarithmic
+norm envelope on the closed right half-plane.
+
+This is still part of the classical complex-Gamma Stirling input: it is the
+real-part extraction and elementary domination step from the sectorial
+asymptotic above, using nonnegative standard comparison envelopes.  Once
+mathlib has a sectorial complex Stirling theorem, this is the single local
+corollary that should be proved from it. -/
+theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
+    (hStirling :
+      ∃ R : ℝ, ∃ K : ℝ,
+        0 < R ∧
+        0 < K ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          R ≤ ‖w‖ →
+          ‖Complex.Gamma w * Complex.exp w *
+              w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+            K / ‖w‖) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
 /-- Classical closed-sector exponential Stirling expansion for `Complex.Gamma`.
 
 This is the formula-level sectorial asymptotic root for the Gamma lane:
@@ -646,6 +674,28 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  exact
+    Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
+      Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
+
+/-- Two-sided fixed-real-part vertical Stirling envelope for `Complex.Gamma`.
+
+This is the fixed-line specialization of sectorial complex Stirling after
+separating the argument of `a + i b`: it supplies the matching
+`exp (-π |b| / 2) (1 + |b|)^(a - 1/2)` upper and lower envelopes on every
+fixed real line.  The public one-sided estimates below are just projections
+from this two-sided classical input. -/
+theorem Complex.fixedLineVerticalGammaTwoSidedEnvelope :
+    ∀ a : ℝ,
+      ∃ C : ℝ, ∃ c : ℝ,
+        0 < C ∧
+        0 < c ∧
+        ∀ b : ℝ,
+          1 / 2 ≤ ‖b‖ →
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+              C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
   sorry
 
 /-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
@@ -679,7 +729,13 @@ theorem Complex.fixedLineVerticalGammaUpperEnvelope :
           1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
-  sorry
+  intro a
+  rcases Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+    ⟨C, c, hC_pos, hc_pos, hbounds⟩
+  exact
+    ⟨C, hC_pos,
+      fun b hb =>
+        (hbounds b hb).1⟩
 
 /-- Fixed-real-part vertical Stirling upper bound for `Complex.Gamma`.
 
@@ -710,7 +766,13 @@ theorem Complex.fixedLineVerticalGammaLowerEnvelope :
           1 / 2 ≤ ‖b‖ →
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  sorry
+  intro a
+  rcases Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+    ⟨C, c, hC_pos, hc_pos, hbounds⟩
+  exact
+    ⟨c, hc_pos,
+      fun b hb =>
+        (hbounds b hb).2⟩
 
 /-- Fixed-real-part vertical Stirling lower bound for `Complex.Gamma`.
 
@@ -2425,6 +2487,53 @@ theorem poleClearedRiemannZeta_continuousOn_rightCriticalStripCompactSet :
   intro z _hz
   exact (poleClearedRiemannZeta_continuousAt z).continuousWithinAt
 
+/-- Away from the removable pole face, the pole-cleared zeta factor is differentiable by
+the ordinary zeta differentiability theorem. -/
+theorem poleClearedRiemannZeta_differentiableAt_of_ne_one
+    {z : ℂ}
+    (hz : z ≠ 1) :
+    DifferentiableAt ℂ poleClearedRiemannZeta z := by
+  have hraw :
+      DifferentiableAt ℂ (fun w : ℂ => (w - 1) * riemannZeta w) z :=
+    (differentiableAt_id.sub differentiableAt_const).mul
+      (differentiableAt_riemannZeta hz)
+  have hevent :
+      poleClearedRiemannZeta =ᶠ[𝓝 z]
+        (fun w : ℂ => (w - 1) * riemannZeta w) := by
+    filter_upwards [eventually_ne_nhds hz] with w hw
+    exact poleClearedRiemannZeta_eq_of_ne_one hw
+  exact hraw.congr_of_eventuallyEq hevent
+
+/-- The residue-normalized pole-cleared zeta factor is analytic at the removable pole. -/
+theorem poleClearedRiemannZeta_analyticAt_one :
+    AnalyticAt ℂ poleClearedRiemannZeta 1 := by
+  have hd :
+      ∀ᶠ z in 𝓝[≠] (1 : ℂ),
+        DifferentiableAt ℂ poleClearedRiemannZeta z := by
+    filter_upwards [self_mem_nhdsWithin] with z hz
+    exact poleClearedRiemannZeta_differentiableAt_of_ne_one hz
+  exact Complex.analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+    hd
+    (poleClearedRiemannZeta_continuousAt 1)
+
+/-- The removable pole-cleared zeta factor is differentiable everywhere. -/
+theorem poleClearedRiemannZeta_differentiableAt
+    (z : ℂ) :
+    DifferentiableAt ℂ poleClearedRiemannZeta z := by
+  by_cases hz : z = 1
+  · exact Eq.subst
+      (motive := fun w : ℂ => DifferentiableAt ℂ poleClearedRiemannZeta w)
+      hz.symm
+      poleClearedRiemannZeta_analyticAt_one.differentiableAt
+  · exact poleClearedRiemannZeta_differentiableAt_of_ne_one hz
+
+/-- The pole-cleared zeta factor is differentiable on every set. -/
+theorem poleClearedRiemannZeta_differentiableOn
+    (s : Set ℂ) :
+    DifferentiableOn ℂ poleClearedRiemannZeta s := by
+  intro z _hz
+  exact (poleClearedRiemannZeta_differentiableAt z).differentiableWithinAt
+
 /-- Removable-pole holomorphy of the pole-cleared zeta factor on the open right
 critical strip.
 
@@ -2433,6 +2542,24 @@ from `1` it is `(s - 1)ζ(s)`, and at `1` the removable value is the zeta residu
 theorem poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl :
     DiffContOnCl ℂ poleClearedRiemannZeta
       (Complex.re ⁻¹' Set.Ioo 0 2) := by
+  exact
+    ⟨poleClearedRiemannZeta_differentiableOn (Complex.re ⁻¹' Set.Ioo 0 2),
+      fun z _hz => (poleClearedRiemannZeta_continuousAt z).continuousWithinAt⟩
+
+/-- Deep zeta-growth root for the pole-cleared factor inside the right critical strip.
+
+This is the standard admissible finite-order input before Phragmen-Lindelöf damping:
+combine finite-order control of the zeta Dirichlet-series/right-boundary side, the
+functional-equation left-boundary side, and local boundedness at the removable pole to
+obtain the subcritical double-exponential envelope required by mathlib's strip theorem. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
   sorry
 
 /-- Interior admissible finite-order envelope for the pole-cleared zeta factor in the
@@ -2451,7 +2578,7 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth :
             Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
               𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
           fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
+  exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive
 
 /-- Compact boundedness for the removable pole-cleared zeta factor. -/
 theorem poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound :
@@ -5151,7 +5278,27 @@ theorem logarithmicPhaseFunction_positiveReal_cpow
     (hx : 0 < x) :
     boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
       (x : ℂ) ^ (-(t : ℂ) * Complex.I) := by
-  sorry
+  let a : ℂ := -(t : ℂ) * Complex.I
+  have hx_complex_ne : (x : ℂ) ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr hx.ne'
+  have hlog : (Real.log x : ℂ) = Complex.log (x : ℂ) :=
+    Complex.ofReal_log hx.le
+  have harg_left :
+      a * (Real.log x : ℂ) = (Real.log x : ℂ) * a :=
+    mul_comm a (Real.log x : ℂ)
+  have harg_right :
+      (Real.log x : ℂ) * a = Complex.log (x : ℂ) * a :=
+    congrArg (fun z : ℂ => z * a) hlog
+  calc
+    boundaryLineOnePointRealParam_logarithmicPhaseFunction t x =
+        Complex.exp (a * (Real.log x : ℂ)) := by
+          rfl
+    _ = Complex.exp ((Real.log x : ℂ) * a) :=
+          congrArg Complex.exp harg_left
+    _ = Complex.exp (Complex.log (x : ℂ) * a) :=
+          congrArg Complex.exp harg_right
+    _ = (x : ℂ) ^ a :=
+          (Complex.cpow_def_of_ne_zero hx_complex_ne a).symm
 
 /-- Positive real samples of the logarithmic phase agree with the complex-power
 notation used in the Dirichlet-polynomial partial sums. -/
@@ -5163,6 +5310,39 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_of_pos
       (x : ℂ) ^ (-(t : ℂ) * Complex.I) := by
   exact logarithmicPhaseFunction_positiveReal_cpow t hx
 
+/-- Deep algebraic sink reordering the chain-rule derivative into the public
+`a / x * f x` form. -/
+theorem logarithmicPhaseFunction_positiveReal_derivative_reorder
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    Complex.exp (((-(t : ℂ) * Complex.I) * (Real.log x : ℂ))) *
+        (((-(t : ℂ) * Complex.I)) * (x⁻¹ : ℂ)) =
+      (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x) := by
+  let a : ℂ := -(t : ℂ) * Complex.I
+  let E : ℂ := Complex.exp (a * (Real.log x : ℂ))
+  have hinv : (x⁻¹ : ℂ) = (x : ℂ)⁻¹ :=
+    Complex.ofReal_inv x
+  have hreplace_inv :
+      E * (a * (x⁻¹ : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
+    congrArg (fun z : ℂ => E * (a * z)) hinv
+  have hcomm :
+      E * (a * (x : ℂ)⁻¹) = (a * (x : ℂ)⁻¹) * E :=
+    mul_comm E (a * (x : ℂ)⁻¹)
+  have hdiv : a / (x : ℂ) = a * (x : ℂ)⁻¹ :=
+    div_eq_mul_inv a (x : ℂ)
+  have hreplace_div :
+      (a * (x : ℂ)⁻¹) * E = (a / (x : ℂ)) * E :=
+    congrArg (fun z : ℂ => z * E) hdiv.symm
+  calc
+    E * (a * (x⁻¹ : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
+      hreplace_inv
+    _ = (a * (x : ℂ)⁻¹) * E :=
+      hcomm
+    _ = (a / (x : ℂ)) * E :=
+      hreplace_div
+
 /-- Owner API: derivative of the logarithmic phase on the positive real axis. -/
 theorem logarithmicPhaseFunction_positiveReal_hasDerivAt
     (t : ℝ)
@@ -5173,6 +5353,40 @@ theorem logarithmicPhaseFunction_positiveReal_hasDerivAt
       (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)
       x := by
+  let a : ℂ := -(t : ℂ) * Complex.I
+  have hlog_real : HasDerivAt Real.log x⁻¹ x :=
+    Real.hasDerivAt_log hx.ne'
+  have hlog_complex :
+      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) (x⁻¹ : ℂ) x :=
+    hlog_real.ofReal_comp
+  have hphase :
+      HasDerivAt
+        (fun y : ℝ => a * (Real.log y : ℂ))
+        (a * (x⁻¹ : ℂ))
+        x :=
+    hlog_complex.const_mul a
+  have hexp :
+      HasDerivAt
+        (fun y : ℝ => Complex.exp (a * (Real.log y : ℂ)))
+        (Complex.exp (a * (Real.log x : ℂ)) * (a * (x⁻¹ : ℂ)))
+        x :=
+    hphase.cexp
+  have hderiv_reorder :
+      Complex.exp (a * (Real.log x : ℂ)) * (a * (x⁻¹ : ℂ)) =
+        (a / (x : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhaseFunction t x := by
+    exact logarithmicPhaseFunction_positiveReal_derivative_reorder t hx
+  exact hderiv_reorder ▸ hexp
+
+/-- Deep algebraic sink for the logarithmic-phase derivative norm on the
+positive real axis. -/
+theorem logarithmicPhaseFunction_positiveReal_derivative_norm_algebra
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
+      ‖t‖ / x := by
   sorry
 
 /-- The logarithmic phase has derivative `(-it / x) exp (-it log x)` on the
@@ -5199,7 +5413,7 @@ theorem logarithmicPhaseFunction_positiveReal_derivative_norm_eq
     ‖(((-(t : ℂ) * Complex.I) / (x : ℂ)) *
         boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)‖ =
       ‖t‖ / x := by
-  sorry
+  exact logarithmicPhaseFunction_positiveReal_derivative_norm_algebra t hx
 
 /-- The derivative magnitude of the logarithmic phase is exactly `|t| / x`. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivative_norm_eq
