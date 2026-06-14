@@ -921,6 +921,80 @@ theorem Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
     (Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
       w hGamma_ne hcpow_ne)
 
+/-- Constant logarithmic terms are absorbed by the large-radius log-linear
+envelope on the closed right half-plane. -/
+theorem Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
+    (B R₀ : ℝ)
+    (hB_pos : 0 < B)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        Real.log B ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- The principal-branch logarithmic loss in normalized Stirling is absorbed by
+the large-radius log-linear envelope. -/
+theorem Complex.normalizedGammaStirlingLogLoss_absorbed_by_largeRadius_logLinearEnvelope
+    (R₀ : ℝ)
+    (hR₀_pos : 0 < R₀) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        Complex.normalizedGammaStirlingLogLoss w ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- Assembly of constant-log absorption and principal-branch loss absorption. -/
+theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound_of_constant_and_loss
+    (B R₀ : ℝ)
+    (hconstant :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          R₀ ≤ ‖w‖ →
+          Real.log B ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖))
+    (hloss :
+      ∃ C : ℝ,
+        0 < C ∧
+        ∀ w : ℂ,
+          Complex.closedRightHalfPlaneSector w →
+          R₀ ≤ ‖w‖ →
+          Complex.normalizedGammaStirlingLogLoss w ≤
+            C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  rcases hconstant with ⟨Cconstant, hCconstant_pos, hconstant_bound⟩
+  rcases hloss with ⟨Closs, hCloss_pos, hloss_bound⟩
+  refine ⟨Cconstant + Closs, add_pos hCconstant_pos hCloss_pos, ?_⟩
+  intro w hw_sector hw_radius
+  have hsum :
+      Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
+        Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
+          Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    add_le_add
+      (hconstant_bound w hw_sector hw_radius)
+      (hloss_bound w hw_sector hw_radius)
+  have hcombine :
+      Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
+          Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) =
+        (Cconstant + Closs) * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+    logLinearEnvelope_add_constants
+      Cconstant Closs (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+  exact le_trans hsum (le_of_eq hcombine)
+
 /-- The branch/cpow logarithmic loss from normalized Stirling is absorbed by
 the standard log-linear envelope on the large-radius closed right half-plane. -/
 theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound
@@ -934,7 +1008,13 @@ theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound
         R₀ ≤ ‖w‖ →
         Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  exact
+    Complex.normalizedGammaStirlingLogLoss_absorbs_logBound_of_constant_and_loss
+      B R₀
+      (Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
+        B R₀ hB_pos hR₀_pos)
+      (Complex.normalizedGammaStirlingLogLoss_absorbed_by_largeRadius_logLinearEnvelope
+        R₀ hR₀_pos)
 
 /-- Large-radius extraction from a normalized Stirling-factor bound to a
 logarithmic Gamma envelope.
@@ -1515,6 +1595,134 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
     Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
       Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
 
+/-- Large-height fixed-real-part vertical Stirling bounds for `Complex.Gamma`.
+
+For an arbitrary fixed real part `a`, the vertical line `a + ib` eventually
+lies in a closed sector avoiding the negative real axis, with sector aperture
+depending on `a`.  Sectorial Stirling there gives the two-sided
+`exp (-π |b| / 2) (1 + |b|)^(a - 1/2)` envelope. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_largeHeight_classical
+    (a : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        H ≤ ‖b‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  sorry
+
+/-- Compact-height patch for fixed-real-part vertical Stirling bounds.
+
+On the compact set `1 / 2 ≤ |b| ≤ H`, continuity and nonvanishing of `Γ` on
+the fixed vertical line give finite upper and positive lower constants relative
+to the positive fixed-line Stirling envelope. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight
+    (a H : ℝ)
+    (hH_pos : 0 < H) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        (1 / 2 : ℝ) ≤ ‖b‖ →
+        ‖b‖ ≤ H →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  sorry
+
+/-- Assembly of large-height fixed-line Stirling and compact-height patching. -/
+theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_large_and_compact
+    (a : ℝ)
+    (hlarge :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ b : ℝ,
+          H ≤ ‖b‖ →
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+              C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+            c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖)
+    (hcompact :
+      ∀ H : ℝ,
+        0 < H →
+          ∃ C : ℝ, ∃ c : ℝ,
+            0 < C ∧
+            0 < c ∧
+            ∀ b : ℝ,
+              (1 / 2 : ℝ) ≤ ‖b‖ →
+              ‖b‖ ≤ H →
+                ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+                  C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+                c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+                  ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖) :
+    ∃ C : ℝ, ∃ c : ℝ,
+      0 < C ∧
+      0 < c ∧
+      ∀ b : ℝ,
+        1 / 2 ≤ ‖b‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+  rcases hlarge with ⟨H, Clarge, clarge, hH_pos, hClarge_pos, hclarge_pos, hlarge_bound⟩
+  rcases hcompact H hH_pos with
+    ⟨Ccompact, ccompact, hCcompact_pos, hccompact_pos, hcompact_bound⟩
+  let C : ℝ := max Clarge Ccompact
+  let c : ℝ := min clarge ccompact
+  have hC_pos : 0 < C :=
+    lt_of_lt_of_le hClarge_pos (le_max_left Clarge Ccompact)
+  have hc_pos : 0 < c :=
+    lt_min hclarge_pos hccompact_pos
+  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  intro b hb
+  have hE_nonneg :
+      0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+    Complex.fixedRealPartVerticalStirlingEnvelope_nonneg a b
+  by_cases hb_large : H ≤ ‖b‖
+  · have hlarge_b :
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            Clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+      hlarge_bound b hb_large
+    have hupper_constant :
+        Clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+          C * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+      mul_le_mul_of_nonneg_right (le_max_left Clarge Ccompact) hE_nonneg
+    have hlower_constant :
+        c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+          clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+      mul_le_mul_of_nonneg_right (min_le_left clarge ccompact) hE_nonneg
+    exact
+      ⟨le_trans hlarge_b.1 hupper_constant,
+        le_trans hlower_constant hlarge_b.2⟩
+  · have hb_compact_upper : ‖b‖ ≤ H :=
+      le_of_not_ge hb_large
+    have hcompact_b :
+        ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
+            Ccompact * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
+          ccompact * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ :=
+      hcompact_bound b hb hb_compact_upper
+    have hupper_constant :
+        Ccompact * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+          C * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+      mul_le_mul_of_nonneg_right (le_max_right Clarge Ccompact) hE_nonneg
+    have hlower_constant :
+        c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+          ccompact * Complex.fixedRealPartVerticalStirlingEnvelope a b :=
+      mul_le_mul_of_nonneg_right (min_le_right clarge ccompact) hE_nonneg
+    exact
+      ⟨le_trans hcompact_b.1 hupper_constant,
+        le_trans hlower_constant hcompact_b.2⟩
+
 /-- Fixed-real-part vertical two-sided Stirling bounds for `Complex.Gamma`.
 
 This is the exact fixed-line specialization theorem in the classical Stirling
@@ -1533,7 +1741,13 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_class
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  sorry
+  exact
+    Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_large_and_compact
+      a
+      (Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_largeHeight_classical
+        a)
+      (Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight
+        a)
 
 /-- Two-sided fixed-real-part vertical Stirling envelope for `Complex.Gamma`.
 
