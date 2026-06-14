@@ -17816,7 +17816,78 @@ theorem integral_Ioi_rpow_neg_re_add_one_le_one_of_one_le_cutoff
     (hN : 1 ≤ N)
     (hσ : 1 ≤ σ) :
     ∫ x in Set.Ioi N, x ^ (-(σ + 1)) ≤ 1 := by
-  sorry
+  have hN_pos : 0 < N :=
+    lt_of_lt_of_le zero_lt_one hN
+  have htwo_le : (2 : ℝ) ≤ σ + 1 := by
+    calc
+      (2 : ℝ) = 1 + 1 := by
+        exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
+      _ ≤ σ + 1 :=
+        add_le_add hσ le_rfl
+  have hone_lt : (1 : ℝ) < σ + 1 :=
+    lt_of_lt_of_le one_lt_two htwo_le
+  have ha : -(σ + 1) < -(1 : ℝ) :=
+    neg_lt_neg hone_lt
+  have hintegral :
+      ∫ x in Set.Ioi N, x ^ (-(σ + 1)) =
+        -N ^ (-(σ + 1) + 1) / (-(σ + 1) + 1) :=
+    integral_Ioi_rpow_of_lt ha hN_pos
+  have hden : -(σ + 1) + 1 = -σ := by
+    calc
+      -(σ + 1) + 1 = (-σ + -1) + 1 := by
+        exact congrArg (fun t : ℝ => t + 1) (neg_add σ 1)
+      _ = -σ + (-1 + 1) := by
+        exact add_assoc (-σ) (-1) 1
+      _ = -σ + 0 := by
+        exact congrArg (fun t : ℝ => -σ + t) (neg_add_cancel (1 : ℝ))
+      _ = -σ := by
+        exact add_zero (-σ)
+  have hvalue :
+      -N ^ (-(σ + 1) + 1) / (-(σ + 1) + 1) =
+        N ^ (-σ) / σ := by
+    have hnum :
+        N ^ (-(σ + 1) + 1) = N ^ (-σ) :=
+      congrArg (fun e : ℝ => N ^ e) hden
+    calc
+      -N ^ (-(σ + 1) + 1) / (-(σ + 1) + 1) =
+          -N ^ (-σ) / (-(σ + 1) + 1) := by
+        exact congrArg
+          (fun t : ℝ => -t / (-(σ + 1) + 1))
+          hnum
+      _ = -N ^ (-σ) / (-σ) := by
+        exact congrArg
+          (fun t : ℝ => -N ^ (-σ) / t)
+          hden
+      _ = N ^ (-σ) / σ := by
+        exact neg_div_neg_eq (N ^ (-σ)) σ
+  have hsigma_nonneg : 0 ≤ σ :=
+    le_trans zero_le_one hσ
+  have hsigma_pos : 0 < σ :=
+    lt_of_lt_of_le zero_lt_one hσ
+  have hexponent_nonpos : -σ ≤ 0 :=
+    neg_nonpos.mpr hsigma_nonneg
+  have hpow_le : N ^ (-σ) ≤ 1 :=
+    Real.rpow_le_one_of_one_le_of_nonpos hN hexponent_nonpos
+  have hquotient_le_one_div :
+      N ^ (-σ) / σ ≤ 1 / σ :=
+    div_le_div_of_nonneg_right hpow_le (le_of_lt hsigma_pos)
+  have hone_div_le_one :
+      1 / σ ≤ 1 :=
+    le_trans
+      (one_div_le_one_div_of_le zero_lt_one hσ)
+      (le_of_eq (div_one (1 : ℝ)))
+  have htail :
+      -N ^ (-(σ + 1) + 1) / (-(σ + 1) + 1) ≤ 1 :=
+    le_trans
+      (Eq.subst
+        (motive := fun t : ℝ => t ≤ 1 / σ)
+        hvalue.symm
+        hquotient_le_one_div)
+      hone_div_le_one
+  exact Eq.subst
+    (motive := fun t : ℝ => t ≤ 1)
+    hintegral.symm
+    htail
 
 /-- Bochner norm domination for the Bernoulli-periodic Euler-Maclaurin core by
 the scalar real-power tail integral. -/
@@ -17827,7 +17898,68 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_cpow_tail_norm_integral_domination
     ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralCore z‖ ≤
       ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
         x ^ (-(z.re + 1)) := by
-  sorry
+  unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
+  let N : ℝ := ((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)
+  let s : Set ℝ := Set.Ioi N
+  let f : ℝ → ℂ :=
+    fun x =>
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+        (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  let g : ℝ → ℝ :=
+    fun x => x ^ (-(z.re + 1))
+  have hN_one : (1 : ℝ) ≤ N :=
+    one_le_eulerMaclaurinPoleClearedZetaCutoff_real z
+  have hN_pos : 0 < N :=
+    lt_of_lt_of_le zero_lt_one hN_one
+  have htwo_le : (2 : ℝ) ≤ z.re + 1 := by
+    calc
+      (2 : ℝ) = 1 + 1 := by
+        exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
+      _ ≤ z.re + 1 :=
+        add_le_add hz_one le_rfl
+  have hone_lt : (1 : ℝ) < z.re + 1 :=
+    lt_of_lt_of_le one_lt_two htwo_le
+  have ha : -(z.re + 1) < -(1 : ℝ) :=
+    neg_lt_neg hone_lt
+  have hg : Integrable g (volume.restrict s) :=
+    integrableOn_Ioi_rpow_of_lt ha hN_pos
+  have hbound : ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x := by
+    exact (ae_restrict_mem measurableSet_Ioi).mono
+      (fun x hx =>
+        by
+          have hx_pos : 0 < x :=
+            lt_trans hN_pos hx
+          have hB_abs :
+              |eulerMaclaurinFirstPeriodicBernoulli x| ≤ 1 :=
+            eulerMaclaurinFirstPeriodicBernoulli_abs_le_one x
+          have hB_norm :
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ ≤ 1 := by
+            calc
+              ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ =
+                  |eulerMaclaurinFirstPeriodicBernoulli x| := by
+                exact Complex.norm_ofReal (eulerMaclaurinFirstPeriodicBernoulli x)
+              _ ≤ 1 :=
+                hB_abs
+          have hcpow :
+              ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ ≤ g x :=
+            norm_real_cpow_neg_z_add_one_le_rpow hx_pos z hz_one
+          have hg_nonneg : 0 ≤ g x :=
+            Real.rpow_nonneg (le_of_lt hx_pos) (-(z.re + 1))
+          calc
+            ‖f x‖ =
+                ‖((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)‖ *
+                  ‖((x : ℝ) : ℂ) ^ (-(z + 1))‖ := by
+              exact norm_mul
+                ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))
+            _ ≤ 1 * g x :=
+              mul_le_mul hB_norm hcpow
+                (norm_nonneg (((x : ℝ) : ℂ) ^ (-(z + 1))))
+                zero_le_one
+            _ = g x := by
+              exact one_mul (g x)
+      )
+  exact norm_integral_le_of_norm_le hg hbound
 
 /-- Scalar improper-integral tail estimate for the first periodic Bernoulli
 Euler-Maclaurin kernel.
