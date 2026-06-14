@@ -2629,6 +2629,29 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
       G P (hzero z hz) hreconstruct_z
   exact Eq.trans halgebra (Eq.symm hmodel_formula)
 
+/-- Real-interval FTC core for radial equality propagation on a convex Jensen
+disk.
+
+For a fixed endpoint `z`, the path `t ↦ t • z` stays in the disk by convexity.
+Applied to `t ↦ F (t • z) - H (t • z)`, the real interval derivative-zero
+constant theorem identifies the endpoint and center values. -/
+theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center_ftc
+    (F H : ℂ → ℂ)
+    {ρ : ℝ}
+    (hF : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ F z)
+    (hH : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ H z)
+    (hρ : 0 ≤ ρ)
+    (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
+    (hderiv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv F z = deriv H z)
+    (hcenter : F 0 = H 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    F z = H z := by
+  sorry
+
 /-- Radial FTC owner lemma for equality propagation on a convex Jensen disk.
 
 For a fixed endpoint `z`, apply the real interval fundamental theorem of
@@ -2653,7 +2676,9 @@ theorem entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_an
     {z : ℂ}
     (hz : ‖z‖ ≤ ρ) :
     F z = H z := by
-  sorry
+  exact
+    entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center_ftc
+      F H hF hH hρ hconvex hderiv hcenter hz
 
 /-- Radial identity principle on the Jensen disk.  This is the canonical
 closed-disk propagation root: restrict to the segment `t ↦ t • z`, integrate
@@ -4860,6 +4885,93 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     entireFunction_localMultiplicityFactorization
       F hF (z : ℂ) horder
 
+/-- Finset-level removable quotient gluing across the extracted Jensen support.
+
+This is the owner lemma for the finite gluing step: every support point carries
+the local multiplicity factor of `F`, and the support product carries the same
+power there.  The resulting local quotients patch with the raw quotient on the
+complement of the support and give one analytic quotient on the closed disk.
+Cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_glue_finset_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (hS :
+      S =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ)
+    (hlocal :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S →
+          ∃ g : ℂ → ℂ,
+            AnalyticAt ℂ g (z : ℂ) ∧
+            g (z : ℂ) ≠ 0 ∧
+            ∀ᶠ w in 𝓝 (z : ℂ),
+              F w =
+                (w - (z : ℂ)) ^
+                    entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                  g w) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w) ∧
+      Q 0 = F 0 := by
+  -- Deep finite removable-gluing root: construct the patched quotient from
+  -- the support-local multiplicity factors and prove agreement with the raw
+  -- quotient on the complement of `S`.
+  sorry
+
+/-- Canonical finite removable quotient after extracting exactly the Jensen
+support divisor, stated as a thin wrapper over the Finset gluing owner lemma. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_from_glue_finset_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w) ∧
+      Q 0 = F 0 := by
+  let S : Finset (EntireFunctionZero F) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+      F hF hF0 ρ
+  have hS :
+      S =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ :=
+    rfl
+  have hlocal :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S →
+          ∃ g : ℂ → ℂ,
+            AnalyticAt ℂ g (z : ℂ) ∧
+            g (z : ℂ) ≠ 0 ∧
+            ∀ᶠ w in 𝓝 (z : ℂ),
+              F w =
+                (w - (z : ℂ)) ^
+                    entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                  g w := by
+    intro z hz
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_localMultiplicityFactor_ownerRoot
+        F hF hF0 ρ z hz
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_glue_finset_ownerRoot
+      F hF hF0 ρ hρ S hS hlocal
+
 /-- Canonical finite removable quotient after extracting the Jensen support
 divisor.
 
@@ -4881,10 +4993,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w) ∧
       Q 0 = F 0 := by
-  -- Deep finite removable-extension root: destruct the local multiplicity
-  -- factors at the finite Jensen support and glue them with the raw quotient
-  -- on the complement.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_from_glue_finset_ownerRoot
+      F hF hF0 ρ hρ
 
 /-- Away from the finite support, the raw quotient is the required local
 quotient and reconstructs `F` after multiplication by the finite divisor
@@ -4966,6 +5077,31 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_finiteExtension_ownerRoot
       F hF hF0 ρ hρ
 
+/-- Maximal-multiplicity zero-freeness for the quotient after finite removable
+gluing.
+
+This owner lemma is the local multiplicity sink: after the support product has
+removed exactly the analytic order of `F` at every support zero, the glued
+quotient has order zero throughout the closed disk. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_zeroFree_from_maximalMultiplicity_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+              F hF hF0 ρ w) :
+    ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
+  -- Deep local removable-singularity multiplicity sink: compare the order of
+  -- `F` with the order of the extracted product at every point of the closed
+  -- disk, using maximality of `entireFunctionZeroMultiplicity`.
+  sorry
+
 /-- Maximal-multiplicity zero-freeness for the removable quotient.
 
 If the quotient vanished at a point of the closed disk, then the product
@@ -4987,9 +5123,29 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w) :
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
-  -- Deep zero-multiplicity root: the removable quotient has zero multiplicity
-  -- exactly `order(F,w) - extractedMultiplicity(w)`, hence it is zero-free
-  -- once the finite support divisor extracts the full multiplicity on the disk.
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemovableQuotient_zeroFree_from_maximalMultiplicity_ownerRoot
+      F Q hF hF0 ρ hQ_an hfactor
+
+/-- Zero-free analytic Jensen mean theorem for a removable quotient on a closed
+disk.
+
+This is the exact zero-free input needed by the boundary-log decomposition:
+if `Q` is analytic and nonvanishing on the Jensen disk, then the normalized
+boundary mean of `log ‖Q‖` is the central value `log ‖Q 0‖`. -/
+theorem entireFunction_zeroFreeOnClosedDisk_boundaryLogAverage_eq_origin_log_norm_ownerRoot
+    (Q : ℂ → ℂ)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) =
+      Real.log ‖Q 0‖ := by
+  -- Deep boundary-log theorem: choose a holomorphic logarithm for the
+  -- zero-free quotient on the disk and apply harmonic mean value to its real
+  -- part.
   sorry
 
 /-- Origin normalization for any removable quotient whose closed-disk

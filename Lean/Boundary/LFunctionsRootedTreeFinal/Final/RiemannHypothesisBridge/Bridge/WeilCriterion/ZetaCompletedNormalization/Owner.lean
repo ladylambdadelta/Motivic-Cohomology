@@ -610,6 +610,114 @@ theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
           K / ‖w‖ := by
   sorry
 
+/-- If a complex number is within `sqrt (2π)` of `sqrt (2π)`, then its norm is
+bounded by `2 sqrt (2π)`.
+
+This is the elementary triangle-inequality extraction used to pass from the
+exponential Stirling remainder to a uniform bound for the normalized Gamma
+factor. -/
+theorem Complex.norm_le_two_sqrt_two_pi_of_norm_sub_sqrt_two_pi_le_sqrt_two_pi
+    (A : ℂ)
+    (hA :
+      ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤ Real.sqrt (2 * Real.pi)) :
+    ‖A‖ ≤ 2 * Real.sqrt (2 * Real.pi) := by
+  have htriangle :
+      ‖A‖ ≤
+        ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ +
+          ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ := by
+    calc
+      ‖A‖ =
+          ‖(A - (Real.sqrt (2 * Real.pi) : ℂ)) +
+            (Real.sqrt (2 * Real.pi) : ℂ)‖ := by
+        exact congrArg norm (sub_add_cancel A (Real.sqrt (2 * Real.pi) : ℂ)).symm
+      _ ≤
+          ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ +
+            ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ :=
+        norm_add_le (A - (Real.sqrt (2 * Real.pi) : ℂ))
+          (Real.sqrt (2 * Real.pi) : ℂ)
+  have hsqrt_nonneg : 0 ≤ Real.sqrt (2 * Real.pi) :=
+    Real.sqrt_nonneg (2 * Real.pi)
+  have hnorm_sqrt :
+      ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ = Real.sqrt (2 * Real.pi) := by
+    exact Complex.norm_ofReal_of_nonneg hsqrt_nonneg
+  calc
+    ‖A‖ ≤
+        ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ +
+          ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ := htriangle
+    _ ≤ Real.sqrt (2 * Real.pi) +
+          ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ :=
+        add_le_add_right hA ‖(Real.sqrt (2 * Real.pi) : ℂ)‖
+    _ = Real.sqrt (2 * Real.pi) + Real.sqrt (2 * Real.pi) :=
+        congrArg (fun x : ℝ => Real.sqrt (2 * Real.pi) + x) hnorm_sqrt
+    _ = 2 * Real.sqrt (2 * Real.pi) := by
+        exact (two_mul (Real.sqrt (2 * Real.pi))).symm
+
+/-- Pointwise normalized Gamma-factor bound extracted from an exponential
+Stirling estimate once the error term is at most `sqrt (2π)`. -/
+theorem Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
+    (R K : ℝ)
+    (hStirling :
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (w : ℂ)
+    (hw_sector : Complex.closedRightHalfPlaneSector w)
+    (hw_R : R ≤ ‖w‖)
+    (hw_error : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi)) :
+    ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤
+      2 * Real.sqrt (2 * Real.pi) := by
+  have herror :
+      ‖Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+        Real.sqrt (2 * Real.pi) :=
+    le_trans (hStirling w hw_sector hw_R) hw_error
+  exact
+    Complex.norm_le_two_sqrt_two_pi_of_norm_sub_sqrt_two_pi_le_sqrt_two_pi
+      (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
+      herror
+
+/-- The remaining real/branch extraction from a uniform bound for
+`Γ(w) exp(w) w^(1/2-w)` to the logarithmic Gamma norm envelope.
+
+This is deliberately isolated as the deepest nontrivial extraction root: it is
+where the norm identities for `Complex.exp`, the closed-right-half-plane branch
+control for `w ^ (1/2-w)`, and the elementary real domination by
+`(1 + 2 ‖w‖) log (2 + 2 ‖w‖)` are used. -/
+theorem Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
+    (B R₀ : ℝ)
+    (hB_pos : 0 < B)
+    (hR₀_pos : 0 < R₀)
+    (hfactor :
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤ B) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        (1 / 2 : ℝ) ≤ ‖w‖ →
+        Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+  sorry
+
+/-- The elementary cutoff inequality used in the exponential-Stirling extraction:
+if the radius dominates `2K / sqrt (2π)`, then the normalized error term
+`K / r` is at most `sqrt (2π)`.
+
+This is a pure real-inequality sink; it is separated from the Gamma theorem so
+the analytic owner theorem only assembles named estimates. -/
+theorem real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
+    (K r : ℝ)
+    (hK_pos : 0 < K)
+    (hr_pos : 0 < r)
+    (hr_cutoff : 2 * K / Real.sqrt (2 * Real.pi) ≤ r) :
+    K / r ≤ Real.sqrt (2 * Real.pi) := by
+  sorry
+
 /-- Log-norm envelope extracted from the closed-right-half-plane exponential
 Stirling expansion.
 
@@ -637,7 +745,40 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  sorry
+  rcases hStirling with ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩
+  let R₀ : ℝ :=
+    max R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)
+  have hR₀_pos : 0 < R₀ := by
+    exact lt_of_lt_of_le zero_lt_one (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))
+  have hfactor :
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R₀ ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤
+          2 * Real.sqrt (2 * Real.pi) := by
+    intro w hw_sector hw_R₀
+    have hw_R : R ≤ ‖w‖ :=
+      le_trans (le_max_left R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)) hw_R₀
+    have hw_one : 1 ≤ ‖w‖ :=
+      le_trans (le_trans (le_max_right (2 * K / Real.sqrt (2 * Real.pi)) 1)
+        (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
+    have hw_norm_pos : 0 < ‖w‖ :=
+      lt_of_lt_of_le zero_lt_one hw_one
+    have hw_cutoff : 2 * K / Real.sqrt (2 * Real.pi) ≤ ‖w‖ :=
+      le_trans (le_trans
+        (le_max_left (2 * K / Real.sqrt (2 * Real.pi)) 1)
+        (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
+    have hK_div_le : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) :=
+      real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
+        K ‖w‖ hK_pos hw_norm_pos hw_cutoff
+    exact
+      Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
+        R K hStirling_pointwise w hw_sector hw_R hK_div_le
+  have hB_pos : 0 < 2 * Real.sqrt (2 * Real.pi) := by
+    exact mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  exact
+    Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
+      (2 * Real.sqrt (2 * Real.pi)) R₀ hB_pos hR₀_pos hfactor
 
 /-- The sectorial exponential Stirling asymptotic gives the standard logarithmic
 norm envelope on the closed right half-plane.
@@ -2592,59 +2733,6 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_diffContOnCl :
   exact
     ⟨poleClearedRiemannZeta_differentiableOn (Complex.re ⁻¹' Set.Ioo 0 2),
       fun z _hz => (poleClearedRiemannZeta_continuousAt z).continuousWithinAt⟩
-
-/-- Standard zeta finite-order input for the pole-cleared factor inside the right
-critical strip.
-
-This is the deepest remaining zeta-growth input in this file.  Analytically it is
-obtained by combining Abel/Euler-Maclaurin control on the right boundary, the
-completed functional equation with Gamma-ratio Stirling control on the left boundary,
-local boundedness at the removable pole, and the usual finite-order strip
-normalization for the meromorphic zeta function. -/
-theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput :
-    ∃ c : ℝ,
-      c < Real.pi / (2 - 0) ∧
-      ∃ D : ℝ,
-        poleClearedRiemannZeta =O[
-            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
-              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
-          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  sorry
-
-/-- Deep zeta-growth owner primitive for the pole-cleared factor inside the right
-critical strip.
-
-The analytic content is isolated in
-`poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput`;
-this owner primitive is only the public name consumed by the strip
-Phragmen-Lindelöf layer. -/
-theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive :
-    ∃ c : ℝ,
-      c < Real.pi / (2 - 0) ∧
-      ∃ D : ℝ,
-        poleClearedRiemannZeta =O[
-            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
-              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
-          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput
-
-/-- Interior admissible finite-order envelope for the pole-cleared zeta factor in the
-right critical strip.
-
-This is the damping-side zeta-growth root consumed by the generic strip
-Phragmen-Lindelöf theorem.  Its proof belongs to the pole-cleared zeta API: use the
-classical finite-order meromorphic growth of `ζ`, the residue normalization at `1`,
-and the bounded-width strip geometry to obtain an admissible sub-critical
-double-exponential envelope. -/
-theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth :
-    ∃ c : ℝ,
-      c < Real.pi / (2 - 0) ∧
-      ∃ D : ℝ,
-        poleClearedRiemannZeta =O[
-            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
-              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
-          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
-  exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive
 
 /-- Compact boundedness for the removable pole-cleared zeta factor. -/
 theorem poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound :
@@ -5731,6 +5819,31 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_rightPartial_bound
     Nat.cast_le.mpr hNM
   exact logarithmicPhasePartialSum_firstDerivative_bound t ht hreal
 
+/-- Deep Euler-Maclaurin arithmetic owner for the finite Abel endpoint and
+reciprocal-derivative integral terms.
+
+This is the remaining bookkeeping attached to the first-derivative
+Euler-Maclaurin estimate: the reciprocal endpoint weights and the integral of
+the reciprocal derivative are both normalized to the same logarithmic cutoff
+constant. -/
+theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    (‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊((M : ℕ) : ℝ)⌋₊‖ +
+        ‖(((((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
+            ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖)) ∧
+    (‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+          deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+            boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+        2 + 8 * Real.log (3 + ‖t‖)) := by
+  sorry
+
 /-- Exact endpoint arithmetic for the finite Abel package.  This is the
 reciprocal-weight endpoint part after the first-derivative estimate has been
 applied at `M` and at the canonical cutoff. -/
@@ -5746,7 +5859,9 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_arithmetic
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
             ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    (logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
+      t ht hNM).1
 
 /-- Exact reciprocal-derivative integral arithmetic for the finite Abel package.
 The analytic input is the first-derivative partial-sum estimate; this lemma owns
@@ -5760,7 +5875,9 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  sorry
+  exact
+    (logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
+      t ht hNM).2
 
 /-- Algebraic endpoint extraction from the logarithmic-phase first-derivative
 partial-sum estimate.
@@ -8119,6 +8236,73 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
   exact
     ⟨poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquation_growth_bound,
       poleClearedRiemannZeta_rightCriticalStrip_rightBoundary_dirichletSeries_growth_bound⟩
+
+/-- Standard finite-order theorem for the pole-cleared Riemann zeta factor in the right
+critical strip.
+
+This is the exact zeta finite-order theorem needed by the strip damping argument.  Its
+analytic proof is the standard meromorphic finite-order estimate for `ζ`, with the pole at
+`1` removed by `poleClearedRiemannZeta`: Abel/Euler-Maclaurin gives the right boundary,
+the completed functional equation plus the Gamma-ratio Stirling estimates gives the left
+boundary, local boundedness handles the removable pole, and the finite-order strip
+normalization converts those inputs to the sub-critical double-exponential envelope. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible_growth :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  sorry
+
+/-- Standard zeta finite-order input for the pole-cleared factor inside the right
+critical strip.
+
+This is only name transport from the exact standard finite-order theorem for the
+pole-cleared Riemann zeta factor. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  exact poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible_growth
+
+/-- Deep zeta-growth owner primitive for the pole-cleared factor inside the right
+critical strip.
+
+The analytic content is isolated in
+`poleClearedRiemannZeta_rightCriticalStrip_standardFiniteOrder_admissible_growth`;
+this owner primitive is only the public name consumed by the strip
+Phragmen-Lindelöf layer. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_standardZetaInput
+
+/-- Interior admissible finite-order envelope for the pole-cleared zeta factor in the
+right critical strip.
+
+This is the damping-side zeta-growth root consumed by the generic strip
+Phragmen-Lindelöf theorem.  It is a thin wrapper over the standard finite-order theorem
+for the pole-cleared Riemann zeta factor in this bounded-width strip. -/
+theorem poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth :
+    ∃ c : ℝ,
+      c < Real.pi / (2 - 0) ∧
+      ∃ D : ℝ,
+        poleClearedRiemannZeta =O[
+            Filter.comap (_root_.abs ∘ Complex.im) Filter.atTop ⊓
+              𝓟 (Complex.re ⁻¹' Set.Ioo 0 2)]
+          fun z : ℂ => Real.exp (D * Real.exp (c * |z.im|)) := by
+  exact poleClearedRiemannZeta_rightCriticalStrip_admissible_strip_growth_ownerPrimitive
 
 /-- Vertical-tail strip estimate for the removable pole-cleared zeta factor.
 
