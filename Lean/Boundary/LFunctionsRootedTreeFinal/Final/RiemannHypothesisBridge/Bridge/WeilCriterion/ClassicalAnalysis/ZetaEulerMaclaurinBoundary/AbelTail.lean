@@ -88,7 +88,7 @@ logarithmic phase.
 This is the finite partial-summation step: combine the first-derivative
 oscillatory estimate for `∑ n^{-it}` with monotonicity of the reciprocal
 weight.  Cf. Apostol, *Introduction to Analytic Number Theory*, Ch. 3. -/
-theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDerivative :
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_standard :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -102,6 +102,23 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDeriv
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) := by
   sorry
+
+/-- Finite Abel-summation estimate obtained from the first-derivative
+logarithmic-phase bound. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDerivative :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ M : ℕ,
+                N ≤ M →
+                  ‖∑ n ∈ Finset.Ioc N M,
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                    A * Real.log (2 + ‖t‖) := by
+  exact Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_standard
 
 /-- Finite Abel-summation estimate for the post-cutoff reciprocal-weighted
 logarithmic phase. -/
@@ -126,7 +143,7 @@ phase.
 This is the genuine limiting analytic root: finite Abel tail bounds are
 transported through Abel damping and the Dirichlet-continuation boundary value
 of `ζ(1 + it)`. -/
-theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel :
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_standard :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -143,6 +160,26 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel
                     0‖ ≤
                   A * Real.log (2 + ‖t‖) := by
   sorry
+
+/-- Positive-weight Abel damping theorem for tails with uniformly bounded
+finite Abel sums. -/
+theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_of_finiteAbel :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+                ‖∑' n : ℕ,
+                  if N < n then
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
+                        ((n : ℝ) ^ (-(σ - 1)) : ℂ)
+                  else
+                    0‖ ≤
+                  A * Real.log (2 + ‖t‖) := by
+  exact Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_standard
 
 /-- The Abel-damped post-cutoff logarithmic-phase tail tends to the
 analytic-continuation boundary remainder of `ζ(1 + it)`.
@@ -276,6 +313,30 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
 
 /-- Transport from the Abel boundary remainder to the post-cutoff `tsum` tail
 written in boundary-line Dirichlet monomials. -/
+/-- Boundary Dirichlet-tail summability at `1 + it`.
+
+This is the ordinary boundary-series theorem for the nonzero-frequency line,
+proved classically by Dirichlet/Abel summation and analytic continuation.  It
+is the exact theorem needed before a `tsum` can be identified with the zeta
+remainder; `riemannZeta` does not unfold definitionally to this series on
+`re = 1`. -/
+theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ)
+    (hN : 1 ≤ N) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then
+          ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
+        else
+          0)
+      (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+        Complex.riemannZetaBoundaryLineTruncation t N) := by
+  sorry
+
+/-- Transport from the ordinary boundary Dirichlet-tail `HasSum` theorem to
+the concrete `tsum` equality. -/
 theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_eq_zeta_remainder
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
@@ -288,7 +349,9 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_eq_zeta_rema
           0) =
       riemannZeta (Complex.boundaryLineOnePointRealParam t) -
         Complex.riemannZetaBoundaryLineTruncation t N := by
-  sorry
+  exact
+    (Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder
+      t ht N hN).tsum_eq
 
 /-- Transport from the boundary Dirichlet-series tail theorem to the concrete
 `tsum` spelling used by the Euler package. -/

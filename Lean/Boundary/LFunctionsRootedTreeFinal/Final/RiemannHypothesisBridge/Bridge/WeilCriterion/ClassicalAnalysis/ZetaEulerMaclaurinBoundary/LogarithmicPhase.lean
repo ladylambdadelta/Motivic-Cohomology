@@ -293,6 +293,26 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_nor
 
 /-- The first-derivative-test root after the concrete derivative and derivative
 norm have been isolated. -/
+/-- Classical first-derivative estimate for the concrete logarithmic phase
+`x ↦ exp(-it log x)`.
+
+This is the remaining van der Corput/first-derivative-test input after the
+phase derivative and derivative norm have been computed from the definition. -/
+theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_standard :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            ‖∑ n ∈ Finset.Icc 1 N,
+              ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A *
+                  (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+                    Real.log (2 + N) := by
+  sorry
+
+/-- The first-derivative-test root after the concrete derivative and derivative
+norm have been isolated. -/
 theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivative_control
     (hderiv :
       ∀ t : ℝ, ∀ {x : ℝ}, 0 < x →
@@ -313,7 +333,7 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
                 A *
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) := by
-  sorry
+  exact Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_standard
 
 /-- The standard first-derivative-test owner root for the concrete logarithmic
 phase.  This is the analytic input behind the Euler-Maclaurin boundary
