@@ -3218,6 +3218,40 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
+/-- Parametric interval-integral derivative theorem for the center-segment
+primitive.
+
+This packages the derivative-under-the-integral-sign argument for
+`z ↦ ∫ t in 0..1, z * φ(lineMap 0 z t)`, together with the one-dimensional
+FTC computation along the radial segment. -/
+theorem complex_centerSegmentIntegral_hasDerivAt_parametricIntegral
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+      HasDerivAt
+        (complex_centerSegmentIntegral φ)
+        (φ z)
+        z := by
+  sorry
+
+/-- Holomorphic parameter-integral theorem for the center-segment primitive.
+
+This is the analytic counterpart of the derivative-under-integral theorem: a
+holomorphic integrand depending analytically on the endpoint has a holomorphic
+segment integral. -/
+theorem complex_centerSegmentIntegral_analyticAt_parameterIntegral
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+      AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
+  sorry
+
 /-- Differentiation under the endpoint parameter for the center segment
 integral. -/
 theorem complex_centerSegmentIntegral_hasDerivAt_of_holomorphicOn_starConvex
@@ -3231,7 +3265,9 @@ theorem complex_centerSegmentIntegral_hasDerivAt_of_holomorphicOn_starConvex
         (complex_centerSegmentIntegral φ)
         (φ z)
         z := by
-  sorry
+  exact
+    complex_centerSegmentIntegral_hasDerivAt_parametricIntegral
+      φ hstar hφ
 
 /-- Analyticity of the center segment integral from the endpoint derivative
 theorem. -/
@@ -3243,7 +3279,9 @@ theorem complex_centerSegmentIntegral_analyticAt_of_holomorphicOn_starConvex
     ∀ z : ℂ,
       z ∈ s →
       AnalyticAt ℂ (complex_centerSegmentIntegral φ) z := by
-  sorry
+  exact
+    complex_centerSegmentIntegral_analyticAt_parameterIntegral
+      φ hstar hφ
 
 /-- Fundamental theorem for holomorphic segment integrals on star-convex
 domains.
@@ -7309,6 +7347,44 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     entireFunction_localMultiplicityFactorization
       F hF (z : ℂ) horder
 
+/-- Finset-induction construction of the finite removable quotient.
+
+The induction step removes one indexed nonzero zero using the local factor
+supplied by `AnalyticAt.order_eq_nat_iff`; the remaining finite product is
+analytic and nonzero at that center, so the single-zero removable value is the
+local Taylor unit divided by the remaining leading coefficient. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_induction_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hlocal :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S →
+          ∃ g : ℂ → ℂ,
+            AnalyticAt ℂ g (z : ℂ) ∧
+            g (z : ℂ) ≠ 0 ∧
+            ∀ᶠ w in 𝓝 (z : ℂ),
+              F w =
+                (w - (z : ℂ)) ^
+                    entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                  g w) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w) ∧
+      Q 0 = F 0 := by
+  -- Deep finite removable-gluing theorem: prove by induction on `S`, using
+  -- the local Taylor factor at the inserted zero and the nonzero leading
+  -- coefficient of all previously extracted factors at that center.
+  sorry
+
 /-- Parameterized finite removable quotient gluing across a finite set of
 nonzero zeros.
 
@@ -7343,10 +7419,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF S w) ∧
       Q 0 = F 0 := by
-  -- Deep finite removable-gluing root: construct the patched quotient from
-  -- the local multiplicity factors at the finitely many nonzero support
-  -- points and the raw quotient on the complement of `S`.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_induction_ownerRoot
+      F hF ρ hρ S hS0 hlocal
 
 /-- Finset-level removable quotient gluing across the closed-disk support.
 
@@ -8204,13 +8279,49 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
                         ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
           horigin.symm
 
-/-- Closed-support finite-product boundary-log decomposition before applying
-the zero-free quotient mean theorem.
+/-- Closed-support finite-product boundary-log decomposition with finite
+boundary exceptions made explicit.
 
 This is the exact product-log sink: restrict the factorization
 `F = Q * P_closed` to the boundary circle, split `log ‖Q * P_closed‖` into the
 quotient boundary term and the finite sum of extracted single-zero factor
-terms, and interchange the finite sum with the interval integral. -/
+terms, and interchange the finite sum with the interval integral.  Boundary
+zeros are allowed: the finitely many singular parameters are handled by
+finite-exception interval-integrability and a.e. congruence. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_decomposition_finiteException_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+  -- Deep finite-exception product-log theorem: outside the finite boundary
+  -- zero parameter set, use the exact product factorization and `log ‖∏‖ =
+  -- ∑ log ‖·‖`; then extend over the finite set by logarithmic-singularity
+  -- integrability and a.e. congruence.
+  sorry
+
+/-- Closed-support finite-product boundary-log decomposition before applying
+the zero-free quotient mean theorem. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_decomposition_from_factorization_ownerRoot
     (F Q : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -8237,10 +8348,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Deep finite product boundary-log sink: pointwise boundary factorization,
-  -- logarithm of a nonzero finite product, and finite sum/integral exchange in
-  -- the presence of finitely many boundary logarithmic singularities.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_decomposition_finiteException_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
 
 /-- Boundary logarithm decomposition for the closed-disk removable quotient.
 

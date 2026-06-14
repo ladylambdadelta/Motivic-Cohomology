@@ -2917,6 +2917,155 @@ theorem Complex.gammaRecurrenceProduct_factor_largeHeight_lower
     le_trans hhalf_sum_le_norm
       (Complex.gammaRecurrenceProduct_factor_height_le_norm x y j)
 
+/-- Bounded intervals have a uniform absolute-value bound by the endpoint
+absolute values. -/
+theorem real_abs_le_max_abs_of_mem_Icc
+    {A B x : ℝ}
+    (hxA : A ≤ x)
+    (hxB : x ≤ B) :
+    |x| ≤ max |A| |B| := by
+  have hmax_A : |A| ≤ max |A| |B| :=
+    le_max_left |A| |B|
+  have hmax_B : |B| ≤ max |A| |B| :=
+    le_max_right |A| |B|
+  have hleft_endpoint : -|A| ≤ A :=
+    neg_le_abs A
+  have hleft_max : -max |A| |B| ≤ -|A| :=
+    neg_le_neg hmax_A
+  have hleft : -max |A| |B| ≤ x :=
+    le_trans hleft_max (le_trans hleft_endpoint hxA)
+  have hright_endpoint : B ≤ |B| :=
+    le_abs_self B
+  have hright : x ≤ max |A| |B| :=
+    le_trans hxB (le_trans hright_endpoint hmax_B)
+  exact abs_le.mpr ⟨hleft, hright⟩
+
+/-- The real part of a deterministic recurrence factor is bounded uniformly on
+the strip and for `j < N`. -/
+theorem Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
+    {A B x : ℝ}
+    {N j : ℕ}
+    (hxA : A ≤ x)
+    (hxB : x ≤ B)
+    (hj : j < N) :
+    |(Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re| ≤
+      max |A| |B| + N := by
+  have hre :
+      (Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re =
+        x + (j : ℝ) := by
+    calc
+      (Complex.fixedRealPartVerticalPoint x (0 : ℝ) + (j : ℂ)).re =
+          (Complex.fixedRealPartVerticalPoint x (0 : ℝ)).re + (j : ℂ).re :=
+        Complex.add_re (Complex.fixedRealPartVerticalPoint x (0 : ℝ)) (j : ℂ)
+      _ = x + (j : ℂ).re := by
+        exact congrArg
+          (fun t : ℝ => t + (j : ℂ).re)
+          (Complex.fixedRealPartVerticalPoint_re x 0)
+      _ = x + (j : ℝ) := by
+        exact congrArg (fun t : ℝ => x + t) (Complex.natCast_re j)
+  have hx_abs : |x| ≤ max |A| |B| :=
+    real_abs_le_max_abs_of_mem_Icc hxA hxB
+  have hj_le_N : (j : ℝ) ≤ N :=
+    Nat.cast_le.mpr (Nat.le_of_lt hj)
+  have hj_abs : |(j : ℝ)| = (j : ℝ) :=
+    abs_of_nonneg (Nat.cast_nonneg j)
+  have hsum :
+      |x + (j : ℝ)| ≤ max |A| |B| + N := by
+    calc
+      |x + (j : ℝ)| ≤ |x| + |(j : ℝ)| :=
+        abs_add x (j : ℝ)
+      _ ≤ max |A| |B| + |(j : ℝ)| :=
+        add_le_add_right hx_abs |(j : ℝ)|
+      _ = max |A| |B| + (j : ℝ) := by
+        exact congrArg (fun t : ℝ => max |A| |B| + t) hj_abs
+      _ ≤ max |A| |B| + N :=
+        add_le_add_left hj_le_N (max |A| |B|)
+  exact
+    Eq.subst
+      (motive := fun t : ℝ => |t| ≤ max |A| |B| + N)
+      hre.symm
+      hsum
+
+/-- A recurrence factor is bounded above by a fixed strip constant times
+`1 + |y|`. -/
+theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        ∀ j : ℕ,
+          j < N →
+            ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+              C * (1 + ‖y‖) := by
+  sorry
+
+/-- Per-factor two-sided bounds for deterministic recurrence factors on a fixed
+vertical strip. -/
+theorem Complex.gammaRecurrenceProduct_factor_twoSided_bounds_on_verticalStrip
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ∀ j : ℕ,
+            j < N →
+              ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+                C * (1 + ‖y‖) ∧
+              c * (1 + ‖y‖) ≤
+                ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ := by
+  rcases Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip A B N with
+    ⟨C, hC_pos, hC⟩
+  refine ⟨1, C, (1 / 2 : ℝ), zero_lt_one, hC_pos, ?_, ?_⟩
+  · exact one_div_pos.mpr two_pos
+  intro x y hxA hxB hy j hj
+  constructor
+  · exact hC x y hxA hxB j hj
+  · exact Complex.gammaRecurrenceProduct_factor_largeHeight_lower j hy
+
+/-- Finite products preserve uniform per-factor polynomial upper/lower bounds
+for the deterministic Gamma recurrence product. -/
+theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_bounds
+    (A B : ℝ)
+    (N : ℕ)
+    (hfactor :
+      ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+        0 < H ∧
+        0 < C ∧
+        0 < c ∧
+        ∀ x y : ℝ,
+          A ≤ x →
+          x ≤ B →
+          H ≤ ‖y‖ →
+            ∀ j : ℕ,
+              j < N →
+                ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+                  C * (1 + ‖y‖) ∧
+                c * (1 + ‖y‖) ≤
+                  ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+            C * (1 + ‖y‖) ^ (N : ℝ) ∧
+          c * (1 + ‖y‖) ^ (N : ℝ) ≤
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ := by
+  sorry
+
 /-- The exact finite-product geometry estimate for deterministic Gamma
 recurrence factors on a fixed vertical strip.
 
@@ -2940,7 +3089,11 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_finiteProdu
           c * (1 + ‖y‖) ^ (N : ℝ) ≤
             ‖Complex.gammaRecurrenceProduct
               (Complex.fixedRealPartVerticalPoint x y) N‖ := by
-  sorry
+  exact
+    Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_bounds
+      A B N
+      (Complex.gammaRecurrenceProduct_factor_twoSided_bounds_on_verticalStrip
+        A B N)
 
 /-- Finite recurrence products have uniform polynomial upper/lower bounds on a
 fixed vertical strip after a deterministic shift.
@@ -10016,6 +10169,61 @@ theorem abel_left_neighborhood_eventually_nonnegative :
     (eventually_nhdsWithin_of_eventually_nhds hpositive_nhds).mono
       (fun r hr => le_of_lt hr)
 
+/-- Finite Abel summation identity for positive real weights on a natural tail.
+
+The weighted finite tail is a convex positive combination of the finite partial
+tail sums, plus the terminal weighted partial sum.  This is the finite
+summation-by-parts identity underlying the abstract Abel theorem. -/
+theorem abel_positive_weighted_tail_finite_summation_by_parts
+    {u : ℕ → ℂ}
+    {w : ℕ → ℝ}
+    {N M : ℕ}
+    (hNM : N ≤ M) :
+    (∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k) =
+      ((w (M + 1) : ℝ) : ℂ) *
+          (∑ k ∈ Finset.Ioc N M, u k) +
+        ∑ k ∈ Finset.Ioc N M,
+          (((w k - w (k + 1) : ℝ) : ℂ) *
+            (∑ j ∈ Finset.Ioc N k, u j)) := by
+  sorry
+
+/-- Finite positive-weight Abel bound from bounded finite partial tail sums. -/
+theorem abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
+    {u : ℕ → ℂ}
+    {w : ℕ → ℝ}
+    {N M : ℕ}
+    {C : ℝ}
+    (hNM : N ≤ M)
+    (hpartial :
+      ∀ K : ℕ,
+        N ≤ K →
+        ‖∑ k ∈ Finset.Ioc N K, u k‖ ≤ C)
+    (hw_nonneg : ∀ k : ℕ, N < k → 0 ≤ w k)
+    (hw_antitone : ∀ k l : ℕ, N < k → k ≤ l → w l ≤ w k)
+    (hw_variation :
+      w (M + 1) + ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1) :
+    ‖∑ k ∈ Finset.Ioc N M, ((w k : ℝ) : ℂ) * u k‖ ≤ C := by
+  sorry
+
+/-- The abstract Abel theorem reduced to finite summation by parts and the
+standard `tsum` limit passage. -/
+theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_from_finite
+    {u : ℕ → ℂ}
+    {w : ℕ → ℝ}
+    {N : ℕ}
+    {C : ℝ}
+    (hpartial :
+      ∀ M : ℕ,
+        N ≤ M →
+        ‖∑ k ∈ Finset.Ioc N M, u k‖ ≤ C)
+    (hw_nonneg : ∀ k : ℕ, N < k → 0 ≤ w k)
+    (hw_antitone : ∀ k l : ℕ, N < k → k ≤ l → w l ≤ w k)
+    (hw_variation : ∀ M : ℕ, N ≤ M → w (M + 1) +
+        ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1)
+    (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0)) :
+    ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
+  sorry
+
 /-- Abstract Abel transform bound from bounded finite tail sums.
 
 This is the positive-weight summation-by-parts core: for a tail sequence whose
@@ -10038,7 +10246,9 @@ theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
         ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) ≤ 1)
     (hw_tendsto : Tendsto (fun M : ℕ => w M) atTop (𝓝 0)) :
     ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
-  sorry
+  exact
+    abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_from_finite
+      hpartial hw_nonneg hw_antitone hw_variation hw_tendsto
 
 /-- Complement of `Icc 1 N` as a post-cutoff indicator for functions whose
 zeroth term vanishes. -/
@@ -12999,6 +13209,27 @@ theorem riemannZeta_completedFunctionalEquation_quotient_of_gamma_ne_zero
 
 /-- Algebraic transport from the zeta quotient functional equation to the
 pole-cleared raw multiplier identity. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_algebra
+    {a b c d : ℂ}
+    (hb : b ≠ 0) :
+    ((a / b) * d) * (b * c) = a * (c * d) := by
+  calc
+    ((a / b) * d) * (b * c) =
+        (((a / b) * d) * b) * c := by
+      exact mul_assoc ((a / b) * d) b c
+    _ = ((a / b) * (d * b)) * c := by
+      exact congrArg (fun x : ℂ => x * c) (mul_assoc (a / b) d b)
+    _ = ((a / b) * (b * d)) * c := by
+      exact congrArg (fun x : ℂ => ((a / b) * x) * c) (mul_comm d b)
+    _ = (((a / b) * b) * d) * c := by
+      exact congrArg (fun x : ℂ => x * c) (mul_assoc (a / b) b d).symm
+    _ = (a * d) * c := by
+      exact congrArg (fun x : ℂ => (x * d) * c) (div_mul_cancel₀ a hb)
+    _ = a * (d * c) := by
+      exact (mul_assoc a d c).symm
+    _ = a * (c * d) := by
+      exact congrArg (fun x : ℂ => a * x) (mul_comm d c)
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identity_of_zeta_quotient
     {z : ℂ}
     (hz_re : z.re ≤ 0)
@@ -13011,7 +13242,78 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_identit
       (((z - 1) / (((1 : ℂ) - z) - 1)) *
           (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
-  sorry
+  have hz_ne_one : z ≠ 1 := by
+    intro hz_one
+    have hz_re_one : z.re = 1 := by
+      calc
+        z.re = (1 : ℂ).re := by
+          exact congrArg Complex.re hz_one
+        _ = 1 := Complex.one_re
+    have hone_le_zero : (1 : ℝ) ≤ 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ 0)
+        hz_re_one.symm
+        hz_re
+    exact not_lt_of_ge hone_le_zero zero_lt_one
+  have hw_minus_one_ne_zero : (((1 : ℂ) - z) - 1) ≠ 0 := by
+    intro hden
+    have hneg_zero : -z = 0 := by
+      calc
+        -z = ((1 : ℂ) - z) - 1 := by
+          exact (sub_sub_cancel (1 : ℂ) z).symm
+        _ = 0 := hden
+    exact hz_ne_zero (neg_eq_zero.mp hneg_zero)
+  have hw_ne_one : ((1 : ℂ) - z) ≠ 1 := by
+    intro hw_one
+    have hden_zero : (((1 : ℂ) - z) - 1) = 0 := by
+      exact sub_eq_zero.mpr hw_one
+    exact hw_minus_one_ne_zero hden_zero
+  have hpz :
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
+    poleClearedRiemannZeta_eq_of_ne_one hz_ne_one
+  have hpw :
+      poleClearedRiemannZeta ((1 : ℂ) - z) =
+        (((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z) :=
+    poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
+  let a : ℂ := z - 1
+  let b : ℂ := ((1 : ℂ) - z) - 1
+  let c : ℂ := riemannZeta ((1 : ℂ) - z)
+  let d : ℂ := Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z
+  have halg : ((a / b) * d) * (b * c) = a * (c * d) :=
+    poleClearedRiemannZeta_completedFunctionalEquationMultiplier_raw_algebra
+      hw_minus_one_ne_zero
+  have hleft :
+      poleClearedRiemannZeta z =
+        (z - 1) *
+          (riemannZeta ((1 : ℂ) - z) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) := by
+    calc
+      poleClearedRiemannZeta z = (z - 1) * riemannZeta z := hpz
+      _ = (z - 1) *
+          (riemannZeta ((1 : ℂ) - z) *
+            Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z) := by
+        exact congrArg (fun x : ℂ => (z - 1) * x) hzeta
+      _ = (z - 1) *
+          (riemannZeta ((1 : ℂ) - z) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) := by
+        rfl
+  calc
+    poleClearedRiemannZeta z =
+        (z - 1) *
+          (riemannZeta ((1 : ℂ) - z) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) := hleft
+    _ = (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        ((((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)) := by
+      exact halg.symm
+    _ = (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+      exact congrArg
+        (fun x : ℂ =>
+          (((z - 1) / (((1 : ℂ) - z) - 1)) *
+            (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) * x)
+        hpw.symm
 
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_ne_zero
     {z : ℂ}
