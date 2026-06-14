@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Complex.PhragmenLindelof
+import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
 import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
 import Mathlib.Data.Complex.Exponential
 

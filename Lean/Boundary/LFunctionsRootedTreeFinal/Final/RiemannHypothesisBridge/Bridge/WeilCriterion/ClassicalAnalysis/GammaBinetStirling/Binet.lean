@@ -1428,6 +1428,66 @@ theorem Complex.binetLogGammaMainTerm_differentiableAt_openRightHalfPlane
       differentiableAt_id).const_add _
   simpa [Complex.binetLogGammaMainTerm] using hmain
 
+/-- Explicit derivative of the Binet logarithmic main term on the open right
+half-plane. -/
+theorem Complex.binetLogGammaMainTerm_hasDerivAt_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      Complex.binetLogGammaMainTerm
+      (Complex.log w - (1 / (2 * w))) w := by
+  have hw_ne_zero : w ≠ 0 :=
+    Complex.ne_zero_of_re_pos hw_re_pos
+  have hlog :
+      HasDerivAt (fun z : ℂ => Complex.log z) (1 / w) w :=
+    (hasDerivAt_id' w).clog
+      (Complex.mem_slitPlane_of_re_pos hw_re_pos)
+  have hfactor :
+      HasDerivAt (fun z : ℂ => z - (1 / 2 : ℂ)) 1 w :=
+    (hasDerivAt_id' w).sub_const (1 / 2 : ℂ)
+  have hprod :
+      HasDerivAt
+        (fun z : ℂ => (z - (1 / 2 : ℂ)) * Complex.log z)
+        (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) w :=
+    hfactor.mul hlog
+  have hmain :
+      HasDerivAt
+        (fun z : ℂ =>
+          (z - (1 / 2 : ℂ)) * Complex.log z - z +
+            (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+        ((1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0) w :=
+    ((hprod.sub (hasDerivAt_id' w)).const_add
+      ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2))
+  have hderiv :
+      (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
+        Complex.log w - (1 / (2 * w)) := by
+    field_simp [hw_ne_zero]
+    ring
+  simpa [Complex.binetLogGammaMainTerm, hderiv] using hmain
+
+/-- The derivative value of the Binet logarithmic main term on the open right
+half-plane. -/
+theorem Complex.deriv_binetLogGammaMainTerm_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    deriv Complex.binetLogGammaMainTerm w =
+      Complex.log w - (1 / (2 * w)) := by
+  exact
+    (Complex.binetLogGammaMainTerm_hasDerivAt_openRightHalfPlane
+      hw_re_pos).deriv
+
+/-- The standard Binet log-derivative identity in expanded form.  This is the
+remaining special-function input: the logarithmic derivative of Gamma equals
+the explicit Binet main-term derivative plus the differentiated arctangent
+kernel remainder. -/
+theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_remainderDerivative
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    deriv Complex.Gamma w / Complex.Gamma w =
+      (Complex.log w - (1 / (2 * w))) +
+        Complex.binetSecondFormulaRemainderDerivative w := by
+  sorry
+
 /-- The differentiated Binet identity at the logarithmic-derivative level:
 the Gamma logarithmic derivative minus the derivative of the explicit main
 term is the derivative of the Binet remainder.  This is the precise missing
@@ -1438,7 +1498,25 @@ theorem Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDer
     deriv Complex.Gamma w / Complex.Gamma w -
         deriv Complex.binetLogGammaMainTerm w =
       Complex.binetSecondFormulaRemainderDerivative w := by
-  sorry
+  have hmain :
+      deriv Complex.binetLogGammaMainTerm w =
+        Complex.log w - (1 / (2 * w)) :=
+    Complex.deriv_binetLogGammaMainTerm_openRightHalfPlane hw_re_pos
+  have hlogderiv :
+      deriv Complex.Gamma w / Complex.Gamma w =
+        (Complex.log w - (1 / (2 * w))) +
+          Complex.binetSecondFormulaRemainderDerivative w :=
+    Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_remainderDerivative
+      hw_re_pos
+  calc
+    deriv Complex.Gamma w / Complex.Gamma w -
+        deriv Complex.binetLogGammaMainTerm w =
+        ((Complex.log w - (1 / (2 * w))) +
+          Complex.binetSecondFormulaRemainderDerivative w) -
+            (Complex.log w - (1 / (2 * w))) := by
+          rw [hlogderiv, hmain]
+    _ = Complex.binetSecondFormulaRemainderDerivative w := by
+          abel
 
 /-- The derivative of the principal-log Gamma side minus the explicit Binet
 main term, reduced to the logarithmic-derivative Binet identity. -/
