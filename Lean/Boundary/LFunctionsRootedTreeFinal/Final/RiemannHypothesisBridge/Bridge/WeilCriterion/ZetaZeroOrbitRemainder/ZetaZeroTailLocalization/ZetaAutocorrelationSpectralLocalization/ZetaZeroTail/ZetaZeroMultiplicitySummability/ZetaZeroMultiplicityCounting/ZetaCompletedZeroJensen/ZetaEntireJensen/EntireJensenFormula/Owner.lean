@@ -2429,6 +2429,92 @@ theorem entireFunctionJensenBoundaryCircle_norm
       exact congrArg₂ HMul.hMul hR_norm hExp_norm
     _ = R := mul_one R
 
+/-- The origin Taylor quotient gives the expected boundary-circle norm
+factorization at every sample. -/
+theorem entireFunction_originTaylorFactor_boundaryCircle_norm_factorization
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R θ : ℝ}
+    (hR : 0 ≤ R) :
+    ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+      R ^ entireFunctionZeroMultiplicity F hF 0 *
+        ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ := by
+  let z : ℂ := (R : ℂ) * Complex.exp (θ * Complex.I)
+  have hz_norm : ‖z‖ = R :=
+    entireFunctionJensenBoundaryCircle_norm hR
+  calc
+    ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+        ‖F z‖ := rfl
+    _ = ‖z ^ entireFunctionZeroMultiplicity F hF 0 • G z‖ := by
+      exact congrArg norm (hfactor z)
+    _ =
+        ‖z ^ entireFunctionZeroMultiplicity F hF 0‖ * ‖G z‖ := by
+      exact norm_smul (z ^ entireFunctionZeroMultiplicity F hF 0) (G z)
+    _ =
+        ‖z‖ ^ entireFunctionZeroMultiplicity F hF 0 * ‖G z‖ := by
+      exact congrArg
+        (fun x : ℝ => x * ‖G z‖)
+        (norm_pow z (entireFunctionZeroMultiplicity F hF 0))
+    _ =
+        R ^ entireFunctionZeroMultiplicity F hF 0 * ‖G z‖ := by
+      exact congrArg
+        (fun x : ℝ => x ^ entireFunctionZeroMultiplicity F hF 0 * ‖G z‖)
+        hz_norm
+    _ =
+        R ^ entireFunctionZeroMultiplicity F hF 0 *
+          ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ := rfl
+
+/-- At boundary samples where the quotient does not vanish and the radius is
+positive, the origin Taylor quotient contributes exactly `m log R` to the
+Jensen logarithmic integrand. -/
+theorem entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_of_quotient_ne
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R θ : ℝ}
+    (hR : 0 < R)
+    (hG :
+      G ((R : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0) :
+    entireFunctionJensenBoundaryLogIntegrand F R θ =
+      (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log R +
+        entireFunctionJensenBoundaryLogIntegrand G R θ := by
+  have hR_nonneg : 0 ≤ R := hR.le
+  have hnorm :
+      ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+        R ^ entireFunctionZeroMultiplicity F hF 0 *
+          ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ :=
+    entireFunction_originTaylorFactor_boundaryCircle_norm_factorization
+      F G hF hfactor hR_nonneg
+  have hpow_ne :
+      R ^ entireFunctionZeroMultiplicity F hF 0 ≠ 0 :=
+    pow_ne_zero (entireFunctionZeroMultiplicity F hF 0) hR.ne'
+  have hG_norm_ne :
+      ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ ≠ 0 :=
+    norm_ne_zero_iff.mpr hG
+  unfold entireFunctionJensenBoundaryLogIntegrand
+  calc
+    Real.log ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖ =
+        Real.log
+          (R ^ entireFunctionZeroMultiplicity F hF 0 *
+            ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖) := by
+      exact congrArg Real.log hnorm
+    _ =
+        Real.log (R ^ entireFunctionZeroMultiplicity F hF 0) +
+          Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ := by
+      exact Real.log_mul hpow_ne hG_norm_ne
+    _ =
+        (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log R +
+          Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖ := by
+      exact congrArg
+        (fun x : ℝ =>
+          x + Real.log ‖G ((R : ℂ) * Complex.exp (θ * Complex.I))‖)
+        (Real.log_pow R (entireFunctionZeroMultiplicity F hF 0))
+
 /-- The boundary logarithmic integrand is bounded by the logarithmic maximum once the
 circle log set is known to be bounded above. -/
 theorem entireFunctionJensenBoundaryLogIntegrand_le_logMaxOnCircle
