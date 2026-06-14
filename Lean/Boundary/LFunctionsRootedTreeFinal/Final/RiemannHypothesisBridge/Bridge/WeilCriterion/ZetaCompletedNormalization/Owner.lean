@@ -17495,6 +17495,52 @@ noncomputable def eulerMaclaurinPoleClearedZetaRemainderTerm
       eulerMaclaurinPoleClearedZetaMainTerm z +
       eulerMaclaurinPoleClearedZetaEndpointTerm z)
 
+/-- First periodic Bernoulli factor in the Euler-Maclaurin zeta remainder.
+
+This is the sawtooth `B₁({x}) = {x} - 1/2`, written with `Int.fract`. -/
+noncomputable def eulerMaclaurinFirstPeriodicBernoulli
+    (x : ℝ) : ℝ :=
+  Int.fract x - 1 / 2
+
+/-- Explicit Bernoulli-periodic integral remainder for the pole-cleared zeta
+Euler-Maclaurin formula.
+
+With `N = ⌊2 + ‖z‖⌋₊`, this is
+`-(z - 1) z ∫_N^∞ B₁({x}) x^{-z-1} dx`, the standard first-order
+Euler-Maclaurin remainder after multiplying by the pole-clearing factor. -/
+noncomputable def eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder
+    (z : ℂ) : ℂ :=
+  -((z - 1) * z) *
+    ∫ x in Set.Ioi (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℝ)),
+      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+        (((x : ℝ) : ℂ) ^ (-(z + 1)))
+
+/-- Euler-Maclaurin formula identifies the difference-defined pole-cleared
+remainder with the explicit Bernoulli-periodic integral remainder. -/
+theorem eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
+    (z : ℂ)
+    (hz_one : 1 ≤ z.re)
+    (hz_two : z.re ≤ 2) :
+    eulerMaclaurinPoleClearedZetaRemainderTerm z =
+      eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z := by
+  sorry
+
+/-- Polynomial bound for the explicit Bernoulli-periodic integral remainder.
+
+The proof is the standard majorization:
+`|B₁({x})| ≤ 1`, `‖x^{-z-1}‖ ≤ x^{-Re z-1}` for positive `x`, and
+`∫_N^∞ x^{-Re z-1} dx ≤ 1` on `1 ≤ Re z`, followed by the elementary
+polynomial bound for `(z - 1) z`. -/
+theorem eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder_polynomial_bound :
+    ∃ C : ℝ, ∃ m : ℕ,
+      0 < C ∧
+      ∀ z : ℂ,
+        1 ≤ z.re →
+        z.re ≤ 2 →
+        ‖eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z‖ ≤
+          C * (1 + ‖z‖) ^ m := by
+  sorry
+
 /-- Standard Euler-Maclaurin Bernoulli-periodic integral estimate for the
 pole-cleared remainder on `1 ≤ Re s ≤ 2`.
 
@@ -17510,7 +17556,19 @@ theorem eulerMaclaurinPoleClearedZetaRemainderTerm_bernoulliIntegral_polynomial_
         1 ≤ z.re →
         z.re ≤ 2 →
         ‖eulerMaclaurinPoleClearedZetaRemainderTerm z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder_polynomial_bound with
+    ⟨C, m, hC, hbound⟩
+  refine ⟨C, m, hC, ?_⟩
+  intro z hz_one hz_two
+  have hformula :
+      eulerMaclaurinPoleClearedZetaRemainderTerm z =
+        eulerMaclaurinPoleClearedZetaBernoulliIntegralRemainder z :=
+    eulerMaclaurinPoleClearedZetaRemainderTerm_eq_bernoulliIntegralRemainder
+      z hz_one hz_two
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ C * (1 + ‖z‖) ^ m)
+    hformula.symm
+    (hbound z hz_one hz_two)
 
 /-- Polynomial control for the pole-cleared Euler-Maclaurin remainder from the
 standard Bernoulli-periodic integral majorant.

@@ -3455,6 +3455,63 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
         φ z t)
       hprod
 
+/-- Compact analytic tube around nearby center segments.
+
+This is the geometric/measure-theoretic input for dominated differentiation:
+local analyticity of `φ` along the compact segment from `0` to `z` gives an
+endpoint neighborhood on which all nearby center segments lie in finitely many
+analytic charts.  The endpoint derivative integrand is then continuous on the
+compact endpoint-parameter tube, hence bounded by a constant integrable
+function on `[0,1]`, and the pointwise endpoint derivative follows from the
+already-proved product/chain rule. -/
+theorem complex_centerSegmentIntegral_compactAnalyticTube_dominatedPackage
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∃ u : Set ℂ,
+          z ∈ u ∧
+          u ∈ 𝓝 z ∧
+          ∀ w : ℂ,
+            w ∈ u →
+              ∃ ε : ℝ,
+                0 < ε ∧
+                (∀ᶠ x in 𝓝 w,
+                  AEStronglyMeasurable
+                    (fun t : ℝ =>
+                      x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                IntervalIntegrable
+                  (fun t : ℝ =>
+                    w * φ (AffineMap.lineMap (0 : ℂ) w t))
+                  volume
+                  (0 : ℝ)
+                  1 ∧
+                AEStronglyMeasurable
+                  (fun t : ℝ =>
+                    complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                      φ w t)
+                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                ∃ bound : ℝ → ℝ,
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                          φ x t‖ ≤ bound t) ∧
+                  IntervalIntegrable bound volume (0 : ℝ) 1 ∧
+                  (∀ᵐ t ∂volume,
+                    t ∈ Ι (0 : ℝ) 1 →
+                      ∀ x ∈ ball w ε,
+                        HasDerivAt
+                          (fun y : ℂ =>
+                            y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                          (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                            φ x t)
+                          x) := by
+  sorry
+
 /-- Compact-neighborhood hypotheses for applying mathlib's dominated
 parameter-integral derivative theorem to the center-segment integrand.
 
@@ -3510,7 +3567,9 @@ theorem complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
                           (complex_centerSegmentIntegral_endpointDerivativeIntegrand
                             φ x t)
                           x) := by
-  sorry
+  exact
+    complex_centerSegmentIntegral_compactAnalyticTube_dominatedPackage
+      φ hstar hφ
 
 /-- Local dominated differentiation for the exact center-segment integrand.
 
