@@ -41,6 +41,35 @@ abbrev EntireFunctionNonzeroZero
     (F : ℂ → ℂ) : Type :=
   {z : ℂ // F z = 0 ∧ z ≠ 0}
 
+/-- Forgetting the nonzero condition gives an ordinary zero. -/
+def EntireFunctionNonzeroZero.toZero
+    (F : ℂ → ℂ)
+    (z : EntireFunctionNonzeroZero F) : EntireFunctionZero F :=
+  ⟨z, z.property.1⟩
+
+/-- The forgetful map from nonzero zeros to all zeros is injective. -/
+theorem EntireFunctionNonzeroZero.toZero_injective
+    (F : ℂ → ℂ) :
+    Function.Injective (EntireFunctionNonzeroZero.toZero F) := by
+  intro z w hzw
+  exact Subtype.ext (congrArg Subtype.val hzw)
+
+/-- An ordinary zero lies in the range of the nonzero-zero forgetful map exactly
+when its value is nonzero. -/
+theorem EntireFunctionNonzeroZero.mem_range_toZero_iff
+    (F : ℂ → ℂ)
+    (z : EntireFunctionZero F) :
+    z ∈ Set.range (EntireFunctionNonzeroZero.toZero F) ↔ (z : ℂ) ≠ 0 := by
+  constructor
+  · intro hz
+    rcases hz with ⟨w, hw⟩
+    exact Eq.subst
+      (motive := fun x : ℂ => x ≠ 0)
+      (congrArg Subtype.val hw)
+      w.property.2
+  · intro hz
+    exact ⟨⟨z, z.property, hz⟩, Subtype.ext rfl⟩
+
 /-- The local first-nonzero Taylor factor at a point where the analytic order is `n`.
 
 This is the local multiplicity input used by Jensen's formula: near `z`, an
@@ -2134,9 +2163,51 @@ theorem entireFunctionNonzeroZeroClosedDiskSummable_canonical_iff_zeroSubtype
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
-  -- The two indexings differ only by the single origin zero, whose nonzero
-  -- summand is definitionally zero.
-  sorry
+  let i : EntireFunctionNonzeroZero F → EntireFunctionZero F :=
+    EntireFunctionNonzeroZero.toZero F
+  have hi : Function.Injective i :=
+    EntireFunctionNonzeroZero.toZero_injective F
+  have houtside :
+      ∀ z : EntireFunctionZero F,
+        z ∉ Set.range i →
+        entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z = 0 := by
+    intro z hz_not_range
+    have hz_zero : (z : ℂ) = 0 := by
+      by_contra hz_ne
+      exact hz_not_range
+        ((EntireFunctionNonzeroZero.mem_range_toZero_iff F z).mpr hz_ne)
+    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+    exact if_pos hz_zero
+  have hiff :
+      Summable
+          (fun z : EntireFunctionNonzeroZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z)) ↔
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) :=
+    hi.summable_iff houtside
+  have hpoint :
+      (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R (i z)) =
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroClosedDiskSummand F hF R z) := by
+    funext z
+    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
+    unfold entireFunctionNonzeroZeroClosedDiskSummand
+    unfold entireFunctionZeroMultiplicityClosedDiskSummand
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    exact if_neg hz_ne
+  constructor
+  · intro hcanonical
+    exact hiff.mp (Eq.subst
+      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
+      hpoint.symm
+      hcanonical)
+  · intro hold
+    exact Eq.subst
+      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
+      hpoint
+      (hiff.mpr hold)
 
 /-- The old `EntireFunctionZero` radial-gap summability surface is equivalent
 to summability on the canonical nonzero-zero index. -/
@@ -2150,9 +2221,50 @@ theorem entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
       Summable
         (fun z : EntireFunctionZero F =>
           entireFunctionJensenRadialGapSummand F hF ρ z) := by
-  -- The two indexings differ only by the single origin zero, whose radial-gap
-  -- summand is definitionally zero.
-  sorry
+  let i : EntireFunctionNonzeroZero F → EntireFunctionZero F :=
+    EntireFunctionNonzeroZero.toZero F
+  have hi : Function.Injective i :=
+    EntireFunctionNonzeroZero.toZero_injective F
+  have houtside :
+      ∀ z : EntireFunctionZero F,
+        z ∉ Set.range i →
+        entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+    intro z hz_not_range
+    have hz_zero : (z : ℂ) = 0 := by
+      by_contra hz_ne
+      exact hz_not_range
+        ((EntireFunctionNonzeroZero.mem_range_toZero_iff F z).mpr hz_ne)
+    unfold entireFunctionJensenRadialGapSummand
+    exact if_pos hz_zero
+  have hiff :
+      Summable
+          (fun z : EntireFunctionNonzeroZero F =>
+            entireFunctionJensenRadialGapSummand F hF ρ (i z)) ↔
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionJensenRadialGapSummand F hF ρ z) :=
+    hi.summable_iff houtside
+  have hpoint :
+      (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ (i z)) =
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) := by
+    funext z
+    unfold entireFunctionJensenRadialGapSummand
+    unfold entireFunctionNonzeroZeroRadialGapSummand
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    exact if_neg hz_ne
+  constructor
+  · intro hcanonical
+    exact hiff.mp (Eq.subst
+      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
+      hpoint.symm
+      hcanonical)
+  · intro hold
+    exact Eq.subst
+      (motive := fun f : EntireFunctionNonzeroZero F → ℝ => Summable f)
+      hpoint
+      (hiff.mpr hold)
 
 /-- Closed-disk nonzero-zero summability transports from the global origin
 Taylor quotient back to the original entire function. -/
