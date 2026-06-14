@@ -37,6 +37,119 @@ noncomputable def entireFunction_insertNormalizedFactor_gluedQuotient
   else
     entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w
 
+/-- The normalized inserted factor is nonzero away from its center. -/
+theorem entireFunction_insertNormalizedFactor_normalizedFactor_pow_ne_of_ne
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (a : EntireFunctionZero F)
+    (ha0 : (a : ℂ) ≠ 0)
+    {w : ℂ}
+    (hw_ne : w ≠ (a : ℂ)) :
+    (1 - w / (a : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (a : ℂ) ≠ 0 := by
+  have hbase_ne : 1 - w / (a : ℂ) ≠ 0 := by
+    intro hbase_zero
+    have hdiv_eq_one : w / (a : ℂ) = 1 :=
+      (eq_of_sub_eq_zero hbase_zero).symm
+    have hw_eq : w = (a : ℂ) := by
+      calc
+        w = (w / (a : ℂ)) * (a : ℂ) := by
+          exact (div_mul_cancel₀ w ha0).symm
+        _ = 1 * (a : ℂ) := by
+          exact congrArg (fun x : ℂ => x * (a : ℂ)) hdiv_eq_one
+        _ = (a : ℂ) := one_mul (a : ℂ)
+    exact hw_ne hw_eq
+  exact
+    pow_ne_zero
+      (entireFunctionZeroMultiplicity F hF (a : ℂ))
+      hbase_ne
+
+/-- Analyticity of one normalized finite-product factor. -/
+theorem entireFunction_finiteZeroDivisorProduct_factor_analyticAt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (z : EntireFunctionZero F)
+    (w : ℂ) :
+    AnalyticAt ℂ
+      (fun x : ℂ =>
+        (1 - x / (z : ℂ)) ^
+          entireFunctionZeroMultiplicity F hF (z : ℂ))
+      w := by
+  by_cases hz0 : (z : ℂ) = 0
+  · have hconst :
+        (fun x : ℂ =>
+          (1 - x / (z : ℂ)) ^
+            entireFunctionZeroMultiplicity F hF (z : ℂ))
+          =
+        (fun _x : ℂ =>
+          (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) := by
+      funext x
+      calc
+        (1 - x / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) =
+            (1 - x / 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
+          exact congrArg
+            (fun y : ℂ => (1 - x / y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
+            hz0
+        _ = (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
+          exact congrArg
+            (fun y : ℂ => (1 - y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
+            (div_zero x)
+    exact Eq.subst (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w) hconst.symm analyticAt_const
+  · exact
+      ((analyticAt_const.sub
+        (analyticAt_id.div analyticAt_const hz0)).pow
+          (entireFunctionZeroMultiplicity F hF (z : ℂ)))
+
+/-- Analyticity of a finite normalized zero-divisor product. -/
+theorem entireFunction_finiteZeroDivisorProduct_analyticAt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (w : ℂ) :
+    AnalyticAt ℂ
+      (fun x : ℂ =>
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S x)
+      w := by
+  classical
+  refine Finset.induction_on S ?empty ?insert
+  · have hconst :
+        (fun x : ℂ =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF ∅ x)
+          =
+        (fun _x : ℂ => 1) := by
+      funext x
+      rfl
+    exact Eq.subst (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w) hconst.symm analyticAt_const
+  · intro z T hz_not_mem hT
+    have hfactor :
+        AnalyticAt ℂ
+          (fun x : ℂ =>
+            (1 - x / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))
+          w :=
+      entireFunction_finiteZeroDivisorProduct_factor_analyticAt F hF z w
+    have hprod_eq :
+        (fun x : ℂ =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF (insert z T) x)
+          =
+        (fun x : ℂ =>
+          (1 - x / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ) *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF T x) := by
+      funext x
+      exact
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+          F hF T z hz_not_mem x
+    exact
+      Eq.subst
+        (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w)
+        hprod_eq.symm
+        (hfactor.mul hT)
+
 /-- The glued quotient agrees with the local removable quotient near the
 inserted point. -/
 theorem entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_local
@@ -107,25 +220,12 @@ theorem entireFunction_insertNormalizedFactor_rawQuotient_analyticAt_of_ne
     AnalyticAt ℂ
       (entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a)
       w := by
-  have hbase_ne : 1 - w / (a : ℂ) ≠ 0 := by
-    intro hbase_zero
-    have hdiv_eq_one : w / (a : ℂ) = 1 := by
-      exact (eq_of_sub_eq_zero hbase_zero).symm
-    have hw_eq : w = (a : ℂ) := by
-      calc
-        w = (w / (a : ℂ)) * (a : ℂ) := by
-          exact (div_mul_cancel₀ w ha0).symm
-        _ = 1 * (a : ℂ) := by
-          exact congrArg (fun x : ℂ => x * (a : ℂ)) hdiv_eq_one
-        _ = (a : ℂ) := one_mul (a : ℂ)
-    exact hw_ne hw_eq
   have hden_ne :
       (fun x : ℂ =>
         (1 - x / (a : ℂ)) ^
           entireFunctionZeroMultiplicity F hF (a : ℂ)) w ≠ 0 :=
-    pow_ne_zero
-      (entireFunctionZeroMultiplicity F hF (a : ℂ))
-      hbase_ne
+    entireFunction_insertNormalizedFactor_normalizedFactor_pow_ne_of_ne
+      F hF a ha0 hw_ne
   have hden_an :
       AnalyticAt ℂ
         (fun x : ℂ =>
@@ -182,6 +282,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_
     (S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)
     (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (ha0 : (a : ℂ) ≠ 0)
     (hQold_factor :
       ∀ w : ℂ,
@@ -197,10 +298,46 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_
       entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w *
         entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
           F hF (insert a S) w := by
-  -- Exact algebra root: unfold the raw quotient branch and use
-  -- `finiteZeroDivisorProduct_insert`, then cancel the nonzero normalized
-  -- inserted factor.
-  sorry
+  let A : ℂ :=
+    (1 - w / (a : ℂ)) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)
+  let P : ℂ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+      F hF S w
+  have hA_ne : A ≠ 0 :=
+    entireFunction_insertNormalizedFactor_normalizedFactor_pow_ne_of_ne
+      F hF a ha0 hw_ne
+  have hglue :
+      entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+        Qold w / A := by
+    calc
+      entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+          entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w := by
+        exact if_neg hw_ne
+      _ = Qold w / A := by
+        rfl
+  have hinsert :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) w =
+        A * P := by
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+        F hF S a ha_not_mem w
+  calc
+    F w = Qold w * P := hQold_factor w hwρ
+    _ = (Qold w / A) * (A * P) := by
+      calc
+        Qold w * P = ((Qold w / A) * A) * P := by
+          exact congrArg (fun x : ℂ => x * P) (div_mul_cancel₀ (Qold w) hA_ne).symm
+        _ = (Qold w / A) * (A * P) := mul_assoc (Qold w / A) A P
+    _ =
+        entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF (insert a S) w := by
+      exact
+        congrArg₂
+          (fun x y : ℂ => x * y)
+          hglue.symm
+          hinsert.symm
 
 /-- At the inserted point, the glued quotient satisfies the inserted product
 identity with the removable value prescribed by the local Taylor unit. -/
@@ -229,10 +366,83 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_
       entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a (a : ℂ) *
         entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
           F hF (insert a S) (a : ℂ) := by
-  -- Exact algebra root: use the center branch, `hQloc_value`, the local
-  -- Taylor factorization evaluated at `a`, and the inserted-product leading
-  -- coefficient.
-  sorry
+  let m : ℕ := entireFunctionZeroMultiplicity F hF (a : ℂ)
+  let C : ℂ := (-(a : ℂ)⁻¹) ^ m
+  let Z : ℂ := ((a : ℂ) - (a : ℂ)) ^ m
+  let P : ℂ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+      F hF S (a : ℂ)
+  have hP_ne : P ≠ 0 :=
+    entireFunction_finiteZeroDivisorProduct_nonzero_at_newSupport
+      F hF S a ha_not_mem hS0
+  have hC_ne : C ≠ 0 := by
+    have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+      inv_ne_zero ha0
+    have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+      neg_ne_zero.mpr hinv_ne
+    exact pow_ne_zero m hneg_ne
+  have hD_ne : C * P ≠ 0 :=
+    mul_ne_zero hC_ne hP_ne
+  have hF_local :
+      F (a : ℂ) = Z * g (a : ℂ) := by
+    calc
+      F (a : ℂ) =
+          ((a : ℂ) - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g (a : ℂ) :=
+        hg_factor.self_of_nhds
+      _ = Z * g (a : ℂ) := by
+        exact smul_eq_mul Z (g (a : ℂ))
+  have hglue :
+      entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a (a : ℂ) =
+        Qloc (a : ℂ) :=
+    if_pos rfl
+  have hinsert :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) (a : ℂ) =
+        (C * Z) * P := by
+    have hraw_insert :
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF (insert a S) (a : ℂ) =
+          (1 - (a : ℂ) / (a : ℂ)) ^ m * P :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+        F hF S a ha_not_mem (a : ℂ)
+    have hnorm :
+        (1 - (a : ℂ) / (a : ℂ)) ^ m = C * Z :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+        ha0 m
+    calc
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF (insert a S) (a : ℂ) =
+          (1 - (a : ℂ) / (a : ℂ)) ^ m * P := hraw_insert
+      _ = (C * Z) * P := by
+        exact congrArg (fun x : ℂ => x * P) hnorm
+  calc
+    F (a : ℂ) = Z * g (a : ℂ) := hF_local
+    _ = (g (a : ℂ) / (C * P)) * ((C * Z) * P) := by
+      calc
+        Z * g (a : ℂ) = g (a : ℂ) * Z := mul_comm Z (g (a : ℂ))
+        _ = ((g (a : ℂ) / (C * P)) * (C * P)) * Z := by
+          exact congrArg (fun x : ℂ => x * Z) (div_mul_cancel₀ (g (a : ℂ)) hD_ne).symm
+        _ = (g (a : ℂ) / (C * P)) * ((C * P) * Z) := by
+          exact mul_assoc (g (a : ℂ) / (C * P)) (C * P) Z
+        _ = (g (a : ℂ) / (C * P)) * ((C * Z) * P) := by
+          have hCPZ : (C * P) * Z = (C * Z) * P := by
+            calc
+              (C * P) * Z = C * (P * Z) := mul_assoc C P Z
+              _ = C * (Z * P) := by
+                exact congrArg (fun x : ℂ => C * x) (mul_comm P Z)
+              _ = (C * Z) * P := (mul_assoc C Z P).symm
+          exact congrArg (fun x : ℂ => (g (a : ℂ) / (C * P)) * x) hCPZ
+    _ =
+        entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a (a : ℂ) *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF (insert a S) (a : ℂ) := by
+      exact
+        congrArg₂
+          (fun x y : ℂ => x * y)
+          (Eq.trans hglue hQloc_value)
+          hinsert.symm
 
 /-- Product identity for the glued quotient after inserting one normalized
 factor. -/
@@ -243,6 +453,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
     (S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)
     (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (ha0 : (a : ℂ) ≠ 0)
     (hQold_factor :
       ∀ w : ℂ,
@@ -281,7 +492,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
                 F hF (insert a S) x)
         hw_eq.symm
         (entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_insertedPoint
-          F Qold Qloc g hF ρ S a ha_not_mem ha0 hQloc_value hg_factor)
+          F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQloc_value hg_factor)
   · exact
       entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
         F Qold Qloc g hF ρ S a ha_not_mem ha0 hQold_factor hw_eq hwρ
@@ -381,7 +592,7 @@ theorem entireFunction_insertNormalizedFactor_glue_localDivision
         F Qold Qloc hF ρ a ha0 hQloc_an hQloc_eq hQold_an
   · exact
       entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
-        F Qold Qloc g hF ρ S a ha_not_mem ha0 hQold_factor
+        F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQold_factor
         hQloc_value hg_factor
   · exact
       entireFunction_insertNormalizedFactor_gluedQuotient_zero
@@ -464,11 +675,28 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Exact root: define `Q = rawQuotient`; for every disk point `w`, `w ≠ a`
-  -- follows from `haρ_not`, and the raw quotient is analytic by ordinary
-  -- division.  Product identity and zero normalization are the off-point
-  -- special cases above.
-  sorry
+  refine
+    ⟨entireFunction_insertNormalizedFactor_gluedQuotient F Qold g hF a,
+      ?_, ?_, ?_⟩
+  · intro w hwρ
+    have hw_ne : w ≠ (a : ℂ) := by
+      intro hw_eq
+      exact haρ_not (hw_eq ▸ hwρ)
+    exact
+      (entireFunction_insertNormalizedFactor_rawQuotient_analyticAt_of_ne
+        F Qold hF a ha0 hw_ne (hQold_an w hwρ)).congr
+        (entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_raw_of_ne
+          F Qold g hF a hw_ne).symm
+  · intro w hwρ
+    have hw_ne : w ≠ (a : ℂ) := by
+      intro hw_eq
+      exact haρ_not (hw_eq ▸ hwρ)
+    exact
+      entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
+        F Qold g g hF ρ S a ha_not_mem ha0 hQold_factor hw_ne hwρ
+  · exact
+      entireFunction_insertNormalizedFactor_gluedQuotient_zero
+        F Qold g hF a ha0 hQold_zero
 
 /-- Explicit old-quotient/local-unit form of one-step normalized removable
 division.

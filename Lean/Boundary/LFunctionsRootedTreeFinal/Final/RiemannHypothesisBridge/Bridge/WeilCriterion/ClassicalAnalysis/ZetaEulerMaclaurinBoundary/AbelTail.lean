@@ -311,15 +311,40 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
                 A * Real.log (2 + ‖t‖) := by
   exact Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAbel
 
-/-- Transport from the Abel boundary remainder to the post-cutoff `tsum` tail
-written in boundary-line Dirichlet monomials. -/
-/-- Boundary Dirichlet-tail summability at `1 + it`.
+/-- Boundary Dirichlet-series summability at `1 + it`.
 
-This is the ordinary boundary-series theorem for the nonzero-frequency line,
-proved classically by Dirichlet/Abel summation and analytic continuation.  It
-is the exact theorem needed before a `tsum` can be identified with the zeta
-remainder; `riemannZeta` does not unfold definitionally to this series on
-`re = 1`. -/
+This is the boundary-value theorem for the ordinary Dirichlet series on the
+nonzero-frequency line. -/
+theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_hasSum_riemannZeta
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖) :
+    HasSum
+      (fun n : ℕ =>
+        ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹)
+      (riemannZeta (Complex.boundaryLineOnePointRealParam t)) := by
+  sorry
+
+/-- Removing a finite truncation from the boundary Dirichlet series leaves the
+post-cutoff Dirichlet tail. -/
+theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder_of_series
+    (t : ℝ)
+    (N : ℕ)
+    (hζ :
+      HasSum
+        (fun n : ℕ =>
+          ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹)
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t))) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then
+          ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
+        else
+          0)
+      (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+        Complex.riemannZetaBoundaryLineTruncation t N) := by
+  sorry
+
+/-- Boundary Dirichlet-tail summability at `1 + it`. -/
 theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
@@ -333,7 +358,11 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_
           0)
       (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
         Complex.riemannZetaBoundaryLineTruncation t N) := by
-  sorry
+  exact
+    Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder_of_series
+      t N
+      (Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_hasSum_riemannZeta
+        t ht)
 
 /-- Transport from the ordinary boundary Dirichlet-tail `HasSum` theorem to
 the concrete `tsum` equality. -/
