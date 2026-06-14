@@ -356,6 +356,26 @@ noncomputable def Complex.binetSecondFormulaRemainder (w : ℂ) : ℂ :=
     Complex.arctan ((t : ℂ) / w) /
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
 
+/-- The lower Binet remainder piece after splitting at `‖w‖ / 2`.
+
+This is the small-argument range where the power-series arctangent estimate
+gives the explicit `1 / ‖w‖` factor. -/
+noncomputable def Complex.binetSecondFormulaSmallRemainder (w : ℂ) : ℂ :=
+  2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
+/-- The upper Binet remainder piece after splitting at `‖w‖ / 2`.
+
+This is the only remaining full-sector obstruction: the existing pointwise
+principal-arctangent bound supplies either a fixed-`w` constant, or a uniform
+constant after wedge separation.  The full closed-right-half-plane owner API
+needs this tail to decay like `1 / ‖w‖` without a wedge hypothesis. -/
+noncomputable def Complex.binetSecondFormulaTailRemainder (w : ℂ) : ℂ :=
+  2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
 /-- The main term in Binet's logarithmic Stirling formula. -/
 noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
   (w - (1 / 2 : ℂ)) * Complex.log w - w +
@@ -1234,14 +1254,46 @@ theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRig
     ⟨hlog w hw_re_pos hw_norm,
       Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩
 
+/-- Small-argument Binet remainder estimate with the explicit `1 / ‖w‖`
+factor. -/
+theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤
+      4 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  simpa [Complex.binetSecondFormulaSmallRemainder] using
+    Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+      (w := w) hw_re_pos
+
+/-- Full-sector tail absorption for the Binet remainder split at `‖w‖ / 2`.
+
+This is the deepest remaining analytic root for the completed-normalization
+mirror.  It is stronger than the existing fixed-`w` tail bound and different
+from the wedge-separated bound: it must hold uniformly throughout the open
+right half-plane, including vertical-line regimes where `w.re / ‖w‖ → 0`.
+
+For the literal principal-arctangent kernel, the obstruction is the branch
+singularity approached on the imaginary axis.  A proof must either replace this
+with the correct continued Binet boundary kernel or prove a contour-deformation
+tail estimate whose constant is uniform in the full right half-plane. -/
+theorem Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ K / ‖w‖ := by
+  sorry
+
 /-- Root marking the missing comparison from the honest split Binet remainder
 bound to a pure open-right-half-plane `O(1 / ‖w‖)` estimate.
 
-The split owner theorem does not imply this statement on the whole open
-right half-plane by algebra alone.  The missing upstream content is a genuine
-Binet-kernel tail-absorption theorem strong enough for the full closed
-right-half-plane sector used by vertical-line Stirling, not merely a wedge
-separated from the imaginary axis. -/
+The only remaining analytic input should be
+`Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm`; the
+small split piece already carries the explicit `1 / ‖w‖` factor. -/
 theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
@@ -1250,7 +1302,58 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires
         0 < w.re →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  let J : ℝ :=
+    ∫ t : ℝ in Set.Ioi (0 : ℝ),
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  rcases Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm with
+    ⟨Rtail, Ktail, hRtail, hKtail, htail⟩
+  let K : ℝ := 4 * J + Ktail
+  have hJ_pos : 0 < J :=
+    Real.binetSecondFormula_kernel_majorant_integral_pos
+  have hK : 0 < K :=
+    add_pos (mul_pos (by norm_num : (0 : ℝ) < 4) hJ_pos) hKtail
+  refine ⟨Rtail, K, hRtail, hK, ?_⟩
+  intro w hw_re_pos hRtail_le
+  have hsplit :
+      Complex.binetSecondFormulaRemainder w =
+        Complex.binetSecondFormulaSmallRemainder w +
+          Complex.binetSecondFormulaTailRemainder w := by
+    simpa [Complex.binetSecondFormulaSmallRemainder,
+      Complex.binetSecondFormulaTailRemainder] using
+      Complex.binetSecondFormulaRemainder_eq_small_add_tail
+        (w := w) hw_re_pos
+  have hsmall :
+      ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤ 4 * J / ‖w‖ := by
+    exact
+      Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
+        (w := w) hw_re_pos
+  have htail :
+      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ Ktail / ‖w‖ :=
+    htail w hw_re_pos hRtail_le
+  have hsum :
+      ‖Complex.binetSecondFormulaSmallRemainder w +
+          Complex.binetSecondFormulaTailRemainder w‖ ≤
+        4 * J / ‖w‖ + Ktail / ‖w‖ := by
+    calc
+      ‖Complex.binetSecondFormulaSmallRemainder w +
+          Complex.binetSecondFormulaTailRemainder w‖
+          ≤ ‖Complex.binetSecondFormulaSmallRemainder w‖ +
+              ‖Complex.binetSecondFormulaTailRemainder w‖ :=
+        norm_add_le _ _
+      _ ≤ 4 * J / ‖w‖ + Ktail / ‖w‖ :=
+        add_le_add hsmall htail
+  have hcombine :
+      4 * J / ‖w‖ + Ktail / ‖w‖ = K / ‖w‖ := by
+    calc
+      4 * J / ‖w‖ + Ktail / ‖w‖ =
+          (4 * J + Ktail) / ‖w‖ := by
+        exact (add_div (4 * J) Ktail ‖w‖).symm
+      _ = K / ‖w‖ := rfl
+  exact
+    Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ K / ‖w‖)
+      hsplit.symm
+      (hsum.trans_eq hcombine)
 
 /-- Root marking the missing pure-decay Binet/log-Gamma comparison.
 
@@ -1269,7 +1372,20 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
             Complex.binetLogGammaMainTerm w +
               Complex.binetSecondFormulaRemainder w ∧
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  sorry
+  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
+    ⟨Rlog, hRlog, hlog⟩
+  rcases
+      Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption with
+    ⟨Rtail, K, hRtail, hK, htail⟩
+  refine ⟨max Rlog Rtail, K, ?_, hK, ?_⟩
+  · exact lt_of_lt_of_le hRlog (le_max_left Rlog Rtail)
+  intro w hw_re_pos hnorm
+  have hRlog_le : Rlog ≤ ‖w‖ :=
+    le_trans (le_max_left Rlog Rtail) hnorm
+  have hRtail_le : Rtail ≤ ‖w‖ :=
+    le_trans (le_max_right Rlog Rtail) hnorm
+  exact ⟨hlog w hw_re_pos hRlog_le,
+    htail w hw_re_pos hRtail_le⟩
 
 /-- Exponentiating Binet's logarithmic identity separates the main term from
 the Binet remainder. -/
@@ -1707,35 +1823,6 @@ theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRe
   rw [Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
     hGamma_ne hw_ne hbinet]
   exact Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE
-
-/-- Binet's logarithmic formula implies the normalized sectorial Stirling
-estimate for `Γ`.
-
-This is the standard exponentiation step from the principal logarithmic Binet
-formula to
-`Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the open
-right half-plane. -/
-theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula :
-    ∃ R : ℝ, ∃ K : ℝ,
-      0 < R ∧
-      0 < K ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-        ‖Complex.Gamma w * Complex.exp w *
-            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  /-
-  This is now the precise completed-normalization root.  The available Binet
-  input is
-  `Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane`,
-  whose remainder estimate has a fixed-tail term.  To recover this pure
-  `O(1 / ‖w‖)` normalized Stirling statement one must prove a real
-  full-sector tail-absorption theorem.  Restricting to
-  `ε ≤ w.re / ‖w‖` is not acceptable here because the downstream vertical-line
-  estimates have fixed real part and `w.re / ‖w‖ → 0`.
-  -/
-  sorry
 
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/
