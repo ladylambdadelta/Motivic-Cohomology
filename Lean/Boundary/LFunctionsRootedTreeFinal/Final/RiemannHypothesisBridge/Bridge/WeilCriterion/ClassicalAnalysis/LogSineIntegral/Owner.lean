@@ -1004,26 +1004,28 @@ theorem Real.squareSubstitution_weightedPullback_mul_nonneg
     (x : ℝ)
     (hx : x ∈ [[(0 : ℝ), 1]]) :
     0 ≤ (2 : ℝ) * x := by
-  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-    rwa [Set.uIcc_of_le zero_le_one] at hx
-  have htwo_nonneg : (0 : ℝ) ≤ 2 := by
-    exact by norm_num
-  exact mul_nonneg htwo_nonneg hx'.1
+  have hx' := (Set.mem_uIcc.mp hx)
+  cases hx' with
+  | inl h =>
+      have hx0 : 0 ≤ x := h.1
+      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+      exact mul_nonneg htwo_nonneg hx0
+  | inr h =>
+      have hx0 : 0 ≤ x := h.2
+      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+      exact mul_nonneg htwo_nonneg hx0
 
 theorem Real.squareSubstitution_weightedPullback_derivWithin
     (x : ℝ) :
     HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
   have hmul : HasDerivAt (fun y : ℝ => y * y) (x + x) x :=
     (hasDerivAt_id' x).mul (hasDerivAt_id' x)
-  have hsq : (x + x : ℝ) = 2 * x := by
-    calc
-      x + x = (1 + 1 : ℝ) * x := by
-        rw [one_add_one_eq_two, one_mul, one_mul]
-      _ = 2 * x := by
-        rfl
-  have htarget : HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
-    simpa [pow_two, hsq] using hmul.hasDerivWithinAt
-  exact htarget
+  have hpow : (fun y : ℝ => y ^ 2) = fun y : ℝ => y * y := by
+    funext y
+    exact (pow_two y).symm
+  have hderiv : HasDerivAt (fun y : ℝ => y ^ 2) (x + x) x := by
+    exact hpow ▸ hmul
+  exact hderiv.hasDerivWithinAt
 
 /-- The Jacobian factor for the square substitution on `[0,1]`. -/
 theorem Real.squareSubstitution_weightedPullback_eqOn
@@ -1039,9 +1041,10 @@ theorem Real.squareSubstitution_weightedPullback_eqOn
     abs_of_nonneg hnonneg
   calc
     |(2 : ℝ) * x| • g (x ^ 2) = ((2 : ℝ) * x) * g (x ^ 2) := by
-      rw [habs, Real.smul_eq_mul]
+      exact (show |(2 : ℝ) * x| * g (x ^ 2) = ((2 : ℝ) * x) * g (x ^ 2) from by
+        exact congrArg (fun t : ℝ => t * g (x ^ 2)) habs)
     _ = g (x ^ 2) * (2 * x) := by
-      rw [mul_comm]
+      exact mul_comm ((2 : ℝ) * x) (g (x ^ 2))
 
 theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
     {g : ℝ → ℝ}
