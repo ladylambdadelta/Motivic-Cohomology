@@ -1784,6 +1784,32 @@ the nonzero closed-disk multiplicity summands are summable, the radial-gap
 summands are summable, and the multiplicity-weighted radial gap sum equals the
 normalized boundary logarithmic average up to the origin constant
 `-log ‖F 0‖`; cf. Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_explicitConstant_package_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    (∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+    (∀ ρ : ℝ,
+      1 ≤ ρ →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+      entireFunctionJensenRadialGapSum F hF ρ -
+          Real.log ‖F 0‖ =
+        entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
+  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
+  -- Functions, §5.
+  sorry
+
+/-- Classical Jensen package with the origin constant existentially bundled.
+
+The owner theorem above records the constant explicitly as `-log ‖F 0‖`; this
+wrapper exists only for downstream code that wants a named constant. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1801,10 +1827,22 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_package_ownerRoot
               entireFunctionJensenRadialGapSummand F hF ρ z) ∧
           entireFunctionJensenRadialGapSum F hF ρ + C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
-  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
-  -- Functions, §5.
-  sorry
+  rcases
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_explicitConstant_package_ownerRoot
+        F hF hF0 with
+    ⟨hclosed, hradial⟩
+  refine ⟨-Real.log ‖F 0‖, hclosed, ?_⟩
+  intro ρ hρ
+  rcases hradial ρ hρ with ⟨hsum, hidentity⟩
+  refine ⟨hsum, ?_⟩
+  calc
+    entireFunctionJensenRadialGapSum F hF ρ + -Real.log ‖F 0‖ =
+        entireFunctionJensenRadialGapSum F hF ρ - Real.log ‖F 0‖ := by
+      exact (sub_eq_add_neg
+        (entireFunctionJensenRadialGapSum F hF ρ)
+        (Real.log ‖F 0‖)).symm
+    _ = entireFunctionJensenBoundaryLogAverage F ρ :=
+      hidentity
 
 /-- Boundary-log-average identity projected from the standard Jensen package. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogAverage_identity_ownerRoot
