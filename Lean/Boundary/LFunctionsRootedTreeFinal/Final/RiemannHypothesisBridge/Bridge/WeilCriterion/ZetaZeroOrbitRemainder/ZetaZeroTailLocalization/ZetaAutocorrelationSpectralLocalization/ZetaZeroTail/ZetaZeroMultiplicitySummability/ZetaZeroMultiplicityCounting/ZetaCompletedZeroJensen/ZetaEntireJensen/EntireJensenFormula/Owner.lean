@@ -2495,6 +2495,53 @@ theorem entireFunction_cauchyKernel_circleMap_boundaryCancellation
     _ = Complex.I :=
       hcancel
 
+/-- The zero-centered circle parametrization is the Jensen exponential boundary
+sample. -/
+theorem entireFunction_circleMap_zero_eq_boundarySample
+    (ρ : ℝ)
+    (θ : ℝ) :
+    Complex.circleMap (0 : ℂ) ρ θ =
+      (ρ : ℂ) * Complex.exp (θ * Complex.I) := by
+  exact Complex.circleMap_zero ρ θ
+
+/-- The circle-integral Cauchy-kernel integrand cancels to `I` times the
+boundary value after passing to the Jensen exponential parametrization. -/
+theorem entireFunction_cauchyCircleIntegral_integrand_eq_I_smul_boundarySample
+    (L : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 1 ≤ ρ)
+    (θ : ℝ) :
+    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+          L (Complex.circleMap (0 : ℂ) ρ θ)) =
+      Complex.I • L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
+  have hcancel :
+      deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+        Complex.I :=
+    entireFunction_cauchyKernel_circleMap_boundaryCancellation hρ θ
+  have hsample :
+      Complex.circleMap (0 : ℂ) ρ θ =
+        (ρ : ℂ) * Complex.exp (θ * Complex.I) :=
+    entireFunction_circleMap_zero_eq_boundarySample ρ θ
+  calc
+    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+          L (Complex.circleMap (0 : ℂ) ρ θ)) =
+        (deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)) •
+          L (Complex.circleMap (0 : ℂ) ρ θ) := by
+      exact (smul_smul
+        (deriv (Complex.circleMap (0 : ℂ) ρ) θ)
+        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)
+        (L (Complex.circleMap (0 : ℂ) ρ θ))).symm
+    _ = Complex.I • L (Complex.circleMap (0 : ℂ) ρ θ) := by
+      exact congrArg
+        (fun z : ℂ => z • L (Complex.circleMap (0 : ℂ) ρ θ))
+        hcancel
+    _ = Complex.I • L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
+      exact congrArg (fun z : ℂ => Complex.I • L z) hsample
+
 /-- Circle-integral transport for the holomorphic mean value formula on the
 Jensen boundary.
 
@@ -2512,7 +2559,26 @@ theorem entireFunction_cauchyCircleIntegral_eq_I_smul_boundaryIntervalIntegral
   -- Expand `circleIntegral`, identify `circleMap 0 ρ θ` with
   -- `(ρ : ℂ) * exp (θ * I)`, and use
   -- `entireFunction_cauchyKernel_circleMap_boundaryCancellation` pointwise.
-  sorry
+  calc
+    (∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          deriv (Complex.circleMap (0 : ℂ) ρ) θ •
+            (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+              L (Complex.circleMap (0 : ℂ) ρ θ)) := by
+      rfl
+    _ =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Complex.I • L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
+      exact intervalIntegral.integral_congr fun θ _hθ =>
+        entireFunction_cauchyCircleIntegral_integrand_eq_I_smul_boundarySample
+          L hρ θ
+    _ =
+        Complex.I •
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
+      exact intervalIntegral.integral_smul
+        Complex.I
+        (fun θ : ℝ => L ((ρ : ℂ) * Complex.exp (θ * Complex.I)))
 
 /-- Scalar normalization after the Cauchy boundary parametrization. -/
 theorem entireFunction_two_pi_I_inv_smul_I_smul_eq_two_pi_inv_smul
@@ -2662,7 +2728,58 @@ theorem entireFunction_boundaryIntervalIntegrable_of_analyticOnClosedDisk
   -- The boundary path is continuous and lies in the closed disk by
   -- `Complex.abs_circleMap_zero`; analytic functions are continuous on that
   -- image, hence the compact interval parametrization is interval-integrable.
-  sorry
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans zero_le_one hρ
+  have hsample_cont :
+      Continuous (fun θ : ℝ =>
+        (ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
+    have hcircle_cont :
+        Continuous (Complex.circleMap (0 : ℂ) ρ) :=
+      Complex.continuous_circleMap (0 : ℂ) ρ
+    have hsample_eq :
+        (fun θ : ℝ => (ρ : ℂ) * Complex.exp (θ * Complex.I)) =
+          Complex.circleMap (0 : ℂ) ρ := by
+      funext θ
+      exact (entireFunction_circleMap_zero_eq_boundarySample ρ θ).symm
+    exact Eq.subst
+      (motive := fun f : ℝ → ℂ => Continuous f)
+      hsample_eq.symm
+      hcircle_cont
+  have hboundary_norm :
+      ∀ θ : ℝ, ‖(ρ : ℂ) * Complex.exp (θ * Complex.I)‖ ≤ ρ := by
+    intro θ
+    have hcircle :
+        Complex.circleMap (0 : ℂ) ρ θ =
+          (ρ : ℂ) * Complex.exp (θ * Complex.I) :=
+      entireFunction_circleMap_zero_eq_boundarySample ρ θ
+    have hclosed :
+        Complex.circleMap (0 : ℂ) ρ θ ∈
+          Metric.closedBall (0 : ℂ) ρ :=
+      Complex.circleMap_mem_closedBall (0 : ℂ) hρ_nonneg θ
+    have hnorm_circle : ‖Complex.circleMap (0 : ℂ) ρ θ‖ ≤ ρ :=
+      mem_closedBall_zero_iff.mp hclosed
+    exact Eq.subst
+      (motive := fun z : ℂ => ‖z‖ ≤ ρ)
+      hcircle
+      hnorm_circle
+  have hL_cont_on_boundary :
+      ContinuousOn L
+        (Set.range (fun θ : ℝ =>
+          (ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
+    intro z hz
+    rcases hz with ⟨θ, hθz⟩
+    have hz_norm : ‖z‖ ≤ ρ :=
+      Eq.subst
+        (motive := fun w : ℂ => ‖w‖ ≤ ρ)
+        hθz.symm
+        (hboundary_norm θ)
+    exact (hL z hz_norm).continuousAt.continuousWithinAt
+  have hcomp :
+      Continuous (fun θ : ℝ =>
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) :=
+    hL_cont_on_boundary.comp_continuous hsample_cont
+      (fun θ => Set.mem_range_self θ)
+  exact hcomp.intervalIntegrable (0 : ℝ) (2 * Real.pi)
 
 /-- Real scalar multiplication in `ℂ`, viewed by real parts. -/
 theorem entireFunction_complexMean_realScalar_re_mul

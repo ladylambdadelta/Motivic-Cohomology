@@ -1,5 +1,4 @@
 import Mathlib.Analysis.Complex.PhragmenLindelof
-import Mathlib.Algebra.GeomSum
 import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -4871,81 +4870,53 @@ theorem boundaryLineOnePointRealParam_post_cutoff_reciprocal_le_cutoff
     Nat.le_of_lt hcutoff_lt_n
   exact positive_nat_reciprocal_antitone hcutoff_pos hcutoff_le_n
 
-/-- The geometric primitive for a finite constant-ratio oscillatory sequence.
+/-- Logarithmic-phase partial sums for the boundary-line oscillator `n^{-it}`.
 
-This is a reusable algebraic cancellation lemma.  It is not, by itself, the
-primitive estimate for `∑ n^{-it}`, whose phase is logarithmic rather than
-constant-ratio. -/
-theorem finite_geometric_oscillatory_primitive_eq
-    {q : ℂ}
-    (hq : q ≠ 1)
-    (M : ℕ) :
-    (∑ k ∈ Finset.range (M + 1), q ^ k) =
-      (q ^ (M + 1) - 1) / (q - 1) := by
-  exact geom_sum_eq hq (M + 1)
+The phase is `-t log n`; these sums must not be treated as constant-ratio
+geometric sums. -/
+def boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+    (t : ℝ)
+    (M : ℕ) : ℂ :=
+  ∑ k ∈ Finset.Icc 0 M,
+    (k : ℂ) ^ (-(t : ℂ) * Complex.I)
 
-/-- If every power of the oscillator lies on the unit circle and the oscillator is
-not `1`, its geometric primitive is bounded by the inverse distance from `1`. -/
-theorem finite_geometric_oscillatory_primitive_norm_le
-    {q : ℂ}
-    (hq : q ≠ 1)
-    (hqpow_norm : ∀ n : ℕ, ‖q ^ n‖ = 1)
+/-- Definitional expansion of the logarithmic-phase partial sum. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_eq
+    (t : ℝ)
     (M : ℕ) :
-    ‖∑ k ∈ Finset.range (M + 1), q ^ k‖ ≤ 2 / ‖q - 1‖ := by
-  have hformula :
-      (∑ k ∈ Finset.range (M + 1), q ^ k) =
-        (q ^ (M + 1) - 1) / (q - 1) :=
-    finite_geometric_oscillatory_primitive_eq hq M
-  have hden_ne_zero : q - 1 ≠ 0 := by
-    intro hden
-    have hq_eq_one : q = 1 := by
-      exact sub_eq_zero.mp hden
-    exact hq hq_eq_one
-  have hden_norm_pos : 0 < ‖q - 1‖ :=
-    norm_pos_iff.mpr hden_ne_zero
-  have hnum_norm_le :
-      ‖q ^ (M + 1) - 1‖ ≤ 2 := by
-    calc
-      ‖q ^ (M + 1) - 1‖ ≤ ‖q ^ (M + 1)‖ + ‖(1 : ℂ)‖ :=
-        norm_sub_le (q ^ (M + 1)) 1
-      _ = 1 + ‖(1 : ℂ)‖ := by
-        exact congrArg (fun x : ℝ => x + ‖(1 : ℂ)‖)
-          (hqpow_norm (M + 1))
-      _ = 1 + 1 := by
-        exact congrArg (fun x : ℝ => 1 + x)
-          (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ))
-      _ = 2 := rfl
-  have hdiv_le :
-      ‖(q ^ (M + 1) - 1) / (q - 1)‖ ≤ 2 / ‖q - 1‖ := by
-    calc
-      ‖(q ^ (M + 1) - 1) / (q - 1)‖ =
-          ‖q ^ (M + 1) - 1‖ / ‖q - 1‖ :=
-        norm_div (q ^ (M + 1) - 1) (q - 1)
-      _ ≤ 2 / ‖q - 1‖ :=
-        div_le_div_of_nonneg_right hnum_norm_le (le_of_lt hden_norm_pos)
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 2 / ‖q - 1‖)
-    hformula.symm
-    hdiv_le
+    boundaryLineOnePointRealParam_logarithmicPhasePartialSum t M =
+      ∑ k ∈ Finset.Icc 0 M,
+        (k : ℂ) ^ (-(t : ℂ) * Complex.I) := by
+  rfl
 
-/-- The same geometric primitive estimate in the `Icc 0 M` form used by Abel summation. -/
-theorem finite_geometric_oscillatory_primitive_Icc_norm_le
-    {q : ℂ}
-    (hq : q ≠ 1)
-    (hqpow_norm : ∀ n : ℕ, ‖q ^ n‖ = 1)
-    (M : ℕ) :
-    ‖∑ k ∈ Finset.Icc 0 M, q ^ k‖ ≤ 2 / ‖q - 1‖ := by
-  have hrange :
-      Finset.range (M + 1) = Finset.Icc 0 M :=
-    Finset.range_eq_Icc_zero_sub_one (M + 1) (Nat.succ_ne_zero M)
-  have hsum :
-      (∑ k ∈ Finset.range (M + 1), q ^ k) =
-        ∑ k ∈ Finset.Icc 0 M, q ^ k :=
-    congrArg (fun S : Finset ℕ => ∑ k ∈ S, q ^ k) hrange
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ 2 / ‖q - 1‖)
-    hsum
-    (finite_geometric_oscillatory_primitive_norm_le hq hqpow_norm M)
+/-- Euler-Maclaurin / van-der-Corput bound for the logarithmic-phase oscillator.
+
+This is the canonical replacement for the false constant-ratio geometric route:
+the proof studies the phase `x ↦ -t log x` and obtains a partial-sum bound
+uniform enough for Abel summation after the cutoff `N = ⌊2 + |t|⌋₊`; cf.
+Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
+theorem boundaryLineOnePointRealParam_logarithmicPhasePartialSum_norm_le_sqrt_height_log
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {x : ℝ}
+    (hx : (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x) :
+    ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      8 * Real.sqrt (1 + ‖t‖) * Real.log (2 + x) := by
+  sorry
+
+/-- Integral form of the Abel tail contribution controlled by the
+logarithmic-phase partial-sum estimate and the derivative of the reciprocal
+weight. -/
+theorem boundaryLineOnePointRealParam_reciprocal_derivative_logarithmicPhase_integral_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
+        deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
+          boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+      1 - (1 / (⌊2 + ‖t‖⌋₊ : ℝ)) := by
+  sorry
 
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
 coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
