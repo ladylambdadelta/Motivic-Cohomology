@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+import Mathlib.NumberTheory.Harmonic.GammaDeriv
 
 /-!
 # The classical log-sine integral
@@ -167,7 +168,7 @@ theorem Real.sinePowerEndpointModel_intervalIntegrable_zero_half
       MeasureTheory.volume
       (0 : ℝ)
       (Real.pi / 2) := by
-  sorry
+  exact intervalIntegral.intervalIntegrable_rpow' hs
 
 /-- Local comparison of `sin u ^ s` with the model endpoint singularity near
 `0`, in the integrability form needed for the left half-interval. -/
@@ -464,20 +465,61 @@ theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_from_complexBetaGamm
       (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
           Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
         Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re := by
-  sorry
+  let a : ℂ := (((s + 1) / 2 : ℝ) : ℂ)
+  let b : ℂ := (((1 / 2 : ℝ) : ℝ) : ℂ)
+  have ha : 0 < Complex.re a := by
+    calc
+      0 < (s + 1) / 2 := hleft
+      _ = Complex.re a := by
+        rfl
+  have hb : 0 < Complex.re b := by
+    calc
+      0 < (1 / 2 : ℝ) := hright
+      _ = Complex.re b := by
+        rfl
+  have hsum_pos : 0 < Complex.re (a + b) := by
+    exact add_pos ha hb
+  have hsum_ne : Complex.Gamma (a + b) ≠ 0 :=
+    Complex.Gamma_ne_zero_of_re_pos hsum_pos
+  have hmul :
+      Complex.Gamma a * Complex.Gamma b =
+        Complex.Gamma (a + b) * Complex.betaIntegral a b :=
+    Complex.Gamma_mul_Gamma_eq_betaIntegral ha hb
+  have hbeta :
+      Complex.betaIntegral a b =
+        Complex.Gamma a * Complex.Gamma b / Complex.Gamma (a + b) := by
+    exact
+      (eq_div_iff hsum_ne).mpr
+        (Eq.trans (mul_comm (Complex.Gamma (a + b)) (Complex.betaIntegral a b)) hmul.symm)
+  calc
+    Real.sinePowerEulerBetaIntegral s =
+        (Complex.betaIntegral a b).re := by
+      rfl
+    _ =
+        (Complex.Gamma a * Complex.Gamma b / Complex.Gamma (a + b)).re := by
+      exact congrArg Complex.re hbeta
+    _ =
+        (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+            Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+          Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re := by
+      rfl
 
 /-- Real Gamma at `1/2` in the normalization used by the sine-power formula. -/
 theorem Real.Gamma_one_half_eq_sqrt_pi :
     Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi := by
-  sorry
+  exact Real.Gamma_one_half_eq
 
 /-- Complex Gamma on positive real inputs has real part equal to real Gamma in
 the normalization used by this file. -/
 theorem Real.Complex_Gamma_ofReal_re_eq_Real_Gamma_of_pos
     {x : ℝ}
     (hx : 0 < x) :
-      (Complex.Gamma (x : ℂ)).re = Real.Gamma x := by
-  sorry
+    (Complex.Gamma (x : ℂ)).re = Real.Gamma x := by
+  calc
+    (Complex.Gamma (x : ℂ)).re = ((Real.Gamma x : ℝ) : ℂ).re := by
+      exact congrArg Complex.re (Complex.Gamma_ofReal x)
+    _ = Real.Gamma x := by
+      exact Complex.ofReal_re (Real.Gamma x)
 
 /-- Complex Beta/Gamma comparison specialized to the sine-power parameters,
 before taking real Gamma normalizations. -/
@@ -504,7 +546,131 @@ theorem Real.sinePowerGammaQuotient_re_eq_gammaRatio_from_realCoercions
           Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
         Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re =
       Real.sinePowerGammaRatio s := by
-  sorry
+  have hleft_coe :
+      Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) =
+        ((Real.Gamma ((s + 1) / 2) : ℝ) : ℂ) :=
+    Complex.Gamma_ofReal ((s + 1) / 2)
+  have hright_coe :
+      Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) =
+        ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) :=
+    Complex.Gamma_ofReal (1 / 2 : ℝ)
+  have hsum_coe :
+      Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ) =
+        ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ) := by
+    calc
+      Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ) =
+          ((Real.Gamma (((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℝ) : ℂ) := by
+        exact Complex.Gamma_ofReal (((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ)
+      _ = ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ) := by
+        exact congrArg (fun x : ℝ => ((Real.Gamma x : ℝ) : ℂ)) hsum
+  have hquotient_ofReal :
+      (((Real.Gamma ((s + 1) / 2) : ℝ) : ℂ) *
+            ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+          ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)) =
+        ((Real.Gamma ((s + 1) / 2) *
+            Real.Gamma (1 / 2 : ℝ) /
+          Real.Gamma (s / 2 + 1) : ℝ) : ℂ) := by
+    calc
+      (((Real.Gamma ((s + 1) / 2) : ℝ) : ℂ) *
+            ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+          ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)) =
+          ((Real.Gamma ((s + 1) / 2) *
+              Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+            ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ) := by
+        exact congrArg
+          (fun z : ℂ => z / ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ))
+          (Complex.ofReal_mul
+            (Real.Gamma ((s + 1) / 2))
+            (Real.Gamma (1 / 2 : ℝ))).symm
+      _ =
+          ((Real.Gamma ((s + 1) / 2) *
+              Real.Gamma (1 / 2 : ℝ) /
+            Real.Gamma (s / 2 + 1) : ℝ) : ℂ) := by
+        exact
+          (Complex.ofReal_div
+            (Real.Gamma ((s + 1) / 2) *
+              Real.Gamma (1 / 2 : ℝ))
+            (Real.Gamma (s / 2 + 1))).symm
+  calc
+    (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+          Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+        Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re =
+        (((Real.Gamma ((s + 1) / 2) : ℝ) : ℂ) *
+            ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+          ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re := by
+      have hden :
+          (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+              Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re =
+            (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+              ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re := by
+        exact congrArg Complex.re
+          (congrArg
+            (fun z : ℂ =>
+              Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) / z)
+            hsum_coe)
+      have hright' :
+          (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
+              ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re =
+            (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+              ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re := by
+        exact congrArg Complex.re
+          (congrArg
+            (fun z : ℂ =>
+              Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) * z /
+                ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ))
+            hright_coe)
+      have hleft' :
+          (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
+                ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+              ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re =
+            (((Real.Gamma ((s + 1) / 2) : ℝ) : ℂ) *
+                ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+              ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ)).re := by
+        exact congrArg Complex.re
+          (congrArg
+            (fun z : ℂ =>
+              z * ((Real.Gamma (1 / 2 : ℝ) : ℝ) : ℂ) /
+                ((Real.Gamma (s / 2 + 1) : ℝ) : ℂ))
+            hleft_coe)
+      exact Eq.trans hden (Eq.trans hright' hleft')
+    _ =
+        (Real.Gamma ((s + 1) / 2) *
+            Real.Gamma (1 / 2 : ℝ) /
+          Real.Gamma (s / 2 + 1)) := by
+      exact Eq.trans
+        (congrArg Complex.re hquotient_ofReal)
+        (Complex.ofReal_re
+        (Real.Gamma ((s + 1) / 2) *
+          Real.Gamma (1 / 2 : ℝ) /
+        Real.Gamma (s / 2 + 1)))
+    _ =
+        Real.sinePowerGammaRatio s := by
+      calc
+        Real.Gamma ((s + 1) / 2) *
+            Real.Gamma (1 / 2 : ℝ) /
+          Real.Gamma (s / 2 + 1) =
+            Real.Gamma ((s + 1) / 2) *
+              Real.sqrt Real.pi /
+            Real.Gamma (s / 2 + 1) := by
+          exact congrArg
+            (fun x : ℝ =>
+              Real.Gamma ((s + 1) / 2) * x /
+                Real.Gamma (s / 2 + 1))
+            Real.Gamma_one_half_eq_sqrt_pi
+        _ =
+            Real.sqrt Real.pi *
+              Real.Gamma ((s + 1) / 2) /
+            Real.Gamma (s / 2 + 1) := by
+          exact congrArg
+            (fun x : ℝ => x / Real.Gamma (s / 2 + 1))
+            (mul_comm (Real.Gamma ((s + 1) / 2)) (Real.sqrt Real.pi))
+        _ = Real.sinePowerGammaRatio s := by
+          rfl
 
 /-- Real-part conversion of the complex Gamma quotient to the real Gamma-ratio
 normalization used by the sine-power integral. -/
@@ -702,7 +868,53 @@ theorem Real.sinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two :
 /-- Value of the Gamma-ratio at exponent `0`. -/
 theorem Real.sinePowerGammaRatio_zero_eq_pi :
     Real.sinePowerGammaRatio 0 = Real.pi := by
-  sorry
+  have hnum_arg : (((0 : ℝ) + 1) / 2) = (1 / 2 : ℝ) := by
+    exact congrArg (fun x : ℝ => x / 2) (zero_add 1)
+  have hden_arg : (0 : ℝ) / 2 + 1 = (1 : ℝ) := by
+    calc
+      (0 : ℝ) / 2 + 1 = 0 + 1 := by
+        exact congrArg (fun x : ℝ => x + 1) (zero_div 2)
+      _ = 1 := by
+        exact zero_add 1
+  calc
+    Real.sinePowerGammaRatio 0 =
+        Real.sqrt Real.pi *
+          Real.Gamma (((0 : ℝ) + 1) / 2) /
+            Real.Gamma ((0 : ℝ) / 2 + 1) := by
+      rfl
+    _ =
+        Real.sqrt Real.pi *
+          Real.Gamma (1 / 2 : ℝ) /
+            Real.Gamma (1 : ℝ) := by
+      exact congrArg₂
+        (fun x y : ℝ => Real.sqrt Real.pi * Real.Gamma x / Real.Gamma y)
+        hnum_arg
+        hden_arg
+    _ =
+        Real.sqrt Real.pi *
+          Real.sqrt Real.pi /
+            Real.Gamma (1 : ℝ) := by
+      exact congrArg
+        (fun x : ℝ => Real.sqrt Real.pi * x / Real.Gamma (1 : ℝ))
+        Real.Gamma_one_half_eq_sqrt_pi
+    _ =
+        Real.sqrt Real.pi *
+          Real.sqrt Real.pi /
+            1 := by
+      exact congrArg
+        (fun x : ℝ => Real.sqrt Real.pi * Real.sqrt Real.pi / x)
+        Real.Gamma_one
+    _ =
+        Real.sqrt Real.pi * Real.sqrt Real.pi := by
+      exact div_one (Real.sqrt Real.pi * Real.sqrt Real.pi)
+    _ =
+        Real.pi := by
+      calc
+        Real.sqrt Real.pi * Real.sqrt Real.pi =
+            (Real.sqrt Real.pi) ^ 2 := by
+          exact (pow_two (Real.sqrt Real.pi)).symm
+        _ = Real.pi := by
+          exact Real.sq_sqrt Real.pi_pos.le
 
 /-- Derivative of the numerator Gamma factor in the sine-power Gamma-ratio. -/
 theorem Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero :
@@ -710,7 +922,29 @@ theorem Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero :
       (fun s : ℝ => Real.Gamma ((s + 1) / 2))
       ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2))
       0 := by
-  sorry
+  have hgamma :
+      HasDerivAt Real.Gamma (deriv Real.Gamma (1 / 2)) (1 / 2) :=
+    (Real.differentiableAt_Gamma
+      (fun m : ℕ => by
+        have hneg_nonpos : -(m : ℝ) ≤ 0 :=
+          neg_nonpos.mpr (Nat.cast_nonneg m)
+        have hpos : (0 : ℝ) < 1 / 2 :=
+          one_half_pos
+        exact ne_of_gt (lt_of_le_of_lt hneg_nonpos hpos))).hasDerivAt
+  have haffine :
+      HasDerivAt (fun s : ℝ => (s + 1) / 2) (1 / 2 : ℝ) 0 := by
+    have hid : HasDerivAt (fun s : ℝ => s) 1 (0 : ℝ) :=
+      hasDerivAt_id' (0 : ℝ)
+    have hadd : HasDerivAt (fun s : ℝ => s + 1) 1 (0 : ℝ) :=
+      hid.add_const 1
+    exact hadd.div_const 2
+  have hcomp :
+      HasDerivAt
+        (Real.Gamma ∘ fun s : ℝ => (s + 1) / 2)
+        (deriv Real.Gamma (1 / 2) * (1 / 2 : ℝ))
+        0 :=
+    hgamma.comp (0 : ℝ) haffine
+  exact hcomp.congr_deriv (mul_comm (deriv Real.Gamma (1 / 2)) (1 / 2 : ℝ))
 
 /-- Derivative of the denominator Gamma factor in the sine-power Gamma-ratio. -/
 theorem Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero :
@@ -718,7 +952,27 @@ theorem Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero :
       (fun s : ℝ => Real.Gamma (s / 2 + 1))
       ((1 / 2 : ℝ) * deriv Real.Gamma 1)
       0 := by
-  sorry
+  have hgamma :
+      HasDerivAt Real.Gamma (deriv Real.Gamma 1) 1 :=
+    (Real.differentiableAt_Gamma
+      (fun m : ℕ => by
+        have hneg_nonpos : -(m : ℝ) ≤ 0 :=
+          neg_nonpos.mpr (Nat.cast_nonneg m)
+        exact ne_of_gt (lt_of_le_of_lt hneg_nonpos zero_lt_one))).hasDerivAt
+  have haffine :
+      HasDerivAt (fun s : ℝ => s / 2 + 1) (1 / 2 : ℝ) 0 := by
+    have hid : HasDerivAt (fun s : ℝ => s) 1 (0 : ℝ) :=
+      hasDerivAt_id' (0 : ℝ)
+    have hdiv : HasDerivAt (fun s : ℝ => s / 2) (1 / 2 : ℝ) 0 :=
+      hid.div_const 2
+    exact hdiv.add_const 1
+  have hcomp :
+      HasDerivAt
+        (Real.Gamma ∘ fun s : ℝ => s / 2 + 1)
+        (deriv Real.Gamma 1 * (1 / 2 : ℝ))
+        0 :=
+    hgamma.comp (0 : ℝ) haffine
+  exact hcomp.congr_deriv (mul_comm (deriv Real.Gamma 1) (1 / 2 : ℝ))
 
 /-- Nonvanishing of the denominator Gamma factor at exponent `0`. -/
 theorem Real.sinePowerGammaRatio_denominatorGamma_zero_ne :
