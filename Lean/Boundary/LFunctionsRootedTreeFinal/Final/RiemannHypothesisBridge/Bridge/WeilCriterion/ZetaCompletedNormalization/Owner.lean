@@ -3,6 +3,7 @@ import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.Bounds
+import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
@@ -527,6 +528,68 @@ theorem one_le_two_add_complex_norm
 def Complex.closedRightHalfPlaneSector (w : ℂ) : Prop :=
   0 ≤ w.re
 
+/-- Binet's second-formula remainder for `log Γ`.
+
+For `Re w > 0`, Binet's second formula writes
+`log Γ(w) = (w - 1/2) Log w - w + (1/2)log(2π) + J(w)`, where
+`J(w) = 2 ∫₀∞ atan(t / w) / (exp(2πt) - 1) dt`.  This is the canonical
+complex-analysis kernel used to prove sectorial Stirling estimates; cf. DLMF
+5.11.3 and Whittaker-Watson, Ch. XII. -/
+noncomputable def Complex.binetSecondFormulaRemainder (w : ℂ) : ℂ :=
+  2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+
+/-- The main term in Binet's logarithmic Stirling formula. -/
+noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
+  (w - (1 / 2 : ℂ)) * Complex.log w - w +
+    (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
+
+/-- Binet's second formula with a uniform sectorial remainder bound on the
+closed right half-plane.
+
+This is the standard complex-analysis input behind the owner Stirling API:
+on the closed right half-plane and for large radius, the principal-branch
+log-Gamma expansion has Binet remainder `O(1/‖w‖)`.  The closed right
+half-plane avoids the negative real axis, and the large-radius condition avoids
+the origin. -/
+theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w ∧
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+  sorry
+
+/-- Binet's logarithmic formula implies the normalized sectorial Stirling
+estimate for `Γ`.
+
+This is the standard exponentiation step from the principal logarithmic Binet
+formula to
+`Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the closed
+right-half-plane sector. -/
+theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖ := by
+  rcases
+    Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane
+    with ⟨R, K, hR, hK, hBinet⟩
+  -- The remaining work is the standard branch bookkeeping and exponential
+  -- extraction from Binet's logarithmic formula.
+  sorry
+
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/
 def Complex.fixedRealPartVerticalPoint (a b : ℝ) : ℂ :=
@@ -725,7 +788,8 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane :
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
           K / ‖w‖ := by
-  sorry
+  exact
+    Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula
 
 /-- Classical sectorial Stirling estimate for the normalized Gamma factor on
 the closed right half-plane.
@@ -12483,7 +12547,33 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
       ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
         ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 := by
-  sorry
+  let f : ℝ → ℝ := fun x => Real.log (2 + x) / x ^ 2
+  have htwo_b : (2 : ℝ) ≤ b :=
+    le_trans ha hab
+  have hleft :
+      ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 =
+        ∫ x in (2 : ℝ)..a, f x :=
+    (intervalIntegral.integral_of_le ha).symm
+  have hright :
+      ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 =
+        ∫ x in a..b, f x :=
+    (intervalIntegral.integral_of_le hab).symm
+  have hall :
+      ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
+        ∫ x in (2 : ℝ)..b, f x :=
+    (intervalIntegral.integral_of_le htwo_b).symm
+  have hleft_interval : IntervalIntegrable f volume (2 : ℝ) a := by
+    fun_prop
+  have hright_interval : IntervalIntegrable f volume a b := by
+    fun_prop
+  have hadd :
+      (∫ x in (2 : ℝ)..a, f x) + ∫ x in a..b, f x =
+        ∫ x in (2 : ℝ)..b, f x :=
+    intervalIntegral.integral_add_adjacent_intervals
+      hleft_interval hright_interval
+  exact Eq.trans hall
+    (Eq.trans hadd.symm
+      (congrArg₂ (fun u v : ℝ => u + v) hleft.symm hright.symm))
 
 /-- Improper-tail comparison for `log(2+x)/x²` after the cutoff `2`.
 
@@ -19315,6 +19405,203 @@ theorem eulerMaclaurin_riemannZeta_tailIdentityDefect_eq_fixedCutoffDefect
   unfold eulerMaclaurinPoleClearedZetaBernoulliIntegralCore
   rfl
 
+/-- In the convergent half-plane, removing a fixed finite Dirichlet window from
+`ζ(s)` leaves the fixed post-cutoff Dirichlet tail as a `HasSum`. -/
+theorem eulerMaclaurin_riemannZeta_fixedCutoff_halfPlane_finite_split_tail_hasSum
+    (N : ℕ)
+    (z : ℂ)
+    (hz : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      (riemannZeta z - eulerMaclaurinZetaFinitePartWithCutoff N z) := by
+  let f : ℕ → ℂ := fun n : ℕ => (1 : ℂ) / ((n : ℂ) ^ z)
+  have hf_summable : Summable f :=
+    (Complex.summable_one_div_nat_cpow (p := z)).mpr hz
+  have hζ_eq : riemannZeta z = ∑' n : ℕ, f n :=
+    zeta_eq_tsum_one_div_nat_cpow hz
+  have hf_has_tsum : HasSum f (∑' n : ℕ, f n) :=
+    hf_summable.hasSum
+  have hf_has_zeta : HasSum f (riemannZeta z) :=
+    Eq.subst
+      (motive := fun S : ℂ => HasSum f S)
+      hζ_eq.symm
+      hf_has_tsum
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} => f x)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hf_has_zeta
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := f)).mp
+        htail_compl
+  have hf_zero : f 0 = 0 := by
+    exact riemannZeta_dirichletTerm_zero_of_one_lt_re hz
+  have hindicator :
+      ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) =
+        (fun k : ℕ => if N < k then f k else 0) :=
+    funext
+      (fun n : ℕ =>
+        nat_not_Icc_one_indicator_eq_cutoff_if_of_zero f N n hf_zero)
+  have htail_if :
+      HasSum
+        (fun k : ℕ => if N < k then f k else 0)
+        (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    Eq.subst
+      (motive := fun g : ℕ → ℂ =>
+        HasSum g (riemannZeta z - ∑ n ∈ Finset.Icc 1 N, f n))
+      hindicator
+      htail_indicator
+  unfold eulerMaclaurinZetaFinitePartWithCutoff
+  exact htail_if
+
+/-- Fixed-cutoff improper-integral main term in owner normalization. -/
+theorem eulerMaclaurin_fixedCutoff_integralMain_eq_mainTerm
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+        (((x : ℝ) : ℂ) ^ (-z))) =
+      eulerMaclaurinZetaMainTermWithCutoff N z := by
+  unfold eulerMaclaurinZetaMainTermWithCutoff
+  have hformula :
+      (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) =
+        -((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) / ((-z) + 1) := by
+    exact
+      integral_Ioi_cpow_of_lt
+        (eulerMaclaurin_cpow_neg_re_lt_neg_one_of_one_lt_re hhalf_plane)
+        (Nat.cast_pos.mpr hN)
+  let A : ℂ := ((N : ℕ) : ℂ)
+  have hbase :
+      (((N : ℕ) : ℝ) : ℂ) = A :=
+    Complex.ofReal_natCast N
+  have hexponent :
+      (-z) + 1 = (1 : ℂ) - z := by
+    calc
+      (-z) + 1 = (1 : ℂ) + (-z) := by
+        exact add_comm (-z) (1 : ℂ)
+      _ = (1 : ℂ) - z := by
+        exact (sub_eq_add_neg (1 : ℂ) z).symm
+  have hden :
+      (-z) + 1 = -((z - 1)) := by
+    calc
+      (-z) + 1 = (1 : ℂ) - z :=
+        hexponent
+      _ = -(z - 1) := by
+        exact (neg_sub z (1 : ℂ)).symm
+  have hpow :
+      ((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) =
+        A ^ ((1 : ℂ) - z) := by
+    exact congrArg₂ (fun b e : ℂ => b ^ e) hbase hexponent
+  have hnormal :
+      -((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) / ((-z) + 1) =
+        A ^ ((1 : ℂ) - z) / (z - 1) := by
+    calc
+      -((((N : ℕ) : ℝ) : ℂ) ^ ((-z) + 1)) / ((-z) + 1) =
+          -(A ^ ((1 : ℂ) - z)) / ((-z) + 1) := by
+        exact congrArg
+          (fun W : ℂ => -W / ((-z) + 1))
+          hpow
+      _ = -(A ^ ((1 : ℂ) - z)) / (-(z - 1)) := by
+        exact congrArg
+          (fun D : ℂ => -(A ^ ((1 : ℂ) - z)) / D)
+          hden
+      _ = A ^ ((1 : ℂ) - z) / (z - 1) := by
+        exact neg_div_neg_eq (A ^ ((1 : ℂ) - z)) (z - 1)
+  exact Eq.trans hformula hnormal
+
+/-- Fixed-cutoff Euler-Maclaurin tail formula in owner term notation. -/
+theorem eulerMaclaurin_riemannZeta_fixedCutoff_postCutoffTail_ownerTerms_hasSum
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ)
+    (hhalf_plane : 1 < z.re) :
+    HasSum
+      (fun n : ℕ =>
+        if N < n then
+          (1 : ℂ) / ((n : ℂ) ^ z)
+        else
+          0)
+      (eulerMaclaurinZetaMainTermWithCutoff N z +
+        eulerMaclaurinZetaEndpointTermWithCutoff N z +
+        eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z) := by
+  have hstandard :
+      HasSum
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+            (((x : ℝ) : ℂ) ^ (-z))) +
+          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+          (-z *
+            (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))))) :=
+    eulerMaclaurin_cpow_neg_postCutoffTail_firstOrder_hasSum_standard
+      z N hN hhalf_plane
+  have hmain :
+      (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) =
+        eulerMaclaurinZetaMainTermWithCutoff N z :=
+    eulerMaclaurin_fixedCutoff_integralMain_eq_mainTerm N hN z hhalf_plane
+  have hendpoint :
+      ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) =
+        eulerMaclaurinZetaEndpointTermWithCutoff N z := by
+    unfold eulerMaclaurinZetaEndpointTermWithCutoff
+    rfl
+  have hremainder :
+      (-z *
+        (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (((x : ℝ) : ℂ) ^ (-(z + 1))))) =
+        eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z := by
+    unfold eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff
+    unfold eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff
+    rfl
+  have hsum_eq :
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+          ((1 / 2 : ℂ) * (1 / (((N : ℕ) : ℂ) ^ z))) +
+          (-z *
+            (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))))) =
+        eulerMaclaurinZetaMainTermWithCutoff N z +
+          eulerMaclaurinZetaEndpointTermWithCutoff N z +
+          eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z := by
+    exact congrArg₂
+      (fun A B : ℂ => A + B)
+      hmain
+      (congrArg₂
+        (fun A B : ℂ => A + B)
+        hendpoint
+        hremainder)
+  exact
+    Eq.subst
+      (motive := fun S : ℂ =>
+        HasSum
+          (fun n : ℕ =>
+            if N < n then
+              (1 : ℂ) / ((n : ℂ) ^ z)
+            else
+              0)
+          S)
+      hsum_eq
+      hstandard
+
 /-- Vanishing of the Euler-Maclaurin tail defect is exactly the desired
 tail identity. -/
 theorem eulerMaclaurin_riemannZeta_tailIdentity_of_defect_eq_zero
@@ -19407,7 +19694,36 @@ theorem eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect_eq_zero_on_half
     (z : ℂ)
     (hhalf_plane : 1 < z.re) :
     eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect N z = 0 := by
-  sorry
+  have hsplit :
+      HasSum
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        (riemannZeta z - eulerMaclaurinZetaFinitePartWithCutoff N z) :=
+    eulerMaclaurin_riemannZeta_fixedCutoff_halfPlane_finite_split_tail_hasSum
+      N z hhalf_plane
+  have htail :
+      HasSum
+        (fun n : ℕ =>
+          if N < n then
+            (1 : ℂ) / ((n : ℂ) ^ z)
+          else
+            0)
+        (eulerMaclaurinZetaMainTermWithCutoff N z +
+          eulerMaclaurinZetaEndpointTermWithCutoff N z +
+          eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z) :=
+    eulerMaclaurin_riemannZeta_fixedCutoff_postCutoffTail_ownerTerms_hasSum
+      N hN z hhalf_plane
+  have hidentity :
+      riemannZeta z - eulerMaclaurinZetaFinitePartWithCutoff N z =
+        eulerMaclaurinZetaMainTermWithCutoff N z +
+          eulerMaclaurinZetaEndpointTermWithCutoff N z +
+          eulerMaclaurinZetaBernoulliIntegralRemainderWithCutoff N z :=
+    hsplit.unique htail
+  unfold eulerMaclaurin_riemannZeta_fixedCutoffTailIdentityDefect
+  exact sub_eq_zero.mpr hidentity
 
 /-- Identity theorem for the fixed-cutoff Euler-Maclaurin defect on the
 connected punctured strip. -/

@@ -2397,19 +2397,28 @@ theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
       2 * (1 - Real.cos θ) := by
-  -- Expand `Complex.exp_mul_I`; the real and imaginary parts are
-  -- `1 - cos θ` and `-sin θ`, so the norm-square is
-  -- `(1-cos θ)^2 + sin^2 θ = 2*(1-cos θ)`.
-  sorry
+  calc
+    Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
+        Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) := by
+      exact congrArg (fun z : ℂ => Complex.normSq (1 - z)) (Complex.exp_mul_I θ)
+    _ = (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 := by
+      simp [Complex.normSq_apply, pow_two]
+    _ = 2 * (1 - Real.cos θ) := by
+      nlinarith [Real.sin_sq_add_cos_sq θ]
 
 /-- Half-angle square identity for the unit-circle chord length. -/
 theorem unitCircleLogKernel_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     (2 * |Real.sin (θ / 2)|) ^ 2 =
       2 * (1 - Real.cos θ) := by
-  -- Use `Real.sin_sq_eq_half_sub` (or `Real.abs_sin_half`) to identify
-  -- `4 * sin²(θ/2)` with `2*(1-cos θ)`.
-  sorry
+  calc
+    (2 * |Real.sin (θ / 2)|) ^ 2 =
+        4 * (Real.sin (θ / 2)) ^ 2 := by
+      nlinarith [sq_abs (Real.sin (θ / 2))]
+    _ = 4 * (1 / 2 - Real.cos (2 * (θ / 2)) / 2) := by
+      exact congrArg (fun x : ℝ => 4 * x) (Real.sin_sq_eq_half_sub (θ / 2))
+    _ = 2 * (1 - Real.cos θ) := by
+      nlinarith
 
 /-- Squared chord length for the unit-circle logarithmic kernel.
 
@@ -2533,9 +2542,17 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
     (∫ θ in (0 : ℝ)..(2 * Real.pi),
       Real.log |Real.sin (θ / 2)|) =
       2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) := by
-  -- Apply `intervalIntegral.integral_comp_div` with divisor `2`, then
-  -- normalize the endpoints `0 / 2` and `(2π) / 2`.
-  sorry
+  let f : ℝ → ℝ := fun u : ℝ => Real.log |Real.sin u|
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi),
+      Real.log |Real.sin (θ / 2)|) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi), f (θ / 2) := by
+      rfl
+    _ = 2 * (∫ u in (0 : ℝ) / 2..(2 * Real.pi) / 2, f u) := by
+      exact intervalIntegral.integral_comp_div (f := f) (a := (0 : ℝ))
+        (b := 2 * Real.pi) (c := 2) two_ne_zero
+    _ = 2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) := by
+      simp [f, mul_div_cancel_left₀ Real.pi two_ne_zero]
 
 /-- The sine is a.e. positive on the open Jensen sine interval. -/
 theorem real_sin_pos_ae_zero_pi :
@@ -2581,6 +2598,20 @@ theorem real_integral_log_abs_sin_zero_pi_eq_log_sin :
     intervalIntegral.integral_congr_ae
       real_log_abs_sin_ae_eq_log_sin_zero_pi
 
+/-- Standard interval-integrability of the logarithmic sine kernel on
+`[0,π]`.
+
+This is the integrability companion to the classical log-sine integral
+`real_integral_log_sin_zero_pi`. -/
+theorem real_log_abs_sin_intervalIntegrable_zero_pi :
+    IntervalIntegrable
+      (fun u : ℝ => Real.log |Real.sin u|)
+      MeasureTheory.volume
+      0
+      Real.pi := by
+  -- Standard endpoint logarithmic-singularity integrability for `log |sin|`.
+  sorry
+
 /-- Half-angle interval substitution for the sine-log kernel. -/
 theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
     (∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -2622,11 +2653,54 @@ theorem unitCircleLogKernel_halfSineLog_intervalIntegrable :
       MeasureTheory.volume
       0
       (2 * Real.pi) := by
-  -- This follows from the finite logarithmic singularity API applied at the
-  -- two endpoint singularities after the local model
-  -- `sin (θ/2) ~ θ/2` at `0` and
-  -- `sin (θ/2) ~ (2π - θ)/2` at `2π`.
-  sorry
+  have hbase :
+      IntervalIntegrable
+        (fun u : ℝ => Real.log |Real.sin u|)
+        MeasureTheory.volume
+        0
+        Real.pi :=
+    real_log_abs_sin_intervalIntegrable_zero_pi
+  have hscaled :
+      IntervalIntegrable
+        (fun θ : ℝ => Real.log |Real.sin (θ * (1 / 2))|)
+        MeasureTheory.volume
+        ((0 : ℝ) / (1 / 2))
+        (Real.pi / (1 / 2)) :=
+    hbase.comp_mul_right (1 / 2)
+  have hendpoints :
+      ((0 : ℝ) / (1 / 2)) = 0 ∧ Real.pi / (1 / 2) = 2 * Real.pi := by
+    constructor
+    · exact zero_div (1 / 2)
+    · sorry
+  have harg :
+      (fun θ : ℝ => Real.log |Real.sin (θ * (1 / 2))|) =
+        (fun θ : ℝ => Real.log |Real.sin (θ / 2)|) := by
+    funext θ
+    exact congrArg (fun x : ℝ => Real.log |Real.sin x|) (mul_one_div θ 2)
+  exact
+    Eq.subst
+      (motive := fun a : ℝ =>
+        IntervalIntegrable
+          (fun θ : ℝ => Real.log |Real.sin (θ / 2)|)
+          MeasureTheory.volume
+          a
+          (2 * Real.pi))
+      hendpoints.1
+      (Eq.subst
+        (motive := fun b : ℝ =>
+          IntervalIntegrable
+            (fun θ : ℝ => Real.log |Real.sin (θ / 2)|)
+            MeasureTheory.volume
+            ((0 : ℝ) / (1 / 2))
+            b)
+        hendpoints.2
+        (Eq.subst
+          (motive := fun f : ℝ → ℝ =>
+            IntervalIntegrable f MeasureTheory.volume
+              ((0 : ℝ) / (1 / 2))
+              (Real.pi / (1 / 2)))
+          harg
+          hscaled))
 
 /-- Additivity for the constant plus half-angle sine-log kernel split. -/
 theorem unitCircleLogKernel_integral_add_const_halfSineLog :
@@ -10888,6 +10962,7 @@ theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_point
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (ρ : ℝ)
     (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (hfactor :
       ∀ w : ℂ,
         ‖w‖ ≤ ρ →
@@ -10920,7 +10995,91 @@ theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_point
   -- Deep algebraic cancellation lemma: split the finite product at `a`, use
   -- `(1 - w/a)^m = (-a⁻¹)^m (w-a)^m`, and cancel the nonzero factors
   -- `(w-a)^m` and the erased support product.
-  sorry
+  let m : ℕ := entireFunctionZeroMultiplicity F hF (a : ℂ)
+  let P : ℂ := (w - (a : ℂ)) ^ m
+  let C : ℂ := (-(a : ℂ)⁻¹) ^ m
+  let E : ℂ :=
+    ∏ z in S.erase a,
+      (1 - (w : ℂ) / (z : ℂ)) ^
+        entireFunctionZeroMultiplicity F hF (z : ℂ)
+  have hP_ne : P ≠ 0 := by
+    have hsub_ne : w - (a : ℂ) ≠ 0 :=
+      sub_ne_zero.mpr hwa
+    exact pow_ne_zero m hsub_ne
+  have hC_ne : C ≠ 0 := by
+    have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+      inv_ne_zero ha0
+    have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+      neg_ne_zero.mpr hinv_ne
+    exact pow_ne_zero m hneg_ne
+  have hE_ne : E ≠ 0 := by
+    exact
+      Finset.prod_ne_zero_iff.mpr
+        (fun z hz =>
+          pow_ne_zero
+            (entireFunctionZeroMultiplicity F hF (z : ℂ))
+            (fun hfactor =>
+              hw_erase z hz
+                ((entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
+                  F hF S
+                  (fun y hy => hS0 y hy)
+                  z (Finset.mem_of_mem_erase hz) w).1 hfactor).symm))
+  have hD_ne : C * E ≠ 0 :=
+    mul_ne_zero hC_ne hE_ne
+  have hfactor_local :
+      (1 - w / (a : ℂ)) ^ m = C * P := by
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+        ha0 m
+  have hsplit :
+      (1 - w / (a : ℂ)) ^ m * E =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w := by
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_mul_erase
+        F hF S a ha w
+  have hproduct_local :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w =
+        P * (C * E) := by
+    calc
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w =
+          (1 - w / (a : ℂ)) ^ m * E := by
+        exact hsplit.symm
+      _ = (C * P) * E := by
+        exact congrArg (fun x : ℂ => x * E) hfactor_local
+      _ = P * (C * E) := by
+        exact Eq.trans (mul_assoc C P E).symm (mul_left_comm C P E)
+  have hg_mul : F w = P * g w := by
+    exact Eq.trans hg_factor_w (smul_eq_mul P (g w))
+  have hmain :
+      Q w * (P * (C * E)) = P * g w := by
+    calc
+      Q w * (P * (C * E)) =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w := by
+        exact congrArg (fun x : ℂ => Q w * x) hproduct_local.symm
+      _ = F w := by
+        exact (hfactor w hwρ).symm
+      _ = P * g w := by
+        exact hg_mul
+  have hcancel : Q w * (C * E) = g w := by
+    have hleft :
+        P * (Q w * (C * E)) = P * g w := by
+      calc
+        P * (Q w * (C * E)) =
+            Q w * (P * (C * E)) := by
+          exact mul_left_comm P (Q w) (C * E)
+        _ = P * g w := by
+          exact hmain
+    exact mul_left_cancel₀ hP_ne hleft
+  calc
+    Q w = (Q w * (C * E)) / (C * E) := by
+      exact (mul_div_cancel₀ (Q w) hD_ne).symm
+    _ = g w / (C * E) := by
+      exact congrArg (fun x : ℂ => x / (C * E)) hcancel
 
 /-- Closed-disk punctured cancellation for a finite normalized factorization.
 
@@ -10980,7 +11139,7 @@ theorem entireFunction_finiteNormalizedFactorization_frequentlyEq_localRemovable
     (hgood.and_eventually hlocal_punctured).mono
       (fun w hw =>
         entireFunction_finiteNormalizedFactorization_puncturedCancellation_pointwise
-          F Q hF ρ S hfactor a ha ha0 g
+          F Q hF ρ S hS0 hfactor a ha ha0 g
           hw.1.2.1
           hw.1.1
           hw.1.2.2
