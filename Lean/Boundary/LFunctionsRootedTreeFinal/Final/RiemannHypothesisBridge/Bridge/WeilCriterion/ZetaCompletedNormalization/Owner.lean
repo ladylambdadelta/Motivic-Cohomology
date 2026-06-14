@@ -870,7 +870,43 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
     {w : ℂ}
     (hw : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀) :
     Complex.Gamma w ≠ 0 := by
-  sorry
+  intro hzero
+  rcases Complex.Gamma_eq_zero_iff w |>.mp hzero with ⟨n, hn⟩
+  subst w
+  cases n with
+  | zero =>
+      have hnorm_zero : ‖(-((0 : ℕ) : ℂ))‖ = 0 := by
+        calc
+          ‖(-((0 : ℕ) : ℂ))‖ = ‖(0 : ℂ)‖ :=
+            congrArg norm (neg_zero : -((0 : ℂ)) = 0)
+          _ = 0 := norm_zero
+      have hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 :=
+        Eq.subst
+          (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+          hnorm_zero
+          hw.2.1
+      exact (not_lt_of_ge hhalf_le_zero) one_half_pos
+  | succ n =>
+      have hre_eq :
+          (-(((Nat.succ n : ℕ) : ℂ))).re =
+            -(((Nat.succ n : ℕ) : ℝ)) := by
+        calc
+          (-(((Nat.succ n : ℕ) : ℂ))).re =
+              -(((Nat.succ n : ℕ) : ℂ).re) :=
+            Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
+          _ = -(((Nat.succ n : ℕ) : ℝ)) := by
+            exact congrArg Neg.neg (Complex.ofReal_re (((Nat.succ n : ℕ) : ℝ)))
+      have hre_nonneg :
+          (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+        Eq.subst
+          (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+          hre_eq
+          hw.1
+      have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
+        Nat.cast_pos.mpr (Nat.succ_pos n)
+      have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
+        neg_neg_of_pos hsucc_pos
+      exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
 
 /-- The function `w ↦ log ‖Γ(w)‖` is continuous on the closed right-half-plane
 Gamma annulus. -/

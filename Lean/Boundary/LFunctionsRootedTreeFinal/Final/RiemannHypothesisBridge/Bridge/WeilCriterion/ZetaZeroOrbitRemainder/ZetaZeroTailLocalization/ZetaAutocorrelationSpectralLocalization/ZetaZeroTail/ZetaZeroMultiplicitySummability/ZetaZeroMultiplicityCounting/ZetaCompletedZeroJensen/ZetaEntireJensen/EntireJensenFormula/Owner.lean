@@ -2629,6 +2629,129 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
       G P (hzero z hz) hreconstruct_z
   exact Eq.trans halgebra (Eq.symm hmodel_formula)
 
+/-- Quotient-radial owner lemma for exponential reconstruction from a
+logarithmic-derivative primitive.
+
+On the convex Jensen disk, the quotient `G / (G 0 * exp P)` has vanishing
+logarithmic derivative and is normalized to `1` at the center.  This is the
+right intermediate object for the radial FTC argument: once the quotient is
+constant, the desired reconstruction follows by multiplying back by the
+nonzero denominator. -/
+theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center
+    (G P : ℂ → ℂ)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    {ρ : ℝ}
+    (hzero :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        G z ≠ 0)
+    (hP_an :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ P z)
+    (hP_deriv :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        deriv P z = deriv G z * (G z)⁻¹)
+    (hP_zero : P 0 = 0)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ) :
+    deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 ∧
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
+  have hρ_nonneg : 0 ≤ ρ :=
+    le_trans (norm_nonneg z) hz
+  have hzero_mem : ‖(0 : ℂ)‖ ≤ ρ := by
+    calc
+      ‖(0 : ℂ)‖ = 0 := norm_zero
+      _ ≤ ρ := hρ_nonneg
+  have hG0_ne : G 0 ≠ 0 :=
+    hzero 0 hzero_mem
+  have hGz_ne : G z ≠ 0 :=
+    hzero z hz
+  have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
+    exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
+  have hdiffG : DifferentiableAt ℂ G z :=
+    (hG z hz).differentiableAt
+  have hdiffP : DifferentiableAt ℂ P z :=
+    (hP_an z hz).differentiableAt
+  have hdiffExp : DifferentiableAt ℂ (fun w : ℂ => Complex.exp (P w)) z :=
+    hdiffP.cexp
+  have hdiffModel : DifferentiableAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
+    hdiffExp.const_mul (G 0)
+  have hlogExp : logDeriv (fun w : ℂ => Complex.exp (P w)) z = deriv P z := by
+    calc
+      logDeriv (fun w : ℂ => Complex.exp (P w)) z =
+          logDeriv (Complex.exp) (P z) * deriv P z := by
+            exact
+              logDeriv_comp (f := Complex.exp) (g := P) (x := z)
+                (Complex.differentiableAt_exp (P z)) hdiffP
+      _ = 1 * deriv P z := by
+            exact congrArg (fun t : ℂ => t * deriv P z)
+              (congrArg (fun f : ℂ → ℂ => f (P z)) Complex.LogDeriv_exp)
+      _ = deriv P z := by
+            exact one_mul (deriv P z)
+  have hlogModel : logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
+      deriv G z * (G z)⁻¹ := by
+    calc
+      logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z =
+          logDeriv (fun w : ℂ => Complex.exp (P w)) z := by
+            exact logDeriv_const_mul (f := fun w : ℂ => Complex.exp (P w)) z (G 0) hG0_ne
+      _ = deriv P z := hlogExp
+      _ = deriv G z * (G z)⁻¹ := hP_deriv z hz
+  have hlogG : logDeriv G z = deriv G z * (G z)⁻¹ := by
+    calc
+      logDeriv G z = deriv G z / G z := rfl
+      _ = deriv G z * (G z)⁻¹ := by
+            exact (div_eq_mul_inv _ _).symm
+  have hsame :
+      logDeriv G z = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
+    calc
+      logDeriv G z = deriv G z * (G z)⁻¹ := hlogG
+      _ = logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := hlogModel.symm
+  have hlogQ :
+      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
+    calc
+      logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z =
+          logDeriv G z -
+            logDeriv (fun w : ℂ => G 0 * Complex.exp (P w)) z := by
+              exact
+                logDeriv_div z hGz_ne hden_ne hdiffG hdiffModel
+      _ = 0 := by
+            exact sub_eq_zero.mpr hsame
+  have hderiv_zero :
+      deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z = 0 := by
+    have hquot_ne :
+        G z / (G 0 * Complex.exp (P z)) ≠ 0 := by
+      exact div_ne_zero hGz_ne hden_ne
+    have hdiv_zero :
+        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
+          (G z / (G 0 * Complex.exp (P z))) = 0 := by
+      calc
+        deriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z /
+            (G z / (G 0 * Complex.exp (P z))) =
+          logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z := by
+            rfl
+        _ = 0 := hlogQ
+    exact (div_eq_zero_iff hquot_ne).mp hdiv_zero
+  have hcenter :
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
+    have hden0 : G 0 * Complex.exp (P 0) = G 0 := by
+      calc
+        G 0 * Complex.exp (P 0) = G 0 * Complex.exp 0 := by
+          exact congrArg (fun t : ℂ => G 0 * Complex.exp t) hP_zero
+        _ = G 0 * 1 := by
+          exact congrArg (fun t : ℂ => G 0 * t) Complex.exp_zero
+        _ = G 0 := by
+          exact mul_one (G 0)
+    calc
+      (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 =
+          G 0 / (G 0 * Complex.exp (P 0)) := rfl
+      _ = G 0 / G 0 := by
+          exact congrArg (fun t : ℂ => G 0 / t) hden0
+      _ = 1 := by
+          exact div_self hG0_ne
+  exact ⟨hderiv_zero, hcenter⟩
+
 /-- Real-interval FTC core for radial equality propagation on a convex Jensen
 disk.
 
