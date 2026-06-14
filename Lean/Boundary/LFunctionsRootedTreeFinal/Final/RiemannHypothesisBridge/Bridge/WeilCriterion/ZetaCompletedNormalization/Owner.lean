@@ -4040,6 +4040,26 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
       hcancel.symm
       hmul
 
+/-- Principal-argument formula for a right-half-plane ray above the real axis,
+written in the reciprocal arctangent form suited to the linear defect estimate. -/
+theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arctan
+    {u y : ℝ}
+    (hu : 0 ≤ u)
+    (hy : 0 < y) :
+    Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
+      Real.pi / 2 - Real.arctan (u / y) := by
+  sorry
+
+/-- Principal-argument formula for a right-half-plane ray below the real axis,
+written in the reciprocal arctangent form suited to the linear defect estimate. -/
+theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_arctan
+    {u y : ℝ}
+    (hu : 0 ≤ u)
+    (hy : y < 0) :
+    Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
+      -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
+  sorry
+
 /-- Exact arctangent form of the principal-argument defect on the ray `u + i y`
 inside the closed right half-plane. -/
 theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
