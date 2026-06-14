@@ -716,7 +716,23 @@ theorem real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
     (hr_pos : 0 < r)
     (hr_cutoff : 2 * K / Real.sqrt (2 * Real.pi) ≤ r) :
     K / r ≤ Real.sqrt (2 * Real.pi) := by
-  sorry
+  let s : ℝ := Real.sqrt (2 * Real.pi)
+  have hs_pos : 0 < s :=
+    Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos)
+  have hcutoff_mul : 2 * K ≤ r * s :=
+    (div_le_iff₀ hs_pos).mp hr_cutoff
+  have hK_le_twoK : K ≤ 2 * K := by
+    calc
+      K = 1 * K := (one_mul K).symm
+      _ ≤ 2 * K := mul_le_mul_of_nonneg_right one_le_two (le_of_lt hK_pos)
+  have hK_le_rs : K ≤ r * s :=
+    le_trans hK_le_twoK hcutoff_mul
+  have hK_le_sr : K ≤ s * r :=
+    Eq.subst
+      (motive := fun x : ℝ => K ≤ x)
+      (mul_comm r s)
+      hK_le_rs
+  exact (div_le_iff₀ hr_pos).mpr hK_le_sr
 
 /-- Log-norm envelope extracted from the closed-right-half-plane exponential
 Stirling expansion.
