@@ -1,4 +1,5 @@
 import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.ReciprocalDensity
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Owner
 
 /-!
 # Abel tail on the boundary line
@@ -99,17 +100,12 @@ theorem Complex.boundaryLineOnePointRealParam_reciprocalWeightedTail_bound_of_ph
                     ((n : ℂ)⁻¹ : ℂ) *
                       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
                     A * Real.log (2 + ‖t‖) := by
-  /-
-  Intended proof chain:
-  `boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound`
-  -> block partial sums on dyadic annuli
-  -> finite Abel summation with the decreasing density `n ↦ 1 / n`
-  -> summation of the dyadic reciprocal increments, bounded by `log (2 + |t|)`.
-
-  The key point is that the reciprocal weight is introduced here, not by
-  replacing the damped tail with an undamped pointwise tail.
-  -/
-  sorry
+  refine ⟨74, ?_, ?_⟩
+  · norm_num
+  · intro t ht N hN M hNM
+    exact
+      boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
+        t ht hN hNM
 
 /-- Blockwise finite partial summation for reciprocal weights applied to the
 logarithmic phase.
