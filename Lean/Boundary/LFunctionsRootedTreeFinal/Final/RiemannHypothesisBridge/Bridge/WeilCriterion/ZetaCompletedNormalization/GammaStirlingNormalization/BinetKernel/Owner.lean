@@ -1010,6 +1010,18 @@ theorem Complex.log_binet_quotient_coords (z : ℂ)
     simp [Complex.log_binet_quotient_re_eq_log_ratio z h1 h2,
       Complex.log_binet_quotient_im_eq_arg_ratio z]
 
+/-- The Binet quotient logarithm has real and imaginary parts given by the
+coordinate formulas. -/
+theorem Complex.log_binet_quotient_re_im (z : ℂ)
+    (h1 : 1 + z * Complex.I ≠ 0) (h2 : 1 - z * Complex.I ≠ 0) :
+    (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
+      Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ ∧
+    (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im =
+      arg ((1 + z * Complex.I) / (1 - z * Complex.I)) := by
+  constructor
+  · exact Complex.log_binet_quotient_re_eq_log_ratio z h1 h2
+  · exact Complex.log_binet_quotient_im_eq_arg_ratio z
+
 /-- The Binet quotient factors are automatically nonzero as soon as the
 denominator is nonzero. -/
 theorem Complex.binet_quotient_factors_ne_zero

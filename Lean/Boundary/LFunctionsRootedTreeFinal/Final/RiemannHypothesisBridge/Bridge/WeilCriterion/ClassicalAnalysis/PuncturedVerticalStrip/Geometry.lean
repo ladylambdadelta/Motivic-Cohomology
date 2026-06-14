@@ -23,8 +23,9 @@ theorem real_two_lt_three :
       exact (one_add_one_eq_two : (1 : ℝ) + 1 = 2).symm
     _ < 1 + 2 := add_lt_add_left one_lt_two 1
     _ = 3 := by
-      exact (congrArg (fun x : ℝ => 1 + x) (one_add_one_eq_two : (1 : ℝ) + 1 = 2)).trans
-        (show (1 : ℝ) + (1 + 1) = 3 from two_add_one_eq_three)
+      calc
+        (1 : ℝ) + 2 = 2 + 1 := add_comm 1 2
+        _ = 3 := two_add_one_eq_three
 
 /-- The real inequality `3 < 4`, written without numeric automation. -/
 theorem real_three_lt_four :
@@ -165,7 +166,8 @@ theorem puncturedVerticalStrip_rightCorridor_re_lt_two :
       (calc
         (3 : ℝ) < 4 := real_three_lt_four
         _ = 2 * 2 := by
-          exact (two_mul (2 : ℝ)).symm)
+          exact (two_add_two_eq_four : (2 : ℝ) + 2 = 4).symm.trans
+            (two_mul (2 : ℝ)).symm)
 
 /-- The left safe vertical corridor is not the deleted point. -/
 theorem puncturedVerticalStrip_leftCorridor_ne_one
@@ -203,27 +205,27 @@ theorem puncturedVerticalStrip_rightCorridor_mem
 theorem complex_lineMap_re
     (z w : ℂ)
     (t : ℝ) :
-    (AffineMap.lineMap z w t).re = (1 - t) * z.re + t * w.re := by
+    ((1 - t) • z + t • w).re = (1 - t) * z.re + t * w.re := by
   calc
-    (AffineMap.lineMap z w t).re = ((1 - t) • z + t • w).re :=
-      congrArg Complex.re (AffineMap.lineMap_apply_module z w t)
-    _ = ((1 - t) • z).re + (t • w).re :=
+    ((1 - t) • z + t • w).re = ((1 - t) • z).re + (t • w).re :=
       Complex.add_re ((1 - t) • z) (t • w)
     _ = (1 - t) * z.re + t * w.re := by
-      rw [Complex.smul_re, Complex.smul_re]
+      exact congrArg₂ HAdd.hAdd
+        (Complex.smul_re (1 - t) z)
+        (Complex.smul_re t w)
 
 /-- Imaginary coordinate of the real affine line map in `ℂ`. -/
 theorem complex_lineMap_im
     (z w : ℂ)
     (t : ℝ) :
-    (AffineMap.lineMap z w t).im = (1 - t) * z.im + t * w.im := by
+    ((1 - t) • z + t • w).im = (1 - t) * z.im + t * w.im := by
   calc
-    (AffineMap.lineMap z w t).im = ((1 - t) • z + t • w).im :=
-      congrArg Complex.im (AffineMap.lineMap_apply_module z w t)
-    _ = ((1 - t) • z).im + (t • w).im :=
+    ((1 - t) • z + t • w).im = ((1 - t) • z).im + (t • w).im :=
       Complex.add_im ((1 - t) • z) (t • w)
     _ = (1 - t) * z.im + t * w.im := by
-      rw [Complex.smul_im, Complex.smul_im]
+      exact congrArg₂ HAdd.hAdd
+        (Complex.smul_im (1 - t) z)
+        (Complex.smul_im t w)
 
 /-- Real coordinate of a point on a complex affine segment. -/
 theorem complex_segment_re_eq
@@ -418,14 +420,20 @@ theorem puncturedVerticalStrip_horizontal_segment_subset
     (hh : h ≠ 0) :
     [Complex.mk x₁ h -[ℝ] Complex.mk x₂ h] ⊆ puncturedVerticalStrip := by
   intro p hp
+  have hz_im_ne : (Complex.mk x₁ h).im ≠ 0 := by
+    intro hzero
+    exact hh hzero
+  have hw_im_ne : (Complex.mk x₂ h).im ≠ 0 := by
+    intro hzero
+    exact hh hzero
   exact
     puncturedVerticalStrip_horizontalSegment_mem
-      ⟨hx₁_left, hx₁_right, puncturedVerticalStrip_ne_one_of_im_ne_zero hh⟩
-      ⟨hx₂_left, hx₂_right, puncturedVerticalStrip_ne_one_of_im_ne_zero hh⟩
+      ⟨hx₁_left, hx₁_right, puncturedVerticalStrip_ne_one_of_im_ne_zero hz_im_ne⟩
+      ⟨hx₂_left, hx₂_right, puncturedVerticalStrip_ne_one_of_im_ne_zero hw_im_ne⟩
       (complex_horizontal_segment_re_mem_Icc_or_Icc hp)
       (complex_horizontal_segment_im hp)
       rfl
-      hh
+      hz_im_ne
 
 /-- Explicit vertical segment containment in a safe corridor. -/
 theorem puncturedVerticalStrip_vertical_segment_subset
@@ -435,14 +443,20 @@ theorem puncturedVerticalStrip_vertical_segment_subset
     (hx_ne : x ≠ 1) :
     [Complex.mk x y₁ -[ℝ] Complex.mk x y₂] ⊆ puncturedVerticalStrip := by
   intro p hp
+  have hz_re_ne : (Complex.mk x y₁).re ≠ 1 := by
+    intro hone
+    exact hx_ne hone
+  have hw_re_ne : (Complex.mk x y₂).re ≠ 1 := by
+    intro hone
+    exact hx_ne hone
   exact
     puncturedVerticalStrip_verticalSegment_mem
-      ⟨hx_left, hx_right, puncturedVerticalStrip_ne_one_of_re_ne_one hx_ne⟩
-      ⟨hx_left, hx_right, puncturedVerticalStrip_ne_one_of_re_ne_one hx_ne⟩
+      ⟨hx_left, hx_right, puncturedVerticalStrip_ne_one_of_re_ne_one hz_re_ne⟩
+      ⟨hx_left, hx_right, puncturedVerticalStrip_ne_one_of_re_ne_one hw_re_ne⟩
       (complex_vertical_segment_re hp)
       (complex_vertical_segment_im_mem_Icc_or_Icc hp)
       rfl
-      hx_ne
+      hz_re_ne
 
 /-- A segment whose endpoints lie in the left half of the strip stays inside
 the punctured strip. -/
@@ -577,7 +591,7 @@ theorem puncturedVerticalStrip_joinedTo_safeCorridor
   · have hz_re_ne : z.re ≠ 1 := by
       intro hz_re
       have hz_eq_one : z = 1 := by
-        ext
+        apply Complex.ext
         · exact hz_re
         · exact hz_im.trans (Complex.ofReal_im (1 : ℝ)).symm
       exact hz_ne hz_eq_one
@@ -715,8 +729,12 @@ theorem puncturedVerticalStrip_nonempty :
 /-- The punctured vertical strip is path-connected. -/
 theorem puncturedVerticalStrip_isPathConnected :
     IsPathConnected puncturedVerticalStrip :=
-  ⟨puncturedVerticalStrip_nonempty,
-    fun _z hz _w hw => puncturedVerticalStrip_joinedIn_via_corridors hz hw⟩
+  ⟨Complex.mk (1 / 2) 0,
+    puncturedVerticalStrip_leftCorridor_mem,
+    fun {_w} hw =>
+      puncturedVerticalStrip_joinedIn_via_corridors
+        puncturedVerticalStrip_leftCorridor_mem
+        hw⟩
 
 /-- The punctured vertical strip is preconnected. -/
 theorem puncturedVerticalStrip_isPreconnected :
