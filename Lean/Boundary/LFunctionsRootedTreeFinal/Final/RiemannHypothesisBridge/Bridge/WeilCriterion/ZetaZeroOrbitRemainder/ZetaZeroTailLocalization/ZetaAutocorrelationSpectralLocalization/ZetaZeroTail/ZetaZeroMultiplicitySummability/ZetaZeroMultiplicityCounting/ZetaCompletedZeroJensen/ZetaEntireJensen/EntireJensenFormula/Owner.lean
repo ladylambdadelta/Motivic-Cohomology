@@ -2840,6 +2840,79 @@ theorem intervalIntegral_eq_of_finite_exception_congr
       hθ_uIcc
   exact hcongr θ hθ_Icc hθ_not_mem
 
+/-- Finite-exception transport to a constant-plus integrand. -/
+theorem intervalIntegral_eq_const_add_of_finite_exception_congr
+    (u v : ℝ → ℝ)
+    (c : ℝ)
+    (S : Set ℝ)
+    (hS : S.Finite)
+    (hcongr :
+      ∀ θ : ℝ,
+        θ ∈ Set.Icc 0 (2 * Real.pi) →
+        θ ∉ S →
+        u θ = c + v θ) :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+      ∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ := by
+  exact
+    intervalIntegral_eq_of_finite_exception_congr
+      u
+      (fun θ : ℝ => c + v θ)
+      S
+      hS
+      hcongr
+
+/-- Interval integration of a constant plus an interval-integrable remainder. -/
+theorem intervalIntegral_const_add_eq_length_smul_add
+    (v : ℝ → ℝ)
+    (c a b : ℝ)
+    (hv :
+      IntervalIntegrable v MeasureTheory.volume a b) :
+    (∫ θ in a..b, c + v θ) =
+      (b - a) • c + ∫ θ in a..b, v θ := by
+  have hconst :
+      IntervalIntegrable (fun _θ : ℝ => c) MeasureTheory.volume a b :=
+    Continuous.intervalIntegrable continuous_const a b
+  calc
+    (∫ θ in a..b, c + v θ) =
+        ∫ θ in a..b, (fun _θ : ℝ => c) θ + v θ := rfl
+    _ =
+        (∫ _θ in a..b, c) + ∫ θ in a..b, v θ := by
+      exact intervalIntegral.integral_add hconst hv
+    _ =
+        (b - a) • c + ∫ θ in a..b, v θ := by
+      exact congrArg
+        (fun x : ℝ => x + ∫ θ in a..b, v θ)
+        (intervalIntegral.integral_const c)
+
+/-- Finite-exception constant-plus transport, including the constant-integral
+evaluation, on the Jensen boundary interval. -/
+theorem intervalIntegral_finiteException_const_add_eq_twoPi_smul_add
+    (u v : ℝ → ℝ)
+    (c : ℝ)
+    (S : Set ℝ)
+    (hS : S.Finite)
+    (hcongr :
+      ∀ θ : ℝ,
+        θ ∈ Set.Icc 0 (2 * Real.pi) →
+        θ ∉ S →
+        u θ = c + v θ)
+    (hv :
+      IntervalIntegrable v MeasureTheory.volume
+        (0 : ℝ) (2 * Real.pi)) :
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+      (2 * Real.pi - 0) • c +
+        ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ := by
+  calc
+    (∫ θ in (0 : ℝ)..(2 * Real.pi), u θ) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ :=
+      intervalIntegral_eq_const_add_of_finite_exception_congr
+        u v c S hS hcongr
+    _ =
+        (2 * Real.pi - 0) • c +
+          ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ :=
+      intervalIntegral_const_add_eq_length_smul_add
+        v c (0 : ℝ) (2 * Real.pi) hv
+
 /-- Unnormalized boundary-integral transport through the origin Taylor factor,
 after deleting the finite quotient boundary-zero exceptional set.
 
