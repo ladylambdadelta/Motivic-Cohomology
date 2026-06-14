@@ -1867,6 +1867,23 @@ theorem entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
       _ = 0 :=
         smul_zero (z ^ entireFunctionZeroMultiplicity F hF 0)
 
+/-- Away from the origin, removing the origin Taylor factor preserves analytic
+zero multiplicity. -/
+theorem entireFunction_originTaylorFactor_multiplicity_eq_quotient_of_ne_zero
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {z : ℂ}
+    (hz : z ≠ 0) :
+    entireFunctionZeroMultiplicity F hF z =
+      entireFunctionZeroMultiplicity G hG z := by
+  -- Since `z ≠ 0`, the factor `w ↦ w^m` is analytic and nonvanishing near
+  -- `z`. Multiplication by such a unit preserves the local analytic order.
+  sorry
+
 /-- Closed-disk nonzero-zero summability transports from the global origin
 Taylor quotient back to the original entire function. -/
 theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
