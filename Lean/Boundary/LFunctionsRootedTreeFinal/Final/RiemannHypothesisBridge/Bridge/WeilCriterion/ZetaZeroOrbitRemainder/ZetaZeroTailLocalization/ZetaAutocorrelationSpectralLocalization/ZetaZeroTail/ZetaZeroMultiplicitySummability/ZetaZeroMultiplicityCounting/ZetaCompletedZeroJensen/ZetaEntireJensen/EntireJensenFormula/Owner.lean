@@ -3267,10 +3267,14 @@ theorem complex_centerSegment_lineMap_hasDerivAt_endpoint
         fun w : ℂ => (t : ℂ) * w :=
     funext fun w : ℂ =>
       calc
-        AffineMap.lineMap (0 : ℂ) w t = (t : ℂ) * (w - 0) + 0 :=
-          AffineMap.lineMap_apply_ring' (0 : ℂ) w (t : ℂ)
-        _ = (t : ℂ) * w :=
+        AffineMap.lineMap (0 : ℂ) w t = t • (w - 0) + 0 :=
+          AffineMap.lineMap_apply_module' (0 : ℂ) w t
+        _ = (t : ℂ) * (w - 0) + 0 :=
+          rfl
+        _ = (t : ℂ) * w + 0 :=
           congrArg (fun a : ℂ => (t : ℂ) * a + 0) (sub_zero w)
+        _ = (t : ℂ) * w :=
+          add_zero ((t : ℂ) * w)
   exact
     Eq.subst
       (motive := fun f : ℂ → ℂ =>
@@ -3335,12 +3339,25 @@ theorem complex_centerSegmentIntegral_integrand_hasDerivAt_endpoint
         (t : ℂ)
         z :=
     complex_centerSegment_lineMap_hasDerivAt_endpoint z t
+  have hcomp_raw :
+      HasDerivAt
+        (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+        (deriv φ x * (t : ℂ))
+        z :=
+    hφ_at.comp z hline
   have hcomp :
       HasDerivAt
         (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
         ((t : ℂ) * deriv φ x)
         z :=
-    hφ_at.comp z hline
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt
+          (fun w : ℂ => φ (AffineMap.lineMap (0 : ℂ) w t))
+          d
+          z)
+      (mul_comm (deriv φ x) (t : ℂ))
+      hcomp_raw
   have hid :
       HasDerivAt (fun w : ℂ => w) (1 : ℂ) z :=
     hasDerivAt_id' z
