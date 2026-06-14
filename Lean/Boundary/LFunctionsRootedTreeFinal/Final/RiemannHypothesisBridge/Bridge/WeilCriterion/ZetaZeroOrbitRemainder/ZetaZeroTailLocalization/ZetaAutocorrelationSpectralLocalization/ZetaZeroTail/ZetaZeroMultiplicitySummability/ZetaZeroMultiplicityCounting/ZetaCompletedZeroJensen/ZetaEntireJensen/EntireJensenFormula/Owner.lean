@@ -3281,6 +3281,40 @@ theorem complex_centerSegmentIntegral_hasDerivAt_integral_endpointDerivative
     ⟨u, hz_mem, _hu_nhds, hu_deriv⟩
   exact hu_deriv z hz_mem
 
+/-- Real chain rule for `φ` along a center-to-endpoint segment. -/
+theorem complex_starConvex_centerSegment_phi_hasDerivAt_real
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun u : ℝ =>
+                φ (AffineMap.lineMap (0 : ℂ) z u))
+              (z * deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+              t := by
+  sorry
+
+/-- Product-rule form of the radial FTC derivative. -/
+theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ∀ t : ℝ,
+          t ∈ Set.Icc (0 : ℝ) 1 →
+            HasDerivAt
+              (fun u : ℝ =>
+                complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
+              (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
+              t := by
+  sorry
+
 /-- Real derivative of the radial FTC primitive.
 
 This is the chain-rule computation
@@ -3300,6 +3334,36 @@ theorem complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt
                 complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
               (complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
               t := by
+  exact
+    complex_centerSegmentIntegral_radialFTCPrimitive_hasDerivAt_productRule
+      φ hstar hφ
+
+/-- Continuity of `φ` restricted to a center-to-endpoint segment. -/
+theorem complex_starConvex_centerSegment_phi_continuousOn
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ContinuousOn
+          (fun t : ℝ =>
+            φ (AffineMap.lineMap (0 : ℂ) z t))
+          (Set.Icc (0 : ℝ) 1) := by
+  sorry
+
+/-- Continuity of `deriv φ` restricted to a center-to-endpoint segment. -/
+theorem complex_starConvex_centerSegment_deriv_phi_continuousOn
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        ContinuousOn
+          (fun t : ℝ =>
+            deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+          (Set.Icc (0 : ℝ) 1) := by
   sorry
 
 /-- Continuity of the endpoint derivative integrand on the radial segment. -/
@@ -3314,7 +3378,37 @@ theorem complex_centerSegmentIntegral_endpointDerivativeIntegrand_continuousOn
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand φ z t)
           (Set.Icc (0 : ℝ) 1) := by
-  sorry
+  intro z hz
+  have hφ_seg :
+      ContinuousOn
+        (fun t : ℝ =>
+          φ (AffineMap.lineMap (0 : ℂ) z t))
+        (Set.Icc (0 : ℝ) 1) :=
+    complex_starConvex_centerSegment_phi_continuousOn φ hstar hφ z hz
+  have hderiv_seg :
+      ContinuousOn
+        (fun t : ℝ =>
+          deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+        (Set.Icc (0 : ℝ) 1) :=
+    complex_starConvex_centerSegment_deriv_phi_continuousOn φ hstar hφ z hz
+  have ht_complex :
+      ContinuousOn
+        (fun t : ℝ => (t : ℂ))
+        (Set.Icc (0 : ℝ) 1) :=
+    continuous_ofReal.continuousOn
+  have hz_mul_t :
+      ContinuousOn
+        (fun t : ℝ => z * (t : ℂ))
+        (Set.Icc (0 : ℝ) 1) :=
+    continuousOn_const.mul ht_complex
+  have hsecond :
+      ContinuousOn
+        (fun t : ℝ =>
+          z * (t : ℂ) *
+            deriv φ (AffineMap.lineMap (0 : ℂ) z t))
+        (Set.Icc (0 : ℝ) 1) :=
+    hz_mul_t.mul hderiv_seg
+  exact hφ_seg.add hsecond
 
 /-- Interval integrability of the endpoint derivative integrand on the radial
 segment. -/
@@ -9216,6 +9310,90 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
             Real.log
               ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)
 
+/-- Interval-integrability of the finite closed-support factor-sum boundary
+term. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_factorSum_intervalIntegrable_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        ∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖)
+      MeasureTheory.volume
+      0
+      (2 * Real.pi) := by
+  -- Finite interval-integrability gluing for the closed-support factor sum,
+  -- from the single-factor interval-integrability theorem.
+  sorry
+
+/-- Interval-integrability of the quotient boundary logarithm after the
+closed-support product-log split.
+
+The quotient term is obtained from the interval-integrable combined product-log
+integrand by subtracting the finite factor-sum term. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_quotientTerm_intervalIntegrable_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    IntervalIntegrable
+      (fun θ : ℝ =>
+        Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖)
+      MeasureTheory.volume
+      0
+      (2 * Real.pi) := by
+  -- Integrability algebra sink: combine the integrability of
+  -- `quotient + factorSum` with the finite factor-sum integrability.
+  sorry
+
+/-- Assembly of the closed-support finite-exception product-log integral from
+the a.e. pointwise split and the finite sum/integral exchange. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_productSplit_integralAssembly_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+  -- Product-log integration assembly: use restricted-a.e. congruence to replace
+  -- the boundary log of `F`, split the interval integral of
+  -- `quotient + factorSum`, and apply finite sum/integral exchange.
+  sorry
+
 /-- Finite-exception product-log splitting for a closed-support divisor.
 
 This is the analytic integration sink behind the closed-support boundary-log
@@ -9249,10 +9427,9 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Product-log assembly sink: combine off-exception pointwise splitting,
-  -- finite-exception a.e. congruence, finite log-singularity integrability,
-  -- and finite sum/integral exchange.
-  sorry
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_productSplit_integralAssembly_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
 
 /-- Closed-support finite-product boundary-log decomposition with finite
 boundary exceptions made explicit.
