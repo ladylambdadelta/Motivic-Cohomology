@@ -16,6 +16,17 @@ noncomputable section
 
 open scoped Topology
 
+/-- Classical Binet's second formula on the positive real axis, with the
+principal logarithm and the arctangent-kernel remainder as normalized in this
+file. -/
+theorem Complex.Gamma_binetSecondFormula_positiveReal_classical_identity
+    {x : ℝ}
+    (hx : 0 < x) :
+    Complex.log (Complex.Gamma (x : ℂ)) =
+      Complex.binetLogGammaMainTerm (x : ℂ) +
+        Complex.binetSecondFormulaRemainder (x : ℂ) := by
+  sorry
+
 /-- Binet's second formula on the positive real axis with the principal-log
 normalization used in this package.
 
@@ -27,6 +38,21 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
     Complex.log (Complex.Gamma (x : ℂ)) =
       Complex.binetLogGammaMainTerm (x : ℂ) +
         Complex.binetSecondFormulaRemainder (x : ℂ) := by
+  exact
+    Complex.Gamma_binetSecondFormula_positiveReal_classical_identity hx
+
+/-- Differentiating the arctangent-kernel integral under the integral sign
+gives the same logarithmic derivative as the Gamma side after subtracting the
+explicit Binet main term. -/
+theorem Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.log (Complex.Gamma z) -
+          (Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z))
+      0 w := by
   sorry
 
 /-- The two sides of Binet's second formula have the same complex derivative
@@ -45,6 +71,33 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
           (Complex.binetLogGammaMainTerm z +
             Complex.binetSecondFormulaRemainder z))
       0 w := by
+  exact
+    Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
+      hw_re_pos
+
+/-- A holomorphic Binet difference with zero derivative on the open right
+half-plane is determined there by its positive-real values. -/
+theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_sameDerivative
+    (hreal :
+      ∀ {x : ℝ},
+        0 < x →
+          Complex.log (Complex.Gamma (x : ℂ)) =
+            Complex.binetLogGammaMainTerm (x : ℂ) +
+              Complex.binetSecondFormulaRemainder (x : ℂ))
+    (hderiv :
+      ∀ {w : ℂ},
+        0 < w.re →
+          HasDerivAt
+            (fun z : ℂ =>
+              Complex.log (Complex.Gamma z) -
+                (Complex.binetLogGammaMainTerm z +
+                  Complex.binetSecondFormulaRemainder z))
+            0 w) :
+    ∀ w : ℂ,
+      0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
   sorry
 
 /-- The open right half-plane is connected to the positive real axis by
@@ -58,7 +111,14 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_from_realAxis_a
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  exact
+    Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_sameDerivative
+      (fun hx =>
+        Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
+          hx)
+      (fun hw_re_pos =>
+        Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
+          hw_re_pos)
 
 /-- The classical second Binet integral representation, with the principal
 logarithm normalization used by `Complex.binetLogGammaMainTerm` and the
