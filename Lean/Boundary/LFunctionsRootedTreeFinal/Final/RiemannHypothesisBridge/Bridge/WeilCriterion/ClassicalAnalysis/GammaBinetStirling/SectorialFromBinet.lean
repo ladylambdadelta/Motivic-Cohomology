@@ -100,7 +100,77 @@ theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       4 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  sorry
+  let K : ℝ → ℂ := fun t : ℝ =>
+    Complex.arctan ((t : ℂ) / w) /
+      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let c : ℝ := 2 / ‖w‖
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    rw [hw_zero] at hw_re_pos
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+  have hw_norm_pos : 0 < ‖w‖ :=
+    norm_pos_iff.mpr hw_ne_zero
+  have hc_nonneg : 0 ≤ c :=
+    div_nonneg (by norm_num : (0 : ℝ) ≤ 2) (le_of_lt hw_norm_pos)
+  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
+    Real.binetSecondFormula_kernel_majorant_integrableOn
+  have hcM_integrable_Ioc :
+      Integrable (fun t : ℝ => c * M t)
+        (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) :=
+    (hM_integrable_Ioi.mono_set Ioc_subset_Ioi_self).const_mul c
+  have hpointwise :
+      ∀ᵐ t ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
+        ‖K t‖ ≤ c * M t :=
+    (ae_restrict_mem measurableSet_Ioc).mono
+      (fun t ht => by
+        have hkernel :
+            ‖K t‖ ≤
+              (2 * (t / ‖w‖)) /
+                (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+          Complex.binetSecondFormula_kernel_norm_le_on_small_interval
+            hw_re_pos ht
+        have hrewrite :
+            (2 * (t / ‖w‖)) /
+                (Real.exp ((2 : ℝ) * Real.pi * t) - 1) =
+              c * M t := by
+          dsimp [c, M]
+          ring
+        exact hrewrite ▸ hkernel)
+  have hnorm_integral :
+      ‖∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ ≤
+        ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t :=
+    norm_integral_le_of_norm_le hcM_integrable_Ioc hpointwise
+  have hmono :
+      ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), M t ≤
+        ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
+    setIntegral_mono_set hM_integrable_Ioi
+      ((ae_restrict_mem measurableSet_Ioi).mono
+        (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
+      (Eventually.of_forall (fun t ht => ht.1))
+  have hscaled_mono :
+      ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t ≤
+        c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
+    calc
+      ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t =
+          c * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), M t := by
+        exact integral_const_mul c M
+      _ ≤ c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
+        mul_le_mul_of_nonneg_left hmono hc_nonneg
+  calc
+    ‖2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ =
+        2 * ‖∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ := by
+      simp [norm_mul]
+    _ ≤ 2 * (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t) :=
+      mul_le_mul_of_nonneg_left hnorm_integral (by norm_num : (0 : ℝ) ≤ 2)
+    _ ≤ 2 * (c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
+      mul_le_mul_of_nonneg_left hscaled_mono (by norm_num : (0 : ℝ) ≤ 2)
+    _ =
+        4 *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ), M t) / ‖w‖ := by
+      dsimp [c]
+      ring
 
 /-- Tail part of the Binet remainder integral.  This is where one uses the
 principal-branch arctangent bound away from the branch singularities together
