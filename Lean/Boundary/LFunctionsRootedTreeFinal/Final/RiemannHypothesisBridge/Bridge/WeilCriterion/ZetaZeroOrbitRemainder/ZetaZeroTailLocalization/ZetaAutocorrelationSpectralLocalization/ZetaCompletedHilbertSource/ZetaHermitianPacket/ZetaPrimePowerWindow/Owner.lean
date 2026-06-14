@@ -251,22 +251,26 @@ theorem card_heightShellVerticalEdgeModel
     (m : ℕ) :
     (heightShellVerticalEdgeModel m).card = m + 1 := by
   unfold heightShellVerticalEdgeModel
-  exact Finset.card_map
-    (⟨fun n => ⟨m, n⟩, by
-      intro n₁ n₂ hn
-      cases hn
-      rfl⟩ : ℕ ↪ ZetaPrimePowerIndex)
+  exact Eq.trans
+    (Finset.card_map
+      (⟨fun n => ⟨m, n⟩, by
+        intro n₁ n₂ hn
+        cases hn
+        rfl⟩ : ℕ ↪ ZetaPrimePowerIndex))
+    (Finset.card_range (m + 1))
 
 /-- The horizontal edge model has exactly `m + 1` points. -/
 theorem card_heightShellHorizontalEdgeModel
     (m : ℕ) :
     (heightShellHorizontalEdgeModel m).card = m + 1 := by
   unfold heightShellHorizontalEdgeModel
-  exact Finset.card_map
-    (⟨fun p => ⟨p, m⟩, by
-      intro p₁ p₂ hp
-      cases hp
-      rfl⟩ : ℕ ↪ ZetaPrimePowerIndex)
+  exact Eq.trans
+    (Finset.card_map
+      (⟨fun p => ⟨p, m⟩, by
+        intro p₁ p₂ hp
+        cases hp
+        rfl⟩ : ℕ ↪ ZetaPrimePowerIndex))
+    (Finset.card_range (m + 1))
 
 /-- The exact height shell is covered by its two rectangular edges. -/
 theorem card_heightShell_le_edgeCard_sum
@@ -450,19 +454,12 @@ theorem summable_of_nonnegative_le_summable_real
     Summable a := by
   exact Summable.of_norm_bounded b hb
     (fun n => by
-      have hb_nonneg : 0 ≤ b n :=
-        le_trans (ha_nonneg n) (hab n)
       have ha_norm : ‖a n‖ = a n :=
         Real.norm_of_nonneg (ha_nonneg n)
-      have hb_norm : ‖b n‖ = b n :=
-        Real.norm_of_nonneg hb_nonneg
       exact Eq.subst
-        (motive := fun lhs : ℝ => lhs ≤ ‖b n‖)
+        (motive := fun lhs : ℝ => lhs ≤ b n)
         ha_norm.symm
-        (Eq.subst
-          (motive := fun rhs : ℝ => a n ≤ rhs)
-          hb_norm.symm
-          (hab n)))
+        (hab n))
 
 /-- The linear cardinal majorant is bounded by twice the height base. -/
 theorem linear_shell_card_factor_le_two_mul_heightBase
@@ -600,7 +597,7 @@ theorem summable_two_mul_one_add_nat_norm_negative_zpow_succ
     Summable
       (fun m : ℕ =>
         2 * (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 2 : ℤ))) := by
-  exact (summable_one_add_nat_norm_negative_zpow_succ k).const_mul 2
+  exact (summable_one_add_nat_norm_negative_zpow_succ k).mul_left 2
 
 /-- The one-dimensional polynomial shell mass sequence is summable. -/
 theorem summable_linear_polynomialShellMassSequence
@@ -820,7 +817,7 @@ theorem summable_const_mul_polynomialHeightDecay
     Summable
       (fun ι : ZetaPrimePowerIndex =>
         C * polynomialHeightDecay k ι) := by
-  exact (summable_polynomialHeightDecay k).const_mul C
+  exact (summable_polynomialHeightDecay k).mul_left C
 
 /-- The completed explicit-formula prime-power weight. -/
 def weight (ι : ZetaPrimePowerIndex) : ℝ :=
