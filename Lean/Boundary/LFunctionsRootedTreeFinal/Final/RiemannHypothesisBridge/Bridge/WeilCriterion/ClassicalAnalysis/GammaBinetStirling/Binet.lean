@@ -1,5 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetMajorant
 import Mathlib.Analysis.Calculus.MeanValue
+import Mathlib.Analysis.Calculus.ParametricIntegral
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
 
@@ -804,7 +805,100 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
   filter_upwards
     [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
     with t ht
-  exact hg_bound z hz t ht
+	  exact hg_bound z hz t ht
+
+/-- The arctangent kernel and differentiated Binet kernel have the measurability
+and base-point integrability needed for dominated differentiation. -/
+theorem Complex.binetSecondFormulaRemainder_integral_data
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    (∀ᶠ z in 𝓝 w,
+      AEStronglyMeasurable
+        (fun t : ℝ =>
+          Complex.arctan ((t : ℂ) / z) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+        (Measure.restrict volume (Set.Ioi (0 : ℝ)))) ∧
+      Integrable
+        (fun t : ℝ =>
+          Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+        (Measure.restrict volume (Set.Ioi (0 : ℝ))) ∧
+      AEStronglyMeasurable
+        (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
+        (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+  sorry
+
+/-- Membership in a smaller ball gives the norm inequality needed for a larger
+radius measured in the normed-space coordinates. -/
+theorem Complex.norm_sub_lt_of_mem_ball_of_le_radius
+    {w z : ℂ}
+    {ε η : ℝ}
+    (hε_le_η : ε ≤ η)
+    (hz : z ∈ Metric.ball w ε) :
+    ‖z - w‖ < η := by
+  have hdist : dist z w < ε :=
+    Metric.mem_ball.mp hz
+  have hnorm : ‖z - w‖ < ε := by
+    simpa [dist_eq_norm] using hdist
+  exact lt_of_lt_of_le hnorm hε_le_η
+
+/-- Uniform-a.e. differentiability of the Binet arctangent kernel on one ball
+inside the open right half-plane. -/
+theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+        ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+          ∀ z : ℂ,
+            z ∈ Metric.ball w ε →
+              HasDerivAt
+                (fun u : ℂ =>
+                  Complex.arctan ((t : ℂ) / u) /
+                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+                (Complex.binetSecondFormulaDerivativeKernel t z) z := by
+  rcases Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
+    ⟨ε, hε_pos, hε_subset⟩
+  refine ⟨ε, hε_pos, ?_⟩
+  filter_upwards
+    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
+    with t ht
+  intro z hz
+  have hnorm : ‖z - w‖ < ε := by
+    exact
+      Complex.norm_sub_lt_of_mem_ball_of_le_radius
+        (le_refl ε) hz
+  exact
+    Complex.binetSecondFormula_arctanKernel_hasDerivAt
+      ht (hε_subset z hnorm)
+
+/-- Uniform-a.e. domination of the differentiated Binet kernel on one ball
+inside the open right half-plane. -/
+theorem Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ ε : ℝ,
+      0 < ε ∧
+      ∃ g : ℝ → ℝ,
+        IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
+          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            ∀ z : ℂ,
+              z ∈ Metric.ball w ε →
+                ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
+  rcases
+      Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
+        hw_re_pos with
+    ⟨ε, hε_pos, g, hg_int, hg_bound⟩
+  refine ⟨ε, hε_pos, g, hg_int, ?_⟩
+  filter_upwards
+    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
+    with t ht
+  intro z hz
+  have hnorm : ‖z - w‖ < ε := by
+    exact
+      Complex.norm_sub_lt_of_mem_ball_of_le_radius
+        (le_refl ε) hz
+  exact hg_bound z hnorm t ht
 
 /-- Dominated-differentiation transport for the Binet remainder once the
 measurability and base-point integrability data have been supplied. -/
@@ -888,12 +982,27 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_an
 the pointwise arctangent-kernel derivative and its local integrable majorant. -/
 theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
     {w : ℂ}
+    (hdata :
+      (∀ᶠ z in 𝓝 w,
+        AEStronglyMeasurable
+          (fun t : ℝ =>
+            Complex.arctan ((t : ℂ) / z) /
+              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+          (Measure.restrict volume (Set.Ioi (0 : ℝ)))) ∧
+        Integrable
+          (fun t : ℝ =>
+            Complex.arctan ((t : ℂ) / w) /
+              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+          (Measure.restrict volume (Set.Ioi (0 : ℝ))) ∧
+        AEStronglyMeasurable
+          (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
+          (Measure.restrict volume (Set.Ioi (0 : ℝ))))
     (hkernel :
       ∃ ε : ℝ,
         0 < ε ∧
-        ∀ z : ℂ,
-          ‖z - w‖ < ε →
-            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            ∀ z : ℂ,
+              z ∈ Metric.ball w ε →
               HasDerivAt
                 (fun u : ℂ =>
                   Complex.arctan ((t : ℂ) / u) /
@@ -904,14 +1013,60 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
         0 < ε ∧
         ∃ g : ℝ → ℝ,
           IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
-          ∀ z : ℂ,
-            ‖z - w‖ < ε →
-              ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+              ∀ z : ℂ,
+                z ∈ Metric.ball w ε →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t) :
     HasDerivAt
       Complex.binetSecondFormulaRemainder
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
-  sorry
+  rcases hdata with ⟨hF_meas, hF_int, hF'_meas⟩
+  rcases hkernel with ⟨ε₁, hε₁_pos, hkernel_bound⟩
+  rcases hdominated with ⟨ε₂, hε₂_pos, g, hg_int, hdominated_bound⟩
+  let ε : ℝ := min ε₁ ε₂
+  have hε_pos : 0 < ε :=
+    lt_min hε₁_pos hε₂_pos
+  have hε_le_ε₁ : ε ≤ ε₁ :=
+    min_le_left ε₁ ε₂
+  have hε_le_ε₂ : ε ≤ ε₂ :=
+    min_le_right ε₁ ε₂
+  have hdiff :
+      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+        ∀ z : ℂ,
+          z ∈ Metric.ball w ε →
+            HasDerivAt
+              (fun u : ℂ =>
+                Complex.arctan ((t : ℂ) / u) /
+                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+              (Complex.binetSecondFormulaDerivativeKernel t z) z :=
+    hkernel_bound.mono
+      (fun t ht z hz =>
+        ht z
+          (Metric.mem_ball.mpr
+            (by
+              have hnorm :
+                  ‖z - w‖ < ε₁ :=
+                Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                  hε_le_ε₁ hz
+              simpa [dist_eq_norm] using hnorm)))
+  have hbound :
+      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+        ∀ z : ℂ,
+          z ∈ Metric.ball w ε →
+            ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
+    hdominated_bound.mono
+      (fun t ht z hz =>
+        ht z
+          (Metric.mem_ball.mpr
+            (by
+              have hnorm :
+                  ‖z - w‖ < ε₂ :=
+                Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                  hε_le_ε₂ hz
+              simpa [dist_eq_norm] using hnorm)))
+  exact
+    Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_and_integrability
+      hε_pos hF_meas hF_int hF'_meas hg_int hbound hdiff
 
 /-- Differentiation under the integral sign for the Binet second-formula
 remainder. -/
@@ -923,9 +1078,11 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
   exact
     Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
-      (Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
+      (Complex.binetSecondFormulaRemainder_integral_data
         hw_re_pos)
-      (Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
+      (Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
+        hw_re_pos)
+      (Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
         hw_re_pos)
 
 /-- The missing special-function derivative identity behind Binet's second
