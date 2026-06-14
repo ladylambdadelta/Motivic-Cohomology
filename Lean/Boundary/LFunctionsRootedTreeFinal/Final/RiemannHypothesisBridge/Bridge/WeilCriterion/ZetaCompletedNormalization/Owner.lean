@@ -871,13 +871,14 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
     (hw : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀) :
     Complex.Gamma w ≠ 0 := by
   intro hzero
-  rcases Complex.Gamma_eq_zero_iff w |>.mp hzero with ⟨n, hn⟩
+  rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
   subst w
   cases n with
   | zero =>
       have hnorm_zero : ‖(-((0 : ℕ) : ℂ))‖ = 0 := by
         calc
-          ‖(-((0 : ℕ) : ℂ))‖ = ‖(0 : ℂ)‖ :=
+          ‖(-((0 : ℕ) : ℂ))‖ = ‖(-(0 : ℂ))‖ := rfl
+          _ = ‖(0 : ℂ)‖ :=
             congrArg norm (neg_zero : -((0 : ℂ)) = 0)
           _ = 0 := norm_zero
       have hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 :=
@@ -895,7 +896,7 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
               -(((Nat.succ n : ℕ) : ℂ).re) :=
             Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
           _ = -(((Nat.succ n : ℕ) : ℝ)) := by
-            exact congrArg Neg.neg (Complex.ofReal_re (((Nat.succ n : ℕ) : ℝ)))
+            exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
       have hre_nonneg :
           (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
         Eq.subst
@@ -915,7 +916,21 @@ theorem Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus
     ContinuousOn
       (fun w : ℂ => Real.log ‖Complex.Gamma w‖)
       (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
-  sorry
+  intro w hw
+  have hgamma_ne : Complex.Gamma w ≠ 0 :=
+    Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus R₀ hw
+  have hnot_pole : ∀ m : ℕ, w ≠ -m := by
+    intro m hwm
+    exact hgamma_ne ((Complex.Gamma_eq_zero_iff w).mpr ⟨m, hwm⟩)
+  have hgamma_cont : ContinuousAt Complex.Gamma w :=
+    (Complex.differentiableAt_Gamma w hnot_pole).continuousAt
+  have hnorm_cont :
+      ContinuousWithinAt (fun z : ℂ => ‖Complex.Gamma z‖)
+        (Complex.closedRightHalfPlaneGammaAnnulus R₀) w :=
+    hgamma_cont.norm.continuousWithinAt
+  have hnorm_ne : ‖Complex.Gamma w‖ ≠ 0 :=
+    ne_of_gt (norm_pos_iff.mpr hgamma_ne)
+  exact hnorm_cont.log hnorm_ne
 
 /-- Compact boundedness of `log ‖Γ(w)‖` on the closed right-half-plane Gamma
 annulus. -/
