@@ -1343,6 +1343,20 @@ theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
     _ = (Real.sin u) ^ s := by
       exact mul_one ((Real.sin u) ^ s)
 
+/-- The closed sine-substitution image lies in the unit interval. -/
+theorem Real.sinePower_sinSubstitution_closedImage_subset_unitInterval :
+    Real.sin '' [[(0 : ℝ), Real.pi / 2]] ⊆ [[(0 : ℝ), 1]] := by
+  rintro x ⟨u, hu, rfl⟩
+  have huIcc : u ∈ Set.Icc (0 : ℝ) (Real.pi / 2) := by
+    rwa [Set.uIcc_of_le Real.pi_div_two_pos.le] at hu
+  have hleft : 0 ≤ Real.sin u :=
+    Real.sin_nonneg_of_nonneg_of_le_pi
+      huIcc.1
+      (le_trans huIcc.2 (half_le_self Real.pi_pos.le))
+  have hright : Real.sin u ≤ 1 :=
+    Real.sin_le_one u
+  exact Set.mem_uIcc_of_le hleft hright
+
 /-- Image-side integrability needed by mathlib's sine substitution theorem. -/
 theorem Real.sinePower_sinSubstitution_image_integrableOn
     (s : ℝ)
@@ -1356,7 +1370,9 @@ theorem Real.sinePower_sinSubstitution_image_integrableOn
       (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
       (Real.sin '' [[(0 : ℝ), Real.pi / 2]])
       MeasureTheory.volume := by
-  sorry
+  exact
+    (intervalIntegrable_iff'.mp htarget).mono_set
+      Real.sinePower_sinSubstitution_closedImage_subset_unitInterval
 
 /-- Pullback-side integrability needed by mathlib's sine substitution theorem. -/
 theorem Real.sinePower_sinSubstitution_pullback_integrableOn
@@ -1381,7 +1397,32 @@ theorem Real.sinePower_sinSubstitution_pullback_integrableOn
           Real.cos u)
       [[(0 : ℝ), Real.pi / 2]]
       MeasureTheory.volume := by
-  sorry
+  have hsource_Icc :
+      MeasureTheory.IntegrableOn (fun u : ℝ => (Real.sin u) ^ s)
+        [[(0 : ℝ), Real.pi / 2]]
+        MeasureTheory.volume := by
+    exact (intervalIntegrable_iff'.mp hsource)
+  have hpoint :
+      EqOn
+        (fun u : ℝ =>
+          (((fun x : ℝ =>
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
+            Real.cos u)
+        (fun u : ℝ => (Real.sin u) ^ s)
+        (Set.Ioo (0 : ℝ) (Real.pi / 2)) := by
+    intro u hu
+    exact Real.sinePower_sinSubstitution_forwardJacobian_eq s u hu
+  have hAE :
+      (((fun u : ℝ =>
+          (((fun x : ℝ =>
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
+            Real.cos u)) =
+       ᵐ[MeasureTheory.volume.restrict [[(0 : ℝ), Real.pi / 2]]]
+        (fun u : ℝ => (Real.sin u) ^ s) := by
+    refine (ae_restrict_iff' measurableSet_Icc).2 ?_
+    filter_upwards [Real.ae_uIoc_eq_of_eqOn_Ioo hpoint] with u hu
+    exact hu
+  exact hsource_Icc.congr_fun_ae hAE.symm
 
 /-- Pointwise equality on the open sine-substitution interval. -/
 theorem Real.sinePower_sinSubstitution_openInterval_pointwise
@@ -1401,6 +1442,51 @@ theorem Real.sinePower_sinSubstitution_openInterval_pointwise
     rwa [hmin, hmax] at hu
   exact Real.sinePower_sinSubstitution_forwardJacobian_eq s u hu'
 
+/-- Points in the sine-substitution open image are positive. -/
+theorem Real.sinePower_sinSubstitution_openImage_pos
+    {x : ℝ}
+    (hx : x ∈
+      Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+        (max (0 : ℝ) (Real.pi / 2))) :
+    0 < x := by
+  rcases hx with ⟨u, hu, rfl⟩
+  have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+    min_eq_left (le_of_lt Real.pi_div_two_pos)
+  have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+    max_eq_right (le_of_lt Real.pi_div_two_pos)
+  have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+    rwa [hmin, hmax] at hu
+  exact Real.sin_pos_of_mem_Ioo
+    ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
+
+/-- The complementary square factor is positive on the sine-substitution open
+image. -/
+theorem Real.sinePower_sinSubstitution_openImage_one_sub_sq_pos
+    {x : ℝ}
+    (hx : x ∈
+      Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+        (max (0 : ℝ) (Real.pi / 2))) :
+    0 < 1 - x ^ 2 := by
+  rcases hx with ⟨u, hu, rfl⟩
+  have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+    min_eq_left (le_of_lt Real.pi_div_two_pos)
+  have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+    max_eq_right (le_of_lt Real.pi_div_two_pos)
+  have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+    rwa [hmin, hmax] at hu
+  have hsin_pos : 0 < Real.sin u :=
+    Real.sin_pos_of_mem_Ioo
+      ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
+  have hsin_lt_one : Real.sin u < 1 := by
+    have hmono :
+        Real.sin u < Real.sin (Real.pi / 2) :=
+      Real.sin_lt_sin_of_lt_of_le_pi_div_two
+        (le_trans (neg_nonpos.mpr Real.pi_div_two_pos.le) hu'.1.le)
+        le_rfl
+        hu'.2
+    exact hmono.trans_eq Real.sin_pi_div_two
+  exact sub_pos.mpr ((sq_lt_one_iff₀ hsin_pos.le).mpr hsin_lt_one)
+
 /-- Continuity of the sine-substitution target kernel on the open image. -/
 theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
     (s : ℝ) :
@@ -1408,7 +1494,27 @@ theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
       (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
       (Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
         (max (0 : ℝ) (Real.pi / 2))) := by
-  sorry
+  have hleft :
+      ContinuousOn
+        (fun x : ℝ => x ^ s)
+        (Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+          (max (0 : ℝ) (Real.pi / 2))) :=
+    continuousOn_id.rpow_const
+      (fun x hx =>
+        Or.inl
+          (ne_of_gt
+            (Real.sinePower_sinSubstitution_openImage_pos hx)))
+  have hright :
+      ContinuousOn
+        (fun x : ℝ => (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        (Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+          (max (0 : ℝ) (Real.pi / 2))) :=
+    (continuousOn_const.sub (continuousOn_id.pow 2)).rpow_const
+      (fun x hx =>
+        Or.inl
+          (ne_of_gt
+            (Real.sinePower_sinSubstitution_openImage_one_sub_sq_pos hx)))
+  exact hleft.mul hright
 
 /-- General owner-level change-of-variables lemma for the sine substitution
 with singular endpoint target. -/
@@ -1716,6 +1822,38 @@ theorem Real.sinePower_squareSubstitution_jacobian_eq
         (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
         (Real.sinePower_squareSubstitution_leftPower_mul_eq s x hx)
 
+/-- Points in the square-substitution open image are positive. -/
+theorem Real.sinePower_squareSubstitution_openImage_pos
+    {t : ℝ}
+    (ht : t ∈
+      ((fun x : ℝ => x ^ 2) ''
+        Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1))) :
+    0 < t := by
+  rcases ht with ⟨x, hx, rfl⟩
+  have hmin : min (0 : ℝ) 1 = 0 :=
+    min_eq_left zero_le_one
+  have hmax : max (0 : ℝ) 1 = 1 :=
+    max_eq_right zero_le_one
+  have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+    rwa [hmin, hmax] at hx
+  exact sq_pos_of_pos hx'.1
+
+/-- The complementary factor is positive on the square-substitution open image. -/
+theorem Real.sinePower_squareSubstitution_openImage_one_sub_pos
+    {t : ℝ}
+    (ht : t ∈
+      ((fun x : ℝ => x ^ 2) ''
+        Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1))) :
+    0 < 1 - t := by
+  rcases ht with ⟨x, hx, rfl⟩
+  have hmin : min (0 : ℝ) 1 = 0 :=
+    min_eq_left zero_le_one
+  have hmax : max (0 : ℝ) 1 = 1 :=
+    max_eq_right zero_le_one
+  have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+    rwa [hmin, hmax] at hx
+  exact sub_pos.mpr ((sq_lt_one_iff₀ hx'.1.le).mpr hx'.2)
+
 /-- Continuity of the square-substitution target kernel on the open image. -/
 theorem Real.sinePower_squareSubstitution_target_continuousOn_openImage
     (s : ℝ) :
@@ -1725,7 +1863,41 @@ theorem Real.sinePower_squareSubstitution_target_continuousOn_openImage
           (1 - t) ^ ((1 / 2 : ℝ) - 1))
       ((fun x : ℝ => x ^ 2) ''
         Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
-  sorry
+  have hleft :
+      ContinuousOn
+        (fun t : ℝ => t ^ (((s + 1) / 2) - 1))
+        ((fun x : ℝ => x ^ 2) ''
+          Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) :=
+    continuousOn_id.rpow_const
+      (fun t ht =>
+        Or.inl
+          (ne_of_gt
+            (Real.sinePower_squareSubstitution_openImage_pos ht)))
+  have hright :
+      ContinuousOn
+        (fun t : ℝ => (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        ((fun x : ℝ => x ^ 2) ''
+          Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) :=
+    (continuousOn_const.sub continuousOn_id).rpow_const
+      (fun t ht =>
+        Or.inl
+          (ne_of_gt
+            (Real.sinePower_squareSubstitution_openImage_one_sub_pos ht)))
+  exact hleft.mul hright
+
+/-- The closed square-substitution image lies in the unit interval. -/
+theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
+    (fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]] ⊆ [[(0 : ℝ), 1]] := by
+  intro t ht
+  rcases ht with ⟨x, hx, rfl⟩
+  have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
+    rwa [Set.uIcc_of_le zero_le_one] at hx
+  have hx_nonneg : 0 ≤ x := hxIcc.1
+  have hx_le_one : x ≤ 1 := hxIcc.2
+  have hleft : 0 ≤ x ^ 2 := sq_nonneg x
+  have hright : x ^ 2 ≤ 1 := by
+    exact sq_le_one₀ hx_nonneg hx_le_one
+  exact Set.mem_uIcc_of_le hleft hright
 
 /-- Image-side integrability needed by mathlib's square substitution theorem. -/
 theorem Real.sinePower_squareSubstitution_image_integrableOn
@@ -1744,7 +1916,9 @@ theorem Real.sinePower_squareSubstitution_image_integrableOn
           (1 - t) ^ ((1 / 2 : ℝ) - 1))
       ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
       MeasureTheory.volume := by
-  sorry
+  exact
+    (intervalIntegrable_iff'.mp htarget).mono_set
+      Real.sinePower_squareSubstitution_closedImage_subset_unitInterval
 
 /-- Pullback-side integrability needed by mathlib's square substitution theorem. -/
 theorem Real.sinePower_squareSubstitution_pullback_integrableOn
@@ -1773,7 +1947,39 @@ theorem Real.sinePower_squareSubstitution_pullback_integrableOn
           (2 * x))
       [[(0 : ℝ), 1]]
       MeasureTheory.volume := by
-  sorry
+  have hsource_Icc :
+      MeasureTheory.IntegrableOn
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        [[(0 : ℝ), 1]]
+        MeasureTheory.volume := by
+    exact intervalIntegrable_iff'.mp hsource
+  have hpoint :
+      EqOn
+        (fun x : ℝ =>
+          (((fun t : ℝ =>
+            (1 / 2 : ℝ) *
+              (t ^ (((s + 1) / 2) - 1) *
+                (1 - t) ^ ((1 / 2 : ℝ) - 1))) ∘
+              (fun y : ℝ => y ^ 2)) x) *
+            (2 * x))
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        (Set.Ioo (0 : ℝ) 1) := by
+    intro x hx
+    exact hjac x hx
+  have hAE :
+      (fun x : ℝ =>
+          (((fun t : ℝ =>
+            (1 / 2 : ℝ) *
+              (t ^ (((s + 1) / 2) - 1) *
+                (1 - t) ^ ((1 / 2 : ℝ) - 1))) ∘
+              (fun y : ℝ => y ^ 2)) x) *
+            (2 * x)) =ᵐ[
+        MeasureTheory.volume.restrict [[(0 : ℝ), 1]]]
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) := by
+    refine (ae_restrict_iff' measurableSet_Icc).2 ?_
+    filter_upwards [Real.ae_uIoc_eq_of_eqOn_Ioo hpoint] with x hx
+    exact hx
+  exact hsource_Icc.congr_fun_ae hAE.symm
 
 /-- Pointwise equality on the open square-substitution interval. -/
 theorem Real.sinePower_squareSubstitution_openInterval_pointwise
