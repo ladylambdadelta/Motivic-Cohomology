@@ -2853,6 +2853,27 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
 
+/-- Canonical star-convex radial primitive theorem on a closed complex ball.
+
+For an analytic function on a star-convex closed ball, radial integration from
+the star center gives a primitive on the ball.  The proof is the standard
+Cauchy-Goursat/path-independence argument for star-shaped domains together
+with differentiation of the segment integral. -/
+theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z) ∧
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) := by
+  sorry
+
 /-- Analyticity of the radial segment primitive as a function of its endpoint. -/
 theorem complex_starConvexClosedBall_radialPrimitive_analyticAt
     (φ : ℂ → ℂ)
@@ -2864,7 +2885,9 @@ theorem complex_starConvexClosedBall_radialPrimitive_analyticAt
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z := by
-  sorry
+  exact
+    (complex_starConvexClosedBall_radialPrimitive_isPrimitive
+      φ hρ hstar hφ).1
 
 /-- Cauchy/FTC path-integral step for the radial primitive derivative. -/
 theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
@@ -2877,7 +2900,9 @@ theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z := by
-  sorry
+  exact
+    (complex_starConvexClosedBall_radialPrimitive_isPrimitive
+      φ hρ hstar hφ).2
 
 /-- Derivative formula for the radial segment primitive. -/
 theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq
