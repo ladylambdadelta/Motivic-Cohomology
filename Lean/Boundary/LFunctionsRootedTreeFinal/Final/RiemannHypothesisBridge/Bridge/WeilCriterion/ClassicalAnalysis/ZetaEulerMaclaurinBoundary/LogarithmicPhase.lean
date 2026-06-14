@@ -746,11 +746,15 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound
     (hderiv_lower :
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
-          λ ≤ ‖deriv φ x‖) :
+          λ ≤ ‖deriv φ x‖)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * λ⁻¹ := by
-  sorry
+  exact
+    Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
+      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
 
 /-- General finite first-derivative estimate for a real phase sampled on an
 integer block.
@@ -773,7 +777,9 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
     (hderiv_lower :
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
-          λ ≤ ‖deriv φ x‖) :
+          λ ≤ ‖deriv φ x‖)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
@@ -782,7 +788,7 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
         Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
           8 * λ⁻¹ :=
     Complex.realPhase_kusminLandau_integer_block_bound
-      φ ha hab hλ_pos hderiv_antitone hderiv_lower
+      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
   have hnonneg_one : (0 : ℝ) ≤ 1 :=
     zero_le_one
   have hle :
@@ -847,7 +853,14 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           ((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ)) ≤
             ‖deriv
-              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖) :
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+        (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp
         (Complex.I *
@@ -867,6 +880,8 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
       ha hab hλ_pos
       hderiv_antitone
       hderiv_lower
+      hinc_mono
+      hsep
   have hλ_inv :
       λ⁻¹ = ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
     Complex.logarithmicPhase_block_lowerParameter_inv_eq t ht b
@@ -903,7 +918,14 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
           ((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ)) ≤
             ‖deriv
-              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖) :
+              (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+        (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t n‖ ≤
         8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
@@ -930,6 +952,8 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
       (Complex.logarithmicPhaseRealPhase_deriv_norm_antitoneOn_integer_block t ha hab)
       (fun x hx =>
         Complex.logarithmicPhaseRealPhase_deriv_norm_block_lower_bound t ha hab hx)
+      hinc_mono
+      hsep
   exact Eq.subst
     (motive := fun S : ℂ =>
       ‖S‖ ≤ 8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1))
@@ -946,7 +970,14 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
     (ht : 1 ≤ ‖t‖)
     {a b : ℕ}
     (ha : 1 ≤ a)
-    (hab : a ≤ b) :
+    (hab : a ≤ b)
+    (hinc_mono :
+      Complex.realPhase_integerIncrementMonotoneOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b)
+    (hsep :
+      Complex.realPhase_integerIncrementSeparatedOn
+        (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+        (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ‖∑ n ∈ Finset.Icc a b,
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
         8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
@@ -972,6 +1003,8 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
       (Complex.logarithmicPhase_deriv_norm_antitoneOn_integer_block t ha hab)
       (fun x hx =>
         Complex.logarithmicPhase_deriv_norm_block_lower_bound t ha hab hx)
+      hinc_mono
+      hsep
   exact Eq.subst
     (motive := fun S : ℂ =>
       ‖S‖ ≤ 8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1))
@@ -2251,6 +2284,17 @@ logarithmic phase. -/
 theorem Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hfiniteDifference :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_integerIncrementSeparatedOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ)))
     (N : ℕ) :
     ‖∑ n ∈ Finset.Icc 1 N,
       ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
@@ -2260,16 +2304,29 @@ theorem Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
   exact
     Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
       (fun t ht {a} {b} ha hab =>
+        let hfd := hfiniteDifference t ht ha hab
         Complex.logarithmicPhase_monotone_firstDerivative_block_bound
-          t ht ha hab)
+          t ht ha hab hfd.1 hfd.2)
       t ht N
 
 /-- Classical first-derivative estimate for the concrete logarithmic phase
-`x ↦ exp(-it log x)`.
+`x ↦ exp(-it log x)` after the required finite-difference arithmetic is
+available.
 
 This is the remaining van der Corput/first-derivative-test input after the
 phase derivative and derivative norm have been computed from the definition. -/
-theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_standard :
+theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteDifference
+    (hfiniteDifference :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_integerIncrementSeparatedOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -2283,7 +2340,9 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_standard :
   refine ⟨16, ?_, ?_⟩
   · exact Nat.cast_pos.mpr (by decide : (0 : ℕ) < 16)
   · intro t ht N
-    exact Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound t ht N
+    exact
+      Complex.logarithmicPhase_dyadic_firstDerivative_sum_bound
+        t ht (hfiniteDifference t ht) N
 
 /-- The first-derivative-test root after the concrete derivative and derivative
 norm have been isolated. -/
@@ -2296,7 +2355,18 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
     (hderiv_norm :
       ∀ t : ℝ, ∀ {x : ℝ}, 0 < x →
         ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ =
-          ‖t‖ / x) :
+          ‖t‖ / x)
+    (hfiniteDifference :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_integerIncrementSeparatedOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -2307,12 +2377,25 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivat
                 A *
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) := by
-  exact Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_standard
+  exact
+    Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_finiteDifference
+      hfiniteDifference
 
 /-- The standard first-derivative-test owner root for the concrete logarithmic
 phase.  This is the analytic input behind the Euler-Maclaurin boundary
 package; cf. Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
-theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound :
+theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
+    (hfiniteDifference :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                Complex.realPhase_integerIncrementMonotoneOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+                Complex.realPhase_integerIncrementSeparatedOn
+                  (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+                  (‖t‖ / ((b + 1 : ℕ) : ℝ))) :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -2329,6 +2412,7 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound :
         Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hx)
       (fun t hx =>
         Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hx)
+      hfiniteDifference
 
 /-- First-derivative estimate for the logarithmic phase sums on the boundary
 line.
@@ -2338,6 +2422,16 @@ The previous scaffold stated an `O(log N)` bound for the unweighted sums
 oscillatory-sum size shown here; the reciprocal Abel weight is introduced in
 `AbelTail`. -/
 theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
+    (∀ t : ℝ,
+      1 ≤ ‖t‖ →
+        ∀ {a b : ℕ},
+          1 ≤ a →
+            a ≤ b →
+              Complex.realPhase_integerIncrementMonotoneOn
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b ∧
+              Complex.realPhase_integerIncrementSeparatedOn
+                (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) a b
+                (‖t‖ / ((b + 1 : ℕ) : ℝ))) →
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -2348,7 +2442,10 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum_bound :
                 A *
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) := by
-  exact Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
+  intro hfiniteDifference
+  exact
+    Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound
+      hfiniteDifference
 
 end
 

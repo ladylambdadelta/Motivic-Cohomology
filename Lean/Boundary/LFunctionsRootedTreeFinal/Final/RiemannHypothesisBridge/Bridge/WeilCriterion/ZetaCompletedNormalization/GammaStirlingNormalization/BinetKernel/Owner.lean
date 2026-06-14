@@ -969,6 +969,37 @@ theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
     exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
   exact le_trans (le_of_eq rfl) hhalf
 
+/-- The argument of the Binet quotient is controlled by the argument of its
+factors. -/
+theorem Complex.arg_binet_quotient_le_pi
+    (z : ℂ) :
+    |(Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im| ≤ π := by
+  rw [Complex.log_im]
+  exact abs_arg_le_pi _
+
+/-- The Binet quotient log norm is controlled by its real part and the
+universal `π` argument bound. -/
+theorem Complex.norm_log_binet_quotient_le_abs_re_add_pi
+    (z : ℂ) :
+    ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ ≤
+      |(Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re| + π := by
+  exact Complex.norm_log_le_abs_log_add_pi ((1 + z * Complex.I) / (1 - z * Complex.I))
+
+/-- The real part of the Binet quotient logarithm is the log of the ratio of
+its numerator and denominator norms. -/
+theorem Complex.log_binet_quotient_re_eq_log_ratio (z : ℂ) :
+    (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
+      Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ := by
+  rw [Complex.log_re, Complex.norm_div_eq_div_norm]
+  have hpos : 0 < ‖1 - z * Complex.I‖ := by
+    exact norm_pos_iff.mpr (by
+      intro hzero
+      have h1 : (1 : ℂ) = z * Complex.I := by
+        simpa [hzero] using sub_eq_zero.mp hzero
+      have : (z * Complex.I).re = 1 := by simpa [h1]
+      linarith)
+  rw [Real.log_div hpos.ne']
+
 /-- A positive integrable function on an open real interval has positive set
 integral. -/
 theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
