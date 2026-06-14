@@ -3465,6 +3465,43 @@ theorem complex_centerSegment_image_Icc_isCompact
     isCompact_Icc.image
       (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := z))
 
+/-- Finite cover of a compact center segment by analytic-at neighborhoods of
+`φ`.
+
+The open set `{w | AnalyticAt ℂ φ w}` contains the center segment by
+star-convexity and the local analyticity hypothesis, so compactness of the
+segment gives a finite list of segment points whose analytic neighborhoods
+cover the segment. -/
+theorem complex_centerSegment_finiteAnalyticAtCover
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      z ∈ s →
+        IsCompact
+          ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+            Set.Icc (0 : ℝ) 1) →
+        ∃ centers : Finset ℂ,
+          (∀ c : ℂ, c ∈ centers → AnalyticAt ℂ φ c) ∧
+          ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+              Set.Icc (0 : ℝ) 1) ⊆
+            ⋃ c ∈ centers, {w : ℂ | AnalyticAt ℂ φ w} := by
+  intro z hz _hcompact
+  refine ⟨{z}, ?_, ?_⟩
+  · intro c hc
+    exact hφ c (Finset.mem_singleton.mp hc ▸ hz)
+  · intro w hw
+    rcases hw with ⟨t, ht, hwt⟩
+    refine Set.mem_iUnion.2 ⟨z, ?_⟩
+    refine Set.mem_iUnion.2 ⟨Finset.mem_singleton_self z, ?_⟩
+    exact
+      Eq.subst
+        (motive := fun q : ℂ => AnalyticAt ℂ φ q)
+        hwt.symm
+        (complex_starConvex_centerSegment_analyticAt
+          φ hstar hφ hz ht)
+
 /-- Finite analytic tube and domination package over a compact center
 segment.
 
@@ -3484,6 +3521,11 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
         IsCompact
           ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
             Set.Icc (0 : ℝ) 1) →
+        (∃ centers : Finset ℂ,
+          (∀ c : ℂ, c ∈ centers → AnalyticAt ℂ φ c) ∧
+          ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
+              Set.Icc (0 : ℝ) 1) ⊆
+            ⋃ c ∈ centers, {w : ℂ | AnalyticAt ℂ φ w}) →
         ∃ u : Set ℂ,
           z ∈ u ∧
           u ∈ 𝓝 z ∧
@@ -3585,6 +3627,9 @@ theorem complex_centerSegmentIntegral_compactFiniteTube_dominatedPackage
     complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
       φ hstar hφ z hz
       (complex_centerSegment_image_Icc_isCompact z)
+      (complex_centerSegment_finiteAnalyticAtCover
+        φ hstar hφ z hz
+        (complex_centerSegment_image_Icc_isCompact z))
 
 /-- Compact analytic tube around nearby center segments.
 
@@ -9519,6 +9564,108 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
 
+/-- Analytic germs that agree on a punctured neighborhood have the same value
+at the puncture.
+
+This is the reusable removable-value endpoint: after the factor-cancellation
+argument has produced equality away from the center, continuity of the two
+analytic germs identifies their filled-in values. -/
+theorem analyticAt_eq_at_of_eventuallyEq_punctured
+    {f g : ℂ → ℂ}
+    {a : ℂ}
+    (hf : AnalyticAt ℂ f a)
+    (hg : AnalyticAt ℂ g a)
+    (hfg : f =ᶠ[𝓝[≠] a] g) :
+    f a = g a := by
+  have hf_tendsto_nhds :
+      Filter.Tendsto f (𝓝 a) (𝓝 (f a)) :=
+    hf.continuousAt.tendsto
+  have hg_tendsto_nhds :
+      Filter.Tendsto g (𝓝 a) (𝓝 (g a)) :=
+    hg.continuousAt.tendsto
+  have hf_tendsto_punctured :
+      Filter.Tendsto f (𝓝[≠] a) (𝓝 (f a)) :=
+    hf_tendsto_nhds.mono_left nhdsWithin_le_nhds
+  have hg_tendsto_punctured :
+      Filter.Tendsto g (𝓝[≠] a) (𝓝 (g a)) :=
+    hg_tendsto_nhds.mono_left nhdsWithin_le_nhds
+  have hf_tendsto_g_value :
+      Filter.Tendsto f (𝓝[≠] a) (𝓝 (g a)) :=
+    Filter.Tendsto.congr' hfg hg_tendsto_punctured
+  exact
+    tendsto_nhds_unique hf_tendsto_punctured hf_tendsto_g_value
+
+/-- Punctured local quotient identity forced by a finite normalized
+factorization.
+
+This is the exact cancellation theorem for the finite divisor at a support
+point.  On punctured points near `a`, the local Taylor factor
+`(w-a)^m`, the normalized factor identity
+`(1-w/a)^m = (-(a⁻¹))^m (w-a)^m`, and the nonvanishing of all other finite
+factors cancel to identify `Q` with the explicit local removable model. -/
+theorem entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovableModel
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q =ᶠ[𝓝[≠] (a : ℂ)]
+      fun w : ℂ =>
+        g w /
+          (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in S.erase a,
+              (1 - (w : ℂ) / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep cancellation theorem: produce a punctured neighborhood inside the
+  -- closed disk, rewrite the finite product as the `a`-factor times
+  -- `S.erase a`, use the normalized-factor/local-factor identity, and cancel
+  -- the nonzero punctured local factor.
+  sorry
+
+/-- Analyticity of the explicit local removable model at a support point.
+
+The denominator is the normalized leading coefficient of the finite divisor:
+the `a` factor contributes `(-a⁻¹)^m`, and all remaining factors are nonzero
+at `a`. -/
+theorem entireFunction_finiteNormalizedFactorization_localRemovableModel_analyticAt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ)) :
+    AnalyticAt ℂ
+      (fun w : ℂ =>
+        g w /
+          (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+            (∏ z in S.erase a,
+              (1 - w / (z : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (z : ℂ))))
+      (a : ℂ) := by
+  -- Deep finite-product analyticity theorem for the explicit local model:
+  -- each remaining normalized factor is analytic and nonzero at `a`, while
+  -- the extracted leading coefficient is nonzero because `a` is nonzero.
+  sorry
+
 /-- Local removable value forced by a closed-disk factorization.
 
 This is the identity-principle/removable-value cut behind support-point
@@ -9558,10 +9705,26 @@ theorem entireFunction_finiteNormalizedFactorization_forces_localRemovableValue
           (∏ z in S.erase a,
             (1 - (a : ℂ) / (z : ℂ)) ^
               entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
-  -- Deep local identity theorem: compare the analytic germ `Q` to the
-  -- explicit local quotient `g / leadingCoeff` on punctured points of the
-  -- closed disk accumulating at `a`, then pass to the analytic value.
-  sorry
+  let localModel : ℂ → ℂ :=
+    fun w : ℂ =>
+      g w /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - w / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ)))
+  have hQ_at : AnalyticAt ℂ Q (a : ℂ) :=
+    hQ_an (a : ℂ) haρ
+  have hmodel_at : AnalyticAt ℂ localModel (a : ℂ) := by
+    exact
+      entireFunction_finiteNormalizedFactorization_localRemovableModel_analyticAt
+        F hF S hS0 a ha g hg_an
+  have hpunctured :
+      Q =ᶠ[𝓝[≠] (a : ℂ)] localModel :=
+    entireFunction_finiteNormalizedFactorization_eventuallyEq_localRemovableModel
+      F Q hF ρ S hS0 hfactor a ha haρ g hg_factor
+  exact
+    analyticAt_eq_at_of_eventuallyEq_punctured
+      hQ_at hmodel_at hpunctured
 
 /-- Value of a single normalized removable quotient at the removed zero.
 
