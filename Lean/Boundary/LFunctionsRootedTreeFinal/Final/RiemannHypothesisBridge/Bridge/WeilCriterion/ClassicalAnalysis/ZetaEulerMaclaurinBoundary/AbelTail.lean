@@ -342,7 +342,119 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_
           0)
       (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
         Complex.riemannZetaBoundaryLineTruncation t N) := by
-  sorry
+  let f : ℕ → ℂ := fun n : ℕ =>
+    ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} => f x)
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N, f n) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hζ
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f)
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N, f n) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := f)).mp
+        htail_compl
+  have hzero : f 0 = 0 := by
+    have hs_ne_zero : Complex.boundaryLineOnePointRealParam t ≠ 0 := by
+      intro hs
+      have hre_zero : (Complex.boundaryLineOnePointRealParam t).re = 0 := by
+        exact congrArg Complex.re hs
+      have hre_one : (Complex.boundaryLineOnePointRealParam t).re = 1 :=
+        Complex.boundaryLineOnePointRealParam_re t
+      have hone_eq_zero : (1 : ℝ) = 0 :=
+        Eq.trans hre_one.symm hre_zero
+      exact one_ne_zero hone_eq_zero
+    have hpow_zero :
+        (0 : ℂ) ^ (Complex.boundaryLineOnePointRealParam t) = 0 :=
+      (cpow_eq_zero_iff).mpr ⟨rfl, hs_ne_zero⟩
+    calc
+      f 0 = ((0 : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹ :=
+        rfl
+      _ = (0 : ℂ)⁻¹ := by
+        exact congrArg Inv.inv hpow_zero
+      _ = 0 :=
+        inv_zero
+  have hindicator :
+      ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) =
+        (fun n : ℕ => if N < n then f n else 0) := by
+    funext n
+    by_cases hn_tail : N < n
+    · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+        intro hn_mem
+        have hn_le_N : n ≤ N :=
+          (Finset.mem_Icc.mp hn_mem).2
+        exact not_lt_of_ge hn_le_N hn_tail
+      calc
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) n = f n :=
+          Set.indicator_of_mem hn_not_mem f
+        _ = (if N < n then f n else 0) := by
+          exact (if_pos hn_tail).symm
+    · have hn_not_tail : ¬ N < n :=
+        hn_tail
+      by_cases hn_zero : n = 0
+      · have hn_mem_false_or_zero :
+            ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) n = 0 := by
+          calc
+            ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) n = f n := by
+              have hn_not_mem : n ∉ Finset.Icc 1 N := by
+                intro hn_mem
+                have hone_le_n : 1 ≤ n :=
+                  (Finset.mem_Icc.mp hn_mem).1
+                have hone_le_zero : (1 : ℕ) ≤ 0 := by
+                  exact Eq.subst (motive := fun m : ℕ => 1 ≤ m) hn_zero hone_le_n
+                exact (Nat.not_succ_le_zero 0) hone_le_zero
+              exact Set.indicator_of_mem hn_not_mem f
+            _ = f 0 := by
+              exact congrArg f hn_zero
+            _ = 0 :=
+              hzero
+        calc
+          ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) n = 0 :=
+            hn_mem_false_or_zero
+          _ = (if N < n then f n else 0) := by
+            exact (if_neg hn_not_tail).symm
+      · have hn_pos : 1 ≤ n :=
+          Nat.succ_le_of_lt (Nat.pos_of_ne_zero hn_zero)
+        have hn_le_N : n ≤ N :=
+          le_of_not_gt hn_not_tail
+        have hn_mem : n ∈ Finset.Icc 1 N :=
+          Finset.mem_Icc.mpr ⟨hn_pos, hn_le_N⟩
+        have hn_not_mem_tail : n ∉ {n : ℕ | n ∉ Finset.Icc 1 N} := by
+          intro hn_not_mem
+          exact hn_not_mem hn_mem
+        calc
+          ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) n = 0 :=
+            Set.indicator_of_not_mem hn_not_mem_tail f
+          _ = (if N < n then f n else 0) := by
+            exact (if_neg hn_not_tail).symm
+  have htail_if :
+      HasSum
+        (fun n : ℕ => if N < n then f n else 0)
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+          ∑ n ∈ Finset.Icc 1 N, f n) :=
+    Eq.subst
+      (motive := fun g : ℕ → ℂ =>
+        HasSum g
+          (riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+            ∑ n ∈ Finset.Icc 1 N, f n))
+      hindicator
+      htail_indicator
+  have hfinite :
+      (∑ n ∈ Finset.Icc 1 N, f n) =
+        Complex.riemannZetaBoundaryLineTruncation t N := by
+    rfl
+  exact Eq.subst
+    (motive := fun S : ℂ =>
+      HasSum (fun n : ℕ => if N < n then f n else 0)
+        (riemannZeta (Complex.boundaryLineOnePointRealParam t) - S))
+    hfinite
+    htail_if
 
 /-- Boundary Dirichlet-tail summability at `1 + it`. -/
 theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletTail_hasSum_zeta_remainder
