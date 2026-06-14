@@ -983,6 +983,72 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
           ((x ^ 2) ^ (((s + 1) / 2) - 1) *
             (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))).symm
 
+/-- The closed square-substitution image lies in the unit interval. -/
+theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
+    (fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]] ⊆ [[(0 : ℝ), 1]] := by
+  intro t ht
+  rcases ht with ⟨x, hx, rfl⟩
+  have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
+    rwa [Set.uIcc_of_le zero_le_one] at hx
+  have hx_nonneg : 0 ≤ x := hxIcc.1
+  have hx_le_one : x ≤ 1 := hxIcc.2
+  have hleft : 0 ≤ x ^ 2 := sq_nonneg x
+  have hright : x ^ 2 ≤ 1 := by
+    exact sq_le_one₀ hx_nonneg hx_le_one
+  exact Set.mem_uIcc_of_le hleft hright
+
+/-- Integrability transport for the square substitution `t = x²` with its
+Jacobian factor on `[0,1]`. This is the exact owner-level input needed for the
+singular Beta kernel pullback. -/
+theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
+    {g : ℝ → ℝ}
+    (hg :
+      MeasureTheory.IntegrableOn
+        g
+        ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
+        MeasureTheory.volume) :
+    MeasureTheory.IntegrableOn
+      (fun x : ℝ => g (x ^ 2) * (2 * x))
+      [[(0 : ℝ), 1]]
+      MeasureTheory.volume := by
+  have hs : MeasurableSet [[(0 : ℝ), 1]] := measurableSet_uIcc
+  have hderiv :
+      ∀ x ∈ [[(0 : ℝ), 1]],
+        HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
+    intro x hx
+    have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+      rwa [Set.uIcc_of_le zero_le_one] at hx
+    have hcont : Continuous fun y : ℝ => y ^ 2 := by
+      simpa using (continuous_id.pow 2)
+    have hderiv_at : HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
+      simpa using (hcont.hasDerivAt hx').pow 2
+    exact hderiv_at.hasDerivWithinAt
+  have hinj : InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
+    intro x hx y hy hxy
+    have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+      rwa [Set.uIcc_of_le zero_le_one] at hx
+    have hy' : y ∈ Set.Icc (0 : ℝ) 1 := by
+      rwa [Set.uIcc_of_le zero_le_one] at hy
+    have hx_nonneg : 0 ≤ x := hx'.1
+    have hy_nonneg : 0 ≤ y := hy'.1
+    have hx_le : x ≤ 1 := hx'.2
+    have hy_le : y ≤ 1 := hy'.2
+    exact sq_eq_sq_iff_eq_or_eq_neg.mp hxy |>.resolve_right (by
+      have hneg : ¬ x = -y := by
+        intro h
+        have hyneg : y ≤ 0 := by
+          have := congrArg Neg.neg h
+          simpa [neg_neg] using this
+        exact not_le_of_gt (lt_of_le_of_lt hy_nonneg (by linarith)) hyneg
+      exact hneg)
+  have habs :
+      MeasureTheory.IntegrableOn
+        (fun x : ℝ => |2 * x| • g (x ^ 2))
+        [[(0 : ℝ), 1]]
+        MeasureTheory.volume :=
+    (integrableOn_image_iff_integrableOn_abs_deriv_smul hs hderiv hinj g).mp hg
+  simpa [abs_of_nonneg (mul_nonneg zero_le_two (by positivity))] using habs
+
 /-- Endpoint integrability of the square-root pullback of the Beta kernel.
 This is the non-circular integrability input for the substitution `t = x²`. -/
 theorem Real.sinePower_betaKernel_squareRootPullback_intervalIntegrable
@@ -1004,7 +1070,26 @@ theorem Real.sinePower_betaKernel_squareRootPullback_intervalIntegrable
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
-  sorry
+  let g : ℝ → ℝ :=
+    fun t : ℝ =>
+      (1 / 2 : ℝ) *
+        (t ^ (((s + 1) / 2) - 1) *
+          (1 - t) ^ ((1 / 2 : ℝ) - 1))
+  have hg_interval :
+      IntervalIntegrable g MeasureTheory.volume (0 : ℝ) 1 :=
+    hbeta.const_mul (1 / 2 : ℝ)
+  have hg_image :
+      MeasureTheory.IntegrableOn
+        g
+        ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
+        MeasureTheory.volume :=
+    (intervalIntegrable_iff'.mp hg_interval).mono_set
+      Real.sinePower_squareSubstitution_closedImage_subset_unitInterval
+  exact
+    intervalIntegrable_iff'.mpr
+      (Real.squareSubstitution_weightedPullback_integrableOn_of_image
+        (g := g)
+        hg_image)
 
 /-- Pullback endpoint integrability of the Beta kernel along `x ↦ x²`, in the
 form needed for the sine-substitution target integrand. -/
@@ -1885,20 +1970,6 @@ theorem Real.sinePower_squareSubstitution_target_continuousOn_openImage
             (Real.sinePower_squareSubstitution_openImage_one_sub_pos ht)))
   exact hleft.mul hright
 
-/-- The closed square-substitution image lies in the unit interval. -/
-theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
-    (fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]] ⊆ [[(0 : ℝ), 1]] := by
-  intro t ht
-  rcases ht with ⟨x, hx, rfl⟩
-  have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
-    rwa [Set.uIcc_of_le zero_le_one] at hx
-  have hx_nonneg : 0 ≤ x := hxIcc.1
-  have hx_le_one : x ≤ 1 := hxIcc.2
-  have hleft : 0 ≤ x ^ 2 := sq_nonneg x
-  have hright : x ^ 2 ≤ 1 := by
-    exact sq_le_one₀ hx_nonneg hx_le_one
-  exact Set.mem_uIcc_of_le hleft hright
-
 /-- Image-side integrability needed by mathlib's square substitution theorem. -/
 theorem Real.sinePower_squareSubstitution_image_integrableOn
     (s : ℝ)
@@ -2055,7 +2126,9 @@ theorem Real.sinePower_squareSubstitution_scaledTarget_image_integrableOn
             (1 - t) ^ ((1 / 2 : ℝ) - 1)))
       ((fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]])
       MeasureTheory.volume := by
-  sorry
+  exact
+    (Real.sinePower_squareSubstitution_image_integrableOn s htarget).const_mul
+      (1 / 2 : ℝ)
 
 /-- Scalar normalization after the square substitution. -/
 theorem Real.sinePower_squareSubstitution_scaledIntegral_eq
@@ -2837,7 +2910,8 @@ theorem Real.sinePowerIntegral_hasDerivAt_zero_from_pointwiseDerivative_and_domi
       Real.sinePowerIntegral
       (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
       0 := by
-  sorry
+  exact
+    Real.sinePowerIntegral_hasDerivAt_zero_from_gammaRatio
 
 /-- Differentiating the sine-power integral at exponent `0`. -/
 theorem Real.sinePowerIntegral_hasDerivAt_zero_from_differentiationUnderIntegral :
@@ -2860,7 +2934,18 @@ theorem Real.sinePowerIntegral_hasDerivAt_zero :
 theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two_from_duplicationDerivative :
     Real.gammaLogDeriv 1 - Real.gammaLogDeriv (1 / 2) =
       2 * Real.log 2 := by
-  sorry
+  have hGamma1 : Real.Gamma 1 = 1 := Real.Gamma_one
+  have hGammaHalf : Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi :=
+    Real.Gamma_one_half_eq
+  have hderiv1 : deriv Real.Gamma 1 = -Real.eulerMascheroniConstant :=
+    Real.hasDerivAt_Gamma_one.deriv
+  have hderivHalf :
+      deriv Real.Gamma (1 / 2 : ℝ) =
+        -Real.sqrt Real.pi * (Real.eulerMascheroniConstant + 2 * Real.log 2) :=
+    Real.hasDerivAt_Gamma_one_half.deriv
+  unfold Real.gammaLogDeriv
+  rw [hGamma1, hGammaHalf, hderiv1, hderivHalf]
+  ring
 
 /-- Legendre duplication in logarithmic-derivative form at `1/2`. -/
 theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two :
