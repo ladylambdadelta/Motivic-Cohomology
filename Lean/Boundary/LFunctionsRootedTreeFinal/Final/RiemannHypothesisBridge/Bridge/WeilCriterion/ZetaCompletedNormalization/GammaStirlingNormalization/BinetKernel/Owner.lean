@@ -361,19 +361,18 @@ noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
   (w - (1 / 2 : ℂ)) * Complex.log w - w +
     (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
 
-/-- Binet's second logarithmic formula for `Gamma` on the closed
-right-half-plane sector, away from the origin.
+/-- Binet's second logarithmic formula for `Gamma` on the open right half-plane,
+away from the origin.
 
 This is the standard integral representation:
 `Log Γ(w) = (w - 1/2) Log w - w + (1/2)log(2π) + J(w)`, where `J` is the
-Binet second-formula remainder.  The closed-sector large-radius statement is
-the form needed for sectorial Stirling; it includes the boundary rays by
-continuation from the open right half-plane. -/
+Binet second-formula remainder.  The principal-arctangent kernel is not
+evaluated on the imaginary boundary. -/
 theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
     ∃ R : ℝ,
       0 < R ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
@@ -397,22 +396,23 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   sorry
 
-/-- Boundary-continuation form of the Binet-kernel estimate.
+/-- Open-half-plane form of the Binet-kernel estimate kept under the historical
+name used by downstream normalization code.
 
 The literal principal-arctangent kernel has boundary singularities on the
-imaginary axis, so the closed-sector estimate is obtained as the boundary
-value of the open-right-half-plane kernel. -/
+imaginary axis, so this theorem requires `0 < w.re`. -/
 theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
     {w : ℂ}
-    (hw_sector : Complex.closedRightHalfPlaneSector w)
-    (hw_ne : w ≠ 0) :
+    (hw_re_pos : 0 < w.re) :
     ∀ t : ℝ,
       0 < t →
         ‖Complex.arctan ((t : ℂ) / w) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
           (t / ‖w‖) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+  exact
+    Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
+      hw_re_pos
 
 /-- The positive half-line decomposes into the local Binet interval `(0,1]`
 and the tail interval `(1,∞)`. -/
@@ -776,8 +776,7 @@ theorem Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
 /-- Integration of the pointwise Binet-kernel majorant. -/
 theorem Complex.binetSecondFormula_remainder_norm_le_integral_majorant
     {w : ℂ}
-    (hw_sector : Complex.closedRightHalfPlaneSector w)
-    (hw_ne : w ≠ 0) :
+    (hw_re_pos : 0 < w.re) :
     ‖Complex.binetSecondFormulaRemainder w‖ ≤
       2 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
@@ -809,7 +808,7 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_ker
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
   let J : ℝ :=
@@ -824,37 +823,33 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_ker
   have hK : 0 < K :=
     mul_pos two_pos hJ_pos
   refine ⟨R, K, hR, hK, ?_⟩
-  intro w hw_sector hw_radius
-  have hw_norm_pos : 0 < ‖w‖ :=
-    lt_of_lt_of_le hR hw_radius
-  have hw_ne : w ≠ 0 :=
-    norm_pos_iff.mp hw_norm_pos
+  intro w hw_re_pos hw_radius
   have hmajorant :
       ‖Complex.binetSecondFormulaRemainder w‖ ≤
         2 * J / ‖w‖ :=
     Complex.binetSecondFormula_remainder_norm_le_integral_majorant
-      hw_sector hw_ne
+      hw_re_pos
   exact hmajorant
 
 /-- Uniform `O(1/‖w‖)` bound for the Binet second-formula remainder on the
-closed right-half-plane sector.
+open right half-plane.
 
 This is the standard estimate obtained from the Binet kernel
-`atan(t / w)/(exp(2πt)-1)`: for `Re w ≥ 0` and large radius, the remainder is
+`atan(t / w)/(exp(2πt)-1)`: for `Re w > 0` and large radius, the remainder is
 bounded by a constant multiple of `1/‖w‖`. -/
 theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
   exact
     Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate
 
 /-- Binet's second formula with a uniform sectorial remainder bound on the
-closed right half-plane.
+open right half-plane.
 
 This wrapper combines the right-half-plane Binet representation with the
 sectorial `O(1/‖w‖)` remainder estimate. -/
@@ -863,7 +858,7 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         Complex.log (Complex.Gamma w) =
             Complex.binetLogGammaMainTerm w +
@@ -877,13 +872,13 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
   have hR : 0 < R :=
     lt_of_lt_of_le hRlog (le_max_left Rlog Rbound)
   refine ⟨R, K, hR, hK, ?_⟩
-  intro w hw_sector hw_norm
+  intro w hw_re_pos hw_norm
   have hRlog_le : Rlog ≤ ‖w‖ :=
     le_trans (le_max_left Rlog Rbound) hw_norm
   have hRbound_le : Rbound ≤ ‖w‖ :=
     le_trans (le_max_right Rlog Rbound) hw_norm
-  exact ⟨hlog w hw_sector hRlog_le,
-    hbound w hw_sector hRbound_le⟩
+  exact ⟨hlog w hw_re_pos hRlog_le,
+    hbound w hw_re_pos hRbound_le⟩
 
 /-- Exponentiating Binet's logarithmic identity separates the main term from
 the Binet remainder. -/
@@ -1306,14 +1301,14 @@ estimate for `Γ`.
 
 This is the standard exponentiation step from the principal logarithmic Binet
 formula to
-`Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the closed
-right-half-plane sector. -/
+`Γ(w) exp(w) w^(1/2-w) = sqrt(2π) + O(1/‖w‖)`, uniformly in the open
+right half-plane. -/
 theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        Complex.closedRightHalfPlaneSector w →
+        0 < w.re →
         R ≤ ‖w‖ →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
@@ -1332,12 +1327,12 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
       mul_pos two_pos hsqrt_pos
     exact mul_pos htwo_sqrt_pos hK
   refine ⟨R', K', hR', hK', ?_⟩
-  intro w hw_sector hw_radius
+  intro w hw_re_pos hw_radius
   have hR_le : R ≤ ‖w‖ :=
     le_trans (le_max_left R K) hw_radius
   have hK_le : K ≤ ‖w‖ :=
     le_trans (le_max_right R K) hw_radius
-  rcases hBinet w hw_sector hR_le with ⟨hlog, hrem⟩
+  rcases hBinet w hw_re_pos hR_le with ⟨hlog, hrem⟩
   let E : ℂ := Complex.binetSecondFormulaRemainder w
   have hnorm_pos : 0 < ‖w‖ :=
     lt_of_lt_of_le hR' hw_radius
@@ -1364,17 +1359,17 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
               Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
             _ = -(((Nat.succ n : ℕ) : ℝ)) := by
               exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
-        have hre_nonneg :
-            (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+        have hre_pos :
+            (0 : ℝ) < -(((Nat.succ n : ℕ) : ℝ)) :=
           Eq.subst
-            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+            (motive := fun x : ℝ => (0 : ℝ) < x)
             hre_eq
-            hw_sector
+            hw_re_pos
         have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
           Nat.cast_pos.mpr (Nat.succ_pos n)
         have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
           neg_neg_of_pos hsucc_pos
-        exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
+        exact (not_lt_of_ge (le_of_lt hre_pos)) hneg_lt_zero
   have hidentity :
       Complex.Gamma w * Complex.exp w *
           w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
