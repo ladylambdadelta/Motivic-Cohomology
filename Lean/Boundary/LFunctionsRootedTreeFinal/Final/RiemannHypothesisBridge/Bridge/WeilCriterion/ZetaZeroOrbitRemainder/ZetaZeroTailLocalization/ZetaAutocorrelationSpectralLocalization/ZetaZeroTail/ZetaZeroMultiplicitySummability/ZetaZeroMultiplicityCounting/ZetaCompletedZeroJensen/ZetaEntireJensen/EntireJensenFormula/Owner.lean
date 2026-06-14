@@ -357,48 +357,38 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     IntervalIntegrable f MeasureTheory.volume a b := by
   sorry
 
-/-- Jensen boundary specialization of finite logarithmic-singularity gluing.
+/-- The doubled-radius Jensen loss has a positive logarithmic denominator. -/
+theorem real_log_two_pos : 0 < Real.log 2 := by
+  exact Real.log_pos (by norm_num)
 
-This is the exact compact-cover theorem needed by the public Jensen boundary
-integrability root: the finite circle-zero set gives finitely many parameter
-singularities on the fundamental interval, each singularity has the local
-Taylor/log model, and the complement is continuous. -/
-theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_core
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
-    (R : ℝ)
-    (hR : 0 < R)
-    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
-    IntervalIntegrable
-      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
-      MeasureTheory.volume
-      (0 : ℝ)
-      (2 * Real.pi) := by
-  sorry
+/-- The doubled-radius Jensen loss has a nonzero logarithmic denominator. -/
+theorem real_log_two_ne_zero : Real.log 2 ≠ 0 := by
+  exact real_log_two_pos.ne'
 
-/-- Finite gluing of local logarithmic singularity models on the Jensen
-fundamental interval.
+/-- The reciprocal of the doubled-radius Jensen loss is nonnegative. -/
+theorem real_log_two_inv_nonneg : 0 ≤ (Real.log 2)⁻¹ := by
+  exact inv_nonneg.mpr real_log_two_pos.le
 
-Each point of the finite singular set contributes a local model
-`n * log |θ - θ₀| + g θ` with continuous remainder, while the complement is
-continuous.  The proof is the standard finite cover argument together with
-integrability of `log |θ - θ₀|` on compact intervals. -/
-theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_glue
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
-    (R : ℝ)
-    (hR : 0 < R)
-    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
-    IntervalIntegrable
-      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
-      MeasureTheory.volume
-      (0 : ℝ)
-      (2 * Real.pi) := by
-  exact
-    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_core
-      F hF hnontrivial R hR hzeros
+/-- Radii used in the doubled Jensen circle are positive for `R ≥ 1`. -/
+theorem doubled_radius_pos_of_one_le {R : ℝ} (hR : 1 ≤ R) :
+    0 < 2 * R := by
+  nlinarith
+
+/-- A nonzero point in the closed disk of radius `R` has at least the standard
+`log 2` radial Jensen gap when the boundary radius is `2R`. -/
+theorem log_two_le_log_doubled_radius_div_norm
+    {R : ℝ}
+    {z : ℂ}
+    (hR : 1 ≤ R)
+    (hz_ne : z ≠ 0)
+    (hz_le : ‖z‖ ≤ R) :
+    Real.log 2 ≤ Real.log ((2 * R) / ‖z‖) := by
+  have hz_pos : 0 < ‖z‖ := norm_pos_iff.mpr hz_ne
+  have htwo_le : 2 ≤ (2 * R) / ‖z‖ := by
+    have hmul_le : 2 * ‖z‖ ≤ 2 * R := by
+      exact mul_le_mul_of_nonneg_left hz_le (by norm_num)
+    exact (le_div_iff₀ hz_pos).mpr hmul_le
+  exact Real.log_le_log (by norm_num) htwo_le
 
 /-- Standard Jensen formula with multiplicity counting on the doubled disk.
 
@@ -418,23 +408,6 @@ theorem entireFunction_classicalJensenFormula_standardRoot_zeroMultiplicityCount
           J + (Real.log 2)⁻¹ *
             entireFunctionJensenBoundaryLogAverage F (2 * R) := by
   sorry
-
-/-- Finite logarithmic singularity gluing for Jensen boundary integrability. -/
-theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
-    (R : ℝ)
-    (hR : 0 < R)
-    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
-    IntervalIntegrable
-      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
-      MeasureTheory.volume
-      (0 : ℝ)
-      (2 * Real.pi) := by
-  exact
-    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_glue
-      F hF hnontrivial R hR hzeros
 
 /-- Classical Jensen formula zero-counting estimate, including the doubled-radius
 `log 2` loss.
@@ -1022,23 +995,6 @@ theorem jensenBoundaryLogIntegrand_eventually_eq_logDistance_plus_continuousAt_n
     ⟨g', hg', hg'eventually⟩
   exact ⟨n, g', hg', hg'eventually⟩
 
-/-- Finite singularity gluing for the Jensen boundary logarithmic average. -/
-theorem intervalIntegrable_of_finite_singularities_with_local_models
-    (F : ℂ → ℂ)
-    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
-    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
-    (R : ℝ)
-    (hR : 0 < R)
-    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
-    IntervalIntegrable
-      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
-      MeasureTheory.volume
-      (0 : ℝ)
-      (2 * Real.pi) := by
-  exact
-    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities
-      F hF hnontrivial R hR hzeros
-
 /-- The doubled-circle parametrization is injective on the open fundamental arc
 `(0, 2π]`. This is the bookkeeping input that turns a finite circle zero set into a
 finite parameter singular set. -/
@@ -1130,6 +1086,124 @@ theorem entireFunction_jensenBoundaryLogIntegrand_continuousOn_compl_circleZeroP
     continuous_norm.comp (hcontF.comp hparam)
   exact hcont_norm.continuousOn.log fun θ hθ => norm_ne_zero_iff.mpr (hzero θ hθ.1)
 
+/-- Jensen boundary specialization of finite logarithmic-singularity gluing.
+
+The singular set is the finite set of parameters on the fundamental arc whose
+circle samples are zeros.  Each such parameter is handled by the analytic
+Taylor/log local model, and the zero-free complement is continuous. -/
+theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_core
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ)
+    (hR : 0 < R)
+    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
+    IntervalIntegrable
+      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  let S : Set ℝ :=
+    {θ : ℝ | θ ∈ Set.Icc 0 (2 * Real.pi) ∧
+      F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0}
+  have hS : S.Finite := by
+    let T : Set ℝ :=
+      {θ : ℝ | θ ∈ Set.Ioc 0 (2 * Real.pi) ∧
+        F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0}
+    have hT : T.Finite := by
+      simpa [T] using
+        entireFunction_jensenBoundaryCircleZeroParameters_finite F hF hnontrivial R hR
+    have hsubset : S ⊆ insert (0 : ℝ) T := by
+      intro θ hθ
+      by_cases hθ0 : θ = 0
+      · exact hθ0 ▸ Set.mem_insert (0 : ℝ) T
+      · exact Set.mem_insert_iff.mpr
+          (Or.inr ⟨⟨lt_of_le_of_ne hθ.1.1 hθ0.symm, hθ.1.2⟩, hθ.2⟩)
+    exact (hT.insert (0 : ℝ)).subset hsubset
+  have hlocal :
+      ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
+        ContinuousAt g θ₀ ∧
+        ∀ᶠ θ in 𝓝[≠] θ₀,
+          entireFunctionJensenBoundaryLogIntegrand F (2 * R) θ =
+            (n : ℝ) * Real.log |θ - θ₀| + g θ := by
+    intro θ₀ hθ₀
+    have hnot :
+        ¬ ∀ᶠ θ in 𝓝 θ₀,
+          F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0 := by
+      intro hzero
+      have htwoR : 0 < 2 * R := by
+        nlinarith
+      have hglobal :
+          ∀ z : ℂ, F z = 0 :=
+        entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
+          F hF (2 * R) htwoR θ₀ hzero
+      rcases hnontrivial with ⟨z, hz⟩
+      exact hz (hglobal z)
+    rcases jensenBoundaryLogSample_localLogContribution F hF R θ₀ hnot with
+      ⟨n, g, hg, hmodel⟩
+    exact
+      jensenBoundaryLogIntegrand_continuousAt_localRemainder
+        F hF R θ₀ n g hg hmodel
+  have hcont :
+      ContinuousOn (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+        ({θ : ℝ | θ ∈ Set.Icc (0 : ℝ) (2 * Real.pi) ∧ θ ∉ S}) := by
+    dsimp [entireFunctionJensenBoundaryLogIntegrand]
+    have hmul : Continuous (fun θ : ℝ => θ * Complex.I) := by
+      continuity
+    have hparam : Continuous
+        (fun θ : ℝ => (2 * R : ℂ) * Complex.exp (θ * Complex.I)) := by
+      exact continuous_const.mul (Complex.continuous_exp.comp hmul)
+    have hcontF : Continuous F :=
+      continuous_iff_continuousAt.mpr (fun z => (hF z).continuousAt)
+    have hcont_norm :
+        Continuous
+          (fun θ : ℝ => ‖F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))‖) :=
+      continuous_norm.comp (hcontF.comp hparam)
+    exact hcont_norm.continuousOn.log (by
+      intro θ hθ
+      exact norm_ne_zero_iff.mpr (by
+        intro hzero
+        exact hθ.2 ⟨hθ.1, hzero⟩))
+  exact
+    intervalIntegrable_of_finite_log_singularities_on_compact
+      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+      (0 : ℝ) (2 * Real.pi) S hS hlocal hcont
+
+/-- Finite gluing of local logarithmic singularity models on the Jensen
+fundamental interval. -/
+theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_glue
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ)
+    (hR : 0 < R)
+    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
+    IntervalIntegrable
+      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  exact
+    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_core
+      F hF hnontrivial R hR hzeros
+
+/-- Finite logarithmic singularity gluing for Jensen boundary integrability. -/
+theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0)
+    (R : ℝ)
+    (hR : 0 < R)
+    (hzeros : Set.Finite {z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}) :
+    IntervalIntegrable
+      (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
+      MeasureTheory.volume
+      (0 : ℝ)
+      (2 * Real.pi) := by
+  exact
+    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_glue
+      F hF hnontrivial R hR hzeros
+
 /-- The Jensen boundary logarithmic average is interval-integrable once the
 circle zero set has been split into finitely many isolated logarithmic
 singularities, each handled by the local factorization and logarithmic
@@ -1146,7 +1220,9 @@ theorem entireFunction_jensenBoundaryLogAverage_localSingularityModel
       MeasureTheory.volume
       (0 : ℝ)
       (2 * Real.pi) := by
-  exact intervalIntegrable_of_finite_singularities_with_local_models F hF hnontrivial R hR hzeros
+  exact
+    intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularities_core
+      F hF hnontrivial R hR hzeros
 
 /-- The Jensen boundary logarithmic average is interval-integrable once the
 circle zero set has been split into finitely many isolated logarithmic
