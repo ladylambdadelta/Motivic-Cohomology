@@ -1000,17 +1000,30 @@ theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
 /-- Integrability transport for the square substitution `t = x²` with its
 Jacobian factor on `[0,1]`. This is the exact owner-level input needed for the
 singular Beta kernel pullback. -/
+theorem Real.squareSubstitution_weightedPullback_mul_nonneg
+    (x : ℝ)
+    (hx : x ∈ [[(0 : ℝ), 1]]) :
+    0 ≤ (2 : ℝ) * x := by
+  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
+    rwa [Set.uIcc_of_le zero_le_one] at hx
+  have htwo_nonneg : (0 : ℝ) ≤ 2 := by
+    exact by norm_num
+  exact mul_nonneg htwo_nonneg hx'.1
+
 theorem Real.squareSubstitution_weightedPullback_derivWithin
     (x : ℝ) :
     HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
-  have hx : x ∈ uIcc (0 : ℝ) 1 := by
-    simp
-  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-    rwa [Set.uIcc_of_le zero_le_one] at hx
-  have hderiv_at : HasDerivAt (fun y : ℝ => y ^ 2) (2 * x) x := by
-    simpa [pow_two, mul_comm, mul_left_comm, mul_assoc] using
-      ((hasDerivAt_id x).mul (hasDerivAt_id x))
-  exact hderiv_at.hasDerivWithinAt
+  have hmul : HasDerivAt (fun y : ℝ => y * y) (x + x) x :=
+    (hasDerivAt_id' x).mul (hasDerivAt_id' x)
+  have hsq : (x + x : ℝ) = 2 * x := by
+    calc
+      x + x = (1 + 1 : ℝ) * x := by
+        rw [one_add_one_eq_two, one_mul, one_mul]
+      _ = 2 * x := by
+        rfl
+  have htarget : HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
+    simpa [pow_two, hsq] using hmul.hasDerivWithinAt
+  exact htarget
 
 /-- The Jacobian factor for the square substitution on `[0,1]`. -/
 theorem Real.squareSubstitution_weightedPullback_eqOn
@@ -1020,12 +1033,15 @@ theorem Real.squareSubstitution_weightedPullback_eqOn
       (fun x : ℝ => g (x ^ 2) * (2 * x))
       [[(0 : ℝ), 1]] := by
   intro x hx
-  have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-    rwa [Set.uIcc_of_le zero_le_one] at hx
-  have hnonneg : 0 ≤ (2 : ℝ) * x := by
-    have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
-    exact mul_nonneg htwo_nonneg hx'.1
-  simp [Real.smul_eq_mul, abs_of_nonneg hnonneg, mul_comm, mul_left_comm, mul_assoc]
+  have hnonneg : 0 ≤ (2 : ℝ) * x :=
+    Real.squareSubstitution_weightedPullback_mul_nonneg x hx
+  have habs : |(2 : ℝ) * x| = (2 : ℝ) * x :=
+    abs_of_nonneg hnonneg
+  calc
+    |(2 : ℝ) * x| • g (x ^ 2) = ((2 : ℝ) * x) * g (x ^ 2) := by
+      rw [habs, Real.smul_eq_mul]
+    _ = g (x ^ 2) * (2 * x) := by
+      rw [mul_comm]
 
 theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
     {g : ℝ → ℝ}
