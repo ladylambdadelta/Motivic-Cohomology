@@ -66,6 +66,63 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_cpow_o
     _ = (x : ℂ) ^ a :=
       (Complex.cpow_def_of_ne_zero hx_complex_ne a).symm
 
+/-- Derivative of the positive-real logarithmic phase. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    HasDerivAt
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t)
+      (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x)
+      x := by
+  sorry
+
+/-- The actual derivative of the positive-real logarithmic phase. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x =
+      (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x) := by
+  exact
+    (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivAt
+      t hx).deriv
+
+/-- The derivative magnitude of the logarithmic phase is exactly `|t| / x`. -/
+theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq
+    (t : ℝ)
+    {x : ℝ}
+    (hx : 0 < x) :
+    ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ =
+      ‖t‖ / x := by
+  sorry
+
+/-- The first-derivative-test root after the concrete derivative and derivative
+norm have been isolated. -/
+theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivative_control
+    (hderiv :
+      ∀ t : ℝ, ∀ {x : ℝ}, 0 < x →
+        deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x =
+          (((-(t : ℂ) * Complex.I) / (x : ℂ)) *
+            Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t x))
+    (hderiv_norm :
+      ∀ t : ℝ, ∀ {x : ℝ}, 0 < x →
+        ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction t) x‖ =
+          ‖t‖ / x) :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            ‖∑ n ∈ Finset.Icc 1 N,
+              ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A *
+                  (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+                    Real.log (2 + N) := by
+  sorry
+
 /-- The standard first-derivative-test owner root for the concrete logarithmic
 phase.  This is the analytic input behind the Euler-Maclaurin boundary
 package; cf. Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
@@ -80,7 +137,12 @@ theorem Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound :
                 A *
                   (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                     Real.log (2 + N) := by
-  sorry
+  exact
+    Complex.logarithmicPhase_firstDerivativeTest_partialSum_bound_of_derivative_control
+      (fun t hx =>
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hx)
+      (fun t hx =>
+        Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hx)
 
 /-- First-derivative estimate for the logarithmic phase sums on the boundary
 line.
