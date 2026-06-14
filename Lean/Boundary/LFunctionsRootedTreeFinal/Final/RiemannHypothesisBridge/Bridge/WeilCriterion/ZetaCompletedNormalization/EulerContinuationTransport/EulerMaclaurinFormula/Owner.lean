@@ -1988,6 +1988,67 @@ noncomputable def eulerMaclaurinBernoulliKernel_realTailParameterDerivative
     (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
       ((((x : ℝ) : ℂ) ^ (-(z + 1)))))
 
+/-- The fixed-parameter derivative kernel is a.e.-strongly measurable on a
+positive cutoff tail. -/
+theorem eulerMaclaurinBernoulliKernel_parameterDerivative_aestronglyMeasurable
+    (N : ℕ)
+    (hN : 0 < N)
+    (z : ℂ) :
+    AEStronglyMeasurable
+      (fun x : ℝ =>
+        eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z)
+      (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+  let K : ℝ → ℂ := fun x : ℝ =>
+    ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+      (((x : ℝ) : ℂ) ^ (-(z + 1)))
+  have hlog_real :
+      AEStronglyMeasurable
+        (fun x : ℝ => -((Real.log x : ℝ) : ℂ))
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    have hcont :
+        ContinuousOn
+          (fun x : ℝ => -((Real.log x : ℝ) : ℂ))
+          (Set.Ioi (((N : ℕ) : ℝ))) := by
+      intro x hx
+      have hx_pos : 0 < x :=
+        lt_trans (Nat.cast_pos.mpr hN) hx
+      exact
+        ((Complex.continuous_ofReal.continuousAt.comp
+            (Real.continuousAt_log (ne_of_gt hx_pos))).neg).continuousWithinAt
+    exact hcont.aestronglyMeasurable measurableSet_Ioi
+  have hkernel :
+      AEStronglyMeasurable K
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+    simpa [K] using
+      eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
+  have hreal :
+      AEStronglyMeasurable
+        (fun x : ℝ => -((Real.log x : ℝ) : ℂ) * K x)
+        (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) :=
+    hlog_real.mul hkernel
+  have hae :
+      (fun x : ℝ =>
+        -((Real.log x : ℝ) : ℂ) * K x) =ᵐ[
+          volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))]
+        (fun x : ℝ =>
+          eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z) := by
+    exact ae_restrict_of_forall_mem measurableSet_Ioi
+      (fun x hx_tail => by
+        have hx_pos : 0 < x :=
+          lt_trans (Nat.cast_pos.mpr hN) hx_tail
+        have hlog :
+            ((Real.log x : ℝ) : ℂ) =
+              Complex.log ((x : ℝ) : ℂ) :=
+          Complex.ofReal_log hx_pos.le
+        unfold eulerMaclaurinBernoulliKernel_realTailParameterDerivative K
+        exact congrArg
+          (fun t : ℂ =>
+            -t *
+              (((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+                (((x : ℝ) : ℂ) ^ (-(z + 1)))))
+          hlog)
+  exact hreal.congr hae
+
 /-- Pointwise complex derivative of the fixed-tail Bernoulli kernel in the
 parameter.
 
@@ -2327,12 +2388,36 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
         AEStronglyMeasurable
           (F w)
           (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-    sorry
+    exact Filter.Eventually.of_forall
+      (fun w : ℂ => by
+        simpa [F] using
+          eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN w)
   have hF_int :
       Integrable
         (F z)
         (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-    sorry
+    rcases
+      eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStrip
+        N hN z hz with
+      ⟨r₀, hr₀_pos, g₀, hg₀_integrable, hmajorant₀⟩
+    have hz_ball₀ : z ∈ Metric.ball z r₀ :=
+      Metric.mem_ball_self hr₀_pos
+    have hbound₀ :
+        ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
+          ‖F z x‖ ≤ g₀ x := by
+      exact (hmajorant₀ z hz_ball₀).mono
+        (fun x hx => by
+          simpa [F] using hx)
+    have hg₀ :
+        Integrable g₀ (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) :=
+      hg₀_integrable
+    have hmeas :
+        AEStronglyMeasurable
+          (F z)
+          (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
+      simpa [F] using
+        eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
+    exact Integrable.mono' hg₀ hmeas hbound₀
   have hF'_meas :
       AEStronglyMeasurable
         (F' z)

@@ -240,6 +240,38 @@ positive decreasing weight.
 This is the abstract finite form of the convex-combination argument: summation
 by parts rewrites the weighted tail as a nonnegative linear combination of
 undamped finite tails, with total mass bounded by the initial weight. -/
+theorem Complex.finite_weighted_tail_abel_identity
+    {a : ℕ → ℂ}
+    {w : ℕ → ℝ}
+    (N M : ℕ)
+    (hNM : N < M) :
+    (∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)) =
+      (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
+        ∑ k ∈ Finset.Ioc N (M - 1),
+          ((w k - w (k + 1) : ℝ) : ℂ) *
+            (∑ n ∈ Finset.Ioc N k, a n) := by
+  /-
+  This is the finite Abel transform for the zero-extended tail sequence.
+  It is the owner identity needed by the norm estimate below.
+  -/
+  sorry
+
+/-- The coefficient mass in the finite Abel identity is bounded by the initial
+weight when the weights are positive and decreasing. -/
+theorem Complex.finite_weighted_tail_abel_coefficient_mass_le_one
+    {w : ℕ → ℝ}
+    (N M : ℕ)
+    (hNM : N < M)
+    (hw_nonneg : ∀ n : ℕ, N < n → 0 ≤ w n)
+    (hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
+    (hw_initial : ∀ n : ℕ, N < n → w n ≤ 1) :
+    w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) ≤ 1 := by
+  /-
+  The sum telescopes to `w (N+1)` when `N < M`; the initial-bound hypothesis
+  then gives `≤ 1`.
+  -/
+  sorry
+
 theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
     {a : ℕ → ℂ}
     {B : ℝ}
@@ -256,16 +288,83 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
     ∀ M : ℕ,
       N ≤ M →
         ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ ≤ B := by
-  /-
-  Intended proof chain:
-  finite summation by parts on `Finset.Ioc N M`
-  -> rewrite `∑ a_n w_n` as
-     `w_M S_M + ∑ (w_k - w_{k+1}) S_k`
-     for tails `S_k = ∑_{N < n ≤ k} a_n`
-  -> use `‖S_k‖ ≤ B`, `0 ≤ w_M`, `0 ≤ w_k - w_{k+1}`, and telescoping
-     total mass `w_{N+1} ≤ 1`.
-  -/
-  sorry
+  intro M hNM_le
+  by_cases hNM : N < M
+  · have hB_nonneg : 0 ≤ B := by
+      have hzero_bound := hfinite N (le_rfl : N ≤ N)
+      simpa using hzero_bound
+    have hid :
+        (∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)) =
+          (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
+            ∑ k ∈ Finset.Ioc N (M - 1),
+              ((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                (∑ n ∈ Finset.Ioc N k, a n) :=
+      Complex.finite_weighted_tail_abel_identity N M hNM
+    have hmass :
+        w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) ≤ 1 :=
+      Complex.finite_weighted_tail_abel_coefficient_mass_le_one
+        N M hNM hw_nonneg hw_antitone hw_initial
+    have hcoeff_M_nonneg : 0 ≤ w M :=
+      hw_nonneg M hNM
+    have hcoeff_nonneg :
+        ∀ k ∈ Finset.Ioc N (M - 1), 0 ≤ w k - w (k + 1) := by
+      intro k hk
+      have hNk : N < k := (Finset.mem_Ioc.mp hk).1
+      have hmono : w (k + 1) ≤ w k :=
+        hw_antitone hNk (Nat.le_succ k)
+      exact sub_nonneg.mpr hmono
+    calc
+      ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ =
+          ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
+            ∑ k ∈ Finset.Ioc N (M - 1),
+              ((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                (∑ n ∈ Finset.Ioc N k, a n)‖ := by
+        exact congrArg Norm.norm hid
+      _ ≤ ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ +
+            ‖∑ k ∈ Finset.Ioc N (M - 1),
+              ((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                (∑ n ∈ Finset.Ioc N k, a n)‖ :=
+        norm_add_le _ _
+      _ ≤ w M * B +
+            ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) * B := by
+        apply add_le_add
+        · calc
+            ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ =
+                w M * ‖∑ n ∈ Finset.Ioc N M, a n‖ := by
+              rw [norm_mul, Complex.norm_ofReal, Real.norm_eq_abs, abs_of_nonneg hcoeff_M_nonneg]
+            _ ≤ w M * B :=
+              mul_le_mul_of_nonneg_left (hfinite M hNM_le) hcoeff_M_nonneg
+        · calc
+            ‖∑ k ∈ Finset.Ioc N (M - 1),
+              ((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                (∑ n ∈ Finset.Ioc N k, a n)‖
+                ≤ ∑ k ∈ Finset.Ioc N (M - 1),
+                    ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                      (∑ n ∈ Finset.Ioc N k, a n)‖ :=
+              norm_sum_le _ _
+            _ ≤ ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) * B := by
+              refine Finset.sum_le_sum ?_
+              intro k hk
+              have hNk : N < k := (Finset.mem_Ioc.mp hk).1
+              have hNk_le : N ≤ k := le_of_lt hNk
+              have hk_nonneg : 0 ≤ w k - w (k + 1) := hcoeff_nonneg k hk
+              calc
+                ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                    (∑ n ∈ Finset.Ioc N k, a n)‖ =
+                    (w k - w (k + 1)) *
+                      ‖∑ n ∈ Finset.Ioc N k, a n‖ := by
+                  rw [norm_mul, Complex.norm_ofReal, Real.norm_eq_abs,
+                    abs_of_nonneg hk_nonneg]
+                _ ≤ (w k - w (k + 1)) * B :=
+                  mul_le_mul_of_nonneg_left (hfinite k hNk_le) hk_nonneg
+      _ = (w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1))) * B := by
+        rw [Finset.sum_mul, add_mul]
+      _ ≤ 1 * B :=
+        mul_le_mul_of_nonneg_right hmass hB_nonneg
+      _ = B := one_mul B
+  · have hMN : M ≤ N := le_of_not_gt hNM
+    have hempty : Finset.Ioc N M = ∅ := Finset.Ioc_eq_empty_of_le hMN
+    simp [hempty, hfinite N le_rfl]
 
 /-- Passage from uniformly bounded finite weighted tails to the corresponding
 `tsum`. -/

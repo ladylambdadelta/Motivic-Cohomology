@@ -717,6 +717,47 @@ theorem Complex.realPhase_singleton_integer_block_bound
       hcard.symm
       hone_le_target)
 
+/-- Geometric denominator lower bound from separation from all `2πℤ`
+frequencies.
+
+The classical estimate is
+`|1 - exp(iθ)| = 2 |sin(θ/2)|`, together with the chord lower bound on the
+circle and `π ≤ 4`; the stated reciprocal form is the one used by the finite
+Dirichlet-test assembly. -/
+theorem Complex.realPhase_geometricDenominator_inv_norm_bound
+    {θ λ : ℝ}
+    (hλ_pos : 0 < λ)
+    (hsep : ∀ k : ℤ, λ ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
+    ‖(1 - Complex.exp (Complex.I * (θ : ℂ)))⁻¹‖ ≤
+      2 * λ⁻¹ := by
+  sorry
+
+/-- Monotone-frequency finite Dirichlet-test core.
+
+This is the summation-by-parts/variation step: once every adjacent frequency
+has a geometric denominator bounded by `2 / λ`, monotonicity of the increments
+controls the boundary and variation terms. -/
+theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab_lt : a < b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
+  sorry
+
 /-- Nontrivial monotone separated-increment Dirichlet-test primitive.
 
 This is the genuine finite summation-by-parts case: at least one adjacent
@@ -734,7 +775,22 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
         8 * (λ⁻¹ + 1) := by
-  sorry
+  have hden :
+      ∀ n : ℕ,
+        n ∈ Finset.Ico a b →
+          ‖(1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
+            2 * λ⁻¹ := by
+    intro n hn
+    exact
+      Complex.realPhase_geometricDenominator_inv_norm_bound
+        hλ_pos
+        (hsep n hn)
+  exact
+    Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
+      φ ha hab_lt hλ_pos hinc_mono hden
 
 /-- Finite Dirichlet-test primitive for monotone separated increments.
 
@@ -764,7 +820,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
           ‖∑ n ∈ Finset.Icc a c,
             Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
               8 * (λ⁻¹ + 1))
-        hab_eq.symm
+        hab_eq
         (Complex.realPhase_singleton_integer_block_bound φ a hλ_pos)
 
 /-- Finite monotone separated-increment exponential-sum primitive.
