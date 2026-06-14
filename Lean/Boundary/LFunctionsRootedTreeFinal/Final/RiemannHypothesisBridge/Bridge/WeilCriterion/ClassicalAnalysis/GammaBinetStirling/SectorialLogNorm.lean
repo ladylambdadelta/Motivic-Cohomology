@@ -112,7 +112,27 @@ theorem Complex.log_norm_bound_large_openRightHalfPlane :
         0 < z.re →
           R ≤ ‖z‖ →
             ‖Complex.log z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  sorry
+  refine ⟨1, 4, 1, zero_lt_one, by norm_num, ?_⟩
+  intro z _hz_re hz_norm
+  have hnorm_pos : 0 < ‖z‖ :=
+    lt_of_lt_of_le zero_lt_one hz_norm
+  have hlog_nonneg : 0 ≤ Real.log ‖z‖ :=
+    Real.log_nonneg hz_norm
+  have habs_log_le_norm : |Real.log ‖z‖| ≤ ‖z‖ := by
+    calc
+      |Real.log ‖z‖| = Real.log ‖z‖ := abs_of_nonneg hlog_nonneg
+      _ ≤ ‖z‖ := Real.log_le_self (norm_nonneg z)
+  have hlog_norm :
+      ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi :=
+    Complex.log_norm_le_abs_log_norm_add_pi z
+  have hpi_le_four : Real.pi ≤ (4 : ℝ) :=
+    le_of_lt Real.pi_lt_four
+  calc
+    ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi := hlog_norm
+    _ ≤ ‖z‖ + 4 := add_le_add habs_log_le_norm hpi_le_four
+    _ ≤ 4 * (1 + ‖z‖) ^ 1 := by
+      rw [pow_one]
+      linarith [norm_nonneg z]
 
 /-- The product part `(z - 1/2) * log z` in the Binet main term has
 polynomial norm growth after a large-radius cutoff. -/
@@ -124,7 +144,37 @@ theorem Complex.binetLogGammaMainTerm_product_norm_bound_large_openRightHalfPlan
           R ≤ ‖z‖ →
             ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases Complex.log_norm_bound_large_openRightHalfPlane with
+    ⟨R, C, m, hR_pos, hC_pos, hlog⟩
+  refine ⟨R, C, m + 1, hR_pos, hC_pos, ?_⟩
+  intro z hz_re hRz
+  have hbase_nonneg : 0 ≤ 1 + ‖z‖ := by
+    linarith [norm_nonneg z]
+  have hfactor :
+      ‖z - (1 / 2 : ℂ)‖ ≤ 1 + ‖z‖ := by
+    calc
+      ‖z - (1 / 2 : ℂ)‖ ≤ ‖z‖ + ‖(1 / 2 : ℂ)‖ :=
+        norm_sub_le z (1 / 2 : ℂ)
+      _ ≤ ‖z‖ + 1 := by
+        have hhalf : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+          norm_num [Complex.normSq, Real.norm_eq_abs]
+        linarith
+      _ = 1 + ‖z‖ := by ring
+  have hmul :
+      ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
+        (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) := by
+    calc
+      ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ =
+          ‖z - (1 / 2 : ℂ)‖ * ‖Complex.log z‖ := norm_mul _ _
+      _ ≤ (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) :=
+        mul_le_mul hfactor (hlog z hz_re hRz)
+          (norm_nonneg _) hbase_nonneg
+  calc
+    ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
+        (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) := hmul
+    _ = C * (1 + ‖z‖) ^ (m + 1) := by
+      rw [pow_succ]
+      ring
 
 /-- The affine plus constant part of the Binet main term has polynomial norm
 growth. -/
@@ -136,7 +186,23 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
           R ≤ ‖z‖ →
             ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  sorry
+  let A : ℝ := ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖
+  refine ⟨1, 1 + A, 1, zero_lt_one, ?_, ?_⟩
+  · exact lt_add_of_pos_left A zero_lt_one
+  · intro z _hz_re _hz_norm
+    have hA_nonneg : 0 ≤ A := norm_nonneg _
+    have hbase_nonneg : 0 ≤ 1 + ‖z‖ := by
+      linarith [norm_nonneg z]
+    calc
+      ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
+          ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ :=
+        norm_add_le _ _
+      _ = ‖z‖ + A := by
+        rw [norm_neg]
+        rfl
+      _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
+        rw [pow_one]
+        nlinarith [norm_nonneg z, hA_nonneg]
 
 /-- The product and affine pieces assemble to the direct polynomial norm
 growth of the explicit Binet main term. -/
@@ -148,7 +214,63 @@ theorem Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane_from_p
           R ≤ ‖z‖ →
             ‖Complex.binetLogGammaMainTerm z‖ ≤
               C * (1 + ‖z‖) ^ m := by
-  sorry
+  rcases
+    Complex.binetLogGammaMainTerm_product_norm_bound_large_openRightHalfPlane with
+    ⟨Rp, Cp, mp, hRp_pos, hCp_pos, hp⟩
+  rcases
+    Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane with
+    ⟨Ra, Ca, ma, hRa_pos, hCa_pos, ha⟩
+  refine ⟨max Rp Ra, Cp + Ca, mp + ma, ?_, ?_, ?_⟩
+  · exact lt_max_of_lt_left hRp_pos
+  · exact add_pos hCp_pos hCa_pos
+  · intro z hz_re hRz
+    have hRpz : Rp ≤ ‖z‖ := le_trans (le_max_left Rp Ra) hRz
+    have hRaz : Ra ≤ ‖z‖ := le_trans (le_max_right Rp Ra) hRz
+    have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
+      linarith [norm_nonneg z]
+    have hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
+      le_trans zero_le_one hbase_ge_one
+    have hp_bound :
+        ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
+          Cp * (1 + ‖z‖) ^ (mp + ma) := by
+      have hpow : (1 + ‖z‖) ^ mp ≤ (1 + ‖z‖) ^ (mp + ma) :=
+        pow_le_pow_right₀ hbase_ge_one (Nat.le_add_right mp ma)
+      exact
+        le_trans (hp z hz_re hRpz)
+          (mul_le_mul_of_nonneg_left hpow (le_of_lt hCp_pos))
+    have ha_bound :
+        ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
+          Ca * (1 + ‖z‖) ^ (mp + ma) := by
+      have hma_le : ma ≤ mp + ma := by
+        rw [Nat.add_comm]
+        exact Nat.le_add_left ma mp
+      have hpow : (1 + ‖z‖) ^ ma ≤ (1 + ‖z‖) ^ (mp + ma) :=
+        pow_le_pow_right₀ hbase_ge_one hma_le
+      exact
+        le_trans (ha z hz_re hRaz)
+          (mul_le_mul_of_nonneg_left hpow (le_of_lt hCa_pos))
+    have hsum :
+        ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ +
+          ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
+            (Cp + Ca) * (1 + ‖z‖) ^ (mp + ma) := by
+      calc
+        ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ +
+            ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖
+            ≤ Cp * (1 + ‖z‖) ^ (mp + ma) +
+                Ca * (1 + ‖z‖) ^ (mp + ma) :=
+          add_le_add hp_bound ha_bound
+        _ = (Cp + Ca) * (1 + ‖z‖) ^ (mp + ma) := by
+          ring
+    calc
+      ‖Complex.binetLogGammaMainTerm z‖ =
+          ‖(z - (1 / 2 : ℂ)) * Complex.log z +
+            (-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ := by
+        unfold Complex.binetLogGammaMainTerm
+        ring_nf
+      _ ≤ ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ +
+          ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ :=
+        norm_add_le _ _
+      _ ≤ (Cp + Ca) * (1 + ‖z‖) ^ (mp + ma) := hsum
 
 /-- Direct polynomial norm growth for the explicit Binet main term after a
 large-radius cutoff in the open right half-plane. -/
