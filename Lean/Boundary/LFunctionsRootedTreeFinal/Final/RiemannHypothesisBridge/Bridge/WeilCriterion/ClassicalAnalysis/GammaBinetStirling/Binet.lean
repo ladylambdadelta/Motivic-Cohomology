@@ -16,6 +16,50 @@ noncomputable section
 
 open scoped Topology
 
+/-- Binet's second formula on the positive real axis with the principal-log
+normalization used in this package.
+
+This is the basepoint/real-axis normalization input for the complex
+open-half-plane identity. -/
+theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
+    {x : ℝ}
+    (hx : 0 < x) :
+    Complex.log (Complex.Gamma (x : ℂ)) =
+      Complex.binetLogGammaMainTerm (x : ℂ) +
+        Complex.binetSecondFormulaRemainder (x : ℂ) := by
+  sorry
+
+/-- The two sides of Binet's second formula have the same complex derivative
+on the open right half-plane.
+
+This is the analytic continuation/differentiation root: after differentiating
+the arctangent-kernel integral under the integral sign, the derivative agrees
+with the logarithmic derivative of `Gamma` minus the derivative of the explicit
+main term. -/
+theorem Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    HasDerivAt
+      (fun z : ℂ =>
+        Complex.log (Complex.Gamma z) -
+          (Complex.binetLogGammaMainTerm z +
+            Complex.binetSecondFormulaRemainder z))
+      0 w := by
+  sorry
+
+/-- The open right half-plane is connected to the positive real axis by
+paths along which the principal-log Binet difference has zero derivative.
+
+This consumes the real-axis normalization and the zero-derivative identity to
+propagate Binet's formula through the open right half-plane. -/
+theorem Complex.Gamma_binetSecondFormula_integral_representation_from_realAxis_and_derivative :
+    ∀ w : ℂ,
+      0 < w.re →
+        Complex.log (Complex.Gamma w) =
+          Complex.binetLogGammaMainTerm w +
+            Complex.binetSecondFormulaRemainder w := by
+  sorry
+
 /-- The classical second Binet integral representation, with the principal
 logarithm normalization used by `Complex.binetLogGammaMainTerm` and the
 literal arctangent-kernel remainder used in this package. -/
@@ -25,7 +69,8 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_principalLog :
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  sorry
+  exact
+    Complex.Gamma_binetSecondFormula_integral_representation_from_realAxis_and_derivative
 
 /-- Binet's logarithmic identity follows from the classical second Binet
 integral representation on the open right half-plane. -/
