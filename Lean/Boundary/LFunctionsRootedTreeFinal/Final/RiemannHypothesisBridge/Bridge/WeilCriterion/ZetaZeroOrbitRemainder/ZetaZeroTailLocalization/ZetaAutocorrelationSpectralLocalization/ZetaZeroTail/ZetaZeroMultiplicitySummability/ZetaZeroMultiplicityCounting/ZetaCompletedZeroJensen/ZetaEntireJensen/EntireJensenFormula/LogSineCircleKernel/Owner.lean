@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.LogSineIntegral.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroMultiplicityCore.Owner
 
 /-!
@@ -99,11 +100,7 @@ theorem realSinePowerIntegral_eq_two_mul_halfIntegral
     (hs : -1 < s) :
     realSinePowerIntegral s =
       2 * realSinePowerHalfIntegral s := by
-  -- Standard interval-integral symmetry:
-  -- split `[0,π]` at `π/2`, reflect `[π/2,π]` by `u ↦ π-u`, and use
-  -- `sin (π-u) = sin u`; the condition `-1 < s` supplies endpoint
-  -- integrability.
-  sorry
+  exact _root_.LFunctions.Real.sinePowerIntegral_eq_two_mul_halfIntegral s hs
 
 /-- Euler-Beta substitution for the half sine-power integral.
 
@@ -114,10 +111,7 @@ theorem realSinePowerHalfIntegral_eq_half_eulerBetaIntegral
     (hs : -1 < s) :
     realSinePowerHalfIntegral s =
       (1 / 2 : ℝ) * realSinePowerEulerBetaIntegral s := by
-  -- Standard monotone substitution on `[0,π/2]`:
-  -- first use `x = sin u`, then `t = x^2`; endpoint integrability is exactly
-  -- `0 < (s+1)/2` and `0 < 1/2`.
-  sorry
+  exact _root_.LFunctions.Real.sinePowerHalfIntegral_eq_half_eulerBetaIntegral s hs
 
 /-- The sine-power integral is the corresponding Euler-Beta integral. -/
 theorem realSinePowerIntegral_eq_eulerBetaIntegral
@@ -152,11 +146,7 @@ theorem realSinePowerEulerBetaIntegral_eq_gammaRatio
     (hs : -1 < s) :
     realSinePowerEulerBetaIntegral s =
       realSinePowerGammaRatio s := by
-  -- Standard Beta/Gamma comparison on positive real parameters:
-  -- use `Complex.Gamma_mul_Gamma_eq_betaIntegral`, nonvanishing of Gamma on
-  -- the positive real axis, `Real.Gamma_one_half_eq`, and the denominator
-  -- parameter identity.
-  sorry
+  exact _root_.LFunctions.Real.sinePowerEulerBetaIntegral_eq_gammaRatio s hs
 
 /-- Beta/Gamma evaluation of the sine-power integral.
 
@@ -199,9 +189,7 @@ theorem realSinePowerIntegral_hasDerivAt_zero :
       realSinePowerIntegral
       (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
       0 := by
-  -- Deep dominated-convergence/differentiation theorem for the exponent
-  -- family `sin(u)^s` at `s = 0`.
-  sorry
+  exact _root_.LFunctions.Real.sinePowerIntegral_hasDerivAt_zero
 
 /-- Legendre duplication in logarithmic-derivative form at `1/2`.
 
@@ -212,8 +200,7 @@ nonzero Gamma values. -/
 theorem realGammaLogDeriv_one_sub_half_eq_two_log_two :
     realGammaLogDeriv 1 - realGammaLogDeriv (1 / 2) =
       2 * Real.log 2 := by
-  -- Deep standard Gamma-log-derivative value from Legendre duplication.
-  sorry
+  exact _root_.LFunctions.Real.gammaLogDeriv_one_sub_half_eq_two_log_two
 
 /-- Reversed Legendre log-derivative difference at the half-point.
 
@@ -263,9 +250,7 @@ theorem realSinePowerGammaRatio_hasDerivAt_zero_from_logDeriv :
       (Real.pi *
         ((realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1) / 2))
       0 := by
-  -- Gamma-ratio derivative from mathlib `Real.differentiableAt_Gamma`,
-  -- quotient differentiation, and `Γ(1/2)=sqrt π`, `Γ(1)=1`.
-  sorry
+  exact _root_.LFunctions.Real.sinePowerGammaRatio_hasDerivAt_zero_from_logDeriv
 
 /-- Derivative at zero of the Gamma-ratio for the sine-power integral.
 
