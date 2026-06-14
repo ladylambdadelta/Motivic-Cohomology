@@ -834,6 +834,40 @@ theorem Real.sinePower_sin_arcsin_rpow_eq
   exact congrArg (fun y : ℝ => y ^ s)
     (Real.sin_arcsin hx_left hx_right)
 
+/-- The square-root pullback kernel associated to the Beta kernel. -/
+theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
+    (s x : ℝ)
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) =
+      ((1 / 2 : ℝ) *
+        ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+          (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+        (2 * x) := by
+  sorry
+
+/-- Endpoint integrability of the square-root pullback of the Beta kernel.
+This is the non-circular integrability input for the substitution `t = x²`. -/
+theorem Real.sinePower_betaKernel_squareRootPullback_intervalIntegrable
+    (s : ℝ)
+    (hbeta :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1) :
+    IntervalIntegrable
+      (fun x : ℝ =>
+        ((1 / 2 : ℝ) *
+          ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+            (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+          (2 * x))
+      MeasureTheory.volume
+      (0 : ℝ)
+      1 := by
+  sorry
+
 /-- Pullback endpoint integrability of the Beta kernel along `x ↦ x²`, in the
 form needed for the sine-substitution target integrand. -/
 theorem Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
@@ -851,7 +885,30 @@ theorem Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
-  sorry
+  have hpullback :
+      IntervalIntegrable
+        (fun x : ℝ =>
+          ((1 / 2 : ℝ) *
+            ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+              (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+            (2 * x))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1 :=
+    Real.sinePower_betaKernel_squareRootPullback_intervalIntegrable
+      s hbeta
+  exact
+    hpullback.congr
+      (by
+        rw [Set.uIoc_of_le zero_le_one]
+        filter_upwards
+          [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc]
+          with x hx
+        have hxIoo : x ∈ Set.Ioo (0 : ℝ) 1 :=
+          ⟨hx.1, hx.2⟩
+        exact
+          (Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
+            s x hxIoo).symm)
 
 /-- Target-side interval integrability for the sine substitution. -/
 theorem Real.sinePower_sinSubstitution_target_intervalIntegrable
@@ -888,6 +945,45 @@ theorem Real.sinePower_sinSubstitution_inverseJacobian_eq
         (fun y : ℝ => x ^ s * y)
         (Real.sinePower_sinSubstitution_invSqrt_eq_rpow hx)
 
+/-- Forward Jacobian identity for the substitution `x = sin u` on
+`(0,π/2)`. -/
+theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
+    (s u : ℝ)
+    (hu : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2)) :
+    ((Real.sin u) ^ s *
+        (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2)) *
+        Real.cos u =
+      (Real.sin u) ^ s := by
+  sorry
+
+/-- General owner-level change-of-variables lemma for the sine substitution
+with singular endpoint target. -/
+theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariables
+    (s : ℝ)
+    (hsource :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2))
+    (htarget :
+      IntervalIntegrable
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1)
+    (hforward :
+      ∀ u : ℝ,
+        u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) →
+          ((Real.sin u) ^ s *
+              (1 - (Real.sin u) ^ 2) ^ ((-1 : ℝ) / 2)) *
+              Real.cos u =
+            (Real.sin u) ^ s) :
+    Real.sinePowerHalfIntegral s =
+      ∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
+  sorry
+
 /-- The interval substitution theorem for `x = sin u` on `[0,π/2]`, after
 isolating the endpoint integrability and open-interval Jacobian packages. -/
 theorem Real.sinePower_sinSubstitution_intervalSubstitution
@@ -913,7 +1009,10 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution
     Real.sinePowerHalfIntegral s =
       ∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  sorry
+  exact
+    Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariables
+      s hsource htarget
+      (Real.sinePower_sinSubstitution_forwardJacobian_eq s)
 
 /-- The raw change-of-variables statement for `x = sin u` on `[0,π/2]`. -/
 theorem Real.sinePower_sinSubstitution_changeOfVariables
@@ -1142,6 +1241,37 @@ theorem Real.sinePower_squareSubstitution_jacobian_eq
         (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
         (Real.sinePower_squareSubstitution_leftPower_mul_eq s x hx)
 
+/-- General owner-level change-of-variables lemma for the square substitution
+`t = x²` with singular endpoint kernels. -/
+theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVariables
+    (s : ℝ)
+    (hsource :
+      IntervalIntegrable
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1)
+    (htarget :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        MeasureTheory.volume
+        (0 : ℝ)
+        1)
+    (hjac :
+      ∀ x : ℝ,
+        x ∈ Set.Ioo (0 : ℝ) 1 →
+          ((1 / 2 : ℝ) *
+              ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+                (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+              (2 * x) =
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) :
+    (∫ x in (0 : ℝ)..1,
+        x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
+      (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
+  sorry
+
 /-- The interval substitution theorem for `t = x²` on `[0,1]`, after
 isolating endpoint integrability and the Jacobian computation. -/
 theorem Real.sinePower_squareSubstitution_intervalSubstitution
@@ -1171,7 +1301,9 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution
     (∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
-  sorry
+  exact
+    Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVariables
+      s hsource htarget hjac
 
 /-- The raw change-of-variables statement for `t = x²` on `[0,1]`. -/
 theorem Real.sinePower_squareSubstitution_changeOfVariables

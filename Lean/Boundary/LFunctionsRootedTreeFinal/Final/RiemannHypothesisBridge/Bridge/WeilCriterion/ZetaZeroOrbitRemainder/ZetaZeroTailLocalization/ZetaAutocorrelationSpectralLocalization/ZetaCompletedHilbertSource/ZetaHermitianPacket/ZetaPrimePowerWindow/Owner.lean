@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ZetaPacketLabels.ZetaCenteredNormalization.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaPolynomialTailSummability.Owner
 import Mathlib.Algebra.BigOperators.Group.Finset
+import Mathlib.Data.Fintype.Basic
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Sqrt
@@ -349,9 +350,9 @@ theorem card_heightShell_le_linear_real
 /-- Summing a real constant over a finite set gives cardinality times that constant. -/
 theorem finset_sum_const_real
     {α : Type} (s : Finset α) (c : ℝ) :
-    (∑ x in s, c) = (s.card : ℝ) * c := by
+    (∑ _x in s, c) = (s.card : ℝ) * c := by
   calc
-    (∑ x in s, c) = s.card • c := by
+    (∑ _x in s, c) = s.card • c := by
       exact Finset.sum_const c
     _ = (s.card : ℝ) * c := by
       exact nsmul_eq_mul s.card c
@@ -365,7 +366,7 @@ noncomputable def polynomialHeightShellSum
 theorem polynomialHeightShellSum_eq_sum_const_decay
     (k m : ℕ) :
     polynomialHeightShellSum k m =
-      ∑ ι in heightShell m,
+      ∑ _ι in heightShell m,
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
   unfold polynomialHeightShellSum
   exact Finset.sum_congr rfl
@@ -379,11 +380,11 @@ theorem polynomialHeightShellSum_eq_card_mul_decay
         (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) := by
   have hsum :
       polynomialHeightShellSum k m =
-        ∑ ι in heightShell m,
+        ∑ _ι in heightShell m,
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
     polynomialHeightShellSum_eq_sum_const_decay k m
   have hconst :
-      (∑ ι in heightShell m,
+      (∑ _ι in heightShell m,
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ))) =
         ((heightShell m).card : ℝ) *
           (1 + ‖((m : ℕ) : ℝ)‖) ^ (-(k + 3 : ℤ)) :=
@@ -476,7 +477,9 @@ theorem linear_shell_card_factor_le_two_mul_heightBase
     exact Nat.cast_mul 2 (m + 1)
   have hcast_add :
       ((m + 1 : ℕ) : ℝ) = ((m : ℕ) : ℝ) + 1 := by
-    exact Nat.cast_add m 1
+    exact Eq.trans
+      (Nat.cast_add m 1)
+      (congrArg (fun x : ℝ => ((m : ℕ) : ℝ) + x) Nat.cast_one)
   have htarget_eq :
       ((2 * (m + 1) : ℕ) : ℝ) =
         2 * (1 + ‖((m : ℕ) : ℝ)‖) := by
@@ -645,6 +648,9 @@ theorem summable_polynomialHeightShellSum_of_shellMass
 /-- The finite fiber of raw indices at a fixed rectangular height. -/
 def heightFiber (m : ℕ) : Type :=
   {ι : ZetaPrimePowerIndex // ι ∈ heightShell m}
+
+instance heightFiber.fintype (m : ℕ) : Fintype (heightFiber m) :=
+  Finset.Subtype.fintype (heightShell m)
 
 /-- Rectangular-height decay is pointwise nonnegative. -/
 theorem polynomialHeightDecay_nonnegative

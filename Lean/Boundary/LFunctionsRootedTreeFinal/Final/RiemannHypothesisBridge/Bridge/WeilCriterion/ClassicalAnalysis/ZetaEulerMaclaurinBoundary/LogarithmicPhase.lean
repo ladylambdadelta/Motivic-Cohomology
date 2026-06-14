@@ -595,6 +595,67 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_norm_antitoneOn_integer_block
       hy_deriv.symm
       hphase)
 
+/-- General finite first-derivative estimate for a real phase sampled on an
+integer block.
+
+This is the owner-level van der Corput primitive needed by the logarithmic
+phase.  The assumptions record the actual analytic input: monotonicity of the
+absolute derivative and a positive lower bound throughout the containing real
+interval. -/
+theorem Complex.realPhase_firstDerivative_integer_block_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hλ_pos : 0 < λ)
+    (hderiv_antitone :
+      AntitoneOn
+        (fun x : ℝ => ‖deriv φ x‖)
+        (Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ)))
+    (hderiv_lower :
+      ∀ x : ℝ,
+        x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
+          λ ≤ ‖deriv φ x‖) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
+  sorry
+
+/-- The logarithmic block lower-bound parameter is positive away from
+zero frequency. -/
+theorem Complex.logarithmicPhase_block_lowerParameter_pos
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (b : ℕ) :
+    0 < (‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ) := by
+  have ht_pos : 0 < ‖t‖ :=
+    lt_of_lt_of_le zero_lt_one ht
+  have hb_pos_nat : 0 < b + 1 :=
+    Nat.succ_pos b
+  have hb_pos_real : 0 < ((b + 1 : ℕ) : ℝ) := by
+    exact_mod_cast hb_pos_nat
+  exact div_pos ht_pos hb_pos_real
+
+/-- The reciprocal of the logarithmic block lower-bound parameter is the block
+length scale divided by `|t|`. -/
+theorem Complex.logarithmicPhase_block_lowerParameter_inv_eq
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (b : ℕ) :
+    (((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ))⁻¹) =
+      ((b + 1 : ℕ) : ℝ) / ‖t‖ := by
+  have ht_ne : (‖t‖ : ℝ) ≠ 0 :=
+    ne_of_gt (lt_of_lt_of_le zero_lt_one ht)
+  have hb_ne : (((b + 1 : ℕ) : ℝ)) ≠ 0 := by
+    have hb_pos_nat : 0 < b + 1 :=
+      Nat.succ_pos b
+    exact_mod_cast (Nat.ne_of_gt hb_pos_nat)
+  calc
+    (((‖t‖ : ℝ) / ((b + 1 : ℕ) : ℝ))⁻¹) =
+        ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
+      inv_div ((‖t‖ : ℝ)) (((b + 1 : ℕ) : ℝ))
+
 /-- Real first-derivative-test primitive for the logarithmic scalar phase on
 one integer block. -/
 theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
@@ -620,7 +681,32 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
         (Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
         8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
-  sorry
+  let λ : ℝ := ‖t‖ / ((b + 1 : ℕ) : ℝ)
+  have hλ_pos : 0 < λ :=
+    Complex.logarithmicPhase_block_lowerParameter_pos t ht b
+  have hfirst :
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+          8 * (λ⁻¹ + 1) :=
+    Complex.realPhase_firstDerivative_integer_block_bound
+      (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
+      ha hab hλ_pos
+      hderiv_antitone
+      hderiv_lower
+  have hλ_inv :
+      λ⁻¹ = ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
+    Complex.logarithmicPhase_block_lowerParameter_inv_eq t ht b
+  exact Eq.subst
+    (motive := fun scale : ℝ =>
+      ‖∑ n ∈ Finset.Icc a b,
+        Complex.exp
+          (Complex.I *
+            (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
+          8 * (scale + 1))
+    hλ_inv
+    hfirst
 
 /-- Continuous first-derivative-test primitive for the sampled logarithmic
 phase on one integer block.
@@ -720,6 +806,41 @@ theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
     hsample.symm
     hblock
 
+/-- Dyadic block cover primitive for logarithmic-phase partial sums.
+
+This isolates the finite combinatorics of decomposing `[1,N]` into dyadic
+blocks and applying the one-block estimate on each block. -/
+theorem Complex.logarithmicPhase_dyadic_block_cover_bound
+    (hblock :
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ {a b : ℕ},
+            1 ≤ a →
+              a ≤ b →
+                ‖∑ n ∈ Finset.Icc a b,
+                  ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                  8 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1)) :
+    ∀ t : ℝ,
+      1 ≤ ‖t‖ →
+        ∀ N : ℕ,
+          ‖∑ n ∈ Finset.Icc 1 N,
+            ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+              8 *
+                (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) := by
+  sorry
+
+/-- Elementary comparison from the dyadic block-cover expression to the
+standard logarithmic first-derivative bound. -/
+theorem Complex.logarithmicPhase_dyadic_cover_expression_le_standard
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    (N : ℕ) :
+    8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+      16 *
+        (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+          Real.log (2 + N) := by
+  sorry
+
 /-- Dyadic summation primitive that turns the one-block first-derivative
 estimate into the global logarithmic-phase partial-sum estimate. -/
 theorem Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
@@ -740,7 +861,20 @@ theorem Complex.logarithmicPhase_dyadic_decomposition_bound_of_block
               16 *
                 (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
                   Real.log (2 + N) := by
-  sorry
+  intro t ht N
+  have hcover :
+      ‖∑ n ∈ Finset.Icc 1 N,
+        ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+          8 *
+            (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) :=
+    Complex.logarithmicPhase_dyadic_block_cover_bound hblock t ht N
+  have hcomparison :
+      8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) ≤
+        16 *
+          (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + N) :=
+    Complex.logarithmicPhase_dyadic_cover_expression_le_standard t ht N
+  exact le_trans hcover hcomparison
 
 /-- Dyadic decomposition form of the first-derivative estimate for the
 logarithmic phase. -/

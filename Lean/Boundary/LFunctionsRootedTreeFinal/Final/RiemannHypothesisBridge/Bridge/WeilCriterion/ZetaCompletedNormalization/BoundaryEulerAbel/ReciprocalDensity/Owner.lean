@@ -767,6 +767,84 @@ theorem real_intervalIntegral_one_div_two_add_eq_log_endpoint
     _ = Real.log (2 + b) - Real.log 4 :=
             hnormalize
 
+/-- The reciprocal function is interval-integrable on `[2,b]`. -/
+theorem real_intervalIntegrable_one_div_two_to
+    {b : ℝ} :
+    IntervalIntegrable (fun x : ℝ => (1 : ℝ) / x) volume (2 : ℝ) b := by
+  exact intervalIntegrable_one_div
+    (fun x hx => by
+      have hx_pos : 0 < x := by
+        exact lt_of_lt_of_le zero_lt_two (Set.mem_uIcc.mp hx).1
+      exact ne_of_gt hx_pos)
+    continuousOn_id
+
+/-- The translated reciprocal function is interval-integrable on `[2,b]`. -/
+theorem real_intervalIntegrable_one_div_two_add_two_to
+    {b : ℝ} :
+    IntervalIntegrable (fun x : ℝ => (1 : ℝ) / (2 + x)) volume (2 : ℝ) b := by
+  exact intervalIntegrable_one_div
+    (fun x hx => by
+      have hx_lower : (2 : ℝ) ≤ x :=
+        (Set.mem_uIcc.mp hx).1
+      have hpos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) hx_lower)
+      exact ne_of_gt hpos)
+    (continuousOn_const.add continuousOn_id)
+
+/-- Partial-fraction normalization under the interval integral. -/
+theorem real_intervalIntegral_one_div_mul_two_add_eq_half_sub_integral
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+      (1 / 2 : ℝ) *
+        (∫ x in (2 : ℝ)..b, (1 : ℝ) / x -
+          ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x)) := by
+  have hpoint :
+      EqOn
+        (fun x : ℝ => (1 : ℝ) / (x * (2 + x)))
+        (fun x : ℝ =>
+          (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)))
+        (Set.uIcc (2 : ℝ) b) := by
+    intro x hx
+    have hx_pos : 0 < x :=
+      lt_of_lt_of_le zero_lt_two (Set.mem_uIcc.mp hx).1
+    have hx_two_pos : 0 < 2 + x :=
+      add_pos_of_pos_of_nonneg zero_lt_two (le_of_lt hx_pos)
+    exact real_one_div_mul_two_add_eq_half_sub
+      (ne_of_gt hx_pos)
+      (ne_of_gt hx_two_pos)
+  have hcongr :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+        ∫ x in (2 : ℝ)..b,
+          (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) :=
+    intervalIntegral.integral_congr hpoint
+  have hone : IntervalIntegrable (fun x : ℝ => (1 : ℝ) / x) volume (2 : ℝ) b :=
+    real_intervalIntegrable_one_div_two_to
+  have htwo :
+      IntervalIntegrable (fun x : ℝ => (1 : ℝ) / (2 + x)) volume (2 : ℝ) b :=
+    real_intervalIntegrable_one_div_two_add_two_to
+  have hlinear :
+      ∫ x in (2 : ℝ)..b,
+          (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) =
+        (1 / 2 : ℝ) *
+          (∫ x in (2 : ℝ)..b, (1 : ℝ) / x -
+            ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x)) := by
+    calc
+      ∫ x in (2 : ℝ)..b,
+          (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x))
+          =
+        (1 / 2 : ℝ) *
+          ∫ x in (2 : ℝ)..b, ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
+            exact intervalIntegral.integral_const_mul (1 / 2 : ℝ)
+              (fun x : ℝ => (1 : ℝ) / x - (1 : ℝ) / (2 + x))
+      _ = (1 / 2 : ℝ) *
+          (∫ x in (2 : ℝ)..b, (1 : ℝ) / x -
+            ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x)) := by
+            exact congrArg (fun y : ℝ => (1 / 2 : ℝ) * y)
+              (intervalIntegral.integral_sub hone htwo)
+  exact Eq.trans hcongr hlinear
+
 /-- Antiderivative evaluation for the reciprocal-density scalar integrand.
 
 The antiderivative is `(log x - log (2 + x)) / 2`; the lower endpoint is
@@ -777,7 +855,59 @@ theorem real_intervalIntegral_one_div_mul_two_add_eq_logs_interval_core
     ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
       ((Real.log b - Real.log (2 + b)) -
           (Real.log 2 - Real.log 4)) / 2 := by
-  sorry
+  have hpartial :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+        (1 / 2 : ℝ) *
+          (∫ x in (2 : ℝ)..b, (1 : ℝ) / x -
+            ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x)) :=
+    real_intervalIntegral_one_div_mul_two_add_eq_half_sub_integral hb
+  have hone :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / x =
+        Real.log b - Real.log 2 :=
+    real_intervalIntegral_one_div_eq_log_endpoint hb
+  have htwo :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x) =
+        Real.log (2 + b) - Real.log 4 :=
+    real_intervalIntegral_one_div_two_add_eq_log_endpoint hb
+  have hlogs :
+      (1 / 2 : ℝ) *
+          ((Real.log b - Real.log 2) -
+            (Real.log (2 + b) - Real.log 4)) =
+        ((Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4)) / 2 := by
+    calc
+      (1 / 2 : ℝ) *
+          ((Real.log b - Real.log 2) -
+            (Real.log (2 + b) - Real.log 4))
+          =
+        ((Real.log b - Real.log 2) -
+          (Real.log (2 + b) - Real.log 4)) / 2 := by
+            exact (mul_div_assoc
+              ((Real.log b - Real.log 2) -
+                (Real.log (2 + b) - Real.log 4)) 1 2).symm
+      _ = ((Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4)) / 2 := by
+            have halg :
+                (Real.log b - Real.log 2) -
+                  (Real.log (2 + b) - Real.log 4) =
+                (Real.log b - Real.log (2 + b)) -
+                  (Real.log 2 - Real.log 4) := by
+              exact sub_sub_sub_comm
+                (Real.log b) (Real.log 2) (Real.log (2 + b)) (Real.log 4)
+            exact congrArg (fun y : ℝ => y / 2) halg
+  exact Eq.trans hpartial
+    (Eq.trans
+      (congrArg
+        (fun y : ℝ => (1 / 2 : ℝ) * y)
+        (Eq.trans
+          (congrArg
+            (fun y : ℝ =>
+              y - ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x))
+            hone)
+          (congrArg
+            (fun y : ℝ => (Real.log b - Real.log 2) - y)
+            htwo)))
+      hlogs)
 
 /-- Endpoint evaluation of the interval integral of the scalar reciprocal
 density in interval-integral notation. -/

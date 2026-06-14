@@ -176,6 +176,96 @@ theorem Complex.binetSecondFormula_arctan_tail_branch_separation
     ⟨Complex.one_sub_real_div_mul_I_norm_lower hw_re_pos t,
       Complex.one_add_real_div_mul_I_norm_lower hw_re_pos t⟩
 
+/-- The principal logarithm is bounded by the absolute logarithm of the norm
+plus the universal argument bound. -/
+theorem Complex.log_norm_le_abs_log_norm_add_pi
+    (z : ℂ) :
+    ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi := by
+  calc
+    ‖Complex.log z‖ = Complex.abs (Complex.log z) := norm_eq_abs _
+    _ ≤ |(Complex.log z).re| + |(Complex.log z).im| :=
+      Complex.abs_le_abs_re_add_abs_im (Complex.log z)
+    _ = |Real.log ‖z‖| + |Complex.arg z| := by
+      rw [Complex.log_re, Complex.log_im, norm_eq_abs]
+    _ ≤ |Real.log ‖z‖| + Real.pi :=
+      add_le_add_left (Complex.abs_arg_le_pi z) _
+
+/-- A positive two-sided bound for a real argument gives a finite bound for
+the absolute value of its logarithm. -/
+theorem Real.abs_log_le_max_abs_log_of_bounds
+    {m M x : ℝ}
+    (hm_pos : 0 < m)
+    (hmM : m ≤ M)
+    (hmx : m ≤ x)
+    (hxM : x ≤ M) :
+    |Real.log x| ≤
+      max |Real.log m| |Real.log M| := by
+  have hx_pos : 0 < x := lt_of_lt_of_le hm_pos hmx
+  have hM_pos : 0 < M := lt_of_lt_of_le hm_pos hmM
+  have hlog_lower : Real.log m ≤ Real.log x :=
+    Real.log_le_log hm_pos hmx
+  have hlog_upper : Real.log x ≤ Real.log M :=
+    Real.log_le_log hx_pos hxM
+  have hleft :
+      -(max |Real.log m| |Real.log M|) ≤ Real.log x := by
+    have hneg_abs_m : -|Real.log m| ≤ Real.log m :=
+      neg_abs_le (Real.log m)
+    have hmax_left : |Real.log m| ≤ max |Real.log m| |Real.log M| :=
+      le_max_left _ _
+    exact
+      le_trans (neg_le_neg hmax_left)
+        (le_trans hneg_abs_m hlog_lower)
+  have hright :
+      Real.log x ≤ max |Real.log m| |Real.log M| := by
+    have hlogM_le_abs : Real.log M ≤ |Real.log M| :=
+      le_abs_self (Real.log M)
+    have hmax_right : |Real.log M| ≤ max |Real.log m| |Real.log M| :=
+      le_max_right _ _
+    exact le_trans hlog_upper (le_trans hlogM_le_abs hmax_right)
+  exact abs_le.mpr ⟨hleft, hright⟩
+
+/-- A nonzero complex number whose norm has positive two-sided real bounds
+has bounded principal logarithm. -/
+theorem Complex.log_norm_le_of_norm_bounds
+    {m M : ℝ}
+    (hm_pos : 0 < m)
+    (hmM : m ≤ M)
+    {z : ℂ}
+    (hmz : m ≤ ‖z‖)
+    (hzM : ‖z‖ ≤ M) :
+    ‖Complex.log z‖ ≤
+      max |Real.log m| |Real.log M| + Real.pi := by
+  have hlog :
+      |Real.log ‖z‖| ≤ max |Real.log m| |Real.log M| :=
+    Real.abs_log_le_max_abs_log_of_bounds
+      hm_pos hmM hmz hzM
+  calc
+    ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi :=
+      Complex.log_norm_le_abs_log_norm_add_pi z
+    _ ≤ max |Real.log m| |Real.log M| + Real.pi :=
+      add_le_add_right hlog _
+
+/-- On the fixed upper split interval the Möbius ratio entering the arctangent
+has norm bounded above and below by positive constants depending only on `w`.
+
+This is the real-variable tail root: after rewriting the ratio as
+`(w + tI) / (w - tI)`, it is a two-sided bound for a rational expression in
+`t` on `t > ‖w‖ / 2`. -/
+theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ∃ m M : ℝ,
+      0 < m ∧
+      m ≤ M ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (‖w‖ / 2) →
+          m ≤
+            ‖(1 + ((t : ℂ) / w) * Complex.I) /
+              (1 - ((t : ℂ) / w) * Complex.I)‖ ∧
+          ‖(1 + ((t : ℂ) / w) * Complex.I) /
+              (1 - ((t : ℂ) / w) * Complex.I)‖ ≤ M := by
+  sorry
+
 /-- Fixed-ray branch separation gives a uniform bound for the principal
 arctangent on the upper split interval. -/
 theorem Complex.binetSecondFormula_arctan_tail_log_ratio_bounded
@@ -188,7 +278,17 @@ theorem Complex.binetSecondFormula_arctan_tail_log_ratio_bounded
           ‖Complex.log
             ((1 + ((t : ℂ) / w) * Complex.I) /
               (1 - ((t : ℂ) / w) * Complex.I))‖ ≤ L := by
-  sorry
+  rcases
+      Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds
+        hw_re_pos with
+    ⟨m, M, hm_pos, hmM, hbounds⟩
+  refine ⟨max |Real.log m| |Real.log M| + Real.pi, ?_, ?_⟩
+  · exact add_nonneg (le_max_of_le_left (abs_nonneg _)) Real.pi_pos.le
+  · intro t ht_tail
+    rcases hbounds t ht_tail with ⟨hlower, hupper⟩
+    exact
+      Complex.log_norm_le_of_norm_bounds
+        hm_pos hmM hlower hupper
 
 /-- A uniform logarithm bound for the separated arctangent ratio bounds the
 principal arctangent itself. -/
