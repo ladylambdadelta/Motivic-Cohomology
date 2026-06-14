@@ -2910,6 +2910,36 @@ noncomputable def complex_starConvexClosedBall_radialPrimitive
     (z : ℂ) : ℂ :=
   ∫ t in (0 : ℝ)..1, z * φ ((t : ℂ) • z)
 
+/-- The current radial primitive is the interval integral of its displayed
+radial integrand. -/
+theorem complex_starConvexClosedBall_radialPrimitive_unfold
+    (φ : ℂ → ℂ)
+    (z : ℂ) :
+    complex_starConvexClosedBall_radialPrimitive φ z =
+      ∫ t in (0 : ℝ)..1, z * φ ((t : ℂ) • z) :=
+  rfl
+
+/-- The closed complex ball contains the affine segment from its center to any
+point of the ball. -/
+theorem complex_starConvexClosedBall_lineMap_mem
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ)
+    {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    AffineMap.lineMap (0 : ℂ) z t ∈ Metric.closedBall (0 : ℂ) ρ := by
+  have hconvex :
+      Convex ℝ (Metric.closedBall (0 : ℂ) ρ) :=
+    convex_closedBall (0 : ℂ) ρ
+  have hzero :
+      (0 : ℂ) ∈ Metric.closedBall (0 : ℂ) ρ :=
+    Metric.mem_closedBall_self hρ
+  have hz_mem :
+      z ∈ Metric.closedBall (0 : ℂ) ρ :=
+    mem_closedBall_zero_iff.mpr hz
+  exact hconvex.lineMap_mem hzero hz_mem ht
+
 /-- The radial primitive is normalized to vanish at the center. -/
 theorem complex_starConvexClosedBall_radialPrimitive_zero
     (φ : ℂ → ℂ) :
@@ -2931,7 +2961,7 @@ For an analytic function on a star-convex closed ball, radial integration from
 the star center gives a primitive on the ball.  The proof is the standard
 Cauchy-Goursat/path-independence argument for star-shaped domains together
 with differentiation of the segment integral. -/
-theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive
+theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
     (φ : ℂ → ℂ)
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
@@ -2946,6 +2976,63 @@ theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) := by
   sorry
 
+/-- Closed-ball specialization of the canonical star-convex radial primitive
+theorem. -/
+theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z) ∧
+    (∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) :=
+  complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
+    φ hρ hstar hφ
+
+/-- Local endpoint-variation theorem for the radial primitive.
+
+This is the parametric/path-integral differentiability theorem needed for the
+segment integral, with the segment kept inside the closed ball. -/
+theorem complex_starConvexClosedBall_radialPrimitive_localEndpoint
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z := by
+  intro z hz
+  exact
+    (complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
+      φ hρ hstar hφ).1 z hz
+
+/-- Derivative computation for the radial segment primitive.
+
+Classically this is the fundamental theorem for the one-form `φ(w) dw` on a
+star-convex domain: the derivative of the segment integral with respect to its
+endpoint is the integrand at the endpoint. -/
+theorem complex_starConvexClosedBall_radialPrimitive_derivativeFromFTC
+    (φ : ℂ → ℂ)
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hstar :
+      StarConvex ℝ (0 : ℂ) (Metric.closedBall (0 : ℂ) ρ))
+    (hφ : ∀ z : ℂ, ‖z‖ ≤ ρ → AnalyticAt ℂ φ z) :
+    ∀ z : ℂ,
+      ‖z‖ ≤ ρ →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z := by
+  intro z hz
+  exact
+    (complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
+      φ hρ hstar hφ).2 z hz
+
 /-- Analyticity of the radial segment primitive as a function of its endpoint. -/
 theorem complex_starConvexClosedBall_radialPrimitive_analyticAt
     (φ : ℂ → ℂ)
@@ -2958,8 +3045,8 @@ theorem complex_starConvexClosedBall_radialPrimitive_analyticAt
       ‖z‖ ≤ ρ →
       AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z := by
   exact
-    (complex_starConvexClosedBall_radialPrimitive_isPrimitive
-      φ hρ hstar hφ).1
+    complex_starConvexClosedBall_radialPrimitive_localEndpoint
+      φ hρ hstar hφ
 
 /-- Cauchy/FTC path-integral step for the radial primitive derivative. -/
 theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
@@ -2973,8 +3060,8 @@ theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq_cauchy
       ‖z‖ ≤ ρ →
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z := by
   exact
-    (complex_starConvexClosedBall_radialPrimitive_isPrimitive
-      φ hρ hstar hφ).2
+    complex_starConvexClosedBall_radialPrimitive_derivativeFromFTC
+      φ hρ hstar hφ
 
 /-- Derivative formula for the radial segment primitive. -/
 theorem complex_starConvexClosedBall_radialPrimitive_deriv_eq
@@ -6712,6 +6799,45 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     entireFunction_localMultiplicityFactorization
       F hF (z : ℂ) horder
 
+/-- Parameterized finite removable quotient gluing across a finite set of
+nonzero zeros.
+
+This is the single owner-level removable-singularity construction used by both
+the closed-disk support product and the radial-gap product.  The supplied
+finite set determines the extracted divisor; any zeros not in `S` remain zeros
+of the quotient rather than singularities. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hlocal :
+      ∀ z : EntireFunctionZero F,
+        z ∈ S →
+          ∃ g : ℂ → ℂ,
+            AnalyticAt ℂ g (z : ℂ) ∧
+            g (z : ℂ) ≠ 0 ∧
+            ∀ᶠ w in 𝓝 (z : ℂ),
+              F w =
+                (w - (z : ℂ)) ^
+                    entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                  g w) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w) ∧
+      Q 0 = F 0 := by
+  -- Deep finite removable-gluing root: construct the patched quotient from
+  -- the local multiplicity factors at the finitely many nonzero support
+  -- points and the raw quotient on the complement of `S`.
+  sorry
+
 /-- Finset-level removable quotient gluing across the closed-disk support.
 
 This is the closed-disk analogue of the radial support gluing root. It is the
@@ -6748,9 +6874,45 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
             entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
               F hF hF0 ρ w) ∧
       Q 0 = F 0 := by
-  -- Deep closed-disk finite removable-gluing root: patch the local quotient
-  -- values over the finite closed support, including boundary zeros.
-  sorry
+  have hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0 := by
+    intro z hz
+    have hz_closed :
+        z ∈
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ :=
+      Eq.subst (motive := fun T : Finset (EntireFunctionZero F) => z ∈ T)
+        hS hz
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
+        F hF hF0 ρ z hz_closed
+  obtain ⟨Q, hQ_an, hfactor, hQ0⟩ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
+      F hF ρ hρ S hS0 hlocal
+  refine ⟨Q, hQ_an, ?_, hQ0⟩
+  intro w hwρ
+  have hprod :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+          F hF hF0 ρ w := by
+    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+    exact
+      congrArg
+        (fun T : Finset (EntireFunctionZero F) =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF T w)
+        hS
+  calc
+    F w =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF S w :=
+      hfactor w hwρ
+    _ =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+            F hF hF0 ρ w := by
+      exact congrArg (fun x : ℂ => Q w * x) hprod
 
 /-- Closed-disk removable quotient after extracting all nonzero zeros in
 `‖w‖ ≤ ρ`. -/
@@ -6834,10 +6996,45 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
               F hF hF0 ρ w) ∧
       Q 0 = F 0 := by
-  -- Deep finite removable-gluing root: construct the patched quotient from
-  -- the support-local multiplicity factors and prove agreement with the raw
-  -- quotient on the complement of `S`.
-  sorry
+  have hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0 := by
+    intro z hz
+    have hz_radial :
+        z ∈
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ :=
+      Eq.subst (motive := fun T : Finset (EntireFunctionZero F) => z ∈ T)
+        hS hz
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+        F hF hF0 ρ z hz_radial
+  obtain ⟨Q, hQ_an, hfactor, hQ0⟩ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
+      F hF ρ hρ S hS0 hlocal
+  refine ⟨Q, hQ_an, ?_, hQ0⟩
+  intro w hwρ
+  have hprod :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+          F hF S w =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+          F hF hF0 ρ w := by
+    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+    exact
+      congrArg
+        (fun T : Finset (EntireFunctionZero F) =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF T w)
+        hS
+  calc
+    F w =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF S w :=
+      hfactor w hwρ
+    _ =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w := by
+      exact congrArg (fun x : ℂ => Q w * x) hprod
 
 /-- Canonical finite removable quotient after extracting exactly the Jensen
 support divisor, stated as a thin wrapper over the Finset gluing owner lemma. -/
@@ -7350,10 +7547,137 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupport_b
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Closed/radial divisor comparison root: split the closed support into
-  -- strictly interior zeros and boundary zeros, then identify the strictly
-  -- interior part with the radial-gap support.
-  sorry
+  let φ : EntireFunctionZero F → ℝ :=
+    fun z =>
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+  have hsplit_set :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ =
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+            F hF hF0 ρ ∪
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+            F hF hF0 ρ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_eq_interior_union_boundary
+      F hF hF0 ρ
+  have hclosed_sum :
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        φ z) =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+              F hF hF0 ρ ∪
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+              F hF hF0 ρ,
+          φ z) :=
+    congrArg (fun s : Finset (EntireFunctionZero F) => ∑ z in s, φ z)
+      hsplit_set
+  have hdisjoint :
+      Disjoint
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+          F hF hF0 ρ)
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+          F hF hF0 ρ) :=
+    Finset.disjoint_left.2
+      (fun z hz_int hz_bd =>
+        (Finset.mem_filter.1 hz_bd).2 (Finset.mem_filter.1 hz_int).2)
+  have hunion_sum :
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+            F hF hF0 ρ ∪
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+            F hF hF0 ρ,
+        φ z) =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          φ z) +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            φ z) :=
+    Finset.sum_union hdisjoint
+  have hinterior_radial :
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        φ z) =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          φ z) :=
+    congrArg (fun s : Finset (EntireFunctionZero F) => ∑ z in s, φ z)
+      (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor_eq_radialGapSupportFiniteZeroDivisor_ownerRoot
+        F hF hF0 ρ)
+  calc
+    (∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          φ z) := by
+      rfl
+    _ =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+              F hF hF0 ρ ∪
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+              F hF hF0 ρ,
+          φ z) := hclosed_sum
+    _ =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          φ z) +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            φ z) := hunion_sum
+    _ =
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          φ z) +
+          (∑ z in
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+              F hF hF0 ρ,
+            φ z) := by
+      exact congrArg
+        (fun x : ℝ =>
+          x +
+            (∑ z in
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+                F hF hF0 ρ,
+              φ z))
+        hinterior_radial
+    _ =
+      (∑ z in
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ,
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+          ((2 * Real.pi)⁻¹ *
+            (∫ θ in (0 : ℝ)..(2 * Real.pi),
+              Real.log
+                ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+      rfl
 
 /-- Closed-support boundary-factor sum reduces to the radial-gap factor sum
 because the boundary-zero factor sum is zero. -/
@@ -7619,10 +7943,50 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduc
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Boundary-log comparison root: derive the radial-gap boundary formula from
-  -- the closed-disk quotient package plus the closed/radial divisor comparison,
-  -- with boundary-zero factors handled explicitly.
-  sorry
+  let closedFactors : ℝ :=
+    ∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+  let radialFactors : ℝ :=
+    ∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+  obtain ⟨Q, _hfactor, _hzero, hboundary, horigin⟩ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_factorization_zeroFreeOnClosedDisk_ownerRoot
+      F hF hF0 ρ hρ
+  have hclosed_to_radial :
+      closedFactors = radialFactors :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupport_boundaryFactorSum_eq_radialGapSum_ownerRoot
+      F hF hF0 ρ
+  calc
+    entireFunctionJensenBoundaryLogAverage F ρ =
+        Real.log ‖Q 0‖ + closedFactors := by
+      exact hboundary
+    _ = Real.log ‖F 0‖ + closedFactors := by
+      exact congrArg (fun x : ℝ => x + closedFactors) horigin
+    _ = Real.log ‖F 0‖ + radialFactors := by
+      exact congrArg (fun x : ℝ => Real.log ‖F 0‖ + x) hclosed_to_radial
+    _ =
+      Real.log ‖F 0‖ +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+      rfl
 
 /-- Origin normalization for the finite quotient in Jensen's product
 factorization. -/

@@ -1385,6 +1385,50 @@ theorem real_natShift_mem_strip_of_mem_strip
   ⟨add_le_add_right hxA (N : ℝ),
     add_le_add_right hxB (N : ℝ)⟩
 
+/-- Deterministic right shift for a vertical strip.  It is the least natural
+integer produced by the floor API which is at least `max 0 (-A)`, hence it
+moves the strip lower edge `A` into the closed right half-plane. -/
+def Complex.verticalStripRightShift (A : ℝ) : ℕ :=
+  Nat.ceil (max 0 (-A))
+
+/-- The deterministic strip shift dominates the negative lower endpoint. -/
+theorem Complex.neg_lower_le_verticalStripRightShift
+    (A : ℝ) :
+    -A ≤ (Complex.verticalStripRightShift A : ℝ) := by
+  have hmax : -A ≤ max 0 (-A) :=
+    le_max_right 0 (-A)
+  have hceil : max 0 (-A) ≤ (Complex.verticalStripRightShift A : ℝ) := by
+    unfold Complex.verticalStripRightShift
+    exact Nat.le_ceil (max 0 (-A))
+  exact le_trans hmax hceil
+
+/-- The deterministic strip shift is nonnegative as a real number. -/
+theorem Complex.verticalStripRightShift_nonneg
+    (A : ℝ) :
+    (0 : ℝ) ≤ (Complex.verticalStripRightShift A : ℝ) :=
+  Nat.cast_nonneg (Complex.verticalStripRightShift A)
+
+/-- The deterministic shift moves every point in the strip into the closed
+right half-plane. -/
+theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_closedRightHalfPlaneSector
+    {A x y : ℝ}
+    (hx : A ≤ x) :
+    Complex.closedRightHalfPlaneSector
+      (Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripRightShift A) y) :=
+  Complex.fixedRealPartVerticalPoint_natShift_closedRightHalfPlaneSector
+    (Complex.neg_lower_le_verticalStripRightShift A) hx
+
+/-- The deterministic shift preserves the large-height-to-large-radius lower
+bound. -/
+theorem Complex.fixedRealPartVerticalPoint_verticalStripRightShift_radius_ge_of_height_ge
+    {A x y H : ℝ}
+    (hH : H ≤ ‖y‖) :
+    H ≤
+      ‖Complex.fixedRealPartVerticalPoint
+        (x + Complex.verticalStripRightShift A) y‖ :=
+  Complex.fixedRealPartVerticalPoint_natShift_radius_ge_of_height_ge hH
+
 /-- A positive lower radius cutoff makes the logarithmic envelope positive. -/
 theorem real_largeRadius_log_envelope_pos
     (R₀ r : ℝ)
@@ -2605,6 +2649,45 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
     Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
       Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
 
+/-- The finite recurrence product relating `Γ z` and `Γ (z + N)`. -/
+def Complex.gammaRecurrenceProduct (z : ℂ) (N : ℕ) : ℂ :=
+  ∏ j ∈ Finset.range N, z + (j : ℂ)
+
+/-- Deterministic finite-recurrence transport from closed-right-half-plane
+sectorial Stirling to a vertical strip.
+
+The shift is `Complex.verticalStripRightShift A`.  Applying sectorial Stirling
+to `z + N` is justified by
+`fixedRealPartVerticalPoint_verticalStripRightShift_closedRightHalfPlaneSector`
+and the height/radius comparison.  The finite product
+`gammaRecurrenceProduct z N` is controlled uniformly on the strip because `N`
+is fixed and the strip real part is bounded; Gamma recurrence gives
+`Γ z = Γ (z + N) / gammaRecurrenceProduct z N`. -/
+theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_deterministicShift
+    (hStirling : ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
+  sorry
+
 /-- Vertical-strip two-sided Stirling bounds as a consequence of sectorial
 log-Gamma Stirling.
 
@@ -2636,7 +2719,9 @@ theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  sorry
+  exact
+    Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_deterministicShift
+      hStirling A B
 
 /-- Standard vertical-strip specialization of sectorial Stirling.
 
@@ -9545,25 +9630,6 @@ theorem abel_left_neighborhood_eventually_nonnegative :
     (eventually_nhdsWithin_of_eventually_nhds hpositive_nhds).mono
       (fun r hr => le_of_lt hr)
 
-/-- Pointwise Abel transform bound for positive weights.
-
-This is the deepest abstract Abel summation core.  For `0 ≤ r < 1`, bounded
-finite tail partial sums imply the Abel weighted tail is bounded by the same
-constant.  The proof is the summation-by-parts/convex-positive-weights
-calculation. -/
-theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums_core
-    {u : ℕ → ℂ}
-    {N : ℕ}
-    {C r : ℝ}
-    (hpartial :
-      ∀ M : ℕ,
-        N ≤ M →
-        ‖∑ k ∈ Finset.Ioc N M, u k‖ ≤ C)
-    (hr_nonneg : 0 ≤ r)
-    (hr_lt_one : r < 1) :
-    ‖∑' k : ℕ, if N < k then ((r : ℂ) ^ k) * u k else 0‖ ≤ C := by
-  sorry
-
 /-- Abstract Abel transform bound from bounded finite tail sums.
 
 This is the positive-weight summation-by-parts core: for a tail sequence whose
@@ -9639,7 +9705,18 @@ theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weig
             (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
         else
           0 := by
-  sorry
+  exact tsum_congr
+    (fun k => by
+      by_cases hk : ⌊2 + ‖t‖⌋₊ < k
+      · have hkpos : 0 < k :=
+          lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hk
+        exact Eq.trans
+          (if_pos hk)
+          (Eq.trans
+            (abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
+              t σ hkpos)
+            (if_pos hk).symm)
+      · exact Eq.trans (if_neg hk) (if_neg hk).symm)
 
 /-- Identification of the logarithmic-phase damped tail with the abstract Abel
 weighted tail.
@@ -9666,7 +9743,7 @@ theorem abelBoundary_logarithmicPhase_dirichletWeight_nonneg
     {k : ℕ}
     (hk : 0 < k) :
     0 ≤ abelBoundary_logarithmicPhase_dirichletWeight σ k := by
-  sorry
+  exact Real.rpow_nonneg (Nat.cast_nonneg k) (1 - σ)
 
 /-- Dirichlet weights are decreasing on the post-cutoff tail for `σ > 1`. -/
 theorem abelBoundary_logarithmicPhase_dirichletWeight_antitone
@@ -9702,7 +9779,25 @@ theorem abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero
       (fun k : ℕ => abelBoundary_logarithmicPhase_dirichletWeight σ k)
       atTop
       (𝓝 0) := by
-  sorry
+  have hexponent_pos : 0 < σ - 1 :=
+    sub_pos.mpr hσ
+  have hraw :
+      Tendsto
+        (fun x : ℝ => x ^ (-(σ - 1)))
+        atTop
+        (𝓝 0) :=
+    tendsto_rpow_neg_atTop hexponent_pos
+  have hnat :
+      Tendsto
+        (fun k : ℕ => ((k : ℝ) ^ (-(σ - 1))))
+        atTop
+        (𝓝 0) :=
+    hraw.comp (tendsto_natCast_atTop_atTop (R := ℝ))
+  exact hnat.congr'
+    (Eventually.of_forall
+      (fun k : ℕ =>
+        congrArg (fun exponent : ℝ => ((k : ℝ) ^ exponent))
+          (neg_sub σ 1)))
 
 /-- Transport the abstract Abel weighted-tail bound to the logarithmic-phase
 damped tail as `σ → 1+`. -/
@@ -9716,6 +9811,38 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
             ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C) :
     ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
       ‖abelBoundary_logarithmicPhase_dampedTail t σ‖ ≤ C := by
+  have hpartial :
+      ∀ M : ℕ,
+        ⌊2 + ‖t‖⌋₊ ≤ M →
+        ‖∑ k ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C := by
+    intro M hM
+    have hleft :
+        ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ = ⌊2 + ‖t‖⌋₊ :=
+      Nat.floor_natCast ⌊2 + ‖t‖⌋₊
+    have hright :
+        ⌊((M : ℕ) : ℝ)⌋₊ = M :=
+      Nat.floor_natCast M
+    have hsource :
+        ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C :=
+      hfinite M hM
+    have hleft_transport :
+        ‖∑ k ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+            ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C :=
+      Eq.subst
+        (motive := fun N : ℕ =>
+          ‖∑ k ∈ Finset.Ioc N ⌊((M : ℕ) : ℝ)⌋₊,
+              ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C)
+        hleft
+        hsource
+    exact
+      Eq.subst
+        (motive := fun R : ℕ =>
+          ‖∑ k ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ R,
+              ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤ C)
+        hright
+        hleft_transport
   have habstract :
       ∀ σ : ℝ,
         1 < σ →
@@ -9726,20 +9853,20 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
           else
             0‖ ≤ C := by
     intro σ hσ
-    abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
+    exact
+      abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
       (u := fun k : ℕ =>
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
       (w := abelBoundary_logarithmicPhase_dirichletWeight σ)
       (N := ⌊2 + ‖t‖⌋₊)
       (C := C)
-      hfinite
+      hpartial
       (fun k hk =>
         abelBoundary_logarithmicPhase_dirichletWeight_nonneg σ
-          (lt_trans (Nat.pos_of_ne_zero (fun hk0 => by
-            exact Nat.not_succ_le_zero N (Eq.subst (motive := fun x : ℕ => N + 1 ≤ x) hk0 (Nat.succ_le_of_lt hk)))) hk))
+          (lt_of_le_of_lt (Nat.zero_le ⌊2 + ‖t‖⌋₊) hk))
       (fun k l hk hkl =>
         abelBoundary_logarithmicPhase_dirichletWeight_antitone σ hσ k l
-          (lt_of_lt_of_le (Nat.lt_of_succ_le (Nat.succ_le_of_lt hk)) hkl) hkl)
+          (lt_of_le_of_lt (Nat.zero_le ⌊2 + ‖t‖⌋₊) hk) hkl)
       (abelBoundary_logarithmicPhase_dirichletWeight_variation_le_one σ hσ
         ⌊2 + ‖t‖⌋₊)
       (abelBoundary_logarithmicPhase_dirichletWeight_tendsto_zero σ hσ)
@@ -12085,6 +12212,88 @@ functional-equation multiplier.
 This is the exact algebraic identity obtained by unfolding
 `completedRiemannZeta_one_sub`, `riemannZeta_def_of_ne_zero`, and the
 pole-cleared definition away from both removable points. -/
+/-- Denominator data needed to divide the completed functional equation into the
+raw pole-cleared zeta multiplier.
+
+The full left half-plane contains the `Gammaℝ` zero faces, so the algebraic
+division step must be isolated from the exceptional trivial-zero compatibility
+statement below. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator_data
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_ne : Complex.Gammaℝ z ≠ 0) :
+    z ≠ 1 ∧
+      ((1 : ℂ) - z) ≠ 0 ∧
+      (((1 : ℂ) - z) - 1) ≠ 0 ∧
+      Complex.Gammaℝ z ≠ 0 := by
+  have hz_ne_one : z ≠ 1 := by
+    intro hz_one
+    have hz_re_one : z.re = 1 := by
+      calc
+        z.re = (1 : ℂ).re := by
+          exact congrArg Complex.re hz_one
+        _ = 1 := Complex.one_re
+    have hone_le_zero : (1 : ℝ) ≤ 0 :=
+      Eq.subst
+        (motive := fun x : ℝ => x ≤ 0)
+        hz_re_one.symm
+        hz_re
+    exact not_lt_of_ge hone_le_zero zero_lt_one
+  have hone_sub_ne_zero : ((1 : ℂ) - z) ≠ 0 := by
+    intro hsub
+    have hz_one : z = 1 := by
+      have hsub_add : ((1 : ℂ) - z) + z = 0 + z :=
+        congrArg (fun w : ℂ => w + z) hsub
+      have hone_eq_z : (1 : ℂ) = z := by
+        exact Eq.trans (sub_add_cancel (1 : ℂ) z).symm hsub_add
+      exact hone_eq_z.symm
+    exact hz_ne_one hz_one
+  have hone_sub_minus_one_ne_zero : (((1 : ℂ) - z) - 1) ≠ 0 := by
+    intro hden
+    have hden_add : (((1 : ℂ) - z) - 1) + z = 0 + z :=
+      congrArg (fun w : ℂ => w + z) hden
+    have hleft_zero : (((1 : ℂ) - z) - 1) + z = 0 := by
+      sorry
+    have hz_zero : z = 0 := by
+      calc
+        z = 0 + z := by
+          exact (zero_add z).symm
+        _ = (((1 : ℂ) - z) - 1) + z := hden_add.symm
+        _ = 0 := hleft_zero
+    exact hz_ne_zero hz_zero
+  exact ⟨hz_ne_one, hone_sub_ne_zero, hone_sub_minus_one_ne_zero, hGamma_ne⟩
+
+/-- Algebraic division of the completed zeta functional equation into the
+raw pole-cleared multiplier, away from Gamma zero faces. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_ne_zero
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_ne : Complex.Gammaℝ z ≠ 0) :
+    poleClearedRiemannZeta z =
+      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
+/-- Compatibility of the completed-functional-equation multiplier with the
+Gamma-zero faces in the left half-plane.
+
+At these points the completed functional equation is not divided by
+`Gammaℝ z`; instead the statement is the classical trivial-zero cancellation
+of the pole-cleared zeta factor against the Gamma zero. -/
+theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_zero
+    {z : ℂ}
+    (hz_re : z.re ≤ 0)
+    (hz_ne_zero : z ≠ 0)
+    (hGamma_zero : Complex.Gammaℝ z = 0) :
+    poleClearedRiemannZeta z =
+      (((z - 1) / (((1 : ℂ) - z) - 1)) *
+          (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
+        poleClearedRiemannZeta ((1 : ℂ) - z) := by
+  sorry
+
 theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_ne_zero
     {z : ℂ}
     (hz_re : z.re ≤ 0)
@@ -12093,7 +12302,13 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of
       (((z - 1) / (((1 : ℂ) - z) - 1)) *
           (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)) *
         poleClearedRiemannZeta ((1 : ℂ) - z) := by
-  sorry
+  by_cases hGamma_ne : Complex.Gammaℝ z ≠ 0
+  · exact
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_ne_zero
+        hz_re hz_ne_zero hGamma_ne
+  · exact
+      poleClearedRiemannZeta_completedFunctionalEquationMultiplier_identity_of_gamma_zero
+        hz_re hz_ne_zero (not_not.mp hGamma_ne)
 
 /-- The removable point `z = 0` satisfies the pole-cleared completed-functional
 equation identity by the chosen multiplier value. -/
