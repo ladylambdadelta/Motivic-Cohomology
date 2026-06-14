@@ -40,19 +40,24 @@ theorem Complex.binetSecondFormula_kernel_norm_le
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   sorry
 
-/-- Boundary-continuation form of the Binet-kernel estimate on the closed
-right half-plane, away from the origin. -/
-theorem Complex.binetSecondFormula_kernel_norm_le_closedRightHalfPlane
+/-- Sector form of the Binet-kernel estimate on the open right half-plane.
+
+The literal closed-boundary principal-arctangent kernel has singular boundary
+values on the imaginary axis, so the pointwise owner estimate stays in the
+open half-plane.  Closed-sector estimates are obtained later by the
+continued Binet remainder, not by evaluating this kernel pointwise on the
+boundary. -/
+theorem Complex.binetSecondFormula_kernel_norm_le_openRightHalfPlaneSector
     {w : ℂ}
     (hw_sector : Complex.closedRightHalfPlaneSector w)
-    (hw_ne : w ≠ 0) :
+    (hw_re_pos : 0 < w.re) :
     ∀ t : ℝ,
       0 < t →
         ‖Complex.arctan ((t : ℂ) / w) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
           (t / ‖w‖) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+  exact Complex.binetSecondFormula_kernel_norm_le hw_re_pos
 
 /-- Strict positivity of the Binet majorant denominator at every positive point. -/
 theorem Real.binetSecondFormula_kernel_majorant_denominator_pos
@@ -131,14 +136,26 @@ theorem Real.integrableOn_Ioc_of_aestronglyMeasurable_norm_le_const
     (hC : 0 ≤ C)
     (hbound : ∀ x : ℝ, x ∈ Set.Ioc a b → ‖f x‖ ≤ C) :
     IntegrableOn f (Set.Ioc a b) := by
-  sorry
+  refine ⟨hmeas, ?_⟩
+  exact
+    hasFiniteIntegral_restrict_of_bounded
+      (μ := volume)
+      (s := Set.Ioc a b)
+      (C := C)
+      measure_Ioc_lt_top
+      ((ae_restrict_mem measurableSet_Ioc).mono
+        (fun x hx => hbound x hx))
 
 /-- The Binet majorant is a.e.-measurable on the local interval `(0,1]`. -/
 theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_zero_one :
     AEStronglyMeasurable
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
-  sorry
+  have hmeas :
+      Measurable
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+    fun_prop
+  exact hmeas.aestronglyMeasurable
 
 /-- A bounded Binet majorant on `(0,1]` is integrable. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation :
@@ -197,14 +214,29 @@ theorem Real.integrableOn_Ioi_of_aestronglyMeasurable_norm_le_exp_tail
         t ∈ Set.Ioi a →
           ‖f t‖ ≤ C * Real.exp (-b * t)) :
     IntegrableOn f (Set.Ioi a) := by
-  sorry
+  have h_exp :
+      IntegrableOn (fun t : ℝ => Real.exp (-b * t)) (Set.Ioi a) :=
+    exp_neg_integrableOn_Ioi a hb
+  have h_bound_integrable :
+      Integrable (fun t : ℝ => C * Real.exp (-b * t))
+        (volume.restrict (Set.Ioi a)) :=
+    h_exp.integrable.const_mul C
+  exact
+    h_bound_integrable.mono'
+      hmeas
+      ((ae_restrict_mem measurableSet_Ioi).mono
+        (fun t ht => hbound t ht))
 
 /-- The Binet majorant is a.e.-measurable on the tail interval `(1,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_one_infty :
     AEStronglyMeasurable
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (volume.restrict (Set.Ioi (1 : ℝ))) := by
-  sorry
+  have hmeas :
+      Measurable
+        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+    fun_prop
+  exact hmeas.aestronglyMeasurable
 
 /-- Exponential tail domination implies tail integrability of the Binet
 majorant. -/

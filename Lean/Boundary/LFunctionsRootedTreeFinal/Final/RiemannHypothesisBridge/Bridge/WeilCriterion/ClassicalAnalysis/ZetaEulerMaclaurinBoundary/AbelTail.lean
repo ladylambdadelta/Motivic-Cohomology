@@ -88,7 +88,7 @@ logarithmic phase.
 This is the finite partial-summation step: combine the first-derivative
 oscillatory estimate for `∑ n^{-it}` with monotonicity of the reciprocal
 weight.  Cf. Apostol, *Introduction to Analytic Number Theory*, Ch. 3. -/
-theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound :
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDerivative :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -103,14 +103,30 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound :
                     A * Real.log (2 + ‖t‖) := by
   sorry
 
+/-- Finite Abel-summation estimate for the post-cutoff reciprocal-weighted
+logarithmic phase. -/
+theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ∀ M : ℕ,
+                N ≤ M →
+                  ‖∑ n ∈ Finset.Ioc N M,
+                    ((n : ℂ)⁻¹ : ℂ) *
+                      ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                    A * Real.log (2 + ‖t‖) := by
+  exact Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound_of_firstDerivative
+
 /-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
 phase.
 
 This is the genuine limiting analytic root: finite Abel tail bounds are
 transported through Abel damping and the Dirichlet-continuation boundary value
 of `ζ(1 + it)`. -/
-theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound
-    :
+theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAbel :
     ∃ A : ℝ,
       0 < A ∧
       ∀ t : ℝ,
@@ -121,6 +137,39 @@ theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound
                 ∑ n ∈ Finset.Icc 1 N,
                   ((n : ℂ)⁻¹ : ℂ) *
                     ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A * Real.log (2 + ‖t‖) := by
+  sorry
+
+/-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
+phase. -/
+theorem Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ‖riemannZeta (Complex.boundaryLineOnePointRealParam t) -
+                ∑ n ∈ Finset.Icc 1 N,
+                  ((n : ℂ)⁻¹ : ℂ) *
+                    ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+                A * Real.log (2 + ‖t‖) := by
+  exact Complex.boundaryLineOnePointRealParam_abelBoundaryTail_bound_of_finiteAbel
+
+/-- Transport from the Abel boundary remainder to the post-cutoff `tsum` tail
+written in boundary-line Dirichlet monomials. -/
+theorem Complex.boundaryLineOnePointRealParam_tsumTail_bound_of_abelBoundary_transport :
+    ∃ A : ℝ,
+      0 < A ∧
+      ∀ t : ℝ,
+        1 ≤ ‖t‖ →
+          ∀ N : ℕ,
+            1 ≤ N →
+              ‖∑' n : ℕ,
+                if N < n then
+                  ((n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t))⁻¹
+                else
+                  0‖ ≤
                 A * Real.log (2 + ‖t‖) := by
   sorry
 
@@ -139,7 +188,7 @@ theorem Complex.boundaryLineOnePointRealParam_tsumTail_bound_of_abelBoundary :
                 else
                   0‖ ≤
                 A * Real.log (2 + ‖t‖) := by
-  sorry
+  exact Complex.boundaryLineOnePointRealParam_tsumTail_bound_of_abelBoundary_transport
 
 /-- Euler-Maclaurin post-cutoff tail for zeta on the boundary line, with the
 nonzero-frequency guard exposed.
