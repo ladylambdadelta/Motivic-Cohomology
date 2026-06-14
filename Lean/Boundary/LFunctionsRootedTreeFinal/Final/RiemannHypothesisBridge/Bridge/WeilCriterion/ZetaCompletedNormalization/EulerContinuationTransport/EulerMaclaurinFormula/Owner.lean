@@ -764,25 +764,28 @@ theorem eulerMaclaurin_positiveNat_one_div_cpow_eq_cpow_neg
     _ = (n : ℂ) ^ (-z) := by
       exact (Complex.cpow_neg (n : ℂ) z).symm
 
-/-- Standard first-order Euler-Maclaurin formula for an infinite post-cutoff
-tail.
+/-- Standard first-order Euler-Maclaurin formula for the zeta complex-power
+post-cutoff tail in function notation.
 
-For a `C¹` function `f` on the positive ray with derivative `f'`, this is the
-canonical periodic-Bernoulli form
-`∑_{n>N} f(n) = ∫_N^∞ f(x) dx + (1/2)f(N) + ∫_N^∞ B₁({x}) f'(x) dx`.
-This is the reusable owner theorem that the zeta specialization consumes. -/
+The earlier arbitrary-function version of this statement is false without
+decay and integrability hypotheses.  The owner statement here is the actual
+zeta specialization used downstream: for `1 < Re z`, the function
+`x ↦ x^{-z}` has enough decay for the infinite first-order
+Euler-Maclaurin formula. -/
 theorem eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
-    (f f' : ℝ → ℂ)
+    (z : ℂ)
     (N : ℕ)
     (hN : 0 < N)
-    (hderiv : ∀ x : ℝ, ((N : ℝ) < x) → deriv f x = f' x) :
+    (hhalf_plane : 1 < z.re) :
     HasSum
       (fun n : ℕ =>
-        if N < n then f ((n : ℕ) : ℝ) else 0)
-      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)), f x) +
-        ((1 / 2 : ℂ) * f ((N : ℕ) : ℝ)) +
+        if N < n then (((n : ℕ) : ℝ) : ℂ) ^ (-z) else 0)
+      ((∫ x in Set.Ioi (((N : ℕ) : ℝ)),
+          (((x : ℝ) : ℂ) ^ (-z))) +
+        ((1 / 2 : ℂ) * ((((N : ℕ) : ℝ) : ℂ) ^ (-z))) +
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
-          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) := by
+          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
+            (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
   sorry
 
 /-- Specialization of the first-order Euler-Maclaurin theorem to
@@ -801,16 +804,9 @@ theorem eulerMaclaurin_cpow_neg_postCutoffTail_function_hasSum_standard
         (∫ x in Set.Ioi (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) *
             (-z * (((x : ℝ) : ℂ) ^ (-(z + 1)))))) := by
-  let f : ℝ → ℂ := fun x : ℝ => (((x : ℝ) : ℂ) ^ (-z))
-  let f' : ℝ → ℂ := fun x : ℝ => -z * (((x : ℝ) : ℂ) ^ (-(z + 1)))
-  have hderiv : ∀ x : ℝ, ((N : ℝ) < x) → deriv f x = f' x := by
-    intro x hx
-    have hx_pos : 0 < x :=
-      lt_trans (Nat.cast_pos.mpr hN) hx
-    exact eulerMaclaurin_cpow_neg_deriv_eq z hx_pos
   exact
     eulerMaclaurin_firstOrder_postCutoffTail_hasSum_standard
-      f f' N hN hderiv
+      z N hN hhalf_plane
 
 /-- Fold the derivative into the periodic-Bernoulli integral for
 `f(x)=x^{-z}`. -/
@@ -1947,7 +1943,77 @@ theorem eulerMaclaurinBernoulliKernel_hasDerivAt_parameter
           (((x : ℝ) : ℂ) ^ (-(w + 1))))
       (eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z)
       z := by
-  sorry
+  let B : ℂ := ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ)
+  let a : ℂ := ((x : ℝ) : ℂ)
+  have ha_ne : a ≠ 0 :=
+    Complex.ofReal_ne_zero.mpr (ne_of_gt hx)
+  have hexp :
+      HasDerivAt
+        (fun w : ℂ => -(w + 1))
+        (-(1 : ℂ))
+        z := by
+    exact ((hasDerivAt_id z).add_const (1 : ℂ)).neg
+  have hpow :
+      HasDerivAt
+        (fun w : ℂ => a ^ (-(w + 1)))
+        (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ)))
+        z :=
+    hexp.const_cpow (Or.inl ha_ne)
+  have hB :
+      HasDerivAt
+        (fun _ : ℂ => B)
+        0
+        z :=
+    hasDerivAt_const z B
+  have hmul :
+      HasDerivAt
+        (fun w : ℂ => B * (a ^ (-(w + 1))))
+        (B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))) +
+          (a ^ (-(z + 1))) * 0)
+        z :=
+    hB.mul hpow
+  have hvalue :
+      B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))) +
+          (a ^ (-(z + 1))) * 0 =
+        eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z := by
+    calc
+      B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))) +
+          (a ^ (-(z + 1))) * 0 =
+          B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))) := by
+        exact add_zero (B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))))
+      _ = B * (-(Complex.log a) * a ^ (-(z + 1))) := by
+        calc
+          B * (a ^ (-(z + 1)) * Complex.log a * (-(1 : ℂ))) =
+              B * ((a ^ (-(z + 1)) * Complex.log a) * (-(1 : ℂ))) := by
+            exact rfl
+          _ = B * (-(a ^ (-(z + 1)) * Complex.log a)) := by
+            exact congrArg (fun t : ℂ => B * t)
+              (mul_neg_one (a ^ (-(z + 1)) * Complex.log a))
+          _ = B * (-(Complex.log a * a ^ (-(z + 1)))) := by
+            exact congrArg (fun t : ℂ => B * (-t))
+              (mul_comm (a ^ (-(z + 1))) (Complex.log a))
+          _ = B * (-(Complex.log a) * a ^ (-(z + 1))) := by
+            exact congrArg (fun t : ℂ => B * t)
+              (neg_mul (Complex.log a) (a ^ (-(z + 1)))).symm
+      _ = -(Complex.log a) * (B * a ^ (-(z + 1))) := by
+        calc
+          B * (-(Complex.log a) * a ^ (-(z + 1))) =
+              (B * -(Complex.log a)) * a ^ (-(z + 1)) := by
+            exact (mul_assoc B (-(Complex.log a)) (a ^ (-(z + 1)))).symm
+          _ = (-(Complex.log a) * B) * a ^ (-(z + 1)) := by
+            exact congrArg
+              (fun t : ℂ => t * a ^ (-(z + 1)))
+              (mul_comm B (-(Complex.log a)))
+          _ = -(Complex.log a) * (B * a ^ (-(z + 1))) := by
+            exact mul_assoc (-(Complex.log a)) B (a ^ (-(z + 1)))
+      _ = eulerMaclaurinBernoulliKernel_realTailParameterDerivative x z := by
+        unfold eulerMaclaurinBernoulliKernel_realTailParameterDerivative
+        rfl
+  exact (hmul.congr_deriv hvalue).congr_of_eventuallyEq
+    (Filter.Eventually.of_forall
+      (fun w : ℂ => by
+        unfold B a
+        rfl))
 
 /-- Logarithmic power tail dominating the parameter derivative kernel on a
 local parameter ball. -/

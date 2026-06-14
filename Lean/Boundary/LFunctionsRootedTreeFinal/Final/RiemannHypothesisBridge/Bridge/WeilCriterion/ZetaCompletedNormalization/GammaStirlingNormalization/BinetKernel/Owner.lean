@@ -923,6 +923,52 @@ theorem Complex.norm_arctan_eq_half_norm_log_quotient
   · have htwo : (2 : ℂ) ≠ 0 := by norm_num
     exact htwo
 
+/-- A crude norm bound for `Complex.log` in terms of its real and imaginary
+parts. -/
+theorem Complex.norm_log_le_abs_re_add_abs_im (z : ℂ) :
+    ‖Complex.log z‖ ≤ |(Complex.log z).re| + |(Complex.log z).im| := by
+  have hsplit : Complex.log z = ((Complex.log z).re : ℂ) + (Complex.log z).im * Complex.I := by
+    ext <;> simp
+  rw [hsplit]
+  calc
+    ‖((Complex.log z).re : ℂ) + (Complex.log z).im * Complex.I‖ ≤
+        ‖((Complex.log z).re : ℂ)‖ + ‖(Complex.log z).im * Complex.I‖ :=
+      norm_add_le _ _
+    _ = |(Complex.log z).re| + |(Complex.log z).im| := by
+      simp [norm_mul]
+
+/-- The complex logarithm norm is controlled by its modulus-logarithm and
+argument parts. -/
+theorem Complex.norm_log_le_abs_log_add_abs_arg (z : ℂ) :
+    ‖Complex.log z‖ ≤ |Real.log z.abs| + |z.arg| := by
+  rw [Complex.log]
+  calc
+    ‖z.abs.log + z.arg * Complex.I‖ ≤ ‖z.abs.log‖ + ‖z.arg * Complex.I‖ :=
+      norm_add_le _ _
+    _ = |Real.log z.abs| + |z.arg| := by
+      simp [Complex.norm_ofReal, norm_mul]
+
+/-- A coarse `π`-bound for the complex logarithm norm. -/
+theorem Complex.norm_log_le_abs_log_add_pi (z : ℂ) :
+    ‖Complex.log z‖ ≤ |Real.log z.abs| + π := by
+  have hlog := Complex.norm_log_le_abs_log_add_abs_arg z
+  have harg : |z.arg| ≤ π := by
+    exact abs_arg_le_pi z
+  exact le_trans hlog (add_le_add_left harg _)
+
+/-- A coarse norm bound for `Complex.arctan` in terms of the logarithm size
+and the universal `π` angle bound. -/
+theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
+    (z : ℂ) :
+    ‖Complex.arctan z‖ ≤
+      (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
+  have hlog := Complex.norm_log_le_abs_log_add_pi ((1 + z * Complex.I) / (1 - z * Complex.I))
+  rw [Complex.norm_arctan_eq_half_norm_log_quotient]
+  have hhalf : ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 ≤
+      (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
+    exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
+  exact le_trans (le_of_eq rfl) hhalf
+
 /-- A positive integrable function on an open real interval has positive set
 integral. -/
 theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
@@ -1027,24 +1073,33 @@ theorem Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
       Real.binetSecondFormula_kernel_majorant_integrableOn
       hpos_subinterval hnonneg
 
-/-- Integration of the pointwise Binet-kernel majorant. -/
-theorem Complex.binetSecondFormula_remainder_norm_le_integral_majorant
+/-- Honest split-bound mirror for the Binet remainder on the open right half-plane.
+
+This is the shape owned classically by
+`Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane`: the lower
+part of the Binet kernel gives the `1 / ‖w‖` term, while the tail remains a
+fixed-`w` majorant.  It is intentionally not a pure `O(1 / ‖w‖)` statement. -/
+theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
-    ‖Complex.binetSecondFormulaRemainder w‖ ≤
-      2 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+    ∃ C : ℝ,
+      0 ≤ C ∧
+      ‖Complex.binetSecondFormulaRemainder w‖ ≤
+        4 *
+          (∫ t : ℝ in Set.Ioi (0 : ℝ),
+            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+          2 * C *
+            (∫ t : ℝ in Set.Ioi (0 : ℝ),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   /-
-  This historical mirror statement is stronger than the currently proved
-  classical owner theorem.  The attempted proof divided the pointwise Binet
-  kernel estimate by `‖w‖` after applying a bound which did not contain that
-  factor, thereby forcing a false global tail estimate.
-
-  The true owner theorem to consume is
+  True owner theorem:
   `Complex.binetSecondFormulaRemainder_norm_le_openRightHalfPlane` from
-  `ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet`, which keeps the
-  small-argument `1 / ‖w‖` contribution separate from the fixed-tail majorant.
+  `ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet`.
+
+  This mirror still duplicates the Binet roots above, so importing the
+  classical package here would currently create declaration-name conflicts.
+  The next structural cleanup is to delete those duplicated roots and turn
+  this theorem into a thin alias.
   -/
   sorry
 
@@ -1067,58 +1122,59 @@ theorem Real.binetSecondFormula_kernel_majorant_integral_pos :
     Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
       hpos_subinterval hnonneg
 
-/-- The Binet kernel estimate integrates to an `O(1 / ‖w‖)` remainder bound. -/
-theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate :
+/-- Binet's second formula with the honest split remainder bound on the open
+right half-plane. -/
+theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  let J : ℝ :=
-    ∫ t : ℝ in Set.Ioi (0 : ℝ),
-      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let R : ℝ := 1
-  let K : ℝ := 2 * J
-  have hR : 0 < R :=
-    zero_lt_one
-  have hJ_pos : 0 < J :=
-    Real.binetSecondFormula_kernel_majorant_integral_pos
-  have hK : 0 < K :=
-    mul_pos two_pos hJ_pos
-  refine ⟨R, K, hR, hK, ?_⟩
-  intro w hw_re_pos hw_radius
-  have hmajorant :
-      ‖Complex.binetSecondFormulaRemainder w‖ ≤
-        2 * J / ‖w‖ :=
-    Complex.binetSecondFormula_remainder_norm_le_integral_majorant
-      hw_re_pos
-  exact hmajorant
-
-/-- Uniform `O(1/‖w‖)` bound for the Binet second-formula remainder on the
-open right half-plane.
-
-This is the standard estimate obtained from the Binet kernel
-`atan(t / w)/(exp(2πt)-1)`: for `Re w > 0` and large radius, the remainder is
-bounded by a constant multiple of `1/‖w‖`. -/
-theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane :
-    ∃ R : ℝ, ∃ K : ℝ,
-      0 < R ∧
-      0 < K ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+          Complex.log (Complex.Gamma w) =
+              Complex.binetLogGammaMainTerm w +
+                Complex.binetSecondFormulaRemainder w ∧
+            ∃ C : ℝ,
+              0 ≤ C ∧
+              ‖Complex.binetSecondFormulaRemainder w‖ ≤
+                4 *
+                  (∫ t : ℝ in Set.Ioi (0 : ℝ),
+                    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ +
+                  2 * C *
+                    (∫ t : ℝ in Set.Ioi (0 : ℝ),
+                      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
+    ⟨Rlog, hRlog, hlog⟩
+  refine ⟨Rlog, 1, hRlog, zero_lt_one, ?_⟩
+  intro w hw_re_pos hw_norm
   exact
-    Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate
+    ⟨hlog w hw_re_pos hw_norm,
+      Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩
 
-/-- Binet's second formula with a uniform sectorial remainder bound on the
-open right half-plane.
+/-- Root marking the missing comparison from the honest split Binet remainder
+bound to a pure open-right-half-plane `O(1 / ‖w‖)` estimate.
 
-This wrapper combines the right-half-plane Binet representation with the
-sectorial `O(1/‖w‖)` remainder estimate. -/
-theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane :
+The split owner theorem does not imply this statement on the whole open
+right half-plane: the fixed-tail term is not divided by `‖w‖`.  Any proof here
+must add a genuine tail-absorption theorem, such as a sector-separated bound,
+not repeat the unsafe post-hoc division. -/
+theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption :
+    ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        0 < w.re →
+        R ≤ ‖w‖ →
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+  sorry
+
+/-- Root marking the missing pure-decay Binet/log-Gamma comparison.
+
+Use `Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane`
+for the currently proved mirror statement.  This theorem requires an additional
+tail-absorption theorem converting the split Binet estimate into pure
+`O(1 / ‖w‖)` decay. -/
+theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane_requires_tail_absorption :
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
@@ -1129,21 +1185,7 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
             Complex.binetLogGammaMainTerm w +
               Complex.binetSecondFormulaRemainder w ∧
           ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
-    ⟨Rlog, hRlog, hlog⟩
-  rcases Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane with
-    ⟨Rbound, K, hRbound, hK, hbound⟩
-  let R : ℝ := max Rlog Rbound
-  have hR : 0 < R :=
-    lt_of_lt_of_le hRlog (le_max_left Rlog Rbound)
-  refine ⟨R, K, hR, hK, ?_⟩
-  intro w hw_re_pos hw_norm
-  have hRlog_le : Rlog ≤ ‖w‖ :=
-    le_trans (le_max_left Rlog Rbound) hw_norm
-  have hRbound_le : Rbound ≤ ‖w‖ :=
-    le_trans (le_max_right Rlog Rbound) hw_norm
-  exact ⟨hlog w hw_re_pos hRlog_le,
-    hbound w hw_re_pos hRbound_le⟩
+  sorry
 
 /-- Exponentiating Binet's logarithmic identity separates the main term from
 the Binet remainder. -/
@@ -1578,99 +1620,17 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
           K / ‖w‖ := by
-  rcases
-    Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane
-    with ⟨R, K, hR, hK, hBinet⟩
-  let R' : ℝ := max R K
-  let K' : ℝ := 2 * Real.sqrt (2 * Real.pi) * K
-  have hR' : 0 < R' :=
-    lt_of_lt_of_le hR (le_max_left R K)
-  have hsqrt_pos : 0 < Real.sqrt (2 * Real.pi) := by
-    exact Real.sqrt_pos_of_pos (mul_pos two_pos Real.pi_pos)
-  have hK' : 0 < K' := by
-    have htwo_sqrt_pos : 0 < 2 * Real.sqrt (2 * Real.pi) :=
-      mul_pos two_pos hsqrt_pos
-    exact mul_pos htwo_sqrt_pos hK
-  refine ⟨R', K', hR', hK', ?_⟩
-  intro w hw_re_pos hw_radius
-  have hR_le : R ≤ ‖w‖ :=
-    le_trans (le_max_left R K) hw_radius
-  have hK_le : K ≤ ‖w‖ :=
-    le_trans (le_max_right R K) hw_radius
-  rcases hBinet w hw_re_pos hR_le with ⟨hlog, hrem⟩
-  let E : ℂ := Complex.binetSecondFormulaRemainder w
-  have hnorm_pos : 0 < ‖w‖ :=
-    lt_of_lt_of_le hR' hw_radius
-  have hsmall : ‖E‖ ≤ 1 := by
-    have hdiv_le_one : K / ‖w‖ ≤ 1 :=
-      (div_le_one₀ hnorm_pos.le).mpr hK_le
-    exact hrem.trans hdiv_le_one
-  have hw_ne : w ≠ 0 :=
-    norm_pos_iff.mp hnorm_pos
-  have hGamma_ne : Complex.Gamma w ≠ 0 := by
-    intro hzero
-    rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
-    subst w
-    cases n with
-    | zero =>
-        exact hw_ne (neg_zero : -((0 : ℂ)) = 0)
-    | succ n =>
-        have hre_eq :
-            (-(((Nat.succ n : ℕ) : ℂ))).re =
-              -(((Nat.succ n : ℕ) : ℝ)) := by
-          calc
-            (-(((Nat.succ n : ℕ) : ℂ))).re =
-                -(((Nat.succ n : ℕ) : ℂ).re) :=
-              Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
-            _ = -(((Nat.succ n : ℕ) : ℝ)) := by
-              exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
-        have hre_pos :
-            (0 : ℝ) < -(((Nat.succ n : ℕ) : ℝ)) :=
-          Eq.subst
-            (motive := fun x : ℝ => (0 : ℝ) < x)
-            hre_eq
-            hw_re_pos
-        have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
-          Nat.cast_pos.mpr (Nat.succ_pos n)
-        have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
-          neg_neg_of_pos hsucc_pos
-        exact (not_lt_of_ge (le_of_lt hre_pos)) hneg_lt_zero
-  have hidentity :
-      Complex.Gamma w * Complex.exp w *
-          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ) =
-        (Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1) :=
-    Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
-      hGamma_ne hw_ne hlog
-  have hleft :
-      ‖Complex.Gamma w * Complex.exp w *
-          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ =
-        ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ :=
-    congrArg norm hidentity
-  have hexp :
-      ‖(Real.sqrt (2 * Real.pi) : ℂ) * (Complex.exp E - 1)‖ ≤
-        2 * Real.sqrt (2 * Real.pi) * ‖E‖ :=
-    Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hsmall
-  have hscale :
-      2 * Real.sqrt (2 * Real.pi) * ‖E‖ ≤
-        K' / ‖w‖ := by
-    have hconst_nonneg : 0 ≤ 2 * Real.sqrt (2 * Real.pi) :=
-      le_of_lt (mul_pos two_pos hsqrt_pos)
-    have hmul_rem :
-        2 * Real.sqrt (2 * Real.pi) * ‖E‖ ≤
-          2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) :=
-      mul_le_mul_of_nonneg_left hrem hconst_nonneg
-    have htarget_eq :
-        2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) = K' / ‖w‖ := by
-      calc
-        2 * Real.sqrt (2 * Real.pi) * (K / ‖w‖) =
-            (2 * Real.sqrt (2 * Real.pi) * K) / ‖w‖ := by
-          exact (mul_div_assoc (2 * Real.sqrt (2 * Real.pi)) K ‖w‖).symm
-        _ = K' / ‖w‖ := rfl
-    exact hmul_rem.trans_eq htarget_eq
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ K' / ‖w‖)
-    hleft.symm
-    (hexp.trans hscale)
+  /-
+  This is now the precise completed-normalization root.  The available Binet
+  input is
+  `Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane`,
+  whose remainder estimate has a fixed-tail term.  To recover this pure
+  `O(1 / ‖w‖)` normalized Stirling statement one must prove a real
+  tail-absorption theorem, or restrict to a sector-separated region where the
+  classical owner already controls the tail.  The previous proof incorrectly
+  consumed a false pure Binet-remainder bound.
+  -/
+  sorry
 
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/
