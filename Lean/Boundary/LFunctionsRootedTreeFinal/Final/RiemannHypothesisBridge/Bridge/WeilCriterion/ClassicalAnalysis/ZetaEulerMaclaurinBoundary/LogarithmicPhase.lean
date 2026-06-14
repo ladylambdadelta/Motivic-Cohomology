@@ -1014,12 +1014,48 @@ theorem Complex.logarithmicPhase_standardLog_half_le
       (le_add_of_nonneg_right (Nat.cast_nonneg N))
   exact (Real.le_log_iff_exp_le hpos).mpr hexp_le
 
-/-- Dyadic integer logarithm is dominated by a fixed multiple of the natural
-logarithm on the shifted natural cutoff. -/
+/-- Absorb the successor in the dyadic logarithm by multiplying the argument
+by the base. -/
+theorem Complex.nat_log2_add_one_eq_nat_log_two_mul_succ
+    (N : ℕ) :
+    Nat.log2 (N + 1) + 1 = Nat.log 2 ((N + 1) * 2) := by
+  calc
+    Nat.log2 (N + 1) + 1 = Nat.log 2 (N + 1) + 1 := by
+      exact congrArg (fun k : ℕ => k + 1) Nat.log2_eq_log_two
+    _ = Nat.log 2 ((N + 1) * 2) := by
+      exact (Nat.log_mul_base Nat.one_lt_two (Nat.succ_ne_zero N)).symm
+
+/-- Real-logarithm comparison for the doubled shifted natural cutoff. -/
+theorem Complex.real_logb_two_mul_nat_succ_le_two_log_shift
+    (N : ℕ) :
+    Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) ≤
+      2 * Real.log (2 + N) := by
+  sorry
+
+/-- Dyadic integer logarithm is dominated by twice the natural logarithm on the
+shifted natural cutoff. -/
 theorem Complex.nat_log2_add_one_le_two_log
     (N : ℕ) :
     (Nat.log2 (N + 1) : ℝ) + 1 ≤ 2 * Real.log (2 + N) := by
-  sorry
+  have hnat_eq :
+      Nat.log2 (N + 1) + 1 = Nat.log 2 ((N + 1) * 2) :=
+    Complex.nat_log2_add_one_eq_nat_log_two_mul_succ N
+  have hcast_eq :
+      ((Nat.log2 (N + 1) : ℝ) + 1) =
+        (Nat.log 2 ((N + 1) * 2) : ℝ) := by
+    exact_mod_cast hnat_eq
+  have hbridge :
+      (Nat.log 2 ((N + 1) * 2) : ℝ) ≤
+        Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) :=
+    Real.natLog_le_logb ((N + 1) * 2) 2
+  have hreal :
+      Real.logb (2 : ℝ) (((N + 1) * 2 : ℕ) : ℝ) ≤
+        2 * Real.log (2 + N) :=
+    Complex.real_logb_two_mul_nat_succ_le_two_log_shift N
+  exact Eq.subst
+    (motive := fun lhs : ℝ => lhs ≤ 2 * Real.log (2 + N))
+    hcast_eq.symm
+    (le_trans hbridge hreal)
 
 /-- The transition square-root factor is at least `2` at nonzero boundary
 frequency. -/
