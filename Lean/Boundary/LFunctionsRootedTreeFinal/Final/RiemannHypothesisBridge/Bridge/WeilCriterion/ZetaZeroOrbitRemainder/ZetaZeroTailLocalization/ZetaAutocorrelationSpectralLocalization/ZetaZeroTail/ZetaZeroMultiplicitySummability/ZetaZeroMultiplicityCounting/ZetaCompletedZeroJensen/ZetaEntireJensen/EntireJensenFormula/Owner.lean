@@ -3,6 +3,7 @@ import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Constructions
@@ -880,6 +881,71 @@ theorem finite_log_singularity_set_isolates_point_in_compact
       simpa [Real.dist_eq] using habs
     linarith
 
+/-- A locally interval-integrable neighborhood gives integrability at the
+`Icc`-neighborhood filter of the center. -/
+theorem integrableAtFilter_Icc_of_intervalIntegrable_neighborhood
+    {f : ℝ → ℝ}
+    {a b x u v : ℝ}
+    (hux : u < x)
+    (hxv : x < v)
+    (hfint : IntervalIntegrable f MeasureTheory.volume u v) :
+    IntegrableAtFilter f (𝓝[Set.Icc a b] x) MeasureTheory.volume := by
+  have huv : u ≤ v := (hux.trans hxv).le
+  have hIoo_nhds : Set.Ioo u v ∈ 𝓝 x :=
+    Ioo_mem_nhds hux hxv
+  have hIoc_nhds : Ι u v ∈ 𝓝 x := by
+    refine mem_of_superset hIoo_nhds ?_
+    intro y hy
+    rw [Set.uIoc_of_le huv]
+    exact ⟨hy.1.le, hy.2⟩
+  exact ⟨Ι u v, mem_nhdsWithin_of_mem_nhds hIoc_nhds, hfint.def'⟩
+
+/-- At a point of `[a,b]` away from a finite singular set, continuity on the
+finite-set complement gives integrability at the `[a,b]`-neighborhood filter. -/
+theorem integrableAtFilter_Icc_of_continuousOn_finite_complement
+    {f : ℝ → ℝ}
+    {a b x : ℝ}
+    {S : Set ℝ}
+    (hS : S.Finite)
+    (hxIcc : x ∈ Set.Icc a b)
+    (hxS : x ∉ S)
+    (hcont :
+      ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
+    IntegrableAtFilter f (𝓝[Set.Icc a b] x) MeasureTheory.volume := by
+  let K : Set ℝ := {θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S}
+  have hxK : x ∈ K := ⟨hxIcc, hxS⟩
+  have hKmeas : MeasurableSet K := by
+    have hSclosed : IsClosed S := hS.isClosed
+    exact measurableSet_Icc.inter hSclosed.isOpen_compl.measurableSet
+  have hlocK : IntegrableAtFilter f (𝓝[K] x) MeasureTheory.volume :=
+    (hcont.locallyIntegrableOn hKmeas) x hxK
+  have hScompl_nhds : Sᶜ ∈ 𝓝 x :=
+    hS.isClosed.isOpen_compl.mem_nhds hxS
+  have hScompl_within : Sᶜ ∈ 𝓝[Set.Icc a b] x :=
+    mem_nhdsWithin_of_mem_nhds hScompl_nhds
+  have hfilter :
+      𝓝[K] x = 𝓝[Set.Icc a b] x := by
+    have hraw :
+        𝓝[Set.Icc a b ∩ Sᶜ] x = 𝓝[Set.Icc a b] x :=
+      nhdsWithin_inter_of_mem' hScompl_within
+    simpa [K, Set.inter_comm, Set.compl_setOf] using hraw
+  exact Eq.subst (motive := fun l : Filter ℝ =>
+      IntegrableAtFilter f l MeasureTheory.volume) hfilter hlocK
+
+/-- Local integrability at every point of a compact ordered interval implies
+interval-integrability on that interval. -/
+theorem intervalIntegrable_of_locallyIntegrableOn_Icc
+    {f : ℝ → ℝ}
+    {a b : ℝ}
+    (hab : a ≤ b)
+    (hloc :
+      MeasureTheory.LocallyIntegrableOn
+        f (Set.Icc a b) MeasureTheory.volume) :
+    IntervalIntegrable f MeasureTheory.volume a b := by
+  have hint : IntegrableOn f (Set.Icc a b) MeasureTheory.volume :=
+    hloc.integrableOn_isCompact isCompact_Icc
+  exact (intervalIntegrable_iff_integrableOn_Icc_of_le hab).2 hint
+
 /-- Gluing interval-integrability across a finite isolated singular set, once
 each singular point has a locally integrable logarithmic model and the function
 is continuous on the complement.
@@ -891,6 +957,7 @@ theorem intervalIntegrable_of_finite_log_singularity_cover
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    (hab : a ≤ b)
     (hS : S.Finite)
     (hlocalInt :
       ∀ θ₀ ∈ S, ∃ u v : ℝ,
@@ -899,7 +966,19 @@ theorem intervalIntegrable_of_finite_log_singularity_cover
     (hcont :
       ContinuousOn f ({θ : ℝ | θ ∈ Set.Icc a b ∧ θ ∉ S})) :
     IntervalIntegrable f MeasureTheory.volume a b := by
-  sorry
+  have hloc :
+      MeasureTheory.LocallyIntegrableOn
+        f (Set.Icc a b) MeasureTheory.volume := by
+    intro x hxIcc
+    by_cases hxS : x ∈ S
+    · rcases hlocalInt x hxS with ⟨u, v, hux, hxv, hfint⟩
+      exact
+        integrableAtFilter_Icc_of_intervalIntegrable_neighborhood
+          (a := a) (b := b) hux hxv hfint
+    · exact
+        integrableAtFilter_Icc_of_continuousOn_finite_complement
+          hS hxIcc hxS hcont
+  exact intervalIntegrable_of_locallyIntegrableOn_Icc hab hloc
 
 /-- Finite compact-interval gluing once each singular point has a logarithmic
 local model and the complement is continuous.
@@ -914,6 +993,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    (hab : a ≤ b)
     (hS : S.Finite)
     (hlocal :
       ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
@@ -936,7 +1016,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact_glue
         f n g hg hmodel
   exact
     intervalIntegrable_of_finite_log_singularity_cover
-      f a b S hS hlocalInt hcont
+      f a b S hab hS hlocalInt hcont
 
 /-- Finite compact-interval gluing for logarithmic singularities.
 
@@ -949,6 +1029,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     (f : ℝ → ℝ)
     (a b : ℝ)
     (S : Set ℝ)
+    (hab : a ≤ b)
     (hS : S.Finite)
     (hlocal :
       ∀ θ₀ ∈ S, ∃ n : ℕ, ∃ g : ℝ → ℝ,
@@ -962,7 +1043,7 @@ theorem intervalIntegrable_of_finite_log_singularities_on_compact
     IntervalIntegrable f MeasureTheory.volume a b := by
   exact
     intervalIntegrable_of_finite_log_singularities_on_compact_glue
-      f a b S hS hlocal hcont
+      f a b S hab hS hlocal hcont
 
 /-- The doubled-radius Jensen loss has a positive logarithmic denominator. -/
 theorem real_log_two_pos : 0 < Real.log 2 := by
@@ -2732,7 +2813,9 @@ theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularitie
   exact
     intervalIntegrable_of_finite_log_singularities_on_compact
       (entireFunctionJensenBoundaryLogIntegrand F (2 * R))
-      (0 : ℝ) (2 * Real.pi) S hS hlocal hcont
+      (0 : ℝ) (2 * Real.pi) S
+      (mul_nonneg zero_le_two Real.pi_pos.le)
+      hS hlocal hcont
 
 /-- Finite gluing of local logarithmic singularity models on the Jensen
 fundamental interval. -/
