@@ -1776,14 +1776,63 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
+/-- Classical Jensen boundary-log-average identity for a nonzero value at the
+origin.
+
+This is the analytic identity part of Jensen's formula in the normalization of
+this file: the multiplicity-weighted radial gap sum equals the normalized
+boundary logarithmic average up to a constant depending only on `F`; cf.
+Titchmarsh, *The Theory of Functions*, §5. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogAverage_identity_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
+  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
+  -- Functions, §5.
+  sorry
+
+/-- Closed-disk summability of the nonzero zero-multiplicity summand in the
+standard Jensen setting. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummability_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ R : ℝ,
+      1 ≤ R →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z) := by
+  -- This is the finite closed-disk zero-counting consequence of Jensen's
+  -- theorem for nonzero-origin entire functions; cf. Titchmarsh, The Theory
+  -- of Functions, §5.
+  sorry
+
+/-- Radial-gap summability of the Jensen summand in the standard nonzero-origin
+setting. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∀ ρ : ℝ,
+      1 ≤ ρ →
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) := by
+  -- This is the radial summability component of the same classical Jensen
+  -- theorem; cf. Titchmarsh, The Theory of Functions, §5.
+  sorry
+
 /-- Standard Jensen formula for a nontrivial entire function whose value at the
 origin is nonzero.
 
-This is the analytic owner root, in the exact normalization used by this file:
-for every radius at least `1`, the nonzero-zero radial gap sum is summable and
-equals the normalized boundary logarithmic average up to the fixed origin
-constant.  The closed-disk summability statement is included because it is the
-finite-zero-counting consequence of the same standard Jensen package. -/
+This package theorem is a thin assembly over the three owner roots: boundary
+log-average identity, closed-disk summability, and radial-gap summability. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_ownerRoot
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1801,10 +1850,19 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_ownerRoot
               entireFunctionJensenRadialGapSummand F hF ρ z) ∧
           entireFunctionJensenRadialGapSum F hF ρ + C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
-  -- counted by analytic multiplicity; cf. Titchmarsh, The Theory of
-  -- Functions, §5.
-  sorry
+  match
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_boundaryLogAverage_identity_ownerRoot
+      F hF hF0 with
+  | ⟨C, hboundary⟩ =>
+      refine ⟨C, ?_, ?_⟩
+      · exact
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSummability_ownerRoot
+            F hF hF0
+      · intro ρ hρ
+        exact
+          ⟨entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummability_ownerRoot
+              F hF hF0 ρ hρ,
+            hboundary ρ hρ⟩
 
 /-- Closed-disk multiplicity summability extracted from the standard
 nonzero-origin Jensen package. -/
@@ -2730,6 +2788,7 @@ theorem entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant
     (F G : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
     (hfactor :
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
@@ -2752,6 +2811,7 @@ theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origi
     (F G : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
     (hfactor :
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
@@ -2771,7 +2831,7 @@ theorem entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origi
         d * entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
           entireFunctionJensenBoundaryLogIntegral G ρ :=
     entireFunction_originTaylorFactor_boundaryLogIntegral_eq_origin_constant_plus_quotient_of_finiteExceptionCongr
-      F G hF hG hfactor hρ
+      F G hF hG hGnontrivial hfactor hρ
   calc
     (2 * Real.pi)⁻¹ * entireFunctionJensenBoundaryLogIntegral F ρ =
         c * entireFunctionJensenBoundaryLogIntegral F ρ := rfl
@@ -2824,6 +2884,7 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
     (F G : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
     (hfactor :
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
@@ -2834,7 +2895,7 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
         entireFunctionJensenBoundaryLogAverage G ρ := by
   exact
     entireFunction_originTaylorFactor_normalizedBoundaryLogIntegral_eq_origin_plus_quotient_of_finiteExceptionCongr
-      F G hF hG hfactor hρ
+      F G hF hG hGnontrivial hfactor hρ
 
 /-- Boundary logarithmic averages transport through the global origin Taylor
 quotient with the explicit `m log ρ` contribution from the removed origin
@@ -2843,6 +2904,7 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
     (F G : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hGnontrivial : ∃ z : ℂ, G z ≠ 0)
     (hfactor :
       ∀ z : ℂ,
         F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
@@ -2853,7 +2915,7 @@ theorem entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quot
         entireFunctionJensenBoundaryLogAverage G ρ := by
   exact
     entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient_of_finiteExceptionIntegral
-      F G hF hG hfactor hρ
+      F G hF hG hGnontrivial hfactor hρ
 
 /-- Origin Taylor-factor transport after the global entire quotient at the
 origin has been explicitly constructed.
@@ -2909,7 +2971,7 @@ theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport_from_
           entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
             entireFunctionJensenBoundaryLogAverage G ρ :=
       entireFunction_originTaylorFactor_boundaryLogAverage_eq_origin_plus_quotient
-        F G hF hG_entire hfactor hρ
+        F G hF hG_entire ⟨0, hG_ne⟩ hfactor hρ
     calc
       entireFunctionJensenRadialGapSum F hF ρ +
           entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ + C =

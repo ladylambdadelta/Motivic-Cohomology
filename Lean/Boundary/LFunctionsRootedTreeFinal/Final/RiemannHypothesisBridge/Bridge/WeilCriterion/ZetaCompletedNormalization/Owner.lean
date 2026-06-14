@@ -319,6 +319,24 @@ theorem one_le_norm_of_one_le_norm_im
 def unfoldedNormalizedGammaℝFactor (z : ℂ) : ℂ :=
   π ^ (-z / 2) * Complex.Gamma (z / 2)
 
+/-- The inline half-argument normalized Gamma expression is the local unfolded
+`Gammaℝ` factor. -/
+theorem halfArgument_normalized_complexGamma_eq_unfoldedNormalizedGammaℝFactor
+    (z : ℂ) :
+    π ^ (-z / 2) * Complex.Gamma (z / 2) =
+      unfoldedNormalizedGammaℝFactor z := by
+  rfl
+
+/-- Log-norm transport from the inline half-argument Gamma expression to the local
+unfolded `Gammaℝ` factor. -/
+theorem log_norm_halfArgument_normalized_complexGamma_eq_log_norm_unfoldedNormalizedGammaℝFactor
+    (z : ℂ) :
+    Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ =
+      Real.log ‖unfoldedNormalizedGammaℝFactor z‖ := by
+  exact congrArg
+    (fun w : ℂ => Real.log ‖w‖)
+    (halfArgument_normalized_complexGamma_eq_unfoldedNormalizedGammaℝFactor z)
+
 /-- `Gammaℝ` is definitionally the unfolded normalized real-Gamma factor. -/
 theorem Gammaℝ_eq_unfoldedNormalizedGammaℝFactor
     (z : ℂ) :
@@ -1609,6 +1627,25 @@ def unfoldedGammaℝLeftBoundaryRatioRealParam (t : ℝ) : ℂ :=
     (π ^ (-((t : ℂ) * Complex.I) / 2) *
       Complex.Gamma (((t : ℂ) * Complex.I) / 2))
 
+/-- The numerator in the unfolded completed real-Gamma ratio on the left boundary. -/
+def unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam (t : ℝ) : ℂ :=
+  π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2) *
+    Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)
+
+/-- The denominator in the unfolded completed real-Gamma ratio on the left boundary. -/
+def unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam (t : ℝ) : ℂ :=
+  π ^ (-((t : ℂ) * Complex.I) / 2) *
+    Complex.Gamma (((t : ℂ) * Complex.I) / 2)
+
+/-- The unfolded left-boundary Gamma-ratio is the quotient of its named numerator
+and denominator. -/
+theorem unfoldedGammaℝLeftBoundaryRatioRealParam_eq_named_quotient
+    (t : ℝ) :
+    unfoldedGammaℝLeftBoundaryRatioRealParam t =
+      unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t /
+        unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t := by
+  rfl
+
 /-- The real-parameter unfolded Gamma-ratio is exactly the inline two-Gamma formula. -/
 theorem unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline
     (t : ℝ) :
@@ -2308,6 +2345,37 @@ theorem boundaryLine_one_sub_one_norm_le_vertical_height
     boundaryLine_one_sub_one_norm_eq_vertical_height hw_re
   exact le_trans (le_of_eq hnorm_eq)
     (le_add_of_nonneg_left zero_le_one)
+
+/-- The complex point with real coordinate `1` and imaginary coordinate `t`. -/
+def boundaryLineOnePointRealParam (t : ℝ) : ℂ :=
+  ⟨1, t⟩
+
+/-- A point on the boundary line `re = 1` is the canonical real-parameter boundary
+point attached to its vertical coordinate. -/
+theorem boundaryLine_one_eq_realParam_point
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    w = boundaryLineOnePointRealParam w.im := by
+  exact Complex.ext hw_re rfl
+
+/-- The real-parameter zeta value attached to the boundary line `re = 1`. -/
+def boundaryLineOneZetaRealParam (t : ℝ) : ℂ :=
+  riemannZeta (boundaryLineOnePointRealParam t)
+
+/-- Boundary-line zeta is the real-parameter zeta value at the same vertical
+coordinate. -/
+theorem riemannZeta_boundaryLine_one_eq_realParam
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    riemannZeta w = boundaryLineOneZetaRealParam w.im := by
+  exact congrArg riemannZeta (boundaryLine_one_eq_realParam_point hw_re)
+
+/-- Norm form of the boundary-line real-parameter zeta transport. -/
+theorem norm_riemannZeta_boundaryLine_one_eq_norm_realParam
+    {w : ℂ}
+    (hw_re : w.re = 1) :
+    ‖riemannZeta w‖ = ‖boundaryLineOneZetaRealParam w.im‖ := by
+  exact congrArg norm (riemannZeta_boundaryLine_one_eq_realParam hw_re)
 
 /-- A logarithmic zeta estimate on `re = 1` gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
