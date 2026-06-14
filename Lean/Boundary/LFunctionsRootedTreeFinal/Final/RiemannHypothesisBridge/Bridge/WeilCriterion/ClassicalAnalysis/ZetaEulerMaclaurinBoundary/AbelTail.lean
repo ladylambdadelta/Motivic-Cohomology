@@ -234,6 +234,109 @@ theorem Complex.boundaryLineOnePointRealParam_finiteAbelTail_bound :
 The damping is kept explicit: this theorem bounds the damped infinite Abel
 tail by taking limits of damped finite tails, not by identifying the damped
 tail pointwise with the undamped finite tail. -/
+/-- Finite Stieltjes/Abel control for a bounded family of tails under a
+positive decreasing weight.
+
+This is the abstract finite form of the convex-combination argument: summation
+by parts rewrites the weighted tail as a nonnegative linear combination of
+undamped finite tails, with total mass bounded by the initial weight. -/
+theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
+    {a : ℕ → ℂ}
+    {B : ℝ}
+    {w : ℕ → ℝ}
+    (N : ℕ)
+    (hN : 1 ≤ N)
+    (hw_nonneg : ∀ n : ℕ, N < n → 0 ≤ w n)
+    (hw_antitone : ∀ {m n : ℕ}, N < m → m ≤ n → w n ≤ w m)
+    (hw_initial : ∀ n : ℕ, N < n → w n ≤ 1)
+    (hfinite :
+      ∀ M : ℕ,
+        N ≤ M →
+          ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ B) :
+    ∀ M : ℕ,
+      N ≤ M →
+        ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ ≤ B := by
+  /-
+  Intended proof chain:
+  finite summation by parts on `Finset.Ioc N M`
+  -> rewrite `∑ a_n w_n` as
+     `w_M S_M + ∑ (w_k - w_{k+1}) S_k`
+     for tails `S_k = ∑_{N < n ≤ k} a_n`
+  -> use `‖S_k‖ ≤ B`, `0 ≤ w_M`, `0 ≤ w_k - w_{k+1}`, and telescoping
+     total mass `w_{N+1} ≤ 1`.
+  -/
+  sorry
+
+/-- Passage from uniformly bounded finite weighted tails to the corresponding
+`tsum`. -/
+theorem Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
+    {a : ℕ → ℂ}
+    {B : ℝ}
+    {w : ℕ → ℝ}
+    (N : ℕ)
+    (hsummable :
+      Summable
+        (fun n : ℕ =>
+          if N < n then a n * (w n : ℂ) else 0))
+    (hfinite_weighted :
+      ∀ M : ℕ,
+        N ≤ M →
+          ‖∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)‖ ≤ B) :
+    ‖∑' n : ℕ,
+      if N < n then a n * (w n : ℂ) else 0‖ ≤ B := by
+  /-
+  Intended proof chain:
+  `hsummable.hasSum` identifies the `tsum` as the limit of finite partial
+  sums; finite range sums are transported to strict tail sums over `Ioc N M`,
+  and `le_of_tendsto_of_tendsto'` closes the bound.
+  -/
+  sorry
+
+/-- Abstract Abel damping lemma with explicit weight hypotheses. -/
+theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'
+    {a : ℕ → ℂ}
+    {B : ℝ}
+    {w : ℝ → ℕ → ℝ}
+    (N : ℕ)
+    (hN : 1 ≤ N)
+    (hw_nonneg :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ n : ℕ, N < n → 0 ≤ w σ n)
+    (hw_antitone :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ {m n : ℕ}, N < m → m ≤ n → w σ n ≤ w σ m)
+    (hw_initial :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        ∀ n : ℕ, N < n → w σ n ≤ 1)
+    (hsummable :
+      ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+        Summable
+          (fun n : ℕ =>
+            if N < n then a n * (w σ n : ℂ) else 0))
+    (hfinite :
+      ∀ M : ℕ,
+        N ≤ M →
+          ‖∑ n ∈ Finset.Ioc N M, a n‖ ≤ B) :
+    ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
+      ‖∑' n : ℕ,
+        if N < n then
+          a n * (w σ n : ℂ)
+        else
+          0‖ ≤ B := by
+  filter_upwards [hw_nonneg, hw_antitone, hw_initial, hsummable] with
+    σ hσ_nonneg hσ_antitone hσ_initial hσ_summable
+  have hfinite_weighted :
+      ∀ M : ℕ,
+        N ≤ M →
+          ‖∑ n ∈ Finset.Ioc N M, a n * (w σ n : ℂ)‖ ≤ B :=
+    Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
+      N hN hσ_nonneg hσ_antitone hσ_initial hfinite
+  exact
+    Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
+      N hσ_summable hfinite_weighted
+
+/-- Abel damping by the concrete weights `n ^ (-(σ - 1))` preserves a uniform
+finite-tail bound. -/
 theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
     {a : ℕ → ℂ}
     {B : ℝ}
@@ -251,12 +354,9 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
           0‖ ≤ B := by
   /-
   Intended proof chain:
-  finite Abel summation for the positive decreasing weights
-  `n ↦ n ^ (-(σ - 1))` when `σ > 1`
-  -> each damped finite tail is a convex/Stieltjes average of undamped finite
-     tails, hence has norm at most `B`
-  -> absolute convergence for `σ > 1`
-  -> passage from finite damped tails to the `tsum`.
+  instantiate the abstract Abel damping lemma with
+  `w σ n = n ^ (-(σ - 1))`; prove positivity, antitonicity, initial bound
+  `w σ n ≤ 1`, and summability from `σ > 1`.
   -/
   sorry
 

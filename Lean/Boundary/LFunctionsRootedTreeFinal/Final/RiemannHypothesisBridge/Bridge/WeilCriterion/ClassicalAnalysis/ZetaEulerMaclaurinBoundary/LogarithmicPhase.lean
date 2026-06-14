@@ -678,13 +678,31 @@ def Complex.realPhase_integerIncrementMonotoneOn
     (fun n : ℕ => Complex.realPhase_integerIncrement φ n)
     (Finset.Ico a b : Set ℕ)
 
-/-- Finite monotone separated-increment exponential-sum primitive.
+/-- Finite Dirichlet-test primitive for monotone separated increments.
 
 This is the discrete summation core behind Kusmin-Landau: the adjacent
 increments must move monotonically through frequency space and stay separated
-from every `2πℤ` resonance by at least `λ`.  This is the exact missing
-finite-difference primitive; the previous separation-only formulation was too
-weak because it did not rule out alternating increments. -/
+from every `2πℤ` resonance by at least `λ`.  The endpoint `+1` is necessary
+for singleton blocks, where the separation hypothesis is vacuous. -/
+theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
+    (φ : ℝ → ℝ)
+    {a b : ℕ}
+    {λ : ℝ}
+    (ha : 1 ≤ a)
+    (hab : a ≤ b)
+    (hλ_pos : 0 < λ)
+    (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    ‖∑ n ∈ Finset.Icc a b,
+      Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
+        8 * (λ⁻¹ + 1) := by
+  sorry
+
+/-- Finite monotone separated-increment exponential-sum primitive.
+
+This is the public finite-difference Kusmin-Landau surface.  It is a thin
+wrapper over the Dirichlet-test primitive with the boundary-safe constant
+`8 * (λ⁻¹ + 1)`. -/
 theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
@@ -696,8 +714,10 @@ theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        8 * λ⁻¹ := by
-  sorry
+        8 * (λ⁻¹ + 1) := by
+  exact
+    Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
+      φ ha hab hλ_pos hinc_mono hsep
 
 /-- Honest Kusmin-Landau block estimate with the required monotone separated
 finite-difference hypothesis. -/
@@ -720,7 +740,7 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        8 * λ⁻¹ := by
+        8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_separatedIncrement_integer_block_bound
       φ ha hab hλ_pos hinc_mono hsep
@@ -751,7 +771,7 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound
     (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        8 * λ⁻¹ := by
+        8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
       φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
@@ -786,19 +806,10 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
   have hosc :
       ‖∑ n ∈ Finset.Icc a b,
         Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-          8 * λ⁻¹ :=
+          8 * (λ⁻¹ + 1) :=
     Complex.realPhase_kusminLandau_integer_block_bound
       φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hsep
-  have hnonneg_one : (0 : ℝ) ≤ 1 :=
-    zero_le_one
-  have hle :
-      8 * λ⁻¹ ≤ 8 * (λ⁻¹ + 1) := by
-    have hleft_nonneg : (0 : ℝ) ≤ (8 : ℝ) :=
-      Nat.cast_nonneg 8
-    have hscale : λ⁻¹ ≤ λ⁻¹ + 1 :=
-      le_add_of_nonneg_right hnonneg_one
-    exact mul_le_mul_of_nonneg_left hscale hleft_nonneg
-  exact le_trans hosc hle
+  exact hosc
 
 /-- The logarithmic block lower-bound parameter is positive away from
 zero frequency. -/
