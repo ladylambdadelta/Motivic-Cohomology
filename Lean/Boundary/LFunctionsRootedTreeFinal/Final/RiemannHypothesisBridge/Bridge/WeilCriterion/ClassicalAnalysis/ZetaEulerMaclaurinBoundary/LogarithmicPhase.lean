@@ -1394,6 +1394,68 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_add_two_eq :
   field_simp [hden_ne]
   ring
 
+/-- Entropy-form inequality behind the dyadic critical value. -/
+theorem Complex.real_log_two_le_entropyExpression_on_one_two
+    {y : ℝ}
+    (hy_one : 1 < y)
+    (hy_two : y ≤ 2) :
+    Real.log (2 : ℝ) ≤ y * Real.log y - (y - 1) * Real.log (y - 1) := by
+  sorry
+
+/-- The critical expression is the entropy-form expression at
+`y = 2 log 2`. -/
+theorem Complex.realLogDyadicComparisonCriticalExpression_eq_entropy :
+    (2 *
+        Real.log
+          ((2 * Real.log (2 : ℝ)) / (2 * Real.log (2 : ℝ) - 1))) *
+          Real.log (2 : ℝ) -
+        Real.log (2 / (2 * Real.log (2 : ℝ) - 1)) =
+      (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
+        ((2 * Real.log (2 : ℝ)) - 1) *
+          Real.log ((2 * Real.log (2 : ℝ)) - 1) -
+        Real.log (2 : ℝ) := by
+  have hL_pos : 0 < Real.log (2 : ℝ) :=
+    Complex.real_log_two_pos
+  have hY_pos : 0 < 2 * Real.log (2 : ℝ) :=
+    mul_pos zero_lt_two hL_pos
+  have hD_pos : 0 < 2 * Real.log (2 : ℝ) - 1 :=
+    Complex.realLogDyadicComparisonCriticalPoint_den_pos
+  have hY_ne : 2 * Real.log (2 : ℝ) ≠ 0 :=
+    ne_of_gt hY_pos
+  have hD_ne : 2 * Real.log (2 : ℝ) - 1 ≠ 0 :=
+    ne_of_gt hD_pos
+  have htwo_ne : (2 : ℝ) ≠ 0 :=
+    two_ne_zero
+  have hlog_y_div :
+      Real.log ((2 * Real.log (2 : ℝ)) / (2 * Real.log (2 : ℝ) - 1)) =
+        Real.log (2 * Real.log (2 : ℝ)) -
+          Real.log (2 * Real.log (2 : ℝ) - 1) :=
+    Real.log_div hY_ne hD_ne
+  have hlog_two_div :
+      Real.log (2 / (2 * Real.log (2 : ℝ) - 1)) =
+        Real.log (2 : ℝ) - Real.log (2 * Real.log (2 : ℝ) - 1) :=
+    Real.log_div htwo_ne hD_ne
+  calc
+    (2 *
+        Real.log
+          ((2 * Real.log (2 : ℝ)) / (2 * Real.log (2 : ℝ) - 1))) *
+          Real.log (2 : ℝ) -
+        Real.log (2 / (2 * Real.log (2 : ℝ) - 1)) =
+        (2 *
+          (Real.log (2 * Real.log (2 : ℝ)) -
+            Real.log (2 * Real.log (2 : ℝ) - 1))) *
+            Real.log (2 : ℝ) -
+          (Real.log (2 : ℝ) - Real.log (2 * Real.log (2 : ℝ) - 1)) := by
+      exact congrArg₂ Sub.sub
+        (congrArg (fun z : ℝ => (2 * z) * Real.log (2 : ℝ)) hlog_y_div)
+        hlog_two_div
+    _ =
+      (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
+        ((2 * Real.log (2 : ℝ)) - 1) *
+          Real.log ((2 * Real.log (2 : ℝ)) - 1) -
+        Real.log (2 : ℝ) := by
+      ring
+
 /-- Numerical inequality for the dyadic-log defect at its critical point,
 written only in terms of `log 2`. -/
 theorem Complex.realLogDyadicComparisonCriticalExpression_nonneg :
@@ -1403,7 +1465,31 @@ theorem Complex.realLogDyadicComparisonCriticalExpression_nonneg :
           ((2 * Real.log (2 : ℝ)) / (2 * Real.log (2 : ℝ) - 1))) *
           Real.log (2 : ℝ) -
         Real.log (2 / (2 * Real.log (2 : ℝ) - 1)) := by
-  sorry
+  have hY_one : 1 < 2 * Real.log (2 : ℝ) := by
+    exact sub_pos.mp Complex.realLogDyadicComparisonCriticalPoint_den_pos
+  have hY_two : 2 * Real.log (2 : ℝ) ≤ 2 := by
+    have hlog : Real.log (2 : ℝ) ≤ 1 :=
+      Complex.real_log_two_le_one
+    have htwice : 2 * Real.log (2 : ℝ) ≤ (2 : ℝ) * 1 :=
+      mul_le_mul_of_nonneg_left hlog zero_le_two
+    exact Eq.subst (motive := fun rhs : ℝ => 2 * Real.log (2 : ℝ) ≤ rhs) (mul_one 2) htwice
+  have hentropy :
+      Real.log (2 : ℝ) ≤
+        (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
+          ((2 * Real.log (2 : ℝ)) - 1) *
+            Real.log ((2 * Real.log (2 : ℝ)) - 1) :=
+    Complex.real_log_two_le_entropyExpression_on_one_two hY_one hY_two
+  have hnormalized_nonneg :
+      0 ≤
+        (2 * Real.log (2 : ℝ)) * Real.log (2 * Real.log (2 : ℝ)) -
+          ((2 * Real.log (2 : ℝ)) - 1) *
+            Real.log ((2 * Real.log (2 : ℝ)) - 1) -
+          Real.log (2 : ℝ) :=
+    sub_nonneg.mpr hentropy
+  exact Eq.subst
+    (motive := fun target : ℝ => 0 ≤ target)
+    Complex.realLogDyadicComparisonCriticalExpression_eq_entropy.symm
+    hnormalized_nonneg
 
 /-- The defect value at the critical point is the explicit numeric critical
 expression. -/
