@@ -1001,8 +1001,8 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
     {S boundary variation : ℂ}
     {λ : ℝ}
     (hS : S = boundary + variation)
-    (hboundary : ‖boundary‖ ≤ 2 * (λ⁻¹ + 1))
-    (hvariation : ‖variation‖ ≤ 6 * (λ⁻¹ + 1)) :
+    (hboundary : ‖boundary‖ ≤ 4 * (λ⁻¹ + 1))
+    (hvariation : ‖variation‖ ≤ 4 * (λ⁻¹ + 1)) :
     ‖S‖ ≤ 8 * (λ⁻¹ + 1) := by
   have hnorm :
       ‖S‖ ≤ ‖boundary‖ + ‖variation‖ := by
@@ -1012,10 +1012,10 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
       (norm_add_le boundary variation)
   have hsum :
       ‖boundary‖ + ‖variation‖ ≤
-        2 * (λ⁻¹ + 1) + 6 * (λ⁻¹ + 1) :=
+        4 * (λ⁻¹ + 1) + 4 * (λ⁻¹ + 1) :=
     add_le_add hboundary hvariation
   have hcombine :
-      2 * (λ⁻¹ + 1) + 6 * (λ⁻¹ + 1) =
+      4 * (λ⁻¹ + 1) + 4 * (λ⁻¹ + 1) =
         8 * (λ⁻¹ + 1) := by
     ring
   exact le_trans hnorm
@@ -1036,8 +1036,8 @@ theorem Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
       (∑ n ∈ Finset.Icc a a,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * (λ⁻¹ + 1) := by
   let boundary : ℂ :=
     ∑ n ∈ Finset.Icc a a,
       Complex.exp (Complex.I * (φ n : ℂ))
@@ -1064,19 +1064,122 @@ theorem Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
       Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound hλ_pos
     exact le_trans hblock
       (Eq.subst
-        (motive := fun c : ℝ => c ≤ 2 * (λ⁻¹ + 1))
+        (motive := fun c : ℝ => c ≤ 4 * (λ⁻¹ + 1))
         hcard.symm
-        hone_bound)
+        (le_trans hone_bound
+          (by
+            have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
+              add_nonneg (inv_nonneg.mpr hλ_pos.le) zero_le_one
+            exact mul_le_mul_of_nonneg_right
+              (by norm_num : (2 : ℝ) ≤ 4)
+              hsum_nonneg)))
   · have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
       inv_nonneg.mpr hλ_pos.le
     have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
       add_nonneg hλ_inv_nonneg zero_le_one
-    have htarget_nonneg : 0 ≤ 6 * (λ⁻¹ + 1) :=
-      mul_nonneg (by norm_num : (0 : ℝ) ≤ 6) hsum_nonneg
+    have htarget_nonneg : 0 ≤ 4 * (λ⁻¹ + 1) :=
+      mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) hsum_nonneg
     exact Eq.subst
-      (motive := fun r : ℝ => r ≤ 6 * (λ⁻¹ + 1))
+      (motive := fun r : ℝ => r ≤ 4 * (λ⁻¹ + 1))
       (norm_zero : ‖(0 : ℂ)‖ = 0).symm
       htarget_nonneg
+
+/-- Separation from `2πℤ` makes the finite Abel geometric denominator
+nonzero. -/
+theorem Complex.realPhase_geometricDenominator_ne_zero_of_separatedIncrement
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {λ : ℝ}
+    (hλ_pos : 0 < λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hn : n ∈ Finset.Ico a b) :
+    (1 -
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_integerIncrement φ n : ℂ))) ≠ 0 := by
+  intro hzero
+  have hlower :
+      λ ≤
+        2 *
+          ‖1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ))‖ :=
+    Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
+      hλ_pos
+      (hsep n hn)
+  have hright_zero :
+      2 *
+          ‖1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ))‖ =
+        0 := by
+    exact congrArg (fun z : ℂ => 2 * ‖z‖) hzero
+  have hλ_nonpos : λ ≤ 0 :=
+    Eq.subst
+      (motive := fun r : ℝ => λ ≤ r)
+      hright_zero
+      hlower
+  exact (not_le_of_gt hλ_pos) hλ_nonpos
+
+/-- The one-step geometric denominator inverts the finite phase difference. -/
+theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
+    (φ : ℝ → ℝ)
+    {a b n : ℕ}
+    {λ : ℝ}
+    (hλ_pos : 0 < λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hn : n ∈ Finset.Ico a b) :
+    ((1 -
+      Complex.exp
+        (Complex.I *
+          (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹) *
+      (Complex.exp (Complex.I * (φ n : ℂ)) -
+        Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ))) =
+        Complex.exp (Complex.I * (φ n : ℂ)) := by
+  let u : ℂ := Complex.exp (Complex.I * (φ n : ℂ))
+  let r : ℂ :=
+    Complex.exp
+      (Complex.I *
+        (Complex.realPhase_integerIncrement φ n : ℂ))
+  have hstep :
+      Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ)) = u * r := by
+    have hphase :
+        Complex.I * (φ (n + 1 : ℕ) : ℂ) =
+          Complex.I * (φ n : ℂ) +
+            Complex.I *
+              (Complex.realPhase_integerIncrement φ n : ℂ) := by
+      unfold Complex.realPhase_integerIncrement
+      push_cast
+      ring
+    calc
+      Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ)) =
+          Complex.exp
+            (Complex.I * (φ n : ℂ) +
+              Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ)) := by
+        exact congrArg Complex.exp hphase
+      _ = u * r :=
+        Complex.exp_add
+          (Complex.I * (φ n : ℂ))
+          (Complex.I *
+            (Complex.realPhase_integerIncrement φ n : ℂ))
+  have hden_ne :
+      (1 - r) ≠ 0 := by
+    exact
+      Complex.realPhase_geometricDenominator_ne_zero_of_separatedIncrement
+        φ hλ_pos hsep hn
+  calc
+    ((1 - r)⁻¹) *
+        (u - Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ))) =
+        ((1 - r)⁻¹) * (u - u * r) := by
+      exact congrArg (fun z : ℂ => ((1 - r)⁻¹) * (u - z)) hstep
+    _ = ((1 - r)⁻¹) * (u * (1 - r)) := by
+      congr 1
+      ring
+    _ = u := by
+      field_simp [hden_ne]
 
 /-- Non-singleton prefix in the finite Abel transform.  This is the remaining
 finite summation-by-parts identity plus monotone-variation estimate. -/
@@ -1090,6 +1193,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -1102,8 +1206,8 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
       (∑ n ∈ Finset.Icc a m,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * (λ⁻¹ + 1) := by
   sorry
 
 /-- The finite Abel transform supplies boundary and variation terms satisfying
@@ -1117,6 +1221,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -1129,8 +1234,8 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
       (∑ n ∈ Finset.Icc a m,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 6 * (λ⁻¹ + 1) := by
+      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * (λ⁻¹ + 1) := by
   by_cases hma : m = a
   · exact Eq.subst
       (motive := fun r : ℕ =>
@@ -1138,8 +1243,8 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
           (∑ n ∈ Finset.Icc a r,
             Complex.exp (Complex.I * (φ n : ℂ))) =
               boundary + variation ∧
-          ‖boundary‖ ≤ 2 * (λ⁻¹ + 1) ∧
-          ‖variation‖ ≤ 6 * (λ⁻¹ + 1))
+          ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
+          ‖variation‖ ≤ 4 * (λ⁻¹ + 1))
       hma.symm
       (Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
         φ a hλ_pos)
@@ -1149,7 +1254,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
       lt_of_le_of_ne hm_bounds.1 (Ne.symm hma)
     exact
       Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
-        φ ha hab_lt ham hm hλ_pos hinc_mono hden
+        φ ha hab_lt ham hm hλ_pos hinc_mono hsep hden
 
 /-- Prefix-sum form of the finite monotone-increment Dirichlet estimate.
 
@@ -1164,6 +1269,7 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
     (hm : m ∈ Finset.Icc a b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -1177,7 +1283,7 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
         8 * (λ⁻¹ + 1) := by
   rcases
     Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
-      φ ha hab_lt hm hλ_pos hinc_mono hden with
+      φ ha hab_lt hm hλ_pos hinc_mono hsep hden with
     ⟨boundary, variation, hS, hboundary, hvariation⟩
   exact
     Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
@@ -1193,6 +1299,7 @@ theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
     (hab_lt : a < b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -1208,7 +1315,7 @@ theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
     Finset.mem_Icc.mpr ⟨le_of_lt hab_lt, le_rfl⟩
   exact
     Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
-      φ ha hab_lt hb_mem hλ_pos hinc_mono hden
+      φ ha hab_lt hb_mem hλ_pos hinc_mono hsep hden
 
 /-- Monotone-frequency finite Dirichlet-test core.
 
@@ -1223,6 +1330,7 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
     (hab_lt : a < b)
     (hλ_pos : 0 < λ)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -1236,7 +1344,7 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
         8 * (λ⁻¹ + 1) := by
   exact
     Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
-      φ ha hab_lt hλ_pos hinc_mono hden
+      φ ha hab_lt hλ_pos hinc_mono hsep hden
 
 /-- Nontrivial monotone separated-increment Dirichlet-test primitive.
 
@@ -1270,7 +1378,7 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
         (hsep n hn)
   exact
     Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
-      φ ha hab_lt hλ_pos hinc_mono hden
+      φ ha hab_lt hλ_pos hinc_mono hsep hden
 
 /-- Finite Dirichlet-test primitive for monotone separated increments.
 
