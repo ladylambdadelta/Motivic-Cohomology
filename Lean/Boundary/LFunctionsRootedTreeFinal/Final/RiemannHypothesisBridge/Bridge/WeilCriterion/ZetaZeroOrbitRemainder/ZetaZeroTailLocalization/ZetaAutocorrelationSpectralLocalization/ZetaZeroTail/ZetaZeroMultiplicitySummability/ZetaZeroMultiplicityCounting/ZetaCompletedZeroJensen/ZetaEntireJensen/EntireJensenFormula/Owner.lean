@@ -7826,6 +7826,52 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w))))
 
+/-- The support-point value of a removable quotient is the local Taylor unit
+divided by the leading coefficient of the extracted finite divisor.
+
+This is the single-zero removable quotient value theorem consumed by the
+support-point zero-freeness proof.  It is the local consequence of
+`AnalyticAt.order_eq_nat_iff`: the factor `(w - a)^m` in `F` cancels the
+indexed factor `(1 - w/a)^m`, and all remaining finite-support factors are
+nonzero at `a`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_supportPoint_value_eq_localRemovableValue_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (S : Finset (EntireFunctionZero F))
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (a : EntireFunctionZero F)
+    (ha : a ∈ S)
+    (haρ : ‖(a : ℂ)‖ ≤ ρ)
+    (g : ℂ → ℂ)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w) :
+    Q (a : ℂ) =
+      g (a : ℂ) /
+        (((-(a : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+          (∏ z in S.erase a,
+            (1 - (a : ℂ) / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))) := by
+  -- Deep single-zero removable value theorem: use the local Taylor factor
+  -- from `AnalyticAt.order_eq_nat_iff`, divide by the indexed factor
+  -- `(1 - w/a)^m = (-(a⁻¹))^m (w-a)^m`, evaluate at `a`, and use
+  -- analyticity of `Q` to identify the removable value.
+  sorry
+
 /-- Support-point nonvanishing for a closed-support quotient after extracting
 the exact local multiplicity. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_at_support_from_maximalMultiplicity_ownerRoot
@@ -7847,11 +7893,47 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
         entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
           F hF hF0 ρ) :
     Q (z : ℂ) ≠ 0 := by
-  -- Deep local maximal-multiplicity sink: compare the order of `F` at `z`
-  -- with the exact extracted power in the closed-support product and identify
-  -- the removable value of `Q` with the nonzero local Taylor factor divided by
-  -- the nonzero product of the remaining support factors.
-  sorry
+  let S : Finset (EntireFunctionZero F) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+      F hF hF0 ρ
+  have hS0 : ∀ a : EntireFunctionZero F, a ∈ S → (a : ℂ) ≠ 0 := by
+    intro a ha
+    exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
+        F hF hF0 ρ a ha
+  have hzρ : ‖(z : ℂ)‖ ≤ ρ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_norm_le
+      F hF hF0 ρ z hz
+  obtain ⟨g, hg_an, hg_ne, hg_factor⟩ :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_localMultiplicityFactor_ownerRoot
+      F hF hF0 ρ z hz
+  have hfactorS :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w := by
+    intro w hw
+    exact hfactor w hw
+  have hQ_value :
+      Q (z : ℂ) =
+        g (z : ℂ) /
+          (((-(z : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) *
+            (∏ a in S.erase z,
+              (1 - (z : ℂ) / (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ))) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_supportPoint_value_eq_localRemovableValue_ownerRoot
+      F Q hF ρ S hS0 hQ_an hfactorS z hz hzρ g hg_an hg_ne hg_factor
+  have hvalue_ne :
+      g (z : ℂ) /
+          (((-(z : ℂ)⁻¹) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) *
+            (∏ a in S.erase z,
+              (1 - (z : ℂ) / (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ))) ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_supportPoint_removableValue_nonzero
+      F hF S hS0 z hz g hg_ne
+  exact fun hQ_zero => hvalue_ne (Eq.trans hQ_value.symm hQ_zero)
 
 /-- Maximal-multiplicity zero-freeness for the quotient after finite removable
 gluing.

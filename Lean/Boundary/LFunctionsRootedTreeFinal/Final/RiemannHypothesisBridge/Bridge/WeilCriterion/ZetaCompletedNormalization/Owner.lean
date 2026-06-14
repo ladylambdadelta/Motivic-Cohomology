@@ -2819,6 +2819,129 @@ theorem Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct
       _ = Complex.Gamma z :=
         mul_div_cancel_left₀ (Complex.Gamma z) hprod_ne).symm
 
+/-- The imaginary coordinate of a deterministic recurrence factor is the
+vertical height. -/
+theorem Complex.gammaRecurrenceProduct_factor_im
+    (x y : ℝ)
+    (j : ℕ) :
+    (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y := by
+  calc
+    (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im =
+        (Complex.fixedRealPartVerticalPoint x y).im + (j : ℂ).im :=
+      Complex.add_im (Complex.fixedRealPartVerticalPoint x y) (j : ℂ)
+    _ = y + (j : ℂ).im := by
+      exact congrArg
+        (fun t : ℝ => t + (j : ℂ).im)
+        (Complex.fixedRealPartVerticalPoint_im x y)
+    _ = y + 0 := by
+      exact congrArg (fun t : ℝ => y + t) (Complex.natCast_im j)
+    _ = y :=
+      add_zero y
+
+/-- Each recurrence factor has norm at least the vertical height. -/
+theorem Complex.gammaRecurrenceProduct_factor_height_le_norm
+    (x y : ℝ)
+    (j : ℕ) :
+    ‖y‖ ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ := by
+  have him :
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+    Complex.gammaRecurrenceProduct_factor_im x y j
+  have hbasic :
+      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+        ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ :=
+    Complex.abs_im_le_norm
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))
+  have hnorm_eq_abs : ‖y‖ = |y| :=
+    Real.norm_eq_abs y
+  exact
+    Eq.subst
+      (motive := fun t : ℝ =>
+        t ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖)
+      hnorm_eq_abs.symm
+      (Eq.subst
+        (motive := fun t : ℝ =>
+          |t| ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖)
+        him
+        hbasic)
+
+/-- For height at least one, the factor lower bound is comparable to
+`1 + |y|` with the explicit constant `1 / 2`. -/
+theorem Complex.gammaRecurrenceProduct_factor_largeHeight_lower
+    {x y : ℝ}
+    (j : ℕ)
+    (hy : (1 : ℝ) ≤ ‖y‖) :
+    (1 / 2 : ℝ) * (1 + ‖y‖) ≤
+      ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ := by
+  have htwo_pos : 0 < (2 : ℝ) :=
+    two_pos
+  have hy_nonneg : 0 ≤ ‖y‖ :=
+    norm_nonneg y
+  have hone_le_norm : 1 ≤ ‖y‖ :=
+    hy
+  have hsum_le_twice : 1 + ‖y‖ ≤ 2 * ‖y‖ := by
+    calc
+      1 + ‖y‖ ≤ ‖y‖ + ‖y‖ :=
+        add_le_add_right hone_le_norm ‖y‖
+      _ = (1 + 1) * ‖y‖ := by
+        exact (two_mul ‖y‖).symm
+      _ = 2 * ‖y‖ := by
+        exact congrArg (fun t : ℝ => t * ‖y‖) (one_add_one_eq_two)
+  have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) :=
+    le_of_lt (one_div_pos.mpr htwo_pos)
+  have hhalf_sum_le_norm :
+      (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖y‖ := by
+    have hmul :
+        (1 / 2 : ℝ) * (1 + ‖y‖) ≤
+          (1 / 2 : ℝ) * (2 * ‖y‖) :=
+      mul_le_mul_of_nonneg_left hsum_le_twice hhalf_nonneg
+    have hcollapse :
+        (1 / 2 : ℝ) * (2 * ‖y‖) = ‖y‖ := by
+      calc
+        (1 / 2 : ℝ) * (2 * ‖y‖) =
+            ((1 / 2 : ℝ) * 2) * ‖y‖ :=
+          (mul_assoc (1 / 2 : ℝ) 2 ‖y‖).symm
+        _ = 1 * ‖y‖ := by
+          have htwo_ne : (2 : ℝ) ≠ 0 :=
+            ne_of_gt htwo_pos
+          exact congrArg (fun t : ℝ => t * ‖y‖)
+            (inv_mul_cancel₀ htwo_ne)
+        _ = ‖y‖ :=
+          one_mul ‖y‖
+    exact
+      Eq.subst
+        (motive := fun t : ℝ =>
+          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ t)
+        hcollapse
+        hmul
+  exact
+    le_trans hhalf_sum_le_norm
+      (Complex.gammaRecurrenceProduct_factor_height_le_norm x y j)
+
+/-- The exact finite-product geometry estimate for deterministic Gamma
+recurrence factors on a fixed vertical strip.
+
+This is the only remaining finite-product sink: the per-factor lower geometry is
+proved above, and this lemma packages the bounded-real-part upper estimates and
+their finite product over `j < N`. -/
+theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_finiteProductEstimate
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+            C * (1 + ‖y‖) ^ (N : ℝ) ∧
+          c * (1 + ‖y‖) ^ (N : ℝ) ≤
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ := by
+  sorry
+
 /-- Finite recurrence products have uniform polynomial upper/lower bounds on a
 fixed vertical strip after a deterministic shift.
 
@@ -2843,7 +2966,9 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds
           c * (1 + ‖y‖) ^ (N : ℝ) ≤
             ‖Complex.gammaRecurrenceProduct
               (Complex.fixedRealPartVerticalPoint x y) N‖ := by
-  sorry
+  exact
+    Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_finiteProductEstimate
+      A B N
 
 /-- Large vertical height keeps all deterministic recurrence factors nonzero. -/
 theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHeight
@@ -2865,18 +2990,8 @@ theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHei
       (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
     congrArg Complex.im hzero
   have hleft_im :
-      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y := by
-    calc
-      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im =
-          (Complex.fixedRealPartVerticalPoint x y).im + (j : ℂ).im :=
-        Complex.add_im (Complex.fixedRealPartVerticalPoint x y) (j : ℂ)
-      _ = y + (j : ℂ).im := by
-        exact congrArg
-          (fun t : ℝ => t + (j : ℂ).im)
-          (Complex.fixedRealPartVerticalPoint_im x y)
-      _ = y + 0 := by
-        exact congrArg (fun t : ℝ => y + t) (Complex.natCast_im j)
-      _ = y := add_zero y
+      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+    Complex.gammaRecurrenceProduct_factor_im x y j
   have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
     Complex.zero_im
   have hy_zero : y = 0 :=
@@ -9925,6 +10040,69 @@ theorem abel_positive_weighted_tail_norm_le_of_bounded_partial_sums
     ‖∑' k : ℕ, if N < k then ((w k : ℝ) : ℂ) * u k else 0‖ ≤ C := by
   sorry
 
+/-- Complement of `Icc 1 N` as a post-cutoff indicator for functions whose
+zeroth term vanishes. -/
+theorem nat_not_Icc_one_indicator_eq_cutoff_if_of_zero
+    {E : Type*}
+    [Zero E]
+    (f : ℕ → E)
+    (N n : ℕ)
+    (hf_zero : f 0 = 0) :
+    ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator f n) =
+      if N < n then f n else 0 := by
+  by_cases hN_lt_n : N < n
+  · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+      intro hn_mem
+      have hn_le_N : n ≤ N :=
+        (Finset.mem_Icc.mp hn_mem).2
+      exact (Nat.not_lt_of_ge hn_le_N) hN_lt_n
+    have hn_mem_tail : n ∈ {m : ℕ | m ∉ Finset.Icc 1 N} :=
+      hn_not_mem
+    have hleft :
+        ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator f n) = f n :=
+      Set.indicator_of_mem hn_mem_tail f
+    have hright :
+        (if N < n then f n else 0) = f n :=
+      if_pos hN_lt_n
+    exact Eq.trans hleft hright.symm
+  · by_cases hn_zero : n = 0
+    · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+        intro hn_mem
+        have hone_le_n : 1 ≤ n :=
+          (Finset.mem_Icc.mp hn_mem).1
+        have hone_le_zero : (1 : ℕ) ≤ 0 :=
+          Eq.subst (motive := fun m : ℕ => 1 ≤ m) hn_zero hone_le_n
+        exact (Nat.not_succ_le_zero 0) hone_le_zero
+      have hn_mem_tail : n ∈ {m : ℕ | m ∉ Finset.Icc 1 N} :=
+        hn_not_mem
+      have hleft :
+          ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator f n) = f n :=
+        Set.indicator_of_mem hn_mem_tail f
+      have hf_n_zero : f n = 0 :=
+        Eq.subst (motive := fun m : ℕ => f m = 0) hn_zero.symm hf_zero
+      have hright :
+          (if N < n then f n else 0) = 0 :=
+        if_neg hN_lt_n
+      exact Eq.trans hleft (Eq.trans hf_n_zero hright.symm)
+    · have hn_pos : 0 < n :=
+        Nat.pos_of_ne_zero hn_zero
+      have hone_le_n : 1 ≤ n :=
+        Nat.succ_le_of_lt hn_pos
+      have hn_le_N : n ≤ N :=
+        Nat.le_of_not_gt hN_lt_n
+      have hn_mem_Icc : n ∈ Finset.Icc 1 N :=
+        Finset.mem_Icc.mpr ⟨hone_le_n, hn_le_N⟩
+      have hn_not_mem_tail : n ∉ {m : ℕ | m ∉ Finset.Icc 1 N} := by
+        intro hn_mem_tail
+        exact hn_mem_tail hn_mem_Icc
+      have hleft :
+          ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator f n) = 0 :=
+        Set.indicator_of_not_mem hn_not_mem_tail f
+      have hright :
+          (if N < n then f n else 0) = 0 :=
+        if_neg hN_lt_n
+      exact Eq.trans hleft hright.symm
+
 /-- Removing the damped finite prefix from the half-plane Dirichlet series gives
 the damped post-cutoff tail as an indicator `tsum`. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_eq_indicator_tsum
@@ -9938,7 +10116,80 @@ theorem abelBoundary_logarithmicPhase_dampedTail_eq_indicator_tsum
               boundaryLineOnePointRealParam_abscissaShift σ t)
         else
           0 := by
-  sorry
+  let N : ℕ := ⌊2 + ‖t‖⌋₊
+  let f : ℕ → ℂ := fun n : ℕ =>
+    (1 : ℂ) /
+      ((n : ℂ) ^
+        boundaryLineOnePointRealParam_abscissaShift σ t)
+  have hσ_re :
+      (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
+    rfl
+  have hhalf_plane :
+      1 < (boundaryLineOnePointRealParam_abscissaShift σ t).re :=
+    Eq.subst
+      (motive := fun x : ℝ => 1 < x)
+      hσ_re.symm
+      hσ
+  have hf_summable : Summable f :=
+    (Complex.summable_one_div_nat_cpow
+      (p := boundaryLineOnePointRealParam_abscissaShift σ t)).mpr
+      hhalf_plane
+  have hf_has :
+      HasSum f (∑' n : ℕ, f n) :=
+    hf_summable.hasSum
+  have htail_compl :
+      HasSum
+        (fun x : {n : ℕ // n ∉ Finset.Icc 1 N} => f x)
+        ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    ((Finset.Icc 1 N).hasSum_iff_compl).mp hf_has
+  have htail_indicator :
+      HasSum
+        ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f)
+        ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n) := by
+    exact
+      (hasSum_subtype_iff_indicator
+        (s := {n : ℕ | n ∉ Finset.Icc 1 N})
+        (f := f)).mp
+        htail_compl
+  have hf_zero : f 0 = 0 := by
+    have hpoint_ne_zero :
+        boundaryLineOnePointRealParam_abscissaShift σ t ≠ 0 := by
+      intro hpoint_zero
+      have hre_zero :
+          (boundaryLineOnePointRealParam_abscissaShift σ t).re = (0 : ℂ).re :=
+        congrArg Complex.re hpoint_zero
+      have hσ_zero : σ = 0 :=
+        Eq.trans hσ_re.symm hre_zero
+      have hone_lt_zero : (1 : ℝ) < 0 :=
+        Eq.subst (motive := fun x : ℝ => 1 < x) hσ_zero hσ
+      exact not_lt_of_ge zero_le_one hone_lt_zero
+    have hpow_zero :
+        (0 : ℂ) ^ boundaryLineOnePointRealParam_abscissaShift σ t = 0 := by
+      exact (cpow_eq_zero_iff).mpr ⟨rfl, hpoint_ne_zero⟩
+    calc
+      f 0 = (1 : ℂ) /
+          ((0 : ℂ) ^ boundaryLineOnePointRealParam_abscissaShift σ t) := by
+        rfl
+      _ = (1 : ℂ) / 0 := by
+        exact congrArg (fun z : ℂ => (1 : ℂ) / z) hpow_zero
+      _ = 0 := by
+        exact div_zero (1 : ℂ)
+  have hindicator :
+      ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) =
+        (fun k : ℕ => if N < k then f k else 0) :=
+    funext
+      (fun n : ℕ =>
+        nat_not_Icc_one_indicator_eq_cutoff_if_of_zero f N n hf_zero)
+  have htail_if :
+      HasSum
+        (fun k : ℕ => if N < k then f k else 0)
+        ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n) :=
+    Eq.subst
+      (motive := fun g : ℕ → ℂ =>
+        HasSum g ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n))
+      hindicator
+      htail_indicator
+  exact htail_if.tsum_eq.symm
 
 /-- The Dirichlet damping weight for a fixed abscissa. -/
 def abelBoundary_logarithmicPhase_dirichletWeight
