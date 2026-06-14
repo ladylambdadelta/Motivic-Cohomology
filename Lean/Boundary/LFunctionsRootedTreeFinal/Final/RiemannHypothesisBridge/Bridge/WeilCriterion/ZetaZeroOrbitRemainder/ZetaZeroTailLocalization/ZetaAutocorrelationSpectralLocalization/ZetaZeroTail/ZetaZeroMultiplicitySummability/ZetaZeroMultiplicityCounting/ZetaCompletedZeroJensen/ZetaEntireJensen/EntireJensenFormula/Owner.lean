@@ -35,6 +35,12 @@ noncomputable def entireFunctionZeroMultiplicity
     (z : ℂ) : ℕ :=
   (hF z).order.toNat
 
+/-- Nonzero zeros of an entire function.  This is the canonical index for
+Jensen terms after the origin Taylor factor has been separated. -/
+abbrev EntireFunctionNonzeroZero
+    (F : ℂ → ℂ) : Type :=
+  {z : ℂ // F z = 0 ∧ z ≠ 0}
+
 /-- The local first-nonzero Taylor factor at a point where the analytic order is `n`.
 
 This is the local multiplicity input used by Jensen's formula: near `z`, an
@@ -1956,6 +1962,107 @@ theorem entireFunction_originTaylorFactor_multiplicity_eq_quotient_of_ne_zero
       (analyticAt_id.pow (entireFunctionZeroMultiplicity F hF 0))
       (pow_ne_zero (entireFunctionZeroMultiplicity F hF 0) hz)
       (eventually_of_forall hfactor)
+
+/-- The origin Taylor quotient identifies the nonzero-zero index types. -/
+def entireFunction_originTaylorFactor_nonzeroZeroEquiv
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z) :
+    EntireFunctionNonzeroZero F ≃ EntireFunctionNonzeroZero G where
+  toFun z :=
+    ⟨z,
+      (entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+        F G hF hfactor z.property.2).mp z.property.1,
+      z.property.2⟩
+  invFun z :=
+    ⟨z,
+      (entireFunction_originTaylorFactor_nonzero_zero_iff_quotient_zero
+        F G hF hfactor z.property.2).mpr z.property.1,
+      z.property.2⟩
+  left_inv z := by
+    exact Subtype.ext rfl
+  right_inv z := by
+    exact Subtype.ext rfl
+
+/-- Closed-disk summand on the canonical nonzero-zero index. -/
+noncomputable def entireFunctionNonzeroZeroClosedDiskSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (R : ℝ)
+    (z : EntireFunctionNonzeroZero F) : ℝ :=
+  if ‖(z : ℂ)‖ ≤ R then
+    (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
+  else
+    0
+
+/-- Radial-gap summand on the canonical nonzero-zero index. -/
+noncomputable def entireFunctionNonzeroZeroRadialGapSummand
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionNonzeroZero F) : ℝ :=
+  if ‖(z : ℂ)‖ < ρ then
+    (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+      Real.log (ρ / ‖(z : ℂ)‖)
+  else
+    0
+
+/-- Closed-disk summands on nonzero zeros are invariant under the origin
+Taylor quotient equivalence. -/
+theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummand_equiv
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    (R : ℝ)
+    (z : EntireFunctionNonzeroZero F) :
+    entireFunctionNonzeroZeroClosedDiskSummand G hG R
+        (entireFunction_originTaylorFactor_nonzeroZeroEquiv F G hF hfactor z) =
+      entireFunctionNonzeroZeroClosedDiskSummand F hF R z := by
+  unfold entireFunctionNonzeroZeroClosedDiskSummand
+  have hmult :
+      entireFunctionZeroMultiplicity G hG (z : ℂ) =
+        entireFunctionZeroMultiplicity F hF (z : ℂ) :=
+    (entireFunction_originTaylorFactor_multiplicity_eq_quotient_of_ne_zero
+      F G hF hG hfactor z.property.2).symm
+  exact
+    if_congr
+      (by rfl)
+      (congrArg (fun n : ℕ => (n : ℝ)) hmult)
+      rfl
+
+/-- Radial-gap summands on nonzero zeros are invariant under the origin Taylor
+quotient equivalence. -/
+theorem entireFunction_originTaylorFactor_nonzeroRadialGapSummand_equiv
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    (ρ : ℝ)
+    (z : EntireFunctionNonzeroZero F) :
+    entireFunctionNonzeroZeroRadialGapSummand G hG ρ
+        (entireFunction_originTaylorFactor_nonzeroZeroEquiv F G hF hfactor z) =
+      entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := by
+  unfold entireFunctionNonzeroZeroRadialGapSummand
+  have hmult :
+      entireFunctionZeroMultiplicity G hG (z : ℂ) =
+        entireFunctionZeroMultiplicity F hF (z : ℂ) :=
+    (entireFunction_originTaylorFactor_multiplicity_eq_quotient_of_ne_zero
+      F G hF hG hfactor z.property.2).symm
+  exact
+    if_congr
+      (by rfl)
+      (congrArg
+        (fun n : ℕ =>
+          (n : ℝ) * Real.log (ρ / ‖(z : ℂ)‖))
+        hmult)
+      rfl
 
 /-- Closed-disk nonzero-zero summability transports from the global origin
 Taylor quotient back to the original entire function. -/
