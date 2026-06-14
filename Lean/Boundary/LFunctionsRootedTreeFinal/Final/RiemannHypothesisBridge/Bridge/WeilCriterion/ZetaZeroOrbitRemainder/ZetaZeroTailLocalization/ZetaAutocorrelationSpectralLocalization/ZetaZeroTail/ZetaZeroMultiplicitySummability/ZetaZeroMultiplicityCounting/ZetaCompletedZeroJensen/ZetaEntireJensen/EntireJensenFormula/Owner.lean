@@ -7299,6 +7299,129 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     exact Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw.symm (hon z hz)
   · exact hoff w hwρ hw
 
+/-- A nonzero zero in the closed disk belongs to the closed-disk support
+divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_of_zero_ne_zero_norm_le
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    {w : ℂ}
+    (hFw : F w = 0)
+    (hw0 : w ≠ 0)
+    (hwρ : ‖w‖ ≤ ρ) :
+    (⟨w, hFw⟩ : EntireFunctionZero F) ∈
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 ρ := by
+  have hsupport :
+      (⟨w, hFw⟩ : EntireFunctionZero F) ∈ Function.support
+        (fun z : EntireFunctionZero F =>
+          entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z) :=
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zero_norm_le_ownerRoot
+      F hF hF0 ρ ⟨w, hFw⟩ hw0 hwρ
+  exact
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_contains_support
+      F hF hF0 ρ hsupport
+
+/-- Off the closed-disk support image, a point of the closed disk is not a zero
+of `F`. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_function_nonzero_of_not_mem_closedDiskSupport
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    {w : ℂ}
+    (hwρ : ‖w‖ ≤ ρ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ))) :
+    F w ≠ 0 := by
+  intro hFw
+  by_cases hw0 : w = 0
+  · exact hF0 (Eq.subst (motive := fun x : ℂ => F x = 0) hw0 hFw)
+  · have hz_mem :
+        (⟨w, hFw⟩ : EntireFunctionZero F) ∈
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_of_zero_ne_zero_norm_le
+        F hF hF0 ρ hFw hw0 hwρ
+    exact hw ⟨⟨w, hFw⟩, hz_mem, rfl⟩
+
+/-- Off the closed-disk support, a zero of any exact closed-support quotient
+would force a zero of `F`, contradicting support exclusion. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_of_not_mem_support
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    {w : ℂ}
+    (hwρ : ‖w‖ ≤ ρ)
+    (hw :
+      w ∉
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ))) :
+    Q w ≠ 0 := by
+  have hFw_ne :
+      F w ≠ 0 :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_function_nonzero_of_not_mem_closedDiskSupport
+      F hF hF0 ρ hwρ hw
+  intro hQw
+  have hfactor_w :
+      F w =
+        Q w *
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+            F hF hF0 ρ w :=
+    hfactor w hwρ
+  exact hFw_ne
+    (Eq.trans hfactor_w
+      (Eq.trans
+        (congrArg
+          (fun x : ℂ =>
+            x *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                F hF hF0 ρ w)
+          hQw)
+        (zero_mul
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+            F hF hF0 ρ w))))
+
+/-- Support-point nonvanishing for a closed-support quotient after extracting
+the exact local multiplicity. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_at_support_from_maximalMultiplicity_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hQ_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    Q (z : ℂ) ≠ 0 := by
+  -- Deep local maximal-multiplicity sink: compare the order of `F` at `z`
+  -- with the exact extracted power in the closed-support product and identify
+  -- the removable value of `Q` with the nonzero local Taylor factor divided by
+  -- the nonzero product of the remaining support factors.
+  sorry
+
 /-- Maximal-multiplicity zero-freeness for the quotient after finite removable
 gluing.
 
@@ -7319,10 +7442,20 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
             entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
               F hF hF0 ρ w) :
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
-  -- Deep local removable-singularity multiplicity sink: compare the order of
-  -- `F` with the order of the closed-disk extracted product at every point of
-  -- the closed disk, using maximality of `entireFunctionZeroMultiplicity`.
-  sorry
+  intro w hwρ
+  by_cases hw :
+      w ∈
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+          F hF hF0 ρ).image
+          (fun z : EntireFunctionZero F => (z : ℂ))
+  · rcases Finset.mem_image.1 hw with ⟨z, hz, hzw⟩
+    exact
+      Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw.symm
+        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_at_support_from_maximalMultiplicity_ownerRoot
+          F Q hF hF0 ρ hQ_an hfactor z hz)
+  · exact
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_of_not_mem_support
+        F Q hF hF0 ρ hfactor hwρ hw
 
 /-- Maximal-multiplicity zero-freeness for the removable quotient.
 
@@ -7558,6 +7691,44 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
                         ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))))
           horigin.symm
 
+/-- Closed-support finite-product boundary-log decomposition before applying
+the zero-free quotient mean theorem.
+
+This is the exact product-log sink: restrict the factorization
+`F = Q * P_closed` to the boundary circle, split `log ‖Q * P_closed‖` into the
+quotient boundary term and the finite sum of extracted single-zero factor
+terms, and interchange the finite sum with the interval integral. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_decomposition_from_factorization_ownerRoot
+    (F Q : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (hfactor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+              F hF hF0 ρ w)
+    (hzero : ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0) :
+    entireFunctionJensenBoundaryLogAverage F ρ =
+      (2 * Real.pi)⁻¹ *
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖) +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+  -- Deep finite product boundary-log sink: pointwise boundary factorization,
+  -- logarithm of a nonzero finite product, and finite sum/integral exchange in
+  -- the presence of finitely many boundary logarithmic singularities.
+  sorry
+
 /-- Boundary logarithm decomposition for the closed-disk removable quotient.
 
 This is the correct product form for closed-disk zero-freeness: all nonzero
@@ -7587,9 +7758,44 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
               (∫ θ in (0 : ℝ)..(2 * Real.pi),
                 Real.log
                   ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
-  -- Deep closed-product boundary decomposition root: combine the zero-free
-  -- quotient mean theorem with the finite product of closed-disk factors.
-  sorry
+  let quotientBoundary : ℝ :=
+    (2 * Real.pi)⁻¹ *
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+        Real.log ‖Q ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖)
+  let factorBoundary : ℝ :=
+    ∑ z in
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+        F hF hF0 ρ,
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+        ((2 * Real.pi)⁻¹ *
+          (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log
+              ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))
+  have hsplit :
+      entireFunctionJensenBoundaryLogAverage F ρ =
+        quotientBoundary + factorBoundary :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteProduct_boundaryLog_decomposition_from_factorization_ownerRoot
+      F Q hF hF0 ρ hρ hfactor hzero
+  have hquotient_mean :
+      quotientBoundary = Real.log ‖Q 0‖ :=
+    entireFunction_zeroFreeOnClosedDisk_boundaryLogAverage_eq_origin_log_norm_ownerRoot
+      Q ρ hρ hQ_an hzero
+  calc
+    entireFunctionJensenBoundaryLogAverage F ρ =
+        quotientBoundary + factorBoundary := hsplit
+    _ = Real.log ‖Q 0‖ + factorBoundary := by
+      exact congrArg (fun x : ℝ => x + factorBoundary) hquotient_mean
+    _ =
+      Real.log ‖Q 0‖ +
+        (∑ z in
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ,
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) *
+            ((2 * Real.pi)⁻¹ *
+              (∫ θ in (0 : ℝ)..(2 * Real.pi),
+                Real.log
+                  ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / (z : ℂ))‖))) := by
+      rfl
 
 /-- Closed-disk product boundary factors split into the radial-gap factors plus
 the boundary-zero factors.
