@@ -2940,6 +2940,52 @@ theorem complex_starConvexClosedBall_lineMap_mem
     mem_closedBall_zero_iff.mpr hz
   exact hconvex.lineMap_mem hzero hz_mem ht
 
+/-- The scalar radial point `(t : ℂ) • z` is the affine segment point from
+`0` to `z`. -/
+theorem complex_starConvexClosedBall_lineMap_zero_eq_radial
+    (z : ℂ)
+    (t : ℝ) :
+    AffineMap.lineMap (0 : ℂ) z t = ((t : ℂ) • z) := by
+  calc
+    AffineMap.lineMap (0 : ℂ) z t =
+        (1 - t) • (0 : ℂ) + t • z :=
+      AffineMap.lineMap_apply_module (0 : ℂ) z t
+    _ = 0 + t • z :=
+      congrArg
+        (fun u : ℂ => u + t • z)
+        (show (1 - t : ℝ) • (0 : ℂ) = 0 from smul_zero (1 - t : ℝ))
+    _ = t • z :=
+      zero_add (t • z)
+    _ = ((t : ℂ) • z) :=
+      (algebraMap_smul ℂ t z).symm
+
+/-- The radial segment from the center to a point of the closed ball remains
+inside the closed ball. -/
+theorem complex_starConvexClosedBall_radialSegment_mem
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ)
+    {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    ((t : ℂ) • z) ∈ Metric.closedBall (0 : ℂ) ρ := by
+  exact Eq.subst
+    (motive := fun w : ℂ => w ∈ Metric.closedBall (0 : ℂ) ρ)
+    (complex_starConvexClosedBall_lineMap_zero_eq_radial z t)
+    (complex_starConvexClosedBall_lineMap_mem hρ hz ht)
+
+/-- Norm form of closed-ball containment for radial segment points. -/
+theorem complex_starConvexClosedBall_radialSegment_norm_le
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ)
+    {z : ℂ}
+    (hz : ‖z‖ ≤ ρ)
+    {t : ℝ}
+    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
+    ‖((t : ℂ) • z)‖ ≤ ρ :=
+  mem_closedBall_zero_iff.mp
+    (complex_starConvexClosedBall_radialSegment_mem hρ hz ht)
+
 /-- The radial primitive is normalized to vanish at the center. -/
 theorem complex_starConvexClosedBall_radialPrimitive_zero
     (φ : ℂ → ℂ) :
@@ -2954,6 +3000,26 @@ theorem complex_starConvexClosedBall_radialPrimitive_zero
   exact Eq.trans
     (intervalIntegral.integral_congr hzero_integrand)
     intervalIntegral.integral_zero
+
+/-- Standard segment-integral primitive theorem for holomorphic functions on a
+star-convex complex domain, specialized to the radial primitive from the
+center.
+
+This is the reusable complex-analysis API: differentiating the segment
+integral from the star center gives back the holomorphic integrand, and the
+resulting primitive is analytic at every point of the domain. -/
+theorem complex_segmentIntegral_primitive_isPrimitive_of_holomorphicOn_starConvex
+    (φ : ℂ → ℂ)
+    {s : Set ℂ}
+    (hstar : StarConvex ℝ (0 : ℂ) s)
+    (hφ : ∀ z : ℂ, z ∈ s → AnalyticAt ℂ φ z) :
+    (∀ z : ℂ,
+      z ∈ s →
+      AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z) ∧
+    (∀ z : ℂ,
+      z ∈ s →
+      deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) := by
+  sorry
 
 /-- Canonical star-convex radial primitive theorem on a closed complex ball.
 
@@ -2974,7 +3040,20 @@ theorem complex_starConvexClosedBall_radialPrimitive_isPrimitive_on_starConvex
     (∀ z : ℂ,
       ‖z‖ ≤ ρ →
       deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) := by
-  sorry
+  have hclosed :
+      (∀ z : ℂ,
+        z ∈ Metric.closedBall (0 : ℂ) ρ →
+        AnalyticAt ℂ (complex_starConvexClosedBall_radialPrimitive φ) z) ∧
+      (∀ z : ℂ,
+        z ∈ Metric.closedBall (0 : ℂ) ρ →
+        deriv (complex_starConvexClosedBall_radialPrimitive φ) z = φ z) :=
+    complex_segmentIntegral_primitive_isPrimitive_of_holomorphicOn_starConvex
+      φ
+      hstar
+      (fun z hz => hφ z (mem_closedBall_zero_iff.mp hz))
+  exact
+    ⟨fun z hz => hclosed.1 z (mem_closedBall_zero_iff.mpr hz),
+      fun z hz => hclosed.2 z (mem_closedBall_zero_iff.mpr hz)⟩
 
 /-- Closed-ball specialization of the canonical star-convex radial primitive
 theorem. -/

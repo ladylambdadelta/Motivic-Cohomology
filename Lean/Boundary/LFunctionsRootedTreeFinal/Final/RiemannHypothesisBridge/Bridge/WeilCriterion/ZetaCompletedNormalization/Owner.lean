@@ -2653,6 +2653,146 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
 def Complex.gammaRecurrenceProduct (z : ℂ) (N : ℕ) : ℂ :=
   ∏ j ∈ Finset.range N, z + (j : ℂ)
 
+/-- The deterministic shift as a complex horizontal translation. -/
+theorem Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift
+    (A x y : ℝ) :
+    Complex.fixedRealPartVerticalPoint (x + Complex.verticalStripRightShift A) y =
+      Complex.fixedRealPartVerticalPoint x y +
+        (Complex.verticalStripRightShift A : ℂ) := by
+  exact Complex.ext
+    (by
+      calc
+        (Complex.fixedRealPartVerticalPoint (x + Complex.verticalStripRightShift A) y).re =
+            x + (Complex.verticalStripRightShift A : ℝ) :=
+          Complex.fixedRealPartVerticalPoint_re
+            (x + Complex.verticalStripRightShift A) y
+        _ =
+            (Complex.fixedRealPartVerticalPoint x y +
+              (Complex.verticalStripRightShift A : ℂ)).re := by
+          have hleft :
+              (Complex.fixedRealPartVerticalPoint x y).re = x :=
+            Complex.fixedRealPartVerticalPoint_re x y
+          have hright :
+              ((Complex.verticalStripRightShift A : ℂ)).re =
+                (Complex.verticalStripRightShift A : ℝ) :=
+            Complex.ofReal_re (Complex.verticalStripRightShift A : ℝ)
+          exact
+            (Eq.trans
+              (Complex.add_re
+                (Complex.fixedRealPartVerticalPoint x y)
+                (Complex.verticalStripRightShift A : ℂ))
+              (congrArg₂ HAdd.hAdd hleft hright)).symm)
+    (by
+      calc
+        (Complex.fixedRealPartVerticalPoint (x + Complex.verticalStripRightShift A) y).im =
+            y :=
+          Complex.fixedRealPartVerticalPoint_im
+            (x + Complex.verticalStripRightShift A) y
+        _ =
+            (Complex.fixedRealPartVerticalPoint x y +
+              (Complex.verticalStripRightShift A : ℂ)).im := by
+          have hleft :
+              (Complex.fixedRealPartVerticalPoint x y).im = y :=
+            Complex.fixedRealPartVerticalPoint_im x y
+          have hright :
+              ((Complex.verticalStripRightShift A : ℂ)).im = 0 :=
+            Complex.ofReal_im (Complex.verticalStripRightShift A : ℝ)
+          exact
+            (Eq.trans
+              (Complex.add_im
+                (Complex.fixedRealPartVerticalPoint x y)
+                (Complex.verticalStripRightShift A : ℂ))
+              (Eq.trans (congrArg₂ HAdd.hAdd hleft hright) (add_zero y))).symm)
+
+/-- Gamma recurrence over a deterministic finite product.
+
+For large vertical height the factors `z + j` avoid zero, so iterating
+`Γ(s + 1) = s Γ(s)` gives the exact transport from `Γ z` to
+`Γ(z + N)`. -/
+theorem Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct
+    {z : ℂ}
+    (N : ℕ)
+    (hfactor_ne :
+      ∀ j : ℕ,
+        j < N →
+          z + (j : ℂ) ≠ 0) :
+    Complex.Gamma z =
+      Complex.Gamma (z + (N : ℂ)) /
+        Complex.gammaRecurrenceProduct z N := by
+  sorry
+
+/-- Finite recurrence products have uniform polynomial upper/lower bounds on a
+fixed vertical strip after a deterministic shift.
+
+This is the exact finite-product estimate needed for recurrence transport: for
+fixed `N`, bounded real part and large `|y|` make each factor `x + i y + j`
+comparable to `1 + |y|`, and therefore the whole product is comparable to
+`(1 + |y|)^N`. -/
+theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+            C * (1 + ‖y‖) ^ (N : ℝ) ∧
+          c * (1 + ‖y‖) ^ (N : ℝ) ≤
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ := by
+  sorry
+
+/-- Large vertical height keeps all deterministic recurrence factors nonzero. -/
+theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHeight
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ H : ℝ,
+      0 < H ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ∀ j : ℕ,
+            j < N →
+              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
+  sorry
+
+/-- Sectorial Stirling at the deterministic right shift, transported back
+through the finite Gamma recurrence product.
+
+This is the single non-special-function owner sink for the vertical-strip
+transport.  It combines the deterministic shift geometry, the exact Gamma
+recurrence product identity, and the finite-product upper/lower estimates. -/
+theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_recurrenceProduct
+    (hStirling : ∃ R : ℝ, ∃ K : ℝ,
+      0 < R ∧
+      0 < K ∧
+      ∀ w : ℂ,
+        Complex.closedRightHalfPlaneSector w →
+        R ≤ ‖w‖ →
+        ‖Complex.Gamma w * Complex.exp w *
+            w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+          K / ‖w‖)
+    (A B : ℝ) :
+    ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
+      0 < H ∧
+      0 < C ∧
+      0 < c ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤
+            C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
+          c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
+  sorry
+
 /-- Deterministic finite-recurrence transport from closed-right-half-plane
 sectorial Stirling to a vertical strip.
 
@@ -2686,7 +2826,9 @@ theorem Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  sorry
+  exact
+    Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds_of_recurrenceProduct
+      hStirling A B
 
 /-- Vertical-strip two-sided Stirling bounds as a consequence of sectorial
 log-Gamma Stirling.
@@ -9675,6 +9817,23 @@ def abelBoundary_logarithmicPhase_dirichletWeight
     (k : ℕ) : ℝ :=
   ((k : ℝ) ^ (1 - σ : ℝ))
 
+/-- Positive-natural complex-power normalization for the Abel-damped boundary
+term.
+
+This is the exact `cpow` algebra sink: split the exponent
+`σ + it` into the reciprocal boundary factor and the real Dirichlet damping
+weight `k^(1-σ)`. -/
+theorem abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
+    (t σ : ℝ)
+    {k : ℕ}
+    (hk : 0 < k) :
+    (1 : ℂ) /
+        ((k : ℂ) ^
+          boundaryLineOnePointRealParam_abscissaShift σ t) =
+      ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+        (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
+  sorry
+
 /-- A right-half-plane post-cutoff term is the Dirichlet damping weight times the boundary
 oscillatory term. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
@@ -9686,7 +9845,9 @@ theorem abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
           boundaryLineOnePointRealParam_abscissaShift σ t) =
       ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
         (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) := by
-  sorry
+  exact
+    abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
+      t σ hk
 
 /-- The damped tail indicator `tsum` is the abstract Abel weighted tail. -/
 theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weighted_tail
@@ -9754,7 +9915,33 @@ theorem abelBoundary_logarithmicPhase_dirichletWeight_antitone
       k ≤ l →
       abelBoundary_logarithmicPhase_dirichletWeight σ l ≤
         abelBoundary_logarithmicPhase_dirichletWeight σ k := by
-  sorry
+  intro k l hk hkl
+  have hk_real_pos : (0 : ℝ) < (k : ℝ) := by
+    exact Nat.cast_pos.mpr hk
+  have hkl_real : (k : ℝ) ≤ (l : ℝ) := by
+    exact Nat.cast_le.mpr hkl
+  have hexponent_nonpos : 1 - σ ≤ 0 :=
+    sub_nonpos.mpr (le_of_lt hσ)
+  exact
+    Real.rpow_le_rpow_of_nonpos
+      hk_real_pos
+      hkl_real
+      hexponent_nonpos
+
+/-- The first Dirichlet weight on any natural tail is at most one. -/
+theorem abelBoundary_logarithmicPhase_dirichletWeight_succ_le_one
+    (σ : ℝ)
+    (hσ : 1 < σ)
+    (N : ℕ) :
+    abelBoundary_logarithmicPhase_dirichletWeight σ (N + 1) ≤ 1 := by
+  have hone_le_base : (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) := by
+    exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le N))
+  have hexponent_nonpos : 1 - σ ≤ 0 :=
+    sub_nonpos.mpr (le_of_lt hσ)
+  exact
+    Real.rpow_le_one_of_one_le_of_nonpos
+      hone_le_base
+      hexponent_nonpos
 
 /-- The finite variation of Dirichlet weights on a post-cutoff tail is at most
 the first weight, hence at most `1`. -/
