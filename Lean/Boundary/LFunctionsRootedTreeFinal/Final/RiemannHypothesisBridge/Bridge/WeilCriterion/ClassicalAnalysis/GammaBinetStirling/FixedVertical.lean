@@ -47,7 +47,12 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
       have hpos : 0 < (σ + t * Complex.I : ℂ).re := by
         simpa using hσ
       linarith
-    exact (Complex.differentiableAt_Gamma (σ + t * Complex.I) hne).continuousAt
+    have hline_cont :
+        ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
+      fun_prop
+    exact
+      (Complex.differentiableAt_Gamma
+        (σ + t * Complex.I) hne).continuousAt.comp t hline_cont
   have hcompact : IsCompact (Set.Icc (-T) T) :=
     isCompact_Icc
   have hbound :
@@ -165,7 +170,55 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
       ∀ t : ℝ,
         ‖t‖ ≤ T →
           ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C := by
-  sorry
+  have hcont :
+      Continuous
+        (fun t : ℝ => (Complex.Gamma (σ + t * Complex.I))⁻¹) := by
+    refine continuous_iff_continuousAt.2 ?_
+    intro t
+    have hpoint_re_pos : 0 < (σ + t * Complex.I : ℂ).re := by
+      simpa using hσ
+    have hne : Complex.Gamma (σ + t * Complex.I) ≠ 0 :=
+      Complex.Gamma_ne_zero_of_re_pos hpoint_re_pos
+    have hgamma_cont :
+        ContinuousAt (fun t : ℝ => Complex.Gamma (σ + t * Complex.I)) t := by
+      have havoid : ∀ m : ℕ, (σ + t * Complex.I : ℂ) ≠ -m := by
+        intro m hm
+        have hre_eq : (σ + t * Complex.I : ℂ).re = (-(m : ℂ)).re :=
+          congrArg Complex.re hm
+        have hright : (-(m : ℂ)).re = -(m : ℝ) := by
+          simp
+        have hleft : (σ + t * Complex.I : ℂ).re = σ := by
+          simp
+        have hσ_nonpos : σ ≤ 0 := by
+          calc
+            σ = (σ + t * Complex.I : ℂ).re := hleft.symm
+            _ = (-(m : ℂ)).re := hre_eq
+            _ = -(m : ℝ) := hright
+            _ ≤ 0 := by
+              exact neg_nonpos.mpr (Nat.cast_nonneg m)
+        exact (not_le_of_gt hσ) hσ_nonpos
+      exact
+        (Complex.differentiableAt_Gamma
+          (σ + t * Complex.I) havoid).continuousAt.comp t (by fun_prop)
+    exact hgamma_cont.inv hne
+  have hcompact : IsCompact (Set.Icc (-T) T) :=
+    isCompact_Icc
+  have hbound :
+      ∃ C : ℝ,
+        ∀ t : ℝ,
+          t ∈ Set.Icc (-T) T →
+            ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C :=
+    hcompact.exists_bound_of_continuousOn' hcont.continuousOn
+  rcases hbound with ⟨C0, hC0⟩
+  refine ⟨max C0 1, ?_, ?_⟩
+  · exact lt_of_lt_of_le zero_lt_one (le_max_right C0 1)
+  · intro t ht
+    have hmem : t ∈ Set.Icc (-T) T :=
+      ⟨neg_le.2 (le_of_abs_le ht), le_of_abs_le ht⟩
+    have hleC0 :
+        ‖(Complex.Gamma (σ + t * Complex.I))⁻¹‖ ≤ C0 :=
+      hC0 t hmem
+    exact le_trans hleC0 (le_max_left C0 1)
 
 /-- Compact and large-vertical reciprocal estimates assemble to the global
 fixed-line exponential reciprocal bound. -/
