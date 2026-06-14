@@ -2266,6 +2266,88 @@ theorem entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
       hpoint
       (hiff.mpr hold)
 
+/-- The old `EntireFunctionZero` radial-gap sum agrees with the canonical
+nonzero-zero radial-gap sum. -/
+theorem entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ) :
+    (∑' z : EntireFunctionNonzeroZero F,
+        entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
+      ∑' z : EntireFunctionZero F,
+        entireFunctionJensenRadialGapSummand F hF ρ z := by
+  let i : EntireFunctionNonzeroZero F → EntireFunctionZero F :=
+    EntireFunctionNonzeroZero.toZero F
+  have hi : Function.Injective i :=
+    EntireFunctionNonzeroZero.toZero_injective F
+  have houtside :
+      ∀ z : EntireFunctionZero F,
+        z ∉ Set.range i →
+        entireFunctionJensenRadialGapSummand F hF ρ z = 0 := by
+    intro z hz_not_range
+    have hz_zero : (z : ℂ) = 0 := by
+      by_contra hz_ne
+      exact hz_not_range
+        ((EntireFunctionNonzeroZero.mem_range_toZero_iff F z).mpr hz_ne)
+    unfold entireFunctionJensenRadialGapSummand
+    exact if_pos hz_zero
+  have hpoint :
+      (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ (i z)) =
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) := by
+    funext z
+    unfold entireFunctionJensenRadialGapSummand
+    unfold entireFunctionNonzeroZeroRadialGapSummand
+    have hz_ne : ((i z : EntireFunctionZero F) : ℂ) ≠ 0 := z.property.2
+    exact if_neg hz_ne
+  calc
+    (∑' z : EntireFunctionNonzeroZero F,
+        entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
+        ∑' z : EntireFunctionNonzeroZero F,
+          entireFunctionJensenRadialGapSummand F hF ρ (i z) := by
+      exact congrArg
+        (fun f : EntireFunctionNonzeroZero F → ℝ => ∑' z, f z)
+        hpoint.symm
+    _ =
+        ∑' z : EntireFunctionZero F,
+          entireFunctionJensenRadialGapSummand F hF ρ z :=
+      hi.tsum_eq houtside
+
+/-- The canonical nonzero-zero radial-gap sum is invariant under the origin
+Taylor quotient equivalence. -/
+theorem entireFunction_originTaylorFactor_nonzeroRadialGap_tsum_eq_quotient
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    (ρ : ℝ) :
+    (∑' z : EntireFunctionNonzeroZero F,
+        entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
+      ∑' z : EntireFunctionNonzeroZero G,
+        entireFunctionNonzeroZeroRadialGapSummand G hG ρ z := by
+  let e : EntireFunctionNonzeroZero F ≃ EntireFunctionNonzeroZero G :=
+    entireFunction_originTaylorFactor_nonzeroZeroEquiv F G hF hfactor
+  calc
+    (∑' z : EntireFunctionNonzeroZero F,
+        entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) =
+        ∑' z : EntireFunctionNonzeroZero F,
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ (e z) := by
+      exact congrArg
+        (fun f : EntireFunctionNonzeroZero F → ℝ => ∑' z, f z)
+        (funext
+          (fun z =>
+            (entireFunction_originTaylorFactor_nonzeroRadialGapSummand_equiv
+              F G hF hG hfactor ρ z).symm))
+    _ =
+        ∑' z : EntireFunctionNonzeroZero G,
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ z :=
+      e.tsum_eq
+        (fun z : EntireFunctionNonzeroZero G =>
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ z)
+
 /-- Closed-disk nonzero-zero summability transports from the global origin
 Taylor quotient back to the original entire function. -/
 theorem entireFunction_originTaylorFactor_nonzeroClosedDiskSummable_of_quotient
@@ -2320,9 +2402,43 @@ theorem entireFunction_originTaylorFactor_radialGapSum_eq_quotient_radialGapSum
         entireFunctionJensenRadialGapSummand F hF ρ z) ∧
       entireFunctionJensenRadialGapSum F hF ρ =
         entireFunctionJensenRadialGapSum G hG ρ := by
-  -- The nonzero-zero bijection preserves the radial coordinate and the
-  -- analytic multiplicity away from the removed origin factor.
-  sorry
+  have hGcanonical :
+      Summable
+        (fun z : EntireFunctionNonzeroZero G =>
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ z) :=
+    (entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
+      G hG ρ).mpr hGsum
+  have hFcanonical :
+      Summable
+        (fun z : EntireFunctionNonzeroZero F =>
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z) :=
+    entireFunction_originTaylorFactor_nonzeroRadialGapSummable_canonical
+      F G hF hG hfactor hGcanonical
+  have hFsum :
+      Summable
+        (fun z : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ z) :=
+    (entireFunctionNonzeroZeroRadialGapSummable_canonical_iff_zeroSubtype
+      F hF ρ).mp hFcanonical
+  refine ⟨hFsum, ?_⟩
+  unfold entireFunctionJensenRadialGapSum
+  calc
+    (∑' z : EntireFunctionZero F,
+        entireFunctionJensenRadialGapSummand F hF ρ z) =
+        ∑' z : EntireFunctionNonzeroZero F,
+          entireFunctionNonzeroZeroRadialGapSummand F hF ρ z := by
+      exact
+        (entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum
+          F hF ρ).symm
+    _ =
+        ∑' z : EntireFunctionNonzeroZero G,
+          entireFunctionNonzeroZeroRadialGapSummand G hG ρ z :=
+      entireFunction_originTaylorFactor_nonzeroRadialGap_tsum_eq_quotient
+        F G hF hG hfactor ρ
+    _ =
+        ∑' z : EntireFunctionZero G,
+          entireFunctionJensenRadialGapSummand G hG ρ z :=
+      entireFunctionNonzeroZeroRadialGap_tsum_eq_zeroSubtype_tsum G hG ρ
 
 /-- Boundary logarithmic averages transport through the global origin Taylor
 quotient with the explicit `m log ρ` contribution from the removed origin
