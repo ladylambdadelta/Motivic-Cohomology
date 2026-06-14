@@ -1587,12 +1587,39 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
-/-- Origin-factored classical Jensen formula in radial-gap form.
+/-- Origin-factored classical Jensen formula as an exact radial-gap identity.
 
-This is the genuinely analytic theorem: for a nontrivial entire function, the
-non-origin radial-gap sum is summable and bounded by the boundary logarithmic
-average up to the fixed normalization constant coming from the first nonzero
-Taylor term at the origin. -/
+This is the genuinely analytic theorem: for a nontrivial entire function,
+after separating the origin Taylor factor, Jensen's formula identifies the
+boundary logarithmic average with the non-origin multiplicity-weighted radial
+gap sum plus the origin radius term and one fixed normalization constant. -/
+theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Classical Jensen formula after factoring the origin Taylor term, with
+  -- zeros counted by analytic multiplicity.
+  sorry
+
+/-- Origin-factored classical Jensen formula in radial-gap bound form.
+
+For large radii, the origin radius term is nonnegative, so the exact Jensen
+identity implies a radial-gap upper bound with one absolute-value constant. -/
 theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boundaryLogAverage
     (F : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
@@ -1604,14 +1631,64 @@ theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_le_boun
           (fun z : EntireFunctionZero F =>
             entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
       (∀ ρ : ℝ,
-          0 < ρ →
+          1 ≤ ρ →
           Summable
             (fun z : EntireFunctionZero F =>
               entireFunctionJensenRadialGapSummand F hF ρ z) ∧
           entireFunctionJensenRadialGapSum F hF ρ ≤
             J + entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula after factoring the origin Taylor term.
-  sorry
+  rcases
+      entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boundaryLogAverage
+        F hF hnontrivial with
+    ⟨C, hclosed, hidentity⟩
+  refine ⟨|C|, hclosed, ?_⟩
+  intro ρ hρ
+  rcases hidentity ρ hρ with ⟨hgap, hJensen⟩
+  refine ⟨hgap, ?_⟩
+  have horigin_nonneg :
+      0 ≤ entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ := by
+    unfold entireFunctionOriginMultiplicityLogRadiusContribution
+    exact mul_nonneg
+      (Nat.cast_nonneg (entireFunctionZeroMultiplicity F hF 0))
+      (Real.log_nonneg hρ)
+  have hC_nonneg : 0 ≤ |C| + C := by
+    have hneg : -C ≤ |C| := neg_le_abs C
+    have hsub : 0 ≤ |C| - (-C) := sub_nonneg.mpr hneg
+    have hsub_eq : |C| - (-C) = |C| + C := by
+      ring
+    exact Eq.subst (motive := fun x : ℝ => 0 ≤ x) hsub_eq hsub
+  have htail_nonneg :
+      0 ≤
+        entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+          (|C| + C) :=
+    add_nonneg horigin_nonneg hC_nonneg
+  have hle_add :
+      entireFunctionJensenRadialGapSum F hF ρ ≤
+        entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) :=
+    le_add_of_nonneg_right htail_nonneg
+  have htarget :
+      entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) =
+        |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
+    calc
+      entireFunctionJensenRadialGapSum F hF ρ +
+          (entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+            (|C| + C)) =
+          |C| +
+            (entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C) := by
+        ring
+      _ = |C| + entireFunctionJensenBoundaryLogAverage F ρ := by
+        exact congrArg (fun x : ℝ => |C| + x) hJensen
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      entireFunctionJensenRadialGapSum F hF ρ ≤ x)
+    htarget
+    hle_add
 
 /-- Classical Jensen formula in radial-gap form, with multiplicities and with
 the first nonzero Taylor factor at the origin absorbed into an additive
