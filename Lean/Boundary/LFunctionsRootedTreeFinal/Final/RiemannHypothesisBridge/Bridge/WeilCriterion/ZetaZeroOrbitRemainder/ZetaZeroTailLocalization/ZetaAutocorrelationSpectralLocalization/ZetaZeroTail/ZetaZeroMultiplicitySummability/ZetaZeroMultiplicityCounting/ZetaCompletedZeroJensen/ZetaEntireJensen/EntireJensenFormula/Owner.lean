@@ -1250,6 +1250,46 @@ noncomputable def entireFunctionOriginMultiplicityLogRadiusContribution
     (ρ : ℝ) : ℝ :=
   (entireFunctionZeroMultiplicity F hF 0 : ℝ) * Real.log ρ
 
+/-- A nonzero value at the origin has analytic multiplicity zero. -/
+theorem entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    entireFunctionZeroMultiplicity F hF 0 = 0 := by
+  have horder : (hF 0).order = (0 : ENat) := by
+    exact
+      ((hF 0).order_eq_nat_iff 0).mpr
+        ⟨F, hF 0, hF0, eventually_of_forall
+          (fun w => by
+            calc
+              F w = 1 • F w := (one_smul ℂ (F w)).symm
+              _ = (w - 0) ^ 0 • F w := by
+                exact congrArg (fun a : ℂ => a • F w) (pow_zero (w - 0)).symm)⟩
+  unfold entireFunctionZeroMultiplicity
+  rw [horder]
+  rfl
+
+/-- The fixed origin Taylor contribution vanishes when `F 0 ≠ 0`. -/
+theorem entireFunctionOriginMultiplicityLogContribution_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    entireFunctionOriginMultiplicityLogContribution F hF = 0 := by
+  unfold entireFunctionOriginMultiplicityLogContribution
+  rw [entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero F hF hF0]
+  rfl
+
+/-- The radius-dependent origin Taylor contribution vanishes when `F 0 ≠ 0`. -/
+theorem entireFunctionOriginMultiplicityLogRadiusContribution_eq_zero_of_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ) :
+    entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ = 0 := by
+  unfold entireFunctionOriginMultiplicityLogRadiusContribution
+  rw [entireFunctionZeroMultiplicity_origin_eq_zero_of_ne_zero F hF hF0]
+  rfl
+
 /-- The origin-supported closed-disk summand is bounded by the fixed origin
 Taylor contribution. -/
 theorem entireFunctionOriginZeroMultiplicityClosedDisk_tsum_mul_log_two_le_originContribution
@@ -1668,6 +1708,68 @@ theorem entireFunctionZeroMultiplicityClosedDiskSummable_of_nonzeroClosedDiskSum
           (entireFunctionZeroMultiplicityClosedDiskSummand_eq_nonzero_add_origin
             F hF R z).symm)
 
+/-- Classical Jensen formula for a nontrivial entire function whose value at
+the origin is nonzero.
+
+This is the standard analytic Jensen identity before the origin Taylor factor
+is separated: the multiplicity-weighted radial gap over nonzero zeros equals
+the boundary logarithmic average up to the fixed normalization constant
+`log ‖F 0‖`.  The current statement records that constant existentially so the
+downstream zero-counting lane does not depend on a particular normalization of
+the logarithmic average. -/
+theorem entireFunction_classicalJensenFormula_nonzeroAtOrigin_radialGapSum_eq_boundaryLogAverage
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ + C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Classical Jensen formula in the `F 0 ≠ 0` normalization, with zeros
+  -- counted by analytic multiplicity.
+  sorry
+
+/-- Transport of the nonzero-at-origin Jensen identity through the origin
+Taylor factor.
+
+If `F(z) = z^m G(z)` near the origin and `G 0 ≠ 0`, the boundary average gains
+the explicit term `m log ρ`, while the nonzero radial-gap and closed-disk
+summability data are transported unchanged from the normalized factor.  This is
+the exact owner theorem that separates the algebraic origin factor from the
+classical Jensen identity for a function nonzero at the origin. -/
+theorem entireFunction_classicalJensenFormula_originTaylorFactor_transport
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hnontrivial : ∃ z : ℂ, F z ≠ 0) :
+    ∃ C : ℝ,
+      (∀ R : ℝ,
+        1 ≤ R →
+        Summable
+          (fun z : EntireFunctionZero F =>
+            entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF R z)) ∧
+      (∀ ρ : ℝ,
+          1 ≤ ρ →
+          Summable
+            (fun z : EntireFunctionZero F =>
+              entireFunctionJensenRadialGapSummand F hF ρ z) ∧
+          entireFunctionJensenRadialGapSum F hF ρ +
+              entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
+              C =
+            entireFunctionJensenBoundaryLogAverage F ρ) := by
+  -- Factor `F` by its origin order and apply the nonzero-at-origin Jensen
+  -- identity to the analytic unit.  The origin power contributes exactly
+  -- `m * log ρ` to the boundary average.
+  sorry
+
 /-- Origin-factored classical Jensen formula as an exact radial-gap identity.
 
 This is the genuinely analytic theorem: for a nontrivial entire function,
@@ -1693,9 +1795,9 @@ theorem entireFunction_classicalJensenFormula_originFactoredRadialGapSum_eq_boun
               entireFunctionOriginMultiplicityLogRadiusContribution F hF ρ +
               C =
             entireFunctionJensenBoundaryLogAverage F ρ) := by
-  -- Classical Jensen formula after factoring the origin Taylor term, with
-  -- zeros counted by analytic multiplicity.
-  sorry
+  exact
+    entireFunction_classicalJensenFormula_originTaylorFactor_transport
+      F hF hnontrivial
 
 /-- Origin-factored classical Jensen formula in radial-gap bound form.
 
