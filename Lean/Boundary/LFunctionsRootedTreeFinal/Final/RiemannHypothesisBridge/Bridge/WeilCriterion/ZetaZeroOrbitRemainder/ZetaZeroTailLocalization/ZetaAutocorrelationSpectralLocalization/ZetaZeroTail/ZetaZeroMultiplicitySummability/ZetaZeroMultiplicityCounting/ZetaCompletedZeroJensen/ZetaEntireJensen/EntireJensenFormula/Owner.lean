@@ -3707,6 +3707,39 @@ theorem entireFunctionJensenQuotientBoundaryZeroParameters_finite_of_injectiveOn
         (Or.inr ⟨⟨lt_of_le_of_ne hθ.1.1 hθ0.symm, hθ.1.2⟩, hθ.2⟩)
   exact (hIocFinite.insert (0 : ℝ)).subset hsubset
 
+/-- The finite-exception data needed by origin Taylor boundary-integral
+transport: the quotient-zero exceptional set is finite, and away from it the
+boundary logarithmic integrands differ by the constant origin contribution. -/
+theorem entireFunction_originTaylorFactor_boundaryLogIntegrand_finiteExceptionCertificate
+    (F G : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hfactor :
+      ∀ z : ℂ,
+        F z = z ^ entireFunctionZeroMultiplicity F hF 0 • G z)
+    {R : ℝ}
+    (hR_pos : 0 < R)
+    (hInj :
+      Set.InjOn
+        (fun θ : ℝ => (R : ℂ) * Complex.exp (θ * Complex.I))
+        (Set.Ioc 0 (2 * Real.pi)))
+    (hCircle : Set.Finite {z : ℂ | ‖z‖ = R ∧ G z = 0}) :
+    (entireFunctionJensenQuotientBoundaryZeroParameters G R).Finite ∧
+      ∀ θ : ℝ,
+        θ ∈ Set.Icc 0 (2 * Real.pi) →
+        θ ∉ entireFunctionJensenQuotientBoundaryZeroParameters G R →
+        entireFunctionJensenBoundaryLogIntegrand F R θ =
+          entireFunctionOriginMultiplicityLogRadiusContribution F hF R +
+            entireFunctionJensenBoundaryLogIntegrand G R θ := by
+  have hfinite :
+      (entireFunctionJensenQuotientBoundaryZeroParameters G R).Finite :=
+    entireFunctionJensenQuotientBoundaryZeroParameters_finite_of_injectiveOn
+      G R hR_pos.le hInj hCircle
+  refine ⟨hfinite, ?_⟩
+  intro θ hθI hθnot
+  exact
+    entireFunction_originTaylorFactor_boundaryLogIntegrand_eq_off_quotientZeroParameters
+      F G hF hfactor hR_pos hθnot hθI
+
 /-- A positive-radius Jensen boundary sample is away from the origin. -/
 theorem entireFunctionJensenBoundaryCircle_sample_ne_zero_of_pos
     {R θ : ℝ}
