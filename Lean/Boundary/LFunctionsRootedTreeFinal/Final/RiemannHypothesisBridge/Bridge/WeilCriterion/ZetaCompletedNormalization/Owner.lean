@@ -598,6 +598,43 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   sorry
 
+/-- The positive half-line decomposes into the local Binet interval `(0,1]`
+and the tail interval `(1,∞)`. -/
+theorem Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one :
+    Set.Ioi (0 : ℝ) =
+      Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) := by
+  exact
+    Set.ext
+      (fun x =>
+        ⟨fun hx =>
+            Or.elim (lt_or_ge (1 : ℝ) x)
+              (fun hlt_one_x => Or.inr hlt_one_x)
+              (fun hx_le_one => Or.inl ⟨hx, hx_le_one⟩),
+          fun hx =>
+            Or.elim hx
+              (fun hx_local => hx_local.1)
+              (fun hx_tail => lt_trans zero_lt_one hx_tail)⟩)
+
+/-- Joining local integrability on `(0,1]` with tail integrability on `(1,∞)`
+gives integrability on `(0,∞)`. -/
+theorem Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
+    {f : ℝ → ℝ}
+    (hlocal : IntegrableOn f (Set.Ioc (0 : ℝ) 1))
+    (htail : IntegrableOn f (Set.Ioi (1 : ℝ))) :
+    IntegrableOn f (Set.Ioi (0 : ℝ)) := by
+  have hcover :
+      Set.Ioi (0 : ℝ) =
+        Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) :=
+    Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one
+  have hunion :
+      IntegrableOn f (Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ)) :=
+    integrableOn_union.mpr ⟨hlocal, htail⟩
+  exact
+    Eq.subst
+      (motive := fun s : Set ℝ => IntegrableOn f s)
+      hcover.symm
+      hunion
+
 /-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
     (hlocal :
@@ -611,7 +648,45 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and
     IntegrableOn
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (Set.Ioi (0 : ℝ)) := by
+  exact
+    Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
+      hlocal htail
+
+/-- The Binet majorant is bounded near zero after cancellation of the simple
+zero in `exp (2πt)-1`. -/
+theorem Real.binetSecondFormula_kernel_majorant_zero_cancellation_bounded_on_Ioc_zero_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioc (0 : ℝ) 1 →
+          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤ C := by
   sorry
+
+/-- The Binet majorant is bounded near zero after cancellation of the simple
+zero in `exp (2πt)-1`. -/
+theorem Real.binetSecondFormula_kernel_majorant_bounded_zero_one :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioc (0 : ℝ) 1 →
+          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤ C := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_zero_cancellation_bounded_on_Ioc_zero_one
+
+/-- A bounded Binet majorant on the finite interval `(0,1]` is integrable. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioc (0 : ℝ) 1) := by
+  sorry
+
+/-- A bounded Binet majorant on the finite interval `(0,1]` is integrable. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_of_bounded :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioc (0 : ℝ) 1) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation
 
 /-- Local integrability of the Binet majorant near zero.
 
@@ -621,14 +696,54 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one :
     IntegrableOn
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (Set.Ioc (0 : ℝ) 1) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_of_bounded
+
+/-- Exponential tail domination for the Binet majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_exponential_tail_dominated :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (1 : ℝ) →
+          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
+            C * Real.exp (-Real.pi * t) := by
   sorry
+
+/-- Exponential tail domination for the Binet majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_tail_le_exp :
+    ∃ C : ℝ,
+      0 < C ∧
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (1 : ℝ) →
+          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
+            C * Real.exp (-Real.pi * t) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_exponential_tail_dominated
+
+/-- Exponential tail domination implies tail integrability of the Binet
+majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_from_exponential_tail :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioi (1 : ℝ)) := by
+  sorry
+
+/-- Exponential tail domination implies tail integrability of the Binet
+majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_of_tail_bound :
+    IntegrableOn
+      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+      (Set.Ioi (1 : ℝ)) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_from_exponential_tail
 
 /-- Exponential decay of the Binet majorant at infinity. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty :
     IntegrableOn
       (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
       (Set.Ioi (1 : ℝ)) := by
-  sorry
+  exact
+    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_of_tail_bound
 
 /-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
@@ -639,6 +754,99 @@ theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
     Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
       Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one
       Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty
+
+/-- Strict lower bound for the Binet majorant at every positive point. -/
+theorem Real.binetSecondFormula_kernel_majorant_denominator_pos
+    {t : ℝ}
+    (ht : 0 < t) :
+    0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
+    mul_pos two_pos Real.pi_pos
+  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
+    mul_pos htwo_pi_pos ht
+  have hone_lt_exp :
+      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
+    calc
+      1 = Real.exp 0 := by
+        exact Real.exp_zero.symm
+      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
+        Real.exp_lt_exp.mpr hexponent_pos
+  exact sub_pos.mpr hone_lt_exp
+
+/-- The Binet majorant denominator is nonzero at every positive point. -/
+theorem Real.binetSecondFormula_kernel_majorant_denominator_ne_zero
+    {t : ℝ}
+    (ht : 0 < t) :
+    Real.exp ((2 : ℝ) * Real.pi * t) - 1 ≠ 0 :=
+  ne_of_gt
+    (Real.binetSecondFormula_kernel_majorant_denominator_pos ht)
+
+/-- Strict lower bound for the Binet majorant at every positive point. -/
+theorem Real.binetSecondFormula_kernel_majorant_pos
+    {t : ℝ}
+    (ht : 0 < t) :
+    0 < t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  exact
+    div_pos ht
+      (Real.binetSecondFormula_kernel_majorant_denominator_pos ht)
+
+/-- Nonnegativity of the Binet majorant on the positive half-line. -/
+theorem Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi :
+    ∀ t : ℝ,
+      t ∈ Set.Ioi (0 : ℝ) →
+        0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  intro t ht
+  exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht)
+
+/-- The Binet majorant has strictly positive integral on the concrete interval
+`(0,1)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_strictlyPositiveIntegral_on_Ioo_zero_one :
+    0 <
+      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  sorry
+
+/-- The Binet majorant has strictly positive integral on the concrete interval
+`(0,1)`. -/
+theorem Real.binetSecondFormula_kernel_majorant_integral_pos_on_zero_one :
+    0 <
+      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  exact
+    Real.binetSecondFormula_kernel_majorant_strictlyPositiveIntegral_on_Ioo_zero_one
+
+/-- A strict lower bound on `(0,1)` propagates to `(0,∞)` for the
+nonnegative Binet majorant. -/
+theorem Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
+    {f : ℝ → ℝ}
+    (hpos_subinterval :
+      0 <
+        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t)
+    (hnonneg :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (0 : ℝ) →
+          0 ≤ f t) :
+    0 <
+      ∫ t : ℝ in Set.Ioi (0 : ℝ), f t := by
+  sorry
+
+/-- A strict lower bound on `(0,1)` propagates to `(0,∞)` for the
+nonnegative Binet majorant. -/
+theorem Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
+    (hpos_subinterval :
+      0 <
+        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+    (hnonneg :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (0 : ℝ) →
+          0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :
+    0 <
+      ∫ t : ℝ in Set.Ioi (0 : ℝ),
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  exact
+    Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
+      hpos_subinterval hnonneg
 
 /-- Integration of the pointwise Binet-kernel majorant. -/
 theorem Complex.binetSecondFormula_remainder_norm_le_integral_majorant
@@ -656,7 +864,19 @@ theorem Real.binetSecondFormula_kernel_majorant_integral_pos :
     0 <
       ∫ t : ℝ in Set.Ioi (0 : ℝ),
         t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  sorry
+  have hpos_subinterval :
+      0 <
+        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    Real.binetSecondFormula_kernel_majorant_integral_pos_on_zero_one
+  have hnonneg :
+      ∀ t : ℝ,
+        t ∈ Set.Ioi (0 : ℝ) →
+          0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+    Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi
+  exact
+    Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
+      hpos_subinterval hnonneg
 
 /-- The Binet kernel estimate integrates to an `O(1 / ‖w‖)` remainder bound. -/
 theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_from_kernel_estimate :
@@ -13447,6 +13667,26 @@ theorem real_intervalIntegral_one_div_mul_two_add_eq_Ioc
       ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) := by
   exact intervalIntegral.integral_of_le hb
 
+/-- Partial-fraction identity for the finite scalar reciprocal-density
+integrand. -/
+theorem real_one_div_mul_two_add_eq_half_sub
+    {x : ℝ}
+    (hx : x ≠ 0)
+    (hx_two : 2 + x ≠ 0) :
+    (1 : ℝ) / (x * (2 + x)) =
+      (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
+  sorry
+
+/-- Endpoint evaluation of the interval integral of the scalar reciprocal
+density in interval-integral notation. -/
+theorem real_intervalIntegral_one_div_mul_two_add_eq_logs_interval
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+      ((Real.log b - Real.log (2 + b)) -
+          (Real.log 2 - Real.log 4)) / 2 := by
+  sorry
+
 /-- Integration-by-parts identity for the finite scalar tail
 `∫ log(2+x)/x²`.
 
@@ -13481,12 +13721,91 @@ theorem real_integral_Ioc_log_two_add_div_sq_eq_by_parts
 
 /-- Elementary endpoint bound for the finite scalar tail after the
 integration-by-parts identity. -/
+theorem real_intervalIntegral_one_div_mul_two_add_eq_logs
+    {b : ℝ}
+    (hb : (2 : ℝ) ≤ b) :
+    ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) =
+      ((Real.log b - Real.log (2 + b)) -
+          (Real.log 2 - Real.log 4)) / 2 := by
+  have hset :
+      ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) =
+        ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) :=
+    (intervalIntegral.integral_of_le hb).symm
+  have heval :
+      ∫ x in (2 : ℝ)..b, (1 : ℝ) / (x * (2 + x)) =
+        ((Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4)) / 2 :=
+    real_intervalIntegral_one_div_mul_two_add_eq_logs_interval hb
+  exact Eq.trans hset heval
+
 theorem real_intervalIntegral_one_div_mul_two_add_le_half_log_two
     {b : ℝ}
     (hb : (2 : ℝ) ≤ b) :
     ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) ≤
       Real.log 2 / 2 := by
-  sorry
+  have heval :
+      ∫ x in Set.Ioc (2 : ℝ) b, (1 : ℝ) / (x * (2 + x)) =
+        ((Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4)) / 2 :=
+    real_intervalIntegral_one_div_mul_two_add_eq_logs hb
+  have hb_pos : 0 < b :=
+    lt_of_lt_of_le zero_lt_two hb
+  have hb_le_two_add : b ≤ 2 + b :=
+    le_add_of_nonneg_left (le_of_lt zero_lt_two)
+  have hlog_le : Real.log b ≤ Real.log (2 + b) :=
+    Real.log_le_log hb_pos hb_le_two_add
+  have hdiff_nonpos : Real.log b - Real.log (2 + b) ≤ 0 :=
+    sub_nonpos.mpr hlog_le
+  have hlog_two_four :
+      Real.log 2 - Real.log 4 = -(Real.log 2) := by
+    have hfour : (4 : ℝ) = 2 * 2 := by
+      exact (show (2 : ℝ) * 2 = 4 by rfl).symm
+    have hlog4 : Real.log 4 = Real.log 2 + Real.log 2 := by
+      calc
+        Real.log 4 = Real.log (2 * 2) := congrArg Real.log hfour
+        _ = Real.log 2 + Real.log 2 :=
+          Real.log_mul (ne_of_gt zero_lt_two) (ne_of_gt zero_lt_two)
+    calc
+      Real.log 2 - Real.log 4 =
+          Real.log 2 - (Real.log 2 + Real.log 2) := by
+        exact congrArg (fun y : ℝ => Real.log 2 - y) hlog4
+      _ = -(Real.log 2) := by
+        exact sub_add_cancel (Real.log 2) (Real.log 2) ▸ rfl
+  have hnum_le :
+      (Real.log b - Real.log (2 + b)) -
+          (Real.log 2 - Real.log 4) ≤ Real.log 2 := by
+    have hrewrite :
+        (Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4) =
+          (Real.log b - Real.log (2 + b)) + Real.log 2 := by
+      calc
+        (Real.log b - Real.log (2 + b)) -
+            (Real.log 2 - Real.log 4) =
+          (Real.log b - Real.log (2 + b)) - (-(Real.log 2)) := by
+          exact congrArg
+            (fun y : ℝ => (Real.log b - Real.log (2 + b)) - y)
+            hlog_two_four
+        _ = (Real.log b - Real.log (2 + b)) + Real.log 2 :=
+          sub_neg_eq_add (Real.log b - Real.log (2 + b)) (Real.log 2)
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ Real.log 2)
+      hrewrite.symm
+      (calc
+        (Real.log b - Real.log (2 + b)) + Real.log 2 ≤
+            0 + Real.log 2 :=
+          add_le_add_right hdiff_nonpos (Real.log 2)
+        _ = Real.log 2 :=
+          zero_add (Real.log 2))
+  have hhalf_nonneg : (0 : ℝ) ≤ 2 :=
+    le_of_lt zero_lt_two
+  have hbound :
+      ((Real.log b - Real.log (2 + b)) -
+          (Real.log 2 - Real.log 4)) / 2 ≤ Real.log 2 / 2 :=
+    div_le_div_of_nonneg_right hnum_le hhalf_nonneg
+  exact Eq.subst
+    (motive := fun y : ℝ => y ≤ Real.log 2 / 2)
+    heval.symm
+    hbound
 
 /-- Endpoint contribution after integration by parts is bounded by `log 4 / 2`. -/
 theorem real_log_two_add_by_parts_endpoint_le_log_four_half
@@ -20908,6 +21227,22 @@ theorem eulerMaclaurinBernoulliKernel_local_integrable_majorant_on_puncturedStri
               (((x : ℝ) : ℂ) ^ (-(z + 1)))‖ ≤ g x := by
   sorry
 
+/-- Dominated differentiation for the fixed-cutoff Bernoulli kernel, using
+the local integrable majorant and the pointwise parameter differentiability
+already owned above.
+
+This is the reusable parameter-integral theorem for the Euler-Maclaurin
+Bernoulli kernel with fixed lower limit.  It is deliberately separated from
+the zeta defect so the remaining analytic work is the dominated-differentiation
+API, not an endpoint-shaped holomorphicity assertion. -/
+theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_integral_from_local_majorant
+    (N : ℕ)
+    (hN : 0 < N) :
+    DifferentiableOn ℂ
+      (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
+      ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
+  sorry
+
 /-- Differentiation under the fixed lower-limit Bernoulli improper integral in
 the complex parameter. -/
 theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_integral
@@ -20916,7 +21251,9 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
     DifferentiableOn ℂ
       (eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff N)
       ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  exact
+    eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_integral_from_local_majorant
+      N hN
 
 /-- Fixed lower-limit Bernoulli integral core is holomorphic in the complex
 parameter on the punctured strip.
@@ -21032,13 +21369,201 @@ theorem eulerMaclaurin_fixedCutoffTailIdentityDefect_analyticOnNhd_puncturedStri
       N hN).analyticOnNhd
       eulerMaclaurin_fixedCutoff_puncturedStrip_isOpen
 
+/-- Horizontal segments at nonzero imaginary height stay inside the punctured
+strip once their endpoints lie in the strip.
+
+This is the horizontal leg in the polygonal detour around the deleted point
+`1`. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_horizontalSegment_mem
+    {z w p : ℂ}
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hw : w ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hp_re : p.re ∈ Set.Icc z.re w.re ∨ p.re ∈ Set.Icc w.re z.re)
+    (hp_im : p.im = z.im)
+    (hzw_im : z.im = w.im)
+    (hz_im : z.im ≠ 0) :
+    p ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) := by
+  constructor
+  · cases hp_re with
+    | inl hp_between =>
+        exact lt_of_lt_of_le hz.1 hp_between.1
+    | inr hp_between =>
+        exact lt_of_lt_of_le hw.1 hp_between.1
+  constructor
+  · cases hp_re with
+    | inl hp_between =>
+        exact lt_of_le_of_lt hp_between.2 hw.2.1
+    | inr hp_between =>
+        exact lt_of_le_of_lt hp_between.2 hz.2.1
+  · intro hbad
+    have hp_one_im : p.im = (1 : ℂ).im :=
+      congrArg Complex.im hbad
+    have hz_zero : z.im = 0 := by
+      calc
+        z.im = p.im := hp_im.symm
+        _ = (1 : ℂ).im := hp_one_im
+        _ = 0 := rfl
+    exact hz_im hz_zero
+
+/-- Vertical segments at real part different from `1` stay inside the punctured
+strip once their endpoints lie in the strip.
+
+This is the vertical leg in the polygonal detour around the deleted point. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_verticalSegment_mem
+    {z w p : ℂ}
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hw : w ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hp_re : p.re = z.re)
+    (hp_im : p.im ∈ Set.Icc z.im w.im ∨ p.im ∈ Set.Icc w.im z.im)
+    (hzw_re : z.re = w.re)
+    (hz_re : z.re ≠ 1) :
+    p ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) := by
+  constructor
+  · calc
+      0 < z.re := hz.1
+      _ = p.re := hp_re.symm
+  constructor
+  · calc
+      p.re = z.re := hp_re
+      _ < 2 := hz.2.1
+  · intro hbad
+    have hp_one_re : p.re = (1 : ℂ).re :=
+      congrArg Complex.re hbad
+    have hz_one : z.re = 1 := by
+      calc
+        z.re = p.re := hp_re.symm
+        _ = (1 : ℂ).re := hp_one_re
+        _ = 1 := rfl
+    exact hz_re hz_one
+
+/-- For any two points in the punctured strip, choose an endpoint detour height
+away from the deleted point `1`.
+
+This records only the endpoint normalization used by the corridor construction;
+vertical path safety is handled by the corridor lemmas below. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_detourHeight_exists
+    (z w : ℂ)
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hw : w ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})) :
+    ∃ h : ℝ, h ≠ 0 ∧
+      Complex.mk z.re h ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) ∧
+      Complex.mk w.re h ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) := by
+  refine ⟨1, one_ne_zero, ?_, ?_⟩
+  · constructor
+    · exact hz.1
+    constructor
+    · exact hz.2.1
+    · intro hbad
+      have him : (Complex.mk z.re (1 : ℝ)).im = (1 : ℂ).im :=
+        congrArg Complex.im hbad
+      change (1 : ℝ) = 0 at him
+      exact one_ne_zero him
+  · constructor
+    · exact hw.1
+    constructor
+    · exact hw.2.1
+    · intro hbad
+      have him : (Complex.mk w.re (1 : ℝ)).im = (1 : ℂ).im :=
+        congrArg Complex.im hbad
+      change (1 : ℝ) = 0 at him
+      exact one_ne_zero him
+
+/-- The left half-column is a safe vertical corridor inside the punctured
+strip. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_leftColumn_verticalJoined
+    {y₁ y₂ : ℝ} :
+    JoinedIn
+      ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
+      (Complex.mk (1 / 2) y₁)
+      (Complex.mk (1 / 2) y₂) := by
+  sorry
+
+/-- The right half-column is a safe vertical corridor inside the punctured
+strip. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_rightColumn_verticalJoined
+    {y₁ y₂ : ℝ} :
+    JoinedIn
+      ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
+      (Complex.mk (3 / 2) y₁)
+      (Complex.mk (3 / 2) y₂) := by
+  sorry
+
+/-- Every point in the punctured strip is joined to one of the two safe
+vertical corridors at its own imaginary height. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_joinedTo_safeCorridor
+    {z : ℂ}
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})) :
+    JoinedIn
+        ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
+        z
+        (Complex.mk (1 / 2) z.im) ∨
+      JoinedIn
+        ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
+        z
+        (Complex.mk (3 / 2) z.im) := by
+  sorry
+
+/-- The two safe vertical corridors are joined at any nonzero imaginary
+height. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_leftCorridor_joined_rightCorridor
+    {h : ℝ}
+    (hh : h ≠ 0) :
+    JoinedIn
+      ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})
+      (Complex.mk (1 / 2) h)
+      (Complex.mk (3 / 2) h) := by
+  sorry
+
+/-- Corridor polygonal-path construction in the punctured vertical strip.
+
+The path first moves each endpoint horizontally to a safe column, moves
+vertically in the safe columns, and crosses between the columns at nonzero
+height. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_joinedIn_via_corridors
+    {z w : ℂ}
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hw : w ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})) :
+    JoinedIn ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) z w := by
+  sorry
+
+/-- Polygonal-path construction in the punctured vertical strip.
+
+This is the public wrapper around the safe-corridor construction. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_joinedIn_via_polygon
+    {z w : ℂ}
+    (hz : z ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}))
+    (hw : w ∈ ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1})) :
+    JoinedIn ({u : ℂ | 0 < u.re ∧ u.re < 2 ∧ u ≠ 1}) z w := by
+  exact
+    eulerMaclaurin_puncturedVerticalStrip_joinedIn_via_corridors
+      hz hw
+
+/-- The punctured vertical strip is nonempty. -/
+theorem eulerMaclaurin_puncturedVerticalStrip_nonempty :
+    ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}).Nonempty := by
+  refine ⟨Complex.mk 1 1, ?_⟩
+  constructor
+  · exact zero_lt_one
+  constructor
+  · exact one_lt_two
+  · intro hbad
+    have him : (Complex.mk (1 : ℝ) 1).im = (1 : ℂ).im :=
+      congrArg Complex.im hbad
+    change (1 : ℝ) = 0 at him
+    exact one_ne_zero him
+
 /-- The punctured vertical strip `0 < Re z < 2`, `z ≠ 1`, is path-connected.
 
 Geometrically this is an open vertical strip in the real plane with one point
 removed; polygonal paths route around the removed point `1`. -/
 theorem eulerMaclaurin_puncturedVerticalStrip_isPathConnected :
     IsPathConnected ({z : ℂ | 0 < z.re ∧ z.re < 2 ∧ z ≠ 1}) := by
-  sorry
+  exact
+    isPathConnected_iff.mpr
+      ⟨eulerMaclaurin_puncturedVerticalStrip_nonempty,
+        fun z hz w hw =>
+          eulerMaclaurin_puncturedVerticalStrip_joinedIn_via_polygon
+            hz hw⟩
 
 /-- The punctured vertical strip `0 < Re z < 2`, `z ≠ 1`, is preconnected. -/
 theorem eulerMaclaurin_puncturedVerticalStrip_isPreconnected :

@@ -2400,6 +2400,15 @@ noncomputable def realSinePowerGammaRatio
     Real.Gamma ((s + 1) / 2) /
       Real.Gamma (s / 2 + 1)
 
+/-- Real logarithmic derivative of the Gamma function on its regular locus.
+
+This is the classical digamma function `ψ(x) = Γ'(x) / Γ(x)`, expressed using
+`deriv` so it can consume mathlib's differentiability theorem for `Real.Gamma`.
+-/
+noncomputable def realGammaLogDeriv
+    (x : ℝ) : ℝ :=
+  deriv Real.Gamma x / Real.Gamma x
+
 /-- Beta/Gamma evaluation of the sine-power integral.
 
 This is the standard formula
@@ -2445,6 +2454,70 @@ theorem realSinePowerIntegral_hasDerivAt_zero :
   -- family `sin(u)^s` at `s = 0`.
   sorry
 
+/-- Legendre duplication in logarithmic-derivative form at `1/2`.
+
+This is the exact Gamma-function constant needed for the log-sine integral:
+`ψ(1) - ψ(1/2) = 2 log 2`.  It follows by differentiating
+`Γ(x) Γ(x+1/2) = Γ(2x) 2^(1-2x) sqrt π` at `x = 1/2` and cancelling
+nonzero Gamma values. -/
+theorem realGammaLogDeriv_one_sub_half_eq_two_log_two :
+    realGammaLogDeriv 1 - realGammaLogDeriv (1 / 2) =
+      2 * Real.log 2 := by
+  -- Deep standard Gamma-log-derivative value from Legendre duplication.
+  sorry
+
+/-- Reversed Legendre log-derivative difference at the half-point.
+
+This is the sign-normalized form used by the sine-power Gamma-ratio
+derivative. -/
+theorem realGammaLogDeriv_half_sub_one_eq_neg_two_log_two :
+    realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1 =
+      -(2 * Real.log 2) := by
+  calc
+    realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1 =
+        -(realGammaLogDeriv 1 - realGammaLogDeriv (1 / 2)) := by
+      exact sub_eq_neg_sub (realGammaLogDeriv (1 / 2)) (realGammaLogDeriv 1)
+    _ = -(2 * Real.log 2) := by
+      exact congrArg Neg.neg realGammaLogDeriv_one_sub_half_eq_two_log_two
+
+/-- The Gamma-ratio derivative value after inserting Legendre duplication.
+
+This is the scalar algebra separating the classical Gamma input from the
+ordinary derivative transport. -/
+theorem realSinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two :
+    Real.pi *
+        ((realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1) / 2) =
+      -Real.pi * Real.log 2 := by
+  calc
+    Real.pi *
+        ((realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1) / 2) =
+        Real.pi * (-(2 * Real.log 2) / 2) := by
+      exact congrArg
+        (fun x : ℝ => Real.pi * (x / 2))
+        realGammaLogDeriv_half_sub_one_eq_neg_two_log_two
+    _ = Real.pi * (-(Real.log 2)) := by
+      exact congrArg
+        (fun x : ℝ => Real.pi * x)
+        (neg_mul_div_two_cancel (Real.log 2))
+    _ = -Real.pi * Real.log 2 := by
+      exact neg_mul_eq_neg_mul Real.pi (Real.log 2)
+
+/-- Derivative of the sine-power Gamma-ratio in terms of Gamma logarithmic
+derivatives.
+
+For `R(s) = sqrt(π) Γ((s+1)/2) / Γ(s/2+1)`, the logarithmic derivative is
+`R'(0)/R(0) = (ψ(1/2)-ψ(1))/2`; since `R(0)=π`, the derivative is
+`π * (ψ(1/2)-ψ(1)) / 2`. -/
+theorem realSinePowerGammaRatio_hasDerivAt_zero_from_logDeriv :
+    HasDerivAt
+      realSinePowerGammaRatio
+      (Real.pi *
+        ((realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1) / 2))
+      0 := by
+  -- Gamma-ratio derivative from mathlib `Real.differentiableAt_Gamma`,
+  -- quotient differentiation, and `Γ(1/2)=sqrt π`, `Γ(1)=1`.
+  sorry
+
 /-- Derivative at zero of the Gamma-ratio for the sine-power integral.
 
 Using the Legendre duplication formula in logarithmic derivative form at
@@ -2455,9 +2528,18 @@ theorem realSinePowerGammaRatio_hasDerivAt_zero :
       realSinePowerGammaRatio
       (-Real.pi * Real.log 2)
       0 := by
-  -- Deep Gamma-ratio derivative: differentiate the Beta/Gamma formula at
-  -- `0` using `Real.Gamma_mul_Gamma_add_half` (Legendre duplication).
-  sorry
+  have hder :
+      HasDerivAt
+        realSinePowerGammaRatio
+        (Real.pi *
+          ((realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1) / 2))
+        0 :=
+    realSinePowerGammaRatio_hasDerivAt_zero_from_logDeriv
+  exact
+    Eq.subst
+      (motive := fun d : ℝ => HasDerivAt realSinePowerGammaRatio d 0)
+      realSinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two
+      hder
 
 /-- Identification of the derivative of the sine-power integral with the
 derivative of its Gamma-ratio model at exponent `0`. -/
@@ -11043,6 +11125,69 @@ theorem analyticAt_removable_div_normalizedCenteredPower
   refine ⟨Q, hQ_an, hpunctured, ?_⟩
   rfl
 
+/-- Global gluing after local removable division at the inserted support point.
+
+The local theorem supplies an analytic filled quotient near `a`, eventually
+equal on the punctured neighborhood to `Qold / (1 - w/a)^m`.  This theorem
+glues that local model with the ordinary quotient away from `a`, proves
+analyticity on the closed disk, and transports the finite-product identity via
+`Product(insert a S) = (1 - w/a)^m * Product(S)`. -/
+theorem entireFunction_insertNormalizedFactor_glue_localDivision
+    (F Qold g : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (hρ : 1 ≤ ρ)
+    (S : Finset (EntireFunctionZero F))
+    (a : EntireFunctionZero F)
+    (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
+    (ha0 : (a : ℂ) ≠ 0)
+    (hg_an : AnalyticAt ℂ g (a : ℂ))
+    (hg_ne : g (a : ℂ) ≠ 0)
+    (hg_factor :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        F w =
+          (w - (a : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (a : ℂ) •
+            g w)
+    (hQold_an : ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Qold w)
+    (hQold_factor :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Qold w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S w)
+    (hQold_zero : Qold 0 = F 0)
+    (hlocal_div :
+      ∃ Qloc : ℂ → ℂ,
+        AnalyticAt ℂ Qloc (a : ℂ) ∧
+        Qloc =ᶠ[𝓝[≠] (a : ℂ)]
+          (fun w : ℂ =>
+            Qold w /
+              ((1 - w / (a : ℂ)) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ))) ∧
+        Qloc (a : ℂ) =
+          g (a : ℂ) /
+            (((-(a : ℂ)⁻¹) ^
+                entireFunctionZeroMultiplicity F hF (a : ℂ)) *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF S (a : ℂ))) :
+    ∃ Q : ℂ → ℂ,
+      (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+      (∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w) ∧
+      Q 0 = F 0 := by
+  -- Exact global gluing theorem: define `Q` by the local filled quotient at
+  -- `a` and by `Qold / (1-w/a)^m` elsewhere; use `hlocal_div` for analyticity
+  -- at `a`, ordinary analytic division away from `a`, and product insertion
+  -- for the closed-disk factor identity and origin normalization.
+  sorry
+
 /-- Explicit old-quotient/local-unit form of one-step normalized removable
 division.
 
@@ -11089,10 +11234,13 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  -- Deep local analytic algebra theorem: construct `Q` by
-  -- `Qold / (1 - w/a)^m` on the punctured neighborhood and fill the point `a`
-  -- with `g a / (((-a⁻¹)^m) * ∏_{z ∈ S.erase a} (1 - a/z)^m_z)`.
-  -- The proof is removable singularity plus the normalized-factor identity.
+  -- Broad closed-disk insertion splits into two cases:
+  -- if `a` lies in the disk, instantiate
+  -- `analyticAt_removable_div_normalizedCenteredPower` at `a` and glue the
+  -- local filled quotient; if not, ordinary division by the nonvanishing
+  -- normalized factor is analytic at every disk point.  The current theorem
+  -- intentionally has no `‖a‖ ≤ ρ` hypothesis, so this global localization
+  -- step is the exact remaining gluing theorem.
   sorry
 
 /-- Insert one normalized zero factor into an analytic finite factorization.
