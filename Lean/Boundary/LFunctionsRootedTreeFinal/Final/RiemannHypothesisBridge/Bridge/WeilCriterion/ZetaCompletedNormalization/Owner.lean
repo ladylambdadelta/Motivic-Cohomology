@@ -12251,16 +12251,13 @@ theorem poleClearedRiemannZeta_completedFunctionalEquationMultiplier_denominator
     exact hz_ne_one hz_one
   have hone_sub_minus_one_ne_zero : (((1 : ℂ) - z) - 1) ≠ 0 := by
     intro hden
-    have hden_add : (((1 : ℂ) - z) - 1) + z = 0 + z :=
-      congrArg (fun w : ℂ => w + z) hden
-    have hleft_zero : (((1 : ℂ) - z) - 1) + z = 0 := by
-      sorry
-    have hz_zero : z = 0 := by
+    have hneg_zero : -z = 0 := by
       calc
-        z = 0 + z := by
-          exact (zero_add z).symm
-        _ = (((1 : ℂ) - z) - 1) + z := hden_add.symm
-        _ = 0 := hleft_zero
+        -z = ((1 : ℂ) - z) - 1 := by
+          exact (sub_sub_cancel (1 : ℂ) z).symm
+        _ = 0 := hden
+    have hz_zero : z = 0 := by
+      exact neg_eq_zero.mp hneg_zero
     exact hz_ne_zero hz_zero
   exact ⟨hz_ne_one, hone_sub_ne_zero, hone_sub_minus_one_ne_zero, hGamma_ne⟩
 
