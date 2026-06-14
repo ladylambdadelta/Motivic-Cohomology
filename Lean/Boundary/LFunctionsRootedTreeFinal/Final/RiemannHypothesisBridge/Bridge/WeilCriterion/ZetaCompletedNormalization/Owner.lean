@@ -3989,7 +3989,23 @@ theorem Real.arctan_le_self_of_nonneg
     {t : ℝ}
     (ht : 0 ≤ t) :
     Real.arctan t ≤ t := by
-  sorry
+  have harctan_nonneg : 0 ≤ Real.arctan t := by
+    have hzero_le :
+        Real.arctan 0 ≤ Real.arctan t :=
+      Real.arctan_strictMono.monotone ht
+    exact Eq.subst
+      (motive := fun r : ℝ => r ≤ Real.arctan t)
+      Real.arctan_zero
+      hzero_le
+  have harctan_lt_half_pi : Real.arctan t < Real.pi / 2 :=
+    Real.arctan_lt_pi_div_two t
+  have hle_tan :
+      Real.arctan t ≤ Real.tan (Real.arctan t) :=
+    Real.le_tan harctan_nonneg harctan_lt_half_pi
+  exact Eq.subst
+    (motive := fun r : ℝ => Real.arctan t ≤ r)
+    (Real.tan_arctan t)
+    hle_tan
 
 /-- Multiplicative form of `Real.arctan_le_self_of_nonneg` after the scale
 change `t = u / |y|`. -/
@@ -3997,7 +4013,32 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
     {u y : ℝ}
     (hu : 0 ≤ u) :
     ‖y‖ * Real.arctan (u / ‖y‖) ≤ u := by
-  sorry
+  by_cases hy_zero : ‖y‖ = 0
+  · have hleft_eq_zero :
+        ‖y‖ * Real.arctan (u / ‖y‖) = 0 := by
+      exact Eq.trans
+        (congrArg (fun r : ℝ => r * Real.arctan (u / ‖y‖)) hy_zero)
+        (zero_mul (Real.arctan (u / ‖y‖)))
+    exact Eq.subst
+      (motive := fun r : ℝ => r ≤ u)
+      hleft_eq_zero.symm
+      hu
+  · have hy_pos : 0 < ‖y‖ :=
+      lt_of_le_of_ne (norm_nonneg y) hy_zero.symm
+    have hratio_nonneg : 0 ≤ u / ‖y‖ :=
+      div_nonneg hu (le_of_lt hy_pos)
+    have harctan_le : Real.arctan (u / ‖y‖) ≤ u / ‖y‖ :=
+      Real.arctan_le_self_of_nonneg hratio_nonneg
+    have hmul :
+        ‖y‖ * Real.arctan (u / ‖y‖) ≤ ‖y‖ * (u / ‖y‖) :=
+      mul_le_mul_of_nonneg_left harctan_le (le_of_lt hy_pos)
+    have hcancel :
+        ‖y‖ * (u / ‖y‖) = u :=
+      mul_div_cancel₀ u hy_zero
+    exact Eq.subst
+      (motive := fun r : ℝ => ‖y‖ * Real.arctan (u / ‖y‖) ≤ r)
+      hcancel.symm
+      hmul
 
 /-- Exact arctangent form of the principal-argument defect on the ray `u + i y`
 inside the closed right half-plane. -/

@@ -2407,9 +2407,57 @@ theorem unitCircleLogKernel_translated_mean_zero
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
       0 := by
-  -- Periodic translation of the singular kernel over one full period, using
-  -- the finite-exception integrability API for the endpoint singularity.
-  sorry
+  let k : ℝ → ℝ :=
+    fun θ => Real.log ‖1 - Complex.exp (θ * Complex.I)‖
+  have hk_periodic : Function.Periodic k (2 * Real.pi) := by
+    exact Complex.exp_mul_I_periodic.comp
+      (fun z : ℂ => Real.log ‖1 - z‖)
+  have hshift :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi), k (θ - α)) =
+        ∫ θ in ((0 : ℝ) + -α)..((2 * Real.pi) + -α), k θ := by
+    exact intervalIntegral.integral_comp_add_right k (-α)
+  have hendpoints :
+      (∫ θ in ((0 : ℝ) + -α)..((2 * Real.pi) + -α), k θ) =
+        ∫ θ in (-α)..((-α) + (2 * Real.pi)), k θ := by
+    exact congrArg₂
+      (fun a b : ℝ => ∫ θ in a..b, k θ)
+      (zero_add (-α))
+      (add_comm (2 * Real.pi) (-α))
+  have hperiod :
+      (∫ θ in (-α)..((-α) + (2 * Real.pi)), k θ) =
+        ∫ θ in (0 : ℝ)..((0 : ℝ) + (2 * Real.pi)), k θ :=
+    hk_periodic.intervalIntegral_add_eq (-α) 0
+  have hunshift :
+      (∫ θ in (0 : ℝ)..((0 : ℝ) + (2 * Real.pi)), k θ) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi), k θ := by
+    exact congrArg
+      (fun b : ℝ => ∫ θ in (0 : ℝ)..b, k θ)
+      (zero_add (2 * Real.pi))
+  have hintegral :
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
+        ∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp (θ * Complex.I)‖ := by
+    calc
+      (∫ θ in (0 : ℝ)..(2 * Real.pi),
+          Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), k (θ - α)) := by
+        rfl
+      _ = ∫ θ in ((0 : ℝ) + -α)..((2 * Real.pi) + -α), k θ :=
+        hshift
+      _ = ∫ θ in (-α)..((-α) + (2 * Real.pi)), k θ :=
+        hendpoints
+      _ = ∫ θ in (0 : ℝ)..((0 : ℝ) + (2 * Real.pi)), k θ :=
+        hperiod
+      _ = ∫ θ in (0 : ℝ)..(2 * Real.pi), k θ :=
+        hunshift
+      _ =
+          ∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log ‖1 - Complex.exp (θ * Complex.I)‖ := by
+        rfl
+  exact Eq.trans
+    (congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) hintegral)
+    unitCircleLogKernel_mean_zero
 
 /-- Unit-circle boundary-zero logarithmic mean.
 
