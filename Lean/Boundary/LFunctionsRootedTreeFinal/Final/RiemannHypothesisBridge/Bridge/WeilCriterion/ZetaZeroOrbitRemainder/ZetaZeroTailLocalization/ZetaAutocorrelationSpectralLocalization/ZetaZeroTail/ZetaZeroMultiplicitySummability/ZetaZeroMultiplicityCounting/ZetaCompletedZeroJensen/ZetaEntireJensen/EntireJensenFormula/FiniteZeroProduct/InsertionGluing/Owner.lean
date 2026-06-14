@@ -639,11 +639,185 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
               entireFunctionZeroMultiplicity F hF (a : ℂ)) *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF S (a : ℂ)) := by
-  -- Exact root: use the local factorization of `F`, the old quotient identity
-  -- on punctured good points near `a`, and
-  -- `complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq` to identify
-  -- the punctured quotient with the constant local model forced by `g`.
-  sorry
+  let m : ℕ := entireFunctionZeroMultiplicity F hF (a : ℂ)
+  let oldProduct : ℂ → ℂ :=
+    fun w : ℂ =>
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+        F hF S w
+  let oldLocalModel : ℂ → ℂ :=
+    fun w : ℂ => ((w - (a : ℂ)) ^ m * g w) / oldProduct w
+  let insertedLocalModel : ℂ → ℂ :=
+    fun w : ℂ =>
+      g w /
+        (((-(a : ℂ)⁻¹) ^ m) * oldProduct w)
+  have hS_insert0 :
+      ∀ z : EntireFunctionZero F, z ∈ insert a S → (z : ℂ) ≠ 0 := by
+    intro z hz
+    have hz_cases : z = a ∨ z ∈ S :=
+      Finset.mem_insert.mp hz
+    cases hz_cases with
+    | inl hza =>
+        exact Eq.subst (motive := fun x : EntireFunctionZero F => (x : ℂ) ≠ 0) hza.symm ha0
+    | inr hzS =>
+        exact hS0 z hzS
+  have hgood :
+      ∃ᶠ w in 𝓝[≠] (a : ℂ),
+        w ≠ (a : ℂ) ∧
+        ‖w‖ ≤ ρ ∧
+          ∀ z : EntireFunctionZero F,
+            z ∈ S →
+              w ≠ (z : ℂ) := by
+    have hgood_insert :
+        ∃ᶠ w in 𝓝[≠] (a : ℂ),
+          w ≠ (a : ℂ) ∧
+          ‖w‖ ≤ ρ ∧
+            ∀ z : EntireFunctionZero F,
+              z ∈ (insert a S).erase a →
+                w ≠ (z : ℂ) :=
+      entireFunction_closedDisk_puncturedGoodPoints_frequently
+        F (insert a S) a (Finset.mem_insert_self a S) ha0 ρ haρ
+    exact
+      hgood_insert.mono
+        (fun w hw =>
+          ⟨hw.1, hw.2.1,
+            fun z hzS =>
+              hw.2.2 z
+                (Finset.mem_erase.mpr ⟨ha_not_mem.ne_of_mem hzS, Finset.mem_insert_of_mem hzS⟩)⟩)
+  have hlocal_punctured :
+      ∀ᶠ w in 𝓝[≠] (a : ℂ),
+        F w = (w - (a : ℂ)) ^ m * g w := by
+    have hlocal :
+        ∀ᶠ w in 𝓝 (a : ℂ),
+          F w = (w - (a : ℂ)) ^ m * g w :=
+      hg_factor.mono
+        (fun w hw =>
+          Eq.trans hw (smul_eq_mul ((w - (a : ℂ)) ^ m) (g w)))
+    exact hlocal.filter_mono nhdsWithin_le_nhds
+  have holdProduct_an :
+      AnalyticAt ℂ oldProduct (a : ℂ) := by
+    exact
+      entireFunction_finiteZeroDivisorProduct_analyticAt
+        F hF S (a : ℂ)
+  have holdProduct_ne :
+      oldProduct (a : ℂ) ≠ 0 := by
+    exact
+      entireFunction_finiteZeroDivisorProduct_nonzero_at_newSupport
+        F hF S a ha_not_mem hS0
+  have holdLocalModel_an :
+      AnalyticAt ℂ oldLocalModel (a : ℂ) := by
+    have hpow_an :
+        AnalyticAt ℂ (fun w : ℂ => (w - (a : ℂ)) ^ m) (a : ℂ) :=
+      (analyticAt_id.sub analyticAt_const).pow m
+    have hnum_an :
+        AnalyticAt ℂ (fun w : ℂ => (w - (a : ℂ)) ^ m * g w) (a : ℂ) :=
+      hpow_an.mul hg_an
+    exact hnum_an.div holdProduct_an holdProduct_ne
+  have hQold_model_frequently :
+      ∃ᶠ w in 𝓝[≠] (a : ℂ), Qold w = oldLocalModel w := by
+    exact
+      (hgood.and_eventually hlocal_punctured).mono
+        (fun w hw =>
+          let hwgood := hw.1
+          let hF_local := hw.2
+          have hproduct_ne : oldProduct w ≠ 0 :=
+            Finset.prod_ne_zero_iff.mpr
+              (fun z hz =>
+                pow_ne_zero
+                  (entireFunctionZeroMultiplicity F hF (z : ℂ))
+                  (fun hfactor =>
+                    hwgood.2.2 z hz
+                      ((entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
+                        F hF S
+                        (fun y hy => hS0 y hy)
+                        z hz w).1 hfactor).symm))
+          have hfactor_w :
+              F w = Qold w * oldProduct w :=
+            hQold_factor w hwgood.2.1
+          have hQold_mul :
+              Qold w * oldProduct w = (w - (a : ℂ)) ^ m * g w :=
+            Eq.trans hfactor_w.symm hF_local
+          calc
+            Qold w = (Qold w * oldProduct w) / oldProduct w := by
+              exact (mul_div_cancel₀ (Qold w) hproduct_ne).symm
+            _ = ((w - (a : ℂ)) ^ m * g w) / oldProduct w := by
+              exact congrArg (fun x : ℂ => x / oldProduct w) hQold_mul
+            _ = oldLocalModel w := rfl)
+  have hQold_model :
+      Qold =ᶠ[𝓝[≠] (a : ℂ)] oldLocalModel :=
+    analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
+      (hQold_an (a : ℂ) haρ)
+      holdLocalModel_an
+      hQold_model_frequently
+  have hinserted_an :
+      AnalyticAt ℂ insertedLocalModel (a : ℂ) := by
+    have hcoeff_an :
+        AnalyticAt ℂ
+          (fun _w : ℂ => (-(a : ℂ)⁻¹) ^ m)
+          (a : ℂ) :=
+      analyticAt_const
+    have hden_an :
+        AnalyticAt ℂ
+          (fun w : ℂ => ((-(a : ℂ)⁻¹) ^ m) * oldProduct w)
+          (a : ℂ) :=
+      hcoeff_an.mul holdProduct_an
+    have hcoeff_ne : (-(a : ℂ)⁻¹) ^ m ≠ 0 := by
+      have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+        inv_ne_zero ha0
+      have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+        neg_ne_zero.mpr hinv_ne
+      exact pow_ne_zero m hneg_ne
+    have hden_ne : ((-(a : ℂ)⁻¹) ^ m) * oldProduct (a : ℂ) ≠ 0 :=
+      mul_ne_zero hcoeff_ne holdProduct_ne
+    exact hg_an.div hden_an hden_ne
+  have hraw_eq_inserted :
+      insertedLocalModel =ᶠ[𝓝[≠] (a : ℂ)]
+        (fun w : ℂ =>
+          Qold w /
+            ((1 - w / (a : ℂ)) ^ m)) := by
+    have hpunctured :
+        ∀ᶠ w in 𝓝[≠] (a : ℂ), w ≠ (a : ℂ) :=
+      (eventually_mem_nhdsWithin :
+        ∀ᶠ w in 𝓝[≠] (a : ℂ), w ∈ ({(a : ℂ)}ᶜ : Set ℂ))
+    have hproduct_ne_eventual :
+        ∀ᶠ w in 𝓝[≠] (a : ℂ), oldProduct w ≠ 0 :=
+      (holdProduct_an.continuousAt.eventually_ne holdProduct_ne).filter_mono
+        nhdsWithin_le_nhds
+    exact
+      ((hQold_model.and_eventually hpunctured).and_eventually hproduct_ne_eventual).mono
+        (fun w hw =>
+          have hQw : Qold w = oldLocalModel w := hw.1.1
+          have hwa : w ≠ (a : ℂ) := hw.1.2
+          have hpow_ne : (w - (a : ℂ)) ^ m ≠ 0 :=
+            pow_ne_zero m (sub_ne_zero.mpr hwa)
+          have hcoeff_ne : (-(a : ℂ)⁻¹) ^ m ≠ 0 := by
+            have hinv_ne : (a : ℂ)⁻¹ ≠ 0 :=
+              inv_ne_zero ha0
+            have hneg_ne : -(a : ℂ)⁻¹ ≠ 0 :=
+              neg_ne_zero.mpr hinv_ne
+            exact pow_ne_zero m hneg_ne
+          have hprod_ne : oldProduct w ≠ 0 := hw.2
+          have hnorm :
+              (1 - w / (a : ℂ)) ^ m =
+                ((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m :=
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_normalizedFactor_pow_eq_localFactor
+              ha0 m
+          calc
+            insertedLocalModel w =
+                g w / (((-(a : ℂ)⁻¹) ^ m) * oldProduct w) := rfl
+            _ = (((w - (a : ℂ)) ^ m * g w) / oldProduct w) /
+                (((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m) := by
+              field_simp [hpow_ne, hcoeff_ne, hprod_ne]
+            _ = Qold w /
+                (((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m) := by
+              exact
+                congrArg
+                  (fun x : ℂ => x /
+                    (((-(a : ℂ)⁻¹) ^ m) * (w - (a : ℂ)) ^ m))
+                  hQw.symm
+            _ = Qold w / ((1 - w / (a : ℂ)) ^ m) := by
+              exact congrArg (fun x : ℂ => Qold w / x) hnorm.symm)
+  refine ⟨insertedLocalModel, hinserted_an, hraw_eq_inserted, ?_⟩
+  rfl
 
 /-- If the inserted zero lies outside the closed disk, insertion is ordinary
 division by a nonvanishing analytic normalized factor throughout the disk. -/
