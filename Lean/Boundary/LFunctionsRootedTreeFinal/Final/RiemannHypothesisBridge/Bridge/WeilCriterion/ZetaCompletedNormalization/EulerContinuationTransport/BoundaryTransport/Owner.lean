@@ -200,7 +200,7 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ *
           ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ := by
     have hnorm_raw := congrArg norm hfactor
-    simpa [norm_mul] using hnorm_raw
+    exact hnorm_raw
   exact Eq.subst
     (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
     hnorm_factor.symm
@@ -281,7 +281,22 @@ theorem riemannZeta_sub_one_eq_dirichletSeries_tail
   have hprefix :
       ∑ n ∈ Finset.range 2, f n = 1 := by
     dsimp [f]
-    simp [zero_cpow (Complex.ne_zero_of_one_lt_re h_one_lt_re)]
+    calc
+      (∑ n ∈ Finset.range 2, (1 : ℂ) / ((n : ℂ) ^ z)) =
+          (1 : ℂ) / ((0 : ℂ) ^ z) + (1 : ℂ) / ((1 : ℂ) ^ z) := by
+        norm_num
+      _ = 1 := by
+        have hzero : (0 : ℂ) ^ z = 0 := by
+          exact zero_cpow (Complex.ne_zero_of_one_lt_re h_one_lt_re)
+        have hone : (1 : ℂ) ^ z = 1 := by
+          norm_num
+        calc
+          (1 : ℂ) / ((0 : ℂ) ^ z) + (1 : ℂ) / ((1 : ℂ) ^ z)
+              = (1 : ℂ) / 0 + (1 : ℂ) / 1 := by
+                exact congrArg₂ HAdd.hAdd (congrArg (fun w : ℂ => (1 : ℂ) / w) hzero)
+                  (congrArg (fun w : ℂ => (1 : ℂ) / w) hone)
+          _ = 1 := by
+            norm_num
   have hone_add_tail_eq_zeta :
       1 + (∑' n : ℕ, f (n + 2)) = riemannZeta z := by
     calc

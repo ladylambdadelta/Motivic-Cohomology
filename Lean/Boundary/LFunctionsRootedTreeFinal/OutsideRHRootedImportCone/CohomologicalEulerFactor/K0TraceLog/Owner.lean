@@ -56,7 +56,6 @@ theorem tracePowerLogCoeff_pos
           (Boundary.EndomorphismK0.powerMapK0 K n x) / (n : K) := by
   exact if_neg hn
 
-@[simp]
 theorem coeff_tracePowerLog_zero (x : K0Class.{u, v} K) :
     PowerSeries.coeff K 0 (tracePowerLog K x) = 0 := by
   exact Eq.trans
@@ -247,7 +246,6 @@ theorem coeff_tracePowerLog_sub_at_index
         (congrArg (PowerSeries.coeff K n)
           (Eq.symm (sub_eq_add_neg (tracePowerLog K x) (tracePowerLog K y))))))
 
-@[simp]
 theorem tracePowerLog_zero :
     tracePowerLog K (0 : K0Class.{u, v} K) = 0 := by
   exact PowerSeries.ext (fun n =>
@@ -260,7 +258,6 @@ theorem tracePowerLog_add
     tracePowerLog K (x + y) = tracePowerLog K x + tracePowerLog K y := by
   exact PowerSeries.ext (fun n => coeff_tracePowerLog_add_at_index (K := K) x y n)
 
-@[simp]
 theorem tracePowerLog_neg
     (x : K0Class.{u, v} K) :
     tracePowerLog K (-x) = -tracePowerLog K x := by

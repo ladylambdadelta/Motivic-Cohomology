@@ -34,8 +34,7 @@ theorem ext {z w : CenteredZetaZero} (h : (z : ℂ) = w) : z = w := by
 /-- Reflection sends a centered zero to a centered zero. -/
 def reflect (z : CenteredZetaZero) : CenteredZetaZero :=
   ⟨-z, by
-    rw [centeredCompletedRiemannZeta_neg]
-    exact z.2⟩
+    exact (centeredCompletedRiemannZeta_neg z).trans z.2⟩
 
 /-- The reflection of a centered zero has coordinate `-z`. -/
 theorem reflect_coordinate (z : CenteredZetaZero) :

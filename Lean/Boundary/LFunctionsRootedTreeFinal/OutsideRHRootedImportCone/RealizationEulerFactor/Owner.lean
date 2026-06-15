@@ -305,14 +305,12 @@ def zetaFactor (P : FrobeniusCohomologyPackage.{u, v} K) :
 
 /-- The determinant Euler factor logarithm is the K₀ Euler logarithm of the
 package class. -/
-@[simp]
 theorem eulerFactor_log (P : FrobeniusCohomologyPackage.{u, v} K) :
     P.eulerFactor.log = Boundary.EulerFactorLog.eulerLog K P.k0Class :=
   rfl
 
 /-- The reciprocal zeta factor logarithm is the K₀ zeta logarithm of the
 package class. -/
-@[simp]
 theorem zetaFactor_log (P : FrobeniusCohomologyPackage.{u, v} K) :
     P.zetaFactor.log = Boundary.EulerFactorLog.zetaLog K P.k0Class :=
   rfl

@@ -46,11 +46,11 @@ theorem Real.log_polynomial_bound_le_polynomial_bound
     linarith [abs_nonneg (Real.log C)]
   have hpow_le : r ^ m ≤ r ^ (m + 1) := by
     calc
-      r ^ m = r ^ m * 1 := by rw [mul_one]
+      r ^ m = r ^ m * 1 := by exact (mul_one (r ^ m)).symm
       _ ≤ r ^ m * r :=
         mul_le_mul_of_nonneg_left hr hr_pow_nonneg
       _ = r ^ (m + 1) := by
-        rw [pow_succ]
+        exact (pow_succ r m).symm
   have hcoeff_nonneg : 0 ≤ C + |Real.log C| + 1 := by
     linarith [hC_pos, abs_nonneg (Real.log C)]
   have hpoly_le :
@@ -78,10 +78,17 @@ theorem Real.log_norm_bound_of_norm_bound_polynomial
             Real.log ‖f z‖ ≤ Clog * (1 + ‖z‖) ^ mlog := by
   refine ⟨C + |Real.log C| + 1, m + 1, ?_, ?_⟩
   · have hnonneg_abs : 0 ≤ |Real.log C| := abs_nonneg _
-    linarith
+    exact add_nonneg (le_trans (le_of_lt hC_pos) (le_add_of_nonneg_right hnonneg_abs))
+      zero_le_one
   · intro z hz_re hRz
     by_cases hf_zero : f z = 0
-    · rw [hf_zero, norm_zero, Real.log_zero]
+    · have hnorm_zero : ‖f z‖ = 0 := by
+        exact norm_eq_zero.mpr hf_zero
+      have hlog_zero : Real.log ‖f z‖ = 0 := by
+        cases hnorm_zero
+        rfl
+      cases hlog_zero
+      rfl
       have hpoly_nonneg : 0 ≤ (1 + ‖z‖) ^ (m + 1) :=
         pow_nonneg (by positivity) (m + 1)
       have hC_nonneg : 0 ≤ C + |Real.log C| + 1 := by
@@ -131,8 +138,9 @@ theorem Complex.log_norm_bound_large_openRightHalfPlane :
     ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi := hlog_norm
     _ ≤ ‖z‖ + 4 := add_le_add habs_log_le_norm hpi_le_four
     _ ≤ 4 * (1 + ‖z‖) ^ 1 := by
-      rw [pow_one]
-      linarith [norm_nonneg z]
+      have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := by
+        exact pow_one (1 + ‖z‖)
+      nlinarith [norm_nonneg z, hpow1]
 
 /-- The product part `(z - 1/2) * log z` in the Binet main term has
 polynomial norm growth after a large-radius cutoff. -/
@@ -170,11 +178,14 @@ theorem Complex.binetLogGammaMainTerm_product_norm_bound_large_openRightHalfPlan
         mul_le_mul hfactor (hlog z hz_re hRz)
           (norm_nonneg _) hbase_nonneg
   calc
-    ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
+      ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
         (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) := hmul
     _ = C * (1 + ‖z‖) ^ (m + 1) := by
-      rw [pow_succ]
-      ring
+      calc
+        (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) =
+            C * ((1 + ‖z‖) * (1 + ‖z‖) ^ m) := by ring
+        _ = C * (1 + ‖z‖) ^ (m + 1) := by
+          exact congrArg (fun x => C * x) (pow_succ (1 + ‖z‖) m).symm
 
 /-- The affine plus constant part of the Binet main term has polynomial norm
 growth. -/
@@ -193,16 +204,17 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
     have hA_nonneg : 0 ≤ A := norm_nonneg _
     have hbase_nonneg : 0 ≤ 1 + ‖z‖ := by
       linarith [norm_nonneg z]
-    calc
-      ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
-          ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ :=
-        norm_add_le _ _
-      _ = ‖z‖ + A := by
-        rw [norm_neg]
-        rfl
-      _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
-        rw [pow_one]
-        nlinarith [norm_nonneg z, hA_nonneg]
+  calc
+    ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
+        ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ :=
+      norm_add_le _ _
+    _ = ‖z‖ + A := by
+      dsimp [A]
+      congr 1
+      exact norm_neg z
+        _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
+          have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := pow_one (1 + ‖z‖)
+          nlinarith [norm_nonneg z, hA_nonneg, hpow1]
 
 /-- The product and affine pieces assemble to the direct polynomial norm
 growth of the explicit Binet main term. -/
@@ -242,7 +254,6 @@ theorem Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane_from_p
         ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
           Ca * (1 + ‖z‖) ^ (mp + ma) := by
       have hma_le : ma ≤ mp + ma := by
-        rw [Nat.add_comm]
         exact Nat.le_add_left ma mp
       have hpow : (1 + ‖z‖) ^ ma ≤ (1 + ‖z‖) ^ (mp + ma) :=
         pow_le_pow_right₀ hbase_ge_one hma_le
@@ -329,12 +340,12 @@ theorem Complex.binetSecondFormulaRemainder_norm_bound_large_sectorSeparated
   refine ⟨1, C, 0, zero_lt_one, hC_pos, ?_⟩
   intro z hz_re hz_sep hz_large
   have hpoly_one : (1 + ‖z‖) ^ (0 : ℕ) = (1 : ℝ) := by
-    rw [pow_zero]
+    exact pow_zero (1 + ‖z‖)
   calc
     ‖Complex.binetSecondFormulaRemainder z‖ ≤ C :=
       hbound z hz_re hz_sep hz_large
     _ = C * (1 + ‖z‖) ^ (0 : ℕ) := by
-      rw [hpoly_one, mul_one]
+      exact congrArg (fun x => C * x) hpoly_one.symm
 
 /-- Binet's formula plus direct polynomial norm bounds for the main term and
 remainder give polynomial growth for `log (Gamma z)` in a fixed right-half
@@ -390,7 +401,6 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
           Cr * (1 + ‖z‖) ^ m := by
       have hmr_le : mr ≤ m := by
         dsimp [m]
-        rw [Nat.add_comm]
         exact Nat.le_add_left mr mm
       have hpow :
           (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
@@ -420,7 +430,7 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
       ‖Complex.log (Complex.Gamma z)‖ =
           ‖Complex.binetLogGammaMainTerm z +
             Complex.binetSecondFormulaRemainder z‖ := by
-        rw [hformula]
+        exact congrArg norm hformula
       _ ≤ ‖Complex.binetLogGammaMainTerm z‖ +
           ‖Complex.binetSecondFormulaRemainder z‖ :=
         norm_add_le _ _
@@ -466,14 +476,11 @@ theorem Complex.Gamma_log_norm_bound_large_sectorSeparated_from_log_Gamma_norm
   have hre_le_norm :
       (Complex.log (Complex.Gamma z)).re ≤
         ‖Complex.log (Complex.Gamma z)‖ := by
-    exact le_trans (le_abs_self _)
-      (by
-        simpa [Complex.normSq, norm_eq_abs] using
-          Complex.abs_re_le_abs (Complex.log (Complex.Gamma z)))
+    exact Complex.abs_re_le_abs (Complex.log (Complex.Gamma z))
   have hlog_eq :
       Real.log ‖Complex.Gamma z‖ =
         (Complex.log (Complex.Gamma z)).re := by
-    rw [Complex.log_re]
+    exact Complex.log_re (Complex.Gamma z)
   exact
     le_trans (le_of_eq hlog_eq)
       (le_trans hre_le_norm (hlog_norm z hz_re hz_sep hRz))
@@ -500,7 +507,13 @@ theorem Complex.binetSecondFormulaRemainder_log_norm_bound_large_sectorSeparated
     linarith
   · intro z hz_re hz_sep hRz
     by_cases hzero : Complex.binetSecondFormulaRemainder z = 0
-    · rw [hzero, norm_zero, Real.log_zero]
+    · have hnorm_zero : ‖Complex.binetSecondFormulaRemainder z‖ = 0 := by
+        exact norm_eq_zero.mpr hzero
+      have hlog_zero : Real.log ‖Complex.binetSecondFormulaRemainder z‖ = 0 := by
+        cases hnorm_zero
+        rfl
+      cases hlog_zero
+      rfl
       have hpoly_nonneg : 0 ≤ (1 + ‖z‖) ^ (m + 1) :=
         pow_nonneg (by positivity) (m + 1)
       have hC_nonneg : 0 ≤ C + |Real.log C| + 1 := by

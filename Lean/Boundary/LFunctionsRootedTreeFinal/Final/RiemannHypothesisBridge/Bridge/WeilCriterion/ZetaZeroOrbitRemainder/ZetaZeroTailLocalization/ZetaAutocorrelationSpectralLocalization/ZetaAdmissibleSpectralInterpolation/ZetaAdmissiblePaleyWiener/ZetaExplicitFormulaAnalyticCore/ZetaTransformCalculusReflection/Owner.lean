@@ -19,15 +19,40 @@ theorem reflect_laplaceKernel_pointwise
       φ (-t) * Complex.exp (-z * (-t)) := by
   exact reflect_laplaceKernel_eq_comp_neg_pointwise φ z t
 
+/-- Negation transports the reflected Laplace kernel integral to the ordinary kernel. -/
+theorem reflect_laplaceKernel_integral_comp_neg
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    ∫ t : ℝ, (fun u : ℝ => φ u * Complex.exp (-z * u)) ((Homeomorph.neg ℝ) t)
+      = ∫ t : ℝ, φ t * Complex.exp (-z * t) := by
+  have hneg : MeasurePreserving (Homeomorph.neg ℝ).toMeasurableEquiv
+      (volume : Measure ℝ) (volume : Measure ℝ) :=
+    Measure.measurePreserving_neg (volume : Measure ℝ)
+  exact hneg.integral_comp' (g := fun t : ℝ => φ t * Complex.exp (-z * t))
+
+/-- The reflected Laplace kernel is the ordinary kernel after negating the variable. -/
+theorem reflect_laplaceKernel_integral_neg_eq
+    (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
+    (∫ t : ℝ, φ (-t) * Complex.exp (-z * (-t))) =
+      ∫ t : ℝ,
+        (fun u : ℝ => φ u * Complex.exp (-z * u)) ((Homeomorph.neg ℝ) t) := by
+  exact integral_congr_ae
+    (Filter.Eventually.of_forall
+      (fun t : ℝ => by
+        change
+          φ (-t) * Complex.exp (-z * (-(t : ℂ))) =
+            φ (-t) * Complex.exp (-z * (((-t : ℝ) : ℂ)))
+        exact congrArg
+          (fun u : ℂ => φ (-t) * Complex.exp (-z * u))
+          (Complex.ofReal_neg t).symm))
+
 /-- The reflected Laplace kernel is the unreflected kernel at the negated variable. -/
 theorem reflect_laplaceKernel_integral_comp
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) :
     ∫ t : ℝ, φ (-t) * Complex.exp (-z * (-t))
       = ∫ t : ℝ, φ t * Complex.exp (-z * t) := by
-  have hneg : MeasurePreserving (Homeomorph.neg ℝ).toMeasurableEquiv
-      (volume : Measure ℝ) (volume : Measure ℝ) :=
-    Measure.measurePreserving_neg (volume : Measure ℝ)
-  simpa using hneg.integral_comp' (g := fun t : ℝ => φ t * Complex.exp (-z * t))
+  exact Eq.trans
+    (reflect_laplaceKernel_integral_neg_eq φ z)
+    (reflect_laplaceKernel_integral_comp_neg φ z)
 
 /-- The zeta Laplace transform is compatible with reflection of the test function. -/
 theorem zetaLaplaceTransform_reflect_aux

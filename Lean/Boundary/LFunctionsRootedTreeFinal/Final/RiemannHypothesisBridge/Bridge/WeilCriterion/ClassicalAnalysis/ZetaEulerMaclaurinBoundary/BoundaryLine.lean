@@ -1,4 +1,4 @@
-import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.Basic
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.Basic
 
 /-!
 # Boundary-line coordinate facts
@@ -16,13 +16,13 @@ noncomputable section
 theorem Complex.boundaryLineOnePointRealParam_re
     (t : ℝ) :
     (Complex.boundaryLineOnePointRealParam t).re = 1 := by
-  simp [Complex.boundaryLineOnePointRealParam]
+  rfl
 
 /-- Imaginary coordinate of the canonical point `1 + it` on the boundary line. -/
 theorem Complex.boundaryLineOnePointRealParam_im
     (t : ℝ) :
     (Complex.boundaryLineOnePointRealParam t).im = t := by
-  simp [Complex.boundaryLineOnePointRealParam]
+  rfl
 
 /-- The vertical height of the canonical point `1 + it` is the absolute value of `t`. -/
 theorem Complex.boundaryLineOnePointRealParam_vertical_height

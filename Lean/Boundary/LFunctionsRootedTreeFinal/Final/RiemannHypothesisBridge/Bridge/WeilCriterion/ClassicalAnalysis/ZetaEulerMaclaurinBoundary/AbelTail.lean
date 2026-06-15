@@ -1,4 +1,4 @@
-import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.ReciprocalDensity
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.ReciprocalDensity
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Owner
 
 /-!
@@ -259,8 +259,8 @@ theorem Complex.zeroExtended_tail_prefix_sum_eq_Ioc
         ⟨Finset.mem_range.mpr (Nat.lt_succ_of_le hnk), hNn⟩
   calc
     (∑ n ∈ Finset.range (k + 1), if N < n then a n else 0) =
-        ∑ n ∈ (Finset.range (k + 1)).filter (fun n : ℕ => N < n), a n := by
-      rw [Finset.sum_filter]
+        ∑ n ∈ (Finset.range (k + 1)).filter (fun n : ℕ => N < n), a n :=
+      Finset.sum_filter
     _ = ∑ n ∈ Finset.Ioc N k, a n := by
       exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n) hfilter
 
@@ -286,8 +286,12 @@ theorem Complex.finite_weighted_tail_abel_identity
       hNM
   have hprefix_N :
       (∑ i ∈ Finset.range (N + 1), b i) = 0 := by
-    rw [Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N N]
-    rw [Finset.Ioc_self, Finset.sum_empty]
+    calc
+      (∑ i ∈ Finset.range (N + 1), b i) =
+          ∑ n ∈ Finset.Ioc N N, a n :=
+        Complex.zeroExtended_tail_prefix_sum_eq_Ioc (a := a) N N
+      _ = 0 := by
+        exact Finset.sum_empty
   have hprefix_M :
       (∑ i ∈ Finset.range (M + 1), b i) =
         ∑ n ∈ Finset.Ioc N M, a n :=
@@ -304,7 +308,7 @@ theorem Complex.finite_weighted_tail_abel_identity
     refine Finset.sum_congr rfl ?_
     intro n hn
     have hNn : N < n := (Finset.mem_Ioc.mp hn).1
-    rw [b, if_pos hNn]
+    change (w n : ℂ) * a n = a n * (w n : ℂ)
     exact mul_comm (w n : ℂ) (a n)
   have hrhs :
       (w M : ℂ) • (∑ i ∈ Finset.range (M + 1), b i) -
@@ -316,14 +320,39 @@ theorem Complex.finite_weighted_tail_abel_identity
           ∑ k ∈ Finset.Ioc N (M - 1),
             ((w k - w (k + 1) : ℝ) : ℂ) *
               (∑ n ∈ Finset.Ioc N k, a n) := by
-    rw [hprefix_M, hprefix_N, smul_eq_mul, smul_eq_mul, mul_zero, sub_zero]
-    simp_rw [hprefix]
-    rw [sub_eq_add_neg]
-    congr 1
-    rw [Finset.neg_sum]
-    refine Finset.sum_congr rfl ?_
-    intro k hk
-    rw [smul_eq_mul, neg_mul, ← sub_eq_neg_sub, Complex.ofReal_sub]
+    calc
+      (w M : ℂ) • (∑ i ∈ Finset.range (M + 1), b i) -
+          (w (N + 1) : ℂ) • (∑ i ∈ Finset.range (N + 1), b i) -
+            ∑ i ∈ Finset.Ioc N (M - 1),
+              (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                (∑ x ∈ Finset.range (i + 1), b x)) =
+          (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+            (w (N + 1) : ℂ) * 0 -
+              ∑ i ∈ Finset.Ioc N (M - 1),
+                (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                  (∑ x ∈ Finset.range (i + 1), b x)) := by
+        congr 1 <;> exact hprefix_M
+      _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) -
+            ∑ i ∈ Finset.Ioc N (M - 1),
+              (((w (i + 1) : ℂ) - (w i : ℂ)) •
+                  (∑ x ∈ Finset.range (i + 1), b x)) := by
+        exact sub_zero _
+      _ = (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
+            ∑ k ∈ Finset.Ioc N (M - 1),
+              ((w k - w (k + 1) : ℝ) : ℂ) *
+                (∑ n ∈ Finset.Ioc N k, a n) := by
+        congr 1
+        refine Finset.sum_congr rfl ?_
+        intro k hk
+        have hpk : ∑ x ∈ Finset.range (k + 1), b x = ∑ n ∈ Finset.Ioc N k, a n :=
+          hprefix k
+        change -(((w (k + 1) : ℂ) - (w k : ℂ)) *
+            (∑ n ∈ Finset.Ioc N k, a n)) =
+          ((w k - w (k + 1) : ℝ) : ℂ) * (∑ n ∈ Finset.Ioc N k, a n)
+        ring_nf
+        exact by
+          congr 1
+          exact sub_eq_add_neg _ _
   exact Eq.trans hlhs.symm (Eq.trans hparts hrhs)
 
 /-- The coefficient mass in the finite Abel identity is bounded by the initial
@@ -336,7 +365,15 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
   have hstart : N + 1 ≤ M := Nat.succ_le_of_lt hNM
   refine Nat.le_induction ?base ?step M hstart
   · have htop : (N + 1) - 1 = N := Nat.succ_sub_one N
-    rw [htop, Finset.Ioc_self, Finset.sum_empty, add_zero]
+    calc
+      w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1)) =
+          w M + ∑ k ∈ Finset.Ioc N N, (w k - w (k + 1)) := by
+        congr
+        exact htop
+      _ = w M := by
+        have hsum : ∑ k ∈ Finset.Ioc N N, (w k - w (k + 1)) = 0 := by
+          exact Finset.sum_empty
+        linarith
   · intro m hm ih
     have hNm : N < m := Nat.lt_of_succ_le hm
     have hNm_pred : N ≤ m - 1 := Nat.le_sub_one_of_lt hNm
@@ -344,12 +381,17 @@ theorem Complex.finite_weighted_tail_abel_coefficient_mass_eq_initial
     calc
       w (m + 1) + ∑ k ∈ Finset.Ioc N ((m + 1) - 1), (w k - w (k + 1)) =
           w (m + 1) + ∑ k ∈ Finset.Ioc N m, (w k - w (k + 1)) := by
-        rw [hsub]
+        congr
+        exact hsub
       _ = w (m + 1) +
           (∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
             (w m - w (m + 1))) := by
-        rw [← Nat.sub_add_cancel (Nat.succ_le_of_lt hNm)]
-        rw [sum_Ioc_succ_top hNm_pred]
+        have hsplit :
+            ∑ k ∈ Finset.Ioc N m, (w k - w (k + 1)) =
+              ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) +
+                (w m - w (m + 1)) :=
+          sum_Ioc_succ_top hNm_pred
+        exact hsplit
       _ = w m + ∑ k ∈ Finset.Ioc N (m - 1), (w k - w (k + 1)) := by
         ring
       _ = w (N + 1) := ih
@@ -388,7 +430,7 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
   by_cases hNM : N < M
   · have hB_nonneg : 0 ≤ B := by
       have hzero_bound := hfinite N (le_rfl : N ≤ N)
-      simpa using hzero_bound
+      exact hzero_bound
     have hid :
         (∑ n ∈ Finset.Ioc N M, a n * (w n : ℂ)) =
           (w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n) +
@@ -427,7 +469,19 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
         · calc
             ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ =
                 w M * ‖∑ n ∈ Finset.Ioc N M, a n‖ := by
-              rw [norm_mul, Complex.norm_ofReal, Real.norm_eq_abs, abs_of_nonneg hcoeff_M_nonneg]
+              have hnorm :
+                  ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ =
+                    ‖(w M : ℂ)‖ * ‖∑ n ∈ Finset.Ioc N M, a n‖ :=
+                norm_mul _ _
+              have hcoef : ‖(w M : ℂ)‖ = w M := by
+                have hcoef' : ‖(w M : ℂ)‖ = ‖w M‖ := Complex.norm_ofReal (w M)
+                exact Eq.trans hcoef' (abs_of_nonneg hcoeff_M_nonneg)
+              calc
+                ‖(w M : ℂ) * (∑ n ∈ Finset.Ioc N M, a n)‖ =
+                    ‖(w M : ℂ)‖ * ‖∑ n ∈ Finset.Ioc N M, a n‖ := hnorm
+                _ = w M * ‖∑ n ∈ Finset.Ioc N M, a n‖ := by
+                  congr
+                  exact hcoef
             _ ≤ w M * B :=
               mul_le_mul_of_nonneg_left (hfinite M hNM_le) hcoeff_M_nonneg
         · calc
@@ -449,18 +503,37 @@ theorem Complex.finite_weighted_tail_bound_of_uniform_finite_tail_bound
                     (∑ n ∈ Finset.Ioc N k, a n)‖ =
                     (w k - w (k + 1)) *
                       ‖∑ n ∈ Finset.Ioc N k, a n‖ := by
-                  rw [norm_mul, Complex.norm_ofReal, Real.norm_eq_abs,
-                    abs_of_nonneg hk_nonneg]
+                  have hnorm :
+                      ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                          (∑ n ∈ Finset.Ioc N k, a n)‖ =
+                        ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ *
+                          ‖∑ n ∈ Finset.Ioc N k, a n‖ :=
+                    norm_mul _ _
+                  have hcoef : ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ =
+                      (w k - w (k + 1)) := by
+                    have hcoef' : ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ =
+                        ‖w k - w (k + 1)‖ := Complex.norm_ofReal _
+                    exact Eq.trans hcoef' (abs_of_nonneg hk_nonneg)
+                  calc
+                    ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ) *
+                        (∑ n ∈ Finset.Ioc N k, a n)‖ =
+                        ‖((w k - w (k + 1 : ℕ) : ℝ) : ℂ)‖ *
+                          ‖∑ n ∈ Finset.Ioc N k, a n‖ := hnorm
+                    _ = (w k - w (k + 1)) *
+                          ‖∑ n ∈ Finset.Ioc N k, a n‖ := by
+                      congr
+                      exact hcoef
                 _ ≤ (w k - w (k + 1)) * B :=
                   mul_le_mul_of_nonneg_left (hfinite k hNk_le) hk_nonneg
       _ = (w M + ∑ k ∈ Finset.Ioc N (M - 1), (w k - w (k + 1))) * B := by
-        rw [Finset.sum_mul, add_mul]
+        exact (Finset.sum_mul _ _).trans (by ring)
       _ ≤ 1 * B :=
         mul_le_mul_of_nonneg_right hmass hB_nonneg
       _ = B := one_mul B
   · have hMN : M ≤ N := le_of_not_gt hNM
-    have hempty : Finset.Ioc N M = ∅ := Finset.Ioc_eq_empty_of_le hMN
-    simp [hempty, hfinite N le_rfl]
+  have hempty : Finset.Ioc N M = ∅ := Finset.Ioc_eq_empty_of_le hMN
+  have hzero_bound := hfinite N le_rfl
+  exact hzero_bound
 
 /-- Passage from uniformly bounded finite weighted tails to the corresponding
 `tsum`. -/
@@ -516,13 +589,8 @@ theorem Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
         (∑ n ∈ Finset.range (K + (N + 1)), f n) =
             ∑ n ∈ (Finset.range (K + (N + 1))).filter
               (fun n : ℕ => N < n), a n * (w n : ℂ) := by
-          rw [Finset.sum_filter]
-          refine Finset.sum_congr rfl ?_
-          intro n hn
-          by_cases hNn : N < n
-          · rw [if_pos hNn, f, if_pos hNn]
-          · rw [if_neg hNn, f, if_neg hNn]
-        _ = ∑ n ∈ Finset.Ioc N (N + K), a n * (w n : ℂ) := by
+          exact Finset.sum_filter
+      _ = ∑ n ∈ Finset.Ioc N (N + K), a n * (w n : ℂ) := by
           exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, a n * (w n : ℂ)) hfilter
     have hNK : N ≤ N + K := by omega
     exact hsum_eq.trans_le (hfinite_weighted (N + K) hNK)
@@ -538,7 +606,7 @@ theorem Complex.tsum_weighted_tail_bound_of_finite_weighted_tail_bound
   have hle :
       ‖∑' n : ℕ, f n‖ ≤ B :=
     le_of_tendsto_of_tendsto' hnorm_lim hconst hbounded
-  simpa [f] using hle
+  exact hle
 
 /-- Abstract Abel damping lemma with explicit weight hypotheses. -/
 theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound'
@@ -647,7 +715,7 @@ theorem Complex.abelDampedTail_bound_of_uniform_finite_tail_bound
               a n * (((fun σ n => (n : ℝ) ^ (-(σ - 1))) σ n) : ℂ)
             else
               0) := by
-    simpa using
+    exact
       Complex.abelDampedTail_summable_of_uniform_finite_tail_bound
         (a := a) N ⟨B, hfinite⟩ hsummable
   have hw_nonneg :
@@ -730,8 +798,8 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
             ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) :=
       Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_tail
         t σ hσ
-    have htail_dirichlet :
-        Summable
+  have htail_dirichlet :
+      Summable
           (fun n : ℕ =>
             if N < n then
               ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
@@ -740,17 +808,16 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
       refine hdirichlet.congr_cofinite ?_
       filter_upwards [eventually_ge_atTop (N + 1)] with n hn
       have hn_tail : N < n := Nat.lt_of_succ_le hn
-      rw [if_pos hn_tail]
-    refine htail_dirichlet.congr ?_
-    intro n
-    by_cases hn_tail : N < n
-    · have hn_pos : 0 < n :=
-        Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
-      rw [if_pos hn_tail, if_pos hn_tail, a]
-      exact
-        (Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
-          t σ hn_pos).symm
-    · rw [if_neg hn_tail, if_neg hn_tail]
+      exact if_pos hn_tail
+  refine htail_dirichlet.congr ?_
+  intro n
+  by_cases hn_tail : N < n
+  · have hn_pos : 0 < n :=
+      Nat.lt_of_lt_of_le Nat.zero_lt_one (le_of_lt (lt_of_le_of_lt hN hn_tail))
+    exact if_pos hn_tail ▸
+      (Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighted
+        t σ hn_pos).symm
+  · exact if_neg hn_tail ▸ rfl
   have hdamped :
       ∀ᶠ σ : ℝ in 𝓝[>] (1 : ℝ),
         ‖∑' n : ℕ,
@@ -763,7 +830,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_bound_from_finiteAb
       N hN hsummable_tail hfinite_tail
   refine hdamped.mono ?_
   intro σ hσ
-  simpa [a] using hσ
+  exact hσ
 
 /-- Abel boundary passage for the post-cutoff reciprocal-weighted logarithmic
 phase.
@@ -834,8 +901,8 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighte
       -((σ : ℂ) + (t : ℂ) * Complex.I) =
         (-1 : ℂ) + (-(t : ℂ) * Complex.I) +
           ((-(σ - 1 : ℝ) : ℝ) : ℂ) := by
-    rw [hsigma_decomp]
-    ring
+    have hs : (σ : ℂ) = (1 : ℂ) + ((σ - 1 : ℝ) : ℂ) := hsigma_decomp
+    linarith [hs]
   have hcpow_neg :
       ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹ =
         (n : ℂ) ^ (-((σ : ℂ) + (t : ℂ) * Complex.I)) := by
@@ -864,7 +931,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighte
       (n : ℂ) ^ (((-(σ - 1 : ℝ) : ℝ) : ℂ))) hsplit_left)
   have hcpow_neg_one :
       (n : ℂ) ^ (-1 : ℂ) = ((n : ℂ)⁻¹ : ℂ) := by
-    simpa using Complex.cpow_neg_one (n : ℂ)
+    exact Complex.cpow_neg_one (n : ℂ)
   calc
     ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹ =
         (n : ℂ) ^ (-((σ : ℂ) + (t : ℂ) * Complex.I)) := hcpow_neg
@@ -877,7 +944,10 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedDirichletTerm_eq_weighte
     _ = ((n : ℂ)⁻¹ : ℂ) *
           ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) *
             ((n : ℝ) ^ (-(σ - 1)) : ℂ) := by
-      rw [hcpow_neg_one, hreal_weight]
+      exact by
+        congr
+        · exact hcpow_neg_one
+        · exact hreal_weight
 
 /-- Pointwise equality between the Abel-damped Dirichlet tail and its
 reciprocal-weighted logarithmic-phase form. -/
@@ -933,7 +1003,7 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero_for_abel_boundary
         intro hn_mem
         have hn_le_N : n ≤ N := (Finset.mem_Icc.mp hn_mem).2
         exact (not_le_of_gt hn_tail) hn_le_N
-      rw [if_pos hn_tail, if_pos hn_not_mem]
+      exact if_pos hn_tail ▸ if_pos hn_not_mem ▸ rfl
     · have hn_mem_or_zero : n ∈ S ∨ n = 0 := by
         have hn_le_N : n ≤ N := le_of_not_gt hn_tail
         cases n with
@@ -944,13 +1014,14 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero_for_abel_boundary
             exact Or.inl (Finset.mem_Icc.mpr ⟨hn_one_le, hn_le_N⟩)
       cases hn_mem_or_zero with
       | inl hn_mem =>
-          rw [if_neg hn_tail, if_neg]
+          exact if_neg hn_tail ▸ if_neg
           exact Set.mem_compl_iff.mp.mt hn_mem
       | inr hn_zero =>
-          rw [if_neg hn_tail, if_pos]
+          exact if_neg hn_tail ▸ if_pos
           · exact hf_zero.symm
-          · rw [hn_zero]
-            exact hzero_not_mem
+          · exact by
+              subst hn_zero
+              exact hzero_not_mem
   have hsum_split :
       ∑ n ∈ S, f n + ∑' n : (S : Set ℕ)ᶜ, f n = ∑' n : ℕ, f n :=
     sum_add_tsum_compl (s := S) hf
@@ -980,7 +1051,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_t
         ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) := by
   have hexponent :
       1 < (((σ : ℂ) + (t : ℂ) * Complex.I).re) := by
-    simpa using hσ
+    exact hσ
   have hsummable :
       Summable
         (fun n : ℕ =>
@@ -1008,7 +1079,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_eq_series_sub_trunc
     fun n : ℕ =>
       ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
   have hf_zero : f 0 = 0 := by
-    simp [f]
+    rfl
   exact
     Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero_for_abel_boundary
       (Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable_for_tail
@@ -1064,8 +1135,8 @@ theorem Complex.boundaryLineOnePointRealParam_abelFiniteTruncation_tendsto_bound
     Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
   have hpow_ne :
       (n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t) ≠ 0 := by
-    rw [Complex.cpow_def_of_ne_zero hn_complex_ne]
-    exact Complex.exp_ne_zero _
+    exact by
+      exact Complex.cpow_def_of_ne_zero hn_complex_ne
   exact
     ((Complex.continuousAt_const_cpow hn_complex_ne).tendsto.comp hpath).inv₀
       hpow_ne
@@ -1081,16 +1152,19 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tends
           ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹)
       (𝓝[>] (1 : ℝ))
       (𝓝 (riemannZeta (Complex.boundaryLineOnePointRealParam t))) := by
-  have hboundary_ne_one :
+    have hboundary_ne_one :
       Complex.boundaryLineOnePointRealParam t ≠ 1 := by
     intro hboundary
     have him :
         (Complex.boundaryLineOnePointRealParam t).im = (1 : ℂ).im :=
       congrArg Complex.im hboundary
     have ht_zero : t = 0 := by
-      simpa [Complex.boundaryLineOnePointRealParam] using him
+      have him' := him
+      norm_num [Complex.boundaryLineOnePointRealParam] at him'
+      linarith
     have hle_zero : (1 : ℝ) ≤ 0 := by
-      simpa [ht_zero] using ht
+      subst ht_zero
+      exact ht
     exact (not_le_of_gt zero_lt_one) hle_zero
   have hpath :
       Tendsto
@@ -1134,9 +1208,9 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tends
         (fun σ : ℝ =>
           riemannZeta ((σ : ℂ) + (t : ℂ) * Complex.I)) := by
     filter_upwards [eventually_mem_nhdsWithin] with σ hσ
-    have hexponent :
-        1 < (((σ : ℂ) + (t : ℂ) * Complex.I).re) := by
-      simpa using hσ
+  have hexponent :
+      1 < (((σ : ℂ) + (t : ℂ) * Complex.I).re) := by
+      exact hσ
     exact
       (Complex.zeta_eq_tsum_one_div_nat_cpow
         (s := (σ : ℂ) + (t : ℂ) * Complex.I) hexponent).symm
@@ -1414,9 +1488,12 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tends
         (Complex.boundaryLineOnePointRealParam t).im = (1 : ℂ).im :=
       congrArg Complex.im hboundary
     have ht_zero : t = 0 := by
-      simpa [Complex.boundaryLineOnePointRealParam] using him
+      have him' := him
+      norm_num [Complex.boundaryLineOnePointRealParam] at him'
+      linarith
     have hle_zero : (1 : ℝ) ≤ 0 := by
-      simpa [ht_zero] using ht
+      subst ht_zero
+      exact ht
     exact (not_le_of_gt zero_lt_one) hle_zero
   have hpath :
       Tendsto
@@ -1462,7 +1539,7 @@ theorem Complex.boundaryLineOnePointRealParam_boundaryDirichletSeries_abel_tends
     filter_upwards [eventually_mem_nhdsWithin] with σ hσ
     have hexponent :
         1 < (((σ : ℂ) + (t : ℂ) * Complex.I).re) := by
-      simpa using hσ
+      exact hσ
     exact
       (Complex.zeta_eq_tsum_one_div_nat_cpow
         (s := (σ : ℂ) + (t : ℂ) * Complex.I) hexponent).symm
@@ -1496,7 +1573,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDirichletSeries_summable
         ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹) := by
   have hexponent :
       1 < (((σ : ℂ) + (t : ℂ) * Complex.I).re) := by
-    simpa using hσ
+    exact hσ
   have hsummable :
       Summable
         (fun n : ℕ =>
@@ -1528,7 +1605,7 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero
         intro hn_mem
         have hn_le_N : n ≤ N := (Finset.mem_Icc.mp hn_mem).2
         exact (not_le_of_gt hn_tail) hn_le_N
-      rw [if_pos hn_tail, if_pos hn_not_mem]
+      exact if_pos hn_tail ▸ if_pos hn_not_mem ▸ rfl
     · have hn_mem_or_zero : n ∈ S ∨ n = 0 := by
         have hn_le_N : n ≤ N := le_of_not_gt hn_tail
         cases n with
@@ -1539,13 +1616,10 @@ theorem Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero
             exact Or.inl (Finset.mem_Icc.mpr ⟨hn_one_le, hn_le_N⟩)
       cases hn_mem_or_zero with
       | inl hn_mem =>
-          rw [if_neg hn_tail, if_neg]
-          exact Set.mem_compl_iff.mp.mt hn_mem
+          exact if_neg hn_tail ▸ if_neg (Set.mem_compl_iff.mp.mt hn_mem) ▸ rfl
       | inr hn_zero =>
-          rw [if_neg hn_tail, if_pos]
-          · exact hf_zero.symm
-          · rw [hn_zero]
-            exact hzero_not_mem
+          subst hn_zero
+          exact if_neg hn_tail ▸ if_pos hzero_not_mem ▸ hf_zero.symm
   have hsum_split :
       ∑ n ∈ S, f n + ∑' n : (S : Set ℕ)ᶜ, f n = ∑' n : ℕ, f n :=
     sum_add_tsum_compl (s := S) hf
@@ -1588,7 +1662,7 @@ theorem Complex.boundaryLineOnePointRealParam_abelDampedTail_eq_series_sub_trunc
     fun n : ℕ =>
       ((n : ℂ) ^ ((σ : ℂ) + (t : ℂ) * Complex.I))⁻¹
   have hf_zero : f 0 = 0 := by
-    simp [f]
+    rfl
   exact
     Complex.summable_nat_tail_eq_tsum_sub_Icc_of_zero
       hsummable hf_zero N hN
@@ -1664,8 +1738,8 @@ theorem Complex.boundaryLineOnePointRealParam_abelFiniteTruncation_tendsto_bound
     Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
   have hpow_ne :
       (n : ℂ) ^ (Complex.boundaryLineOnePointRealParam t) ≠ 0 := by
-    rw [Complex.cpow_def_of_ne_zero hn_complex_ne]
-    exact Complex.exp_ne_zero _
+    exact by
+      exact Complex.cpow_def_of_ne_zero hn_complex_ne
   exact
     ((Complex.continuousAt_const_cpow hn_complex_ne).tendsto.comp hpath).inv₀
       hpow_ne

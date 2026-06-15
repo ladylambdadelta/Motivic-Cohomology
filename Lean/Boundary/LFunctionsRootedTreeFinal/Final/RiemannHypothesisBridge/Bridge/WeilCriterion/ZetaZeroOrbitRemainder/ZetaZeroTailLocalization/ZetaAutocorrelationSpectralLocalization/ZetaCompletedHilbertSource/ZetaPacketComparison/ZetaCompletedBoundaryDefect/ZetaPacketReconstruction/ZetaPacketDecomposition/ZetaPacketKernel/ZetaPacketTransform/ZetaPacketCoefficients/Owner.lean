@@ -57,10 +57,24 @@ theorem zetaPacketCoeff_normalization (ℓ : ZetaPacketLabel) :
 theorem zetaPacketCoeff_prime_succ (m n : ℕ) :
     zetaPacketCoeff (.prime m (n + 1)) =
       zetaPacketCoeff (.prime m n) + Real.log (m + 1 : ℝ) := by
-  rw [zetaPacketCoeff_prime, zetaPacketCoeff_prime]
-  unfold zetaPrimePacketCenter
-  rw [Nat.cast_succ]
-  rw [add_mul, one_mul]
+  have hn_succ_cast : ((n + 1 : ℕ) : ℝ) = (n : ℝ) + 1 :=
+    Eq.trans
+      (Nat.cast_add n 1)
+      (congrArg (fun x : ℝ => (n : ℝ) + x) Nat.cast_one)
+  calc
+    zetaPacketCoeff (.prime m (n + 1)) =
+        zetaPrimePacketCenter (m + 1 : ℝ) ((n + 1 : ℕ) : ℝ) :=
+      zetaPacketCoeff_prime m (n + 1)
+    _ = zetaPrimePacketCenter (m + 1 : ℝ) ((n : ℝ) + 1) :=
+      congrArg
+        (fun x : ℝ => zetaPrimePacketCenter (m + 1 : ℝ) x)
+        hn_succ_cast
+    _ = zetaPrimePacketCenter (m + 1 : ℝ) n + Real.log (m + 1 : ℝ) :=
+      zetaPrimePacketCenter_succ (p := (m + 1 : ℝ)) n
+    _ = zetaPacketCoeff (.prime m n) + Real.log (m + 1 : ℝ) :=
+      congrArg
+        (fun x : ℝ => x + Real.log (m + 1 : ℝ))
+        (zetaPacketCoeff_prime m n).symm
 
 end
 

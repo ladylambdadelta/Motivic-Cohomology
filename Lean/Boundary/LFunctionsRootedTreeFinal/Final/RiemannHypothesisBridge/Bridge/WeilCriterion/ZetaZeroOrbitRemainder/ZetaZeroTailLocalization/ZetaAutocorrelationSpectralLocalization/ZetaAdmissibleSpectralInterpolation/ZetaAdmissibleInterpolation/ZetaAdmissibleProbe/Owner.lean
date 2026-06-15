@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissibleInterpolation.ZetaAdmissibleProbe.ZetaAdmissibleAutocorrelation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaTransformCalculusWeighted.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 
 /-!
@@ -62,7 +63,8 @@ theorem admissibleProbeLaplaceFiniteSample_smul
     Boundary.zetaLaplaceTransform (c • f).toZetaTestFunction' (z : ℂ) =
         Boundary.zetaLaplaceTransform (c • f.toZetaTestFunction') (z : ℂ) := by
       exact congrFun (Boundary.zetaLaplaceTransform_congr
-        (fun t : ℝ => congrFun hpoint t)) (z : ℂ)
+        (fun t : ℝ =>
+          congrArg (fun F : ZetaTestFunction => F t) hpoint)) (z : ℂ)
     _ = c * Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) := by
       exact Boundary.zetaLaplaceTransform_smul c f.toZetaTestFunction' (z : ℂ)
     _ = (c • admissibleProbeLaplaceFiniteSample S f) z := by
@@ -98,7 +100,8 @@ theorem admissibleProbeLaplaceFiniteSample_add
         Boundary.zetaLaplaceTransform
           (f.toZetaTestFunction' + g.toZetaTestFunction') (z : ℂ) := by
       exact congrFun (Boundary.zetaLaplaceTransform_congr
-        (fun t : ℝ => congrFun hpoint t)) (z : ℂ)
+        (fun t : ℝ =>
+          congrArg (fun F : ZetaTestFunction => F t) hpoint)) (z : ℂ)
     _ =
         Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) +
           Boundary.zetaLaplaceTransform g.toZetaTestFunction' (z : ℂ) := by
@@ -200,7 +203,8 @@ theorem admissibleProbeLaplaceFiniteSampleCoordinate_expansion
   calc
     (∑ z : S, a z • admissibleProbeLaplaceFiniteSampleCoordinate S z) w =
         ∑ z : S, (a z • admissibleProbeLaplaceFiniteSampleCoordinate S z) w := by
-      exact Finset.sum_apply
+      exact Finset.univ.sum_apply w
+        (fun z : S => a z • admissibleProbeLaplaceFiniteSampleCoordinate S z)
     _ = (a w • admissibleProbeLaplaceFiniteSampleCoordinate S w) w := by
       exact hsingle
     _ = a w * admissibleProbeLaplaceFiniteSampleCoordinate S w w := by
@@ -228,8 +232,9 @@ theorem admissibleProbeLaplaceFiniteSampleLinearFunctional_eq_coefficients
         (admissibleProbeLaplaceFiniteSampleCoordinate_expansion S a).symm
     _ =
         ∑ z : S, Λ (a z • admissibleProbeLaplaceFiniteSampleCoordinate S z) := by
-      exact LinearMap.map_sum Λ Finset.univ
+      exact map_sum Λ
         (fun z : S => a z • admissibleProbeLaplaceFiniteSampleCoordinate S z)
+        Finset.univ
     _ =
         ∑ z : S,
           a z * Λ (admissibleProbeLaplaceFiniteSampleCoordinate S z) := by

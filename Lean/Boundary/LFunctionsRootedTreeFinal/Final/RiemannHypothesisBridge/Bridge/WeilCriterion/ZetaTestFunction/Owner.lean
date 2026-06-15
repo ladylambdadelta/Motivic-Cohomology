@@ -115,33 +115,44 @@ theorem scale_apply (a : ℝ) (f : ZetaTestFunction) (x : ℝ) :
 
 theorem reflect_reflect (f : ZetaTestFunction) : reflect (reflect f) = f := by
   ext x
-  change f (-(-x)) = f x
-  have hx : -(-x) = x := neg_neg x
-  rw [hx]
+  calc
+    reflect (reflect f) x = f (-(-x)) := by rfl
+    _ = f x := by
+      exact congrArg f (neg_neg x)
 
 theorem translate_zero (f : ZetaTestFunction) : translate 0 f = f := by
   ext x
-  change f (x + 0) = f x
-  rw [add_zero]
+  calc
+    translate 0 f x = f (x + 0) := by rfl
+    _ = f x := by
+      exact congrArg f (add_zero x)
 
 theorem translate_add (c d : ℝ) (f : ZetaTestFunction) :
     translate c (translate d f) = translate (c + d) f := by
   ext x
-  change f ((x + c) + d) = f (x + (c + d))
-  have h : (x + c) + d = x + (c + d) := add_assoc x c d
-  rw [h]
+  calc
+    translate c (translate d f) x = f ((x + c) + d) := by rfl
+    _ = f (x + (c + d)) := by
+      exact congrArg f (add_assoc x c d)
 
 theorem scale_one (f : ZetaTestFunction) : scale 1 f = f := by
   ext x
-  change f (1 * x) = f x
-  rw [one_mul]
+  calc
+    scale 1 f x = f (1 * x) := by rfl
+    _ = f x := by
+      exact congrArg f (one_mul x)
 
 theorem scale_mul (a b : ℝ) (f : ZetaTestFunction) :
     scale a (scale b f) = scale (a * b) f := by
   ext x
-  change f (b * (a * x)) = f ((a * b) * x)
-  have h : b * (a * x) = (a * b) * x := by
-    rw [← mul_assoc, mul_comm b a, mul_assoc]
-  rw [h]
+  calc
+    scale a (scale b f) x = f (b * (a * x)) := by rfl
+    _ = f ((a * b) * x) := by
+      exact congrArg f (by
+        calc
+          b * (a * x) = (b * a) * x := by
+            exact (mul_assoc b a x).symm
+          _ = (a * b) * x := by
+            exact congrArg (fun t : ℝ => t * x) (mul_comm b a))
 
 end ZetaTestFunction

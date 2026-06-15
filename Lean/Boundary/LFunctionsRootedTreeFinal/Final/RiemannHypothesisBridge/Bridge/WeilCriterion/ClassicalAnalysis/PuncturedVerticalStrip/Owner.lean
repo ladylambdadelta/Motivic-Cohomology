@@ -1,4 +1,4 @@
-import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.PuncturedVerticalStrip.Geometry
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.PuncturedVerticalStrip.Geometry
 
 /-!
 # Punctured vertical strip owner package

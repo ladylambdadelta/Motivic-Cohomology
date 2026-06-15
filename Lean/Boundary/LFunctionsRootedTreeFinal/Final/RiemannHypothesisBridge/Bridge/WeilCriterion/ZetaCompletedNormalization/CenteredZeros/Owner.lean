@@ -1,4 +1,6 @@
+import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.LSeries.Nonvanishing
+import Mathlib.Analysis.Analytic.IsolatedZeros
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
 
 /-!
@@ -13,6 +15,9 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+open scoped Topology
+open Filter
 
 theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
     centeredCompletedRiemannZeta s =
@@ -44,8 +49,11 @@ theorem centeredShift_rightDenominator_ne_zero_of_ne_posHalf
     have hz_sub : z - (1 / 2 : ℂ) = 0 := by
       calc
         z - (1 / 2 : ℂ) =
-            (1 : ℂ) - ((1 / 2 : ℂ) + z) := by ring
-        _ = 0 := hzero
+            -((1 : ℂ) - ((1 / 2 : ℂ) + z)) := by ring
+        _ = -0 := by
+          exact congrArg Neg.neg hzero
+        _ = 0 := by
+          exact neg_zero
     calc
       z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
       _ = 0 + (1 / 2 : ℂ) := by
@@ -92,7 +100,11 @@ theorem denominatorProduct_mul_leftReciprocal
     _ = b * (a * (1 / a)) := by
       exact mul_assoc b a (1 / a)
     _ = b * 1 := by
-      exact congrArg (fun x : ℂ => b * x) (mul_inv_cancel₀ ha)
+      exact congrArg (fun x : ℂ => b * x)
+        (Eq.subst
+          (motive := fun x : ℂ => a * x = 1)
+          (inv_eq_one_div a)
+          (mul_inv_cancel₀ ha))
     _ = b := by
       exact mul_one b
 
@@ -105,7 +117,11 @@ theorem denominatorProduct_mul_rightReciprocal
     a * b * (1 / b) = a * (b * (1 / b)) := by
       exact mul_assoc a b (1 / b)
     _ = a * 1 := by
-      exact congrArg (fun x : ℂ => a * x) (mul_inv_cancel₀ hb)
+      exact congrArg (fun x : ℂ => a * x)
+        (Eq.subst
+          (motive := fun x : ℂ => b * x = 1)
+          (inv_eq_one_div b)
+          (mul_inv_cancel₀ hb))
     _ = a := by
       exact mul_one a
 
@@ -155,7 +171,7 @@ theorem denominatorProduct_mul_sub_twoReciprocals
 theorem centeredShift_left_add_right_denominator
     (s : ℂ) :
     ((1 / 2 : ℂ) + s) + (1 - ((1 / 2 : ℂ) + s)) = 1 := by
-  exact add_sub_cancel_left 1 ((1 / 2 : ℂ) + s)
+  ring
 
 /-- Subtracting the sum of the two shifted denominators is subtraction by one. -/
 theorem centeredShift_sub_denominatorSum_eq_sub_one
@@ -281,14 +297,18 @@ theorem eventually_ne_zero_of_tendsto_sub_mul_ne_zero
   have hprod :
       ∀ᶠ s in 𝓝[≠] a, (s - a) * f s ≠ 0 :=
     hlim.eventually_ne hc
-  rw [eventually_nhdsWithin_iff] at hprod
-  exact hprod.mono
+  have hprod' :
+      ∀ᶠ s in 𝓝 a, s ≠ a → (s - a) * f s ≠ 0 := by
+    exact (eventually_nhdsWithin_iff.mp hprod)
+  exact hprod'.mono
     (fun s hs hs_ne hf_zero =>
-      hs
+      hs hs_ne
         (by
-          exact hs_ne)
-        (by
-          rw [hf_zero, mul_zero]))
+          calc
+            (s - a) * f s = (s - a) * 0 := by
+              exact congrArg (fun t : ℂ => (s - a) * t) hf_zero
+            _ = 0 := by
+              exact mul_zero (s - a)))
 
 /-- The completed zeta normalization has residue `-1` at `0`. -/
 theorem completedRiemannZeta_residue_zero :
@@ -296,8 +316,82 @@ theorem completedRiemannZeta_residue_zero :
       (fun s : ℂ => s * completedRiemannZeta s)
       (𝓝[≠] (0 : ℂ))
       (𝓝 (-(1 : ℂ))) := by
-  simpa [completedRiemannZeta]
-    using completedHurwitzZetaEven_residue_zero (a := (0 : UnitAddCircle))
+  change
+    Tendsto
+      (fun s : ℂ => s * HurwitzZeta.completedHurwitzZetaEven (0 : UnitAddCircle) s)
+      (𝓝[≠] (0 : ℂ))
+      (𝓝 (-(1 : ℂ)))
+  have hresidue :
+      Tendsto
+        (fun s : ℂ => s * HurwitzZeta.completedHurwitzZetaEven (0 : UnitAddCircle) s)
+        (𝓝[≠] (0 : ℂ))
+        (𝓝 (if (0 : UnitAddCircle) = 0 then -(1 : ℂ) else 0)) :=
+    HurwitzZeta.completedHurwitzZetaEven_residue_zero (a := (0 : UnitAddCircle))
+  have hvalue :
+      (if (0 : UnitAddCircle) = 0 then -(1 : ℂ) else 0) = -(1 : ℂ) :=
+    if_pos rfl
+  exact Eq.subst
+    (motive := fun c : ℂ =>
+      Tendsto
+        (fun s : ℂ => s * HurwitzZeta.completedHurwitzZetaEven (0 : UnitAddCircle) s)
+        (𝓝[≠] (0 : ℂ))
+        (𝓝 c))
+    hvalue
+    hresidue
+
+/-- Adding `1/2` sends the punctured neighborhood of `-1/2` to the punctured
+neighborhood of `0`. -/
+theorem centeredShift_tendsto_punctured_negHalf_to_zero :
+    Tendsto
+      (fun w : ℂ => (1 / 2 : ℂ) + w)
+      (𝓝[≠] (-(1 / 2 : ℂ)))
+      (𝓝[≠] (0 : ℂ)) := by
+  have hraw :
+      Tendsto
+        (Homeomorph.addLeft (1 / 2 : ℂ))
+        (𝓝[≠] (-(1 / 2 : ℂ)))
+        (𝓝[≠] ((Homeomorph.addLeft (1 / 2 : ℂ)) (-(1 / 2 : ℂ)))) := by
+    exact le_of_eq
+      ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq (-(1 / 2 : ℂ)))
+  have hend :
+      ((Homeomorph.addLeft (1 / 2 : ℂ)) (-(1 / 2 : ℂ))) = 0 := by
+    change (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) = 0
+    exact add_neg_cancel (1 / 2 : ℂ)
+  exact Eq.subst
+    (motive := fun x : ℂ =>
+      Tendsto
+        (Homeomorph.addLeft (1 / 2 : ℂ))
+        (𝓝[≠] (-(1 / 2 : ℂ)))
+        (𝓝[≠] x))
+    hend
+    hraw
+
+/-- Adding `1/2` sends the punctured neighborhood of `1/2` to the punctured
+neighborhood of `1`. -/
+theorem centeredShift_tendsto_punctured_posHalf_to_one :
+    Tendsto
+      (fun w : ℂ => (1 / 2 : ℂ) + w)
+      (𝓝[≠] ((1 / 2 : ℂ)))
+      (𝓝[≠] (1 : ℂ)) := by
+  have hmap_half :
+      Tendsto
+        (Homeomorph.addLeft (1 / 2 : ℂ))
+        (𝓝[≠] ((1 / 2 : ℂ)))
+        (𝓝[≠] ((Homeomorph.addLeft (1 / 2 : ℂ)) ((1 / 2 : ℂ)))) := by
+    exact le_of_eq
+      ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq ((1 / 2 : ℂ)))
+  have hhalf :
+      ((Homeomorph.addLeft (1 / 2 : ℂ)) ((1 / 2 : ℂ))) = 1 := by
+    change (1 / 2 : ℂ) + (1 / 2 : ℂ) = 1
+    norm_num
+  exact Eq.subst
+    (motive := fun x : ℂ =>
+      Tendsto
+        (Homeomorph.addLeft (1 / 2 : ℂ))
+        (𝓝[≠] ((1 / 2 : ℂ)))
+        (𝓝[≠] x))
+    hhalf
+    hmap_half
 
 /-- The centered completed zeta function is nonzero in a punctured neighborhood
 of the negative shifted pole. -/
@@ -309,9 +403,7 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_negHalf :
         (fun w : ℂ => (1 / 2 : ℂ) + w)
         (𝓝[≠] (-(1 / 2 : ℂ)))
         (𝓝[≠] (0 : ℂ)) := by
-    simpa [Homeomorph.coe_addLeft]
-      using ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq
-        (-(1 / 2 : ℂ))).le
+    exact centeredShift_tendsto_punctured_negHalf_to_zero
   have hlim :
       Tendsto
         (fun w : ℂ =>
@@ -349,9 +441,7 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_posHalf :
         (fun w : ℂ => (1 / 2 : ℂ) + w)
         (𝓝[≠] ((1 / 2 : ℂ)))
         (𝓝[≠] (1 : ℂ)) := by
-    simpa [Homeomorph.coe_addLeft]
-      using ((Homeomorph.addLeft (1 / 2 : ℂ)).map_punctured_nhds_eq
-        ((1 / 2 : ℂ))).le
+    exact centeredShift_tendsto_punctured_posHalf_to_one
   have hlim :
       Tendsto
         (fun w : ℂ =>
@@ -419,36 +509,6 @@ theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
       exact congrArg (fun x : ℂ => 1 / (1 / 2 + s) + x)
         (congrArg (fun x : ℂ => 1 / x) h3.symm)
 
-/-- Completed zeta has no zeros in the left half-plane. -/
-theorem completedRiemannZeta_ne_zero_of_re_lt_zero
-    (s : ℂ)
-    (hsre : s.re < 0) :
-    completedRiemannZeta s ≠ 0 := by
-  intro hs
-  have hright_re :
-      1 < ((1 : ℂ) - s).re := by
-    have hre :
-        ((1 : ℂ) - s).re = 1 - s.re := by
-      exact Complex.sub_re (1 : ℂ) s
-    have hlt : 1 < 1 - s.re := by
-      exact lt_sub_iff_add_lt'.2
-        (Eq.subst
-          (motive := fun x : ℝ => x < 1)
-          (zero_add (1 : ℝ)).symm
-          (add_lt_add_right hsre 1))
-    exact Eq.subst
-      (motive := fun x : ℝ => 1 < x)
-      hre.symm
-      hlt
-  have hright_ne :
-      completedRiemannZeta ((1 : ℂ) - s) ≠ 0 :=
-    completedRiemannZeta_ne_zero_of_one_lt_re ((1 : ℂ) - s) hright_re
-  have hsymm :
-      completedRiemannZeta ((1 : ℂ) - s) =
-        completedRiemannZeta s :=
-    completedRiemannZeta_one_sub s
-  exact hright_ne (hsymm.trans hs)
-
 /-- Completed zeta has no zeros in the half-plane to the right of `1`. -/
 theorem completedRiemannZeta_ne_zero_of_one_lt_re
     (s : ℂ)
@@ -466,16 +526,49 @@ theorem completedRiemannZeta_ne_zero_of_one_lt_re
         hsre
     exact (not_lt_of_ge zero_le_one) hone_lt_zero
   have hζ_eq :
-      riemannZeta s = completedRiemannZeta s / Gammaℝ s :=
+      riemannZeta s = completedRiemannZeta s / Complex.Gammaℝ s :=
     riemannZeta_def_of_ne_zero hs0
   have hζ_zero : riemannZeta s = 0 := by
     calc
-      riemannZeta s = completedRiemannZeta s / Gammaℝ s := hζ_eq
-      _ = 0 / Gammaℝ s := by
-        exact congrArg (fun x : ℂ => x / Gammaℝ s) hs
+      riemannZeta s = completedRiemannZeta s / Complex.Gammaℝ s := hζ_eq
+      _ = 0 / Complex.Gammaℝ s := by
+        exact congrArg (fun x : ℂ => x / Complex.Gammaℝ s) hs
       _ = 0 := by
-        exact zero_div (Gammaℝ s)
+        exact zero_div (Complex.Gammaℝ s)
   exact riemannZeta_ne_zero_of_one_lt_re hsre hζ_zero
+
+/-- Completed zeta has no zeros in the left half-plane. -/
+theorem completedRiemannZeta_ne_zero_of_re_lt_zero
+    (s : ℂ)
+    (hsre : s.re < 0) :
+    completedRiemannZeta s ≠ 0 := by
+  intro hs
+  have hright_re :
+      1 < ((1 : ℂ) - s).re := by
+    have hre :
+        ((1 : ℂ) - s).re = 1 - s.re := by
+      exact Complex.sub_re (1 : ℂ) s
+    have hlt : 1 < 1 - s.re := by
+      have hsum : s.re + 1 < 0 + 1 :=
+        add_lt_add_right hsre 1
+      have hsum_one : s.re + 1 < 1 :=
+        Eq.subst
+          (motive := fun x : ℝ => s.re + 1 < x)
+          (zero_add (1 : ℝ))
+          hsum
+      exact lt_sub_iff_add_lt'.2 hsum_one
+    exact Eq.subst
+      (motive := fun x : ℝ => 1 < x)
+      hre.symm
+      hlt
+  have hright_ne :
+      completedRiemannZeta ((1 : ℂ) - s) ≠ 0 :=
+    completedRiemannZeta_ne_zero_of_one_lt_re ((1 : ℂ) - s) hright_re
+  have hsymm :
+      completedRiemannZeta ((1 : ℂ) - s) =
+        completedRiemannZeta s :=
+    completedRiemannZeta_one_sub s
+  exact hright_ne (hsymm.trans hs)
 
 /-- Completed-zeta zeros lie in the ordinary critical strip.
 
@@ -502,7 +595,9 @@ theorem centeredCompletedRiemannZeta_uncenter_re
     ((1 / 2 : ℂ) + s).re = (1 / 2 : ℂ).re + s.re := by
       exact Complex.add_re (1 / 2 : ℂ) s
     _ = (1 / 2 : ℝ) + s.re := by
-      exact congrArg (fun x : ℝ => x + s.re) Complex.ofReal_re
+      have hhalf_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
+        norm_num
+      exact congrArg (fun x : ℝ => x + s.re) hhalf_re
 
 /-- If the uncentered coordinate lies in `[0,1]`, the centered coordinate lies
 in `[-1/2,1/2]`. -/
@@ -513,7 +608,11 @@ theorem centered_re_mem_centeredCriticalStrip_of_uncentered_re_mem_criticalStrip
     -(1 / 2 : ℝ) ≤ x ∧ x ≤ (1 / 2 : ℝ) := by
   have hleft' :
       -(1 / 2 : ℝ) ≤ x :=
-    (neg_le_iff_add_nonneg).2 hleft
+    (neg_le_iff_add_nonneg).2
+      (Eq.subst
+        (motive := fun y : ℝ => 0 ≤ y)
+        (add_comm (1 / 2 : ℝ) x)
+        hleft)
   have hright_comm :
       x + (1 / 2 : ℝ) ≤ 1 :=
     Eq.subst

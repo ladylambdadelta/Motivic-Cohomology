@@ -28,14 +28,14 @@ namespace ZetaAdmissibleFunction
 /-- The analytic package exposes the transform control. -/
 def ExplicitFormulaAnalyticPackage.phiControl
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
-    ZetaPhiAnalyticControl f := by
-  exact h.phi_control
+    ZetaPhiAnalyticControl f :=
+  h.phi_control
 
 /-- The analytic package exposes the log-derivative control. -/
 def ExplicitFormulaAnalyticPackage.logDerivControl
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
-    CompletedZetaNegLogDerivControl f := by
-  exact h.logderiv_control
+    CompletedZetaNegLogDerivControl f :=
+  h.logderiv_control
 
 /-- The analytic package exposes fixed-degree zero-excised polynomial growth for the
 completed negative log derivative. -/
@@ -48,8 +48,8 @@ theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedPolyn
         ∀ z : ℂ,
           z ∈ E.carrier →
           ‖completedZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ K := by
-  exact h.logderiv_control.zeroExcisedPolynomialGrowth a b E
+            ≤ C * (1 + ‖z.im‖) ^ K :=
+  h.logderiv_control.zeroExcisedPolynomialGrowth a b E
 
 /-- The analytic package exposes zero-excised polynomial strip growth for the completed
 negative log derivative. -/
@@ -61,8 +61,8 @@ theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStrip
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact h.logderiv_control.zeroExcisedStripBound a b E N
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  h.logderiv_control.zeroExcisedStripBound a b E N
 
 /-- The package-level completed negative log derivative has zero-excised polynomial
 strip growth. -/
@@ -74,8 +74,8 @@ theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStrip
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact h.completedZetaNegLogDeriv_zeroExcisedStripBound a b E N
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  h.completedZetaNegLogDeriv_zeroExcisedStripBound a b E N
 
 /-- The package-level completed negative log derivative has zero-excised polynomial
 strip growth. -/
@@ -87,8 +87,8 @@ theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_zeroExcisedStrip
       ∀ z : ℂ,
         z ∈ E.carrier →
         ‖completedZetaNegLogDeriv z‖
-          ≤ C * (1 + ‖z.im‖) ^ N := by
-  exact h.completedZetaNegLogDeriv_zeroExcisedStripBound_exists a b E N
+          ≤ C * (1 + ‖z.im‖) ^ N :=
+  h.completedZetaNegLogDeriv_zeroExcisedStripBound_exists a b E N
 
 /-- The analytic package exposes the zeta-side logarithmic derivative with its Gamma correction. -/
 theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_eq_zetaSide_add_invGammaCorrection
@@ -97,10 +97,9 @@ theorem ExplicitFormulaAnalyticPackage.completedZetaNegLogDeriv_eq_zetaSide_add_
     (hΓ : Gammaℝ s ≠ 0) :
     completedZetaNegLogDeriv s =
       zetaSideNegLogDeriv s +
-        deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ := by
-  exact
-    sub_eq_iff_eq_add.mp
-      (zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction hs0 hs1 hΛ hΓ).symm
+        deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ :=
+  sub_eq_iff_eq_add.mp
+    (zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction hs0 hs1 hΛ hΓ).symm
 
 /-- The analytic package exposes the zeta-side factorized contour integrand with Gamma correction. -/
 theorem ExplicitFormulaAnalyticPackage.contourIntegrand_eq_factorized
@@ -110,35 +109,35 @@ theorem ExplicitFormulaAnalyticPackage.contourIntegrand_eq_factorized
     zetaCompletedExplicitFormulaContourIntegrand f s =
       (zetaSideNegLogDeriv s +
           deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹) *
-        zetaCompletedExplicitFormulaPhi f (s - 1 / 2) := by
-  exact zetaCompletedExplicitFormulaContourIntegrand_eq_factorized f hs0 hs1 hΛ hΓ
+        zetaCompletedExplicitFormulaPhi f (s - 1 / 2) :=
+  zetaCompletedExplicitFormulaContourIntegrand_eq_factorized f hs0 hs1 hΛ hΓ
 
 /-- The analytic package exposes the negative-log-derivative form of the contour integrand. -/
 theorem ExplicitFormulaAnalyticPackage.contourIntegrand_eq_neg_logDeriv
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) (s : ℂ) :
     zetaCompletedExplicitFormulaContourIntegrand f s =
-      (- logDeriv completedRiemannZeta s) * zetaCompletedExplicitFormulaPhi f (s - 1 / 2) := by
-  exact zetaCompletedExplicitFormulaContourIntegrand_eq_neg_logDeriv f s
+      (- logDeriv completedRiemannZeta s) * zetaCompletedExplicitFormulaPhi f (s - 1 / 2) :=
+  zetaCompletedExplicitFormulaContourIntegrand_eq_neg_logDeriv f s
 
 /-- The analytic package exposes the contour data. -/
 def ExplicitFormulaAnalyticPackage.contourData
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
-    ExplicitFormulaContourData := by
-  exact h.contour_data
+    ExplicitFormulaContourData :=
+  h.contour_data
 
 /-- The family-level package exposes the transform control. -/
 def ExplicitFormulaFamilyAnalyticPackage.phiControl
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    ZetaPhiAnalyticControl f := by
-  exact h.phi_control
+    ZetaPhiAnalyticControl f :=
+  h.phi_control
 
 /-- The family-level package exposes the log-derivative control. -/
 def ExplicitFormulaFamilyAnalyticPackage.logDerivControl
     {f : ZetaAdmissibleFunction} {F : ExplicitFormulaContourFamily}
     (h : ExplicitFormulaFamilyAnalyticPackage f F) :
-    CompletedZetaNegLogDerivControl f := by
-  exact h.logderiv_control
+    CompletedZetaNegLogDerivControl f :=
+  h.logderiv_control
 
 /-- The family-level package exposes fixed-degree zero-excised polynomial growth for the
 completed negative log derivative. -/
@@ -152,8 +151,8 @@ theorem ExplicitFormulaFamilyAnalyticPackage.completedZetaNegLogDeriv_zeroExcise
         ∀ z : ℂ,
           z ∈ E.carrier →
           ‖completedZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ K := by
-  exact h.logderiv_control.zeroExcisedPolynomialGrowth a b E
+            ≤ C * (1 + ‖z.im‖) ^ K :=
+  h.logderiv_control.zeroExcisedPolynomialGrowth a b E
 
 /-- The analytic package induces the family package for a contour family equipped with
 explicit schedule data. -/

@@ -40,7 +40,7 @@ theorem poleClearedRiemannZeta_continuousAt
   by_cases hz : z = 1
   · subst z
     unfold poleClearedRiemannZeta
-    simpa only [continuousAt_update_same] using riemannZeta_residue_one
+    exact (continuousAt_update_same).2 riemannZeta_residue_one
   · have hraw :
         ContinuousAt (fun w : ℂ => (w - 1) * riemannZeta w) z :=
       (continuousAt_id.sub continuousAt_const).mul
@@ -204,8 +204,7 @@ theorem one_sub_leftBoundary_re_eq_one
     _ = 1 - z.re := by
       norm_num
     _ = 1 := by
-      rw [hz_re]
-      ring
+      exact hz_re.symm ▸ by ring
 
 /-- On the left vertical tail, neither `z`, `1-z`, nor `Gammaℝ z` hits the exceptional
 faces used in the completed-zeta normalization. -/
@@ -441,7 +440,7 @@ theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_
           (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
         exact Complex.mul_re (t : ℂ) Complex.I
       _ = t * 0 - 0 * 1 := by
-        rw [Complex.ofReal_re, Complex.I_re, Complex.ofReal_im, Complex.I_im]
+        norm_num [Complex.ofReal_re, Complex.I_re, Complex.ofReal_im, Complex.I_im]
       _ = 0 := by
         ring
   have haxis_im_norm : ‖((t : ℂ) * Complex.I).im‖ = ‖t‖ := by
@@ -450,10 +449,10 @@ theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_
         ((t : ℂ) * Complex.I).im =
             (t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re := by
           exact Complex.mul_im (t : ℂ) Complex.I
-        _ = t * 1 + 0 * 0 := by
-          rw [Complex.ofReal_re, Complex.I_im, Complex.ofReal_im, Complex.I_re]
-        _ = t := by
-          ring
+      _ = t * 1 + 0 * 0 := by
+          norm_num [Complex.ofReal_re, Complex.I_im, Complex.ofReal_im, Complex.I_re]
+      _ = t := by
+        ring
     exact congrArg norm him
   have haxis_im : 1 ≤ ‖((t : ℂ) * Complex.I).im‖ :=
     Eq.subst
@@ -537,8 +536,7 @@ theorem Gammaℝ_leftBoundary_ratio_realParam_eq_unfolded
     Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
         Complex.Gammaℝ ((t : ℂ) * Complex.I) =
       unfoldedGammaℝLeftBoundaryRatioRealParam t := by
-  rw [unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline]
-  rw [Complex.Gammaℝ_def, Complex.Gammaℝ_def]
+  exact unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t
 
 /-- Norm form of the completed real-Gamma ratio unfolding on the left boundary. -/
 theorem norm_Gammaℝ_leftBoundary_ratio_realParam_eq_norm_unfolded
@@ -1136,8 +1134,11 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
         (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) =
           Real.sqrt (1 + ‖t / 2‖) :=
       by
-        simpa [hexponent] using
-          (Real.sqrt_eq_rpow (1 + ‖t / 2‖)).symm
+        have hsqrt :
+            Real.sqrt (1 + ‖t / 2‖) = (1 + ‖t / 2‖) ^ (1 / 2 : ℝ) := by
+          exact (Real.sqrt_eq_rpow (1 + ‖t / 2‖)).symm
+        exact hsqrt.symm ▸ by
+          norm_num [hexponent]
     exact Eq.subst
       (motive := fun x : ℝ => x ≤ Real.sqrt (1 + ‖t‖))
       hrpow.symm

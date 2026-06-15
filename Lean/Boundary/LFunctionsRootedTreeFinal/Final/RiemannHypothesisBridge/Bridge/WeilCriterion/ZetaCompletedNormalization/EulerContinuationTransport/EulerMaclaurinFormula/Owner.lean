@@ -1219,8 +1219,19 @@ theorem eulerMaclaurin_sum_Ioc_succ_top
     (hNM : N ≤ M) :
     (∑ n in Finset.Ioc N (M + 1), f n) =
       (∑ n in Finset.Ioc N M, f n) + f (M + 1) := by
-  rw [← Finset.sum_Ioc_consecutive _ hNM (Nat.le_succ M)]
-  rw [Nat.Ioc_succ_singleton, Finset.sum_singleton]
+  calc
+    ∑ n in Finset.Ioc N (M + 1), f n =
+        ∑ n in Finset.Ioc N M, f n + ∑ n in Finset.Ioc M (M + 1), f n := by
+      exact (Finset.sum_Ioc_consecutive f hNM (Nat.le_succ M)).symm
+    _ = ∑ n in Finset.Ioc N M, f n + f (M + 1) := by
+      have htop : Finset.Ioc M (M + 1) = ({M + 1} : Finset ℕ) := by
+        exact Nat.Ioc_succ_singleton
+      calc
+        ∑ n in Finset.Ioc N M, f n + ∑ n in Finset.Ioc M (M + 1), f n
+            = ∑ n in Finset.Ioc N M, f n + ∑ n in ({M + 1} : Finset ℕ), f n := by
+              exact congrArg (fun s : Finset ℕ => ∑ n in Finset.Ioc N M, f n + ∑ n in s, f n) htop
+        _ = ∑ n in Finset.Ioc N M, f n + f (M + 1) := by
+              exact congrArg (fun x : ℂ => ∑ n in Finset.Ioc N M, f n + x) (Finset.sum_singleton (M + 1) f)
 
 /-- Splitting a set integral over adjacent natural `Ioc` intervals. -/
 theorem eulerMaclaurin_integral_Ioc_succ_top
@@ -1430,7 +1441,7 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_base
         ((1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
         (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((N : ℕ) : ℝ)),
           ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-  simp
+  norm_num
 
 /-- Successor step for the finite first-periodic-Bernoulli Euler-Maclaurin
 sum.  This lemma owns exactly the finite partition and endpoint-telescoping
@@ -1525,8 +1536,64 @@ theorem eulerMaclaurin_firstPeriodicBernoulli_sum_oneInterval_Ioc_succ
           ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
           (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
             ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
-      rw [hf_integral_split, hrem_integral_split]
-      ring_nf
+      calc
+        ((∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+            (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x)) +
+          ((∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+            (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+            ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+            (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+              ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x))
+            =
+            (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+              (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+              ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+              (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+                ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+              calc
+                (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+                    (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+                    ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+                    (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+                      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) +
+                  ((∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+                    (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+                    ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+                    (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+                      ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x))
+                    =
+                    (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+                      (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+                      ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+                      (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+                        ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+                  calc
+                    (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)), f x) +
+                        (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+                        ((1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+                        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) (((M : ℕ) : ℝ)),
+                          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) +
+                      ((∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+                        (-(1 / 2 : ℂ) * f (((M : ℕ) : ℝ))) +
+                        ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+                        (∫ x in Set.Ioc (((M : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+                          ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x))
+                        =
+                        (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))), f x) +
+                          (-(1 / 2 : ℂ) * f (((N : ℕ) : ℝ))) +
+                          ((1 / 2 : ℂ) * f ((((M + 1 : ℕ) : ℝ))) +
+                          (∫ x in Set.Ioc (((N : ℕ) : ℝ)) ((((M + 1 : ℕ) : ℝ))),
+                            ((eulerMaclaurinFirstPeriodicBernoulli x : ℝ) : ℂ) * f' x) := by
+                      congr 1
+                      · exact hf_integral_split
+                      · congr 1
+                        · rfl
+                        · congr 1
+                          · exact hrem_integral_split
+                          · ring_nf
 
 /-- Summing the one-interval first-periodic-Bernoulli identities over
 `n = N, ..., M - 1` gives the finite natural-interval `Ioc` identity.  This
@@ -2001,8 +2068,8 @@ theorem eulerMaclaurin_cpow_neg_bernoulliKernel_integrableOn_Ioi
     integrableOn_Ioi_rpow_of_lt hexponent_lt hN_pos_real
   have hf_meas :
       AEStronglyMeasurable f (volume.restrict s) := by
-    simpa [f, s] using
-      eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
+    exact
+      (eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z)
   have hbound :
       ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x := by
     exact (ae_restrict_mem measurableSet_Ioi).mono
@@ -3608,7 +3675,7 @@ theorem eulerMaclaurinBernoulliKernel_parameterDerivative_aestronglyMeasurable
   have hkernel :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-    simpa [K] using
+    exact
       eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
   have hreal :
       AEStronglyMeasurable
@@ -4102,9 +4169,8 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
           (F w)
           (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
     exact Filter.Eventually.of_forall
-      (fun w : ℂ => by
-        simpa [F] using
-          eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN w)
+      (fun w : ℂ =>
+        eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN w)
   have hF_int :
       Integrable
         (F z)
@@ -4119,8 +4185,7 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
         ∀ᵐ x ∂volume.restrict (Set.Ioi (((N : ℕ) : ℝ))),
           ‖F z x‖ ≤ g₀ x := by
       exact (hmajorant₀ z hz_ball₀).mono
-        (fun x hx => by
-          simpa [F] using hx)
+        (fun x hx => hx)
     have hg₀ :
         Integrable g₀ (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) :=
       hg₀_integrable
@@ -4128,14 +4193,13 @@ theorem eulerMaclaurinZetaBernoulliIntegralCoreWithCutoff_differentiable_under_i
         AEStronglyMeasurable
           (F z)
           (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-      simpa [F] using
-        eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
+      exact eulerMaclaurinBernoulliKernel_aestronglyMeasurable N hN z
     exact Integrable.mono' hg₀ hmeas hbound₀
-  have hF'_meas :
+    have hF'_meas :
       AEStronglyMeasurable
         (F' z)
         (volume.restrict (Set.Ioi (((N : ℕ) : ℝ)))) := by
-    simpa [F'] using
+    exact
       eulerMaclaurinBernoulliKernel_parameterDerivative_aestronglyMeasurable
         N hN z
   have hhasDeriv :

@@ -136,8 +136,9 @@ theorem puncturedVerticalStrip_leftCorridor_re_lt_one :
     (div_lt_iff₀ zero_lt_two).mpr
       (calc
         (1 : ℝ) < 1 * 2 := by
-          rw [one_mul]
-          exact one_lt_two)
+          exact one_lt_two
+        _ = 2 := by
+          norm_num
 
 /-- The left safe corridor lies inside the right strip boundary. -/
 theorem puncturedVerticalStrip_leftCorridor_re_lt_two :
@@ -234,8 +235,7 @@ theorem complex_segment_re_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re := by
-  rw [segment_eq_image ℝ z w] at hp
-  rcases hp with ⟨t, ht, rfl⟩
+  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_re z w t
 
@@ -246,8 +246,7 @@ theorem complex_segment_im_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rw [segment_eq_image ℝ z w] at hp
-  rcases hp with ⟨t, ht, rfl⟩
+  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_im z w t
 
@@ -259,8 +258,7 @@ theorem complex_segment_coordinates
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rw [segment_eq_image ℝ z w] at hp
-  rcases hp with ⟨t, ht, rfl⟩
+  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_, ?_⟩
   · exact complex_lineMap_re z w t
   · exact complex_lineMap_im z w t

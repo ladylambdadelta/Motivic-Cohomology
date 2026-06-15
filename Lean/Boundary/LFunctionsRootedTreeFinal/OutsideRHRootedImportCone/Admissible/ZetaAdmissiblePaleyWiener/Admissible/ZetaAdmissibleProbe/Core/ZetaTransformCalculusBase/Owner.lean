@@ -617,6 +617,20 @@ theorem zetaLaplaceTransform_smul
     _ = a * zetaLaplaceTransform φ z := by
           exact integral_mul_left a (fun t : ℝ => φ t * Complex.exp (z * t))
 
+/-- Pointwise equal test functions have equal zeta Laplace transforms. -/
+theorem zetaLaplaceTransform_congr
+    {φ ψ : LFunctions.ZetaTestFunction}
+    (hφψ : ∀ t : ℝ, φ t = ψ t) :
+    zetaLaplaceTransform φ = zetaLaplaceTransform ψ := by
+  funext z
+  unfold zetaLaplaceTransform
+  exact integral_congr_ae
+    (Filter.Eventually.of_forall
+      (fun t : ℝ =>
+        congrArg
+          (fun u : ℂ => u * Complex.exp (z * t))
+          (hφψ t)))
+
 /-- The pointwise Laplace integrand is continuous in the pair `(z, t)`. -/
 theorem continuous_laplaceIntegrand
     (φ : LFunctions.ZetaTestFunction) :
@@ -688,6 +702,14 @@ theorem integrable_laplaceKernel_of_hasCompactSupport
     Integrable (fun t : ℝ => φ t * Complex.exp (z * t)) (volume : Measure ℝ) := by
   exact (continuous_laplaceKernel φ z).integrable_of_hasCompactSupport
     (hasCompactSupport_laplaceKernel_of_hasCompactSupport φ z hφ)
+
+/-- The admissible Laplace kernel is integrable at every spectral parameter. -/
+theorem integrable_laplaceKernel_at
+    (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    Integrable (fun t : ℝ => φ.toZetaTestFunction' t * Complex.exp (z * t))
+      (volume : Measure ℝ) :=
+  integrable_laplaceKernel_of_hasCompactSupport
+    φ.toZetaTestFunction' z φ.toZetaTestFunction.hasCompactSupport
 
 /-- The Laplace kernel is strongly measurable whenever it is continuous. -/
 theorem aestronglyMeasurable_laplaceKernel

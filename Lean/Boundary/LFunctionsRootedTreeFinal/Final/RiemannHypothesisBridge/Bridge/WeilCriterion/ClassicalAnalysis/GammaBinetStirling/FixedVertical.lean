@@ -37,7 +37,7 @@ theorem Real.one_add_rpow_le_exp_mul_of_large
       ∀ᶠ y : ℝ in atTop,
         ‖y ^ s‖ ≤ ‖Real.exp (b * y)‖ ∧ 0 ≤ y :=
     hbound_eventually.and hnonneg_eventually
-  rw [eventually_atTop] at heventually
+  exact eventually_atTop.mp heventually
   rcases heventually with ⟨Y, hY⟩
   let T : ℝ := max 1 (Y - 1)
   refine ⟨T, ?_, ?_⟩
@@ -168,9 +168,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
       intro m hm
       have hre : (σ + t * Complex.I : ℂ).re = 0 := by
         have := congrArg Complex.re hm
-        simpa using this
+        exact this
       have hpos : 0 < (σ + t * Complex.I : ℂ).re := by
-        simpa using hσ
+        exact hσ
       linarith
     have hline_cont :
         ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
@@ -330,9 +330,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
               Real.exp ((2 * b) * ‖t‖) :=
           mul_le_mul_of_nonneg_left hpoly hexp_nonneg
         _ = Real.exp (((Real.pi / 2) + (2 * b)) * ‖t‖) := by
-          rw [← Real.exp_add]
-          congr 1
-          ring
+          exact (Real.exp_add ((Real.pi / 2) * ‖t‖) ((2 * b) * ‖t‖)).symm
         _ = Real.exp (A * ‖t‖) := by
           congr 1
           dsimp [A, b]
@@ -367,7 +365,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
     refine continuous_iff_continuousAt.2 ?_
     intro t
     have hpoint_re_pos : 0 < (σ + t * Complex.I : ℂ).re := by
-      simpa using hσ
+      exact hσ
     have hne : Complex.Gamma (σ + t * Complex.I) ≠ 0 :=
       Complex.Gamma_ne_zero_of_re_pos hpoint_re_pos
     have hgamma_cont :
@@ -376,10 +374,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_compact
         intro m hm
         have hre_eq : (σ + t * Complex.I : ℂ).re = (-(m : ℂ)).re :=
           congrArg Complex.re hm
-        have hright : (-(m : ℂ)).re = -(m : ℝ) := by
-          simp
+        have hright : (-(m : ℂ)).re = -(m : ℝ) :=
+          rfl
         have hleft : (σ + t * Complex.I : ℂ).re = σ := by
-          simp
+          exact Complex.add_re (σ : ℂ) (t * Complex.I)
         have hσ_nonpos : σ ≤ 0 := by
           calc
             σ = (σ + t * Complex.I : ℂ).re := hleft.symm

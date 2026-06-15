@@ -178,17 +178,19 @@ theorem pi_cpow_neg_halfArgument_rightHalfPlane_log_norm_nonpos
   have hpi_pos : (0 : ℝ) < π := Real.pi_pos
   have hpi_one_lt : (1 : ℝ) < π := Real.one_lt_pi
   have hre_nonpos : (-z / 2 : ℂ).re ≤ 0 := by
-    rw [Complex.div_re_ofReal, Complex.neg_re]
-    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hz_re) (by norm_num : (0 : ℝ) ≤ 2)
+    have hdiv : (-z / 2 : ℂ).re = -z.re / 2 := by
+      norm_num [Complex.div_re_ofReal, Complex.neg_re]
+    have hdiv' : -z.re / 2 ≤ 0 := by
+      exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr hz_re)
+        (by norm_num : (0 : ℝ) ≤ 2)
+    exact hdiv ▸ hdiv'
   have hnorm_eq : ‖π ^ (-z / 2 : ℂ)‖ = π ^ (-z / 2 : ℂ).re := by
-    simpa using
-      Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos (-z / 2 : ℂ)
+    exact Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos (-z / 2 : ℂ)
   have hnorm_le_one : ‖π ^ (-z / 2 : ℂ)‖ ≤ 1 := by
-    rw [hnorm_eq]
-    exact Real.rpow_le_one_of_one_le_of_nonpos (le_of_lt hpi_one_lt) hre_nonpos
+    exact hnorm_eq ▸
+      Real.rpow_le_one_of_one_le_of_nonpos (le_of_lt hpi_one_lt) hre_nonpos
   have hnorm_pos : 0 < ‖π ^ (-z / 2 : ℂ)‖ := by
-    rw [hnorm_eq]
-    exact Real.rpow_pos_of_pos hpi_pos (-z / 2 : ℂ).re
+    exact hnorm_eq ▸ Real.rpow_pos_of_pos hpi_pos (-z / 2 : ℂ).re
   exact Real.log_nonpos hnorm_pos.le hnorm_le_one
 
 /-- The `π ^ (-z / 2)` normalization is bounded by the same log-linear envelope. -/
@@ -229,17 +231,15 @@ theorem log_norm_halfArgument_normalized_complexGamma_le_sum_log_norm_factors
   have hpi_pos : 0 < ‖π ^ (-z / 2 : ℂ)‖ := by
     have hpi_pos_real : (0 : ℝ) < π := Real.pi_pos
     have hnorm_eq : ‖π ^ (-z / 2 : ℂ)‖ = π ^ (-z / 2 : ℂ).re := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos_real (-z / 2 : ℂ)
-    rw [hnorm_eq]
-    exact Real.rpow_pos_of_pos hpi_pos_real (-z / 2 : ℂ).re
+      exact Complex.abs_cpow_eq_rpow_re_of_pos hpi_pos_real (-z / 2 : ℂ)
+    exact hnorm_eq ▸ Real.rpow_pos_of_pos hpi_pos_real (-z / 2 : ℂ).re
   have hgamma_pos : 0 < ‖Complex.Gamma (z / 2)‖ :=
     norm_pos_iff.mpr
       (ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm hz_re hz_norm)
   calc
     Real.log ‖π ^ (-z / 2) * Complex.Gamma (z / 2)‖ =
         Real.log (‖π ^ (-z / 2 : ℂ)‖ * ‖Complex.Gamma (z / 2)‖) := by
-      rw [norm_mul]
+      exact congrArg Real.log (norm_mul (π ^ (-z / 2 : ℂ)) (Complex.Gamma (z / 2)))
     _ = Real.log ‖π ^ (-z / 2 : ℂ)‖ +
         Real.log ‖Complex.Gamma (z / 2)‖ := by
       exact Real.log_mul hpi_pos.ne' hgamma_pos.ne'
@@ -535,10 +535,10 @@ theorem Gammaℝ_rightHalfPlane_stirling_log_growth_bound_of_log_linear
     change 2 + ‖z‖ = (1 + ‖z‖) + 1
     ring
   have harg_le_twoH : 2 + ‖z‖ ≤ 2 * H := by
-    rw [harg_eq]
     have hone_le_H : (1 : ℝ) ≤ H :=
       le_add_of_nonneg_right (norm_nonneg z)
-    nlinarith
+    have : 2 + ‖z‖ = H + 1 := harg_eq
+    nlinarith [this, hone_le_H]
   have hlog_le_twoH :
       Real.log (2 + ‖z‖) ≤ 2 * H :=
     le_trans hlog_le_arg harg_le_twoH
@@ -549,8 +549,10 @@ theorem Gammaℝ_rightHalfPlane_stirling_log_growth_bound_of_log_linear
     mul_le_mul_of_nonneg_left hlog_le_twoH hleft_nonneg
   have htarget_eq :
       C * H ^ m * (2 * H) = (2 * C) * H ^ (m + 1) := by
-    rw [pow_succ]
-    ring
+    calc
+      C * H ^ m * (2 * H) = (2 * C) * (H ^ m * H) := by ring
+      _ = (2 * C) * H ^ (m + 1) := by
+        exact congrArg (fun t : ℝ => (2 * C) * t) (pow_succ H m).symm
   exact le_trans (hbound z hz_re hz_norm)
     (Eq.subst
       (motive := fun x : ℝ => C * H ^ m * Real.log (2 + ‖z‖) ≤ x)
@@ -951,7 +953,7 @@ theorem strip_vertical_boundary_envelope_exp_damped_bound
         _ = A * Real.exp 0 := by
           ring
         _ = A := by
-          rw [Real.exp_zero, mul_one]
+          norm_num [Real.exp_zero]
     exact hscaled.trans_eq hcollapse
   · intro z hz_re hz_im
     let X : ℝ := B * (1 + ‖z.im‖) ^ m
@@ -974,7 +976,7 @@ theorem strip_vertical_boundary_envelope_exp_damped_bound
         _ = A * Real.exp 0 := by
           ring
         _ = A := by
-          rw [Real.exp_zero, mul_one]
+          norm_num [Real.exp_zero]
     exact hscaled.trans_eq hcollapse
 
 /-- The vertical height is bounded by the ordinary complex height. -/
@@ -982,9 +984,8 @@ theorem vertical_basicHeight_le_complex_basicHeight
     (z : ℂ) :
     1 + ‖z.im‖ ≤ 1 + ‖z‖ := by
   have him_le_norm : ‖z.im‖ ≤ ‖z‖ := by
-    have him_abs_le_norm : |z.im| ≤ ‖z‖ := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_im_le_abs z
+  have him_abs_le_norm : |z.im| ≤ ‖z‖ := by
+    exact Complex.abs_im_le_abs z
     exact Eq.subst
       (motive := fun x : ℝ => x ≤ ‖z‖)
       (Real.norm_eq_abs z.im).symm

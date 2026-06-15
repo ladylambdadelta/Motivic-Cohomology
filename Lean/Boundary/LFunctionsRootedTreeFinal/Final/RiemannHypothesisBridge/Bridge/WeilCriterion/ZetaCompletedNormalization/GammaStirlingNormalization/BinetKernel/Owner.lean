@@ -9,6 +9,7 @@ import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetTailContour
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.RightCriticalStripCompact.Owner
@@ -203,8 +204,11 @@ theorem halfArgument_re_nonneg_of_re_nonneg
     (hz_re : 0 ≤ z.re) :
     0 ≤ (z / 2).re := by
   have htwo_pos : (0 : ℝ) < 2 := by norm_num
-  rw [Complex.div_re_ofReal]
-  exact div_nonneg hz_re (le_of_lt htwo_pos)
+  calc
+    0 ≤ z.re / 2 := by
+      exact div_nonneg hz_re (le_of_lt htwo_pos)
+    _ = (z / 2).re := by
+      exact (Complex.div_re_ofReal z (2 : ℝ)).symm
 
 /-- The half-argument is nonzero in the large right-half-plane Stirling region. -/
 theorem halfArgument_ne_zero_of_one_le_norm
@@ -340,47 +344,6 @@ theorem one_le_two_add_complex_norm
     (1 : ℝ) ≤ 2 := one_le_two
     _ ≤ 2 + ‖z‖ := le_add_of_nonneg_right (norm_nonneg z)
 
-/-- The closed right half-plane sector used for the owner Gamma/Stirling roots. -/
-def Complex.closedRightHalfPlaneSector (w : ℂ) : Prop :=
-  0 ≤ w.re
-
-/-- Binet's second-formula remainder for `log Γ`.
-
-For `Re w > 0`, Binet's second formula writes
-`log Γ(w) = (w - 1/2) Log w - w + (1/2)log(2π) + J(w)`, where
-`J(w) = 2 ∫₀∞ atan(t / w) / (exp(2πt) - 1) dt`.  This is the canonical
-complex-analysis kernel used to prove sectorial Stirling estimates; cf. DLMF
-5.11.3 and Whittaker-Watson, Ch. XII. -/
-noncomputable def Complex.binetSecondFormulaRemainder (w : ℂ) : ℂ :=
-  2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
-    Complex.arctan ((t : ℂ) / w) /
-      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-
-/-- The lower Binet remainder piece after splitting at `‖w‖ / 2`.
-
-This is the small-argument range where the power-series arctangent estimate
-gives the explicit `1 / ‖w‖` factor. -/
-noncomputable def Complex.binetSecondFormulaSmallRemainder (w : ℂ) : ℂ :=
-  2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
-    Complex.arctan ((t : ℂ) / w) /
-      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-
-/-- The upper Binet remainder piece after splitting at `‖w‖ / 2`.
-
-This is the only remaining full-sector obstruction: the existing pointwise
-principal-arctangent bound supplies either a fixed-`w` constant, or a uniform
-constant after wedge separation.  The full closed-right-half-plane owner API
-needs this tail to decay like `1 / ‖w‖` without a wedge hypothesis. -/
-noncomputable def Complex.binetSecondFormulaTailRemainder (w : ℂ) : ℂ :=
-  2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-    Complex.arctan ((t : ℂ) / w) /
-      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-
-/-- The main term in Binet's logarithmic Stirling formula. -/
-noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
-  (w - (1 / 2 : ℂ)) * Complex.log w - w +
-    (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
-
 /-- Binet's second logarithmic formula for `Gamma` on the open right half-plane,
 away from the origin.
 
@@ -397,10 +360,7 @@ theorem Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius :
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  exact
-    ⟨1, zero_lt_one, fun w hw_re_pos _hw_norm =>
-      Complex.Gamma_binetSecondFormula_large_openRightHalfPlane
-        w hw_re_pos _hw_norm⟩
+  exact Complex.Gamma_binetSecondFormula_large_openRightHalfPlane
 
 /-- Pointwise Binet-kernel estimate in the open right half-plane.
 
@@ -439,443 +399,6 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_closedRightHalfPlane
             (t / ‖w‖) /
               (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
   exact Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane hw_re_pos
-
-/-- The positive half-line decomposes into the local Binet interval `(0,1]`
-and the tail interval `(1,∞)`. -/
-theorem Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one :
-    Set.Ioi (0 : ℝ) =
-      Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) := by
-  ext x
-  constructor
-  · intro hx
-    by_cases hle : x ≤ 1
-    · left
-      exact ⟨hx, hle⟩
-    · right
-      exact lt_of_not_ge hle
-  · intro hx
-    cases hx with
-    | inl h => exact h.1
-    | inr h => exact h
-
-/-- Joining local integrability on `(0,1]` with tail integrability on `(1,∞)`
-gives integrability on `(0,∞)`. -/
-theorem Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
-    {f : ℝ → ℝ}
-    (hlocal : IntegrableOn f (Set.Ioc (0 : ℝ) 1))
-    (htail : IntegrableOn f (Set.Ioi (1 : ℝ))) :
-    IntegrableOn f (Set.Ioi (0 : ℝ)) := by
-  have hcover :
-      Set.Ioi (0 : ℝ) =
-        Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) :=
-    Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one
-  have hunion :
-      IntegrableOn f (Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ)) :=
-    integrableOn_union.mpr ⟨hlocal, htail⟩
-  exact
-    Eq.subst
-      (motive := fun s : Set ℝ => IntegrableOn f s)
-      hcover.symm
-      hunion
-
-/-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
-    (hlocal :
-      IntegrableOn
-        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-        (Set.Ioc (0 : ℝ) 1))
-    (htail :
-      IntegrableOn
-        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-        (Set.Ioi (1 : ℝ))) :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioi (0 : ℝ)) := by
-  exact
-    Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
-      hlocal htail
-
-/-- Strict positivity of the Binet majorant denominator at every positive point. -/
-theorem Real.binetSecondFormula_kernel_majorant_denominator_pos_local
-    {t : ℝ}
-    (ht : 0 < t) :
-    0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
-    mul_pos two_pos Real.pi_pos
-  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
-    mul_pos htwo_pi_pos ht
-  have hone_lt_exp :
-      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
-    calc
-      1 = Real.exp 0 := by
-        exact Real.exp_zero.symm
-      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
-        Real.exp_lt_exp.mpr hexponent_pos
-  exact sub_pos.mpr hone_lt_exp
-
-/-- Positivity of the Binet real majorant on the positive half-line. -/
-theorem Real.binetSecondFormula_kernel_majorant_pos_local
-    {t : ℝ}
-    (ht : 0 < t) :
-    0 < t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    div_pos ht
-      (Real.binetSecondFormula_kernel_majorant_denominator_pos_local ht)
-
-/-- Exponential lower bound giving cancellation of the zero of
-`exp (2πt) - 1` at the origin. -/
-theorem Real.two_pi_mul_le_exp_two_pi_mul_sub_one
-    {t : ℝ}
-    (ht : 0 ≤ t) :
-    (2 : ℝ) * Real.pi * t ≤
-      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  let x : ℝ := (2 : ℝ) * Real.pi * t
-  have hx_nonneg : 0 ≤ x :=
-    mul_nonneg (le_of_lt (mul_pos two_pos Real.pi_pos)) ht
-  have hlower : x + 1 ≤ Real.exp x :=
-    Real.add_one_le_exp x
-  change x ≤ Real.exp x - 1
-  linarith
-
-/-- Division form of the zero-cancellation estimate for the Binet majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
-    {t : ℝ}
-    (ht : 0 < t) :
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-      1 / ((2 : ℝ) * Real.pi) := by
-  let a : ℝ := (2 : ℝ) * Real.pi
-  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
-  have ha_pos : 0 < a :=
-    mul_pos two_pos Real.pi_pos
-  have hd_pos : 0 < d :=
-    Real.binetSecondFormula_kernel_majorant_denominator_pos_local ht
-  have had_le : a * t ≤ d := by
-    exact Real.two_pi_mul_le_exp_two_pi_mul_sub_one (le_of_lt ht)
-  have hmul : a * (t / d) ≤ 1 := by
-    have hle_div : a * t / d ≤ d / d :=
-      div_le_div_of_nonneg_right had_le (le_of_lt hd_pos)
-    have hd_div : d / d = 1 :=
-      div_self (ne_of_gt hd_pos)
-    calc
-      a * (t / d) = a * t / d := by ring
-      _ ≤ d / d := hle_div
-      _ = 1 := hd_div
-  exact (le_div_iff₀ ha_pos).mpr hmul
-
-/-- Pointwise zero-cancellation bound for the Binet majorant on `(0,1]`.
-
-The proof is the elementary inequality `x + 1 ≤ exp x`, applied to
-`x = 2πt`, followed by division by the positive denominator. -/
-theorem Real.binetSecondFormula_kernel_majorant_zero_cancellation_pointwise
-    {t : ℝ}
-    (ht : t ∈ Set.Ioc (0 : ℝ) 1) :
-    ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
-      1 / ((2 : ℝ) * Real.pi) := by
-  have hpos :
-      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local ht.1)
-  have hle :
-      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-        1 / ((2 : ℝ) * Real.pi) :=
-    Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi ht.1
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => x ≤ 1 / ((2 : ℝ) * Real.pi))
-      (Real.norm_of_nonneg hpos).symm
-      hle
-
-/-- The Binet majorant is bounded near zero after cancellation of the simple
-zero in `exp (2πt)-1`. -/
-theorem Real.binetSecondFormula_kernel_majorant_zero_cancellation_bounded_on_Ioc_zero_one :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ t : ℝ,
-        t ∈ Set.Ioc (0 : ℝ) 1 →
-          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤ C := by
-  refine ⟨1 / ((2 : ℝ) * Real.pi), ?_, ?_⟩
-  · exact one_div_pos.mpr (mul_pos two_pos Real.pi_pos)
-  · intro t ht
-    exact
-      Real.binetSecondFormula_kernel_majorant_zero_cancellation_pointwise ht
-
-/-- The Binet majorant is bounded near zero after cancellation of the simple
-zero in `exp (2πt)-1`. -/
-theorem Real.binetSecondFormula_kernel_majorant_bounded_zero_one :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ t : ℝ,
-        t ∈ Set.Ioc (0 : ℝ) 1 →
-          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤ C := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_zero_cancellation_bounded_on_Ioc_zero_one
-
-/-- Bounded a.e.-measurable real functions on a finite interval are integrable. -/
-theorem Real.integrableOn_Ioc_of_aestronglyMeasurable_norm_le_const
-    {f : ℝ → ℝ}
-    {a b C : ℝ}
-    (hmeas : AEStronglyMeasurable f (volume.restrict (Set.Ioc a b)))
-    (hC : 0 ≤ C)
-    (hbound : ∀ x : ℝ, x ∈ Set.Ioc a b → ‖f x‖ ≤ C) :
-    IntegrableOn f (Set.Ioc a b) := by
-  refine ⟨hmeas, ?_⟩
-  exact
-    hasFiniteIntegral_restrict_of_bounded
-      (μ := volume)
-      (s := Set.Ioc a b)
-      (C := C)
-      measure_Ioc_lt_top
-      ((ae_restrict_mem measurableSet_Ioc).mono
-        (fun x hx => hbound x hx))
-
-/-- The Binet majorant is a.e.-measurable on the local interval `(0,1]`. -/
-theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_zero_one :
-    AEStronglyMeasurable
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
-  have hmeas :
-      Measurable
-        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-    fun_prop
-  exact hmeas.aestronglyMeasurable
-
-/-- A bounded Binet majorant on the finite interval `(0,1]` is integrable. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioc (0 : ℝ) 1) := by
-  rcases
-      Real.binetSecondFormula_kernel_majorant_bounded_zero_one with
-    ⟨C, hC_pos, hC_bound⟩
-  exact
-    Real.integrableOn_Ioc_of_aestronglyMeasurable_norm_le_const
-      Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_zero_one
-      (le_of_lt hC_pos)
-      hC_bound
-
-/-- A bounded Binet majorant on the finite interval `(0,1]` is integrable. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_of_bounded :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioc (0 : ℝ) 1) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_from_zero_cancellation
-
-/-- Local integrability of the Binet majorant near zero.
-
-This is the standard cancellation
-`exp (2πt) - 1 ∼ 2πt`, so the quotient is bounded on `(0,1]`. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioc (0 : ℝ) 1) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one_of_bounded
-
-/-- On the Binet tail, `exp (2πt) - 1` is bounded below by
-`(1/2) exp (2πt)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
-    {t : ℝ}
-    (ht : t ∈ Set.Ioi (1 : ℝ)) :
-    (Real.exp ((2 : ℝ) * Real.pi * t)) / 2 ≤
-      Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  let x : ℝ := (2 : ℝ) * Real.pi * t
-  have hx_ge_two_pi : (2 : ℝ) * Real.pi ≤ x := by
-    have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
-      le_of_lt (mul_pos two_pos Real.pi_pos)
-    calc
-      (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 := by ring
-      _ ≤ (2 : ℝ) * Real.pi * t :=
-        mul_le_mul_of_nonneg_left (le_of_lt ht) hcoeff_nonneg
-      _ = x := rfl
-  have hlog_two_le_two_pi : Real.log 2 ≤ (2 : ℝ) * Real.pi := by
-    have hlog_two_lt_two : Real.log 2 < (2 : ℝ) := by
-      exact Real.log_lt_self (by norm_num : (1 : ℝ) < 2)
-    exact le_trans (le_of_lt hlog_two_lt_two)
-      (le_of_lt (by positivity : (2 : ℝ) < 2 * Real.pi))
-  have hlog_two_le_x : Real.log 2 ≤ x :=
-    le_trans hlog_two_le_two_pi hx_ge_two_pi
-  have htwo_le_exp : (2 : ℝ) ≤ Real.exp x := by
-    have htwo_pos : (0 : ℝ) < 2 := by norm_num
-    exact (Real.log_le_iff_le_exp htwo_pos).mp hlog_two_le_x
-  change Real.exp x / 2 ≤ Real.exp x - 1
-  nlinarith [Real.exp_pos x]
-
-/-- The linear factor on the Binet tail is absorbed by `exp (πt)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
-    {t : ℝ}
-    (ht : t ∈ Set.Ioi (1 : ℝ)) :
-    t ≤ Real.exp (Real.pi * t) := by
-  have ht_nonneg : 0 ≤ t :=
-    le_of_lt (lt_trans zero_lt_one ht)
-  have hpi_t_ge_t : t ≤ Real.pi * t := by
-    have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
-      le_of_lt Real.one_lt_pi
-    calc
-      t = 1 * t := by ring
-      _ ≤ Real.pi * t :=
-        mul_le_mul_of_nonneg_right hone_le_pi ht_nonneg
-  have ht_le_add : t ≤ Real.pi * t + 1 :=
-    le_trans hpi_t_ge_t (le_add_of_nonneg_right zero_le_one)
-  have hadd_le_exp : Real.pi * t + 1 ≤ Real.exp (Real.pi * t) :=
-    Real.add_one_le_exp (Real.pi * t)
-  exact le_trans ht_le_add hadd_le_exp
-
-/-- Pointwise tail domination after separating the denominator lower bound
-and the linear/exponential absorption. -/
-theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower
-    {t : ℝ}
-    (ht : t ∈ Set.Ioi (1 : ℝ)) :
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-      2 * Real.exp (-Real.pi * t) := by
-  let E : ℝ := Real.exp ((2 : ℝ) * Real.pi * t)
-  let d : ℝ := Real.exp ((2 : ℝ) * Real.pi * t) - 1
-  have hE_pos : 0 < E :=
-    Real.exp_pos ((2 : ℝ) * Real.pi * t)
-  have hd_pos : 0 < d :=
-    Real.binetSecondFormula_kernel_majorant_denominator_pos_local
-      (lt_trans zero_lt_one ht)
-  have hd_lower : E / 2 ≤ d :=
-    Real.binetSecondFormula_kernel_majorant_tail_denominator_lower ht
-  have ht_le_exp : t ≤ Real.exp (Real.pi * t) :=
-    Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi ht
-  have hdiv_le : t / d ≤ t / (E / 2) :=
-    div_le_div_of_nonneg_left
-      (le_of_lt (lt_trans zero_lt_one ht))
-      (div_pos hE_pos two_pos)
-      hd_lower
-  have hrewrite : t / (E / 2) = 2 * (t / E) := by
-    field_simp [hE_pos.ne']
-  have ht_over_E_le :
-      t / E ≤ Real.exp (-Real.pi * t) := by
-    have hmul_le :
-        t ≤ E * Real.exp (-Real.pi * t) := by
-      calc
-        t ≤ Real.exp (Real.pi * t) := ht_le_exp
-        _ = E * Real.exp (-Real.pi * t) := by
-          simp [E, ← Real.exp_add]
-          ring_nf
-    exact (div_le_iff₀ hE_pos).mpr hmul_le
-  calc
-    t / d ≤ t / (E / 2) := hdiv_le
-    _ = 2 * (t / E) := hrewrite
-    _ ≤ 2 * Real.exp (-Real.pi * t) :=
-      mul_le_mul_of_nonneg_left ht_over_E_le (by norm_num : (0 : ℝ) ≤ 2)
-
-/-- Pointwise exponential tail domination for the Binet majorant with the
-concrete constant `2`. -/
-theorem Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
-    {t : ℝ}
-    (ht : t ∈ Set.Ioi (1 : ℝ)) :
-    ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
-      2 * Real.exp (-Real.pi * t) := by
-  have ht_pos : 0 < t :=
-    lt_trans zero_lt_one ht
-  have hnonneg :
-      0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-    le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local ht_pos)
-  have hle :
-      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-        2 * Real.exp (-Real.pi * t) :=
-    Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_lower ht
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => x ≤ 2 * Real.exp (-Real.pi * t))
-      (Real.norm_of_nonneg hnonneg).symm
-      hle
-
-/-- Exponential tail domination for the Binet majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_exponential_tail_dominated :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (1 : ℝ) →
-          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
-            C * Real.exp (-Real.pi * t) := by
-  refine ⟨2, two_pos, ?_⟩
-  intro t ht
-  exact
-    Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp ht
-
-/-- Exponential tail domination for the Binet majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_tail_le_exp :
-    ∃ C : ℝ,
-      0 < C ∧
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (1 : ℝ) →
-          ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
-            C * Real.exp (-Real.pi * t) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_exponential_tail_dominated
-
-/-- A real function dominated on a tail by a decaying exponential is integrable
-on that tail. -/
-theorem Real.integrableOn_Ioi_of_aestronglyMeasurable_norm_le_exp_tail
-    {f : ℝ → ℝ}
-    {a C b : ℝ}
-    (hmeas : AEStronglyMeasurable f (volume.restrict (Set.Ioi a)))
-    (hC : 0 ≤ C)
-    (hb : 0 < b)
-    (hbound :
-      ∀ t : ℝ,
-        t ∈ Set.Ioi a →
-          ‖f t‖ ≤ C * Real.exp (-b * t)) :
-    IntegrableOn f (Set.Ioi a) := by
-  have h_exp :
-      IntegrableOn (fun t : ℝ => Real.exp (-b * t)) (Set.Ioi a) :=
-    exp_neg_integrableOn_Ioi a hb
-  have h_bound_integrable :
-      Integrable (fun t : ℝ => C * Real.exp (-b * t))
-        (volume.restrict (Set.Ioi a)) :=
-    h_exp.integrable.const_mul C
-  exact
-    h_bound_integrable.mono'
-      hmeas
-      ((ae_restrict_mem measurableSet_Ioi).mono
-        (fun t ht => hbound t ht))
-
-/-- The Binet majorant is a.e.-measurable on the tail interval `(1,∞)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_one_infty :
-    AEStronglyMeasurable
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (volume.restrict (Set.Ioi (1 : ℝ))) := by
-  have hmeas :
-      Measurable
-        (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-    fun_prop
-  exact hmeas.aestronglyMeasurable
-
-/-- Exponential tail domination implies tail integrability of the Binet
-majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_from_exponential_tail :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioi (1 : ℝ)) := by
-  rcases
-      Real.binetSecondFormula_kernel_majorant_tail_le_exp with
-    ⟨C, hC_pos, hC_bound⟩
-  exact
-    Real.integrableOn_Ioi_of_aestronglyMeasurable_norm_le_exp_tail
-      Real.binetSecondFormula_kernel_majorant_aestronglyMeasurableOn_one_infty
-      (le_of_lt hC_pos)
-      Real.pi_pos
-      hC_bound
-
-/-- Exponential tail domination implies tail integrability of the Binet
-majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_of_tail_bound :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioi (1 : ℝ)) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_from_exponential_tail
-
-/-- Exponential decay of the Binet majorant at infinity. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioi (1 : ℝ)) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty_of_tail_bound
 
 /-- Exponential tail integral bound for the scaled decay `exp (-π t)`.
 
@@ -960,7 +483,7 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
     exact setIntegral_mono
       (fun t ht => by
         have hnonneg : 0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-          exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos_local
+          exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos
             (lt_trans zero_lt_one (lt_of_le_of_lt ha ht.1)))
         exact hnonneg)
       (fun t ht => by
@@ -982,59 +505,6 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
       _ ≤ 2 * Real.exp (-Real.pi * a) :=
         mul_le_mul_of_nonneg_left hexp_tail (by norm_num : (0 : ℝ) ≤ 2)
   exact le_trans hmono hscaled_tail
-
-/-- The real majorant for the Binet kernel is integrable on `(0,∞)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioi (0 : ℝ)) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_integrableOn_from_zero_local_and_infinity
-      Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one
-      Real.binetSecondFormula_kernel_majorant_integrableOn_one_infty
-
-/-- Strict lower bound for the Binet majorant at every positive point. -/
-theorem Real.binetSecondFormula_kernel_majorant_denominator_pos
-    {t : ℝ}
-    (ht : 0 < t) :
-    0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-  have htwo_pi_pos : 0 < (2 : ℝ) * Real.pi :=
-    mul_pos two_pos Real.pi_pos
-  have hexponent_pos : 0 < (2 : ℝ) * Real.pi * t :=
-    mul_pos htwo_pi_pos ht
-  have hone_lt_exp :
-      1 < Real.exp ((2 : ℝ) * Real.pi * t) := by
-    calc
-      1 = Real.exp 0 := by
-        exact Real.exp_zero.symm
-      _ < Real.exp ((2 : ℝ) * Real.pi * t) :=
-        Real.exp_lt_exp.mpr hexponent_pos
-  exact sub_pos.mpr hone_lt_exp
-
-/-- The Binet majorant denominator is nonzero at every positive point. -/
-theorem Real.binetSecondFormula_kernel_majorant_denominator_ne_zero
-    {t : ℝ}
-    (ht : 0 < t) :
-    Real.exp ((2 : ℝ) * Real.pi * t) - 1 ≠ 0 :=
-  ne_of_gt
-    (Real.binetSecondFormula_kernel_majorant_denominator_pos ht)
-
-/-- Strict lower bound for the Binet majorant at every positive point. -/
-theorem Real.binetSecondFormula_kernel_majorant_pos
-    {t : ℝ}
-    (ht : 0 < t) :
-    0 < t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    div_pos ht
-      (Real.binetSecondFormula_kernel_majorant_denominator_pos ht)
-
-/-- Nonnegativity of the Binet majorant on the positive half-line. -/
-theorem Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi :
-    ∀ t : ℝ,
-      t ∈ Set.Ioi (0 : ℝ) →
-        0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  intro t ht
-  exact le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht)
 
 /-- A reusable norm-transport lemma for complex quotients. -/
 theorem Complex.norm_div_eq_div_norm
@@ -1178,110 +648,6 @@ theorem Complex.binet_quotient_factors_ne_zero_of_denominator_ne_zero
     1 + z * Complex.I ≠ 0 := by
   exact (Complex.binet_quotient_factors_ne_zero z hz).1
 
-/-- A positive integrable function on an open real interval has positive set
-integral. -/
-theorem Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
-    {f : ℝ → ℝ}
-    {a b : ℝ}
-    (hab : a < b)
-    (h_integrable : IntegrableOn f (Set.Ioo a b))
-    (hpos : ∀ t : ℝ, t ∈ Set.Ioo a b → 0 < f t) :
-    0 < ∫ t : ℝ in Set.Ioo a b, f t := by
-  have hnonneg_ae :
-      0 ≤ᵐ[volume.restrict (Set.Ioo a b)] f :=
-    (ae_restrict_mem measurableSet_Ioo).mono
-      (fun t ht => le_of_lt (hpos t ht))
-  have hsupport_pos :
-      0 < volume (Function.support f ∩ Set.Ioo a b) := by
-    have hIoo_pos : 0 < volume (Set.Ioo a b) :=
-      (Measure.measure_Ioo_pos volume).mpr hab
-    have hsubset :
-        Set.Ioo a b ⊆ Function.support f ∩ Set.Ioo a b := by
-      intro t ht
-      exact ⟨fun hzero => (ne_of_gt (hpos t ht)) hzero, ht⟩
-    exact lt_of_lt_of_le hIoo_pos (measure_mono hsubset)
-  exact
-    (setIntegral_pos_iff_support_of_nonneg_ae
-      hnonneg_ae h_integrable).mpr hsupport_pos
-
-/-- The Binet majorant is integrable on `(0,1)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_integrableOn_Ioo_zero_one :
-    IntegrableOn
-      (fun t : ℝ => t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-      (Set.Ioo (0 : ℝ) 1) := by
-  exact
-    IntegrableOn.mono_set
-      Real.binetSecondFormula_kernel_majorant_integrableOn_zero_one
-      Set.Ioo_subset_Ioc_self
-
-/-- The Binet majorant has strictly positive integral on the concrete interval
-`(0,1)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_strictlyPositiveIntegral_on_Ioo_zero_one :
-    0 <
-      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
-        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    Real.setIntegral_pos_of_integrableOn_of_pos_on_Ioo
-      zero_lt_one
-      Real.binetSecondFormula_kernel_majorant_integrableOn_Ioo_zero_one
-      (fun t ht =>
-        Real.binetSecondFormula_kernel_majorant_pos ht.1)
-
-/-- The Binet majorant has strictly positive integral on the concrete interval
-`(0,1)`. -/
-theorem Real.binetSecondFormula_kernel_majorant_integral_pos_on_zero_one :
-    0 <
-      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
-        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    Real.binetSecondFormula_kernel_majorant_strictlyPositiveIntegral_on_Ioo_zero_one
-
-/-- A strict lower bound on `(0,1)` propagates to `(0,∞)` for the
-nonnegative Binet majorant. -/
-theorem Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
-    {f : ℝ → ℝ}
-    (h_integrable : IntegrableOn f (Set.Ioi (0 : ℝ)))
-    (hpos_subinterval :
-      0 <
-        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t)
-    (hnonneg :
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (0 : ℝ) →
-          0 ≤ f t) :
-    0 <
-      ∫ t : ℝ in Set.Ioi (0 : ℝ), f t := by
-  have hnonneg_ae :
-      0 ≤ᵐ[volume.restrict (Set.Ioi (0 : ℝ))] f :=
-    (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht => hnonneg t ht)
-  have hsubset_ae :
-      Set.Ioo (0 : ℝ) 1 ≤ᵐ[volume] Set.Ioi (0 : ℝ) :=
-    Eventually.of_forall (fun t ht => ht.1)
-  have hmono :
-      ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t ≤
-        ∫ t : ℝ in Set.Ioi (0 : ℝ), f t :=
-    setIntegral_mono_set h_integrable hnonneg_ae hsubset_ae
-  exact lt_of_lt_of_le hpos_subinterval hmono
-
-/-- A strict lower bound on `(0,1)` propagates to `(0,∞)` for the
-nonnegative Binet majorant. -/
-theorem Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
-    (hpos_subinterval :
-      0 <
-        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-    (hnonneg :
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (0 : ℝ) →
-          0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :
-    0 <
-      ∫ t : ℝ in Set.Ioi (0 : ℝ),
-        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  exact
-    Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
-      Real.binetSecondFormula_kernel_majorant_integrableOn
-      hpos_subinterval hnonneg
-
 /-- Honest split-bound mirror for the Binet remainder on the open right half-plane.
 
 This is the shape owned classically by
@@ -1336,25 +702,6 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
       hsplit.symm
       hsum
 
-/-- The Binet majorant integral is a positive finite constant. -/
-theorem Real.binetSecondFormula_kernel_majorant_integral_pos :
-    0 <
-      ∫ t : ℝ in Set.Ioi (0 : ℝ),
-        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  have hpos_subinterval :
-      0 <
-        ∫ t : ℝ in Set.Ioo (0 : ℝ) 1,
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-    Real.binetSecondFormula_kernel_majorant_integral_pos_on_zero_one
-  have hnonneg :
-      ∀ t : ℝ,
-        t ∈ Set.Ioi (0 : ℝ) →
-          0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-    Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi
-  exact
-    Real.binetSecondFormula_kernel_majorant_integral_pos_of_zero_one
-      hpos_subinterval hnonneg
-
 /-- Binet's second formula with the honest split remainder bound on the open
 right half-plane. -/
 theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRightHalfPlane :
@@ -1397,67 +744,6 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
       (w := w) hw_re_pos
 
-/-- The literal principal-branch Binet tail kernel after the split at
-`‖w‖ / 2`. -/
-noncomputable def Complex.binetSecondFormulaPrincipalTailKernel
-    (w : ℂ)
-    (t : ℝ) : ℂ :=
-  Complex.arctan ((t : ℂ) / w) /
-    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-
-/-- Type of a contour-deformed Binet tail kernel.
-
-The concrete construction should come from the branch-safe contour deformation
-of Binet's arctangent integral, not from a wedge restriction on `w`. -/
-abbrev Complex.BinetSecondFormulaContourDeformedTailKernel :=
-  ℂ → ℝ → ℂ
-
-/-- Concrete branch-safe tail majorant kernel.
-
-This is the contour-deformed target used by the mirror owner: it is the real
-Binet tail majorant with the full-sector `1 / ‖w‖` factor, embedded in `ℂ`.
-The analytic contour-deformation input is exactly the comparison from the
-literal principal tail kernel to this branch-safe majorant on the tail support. -/
-noncomputable def Complex.binetSecondFormulaContourTailMajorantKernel
-    (w : ℂ)
-    (t : ℝ) : ℂ :=
-  (((1 : ℝ) / ‖w‖) *
-    (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) : ℝ)
-
-/-- A.e. branch comparison between the literal principal tail kernel and a
-contour-deformed tail kernel on the split tail. -/
-def Complex.BinetSecondFormulaContourTailComparisonAE
-    (K : Complex.BinetSecondFormulaContourDeformedTailKernel)
-    (R : ℝ) : Prop :=
-  ∀ w : ℂ,
-    0 < w.re →
-    R ≤ ‖w‖ →
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-        ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤ ‖K w t‖
-
-/-- Uniform full-sector pointwise majorant for a contour-deformed Binet tail
-kernel. -/
-def Complex.BinetSecondFormulaContourTailUniformMajorant
-    (K : Complex.BinetSecondFormulaContourDeformedTailKernel)
-    (R C : ℝ) : Prop :=
-  ∀ w : ℂ,
-    0 < w.re →
-    R ≤ ‖w‖ →
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-        ‖K w t‖ ≤
-          (C / ‖w‖) *
-            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-
-/-- The remaining analytic contour-deformation comparison.
-
-It says that, on the full open right half-plane and on the split tail, the
-literal principal-branch arctangent kernel is a.e. dominated by the branch-safe
-contour majorant kernel. -/
-theorem Complex.binetSecondFormula_principalTailKernel_norm_le_contourTailMajorantKernel_ae :
-    Complex.BinetSecondFormulaContourTailComparisonAE
-      Complex.binetSecondFormulaContourTailMajorantKernel 2 := by
-  sorry
-
 /-- The concrete contour tail majorant kernel has the uniform full-sector
 `1 / ‖w‖` pointwise bound. -/
 theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
@@ -1474,7 +760,7 @@ theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
         have hmajorant_nonneg :
             0 ≤ t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
           le_of_lt
-            (Real.binetSecondFormula_kernel_majorant_pos_local ht_pos)
+            (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
         have hcoeff_nonneg : 0 ≤ (1 : ℝ) / ‖w‖ :=
           div_nonneg zero_le_one (norm_nonneg w)
         have hkernel_nonneg :
@@ -1523,12 +809,12 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_exists :
     ∃ K : ℂ → ℝ → ℂ, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   exact
     ⟨Complex.binetSecondFormulaContourTailMajorantKernel, 2, 1,
       two_pos, zero_lt_one,
-      Complex.binetSecondFormula_principalTailKernel_norm_le_contourTailMajorantKernel_ae,
+      Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral,
       Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant⟩
 
 /-- Positivity of the radius supplied by the contour-deformed tail kernel
@@ -1538,7 +824,7 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_radius_pos :
       0 < R ∧
       ∃ C : ℝ,
         0 < C ∧
-        Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+        Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
         Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
     ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
@@ -1550,7 +836,7 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_constant_pos :
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < C ∧
       0 < R ∧
-      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
     ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
@@ -1562,7 +848,7 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_principal_compari
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
@@ -1572,7 +858,7 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_uniform_majorant 
     ∃ K : Complex.BinetSecondFormulaContourDeformedTailKernel, ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
-      Complex.BinetSecondFormulaContourTailComparisonAE K R ∧
+      Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
       Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
   exact Complex.binetSecondFormula_contourDeformed_tail_kernel_exists
 
@@ -1587,9 +873,8 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-            ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
-              ‖K w t‖) ∧
+          (‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), ‖K w t‖) ∧
           (∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
             ‖K w t‖ ≤
               (C / ‖w‖) *
@@ -1598,43 +883,87 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
     ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
   exact ⟨K, R, C, hR, hC, fun w hw hRle => ⟨hcompare w hw hRle, hmajorant w hw hRle⟩⟩
 
-/-- Branch-uniform full-sector pointwise tail majorant for the Binet
-arctangent kernel.
-
-This is the precise remaining analytic input.  The existing principal-branch
-proofs give either fixed-`w` constants or wedge-separated uniform constants.
-The full vertical-line API needs this a.e. tail bound with the explicit
-`1 / ‖w‖` factor throughout the open right half-plane; for the literal
-principal branch this is exactly where the continued or contour-deformed
-kernel comparison must enter. -/
-theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwise_majorant :
+/-- Branch-uniform full-sector integral tail majorant for the Binet arctangent
+kernel, after contour deformation. -/
+theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant_from_contour :
     ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
       0 < C ∧
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-            ‖Complex.arctan ((t : ℂ) / w) /
-                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-            (C / ‖w‖) *
-              (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  rcases
-      Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector_package with
-    ⟨K, Rtail, Ctail, hRtail, hCtail, hpackage⟩
-  refine ⟨Rtail, Ctail, hRtail, hCtail, ?_⟩
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            (2 * C / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+  refine ⟨2, 1, two_pos, zero_lt_one, ?_⟩
   intro w hw_re_pos hRtail_le
-  rcases hpackage w hw_re_pos hRtail_le with ⟨hcompare, hbound⟩
+  let M : ℝ → ℝ := fun t : ℝ =>
+    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  let c : ℝ := (1 : ℝ) / ‖w‖
+  have hcompare :
+      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ :=
+    Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral
+      w hw_re_pos hRtail_le
+  have hkernel_norm :
+      (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖) =
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
+    refine setIntegral_congr_fun measurableSet_Ioi ?_
+    intro t ht
+    have ht_pos : 0 < t :=
+      lt_of_le_of_lt
+        (div_nonneg (norm_nonneg w) zero_le_two)
+        ht
+    have hmajorant_nonneg :
+        0 ≤ M t :=
+      le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+    have hcoeff_nonneg : 0 ≤ c :=
+      div_nonneg zero_le_one (norm_nonneg w)
+    have hproduct_nonneg : 0 ≤ c * M t :=
+      mul_nonneg hcoeff_nonneg hmajorant_nonneg
+    calc
+      ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+          ‖((c * M t : ℝ) : ℂ)‖ := by
+        rfl
+      _ = |c * M t| := by
+        exact RCLike.norm_ofReal (c * M t)
+      _ = c * M t :=
+        abs_of_nonneg hproduct_nonneg
+  have hintegral_const_mul :
+      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+        c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
+    exact integral_const_mul c M
+  have hscale :
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+        (2 * (1 : ℝ) / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+    calc
+      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+          2 * (c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact congrArg (fun x : ℝ => 2 * x) hintegral_const_mul
+      _ = (2 * c) * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact (mul_assoc 2 c (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t)).symm
+      _ = (2 * (1 : ℝ) / ‖w‖) *
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
+        exact congrArg
+          (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
+          (by
+            dsimp [c]
+            exact (mul_one 2).symm ▸ mul_div_assoc 2 1 ‖w‖)
   exact
-    (hcompare.and hbound).mono
-      (fun t ht => by
-        simpa [Complex.binetSecondFormulaPrincipalTailKernel] using
-          le_trans ht.1 ht.2)
+    le_trans hcompare
+      (le_trans
+        (le_of_eq
+          (congrArg (fun x : ℝ => 2 * x) hkernel_norm))
+        (le_of_eq (by simpa [M] using hscale)))
 
 /-- Integrated form of the branch-uniform full-sector tail majorant.
 
-This theorem contains no branch analysis: it transports the a.e. pointwise
-kernel majorant through the Bochner integral defining the tail remainder. -/
+This theorem contains no branch analysis: it repackages the contour-deformed
+integral majorant with the constant in the usual `C / ‖w‖` form. -/
 theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant :
     ∃ R : ℝ, ∃ C : ℝ,
       0 < R ∧
@@ -1647,74 +976,11 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
                 t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
   rcases
-      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_pointwise_majorant with
-    ⟨Rtail, Ctail, hRtail, hCtail, hpointwise⟩
-  refine ⟨Rtail, 2 * Ctail, hRtail, ?_, ?_⟩
-  · exact mul_pos two_pos hCtail
+      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant_from_contour with
+    ⟨Rtail, Ctail, hRtail, hCtail, htail⟩
+  refine ⟨Rtail, 2 * Ctail, hRtail, mul_pos two_pos hCtail, ?_⟩
   intro w hw_re_pos hRtail_le
-  let K : ℝ → ℂ := fun t : ℝ =>
-    Complex.arctan ((t : ℂ) / w) /
-      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
-  let M : ℝ → ℝ := fun t : ℝ =>
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let c : ℝ := Ctail / ‖w‖
-  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
-    Real.binetSecondFormula_kernel_majorant_integrableOn
-  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) zero_le_two
-  have hcM_integrable :
-      Integrable (fun t : ℝ => c * M t)
-        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
-  have hnorm_integral :
-      ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ ≤
-        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
-    exact
-      norm_integral_le_of_norm_le hcM_integrable
-        (by
-          simpa [K, M, c] using
-            hpointwise w hw_re_pos hRtail_le)
-  have htail_as_integral :
-      Complex.binetSecondFormulaTailRemainder w =
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
-    rfl
-  have hnorm_tail :
-      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
-    calc
-      ‖Complex.binetSecondFormulaTailRemainder w‖ =
-          ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
-        exact congrArg norm htail_as_integral
-      _ = 2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
-        rw [norm_mul, RCLike.norm_two]
-      _ ≤ 2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t :=
-        mul_le_mul_of_nonneg_left hnorm_integral zero_le_two
-  have hintegral_const_mul :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-        c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
-    exact integral_const_mul c M
-  have hscale :
-      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-        (2 * Ctail / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-    calc
-      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-          2 * (c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact congrArg (fun x : ℝ => 2 * x) hintegral_const_mul
-      _ = (2 * c) * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact (mul_assoc 2 c (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t)).symm
-      _ = (2 * Ctail / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact congrArg
-          (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
-          (by
-            dsimp [c]
-            exact mul_div_assoc 2 Ctail ‖w‖)
-  exact
-    le_trans hnorm_tail
-      (le_of_eq
-        (by
-          simpa [M] using hscale))
+  exact htail w hw_re_pos hRtail_le
 
 /-- Full-sector tail absorption for the Binet remainder split at `‖w‖ / 2`.
 

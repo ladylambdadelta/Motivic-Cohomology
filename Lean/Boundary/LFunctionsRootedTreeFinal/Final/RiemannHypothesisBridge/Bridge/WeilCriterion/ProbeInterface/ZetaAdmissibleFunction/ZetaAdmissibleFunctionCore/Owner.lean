@@ -265,11 +265,13 @@ theorem sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
   | @insert a s ha ih =>
       calc
         (∑ a in insert a s, f a) x = (f a + ∑ b in s, f b) x := by
-          rw [Finset.sum_insert ha]
+          exact congrArg (fun h : ZetaAdmissibleFunction => h x) (Finset.sum_insert ha)
         _ = f a x + (∑ b in s, f b) x := by rfl
-        _ = f a x + ∑ b in s, f b x := by rw [ih]
+        _ = f a x + ∑ b in s, f b x := by
+          exact congrArg (fun y : ℂ => f a x + y) ih
         _ = ∑ a in insert a s, f a x := by
-          rw [Finset.sum_insert ha]
+          symm
+          exact Finset.sum_insert ha
 
 /-- The coercion of a finite sum is the pointwise finite sum. -/
 theorem coeFn_sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
@@ -282,7 +284,7 @@ theorem support_sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
     (f : α → ZetaAdmissibleFunction) :
     Function.support ⇑(∑ a in s, f a).toZetaTestFunction =
       Function.support (fun x => ∑ a in s, f a x) := by
-  rw [coeFn_sum_apply (s := s) (f := f)]
+  exact congrArg Function.support (coeFn_sum_apply (s := s) (f := f))
 
 /-- The support of a finite sum is the support of its pointwise sum expression. -/
 theorem support_sum_toZetaTestFunction {α : Type*} [DecidableEq α] (s : Finset α)

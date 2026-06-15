@@ -34,22 +34,54 @@ theorem hasCompactSupport_sum {α : Type*} [DecidableEq α] (s : Finset α)
   | empty =>
       exact HasCompactSupport.zero
   | @insert a s ha ih =>
-      rw [Finset.sum_insert ha]
-      have hleft : HasCompactSupport (f a).toZetaTestFunction := (f a).toZetaTestFunction.hasCompactSupport
-      have hright : HasCompactSupport (∑ b in s, (f b).toZetaTestFunction) := by
-        change HasCompactSupport (∑ b in s, (f b).toZetaTestFunction)
-        exact ih
-      exact hleft.add hright
+      have hleft : HasCompactSupport (f a).toZetaTestFunction :=
+        (f a).toZetaTestFunction.hasCompactSupport
+      have hright : HasCompactSupport (∑ b in s, ⇑(f b).toZetaTestFunction) :=
+        ih
+      exact
+        Eq.subst
+          (motive := fun u : ℝ → ℂ => HasCompactSupport u)
+          (Finset.sum_insert ha).symm
+          (HasCompactSupport.add
+            (f := ⇑(f a).toZetaTestFunction)
+            (f' := ∑ b in s, ⇑(f b).toZetaTestFunction)
+            hleft
+            hright)
+
+theorem function_sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ℝ → ℂ) (x : ℝ) :
+    (∑ a in s, f a) x = ∑ a in s, f a x := by
+  induction s using Finset.induction_on with
+  | empty =>
+      rfl
+  | @insert a s ha ih =>
+      calc
+        (∑ b in insert a s, f b) x = (f a + ∑ b in s, f b) x :=
+          congrArg (fun g : ℝ → ℂ => g x) (Finset.sum_insert ha)
+        _ = f a x + (∑ b in s, f b) x :=
+          rfl
+        _ = f a x + ∑ b in s, f b x :=
+          congrArg (fun y : ℂ => f a x + y) ih
+        _ = ∑ b in insert a s, f b x :=
+          (Finset.sum_insert (s := s) (f := fun b => f b x) ha).symm
+
+theorem sum_support_ne_zero {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaAdmissibleFunction) {x : ℝ}
+    (hx : x ∈ Function.support (∑ a in s, f a)) :
+    ∑ a in s, f a x ≠ 0 := by
+  intro hzero
+  exact hx
+    (Eq.trans
+      (function_sum_apply s (fun a => ⇑(f a).toZetaTestFunction) x)
+      hzero)
 
 /-- The support of a finite sum is contained in the union of the supports. -/
 theorem support_sum_subset {α : Type*} [DecidableEq α] (s : Finset α)
     (f : α → ZetaAdmissibleFunction) :
     Function.support (∑ a in s, f a) ⊆ ⋃ a ∈ s, Function.support (f a) := by
   intro x hx
-  rw [Function.mem_support] at hx
-  have hsum : (∑ a in s, f a x) ≠ 0 := by
-    rw [Finset.sum_apply] at hx
-    exact hx
+  have hsum : (∑ a in s, f a x) ≠ 0 :=
+    sum_support_ne_zero (s := s) (f := f) hx
   have hne : ∃ a ∈ s, f a x ≠ 0 := by
     exact Finset.exists_ne_zero_of_sum_ne_zero (s := s) (f := fun a => f a x) hsum
   rcases hne with ⟨a, ha, hax⟩
@@ -63,10 +95,13 @@ theorem support_add_subset (f g : ZetaAdmissibleFunction) :
   · right
     by_cases hgx : g x = 0
     · exfalso
-      rw [Function.mem_support] at hx
-      rw [add_apply, hfx, hgx] at hx
-      have hsum : (0 : ℂ) + 0 = 0 := by
-        rw [zero_add]
+      have hsum : (f + g) x = 0 := by
+        calc
+          (f + g) x = f x + g x := add_apply f g x
+          _ = 0 + 0 := by
+            exact congrArg₂ HAdd.hAdd hfx hgx
+          _ = 0 := by
+            exact zero_add 0
       exact hx hsum
     · exact hgx
   · left
@@ -82,30 +117,35 @@ theorem support_add_eq (f g : ZetaAdmissibleFunction)
   · intro hx
     exact support_add_subset f g hx
   · intro hx
-    rw [Set.mem_union] at hx
     rcases hx with hx | hx
-    · rw [Function.mem_support] at hx
+    · have hx' : f x ≠ 0 := hx
       have hgx : g x = 0 := by
         by_contra hgx
         have hgx' : x ∈ Function.support g := by
           exact hgx
-        exact (Set.disjoint_left.mp hfg) hx hgx'
-      rw [Function.mem_support]
-      rw [add_apply, hgx]
+        exact (Set.disjoint_left.mp hfg) hx' hgx'
       intro hsum
-      rw [add_zero] at hsum
-      exact hx hsum
-    · rw [Function.mem_support] at hx
+      have hfx_zero : f x = 0 :=
+        calc
+          f x = f x + 0 := (add_zero (f x)).symm
+          _ = f x + g x := congrArg (fun y : ℂ => f x + y) hgx.symm
+          _ = (f + g) x := (add_apply f g x).symm
+          _ = 0 := hsum
+      exact hx' hfx_zero
+    · have hx' : g x ≠ 0 := hx
       have hfx : f x = 0 := by
         by_contra hfx
         have hfx' : x ∈ Function.support f := by
           exact hfx
-        exact (Set.disjoint_left.mp hfg) hfx' hx
-      rw [Function.mem_support]
-      rw [add_apply, hfx]
+        exact (Set.disjoint_left.mp hfg) hfx' hx'
       intro hsum
-      rw [zero_add] at hsum
-      exact hx hsum
+      have hgx_zero : g x = 0 :=
+        calc
+          g x = 0 + g x := (zero_add (g x)).symm
+          _ = f x + g x := congrArg (fun y : ℂ => y + g x) hfx.symm
+          _ = (f + g) x := (add_apply f g x).symm
+          _ = 0 := hsum
+      exact hx' hgx_zero
 
 /-- Scalar multiplication does not enlarge support. -/
 theorem support_smul_subset (a : ℂ) (f : ZetaAdmissibleFunction) :
@@ -135,16 +175,12 @@ theorem support_smul (a : ℂ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
 /-- A nonzero scale acts pointwise by precomposition. -/
 theorem scale_apply_nonzero (t : ℝ) (ht : t ≠ 0) (f : ZetaAdmissibleFunction) (x : ℝ) :
     (scale t f).toZetaTestFunction x = f.toZetaTestFunction (t * x) :=
-  Eq.trans
-    (ZetaAdmissibleFunction.scale_apply t f x)
-    (dif_neg ht)
+  (ZetaAdmissibleFunction.scale_apply t f x).trans (dif_neg ht)
 
 /-- The zero scale is identically zero. -/
 theorem scale_apply_zero (f : ZetaAdmissibleFunction) (x : ℝ) :
     (scale 0 f).toZetaTestFunction x = 0 :=
-  Eq.trans
-    (ZetaAdmissibleFunction.scale_apply 0 f x)
-    (dif_pos rfl)
+  (ZetaAdmissibleFunction.scale_apply 0 f x).trans (dif_pos rfl)
 
 /-- Translation shifts support by the translation parameter. -/
 theorem support_translate (c : ℝ) (f : ZetaAdmissibleFunction) :
@@ -161,11 +197,14 @@ theorem support_translate (c : ℝ) (f : ZetaAdmissibleFunction) :
 /-- Translation does not change support after nonzero scalar multiplication. -/
 theorem support_translate_smul (c : ℝ) (a : ℂ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
     Function.support (translate c (a • f)) = Function.support (translate c f) :=
-  Eq.trans
-    (support_translate c (a • f))
-    (Eq.trans
-      (congrArg ((fun s => (fun x : ℝ => x + c) ⁻¹' s)) (support_smul a ha f))
-      (support_translate c f).symm)
+  calc
+    Function.support (translate c (a • f)) =
+        (fun x => x + c) ⁻¹' Function.support (a • f) :=
+          support_translate c (a • f)
+    _ = (fun x => x + c) ⁻¹' Function.support f := by
+          exact congrArg ((fun s => (fun x : ℝ => x + c) ⁻¹' s)) (support_smul a ha f)
+    _ = Function.support (translate c f) :=
+          (support_translate c f).symm
 
 /-- The support of a translated nonzero scalar multiple is the translated support of the
 original function. -/
@@ -191,11 +230,14 @@ theorem support_reflect (f : ZetaAdmissibleFunction) :
 /-- Reflection does not change support after nonzero scalar multiplication. -/
 theorem support_reflect_smul (a : ℂ) (ha : a ≠ 0) (f : ZetaAdmissibleFunction) :
     Function.support (reflect (a • f)) = Function.support (reflect f) :=
-  Eq.trans
-    (support_reflect (a • f))
-    (Eq.trans
-      (congrArg ((fun s => (fun x : ℝ => -x) ⁻¹' s)) (support_smul a ha f))
-      (support_reflect f).symm)
+  calc
+    Function.support (reflect (a • f)) =
+        (fun x => -x) ⁻¹' Function.support (a • f) :=
+          support_reflect (a • f)
+    _ = (fun x => -x) ⁻¹' Function.support f := by
+          exact congrArg ((fun s => (fun x : ℝ => -x) ⁻¹' s)) (support_smul a ha f)
+    _ = Function.support (reflect f) :=
+          (support_reflect f).symm
 
 /-- The support of a reflected nonzero scalar multiple is the reflected support of the
 original function. -/
@@ -225,18 +267,25 @@ theorem support_scale_smul (t : ℝ) (a : ℂ) (ha : a ≠ 0) (f : ZetaAdmissibl
     ext x
     constructor
     · intro hx
-      rw [Function.mem_support] at hx
-      have h0 : (scale 0 (a • f)).toZetaTestFunction x = 0 := by
-        exact scale_apply_zero (a • f) x
+      have hx' : (scale 0 (a • f)).toZetaTestFunction x ≠ 0 := hx
+      have h0 : (scale 0 (a • f)).toZetaTestFunction x = 0 :=
+        scale_apply_zero (a • f) x
       exfalso
-      exact hx h0
+      exact hx' h0
     · intro hx
-      rw [Function.mem_support] at hx
-      have h0 : (scale 0 f).toZetaTestFunction x = 0 := by
-        exact scale_apply_zero f x
+      have hx' : (scale 0 f).toZetaTestFunction x ≠ 0 := hx
+      have h0 : (scale 0 f).toZetaTestFunction x = 0 :=
+        scale_apply_zero f x
       exfalso
-      exact hx h0
-  · rw [support_scale t ht (a • f), support_scale t ht f, support_smul a ha]
+      exact hx' h0
+  · calc
+      Function.support (scale t (a • f)) =
+          (fun x => t * x) ⁻¹' Function.support (a • f) :=
+            support_scale t ht (a • f)
+      _ = (fun x => t * x) ⁻¹' Function.support f := by
+            exact congrArg ((fun s => (fun x : ℝ => t * x) ⁻¹' s)) (support_smul a ha f)
+      _ = Function.support (scale t f) :=
+            (support_scale t ht f).symm
 
 /-- The support of a scaled nonzero scalar multiple is the scaled support of the original
 function. -/

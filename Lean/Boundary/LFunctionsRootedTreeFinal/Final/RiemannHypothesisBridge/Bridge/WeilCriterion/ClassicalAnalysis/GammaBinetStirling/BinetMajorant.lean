@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Basic
+import Mathlib.Data.Real.Pi.Bounds
 import Mathlib.MeasureTheory.Integral.ExpDecay
 
 /-!
@@ -14,6 +15,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
 
 /-- Strict positivity of the Binet real exponential denominator at every
 positive point. -/
@@ -116,7 +118,11 @@ theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
       _ = 1 := hd_div
   have hdiv :
       t / d ≤ 1 / a := by
-    exact (le_div_iff₀ ha_pos).mpr hmul
+    have hmul_commuted : t / d * a ≤ 1 := by
+      calc
+        t / d * a = a * (t / d) := mul_comm (t / d) a
+        _ ≤ 1 := hmul
+    exact (le_div_iff₀ ha_pos).mpr hmul_commuted
   exact hdiv
 
 /-- Pointwise zero-cancellation bound for the Binet majorant on `(0,1]`.
@@ -164,6 +170,7 @@ theorem Real.integrableOn_Ioc_of_aestronglyMeasurable_norm_le_const
     (hC : 0 ≤ C)
     (hbound : ∀ x : ℝ, x ∈ Set.Ioc a b → ‖f x‖ ≤ C) :
     IntegrableOn f (Set.Ioc a b) := by
+  have _ : 0 ≤ C := hC
   refine ⟨hmeas, ?_⟩
   exact
     hasFiniteIntegral_restrict_of_bounded
@@ -225,8 +232,19 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
       _ = x := rfl
   have hlog_two_le_two_pi : Real.log 2 ≤ (2 : ℝ) * Real.pi := by
     have hlog_two_lt_two : Real.log 2 < (2 : ℝ) := by
-      exact Real.log_lt_self (by norm_num : (1 : ℝ) < 2)
-    exact le_trans (le_of_lt hlog_two_lt_two) (le_of_lt (by positivity : (2 : ℝ) < 2 * Real.pi))
+      calc
+        Real.log 2 < 2 - 1 :=
+          Real.log_lt_sub_one_of_pos
+            (by norm_num : (0 : ℝ) < 2)
+            (by norm_num : (2 : ℝ) ≠ 1)
+        _ < 2 := by norm_num
+    have htwo_lt_two_pi : (2 : ℝ) < 2 * Real.pi := by
+      have hone_lt_pi : (1 : ℝ) < Real.pi :=
+        lt_trans (by norm_num : (1 : ℝ) < 3) Real.pi_gt_three
+      calc
+        (2 : ℝ) = 2 * 1 := (mul_one 2).symm
+        _ < 2 * Real.pi := mul_lt_mul_of_pos_left hone_lt_pi two_pos
+    exact le_trans (le_of_lt hlog_two_lt_two) (le_of_lt htwo_lt_two_pi)
   have hlog_two_le_x : Real.log 2 ≤ x :=
     le_trans hlog_two_le_two_pi hx_ge_two_pi
   have htwo_le_exp : (2 : ℝ) ≤ Real.exp x := by
@@ -244,7 +262,7 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
     le_of_lt (lt_trans zero_lt_one ht)
   have hpi_t_ge_t : t ≤ Real.pi * t := by
     have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
-      le_of_lt Real.one_lt_pi
+      le_of_lt (lt_trans (by norm_num : (1 : ℝ) < 3) Real.pi_gt_three)
     calc
       t = 1 * t := by ring
       _ ≤ Real.pi * t :=
@@ -279,16 +297,38 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_l
       (div_pos hE_pos two_pos)
       hd_lower
   have hrewrite : t / (E / 2) = 2 * (t / E) := by
-    field_simp [hE_pos.ne']
+    have hE_ne : E ≠ 0 := ne_of_gt hE_pos
+    calc
+      t / (E / 2) = t * 2 / E := by
+        exact div_div_eq_mul_div t E 2
+      _ = (t * 2) / E := by
+        rfl
+      _ = (2 * t) / E := by
+        exact congrArg (fun x : ℝ => x / E) (mul_comm t 2)
+      _ = 2 * (t / E) := by
+        exact (mul_div_assoc 2 t E)
   have ht_over_E_le :
       t / E ≤ Real.exp (-Real.pi * t) := by
     have hmul_le :
-        t ≤ E * Real.exp (-Real.pi * t) := by
+        t ≤ Real.exp (-Real.pi * t) * E := by
+      have hmul :
+          t ≤ E * Real.exp (-Real.pi * t) := by
+        calc
+          t ≤ Real.exp (Real.pi * t) := ht_le_exp
+          _ = E * Real.exp (-Real.pi * t) := by
+            dsimp [E]
+            calc
+              Real.exp (Real.pi * t) =
+                  Real.exp (((2 : ℝ) * Real.pi * t) + (-Real.pi * t)) := by
+                congr 1
+                ring
+              _ = Real.exp ((2 : ℝ) * Real.pi * t) *
+                  Real.exp (-Real.pi * t) := by
+                exact Real.exp_add ((2 : ℝ) * Real.pi * t) (-Real.pi * t)
       calc
-        t ≤ Real.exp (Real.pi * t) := ht_le_exp
-        _ = E * Real.exp (-Real.pi * t) := by
-          simp [E, ← Real.exp_add]
-          ring_nf
+        t ≤ E * Real.exp (-Real.pi * t) := hmul
+        _ = Real.exp (-Real.pi * t) * E :=
+          mul_comm E (Real.exp (-Real.pi * t))
     exact (div_le_iff₀ hE_pos).mpr hmul_le
   calc
     t / d ≤ t / (E / 2) := hdiv_le
@@ -344,6 +384,7 @@ theorem Real.integrableOn_Ioi_of_aestronglyMeasurable_norm_le_exp_tail
         t ∈ Set.Ioi a →
           ‖f t‖ ≤ C * Real.exp (-b * t)) :
     IntegrableOn f (Set.Ioi a) := by
+  have _ : 0 ≤ C := hC
   have h_exp :
       IntegrableOn (fun t : ℝ => Real.exp (-b * t)) (Set.Ioi a) :=
     exp_neg_integrableOn_Ioi a hb
@@ -409,6 +450,24 @@ theorem Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one :
               (fun hx_local => hx_local.1)
               (fun hx_tail => lt_trans zero_lt_one hx_tail)⟩)
 
+/-- A point of `(0,∞)` lies either in `(0,1]` or in `(1,∞)`. -/
+theorem Real.Ioi_zero_subset_Ioc_zero_one_union_Ioi_one :
+    Set.Ioi (0 : ℝ) ⊆
+      Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) :=
+  fun x hx =>
+    Or.elim (lt_or_ge (1 : ℝ) x)
+      (fun hone_lt_x => Or.inr hone_lt_x)
+      (fun hx_le_one => Or.inl ⟨hx, hx_le_one⟩)
+
+/-- The union `(0,1] ∪ (1,∞)` is contained in `(0,∞)`. -/
+theorem Real.Ioc_zero_one_union_Ioi_one_subset_Ioi_zero :
+    Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) ⊆
+      Set.Ioi (0 : ℝ) :=
+  fun _ hx =>
+    Or.elim hx
+      (fun hx_local => hx_local.1)
+      (fun hx_tail => lt_trans zero_lt_one hx_tail)
+
 /-- Joining local integrability on `(0,1]` with tail integrability on `(1,∞)`
 gives integrability on `(0,∞)`. -/
 theorem Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
@@ -416,18 +475,9 @@ theorem Real.integrableOn_Ioi_zero_of_Ioc_zero_one_and_Ioi_one
     (hlocal : IntegrableOn f (Set.Ioc (0 : ℝ) 1))
     (htail : IntegrableOn f (Set.Ioi (1 : ℝ))) :
     IntegrableOn f (Set.Ioi (0 : ℝ)) := by
-  have hcover :
-      Set.Ioi (0 : ℝ) =
-        Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ) :=
-    Real.Ioi_zero_eq_Ioc_zero_one_union_Ioi_one
-  have hunion :
-      IntegrableOn f (Set.Ioc (0 : ℝ) 1 ∪ Set.Ioi (1 : ℝ)) :=
-    integrableOn_union.mpr ⟨hlocal, htail⟩
   exact
-    Eq.subst
-      (motive := fun s : Set ℝ => IntegrableOn f s)
-      hcover.symm
-      hunion
+    (hlocal.union htail).mono_set
+      Real.Ioi_zero_subset_Ioc_zero_one_union_Ioi_one
 
 /-- The real majorant for the Binet kernel is integrable on `(0,∞)` once its
 local and tail pieces are integrable. -/

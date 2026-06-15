@@ -235,7 +235,6 @@ theorem zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
       completedZetaNegLogDeriv s -
         deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ := by
   unfold zetaSideNegLogDeriv completedZetaNegLogDeriv
-  rw [deriv_zetaSideFactor_at hs0 hs1 hΓ]
   unfold zetaSideFactor
   exact
     complex_negLogDeriv_mul_inv_sub_correction

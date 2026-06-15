@@ -4,6 +4,7 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.InverseDeriv
+import Mathlib.MeasureTheory.Function.Jacobian
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
 
 /-!
@@ -24,6 +25,8 @@ The intended proof chain is:
 namespace LFunctions
 
 noncomputable section
+
+open scoped Interval
 
 /-- The sine-power integral on `[0,π]`. -/
 noncomputable def Real.sinePowerIntegral
@@ -67,7 +70,7 @@ theorem Real.two_mul_one_half_mul
       (2 : ℝ) * (1 / 2 : ℝ) = (2 : ℝ) * (2 : ℝ)⁻¹ := by
         exact congrArg (fun y : ℝ => (2 : ℝ) * y) (one_div (2 : ℝ))
       _ = 1 := by
-        exact mul_inv_cancel₀ (2 : ℝ) two_ne_zero
+        exact mul_inv_cancel₀ two_ne_zero
   calc
     2 * ((1 / 2 : ℝ) * x) = (2 * (1 / 2 : ℝ)) * x := by
       exact (mul_assoc (2 : ℝ) (1 / 2 : ℝ) x).symm
@@ -118,7 +121,7 @@ theorem Real.sinePowerExponent_gt_neg_one_of_leftParameter_pos
       exact (zero_sub 1).symm
     _ < (s + 1) - 1 := hshift
     _ = s := by
-      exact add_sub_cancel s 1
+      exact add_sub_cancel_right s 1
 
 /-- Strict lower bound for the right Euler-Beta parameter in the sine-power integral. -/
 theorem Real.sinePowerEulerBeta_rightParameter_pos :
@@ -141,7 +144,10 @@ theorem Real.sinePowerEulerBeta_parameter_sum
         (s + 1 + 1) / 2 := by
       exact (add_div (s + 1) 1 2).symm
     _ = (s + 2) / 2 := by
-      exact congrArg (fun x : ℝ => x / 2) (add_assoc s 1 1)
+      have hone_add_one : (1 : ℝ) + 1 = 2 := by
+        norm_num
+      exact congrArg (fun x : ℝ => x / 2)
+        (Eq.trans (add_assoc s 1 1) (congrArg (fun x : ℝ => s + x) hone_add_one))
     _ = s / 2 + 2 / 2 := by
       exact add_div s 2 2
     _ = s / 2 + 1 := by
@@ -181,7 +187,7 @@ theorem Real.pi_sub_half :
         (Real.pi / 2 + Real.pi / 2) - Real.pi / 2 := by
       exact congrArg (fun x : ℝ => x - Real.pi / 2) hhalf.symm
     _ = Real.pi / 2 := by
-      exact add_sub_cancel (Real.pi / 2) (Real.pi / 2)
+      exact add_sub_cancel_right (Real.pi / 2) (Real.pi / 2)
 
 /-- Right endpoint normalization for reflecting by `u ↦ π-u`. -/
 theorem Real.pi_sub_zero :
@@ -261,7 +267,7 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
       (Real.pi / 2) := by
   have hle : (0 : ℝ) ≤ Real.pi / 2 :=
     le_of_lt Real.pi_div_two_pos
-  rw [intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hle]
+  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hle]
   have hmodel_const :
       IntervalIntegrable
         (fun u : ℝ => (2 / Real.pi : ℝ) ^ s * u ^ s)
@@ -269,7 +275,7 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
         (0 : ℝ)
         (Real.pi / 2) :=
     hmodel.const_mul ((2 / Real.pi : ℝ) ^ s)
-  rw [intervalIntegral.intervalIntegrable_iff_integrableOn_Ioc_of_le hle] at hmodel_const
+  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hle] at hmodel_const
   have hcontinuousOn :
       ContinuousOn
         (fun u : ℝ => (Real.sin u) ^ s)
@@ -284,7 +290,7 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
       (Real.continuous_sin.continuousAt.rpow_const
         (Or.inl hsin_ne)).continuousWithinAt
   exact
-    Integrable.mono' hmodel_const
+    MeasureTheory.Integrable.mono' hmodel_const
       (hcontinuousOn.aestronglyMeasurable measurableSet_Ioc)
       (by
         filter_upwards [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc] with u hu
@@ -792,7 +798,7 @@ theorem Real.one_sub_sq_pos_of_mem_Ioo_zero_one
       x ^ 2 = x * x := by
         exact pow_two x
       _ < 1 * 1 := by
-        exact mul_lt_mul hx1 hx1 hx_nonneg zero_lt_one
+        exact mul_lt_mul hx1 (le_of_lt hx1) hx0 zero_le_one
       _ = 1 := by
         exact one_mul 1
   exact sub_pos.mpr hx_sq_lt_one
@@ -807,8 +813,10 @@ theorem Real.sinePower_sinSubstitution_invSqrt_eq_rpow
     Real.one_sub_sq_pos_of_mem_Ioo_zero_one hx
   have hnonneg : 0 ≤ 1 - x ^ 2 :=
     le_of_lt hpos
+  have hneg_one_div_two : -((1 : ℝ) / 2) = (-1 : ℝ) / 2 :=
+    neg_div' (2 : ℝ) 1
   have hexp : -(1 / 2 : ℝ) = ((-1 : ℝ) / 2) :=
-    (neg_div 1 2).symm
+    hneg_one_div_two
   calc
     1 / Real.sqrt (1 - x ^ 2) =
         (Real.sqrt (1 - x ^ 2))⁻¹ := by
@@ -861,11 +869,11 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
           (div_mul_cancel₀ (s + 1) two_ne_zero)
       _ = (s + 1) - (1 + 1) := by
         exact congrArg (fun y : ℝ => (s + 1) - y)
-          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+          (show (2 : ℝ) = 1 + 1 by norm_num)
       _ = ((s + 1) - 1) - 1 := by
         exact sub_add_eq_sub_sub (s + 1) 1 1
       _ = s - 1 := by
-        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel s 1)
+        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel_right s 1)
   have hsq :
       (x ^ 2) ^ (((s + 1) / 2) - 1) =
         x ^ (s - 1) := by
@@ -890,7 +898,7 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
         exact (sub_div 1 2 2).symm
       _ = (1 - (1 + 1) : ℝ) / 2 := by
         exact congrArg (fun y : ℝ => (1 - y) / 2)
-          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+          (show (2 : ℝ) = 1 + 1 by norm_num)
       _ = ((1 - 1) - 1 : ℝ) / 2 := by
         exact congrArg (fun y : ℝ => y / 2)
           (sub_add_eq_sub_sub 1 1 1)
@@ -927,7 +935,7 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
     calc
       ((1 / 2 : ℝ) * y) * (2 * x) =
           (((1 / 2 : ℝ) * y) * 2) * x := by
-        exact mul_assoc ((1 / 2 : ℝ) * y) 2 x
+        exact (mul_assoc ((1 / 2 : ℝ) * y) 2 x).symm
       _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
         exact congrArg (fun z : ℝ => z * x)
           (mul_assoc (1 / 2 : ℝ) y 2)
@@ -994,7 +1002,7 @@ theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
   have hx_le_one : x ≤ 1 := hxIcc.2
   have hleft : 0 ≤ x ^ 2 := sq_nonneg x
   have hright : x ^ 2 ≤ 1 := by
-    exact sq_le_one₀ hx_nonneg hx_le_one
+    exact (sq_le_one_iff₀ hx_nonneg).2 hx_le_one
   exact Set.mem_uIcc_of_le hleft hright
 
 /-- Integrability transport for the square substitution `t = x²` with its
@@ -1011,26 +1019,51 @@ theorem Real.squareSubstitution_weightedPullback_mul_nonneg
       have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
       exact mul_nonneg htwo_nonneg hx0
   | inr h =>
-      have hx0 : 0 ≤ x := h.2
+      have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (Set.uIcc_of_le zero_le_one)
+          hx
+      have hx0 : 0 ≤ x := hxIcc.1
       have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
       exact mul_nonneg htwo_nonneg hx0
 
 theorem Real.squareSubstitution_weightedPullback_derivWithin
     (x : ℝ) :
     HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
-  have hmul : HasDerivAt (fun y : ℝ => y * y) (x + x) x :=
+  have hmul_raw : HasDerivAt (fun y : ℝ => y * y) (1 * x + x * 1) x :=
     (hasDerivAt_id' x).mul (hasDerivAt_id' x)
+  have hmul_deriv : 1 * x + x * 1 = x + x := by
+    calc
+      1 * x + x * 1 = x + x * 1 := by
+        exact congrArg (fun y : ℝ => y + x * 1) (one_mul x)
+      _ = x + x := by
+        exact congrArg (fun y : ℝ => x + y) (mul_one x)
+  have hmul : HasDerivAt (fun y : ℝ => y * y) (x + x) x :=
+    hmul_raw.congr_deriv hmul_deriv
   have hpow : (fun y : ℝ => y ^ 2) = fun y : ℝ => y * y := by
     funext y
-    exact (pow_two y).symm
+    exact pow_two y
   have hderiv : HasDerivAt (fun y : ℝ => y ^ 2) (x + x) x := by
     exact hpow ▸ hmul
-  exact hderiv.hasDerivWithinAt
+  have htwo : (2 : ℝ) = 1 + 1 :=
+    one_add_one_eq_two.symm
+  have hsum : x + x = 2 * x := by
+    calc
+      x + x = 1 * x + x := by
+        exact congrArg (fun y : ℝ => y + x) (one_mul x).symm
+      _ = 1 * x + 1 * x := by
+        exact congrArg (fun y : ℝ => 1 * x + y) (one_mul x).symm
+      _ = (1 + 1 : ℝ) * x := by
+        exact (add_mul 1 1 x).symm
+      _ = 2 * x := by
+        exact congrArg (fun y : ℝ => y * x) htwo.symm
+  exact (hderiv.congr_deriv hsum).hasDerivWithinAt
 
 /-- The Jacobian factor for the square substitution on `[0,1]`. -/
 theorem Real.squareSubstitution_weightedPullback_eqOn
     {g : ℝ → ℝ} :
-    EqOn
+    Set.EqOn
       (fun x : ℝ => |2 * x| • g (x ^ 2))
       (fun x : ℝ => g (x ^ 2) * (2 * x))
       [[(0 : ℝ), 1]] := by
@@ -1063,7 +1096,7 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
         HasDerivWithinAt (fun y : ℝ => y ^ 2) (2 * x) [[(0 : ℝ), 1]] x := by
     intro x hx
     exact Real.squareSubstitution_weightedPullback_derivWithin x
-  have hinj : InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
+  have hinj : Set.InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
     intro x hx y hy hxy
     have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
       rwa [Set.uIcc_of_le zero_le_one] at hx
@@ -1072,15 +1105,26 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
     have hsq : x ^ 2 = y ^ 2 := hxy
     rcases sq_eq_sq_iff_eq_or_eq_neg.mp hsq with hxy' | hxy'
     · exact hxy'
-    · exfalso
-      have hy_nonneg : 0 ≤ y := hy'.1
-      linarith
+    · have hy_nonneg : 0 ≤ y := hy'.1
+      have hx_nonpos : x ≤ 0 := by
+        calc
+          x = -y := hxy'
+          _ ≤ 0 := neg_nonpos.mpr hy_nonneg
+      have hx_zero : x = 0 :=
+        le_antisymm hx_nonpos hx'.1
+      have hy_zero : y = 0 := by
+        have hneg_y_zero : -y = 0 := by
+          calc
+            -y = x := hxy'.symm
+            _ = 0 := hx_zero
+        exact neg_eq_zero.mp hneg_y_zero
+      exact Eq.trans hx_zero hy_zero.symm
   have habs :
       MeasureTheory.IntegrableOn
         (fun x : ℝ => |2 * x| • g (x ^ 2))
         [[(0 : ℝ), 1]]
         MeasureTheory.volume :=
-    (integrableOn_image_iff_integrableOn_abs_deriv_smul hs hderiv hinj g).mp hg
+    (MeasureTheory.integrableOn_image_iff_integrableOn_abs_deriv_smul hs hderiv hinj g).mp hg
   exact habs.congr_fun Real.squareSubstitution_weightedPullback_eqOn measurableSet_uIcc
 
 /-- Endpoint integrability of the square-root pullback of the Beta kernel.
@@ -1157,15 +1201,53 @@ theorem Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
   exact
     hpullback.congr
       (by
-        rw [Set.uIoc_of_le zero_le_one]
-        filter_upwards
-          [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc]
-          with x hx
-        have hxIoo : x ∈ Set.Ioo (0 : ℝ) 1 :=
-          ⟨hx.1, hx.2⟩
+        have hpoint :
+            Set.EqOn
+              (fun x : ℝ =>
+                ((1 / 2 : ℝ) *
+                  ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+                    (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+                  (2 * x))
+              (fun x : ℝ =>
+                x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+              (Set.Ioo (0 : ℝ) 1) := by
+          intro x hx
+          exact
+            (Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
+              s x hx).symm
+        have hpoint_minmax :
+            Set.EqOn
+              (fun x : ℝ =>
+                ((1 / 2 : ℝ) *
+                  ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+                    (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+                  (2 * x))
+              (fun x : ℝ =>
+                x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+              (Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
+          intro x hx
+          have hmin : min (0 : ℝ) 1 = 0 :=
+            min_eq_left zero_le_one
+          have hmax : max (0 : ℝ) 1 = 1 :=
+            max_eq_right zero_le_one
+          have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+            exact Eq.subst
+              (motive := fun s : Set ℝ => x ∈ s)
+              (congrArg₂ Set.Ioo hmin hmax)
+              hx
+          exact hpoint hx'
+        have hae_vol :
+            ∀ᵐ x ∂MeasureTheory.volume,
+              x ∈ Ι (0 : ℝ) 1 →
+                ((1 / 2 : ℝ) *
+                  ((x ^ 2) ^ (((s + 1) / 2) - 1) *
+                    (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
+                  (2 * x) =
+                x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
+          Real.ae_uIoc_eq_of_eqOn_Ioo
+            (a := (0 : ℝ)) (b := 1) hpoint_minmax
         exact
-          (Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
-            s x hxIoo).symm)
+          (MeasureTheory.ae_restrict_iff' measurableSet_uIoc).2 hae_vol)
 
 /-- Target-side interval integrability for the sine substitution. -/
 theorem Real.sinePower_sinSubstitution_target_intervalIntegrable
@@ -1300,7 +1382,7 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
     {a b : ℝ}
     {f g : ℝ → ℝ}
     (hpoint :
-      EqOn f g (Set.Ioo (min a b) (max a b))) :
+      Set.EqOn f g (Set.Ioo (min a b) (max a b))) :
     ∀ᵐ x ∂MeasureTheory.volume, x ∈ Ι a b → f x = g x := by
   refine MeasureTheory.ae_uIoc_iff.mpr ⟨?_, ?_⟩
   · by_cases hab : a < b
@@ -1308,6 +1390,8 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
         min_eq_left hab.le
       have hmax : max a b = b :=
         max_eq_right hab.le
+      have hset : Set.Ioo (min a b) (max a b) = Set.Ioo a b := by
+        exact congrArg₂ Set.Ioo hmin hmax
       have hae :
           Set.Ioo a b =ᵐ[MeasureTheory.volume] Set.Ioc a b :=
         MeasureTheory.Ioo_ae_eq_Ioc
@@ -1315,7 +1399,7 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
       exact hpoint
         (Eq.subst
           (motive := fun s : Set ℝ => x ∈ s)
-          (congrArg₂ Set.Ioo hmin hmax)
+          hset.symm
           (hx.mpr hmem))
     · have hle : b ≤ a :=
         le_of_not_gt hab
@@ -1330,6 +1414,8 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
         min_eq_right hba.le
       have hmax : max a b = a :=
         max_eq_left hba.le
+      have hset : Set.Ioo (min a b) (max a b) = Set.Ioo b a := by
+        exact congrArg₂ Set.Ioo hmin hmax
       have hae :
           Set.Ioo b a =ᵐ[MeasureTheory.volume] Set.Ioc b a :=
         MeasureTheory.Ioo_ae_eq_Ioc
@@ -1337,7 +1423,7 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
       exact hpoint
         (Eq.subst
           (motive := fun s : Set ℝ => x ∈ s)
-          (congrArg₂ Set.Ioo hmin hmax)
+          hset.symm
           (hx.mpr hmem))
     · have hle : a ≤ b :=
         le_of_not_gt hba
@@ -1354,7 +1440,7 @@ theorem Real.intervalIntegral_congr_of_eqOn_Ioo
     {a b : ℝ}
     {f g : ℝ → ℝ}
     (hpoint :
-      EqOn f g (Set.Ioo (min a b) (max a b))) :
+      Set.EqOn f g (Set.Ioo (min a b) (max a b))) :
     (∫ x in a..b, f x) =
       ∫ x in a..b, g x := by
   exact
@@ -1383,7 +1469,7 @@ theorem Real.intervalIntegral_comp_mul_deriv_of_integrableOn_image
         [[a, b]]
         MeasureTheory.volume)
     (hpoint :
-      EqOn
+      Set.EqOn
         (fun x : ℝ => (g ∘ f) x * f' x)
         source
         (Set.Ioo (min a b) (max a b))) :
@@ -1522,7 +1608,7 @@ theorem Real.sinePower_sinSubstitution_pullback_integrableOn
         MeasureTheory.volume := by
     exact (intervalIntegrable_iff'.mp hsource)
   have hpoint :
-      EqOn
+      Set.EqOn
         (fun u : ℝ =>
           (((fun x : ℝ =>
             x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
@@ -1532,14 +1618,36 @@ theorem Real.sinePower_sinSubstitution_pullback_integrableOn
     intro u hu
     exact Real.sinePower_sinSubstitution_forwardJacobian_eq s u hu
   have hAE :
-      (((fun u : ℝ =>
+      (fun u : ℝ =>
           (((fun x : ℝ =>
             x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
-            Real.cos u)) =
-       ᵐ[MeasureTheory.volume.restrict [[(0 : ℝ), Real.pi / 2]]]
+            Real.cos u) =ᵐ[
+        MeasureTheory.volume.restrict [[(0 : ℝ), Real.pi / 2]]]
         (fun u : ℝ => (Real.sin u) ^ s) := by
-    refine (ae_restrict_iff' measurableSet_Icc).2 ?_
-    filter_upwards [Real.ae_uIoc_eq_of_eqOn_Ioo hpoint] with u hu
+    have hpoint_minmax :
+        Set.EqOn
+          (fun u : ℝ =>
+            (((fun x : ℝ =>
+              x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) ∘ Real.sin) u) *
+              Real.cos u)
+          (fun u : ℝ => (Real.sin u) ^ s)
+          (Set.Ioo (min (0 : ℝ) (Real.pi / 2))
+            (max (0 : ℝ) (Real.pi / 2))) := by
+      intro u hu
+      have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+        min_eq_left Real.pi_div_two_pos.le
+      have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+        max_eq_right Real.pi_div_two_pos.le
+      have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => u ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hu
+      exact hpoint hu'
+    refine (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2 ?_
+    filter_upwards
+      [Real.ae_uIoc_eq_of_eqOn_Ioo
+        (a := (0 : ℝ)) (b := Real.pi / 2) hpoint_minmax] with u hu
     exact hu
   exact hsource_Icc.congr_fun_ae hAE.symm
 
@@ -1662,6 +1770,29 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
       ∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
   unfold Real.sinePowerHalfIntegral
+  have htarget_sinEndpoints :
+      IntervalIntegrable
+        (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        MeasureTheory.volume
+        (Real.sin (0 : ℝ))
+        (Real.sin (Real.pi / 2)) := by
+    exact Eq.subst
+      (motive := fun left : ℝ =>
+        IntervalIntegrable
+          (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+          MeasureTheory.volume
+          left
+          (Real.sin (Real.pi / 2)))
+      Real.sin_zero.symm
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          IntervalIntegrable
+            (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+            MeasureTheory.volume
+            (0 : ℝ)
+            right)
+        Real.sin_pi_div_two.symm
+        htarget)
   exact
     Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
       (a := (0 : ℝ))
@@ -1677,7 +1808,7 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
         intro u hu
         exact (Real.hasDerivAt_sin u).hasDerivWithinAt)
       (Real.sinePower_sinSubstitution_target_continuousOn_openImage s)
-      htarget
+      htarget_sinEndpoints
       hsource
       (Real.sinePower_sinSubstitution_image_integrableOn s htarget)
       (Real.sinePower_sinSubstitution_pullback_integrableOn
@@ -1794,11 +1925,11 @@ theorem Real.sinePower_squareSubstitution_sq_rpow_eq
           (div_mul_cancel₀ (s + 1) two_ne_zero)
       _ = (s + 1) - (1 + 1) := by
         exact congrArg (fun y : ℝ => (s + 1) - y)
-          (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+          (one_add_one_eq_two.symm : (2 : ℝ) = 1 + 1)
       _ = ((s + 1) - 1) - 1 := by
         exact sub_add_eq_sub_sub (s + 1) 1 1
       _ = s - 1 := by
-        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel s 1)
+        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel_right s 1)
   calc
     (x ^ 2) ^ (((s + 1) / 2) - 1) =
         (x ^ (2 : ℝ)) ^ (((s + 1) / 2) - 1) := by
@@ -1822,7 +1953,7 @@ theorem Real.sinePower_squareSubstitution_rightExponent_eq :
       exact (sub_div 1 2 2).symm
     _ = (1 - (1 + 1) : ℝ) / 2 := by
       exact congrArg (fun y : ℝ => (1 - y) / 2)
-        (two_eq_one_add_one : (2 : ℝ) = 1 + 1)
+        (one_add_one_eq_two.symm : (2 : ℝ) = 1 + 1)
     _ = ((1 - 1) - 1 : ℝ) / 2 := by
       exact congrArg (fun y : ℝ => y / 2)
         (sub_add_eq_sub_sub 1 1 1)
@@ -1844,7 +1975,7 @@ theorem Real.sinePower_squareSubstitution_scalar_cancel
   calc
     ((1 / 2 : ℝ) * y) * (2 * x) =
         (((1 / 2 : ℝ) * y) * 2) * x := by
-      exact mul_assoc ((1 / 2 : ℝ) * y) 2 x
+      exact (mul_assoc ((1 / 2 : ℝ) * y) 2 x).symm
     _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
       exact congrArg (fun z : ℝ => z * x)
         (mul_assoc (1 / 2 : ℝ) y 2)
@@ -2059,7 +2190,7 @@ theorem Real.sinePower_squareSubstitution_pullback_integrableOn
         MeasureTheory.volume := by
     exact intervalIntegrable_iff'.mp hsource
   have hpoint :
-      EqOn
+      Set.EqOn
         (fun x : ℝ =>
           (((fun t : ℝ =>
             (1 / 2 : ℝ) *
@@ -2081,8 +2212,32 @@ theorem Real.sinePower_squareSubstitution_pullback_integrableOn
             (2 * x)) =ᵐ[
         MeasureTheory.volume.restrict [[(0 : ℝ), 1]]]
         (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) := by
-    refine (ae_restrict_iff' measurableSet_Icc).2 ?_
-    filter_upwards [Real.ae_uIoc_eq_of_eqOn_Ioo hpoint] with x hx
+    have hpoint_minmax :
+        Set.EqOn
+          (fun x : ℝ =>
+            (((fun t : ℝ =>
+              (1 / 2 : ℝ) *
+                (t ^ (((s + 1) / 2) - 1) *
+                  (1 - t) ^ ((1 / 2 : ℝ) - 1))) ∘
+                (fun y : ℝ => y ^ 2)) x) *
+              (2 * x))
+          (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+          (Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
+      intro x hx
+      have hmin : min (0 : ℝ) 1 = 0 :=
+        min_eq_left zero_le_one
+      have hmax : max (0 : ℝ) 1 = 1 :=
+        max_eq_right zero_le_one
+      have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hx
+      exact hpoint hx'
+    refine (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2 ?_
+    filter_upwards
+      [Real.ae_uIoc_eq_of_eqOn_Ioo
+        (a := (0 : ℝ)) (b := 1) hpoint_minmax] with x hx
     exact hx
   exact hsource_Icc.congr_fun_ae hAE.symm
 
@@ -2236,6 +2391,43 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVari
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
   unfold Real.sinePowerEulerBetaRealIntegral
+  have htarget_squareEndpoints :
+      IntervalIntegrable
+        (fun t : ℝ =>
+          (1 / 2 : ℝ) *
+            (t ^ (((s + 1) / 2) - 1) *
+              (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+        MeasureTheory.volume
+        ((0 : ℝ) ^ 2)
+        ((1 : ℝ) ^ 2) := by
+    have hleft : ((0 : ℝ) ^ 2) = 0 := by
+      exact zero_pow (Nat.succ_ne_zero 1)
+    have hright : ((1 : ℝ) ^ 2) = 1 := by
+      exact one_pow 2
+    exact Eq.subst
+      (motive := fun left : ℝ =>
+        IntervalIntegrable
+          (fun t : ℝ =>
+            (1 / 2 : ℝ) *
+              (t ^ (((s + 1) / 2) - 1) *
+                (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+          MeasureTheory.volume
+          left
+          ((1 : ℝ) ^ 2))
+      hleft.symm
+      (Eq.subst
+        (motive := fun right : ℝ =>
+          IntervalIntegrable
+            (fun t : ℝ =>
+              (1 / 2 : ℝ) *
+                (t ^ (((s + 1) / 2) - 1) *
+                  (1 - t) ^ ((1 / 2 : ℝ) - 1)))
+            MeasureTheory.volume
+            (0 : ℝ)
+            right)
+        hright.symm
+        (Real.sinePower_squareSubstitution_scaledTarget_intervalIntegrable
+          s htarget))
   have hraw :
       (∫ x in (0 : ℝ)..1,
           x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
@@ -2261,8 +2453,7 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVari
         intro x hx
         exact (Real.sinePower_squareSubstitution_hasDerivAt x).hasDerivWithinAt)
       (Real.sinePower_squareSubstitution_scaledTarget_continuousOn_openImage s)
-      (Real.sinePower_squareSubstitution_scaledTarget_intervalIntegrable
-        s htarget)
+      htarget_squareEndpoints
       hsource
       (Real.sinePower_squareSubstitution_scaledTarget_image_integrableOn
         s htarget)

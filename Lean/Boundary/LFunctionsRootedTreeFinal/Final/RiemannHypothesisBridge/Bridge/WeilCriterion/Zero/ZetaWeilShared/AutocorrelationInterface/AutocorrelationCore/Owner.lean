@@ -107,8 +107,14 @@ theorem autocorrelation_dagger_eq_reflect (f : ZetaAdmissibleFunction) :
 theorem autocorrelation_reflect_eq (f : ZetaAdmissibleFunction) :
     autocorrelation (ZetaAdmissibleFunction.reflect f) =
       fun t => autocorrelation f (-t) := by
-  rw [autocorrelation_dagger_eq_reflect]
-  rfl
+  ext t
+  calc
+    autocorrelation (ZetaAdmissibleFunction.reflect f) t =
+        ZetaAdmissibleFunction.reflect (autocorrelation f) t := by
+      exact congrArg (fun g : ZetaAdmissibleFunction => g t)
+        (autocorrelation_dagger_eq_reflect f)
+    _ = autocorrelation f (-t) := by
+      rfl
 
 /-- The analytic convolution autocorrelation kernel
 `g_f(t) = ∫ f(u + t / 2) * conj(f(u - t / 2)) du`.

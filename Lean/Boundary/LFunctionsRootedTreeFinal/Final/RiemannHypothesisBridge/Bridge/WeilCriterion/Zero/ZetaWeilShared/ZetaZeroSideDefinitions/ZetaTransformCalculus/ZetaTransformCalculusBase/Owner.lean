@@ -462,7 +462,7 @@ theorem zetaLaplaceTransform_convolutionAutocorrelation_real_pair
         (a : ℂ) =
       zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
         star (zetaLaplaceTransform f.toZetaTestFunction' (-(a : ℂ))) := by
-  simpa using zetaLaplaceTransform_convolutionAutocorrelation f (a : ℂ)
+  exact zetaLaplaceTransform_convolutionAutocorrelation f (a : ℂ)
 
 /-- The two-variable convolution-pair Laplace integral unfolds to the kernel integral. -/
 theorem zetaLaplaceTransform_convolutionPair_unfold
@@ -617,6 +617,20 @@ theorem zetaLaplaceTransform_smul
     _ = a * zetaLaplaceTransform φ z := by
           exact integral_mul_left a (fun t : ℝ => φ t * Complex.exp (z * t))
 
+/-- Pointwise equal test functions have equal zeta Laplace transforms. -/
+theorem zetaLaplaceTransform_congr
+    {φ ψ : LFunctions.ZetaTestFunction}
+    (hφψ : ∀ t : ℝ, φ t = ψ t) :
+    zetaLaplaceTransform φ = zetaLaplaceTransform ψ := by
+  funext z
+  unfold zetaLaplaceTransform
+  exact integral_congr_ae
+    (Filter.Eventually.of_forall
+      (fun t : ℝ =>
+        congrArg
+          (fun u : ℂ => u * Complex.exp (z * t))
+          (hφψ t)))
+
 /-- The pointwise Laplace integrand is continuous in the pair `(z, t)`. -/
 theorem continuous_laplaceIntegrand
     (φ : LFunctions.ZetaTestFunction) :
@@ -721,7 +735,7 @@ theorem hasCompactSupport_weightedLaplaceKernel_of_hasCompactSupport
       (f := fun t : ℝ => (t : ℂ))
       (f' := fun t : ℝ => φ t * Complex.exp (z * t))
       (hf := hasCompactSupport_laplaceKernel_of_hasCompactSupport φ z hφ)
-  simpa [mul_assoc] using h
+  exact h
 
 /-- A Laplace kernel vanishes outside the support of the underlying test function. -/
 theorem laplaceKernel_eq_zero_of_nmem_tsupport
@@ -752,12 +766,12 @@ theorem weightedLaplaceKernel_eq_zero_of_nmem_tsupport
 /-- The indicator of a support set is equal to the constant on points inside the set. -/
 theorem indicator_eq_of_mem {K : Set ℝ} {C : ℝ} {t : ℝ} (ht : t ∈ K) :
     K.indicator (fun _ => C) t = C := by
-  simpa using (Set.indicator_of_mem (s := K) (f := fun _ : ℝ => C) ht)
+  exact Set.indicator_of_mem (s := K) (f := fun _ : ℝ => C) ht
 
 /-- The indicator of a support set is zero outside the set. -/
 theorem indicator_eq_zero_of_not_mem {K : Set ℝ} {C : ℝ} {t : ℝ} (ht : t ∉ K) :
     K.indicator (fun _ => C) t = 0 := by
-  simpa using (Set.indicator_of_not_mem (s := K) (f := fun _ : ℝ => C) ht)
+  exact Set.indicator_of_not_mem (s := K) (f := fun _ : ℝ => C) ht
 
 /-- Reflection turns the Laplace kernel at `z` into the unreflected kernel at `-z`. -/
 theorem reflect_laplaceKernel_eq_comp_neg_pointwise

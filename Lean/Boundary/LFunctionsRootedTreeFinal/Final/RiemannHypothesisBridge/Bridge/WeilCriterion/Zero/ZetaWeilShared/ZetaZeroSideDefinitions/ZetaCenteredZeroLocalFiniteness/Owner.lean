@@ -157,7 +157,11 @@ theorem centeredCriticalHeightBox_abs_im_le_abs_height
       ‖(z - (1 / 2 : ℂ)).im‖ ≤ |T| :=
     hcenter_le_height.trans (le_abs_self T)
   have him_eq : (z - (1 / 2 : ℂ)).im = z.im := by
-    rw [Complex.sub_im, Complex.ofReal_im, sub_zero]
+    calc
+      (z - (1 / 2 : ℂ)).im = z.im - (1 / 2 : ℂ).im := by
+        exact Complex.sub_im z (1 / 2 : ℂ)
+      _ = z.im := by
+        exact sub_zero (z.im)
   have him_norm_le_abs_height :
       ‖z.im‖ ≤ |T| :=
     Eq.subst
@@ -275,8 +279,8 @@ and away from the shifted poles it is closed by continuity of the centered
 completed zeta function. -/
 theorem isClosed_centeredZetaNontrivialZeroSet :
     IsClosed centeredZetaNontrivialZeroSet := by
-  rw [← isOpen_compl_iff]
-  rw [isOpen_iff_mem_nhds]
+  refine isOpen_compl_iff.mpr ?_
+  refine isOpen_iff_mem_nhds.mpr ?_
   intro z hz
   by_cases hzneg : z = -(1 / 2 : ℂ)
   · exact Eq.subst

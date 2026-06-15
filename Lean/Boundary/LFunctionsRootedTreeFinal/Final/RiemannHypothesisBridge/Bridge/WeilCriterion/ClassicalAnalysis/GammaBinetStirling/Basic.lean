@@ -32,6 +32,18 @@ noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
   (w - (1 / 2 : ℂ)) * Complex.log w - w +
     (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
 
+/-- The analytic Euler/Binet logarithm branch of `Gamma` on the right
+half-plane.
+
+Binet's second formula naturally constructs this logarithm branch.  It should
+not be identified globally with Lean's principal `Complex.log (Complex.Gamma w)`
+without a separate branch-coherence theorem, because the principal logarithm
+has a branch cut while this analytic branch is transported from the positive
+real axis. -/
+noncomputable def Complex.binetLogGammaBranch (w : ℂ) : ℂ :=
+  Complex.binetLogGammaMainTerm w +
+    Complex.binetSecondFormulaRemainder w
+
 end
 
 end LFunctions

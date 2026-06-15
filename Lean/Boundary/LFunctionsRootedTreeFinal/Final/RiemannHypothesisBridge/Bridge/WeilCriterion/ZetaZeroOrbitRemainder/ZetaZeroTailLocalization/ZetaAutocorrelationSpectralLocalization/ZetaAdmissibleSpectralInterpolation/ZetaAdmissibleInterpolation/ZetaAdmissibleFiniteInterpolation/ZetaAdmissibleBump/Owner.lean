@@ -48,9 +48,9 @@ def admissibleBump (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
         have hsupport :
             Function.support (fun x => ((b x : ℝ) : ℂ)) = Function.support (fun x => b x) := by
           ext x
-          simp [Function.mem_support]
+          constructor <;> intro hx <;> exact hx
         unfold HasCompactSupport at hb ⊢
-        rw [tsupport, hsupport]
+        exact hsupport
         exact hb)
   smooth := by
     have hreal := ContDiffBump.contDiff
@@ -58,7 +58,7 @@ def admissibleBump (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
       (n := ⊤)
     have hreal' :
         ContDiff ℝ ∞ (fun x : ℝ => ((⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c) x : ℝ)) := by
-      simpa [ContDiffBump.toFun] using hreal
+      exact hreal
     exact Complex.ofRealCLM.contDiff.comp hreal'
 
 /-- The admissible bump evaluates to `1` at its center. -/
@@ -87,7 +87,8 @@ theorem admissibleBump_eq_zero_of_not_mem_closedBall (c rIn rOut : ℝ) (hrIn : 
     (hr : rIn < rOut) {x : ℝ} (hx : x ∉ Metric.closedBall c rOut) :
     admissibleBump (c := c) rIn rOut hrIn hr x = 0 := by
   have hdist : rOut < dist x c := by
-    exact lt_of_not_ge (fun h => hx (by simpa [Metric.mem_closedBall] using h))
+    exact lt_of_not_ge (fun h => hx (by
+      exact h))
   exact admissibleBump_zero_of_le_dist (c := c) (rIn := rIn) (rOut := rOut) hrIn hr (by
     linarith [le_of_lt hdist])
 
@@ -105,8 +106,14 @@ theorem exists_admissible_eval_eq (c : ℝ) (a : ℂ) :
     ∃ f : ZetaAdmissibleFunction, f c = a := by
   let b : ZetaAdmissibleFunction := admissibleBump (c := c) 1 2 zero_lt_one one_lt_two
   refine ⟨a • b, ?_⟩
-  rw [ZetaAdmissibleFunction.smul_apply, admissibleBump_apply_center]
-  exact mul_one a
+  change a * b c = a
+  calc
+    a * b c = a * (1 : ℂ) := by
+      congr
+      exact admissibleBump_apply_center (c := c) (rIn := 1) (rOut := 2)
+        zero_lt_one one_lt_two
+    _ = a := by
+      exact mul_one a
 
 /-- Two prescribed values can be interpolated at two distinct real points. -/
 theorem exists_admissible_eval_pair (c₁ c₂ : ℝ) (hc : c₁ ≠ c₂) (a₁ a₂ : ℂ) :
@@ -121,19 +128,42 @@ theorem exists_admissible_eval_pair (c₁ c₂ : ℝ) (hc : c₁ ≠ c₂) (a₁
   let b₂ : ZetaAdmissibleFunction := admissibleBump (c := c₂) (rOut / 2) rOut (by
     dsimp [rOut]
     linarith) (by linarith)
-  have hb₁₁ : b₁ c₁ = (1 : ℂ) := by simp [b₁, admissibleBump_apply_center]
+  have hb₁₁ : b₁ c₁ = (1 : ℂ) := by
+    exact admissibleBump_apply_center (c := c₁) (rIn := rOut / 2) (rOut := rOut)
+      (by dsimp [rOut]; linarith) (by linarith)
   have hb₁₂ : b₁ c₂ = 0 := by
+    have hdist' : rOut ≤ dist c₂ c₁ := by
+      have : rOut ≤ dist c₁ c₂ := by linarith [hrOut_lt]
+      exact (dist_comm).symm ▸ this
     exact admissibleBump_zero_of_le_dist (c := c₁) (rIn := rOut / 2) (rOut := rOut)
-      (by linarith) (by linarith) (le_of_lt (by simpa [rOut, dist_comm] using hrOut_lt))
-  have hb₂₂ : b₂ c₂ = (1 : ℂ) := by simp [b₂, admissibleBump_apply_center]
+      (by linarith) (by linarith) hdist'
+  have hb₂₂ : b₂ c₂ = (1 : ℂ) := by
+    exact admissibleBump_apply_center (c := c₂) (rIn := rOut / 2) (rOut := rOut)
+      (by dsimp [rOut]; linarith) (by linarith)
   have hb₂₁ : b₂ c₁ = 0 := by
+    have hdist' : rOut ≤ dist c₁ c₂ := by
+      linarith [hrOut_lt]
     exact admissibleBump_zero_of_le_dist (c := c₂) (rIn := rOut / 2) (rOut := rOut)
-      (by linarith) (by linarith) (le_of_lt (by simpa [rOut, dist_comm] using hrOut_lt))
+      (by linarith) (by linarith) hdist'
   refine
     ⟨a₁ • b₁ + (a₂ - a₁ * b₁ c₂) • b₂, ?_⟩
   constructor
-  · simp [add_apply, smul_apply, hb₁₁, hb₂₁]
-  · simp [add_apply, smul_apply, hb₁₂, hb₂₂]
+  · calc
+      (a₁ • b₁ + (a₂ - a₁ * b₁ c₂) • b₂) c₁ = a₁ * b₁ c₁ + (a₂ - a₁ * b₁ c₂) * b₂ c₁ := by
+        rfl
+      _ = a₁ := by
+        calc
+          a₁ * b₁ c₁ + (a₂ - a₁ * b₁ c₂) * b₂ c₁ = a₁ * (1 : ℂ) + (a₂ - a₁ * b₁ c₂) * (0 : ℂ) := by
+            congr <;> exact hb₁₁ <|> exact hb₂₁
+          _ = a₁ := by ring
+  · calc
+      (a₁ • b₁ + (a₂ - a₁ * b₁ c₂) • b₂) c₂ = a₁ * b₁ c₂ + (a₂ - a₁ * b₁ c₂) * b₂ c₂ := by
+        rfl
+      _ = a₂ := by
+        calc
+          a₁ * b₁ c₂ + (a₂ - a₁ * b₁ c₂) * b₂ c₂ = a₁ * (0 : ℂ) + (a₂ - a₁ * b₁ c₂) * (1 : ℂ) := by
+            congr <;> exact hb₁₂ <|> exact hb₂₂
+          _ = a₂ := by ring
 
 /-- The support of the admissible bump is contained in the closed outer ball. -/
 theorem admissibleBump_support_subset_closedBall (c rIn rOut : ℝ) (hrIn : 0 < rIn)
@@ -142,7 +172,7 @@ theorem admissibleBump_support_subset_closedBall (c rIn rOut : ℝ) (hrIn : 0 < 
   intro x hx
   by_contra hx'
   exact hx (by
-    simpa [Function.mem_support] using
+    exact
       admissibleBump_eq_zero_of_not_mem_closedBall (c := c) (rIn := rIn) (rOut := rOut) hrIn hr hx')
 
 /-- The explicit separation radius for one point of a finite sample. -/
@@ -165,18 +195,20 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
   let s : Finset (Fin S.n) := Finset.univ.erase i₀
   have hs : i₀ ∉ s := by
     dsimp [s]
-    simp
+    exact Finset.not_mem_erase i₀ (Finset.univ : Finset (Fin S.n))
   by_cases hne : s = ∅
   · constructor
     · dsimp [sampleSeparationRadius, s]
-      rw [dif_pos hne]
       exact zero_lt_one
     intro j hj
     have hjs : j ∈ s := by
-      simpa [s] using hj
-    have hfalse : j ∈ (∅ : Finset (Fin S.n)) := by
-      rw [hne] at hjs
-      exact hjs
+      exact hj
+  have hfalse : j ∈ (∅ : Finset (Fin S.n)) := by
+    have : j ∈ (∅ : Finset (Fin S.n)) := by
+      have htmp : j ∈ s := hjs
+      subst hne
+      exact htmp
+    exact this
     exact False.elim (Finset.not_mem_empty j hfalse)
   · let t : Finset ℝ := s.image fun j => dist (S.x j) (S.x i₀)
     have ht : t.Nonempty := by
@@ -189,16 +221,16 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
       have hneq : j ≠ i₀ := by
         intro hji
         apply hs
-        simpa [hji] using hj
-      rw [← hjdist]
-      exact dist_pos.2 (S.inj.ne hneq)
+        have : j ∈ s := hj
+        subst hji
+        exact this
+      exact by
+        exact hjdist.symm ▸ dist_pos.2 (S.inj.ne hneq)
     constructor
     · dsimp [sampleSeparationRadius, s, t]
-      rw [dif_neg hne]
       exact half_pos hpos
     intro j hj
     dsimp [sampleSeparationRadius, s, t]
-    rw [dif_neg hne]
     have hmem : dist (S.x j) (S.x i₀) ∈ t := by
       exact Finset.mem_image.2 ⟨j, hj, rfl⟩
     have hle : t.min' ht ≤ dist (S.x j) (S.x i₀) := Finset.min'_le _ _ hmem
@@ -229,7 +261,12 @@ theorem exists_admissible_delta_sample_with_closedBall_support (S : FiniteSample
       (rOut := rOut i) (half_pos (sampleSeparationRadius_pos_and_le S i).1)
       (by linarith [(sampleSeparationRadius_pos_and_le S i).1])
   · intro i j hj
-    have hj' : j ∈ Finset.univ.erase i := by simp [hj]
+    have hj' : j ∈ Finset.univ.erase i := by
+      exact Finset.mem_erase.mpr ⟨hj, by
+        intro hji
+        exact (Finset.not_mem_empty j) (by
+          subst hji
+          exact hj)⟩
     exact admissibleBump_zero_of_le_dist (c := S.x i) (rIn := rOut i / 2)
       (rOut := rOut i) (half_pos (sampleSeparationRadius_pos_and_le S i).1)
       (by linarith [(sampleSeparationRadius_pos_and_le S i).1])
@@ -267,27 +304,42 @@ theorem sampleInterpolant_apply (S : FiniteSample) (a : Fin S.n → ℂ)
         ∑ j : Fin S.n, a j * F j (S.x i) := by
     change (∑ j : Fin S.n, (a j • F j)) (S.x i) =
       ∑ j : Fin S.n, a j * F j (S.x i)
-    rw [ZetaAdmissibleFunction.sum_apply]
-    simp [ZetaAdmissibleFunction.smul_apply]
-  rw [hsum]
+    calc
+      (∑ j : Fin S.n, (a j • F j)) (S.x i)
+          = ∑ j : Fin S.n, (a j • F j) (S.x i) := by
+              exact ZetaAdmissibleFunction.sum_apply _ _
+      _ = ∑ j : Fin S.n, a j * F j (S.x i) := by
+        refine Finset.sum_congr rfl ?_
+        intro j hj
+        exact ZetaAdmissibleFunction.smul_apply _ _ _
+  have hsum' := hsum
   have hsingle :
       (∑ j : Fin S.n, a j * F j (S.x i)) = a i * F i (S.x i) := by
     refine Finset.sum_eq_single i ?_ ?_
     · intro j _hj hji
-      rw [hF0 j i hji.symm, mul_zero]
+      have hzero : F j (S.x i) = 0 := hF0 j i hji.symm
+      exact by
+        calc
+          a j * F j (S.x i) = a j * 0 := congrArg (fun x => a j * x) hzero
+          _ = 0 := by exact mul_zero _
     · intro hi
       exact False.elim (hi (Finset.mem_univ i))
-  rw [hsingle, hF1 i, mul_one]
+  change sampleInterpolant S a F (S.x i) = a i
+  calc
+    ∑ j : Fin S.n, a j * F j (S.x i) = a i * F i (S.x i) := hsingle
+    _ = a i := by
+      have hone : F i (S.x i) = (1 : ℂ) := hF1 i
+      calc
+        a i * F i (S.x i) = a i * (1 : ℂ) := congrArg (fun x => a i * x) hone
+        _ = a i := by exact mul_one a i
 
 /-- The sample interpolant assembled from admissible probes has compact support. -/
 theorem sampleInterpolant_hasCompactSupport (S : FiniteSample) (a : Fin S.n → ℂ)
     (F : (i : Fin S.n) → ZetaAdmissibleFunction) :
     HasCompactSupport (sampleInterpolant S a F) := by
   dsimp [sampleInterpolant]
-  rw [ZetaAdmissibleFunction.coeFn_sum_apply]
-  convert ZetaAdmissibleFunction.hasCompactSupport_sum Finset.univ fun i => (a i) • F i using 1
-  ext x
-  simp [Finset.sum_apply]
+  exact
+    ZetaAdmissibleFunction.hasCompactSupport_sum Finset.univ fun i => (a i) • F i
 
 /-- The sample interpolant support is contained in the union of the delta-basis supports. -/
 theorem sampleInterpolant_support_subset_iUnion (S : FiniteSample) (a : Fin S.n → ℂ)
@@ -295,11 +347,10 @@ theorem sampleInterpolant_support_subset_iUnion (S : FiniteSample) (a : Fin S.n 
     Function.support (sampleInterpolant S a F) ⊆ Set.iUnion fun i => Function.support (F i) := by
   intro y hy
   dsimp [sampleInterpolant] at hy
-  rw [ZetaAdmissibleFunction.support_sum_apply] at hy
-  rw [Function.mem_support] at hy
+  have hy' : y ∈ Function.support (∑ i : Fin S.n, a i • F i) := hy
   have hyne : ∃ i ∈ (Finset.univ : Finset (Fin S.n)), ((a i) • F i) y ≠ 0 := by
     exact Finset.exists_ne_zero_of_sum_ne_zero (s := Finset.univ)
-      (f := fun i => ((a i) • F i) y) hy
+      (f := fun i => ((a i) • F i) y) hy'
   rcases hyne with ⟨i, _hi, hyFi⟩
   exact Set.mem_iUnion.2 ⟨i, ZetaAdmissibleFunction.support_smul_subset (a i) (F i) hyFi⟩
 

@@ -41,19 +41,15 @@ instance : Inv (Factor K) where
 instance : Div (Factor K) where
   div A B := ⟨A.log - B.log⟩
 
-@[simp]
 theorem log_one : (1 : Factor K).log = 0 :=
   rfl
 
-@[simp]
 theorem log_mul (A B : Factor K) : (A * B).log = A.log + B.log :=
   rfl
 
-@[simp]
 theorem log_inv (A : Factor K) : A⁻¹.log = -A.log :=
   rfl
 
-@[simp]
 theorem log_div (A B : Factor K) : (A / B).log = A.log - B.log :=
   rfl
 
@@ -63,19 +59,15 @@ theorem ext {A B : Factor K} (h : A.log = B.log) : A = B :=
   match A, B with
   | ⟨_⟩, ⟨_⟩ => congrArg Factor.mk h
 
-@[simp]
 theorem mul_one (A : Factor K) : A * 1 = A :=
   Factor.ext (K := K) (add_zero A.log)
 
-@[simp]
 theorem one_mul (A : Factor K) : 1 * A = A :=
   Factor.ext (K := K) (zero_add A.log)
 
-@[simp]
 theorem mul_inv (A : Factor K) : A * A⁻¹ = 1 :=
   Factor.ext (K := K) (add_neg_cancel A.log)
 
-@[simp]
 theorem inv_mul (A : Factor K) : A⁻¹ * A = 1 :=
   Factor.ext (K := K) (neg_add_cancel A.log)
 
@@ -98,17 +90,14 @@ def eulerFactorLogClass (x : Boundary.EndomorphismK0.K0.{u, v} K) : Factor K :=
 def zetaFactorLogClass (x : Boundary.EndomorphismK0.K0.{u, v} K) : Factor K :=
   ⟨Boundary.EulerFactorLog.zetaLog K x⟩
 
-@[simp]
 theorem eulerFactorLogClass_log (x : Boundary.EndomorphismK0.K0.{u, v} K) :
     (eulerFactorLogClass K x).log = Boundary.EulerFactorLog.eulerLog K x :=
   rfl
 
-@[simp]
 theorem zetaFactorLogClass_log (x : Boundary.EndomorphismK0.K0.{u, v} K) :
     (zetaFactorLogClass K x).log = Boundary.EulerFactorLog.zetaLog K x :=
   rfl
 
-@[simp]
 theorem eulerFactorLogClass_zero :
     eulerFactorLogClass K (0 : Boundary.EndomorphismK0.K0.{u, v} K) = 1 :=
   Factor.ext (K := K) (Boundary.EulerFactorLog.eulerLog_zero K)
@@ -119,7 +108,6 @@ theorem eulerFactorLogClass_add
       eulerFactorLogClass K x * eulerFactorLogClass K y :=
   Factor.ext (K := K) (Boundary.EulerFactorLog.eulerLog_add K x y)
 
-@[simp]
 theorem eulerFactorLogClass_neg
     (x : Boundary.EndomorphismK0.K0.{u, v} K) :
     eulerFactorLogClass K (-x) = (eulerFactorLogClass K x)⁻¹ :=
@@ -131,7 +119,6 @@ theorem eulerFactorLogClass_sub
       eulerFactorLogClass K x / eulerFactorLogClass K y :=
   Factor.ext (K := K) (Boundary.EulerFactorLog.eulerLog_sub K x y)
 
-@[simp]
 theorem zetaFactorLogClass_zero :
     zetaFactorLogClass K (0 : Boundary.EndomorphismK0.K0.{u, v} K) = 1 :=
   Factor.ext (K := K) (Boundary.EulerFactorLog.zetaLog_zero K)
@@ -142,7 +129,6 @@ theorem zetaFactorLogClass_add
       zetaFactorLogClass K x * zetaFactorLogClass K y :=
   Factor.ext (K := K) (Boundary.EulerFactorLog.zetaLog_add K x y)
 
-@[simp]
 theorem zetaFactorLogClass_neg
     (x : Boundary.EndomorphismK0.K0.{u, v} K) :
     zetaFactorLogClass K (-x) = (zetaFactorLogClass K x)⁻¹ :=

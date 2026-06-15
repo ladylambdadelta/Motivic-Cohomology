@@ -26,12 +26,28 @@ def dotProduct (x y : ZetaPacketEnsemble) : ℝ :=
 def normSq (x : ZetaPacketEnsemble) : ℝ :=
   dotProduct x x
 
+/-- The packet dot-product summand is symmetric label-by-label. -/
+theorem dotProduct_summand_comm (x y : ZetaPacketEnsemble) (ℓ : ZetaPacketLabel) :
+    x ℓ * y ℓ = y ℓ * x ℓ :=
+  mul_comm (x ℓ) (y ℓ)
+
+/-- The packet dot-product index set is symmetric. -/
+theorem dotProduct_support_union_comm (x y : ZetaPacketEnsemble) :
+    x.support ∪ y.support = y.support ∪ x.support :=
+  Finset.union_comm x.support y.support
+
+/-- The packet dot-product finite sum is symmetric after transporting the index set. -/
+theorem dotProduct_sum_comm (x y : ZetaPacketEnsemble) :
+    (∑ ℓ in x.support ∪ y.support, x ℓ * y ℓ) =
+      ∑ ℓ in y.support ∪ x.support, y ℓ * x ℓ := by
+  exact Finset.sum_congr
+    (dotProduct_support_union_comm x y)
+    (fun ℓ _ => dotProduct_summand_comm x y ℓ)
+
 theorem dotProduct_comm (x y : ZetaPacketEnsemble) :
     dotProduct x y = dotProduct y x := by
   unfold dotProduct
-  rw [Finset.union_comm]
-  congr with ℓ
-  exact mul_comm _ _
+  exact dotProduct_sum_comm x y
 
 /-- Helper: a disjoint-support summand vanishes at a label. -/
 theorem dotProduct_eq_zero_of_disjoint_support_aux {x y : ZetaPacketEnsemble} (ℓ : ZetaPacketLabel)

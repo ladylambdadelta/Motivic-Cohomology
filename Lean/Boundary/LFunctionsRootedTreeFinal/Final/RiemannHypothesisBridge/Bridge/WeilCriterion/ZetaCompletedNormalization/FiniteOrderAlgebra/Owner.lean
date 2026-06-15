@@ -441,13 +441,17 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
     ring
   have hsecond_triangle :
       ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ := by
-    rw [hsecond_rewrite]
-    exact norm_add_le (1 - (1 / 2 : ℂ)) (-z)
+    calc
+      ‖(1 - ((1 / 2 : ℂ) + z))‖ = ‖(1 - (1 / 2 : ℂ)) + (-z)‖ := by
+        exact congrArg norm hsecond_rewrite
+      _ ≤ ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ := norm_add_le _ _
   have hnorm_neg_z : ‖-z‖ = ‖z‖ := norm_neg z
   have hsecond_sum :
       ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ ≤ 1 + ‖z‖ := by
-    rw [hnorm_neg_z]
-    exact add_le_add_right hnorm_one_sub_half ‖z‖
+    calc
+      ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ = ‖(1 - (1 / 2 : ℂ))‖ + ‖z‖ := by
+        exact congrArg (fun x : ℝ => ‖(1 - (1 / 2 : ℂ))‖ + x) hnorm_neg_z
+      _ ≤ 1 + ‖z‖ := add_le_add_right hnorm_one_sub_half ‖z‖
   have hsecond_height :
       1 + ‖z‖ ≤ 2 * (1 + ‖z‖) := by
     nlinarith [hnorm_z_nonneg]
@@ -548,8 +552,10 @@ theorem polynomialGrowth_mul
     pow_add H m n
   have halg :
       (A * H ^ m) * (B * H ^ n) = (A * B) * H ^ (m + n) := by
-    rw [hpow]
-    ring
+    calc
+      (A * H ^ m) * (B * H ^ n) = (A * B) * (H ^ m * H ^ n) := by ring
+      _ = (A * B) * H ^ (m + n) := by
+        exact congrArg (fun x : ℝ => (A * B) * x) hpow.symm
   exact hnorm.trans_le (hmul_bound.trans_eq halg)
 
 /-- Subtracting the constant `1` from a polynomial-growth function preserves polynomial
@@ -576,8 +582,10 @@ theorem polynomialGrowth_sub_one
     norm_num
   have hsum_bound :
       ‖u z‖ + ‖(1 : ℂ)‖ ≤ A * H ^ m + H ^ m := by
-    rw [hone_norm]
-    exact add_le_add (hA_bound z) hH_pow_ge_one
+    calc
+      ‖u z‖ + ‖(1 : ℂ)‖ = ‖u z‖ + 1 := by
+        exact congrArg (fun x : ℝ => ‖u z‖ + x) hone_norm
+      _ ≤ A * H ^ m + H ^ m := add_le_add (hA_bound z) hH_pow_ge_one
   have halg :
       A * H ^ m + H ^ m = (A + 1) * H ^ m := by
     ring
@@ -737,8 +745,11 @@ theorem exponentialFiniteOrder_sub_one
   have hsum_bound :
       ‖u z‖ + ‖(1 : ℂ)‖ ≤
         A * Real.exp (B * H ^ m) + Real.exp (B * H ^ m) := by
-    rw [hone_norm]
-    exact add_le_add (hbound z) hone_le_exp
+    calc
+      ‖u z‖ + ‖(1 : ℂ)‖ = ‖u z‖ + 1 := by
+        exact congrArg (fun x : ℝ => ‖u z‖ + x) hone_norm
+      _ ≤ A * Real.exp (B * H ^ m) + Real.exp (B * H ^ m) :=
+        add_le_add (hbound z) hone_le_exp
   have halg :
       A * Real.exp (B * H ^ m) + Real.exp (B * H ^ m) =
         (A + 1) * Real.exp (B * H ^ m) := by

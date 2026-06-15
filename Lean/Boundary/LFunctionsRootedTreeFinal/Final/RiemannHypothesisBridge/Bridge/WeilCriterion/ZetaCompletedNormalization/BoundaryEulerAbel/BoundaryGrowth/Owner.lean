@@ -552,8 +552,8 @@ theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
     change 2 + ‖w.im‖ = (1 + ‖w.im‖) + 1
     ring
   have harg_le_twoH : 2 + ‖w.im‖ ≤ 2 * H := by
-    rw [harg_eq]
-    nlinarith
+    have : 2 + ‖w.im‖ = H + 1 := harg_eq
+    nlinarith [this]
   have hlog_le_twoH :
       Real.log (2 + ‖w.im‖) ≤ 2 * H :=
     le_trans hlog_le_arg harg_le_twoH

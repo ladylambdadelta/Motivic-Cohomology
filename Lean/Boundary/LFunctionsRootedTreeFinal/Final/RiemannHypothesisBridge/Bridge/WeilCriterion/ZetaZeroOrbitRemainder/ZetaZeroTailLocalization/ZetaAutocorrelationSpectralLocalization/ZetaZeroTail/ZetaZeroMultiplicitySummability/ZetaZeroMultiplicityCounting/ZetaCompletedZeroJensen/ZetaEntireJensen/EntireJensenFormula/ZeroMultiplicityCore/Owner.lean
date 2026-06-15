@@ -25,7 +25,8 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped Topology
+open Filter MeasureTheory Set
+open scoped Topology Interval
 
 abbrev EntireFunctionZero
     (F : ℂ → ℂ) : Type :=
@@ -55,7 +56,7 @@ theorem EntireFunctionNonzeroZero.toZero_injective
     (F : ℂ → ℂ) :
     Function.Injective (EntireFunctionNonzeroZero.toZero F) := by
   intro z w hzw
-  exact Subtype.ext (congrArg Subtype.val hzw)
+  exact Subtype.ext (congrArg (fun q : EntireFunctionZero F => (q : ℂ)) hzw)
 
 /-- An ordinary zero lies in the range of the nonzero-zero forgetful map exactly
 when its value is nonzero. -/
@@ -271,8 +272,8 @@ noncomputable def entireFunctionLogMaxOnCircle
 noncomputable def entireFunctionJensenBoundaryLogIntegrand
     (F : ℂ → ℂ)
     (R : ℝ)
-    (θ : ℝ) : ℝ :=
-  Real.log ‖F ((R : ℂ) * Complex.exp (θ * Complex.I))‖
+  (θ : ℝ) : ℝ :=
+  Real.log ‖F ((R : ℂ) * Complex.exp ((θ : ℂ) * Complex.I))‖
 
 /-- The normalized logarithmic boundary average in Jensen's formula. -/
 noncomputable def entireFunctionJensenBoundaryLogIntegral
@@ -384,7 +385,7 @@ theorem entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
       F hF z₀ 0 horder_zero
   have hfactor_at_center :
       F z₀ = (z₀ - z₀) ^ 0 • g z₀ :=
-    Filter.Eventually.self_of_nhds hg_factor
+    hg_factor.self_of_nhds
   have hpow :
       (z₀ - z₀) ^ 0 = (1 : ℂ) :=
     pow_zero (z₀ - z₀)
@@ -405,11 +406,11 @@ theorem positiveRadius_exp_arc_eventually_ne_base
     (r : ℝ)
     (hr : 0 < r)
     (θ₀ : ℝ) :
-    ∀ᶠ θ in 𝓝[≠] θ₀,
-      (r : ℂ) * Complex.exp (θ * Complex.I) ≠
-        (r : ℂ) * Complex.exp (θ₀ * Complex.I) := by
+    ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀,
+      (r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I) ≠
+        (r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I) := by
   have hclose :
-      ∀ᶠ θ in 𝓝 θ₀, |θ - θ₀| < 2 * Real.pi := by
+      ∀ᶠ (θ : ℝ) in 𝓝 θ₀, |θ - θ₀| < 2 * Real.pi := by
     exact
       (Metric.eventually_nhds_iff_ball.mpr
         ⟨2 * Real.pi, Real.two_pi_pos, by
@@ -421,8 +422,8 @@ theorem positiveRadius_exp_arc_eventually_ne_base
   have hrC : (r : ℂ) ≠ 0 := by
     exact_mod_cast hr.ne'
   have hExp :
-      Complex.exp (θ * Complex.I) =
-        Complex.exp (θ₀ * Complex.I) := by
+      Complex.exp ((θ : ℂ) * Complex.I) =
+        Complex.exp ((θ₀ : ℂ) * Complex.I) := by
     apply mul_left_cancel₀ hrC
     simpa [mul_assoc] using hEq
   rcases (Complex.exp_eq_exp_iff_exists_int.mp hExp) with ⟨n, hn⟩
@@ -471,22 +472,22 @@ theorem positiveRadius_exp_arc_eventually_ne_zero_pullback
     (hr : 0 < r)
     (θ₀ : ℝ)
     (hne :
-      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
-    ∀ᶠ θ in 𝓝[≠] θ₀,
-      F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 := by
-  let γ : ℝ → ℂ := fun θ => (r : ℂ) * Complex.exp (θ * Complex.I)
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I)), F z ≠ 0) :
+    ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀,
+      F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) ≠ 0 := by
+  let γ : ℝ → ℂ := fun θ => (r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)
   have hγ_cont : ContinuousAt γ θ₀ := by
     fun_prop
   have hγ_tendsto_nhds : Tendsto γ (𝓝 θ₀) (𝓝 (γ θ₀)) :=
     hγ_cont
-  have hne_base : ∀ᶠ θ in 𝓝[≠] θ₀, γ θ ≠ γ θ₀ :=
+  have hne_base : ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀, γ θ ≠ γ θ₀ :=
     positiveRadius_exp_arc_eventually_ne_base r hr θ₀
   have hγ_tendsto_punctured :
       Tendsto γ (𝓝[≠] θ₀) (𝓝[≠] γ θ₀) := by
-    rw [nhdsWithin]
+    rw [nhdsWithin, nhdsWithin]
     exact
       Tendsto.inf
-        (hγ_tendsto_nhds.mono_left nhdsWithin_le_nhds)
+        (hγ_tendsto_nhds.mono_left inf_le_left)
         (tendsto_principal.mpr hne_base)
   exact hγ_tendsto_punctured.eventually hne
 
@@ -502,20 +503,20 @@ theorem positiveRadius_exp_arc_eventually_zero_not_eventually_ne_zero
     (hr : 0 < r)
     (θ₀ : ℝ)
     (hlocal_zero :
-      ∀ᶠ θ in 𝓝 θ₀,
-        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0)
+      ∀ᶠ (θ : ℝ) in 𝓝 θ₀,
+        F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) = 0)
     (hne :
-      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z ≠ 0) :
+      ∀ᶠ z in 𝓝[≠] ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I)), F z ≠ 0) :
     False := by
   have hzero :
-      ∀ᶠ θ in 𝓝[≠] θ₀,
-        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0 :=
+      ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) = 0 :=
     hlocal_zero.filter_mono nhdsWithin_le_nhds
   have hnonzero :
-      ∀ᶠ θ in 𝓝[≠] θ₀,
-        F ((r : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 :=
+      ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀,
+        F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) ≠ 0 :=
     positiveRadius_exp_arc_eventually_ne_zero_pullback F r hr θ₀ hne
-  have hfalse : ∀ᶠ θ in 𝓝[≠] θ₀, False := by
+  have hfalse : ∀ᶠ (θ : ℝ) in 𝓝[≠] θ₀, False := by
     filter_upwards [hzero, hnonzero] with θ hθzero hθnonzero
     exact hθnonzero hθzero
   exact
@@ -531,10 +532,10 @@ theorem entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
     (θ₀ : ℝ)
     (hlocal_zero :
       ∀ᶠ θ in 𝓝 θ₀,
-        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
-    ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 := by
+        F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) = 0) :
+    ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I)), F z = 0 := by
   rcases
-      (hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I))).eventually_eq_zero_or_eventually_ne_zero
+      (hF ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I))).eventually_eq_zero_or_eventually_ne_zero
       with hzero | hne
   · exact hzero
   · exact False.elim
@@ -557,15 +558,15 @@ theorem entireFunction_eq_zero_of_eventually_zero_on_positiveRadius_exp_arc
     (θ₀ : ℝ)
     (hlocal_zero :
       ∀ᶠ θ in 𝓝 θ₀,
-        F ((r : ℂ) * Complex.exp (θ * Complex.I)) = 0) :
+        F ((r : ℂ) * Complex.exp ((θ : ℂ) * Complex.I)) = 0) :
     ∀ z : ℂ, F z = 0 := by
   have hcircle_zero :
-      ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp (θ₀ * Complex.I)), F z = 0 :=
+      ∀ᶠ z in 𝓝 ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I)), F z = 0 :=
     entireFunction_eventually_zero_positiveRadius_exp_arc_forces_local_zero
       F hF r hr θ₀ hlocal_zero
   exact
     entireFunction_eq_zero_of_eventually_zero_nhds
-      F hF ((r : ℂ) * Complex.exp (θ₀ * Complex.I)) hcircle_zero
+      F hF ((r : ℂ) * Complex.exp ((θ₀ : ℂ) * Complex.I)) hcircle_zero
 
 /-- Arc identity theorem for an entire function sampled on a positive-radius
 Jensen circle.
@@ -582,10 +583,10 @@ theorem entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero_arcIdenti
     (hθ₀ : θ₀ ∈ Set.Ioc 0 (2 * Real.pi))
     (hsample :
       AnalyticAt ℝ
-        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ₀)
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp ((θ : ℂ) * Complex.I))) θ₀)
     (hlocal_zero :
       ∀ᶠ θ in 𝓝 θ₀,
-        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ = 0) :
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp ((θ : ℂ) * Complex.I))) θ = 0) :
     ∀ z : ℂ, F z = 0 := by
   have htwoR : 0 < 2 * R := by
     nlinarith
@@ -609,10 +610,10 @@ theorem entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero
     (hθ₀ : θ₀ ∈ Set.Ioc 0 (2 * Real.pi))
     (hsample :
       AnalyticAt ℝ
-        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ₀)
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp ((θ : ℂ) * Complex.I))) θ₀)
     (hlocal_zero :
       ∀ᶠ θ in 𝓝 θ₀,
-        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ = 0) :
+        (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp ((θ : ℂ) * Complex.I))) θ = 0) :
     ∀ z : ℂ, F z = 0 := by
   exact
     entireFunction_eq_zero_of_jensenBoundarySample_eventually_zero_arcIdentity
@@ -2382,11 +2383,6 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundaryS
   have hnot_lt : ¬ ‖(z : ℂ)‖ < ρ :=
     (Finset.mem_filter.1 hz).2
   exact le_antisymm hle (le_of_not_gt hnot_lt)
-
-/-- The sine-power integral on `[0,π]`.
-
-This is the exponent family whose derivative at exponent `0` gives the
-log-sine integral. -/
 
 end
 end LFunctions

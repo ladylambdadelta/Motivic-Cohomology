@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaTestFunction.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.WeilCorrectionCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.Owner
@@ -98,10 +99,6 @@ def zetaWeilCompletedPart (s : ℂ) : ℂ :=
 theorem zetaWeilCompletedPart_eq_completedRiemannZeta (s : ℂ) :
     zetaWeilCompletedPart s = completedRiemannZeta (1 / 2 + s) := rfl
 
-/-- The pole correction term in the centered Weil normalization. -/
-def zetaWeilCorrection (s : ℂ) : ℂ :=
-  1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s))
-
 /-- The Dirichlet-series part of the centered completed zeta. -/
 def zetaWeilDirichletPart (s : ℂ) : ℂ :=
   riemannZeta (1 / 2 + s)
@@ -136,11 +133,6 @@ theorem zetaWeilMainTerm_neg (s : ℂ) :
     zetaWeilMainTerm (-s) = zetaWeilMainTerm s := by
   unfold zetaWeilMainTerm
   exact centeredCompletedRiemannZeta₀_neg s
-
-theorem zetaWeilCorrection_neg (s : ℂ) :
-    zetaWeilCorrection (-s) = zetaWeilCorrection s := by
-  unfold zetaWeilCorrection
-  exact centeredCompletedRiemannZeta_correction_symm s
 
 theorem zetaWeilCompletedPart_eq_dirichlet_mul_gamma (s : ℂ)
     (hs : (1 / 2 : ℂ) + s ≠ 0) (hΓ : Gammaℝ (1 / 2 + s) ≠ 0) :
@@ -187,11 +179,6 @@ theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_centered (s : ℂ) :
 theorem zetaWeilForm_eq_centeredCompletedRiemannZeta_neg (s : ℂ) :
     zetaWeilForm (-s) = centeredCompletedRiemannZeta s := by
   exact zetaWeilForm_eq_centeredCompletedRiemannZeta_neg_centered s
-
-/-- The centered pole correction symmetry rewritten in the public owner file. -/
-theorem zetaWeilCorrection_centered_reflection (s : ℂ) :
-    zetaWeilCorrection (-s) = zetaWeilCorrection s := by
-  exact zetaWeilCorrection_neg s
 
 /-- The centered shift used in the RH transport theorem. -/
 theorem boundaryRiemannHypothesis_shift_eq (z : ℂ) :

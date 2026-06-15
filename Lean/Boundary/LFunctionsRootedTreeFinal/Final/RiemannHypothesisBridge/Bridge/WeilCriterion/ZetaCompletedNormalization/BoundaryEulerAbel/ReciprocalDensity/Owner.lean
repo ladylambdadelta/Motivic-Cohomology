@@ -671,19 +671,28 @@ theorem real_one_div_mul_two_add_eq_half_sub
     calc
       (1 : ℝ) / x - (1 : ℝ) / (2 + x)
           = x⁻¹ - (2 + x)⁻¹ := by
-              rw [one_div, one_div]
+              rfl
       _ = ((2 + x) - x) / (x * (2 + x)) :=
               inv_sub_inv hx hx_two
       _ = 2 / (x * (2 + x)) := by
-              exact congrArg
-                (fun y : ℝ => y / (x * (2 + x)))
-                hdiff
+          exact congrArg
+            (fun y : ℝ => y / (x * (2 + x)))
+            hdiff
   calc
     (1 : ℝ) / (x * (2 + x))
         = ((1 / 2 : ℝ) * 2) / (x * (2 + x)) := by
-            rw [one_div_mul_cancel two_ne_zero, one_div]
+            have hhalf : (1 / 2 : ℝ) * 2 = 1 := by
+              ring
+            exact congrArg (fun y : ℝ => y / (x * (2 + x))) hhalf.symm
     _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
-            rw [mul_div_assoc]
+            have hnonzero : (x * (2 + x) : ℝ) ≠ 0 := by
+              exact mul_ne_zero hx hx_two
+            calc
+              ((1 / 2 : ℝ) * 2) / (x * (2 + x))
+                  = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
+                      field_simp [hnonzero]
+              _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
+                  rfl
     _ = (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
             exact congrArg (fun y : ℝ => (1 / 2 : ℝ) * y) hinv.symm
 
@@ -2226,7 +2235,6 @@ theorem finite_sum_Ioc_eq_sub_left
   classical
   have hdisjoint :
       Disjoint (Finset.Ioc C N) (Finset.Ioc N M) := by
-    rw [Finset.disjoint_left]
     intro n hn_left hn_right
     have hn_le_N : n ≤ N :=
       (Finset.mem_Ioc.mp hn_left).2
@@ -2284,15 +2292,21 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
   have hM_tail :
       ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    simpa only [f, C, hC_floor, hM_floor] using
-      (boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-        t ht (le_trans hCN hNM))
+    change
+      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
+    exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+      t ht (le_trans hCN hNM)
   have hN_tail :
       ‖∑ n ∈ Finset.Ioc C N, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    simpa only [f, C, hC_floor, hN_floor] using
-      (boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-        t ht hCN)
+    change
+      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ N,
+          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
+    exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+      t ht hCN
   have htriangle :
       ‖(∑ n ∈ Finset.Ioc C M, f n) -
           ∑ n ∈ Finset.Ioc C N, f n‖ ≤
@@ -2372,7 +2386,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
         Finset.Ioc_union_Ioc_eq_Ioc hN_le_C hC_le_M
       have hdisjoint :
           Disjoint (Finset.Ioc N C) (Finset.Ioc C M) := by
-        rw [Finset.disjoint_left]
         intro n hn_left hn_right
         have hn_le_C : n ≤ C :=
           (Finset.mem_Ioc.mp hn_left).2
@@ -2402,9 +2415,12 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
       have hcut :
           ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-        simpa only [f, C, hC_floor, hM_floor] using
-          (boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-            t ht hC_le_M)
+        change
+          ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
+              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+            boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
+        exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+          t ht hC_le_M
       have hcut_log :
           boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
             36 * Real.log (2 + ‖t‖) :=
