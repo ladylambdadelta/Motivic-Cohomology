@@ -1075,8 +1075,7 @@ theorem entireFunctionJensenQuotientBoundaryZeroParameters_finite_of_injectiveOn
   have hIocFinite :
       {θ : ℝ | θ ∈ Set.Ioc 0 (2 * Real.pi) ∧
         G ((R : ℂ) * Complex.exp (θ * Complex.I)) = 0}.Finite := by
-    simpa [f, Set.preimage, entireFunctionJensenBoundaryCircle_norm hR]
-      using hpre
+    exact hpre
   have hsubset :
       entireFunctionJensenQuotientBoundaryZeroParameters G R ⊆
         insert (0 : ℝ)
@@ -1276,8 +1275,8 @@ theorem entireFunctionJensenBoundaryLogAverage_le_logMaxOnCircle
       (∫ _θ in (0 : ℝ)..(2 * Real.pi),
           entireFunctionLogMaxOnCircle F R) =
         (2 * Real.pi) * entireFunctionLogMaxOnCircle F R := by
-    simp [intervalIntegral.integral_const, sub_zero, Algebra.id.smul_eq_mul,
-      mul_comm, mul_left_comm, mul_assoc]
+    exact intervalIntegral.integral_const (a := (0 : ℝ)) (b := 2 * Real.pi)
+      (f := fun _ : ℝ => entireFunctionLogMaxOnCircle F R)
   have hscale_nonneg : 0 ≤ (2 * Real.pi)⁻¹ :=
     inv_nonneg.mpr htwo_pi_nonneg
   have hscaled :
@@ -1321,14 +1320,13 @@ theorem entireFunction_jensenBoundaryLogSet_bddAbove
   have hcont_norm : Continuous fun z : ℂ => ‖F z‖ :=
     continuous_norm.comp hcontF
   have hcompact : IsCompact (Metric.closedBall (0 : ℂ) (2 * R)) := by
-    simpa [Metric.closedBall, dist_eq_norm] using
-      (isCompact_closedBall (0 : ℂ) (2 * R))
+    exact isCompact_closedBall (0 : ℂ) (2 * R)
   obtain ⟨M, hM⟩ := hcompact.bddAbove_image hcont_norm.continuousOn
   refine ⟨M, ?_⟩
   intro x hx
   rcases hx with ⟨z, hz, rfl⟩
   have hzball : z ∈ Metric.closedBall (0 : ℂ) (2 * R) := by
-    simpa [Metric.mem_closedBall, dist_eq_norm] using le_of_eq hz
+    exact Metric.mem_closedBall.2 (by exact le_of_eq hz)
   have hnorm_le : ‖F z‖ ≤ M := by
     exact hM ⟨z, hzball, rfl⟩
   exact le_trans (Real.log_le_self (norm_nonneg (F z))) hnorm_le
@@ -1361,9 +1359,9 @@ theorem entireFunction_jensenCircleZeros_discreteTopology
       have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) := fun z _ => hF z
       have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
         hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
-          isPreconnected_univ (by simp) hzero
+          isPreconnected_univ (by exact mem_univ _) hzero
       rcases hnontrivial with ⟨z0, hz0⟩
-      exact hz0 (hEq (by simp))
+      exact hz0 (hEq (by exact mem_univ _))
     · exact hne
   have hScompl :
       ({z : ℂ | ‖z‖ = 2 * R ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
@@ -1390,9 +1388,9 @@ theorem entireFunction_circleZeros_discreteTopology
       have hU : AnalyticOnNhd ℂ F (Set.univ : Set ℂ) := fun z _ => hF z
       have hEq : EqOn F 0 (Set.univ : Set ℂ) :=
         hU.eqOn_zero_of_preconnected_of_eventuallyEq_zero
-          isPreconnected_univ (by simp) hzero
+          isPreconnected_univ (by exact mem_univ _) hzero
       rcases hnontrivial with ⟨z0, hz0⟩
-      exact hz0 (hEq (by simp))
+      exact hz0 (hEq (by exact mem_univ _))
     · exact hne
   have hScompl :
       ({z : ℂ | ‖z‖ = r ∧ F z = 0}ᶜ) ∈ 𝓝[≠] x := by
@@ -1427,7 +1425,7 @@ theorem entireFunction_circleZeros_finite
       {z : ℂ | ‖z‖ = r ∧ F z = 0} ⊆ Metric.closedBall (0 : ℂ) r := by
     intro z hz
     have hnorm_le : ‖(z : ℂ)‖ ≤ r := hz.1.le
-    simpa [Metric.mem_closedBall, dist_eq_norm] using hnorm_le
+    exact Metric.mem_closedBall.2 hnorm_le
   have hcomp : IsCompact {z : ℂ | ‖z‖ = r ∧ F z = 0} :=
     (isCompact_closedBall (0 : ℂ) r).of_isClosed_subset hclosed hsubset
   exact entireFunction_zeroSet_finite_on_compact_of_discrete
@@ -1489,15 +1487,13 @@ theorem jensenBoundaryLogSample_analyticAt
     AnalyticAt ℝ
       (fun θ : ℝ => F ((2 * R : ℂ) * Complex.exp (θ * Complex.I))) θ₀ := by
   have hθI : AnalyticAt ℝ (fun θ : ℝ => θ * Complex.I) θ₀ := by
-    simpa [mul_comm, mul_left_comm, mul_assoc] using
-      (analyticAt_id.mul (analyticAt_const (v := (Complex.I : ℂ)) (x := θ₀)))
+    exact analyticAt_id.mul (analyticAt_const (v := (Complex.I : ℂ)) (x := θ₀))
   have hexp : AnalyticAt ℝ (fun θ : ℝ => Complex.exp (θ * Complex.I)) θ₀ := by
     have houter : AnalyticAt ℝ (fun z : ℂ => Complex.exp z) ((θ₀ : ℝ) * Complex.I) :=
       (Complex.analyticAt_cexp (z := (θ₀ : ℝ) * Complex.I)).restrictScalars
     exact houter.comp hθI
   have hsample : AnalyticAt ℝ (fun θ : ℝ => (2 * R : ℂ) * Complex.exp (θ * Complex.I)) θ₀ := by
-    simpa [mul_comm, mul_left_comm, mul_assoc] using
-      (analyticAt_const.mul hexp)
+    exact analyticAt_const.mul hexp
   have hFreal : AnalyticAt ℝ F ((2 * R : ℂ) * Complex.exp (θ₀ * Complex.I)) :=
     (hF _).restrictScalars
   exact hFreal.comp hsample
@@ -1558,11 +1554,21 @@ theorem jensenBoundaryLogSample_localLogContribution
         Real.log ‖(θ - θ₀) ^ n • u θ‖ := by
       exact congrArg Real.log (congrArg norm hθ)
     _ = Real.log (‖θ - θ₀‖ ^ n * ‖u θ‖) := by
-      rw [norm_smul, norm_pow]
+      calc
+        ‖(θ - θ₀) ^ n • u θ‖ = ‖(θ - θ₀) ^ n‖ * ‖u θ‖ := by
+          exact norm_smul _ _
+        _ = ‖θ - θ₀‖ ^ n * ‖u θ‖ := by
+          exact congrArg (fun t : ℝ => t * ‖u θ‖) (norm_pow _ _)
     _ = Real.log (‖θ - θ₀‖ ^ n) + Real.log ‖u θ‖ := by
       exact Real.log_mul hpow_ne huθ_ne'
     _ = (n : ℝ) * Real.log |θ - θ₀| + Real.log ‖u θ‖ := by
-      simp [Real.log_pow, norm_eq_abs]
+      have hnormabs : ‖θ - θ₀‖ = |θ - θ₀| := by
+        exact norm_eq_abs _
+      calc
+        Real.log (‖θ - θ₀‖ ^ n) = (n : ℝ) * Real.log ‖θ - θ₀‖ := by
+          exact Real.log_pow _ _
+        _ = (n : ℝ) * Real.log |θ - θ₀| := by
+          exact congrArg (fun t : ℝ => (n : ℝ) * Real.log t) hnormabs
 
 /-- An analytic real-parameter unit has locally interval-integrable log norm.
 
@@ -1658,11 +1664,21 @@ theorem jensenBoundaryLogSample_localLogContribution_remainder_intervalIntegrabl
           Real.log ‖(θ - θ₀) ^ n • u θ‖ := by
         exact congrArg Real.log (congrArg norm hθ)
       _ = Real.log (‖θ - θ₀‖ ^ n * ‖u θ‖) := by
-        rw [norm_smul, norm_pow]
+        calc
+          ‖(θ - θ₀) ^ n • u θ‖ = ‖(θ - θ₀) ^ n‖ * ‖u θ‖ := by
+            exact norm_smul _ _
+          _ = ‖θ - θ₀‖ ^ n * ‖u θ‖ := by
+            exact congrArg (fun t : ℝ => t * ‖u θ‖) (norm_pow _ _)
       _ = Real.log (‖θ - θ₀‖ ^ n) + Real.log ‖u θ‖ := by
         exact Real.log_mul hpow_ne huθ_ne'
       _ = (n : ℝ) * Real.log |θ - θ₀| + g θ := by
-        simp [g, Real.log_pow, norm_eq_abs]
+        have hnormabs : ‖θ - θ₀‖ = |θ - θ₀| := by
+          exact norm_eq_abs _
+        calc
+          Real.log (‖θ - θ₀‖ ^ n) = (n : ℝ) * Real.log ‖θ - θ₀‖ := by
+            exact Real.log_pow _ _
+          _ = (n : ℝ) * Real.log |θ - θ₀| := by
+            exact congrArg (fun t : ℝ => (n : ℝ) * Real.log t) hnormabs
   exact ⟨n, g, hg, hmodel⟩
 
 /-- The sampled Jensen boundary function is not eventually zero near a singular
@@ -1804,18 +1820,18 @@ theorem entireFunction_jensenBoundaryCircleParam_injectiveOn_Ioc
     exact mul_ne_zero h2 hR'
   have hExp : Complex.exp (θ1 * Complex.I) = Complex.exp (θ2 * Complex.I) := by
     apply mul_left_cancel₀ hRne
-    simpa [mul_assoc] using hEq
+    exact hEq
   rcases (Complex.exp_eq_exp_iff_exists_int.mp hExp) with ⟨n, hn⟩
   have hnC :
       (θ1 : ℂ) * Complex.I =
         ((θ2 + n * (2 * Real.pi)) : ℂ) * Complex.I := by
-    simpa [mul_add, add_mul, mul_assoc, add_comm, add_left_comm, add_assoc] using hn
+    exact hn
   have hθC : (θ1 : ℂ) = ((θ2 + n * (2 * Real.pi)) : ℂ) := by
     apply mul_right_cancel₀ Complex.I_ne_zero
     exact hnC
   have hθ : θ1 = θ2 + n * (2 * Real.pi) := by
     have hθ' := congrArg Complex.re hθC
-    simpa using hθ'
+    exact hθ'
   have hlt : (n : ℝ) < 1 := by
     nlinarith [hθ, hθ1.2, hθ2.1, Real.two_pi_pos]
   have hgt : -1 < (n : ℝ) := by
@@ -1893,7 +1909,7 @@ theorem entireFunction_jensenBoundaryCircleZeroParameters_finite
     hCircle.preimage fun _ _ _ _ hEq => hInj hEq
   have h2R_nonneg : 0 ≤ 2 * R := by
     nlinarith [le_of_lt hR]
-  simpa [f, Set.preimage, entireFunctionJensenBoundaryCircle_norm h2R_nonneg] using hpre
+  exact hpre
 
 /-- Away from the singular parameters, the Jensen boundary logarithmic
 integrand is continuous on the fundamental arc. -/
@@ -1943,7 +1959,7 @@ theorem intervalIntegrable_jensenBoundaryLogIntegrand_of_finite_log_singularitie
       {θ : ℝ | θ ∈ Set.Ioc 0 (2 * Real.pi) ∧
         F ((2 * R : ℂ) * Complex.exp (θ * Complex.I)) = 0}
     have hT : T.Finite := by
-      simpa [T] using
+      exact
         entireFunction_jensenBoundaryCircleZeroParameters_finite F hF hnontrivial R hR
     have hsubset : S ⊆ insert (0 : ℝ) T := by
       intro θ hθ

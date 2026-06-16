@@ -27,7 +27,9 @@ theorem Complex.fixedRealPartVerticalPoint_re
         ((a : ℂ) + (b : ℂ) * Complex.I).re := rfl
     _ = (a : ℂ).re + ((b : ℂ) * Complex.I).re :=
         Complex.add_re (a : ℂ) ((b : ℂ) * Complex.I)
-    _ = a + 0 := by simp [Complex.mul_I_re]
+    _ = a + 0 := by
+      congr 1
+      exact Complex.mul_I_re (b : ℂ)
     _ = a := add_zero a
 
 /-- The fixed-line point has imaginary coordinate `b`. -/
@@ -39,7 +41,9 @@ theorem Complex.fixedRealPartVerticalPoint_im
         ((a : ℂ) + (b : ℂ) * Complex.I).im := rfl
     _ = (a : ℂ).im + ((b : ℂ) * Complex.I).im :=
         Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
-    _ = 0 + b := by simp [Complex.mul_I_im]
+    _ = 0 + b := by
+      congr 1
+      exact Complex.mul_I_im (b : ℂ)
     _ = b := zero_add b
 
 /-- The direct fixed-real-part vertical Stirling envelope. -/

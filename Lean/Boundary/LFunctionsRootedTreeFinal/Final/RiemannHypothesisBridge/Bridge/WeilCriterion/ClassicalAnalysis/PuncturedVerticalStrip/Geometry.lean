@@ -132,13 +132,9 @@ theorem puncturedVerticalStrip_zero_lt_leftCorridor_re :
 /-- The left safe corridor lies left of the deleted vertical line. -/
 theorem puncturedVerticalStrip_leftCorridor_re_lt_one :
     (1 / 2 : ℝ) < 1 := by
-  exact
-    (div_lt_iff₀ zero_lt_two).mpr
-      (calc
-        (1 : ℝ) < 1 * 2 := by
-          exact one_lt_two
-        _ = 2 := by
-          norm_num
+  have h : (1 : ℝ) < 1 * 2 := by
+    norm_num
+  exact (div_lt_iff₀ zero_lt_two).mpr h
 
 /-- The left safe corridor lies inside the right strip boundary. -/
 theorem puncturedVerticalStrip_leftCorridor_re_lt_two :
@@ -235,7 +231,8 @@ theorem complex_segment_re_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re := by
-  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
+  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+    ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_re z w t
 
@@ -246,7 +243,8 @@ theorem complex_segment_im_eq
     ∃ t : ℝ,
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
+  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+    ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_⟩
   exact complex_lineMap_im z w t
 
@@ -258,7 +256,8 @@ theorem complex_segment_coordinates
       t ∈ Set.Icc (0 : ℝ) 1 ∧
         p.re = (1 - t) * z.re + t * w.re ∧
         p.im = (1 - t) * z.im + t * w.im := by
-  rcases (segment_eq_image ℝ z w).mp hp with ⟨t, ht, rfl⟩
+  rcases (by simpa [segment_eq_image] using hp : p ∈ (fun θ : ℝ => (1 - θ) • z + θ • w) '' Set.Icc (0 : ℝ) 1) with
+    ⟨t, ht, rfl⟩
   refine ⟨t, ht, ?_, ?_⟩
   · exact complex_lineMap_re z w t
   · exact complex_lineMap_im z w t

@@ -1278,7 +1278,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_ne_zero_of_half_le_norm
     calc
       (((a : ℂ) + (b : ℂ) * Complex.I).im) =
           (a : ℂ).im + ((b : ℂ) * Complex.I).im := Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
-      _ = 0 + b := by simp [Complex.mul_I_im]
+      _ = 0 + b := by
+        congr 1
+        exact Complex.mul_I_im (b : ℂ)
       _ = b := zero_add b
   have hright_im : (-(n : ℂ)).im = 0 := by
     calc
@@ -1351,9 +1353,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
     calc
       (c * Real.exp (-x) * H ^ (a - 1 / 2))⁻¹ =
           (c * Real.exp (-x))⁻¹ * (H ^ (a - 1 / 2))⁻¹ := by
-            rw [mul_inv_rev]
+            exact (mul_inv_rev c (Real.exp (-x)) (H ^ (a - 1 / 2))).symm
       _ = (c⁻¹ * (Real.exp (-x))⁻¹) * (H ^ (a - 1 / 2))⁻¹ := by
-            rw [mul_inv_rev]
+            exact congrArg (fun y : ℝ => y * (H ^ (a - 1 / 2))⁻¹)
+              (mul_inv_rev c (Real.exp (-x)) 1)
       _ = (c⁻¹ * Real.exp x) * (H ^ (a - 1 / 2))⁻¹ := by
             exact congrArg
               (fun y : ℝ => (c⁻¹ * y) * (H ^ (a - 1 / 2))⁻¹)

@@ -421,15 +421,6 @@ theorem Complex.exp_tail_denominator_norm_eq
     _ = Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
       Real.binetSecondFormula_exp_denominator_norm_eq ht_pos
 
-/-- A positive real part rules out the zero complex number. -/
-theorem Complex.ne_zero_of_re_pos
-    {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
-    w ≠ 0 := by
-  intro hw_zero
-  cases hw_zero
-  exact (lt_irrefl (0 : ℝ)) hw_re_pos
-
 /-- A positive real part gives a positive norm. -/
 theorem Complex.norm_pos_of_re_pos
     {w : ℂ}

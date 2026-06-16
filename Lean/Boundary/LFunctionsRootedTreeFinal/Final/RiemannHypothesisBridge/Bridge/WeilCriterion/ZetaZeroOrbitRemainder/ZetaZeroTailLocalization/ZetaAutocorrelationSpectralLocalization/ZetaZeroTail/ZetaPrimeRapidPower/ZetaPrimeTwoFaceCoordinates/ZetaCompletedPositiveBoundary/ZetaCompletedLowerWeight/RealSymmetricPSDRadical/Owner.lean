@@ -75,7 +75,7 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
       unfold r
       field_simp [hc]
       ring
-    rw [hexpand, hr] at hpos
+    exact hr ▸ hpos
     linarith
 
 /-- In a real symmetric positive-semidefinite bilinear pairing, a vector with zero

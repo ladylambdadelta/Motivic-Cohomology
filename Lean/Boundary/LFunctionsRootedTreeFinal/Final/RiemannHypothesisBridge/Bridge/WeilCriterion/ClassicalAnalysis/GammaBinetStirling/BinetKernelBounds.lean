@@ -1,5 +1,8 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.ArctanBounds
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetMajorant
+import Mathlib.Analysis.Complex.Convex
+import Mathlib.MeasureTheory.Integral.IntegrableOn
+import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
 
 /-!
 # Pointwise bounds for the Binet arctangent kernel
@@ -14,6 +17,50 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
+
+/-- The complex arctangent is measurable by its logarithmic definition. -/
+theorem Complex.measurable_arctan : Measurable Complex.arctan := by
+  unfold Complex.arctan
+  exact
+    measurable_const.mul
+      ((measurable_const.add (measurable_id.mul measurable_const)).div
+        (measurable_const.sub (measurable_id.mul measurable_const))).clog
+
+/-- Composition form of complex arctangent measurability. -/
+theorem Measurable.complex_arctan
+    {α : Type*}
+    [MeasurableSpace α]
+    {f : α → ℂ}
+    (hf : Measurable f) :
+    Measurable fun x : α => Complex.arctan (f x) :=
+  Complex.measurable_arctan.comp hf
+
+/-- The Binet exponential denominator is measurable on the real line. -/
+theorem Complex.binetSecondFormula_exp_denominator_measurable :
+    Measurable fun t : ℝ =>
+      Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1 := by
+  have hlinear : Continuous fun t : ℝ => (2 : ℝ) * Real.pi * t :=
+    continuous_const.mul continuous_id
+  have hcomplex : Continuous fun t : ℝ =>
+      (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) :=
+    Complex.continuous_ofReal.comp hlinear
+  have hexp : Continuous fun t : ℝ =>
+      Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) :=
+    Complex.continuous_exp.comp hcomplex
+  exact hexp.measurable.sub measurable_const
+
+/-- The Binet arctangent kernel is measurable on the real line. -/
+theorem Complex.binetSecondFormula_arctanKernel_measurable
+    (w : ℂ) :
+    Measurable fun t : ℝ =>
+      Complex.arctan ((t : ℂ) / w) /
+        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+  have harg : Measurable fun t : ℝ => ((t : ℂ) / w) :=
+    Complex.measurable_ofReal.div measurable_const
+  have harctan : Measurable fun t : ℝ => Complex.arctan ((t : ℂ) / w) :=
+    Complex.measurable_arctan.comp harg
+  exact harctan.div Complex.binetSecondFormula_exp_denominator_measurable
 
 /-- The scalar factor in the lower Binet kernel majorant can be reassociated. -/
 theorem Real.binetSecondFormula_two_mul_div_norm_div_exp_sub_one_reassociate
@@ -25,14 +72,14 @@ theorem Real.binetSecondFormula_two_mul_div_norm_div_exp_sub_one_reassociate
     (2 * (t / r)) / D = (2 * (t * r⁻¹)) * D⁻¹ := by
       exact congrArg (fun x : ℝ => (2 * x) * D⁻¹) (div_eq_mul_inv t r)
     _ = 2 * t * r⁻¹ * D⁻¹ := by
-      exact congrArg (fun x : ℝ => x * D⁻¹) (mul_assoc 2 t r⁻¹)
+      exact congrArg (fun x : ℝ => x * D⁻¹) (mul_assoc 2 t r⁻¹).symm
     _ = 2 * r⁻¹ * (t * D⁻¹) := by
       calc
         2 * t * r⁻¹ * D⁻¹ = (2 * t) * r⁻¹ * D⁻¹ := rfl
         _ = 2 * t * (r⁻¹ * D⁻¹) := by
           exact mul_assoc (2 * t) r⁻¹ D⁻¹
         _ = 2 * (t * (r⁻¹ * D⁻¹)) := by
-          exact (mul_assoc 2 t (r⁻¹ * D⁻¹)).symm
+          exact mul_assoc 2 t (r⁻¹ * D⁻¹)
         _ = 2 * ((t * r⁻¹) * D⁻¹) := by
           exact congrArg (fun x : ℝ => 2 * x) (mul_assoc t r⁻¹ D⁻¹).symm
         _ = 2 * ((r⁻¹ * t) * D⁻¹) := by
@@ -40,7 +87,7 @@ theorem Real.binetSecondFormula_two_mul_div_norm_div_exp_sub_one_reassociate
         _ = 2 * (r⁻¹ * (t * D⁻¹)) := by
           exact congrArg (fun x : ℝ => 2 * x) (mul_assoc r⁻¹ t D⁻¹)
         _ = 2 * r⁻¹ * (t * D⁻¹) := by
-          exact mul_assoc 2 r⁻¹ (t * D⁻¹)
+          exact (mul_assoc 2 r⁻¹ (t * D⁻¹)).symm
     _ = (2 / r) * (t / D) := by
       exact congrArg₂ (fun a b : ℝ => a * b)
         (div_eq_mul_inv 2 r).symm
@@ -73,12 +120,12 @@ theorem Complex.binetSecondFormula_exp_denominator_norm_eq
         calc
           Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1 =
               ((Real.exp ((2 : ℝ) * Real.pi * t) : ℝ) : ℂ) - 1 := by
-            exact congrArg (fun z : ℂ => z - 1) (Complex.ofReal_exp _)
+            exact congrArg (fun z : ℂ => z - 1) (Complex.ofReal_exp _).symm
           _ = ((Real.exp ((2 : ℝ) * Real.pi * t) - 1 : ℝ) : ℂ) := by
-            rfl
+            exact (Complex.ofReal_sub (Real.exp ((2 : ℝ) * Real.pi * t)) 1).symm
       exact congrArg norm hcoe
     _ = ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
-      exact Complex.norm_ofReal _
+      exact RCLike.norm_ofReal _
 
 /-- Norm of the Binet arctangent argument. -/
 theorem Complex.norm_real_div_eq_real_norm_div
@@ -89,7 +136,7 @@ theorem Complex.norm_real_div_eq_real_norm_div
     ‖(t : ℂ) / w‖ = ‖(t : ℂ)‖ / ‖w‖ := by
       exact norm_div _ _
     _ = ‖t‖ / ‖w‖ := by
-      exact Complex.norm_ofReal _
+      exact congrArg (fun x : ℝ => x / ‖w‖) (RCLike.norm_ofReal t)
 
 /-- On the lower split interval `0 < t ≤ ‖w‖ / 2`, the Binet arctangent
 argument lies in the half disk. -/
@@ -114,8 +161,22 @@ theorem Complex.binetSecondFormula_small_interval_argument_norm_le_half
         Complex.norm_real_div_eq_real_norm_div t w
       _ = t / ‖w‖ := by
         exact congrArg (fun x : ℝ => x / ‖w‖) ht_norm
+  have hhalf_mul_norm :
+      ‖w‖ / 2 = (1 / 2 : ℝ) * ‖w‖ := by
+    calc
+      ‖w‖ / 2 = ‖w‖ * (2 : ℝ)⁻¹ :=
+        div_eq_mul_inv ‖w‖ 2
+      _ = (2 : ℝ)⁻¹ * ‖w‖ :=
+        mul_comm ‖w‖ (2 : ℝ)⁻¹
+      _ = (1 / 2 : ℝ) * ‖w‖ := by
+        exact congrArg (fun x : ℝ => x * ‖w‖) (Eq.symm (one_div 2))
+  have ht_half_mul : t ≤ (1 / 2 : ℝ) * ‖w‖ :=
+    Eq.subst
+      (motive := fun x : ℝ => t ≤ x)
+      hhalf_mul_norm
+      ht.2
   have hdiv_le : t / ‖w‖ ≤ (1 / 2 : ℝ) := by
-    exact (div_le_iff₀ hw_norm_pos).mpr ht.2
+    exact (div_le_iff₀ hw_norm_pos).mpr ht_half_mul
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ (1 / 2 : ℝ))
@@ -305,13 +366,11 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_small_interval_owne
   have hcM_integrable :
       Integrable (fun t : ℝ => c * M t)
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set Ioc_subset_Ioi_self).const_mul c
+    (hM_integrable_Ioi.mono_set (fun t ht => ht.1)).const_mul c
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
-    exact hmeas.aestronglyMeasurable
+    exact (Complex.binetSecondFormula_arctanKernel_measurable w).aestronglyMeasurable
   have hpointwise :
       ∀ᵐ t ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
         ‖K t‖ ≤ c * M t :=
@@ -374,7 +433,7 @@ theorem Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant_owner
       div_le_div_of_nonneg_right harctan hden_nonneg
     _ =
         C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-      exact (mul_div_assoc C t (Real.exp ((2 : ℝ) * Real.pi * t) - 1)).symm
+      exact mul_div_assoc C t (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
 
 /-- Owner-form integrability of the Binet arctangent kernel on the upper split
 interval. -/
@@ -402,13 +461,12 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval_owner
   have hcM_integrable :
       Integrable (fun t : ℝ => c * M t)
         (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
+    (hM_integrable_Ioi.mono_set
+      (fun t ht => lt_of_le_of_lt hcut_nonneg ht)).const_mul c
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioi (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
-    exact hmeas.aestronglyMeasurable
+    exact (Complex.binetSecondFormula_arctanKernel_measurable w).aestronglyMeasurable
   have hpointwise :
       ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
         ‖K t‖ ≤ c * M t :=

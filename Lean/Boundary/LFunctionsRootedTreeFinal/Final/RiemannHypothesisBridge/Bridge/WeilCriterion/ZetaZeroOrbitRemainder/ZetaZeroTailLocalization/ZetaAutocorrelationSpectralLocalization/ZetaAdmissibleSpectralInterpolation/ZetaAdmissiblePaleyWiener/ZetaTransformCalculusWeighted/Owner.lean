@@ -138,7 +138,7 @@ theorem weightedLaplaceKernel_bound_pointwise_on_support_of_nmem_bump
         = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
             exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
     _ = 0 := by
-          simp
+          exact norm_zero
     _ ≤ max C 0 + 1 := by
           have hnonneg : (0 : ℝ) ≤ max C 0 + 1 := by
             linarith [le_max_right C 0]
@@ -193,8 +193,8 @@ theorem hasDerivAt_laplaceKernel_const_mul_exp_core
       (Complex.exp (z * t) * (t : ℂ)) z := hasDerivAt_laplaceKernel_exp t z
   have hprod : HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t))
       (0 * (Complex.exp (z * t) * (t : ℂ)) + φ t * (Complex.exp (z * t) * (t : ℂ))) z := by
-    simpa [mul_assoc, mul_left_comm, mul_comm] using hconst.mul hexp
-  simpa [mul_assoc, mul_left_comm, mul_comm] using hprod
+    exact hconst.mul hexp
+  exact hprod
 
 /-- The weighted Laplace kernel has the expected pointwise derivative in the spectral variable. -/
 theorem hasDerivAt_weightedLaplaceKernel
@@ -234,16 +234,16 @@ theorem weightedLaplaceKernel_bound_on_support_indicator
   refine hdom.mono ?_
   intro t ht w hw
   by_cases hts : t ∈ tsupport φ.toZetaTestFunction'
-  · rw [Set.indicator_of_mem hts]
+  · dsimp [Set.indicator]
     exact ht w hw
   · have hzero : φ.toZetaTestFunction' t = 0 := image_eq_zero_of_nmem_tsupport hts
-    rw [Set.indicator_of_not_mem hts]
+    dsimp [Set.indicator]
     calc
       ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
           = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
               exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
       _ = 0 := by
-            simp
+            exact norm_zero
       _ ≤ 0 := by
             exact le_rfl
 

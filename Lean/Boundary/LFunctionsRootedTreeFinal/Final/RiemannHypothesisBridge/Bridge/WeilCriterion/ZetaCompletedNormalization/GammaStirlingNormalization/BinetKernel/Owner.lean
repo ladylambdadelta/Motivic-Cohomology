@@ -104,7 +104,7 @@ theorem one_le_norm_of_one_le_re
   have hre_nonneg : 0 ≤ z.re :=
     le_trans zero_le_one hz_re
   have hre_abs_le_norm : |z.re| ≤ ‖z‖ := by
-    simpa [Complex.normSq, norm_eq_abs] using Complex.abs_re_le_abs z
+    exact Complex.abs_re_le_abs z
   have hre_abs_eq : |z.re| = z.re :=
     abs_of_nonneg hre_nonneg
   exact le_trans hz_re
@@ -126,7 +126,7 @@ theorem one_le_norm_of_one_le_norm_im
     (hz_im : 1 ≤ ‖z.im‖) :
     1 ≤ ‖z‖ := by
   have him_abs_le_norm : |z.im| ≤ ‖z‖ := by
-    simpa [Complex.normSq, norm_eq_abs] using Complex.abs_im_le_abs z
+    exact Complex.abs_im_le_abs z
   have him_norm_eq : ‖z.im‖ = |z.im| := Real.norm_eq_abs z.im
   exact le_trans
     (Eq.subst (motive := fun x : ℝ => 1 ≤ x) him_norm_eq hz_im)
@@ -242,7 +242,8 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
   intro hzero
   rcases (Complex.Gamma_eq_zero_iff (z / 2)).mp hzero with ⟨n, hn⟩
   have hhalf_re_eq : (z / 2).re = (-(n : ℂ)).re := congrArg Complex.re hn
-  have hn_re : (-(n : ℂ)).re = -(n : ℝ) := by simp
+  have hn_re : (-(n : ℂ)).re = -(n : ℝ) := by
+    norm_num
   have hz_half_re_nonpos : (z / 2).re ≤ 0 := by
     calc
       (z / 2).re = (-(n : ℂ)).re := hhalf_re_eq
@@ -253,11 +254,11 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
   cases n with
   | zero =>
       have hhalf_zero : z / 2 = 0 := by
-        simpa using hn
+        exact hn
       exact hz_half_ne hhalf_zero
   | succ n =>
       have hneg_succ_lt_zero : (-(Nat.succ n : ℂ)).re < 0 := by
-        simp
+        norm_num
       have hcontr : (z / 2).re < 0 := by
         calc
           (z / 2).re = (-(Nat.succ n : ℂ)).re := hhalf_re_eq
@@ -473,9 +474,9 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
   have hexp_int :
       IntegrableOn (fun t : ℝ => 2 * Real.exp (-Real.pi * t)) (Set.Ioi a) := by
     have hpos : 0 < Real.pi := Real.pi_pos
-    have htail : IntegrableOn (fun t : ℝ => Real.exp (-Real.pi * t)) (Set.Ioi a) :=
+  have htail : IntegrableOn (fun t : ℝ => Real.exp (-Real.pi * t)) (Set.Ioi a) :=
       exp_neg_integrableOn_Ioi a hpos
-    simpa [mul_comm, mul_left_comm, mul_assoc] using htail.const_mul (2 : ℝ)
+    exact htail.const_mul (2 : ℝ)
   have hmono :
       ∫ t : ℝ in Set.Ioi a,
         t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
@@ -511,8 +512,15 @@ theorem Complex.norm_div_eq_div_norm
     {z w : ℂ}
     (hw : w ≠ 0) :
     ‖z / w‖ = ‖z‖ / ‖w‖ := by
-  rw [div_eq_mul_inv, norm_mul, norm_inv, div_eq_mul_inv]
-  exact mul_inv_eq_div _ _
+  calc
+    ‖z / w‖ = ‖z * w⁻¹‖ := by
+      rfl
+    _ = ‖z‖ * ‖w⁻¹‖ := norm_mul _ _
+    _ = ‖z‖ * ‖w‖⁻¹ := by
+      congr 1
+      exact norm_inv _ _
+    _ = ‖z‖ / ‖w‖ := by
+      exact (mul_inv_eq_div _ _).symm
 
 /-- `Complex.arctan` is a scalar multiple of the logarithmic quotient it is
 defined from. This isolates the remaining analytic content into a single
@@ -523,34 +531,55 @@ theorem Complex.norm_arctan_eq_half_norm_log_quotient
     ‖Complex.arctan z‖ =
       ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
   unfold Complex.arctan
-  rw [norm_mul, Complex.norm_div_eq_div_norm]
-  · simp [mul_comm, mul_left_comm, mul_assoc]
-  · exact hz
+  calc
+    ‖(1 / 2 : ℂ) * Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ =
+        ‖(1 / 2 : ℂ)‖ * ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+          exact norm_mul _ _
+    _ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
+          norm_num
 
 /-- A crude norm bound for `Complex.log` in terms of its real and imaginary
 parts. -/
 theorem Complex.norm_log_le_abs_re_add_abs_im (z : ℂ) :
     ‖Complex.log z‖ ≤ |(Complex.log z).re| + |(Complex.log z).im| := by
   have hsplit : Complex.log z = ((Complex.log z).re : ℂ) + (Complex.log z).im * Complex.I := by
-    ext <;> simp
-  rw [hsplit]
+    exact (Complex.re_add_im (Complex.log z)).symm
   calc
-    ‖((Complex.log z).re : ℂ) + (Complex.log z).im * Complex.I‖ ≤
+    ‖Complex.log z‖ = ‖((Complex.log z).re : ℂ) + (Complex.log z).im * Complex.I‖ := by
+      exact congrArg (fun w : ℂ => ‖w‖) hsplit
+    _ ≤
         ‖((Complex.log z).re : ℂ)‖ + ‖(Complex.log z).im * Complex.I‖ :=
       norm_add_le _ _
     _ = |(Complex.log z).re| + |(Complex.log z).im| := by
-      simp [norm_mul]
+      calc
+        ‖((Complex.log z).re : ℂ)‖ + ‖(Complex.log z).im * Complex.I‖ =
+            |(Complex.log z).re| + (‖((Complex.log z).im : ℂ)‖ * ‖Complex.I‖) := by
+          congr 1
+          exact Complex.norm_ofReal _
+        _ = |(Complex.log z).re| + |(Complex.log z).im| := by
+          norm_num [Complex.norm_ofReal]
 
 /-- The complex logarithm norm is controlled by its modulus-logarithm and
 argument parts. -/
 theorem Complex.norm_log_le_abs_log_add_abs_arg (z : ℂ) :
     ‖Complex.log z‖ ≤ |Real.log z.abs| + |z.arg| := by
-  rw [Complex.log]
+  have hlog : Complex.log z = z.abs.log + z.arg * Complex.I := Complex.log_eq_log_abs_add_arg z
   calc
-    ‖z.abs.log + z.arg * Complex.I‖ ≤ ‖z.abs.log‖ + ‖z.arg * Complex.I‖ :=
+    ‖Complex.log z‖ = ‖z.abs.log + z.arg * Complex.I‖ := by
+      exact congrArg (fun w : ℂ => ‖w‖) hlog
+    _ ≤ ‖z.abs.log‖ + ‖z.arg * Complex.I‖ :=
       norm_add_le _ _
     _ = |Real.log z.abs| + |z.arg| := by
-      simp [Complex.norm_ofReal, norm_mul]
+      calc
+        ‖z.abs.log‖ + ‖z.arg * Complex.I‖ = |Real.log z.abs| + ‖z.arg * Complex.I‖ := by
+          congr 1
+          exact Complex.norm_ofReal _
+        _ = |Real.log z.abs| + |z.arg| := by
+          have hmul : ‖z.arg * Complex.I‖ = |z.arg| := by
+            calc
+              ‖z.arg * Complex.I‖ = ‖(z.arg : ℂ)‖ * ‖Complex.I‖ := norm_mul _ _
+              _ = |z.arg| := by norm_num [Complex.norm_ofReal]
+          exact congrArg (fun t : ℝ => |Real.log z.abs| + t) hmul
 
 /-- A coarse `π`-bound for the complex logarithm norm. -/
 theorem Complex.norm_log_le_abs_log_add_pi (z : ℂ) :
@@ -568,11 +597,13 @@ theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
     ‖Complex.arctan z‖ ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
   have hlog := Complex.norm_log_le_abs_log_add_pi ((1 + z * Complex.I) / (1 - z * Complex.I))
-  rw [Complex.norm_arctan_eq_half_norm_log_quotient z hz]
+  have hnorm := Complex.norm_arctan_eq_half_norm_log_quotient z hz
   have hhalf : ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
     exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
-  simpa using hhalf
+  calc
+    ‖Complex.arctan z‖ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := hnorm
+    _ ≤ (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := hhalf
 
 /-- The argument of the Binet quotient is always within `[-π, π]`. -/
 theorem Complex.arg_binet_quotient_le_pi
@@ -594,14 +625,19 @@ theorem Complex.log_binet_quotient_re_eq_log_ratio (z : ℂ)
     (h1 : 1 + z * Complex.I ≠ 0) (h2 : 1 - z * Complex.I ≠ 0) :
     (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
       Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ := by
-  rw [Complex.log_re, Complex.norm_div_eq_div_norm h2]
-  rw [Real.log_div (norm_pos_iff.mpr h1) (norm_pos_iff.mpr h2)]
+  calc
+    (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).re =
+        Real.log ‖(1 + z * Complex.I) / (1 - z * Complex.I)‖ := Complex.log_re _
+    _ = Real.log (‖1 + z * Complex.I‖ / ‖1 - z * Complex.I‖) := by
+      exact congrArg Real.log (Complex.norm_div_eq_div_norm h2)
+    _ = Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ := by
+      exact Real.log_div (norm_pos_iff.mpr h1) (norm_pos_iff.mpr h2)
 
 /-- The imaginary part of the Binet quotient logarithm is its argument. -/
 theorem Complex.log_binet_quotient_im_eq_arg_ratio (z : ℂ) :
     (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im =
       arg ((1 + z * Complex.I) / (1 - z * Complex.I)) := by
-  rw [Complex.log_im]
+  exact Complex.log_im _
 
 /-- The Binet quotient logarithm is exactly the pair of its real and imaginary
 coordinate formulas. -/
@@ -611,7 +647,7 @@ theorem Complex.log_binet_quotient_coords (z : ℂ)
       (Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖) +
         arg ((1 + z * Complex.I) / (1 - z * Complex.I)) * Complex.I := by
   apply Complex.ext <;>
-    simp [Complex.log_binet_quotient_re_eq_log_ratio z h1 h2,
+    exacts [Complex.log_binet_quotient_re_eq_log_ratio z h1 h2,
       Complex.log_binet_quotient_im_eq_arg_ratio z]
 
 /-- The Binet quotient logarithm has real and imaginary parts given by the
@@ -636,7 +672,15 @@ theorem Complex.binet_quotient_factors_ne_zero
   · intro h1
     have hsum : (1 + z * Complex.I) + (1 - z * Complex.I) = (2 : ℂ) := by ring
     have hzero : (2 : ℂ) = 0 := by
-      simpa [h1] using hsum
+      exact by
+        have hcancel : (1 + z * Complex.I) + (1 - z * Complex.I) = (0 : ℂ) := by
+          calc
+            (1 + z * Complex.I) + (1 - z * Complex.I) =
+                (0 : ℂ) + (1 - z * Complex.I) := by
+              exact congrArg (fun t : ℂ => t + (1 - z * Complex.I)) h1
+            _ = 0 := by
+              exact zero_add (1 - z * Complex.I)
+        exact Eq.trans hsum hcancel
     norm_num at hzero
   · exact hz
 
@@ -672,14 +716,10 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
   let S : ℂ := Complex.binetSecondFormulaSmallRemainder w
   let T : ℂ := Complex.binetSecondFormulaTailRemainder w
   have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
-    simpa [S, T, Complex.binetSecondFormulaSmallRemainder,
-      Complex.binetSecondFormulaTailRemainder] using
-      Complex.binetSecondFormulaRemainder_eq_small_add_tail
-        (w := w) hw_re_pos
+    exact Complex.binetSecondFormulaRemainder_eq_small_add_tail (w := w) hw_re_pos
   have hS : ‖S‖ ≤ 4 * J / ‖w‖ := by
-    simpa [S, J] using
-      Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
-        (w := w) hw_re_pos
+    exact Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
+      (w := w) hw_re_pos
   rcases
       Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
         (w := w) hw_re_pos with
@@ -687,7 +727,7 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
   refine ⟨C, hC_nonneg, ?_⟩
   have hT_named :
       ‖T‖ ≤ 2 * C * J := by
-    simpa [T, J, Complex.binetSecondFormulaTailRemainder] using hT
+    exact hT
   have hsum : ‖S + T‖ ≤ 4 * J / ‖w‖ + 2 * C * J := by
     calc
       ‖S + T‖ ≤ ‖S‖ + ‖T‖ :=
@@ -740,9 +780,8 @@ theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
       4 *
         (∫ t : ℝ in Set.Ioi (0 : ℝ),
           t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  simpa [Complex.binetSecondFormulaSmallRemainder] using
-    Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
-      (w := w) hw_re_pos
+  exact Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+    (w := w) hw_re_pos
 
 /-- The concrete contour tail majorant kernel has the uniform full-sector
 `1 / ‖w‖` pointwise bound. -/
@@ -958,7 +997,7 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
       (le_trans
         (le_of_eq
           (congrArg (fun x : ℝ => 2 * x) hkernel_norm))
-        (le_of_eq (by simpa [M] using hscale)))
+        (le_of_eq hscale))
 
 /-- Integrated form of the branch-uniform full-sector tail majorant.
 
@@ -1095,10 +1134,7 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires
       Complex.binetSecondFormulaRemainder w =
         Complex.binetSecondFormulaSmallRemainder w +
           Complex.binetSecondFormulaTailRemainder w := by
-    simpa [Complex.binetSecondFormulaSmallRemainder,
-      Complex.binetSecondFormulaTailRemainder] using
-      Complex.binetSecondFormulaRemainder_eq_small_add_tail
-        (w := w) hw_re_pos
+    exact Complex.binetSecondFormulaRemainder_eq_small_add_tail (w := w) hw_re_pos
   have hsmall :
       ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤ 4 * J / ‖w‖ := by
     exact
@@ -1597,9 +1633,10 @@ theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRe
     ‖Complex.Gamma w * Complex.exp w *
         w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
       2 * Real.sqrt (2 * Real.pi) * ‖Complex.binetSecondFormulaRemainder w‖ := by
-  rw [Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
-    hGamma_ne hw_ne hbinet]
-  exact Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE
+  exact
+    Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
+      hGamma_ne hw_ne hbinet ▸
+      Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE
 
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/

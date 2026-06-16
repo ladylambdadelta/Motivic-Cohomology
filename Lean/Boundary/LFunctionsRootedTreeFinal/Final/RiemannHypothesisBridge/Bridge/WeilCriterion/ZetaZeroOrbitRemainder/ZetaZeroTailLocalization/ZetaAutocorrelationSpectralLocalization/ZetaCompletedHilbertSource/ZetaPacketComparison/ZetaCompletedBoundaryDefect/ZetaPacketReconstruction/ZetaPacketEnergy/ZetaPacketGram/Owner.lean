@@ -398,8 +398,11 @@ theorem dotProduct_archimedean_correction (x : ZetaPacketEnsemble) :
 theorem normSq_eq_prime_add_archimedean_add_correction_helper (x : ZetaPacketEnsemble) :
     normSq x = primePacketGram x + archimedeanPacketGram x + correctionPacketGram x := by
   unfold normSq dotProduct primePacketGram archimedeanPacketGram correctionPacketGram
-  rw [support_union_self x]
+  have hsupport : x.support ∪ x.support = x.support := support_union_self x
   calc
+    ∑ ℓ ∈ x.support ∪ x.support, x ℓ * x ℓ =
+        ∑ ℓ ∈ x.support, x ℓ * x ℓ := by
+      exact congrArg (fun s : Finset ZetaPacketLabel => ∑ ℓ in s, x ℓ * x ℓ) hsupport
     ∑ ℓ ∈ x.support, x ℓ * x ℓ
         = ∑ ℓ ∈ x.support,
             (primePart x ℓ * primePart x ℓ +

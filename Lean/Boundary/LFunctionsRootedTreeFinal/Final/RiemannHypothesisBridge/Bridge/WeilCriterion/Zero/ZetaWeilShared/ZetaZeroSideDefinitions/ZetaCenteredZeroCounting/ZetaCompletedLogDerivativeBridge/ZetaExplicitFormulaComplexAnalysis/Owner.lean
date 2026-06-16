@@ -32,8 +32,8 @@ Guinand--Weil contour argument. It intentionally stops at definitions and
 owner-level notation; the actual contour estimates will be proved against these
 objects in later files.
 
-The point is to make the required complex-analysis API available first, not to
-axiomatize the missing theorems.
+The point is to make the required complex-analysis API available first, with
+the contour estimates proved in their owner files.
 -/
 
 namespace Boundary
@@ -2071,11 +2071,10 @@ theorem zetaCompletedExplicitFormulaPhi_shift_continuous
     (f : ZetaAdmissibleFunction) :
     Continuous
       (fun s : ℂ => zetaCompletedExplicitFormulaPhi f (s - 1 / 2)) := by
-  rw [continuous_iff_continuousAt]
-  intro s
-  exact
-    (zetaCompletedExplicitFormulaPhi_shift_differentiableAt
-      (zetaPhiAnalyticControl_of_admissible f) s).continuousAt
+  exact continuous_iff_continuousAt.2
+    (fun s =>
+      (zetaCompletedExplicitFormulaPhi_shift_differentiableAt
+        (zetaPhiAnalyticControl_of_admissible f) s).continuousAt)
 
 /-- A point on a vertical side image is a point on the contour-family boundary. -/
 theorem explicitFormulaVerticalSidePath_mem_boundary_of_mem_image

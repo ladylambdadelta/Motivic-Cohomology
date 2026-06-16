@@ -246,7 +246,7 @@ theorem completedZetaNegLogDeriv_one_sub_core (s : ℂ)
     _ = deriv completedRiemannZeta s / completedRiemannZeta s := by
       exact Eq.trans
         (congrArg (fun z : ℂ => - (- deriv completedRiemannZeta s) / z) hsym)
-        (by rw [neg_neg])
+        (by ring)
     _ = - completedZetaNegLogDeriv s := by
       unfold completedZetaNegLogDeriv
       have hneg_div :
@@ -590,7 +590,7 @@ theorem differentiableAt_deriv_completedRiemannZeta
     DifferentiableAt ℂ (deriv completedRiemannZeta) z := by
   have hU : AnalyticOnNhd ℂ completedRiemannZeta {w : ℂ | w ≠ 0 ∧ w ≠ 1} := by
     intro w hw
-    rw [Complex.analyticAt_iff_eventually_differentiableAt]
+    refine Complex.analyticAt_iff_eventually_differentiableAt.2 ?_
     filter_upwards [eventually_ne_nhds hw.1, eventually_ne_nhds hw.2] with y hy0 hy1
     exact differentiableAt_completedRiemannZeta_on_puncturedPlane hy0 hy1
   exact (hU.deriv z ⟨hz0, hz1⟩).differentiableAt

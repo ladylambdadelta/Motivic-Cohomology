@@ -1191,8 +1191,7 @@ theorem zetaCompletedExplicitFormulaPrimePowerContribution_re_eq_spectralSampleC
         completedSpectralPrimeOffDiagonalChannel f :=
     completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerDistributionTransport_core
       f D
-  simpa [completedPrimeOffDiagonalChannel, completedSpectralPrimeOffDiagonalChannel] using
-    hchannel
+  exact hchannel
 
 /-- Completed prime distribution transport from the physical/time presentation to the
 spectral contour presentation.

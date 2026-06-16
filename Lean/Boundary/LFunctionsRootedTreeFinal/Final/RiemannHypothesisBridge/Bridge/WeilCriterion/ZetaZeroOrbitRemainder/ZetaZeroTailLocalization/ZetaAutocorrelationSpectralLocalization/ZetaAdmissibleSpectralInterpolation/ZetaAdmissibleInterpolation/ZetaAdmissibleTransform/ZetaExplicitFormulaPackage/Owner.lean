@@ -104,58 +104,58 @@ instance : AddCommMonoid explicitFormulaDefectPackage where
     ext p n a
     · change ((f.primeDefect p n a + g.primeDefect p n a) + h.primeDefect p n a) =
         f.primeDefect p n a + (g.primeDefect p n a + h.primeDefect p n a)
-      rw [add_assoc]
+      exact add_assoc _ _ _
     · change ((f.archimedeanDefect p + g.archimedeanDefect p) + h.archimedeanDefect p) =
         f.archimedeanDefect p + (g.archimedeanDefect p + h.archimedeanDefect p)
-      rw [add_assoc]
+      exact add_assoc _ _ _
     · change ((f.correctionDefect + g.correctionDefect) + h.correctionDefect) =
         f.correctionDefect + (g.correctionDefect + h.correctionDefect)
-      rw [add_assoc]
+      exact add_assoc _ _ _
   zero_add := by
     intro f
     ext p n a
     · change (0 : ℂ) + f.primeDefect p n a = f.primeDefect p n a
-      rw [zero_add]
+      exact zero_add _
     · change (0 : ℂ) + f.archimedeanDefect p = f.archimedeanDefect p
-      rw [zero_add]
+      exact zero_add _
     · change (0 : ℂ) + f.correctionDefect = f.correctionDefect
-      rw [zero_add]
+      exact zero_add _
   add_zero := by
     intro f
     ext p n a
     · change f.primeDefect p n a + (0 : ℂ) = f.primeDefect p n a
-      rw [add_zero]
+      exact add_zero _
     · change f.archimedeanDefect p + (0 : ℂ) = f.archimedeanDefect p
-      rw [add_zero]
+      exact add_zero _
     · change f.correctionDefect + (0 : ℂ) = f.correctionDefect
-      rw [add_zero]
+      exact add_zero _
   add_comm := by
     intro f g
     ext p n a
     · change f.primeDefect p n a + g.primeDefect p n a = g.primeDefect p n a + f.primeDefect p n a
-      rw [add_comm]
+      exact add_comm _ _
     · change f.archimedeanDefect p + g.archimedeanDefect p = g.archimedeanDefect p + f.archimedeanDefect p
-      rw [add_comm]
+      exact add_comm _ _
     · change f.correctionDefect + g.correctionDefect = g.correctionDefect + f.correctionDefect
-      rw [add_comm]
+      exact add_comm _ _
   nsmul_zero := by
     intro f
     ext p n a
     · change (0 : ℕ) • f.primeDefect p n a = 0
-      rw [zero_nsmul]
+      exact zero_nsmul _
     · change (0 : ℕ) • f.archimedeanDefect p = 0
-      rw [zero_nsmul]
+      exact zero_nsmul _
     · change (0 : ℕ) • f.correctionDefect = 0
-      rw [zero_nsmul]
+      exact zero_nsmul _
   nsmul_succ := by
     intro n f
     ext p m a
     · change ((n + 1 : ℕ) • f.primeDefect p m a) = n • f.primeDefect p m a + f.primeDefect p m a
-      rw [add_nsmul, one_nsmul]
+      exact add_nsmul _ _ _
     · change ((n + 1 : ℕ) • f.archimedeanDefect p) = n • f.archimedeanDefect p + f.archimedeanDefect p
-      rw [add_nsmul, one_nsmul]
+      exact add_nsmul _ _ _
     · change ((n + 1 : ℕ) • f.correctionDefect) = n • f.correctionDefect + f.correctionDefect
-      rw [add_nsmul, one_nsmul]
+      exact add_nsmul _ _ _
 
 /-- The logarithmic explicit-formula transform attached to a test function. -/
 abbrev zetaExplicitFormulaTransform := explicitFormulaDefectPackage
@@ -192,7 +192,7 @@ theorem primePacketTranslationDefect_add_pointwise (f g : ZetaTestFunction) (p :
         (f (a - zetaPrimePacketCenter p n / 2) + g (a - zetaPrimePacketCenter p n / 2)) =
         (f (a + zetaPrimePacketCenter p n / 2) + g (a + zetaPrimePacketCenter p n / 2)) +
           (-f (a - zetaPrimePacketCenter p n / 2) + -g (a - zetaPrimePacketCenter p n / 2)) := by
-          rw [sub_eq_add_neg, neg_add]
+          ring
     _ = (f (a + zetaPrimePacketCenter p n / 2) + -f (a - zetaPrimePacketCenter p n / 2)) +
           (g (a + zetaPrimePacketCenter p n / 2) + -g (a - zetaPrimePacketCenter p n / 2)) := by
           ac_rfl
@@ -216,9 +216,9 @@ theorem primePacketTranslationDefect_smul_pointwise (c : ℂ) (f : ZetaTestFunct
   calc
     c * f (a + zetaPrimePacketCenter p n / 2) - c * f (a - zetaPrimePacketCenter p n / 2) =
         c * f (a + zetaPrimePacketCenter p n / 2) + -(c * f (a - zetaPrimePacketCenter p n / 2)) := by
-          rw [sub_eq_add_neg]
+          exact sub_eq_add_neg _ _
     _ = c * (f (a + zetaPrimePacketCenter p n / 2) + -f (a - zetaPrimePacketCenter p n / 2)) := by
-          rw [← mul_neg, ← mul_add]
+          ring
 
 /-- Pointwise scalar compatibility of the archimedean defect. -/
 theorem archimedeanTranslationDefect_smul_pointwise (a : ℝ) (c : ℂ) (f : ZetaTestFunction) :
@@ -227,21 +227,21 @@ theorem archimedeanTranslationDefect_smul_pointwise (a : ℝ) (c : ℂ) (f : Zet
   change
     (c * f (0 + a / 2)) + (c * f (0 - a / 2)) =
       c * (f (0 + a / 2) + f (0 - a / 2))
-  rw [zero_add, zero_sub, ← mul_add]
+  ring
 
 /-- Pointwise vanishing of the prime defect on zero. -/
 theorem primePacketTranslationDefect_zero_pointwise (p : ℕ) (n : ℕ) (a : ℝ) :
     primePacketTranslationDefect p n (0 : ZetaTestFunction) a = 0 := by
   unfold primePacketTranslationDefect translationDefect
   change (0 : ℂ) - 0 = 0
-  rw [sub_eq_add_neg, neg_zero, zero_add]
+  ring
 
 /-- Pointwise vanishing of the archimedean defect on zero. -/
 theorem archimedeanTranslationDefect_zero_pointwise (a : ℝ) :
     archimedeanTranslationDefect a (0 : ZetaTestFunction) 0 = 0 := by
   unfold archimedeanTranslationDefect
   change (0 : ℂ) + 0 = 0
-  rw [zero_add]
+  exact zero_add _
 
 /-- The completed explicit-formula package is the linear core plus the fixed correction. -/
 theorem toExplicitFormulaDefectPackage_eq_linear_add_correction (f : ZetaTestFunction) :
@@ -273,7 +273,7 @@ theorem toExplicitFormulaLinearDefectPackage_sum_insert {α : Type*} [DecidableE
     toExplicitFormulaLinearDefectPackage (∑ b in insert a s, f b) =
       toExplicitFormulaLinearDefectPackage (f a) +
         toExplicitFormulaLinearDefectPackage (∑ b in s, f b) := by
-  rw [Finset.sum_insert ha]
+  exact congrArg toExplicitFormulaLinearDefectPackage (Finset.sum_insert ha)
   exact toExplicitFormulaLinearDefectPackage_add (f a) (∑ b in s, f b)
 
 /-- The linear core of the explicit-formula package commutes with finite sums. -/
@@ -294,9 +294,9 @@ theorem toExplicitFormulaLinearDefectPackage_sum {α : Type*} [DecidableEq α] (
               exact toExplicitFormulaLinearDefectPackage_sum_insert a s ha f
         _ = toExplicitFormulaLinearDefectPackage (f a) +
               ∑ b in s, toExplicitFormulaLinearDefectPackage (f b) := by
-              rw [ih]
+              exact congrArg (fun t => toExplicitFormulaLinearDefectPackage (f a) + t) ih
         _ = ∑ b in insert a s, toExplicitFormulaLinearDefectPackage (f b) := by
-              rw [Finset.sum_insert ha]
+              exact (Finset.sum_insert ha).symm
 
 /-- The logarithmic explicit-formula transform attached to `f`. -/
 def toZetaExplicitFormulaTransform (f : ZetaTestFunction) :
@@ -335,7 +335,6 @@ theorem toZetaExplicitFormulaTransform_archimedean_reflect (f : ZetaTestFunction
       (toZetaExplicitFormulaTransform f).archimedeanDefect a := by
   change archimedeanTranslationDefect a (reflect f) 0 = archimedeanTranslationDefect a f 0
   have h := congrFun (archimedeanTranslationDefect_reflect a f) 0
-  rw [neg_zero] at h
   exact h
 
 /-- The correction component is invariant under reflection. -/
@@ -361,7 +360,6 @@ theorem toZetaExplicitFormulaTransform_archimedean_centered_reflect (f : ZetaTes
       (toZetaExplicitFormulaTransform f).archimedeanDefect a := by
   change archimedeanTranslationDefect a (reflect f) 0 = archimedeanTranslationDefect a f 0
   have h := congrFun (archimedeanTranslationDefect_reflect a f) 0
-  rw [neg_zero] at h
   exact h
 
 /-- The explicit-formula transform is exactly the concrete defect package. -/

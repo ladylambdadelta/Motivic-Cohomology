@@ -125,13 +125,13 @@ theorem zetaTestFunction_sum_apply {α : Type*} [DecidableEq α] (s : Finset α)
   | @insert a s ha ih =>
       calc
         (∑ b in insert a s, f b) x = (f a + ∑ b in s, f b) x := by
-          rw [Finset.sum_insert ha]
+          exact congrArg (fun g : ZetaTestFunction => g x) (Finset.sum_insert ha)
         _ = f a x + (∑ b in s, f b) x := by
           rfl
         _ = f a x + ∑ b in s, f b x := by
           exact congrArg (fun y => f a x + y) ih
         _ = ∑ b in insert a s, f b x := by
-          rw [Finset.sum_insert ha]
+          exact (Finset.sum_insert ha).symm
 
 /-- The underlying test function of an admissible finite sum is the finite sum of the
 underlying test functions. -/

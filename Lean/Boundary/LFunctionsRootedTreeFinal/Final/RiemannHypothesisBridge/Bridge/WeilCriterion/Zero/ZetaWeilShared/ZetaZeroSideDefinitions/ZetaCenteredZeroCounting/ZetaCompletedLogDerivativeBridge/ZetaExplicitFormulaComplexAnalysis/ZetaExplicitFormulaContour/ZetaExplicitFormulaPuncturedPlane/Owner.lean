@@ -43,38 +43,61 @@ theorem completedRiemannZeta_eventuallyEq_zero_on_puncturedPlane
   let U : Set ℂ := {w : ℂ | w ≠ 0 ∧ w ≠ 1}
   have hU : IsPreconnected U := by
     have hcount : ({0, 1} : Set ℂ).Countable := by
-      simp
+      exact (Set.finite_insert _ (Set.finite_singleton _)).countable
     have hU_eq : U = ({0, 1} : Set ℂ)ᶜ := by
       ext w
-      simp [U, and_comm]
+      constructor
+      · intro hw
+        intro hwset
+        rcases hwset with rfl | rfl
+        · exact hw.1 rfl
+        · exact hw.2 rfl
+      · intro hw
+        constructor
+        · intro h0
+          exact hw (Or.inl h0)
+        · intro h1
+          exact hw (Or.inr h1)
     have hpath : IsPathConnected (U : Set ℂ) := by
-      rw [hU_eq]
       exact
         (Set.Countable.isPathConnected_compl_of_one_lt_rank
-          (show 1 < Module.rank ℝ ℂ by simp [Complex.rank_real_complex])
+          (show 1 < Module.rank ℝ ℂ by
+            exact Complex.rank_real_complex)
           hcount)
     exact hpath.isConnected.isPreconnected
   have hzU : z ∈ U := by
-    simp [U, hz0, hz1]
+    constructor
+    · exact hz0
+    · exact hz1
   exact
     AnalyticOnNhd.eqOn_zero_of_preconnected_of_eventuallyEq_zero
       (f := completedRiemannZeta) (U := U)
       (by
         intro w hw
-        rw [Complex.analyticAt_iff_eventually_differentiableAt]
-        filter_upwards [eventually_ne_nhds hw.1, eventually_ne_nhds hw.2] with y hy0 hy1
-        exact differentiableAt_completedZeta hy0 hy1)
+        exact Complex.analyticAt_iff_eventually_differentiableAt.2 <| by
+          filter_upwards [eventually_ne_nhds hw.1, eventually_ne_nhds hw.2] with y hy0 hy1
+          exact differentiableAt_completedZeta hy0 hy1)
       hU hzU hzero
 
 /-- The completed zeta is nonzero at `2`, which is enough to contradict eventual vanishing. -/
 theorem completedRiemannZeta_nonzero_two : completedRiemannZeta (2 : ℂ) ≠ 0 := by
-  rw [completedRiemannZeta_eq_riemannZeta_mul_gamma (by norm_num : (2 : ℂ) ≠ 0)
-      (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num))]
-  intro h
+  have hcomp :
+      completedRiemannZeta (2 : ℂ) =
+        riemannZeta (2 : ℂ) * Gammaℝ (2 : ℂ) :=
+    completedRiemannZeta_eq_riemannZeta_mul_gamma
+      (by norm_num : (2 : ℂ) ≠ 0)
+      (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num))
   have hzeta2 : riemannZeta (2 : ℂ) ≠ 0 := by
-    rw [riemannZeta_two]
-    norm_num [Complex.normSq, Real.pi_ne_zero]
-  rcases mul_eq_zero.mp h with hzeta | hGamma
+    intro hzeta
+    have htwo : (0 : ℂ) = 1 := by
+      have hnorm := riemannZeta_two
+      have hzero : (riemannZeta (2 : ℂ) : ℂ) = 0 := hzeta
+      norm_num [hzero, Complex.normSq, Real.pi_ne_zero] at hnorm
+    exact zero_ne_one htwo.symm
+  intro h
+  have hprod : riemannZeta (2 : ℂ) * Gammaℝ (2 : ℂ) = 0 := by
+    exact hcomp.symm.trans h
+  rcases mul_eq_zero.mp hprod with hzeta | hGamma
   · exact hzeta2 hzeta
   · exact (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num)) hGamma
 
@@ -96,9 +119,9 @@ theorem completedRiemannZeta_eventually_ne_zero_of_zero
     (z : ℂ) (hz0 : z ≠ 0) (hz1 : z ≠ 1) (_hz : completedRiemannZeta z = 0) :
     ∀ᶠ w in 𝓝[≠] z, completedRiemannZeta w ≠ 0 := by
   have hA : AnalyticAt ℂ completedRiemannZeta z := by
-    rw [Complex.analyticAt_iff_eventually_differentiableAt]
-    filter_upwards [eventually_ne_nhds hz0, eventually_ne_nhds hz1] with y hy0 hy1
-    exact differentiableAt_completedZeta hy0 hy1
+    exact Complex.analyticAt_iff_eventually_differentiableAt.2 <| by
+      filter_upwards [eventually_ne_nhds hz0, eventually_ne_nhds hz1] with y hy0 hy1
+      exact differentiableAt_completedZeta hy0 hy1
   rcases hA.eventually_eq_zero_or_eventually_ne_zero with hzero | hne
   · exfalso
     exact completedRiemannZeta_not_eventually_zero z hz0 hz1 hzero

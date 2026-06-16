@@ -78,7 +78,9 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
     (hz : centeredCompletedRiemannZeta z = 0) :
     ∀ᶠ w in 𝓝[≠] z, centeredCompletedRiemannZeta w ≠ 0 := by
   have hz' : completedRiemannZeta ((1 / 2 : ℂ) + z) = 0 := by
-    simpa [centeredCompletedRiemannZeta] using hz
+    exact by
+      dsimp [centeredCompletedRiemannZeta] at hz ⊢
+      exact hz
   have hs0 : (1 / 2 : ℂ) + z ≠ 0 := by
     intro h
     have hz_eq : z = -(1 / 2 : ℂ) := by
@@ -102,13 +104,16 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
   have ht :
       Tendsto (fun w : ℂ => (1 / 2 : ℂ) + w) (𝓝[≠] z)
         (𝓝[≠] ((1 / 2 : ℂ) + z)) := by
-    rw [tendsto_nhdsWithin_iff]
-    exact ⟨
+    refine tendsto_nhdsWithin_iff.2 ?_
+    refine ⟨
       ((continuous_const.add continuous_id).continuousAt.tendsto).mono_left nhdsWithin_le_nhds,
-      (Eventually.mono self_mem_nhdsWithin
-        (fun w hw hsum => hw (add_left_cancel hsum)))⟩
+      ?_⟩
+    exact Eventually.mono self_mem_nhdsWithin
+      (fun w hw hsum => hw (add_left_cancel hsum))
   have hcomp := ht hzero
-  simpa [centeredCompletedRiemannZeta] using hcomp
+  exact by
+    dsimp [centeredCompletedRiemannZeta]
+    exact hcomp
 
 end ZetaAdmissibleFunction
 

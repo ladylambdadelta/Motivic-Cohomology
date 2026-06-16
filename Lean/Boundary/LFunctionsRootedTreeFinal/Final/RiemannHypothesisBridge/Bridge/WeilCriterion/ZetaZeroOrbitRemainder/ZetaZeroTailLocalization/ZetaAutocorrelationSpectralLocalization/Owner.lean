@@ -80,7 +80,12 @@ theorem zetaSpectralEvalPresentationFiber_eq_source_add_ker
             hf
         _ = 0 := by
           exact sub_self (zetaSpectralEvalPresentationMap P f₀)
-    · simp [sub_eq_add_neg, add_assoc]
+    ·
+      calc
+        f = (f - f₀) + f₀ := by
+          exact (sub_add_cancel f f₀).symm
+        _ = f₀ + (f - f₀) := by
+          exact add_comm _ _
   · intro hf
     rcases hf with ⟨k, hk, hkf⟩
     calc
@@ -282,8 +287,7 @@ theorem autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValue
           S P f₀) :
     0 ≤ r := by
   rcases hr with ⟨C, _hC, hrC⟩
-  rw [hrC]
-  exact completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative S C
+  exact hrC ▸ completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative S C
 
 /-- The quotient-level zero-tail value set is the image of the fixed finite
 autocorrelation cone fiber in the zero-tail ordered-heart quotient under the quotient
@@ -561,8 +565,7 @@ theorem autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
     (mem_autocorrelationSpectralEvalFiberZeroTailRealAbsValues_iff
       S P f₀ r).mp hr with
     ⟨f, _hfFiber, hrf⟩
-  rw [hrf]
-  exact abs_nonneg (Complex.re (zetaZeroTail S (convolutionAutocorrelation f)))
+  exact hrf ▸ abs_nonneg (Complex.re (zetaZeroTail S (convolutionAutocorrelation f)))
 
 /-- The finite autocorrelation spectral-evaluation presentation fiber of a source probe is
 inhabited.
@@ -669,8 +672,7 @@ theorem autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage_zeroTail_v
           autocorrelationConeSpectralEvalFiberZeroTailOrderedHeartImage P f₀) :
     0 ≤ r := by
   rcases hr with ⟨C, _hC, hCr⟩
-  rw [← hCr]
-  exact completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative S C
+  exact hCr.symm ▸ completedBoundaryOrderedHeartZeroTailRealAbs_nonnegative S C
 
 /-- Nonlinear finite autocorrelation-cone density in the zero-tail quotient.
 
@@ -686,7 +688,6 @@ theorem autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_me
       closure
         (autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues
           S P f₀) := by
-  rw [autocorrelationConeSpectralFiberOrderedHeartQuotientZeroTailRealAbsValues_eq_image]
   refine
     Metric.mem_closure_iff.mpr ?_
   intro ε hε
@@ -699,7 +700,9 @@ theorem autocorrelationConeSpectralFiber_positiveConeDensity_quotientZeroTail_me
         0 ≤ r :=
       autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
         S P f₀ hrValues
-    simpa [Real.dist_eq, abs_of_nonneg hrNonneg] using hrSmall⟩
+    have hdist : dist r 0 = r := by
+      exact Real.dist_eq.mpr (abs_of_nonneg hrNonneg)
+    exact hdist ▸ hrSmall⟩
 
 /-- Positive-cone/GNS density at the quotient-level zero-tail functional.
 
@@ -862,7 +865,9 @@ theorem autocorrelationSpectralEvalFiber_zeroTailRealAbsValues_has_arbitrarily_s
       autocorrelationSpectralEvalFiberZeroTailRealAbsValues_nonnegative
         S P f₀ hrValues
   have hrSmall : r < ε := by
-    simpa [Real.dist_eq, abs_of_nonneg hrNonneg] using hrDist
+    have hdist : dist r 0 = r := by
+      exact Real.dist_eq.mpr (abs_of_nonneg hrNonneg)
+    exact hdist ▸ hrDist
   exact ⟨r, hrValues, hrSmall⟩
 
 /-- Autocorrelation closure/density gives radical tail control inside a fixed finite

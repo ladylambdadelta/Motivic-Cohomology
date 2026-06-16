@@ -1,11 +1,13 @@
 import Mathlib.Analysis.SpecialFunctions.Gamma.Beta
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deriv
+import Mathlib.Analysis.Calculus.ParametricIntervalIntegral
 import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.InverseDeriv
 import Mathlib.MeasureTheory.Function.Jacobian
 import Mathlib.NumberTheory.Harmonic.GammaDeriv
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.LogSineIntegral.DominatedDifferentiation
 
 /-!
 # The classical log-sine integral
@@ -145,7 +147,7 @@ theorem Real.sinePowerEulerBeta_parameter_sum
       exact (add_div (s + 1) 1 2).symm
     _ = (s + 2) / 2 := by
       have hone_add_one : (1 : ℝ) + 1 = 2 := by
-        norm_num
+        exact one_add_one_eq_two
       exact congrArg (fun x : ℝ => x / 2)
         (Eq.trans (add_assoc s 1 1) (congrArg (fun x : ℝ => s + x) hone_add_one))
     _ = s / 2 + 2 / 2 := by
@@ -267,7 +269,15 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
       (Real.pi / 2) := by
   have hle : (0 : ℝ) ≤ Real.pi / 2 :=
     le_of_lt Real.pi_div_two_pos
-  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hle]
+  have hIoc :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) ↔
+      MeasureTheory.IntegrableOn (fun u : ℝ => (Real.sin u) ^ s)
+        (Set.Ioc (0 : ℝ) (Real.pi / 2)) :=
+    intervalIntegrable_iff_integrableOn_Ioc_of_le hle
   have hmodel_const :
       IntervalIntegrable
         (fun u : ℝ => (2 / Real.pi : ℝ) ^ s * u ^ s)
@@ -275,7 +285,11 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
         (0 : ℝ)
         (Real.pi / 2) :=
     hmodel.const_mul ((2 / Real.pi : ℝ) ^ s)
-  rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hle] at hmodel_const
+  have hmodel_const' :
+      MeasureTheory.IntegrableOn
+        (fun u : ℝ => (2 / Real.pi : ℝ) ^ s * u ^ s)
+        (Set.Ioc (0 : ℝ) (Real.pi / 2)) :=
+    (intervalIntegrable_iff_integrableOn_Ioc_of_le hle).1 hmodel_const
   have hcontinuousOn :
       ContinuousOn
         (fun u : ℝ => (Real.sin u) ^ s)
@@ -289,11 +303,16 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
     exact
       (Real.continuous_sin.continuousAt.rpow_const
         (Or.inl hsin_ne)).continuousWithinAt
-  exact
-    MeasureTheory.Integrable.mono' hmodel_const
-      (hcontinuousOn.aestronglyMeasurable measurableSet_Ioc)
-      (by
-        filter_upwards [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc] with u hu
+  have hmem :
+      ∀ᵐ u ∂MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) (Real.pi / 2)),
+        u ∈ Set.Ioc (0 : ℝ) (Real.pi / 2) :=
+    MeasureTheory.self_mem_ae_restrict measurableSet_Ioc
+  have hbound :
+      ∀ᵐ u ∂MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) (Real.pi / 2)),
+        ‖(Real.sin u) ^ s‖ ≤
+          (2 / Real.pi : ℝ) ^ s * u ^ s :=
+    hmem.mono
+      (fun u hu => by
         have hdom :
             (Real.sin u) ^ s ≤
               (2 / Real.pi : ℝ) ^ s * u ^ s :=
@@ -307,6 +326,11 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointMo
             s
         exact
           (Real.norm_of_nonneg hnonneg).trans_le hdom)
+  exact hIoc.2
+    (MeasureTheory.Integrable.mono'
+      hmodel_const'
+      (hcontinuousOn.aestronglyMeasurable measurableSet_Ioc)
+      hbound)
 
 /-- Local comparison of `sin u ^ s` with the model endpoint singularity near
 `0`, in the integrability form needed for the left half-interval. -/
@@ -319,16 +343,17 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half_from_endpointModel
         MeasureTheory.volume
         (0 : ℝ)
         (Real.pi / 2)) :
-    IntervalIntegrable
-      (fun u : ℝ => (Real.sin u) ^ s)
-      MeasureTheory.volume
-      (0 : ℝ)
-      (Real.pi / 2) := by
-  by_cases hs_nonneg : 0 ≤ s
-  · exact
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2) := by
+  if hs_nonneg : 0 ≤ s then
+    exact
       Real.sinePowerKernel_intervalIntegrable_zero_half_of_nonneg
         s hs_nonneg
-  · have hs_neg : s < 0 :=
+  else
+    have hs_neg : s < 0 :=
       lt_of_not_ge hs_nonneg
     exact
       Real.sinePowerKernel_intervalIntegrable_zero_half_of_neg_from_endpointModel
@@ -348,6 +373,91 @@ theorem Real.sinePowerKernel_intervalIntegrable_zero_half
       s hs
       (Real.sinePowerEndpointModel_intervalIntegrable_zero_half s hs)
 
+/-- The sine-power kernel reflected through `π / 2`. -/
+def Real.sinePowerKernelReflected (s : ℝ) : ℝ → ℝ :=
+  fun u : ℝ => (Real.sin (Real.pi - u)) ^ s
+
+/-- Left endpoint normalization for the reflected `π`-substitution. -/
+theorem Real.pi_sub_zero_eq_pi : Real.pi - (0 : ℝ) = Real.pi :=
+  sub_zero Real.pi
+
+/-- Right endpoint normalization for the reflected `π`-substitution. -/
+theorem Real.pi_sub_pi_div_two_eq_pi_div_two :
+    Real.pi - Real.pi / 2 = Real.pi / 2 :=
+  sub_half Real.pi
+
+/-- Endpoint transport for the reflected sine-power kernel. -/
+theorem Real.sinePowerKernelReflected_intervalIntegrable_half_pi_from_raw
+    (s : ℝ)
+    (hraw :
+      IntervalIntegrable
+        (Real.sinePowerKernelReflected s)
+        MeasureTheory.volume
+        (Real.pi - (0 : ℝ))
+        (Real.pi - Real.pi / 2)) :
+    IntervalIntegrable
+      (Real.sinePowerKernelReflected s)
+      MeasureTheory.volume
+      Real.pi
+      (Real.pi / 2) := by
+  have hleft :
+      IntervalIntegrable
+        (Real.sinePowerKernelReflected s)
+        MeasureTheory.volume
+        Real.pi
+        (Real.pi - Real.pi / 2) :=
+    Eq.subst
+      (motive := fun a : ℝ =>
+        IntervalIntegrable
+          (Real.sinePowerKernelReflected s)
+          MeasureTheory.volume
+          a
+          (Real.pi - Real.pi / 2))
+      Real.pi_sub_zero_eq_pi
+      hraw
+  exact
+    Eq.subst
+      (motive := fun b : ℝ =>
+        IntervalIntegrable
+          (Real.sinePowerKernelReflected s)
+          MeasureTheory.volume
+          Real.pi
+          b)
+      Real.pi_sub_pi_div_two_eq_pi_div_two
+      hleft
+
+/-- Reflection transports left endpoint integrability to raw reversed
+right-endpoint integrability. -/
+theorem Real.sinePowerKernelReflected_intervalIntegrable_pi_half
+    (s : ℝ)
+    (hleft :
+      IntervalIntegrable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        MeasureTheory.volume
+        (0 : ℝ)
+        (Real.pi / 2)) :
+    IntervalIntegrable
+      (Real.sinePowerKernelReflected s)
+      MeasureTheory.volume
+      Real.pi
+      (Real.pi / 2) := by
+  have hraw :
+      IntervalIntegrable
+        (Real.sinePowerKernelReflected s)
+        MeasureTheory.volume
+        (Real.pi - (0 : ℝ))
+        (Real.pi - Real.pi / 2) := by
+    exact IntervalIntegrable.comp_sub_left hleft Real.pi
+  exact
+    Real.sinePowerKernelReflected_intervalIntegrable_half_pi_from_raw
+      s hraw
+
+/-- The reflected sine-power kernel agrees pointwise with the original one. -/
+theorem Real.sinePowerKernelReflected_eq
+    (s u : ℝ) :
+    Real.sinePowerKernelReflected s u = (Real.sin u) ^ s := by
+  exact congrArg (fun x : ℝ => x ^ s) (Real.sin_pi_sub u)
+
 /-- Reflection transports left endpoint integrability to the right endpoint
 near `π`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_half_pi_from_reflection
@@ -366,24 +476,18 @@ theorem Real.sinePowerKernel_intervalIntegrable_half_pi_from_reflection
       Real.pi := by
   have hreflected :
       IntervalIntegrable
-        (fun u : ℝ => (Real.sin (Real.pi - u)) ^ s)
+        (Real.sinePowerKernelReflected s)
         MeasureTheory.volume
         (Real.pi / 2)
         Real.pi := by
-    have hraw :
-        IntervalIntegrable
-          (fun u : ℝ => (Real.sin (Real.pi - u)) ^ s)
-          MeasureTheory.volume
-          Real.pi
-          (Real.pi / 2) := by
-      simpa [Real.pi_sub_zero, Real.pi_sub_half] using
-        (IntervalIntegrable.comp_sub_left hleft Real.pi)
-    exact hraw.symm
+    exact
+      (Real.sinePowerKernelReflected_intervalIntegrable_pi_half
+        s hleft).symm
   exact
     hreflected.congr
       (Filter.Eventually.of_forall
         (fun u => by
-          exact congrArg (fun x : ℝ => x ^ s) (Real.sin_pi_sub u)))
+          exact Real.sinePowerKernelReflected_eq s u))
 
 /-- Endpoint integrability of the sine-power kernel on `[π/2,π]`. -/
 theorem Real.sinePowerKernel_intervalIntegrable_half_pi
@@ -417,7 +521,6 @@ theorem Real.sinePowerIntegral_split_at_half_from_intervalIntegrable
     Real.sinePowerIntegral s =
       Real.sinePowerHalfIntegral s +
         ∫ u in (Real.pi / 2)..Real.pi, (Real.sin u) ^ s := by
-  unfold Real.sinePowerIntegral Real.sinePowerHalfIntegral
   exact
     (intervalIntegral.integral_add_adjacent_intervals
       hleft
@@ -435,6 +538,32 @@ theorem Real.sinePowerIntegral_split_at_half
       s
       (Real.sinePowerKernel_intervalIntegrable_zero_half s hs)
       (Real.sinePowerKernel_intervalIntegrable_half_pi s hs)
+
+/-- Endpoint integrability of the sine-power kernel on the full interval
+`[0,π]`. -/
+theorem Real.sinePowerKernel_intervalIntegrable_zero_pi
+    (s : ℝ)
+    (hs : -1 < s) :
+    IntervalIntegrable
+      (fun u : ℝ => (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      Real.pi := by
+  exact
+    (Real.sinePowerKernel_intervalIntegrable_zero_half s hs).trans
+      (Real.sinePowerKernel_intervalIntegrable_half_pi s hs)
+
+/-- Constant multiples of integrable sine powers are integrable on `[0,π]`. -/
+theorem Real.sinePowerKernel_const_mul_intervalIntegrable_zero_pi
+    (c s : ℝ)
+    (hs : -1 < s) :
+    IntervalIntegrable
+      (fun u : ℝ => c * (Real.sin u) ^ s)
+      MeasureTheory.volume
+      (0 : ℝ)
+      Real.pi := by
+  exact
+    (Real.sinePowerKernel_intervalIntegrable_zero_pi s hs).const_mul c
 
 /-- Pointwise reflection of the sine-power kernel across `π/2`. -/
 theorem Real.sinePowerKernel_reflection_pointwise
@@ -478,7 +607,6 @@ theorem Real.sinePowerIntegral_reflectedLowerHalf_eq_half
     (s : ℝ) :
     (∫ u in (0 : ℝ)..(Real.pi / 2), (Real.sin (Real.pi - u)) ^ s) =
       Real.sinePowerHalfIntegral s := by
-  unfold Real.sinePowerHalfIntegral
   exact
     intervalIntegral.integral_congr
       (fun u _hu => Real.sinePowerKernel_reflection_pointwise s u)
@@ -740,29 +868,67 @@ theorem Real.sinePower_betaRealKernel_intervalIntegrable_from_complex
       MeasureTheory.volume
       (0 : ℝ)
       1 := by
+  let complexKernel : ℝ → ℂ :=
+    fun t : ℝ =>
+      (t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
+        (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1)
+  let complexReKernel : ℝ → ℝ :=
+    fun t : ℝ => (complexKernel t).re
+  let realKernel : ℝ → ℝ :=
+    fun t : ℝ =>
+      t ^ (((s + 1) / 2) - 1) *
+        (1 - t) ^ ((1 / 2 : ℝ) - 1)
   have hre :
       IntervalIntegrable
-        (fun t : ℝ =>
-          ((t : ℂ) ^ ((((s + 1) / 2 : ℝ) : ℂ) - 1) *
-            (1 - (t : ℂ)) ^ (((1 / 2 : ℝ) : ℂ) - 1)).re)
+        complexReKernel
         MeasureTheory.volume
         (0 : ℝ)
         1 :=
-    Real.intervalIntegrable_complex_re hcomplex
-  exact
-    hre.congr
-      (by
-        rw [Set.uIoc_of_le zero_le_one]
-        filter_upwards
-          [MeasureTheory.self_mem_ae_restrict measurableSet_Ioc]
-          with t ht
+    Real.intervalIntegrable_complex_re
+      (f := complexKernel)
+      hcomplex
+  have huIoc_eq : Ι (0 : ℝ) 1 = Set.Ioc (0 : ℝ) 1 :=
+    Set.uIoc_of_le zero_le_one
+  have hmem :
+      ∀ᵐ t ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) 1),
+        t ∈ Ι (0 : ℝ) 1 :=
+    MeasureTheory.self_mem_ae_restrict measurableSet_uIoc
+  have hpoint :
+      ∀ᵐ t ∂MeasureTheory.volume.restrict (Ι (0 : ℝ) 1),
+        complexReKernel t = realKernel t :=
+    hmem.mono
+      (fun t ht => by
+        have htIoc : t ∈ Set.Ioc (0 : ℝ) 1 := by
+          exact Eq.subst
+            (motive := fun u : Set ℝ => t ∈ u)
+            huIoc_eq
+            ht
         have ht0 : 0 ≤ t :=
-          le_of_lt ht.1
+          le_of_lt htIoc.1
         have ht1 : t ≤ 1 :=
-          ht.2
+          htIoc.2
         exact
           (Real.sinePower_betaRealKernel_eq_complexRe
             s t ht0 ht1).symm)
+  have hre_on :
+      MeasureTheory.IntegrableOn
+        complexReKernel
+        (Ι (0 : ℝ) 1)
+        MeasureTheory.volume :=
+    intervalIntegrable_iff.mp hre
+  have hreal_on :
+      MeasureTheory.IntegrableOn
+        realKernel
+        (Ι (0 : ℝ) 1)
+        MeasureTheory.volume :=
+    MeasureTheory.IntegrableOn.congr_fun_ae
+      (f := complexReKernel)
+      (g := realKernel)
+      (s := Ι (0 : ℝ) 1)
+      (μ := MeasureTheory.volume)
+      hre_on
+      hpoint
+  exact intervalIntegrable_iff.mpr hreal_on
 
 /-- The Beta-kernel endpoint integrability on `[0,1]` in real variables. -/
 theorem Real.sinePower_betaRealKernel_intervalIntegrable
@@ -842,6 +1008,142 @@ theorem Real.sinePower_sin_arcsin_rpow_eq
   exact congrArg (fun y : ℝ => y ^ s)
     (Real.sin_arcsin hx_left hx_right)
 
+/-- Exponent normalization for the square-power part of the sine
+substitution. -/
+theorem Real.sinePower_squareSubstitution_leftExponent_eq
+    (s : ℝ) :
+    (2 : ℝ) * (((s + 1) / 2) - 1) = s - 1 := by
+  calc
+    (2 : ℝ) * (((s + 1) / 2) - 1) =
+        2 * ((s + 1) / 2) - 2 * 1 := by
+      exact mul_sub 2 ((s + 1) / 2) 1
+    _ = ((s + 1) / 2) * 2 - 2 := by
+      exact congrArg₂
+        (fun a b : ℝ => a - b)
+        (mul_comm 2 ((s + 1) / 2))
+        (mul_one 2)
+    _ = (s + 1) - 2 := by
+      exact congrArg (fun y : ℝ => y - 2)
+        (div_mul_cancel₀ (s + 1) two_ne_zero)
+    _ = (s + 1) - (1 + 1) := by
+      exact congrArg (fun y : ℝ => (s + 1) - y)
+        (one_add_one_eq_two.symm)
+    _ = ((s + 1) - 1) - 1 := by
+      exact sub_add_eq_sub_sub (s + 1) 1 1
+    _ = s - 1 := by
+      exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel_right s 1)
+
+/-- Square-power transport for the sine substitution Beta kernel. -/
+theorem Real.sinePower_squareSubstitution_sq_rpow_eq_left
+    (s : ℝ)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    (x ^ 2) ^ (((s + 1) / 2) - 1) =
+      x ^ (s - 1) := by
+  have hx_nonneg : 0 ≤ x :=
+    le_of_lt hx.1
+  calc
+    (x ^ 2) ^ (((s + 1) / 2) - 1) =
+        (x ^ (2 : ℝ)) ^ (((s + 1) / 2) - 1) := by
+      exact congrArg
+        (fun y : ℝ => y ^ (((s + 1) / 2) - 1))
+        (Real.rpow_natCast x 2).symm
+    _ = x ^ ((2 : ℝ) * (((s + 1) / 2) - 1)) := by
+      exact (Real.rpow_mul hx_nonneg 2 (((s + 1) / 2) - 1)).symm
+    _ = x ^ (s - 1) := by
+      exact congrArg
+        (fun e : ℝ => x ^ e)
+        (Real.sinePower_squareSubstitution_leftExponent_eq s)
+
+/-- Right endpoint exponent normalization in the sine substitution Beta
+kernel. -/
+theorem Real.sinePower_squareSubstitution_rightExponent_eq_basic :
+      ((1 / 2 : ℝ) - 1) = ((-1 : ℝ) / 2) := by
+  calc
+    (1 / 2 : ℝ) - 1 = (1 / 2 : ℝ) - (2 / 2 : ℝ) := by
+      exact congrArg (fun y : ℝ => (1 / 2 : ℝ) - y)
+        (by
+          exact (div_self two_ne_zero).symm)
+    _ = (1 - 2 : ℝ) / 2 := by
+      exact (sub_div 1 2 2).symm
+    _ = (1 - (1 + 1) : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => (1 - y) / 2)
+        (one_add_one_eq_two.symm)
+    _ = ((1 - 1) - 1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => y / 2)
+        (sub_add_eq_sub_sub 1 1 1)
+    _ = (0 - 1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => (y - 1) / 2) (sub_self 1)
+    _ = (-1 : ℝ) / 2 := by
+      exact congrArg (fun y : ℝ => y / 2) (zero_sub 1)
+
+/-- Right-power transport for the sine substitution Beta kernel. -/
+theorem Real.sinePower_squareSubstitution_right_rpow_eq
+    (x : ℝ) :
+    (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1) =
+      (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
+  congrArg
+    (fun e : ℝ => (1 - x ^ 2) ^ e)
+    Real.sinePower_squareSubstitution_rightExponent_eq_basic
+
+/-- Left endpoint power algebra in the sine substitution Beta kernel. -/
+theorem Real.sinePower_squareSubstitution_left_mul_eq
+    (s : ℝ)
+    {x : ℝ}
+    (hx : x ∈ Set.Ioo (0 : ℝ) 1) :
+    x ^ (s - 1) * x = x ^ s := by
+  calc
+    x ^ (s - 1) * x =
+        x ^ (s - 1) * x ^ (1 : ℝ) := by
+      exact congrArg (fun y : ℝ => x ^ (s - 1) * y)
+        (Real.rpow_one x).symm
+    _ = x ^ ((s - 1) + 1) := by
+      exact (Real.rpow_add hx.1 (s - 1) 1).symm
+    _ = x ^ s := by
+      exact congrArg (fun e : ℝ => x ^ e) (sub_add_cancel s 1)
+
+/-- Scalar cancellation for the `1/2` and Jacobian `2x` factors in the sine
+substitution Beta kernel. -/
+theorem Real.sinePower_squareSubstitution_half_mul_two_mul
+    (x y : ℝ) :
+    ((1 / 2 : ℝ) * y) * (2 * x) = y * x := by
+  have hhalf_two : (1 / 2 : ℝ) * 2 = 1 := by
+    calc
+      (1 / 2 : ℝ) * 2 = (2 : ℝ)⁻¹ * 2 := by
+        exact congrArg (fun z : ℝ => z * 2) (one_div 2)
+      _ = 1 := by
+        exact inv_mul_cancel₀ two_ne_zero
+  calc
+    ((1 / 2 : ℝ) * y) * (2 * x) =
+        (((1 / 2 : ℝ) * y) * 2) * x := by
+      exact (mul_assoc ((1 / 2 : ℝ) * y) 2 x).symm
+    _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
+      exact congrArg (fun z : ℝ => z * x)
+        (mul_assoc (1 / 2 : ℝ) y 2)
+    _ = ((1 / 2 : ℝ) * (2 * y)) * x := by
+      exact congrArg
+        (fun z : ℝ => ((1 / 2 : ℝ) * z) * x)
+        (mul_comm y 2)
+    _ = (((1 / 2 : ℝ) * 2) * y) * x := by
+      exact congrArg (fun z : ℝ => z * x)
+        (mul_assoc (1 / 2 : ℝ) 2 y).symm
+    _ = (1 * y) * x := by
+      exact congrArg (fun z : ℝ => (z * y) * x) hhalf_two
+    _ = y * x := by
+      exact congrArg (fun z : ℝ => z * x) (one_mul y)
+
+/-- Reassociation used to move the Jacobian factor next to the left power. -/
+theorem Real.sinePower_squareSubstitution_mul_reassoc
+    (a b x : ℝ) :
+    (a * b) * x = (a * x) * b := by
+  calc
+    (a * b) * x = a * (b * x) := by
+      exact mul_assoc a b x
+    _ = a * (x * b) := by
+      exact congrArg (fun z : ℝ => a * z) (mul_comm b x)
+    _ = (a * x) * b := by
+      exact (mul_assoc a x b).symm
+
 /-- The square-root pullback kernel associated to the Beta kernel. -/
 theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
     (s x : ℝ)
@@ -851,127 +1153,20 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
         ((x ^ 2) ^ (((s + 1) / 2) - 1) *
           (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
         (2 * x) := by
-  have hx_nonneg : 0 ≤ x :=
-    le_of_lt hx.1
-  have hsq_exp :
-      (2 : ℝ) * (((s + 1) / 2) - 1) = s - 1 := by
-    calc
-      (2 : ℝ) * (((s + 1) / 2) - 1) =
-          2 * ((s + 1) / 2) - 2 * 1 := by
-        exact mul_sub 2 ((s + 1) / 2) 1
-      _ = ((s + 1) / 2) * 2 - 2 := by
-        exact congrArg₂
-          (fun a b : ℝ => a - b)
-          (mul_comm 2 ((s + 1) / 2))
-          (mul_one 2)
-      _ = (s + 1) - 2 := by
-        exact congrArg (fun y : ℝ => y - 2)
-          (div_mul_cancel₀ (s + 1) two_ne_zero)
-      _ = (s + 1) - (1 + 1) := by
-        exact congrArg (fun y : ℝ => (s + 1) - y)
-          (show (2 : ℝ) = 1 + 1 by norm_num)
-      _ = ((s + 1) - 1) - 1 := by
-        exact sub_add_eq_sub_sub (s + 1) 1 1
-      _ = s - 1 := by
-        exact congrArg (fun y : ℝ => y - 1) (add_sub_cancel_right s 1)
-  have hsq :
-      (x ^ 2) ^ (((s + 1) / 2) - 1) =
-        x ^ (s - 1) := by
-    calc
-      (x ^ 2) ^ (((s + 1) / 2) - 1) =
-          (x ^ (2 : ℝ)) ^ (((s + 1) / 2) - 1) := by
-        exact congrArg
-          (fun y : ℝ => y ^ (((s + 1) / 2) - 1))
-          (Real.rpow_natCast x 2).symm
-      _ = x ^ ((2 : ℝ) * (((s + 1) / 2) - 1)) := by
-        exact (Real.rpow_mul hx_nonneg 2 (((s + 1) / 2) - 1)).symm
-      _ = x ^ (s - 1) := by
-        exact congrArg (fun e : ℝ => x ^ e) hsq_exp
-  have hright_exp :
-      ((1 / 2 : ℝ) - 1) = ((-1 : ℝ) / 2) := by
-    calc
-      (1 / 2 : ℝ) - 1 = (1 / 2 : ℝ) - (2 / 2 : ℝ) := by
-        exact congrArg (fun y : ℝ => (1 / 2 : ℝ) - y)
-          (by
-            exact (div_self two_ne_zero).symm)
-      _ = (1 - 2 : ℝ) / 2 := by
-        exact (sub_div 1 2 2).symm
-      _ = (1 - (1 + 1) : ℝ) / 2 := by
-        exact congrArg (fun y : ℝ => (1 - y) / 2)
-          (show (2 : ℝ) = 1 + 1 by norm_num)
-      _ = ((1 - 1) - 1 : ℝ) / 2 := by
-        exact congrArg (fun y : ℝ => y / 2)
-          (sub_add_eq_sub_sub 1 1 1)
-      _ = (0 - 1 : ℝ) / 2 := by
-        exact congrArg (fun y : ℝ => (y - 1) / 2) (sub_self 1)
-      _ = (-1 : ℝ) / 2 := by
-        exact congrArg (fun y : ℝ => y / 2) (zero_sub 1)
-  have hright :
-      (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1) =
-        (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
-    congrArg
-      (fun e : ℝ => (1 - x ^ 2) ^ e)
-      hright_exp
-  have hleft_mul :
-      x ^ (s - 1) * x = x ^ s := by
-    calc
-      x ^ (s - 1) * x =
-          x ^ (s - 1) * x ^ (1 : ℝ) := by
-        exact congrArg (fun y : ℝ => x ^ (s - 1) * y)
-          (Real.rpow_one x).symm
-      _ = x ^ ((s - 1) + 1) := by
-        exact (Real.rpow_add hx.1 (s - 1) 1).symm
-      _ = x ^ s := by
-        exact congrArg (fun e : ℝ => x ^ e) (sub_add_cancel s 1)
-  have hhalf_two : (1 / 2 : ℝ) * 2 = 1 := by
-    calc
-      (1 / 2 : ℝ) * 2 = (2 : ℝ)⁻¹ * 2 := by
-        exact congrArg (fun z : ℝ => z * 2) (one_div 2)
-      _ = 1 := by
-        exact inv_mul_cancel₀ two_ne_zero
-  have hscalar :
-      ∀ y : ℝ, ((1 / 2 : ℝ) * y) * (2 * x) = y * x := by
-    intro y
-    calc
-      ((1 / 2 : ℝ) * y) * (2 * x) =
-          (((1 / 2 : ℝ) * y) * 2) * x := by
-        exact (mul_assoc ((1 / 2 : ℝ) * y) 2 x).symm
-      _ = ((1 / 2 : ℝ) * (y * 2)) * x := by
-        exact congrArg (fun z : ℝ => z * x)
-          (mul_assoc (1 / 2 : ℝ) y 2)
-      _ = ((1 / 2 : ℝ) * (2 * y)) * x := by
-        exact congrArg
-          (fun z : ℝ => ((1 / 2 : ℝ) * z) * x)
-          (mul_comm y 2)
-      _ = (((1 / 2 : ℝ) * 2) * y) * x := by
-        exact congrArg (fun z : ℝ => z * x)
-          (mul_assoc (1 / 2 : ℝ) 2 y).symm
-      _ = (1 * y) * x := by
-        exact congrArg (fun z : ℝ => (z * y) * x) hhalf_two
-      _ = y * x := by
-        exact congrArg (fun z : ℝ => z * x) (one_mul y)
-  have hreassoc :
-      ∀ a b : ℝ, (a * b) * x = (a * x) * b := by
-    intro a b
-    calc
-      (a * b) * x = a * (b * x) := by
-        exact mul_assoc a b x
-      _ = a * (x * b) := by
-        exact congrArg (fun z : ℝ => a * z) (mul_comm b x)
-      _ = (a * x) * b := by
-        exact (mul_assoc a x b).symm
   calc
     x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) =
         (x ^ (s - 1) * x) *
           (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
       exact congrArg
         (fun y : ℝ => y * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
-        hleft_mul.symm
+        (Real.sinePower_squareSubstitution_left_mul_eq s hx).symm
     _ =
         (x ^ (s - 1) *
           (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) * x := by
-      exact (hreassoc (x ^ (s - 1))
-        ((1 - x ^ 2) ^ ((-1 : ℝ) / 2))).symm
+      exact (Real.sinePower_squareSubstitution_mul_reassoc
+        (x ^ (s - 1))
+        ((1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+        x).symm
     _ =
         ((x ^ 2) ^ (((s + 1) / 2) - 1) *
           (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1)) * x := by
@@ -979,15 +1174,15 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
         (fun y : ℝ => y * x)
         (congrArg₂
           (fun a b : ℝ => a * b)
-          hsq.symm
-          hright.symm)
+          (Real.sinePower_squareSubstitution_sq_rpow_eq_left s hx).symm
+          (Real.sinePower_squareSubstitution_right_rpow_eq x).symm)
     _ =
         ((1 / 2 : ℝ) *
           ((x ^ 2) ^ (((s + 1) / 2) - 1) *
             (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
           (2 * x) := by
       exact
-        (hscalar
+        (Real.sinePower_squareSubstitution_half_mul_two_mul x
           ((x ^ 2) ^ (((s + 1) / 2) - 1) *
             (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))).symm
 
@@ -995,15 +1190,24 @@ theorem Real.sinePower_sinSubstitution_target_eq_betaSquareRootPullback
 theorem Real.sinePower_squareSubstitution_closedImage_subset_unitInterval :
     (fun x : ℝ => x ^ 2) '' [[(0 : ℝ), 1]] ⊆ [[(0 : ℝ), 1]] := by
   intro t ht
-  rcases ht with ⟨x, hx, rfl⟩
-  have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
-    rwa [Set.uIcc_of_le zero_le_one] at hx
-  have hx_nonneg : 0 ≤ x := hxIcc.1
-  have hx_le_one : x ≤ 1 := hxIcc.2
-  have hleft : 0 ≤ x ^ 2 := sq_nonneg x
-  have hright : x ^ 2 ≤ 1 := by
-    exact (sq_le_one_iff₀ hx_nonneg).2 hx_le_one
-  exact Set.mem_uIcc_of_le hleft hright
+  match ht with
+  | ⟨x, hx, hxt⟩ =>
+      have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (Set.uIcc_of_le zero_le_one)
+          hx
+      have hx_nonneg : 0 ≤ x := hxIcc.1
+      have hx_le_one : x ≤ 1 := hxIcc.2
+      have hleft : 0 ≤ x ^ 2 := sq_nonneg x
+      have hright : x ^ 2 ≤ 1 := by
+        exact (sq_le_one_iff₀ hx_nonneg).2 hx_le_one
+      have hx_image : x ^ 2 ∈ [[(0 : ℝ), 1]] :=
+        Set.mem_uIcc_of_le hleft hright
+      exact Eq.subst
+        (motive := fun y : ℝ => y ∈ [[(0 : ℝ), 1]])
+        hxt
+        hx_image
 
 /-- Integrability transport for the square substitution `t = x²` with its
 Jacobian factor on `[0,1]`. This is the exact owner-level input needed for the
@@ -1013,19 +1217,19 @@ theorem Real.squareSubstitution_weightedPullback_mul_nonneg
     (hx : x ∈ [[(0 : ℝ), 1]]) :
     0 ≤ (2 : ℝ) * x := by
   have hx' := (Set.mem_uIcc.mp hx)
-  cases hx' with
-  | inl h =>
+  match hx' with
+  | Or.inl h =>
       have hx0 : 0 ≤ x := h.1
-      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+      have htwo_nonneg : (0 : ℝ) ≤ 2 := zero_le_two
       exact mul_nonneg htwo_nonneg hx0
-  | inr h =>
+  | Or.inr h =>
       have hxIcc : x ∈ Set.Icc (0 : ℝ) 1 := by
         exact Eq.subst
           (motive := fun s : Set ℝ => x ∈ s)
           (Set.uIcc_of_le zero_le_one)
           hx
       have hx0 : 0 ≤ x := hxIcc.1
-      have htwo_nonneg : (0 : ℝ) ≤ 2 := by norm_num
+      have htwo_nonneg : (0 : ℝ) ≤ 2 := zero_le_two
       exact mul_nonneg htwo_nonneg hx0
 
 theorem Real.squareSubstitution_weightedPullback_derivWithin
@@ -1099,13 +1303,20 @@ theorem Real.squareSubstitution_weightedPullback_integrableOn_of_image
   have hinj : Set.InjOn (fun x : ℝ => x ^ 2) [[(0 : ℝ), 1]] := by
     intro x hx y hy hxy
     have hx' : x ∈ Set.Icc (0 : ℝ) 1 := by
-      rwa [Set.uIcc_of_le zero_le_one] at hx
+      exact Eq.subst
+        (motive := fun s : Set ℝ => x ∈ s)
+        (Set.uIcc_of_le zero_le_one)
+        hx
     have hy' : y ∈ Set.Icc (0 : ℝ) 1 := by
-      rwa [Set.uIcc_of_le zero_le_one] at hy
+      exact Eq.subst
+        (motive := fun s : Set ℝ => y ∈ s)
+        (Set.uIcc_of_le zero_le_one)
+        hy
     have hsq : x ^ 2 = y ^ 2 := hxy
-    rcases sq_eq_sq_iff_eq_or_eq_neg.mp hsq with hxy' | hxy'
-    · exact hxy'
-    · have hy_nonneg : 0 ≤ y := hy'.1
+    match sq_eq_sq_iff_eq_or_eq_neg.mp hsq with
+    | Or.inl hxy' => exact hxy'
+    | Or.inr hxy' =>
+      have hy_nonneg : 0 ≤ y := hy'.1
       have hx_nonpos : x ≤ 0 := by
         calc
           x = -y := hxy'
@@ -1244,8 +1455,25 @@ theorem Real.sinePower_sinSubstitution_target_intervalIntegrable_from_beta
                     (1 - x ^ 2) ^ ((1 / 2 : ℝ) - 1))) *
                   (2 * x) =
                 x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
-          Real.ae_uIoc_eq_of_eqOn_Ioo
-            (a := (0 : ℝ)) (b := 1) hpoint_minmax
+          have huIoc_eq : Ι (0 : ℝ) 1 = Set.Ioc (0 : ℝ) 1 :=
+            Set.uIoc_of_le zero_le_one
+          have hae :
+              Set.Ioo (0 : ℝ) 1 =ᵐ[MeasureTheory.volume]
+                Set.Ioc (0 : ℝ) 1 :=
+            MeasureTheory.Ioo_ae_eq_Ioc
+          hae.mono
+            (fun x hx hmem =>
+              hpoint_minmax
+                (Eq.subst
+                  (motive := fun u : Set ℝ => x ∈ u)
+                  (congrArg₂ Set.Ioo
+                    (min_eq_left zero_le_one)
+                    (max_eq_right zero_le_one)).symm
+                  (hx.mpr
+                    (Eq.subst
+                      (motive := fun u : Set ℝ => x ∈ u)
+                      huIoc_eq
+                      hmem))))
         exact
           (MeasureTheory.ae_restrict_iff' measurableSet_uIoc).2 hae_vol)
 
@@ -1384,9 +1612,10 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
     (hpoint :
       Set.EqOn f g (Set.Ioo (min a b) (max a b))) :
     ∀ᵐ x ∂MeasureTheory.volume, x ∈ Ι a b → f x = g x := by
-  refine MeasureTheory.ae_uIoc_iff.mpr ⟨?_, ?_⟩
-  · by_cases hab : a < b
-    · have hmin : min a b = a :=
+  have hforward :
+      ∀ᵐ x ∂MeasureTheory.volume, x ∈ Set.Ioc a b → f x = g x := by
+    if hab : a < b then
+      have hmin : min a b = a :=
         min_eq_left hab.le
       have hmax : max a b = b :=
         max_eq_right hab.le
@@ -1395,13 +1624,15 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
       have hae :
           Set.Ioo a b =ᵐ[MeasureTheory.volume] Set.Ioc a b :=
         MeasureTheory.Ioo_ae_eq_Ioc
-      filter_upwards [hae] with x hx hmem
-      exact hpoint
-        (Eq.subst
-          (motive := fun s : Set ℝ => x ∈ s)
-          hset.symm
-          (hx.mpr hmem))
-    · have hle : b ≤ a :=
+      exact hae.mono
+        (fun x hx hmem =>
+          hpoint
+            (Eq.subst
+              (motive := fun s : Set ℝ => x ∈ s)
+              hset.symm
+              (hx.mpr hmem)))
+    else
+      have hle : b ≤ a :=
         le_of_not_gt hab
       exact MeasureTheory.ae_of_all
         MeasureTheory.volume
@@ -1409,8 +1640,10 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
           False.elim
             ((not_lt_of_ge hle)
               (lt_of_lt_of_le hmem.1 hmem.2)))
-  · by_cases hba : b < a
-    · have hmin : min a b = b :=
+  have hbackward :
+      ∀ᵐ x ∂MeasureTheory.volume, x ∈ Set.Ioc b a → f x = g x := by
+    if hba : b < a then
+      have hmin : min a b = b :=
         min_eq_right hba.le
       have hmax : max a b = a :=
         max_eq_left hba.le
@@ -1419,13 +1652,15 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
       have hae :
           Set.Ioo b a =ᵐ[MeasureTheory.volume] Set.Ioc b a :=
         MeasureTheory.Ioo_ae_eq_Ioc
-      filter_upwards [hae] with x hx hmem
-      exact hpoint
-        (Eq.subst
-          (motive := fun s : Set ℝ => x ∈ s)
-          hset.symm
-          (hx.mpr hmem))
-    · have hle : a ≤ b :=
+      exact hae.mono
+        (fun x hx hmem =>
+          hpoint
+            (Eq.subst
+              (motive := fun s : Set ℝ => x ∈ s)
+              hset.symm
+              (hx.mpr hmem)))
+    else
+      have hle : a ≤ b :=
         le_of_not_gt hba
       exact MeasureTheory.ae_of_all
         MeasureTheory.volume
@@ -1433,8 +1668,9 @@ theorem Real.ae_uIoc_eq_of_eqOn_Ioo
           False.elim
             ((not_lt_of_ge hle)
               (lt_of_lt_of_le hmem.1 hmem.2)))
+  exact MeasureTheory.ae_uIoc_iff.mpr (And.intro hforward hbackward)
 
-/-- Direct owner wrapper around mathlib's singular scalar change-of-variables
+/-- Direct owner wrapper around mathlib's singular scalar substitution
 theorem, with the exact image and pullback integrability hypotheses it needs. -/
 theorem Real.intervalIntegral_congr_of_eqOn_Ioo
     {a b : ℝ}
@@ -1448,7 +1684,7 @@ theorem Real.intervalIntegral_congr_of_eqOn_Ioo
       (μ := MeasureTheory.volume)
       (Real.ae_uIoc_eq_of_eqOn_Ioo hpoint)
 
-/-- Direct owner wrapper around mathlib's singular scalar change-of-variables
+/-- Direct owner wrapper around mathlib's singular scalar substitution
 theorem, with the exact image and pullback integrability hypotheses it needs
 and only open-interval pointwise equality.  The endpoints are ignored by the
 interval integral. -/
@@ -1551,16 +1787,26 @@ theorem Real.sinePower_sinSubstitution_forwardJacobian_eq
 /-- The closed sine-substitution image lies in the unit interval. -/
 theorem Real.sinePower_sinSubstitution_closedImage_subset_unitInterval :
     Real.sin '' [[(0 : ℝ), Real.pi / 2]] ⊆ [[(0 : ℝ), 1]] := by
-  rintro x ⟨u, hu, rfl⟩
-  have huIcc : u ∈ Set.Icc (0 : ℝ) (Real.pi / 2) := by
-    rwa [Set.uIcc_of_le Real.pi_div_two_pos.le] at hu
-  have hleft : 0 ≤ Real.sin u :=
-    Real.sin_nonneg_of_nonneg_of_le_pi
-      huIcc.1
-      (le_trans huIcc.2 (half_le_self Real.pi_pos.le))
-  have hright : Real.sin u ≤ 1 :=
-    Real.sin_le_one u
-  exact Set.mem_uIcc_of_le hleft hright
+  intro x hx
+  match hx with
+  | ⟨u, hu, hux⟩ =>
+      have huIcc : u ∈ Set.Icc (0 : ℝ) (Real.pi / 2) := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => u ∈ s)
+          (Set.uIcc_of_le Real.pi_div_two_pos.le)
+          hu
+      have hleft : 0 ≤ Real.sin u :=
+        Real.sin_nonneg_of_nonneg_of_le_pi
+          huIcc.1
+          (le_trans huIcc.2 (half_le_self Real.pi_pos.le))
+      have hright : Real.sin u ≤ 1 :=
+        Real.sin_le_one u
+      have hu_image : Real.sin u ∈ [[(0 : ℝ), 1]] :=
+        Set.mem_uIcc_of_le hleft hright
+      exact Eq.subst
+        (motive := fun y : ℝ => y ∈ [[(0 : ℝ), 1]])
+        hux
+        hu_image
 
 /-- Image-side integrability needed by mathlib's sine substitution theorem. -/
 theorem Real.sinePower_sinSubstitution_image_integrableOn
@@ -1644,11 +1890,10 @@ theorem Real.sinePower_sinSubstitution_pullback_integrableOn
           (congrArg₂ Set.Ioo hmin hmax)
           hu
       exact hpoint hu'
-    refine (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2 ?_
-    filter_upwards
-      [Real.ae_uIoc_eq_of_eqOn_Ioo
-        (a := (0 : ℝ)) (b := Real.pi / 2) hpoint_minmax] with u hu
-    exact hu
+    exact
+      (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2
+        (MeasureTheory.Ioo_ae_eq_Icc.mono
+          (fun u hu hmem => hpoint_minmax (hu.mpr hmem)))
   exact hsource_Icc.congr_fun_ae hAE.symm
 
 /-- Pointwise equality on the open sine-substitution interval. -/
@@ -1666,7 +1911,10 @@ theorem Real.sinePower_sinSubstitution_openInterval_pointwise
   have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
     max_eq_right (le_of_lt Real.pi_div_two_pos)
   have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
-    rwa [hmin, hmax] at hu
+    exact Eq.subst
+      (motive := fun s : Set ℝ => u ∈ s)
+      (congrArg₂ Set.Ioo hmin hmax)
+      hu
   exact Real.sinePower_sinSubstitution_forwardJacobian_eq s u hu'
 
 /-- Points in the sine-substitution open image are positive. -/
@@ -1676,15 +1924,24 @@ theorem Real.sinePower_sinSubstitution_openImage_pos
       Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
         (max (0 : ℝ) (Real.pi / 2))) :
     0 < x := by
-  rcases hx with ⟨u, hu, rfl⟩
-  have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
-    min_eq_left (le_of_lt Real.pi_div_two_pos)
-  have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
-    max_eq_right (le_of_lt Real.pi_div_two_pos)
-  have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
-    rwa [hmin, hmax] at hu
-  exact Real.sin_pos_of_mem_Ioo
-    ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
+  match hx with
+  | ⟨u, hu, hux⟩ =>
+      have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+        min_eq_left (le_of_lt Real.pi_div_two_pos)
+      have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+        max_eq_right (le_of_lt Real.pi_div_two_pos)
+      have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => u ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hu
+      have hu_pos : 0 < Real.sin u :=
+        Real.sin_pos_of_mem_Ioo
+        ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
+      exact Eq.subst
+        (motive := fun y : ℝ => 0 < y)
+        hux
+        hu_pos
 
 /-- The complementary square factor is positive on the sine-substitution open
 image. -/
@@ -1694,25 +1951,34 @@ theorem Real.sinePower_sinSubstitution_openImage_one_sub_sq_pos
       Real.sin '' Set.Ioo (min (0 : ℝ) (Real.pi / 2))
         (max (0 : ℝ) (Real.pi / 2))) :
     0 < 1 - x ^ 2 := by
-  rcases hx with ⟨u, hu, rfl⟩
-  have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
-    min_eq_left (le_of_lt Real.pi_div_two_pos)
-  have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
-    max_eq_right (le_of_lt Real.pi_div_two_pos)
-  have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
-    rwa [hmin, hmax] at hu
-  have hsin_pos : 0 < Real.sin u :=
-    Real.sin_pos_of_mem_Ioo
-      ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
-  have hsin_lt_one : Real.sin u < 1 := by
-    have hmono :
-        Real.sin u < Real.sin (Real.pi / 2) :=
-      Real.sin_lt_sin_of_lt_of_le_pi_div_two
-        (le_trans (neg_nonpos.mpr Real.pi_div_two_pos.le) hu'.1.le)
-        le_rfl
-        hu'.2
-    exact hmono.trans_eq Real.sin_pi_div_two
-  exact sub_pos.mpr ((sq_lt_one_iff₀ hsin_pos.le).mpr hsin_lt_one)
+  match hx with
+  | ⟨u, hu, hux⟩ =>
+      have hmin : min (0 : ℝ) (Real.pi / 2) = 0 :=
+        min_eq_left (le_of_lt Real.pi_div_two_pos)
+      have hmax : max (0 : ℝ) (Real.pi / 2) = Real.pi / 2 :=
+        max_eq_right (le_of_lt Real.pi_div_two_pos)
+      have hu' : u ∈ Set.Ioo (0 : ℝ) (Real.pi / 2) := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => u ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hu
+      have hsin_pos : 0 < Real.sin u :=
+        Real.sin_pos_of_mem_Ioo
+          ⟨hu'.1, lt_trans hu'.2 (half_lt_self Real.pi_pos)⟩
+      have hsin_lt_one : Real.sin u < 1 := by
+        have hmono :
+            Real.sin u < Real.sin (Real.pi / 2) :=
+          Real.sin_lt_sin_of_lt_of_le_pi_div_two
+            (le_trans (neg_nonpos.mpr Real.pi_div_two_pos.le) hu'.1.le)
+            le_rfl
+            hu'.2
+        exact hmono.trans_eq Real.sin_pi_div_two
+      have hu_pos : 0 < 1 - (Real.sin u) ^ 2 :=
+        sub_pos.mpr ((sq_lt_one_iff₀ hsin_pos.le).mpr hsin_lt_one)
+      exact Eq.subst
+        (motive := fun y : ℝ => 0 < 1 - y ^ 2)
+        hux
+        hu_pos
 
 /-- Continuity of the sine-substitution target kernel on the open image. -/
 theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
@@ -1743,7 +2009,7 @@ theorem Real.sinePower_sinSubstitution_target_continuousOn_openImage
             (Real.sinePower_sinSubstitution_openImage_one_sub_sq_pos hx)))
   exact hleft.mul hright
 
-/-- General owner-level change-of-variables lemma for the sine substitution
+/-- General owner-level substitution lemma for the sine substitution
 with singular endpoint target. -/
 theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariables
     (s : ℝ)
@@ -1769,7 +2035,6 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
     Real.sinePowerHalfIntegral s =
       ∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) := by
-  unfold Real.sinePowerHalfIntegral
   have htarget_sinEndpoints :
       IntervalIntegrable
         (fun x : ℝ => x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
@@ -1793,7 +2058,10 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
             right)
         Real.sin_pi_div_two.symm
         htarget)
-  exact
+  have hraw :
+      Real.sinePowerHalfIntegral s =
+        ∫ x in Real.sin (0 : ℝ)..Real.sin (Real.pi / 2),
+          x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
     Real.intervalIntegral_comp_mul_deriv_of_intervalIntegrable
       (a := (0 : ℝ))
       (b := Real.pi / 2)
@@ -1814,6 +2082,25 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution_from_changeOfVariabl
       (Real.sinePower_sinSubstitution_pullback_integrableOn
         s hsource hforward)
       (Real.sinePower_sinSubstitution_openInterval_pointwise s)
+  have hleft :
+      Real.sinePowerHalfIntegral s =
+        ∫ x in (0 : ℝ)..Real.sin (Real.pi / 2),
+          x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2) :=
+    Eq.subst
+      (motive := fun a : ℝ =>
+        Real.sinePowerHalfIntegral s =
+          ∫ x in a..Real.sin (Real.pi / 2),
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      Real.sin_zero
+      hraw
+  exact
+    Eq.subst
+      (motive := fun b : ℝ =>
+        Real.sinePowerHalfIntegral s =
+          ∫ x in (0 : ℝ)..b,
+            x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2))
+      Real.sin_pi_div_two
+      hleft
 
 /-- The interval substitution theorem for `x = sin u` on `[0,π/2]`, after
 isolating the endpoint integrability and open-interval Jacobian packages. -/
@@ -1845,7 +2132,7 @@ theorem Real.sinePower_sinSubstitution_intervalSubstitution
       s hsource htarget
       (Real.sinePower_sinSubstitution_forwardJacobian_eq s)
 
-/-- The raw change-of-variables statement for `x = sin u` on `[0,π/2]`. -/
+/-- The raw substitution statement for `x = sin u` on `[0,π/2]`. -/
 theorem Real.sinePower_sinSubstitution_changeOfVariables
     (s : ℝ)
     (hleft : 0 < (s + 1) / 2)
@@ -2079,14 +2366,23 @@ theorem Real.sinePower_squareSubstitution_openImage_pos
       ((fun x : ℝ => x ^ 2) ''
         Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1))) :
     0 < t := by
-  rcases ht with ⟨x, hx, rfl⟩
-  have hmin : min (0 : ℝ) 1 = 0 :=
-    min_eq_left zero_le_one
-  have hmax : max (0 : ℝ) 1 = 1 :=
-    max_eq_right zero_le_one
-  have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
-    rwa [hmin, hmax] at hx
-  exact sq_pos_of_pos hx'.1
+  match ht with
+  | ⟨x, hx, hxt⟩ =>
+      have hmin : min (0 : ℝ) 1 = 0 :=
+        min_eq_left zero_le_one
+      have hmax : max (0 : ℝ) 1 = 1 :=
+        max_eq_right zero_le_one
+      have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hx
+      have hx_pos : 0 < x ^ 2 :=
+        sq_pos_of_pos hx'.1
+      exact Eq.subst
+        (motive := fun y : ℝ => 0 < y)
+        hxt
+        hx_pos
 
 /-- The complementary factor is positive on the square-substitution open image. -/
 theorem Real.sinePower_squareSubstitution_openImage_one_sub_pos
@@ -2095,14 +2391,23 @@ theorem Real.sinePower_squareSubstitution_openImage_one_sub_pos
       ((fun x : ℝ => x ^ 2) ''
         Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1))) :
     0 < 1 - t := by
-  rcases ht with ⟨x, hx, rfl⟩
-  have hmin : min (0 : ℝ) 1 = 0 :=
-    min_eq_left zero_le_one
-  have hmax : max (0 : ℝ) 1 = 1 :=
-    max_eq_right zero_le_one
-  have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
-    rwa [hmin, hmax] at hx
-  exact sub_pos.mpr ((sq_lt_one_iff₀ hx'.1.le).mpr hx'.2)
+  match ht with
+  | ⟨x, hx, hxt⟩ =>
+      have hmin : min (0 : ℝ) 1 = 0 :=
+        min_eq_left zero_le_one
+      have hmax : max (0 : ℝ) 1 = 1 :=
+        max_eq_right zero_le_one
+      have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
+        exact Eq.subst
+          (motive := fun s : Set ℝ => x ∈ s)
+          (congrArg₂ Set.Ioo hmin hmax)
+          hx
+      have hx_pos : 0 < 1 - x ^ 2 :=
+        sub_pos.mpr ((sq_lt_one_iff₀ hx'.1.le).mpr hx'.2)
+      exact Eq.subst
+        (motive := fun y : ℝ => 0 < 1 - y)
+        hxt
+        hx_pos
 
 /-- Continuity of the square-substitution target kernel on the open image. -/
 theorem Real.sinePower_squareSubstitution_target_continuousOn_openImage
@@ -2234,11 +2539,10 @@ theorem Real.sinePower_squareSubstitution_pullback_integrableOn
           (congrArg₂ Set.Ioo hmin hmax)
           hx
       exact hpoint hx'
-    refine (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2 ?_
-    filter_upwards
-      [Real.ae_uIoc_eq_of_eqOn_Ioo
-        (a := (0 : ℝ)) (b := 1) hpoint_minmax] with x hx
-    exact hx
+    exact
+      (MeasureTheory.ae_restrict_iff' measurableSet_Icc).2
+        (MeasureTheory.Ioo_ae_eq_Icc.mono
+          (fun x hx hmem => hpoint_minmax (hx.mpr hmem)))
   exact hsource_Icc.congr_fun_ae hAE.symm
 
 /-- Pointwise equality on the open square-substitution interval. -/
@@ -2257,7 +2561,10 @@ theorem Real.sinePower_squareSubstitution_openInterval_pointwise
   have hmax : max (0 : ℝ) 1 = 1 :=
     max_eq_right zero_le_one
   have hx' : x ∈ Set.Ioo (0 : ℝ) 1 := by
-    rwa [hmin, hmax] at hx
+    exact Eq.subst
+      (motive := fun s : Set ℝ => x ∈ s)
+      (congrArg₂ Set.Ioo hmin hmax)
+      hx
   exact Real.sinePower_squareSubstitution_jacobian_eq s x hx'
 
 /-- Continuity of the square-substitution target kernel including its scalar
@@ -2271,9 +2578,16 @@ theorem Real.sinePower_squareSubstitution_scaledTarget_continuousOn_openImage
             (1 - t) ^ ((1 / 2 : ℝ) - 1)))
       ((fun x : ℝ => x ^ 2) ''
         Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) := by
+  have htarget :
+      ContinuousOn
+        (fun t : ℝ =>
+          t ^ (((s + 1) / 2) - 1) *
+            (1 - t) ^ ((1 / 2 : ℝ) - 1))
+        ((fun x : ℝ => x ^ 2) ''
+          Set.Ioo (min (0 : ℝ) 1) (max (0 : ℝ) 1)) :=
+    Real.sinePower_squareSubstitution_target_continuousOn_openImage s
   exact
-    (Real.sinePower_squareSubstitution_target_continuousOn_openImage s).const_mul
-      (1 / 2 : ℝ)
+    continuousOn_const.mul htarget
 
 /-- Interval integrability of the square-substitution target after multiplying
 by the scalar `1/2`. -/
@@ -2361,7 +2675,7 @@ theorem Real.sinePower_squareSubstitution_scaledIntegral_eq
       (f := kernel)
   exact Eq.trans hbounds hscale
 
-/-- General owner-level change-of-variables lemma for the square substitution
+/-- General owner-level substitution lemma for the square substitution
 `t = x²` with singular endpoint kernels. -/
 theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVariables
     (s : ℝ)
@@ -2390,7 +2704,6 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVari
     (∫ x in (0 : ℝ)..1,
         x ^ s * (1 - x ^ 2) ^ ((-1 : ℝ) / 2)) =
       (1 / 2 : ℝ) * Real.sinePowerEulerBetaRealIntegral s := by
-  unfold Real.sinePowerEulerBetaRealIntegral
   have htarget_squareEndpoints :
       IntervalIntegrable
         (fun t : ℝ =>
@@ -2497,7 +2810,7 @@ theorem Real.sinePower_squareSubstitution_intervalSubstitution
     Real.sinePower_squareSubstitution_intervalSubstitution_from_changeOfVariables
       s hsource htarget hjac
 
-/-- The raw change-of-variables statement for `t = x²` on `[0,1]`. -/
+/-- The raw substitution statement for `t = x²` on `[0,1]`. -/
 theorem Real.sinePower_squareSubstitution_changeOfVariables
     (s : ℝ)
     (hleft : 0 < (s + 1) / 2)
@@ -2541,8 +2854,6 @@ theorem Real.sinePowerHalfIntegral_eq_half_betaRealIntegral_from_sinSqSubstituti
       (Real.sinePowerSinSubstitutionIntegral_eq_half_betaRealIntegral
         s hleft hright)
 
-/-- Real/complex comparison for the unit-interval Beta integrand, using
-`Complex.ofReal_cpow` on the positive interval `(0,1)`. -/
 /-- Pointwise real-part comparison for the unit-interval Beta integrands. -/
 theorem Real.sinePowerEulerBetaReal_integrand_re_eq
     (s t : ℝ)
@@ -2630,12 +2941,14 @@ theorem Real.sinePowerEulerBetaRealIntegral_eq_eulerBetaIntegral_from_integralRe
   have hreal_eq_re :
       Real.sinePowerEulerBetaRealIntegral s =
         ∫ t in (0 : ℝ)..1, (F t).re := by
-    unfold Real.sinePowerEulerBetaRealIntegral
     exact
       intervalIntegral.integral_congr
         (fun t ht => by
           have htIcc : t ∈ Set.Icc (0 : ℝ) 1 := by
-            rwa [Set.uIcc_of_le zero_le_one] at ht
+            exact Eq.subst
+              (motive := fun s : Set ℝ => t ∈ s)
+              (Set.uIcc_of_le zero_le_one)
+              ht
           have ht0 : 0 ≤ t := htIcc.1
           have ht1 : 0 ≤ 1 - t :=
             sub_nonneg.mpr htIcc.2
@@ -2819,9 +3132,26 @@ theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_from_complexBetaGamm
   have hbeta :
       Complex.betaIntegral a b =
         Complex.Gamma a * Complex.Gamma b / Complex.Gamma (a + b) := by
+    have hcomm :
+        Complex.betaIntegral a b * Complex.Gamma (a + b) =
+          Complex.Gamma (a + b) * Complex.betaIntegral a b :=
+      mul_comm (Complex.betaIntegral a b) (Complex.Gamma (a + b))
+    have hproduct :
+        Complex.betaIntegral a b * Complex.Gamma (a + b) =
+          Complex.Gamma a * Complex.Gamma b :=
+      Eq.trans hcomm hmul.symm
     exact
       (eq_div_iff hsum_ne).mpr
-        (Eq.trans (mul_comm (Complex.Gamma (a + b)) (Complex.betaIntegral a b)) hmul.symm)
+        hproduct
+  have hsum_def :
+      a + b =
+        ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ) := by
+    calc
+      a + b =
+          (((s + 1) / 2 : ℝ) : ℂ) + (((1 / 2 : ℝ) : ℝ) : ℂ) := by
+        rfl
+      _ = ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ) := by
+        exact (Complex.ofReal_add ((s + 1) / 2) (1 / 2 : ℝ)).symm
   calc
     Real.sinePowerEulerBetaIntegral s =
         (Complex.betaIntegral a b).re := by
@@ -2833,7 +3163,10 @@ theorem Real.sinePowerEulerBetaIntegral_eq_gammaQuotient_re_from_complexBetaGamm
         (Complex.Gamma (((s + 1) / 2 : ℝ) : ℂ) *
             Complex.Gamma (((1 / 2 : ℝ) : ℝ) : ℂ) /
           Complex.Gamma ((((s + 1) / 2 + (1 / 2 : ℝ)) : ℝ) : ℂ)).re := by
-      rfl
+      exact congrArg
+        (fun z : ℂ =>
+          (Complex.Gamma a * Complex.Gamma b / Complex.Gamma z).re)
+        hsum_def
 
 /-- Real Gamma at `1/2` in the normalization used by the sine-power formula. -/
 theorem Real.Gamma_one_half_eq_sqrt_pi :
@@ -3107,25 +3440,73 @@ theorem Real.sinePowerKernel_exponent_hasDerivAt_zero
       (fun s : ℝ => (Real.sin u) ^ s)
       (Real.log (Real.sin u))
       0 := by
-  have hsin_pos : 0 < Real.sin u :=
-    Real.sin_pos_of_pos_of_lt_pi hu0 hupi
-  have hbase :
-      HasDerivAt (fun _ : ℝ => Real.sin u) 0 (0 : ℝ) :=
-    hasDerivAt_const (0 : ℝ) (Real.sin u)
-  have hexponent :
-      HasDerivAt (fun s : ℝ => s) 1 (0 : ℝ) :=
-    hasDerivAt_id' (0 : ℝ)
-  have hraw :
+  have hderiv :
       HasDerivAt
         (fun s : ℝ => (Real.sin u) ^ s)
-        ((0 : ℝ) * (0 : ℝ) * (Real.sin u) ^ ((0 : ℝ) - 1) +
-          (1 : ℝ) * (Real.sin u) ^ (0 : ℝ) *
-            Real.log (Real.sin u))
+        ((Real.sin u) ^ (0 : ℝ) * Real.log (Real.sin u))
         0 :=
-    hbase.rpow hexponent hsin_pos
+    Real.sinePowerKernel_exponent_hasDerivAt 0 u hu0 hupi
+  have hvalue :
+      (Real.sin u) ^ (0 : ℝ) * Real.log (Real.sin u) =
+        Real.log (Real.sin u) := by
+    calc
+      (Real.sin u) ^ (0 : ℝ) * Real.log (Real.sin u) =
+          1 * Real.log (Real.sin u) := by
+        exact congrArg
+          (fun x : ℝ => x * Real.log (Real.sin u))
+          (Real.rpow_zero (Real.sin u))
+      _ = Real.log (Real.sin u) := by
+        exact one_mul (Real.log (Real.sin u))
   exact
-    hraw.congr_deriv
-      (Real.sinePowerKernel_exponent_derivativeValue hsin_pos)
+    hderiv.congr_deriv hvalue
+
+/-- The sine-power kernel is strongly measurable on the integration interval
+for every exponent in a neighborhood of zero. -/
+theorem Real.sinePowerKernel_exponent_eventually_aestronglyMeasurable_zero :
+    ∀ᶠ s in nhds (0 : ℝ),
+      MeasureTheory.AEStronglyMeasurable
+        (fun u : ℝ => (Real.sin u) ^ s)
+        (MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi)) := by
+  have hzero_mem : (0 : ℝ) ∈ Set.Ioi (-1 : ℝ) :=
+    Set.mem_Ioi.2 neg_one_lt_zero
+  have heventually : ∀ᶠ s in nhds (0 : ℝ), s ∈ Set.Ioi (-1 : ℝ) :=
+    IsOpen.mem_nhds isOpen_Ioi hzero_mem
+  exact heventually.mono
+    (fun s hs =>
+      (Real.sinePowerKernel_intervalIntegrable_zero_pi s hs).def'.aestronglyMeasurable)
+
+/-- The logarithmic derivative kernel at exponent zero is strongly measurable
+on the integration interval. -/
+theorem Real.sinePowerKernel_logDerivative_zero_aestronglyMeasurable :
+    MeasureTheory.AEStronglyMeasurable
+      (fun u : ℝ => (Real.sin u) ^ (0 : ℝ) * Real.log (Real.sin u))
+      (MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi)) := by
+  have hsin_pow_meas :
+      Measurable (fun u : ℝ => (Real.sin u) ^ (0 : ℝ)) :=
+    (Real.continuous_sin.rpow_const
+      (fun _ => Or.inr (le_refl (0 : ℝ)))).measurable
+  have hlog_sin_meas :
+      Measurable (fun u : ℝ => Real.log (Real.sin u)) :=
+    Real.measurable_log.comp Real.measurable_sin
+  exact
+    (hsin_pow_meas.mul hlog_sin_meas).aestronglyMeasurable
+
+/-- The quarter-radius differentiated-kernel majorant is integrable on the
+full sine interval. -/
+theorem Real.sinePowerKernelLogDerivativeQuarterMajorant_intervalIntegrable :
+    IntervalIntegrable
+      Real.sinePowerKernelLogDerivativeQuarterMajorant
+      MeasureTheory.volume
+      (0 : ℝ)
+      Real.pi := by
+  have hexponent :
+      (-1 : ℝ) < (-1 : ℝ) / 2 :=
+    Real.neg_one_lt_neg_one_div_two
+  exact
+    Real.sinePowerKernel_const_mul_intervalIntegrable_zero_pi
+      4
+      ((-1 : ℝ) / 2)
+      hexponent
 
 /-- Differentiation under the integral for the sine-power family at exponent
 `0`, after pointwise differentiation and endpoint domination have been
@@ -3135,8 +3516,104 @@ theorem Real.sinePowerIntegral_hasDerivAt_zero_from_pointwiseDerivative_and_domi
       Real.sinePowerIntegral
       (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
       0 := by
-  exact
-    Real.sinePowerIntegral_hasDerivAt_zero_from_gammaRatio
+  let F : ℝ → ℝ → ℝ :=
+    fun s u => (Real.sin u) ^ s
+  let F' : ℝ → ℝ → ℝ :=
+    fun s u => (Real.sin u) ^ s * Real.log (Real.sin u)
+  have hF_meas :
+      ∀ᶠ s in nhds (0 : ℝ),
+        MeasureTheory.AEStronglyMeasurable
+          (F s)
+          (MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi)) := by
+    exact Real.sinePowerKernel_exponent_eventually_aestronglyMeasurable_zero
+  have hF_int :
+      IntervalIntegrable
+        (F 0)
+        MeasureTheory.volume
+        (0 : ℝ)
+        Real.pi := by
+    exact Real.sinePowerKernel_intervalIntegrable_zero_pi 0 neg_one_lt_zero
+  have hF'_meas :
+      MeasureTheory.AEStronglyMeasurable
+        (F' 0)
+        (MeasureTheory.volume.restrict (Ι (0 : ℝ) Real.pi)) := by
+    exact Real.sinePowerKernel_logDerivative_zero_aestronglyMeasurable
+  have hbound :
+      ∀ᵐ u ∂MeasureTheory.volume,
+        u ∈ Ι (0 : ℝ) Real.pi →
+          ∀ s : ℝ,
+            s ∈ Metric.ball (0 : ℝ) ((1 : ℝ) / 4) →
+              ‖F' s u‖ ≤
+                Real.sinePowerKernelLogDerivativeQuarterMajorant u := by
+    exact Real.sinePowerKernel_logDerivative_norm_le_quarterMajorant_ae_uIoc
+  have hbound_integrable :
+      IntervalIntegrable
+        Real.sinePowerKernelLogDerivativeQuarterMajorant
+        MeasureTheory.volume
+        (0 : ℝ)
+        Real.pi := by
+    exact Real.sinePowerKernelLogDerivativeQuarterMajorant_intervalIntegrable
+  have hdiff :
+      ∀ᵐ u ∂MeasureTheory.volume,
+        u ∈ Ι (0 : ℝ) Real.pi →
+          ∀ s : ℝ,
+            s ∈ Metric.ball (0 : ℝ) ((1 : ℝ) / 4) →
+              HasDerivAt (fun r : ℝ => F r u) (F' s u) s := by
+    exact Real.sinePowerKernel_exponent_hasDerivAt_ae_uIoc ((1 : ℝ) / 4)
+  have hmain :
+      IntervalIntegrable
+          (F' 0)
+          MeasureTheory.volume
+          (0 : ℝ)
+          Real.pi ∧
+        HasDerivAt
+          (fun s : ℝ => ∫ u in (0 : ℝ)..Real.pi, F s u)
+          (∫ u in (0 : ℝ)..Real.pi, F' 0 u)
+          0 :=
+    intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
+      (μ := MeasureTheory.volume)
+      (F := F)
+      (F' := F')
+      (x₀ := (0 : ℝ))
+      (a := (0 : ℝ))
+      (b := Real.pi)
+      (bound := Real.sinePowerKernelLogDerivativeQuarterMajorant)
+      Real.one_div_four_pos
+      hF_meas
+      hF_int
+      hF'_meas
+      hbound
+      hbound_integrable
+      hdiff
+  have hderiv :
+      HasDerivAt
+        Real.sinePowerIntegral
+        (∫ u in (0 : ℝ)..Real.pi, F' 0 u)
+        0 := by
+    exact hmain.2
+  have hpoint :
+      ∀ u : ℝ,
+        F' 0 u = Real.log (Real.sin u) :=
+    fun u =>
+      have hpow :
+          (Real.sin u) ^ (0 : ℝ) = 1 :=
+        Real.rpow_zero (Real.sin u)
+      calc
+        F' 0 u =
+            (Real.sin u) ^ (0 : ℝ) * Real.log (Real.sin u) := by
+          rfl
+        _ = 1 * Real.log (Real.sin u) := by
+          exact congrArg
+            (fun x : ℝ => x * Real.log (Real.sin u))
+            hpow
+        _ = Real.log (Real.sin u) := by
+          exact one_mul (Real.log (Real.sin u))
+  have hintegral :
+      (∫ u in (0 : ℝ)..Real.pi, F' 0 u) =
+        ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u) :=
+    intervalIntegral.integral_congr
+      (fun u _hu => hpoint u)
+  exact hderiv.congr_deriv hintegral
 
 /-- Differentiating the sine-power integral at exponent `0`. -/
 theorem Real.sinePowerIntegral_hasDerivAt_zero_from_differentiationUnderIntegral :
@@ -3155,22 +3632,220 @@ theorem Real.sinePowerIntegral_hasDerivAt_zero :
       0 := by
   exact Real.sinePowerIntegral_hasDerivAt_zero_from_differentiationUnderIntegral
 
-/-- Legendre duplication differentiated logarithmically at `1/2`. -/
-theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two_from_duplicationDerivative :
-    Real.gammaLogDeriv 1 - Real.gammaLogDeriv (1 / 2) =
-      2 * Real.log 2 := by
+/-- The logarithmic derivative of Gamma at `1`, evaluated from the Gamma
+value and derivative at `1`. -/
+theorem Real.gammaLogDeriv_one_eval :
+    Real.gammaLogDeriv 1 = -Real.eulerMascheroniConstant := by
   have hGamma1 : Real.Gamma 1 = 1 := Real.Gamma_one
-  have hGammaHalf : Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi :=
-    Real.Gamma_one_half_eq
   have hderiv1 : deriv Real.Gamma 1 = -Real.eulerMascheroniConstant :=
     Real.hasDerivAt_Gamma_one.deriv
+  calc
+    Real.gammaLogDeriv 1 = deriv Real.Gamma 1 / Real.Gamma 1 := by
+      rfl
+    _ = deriv Real.Gamma 1 / 1 := by
+      exact congrArg (fun x : ℝ => deriv Real.Gamma 1 / x) hGamma1
+    _ = deriv Real.Gamma 1 := by
+      exact div_one (deriv Real.Gamma 1)
+    _ = -Real.eulerMascheroniConstant := hderiv1
+
+/-- The logarithmic derivative of Gamma at `1/2`, evaluated from the Gamma
+value and derivative at `1/2`. -/
+theorem Real.gammaLogDeriv_half_eval :
+    Real.gammaLogDeriv (1 / 2 : ℝ) =
+      -(Real.eulerMascheroniConstant + 2 * Real.log 2) := by
+  have hGammaHalf : Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi :=
+    Real.Gamma_one_half_eq
   have hderivHalf :
       deriv Real.Gamma (1 / 2 : ℝ) =
         -Real.sqrt Real.pi * (Real.eulerMascheroniConstant + 2 * Real.log 2) :=
     Real.hasDerivAt_Gamma_one_half.deriv
-  unfold Real.gammaLogDeriv
-  rw [hGamma1, hGammaHalf, hderiv1, hderivHalf]
-  ring
+  have hsqrt_ne : Real.sqrt Real.pi ≠ 0 :=
+    (Real.sqrt_pos.mpr Real.pi_pos).ne'
+  calc
+    Real.gammaLogDeriv (1 / 2 : ℝ) =
+        deriv Real.Gamma (1 / 2 : ℝ) / Real.Gamma (1 / 2 : ℝ) := by
+      rfl
+    _ =
+        (-Real.sqrt Real.pi *
+            (Real.eulerMascheroniConstant + 2 * Real.log 2)) /
+          Real.sqrt Real.pi := by
+      exact congrArg₂
+        (fun a b : ℝ => a / b)
+        hderivHalf
+        hGammaHalf
+    _ =
+        -((Real.sqrt Real.pi *
+            (Real.eulerMascheroniConstant + 2 * Real.log 2)) /
+          Real.sqrt Real.pi) := by
+      have hnum :
+          -Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2) =
+            -(Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2)) :=
+        (neg_mul_eq_neg_mul
+          (Real.sqrt Real.pi)
+          (Real.eulerMascheroniConstant + 2 * Real.log 2)).symm
+      calc
+        (-Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2)) /
+            Real.sqrt Real.pi =
+          (-(Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2))) /
+            Real.sqrt Real.pi := by
+          exact congrArg
+            (fun x : ℝ => x / Real.sqrt Real.pi)
+            hnum
+        _ =
+          -((Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2)) /
+            Real.sqrt Real.pi) := by
+          exact neg_div
+            (Real.sqrt Real.pi)
+            (Real.sqrt Real.pi *
+              (Real.eulerMascheroniConstant + 2 * Real.log 2))
+    _ = -(Real.eulerMascheroniConstant + 2 * Real.log 2) := by
+      exact congrArg Neg.neg
+        (mul_div_cancel_left₀
+          (Real.eulerMascheroniConstant + 2 * Real.log 2)
+          hsqrt_ne)
+
+/-- Gamma derivative recovered from the logarithmic derivative at a regular
+point. -/
+theorem Real.deriv_Gamma_eq_gammaLogDeriv_mul_Gamma
+    {x : ℝ}
+    (hx : Real.Gamma x ≠ 0) :
+    deriv Real.Gamma x = Real.gammaLogDeriv x * Real.Gamma x := by
+  calc
+    deriv Real.Gamma x =
+        deriv Real.Gamma x / Real.Gamma x * Real.Gamma x := by
+      exact (div_mul_cancel₀ (deriv Real.Gamma x) hx).symm
+    _ = Real.gammaLogDeriv x * Real.Gamma x := by
+      rfl
+
+/-- Scalar normalization for the quotient-rule derivative of
+`sqrt π * Γ((s+1)/2) / Γ(s/2+1)` at `s = 0`, after the Gamma values and
+logarithmic derivatives have been substituted. -/
+theorem Real.sqrtGammaRatio_quotientRule_scalar_normalization
+    (A P Lh L1 : ℝ)
+    (hA_sq : A * A = P) :
+    ((A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+        (A * A) * ((1 / 2 : ℝ) * (L1 * 1))) /
+      (1 : ℝ) ^ 2) =
+      P * ((Lh - L1) / 2) := by
+  have hleft :
+      A * ((1 / 2 : ℝ) * (Lh * A)) =
+        P * (Lh / 2) := by
+    have hhalf_Lh : (1 / 2 : ℝ) * Lh = Lh / 2 := by
+      calc
+        (1 / 2 : ℝ) * Lh = (2 : ℝ)⁻¹ * Lh := by
+          exact congrArg (fun x : ℝ => x * Lh) (one_div 2)
+        _ = Lh * (2 : ℝ)⁻¹ := by
+          exact mul_comm (2 : ℝ)⁻¹ Lh
+        _ = Lh / 2 := by
+          exact (div_eq_mul_inv Lh 2).symm
+    calc
+      A * ((1 / 2 : ℝ) * (Lh * A)) =
+          A * (((1 / 2 : ℝ) * Lh) * A) := by
+        exact congrArg (fun x : ℝ => A * x)
+          (mul_assoc (1 / 2 : ℝ) Lh A).symm
+      _ = ((1 / 2 : ℝ) * Lh) * (A * A) := by
+        exact mul_left_comm A ((1 / 2 : ℝ) * Lh) A
+      _ = (A * A) * ((1 / 2 : ℝ) * Lh) := by
+        exact mul_comm (((1 / 2 : ℝ) * Lh)) (A * A)
+      _ = P * ((1 / 2 : ℝ) * Lh) := by
+        exact congrArg (fun x : ℝ => x * ((1 / 2 : ℝ) * Lh)) hA_sq
+      _ = P * (Lh / 2) := by
+        exact congrArg (fun x : ℝ => P * x) hhalf_Lh
+  have hright :
+      (A * A) * ((1 / 2 : ℝ) * (L1 * 1)) =
+        P * (L1 / 2) := by
+    have hhalf_L1 : (1 / 2 : ℝ) * L1 = L1 / 2 := by
+      calc
+        (1 / 2 : ℝ) * L1 = (2 : ℝ)⁻¹ * L1 := by
+          exact congrArg (fun x : ℝ => x * L1) (one_div 2)
+        _ = L1 * (2 : ℝ)⁻¹ := by
+          exact mul_comm (2 : ℝ)⁻¹ L1
+        _ = L1 / 2 := by
+          exact (div_eq_mul_inv L1 2).symm
+    calc
+      (A * A) * ((1 / 2 : ℝ) * (L1 * 1)) =
+          P * ((1 / 2 : ℝ) * (L1 * 1)) := by
+        exact congrArg
+          (fun x : ℝ => x * ((1 / 2 : ℝ) * (L1 * 1)))
+          hA_sq
+      _ = P * ((1 / 2 : ℝ) * L1) := by
+        exact congrArg
+          (fun x : ℝ => P * ((1 / 2 : ℝ) * x))
+          (mul_one L1)
+      _ = P * (L1 / 2) := by
+        exact congrArg (fun x : ℝ => P * x) hhalf_L1
+  calc
+    ((A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+        (A * A) * ((1 / 2 : ℝ) * (L1 * 1))) /
+      (1 : ℝ) ^ 2) =
+        (A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+          (A * A) * ((1 / 2 : ℝ) * (L1 * 1))) / 1 := by
+      exact congrArg
+        (fun x : ℝ =>
+          (A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+            (A * A) * ((1 / 2 : ℝ) * (L1 * 1))) / x)
+        (one_pow 2)
+    _ =
+        A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+          (A * A) * ((1 / 2 : ℝ) * (L1 * 1)) := by
+      exact div_one
+        (A * ((1 / 2 : ℝ) * (Lh * A)) * 1 -
+          (A * A) * ((1 / 2 : ℝ) * (L1 * 1)))
+    _ =
+        A * ((1 / 2 : ℝ) * (Lh * A)) -
+          (A * A) * ((1 / 2 : ℝ) * (L1 * 1)) := by
+      exact congrArg
+        (fun x : ℝ =>
+          x - (A * A) * ((1 / 2 : ℝ) * (L1 * 1)))
+        (mul_one (A * ((1 / 2 : ℝ) * (Lh * A))))
+    _ = P * (Lh / 2) - P * (L1 / 2) := by
+      exact congrArg₂ Sub.sub hleft hright
+    _ = P * (Lh / 2 - L1 / 2) := by
+      exact (mul_sub P (Lh / 2) (L1 / 2)).symm
+    _ = P * ((Lh - L1) / 2) := by
+      exact congrArg (fun x : ℝ => P * x) (sub_div Lh L1 2).symm
+
+/-- Legendre duplication differentiated logarithmically at `1/2`. -/
+theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two_from_duplicationDerivative :
+    Real.gammaLogDeriv 1 - Real.gammaLogDeriv (1 / 2) =
+      2 * Real.log 2 := by
+  have hone :
+      Real.gammaLogDeriv 1 = -Real.eulerMascheroniConstant :=
+    Real.gammaLogDeriv_one_eval
+  have hhalf :
+      Real.gammaLogDeriv (1 / 2 : ℝ) =
+        -(Real.eulerMascheroniConstant + 2 * Real.log 2) :=
+    Real.gammaLogDeriv_half_eval
+  calc
+    Real.gammaLogDeriv 1 - Real.gammaLogDeriv (1 / 2) =
+        -Real.eulerMascheroniConstant - Real.gammaLogDeriv (1 / 2) := by
+      exact congrArg
+        (fun x : ℝ => x - Real.gammaLogDeriv (1 / 2))
+        hone
+    _ =
+        -Real.eulerMascheroniConstant -
+          -(Real.eulerMascheroniConstant + 2 * Real.log 2) := by
+      exact congrArg
+        (fun x : ℝ => -Real.eulerMascheroniConstant - x)
+        hhalf
+    _ = 2 * Real.log 2 := by
+      calc
+        -Real.eulerMascheroniConstant -
+            -(Real.eulerMascheroniConstant + 2 * Real.log 2) =
+            -Real.eulerMascheroniConstant +
+              (Real.eulerMascheroniConstant + 2 * Real.log 2) := by
+          exact congrArg
+            (fun x : ℝ => -Real.eulerMascheroniConstant + x)
+            (neg_neg (Real.eulerMascheroniConstant + 2 * Real.log 2))
+        _ = 2 * Real.log 2 := by
+          exact neg_add_cancel_left
+            Real.eulerMascheroniConstant
+            (2 * Real.log 2)
 
 /-- Legendre duplication in logarithmic-derivative form at `1/2`. -/
 theorem Real.gammaLogDeriv_one_sub_half_eq_two_log_two :
@@ -3185,7 +3860,9 @@ theorem Real.gammaLogDeriv_half_sub_one_eq_neg_two_log_two :
   calc
     Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1 =
         -(Real.gammaLogDeriv 1 - Real.gammaLogDeriv (1 / 2)) := by
-      exact sub_eq_neg_sub (Real.gammaLogDeriv (1 / 2)) (Real.gammaLogDeriv 1)
+      exact (neg_sub
+        (Real.gammaLogDeriv 1)
+        (Real.gammaLogDeriv (1 / 2))).symm
     _ = -(2 * Real.log 2) := by
       exact congrArg Neg.neg Real.gammaLogDeriv_one_sub_half_eq_two_log_two
 
@@ -3202,11 +3879,26 @@ theorem Real.sinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two :
         (fun x : ℝ => Real.pi * (x / 2))
         Real.gammaLogDeriv_half_sub_one_eq_neg_two_log_two
     _ = Real.pi * (-(Real.log 2)) := by
+      have htwo_cancel :
+          (2 * Real.log 2) / 2 = Real.log 2 :=
+        mul_div_cancel_left₀ (Real.log 2) two_ne_zero
+      have hneg_div :
+          -(2 * Real.log 2) / 2 =
+            -((2 * Real.log 2) / 2) :=
+        neg_div 2 (2 * Real.log 2)
+      have hinside :
+          -(2 * Real.log 2) / 2 = -(Real.log 2) :=
+        Eq.trans hneg_div (congrArg Neg.neg htwo_cancel)
       exact congrArg
         (fun x : ℝ => Real.pi * x)
-        (neg_mul_div_two_cancel (Real.log 2))
+        hinside
     _ = -Real.pi * Real.log 2 := by
-      exact neg_mul_eq_neg_mul Real.pi (Real.log 2)
+      calc
+        Real.pi * (-(Real.log 2)) =
+            -(Real.pi * Real.log 2) := by
+          exact (neg_mul_eq_mul_neg Real.pi (Real.log 2)).symm
+        _ = -Real.pi * Real.log 2 := by
+          exact neg_mul_eq_neg_mul Real.pi (Real.log 2)
 
 /-- Value of the Gamma-ratio at exponent `0`. -/
 theorem Real.sinePowerGammaRatio_zero_eq_pi :
@@ -3274,6 +3966,18 @@ theorem Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero :
         have hpos : (0 : ℝ) < 1 / 2 :=
           one_half_pos
         exact ne_of_gt (lt_of_le_of_lt hneg_nonpos hpos))).hasDerivAt
+  have harg : (((0 : ℝ) + 1) / 2) = (1 / 2 : ℝ) := by
+    exact congrArg (fun x : ℝ => x / 2) (zero_add 1)
+  have hgamma_at :
+      HasDerivAt
+        Real.Gamma
+        (deriv Real.Gamma (1 / 2))
+        (((0 : ℝ) + 1) / 2) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        HasDerivAt Real.Gamma (deriv Real.Gamma (1 / 2)) x)
+      harg.symm
+      hgamma
   have haffine :
       HasDerivAt (fun s : ℝ => (s + 1) / 2) (1 / 2 : ℝ) 0 := by
     have hid : HasDerivAt (fun s : ℝ => s) 1 (0 : ℝ) :=
@@ -3286,7 +3990,7 @@ theorem Real.sinePowerGammaRatio_numeratorGamma_hasDerivAt_zero :
         (Real.Gamma ∘ fun s : ℝ => (s + 1) / 2)
         (deriv Real.Gamma (1 / 2) * (1 / 2 : ℝ))
         0 :=
-    hgamma.comp (0 : ℝ) haffine
+    hgamma_at.comp (0 : ℝ) haffine
   exact hcomp.congr_deriv (mul_comm (deriv Real.Gamma (1 / 2)) (1 / 2 : ℝ))
 
 /-- Derivative of the denominator Gamma factor in the sine-power Gamma-ratio. -/
@@ -3302,6 +4006,22 @@ theorem Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero :
         have hneg_nonpos : -(m : ℝ) ≤ 0 :=
           neg_nonpos.mpr (Nat.cast_nonneg m)
         exact ne_of_gt (lt_of_le_of_lt hneg_nonpos zero_lt_one))).hasDerivAt
+  have harg : (0 : ℝ) / 2 + 1 = (1 : ℝ) := by
+    calc
+      (0 : ℝ) / 2 + 1 = 0 + 1 := by
+        exact congrArg (fun x : ℝ => x + 1) (zero_div 2)
+      _ = 1 := by
+        exact zero_add 1
+  have hgamma_at :
+      HasDerivAt
+        Real.Gamma
+        (deriv Real.Gamma 1)
+        ((0 : ℝ) / 2 + 1) :=
+    Eq.subst
+      (motive := fun x : ℝ =>
+        HasDerivAt Real.Gamma (deriv Real.Gamma 1) x)
+      harg.symm
+      hgamma
   have haffine :
       HasDerivAt (fun s : ℝ => s / 2 + 1) (1 / 2 : ℝ) 0 := by
     have hid : HasDerivAt (fun s : ℝ => s) 1 (0 : ℝ) :=
@@ -3314,7 +4034,7 @@ theorem Real.sinePowerGammaRatio_denominatorGamma_hasDerivAt_zero :
         (Real.Gamma ∘ fun s : ℝ => s / 2 + 1)
         (deriv Real.Gamma 1 * (1 / 2 : ℝ))
         0 :=
-    hgamma.comp (0 : ℝ) haffine
+    hgamma_at.comp (0 : ℝ) haffine
   exact hcomp.congr_deriv (mul_comm (deriv Real.Gamma 1) (1 / 2 : ℝ))
 
 /-- Nonvanishing of the denominator Gamma factor at exponent `0`. -/
@@ -3333,8 +4053,8 @@ theorem Real.sinePowerGammaRatio_quotientRule_derivativeValue :
           Real.Gamma (((0 : ℝ) + 1) / 2)) *
         ((1 / 2 : ℝ) * deriv Real.Gamma 1)) /
       Real.Gamma ((0 : ℝ) / 2 + 1) ^ 2 =
-      Real.pi *
-        ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2) := by
+      (Real.pi *
+        ((Real.gammaLogDeriv (1 / 2 : ℝ) - Real.gammaLogDeriv (1 : ℝ)) / 2))) := by
   have hnum_arg : (((0 : ℝ) + 1) / 2) = (1 / 2 : ℝ) := by
     exact congrArg (fun x : ℝ => x / 2) (zero_add 1)
   have hden_arg : (0 : ℝ) / 2 + 1 = (1 : ℝ) := by
@@ -3353,12 +4073,93 @@ theorem Real.sinePowerGammaRatio_quotientRule_derivativeValue :
         exact Real.sq_sqrt Real.pi_pos.le
   have hsqrt_ne : Real.sqrt Real.pi ≠ 0 :=
     (Real.sqrt_pos.mpr Real.pi_pos).ne'
-  rw [hnum_arg, hden_arg, Real.Gamma_one, Real.Gamma_one_half_eq_sqrt_pi,
-    Real.gammaLogDeriv]
-  rw [Real.Gamma_one, Real.Gamma_one_half_eq_sqrt_pi]
-  field_simp [hsqrt_ne]
-  rw [hsqrt_sq]
-  ring
+  have hGamma_one : Real.Gamma (1 : ℝ) = 1 :=
+    Real.Gamma_one
+  have hGamma_half : Real.Gamma (1 / 2 : ℝ) = Real.sqrt Real.pi :=
+    Real.Gamma_one_half_eq_sqrt_pi
+  have hGamma_one_ne : Real.Gamma (1 : ℝ) ≠ 0 := by
+    exact hGamma_one.symm ▸ one_ne_zero
+  have hGamma_half_ne : Real.Gamma (1 / 2 : ℝ) ≠ 0 := by
+    exact hGamma_half.symm ▸ hsqrt_ne
+  have hden_gamma :
+      Real.Gamma ((0 : ℝ) / 2 + 1) = 1 := by
+    exact (congrArg Real.Gamma hden_arg).trans hGamma_one
+  have hnum_gamma :
+      Real.Gamma (((0 : ℝ) + 1) / 2) = Real.sqrt Real.pi := by
+    exact (congrArg Real.Gamma hnum_arg).trans hGamma_half
+  have hderiv_one :
+      deriv Real.Gamma 1 = Real.gammaLogDeriv 1 * 1 := by
+    calc
+      deriv Real.Gamma 1 =
+          Real.gammaLogDeriv 1 * Real.Gamma 1 := by
+        exact Real.deriv_Gamma_eq_gammaLogDeriv_mul_Gamma hGamma_one_ne
+      _ = Real.gammaLogDeriv 1 * 1 := by
+        exact congrArg (fun x : ℝ => Real.gammaLogDeriv 1 * x) hGamma_one
+  have hderiv_half :
+      deriv Real.Gamma (1 / 2 : ℝ) =
+        Real.gammaLogDeriv (1 / 2 : ℝ) * Real.sqrt Real.pi := by
+    calc
+      deriv Real.Gamma (1 / 2 : ℝ) =
+          Real.gammaLogDeriv (1 / 2 : ℝ) * Real.Gamma (1 / 2 : ℝ) := by
+        exact Real.deriv_Gamma_eq_gammaLogDeriv_mul_Gamma hGamma_half_ne
+      _ = Real.gammaLogDeriv (1 / 2 : ℝ) * Real.sqrt Real.pi := by
+        exact congrArg
+          (fun x : ℝ => Real.gammaLogDeriv (1 / 2 : ℝ) * x)
+          hGamma_half
+  have hnumerator :
+      Real.sqrt Real.pi *
+            ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2)) *
+          Real.Gamma ((0 : ℝ) / 2 + 1) -
+        (Real.sqrt Real.pi *
+            Real.Gamma (((0 : ℝ) + 1) / 2)) *
+          ((1 / 2 : ℝ) * deriv Real.Gamma 1) =
+        Real.sqrt Real.pi *
+            ((1 / 2 : ℝ) *
+              (Real.gammaLogDeriv (1 / 2 : ℝ) * Real.sqrt Real.pi)) *
+          1 -
+        (Real.sqrt Real.pi * Real.sqrt Real.pi) *
+          ((1 / 2 : ℝ) * (Real.gammaLogDeriv 1 * 1)) := by
+    exact congrArg₂
+      Sub.sub
+      (congrArg₂
+        (fun d g : ℝ =>
+          Real.sqrt Real.pi * ((1 / 2 : ℝ) * d) * g)
+        hderiv_half
+        hden_gamma)
+      (congrArg₂
+        (fun g d : ℝ =>
+          (Real.sqrt Real.pi * g) * ((1 / 2 : ℝ) * d))
+        hnum_gamma
+        hderiv_one)
+  calc
+    ((Real.sqrt Real.pi *
+          ((1 / 2 : ℝ) * deriv Real.Gamma (1 / 2)) *
+        Real.Gamma ((0 : ℝ) / 2 + 1) -
+      (Real.sqrt Real.pi *
+          Real.Gamma (((0 : ℝ) + 1) / 2)) *
+        ((1 / 2 : ℝ) * deriv Real.Gamma 1)) /
+      Real.Gamma ((0 : ℝ) / 2 + 1) ^ 2 =
+        ((Real.sqrt Real.pi *
+            ((1 / 2 : ℝ) *
+              (Real.gammaLogDeriv (1 / 2 : ℝ) * Real.sqrt Real.pi)) *
+          1 -
+        (Real.sqrt Real.pi * Real.sqrt Real.pi) *
+          ((1 / 2 : ℝ) * (Real.gammaLogDeriv 1 * 1))) /
+      (1 : ℝ) ^ 2)) := by
+      exact congrArg₂
+        (fun n d : ℝ => n / d ^ 2)
+        hnumerator
+        hden_gamma
+    _ =
+      Real.pi *
+        ((Real.gammaLogDeriv (1 / 2) - Real.gammaLogDeriv 1) / 2) := by
+      exact
+        Real.sqrtGammaRatio_quotientRule_scalar_normalization
+          (Real.sqrt Real.pi)
+          Real.pi
+          (Real.gammaLogDeriv (1 / 2 : ℝ))
+          (Real.gammaLogDeriv 1)
+          hsqrt_sq
 
 /-- Quotient-rule assembly of the sine-power Gamma-ratio derivative from its
 component Gamma derivatives. -/
@@ -3442,10 +4243,10 @@ theorem Real.sinePowerGammaRatio_hasDerivAt_zero :
 /-- Near exponent `0`, the sine-power integral is represented by the
 Beta/Gamma ratio. -/
 theorem Real.sinePowerIntegral_eventuallyEq_gammaRatio_at_zero :
-    (fun s : ℝ => Real.sinePowerIntegral s) =ᶠ[𝓝 (0 : ℝ)]
+    (fun s : ℝ => Real.sinePowerIntegral s) =ᶠ[nhds (0 : ℝ)]
       (fun s : ℝ => Real.sinePowerGammaRatio s) := by
   have hnear :
-      ∀ᶠ s in 𝓝 (0 : ℝ), -1 < s :=
+      ∀ᶠ s in nhds (0 : ℝ), -1 < s :=
     Ioi_mem_nhds (show -1 < (0 : ℝ) by exact neg_lt_zero.mpr one_pos)
   exact
     hnear.mono

@@ -156,7 +156,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
     ⟨hz0, hz2, hz_im⟩
   have hfactor_ge_one : (1 : ℝ) ≤ Real.exp (1 * (1 + ‖z‖) ^ 0) := by
     have hone : (1 : ℝ) * (1 + ‖z‖) ^ 0 = 1 := by
-      ring
+      exact Eq.trans (one_mul ((1 + ‖z‖) ^ 0)) (pow_zero (1 + ‖z‖))
     exact Eq.subst
       (motive := fun x : ℝ => (1 : ℝ) ≤ Real.exp x)
       hone.symm
@@ -170,7 +170,8 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
   · subst z
     have hzero :
         ((1 : ℂ) - 1) * riemannZeta (1 : ℂ) = 0 := by
-      ring
+      exact Eq.trans (congrArg (fun x : ℂ => x * riemannZeta (1 : ℂ)) (sub_self (1 : ℂ)))
+        (zero_mul (riemannZeta (1 : ℂ)))
     have hnorm_zero :
         ‖((1 : ℂ) - 1) * riemannZeta (1 : ℂ)‖ = 0 := by
       calc
@@ -202,9 +203,12 @@ theorem one_sub_leftBoundary_re_eq_one
     ((1 : ℂ) - z).re = (1 : ℂ).re - z.re := by
       exact Complex.sub_re (1 : ℂ) z
     _ = 1 - z.re := by
-      norm_num
+      exact congrArg (fun x : ℝ => x - z.re) Complex.one_re
     _ = 1 := by
-      exact hz_re.symm ▸ by ring
+      exact Eq.subst
+        (motive := fun x : ℝ => 1 - x = 1)
+        hz_re.symm
+        (sub_zero 1)
 
 /-- On the left vertical tail, neither `z`, `1-z`, nor `Gammaℝ z` hits the exceptional
 faces used in the completed-zeta normalization. -/
@@ -248,7 +252,7 @@ theorem Gammaℝ_leftBoundary_nonzero_of_verticalTail
       calc
         (1 : ℝ) = ((1 : ℂ) - z).re := hre_one.symm
         _ = 0 := hre_zero
-    norm_num at hone_eq_zero
+    exact one_ne_zero hone_eq_zero
   have hGamma_ne : Complex.Gammaℝ z ≠ 0 := by
     exact Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm
       (le_of_eq hz_re.symm)
@@ -297,7 +301,13 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
   have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ :=
     one_le_norm_of_one_le_norm_im hz_im
   have hden_eq : (((1 : ℂ) - z) - 1) = -z := by
-    ring
+    calc
+      (((1 : ℂ) - z) - 1) = ((1 : ℂ) - 1) - z := by
+        exact sub_sub (1 : ℂ) z 1
+      _ = 0 - z := by
+        exact congrArg (fun x : ℂ => x - z) (sub_self (1 : ℂ))
+      _ = -z := by
+        exact zero_sub z
   have hnum_norm_le : ‖z - 1‖ ≤ ‖z‖ + 1 :=
     le_trans (norm_sub_le z (1 : ℂ))
       (by
@@ -307,7 +317,8 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
     calc
       ‖z - 1‖ ≤ ‖z‖ + 1 := hnum_norm_le
       _ ≤ ‖z‖ + ‖z‖ := add_le_add_left hz_norm_ge_one ‖z‖
-      _ = 2 * ‖z‖ := by ring
+      _ = 2 * ‖z‖ := by
+        exact (two_mul ‖z‖).symm
   have hz_norm_pos : 0 < ‖z‖ :=
     lt_of_lt_of_le zero_lt_one hz_norm_ge_one
   have hratio_le_two : ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ (2 : ℝ) := by
@@ -338,7 +349,7 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
   calc
     ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ 2 := hratio_le_two
     _ ≤ 2 * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ)) := by
-      exact le_mul_of_one_le_right (by norm_num : (0 : ℝ) ≤ 2) hone_le_exp
+      exact le_mul_of_one_le_right zero_le_two hone_le_exp
 
 /-- A positive polynomial vertical-height bound is an exponential finite-order bound in the
 same vertical-height variable. -/
@@ -440,19 +451,28 @@ theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_
           (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
         exact Complex.mul_re (t : ℂ) Complex.I
       _ = t * 0 - 0 * 1 := by
-        norm_num [Complex.ofReal_re, Complex.I_re, Complex.ofReal_im, Complex.I_im]
+        exact congrArg₂
+          (fun x y : ℝ => x * Complex.I.re - y * Complex.I.im)
+          Complex.ofReal_re
+          Complex.ofReal_im
       _ = 0 := by
-        ring
+        exact Eq.trans (congrArg (fun x : ℝ => x - 0 * 1) (mul_zero t))
+          (Eq.trans (congrArg (fun x : ℝ => 0 - x) (zero_mul 1)) (sub_self 0))
   have haxis_im_norm : ‖((t : ℂ) * Complex.I).im‖ = ‖t‖ := by
     have him : ((t : ℂ) * Complex.I).im = t := by
       calc
-        ((t : ℂ) * Complex.I).im =
+      ((t : ℂ) * Complex.I).im =
             (t : ℂ).re * Complex.I.im + (t : ℂ).im * Complex.I.re := by
           exact Complex.mul_im (t : ℂ) Complex.I
       _ = t * 1 + 0 * 0 := by
-          norm_num [Complex.ofReal_re, Complex.I_im, Complex.ofReal_im, Complex.I_re]
+          exact congrArg₂
+            (fun x y : ℝ => x * Complex.I.im + y * Complex.I.re)
+            Complex.ofReal_re
+            Complex.ofReal_im
       _ = t := by
-        ring
+        exact Eq.trans
+          (congrArg₂ HAdd.hAdd (mul_one t) (zero_mul 0))
+          (add_zero t)
     exact congrArg norm him
   have haxis_im : 1 ≤ ‖((t : ℂ) * Complex.I).im‖ :=
     Eq.subst
@@ -1019,7 +1039,7 @@ theorem verticalComplexGammaStirling_leftBoundary_numerator_core_bound :
         -(Real.pi / 2) * (‖t‖ / 2) = -(Real.pi / 4) * ‖t‖ := by
       have hdiv :
           (Real.pi / 2) / 2 = Real.pi / ((2 : ℝ) * 2) := by
-        ring
+        exact div_div Real.pi (2 : ℝ) 2
       have hnegdiv :
           -(Real.pi / 2) / 2 = -(Real.pi / ((2 : ℝ) * 2)) :=
         congrArg Neg.neg hdiv
@@ -1098,7 +1118,7 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
         (Real.pi / 2) * (‖t‖ / 2) = (Real.pi / 4) * ‖t‖ := by
       have hdiv :
           (Real.pi / 2) / 2 = Real.pi / ((2 : ℝ) * 2) := by
-        ring
+        exact div_div Real.pi (2 : ℝ) 2
       have hfour :
           ((2 : ℝ) * 2) = 4 :=
         rfl
@@ -1137,8 +1157,12 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
         have hsqrt :
             Real.sqrt (1 + ‖t / 2‖) = (1 + ‖t / 2‖) ^ (1 / 2 : ℝ) := by
           exact (Real.sqrt_eq_rpow (1 + ‖t / 2‖)).symm
-        exact hsqrt.symm ▸ by
-          norm_num [hexponent]
+        exact Eq.subst
+          (motive := fun x : ℝ =>
+            (1 + ‖t / 2‖) ^ ((1 / 2 : ℝ) - 0) =
+              (1 + ‖t / 2‖) ^ x)
+          hexponent.symm
+          hsqrt.symm
     exact Eq.subst
       (motive := fun x : ℝ => x ≤ Real.sqrt (1 + ‖t‖))
       hrpow.symm
@@ -2076,7 +2100,10 @@ theorem leftBoundary_finiteOrder_product_growth_bound_core
         (Af * Ag) *
           (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) *
             Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) := by
-        ring
+        exact mul_mul_mul_comm Af
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
+          Ag
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
       _ = (Af * Ag) *
           Real.exp (((Bf + Bg + 1) * H ^ (mf + mg)) +
             ((Bf + Bg + 1) * H ^ (mf + mg))) := by
@@ -2084,7 +2111,18 @@ theorem leftBoundary_finiteOrder_product_growth_bound_core
           (Real.exp_add ((Bf + Bg + 1) * H ^ (mf + mg))
             ((Bf + Bg + 1) * H ^ (mf + mg))).symm
       _ = Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) := by
-        ring
+        have htwo :
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+          calc
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              2 * ((Bf + Bg + 1) * H ^ (mf + mg)) := by
+                exact (two_mul ((Bf + Bg + 1) * H ^ (mf + mg))).symm
+            _ = (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+                exact mul_assoc 2 (Bf + Bg + 1) (H ^ (mf + mg))
+        exact congrArg (fun x : ℝ => Af * Ag * Real.exp x) htwo
   exact le_trans hmul (hcollapse ▸ le_rfl)
 
 /-- The exact Gamma-ratio Stirling input for the left-edge completed-functional-equation
@@ -2213,7 +2251,10 @@ theorem leftBoundary_finiteOrder_product_growth_bound
         (Af * Ag) *
           (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) *
             Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) := by
-        ring
+        exact mul_mul_mul_comm Af
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
+          Ag
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
       _ = (Af * Ag) *
           Real.exp (((Bf + Bg + 1) * H ^ (mf + mg)) +
             ((Bf + Bg + 1) * H ^ (mf + mg))) := by
@@ -2221,7 +2262,18 @@ theorem leftBoundary_finiteOrder_product_growth_bound
           (Real.exp_add ((Bf + Bg + 1) * H ^ (mf + mg))
             ((Bf + Bg + 1) * H ^ (mf + mg))).symm
       _ = Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) := by
-        ring
+        have htwo :
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+          calc
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              2 * ((Bf + Bg + 1) * H ^ (mf + mg)) := by
+                exact (two_mul ((Bf + Bg + 1) * H ^ (mf + mg))).symm
+            _ = (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+                exact mul_assoc 2 (Bf + Bg + 1) (H ^ (mf + mg))
+        exact congrArg (fun x : ℝ => Af * Ag * Real.exp x) htwo
   have htarget_guard :
       Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) ≤
         Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
@@ -2479,14 +2531,17 @@ theorem boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_harmon
             have hn_pos : 0 < n :=
               Nat.lt_of_succ_le hn_one_le
             have hn_rat_ne : (n : ℚ) ≠ 0 := by
-              exact_mod_cast Nat.ne_of_gt hn_pos
+              exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
             calc
               (1 / (n : ℝ)) = ((n : ℝ)⁻¹) := by
                 exact one_div (n : ℝ)
               _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
                 exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm
       _ = harmonic N := by
-            exact_mod_cast (harmonic_eq_sum_Icc (n := N)).symm
+            have hrat :
+                (∑ n ∈ Finset.Icc 1 N, ((n : ℚ)⁻¹ : ℚ)) = harmonic N :=
+              (harmonic_eq_sum_Icc (n := N)).symm
+            exact congrArg (fun q : ℚ => (q : ℝ)) hrat
   exact le_trans hsum_norm (le_of_eq (hterm_sum.trans hharmonic))
 
 /-- The finite Dirichlet truncation at the Abel/Euler-Maclaurin boundary cutoff is
@@ -2518,11 +2573,19 @@ theorem one_le_log_two_add_norm_of_one_le_norm
         (2.7182818286 : ℝ) =
           (27182818286 : ℝ) / 10000000000 := rfl
     have hden_pos : (0 : ℝ) < 10000000000 := by
-      exact_mod_cast (show (0 : ℕ) < 10000000000 by decide)
+      exact Nat.cast_pos.mpr (show (0 : ℕ) < 10000000000 by decide)
     have hnum_le :
         (27182818286 : ℝ) ≤ 3 * (10000000000 : ℝ) := by
-      exact_mod_cast
-        (show (27182818286 : ℕ) ≤ 3 * 10000000000 by decide)
+      have hnat : (27182818286 : ℕ) ≤ 3 * 10000000000 := by
+        decide
+      have hcast : (27182818286 : ℝ) ≤ ((3 * 10000000000 : ℕ) : ℝ) :=
+        Nat.cast_le.mpr hnat
+      have hprod : ((3 * 10000000000 : ℕ) : ℝ) = 3 * (10000000000 : ℝ) := by
+        exact Nat.cast_mul 3 10000000000
+      exact Eq.subst
+        (motive := fun x : ℝ => (27182818286 : ℝ) ≤ x)
+        hprod
+        hcast
     have hd9_le_three : (2.7182818286 : ℝ) ≤ 3 := by
       have hfrac :
           (27182818286 : ℝ) / 10000000000 ≤ 3 :=
@@ -2746,7 +2809,7 @@ theorem boundaryLineOnePointRealParam_cutoff_inv_le_one
   have hone_le_cutoff_nat : 1 ≤ ⌊2 + ‖t‖⌋₊ :=
     Nat.succ_le_of_lt hcutoff_pos
   have hone_le_cutoff_real : (1 : ℝ) ≤ (⌊2 + ‖t‖⌋₊ : ℝ) := by
-    exact_mod_cast hone_le_cutoff_nat
+    exact Nat.cast_le.mpr hone_le_cutoff_nat
   calc
     (1 : ℝ) / (⌊2 + ‖t‖⌋₊ : ℝ) =
         ((⌊2 + ‖t‖⌋₊ : ℝ)⁻¹ : ℝ) := by
@@ -2761,9 +2824,9 @@ theorem positive_nat_reciprocal_antitone
     (hmn : m ≤ n) :
     (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (m : ℝ) := by
   have hm_real_pos : (0 : ℝ) < (m : ℝ) := by
-    exact_mod_cast hm
+    exact Nat.cast_pos.mpr hm
   have hmn_real : (m : ℝ) ≤ (n : ℝ) := by
-    exact_mod_cast hmn
+    exact Nat.cast_le.mpr hmn
   exact one_div_le_one_div_of_le hm_real_pos hmn_real
 
 /-- Past the Abel/Euler-Maclaurin cutoff, all reciprocal weights are bounded by

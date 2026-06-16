@@ -63,7 +63,7 @@ theorem exists_zeroOrbit_autocorrelation_negative_margin_probe_of_negative_probe
   rcases exists_positive_margin_of_lt_zero hf with ⟨δ, hδ, hmargin⟩
   exact ⟨δ, hδ, f, hmargin⟩
 
-/-- Off-critical completed zeros admit one autocorrelation probe with a fixed negative
+/-- Off-critical completed zeros have one autocorrelation probe with a fixed negative
 finite-orbit margin. -/
 theorem exists_zeroOrbit_autocorrelation_negative_margin_probe
     (ρ : ℂ)
@@ -94,7 +94,7 @@ theorem exists_zeroOrbit_autocorrelation_negative_margin_family_of_probe
   intro _ε _hε
   exact hprobe
 
-/-- Off-critical completed zeros admit a fixed negative finite-orbit margin along a probe
+/-- Off-critical completed zeros have a fixed negative finite-orbit margin along a probe
 family. -/
 theorem exists_zeroOrbit_autocorrelation_negative_margin_family
     (ρ : ℂ)

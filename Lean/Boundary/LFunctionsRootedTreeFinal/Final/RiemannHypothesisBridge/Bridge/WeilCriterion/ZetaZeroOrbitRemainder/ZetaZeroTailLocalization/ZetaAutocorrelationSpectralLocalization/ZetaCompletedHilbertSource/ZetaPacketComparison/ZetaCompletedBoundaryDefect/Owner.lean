@@ -187,7 +187,9 @@ theorem zetaCompletedBoundaryDefect_correction_mem_support
     zetaCompletedBoundaryDefect_correction_apply f
   have hnonzero : zetaCompletionCorrectionPacketCoordinate ≠ 0 := by
     norm_num [zetaCompletionCorrectionPacketCoordinate]
-  simpa [Finsupp.mem_support_iff, hvalue] using hnonzero
+  have hsupport : zetaCompletedBoundaryDefect f ZetaPacketLabel.correction ≠ 0 := by
+    exact hvalue.trans_ne hnonzero
+  exact Finsupp.mem_support_iff.mpr hsupport
 
 /-- The correction Gram of the completed boundary defect is the square of the
 normalized correction coordinate. -/

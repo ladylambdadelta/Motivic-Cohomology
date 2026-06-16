@@ -1499,8 +1499,9 @@ theorem zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt
               star
                 (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
                   star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))) := by
-      rw [Finset.sum_add_distrib]
-      rw [Finset.sum_add_distrib]
+      exact (Finset.sum_add_distrib).symm.trans
+        (by
+          exact congrArg (fun t : ℝ => t + _) (Finset.sum_add_distrib))
       abel
     _ =
         ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
@@ -2942,12 +2943,7 @@ theorem zetaCompletedHermitianBoundaryDefect_correction_apply
     (f : ZetaAdmissibleFunction) :
     zetaCompletedHermitianBoundaryDefect f ZetaPacketLabel.correction =
       (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
-  simp [zetaCompletedHermitianBoundaryDefect,
-    zetaPrimeHermitianPacketAsEnsemble,
-    zetaArchimedeanHermitianPacketAsEnsemble,
-    zetaCorrectionHermitianPacketAsEnsemble,
-    zetaCompletedExplicitFormulaCorrectionSpectralAmplitude,
-    ZetaHermitianPacketEnsemble.single]
+  rfl
 
 /-- The correction Hermitian packet Gram is the square of the normalized correction coordinate. -/
 theorem zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
@@ -3382,9 +3378,7 @@ theorem zetaCompletedArchimedeanBoundaryRealizedGram_eq_hermitianArchimedeanPack
   unfold zetaCorrectionHermitianPacketAsEnsemble
   unfold ZetaHermitianPacketEnsemble.archimedeanPacketGram
   unfold ZetaHermitianPacketEnsemble.coordinateGram
-  simp [ZetaHermitianPacketEnsemble.single,
-    zetaCompletedExplicitFormulaCorrectionSpectralAmplitude,
-    zetaCompletionCorrectionPacketCoordinate_sq]
+  rfl
 
 /-- The weighted seed-amplitude prime coordinate is the completed autocorrelation face
 coordinate. This is the coordinate form of the spectral-factor theorem, not a raw negative-face
@@ -3888,7 +3882,7 @@ theorem zetaCompletedPairedSpectralBoundaryForm_prime_eq_contribution
   unfold ZetaPairedSpectralPacketEnsemble.primePairedForm
   unfold ZetaPairedSpectralPacketEnsemble.coordinateGram
   unfold ZetaPairedSpectralPacketEnsemble.coordinateForm
-  simp [ZetaPairedSpectralPacketEnsemble.single]
+  rfl
 
 /-- The archimedean projection of the completed paired spectral packet is the archimedean
 convolution paired contribution. -/
@@ -3906,7 +3900,7 @@ theorem zetaCompletedPairedSpectralBoundaryForm_archimedean_eq_contribution
   unfold ZetaPairedSpectralPacketEnsemble.archimedeanPairedForm
   unfold ZetaPairedSpectralPacketEnsemble.coordinateGram
   unfold ZetaPairedSpectralPacketEnsemble.coordinateForm
-  simp [ZetaPairedSpectralPacketEnsemble.single]
+  rfl
 
 /-- The correction projection of the completed paired spectral packet is the correction
 convolution paired contribution. -/
@@ -3924,8 +3918,7 @@ theorem zetaCompletedPairedSpectralBoundaryForm_correction_eq_contribution
   unfold ZetaPairedSpectralPacketEnsemble.correctionPairedForm
   unfold ZetaPairedSpectralPacketEnsemble.coordinateGram
   unfold ZetaPairedSpectralPacketEnsemble.coordinateForm
-  simp [ZetaPairedSpectralPacketEnsemble.single,
-    zetaCompletionCorrectionPacketCoordinate_sq]
+  rfl
 
 /-- The completed paired spectral boundary form is the sum of the three convolution-channel
 contributions. -/

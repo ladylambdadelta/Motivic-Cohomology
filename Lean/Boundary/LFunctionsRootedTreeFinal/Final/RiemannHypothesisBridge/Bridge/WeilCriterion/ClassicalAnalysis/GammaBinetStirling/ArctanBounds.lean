@@ -29,23 +29,31 @@ theorem Real.sq_le_quarter_of_nonneg_le_half
     neg_nonpos.mpr hhalf_nonneg
   have hneg_half_le_x : -(1 / 2 : ℝ) ≤ x :=
     le_trans hneg_half_le_zero hx_nonneg
-  exact sq_le_sq' hneg_half_le_x hx_half
+  calc
+    x ^ 2 = x * x :=
+      pow_two x
+    _ ≤ (1 / 2 : ℝ) * (1 / 2 : ℝ) :=
+      mul_le_mul hx_half hx_half hx_nonneg hhalf_nonneg
+    _ = (1 / 2 : ℝ) ^ 2 :=
+      Eq.symm (pow_two (1 / 2 : ℝ))
 
 /-- The odd positive integer denominator in the arctangent series has complex
 norm at least one. -/
 theorem Complex.one_le_norm_natCast_odd
     (n : ℕ) :
     (1 : ℝ) ≤ ‖((2 * n + 1 : ℕ) : ℂ)‖ := by
-  have hone_le_nat : (1 : ℝ) ≤ (2 * n + 1 : ℕ) := by
+  have hone_le_nat : ((1 : ℕ) : ℝ) ≤ ((2 * n + 1 : ℕ) : ℝ) := by
     exact Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le (2 * n)))
   have hnorm_eq :
       ‖((2 * n + 1 : ℕ) : ℂ)‖ = ((2 * n + 1 : ℕ) : ℝ) := by
-    calc
-      ‖((2 * n + 1 : ℕ) : ℂ)‖ = |((2 * n + 1 : ℕ) : ℂ)| := by
-        exact Complex.norm_eq_abs _
-      _ = ((2 * n + 1 : ℕ) : ℝ) := by
-        exact Complex.abs_ofReal (2 * n + 1)
-  exact hnorm_eq ▸ hone_le_nat
+    exact RCLike.norm_natCast (2 * n + 1)
+  calc
+    (1 : ℝ) = ((1 : ℕ) : ℝ) :=
+      Eq.symm (Nat.cast_one)
+    _ ≤ ((2 * n + 1 : ℕ) : ℝ) :=
+      hone_le_nat
+    _ = ‖((2 * n + 1 : ℕ) : ℂ)‖ :=
+      hnorm_eq.symm
 
 /-- Odd powers split into one linear factor and a square-power factor. -/
 theorem Real.pow_two_mul_add_one_eq_mul_sq_pow
@@ -62,7 +70,7 @@ theorem Real.pow_two_mul_add_one_eq_mul_sq_pow
     _ = x * x ^ (2 * n) := by
       exact congrArg (fun y : ℝ => y * x ^ (2 * n)) (pow_one x)
     _ = x * (x ^ 2) ^ n := by
-      exact congrArg (fun y : ℝ => x * y) (pow_mul x 2 n).symm
+      exact congrArg (fun y : ℝ => x * y) (pow_mul x 2 n)
 
 /-- The reciprocal of `1 - 1/2` is `2`. -/
 theorem Real.one_sub_half_inv_eq_two :
@@ -78,7 +86,7 @@ theorem Real.one_sub_half_inv_eq_two :
         exact (sub_div 2 1 2).symm
       _ = 1 / 2 := by
         exact congrArg (fun x : ℝ => x / 2)
-          (sub_eq_iff_eq_add.mpr (show (2 : ℝ) = 1 + 1 by rfl))
+          (sub_eq_iff_eq_add.mpr (Eq.symm (one_add_one_eq_two : (1 : ℝ) + 1 = 2)))
   calc
     ((1 : ℝ) - (1 / 2 : ℝ))⁻¹ = ((1 / 2 : ℝ))⁻¹ := by
       exact congrArg Inv.inv hhalf
@@ -108,13 +116,21 @@ theorem Real.half_sq_le_half : (1 / 2 : ℝ) ^ 2 ≤ 1 / 2 := by
     _ = 1 / 2 :=
       one_mul (1 / 2 : ℝ)
 
+/-- The real number `1` is at most `3`. -/
+theorem Real.one_le_three : (1 : ℝ) ≤ 3 := by
+  calc
+    (1 : ℝ) ≤ 2 :=
+      one_le_two
+    _ ≤ 2 + 1 :=
+      le_add_of_nonneg_right zero_le_one
+    _ = 3 :=
+      two_add_one_eq_three
+
 /-- The real number `1 / 3` is at most `3`. -/
 theorem Real.one_div_three_le_three : (1 / 3 : ℝ) ≤ 3 := by
   have hthree_pos : (0 : ℝ) < 3 :=
     Nat.cast_pos.mpr (Nat.succ_pos 2)
-  have hone_le_three : (1 : ℝ) ≤ 3 :=
-    Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le 2))
-  exact le_trans ((div_le_one hthree_pos).mpr hone_le_three) hone_le_three
+  exact le_trans ((div_le_one hthree_pos).mpr Real.one_le_three) Real.one_le_three
 
 /-- The norm of an integral sign factor is one. -/
 theorem Complex.norm_neg_one_pow
@@ -278,7 +294,7 @@ theorem Real.arctan_fixed_tail_two_mul_div_mul_half_eq
       calc
         ((2 * B) * r⁻¹) * (r * (2 : ℝ)⁻¹) =
             (((2 * B) * r⁻¹) * r) * (2 : ℝ)⁻¹ := by
-          exact mul_assoc ((2 * B) * r⁻¹) r (2 : ℝ)⁻¹
+          exact (mul_assoc ((2 * B) * r⁻¹) r (2 : ℝ)⁻¹).symm
         _ = ((2 * B) * (r⁻¹ * r)) * (2 : ℝ)⁻¹ := by
           exact congrArg (fun x : ℝ => x * (2 : ℝ)⁻¹)
             (mul_assoc (2 * B) r⁻¹ r)
@@ -310,10 +326,7 @@ theorem Real.arctan_fixed_tail_div_le_div_of_le_of_le
     n / d ≤ A / a := by
   have hd_pos : 0 < d := lt_of_lt_of_le ha_pos had
   have hA_nonneg : 0 ≤ A := le_trans hn_nonneg hnA
-  exact
-    le_trans
-      (mul_le_mul_of_nonneg_right hnA (le_of_lt ha_pos))
-      (mul_le_mul_of_nonneg_left had hA_nonneg)
+  exact div_le_div₀ hA_nonneg hnA ha_pos had
 
 /-- Lower bound for a quotient from a lower numerator bound and an upper
 denominator bound. -/
@@ -322,13 +335,12 @@ theorem Real.arctan_fixed_tail_div_le_div_of_le_of_le'
     (ha_pos : 0 < a)
     (hA_pos : 0 < A)
     (hd_pos : 0 < d)
-    (had : d ≤ A)
-    (han : a ≤ n) :
-    a / A ≤ n / d := by
-  exact
-    le_trans
-      (mul_le_mul_of_nonneg_left had (le_of_lt ha_pos))
-      (mul_le_mul_of_nonneg_right han (le_of_lt hA_pos))
+  (had : d ≤ A)
+  (han : a ≤ n) :
+  a / A ≤ n / d := by
+  have hn_nonneg : 0 ≤ n :=
+    le_trans (le_of_lt ha_pos) han
+  exact div_le_div₀ hn_nonneg han hd_pos had
 
 /-- The real number `3` is positive. -/
 theorem Real.arctan_fixed_tail_zero_lt_three : (0 : ℝ) < 3 :=
@@ -358,14 +370,17 @@ theorem Real.add_two_mul_self_eq_three_mul
       exact congrArg (fun y : ℝ => y + 2 * x) (one_mul x).symm
     _ = (1 + 2) * x := by
       exact (add_mul 1 2 x).symm
-    _ = 3 * x := rfl
+    _ = 3 * x := by
+      exact congrArg (fun y : ℝ => y * x)
+        (Eq.trans (add_comm (1 : ℝ) 2) (two_add_one_eq_three : (2 : ℝ) + 1 = 3))
 
 /-- Four times a number is twice that number plus twice that number. -/
 theorem Real.four_mul_eq_two_mul_add_two_mul
     (x : ℝ) :
     4 * x = 2 * x + 2 * x := by
   calc
-    4 * x = (2 + 2) * x := rfl
+    4 * x = (2 + 2) * x := by
+      exact congrArg (fun y : ℝ => y * x) (Eq.symm (two_add_two_eq_four : (2 : ℝ) + 2 = 4))
     _ = 2 * x + 2 * x := by
       exact add_mul 2 2 x
 
@@ -390,18 +405,21 @@ theorem Real.arctan_fixed_tail_far_tail_left_eq
       exact congrArg (fun x : ℝ => x - 3 * a)
         (congrArg (fun x : ℝ => x + t)
           (Real.four_mul_eq_two_mul_add_two_mul a).symm)
-    _ = ((3 + 1) * a + t) - 3 * a := rfl
+    _ = ((3 + 1) * a + t) - 3 * a := by
+      exact congrArg (fun x : ℝ => (x + t) - 3 * a)
+        (congrArg (fun y : ℝ => y * a)
+          (Eq.symm (three_add_one_eq_four : (3 : ℝ) + 1 = 4)))
     _ = ((3 * a + 1 * a) + t) - 3 * a := by
       exact congrArg (fun x : ℝ => (x + t) - 3 * a)
         (add_mul 3 1 a)
     _ = (3 * a + (1 * a + t)) - 3 * a := by
       exact congrArg (fun x : ℝ => x - 3 * a)
-        (add_assoc (3 * a) (1 * a) t).symm
+        (add_assoc (3 * a) (1 * a) t)
     _ = (1 * a + t) + 3 * a - 3 * a := by
       exact congrArg (fun x : ℝ => x - 3 * a)
         (add_comm (3 * a) (1 * a + t))
     _ = 1 * a + t := by
-      exact add_sub_cancel (1 * a + t) (3 * a)
+      exact add_sub_cancel_right (1 * a + t) (3 * a)
     _ = a + t := by
       exact congrArg (fun x : ℝ => x + t) (one_mul a)
 
@@ -417,10 +435,9 @@ theorem Real.arctan_fixed_tail_far_tail_right_eq
       exact congrArg (fun x : ℝ => (2 * t + x) - 3 * a) (one_mul t).symm
     _ = ((2 + 1) * t) - 3 * a := by
       exact congrArg (fun x : ℝ => x - 3 * a) (add_mul 2 1 t).symm
-    _ = 3 * t - 3 * a := rfl
-    _ = 3 * t - 3 * a := rfl
-    _ = 3 * t - 3 * a := rfl
-    _ = 3 * t - 3 * a := rfl
+    _ = 3 * t - 3 * a := by
+      exact congrArg (fun x : ℝ => x * t - 3 * a)
+        (two_add_one_eq_three : (2 : ℝ) + 1 = 3)
     _ = 3 * (t - a) := by
       exact (mul_sub 3 t a).symm
 
@@ -534,8 +551,8 @@ theorem Complex.sub_real_mul_I_re
             Complex.I_im))
     _ = w.re - (0 - 0) := by
       exact congrArg
-        (fun x : ℝ => w.re - (x - 0 * 1))
-        (mul_zero t)
+        (fun x : ℝ => w.re - x)
+        (congrArg₂ (fun a b : ℝ => a - b) (mul_zero t) (zero_mul 1))
     _ = w.re - 0 := by
       exact congrArg
         (fun x : ℝ => w.re - x)
@@ -567,8 +584,8 @@ theorem Complex.add_real_mul_I_re
             Complex.I_im))
     _ = w.re + (0 - 0) := by
       exact congrArg
-        (fun x : ℝ => w.re + (x - 0 * 1))
-        (mul_zero t)
+        (fun x : ℝ => w.re + x)
+        (congrArg₂ (fun a b : ℝ => a - b) (mul_zero t) (zero_mul 1))
     _ = w.re + 0 := by
       exact congrArg
         (fun x : ℝ => w.re + x)
@@ -659,8 +676,9 @@ theorem Complex.arctan_fixed_tail_one_sub_real_div_mul_I_norm_lower
     w.re / ‖w‖ ≤ ‖1 - ((t : ℂ) / w) * Complex.I‖ := by
   have hw_ne_zero : w ≠ 0 := by
     intro hw_zero
-    cases hw_zero
-    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+    have hw_re_zero : w.re = 0 :=
+      congrArg Complex.re hw_zero
+    exact (ne_of_gt hw_re_pos) hw_re_zero
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   have hre_abs_eq :
@@ -681,7 +699,7 @@ theorem Complex.arctan_fixed_tail_one_sub_real_div_mul_I_norm_lower
     w.re / ‖w‖ ≤ ‖w - (t : ℂ) * Complex.I‖ / ‖w‖ :=
       div_le_div_of_nonneg_right hre_le_norm (le_of_lt hw_norm_pos)
     _ = ‖(w - (t : ℂ) * Complex.I) / w‖ := by
-      exact Eq.symm (norm_div _ _)
+      exact (norm_div (w - (t : ℂ) * Complex.I) w).symm
     _ = ‖1 - ((t : ℂ) / w) * Complex.I‖ := by
       exact congrArg norm
         (Complex.arctan_fixed_tail_one_sub_real_div_mul_I_eq w hw_ne_zero t).symm
@@ -695,8 +713,9 @@ theorem Complex.arctan_fixed_tail_one_add_real_div_mul_I_norm_lower
     w.re / ‖w‖ ≤ ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
   have hw_ne_zero : w ≠ 0 := by
     intro hw_zero
-    cases hw_zero
-    exact (lt_irrefl (0 : ℝ)) hw_re_pos
+    have hw_re_zero : w.re = 0 :=
+      congrArg Complex.re hw_zero
+    exact (ne_of_gt hw_re_pos) hw_re_zero
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   have hre_abs_eq :
@@ -717,7 +736,7 @@ theorem Complex.arctan_fixed_tail_one_add_real_div_mul_I_norm_lower
     w.re / ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ / ‖w‖ :=
       div_le_div_of_nonneg_right hre_le_norm (le_of_lt hw_norm_pos)
     _ = ‖(w + (t : ℂ) * Complex.I) / w‖ := by
-      exact Eq.symm (norm_div _ _)
+      exact (norm_div (w + (t : ℂ) * Complex.I) w).symm
     _ = ‖1 + ((t : ℂ) / w) * Complex.I‖ := by
       exact congrArg norm
         (Complex.arctan_fixed_tail_one_add_real_div_mul_I_eq w hw_ne_zero t).symm
@@ -824,10 +843,9 @@ theorem Complex.arctan_fixed_tail_ratio_eq
       · exact Complex.arctan_fixed_tail_one_sub_real_div_mul_I_eq w hw t
     _ = (w + (t : ℂ) * Complex.I) /
           (w - (t : ℂ) * Complex.I) := by
-      exact div_div_div_cancel_right
+      exact div_div_div_cancel_right₀ hw
         (w + (t : ℂ) * Complex.I)
         (w - (t : ℂ) * Complex.I)
-        w
 
 /-- The numerator in the arctangent ratio has norm bounded below by the fixed
 positive real part. -/
@@ -842,9 +860,7 @@ theorem Complex.arctan_fixed_tail_ratio_numerator_lower
     exact hre_eq.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w + (t : ℂ) * Complex.I).re| = w.re := by
-    have hre_eq : (w + (t : ℂ) * Complex.I).re = w.re :=
-      Complex.add_real_mul_I_re w t
-    exact congrArg abs hre_eq
+    exact Complex.abs_re_add_real_mul_I_eq_of_re_pos hw_re_pos t
   calc
     w.re = |(w + (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
     _ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
@@ -868,9 +884,7 @@ theorem Complex.arctan_fixed_tail_ratio_denominator_lower
     exact hre_eq.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w - (t : ℂ) * Complex.I).re| = w.re := by
-    have hre_eq : (w - (t : ℂ) * Complex.I).re = w.re :=
-      Complex.sub_real_mul_I_re w t
-    exact congrArg abs hre_eq
+    exact Complex.abs_re_sub_real_mul_I_eq_of_re_pos hw_re_pos t
   calc
     w.re = |(w - (t : ℂ) * Complex.I).re| := hre_abs_eq.symm
     _ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
@@ -911,8 +925,14 @@ theorem Complex.arctan_fixed_tail_denominator_le_three_norm
     exact Complex.norm_real_mul_I_of_nonneg ht_nonneg
   calc
     ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
-      have h := norm_add_le w (-((t : ℂ) * Complex.I))
-      exact h
+      calc
+        ‖w - (t : ℂ) * Complex.I‖ =
+            ‖w + -((t : ℂ) * Complex.I)‖ := by
+          exact rfl
+        _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ :=
+          norm_add_le w (-((t : ℂ) * Complex.I))
+        _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I))
     _ = ‖w‖ + t := by
       exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
     _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
@@ -945,13 +965,28 @@ theorem Complex.arctan_fixed_tail_far_ratio_bounds
           ‖w - (t : ℂ) * Complex.I‖ := by
       calc
         ‖(t : ℂ) * Complex.I - w‖ = ‖- (w - (t : ℂ) * Complex.I)‖ := by
-          congr 1
-          abel
+          have harg :
+              (t : ℂ) * Complex.I - w =
+                - (w - (t : ℂ) * Complex.I) := by
+            calc
+              (t : ℂ) * Complex.I - w =
+                  (t : ℂ) * Complex.I + -w := by
+                exact sub_eq_add_neg ((t : ℂ) * Complex.I) w
+              _ = -w + (t : ℂ) * Complex.I := by
+                exact add_comm ((t : ℂ) * Complex.I) (-w)
+              _ = -w + -(-((t : ℂ) * Complex.I)) := by
+                exact congrArg (fun x : ℂ => -w + x)
+                  (Eq.symm (neg_neg ((t : ℂ) * Complex.I)))
+              _ = -(w + -((t : ℂ) * Complex.I)) := by
+                exact (neg_add w (-((t : ℂ) * Complex.I))).symm
+              _ = -(w - (t : ℂ) * Complex.I) := by
+                exact congrArg Neg.neg (Eq.symm (sub_eq_add_neg w ((t : ℂ) * Complex.I)))
+          exact congrArg norm harg
         _ = ‖w - (t : ℂ) * Complex.I‖ := by
           exact norm_neg _
     calc
       t - ‖w‖ = ‖(t : ℂ) * Complex.I‖ - ‖w‖ := by
-        exact htI_norm
+        exact congrArg (fun x : ℝ => x - ‖w‖) htI_norm.symm
       _ ≤ ‖(t : ℂ) * Complex.I - w‖ := hrev
       _ = ‖w - (t : ℂ) * Complex.I‖ := hnorm_eq
   have hplus_lower :
@@ -979,7 +1014,7 @@ theorem Complex.arctan_fixed_tail_far_ratio_bounds
     have hrev' : t - ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
       calc
         t - ‖w‖ = ‖(t : ℂ) * Complex.I‖ - ‖w‖ := by
-          exact htI_norm
+          exact congrArg (fun x : ℝ => x - ‖w‖) htI_norm.symm
         _ ≤ ‖(t : ℂ) * Complex.I - (-w)‖ := hrev
         _ = ‖w + (t : ℂ) * Complex.I‖ := hnorm_eq
     exact hrev'
@@ -994,9 +1029,14 @@ theorem Complex.arctan_fixed_tail_far_ratio_bounds
       ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := by
     calc
       ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
-        have h : ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
-          exact norm_add_le w (-((t : ℂ) * Complex.I))
-        exact h
+        calc
+          ‖w - (t : ℂ) * Complex.I‖ =
+              ‖w + -((t : ℂ) * Complex.I)‖ := by
+            exact rfl
+          _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ :=
+            norm_add_le w (-((t : ℂ) * Complex.I))
+          _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+            exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I))
       _ = ‖w‖ + t := by
         exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
   constructor
@@ -1028,9 +1068,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
               (w - (t : ℂ) * Complex.I)‖ ≤ M := by
   have hw_ne_zero : w ≠ 0 := by
     intro hw_zero
-    have hzero : (0 : ℝ) < 0 := by
-      exact hw_re_pos
-    exact (lt_irrefl (0 : ℝ)) hzero
+    have hw_re_zero : w.re = 0 :=
+      congrArg Complex.re hw_zero
+    exact (ne_of_gt hw_re_pos) hw_re_zero
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   let m : ℝ := min (w.re / (3 * ‖w‖)) (1 / 3)
@@ -1097,7 +1137,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
                 ‖w - (t : ℂ) * Complex.I‖ := hlower
           _ = ‖(w + (t : ℂ) * Complex.I) /
                 (w - (t : ℂ) * Complex.I)‖ := by
-            exact Eq.symm (norm_div _ _)
+            exact (norm_div
+              (w + (t : ℂ) * Complex.I)
+              (w - (t : ℂ) * Complex.I)).symm
       · have hupper :
             ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ ≤
@@ -1110,7 +1152,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
               (w - (t : ℂ) * Complex.I)‖ =
               ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ := by
-            exact Eq.symm (norm_div _ _)
+            exact norm_div
+              (w + (t : ℂ) * Complex.I)
+              (w - (t : ℂ) * Complex.I)
           _ ≤ 3 * ‖w‖ / w.re := hupper
           _ ≤ M := hbounded_le_M
     · have ht_far : 2 * ‖w‖ ≤ t := le_of_not_ge ht_bounded
@@ -1143,7 +1187,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
                 ‖w - (t : ℂ) * Complex.I‖ := hthird
           _ = ‖(w + (t : ℂ) * Complex.I) /
                 (w - (t : ℂ) * Complex.I)‖ := by
-            exact Eq.symm (norm_div _ _)
+            exact (norm_div
+              (w + (t : ℂ) * Complex.I)
+              (w - (t : ℂ) * Complex.I)).symm
       · have hthree :
             ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ ≤ 3 := by
@@ -1153,7 +1199,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
               (w - (t : ℂ) * Complex.I)‖ =
               ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ := by
-            exact Eq.symm (norm_div _ _)
+            exact norm_div
+              (w + (t : ℂ) * Complex.I)
+              (w - (t : ℂ) * Complex.I)
           _ ≤ 3 := hthree
           _ ≤ M := hM_ge_three
 
@@ -1180,9 +1228,9 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds
   intro t ht_tail
   have hw_ne_zero : w ≠ 0 := by
     intro hw_zero
-    have : (0 : ℝ) < 0 := by
-      exact hw_re_pos
-    exact (lt_irrefl (0 : ℝ)) this
+    have hw_re_zero : w.re = 0 :=
+      congrArg Complex.re hw_zero
+    exact (ne_of_gt hw_re_pos) hw_re_zero
   have hratio_eq :
       ‖(1 + ((t : ℂ) / w) * Complex.I) /
         (1 - ((t : ℂ) / w) * Complex.I)‖ =
@@ -1314,9 +1362,9 @@ theorem Complex.arctan_fixed_openRightHalfPlane_ray_tail_linear_bound_of_bounded
   rcases hbounded with ⟨B, hB_nonneg, hB⟩
   have hw_ne_zero : w ≠ 0 := by
     intro hw_zero
-    have : (0 : ℝ) < 0 := by
-      exact hw_re_pos
-    exact (lt_irrefl (0 : ℝ)) this
+    have hw_re_zero : w.re = 0 :=
+      congrArg Complex.re hw_zero
+    exact (ne_of_gt hw_re_pos) hw_re_zero
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   let C : ℝ := 2 * B / ‖w‖

@@ -244,11 +244,16 @@ theorem inverseGammaCorrection_eq_archimedean_add_poleCorrection
     deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ =
       explicitFormulaArchimedeanLogDerivative s +
         explicitFormulaCorrectionLogDerivative s := by
-  rw [← inverseGammaCompletionLogDeriv_eq s]
-  unfold explicitFormulaArchimedeanLogDerivative
-  exact sub_add_cancel
-    (inverseGammaCompletionLogDeriv s)
-    (explicitFormulaCorrectionLogDerivative s)
+  calc
+    deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ =
+        inverseGammaCompletionLogDeriv s := by
+      exact (inverseGammaCompletionLogDeriv_eq s).symm
+    _ = explicitFormulaArchimedeanLogDerivative s +
+          explicitFormulaCorrectionLogDerivative s := by
+      unfold explicitFormulaArchimedeanLogDerivative
+      exact sub_add_cancel
+        (inverseGammaCompletionLogDeriv s)
+        (explicitFormulaCorrectionLogDerivative s)
 
 /-- Completed negative logarithmic derivative decomposition on the regular completed-zeta
 domain. -/

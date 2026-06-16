@@ -156,14 +156,18 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_local
     (F Qold Qloc : ℂ → ℂ)
     (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
     (a : EntireFunctionZero F)
-    (hQloc_eq :
+  (hQloc_eq :
       Qloc =ᶠ[𝓝[≠] (a : ℂ)]
         entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a) :
     entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a
       =ᶠ[𝓝 (a : ℂ)] Qloc := by
-  rw [eventuallyEq_nhdsWithin_iff] at hQloc_eq
+  have hQloc_eq' :
+      ∀ᶠ w in 𝓝 (a : ℂ),
+        w ≠ (a : ℂ) →
+          Qloc w = entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w :=
+    Filter.EventuallyEq.mp (Filter.eventuallyEq_nhdsWithin_iff.mp hQloc_eq)
   exact
-    hQloc_eq.mono
+    hQloc_eq'.mono
       (fun w hw =>
         by
           by_cases hw_eq : w = (a : ℂ)
