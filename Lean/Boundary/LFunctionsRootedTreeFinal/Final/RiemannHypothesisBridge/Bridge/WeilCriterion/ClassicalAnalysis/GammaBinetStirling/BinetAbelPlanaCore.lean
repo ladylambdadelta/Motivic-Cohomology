@@ -664,6 +664,31 @@ noncomputable def Complex.finiteAbelPlanaLogEndpointResidueRestoration
     (w : ℂ) : ℂ :=
   Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
 
+/-- Adding the two endpoint half-residue contributions restores the full
+endpoint residue contribution. -/
+theorem Complex.finiteAbelPlana_log_endpointHalf_add_endpointHalf
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
+        Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w := by
+  dsimp [Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution,
+    Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution]
+  exact add_halves
+    (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+      Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+
+/-- Moving the last endpoint residue next to the first endpoint residue after
+splitting off the interior range. -/
+theorem endpoint_interior_last_reassociate
+    (first interior last : ℂ) :
+    first + (interior + last) = (first + last) + interior := by
+  calc
+    first + (interior + last) = (first + interior) + last :=
+      (add_assoc first interior last).symm
+    _ = (first + last) + interior :=
+      add_right_comm first interior last
+
 /-- Principal-value residues plus the endpoint restoration give the full
 endpoint contribution plus the interior residues. -/
 theorem Complex.finiteAbelPlana_log_pvResidue_add_endpointRestoration
@@ -675,9 +700,24 @@ theorem Complex.finiteAbelPlana_log_pvResidue_add_endpointRestoration
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
   dsimp [Complex.finiteAbelPlanaLogPVIntegerResidueContribution,
     Complex.finiteAbelPlanaLogEndpointResidueRestoration,
-    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution,
-    Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution]
-  ring
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution]
+  calc
+    (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w) +
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
+        =
+      (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w) +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
+      rw [add_assoc]
+      rw [add_comm
+        (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)
+        (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)]
+      rw [← add_assoc]
+    _ =
+      Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
+      rw [Complex.finiteAbelPlana_log_endpointHalf_add_endpointHalf]
 
 /-- The full integer-residue range is the two full endpoint residues together
 with the strictly interior residues. -/
@@ -692,7 +732,12 @@ theorem Complex.finiteAbelPlana_log_integerResidueSum_eq_fullEndpoint_add_interi
     Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution]
   rw [Finset.sum_range_succ']
   rw [Finset.sum_range_succ]
-  ring
+  exact
+    endpoint_interior_last_reassociate
+      (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+      (∑ x in Finset.range N,
+        Complex.finiteAbelPlanaLogIntegerResidue w (x + 1))
+      (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
 
 /-- The full finite integer-residue sum is the principal-value residue sum
 plus the endpoint restoration. -/
@@ -1468,6 +1513,85 @@ theorem Complex.finiteAbelPlana_log_lowerVerticalJumpIntegrand_eq_binet
       Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t := by
   rfl
 
+/-- A real multiple of `I` has zero real part. -/
+theorem Complex.real_mul_I_re_eq_zero
+    (t : ℝ) :
+    ((t : ℂ) * Complex.I).re = 0 := by
+  calc
+    ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+      exact Complex.mul_I_re (t : ℂ)
+    _ = -0 := by
+      rw [Complex.ofReal_im]
+    _ = 0 := neg_zero
+
+/-- Adding a purely imaginary real multiple leaves the real part unchanged. -/
+theorem Complex.add_real_mul_I_re
+    (w : ℂ)
+    (t : ℝ) :
+    (w + (t : ℂ) * Complex.I).re = w.re := by
+  calc
+    (w + (t : ℂ) * Complex.I).re
+        = w.re + ((t : ℂ) * Complex.I).re := by
+      exact Complex.add_re w ((t : ℂ) * Complex.I)
+    _ = w.re + 0 := by
+      rw [Complex.real_mul_I_re_eq_zero]
+    _ = w.re := add_zero w.re
+
+/-- Subtracting a purely imaginary real multiple leaves the real part
+unchanged. -/
+theorem Complex.sub_real_mul_I_re
+    (w : ℂ)
+    (t : ℝ) :
+    (w - (t : ℂ) * Complex.I).re = w.re := by
+  calc
+    (w - (t : ℂ) * Complex.I).re
+        = w.re - ((t : ℂ) * Complex.I).re := by
+      exact Complex.sub_re w ((t : ℂ) * Complex.I)
+    _ = w.re - 0 := by
+      rw [Complex.real_mul_I_re_eq_zero]
+    _ = w.re := sub_zero w.re
+
+/-- Put the numerator of the Cayley transform over the denominator `w`. -/
+theorem Complex.binetAbelPlana_cayley_numerator_common_denominator
+    {w : ℂ}
+    {t : ℝ}
+    (hw_ne : w ≠ 0) :
+    1 + ((t : ℂ) / w) * Complex.I =
+      (w + (t : ℂ) * Complex.I) / w := by
+  calc
+    1 + ((t : ℂ) / w) * Complex.I
+        = 1 + ((t : ℂ) * Complex.I) / w := by
+      rw [div_mul_eq_mul_div]
+    _ = (1 * w + (t : ℂ) * Complex.I) / w := by
+      exact add_div_eq_mul_add_div 1 ((t : ℂ) * Complex.I) hw_ne
+    _ = (w + (t : ℂ) * Complex.I) / w := by
+      rw [one_mul]
+
+/-- Put the denominator of the Cayley transform over the denominator `w`. -/
+theorem Complex.binetAbelPlana_cayley_denominator_common_denominator
+    {w : ℂ}
+    {t : ℝ}
+    (hw_ne : w ≠ 0) :
+    1 - ((t : ℂ) / w) * Complex.I =
+      (w - (t : ℂ) * Complex.I) / w := by
+  calc
+    1 - ((t : ℂ) / w) * Complex.I
+        = 1 - ((t : ℂ) * Complex.I) / w := by
+      rw [div_mul_eq_mul_div]
+    _ = 1 + (-((t : ℂ) * Complex.I)) / w := by
+      rw [sub_eq_add_neg, neg_div]
+    _ = (1 * w + -((t : ℂ) * Complex.I)) / w := by
+      exact add_div_eq_mul_add_div 1 (-((t : ℂ) * Complex.I)) hw_ne
+    _ = (w - (t : ℂ) * Complex.I) / w := by
+      rw [one_mul, sub_eq_add_neg]
+
+/-- Cancelling the shared right denominator in a quotient of quotients. -/
+theorem Complex.div_common_denominator_cancel_right
+    {a b c : ℂ}
+    (hc : c ≠ 0) :
+    (a / c) / (b / c) = a / b := by
+  exact div_div_div_cancel_right₀ hc a b
+
 /-- Algebraic Cayley normalization of the Binet arctangent argument. -/
 theorem Complex.binetAbelPlana_arctan_cayley_eq_logJump_ratio
     {w : ℂ}
@@ -1482,31 +1606,23 @@ theorem Complex.binetAbelPlana_arctan_cayley_eq_logJump_ratio
     have hre : w.re = 0 := by
       exact congrArg Complex.re hzero
     exact not_lt_of_ge (le_of_eq hre) hw
-  have hden_ne : w - (t : ℂ) * Complex.I ≠ 0 := by
-    intro hzero
-    have hre_zero : (w - (t : ℂ) * Complex.I).re = 0 := by
-      exact congrArg Complex.re hzero
-    have hre_eq : (w - (t : ℂ) * Complex.I).re = w.re := by
-      calc
-        (w - (t : ℂ) * Complex.I).re = w.re - ((t : ℂ) * Complex.I).re := by
-          exact Complex.sub_re w ((t : ℂ) * Complex.I)
-        _ = w.re := by
-          have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-            calc
-              ((t : ℂ) * Complex.I).re =
-                  (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-                exact Complex.mul_re _ _
-              _ = 0 := by
-                norm_num
-          linarith
-    exact not_lt_of_ge (le_of_eq (hre_eq.symm.trans hre_zero)) hw
   calc
     (1 + ((t : ℂ) / w) * Complex.I) /
         (1 - ((t : ℂ) / w) * Complex.I)
         =
+      ((w + (t : ℂ) * Complex.I) / w) /
+        ((w - (t : ℂ) * Complex.I) / w) := by
+      rw [Complex.binetAbelPlana_cayley_numerator_common_denominator hw_ne]
+      rw [Complex.binetAbelPlana_cayley_denominator_common_denominator hw_ne]
+    _ =
       (w + (t : ℂ) * Complex.I) /
         (w - (t : ℂ) * Complex.I) := by
-      field_simp [hw_ne, hden_ne]
+      exact
+        Complex.div_common_denominator_cancel_right
+          (a := w + (t : ℂ) * Complex.I)
+          (b := w - (t : ℂ) * Complex.I)
+          (c := w)
+          hw_ne
 
 /-- Adding a purely imaginary real multiple preserves strict right-half-plane
 membership. -/
@@ -1516,18 +1632,7 @@ theorem Complex.add_real_mul_I_re_pos
     (hw : 0 < w.re) :
     0 < (w + (t : ℂ) * Complex.I).re := by
   have hre : (w + (t : ℂ) * Complex.I).re = w.re := by
-    calc
-      (w + (t : ℂ) * Complex.I).re = w.re + ((t : ℂ) * Complex.I).re := by
-        exact Complex.add_re w ((t : ℂ) * Complex.I)
-      _ = w.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by
-              norm_num
-        linarith
+    exact Complex.add_real_mul_I_re w t
   exact hre.symm ▸ hw
 
 /-- Subtracting a purely imaginary real multiple preserves strict
@@ -1538,18 +1643,7 @@ theorem Complex.sub_real_mul_I_re_pos
     (hw : 0 < w.re) :
     0 < (w - (t : ℂ) * Complex.I).re := by
   have hre : (w - (t : ℂ) * Complex.I).re = w.re := by
-    calc
-      (w - (t : ℂ) * Complex.I).re = w.re - ((t : ℂ) * Complex.I).re := by
-        exact Complex.sub_re w ((t : ℂ) * Complex.I)
-      _ = w.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by
-              norm_num
-        linarith
+    exact Complex.sub_real_mul_I_re w t
   exact hre.symm ▸ hw
 
 /-- A point in the strict right half-plane is nonzero. -/
@@ -1582,6 +1676,54 @@ theorem Complex.binetAbelPlana_abs_arg_lt_pi_div_two_of_re_pos
   exact
     (Complex.abs_arg_lt_pi_div_two_iff).mpr
       (Or.inl hz)
+
+/-- The lower endpoints of two right-half-plane argument intervals add to
+`-π`. -/
+theorem neg_pi_div_two_add_neg_pi_div_two :
+    -(Real.pi / 2) + -(Real.pi / 2) = -Real.pi := by
+  calc
+    -(Real.pi / 2) + -(Real.pi / 2)
+        = -(Real.pi / 2 + Real.pi / 2) := by
+      exact (neg_add (Real.pi / 2) (Real.pi / 2)).symm
+    _ = -Real.pi := by
+      rw [add_halves]
+
+/-- The upper endpoints of two right-half-plane argument intervals add to
+`π`. -/
+theorem pi_div_two_add_pi_div_two :
+    Real.pi / 2 + Real.pi / 2 = Real.pi :=
+  add_halves Real.pi
+
+/-- Difference lower bound for two arguments in `(-π/2, π/2)`. -/
+theorem neg_pi_lt_sub_of_neg_pi_div_two_lt_of_lt_pi_div_two
+    {a b : ℝ}
+    (ha : -(Real.pi / 2) < a)
+    (hb : b < Real.pi / 2) :
+    -Real.pi < a - b := by
+  have hnegb : -(Real.pi / 2) < -b := by
+    exact neg_lt_neg hb
+  have hsum : -(Real.pi / 2) + -(Real.pi / 2) < a + -b :=
+    add_lt_add ha hnegb
+  calc
+    -Real.pi = -(Real.pi / 2) + -(Real.pi / 2) :=
+      neg_pi_div_two_add_neg_pi_div_two.symm
+    _ < a + -b := hsum
+    _ = a - b := (sub_eq_add_neg a b).symm
+
+/-- Difference upper bound for two arguments in `(-π/2, π/2)`. -/
+theorem sub_lt_pi_of_lt_pi_div_two_of_neg_pi_div_two_lt
+    {a b : ℝ}
+    (ha : a < Real.pi / 2)
+    (hb : -(Real.pi / 2) < b) :
+    a - b < Real.pi := by
+  have hnegb : -b < Real.pi / 2 := by
+    exact neg_lt_neg hb
+  have hsum : a + -b < Real.pi / 2 + Real.pi / 2 :=
+    add_lt_add ha hnegb
+  calc
+    a - b = a + -b := sub_eq_add_neg a b
+    _ < Real.pi / 2 + Real.pi / 2 := hsum
+    _ = Real.pi := pi_div_two_add_pi_div_two
 
 /-- The inverse of a strict-right-half-plane point has argument equal to the
 negative argument. -/
@@ -1631,7 +1773,9 @@ theorem Complex.binetAbelPlana_arg_add_inv_mem_Ioc_of_re_pos
     hyarg_bounds.1
   constructor
   · have hlower : -Real.pi < Complex.arg x - Complex.arg y := by
-      linarith
+      exact
+        neg_pi_lt_sub_of_neg_pi_div_two_lt_of_lt_pi_div_two
+          hx_gt hy_lt
     have htarget :
         -Real.pi < Complex.arg x + Complex.arg y⁻¹ := by
       exact
@@ -1641,7 +1785,9 @@ theorem Complex.binetAbelPlana_arg_add_inv_mem_Ioc_of_re_pos
           hlower
     exact htarget
   · have hupper : Complex.arg x - Complex.arg y < Real.pi := by
-      linarith
+      exact
+        sub_lt_pi_of_lt_pi_div_two_of_neg_pi_div_two_lt
+          hx_lt hy_gt
     have htarget :
         Complex.arg x + Complex.arg y⁻¹ < Real.pi := by
       exact

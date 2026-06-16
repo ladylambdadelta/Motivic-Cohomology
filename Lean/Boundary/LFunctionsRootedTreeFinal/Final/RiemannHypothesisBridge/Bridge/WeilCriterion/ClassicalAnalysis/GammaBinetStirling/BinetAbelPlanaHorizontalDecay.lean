@@ -16,6 +16,162 @@ noncomputable section
 
 open scoped Topology
 
+/-- The real number `3` is nonnegative, in the Binet horizontal-decay
+normalization. -/
+theorem Real.binetHorizontal_zero_le_three : (0 : ℝ) ≤ 3 := by
+  exact Nat.cast_nonneg 3
+
+/-- The real number `2` is positive, in the Binet horizontal-decay
+normalization. -/
+theorem Real.binetHorizontal_two_pos : (0 : ℝ) < 2 := by
+  exact Nat.cast_pos.mpr (Nat.succ_pos 1)
+
+/-- The real number `1` is bounded by `4`, in the Binet horizontal-decay
+normalization. -/
+theorem Real.binetHorizontal_one_le_four : (1 : ℝ) ≤ 4 := by
+  exact (Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le 3)) :
+    ((1 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ))
+
+/-- The real number `3` is bounded by `4`, in the Binet horizontal-decay
+normalization. -/
+theorem Real.binetHorizontal_three_le_four : (3 : ℝ) ≤ 4 := by
+  exact (Nat.cast_le.mpr
+    (Nat.succ_le_succ
+      (Nat.succ_le_succ
+        (Nat.succ_le_succ (Nat.zero_le 0)))) :
+    ((3 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ))
+
+/-- The basic absolute-value inequality `0 ≤ c + |c|`. -/
+theorem Real.binetHorizontal_self_add_abs_nonneg (c : ℝ) :
+    0 ≤ c + |c| := by
+  have hneg : -c ≤ |c| :=
+    neg_le_abs c
+  calc
+    0 = -c + c := by
+      exact (neg_add_cancel c).symm
+    _ ≤ |c| + c := by
+      exact add_le_add_right hneg c
+    _ = c + |c| := by
+      exact add_comm |c| c
+
+/-- If `|c| + 1 ≤ T`, then the shifted horizontal log argument is at least
+`1` once `|T| = T`. -/
+theorem Real.binetHorizontal_one_le_log_argument_of_abs_bound
+    {c T : ℝ}
+    (hT_abs : |c| + 1 ≤ T)
+    (hT_abs_value : |T| = T) :
+    1 ≤ 1 + c + |T| := by
+  have hnonneg_c_T : 0 ≤ c + T := by
+    calc
+      0 ≤ c + |c| := Real.binetHorizontal_self_add_abs_nonneg c
+      _ ≤ c + (|c| + 1) := by
+        exact add_le_add_left (le_add_of_nonneg_right zero_le_one) c
+      _ ≤ c + T := by
+        exact add_le_add_left hT_abs c
+      _ = T + c := by
+        exact add_comm c T
+      _ = c + T := by
+        exact add_comm T c
+  calc
+    1 = 1 + 0 := by
+      exact (add_zero 1).symm
+    _ ≤ 1 + (c + T) := by
+      exact add_le_add_left hnonneg_c_T 1
+    _ = 1 + c + T := by
+      exact (add_assoc 1 c T).symm
+    _ = 1 + c + |T| := by
+      exact congrArg (fun z : ℝ => 1 + c + z) hT_abs_value.symm
+
+/-- If `|c| + 1 ≤ T`, then the shifted horizontal log argument is bounded by
+`2*T` once `|T| = T`. -/
+theorem Real.binetHorizontal_log_argument_le_two_mul
+    {c T : ℝ}
+    (hT_abs : |c| + 1 ≤ T)
+    (hT_abs_value : |T| = T) :
+    1 + c + |T| ≤ 2 * T := by
+  have hc_one_le_T : c + 1 ≤ T := by
+    calc
+      c + 1 ≤ |c| + 1 := by
+        exact add_le_add_right (le_abs_self c) 1
+      _ ≤ T := hT_abs
+  calc
+    1 + c + |T| = (c + 1) + T := by
+      calc
+        1 + c + |T| = 1 + c + T := by
+          exact congrArg (fun z : ℝ => 1 + c + z) hT_abs_value
+        _ = (1 + c) + T := by
+          rfl
+        _ = (c + 1) + T := by
+          exact congrArg (fun z : ℝ => z + T) (add_comm 1 c)
+    _ ≤ T + T := by
+      exact add_le_add_right hc_one_le_T T
+    _ = 2 * T := by
+      exact (two_mul T).symm
+
+/-- The shifted logarithmic factor is nonnegative once the logarithm itself is
+nonnegative. -/
+theorem Real.binetHorizontal_log_factor_nonneg
+    {c T : ℝ}
+    (hlog_nonneg : 0 ≤ Real.log (1 + c + |T|)) :
+    0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 := by
+  have hpi_nonneg : 0 ≤ Real.pi :=
+    le_of_lt Real.pi_pos
+  exact add_nonneg (add_nonneg hlog_nonneg hpi_nonneg) zero_le_one
+
+/-- The logarithmic factor is bounded by `2*T + π + 1` once the log argument is
+bounded by `2*T`. -/
+theorem Real.binetHorizontal_log_factor_le_two_mul_add
+    {c T : ℝ}
+    (hlog_le_arg : Real.log (1 + c + |T|) ≤ 1 + c + |T|)
+    (harg_le_two_mul_T : 1 + c + |T| ≤ 2 * T) :
+    Real.log (1 + c + |T|) + Real.pi + 1 ≤
+      2 * T + Real.pi + 1 := by
+  have hlog_le_two_mul :
+      Real.log (1 + c + |T|) ≤ 2 * T :=
+    le_trans hlog_le_arg harg_le_two_mul_T
+  exact add_le_add_right (add_le_add_right hlog_le_two_mul Real.pi) 1
+
+/-- For the chosen horizontal-decay cutoff, the linear remainder is dominated
+by the quadratic term. -/
+theorem Real.binetHorizontal_two_mul_add_le_sq_of_large
+    {T : ℝ}
+    (hT_large : (4 + Real.pi : ℝ) ≤ T) :
+    2 * T + Real.pi + 1 ≤ T ^ 2 := by
+  have hpi_nonneg : 0 ≤ Real.pi :=
+    le_of_lt Real.pi_pos
+  have hthree_le_T : (3 : ℝ) ≤ T := by
+    calc
+      (3 : ℝ) ≤ 4 := Real.binetHorizontal_three_le_four
+      _ ≤ 4 + Real.pi := by
+        exact le_add_of_nonneg_right hpi_nonneg
+      _ ≤ T := hT_large
+  have hT_nonneg : 0 ≤ T :=
+    le_trans Real.binetHorizontal_zero_le_three hthree_le_T
+  have hpi_one_le_T : Real.pi + 1 ≤ T := by
+    calc
+      Real.pi + 1 ≤ Real.pi + 4 := by
+        exact add_le_add_left Real.binetHorizontal_one_le_four Real.pi
+      _ = 4 + Real.pi := by
+        exact add_comm Real.pi 4
+      _ ≤ T := hT_large
+  have hlinear_le_three_mul : 2 * T + Real.pi + 1 ≤ 3 * T := by
+    calc
+      2 * T + Real.pi + 1 = 2 * T + (Real.pi + 1) := by
+        exact add_assoc (2 * T) Real.pi 1
+      _ ≤ 2 * T + T := by
+        exact add_le_add_left hpi_one_le_T (2 * T)
+      _ = (2 + 1) * T := by
+        exact (add_mul 2 1 T).symm
+      _ = 3 * T := by
+        rfl
+  have hthree_mul_le_sq : 3 * T ≤ T ^ 2 := by
+    calc
+      3 * T ≤ T * T := by
+        exact mul_le_mul_of_nonneg_right hthree_le_T hT_nonneg
+      _ = T ^ 2 := by
+        exact (pow_two T).symm
+  exact le_trans hlinear_le_three_mul hthree_mul_le_sq
+
 /-- The bottom horizontal edge is bounded by the standard finite-strip
 cotangent exponential majorant. -/
 theorem Complex.norm_finiteAbelPlanaLogBottomHorizontalEdge_le_majorant
@@ -86,32 +242,37 @@ theorem Real.eventually_finiteAbelPlanaLogHorizontalEdge_log_nonneg_le_sq
     le_trans (le_max_right (4 + Real.pi : ℝ) (|c| + 1)) hT
   have hT_three : (3 : ℝ) ≤ T := by
     have hpi_nonneg : (0 : ℝ) ≤ Real.pi := le_of_lt Real.pi_pos
-    linarith
+    calc
+      (3 : ℝ) ≤ 4 := Real.binetHorizontal_three_le_four
+      _ ≤ 4 + Real.pi := by
+        exact le_add_of_nonneg_right hpi_nonneg
+      _ ≤ T := hT_large
   have hT_nonneg : 0 ≤ T :=
-    le_trans (by norm_num : (0 : ℝ) ≤ 3) hT_three
+    le_trans Real.binetHorizontal_zero_le_three hT_three
   have hT_abs_value : |T| = T :=
     abs_of_nonneg hT_nonneg
   have hc_le_abs : c ≤ |c| :=
     le_abs_self c
   have harg_ge_one : 1 ≤ 1 + c + |T| := by
-    rw [hT_abs_value]
-    nlinarith [hT_abs, hc_le_abs]
+    exact Real.binetHorizontal_one_le_log_argument_of_abs_bound
+      hT_abs hT_abs_value
   have harg_nonneg : 0 ≤ 1 + c + |T| :=
     le_trans zero_le_one harg_ge_one
   have hlog_nonneg : 0 ≤ Real.log (1 + c + |T|) :=
     Real.log_nonneg harg_ge_one
   have hnonneg : 0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 := by
-    linarith [hlog_nonneg, le_of_lt Real.pi_pos]
+    exact Real.binetHorizontal_log_factor_nonneg hlog_nonneg
   have harg_le_two_mul_T : 1 + c + |T| ≤ 2 * T := by
-    rw [hT_abs_value]
-    nlinarith [hT_abs, hc_le_abs]
+    exact Real.binetHorizontal_log_argument_le_two_mul
+      hT_abs hT_abs_value
   have hlog_le_arg : Real.log (1 + c + |T|) ≤ 1 + c + |T| :=
     Real.log_le_self harg_nonneg
   have hlog_add_le_two_mul_add :
       Real.log (1 + c + |T|) + Real.pi + 1 ≤ 2 * T + Real.pi + 1 := by
-    linarith
+    exact Real.binetHorizontal_log_factor_le_two_mul_add
+      hlog_le_arg harg_le_two_mul_T
   have htwo_mul_add_le_sq : 2 * T + Real.pi + 1 ≤ T ^ 2 := by
-    nlinarith [hT_large]
+    exact Real.binetHorizontal_two_mul_add_le_sq_of_large hT_large
   exact ⟨hnonneg, le_trans hlog_add_le_two_mul_add htwo_mul_add_le_sq⟩
 
 /-- A real asymptotic helper for the finite-strip horizontal-edge majorant:
@@ -142,7 +303,7 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
       simpa [Real.rpow_natCast] using
         (Real.tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero
           (2 : ℝ) (2 * Real.pi)
-          (mul_pos (by norm_num : (0 : ℝ) < 2) Real.pi_pos))
+          (mul_pos Real.binetHorizontal_two_pos Real.pi_pos))
     simpa using hpow
   have hlog_bounds :
       ∀ᶠ T : ℝ in atTop,
@@ -171,7 +332,11 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
           Real.exp (-(2 * Real.pi * |T|)) =
           (Real.log (1 + c + |T|) + Real.pi + 1) *
             Real.exp (-(2 * Real.pi * T)) := by
-        rw [habs]
+        exact congrArg
+          (fun y : ℝ =>
+            (Real.log (1 + c + |T|) + Real.pi + 1) *
+              Real.exp (-(2 * Real.pi * y)))
+          habs
       _ ≤ T ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
         exact mul_le_mul_of_nonneg_right hlog.2 hexp_nonneg
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le

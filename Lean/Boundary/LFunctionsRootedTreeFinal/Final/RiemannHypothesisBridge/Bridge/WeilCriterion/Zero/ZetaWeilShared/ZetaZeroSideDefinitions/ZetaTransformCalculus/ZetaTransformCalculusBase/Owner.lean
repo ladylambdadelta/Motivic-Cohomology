@@ -18,6 +18,33 @@ noncomputable section
 
 section Mellin
 
+theorem real_add_sub_right_eq_left (y t : ℝ) : y + (t - y) = t := by
+  calc
+    y + (t - y) = y + (t + -y) := by
+      exact congrArg (fun x : ℝ => y + x) (sub_eq_add_neg t y)
+    _ = (y + t) + -y := by
+      exact (add_assoc y t (-y)).symm
+    _ = y + t - y := by
+      exact (sub_eq_add_neg (y + t) y).symm
+    _ = t := add_sub_cancel_left y t
+
+theorem complex_mul_pair_reassociate (a b c d : ℂ) :
+    (a * b) * (c * d) = (a * c) * (b * d) := by
+  calc
+    (a * b) * (c * d) = ((a * b) * c) * d := by
+      exact (mul_assoc (a * b) c d).symm
+    _ = (a * (b * c)) * d := by
+      exact congrArg (fun x : ℂ => x * d) (mul_assoc a b c)
+    _ = (a * (c * b)) * d := by
+      exact congrArg (fun x : ℂ => (a * x) * d) (mul_comm b c)
+    _ = ((a * c) * b) * d := by
+      exact congrArg (fun x : ℂ => x * d) (mul_assoc a c b).symm
+    _ = (a * c) * (b * d) := by
+      exact mul_assoc (a * c) b d
+
+theorem complex_ofReal_neg_star (a : ℝ) : -star (a : ℂ) = -(a : ℂ) := by
+  exact congrArg Neg.neg (Complex.conj_ofReal a)
+
 /-- The zeta Laplace transform attached to a test function. -/
 noncomputable def zetaLaplaceTransform
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
@@ -217,7 +244,7 @@ theorem weighted_standardConvolutionPair_pointwise
     funext y
     have hsplit : (t : ℂ) = (y : ℂ) + ((t - y : ℝ) : ℂ) := by
       have hreal : y + (t - y) = t := by
-        ring
+        exact real_add_sub_right_eq_left y t
       calc
         (t : ℂ) = ((y + (t - y) : ℝ) : ℂ) := by
           exact congrArg (fun x : ℝ => (x : ℂ)) hreal.symm
@@ -258,7 +285,11 @@ theorem weighted_standardConvolutionPair_pointwise
           (f y * Complex.exp (z * y)) *
             ((LFunctions.ZetaAdmissibleFunction.dagger h) (t - y) *
               Complex.exp (z * ((t - y : ℝ) : ℂ))) := by
-        ring
+        exact complex_mul_pair_reassociate
+          (f y)
+          ((LFunctions.ZetaAdmissibleFunction.dagger h) (t - y))
+          (Complex.exp (z * y))
+          (Complex.exp (z * ((t - y : ℝ) : ℂ)))
       _ = A y * B (t - y) := by
         rfl
   calc
@@ -462,7 +493,22 @@ theorem zetaLaplaceTransform_convolutionAutocorrelation_real_pair
         (a : ℂ) =
       zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
         star (zetaLaplaceTransform f.toZetaTestFunction' (-(a : ℂ))) := by
-  exact zetaLaplaceTransform_convolutionAutocorrelation f (a : ℂ)
+  have hstar_arg : -star (a : ℂ) = -(a : ℂ) := complex_ofReal_neg_star a
+  calc
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction'
+        (a : ℂ) =
+      zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-star (a : ℂ))) := by
+      exact zetaLaplaceTransform_convolutionAutocorrelation f (a : ℂ)
+    _ =
+      zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
+        star (zetaLaplaceTransform f.toZetaTestFunction' (-(a : ℂ))) := by
+      exact congrArg
+        (fun w : ℂ =>
+          zetaLaplaceTransform f.toZetaTestFunction' (a : ℂ) *
+            star (zetaLaplaceTransform f.toZetaTestFunction' w))
+        hstar_arg
 
 /-- The two-variable convolution-pair Laplace integral unfolds to the kernel integral. -/
 theorem zetaLaplaceTransform_convolutionPair_unfold
@@ -728,6 +774,11 @@ theorem continuous_weightedLaplaceKernel
 theorem hasCompactSupport_weightedLaplaceKernel_of_hasCompactSupport
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) (hφ : HasCompactSupport φ) :
     HasCompactSupport (fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t)) := by
+  have hkernel_eq :
+      ((fun t : ℝ => (t : ℂ)) * (fun t : ℝ => φ t * Complex.exp (z * t))) =
+        fun t : ℝ => (t : ℂ) * φ t * Complex.exp (z * t) := by
+    funext t
+    exact (mul_assoc (t : ℂ) (φ t) (Complex.exp (z * t))).symm
   have h :
       HasCompactSupport
         ((fun t : ℝ => (t : ℂ)) * (fun t : ℝ => φ t * Complex.exp (z * t))) := by
@@ -735,7 +786,7 @@ theorem hasCompactSupport_weightedLaplaceKernel_of_hasCompactSupport
       (f := fun t : ℝ => (t : ℂ))
       (f' := fun t : ℝ => φ t * Complex.exp (z * t))
       (hf := hasCompactSupport_laplaceKernel_of_hasCompactSupport φ z hφ)
-  exact h
+  exact Eq.subst (motive := fun F : ℝ → ℂ => HasCompactSupport F) hkernel_eq h
 
 /-- A Laplace kernel vanishes outside the support of the underlying test function. -/
 theorem laplaceKernel_eq_zero_of_nmem_tsupport

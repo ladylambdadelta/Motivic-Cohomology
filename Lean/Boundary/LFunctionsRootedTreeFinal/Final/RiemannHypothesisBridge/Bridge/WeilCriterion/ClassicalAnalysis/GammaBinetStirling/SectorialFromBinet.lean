@@ -22,7 +22,7 @@ theorem Real.zero_le_two_real : (0 : ℝ) ≤ 2 :=
 /-- Trivial real positivity of `8`, named to keep arithmetic side conditions
 out of the Binet estimates. -/
 theorem Real.zero_lt_eight_real : (0 : ℝ) < 8 := by
-  linarith [zero_lt_one]
+  exact lt_of_lt_of_le zero_lt_one one_le_ofNat
 
 /-- Rewriting the lower split kernel majorant into constant-times-majorant
 form. -/
@@ -55,6 +55,40 @@ theorem Real.two_mul_div_mul_half_eq
     (hr : r ≠ 0) :
     (2 * B / r) * (r / 2) = B := by
   field_simp [hr]
+
+/-- Reassociate an `ε * (3 * N)` product into `3 * (ε * N)`. -/
+theorem Real.mul_three_mul_reassoc
+    (ε N : ℝ) :
+    ε * (3 * N) = 3 * (ε * N) := by
+  calc
+    ε * (3 * N) = (3 * N) * ε := by
+      exact mul_comm ε (3 * N)
+    _ = 3 * (N * ε) := by
+      exact mul_assoc 3 N ε
+    _ = 3 * (ε * N) := by
+      exact congrArg (fun z : ℝ => 3 * z) (mul_comm N ε)
+
+/-- Reassociate a `(3 * N) * ε` product into `3 * (ε * N)`. -/
+theorem Real.three_mul_mul_reassoc
+    (ε N : ℝ) :
+    3 * N * ε = 3 * (ε * N) := by
+  calc
+    3 * N * ε = 3 * (N * ε) := by
+      exact mul_assoc 3 N ε
+    _ = 3 * (ε * N) := by
+      exact congrArg (fun z : ℝ => 3 * z) (mul_comm N ε)
+
+/-- A number plus twice itself is three times itself. -/
+theorem Real.add_two_mul_eq_three_mul
+    (x : ℝ) :
+    x + 2 * x = 3 * x := by
+  calc
+    x + 2 * x = x + (x + x) := by
+      exact congrArg (fun z : ℝ => x + z) (two_mul x)
+    _ = x + x + x := by
+      exact Eq.symm (add_assoc x x x)
+    _ = 3 * x := by
+      exact Eq.symm (three_mul x)
 
 /-- Upper bound for a quotient from an upper numerator bound and a lower
 denominator bound. -/
@@ -102,10 +136,12 @@ theorem Complex.add_im_re (w : ℂ) (t : ℝ) :
     _ = w.re := by
       have hI : ((t : ℂ) * Complex.I).re = 0 := by
         calc
-          ((t : ℂ) * Complex.I).re = t * Complex.I.re - (0 : ℝ) * Complex.I.im := by
-            exact Complex.mul_re t Complex.I
+          ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+            exact Complex.mul_I_re (t : ℂ)
+          _ = -0 := by
+            exact congrArg Neg.neg (Complex.ofReal_im t)
           _ = 0 := by
-            norm_num [Complex.I_re, Complex.I_im]
+            exact neg_zero
       calc
         w.re + ((t : ℂ) * Complex.I).re = w.re + 0 := by
           exact congrArg (fun x : ℝ => w.re + x) hI
@@ -121,10 +157,12 @@ theorem Complex.sub_im_re (w : ℂ) (t : ℝ) :
     _ = w.re := by
       have hI : ((t : ℂ) * Complex.I).re = 0 := by
         calc
-          ((t : ℂ) * Complex.I).re = t * Complex.I.re - (0 : ℝ) * Complex.I.im := by
-            exact Complex.mul_re t Complex.I
+          ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+            exact Complex.mul_I_re (t : ℂ)
+          _ = -0 := by
+            exact congrArg Neg.neg (Complex.ofReal_im t)
           _ = 0 := by
-            norm_num [Complex.I_re, Complex.I_im]
+            exact neg_zero
       calc
         w.re - ((t : ℂ) * Complex.I).re = w.re - 0 := by
           exact congrArg (fun x : ℝ => w.re - x) hI
@@ -149,7 +187,7 @@ theorem Real.one_div_three_mul_three_mul
 theorem Complex.two_mul_add_eq_add_two_mul
     (a b : ℂ) :
     2 * (a + b) = 2 * a + 2 * b := by
-  ring
+  exact left_distrib (2 : ℂ) a b
 
 /-- Algebraic normalization of the first arctangent branch denominator. -/
 theorem Complex.one_sub_real_div_mul_I_eq
@@ -532,7 +570,8 @@ theorem Complex.binetSecondFormula_arctan_tail_numerator_le_three_norm
       norm_add_le _ _
     _ = ‖w‖ + t := by exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
     _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
-    _ = 3 * ‖w‖ := by ring
+    _ = 3 * ‖w‖ := by
+      exact Real.add_two_mul_eq_three_mul ‖w‖
 
 /-- On the bounded part of the tail, the unnormalized denominator is bounded
 by `3 * ‖w‖`. -/
@@ -553,7 +592,8 @@ theorem Complex.binetSecondFormula_arctan_tail_denominator_le_three_norm
     _ = ‖w‖ + t := by
       exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I) ▸ htI_norm)
     _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
-    _ = 3 * ‖w‖ := by ring
+    _ = 3 * ‖w‖ := by
+      exact Real.add_two_mul_eq_three_mul ‖w‖
 
 /-- On the far part of the tail, the two unnormalized branch distances are
 within a factor `3` of one another. -/
@@ -572,7 +612,9 @@ theorem Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
       ‖(t : ℂ) * Complex.I‖ = |t| := Complex.norm_real_mul_I t
       _ = t := abs_of_nonneg ht_nonneg
   have htail_sub_nonneg : 0 ≤ t - ‖w‖ := by
-    linarith [norm_nonneg w, ht_far]
+    have hnorm_le_two_norm : ‖w‖ ≤ 2 * ‖w‖ :=
+      le_mul_of_one_le_left (norm_nonneg w) one_le_two
+    exact sub_nonneg.mpr (le_trans hnorm_le_two_norm ht_far)
   have htail_upper : ‖w‖ + t ≤ 3 * (t - ‖w‖) := by
     linarith [ht_far]
   have hminus_lower :
@@ -1042,14 +1084,16 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
         mul_pos hthree_pos hw_norm_pos
       exact (div_le_div_iff₀ hthree_pos hden_pos).2
       calc
-        ε * (3 * ‖w‖) = 3 * (ε * ‖w‖) := by ring
+        ε * (3 * ‖w‖) = 3 * (ε * ‖w‖) := by
+          exact Real.mul_three_mul_reassoc ε ‖w‖
         _ ≤ 3 * w.re :=
           mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
     have hbounded_upper_const :
         3 * ‖w‖ / w.re ≤ 3 / ε := by
       exact (div_le_div_iff₀ hw_re_pos hε).2
       calc
-        3 * ‖w‖ * ε = 3 * (ε * ‖w‖) := by ring
+        3 * ‖w‖ * ε = 3 * (ε * ‖w‖) := by
+          exact Real.three_mul_mul_reassoc ε ‖w‖
         _ ≤ 3 * w.re :=
           mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
     by_cases ht_bounded : t ≤ 2 * ‖w‖

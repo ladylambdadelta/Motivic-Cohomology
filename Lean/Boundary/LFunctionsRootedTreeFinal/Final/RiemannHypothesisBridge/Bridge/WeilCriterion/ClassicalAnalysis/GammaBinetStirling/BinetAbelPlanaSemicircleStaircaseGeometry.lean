@@ -258,6 +258,25 @@ theorem Complex.radius_mem_semicircle_height_uIcc
     ρ ∈ [[-ρ, ρ]] :=
   right_endpoint_mem_uIcc_of_le (Complex.neg_radius_le_radius hρ)
 
+/-- Membership in the semicircle height unordered interval is membership in the
+ordered interval when the radius is nonnegative. -/
+theorem Complex.mem_semicircle_height_Icc_of_mem_uIcc
+    {ρ y : ℝ}
+    (hρ : 0 ≤ ρ)
+    (hy : y ∈ [[-ρ, ρ]]) :
+    y ∈ Set.Icc (-ρ) ρ := by
+  have huIcc : [[-ρ, ρ]] = Set.Icc (-ρ) ρ :=
+    Set.uIcc_of_le (Complex.neg_radius_le_radius hρ)
+  exact huIcc ▸ hy
+
+/-- The top radius endpoint belongs to the ordered semicircle height interval. -/
+theorem Complex.radius_mem_semicircle_height_Icc
+    {ρ : ℝ}
+    (hρ : 0 ≤ ρ) :
+    ρ ∈ Set.Icc (-ρ) ρ :=
+  Complex.mem_semicircle_height_Icc_of_mem_uIcc hρ
+    (Complex.radius_mem_semicircle_height_uIcc hρ)
+
 /-- The zero endpoint belongs to `[0,ρ]` when the radius is nonnegative. -/
 theorem Complex.zero_mem_radius_uIcc
     {ρ : ℝ}

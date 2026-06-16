@@ -132,19 +132,49 @@ theorem Complex.finiteAbelPlanaLogFiniteHoleVerticalStripIndex_le
     exact Finset.mem_range.mp hk
   exact Nat.lt_succ_iff.mp hklt
 
+/-- The quarter-radius bound is stronger than the half-radius bound. -/
+theorem real_one_fourth_le_one_half :
+    (1 : ℝ) / 4 ≤ (1 : ℝ) / 2 := by
+  have htwo_pos : (0 : ℝ) < 2 := by
+    exact zero_lt_two
+  have htwo_le_four_nat : (2 : ℕ) ≤ 4 := by
+    exact Nat.succ_le_succ (Nat.succ_le_succ (Nat.zero_le 2))
+  have htwo_le_four : (2 : ℝ) ≤ 4 := by
+    exact Nat.cast_le.mpr htwo_le_four_nat
+  exact one_div_le_one_div_of_le htwo_pos htwo_le_four
+
+/-- If `ρ ≤ 1/2`, then deleting `ρ` from both sides of a unit interval
+leaves a nonempty middle interval. -/
+theorem real_add_radius_le_add_one_sub_radius
+    (k : ℝ)
+    {ρ : ℝ}
+    (hρhalf : ρ ≤ (1 : ℝ) / 2) :
+    k + ρ ≤ k + 1 - ρ := by
+  have htwoρ_le_one : ρ + ρ ≤ (1 : ℝ) := by
+    calc
+      ρ + ρ ≤ (1 : ℝ) / 2 + (1 : ℝ) / 2 := by
+        exact add_le_add hρhalf hρhalf
+      _ = 1 := add_halves 1
+  have hρ_le_one_sub : ρ ≤ (1 : ℝ) - ρ := by
+    exact le_sub_iff_add_le.mpr htwoρ_le_one
+  calc
+    k + ρ ≤ k + ((1 : ℝ) - ρ) := by
+      exact add_le_add_left hρ_le_one_sub k
+    _ = k + 1 - ρ := by
+      exact (add_sub k 1 ρ).symm
+
 /-- The strip interval is ordered when the deletion radius is below `1/4`. -/
 theorem Complex.finiteAbelPlanaLogFiniteHoleVerticalStrip_left_le_right
     {ρ : ℝ}
     (hρquarter : ρ < (1 : ℝ) / 4)
     (k : ℕ) :
-    Complex.finiteAbelPlanaLogFiniteHoleVerticalStripLeft ρ k ≤
+      Complex.finiteAbelPlanaLogFiniteHoleVerticalStripLeft ρ k ≤
       Complex.finiteAbelPlanaLogFiniteHoleVerticalStripRight ρ k := by
   have hρhalf : ρ ≤ (1 : ℝ) / 2 := by
-    have hquarter_half : (1 : ℝ) / 4 ≤ (1 : ℝ) / 2 := by norm_num
-    exact (le_of_lt hρquarter).trans hquarter_half
+    exact (le_of_lt hρquarter).trans real_one_fourth_le_one_half
   dsimp [Complex.finiteAbelPlanaLogFiniteHoleVerticalStripLeft,
     Complex.finiteAbelPlanaLogFiniteHoleVerticalStripRight]
-  linarith
+  exact real_add_radius_le_add_one_sub_radius k hρhalf
 
 /-- A finite-hole vertical strip lies in the closed Abel-Plana rectangle. -/
 theorem Complex.finiteAbelPlanaLogFiniteHoleVerticalStrip_subset_closedRectangle
@@ -167,12 +197,16 @@ theorem Complex.finiteAbelPlanaLogFiniteHoleVerticalStrip_subset_closedRectangle
   have hzre_nonneg : 0 ≤ z.re := by
     have hleft : (k : ℝ) + ρ ≤ z.re := hzdata.1.1
     have hk_nonneg : 0 ≤ (k : ℝ) := Nat.cast_nonneg k
-    linarith
+    have hleft_nonneg : 0 ≤ (k : ℝ) + ρ := by
+      exact add_nonneg hk_nonneg hρnonneg
+    exact hleft_nonneg.trans hleft
   have hzre_le : z.re ≤ (N + 1 : ℝ) := by
     have hright : z.re ≤ (k + 1 : ℝ) - ρ := hzdata.1.2
     have hk_right : (k + 1 : ℝ) ≤ (N + 1 : ℝ) := by
-      exact_mod_cast Nat.succ_le_succ hk_le
-    linarith
+      exact Nat.cast_le.mpr (Nat.succ_le_succ hk_le)
+    have hright_le_k_succ : (k + 1 : ℝ) - ρ ≤ (k + 1 : ℝ) := by
+      exact sub_le_self (k + 1 : ℝ) hρnonneg
+    exact hright.trans (hright_le_k_succ.trans hk_right)
   have hright_nonneg : (0 : ℝ) ≤ (N + 1 : ℝ) := by
     exact Nat.cast_nonneg (N + 1)
   have hzre_uIcc : z.re ∈ [[(0 : ℝ), (N + 1 : ℝ)]] := by
@@ -230,24 +264,38 @@ theorem Complex.finiteAbelPlanaLogFiniteHoleVerticalStrip_not_mem_deletedDisk
     simpa [Complex.norm_eq_abs] using Complex.abs_re_le_abs (z - (n : ℂ))
   by_cases hnk : n ≤ k
   · have hn_le_k_real : (n : ℝ) ≤ (k : ℝ) := by
-      exact_mod_cast hnk
+      exact Nat.cast_le.mpr hnk
     have hleft : (k : ℝ) + ρ ≤ z.re := hzdata.1.1
     have hre_ge : ρ ≤ (z - (n : ℂ)).re := by
-      simp [sub_re]
-      linarith
+      have hn_add_ρ_le_z : (n : ℝ) + ρ ≤ z.re := by
+        exact (add_le_add_right hn_le_k_real ρ).trans hleft
+      have hρ_le_sub : ρ ≤ z.re - (n : ℝ) := by
+        exact le_sub_iff_add_le.mpr ((add_comm ρ (n : ℝ)) ▸ hn_add_ρ_le_z)
+      simpa [sub_re] using hρ_le_sub
     have hρ_le_abs : ρ ≤ |(z - (n : ℂ)).re| :=
       hre_ge.trans (le_abs_self _)
     exact not_lt_of_ge (hρ_le_abs.trans hre_norm) hdist_lt
   · have hk_lt_n : k < n := Nat.lt_of_not_ge hnk
     have hk_succ_le_n : k + 1 ≤ n := Nat.succ_le_iff.mpr hk_lt_n
     have hk_succ_le_n_real : (k + 1 : ℝ) ≤ (n : ℝ) := by
-      exact_mod_cast hk_succ_le_n
+      exact Nat.cast_le.mpr hk_succ_le_n
     have hright : z.re ≤ (k + 1 : ℝ) - ρ := hzdata.1.2
     have hre_le_neg : (z - (n : ℂ)).re ≤ -ρ := by
-      simp [sub_re]
-      linarith
+      have hz_le_n_sub_ρ : z.re ≤ (n : ℝ) - ρ := by
+        exact hright.trans (sub_le_sub_right hk_succ_le_n_real ρ)
+      have hz_sub_n_le_negρ : z.re - (n : ℝ) ≤ -ρ := by
+        have hz_le_negρ_add_n : z.re ≤ -ρ + (n : ℝ) := by
+          calc
+            z.re ≤ (n : ℝ) - ρ := hz_le_n_sub_ρ
+            _ = -ρ + (n : ℝ) := by
+              rw [sub_eq_add_neg, add_comm]
+        exact sub_le_iff_le_add.mpr hz_le_negρ_add_n
+      simpa [sub_re] using hz_sub_n_le_negρ
     have hρ_le_abs : ρ ≤ |(z - (n : ℂ)).re| := by
-      have hneg : ρ ≤ -((z - (n : ℂ)).re) := by linarith
+      have hneg : ρ ≤ -((z - (n : ℂ)).re) := by
+        have h := neg_le_neg hre_le_neg
+        rw [neg_neg] at h
+        exact h
       exact hneg.trans (neg_le_abs _)
     exact not_lt_of_ge (hρ_le_abs.trans hre_norm) hdist_lt
 
@@ -353,7 +401,16 @@ theorem Complex.finiteAbelPlana_log_internalVerticalEdge_right_add_left_cancel
         0 := by
   dsimp [Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution,
     Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution]
-  ring
+  calc
+    Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁ +
+        -Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁
+        =
+      Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁ +
+        -(Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁) := by
+      rw [neg_mul]
+    _ = 0 :=
+      add_neg_cancel
+        (Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁)
 
 /-- The left contribution of an internal vertical edge cancels the adjacent
 right contribution with the same parametrization. -/
@@ -365,7 +422,16 @@ theorem Complex.finiteAbelPlana_log_internalVerticalEdge_left_add_right_cancel
         0 := by
   dsimp [Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution,
     Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution]
-  ring
+  calc
+    -Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁ +
+        Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁
+        =
+      -(Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁) +
+        Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁ := by
+      rw [neg_mul]
+    _ = 0 :=
+      neg_add_cancel
+        (Complex.I * Complex.finiteAbelPlanaLogVerticalSubdivisionEdge w x y₀ y₁)
 
 /-- A finite list of paired internal vertical edges cancels term by term. -/
 theorem Complex.finiteAbelPlana_log_internalVerticalEdges_sum_cancel
@@ -422,6 +488,39 @@ theorem Complex.finiteAbelPlana_log_verticalStripSideExpression_unfold
             Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ := by
   rfl
 
+/-- Additive algebra for cancelling the shared internal edge of two adjacent
+vertical strips. -/
+theorem adjacent_vertical_strip_boundary_cancel_algebra
+    {H₀ H₁ L₀ R₀ L₁ R₁ : ℂ}
+    (hcancel : R₀ + L₁ = 0) :
+    (H₀ + (L₀ + R₀)) + (H₁ + (L₁ + R₁)) =
+      H₀ + H₁ + R₁ + L₀ := by
+  calc
+    (H₀ + (L₀ + R₀)) + (H₁ + (L₁ + R₁))
+        = (H₀ + H₁) + ((L₀ + R₀) + (L₁ + R₁)) := by
+      exact add_add_add_comm H₀ (L₀ + R₀) H₁ (L₁ + R₁)
+    _ = (H₀ + H₁) + ((L₀ + R₀) + (R₁ + L₁)) := by
+      exact
+        congrArg
+          (fun z => (H₀ + H₁) + ((L₀ + R₀) + z))
+          (add_comm L₁ R₁)
+    _ = (H₀ + H₁) + ((L₀ + R₁) + (R₀ + L₁)) := by
+      exact
+        congrArg (fun z => (H₀ + H₁) + z)
+          (add_add_add_comm L₀ R₀ R₁ L₁)
+    _ = (H₀ + H₁) + ((L₀ + R₁) + 0) := by
+      exact
+        congrArg
+          (fun z => (H₀ + H₁) + ((L₀ + R₁) + z))
+          hcancel
+    _ = (H₀ + H₁) + (L₀ + R₁) := by
+      rw [add_zero]
+    _ = (H₀ + H₁) + (R₁ + L₀) := by
+      exact congrArg (fun z => (H₀ + H₁) + z) (add_comm L₀ R₁)
+    _ = H₀ + H₁ + R₁ + L₀ := by
+      rw [← add_assoc]
+      rw [← add_assoc]
+
 /-- Two adjacent vertical strips cancel their shared internal vertical edge.
 
 The result deliberately leaves the two lower pieces and two upper pieces
@@ -432,16 +531,47 @@ theorem Complex.finiteAbelPlana_log_adjacentVerticalStripBoundaries_cancel_inter
     (x₀ x₁ x₂ y₀ y₁ : ℝ) :
     Complex.finiteAbelPlanaLogVerticalStripSideExpression w x₀ x₁ y₀ y₁ +
         Complex.finiteAbelPlanaLogVerticalStripSideExpression w x₁ x₂ y₀ y₁ =
-      Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
-        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁ +
-          Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₁ x₂ y₀ -
-            Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₁ x₂ y₁ +
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+          (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₁ x₂ y₀ -
+            Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₁ x₂ y₁) +
               Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₂ y₀ y₁ +
                 Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ := by
-  dsimp [Complex.finiteAbelPlanaLogVerticalStripSideExpression,
-    Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution,
-    Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution]
-  ring
+  calc
+    Complex.finiteAbelPlanaLogVerticalStripSideExpression w x₀ x₁ y₀ y₁ +
+        Complex.finiteAbelPlanaLogVerticalStripSideExpression w x₁ x₂ y₀ y₁
+        =
+      ((Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁)) +
+      ((Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₁ x₂ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₁ x₂ y₁) +
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₁ y₀ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₂ y₀ y₁)) := by
+      exact congrArg₂ HAdd.hAdd
+        (Complex.finiteAbelPlana_log_singleVerticalStripBoundary_eq_horizontal_add_outer
+          w x₀ x₁ y₀ y₁)
+        (Complex.finiteAbelPlana_log_singleVerticalStripBoundary_eq_horizontal_add_outer
+          w x₁ x₂ y₀ y₁)
+    _ =
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+          (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₁ x₂ y₀ -
+            Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₁ x₂ y₁) +
+              Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₂ y₀ y₁ +
+                Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ := by
+      exact adjacent_vertical_strip_boundary_cancel_algebra
+        (H₀ := Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁)
+        (H₁ := Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₁ x₂ y₀ -
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₁ x₂ y₁)
+        (L₀ := Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁)
+        (R₀ := Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁)
+        (L₁ := Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₁ y₀ y₁)
+        (R₁ := Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₂ y₀ y₁)
+        (Complex.finiteAbelPlana_log_internalVerticalEdge_right_add_left_cancel
+          w x₁ y₀ y₁)
 
 /-- Boundary sum of a chain of vertical strips.  The nodes `x n` are the
 successive vertical subdivision lines. -/
@@ -479,6 +609,121 @@ noncomputable def Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBound
     Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution
       w (x (m + 1)) y₀ y₁
 
+/-- The horizontal boundary of a vertical-strip chain grows by adjoining the
+next lower-minus-upper horizontal edge. -/
+theorem Complex.finiteAbelPlana_log_verticalStripChainHorizontalBoundary_succ
+    (w : ℂ)
+    (x : ℕ → ℝ)
+    (m : ℕ)
+    (y₀ y₁ : ℝ) :
+    Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+        w x (m + 1) y₀ y₁ =
+      Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+          w x m y₀ y₁ +
+        (Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+            w (x (m + 1)) (x (m + 2)) y₀ -
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+            w (x (m + 1)) (x (m + 2)) y₁) := by
+  dsimp [Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary]
+  calc
+    (∑ n in Finset.range (m + 1 + 1),
+        Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+          w (x n) (x (n + 1)) y₀) -
+      ∑ n in Finset.range (m + 1 + 1),
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+          w (x n) (x (n + 1)) y₁
+        =
+      ((∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+            w (x n) (x (n + 1)) y₀) +
+        Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₀) -
+      ((∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+            w (x n) (x (n + 1)) y₁) +
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₁) := by
+      rw [Finset.sum_range_succ, Finset.sum_range_succ]
+    _ =
+      ((∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+            w (x n) (x (n + 1)) y₀) -
+        ∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+            w (x n) (x (n + 1)) y₁) +
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₁) := by
+      exact add_sub_add_comm
+        (∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+            w (x n) (x (n + 1)) y₀)
+        (Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₀)
+        (∑ n in Finset.range (m + 1),
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+            w (x n) (x (n + 1)) y₁)
+        (Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+          w (x (m + 1)) (x (m + 1 + 1)) y₁)
+
+/-- Algebra for the successor step in the vertical-strip chain cancellation. -/
+theorem vertical_strip_chain_successor_cancel_algebra
+    {H Hnew L₀ Rold Lold Rnew : ℂ}
+    (hcancel : Rold + Lold = 0) :
+    (H + (L₀ + Rold)) + (Hnew + (Lold + Rnew)) =
+      (H + Hnew) + (L₀ + Rnew) := by
+  calc
+    (H + (L₀ + Rold)) + (Hnew + (Lold + Rnew))
+        = H + Hnew + Rnew + L₀ := by
+      exact adjacent_vertical_strip_boundary_cancel_algebra
+        (H₀ := H) (H₁ := Hnew) (L₀ := L₀) (R₀ := Rold)
+        (L₁ := Lold) (R₁ := Rnew) hcancel
+    _ = (H + Hnew) + (Rnew + L₀) := by
+      exact (add_assoc (H + Hnew) Rnew L₀).symm
+    _ = (H + Hnew) + (L₀ + Rnew) := by
+      exact congrArg (fun z => (H + Hnew) + z) (add_comm Rnew L₀)
+
+/-- A single vertical strip has the horizontal boundary plus the two outer
+vertical sides; this is only the order normalization of those two sides. -/
+theorem Complex.finiteAbelPlana_log_singleVerticalStripBoundary_eq_horizontal_add_outer
+    (w : ℂ)
+    (x₀ x₁ y₀ y₁ : ℝ) :
+    Complex.finiteAbelPlanaLogVerticalStripSideExpression w x₀ x₁ y₀ y₁ =
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁) := by
+  dsimp [Complex.finiteAbelPlanaLogVerticalStripSideExpression]
+  calc
+    Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁ +
+            Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁
+        =
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁) :=
+      add_assoc
+        (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+          Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁)
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁)
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁)
+    _ =
+      (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+        Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) +
+        (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁ +
+          Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁) := by
+      exact
+        congrArg
+          (fun z =>
+            (Complex.finiteAbelPlanaLogVerticalStripLowerEdge w x₀ x₁ y₀ -
+              Complex.finiteAbelPlanaLogVerticalStripUpperEdge w x₀ x₁ y₁) + z)
+          (add_comm
+            (Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution w x₁ y₀ y₁)
+            (Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution w x₀ y₀ y₁))
+
 /-- Summing the boundary expressions of a vertical strip chain cancels the
 shared internal vertical sides.  The result keeps the horizontal pieces
 unconcatenated; horizontal interval concatenation is a separate owner lemma. -/
@@ -498,7 +743,9 @@ theorem Complex.finiteAbelPlana_log_verticalStripChainBoundarySum_telescopes
         Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary,
         Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary,
         Complex.finiteAbelPlanaLogVerticalStripSideExpression]
-      ring
+      exact
+        Complex.finiteAbelPlana_log_singleVerticalStripBoundary_eq_horizontal_add_outer
+          w (x 0) (x 1) y₀ y₁
   | succ m hm =>
       calc
         Complex.finiteAbelPlanaLogVerticalStripChainBoundarySum
@@ -522,13 +769,75 @@ theorem Complex.finiteAbelPlana_log_verticalStripChainBoundarySum_telescopes
               w x (m + 1) y₀ y₁ +
             Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary
               w x (m + 1) y₀ y₁ := by
-            dsimp [Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary,
-              Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary,
-              Complex.finiteAbelPlanaLogVerticalStripSideExpression,
-              Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution,
-              Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution]
-            rw [Finset.sum_range_succ, Finset.sum_range_succ]
-            ring
+            let H : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+                w x m y₀ y₁
+            let Hnew : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalStripLowerEdge
+                w (x (m + 1)) (x (m + 2)) y₀ -
+              Complex.finiteAbelPlanaLogVerticalStripUpperEdge
+                w (x (m + 1)) (x (m + 2)) y₁
+            let L₀ : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution
+                w (x 0) y₀ y₁
+            let Rold : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution
+                w (x (m + 1)) y₀ y₁
+            let Lold : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalSubdivisionLeftContribution
+                w (x (m + 1)) y₀ y₁
+            let Rnew : ℂ :=
+              Complex.finiteAbelPlanaLogVerticalSubdivisionRightContribution
+                w (x (m + 2)) y₀ y₁
+            have hside :
+                Complex.finiteAbelPlanaLogVerticalStripSideExpression
+                    w (x (m + 1)) (x (m + 2)) y₀ y₁ =
+                  Hnew + (Lold + Rnew) := by
+              dsimp [Hnew, Lold, Rnew]
+              exact
+                Complex.finiteAbelPlana_log_singleVerticalStripBoundary_eq_horizontal_add_outer
+                  w (x (m + 1)) (x (m + 2)) y₀ y₁
+            have houter_old :
+                Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary
+                    w x m y₀ y₁ =
+                  L₀ + Rold := by
+              rfl
+            have houter_new :
+                Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary
+                    w x (m + 1) y₀ y₁ =
+                  L₀ + Rnew := by
+              rfl
+            have hhorizontal :
+                Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+                    w x (m + 1) y₀ y₁ =
+                  H + Hnew := by
+              dsimp [H, Hnew]
+              exact
+                Complex.finiteAbelPlana_log_verticalStripChainHorizontalBoundary_succ
+                  w x m y₀ y₁
+            have hcancel : Rold + Lold = 0 := by
+              dsimp [Rold, Lold]
+              exact
+                Complex.finiteAbelPlana_log_internalVerticalEdge_right_add_left_cancel
+                  w (x (m + 1)) y₀ y₁
+            calc
+              (Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+                  w x m y₀ y₁ +
+                Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary
+                  w x m y₀ y₁) +
+                Complex.finiteAbelPlanaLogVerticalStripSideExpression
+                  w (x (m + 1)) (x (m + 2)) y₀ y₁
+                  =
+                (H + (L₀ + Rold)) + (Hnew + (Lold + Rnew)) := by
+                rw [houter_old, hside]
+              _ = (H + Hnew) + (L₀ + Rnew) :=
+                vertical_strip_chain_successor_cancel_algebra hcancel
+              _ =
+                Complex.finiteAbelPlanaLogVerticalStripChainHorizontalBoundary
+                    w x (m + 1) y₀ y₁ +
+                  Complex.finiteAbelPlanaLogVerticalStripChainOuterVerticalBoundary
+                    w x (m + 1) y₀ y₁ := by
+                rw [hhorizontal, houter_new]
 
 /-- After internal vertical-edge cancellation, the remaining finite-radius
 punctured boundary is the outer principal-value rectangle boundary minus the

@@ -1,3 +1,5 @@
+import Mathlib.MeasureTheory.Integral.Periodic
+import Mathlib.MeasureTheory.Measure.Restrict
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.LogSineIntegral.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroMultiplicityCore.Owner
 
@@ -60,7 +62,7 @@ theorem real_two_mul_one_half_mul
       (2 : ℝ) * (1 / 2 : ℝ) = (2 : ℝ) * (2 : ℝ)⁻¹ := by
         exact congrArg (fun y : ℝ => (2 : ℝ) * y) (one_div (2 : ℝ))
       _ = 1 := by
-        exact mul_inv_cancel₀ (2 : ℝ) two_ne_zero
+        exact mul_inv_cancel₀ two_ne_zero
   calc
     2 * ((1 / 2 : ℝ) * x) = (2 * (1 / 2 : ℝ)) * x := by
       exact (mul_assoc (2 : ℝ) (1 / 2 : ℝ) x).symm
@@ -212,7 +214,7 @@ theorem realGammaLogDeriv_half_sub_one_eq_neg_two_log_two :
   calc
     realGammaLogDeriv (1 / 2) - realGammaLogDeriv 1 =
         -(realGammaLogDeriv 1 - realGammaLogDeriv (1 / 2)) := by
-      exact sub_eq_neg_sub (realGammaLogDeriv (1 / 2)) (realGammaLogDeriv 1)
+      exact (neg_sub (realGammaLogDeriv 1) (realGammaLogDeriv (1 / 2))).symm
     _ = -(2 * Real.log 2) := by
       exact congrArg Neg.neg realGammaLogDeriv_one_sub_half_eq_two_log_two
 
@@ -232,9 +234,20 @@ theorem realSinePowerGammaRatio_logDeriv_derivativeValue_eq_neg_pi_log_two :
         (fun x : ℝ => Real.pi * (x / 2))
         realGammaLogDeriv_half_sub_one_eq_neg_two_log_two
     _ = Real.pi * (-(Real.log 2)) := by
+      have hcancel :
+          (2 * Real.log 2) / 2 = Real.log 2 :=
+        mul_div_cancel_left₀ (Real.log 2) two_ne_zero
+      have hneg_div :
+          -(2 * Real.log 2) / 2 = -((2 * Real.log 2) / 2) :=
+        neg_div 2 (2 * Real.log 2)
+      have hneg_cancel :
+          -(2 * Real.log 2) / 2 = -Real.log 2 :=
+        hneg_div.trans (congrArg Neg.neg hcancel)
       exact congrArg
         (fun x : ℝ => Real.pi * x)
-        (neg_mul_div_two_cancel (Real.log 2))
+        hneg_cancel
+    _ = -(Real.pi * Real.log 2) := by
+      exact (neg_mul_eq_mul_neg Real.pi (Real.log 2)).symm
     _ = -Real.pi * Real.log 2 := by
       exact neg_mul_eq_neg_mul Real.pi (Real.log 2)
 
@@ -301,7 +314,7 @@ theorem realSinePowerIntegral_logDerivative_eq_gammaRatio_derivative :
         realSinePowerGammaRatio
         (∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u))
         0 :=
-    hsin.congr_of_eventuallyEq heq
+    hsin.congr_of_eventuallyEq heq.symm
   exact
     HasDerivAt.unique hsin_as_gamma hgamma
 
@@ -365,7 +378,7 @@ theorem real_one_sub_cos_sq_add_neg_sin_sq_eq_two_mul_one_sub_cos
       1 - 2 * c + 1 = 2 * (1 - c) := by
     calc
       1 - 2 * c + 1 = (1 + 1) - 2 * c := by
-        exact (sub_add_eq_add_sub 1 (2 * c) 1).symm
+        exact sub_add_eq_add_sub 1 (2 * c) 1
       _ = 2 - 2 * c := by
         exact congrArg (fun x : ℝ => x - 2 * c) (one_add_one_eq_two)
       _ = 2 * 1 - 2 * c := by
@@ -398,8 +411,8 @@ theorem real_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
   have hmul_sq :
       (2 * |Real.sin u|) ^ 2 = 2 ^ 2 * |Real.sin u| ^ 2 :=
     mul_pow 2 |Real.sin u| 2
-  have htwo_sq : (2 : ℝ) ^ 2 = 4 :=
-    rfl
+  have htwo_sq : (2 : ℝ) ^ 2 = 2 * 2 :=
+    sq 2
   have hsin_half :
       (Real.sin u) ^ 2 = 1 / 2 - Real.cos (2 * u) / 2 :=
     Real.sin_sq_eq_half_sub u
@@ -407,37 +420,51 @@ theorem real_two_abs_sin_half_sq_eq_two_mul_one_sub_cos
     calc
       2 * u = 2 * (θ / 2) := by
         exact rfl
+      _ = 2 * θ / 2 := by
+        exact mul_div_assoc' 2 θ 2
       _ = θ := by
         exact mul_div_cancel_left₀ θ two_ne_zero
   have hcos_theta :
       Real.cos (2 * u) = Real.cos θ :=
     congrArg Real.cos htheta
   have hfour_mul :
-      4 * (1 / 2 - Real.cos θ / 2) =
+      (2 * 2) * (1 / 2 - Real.cos θ / 2) =
         2 * (1 - Real.cos θ) := by
     calc
-      4 * (1 / 2 - Real.cos θ / 2) =
-          4 * ((1 - Real.cos θ) / 2) := by
-        exact congrArg (fun x : ℝ => 4 * x) (Eq.symm (sub_div 1 (Real.cos θ) 2))
-      _ = (4 / 2) * (1 - Real.cos θ) := by
-        exact (div_mul_eq_mul_div 4 (1 - Real.cos θ) 2).symm
+      (2 * 2) * (1 / 2 - Real.cos θ / 2) =
+          (2 * 2) * ((1 - Real.cos θ) / 2) := by
+        exact
+          congrArg (fun x : ℝ => (2 * 2) * x)
+            (Eq.symm (sub_div 1 (Real.cos θ) 2))
       _ = 2 * (1 - Real.cos θ) := by
-        exact congrArg (fun x : ℝ => x * (1 - Real.cos θ))
-          (mul_div_cancel_left₀ (2 : ℝ) two_ne_zero)
+        have hinner :
+            2 * ((1 - Real.cos θ) / 2) = 1 - Real.cos θ := by
+          calc
+            2 * ((1 - Real.cos θ) / 2) =
+                2 * (1 - Real.cos θ) / 2 := by
+              exact mul_div_assoc' 2 (1 - Real.cos θ) 2
+            _ = 1 - Real.cos θ :=
+              mul_div_cancel_left₀ (1 - Real.cos θ) two_ne_zero
+        calc
+          (2 * 2) * ((1 - Real.cos θ) / 2) =
+              2 * (2 * ((1 - Real.cos θ) / 2)) :=
+            mul_assoc 2 2 ((1 - Real.cos θ) / 2)
+          _ = 2 * (1 - Real.cos θ) := by
+            exact congrArg (fun x : ℝ => 2 * x) hinner
   calc
     (2 * |Real.sin (θ / 2)|) ^ 2 =
         (2 * |Real.sin u|) ^ 2 := by
       exact rfl
     _ = 2 ^ 2 * |Real.sin u| ^ 2 := by
       exact hmul_sq
-    _ = 4 * |Real.sin u| ^ 2 := by
+    _ = (2 * 2) * |Real.sin u| ^ 2 := by
       exact congrArg (fun x : ℝ => x * |Real.sin u| ^ 2) htwo_sq
-    _ = 4 * (Real.sin u) ^ 2 := by
-      exact congrArg (fun x : ℝ => 4 * x) habs_sq
-    _ = 4 * (1 / 2 - Real.cos (2 * u) / 2) := by
-      exact congrArg (fun x : ℝ => 4 * x) hsin_half
-    _ = 4 * (1 / 2 - Real.cos θ / 2) := by
-      exact congrArg (fun x : ℝ => 4 * (1 / 2 - x / 2)) hcos_theta
+    _ = (2 * 2) * (Real.sin u) ^ 2 := by
+      exact congrArg (fun x : ℝ => (2 * 2) * x) habs_sq
+    _ = (2 * 2) * (1 / 2 - Real.cos (2 * u) / 2) := by
+      exact congrArg (fun x : ℝ => (2 * 2) * x) hsin_half
+    _ = (2 * 2) * (1 / 2 - Real.cos θ / 2) := by
+      exact congrArg (fun x : ℝ => (2 * 2) * (1 / 2 - x / 2)) hcos_theta
     _ = 2 * (1 - Real.cos θ) := by
       exact hfour_mul
 
@@ -446,16 +473,127 @@ theorem unitCircleLogKernel_normSq_eq_two_mul_one_sub_cos
     (θ : ℝ) :
     Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
       2 * (1 - Real.cos θ) := by
+  have hexp :
+      Complex.exp ((θ : ℂ) * Complex.I) =
+        (Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I := by
+    calc
+      Complex.exp ((θ : ℂ) * Complex.I) =
+          Complex.cos (θ : ℂ) + Complex.sin (θ : ℂ) * Complex.I :=
+        Complex.exp_mul_I θ
+      _ = (Real.cos θ : ℂ) + Complex.sin (θ : ℂ) * Complex.I := by
+        exact congrArg
+          (fun x : ℂ => x + Complex.sin (θ : ℂ) * Complex.I)
+          (Complex.ofReal_cos θ).symm
+      _ = (Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I := by
+        exact congrArg
+          (fun x : ℂ => (Real.cos θ : ℂ) + x * Complex.I)
+          (Complex.ofReal_sin θ).symm
+  have hnorm :
+      Complex.normSq (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)) =
+        (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 := by
+    have hsub_complex :
+        1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I) =
+          ((1 - Real.cos θ : ℝ) : ℂ) + ((-Real.sin θ : ℝ) : ℂ) * Complex.I := by
+      have hsinI_re :
+          ((Real.sin θ : ℂ) * Complex.I).re = 0 := by
+        calc
+          ((Real.sin θ : ℂ) * Complex.I).re =
+              Real.sin θ * 0 - 0 * 1 := by
+            exact rfl
+          _ = Real.sin θ * 0 - 0 := by
+            exact congrArg (fun x : ℝ => Real.sin θ * 0 - x) (zero_mul 1)
+          _ = 0 - 0 := by
+            exact congrArg (fun x : ℝ => x - 0) (mul_zero (Real.sin θ))
+          _ = 0 := sub_self 0
+      have hsinI_im :
+          ((Real.sin θ : ℂ) * Complex.I).im = Real.sin θ := by
+        calc
+          ((Real.sin θ : ℂ) * Complex.I).im =
+              Real.sin θ * 1 + 0 * 0 := by
+            exact rfl
+          _ = Real.sin θ + 0 * 0 := by
+            exact congrArg (fun x : ℝ => x + 0 * 0) (mul_one (Real.sin θ))
+          _ = Real.sin θ + 0 := by
+            exact congrArg (fun x : ℝ => Real.sin θ + x) (zero_mul 0)
+          _ = Real.sin θ := add_zero (Real.sin θ)
+      have hnegSinI_re :
+          (((-Real.sin θ : ℝ) : ℂ) * Complex.I).re = 0 := by
+        calc
+          (((-Real.sin θ : ℝ) : ℂ) * Complex.I).re =
+              (-Real.sin θ) * 0 - 0 * 1 := by
+            exact rfl
+          _ = (-Real.sin θ) * 0 - 0 := by
+            exact congrArg (fun x : ℝ => (-Real.sin θ) * 0 - x) (zero_mul 1)
+          _ = 0 - 0 := by
+            exact congrArg (fun x : ℝ => x - 0) (mul_zero (-Real.sin θ))
+          _ = 0 := sub_self 0
+      have hnegSinI_im :
+          (((-Real.sin θ : ℝ) : ℂ) * Complex.I).im = -Real.sin θ := by
+        calc
+          (((-Real.sin θ : ℝ) : ℂ) * Complex.I).im =
+              (-Real.sin θ) * 1 + 0 * 0 := by
+            exact rfl
+          _ = -Real.sin θ + 0 * 0 := by
+            exact congrArg (fun x : ℝ => x + 0 * 0) (mul_one (-Real.sin θ))
+          _ = -Real.sin θ + 0 := by
+            exact congrArg (fun x : ℝ => -Real.sin θ + x) (zero_mul 0)
+          _ = -Real.sin θ := add_zero (-Real.sin θ)
+      have hre_lhs :
+          (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)).re =
+            1 - Real.cos θ := by
+        calc
+          (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)).re =
+              1 - (Real.cos θ + ((Real.sin θ : ℂ) * Complex.I).re) := by
+            exact rfl
+          _ = 1 - (Real.cos θ + 0) := by
+            exact congrArg (fun x : ℝ => 1 - (Real.cos θ + x)) hsinI_re
+          _ = 1 - Real.cos θ := by
+            exact congrArg (fun x : ℝ => 1 - x) (add_zero (Real.cos θ))
+      have hre_rhs :
+          (((1 - Real.cos θ : ℝ) : ℂ) + ((-Real.sin θ : ℝ) : ℂ) * Complex.I).re =
+            1 - Real.cos θ := by
+        calc
+          (((1 - Real.cos θ : ℝ) : ℂ) + ((-Real.sin θ : ℝ) : ℂ) * Complex.I).re =
+              (1 - Real.cos θ) + (((-Real.sin θ : ℝ) : ℂ) * Complex.I).re := by
+            exact rfl
+          _ = (1 - Real.cos θ) + 0 := by
+            exact congrArg (fun x : ℝ => (1 - Real.cos θ) + x) hnegSinI_re
+          _ = 1 - Real.cos θ := add_zero (1 - Real.cos θ)
+      have him_lhs :
+          (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)).im =
+            -Real.sin θ := by
+        calc
+          (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)).im =
+              0 - (0 + ((Real.sin θ : ℂ) * Complex.I).im) := by
+            exact rfl
+          _ = 0 - (0 + Real.sin θ) := by
+            exact congrArg (fun x : ℝ => 0 - (0 + x)) hsinI_im
+          _ = 0 - Real.sin θ := by
+            exact congrArg (fun x : ℝ => 0 - x) (zero_add (Real.sin θ))
+          _ = -Real.sin θ := zero_sub (Real.sin θ)
+      have him_rhs :
+          (((1 - Real.cos θ : ℝ) : ℂ) + ((-Real.sin θ : ℝ) : ℂ) * Complex.I).im =
+            -Real.sin θ := by
+        calc
+          (((1 - Real.cos θ : ℝ) : ℂ) + ((-Real.sin θ : ℝ) : ℂ) * Complex.I).im =
+              0 + (((-Real.sin θ : ℝ) : ℂ) * Complex.I).im := by
+            exact rfl
+          _ = 0 + -Real.sin θ := by
+            exact congrArg (fun x : ℝ => 0 + x) hnegSinI_im
+          _ = -Real.sin θ := zero_add (-Real.sin θ)
+      exact Complex.ext (hre_lhs.trans hre_rhs.symm) (him_lhs.trans him_rhs.symm)
+    calc
+      Complex.normSq (1 - ((Real.cos θ : ℂ) + (Real.sin θ : ℂ) * Complex.I)) =
+          Complex.normSq ((1 - Real.cos θ : ℝ) + (-Real.sin θ : ℝ) * Complex.I) := by
+        exact congrArg Complex.normSq hsub_complex
+      _ = (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 :=
+        Complex.normSq_add_mul_I (1 - Real.cos θ) (-Real.sin θ)
   calc
     Complex.normSq (1 - Complex.exp (θ * Complex.I)) =
         Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) := by
-      exact congrArg (fun z : ℂ => Complex.normSq (1 - z)) (Complex.exp_mul_I θ)
+      exact congrArg (fun z : ℂ => Complex.normSq (1 - z)) hexp
     _ = (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 := by
-      exact
-        (show
-          Complex.normSq (1 - (Real.cos θ + Real.sin θ * Complex.I)) =
-            (1 - Real.cos θ) ^ 2 + (-Real.sin θ) ^ 2 from
-          rfl)
+      exact hnorm
     _ = 2 * (1 - Real.cos θ) := by
       exact real_one_sub_cos_sq_add_neg_sin_sq_eq_two_mul_one_sub_cos θ
 
@@ -550,7 +688,7 @@ theorem unitCircleLogKernel_halfSine_zero_ae_ne :
         match hθ_cases with
         | Or.inl hmain =>
             have hθ_lt_endpoint : θ < 2 * Real.pi :=
-              lt_of_le_of_ne hmain.2 (Ne.symm hθ_ne_endpoint)
+              lt_of_le_of_ne hmain.2 hθ_ne_endpoint
             have hhalf_pos : 0 < θ / 2 :=
               div_pos hmain.1 zero_lt_two
             have hhalf_lt_pi : θ / 2 < Real.pi := by
@@ -587,7 +725,8 @@ theorem unitCircleLogKernel_integral_eq_const_plus_halfSineLog :
         Real.log 2 + Real.log |Real.sin (θ / 2)| := by
   exact
     intervalIntegral.integral_congr_ae
-      unitCircleLogKernel_log_eq_const_plus_halfSineLog_ae
+      ((MeasureTheory.ae_restrict_iff' measurableSet_uIoc).1
+        unitCircleLogKernel_log_eq_const_plus_halfSineLog_ae)
 
 /-- Half-angle linear substitution before removing the absolute value. -/
 theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
@@ -600,7 +739,7 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
       Real.log |Real.sin (θ / 2)|) =
         ∫ θ in (0 : ℝ)..(2 * Real.pi), f (θ / 2) := by
       rfl
-    _ = 2 * (∫ u in (0 : ℝ) / 2..(2 * Real.pi) / 2, f u) := by
+    _ = 2 * (∫ u in ((0 : ℝ) / 2)..((2 * Real.pi) / 2), f u) := by
       exact intervalIntegral.integral_comp_div (f := f) (a := (0 : ℝ))
         (b := 2 * Real.pi) (c := 2) two_ne_zero
     _ = 2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) := by
@@ -617,11 +756,20 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_absSineLog :
           _ = Real.pi := by
             exact mul_one Real.pi
       have hinterval :
-          (∫ u in (0 : ℝ) / 2..(2 * Real.pi) / 2, f u) =
+          (∫ u in ((0 : ℝ) / 2)..((2 * Real.pi) / 2), f u) =
             ∫ u in (0 : ℝ)..Real.pi, f u := by
-        congr 1
+        calc
+          (∫ u in ((0 : ℝ) / 2)..((2 * Real.pi) / 2), f u) =
+              ∫ u in (0 : ℝ)..((2 * Real.pi) / 2), f u := by
+            exact congrArg
+              (fun a : ℝ => ∫ u in a..((2 * Real.pi) / 2), f u)
+              h0
+          _ = ∫ u in (0 : ℝ)..Real.pi, f u := by
+            exact congrArg
+              (fun b : ℝ => ∫ u in (0 : ℝ)..b, f u)
+              hpi
       calc
-        2 * (∫ u in (0 : ℝ) / 2..(2 * Real.pi) / 2, f u)
+        2 * (∫ u in ((0 : ℝ) / 2)..((2 * Real.pi) / 2), f u)
             = 2 * (∫ u in (0 : ℝ)..Real.pi, f u) := by
               exact congrArg (fun t : ℝ => 2 * t) hinterval
         _ = 2 * (∫ u in (0 : ℝ)..Real.pi, Real.log |Real.sin u|) := by
@@ -652,7 +800,7 @@ theorem real_sin_pos_ae_zero_pi :
         | Or.inl hmain =>
             Real.sin_pos_of_pos_of_lt_pi
               hmain.1
-              (lt_of_le_of_ne hmain.2 (Ne.symm hu_ne_pi))
+              (lt_of_le_of_ne hmain.2 hu_ne_pi)
         | Or.inr hrev =>
             have hpi_le_zero : Real.pi ≤ 0 :=
               hrev.1.le.trans hrev.2
@@ -675,7 +823,8 @@ theorem real_integral_log_abs_sin_zero_pi_eq_log_sin :
       ∫ u in (0 : ℝ)..Real.pi, Real.log (Real.sin u) := by
   exact
     intervalIntegral.integral_congr_ae
-      real_log_abs_sin_ae_eq_log_sin_zero_pi
+      ((MeasureTheory.ae_restrict_iff' measurableSet_uIoc).1
+        real_log_abs_sin_ae_eq_log_sin_zero_pi)
 
 /-- Away from the endpoint zeros, the logarithmic sine kernel is continuous on
 the Jensen sine interval. -/
@@ -737,47 +886,70 @@ theorem real_filled_sin_div_self_continuousAt_zero :
           0
           (Real.cos 0) =
         Function.update (fun x : ℝ => Real.sin x / x) 0 1 := by
-    funext x
-    match Classical.decEq ℝ x 0 with
-    | isTrue hx =>
-        exact
-          Eq.trans
-            (congrFun
-              (Function.update_eq_self
+    exact
+      funext
+        (fun x =>
+          match Classical.decEq ℝ x 0 with
+          | isTrue hx =>
+              have hleft :
+                  Function.update
+                      (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+                      0
+                      (Real.cos 0) x =
+                    Real.cos 0 :=
+                Eq.subst
+                  (motive := fun y : ℝ =>
+                    Function.update
+                        (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+                        0
+                        (Real.cos 0) y =
+                      Real.cos 0)
+                  hx.symm
+                  (Function.update_same 0 (Real.cos 0)
+                    (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0)))
+              have hright :
+                  Function.update (fun x : ℝ => Real.sin x / x) 0 1 x =
+                    1 :=
+                Eq.subst
+                  (motive := fun y : ℝ =>
+                    Function.update (fun x : ℝ => Real.sin x / x) 0 1 y =
+                      1)
+                  hx.symm
+                  (Function.update_same 0 1 (fun x : ℝ => Real.sin x / x))
+              calc
+                Function.update
+                    (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+                    0
+                    (Real.cos 0) x =
+                  Real.cos 0 := hleft
+                _ = 1 := Real.cos_zero
+                _ = Function.update (fun x : ℝ => Real.sin x / x) 0 1 x :=
+                  hright.symm
+          | isFalse hx =>
+              have hleft :
+                Function.update
+                    (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+                    0
+                    (Real.cos 0) x =
+                  (Real.sin x - Real.sin 0) / (x - 0) :=
+              Function.update_noteq hx (Real.cos 0)
                 (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
-                0
-                (Real.cos 0))
-              x)
-            (Eq.subst
-              (motive := fun y : ℝ =>
-                Real.cos 0 =
-                  Function.update (fun x : ℝ => Real.sin x / x) 0 1 y)
-              hx.symm
-              Real.cos_zero)
-    | isFalse hx =>
-        have hleft :
-          Function.update
-              (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
-              0
-              (Real.cos 0) x =
-            (Real.sin x - Real.sin 0) / (x - 0) :=
-        Function.update_of_ne hx (Real.cos 0)
-          (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
-        have hright :
-          Function.update (fun x : ℝ => Real.sin x / x) 0 1 x =
-            Real.sin x / x :=
-          Function.update_of_ne hx 1 (fun x : ℝ => Real.sin x / x)
-        calc
-          Function.update
-              (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
-              0
-              (Real.cos 0) x =
-              (Real.sin x - Real.sin 0) / (x - 0) := hleft
-          _ = Real.sin x / x := by
-            exact congrArg₂ HDiv.hDiv
-              (sub_eq_self.2 Real.sin_zero)
-              (sub_zero x)
-          _ = Function.update (fun x : ℝ => Real.sin x / x) 0 1 x := hright.symm
+              have hright :
+                Function.update (fun x : ℝ => Real.sin x / x) 0 1 x =
+                  Real.sin x / x :=
+                Function.update_noteq hx 1 (fun x : ℝ => Real.sin x / x)
+              calc
+                Function.update
+                    (fun x : ℝ => (Real.sin x - Real.sin 0) / (x - 0))
+                    0
+                    (Real.cos 0) x =
+                    (Real.sin x - Real.sin 0) / (x - 0) := hleft
+                _ = Real.sin x / x := by
+                  exact congrArg₂ HDiv.hDiv
+                    (sub_eq_self.2 Real.sin_zero)
+                    (sub_zero x)
+                _ = Function.update (fun x : ℝ => Real.sin x / x) 0 1 x :=
+                  hright.symm)
   exact
     Eq.subst
       (motive := fun f : ℝ → ℝ => ContinuousAt f 0)
@@ -884,7 +1056,10 @@ theorem real_log_abs_filled_sin_div_self_local_intervalIntegrable_zero :
     Function.update_same 0 1 (fun x : ℝ => Real.sin x / x)
   have hnonzero :
       Function.update (fun x : ℝ => Real.sin x / x) 0 1 0 ≠ 0 := by
-    exact hvalue ▸ one_ne_zero
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≠ 0)
+      hvalue.symm
+      one_ne_zero
   exact
     real_log_abs_local_intervalIntegrable_of_continuous_nonzero
       (Function.update (fun x : ℝ => Real.sin x / x) 0 1)
@@ -936,13 +1111,13 @@ theorem real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi :
       u < Real.pi ∧ Real.pi < v ∧
       IntervalIntegrable
         (fun θ : ℝ =>
-          Real.log |
+          Real.log |(
             Function.update
               (fun x : ℝ =>
                 (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
               Real.pi
               (Real.cos Real.pi)
-              θ|)
+              θ)|)
         MeasureTheory.volume
         u
         v := by
@@ -963,7 +1138,8 @@ theorem real_log_abs_filled_sin_sub_pi_div_sub_pi_local_intervalIntegrable_pi :
           Real.pi
           (Real.cos Real.pi)
           Real.pi ≠ 0 := by
-    exact hvalue ▸ hcos_nonzero
+    intro hzero
+    exact hcos_nonzero (Eq.trans hvalue.symm hzero)
   exact
     real_log_abs_local_intervalIntegrable_of_continuous_nonzero
       (Function.update
@@ -997,10 +1173,10 @@ theorem real_log_abs_sin_localModel_zero :
   have hevent :
       ∀ᶠ θ in 𝓝[≠] (0 : ℝ),
         Real.log |Real.sin θ| =
-          (1 : ℝ) * Real.log |θ - 0| + g θ := by
+          ((1 : ℕ) : ℝ) * Real.log |θ - 0| + g θ := by
     have hsmall :
         ∀ᶠ θ in 𝓝[≠] (0 : ℝ), θ ∈ Set.Ioo (-Real.pi) Real.pi :=
-      mem_of_superset
+      Filter.mem_of_superset
         (nhdsWithin_le_nhds (s := {0}ᶜ)
           (Ioo_mem_nhds (neg_lt_zero.mpr Real.pi_pos) Real.pi_pos))
         (fun θ hθ => hθ)
@@ -1020,7 +1196,7 @@ theorem real_log_abs_sin_localModel_zero :
           have hupdate :
               Function.update (fun x : ℝ => Real.sin x / x) 0 1 θ =
                 Real.sin θ / θ := by
-            exact Function.update_of_ne hθ_ne 1 (fun x : ℝ => Real.sin x / x)
+            exact Function.update_noteq hθ_ne 1 (fun x : ℝ => Real.sin x / x)
           have hsin_factor :
               Real.sin θ = θ * (Real.sin θ / θ) := by
             exact (mul_div_cancel₀ (Real.sin θ) hθ_ne).symm
@@ -1041,7 +1217,7 @@ theorem real_log_abs_sin_localModel_zero :
               exact congrArg Real.log habs_factor
             _ = Real.log |θ| + Real.log |Real.sin θ / θ| := by
               exact Real.log_mul hθ_abs_ne hratio_ne
-            _ = (1 : ℝ) * Real.log |θ - 0| + g θ := by
+            _ = ((1 : ℕ) : ℝ) * Real.log |θ - 0| + g θ := by
               have htheta_sub : |θ - 0| = |θ| :=
                 congrArg abs (sub_zero θ)
               have hgθ : g θ = Real.log |Real.sin θ / θ| := by
@@ -1052,14 +1228,25 @@ theorem real_log_abs_sin_localModel_zero :
                   exact congrArg
                     (fun x : ℝ => Real.log x + Real.log |Real.sin θ / θ|)
                     htheta_sub.symm
-                _ = (1 : ℝ) * Real.log |θ - 0| +
+                _ = ((1 : ℕ) : ℝ) * Real.log |θ - 0| +
                     Real.log |Real.sin θ / θ| := by
+                  have hone_mul :
+                      ((1 : ℕ) : ℝ) * Real.log |θ - 0| =
+                        Real.log |θ - 0| := by
+                    calc
+                      ((1 : ℕ) : ℝ) * Real.log |θ - 0| =
+                          (1 : ℝ) * Real.log |θ - 0| := by
+                        exact congrArg
+                          (fun x : ℝ => x * Real.log |θ - 0|)
+                          Nat.cast_one
+                      _ = Real.log |θ - 0| :=
+                        one_mul (Real.log |θ - 0|)
                   exact congrArg
                     (fun x : ℝ => x + Real.log |Real.sin θ / θ|)
-                    (Eq.symm (one_mul (Real.log |θ - 0|)))
-                _ = (1 : ℝ) * Real.log |θ - 0| + g θ := by
+                    hone_mul.symm
+                _ = ((1 : ℕ) : ℝ) * Real.log |θ - 0| + g θ := by
                   exact congrArg
-                    (fun x : ℝ => (1 : ℝ) * Real.log |θ - 0| + x)
+                    (fun x : ℝ => ((1 : ℕ) : ℝ) * Real.log |θ - 0| + x)
                     hgθ.symm)
   exact ⟨1, g, hlocal, hevent⟩
 
@@ -1077,13 +1264,13 @@ theorem real_log_abs_sin_localModel_pi :
           (n : ℝ) * Real.log |θ - Real.pi| + g θ := by
   let g : ℝ → ℝ :=
     fun θ : ℝ =>
-      Real.log |
+      Real.log |(
         Function.update
           (fun x : ℝ =>
             (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
           Real.pi
           (Real.cos Real.pi)
-          θ|
+          θ)|
   have hlocal :
       ∃ u v : ℝ,
         u < Real.pi ∧ Real.pi < v ∧
@@ -1092,10 +1279,10 @@ theorem real_log_abs_sin_localModel_pi :
   have hevent :
       ∀ᶠ θ in 𝓝[≠] Real.pi,
         Real.log |Real.sin θ| =
-          (1 : ℝ) * Real.log |θ - Real.pi| + g θ := by
+          ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| + g θ := by
     have hsmall :
         ∀ᶠ θ in 𝓝[≠] Real.pi, θ ∈ Set.Ioo 0 (2 * Real.pi) :=
-      mem_of_superset
+      Filter.mem_of_superset
         (nhdsWithin_le_nhds (s := {Real.pi}ᶜ)
           (Ioo_mem_nhds Real.pi_pos
             (lt_of_eq_of_lt
@@ -1113,10 +1300,14 @@ theorem real_log_abs_sin_localModel_pi :
           have hsin_ne : Real.sin θ ≠ 0 := by
             have hsub_small : θ - Real.pi ∈ Set.Ioo (-Real.pi) Real.pi := by
               constructor
-              · exact neg_lt_sub_iff_lt_add.2
-                  (lt_of_lt_of_eq hθ_small.1 (zero_add Real.pi).symm)
+              · have hzero_lt_theta : 0 < θ := hθ_small.1
+                exact neg_lt_sub_iff_lt_add.2
+                  (lt_add_of_pos_right Real.pi hzero_lt_theta)
               · exact sub_lt_iff_lt_add.2
-                  (lt_of_lt_of_eq hθ_small.2 (Eq.symm (two_mul Real.pi)))
+                  (Eq.subst
+                    (motive := fun x : ℝ => θ < x)
+                    (two_mul Real.pi)
+                    hθ_small.2)
             have hsub_ne : θ - Real.pi ≠ 0 :=
               sub_ne_zero.mpr hθ_ne
             have hzero_iff :
@@ -1135,7 +1326,7 @@ theorem real_log_abs_sin_localModel_pi :
                   θ =
                 (Real.sin θ - Real.sin Real.pi) / (θ - Real.pi) := by
             exact
-              Function.update_of_ne hθ_ne (Real.cos Real.pi)
+              Function.update_noteq hθ_ne (Real.cos Real.pi)
                 (fun x : ℝ =>
                   (Real.sin x - Real.sin Real.pi) / (x - Real.pi))
           have hsin_factor :
@@ -1181,7 +1372,7 @@ theorem real_log_abs_sin_localModel_pi :
                 Real.log |(Real.sin θ - Real.sin Real.pi) /
                   (θ - Real.pi)| := by
               exact Real.log_mul hθ_abs_ne hratio_ne
-            _ = (1 : ℝ) * Real.log |θ - Real.pi| + g θ := by
+            _ = ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| + g θ := by
               have hgθ :
                   g θ =
                     Real.log
@@ -1192,17 +1383,28 @@ theorem real_log_abs_sin_localModel_pi :
                 Real.log |θ - Real.pi| +
                     Real.log |(Real.sin θ - Real.sin Real.pi) /
                       (θ - Real.pi)| =
-                    (1 : ℝ) * Real.log |θ - Real.pi| +
+                    ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| +
                       Real.log |(Real.sin θ - Real.sin Real.pi) /
                         (θ - Real.pi)| := by
+                  have hone_mul :
+                      ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| =
+                        Real.log |θ - Real.pi| := by
+                    calc
+                      ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| =
+                          (1 : ℝ) * Real.log |θ - Real.pi| := by
+                        exact congrArg
+                          (fun x : ℝ => x * Real.log |θ - Real.pi|)
+                          Nat.cast_one
+                      _ = Real.log |θ - Real.pi| :=
+                        one_mul (Real.log |θ - Real.pi|)
                   exact congrArg
                     (fun x : ℝ =>
                       x + Real.log
                         |(Real.sin θ - Real.sin Real.pi) / (θ - Real.pi)|)
-                    (Eq.symm (one_mul (Real.log |θ - Real.pi|)))
-                _ = (1 : ℝ) * Real.log |θ - Real.pi| + g θ := by
+                    hone_mul.symm
+                _ = ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| + g θ := by
                   exact congrArg
-                    (fun x : ℝ => (1 : ℝ) * Real.log |θ - Real.pi| + x)
+                    (fun x : ℝ => ((1 : ℕ) : ℝ) * Real.log |θ - Real.pi| + x)
                     hgθ.symm)
   exact ⟨1, g, hlocal, hevent⟩
 
@@ -1287,10 +1489,10 @@ theorem unitCircleLogKernel_halfSineLog_integral_eq_twice_sineLog :
 
 /-- Constant part of the unit-circle kernel integral. -/
 theorem unitCircleLogKernel_const_integral_eq :
-    (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
+    (∫ _ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
       2 * Real.pi * Real.log 2 := by
   calc
-    (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
+    (∫ _ in (0 : ℝ)..(2 * Real.pi), Real.log 2) =
         ((2 * Real.pi) - 0) • Real.log 2 := by
       exact intervalIntegral.integral_const (Real.log 2)
     _ = (2 * Real.pi) • Real.log 2 := by
@@ -1341,9 +1543,10 @@ theorem unitCircleLogKernel_halfSineLog_intervalIntegrable :
       exact ((eq_div_iff_mul_eq hhalf_ne).2 hmul).symm
   have harg :
       (fun θ : ℝ => Real.log |Real.sin (θ * (1 / 2))|) =
-        (fun θ : ℝ => Real.log |Real.sin (θ / 2)|) := by
-    funext θ
-    exact congrArg (fun x : ℝ => Real.log |Real.sin x|) (mul_one_div θ 2)
+        (fun θ : ℝ => Real.log |Real.sin (θ / 2)|) :=
+    funext
+      (fun θ : ℝ =>
+        congrArg (fun x : ℝ => Real.log |Real.sin x|) (mul_one_div θ 2))
   exact
     Eq.subst
       (motive := fun a : ℝ =>
@@ -1373,7 +1576,7 @@ theorem unitCircleLogKernel_halfSineLog_intervalIntegrable :
 theorem unitCircleLogKernel_integral_add_const_halfSineLog :
     (∫ θ in (0 : ℝ)..(2 * Real.pi),
         Real.log 2 + Real.log |Real.sin (θ / 2)|) =
-      (∫ θ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
+      (∫ _ in (0 : ℝ)..(2 * Real.pi), Real.log 2) +
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log |Real.sin (θ / 2)|) := by
   exact
@@ -1472,7 +1675,7 @@ theorem unitCircleLogKernel_integral_eq_zero_from_sineLogIntegral :
     _ = A + -A := by
       exact congrArg (fun x : ℝ => A + x) htwice_sine
     _ = 0 := by
-      exact add_right_neg A
+      exact add_neg_cancel A
 
 /-- Reduction of the unshifted unit-circle logarithmic kernel to the
 classical sine-log integral. -/
@@ -1520,8 +1723,30 @@ theorem unitCircleLogKernel_translated_mean_zero
   let k : ℝ → ℝ :=
     fun θ => Real.log ‖1 - Complex.exp (θ * Complex.I)‖
   have hk_periodic : Function.Periodic k (2 * Real.pi) := by
-    exact Complex.exp_mul_I_periodic.comp
-      (fun z : ℂ => Real.log ‖1 - z‖)
+    exact
+      fun θ =>
+        have harg :
+            ((θ + 2 * Real.pi : ℝ) : ℂ) =
+              (θ : ℂ) + 2 * (Real.pi : ℂ) := by
+          calc
+            ((θ + 2 * Real.pi : ℝ) : ℂ) =
+                (θ : ℂ) + ((2 * Real.pi : ℝ) : ℂ) := by
+              exact Complex.ofReal_add θ (2 * Real.pi)
+            _ = (θ : ℂ) + 2 * (Real.pi : ℂ) := by
+              exact congrArg
+                (fun x : ℂ => (θ : ℂ) + x)
+                (Complex.ofReal_mul 2 Real.pi)
+        calc
+          k (θ + 2 * Real.pi) =
+              Real.log
+                ‖1 - Complex.exp (((θ : ℂ) + 2 * (Real.pi : ℂ)) * Complex.I)‖ := by
+            exact congrArg
+              (fun x : ℂ => Real.log ‖1 - Complex.exp (x * Complex.I)‖)
+              harg
+          _ = k θ := by
+            exact congrArg
+              (fun z : ℂ => Real.log ‖1 - z‖)
+              (Complex.exp_mul_I_periodic (θ : ℂ))
   have hshift :
       (∫ θ in (0 : ℝ)..(2 * Real.pi), k (θ - α)) =
         ∫ θ in ((0 : ℝ) + -α)..((2 * Real.pi) + -α), k θ := by
@@ -1536,7 +1761,7 @@ theorem unitCircleLogKernel_translated_mean_zero
   have hperiod :
       (∫ θ in (-α)..((-α) + (2 * Real.pi)), k θ) =
         ∫ θ in (0 : ℝ)..((0 : ℝ) + (2 * Real.pi)), k θ :=
-    hk_periodic.intervalIntegral_add_eq (-α) 0
+    Function.Periodic.intervalIntegral_add_eq hk_periodic (-α) 0
   have hunshift :
       (∫ θ in (0 : ℝ)..((0 : ℝ) + (2 * Real.pi)), k θ) =
         ∫ θ in (0 : ℝ)..(2 * Real.pi), k θ := by
@@ -1548,11 +1773,28 @@ theorem unitCircleLogKernel_translated_mean_zero
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
         ∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp (θ * Complex.I)‖ := by
+    have hshift_integrand :
+        (∫ θ in (0 : ℝ)..(2 * Real.pi),
+            Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
+          ∫ θ in (0 : ℝ)..(2 * Real.pi), k (θ - α) := by
+      exact
+        intervalIntegral.integral_congr_ae
+          (Filter.Eventually.of_forall
+            (fun θ _ =>
+              calc
+                Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖ =
+                    Real.log
+                      ‖1 - Complex.exp ((((θ - α : ℝ) : ℂ) * Complex.I))‖ := by
+                  exact congrArg
+                    (fun x : ℂ => Real.log ‖1 - Complex.exp (x * Complex.I)‖)
+                    (Complex.ofReal_sub θ α).symm
+                _ = k (θ - α) := by
+                  exact rfl))
     calc
       (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) =
           (∫ θ in (0 : ℝ)..(2 * Real.pi), k (θ - α)) := by
-        rfl
+        exact hshift_integrand
       _ = ∫ θ in ((0 : ℝ) + -α)..((2 * Real.pi) + -α), k θ :=
         hshift
       _ = ∫ θ in (-α)..((-α) + (2 * Real.pi)), k θ :=
@@ -1568,13 +1810,6 @@ theorem unitCircleLogKernel_translated_mean_zero
   exact Eq.trans
     (congrArg (fun x : ℝ => (2 * Real.pi)⁻¹ * x) hintegral)
     unitCircleLogKernel_mean_zero
-
-/-- Unit-circle boundary-zero logarithmic mean.
-
-This is the exact classical singular integral used for boundary zeros:
-`average log |1 - exp(i(t - α))| = 0`.  The logarithmic singularity at
-`t = α` is integrable and is interpreted by the finite-exception boundary
-integrability machinery in this file. -/
 
 end
 end LFunctions

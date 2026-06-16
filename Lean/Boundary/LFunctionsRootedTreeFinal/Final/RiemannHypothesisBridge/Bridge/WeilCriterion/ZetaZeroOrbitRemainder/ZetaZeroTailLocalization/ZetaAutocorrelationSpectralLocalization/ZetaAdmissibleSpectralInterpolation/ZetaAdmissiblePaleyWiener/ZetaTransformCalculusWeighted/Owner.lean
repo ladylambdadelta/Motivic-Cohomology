@@ -11,6 +11,37 @@ noncomputable section
 
 section Mellin
 
+theorem complex_weighted_zero_mul_exp_norm (t : ℝ) (w : ℂ) :
+    ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ = 0 := by
+  have hzero : (t : ℂ) * 0 * Complex.exp (w * t) = 0 := by
+    calc
+      (t : ℂ) * 0 * Complex.exp (w * t) =
+          0 * Complex.exp (w * t) := by
+        exact congrArg (fun x : ℂ => x * Complex.exp (w * t)) (mul_zero (t : ℂ))
+      _ = 0 := zero_mul (Complex.exp (w * t))
+  calc
+    ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ = ‖(0 : ℂ)‖ := by
+      exact congrArg norm hzero
+    _ = 0 := norm_zero
+
+theorem weightedLaplaceKernel_bump_nonnegative (C : ℝ) : 0 ≤ max C 0 + 1 := by
+  exact add_nonneg (le_max_right C 0) zero_le_one
+
+theorem complex_laplace_const_derivative_scalar
+    (c e τ : ℂ) :
+    0 * e + c * (e * τ) = τ * c * e := by
+  calc
+    0 * e + c * (e * τ) = 0 + c * (e * τ) := by
+      exact congrArg (fun x : ℂ => x + c * (e * τ)) (zero_mul e)
+    _ = c * (e * τ) := by
+      exact zero_add (c * (e * τ))
+    _ = (c * e) * τ := by
+      exact (mul_assoc c e τ).symm
+    _ = τ * (c * e) := by
+      exact mul_comm (c * e) τ
+    _ = τ * c * e := by
+      exact (mul_assoc τ c e).symm
+
 /-- The weighted integrand norm is continuous on the full product. -/
 theorem continuous_weightedLaplaceKernel_norm
     (φ : LFunctions.ZetaTestFunction) :
@@ -71,7 +102,7 @@ theorem weightedLaplaceKernel_uniform_bound_on_closedBall_exists
 
 /-- The bump constant used in the support bounds is strictly positive. -/
 theorem weightedLaplaceKernel_positive_bump (C : ℝ) : 0 < max C 0 + 1 := by
-  have h1 : (0 : ℝ) < 1 := by norm_num
+  have h1 : (0 : ℝ) < 1 := zero_lt_one
   exact add_pos_of_nonneg_of_pos (le_max_right C 0) h1
 
 /-- The support bound is increased from `C` to the bump constant by a single monotonicity step. -/
@@ -79,7 +110,7 @@ theorem weightedLaplaceKernel_bound_le_bump (C : ℝ) {x : ℝ} (hx : x ≤ C) :
     x ≤ max C 0 + 1 := by
   have hCmax : C ≤ max C 0 := le_max_left C 0
   have hle' : max C 0 ≤ max C 0 + 1 := by
-    exact le_add_of_nonneg_right (show (0 : ℝ) ≤ 1 by norm_num)
+    exact le_add_of_nonneg_right zero_le_one
   exact le_trans hx (le_trans hCmax hle')
 
 /-- The weighted Laplace derivative kernel is uniformly bounded on a fixed closed ball with a positive constant. -/
@@ -138,11 +169,9 @@ theorem weightedLaplaceKernel_bound_pointwise_on_support_of_nmem_bump
         = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
             exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
     _ = 0 := by
-          exact norm_zero
+          exact complex_weighted_zero_mul_exp_norm t w
     _ ≤ max C 0 + 1 := by
-          have hnonneg : (0 : ℝ) ≤ max C 0 + 1 := by
-            linarith [le_max_right C 0]
-          exact hnonneg
+          exact weightedLaplaceKernel_bump_nonnegative C
 
 theorem weightedLaplaceKernel_bound_pointwise_on_support_of_nmem
     (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) (C : ℝ)
@@ -192,9 +221,14 @@ theorem hasDerivAt_laplaceKernel_const_mul_exp_core
   have hexp : HasDerivAt (fun w : ℂ => Complex.exp (w * t))
       (Complex.exp (z * t) * (t : ℂ)) z := hasDerivAt_laplaceKernel_exp t z
   have hprod : HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t))
-      (0 * (Complex.exp (z * t) * (t : ℂ)) + φ t * (Complex.exp (z * t) * (t : ℂ))) z := by
+      (0 * Complex.exp (z * t) + φ t * (Complex.exp (z * t) * (t : ℂ))) z := by
     exact hconst.mul hexp
-  exact hprod
+  have hderiv :
+      0 * Complex.exp (z * t) + φ t * (Complex.exp (z * t) * (t : ℂ)) =
+        (t : ℂ) * φ t * Complex.exp (z * t) :=
+    complex_laplace_const_derivative_scalar (φ t) (Complex.exp (z * t)) (t : ℂ)
+  exact Eq.subst (motive := fun d : ℂ =>
+    HasDerivAt (fun w : ℂ => φ t * Complex.exp (w * t)) d z) hderiv hprod
 
 /-- The weighted Laplace kernel has the expected pointwise derivative in the spectral variable. -/
 theorem hasDerivAt_weightedLaplaceKernel
@@ -234,18 +268,19 @@ theorem weightedLaplaceKernel_bound_on_support_indicator
   refine hdom.mono ?_
   intro t ht w hw
   by_cases hts : t ∈ tsupport φ.toZetaTestFunction'
-  · dsimp [Set.indicator]
-    exact ht w hw
+  · calc
+      ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := ht w hw
+      _ = Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+        exact (Set.indicator_of_mem hts (fun _ : ℝ => C)).symm
   · have hzero : φ.toZetaTestFunction' t = 0 := image_eq_zero_of_nmem_tsupport hts
-    dsimp [Set.indicator]
     calc
       ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
           = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
               exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
       _ = 0 := by
-            exact norm_zero
-      _ ≤ 0 := by
-            exact le_rfl
+            exact complex_weighted_zero_mul_exp_norm t w
+      _ ≤ Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+            exact le_of_eq (Set.indicator_of_not_mem hts (fun _ : ℝ => C)).symm
 
 /-- The zeta Laplace transform is differentiable at every spectral parameter. -/
 theorem aestronglyMeasurable_laplaceKernel_eventually

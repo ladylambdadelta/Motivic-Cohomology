@@ -14,6 +14,118 @@ namespace LFunctions
 
 noncomputable section
 
+theorem complex_one_re_eq_one : ((1 : ℂ).re = (1 : ℝ)) :=
+  rfl
+
+theorem complex_one_norm_eq_one : ‖(1 : ℂ)‖ = (1 : ℝ) :=
+  norm_one
+
+theorem complex_half_norm_le_one : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+  have hnorm_div : ‖(1 / 2 : ℂ)‖ = ‖(1 : ℂ)‖ / ‖(2 : ℂ)‖ :=
+    norm_div (1 : ℂ) (2 : ℂ)
+  have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) :=
+    complex_one_norm_eq_one
+  have htwo_norm : ‖(2 : ℂ)‖ = (2 : ℝ) :=
+    Complex.norm_ofNat 2
+  calc
+    ‖(1 / 2 : ℂ)‖ = ‖(1 : ℂ)‖ / ‖(2 : ℂ)‖ := hnorm_div
+    _ = 1 / ‖(2 : ℂ)‖ := by
+      exact congrArg (fun x : ℝ => x / ‖(2 : ℂ)‖) hone_norm
+    _ = (1 / 2 : ℝ) := by
+      exact congrArg (fun x : ℝ => 1 / x) htwo_norm
+    _ ≤ 1 := le_of_lt one_half_lt_one
+
+theorem complex_one_sub_half_eq_half :
+    (1 : ℂ) - (1 / 2 : ℂ) = (1 / 2 : ℂ) := by
+  exact sub_eq_iff_eq_add.mpr
+    (add_halves (1 : ℂ)).symm
+
+theorem complex_one_sub_half_norm_le_one :
+    ‖(1 : ℂ) - (1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+  exact Eq.subst
+    (motive := fun w : ℂ => ‖w‖ ≤ (1 : ℝ))
+    complex_one_sub_half_eq_half.symm
+    complex_half_norm_le_one
+
+theorem real_zero_lt_four : (0 : ℝ) < 4 := by
+  exact zero_lt_four
+
+theorem real_one_add_one_add_eq_two_add (x : ℝ) :
+    1 + (1 + x) = 2 + x := by
+  calc
+    1 + (1 + x) = (1 + 1) + x := by
+      exact (add_assoc 1 1 x).symm
+    _ = 2 + x := by
+      exact congrArg (fun y : ℝ => y + x) one_add_one_eq_two
+
+theorem real_le_two_mul_of_nonneg {x : ℝ} (hx : 0 ≤ x) : x ≤ 2 * x := by
+  exact le_mul_of_one_le_left hx one_le_two
+
+theorem real_two_add_le_two_add_two_mul {x : ℝ} (hx : 0 ≤ x) :
+    2 + x ≤ 2 + 2 * x :=
+  add_le_add_left (real_le_two_mul_of_nonneg hx) 2
+
+theorem real_two_add_two_mul_eq_two_mul_one_add (x : ℝ) :
+    2 + 2 * x = 2 * (1 + x) := by
+  calc
+    2 + 2 * x = 2 * 1 + 2 * x := by
+      exact congrArg (fun y : ℝ => y + 2 * x) (mul_one 2).symm
+    _ = 2 * (1 + x) := by
+      exact (mul_add 2 1 x).symm
+
+theorem real_mul_pair_reassociate (A B X Y : ℝ) :
+    (A * X) * (B * Y) = (A * B) * (X * Y) := by
+  calc
+    (A * X) * (B * Y) = ((A * X) * B) * Y := by
+      exact (mul_assoc (A * X) B Y).symm
+    _ = (A * (X * B)) * Y := by
+      exact congrArg (fun t : ℝ => t * Y) (mul_assoc A X B)
+    _ = (A * (B * X)) * Y := by
+      exact congrArg (fun t : ℝ => (A * t) * Y) (mul_comm X B)
+    _ = ((A * B) * X) * Y := by
+      exact congrArg (fun t : ℝ => t * Y) (mul_assoc A B X).symm
+    _ = (A * B) * (X * Y) := by
+      exact mul_assoc (A * B) X Y
+
+theorem real_two_mul_square_eq_four_mul_sq (H : ℝ) :
+    (2 * H) * (2 * H) = 4 * H ^ (2 : ℕ) := by
+  calc
+    (2 * H) * (2 * H) = ((2 : ℝ) * 2) * (H * H) := by
+      exact real_mul_pair_reassociate 2 2 H H
+    _ = 4 * (H * H) := by
+      exact congrArg (fun c : ℝ => c * (H * H)) ((two_mul (2 : ℝ)).trans two_add_two_eq_four)
+    _ = 4 * H ^ (2 : ℕ) := by
+      exact congrArg (fun x : ℝ => 4 * x) (pow_two H).symm
+
+theorem real_mul_add_self_eq_add_one_mul (A X : ℝ) :
+    A * X + X = (A + 1) * X := by
+  calc
+    A * X + X = A * X + 1 * X := by
+      exact congrArg (fun y : ℝ => A * X + y) (one_mul X).symm
+    _ = (A + 1) * X := by
+      exact (add_mul A 1 X).symm
+
+theorem real_self_add_mul_eq_add_one_mul (A X : ℝ) :
+    X + A * X = (A + 1) * X := by
+  calc
+    X + A * X = 1 * X + A * X := by
+      exact congrArg (fun y : ℝ => y + A * X) (one_mul X).symm
+    _ = (1 + A) * X := by
+      exact (add_mul 1 A X).symm
+    _ = (A + 1) * X := by
+      exact congrArg (fun y : ℝ => y * X) (add_comm 1 A)
+
+theorem complex_sub_add_eq_sub_add_neg (a b c : ℂ) :
+    a - (b + c) = (a - b) + (-c) := by
+  calc
+    a - (b + c) = a + -(b + c) := sub_eq_add_neg a (b + c)
+    _ = a + (-b + -c) := by
+      exact congrArg (fun x : ℂ => a + x) (neg_add b c)
+    _ = (a + -b) + -c := by
+      exact (add_assoc a (-b) (-c)).symm
+    _ = (a - b) + (-c) := by
+      exact congrArg (fun x : ℂ => x + -c) (sub_eq_add_neg a b).symm
+
 /-- A finite-order estimate can be enlarged in constants and exponent.
 
 This early algebraic helper is used by the first analytic decompositions before the
@@ -153,7 +265,7 @@ theorem completedRiemannZeta₀_reflected_re_nonnegative_of_leftHalfPlane
     (hz : z.re ≤ 0) :
     0 ≤ (1 - z).re := by
   have hone_re : (1 : ℂ).re = (1 : ℝ) := by
-    norm_num
+    exact complex_one_re_eq_one
   calc
     0 ≤ 1 - z.re := by
       exact sub_nonneg.mpr (le_trans hz zero_le_one)
@@ -169,7 +281,7 @@ theorem completedRiemannZeta₀_reflected_basicHeight_le
   have htriangle : ‖(1 : ℂ) - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ :=
     norm_sub_le (1 : ℂ) z
   have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) := by
-    norm_num
+    exact complex_one_norm_eq_one
   have hbound : ‖(1 : ℂ) - z‖ ≤ 1 + ‖z‖ := by
     exact Eq.subst
       (motive := fun x : ℝ => ‖(1 : ℂ) - z‖ ≤ x + ‖z‖)
@@ -180,13 +292,11 @@ theorem completedRiemannZeta₀_reflected_basicHeight_le
     1 + ‖1 - z‖ ≤ 1 + (1 + ‖z‖) := by
       exact add_le_add_left hbound 1
     _ = 2 + ‖z‖ := by
-      ring
+      exact real_one_add_one_add_eq_two_add ‖z‖
     _ ≤ 2 + 2 * ‖z‖ := by
-      have hsingle_le_double : ‖z‖ ≤ 2 * ‖z‖ := by
-        nlinarith [hnorm_nonneg]
-      exact add_le_add_left hsingle_le_double 2
+      exact real_two_add_le_two_add_two_mul hnorm_nonneg
     _ = 2 * (1 + ‖z‖) := by
-      ring
+      exact real_two_add_two_mul_eq_two_mul_one_add ‖z‖
 
 /-- Right half-plane finite-order growth transports to the left half-plane by the
 functional equation for the pole-cleared entire completed-zeta part. -/
@@ -326,7 +436,7 @@ theorem centeredCompletedRiemannZeta₀_shiftedBasicHeight_le
     (z : ℂ) :
     1 + ‖(1 / 2 : ℂ) + z‖ ≤ 2 * (1 + ‖z‖) := by
   have hnorm_half : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
-    norm_num
+    exact complex_half_norm_le_one
   have htriangle :
       ‖(1 / 2 : ℂ) + z‖ ≤ ‖(1 / 2 : ℂ)‖ + ‖z‖ :=
     norm_add_le (1 / 2 : ℂ) z
@@ -338,13 +448,11 @@ theorem centeredCompletedRiemannZeta₀_shiftedBasicHeight_le
     1 + ‖(1 / 2 : ℂ) + z‖ ≤ 1 + (1 + ‖z‖) := by
       exact add_le_add_left hbound 1
     _ = 2 + ‖z‖ := by
-      ring
+      exact real_one_add_one_add_eq_two_add ‖z‖
     _ ≤ 2 + 2 * ‖z‖ := by
-      have hdouble : ‖z‖ ≤ 2 * ‖z‖ := by
-        nlinarith [hheight_nonneg]
-      exact add_le_add_left hdouble 2
+      exact real_two_add_le_two_add_two_mul hheight_nonneg
     _ = 2 * (1 + ‖z‖) := by
-      ring
+      exact real_two_add_two_mul_eq_two_mul_one_add ‖z‖
 
 /-- Finite-order growth is preserved by centering the entire completed-zeta part. -/
 theorem centeredCompletedRiemannZeta₀_finiteOrder_growth_bound_of_uncentered
@@ -420,9 +528,9 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
     ‖((1 / 2 : ℂ) + z)‖ ≤ 2 * (1 + ‖z‖) ∧
       ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ 2 * (1 + ‖z‖) := by
   have hnorm_half : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
-    norm_num
+    exact complex_half_norm_le_one
   have hnorm_one_sub_half : ‖(1 - (1 / 2 : ℂ))‖ ≤ (1 : ℝ) := by
-    norm_num
+    exact complex_one_sub_half_norm_le_one
   have hnorm_z_nonneg : 0 ≤ ‖z‖ := norm_nonneg z
   have hfirst_triangle :
       ‖((1 / 2 : ℂ) + z)‖ ≤ ‖(1 / 2 : ℂ)‖ + ‖z‖ :=
@@ -432,13 +540,15 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
     add_le_add_right hnorm_half ‖z‖
   have hfirst_height :
       1 + ‖z‖ ≤ 2 * (1 + ‖z‖) := by
-    nlinarith [hnorm_z_nonneg]
+    exact le_mul_of_one_le_left
+      (le_trans zero_le_one (le_add_of_nonneg_right hnorm_z_nonneg))
+      one_le_two
   have hfirst :
       ‖((1 / 2 : ℂ) + z)‖ ≤ 2 * (1 + ‖z‖) :=
     le_trans hfirst_triangle (le_trans hfirst_sum hfirst_height)
   have hsecond_rewrite :
       (1 : ℂ) - ((1 / 2 : ℂ) + z) = (1 - (1 / 2 : ℂ)) + (-z) := by
-    ring
+    exact complex_sub_add_eq_sub_add_neg 1 (1 / 2 : ℂ) z
   have hsecond_triangle :
       ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ ‖(1 - (1 / 2 : ℂ))‖ + ‖-z‖ := by
     calc
@@ -454,7 +564,9 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le
       _ ≤ 1 + ‖z‖ := add_le_add_right hnorm_one_sub_half ‖z‖
   have hsecond_height :
       1 + ‖z‖ ≤ 2 * (1 + ‖z‖) := by
-    nlinarith [hnorm_z_nonneg]
+    exact le_mul_of_one_le_left
+      (le_trans zero_le_one (le_add_of_nonneg_right hnorm_z_nonneg))
+      one_le_two
   have hsecond :
       ‖(1 - ((1 / 2 : ℂ) + z))‖ ≤ 2 * (1 + ‖z‖) :=
     le_trans hsecond_triangle (le_trans hsecond_sum hsecond_height)
@@ -468,9 +580,9 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic
   rcases centeredCompletedRiemannZetaZeroCarrierClearingFactor_linearNorm_le z with
     ⟨hleft, hright⟩
   have hheight_nonneg : 0 ≤ 1 + ‖z‖ := by
-    nlinarith [norm_nonneg z]
+    exact le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
   have htwo_height_nonneg : 0 ≤ 2 * (1 + ‖z‖) := by
-    nlinarith [hheight_nonneg]
+    exact mul_nonneg zero_le_two hheight_nonneg
   have hnorm_mul :
       ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ =
         ‖((1 / 2 : ℂ) + z)‖ * ‖(1 - ((1 / 2 : ℂ) + z))‖ := by
@@ -483,7 +595,7 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic
   have htarget :
       (2 * (1 + ‖z‖)) * (2 * (1 + ‖z‖)) =
         4 * (1 + ‖z‖) ^ (2 : ℕ) := by
-    ring
+    exact real_two_mul_square_eq_four_mul_sq (1 + ‖z‖)
   exact hnorm_mul.trans_le (hproduct.trans_eq htarget)
 
 /-- The basic centered height is at least one. -/
@@ -512,7 +624,7 @@ theorem centeredCompletedRiemannZetaZeroCarrierClearingFactor_growth_bound :
         ‖centeredCompletedRiemannZetaZeroCarrierClearingFactor z‖ ≤
           A * (1 + ‖z‖) ^ m := by
   have hfour_pos : (0 : ℝ) < 4 := by
-    norm_num
+    exact real_zero_lt_four
   exact ⟨4, 2, hfour_pos, fun z =>
     centeredCompletedRiemannZetaZeroCarrierClearingFactor_norm_le_quadratic z⟩
 
@@ -553,7 +665,8 @@ theorem polynomialGrowth_mul
   have halg :
       (A * H ^ m) * (B * H ^ n) = (A * B) * H ^ (m + n) := by
     calc
-      (A * H ^ m) * (B * H ^ n) = (A * B) * (H ^ m * H ^ n) := by ring
+      (A * H ^ m) * (B * H ^ n) = (A * B) * (H ^ m * H ^ n) := by
+        exact real_mul_pair_reassociate A B (H ^ m) (H ^ n)
       _ = (A * B) * H ^ (m + n) := by
         exact congrArg (fun x : ℝ => (A * B) * x) hpow.symm
   exact hnorm.trans_le (hmul_bound.trans_eq halg)
@@ -579,7 +692,7 @@ theorem polynomialGrowth_sub_one
       ‖u z - 1‖ ≤ ‖u z‖ + ‖(1 : ℂ)‖ :=
     norm_sub_le (u z) (1 : ℂ)
   have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) := by
-    norm_num
+    exact complex_one_norm_eq_one
   have hsum_bound :
       ‖u z‖ + ‖(1 : ℂ)‖ ≤ A * H ^ m + H ^ m := by
     calc
@@ -588,7 +701,7 @@ theorem polynomialGrowth_sub_one
       _ ≤ A * H ^ m + H ^ m := add_le_add (hA_bound z) hH_pow_ge_one
   have halg :
       A * H ^ m + H ^ m = (A + 1) * H ^ m := by
-    ring
+    exact real_mul_add_self_eq_add_one_mul A (H ^ m)
   exact htriangle.trans (hsum_bound.trans_eq halg)
 
 /-- A nonnegative real exponent has exponential at least one. -/
@@ -668,7 +781,7 @@ theorem exponentialFiniteOrder_mul_polynomialGrowth
     have hright :
         H ^ (m + n) + C * H ^ (m + n) =
           (C + 1) * H ^ (m + n) := by
-      ring
+      exact real_self_add_mul_eq_add_one_mul C (H ^ (m + n))
     exact (add_le_add_left hC_scaled (H ^ (m + n))).trans_eq hright
   have hexp_bound :
       Real.exp (H ^ (m + n)) * Real.exp (C * H ^ n) ≤
@@ -694,7 +807,7 @@ theorem exponentialFiniteOrder_mul_polynomialGrowth
   have hconstant_power :
       (A * H ^ m) * (B * Real.exp (C * H ^ n)) =
         (A * B) * (H ^ m * Real.exp (C * H ^ n)) := by
-    ring
+    exact real_mul_pair_reassociate A B (H ^ m) (Real.exp (C * H ^ n))
   have hpower_exp :
       H ^ m * Real.exp (C * H ^ n) ≤
         Real.exp (H ^ (m + n)) * Real.exp (C * H ^ n) :=
@@ -741,7 +854,7 @@ theorem exponentialFiniteOrder_sub_one
       ‖u z - 1‖ ≤ ‖u z‖ + ‖(1 : ℂ)‖ :=
     norm_sub_le (u z) (1 : ℂ)
   have hone_norm : ‖(1 : ℂ)‖ = (1 : ℝ) := by
-    norm_num
+    exact complex_one_norm_eq_one
   have hsum_bound :
       ‖u z‖ + ‖(1 : ℂ)‖ ≤
         A * Real.exp (B * H ^ m) + Real.exp (B * H ^ m) := by
@@ -753,7 +866,7 @@ theorem exponentialFiniteOrder_sub_one
   have halg :
       A * Real.exp (B * H ^ m) + Real.exp (B * H ^ m) =
         (A + 1) * Real.exp (B * H ^ m) := by
-    ring
+    exact real_mul_add_self_eq_add_one_mul A (Real.exp (B * H ^ m))
   exact htriangle.trans (hsum_bound.trans_eq halg)
 
 end

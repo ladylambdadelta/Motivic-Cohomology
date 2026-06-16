@@ -14,6 +14,71 @@ noncomputable section
 
 open scoped Filter Topology
 
+/-- The shifted norm base is at least one. -/
+theorem Real.one_le_one_add_norm
+    (t : ℝ) :
+    1 ≤ 1 + ‖t‖ := by
+  calc
+    1 = 1 + 0 := by
+      exact (add_zero 1).symm
+    _ ≤ 1 + ‖t‖ := by
+      exact add_le_add_left (norm_nonneg t) 1
+
+/-- The shifted norm base is nonnegative. -/
+theorem Real.zero_le_one_add_norm
+    (t : ℝ) :
+    0 ≤ 1 + ‖t‖ := by
+  exact le_trans zero_le_one (Real.one_le_one_add_norm t)
+
+/-- A positive coefficient times `1 + x` is dominated by the doubled exponent
+coefficient once `1 ≤ x`. -/
+theorem Real.mul_one_add_le_two_mul_of_one_le
+    {b x : ℝ}
+    (hb : 0 < b)
+    (hx_one : 1 ≤ x) :
+    b * (1 + x) ≤ (2 * b) * x := by
+  have hb_nonneg : 0 ≤ b :=
+    le_of_lt hb
+  have hb_le_bx : b ≤ b * x := by
+    calc
+      b = b * 1 := by
+        exact (mul_one b).symm
+      _ ≤ b * x := by
+        exact mul_le_mul_of_nonneg_left hx_one hb_nonneg
+  calc
+    b * (1 + x) = b * 1 + b * x := by
+      exact mul_add b 1 x
+    _ = b + b * x := by
+      exact congrArg (fun y : ℝ => y + b * x) (mul_one b)
+    _ ≤ b * x + b * x := by
+      exact add_le_add_right hb_le_bx (b * x)
+    _ = (b + b) * x := by
+      exact (add_mul b b x).symm
+    _ = (2 * b) * x := by
+      exact congrArg (fun y : ℝ => y * x) (two_mul b).symm
+
+/-- The fixed-line direct Stirling exponential factor is at most one. -/
+theorem Real.exp_neg_pi_half_mul_norm_le_one
+    (t : ℝ) :
+    Real.exp (-(Real.pi / 2) * ‖t‖) ≤ 1 := by
+  have hpi_half_nonneg : 0 ≤ Real.pi / 2 :=
+    div_nonneg (le_of_lt Real.pi_pos) zero_le_two
+  have hexponent_nonpos : -(Real.pi / 2) * ‖t‖ ≤ 0 := by
+    calc
+      -(Real.pi / 2) * ‖t‖ ≤ 0 * ‖t‖ := by
+        exact mul_le_mul_of_nonneg_right
+          (neg_nonpos.mpr hpi_half_nonneg) (norm_nonneg t)
+      _ = 0 := zero_mul ‖t‖
+  calc
+    Real.exp (-(Real.pi / 2) * ‖t‖) ≤ Real.exp 0 :=
+      Real.exp_le_exp.mpr hexponent_nonpos
+    _ = 1 := Real.exp_zero
+
+/-- The quarter-pi coefficient used in the reciprocal fixed-line bound is
+positive. -/
+theorem Real.pi_div_four_pos : 0 < Real.pi / 4 := by
+  exact div_pos Real.pi_pos zero_lt_four
+
 /-- A fixed real power is eventually bounded by a slightly larger exponential
 after the harmless shift `x ↦ 1 + x`. -/
 theorem Real.one_add_rpow_le_exp_mul_of_large
@@ -48,7 +113,9 @@ theorem Real.one_add_rpow_le_exp_mul_of_large
     have hy_ge : Y ≤ 1 + x := by
       have hYminus : Y - 1 ≤ x :=
         le_trans (le_max_right 1 (Y - 1)) hx
-      linarith
+      have hY_le_x_add_one : Y ≤ x + 1 :=
+        sub_le_iff_le_add.mp hYminus
+      exact hY_le_x_add_one.trans_eq (add_comm x 1)
     rcases hY (1 + x) hy_ge with ⟨hbound, hy_nonneg⟩
     have hrpow_nonneg : 0 ≤ (1 + x) ^ s :=
       Real.rpow_nonneg hy_nonneg s
@@ -57,7 +124,7 @@ theorem Real.one_add_rpow_le_exp_mul_of_large
     have hnorm_exp : ‖Real.exp (b * (1 + x))‖ = Real.exp (b * (1 + x)) :=
       Real.norm_of_nonneg (le_of_lt (Real.exp_pos (b * (1 + x))))
     have hexponent_le : b * (1 + x) ≤ (2 * b) * x := by
-      nlinarith [hb, hx_one]
+      exact Real.mul_one_add_le_two_mul_of_one_le hb hx_one
     calc
       (1 + x) ^ s = ‖(1 + x) ^ s‖ := hnorm_rpow.symm
       _ ≤ ‖Real.exp (b * (1 + x))‖ := hbound
@@ -81,17 +148,14 @@ theorem Complex.fixedRealPart_vertical_stirling_upper_envelope_le_polynomial
   refine ⟨m, ?_⟩
   intro t _ht
   have hbase_one : 1 ≤ 1 + ‖t‖ := by
-    linarith [norm_nonneg t]
+    exact Real.one_le_one_add_norm t
   have hbase_nonneg : 0 ≤ 1 + ‖t‖ :=
     le_trans zero_le_one hbase_one
   have hrpow_nonneg : 0 ≤ (1 + ‖t‖) ^ (σ - 1 / 2) :=
     Real.rpow_nonneg hbase_nonneg (σ - 1 / 2)
   have hexp_le_one :
       Real.exp (-(Real.pi / 2) * ‖t‖) ≤ 1 := by
-    calc
-      Real.exp (-(Real.pi / 2) * ‖t‖) ≤ Real.exp 0 :=
-        Real.exp_le_exp.mpr (by positivity)
-      _ = 1 := Real.exp_zero
+    exact Real.exp_neg_pi_half_mul_norm_le_one t
   have hrpow_le_nat :
       (1 + ‖t‖) ^ (σ - 1 / 2) ≤ (1 + ‖t‖) ^ m := by
     calc
@@ -146,7 +210,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_large_from_openSector
       C * Real.exp (-(Real.pi / 2) * ‖t‖) *
           (1 + ‖t‖) ^ (σ - 1 / 2) =
           C * (Real.exp (-(Real.pi / 2) * ‖t‖) *
-            (1 + ‖t‖) ^ (σ - 1 / 2)) := by ring
+            (1 + ‖t‖) ^ (σ - 1 / 2)) := by
+        exact mul_assoc C
+          (Real.exp (-(Real.pi / 2) * ‖t‖))
+          ((1 + ‖t‖) ^ (σ - 1 / 2))
       _ ≤ C * (1 + ‖t‖) ^ m :=
         mul_le_mul_of_nonneg_left henvelope_t (le_of_lt hC_pos)
   exact le_trans hstirling_t htarget
@@ -171,7 +238,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_compact
         exact this
       have hpos : 0 < (σ + t * Complex.I : ℂ).re := by
         exact hσ
-      linarith
+      have hzero_pos : 0 < (0 : ℝ) :=
+        hre ▸ hpos
+      exact (lt_irrefl (0 : ℝ) hzero_pos).elim
     have hline_cont :
         ContinuousAt (fun u : ℝ => (σ : ℂ) + u * Complex.I) t := by
       fun_prop
@@ -221,7 +290,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
             Ctail * (1 + ‖t‖) ^ m :=
         htail t ht_tail
       have hpow_nonneg : 0 ≤ (1 + ‖t‖) ^ m :=
-        pow_nonneg (by positivity) m
+        pow_nonneg (Real.zero_le_one_add_norm t) m
       have hC_le : Ctail ≤ max Ctail Ccompact :=
         le_max_left Ctail Ccompact
       exact
@@ -235,7 +304,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_upper_bound_assemble
       have hC_le : Ccompact ≤ max Ctail Ccompact :=
         le_max_right Ctail Ccompact
       have hbase_one : 1 ≤ 1 + ‖t‖ := by
-        linarith [norm_nonneg t]
+        exact Real.one_le_one_add_norm t
       have hpow_one : 1 ≤ (1 + ‖t‖) ^ m :=
         one_le_pow₀ hbase_one
       have hmax_nonneg : 0 ≤ max Ctail Ccompact :=
@@ -289,14 +358,17 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
   let b : ℝ := Real.pi / 4
   have hb_pos : 0 < b := by
     dsimp [b]
-    positivity
+    exact Real.pi_div_four_pos
   rcases
       Real.one_add_rpow_le_exp_mul_of_large
         (1 / 2 - σ) b hb_pos with
     ⟨T0, hT0_pos, hpoly_exp⟩
   let T : ℝ := max (1 / 2) T0
-  let A : ℝ := Real.pi
-  refine ⟨T, C0, A, ?_, hC0_pos, Real.pi_pos, ?_⟩
+  let A : ℝ := Real.pi / 2 + 2 * b
+  have hA_pos : 0 < A := by
+    dsimp [A]
+    exact add_pos (half_pos Real.pi_pos) (mul_pos zero_lt_two hb_pos)
+  refine ⟨T, C0, A, ?_, hC0_pos, hA_pos, ?_⟩
   · exact lt_of_lt_of_le (half_pos zero_lt_one) (le_max_left (1 / 2) T0)
   · intro t ht
     have ht_half : (1 / 2 : ℝ) ≤ ‖t‖ :=
@@ -332,9 +404,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
         _ = Real.exp (((Real.pi / 2) + (2 * b)) * ‖t‖) := by
           exact (Real.exp_add ((Real.pi / 2) * ‖t‖) ((2 * b) * ‖t‖)).symm
         _ = Real.exp (A * ‖t‖) := by
-          congr 1
-          dsimp [A, b]
-          ring
+          rfl
     have htarget :
         C0 * Real.exp ((Real.pi / 2) * ‖t‖) *
             (1 + ‖t‖) ^ (1 / 2 - σ) ≤
@@ -343,7 +413,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
         C0 * Real.exp ((Real.pi / 2) * ‖t‖) *
             (1 + ‖t‖) ^ (1 / 2 - σ) =
             C0 * (Real.exp ((Real.pi / 2) * ‖t‖) *
-              (1 + ‖t‖) ^ (1 / 2 - σ)) := by ring
+              (1 + ‖t‖) ^ (1 / 2 - σ)) := by
+          exact mul_assoc C0
+            (Real.exp ((Real.pi / 2) * ‖t‖))
+            ((1 + ‖t‖) ^ (1 / 2 - σ))
         _ ≤ C0 * Real.exp (A * ‖t‖) :=
           mul_le_mul_of_nonneg_left henvelope (le_of_lt hC0_pos)
     exact le_trans hstirling_t htarget

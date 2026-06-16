@@ -45,7 +45,16 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
     have hw_nonpos : w.re ≤ 0 := by
       have hsum_zero : w.re + n = 0 :=
         hre_sum.symm.trans hre_zero
-      nlinarith
+      have hw_eq_neg : w.re = -(n : ℝ) := by
+        calc
+          w.re = w.re + (n : ℝ) - (n : ℝ) := by
+            exact (add_sub_cancel_right w.re (n : ℝ)).symm
+          _ = 0 - (n : ℝ) := by
+            exact congrArg (fun x : ℝ => x - (n : ℝ)) hsum_zero
+          _ = -(n : ℝ) := zero_sub (n : ℝ)
+      calc
+        w.re = -(n : ℝ) := hw_eq_neg
+        _ ≤ 0 := neg_nonpos.mpr hn_nonneg
     exact not_lt_of_ge hw_nonpos hw
   calc
     Complex.exp (Complex.binetAbelPlanaLogGammaFiniteApproximation N w)
@@ -153,6 +162,29 @@ theorem Complex.tendsto_integral_Ioc_natCast_of_integrableOn_Ioi
       hs_measurable hs_monotone h_integrable_union
   exact hs_union ▸ h_tendsto
 
+/-- Reassemble an expression from two named finite Abel-Plana summands and
+the remainder defined by subtracting them. -/
+theorem add_add_sub_add_remainder
+    (A M B : ℂ) :
+    A = M + B + (A - (M + B)) := by
+  calc
+    A = (M + B) + (A - (M + B)) := by
+      exact (add_sub_cancel'_right A (M + B)).symm
+    _ = M + B + (A - (M + B)) := rfl
+
+/-- Reassemble a finite main term from its limiting term and the endpoint
+Stirling remainder. -/
+theorem add_sub_remainder
+    (F L : ℂ) :
+    F = L + (F - L) := by
+  exact (add_sub_cancel'_right F L).symm
+
+/-- Dropping a terminal zero from a Binet main-plus-remainder expression. -/
+theorem binet_branch_add_zero_eq
+    (M R : ℂ) :
+    M + R + 0 = M + R := by
+  exact add_zero (M + R)
+
 /-- Exact finite Abel-Plana transform for the logarithmic summand in the Euler
 Gamma approximants.
 
@@ -167,9 +199,11 @@ theorem Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMainTerm_add
       Complex.binetAbelPlanaFiniteMainTerm N w +
         Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
           Complex.binetAbelPlanaFiniteRemainderError N w := by
-  dsimp [Complex.binetAbelPlanaFiniteMainTerm,
-    Complex.binetAbelPlanaFiniteRemainderError]
-  abel
+  dsimp [Complex.binetAbelPlanaFiniteRemainderError]
+  exact add_add_sub_add_remainder
+    (Complex.binetAbelPlanaLogGammaFiniteApproximation N w)
+    (Complex.binetAbelPlanaFiniteMainTerm N w)
+    (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
 
 /-- Exact split of the finite main term into the limiting Binet main term and
 the endpoint/Stirling remainder. -/
@@ -180,7 +214,9 @@ theorem Complex.binetAbelPlana_finiteMainTerm_eq_binetMainTerm_add_endpointStirl
       Complex.binetLogGammaMainTerm w +
         Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w := by
   dsimp [Complex.binetAbelPlanaFiniteEndpointStirlingRemainder]
-  abel
+  exact add_sub_remainder
+    (Complex.binetAbelPlanaFiniteMainTerm N w)
+    (Complex.binetLogGammaMainTerm w)
 
 /-- Endpoint/Stirling convergence in its finite-main-term form.
 
@@ -647,7 +683,9 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaB
           Complex.binetSecondFormulaRemainder w + 0 =
         Complex.binetLogGammaBranch w := by
     dsimp [Complex.binetLogGammaBranch]
-    abel
+    exact binet_branch_add_zero_eq
+      (Complex.binetLogGammaMainTerm w)
+      (Complex.binetSecondFormulaRemainder w)
   exact htarget ▸ (hfinite_eq.symm ▸ hfinite_as_sum)
 
 /-- Abel-Plana constructs the analytic Euler/Binet logarithm branch of Gamma:

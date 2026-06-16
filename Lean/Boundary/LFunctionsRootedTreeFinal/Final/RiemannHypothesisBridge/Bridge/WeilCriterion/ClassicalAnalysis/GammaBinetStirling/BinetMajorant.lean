@@ -17,6 +17,99 @@ noncomputable section
 open scoped Topology
 open MeasureTheory
 
+/-- The real number `2` is positive. -/
+theorem Real.binetMajorant_two_pos : (0 : ℝ) < 2 := by
+  exact zero_lt_two
+
+/-- The real number `2` is nonzero. -/
+theorem Real.binetMajorant_two_ne_zero : (2 : ℝ) ≠ 0 := by
+  exact ne_of_gt Real.binetMajorant_two_pos
+
+/-- The real number `2` is not equal to `1`. -/
+theorem Real.binetMajorant_two_ne_one : (2 : ℝ) ≠ 1 := by
+  intro h
+  have hlt : (1 : ℝ) < 1 := by
+    exact h ▸ one_lt_two
+  exact (lt_irrefl (1 : ℝ) hlt).elim
+
+/-- The real number `2` is nonnegative. -/
+theorem Real.binetMajorant_two_nonneg : (0 : ℝ) ≤ 2 :=
+  le_of_lt Real.binetMajorant_two_pos
+
+/-- The real number `1` is less than `3`. -/
+theorem Real.binetMajorant_one_lt_three : (1 : ℝ) < 3 := by
+  exact Nat.cast_lt.mpr (show (1 : ℕ) < 3 from by
+    exact Nat.succ_lt_succ (Nat.zero_lt_succ 1))
+
+/-- The real number `2` is less than `3`. -/
+theorem Real.binetMajorant_two_lt_three : (2 : ℝ) < 3 := by
+  exact Nat.cast_lt.mpr (Nat.lt_succ_self 2)
+
+/-- Multiplication by one on the right for the Binet tail coefficient. -/
+theorem Real.binetMajorant_two_pi_eq_two_pi_mul_one :
+    (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 := by
+  exact (mul_one ((2 : ℝ) * Real.pi)).symm
+
+/-- Multiplication by one on the left for the Binet tail variable. -/
+theorem Real.binetMajorant_one_mul
+    (t : ℝ) :
+    t = 1 * t := by
+  exact (one_mul t).symm
+
+/-- Associating multiplication with division. -/
+theorem Real.binetMajorant_mul_div_assoc
+    (a t d : ℝ) :
+    a * (t / d) = a * t / d := by
+  exact mul_div_assoc a t d
+
+/-- `x ≤ exp x - 1` follows from `x + 1 ≤ exp x`. -/
+theorem Real.le_exp_sub_one_of_add_one_le_exp
+    {x : ℝ}
+    (h : x + 1 ≤ Real.exp x) :
+    x ≤ Real.exp x - 1 := by
+  exact le_sub_iff_add_le.mpr h
+
+/-- If `2 ≤ y`, then half of `y` is bounded by `y - 1`. -/
+theorem Real.div_two_le_sub_one_of_two_le
+    {y : ℝ}
+    (h : (2 : ℝ) ≤ y) :
+    y / 2 ≤ y - 1 := by
+  have hone_le_half : (1 : ℝ) ≤ y / 2 := by
+    exact (le_div_iff₀' Real.binetMajorant_two_pos).mpr
+      (by
+        calc
+          (1 : ℝ) * 2 = 2 := one_mul 2
+          _ ≤ y := h)
+  have hhalf_minus_nonneg : 0 ≤ y / 2 - 1 :=
+    sub_nonneg.mpr hone_le_half
+  calc
+    y / 2 ≤ y / 2 + (y / 2 - 1) :=
+      le_add_of_nonneg_right hhalf_minus_nonneg
+    _ = y - 1 := by
+      calc
+        y / 2 + (y / 2 - 1) = y / 2 + y / 2 - 1 :=
+          (add_sub_assoc (y / 2) (y / 2) 1).symm
+        _ = y - 1 :=
+          congrArg (fun u : ℝ => u - 1) (add_halves y)
+
+/-- The exponent identity used in the Binet tail majorant. -/
+theorem Real.binetMajorant_pi_mul_eq_two_pi_mul_add_neg
+    (t : ℝ) :
+    Real.pi * t =
+      ((2 : ℝ) * Real.pi * t) + (-Real.pi * t) := by
+  have hcoef : (2 : ℝ) * Real.pi - Real.pi = Real.pi := by
+    calc
+      (2 : ℝ) * Real.pi - Real.pi = (Real.pi + Real.pi) - Real.pi := by
+        exact congrArg (fun u : ℝ => u - Real.pi) (two_mul Real.pi)
+      _ = Real.pi := add_sub_cancel_left Real.pi Real.pi
+  calc
+    Real.pi * t = (((2 : ℝ) * Real.pi - Real.pi) * t) := by
+      exact congrArg (fun u : ℝ => u * t) hcoef.symm
+    _ = ((2 : ℝ) * Real.pi * t) - (Real.pi * t) := by
+      exact sub_mul ((2 : ℝ) * Real.pi) Real.pi t
+    _ = ((2 : ℝ) * Real.pi * t) + (-Real.pi * t) := by
+      exact sub_eq_add_neg ((2 : ℝ) * Real.pi * t) (Real.pi * t)
+
 /-- Strict positivity of the Binet real exponential denominator at every
 positive point. -/
 theorem Real.binetSecondFormula_exp_denominator_pos
@@ -91,7 +184,7 @@ theorem Real.two_pi_mul_le_exp_two_pi_mul_sub_one
   have hlower : x + 1 ≤ Real.exp x :=
     Real.add_one_le_exp x
   change x ≤ Real.exp x - 1
-  linarith
+  exact Real.le_exp_sub_one_of_add_one_le_exp hlower
 
 /-- Division form of the zero-cancellation estimate for the Binet majorant. -/
 theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
@@ -113,7 +206,8 @@ theorem Real.binetSecondFormula_kernel_majorant_le_one_div_two_pi
     have hd_div : d / d = 1 :=
       div_self (ne_of_gt hd_pos)
     calc
-      a * (t / d) = a * t / d := by ring
+      a * (t / d) = a * t / d := by
+        exact Real.binetMajorant_mul_div_assoc a t d
       _ ≤ d / d := hle_div
       _ = 1 := hd_div
   have hdiv :
@@ -226,21 +320,23 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
     have hcoeff_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
       le_of_lt (mul_pos two_pos Real.pi_pos)
     calc
-      (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 := by ring
+      (2 : ℝ) * Real.pi = (2 : ℝ) * Real.pi * 1 :=
+        Real.binetMajorant_two_pi_eq_two_pi_mul_one
       _ ≤ (2 : ℝ) * Real.pi * t :=
         mul_le_mul_of_nonneg_left (le_of_lt ht) hcoeff_nonneg
       _ = x := rfl
   have hlog_two_le_two_pi : Real.log 2 ≤ (2 : ℝ) * Real.pi := by
     have hlog_two_lt_two : Real.log 2 < (2 : ℝ) := by
       calc
-        Real.log 2 < 2 - 1 :=
+          Real.log 2 < 2 - 1 :=
           Real.log_lt_sub_one_of_pos
-            (by norm_num : (0 : ℝ) < 2)
-            (by norm_num : (2 : ℝ) ≠ 1)
-        _ < 2 := by norm_num
+            Real.binetMajorant_two_pos
+            Real.binetMajorant_two_ne_one
+        _ < 2 := by
+          exact sub_one_lt 2
     have htwo_lt_two_pi : (2 : ℝ) < 2 * Real.pi := by
       have hone_lt_pi : (1 : ℝ) < Real.pi :=
-        lt_trans (by norm_num : (1 : ℝ) < 3) Real.pi_gt_three
+        lt_trans Real.binetMajorant_one_lt_three Real.pi_gt_three
       calc
         (2 : ℝ) = 2 * 1 := (mul_one 2).symm
         _ < 2 * Real.pi := mul_lt_mul_of_pos_left hone_lt_pi two_pos
@@ -248,10 +344,10 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_denominator_lower
   have hlog_two_le_x : Real.log 2 ≤ x :=
     le_trans hlog_two_le_two_pi hx_ge_two_pi
   have htwo_le_exp : (2 : ℝ) ≤ Real.exp x := by
-    have htwo_pos : (0 : ℝ) < 2 := by norm_num
+    have htwo_pos : (0 : ℝ) < 2 := Real.binetMajorant_two_pos
     exact (Real.log_le_iff_le_exp htwo_pos).mp hlog_two_le_x
   change Real.exp x / 2 ≤ Real.exp x - 1
-  nlinarith [Real.exp_pos x]
+  exact Real.div_two_le_sub_one_of_two_le htwo_le_exp
 
 /-- The linear factor on the Binet tail is absorbed by `exp (πt)`. -/
 theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
@@ -262,9 +358,9 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_linear_le_exp_pi
     le_of_lt (lt_trans zero_lt_one ht)
   have hpi_t_ge_t : t ≤ Real.pi * t := by
     have hone_le_pi : (1 : ℝ) ≤ Real.pi :=
-      le_of_lt (lt_trans (by norm_num : (1 : ℝ) < 3) Real.pi_gt_three)
+      le_of_lt (lt_trans Real.binetMajorant_one_lt_three Real.pi_gt_three)
     calc
-      t = 1 * t := by ring
+      t = 1 * t := Real.binetMajorant_one_mul t
       _ ≤ Real.pi * t :=
         mul_le_mul_of_nonneg_right hone_le_pi ht_nonneg
   have ht_le_add : t ≤ Real.pi * t + 1 :=
@@ -320,8 +416,8 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_l
             calc
               Real.exp (Real.pi * t) =
                   Real.exp (((2 : ℝ) * Real.pi * t) + (-Real.pi * t)) := by
-                congr 1
-                ring
+                exact congrArg Real.exp
+                  (Real.binetMajorant_pi_mul_eq_two_pi_mul_add_neg t)
               _ = Real.exp ((2 : ℝ) * Real.pi * t) *
                   Real.exp (-Real.pi * t) := by
                 exact Real.exp_add ((2 : ℝ) * Real.pi * t) (-Real.pi * t)
@@ -334,7 +430,7 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_le_two_exp_of_denominator_l
     t / d ≤ t / (E / 2) := hdiv_le
     _ = 2 * (t / E) := hrewrite
     _ ≤ 2 * Real.exp (-Real.pi * t) :=
-      mul_le_mul_of_nonneg_left ht_over_E_le (by norm_num : (0 : ℝ) ≤ 2)
+      mul_le_mul_of_nonneg_left ht_over_E_le Real.binetMajorant_two_nonneg
 
 /-- Pointwise exponential tail domination for the Binet majorant with the
 concrete constant `2`. -/

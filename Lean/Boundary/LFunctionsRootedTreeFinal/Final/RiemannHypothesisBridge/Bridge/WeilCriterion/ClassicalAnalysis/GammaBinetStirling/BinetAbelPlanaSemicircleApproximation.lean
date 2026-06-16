@@ -355,10 +355,46 @@ theorem Complex.rightSemicircleStaircase_cell_length
     Complex.rightSemicircleStaircaseY ρ m (k + 1) -
       Complex.rightSemicircleStaircaseY ρ m k =
         (2 * ρ) / (m + 1 : ℝ) := by
-  dsimp [Complex.rightSemicircleStaircaseY]
-  have hden : ((m + 1 : ℕ) : ℝ) ≠ 0 := by positivity
-  field_simp [hden]
-  ring
+  exact Complex.rightSemicircleStaircaseY_succ_sub ρ m k
+
+/-- The real number `2` is nonnegative. -/
+theorem real_two_nonneg :
+    0 ≤ (2 : ℝ) := by
+  exact zero_le_two
+
+/-- A successor natural number has positive real cast. -/
+theorem real_nat_succ_cast_pos
+    (m : ℕ) :
+    0 < (m + 1 : ℝ) := by
+  exact Nat.cast_pos.mpr (Nat.succ_pos m)
+
+/-- A successor natural number has nonzero real cast. -/
+theorem real_nat_succ_cast_ne_zero
+    (m : ℕ) :
+    ((m + 1 : ℕ) : ℝ) ≠ 0 := by
+  exact ne_of_gt (real_nat_succ_cast_pos m)
+
+/-- The real number `6` is positive. -/
+theorem real_six_pos : 0 < (6 : ℝ) := by
+  exact Nat.cast_pos.mpr (Nat.succ_pos 5)
+
+/-- Half of `π` is nonnegative. -/
+theorem real_pi_div_two_nonneg : 0 ≤ Real.pi / 2 := by
+  exact div_nonneg (le_of_lt Real.pi_pos) zero_le_two
+
+/-- Twice a positive radius is positive. -/
+theorem real_two_mul_pos_of_pos
+    {ρ : ℝ}
+    (hρ : 0 < ρ) :
+    0 < 2 * ρ := by
+  exact mul_pos zero_lt_two hρ
+
+/-- Six times a positive radius is positive. -/
+theorem real_six_mul_pos_of_pos
+    {ρ : ℝ}
+    (hρ : 0 < ρ) :
+    0 < 6 * ρ := by
+  exact mul_pos real_six_pos hρ
 
 /-- Absolute length of one uniform staircase height cell. -/
 theorem Complex.rightSemicircleStaircase_cell_length_abs
@@ -369,8 +405,84 @@ theorem Complex.rightSemicircleStaircase_cell_length_abs
       Complex.rightSemicircleStaircaseY ρ m k| =
         (2 * ρ) / (m + 1 : ℝ) := by
   rw [Complex.rightSemicircleStaircase_cell_length]
+  have hden_nonneg : 0 ≤ (m + 1 : ℝ) := by
+    exact le_of_lt (real_nat_succ_cast_pos m)
   exact abs_of_nonneg
-    (div_nonneg (mul_nonneg (by norm_num) hρ) (by positivity))
+    (div_nonneg (mul_nonneg real_two_nonneg hρ) hden_nonneg)
+
+/-- A real number below `N` is below `m+1` whenever `N ≤ m`. -/
+theorem real_lt_nat_succ_of_lt_nat_of_nat_le
+    {q : ℝ}
+    {N m : ℕ}
+    (hN : q < (N : ℝ))
+    (hm : N ≤ m) :
+    q < (m + 1 : ℝ) := by
+  have hN_le_m : (N : ℝ) ≤ (m : ℝ) := by
+    exact Nat.cast_le.mpr hm
+  have hm_lt_succ : (m : ℝ) < (m + 1 : ℝ) := by
+    exact Nat.cast_lt.mpr (Nat.lt_succ_self m)
+  exact lt_of_lt_of_le hN (le_of_lt (lt_of_le_of_lt hN_le_m hm_lt_succ))
+
+/-- Dividing a strict product bound by a positive successor denominator. -/
+theorem div_nat_succ_lt_of_lt_mul
+    {A δ : ℝ}
+    (hδ : 0 < δ)
+    (m : ℕ)
+    (hA : A < δ * (m + 1 : ℝ)) :
+    A / (m + 1 : ℝ) < δ := by
+  have hden : 0 < (m + 1 : ℝ) :=
+    real_nat_succ_cast_pos m
+  rw [div_lt_iff₀' hden]
+  exact hA
+
+/-- Dividing by a positive scale and multiplying back by that scale recovers
+the original quantity. -/
+theorem div_mul_cancel_of_pos_right
+    {ε A : ℝ}
+    (hA : 0 < A) :
+    (ε / A) * A = ε := by
+  have hA_ne : A ≠ 0 := ne_of_gt hA
+  exact div_mul_cancel₀ ε hA_ne
+
+/-- Three error contributions of size `η * (2ρ)` are bounded by the single
+scale `η * (6ρ)`. -/
+theorem three_two_radius_errors_le_six_radius_error
+    {η ρ : ℝ}
+    (hη : 0 ≤ η)
+    (hρ : 0 ≤ ρ) :
+    η * (2 * ρ) + η * (2 * ρ) + η * (2 * ρ) ≤ η * (6 * ρ) := by
+  have hsum :
+      (2 * ρ + 2 * ρ) + 2 * ρ = 6 * ρ := by
+    calc
+      (2 * ρ + 2 * ρ) + 2 * ρ
+          = (2 + 2 : ℝ) * ρ + 2 * ρ := by
+            rw [add_mul]
+      _ = ((2 + 2 : ℝ) + 2) * ρ := by
+            rw [add_mul]
+      _ = 6 * ρ := rfl
+  have heq :
+      η * (2 * ρ) + η * (2 * ρ) + η * (2 * ρ) =
+        η * (6 * ρ) := by
+    calc
+      η * (2 * ρ) + η * (2 * ρ) + η * (2 * ρ)
+          = η * (2 * ρ + 2 * ρ) + η * (2 * ρ) := by
+            rw [mul_add]
+      _ = η * ((2 * ρ + 2 * ρ) + 2 * ρ) := by
+            rw [mul_add]
+      _ = η * (6 * ρ) := by
+            rw [hsum]
+  exact le_of_eq heq
+
+/-- Two quantities each bounded by the same radius have sum bounded by twice
+that radius. -/
+theorem add_le_two_mul_of_each_le
+    {a b ρ : ℝ}
+    (ha : a ≤ ρ)
+    (hb : b ≤ ρ) :
+    a + b ≤ 2 * ρ := by
+  calc
+    a + b ≤ ρ + ρ := add_le_add ha hb
+    _ = 2 * ρ := (two_mul ρ).symm
 
 /-- The uniform staircase mesh tends to zero. -/
 theorem Complex.eventually_rightSemicircleStaircase_cell_length_lt
@@ -383,19 +495,24 @@ theorem Complex.eventually_rightSemicircleStaircase_cell_length_lt
           Complex.rightSemicircleStaircaseY ρ m k| < δ := by
   rcases exists_nat_gt ((2 * ρ) / δ) with ⟨N, hN⟩
   filter_upwards [eventually_ge_atTop N] with m hm k hk
-  have hN_le_m : (N : ℝ) ≤ (m : ℝ) := by
-    exact_mod_cast hm
-  have hm_lt_succ : (m : ℝ) < (m + 1 : ℝ) := by norm_num
   have hquot_lt_succ : (2 * ρ) / δ < (m + 1 : ℝ) := by
-    linarith
+    exact real_lt_nat_succ_of_lt_nat_of_nat_le hN hm
   have hmul_lt : 2 * ρ < δ * (m + 1 : ℝ) := by
     exact (div_lt_iff₀ hδ).mp hquot_lt_succ
   have hlen_lt : (2 * ρ) / (m + 1 : ℝ) < δ := by
-    have hden : 0 < (m + 1 : ℝ) := by positivity
-    rw [div_lt_iff₀' hden]
-    linarith
+    exact div_nat_succ_lt_of_lt_mul hδ m hmul_lt
   rw [Complex.rightSemicircleStaircase_cell_length_abs hρ.le]
   exact hlen_lt
+
+/-- A uniform partition with `m + 1` cells of length `2ρ / (m + 1)` has total
+length `2ρ`. -/
+theorem nat_succ_mul_uniform_semicircle_cell_length
+    (ρ : ℝ)
+    (m : ℕ) :
+    ((m + 1 : ℕ) : ℝ) * ((2 * ρ) / ((m + 1 : ℕ) : ℝ)) = 2 * ρ := by
+  have hden : ((m + 1 : ℕ) : ℝ) ≠ 0 :=
+    real_nat_succ_cast_ne_zero m
+  exact mul_div_cancel₀ (2 * ρ) hden
 
 /-- Total length of the uniform staircase height partition. -/
 theorem Complex.sum_rightSemicircleStaircase_cell_lengths
@@ -407,8 +524,7 @@ theorem Complex.sum_rightSemicircleStaircase_cell_lengths
         Complex.rightSemicircleStaircaseY ρ m k|) = 2 * ρ := by
   simp_rw [Complex.rightSemicircleStaircase_cell_length_abs hρ]
   rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
-  have hden : ((m + 1 : ℕ) : ℝ) ≠ 0 := by positivity
-  field_simp [hden]
+  exact nat_succ_mul_uniform_semicircle_cell_length ρ m
 
 /-- Finite-difference sample sum for the horizontal staircase contribution. -/
 noncomputable def Complex.rightSemicircleStaircaseHorizontalSampleSum
@@ -448,17 +564,32 @@ noncomputable def Complex.rightSemicircleAngleGrid
     (m k : ℕ) : ℝ :=
   Real.arcsin (Complex.rightSemicircleStaircaseY ρ m k / ρ)
 
+/-- The bottom height-grid point has normalized height `-1`. -/
+theorem Complex.rightSemicircleAngleGrid_bottom_ratio
+    {ρ : ℝ}
+    (hρ : 0 < ρ)
+    (m : ℕ) :
+    Complex.rightSemicircleStaircaseY ρ m 0 / ρ = -1 := by
+  rw [Complex.rightSemicircleStaircaseY_zero]
+  exact neg_div_self (ne_of_gt hρ)
+
 /-- The angle grid starts at `-π/2`. -/
 theorem Complex.rightSemicircleAngleGrid_zero
     {ρ : ℝ}
     (hρ : 0 < ρ)
     (m : ℕ) :
     Complex.rightSemicircleAngleGrid ρ m 0 = -(Real.pi / 2) := by
-  have hratio : Complex.rightSemicircleStaircaseY ρ m 0 / ρ = -1 := by
-    rw [Complex.rightSemicircleStaircaseY_zero]
-    field_simp [ne_of_gt hρ]
   dsimp [Complex.rightSemicircleAngleGrid]
-  rw [hratio, Real.arcsin_neg_one]
+  rw [Complex.rightSemicircleAngleGrid_bottom_ratio hρ m, Real.arcsin_neg_one]
+
+/-- The top height-grid point has normalized height `1`. -/
+theorem Complex.rightSemicircleAngleGrid_top_ratio
+    {ρ : ℝ}
+    (hρ : 0 < ρ)
+    (m : ℕ) :
+    Complex.rightSemicircleStaircaseY ρ m (m + 1) / ρ = 1 := by
+  rw [Complex.rightSemicircleStaircaseY_last]
+  exact div_self (ne_of_gt hρ)
 
 /-- The angle grid ends at `π/2`. -/
 theorem Complex.rightSemicircleAngleGrid_last
@@ -466,11 +597,8 @@ theorem Complex.rightSemicircleAngleGrid_last
     (hρ : 0 < ρ)
     (m : ℕ) :
     Complex.rightSemicircleAngleGrid ρ m (m + 1) = Real.pi / 2 := by
-  have hratio : Complex.rightSemicircleStaircaseY ρ m (m + 1) / ρ = 1 := by
-    rw [Complex.rightSemicircleStaircaseY_last]
-    field_simp [ne_of_gt hρ]
   dsimp [Complex.rightSemicircleAngleGrid]
-  rw [hratio, Real.arcsin_one]
+  rw [Complex.rightSemicircleAngleGrid_top_ratio hρ m, Real.arcsin_one]
 
 /-- Every angle-grid point lies in the right-semicircle angle interval. -/
 theorem Complex.rightSemicircleAngleGrid_mem_Icc
@@ -483,6 +611,24 @@ theorem Complex.rightSemicircleAngleGrid_mem_Icc
   dsimp [Complex.rightSemicircleAngleGrid]
   exact Real.arcsin_mem_Icc _
 
+/-- Dividing a height in `[-ρ,ρ]` by a positive radius lands in `[-1,1]`. -/
+theorem div_radius_mem_unit_Icc_of_height_mem
+    {ρ y : ℝ}
+    (hρ : 0 < ρ)
+    (hy : y ∈ [[-ρ, ρ]]) :
+    -1 ≤ y / ρ ∧ y / ρ ≤ 1 := by
+  have hy_bounds : -ρ ≤ y ∧ y ≤ ρ := by
+    have huIcc : [[-ρ, ρ]] = Set.Icc (-ρ) ρ :=
+      Set.uIcc_of_le (Complex.neg_radius_le_radius hρ.le)
+    exact huIcc ▸ hy
+  have hleft : -1 ≤ y / ρ := by
+    rw [neg_le_div_iff₀ hρ]
+    exact hy_bounds.1
+  have hright : y / ρ ≤ 1 := by
+    rw [div_le_one hρ]
+    exact hy_bounds.2
+  exact And.intro hleft hright
+
 /-- The sine of the angle-grid point recovers the height grid point. -/
 theorem Complex.rightSemicircleAngleGrid_sin
     {ρ : ℝ}
@@ -494,21 +640,52 @@ theorem Complex.rightSemicircleAngleGrid_sin
   have hy :
       Complex.rightSemicircleStaircaseY ρ m k ∈ [[-ρ, ρ]] :=
     Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m k hk
-  have hy_bounds :
-      -ρ ≤ Complex.rightSemicircleStaircaseY ρ m k ∧
-        Complex.rightSemicircleStaircaseY ρ m k ≤ ρ := by
-    simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using hy
-  have hleft :
-      -1 ≤ Complex.rightSemicircleStaircaseY ρ m k / ρ := by
-    rw [neg_le_div_iff₀ hρ]
-    linarith
-  have hright :
-      Complex.rightSemicircleStaircaseY ρ m k / ρ ≤ 1 := by
-    rw [div_le_one hρ]
-    exact hy_bounds.2
+  have hdiv_bounds :
+      -1 ≤ Complex.rightSemicircleStaircaseY ρ m k / ρ ∧
+        Complex.rightSemicircleStaircaseY ρ m k / ρ ≤ 1 :=
+    div_radius_mem_unit_Icc_of_height_mem hρ hy
   dsimp [Complex.rightSemicircleAngleGrid]
-  rw [Real.sin_arcsin hleft hright]
-  field_simp [ne_of_gt hρ]
+  rw [Real.sin_arcsin hdiv_bounds.1 hdiv_bounds.2]
+  exact mul_div_cancel₀ (Complex.rightSemicircleStaircaseY ρ m k)
+    (ne_of_gt hρ)
+
+/-- The right-semicircle angle unordered interval is the usual ordered closed
+interval. -/
+theorem rightSemicircleAngle_uIcc_eq_Icc :
+    [[-(Real.pi / 2), Real.pi / 2]] =
+      Set.Icc (-(Real.pi / 2)) (Real.pi / 2) := by
+  have hleft : -(Real.pi / 2) ≤ Real.pi / 2 := by
+    have hhalf_nonneg : 0 ≤ Real.pi / 2 :=
+      real_pi_div_two_nonneg
+    exact neg_le_self hhalf_nonneg
+  exact Set.uIcc_of_le hleft
+
+/-- Membership in the right-semicircle angle unordered interval gives
+membership in the ordered interval. -/
+theorem mem_rightSemicircleAngle_Icc_of_mem_uIcc
+    {θ : ℝ}
+    (hθ : θ ∈ [[-(Real.pi / 2), Real.pi / 2]]) :
+    θ ∈ Set.Icc (-(Real.pi / 2)) (Real.pi / 2) := by
+  exact rightSemicircleAngle_uIcc_eq_Icc ▸ hθ
+
+/-- Multiplying a sine value by a nonnegative radius keeps it in the vertical
+height interval of that radius. -/
+theorem radius_mul_sin_mem_height_Icc
+    {ρ θ : ℝ}
+    (hρ : 0 ≤ ρ) :
+    ρ * Real.sin θ ∈ Set.Icc (-ρ) ρ := by
+  have hsin_lower : -1 ≤ Real.sin θ := Real.neg_one_le_sin θ
+  have hsin_upper : Real.sin θ ≤ 1 := Real.sin_le_one θ
+  have hleft : -ρ ≤ ρ * Real.sin θ := by
+    calc
+      -ρ = ρ * (-1 : ℝ) := (mul_neg_one ρ).symm
+      _ ≤ ρ * Real.sin θ := mul_le_mul_of_nonneg_left hsin_lower hρ
+  have hright : ρ * Real.sin θ ≤ ρ := by
+    calc
+      ρ * Real.sin θ ≤ ρ * (1 : ℝ) :=
+        mul_le_mul_of_nonneg_left hsin_upper hρ
+      _ = ρ := mul_one ρ
+  exact And.intro hleft hright
 
 /-- The angle grid is monotone because the height grid is monotone and
 `arcsin` is monotone. -/
@@ -614,27 +791,11 @@ theorem Complex.eventually_rightSemicircleAngleGrid_cell_length_lt
   have hx0 :
       Complex.rightSemicircleStaircaseY ρ m k / ρ ∈
         Set.Icc (-1 : ℝ) 1 := by
-    have hy_bounds :
-        -ρ ≤ Complex.rightSemicircleStaircaseY ρ m k ∧
-          Complex.rightSemicircleStaircaseY ρ m k ≤ ρ := by
-      simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using hy0
-    constructor
-    · rw [neg_le_div_iff₀ hρ]
-      linarith
-    · rw [div_le_one hρ]
-      exact hy_bounds.2
+    exact div_radius_mem_unit_Icc_of_height_mem hρ hy0
   have hx1 :
       Complex.rightSemicircleStaircaseY ρ m (k + 1) / ρ ∈
         Set.Icc (-1 : ℝ) 1 := by
-    have hy_bounds :
-        -ρ ≤ Complex.rightSemicircleStaircaseY ρ m (k + 1) ∧
-          Complex.rightSemicircleStaircaseY ρ m (k + 1) ≤ ρ := by
-      simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using hy1
-    constructor
-    · rw [neg_le_div_iff₀ hρ]
-      linarith
-    · rw [div_le_one hρ]
-      exact hy_bounds.2
+    exact div_radius_mem_unit_Icc_of_height_mem hρ hy1
   have hratio :
       dist
         (Complex.rightSemicircleStaircaseY ρ m (k + 1) / ρ)
@@ -693,6 +854,505 @@ theorem Complex.rightSemicircleAngleGrid_cos_chord_eq_integral_dx
     intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
   exact hfund.symm
 
+/-- The right-semicircle radical simplifies to the squared cosine coordinate. -/
+theorem radius_sq_sub_radius_mul_sin_sq_eq_radius_mul_cos_sq
+    (ρ θ : ℝ) :
+    ρ ^ 2 - (ρ * Real.sin θ) ^ 2 = (ρ * Real.cos θ) ^ 2 := by
+  calc
+    ρ ^ 2 - (ρ * Real.sin θ) ^ 2
+        = ρ ^ 2 - ρ ^ 2 * Real.sin θ ^ 2 := by
+          rw [mul_pow]
+    _ = ρ ^ 2 * 1 - ρ ^ 2 * Real.sin θ ^ 2 := by
+          rw [mul_one]
+    _ = ρ ^ 2 * (1 - Real.sin θ ^ 2) := by
+          exact (mul_sub (ρ ^ 2) 1 (Real.sin θ ^ 2)).symm
+    _ = ρ ^ 2 * Real.cos θ ^ 2 := by
+      rw [← Real.cos_sq]
+    _ = (ρ * Real.cos θ) ^ 2 := by
+      rw [mul_pow]
+
+/-- The sine parametrization sends the lower angle endpoint to the lower
+height endpoint. -/
+theorem radius_mul_sin_neg_pi_div_two
+    (ρ : ℝ) :
+    ρ * Real.sin (-(Real.pi / 2)) = -ρ := by
+  rw [Real.sin_neg, Real.sin_pi_div_two]
+  exact mul_neg_one ρ
+
+/-- The sine parametrization sends the upper angle endpoint to the upper
+height endpoint. -/
+theorem radius_mul_sin_pi_div_two
+    (ρ : ℝ) :
+    ρ * Real.sin (Real.pi / 2) = ρ := by
+  rw [Real.sin_pi_div_two]
+  exact mul_one ρ
+
+/-- Multiplying the sine component of a circular tangent by `I²` gives the
+negative horizontal component. -/
+theorem Complex.I_real_mul_real_mul_I_eq_neg_real_mul
+    (ρ s : ℝ) :
+    (Complex.I * (ρ : ℂ)) * ((s : ℂ) * Complex.I) =
+      ((-ρ * s : ℝ) : ℂ) := by
+  calc
+    (Complex.I * (ρ : ℂ)) * ((s : ℂ) * Complex.I)
+        = (Complex.I * Complex.I) * ((ρ : ℂ) * (s : ℂ)) := by
+      exact mul_mul_mul_comm Complex.I (ρ : ℂ) (s : ℂ) Complex.I
+    _ = (-1 : ℂ) * ((ρ : ℂ) * (s : ℂ)) := by
+      rw [Complex.I_mul_I]
+    _ = -((ρ : ℂ) * (s : ℂ)) := neg_one_mul ((ρ : ℂ) * (s : ℂ))
+    _ = -(((ρ * s : ℝ) : ℂ)) := by
+      exact congrArg Neg.neg (Complex.ofReal_mul ρ s).symm
+    _ = ((-(ρ * s) : ℝ) : ℂ) := by
+      exact (Complex.ofReal_neg (ρ * s)).symm
+    _ = ((-ρ * s : ℝ) : ℂ) := by
+      rw [neg_mul]
+
+/-- The cosine component of a circular tangent is the vertical component. -/
+theorem Complex.I_real_mul_real_eq_I_mul_real_mul
+    (ρ c : ℝ) :
+    (Complex.I * (ρ : ℂ)) * (c : ℂ) =
+      Complex.I * (((ρ * c : ℝ) : ℂ)) := by
+  calc
+    (Complex.I * (ρ : ℂ)) * (c : ℂ)
+        = Complex.I * ((ρ : ℂ) * (c : ℂ)) :=
+      (mul_assoc Complex.I (ρ : ℂ) (c : ℂ)).symm
+    _ = Complex.I * (((ρ * c : ℝ) : ℂ)) := by
+      exact congrArg (fun z => Complex.I * z) (Complex.ofReal_mul ρ c).symm
+
+/-- The raw tangent vector of the angle-parametrized right semicircle. -/
+theorem rightSemicircleAngle_tangentVector_decompose
+    (ρ θ : ℝ) :
+    Complex.I * (ρ : ℂ) *
+        Complex.exp (Complex.I * (θ : ℂ)) =
+      (((-ρ * Real.sin θ : ℝ) : ℂ)) +
+        Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ)) := by
+  calc
+    Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
+        =
+      Complex.I * (ρ : ℂ) *
+        (((Real.cos θ : ℝ) : ℂ) + ((Real.sin θ : ℝ) : ℂ) * Complex.I) := by
+      rw [Complex.exp_mul_I]
+    _ =
+      (Complex.I * (ρ : ℂ)) * ((Real.cos θ : ℝ) : ℂ) +
+        (Complex.I * (ρ : ℂ)) * (((Real.sin θ : ℝ) : ℂ) * Complex.I) := by
+      exact mul_add (Complex.I * (ρ : ℂ)) ((Real.cos θ : ℝ) : ℂ)
+        (((Real.sin θ : ℝ) : ℂ) * Complex.I)
+    _ =
+      Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ)) +
+        (((-ρ * Real.sin θ : ℝ) : ℂ)) := by
+      rw [Complex.I_real_mul_real_eq_I_mul_real_mul]
+      rw [Complex.I_real_mul_real_mul_I_eq_neg_real_mul]
+    _ =
+      (((-ρ * Real.sin θ : ℝ) : ℂ)) +
+        Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ)) := by
+      exact add_comm
+        (Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ)))
+        (((-ρ * Real.sin θ : ℝ) : ℂ))
+
+/-- A scalar factor may be moved across the vertical `I` component. -/
+theorem Complex.mul_I_vertical_component_comm
+    (A B : ℂ) :
+    A * (Complex.I * B) =
+      Complex.I * (A * B) := by
+  calc
+    A * (Complex.I * B) = (A * Complex.I) * B := mul_assoc A Complex.I B
+    _ = (Complex.I * A) * B := by
+      rw [mul_comm A Complex.I]
+    _ = Complex.I * (A * B) := (mul_assoc Complex.I A B).symm
+
+/-- The complex tangent vector on the angle-parametrized right semicircle
+splits into its horizontal and vertical differential components. -/
+theorem rightSemicircleAngle_tangentFactor_decompose
+    (A : ℂ)
+    (ρ θ : ℝ) :
+    A * (Complex.I * (ρ : ℂ) *
+        Complex.exp (Complex.I * (θ : ℂ))) =
+      A * (((-ρ * Real.sin θ : ℝ) : ℂ)) +
+        Complex.I * (A * ((ρ * Real.cos θ : ℝ) : ℂ)) := by
+  calc
+    A * (Complex.I * (ρ : ℂ) *
+        Complex.exp (Complex.I * (θ : ℂ)))
+        =
+      A * (((( -ρ * Real.sin θ : ℝ) : ℂ)) +
+        Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ))) := by
+      exact congrArg (fun z => A * z)
+        (rightSemicircleAngle_tangentVector_decompose ρ θ)
+    _ =
+      A * (((-ρ * Real.sin θ : ℝ) : ℂ)) +
+        A * (Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ))) := by
+      exact mul_add A (((-ρ * Real.sin θ : ℝ) : ℂ))
+        (Complex.I * (((ρ * Real.cos θ : ℝ) : ℂ)))
+    _ =
+      A * (((-ρ * Real.sin θ : ℝ) : ℂ)) +
+        Complex.I * (A * ((ρ * Real.cos θ : ℝ) : ℂ)) := by
+      exact congrArg
+        (fun z => A * (((-ρ * Real.sin θ : ℝ) : ℂ)) + z)
+        (Complex.mul_I_vertical_component_comm A (((ρ * Real.cos θ : ℝ) : ℂ)))
+
+/-- Subtracting the vertical component from a sum of horizontal and vertical
+components recovers the horizontal component. -/
+theorem horizontal_component_eq_of_sum_eq_add_vertical
+    {H V S : ℂ}
+    (hS : S = H + V) :
+    S - V = H := by
+  calc
+    S - V = (H + V) - V := by rw [hS]
+    _ = H := add_sub_cancel_right H V
+
+/-- Re-inserting the subtracted summand recovers the original summand. -/
+theorem add_sub_right_cancel'
+    (A B : ℂ) :
+    A + (B - A) = B := by
+  calc
+    A + (B - A) = (B - A) + A := add_comm A (B - A)
+    _ = B := sub_add_cancel B A
+
+/-- A subtracted vertical component reassembles with the vertical component. -/
+theorem horizontal_add_vertical_eq_total
+    (A V : ℂ) :
+    (A - V) + V = A :=
+  sub_add_cancel A V
+
+/-- Splitting a horizontal-plus-top sample error into its horizontal and top
+parts. -/
+theorem horizontal_top_sample_error_decompose
+    (H T S Stop : ℂ) :
+    (H + T) - (S + Stop) = (H - S) + (T - Stop) := by
+  exact add_sub_add_comm H T S Stop
+
+/-- Inserting and then cancelling a middle term decomposes a difference. -/
+theorem sub_eq_sub_add_add_sub
+    (A S B : ℂ) :
+    A - B = (A - S) + (S - B) := by
+  calc
+    A - B = ((A - S) + S) - B := by
+      rw [sub_add_cancel]
+    _ = (A - S) + (S - B) := by
+      exact add_sub_assoc (A - S) S B
+
+/-- Splitting the polygonal arc error into horizontal approximation,
+horizontal quadrature, and vertical approximation errors. -/
+theorem polygonal_arc_error_decompose_additive
+    (H T V S GH GV : ℂ) :
+    ((H + V) + T) - (GH + GV) =
+      ((H + T) - S) + (S - GH) + (V - GV) := by
+  calc
+    ((H + V) + T) - (GH + GV)
+        = ((H + T) + V) - (GH + GV) := by
+          rw [add_assoc H V T]
+          rw [add_comm V T]
+          rw [← add_assoc H T V]
+    _ = ((H + T) - GH) + (V - GV) := by
+          exact add_sub_add_comm (H + T) V GH GV
+    _ = (((H + T) - S) + (S - GH)) + (V - GV) := by
+          rw [sub_eq_sub_add_add_sub (H + T) S GH]
+
+/-- A finite sum with a tail term minus a second finite sum splits into the
+sum of pointwise differences plus the tail term. -/
+theorem finset_sum_add_tail_sub_sum_eq_sum_sub_add_tail
+    {ι : Type*}
+    (s : Finset ι)
+    (A B : ι → ℂ)
+    (T : ℂ) :
+    ((∑ i in s, A i) + T) - (∑ i in s, B i) =
+      (∑ i in s, A i - B i) + T := by
+  calc
+    ((∑ i in s, A i) + T) - (∑ i in s, B i)
+        = ((∑ i in s, A i) - (∑ i in s, B i)) + T := by
+          rw [sub_eq_add_neg]
+          rw [sub_eq_add_neg]
+          exact add_right_comm (∑ i in s, A i) T (-(∑ i in s, B i))
+    _ = (∑ i in s, A i - B i) + T := by
+          rw [Finset.sum_sub_distrib]
+
+/-- Pulling a common nonnegative scalar through a finite sum plus one tail
+term.  This is the algebraic normalization used by the horizontal connector
+length estimate. -/
+theorem finset_sum_const_mul_add_const_mul_eq_mul_sum_add
+    {ι : Type*}
+    (s : Finset ι)
+    (η : ℝ)
+    (a : ι → ℝ)
+    (b : ℝ) :
+    (∑ i in s, η * a i) + η * b =
+      η * ((∑ i in s, a i) + b) := by
+  calc
+    (∑ i in s, η * a i) + η * b
+        = η * (∑ i in s, a i) + η * b := by
+          rw [Finset.mul_sum]
+    _ = η * ((∑ i in s, a i) + b) := by
+          rw [mul_add]
+
+/-- Pulling one fixed scalar factor through a finite sum. -/
+theorem finset_sum_const_mul_eq_mul_sum
+    {ι : Type*}
+    (s : Finset ι)
+    (η : ℝ)
+    (a : ι → ℝ) :
+    (∑ i in s, η * a i) =
+      η * (∑ i in s, a i) := by
+  calc
+    (∑ i in s, η * a i)
+        = η * (∑ i in s, a i) := by
+          rw [Finset.mul_sum]
+
+/-- Pulling two fixed scalar factors through a finite sum. -/
+theorem finset_sum_two_const_mul_eq_mul_mul_sum
+    {ι : Type*}
+    (s : Finset ι)
+    (η ρ : ℝ)
+    (a : ι → ℝ) :
+    (∑ i in s, η * ρ * a i) =
+      η * ρ * (∑ i in s, a i) := by
+  calc
+    (∑ i in s, η * ρ * a i)
+        = (η * ρ) * (∑ i in s, a i) := by
+          rw [Finset.mul_sum]
+    _ = η * ρ * (∑ i in s, a i) := rfl
+
+/-- The final scalar normalization for the angle-grid chord estimate. -/
+theorem eta_mul_radius_mul_pi_eq_eta_mul_pi_mul_radius
+    (η ρ : ℝ) :
+    η * ρ * Real.pi = η * (Real.pi * ρ) := by
+  calc
+    η * ρ * Real.pi = η * (ρ * Real.pi) := mul_assoc η ρ Real.pi
+    _ = η * (Real.pi * ρ) := by
+          rw [mul_comm ρ Real.pi]
+
+/-- The midpoint index of the one-cell staircase is zero. -/
+theorem one_div_two_nat_eq_zero :
+    (1 : ℕ) / 2 = 0 := by
+  have hone_lt_two : (1 : ℕ) < 2 := by
+    exact Nat.lt_succ_self 1
+  exact Nat.div_eq_of_lt hone_lt_two
+
+/-- The midpoint index of the one-cell staircase is at most the only index. -/
+theorem one_div_two_nat_le_zero :
+    (1 : ℕ) / 2 ≤ 0 := by
+  exact le_of_eq one_div_two_nat_eq_zero
+
+/-- A successor plus one is bounded by twice the successor. -/
+theorem nat_succ_succ_le_two_mul_succ
+    (n : ℕ) :
+    n + 2 ≤ 2 * (n + 1) := by
+  have hone_le_succ : 1 ≤ n + 1 := by
+    exact Nat.succ_pos n
+  calc
+    n + 2 = n + 1 + 1 := rfl
+    _ ≤ n + 1 + (n + 1) := by
+      exact Nat.add_le_add_left hone_le_succ (n + 1)
+    _ = 2 * (n + 1) := by
+      exact (two_mul (n + 1)).symm
+
+/-- The midpoint index of the staircase lies in the staircase range. -/
+theorem nat_staircase_midpoint_le
+    (m : ℕ) :
+    (m + 1) / 2 ≤ m := by
+  cases m with
+  | zero =>
+      exact one_div_two_nat_le_zero
+  | succ n =>
+      exact Nat.div_le_of_le_mul' (nat_succ_succ_le_two_mul_succ n)
+
+/-- The suffix starting after `j` ends at `m+1` when `j ≤ m`. -/
+theorem nat_succ_add_sub_eq_succ
+    {j m : ℕ}
+    (hjm : j ≤ m) :
+    j + 1 + (m - j) = m + 1 := by
+  calc
+    j + 1 + (m - j) = j + (m - j) + 1 := by
+      exact Nat.add_right_comm j 1 (m - j)
+    _ = m + 1 := by
+      rw [Nat.add_sub_cancel' hjm]
+
+/-- The first suffix index is strictly beyond the midpoint. -/
+theorem nat_lt_succ_add
+    (j t : ℕ) :
+    j < j + 1 + t := by
+  calc
+    j < j + 1 := Nat.lt_succ_self j
+    _ ≤ j + 1 + t := Nat.le_add_right (j + 1) t
+
+/-- A one-cell suffix length may be written in successor form. -/
+theorem nat_one_add_eq_add_one
+    (n : ℕ) :
+    1 + n = n + 1 := by
+  exact Nat.add_comm 1 n
+
+/-- Reindexing identity for the one-cell suffix after `j`. -/
+theorem nat_midpoint_suffix_index_assoc
+    (j t : ℕ) :
+    j + (t + 1) = j + 1 + t := by
+  calc
+    j + (t + 1) = j + (1 + t) := by
+      rw [Nat.add_comm t 1]
+    _ = j + 1 + t := by
+      exact (Nat.add_assoc j 1 t).symm
+
+/-- The right-semicircle angle interval has total length `π`. -/
+theorem pi_div_two_sub_neg_pi_div_two :
+    Real.pi / 2 - (-(Real.pi / 2)) = Real.pi := by
+  calc
+    Real.pi / 2 - (-(Real.pi / 2))
+        = Real.pi / 2 + Real.pi / 2 := sub_neg_eq_add _ _
+    _ = Real.pi := by
+          rw [← two_mul (Real.pi / 2)]
+          exact mul_div_cancel_left₀ Real.pi (two_ne_zero' ℝ)
+
+/-- The `dx` integrand error factors by right distributivity. -/
+theorem rightSemicircleAngle_dx_cell_integrand_error_factor
+    (A B C : ℂ) :
+    A * C - B * C = (A - B) * C :=
+  (sub_mul A B C).symm
+
+/-- Real scalar multiplication on `ℂ` can be read as right multiplication by
+the corresponding real scalar. -/
+theorem complex_real_smul_eq_mul_right
+    (A : ℂ)
+    (r : ℝ) :
+    r • A = A * ((r : ℝ) : ℂ) := by
+  rw [Complex.real_smul]
+  exact mul_comm ((r : ℝ) : ℂ) A
+
+/-- Multiplication by `I` factors out of a difference. -/
+theorem Complex.I_mul_sub_factor
+    (A B : ℂ) :
+    Complex.I * A - Complex.I * B =
+      Complex.I * (A - B) :=
+  (mul_sub Complex.I A B).symm
+
+/-- Scalar rearrangement behind one safe-endpoint cell comparison. -/
+theorem real_safe_endpoint_cell_error_scalar
+    (safe prev rnext rcur : ℝ) :
+    (safe - prev) - (rnext - rcur) =
+      (safe - rnext) - (prev - rcur) := by
+  exact sub_sub_sub_comm safe prev rnext rcur
+
+/-- One cell of the safe-endpoint comparison is just the difference between
+two right-endpoint defects. -/
+theorem safe_endpoint_cell_error_algebra
+    (A : ℂ)
+    (safe prev rnext rcur : ℝ) :
+    A * (((safe - prev : ℝ) : ℂ)) -
+        A * (((rnext - rcur : ℝ) : ℂ)) =
+      A * (((safe - rnext : ℝ) : ℂ)) -
+        A * (((prev - rcur : ℝ) : ℂ)) := by
+  calc
+    A * (((safe - prev : ℝ) : ℂ)) -
+        A * (((rnext - rcur : ℝ) : ℂ))
+        =
+      A * ((((safe - prev) - (rnext - rcur) : ℝ) : ℂ)) := by
+      rw [← Complex.ofReal_sub]
+      exact (mul_sub A ((safe - prev : ℝ) : ℂ) ((rnext - rcur : ℝ) : ℂ)).symm
+    _ =
+      A * ((((safe - rnext) - (prev - rcur) : ℝ) : ℂ)) := by
+      rw [real_safe_endpoint_cell_error_scalar]
+    _ =
+      A * (((safe - rnext : ℝ) : ℂ)) -
+        A * (((prev - rcur : ℝ) : ℂ)) := by
+      rw [← Complex.ofReal_sub]
+      exact mul_sub A ((safe - rnext : ℝ) : ℂ) ((prev - rcur : ℝ) : ℂ)
+
+/-- Pointwise expansion of one endpoint-defect summation-by-parts term. -/
+theorem endpoint_defect_term_sub_mul
+    (g e : ℕ → ℂ)
+    (k : ℕ) :
+    (g k - g (k + 1)) * e k =
+      g k * e k - g (k + 1) * e k :=
+  sub_mul (g k) (g (k + 1)) (e k)
+
+/-- Sum expansion for endpoint-defect summation by parts. -/
+theorem endpoint_defect_sum_terms_eq_sub_sums
+    (m : ℕ)
+    (g e : ℕ → ℂ) :
+    (∑ k in Finset.range (m + 1), (g k - g (k + 1)) * e k) =
+      (∑ k in Finset.range (m + 1), g k * e k) -
+        ∑ k in Finset.range (m + 1), g (k + 1) * e k := by
+  calc
+    (∑ k in Finset.range (m + 1), (g k - g (k + 1)) * e k)
+        =
+      ∑ k in Finset.range (m + 1),
+        (g k * e k - g (k + 1) * e k) := by
+      exact
+        Finset.sum_congr rfl
+          (fun k _hk => endpoint_defect_term_sub_mul g e k)
+    _ =
+      (∑ k in Finset.range (m + 1), g k * e k) -
+        ∑ k in Finset.range (m + 1), g (k + 1) * e k :=
+      Finset.sum_sub_distrib
+
+/-- The shifted endpoint-defect sum over `m+1` terms splits off its final
+endpoint. -/
+theorem endpoint_defect_shifted_sum_range_succ
+    (m : ℕ)
+    (g e : ℕ → ℂ) :
+    (∑ k in Finset.range (m + 1), g (k + 1) * e k) =
+      (∑ k in Finset.range m, g (k + 1) * e k) +
+        g (m + 1) * e m :=
+  Finset.sum_range_succ (fun k => g (k + 1) * e k) m
+
+/-- Subtracting the shifted endpoint sum is the same as subtracting its
+finite part and then its final endpoint. -/
+theorem endpoint_defect_sub_shifted_sum
+    (m : ℕ)
+    (g e : ℕ → ℂ) :
+    (∑ k in Finset.range (m + 1), g k * e k) -
+        (∑ k in Finset.range m, g (k + 1) * e k) -
+        g (m + 1) * e m =
+      (∑ k in Finset.range (m + 1), g k * e k) -
+        ((∑ k in Finset.range m, g (k + 1) * e k) +
+          g (m + 1) * e m) :=
+  sub_sub
+    (∑ k in Finset.range (m + 1), g k * e k)
+    (∑ k in Finset.range m, g (k + 1) * e k)
+    (g (m + 1) * e m)
+
+/-- Finite summation by parts for the endpoint-defect sequence.  This is the
+pure algebraic form of the horizontal sample error telescope. -/
+theorem endpoint_defect_summation_by_parts_algebra
+    (m : ℕ)
+    (g e : ℕ → ℂ) :
+    (∑ k in Finset.range (m + 1), g k * e k) -
+        (∑ k in Finset.range m, g (k + 1) * e k) -
+        g (m + 1) * e m =
+      ∑ k in Finset.range (m + 1), (g k - g (k + 1)) * e k := by
+  calc
+    (∑ k in Finset.range (m + 1), g k * e k) -
+        (∑ k in Finset.range m, g (k + 1) * e k) -
+        g (m + 1) * e m
+        =
+      (∑ k in Finset.range (m + 1), g k * e k) -
+        ((∑ k in Finset.range m, g (k + 1) * e k) +
+          g (m + 1) * e m) :=
+      endpoint_defect_sub_shifted_sum m g e
+    _ =
+      (∑ k in Finset.range (m + 1), g k * e k) -
+        ∑ k in Finset.range (m + 1), g (k + 1) * e k := by
+      exact
+        congrArg
+          (fun z =>
+            (∑ k in Finset.range (m + 1), g k * e k) - z)
+          (endpoint_defect_shifted_sum_range_succ m g e).symm
+    _ =
+      ∑ k in Finset.range (m + 1), (g k - g (k + 1)) * e k :=
+      (endpoint_defect_sum_terms_eq_sub_sums m g e).symm
+
+/-- The top connector's `0 - safe` scalar is the negative of the corresponding
+endpoint-defect scalar. -/
+theorem top_connector_scalar_eq_neg_endpoint_defect_scalar
+    (A : ℂ)
+    (B : ℝ) :
+    A * (((0 - B : ℝ) : ℂ)) =
+      -A * (((B - 0 : ℝ) : ℂ)) := by
+  calc
+    A * (((0 - B : ℝ) : ℂ))
+        = A * (-(B : ℂ)) := by
+          rw [zero_sub, Complex.ofReal_neg]
+    _ = -(A * (B : ℂ)) := mul_neg A (B : ℂ)
+    _ = -A * (B : ℂ) := (neg_mul A (B : ℂ)).symm
+    _ = -A * (((B - 0 : ℝ) : ℂ)) := by
+          rw [sub_zero]
+
 /-- The right semicircle graph coordinate agrees with the cosine coordinate
 under the angle parametrization on `[-π/2, π/2]`. -/
 theorem Complex.rightSemicircleGraphRe_mul_sin_eq_mul_cos
@@ -701,7 +1361,7 @@ theorem Complex.rightSemicircleGraphRe_mul_sin_eq_mul_cos
     (hθ : θ ∈ [[-(Real.pi / 2), Real.pi / 2]]) :
     Complex.rightSemicircleGraphRe ρ (ρ * Real.sin θ) = ρ * Real.cos θ := by
   have hθIcc : θ ∈ Set.Icc (-(Real.pi / 2)) (Real.pi / 2) := by
-    simpa [Set.uIcc_of_le (by linarith [Real.pi_pos] : -(Real.pi / 2) ≤ Real.pi / 2)] using hθ
+    exact mem_rightSemicircleAngle_Icc_of_mem_uIcc hθ
   have hcos_nonneg : 0 ≤ Real.cos θ :=
     Real.cos_nonneg_of_mem_Icc hθIcc
   have hmul_nonneg : 0 ≤ ρ * Real.cos θ :=
@@ -709,12 +1369,7 @@ theorem Complex.rightSemicircleGraphRe_mul_sin_eq_mul_cos
   dsimp [Complex.rightSemicircleGraphRe]
   have hrad :
       ρ ^ 2 - (ρ * Real.sin θ) ^ 2 = (ρ * Real.cos θ) ^ 2 := by
-    calc
-      ρ ^ 2 - (ρ * Real.sin θ) ^ 2
-          = ρ ^ 2 * (1 - Real.sin θ ^ 2) := by ring
-      _ = ρ ^ 2 * Real.cos θ ^ 2 := by
-        rw [← Real.cos_sq]
-      _ = (ρ * Real.cos θ) ^ 2 := by ring
+    exact radius_sq_sub_radius_mul_sin_sq_eq_radius_mul_cos_sq ρ θ
   rw [hrad]
   exact Real.sqrt_sq hmul_nonneg
 
@@ -754,9 +1409,8 @@ theorem Complex.rightSemicircleGraphPoint_eq_angleGrid
   have hθ :
       Complex.rightSemicircleAngleGrid ρ m k ∈
         [[-(Real.pi / 2), Real.pi / 2]] := by
-    simpa [Set.uIcc_of_le
-      (by linarith [Real.pi_pos] : -(Real.pi / 2) ≤ Real.pi / 2)]
-      using Complex.rightSemicircleAngleGrid_mem_Icc hρ hk
+    exact rightSemicircleAngle_uIcc_eq_Icc.symm ▸
+      Complex.rightSemicircleAngleGrid_mem_Icc hρ hk
   rw [← hsin]
   exact Complex.rightSemicircleGraphPoint_eq_angle c hρ hθ
 
@@ -776,9 +1430,8 @@ theorem Complex.rightSemicircleGraphRe_eq_angleGrid_cos
   have hθ :
       Complex.rightSemicircleAngleGrid ρ m k ∈
         [[-(Real.pi / 2), Real.pi / 2]] := by
-    simpa [Set.uIcc_of_le
-      (by linarith [Real.pi_pos] : -(Real.pi / 2) ≤ Real.pi / 2)]
-      using Complex.rightSemicircleAngleGrid_mem_Icc hρ hk
+    exact rightSemicircleAngle_uIcc_eq_Icc.symm ▸
+      Complex.rightSemicircleAngleGrid_mem_Icc hρ hk
   rw [← hsin]
   exact Complex.rightSemicircleGraphRe_mul_sin_eq_mul_cos hρ.le hθ
 
@@ -817,15 +1470,9 @@ theorem Complex.rightSemicircleAnglePoint_mem_core
     c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ∈
       Complex.rightHalfRectangleDeletedDiskCoreDomain c ρ ρ := by
   have hθIcc : θ ∈ Set.Icc (-(Real.pi / 2)) (Real.pi / 2) := by
-    simpa [Set.uIcc_of_le (by linarith [Real.pi_pos] : -(Real.pi / 2) ≤ Real.pi / 2)] using hθ
+    exact mem_rightSemicircleAngle_Icc_of_mem_uIcc hθ
   have hy : ρ * Real.sin θ ∈ Set.Icc (-ρ) ρ := by
-    have hsin_lower : -1 ≤ Real.sin θ := Real.neg_one_le_sin θ
-    have hsin_upper : Real.sin θ ≤ 1 := Real.sin_le_one θ
-    have hleft : -ρ ≤ ρ * Real.sin θ := by
-      nlinarith [mul_le_mul_of_nonneg_left hsin_lower hρ.le]
-    have hright : ρ * Real.sin θ ≤ ρ := by
-      nlinarith [mul_le_mul_of_nonneg_left hsin_upper hρ.le]
-    exact ⟨hleft, hright⟩
+    exact radius_mul_sin_mem_height_Icc hρ.le
   have hgraph_mem :
       Complex.rightSemicircleGraphPoint c ρ (ρ * Real.sin θ) ∈
         Complex.rightHalfRectangleDeletedDiskCoreDomain c ρ ρ :=
@@ -868,10 +1515,7 @@ theorem Complex.continuousOn_rightSemicircleAngleProbe
     intro θ hθ
     exact
       Complex.rightSemicircleAnglePoint_mem_core c hρ
-        (by
-          simpa [Set.uIcc_of_le
-            (by linarith [Real.pi_pos] : -(Real.pi / 2) ≤ Real.pi / 2)]
-            using hθ)
+        (rightSemicircleAngle_uIcc_eq_Icc.symm ▸ hθ)
   exact hcont.comp_continuousOn hparam hmaps
 
 /-- The angle `dx` integrand is interval-integrable. -/
@@ -965,13 +1609,7 @@ theorem Complex.rightSemicircleGraphScalarIntegral_eq_angle_dy
     intro y hy
     rcases hy with ⟨θ, _hθ, rfl⟩
     dsimp [φ]
-    have hsin_lower : -1 ≤ Real.sin θ := Real.neg_one_le_sin θ
-    have hsin_upper : Real.sin θ ≤ 1 := Real.sin_le_one θ
-    have hleft : -ρ ≤ ρ * Real.sin θ := by
-      nlinarith [hρ.le, hsin_lower]
-    have hright : ρ * Real.sin θ ≤ ρ := by
-      nlinarith [hρ.le, hsin_upper]
-    exact ⟨hleft, hright⟩
+    exact radius_mul_sin_mem_height_Icc hρ.le
   have hsubst :
       (∫ θ : ℝ in a..b, (ρ * Real.cos θ) • (G (φ θ))) =
         ∫ y : ℝ in φ a..φ b, G y := by
@@ -983,12 +1621,10 @@ theorem Complex.rightSemicircleGraphScalarIntegral_eq_angle_dy
         hφ_deriv hφ_deriv_cont hG_image
   have hφa : φ a = -ρ := by
     dsimp [φ, a]
-    rw [Real.sin_neg, Real.sin_pi_div_two]
-    ring
+    exact radius_mul_sin_neg_pi_div_two ρ
   have hφb : φ b = ρ := by
     dsimp [φ, b]
-    rw [Real.sin_pi_div_two]
-    ring
+    exact radius_mul_sin_pi_div_two ρ
   calc
     (∫ y : ℝ in (-ρ)..ρ, G y) =
         ∫ y : ℝ in φ a..φ b, G y := by
@@ -1007,8 +1643,10 @@ theorem Complex.rightSemicircleGraphScalarIntegral_eq_angle_dy
             c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) :=
         Complex.rightSemicircleGraphPoint_eq_angle c hρ hθ
       rw [hpoint]
-      rw [Complex.real_smul]
-      ring
+      exact
+        complex_real_smul_eq_mul_right
+          (f (c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+          (ρ * Real.cos θ)
 
 /-- The vertical graph integral is the `I dy` component of the angle
 parametrization. -/
@@ -1066,8 +1704,9 @@ theorem Complex.rightSemicircleAngleIntegral_eq_angle_dx_add_angle_dy
     apply intervalIntegral.integral_congr
     intro θ _hθ
     dsimp [Fx, Fy]
-    rw [Complex.exp_mul_I]
-    ring
+    exact
+      rightSemicircleAngle_tangentFactor_decompose
+        (f (c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) ρ θ
   dsimp [Complex.rightSemicircleAngleIntegral]
   rw [hpoint]
   rw [intervalIntegral.integral_add hFx (hFy.const_mul Complex.I)]
@@ -1096,7 +1735,7 @@ theorem Complex.rightSemicircleGraphHorizontalIntegral_eq_angle_dx
       f c hρ hcont
   dsimp [Complex.rightSemicircleGraphHorizontalIntegral]
   rw [hangle, hvertical]
-  abel
+  exact horizontal_component_eq_of_sum_eq_add_vertical rfl
 
 /-- Uniform approximation of the circular graph by the exterior staircase
 safe real coordinate on each height cell. -/
@@ -1559,7 +2198,13 @@ theorem Complex.norm_sum_rightSemicircleStaircaseVertical_sub_graphVertical_le
             ∑ k in Finset.range (m + 1),
               |Complex.rightSemicircleStaircaseY ρ m (k + 1) -
                 Complex.rightSemicircleStaircaseY ρ m k| := by
-            rw [Finset.mul_sum]
+            exact
+              finset_sum_const_mul_eq_mul_sum
+                (Finset.range (m + 1))
+                η
+                (fun k =>
+                  |Complex.rightSemicircleStaircaseY ρ m (k + 1) -
+                    Complex.rightSemicircleStaircaseY ρ m k|)
       _ = η * (2 * ρ) := by
             rw [Complex.sum_rightSemicircleStaircase_cell_lengths hρ.le]
   have hstair :
@@ -1584,7 +2229,11 @@ theorem Complex.norm_sum_rightSemicircleStaircaseVertical_sub_graphVertical_le
         ((∑ k in Finset.range (m + 1), S k) -
           (∑ k in Finset.range (m + 1), G k))‖ := by
           rw [hstair, hgraph]
-          ring
+          exact
+            congrArg norm
+              (Complex.I_mul_sub_factor
+                (∑ k in Finset.range (m + 1), S k)
+                (∑ k in Finset.range (m + 1), G k))
     _ = ‖(∑ k in Finset.range (m + 1), S k) -
           (∑ k in Finset.range (m + 1), G k)‖ := by
           rw [norm_mul, Complex.normSq_apply, Complex.normSq_I]
@@ -1609,7 +2258,8 @@ theorem Complex.rightSemicircleStaircaseVerticalIntegral_tendsto_graphVertical
       (𝓝 (Complex.rightSemicircleGraphVerticalIntegral f c ρ)) := by
   rw [Metric.tendsto_atTop]
   intro ε hε
-  have htwoρ_pos : 0 < 2 * ρ := by positivity
+  have htwoρ_pos : 0 < 2 * ρ :=
+    real_two_mul_pos_of_pos hρ
   let η : ℝ := ε / (2 * ρ)
   have hη_pos : 0 < η := div_pos hε htwoρ_pos
   have hη_nonneg : 0 ≤ η := le_of_lt hη_pos
@@ -1633,7 +2283,7 @@ theorem Complex.rightSemicircleStaircaseVerticalIntegral_tendsto_graphVertical
       f c hρ hcont m hη_nonneg hm
   have hη_eq : η * (2 * ρ) = ε := by
     dsimp [η]
-    field_simp [ne_of_gt htwoρ_pos]
+    exact div_mul_cancel_of_pos_right htwoρ_pos
   exact lt_of_le_of_lt hbound (by rw [hη_eq])
 
 /-- Uniform approximation of the horizontal staircase integrand by its graph
@@ -1672,11 +2322,11 @@ theorem Complex.rightSemicircleHorizontalIntegrand_uniform_approx_sample
   let δ₀ : ℝ := δ / 2
   have hδ₀_pos : 0 < δ₀ := by
     dsimp [δ₀]
-    linarith
+    exact half_pos hδ
   have hδ₀_nonneg : 0 ≤ δ₀ := le_of_lt hδ₀_pos
   have hδ₀_lt : δ₀ < δ := by
     dsimp [δ₀]
-    linarith
+    exact half_lt_self hδ
   have hprev :
       ∀ᶠ m : ℕ in atTop,
         ∀ k ∈ Finset.range (m + 1),
@@ -1714,8 +2364,8 @@ theorem Complex.rightSemicircleHorizontalIntegrand_uniform_approx_sample
       exact Complex.staircase_lower_sample_mem_range hk
     have hy :
         Complex.rightSemicircleStaircaseY ρ m k ∈ Set.Icc (-ρ) ρ := by
-      simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using
-        Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m k hk_mem
+      exact Complex.mem_semicircle_height_Icc_of_mem_uIcc hρ.le
+        (Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m k hk_mem)
     have hzᵧ :
         zᵧ ∈ Complex.rightHalfRectangleDeletedDiskCoreDomain c ρ ρ := by
       dsimp [zᵧ]
@@ -1760,7 +2410,7 @@ theorem Complex.rightSemicircleHorizontalIntegrand_uniform_approx_sample
         Complex.rightSemicircleStaircaseTopConnector_subset_core
           c hρ m hx
     have hy : ρ ∈ Set.Icc (-ρ) ρ := by
-      exact ⟨by linarith [hρ.le], le_rfl⟩
+      exact Complex.radius_mem_semicircle_height_Icc hρ.le
     have hzᵧ :
         zᵧ ∈ Complex.rightHalfRectangleDeletedDiskCoreDomain c ρ ρ := by
       dsimp [zᵧ]
@@ -1807,7 +2457,7 @@ theorem Complex.sum_rightSemicircleStaircase_horizontal_connector_lengths_le
     cases m with
     | zero =>
         dsimp [j]
-        norm_num
+        exact one_div_two_nat_le_zero
     | succ m =>
         dsimp [j]
         exact Nat.div_le_self (m + 2) 2
@@ -1976,7 +2626,18 @@ theorem Complex.norm_sum_rightSemicircleStaircaseHorizontal_sub_sampleSum_le
         (∑ k in Finset.range (m + 1), E k) + Etop := by
     dsimp [Complex.rightSemicircleStaircaseHorizontalSampleSum, E, Etop]
     rw [Finset.sum_sub_distrib]
-    abel
+    exact
+      horizontal_top_sample_error_decompose
+        (∑ k in Finset.range (m + 1),
+          Complex.rightSemicircleStaircaseHorizontalIntegral f c ρ m k)
+        (Complex.rightSemicircleStaircaseTopConnectorIntegral f c ρ m)
+        (∑ k in Finset.range (m + 1),
+          f (Complex.rightSemicircleGraphPoint c ρ
+              (Complex.rightSemicircleStaircaseY ρ m k)) *
+            (((Complex.rightSemicircleStaircaseSafeRe ρ m k -
+               Complex.rightSemicircleStaircasePrevSafeRe ρ m k : ℝ) : ℂ)))
+        (f (Complex.rightSemicircleGraphPoint c ρ ρ) *
+          (((0 - Complex.rightSemicircleStaircaseSafeRe ρ m m : ℝ) : ℂ)))
   have hcell :
       ∀ k ∈ Finset.range (m + 1),
         ‖E k‖ ≤
@@ -2017,8 +2678,14 @@ theorem Complex.norm_sum_rightSemicircleStaircaseHorizontal_sub_sampleSum_le
               |Complex.rightSemicircleStaircaseSafeRe ρ m k -
                 Complex.rightSemicircleStaircasePrevSafeRe ρ m k|)
             + |0 - Complex.rightSemicircleStaircaseSafeRe ρ m m|) := by
-            rw [Finset.mul_sum]
-            ring
+            exact
+              finset_sum_const_mul_add_const_mul_eq_mul_sum_add
+                (Finset.range (m + 1))
+                η
+                (fun k =>
+                  |Complex.rightSemicircleStaircaseSafeRe ρ m k -
+                    Complex.rightSemicircleStaircasePrevSafeRe ρ m k|)
+                |0 - Complex.rightSemicircleStaircaseSafeRe ρ m m|
   have hvar :
       (∑ k in Finset.range (m + 1),
           |Complex.rightSemicircleStaircaseSafeRe ρ m k -
@@ -2050,7 +2717,8 @@ theorem Complex.rightSemicircleStaircaseHorizontalIntegral_sub_sampleSum_tendsto
       (𝓝 0) := by
   rw [Metric.tendsto_atTop]
   intro ε hε
-  have htwoρ_pos : 0 < 2 * ρ := by positivity
+  have htwoρ_pos : 0 < 2 * ρ :=
+    real_two_mul_pos_of_pos hρ
   let η : ℝ := ε / (2 * ρ)
   have hη_pos : 0 < η := div_pos hε htwoρ_pos
   have hη_nonneg : 0 ≤ η := le_of_lt hη_pos
@@ -2082,7 +2750,7 @@ theorem Complex.rightSemicircleStaircaseHorizontalIntegral_sub_sampleSum_tendsto
       f c hρ hcont m hη_nonneg hm
   have hη_eq : η * (2 * ρ) = ε := by
     dsimp [η]
-    field_simp [ne_of_gt htwoρ_pos]
+    exact div_mul_cancel_of_pos_right htwoρ_pos
   exact lt_of_le_of_lt hbound (by rw [hη_eq])
 
 /-- Finite owner estimate for the direct path-approximation theorem.
@@ -2158,7 +2826,10 @@ theorem Complex.norm_rightSemicircleStaircaseArcIntegral_sub_angleIntegral_le_pa
             Complex.rightSemicircleGraphVerticalIntegral f c ρ =
           Complex.rightSemicircleAngleIntegral f c ρ := by
       dsimp [Complex.rightSemicircleGraphHorizontalIntegral]
-      abel
+      exact
+        horizontal_add_vertical_eq_total
+          (Complex.rightSemicircleAngleIntegral f c ρ)
+          (Complex.rightSemicircleGraphVerticalIntegral f c ρ)
     exact htarget.symm
   have hdecomp :
       Complex.rightSemicirclePolygonalArcIntegral f c ρ m -
@@ -2175,7 +2846,16 @@ theorem Complex.norm_rightSemicircleStaircaseArcIntegral_sub_angleIntegral_le_pa
     dsimp [Complex.rightSemicirclePolygonalArcIntegral]
     rw [hangle]
     rw [Finset.sum_add_distrib]
-    abel
+    exact
+      polygonal_arc_error_decompose_additive
+        (∑ k in Finset.range (m + 1),
+          Complex.rightSemicircleStaircaseHorizontalIntegral f c ρ m k)
+        (Complex.rightSemicircleStaircaseTopConnectorIntegral f c ρ m)
+        (∑ k in Finset.range (m + 1),
+          Complex.rightSemicircleStaircaseVerticalIntegral f c ρ m k)
+        (Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m)
+        (Complex.rightSemicircleGraphHorizontalIntegral f c ρ)
+        (Complex.rightSemicircleGraphVerticalIntegral f c ρ)
   rw [hdecomp]
   calc
     ‖(((∑ k in Finset.range (m + 1),
@@ -2201,7 +2881,7 @@ theorem Complex.norm_rightSemicircleStaircaseArcIntegral_sub_angleIntegral_le_pa
     _ ≤ η * (2 * ρ) + η * (2 * ρ) + η * (2 * ρ) := by
             exact add_le_add (add_le_add hhorizontal_bound hquadrature) hvertical_bound
     _ ≤ η * (6 * ρ) := by
-            nlinarith [hη_nonneg, hρ.le]
+            exact three_two_radius_errors_le_six_radius_error hη_nonneg hρ.le
 
 /-- Endpoint defect between the exterior safe horizontal endpoint of a
 staircase cell and the right endpoint of the true circular graph over that
@@ -2235,7 +2915,7 @@ theorem Complex.rightSemicircleStaircaseSafeEndpointDefect_eq_zero_of_lt_midpoin
       hρ m k hy_succ_nonpos
   dsimp [Complex.rightSemicircleStaircaseSafeEndpointDefect]
   rw [hsafe]
-  ring
+  exact sub_self
 
 /-- Every individual endpoint defect is bounded by the radius. -/
 theorem Complex.abs_rightSemicircleStaircaseSafeEndpointDefect_le_radius
@@ -2348,14 +3028,10 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_suffix_le_rad
       (Complex.rightSemicircleStaircaseY ρ m k)
   have hjm : j ≤ m := by
     dsimp [j]
-    cases m with
-    | zero =>
-        norm_num
-    | succ n =>
-        exact (Nat.div_le_iff_le_mul_add_pred Nat.two_pos).mpr (by omega)
+    exact nat_staircase_midpoint_le m
   have hend_index : start + (m - j) = m + 1 := by
     dsimp [start]
-    omega
+    exact nat_succ_add_sub_eq_succ hjm
   have hterm :
       ∀ t ∈ Finset.range (m - j),
         |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m (start + t)| =
@@ -2363,7 +3039,7 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_suffix_le_rad
     intro t _ht
     have hj_lt_index : j < start + t := by
       dsimp [start]
-      omega
+      exact nat_lt_succ_add j t
     have hdrop :
         |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m (start + t)| =
           r (start + t) - r ((start + t) + 1) := by
@@ -2393,7 +3069,7 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_suffix_le_rad
           r ((start + t) + 1) ≤ r (start + t) :=
         Complex.rightSemicircleGraphRe_antitone_nonneg ρ hy_nonneg hy_le
       rw [abs_of_nonpos (sub_nonpos.mpr hanti)]
-      ring
+      exact neg_sub (r ((start + t) + 1)) (r (start + t))
     rw [hdrop, hdrop_abs]
   have hsum_eq :
       (∑ t in Finset.range (m - j),
@@ -2408,7 +3084,7 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_suffix_le_rad
     intro t _ht
     have hj_lt_index : j < start + t := by
       dsimp [start]
-      omega
+      exact nat_lt_succ_add j t
     have hindex_pos : 0 < start + t :=
       lt_of_le_of_lt (Nat.zero_le j) hj_lt_index
     have hmid_le_pred : j ≤ start + t - 1 :=
@@ -2457,7 +3133,8 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_suffix_le_rad
     _ = r start - r (start + (m - j)) := htel
     _ ≤ ρ := by
       rw [hrend]
-      linarith
+      rw [sub_zero]
+      exact hrstart_le
 
 /-- Graph probe on the uniform staircase height grid. -/
 noncomputable def Complex.rightSemicircleGraphProbeGrid
@@ -2530,7 +3207,13 @@ theorem Complex.rightSemicircleStaircaseHorizontalSampleSum_sub_graphHorizontalS
                 r k : ℝ) : ℂ)) := by
     intro k _hk
     dsimp [e, Complex.rightSemicircleStaircaseSafeEndpointDefect]
-    ring
+    exact
+      safe_endpoint_cell_error_algebra
+        (g k)
+        (Complex.rightSemicircleStaircaseSafeRe ρ m k)
+        (Complex.rightSemicircleStaircasePrevSafeRe ρ m k)
+        (r (k + 1))
+        (r k)
   have hsum_shift :
       (∑ k in Finset.range (m + 1),
         g k *
@@ -2563,11 +3246,14 @@ theorem Complex.rightSemicircleStaircaseHorizontalSampleSum_sub_graphHorizontalS
         Complex.rightSemicircleGraphRe_top]
     dsimp [g, e, Complex.rightSemicircleStaircaseSafeEndpointDefect]
     rw [hrtop]
-    ring
+    exact
+      top_connector_scalar_eq_neg_endpoint_defect_scalar
+        (f (Complex.rightSemicircleGraphPoint c ρ
+          (Complex.rightSemicircleStaircaseY ρ m (m + 1))))
+        (Complex.rightSemicircleStaircaseSafeRe ρ m m)
   dsimp [Complex.rightSemicircleStaircaseHorizontalSampleSum,
     Complex.rightSemicircleGraphHorizontalSampleSum,
     Complex.rightSemicircleGraphProbeGrid, g, r] at hcell hsum_shift htop ⊢
-  rw [Finset.sum_sub_distrib]
   calc
     (∑ k in Finset.range (m + 1),
         f (Complex.rightSemicircleGraphPoint c ρ
@@ -2597,7 +3283,23 @@ theorem Complex.rightSemicircleStaircaseHorizontalSampleSum_sub_graphHorizontalS
                 (Complex.rightSemicircleStaircaseY ρ m k) : ℝ) : ℂ)))) +
         f (Complex.rightSemicircleGraphPoint c ρ ρ) *
           (((0 - Complex.rightSemicircleStaircaseSafeRe ρ m m : ℝ) : ℂ)) := by
-          abel
+          exact
+            finset_sum_add_tail_sub_sum_eq_sum_sub_add_tail
+              (Finset.range (m + 1))
+              (fun k =>
+                f (Complex.rightSemicircleGraphPoint c ρ
+                    (Complex.rightSemicircleStaircaseY ρ m k)) *
+                  (((Complex.rightSemicircleStaircaseSafeRe ρ m k -
+                      Complex.rightSemicircleStaircasePrevSafeRe ρ m k : ℝ) : ℂ)))
+              (fun k =>
+                f (Complex.rightSemicircleGraphPoint c ρ
+                    (Complex.rightSemicircleStaircaseY ρ m k)) *
+                  (((Complex.rightSemicircleGraphRe ρ
+                        (Complex.rightSemicircleStaircaseY ρ m (k + 1)) -
+                      Complex.rightSemicircleGraphRe ρ
+                        (Complex.rightSemicircleStaircaseY ρ m k) : ℝ) : ℂ)))
+              (f (Complex.rightSemicircleGraphPoint c ρ ρ) *
+                (((0 - Complex.rightSemicircleStaircaseSafeRe ρ m m : ℝ) : ℂ)))
     _ =
       (∑ k in Finset.range (m + 1),
         f (Complex.rightSemicircleGraphPoint c ρ
@@ -2629,8 +3331,14 @@ theorem Complex.rightSemicircleStaircaseHorizontalSampleSum_sub_graphHorizontalS
             ((Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k : ℝ) : ℂ) := by
           dsimp [Complex.rightSemicircleGraphProbeGrid]
           rw [Finset.sum_sub_distrib, hsum_shift]
-          rw [Finset.sum_range_succ]
-          abel
+          exact
+            endpoint_defect_summation_by_parts_algebra
+              m
+              (fun k =>
+                f (Complex.rightSemicircleGraphPoint c ρ
+                  (Complex.rightSemicircleStaircaseY ρ m k)))
+              (fun k =>
+                ((Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k : ℝ) : ℂ))
 
 /-- The total safe endpoint defect is uniformly bounded by twice the radius.
 
@@ -2649,13 +3357,12 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_le_two_radius
     |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k|
   have hjm : j ≤ m := by
     dsimp [j]
-    cases m with
-    | zero =>
-        norm_num
-    | succ n =>
-        exact (Nat.div_le_iff_le_mul_add_pred Nat.two_pos).mpr (by omega)
+    exact nat_staircase_midpoint_le m
   have hlen : j + (1 + (m - j)) = m + 1 := by
-    omega
+    calc
+      j + (1 + (m - j)) = j + 1 + (m - j) := by
+        exact (Nat.add_assoc j 1 (m - j)).symm
+      _ = m + 1 := nat_succ_add_sub_eq_succ hjm
   have hsplit :
       (∑ k in Finset.range (m + 1), e k) =
         (∑ k in Finset.range j, e k) + e j +
@@ -2672,7 +3379,7 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_le_two_radius
       _ =
         (∑ k in Finset.range j, e k) +
           (e j + ∑ t in Finset.range (m - j), e (j + 1 + t)) := by
-          rw [show 1 + (m - j) = (m - j) + 1 by omega]
+          rw [nat_one_add_eq_add_one (m - j)]
           rw [Finset.sum_range_succ']
           apply congrArg₂ HAdd.hAdd rfl
           apply congrArg₂ HAdd.hAdd
@@ -2680,12 +3387,16 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_le_two_radius
           · apply Finset.sum_congr rfl
             intro t _ht
             have hidx : j + (t + 1) = j + 1 + t := by
-              omega
+              exact nat_midpoint_suffix_index_assoc j t
             rw [hidx]
       _ =
         (∑ k in Finset.range j, e k) + e j +
           ∑ t in Finset.range (m - j), e (j + 1 + t) := by
-          ring
+          exact
+            (add_assoc
+              (∑ k in Finset.range j, e k)
+              (e j)
+              (∑ t in Finset.range (m - j), e (j + 1 + t))).symm
   have hlower :
       (∑ k in Finset.range j, e k) = 0 := by
     apply Finset.sum_eq_zero
@@ -2722,7 +3433,8 @@ theorem Complex.sum_abs_rightSemicircleStaircaseSafeEndpointDefect_le_two_radius
         ∑ t in Finset.range (m - j), e (j + 1 + t) := hsplit
     _ ≤ 2 * ρ := by
       rw [hlower]
-      linarith
+      rw [zero_add]
+      exact add_le_two_mul_of_each_le hcross hsuffix
 
 /-- Adjacent graph probes on the staircase height grid become uniformly
 close. -/
@@ -2774,12 +3486,12 @@ theorem Complex.rightSemicircleGraphProbeGrid_adjacent_uniform_tendsto_zero
         exact Complex.staircase_upper_sample_mem_range hk
       have hy0 :
           Complex.rightSemicircleStaircaseY ρ m k ∈ Set.Icc (-ρ) ρ := by
-        simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using
-          Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m k hk0
+        exact Complex.mem_semicircle_height_Icc_of_mem_uIcc hρ.le
+          (Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m k hk0)
       have hy1 :
           Complex.rightSemicircleStaircaseY ρ m (k + 1) ∈ Set.Icc (-ρ) ρ := by
-        simpa [Set.uIcc_of_le (by linarith [hρ.le] : -ρ ≤ ρ)] using
-          Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m (k + 1) hk1
+        exact Complex.mem_semicircle_height_Icc_of_mem_uIcc hρ.le
+          (Complex.rightSemicircleStaircaseY_mem_Icc hρ.le m (k + 1) hk1)
       have hdist :
           dist
             (Complex.rightSemicircleStaircaseY ρ m k)
@@ -2851,7 +3563,15 @@ theorem Complex.norm_rightSemicircleStaircaseHorizontalSampleSum_sub_graphHorizo
               Complex.rightSemicircleGraphProbeGrid f c ρ m (j + 1)‖)) *
         ∑ k in Finset.range (m + 1),
           |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k| := by
-          rw [Finset.mul_sum]
+          exact
+            finset_sum_const_mul_eq_mul_sum
+              (Finset.range (m + 1))
+              (Finset.sup' (Finset.range (m + 1)) ⟨0, by simp⟩
+                (fun j =>
+                  ‖Complex.rightSemicircleGraphProbeGrid f c ρ m j -
+                    Complex.rightSemicircleGraphProbeGrid f c ρ m (j + 1)‖))
+              (fun k =>
+                |Complex.rightSemicircleStaircaseSafeEndpointDefect ρ m k|)
     _ ≤
       (Finset.sup' (Finset.range (m + 1)) ⟨0, by simp⟩
           (fun j =>
@@ -3001,7 +3721,14 @@ theorem Complex.norm_rightSemicircleAngleChordSum_sub_angleIntegral_le
       have hreal :=
         Complex.rightSemicircleAngleGrid_cos_chord_eq_integral_dx
           (ρ := ρ) m k
-      exact_mod_cast hreal
+      calc
+        (((ρ * Real.cos (a (k + 1)) -
+           ρ * Real.cos (a k) : ℝ) : ℂ)) =
+            ((∫ θ : ℝ in a k..a (k + 1), -ρ * Real.sin θ : ℝ) : ℂ) := by
+          exact congrArg (fun x : ℝ => (x : ℂ)) hreal
+        _ =
+            ∫ θ : ℝ in a k..a (k + 1), ((-ρ * Real.sin θ : ℝ) : ℂ) := by
+          exact (RCLike.intervalIntegral_ofReal (𝕜 := ℂ)).symm
     calc
       F (a k) *
             (((ρ * Real.cos (a (k + 1)) -
@@ -3022,7 +3749,11 @@ theorem Complex.norm_rightSemicircleAngleChordSum_sub_angleIntegral_le
             apply intervalIntegral.integral_congr
             intro θ _hθ
             dsimp [G]
-            ring
+            exact
+              rightSemicircleAngle_dx_cell_integrand_error_factor
+                (F (a k))
+                (F θ)
+                (D θ)
   have hcell_bound :
       ∀ k ∈ Finset.range (m + 1),
         ‖F (a k) *
@@ -3048,7 +3779,7 @@ theorem Complex.norm_rightSemicircleAngleChordSum_sub_angleIntegral_le
           | -ρ * Real.sin θ | = ρ * |Real.sin θ| := by
             rw [abs_mul, abs_neg, abs_of_nonneg hρ.le]
           _ ≤ ρ * 1 := mul_le_mul_of_nonneg_left (Real.abs_sin_le_one θ) hρ.le
-          _ = ρ := by ring
+          _ = ρ := mul_one ρ
       calc
         ‖(F (a k) - F θ) * D θ‖
             = ‖F (a k) - F θ‖ * ‖D θ‖ := norm_mul _ _
@@ -3085,7 +3816,7 @@ theorem Complex.norm_rightSemicircleAngleChordSum_sub_angleIntegral_le
       simp_rw [habs]
       exact Finset.sum_range_sub' a (m + 1)
     rw [htel, hA, hB]
-    ring
+    exact pi_div_two_sub_neg_pi_div_two
   dsimp [a, D, G] at hdecomp ⊢
   rw [hdecomp]
   calc
@@ -3119,13 +3850,19 @@ theorem Complex.norm_rightSemicircleAngleChordSum_sub_angleIntegral_le
             ∑ k in Finset.range (m + 1),
               |Complex.rightSemicircleAngleGrid ρ m (k + 1) -
                 Complex.rightSemicircleAngleGrid ρ m k| := by
-          rw [Finset.mul_sum]
-          ring
+          exact
+            finset_sum_two_const_mul_eq_mul_mul_sum
+              (Finset.range (m + 1))
+              η
+              ρ
+              (fun k =>
+                |Complex.rightSemicircleAngleGrid ρ m (k + 1) -
+                  Complex.rightSemicircleAngleGrid ρ m k|)
     _ = η * ρ * Real.pi := by
           dsimp [a] at hsum_lengths
           rw [hsum_lengths]
     _ = η * (Real.pi * ρ) := by
-          ring
+          exact eta_mul_radius_mul_pi_eq_eta_mul_pi_mul_radius η ρ
 
 /-- Angle-grid chord sums converge to the `dx` integral of the right
 semicircle. -/
@@ -3254,7 +3991,7 @@ theorem Complex.rightSemicircleAngleChordSum_tendsto_angle_dx
       F hρ hF m hη_nonneg happrox
   have hη_eq : η * (Real.pi * ρ) = ε := by
     dsimp [η]
-    field_simp [ne_of_gt hπρ_pos]
+    exact div_mul_cancel_of_pos_right hπρ_pos
   exact lt_of_le_of_lt hbound (by rw [hη_eq])
 
 /-- Exact graph-coordinate finite-difference samples converge to the horizontal
@@ -3364,10 +4101,13 @@ theorem Complex.rightSemicircleStaircaseHorizontalSampleSum_tendsto_graphHorizon
         Complex.rightSemicircleGraphHorizontalSampleSum f c ρ m +
           (Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m -
             Complex.rightSemicircleGraphHorizontalSampleSum f c ρ m)) =
-        (fun m : ℕ =>
+    (fun m : ℕ =>
           Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m) := by
     funext m
-    abel
+    exact
+      add_sub_right_cancel'
+        (Complex.rightSemicircleGraphHorizontalSampleSum f c ρ m)
+        (Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m)
   rw [hrewrite] at hsum
   simpa using hsum
 
@@ -3398,11 +4138,13 @@ theorem Complex.rightSemicircleStaircaseArcIntegral_tendsto_by_pathApproximation
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))) := by
   rw [Metric.tendsto_atTop]
   intro ε hε
-  have hsixρ_pos : 0 < 6 * ρ := by positivity
+  have hsixρ_pos : 0 < 6 * ρ :=
+    real_six_mul_pos_of_pos hρ
   let η : ℝ := ε / (6 * ρ)
   have hη_pos : 0 < η := div_pos hε hsixρ_pos
   have hη_nonneg : 0 ≤ η := le_of_lt hη_pos
-  have htwoρ_pos : 0 < 2 * ρ := by positivity
+  have htwoρ_pos : 0 < 2 * ρ :=
+    real_two_mul_pos_of_pos hρ
   have hquad_radius_pos : 0 < η * (2 * ρ) :=
     mul_pos hη_pos htwoρ_pos
   have hhorizontal_event :
@@ -3458,7 +4200,7 @@ theorem Complex.rightSemicircleStaircaseArcIntegral_tendsto_by_pathApproximation
       f c hρ hcont m hη_nonneg hhorizontal hvertical hquadrature
   have hη_eq : η * (6 * ρ) = ε := by
     dsimp [η]
-    field_simp [ne_of_gt hsixρ_pos]
+    exact div_mul_cancel_of_pos_right hsixρ_pos
   exact lt_of_le_of_lt hbound (by rw [hη_eq])
 
 /-- The graph finite-difference horizontal samples converge to the nonzero
@@ -3573,12 +4315,17 @@ theorem Complex.rightSemicircleStaircaseHorizontalIntegral_tendsto_graphHorizont
             Complex.rightSemicircleStaircaseHorizontalIntegral f c ρ m k) +
             Complex.rightSemicircleStaircaseTopConnectorIntegral f c ρ m) -
             Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m)) =
-        fun m : ℕ =>
+    fun m : ℕ =>
           (∑ k in Finset.range (m + 1),
             Complex.rightSemicircleStaircaseHorizontalIntegral f c ρ m k) +
             Complex.rightSemicircleStaircaseTopConnectorIntegral f c ρ m := by
     funext m
-    abel
+    exact
+      add_sub_right_cancel'
+        (Complex.rightSemicircleStaircaseHorizontalSampleSum f c ρ m)
+        ((∑ k in Finset.range (m + 1),
+            Complex.rightSemicircleStaircaseHorizontalIntegral f c ρ m k) +
+          Complex.rightSemicircleStaircaseTopConnectorIntegral f c ρ m)
   rw [hpoint] at hsum
   simpa using hsum
 
@@ -3697,6 +4444,53 @@ theorem Complex.rightHalfRectangleDeletedDiskSemicircularCoreBoundary_eq_zero
       (Complex.tendsto_rightHalfRectangleDeletedDiskPolygonalCoreBoundary
         f c hρ hcont)
 
+/-- The inner right edge of the radius-`ρ` core lies on the larger right edge
+interval of radius `a`. -/
+theorem Complex.rightHalfCore_innerReEndpoint_mem_outerRe_uIcc
+    (c : ℂ)
+    {ρ a : ℝ}
+    (hρa : ρ ≤ a)
+    (hρ : 0 < ρ) :
+    c.re + ρ ∈ [[c.re, c.re + a]] := by
+  have ha : 0 ≤ a := le_trans hρ.le hρa
+  have horder : c.re ≤ c.re + a := by
+    exact le_add_of_nonneg_right ha
+  have hleft : c.re ≤ c.re + ρ := by
+    exact le_add_of_nonneg_right hρ.le
+  have hright : c.re + ρ ≤ c.re + a := by
+    exact add_le_add_left hρa c.re
+  simpa [Set.uIcc_of_le horder] using And.intro hleft hright
+
+/-- The larger right endpoint belongs to its own right-edge interval. -/
+theorem Complex.rightHalfCore_outerReEndpoint_mem_outerRe_uIcc
+    (c : ℂ)
+    {ρ a : ℝ}
+    (hρa : ρ ≤ a)
+    (hρ : 0 < ρ) :
+    c.re + a ∈ [[c.re, c.re + a]] := by
+  have ha : 0 ≤ a := le_trans hρ.le hρa
+  exact right_endpoint_mem_uIcc_of_le (le_add_of_nonneg_right ha)
+
+/-- The smaller core real interval is contained in the larger real interval. -/
+theorem Complex.rightHalfCore_re_uIcc_subset_outerRe_uIcc
+    (c : ℂ)
+    {ρ a : ℝ}
+    (hρa : ρ ≤ a)
+    (hρ : 0 < ρ) :
+    [[c.re, c.re + ρ]] ⊆ [[c.re, c.re + a]] := by
+  intro x hx
+  have hcore_order : c.re ≤ c.re + ρ := by
+    exact le_add_of_nonneg_right hρ.le
+  have hxIcc : x ∈ Set.Icc c.re (c.re + ρ) := by
+    simpa [Set.uIcc_of_le hcore_order] using hx
+  have hleft : c.re ≤ x := hxIcc.1
+  have hright : x ≤ c.re + a := by
+    exact le_trans hxIcc.2 (add_le_add_left hρa c.re)
+  have ha : 0 ≤ a := le_trans hρ.le hρa
+  have houter_order : c.re ≤ c.re + a := by
+    exact le_add_of_nonneg_right ha
+  simpa [Set.uIcc_of_le houter_order] using And.intro hleft hright
+
 /-- Rectangle/annulus exhaustion for the right deleted half-rectangle collar. -/
 theorem Complex.rightHalfRectangleDeletedDiskCoreBoundary_eq_zero_of_rectangleAnnulusExhaustion
     (f : ℂ → ℂ)
@@ -3718,16 +4512,8 @@ theorem Complex.rightHalfRectangleDeletedDiskCoreBoundary_eq_zero_of_rectangleAn
     intro z hz
     rcases hz with ⟨hbox, hnot_ball⟩
     rcases hbox with ⟨hre, him⟩
-    have hbig_order : c.re ≤ c.re + a := by
-      have ha : 0 ≤ a := le_trans hρ.le hρa
-      linarith
-    have hcore_order : c.re ≤ c.re + ρ := by linarith [hρ.le]
-    have hreIcc : z.re ∈ Set.Icc c.re (c.re + ρ) := by
-      simpa [Set.uIcc_of_le hcore_order] using hre
     have hre_big : z.re ∈ [[c.re, c.re + a]] := by
-      have hleft : c.re ≤ z.re := hreIcc.1
-      have hright : z.re ≤ c.re + a := by linarith [hreIcc.2, hρa]
-      simpa [Set.uIcc_of_le hbig_order] using And.intro hleft hright
+      exact Complex.rightHalfCore_re_uIcc_subset_outerRe_uIcc c hρa hρ hre
     exact ⟨⟨hre_big, him⟩, hnot_ball⟩
   have hcont_core :
       ContinuousOn f (Complex.rightHalfRectangleDeletedDiskCoreDomain c ρ ρ) :=
@@ -3754,26 +4540,14 @@ theorem Complex.rightHalfRectangleDeletedDiskCoreBoundary_eq_zero_of_rectangleAn
         volume c.re (c.re + ρ) :=
     Complex.intervalIntegrable_of_mem_uIcc hbottom_full
       left_mem_uIcc
-      (by
-        have horder : c.re ≤ c.re + a := by
-          have ha : 0 ≤ a := le_trans hρ.le hρa
-          linarith
-        have hleft : c.re ≤ c.re + ρ := by linarith [hρ.le]
-        have hright : c.re + ρ ≤ c.re + a := by linarith [hρa]
-        simpa [Set.uIcc_of_le horder] using And.intro hleft hright)
+      (Complex.rightHalfCore_innerReEndpoint_mem_outerRe_uIcc c hρa hρ)
   have hbottom₂ :
       IntervalIntegrable
         (fun x : ℝ =>
           f (((x : ℝ) : ℂ) + Complex.I * ((c.im - ρ : ℝ) : ℂ)))
         volume (c.re + ρ) (c.re + a) :=
     Complex.intervalIntegrable_of_mem_uIcc hbottom_full
-      (by
-        have horder : c.re ≤ c.re + a := by
-          have ha : 0 ≤ a := le_trans hρ.le hρa
-          linarith
-        have hleft : c.re ≤ c.re + ρ := by linarith [hρ.le]
-        have hright : c.re + ρ ≤ c.re + a := by linarith [hρa]
-        simpa [Set.uIcc_of_le horder] using And.intro hleft hright)
+      (Complex.rightHalfCore_innerReEndpoint_mem_outerRe_uIcc c hρa hρ)
       right_mem_uIcc
   have htop₁ :
       IntervalIntegrable
@@ -3782,26 +4556,14 @@ theorem Complex.rightHalfRectangleDeletedDiskCoreBoundary_eq_zero_of_rectangleAn
         volume c.re (c.re + ρ) :=
     Complex.intervalIntegrable_of_mem_uIcc htop_full
       left_mem_uIcc
-      (by
-        have horder : c.re ≤ c.re + a := by
-          have ha : 0 ≤ a := le_trans hρ.le hρa
-          linarith
-        have hleft : c.re ≤ c.re + ρ := by linarith [hρ.le]
-        have hright : c.re + ρ ≤ c.re + a := by linarith [hρa]
-        simpa [Set.uIcc_of_le horder] using And.intro hleft hright)
+      (Complex.rightHalfCore_innerReEndpoint_mem_outerRe_uIcc c hρa hρ)
   have htop₂ :
       IntervalIntegrable
         (fun x : ℝ =>
           f (((x : ℝ) : ℂ) + Complex.I * ((c.im + ρ : ℝ) : ℂ)))
         volume (c.re + ρ) (c.re + a) :=
     Complex.intervalIntegrable_of_mem_uIcc htop_full
-      (by
-        have horder : c.re ≤ c.re + a := by
-          have ha : 0 ≤ a := le_trans hρ.le hρa
-          linarith
-        have hleft : c.re ≤ c.re + ρ := by linarith [hρ.le]
-        have hright : c.re + ρ ≤ c.re + a := by linarith [hρa]
-        simpa [Set.uIcc_of_le horder] using And.intro hleft hright)
+      (Complex.rightHalfCore_innerReEndpoint_mem_outerRe_uIcc c hρa hρ)
       right_mem_uIcc
   calc
     Complex.rightHalfRectangleDeletedDiskCoreBoundaryIntegral f c a ρ =

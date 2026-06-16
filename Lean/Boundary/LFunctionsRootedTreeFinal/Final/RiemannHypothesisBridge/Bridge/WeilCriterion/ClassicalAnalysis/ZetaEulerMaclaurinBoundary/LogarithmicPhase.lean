@@ -1,5 +1,8 @@
-import LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryLine
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.ZetaEulerMaclaurinBoundary.BoundaryLine
+import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Complex.Angle
+import Mathlib.Data.Complex.ExponentialBounds
+import Mathlib.Data.Rat.Cast.Order
 
 /-!
 # Logarithmic phase estimates
@@ -13,6 +16,1077 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+theorem real_zero_le_four_for_logarithmicPhase : (0 : ℝ) ≤ 4 :=
+  le_of_lt zero_lt_four
+
+theorem real_two_le_four_for_logarithmicPhase : (2 : ℝ) ≤ 4 :=
+  calc
+    (2 : ℝ) = 2 + 0 := (add_zero 2).symm
+    _ ≤ 2 + 2 := add_le_add_left zero_le_two 2
+    _ = 4 := two_add_two_eq_four
+
+theorem real_one_le_four_mul_one_for_logarithmicPhase : (1 : ℝ) ≤ 4 * 1 := by
+  calc
+    (1 : ℝ) ≤ 4 := le_trans one_le_two real_two_le_four_for_logarithmicPhase
+    _ = 4 * 1 := (mul_one 4).symm
+
+theorem real_div_two_pos_of_pos_for_logarithmicPhase {lam : ℝ}
+    (hlam_pos : 0 < lam) :
+    0 < lam / 2 :=
+  div_pos hlam_pos zero_lt_two
+
+theorem real_div_two_le_of_le_mul_two_for_logarithmicPhase {lam x : ℝ}
+    (hlam_pos : 0 < lam)
+    (hden : lam ≤ x * 2) :
+    lam / 2 ≤ x :=
+  (div_le_iff₀' zero_lt_two).mpr
+    (Eq.subst (motive := fun r : ℝ => lam ≤ r) (mul_comm x 2) hden)
+
+theorem real_inv_div_two_eq_two_mul_inv_for_logarithmicPhase {lam : ℝ} :
+    (lam / 2)⁻¹ = 2 * lam⁻¹ := by
+  calc
+    (lam / 2)⁻¹ = 2 / lam := inv_div lam 2
+    _ = 2 * lam⁻¹ := div_eq_mul_inv 2 lam
+
+theorem real_pi_div_two_le_two_for_logarithmicPhase : Real.pi / 2 ≤ (2 : ℝ) := by
+  exact (div_le_iff₀' zero_lt_two).mpr
+    (by
+      calc
+        Real.pi ≤ (4 : ℝ) :=
+          Real.pi_le_four
+        _ = 2 * 2 := by
+          exact ((two_mul (2 : ℝ)).trans two_add_two_eq_four).symm)
+
+theorem real_four_eq_two_sq_for_logarithmicPhase : (4 : ℝ) = (2 : ℝ) ^ 2 := by
+  calc
+    (4 : ℝ) = 2 * 2 := ((two_mul (2 : ℝ)).trans two_add_two_eq_four).symm
+    _ = (2 : ℝ) ^ 2 := (pow_two (2 : ℝ)).symm
+
+theorem real_exp_two_eq_exp_nat_two_mul_one_for_logarithmicPhase :
+    Real.exp (2 : ℝ) = Real.exp ((2 : ℕ) * (1 : ℝ)) :=
+  congrArg Real.exp (mul_one (2 : ℝ)).symm
+
+theorem real_decimal_exp_upper_lt_four_for_logarithmicPhase :
+    (2.7182818286 : ℝ) < 4 := by
+  have hq : (OfScientific.ofScientific 27182818286 true 10 : ℚ) < (4 : ℚ) := by
+    native_decide
+  exact Eq.subst
+    (motive := fun x : ℝ => x < 4)
+    (Rat.cast_ofScientific (K := ℝ) 27182818286 true 10)
+    (Rat.cast_lt.mpr hq)
+
+theorem real_two_lt_decimal_exp_lower_for_logarithmicPhase :
+    (2 : ℝ) < 2.7182818283 := by
+  have hq : (2 : ℚ) < (OfScientific.ofScientific 27182818283 true 10 : ℚ) := by
+    native_decide
+  exact Eq.subst
+    (motive := fun x : ℝ => (2 : ℝ) < x)
+    (Rat.cast_ofScientific (K := ℝ) 27182818283 true 10)
+    (Rat.cast_lt.mpr hq)
+
+theorem real_decimal_exp_upper_sq_lt_eight_for_logarithmicPhase :
+    (2.7182818286 : ℝ) ^ 2 < 8 := by
+  let q : ℚ := OfScientific.ofScientific 27182818286 true 10
+  have hq : q ^ 2 < (8 : ℚ) := by
+    native_decide
+  have hcast : (OfScientific.ofScientific 27182818286 true 10 : ℝ) = (q : ℝ) := by
+    exact (Rat.cast_ofScientific (K := ℝ) 27182818286 true 10).symm
+  have hsq_cast : (2.7182818286 : ℝ) ^ 2 = ((q ^ 2 : ℚ) : ℝ) := by
+    calc
+      (2.7182818286 : ℝ) ^ 2 =
+          (OfScientific.ofScientific 27182818286 true 10 : ℝ) ^ 2 := by
+        rfl
+      _ = (q : ℝ) ^ 2 := by
+        exact congrArg (fun x : ℝ => x ^ 2) hcast
+      _ = (q : ℝ) * (q : ℝ) := pow_two (q : ℝ)
+      _ = ((q * q : ℚ) : ℝ) := (Rat.cast_mul q q).symm
+      _ = ((q ^ 2 : ℚ) : ℝ) := by
+        exact congrArg (fun r : ℚ => (r : ℝ)) (pow_two q).symm
+  exact Eq.subst
+    (motive := fun x : ℝ => x < 8)
+    hsq_cast.symm
+    (Rat.cast_lt.mpr hq)
+
+theorem real_zero_lt_eight_for_logarithmicPhase : (0 : ℝ) < 8 := by
+  exact lt_trans zero_lt_four
+    (by
+      calc
+        (4 : ℝ) = 4 + 0 := (add_zero 4).symm
+        _ < 4 + 4 := add_lt_add_left zero_lt_four 4
+        _ = 8 := by
+          exact (Nat.cast_add 4 4).symm.trans
+            (congrArg (fun n : ℕ => (n : ℝ))
+              (show (4 : ℕ) + 4 = 8 by native_decide)))
+
+theorem real_eight_eq_two_pow_three_for_logarithmicPhase :
+    (8 : ℝ) = (2 : ℝ) ^ 3 := by
+  calc
+    (8 : ℝ) = (((8 : ℕ) : ℝ)) := rfl
+    _ = (((2 : ℕ) ^ 3 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ))
+        (show (8 : ℕ) = 2 ^ 3 by native_decide)
+    _ = (2 : ℝ) ^ 3 :=
+      Nat.cast_pow (α := ℝ) 2 3
+
+theorem real_zero_lt_twenty_seven_for_logarithmicPhase : (0 : ℝ) < 27 := by
+  exact Nat.cast_pos.mpr (show (0 : ℕ) < 27 by native_decide)
+
+theorem real_twenty_seven_le_thirty_two_for_logarithmicPhase : (27 : ℝ) ≤ 32 := by
+  exact Nat.cast_le.mpr (show (27 : ℕ) ≤ 32 by native_decide)
+
+theorem real_twenty_seven_eq_three_pow_three_for_logarithmicPhase :
+    (27 : ℝ) = (3 : ℝ) ^ 3 := by
+  calc
+    (27 : ℝ) = (((27 : ℕ) : ℝ)) := rfl
+    _ = (((3 : ℕ) ^ 3 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ))
+        (show (27 : ℕ) = 3 ^ 3 by native_decide)
+    _ = (3 : ℝ) ^ 3 :=
+      Nat.cast_pow (α := ℝ) 3 3
+
+theorem real_thirty_two_eq_two_pow_five_for_logarithmicPhase :
+    (32 : ℝ) = (2 : ℝ) ^ 5 := by
+  calc
+    (32 : ℝ) = (((32 : ℕ) : ℝ)) := rfl
+    _ = (((2 : ℕ) ^ 5 : ℕ) : ℝ) := by
+      exact congrArg (fun n : ℕ => (n : ℝ))
+        (show (32 : ℕ) = 2 ^ 5 by native_decide)
+    _ = (2 : ℝ) ^ 5 :=
+      Nat.cast_pow (α := ℝ) 2 5
+
+theorem real_four_div_three_pos_for_logarithmicPhase : (0 : ℝ) < 4 / 3 :=
+  div_pos zero_lt_four zero_lt_three
+
+theorem real_four_div_three_ne_zero_for_logarithmicPhase :
+    (4 / 3 : ℝ) ≠ 0 :=
+  ne_of_gt real_four_div_three_pos_for_logarithmicPhase
+
+theorem real_four_div_three_sub_one_eq_one_div_three_for_logarithmicPhase :
+    (4 / 3 : ℝ) - 1 = 1 / 3 := by
+  calc
+    (4 / 3 : ℝ) - 1 = (4 - 3 : ℝ) / 3 := by
+      exact div_sub_one (show (3 : ℝ) ≠ 0 from ne_of_gt zero_lt_three)
+    _ = 1 / 3 := by
+      have hnat : ((4 - 3 : ℕ) : ℝ) = 1 := by
+        calc
+          ((4 - 3 : ℕ) : ℝ) = ((1 : ℕ) : ℝ) := by
+            exact congrArg (fun n : ℕ => (n : ℝ))
+              (show (4 : ℕ) - 3 = 1 by native_decide)
+          _ = 1 :=
+            Nat.cast_one
+      have hreal : (4 - 3 : ℝ) = 1 := by
+        exact Eq.subst
+          (motive := fun x : ℝ => x = 1)
+          (Nat.cast_sub (show (3 : ℕ) ≤ 4 by native_decide))
+          hnat
+      exact congrArg (fun x : ℝ => x / 3) hreal
+
+theorem real_four_div_three_sub_one_ne_zero_for_logarithmicPhase :
+    ((4 / 3 : ℝ) - 1) ≠ 0 := by
+  exact Eq.subst
+    (motive := fun x : ℝ => x ≠ 0)
+    real_four_div_three_sub_one_eq_one_div_three_for_logarithmicPhase.symm
+    (ne_of_gt (one_div_pos.mpr zero_lt_three))
+
+theorem real_rat_half_cast_for_logarithmicPhase :
+    (((1 / 2 : ℚ) : ℝ)) = (1 / 2 : ℝ) := by
+  calc
+    (((1 / 2 : ℚ) : ℝ)) = ((1 : ℚ) : ℝ) / ((2 : ℚ) : ℝ) :=
+      Rat.cast_div 1 2
+    _ = (1 : ℝ) / ((2 : ℚ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / ((2 : ℚ) : ℝ)) Rat.cast_one
+    _ = (1 : ℝ) / 2 := by
+      exact congrArg (fun x : ℝ => (1 : ℝ) / x) (Rat.cast_ofNat 2)
+
+theorem real_rat_five_thirds_cast_for_logarithmicPhase :
+    (((5 / 3 : ℚ) : ℝ)) = (5 / 3 : ℝ) := by
+  calc
+    (((5 / 3 : ℚ) : ℝ)) = ((5 : ℚ) : ℝ) / ((3 : ℚ) : ℝ) :=
+      Rat.cast_div 5 3
+    _ = (5 : ℝ) / ((3 : ℚ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / ((3 : ℚ) : ℝ)) (Rat.cast_ofNat 5)
+    _ = (5 : ℝ) / 3 := by
+      exact congrArg (fun x : ℝ => (5 : ℝ) / x) (Rat.cast_ofNat 3)
+
+theorem real_rat_eight_thirds_cast_for_logarithmicPhase :
+    (((8 / 3 : ℚ) : ℝ)) = (8 / 3 : ℝ) := by
+  calc
+    (((8 / 3 : ℚ) : ℝ)) = ((8 : ℚ) : ℝ) / ((3 : ℚ) : ℝ) :=
+      Rat.cast_div 8 3
+    _ = (8 : ℝ) / ((3 : ℚ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / ((3 : ℚ) : ℝ)) (Rat.cast_ofNat 8)
+    _ = (8 : ℝ) / 3 := by
+      exact congrArg (fun x : ℝ => (8 : ℝ) / x) (Rat.cast_ofNat 3)
+
+theorem real_eight_eq_sixteen_mul_half_for_logarithmicPhase :
+    (8 : ℝ) = 16 * (1 / 2 : ℝ) := by
+  have hq : (8 : ℚ) = 16 * (1 / 2 : ℚ) := by
+    native_decide
+  calc
+    (8 : ℝ) = ((8 : ℚ) : ℝ) := rfl
+    _ = ((16 * (1 / 2 : ℚ) : ℚ) : ℝ) := by
+      exact congrArg (fun q : ℚ => (q : ℝ)) hq
+    _ = (16 : ℝ) * ((1 / 2 : ℚ) : ℝ) :=
+      Rat.cast_mul 16 (1 / 2 : ℚ)
+    _ = (16 : ℝ) * (1 / 2 : ℝ) := by
+      exact congrArg (fun x : ℝ => (16 : ℝ) * x)
+        real_rat_half_cast_for_logarithmicPhase
+
+theorem real_eight_mul_two_eq_sixteen_for_logarithmicPhase :
+    (8 : ℝ) * 2 = 16 := by
+  have hq : (8 : ℚ) * 2 = 16 := by
+    native_decide
+  calc
+    (8 : ℝ) * 2 = ((8 : ℚ) : ℝ) * ((2 : ℚ) : ℝ) := by
+      exact congrArg₂ Mul.mul rfl (Rat.cast_ofNat 2).symm
+    _ = (((8 : ℚ) * 2 : ℚ) : ℝ) :=
+      (Rat.cast_mul 8 2).symm
+    _ = 16 := by
+      exact congrArg (fun q : ℚ => (q : ℝ)) hq
+
+theorem real_one_add_five_thirds_eq_eight_thirds_for_logarithmicPhase :
+    (1 : ℝ) + 5 / 3 = 8 / 3 := by
+  have hq : (1 : ℚ) + 5 / 3 = 8 / 3 := by
+    native_decide
+  calc
+    (1 : ℝ) + 5 / 3 = ((1 : ℚ) : ℝ) + ((5 / 3 : ℚ) : ℝ) := by
+      exact congrArg₂ Add.add Rat.cast_one.symm
+        real_rat_five_thirds_cast_for_logarithmicPhase.symm
+    _ = (((1 : ℚ) + 5 / 3 : ℚ) : ℝ) :=
+      (Rat.cast_add 1 (5 / 3 : ℚ)).symm
+    _ = ((8 / 3 : ℚ) : ℝ) := by
+      exact congrArg (fun q : ℚ => (q : ℝ)) hq
+    _ = 8 / 3 :=
+      real_rat_eight_thirds_cast_for_logarithmicPhase
+
+theorem real_log_one_sub_log_eq_neg_log_for_logarithmicPhase (x : ℝ) :
+    Real.log (1 : ℝ) - Real.log x = -Real.log x := by
+  calc
+    Real.log (1 : ℝ) - Real.log x = 0 - Real.log x := by
+      exact congrArg (fun y : ℝ => y - Real.log x) Real.log_one
+    _ = -Real.log x := zero_sub (Real.log x)
+
+theorem real_log_endpoint_factor_for_logarithmicPhase (L : ℝ) :
+    (2 * L) * L - L = L * (2 * L - 1) := by
+  calc
+    (2 * L) * L - L = L * (2 * L) - L := by
+      exact congrArg (fun y : ℝ => y - L) (mul_comm (2 * L) L)
+    _ = L * (2 * L) - L * 1 := by
+      exact congrArg (fun y : ℝ => L * (2 * L) - y) (mul_one L).symm
+    _ = L * (2 * L - 1) := by
+      exact (mul_sub L (2 * L) 1).symm
+
+theorem real_two_one_div_mul_eq_two_mul_div_for_logarithmicPhase
+    (L u : ℝ) :
+    (2 * (1 / u)) * L = 2 * L / u := by
+  calc
+    (2 * (1 / u)) * L = (2 * u⁻¹) * L := by
+      exact congrArg (fun y : ℝ => (2 * y) * L) (one_div u)
+    _ = 2 * (u⁻¹ * L) := by
+      exact mul_assoc 2 u⁻¹ L
+    _ = 2 * (L * u⁻¹) := by
+      exact congrArg (fun y : ℝ => 2 * y) (mul_comm u⁻¹ L)
+    _ = (2 * L) * u⁻¹ := by
+      exact (mul_assoc 2 L u⁻¹).symm
+    _ = 2 * L / u := by
+      exact (div_eq_mul_inv (2 * L) u).symm
+
+theorem real_zero_add_two_eq_two_for_logarithmicPhase : (0 : ℝ) + 2 = 2 :=
+  zero_add 2
+
+theorem real_two_mul_zero_add_one_eq_two_for_logarithmicPhase :
+    (2 : ℝ) * (0 + 1) = 2 := by
+  calc
+    (2 : ℝ) * (0 + 1) = 2 * 1 := by
+      exact congrArg (fun x : ℝ => (2 : ℝ) * x) (zero_add 1)
+    _ = 2 := mul_one 2
+
+theorem real_nat_succ_mul_two_cast_eq_for_logarithmicPhase
+    (N : ℕ) :
+    ((((N + 1) * 2 : ℕ) : ℝ)) = 2 * (((N : ℝ) + 1)) := by
+  calc
+    ((((N + 1) * 2 : ℕ) : ℝ)) = ((N + 1 : ℕ) : ℝ) * (2 : ℝ) := by
+      exact Nat.cast_mul (N + 1) 2
+    _ = (((N : ℝ) + 1) * 2) := by
+      exact congrArg (fun x : ℝ => x * 2)
+        ((Nat.cast_add N 1).trans
+          (congrArg (fun x : ℝ => (N : ℝ) + x) Nat.cast_one))
+    _ = 2 * (((N : ℝ) + 1)) := by
+      exact mul_comm ((N : ℝ) + 1) 2
+
+theorem real_nat_add_two_comm_for_logarithmicPhase
+    (N : ℕ) :
+    ((N : ℝ) + 2) = 2 + N :=
+  add_comm (N : ℝ) 2
+
+theorem real_eight_mul_eq_sixteen_mul_half_for_logarithmicPhase
+    (q : ℝ) :
+    8 * q = 16 * q * (1 / 2 : ℝ) := by
+  calc
+    8 * q = (16 * (1 / 2 : ℝ)) * q := by
+      exact congrArg (fun c : ℝ => c * q)
+        real_eight_eq_sixteen_mul_half_for_logarithmicPhase
+    _ = (16 * q) * (1 / 2 : ℝ) := by
+      calc
+        (16 * (1 / 2 : ℝ)) * q = 16 * ((1 / 2 : ℝ) * q) := by
+          exact mul_assoc 16 (1 / 2 : ℝ) q
+        _ = 16 * (q * (1 / 2 : ℝ)) := by
+          exact congrArg (fun y : ℝ => 16 * y) (mul_comm (1 / 2 : ℝ) q)
+        _ = (16 * q) * (1 / 2 : ℝ) := by
+          exact (mul_assoc 16 q (1 / 2 : ℝ)).symm
+
+theorem real_eight_two_mul_log_scale_for_logarithmicPhase
+    (s L : ℝ) :
+    8 * (2 * s * L) = 16 * s * L := by
+  calc
+    8 * (2 * s * L) = 8 * ((2 * s) * L) := rfl
+    _ = (8 * (2 * s)) * L := by
+      exact (mul_assoc 8 (2 * s) L).symm
+    _ = ((8 * 2) * s) * L := by
+      exact congrArg (fun y : ℝ => y * L) (mul_assoc 8 2 s).symm
+    _ = (16 * s) * L := by
+      exact congrArg (fun y : ℝ => (y * s) * L)
+        real_eight_mul_two_eq_sixteen_for_logarithmicPhase
+    _ = 16 * s * L := rfl
+
+theorem real_eight_mul_three_term_split_for_logarithmicPhase
+    (q l : ℝ) :
+    8 * (q + l + 1) = 8 * q + 8 * (l + 1) := by
+  calc
+    8 * (q + l + 1) = 8 * (q + (l + 1)) := by
+      exact congrArg (fun x : ℝ => 8 * x) (add_assoc q l 1)
+    _ = 8 * q + 8 * (l + 1) := by
+      exact mul_add 8 q (l + 1)
+
+theorem real_sixteen_mul_sum_log_factor_for_logarithmicPhase
+    (q s L : ℝ) :
+    16 * q * L + 16 * s * L = 16 * (q + s) * L := by
+  calc
+    16 * q * L + 16 * s * L = (16 * q + 16 * s) * L := by
+      exact (add_mul (16 * q) (16 * s) L).symm
+    _ = (16 * (q + s)) * L := by
+      exact congrArg (fun x : ℝ => x * L) (mul_add 16 q s).symm
+    _ = 16 * (q + s) * L := rfl
+
+theorem real_add_one_sub_add_one_eq_sub_for_logarithmicPhase
+    (A B : ℝ) :
+    (A + 1) - (B + 1) = A - B := by
+  calc
+    (A + 1) - (B + 1) = (A + 1) - (1 + B) := by
+      exact congrArg (fun y : ℝ => (A + 1) - y) (add_comm B 1)
+    _ = A - B := by
+      calc
+        (A + 1) - (1 + B) = (A + 1) - 1 - B :=
+          sub_add_eq_sub_sub (A + 1) 1 B
+        _ = A - B := by
+          exact congrArg (fun z : ℝ => z - B) (add_sub_cancel_right A 1)
+
+theorem real_one_add_five_thirds_mul_eq_eight_thirds_mul_for_logarithmicPhase
+    (A : ℝ) :
+    A + (5 / 3 : ℝ) * A = (8 / 3 : ℝ) * A := by
+  calc
+    A + (5 / 3 : ℝ) * A = 1 * A + (5 / 3 : ℝ) * A := by
+      exact congrArg (fun y : ℝ => y + (5 / 3 : ℝ) * A) (one_mul A).symm
+    _ = (1 + (5 / 3 : ℝ)) * A := by
+      exact (add_mul 1 (5 / 3 : ℝ) A).symm
+    _ = (8 / 3 : ℝ) * A := by
+      exact congrArg (fun c : ℝ => c * A)
+        real_one_add_five_thirds_eq_eight_thirds_for_logarithmicPhase
+
+theorem real_inverse_chord_normsq_algebra_for_logarithmicPhase
+    {s c : ℝ}
+    (hunit : s ^ 2 + c ^ 2 = 1) :
+    (1 - c) * (1 - c) + (-s) * (-s) = 2 * (1 - c) := by
+  have hneg : (-s) * (-s) = s * s :=
+    neg_mul_neg s s
+  have hsq_sub : (1 - c) * (1 - c) = (1 - c) ^ 2 :=
+    (pow_two (1 - c)).symm
+  have hsub_sq :
+      (1 - c) ^ 2 = 1 ^ 2 - 2 * 1 * c + c ^ 2 :=
+    sub_sq 1 c
+  have hone_sq : (1 : ℝ) ^ 2 = 1 := by
+    calc
+      (1 : ℝ) ^ 2 = (1 : ℝ) * 1 := pow_two 1
+      _ = 1 := one_mul 1
+  have htwo_one : (2 : ℝ) * 1 * c = 2 * c := by
+    exact congrArg (fun x : ℝ => x * c) (mul_one 2)
+  have hs_sq : s * s = s ^ 2 :=
+    (pow_two s).symm
+  have hc_sq : c * c = c ^ 2 :=
+    (pow_two c).symm
+  have hunit_comm : c ^ 2 + s ^ 2 = 1 :=
+    Eq.subst (motive := fun x : ℝ => x = 1) (add_comm (s ^ 2) (c ^ 2)) hunit
+  calc
+    (1 - c) * (1 - c) + (-s) * (-s) =
+        (1 - c) ^ 2 + s * s := by
+      exact congrArg₂ Add.add hsq_sub hneg
+    _ = (1 ^ 2 - 2 * 1 * c + c ^ 2) + s * s := by
+      exact congrArg (fun x : ℝ => x + s * s) hsub_sq
+    _ = (1 - 2 * c + c ^ 2) + s ^ 2 := by
+      exact congrArg₂ Add.add
+        (congrArg₂ Add.add
+          (congrArg₂ Sub.sub hone_sq htwo_one)
+          rfl)
+        hs_sq
+    _ = 1 - 2 * c + (c ^ 2 + s ^ 2) := by
+      calc
+        (1 - 2 * c + c ^ 2) + s ^ 2 =
+            (1 - 2 * c) + c ^ 2 + s ^ 2 := rfl
+        _ = (1 - 2 * c) + (c ^ 2 + s ^ 2) := by
+          exact add_assoc (1 - 2 * c) (c ^ 2) (s ^ 2)
+    _ = 1 - 2 * c + 1 := by
+      exact congrArg (fun x : ℝ => 1 - 2 * c + x) hunit_comm
+    _ = 2 * (1 - c) := by
+      calc
+        1 - 2 * c + 1 = (1 + 1) - 2 * c := by
+          exact sub_add_eq_add_sub 1 (2 * c) 1
+        _ = 2 - 2 * c := by
+          exact congrArg (fun x : ℝ => x - 2 * c) one_add_one_eq_two
+        _ = 2 * 1 - 2 * c := by
+          exact congrArg (fun x : ℝ => x - 2 * c) (mul_one 2).symm
+        _ = 2 * (1 - c) := by
+          exact (mul_sub 2 1 c).symm
+
+theorem real_inverse_chord_derivative_numerator_algebra_for_logarithmicPhase
+    {s c : ℝ}
+    (hunit : s ^ 2 + c ^ 2 = 1) :
+    c * (2 * (1 - c)) - s * (2 * s) =
+      -2 * (1 - c) := by
+  have hs_sq : s * s = s ^ 2 :=
+    (pow_two s).symm
+  have hc_sq : c * c = c ^ 2 :=
+    (pow_two c).symm
+  have hunit_comm : c ^ 2 + s ^ 2 = 1 :=
+    Eq.subst (motive := fun x : ℝ => x = 1) (add_comm (s ^ 2) (c ^ 2)) hunit
+  calc
+    c * (2 * (1 - c)) - s * (2 * s) =
+        (2 * c * (1 - c)) - (2 * (s * s)) := by
+      have hleft : c * (2 * (1 - c)) = 2 * c * (1 - c) := by
+        calc
+          c * (2 * (1 - c)) = (c * 2) * (1 - c) := by
+            exact (mul_assoc c 2 (1 - c)).symm
+          _ = (2 * c) * (1 - c) := by
+            exact congrArg (fun x : ℝ => x * (1 - c)) (mul_comm c 2)
+          _ = 2 * c * (1 - c) := rfl
+      have hright : s * (2 * s) = 2 * (s * s) := by
+        calc
+          s * (2 * s) = (s * 2) * s := by
+            exact (mul_assoc s 2 s).symm
+          _ = (2 * s) * s := by
+            exact congrArg (fun x : ℝ => x * s) (mul_comm s 2)
+          _ = 2 * (s * s) := by
+            exact mul_assoc 2 s s
+      exact congrArg₂ Sub.sub hleft hright
+    _ = (2 * c * 1 - 2 * c * c) - 2 * (s * s) := by
+      exact congrArg (fun x : ℝ => x - 2 * (s * s)) (mul_sub (2 * c) 1 c)
+    _ = (2 * c - 2 * c ^ 2) - 2 * s ^ 2 := by
+      have hc_square_scaled :
+          2 * c * c = 2 * c ^ 2 := by
+        calc
+          2 * c * c = 2 * (c * c) := by
+            exact mul_assoc 2 c c
+          _ = 2 * c ^ 2 := by
+            exact congrArg (fun x : ℝ => 2 * x) hc_sq
+      exact congrArg₂ Sub.sub
+        (congrArg₂ Sub.sub
+          (mul_one (2 * c))
+          hc_square_scaled)
+        (congrArg (fun x : ℝ => 2 * x) hs_sq)
+    _ = 2 * c - 2 * (c ^ 2 + s ^ 2) := by
+      calc
+        (2 * c - 2 * c ^ 2) - 2 * s ^ 2 =
+            2 * c - (2 * c ^ 2 + 2 * s ^ 2) := by
+          exact sub_sub (2 * c) (2 * c ^ 2) (2 * s ^ 2)
+        _ = 2 * c - 2 * (c ^ 2 + s ^ 2) := by
+          exact congrArg (fun x : ℝ => 2 * c - x) (mul_add 2 (c ^ 2) (s ^ 2)).symm
+    _ = 2 * c - 2 * 1 := by
+      exact congrArg (fun x : ℝ => 2 * c - 2 * x) hunit_comm
+    _ = -(2 * 1 - 2 * c) := by
+      exact (neg_sub (2 * 1) (2 * c)).symm
+    _ = -2 * (1 - c) := by
+      calc
+        -(2 * 1 - 2 * c) = -(2 * (1 - c)) := by
+          exact congrArg Neg.neg (mul_sub 2 1 c).symm
+        _ = -2 * (1 - c) := by
+          exact (neg_mul 2 (1 - c)).symm
+
+theorem real_critical_num_add_den_eq_one_for_logarithmicPhase
+    (L : ℝ) :
+    (2 - 2 * L) + (2 * L - 1) = 1 := by
+  calc
+    (2 - 2 * L) + (2 * L - 1) = (2 : ℝ) - 1 :=
+      sub_add_sub_cancel 2 (2 * L) 1
+    _ = 1 := by
+      calc
+        (2 : ℝ) - 1 = (1 + 1 : ℝ) - 1 := by
+          exact congrArg (fun x : ℝ => x - 1) (one_add_one_eq_two.symm)
+        _ = 1 := by
+          exact add_sub_cancel_right 1 1
+
+theorem real_one_add_critical_den_eq_two_log_for_logarithmicPhase
+    (L : ℝ) :
+    (1 : ℝ) + (2 * L - 1) = 2 * L := by
+  calc
+    (1 : ℝ) + (2 * L - 1) = (2 * L - 1) + 1 := add_comm 1 (2 * L - 1)
+    _ = 2 * L := sub_add_cancel (2 * L) 1
+
+theorem real_critical_num_add_two_den_eq_two_log_for_logarithmicPhase
+    (L : ℝ) :
+    (2 - 2 * L) + 2 * (2 * L - 1) = 2 * L := by
+  calc
+    (2 - 2 * L) + 2 * (2 * L - 1) =
+        (2 - 2 * L) + ((2 * L - 1) + (2 * L - 1)) := by
+      exact congrArg (fun y : ℝ => (2 - 2 * L) + y) (two_mul (2 * L - 1))
+    _ = ((2 - 2 * L) + (2 * L - 1)) + (2 * L - 1) := by
+      exact (add_assoc (2 - 2 * L) (2 * L - 1) (2 * L - 1)).symm
+    _ = 1 + (2 * L - 1) := by
+      exact congrArg (fun y : ℝ => y + (2 * L - 1))
+        (real_critical_num_add_den_eq_one_for_logarithmicPhase L)
+    _ = 2 * L :=
+      real_one_add_critical_den_eq_two_log_for_logarithmicPhase L
+
+theorem real_critical_fraction_add_one_for_logarithmicPhase
+    (L : ℝ)
+    (hden_ne : 2 * L - 1 ≠ 0) :
+    (2 - 2 * L) / (2 * L - 1) + 1 = 1 / (2 * L - 1) := by
+  calc
+    (2 - 2 * L) / (2 * L - 1) + 1 =
+        (2 - 2 * L) / (2 * L - 1) + (2 * L - 1) / (2 * L - 1) := by
+      exact congrArg
+        (fun y : ℝ => (2 - 2 * L) / (2 * L - 1) + y)
+        (div_self hden_ne).symm
+    _ = ((2 - 2 * L) + (2 * L - 1)) / (2 * L - 1) := by
+      exact (add_div (2 - 2 * L) (2 * L - 1) (2 * L - 1)).symm
+    _ = 1 / (2 * L - 1) := by
+      exact congrArg (fun y : ℝ => y / (2 * L - 1))
+        (real_critical_num_add_den_eq_one_for_logarithmicPhase L)
+
+theorem real_critical_fraction_add_two_for_logarithmicPhase
+    (L : ℝ)
+    (hden_ne : 2 * L - 1 ≠ 0) :
+    (2 - 2 * L) / (2 * L - 1) + 2 =
+      (2 * L) / (2 * L - 1) := by
+  calc
+    (2 - 2 * L) / (2 * L - 1) + 2 =
+        (2 - 2 * L) / (2 * L - 1) +
+          (2 * (2 * L - 1)) / (2 * L - 1) := by
+      exact congrArg
+        (fun y : ℝ => (2 - 2 * L) / (2 * L - 1) + y)
+        (mul_div_cancel_right₀ 2 hden_ne).symm
+    _ = ((2 - 2 * L) + 2 * (2 * L - 1)) / (2 * L - 1) := by
+      exact (add_div (2 - 2 * L) (2 * (2 * L - 1)) (2 * L - 1)).symm
+    _ = (2 * L) / (2 * L - 1) := by
+      exact congrArg (fun y : ℝ => y / (2 * L - 1))
+        (real_critical_num_add_two_den_eq_two_log_for_logarithmicPhase L)
+
+theorem real_dyadic_deriv_left_common_denominator_for_logarithmicPhase
+    (L x : ℝ)
+    (hx_two_ne : x + 2 ≠ 0)
+    (hx_one_ne : x + 1 ≠ 0) :
+    2 * L / (x + 2) - 1 / (x + 1) =
+      ((2 * L) * (x + 1) - 1 * (x + 2)) / ((x + 2) * (x + 1)) :=
+  calc
+    2 * L / (x + 2) - 1 / (x + 1) =
+        ((2 * L) * (x + 1) - (x + 2) * 1) / ((x + 2) * (x + 1)) :=
+      div_sub_div (2 * L) 1 hx_two_ne hx_one_ne
+    _ = ((2 * L) * (x + 1) - 1 * (x + 2)) / ((x + 2) * (x + 1)) := by
+      exact congrArg
+        (fun y : ℝ => ((2 * L) * (x + 1) - y) / ((x + 2) * (x + 1)))
+        (mul_comm (x + 2) 1)
+
+theorem real_dyadic_deriv_numerator_factor_for_logarithmicPhase
+    (L x : ℝ)
+    (hden_ne : 2 * L - 1 ≠ 0) :
+    (2 * L) * (x + 1) - 1 * (x + 2) =
+      (2 * L - 1) * (x - (2 - 2 * L) / (2 * L - 1)) := by
+  have hcancel :
+      (2 * L - 1) * ((2 - 2 * L) / (2 * L - 1)) =
+        2 - 2 * L := by
+    exact mul_div_cancel₀ (2 - 2 * L) hden_ne
+  calc
+    (2 * L) * (x + 1) - 1 * (x + 2) =
+        (2 * L * x + 2 * L * 1) - (1 * x + 1 * 2) := by
+      exact congrArg₂ Sub.sub
+        (mul_add (2 * L) x 1)
+        (mul_add 1 x 2)
+    _ = (2 * L * x + 2 * L) - (x + 2) := by
+      exact congrArg₂ Sub.sub
+        (congrArg (fun y : ℝ => 2 * L * x + y) (mul_one (2 * L)))
+        (congrArg₂ Add.add (one_mul x) (one_mul 2))
+    _ = (2 * L * x - x) + (2 * L - 2) := by
+      calc
+        (2 * L * x + 2 * L) - (x + 2) =
+            (2 * L * x + 2 * L) - x - 2 := by
+          exact sub_add_eq_sub_sub (2 * L * x + 2 * L) x 2
+        _ = (2 * L * x - x) + 2 * L - 2 := by
+          exact congrArg (fun y : ℝ => y - 2) (add_sub_right_comm (2 * L * x) (2 * L) x)
+        _ = (2 * L * x - x) + (2 * L - 2) := by
+          exact add_sub_assoc (2 * L * x - x) (2 * L) 2
+    _ = (2 * L - 1) * x + (2 * L - 2) := by
+      have hx_factor : 2 * L * x - x = (2 * L - 1) * x := by
+        calc
+          2 * L * x - x = 2 * L * x - 1 * x := by
+            exact congrArg (fun y : ℝ => 2 * L * x - y) (one_mul x).symm
+          _ = (2 * L - 1) * x := by
+            exact (sub_mul (2 * L) 1 x).symm
+      exact congrArg (fun y : ℝ => y + (2 * L - 2)) hx_factor
+    _ = (2 * L - 1) * x - (2 - 2 * L) := by
+      calc
+        (2 * L - 1) * x + (2 * L - 2) =
+            (2 * L - 1) * x + -(2 - 2 * L) := by
+          exact congrArg
+            (fun y : ℝ => (2 * L - 1) * x + y)
+            (neg_sub 2 (2 * L)).symm
+        _ = (2 * L - 1) * x - (2 - 2 * L) := by
+          exact (sub_eq_add_neg ((2 * L - 1) * x) (2 - 2 * L)).symm
+    _ = (2 * L - 1) * x -
+          (2 * L - 1) * ((2 - 2 * L) / (2 * L - 1)) := by
+      exact congrArg
+        (fun y : ℝ => (2 * L - 1) * x - y)
+        hcancel.symm
+    _ = (2 * L - 1) *
+          (x - (2 - 2 * L) / (2 * L - 1)) := by
+      exact (mul_sub (2 * L - 1) x ((2 - 2 * L) / (2 * L - 1))).symm
+
+theorem real_rat_four_thirds_cast_for_logarithmicPhase :
+    (((4 / 3 : ℚ) : ℝ)) = (4 / 3 : ℝ) := by
+  calc
+    (((4 / 3 : ℚ) : ℝ)) = ((4 : ℚ) : ℝ) / ((3 : ℚ) : ℝ) :=
+      Rat.cast_div 4 3
+    _ = (4 : ℝ) / ((3 : ℚ) : ℝ) := by
+      exact congrArg (fun x : ℝ => x / ((3 : ℚ) : ℝ)) (Rat.cast_ofNat 4)
+    _ = (4 : ℝ) / 3 := by
+      exact congrArg (fun x : ℝ => (4 : ℝ) / x) (Rat.cast_ofNat 3)
+
+theorem real_four_thirds_mul_two_eq_eight_thirds_for_logarithmicPhase :
+    (4 / 3 : ℝ) * 2 = 8 / 3 := by
+  have hq : (4 / 3 : ℚ) * 2 = 8 / 3 := by
+    native_decide
+  calc
+    (4 / 3 : ℝ) * 2 =
+        ((4 / 3 : ℚ) : ℝ) * ((2 : ℚ) : ℝ) := by
+      exact congrArg₂ Mul.mul
+        real_rat_four_thirds_cast_for_logarithmicPhase.symm
+        (Rat.cast_ofNat 2).symm
+    _ = (((4 / 3 : ℚ) * 2 : ℚ) : ℝ) :=
+      (Rat.cast_mul (4 / 3 : ℚ) 2).symm
+    _ = ((8 / 3 : ℚ) : ℝ) := by
+      exact congrArg (fun q : ℚ => (q : ℝ)) hq
+    _ = 8 / 3 :=
+      real_rat_eight_thirds_cast_for_logarithmicPhase
+
+theorem real_four_thirds_mul_two_for_logarithmicPhase
+    (A : ℝ) :
+    (4 / 3 : ℝ) * (2 * A) = (8 / 3 : ℝ) * A := by
+  have hcoeff : (4 / 3 : ℝ) * 2 = 8 / 3 := by
+    exact real_four_thirds_mul_two_eq_eight_thirds_for_logarithmicPhase
+  calc
+    (4 / 3 : ℝ) * (2 * A) = ((4 / 3 : ℝ) * 2) * A :=
+      (mul_assoc (4 / 3 : ℝ) 2 A).symm
+    _ = (8 / 3 : ℝ) * A := by
+      exact congrArg (fun c : ℝ => c * A) hcoeff
+
+theorem real_four_thirds_entropy_log_three_terms_for_logarithmicPhase
+    (B : ℝ) :
+    -((4 / 3 : ℝ) * B) - ((4 / 3 : ℝ) - 1) * (-B) = -B := by
+  have hthird : ((4 / 3 : ℝ) - 1) = 1 / 3 :=
+    real_four_div_three_sub_one_eq_one_div_three_for_logarithmicPhase
+  have hcoeff :
+      (4 / 3 : ℝ) - (1 / 3 : ℝ) = 1 := by
+    calc
+      (4 / 3 : ℝ) - (1 / 3 : ℝ) =
+          (4 / 3 : ℝ) - ((4 / 3 : ℝ) - 1) := by
+        exact congrArg (fun x : ℝ => (4 / 3 : ℝ) - x) hthird.symm
+      _ = 1 :=
+        sub_sub_self (4 / 3 : ℝ) 1
+  calc
+    -((4 / 3 : ℝ) * B) - ((4 / 3 : ℝ) - 1) * (-B) =
+        -((4 / 3 : ℝ) * B) - (1 / 3 : ℝ) * (-B) := by
+      exact congrArg
+        (fun c : ℝ => -((4 / 3 : ℝ) * B) - c * (-B))
+        hthird
+    _ = -((4 / 3 : ℝ) * B) - -((1 / 3 : ℝ) * B) := by
+      exact congrArg
+        (fun z : ℝ => -((4 / 3 : ℝ) * B) - z)
+        (mul_neg (1 / 3 : ℝ) B)
+    _ = -((4 / 3 : ℝ) * B) + -(-((1 / 3 : ℝ) * B)) := by
+      exact sub_eq_add_neg (-((4 / 3 : ℝ) * B)) (-((1 / 3 : ℝ) * B))
+    _ = -((4 / 3 : ℝ) * B) + ((1 / 3 : ℝ) * B) := by
+      exact congrArg
+        (fun z : ℝ => -((4 / 3 : ℝ) * B) + z)
+        (neg_neg ((1 / 3 : ℝ) * B))
+    _ = ((1 / 3 : ℝ) * B) - ((4 / 3 : ℝ) * B) := by
+      calc
+        -((4 / 3 : ℝ) * B) + ((1 / 3 : ℝ) * B) =
+            ((1 / 3 : ℝ) * B) + -((4 / 3 : ℝ) * B) := by
+          exact add_comm (-((4 / 3 : ℝ) * B)) ((1 / 3 : ℝ) * B)
+        _ = ((1 / 3 : ℝ) * B) - ((4 / 3 : ℝ) * B) := by
+          exact (sub_eq_add_neg ((1 / 3 : ℝ) * B) ((4 / 3 : ℝ) * B)).symm
+    _ = -(((4 / 3 : ℝ) * B) - ((1 / 3 : ℝ) * B)) := by
+      exact (neg_sub ((4 / 3 : ℝ) * B) ((1 / 3 : ℝ) * B)).symm
+    _ = -(((4 / 3 : ℝ) - (1 / 3 : ℝ)) * B) := by
+      exact congrArg Neg.neg (sub_mul (4 / 3 : ℝ) (1 / 3 : ℝ) B).symm
+    _ = -(1 * B) := by
+      exact congrArg (fun c : ℝ => -(c * B)) hcoeff
+    _ = -B := by
+      exact congrArg Neg.neg (one_mul B)
+
+theorem real_four_thirds_entropy_value_algebra_for_logarithmicPhase
+    (A B : ℝ) :
+    (4 / 3 : ℝ) * (2 * A - B) - ((4 / 3 : ℝ) - 1) * (-B) =
+      (8 / 3 : ℝ) * A - B := by
+  calc
+    (4 / 3 : ℝ) * (2 * A - B) - ((4 / 3 : ℝ) - 1) * (-B) =
+        ((4 / 3 : ℝ) * (2 * A) - (4 / 3 : ℝ) * B) -
+          ((4 / 3 : ℝ) - 1) * (-B) := by
+      exact congrArg
+        (fun z : ℝ => z - ((4 / 3 : ℝ) - 1) * (-B))
+        (mul_sub (4 / 3 : ℝ) (2 * A) B)
+    _ = ((8 / 3 : ℝ) * A - (4 / 3 : ℝ) * B) -
+          ((4 / 3 : ℝ) - 1) * (-B) := by
+      exact congrArg
+        (fun z : ℝ => (z - (4 / 3 : ℝ) * B) - ((4 / 3 : ℝ) - 1) * (-B))
+        (real_four_thirds_mul_two_for_logarithmicPhase A)
+    _ = (8 / 3 : ℝ) * A +
+          (-((4 / 3 : ℝ) * B) - ((4 / 3 : ℝ) - 1) * (-B)) := by
+      calc
+        ((8 / 3 : ℝ) * A - (4 / 3 : ℝ) * B) -
+            ((4 / 3 : ℝ) - 1) * (-B) =
+            ((8 / 3 : ℝ) * A + -((4 / 3 : ℝ) * B)) -
+              ((4 / 3 : ℝ) - 1) * (-B) := by
+          exact congrArg
+            (fun z : ℝ => z - ((4 / 3 : ℝ) - 1) * (-B))
+            (sub_eq_add_neg ((8 / 3 : ℝ) * A) ((4 / 3 : ℝ) * B))
+        _ = ((8 / 3 : ℝ) * A + -((4 / 3 : ℝ) * B)) +
+              -(((4 / 3 : ℝ) - 1) * (-B)) := by
+          exact sub_eq_add_neg
+            ((8 / 3 : ℝ) * A + -((4 / 3 : ℝ) * B))
+            (((4 / 3 : ℝ) - 1) * (-B))
+        _ = (8 / 3 : ℝ) * A +
+              (-((4 / 3 : ℝ) * B) + -(((4 / 3 : ℝ) - 1) * (-B))) := by
+          exact add_assoc ((8 / 3 : ℝ) * A) (-((4 / 3 : ℝ) * B))
+            (-(((4 / 3 : ℝ) - 1) * (-B)))
+        _ = (8 / 3 : ℝ) * A +
+              (-((4 / 3 : ℝ) * B) - ((4 / 3 : ℝ) - 1) * (-B)) := by
+          exact congrArg
+            (fun z : ℝ => (8 / 3 : ℝ) * A + z)
+            (sub_eq_add_neg (-((4 / 3 : ℝ) * B)) (((4 / 3 : ℝ) - 1) * (-B))).symm
+    _ = (8 / 3 : ℝ) * A + -B := by
+      exact congrArg
+        (fun z : ℝ => (8 / 3 : ℝ) * A + z)
+        (real_four_thirds_entropy_log_three_terms_for_logarithmicPhase B)
+    _ = (8 / 3 : ℝ) * A - B :=
+      (sub_eq_add_neg ((8 / 3 : ℝ) * A) B).symm
+
+theorem real_two_mul_sub_mul_reassociate_for_logarithmicPhase
+    (A B L : ℝ) :
+    (2 * (A - B)) * L = (2 * L) * A - (2 * L) * B := by
+  calc
+    (2 * (A - B)) * L = (2 * L) * (A - B) := by
+      calc
+        (2 * (A - B)) * L = 2 * ((A - B) * L) :=
+          mul_assoc 2 (A - B) L
+        _ = 2 * (L * (A - B)) := by
+          exact congrArg (fun z : ℝ => 2 * z) (mul_comm (A - B) L)
+        _ = (2 * L) * (A - B) := by
+          exact (mul_assoc 2 L (A - B)).symm
+    _ = (2 * L) * A - (2 * L) * B :=
+      mul_sub (2 * L) A B
+
+theorem real_critical_expression_expand_for_logarithmicPhase
+    (A B L : ℝ) :
+    (2 * (A - B)) * L - (L - B) =
+      (2 * L) * A - ((2 * L) - 1) * B - L := by
+  calc
+    (2 * (A - B)) * L - (L - B) =
+        ((2 * L) * A - (2 * L) * B) - (L - B) := by
+      exact congrArg
+        (fun z : ℝ => z - (L - B))
+        (real_two_mul_sub_mul_reassociate_for_logarithmicPhase A B L)
+    _ = ((2 * L) * A - (2 * L) * B) - L + B := by
+      calc
+        ((2 * L) * A - (2 * L) * B) - (L - B) =
+            ((2 * L) * A - (2 * L) * B) - (L + -B) := by
+          exact congrArg
+            (fun z : ℝ => ((2 * L) * A - (2 * L) * B) - z)
+            (sub_eq_add_neg L B)
+        _ = ((2 * L) * A - (2 * L) * B) - L - -B := by
+          exact sub_add_eq_sub_sub ((2 * L) * A - (2 * L) * B) L (-B)
+        _ = ((2 * L) * A - (2 * L) * B) - L + -(-B) := by
+          exact sub_eq_add_neg (((2 * L) * A - (2 * L) * B) - L) (-B)
+        _ = ((2 * L) * A - (2 * L) * B) - L + B := by
+          exact congrArg
+            (fun z : ℝ => ((2 * L) * A - (2 * L) * B) - L + z)
+            (neg_neg B)
+    _ = ((2 * L) * A - L) - ((2 * L) * B - B) := by
+      calc
+        ((2 * L) * A - (2 * L) * B) - L + B =
+            ((2 * L) * A - (2 * L) * B - L) + B := rfl
+        _ = ((2 * L) * A - L - (2 * L) * B) + B := by
+          exact congrArg (fun z : ℝ => z + B)
+            (sub_right_comm ((2 * L) * A) ((2 * L) * B) L)
+        _ = ((2 * L) * A - L) - (2 * L) * B + B := rfl
+        _ = ((2 * L) * A - L) - ((2 * L) * B - B) := by
+          calc
+            ((2 * L) * A - L) - (2 * L) * B + B =
+                ((2 * L) * A - L) - (2 * L) * B + -(-B) := by
+              exact congrArg
+                (fun z : ℝ => ((2 * L) * A - L) - (2 * L) * B + z)
+                (neg_neg B).symm
+            _ = ((2 * L) * A - L) - (2 * L) * B - -B := by
+              exact (sub_eq_add_neg (((2 * L) * A - L) - (2 * L) * B) (-B)).symm
+            _ = ((2 * L) * A - L) - ((2 * L) * B + -B) := by
+              exact (sub_add_eq_sub_sub ((2 * L) * A - L) ((2 * L) * B) (-B)).symm
+            _ = ((2 * L) * A - L) - ((2 * L) * B - B) := by
+              exact congrArg
+                (fun z : ℝ => ((2 * L) * A - L) - z)
+                (sub_eq_add_neg ((2 * L) * B) B).symm
+    _ = ((2 * L) * A - L) - ((2 * L - 1) * B) := by
+      exact congrArg
+        (fun z : ℝ => ((2 * L) * A - L) - z)
+        (calc
+          (2 * L) * B - B = (2 * L) * B - 1 * B := by
+            exact congrArg (fun z : ℝ => (2 * L) * B - z) (one_mul B).symm
+          _ = (2 * L - 1) * B := by
+            exact (sub_mul (2 * L) 1 B).symm)
+    _ = (2 * L) * A - ((2 * L) - 1) * B - L := by
+      exact sub_right_comm ((2 * L) * A) L (((2 * L) - 1) * B)
+
+theorem real_zero_lt_add_one_of_nonneg_for_logarithmicPhase {x : ℝ}
+    (hx : 0 ≤ x) :
+    0 < x + 1 := by
+  have hone_le : (1 : ℝ) ≤ 1 + x :=
+    le_add_of_nonneg_right hx
+  have hone_le_commuted : (1 : ℝ) ≤ x + 1 :=
+    Eq.subst
+      (motive := fun y : ℝ => (1 : ℝ) ≤ y)
+      (add_comm 1 x)
+      hone_le
+  exact lt_of_lt_of_le zero_lt_one hone_le_commuted
+
+theorem real_zero_lt_add_two_of_nonneg_for_logarithmicPhase {x : ℝ}
+    (hx : 0 ≤ x) :
+    0 < x + 2 := by
+  have htwo_le : (2 : ℝ) ≤ 2 + x :=
+    le_add_of_nonneg_right hx
+  have htwo_le_commuted : (2 : ℝ) ≤ x + 2 :=
+    Eq.subst
+      (motive := fun y : ℝ => (2 : ℝ) ≤ y)
+      (add_comm 2 x)
+      htwo_le
+  exact lt_of_lt_of_le zero_lt_two htwo_le_commuted
+
+theorem real_two_mul_inv_mul_two_inv_reassociate_for_logarithmicPhase
+    (u : ℝ) :
+    (2 : ℝ) * (u⁻¹ * (2 : ℝ)⁻¹) = ((2 : ℝ) * (2 : ℝ)⁻¹) * u⁻¹ := by
+  calc
+    (2 : ℝ) * (u⁻¹ * (2 : ℝ)⁻¹) =
+        ((2 : ℝ) * u⁻¹) * (2 : ℝ)⁻¹ := by
+      exact (mul_assoc (2 : ℝ) u⁻¹ (2 : ℝ)⁻¹).symm
+    _ = (u⁻¹ * (2 : ℝ)) * (2 : ℝ)⁻¹ := by
+      exact congrArg (fun y : ℝ => y * (2 : ℝ)⁻¹) (mul_comm (2 : ℝ) u⁻¹)
+    _ = u⁻¹ * ((2 : ℝ) * (2 : ℝ)⁻¹) := by
+      exact mul_assoc u⁻¹ (2 : ℝ) (2 : ℝ)⁻¹
+    _ = ((2 : ℝ) * (2 : ℝ)⁻¹) * u⁻¹ := by
+      exact mul_comm u⁻¹ ((2 : ℝ) * (2 : ℝ)⁻¹)
+
+theorem real_sub_one_le_self_for_logarithmicPhase (y : ℝ) :
+    y - 1 ≤ y :=
+  sub_le_self y zero_le_one
+
+theorem real_zero_le_one_div_two_for_logarithmicPhase : (0 : ℝ) ≤ 1 / 2 :=
+  le_of_lt one_half_pos
+
+theorem real_one_lt_four_div_three_for_logarithmicPhase : (1 : ℝ) < 4 / 3 := by
+  exact (lt_div_iff₀' zero_lt_three).mpr
+    (by
+      calc
+        (3 : ℝ) * 1 = 3 := mul_one 3
+        _ < 3 + 1 := lt_add_of_pos_right 3 zero_lt_one
+        _ = 4 := three_add_one_eq_four)
+
+theorem real_sum_le_two_mul_self_of_nonneg_for_logarithmicPhase {x : ℝ}
+    (hx : 0 ≤ x) :
+    x ≤ 2 * x :=
+  Eq.subst
+    (motive := fun y : ℝ => y ≤ 2 * x)
+    (one_mul x)
+    (mul_le_mul_of_nonneg_right one_le_two hx)
+
+theorem complex_sub_one_eq_neg_one_sub_for_logarithmicPhase (z : ℂ) :
+    z - 1 = -(1 - z) :=
+  (neg_sub 1 z).symm
+
+theorem real_neg_pi_add_two_pi_eq_pi_for_logarithmicPhase :
+    -Real.pi + 2 * Real.pi = Real.pi := by
+  calc
+    -Real.pi + 2 * Real.pi = -Real.pi + (Real.pi + Real.pi) := by
+      exact congrArg (fun x : ℝ => -Real.pi + x) (two_mul Real.pi)
+    _ = (-Real.pi + Real.pi) + Real.pi := by
+      exact (add_assoc (-Real.pi) Real.pi Real.pi).symm
+    _ = 0 + Real.pi := by
+      exact congrArg (fun x : ℝ => x + Real.pi) (neg_add_cancel Real.pi)
+    _ = Real.pi := zero_add Real.pi
+
+theorem real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase
+    {x : ℝ}
+    (hx : x ∈ Set.Ioc (-Real.pi) Real.pi) :
+    x ∈ Set.Ioc (-Real.pi) (-Real.pi + 2 * Real.pi) :=
+  Eq.subst
+    (motive := fun upper : ℝ => x ∈ Set.Ioc (-Real.pi) upper)
+    real_neg_pi_add_two_pi_eq_pi_for_logarithmicPhase.symm
+    hx
+
+theorem real_toIocMod_mem_Ioc_pi_for_logarithmicPhase
+    (θ : ℝ) :
+    toIocMod Real.two_pi_pos (-Real.pi) θ ∈ Set.Ioc (-Real.pi) Real.pi :=
+  Eq.subst
+    (motive := fun upper : ℝ =>
+      toIocMod Real.two_pi_pos (-Real.pi) θ ∈ Set.Ioc (-Real.pi) upper)
+    real_neg_pi_add_two_pi_eq_pi_for_logarithmicPhase
+    (toIocMod_mem_Ioc Real.two_pi_pos (-Real.pi) θ)
+
+theorem complex_I_mul_eq_I_mul_add_I_mul_sub_for_logarithmicPhase
+    (a b : ℂ) :
+    Complex.I * b = Complex.I * a + Complex.I * (b - a) := by
+  have hadd : a + (b - a) = b := by
+    calc
+      a + (b - a) = (b - a) + a := add_comm a (b - a)
+      _ = b := sub_add_cancel b a
+  calc
+    Complex.I * b = Complex.I * (a + (b - a)) := by
+      exact congrArg (fun z : ℂ => Complex.I * z) hadd.symm
+    _ = Complex.I * a + Complex.I * (b - a) := by
+      exact mul_add Complex.I a (b - a)
+
+theorem complex_sub_mul_self_eq_mul_one_sub_for_logarithmicPhase
+    (u r : ℂ) :
+    u - u * r = u * (1 - r) := by
+  calc
+    u - u * r = u * 1 - u * r := by
+      exact congrArg (fun z : ℂ => z - u * r) (mul_one u).symm
+    _ = u * (1 - r) := by
+      exact (mul_sub u 1 r).symm
+
+theorem complex_inv_mul_mul_right_cancel_for_logarithmicPhase
+    {d u : ℂ}
+    (hd : d ≠ 0) :
+    d⁻¹ * (u * d) = u := by
+  calc
+    d⁻¹ * (u * d) = d⁻¹ * (d * u) := by
+      exact congrArg (fun z : ℂ => d⁻¹ * z) (mul_comm u d)
+    _ = (d⁻¹ * d) * u := by
+      exact (mul_assoc d⁻¹ d u).symm
+    _ = 1 * u := by
+      exact congrArg (fun z : ℂ => z * u) (inv_mul_cancel₀ hd)
+    _ = u := one_mul u
+
+theorem complex_finiteAbel_singleton_step_for_logarithmicPhase
+    (A u : ℕ → ℂ)
+    (m : ℕ) :
+    A m * (u m - u (m + 1)) =
+      A m * u m - A ((m + 1) - 1) * u (m + 1) := by
+  have hpred : (m + 1) - 1 = m :=
+    Nat.add_sub_cancel m 1
+  calc
+    A m * (u m - u (m + 1)) =
+        A m * u m - A m * u (m + 1) := by
+      exact mul_sub (A m) (u m) (u (m + 1))
+    _ = A m * u m - A ((m + 1) - 1) * u (m + 1) := by
+      exact congrArg
+        (fun z : ℂ => A m * u m - z * u (m + 1))
+        (congrArg A hpred.symm)
+
+theorem complex_prefixAbel_boundary_rearrange_for_logarithmicPhase
+    (X D U V : ℂ) :
+    (X - D * U + V) + U = (X + (1 - D) * U) + V := by
+  have hinner : -D * U + U = (1 - D) * U := by
+    calc
+      -D * U + U = U + -D * U := add_comm (-D * U) U
+      _ = 1 * U + -D * U := by
+        exact congrArg (fun z : ℂ => z + -D * U) (one_mul U).symm
+      _ = 1 * U + (-D) * U := rfl
+      _ = (1 + -D) * U := by
+        exact (add_mul 1 (-D) U).symm
+      _ = (1 - D) * U := by
+        exact congrArg (fun z : ℂ => z * U) (sub_eq_add_neg 1 D).symm
+  calc
+    (X - D * U + V) + U = (X - D * U) + (V + U) := by
+      exact add_assoc (X - D * U) V U
+    _ = (X - D * U) + (U + V) := by
+      exact congrArg (fun z : ℂ => (X - D * U) + z) (add_comm V U)
+    _ = ((X - D * U) + U) + V := by
+      exact (add_assoc (X - D * U) U V).symm
+    _ = (X + (-(D * U)) + U) + V := by
+      exact congrArg (fun z : ℂ => (z + U) + V) (sub_eq_add_neg X (D * U))
+    _ = (X + (-D * U) + U) + V := by
+      exact congrArg
+        (fun z : ℂ => (X + z + U) + V)
+        (neg_mul D U).symm
+    _ = (X + ((-D * U) + U)) + V := by
+      exact congrArg (fun z : ℂ => z + V) (add_assoc X (-D * U) U)
+    _ = (X + (1 - D) * U) + V := by
+      exact congrArg (fun z : ℂ => (X + z) + V) hinner
+
+theorem real_two_add_two_eq_four_for_logarithmicPhase :
+    (2 : ℝ) + 2 = 4 := by
+  have hnat : (2 : ℕ) + 2 = 4 := by
+    rfl
+  have hcast :
+      (((2 : ℕ) + 2 : ℕ) : ℝ) = ((4 : ℕ) : ℝ) :=
+    congrArg (fun n : ℕ => (n : ℝ)) hnat
+  have hleft :
+      (((2 : ℕ) + 2 : ℕ) : ℝ) = (2 : ℝ) + 2 :=
+    Nat.cast_add 2 2
+  have hright : ((4 : ℕ) : ℝ) = 4 :=
+    rfl
+  exact Eq.trans hleft.symm (Eq.trans hcast hright)
+
+theorem real_two_mul_add_two_mul_eq_four_mul_for_logarithmicPhase
+    (x : ℝ) :
+    2 * x + 2 * x = 4 * x := by
+  calc
+    2 * x + 2 * x = ((2 : ℝ) + 2) * x :=
+      (add_mul (2 : ℝ) 2 x).symm
+    _ = 4 * x := by
+      exact congrArg (fun r : ℝ => r * x)
+        real_two_add_two_eq_four_for_logarithmicPhase
+
+theorem complex_finiteAbel_successor_reassociate_for_logarithmicPhase
+    (p q r s S : ℂ) :
+    (r - s) + (p - q + S) = p - s + (r - q) + S := by
+  calc
+    (r - s) + (p - q + S) =
+        (r + -s) + ((p + -q) + S) := by
+      exact congrArg₂ Add.add (sub_eq_add_neg r s) (congrArg (fun z : ℂ => z + S) (sub_eq_add_neg p q))
+    _ = r + -s + (p + -q) + S := by
+      exact (add_assoc (r + -s) (p + -q) S).symm
+    _ = (r + -s + (p + -q)) + S := rfl
+    _ = (p + -s + (r + -q)) + S := by
+      have hcore :
+          r + -s + (p + -q) = p + -s + (r + -q) := by
+        calc
+          r + -s + (p + -q) = (r + -s) + (p + -q) := rfl
+          _ = r + (-s + (p + -q)) := by
+            exact add_assoc r (-s) (p + -q)
+          _ = r + ((-s + p) + -q) := by
+            exact congrArg (fun z : ℂ => r + z) (add_assoc (-s) p (-q)).symm
+          _ = r + ((p + -s) + -q) := by
+            exact congrArg (fun z : ℂ => r + (z + -q)) (add_comm (-s) p)
+          _ = (r + (p + -s)) + -q := by
+            exact (add_assoc r (p + -s) (-q)).symm
+          _ = ((p + -s) + r) + -q := by
+            exact congrArg (fun z : ℂ => z + -q) (add_comm r (p + -s))
+          _ = (p + -s) + (r + -q) := by
+            exact add_assoc (p + -s) r (-q)
+      exact congrArg (fun z : ℂ => z + S) hcore
+    _ = (p - s + (r - q)) + S := by
+      exact congrArg
+        (fun z : ℂ => (z + (r + -q)) + S)
+        (sub_eq_add_neg p s).symm
+    _ = p - s + (r - q) + S := by
+      exact congrArg (fun z : ℂ => (p - s + z) + S) (sub_eq_add_neg r q).symm
 
 /-- Logarithmic-phase partial sums for the boundary-line oscillator `n^{-it}`. -/
 def Complex.boundaryLineOnePointRealParam_logarithmicPhasePartialSum
@@ -61,15 +1135,20 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_eq_realPh
           Complex.I * ((-t * Real.log x : ℝ) : ℂ) := by
         rfl
       _ = Complex.I * ((-t : ℝ) : ℂ) * (Real.log x : ℂ) := by
-        exact congrArg (fun z : ℂ => Complex.I * z)
-          (map_mul (Complex.ofRealHom) (-t) (Real.log x))
+        calc
+          Complex.I * ((-t * Real.log x : ℝ) : ℂ) =
+              Complex.I * (((-t : ℝ) : ℂ) * (Real.log x : ℂ)) := by
+            exact congrArg (fun z : ℂ => Complex.I * z)
+              (Complex.ofReal_mul (-t) (Real.log x))
+          _ = Complex.I * ((-t : ℝ) : ℂ) * (Real.log x : ℂ) := by
+            exact (mul_assoc Complex.I ((-t : ℝ) : ℂ) (Real.log x : ℂ)).symm
       _ = ((-t : ℝ) : ℂ) * Complex.I * (Real.log x : ℂ) := by
         exact congrArg (fun z : ℂ => z * (Real.log x : ℂ))
           (mul_comm Complex.I ((-t : ℝ) : ℂ))
       _ = (-(t : ℂ) * Complex.I) * (Real.log x : ℂ) := by
         exact congrArg (fun z : ℂ => (z * Complex.I) * (Real.log x : ℂ))
           (Complex.ofReal_neg t)
-  exact congrArg Complex.exp hphase
+  exact congrArg Complex.exp hphase.symm
 
 /-- Positive real samples of the logarithmic phase agree with the complex-power
 notation used in the Dirichlet-polynomial partial sums. -/
@@ -114,7 +1193,7 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_derivativ
   let a : ℂ := -(t : ℂ) * Complex.I
   let E : ℂ := Complex.exp (a * (Real.log x : ℂ))
   have hinv : (x⁻¹ : ℂ) = (x : ℂ)⁻¹ :=
-    Complex.ofReal_inv x
+    rfl
   have hreplace_inv :
       E * (a * (x⁻¹ : ℂ)) = E * (a * (x : ℂ)⁻¹) :=
     congrArg (fun z : ℂ => E * (a * z)) hinv
@@ -147,9 +1226,16 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseFunction_hasDerivA
   let a : ℂ := -(t : ℂ) * Complex.I
   have hlog_real : HasDerivAt Real.log x⁻¹ x :=
     Real.hasDerivAt_log hx.ne'
-  have hlog_complex :
-      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) (x⁻¹ : ℂ) x :=
+  have hlog_complex_raw :
+      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) (((x⁻¹ : ℝ) : ℂ)) x :=
     hlog_real.ofReal_comp
+  have hlog_complex :
+      HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) ((x : ℂ)⁻¹) x :=
+    Eq.subst
+      (motive := fun z : ℂ =>
+        HasDerivAt (fun y : ℝ => (Real.log y : ℂ)) z x)
+      (Complex.ofReal_inv x)
+      hlog_complex_raw
   have hphase :
       HasDerivAt
         (fun y : ℝ => a * (Real.log y : ℂ))
@@ -266,7 +1352,7 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhase_derivative_numera
     _ = ‖(t : ℂ)‖ * ‖Complex.I‖ := by
       exact congrArg (fun y : ℝ => y * ‖Complex.I‖) (norm_neg (t : ℂ))
     _ = ‖(t : ℂ)‖ * 1 := by
-      exact congrArg (fun y : ℝ => ‖(t : ℂ)‖ * y) norm_I
+      exact congrArg (fun y : ℝ => ‖(t : ℂ)‖ * y) Complex.norm_I
     _ = ‖(t : ℂ)‖ :=
       mul_one ‖(t : ℂ)‖
     _ = ‖t‖ :=
@@ -280,7 +1366,7 @@ theorem Complex.boundaryLineOnePointRealParam_positiveReal_denominator_norm
   have hreal : ‖(x : ℂ)‖ = ‖x‖ :=
     RCLike.norm_ofReal x
   have hx_norm : ‖x‖ = x :=
-    norm_of_nonneg hx.le
+    Real.norm_of_nonneg hx.le
   exact hreal.trans hx_norm
 
 /-- The derivative magnitude of the logarithmic phase is exactly `|t| / x`. -/
@@ -377,7 +1463,7 @@ theorem Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_no
         -t / x :=
     Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase_deriv_eq t hx
   have hx_norm : ‖x‖ = x :=
-    norm_of_nonneg hx.le
+    Real.norm_of_nonneg hx.le
   calc
     ‖deriv (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t) x‖ =
         ‖-t / x‖ := by
@@ -396,7 +1482,7 @@ theorem Complex.logarithmicPhase_derivativeMagnitude_antitoneOn_positive
     AntitoneOn (fun x : ℝ => ‖t‖ / x) (Set.Ioi 0) := by
   intro x hx y hy hxy
   have hreciprocal : (1 : ℝ) / y ≤ (1 : ℝ) / x :=
-    one_div_le_one_div_of_le hy hxy
+    one_div_le_one_div_of_le hx hxy
   have hnorm_nonneg : 0 ≤ ‖t‖ :=
     norm_nonneg t
   have hleft : ‖t‖ / y = ‖t‖ * ((1 : ℝ) / y) :=
@@ -423,7 +1509,7 @@ theorem Complex.logarithmicPhase_derivativeMagnitude_block_lower_bound
   exact
     Complex.logarithmicPhase_derivativeMagnitude_antitoneOn_positive t
       hx_pos
-      (lt_of_lt_of_le ha hxb.2)
+      (lt_of_lt_of_le hx_pos hxb.2)
       hxb.2
 
 /-- Integer samples of the continuous logarithmic phase are the terms
@@ -466,7 +1552,7 @@ theorem Complex.logarithmicPhase_deriv_norm_block_lower_bound
       ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖t‖ / x :=
     Complex.logarithmicPhase_derivativeMagnitude_block_lower_bound
       t
-      (by exact_mod_cast hb_pos_nat)
+      ha_pos_real
       hx
   exact Eq.subst
     (motive := fun target : ℝ => ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ target)
@@ -545,7 +1631,7 @@ theorem Complex.logarithmicPhaseRealPhase_deriv_norm_block_lower_bound
       ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ ‖t‖ / x :=
     Complex.logarithmicPhase_derivativeMagnitude_block_lower_bound
       t
-      (by exact_mod_cast hb_pos_nat)
+      ha_pos_real
       hx
   exact Eq.subst
     (motive := fun target : ℝ => ‖t‖ / ((b + 1 : ℕ) : ℝ) ≤ target)
@@ -640,8 +1726,15 @@ theorem Complex.realPhase_integer_block_bound_by_card
       refine Finset.sum_congr rfl ?_
       intro n hn
       exact Complex.realPhase_exp_I_norm φ n
-    _ = ((Finset.Icc a b).card : ℝ) :=
-      Finset.sum_const_one
+    _ = ((Finset.Icc a b).card : ℝ) := by
+      calc
+        ∑ n ∈ Finset.Icc a b, (1 : ℝ) =
+            (Finset.Icc a b).card • (1 : ℝ) := by
+          exact Finset.sum_const (1 : ℝ)
+        _ = ((Finset.Icc a b).card : ℝ) * 1 := by
+          exact nsmul_eq_mul (Finset.Icc a b).card (1 : ℝ)
+        _ = ((Finset.Icc a b).card : ℝ) := by
+          exact mul_one ((Finset.Icc a b).card : ℝ)
 
 /-- Phase increment between adjacent integer samples. -/
 def Complex.realPhase_integerIncrement
@@ -655,11 +1748,11 @@ Kusmin-Landau estimate for `exp(i φ(n))`. -/
 def Complex.realPhase_integerIncrementSeparatedOn
     (φ : ℝ → ℝ)
     (a b : ℕ)
-    (λ : ℝ) : Prop :=
+    (lam : ℝ) : Prop :=
   ∀ n : ℕ,
     n ∈ Finset.Ico a b →
       ∀ k : ℤ,
-        λ ≤
+        lam ≤
           ‖Complex.realPhase_integerIncrement φ n -
             (2 * Real.pi * (k : ℝ))‖
 
@@ -706,11 +1799,11 @@ def Complex.realPhase_reducedIntegerIncrementMonotoneOn
 theorem Complex.realPhase_singleton_integer_block_bound
     (φ : ℝ → ℝ)
     (a : ℕ)
-    {λ : ℝ}
-    (hλ_pos : 0 < λ) :
+    {lam : ℝ}
+    (hlam_pos : 0 < lam) :
     ‖∑ n ∈ Finset.Icc a a,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   have hblock :
       ‖∑ n ∈ Finset.Icc a a,
         Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
@@ -725,54 +1818,57 @@ theorem Complex.realPhase_singleton_integer_block_bound
           congrArg Finset.card hIcc
         _ = 1 :=
           Finset.card_singleton a
-    exact congrArg Nat.cast hcard_nat
-  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-    inv_nonneg.mpr hλ_pos.le
+    calc
+      ((Finset.Icc a a).card : ℝ) = ((1 : ℕ) : ℝ) :=
+        congrArg (fun n : ℕ => (n : ℝ)) hcard_nat
+      _ = 1 :=
+        Nat.cast_one
+  have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+    inv_nonneg.mpr hlam_pos.le
   have hone_le_four : (1 : ℝ) ≤ 4 * 1 := by
-    norm_num
-  have hone_le_endpoint : (1 : ℝ) ≤ 4 * (λ⁻¹ + 1) := by
-    have hone_le_sum : (1 : ℝ) ≤ λ⁻¹ + 1 :=
-      le_add_of_nonneg_left hλ_inv_nonneg
+    exact real_one_le_four_mul_one_for_logarithmicPhase
+  have hone_le_endpoint : (1 : ℝ) ≤ 4 * (lam⁻¹ + 1) := by
+    have hone_le_sum : (1 : ℝ) ≤ lam⁻¹ + 1 :=
+      le_add_of_nonneg_left hlam_inv_nonneg
     exact le_trans hone_le_four
-      (mul_le_mul_of_nonneg_left hone_le_sum (by norm_num : (0 : ℝ) ≤ 4))
-  have hvariation_nonneg : 0 ≤ 4 * Real.pi * λ⁻¹ := by
+      (mul_le_mul_of_nonneg_left hone_le_sum
+        real_zero_le_four_for_logarithmicPhase)
+  have hvariation_nonneg : 0 ≤ 4 * Real.pi * lam⁻¹ := by
     positivity
   have hone_le_target :
-      (1 : ℝ) ≤ 4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ :=
+      (1 : ℝ) ≤ 4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ :=
     le_trans hone_le_endpoint
       (le_add_of_nonneg_right hvariation_nonneg)
   exact le_trans hblock
     (Eq.subst
       (motive := fun c : ℝ =>
-        c ≤ 4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹)
+        c ≤ 4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹)
       hcard.symm
       hone_le_target)
 
 /-- Reciprocal norm control from a positive denominator lower bound. -/
 theorem Complex.realPhase_inv_norm_le_of_denominator_lower_bound
     {z : ℂ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
-    (hden : λ ≤ 2 * ‖z‖) :
-    ‖z⁻¹‖ ≤ 2 * λ⁻¹ := by
-  have hhalf_pos : 0 < λ / 2 := by
-    exact div_pos hλ_pos (by norm_num : (0 : ℝ) < 2)
-  have hnorm_lower : λ / 2 ≤ ‖z‖ := by
-    have hden' : λ ≤ ‖z‖ * 2 := by
-      exact Eq.subst (motive := fun r : ℝ => λ ≤ r) (mul_comm 2 ‖z‖) hden
-    exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 2)).mpr hden'
-  have hinv_mono : ‖z‖⁻¹ ≤ (λ / 2)⁻¹ :=
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
+    (hden : lam ≤ 2 * ‖z‖) :
+    ‖z⁻¹‖ ≤ 2 * lam⁻¹ := by
+  have hhalf_pos : 0 < lam / 2 := by
+    exact real_div_two_pos_of_pos_for_logarithmicPhase hlam_pos
+  have hnorm_lower : lam / 2 ≤ ‖z‖ := by
+    have hden' : lam ≤ ‖z‖ * 2 := by
+      exact Eq.subst (motive := fun r : ℝ => lam ≤ r) (mul_comm 2 ‖z‖) hden
+    exact real_div_two_le_of_le_mul_two_for_logarithmicPhase hlam_pos hden'
+  have hinv_mono : ‖z‖⁻¹ ≤ (lam / 2)⁻¹ :=
     inv_anti₀ hhalf_pos hnorm_lower
-  have hhalf_inv : (λ / 2)⁻¹ = 2 * λ⁻¹ := by
-    have hλ_ne : λ ≠ 0 :=
-      ne_of_gt hλ_pos
-    field_simp [hλ_ne]
+  have hhalf_inv : (lam / 2)⁻¹ = 2 * lam⁻¹ := by
+    exact real_inv_div_two_eq_two_mul_inv_for_logarithmicPhase
   calc
     ‖z⁻¹‖ = ‖z‖⁻¹ :=
       norm_inv z
-    _ ≤ (λ / 2)⁻¹ :=
+    _ ≤ (lam / 2)⁻¹ :=
       hinv_mono
-    _ = 2 * λ⁻¹ :=
+    _ = 2 * lam⁻¹ :=
       hhalf_inv
 
 /-- The `(-π, π]` representative is obtained by subtracting an integral
@@ -792,9 +1888,9 @@ theorem Complex.realPhase_twoPi_toIocMod_integerDistance
       k • ((2 * Real.pi) : ℝ) = 2 * Real.pi * (k : ℝ) := by
     calc
       k • ((2 * Real.pi) : ℝ) = (k : ℝ) * (2 * Real.pi) := by
-        exact zsmul_eq_mul k (2 * Real.pi)
+        exact zsmul_eq_mul (2 * Real.pi) k
       _ = 2 * Real.pi * (k : ℝ) := by
-        ring
+        exact mul_comm (k : ℝ) (2 * Real.pi)
   exact
     Eq.subst
       (motive := fun r : ℝ =>
@@ -811,13 +1907,11 @@ theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
   have hψ_mod :
       toIocMod Real.two_pi_pos (-Real.pi) ψ = ψ := by
     exact (toIocMod_eq_self Real.two_pi_pos).mpr
-      (by
-        convert hψ using 1
-        ring)
+      (real_mem_Ioc_pi_to_periodic_upper_for_logarithmicPhase hψ)
   have hangle :
-      Complex.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 = ‖ψ‖ := by
+        InnerProductGeometry.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 = ‖ψ‖ := by
     have hangle_abs :
-        Complex.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 =
+        InnerProductGeometry.angle (Complex.exp ((ψ : ℂ) * Complex.I)) 1 =
           |toIocMod Real.two_pi_pos (-Real.pi) ψ| :=
       Complex.angle_exp_one ψ
     have habs_norm :
@@ -853,13 +1947,7 @@ theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
           ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ ≤
         2 * ‖Complex.exp ((ψ : ℂ) * Complex.I) - 1‖ := by
     have hpi_half : Real.pi / 2 ≤ (2 : ℝ) := by
-      exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 2)).mpr
-        (by
-          calc
-            Real.pi ≤ (4 : ℝ) :=
-              Real.pi_le_four
-            _ = 2 * 2 := by
-              norm_num)
+      exact real_pi_div_two_le_two_for_logarithmicPhase
     exact mul_le_mul_of_nonneg_right hpi_half
       (norm_nonneg (Complex.exp ((ψ : ℂ) * Complex.I) - 1))
   have hnorm_transport :
@@ -878,7 +1966,8 @@ theorem Complex.realPhase_reducedAngle_le_two_mul_chord_norm
           congrArg (fun z : ℂ => ‖z - 1‖) hcomm_exp
         _ = ‖-(1 - Complex.exp (Complex.I * (ψ : ℂ)))‖ := by
           congr 1
-          ring
+          exact complex_sub_one_eq_neg_one_sub_for_logarithmicPhase
+            (Complex.exp (Complex.I * (ψ : ℂ)))
         _ = ‖1 - Complex.exp (Complex.I * (ψ : ℂ))‖ :=
           norm_neg (1 - Complex.exp (Complex.I * (ψ : ℂ)))
     exact congrArg (fun r : ℝ => 2 * r) hnorm
@@ -897,25 +1986,28 @@ theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
       ‖1 -
         Complex.exp
           (Complex.I *
-            (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ := by
+            ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ))‖ := by
   let k : ℤ := toIocDiv Real.two_pi_pos (-Real.pi) θ
   have hmod :
       θ - k • ((2 * Real.pi) : ℝ) =
-        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+        toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ :=
     self_sub_toIocDiv_zsmul Real.two_pi_pos (-Real.pi) θ
   have hperiod :
       Complex.exp
-          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) =
+          (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ) * Complex.I) =
         Complex.exp ((θ : ℂ) * Complex.I) := by
     have hraw :
-        Complex.exp (((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) * Complex.I) =
+        Complex.exp (((θ - k • (2 * Real.pi) : ℝ) : ℂ) * Complex.I) =
           Complex.exp ((θ : ℂ) * Complex.I) := by
       exact Complex.exp_mul_I_periodic.sub_zsmul_eq k
-    exact Eq.subst
-      (motive := fun x : ℝ =>
-        Complex.exp ((x : ℂ) * Complex.I) =
-          Complex.exp ((θ : ℂ) * Complex.I))
-      hmod
+    have hmod_complex :
+        (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) =
+          ((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) :=
+      congrArg (fun x : ℝ => (x : ℂ)) hmod.symm
+    exact Eq.trans
+      (congrArg
+        (fun z : ℂ => Complex.exp (z * Complex.I))
+        hmod_complex)
       hraw
   have hleft_comm :
       Complex.exp (Complex.I * (θ : ℂ)) =
@@ -923,16 +2015,16 @@ theorem Complex.realPhase_geometricDenominator_norm_eq_toIocMod
     exact congrArg Complex.exp (mul_comm Complex.I (θ : ℂ))
   have hright_comm :
       Complex.exp
-          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) =
+          (Complex.I * ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) =
         Complex.exp
-          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) := by
+          (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ) * Complex.I) := by
     exact congrArg Complex.exp
-      (mul_comm Complex.I (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))
+      (mul_comm Complex.I ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ))
   have hexp :
       Complex.exp (Complex.I * (θ : ℂ)) =
         Complex.exp
-          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) := by
-    exact Eq.trans hleft_comm (Eq.trans hperiod hright_comm.symm)
+          (Complex.I * ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) := by
+    exact Eq.trans hleft_comm (Eq.trans hperiod.symm hright_comm.symm)
   exact congrArg (fun z : ℂ => ‖1 - z‖) hexp
 
 /-- Nearest-period representative chord estimate for the real unit circle. -/
@@ -944,23 +2036,23 @@ theorem Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm
   rcases Complex.realPhase_twoPi_toIocMod_integerDistance θ with ⟨k, hk⟩
   refine ⟨k, ?_⟩
   have hmem :
-      toIocMod Real.two_pi_pos (-Real.pi) θ ∈ Set.Ioc (-Real.pi) Real.pi := by
-    convert toIocMod_mem_Ioc Real.two_pi_pos (-Real.pi) θ using 1
-    ring
+      toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ ∈
+        Set.Ioc (-Real.pi) Real.pi := by
+    exact real_toIocMod_mem_Ioc_pi_for_logarithmicPhase θ
   have hred :
-      ‖toIocMod Real.two_pi_pos (-Real.pi) θ‖ ≤
+      ‖toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ‖ ≤
         2 *
           ‖1 -
             Complex.exp
               (Complex.I *
-                (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ :=
+                ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ))‖ :=
     Complex.realPhase_reducedAngle_le_two_mul_chord_norm hmem
   have hperiod :
       2 *
           ‖1 -
             Complex.exp
               (Complex.I *
-                (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))‖ =
+                ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ))‖ =
         2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
     exact congrArg (fun r : ℝ => 2 * r)
       (Complex.realPhase_geometricDenominator_norm_eq_toIocMod θ).symm
@@ -971,7 +2063,7 @@ theorem Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm
       hk.symm
       (Eq.subst
         (motive := fun target : ℝ =>
-          ‖toIocMod Real.two_pi_pos (-Real.pi) θ‖ ≤ target)
+          ‖toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ‖ ≤ target)
         hperiod
         hred)
 
@@ -981,10 +2073,10 @@ This is the real trigonometric core behind the geometric denominator estimate:
 the nearest `2πℤ` distance to `θ` is controlled by the chord length
 `|1 - exp(iθ)|`. -/
 theorem Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
-    {θ λ : ℝ}
-    (hλ_pos : 0 < λ)
-    (hsep : ∀ k : ℤ, λ ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
-    λ ≤ 2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
+    {θ lam : ℝ}
+    (hlam_pos : 0 < lam)
+    (hsep : ∀ k : ℤ, lam ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
+    lam ≤ 2 * ‖1 - Complex.exp (Complex.I * (θ : ℂ))‖ := by
   rcases Complex.realPhase_twoPi_integerDistance_le_two_mul_chord_norm θ with
     ⟨k, hk⟩
   exact le_trans (hsep k) hk
@@ -997,43 +2089,44 @@ The classical estimate is
 circle and `π ≤ 4`; the stated reciprocal form is the one used by the finite
 Dirichlet-test assembly. -/
 theorem Complex.realPhase_geometricDenominator_inv_norm_bound
-    {θ λ : ℝ}
-    (hλ_pos : 0 < λ)
-    (hsep : ∀ k : ℤ, λ ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
+    {θ lam : ℝ}
+    (hlam_pos : 0 < lam)
+    (hsep : ∀ k : ℤ, lam ≤ ‖θ - (2 * Real.pi * (k : ℝ))‖) :
     ‖(1 - Complex.exp (Complex.I * (θ : ℂ)))⁻¹‖ ≤
-      2 * λ⁻¹ := by
+      2 * lam⁻¹ := by
   exact
     Complex.realPhase_inv_norm_le_of_denominator_lower_bound
-      hλ_pos
+      hlam_pos
       (Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
-        hλ_pos hsep)
+        hlam_pos hsep)
 
 /-- Endpoint contribution in the finite monotone-increment Dirichlet test. -/
 theorem Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound
-    {λ : ℝ}
-    (hλ_pos : 0 < λ) :
-    (1 : ℝ) ≤ 2 * (λ⁻¹ + 1) := by
-  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-    inv_nonneg.mpr hλ_pos.le
-  have hone_le_sum : (1 : ℝ) ≤ λ⁻¹ + 1 :=
-    le_add_of_nonneg_left hλ_inv_nonneg
+    {lam : ℝ}
+    (hlam_pos : 0 < lam) :
+    (1 : ℝ) ≤ 2 * (lam⁻¹ + 1) := by
+  have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+    inv_nonneg.mpr hlam_pos.le
+  have hone_le_sum : (1 : ℝ) ≤ lam⁻¹ + 1 :=
+    le_add_of_nonneg_left hlam_inv_nonneg
   exact le_trans hone_le_sum
     (by
-      have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
-        add_nonneg hλ_inv_nonneg zero_le_one
+      have hsum_nonneg : 0 ≤ lam⁻¹ + 1 :=
+        add_nonneg hlam_inv_nonneg zero_le_one
       calc
-        λ⁻¹ + 1 ≤ 2 * (λ⁻¹ + 1) := by
-          exact (le_mul_iff_one_le_left hsum_nonneg).mpr (by norm_num)
-        _ = 2 * (λ⁻¹ + 1) := rfl)
+        lam⁻¹ + 1 ≤ 2 * (lam⁻¹ + 1) := by
+          exact real_sum_le_two_mul_self_of_nonneg_for_logarithmicPhase
+            hsum_nonneg
+        _ = 2 * (lam⁻¹ + 1) := rfl)
 
 /-- Finite Abel-transform norm assembly for one prefix. -/
 theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
     {S boundary variation : ℂ}
-    {λ : ℝ}
+    {lam : ℝ}
     (hS : S = boundary + variation)
-    (hboundary : ‖boundary‖ ≤ 4 * (λ⁻¹ + 1))
-    (hvariation : ‖variation‖ ≤ 4 * Real.pi * λ⁻¹) :
-    ‖S‖ ≤ 4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+    (hboundary : ‖boundary‖ ≤ 4 * (lam⁻¹ + 1))
+    (hvariation : ‖variation‖ ≤ 4 * Real.pi * lam⁻¹) :
+    ‖S‖ ≤ 4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   have hnorm :
       ‖S‖ ≤ ‖boundary‖ + ‖variation‖ := by
     exact Eq.subst
@@ -1042,7 +2135,7 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
       (norm_add_le boundary variation)
   have hsum :
       ‖boundary‖ + ‖variation‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ :=
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ :=
     add_le_add hboundary hvariation
   exact le_trans hnorm hsum
 
@@ -1051,14 +2144,14 @@ endpoint term and the variation term is zero. -/
 theorem Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
     (φ : ℝ → ℝ)
     (a : ℕ)
-    {λ : ℝ}
-    (hλ_pos : 0 < λ) :
+    {lam : ℝ}
+    (hlam_pos : 0 < lam) :
     ∃ boundary variation : ℂ,
       (∑ n ∈ Finset.Icc a a,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 4 * Real.pi * λ⁻¹ := by
+      ‖boundary‖ ≤ 4 * (lam⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * Real.pi * lam⁻¹ := by
   let boundary : ℂ :=
     ∑ n ∈ Finset.Icc a a,
       Complex.exp (Complex.I * (φ n : ℂ))
@@ -1079,29 +2172,33 @@ theorem Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
             congrArg Finset.card hIcc
           _ = 1 :=
             Finset.card_singleton a
-      exact congrArg Nat.cast hcard_nat
+      calc
+        ((Finset.Icc a a).card : ℝ) = ((1 : ℕ) : ℝ) :=
+          congrArg (fun n : ℕ => (n : ℝ)) hcard_nat
+        _ = 1 :=
+          Nat.cast_one
     have hone_bound :
-        (1 : ℝ) ≤ 2 * (λ⁻¹ + 1) :=
-      Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound hλ_pos
+        (1 : ℝ) ≤ 2 * (lam⁻¹ + 1) :=
+      Complex.realPhase_monotoneIncrement_dirichlet_endpoint_bound hlam_pos
     exact le_trans hblock
       (Eq.subst
-        (motive := fun c : ℝ => c ≤ 4 * (λ⁻¹ + 1))
+        (motive := fun c : ℝ => c ≤ 4 * (lam⁻¹ + 1))
         hcard.symm
         (le_trans hone_bound
           (by
-            have hsum_nonneg : 0 ≤ λ⁻¹ + 1 :=
-              add_nonneg (inv_nonneg.mpr hλ_pos.le) zero_le_one
+            have hsum_nonneg : 0 ≤ lam⁻¹ + 1 :=
+              add_nonneg (inv_nonneg.mpr hlam_pos.le) zero_le_one
             exact mul_le_mul_of_nonneg_right
-              (by norm_num : (2 : ℝ) ≤ 4)
+              real_two_le_four_for_logarithmicPhase
               hsum_nonneg)))
-  · have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-      inv_nonneg.mpr hλ_pos.le
+  · have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+      inv_nonneg.mpr hlam_pos.le
     have hpi_nonneg : 0 ≤ Real.pi :=
       le_of_lt Real.pi_pos
-    have htarget_nonneg : 0 ≤ 4 * Real.pi * λ⁻¹ := by
+    have htarget_nonneg : 0 ≤ 4 * Real.pi * lam⁻¹ := by
       positivity
     exact Eq.subst
-      (motive := fun r : ℝ => r ≤ 4 * Real.pi * λ⁻¹)
+      (motive := fun r : ℝ => r ≤ 4 * Real.pi * lam⁻¹)
       (norm_zero : ‖(0 : ℂ)‖ = 0).symm
       htarget_nonneg
 
@@ -1110,9 +2207,9 @@ nonzero. -/
 theorem Complex.realPhase_geometricDenominator_ne_zero_of_separatedIncrement
     (φ : ℝ → ℝ)
     {a b n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hn : n ∈ Finset.Ico a b) :
     (1 -
       Complex.exp
@@ -1120,37 +2217,48 @@ theorem Complex.realPhase_geometricDenominator_ne_zero_of_separatedIncrement
           (Complex.realPhase_integerIncrement φ n : ℂ))) ≠ 0 := by
   intro hzero
   have hlower :
-      λ ≤
+      lam ≤
         2 *
           ‖1 -
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ))‖ :=
     Complex.realPhase_twoPiSeparation_le_two_mul_geometricDenominator_norm
-      hλ_pos
+      hlam_pos
       (hsep n hn)
   have hright_zero :
-      2 *
+      (2 : ℝ) *
           ‖1 -
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ))‖ =
         0 := by
-    exact congrArg (fun z : ℂ => 2 * ‖z‖) hzero
-  have hλ_nonpos : λ ≤ 0 :=
+    calc
+      (2 : ℝ) *
+          ‖1 -
+            Complex.exp
+              (Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ))‖ =
+          (2 : ℝ) * ‖(0 : ℂ)‖ := by
+        exact congrArg (fun z : ℂ => (2 : ℝ) * ‖z‖) hzero
+      _ = (2 : ℝ) * 0 := by
+        exact congrArg (fun r : ℝ => (2 : ℝ) * r) (norm_zero : ‖(0 : ℂ)‖ = 0)
+      _ = 0 := by
+        exact mul_zero (2 : ℝ)
+  have hlam_nonpos : lam ≤ 0 :=
     Eq.subst
-      (motive := fun r : ℝ => λ ≤ r)
+      (motive := fun r : ℝ => lam ≤ r)
       hright_zero
       hlower
-  exact (not_le_of_gt hλ_pos) hλ_nonpos
+  exact (not_le_of_gt hlam_pos) hlam_nonpos
 
 /-- The one-step geometric denominator inverts the finite phase difference. -/
 theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
     (φ : ℝ → ℝ)
     {a b n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hn : n ∈ Finset.Ico a b) :
     ((1 -
       Complex.exp
@@ -1171,9 +2279,23 @@ theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
           Complex.I * (φ n : ℂ) +
             Complex.I *
               (Complex.realPhase_integerIncrement φ n : ℂ) := by
-      unfold Complex.realPhase_integerIncrement
-      push_cast
-      ring
+      have hsub :
+          ((φ (n + 1 : ℕ) - φ n : ℝ) : ℂ) =
+            (φ (n + 1 : ℕ) : ℂ) - (φ n : ℂ) :=
+        Complex.ofReal_sub (φ (n + 1 : ℕ)) (φ n)
+      calc
+        Complex.I * (φ (n + 1 : ℕ) : ℂ) =
+            Complex.I * (φ n : ℂ) +
+              Complex.I * ((φ (n + 1 : ℕ) : ℂ) - (φ n : ℂ)) :=
+          complex_I_mul_eq_I_mul_add_I_mul_sub_for_logarithmicPhase
+            (φ n : ℂ)
+            (φ (n + 1 : ℕ) : ℂ)
+        _ = Complex.I * (φ n : ℂ) +
+              Complex.I *
+                (Complex.realPhase_integerIncrement φ n : ℂ) := by
+          exact congrArg
+            (fun z : ℂ => Complex.I * (φ n : ℂ) + Complex.I * z)
+            hsub.symm
     calc
       Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ)) =
           Complex.exp
@@ -1190,7 +2312,7 @@ theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
       (1 - r) ≠ 0 := by
     exact
       Complex.realPhase_geometricDenominator_ne_zero_of_separatedIncrement
-        φ hλ_pos hsep hn
+        φ hlam_pos hsep hn
   calc
     ((1 - r)⁻¹) *
         (u - Complex.exp (Complex.I * (φ (n + 1 : ℕ) : ℂ))) =
@@ -1198,9 +2320,9 @@ theorem Complex.realPhase_geometricDenominator_inv_mul_step_difference
       exact congrArg (fun z : ℂ => ((1 - r)⁻¹) * (u - z)) hstep
     _ = ((1 - r)⁻¹) * (u * (1 - r)) := by
       congr 1
-      ring
+      exact complex_sub_mul_self_eq_mul_one_sub_for_logarithmicPhase u r
     _ = u := by
-      field_simp [hden_ne]
+      exact complex_inv_mul_mul_right_cancel_for_logarithmicPhase hden_ne
 
 /-- Inverse geometric denominator attached to an adjacent integer phase
 increment. -/
@@ -1253,26 +2375,32 @@ theorem Complex.finiteAbel_Ico_mul_sub_telescope
       intro a ham
       rcases lt_or_eq_of_le (Nat.le_of_lt_succ ham) with ham_strict | rfl
       · have hIco :
-            Finset.Ico a (m + 1) = Finset.insert m (Finset.Ico a m) := by
+            Finset.Ico a (m + 1) = insert m (Finset.Ico a m) := by
           exact Nat.Ico_succ_right_eq_insert_Ico (Nat.le_of_lt ham_strict)
         have hIoo :
-            Finset.Ioo a (m + 1) = Finset.insert m (Finset.Ioo a m) := by
+            Finset.Ioo a (m + 1) = insert m (Finset.Ioo a m) := by
           ext n
           constructor
           · intro hn
-            rcases hn with ⟨hna, hnm1⟩
+            have hn_bounds : a < n ∧ n < m + 1 :=
+              Finset.mem_Ioo.mp hn
             by_cases hnm : n = m
             · subst hnm
-              right
-              exact ⟨by omega, by omega⟩
-            · left
-              exact ⟨hna, by omega⟩
+              exact Finset.mem_insert.mpr (Or.inl rfl)
+            · exact Finset.mem_insert.mpr
+                (Or.inr (Finset.mem_Ioo.mpr ⟨hn_bounds.left, by omega⟩))
           · intro hn
-            rcases hn with rfl | hn
-            · constructor
-              · omega
-              · omega
-            · exact hn
+            match Finset.mem_insert.mp hn with
+            | Or.inl hm_eq =>
+                exact Finset.mem_Ioo.mpr
+                  ⟨Eq.subst (motive := fun q : ℕ => a < q) hm_eq.symm ham_strict,
+                    Eq.subst (motive := fun q : ℕ => q < m + 1) hm_eq.symm
+                      (Nat.lt_succ_self m)⟩
+            | Or.inr hn_inner =>
+                have hn_bounds : a < n ∧ n < m :=
+                  Finset.mem_Ioo.mp hn_inner
+                exact Finset.mem_Ioo.mpr
+                  ⟨hn_bounds.left, lt_trans hn_bounds.right (Nat.lt_succ_self m)⟩
         have hm_not_Ico : m ∉ Finset.Ico a m :=
           Finset.right_not_mem_Ico
         have hm_not_Ioo : m ∉ Finset.Ioo a m := by
@@ -1281,10 +2409,10 @@ theorem Complex.finiteAbel_Ico_mul_sub_telescope
             (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
               A a * u a - A (m - 1) * u m +
                 ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n :=
-          ih a ham_strict
+          ih ham_strict
         calc
           (∑ n ∈ Finset.Ico a (m + 1), A n * (u n - u (n + 1))) =
-              ∑ n ∈ Finset.insert m (Finset.Ico a m),
+              ∑ n ∈ insert m (Finset.Ico a m),
                 A n * (u n - u (n + 1)) := by
             exact congrArg
               (fun s : Finset ℕ =>
@@ -1303,74 +2431,139 @@ theorem Complex.finiteAbel_Ico_mul_sub_telescope
               hind
           _ =
               A a * u a - A m * u (m + 1) +
-                ∑ n ∈ Finset.insert m (Finset.Ioo a m),
+                ∑ n ∈ insert m (Finset.Ioo a m),
                   (A n - A (n - 1)) * u n := by
             calc
               A m * (u m - u (m + 1)) +
                   (A a * u a - A (m - 1) * u m +
                     ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n)
                   =
+                  (A m * u m - A m * u (m + 1)) +
+                    (A a * u a - A (m - 1) * u m +
+                      ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n) := by
+                exact congrArg
+                  (fun z : ℂ =>
+                    z +
+                      (A a * u a - A (m - 1) * u m +
+                        ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n))
+                  (mul_sub (A m) (u m) (u (m + 1)))
+              _ =
                   A a * u a - A m * u (m + 1) +
                     (A m * u m - A (m - 1) * u m) +
                       ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n := by
-                ring
+                exact complex_finiteAbel_successor_reassociate_for_logarithmicPhase
+                  (A a * u a)
+                  (A (m - 1) * u m)
+                  (A m * u m)
+                  (A m * u (m + 1))
+                  (∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n)
               _ =
                   A a * u a - A m * u (m + 1) +
-                    ∑ n ∈ Finset.insert m (Finset.Ioo a m),
+                    (A m * u m - A (m - 1) * u m) +
+                      ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n := by
+                rfl
+              _ =
+                  A a * u a - A m * u (m + 1) +
+                    ((A m * u m - A (m - 1) * u m) +
+                      ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n) := by
+                exact add_assoc
+                  (A a * u a - A m * u (m + 1))
+                  (A m * u m - A (m - 1) * u m)
+                  (∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n)
+              _ =
+                  A a * u a - A m * u (m + 1) +
+                    ((A m - A (m - 1)) * u m +
+                      ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n) := by
+                exact congrArg
+                  (fun z : ℂ =>
+                    A a * u a - A m * u (m + 1) +
+                      (z +
+                        ∑ n ∈ Finset.Ioo a m, (A n - A (n - 1)) * u n))
+                  (sub_mul (A m) (A (m - 1)) (u m)).symm
+              _ =
+                  A a * u a - A m * u (m + 1) +
+                    ∑ n ∈ insert m (Finset.Ioo a m),
                       (A n - A (n - 1)) * u n := by
-                exact Eq.symm (Finset.sum_insert hm_not_Ioo)
+                exact congrArg
+                  (fun z : ℂ => A a * u a - A m * u (m + 1) + z)
+                  (Eq.symm
+                    (Finset.sum_insert
+                      (s := Finset.Ioo a m)
+                      (a := m)
+                      (f := fun n : ℕ => (A n - A (n - 1)) * u n)
+                      hm_not_Ioo))
+          _ =
+              A a * u a - A m * u (m + 1) +
+                ∑ n ∈ Finset.Ioo a (m + 1), (A n - A (n - 1)) * u n := by
+            exact
+              congrArg
+                (fun s : Finset ℕ =>
+                  A a * u a - A m * u (m + 1) +
+                    ∑ n ∈ s, (A n - A (n - 1)) * u n)
+                hIoo.symm
           _ =
               A a * u a - A ((m + 1) - 1) * u (m + 1) +
                 ∑ n ∈ Finset.Ioo a (m + 1), (A n - A (n - 1)) * u n := by
-            calc
-              A a * u a - A m * u (m + 1) +
-                ∑ n ∈ Finset.insert m (Finset.Ioo a m),
-                  (A n - A (n - 1)) * u n
-                  =
-                  A a * u a - A ((m + 1) - 1) * u (m + 1) +
-                    ∑ n ∈ Finset.Ioo a (m + 1), (A n - A (n - 1)) * u n := by
-                exact
-                  congrArg
-                    (fun s : Finset ℕ =>
-                      A a * u a - A m * u (m + 1) +
-                        ∑ n ∈ s, (A n - A (n - 1)) * u n)
-                    hIoo
-      · have hIco : Finset.Ico m (m + 1) = ({m} : Finset ℕ) :=
-          Nat.Ico_succ_singleton
-        have hIoo : Finset.Ioo m (m + 1) = (∅ : Finset ℕ) := by
-          exact Finset.Ioo_eq_empty (by omega)
+            exact congrArg
+              (fun q : ℕ =>
+                A a * u a - A q * u (m + 1) +
+                  ∑ n ∈ Finset.Ioo a (m + 1), (A n - A (n - 1)) * u n)
+              (Nat.succ_sub_one m).symm
+      · have hIco : Finset.Ico a (a + 1) = ({a} : Finset ℕ) :=
+          Nat.Ico_succ_singleton a
+        have hIoo : Finset.Ioo a (a + 1) = (∅ : Finset ℕ) := by
+          ext n
+          constructor
+          · intro hn
+            have hn_bounds : a < n ∧ n < a + 1 :=
+              Finset.mem_Ioo.mp hn
+            exact False.elim
+              ((Nat.not_lt_of_ge (Nat.succ_le_of_lt hn_bounds.left))
+                hn_bounds.right)
+          · intro hn
+            exact False.elim (Finset.not_mem_empty n hn)
         calc
-          (∑ n ∈ Finset.Ico m (m + 1), A n * (u n - u (n + 1))) =
-              A m * (u m - u (m + 1)) := by
+          (∑ n ∈ Finset.Ico a (a + 1), A n * (u n - u (n + 1))) =
+              A a * (u a - u (a + 1)) := by
             calc
-              ∑ n ∈ Finset.Ico m (m + 1), A n * (u n - u (n + 1))
-                  = ∑ n ∈ ({m} : Finset ℕ), A n * (u n - u (n + 1)) := by
+              ∑ n ∈ Finset.Ico a (a + 1), A n * (u n - u (n + 1))
+                  = ∑ n ∈ ({a} : Finset ℕ), A n * (u n - u (n + 1)) := by
                 exact congrArg (fun s : Finset ℕ => ∑ n ∈ s, A n * (u n - u (n + 1))) hIco
-              _ = A m * (u m - u (m + 1)) := by
-                exact Finset.sum_singleton m (fun n : ℕ => A n * (u n - u (n + 1)))
+              _ = A a * (u a - u (a + 1)) := by
+                exact Finset.sum_singleton (fun n : ℕ => A n * (u n - u (n + 1))) a
           _ =
-              A m * u m - A ((m + 1) - 1) * u (m + 1) +
-                ∑ n ∈ Finset.Ioo m (m + 1), (A n - A (n - 1)) * u n := by
+              A a * u a - A ((a + 1) - 1) * u (a + 1) +
+                ∑ n ∈ Finset.Ioo a (a + 1), (A n - A (n - 1)) * u n := by
             calc
-              A m * (u m - u (m + 1))
-                  = A m * u m - A ((m + 1) - 1) * u (m + 1) := by
-                    ring
-              _ = A m * u m - A ((m + 1) - 1) * u (m + 1) +
-                  ∑ n ∈ Finset.Ioo m (m + 1), (A n - A (n - 1)) * u n := by
-                exact Eq.symm
-                  (by
-                    exact Finset.sum_empty
-                      (fun n : ℕ => (A n - A (n - 1)) * u n))
+              A a * (u a - u (a + 1))
+                  = A a * u a - A ((a + 1) - 1) * u (a + 1) := by
+                    exact complex_finiteAbel_singleton_step_for_logarithmicPhase A u a
+              _ = A a * u a - A ((a + 1) - 1) * u (a + 1) +
+                  ∑ n ∈ Finset.Ioo a (a + 1), (A n - A (n - 1)) * u n := by
+                calc
+                  A a * u a - A ((a + 1) - 1) * u (a + 1) =
+                      A a * u a - A ((a + 1) - 1) * u (a + 1) +
+                        ∑ n ∈ (∅ : Finset ℕ), (A n - A (n - 1)) * u n := by
+                    exact (add_zero
+                      (A a * u a - A ((a + 1) - 1) * u (a + 1))).symm
+                  _ =
+                      A a * u a - A ((a + 1) - 1) * u (a + 1) +
+                        ∑ n ∈ Finset.Ioo a (a + 1), (A n - A (n - 1)) * u n := by
+                    exact congrArg
+                      (fun s : Finset ℕ =>
+                        A a * u a - A ((a + 1) - 1) * u (a + 1) +
+                          ∑ n ∈ s, (A n - A (n - 1)) * u n)
+                      hIoo.symm
 
 /-- Exact `Ico` telescoping form of the finite Abel transform. -/
 theorem Complex.realPhase_prefixAbel_Ico_telescope
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hlam_pos : 0 < lam)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     (∑ n ∈ Finset.Ico a m,
       Complex.realPhase_integerUnit φ n) =
         Complex.realPhase_inverseGeometricDenominator φ a *
@@ -1398,7 +2591,7 @@ theorem Complex.realPhase_prefixAbel_Ico_telescope
         Complex.realPhase_integerUnit
       exact
         Complex.realPhase_geometricDenominator_inv_mul_step_difference
-          φ hλ_pos hsep hn_block
+          φ hlam_pos hsep hn_block
     exact hstep.symm
   have htelescope :
       (∑ n ∈ Finset.Ico a m, A n * (u n - u (n + 1))) =
@@ -1429,11 +2622,11 @@ theorem Complex.realPhase_prefixAbel_Ico_telescope
 theorem Complex.realPhase_prefixAbel_identity
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hlam_pos : 0 < lam)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     (∑ n ∈ Finset.Icc a m,
       Complex.realPhase_integerUnit φ n) =
         Complex.realPhase_prefixAbelBoundary φ a m +
@@ -1447,14 +2640,14 @@ theorem Complex.realPhase_prefixAbel_identity
             Complex.realPhase_integerUnit φ n) +
             Complex.realPhase_integerUnit φ m := by
     have hinsert :
-        Finset.insert m (Finset.Ico a m) = Finset.Icc a m :=
+        insert m (Finset.Ico a m) = Finset.Icc a m :=
       Finset.Ico_insert_right hm_bounds.1
     have hnot : m ∉ Finset.Ico a m :=
       Finset.right_not_mem_Ico
     calc
       (∑ n ∈ Finset.Icc a m,
         Complex.realPhase_integerUnit φ n) =
-          ∑ n ∈ Finset.insert m (Finset.Ico a m),
+          ∑ n ∈ insert m (Finset.Ico a m),
             Complex.realPhase_integerUnit φ n := by
         exact congrArg
           (fun s : Finset ℕ =>
@@ -1479,7 +2672,7 @@ theorem Complex.realPhase_prefixAbel_identity
             Complex.realPhase_integerUnit φ m +
           Complex.realPhase_prefixAbelVariation φ a m :=
     Complex.realPhase_prefixAbel_Ico_telescope
-      φ ham hm hλ_pos hsep
+      φ ham hm hlam_pos hsep
   calc
     (∑ n ∈ Finset.Icc a m,
       Complex.realPhase_integerUnit φ n) =
@@ -1501,23 +2694,28 @@ theorem Complex.realPhase_prefixAbel_identity
         Complex.realPhase_prefixAbelBoundary φ a m +
           Complex.realPhase_prefixAbelVariation φ a m := by
       unfold Complex.realPhase_prefixAbelBoundary
-      ring
+      exact complex_prefixAbel_boundary_rearrange_for_logarithmicPhase
+        (Complex.realPhase_inverseGeometricDenominator φ a *
+          Complex.realPhase_integerUnit φ a)
+        (Complex.realPhase_inverseGeometricDenominator φ (m - 1))
+        (Complex.realPhase_integerUnit φ m)
+        (Complex.realPhase_prefixAbelVariation φ a m)
 
 /-- Endpoint estimate for the explicit finite Abel boundary term. -/
 theorem Complex.realPhase_prefixAbelBoundary_norm_bound
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖Complex.realPhase_prefixAbelBoundary φ a m‖ ≤
-      4 * (λ⁻¹ + 1) := by
+      4 * (lam⁻¹ + 1) := by
   have hm_bounds : a ≤ m ∧ m ≤ b :=
     Finset.mem_Icc.mp hm
   have ha_mem : a ∈ Finset.Ico a b :=
@@ -1528,17 +2726,17 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
     have hm_pos : 0 < m :=
       lt_of_le_of_lt (Nat.zero_le a) ham
     have hpred_lt_m : m - 1 < m :=
-      Nat.pred_lt hm_pos
+      Nat.pred_lt (Nat.ne_of_gt hm_pos)
     have hpred_lt_b : m - 1 < b :=
       lt_of_lt_of_le hpred_lt_m hm_bounds.2
     exact Finset.mem_Ico.mpr ⟨ha_pred, hpred_lt_b⟩
   have ha_den :
       ‖Complex.realPhase_inverseGeometricDenominator φ a‖ ≤
-        2 * λ⁻¹ :=
+        2 * lam⁻¹ :=
     hden a ha_mem
   have hm_den :
       ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
-        2 * λ⁻¹ :=
+        2 * lam⁻¹ :=
     hden (m - 1) hm_pred_mem
   have ha_unit :
       ‖Complex.realPhase_integerUnit φ a‖ = 1 :=
@@ -1548,7 +2746,7 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
     Complex.realPhase_exp_I_norm φ m
   have hfirst :
       ‖Complex.realPhase_inverseGeometricDenominator φ a *
-        Complex.realPhase_integerUnit φ a‖ ≤ 2 * λ⁻¹ := by
+        Complex.realPhase_integerUnit φ a‖ ≤ 2 * lam⁻¹ := by
     calc
       ‖Complex.realPhase_inverseGeometricDenominator φ a *
         Complex.realPhase_integerUnit φ a‖ =
@@ -1564,14 +2762,14 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
           ha_unit
       _ = ‖Complex.realPhase_inverseGeometricDenominator φ a‖ :=
         mul_one _
-      _ ≤ 2 * λ⁻¹ :=
+      _ ≤ 2 * lam⁻¹ :=
         ha_den
   have hsecond :
       ‖(1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
-        Complex.realPhase_integerUnit φ m‖ ≤ 1 + 2 * λ⁻¹ := by
+        Complex.realPhase_integerUnit φ m‖ ≤ 1 + 2 * lam⁻¹ := by
     have hfactor :
         ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
-          1 + 2 * λ⁻¹ := by
+          1 + 2 * lam⁻¹ := by
       calc
         ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ ≤
             ‖(1 : ℂ)‖ +
@@ -1584,7 +2782,7 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
             (fun r : ℝ =>
               r + ‖Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖)
             norm_one
-        _ ≤ 1 + 2 * λ⁻¹ :=
+        _ ≤ 1 + 2 * lam⁻¹ :=
           add_le_add_left hm_den 1
     calc
       ‖(1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
@@ -1601,11 +2799,11 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
           hm_unit
       _ = ‖1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)‖ :=
         mul_one _
-      _ ≤ 1 + 2 * λ⁻¹ :=
+      _ ≤ 1 + 2 * lam⁻¹ :=
         hfactor
   have hboundary :
       ‖Complex.realPhase_prefixAbelBoundary φ a m‖ ≤
-        2 * λ⁻¹ + (1 + 2 * λ⁻¹) := by
+        2 * lam⁻¹ + (1 + 2 * lam⁻¹) := by
     unfold Complex.realPhase_prefixAbelBoundary
     exact le_trans
       (norm_add_le
@@ -1614,50 +2812,53 @@ theorem Complex.realPhase_prefixAbelBoundary_norm_bound
         ((1 - Complex.realPhase_inverseGeometricDenominator φ (m - 1)) *
           Complex.realPhase_integerUnit φ m))
       (add_le_add hfirst hsecond)
-  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-    inv_nonneg.mpr hλ_pos.le
+  have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+    inv_nonneg.mpr hlam_pos.le
   have htarget :
-      2 * λ⁻¹ + (1 + 2 * λ⁻¹) ≤
-        4 * (λ⁻¹ + 1) := by
+      2 * lam⁻¹ + (1 + 2 * lam⁻¹) ≤
+        4 * (lam⁻¹ + 1) := by
     have hone_le_four : (1 : ℝ) ≤ 4 :=
-      one_le_ofNat
+      Eq.subst
+        (motive := fun r : ℝ => (1 : ℝ) ≤ r)
+        (mul_one (4 : ℝ))
+        real_one_le_four_mul_one_for_logarithmicPhase
     have hleft_reorder :
-        2 * λ⁻¹ + (1 + 2 * λ⁻¹) =
-          (2 * λ⁻¹ + 2 * λ⁻¹) + 1 := by
+        2 * lam⁻¹ + (1 + 2 * lam⁻¹) =
+          (2 * lam⁻¹ + 2 * lam⁻¹) + 1 := by
       calc
-        2 * λ⁻¹ + (1 + 2 * λ⁻¹) =
-            2 * λ⁻¹ + (2 * λ⁻¹ + 1) :=
-          congrArg (fun r : ℝ => 2 * λ⁻¹ + r)
-            (add_comm 1 (2 * λ⁻¹))
-        _ = (2 * λ⁻¹ + 2 * λ⁻¹) + 1 :=
-          (add_assoc (2 * λ⁻¹) (2 * λ⁻¹) 1).symm
+        2 * lam⁻¹ + (1 + 2 * lam⁻¹) =
+            2 * lam⁻¹ + (2 * lam⁻¹ + 1) :=
+          congrArg (fun r : ℝ => 2 * lam⁻¹ + r)
+            (add_comm 1 (2 * lam⁻¹))
+        _ = (2 * lam⁻¹ + 2 * lam⁻¹) + 1 :=
+          (add_assoc (2 * lam⁻¹) (2 * lam⁻¹) 1).symm
     have hleft_fold :
-        (2 * λ⁻¹ + 2 * λ⁻¹) + 1 =
-          4 * λ⁻¹ + 1 :=
+        (2 * lam⁻¹ + 2 * lam⁻¹) + 1 =
+          4 * lam⁻¹ + 1 :=
       congrArg (fun r : ℝ => r + 1)
-        (Real.two_mul_add_two_mul_eq_four_mul λ⁻¹)
+        (real_two_mul_add_two_mul_eq_four_mul_for_logarithmicPhase lam⁻¹)
     have hleft_eq :
-        2 * λ⁻¹ + (1 + 2 * λ⁻¹) =
-          4 * λ⁻¹ + 1 :=
+        2 * lam⁻¹ + (1 + 2 * lam⁻¹) =
+          4 * lam⁻¹ + 1 :=
       Eq.trans hleft_reorder hleft_fold
     have htarget_expand :
-        4 * (λ⁻¹ + 1) = 4 * λ⁻¹ + 4 := by
+        4 * (lam⁻¹ + 1) = 4 * lam⁻¹ + 4 := by
       calc
-        4 * (λ⁻¹ + 1) = 4 * λ⁻¹ + 4 * 1 :=
-          mul_add (4 : ℝ) λ⁻¹ 1
-        _ = 4 * λ⁻¹ + 4 :=
-          congrArg (fun r : ℝ => 4 * λ⁻¹ + r)
+        4 * (lam⁻¹ + 1) = 4 * lam⁻¹ + 4 * 1 :=
+          mul_add (4 : ℝ) lam⁻¹ 1
+        _ = 4 * lam⁻¹ + 4 :=
+          congrArg (fun r : ℝ => 4 * lam⁻¹ + r)
             (mul_one (4 : ℝ))
     have hcore :
-        4 * λ⁻¹ + 1 ≤ 4 * λ⁻¹ + 4 :=
-      add_le_add_left hone_le_four (4 * λ⁻¹)
+        4 * lam⁻¹ + 1 ≤ 4 * lam⁻¹ + 4 :=
+      add_le_add_left hone_le_four (4 * lam⁻¹)
     exact Eq.subst
       (motive := fun left : ℝ =>
-        left ≤ 4 * (λ⁻¹ + 1))
+        left ≤ 4 * (lam⁻¹ + 1))
       hleft_eq.symm
       (Eq.subst
         (motive := fun right : ℝ =>
-          4 * λ⁻¹ + 1 ≤ right)
+          4 * lam⁻¹ + 1 ≤ right)
         htarget_expand.symm
         hcore)
   exact le_trans hboundary htarget
@@ -1667,21 +2868,21 @@ zero in the fundamental interval. -/
 theorem Complex.realPhase_reducedIntegerIncrement_norm_lower_bound
     (φ : ℝ → ℝ)
     {a b n : ℕ}
-    {λ : ℝ}
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    {lam : ℝ}
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hn : n ∈ Finset.Ico a b) :
-    λ ≤ ‖Complex.realPhase_reducedIntegerIncrement φ n‖ := by
+    lam ≤ ‖Complex.realPhase_reducedIntegerIncrement φ n‖ := by
   rcases
     Complex.realPhase_twoPi_toIocMod_integerDistance
       (Complex.realPhase_integerIncrement φ n) with
     ⟨k, hk⟩
   have hsep_k :
-      λ ≤
+      lam ≤
         ‖Complex.realPhase_integerIncrement φ n -
           (2 * Real.pi * (k : ℝ))‖ :=
     hsep n hn k
   exact Eq.subst
-    (motive := fun x : ℝ => λ ≤ ‖x‖)
+    (motive := fun x : ℝ => lam ≤ ‖x‖)
     hk
     hsep_k
 
@@ -1701,21 +2902,25 @@ theorem Complex.realPhase_inverseGeometricDenominator_eq_reduced
   let k : ℤ := toIocDiv Real.two_pi_pos (-Real.pi) θ
   have hmod :
       θ - k • ((2 * Real.pi) : ℝ) =
-        toIocMod Real.two_pi_pos (-Real.pi) θ :=
+        toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ :=
     self_sub_toIocDiv_zsmul Real.two_pi_pos (-Real.pi) θ
   have hperiod :
       Complex.exp
-          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) =
+          (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ) *
+            Complex.I) =
         Complex.exp ((θ : ℂ) * Complex.I) := by
     have hraw :
-        Complex.exp (((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) * Complex.I) =
+        Complex.exp (((θ - k • (2 * Real.pi) : ℝ) : ℂ) * Complex.I) =
           Complex.exp ((θ : ℂ) * Complex.I) := by
       exact Complex.exp_mul_I_periodic.sub_zsmul_eq k
-    exact Eq.subst
-      (motive := fun x : ℝ =>
-        Complex.exp ((x : ℂ) * Complex.I) =
-          Complex.exp ((θ : ℂ) * Complex.I))
-      hmod
+    have hmod_complex :
+        (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) =
+          ((θ - k • ((2 * Real.pi) : ℝ) : ℝ) : ℂ) :=
+      congrArg (fun x : ℝ => (x : ℂ)) hmod.symm
+    exact Eq.trans
+      (congrArg
+        (fun z : ℂ => Complex.exp (z * Complex.I))
+        hmod_complex)
       hraw
   have hleft_comm :
       Complex.exp (Complex.I * (θ : ℂ)) =
@@ -1723,16 +2928,20 @@ theorem Complex.realPhase_inverseGeometricDenominator_eq_reduced
     congrArg Complex.exp (mul_comm Complex.I (θ : ℂ))
   have hright_comm :
       Complex.exp
-          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) =
+          (Complex.I *
+            ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) =
         Complex.exp
-          ((toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ) * Complex.I) :=
+          (((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ) *
+            Complex.I) :=
     congrArg Complex.exp
-      (mul_comm Complex.I (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ))
+      (mul_comm Complex.I
+        ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ))
   have hexp :
       Complex.exp (Complex.I * (θ : ℂ)) =
         Complex.exp
-          (Complex.I * (toIocMod Real.two_pi_pos (-Real.pi) θ : ℂ)) :=
-    Eq.trans hleft_comm (Eq.trans hperiod hright_comm.symm)
+          (Complex.I *
+            ((toIocMod (α := ℝ) Real.two_pi_pos (-Real.pi) θ : ℝ) : ℂ)) :=
+    Eq.trans hleft_comm (Eq.trans hperiod.symm hright_comm.symm)
   exact congrArg Inv.inv
     (congrArg (fun z : ℂ => 1 - z) hexp)
 
@@ -1805,19 +3014,19 @@ theorem Complex.half_add_I_mul_ofReal_im
 /-- Real-coordinate subtraction on the vertical line `1 / 2 + I * ℝ`. -/
 theorem Complex.half_add_I_mul_ofReal_sub_re
     (x y : ℝ) :
-    (((1 / 2 : ℂ) + Complex.I * (x : ℂ)) -
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))).re =
+    ((((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)) -
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))).re =
       (Complex.I * ((x - y : ℝ) : ℂ)).re := by
   have hleft_first :
-      ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).re = 1 / 2 := by
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).re = 1 / 2 := by
     calc
-      ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).re =
-          ((1 / 2 : ℚ) : ℂ).re + (Complex.I * (x : ℂ)).re :=
-        Complex.add_re (1 / 2 : ℂ) (Complex.I * (x : ℂ))
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).re =
+          (((1 / 2 : ℝ) : ℂ).re) + (Complex.I * (x : ℂ)).re :=
+        Complex.add_re (((1 / 2 : ℝ) : ℂ)) (Complex.I * (x : ℂ))
       _ = (1 / 2 : ℝ) + (Complex.I * (x : ℂ)).re := by
         exact congrArg
           (fun r : ℝ => r + (Complex.I * (x : ℂ)).re)
-          (Complex.ratCast_re (1 / 2 : ℚ))
+          (Complex.ofReal_re (1 / 2 : ℝ))
       _ = (1 / 2 : ℝ) + (-(x : ℂ).im) := by
         exact congrArg
           (fun r : ℝ => (1 / 2 : ℝ) + r)
@@ -1833,15 +3042,15 @@ theorem Complex.half_add_I_mul_ofReal_sub_re
       _ = 1 / 2 :=
         add_zero (1 / 2 : ℝ)
   have hleft_second :
-      ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).re = 1 / 2 := by
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).re = 1 / 2 := by
     calc
-      ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).re =
-          ((1 / 2 : ℚ) : ℂ).re + (Complex.I * (y : ℂ)).re :=
-        Complex.add_re (1 / 2 : ℂ) (Complex.I * (y : ℂ))
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).re =
+          (((1 / 2 : ℝ) : ℂ).re) + (Complex.I * (y : ℂ)).re :=
+        Complex.add_re (((1 / 2 : ℝ) : ℂ)) (Complex.I * (y : ℂ))
       _ = (1 / 2 : ℝ) + (Complex.I * (y : ℂ)).re := by
         exact congrArg
           (fun r : ℝ => r + (Complex.I * (y : ℂ)).re)
-          (Complex.ratCast_re (1 / 2 : ℚ))
+          (Complex.ofReal_re (1 / 2 : ℝ))
       _ = (1 / 2 : ℝ) + (-(y : ℂ).im) := by
         exact congrArg
           (fun r : ℝ => (1 / 2 : ℝ) + r)
@@ -1867,13 +3076,13 @@ theorem Complex.half_add_I_mul_ofReal_sub_re
       _ = 0 :=
         neg_zero
   calc
-    (((1 / 2 : ℂ) + Complex.I * (x : ℂ)) -
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))).re =
-        ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).re -
-          ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).re :=
+    ((((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)) -
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))).re =
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).re -
+          (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).re :=
       Complex.sub_re
-        ((1 / 2 : ℂ) + Complex.I * (x : ℂ))
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ))
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))
     _ = (1 / 2 : ℝ) - (1 / 2 : ℝ) := by
       exact congrArg₂ Sub.sub hleft_first hleft_second
     _ = 0 := by
@@ -1884,19 +3093,19 @@ theorem Complex.half_add_I_mul_ofReal_sub_re
 /-- Imaginary-coordinate subtraction on the vertical line `1 / 2 + I * ℝ`. -/
 theorem Complex.half_add_I_mul_ofReal_sub_im
     (x y : ℝ) :
-    (((1 / 2 : ℂ) + Complex.I * (x : ℂ)) -
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))).im =
+    ((((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)) -
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))).im =
       (Complex.I * ((x - y : ℝ) : ℂ)).im := by
   have hleft_first :
-      ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).im = x := by
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).im = x := by
     calc
-      ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).im =
-          ((1 / 2 : ℚ) : ℂ).im + (Complex.I * (x : ℂ)).im :=
-        Complex.add_im (1 / 2 : ℂ) (Complex.I * (x : ℂ))
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).im =
+          (((1 / 2 : ℝ) : ℂ).im) + (Complex.I * (x : ℂ)).im :=
+        Complex.add_im (((1 / 2 : ℝ) : ℂ)) (Complex.I * (x : ℂ))
       _ = 0 + (Complex.I * (x : ℂ)).im := by
         exact congrArg
           (fun r : ℝ => r + (Complex.I * (x : ℂ)).im)
-          (Complex.ratCast_im (1 / 2 : ℚ))
+          (Complex.ofReal_im (1 / 2 : ℝ))
       _ = 0 + (x : ℂ).re := by
         exact congrArg
           (fun r : ℝ => 0 + r)
@@ -1906,15 +3115,15 @@ theorem Complex.half_add_I_mul_ofReal_sub_im
       _ = x :=
         zero_add x
   have hleft_second :
-      ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).im = y := by
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).im = y := by
     calc
-      ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).im =
-          ((1 / 2 : ℚ) : ℂ).im + (Complex.I * (y : ℂ)).im :=
-        Complex.add_im (1 / 2 : ℂ) (Complex.I * (y : ℂ))
+      (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).im =
+          (((1 / 2 : ℝ) : ℂ).im) + (Complex.I * (y : ℂ)).im :=
+        Complex.add_im (((1 / 2 : ℝ) : ℂ)) (Complex.I * (y : ℂ))
       _ = 0 + (Complex.I * (y : ℂ)).im := by
         exact congrArg
           (fun r : ℝ => r + (Complex.I * (y : ℂ)).im)
-          (Complex.ratCast_im (1 / 2 : ℚ))
+          (Complex.ofReal_im (1 / 2 : ℝ))
       _ = 0 + (y : ℂ).re := by
         exact congrArg
           (fun r : ℝ => 0 + r)
@@ -1932,13 +3141,13 @@ theorem Complex.half_add_I_mul_ofReal_sub_im
       _ = x - y :=
         Complex.ofReal_re (x - y)
   calc
-    (((1 / 2 : ℂ) + Complex.I * (x : ℂ)) -
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))).im =
-        ((1 / 2 : ℂ) + Complex.I * (x : ℂ)).im -
-          ((1 / 2 : ℂ) + Complex.I * (y : ℂ)).im :=
+    ((((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)) -
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))).im =
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)).im -
+          (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)).im :=
       Complex.sub_im
-        ((1 / 2 : ℂ) + Complex.I * (x : ℂ))
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ))
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ))
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ))
     _ = x - y := by
       exact congrArg₂ Sub.sub hleft_first hleft_second
     _ = (Complex.I * ((x - y : ℝ) : ℂ)).im :=
@@ -1947,8 +3156,8 @@ theorem Complex.half_add_I_mul_ofReal_sub_im
 /-- Subtracting two points on the vertical line `1 / 2 + I * ℝ`. -/
 theorem Complex.half_add_I_mul_ofReal_sub
     (x y : ℝ) :
-    ((1 / 2 : ℂ) + Complex.I * (x : ℂ)) -
-        ((1 / 2 : ℂ) + Complex.I * (y : ℂ)) =
+    (((1 / 2 : ℝ) : ℂ) + Complex.I * (x : ℂ)) -
+        (((1 / 2 : ℝ) : ℂ) + Complex.I * (y : ℂ)) =
       Complex.I * ((x - y : ℝ) : ℂ) := by
   exact Complex.ext
     (Complex.half_add_I_mul_ofReal_sub_re x y)
@@ -2132,7 +3341,10 @@ theorem Real.inverseChord_normSq_formula
     (1 - Real.cos ψ) * (1 - Real.cos ψ) +
         (-Real.sin ψ) * (-Real.sin ψ) =
       2 * (1 - Real.cos ψ) := by
-  nlinarith [Real.sin_sq_add_cos_sq ψ]
+  exact real_inverse_chord_normsq_algebra_for_logarithmicPhase
+    (s := Real.sin ψ)
+    (c := Real.cos ψ)
+    (Real.sin_sq_add_cos_sq ψ)
 
 /-- Cancelling the nonzero real chord denominator in the real coordinate. -/
 theorem Real.one_sub_cos_div_two_mul_one_sub_cos
@@ -2331,7 +3543,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_sub_norm_eq_imCoord
           ‖Complex.I‖ * ‖((yψ - yθ : ℝ) : ℂ)‖ :=
         norm_mul Complex.I ((yψ - yθ : ℝ) : ℂ)
       _ = 1 * ‖((yψ - yθ : ℝ) : ℂ)‖ := by
-        exact congrArg (fun r : ℝ => r * ‖((yψ - yθ : ℝ) : ℂ)‖) norm_I
+        exact congrArg (fun r : ℝ => r * ‖((yψ - yθ : ℝ) : ℂ)‖) Complex.norm_I
       _ = ‖((yψ - yθ : ℝ) : ℂ)‖ :=
         one_mul ‖((yψ - yθ : ℝ) : ℂ)‖
       _ = ‖yψ - yθ‖ :=
@@ -2468,7 +3680,7 @@ theorem Real.inverseChord_deriv_trig_numerator_eq_of_unit_circle
     (hunit : s ^ 2 + c ^ 2 = 1) :
     c * (2 * (1 - c)) - s * (2 * s) =
       -2 * (1 - c) := by
-  nlinarith [hunit]
+  exact real_inverse_chord_derivative_numerator_algebra_for_logarithmicPhase hunit
 
 /-- Trigonometric numerator identity behind the inverse-chord derivative. -/
 theorem Real.inverseChord_deriv_trig_numerator_eq
@@ -2904,7 +4116,7 @@ theorem Nat.pred_mem_Ico_of_mem_Ioo_right
   have hn_pos : 0 < n :=
     lt_of_le_of_lt (Nat.zero_le a) hn_bounds.1
   have hpred_lt_n : n - 1 < n :=
-    Nat.pred_lt hn_pos
+    Nat.pred_lt (Nat.ne_of_gt hn_pos)
   have hpred_lt_b : n - 1 < b :=
     lt_of_lt_of_le (lt_trans hpred_lt_n hn_bounds.2) hm_bounds.2
   exact Finset.mem_Ico.mpr ⟨ha_pred, hpred_lt_b⟩
@@ -3032,27 +4244,27 @@ theorem Real.mem_reducedArc_of_mem_oneSided_reducedArc
 
 /-- Positive lower bound for the norm excludes zero. -/
 theorem Real.ne_zero_of_pos_le_norm
-    {λ x : ℝ}
-    (hλ_pos : 0 < λ)
-    (hx : λ ≤ ‖x‖) :
+    {lam x : ℝ}
+    (hlam_pos : 0 < lam)
+    (hx : lam ≤ ‖x‖) :
     x ≠ 0 := by
   intro hx_zero
   have hnorm_zero : ‖x‖ = 0 :=
     congrArg norm hx_zero
-  have hλ_le_zero : λ ≤ 0 :=
+  have hlam_le_zero : lam ≤ 0 :=
     Eq.subst
-      (motive := fun r : ℝ => λ ≤ r)
+      (motive := fun r : ℝ => lam ≤ r)
       hnorm_zero
       hx
-  exact (not_le_of_gt hλ_pos) hλ_le_zero
+  exact (not_le_of_gt hlam_pos) hlam_le_zero
 
 /-- One-sided separated reduced-arc data gives nonzero membership in the full
 reduced arc at an index. -/
 theorem Real.oneSided_reducedArc_mem_and_ne_of_sep
     (ψ : ℕ → ℝ)
     {a b n : ℕ}
-    {λ L U : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam L U : ℝ}
+    (hlam_pos : 0 < lam)
     (hside : L = (0 : ℝ) ∧ U = Real.pi ∨
       L = -Real.pi ∧ U = (0 : ℝ))
     (hn : n ∈ Finset.Ico a b)
@@ -3063,14 +4275,14 @@ theorem Real.oneSided_reducedArc_mem_and_ne_of_sep
     (hψ_sep :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
-          λ ≤ ‖ψ k‖) :
+          lam ≤ ‖ψ k‖) :
     ψ n ∈ Set.Ioc (-Real.pi) Real.pi ∧ ψ n ≠ 0 := by
   have hmem_side : ψ n ∈ Set.Ioc L U :=
     hψ_mem n hn
   have hmem : ψ n ∈ Set.Ioc (-Real.pi) Real.pi :=
     Real.mem_reducedArc_of_mem_oneSided_reducedArc hside hmem_side
   have hne : ψ n ≠ 0 :=
-    Real.ne_zero_of_pos_le_norm hλ_pos (hψ_sep n hn)
+    Real.ne_zero_of_pos_le_norm hlam_pos (hψ_sep n hn)
   exact ⟨hmem, hne⟩
 
 /-- Membership in the positive one-sided reduced arc after substituting the
@@ -3106,16 +4318,16 @@ theorem Real.mem_Ioc_neg_pi_zero_of_mem_neg_side
 /-- Negative-side membership plus separation from zero gives strict membership
 in the open negative side. -/
 theorem Real.mem_Ioo_neg_pi_zero_of_mem_neg_side_sep
-    {ψ L U λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {ψ L U lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hneg : L = -Real.pi ∧ U = (0 : ℝ))
     (hψ : ψ ∈ Set.Ioc L U)
-    (hsep : λ ≤ ‖ψ‖) :
+    (hsep : lam ≤ ‖ψ‖) :
     ψ ∈ Set.Ioo (-Real.pi) (0 : ℝ) := by
   have hψ_neg : ψ ∈ Set.Ioc (-Real.pi) (0 : ℝ) :=
     Real.mem_Ioc_neg_pi_zero_of_mem_neg_side hneg hψ
   have hne : ψ ≠ 0 :=
-    Real.ne_zero_of_pos_le_norm hλ_pos hsep
+    Real.ne_zero_of_pos_le_norm hlam_pos hsep
   have hlt_zero : ψ < 0 :=
     lt_of_le_of_ne hψ_neg.2 hne
   exact ⟨hψ_neg.1, hlt_zero⟩
@@ -3123,14 +4335,14 @@ theorem Real.mem_Ioo_neg_pi_zero_of_mem_neg_side_sep
 /-- A point in the reduced arc separated from zero lies on exactly one side of
 the singularity. -/
 theorem Real.mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-    {ψ λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {ψ lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hψ_mem : ψ ∈ Set.Ioc (-Real.pi) Real.pi)
-    (hψ_sep : λ ≤ ‖ψ‖) :
+    (hψ_sep : lam ≤ ‖ψ‖) :
     ψ ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
       ψ ∈ Set.Ioc (0 : ℝ) Real.pi := by
   have hψ_ne : ψ ≠ 0 :=
-    Real.ne_zero_of_pos_le_norm hλ_pos hψ_sep
+    Real.ne_zero_of_pos_le_norm hlam_pos hψ_sep
   match lt_or_gt_of_ne hψ_ne with
   | Or.inl hψ_lt_zero =>
       exact Or.inl ⟨hψ_mem.1, hψ_lt_zero⟩
@@ -3140,17 +4352,17 @@ theorem Real.mem_neg_side_or_pos_side_of_mem_reducedArc_sep
 /-- On a separated reduced arc, failure of negative-side membership forces
 positive-side membership. -/
 theorem Real.mem_pos_side_of_not_mem_neg_side_of_mem_reducedArc_sep
-    {ψ λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {ψ lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hψ_mem : ψ ∈ Set.Ioc (-Real.pi) Real.pi)
-    (hψ_sep : λ ≤ ‖ψ‖)
+    (hψ_sep : lam ≤ ‖ψ‖)
     (hψ_not_neg : ¬ ψ ∈ Set.Ioc (-Real.pi) (0 : ℝ)) :
     ψ ∈ Set.Ioc (0 : ℝ) Real.pi := by
   have hcases :
       ψ ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
         ψ ∈ Set.Ioc (0 : ℝ) Real.pi :=
     Real.mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-      hλ_pos hψ_mem hψ_sep
+      hlam_pos hψ_mem hψ_sep
   match hcases with
   | Or.inl hneg =>
       have hneg_ioc : ψ ∈ Set.Ioc (-Real.pi) (0 : ℝ) :=
@@ -3162,17 +4374,17 @@ theorem Real.mem_pos_side_of_not_mem_neg_side_of_mem_reducedArc_sep
 /-- On a separated reduced arc, failure of positive-side membership forces
 negative-side membership. -/
 theorem Real.mem_neg_side_of_not_mem_pos_side_of_mem_reducedArc_sep
-    {ψ λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {ψ lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hψ_mem : ψ ∈ Set.Ioc (-Real.pi) Real.pi)
-    (hψ_sep : λ ≤ ‖ψ‖)
+    (hψ_sep : lam ≤ ‖ψ‖)
     (hψ_not_pos : ¬ ψ ∈ Set.Ioc (0 : ℝ) Real.pi) :
     ψ ∈ Set.Ioc (-Real.pi) (0 : ℝ) := by
   have hcases :
       ψ ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
         ψ ∈ Set.Ioc (0 : ℝ) Real.pi :=
     Real.mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-      hλ_pos hψ_mem hψ_sep
+      hlam_pos hψ_mem hψ_sep
   match hcases with
   | Or.inl hneg =>
       exact ⟨hneg.1, hneg.2.le⟩
@@ -3183,8 +4395,8 @@ theorem Real.mem_neg_side_of_not_mem_pos_side_of_mem_reducedArc_sep
 theorem Real.sequence_mem_neg_side_or_pos_side_of_mem_reducedArc_sep
     (ψ : ℕ → ℝ)
     {a b n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hn : n ∈ Finset.Ico a b)
     (hψ_mem :
       ∀ k : ℕ,
@@ -3193,18 +4405,18 @@ theorem Real.sequence_mem_neg_side_or_pos_side_of_mem_reducedArc_sep
     (hψ_sep :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
-          λ ≤ ‖ψ k‖) :
+          lam ≤ ‖ψ k‖) :
     ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
       ψ n ∈ Set.Ioc (0 : ℝ) Real.pi :=
   Real.mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-    hλ_pos (hψ_mem n hn) (hψ_sep n hn)
+    hlam_pos (hψ_mem n hn) (hψ_sep n hn)
 
 /-- Adjacent separated reduced-arc samples are classified by their signs. -/
 theorem Real.adjacent_mem_side_cases_of_mem_Ioo_sep
     (ψ : ℕ → ℝ)
     {a b m n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hn : n ∈ Finset.Ioo a m)
     (hm : m ∈ Finset.Icc a b)
     (hψ_mem :
@@ -3214,7 +4426,7 @@ theorem Real.adjacent_mem_side_cases_of_mem_Ioo_sep
     (hψ_sep :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
-          λ ≤ ‖ψ k‖) :
+          lam ≤ ‖ψ k‖) :
     (ψ (n - 1) ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∧
         ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ)) ∨
       (ψ (n - 1) ∈ Set.Ioc (0 : ℝ) Real.pi ∧
@@ -3231,12 +4443,12 @@ theorem Real.adjacent_mem_side_cases_of_mem_Ioo_sep
       ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
         ψ n ∈ Set.Ioc (0 : ℝ) Real.pi :=
     Real.sequence_mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-      ψ hλ_pos hn_mem hψ_mem hψ_sep
+      ψ hlam_pos hn_mem hψ_mem hψ_sep
   have hpred_side :
       ψ (n - 1) ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∨
         ψ (n - 1) ∈ Set.Ioc (0 : ℝ) Real.pi :=
     Real.sequence_mem_neg_side_or_pos_side_of_mem_reducedArc_sep
-      ψ hλ_pos hpred_mem hψ_mem hψ_sep
+      ψ hlam_pos hpred_mem hψ_mem hψ_sep
   match hpred_side with
   | Or.inl hpred_neg =>
       match hn_side with
@@ -3302,8 +4514,8 @@ negative-to-positive crossing. -/
 theorem Real.monotoneOn_adjacent_side_cases_of_mem_Ioo_sep
     (ψ : ℕ → ℝ)
     {a b m n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hn : n ∈ Finset.Ioo a m)
     (hm : m ∈ Finset.Icc a b)
     (hψ_mem :
@@ -3314,7 +4526,7 @@ theorem Real.monotoneOn_adjacent_side_cases_of_mem_Ioo_sep
     (hψ_sep :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
-          λ ≤ ‖ψ k‖) :
+          lam ≤ ‖ψ k‖) :
     (ψ (n - 1) ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∧
         ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ)) ∨
       (ψ (n - 1) ∈ Set.Ioc (0 : ℝ) Real.pi ∧
@@ -3323,7 +4535,7 @@ theorem Real.monotoneOn_adjacent_side_cases_of_mem_Ioo_sep
         ψ n ∈ Set.Ioc (0 : ℝ) Real.pi) := by
   have hcases :=
     Real.adjacent_mem_side_cases_of_mem_Ioo_sep
-      ψ hλ_pos hn hm hψ_mem hψ_sep
+      ψ hlam_pos hn hm hψ_mem hψ_sep
   match hcases with
   | Or.inl hneg_neg =>
       exact Or.inl hneg_neg
@@ -3345,8 +4557,8 @@ positive-to-negative crossing. -/
 theorem Real.antitoneOn_adjacent_side_cases_of_mem_Ioo_sep
     (ψ : ℕ → ℝ)
     {a b m n : ℕ}
-    {λ : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam : ℝ}
+    (hlam_pos : 0 < lam)
     (hn : n ∈ Finset.Ioo a m)
     (hm : m ∈ Finset.Icc a b)
     (hψ_mem :
@@ -3357,7 +4569,7 @@ theorem Real.antitoneOn_adjacent_side_cases_of_mem_Ioo_sep
     (hψ_sep :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
-          λ ≤ ‖ψ k‖) :
+          lam ≤ ‖ψ k‖) :
     (ψ (n - 1) ∈ Set.Ioo (-Real.pi) (0 : ℝ) ∧
         ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ)) ∨
       (ψ (n - 1) ∈ Set.Ioc (0 : ℝ) Real.pi ∧
@@ -3366,7 +4578,7 @@ theorem Real.antitoneOn_adjacent_side_cases_of_mem_Ioo_sep
         ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ)) := by
   have hcases :=
     Real.adjacent_mem_side_cases_of_mem_Ioo_sep
-      ψ hλ_pos hn hm hψ_mem hψ_sep
+      ψ hlam_pos hn hm hψ_mem hψ_sep
   match hcases with
   | Or.inl hneg_neg =>
       exact Or.inl hneg_neg
@@ -3557,9 +4769,9 @@ a positive block. -/
 theorem Real.monotoneOn_reducedArc_side_decomposition
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -3568,7 +4780,7 @@ theorem Real.monotoneOn_reducedArc_side_decomposition
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖) :
+          lam ≤ ‖ψ n‖) :
     (∀ n : ℕ,
         n ∈ Finset.Ico a m →
           ψ n ∈ Set.Ioc (-Real.pi) (0 : ℝ)) ∨
@@ -3641,7 +4853,7 @@ theorem Real.monotoneOn_reducedArc_side_decomposition
                   Finset.min'_le positives n hn_filter
                 (not_lt_of_ge hc_le_n) hn_bounds.2
             Real.mem_neg_side_of_not_mem_pos_side_of_mem_reducedArc_sep
-              hλ_pos (hψ_mem n hn_mem_original)
+              hlam_pos (hψ_mem n hn_mem_original)
               (hψ_sep n hn_mem_original) hnot_pos),
           (fun n hn =>
             let hn_bounds : c ≤ n ∧ n < m := Finset.mem_Ico.mp hn
@@ -3667,7 +4879,7 @@ theorem Real.monotoneOn_reducedArc_side_decomposition
           fun hn_pos =>
             hpos_nonempty ⟨n, Finset.mem_filter.mpr ⟨hn, hn_pos⟩⟩
         Real.mem_neg_side_of_not_mem_pos_side_of_mem_reducedArc_sep
-          hλ_pos (hψ_mem n hn_mem_original)
+          hlam_pos (hψ_mem n hn_mem_original)
           (hψ_sep n hn_mem_original) hnot_pos)
 
 /-- An antitone separated reduced sequence is either entirely on one side on
@@ -3676,9 +4888,9 @@ a negative block. -/
 theorem Real.antitoneOn_reducedArc_side_decomposition
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -3687,7 +4899,7 @@ theorem Real.antitoneOn_reducedArc_side_decomposition
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖) :
+          lam ≤ ‖ψ n‖) :
     (∀ n : ℕ,
         n ∈ Finset.Ico a m →
           ψ n ∈ Set.Ioc (0 : ℝ) Real.pi) ∨
@@ -3760,7 +4972,7 @@ theorem Real.antitoneOn_reducedArc_side_decomposition
                   Finset.min'_le negatives n hn_filter
                 (not_lt_of_ge hc_le_n) hn_bounds.2
             Real.mem_pos_side_of_not_mem_neg_side_of_mem_reducedArc_sep
-              hλ_pos (hψ_mem n hn_mem_original)
+              hlam_pos (hψ_mem n hn_mem_original)
               (hψ_sep n hn_mem_original) hnot_neg),
           (fun n hn =>
             let hn_bounds : c ≤ n ∧ n < m := Finset.mem_Ico.mp hn
@@ -3786,7 +4998,7 @@ theorem Real.antitoneOn_reducedArc_side_decomposition
           fun hn_neg =>
             hneg_nonempty ⟨n, Finset.mem_filter.mpr ⟨hn, hn_neg⟩⟩
         Real.mem_pos_side_of_not_mem_neg_side_of_mem_reducedArc_sep
-          hλ_pos (hψ_mem n hn_mem_original)
+          hlam_pos (hψ_mem n hn_mem_original)
           (hψ_sep n hn_mem_original) hnot_neg)
 
 /-- The imaginary coordinate of a complex number is bounded by its norm. -/
@@ -3815,8 +5027,8 @@ with a monotone-or-antitone sequence remains monotone-or-antitone. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_imCoord_mono_or_anti_on_oneSided
     (ψ : ℕ → ℝ)
     {a b : ℕ}
-    {λ L U : ℝ}
-    (hλ_pos : 0 < λ)
+    {lam L U : ℝ}
+    (hlam_pos : 0 < lam)
     (hside : L = (0 : ℝ) ∧ U = Real.pi ∨
       L = -Real.pi ∧ U = (0 : ℝ))
     (hψ_mem :
@@ -3829,7 +5041,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_imCoord_mono_or_anti_on_o
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖) :
+          lam ≤ ‖ψ n‖) :
     MonotoneOn
         (fun n : ℕ =>
           Complex.reducedArc_inverseGeometricDenominator_imCoord (ψ n))
@@ -3864,7 +5076,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_imCoord_mono_or_anti_on_o
               ψ n ∈ Set.Ioo (-Real.pi) (0 : ℝ) := by
         intro n hn
         exact Real.mem_Ioo_neg_pi_zero_of_mem_neg_side_sep
-          hλ_pos hneg (hψ_mem n hn) (hψ_sep n hn)
+          hlam_pos hneg (hψ_mem n hn) (hψ_sep n hn)
       match hψ_mono with
       | Or.inl hmono =>
           exact Or.inr
@@ -3881,13 +5093,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_imCoord_mono_or_anti_on_o
 theorem Real.two_mul_add_two_mul_eq_four_mul
     (x : ℝ) :
     2 * x + 2 * x = 4 * x := by
-  have hnum : (2 : ℝ) + 2 = 4 :=
-    rfl
-  calc
-    2 * x + 2 * x = ((2 : ℝ) + 2) * x :=
-      (add_mul (2 : ℝ) 2 x).symm
-    _ = 4 * x :=
-      congrArg (fun r : ℝ => r * x) hnum
+  exact real_two_mul_add_two_mul_eq_four_mul_for_logarithmicPhase x
 
 /-- Telescope for adjacent forward differences over an open natural interval. -/
 theorem Real.sum_Ioo_adjacent_sub_eq_endpoint_sub
@@ -4085,11 +5291,11 @@ imaginary coordinate. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_from_imCoord
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     {L U : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hside : L = (0 : ℝ) ∧ U = Real.pi ∨
       L = -Real.pi ∧ U = (0 : ℝ))
     (hψ_mem :
@@ -4102,16 +5308,16 @@ theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
         Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-        4 * λ⁻¹ := by
+        4 * lam⁻¹ := by
   let y : ℕ → ℝ :=
     fun n : ℕ =>
       Complex.reducedArc_inverseGeometricDenominator_imCoord (ψ n)
@@ -4119,7 +5325,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_
       MonotoneOn y (Finset.Ico a b : Set ℕ) ∨
         AntitoneOn y (Finset.Ico a b : Set ℕ) :=
     Complex.reducedArc_inverseGeometricDenominator_imCoord_mono_or_anti_on_oneSided
-      ψ hλ_pos hside hψ_mem hψ_mono hψ_sep
+      ψ hlam_pos hside hψ_mem hψ_mono hψ_sep
   have hcomplex_to_y :
       (∑ n ∈ Finset.Ioo a m,
         ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
@@ -4134,12 +5340,12 @@ theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_
         let hn_data :
             ψ n ∈ Set.Ioc (-Real.pi) Real.pi ∧ ψ n ≠ 0 :=
           Real.oneSided_reducedArc_mem_and_ne_of_sep
-            ψ hλ_pos hside hn_Ico hψ_mem hψ_sep
+            ψ hlam_pos hside hn_Ico hψ_mem hψ_sep
         let hpred_data :
             ψ (n - 1) ∈ Set.Ioc (-Real.pi) Real.pi ∧
               ψ (n - 1) ≠ 0 :=
           Real.oneSided_reducedArc_mem_and_ne_of_sep
-            ψ hλ_pos hside hpred_Ico hψ_mem hψ_sep
+            ψ hlam_pos hside hpred_Ico hψ_mem hψ_sep
         Complex.reducedArc_inverseGeometricDenominator_adjacent_norm_eq_imCoord
           ψ hn_data.1 hpred_data.1 hn_data.2 hpred_data.2)
   have hreal_variation :
@@ -4158,39 +5364,39 @@ theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_
     have hm_pos : 0 < m :=
       lt_of_le_of_lt (Nat.zero_le a) ham
     have hpred_lt_m : m - 1 < m :=
-      Nat.pred_lt hm_pos
+      Nat.pred_lt (Nat.ne_of_gt hm_pos)
     have hpred_lt_b : m - 1 < b :=
       lt_of_lt_of_le hpred_lt_m hm_bounds.2
     exact Finset.mem_Ico.mpr ⟨ha_pred, hpred_lt_b⟩
   have ha_y :
-      ‖y a‖ ≤ 2 * λ⁻¹ := by
+      ‖y a‖ ≤ 2 * lam⁻¹ := by
     exact le_trans
       (Complex.reducedArc_inverseGeometricDenominator_imCoord_norm_le_norm
         (ψ a))
       (hψ_den a ha_mem)
   have hm_y :
-      ‖y (m - 1)‖ ≤ 2 * λ⁻¹ := by
+      ‖y (m - 1)‖ ≤ 2 * lam⁻¹ := by
     exact le_trans
       (Complex.reducedArc_inverseGeometricDenominator_imCoord_norm_le_norm
         (ψ (m - 1)))
       (hψ_den (m - 1) hm_pred_mem)
   have hendpoint :
       ‖y a‖ + ‖y (m - 1)‖ ≤
-        2 * λ⁻¹ + 2 * λ⁻¹ :=
+        2 * lam⁻¹ + 2 * lam⁻¹ :=
     add_le_add ha_y hm_y
   have hendpoint_four :
-      ‖y a‖ + ‖y (m - 1)‖ ≤ 4 * λ⁻¹ :=
+      ‖y a‖ + ‖y (m - 1)‖ ≤ 4 * lam⁻¹ :=
     Eq.subst
       (motive := fun r : ℝ =>
         ‖y a‖ + ‖y (m - 1)‖ ≤ r)
-      (Real.two_mul_add_two_mul_eq_four_mul λ⁻¹)
+      (Real.two_mul_add_two_mul_eq_four_mul lam⁻¹)
       hendpoint
   have hy_bound :
       (∑ n ∈ Finset.Ioo a m, ‖y n - y (n - 1)‖) ≤
-        4 * λ⁻¹ :=
+        4 * lam⁻¹ :=
     le_trans hreal_variation hendpoint_four
   exact Eq.subst
-    (motive := fun r : ℝ => r ≤ 4 * λ⁻¹)
+    (motive := fun r : ℝ => r ≤ 4 * lam⁻¹)
     hcomplex_to_y.symm
     hy_bound
 
@@ -4199,11 +5405,11 @@ singularity at zero. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     {L U : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hside : L = (0 : ℝ) ∧ U = Real.pi ∨
       L = -Real.pi ∧ U = (0 : ℝ))
     (hψ_mem :
@@ -4216,47 +5422,47 @@ theorem Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
         Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-        4 * λ⁻¹ := by
+        4 * lam⁻¹ := by
   exact
     Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound_from_imCoord
-      ψ ham hm hλ_pos hside hψ_mem hψ_mono hψ_sep hψ_den
+      ψ ham hm hlam_pos hside hψ_mem hψ_mono hψ_sep hψ_den
 
 /-- A single adjacent inverse-denominator jump is bounded by the two endpoint
 denominator bounds. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_adjacent_norm_le_four_inv
     (ψ : ℕ → ℝ)
     {a b m n : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (hn : n ∈ Finset.Ioo a m)
     (hm : m ∈ Finset.Icc a b)
     (hψ_den :
       ∀ k : ℕ,
         k ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ k)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
       Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖ ≤
-        4 * λ⁻¹ := by
+        4 * lam⁻¹ := by
   have hn_mem : n ∈ Finset.Ico a b :=
     Nat.mem_Ico_of_mem_Ioo_right hn hm
   have hpred_mem : n - 1 ∈ Finset.Ico a b :=
     Nat.pred_mem_Ico_of_mem_Ioo_right hn hm
   have hn_bound :
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-        2 * λ⁻¹ :=
+        2 * lam⁻¹ :=
     hψ_den n hn_mem
   have hpred_bound :
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖ ≤
-        2 * λ⁻¹ :=
+        2 * lam⁻¹ :=
     hψ_den (n - 1) hpred_mem
   have hjump :
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
@@ -4269,17 +5475,17 @@ theorem Complex.reducedArc_inverseGeometricDenominator_adjacent_norm_le_four_inv
   have hendpoint :
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ +
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖ ≤
-        2 * λ⁻¹ + 2 * λ⁻¹ :=
+        2 * lam⁻¹ + 2 * lam⁻¹ :=
     add_le_add hn_bound hpred_bound
   have hfour :
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ +
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖ ≤
-        4 * λ⁻¹ :=
+        4 * lam⁻¹ :=
     Eq.subst
       (motive := fun r : ℝ =>
         ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ +
             ‖Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖ ≤ r)
-      (Real.two_mul_add_two_mul_eq_four_mul λ⁻¹)
+      (Real.two_mul_add_two_mul_eq_four_mul lam⁻¹)
       hendpoint
   exact le_trans hjump hfour
 
@@ -4350,34 +5556,34 @@ theorem Finset.sum_Ioo_split_at
 
 /-- The public three-piece constant dominates a single one-sided constant. -/
 theorem Real.four_mul_inv_le_four_mul_three_mul_inv
-    {λ : ℝ}
-    (hλ_pos : 0 < λ) :
-    4 * λ⁻¹ ≤ 4 * (3 * λ⁻¹) := by
-  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-    inv_nonneg.mpr hλ_pos.le
+    {lam : ℝ}
+    (hlam_pos : 0 < lam) :
+    4 * lam⁻¹ ≤ 4 * (3 * lam⁻¹) := by
+  have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+    inv_nonneg.mpr hlam_pos.le
   have hthree_nonneg : 0 ≤ (3 : ℝ) :=
     zero_le_three
   have hone_le_three : (1 : ℝ) ≤ 3 :=
     one_le_three
   have hinner :
-      λ⁻¹ ≤ 3 * λ⁻¹ := by
+      lam⁻¹ ≤ 3 * lam⁻¹ := by
     have hmul :
-        1 * λ⁻¹ ≤ 3 * λ⁻¹ :=
-      mul_le_mul_of_nonneg_right hone_le_three hλ_inv_nonneg
+        1 * lam⁻¹ ≤ 3 * lam⁻¹ :=
+      mul_le_mul_of_nonneg_right hone_le_three hlam_inv_nonneg
     exact Eq.subst
-      (motive := fun r : ℝ => r ≤ 3 * λ⁻¹)
-      (one_mul λ⁻¹)
+      (motive := fun r : ℝ => r ≤ 3 * lam⁻¹)
+      (one_mul lam⁻¹)
       hmul
   exact mul_le_mul_of_nonneg_left hinner zero_le_four
 
 /-- Three copies of the one-sided constant fold to the three-piece constant. -/
 theorem Real.three_four_inv_eq_four_mul_three_mul_inv
-    (λ : ℝ) :
-    (4 * λ⁻¹ + 4 * λ⁻¹) + 4 * λ⁻¹ =
-      4 * (3 * λ⁻¹) := by
+    (lam : ℝ) :
+    (4 * lam⁻¹ + 4 * lam⁻¹) + 4 * lam⁻¹ =
+      4 * (3 * lam⁻¹) := by
   have htwo :
-      4 * λ⁻¹ + 4 * λ⁻¹ = (4 + 4 : ℝ) * λ⁻¹ :=
-    (add_mul (4 : ℝ) 4 λ⁻¹).symm
+      4 * lam⁻¹ + 4 * lam⁻¹ = (4 + 4 : ℝ) * lam⁻¹ :=
+    (add_mul (4 : ℝ) 4 lam⁻¹).symm
   have height :
       (4 + 4 : ℝ) = 8 :=
     rfl
@@ -4385,19 +5591,19 @@ theorem Real.three_four_inv_eq_four_mul_three_mul_inv
       (8 : ℝ) + 4 = 12 :=
     rfl
   calc
-    (4 * λ⁻¹ + 4 * λ⁻¹) + 4 * λ⁻¹ =
-        ((4 + 4 : ℝ) * λ⁻¹) + 4 * λ⁻¹ :=
-      congrArg (fun r : ℝ => r + 4 * λ⁻¹) htwo
-    _ = (8 * λ⁻¹) + 4 * λ⁻¹ :=
-      congrArg (fun r : ℝ => r * λ⁻¹ + 4 * λ⁻¹) height
-    _ = ((8 : ℝ) + 4) * λ⁻¹ :=
-      (add_mul (8 : ℝ) 4 λ⁻¹).symm
-    _ = 12 * λ⁻¹ :=
-      congrArg (fun r : ℝ => r * λ⁻¹) htwelve
-    _ = (4 * 3) * λ⁻¹ :=
-      congrArg (fun r : ℝ => r * λ⁻¹) (show (12 : ℝ) = 4 * 3 from rfl)
-    _ = 4 * (3 * λ⁻¹) :=
-      mul_assoc (4 : ℝ) 3 λ⁻¹
+    (4 * lam⁻¹ + 4 * lam⁻¹) + 4 * lam⁻¹ =
+        ((4 + 4 : ℝ) * lam⁻¹) + 4 * lam⁻¹ :=
+      congrArg (fun r : ℝ => r + 4 * lam⁻¹) htwo
+    _ = (8 * lam⁻¹) + 4 * lam⁻¹ :=
+      congrArg (fun r : ℝ => r * lam⁻¹ + 4 * lam⁻¹) height
+    _ = ((8 : ℝ) + 4) * lam⁻¹ :=
+      (add_mul (8 : ℝ) 4 lam⁻¹).symm
+    _ = 12 * lam⁻¹ :=
+      congrArg (fun r : ℝ => r * lam⁻¹) htwelve
+    _ = (4 * 3) * lam⁻¹ :=
+      congrArg (fun r : ℝ => r * lam⁻¹) (show (12 : ℝ) = 4 * 3 from rfl)
+    _ = 4 * (3 * lam⁻¹) :=
+      mul_assoc (4 : ℝ) 3 lam⁻¹
 
 /-- The three-piece monotone sign-crossing bound: negative-side variation,
 one crossing jump, and positive-side variation.
@@ -4406,10 +5612,10 @@ This is the discrete owner obligation behind the split theorem. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bound
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -4420,16 +5626,16 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
         Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-        4 * (3 * λ⁻¹) := by
+        4 * (3 * lam⁻¹) := by
   let jump : ℕ → ℝ :=
     fun n : ℕ =>
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
@@ -4439,12 +5645,12 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
   have hm_self : m ∈ Finset.Icc a m :=
     Finset.mem_Icc.mpr ⟨hm_bounds.1, le_rfl⟩
   have htarget_one :
-      4 * λ⁻¹ ≤ 4 * (3 * λ⁻¹) :=
-    Real.four_mul_inv_le_four_mul_three_mul_inv hλ_pos
+      4 * lam⁻¹ ≤ 4 * (3 * lam⁻¹) :=
+    Real.four_mul_inv_le_four_mul_three_mul_inv hlam_pos
   have htarget_three :
-      (4 * λ⁻¹ + 4 * λ⁻¹) + 4 * λ⁻¹ ≤
-        4 * (3 * λ⁻¹) :=
-    Eq.le (Real.three_four_inv_eq_four_mul_three_mul_inv λ)
+      (4 * lam⁻¹ + 4 * lam⁻¹) + 4 * lam⁻¹ ≤
+        4 * (3 * lam⁻¹) :=
+    Eq.le (Real.three_four_inv_eq_four_mul_three_mul_inv lam)
   match hψ_mono with
   | Or.inl hmono =>
       have hmono_am :
@@ -4463,7 +5669,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
       have hsep_am :
           ∀ n : ℕ,
             n ∈ Finset.Ico a m →
-              λ ≤ ‖ψ n‖ := by
+              lam ≤ ‖ψ n‖ := by
         intro n hn
         have hn_bounds : a ≤ n ∧ n < m :=
           Finset.mem_Ico.mp hn
@@ -4474,7 +5680,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
           ∀ n : ℕ,
             n ∈ Finset.Ico a m →
               ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-                2 * λ⁻¹ := by
+                2 * lam⁻¹ := by
         intro n hn
         have hn_bounds : a ≤ n ∧ n < m :=
           Finset.mem_Ico.mp hn
@@ -4483,12 +5689,12 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
             ⟨hn_bounds.1, lt_of_lt_of_le hn_bounds.2 hm_bounds.2⟩)
       have hdecomp :=
         Real.monotoneOn_reducedArc_side_decomposition
-          ψ hm hλ_pos hψ_mem hmono hψ_sep
+          ψ hm hlam_pos hψ_mem hmono hψ_sep
       match hdecomp with
       | Or.inl hall_neg =>
           exact le_trans
             (Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-              ψ ham hm_self hλ_pos (Or.inr ⟨rfl, rfl⟩)
+              ψ ham hm_self hlam_pos (Or.inr ⟨rfl, rfl⟩)
               hall_neg (Or.inl hmono_am) hsep_am hden_am)
             htarget_one
       | Or.inr hrest =>
@@ -4496,7 +5702,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
           | Or.inl hall_pos =>
               exact le_trans
                 (Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                  ψ ham hm_self hλ_pos (Or.inl ⟨rfl, rfl⟩)
+                  ψ ham hm_self hlam_pos (Or.inl ⟨rfl, rfl⟩)
                   hall_pos (Or.inl hmono_am) hsep_am hden_am)
                 htarget_one
           | Or.inr hcross =>
@@ -4544,7 +5750,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hsep_left :
                       ∀ n : ℕ,
                         n ∈ Finset.Ico a c →
-                          λ ≤ ‖ψ n‖ := by
+                          lam ≤ ‖ψ n‖ := by
                     intro n hn
                     have hn_bounds : a ≤ n ∧ n < c :=
                       Finset.mem_Ico.mp hn
@@ -4556,7 +5762,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hsep_right :
                       ∀ n : ℕ,
                         n ∈ Finset.Ico c m →
-                          λ ≤ ‖ψ n‖ := by
+                          lam ≤ ‖ψ n‖ := by
                     intro n hn
                     have hn_bounds : c ≤ n ∧ n < m :=
                       Finset.mem_Ico.mp hn
@@ -4568,7 +5774,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                       ∀ n : ℕ,
                         n ∈ Finset.Ico a c →
                           ‖Complex.reducedArc_inverseGeometricDenominator
-                            (ψ n)‖ ≤ 2 * λ⁻¹ := by
+                            (ψ n)‖ ≤ 2 * lam⁻¹ := by
                     intro n hn
                     have hn_bounds : a ≤ n ∧ n < c :=
                       Finset.mem_Ico.mp hn
@@ -4581,7 +5787,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                       ∀ n : ℕ,
                         n ∈ Finset.Ico c m →
                           ‖Complex.reducedArc_inverseGeometricDenominator
-                            (ψ n)‖ ≤ 2 * λ⁻¹ := by
+                            (ψ n)‖ ≤ 2 * lam⁻¹ := by
                     intro n hn
                     have hn_bounds : c ≤ n ∧ n < m :=
                       Finset.mem_Ico.mp hn
@@ -4590,19 +5796,19 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                         ⟨le_trans (le_of_lt hac) hn_bounds.1,
                           lt_of_lt_of_le hn_bounds.2 hm_bounds.2⟩)
                   have hleft :
-                      (∑ n ∈ Finset.Ioo a c, jump n) ≤ 4 * λ⁻¹ :=
+                      (∑ n ∈ Finset.Ioo a c, jump n) ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                      ψ hac hc_Icc_left hλ_pos (Or.inr ⟨rfl, rfl⟩)
+                      ψ hac hc_Icc_left hlam_pos (Or.inr ⟨rfl, rfl⟩)
                       hleft_side (Or.inl hmono_left) hsep_left hden_left
                   have hright :
-                      (∑ n ∈ Finset.Ioo c m, jump n) ≤ 4 * λ⁻¹ :=
+                      (∑ n ∈ Finset.Ioo c m, jump n) ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                      ψ hcm hm_Icc_right hλ_pos (Or.inl ⟨rfl, rfl⟩)
+                      ψ hcm hm_Icc_right hlam_pos (Or.inl ⟨rfl, rfl⟩)
                       hright_side (Or.inl hmono_right) hsep_right hden_right
                   have hc_Ioo : c ∈ Finset.Ioo a m :=
                     Finset.mem_Ioo.mpr ⟨hac, hcm⟩
                   have hjump :
-                      jump c ≤ 4 * λ⁻¹ :=
+                      jump c ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_adjacent_norm_le_four_inv
                       ψ hc_Ioo hm hψ_den
                   have hsplit :
@@ -4613,11 +5819,11 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hparts :
                       (∑ n ∈ Finset.Ioo a c, jump n) + jump c +
                           ∑ n ∈ Finset.Ioo c m, jump n ≤
-                        (4 * λ⁻¹ + 4 * λ⁻¹) + 4 * λ⁻¹ :=
+                        (4 * lam⁻¹ + 4 * lam⁻¹) + 4 * lam⁻¹ :=
                     add_le_add (add_le_add hleft hjump) hright
                   exact Eq.subst
                     (motive := fun r : ℝ =>
-                      r ≤ 4 * (3 * λ⁻¹))
+                      r ≤ 4 * (3 * lam⁻¹))
                     hsplit.symm
                     (le_trans hparts htarget_three)
   | Or.inr hanti =>
@@ -4637,7 +5843,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
       have hsep_am :
           ∀ n : ℕ,
             n ∈ Finset.Ico a m →
-              λ ≤ ‖ψ n‖ := by
+              lam ≤ ‖ψ n‖ := by
         intro n hn
         have hn_bounds : a ≤ n ∧ n < m :=
           Finset.mem_Ico.mp hn
@@ -4648,7 +5854,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
           ∀ n : ℕ,
             n ∈ Finset.Ico a m →
               ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-                2 * λ⁻¹ := by
+                2 * lam⁻¹ := by
         intro n hn
         have hn_bounds : a ≤ n ∧ n < m :=
           Finset.mem_Ico.mp hn
@@ -4657,12 +5863,12 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
             ⟨hn_bounds.1, lt_of_lt_of_le hn_bounds.2 hm_bounds.2⟩)
       have hdecomp :=
         Real.antitoneOn_reducedArc_side_decomposition
-          ψ hm hλ_pos hψ_mem hanti hψ_sep
+          ψ hm hlam_pos hψ_mem hanti hψ_sep
       match hdecomp with
       | Or.inl hall_pos =>
           exact le_trans
             (Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-              ψ ham hm_self hλ_pos (Or.inl ⟨rfl, rfl⟩)
+              ψ ham hm_self hlam_pos (Or.inl ⟨rfl, rfl⟩)
               hall_pos (Or.inr hanti_am) hsep_am hden_am)
             htarget_one
       | Or.inr hrest =>
@@ -4670,7 +5876,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
           | Or.inl hall_neg =>
               exact le_trans
                 (Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                  ψ ham hm_self hλ_pos (Or.inr ⟨rfl, rfl⟩)
+                  ψ ham hm_self hlam_pos (Or.inr ⟨rfl, rfl⟩)
                   hall_neg (Or.inr hanti_am) hsep_am hden_am)
                 htarget_one
           | Or.inr hcross =>
@@ -4715,7 +5921,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hsep_left :
                       ∀ n : ℕ,
                         n ∈ Finset.Ico a c →
-                          λ ≤ ‖ψ n‖ := by
+                          lam ≤ ‖ψ n‖ := by
                     intro n hn
                     have hn_bounds : a ≤ n ∧ n < c :=
                       Finset.mem_Ico.mp hn
@@ -4727,7 +5933,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hsep_right :
                       ∀ n : ℕ,
                         n ∈ Finset.Ico c m →
-                          λ ≤ ‖ψ n‖ := by
+                          lam ≤ ‖ψ n‖ := by
                     intro n hn
                     have hn_bounds : c ≤ n ∧ n < m :=
                       Finset.mem_Ico.mp hn
@@ -4739,7 +5945,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                       ∀ n : ℕ,
                         n ∈ Finset.Ico a c →
                           ‖Complex.reducedArc_inverseGeometricDenominator
-                            (ψ n)‖ ≤ 2 * λ⁻¹ := by
+                            (ψ n)‖ ≤ 2 * lam⁻¹ := by
                     intro n hn
                     have hn_bounds : a ≤ n ∧ n < c :=
                       Finset.mem_Ico.mp hn
@@ -4752,7 +5958,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                       ∀ n : ℕ,
                         n ∈ Finset.Ico c m →
                           ‖Complex.reducedArc_inverseGeometricDenominator
-                            (ψ n)‖ ≤ 2 * λ⁻¹ := by
+                            (ψ n)‖ ≤ 2 * lam⁻¹ := by
                     intro n hn
                     have hn_bounds : c ≤ n ∧ n < m :=
                       Finset.mem_Ico.mp hn
@@ -4761,19 +5967,19 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                         ⟨le_trans (le_of_lt hac) hn_bounds.1,
                           lt_of_lt_of_le hn_bounds.2 hm_bounds.2⟩)
                   have hleft :
-                      (∑ n ∈ Finset.Ioo a c, jump n) ≤ 4 * λ⁻¹ :=
+                      (∑ n ∈ Finset.Ioo a c, jump n) ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                      ψ hac hc_Icc_left hλ_pos (Or.inl ⟨rfl, rfl⟩)
+                      ψ hac hc_Icc_left hlam_pos (Or.inl ⟨rfl, rfl⟩)
                       hleft_side (Or.inr hanti_left) hsep_left hden_left
                   have hright :
-                      (∑ n ∈ Finset.Ioo c m, jump n) ≤ 4 * λ⁻¹ :=
+                      (∑ n ∈ Finset.Ioo c m, jump n) ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_oneSided_variation_bound
-                      ψ hcm hm_Icc_right hλ_pos (Or.inr ⟨rfl, rfl⟩)
+                      ψ hcm hm_Icc_right hlam_pos (Or.inr ⟨rfl, rfl⟩)
                       hright_side (Or.inr hanti_right) hsep_right hden_right
                   have hc_Ioo : c ∈ Finset.Ioo a m :=
                     Finset.mem_Ioo.mpr ⟨hac, hcm⟩
                   have hjump :
-                      jump c ≤ 4 * λ⁻¹ :=
+                      jump c ≤ 4 * lam⁻¹ :=
                     Complex.reducedArc_inverseGeometricDenominator_adjacent_norm_le_four_inv
                       ψ hc_Ioo hm hψ_den
                   have hsplit :
@@ -4784,34 +5990,34 @@ theorem Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bou
                   have hparts :
                       (∑ n ∈ Finset.Ioo a c, jump n) + jump c +
                           ∑ n ∈ Finset.Ioo c m, jump n ≤
-                        (4 * λ⁻¹ + 4 * λ⁻¹) + 4 * λ⁻¹ :=
+                        (4 * lam⁻¹ + 4 * lam⁻¹) + 4 * lam⁻¹ :=
                     add_le_add (add_le_add hleft hjump) hright
                   exact Eq.subst
                     (motive := fun r : ℝ =>
-                      r ≤ 4 * (3 * λ⁻¹))
+                      r ≤ 4 * (3 * lam⁻¹))
                     hsplit.symm
                     (le_trans hparts htarget_three)
 
 /-- The three-piece variation constant is bounded by the public `π`-constant. -/
 theorem Real.four_mul_three_mul_inv_le_four_mul_pi_mul_inv
-    {λ : ℝ}
-    (hλ_pos : 0 < λ) :
-    4 * (3 * λ⁻¹) ≤ 4 * Real.pi * λ⁻¹ := by
-  have hλ_inv_nonneg : 0 ≤ λ⁻¹ :=
-    inv_nonneg.mpr hλ_pos.le
+    {lam : ℝ}
+    (hlam_pos : 0 < lam) :
+    4 * (3 * lam⁻¹) ≤ 4 * Real.pi * lam⁻¹ := by
+  have hlam_inv_nonneg : 0 ≤ lam⁻¹ :=
+    inv_nonneg.mpr hlam_pos.le
   have hthree_le_pi : (3 : ℝ) ≤ Real.pi :=
     le_of_lt Real.pi_gt_three
   have hinner :
-      3 * λ⁻¹ ≤ Real.pi * λ⁻¹ :=
-    mul_le_mul_of_nonneg_right hthree_le_pi hλ_inv_nonneg
+      3 * lam⁻¹ ≤ Real.pi * lam⁻¹ :=
+    mul_le_mul_of_nonneg_right hthree_le_pi hlam_inv_nonneg
   have houter :
-      4 * (3 * λ⁻¹) ≤ 4 * (Real.pi * λ⁻¹) :=
+      4 * (3 * lam⁻¹) ≤ 4 * (Real.pi * lam⁻¹) :=
     mul_le_mul_of_nonneg_left hinner zero_lt_four.le
   have htarget :
-      4 * (Real.pi * λ⁻¹) = 4 * Real.pi * λ⁻¹ :=
-    (mul_assoc (4 : ℝ) Real.pi λ⁻¹).symm
+      4 * (Real.pi * lam⁻¹) = 4 * Real.pi * lam⁻¹ :=
+    (mul_assoc (4 : ℝ) Real.pi lam⁻¹).symm
   exact Eq.subst
-    (motive := fun r : ℝ => 4 * (3 * λ⁻¹) ≤ r)
+    (motive := fun r : ℝ => 4 * (3 * lam⁻¹) ≤ r)
     htarget
     houter
 
@@ -4820,10 +6026,10 @@ negative-side block, one crossing jump, and a positive-side block. -/
 theorem Complex.reducedArc_inverseGeometricDenominator_split_variation_bound
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -4834,20 +6040,20 @@ theorem Complex.reducedArc_inverseGeometricDenominator_split_variation_bound
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
         Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-        4 * Real.pi * λ⁻¹ := by
+        4 * Real.pi * lam⁻¹ := by
   exact le_trans
     (Complex.reducedArc_inverseGeometricDenominator_three_piece_variation_bound
-      ψ ham hm hλ_pos hψ_mem hψ_mono hψ_sep hψ_den)
-    (Real.four_mul_three_mul_inv_le_four_mul_pi_mul_inv hλ_pos)
+      ψ ham hm hlam_pos hψ_mem hψ_mono hψ_sep hψ_den)
+    (Real.four_mul_three_mul_inv_le_four_mul_pi_mul_inv hlam_pos)
 
 /-- The analytic reduced-arc variation theorem for the inverse chord map.
 
@@ -4857,10 +6063,10 @@ fundamental interval, separated from `0`, has controlled total variation under
 theorem Complex.reducedArc_inverseGeometricDenominator_monotone_variation_bound
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -4871,19 +6077,19 @@ theorem Complex.reducedArc_inverseGeometricDenominator_monotone_variation_bound
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
         Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-        4 * Real.pi * λ⁻¹ := by
+        4 * Real.pi * lam⁻¹ := by
   exact
     Complex.reducedArc_inverseGeometricDenominator_split_variation_bound
-      ψ ham hm hλ_pos hψ_mem hψ_mono hψ_sep hψ_den
+      ψ ham hm hlam_pos hψ_mem hψ_mono hψ_sep hψ_den
 
 /-- Exact reduced-arc variation lemma for the inverse geometric denominator.
 
@@ -4893,10 +6099,10 @@ fundamental interval, separated from `0`, has controlled total variation under
 theorem Complex.reducedArc_inverseGeometricDenominator_variation_bound
     (ψ : ℕ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hψ_mem :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -4907,33 +6113,33 @@ theorem Complex.reducedArc_inverseGeometricDenominator_variation_bound
     (hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖)
+          lam ≤ ‖ψ n‖)
     (hψ_den :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ -
         (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹‖) ≤
-        4 * Real.pi * λ⁻¹ := by
+        4 * Real.pi * lam⁻¹ := by
   have hψ_den_reduced :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.reducedArc_inverseGeometricDenominator (ψ n)‖ ≤
-            2 * λ⁻¹ := by
+            2 * lam⁻¹ := by
     intro n hn
     exact Eq.subst
-      (motive := fun z : ℂ => ‖z‖ ≤ 2 * λ⁻¹)
+      (motive := fun z : ℂ => ‖z‖ ≤ 2 * lam⁻¹)
       (Complex.reducedArc_inverseGeometricDenominator_eq (ψ n)).symm
       (hψ_den n hn)
   have hcore :
       (∑ n ∈ Finset.Ioo a m,
         ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
           Complex.reducedArc_inverseGeometricDenominator (ψ (n - 1))‖) ≤
-          4 * Real.pi * λ⁻¹ :=
+          4 * Real.pi * lam⁻¹ :=
     Complex.reducedArc_inverseGeometricDenominator_monotone_variation_bound
-      ψ ham hm hλ_pos hψ_mem hψ_mono hψ_sep hψ_den_reduced
+      ψ ham hm hlam_pos hψ_mem hψ_mono hψ_sep hψ_den_reduced
   have hsum :
       (∑ n ∈ Finset.Ioo a m,
         ‖Complex.reducedArc_inverseGeometricDenominator (ψ n) -
@@ -4953,7 +6159,7 @@ theorem Complex.reducedArc_inverseGeometricDenominator_variation_bound
       Complex.reducedArc_inverseGeometricDenominator_eq (ψ (n - 1))
     exact congrArg norm (congrArg₂ Sub.sub hn_eq hpred_eq)
   exact Eq.subst
-    (motive := fun r : ℝ => r ≤ 4 * Real.pi * λ⁻¹)
+    (motive := fun r : ℝ => r ≤ 4 * Real.pi * lam⁻¹)
     hsum
     hcore
 
@@ -4966,21 +6172,21 @@ turns. -/
 theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_variation_bound
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     (∑ n ∈ Finset.Ioo a m,
       ‖Complex.realPhase_inverseGeometricDenominator φ n -
         Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
-        4 * Real.pi * λ⁻¹ := by
+        4 * Real.pi * lam⁻¹ := by
   let ψ : ℕ → ℝ := Complex.realPhase_reducedIntegerIncrement φ
   have hψ_mem :
       ∀ n : ℕ,
@@ -4988,14 +6194,12 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
           ψ n ∈ Set.Ioc (-Real.pi) Real.pi := by
     intro n hn
     unfold ψ Complex.realPhase_reducedIntegerIncrement
-    convert
-      toIocMod_mem_Ioc Real.two_pi_pos (-Real.pi)
-        (Complex.realPhase_integerIncrement φ n) using 1
-    ring
+    exact real_toIocMod_mem_Ioc_pi_for_logarithmicPhase
+      (Complex.realPhase_integerIncrement φ n)
   have hψ_sep :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
-          λ ≤ ‖ψ n‖ := by
+          lam ≤ ‖ψ n‖ := by
     intro n hn
     unfold ψ
     exact
@@ -5005,7 +6209,7 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹ := by
+            2 * lam⁻¹ := by
     intro n hn
     have htransport :
         Complex.realPhase_inverseGeometricDenominator φ n =
@@ -5013,16 +6217,16 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
       unfold ψ
       exact Complex.realPhase_inverseGeometricDenominator_eq_reduced φ n
     exact Eq.subst
-      (motive := fun z : ℂ => ‖z‖ ≤ 2 * λ⁻¹)
+      (motive := fun z : ℂ => ‖z‖ ≤ 2 * lam⁻¹)
       htransport
       (hden n hn)
   have hcore :
       (∑ n ∈ Finset.Ioo a m,
         ‖(1 - Complex.exp (Complex.I * (ψ n : ℂ)))⁻¹ -
           (1 - Complex.exp (Complex.I * (ψ (n - 1) : ℂ)))⁻¹‖) ≤
-          4 * Real.pi * λ⁻¹ :=
+          4 * Real.pi * lam⁻¹ :=
     Complex.reducedArc_inverseGeometricDenominator_variation_bound
-      ψ ham hm hλ_pos hψ_mem hred_mono hψ_sep hψ_den
+      ψ ham hm hlam_pos hψ_mem hred_mono hψ_sep hψ_den
   have hterms :
       (∑ n ∈ Finset.Ioo a m,
         ‖Complex.realPhase_inverseGeometricDenominator φ n -
@@ -5044,7 +6248,7 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
       exact Complex.realPhase_inverseGeometricDenominator_eq_reduced φ (n - 1)
     exact congrArg norm (congrArg₂ Sub.sub hn hpred)
   exact Eq.subst
-    (motive := fun r : ℝ => r ≤ 4 * Real.pi * λ⁻¹)
+    (motive := fun r : ℝ => r ≤ 4 * Real.pi * lam⁻¹)
     hterms.symm
     hcore
 
@@ -5052,20 +6256,20 @@ theorem Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_v
 theorem Complex.realPhase_prefixAbelVariation_norm_bound
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
           ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖Complex.realPhase_prefixAbelVariation φ a m‖ ≤
-      4 * Real.pi * λ⁻¹ := by
+      4 * Real.pi * lam⁻¹ := by
   have hsum_norm :
       ‖Complex.realPhase_prefixAbelVariation φ a m‖ ≤
         ∑ n ∈ Finset.Ioo a m,
@@ -5118,12 +6322,12 @@ theorem Complex.realPhase_prefixAbelVariation_norm_bound
       (∑ n ∈ Finset.Ioo a m,
         ‖Complex.realPhase_inverseGeometricDenominator φ n -
           Complex.realPhase_inverseGeometricDenominator φ (n - 1)‖) ≤
-          4 * Real.pi * λ⁻¹ :=
+          4 * Real.pi * lam⁻¹ :=
     Complex.realPhase_reducedMonotoneSeparated_inverseGeometricDenominator_variation_bound
-      φ ham hm hλ_pos hred_mono hsep hden
+      φ ham hm hlam_pos hred_mono hsep hden
   exact le_trans hsum_norm
     (Eq.subst
-      (motive := fun r : ℝ => r ≤ 4 * Real.pi * λ⁻¹)
+      (motive := fun r : ℝ => r ≤ 4 * Real.pi * lam⁻¹)
       hunit.symm
       hvariation)
 
@@ -5132,15 +6336,15 @@ finite summation-by-parts identity plus monotone-variation estimate. -/
 theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
     (ham : a < m)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5148,13 +6352,13 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ∃ boundary variation : ℂ,
       (∑ n ∈ Finset.Icc a m,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 4 * Real.pi * λ⁻¹ := by
+      ‖boundary‖ ≤ 4 * (lam⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * Real.pi * lam⁻¹ := by
   let boundary : ℂ := Complex.realPhase_prefixAbelBoundary φ a m
   let variation : ℂ := Complex.realPhase_prefixAbelVariation φ a m
   refine ⟨boundary, variation, ?_, ?_, ?_⟩
@@ -5163,42 +6367,42 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
           Complex.realPhase_integerUnit φ n) =
             boundary + variation :=
       Complex.realPhase_prefixAbel_identity
-        φ ham hm hλ_pos hsep
+        φ ham hm hlam_pos hsep
     exact hidentity
   · have hden' :
         ∀ n : ℕ,
           n ∈ Finset.Ico a b →
             ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
-              2 * λ⁻¹ := by
+              2 * lam⁻¹ := by
       intro n hn
       exact hden n hn
     exact
       Complex.realPhase_prefixAbelBoundary_norm_bound
-        φ ham hm hλ_pos hden'
+        φ ham hm hlam_pos hden'
   · have hden' :
         ∀ n : ℕ,
           n ∈ Finset.Ico a b →
             ‖Complex.realPhase_inverseGeometricDenominator φ n‖ ≤
-              2 * λ⁻¹ := by
+              2 * lam⁻¹ := by
       intro n hn
       exact hden n hn
     exact
       Complex.realPhase_prefixAbelVariation_norm_bound
-        φ ham hm hλ_pos hinc_mono hred_mono hsep hden'
+        φ ham hm hlam_pos hinc_mono hred_mono hsep hden'
 
 /-- The finite Abel transform supplies boundary and variation terms satisfying
 the needed prefix bounds. -/
 theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5206,13 +6410,13 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ∃ boundary variation : ℂ,
       (∑ n ∈ Finset.Icc a m,
         Complex.exp (Complex.I * (φ n : ℂ))) =
           boundary + variation ∧
-      ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
-      ‖variation‖ ≤ 4 * Real.pi * λ⁻¹ := by
+      ‖boundary‖ ≤ 4 * (lam⁻¹ + 1) ∧
+      ‖variation‖ ≤ 4 * Real.pi * lam⁻¹ := by
   by_cases hma : m = a
   · exact Eq.subst
       (motive := fun r : ℕ =>
@@ -5220,18 +6424,18 @@ theorem Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
           (∑ n ∈ Finset.Icc a r,
             Complex.exp (Complex.I * (φ n : ℂ))) =
               boundary + variation ∧
-          ‖boundary‖ ≤ 4 * (λ⁻¹ + 1) ∧
-          ‖variation‖ ≤ 4 * Real.pi * λ⁻¹)
+          ‖boundary‖ ≤ 4 * (lam⁻¹ + 1) ∧
+          ‖variation‖ ≤ 4 * Real.pi * lam⁻¹)
       hma.symm
       (Complex.realPhase_monotoneIncrement_singleton_prefix_abel_terms_bounded
-        φ a hλ_pos)
+        φ a hlam_pos)
   · have hm_bounds : a ≤ m ∧ m ≤ b :=
       Finset.mem_Icc.mp hm
     have ham : a < m :=
       lt_of_le_of_ne hm_bounds.1 (Ne.symm hma)
     exact
       Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded_of_lt
-        φ ha hab_lt ham hm hλ_pos hinc_mono hred_mono hsep hden
+        φ ha hab_lt ham hm hlam_pos hinc_mono hred_mono hsep hden
 
 /-- Prefix-sum form of the finite monotone-increment Dirichlet estimate.
 
@@ -5240,14 +6444,14 @@ the block is controlled by the same endpoint and variation bound. -/
 theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
     (φ : ℝ → ℝ)
     {a b m : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
     (hm : m ∈ Finset.Icc a b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5255,13 +6459,13 @@ theorem Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖∑ n ∈ Finset.Icc a m,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   rcases
     Complex.realPhase_monotoneIncrement_prefix_abel_terms_bounded
-      φ ha hab_lt hm hλ_pos hinc_mono hred_mono hsep hden with
+      φ ha hab_lt hm hlam_pos hinc_mono hred_mono hsep hden with
     ⟨boundary, variation, hS, hboundary, hvariation⟩
   exact
     Complex.realPhase_monotoneIncrement_prefix_abel_norm_assembly
@@ -5272,13 +6476,13 @@ frequencies. -/
 theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5286,31 +6490,31 @@ theorem Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   have hb_mem : b ∈ Finset.Icc a b :=
     Finset.mem_Icc.mpr ⟨le_of_lt hab_lt, le_rfl⟩
   exact
     Complex.realPhase_monotoneIncrement_partialSummation_prefix_bound
-      φ ha hab_lt hb_mem hλ_pos hinc_mono hred_mono hsep hden
+      φ ha hab_lt hb_mem hlam_pos hinc_mono hred_mono hsep hden
 
 /-- Monotone-frequency finite Dirichlet-test core.
 
 This is the summation-by-parts/variation step: once every adjacent frequency
-has a geometric denominator bounded by `2 / λ`, monotonicity of the increments
+has a geometric denominator bounded by `2 / lam`, monotonicity of the increments
 controls the boundary and variation terms. -/
 theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ)
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam)
     (hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5318,13 +6522,13 @@ theorem Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹) :
+            2 * lam⁻¹) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   exact
     Complex.realPhase_monotoneIncrement_abel_transform_norm_bound
-      φ ha hab_lt hλ_pos hinc_mono hred_mono hsep hden
+      φ ha hab_lt hlam_pos hinc_mono hred_mono hsep hden
 
 /-- Nontrivial monotone separated-increment Dirichlet-test primitive.
 
@@ -5334,16 +6538,16 @@ denominators and monotonicity controls the variation term. -/
 theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab_lt : a < b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   have hden :
       ∀ n : ℕ,
         n ∈ Finset.Ico a b →
@@ -5351,79 +6555,79 @@ theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
             Complex.exp
               (Complex.I *
                 (Complex.realPhase_integerIncrement φ n : ℂ)))⁻¹‖ ≤
-            2 * λ⁻¹ := by
+            2 * lam⁻¹ := by
     intro n hn
     exact
       Complex.realPhase_geometricDenominator_inv_norm_bound
-        hλ_pos
+        hlam_pos
         (hsep n hn)
   exact
     Complex.realPhase_monotoneIncrement_dirichlet_variation_bound
-      φ ha hab_lt hλ_pos hinc_mono hred_mono hsep hden
+      φ ha hab_lt hlam_pos hinc_mono hred_mono hsep hden
 
 /-- Finite Dirichlet-test primitive for monotone separated increments.
 
 This is the discrete summation core behind Kusmin-Landau: the adjacent
 increments must move monotonically through frequency space and stay separated
-from every `2πℤ` resonance by at least `λ`.  The endpoint `+1` is necessary
+from every `2πℤ` resonance by at least `lam`.  The endpoint `+1` is necessary
 for singleton blocks, where the separation hypothesis is vacuous. -/
 theorem Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab : a ≤ b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   rcases lt_or_eq_of_le hab with hab_lt | hab_eq
   · exact
       Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound_of_lt
-        φ ha hab_lt hλ_pos hinc_mono hred_mono hsep
+        φ ha hab_lt hlam_pos hinc_mono hred_mono hsep
   · exact
       Eq.subst
         (motive := fun c : ℕ =>
           ‖∑ n ∈ Finset.Icc a c,
             Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-              4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹)
+              4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹)
         hab_eq
-        (Complex.realPhase_singleton_integer_block_bound φ a hλ_pos)
+        (Complex.realPhase_singleton_integer_block_bound φ a hlam_pos)
 
 /-- Finite monotone separated-increment exponential-sum primitive.
 
 This is the public finite-difference Kusmin-Landau surface.  It is a thin
 wrapper over the Dirichlet-test primitive with the boundary-safe constant
-`4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹`. -/
+`4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹`. -/
 theorem Complex.realPhase_separatedIncrement_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab : a ≤ b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   exact
     Complex.realPhase_monotoneSeparatedIncrement_dirichlet_bound
-      φ ha hab hλ_pos hinc_mono hred_mono hsep
+      φ ha hab hlam_pos hinc_mono hred_mono hsep
 
 /-- Honest Kusmin-Landau block estimate with the required monotone separated
 finite-difference hypothesis. -/
 theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab : a ≤ b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hderiv_antitone :
       AntitoneOn
         (fun x : ℝ => ‖deriv φ x‖)
@@ -5431,16 +6635,16 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
     (hderiv_lower :
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
-          λ ≤ ‖deriv φ x‖)
+          lam ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   exact
     Complex.realPhase_separatedIncrement_integer_block_bound
-      φ ha hab hλ_pos hinc_mono hred_mono hsep
+      φ ha hab hlam_pos hinc_mono hred_mono hsep
 
 /-- Kusmin-Landau/van der Corput finite first-derivative core for real phases.
 
@@ -5452,10 +6656,10 @@ does not separate the integer increments from resonant multiples of `2π`. -/
 theorem Complex.realPhase_kusminLandau_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab : a ≤ b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hderiv_antitone :
       AntitoneOn
         (fun x : ℝ => ‖deriv φ x‖)
@@ -5463,16 +6667,16 @@ theorem Complex.realPhase_kusminLandau_integer_block_bound
     (hderiv_lower :
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
-          λ ≤ ‖deriv φ x‖)
+          lam ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   exact
     Complex.realPhase_kusminLandau_integer_block_bound_of_separatedIncrement
-      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
+      φ ha hab hlam_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
 
 /-- General finite first-derivative estimate for a real phase sampled on an
 integer block.
@@ -5484,10 +6688,10 @@ interval. -/
 theorem Complex.realPhase_firstDerivative_integer_block_bound
     (φ : ℝ → ℝ)
     {a b : ℕ}
-    {λ : ℝ}
+    {lam : ℝ}
     (ha : 1 ≤ a)
     (hab : a ≤ b)
-    (hλ_pos : 0 < λ)
+    (hlam_pos : 0 < lam)
     (hderiv_antitone :
       AntitoneOn
         (fun x : ℝ => ‖deriv φ x‖)
@@ -5495,19 +6699,19 @@ theorem Complex.realPhase_firstDerivative_integer_block_bound
     (hderiv_lower :
       ∀ x : ℝ,
         x ∈ Set.Icc (a : ℝ) ((b + 1 : ℕ) : ℝ) →
-          λ ≤ ‖deriv φ x‖)
+          lam ≤ ‖deriv φ x‖)
     (hinc_mono : Complex.realPhase_integerIncrementMonotoneOn φ a b)
     (hred_mono : Complex.realPhase_reducedIntegerIncrementMonotoneOn φ a b)
-    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b λ) :
+    (hsep : Complex.realPhase_integerIncrementSeparatedOn φ a b lam) :
     ‖∑ n ∈ Finset.Icc a b,
       Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-        4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ := by
+        4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ := by
   have hosc :
       ‖∑ n ∈ Finset.Icc a b,
         Complex.exp (Complex.I * (φ n : ℂ))‖ ≤
-          4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ :=
+          4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ :=
     Complex.realPhase_kusminLandau_integer_block_bound
-      φ ha hab hλ_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
+      φ ha hab hlam_pos hderiv_antitone hderiv_lower hinc_mono hred_mono hsep
   exact hosc
 
 /-- The logarithmic block lower-bound parameter is positive away from
@@ -5683,25 +6887,25 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
         (Complex.I *
           (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
         20 * (((b + 1 : ℕ) : ℝ) / ‖t‖ + 1) := by
-  let λ : ℝ := ‖t‖ / ((b + 1 : ℕ) : ℝ)
-  have hλ_pos : 0 < λ :=
+  let lam : ℝ := ‖t‖ / ((b + 1 : ℕ) : ℝ)
+  have hlam_pos : 0 < lam :=
     Complex.logarithmicPhase_block_lowerParameter_pos t ht b
   have hfirst :
       ‖∑ n ∈ Finset.Icc a b,
         Complex.exp
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
-          4 * (λ⁻¹ + 1) + 4 * Real.pi * λ⁻¹ :=
+          4 * (lam⁻¹ + 1) + 4 * Real.pi * lam⁻¹ :=
     Complex.realPhase_firstDerivative_integer_block_bound
       (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t)
-      ha hab hλ_pos
+      ha hab hlam_pos
       hderiv_antitone
       hderiv_lower
       hinc_mono
       hred_mono
       hsep
-  have hλ_inv :
-      λ⁻¹ = ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
+  have hlam_inv :
+      lam⁻¹ = ((b + 1 : ℕ) : ℝ) / ‖t‖ :=
     Complex.logarithmicPhase_block_lowerParameter_inv_eq t ht b
   have hexact :
       ‖∑ n ∈ Finset.Icc a b,
@@ -5717,7 +6921,7 @@ theorem Complex.logarithmicPhaseRealPhase_firstDerivative_integer_block_bound
           (Complex.I *
             (Complex.boundaryLineOnePointRealParam_logarithmicPhaseRealPhase t n : ℂ))‖ ≤
           4 * (scale + 1) + 4 * Real.pi * scale)
-    hλ_inv
+    hlam_inv
     hfirst
   have hscale_nonneg :
       0 ≤ ((b + 1 : ℕ) : ℝ) / ‖t‖ := by
@@ -5799,7 +7003,7 @@ theorem Complex.logarithmicPhase_firstDerivative_integer_block_bound
 /-- Standard first-derivative estimate on one monotone logarithmic-phase block.
 
 This is the local van der Corput input: if the phase derivative has monotone
-magnitude and is bounded below by `λ` on `[a,b]`, then the sampled exponential
+magnitude and is bounded below by `lam` on `[a,b]`, then the sampled exponential
 sum over the block has the stated reciprocal-derivative bound. -/
 theorem Complex.logarithmicPhase_monotone_firstDerivative_block_bound
     (t : ℝ)
@@ -5947,13 +7151,13 @@ theorem Complex.real_exp_half_le_two :
   have hexp_one_le_four : Real.exp (1 : ℝ) ≤ 4 :=
     le_trans
       (le_of_lt Real.exp_one_lt_d9)
-      (by norm_num)
+      (le_of_lt real_decimal_exp_upper_lt_four_for_logarithmicPhase)
   have hsqrt_le_two : Real.sqrt (Real.exp (1 : ℝ)) ≤ 2 :=
-    (Real.sqrt_le_left (by norm_num : (0 : ℝ) ≤ 2)).mpr
+    (Real.sqrt_le_left zero_le_two).mpr
       (by
         calc
           Real.exp (1 : ℝ) ≤ 4 := hexp_one_le_four
-          _ = (2 : ℝ) ^ 2 := by norm_num)
+          _ = (2 : ℝ) ^ 2 := real_four_eq_two_sq_for_logarithmicPhase)
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ 2)
@@ -5994,7 +7198,9 @@ theorem Complex.real_log_two_le_one :
   have htwo_pos : (0 : ℝ) < 2 :=
     zero_lt_two
   have htwo_le_exp : (2 : ℝ) ≤ Real.exp (1 : ℝ) :=
-    le_of_lt (lt_trans (by norm_num : (2 : ℝ) < 2.7182818283) Real.exp_one_gt_d9)
+    le_of_lt
+      (lt_trans real_two_lt_decimal_exp_lower_for_logarithmicPhase
+        Real.exp_one_gt_d9)
   exact (Real.log_le_iff_le_exp htwo_pos).mpr htwo_le_exp
 
 /-- Lower numerical bound for `log 2`. -/
@@ -6006,14 +7212,14 @@ theorem Complex.one_half_le_real_log_two :
 theorem Complex.one_half_lt_real_log_two :
     (1 / 2 : ℝ) < Real.log (2 : ℝ) := by
   have hexp_one_lt_four : Real.exp (1 : ℝ) < 4 :=
-    lt_trans Real.exp_one_lt_d9 (by norm_num)
+    lt_trans Real.exp_one_lt_d9 real_decimal_exp_upper_lt_four_for_logarithmicPhase
   have hexp_half_lt_two : Real.exp (1 / 2 : ℝ) < 2 := by
     have hsqrt : Real.sqrt (Real.exp (1 : ℝ)) < 2 :=
       (Real.sqrt_lt' zero_lt_two).mpr
         (by
           calc
             Real.exp (1 : ℝ) < 4 := hexp_one_lt_four
-            _ = (2 : ℝ) ^ 2 := by norm_num)
+            _ = (2 : ℝ) ^ 2 := real_four_eq_two_sq_for_logarithmicPhase)
     exact Eq.subst
       (motive := fun y : ℝ => y < 2)
       (Real.exp_half (1 : ℝ)).symm
@@ -6029,26 +7235,29 @@ theorem Complex.two_thirds_le_real_log_two :
     have hsq :
         Real.exp (2 : ℝ) = Real.exp (1 : ℝ) ^ 2 := by
       calc
-        Real.exp (2 : ℝ) = Real.exp ((2 : ℕ) * (1 : ℝ)) := by norm_num
+        Real.exp (2 : ℝ) = Real.exp ((2 : ℕ) * (1 : ℝ)) :=
+          real_exp_two_eq_exp_nat_two_mul_one_for_logarithmicPhase
         _ = Real.exp (1 : ℝ) ^ 2 :=
           Real.exp_nat_mul (1 : ℝ) 2
     have hsq_bound : Real.exp (1 : ℝ) ^ 2 < (8 : ℝ) := by
       calc
         Real.exp (1 : ℝ) ^ 2 < (2.7182818286 : ℝ) ^ 2 := by
           exact pow_lt_pow_left₀ (Real.exp_pos 1).le Real.exp_one_lt_d9 (by decide : 0 < 2)
-        _ < (8 : ℝ) := by norm_num
+        _ < (8 : ℝ) := real_decimal_exp_upper_sq_lt_eight_for_logarithmicPhase
     exact le_of_lt (Eq.subst (motive := fun z : ℝ => z < 8) hsq.symm hsq_bound)
   have hlog_eight : (2 : ℝ) ≤ Real.log (8 : ℝ) :=
-    (Real.le_log_iff_exp_le (by norm_num : (0 : ℝ) < 8)).mpr hexp_two_le_eight
+    (Real.le_log_iff_exp_le real_zero_lt_eight_for_logarithmicPhase).mpr
+      hexp_two_le_eight
   have hlog_pow :
       Real.log (8 : ℝ) = 3 * Real.log (2 : ℝ) := by
     calc
-      Real.log (8 : ℝ) = Real.log ((2 : ℝ) ^ 3) := by norm_num
+      Real.log (8 : ℝ) = Real.log ((2 : ℝ) ^ 3) :=
+        congrArg Real.log real_eight_eq_two_pow_three_for_logarithmicPhase
       _ = (3 : ℝ) * Real.log (2 : ℝ) :=
         Real.log_pow (2 : ℝ) 3
   have htwo_le_three_log : (2 : ℝ) ≤ 3 * Real.log (2 : ℝ) :=
     Eq.subst (motive := fun target : ℝ => (2 : ℝ) ≤ target) hlog_pow hlog_eight
-  exact (div_le_iff₀' (by norm_num : (0 : ℝ) < 3)).mp htwo_le_three_log
+  exact (div_le_iff₀' zero_lt_three).mp htwo_le_three_log
 
 /-- The denominator in the explicit critical point is nonnegative. -/
 theorem Complex.realLogDyadicComparisonCriticalPoint_den_nonneg :
@@ -6108,7 +7317,7 @@ theorem Complex.two_div_two_mul_eq_one_div
     _ = (2 : ℝ) * (u⁻¹ * (2 : ℝ)⁻¹) := by
       exact congrArg (fun z : ℝ => (2 : ℝ) * z) (mul_inv_rev 2 u)
     _ = ((2 : ℝ) * (2 : ℝ)⁻¹) * u⁻¹ := by
-      ring
+      exact real_two_mul_inv_mul_two_inv_reassociate_for_logarithmicPhase u
     _ = (1 : ℝ) * u⁻¹ := by
       exact congrArg (fun z : ℝ => z * u⁻¹) (mul_inv_cancel₀ two_ne_zero)
     _ = u⁻¹ :=
@@ -6121,8 +7330,10 @@ theorem Complex.realLogDyadicComparisonDefect_deriv_den_pos
     {x : ℝ}
     (hx : 0 ≤ x) :
     0 < (x + 2) * (x + 1) := by
-  have hx_two : 0 < x + 2 := by linarith
-  have hx_one : 0 < x + 1 := by linarith
+  have hx_two : 0 < x + 2 :=
+    real_zero_lt_add_two_of_nonneg_for_logarithmicPhase hx
+  have hx_one : 0 < x + 1 :=
+    real_zero_lt_add_one_of_nonneg_for_logarithmicPhase hx
   exact mul_pos hx_two hx_one
 
 /-- Exact factorization of the dyadic defect derivative around the critical
@@ -6135,14 +7346,27 @@ theorem Complex.realLogDyadicComparisonDefect_deriv_factorization
         (x - Complex.realLogDyadicComparisonCriticalPoint)) /
           ((x + 2) * (x + 1)) := by
   have hx_two_ne : x + 2 ≠ 0 :=
-    ne_of_gt (by linarith : 0 < x + 2)
+    ne_of_gt (real_zero_lt_add_two_of_nonneg_for_logarithmicPhase hx)
   have hx_one_ne : x + 1 ≠ 0 :=
-    ne_of_gt (by linarith : 0 < x + 1)
+    ne_of_gt (real_zero_lt_add_one_of_nonneg_for_logarithmicPhase hx)
   have hcrit_den_ne : 2 * Real.log (2 : ℝ) - 1 ≠ 0 :=
     ne_of_gt Complex.realLogDyadicComparisonCriticalPoint_den_pos
   unfold Complex.realLogDyadicComparisonCriticalPoint
-  field_simp [hx_two_ne, hx_one_ne, hcrit_den_ne]
-  ring
+  calc
+    2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1) =
+        ((2 * Real.log (2 : ℝ)) * (x + 1) - 1 * (x + 2)) /
+          ((x + 2) * (x + 1)) := by
+      exact real_dyadic_deriv_left_common_denominator_for_logarithmicPhase
+        (Real.log (2 : ℝ)) x hx_two_ne hx_one_ne
+    _ =
+        ((2 * Real.log (2 : ℝ) - 1) *
+          (x - (2 - 2 * Real.log (2 : ℝ)) /
+            (2 * Real.log (2 : ℝ) - 1))) /
+          ((x + 2) * (x + 1)) := by
+      exact congrArg
+        (fun z : ℝ => z / ((x + 2) * (x + 1)))
+        (real_dyadic_deriv_numerator_factor_for_logarithmicPhase
+          (Real.log (2 : ℝ)) x hcrit_den_ne)
 
 /-- Derivative formula for the dyadic-log comparison defect on `(0,∞)`. -/
 theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
@@ -6152,8 +7376,10 @@ theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
       Complex.realLogDyadicComparisonDefect
       (2 * Real.log (2 : ℝ) / (x + 2) - 1 / (x + 1))
       x := by
-  have hx_two_pos : 0 < x + 2 := by linarith
-  have hx_one_pos : 0 < x + 1 := by linarith
+  have hx_two_pos : 0 < x + 2 :=
+    real_zero_lt_add_two_of_nonneg_for_logarithmicPhase hx
+  have hx_one_pos : 0 < x + 1 :=
+    real_zero_lt_add_one_of_nonneg_for_logarithmicPhase hx
   have hlog_shift :
       HasDerivAt (fun y : ℝ => Real.log (y + 2)) (1 / (x + 2)) x := by
     have hshift : HasDerivAt (fun y : ℝ => y + 2) 1 x :=
@@ -6175,7 +7401,8 @@ theorem Complex.realLogDyadicComparisonDefect_hasDerivAt
     have hderiv :
         ((2 * (1 / (x + 2))) * Real.log (2 : ℝ)) =
           2 * Real.log (2 : ℝ) / (x + 2) := by
-      ring
+      exact real_two_one_div_mul_eq_two_mul_div_for_logarithmicPhase
+        (Real.log (2 : ℝ)) (x + 2)
     exact Eq.subst
       (motive := fun d : ℝ =>
         HasDerivAt
@@ -6322,8 +7549,10 @@ theorem Complex.realLogDyadicComparisonDefect_zero_nonneg :
       Complex.realLogDyadicComparisonDefect 0 =
         (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
           Real.log (2 : ℝ) := by
-    have harg_two : (0 : ℝ) + 2 = 2 := by ring
-    have hmul : (2 : ℝ) * (0 + 1) = 2 := by ring
+    have harg_two : (0 : ℝ) + 2 = 2 :=
+      real_zero_add_two_eq_two_for_logarithmicPhase
+    have hmul : (2 : ℝ) * (0 + 1) = 2 :=
+      real_two_mul_zero_add_one_eq_two_for_logarithmicPhase
     calc
       Complex.realLogDyadicComparisonDefect 0 =
           (2 * Real.log ((0 : ℝ) + 2)) * Real.log (2 : ℝ) -
@@ -6352,7 +7581,7 @@ theorem Complex.realLogDyadicComparisonDefect_zero_nonneg :
       (2 * Real.log (2 : ℝ)) * Real.log (2 : ℝ) -
           Real.log (2 : ℝ) =
         Real.log (2 : ℝ) * (2 * Real.log (2 : ℝ) - 1) := by
-    ring
+    exact real_log_endpoint_factor_for_logarithmicPhase (Real.log (2 : ℝ))
   exact Eq.subst
     (motive := fun target : ℝ => 0 ≤ target)
     hdef.symm
@@ -6366,8 +7595,9 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_add_one_eq :
   have hden_ne : 2 * Real.log (2 : ℝ) - 1 ≠ 0 :=
     ne_of_gt Complex.realLogDyadicComparisonCriticalPoint_den_pos
   unfold Complex.realLogDyadicComparisonCriticalPoint
-  field_simp [hden_ne]
-  ring
+  exact real_critical_fraction_add_one_for_logarithmicPhase
+    (Real.log (2 : ℝ))
+    hden_ne
 
 /-- At the critical point, the shifted `x+2` denominator has this explicit
 value. -/
@@ -6377,8 +7607,9 @@ theorem Complex.realLogDyadicComparisonCriticalPoint_add_two_eq :
   have hden_ne : 2 * Real.log (2 : ℝ) - 1 ≠ 0 :=
     ne_of_gt Complex.realLogDyadicComparisonCriticalPoint_den_pos
   unfold Complex.realLogDyadicComparisonCriticalPoint
-  field_simp [hden_ne]
-  ring
+  exact real_critical_fraction_add_two_for_logarithmicPhase
+    (Real.log (2 : ℝ))
+    hden_ne
 
 /-- Entropy-form expression behind the dyadic critical value. -/
 def Complex.realLogDyadicEntropyExpression
@@ -6437,7 +7668,9 @@ theorem Complex.realLogDyadicEntropyExpression_hasDerivAt
   have hderiv :
       (Real.log y + 1) - (Real.log (y - 1) + 1) =
         Real.log y - Real.log (y - 1) := by
-    ring
+    exact real_add_one_sub_add_one_eq_sub_for_logarithmicPhase
+      (Real.log y)
+      (Real.log (y - 1))
   exact Eq.subst
     (motive := fun d : ℝ =>
       HasDerivAt Complex.realLogDyadicEntropyExpression d y)
@@ -6452,7 +7685,7 @@ theorem Complex.realLogDyadicEntropyExpression_deriv_nonneg
   have hy_sub_pos : 0 < y - 1 :=
     sub_pos.mpr hy
   have hsub_le_y : y - 1 ≤ y := by
-    linarith
+    exact real_sub_one_le_self_for_logarithmicPhase y
   have hlog_le : Real.log (y - 1) ≤ Real.log y :=
     Real.log_le_log hy_sub_pos hsub_le_y
   exact sub_nonneg.mpr hlog_le
@@ -6518,15 +7751,19 @@ theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
   have hlog_three_le :
       Real.log (3 : ℝ) ≤ (5 / 3 : ℝ) * Real.log (2 : ℝ) := by
     have hlog_27_le_32 : Real.log (27 : ℝ) ≤ Real.log (32 : ℝ) :=
-      Real.log_le_log (by norm_num : (0 : ℝ) < 27) (by norm_num : (27 : ℝ) ≤ 32)
+      Real.log_le_log
+        real_zero_lt_twenty_seven_for_logarithmicPhase
+        real_twenty_seven_le_thirty_two_for_logarithmicPhase
     have hlog_27 : Real.log (27 : ℝ) = (3 : ℝ) * Real.log (3 : ℝ) := by
       calc
-        Real.log (27 : ℝ) = Real.log ((3 : ℝ) ^ 3) := by norm_num
+        Real.log (27 : ℝ) = Real.log ((3 : ℝ) ^ 3) :=
+          congrArg Real.log real_twenty_seven_eq_three_pow_three_for_logarithmicPhase
         _ = (3 : ℝ) * Real.log (3 : ℝ) :=
           Real.log_pow (3 : ℝ) 3
     have hlog_32 : Real.log (32 : ℝ) = (5 : ℝ) * Real.log (2 : ℝ) := by
       calc
-        Real.log (32 : ℝ) = Real.log ((2 : ℝ) ^ 5) := by norm_num
+        Real.log (32 : ℝ) = Real.log ((2 : ℝ) ^ 5) :=
+          congrArg Real.log real_thirty_two_eq_two_pow_five_for_logarithmicPhase
         _ = (5 : ℝ) * Real.log (2 : ℝ) :=
           Real.log_pow (2 : ℝ) 5
     have hthree :
@@ -6538,33 +7775,37 @@ theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
           (motive := fun rhs : ℝ => Real.log (27 : ℝ) ≤ rhs)
           hlog_32
           hlog_27_le_32)
-    exact (le_div_iff₀' (by norm_num : (0 : ℝ) < 3)).mp hthree
+    exact (le_div_iff₀' zero_lt_three).mp hthree
   have hvalue :
       Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) =
         (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
-    have hfour_ne : (4 / 3 : ℝ) ≠ 0 := by norm_num
-    have hone_ne : ((4 / 3 : ℝ) - 1) ≠ 0 := by norm_num
+    have hfour_ne : (4 / 3 : ℝ) ≠ 0 :=
+      real_four_div_three_ne_zero_for_logarithmicPhase
+    have hone_ne : ((4 / 3 : ℝ) - 1) ≠ 0 :=
+      real_four_div_three_sub_one_ne_zero_for_logarithmicPhase
     have hlog_four_thirds :
         Real.log (4 / 3 : ℝ) = 2 * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
       calc
-        Real.log (4 / 3 : ℝ) = Real.log ((4 : ℝ) / 3) := by norm_num
+        Real.log (4 / 3 : ℝ) = Real.log ((4 : ℝ) / 3) := rfl
         _ = Real.log (4 : ℝ) - Real.log (3 : ℝ) :=
-          Real.log_div (by norm_num : (4 : ℝ) ≠ 0) (by norm_num : (3 : ℝ) ≠ 0)
+          Real.log_div (ne_of_gt zero_lt_four) (ne_of_gt zero_lt_three)
         _ = 2 * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
           have hlog_four : Real.log (4 : ℝ) = 2 * Real.log (2 : ℝ) := by
             calc
-              Real.log (4 : ℝ) = Real.log ((2 : ℝ) ^ 2) := by norm_num
+              Real.log (4 : ℝ) = Real.log ((2 : ℝ) ^ 2) :=
+                congrArg Real.log real_four_eq_two_sq_for_logarithmicPhase
               _ = (2 : ℝ) * Real.log (2 : ℝ) :=
                 Real.log_pow (2 : ℝ) 2
           exact congrArg (fun z : ℝ => z - Real.log (3 : ℝ)) hlog_four
     have hlog_one_third :
         Real.log ((4 / 3 : ℝ) - 1) = - Real.log (3 : ℝ) := by
       calc
-        Real.log ((4 / 3 : ℝ) - 1) = Real.log ((1 : ℝ) / 3) := by norm_num
+        Real.log ((4 / 3 : ℝ) - 1) = Real.log ((1 : ℝ) / 3) :=
+          congrArg Real.log real_four_div_three_sub_one_eq_one_div_three_for_logarithmicPhase
         _ = Real.log (1 : ℝ) - Real.log (3 : ℝ) :=
-          Real.log_div one_ne_zero (by norm_num : (3 : ℝ) ≠ 0)
+          Real.log_div one_ne_zero (ne_of_gt zero_lt_three)
         _ = - Real.log (3 : ℝ) := by
-          norm_num [Real.log_one]
+          exact real_log_one_sub_log_eq_neg_log_for_logarithmicPhase 3
     calc
       Complex.realLogDyadicEntropyExpression (4 / 3 : ℝ) =
           (4 / 3 : ℝ) * Real.log (4 / 3 : ℝ) -
@@ -6576,7 +7817,8 @@ theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
           (congrArg (fun z : ℝ => (4 / 3 : ℝ) * z) hlog_four_thirds)
           (congrArg (fun z : ℝ => ((4 / 3 : ℝ) - 1) * z) hlog_one_third)
       _ = (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
-        ring
+        exact real_four_thirds_entropy_value_algebra_for_logarithmicPhase
+          (Real.log (2 : ℝ)) (Real.log (3 : ℝ))
   have htarget :
       Real.log (2 : ℝ) ≤ (8 / 3 : ℝ) * Real.log (2 : ℝ) - Real.log (3 : ℝ) := by
     have hmove :
@@ -6589,7 +7831,8 @@ theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
       have halg :
           Real.log (2 : ℝ) + (5 / 3 : ℝ) * Real.log (2 : ℝ) =
             (8 / 3 : ℝ) * Real.log (2 : ℝ) := by
-        ring
+        exact real_one_add_five_thirds_mul_eq_eight_thirds_mul_for_logarithmicPhase
+          (Real.log (2 : ℝ))
       exact Eq.subst
         (motive := fun rhs : ℝ => Real.log (2 : ℝ) + Real.log (3 : ℝ) ≤ rhs)
         halg
@@ -6604,7 +7847,8 @@ theorem Complex.real_log_two_le_entropyExpression_at_four_thirds :
 theorem Complex.real_log_two_le_entropyExpression_at_two_log :
     Real.log (2 : ℝ) ≤
       Complex.realLogDyadicEntropyExpression (2 * Real.log (2 : ℝ)) := by
-  have hfour_thirds_lt : (1 : ℝ) < 4 / 3 := by norm_num
+  have hfour_thirds_lt : (1 : ℝ) < 4 / 3 :=
+    real_one_lt_four_div_three_for_logarithmicPhase
   have hfour_thirds_le :
       (4 / 3 : ℝ) ≤ 2 * Real.log (2 : ℝ) := by
     have hlog : (2 / 3 : ℝ) ≤ Real.log (2 : ℝ) :=
@@ -6704,7 +7948,10 @@ theorem Complex.realLogDyadicComparisonCriticalExpression_eq_entropy :
         ((2 * Real.log (2 : ℝ)) - 1) *
           Real.log ((2 * Real.log (2 : ℝ)) - 1) -
         Real.log (2 : ℝ) := by
-      ring
+      exact real_critical_expression_expand_for_logarithmicPhase
+        (Real.log (2 * Real.log (2 : ℝ)))
+        (Real.log (2 * Real.log (2 : ℝ) - 1))
+        (Real.log (2 : ℝ))
 
 /-- Numerical inequality for the dyadic-log defect at its critical point,
 written only in terms of `log 2`. -/
@@ -6873,10 +8120,10 @@ theorem Complex.real_log_two_mul_nat_succ_le_two_log_shift_mul_log_two
       (Nat.cast_nonneg N)
   have harg :
       ((((N + 1) * 2 : ℕ) : ℝ)) = 2 * (((N : ℝ) + 1)) := by
-    norm_num [Nat.cast_add, Nat.cast_mul, mul_comm, mul_left_comm, mul_assoc]
+    exact real_nat_succ_mul_two_cast_eq_for_logarithmicPhase N
   have hshift :
       ((N : ℝ) + 2) = 2 + N := by
-    ring
+    exact real_nat_add_two_comm_for_logarithmicPhase N
   exact Eq.subst
     (motive := fun arg : ℝ =>
       Real.log arg ≤ (2 * Real.log (2 + N)) * Real.log (2 : ℝ))
@@ -6969,7 +8216,7 @@ theorem Complex.logarithmicPhase_log2_add_one_le_sqrt_transition
       2 * Real.log (2 + N) ≤
         2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
     have hlog_nonneg : 0 ≤ Real.log (2 + N) :=
-      le_trans (show (0 : ℝ) ≤ 1 / 2 by norm_num)
+      le_trans real_zero_le_one_div_two_for_logarithmicPhase
         (Complex.logarithmicPhase_standardLog_half_le N)
     have hsqrt_factor : 2 ≤ 2 * Real.sqrt (1 + ‖t‖) :=
       Complex.two_le_two_mul_sqrt_one_add_norm t ht
@@ -6999,7 +8246,8 @@ theorem Complex.logarithmicPhase_quotient_term_le_standard
   have hleft :
       8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) =
         16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * (1 / 2 : ℝ) := by
-    ring
+    exact real_eight_mul_eq_sixteen_mul_half_for_logarithmicPhase
+      (((N + 1 : ℕ) : ℝ) / ‖t‖)
   exact Eq.subst
     (motive := fun lhs : ℝ =>
       lhs ≤ 16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N))
@@ -7027,7 +8275,9 @@ theorem Complex.logarithmicPhase_counting_term_le_standard
   have hright :
       8 * (2 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N)) =
         16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) := by
-    ring
+    exact real_eight_two_mul_log_scale_for_logarithmicPhase
+      (Real.sqrt (1 + ‖t‖))
+      (Real.log (2 + N))
   exact Eq.subst
     (motive := fun rhs : ℝ =>
       8 * ((Nat.log2 (N + 1) : ℝ) + 1) ≤ rhs)
@@ -7062,14 +8312,19 @@ theorem Complex.logarithmicPhase_dyadic_cover_expression_le_standard
       8 * (((N + 1 : ℕ) : ℝ) / ‖t‖ + Nat.log2 (N + 1) + 1) =
         8 * (((N + 1 : ℕ) : ℝ) / ‖t‖) +
           8 * ((Nat.log2 (N + 1) : ℝ) + 1) := by
-    ring
+    exact real_eight_mul_three_term_split_for_logarithmicPhase
+      (((N + 1 : ℕ) : ℝ) / ‖t‖)
+      (Nat.log2 (N + 1) : ℝ)
   have hright :
       16 * (((N + 1 : ℕ) : ℝ) / ‖t‖) * Real.log (2 + N) +
           16 * Real.sqrt (1 + ‖t‖) * Real.log (2 + N) =
         16 *
           (((N + 1 : ℕ) : ℝ) / ‖t‖ + Real.sqrt (1 + ‖t‖)) *
             Real.log (2 + N) := by
-    ring
+    exact real_sixteen_mul_sum_log_factor_for_logarithmicPhase
+      (((N + 1 : ℕ) : ℝ) / ‖t‖)
+      (Real.sqrt (1 + ‖t‖))
+      (Real.log (2 + N))
   exact Eq.subst
     (motive := fun lhs : ℝ =>
       lhs ≤

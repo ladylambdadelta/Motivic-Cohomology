@@ -22,8 +22,17 @@ horizontal contributions. -/
 theorem Complex.finiteAbelPlana_sideExpression_collect_horizontal
     (lowerConstant bottom upperConstant top rawVertical : ℂ) :
     (lowerConstant + bottom) - (upperConstant + top) + rawVertical =
-      (lowerConstant - upperConstant + rawVertical) - (bottom - top) := by
-  ring
+      (lowerConstant - upperConstant + rawVertical) + (bottom - top) := by
+  calc
+    (lowerConstant + bottom) - (upperConstant + top) + rawVertical
+        =
+      (lowerConstant - upperConstant + (bottom - top)) + rawVertical := by
+      exact congrArg (fun z : ℂ => z + rawVertical)
+        (add_sub_add_comm lowerConstant bottom upperConstant top)
+    _ =
+      (lowerConstant - upperConstant + rawVertical) + (bottom - top) := by
+      exact add_right_comm
+        (lowerConstant - upperConstant) (bottom - top) rawVertical
 
 /-- The constant horizontal cotangent pieces and raw vertical sides normalize
 to the real-axis endpoint contribution plus the named Abel-Plana vertical
@@ -68,7 +77,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightSideAlgebra_eq_realEndpoint_vert
     (hT : 0 < T) :
     Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
       (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
-        Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) -
+        Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) +
         Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   have hlower :
       Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T =
@@ -103,7 +112,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightSideAlgebra_eq_realEndpoint_vert
           Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T) =
         (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T -
           Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
-            Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T) -
+            Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T) +
           (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
             Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) := by
       dsimp [Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression]
@@ -117,12 +126,12 @@ theorem Complex.finiteAbelPlana_log_finiteHeightSideAlgebra_eq_realEndpoint_vert
             Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T)
     _ =
         (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
-          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) -
+          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) +
           (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
             Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) := by
       exact congrArg
         (fun z : ℂ =>
-          z -
+          z +
             (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
               Complex.finiteAbelPlanaLogTopHorizontalEdge N w T))
         hvertical
@@ -141,12 +150,12 @@ theorem Complex.finiteAbelPlana_log_finiteHeightCotangentSideRewrite
     (T : ℝ)
     (hT : 0 < T) :
     Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
-      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T -
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
         Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   have hside :
       Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
         (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
-          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) -
+          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
     Complex.finiteAbelPlana_log_finiteHeightSideAlgebra_eq_realEndpoint_vertical_sub_horizontal
       N w T hT
@@ -159,15 +168,15 @@ theorem Complex.finiteAbelPlana_log_finiteHeightCotangentSideRewrite
   calc
     Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
         (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
-          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) -
+          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
       hside
     _ =
-        Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T -
+        Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
       congrArg
         (fun z : ℂ =>
-          z - Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+          z + Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
         hnamed.symm
 
 /-- Side decomposition of the finite Abel-Plana rectangle.
@@ -183,11 +192,32 @@ theorem Complex.finiteAbelPlana_log_finiteHeightRectangle_sideDecomposition
     (T : ℝ)
     (hT : 0 < T) :
     Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
-      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T -
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
         Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   exact
     Complex.finiteAbelPlana_log_finiteHeightCotangentSideRewrite
       N w T hT
+
+/-- The named two-face boundary target is the same finite-height named side
+expression used by the side assembly theorem. -/
+theorem Complex.finiteAbelPlana_log_namedBoundaryFaceSum_eq_finiteHeightNamedSideExpression
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T =
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T := by
+  have hside :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
+          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T :=
+    Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_eq_realEndpoint_add_vertical
+      N w T
+  have hboundary :
+      Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
+          Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T := by
+    rfl
+  exact hboundary.trans hside.symm
 
 /-- Finite-height residue accounting identifies the contour error with the
 two horizontal edges.
@@ -269,13 +299,17 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_namedSide_
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
         Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
-    dsimp [Complex.finiteAbelPlanaLogNamedBoundaryFaceSum,
-      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression,
-      Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression,
-      Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression,
-      Complex.finiteAbelPlanaLogEndpointPVIndentationContribution]
-    ring
+    exact congrArg
+      (fun z : ℂ =>
+        z + Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+      (Complex.finiteAbelPlana_log_namedBoundaryFaceSum_eq_finiteHeightNamedSideExpression
+        N w T)
   exact hpoint ▸ htarget ▸ hshift
+
+/-- Addition of a negated term is subtraction. -/
+theorem Complex.add_neg_eq_sub (a b : ℂ) :
+    a + (-b) = a - b := by
+  exact (sub_eq_add_neg a b).symm
 
 /-- The named finite-height side expression is the residue sum minus the
 horizontal error, with the sign forced by
@@ -310,7 +344,15 @@ theorem Complex.finiteAbelPlana_log_namedSideExpression_eq_residueSum_sub_horizo
       have hraw :=
         Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_namedSide_add_horizontalError
           N hw T hT
-      simpa [sub_neg_eq_add] using hraw
+      have htarget :
+          Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+              Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
+            Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T -
+              (-Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) :=
+        (sub_neg_eq_add
+          (Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T)
+          (Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)).symm
+      exact htarget ▸ hraw
   have hlimit :
       Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T -
           (-Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) =
@@ -334,7 +376,9 @@ theorem Complex.finiteAbelPlana_log_namedSideExpression_eq_residueSum_sub_horizo
     _ =
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w -
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
-      ring
+      exact Complex.add_neg_eq_sub
+        (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)
+        (Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
 
 /-- Finite-height residue accounting identifies the contour error with the
 negative of the oriented horizontal-edge error. -/

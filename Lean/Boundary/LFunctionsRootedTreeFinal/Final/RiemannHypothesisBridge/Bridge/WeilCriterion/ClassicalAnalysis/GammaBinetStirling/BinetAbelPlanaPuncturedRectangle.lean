@@ -17,6 +17,14 @@ noncomputable section
 
 open scoped Topology
 
+/-- The fixed quarter-radius used to separate neighboring integer poles is
+positive. -/
+theorem real_one_fourth_pos :
+    0 < (1 : ℝ) / 4 := by
+  have hfour_pos : (0 : ℝ) < 4 := by
+    exact zero_lt_four
+  exact div_pos zero_lt_one hfour_pos
+
 noncomputable def Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound
     (w : ℂ)
     (N : ℕ)
@@ -36,7 +44,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleRadiusBound_pos
     {T : ℝ}
     (hT : 0 < T) :
     0 < Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound w N T := by
-  have hquarter : 0 < (1 : ℝ) / 4 := by norm_num
+  have hquarter : 0 < (1 : ℝ) / 4 := real_one_fourth_pos
   have hheight : 0 < |T| / 2 := by
     have hT_abs : 0 < |T| := abs_pos.mpr (ne_of_gt hT)
     exact half_pos hT_abs
@@ -458,7 +466,7 @@ theorem Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedR
     ∃ n ∈ Finset.range (N + 2), z = (n : ℂ) := by
   rcases Complex.sin_eq_zero_iff.mp hzero with ⟨k, hk⟩
   have hpi_ne : (Real.pi : ℂ) ≠ 0 := by
-    exact_mod_cast Real.pi_ne_zero
+    exact Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
   have hz_eq_int : z = (k : ℂ) := by
     have hmul :
         (Real.pi : ℂ) * z = (Real.pi : ℂ) * (k : ℂ) := by
@@ -481,22 +489,22 @@ theorem Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedR
       exact congrArg Complex.re hz_eq_int
     exact hzre_eq ▸ hzre_le
   have hk_nonneg_int : 0 ≤ k := by
-    exact_mod_cast hk_nonneg_real
+    exact Int.cast_nonneg.mp hk_nonneg_real
   let n : ℕ := k.toNat
   have hn_int : (n : ℤ) = k := by
     dsimp [n]
     exact Int.toNat_of_nonneg hk_nonneg_int
   have hn_le : n ≤ N + 1 := by
     have hk_le_int : k ≤ (N + 1 : ℤ) := by
-      exact_mod_cast hk_le_right_real
+      exact Int.cast_le.mp hk_le_right_real
     have hn_le_int : (n : ℤ) ≤ (N + 1 : ℤ) := by
       exact hn_int.trans_le hk_le_int
-    exact_mod_cast hn_le_int
+    exact Int.ofNat_le.mp hn_le_int
   have hn_range : n ∈ Finset.range (N + 2) := by
     exact Finset.mem_range.2 (Nat.lt_succ_iff.2 hn_le)
   refine ⟨n, hn_range, ?_⟩
   have hcast : (n : ℂ) = (k : ℂ) := by
-    exact_mod_cast hn_int
+    exact congrArg (fun z : ℤ => (z : ℂ)) hn_int
   exact hz_eq_int.trans hcast.symm
 
 /-- The punctured finite Abel-Plana rectangle avoids every cotangent pole. -/

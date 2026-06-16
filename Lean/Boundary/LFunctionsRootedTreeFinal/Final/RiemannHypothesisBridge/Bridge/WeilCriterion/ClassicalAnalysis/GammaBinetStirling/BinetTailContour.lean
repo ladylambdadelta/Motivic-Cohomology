@@ -16,6 +16,11 @@ noncomputable section
 
 open scoped Topology
 
+/-- The norm of the complex scalar `2` is the real scalar `2`. -/
+theorem Complex.norm_two :
+    ‖(2 : ℂ)‖ = (2 : ℝ) :=
+  Complex.norm_natCast 2
+
 /-- The lower Binet remainder piece after splitting at `‖w‖ / 2`.
 
 This is the small-argument range where the power-series arctangent estimate
@@ -84,7 +89,7 @@ theorem Complex.binetSecondFormulaTailRemainder_norm_le_principalTailKernel_norm
       exact congrArg norm htail_eq
     _ = 2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
       have htwo : ‖(2 : ℂ)‖ = (2 : ℝ) := by
-        norm_num [Complex.normSq]
+        exact Complex.norm_two
       calc
         ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ =
             ‖(2 : ℂ)‖ * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by

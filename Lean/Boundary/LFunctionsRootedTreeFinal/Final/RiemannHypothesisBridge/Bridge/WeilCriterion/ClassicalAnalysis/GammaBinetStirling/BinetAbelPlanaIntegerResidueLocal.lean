@@ -16,6 +16,97 @@ noncomputable section
 
 open scoped Topology
 
+/-- The real half is positive. -/
+theorem real_one_half_pos : 0 < (1 : ℝ) / 2 := by
+  exact half_pos zero_lt_one
+
+/-- A real number less than a positive radius lies in the pointed interval
+used by `𝓝[>] 0`. -/
+theorem real_zero_lt_radius_pair
+    {R : ℝ}
+    (hR : 0 < R) :
+    (0 : ℝ) < R ∧ R < R + 1 := by
+  exact ⟨hR, lt_add_of_pos_right R zero_lt_one⟩
+
+/-- The complex coercion of `π` is nonzero. -/
+theorem Complex.ofReal_pi_ne_zero : (Real.pi : ℂ) ≠ 0 := by
+  exact Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+
+/-- The complex coercion of `2` is nonzero. -/
+theorem Complex.ofNat_two_ne_zero : ((2 : ℂ) : ℂ) ≠ 0 := by
+  exact Nat.cast_ne_zero.mpr (by decide : (2 : ℕ) ≠ 0)
+
+/-- The product `2πi` is nonzero. -/
+theorem Complex.two_pi_I_ne_zero :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) ≠ 0 := by
+  exact mul_ne_zero
+    (mul_ne_zero Complex.ofNat_two_ne_zero Complex.ofReal_pi_ne_zero)
+    Complex.I_ne_zero
+
+/-- Translating a centered lower bound gives the corresponding real-coordinate
+lower bound. -/
+theorem Real.sub_norm_le_of_neg_norm_le_sub
+    {n d z : ℝ}
+    (h : -d ≤ z - n) :
+    n - d ≤ z := by
+  exact le_sub_iff_add_le.mp h
+
+/-- If a nonnegative `d` satisfies `d < (w+n)/2`, then `w+n-d` is positive. -/
+theorem Real.add_sub_pos_of_nonneg_lt_half
+    {w n d : ℝ}
+    (hd : 0 ≤ d)
+    (h : d < (w + n) / 2) :
+    0 < w + n - d := by
+  have hhalf_pos : 0 < (w + n) / 2 :=
+    lt_of_le_of_lt hd h
+  have hsum_pos : 0 < w + n := by
+    have htwo_pos : 0 < (2 : ℝ) := zero_lt_two
+    have hmul_pos : 0 < ((w + n) / 2) * 2 :=
+      mul_pos hhalf_pos htwo_pos
+    exact hmul_pos.trans_eq (div_mul_cancel₀ (w + n) (ne_of_gt htwo_pos))
+  have hhalf_lt_sum : (w + n) / 2 < w + n :=
+    div_lt_self hsum_pos one_lt_two
+  have hd_lt_w_add_n : d < w + n :=
+    lt_trans h hhalf_lt_sum
+  exact sub_pos.mpr hd_lt_w_add_n
+
+/-- The real cast of an integer/natural complex difference is the real
+difference of the casts. -/
+theorem Complex.int_nat_cast_sub_to_real
+    (k : ℤ)
+    (n : ℕ) :
+    (((k : ℤ) - (n : ℤ) : ℤ) : ℝ) = (k : ℝ) - (n : ℝ) := by
+  exact Int.cast_sub k (n : ℤ)
+
+/-- The complex cast of an integer/natural difference is the corresponding
+complex difference. -/
+theorem Complex.int_nat_cast_sub_to_complex
+    (k : ℤ)
+    (n : ℕ) :
+    (k : ℂ) - (n : ℂ) = (((k : ℝ) - (n : ℝ)) : ℂ) := by
+  calc
+    (k : ℂ) - (n : ℂ) = (((k : ℤ) - (n : ℤ) : ℤ) : ℂ) := by
+      exact (Int.cast_sub k (n : ℤ)).symm
+    _ = (((((k : ℤ) - (n : ℤ) : ℤ) : ℝ) : ℂ)) := by
+      rfl
+    _ = (((k : ℝ) - (n : ℝ)) : ℂ) := by
+      exact congrArg (fun x : ℝ => (x : ℂ))
+        (Complex.int_nat_cast_sub_to_real k n)
+
+/-- A natural-number lower bound transports through real casts. -/
+theorem Real.one_le_natAbs_cast_of_one_le
+    {a : ℤ}
+    (h : 1 ≤ Int.natAbs a) :
+    (1 : ℝ) ≤ (Int.natAbs a : ℝ) := by
+  exact Nat.cast_le.mpr h
+
+/-- Equality of integers transports through the complex cast. -/
+theorem Complex.int_cast_eq_of_int_eq
+    {a b : ℤ}
+    (h : a = b) :
+    (a : ℂ) = (b : ℂ) := by
+  exact congrArg (fun z : ℤ => (z : ℂ)) h
+
 /-- Normalized small-circle integral around an integer cotangent pole.
 
 The factor `(2πi)⁻¹` records the residue-theorem normalization, so the
@@ -138,7 +229,7 @@ theorem Complex.finiteAbelPlana_log_integerResidueIsolationRadius_pos
     (hw : 0 < w.re)
     (n : ℕ) :
     0 < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n := by
-  have hhalf : 0 < (1 : ℝ) / 2 := by norm_num
+  have hhalf : 0 < (1 : ℝ) / 2 := real_one_half_pos
   have hcenter : 0 < (w.re + (n : ℝ)) / 2 := by
     have hn : 0 ≤ (n : ℝ) := Nat.cast_nonneg n
     exact half_pos (add_pos_of_pos_of_nonneg hw hn)
@@ -185,12 +276,11 @@ theorem Complex.finiteAbelPlana_log_mem_slitPlane_of_mem_integerResidueIsolation
     neg_le.mp (abs_le.mp hre_dist).1
   have hzre_lower :
       (n : ℝ) - ‖z - (n : ℂ)‖ ≤ z.re := by
-    linarith
+    exact Real.sub_norm_le_of_neg_norm_le_sub hreal_lower
   have hsum_pos : 0 < w.re + z.re := by
     have hmain : 0 < w.re + ((n : ℝ) - ‖z - (n : ℂ)‖) := by
-      have htwice : ‖z - (n : ℂ)‖ < w.re + (n : ℝ) := by
-        linarith
-      linarith
+      exact Real.add_sub_pos_of_nonneg_lt_half
+        (norm_nonneg (z - (n : ℂ))) hlt_center
     exact lt_of_lt_of_le hmain (add_le_add_left hzre_lower w.re)
   exact Complex.mem_slitPlane_iff_not_le_zero.2 <| by
     exact Complex.not_le_zero_iff.2 <| Or.inl <| by
@@ -224,7 +314,7 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
       ‖(k : ℂ) - (n : ℂ)‖ = |(k : ℝ) - (n : ℝ)| := by
     have hcast :
         (k : ℂ) - (n : ℂ) = (((k : ℝ) - (n : ℝ)) : ℂ) := by
-      norm_num
+      exact Complex.int_nat_cast_sub_to_complex k n
     calc
       ‖(k : ℂ) - (n : ℂ)‖ = ‖(((k : ℝ) - (n : ℝ)) : ℂ)‖ := by
         exact congrArg norm hcast
@@ -232,7 +322,7 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
   have habs_half : |(k : ℝ) - (n : ℝ)| < (1 : ℝ) / 2 := by
     exact hint_dist_eq_abs ▸ hint_dist_half
   have hdiff_lt_one : |(k : ℝ) - (n : ℝ)| < (1 : ℝ) := by
-    linarith
+    exact lt_trans habs_half one_half_lt_one
   have hdiff_zero : (k : ℤ) - (n : ℤ) = 0 := by
     by_contra hne
     have hnat_abs_pos : 0 < Int.natAbs ((k : ℤ) - (n : ℤ)) :=
@@ -246,17 +336,17 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
         exact (Int.cast_natAbs ((k : ℤ) - (n : ℤ)) (R := ℝ)).symm
       calc
         (1 : ℝ) ≤ (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) := by
-          exact_mod_cast hone_le_nat
+          exact Real.one_le_natAbs_cast_of_one_le hone_le_nat
         _ = |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| := hnat_abs_eq.symm
     have hcast_diff :
         (((k : ℤ) - (n : ℤ) : ℤ) : ℝ) = (k : ℝ) - (n : ℝ) := by
-      norm_num
+      exact Complex.int_nat_cast_sub_to_real k n
     have hone_le_abs : (1 : ℝ) ≤ |(k : ℝ) - (n : ℝ)| := by
       exact hcast_diff ▸ hone_le_abs_int
     exact not_lt_of_ge hone_le_abs hdiff_lt_one
   have hk_eq_n : (k : ℂ) = (n : ℂ) := by
     have hk_int_eq : (k : ℤ) = (n : ℤ) := sub_eq_zero.mp hdiff_zero
-    exact_mod_cast hk_int_eq
+    exact Complex.int_cast_eq_of_int_eq hk_int_eq
   exact hz_int.trans hk_eq_n
 
 /-- If `sin (πz)=0` inside the residue-isolation disk around `n`, then the
@@ -270,7 +360,7 @@ theorem Complex.finiteAbelPlana_log_eq_center_of_sin_pi_mul_eq_zero_of_mem_integ
     z = (n : ℂ) := by
   rcases Complex.sin_eq_zero_iff.mp hzero with ⟨k, hk⟩
   have hpi_ne : (Real.pi : ℂ) ≠ 0 := by
-    exact_mod_cast Real.pi_ne_zero
+    exact Complex.ofReal_pi_ne_zero
   have hz_eq_int : z = (k : ℂ) := by
     have hmul :
         (Real.pi : ℂ) * z = (Real.pi : ℂ) * (k : ℂ) := by
@@ -496,7 +586,7 @@ theorem Complex.eventually_pos_lt_finiteAbelPlanaLogIntegerResidueIsolationRadiu
       0 < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n :=
     Complex.finiteAbelPlana_log_integerResidueIsolationRadius_pos hw n
   exact
-    (Ioo_mem_nhdsWithin_Ioi ⟨by linarith, hR⟩).mono
+    (Ioo_mem_nhdsWithin_Ioi (real_zero_lt_radius_pair hR)).mono
       (fun ρ hρ => ⟨hρ.1, hρ.2⟩)
 
 /-- For every sufficiently small positive radius, the normalized small-circle
@@ -566,10 +656,7 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_
         hcauchy
     _ = F (n : ℂ) := by
       have htwo_pi_I_ne : ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) ≠ 0 := by
-        refine mul_ne_zero ?_ Complex.I_ne_zero
-        refine mul_ne_zero ?_ ?_
-        · norm_num
-        · exact_mod_cast Real.pi_ne_zero
+        exact Complex.two_pi_I_ne_zero
       simpa [smul_eq_mul, mul_assoc] using
         (inv_mul_cancel₀ htwo_pi_I_ne : ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
           ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) = 1)

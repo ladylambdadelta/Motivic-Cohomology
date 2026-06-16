@@ -22,6 +22,73 @@ open scoped CompactlySupported ContDiff
 
 namespace ZetaAdmissibleFunction
 
+theorem le_of_lt_for_bump_radius {a b : ℝ} (h : a < b) : a ≤ b :=
+  le_of_lt h
+
+theorem half_dist_pos_of_ne {x y : ℝ} (hxy : x ≠ y) : 0 < dist x y / 2 :=
+  half_pos (dist_pos.2 hxy)
+
+theorem half_dist_lt_dist_of_ne {x y : ℝ} (hxy : x ≠ y) : dist x y / 2 < dist x y := by
+  exact half_lt_self (dist_pos.2 hxy)
+
+theorem half_half_dist_pos_of_ne {x y : ℝ} (hxy : x ≠ y) : 0 < dist x y / 2 / 2 :=
+  half_pos (half_dist_pos_of_ne hxy)
+
+theorem half_half_dist_lt_half_dist_of_ne {x y : ℝ} (hxy : x ≠ y) :
+    dist x y / 2 / 2 < dist x y / 2 := by
+  exact half_lt_self (half_dist_pos_of_ne hxy)
+
+theorem complex_interpolation_left_value (a₁ a₂ b : ℂ) :
+    a₁ * (1 : ℂ) + (a₂ - a₁ * b) * (0 : ℂ) = a₁ := by
+  calc
+    a₁ * (1 : ℂ) + (a₂ - a₁ * b) * (0 : ℂ) =
+        a₁ + (a₂ - a₁ * b) * (0 : ℂ) := by
+      exact congrArg (fun x : ℂ => x + (a₂ - a₁ * b) * (0 : ℂ)) (mul_one a₁)
+    _ = a₁ + 0 := by
+      exact congrArg (fun x : ℂ => a₁ + x) (mul_zero (a₂ - a₁ * b))
+    _ = a₁ := add_zero a₁
+
+theorem complex_interpolation_right_value (a₁ a₂ : ℂ) :
+    a₁ * (0 : ℂ) + (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ) = a₂ := by
+  calc
+    a₁ * (0 : ℂ) + (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ) =
+        0 + (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ) := by
+      exact congrArg (fun x : ℂ => x + (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ)) (mul_zero a₁)
+    _ = (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ) := zero_add _
+    _ = a₂ - a₁ * (0 : ℂ) := mul_one _
+    _ = a₂ - 0 := by
+      exact congrArg (fun x : ℂ => a₂ - x) (mul_zero a₁)
+    _ = a₂ := sub_zero a₂
+
+theorem complex_interpolation_right_value_of_zero (a₁ a₂ b : ℂ) (hb : b = 0) :
+    a₁ * (0 : ℂ) + (a₂ - a₁ * b) * (1 : ℂ) = a₂ := by
+  calc
+    a₁ * (0 : ℂ) + (a₂ - a₁ * b) * (1 : ℂ) =
+        a₁ * (0 : ℂ) + (a₂ - a₁ * (0 : ℂ)) * (1 : ℂ) := by
+      exact congrArg
+        (fun y : ℂ => a₁ * (0 : ℂ) + (a₂ - a₁ * y) * (1 : ℂ))
+        hb
+    _ = a₂ := complex_interpolation_right_value a₁ a₂
+
+theorem half_positive_lt_self {r : ℝ} (hr : 0 < r) : r / 2 < r :=
+  half_lt_self hr
+
+theorem half_le_self_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r / 2 ≤ r := by
+  exact div_le_self hr one_le_two
+
+theorem complex_ofReal_support_eq_real_support (f : ℝ → ℝ) :
+    Function.support (fun x => ((f x : ℝ) : ℂ)) = Function.support f := by
+  ext x
+  constructor
+  · intro hx
+    intro hfx
+    apply hx
+    exact congrArg (fun y : ℝ => (y : ℂ)) hfx
+  · intro hx
+    intro hcx
+    apply hx
+    exact Complex.ofReal_eq_zero.mp hcx
+
 /-- An explicit finite sample package for owner-level interpolation statements. -/
 structure FiniteSample where
   n : ℕ
@@ -47,11 +114,10 @@ def admissibleBump (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
           ContDiffBump.hasCompactSupport (f := b)
         have hsupport :
             Function.support (fun x => ((b x : ℝ) : ℂ)) = Function.support (fun x => b x) := by
-          ext x
-          constructor <;> intro hx <;> exact hx
+          exact complex_ofReal_support_eq_real_support (fun x => b x)
         unfold HasCompactSupport at hb ⊢
-        exact hsupport
-        exact hb)
+        unfold tsupport at hb ⊢
+        exact Eq.subst (motive := fun s : Set ℝ => IsCompact (closure s)) hsupport.symm hb)
   smooth := by
     have hreal := ContDiffBump.contDiff
       (f := (⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c))
@@ -90,7 +156,7 @@ theorem admissibleBump_eq_zero_of_not_mem_closedBall (c rIn rOut : ℝ) (hrIn : 
     exact lt_of_not_ge (fun h => hx (by
       exact h))
   exact admissibleBump_zero_of_le_dist (c := c) (rIn := rIn) (rOut := rOut) hrIn hr (by
-    linarith [le_of_lt hdist])
+    exact le_of_lt_for_bump_radius hdist)
 
 /-- The admissible bump is smooth. -/
 theorem admissibleBump_contDiff (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
@@ -120,31 +186,35 @@ theorem exists_admissible_eval_pair (c₁ c₂ : ℝ) (hc : c₁ ≠ c₂) (a₁
     ∃ f : ZetaAdmissibleFunction, f c₁ = a₁ ∧ f c₂ = a₂ := by
   have hdist : 0 < dist c₁ c₂ := dist_pos.2 hc
   let rOut : ℝ := dist c₁ c₂ / 2
-  have hrOut_pos : 0 < rOut := by dsimp [rOut]; linarith
-  have hrOut_lt : rOut < dist c₁ c₂ := by dsimp [rOut]; linarith
+  have hrOut_pos : 0 < rOut := by
+    dsimp [rOut]
+    exact half_dist_pos_of_ne hc
+  have hrOut_lt : rOut < dist c₁ c₂ := by
+    dsimp [rOut]
+    exact half_dist_lt_dist_of_ne hc
   let b₁ : ZetaAdmissibleFunction := admissibleBump (c := c₁) (rOut / 2) rOut (by
-    dsimp [rOut]
-    linarith) (by linarith)
+    exact half_pos hrOut_pos) (by
+    exact half_positive_lt_self hrOut_pos)
   let b₂ : ZetaAdmissibleFunction := admissibleBump (c := c₂) (rOut / 2) rOut (by
-    dsimp [rOut]
-    linarith) (by linarith)
+    exact half_pos hrOut_pos) (by
+    exact half_positive_lt_self hrOut_pos)
   have hb₁₁ : b₁ c₁ = (1 : ℂ) := by
     exact admissibleBump_apply_center (c := c₁) (rIn := rOut / 2) (rOut := rOut)
-      (by dsimp [rOut]; linarith) (by linarith)
+      (half_pos hrOut_pos) (half_positive_lt_self hrOut_pos)
   have hb₁₂ : b₁ c₂ = 0 := by
     have hdist' : rOut ≤ dist c₂ c₁ := by
-      have : rOut ≤ dist c₁ c₂ := by linarith [hrOut_lt]
-      exact (dist_comm).symm ▸ this
+      have : rOut ≤ dist c₁ c₂ := le_of_lt_for_bump_radius hrOut_lt
+      exact (dist_comm c₁ c₂) ▸ this
     exact admissibleBump_zero_of_le_dist (c := c₁) (rIn := rOut / 2) (rOut := rOut)
-      (by linarith) (by linarith) hdist'
+      (half_pos hrOut_pos) (half_positive_lt_self hrOut_pos) hdist'
   have hb₂₂ : b₂ c₂ = (1 : ℂ) := by
     exact admissibleBump_apply_center (c := c₂) (rIn := rOut / 2) (rOut := rOut)
-      (by dsimp [rOut]; linarith) (by linarith)
+      (half_pos hrOut_pos) (half_positive_lt_self hrOut_pos)
   have hb₂₁ : b₂ c₁ = 0 := by
     have hdist' : rOut ≤ dist c₁ c₂ := by
-      linarith [hrOut_lt]
+      exact le_of_lt_for_bump_radius hrOut_lt
     exact admissibleBump_zero_of_le_dist (c := c₂) (rIn := rOut / 2) (rOut := rOut)
-      (by linarith) (by linarith) hdist'
+      (half_pos hrOut_pos) (half_positive_lt_self hrOut_pos) hdist'
   refine
     ⟨a₁ • b₁ + (a₂ - a₁ * b₁ c₂) • b₂, ?_⟩
   constructor
@@ -153,17 +223,31 @@ theorem exists_admissible_eval_pair (c₁ c₂ : ℝ) (hc : c₁ ≠ c₂) (a₁
         rfl
       _ = a₁ := by
         calc
-          a₁ * b₁ c₁ + (a₂ - a₁ * b₁ c₂) * b₂ c₁ = a₁ * (1 : ℂ) + (a₂ - a₁ * b₁ c₂) * (0 : ℂ) := by
-            congr <;> exact hb₁₁ <|> exact hb₂₁
-          _ = a₁ := by ring
+          a₁ * b₁ c₁ + (a₂ - a₁ * b₁ c₂) * b₂ c₁ =
+              a₁ * (1 : ℂ) + (a₂ - a₁ * b₁ c₂) * b₂ c₁ := by
+            exact congrArg
+              (fun y : ℂ => a₁ * y + (a₂ - a₁ * b₁ c₂) * b₂ c₁)
+              hb₁₁
+          _ = a₁ * (1 : ℂ) + (a₂ - a₁ * b₁ c₂) * (0 : ℂ) := by
+            exact congrArg
+              (fun y : ℂ => a₁ * (1 : ℂ) + (a₂ - a₁ * b₁ c₂) * y)
+              hb₂₁
+          _ = a₁ := complex_interpolation_left_value a₁ a₂ (b₁ c₂)
   · calc
       (a₁ • b₁ + (a₂ - a₁ * b₁ c₂) • b₂) c₂ = a₁ * b₁ c₂ + (a₂ - a₁ * b₁ c₂) * b₂ c₂ := by
         rfl
       _ = a₂ := by
         calc
-          a₁ * b₁ c₂ + (a₂ - a₁ * b₁ c₂) * b₂ c₂ = a₁ * (0 : ℂ) + (a₂ - a₁ * b₁ c₂) * (1 : ℂ) := by
-            congr <;> exact hb₁₂ <|> exact hb₂₂
-          _ = a₂ := by ring
+          a₁ * b₁ c₂ + (a₂ - a₁ * b₁ c₂) * b₂ c₂ =
+              a₁ * (0 : ℂ) + (a₂ - a₁ * b₁ c₂) * b₂ c₂ := by
+            exact congrArg
+              (fun y : ℂ => a₁ * y + (a₂ - a₁ * b₁ c₂) * b₂ c₂)
+              hb₁₂
+          _ = a₁ * (0 : ℂ) + (a₂ - a₁ * b₁ c₂) * (1 : ℂ) := by
+            exact congrArg
+              (fun y : ℂ => a₁ * (0 : ℂ) + (a₂ - a₁ * b₁ c₂) * y)
+              hb₂₂
+          _ = a₂ := complex_interpolation_right_value_of_zero a₁ a₂ (b₁ c₂) hb₁₂
 
 /-- The support of the admissible bump is contained in the closed outer ball. -/
 theorem admissibleBump_support_subset_closedBall (c rIn rOut : ℝ) (hrIn : 0 < rIn)
@@ -198,17 +282,20 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
     exact Finset.not_mem_erase i₀ (Finset.univ : Finset (Fin S.n))
   by_cases hne : s = ∅
   · constructor
-    · dsimp [sampleSeparationRadius, s]
-      exact zero_lt_one
+    · have hrad : sampleSeparationRadius S i₀ = 1 := by
+        unfold sampleSeparationRadius
+        change (if h : s = ∅ then (1 : ℝ) else
+          let t : Finset ℝ := Finset.image (fun j => dist (S.x j) (S.x i₀)) s
+          let ht : t.Nonempty := by
+            rcases Finset.nonempty_iff_ne_empty.mpr h with ⟨j, hj⟩
+            exact ⟨dist (S.x j) (S.x i₀), Finset.mem_image.2 ⟨j, hj, rfl⟩⟩
+          t.min' ht / 2) = 1
+        exact dif_pos hne
+      exact Eq.subst (motive := fun r : ℝ => 0 < r) hrad.symm zero_lt_one
     intro j hj
-    have hjs : j ∈ s := by
-      exact hj
-  have hfalse : j ∈ (∅ : Finset (Fin S.n)) := by
-    have : j ∈ (∅ : Finset (Fin S.n)) := by
-      have htmp : j ∈ s := hjs
-      subst hne
-      exact htmp
-    exact this
+    have hjs : j ∈ s := hj
+    have hfalse : j ∈ (∅ : Finset (Fin S.n)) := by
+      exact hne ▸ hjs
     exact False.elim (Finset.not_mem_empty j hfalse)
   · let t : Finset ℝ := s.image fun j => dist (S.x j) (S.x i₀)
     have ht : t.Nonempty := by
@@ -228,13 +315,15 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
         exact hjdist.symm ▸ dist_pos.2 (S.inj.ne hneq)
     constructor
     · dsimp [sampleSeparationRadius, s, t]
-      exact half_pos hpos
+      exact Eq.subst (motive := fun r : ℝ => 0 < r) (dif_neg hne).symm (half_pos hpos)
     intro j hj
     dsimp [sampleSeparationRadius, s, t]
     have hmem : dist (S.x j) (S.x i₀) ∈ t := by
       exact Finset.mem_image.2 ⟨j, hj, rfl⟩
     have hle : t.min' ht ≤ dist (S.x j) (S.x i₀) := Finset.min'_le _ _ hmem
-    linarith
+    exact Eq.subst (motive := fun r : ℝ => r ≤ dist (S.x j) (S.x i₀))
+      (dif_neg hne).symm
+      (le_trans (half_le_self_of_nonneg (le_of_lt hpos)) hle)
 
 /-- A finite sample can be separated from any one of its other indexed points by a positive radius. -/
 theorem exists_radius_separating_sample (S : FiniteSample) (i₀ : Fin S.n) :
@@ -254,28 +343,24 @@ theorem exists_admissible_delta_sample_with_closedBall_support (S : FiniteSample
   let F : ∀ i, ZetaAdmissibleFunction := fun i =>
     admissibleBump (c := S.x i) (rOut i / 2) (rOut i)
       (half_pos (sampleSeparationRadius_pos_and_le S i).1)
-      (by linarith [(sampleSeparationRadius_pos_and_le S i).1])
+      (half_positive_lt_self (sampleSeparationRadius_pos_and_le S i).1)
   refine ⟨F, ?_, ?_, ?_⟩
   · intro i
     exact admissibleBump_apply_center (c := S.x i) (rIn := rOut i / 2)
       (rOut := rOut i) (half_pos (sampleSeparationRadius_pos_and_le S i).1)
-      (by linarith [(sampleSeparationRadius_pos_and_le S i).1])
+      (half_positive_lt_self (sampleSeparationRadius_pos_and_le S i).1)
   · intro i j hj
     have hj' : j ∈ Finset.univ.erase i := by
-      exact Finset.mem_erase.mpr ⟨hj, by
-        intro hji
-        exact (Finset.not_mem_empty j) (by
-          subst hji
-          exact hj)⟩
+      exact Finset.mem_erase.mpr ⟨hj, Finset.mem_univ j⟩
     exact admissibleBump_zero_of_le_dist (c := S.x i) (rIn := rOut i / 2)
       (rOut := rOut i) (half_pos (sampleSeparationRadius_pos_and_le S i).1)
-      (by linarith [(sampleSeparationRadius_pos_and_le S i).1])
+      (half_positive_lt_self (sampleSeparationRadius_pos_and_le S i).1)
       ((sampleSeparationRadius_pos_and_le S i).2 j hj')
   · intro i
     exact ⟨rOut i, (sampleSeparationRadius_pos_and_le S i).1,
       admissibleBump_support_subset_closedBall (c := S.x i) (rIn := rOut i / 2)
         (rOut := rOut i) (half_pos (sampleSeparationRadius_pos_and_le S i).1)
-        (by linarith [(sampleSeparationRadius_pos_and_le S i).1])⟩
+        (half_positive_lt_self (sampleSeparationRadius_pos_and_le S i).1)⟩
 
 /-- A finite sample admits a Kronecker-delta family with compact support. -/
 theorem exists_admissible_delta_sample_with_support (S : FiniteSample) :
@@ -305,9 +390,12 @@ theorem sampleInterpolant_apply (S : FiniteSample) (a : Fin S.n → ℂ)
     change (∑ j : Fin S.n, (a j • F j)) (S.x i) =
       ∑ j : Fin S.n, a j * F j (S.x i)
     calc
-      (∑ j : Fin S.n, (a j • F j)) (S.x i)
-          = ∑ j : Fin S.n, (a j • F j) (S.x i) := by
-              exact ZetaAdmissibleFunction.sum_apply _ _
+      (∑ j : Fin S.n, (a j • F j)) (S.x i) =
+          ∑ j : Fin S.n, (a j • F j) (S.x i) := by
+        exact ZetaAdmissibleFunction.sum_apply
+          (s := Finset.univ)
+          (f := fun j : Fin S.n => a j • F j)
+          (S.x i)
       _ = ∑ j : Fin S.n, a j * F j (S.x i) := by
         refine Finset.sum_congr rfl ?_
         intro j hj
@@ -326,20 +414,20 @@ theorem sampleInterpolant_apply (S : FiniteSample) (a : Fin S.n → ℂ)
       exact False.elim (hi (Finset.mem_univ i))
   change sampleInterpolant S a F (S.x i) = a i
   calc
-    ∑ j : Fin S.n, a j * F j (S.x i) = a i * F i (S.x i) := hsingle
+    sampleInterpolant S a F (S.x i) =
+        ∑ j : Fin S.n, a j * F j (S.x i) := hsum
+    _ = a i * F i (S.x i) := hsingle
     _ = a i := by
       have hone : F i (S.x i) = (1 : ℂ) := hF1 i
       calc
         a i * F i (S.x i) = a i * (1 : ℂ) := congrArg (fun x => a i * x) hone
-        _ = a i := by exact mul_one a i
+        _ = a i := by exact mul_one (a i)
 
 /-- The sample interpolant assembled from admissible probes has compact support. -/
 theorem sampleInterpolant_hasCompactSupport (S : FiniteSample) (a : Fin S.n → ℂ)
     (F : (i : Fin S.n) → ZetaAdmissibleFunction) :
     HasCompactSupport (sampleInterpolant S a F) := by
-  dsimp [sampleInterpolant]
-  exact
-    ZetaAdmissibleFunction.hasCompactSupport_sum Finset.univ fun i => (a i) • F i
+  exact (sampleInterpolant S a F).hasCompactSupport
 
 /-- The sample interpolant support is contained in the union of the delta-basis supports. -/
 theorem sampleInterpolant_support_subset_iUnion (S : FiniteSample) (a : Fin S.n → ℂ)
@@ -347,7 +435,14 @@ theorem sampleInterpolant_support_subset_iUnion (S : FiniteSample) (a : Fin S.n 
     Function.support (sampleInterpolant S a F) ⊆ Set.iUnion fun i => Function.support (F i) := by
   intro y hy
   dsimp [sampleInterpolant] at hy
-  have hy' : y ∈ Function.support (∑ i : Fin S.n, a i • F i) := hy
+  have hsupport :
+      Function.support ⇑(∑ i : Fin S.n, (a i) • F i).toZetaTestFunction =
+        Function.support (fun x => ∑ i : Fin S.n, ((a i) • F i) x) :=
+    ZetaAdmissibleFunction.support_sum_apply
+      (s := Finset.univ)
+      (f := fun i : Fin S.n => (a i) • F i)
+  have hy' : y ∈ Function.support (fun x => ∑ i : Fin S.n, ((a i) • F i) x) := by
+    exact hsupport ▸ hy
   have hyne : ∃ i ∈ (Finset.univ : Finset (Fin S.n)), ((a i) • F i) y ≠ 0 := by
     exact Finset.exists_ne_zero_of_sum_ne_zero (s := Finset.univ)
       (f := fun i => ((a i) • F i) y) hy'

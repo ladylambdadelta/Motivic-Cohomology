@@ -45,7 +45,7 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_eq_zero_of_norm_eq_radiu
       (norm_pos_iff.mpr ha0)
   let α : ℝ := Complex.arg a
   have hρ_ne : (ρ : ℂ) ≠ 0 :=
-    ofReal_ne_zero.mpr hρ_pos.ne'
+    Complex.ofReal_ne_zero.mpr hρ_pos.ne'
   have ha_eq : a = (ρ : ℂ) * Complex.exp (α * Complex.I) := by
     have hpolar :
         a = (‖a‖ : ℂ) * Complex.exp (α * Complex.I) := by
@@ -79,100 +79,121 @@ theorem entireFunction_singleZeroFactor_boundaryAverage_eq_zero_of_norm_eq_radiu
           ‖1 - (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a)‖) =
       (fun θ : ℝ =>
         Real.log ‖1 - Complex.exp ((θ - α) * Complex.I)‖) := by
-    funext θ
-    have hdiv :
-        (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
-          Complex.exp ((θ - α) * Complex.I) := by
-      calc
-        (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
-            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) /
-              ((ρ : ℂ) * Complex.exp (α * Complex.I)) := by
-          exact congrArg (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) / x) ha_eq
-        _ =
-            (((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
-              (((ρ : ℂ) * Complex.exp (α * Complex.I))⁻¹)) := by
-          exact div_eq_mul_inv
-            ((ρ : ℂ) * Complex.exp (θ * Complex.I))
-            ((ρ : ℂ) * Complex.exp (α * Complex.I))
-        _ =
-            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
-              ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) := by
-          exact congrArg
-            (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) * x)
-            (mul_inv_rev (ρ : ℂ) (Complex.exp (α * Complex.I)))
-        _ =
-            (((ρ : ℂ) * (ρ : ℂ)⁻¹) *
-              (Complex.exp (θ * Complex.I) *
-                (Complex.exp (α * Complex.I))⁻¹)) := by
-          calc
-            ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
-                ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) =
-                (ρ : ℂ) *
-                  (Complex.exp (θ * Complex.I) *
-                    ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)) := by
-              exact mul_assoc (ρ : ℂ) (Complex.exp (θ * Complex.I))
-                ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)
-            _ =
-                (ρ : ℂ) *
-                  ((Complex.exp (θ * Complex.I) * (ρ : ℂ)⁻¹) *
-                    (Complex.exp (α * Complex.I))⁻¹) := by
-              exact congrArg (fun x : ℂ => (ρ : ℂ) * x)
-                (mul_assoc (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹
-                  (Complex.exp (α * Complex.I))⁻¹)
-            _ =
-                (ρ : ℂ) *
-                  (((ρ : ℂ)⁻¹ * Complex.exp (θ * Complex.I)) *
-                    (Complex.exp (α * Complex.I))⁻¹) := by
-              exact congrArg
-                (fun x : ℂ =>
-                  (ρ : ℂ) * (x * (Complex.exp (α * Complex.I))⁻¹))
-                (mul_comm (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹)
-            _ =
-                ((ρ : ℂ) * (ρ : ℂ)⁻¹) *
-                  (Complex.exp (θ * Complex.I) *
-                    (Complex.exp (α * Complex.I))⁻¹) := by
-              exact (mul_assoc (ρ : ℂ) (ρ : ℂ)⁻¹
-                (Complex.exp (θ * Complex.I) *
-                  (Complex.exp (α * Complex.I))⁻¹)).symm
-        _ =
-            1 *
-              (Complex.exp (θ * Complex.I) *
-                (Complex.exp (α * Complex.I))⁻¹) := by
-          exact congrArg
-            (fun x : ℂ =>
-              x *
-                (Complex.exp (θ * Complex.I) *
-                  (Complex.exp (α * Complex.I))⁻¹))
-            (mul_inv_cancel₀ hρ_ne)
-        _ =
-            Complex.exp (θ * Complex.I) *
-              (Complex.exp (α * Complex.I))⁻¹ := by
-          exact one_mul
-            (Complex.exp (θ * Complex.I) *
-              (Complex.exp (α * Complex.I))⁻¹)
-        _ =
-            Complex.exp (θ * Complex.I) *
-              Complex.exp (-(α * Complex.I)) := by
-          exact congrArg (fun x : ℂ => Complex.exp (θ * Complex.I) * x)
-            (Complex.exp_neg (α * Complex.I)).symm
-        _ =
-            Complex.exp (θ * Complex.I + -(α * Complex.I)) := by
-          exact (Complex.exp_add (θ * Complex.I) (-(α * Complex.I))).symm
-        _ =
-            Complex.exp ((θ - α) * Complex.I) := by
-          have harg :
-              θ * Complex.I + -(α * Complex.I) = (θ - α) * Complex.I := by
+    exact
+      funext
+        (fun θ =>
+          have hdiv :
+              (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
+                Complex.exp ((θ - α) * Complex.I) := by
             calc
-              θ * Complex.I + -(α * Complex.I) =
-                  θ * Complex.I + (-α) * Complex.I := by
-                exact congrArg (fun x : ℂ => θ * Complex.I + x)
-                  (neg_mul_eq_neg_mul (α : ℂ) Complex.I).symm
-              _ = ((θ : ℂ) + (-α : ℂ)) * Complex.I := by
-                exact (add_mul (θ : ℂ) (-α : ℂ) Complex.I).symm
-              _ = (θ - α) * Complex.I := by
-                exact congrArg (fun x : ℂ => x * Complex.I) (sub_eq_add_neg θ α).symm
-          exact congrArg Complex.exp harg
-    exact congrArg (fun x : ℂ => Real.log ‖1 - x‖) hdiv
+              (((ρ : ℂ) * Complex.exp (θ * Complex.I)) / a) =
+                  ((ρ : ℂ) * Complex.exp (θ * Complex.I)) /
+                    ((ρ : ℂ) * Complex.exp (α * Complex.I)) := by
+                exact congrArg
+                  (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) / x)
+                  ha_eq
+              _ =
+                  (((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+                    (((ρ : ℂ) * Complex.exp (α * Complex.I))⁻¹)) := by
+                exact div_eq_mul_inv
+                  ((ρ : ℂ) * Complex.exp (θ * Complex.I))
+                  ((ρ : ℂ) * Complex.exp (α * Complex.I))
+              _ =
+                  ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+                    ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) := by
+                have hinv_rev :
+                    ((ρ : ℂ) * Complex.exp (α * Complex.I))⁻¹ =
+                      (Complex.exp (α * Complex.I))⁻¹ * (ρ : ℂ)⁻¹ :=
+                  mul_inv_rev (ρ : ℂ) (Complex.exp (α * Complex.I))
+                have hinv_comm :
+                    (Complex.exp (α * Complex.I))⁻¹ * (ρ : ℂ)⁻¹ =
+                      (ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹ :=
+                  mul_comm (Complex.exp (α * Complex.I))⁻¹ (ρ : ℂ)⁻¹
+                exact congrArg
+                  (fun x : ℂ => ((ρ : ℂ) * Complex.exp (θ * Complex.I)) * x)
+                  (Eq.trans hinv_rev hinv_comm)
+              _ =
+                  (((ρ : ℂ) * (ρ : ℂ)⁻¹) *
+                    (Complex.exp (θ * Complex.I) *
+                      (Complex.exp (α * Complex.I))⁻¹)) := by
+                calc
+                  ((ρ : ℂ) * Complex.exp (θ * Complex.I)) *
+                      ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹) =
+                      (ρ : ℂ) *
+                        (Complex.exp (θ * Complex.I) *
+                          ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)) := by
+                    exact mul_assoc (ρ : ℂ) (Complex.exp (θ * Complex.I))
+                      ((ρ : ℂ)⁻¹ * (Complex.exp (α * Complex.I))⁻¹)
+                  _ =
+                      (ρ : ℂ) *
+                        ((Complex.exp (θ * Complex.I) * (ρ : ℂ)⁻¹) *
+                          (Complex.exp (α * Complex.I))⁻¹) := by
+                    exact congrArg (fun x : ℂ => (ρ : ℂ) * x)
+                      (mul_assoc (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹
+                        (Complex.exp (α * Complex.I))⁻¹).symm
+                  _ =
+                      (ρ : ℂ) *
+                        (((ρ : ℂ)⁻¹ * Complex.exp (θ * Complex.I)) *
+                          (Complex.exp (α * Complex.I))⁻¹) := by
+                    exact congrArg
+                      (fun x : ℂ =>
+                        (ρ : ℂ) * (x * (Complex.exp (α * Complex.I))⁻¹))
+                      (mul_comm (Complex.exp (θ * Complex.I)) (ρ : ℂ)⁻¹)
+                  _ =
+                      (ρ : ℂ) *
+                        ((ρ : ℂ)⁻¹ *
+                          (Complex.exp (θ * Complex.I) *
+                            (Complex.exp (α * Complex.I))⁻¹)) := by
+                    exact congrArg (fun x : ℂ => (ρ : ℂ) * x)
+                      (mul_assoc (ρ : ℂ)⁻¹ (Complex.exp (θ * Complex.I))
+                        (Complex.exp (α * Complex.I))⁻¹)
+                  _ =
+                      ((ρ : ℂ) * (ρ : ℂ)⁻¹) *
+                        (Complex.exp (θ * Complex.I) *
+                          (Complex.exp (α * Complex.I))⁻¹) := by
+                    exact (mul_assoc (ρ : ℂ) (ρ : ℂ)⁻¹
+                      (Complex.exp (θ * Complex.I) *
+                        (Complex.exp (α * Complex.I))⁻¹)).symm
+              _ =
+                  1 *
+                    (Complex.exp (θ * Complex.I) *
+                      (Complex.exp (α * Complex.I))⁻¹) := by
+                exact congrArg
+                  (fun x : ℂ =>
+                    x *
+                      (Complex.exp (θ * Complex.I) *
+                        (Complex.exp (α * Complex.I))⁻¹))
+                  (mul_inv_cancel₀ hρ_ne)
+              _ =
+                  Complex.exp (θ * Complex.I) *
+                    (Complex.exp (α * Complex.I))⁻¹ := by
+                exact one_mul
+                  (Complex.exp (θ * Complex.I) *
+                    (Complex.exp (α * Complex.I))⁻¹)
+              _ =
+                  Complex.exp (θ * Complex.I) *
+                    Complex.exp (-(α * Complex.I)) := by
+                exact congrArg (fun x : ℂ => Complex.exp (θ * Complex.I) * x)
+                  (Complex.exp_neg (α * Complex.I)).symm
+              _ =
+                  Complex.exp (θ * Complex.I + -(α * Complex.I)) := by
+                exact (Complex.exp_add (θ * Complex.I) (-(α * Complex.I))).symm
+              _ =
+                  Complex.exp ((θ - α) * Complex.I) := by
+                have harg :
+                    θ * Complex.I + -(α * Complex.I) = (θ - α) * Complex.I := by
+                  calc
+                    θ * Complex.I + -(α * Complex.I) =
+                        θ * Complex.I + (-α) * Complex.I := by
+                      exact congrArg (fun x : ℂ => θ * Complex.I + x)
+                        (neg_mul_eq_neg_mul (α : ℂ) Complex.I)
+                    _ = ((θ : ℂ) + (-α : ℂ)) * Complex.I := by
+                      exact (add_mul (θ : ℂ) (-α : ℂ) Complex.I).symm
+                    _ = (θ - α) * Complex.I := by
+                      exact congrArg (fun x : ℂ => x * Complex.I)
+                        (sub_eq_add_neg (θ : ℂ) (α : ℂ)).symm
+                exact congrArg Complex.exp harg
+          congrArg (fun x : ℂ => Real.log ‖1 - x‖) hdiv)
   exact Eq.subst
     (motive := fun f : ℝ → ℝ =>
       (2 * Real.pi)⁻¹ * (∫ θ in (0 : ℝ)..(2 * Real.pi), f θ) = 0)
@@ -280,23 +301,26 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     (ρ : ℝ) :
     entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
         F hF hF0 ρ =
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor
         F hF hF0 ρ ∪
       entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskBoundarySupportFiniteZeroDivisor
         F hF hF0 ρ := by
-  apply Finset.ext
-  intro z
-  constructor
-  · intro hz
-    by_cases hzρ : ‖(z : ℂ)‖ < ρ
-    · exact Finset.mem_union.2
-        (Or.inl (Finset.mem_filter.2 ⟨hz, hzρ⟩))
-    · exact Finset.mem_union.2
-        (Or.inr (Finset.mem_filter.2 ⟨hz, hzρ⟩))
-  · intro hz
-    rcases Finset.mem_union.1 hz with hz_int | hz_bd
-    · exact (Finset.mem_filter.1 hz_int).1
-    · exact (Finset.mem_filter.1 hz_bd).1
+  exact
+    Finset.ext
+      (fun z =>
+        Iff.intro
+          (fun hz =>
+            match Classical.em (‖(z : ℂ)‖ < ρ) with
+            | Or.inl hzρ =>
+                Finset.mem_union.2
+                  (Or.inl (Finset.mem_filter.2 ⟨hz, hzρ⟩))
+            | Or.inr hzρ =>
+                Finset.mem_union.2
+                  (Or.inr (Finset.mem_filter.2 ⟨hz, hzρ⟩)))
+          (fun hz =>
+            match Finset.mem_union.1 hz with
+            | Or.inl hz_int => (Finset.mem_filter.1 hz_int).1
+            | Or.inr hz_bd => (Finset.mem_filter.1 hz_bd).1))
 
 /-- A nonzero zero strictly inside the Jensen circle has nonzero radial-gap
 summand. -/
@@ -334,6 +358,35 @@ theorem entireFunctionJensenRadialGapSummand_ne_zero_of_ne_zero_norm_lt_ownerRoo
     mul_ne_zero hmult_real_ne hlog_ne
   intro hzero
   exact hproduct_ne (Eq.trans hvalue.symm hzero)
+
+/-- Definition expansion for the nonzero closed-disk multiplicity summand at a
+nonzero zero inside the closed radius. -/
+theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_multiplicity_of_ne_zero_norm_le_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz0 : (z : ℂ) ≠ 0)
+    (hzρ : ‖(z : ℂ)‖ ≤ ρ) :
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+      (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) := by
+  calc
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
+        if (z : ℂ) = 0 then
+          0
+        else
+          entireFunctionZeroMultiplicityClosedDiskSummand F hF ρ z := by
+      exact rfl
+    _ = entireFunctionZeroMultiplicityClosedDiskSummand F hF ρ z := by
+      exact if_neg hz0
+    _ =
+        if ‖(z : ℂ)‖ ≤ ρ then
+          (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ)
+        else
+          0 := by
+      exact rfl
+    _ = (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) := by
+      exact if_pos hzρ
 
 /-- A closed-disk interior support member is a radial-gap support member. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorSupportFiniteZeroDivisor_subset_radialGapSupportFiniteZeroDivisor_ownerRoot
@@ -379,10 +432,9 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zer
     entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z ≠ 0 := by
   have hvalue :
       entireFunctionNonzeroZeroMultiplicityClosedDiskSummand F hF ρ z =
-        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) := by
-    unfold entireFunctionNonzeroZeroMultiplicityClosedDiskSummand
-    unfold entireFunctionZeroMultiplicityClosedDiskSummand
-    exact Eq.trans (if_neg hz0) (if_pos hzρ)
+        (entireFunctionZeroMultiplicity F hF (z : ℂ) : ℝ) :=
+    entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_eq_multiplicity_of_ne_zero_norm_le_ownerRoot
+      F hF ρ z hz0 hzρ
   have hmult_nat_ne :
       entireFunctionZeroMultiplicity F hF (z : ℂ) ≠ 0 :=
     entireFunctionZeroMultiplicity_ne_zero_of_zero_of_nontrivial
@@ -392,6 +444,78 @@ theorem entireFunctionNonzeroZeroMultiplicityClosedDiskSummand_ne_zero_of_ne_zer
     Nat.cast_ne_zero.mpr hmult_nat_ne
   intro hzero
   exact hmult_real_ne (Eq.trans hvalue.symm hzero)
+
+/-- A member of the radial-gap support divisor is a genuine support point of
+the Jensen radial-gap summand. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) := by
+  exact
+    (entireFunctionJensenRadialGapSummand_support_finite F hF hF0 ρ).mem_toFinset.1
+      hz
+
+/-- Every zero in the radial-gap support divisor is nonzero. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    (z : ℂ) ≠ 0 :=
+  fun hz0 =>
+    have hsupport :
+        z ∈ Function.support
+          (fun w : EntireFunctionZero F =>
+            entireFunctionJensenRadialGapSummand F hF ρ w) :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+        F hF hF0 ρ z hz
+    have hzero :
+        entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_origin_radialContribution_eq_zero
+        F hF ρ z hz0
+    hsupport hzero
+
+/-- Every zero in the radial-gap support divisor lies strictly inside the
+Jensen circle. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_norm_lt
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (hF0 : F 0 ≠ 0)
+    (ρ : ℝ)
+    (z : EntireFunctionZero F)
+    (hz :
+      z ∈
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+          F hF hF0 ρ) :
+    ‖(z : ℂ)‖ < ρ := by
+  have hsupport :
+      z ∈ Function.support
+        (fun w : EntireFunctionZero F =>
+          entireFunctionJensenRadialGapSummand F hF ρ w) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_support
+      F hF hF0 ρ z hz
+  have hnot_not_lt : ¬ ¬ ‖(z : ℂ)‖ < ρ :=
+    fun hzρ =>
+      have hzero :
+          entireFunctionJensenRadialGapSummand F hF ρ z = 0 :=
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_zeroFactor_radialContribution_eq_zero_of_not_lt
+          F hF ρ z hzρ
+      hsupport hzero
+  exact Classical.not_not.1 hnot_not_lt
 
 /-- A radial-gap support member is a closed-disk interior support member. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor
@@ -450,6 +574,18 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskInteriorS
       entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_subset_closedDiskInteriorSupportFiniteZeroDivisor
         F hF hF0 ρ hz
 
+/-- Definition expansion for the finite product radial-gap sum over an
+explicit support divisor. -/
+theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum_def_ownerRoot
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (ρ : ℝ)
+    (s : Finset (EntireFunctionZero F)) :
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+        F hF ρ s =
+      ∑ z in s, entireFunctionJensenRadialGapSummand F hF ρ z := by
+  exact rfl
+
 /-- The radial-gap summand has the finite product divisor sum as its infinite
 sum. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummand_hasSum_supportFiniteProductRadialGapSum
@@ -464,27 +600,39 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSummand_ha
         F hF ρ
         (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
           F hF hF0 ρ)) := by
-  unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
-  exact hasSum_sum_of_ne_finset_zero
-    (s :=
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-        F hF hF0 ρ)
-    (f := fun z : EntireFunctionZero F =>
-      entireFunctionJensenRadialGapSummand F hF ρ z)
-    (fun z hz_not_mem => by
-      by_contra hz_ne
-      have hz_support :
-          z ∈ Function.support
-            (fun w : EntireFunctionZero F =>
-              entireFunctionJensenRadialGapSummand F hF ρ w) :=
-        hz_ne
-      have hz_mem :
-          z ∈
-            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-              F hF hF0 ρ :=
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
-          F hF hF0 ρ hz_support
-      exact hz_not_mem hz_mem)
+  let s : Finset (EntireFunctionZero F) :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+      F hF hF0 ρ
+  let f : EntireFunctionZero F → ℝ :=
+    fun z : EntireFunctionZero F =>
+      entireFunctionJensenRadialGapSummand F hF ρ z
+  have hsum_def :
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum
+          F hF ρ s =
+        ∑ z in s, f z :=
+    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteProductRadialGapSum_def_ownerRoot
+      F hF ρ s
+  have hzero_off_support :
+      ∀ z : EntireFunctionZero F, z ∉ s → f z = 0 :=
+    fun z hz_not_mem =>
+      have hz_not_support : z ∉ Function.support f :=
+        fun hz_support =>
+          have hz_mem : z ∈ s :=
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_contains_support
+              F hF hF0 ρ hz_support
+          False.elim (hz_not_mem hz_mem)
+      not_ne_iff.1 hz_not_support
+  have hhas_sum :
+      HasSum f (∑ z in s, f z) :=
+    hasSum_sum_of_ne_finset_zero
+      (s := s)
+      (f := f)
+      hzero_off_support
+  exact
+    Eq.subst
+      (motive := fun t : ℝ => HasSum f t)
+      hsum_def.symm
+      hhas_sum
 
 /-- The infinite Jensen radial-gap sum is the finite product sum over the
 support divisor. -/
@@ -556,9 +704,6 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSum_eq_sup
       F hF hF0 ρ)
     (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteProduct_explicit_sum_identity
       F hF hF0 ρ)
-
-/-- The logarithmic norm of a complex exponential is the real part of the
-exponent. -/
 
 end
 end LFunctions

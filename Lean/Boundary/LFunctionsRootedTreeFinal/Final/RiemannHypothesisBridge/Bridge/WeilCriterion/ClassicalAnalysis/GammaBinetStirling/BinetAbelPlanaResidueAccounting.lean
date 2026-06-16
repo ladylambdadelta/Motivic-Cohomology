@@ -103,6 +103,20 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_subdomainCauchyGoursat
     Complex.finiteAbelPlana_log_finiteHoleCauchyGoursat_of_puncturedRectangleHolomorphic
       N T hT hρ hdeleted_geometry hcont hdiff
 
+/-- The endpoint principal-value indentation contribution is the endpoint
+integer-residue contribution in the finite Abel-Plana normalization. -/
+theorem Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_endpointIntegerResidueContribution
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w =
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
+  dsimp [Complex.finiteAbelPlanaLogEndpointPVIndentationContribution,
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution,
+    Complex.finiteAbelPlanaLogSummandHalfEndpoints,
+    Complex.finiteAbelPlanaLogIntegerResidue,
+    Complex.finiteAbelPlanaLogSummand]
+  rfl
+
 /-- Endpoint indentation accounting for the two boundary cotangent poles.
 
 The left and right principal-value indentations around `0` and `N + 1`
@@ -122,12 +136,16 @@ theorem Complex.finiteAbelPlana_log_endpointBoundaryPoleIndentationAccounting
     Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
         Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
       0 := by
-  dsimp [Complex.finiteAbelPlanaLogEndpointPVIndentationContribution,
-    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution,
-    Complex.finiteAbelPlanaLogSummandHalfEndpoints,
-    Complex.finiteAbelPlanaLogIntegerResidue,
-    Complex.finiteAbelPlanaLogSummand]
-  ring
+  calc
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
+        =
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w -
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
+      rw [
+        Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_endpointIntegerResidueContribution
+          N w]
+    _ = 0 := sub_self _
 
 /-- Finite-radius Cauchy-Goursat for the punctured Abel-Plana rectangle.
 
@@ -271,7 +289,7 @@ theorem Complex.eventually_pos_lt_finiteAbelPlanaLogPuncturedRectangleRadiusBoun
     Complex.finiteAbelPlana_log_puncturedRectangleRadiusBound_pos
       hw N hT
   exact
-    (Ioo_mem_nhdsWithin_Ioi ⟨by linarith, hR⟩).mono
+    (Ioo_mem_nhdsWithin_Ioi ⟨le_rfl, hR⟩).mono
       (fun ρ hρ => ⟨hρ.1, hρ.2⟩)
 
 /-- The punctured-rectangle Cauchy-Goursat identity before taking residues.

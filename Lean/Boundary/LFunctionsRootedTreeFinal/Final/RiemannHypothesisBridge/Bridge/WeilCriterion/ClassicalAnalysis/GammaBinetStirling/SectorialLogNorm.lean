@@ -14,6 +14,151 @@ noncomputable section
 
 open scoped Topology
 
+/-- The shifted norm base is at least one. -/
+theorem Real.sectorialLogNorm_one_le_one_add_norm
+    (z : ℂ) :
+    1 ≤ 1 + ‖z‖ := by
+  calc
+    1 = 1 + 0 := by
+      exact (add_zero 1).symm
+    _ ≤ 1 + ‖z‖ := by
+      exact add_le_add_left (norm_nonneg z) 1
+
+/-- The shifted norm base is nonnegative. -/
+theorem Real.sectorialLogNorm_zero_le_one_add_norm
+    (z : ℂ) :
+    0 ≤ 1 + ‖z‖ := by
+  exact le_trans zero_le_one (Real.sectorialLogNorm_one_le_one_add_norm z)
+
+/-- Adding a nonnegative logarithmic absolute value and `1` increases a
+positive coefficient. -/
+theorem Real.sectorialLogNorm_coeff_le_augmented
+    {C : ℝ} :
+    C ≤ C + |Real.log C| + 1 := by
+  calc
+    C ≤ C + |Real.log C| := by
+      exact le_add_of_nonneg_right (abs_nonneg (Real.log C))
+    _ ≤ C + |Real.log C| + 1 := by
+      exact le_add_of_nonneg_right zero_le_one
+
+/-- The augmented logarithmic coefficient is nonnegative when the original
+coefficient is positive. -/
+theorem Real.sectorialLogNorm_augmented_coeff_nonneg
+    {C : ℝ}
+    (hC_pos : 0 < C) :
+    0 ≤ C + |Real.log C| + 1 := by
+  exact le_trans (le_of_lt hC_pos)
+    Real.sectorialLogNorm_coeff_le_augmented
+
+/-- The augmented logarithmic coefficient is positive when the original
+coefficient is positive. -/
+theorem Real.sectorialLogNorm_augmented_coeff_pos
+    {C : ℝ}
+    (hC_pos : 0 < C) :
+    0 < C + |Real.log C| + 1 :=
+  lt_of_lt_of_le hC_pos Real.sectorialLogNorm_coeff_le_augmented
+
+/-- The real number `4` is positive. -/
+theorem Real.sectorialLogNorm_four_pos : 0 < (4 : ℝ) := by
+  exact Nat.cast_pos.mpr (Nat.succ_pos 3)
+
+/-- The complex norm of `1/2` is bounded by `1`. -/
+theorem Complex.norm_half_le_one : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
+  have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) := by
+    exact div_nonneg zero_le_one zero_le_two
+  have hhalf_le_one : (1 / 2 : ℝ) ≤ 1 := by
+    exact div_le_self zero_le_one one_le_two
+  calc
+    ‖(1 / 2 : ℂ)‖ = ‖((1 / 2 : ℝ) : ℂ)‖ := by
+      rfl
+    _ = |(1 / 2 : ℝ)| := RCLike.norm_ofReal (1 / 2 : ℝ)
+    _ = (1 / 2 : ℝ) := abs_of_nonneg hhalf_nonneg
+    _ ≤ 1 := hhalf_le_one
+
+/-- The norm of `z - 1/2` is bounded by the shifted norm base. -/
+theorem Complex.norm_sub_half_le_one_add_norm
+    (z : ℂ) :
+    ‖z - (1 / 2 : ℂ)‖ ≤ 1 + ‖z‖ := by
+  calc
+    ‖z - (1 / 2 : ℂ)‖ ≤ ‖z‖ + ‖(1 / 2 : ℂ)‖ :=
+      norm_sub_le z (1 / 2 : ℂ)
+    _ ≤ ‖z‖ + 1 := by
+      exact add_le_add_left Complex.norm_half_le_one ‖z‖
+    _ = 1 + ‖z‖ := add_comm ‖z‖ 1
+
+/-- Multiplying a polynomial term by the shifted base increases its exponent
+by one. -/
+theorem Real.sectorialLogNorm_base_mul_power
+    (C r : ℝ)
+    (m : ℕ) :
+    r * (C * r ^ m) = C * r ^ (m + 1) := by
+  calc
+    r * (C * r ^ m) = C * (r * r ^ m) := by
+      exact (mul_left_comm r C (r ^ m)).trans
+        (mul_assoc C r (r ^ m)).symm
+    _ = C * r ^ (m + 1) := by
+      exact congrArg (fun x : ℝ => C * x) (pow_succ r m).symm
+
+/-- `r + 4` is dominated by `4 * (1+r)` for nonnegative `r`. -/
+theorem Real.sectorialLogNorm_add_four_le_four_mul_one_add
+    {r : ℝ}
+    (hr : 0 ≤ r) :
+    r + 4 ≤ 4 * (1 + r) := by
+  calc
+    r + 4 ≤ 4 * r + 4 := by
+      have hr_le_four_r : r ≤ 4 * r := by
+        calc
+          r = 1 * r := by
+            exact (one_mul r).symm
+          _ ≤ 4 * r := by
+            exact mul_le_mul_of_nonneg_right
+              (by exact Nat.cast_le.mpr (show (1 : ℕ) ≤ 4 from Nat.succ_le_succ (Nat.zero_le 3)))
+              hr
+      exact add_le_add_right hr_le_four_r 4
+    _ = 4 * (1 + r) := by
+      calc
+        4 * r + 4 = 4 * r + 4 * 1 := by
+          exact congrArg (fun x : ℝ => 4 * r + x) (mul_one 4).symm
+        _ = 4 * (r + 1) := by
+          exact (mul_add 4 r 1).symm
+        _ = 4 * (1 + r) := by
+          exact congrArg (fun x : ℝ => 4 * x) (add_comm r 1)
+
+/-- Two polynomial terms with the same base combine by adding coefficients. -/
+theorem Real.sectorialLogNorm_add_same_power
+    (C D r : ℝ)
+    (m : ℕ) :
+    C * r ^ m + D * r ^ m = (C + D) * r ^ m := by
+  exact (add_mul C D (r ^ m)).symm
+
+/-- A linear-plus-constant term is dominated by `(1+A)*(1+r)`. -/
+theorem Real.sectorialLogNorm_norm_add_constant_le_product
+    {r A : ℝ}
+    (hr : 0 ≤ r)
+    (hA : 0 ≤ A) :
+    r + A ≤ (1 + A) * (1 + r) := by
+  calc
+    r + A ≤ r + A + A * r := by
+      exact le_add_of_nonneg_right (mul_nonneg hA hr)
+    _ = (1 + A) * (1 + r) := by
+      calc
+        r + A + A * r = 1 * r + A * 1 + A * r := by
+          exact congrArg₂ HAdd.hAdd
+            (congrArg (fun x : ℝ => x + A) (one_mul r).symm)
+            rfl
+        _ = (1 + A) * (1 + r) := by
+          exact (add_mul 1 A (1 + r)).symm.trans
+            (congrArg (fun x : ℝ => x + A * (1 + r))
+              (one_mul (1 + r))).symm
+
+/-- Unfolding of the Binet main term into product plus affine part. -/
+theorem Complex.binetLogGammaMainTerm_eq_product_add_affine
+    (z : ℂ) :
+    Complex.binetLogGammaMainTerm z =
+      (z - (1 / 2 : ℂ)) * Complex.log z +
+        (-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) := by
+  rfl
+
 /-- A norm bound by a positive polynomial gives the corresponding real-log
 bound. -/
 theorem Real.log_norm_le_of_norm_le_pos
@@ -43,7 +188,7 @@ theorem Real.log_polynomial_bound_le_polynomial_bound
       Real.log (C * r ^ m) ≤ C * r ^ m :=
     Real.log_le_self hpoly_nonneg
   have hcoeff_le : C ≤ C + |Real.log C| + 1 := by
-    linarith [abs_nonneg (Real.log C)]
+    exact Real.sectorialLogNorm_coeff_le_augmented
   have hpow_le : r ^ m ≤ r ^ (m + 1) := by
     calc
       r ^ m = r ^ m * 1 := by exact (mul_one (r ^ m)).symm
@@ -52,7 +197,7 @@ theorem Real.log_polynomial_bound_le_polynomial_bound
       _ = r ^ (m + 1) := by
         exact (pow_succ r m).symm
   have hcoeff_nonneg : 0 ≤ C + |Real.log C| + 1 := by
-    linarith [hC_pos, abs_nonneg (Real.log C)]
+    exact Real.sectorialLogNorm_augmented_coeff_nonneg hC_pos
   have hpoly_le :
       C * r ^ m ≤ (C + |Real.log C| + 1) * r ^ (m + 1) :=
     mul_le_mul hcoeff_le hpow_le hr_pow_nonneg hcoeff_nonneg
@@ -90,14 +235,14 @@ theorem Real.log_norm_bound_of_norm_bound_polynomial
       cases hlog_zero
       rfl
       have hpoly_nonneg : 0 ≤ (1 + ‖z‖) ^ (m + 1) :=
-        pow_nonneg (by positivity) (m + 1)
+        pow_nonneg (Real.sectorialLogNorm_zero_le_one_add_norm z) (m + 1)
       have hC_nonneg : 0 ≤ C + |Real.log C| + 1 := by
-        linarith [hC_pos, abs_nonneg (Real.log C)]
+        exact Real.sectorialLogNorm_augmented_coeff_nonneg hC_pos
       exact mul_nonneg hC_nonneg hpoly_nonneg
     · have hf_norm_pos : 0 < ‖f z‖ :=
         norm_pos_iff.mpr hf_zero
       have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
-        linarith [norm_nonneg z]
+        exact Real.sectorialLogNorm_one_le_one_add_norm z
       have hpoly_pos : 0 < C * (1 + ‖z‖) ^ m :=
         mul_pos hC_pos (pow_pos (lt_of_lt_of_le zero_lt_one hbase_ge_one) m)
       have hlog_le :
@@ -119,7 +264,7 @@ theorem Complex.log_norm_bound_large_openRightHalfPlane :
         0 < z.re →
           R ≤ ‖z‖ →
             ‖Complex.log z‖ ≤ C * (1 + ‖z‖) ^ m := by
-  refine ⟨1, 4, 1, zero_lt_one, by norm_num, ?_⟩
+  refine ⟨1, 4, 1, zero_lt_one, Real.sectorialLogNorm_four_pos, ?_⟩
   intro z _hz_re hz_norm
   have hnorm_pos : 0 < ‖z‖ :=
     lt_of_lt_of_le zero_lt_one hz_norm
@@ -140,7 +285,9 @@ theorem Complex.log_norm_bound_large_openRightHalfPlane :
     _ ≤ 4 * (1 + ‖z‖) ^ 1 := by
       have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := by
         exact pow_one (1 + ‖z‖)
-      nlinarith [norm_nonneg z, hpow1]
+      exact hpow1.symm ▸
+        Real.sectorialLogNorm_add_four_le_four_mul_one_add
+          (norm_nonneg z)
 
 /-- The product part `(z - 1/2) * log z` in the Binet main term has
 polynomial norm growth after a large-radius cutoff. -/
@@ -157,17 +304,10 @@ theorem Complex.binetLogGammaMainTerm_product_norm_bound_large_openRightHalfPlan
   refine ⟨R, C, m + 1, hR_pos, hC_pos, ?_⟩
   intro z hz_re hRz
   have hbase_nonneg : 0 ≤ 1 + ‖z‖ := by
-    linarith [norm_nonneg z]
+    exact Real.sectorialLogNorm_zero_le_one_add_norm z
   have hfactor :
       ‖z - (1 / 2 : ℂ)‖ ≤ 1 + ‖z‖ := by
-    calc
-      ‖z - (1 / 2 : ℂ)‖ ≤ ‖z‖ + ‖(1 / 2 : ℂ)‖ :=
-        norm_sub_le z (1 / 2 : ℂ)
-      _ ≤ ‖z‖ + 1 := by
-        have hhalf : ‖(1 / 2 : ℂ)‖ ≤ (1 : ℝ) := by
-          norm_num [Complex.normSq, Real.norm_eq_abs]
-        linarith
-      _ = 1 + ‖z‖ := by ring
+    exact Complex.norm_sub_half_le_one_add_norm z
   have hmul :
       ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ ≤
         (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) := by
@@ -183,7 +323,9 @@ theorem Complex.binetLogGammaMainTerm_product_norm_bound_large_openRightHalfPlan
     _ = C * (1 + ‖z‖) ^ (m + 1) := by
       calc
         (1 + ‖z‖) * (C * (1 + ‖z‖) ^ m) =
-            C * ((1 + ‖z‖) * (1 + ‖z‖) ^ m) := by ring
+            C * ((1 + ‖z‖) * (1 + ‖z‖) ^ m) := by
+          exact (mul_left_comm (1 + ‖z‖) C ((1 + ‖z‖) ^ m)).trans
+            (mul_assoc C (1 + ‖z‖) ((1 + ‖z‖) ^ m)).symm
         _ = C * (1 + ‖z‖) ^ (m + 1) := by
           exact congrArg (fun x => C * x) (pow_succ (1 + ‖z‖) m).symm
 
@@ -203,7 +345,7 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
   · intro z _hz_re _hz_norm
     have hA_nonneg : 0 ≤ A := norm_nonneg _
     have hbase_nonneg : 0 ≤ 1 + ‖z‖ := by
-      linarith [norm_nonneg z]
+      exact Real.sectorialLogNorm_zero_le_one_add_norm z
   calc
     ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ ≤
         ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ :=
@@ -214,7 +356,9 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
       exact norm_neg z
         _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
           have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := pow_one (1 + ‖z‖)
-          nlinarith [norm_nonneg z, hA_nonneg, hpow1]
+          exact hpow1.symm ▸
+            Real.sectorialLogNorm_norm_add_constant_le_product
+              (norm_nonneg z) hA_nonneg
 
 /-- The product and affine pieces assemble to the direct polynomial norm
 growth of the explicit Binet main term. -/
@@ -239,7 +383,7 @@ theorem Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane_from_p
     have hRpz : Rp ≤ ‖z‖ := le_trans (le_max_left Rp Ra) hRz
     have hRaz : Ra ≤ ‖z‖ := le_trans (le_max_right Rp Ra) hRz
     have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
-      linarith [norm_nonneg z]
+      exact Real.sectorialLogNorm_one_le_one_add_norm z
     have hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
       le_trans zero_le_one hbase_ge_one
     have hp_bound :
@@ -271,13 +415,14 @@ theorem Complex.binetLogGammaMainTerm_norm_bound_large_openRightHalfPlane_from_p
                 Ca * (1 + ‖z‖) ^ (mp + ma) :=
           add_le_add hp_bound ha_bound
         _ = (Cp + Ca) * (1 + ‖z‖) ^ (mp + ma) := by
-          ring
+          exact Real.sectorialLogNorm_add_same_power Cp Ca
+            (1 + ‖z‖) (mp + ma)
     calc
       ‖Complex.binetLogGammaMainTerm z‖ =
           ‖(z - (1 / 2 : ℂ)) * Complex.log z +
             (-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ := by
-        unfold Complex.binetLogGammaMainTerm
-        ring_nf
+        exact congrArg norm
+          (Complex.binetLogGammaMainTerm_eq_product_add_affine z)
       _ ≤ ‖(z - (1 / 2 : ℂ)) * Complex.log z‖ +
           ‖-z + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2‖ :=
         norm_add_le _ _
@@ -386,7 +531,7 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
         (le_trans (le_max_right Rm Rr) (le_max_right Rb (max Rm Rr)))
         hRz
     have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
-      linarith [norm_nonneg z]
+      exact Real.sectorialLogNorm_one_le_one_add_norm z
     have hmain_bound :
         ‖Complex.binetLogGammaMainTerm z‖ ≤
           Cm * (1 + ‖z‖) ^ m := by
@@ -420,7 +565,8 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
           add_le_add hmain_bound hrem_bound
         _ = C * (1 + ‖z‖) ^ m := by
           dsimp [C]
-          ring
+          exact Real.sectorialLogNorm_add_same_power Cm Cr
+            (1 + ‖z‖) m
     have hformula :
         Complex.log (Complex.Gamma z) =
           Complex.binetLogGammaMainTerm z +
@@ -504,7 +650,7 @@ theorem Complex.binetSecondFormulaRemainder_log_norm_bound_large_sectorSeparated
     ⟨R, C, m, hR_pos, hC_pos, hbound⟩
   refine ⟨R, C + |Real.log C| + 1, m + 1, hR_pos, ?_, ?_⟩
   · have hnonneg_abs : 0 ≤ |Real.log C| := abs_nonneg _
-    linarith
+    exact Real.sectorialLogNorm_augmented_coeff_pos hC_pos
   · intro z hz_re hz_sep hRz
     by_cases hzero : Complex.binetSecondFormulaRemainder z = 0
     · have hnorm_zero : ‖Complex.binetSecondFormulaRemainder z‖ = 0 := by
@@ -515,14 +661,14 @@ theorem Complex.binetSecondFormulaRemainder_log_norm_bound_large_sectorSeparated
       cases hlog_zero
       rfl
       have hpoly_nonneg : 0 ≤ (1 + ‖z‖) ^ (m + 1) :=
-        pow_nonneg (by positivity) (m + 1)
+        pow_nonneg (Real.sectorialLogNorm_zero_le_one_add_norm z) (m + 1)
       have hC_nonneg : 0 ≤ C + |Real.log C| + 1 := by
-        linarith [hC_pos, abs_nonneg (Real.log C)]
+        exact Real.sectorialLogNorm_augmented_coeff_nonneg hC_pos
       exact mul_nonneg hC_nonneg hpoly_nonneg
     · have hnorm_pos : 0 < ‖Complex.binetSecondFormulaRemainder z‖ :=
         norm_pos_iff.mpr hzero
       have hbase_ge_one : 1 ≤ 1 + ‖z‖ := by
-        linarith [norm_nonneg z]
+        exact Real.sectorialLogNorm_one_le_one_add_norm z
       have hpoly_pos : 0 < C * (1 + ‖z‖) ^ m :=
         mul_pos hC_pos
           (pow_pos (lt_of_lt_of_le zero_lt_one hbase_ge_one) m)

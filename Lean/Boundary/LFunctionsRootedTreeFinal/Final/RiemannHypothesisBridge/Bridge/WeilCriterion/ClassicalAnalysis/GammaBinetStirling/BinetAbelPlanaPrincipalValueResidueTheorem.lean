@@ -17,6 +17,216 @@ noncomputable section
 
 open scoped Topology
 
+/-- Multiplication distributes over a lower-half-plane cotangent split. -/
+theorem Complex.mul_eq_mul_add_mul_sub
+    (a b c : ℂ) :
+    a * b = a * c + a * (b - c) := by
+  exact Eq.symm
+    (Eq.trans
+      (congrArg
+        (fun z : ℂ => a * c + z)
+        (mul_sub a b c))
+      (add_sub_cancel_left (a * c) (a * b)))
+
+/-- A right cancellation identity used by the upper-half-plane cotangent split. -/
+theorem Complex.neg_add_add_cancel_right
+    (x y : ℂ) :
+    -x + (y + x) = y := by
+  exact
+    Eq.trans
+      (add_assoc (-x) y x)
+      (Eq.trans
+        (congrArg
+          (fun z : ℂ => z + x)
+          (add_comm (-x) y))
+        (Eq.trans
+          (Eq.symm (add_assoc y (-x) x))
+          (Eq.trans
+            (congrArg
+              (fun z : ℂ => y + z)
+              (neg_add_cancel x))
+            (add_zero y))))
+
+/-- Multiplication distributes over an upper-half-plane cotangent split. -/
+theorem Complex.mul_eq_mul_neg_add_mul_add
+    (a b c : ℂ) :
+    a * b = a * (-c) + a * (b + c) := by
+  exact Eq.symm
+    (Eq.trans
+      (congrArg₂
+        HAdd.hAdd
+        (mul_neg a c)
+        (mul_add a b c))
+      (Complex.neg_add_add_cancel_right (a * c) (a * b)))
+
+/-- Four-term regrouping for splitting a lower and upper vertical side into
+constant and exponential-remainder pieces. -/
+theorem Complex.verticalSide_split_collect
+    (lowerConstant upperConstant lowerRemainder upperRemainder : ℂ) :
+    (lowerConstant + lowerRemainder) + (upperConstant + upperRemainder) =
+      (lowerConstant + upperConstant) + (lowerRemainder + upperRemainder) := by
+  calc
+    (lowerConstant + lowerRemainder) + (upperConstant + upperRemainder)
+        = lowerConstant + (lowerRemainder + (upperConstant + upperRemainder)) := by
+      exact add_assoc lowerConstant lowerRemainder (upperConstant + upperRemainder)
+    _ = lowerConstant + ((lowerRemainder + upperConstant) + upperRemainder) := by
+      exact congrArg
+        (fun z : ℂ => lowerConstant + z)
+        (add_assoc lowerRemainder upperConstant upperRemainder)
+    _ = lowerConstant + ((upperConstant + lowerRemainder) + upperRemainder) := by
+      exact congrArg
+        (fun z : ℂ => lowerConstant + (z + upperRemainder))
+        (add_comm lowerRemainder upperConstant)
+    _ = lowerConstant + (upperConstant + (lowerRemainder + upperRemainder)) := by
+      exact congrArg
+        (fun z : ℂ => lowerConstant + z)
+        (Eq.symm (add_assoc upperConstant lowerRemainder upperRemainder))
+    _ = (lowerConstant + upperConstant) + (lowerRemainder + upperRemainder) := by
+      exact Eq.symm
+        (add_assoc lowerConstant upperConstant (lowerRemainder + upperRemainder))
+
+/-- Cancellation of an adjacent horizontal constant in the left oriented
+side assembly. -/
+theorem Complex.leftOrientedVertical_assembly_collect
+    (horizontal constant remainder : ℂ) :
+    -Complex.I * (constant + remainder) =
+      horizontal + ((-horizontal - Complex.I * constant) +
+        (-Complex.I * remainder)) := by
+  exact
+    Eq.trans
+      (mul_add (-Complex.I) constant remainder)
+      (Eq.trans
+        (congrArg
+          (fun z : ℂ => z + (-Complex.I * remainder))
+          (neg_mul Complex.I constant))
+        (Eq.symm
+          (Eq.trans
+            (add_assoc horizontal (-horizontal - Complex.I * constant)
+              (-Complex.I * remainder))
+            (Eq.trans
+              (congrArg
+                (fun z : ℂ => z + (-Complex.I * remainder))
+                (Eq.trans
+                  (sub_eq_add_neg horizontal (Complex.I * constant) ▸
+                    add_assoc horizontal (-horizontal) (-(Complex.I * constant)))
+                  (Eq.trans
+                    (congrArg
+                      (fun z : ℂ => z + -(Complex.I * constant))
+                      (add_neg_cancel horizontal))
+                    (zero_add (-(Complex.I * constant)))))
+              (Eq.symm
+                (add_assoc (-(Complex.I * constant))
+                  (-Complex.I * remainder) 0))))))
+
+/-- Cancellation of an adjacent horizontal constant in the right oriented
+side assembly. -/
+theorem Complex.rightOrientedVertical_assembly_collect
+    (horizontal constant remainder : ℂ) :
+    Complex.I * (constant + remainder) =
+      (horizontal + Complex.I * constant) +
+        (Complex.I * remainder) - horizontal := by
+  exact
+    Eq.trans
+      (mul_add Complex.I constant remainder)
+      (Eq.symm
+        (Eq.trans
+          (sub_eq_add_neg
+            ((horizontal + Complex.I * constant) + Complex.I * remainder)
+            horizontal)
+          (Eq.trans
+            (add_assoc (horizontal + Complex.I * constant)
+              (Complex.I * remainder) (-horizontal))
+            (Eq.trans
+              (congrArg
+                (fun z : ℂ => (horizontal + Complex.I * constant) + z)
+                (add_comm (Complex.I * remainder) (-horizontal)))
+              (Eq.trans
+                (Eq.symm
+                  (add_assoc (horizontal + Complex.I * constant)
+                    (-horizontal) (Complex.I * remainder)))
+                (Eq.trans
+                  (congrArg
+                    (fun z : ℂ => z + Complex.I * remainder)
+                    (Eq.trans
+                      (add_assoc horizontal (Complex.I * constant) (-horizontal))
+                      (Eq.trans
+                        (congrArg
+                          (fun z : ℂ => horizontal + z)
+                          (add_comm (Complex.I * constant) (-horizontal)))
+                        (Eq.trans
+                          (Eq.symm
+                            (add_assoc horizontal (-horizontal)
+                              (Complex.I * constant)))
+                          (Eq.trans
+                            (congrArg
+                              (fun z : ℂ => z + Complex.I * constant)
+                              (add_neg_cancel horizontal))
+                            (zero_add (Complex.I * constant)))))))
+                  (Eq.refl (Complex.I * constant + Complex.I * remainder)))))))
+
+/-- Replacing the constant and remainder identities in the left oriented
+assembly gives the named lower side. -/
+theorem Complex.leftOrientedVertical_after_substitution
+    (endpoint lower : ℂ) :
+    endpoint + (-lower) = endpoint - lower := by
+  exact Eq.symm (sub_eq_add_neg endpoint lower)
+
+/-- Replacing the constant and remainder identities in the right oriented
+assembly removes the zero constant part. -/
+theorem Complex.rightOrientedVertical_after_substitution
+    (upper lowerHorizontal : ℂ) :
+    0 + (-upper) - lowerHorizontal =
+      -upper - lowerHorizontal := by
+  exact
+    Eq.trans
+      (congrArg
+        (fun z : ℂ => z - lowerHorizontal)
+        (zero_add (-upper)))
+      (Eq.refl (-upper - lowerHorizontal))
+
+/-- The left boundary face cancels its adjacent upper horizontal constant. -/
+theorem Complex.leftHalfContour_cancel_horizontal
+    (upper lowerFace : ℂ) :
+    -upper + (upper + lowerFace) = lowerFace :=
+  neg_add_cancel_left upper lowerFace
+
+/-- The right boundary face cancels its adjacent lower horizontal constant. -/
+theorem Complex.rightHalfContour_cancel_horizontal
+    (lower upperFace : ℂ) :
+    lower + (upperFace - lower) = upperFace :=
+  add_sub_cancel_left lower upperFace
+
+/-- Boundary-face algebra: left and right raw faces collect into constant
+horizontal and raw vertical contributions. -/
+theorem Complex.finiteAbelPlana_boundaryFace_collect
+    (lower upper right left : ℂ) :
+    (-upper - Complex.I * left) + (lower + Complex.I * right) =
+      lower - upper + (Complex.I * right - Complex.I * left) := by
+  calc
+    (-upper - Complex.I * left) + (lower + Complex.I * right)
+        = lower + ((-upper - Complex.I * left) + Complex.I * right) := by
+      exact (add_comm (-upper - Complex.I * left) (lower + Complex.I * right)).trans
+        (add_assoc lower (-upper - Complex.I * left) (Complex.I * right)).symm
+    _ = lower + ((-upper) + ((-Complex.I * left) + Complex.I * right)) := by
+      exact congrArg (fun z : ℂ => lower + z)
+        (sub_eq_add_neg upper (Complex.I * left) ▸
+          add_assoc (-upper) (-Complex.I * left) (Complex.I * right))
+    _ = lower - upper + (Complex.I * right - Complex.I * left) := by
+      exact congrArg (fun z : ℂ => lower - upper + z)
+        (add_comm (-Complex.I * left) (Complex.I * right))
+
+/-- Named-boundary algebra: lower face plus upper face equals real endpoint
+plus the combined named vertical side. -/
+theorem Complex.finiteAbelPlana_namedBoundary_collect
+    (endpoint lower upper : ℂ) :
+    (endpoint - lower) + (-upper) =
+      endpoint + (-lower - upper) := by
+  calc
+    (endpoint - lower) + (-upper) =
+        endpoint + (-lower) + (-upper) := by
+      exact add_assoc endpoint (-lower) (-upper)
+    _ = endpoint + (-lower - upper) := by
+      exact (add_assoc endpoint (-lower) (-upper)).symm
 
 /-- Principal-value finite punctured-rectangle residue accounting obtained by
 combining the Cauchy-Goursat punctured-boundary limit with the small-circle
@@ -317,7 +527,7 @@ theorem Complex.finiteAbelPlana_log_lowerHorizontalSide_eq_constant_add_bottomEd
       funext x
       exact Complex.finiteAbelPlana_lowerHorizontal_integrand_split w x T]
   rw [intervalIntegral.integral_add]
-  ring
+  rfl
 
 /-- The upper horizontal side splits into its upper-half-plane constant
 cotangent part plus the named decaying top horizontal edge. -/
@@ -348,7 +558,7 @@ theorem Complex.finiteAbelPlana_log_upperHorizontalSide_eq_constant_add_topEdge
       funext x
       exact Complex.finiteAbelPlana_upperHorizontal_integrand_split w x T]
   rw [intervalIntegral.integral_add]
-  ring
+  rfl
 
 /-- The raw left vertical face together with its adjacent upper horizontal
 constant contribution.
@@ -385,7 +595,11 @@ theorem Complex.finiteAbelPlana_log_boundaryFaces_sum_eq_constantHorizontal_rawV
   dsimp [Complex.finiteAbelPlanaLogLeftBoundaryFace,
     Complex.finiteAbelPlanaLogRightBoundaryFace,
     Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression]
-  ring
+  exact Complex.finiteAbelPlana_boundaryFace_collect
+    (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
+    (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
+    (Complex.finiteAbelPlanaLogFiniteHeightRightSide N w T)
+    (Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T)
 
 /-- Unfolding of the raw left boundary face. -/
 theorem Complex.finiteAbelPlana_log_leftBoundaryFace_unfold
@@ -448,7 +662,12 @@ theorem Complex.finiteAbelPlana_log_namedBoundaryFaces_sum_eq_namedBoundary
     Complex.finiteAbelPlanaLogNamedBoundaryFaceSum,
     Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression,
     Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression]
-  ring
+  exact Complex.finiteAbelPlana_namedBoundary_collect
+    ((∫ x : ℝ in (0 : ℝ)..(N + 1 : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)) +
+      Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w)
+    (Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)
+    (Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T)
 
 /-- Constant-kernel part of the left vertical side after splitting at the real
 axis.  On the lower half-plane the cotangent constant is `π i`; on the upper
@@ -642,11 +861,14 @@ theorem Complex.finiteAbelPlana_log_leftVertical_lower_pointwise_split
     Complex.finiteAbelPlanaLogRectangleIntegrand w (Complex.I * (y : ℂ)) =
       Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
         ((Real.pi : ℂ) * Complex.I) +
-      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+    Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
         (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) -
           (Real.pi : ℂ) * Complex.I) := by
   dsimp [Complex.finiteAbelPlanaLogRectangleIntegrand]
-  ring
+  exact Complex.mul_eq_mul_add_mul_sub
+    (Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)))
+    (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)))
+    ((Real.pi : ℂ) * Complex.I)
 
 /-- Pointwise upper-half left vertical cotangent split. -/
 theorem Complex.finiteAbelPlana_log_leftVertical_upper_pointwise_split
@@ -655,11 +877,14 @@ theorem Complex.finiteAbelPlana_log_leftVertical_upper_pointwise_split
     Complex.finiteAbelPlanaLogRectangleIntegrand w (Complex.I * (y : ℂ)) =
       Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
         (-(Real.pi : ℂ) * Complex.I) +
-      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+    Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
         (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) +
           (Real.pi : ℂ) * Complex.I) := by
   dsimp [Complex.finiteAbelPlanaLogRectangleIntegrand]
-  ring
+  exact Complex.mul_eq_mul_neg_add_mul_add
+    (Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)))
+    (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)))
+    ((Real.pi : ℂ) * Complex.I)
 
 /-- Pointwise lower-half right vertical cotangent split. -/
 theorem Complex.finiteAbelPlana_log_rightVertical_lower_pointwise_split
@@ -675,7 +900,10 @@ theorem Complex.finiteAbelPlana_log_rightVertical_lower_pointwise_split
         (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (y : ℂ)) -
           (Real.pi : ℂ) * Complex.I) := by
   dsimp [Complex.finiteAbelPlanaLogRectangleIntegrand]
-  ring
+  exact Complex.mul_eq_mul_add_mul_sub
+    (Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)))
+    (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)))
+    ((Real.pi : ℂ) * Complex.I)
 
 /-- Pointwise upper-half right vertical cotangent split. -/
 theorem Complex.finiteAbelPlana_log_rightVertical_upper_pointwise_split
@@ -691,7 +919,10 @@ theorem Complex.finiteAbelPlana_log_rightVertical_upper_pointwise_split
         (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (y : ℂ)) +
           (Real.pi : ℂ) * Complex.I) := by
   dsimp [Complex.finiteAbelPlanaLogRectangleIntegrand]
-  ring
+  exact Complex.mul_eq_mul_neg_add_mul_add
+    (Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)))
+    (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)))
+    ((Real.pi : ℂ) * Complex.I)
 
 /-- The left vertical side is the sum of its constant-kernel and
 exponential-remainder parts. -/
@@ -705,7 +936,21 @@ theorem Complex.finiteAbelPlana_log_leftVerticalSide_eq_constant_add_remainder
   dsimp [Complex.finiteAbelPlanaLogFiniteHeightLeftSide,
     Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide,
     Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSide]
-  ring
+  exact Complex.verticalSide_split_collect
+    (∫ y : ℝ in (-T)..(0 : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        ((Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (0 : ℝ)..T,
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (-(Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (-T)..(0 : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) -
+          (Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (0 : ℝ)..T,
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
 
 /-- The right vertical side is the sum of its constant-kernel and
 exponential-remainder parts. -/
@@ -720,7 +965,21 @@ theorem Complex.finiteAbelPlana_log_rightVerticalSide_eq_constant_add_remainder
   dsimp [Complex.finiteAbelPlanaLogFiniteHeightRightSide,
     Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide,
     Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSide]
-  ring
+  exact Complex.verticalSide_split_collect
+    (∫ y : ℝ in (-T)..(0 : ℝ),
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        ((Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (0 : ℝ)..T,
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (-(Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (-T)..(0 : ℝ),
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)) -
+          (Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (0 : ℝ)..T,
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
 
 /-- Left constant-kernel primitive assembly.
 
@@ -832,7 +1091,10 @@ theorem Complex.finiteAbelPlana_log_orientedLeftVerticalSide_eq_upperConstant_ad
             Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T) +
           (-Complex.I *
             Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSide w T)) := by
-      ring
+      exact Complex.leftOrientedVertical_assembly_collect
+        (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
+        (Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)
+        (Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSide w T)
     _ =
       Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
         (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w -
@@ -852,7 +1114,9 @@ theorem Complex.finiteAbelPlana_log_orientedLeftVerticalSide_eq_upperConstant_ad
             _ =
               Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w -
                 Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T := by
-              ring)
+              exact Complex.leftOrientedVertical_after_substitution
+                (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w)
+                (Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T))
     _ =
       Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
         ((∫ x : ℝ in (0 : ℝ)..(N + 1 : ℝ),
@@ -902,7 +1166,10 @@ theorem Complex.finiteAbelPlana_log_orientedRightVerticalSide_eq_upperNamed_minu
           Complex.I * Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T) +
         (Complex.I * Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSide N w T) -
           Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T := by
-      ring
+      exact Complex.rightOrientedVertical_assembly_collect
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
+        (Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)
+        (Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSide N w T)
     _ =
       0 + (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T) -
         Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T := by
@@ -914,7 +1181,9 @@ theorem Complex.finiteAbelPlana_log_orientedRightVerticalSide_eq_upperNamed_minu
     _ =
       -Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T -
         Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T := by
-      ring
+      exact Complex.rightOrientedVertical_after_substitution
+        (Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T)
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
 
 /-- Left half-contour Abel-Plana assembly.
 
@@ -946,7 +1215,9 @@ theorem Complex.finiteAbelPlana_log_leftHalfContourAssembly
         Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T =
       -Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
         (-Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T) := by
-      ring
+      exact sub_eq_add_neg
+        (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
+        (Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T)
     _ =
       -Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
         (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
@@ -956,7 +1227,9 @@ theorem Complex.finiteAbelPlana_log_leftHalfContourAssembly
           -Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T + z)
         hvertical
     _ = Complex.finiteAbelPlanaLogLowerNamedBoundaryFace N w T := by
-      ring
+      exact Complex.leftHalfContour_cancel_horizontal
+        (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
+        (Complex.finiteAbelPlanaLogLowerNamedBoundaryFace N w T)
 
 /-- Right half-contour Abel-Plana assembly.
 
@@ -993,7 +1266,9 @@ theorem Complex.finiteAbelPlana_log_rightHalfContourAssembly
           Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T + z)
         hvertical
     _ = Complex.finiteAbelPlanaLogUpperNamedBoundaryFace N w T := by
-      ring
+      exact Complex.rightHalfContour_cancel_horizontal
+        (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
+        (Complex.finiteAbelPlanaLogUpperNamedBoundaryFace N w T)
 
 /-- The lower named boundary face unfolded into real-segment, endpoint, and
 lower vertical integral pieces. -/
@@ -1055,7 +1330,21 @@ theorem Complex.finiteAbelPlana_log_leftVerticalSidePV_eq_constant_add_remainder
   dsimp [Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV,
     Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSidePV,
     Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSidePV]
-  ring
+  exact Complex.verticalSide_split_collect
+    (∫ y : ℝ in (-T)..(-ε),
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        ((Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in ε..T,
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (-(Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (-T)..(-ε),
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) -
+          (Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in ε..T,
+      Complex.finiteAbelPlanaLogSummand w (Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (y : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
 
 /-- PV right vertical side splits into its constant and exponential-remainder
 parts. -/
@@ -1069,7 +1358,21 @@ theorem Complex.finiteAbelPlana_log_rightVerticalSidePV_eq_constant_add_remainde
   dsimp [Complex.finiteAbelPlanaLogFiniteHeightRightSidePV,
     Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSidePV,
     Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSidePV]
-  ring
+  exact Complex.verticalSide_split_collect
+    (∫ y : ℝ in (-T)..(-ε),
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        ((Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in ε..T,
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (-(Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in (-T)..(-ε),
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)) -
+          (Real.pi : ℂ) * Complex.I))
+    (∫ y : ℝ in ε..T,
+      Complex.finiteAbelPlanaLogSummand w ((N + 1 : ℂ) + Complex.I * (y : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel ((N + 1 : ℂ) + Complex.I * (y : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
 
 /-- Truncated lower vertical Abel-Plana integral with lower cutoff `ε`. -/
 noncomputable def Complex.finiteAbelPlanaLogLowerVerticalIntegralFromTo

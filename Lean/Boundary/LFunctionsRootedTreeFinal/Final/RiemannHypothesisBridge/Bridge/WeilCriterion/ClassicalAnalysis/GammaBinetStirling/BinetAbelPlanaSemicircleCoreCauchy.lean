@@ -16,6 +16,37 @@ noncomputable section
 
 open scoped Topology
 
+/-- The standard right semicircle angle interval is ordered. -/
+theorem Real.neg_half_pi_le_half_pi :
+    -(Real.pi / 2) ≤ Real.pi / 2 := by
+  exact neg_le_self (div_nonneg Real.pi_pos.le zero_le_two)
+
+/-- Adding a nonnegative width gives an ordered real interval. -/
+theorem Real.le_add_of_nonneg_width
+    (x a : ℝ)
+    (ha : 0 ≤ a) :
+    x ≤ x + a :=
+  le_add_of_nonneg_right ha
+
+/-- Translating a width inequality preserves the endpoint order. -/
+theorem Real.add_width_le_add_width
+    (x : ℝ)
+    {ρ a : ℝ}
+    (hρa : ρ ≤ a) :
+    x + ρ ≤ x + a :=
+  add_le_add_left hρa x
+
+/-- The right semicircle parameterization agrees with mathlib's `circleMap`. -/
+theorem Complex.rightSemicircle_param_eq_circleMap
+    (c : ℂ)
+    (ρ θ : ℝ) :
+    c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) =
+      circleMap c ρ θ := by
+  dsimp [circleMap]
+  exact congrArg
+    (fun z : ℂ => c + (ρ : ℂ) * Complex.exp z)
+    (mul_comm Complex.I (θ : ℂ))
+
 /-- The lower chord of the right indentation lies in the right core collar. -/
 theorem Complex.rightHalfRectangleDeletedDiskCore_bottom_mem
     (c : ℂ)
@@ -138,8 +169,7 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_arc_mem
       Complex.rightHalfRectangleDeletedDiskCoreDomain c a ρ := by
   have ha : 0 ≤ a := le_trans hρ.le hρa
   have hθIcc : θ ∈ Set.Icc (-(Real.pi / 2)) (Real.pi / 2) := by
-    simpa [Set.uIcc_of_le (by linarith [Real.pi_pos] :
-      -(Real.pi / 2) ≤ Real.pi / 2)] using hθ
+    simpa [Set.uIcc_of_le Real.neg_half_pi_le_half_pi] using hθ
   have hre :
       ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re =
         ρ * Real.cos θ := by
@@ -154,14 +184,17 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_arc_mem
       (c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re ∈
         [[c.re, c.re + a]] := by
     rw [add_re, hre]
-    have hleft : c.re ≤ c.re + ρ * Real.cos θ := by
-      nlinarith [mul_nonneg hρ.le hcos_nonneg]
+    have hρcos_nonneg : 0 ≤ ρ * Real.cos θ :=
+      mul_nonneg hρ.le hcos_nonneg
+    have hleft : c.re ≤ c.re + ρ * Real.cos θ :=
+      Real.le_add_of_nonneg_width c.re (ρ * Real.cos θ) hρcos_nonneg
     have hright : c.re + ρ * Real.cos θ ≤ c.re + a := by
       have hcos_le : Real.cos θ ≤ 1 := Real.cos_le_one θ
       have hρcos_le : ρ * Real.cos θ ≤ ρ :=
         mul_le_of_le_one_right hρ.le hcos_le
-      linarith
-    simpa [Set.uIcc_of_le (by linarith : c.re ≤ c.re + a)] using
+      exact le_trans (add_le_add_left hρcos_le c.re)
+        (Real.add_width_le_add_width c.re hρa)
+    simpa [Set.uIcc_of_le (Real.le_add_of_nonneg_width c.re a ha)] using
       And.intro hleft hright
   have hsin_abs : |Real.sin θ| ≤ 1 :=
     abs_le.mpr (Real.sin_mem_Icc θ)
@@ -176,9 +209,14 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_arc_mem
         _ ≤ ρ * 1 := mul_le_mul_of_nonneg_left hsin_abs hρ.le
         _ = ρ := mul_one ρ
     have hb := abs_le.mp him_abs
-    have hleft : c.im - ρ ≤ c.im + ρ * Real.sin θ := by linarith
-    have hright : c.im + ρ * Real.sin θ ≤ c.im + ρ := by linarith
-    simpa [Set.uIcc_of_le (by linarith : c.im - ρ ≤ c.im + ρ)] using
+    have hleft : c.im - ρ ≤ c.im + ρ * Real.sin θ := by
+      exact (sub_eq_add_neg c.im ρ) ▸ add_le_add_left hb.1 c.im
+    have hright : c.im + ρ * Real.sin θ ≤ c.im + ρ :=
+      add_le_add_left hb.2 c.im
+    have him_order : c.im - ρ ≤ c.im + ρ := by
+      exact (sub_eq_add_neg c.im ρ) ▸
+        add_le_add_left (neg_le_self hρ.le) c.im
+    simpa [Set.uIcc_of_le him_order] using
       And.intro hleft hright
   have hnot_ball :
       c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ∉
@@ -186,8 +224,7 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_arc_mem
     have hz_eq :
         c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) =
           circleMap c ρ θ := by
-      dsimp [circleMap]
-      ring
+      exact Complex.rightSemicircle_param_eq_circleMap c ρ θ
     rw [hz_eq]
     exact circleMap_not_mem_ball c ρ θ
   exact ⟨⟨hre_mem, him_mem⟩, hnot_ball⟩
@@ -204,13 +241,16 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_rectangularTail_subset_core
       Complex.rightHalfRectangleDeletedDiskCoreDomain c a ρ := by
   intro z hz
   have ha : 0 ≤ a := le_trans hρ.le hρa
-  have htail_order : c.re + ρ ≤ c.re + a := by linarith
-  have hcore_order : c.re ≤ c.re + a := by linarith
+  have htail_order : c.re + ρ ≤ c.re + a :=
+    Real.add_width_le_add_width c.re hρa
+  have hcore_order : c.re ≤ c.re + a :=
+    Real.le_add_of_nonneg_width c.re a ha
   have hzdata := Complex.mem_reProdIm.mp hz
   have hzre_tail : z.re ∈ Set.Icc (c.re + ρ) (c.re + a) := by
     simpa [Set.uIcc_of_le htail_order] using hzdata.1
   have hzre_core : z.re ∈ [[c.re, c.re + a]] := by
-    have hleft : c.re ≤ z.re := by linarith [hzre_tail.1, hρ.le]
+    have hleft : c.re ≤ z.re :=
+      le_trans (Real.le_add_of_nonneg_width c.re ρ hρ.le) hzre_tail.1
     have hright : z.re ≤ c.re + a := hzre_tail.2
     simpa [Set.uIcc_of_le hcore_order] using And.intro hleft hright
   have hnot_ball : z ∉ Metric.ball c ρ := by
@@ -221,8 +261,14 @@ theorem Complex.rightHalfRectangleDeletedDiskCore_rectangularTail_subset_core
       simp [sub_re]
     have hre_ge : ρ ≤ |(z - c).re| := by
       rw [hre_eq]
-      have hnonneg : 0 ≤ z.re - c.re := by linarith [hzre_tail.1, hρ.le]
-      have hle : ρ ≤ z.re - c.re := by linarith [hzre_tail.1]
+      have hcle : c.re ≤ z.re :=
+        le_trans (Real.le_add_of_nonneg_width c.re ρ hρ.le) hzre_tail.1
+      have hnonneg : 0 ≤ z.re - c.re :=
+        sub_nonneg.mpr hcle
+      have hρ_add : ρ + c.re ≤ z.re := by
+        exact (add_comm c.re ρ) ▸ hzre_tail.1
+      have hle : ρ ≤ z.re - c.re :=
+        (le_sub_iff_add_le).mpr hρ_add
       simpa [abs_of_nonneg hnonneg] using hle
     have hnorm_ge : ρ ≤ ‖z - c‖ := le_trans hre_ge hre_abs_le_norm
     have hnorm_lt : ‖z - c‖ < ρ := by
@@ -435,6 +481,7 @@ theorem Complex.rightHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
     (c : ℂ)
     (T a : ℝ)
     {ρ : ℝ}
+    (hρ_nonneg : 0 ≤ ρ)
     (hρT : ρ < |T|) :
     Complex.rightHalfRectangleDeletedDiskCoreDomain c a ρ ⊆
       Complex.rightHalfRectangleDeletedDiskDomain c T a ρ := by
@@ -446,34 +493,58 @@ theorem Complex.rightHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
     by_cases hT : 0 ≤ T
     · have hρ_le_T : ρ ≤ T := by
         exact le_of_lt (by simpa [abs_of_nonneg hT] using hρT)
-      have horder : c.im - T ≤ c.im + T := by linarith
-      have hleft : c.im - T ≤ c.im - ρ := by linarith
-      have hright : c.im - ρ ≤ c.im + T := by linarith
+      have horder : c.im - T ≤ c.im + T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (neg_le_self hT) c.im
+      have hleft : c.im - T ≤ c.im - ρ :=
+        (sub_eq_add_neg c.im T) ▸
+          (sub_eq_add_neg c.im ρ) ▸
+            add_le_add_left (neg_le_neg hρ_le_T) c.im
+      have hright : c.im - ρ ≤ c.im + T :=
+        (sub_eq_add_neg c.im ρ) ▸
+          add_le_add_left (le_trans (neg_nonpos.mpr hρ_nonneg) hT) c.im
       simpa [Set.uIcc_of_le horder] using And.intro hleft hright
     · have hT_lt : T < 0 := lt_of_not_ge hT
       have hT_le : T ≤ 0 := le_of_lt hT_lt
       have hρ_le_negT : ρ ≤ -T := by
         exact le_of_lt (by simpa [abs_of_neg hT_lt] using hρT)
-      have horder : c.im + T ≤ c.im - T := by linarith
-      have hleft : c.im + T ≤ c.im - ρ := by linarith
-      have hright : c.im - ρ ≤ c.im - T := by linarith
+      have horder : c.im + T ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hT_le c.im
+      have hleft : c.im + T ≤ c.im - ρ :=
+        (sub_eq_add_neg c.im ρ) ▸
+          add_le_add_left (le_trans hT_le (neg_nonpos.mpr hρ_nonneg)) c.im
+      have hright : c.im - ρ ≤ c.im - T :=
+        (sub_eq_add_neg c.im ρ) ▸
+          (sub_eq_add_neg c.im T) ▸
+            add_le_add_left (neg_le_neg hρ_le_negT) c.im
       simpa [Set.uIcc_comm, Set.uIcc_of_le horder] using And.intro hleft hright
   have him_right :
       c.im + ρ ∈ [[c.im - T, c.im + T]] := by
     by_cases hT : 0 ≤ T
     · have hρ_le_T : ρ ≤ T := by
         exact le_of_lt (by simpa [abs_of_nonneg hT] using hρT)
-      have horder : c.im - T ≤ c.im + T := by linarith
-      have hleft : c.im - T ≤ c.im + ρ := by linarith
-      have hright : c.im + ρ ≤ c.im + T := by linarith
+      have horder : c.im - T ≤ c.im + T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (neg_le_self hT) c.im
+      have hleft : c.im - T ≤ c.im + ρ :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (le_trans (neg_nonpos.mpr hT) hρ_nonneg) c.im
+      have hright : c.im + ρ ≤ c.im + T :=
+        add_le_add_left hρ_le_T c.im
       simpa [Set.uIcc_of_le horder] using And.intro hleft hright
     · have hT_lt : T < 0 := lt_of_not_ge hT
       have hT_le : T ≤ 0 := le_of_lt hT_lt
       have hρ_le_negT : ρ ≤ -T := by
         exact le_of_lt (by simpa [abs_of_neg hT_lt] using hρT)
-      have horder : c.im + T ≤ c.im - T := by linarith
-      have hleft : c.im + T ≤ c.im + ρ := by linarith
-      have hright : c.im + ρ ≤ c.im - T := by linarith
+      have horder : c.im + T ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hT_le c.im
+      have hleft : c.im + T ≤ c.im + ρ :=
+        add_le_add_left (le_trans hT_le hρ_nonneg) c.im
+      have hright : c.im + ρ ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hρ_le_negT c.im
       simpa [Set.uIcc_comm, Set.uIcc_of_le horder] using And.intro hleft hright
   have him_tall : z.im ∈ [[c.im - T, c.im + T]] :=
     uIcc_subset_uIcc him_left him_right him
@@ -485,6 +556,7 @@ theorem Complex.leftHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
     (c : ℂ)
     (T a : ℝ)
     {ρ : ℝ}
+    (hρ_nonneg : 0 ≤ ρ)
     (hρT : ρ < |T|) :
     Complex.leftHalfRectangleDeletedDiskCoreDomain c a ρ ⊆
       Complex.leftHalfRectangleDeletedDiskDomain c T a ρ := by
@@ -496,34 +568,58 @@ theorem Complex.leftHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
     by_cases hT : 0 ≤ T
     · have hρ_le_T : ρ ≤ T := by
         exact le_of_lt (by simpa [abs_of_nonneg hT] using hρT)
-      have horder : c.im - T ≤ c.im + T := by linarith
-      have hleft : c.im - T ≤ c.im - ρ := by linarith
-      have hright : c.im - ρ ≤ c.im + T := by linarith
+      have horder : c.im - T ≤ c.im + T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (neg_le_self hT) c.im
+      have hleft : c.im - T ≤ c.im - ρ :=
+        (sub_eq_add_neg c.im T) ▸
+          (sub_eq_add_neg c.im ρ) ▸
+            add_le_add_left (neg_le_neg hρ_le_T) c.im
+      have hright : c.im - ρ ≤ c.im + T :=
+        (sub_eq_add_neg c.im ρ) ▸
+          add_le_add_left (le_trans (neg_nonpos.mpr hρ_nonneg) hT) c.im
       simpa [Set.uIcc_of_le horder] using And.intro hleft hright
     · have hT_lt : T < 0 := lt_of_not_ge hT
       have hT_le : T ≤ 0 := le_of_lt hT_lt
       have hρ_le_negT : ρ ≤ -T := by
         exact le_of_lt (by simpa [abs_of_neg hT_lt] using hρT)
-      have horder : c.im + T ≤ c.im - T := by linarith
-      have hleft : c.im + T ≤ c.im - ρ := by linarith
-      have hright : c.im - ρ ≤ c.im - T := by linarith
+      have horder : c.im + T ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hT_le c.im
+      have hleft : c.im + T ≤ c.im - ρ :=
+        (sub_eq_add_neg c.im ρ) ▸
+          add_le_add_left (le_trans hT_le (neg_nonpos.mpr hρ_nonneg)) c.im
+      have hright : c.im - ρ ≤ c.im - T :=
+        (sub_eq_add_neg c.im ρ) ▸
+          (sub_eq_add_neg c.im T) ▸
+            add_le_add_left (neg_le_neg hρ_le_negT) c.im
       simpa [Set.uIcc_comm, Set.uIcc_of_le horder] using And.intro hleft hright
   have him_right :
       c.im + ρ ∈ [[c.im - T, c.im + T]] := by
     by_cases hT : 0 ≤ T
     · have hρ_le_T : ρ ≤ T := by
         exact le_of_lt (by simpa [abs_of_nonneg hT] using hρT)
-      have horder : c.im - T ≤ c.im + T := by linarith
-      have hleft : c.im - T ≤ c.im + ρ := by linarith
-      have hright : c.im + ρ ≤ c.im + T := by linarith
+      have horder : c.im - T ≤ c.im + T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (neg_le_self hT) c.im
+      have hleft : c.im - T ≤ c.im + ρ :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left (le_trans (neg_nonpos.mpr hT) hρ_nonneg) c.im
+      have hright : c.im + ρ ≤ c.im + T :=
+        add_le_add_left hρ_le_T c.im
       simpa [Set.uIcc_of_le horder] using And.intro hleft hright
     · have hT_lt : T < 0 := lt_of_not_ge hT
       have hT_le : T ≤ 0 := le_of_lt hT_lt
       have hρ_le_negT : ρ ≤ -T := by
         exact le_of_lt (by simpa [abs_of_neg hT_lt] using hρT)
-      have horder : c.im + T ≤ c.im - T := by linarith
-      have hleft : c.im + T ≤ c.im + ρ := by linarith
-      have hright : c.im + ρ ≤ c.im - T := by linarith
+      have horder : c.im + T ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hT_le c.im
+      have hleft : c.im + T ≤ c.im + ρ :=
+        add_le_add_left (le_trans hT_le hρ_nonneg) c.im
+      have hright : c.im + ρ ≤ c.im - T :=
+        (sub_eq_add_neg c.im T) ▸
+          add_le_add_left hρ_le_negT c.im
       simpa [Set.uIcc_comm, Set.uIcc_of_le horder] using And.intro hleft hright
   have him_tall : z.im ∈ [[c.im - T, c.im + T]] :=
     uIcc_subset_uIcc him_left him_right him
@@ -648,13 +744,13 @@ theorem Complex.rightHalfRectangleDeletedDiskBoundary_eq_zero
         (Complex.rightHalfRectangleDeletedDiskCoreDomain c a ρ) := by
     exact hcont.mono
       (Complex.rightHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
-        c T a hρT)
+        c T a hρ.le hρT)
   have hdiff_core :
       DifferentiableOn ℂ f
         (Complex.rightHalfRectangleDeletedDiskCoreDomain c a ρ) := by
     exact hdiff.mono
       (Complex.rightHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
-        c T a hρT)
+        c T a hρ.le hρT)
   simpa [Complex.rightHalfRectangleDeletedDiskCoreBoundaryIntegral] using
     (Complex.rightHalfRectangleDeletedDiskCoreBoundary_eq_zero
       f c a hρa hρ hcont_core hdiff_core)
@@ -695,13 +791,13 @@ theorem Complex.leftHalfRectangleDeletedDiskBoundary_eq_zero
         (Complex.leftHalfRectangleDeletedDiskCoreDomain c a ρ) := by
     exact hcont.mono
       (Complex.leftHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
-        c T a hρT)
+        c T a hρ.le hρT)
   have hdiff_core :
       DifferentiableOn ℂ f
         (Complex.leftHalfRectangleDeletedDiskCoreDomain c a ρ) := by
     exact hdiff.mono
       (Complex.leftHalfRectangleDeletedDiskCoreDomain_subset_heightDomain
-        c T a hρT)
+        c T a hρ.le hρT)
   simpa [Complex.leftHalfRectangleDeletedDiskCoreBoundaryIntegral] using
     (Complex.leftHalfRectangleDeletedDiskCoreBoundary_eq_zero
       f c a hρa hρ hcont_core hdiff_core)

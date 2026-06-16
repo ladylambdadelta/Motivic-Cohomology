@@ -17,6 +17,171 @@ noncomputable section
 
 open scoped Topology
 
+/-- The left endpoint semicircle has angular length `π`. -/
+theorem Real.leftEndpointSemicircle_angleLength :
+    Real.pi / 2 - (-(Real.pi / 2)) = Real.pi := by
+  exact
+    Eq.trans
+      (sub_neg_eq_add (Real.pi / 2) (Real.pi / 2))
+      (add_halves Real.pi)
+
+/-- The right endpoint semicircle has angular length `π`. -/
+theorem Real.rightEndpointSemicircle_angleLength :
+    3 * Real.pi / 2 - Real.pi / 2 = Real.pi := by
+  have hthree :
+      (3 : ℝ) * Real.pi / 2 =
+        Real.pi + Real.pi / 2 := by
+    calc
+      (3 : ℝ) * Real.pi / 2 =
+          (Real.pi + Real.pi + Real.pi) / 2 := by
+        exact congrArg
+          (fun z : ℝ => z / 2)
+          (three_mul Real.pi)
+      _ = (Real.pi + Real.pi) / 2 + Real.pi / 2 := by
+        exact add_div (Real.pi + Real.pi) Real.pi 2
+      _ = Real.pi + Real.pi / 2 := by
+        exact congrArg
+          (fun z : ℝ => z + Real.pi / 2)
+          (add_halves Real.pi)
+  exact
+    Eq.trans
+      (congrArg
+        (fun z : ℝ => z - Real.pi / 2)
+        hthree)
+      (add_sub_cancel_right Real.pi (Real.pi / 2))
+
+/-- Cauchy-denominator cancellation along a complex endpoint arc. -/
+theorem Complex.div_mul_I_mul_cancel
+    (R D : ℂ)
+    (hD : D ≠ 0) :
+    (R / D) * (Complex.I * D) = Complex.I * R := by
+  calc
+    (R / D) * (Complex.I * D) =
+        (R / D) * (D * Complex.I) := by
+      exact congrArg
+        (fun z : ℂ => (R / D) * z)
+        (mul_comm Complex.I D)
+    _ = ((R / D) * D) * Complex.I := by
+      exact mul_assoc (R / D) D Complex.I
+    _ = R * Complex.I := by
+      exact congrArg
+        (fun z : ℂ => z * Complex.I)
+        (div_mul_cancel₀ R hD)
+    _ = Complex.I * R := by
+      exact mul_comm R Complex.I
+
+/-- Normalizing a semicircle principal part by `2πi` gives half the residue. -/
+theorem Complex.two_pi_I_normalizes_pi_I_to_half
+    (R : ℂ) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        ((Real.pi : ℂ) * (Complex.I * R)) =
+      R / 2 := by
+  have hπI :
+      (Real.pi : ℂ) * Complex.I ≠ 0 :=
+    mul_ne_zero
+      (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero)
+      Complex.I_ne_zero
+  have hnum :
+      (Real.pi : ℂ) * (Complex.I * R) =
+        R * ((Real.pi : ℂ) * Complex.I) := by
+    calc
+      (Real.pi : ℂ) * (Complex.I * R) =
+          (Real.pi : ℂ) * (R * Complex.I) := by
+        exact congrArg
+          (fun z : ℂ => (Real.pi : ℂ) * z)
+          (mul_comm Complex.I R)
+      _ = ((Real.pi : ℂ) * R) * Complex.I := by
+        exact mul_assoc (Real.pi : ℂ) R Complex.I
+      _ = (R * (Real.pi : ℂ)) * Complex.I := by
+        exact congrArg
+          (fun z : ℂ => z * Complex.I)
+          (mul_comm (Real.pi : ℂ) R)
+      _ = R * ((Real.pi : ℂ) * Complex.I) := by
+        exact Eq.symm (mul_assoc R (Real.pi : ℂ) Complex.I)
+  have hden :
+      (2 : ℂ) * (Real.pi : ℂ) * Complex.I =
+        (2 : ℂ) * ((Real.pi : ℂ) * Complex.I) := by
+    exact mul_assoc (2 : ℂ) (Real.pi : ℂ) Complex.I
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        ((Real.pi : ℂ) * (Complex.I * R)) =
+        ((Real.pi : ℂ) * (Complex.I * R)) /
+          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) := by
+      exact inv_mul_eq_div
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+        ((Real.pi : ℂ) * (Complex.I * R))
+    _ =
+        (R * ((Real.pi : ℂ) * Complex.I)) /
+          ((2 : ℂ) * ((Real.pi : ℂ) * Complex.I)) := by
+      exact congrArg₂ HDiv.hDiv hnum hden
+    _ = R / 2 := by
+      exact mul_div_mul_right R (2 : ℂ) hπI
+
+/-- Splitting a removable endpoint numerator into residue plus defect after
+arc-denominator transport. -/
+theorem Complex.endpointArc_principal_remainder_split
+    (R E D : ℂ)
+    (hD : D ≠ 0) :
+    (D⁻¹ * E) * (Complex.I * D) =
+      (R / D) * (Complex.I * D) +
+        ((E - R) / D) * (Complex.I * D) := by
+  have hdecomp : R + (E - R) = E := by
+    calc
+      R + (E - R) = (E - R) + R := by
+        exact add_comm R (E - R)
+      _ = E := by
+        exact sub_add_cancel E R
+  have hleft :
+      (D⁻¹ * E) * (Complex.I * D) = Complex.I * E := by
+    calc
+      (D⁻¹ * E) * (Complex.I * D) =
+          (E / D) * (Complex.I * D) := by
+        exact congrArg
+          (fun z : ℂ => z * (Complex.I * D))
+          (inv_mul_eq_div D E)
+      _ = Complex.I * E := by
+        exact Complex.div_mul_I_mul_cancel E D hD
+  have hright :
+      (R / D) * (Complex.I * D) +
+          ((E - R) / D) * (Complex.I * D) =
+        Complex.I * E := by
+    calc
+      (R / D) * (Complex.I * D) +
+          ((E - R) / D) * (Complex.I * D) =
+          Complex.I * R + Complex.I * (E - R) := by
+        exact congrArg₂ HAdd.hAdd
+          (Complex.div_mul_I_mul_cancel R D hD)
+          (Complex.div_mul_I_mul_cancel (E - R) D hD)
+      _ = Complex.I * (R + (E - R)) := by
+        exact Eq.symm (mul_add Complex.I R (E - R))
+      _ = Complex.I * E := by
+        exact congrArg (fun z : ℂ => Complex.I * z) hdecomp
+  exact hleft.trans hright.symm
+
+/-- Rearrangement of the endpoint-remainder integral majorant product. -/
+theorem Real.endpointRemainder_majorant_product_assoc
+    (A C L : ℝ) :
+    A * (C * L) = A * L * C := by
+  calc
+    A * (C * L) = A * (L * C) := by
+      exact congrArg (fun z : ℝ => A * z) (mul_comm C L)
+    _ = A * L * C := by
+      exact Eq.symm (mul_assoc A L C)
+
+/-- Cancelling the positive endpoint-remainder majorant scale. -/
+theorem Real.endpointRemainder_scale_cancel
+    {A ε : ℝ}
+    (hA : A ≠ 0) :
+    A * (ε / (2 * A)) = ε / 2 := by
+  calc
+    A * (ε / (2 * A)) = A * ε / (2 * A) := by
+      exact Eq.symm (mul_div_assoc A ε (2 * A))
+    _ = ε * A / (2 * A) := by
+      exact congrArg
+        (fun z : ℝ => z / (2 * A))
+        (mul_comm A ε)
+    _ = ε / 2 := by
+      exact mul_div_mul_right ε (2 : ℝ) hA
 
 /-- The left endpoint indentation tends to half the local residue at `0`. -/
 /-- Pointwise cancellation of the simple-pole principal part along an endpoint
@@ -32,26 +197,15 @@ theorem Complex.finiteAbelPlana_log_endpointSemicirclePrincipalPart_integrand_eq
       (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
         Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n := by
   have hρc : (ρ : ℂ) ≠ 0 := by
-    exact_mod_cast hρ
+    exact Complex.ofReal_ne_zero.mpr hρ
   have hexp : Complex.exp (Complex.I * (θ : ℂ)) ≠ 0 :=
     Complex.exp_ne_zero _
   have hprod : (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ≠ 0 :=
     mul_ne_zero hρc hexp
-  calc
-    ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
-        ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-      (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
-        (Complex.finiteAbelPlanaLogIntegerResidue w n *
-          (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))⁻¹ *
-            ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))) *
-          Complex.I := by
-      rw [div_eq_mul_inv]
-      ring
-    _ = Complex.finiteAbelPlanaLogIntegerResidue w n * Complex.I := by
-      rw [inv_mul_cancel₀ hprod]
-      ring
-    _ = Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n := by
-      exact mul_comm _ _
+  exact Complex.div_mul_I_mul_cancel
+    (Complex.finiteAbelPlanaLogIntegerResidue w n)
+    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+    hprod
 
 /-- The normalized principal-part integral over a positive semicircle is half
 the local residue. -/
@@ -106,11 +260,8 @@ theorem Complex.finiteAbelPlana_log_endpointSemicirclePrincipalPart_integral_eq_
       rw [hangle]
       rfl
     _ = Complex.finiteAbelPlanaLogIntegerResidue w n / 2 := by
-      have hπ : (Real.pi : ℂ) ≠ 0 := by
-        exact_mod_cast Real.pi_ne_zero
-      have hI : Complex.I ≠ 0 := Complex.I_ne_zero
-      field_simp [hπ, hI]
-      ring
+      exact Complex.two_pi_I_normalizes_pi_I_to_half
+        (Complex.finiteAbelPlanaLogIntegerResidue w n)
 
 /-- The principal part of a simple pole contributes half the normalized residue
 on a positively oriented semicircle. -/
@@ -181,10 +332,14 @@ theorem Complex.endpointSemicircleRemainder_integrand_eq_I_mul_defect
       (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ≠ 0 :=
     by
       have hρc : (ρ : ℂ) ≠ 0 := by
-        exact_mod_cast hρ
+        exact Complex.ofReal_ne_zero.mpr hρ
       exact mul_ne_zero hρc (Complex.exp_ne_zero _)
-  field_simp [hden]
-  ring
+  exact Complex.div_mul_I_mul_cancel
+    (Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+      ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+      Complex.finiteAbelPlanaLogIntegerResidue w n)
+    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+    hden
 
 /-- The endpoint-arc remainder integrand is bounded by the removable numerator
 defect after denominator cancellation. -/
@@ -278,7 +433,8 @@ theorem Complex.norm_endpointSemicircleRemainderIntegral_le
     _ ≤ ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ * (C * |b - a|) := by
       exact mul_le_mul_of_nonneg_left hintegral (norm_nonneg _)
     _ = ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ * |b - a| * C := by
-      ring
+      exact Real.endpointRemainder_majorant_product_assoc
+        ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ C |b - a|
 
 /-- Uniform smallness of the removable numerator on shrinking endpoint arcs. -/
 theorem Complex.eventually_endpointSemicircleRemainder_uniform_small
@@ -360,7 +516,9 @@ theorem Complex.eventually_endpointSemicircleRemainder_uniform_small
     calc
       ‖(n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) - (n : ℂ)‖ =
           ‖(ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ := by
-        ring_nf
+        exact congrArg norm
+          (add_sub_cancel_left (n : ℂ)
+            ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
       _ = ρ := hnorm_arc
       _ < δ := hρδ.2
   exact hδ hball
@@ -443,10 +601,9 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircleRemainder_tendsto_zero
         Complex.norm_endpointSemicircleRemainderIntegral_le
           hw n a b ρ hρpos (ε / (2 * A)) hbound
     have hA_cancel : A * (ε / (2 * A)) = ε / 2 := by
-      field_simp [ne_of_gt hApos]
-      ring
+      exact Real.endpointRemainder_scale_cancel (ne_of_gt hApos)
     have hhalf_lt : ε / 2 < ε := by
-      linarith
+      exact half_lt_self hε
     have hlt :
         ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
             ∫ θ : ℝ in a..b,
@@ -479,7 +636,7 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircle_integrand_eq_principal_ad
           ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
         (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
   have hρc : (ρ : ℂ) ≠ 0 := by
-    exact_mod_cast hρ
+    exact Complex.ofReal_ne_zero.mpr hρ
   have hexp : Complex.exp (Complex.I * (θ : ℂ)) ≠ 0 :=
     Complex.exp_ne_zero _
   have hden :
@@ -527,8 +684,14 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircle_integrand_eq_principal_ad
           (((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - (n : ℂ))) *
           Complex.finiteAbelPlanaLogRectangleIntegrand w
             ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-        congr 2
-        ring
+        exact congrArg
+          (fun z : ℂ =>
+            (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))⁻¹ * z) *
+              Complex.finiteAbelPlanaLogRectangleIntegrand w
+                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+          (Eq.symm
+            (add_sub_cancel_left (n : ℂ)
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))))
       _ =
         ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))⁻¹ *
           ((((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - (n : ℂ)) *
@@ -562,8 +725,12 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircle_integrand_eq_principal_ad
           Complex.finiteAbelPlanaLogIntegerResidue w n) /
           ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
         (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-      rw [div_eq_mul_inv, div_eq_mul_inv]
-      ring
+      exact Complex.endpointArc_principal_remainder_split
+        (Complex.finiteAbelPlanaLogIntegerResidue w n)
+        (Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+          ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        hden
 
 /-- Endpoint arc decomposition into the principal simple-pole part plus the
 removable regular remainder after integrating over the arc. -/
@@ -671,7 +838,18 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircleIntegral_linearized
                 ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
               (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
       rw [intervalIntegral.integral_add hprincipal hremainder]
-      ring
+      exact mul_add
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹)
+        (∫ θ : ℝ in a..b,
+          ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (∫ θ : ℝ in a..b,
+          ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+              Complex.finiteAbelPlanaLogIntegerResidue w n) /
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
 
 /-- Endpoint arc decomposition into the principal simple-pole part plus the
 removable regular remainder after integrating over the arc. -/
@@ -718,7 +896,7 @@ theorem Complex.endpointSemicircleArcVector_ne_zero
     (θ : ℝ) :
     (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ≠ 0 := by
   have hρc : (ρ : ℂ) ≠ 0 := by
-    exact_mod_cast hρ
+    exact Complex.ofReal_ne_zero.mpr hρ
   exact mul_ne_zero hρc (Complex.exp_ne_zero _)
 
 /-- A sufficiently small positive endpoint arc stays inside the residue
@@ -742,8 +920,9 @@ theorem Complex.endpointSemicircleArc_mem_integerResidueIsolationBall
           ‖((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - (n : ℂ)‖ := by
         exact dist_eq_norm _ _
       _ = ‖(ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ := by
-        congr 1
-        ring
+        exact congrArg norm
+          (add_sub_cancel_left (n : ℂ)
+            ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
       _ = ‖(ρ : ℂ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
         exact norm_mul (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))
       _ = ρ * 1 := by
@@ -756,7 +935,7 @@ theorem Complex.endpointSemicircleArc_mem_integerResidueIsolationBall
         have hexpnorm : ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
           have hmul :
               Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I := by
-            ring
+            exact mul_comm Complex.I (θ : ℂ)
           calc
             ‖Complex.exp (Complex.I * (θ : ℂ))‖ =
                 Complex.abs (Complex.exp (Complex.I * (θ : ℂ))) := by
@@ -1011,7 +1190,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointIndentationIntegral_tendsto_half
   exact
     Complex.finiteAbelPlana_log_endpointSemicircleIndentation_tendsto_halfResidue
       hw 0 (-(Real.pi / 2)) (Real.pi / 2)
-      (by ring)
+      Real.leftEndpointSemicircle_angleLength
 
 /-- The right endpoint indentation tends to half the local residue at `N + 1`. -/
 theorem Complex.finiteAbelPlana_log_rightEndpointIndentationIntegral_tendsto_halfResidue
@@ -1026,7 +1205,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointIndentationIntegral_tendsto_hal
   exact
     Complex.finiteAbelPlana_log_endpointSemicircleIndentation_tendsto_halfResidue
       hw (N + 1) (Real.pi / 2) (3 * Real.pi / 2)
-      (by ring)
+      Real.rightEndpointSemicircle_angleLength
 
 /-- The finite-radius deleted-boundary contribution converges to the
 principal-value residue contribution. -/
@@ -1087,7 +1266,11 @@ theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendst
             Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) / 2 =
           Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
       dsimp [Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution]
-      ring
+      exact Eq.symm
+        (add_div
+          (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+          (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+          (2 : ℂ))
     exact htarget ▸ hsum
   have htotal := hendpoints.add hinterior
   simpa [Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution,
