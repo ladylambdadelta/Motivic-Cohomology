@@ -64,6 +64,13 @@ private lemma capCollar_im_pure (N : ℕ) (y : ℝ) :
     _ = 0 + y := by simp [Complex.ofReal_im]; rw [h1]
     _ = y := zero_add y
 
+/-- Helper: Equivalence between cap-collar point and circleMap. -/
+private lemma capCollar_eq_circleMap (N : ℕ) (ρ θ : ℝ) :
+    ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      circleMap ((N + 1 : ℕ) : ℂ) ρ θ := by
+  unfold circleMap
+  rfl
+
 def Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain
     (N : ℕ)
     (T ρ : ℝ) : Set ℂ :=
@@ -318,7 +325,9 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSemicirclePoint_mem_capCollar
         Metric.ball ((N + 1 : ℕ) : ℂ) ρ :=
     let hz_eq :
         (((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
-          circleMap ((N + 1 : ℕ) : ℂ) ρ θ := by unfold circleMap; unfold M; ring_nf
+          circleMap ((N + 1 : ℕ) : ℂ) ρ θ := by
+      unfold M
+      exact capCollar_eq_circleMap (N + 1) ρ θ
     hz_eq ▸ circleMap_not_mem_ball ((N + 1 : ℕ) : ℂ) ρ θ
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
