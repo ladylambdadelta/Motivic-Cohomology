@@ -948,7 +948,17 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
         exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
-    nlinarith [hP_nonneg]
+    have h_two_pos : (0 : ℝ) ≤ 2 := by norm_num
+    have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
+    have h_one_pos : (0 : ℝ) < 1 := by norm_num
+    have h_sum_pos : 0 < 2 * P + 1 := by
+      calc 0 < 1 := h_one_pos
+        _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
+        _ = 2 * P + 1 := add_comm 1 (2 * P)
+    have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
+    calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
+      _ = 3 * P + 3 := by ring
+      _ = 3 * (P + 1) := by ring
   exact le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)
 
 /-- A nonnegative exponent has exponential at least one.
@@ -1367,11 +1377,14 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       exact Complex.sub_re 1 z
     have hone_le_abs : (1 : ℝ) ≤ |(1 - z).re| := by
       have hle : (1 - z.re) ≤ -1 := by
-        linarith
+        calc 1 - z.re = 1 + (-z.re) := by ring
+          _ ≤ 1 + (-2) := add_le_add_left (neg_le_neg hz_right) 1
+          _ = -1 := by ring
       have habs_eq : |1 - z.re| = -(1 - z.re) :=
         abs_of_nonpos hle
       have hone_le : (1 : ℝ) ≤ -(1 - z.re) := by
-        linarith
+        have : -((-1 : ℝ)) ≤ -(1 - z.re) := neg_le_neg hle
+        exact (by norm_num : (1 : ℝ) = -((-1 : ℝ))) ▸ this
       exact Eq.subst
         (motive := fun x : ℝ => (1 : ℝ) ≤ |x|)
         hre_eq.symm
@@ -1442,7 +1455,17 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
         exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
-    nlinarith [hP_nonneg]
+    have h_two_pos : (0 : ℝ) ≤ 2 := by norm_num
+    have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
+    have h_one_pos : (0 : ℝ) < 1 := by norm_num
+    have h_sum_pos : 0 < 2 * P + 1 := by
+      calc 0 < 1 := h_one_pos
+        _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
+        _ = 2 * P + 1 := add_comm 1 (2 * P)
+    have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
+    calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
+      _ = 3 * P + 3 := by ring
+      _ = 3 * (P + 1) := by ring
   exact le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)
 
 /-- The pole-cleared completed-zeta normalization has finite-order growth in the far-right
