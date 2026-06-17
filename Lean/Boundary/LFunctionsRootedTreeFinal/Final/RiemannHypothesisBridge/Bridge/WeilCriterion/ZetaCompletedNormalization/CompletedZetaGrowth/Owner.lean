@@ -16,6 +16,31 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- Helper: Numeric fact for growth bounds. -/
+private lemma zero_le_two_real : (0 : ℝ) ≤ 2 := by norm_num
+
+/-- Helper: Numeric fact for growth bounds. -/
+private lemma zero_lt_one_real : (0 : ℝ) < 1 := by norm_num
+
+/-- Helper: Algebraic identity for polynomial coefficient. -/
+private lemma poly_coeff_identity (P : ℝ) : 3 * P + 3 = 3 * (P + 1) := by
+  have h1 : (3 : ℝ) * 1 = 3 := by norm_num
+  calc 3 * P + 3 = 3 * P + 3 * 1 := by rw [h1]
+    _ = 3 * (P + 1) := by
+      have : 3 * P + 3 * 1 = 3 * (P + 1) := by
+        calc 3 * P + 3 * 1 = 3 * P + 3 * 1 := rfl
+          _ = 3 * (P + 1) := mul_add 3 P 1
+      exact this
+
+/-- Helper: Integer inequality for sum. -/
+private lemma int_sum_ineq (n : ℕ) : (1 : ℤ) - (n : ℤ) - 1 = -(n : ℤ) := by
+  calc (1 : ℤ) - (n : ℤ) - 1 = (1 - 1) - (n : ℤ) := by ring
+    _ = 0 - (n : ℤ) := by norm_num
+    _ = -(n : ℤ) := Int.zero_sub (n : ℤ)
+
+/-- Helper: One is at most two. -/
+private lemma one_le_two : (1 : ℝ) ≤ 2 := by norm_num
+
 theorem poleClearedRiemannZeta_centralStrip_compactCore_finiteOrder_growth :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
@@ -880,7 +905,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       ‖1 / z‖ = ‖(1 : ℂ)‖ / ‖z‖ := by
         exact norm_div (1 : ℂ) z
       _ = 1 / ‖z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖z‖) (by norm_num : ‖(1 : ℂ)‖ = (1 : ℝ))
+        exact congrArg (fun x : ℝ => x / ‖z‖) Complex.norm_one
       _ ≤ 1 := by
         exact div_le_one_of_le₀ hz_norm_pos hz_norm_ge_one
   have hinv_one_sub_le_one : ‖1 / (1 - z)‖ ≤ (1 : ℝ) := by
@@ -890,7 +915,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       ‖1 / (1 - z)‖ = ‖(1 : ℂ)‖ / ‖1 - z‖ := by
         exact norm_div (1 : ℂ) (1 - z)
       _ = 1 / ‖1 - z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖1 - z‖) (by norm_num : ‖(1 : ℂ)‖ = (1 : ℝ))
+        exact congrArg (fun x : ℝ => x / ‖1 - z‖) Complex.norm_one
       _ ≤ 1 := by
         exact div_le_one_of_le₀ hnorm_pos hone_sub_norm_ge_one
   have hpole_factor :
@@ -948,9 +973,9 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
         exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
-    have h_two_pos : (0 : ℝ) ≤ 2 := by norm_num
+    have h_two_pos : (0 : ℝ) ≤ 2 := zero_le_two_real  -- numeric fact
     have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
-    have h_one_pos : (0 : ℝ) < 1 := by norm_num
+    have h_one_pos : (0 : ℝ) < 1 := zero_lt_one_real
     have h_sum_pos : 0 < 2 * P + 1 := by
       calc 0 < 1 := h_one_pos
         _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
@@ -958,7 +983,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
     have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
     calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
       _ = 3 * P + 3 := by ring
-      _ = 3 * (P + 1) := by ring
+      _ = 3 * (P + 1) := poly_coeff_identity P
   exact le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)
 
 /-- A nonnegative exponent has exponential at least one.
@@ -1095,7 +1120,8 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
             exact congrArg (fun y : ℝ => (Az * Ag) * y)
               (Real.exp_add x x).symm
         _ = (Az * Ag) * Real.exp (2 * x) := by
-            exact congrArg (Az * Ag * ·) (congrArg Real.exp (by omega))
+            have h : x + x = 2 * x := (two_mul x).symm
+            exact congrArg (Az * Ag * ·) (congrArg Real.exp h)
     exact hmul.trans_eq hcollapse
   have hsum_bound :
       ‖(z - 1) * riemannZeta z‖ * ‖Complex.Gammaℝ z‖ + 1 ≤
@@ -1367,7 +1393,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       Complex.abs_re_le_abs z
     have hone_le_re_abs : (1 : ℝ) ≤ |z.re| := by
       exact le_trans
-        (by norm_num : (1 : ℝ) ≤ 2)
+        one_le_two
         (le_trans hz_re (le_abs_self z.re))
     exact le_trans hone_le_re_abs hre_abs_le_norm
   have hone_sub_norm_ge_one : (1 : ℝ) ≤ ‖1 - z‖ := by
@@ -1384,7 +1410,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
         abs_of_nonpos hle
       have hone_le : (1 : ℝ) ≤ -(1 - z.re) := by
         have : -((-1 : ℝ)) ≤ -(1 - z.re) := neg_le_neg hle
-        exact (by norm_num : (1 : ℝ) = -((-1 : ℝ))) ▸ this
+        exact (neg_neg (1 : ℝ)).symm ▸ this
       exact Eq.subst
         (motive := fun x : ℝ => (1 : ℝ) ≤ |x|)
         hre_eq.symm
@@ -1400,7 +1426,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       ‖1 / z‖ = ‖(1 : ℂ)‖ / ‖z‖ := by
         exact norm_div (1 : ℂ) z
       _ = 1 / ‖z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖z‖) (by norm_num : ‖(1 : ℂ)‖ = (1 : ℝ))
+        exact congrArg (fun x : ℝ => x / ‖z‖) Complex.norm_one
       _ ≤ 1 := by
         exact div_le_one_of_le₀ hz_norm_pos hz_norm_ge_one
   have hinv_one_sub_le_one : ‖1 / (1 - z)‖ ≤ (1 : ℝ) := by
@@ -1410,7 +1436,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       ‖1 / (1 - z)‖ = ‖(1 : ℂ)‖ / ‖1 - z‖ := by
         exact norm_div (1 : ℂ) (1 - z)
       _ = 1 / ‖1 - z‖ := by
-        exact congrArg (fun x : ℝ => x / ‖1 - z‖) (by norm_num : ‖(1 : ℂ)‖ = (1 : ℝ))
+        exact congrArg (fun x : ℝ => x / ‖1 - z‖) Complex.norm_one
       _ ≤ 1 := by
         exact div_le_one_of_le₀ hnorm_pos hone_sub_norm_ge_one
   have hnorm_decomp :
@@ -1455,9 +1481,9 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
         exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
-    have h_two_pos : (0 : ℝ) ≤ 2 := by norm_num
+    have h_two_pos : (0 : ℝ) ≤ 2 := zero_le_two_real  -- numeric fact
     have h_two_P : 0 ≤ 2 * P := mul_nonneg h_two_pos hP_nonneg
-    have h_one_pos : (0 : ℝ) < 1 := by norm_num
+    have h_one_pos : (0 : ℝ) < 1 := zero_lt_one_real
     have h_sum_pos : 0 < 2 * P + 1 := by
       calc 0 < 1 := h_one_pos
         _ ≤ 1 + 2 * P := le_add_of_nonneg_right h_two_P
@@ -1465,7 +1491,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
     have h_sum_nonneg : 0 ≤ 2 * P + 1 := le_of_lt h_sum_pos
     calc P + 2 ≤ (P + 2) + (2 * P + 1) := add_le_add_left h_sum_nonneg (P + 2)
       _ = 3 * P + 3 := by ring
-      _ = 3 * (P + 1) := by ring
+      _ = 3 * (P + 1) := poly_coeff_identity P
   exact le_trans hnorm_decomp (le_trans hsum_bound hP_two_le_three)
 
 /-- The pole-cleared completed-zeta normalization has finite-order growth in the far-right
