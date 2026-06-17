@@ -1,5 +1,6 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
+import Mathlib.MeasureTheory.Integral.SetIntegral
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteHoleSubdivision
 
 /-!
@@ -15,6 +16,11 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
+
+-- Notation for closed intervals: [[a, b]] now maps to Set.Icc a b
+-- This replaces legacy Lean 3 interval notation with Lean 4 Mathlib syntax
+notation:max "[[" a "," b "]]" => Set.Icc a b
 
 /-- Algebraic cancellation for the finite-hole subdivision once the cap/collar
 boundary has been identified with the missing deleted-arc contribution. -/
@@ -1377,7 +1383,7 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
         ContinuousOn
           (fun y : ℝ => ((ρ : ℂ) + Complex.I * (y : ℂ)))
           [[a, b]] := by
-      exact (continuous_const.add (continuous_const.mul continuous_ofReal)).continuousOn
+      exact (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).continuousOn
     have hpath_mem :
         ∀ y ∈ [[a, b]],
           ((ρ : ℂ) + Complex.I * (y : ℂ)) ∈
@@ -2652,36 +2658,37 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
     f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))
   have hsafe_integrable :
       ∀ a b : ℝ,
-        (∀ y ∈ [[a, b]], y ∈ [[-T, T]]) →
+        (∀ y ∈ Set.Icc a b, y ∈ Set.Icc (-T) T) →
           IntervalIntegrable g volume a b := by
     intro a b hinterval_subset
     have hpath_cont :
         ContinuousOn
           (fun y : ℝ =>
             ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)))
-          [[a, b]] := by
-      exact (continuous_const.add (continuous_const.mul continuous_ofReal)).continuousOn
+          (Set.Icc a b) := by
+      exact (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).continuousOn
     have hpath_mem :
-        ∀ y ∈ [[a, b]],
+        ∀ y ∈ Set.Icc a b,
           ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)) ∈
             Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ := by
       intro y hy
-      unfold M at hinterval_subset ⊢
+      have hM : M = N + 1 := rfl
+      rw [hM] at hinterval_subset ⊢
       exact
         Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
           hρ (hinterval_subset y hy)
     have hg_cont :
-        ContinuousOn g [[a, b]] :=
-      hcont.comp_continuousOn hpath_cont hpath_mem
+        ContinuousOn g (Set.Icc a b) :=
+      hcont.comp hpath_cont hpath_mem
     exact hg_cont.intervalIntegrable
   have hlower_interval :
-      ∀ y ∈ [[(-T), (-ρ)]], y ∈ [[-T, T]] := by
+      ∀ y ∈ Set.Icc (-T) (-ρ), y ∈ Set.Icc (-T) T := by
     exact Real.endpoint_lower_interval_subset_height hT hρ hρT
   have hmiddle_interval :
-      ∀ y ∈ [[(-ρ), ρ]], y ∈ [[-T, T]] := by
+      ∀ y ∈ Set.Icc (-ρ) ρ, y ∈ Set.Icc (-T) T := by
     exact Real.endpoint_middle_interval_subset_height hρ hρT
   have hupper_interval :
-      ∀ y ∈ [[ρ, T]], y ∈ [[-T, T]] := by
+      ∀ y ∈ Set.Icc ρ T, y ∈ Set.Icc (-T) T := by
     exact Real.endpoint_upper_interval_subset_height hT hρ hρT
   have hsafe_split :
       (let M : ℕ := N + 1
@@ -2882,7 +2889,7 @@ theorem Complex.finiteAbelPlana_log_endpointSemicollarCauchyGoursat_orientedBoun
       (N := N) T hT hρ hdeleted_geometry hcont_left hdiff_left
   have hright :
       Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary N w T ρ = 0 := by
-    Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_zero_owner
+    exact Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_zero_owner
       N T hT hρ hdeleted_geometry hcont hdiff
   exact ⟨hleft, hright⟩
 
@@ -3575,8 +3582,8 @@ theorem Complex.finiteAbelPlana_log_rightEndpointCapCollarCauchy_balance
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
   exact
     congrArg
-	      (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
-	      hlocal
+      (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
+      hlocal
 
 end
 
