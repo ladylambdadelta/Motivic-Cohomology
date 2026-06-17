@@ -176,8 +176,8 @@ theorem abelSummation_boundaryLineOnePointRealParam_finite_nat_tail_identity
               (k : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
   have ha : (0 : ℝ) ≤ ((N : ℕ) : ℝ) :=
     Nat.cast_nonneg N
-  have hab : ((N : ℕ) : ℝ) ≤ ((M : ℕ) : ℝ) := by
-    exact_mod_cast hNM
+  have hab : ((N : ℕ) : ℝ) ≤ ((M : ℕ) : ℝ) :=
+    Nat.cast_le.mpr hNM
   exact abelSummation_boundaryLineOnePointRealParam_finite_tail_identity
     t ha hab hf_diff hf_int
 
@@ -382,10 +382,14 @@ theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_norm_le
       t hNM hf_diff hf_int
   have hM_mem :
       b ∈ Set.Icc a b := by
-    exact ⟨by exact_mod_cast hNM, le_rfl⟩
+    have hN_le_M_real : ((N : ℕ) : ℝ) ≤ ((M : ℕ) : ℝ) :=
+      Nat.cast_le.mpr hNM
+    exact ⟨hN_le_M_real, le_rfl⟩
   have hN_mem :
       a ∈ Set.Icc a b := by
-    exact ⟨le_rfl, by exact_mod_cast hNM⟩
+    have hN_le_M_real : ((N : ℕ) : ℝ) ≤ ((M : ℕ) : ℝ) :=
+      Nat.cast_le.mpr hNM
+    exact ⟨le_rfl, hN_le_M_real⟩
   have hSM_norm : ‖SM‖ ≤ K :=
     hpartial b hM_mem
   have hSN_norm : ‖SN‖ ≤ K :=
@@ -485,8 +489,8 @@ theorem boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscil
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
       else
         0 := by
-  by_cases hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n
-  · have hn_pos : 0 < n :=
+  if hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n then
+    have hn_pos : 0 < n :=
       lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hcutoff_lt_n
     have hleft :
         (if ⌊2 + ‖t‖⌋₊ < n then
@@ -508,7 +512,8 @@ theorem boundaryLineOnePointRealParam_post_cutoff_dirichletTerm_eq_inv_mul_oscil
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) :=
       if_pos hcutoff_lt_n
     exact Eq.trans hleft (Eq.trans hterm hright.symm)
-  · have hleft :
+  else
+    have hleft :
         (if ⌊2 + ‖t‖⌋₊ < n then
             (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
           else
@@ -562,8 +567,8 @@ theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)
       else
         0 := by
-  by_cases hN_lt_n : N < n
-  · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+  if hN_lt_n : N < n then
+    have hn_not_mem : n ∉ Finset.Icc 1 N := by
       intro hn_mem
       have hn_le_N : n ≤ N :=
         (Finset.mem_Icc.mp hn_mem).2
@@ -586,8 +591,9 @@ theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
           (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t) :=
       if_pos hN_lt_n
     exact Eq.trans hleft hright.symm
-  · by_cases hn_zero : n = 0
-    · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+  else
+    if hn_zero : n = 0 then
+      have hn_not_mem : n ∉ Finset.Icc 1 N := by
         intro hn_mem
         have hone_le_n : 1 ≤ n :=
           (Finset.mem_Icc.mp hn_mem).1
@@ -619,7 +625,8 @@ theorem boundaryLineOnePointRealParam_dirichlet_tail_indicator_eq_cutoff_if
             0 :=
         if_neg hN_lt_n
       exact Eq.trans hleft (Eq.trans hterm_zero hright.symm)
-    · have hn_pos : 0 < n :=
+    else
+      have hn_pos : 0 < n :=
         Nat.pos_of_ne_zero hn_zero
       have hone_le_n : 1 ≤ n :=
         Nat.succ_le_of_lt hn_pos
@@ -751,7 +758,7 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
       ContinuousAt
         (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
         (1 : ℝ) := by
-    unfold boundaryLineOnePointRealParam_abscissaShift
+    show ContinuousAt (fun σ : ℝ => (σ : ℂ) + (t : ℂ) * Complex.I) (1 : ℝ)
     exact
       Complex.continuous_ofReal.continuousAt.add
         continuousAt_const
@@ -794,17 +801,20 @@ theorem boundaryLineOnePointRealParam_dirichlet_series_abel_tendsto_riemannZeta
               boundaryLineOnePointRealParam_abscissaShift σ t)) =ᶠ[𝓝[>] (1 : ℝ)]
         (fun σ : ℝ =>
           riemannZeta (boundaryLineOnePointRealParam_abscissaShift σ t)) := by
-    filter_upwards [self_mem_nhdsWithin] with σ hσ
-    have hσ_re :
-        (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
-      rfl
-    have hhalf_plane :
-        1 < (boundaryLineOnePointRealParam_abscissaShift σ t).re :=
-      Eq.subst
-        (motive := fun x : ℝ => 1 < x)
-        hσ_re.symm
-        hσ
-    exact (zeta_eq_tsum_one_div_nat_cpow hhalf_plane).symm
+    exact
+      Filter.Eventually.mono
+        self_mem_nhdsWithin
+        (fun σ hσ => by
+          have hσ_re :
+              (boundaryLineOnePointRealParam_abscissaShift σ t).re = σ := by
+            rfl
+          have hhalf_plane :
+              1 < (boundaryLineOnePointRealParam_abscissaShift σ t).re :=
+            Eq.subst
+              (motive := fun x : ℝ => 1 < x)
+              hσ_re.symm
+              hσ
+          exact (zeta_eq_tsum_one_div_nat_cpow hhalf_plane).symm)
   exact Tendsto.congr' hdirichlet_eq_eventually hzeta_path_tendsto
 
 /-- The Abel boundary value of the Dirichlet presentation is the analytic
@@ -864,7 +874,7 @@ theorem abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto
       ContinuousAt
         (fun σ : ℝ => boundaryLineOnePointRealParam_abscissaShift σ t)
         (1 : ℝ) := by
-    unfold boundaryLineOnePointRealParam_abscissaShift
+    show ContinuousAt (fun σ : ℝ => (σ : ℂ) + (t : ℂ) * Complex.I) (1 : ℝ)
     exact
       Complex.continuous_ofReal.continuousAt.add
         continuousAt_const
@@ -926,16 +936,16 @@ theorem abelBoundary_logarithmicPhase_dampedPrefix_sum_tendsto
             ((n : ℂ) ^
               boundaryLineOnePointRealParam_abscissaShift σ t))
       (𝓝[>] (1 : ℝ))
-      (𝓝
+        (𝓝
         (∑ n ∈ Finset.Icc 1 N,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)))) := by
-  refine Finset.Tendsto.sum ?_
-  intro n hn_mem
-  have hn_one_le : 1 ≤ n :=
-    (Finset.mem_Icc.mp hn_mem).1
-  have hn_pos : 0 < n :=
-    Nat.lt_of_succ_le hn_one_le
-  exact abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto t hn_pos
+  exact Finset.Tendsto.sum
+    (fun n hn_mem => by
+      have hn_one_le : 1 ≤ n :=
+        (Finset.mem_Icc.mp hn_mem).1
+      have hn_pos : 0 < n :=
+        Nat.lt_of_succ_le hn_one_le
+      exact abelBoundary_logarithmicPhase_dampedPrefix_term_tendsto t hn_pos)
 
 /-- The Abel-damped prefix tends to the boundary prefix as `σ → 1+`.
 
@@ -1200,7 +1210,7 @@ theorem abel_positive_weighted_tail_finite_summation_by_parts
         ∑ k ∈ Finset.Ioc N M,
           (((w k - w (k + 1) : ℝ) : ℂ) *
             (∑ j ∈ Finset.Ioc N k, u j)) := by
-  refine Nat.le_induction ?base ?step M hNM
+  apply Nat.le_induction
   · have hinterval : Finset.Ioc N N = ∅ :=
       Finset.Ioc_self N
     have hleft :
@@ -1340,6 +1350,7 @@ theorem abel_positive_weighted_tail_finite_summation_by_parts
             ((w ((M + 1) + 1) : ℝ) : ℂ) *
               (∑ k ∈ Finset.Ioc N (M + 1), u k) + z)
           hvariation_step.symm
+  exact hNM
 
 /-- Bounded tail partial sums force the bounding constant to be nonnegative. -/
 theorem abel_positive_weighted_tail_bound_constant_nonneg
@@ -1662,8 +1673,8 @@ theorem nat_not_Icc_one_indicator_eq_cutoff_if_of_zero
     (hf_zero : f 0 = 0) :
     ({m : ℕ | m ∉ Finset.Icc 1 N}.indicator f n) =
       if N < n then f n else 0 := by
-  by_cases hN_lt_n : N < n
-  · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+  if hN_lt_n : N < n then
+    have hn_not_mem : n ∉ Finset.Icc 1 N := by
       intro hn_mem
       have hn_le_N : n ≤ N :=
         (Finset.mem_Icc.mp hn_mem).2
@@ -1677,8 +1688,9 @@ theorem nat_not_Icc_one_indicator_eq_cutoff_if_of_zero
         (if N < n then f n else 0) = f n :=
       if_pos hN_lt_n
     exact Eq.trans hleft hright.symm
-  · by_cases hn_zero : n = 0
-    · have hn_not_mem : n ∉ Finset.Icc 1 N := by
+  else
+    if hn_zero : n = 0 then
+      have hn_not_mem : n ∉ Finset.Icc 1 N := by
         intro hn_mem
         have hone_le_n : 1 ≤ n :=
           (Finset.mem_Icc.mp hn_mem).1
@@ -1696,7 +1708,8 @@ theorem nat_not_Icc_one_indicator_eq_cutoff_if_of_zero
           (if N < n then f n else 0) = 0 :=
         if_neg hN_lt_n
       exact Eq.trans hleft (Eq.trans hf_n_zero hright.symm)
-    · have hn_pos : 0 < n :=
+    else
+      have hn_pos : 0 < n :=
         Nat.pos_of_ne_zero hn_zero
       have hone_le_n : 1 ≤ n :=
         Nat.succ_le_of_lt hn_pos
@@ -1786,21 +1799,13 @@ theorem abelBoundary_logarithmicPhase_dampedTail_eq_indicator_tsum
         exact congrArg (fun z : ℂ => (1 : ℂ) / z) hpow_zero
       _ = 0 := by
         exact div_zero (1 : ℂ)
-  have hindicator :
-      ({n : ℕ | n ∉ Finset.Icc 1 N}.indicator f) =
-        (fun k : ℕ => if N < k then f k else 0) :=
-    funext
-      (fun n : ℕ =>
-        nat_not_Icc_one_indicator_eq_cutoff_if_of_zero f N n hf_zero)
   have htail_if :
       HasSum
         (fun k : ℕ => if N < k then f k else 0)
         ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n) :=
-    Eq.subst
-      (motive := fun g : ℕ → ℂ =>
-        HasSum g ((∑' n : ℕ, f n) - ∑ n ∈ Finset.Icc 1 N, f n))
-      hindicator
-      htail_indicator
+    htail_indicator.congr_fun
+      (fun n : ℕ =>
+        nat_not_Icc_one_indicator_eq_cutoff_if_of_zero f N n hf_zero)
   exact htail_if.tsum_eq.symm
 
 /-- The Dirichlet damping weight for a fixed abscissa. -/
@@ -1814,7 +1819,8 @@ theorem abelBoundary_logarithmicPhase_damped_exponent_eq
     (t σ : ℝ) :
     ((1 - σ : ℝ) : ℂ) + (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
       -boundaryLineOnePointRealParam_abscissaShift σ t := by
-  unfold boundaryLineOnePointRealParam_abscissaShift
+  show ((1 - σ : ℝ) : ℂ) + (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
+    -((σ : ℂ) + (t : ℂ) * Complex.I)
   exact Complex.ext rfl rfl
 
 /-- Positive-natural complex-power normalization for the Abel-damped boundary
@@ -1944,8 +1950,8 @@ theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weig
           0 := by
   exact tsum_congr
     (fun k => by
-      by_cases hk : ⌊2 + ‖t‖⌋₊ < k
-      · have hkpos : 0 < k :=
+      if hk : ⌊2 + ‖t‖⌋₊ < k then
+        have hkpos : 0 < k :=
           lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hk
         exact Eq.trans
           (if_pos hk)
@@ -1953,7 +1959,8 @@ theorem abelBoundary_logarithmicPhase_dampedTail_indicator_tsum_eq_abstract_weig
             (abelBoundary_logarithmicPhase_dampedTail_term_eq_weighted_boundaryTerm
               t σ hkpos)
             (if_pos hk).symm)
-      · exact Eq.trans (if_neg hk) (if_neg hk).symm)
+      else
+        exact Eq.trans (if_neg hk) (if_neg hk).symm)
 
 /-- Identification of the logarithmic-phase damped tail with the abstract Abel
 weighted tail.
@@ -2038,7 +2045,7 @@ theorem finset_Ioc_adjacent_difference_telescope
     (hNM : N ≤ M) :
     w (M + 1) + ∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)) =
       w (N + 1) := by
-  refine Nat.le_induction ?_ ?_ M hNM
+  apply Nat.le_induction
   · have hinterval : Finset.Ioc N N = ∅ :=
       Finset.Ioc_self N
     have hsum :
@@ -2075,6 +2082,7 @@ theorem finset_Ioc_adjacent_difference_telescope
           (∑ k ∈ Finset.Ioc N M, (w k - w (k + 1)))
           (w (M + 1))
       _ = w (N + 1) := hM
+  exact hNM
 
 /-- The finite variation of Dirichlet weights on a post-cutoff tail is at most
 the first weight, hence at most `1`. -/
@@ -2175,35 +2183,35 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_hasSum
     (Complex.summable_one_div_nat_cpow (p := p)).mpr hp_half_plane
   have hg_summable : Summable g :=
     Summable.indicator hf_summable {k : ℕ | ⌊2 + ‖t‖⌋₊ < k}
-  have h_eq_g : h = g := by
-    exact funext
-      (fun k : ℕ => by
-        by_cases hk : ⌊2 + ‖t‖⌋₊ < k
-        · have hk_pos : 0 < k :=
-            lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hk
-          have hfactor :
-              f k =
-                ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
-                  (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
-            abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
-              t σ hk_pos
-          have hh :
-              h k =
-                ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
-                  (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
-            if_pos hk
-          have hg :
-              g k = f k :=
-            if_pos hk
-          exact Eq.trans hh (Eq.trans hfactor.symm hg.symm)
-        · have hh : h k = 0 :=
-            if_neg hk
-          have hg : g k = 0 :=
-            if_neg hk
-          exact Eq.trans hh hg.symm)
+  have h_eq_g_pointwise : ∀ k : ℕ, h k = g k := by
+    intro k
+    if hk : ⌊2 + ‖t‖⌋₊ < k then
+      have hk_pos : 0 < k :=
+        lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hk
+      have hfactor :
+          f k =
+            ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
+        abelBoundary_logarithmicPhase_positiveNat_cpow_damped_factorization
+          t σ hk_pos
+      have hh :
+          h k =
+            ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) :=
+        if_pos hk
+      have hg :
+          g k = f k :=
+        if_pos hk
+      exact Eq.trans hh (Eq.trans hfactor.symm hg.symm)
+    else
+      have hh : h k = 0 :=
+        if_neg hk
+      have hg : g k = 0 :=
+        if_neg hk
+      exact Eq.trans hh hg.symm
   have hh_summable : Summable h :=
     Summable.congr hg_summable
-      (fun k : ℕ => (congrFun h_eq_g k).symm)
+      (fun k : ℕ => (h_eq_g_pointwise k).symm)
   have htarget_eq : h =
       (fun k : ℕ =>
         if ⌊2 + ‖t‖⌋₊ < k then
@@ -2277,8 +2285,8 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_fini
     abel_positive_weighted_tail_bound_constant_nonneg
       (u := u) (N := N) hfinite
   intro n
-  by_cases hn_zero : n = 0
-  · have hrange_empty : Finset.range n = ∅ := by
+  if hn_zero : n = 0 then
+    have hrange_empty : Finset.range n = ∅ := by
       exact Eq.subst
         (motive := fun m : ℕ => Finset.range m = ∅)
         hn_zero.symm
@@ -2301,7 +2309,8 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_fini
       (motive := fun x : ℝ => x ≤ C)
       hnorm_zero.symm
       hC_nonneg
-  · have hn_pos : 0 < n :=
+  else
+    have hn_pos : 0 < n :=
       Nat.pos_of_ne_zero hn_zero
     have hsum_filter :
         (∑ k ∈ Finset.range n,
@@ -2323,8 +2332,8 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_fini
         (congrArg
           (fun s : Finset ℕ => ∑ k ∈ s, ((w k : ℝ) : ℂ) * u k)
           hfilter_eq)
-    by_cases hN_le_pred : N ≤ n - 1
-    · have hfinite_bound :
+    if hN_le_pred : N ≤ n - 1 then
+      have hfinite_bound :
           ‖∑ k ∈ Finset.Ioc N (n - 1), ((w k : ℝ) : ℂ) * u k‖ ≤ C :=
         abel_positive_weighted_tail_finite_norm_le_of_bounded_partial_sums
           (u := u) (w := w) (N := N) (M := n - 1) (C := C)
@@ -2342,7 +2351,8 @@ theorem abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_fini
         (motive := fun z : ℂ => ‖z‖ ≤ C)
         hsum_ioc.symm
         hfinite_bound
-    · have hpred_le_N : n - 1 ≤ N :=
+    else
+      have hpred_le_N : n - 1 ≤ N :=
         Nat.le_of_lt (Nat.lt_of_not_ge hN_le_pred)
       have hioc_empty : Finset.Ioc N (n - 1) = ∅ :=
         Finset.Ioc_eq_empty_of_le hpred_le_N
@@ -2440,21 +2450,24 @@ theorem abelBoundary_logarithmicPhase_dampedTail_bound_of_abstract_abel
       (abelBoundary_logarithmicPhase_abstract_weighted_tail_hasSum t σ hσ)
       (abelBoundary_logarithmicPhase_abstract_weighted_tail_range_bound_of_finiteAbel
         t σ C hσ hpartial)
-  filter_upwards [self_mem_nhdsWithin] with σ hσ
-  have htail_eq :
-      abelBoundary_logarithmicPhase_dampedTail t σ =
-        ∑' k : ℕ,
-          if ⌊2 + ‖t‖⌋₊ < k then
-            ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
-              (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
-          else
-            0 :=
-    abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
-      t σ hσ
-  exact Eq.subst
-    (motive := fun z : ℂ => ‖z‖ ≤ C)
-    htail_eq.symm
-    (habstract σ hσ)
+  exact
+    Filter.Eventually.mono
+      self_mem_nhdsWithin
+      (fun σ hσ => by
+        have htail_eq :
+            abelBoundary_logarithmicPhase_dampedTail t σ =
+              ∑' k : ℕ,
+                if ⌊2 + ‖t‖⌋₊ < k then
+                  ((abelBoundary_logarithmicPhase_dirichletWeight σ k : ℝ) : ℂ) *
+                    (((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I)))
+                else
+                  0 :=
+          abelBoundary_logarithmicPhase_dampedTail_eq_abstract_weighted_tail
+            t σ hσ
+        exact Eq.subst
+          (motive := fun z : ℂ => ‖z‖ ≤ C)
+          htail_eq.symm
+          (habstract σ hσ))
 
 /-- Abel damping theorem for a tail with bounded finite partial sums.
 

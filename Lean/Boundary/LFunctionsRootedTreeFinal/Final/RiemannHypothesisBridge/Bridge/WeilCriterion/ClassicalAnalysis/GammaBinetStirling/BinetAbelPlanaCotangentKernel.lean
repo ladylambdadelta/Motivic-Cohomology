@@ -80,7 +80,7 @@ theorem finiteAbelPlanaCotangentTwoPiI_mul_re
       -((2 : ℝ) * Real.pi * z.im) := by
   let a : ℂ := (2 : ℂ) * (Real.pi : ℂ)
   have ha_re : a.re = (2 : ℝ) * Real.pi := by
-    dsimp [a]
+    show (((2 : ℂ) * (Real.pi : ℂ)).re) = (2 : ℝ) * Real.pi
     calc
       (((2 : ℂ) * (Real.pi : ℂ)).re) =
           (2 : ℂ).re * (Real.pi : ℂ).re -
@@ -103,7 +103,7 @@ theorem finiteAbelPlanaCotangentTwoPiI_mul_re
           (zero_mul (0 : ℝ))
       _ = (2 : ℝ) * Real.pi := sub_zero ((2 : ℝ) * Real.pi)
   have ha_im : a.im = 0 := by
-    dsimp [a]
+    show (((2 : ℂ) * (Real.pi : ℂ)).im) = 0
     calc
       (((2 : ℂ) * (Real.pi : ℂ)).im) =
           (2 : ℂ).re * (Real.pi : ℂ).im +

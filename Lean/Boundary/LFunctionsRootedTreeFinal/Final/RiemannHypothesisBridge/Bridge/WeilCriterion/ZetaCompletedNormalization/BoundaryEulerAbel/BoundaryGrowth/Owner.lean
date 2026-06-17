@@ -292,28 +292,29 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_anal
         1 ≤ ‖t‖ →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
-  refine ⟨38, ?_, ?_⟩
-  · exact Nat.cast_pos.mpr (by decide : (0 : ℕ) < 38)
-  · intro t ht
-    have hexplicit :
-        ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
-          boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
-            (1 + Real.log (2 + ‖t‖)) :=
-      abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
-        t ht
-    have habsorb :
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
-            (1 + Real.log (2 + ‖t‖)) ≤
-          38 * Real.log (2 + ‖t‖) :=
-      boundaryLineOnePointRealParam_explicit_tail_plus_log_le_constant_log ht
-    exact le_trans hexplicit habsorb
+  exact Exists.intro 38
+    (And.intro
+      (Nat.cast_pos.mpr (show (0 : ℕ) < 38 from Nat.succ_pos 37))
+      (fun t ht =>
+        let hexplicit :
+            ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
+              boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+                (1 + Real.log (2 + ‖t‖)) :=
+          abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
+            t ht
+        let habsorb :
+            boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
+                (1 + Real.log (2 + ‖t‖)) ≤
+              38 * Real.log (2 + ‖t‖) :=
+          boundaryLineOnePointRealParam_explicit_tail_plus_log_le_constant_log ht
+        le_trans hexplicit habsorb))
 
 /-- Euler-Maclaurin/Abel-truncation boundary estimate for the Riemann zeta function on
 `1 + it`.
 
 This is the canonical classical number-theoretic input: truncate the Dirichlet
 series at height comparable to `|t|`, control the tail by Euler-Maclaurin or Abel
-summation, and obtain the standard logarithmic bound; cf. Titchmarsh, §3.5. -/
+summation, and derive the standard logarithmic bound; cf. Titchmarsh, §3.5. -/
 theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound :
     ∃ A : ℝ,
       0 < A ∧
@@ -340,7 +341,7 @@ theorem eulerMaclaurin_riemannZeta_boundaryLineOnePointRealParam_vertical_log_gr
 
 This is the smallest analytic number-theory input: truncate the Dirichlet series at
 height comparable to `|t|`, control the tail by Abel summation or Euler-Maclaurin,
-and obtain the standard `O(log (2 + |t|))` boundary-line bound; cf. Titchmarsh,
+and derive the standard `O(log (2 + |t|))` boundary-line bound; cf. Titchmarsh,
 The Theory of the Riemann Zeta-function, §3.5. -/
 theorem classicalZeta_riemannZeta_boundaryLineOnePointRealParam_vertical_log_growth_bound_from_EulerMaclaurin_truncation :
     ∃ A : ℝ,
@@ -362,16 +363,17 @@ theorem classicalZeta_boundaryLineOneZetaRealParam_vertical_log_growth_bound_fro
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
         ‖boundaryLineOneZetaRealParam t‖ ≤ A * Real.log (2 + ‖t‖) := by
-  rcases
+  exact Exists.elim
     classicalZeta_riemannZeta_boundaryLineOnePointRealParam_vertical_log_growth_bound_from_EulerMaclaurin_truncation
-    with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖t‖))
-    (show ‖riemannZeta (boundaryLineOnePointRealParam t)‖ =
-        ‖boundaryLineOneZetaRealParam t‖ from rfl)
-    (hbound t ht)
+    (fun A hA =>
+      Exists.intro A
+        (And.intro hA.left
+          (fun t ht =>
+            Eq.subst
+              (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖t‖))
+              (show ‖riemannZeta (boundaryLineOnePointRealParam t)‖ =
+                  ‖boundaryLineOneZetaRealParam t‖ from rfl)
+              (hA.right t ht))))
 
 /-- A logarithmic zeta estimate on `re = 1` gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
@@ -390,58 +392,60 @@ theorem boundaryLine_one_zeta_log_growth_bound_to_poleCleared_log_linear_growth_
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-  rcases hzeta with ⟨A, hA_pos, hzeta_bound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro w hw_re hw_im
-  have hpole_norm :
-      ‖w - 1‖ ≤ 1 + ‖w.im‖ :=
-    boundaryLine_one_sub_one_norm_le_vertical_height hw_re
-  have hzeta_norm :
-      ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
-    hzeta_bound w hw_re hw_im
-  have hzeta_rhs_nonneg :
-      0 ≤ A * Real.log (2 + ‖w.im‖) :=
-    le_trans (norm_nonneg (riemannZeta w)) hzeta_norm
-  have hheight_nonneg : 0 ≤ 1 + ‖w.im‖ :=
-    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
-  have hmul :
-      ‖w - 1‖ * ‖riemannZeta w‖ ≤
-        (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) :=
-    mul_le_mul hpole_norm hzeta_norm hzeta_rhs_nonneg hheight_nonneg
-  have htarget_eq :
-      (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
-        A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-    calc
-      (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
-          ((1 + ‖w.im‖) * A) * Real.log (2 + ‖w.im‖) := by
-        exact mul_assoc (1 + ‖w.im‖) A (Real.log (2 + ‖w.im‖))
-      _ =
-          (A * (1 + ‖w.im‖)) * Real.log (2 + ‖w.im‖) := by
-        exact congrArg
-          (fun x : ℝ => x * Real.log (2 + ‖w.im‖))
-          (mul_comm (1 + ‖w.im‖) A)
-      _ =
-          A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-        exact rfl
-  have hnorm_eq :
-      ‖(w - 1) * riemannZeta w‖ = ‖w - 1‖ * ‖riemannZeta w‖ :=
-    norm_mul (w - 1) (riemannZeta w)
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      ‖(w - 1) * riemannZeta w‖ ≤ x)
-    htarget_eq
-    (Eq.subst
-      (motive := fun x : ℝ => x ≤
-        (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)))
-      hnorm_eq.symm
-      hmul)
+  exact Exists.elim hzeta
+    (fun A hA =>
+      Exists.intro A
+        (And.intro hA.left
+          (fun w hw_re hw_im =>
+            let hpole_norm :
+                ‖w - 1‖ ≤ 1 + ‖w.im‖ :=
+              boundaryLine_one_sub_one_norm_le_vertical_height hw_re
+            let hzeta_norm :
+                ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
+              hA.right w hw_re hw_im
+            let hzeta_rhs_nonneg :
+                0 ≤ A * Real.log (2 + ‖w.im‖) :=
+              le_trans (norm_nonneg (riemannZeta w)) hzeta_norm
+            let hheight_nonneg : 0 ≤ 1 + ‖w.im‖ :=
+              le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
+            let hmul :
+                ‖w - 1‖ * ‖riemannZeta w‖ ≤
+                  (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) :=
+              mul_le_mul hpole_norm hzeta_norm hzeta_rhs_nonneg hheight_nonneg
+            let htarget_eq :
+                (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
+                  A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+              calc
+                (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
+                    ((1 + ‖w.im‖) * A) * Real.log (2 + ‖w.im‖) := by
+                  exact mul_assoc (1 + ‖w.im‖) A (Real.log (2 + ‖w.im‖))
+                _ =
+                    (A * (1 + ‖w.im‖)) * Real.log (2 + ‖w.im‖) := by
+                  exact congrArg
+                    (fun x : ℝ => x * Real.log (2 + ‖w.im‖))
+                    (mul_comm (1 + ‖w.im‖) A)
+                _ =
+                    A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+                  exact rfl
+            let hnorm_eq :
+                ‖(w - 1) * riemannZeta w‖ = ‖w - 1‖ * ‖riemannZeta w‖ :=
+              norm_mul (w - 1) (riemannZeta w)
+            Eq.subst
+              (motive := fun x : ℝ =>
+                ‖(w - 1) * riemannZeta w‖ ≤ x)
+              htarget_eq
+              (Eq.subst
+                (motive := fun x : ℝ => x ≤
+                  (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)))
+                hnorm_eq.symm
+                hmul))))
 
 /-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`, proved
 by Euler-Maclaurin/Abel truncation.
 
 This is the exact analytic number-theory input: truncate the Dirichlet series at
 height comparable to `|t|`, control the tail by Abel summation or Euler-Maclaurin,
-and obtain the standard `O(log (2 + |t|))` boundary-line bound. -/
+and derive the standard `O(log (2 + |t|))` boundary-line bound. -/
 theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_EulerMaclaurin_truncation :
     ∃ A : ℝ,
       0 < A ∧
@@ -449,15 +453,16 @@ theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_EulerMacla
         w.re = 1 →
         1 ≤ ‖w.im‖ →
         ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
-  rcases
+  exact Exists.elim
     classicalZeta_boundaryLineOneZetaRealParam_vertical_log_growth_bound_from_EulerMaclaurin_truncation
-    with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro w hw_re hw_im
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖w.im‖))
-    (norm_riemannZeta_boundaryLine_one_eq_norm_realParam hw_re).symm
-    (hbound w.im hw_im)
+    (fun A hA =>
+      Exists.intro A
+        (And.intro hA.left
+          (fun w hw_re hw_im =>
+            Eq.subst
+              (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖w.im‖))
+              (norm_riemannZeta_boundaryLine_one_eq_norm_realParam hw_re).symm
+              (hA.right w.im hw_im))))
 
 /-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`, in the
 standard partial-summation/truncation form. -/
@@ -534,43 +539,66 @@ theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
         w.re = 1 →
         1 ≤ ‖w.im‖ →
         ‖f w‖ ≤ A * (1 + ‖w.im‖) ^ m := by
-  rcases hlog with ⟨A, hA_pos, hbound⟩
-  refine ⟨2 * A, 2, ?_, ?_⟩
-  · exact mul_pos two_pos hA_pos
-  intro w hw_re hw_im
-  let H : ℝ := 1 + ‖w.im‖
-  have hH_nonneg : 0 ≤ H :=
-    le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
-  have hH_ge_one : (1 : ℝ) ≤ H :=
-    le_add_of_nonneg_right (norm_nonneg w.im)
-  have hlog_arg_pos : 0 < 2 + ‖w.im‖ := by
-    exact add_pos_of_pos_of_nonneg (by norm_num : (0 : ℝ) < 2) (norm_nonneg w.im)
-  have hlog_le_arg :
-      Real.log (2 + ‖w.im‖) ≤ 2 + ‖w.im‖ :=
-    Real.log_le_self hlog_arg_pos.le
-  have harg_eq : 2 + ‖w.im‖ = H + 1 := by
-    change 2 + ‖w.im‖ = (1 + ‖w.im‖) + 1
-    ring
-  have harg_le_twoH : 2 + ‖w.im‖ ≤ 2 * H := by
-    have : 2 + ‖w.im‖ = H + 1 := harg_eq
-    nlinarith [this]
-  have hlog_le_twoH :
-      Real.log (2 + ‖w.im‖) ≤ 2 * H :=
-    le_trans hlog_le_arg harg_le_twoH
-  have hleft_nonneg : 0 ≤ A * H :=
-    mul_nonneg (le_of_lt hA_pos) hH_nonneg
-  have hmul_log_le :
-      A * H * Real.log (2 + ‖w.im‖) ≤ A * H * (2 * H) :=
-    mul_le_mul_of_nonneg_left hlog_le_twoH hleft_nonneg
-  have htarget_eq :
-      A * H * (2 * H) = (2 * A) * H ^ (2 : ℕ) := by
-    ring
-  exact le_trans (hbound w hw_re hw_im)
-    (Eq.subst
-      (motive := fun x : ℝ =>
-        A * H * Real.log (2 + ‖w.im‖) ≤ x)
-      htarget_eq
-      hmul_log_le)
+  exact Exists.elim hlog
+    (fun A hA =>
+      Exists.intro (2 * A)
+        (Exists.intro 2
+          (And.intro
+            (mul_pos two_pos hA.left)
+            (fun w hw_re hw_im =>
+              let H : ℝ := 1 + ‖w.im‖
+              let hH_nonneg : 0 ≤ H :=
+                le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
+              let hlog_arg_pos : 0 < 2 + ‖w.im‖ :=
+                add_pos_of_pos_of_nonneg zero_lt_two (norm_nonneg w.im)
+              let hlog_le_arg :
+                  Real.log (2 + ‖w.im‖) ≤ 2 + ‖w.im‖ :=
+                Real.log_le_self hlog_arg_pos.le
+              let hnorm_le_two_norm : ‖w.im‖ ≤ 2 * ‖w.im‖ := by
+                calc
+                  ‖w.im‖ = 1 * ‖w.im‖ := by
+                    exact (one_mul ‖w.im‖).symm
+                  _ ≤ 2 * ‖w.im‖ :=
+                    mul_le_mul_of_nonneg_right one_le_two (norm_nonneg w.im)
+              let harg_le_twoH : 2 + ‖w.im‖ ≤ 2 * H := by
+                calc
+                  2 + ‖w.im‖ ≤ 2 + 2 * ‖w.im‖ :=
+                    add_le_add_left hnorm_le_two_norm 2
+                  _ = 2 * (1 + ‖w.im‖) := by
+                    calc
+                      2 + 2 * ‖w.im‖ = 2 * 1 + 2 * ‖w.im‖ := by
+                        exact congrArg (fun y : ℝ => y + 2 * ‖w.im‖)
+                          (mul_one 2).symm
+                      _ = 2 * (1 + ‖w.im‖) :=
+                        (left_distrib 2 1 ‖w.im‖).symm
+                  _ = 2 * H := rfl
+              let hlog_le_twoH :
+                  Real.log (2 + ‖w.im‖) ≤ 2 * H :=
+                le_trans hlog_le_arg harg_le_twoH
+              let hleft_nonneg : 0 ≤ A * H :=
+                mul_nonneg (le_of_lt hA.left) hH_nonneg
+              let hmul_log_le :
+                  A * H * Real.log (2 + ‖w.im‖) ≤ A * H * (2 * H) :=
+                mul_le_mul_of_nonneg_left hlog_le_twoH hleft_nonneg
+              let htarget_eq :
+                  A * H * (2 * H) = (2 * A) * H ^ (2 : ℕ) := by
+                calc
+                  A * H * (2 * H) = (A * H * 2) * H := by
+                    exact (mul_assoc (A * H) 2 H).symm
+                  _ = (2 * (A * H)) * H := by
+                    exact congrArg (fun x : ℝ => x * H) (mul_comm (A * H) 2)
+                  _ = ((2 * A) * H) * H := by
+                    exact congrArg (fun x : ℝ => x * H) (mul_assoc 2 A H)
+                  _ = (2 * A) * (H * H) := by
+                    exact mul_assoc (2 * A) H H
+                  _ = (2 * A) * H ^ (2 : ℕ) := by
+                    exact congrArg (fun x : ℝ => (2 * A) * x) (pow_two H).symm
+              le_trans (hA.right w hw_re hw_im)
+                (Eq.subst
+                  (motive := fun x : ℝ =>
+                    A * H * Real.log (2 + ‖w.im‖) ≤ x)
+                  htarget_eq
+                  hmul_log_le)))))
 
 /-- Standard polynomial vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`.
@@ -626,13 +654,22 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_of_vertical_growth
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  rcases hvertical with ⟨A, B, m, hA, hB, hbound⟩
-  refine ⟨A, B, m, hA, hB, ?_⟩
-  intro w hw_re hw_im
-  exact le_trans (hbound w hw_re hw_im)
-    (finiteOrder_vertical_envelope_le_complex_envelope
-      (le_of_lt hA)
-      (le_of_lt hB))
+  exact Exists.elim hvertical
+    (fun A hA_tail =>
+      Exists.elim hA_tail
+        (fun B hB_tail =>
+          Exists.elim hB_tail
+            (fun m hdata =>
+              Exists.intro A
+                (Exists.intro B
+                  (Exists.intro m
+                    (And.intro hdata.left
+                      (And.intro hdata.right.left
+                        (fun w hw_re hw_im =>
+                          le_trans (hdata.right.right w hw_re hw_im)
+                            (finiteOrder_vertical_envelope_le_complex_envelope
+                              (le_of_lt hdata.left)
+                              (le_of_lt hdata.right.left))))))))))
 
 /-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`, in the complex-height envelope used downstream. -/
@@ -671,37 +708,47 @@ theorem riemannZeta_boundaryLine_one_raw_growth_bound_of_poleCleared_growth_boun
         1 ≤ ‖w.im‖ →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  rcases hpole with ⟨A, B, m, hA, hB, hpole_bound⟩
-  refine ⟨A, B, m, hA, hB, ?_⟩
-  intro w hw_re hw_im
-  have hw_ne_one : w ≠ 1 := by
-    intro hw
-    have him_zero : w.im = 0 := by
-      calc
-        w.im = (1 : ℂ).im := by
-          exact congrArg Complex.im hw
-        _ = 0 := by
-          exact Complex.one_im
-    have him_norm_zero : ‖w.im‖ = 0 := by
-      calc
-        ‖w.im‖ = ‖(0 : ℝ)‖ := by
-          exact congrArg norm him_zero
-        _ = 0 := by
-          exact norm_zero
-    have hone_le_zero : (1 : ℝ) ≤ 0 :=
-      Eq.subst
-        (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-        him_norm_zero
-        hw_im
-    exact not_lt_of_ge hone_le_zero zero_lt_one
-  have hpole_eq :
-      poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
-    poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
-  exact Eq.subst
-    (motive := fun x : ℂ =>
-      ‖x‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
-    hpole_eq
-    (hpole_bound w hw_re hw_im)
+  exact Exists.elim hpole
+    (fun A hA_tail =>
+      Exists.elim hA_tail
+        (fun B hB_tail =>
+          Exists.elim hB_tail
+            (fun m hdata =>
+              Exists.intro A
+                (Exists.intro B
+                  (Exists.intro m
+                    (And.intro hdata.left
+                      (And.intro hdata.right.left
+                        (fun w hw_re hw_im =>
+                          let hw_ne_one : w ≠ 1 := by
+                            intro hw
+                            have him_zero : w.im = 0 := by
+                              calc
+                                w.im = (1 : ℂ).im := by
+                                  exact congrArg Complex.im hw
+                                _ = 0 := by
+                                  exact Complex.one_im
+                            have him_norm_zero : ‖w.im‖ = 0 := by
+                              calc
+                                ‖w.im‖ = ‖(0 : ℝ)‖ := by
+                                  exact congrArg norm him_zero
+                                _ = 0 := by
+                                  exact norm_zero
+                            have hone_le_zero : (1 : ℝ) ≤ 0 :=
+                              Eq.subst
+                                (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+                                him_norm_zero
+                                hw_im
+                            not_lt_of_ge hone_le_zero zero_lt_one
+                          let hpole_eq :
+                              poleClearedRiemannZeta w =
+                                (w - 1) * riemannZeta w :=
+                            poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
+                          Eq.subst
+                            (motive := fun x : ℂ =>
+                              ‖x‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+                            hpole_eq
+                            (hdata.right.right w hw_re hw_im)))))))))
 
 /-- Pole-cleared zeta has finite-order vertical growth on the boundary line `re = 1`.
 

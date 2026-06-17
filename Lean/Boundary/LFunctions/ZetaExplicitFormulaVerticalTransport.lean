@@ -106,29 +106,42 @@ theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundary
       htarget
       hsub)
 
-/-- Owner vertical-limit theorem: along an admissible contour family, the vertical side
-difference converges to the analytic prime/archimedean/correction boundary scalar. -/
+/-- Owner vertical-limit theorem: along a scheduled vertically regular contour realization,
+the vertical side difference converges to the analytic prime/archimedean/correction boundary
+scalar. -/
 theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalDifference f F.toContourFamily
+          (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
+  dsimp
+  let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hvertical :
       Tendsto
-        (fun T : ℝ =>
-          zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
-            zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T))
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaRightLineIntegral f
+              (F.toContourFamily.rectangle (h.height_schedule.height u)) -
+            zetaCompletedExplicitFormulaLeftLineIntegral f
+              (F.toContourFamily.rectangle (h.height_schedule.height u)))
         atTop
         (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
     zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_ownerVerticalDecomposition
-      f F
+      f F hSchedule
   have hpointwise :
-      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T) =
-        (fun T : ℝ =>
-          zetaCompletedExplicitFormulaRightLineIntegral f (F.rectangle T) -
-            zetaCompletedExplicitFormulaLeftLineIntegral f (F.rectangle T)) := by
-    funext T
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalDifference f F.toContourFamily
+          (h.height_schedule.height u)) =
+        (fun u : ℝ =>
+          zetaCompletedExplicitFormulaRightLineIntegral f
+              (F.toContourFamily.rectangle (h.height_schedule.height u)) -
+            zetaCompletedExplicitFormulaLeftLineIntegral f
+              (F.toContourFamily.rectangle (h.height_schedule.height u))) := by
+    funext u
     rfl
   exact Eq.subst
     (motive := fun u : ℝ → ℂ =>
@@ -136,18 +149,91 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVe
     hpointwise.symm
     hvertical
 
-/-- Owner vertical-transport theorem: along an admissible contour family, the named
-vertical-transport remainder tends to zero. -/
+/-- Owner vertical-transport theorem: along a scheduled vertically regular contour
+realization, the named vertical-transport remainder tends to zero. -/
 theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_ownerVerticalTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+    Tendsto
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalTransportRemainder f F.toContourFamily
+          (h.height_schedule.height u))
+      atTop
+      (𝓝 0) := by
+  dsimp
+  let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+  have hboundary :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalDifference f F.toContourFamily
+            (h.height_schedule.height u))
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
+      f F hSchedule
+  have hconst :
+      Tendsto
+        (fun _u : ℝ => zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    tendsto_const_nhds
+  have hsub :
+      Tendsto
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalDifference f F.toContourFamily
+              (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+        atTop
+        (𝓝
+          (zetaCompletedExplicitFormulaBoundarySumAnalytic f -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f)) :=
+    hboundary.sub hconst
+  have htarget :
+      zetaCompletedExplicitFormulaBoundarySumAnalytic f -
+          zetaCompletedExplicitFormulaBoundarySumAnalytic f =
+        0 := by
+    exact sub_self _
+  have hpointwise :
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalTransportRemainder f F.toContourFamily
+          (h.height_schedule.height u)) =
+        (fun u : ℝ =>
+          explicitFormulaFamilyVerticalDifference f F.toContourFamily
+              (h.height_schedule.height u) -
+            zetaCompletedExplicitFormulaBoundarySumAnalytic f) := by
+    funext u
+    rfl
+  exact Eq.subst
+    (motive := fun φ : ℝ → ℂ => Tendsto φ atTop (𝓝 0))
+    hpointwise.symm
+    (Eq.subst
+      (motive := fun z : ℂ =>
+        Tendsto
+          (fun u : ℝ =>
+            explicitFormulaFamilyVerticalDifference f F.toContourFamily
+                (h.height_schedule.height u) -
+              zetaCompletedExplicitFormulaBoundarySumAnalytic f)
+          atTop
+          (𝓝 z))
+      htarget
+      hsub)
+
+/-- If the unscheduled vertical side difference has a boundary limit, its unscheduled
+transport remainder tends to zero. -/
+theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit_unscheduled
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
+    (hvertical :
+      Tendsto
+        (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+        atTop
+        (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) :
     Tendsto
       (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
       atTop
       (𝓝 0) := by
   exact explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit
-    f F
-    (explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
-      f F)
+    f F hvertical
 
 /-- If the vertical-transport remainder tends to zero, then the vertical side difference
 converges to the analytic boundary scalar. -/
@@ -202,28 +288,38 @@ theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_of_remainder
       htarget
       hsum)
 
-/-- Owner vertical-transport theorem: along an admissible contour family, the
-vertical side difference converges to the analytic prime/archimedean/correction
-boundary scalar. -/
+/-- Owner vertical-transport theorem: along a scheduled vertically regular contour
+realization, the vertical side difference converges to the analytic
+prime/archimedean/correction boundary scalar. -/
 theorem explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_ownerVerticalTransport
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalDifference f F T)
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalDifference f F.toContourFamily
+          (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
+  dsimp
   exact explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_core_ownerVerticalTransport
-    f F
+    f F hSchedule
 
-/-- The vertical-channel transport remainder vanishes along the contour family. -/
+/-- The vertical-channel transport remainder vanishes along the scheduled contour
+realization. -/
 theorem explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero
-    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily) :
+    (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     Tendsto
-      (fun T : ℝ => explicitFormulaFamilyVerticalTransportRemainder f F T)
+      (fun u : ℝ =>
+        explicitFormulaFamilyVerticalTransportRemainder f F.toContourFamily
+          (h.height_schedule.height u))
       atTop
       (𝓝 0) := by
-  exact explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_of_boundaryLimit
-    f F
-    (explicitFormulaFamilyVerticalDifference_tendsto_boundarySum_ownerVerticalTransport f F)
+  dsimp
+  exact explicitFormulaFamilyVerticalTransportRemainder_tendsto_zero_ownerVerticalTransport
+    f F hSchedule
 
 end ZetaAdmissibleFunction
 

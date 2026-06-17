@@ -165,6 +165,19 @@ theorem Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_unfold
           Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T := by
   rfl
 
+/-- Normal form for adjoining a grouped pair of negative vertical terms to a
+finite-height boundary sum. -/
+theorem Complex.add_add_neg_sub_eq_add_sub_sub
+    (a b c d : ℂ) :
+    a + b + (-c - d) = a + b - c - d := by
+  calc
+    a + b + (-c - d) = a + b + (-c + -d) := by
+      rfl
+    _ = a + b + -c + -d :=
+      (add_assoc (a + b) (-c) (-d)).symm
+    _ = a + b - c - d := by
+      rfl
+
 /-- Unfolding of the finite-height named side expression into the boundary
 object consumed by the core Abel-Plana wrapper. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_eq_boundaryNamedPiecesUpTo
@@ -173,7 +186,49 @@ theorem Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_eq_boundaryN
     (T : ℝ) :
     Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
       Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T := by
-  rfl
+  let M : ℕ := N + 1
+  let R : ℂ :=
+    ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
+      Complex.finiteAbelPlanaLogSummand w (x : ℂ)
+  let E : ℂ :=
+    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w
+  let H : ℂ :=
+    Complex.finiteAbelPlanaLogSummandHalfEndpoints N w
+  let L : ℂ :=
+    Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T
+  let U : ℂ :=
+    Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T
+  let V : ℂ :=
+    Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T
+  have hnamed :
+      Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        R + E + V :=
+    Complex.finiteAbelPlana_log_finiteHeightNamedSideExpression_unfold N w T
+  have hendpoint : E = H :=
+    Complex.finiteAbelPlana_log_endpointPVIndentationContribution_unfold N w
+  have hvertical : V = -L - U :=
+    Complex.finiteAbelPlana_log_finiteHeightNamedVerticalSideExpression_unfold
+      N w T
+  have hboundary :
+      Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T =
+        R + H - L - U :=
+    Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_unfold N w T
+  calc
+    Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T =
+        R + E + V :=
+      hnamed
+    _ = R + H + V := by
+      exact congrArg
+        (fun z : ℂ => R + z + V)
+        hendpoint
+    _ = R + H + (-L - U) := by
+      exact congrArg
+        (fun z : ℂ => R + H + z)
+        hvertical
+    _ = R + H - L - U :=
+      Complex.add_add_neg_sub_eq_add_sub_sub R H L U
+    _ = Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T :=
+      hboundary.symm
 
 /-- Unfolding of the small-circle residue contribution. -/
 theorem Complex.finiteAbelPlana_log_smallCircleIntegerResidueContribution_unfold
@@ -186,6 +241,13 @@ theorem Complex.finiteAbelPlana_log_smallCircleIntegerResidueContribution_unfold
 
 /-- Unfolding of the finite-height contour error. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightContourError_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+      Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T -
+        Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w := by
+  exact Complex.finiteAbelPlana_log_finiteHeightContourError_unfold' N w T
 
 end
 

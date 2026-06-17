@@ -213,7 +213,6 @@ theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_i
   have hinv_le : ‖z‖⁻¹ ≤ z.re⁻¹ :=
     inv_le_inv_of_le hz_re_pos hz_re_le_norm
   have hre_eq : z.re = w.re + (N + 1 : ℝ) := by
-    dsimp [z]
     exact Complex.binetAbelPlanaUpperLogJumpSegmentDenominator_re_eq w N s
   calc
     ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖
@@ -274,6 +273,19 @@ noncomputable def Complex.binetAbelPlanaFiniteLowerContourTail
           Complex.log (w - (t : ℂ) * Complex.I)) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
 
+/-- The lower finite Abel-Plana contour tail unfolded as its vertical
+tail integral. -/
+theorem Complex.binetAbelPlanaFiniteLowerContourTail_core_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteLowerContourTail N w =
+      ∫ t : ℝ in Set.Ioi (N : ℝ),
+        (-Complex.I) *
+          ((Complex.log (w + (t : ℂ) * Complex.I) -
+              Complex.log (w - (t : ℂ) * Complex.I)) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
+  rfl
+
 /-- The honest finite Abel-Plana contour remainder after the lower boundary
 has been truncated to `(0,N]`. -/
 noncomputable def Complex.binetAbelPlanaFiniteContourRemainder
@@ -281,6 +293,16 @@ noncomputable def Complex.binetAbelPlanaFiniteContourRemainder
     (w : ℂ) : ℂ :=
   Complex.binetAbelPlanaFiniteLowerContourTail N w +
     Complex.binetAbelPlanaFiniteUpperContourResidual N w
+
+/-- The total finite Abel-Plana contour remainder unfolded as lower tail plus
+upper residual. -/
+theorem Complex.binetAbelPlanaFiniteContourRemainder_core_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteContourRemainder N w =
+      Complex.binetAbelPlanaFiniteLowerContourTail N w +
+        Complex.binetAbelPlanaFiniteUpperContourResidual N w :=
+  rfl
 
 /-- The normalized finite Binet boundary integral after converting the
 Abel-Plana logarithmic jump into the principal arctangent kernel. -/
@@ -304,12 +326,34 @@ noncomputable def Complex.binetAbelPlanaFiniteMainTerm
       (w * Complex.log w - w)) -
     (Complex.log w + Complex.log (w + (M : ℂ))) / 2
 
+/-- Unfolding of the finite Abel-Plana main term. -/
+theorem Complex.binetAbelPlanaFiniteMainTerm_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteMainTerm N w =
+      let M : ℕ := N + 1
+      w * Complex.log (M : ℂ) + Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+        (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) - (w + (M : ℂ))) -
+          (w * Complex.log w - w)) -
+        (Complex.log w + Complex.log (w + (M : ℂ))) / 2 :=
+  rfl
+
 /-- Endpoint/Stirling remainder in the finite Abel-Plana main term. -/
 noncomputable def Complex.binetAbelPlanaFiniteEndpointStirlingRemainder
     (N : ℕ)
     (w : ℂ) : ℂ :=
   Complex.binetAbelPlanaFiniteMainTerm N w -
     Complex.binetLogGammaMainTerm w
+
+/-- The finite endpoint/Stirling remainder unfolded into the defining
+difference. -/
+theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_core_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w =
+      Complex.binetAbelPlanaFiniteMainTerm N w -
+        Complex.binetLogGammaMainTerm w :=
+  rfl
 
 /-- The finite Abel-Plana error term left after truncating the contour formula.
 It contains the finite Abel-Plana remainder and tends to zero after the
@@ -330,6 +374,17 @@ noncomputable def Complex.finiteAbelPlanaLogSummandEndpointPrimitive
   ((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) -
       (w + (M : ℂ))) -
     (w * Complex.log w - w)
+
+/-- Unfolding of the finite Abel-Plana endpoint primitive contribution. -/
+theorem Complex.finiteAbelPlanaLogSummandEndpointPrimitive_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w =
+      ((w + ((N + 1 : ℕ) : ℂ)) *
+          Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+        (w + ((N + 1 : ℕ) : ℂ))) -
+        (w * Complex.log w - w) :=
+  rfl
 
 /-- Half-endpoint contribution in the finite Abel-Plana formula for
 `z ↦ log (w+z)`. -/
@@ -352,6 +407,15 @@ noncomputable def Complex.finiteAbelPlanaCotangentKernel
     (z : ℂ) : ℂ :=
   (Real.pi : ℂ) * Complex.cot ((Real.pi : ℂ) * z)
 
+/-- The finite Abel-Plana cotangent kernel unfolded into sine and cosine. -/
+theorem Complex.finiteAbelPlanaCotangentKernel_sinCos_unfold
+    (z : ℂ) :
+    Complex.finiteAbelPlanaCotangentKernel z =
+      (Real.pi : ℂ) *
+        (Complex.cos ((Real.pi : ℂ) * z) /
+          Complex.sin ((Real.pi : ℂ) * z)) :=
+  rfl
+
 /-- The meromorphic rectangle integrand for finite Abel-Plana summation of
 `z ↦ log (w+z)`. -/
 noncomputable def Complex.finiteAbelPlanaLogRectangleIntegrand
@@ -359,6 +423,15 @@ noncomputable def Complex.finiteAbelPlanaLogRectangleIntegrand
     (z : ℂ) : ℂ :=
   Complex.finiteAbelPlanaLogSummand w z *
     Complex.finiteAbelPlanaCotangentKernel z
+
+/-- The finite Abel-Plana rectangle integrand unfolded into logarithmic
+summand times cotangent kernel. -/
+theorem Complex.finiteAbelPlanaLogRectangleIntegrand_unfold
+    (w z : ℂ) :
+    Complex.finiteAbelPlanaLogRectangleIntegrand w z =
+      Complex.finiteAbelPlanaLogSummand w z *
+        Complex.finiteAbelPlanaCotangentKernel z :=
+  rfl
 
 /-- The finite Abel-Plana cotangent kernel is complex differentiable wherever
 `sin (π z)` does not vanish.
@@ -524,7 +597,8 @@ theorem Complex.sin_pi_mul_ne_zero_of_im_ne_zero
     (hz : z.im ≠ 0) :
     Complex.sin ((Real.pi : ℂ) * z) ≠ 0 := by
   intro hzero
-  rcases Complex.sin_eq_zero_iff.mp hzero with ⟨k, hk⟩
+  match Complex.sin_eq_zero_iff.mp hzero with
+  | ⟨k, hk⟩ =>
   have hleft_im : ((Real.pi : ℂ) * z).im = Real.pi * z.im := by
     calc
       ((Real.pi : ℂ) * z).im =
@@ -568,9 +642,9 @@ theorem Complex.sin_pi_mul_ne_zero_of_im_ne_zero
   have hpi_mul : Real.pi * z.im = 0 :=
     hleft_im.symm.trans him
   have hz_zero : z.im = 0 := by
-    rcases mul_eq_zero.mp hpi_mul with hpi_zero | hz_zero
-    · exact False.elim (Real.pi_ne_zero hpi_zero)
-    · exact hz_zero
+    match mul_eq_zero.mp hpi_mul with
+    | Or.inl hpi_zero => exact False.elim (Real.pi_ne_zero hpi_zero)
+    | Or.inr hz_zero => exact hz_zero
   exact hz hz_zero
 
 /-- If `sin (π z) = 0` and `z` lies in the finite Abel-Plana rectangle, then
@@ -602,6 +676,14 @@ noncomputable def Complex.finiteAbelPlanaLogIntegerResidue
     (n : ℕ) : ℂ :=
   Complex.finiteAbelPlanaLogSummand w n
 
+/-- Unfolding of the logarithmic integer residue. -/
+theorem Complex.finiteAbelPlanaLogIntegerResidue_unfold
+    (w : ℂ)
+    (n : ℕ) :
+    Complex.finiteAbelPlanaLogIntegerResidue w n =
+      Complex.finiteAbelPlanaLogSummand w n :=
+  rfl
+
 /-- Multiplicity-one residue sum over the integer poles in the finite
 Abel-Plana rectangle. -/
 noncomputable def Complex.finiteAbelPlanaLogIntegerResidueSum
@@ -610,6 +692,15 @@ noncomputable def Complex.finiteAbelPlanaLogIntegerResidueSum
   let M : ℕ := N + 1
   ∑ n in Finset.range (M + 1),
     Complex.finiteAbelPlanaLogIntegerResidue w n
+
+/-- Unfolding of the integer-residue sum over the finite rectangle. -/
+theorem Complex.finiteAbelPlanaLogIntegerResidueSum_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogIntegerResidueSum N w =
+      ∑ n in Finset.range (N + 1 + 1),
+        Complex.finiteAbelPlanaLogIntegerResidue w n :=
+  rfl
 
 /-- The integer-residue sum is definitionally the finite sample sum of the
 logarithmic summand over `0, ..., N+1`. -/
@@ -634,6 +725,15 @@ noncomputable def Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution
   ∑ n in Finset.range N,
     Complex.finiteAbelPlanaLogIntegerResidue w (n + 1)
 
+/-- Unfolding of the strictly interior integer-residue contribution. -/
+theorem Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w =
+      ∑ n in Finset.range N,
+        Complex.finiteAbelPlanaLogIntegerResidue w (n + 1) :=
+  rfl
+
 /-- Endpoint integer-pole residue contribution at `0` and `N + 1`, with the
 principal-value half weights. -/
 noncomputable def Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution
@@ -641,6 +741,15 @@ noncomputable def Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution
     (w : ℂ) : ℂ :=
   (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
     Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2
+
+/-- Unfolding of the half-weighted endpoint residue contribution. -/
+theorem Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
+      (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 :=
+  rfl
 
 /-- Principal-value integer residue contribution: half endpoints plus full
 interior residues. -/
@@ -650,6 +759,15 @@ noncomputable def Complex.finiteAbelPlanaLogPVIntegerResidueContribution
   Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
     Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w
 
+/-- Unfolding of the principal-value residue contribution. -/
+theorem Complex.finiteAbelPlanaLogPVIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w =
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w :=
+  rfl
+
 /-- The full endpoint residue contribution at `0` and `N + 1`. -/
 noncomputable def Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution
     (N : ℕ)
@@ -657,12 +775,29 @@ noncomputable def Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContributi
   Complex.finiteAbelPlanaLogIntegerResidue w 0 +
     Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)
 
+/-- Unfolding of the full endpoint residue contribution. -/
+theorem Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w =
+      Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) :=
+  rfl
+
 /-- The endpoint half contribution missing from the principal-value residue
 sum when compared with the full finite integer-residue sum. -/
 noncomputable def Complex.finiteAbelPlanaLogEndpointResidueRestoration
     (N : ℕ)
     (w : ℂ) : ℂ :=
   Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
+
+/-- Unfolding of the endpoint residue restoration term. -/
+theorem Complex.finiteAbelPlanaLogEndpointResidueRestoration_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointResidueRestoration N w =
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w :=
+  rfl
 
 /-- Adding the two endpoint half-residue contributions restores the full
 endpoint residue contribution. -/
@@ -672,11 +807,29 @@ theorem Complex.finiteAbelPlana_log_endpointHalf_add_endpointHalf
     Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
       Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
         Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w := by
-  dsimp [Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution,
-    Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution]
-  exact add_halves
-    (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
-      Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+  calc
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
+      ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2) +
+        ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2) := by
+      exact
+        congrArg₂ HAdd.hAdd
+          (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold
+            N w)
+          (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold
+            N w)
+    _ =
+      Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) :=
+      add_halves
+        (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+    _ =
+      Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w :=
+      (Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution_unfold
+        N w).symm
 
 /-- Moving the last endpoint residue next to the first endpoint residue after
 splitting off the interior range. -/
@@ -698,26 +851,51 @@ theorem Complex.finiteAbelPlana_log_pvResidue_add_endpointRestoration
         Complex.finiteAbelPlanaLogEndpointResidueRestoration N w =
       Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w +
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
-  dsimp [Complex.finiteAbelPlanaLogPVIntegerResidueContribution,
-    Complex.finiteAbelPlanaLogEndpointResidueRestoration,
-    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution]
   calc
-    (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+    Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogEndpointResidueRestoration N w =
+      (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w) +
-        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
-        =
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
+      exact
+        congrArg₂ HAdd.hAdd
+          (Complex.finiteAbelPlanaLogPVIntegerResidueContribution_unfold
+            N w)
+          (Complex.finiteAbelPlanaLogEndpointResidueRestoration_unfold
+            N w)
+    _ =
       (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
         Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w) +
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
-      rw [add_assoc]
-      rw [add_comm
-        (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)
-        (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)]
-      rw [← add_assoc]
+      calc
+        (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w) +
+          Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
+            Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+              (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w +
+                Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w) := by
+          exact
+            add_assoc
+              (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)
+              (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)
+              (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)
+        _ =
+          (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+            Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w) +
+            Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
+          exact
+            endpoint_interior_last_reassociate
+              (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)
+              (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)
+              (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)
     _ =
       Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w +
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
-      rw [Complex.finiteAbelPlana_log_endpointHalf_add_endpointHalf]
+      exact
+        congrArg
+          (fun z : ℂ =>
+            z + Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)
+          (Complex.finiteAbelPlana_log_endpointHalf_add_endpointHalf N w)
 
 /-- The full integer-residue range is the two full endpoint residues together
 with the strictly interior residues. -/
@@ -727,17 +905,69 @@ theorem Complex.finiteAbelPlana_log_integerResidueSum_eq_fullEndpoint_add_interi
     Complex.finiteAbelPlanaLogIntegerResidueSum N w =
       Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w +
         Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
-  dsimp [Complex.finiteAbelPlanaLogIntegerResidueSum,
-    Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution,
-    Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution]
-  rw [Finset.sum_range_succ']
-  rw [Finset.sum_range_succ]
-  exact
-    endpoint_interior_last_reassociate
-      (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+  calc
+    Complex.finiteAbelPlanaLogIntegerResidueSum N w =
+      ∑ n in Finset.range (N + 1 + 1),
+        Complex.finiteAbelPlanaLogIntegerResidue w n :=
+      Complex.finiteAbelPlanaLogIntegerResidueSum_unfold N w
+    _ =
       (∑ x in Finset.range N,
-        Complex.finiteAbelPlanaLogIntegerResidue w (x + 1))
-      (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+        Complex.finiteAbelPlanaLogIntegerResidue w (x + 1)) +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) +
+        Complex.finiteAbelPlanaLogIntegerResidue w 0 := by
+      calc
+        ∑ n in Finset.range (N + 1 + 1),
+            Complex.finiteAbelPlanaLogIntegerResidue w n =
+          ∑ n in Finset.range (N + 1 + 1),
+            Complex.finiteAbelPlanaLogIntegerResidue w n := rfl
+        _ =
+          (∑ x in Finset.range (N + 1),
+            Complex.finiteAbelPlanaLogIntegerResidue w (x + 1)) +
+            Complex.finiteAbelPlanaLogIntegerResidue w 0 := by
+          exact Finset.sum_range_succ'
+            (fun n => Complex.finiteAbelPlanaLogIntegerResidue w n)
+            (N + 1)
+        _ =
+          ((∑ x in Finset.range N,
+            Complex.finiteAbelPlanaLogIntegerResidue w (x + 1)) +
+            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) +
+            Complex.finiteAbelPlanaLogIntegerResidue w 0 := by
+          exact congrArg
+            (fun z : ℂ =>
+              z + Complex.finiteAbelPlanaLogIntegerResidue w 0)
+            (Finset.sum_range_succ
+              (fun x =>
+                Complex.finiteAbelPlanaLogIntegerResidue w (x + 1))
+              N)
+    _ =
+      Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        ((∑ x in Finset.range N,
+          Complex.finiteAbelPlanaLogIntegerResidue w (x + 1)) +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) := by
+      exact add_comm
+        ((∑ x in Finset.range N,
+          Complex.finiteAbelPlanaLogIntegerResidue w (x + 1)) +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+        (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+    _ =
+      Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) +
+        ∑ x in Finset.range N,
+          Complex.finiteAbelPlanaLogIntegerResidue w (x + 1) :=
+      endpoint_interior_last_reassociate
+        (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+        (∑ x in Finset.range N,
+          Complex.finiteAbelPlanaLogIntegerResidue w (x + 1))
+        (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+    _ =
+      Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
+      exact
+        congrArg₂ HAdd.hAdd
+          (Complex.finiteAbelPlanaLogFullEndpointIntegerResidueContribution_unfold
+            N w).symm
+          (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution_unfold
+            N w).symm
 
 /-- The full finite integer-residue sum is the principal-value residue sum
 plus the endpoint restoration. -/
@@ -820,15 +1050,19 @@ theorem Complex.finiteAbelPlanaCotangentKernel_unitResidue_at_nat
       (Complex.hasDerivAt_sin ((Real.pi : ℂ) * a)).comp a hlin
     have hderiv :
         Complex.cos ((Real.pi : ℂ) * a) * (Real.pi : ℂ) = d := by
-      dsimp [d]
-      exact mul_comm (Complex.cos ((Real.pi : ℂ) * a)) (Real.pi : ℂ)
+      have hd :
+          d = (Real.pi : ℂ) * Complex.cos ((Real.pi : ℂ) * a) :=
+        rfl
+      exact (mul_comm (Complex.cos ((Real.pi : ℂ) * a)) (Real.pi : ℂ)).trans
+        hd.symm
     exact hderiv ▸ hsin
   have hsin_zero :
       Complex.sin ((Real.pi : ℂ) * a) = 0 := by
-    dsimp [a]
+    have ha : a = (n : ℂ) :=
+      rfl
     have hmul : a * (Real.pi : ℂ) = (Real.pi : ℂ) * a := by
       exact mul_comm a (Real.pi : ℂ)
-    exact hmul ▸ Complex.sin_nat_mul_pi n
+    exact ha ▸ hmul ▸ Complex.sin_nat_mul_pi n
   have hcos_ne :
       Complex.cos ((Real.pi : ℂ) * a) ≠ 0 := by
     intro hzero
@@ -852,8 +1086,11 @@ theorem Complex.finiteAbelPlanaCotangentKernel_unitResidue_at_nat
       exact hsq.symm.trans hzero_sum
     exact one_ne_zero hone_zero
   have hd_ne : d ≠ 0 := by
-    dsimp [d]
-    exact mul_ne_zero (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero) hcos_ne
+    have hd :
+        d = (Real.pi : ℂ) * Complex.cos ((Real.pi : ℂ) * a) :=
+      rfl
+    exact hd.symm ▸
+      mul_ne_zero (Complex.ofReal_ne_zero.mpr Real.pi_ne_zero) hcos_ne
   have hslope :
       Tendsto
         (fun z : ℂ =>
@@ -938,11 +1175,14 @@ theorem Complex.finiteAbelPlanaCotangentKernel_unitResidue_at_nat
         ((Real.pi : ℂ) * Complex.cos ((Real.pi : ℂ) * z)) /
           (Complex.sin ((Real.pi : ℂ) * z) / (z - a))) := by
     funext z
-    dsimp [a, Complex.finiteAbelPlanaCotangentKernel, Complex.cot]
     let A : ℂ := z - (n : ℂ)
     let P : ℂ := (Real.pi : ℂ)
     let C : ℂ := Complex.cos ((Real.pi : ℂ) * z)
     let S : ℂ := Complex.sin ((Real.pi : ℂ) * z)
+    have ha : a = (n : ℂ) :=
+      rfl
+    have hA : A = z - a := by
+      exact congrArg (fun q : ℂ => z - q) ha.symm
     have hleft :
         A * (P * (C / S)) = (P * C) * A / S := by
       calc
@@ -961,8 +1201,20 @@ theorem Complex.finiteAbelPlanaCotangentKernel_unitResidue_at_nat
         P * C / (S / A) = (P * C) * A / S :=
       div_div_eq_mul_div (P * C) S A
     calc
-      A * (P * (C / S)) = (P * C) * A / S := hleft
+      (z - (n : ℂ)) * Complex.finiteAbelPlanaCotangentKernel z =
+          A * (P * (C / S)) := by
+        exact congrArg
+          (fun u : ℂ => (z - (n : ℂ)) * u)
+          (Complex.finiteAbelPlanaCotangentKernel_sinCos_unfold z)
+      _ = (P * C) * A / S := hleft
       _ = P * C / (S / A) := hright.symm
+      _ =
+          ((Real.pi : ℂ) * Complex.cos ((Real.pi : ℂ) * z)) /
+            (Complex.sin ((Real.pi : ℂ) * z) / (z - a)) := by
+        exact congrArg
+          (fun u : ℂ =>
+            P * C / (S / u))
+          hA
   exact hone ▸ (hsame ▸ hquot)
 
 /-- The logarithmic rectangle integrand has residue `log(w+n)` at the
@@ -1019,20 +1271,30 @@ theorem Complex.finiteAbelPlanaLogRectangleIntegrand_integerResidue_at_nat
           ((z - (n : ℂ)) *
             Complex.finiteAbelPlanaCotangentKernel z)) := by
     funext z
-    dsimp [Complex.finiteAbelPlanaLogRectangleIntegrand]
     let A : ℂ := z - (n : ℂ)
     let B : ℂ := Complex.finiteAbelPlanaLogSummand w z
     let C : ℂ := Complex.finiteAbelPlanaCotangentKernel z
     calc
-      A * (B * C) = (A * B) * C := (mul_assoc A B C).symm
+      (z - (n : ℂ)) *
+          Complex.finiteAbelPlanaLogRectangleIntegrand w z =
+        A * (B * C) := by
+        exact congrArg
+          (fun u : ℂ => (z - (n : ℂ)) * u)
+          (Complex.finiteAbelPlanaLogRectangleIntegrand_unfold w z)
+      _ = (A * B) * C := (mul_assoc A B C).symm
       _ = (B * A) * C := by
         exact congrArg (fun u : ℂ => u * C) (mul_comm A B)
       _ = B * (A * C) := mul_assoc B A C
   have htarget :
       Complex.finiteAbelPlanaLogSummand w (n : ℂ) * 1 =
         Complex.finiteAbelPlanaLogIntegerResidue w n := by
-    dsimp [Complex.finiteAbelPlanaLogIntegerResidue]
-    exact mul_one _
+    calc
+      Complex.finiteAbelPlanaLogSummand w (n : ℂ) * 1 =
+          Complex.finiteAbelPlanaLogSummand w (n : ℂ) :=
+        mul_one _
+      _ =
+          Complex.finiteAbelPlanaLogIntegerResidue w n :=
+        (Complex.finiteAbelPlanaLogIntegerResidue_unfold w n).symm
   exact htarget ▸ (hrewrite ▸ hmul)
 
 /-- Full lower vertical Abel-Plana boundary for `z ↦ log (w+z)`.
@@ -1089,6 +1351,15 @@ noncomputable def Complex.finiteAbelPlanaLogPrimitive
     (x : ℝ) : ℂ :=
   (w + (x : ℂ)) * Complex.log (w + (x : ℂ)) -
     (w + (x : ℂ))
+
+/-- Unfolding of the real-segment primitive for the logarithmic summand. -/
+theorem Complex.finiteAbelPlanaLogPrimitive_unfold
+    (w : ℂ)
+    (x : ℝ) :
+    Complex.finiteAbelPlanaLogPrimitive w x =
+      (w + (x : ℂ)) * Complex.log (w + (x : ℂ)) -
+        (w + (x : ℂ)) :=
+  rfl
 
 /-- Derivative of the logarithmic primitive on the real segment. -/
 theorem Complex.hasDerivAt_finiteAbelPlanaLogPrimitive
@@ -1216,8 +1487,23 @@ theorem Complex.finiteAbelPlana_log_summand_realSegmentIntegral_eq_endpointPrimi
         Complex.finiteAbelPlanaLogSummand w (x : ℂ) =
       F (M : ℝ) - F 0 := hFTC
     _ = Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w := by
-      dsimp [F, M, Complex.finiteAbelPlanaLogPrimitive,
-        Complex.finiteAbelPlanaLogSummandEndpointPrimitive]
+      have htop :
+          F (M : ℝ) =
+            (w + ((N + 1 : ℕ) : ℂ)) *
+                Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+              (w + ((N + 1 : ℕ) : ℂ)) :=
+        Complex.finiteAbelPlanaLogPrimitive_unfold w (M : ℝ)
+      have hbottom :
+          F 0 =
+            (w + 0) * Complex.log (w + 0) - (w + 0) :=
+        Complex.finiteAbelPlanaLogPrimitive_unfold w 0
+      have htarget :
+          Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w =
+            ((w + ((N + 1 : ℕ) : ℂ)) *
+                Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+              (w + ((N + 1 : ℕ) : ℂ))) -
+              (w * Complex.log w - w) :=
+        Complex.finiteAbelPlanaLogSummandEndpointPrimitive_unfold N w
       have hbase :
           (w + 0) * Complex.log (w + 0) - (w + 0) =
             w * Complex.log w - w := by
@@ -1236,11 +1522,26 @@ theorem Complex.finiteAbelPlana_log_summand_realSegmentIntegral_eq_endpointPrimi
             exact congrArg (fun u : ℂ => u - (w + 0)) hprod
           _ = w * Complex.log w - w := by
             exact congrArg (fun u : ℂ => w * Complex.log w - u) hsum
-      exact congrArg
-        (fun u : ℂ =>
-          (w + ((N + 1 : ℕ) : ℂ)) * Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
-            (w + ((N + 1 : ℕ) : ℂ)) - u)
-        hbase
+      calc
+        F (M : ℝ) - F 0 =
+          ((w + ((N + 1 : ℕ) : ℂ)) *
+              Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+            (w + ((N + 1 : ℕ) : ℂ))) -
+            ((w + 0) * Complex.log (w + 0) - (w + 0)) := by
+          exact congrArg₂ HSub.hSub htop hbottom
+        _ =
+          ((w + ((N + 1 : ℕ) : ℂ)) *
+              Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+            (w + ((N + 1 : ℕ) : ℂ))) -
+            (w * Complex.log w - w) := by
+          exact congrArg
+            (fun u : ℂ =>
+              (w + ((N + 1 : ℕ) : ℂ)) *
+                  Complex.log (w + ((N + 1 : ℕ) : ℂ)) -
+                (w + ((N + 1 : ℕ) : ℂ)) - u)
+            hbase
+        _ = Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w :=
+          htarget.symm
 
 /-- The lower vertical boundary is the negative of the full lower
 Abel-Plana logarithmic jump integral. -/
@@ -1489,8 +1790,12 @@ theorem Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_eq_residueSum_add_er
     Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T =
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w +
     Complex.finiteAbelPlanaLogFiniteHeightContourError N w T := by
-  dsimp [Complex.finiteAbelPlanaLogFiniteHeightContourError]
-  exact eq_add_of_sub_eq' rfl
+  have herror :
+      Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T -
+          Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w :=
+    Complex.finiteAbelPlana_log_finiteHeightContourError_unfold' N w T
+  exact herror.symm ▸ eq_add_of_sub_eq' rfl
 
 /-- The concrete lower vertical integrand is the one used in the finite Binet
 boundary correction and lower contour tail. -/
@@ -1521,35 +1826,8 @@ theorem Complex.real_mul_I_re_eq_zero
     ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
       exact Complex.mul_I_re (t : ℂ)
     _ = -0 := by
-      rw [Complex.ofReal_im]
+      exact congrArg Neg.neg (Complex.ofReal_im t)
     _ = 0 := neg_zero
-
-/-- Adding a purely imaginary real multiple leaves the real part unchanged. -/
-theorem Complex.add_real_mul_I_re
-    (w : ℂ)
-    (t : ℝ) :
-    (w + (t : ℂ) * Complex.I).re = w.re := by
-  calc
-    (w + (t : ℂ) * Complex.I).re
-        = w.re + ((t : ℂ) * Complex.I).re := by
-      exact Complex.add_re w ((t : ℂ) * Complex.I)
-    _ = w.re + 0 := by
-      rw [Complex.real_mul_I_re_eq_zero]
-    _ = w.re := add_zero w.re
-
-/-- Subtracting a purely imaginary real multiple leaves the real part
-unchanged. -/
-theorem Complex.sub_real_mul_I_re
-    (w : ℂ)
-    (t : ℝ) :
-    (w - (t : ℂ) * Complex.I).re = w.re := by
-  calc
-    (w - (t : ℂ) * Complex.I).re
-        = w.re - ((t : ℂ) * Complex.I).re := by
-      exact Complex.sub_re w ((t : ℂ) * Complex.I)
-    _ = w.re - 0 := by
-      rw [Complex.real_mul_I_re_eq_zero]
-    _ = w.re := sub_zero w.re
 
 /-- Put the numerator of the Cayley transform over the denominator `w`. -/
 theorem Complex.binetAbelPlana_cayley_numerator_common_denominator
@@ -1561,11 +1839,13 @@ theorem Complex.binetAbelPlana_cayley_numerator_common_denominator
   calc
     1 + ((t : ℂ) / w) * Complex.I
         = 1 + ((t : ℂ) * Complex.I) / w := by
-      rw [div_mul_eq_mul_div]
+      exact congrArg (fun z : ℂ => 1 + z)
+        (div_mul_eq_mul_div (t : ℂ) w Complex.I)
     _ = (1 * w + (t : ℂ) * Complex.I) / w := by
       exact add_div_eq_mul_add_div 1 ((t : ℂ) * Complex.I) hw_ne
     _ = (w + (t : ℂ) * Complex.I) / w := by
-      rw [one_mul]
+      exact congrArg (fun z : ℂ => (z + (t : ℂ) * Complex.I) / w)
+        (one_mul w)
 
 /-- Put the denominator of the Cayley transform over the denominator `w`. -/
 theorem Complex.binetAbelPlana_cayley_denominator_common_denominator
@@ -1577,13 +1857,28 @@ theorem Complex.binetAbelPlana_cayley_denominator_common_denominator
   calc
     1 - ((t : ℂ) / w) * Complex.I
         = 1 - ((t : ℂ) * Complex.I) / w := by
-      rw [div_mul_eq_mul_div]
+      exact congrArg (fun z : ℂ => 1 - z)
+        (div_mul_eq_mul_div (t : ℂ) w Complex.I)
     _ = 1 + (-((t : ℂ) * Complex.I)) / w := by
-      rw [sub_eq_add_neg, neg_div]
+      calc
+        1 - ((t : ℂ) * Complex.I) / w =
+            1 + -(((t : ℂ) * Complex.I) / w) :=
+          sub_eq_add_neg 1 (((t : ℂ) * Complex.I) / w)
+        _ = 1 + (-((t : ℂ) * Complex.I)) / w := by
+          exact congrArg (fun z : ℂ => 1 + z)
+            (neg_div' w ((t : ℂ) * Complex.I))
     _ = (1 * w + -((t : ℂ) * Complex.I)) / w := by
       exact add_div_eq_mul_add_div 1 (-((t : ℂ) * Complex.I)) hw_ne
     _ = (w - (t : ℂ) * Complex.I) / w := by
-      rw [one_mul, sub_eq_add_neg]
+      calc
+        (1 * w + -((t : ℂ) * Complex.I)) / w =
+            (w + -((t : ℂ) * Complex.I)) / w := by
+          exact congrArg
+            (fun z : ℂ => (z + -((t : ℂ) * Complex.I)) / w)
+            (one_mul w)
+        _ = (w - (t : ℂ) * Complex.I) / w := by
+          exact congrArg (fun z : ℂ => z / w)
+            (sub_eq_add_neg w ((t : ℂ) * Complex.I)).symm
 
 /-- Cancelling the shared right denominator in a quotient of quotients. -/
 theorem Complex.div_common_denominator_cancel_right
@@ -1612,8 +1907,10 @@ theorem Complex.binetAbelPlana_arctan_cayley_eq_logJump_ratio
         =
       ((w + (t : ℂ) * Complex.I) / w) /
         ((w - (t : ℂ) * Complex.I) / w) := by
-      rw [Complex.binetAbelPlana_cayley_numerator_common_denominator hw_ne]
-      rw [Complex.binetAbelPlana_cayley_denominator_common_denominator hw_ne]
+      exact
+        congrArg₂ HDiv.hDiv
+          (Complex.binetAbelPlana_cayley_numerator_common_denominator hw_ne)
+          (Complex.binetAbelPlana_cayley_denominator_common_denominator hw_ne)
     _ =
       (w + (t : ℂ) * Complex.I) /
         (w - (t : ℂ) * Complex.I) := by
@@ -1686,7 +1983,7 @@ theorem neg_pi_div_two_add_neg_pi_div_two :
         = -(Real.pi / 2 + Real.pi / 2) := by
       exact (neg_add (Real.pi / 2) (Real.pi / 2)).symm
     _ = -Real.pi := by
-      rw [add_halves]
+      exact congrArg Neg.neg (add_halves Real.pi)
 
 /-- The upper endpoints of two right-half-plane argument intervals add to
 `π`. -/
@@ -1717,7 +2014,11 @@ theorem sub_lt_pi_of_lt_pi_div_two_of_neg_pi_div_two_lt
     (hb : -(Real.pi / 2) < b) :
     a - b < Real.pi := by
   have hnegb : -b < Real.pi / 2 := by
-    exact neg_lt_neg hb
+    exact
+      Eq.subst
+        (motive := fun x : ℝ => -b < x)
+        (neg_neg (Real.pi / 2))
+        (neg_lt_neg hb)
   have hsum : a + -b < Real.pi / 2 + Real.pi / 2 :=
     add_lt_add ha hnegb
   calc

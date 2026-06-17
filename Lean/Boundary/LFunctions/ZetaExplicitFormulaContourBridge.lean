@@ -73,7 +73,12 @@ theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation
       zetaCompletedExplicitFormulaBoundarySumAnalytic g =
         (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ) :=
     zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_seedKreinSum f
-  exact Complex.ofReal_injective (Eq.trans hshift hboundary)
+  exact
+    zetaCompletedZeroKreinGram_eq_realBoundary_of_contourShiftTarget
+      g ⟨1, 1⟩
+      (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)
+      hshift
+      hboundary
 
 /-- The completed explicit-formula contour bridge after descent to the completed
 ordered-heart scalar.  This is the true payoff theorem for the GNS-positive route: the
@@ -95,28 +100,45 @@ theorem zetaCompletedExplicitFormulaContourBridge_convolutionAutocorrelation_ord
     exact
       zetaCompletedExplicitFormulaBoundarySumAnalytic_convolutionAutocorrelation_eq_orderedHeartScalar
         f
-  apply Complex.ofReal_injective
-  calc
-    (zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
-        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
-        (zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f) : ℂ) +
-          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
-      exact Complex.ofReal_add
-        (zetaCompletedZeroKreinGram
-          (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f))
-    _ =
-        zetaCompletedExplicitFormulaBoundarySumAnalytic g +
-          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) := by
-      exact congrArg
+  have hcomplex :
+      zetaCompletedResidueBoundarySumComplex g +
+          (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ) =
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) := by
+    exact Eq.trans
+      (congrArg
         (fun z : ℂ =>
           z + (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ))
-        hshift
-    _ =
-        (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) :=
+        hshift)
       hboundary
+  have hre :
+      Complex.re
+          (zetaCompletedResidueBoundarySumComplex g +
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)) =
+        Complex.re
+          (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) :=
+    congrArg Complex.re hcomplex
+  calc
+    zetaCompletedZeroKreinGram
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
+        Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) =
+        Complex.re (zetaCompletedResidueBoundarySumComplex g) +
+          Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) := by
+      rfl
+    _ =
+        Complex.re
+          (zetaCompletedResidueBoundarySumComplex g +
+            (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)) := by
+      exact (Complex.add_re
+        (zetaCompletedResidueBoundarySumComplex g)
+        (Complex.re (zetaCompletedPrimeDefectKernelDiagonalDebt f) : ℂ)).symm
+    _ =
+        Complex.re
+          (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f : ℂ) :=
+      hre
+    _ =
+        zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f :=
+      Complex.ofReal_re
+        (zetaCompletedExplicitFormulaAutocorrelationBoundaryOrderedHeartScalar f)
 
 /-- The zero-side ordered-heart realization class for an autocorrelation seed.
 
@@ -278,7 +300,11 @@ theorem zetaCompletedExplicitFormulaContourBridge_of_contourShiftTarget
         (zetaCompletedExplicitFormulaBoundarySum f : ℂ)) :
     zetaCompletedZeroKreinGram f =
       ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f :=
-  Complex.ofReal_injective (Eq.trans hshift hboundary)
+  zetaCompletedZeroKreinGram_eq_realBoundary_of_contourShiftTarget
+    f r
+    (ZetaAdmissibleFunction.zetaCompletedExplicitFormulaBoundarySum f)
+    hshift
+    hboundary
 
 /-- A proved contour bridge is exactly the completed explicit-formula target. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationTarget_of_contourBridge
@@ -315,7 +341,11 @@ theorem zetaCompletedExplicitFormulaConvolutionAutocorrelationSeedKrein_of_conto
         (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f : ℂ)) :
     zetaCompletedZeroKreinGram (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
       zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f :=
-  Complex.ofReal_injective (Eq.trans hshift hboundary)
+  zetaCompletedZeroKreinGram_eq_realBoundary_of_contourShiftTarget
+    (ZetaAdmissibleFunction.convolutionAutocorrelation f) r
+    (zetaCompletedExplicitFormulaAutocorrelationBoundaryKreinSum f)
+    hshift
+    hboundary
 
 /-- Historical name for the convolution-autocorrelation contour-shift specialization. -/
 theorem zetaCompletedExplicitFormulaAutocorrelationSeedKrein_of_contourShiftTarget

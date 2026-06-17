@@ -98,57 +98,11 @@ def completedPrimeContourRemainderCoordinateFamily
     (f : ZetaAdmissibleFunction) : ZetaPrimePowerIndex → ℝ :=
   completedPrimeContourTransportCoordinateRemainderFamily f
 
-/-- Polynomial-height majorant for the contour-realized prime coordinate family.
-
-The exponent belongs to the rectangular prime-power height, so this is the
-summable owner majorant appropriate for horizontal contour localization. -/
-def completedPrimeContourRealizedCoordinateMajorant
-    (C : ℝ) (k : ℕ) : ZetaPrimePowerIndex → ℝ :=
-  fun ι : ZetaPrimePowerIndex =>
-    C * ZetaPrimePowerIndex.polynomialHeightDecay k ι
-
-/-- The contour-realized coordinate majorant is summable over prime-power indices. -/
-theorem summable_completedPrimeContourRealizedCoordinateMajorant
-    (C : ℝ) (k : ℕ) :
-    Summable (completedPrimeContourRealizedCoordinateMajorant C k) := by
-  exact ZetaPrimePowerIndex.summable_const_mul_polynomialHeightDecay C k
-
-/-- Analytic horizontal-localization root: contour-realized prime coordinates are bounded
-by a summable rectangular-height majorant.
-
-This is the precise contour-side summability input.  It is a decay theorem for the
-completed contour-realized coordinate family, not a residual-error or tail-cancellation
-statement. -/
-theorem exists_completedPrimeContourRealizedCoordinateMajorant_bound_ownerHorizontalDecay
-    (f : ZetaAdmissibleFunction) :
-    ∃ C : ℝ, ∃ k : ℕ,
-      0 ≤ C ∧
-      ∀ ι : ZetaPrimePowerIndex,
-        ‖completedPrimeContourRealizedCoordinateFamily f ι‖ ≤
-          completedPrimeContourRealizedCoordinateMajorant C k ι := by
-  sorry
-
 /-- Horizontal-decay compatibility wrapper for time-side prime-coordinate summability. -/
 theorem summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
     Summable (completedPrimeTimeCoordinateFamily f) := by
   exact summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation f
-
-/-- Horizontal-decay owner theorem for summability of the contour-realized prime
-coordinates at an autocorrelation probe.
-
-This is the genuine contour-side summability input.  Once this is available, the
-coordinate-remainder family is summable by subtracting the already-summable time-side
-prime coordinate family. -/
-theorem summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
-    (f : ZetaAdmissibleFunction) :
-    Summable (completedPrimeContourRealizedCoordinateFamily f) := by
-  rcases exists_completedPrimeContourRealizedCoordinateMajorant_bound_ownerHorizontalDecay f with
-    ⟨C, k, _hC, hbound⟩
-  exact Summable.of_norm_bounded
-    (completedPrimeContourRealizedCoordinateMajorant C k)
-    (summable_completedPrimeContourRealizedCoordinateMajorant C k)
-    hbound
 
 /-- Horizontal-decay compatibility wrapper for nongenuine contour-realized coordinates. -/
 theorem completedPrimeContourRealizedTimeDistributionCoordinate_eq_zero_of_not_isGenuine_ownerHorizontalDecay
@@ -202,24 +156,6 @@ theorem completedPrimeContourTransportCoordinateRemainderFamily_eq_contour_sub_t
           completedPrimeTimeCoordinateFamily f ι := by
   funext ι
   exact completedPrimeContourTransportCoordinateRemainder_eq_contour_sub_time ι f
-
-/-- The coordinate-remainder family is summable once both the contour-realized and
-time-side prime coordinate families are summable. -/
-theorem summable_completedPrimeContourTransportCoordinateRemainderFamily_of_contour_and_time
-    (f : ZetaAdmissibleFunction)
-    (hcontour : Summable (completedPrimeContourRealizedCoordinateFamily f))
-    (htime : Summable (completedPrimeTimeCoordinateFamily f)) :
-    Summable (completedPrimeContourTransportCoordinateRemainderFamily f) := by
-  have hdifference :
-      Summable
-        (fun ι : ZetaPrimePowerIndex =>
-          completedPrimeContourRealizedCoordinateFamily f ι -
-            completedPrimeTimeCoordinateFamily f ι) :=
-    hcontour.sub htime
-  exact Eq.subst
-    (motive := fun u : ZetaPrimePowerIndex → ℝ => Summable u)
-    (completedPrimeContourTransportCoordinateRemainderFamily_eq_contour_sub_time_family f).symm
-    hdifference
 
 /-- A real coordinate family is summable when its norm is bounded by a summable nonnegative
 majorant. -/
@@ -691,74 +627,64 @@ theorem sampledHorizontalDifference_tendsto_zero_ownerHorizontalDecay
     completedPrimeProductHorizontalControl_of_autocorrelation f
   exact sampledHorizontalDifference_tendsto_zero_of_productHorizontalControl f hcontrol
 
-/-- The contour-transport coordinate-remainder family is summable. -/
-theorem summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerHorizontalDecay
+/-- The completed finite-window/GNS contour realization identifies the raw spectral
+contour scalar. -/
+theorem completedPrimeContourFiniteWindowGNSRealization_rawSpectral
     (f : ZetaAdmissibleFunction) :
-    Summable (completedPrimeContourTransportCoordinateRemainderFamily f) := by
-  have hcontour :
-      Summable (completedPrimeContourRealizedCoordinateFamily f) :=
-    summable_completedPrimeContourRealizedTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
-      f
-  have htime : Summable (completedPrimeTimeCoordinateFamily f) :=
-    summable_completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_ownerHorizontalDecay
-      f
+    completedPrimeContourRealizedFiniteWindowPairing f =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
   exact
-    summable_completedPrimeContourTransportCoordinateRemainderFamily_of_contour_and_time
-      f hcontour htime
+    (completedPrimeFiniteWindowGNSContourRealization_identifies_rawSpectral_and_tail_tendsto
+      f).left
 
-/-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization.
-
-This is the owner horizontal-decay tail theorem.  It is independent of the finite
-tomographic residual error: the residual error is later identified with this tail, not used
-to prove the tail estimate. -/
-theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay
+/-- The completed finite-window/GNS contour realization kills the omitted coordinate tail. -/
+theorem completedPrimeContourFiniteWindowGNSRealization_tail_tendsto_zero
     (f : ZetaAdmissibleFunction) :
     Tendsto
       (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
       atTop
       (𝓝 0) := by
-  have hsummable :
-      Summable (completedPrimeContourTransportCoordinateRemainderFamily f) :=
-    summable_completedPrimeContourTransportCoordinateRemainderFamily_ownerHorizontalDecay f
-  have hzero :
-      ∀ ι : ZetaPrimePowerIndex,
-        ¬ ZetaPrimePowerIndex.IsGenuine ι →
-          completedPrimeContourTransportCoordinateRemainderFamily f ι = 0 := by
-    intro ι hι
-    exact
-      (completedPrimeContourTransportCoordinateRemainderFamily_apply ι f).trans
-        (completedPrimeContourTransportCoordinateRemainder_eq_zero_of_not_isGenuine
-          ι f hι)
-  have htail :
-      Tendsto
-        (fun N : ℕ =>
-          ∑' ι : ZetaPrimePowerIndex,
-            ZetaPrimePowerIndex.spectralTail
-              (completedPrimeContourTransportCoordinateRemainderFamily f) N ι)
-        atTop
-        (𝓝 0) :=
-    ZetaPrimePowerIndex.spectralTail_tsum_tendsto_zero_of_summable
-      (completedPrimeContourTransportCoordinateRemainderFamily f)
-      hsummable
-      hzero
-  have htail_eq :
-      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f) =
-        (fun N : ℕ =>
-          ∑' ι : ZetaPrimePowerIndex,
-            ZetaPrimePowerIndex.spectralTail
-              (completedPrimeContourTransportCoordinateRemainderFamily f) N ι) := by
-    funext N
-    exact completedPrimeContourTransportCoordinateRemainderTail_eq_spectralTail_tsum N f
-  exact Eq.subst
-    (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
-    htail_eq.symm
-    htail
+  exact
+    (completedPrimeFiniteWindowGNSContourRealization_identifies_rawSpectral_and_tail_tendsto
+      f).right
+
+/-- The omitted coordinate-remainder tail tends to zero in the completed horizontal
+realization.
+
+This compatibility wrapper consumes the split tail theorem
+`finitePrimeHorizontalResidueCoordinateShadow_window_sub_residueShadow_tendsto_zero`.
+It is not a consequence of sampled-horizontal edge decay alone: the sampled horizontal
+term controls the visible edge contribution, while this theorem controls the omitted
+completed tail. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerTailLocalization
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+      atTop
+      (𝓝 0) := by
+  exact completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero f
+
+/-- The omitted coordinate-remainder tail tends to zero in the completed horizontal
+realization.
+
+This compatibility wrapper exposes the tail-localization theorem under the horizontal
+decay owner name consumed by the finite-window transport proof. -/
+theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerHorizontalDecay
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
+      atTop
+      (𝓝 0) := by
+  exact
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerTailLocalization
+      f
 
 /-- Owner horizontal-decay theorem for the finite prime coordinate-remainder window.
 
-The finite coordinate-remainder window is reconstructed as the sampled horizontal
-difference plus the omitted coordinate tail.  The sampled term decays by product-form
-horizontal control, and the tail decays by the independent tail theorem above. -/
+The coordinate-remainder window is the sampled horizontal term plus the omitted
+coordinate-remainder tail.  The sampled horizontal term decays by product-form horizontal
+control; the tail is the remaining completed two-face/GNS tail-localization input. -/
 theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerHorizontalDecay
     (f : ZetaAdmissibleFunction) :
     Tendsto
@@ -776,7 +702,8 @@ theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerH
         (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
         atTop
         (𝓝 0) :=
-    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay f
+    completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerHorizontalDecay
+      f
   have hsum :
       Tendsto
         (fun N : ℕ =>
@@ -785,16 +712,17 @@ theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerH
         atTop
         (𝓝 (0 + 0)) :=
     hsampled.add htail
-  have htarget : (0 : ℝ) + 0 = 0 :=
+  have hzero : (0 : ℝ) + 0 = 0 :=
     add_zero 0
   have hwindow :
       (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f) =
-        fun N : ℕ =>
+        (fun N : ℕ =>
           sampledHorizontalDifference N f +
-            completedPrimeContourTransportCoordinateRemainderTail N f := by
+            completedPrimeContourTransportCoordinateRemainderTail N f) := by
     funext N
-    exact (sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow
-      N f).symm
+    exact
+      (sampledHorizontalDifference_add_coordinateRemainderTail_eq_coordinateRemainderWindow
+        N f).symm
   exact Eq.subst
     (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
     hwindow.symm
@@ -806,7 +734,7 @@ theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerH
               completedPrimeContourTransportCoordinateRemainderTail N f)
           atTop
           (𝓝 x))
-      htarget
+      hzero
       hsum)
 
 /-- Owner horizontal-decay theorem for the finite prime contour-transport remainder.
@@ -900,16 +828,6 @@ theorem finitePrimeContourTransportTomographicError_tendsto_zero
       (𝓝 0) := by
   exact finitePrimeContourTransportTomographicError_tendsto_zero_ownerHorizontalDecay f
 
-/-- The omitted coordinate-remainder tail vanishes in the completed horizontal realization. -/
-theorem completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_ownerHorizontalDecay
-    (f : ZetaAdmissibleFunction) :
-    Tendsto
-      (fun N : ℕ => completedPrimeContourTransportCoordinateRemainderTail N f)
-      atTop
-      (𝓝 0) := by
-  exact completedPrimeContourTransportCoordinateRemainderTail_tendsto_zero_core_ownerHorizontalDecay
-    f
-
 /-- Finite contour-realized prime windows converge to the completed time-side prime
 distribution after horizontal contour transport.
 
@@ -975,7 +893,22 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributio
           finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
             finitePrimeContourTransportRemainder N f) := by
     funext N
-    exact (finitePrimeTimeDistributionWindow_add_contourTransportRemainder N f).symm
+    have hcoordinate :
+        finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f) =
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) +
+            finitePrimeContourTransportCoordinateRemainderWindow N f :=
+      finitePrimeContourRealizedTimeDistributionWindow_eq_timeWindow_add_coordinateRemainderWindow
+        N f
+    have hremainder :
+        finitePrimeContourTransportCoordinateRemainderWindow N f =
+          finitePrimeContourTransportRemainder N f :=
+      (finitePrimeContourTransportRemainder_eq_coordinateRemainderWindow N f).symm
+    exact hcoordinate.trans
+      (congrArg
+        (fun x : ℝ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) + x)
+        hremainder)
   exact Eq.subst
     (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 T))
     hwindow.symm

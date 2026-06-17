@@ -98,7 +98,13 @@ theorem Complex.intervalIntegrable_binetAbelPlanaUpperLogJumpSegmentIntegrand_sh
       volume
       a
       b := by
-  dsimp [Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand]
+  show
+    IntervalIntegrable
+      (fun s : ℝ =>
+        Complex.I / (w + (N + 1 : ℂ) + (s : ℂ) * Complex.I))
+      volume
+      a
+      b
   have hden_cont :
       Continuous
         (fun s : ℝ => w + (N + 1 : ℂ) + (s : ℂ) * Complex.I) :=
@@ -139,6 +145,31 @@ noncomputable def Complex.binetAbelPlanaVerticalKernelMass : ℝ :=
   ∫ t : ℝ in Set.Ioi (0 : ℝ),
     Complex.binetAbelPlanaVerticalKernelMajorant t
 
+/-- Unfolding of the Abel-Plana vertical kernel majorant. -/
+theorem Complex.binetAbelPlanaVerticalKernelMajorant_unfold
+    (t : ℝ) :
+    Complex.binetAbelPlanaVerticalKernelMajorant t =
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+  rfl
+
+/-- Unfolding of the Abel-Plana vertical kernel mass. -/
+theorem Complex.binetAbelPlanaVerticalKernelMass_unfold :
+    Complex.binetAbelPlanaVerticalKernelMass =
+      ∫ t : ℝ in Set.Ioi (0 : ℝ),
+        Complex.binetAbelPlanaVerticalKernelMajorant t := by
+  rfl
+
+/-- Unfolding of the upper finite Abel-Plana residual integrand. -/
+theorem Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (t : ℝ) :
+    Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t =
+      Complex.I *
+        (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
+  rfl
+
 /-- The Abel-Plana vertical kernel is the existing Binet real majorant. -/
 theorem Complex.binetAbelPlanaVerticalKernelMajorant_eq_binetMajorant
     (t : ℝ) :
@@ -152,25 +183,35 @@ theorem Complex.binetAbelPlanaVerticalKernelMajorant_nonneg_on_Ioi :
       t ∈ Set.Ioi (0 : ℝ) →
         0 ≤ Complex.binetAbelPlanaVerticalKernelMajorant t := by
   intro t ht
-  dsimp [Complex.binetAbelPlanaVerticalKernelMajorant]
-  exact Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht
+  exact
+    (Complex.binetAbelPlanaVerticalKernelMajorant_unfold t).symm ▸
+      Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht
 
 /-- The Abel-Plana vertical kernel is integrable on the positive half-line. -/
 theorem Complex.binetAbelPlanaVerticalKernelMajorant_integrableOn :
     IntegrableOn
       (fun t : ℝ => Complex.binetAbelPlanaVerticalKernelMajorant t)
       (Set.Ioi (0 : ℝ)) := by
-  dsimp [Complex.binetAbelPlanaVerticalKernelMajorant]
-  exact Real.binetSecondFormula_kernel_majorant_integrableOn
+  have hsource :
+      (fun t : ℝ =>
+        t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) =
+      (fun t : ℝ =>
+        Complex.binetAbelPlanaVerticalKernelMajorant t) := by
+    funext t
+    exact (Complex.binetAbelPlanaVerticalKernelMajorant_unfold t).symm
+  exact hsource ▸ Real.binetSecondFormula_kernel_majorant_integrableOn
 
 /-- The Abel-Plana vertical kernel mass is nonnegative. -/
 theorem Complex.binetAbelPlanaVerticalKernelMass_nonneg :
     0 ≤ Complex.binetAbelPlanaVerticalKernelMass := by
-  dsimp [Complex.binetAbelPlanaVerticalKernelMass]
-  exact
+  have hmass :
+      0 ≤
+        ∫ t : ℝ in Set.Ioi (0 : ℝ),
+          Complex.binetAbelPlanaVerticalKernelMajorant t :=
     setIntegral_nonneg
       measurableSet_Ioi
       Complex.binetAbelPlanaVerticalKernelMajorant_nonneg_on_Ioi
+  exact Complex.binetAbelPlanaVerticalKernelMass_unfold.symm ▸ hmass
 
 /-- The upper finite Abel-Plana residual integrand is measurable. -/
 theorem Complex.measurable_binetAbelPlanaFiniteUpperContourResidualIntegrand
@@ -179,8 +220,12 @@ theorem Complex.measurable_binetAbelPlanaFiniteUpperContourResidualIntegrand
     Measurable
       (fun t : ℝ =>
         Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t) := by
-  dsimp [Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand,
-    Complex.binetAbelPlanaFiniteUpperLogJump]
+  show
+    Measurable
+      (fun t : ℝ =>
+        Complex.I *
+          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)))
   have hplus_line :
       Measurable
         (fun t : ℝ => w + ((N + 1 : ℕ) : ℂ) + (t : ℂ) * Complex.I) :=
@@ -524,11 +569,14 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_major
   have hden_pos :
       0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
     Real.binetSecondFormula_exp_denominator_pos ht_pos
-  dsimp [Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand]
   calc
-    ‖Complex.I *
-        (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ =
+    ‖Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t‖ =
+        ‖Complex.I *
+          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
+      exact congrArg norm
+        (Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand_unfold N w t)
+    _ =
         ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
       calc
@@ -584,7 +632,6 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_major
     _ =
         (4 * (1 + ‖w‖) / (N + 1 : ℝ)) *
           Complex.binetAbelPlanaVerticalKernelMajorant t := by
-      dsimp [Complex.binetAbelPlanaVerticalKernelMajorant]
       calc
         ((4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t) /
             (Real.exp ((2 : ℝ) * Real.pi * t) - 1) =
@@ -635,11 +682,12 @@ theorem Complex.finiteAbelPlana_log_upperVerticalIntegrand_integrableOn_Ioi
         (w := w)
         (N := N)
         hmajorant
-    change
-      Integrable
+    have hresidual_integrable :
+        Integrable
         (fun t : ℝ =>
           ‖Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t‖)
-        (volume.restrict (Set.Ioi (0 : ℝ))) at hresidual_on
+        (volume.restrict (Set.Ioi (0 : ℝ))) :=
+      hresidual_on
     have hfun :
         (fun t : ℝ =>
             ‖Complex.finiteAbelPlanaLogUpperVerticalIntegrand N w t‖) =
@@ -652,8 +700,8 @@ theorem Complex.finiteAbelPlana_log_upperVerticalIntegrand_integrableOn_Ioi
       (motive := fun f : ℝ → ℝ =>
         Integrable f (volume.restrict (Set.Ioi (0 : ℝ))))
       hfun.symm
-      hresidual_on
-  change
+      hresidual_integrable
+  show
     Integrable
       (fun t : ℝ => Complex.finiteAbelPlanaLogUpperVerticalIntegrand N w t)
       (volume.restrict (Set.Ioi (0 : ℝ)))
@@ -664,7 +712,7 @@ theorem Complex.finiteAbelPlana_log_upperVerticalIntegrand_integrableOn_Ioi
     have hmeas_global :
         Measurable
           (fun t : ℝ => Complex.finiteAbelPlanaLogUpperVerticalIntegrand N w t) := by
-      change
+      show
         Measurable
           (fun t : ℝ =>
             Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t)

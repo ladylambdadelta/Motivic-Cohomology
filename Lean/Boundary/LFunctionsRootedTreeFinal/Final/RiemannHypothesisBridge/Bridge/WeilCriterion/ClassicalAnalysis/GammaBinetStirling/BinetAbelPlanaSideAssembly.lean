@@ -34,6 +34,61 @@ theorem Complex.finiteAbelPlana_sideExpression_collect_horizontal
       exact add_right_comm
         (lowerConstant - upperConstant) (bottom - top) rawVertical
 
+/-- The named two-face boundary sum unfolds to the real endpoint side plus the
+named vertical side. -/
+theorem Complex.finiteAbelPlana_log_namedBoundaryFaceSum_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T =
+      Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
+        Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T := by
+  rfl
+
+/-- The finite-height rectangle side is the lower side minus the upper side
+plus the raw vertical contribution. -/
+theorem Complex.finiteAbelPlana_log_rectangleSideExpression_eq_horizontal_add_rawVertical
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
+      Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T -
+        Complex.finiteAbelPlanaLogFiniteHeightUpperSide N w T +
+          Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T := by
+  have hrectangle :
+      Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T -
+          Complex.finiteAbelPlanaLogFiniteHeightUpperSide N w T +
+            Complex.I * Complex.finiteAbelPlanaLogFiniteHeightRightSide N w T -
+              Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T :=
+    Complex.finiteAbelPlana_log_finiteHeightRectangleSideExpression_unfold
+      N w T
+  have hraw :
+      Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T =
+        Complex.I * Complex.finiteAbelPlanaLogFiniteHeightRightSide N w T -
+          Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T :=
+    Complex.finiteAbelPlana_log_finiteHeightRawVerticalSideExpression_unfold
+      N w T
+  exact hrectangle.trans
+    (congrArg
+      (fun z : ℂ =>
+        Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T -
+          Complex.finiteAbelPlanaLogFiniteHeightUpperSide N w T + z)
+      hraw.symm)
+
+/-- Replacing the lower and upper horizontal sides by their constant and
+exponential pieces collects the rectangle side into the named vertical block
+plus the horizontal error block. -/
+theorem Complex.finiteAbelPlana_sideExpression_collect_after_horizontal_splits
+    (lower upper lowerConstant bottom upperConstant top rawVertical : ℂ)
+    (hlower : lower = lowerConstant + bottom)
+    (hupper : upper = upperConstant + top) :
+    lower - upper + rawVertical =
+      (lowerConstant - upperConstant + rawVertical) + (bottom - top) := by
+  exact hlower ▸ hupper ▸
+    Complex.finiteAbelPlana_sideExpression_collect_horizontal
+      lowerConstant bottom upperConstant top rawVertical
+
 /-- The constant horizontal cotangent pieces and raw vertical sides normalize
 to the real-axis endpoint contribution plus the named Abel-Plana vertical
 jump expression. -/
@@ -61,8 +116,8 @@ theorem Complex.finiteAbelPlana_log_constantHorizontal_rawVertical_eq_realEndpoi
         Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T :=
     Complex.finiteAbelPlana_log_boundaryFaces_reconstruct_namedBoundary
       N w T hT
-  dsimp [Complex.finiteAbelPlanaLogNamedBoundaryFaceSum]
-  exact hfaces_raw.symm.trans hfaces_named
+  exact (hfaces_raw.symm.trans hfaces_named).trans
+    (Complex.finiteAbelPlana_log_namedBoundaryFaceSum_unfold N w T)
 
 /-- Lower/upper cotangent half-plane algebra for the full finite-height side
 expression.
@@ -99,31 +154,29 @@ theorem Complex.finiteAbelPlana_log_finiteHeightSideAlgebra_eq_realEndpoint_vert
           Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T :=
     Complex.finiteAbelPlana_log_constantHorizontal_rawVertical_eq_realEndpoint_namedVertical
       N w T hT
-  dsimp [Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression,
-    Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression,
-    Complex.finiteAbelPlanaLogHorizontalEdgeError]
-  rw [hlower, hupper]
   calc
-    (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
-          Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T) -
-        (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
-          Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) +
-        (Complex.I * Complex.finiteAbelPlanaLogFiniteHeightRightSide N w T -
-          Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T) =
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpression N w T =
+        Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T -
+          Complex.finiteAbelPlanaLogFiniteHeightUpperSide N w T +
+            Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T :=
+      Complex.finiteAbelPlana_log_rectangleSideExpression_eq_horizontal_add_rawVertical
+        N w T
+    _ =
         (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T -
           Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T +
             Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T) +
           (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
             Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) := by
-      dsimp [Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression]
       exact
-        Complex.finiteAbelPlana_sideExpression_collect_horizontal
+        Complex.finiteAbelPlana_sideExpression_collect_after_horizontal_splits
+          (Complex.finiteAbelPlanaLogFiniteHeightLowerSide N w T)
+          (Complex.finiteAbelPlanaLogFiniteHeightUpperSide N w T)
           (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T)
           (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T)
           (Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T)
           (Complex.finiteAbelPlanaLogTopHorizontalEdge N w T)
-          (Complex.I * Complex.finiteAbelPlanaLogFiniteHeightRightSide N w T -
-            Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSide w T)
+          (Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpression N w T)
+          hlower hupper
     _ =
         (Complex.finiteAbelPlanaLogFiniteHeightRealEndpointSideExpression N w +
           Complex.finiteAbelPlanaLogFiniteHeightNamedVerticalSideExpression N w T) +
@@ -244,6 +297,40 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_integerRes
     Complex.finiteAbelPlana_log_finiteHeightRectangle_principalValueResidueTheorem
       hw N T hT
 
+/-- Pointwise decomposition of the PV-normalized rectangle side expression
+into the two PV-normalized boundary faces and the horizontal edge error. -/
+theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPVNormalized_boundaryFaces_algebra
+    (N : ℕ)
+    (w : ℂ)
+    (T ε : ℝ) :
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ε =
+      (Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ε +
+        Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ε) +
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
+  unfold Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized
+    Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized
+    Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPV
+    Complex.finiteAbelPlanaLogFiniteHeightRawVerticalSideExpressionPV
+    Complex.finiteAbelPlanaLogFiniteHeightHorizontalSideExpression
+    Complex.finiteAbelPlanaLogHorizontalEdgeError
+    Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide
+    Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide
+  abel_nf
+
+/-- Pointwise decomposition of the PV-normalized rectangle side expression
+into the two PV-normalized boundary faces and the horizontal edge error. -/
+theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPVNormalized_eq_boundaryFaces_add_horizontalError
+    (N : ℕ)
+    (w : ℂ)
+    (T ε : ℝ) :
+    Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ε =
+      (Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ε +
+        Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ε) +
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T :=
+  Complex.finiteAbelPlana_log_rectangleSideExpressionPVNormalized_boundaryFaces_algebra
+    N w T ε
+
 /-- The principal-value finite-height rectangle side expression tends to the
 named finite-height Abel-Plana side expression plus the horizontal error.
 
@@ -290,10 +377,9 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPV_tendsto_namedSide_
           Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ε) +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) := by
     funext ε
-    dsimp [Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized,
-      Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized,
-      Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized]
-    ring
+    exact
+      Complex.finiteAbelPlana_log_rectangleSideExpressionPVNormalized_eq_boundaryFaces_add_horizontalError
+        N w T ε
   have htarget :
       Complex.finiteAbelPlanaLogNamedBoundaryFaceSum N w T +
           Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =

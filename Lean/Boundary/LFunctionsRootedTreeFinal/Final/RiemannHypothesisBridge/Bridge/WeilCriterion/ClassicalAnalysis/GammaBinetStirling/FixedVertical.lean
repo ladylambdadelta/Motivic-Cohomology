@@ -357,7 +357,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
     ⟨C0, hC0_pos, hstirling⟩
   let b : ℝ := Real.pi / 4
   have hb_pos : 0 < b := by
-    dsimp [b]
+    show 0 < Real.pi / 4
     exact Real.pi_div_four_pos
   rcases
       Real.one_add_rpow_le_exp_mul_of_large
@@ -366,7 +366,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_large_from_stirlin
   let T : ℝ := max (1 / 2) T0
   let A : ℝ := Real.pi / 2 + 2 * b
   have hA_pos : 0 < A := by
-    dsimp [A]
+    show 0 < Real.pi / 2 + 2 * b
     exact add_pos (half_pos Real.pi_pos) (mul_pos zero_lt_two hb_pos)
   refine ⟨T, C0, A, ?_, hC0_pos, hA_pos, ?_⟩
   · exact lt_of_lt_of_le (half_pos zero_lt_one) (le_max_left (1 / 2) T0)

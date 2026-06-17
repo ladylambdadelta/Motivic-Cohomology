@@ -155,12 +155,17 @@ theorem ExplicitFormulaFamilyAnalyticPackage.completedZetaNegLogDeriv_zeroExcise
             ≤ C * (1 + ‖z.im‖) ^ K := by
   exact h.logderiv_control.zeroExcisedPolynomialGrowth a b E
 
-/-- The analytic package induces the family package for every contour family. -/
+/-- The analytic package induces the family package for a contour family equipped with
+explicit schedule data. -/
 def ExplicitFormulaAnalyticPackage.toFamilyPackage
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
-    (F : ExplicitFormulaContourFamily) :
-    ExplicitFormulaFamilyAnalyticPackage f F := by
-  exact { phi_control := h.phi_control, logderiv_control := h.logderiv_control }
+    (F : ExplicitFormulaVerticallyRegularContourFamily)
+    (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily) :
+    ExplicitFormulaFamilyAnalyticPackage f F.toContourFamily := by
+  exact
+    { phi_control := h.phi_control
+      logderiv_control := h.logderiv_control
+      height_schedule := hSchedule }
 
 /-- The contour-data owner object exposes the edge continuity statements for the contour
 integrand. -/
@@ -846,7 +851,7 @@ instantiated. -/
 theorem ExplicitFormulaAnalyticPackage.contourShiftTarget'
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
     explicitFormulaContourShiftTarget f h.contour_data.rectangle ↔
-      zetaCompletedZeroKreinGram f =
+      zetaCompletedResidueBoundarySumComplex f =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f :=
   explicitFormulaContourShiftTarget_iff f h.contour_data.rectangle
 
@@ -854,7 +859,7 @@ theorem ExplicitFormulaAnalyticPackage.contourShiftTarget'
 theorem ExplicitFormulaAnalyticPackage.contourShiftTarget
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f)
     (htarget :
-      zetaCompletedZeroKreinGram f =
+      zetaCompletedResidueBoundarySumComplex f =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f) :
     explicitFormulaContourShiftTarget f h.contour_data.rectangle :=
   htarget
@@ -863,7 +868,7 @@ theorem ExplicitFormulaAnalyticPackage.contourShiftTarget
 theorem ExplicitFormulaAnalyticPackage.contourShiftTarget_iff
     {f : ZetaAdmissibleFunction} (h : ExplicitFormulaAnalyticPackage f) :
     explicitFormulaContourShiftTarget f h.contour_data.rectangle ↔
-      zetaCompletedZeroKreinGram f =
+      zetaCompletedResidueBoundarySumComplex f =
         zetaCompletedExplicitFormulaBoundarySumAnalytic f := by
   rfl
 

@@ -1,15 +1,15 @@
-import Boundary.LFunctions.AutocorrelationCore
+import Boundary.LFunctions.ZetaAdmissibleAutocorrelation
 
 /-!
 # Boundary admissible autocorrelation
 
-This file re-exports the raw autocorrelation constructor for admissible test
-functions from the lower-level core file. The core file owns the definitions;
-this file exists only to preserve the historical import path used by the probe
-interface.
+This copied-tree wrapper preserves the admissible autocorrelation import path
+for the copied admissible branch. The flat owner file still owns the actual
+definitions.
 -/
 
 namespace Boundary
 namespace LFunctions
 
 noncomputable section
+

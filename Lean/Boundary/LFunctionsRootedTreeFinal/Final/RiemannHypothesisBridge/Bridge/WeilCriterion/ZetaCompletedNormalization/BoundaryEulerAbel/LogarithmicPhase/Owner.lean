@@ -453,8 +453,9 @@ theorem logarithmicPhase_nat_sample_norm_le_one
     (t : ℝ)
     (k : ℕ) :
     ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤ 1 := by
-  by_cases hk : k = 0
-  · have hterm :
+  match Decidable.em (k = 0) with
+  | Or.inl hk =>
+    have hterm :
         (k : ℂ) ^ (-(t : ℂ) * Complex.I) =
           (0 : ℂ) ^ (-(t : ℂ) * Complex.I) := by
       exact congrArg (fun n : ℕ => (n : ℂ) ^ (-(t : ℂ) * Complex.I)) hk
@@ -462,7 +463,8 @@ theorem logarithmicPhase_nat_sample_norm_le_one
         0 ≤ ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ :=
       norm_nonneg ((k : ℂ) ^ (-(t : ℂ) * Complex.I))
     exact le_trans hnorm_nonneg zero_le_one
-  · have hk_pos : 0 < k :=
+  | Or.inr hk =>
+    have hk_pos : 0 < k :=
       Nat.pos_of_ne_zero hk
     have hnorm :
         ‖(k : ℂ) ^ (-(t : ℂ) * Complex.I)‖ = (k : ℝ) ^ ((-(t : ℂ) * Complex.I).re) :=

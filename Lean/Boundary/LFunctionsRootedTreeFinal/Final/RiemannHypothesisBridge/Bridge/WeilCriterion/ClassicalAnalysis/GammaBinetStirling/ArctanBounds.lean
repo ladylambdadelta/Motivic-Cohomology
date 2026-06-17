@@ -247,7 +247,6 @@ theorem Complex.arctan_geometric_majorant_hasSum
         exact mul_comm ‖z‖ 2
   exact Eq.ndrec hmul hsum_eq
 
-set_option maxHeartbeats 0 in
 /-- Principal arctangent is bounded by twice the argument norm on the closed
 disk `‖z‖ ≤ 1 / 2`, proved from the arctangent power series. -/
 theorem Complex.norm_arctan_le_two_norm_of_norm_le_half_from_series
@@ -838,9 +837,9 @@ theorem Complex.arctan_fixed_tail_ratio_eq
         =
       ((w + (t : ℂ) * Complex.I) / w) /
         ((w - (t : ℂ) * Complex.I) / w) := by
-      congr 1
-      · exact Complex.arctan_fixed_tail_one_add_real_div_mul_I_eq w hw t
-      · exact Complex.arctan_fixed_tail_one_sub_real_div_mul_I_eq w hw t
+      exact congrArg₂ HDiv.hDiv
+        (Complex.arctan_fixed_tail_one_add_real_div_mul_I_eq w hw t)
+        (Complex.arctan_fixed_tail_one_sub_real_div_mul_I_eq w hw t)
     _ = (w + (t : ℂ) * Complex.I) /
           (w - (t : ℂ) * Complex.I) := by
       exact div_div_div_cancel_right₀ hw
@@ -1080,22 +1079,22 @@ theorem Complex.arctan_fixed_tail_ratio_norm_bounds_cleared
   have hden_const_pos : 0 < 3 * ‖w‖ :=
     mul_pos hthree_pos hw_norm_pos
   have hm_pos : 0 < m := by
-    dsimp [m]
+    show 0 < min (w.re / (3 * ‖w‖)) (1 / 3)
     exact
       lt_min
         (div_pos hw_re_pos hden_const_pos)
         (div_pos zero_lt_one hthree_pos)
   have hM_ge_three : 3 ≤ M := by
-    dsimp [M]
+    show 3 ≤ max (3 * ‖w‖ / w.re) 3
     exact le_max_right _ _
   have hm_le_third : m ≤ (1 / 3 : ℝ) := by
-    dsimp [m]
+    show min (w.re / (3 * ‖w‖)) (1 / 3) ≤ (1 / 3 : ℝ)
     exact min_le_right _ _
   have hm_le_bounded : m ≤ w.re / (3 * ‖w‖) := by
-    dsimp [m]
+    show min (w.re / (3 * ‖w‖)) (1 / 3) ≤ w.re / (3 * ‖w‖)
     exact min_le_left _ _
   have hbounded_le_M : 3 * ‖w‖ / w.re ≤ M := by
-    dsimp [M]
+    show 3 * ‖w‖ / w.re ≤ max (3 * ‖w‖ / w.re) 3
     exact le_max_left _ _
   refine ⟨m, M, hm_pos, ?_, ?_⟩
   · exact

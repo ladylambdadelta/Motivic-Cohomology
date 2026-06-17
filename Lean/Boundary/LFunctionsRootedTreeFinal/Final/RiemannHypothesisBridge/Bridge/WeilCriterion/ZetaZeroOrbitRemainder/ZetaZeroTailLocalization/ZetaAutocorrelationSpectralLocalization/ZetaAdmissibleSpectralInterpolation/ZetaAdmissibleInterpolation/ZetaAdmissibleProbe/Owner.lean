@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissibleInterpolation.ZetaAdmissibleProbe.ZetaAdmissibleAutocorrelation.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.FiniteSample.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaTransformCalculusWeighted.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 
@@ -42,8 +43,7 @@ theorem admissibleProbeLaplaceFiniteSample_smul
     (S : Finset ℂ) (c : ℂ) (f : ZetaAdmissibleFunction) :
     admissibleProbeLaplaceFiniteSample S (c • f) =
       c • admissibleProbeLaplaceFiniteSample S f := by
-  funext z
-  unfold admissibleProbeLaplaceFiniteSample
+  ext z
   have hpoint :
       (c • f).toZetaTestFunction' =
         c • f.toZetaTestFunction' := by
@@ -77,8 +77,7 @@ theorem admissibleProbeLaplaceFiniteSample_add
     admissibleProbeLaplaceFiniteSample S (f + g) =
       admissibleProbeLaplaceFiniteSample S f +
         admissibleProbeLaplaceFiniteSample S g := by
-  funext z
-  unfold admissibleProbeLaplaceFiniteSample
+  ext z
   have hpoint :
       (f + g).toZetaTestFunction' =
         f.toZetaTestFunction' + g.toZetaTestFunction' := by
@@ -168,21 +167,19 @@ def admissibleProbeLaplaceFiniteSampleCoordinate
 theorem admissibleProbeLaplaceFiniteSampleCoordinate_self
     (S : Finset ℂ) (z₀ : S) :
     admissibleProbeLaplaceFiniteSampleCoordinate S z₀ z₀ = 1 := by
-  unfold admissibleProbeLaplaceFiniteSampleCoordinate
   exact if_pos rfl
 
 /-- The coordinate vector is zero away from its own coordinate. -/
 theorem admissibleProbeLaplaceFiniteSampleCoordinate_of_ne
     (S : Finset ℂ) {z z₀ : S} (hz : z ≠ z₀) :
     admissibleProbeLaplaceFiniteSampleCoordinate S z₀ z = 0 := by
-  unfold admissibleProbeLaplaceFiniteSampleCoordinate
   exact if_neg hz
 
 /-- Every finite sample vector is the coordinate expansion against the finite delta basis. -/
 theorem admissibleProbeLaplaceFiniteSampleCoordinate_expansion
     (S : Finset ℂ) (a : S → ℂ) :
     (∑ z : S, a z • admissibleProbeLaplaceFiniteSampleCoordinate S z) = a := by
-  funext w
+  ext w
   have hsingle :
       (∑ z : S, (a z • admissibleProbeLaplaceFiniteSampleCoordinate S z) w) =
         (a w • admissibleProbeLaplaceFiniteSampleCoordinate S w) w := by
@@ -256,13 +253,13 @@ theorem admissibleProbeLaplaceFiniteSample_surjective_ownerAdmissibleProbe
     (S : Finset ℂ) :
     Function.Surjective (admissibleProbeLaplaceFiniteSample S) := by
   intro a
-  rcases
+  match
       exists_zetaLaplaceTransformFiniteSample_eq_ownerPaleyWiener
         S a with
-    ⟨f, hf⟩
-  exact ⟨f, by
-    ext z
-    exact hf ⟨z, z.property⟩⟩
+  | ⟨f, hf⟩ =>
+      exact ⟨f, by
+        ext z
+        exact hf ⟨z, z.property⟩⟩
 
 /-- The bundled finite admissible Laplace-sample linear map has full range. -/
 theorem admissibleProbeLaplaceFiniteSample_range_top_ownerAdmissibleProbe
@@ -293,12 +290,12 @@ theorem admissibleProbeLaplaceFiniteSample_dual_separating_ownerAdmissibleProbe
     Λ = 0 := by
   apply LinearMap.ext
   intro a
-  rcases admissibleProbeLaplaceFiniteSample_surjective_ownerAdmissibleProbe S a with
-    ⟨f, hf⟩
-  exact Eq.subst
-    (motive := fun v : S → ℂ => Λ v = 0)
-    hf
-    (hΛ f)
+  match admissibleProbeLaplaceFiniteSample_surjective_ownerAdmissibleProbe S a with
+  | ⟨f, hf⟩ =>
+      exact Eq.subst
+        (motive := fun v : S → ℂ => Λ v = 0)
+        hf
+        (hΛ f)
 
 /-- Finite exponential-distribution tomography by admissible probes.
 
@@ -316,7 +313,7 @@ theorem finiteExponentialDistribution_coefficients_eq_zero_of_tomography_ownerAd
       ∀ f : ZetaAdmissibleFunction,
         Λ (admissibleProbeLaplaceFiniteSample S f) = 0 := by
     intro f
-    change finiteExponentialLaplacePairing S c f = 0
+    show finiteExponentialLaplacePairing S c f = 0
     exact hc f
   have hΛzero : Λ = 0 :=
     admissibleProbeLaplaceFiniteSample_dual_separating_ownerAdmissibleProbe
@@ -326,7 +323,7 @@ theorem finiteExponentialDistribution_coefficients_eq_zero_of_tomography_ownerAd
     exact congrArg (fun M : (S → ℂ) →ₗ[ℂ] ℂ => M e) hΛzero
   have hsingle :
       Λ e = e z₀ * c z₀ := by
-    change
+    show
       (∑ z : S, e z * c z) = e z₀ * c z₀
     exact Finset.sum_eq_single z₀
       (fun z _hz hz =>
@@ -358,15 +355,21 @@ theorem admissibleProbes_separate_finiteExponentialDistributions
     (hc : ∃ z : S, c z ≠ 0) :
     ∃ f : ZetaAdmissibleFunction,
       finiteExponentialLaplacePairing S c f ≠ 0 := by
-  by_contra hnone
-  have hvanish : finiteExponentialDistributionAnnihilatesAdmissibleProbes S c := by
-    intro f
-    by_contra hf
-    exact hnone ⟨f, hf⟩
-  rcases hc with ⟨z, hz⟩
-  exact hz
-    (finiteExponentialDistribution_coefficients_eq_zero_of_tomography_ownerAdmissibleProbe
-      S c hvanish z)
+  match Classical.em (∃ f : ZetaAdmissibleFunction,
+      finiteExponentialLaplacePairing S c f ≠ 0) with
+  | Or.inl hyes => exact hyes
+  | Or.inr hnone =>
+      have hvanish : finiteExponentialDistributionAnnihilatesAdmissibleProbes S c := by
+        intro f
+        match Classical.em (finiteExponentialLaplacePairing S c f = 0) with
+        | Or.inl hf => exact hf
+        | Or.inr hf => exact False.elim (hnone ⟨f, hf⟩)
+      match hc with
+      | ⟨z, hz⟩ =>
+          exact False.elim
+            (hz
+              (finiteExponentialDistribution_coefficients_eq_zero_of_tomography_ownerAdmissibleProbe
+                S c hvanish z))
 
 /-- Admissible probes detect nonzero finite exponential distributions.
 
@@ -399,7 +402,6 @@ theorem finiteExponentialDistribution_annihilates_admissibleProbes_of_coefficien
     (hc : ∀ z : S, c z = 0) :
     finiteExponentialDistributionAnnihilatesAdmissibleProbes S c := by
   intro f
-  unfold finiteExponentialLaplacePairing
   exact Finset.sum_eq_zero
     (fun z _hz =>
       calc

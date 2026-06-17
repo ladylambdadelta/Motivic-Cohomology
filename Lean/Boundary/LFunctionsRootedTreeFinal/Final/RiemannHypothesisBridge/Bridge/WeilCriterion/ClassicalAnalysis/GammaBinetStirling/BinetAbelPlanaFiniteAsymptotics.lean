@@ -25,6 +25,29 @@ noncomputable section
 
 open scoped Topology
 
+/-- Additive regrouping used by the real factorial Stirling endpoint
+normalization.  The variables are intentionally abstract: this is only the
+bookkeeping that moves the factorial, endpoint, and `π` logarithms into their
+standard places. -/
+theorem Real.factorialStirlingEndpoint_final_regroup
+    (A X Y Z U V : ℝ) :
+    A + (-(X + Y - Z) + (-(U) + -(V))) =
+      (A - (U + Y) - (X - Z)) - V := by
+  abel_nf
+
+/-- Ring bookkeeping for the complex endpoint remainder after the finite main
+term, the limiting Binet main term, the factorial Stirling error, and the
+endpoint logarithmic shift have all been unfolded. -/
+theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfolded_regroup
+    (w M logM logw logwM logfac log2pi : ℂ) :
+    w * logM + logfac -
+          (((w + M) * logwM - (w + M)) - (w * logw - w)) -
+        (logw + logwM) / 2 -
+        ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) =
+      (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) +
+        (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) := by
+  ring_nf
+
 /-- Algebraic normalization of the real factorial endpoint error. -/
 theorem Real.factorialStirlingEndpoint_algebra_normalization
     (A M L L₂ Lπ : ℝ) :
@@ -77,7 +100,9 @@ theorem Real.factorialStirlingEndpoint_algebra_normalization
             (-(L₂ / 2) + -(Lπ / 2))) =
             (A - (L₂ / 2 + (1 / 2 : ℝ) * L) - (M * L - M)) -
               Lπ / 2 := by
-          ac_rfl
+          exact
+            Real.factorialStirlingEndpoint_final_regroup
+              A (M * L) ((1 / 2 : ℝ) * L) M (L₂ / 2) (Lπ / 2)
         _ = (A - (1 / 2 : ℝ) * (L₂ + L) - (M * L - M)) -
               Lπ / 2 := by
           exact congrArg
@@ -262,6 +287,16 @@ noncomputable def Complex.binetAbelPlanaFactorialStirlingError
       (M : ℂ) +
         (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
 
+/-- Definition unfolding for the complex factorial Stirling endpoint error. -/
+theorem Complex.binetAbelPlanaFactorialStirlingError_unfold
+    (M : ℕ) :
+    Complex.binetAbelPlanaFactorialStirlingError M =
+      Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+        (((M : ℂ) + (1 / 2 : ℂ)) * Complex.log (M : ℂ) -
+          (M : ℂ) +
+            (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) :=
+  rfl
+
 /-- Real-valued factorial Stirling endpoint error before coercion to `ℂ`. -/
 noncomputable def Real.binetAbelPlanaFactorialStirlingError
     (M : ℕ) : ℝ :=
@@ -269,6 +304,16 @@ noncomputable def Real.binetAbelPlanaFactorialStirlingError
     (((M : ℝ) + (1 / 2 : ℝ)) * Real.log (M : ℝ) -
       (M : ℝ) +
         Real.log (2 * Real.pi) / 2)
+
+/-- Definition unfolding for the real factorial Stirling endpoint error. -/
+theorem Real.binetAbelPlanaFactorialStirlingError_unfold
+    (M : ℕ) :
+    Real.binetAbelPlanaFactorialStirlingError M =
+      Real.log ((Nat.factorial M : ℕ) : ℝ) -
+        (((M : ℝ) + (1 / 2 : ℝ)) * Real.log (M : ℝ) -
+          (M : ℝ) +
+            Real.log (2 * Real.pi) / 2) :=
+  rfl
 
 /-- The real factorial Stirling endpoint error is the logarithm of mathlib's
 Stirling sequence, normalized by its limiting value `√π`. -/
@@ -329,7 +374,7 @@ theorem Real.binetAbelPlanaFactorialStirlingError_eq_log_stirlingSeq_sub_log_sqr
                     Real.log Real.pi := by
                 exact congrArg (fun x : ℝ => x - Real.log Real.pi) h4
               _ = Real.log (2 : ℝ) := by
-                ac_rfl
+                exact add_sub_cancel_right (Real.log (2 : ℝ)) (Real.log Real.pi)
           calc
             Real.log ((Nat.factorial M : ℕ) : ℝ) -
                 (((M : ℝ) + (1 / 2 : ℝ)) * Real.log (M : ℝ) -
@@ -435,12 +480,27 @@ theorem Complex.binetAbelPlanaFactorialStirlingError_eq_ofReal
   have hM_nonneg : 0 ≤ (M : ℝ) := hMpos_real.le
   have htwo_pi_nonneg : 0 ≤ (2 : ℝ) * Real.pi :=
     (mul_pos two_pos Real.pi_pos).le
-  dsimp [Complex.binetAbelPlanaFactorialStirlingError,
-    Real.binetAbelPlanaFactorialStirlingError]
+  have hcomplex_unfold :
+      Complex.binetAbelPlanaFactorialStirlingError M =
+        Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+          (((M : ℂ) + (1 / 2 : ℂ)) * Complex.log (M : ℂ) -
+            (M : ℂ) +
+              (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) :=
+    Complex.binetAbelPlanaFactorialStirlingError_unfold M
+  have hreal_unfold :
+      Real.binetAbelPlanaFactorialStirlingError M =
+        Real.log ((Nat.factorial M : ℕ) : ℝ) -
+          (((M : ℝ) + (1 / 2 : ℝ)) * Real.log (M : ℝ) -
+            (M : ℝ) +
+              Real.log (2 * Real.pi) / 2) :=
+    Real.binetAbelPlanaFactorialStirlingError_unfold M
   calc
-    Complex.log (((Nat.factorial M : ℕ) : ℂ)) -
-        (((M : ℂ) + (1 / 2 : ℂ)) * Complex.log (M : ℂ) -
-          (M : ℂ) + (((Real.log (2 * Real.pi) : ℝ) : ℂ) / 2)) =
+    Complex.binetAbelPlanaFactorialStirlingError M =
+        Complex.log (((Nat.factorial M : ℕ) : ℂ)) -
+          (((M : ℂ) + (1 / 2 : ℂ)) * Complex.log (M : ℂ) -
+            (M : ℂ) + (((Real.log (2 * Real.pi) : ℝ) : ℂ) / 2)) :=
+          hcomplex_unfold
+    _ =
         ((Real.log ((Nat.factorial M : ℕ) : ℝ) : ℝ) : ℂ) -
           (((M : ℂ) + (1 / 2 : ℂ)) *
             ((Real.log (M : ℝ) : ℝ) : ℂ) -
@@ -470,6 +530,8 @@ theorem Complex.binetAbelPlanaFactorialStirlingError_eq_ofReal
             (M : ℝ)
             (Real.log (M : ℝ))
             (Real.log (2 * Real.pi))).symm
+    _ = (Real.binetAbelPlanaFactorialStirlingError M : ℂ) := by
+        exact congrArg (fun x : ℝ => (x : ℂ)) hreal_unfold.symm
 
 /-- The real factorial Stirling endpoint error tends to zero. -/
 theorem Real.binetAbelPlanaFactorialStirlingError_tendsto_zero_owner :
@@ -524,16 +586,38 @@ noncomputable def Complex.binetAbelPlanaEndpointLogShiftError
       (Complex.log (M : ℂ) - Complex.log (w + (M : ℂ)))) +
     w
 
+/-- Definition unfolding for the endpoint logarithmic-shift error. -/
+theorem Complex.binetAbelPlanaEndpointLogShiftError_unfold
+    (w : ℂ)
+    (M : ℕ) :
+    Complex.binetAbelPlanaEndpointLogShiftError w M =
+      ((w + (M : ℂ) + (1 / 2 : ℂ)) *
+          (Complex.log (M : ℂ) - Complex.log (w + (M : ℂ)))) +
+        w := rfl
+
 /-- The positive-real scaling factor in the endpoint logarithm. -/
 noncomputable def Complex.binetEndpointScale
     (M : ℕ) : ℂ :=
   (M : ℂ)
+
+/-- Definition unfolding for the endpoint scale. -/
+theorem Complex.binetEndpointScale_unfold
+    (M : ℕ) :
+    Complex.binetEndpointScale M = (M : ℂ) := rfl
 
 /-- The small logarithmic endpoint variable `w / M`. -/
 noncomputable def Complex.binetEndpointSmallVariable
     (w : ℂ)
     (M : ℕ) : ℂ :=
   w / Complex.binetEndpointScale M
+
+/-- Definition unfolding for the small endpoint variable. -/
+theorem Complex.binetEndpointSmallVariable_unfold
+    (w : ℂ)
+    (M : ℕ) :
+    Complex.binetEndpointSmallVariable w M = w / (M : ℂ) := by
+  exact congrArg (fun z : ℂ => w / z)
+    (Complex.binetEndpointScale_unfold M)
 
 /-- Norm of division by the positive natural endpoint scale. -/
 theorem Complex.norm_div_natCast
@@ -551,8 +635,10 @@ theorem Complex.norm_binetEndpointSmallVariable_eq
     (w : ℂ)
     (M : ℕ) :
     ‖Complex.binetEndpointSmallVariable w M‖ = ‖w‖ / (M : ℝ) := by
-  dsimp [Complex.binetEndpointSmallVariable, Complex.binetEndpointScale]
-  exact Complex.norm_div_natCast w M
+  exact
+    Eq.trans
+      (congrArg norm (Complex.binetEndpointSmallVariable_unfold w M))
+      (Complex.norm_div_natCast w M)
 
 /-- The endpoint logarithmic Taylor error `log (1 + z) - z`. -/
 noncomputable def Complex.binetEndpointLogTaylorError
@@ -560,6 +646,14 @@ noncomputable def Complex.binetEndpointLogTaylorError
     (M : ℕ) : ℂ :=
   Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
     Complex.binetEndpointSmallVariable w M
+
+/-- Definition unfolding for the endpoint logarithmic Taylor error. -/
+theorem Complex.binetEndpointLogTaylorError_unfold
+    (w : ℂ)
+    (M : ℕ) :
+    Complex.binetEndpointLogTaylorError w M =
+      Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
+        Complex.binetEndpointSmallVariable w M := rfl
 
 /-- The endpoint logarithmic branch identity in the open right half-plane. -/
 theorem Complex.binetEndpoint_log_nat_add_eq_log_nat_add_log_one_add
@@ -580,10 +674,12 @@ theorem Complex.binetEndpoint_log_nat_add_eq_log_nat_add_log_one_add
       Nat.cast_ne_zero.mpr hM
     have hcancel : (M : ℂ) * (M : ℂ)⁻¹ = 1 :=
       mul_inv_cancel₀ hM_ne
-    dsimp [Complex.binetEndpointSmallVariable, Complex.binetEndpointScale]
     calc
-      (M : ℂ) * (1 + w / (M : ℂ)) =
-          (M : ℂ) * 1 + (M : ℂ) * (w / (M : ℂ)) := by
+      (M : ℂ) * (1 + Complex.binetEndpointSmallVariable w M) =
+          (M : ℂ) * (1 + w / (M : ℂ)) := by
+        exact congrArg (fun z : ℂ => (M : ℂ) * (1 + z))
+          (Complex.binetEndpointSmallVariable_unfold w M)
+      _ = (M : ℂ) * 1 + (M : ℂ) * (w / (M : ℂ)) := by
         exact mul_add (M : ℂ) 1 (w / (M : ℂ))
       _ = (M : ℂ) + (M : ℂ) * (w / (M : ℂ)) := by
         exact congrArg
@@ -657,21 +753,40 @@ theorem Complex.binetAbelPlanaEndpointLogShiftError_eq_taylor_normal_form
         Complex.log (M : ℂ) +
           Complex.log (1 + Complex.binetEndpointSmallVariable w M) :=
     Complex.binetEndpoint_log_nat_add_eq_log_nat_add_log_one_add hM hw
-  dsimp [Complex.binetAbelPlanaEndpointLogShiftError,
-    Complex.binetEndpointLogTaylorError,
-    Complex.binetEndpointSmallVariable,
-    Complex.binetEndpointScale]
+  have hshift :
+      Complex.binetAbelPlanaEndpointLogShiftError w M =
+        ((w + (M : ℂ) + (1 / 2 : ℂ)) *
+          (Complex.log (M : ℂ) - Complex.log (w + (M : ℂ)))) + w :=
+    Complex.binetAbelPlanaEndpointLogShiftError_unfold w M
+  have htaylor :
+      Complex.binetEndpointLogTaylorError w M =
+        Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
+          Complex.binetEndpointSmallVariable w M :=
+    Complex.binetEndpointLogTaylorError_unfold w M
+  have hsmall :
+      Complex.binetEndpointSmallVariable w M = w / (M : ℂ) :=
+    Complex.binetEndpointSmallVariable_unfold w M
   exact
-    Eq.trans
-      (congrArg
-        (fun z : ℂ =>
-          ((w + (M : ℂ) + (1 / 2 : ℂ)) *
-            (Complex.log (M : ℂ) - z)) + w)
-        hlog)
-      (Complex.binetEndpointLogShiftError_taylor_algebra
-        (w := w)
-        (L := Complex.log (1 + w / (M : ℂ)))
-        hM)
+    Eq.trans hshift
+      (Eq.trans
+        (congrArg
+          (fun z : ℂ =>
+            ((w + (M : ℂ) + (1 / 2 : ℂ)) *
+              (Complex.log (M : ℂ) - z)) + w)
+          hlog)
+        (Eq.trans
+          (Complex.binetEndpointLogShiftError_taylor_algebra
+            (w := w)
+            (L := Complex.log (1 + w / (M : ℂ)))
+            hM)
+          (congrArg
+            (fun z : ℂ =>
+              -((w * (w + (1 / 2 : ℂ))) / (M : ℂ)) -
+                (w + (M : ℂ) + (1 / 2 : ℂ)) * z)
+            (Eq.trans htaylor
+              (congrArg
+                (fun z : ℂ => Complex.log (1 + z) - z)
+                hsmall)).symm)))
 
 /-- Eventually the endpoint small variable lies in the Taylor disk
 `‖z‖ ≤ 1 / 2`. -/
@@ -685,15 +800,15 @@ theorem Complex.eventually_norm_binetEndpointSmallVariable_le_half
   filter_upwards [hbound] with M hM
   by_cases hMzero : M = 0
   · subst M
-    dsimp [Complex.binetEndpointSmallVariable, Complex.binetEndpointScale]
     calc
-      ‖w / (0 : ℂ)‖ = 0 := by
+      ‖Complex.binetEndpointSmallVariable w 0‖ = ‖w / (0 : ℂ)‖ := by
+        exact congrArg norm (Complex.binetEndpointSmallVariable_unfold w 0)
+      _ = 0 := by
         exact congrArg norm (div_zero w)
       _ ≤ (1 / 2 : ℝ) :=
         div_nonneg zero_le_one zero_le_two
   · have hMpos_nat : 0 < M := Nat.pos_of_ne_zero hMzero
     have hMpos_real : 0 < (M : ℝ) := Nat.cast_pos.mpr hMpos_nat
-    dsimp [Complex.binetEndpointSmallVariable, Complex.binetEndpointScale]
     have htwo_ne : (2 : ℝ) ≠ 0 :=
       two_ne_zero
     have hdiv_bound :
@@ -1122,6 +1237,39 @@ theorem Real.endpoint_add_half_le_three_halves
     _ = (3 / 2 : ℝ) * M :=
       (Real.three_div_two_mul M).symm
 
+/-- Multiplication reassociation used to expose the denominator cancellation in
+the endpoint Taylor second term. -/
+theorem Real.endpoint_denominator_mul_reassociate
+    (a M r : ℝ) :
+    (a * M) * ((r * M⁻¹) * (r * M⁻¹)) =
+      a * ((M * M⁻¹) * (r * (r * M⁻¹))) := by
+  calc
+    (a * M) * ((r * M⁻¹) * (r * M⁻¹)) =
+        a * (M * ((r * M⁻¹) * (r * M⁻¹))) :=
+      mul_assoc a M ((r * M⁻¹) * (r * M⁻¹))
+    _ = a * ((M * (r * M⁻¹)) * (r * M⁻¹)) := by
+      exact congrArg (fun x : ℝ => a * x)
+        (mul_assoc M (r * M⁻¹) (r * M⁻¹))
+    _ = a * (((M * r) * M⁻¹) * (r * M⁻¹)) := by
+      exact congrArg
+        (fun x : ℝ => a * (x * (r * M⁻¹)))
+        (mul_assoc M r M⁻¹)
+    _ = a * (((r * M) * M⁻¹) * (r * M⁻¹)) := by
+      exact congrArg
+        (fun x : ℝ => a * ((x * M⁻¹) * (r * M⁻¹)))
+        (mul_comm M r)
+    _ = a * ((r * (M * M⁻¹)) * (r * M⁻¹)) := by
+      exact congrArg
+        (fun x : ℝ => a * (x * (r * M⁻¹)))
+        (mul_assoc r M M⁻¹).symm
+    _ = a * (((M * M⁻¹) * r) * (r * M⁻¹)) := by
+      exact congrArg
+        (fun x : ℝ => a * (x * (r * M⁻¹)))
+        (mul_comm r (M * M⁻¹))
+    _ = a * ((M * M⁻¹) * (r * (r * M⁻¹))) := by
+      exact congrArg (fun x : ℝ => a * x)
+        (mul_assoc (M * M⁻¹) r (r * M⁻¹))
+
 /-- Scalar denominator normalization for the endpoint Taylor second term. -/
 theorem Real.endpoint_second_term_le_cubic_over_endpoint
     {r M : ℝ}
@@ -1144,7 +1292,7 @@ theorem Real.endpoint_second_term_le_cubic_over_endpoint
           (fun x : ℝ => ((3 / 2 : ℝ) * M) * (x * x))
           (div_eq_mul_inv r M)
       _ = (3 / 2 : ℝ) * ((M * M⁻¹) * (r * (r * M⁻¹))) := by
-        ac_rfl
+        exact Real.endpoint_denominator_mul_reassociate (3 / 2 : ℝ) M r
       _ = (3 / 2 : ℝ) * (1 * (r * (r * M⁻¹))) := by
         exact congrArg
           (fun x : ℝ => (3 / 2 : ℝ) * (x * (r * (r * M⁻¹))))
@@ -1354,11 +1502,16 @@ theorem Complex.norm_binetEndpointLogTaylorError_le_square
   have hden :
       (1 - ‖Complex.binetEndpointSmallVariable w M‖)⁻¹ ≤ (2 : ℝ) := by
     exact Real.inv_one_sub_le_two_of_le_half hsmall
-  dsimp [Complex.binetEndpointLogTaylorError]
+  have herror :
+      ‖Complex.binetEndpointLogTaylorError w M‖ =
+        ‖Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
+          Complex.binetEndpointSmallVariable w M‖ := by
+    exact congrArg norm (Complex.binetEndpointLogTaylorError_unfold w M)
   calc
-    ‖Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
-        Complex.binetEndpointSmallVariable w M‖
-        ≤
+    ‖Complex.binetEndpointLogTaylorError w M‖ =
+        ‖Complex.log (1 + Complex.binetEndpointSmallVariable w M) -
+          Complex.binetEndpointSmallVariable w M‖ := herror
+    _ ≤
         ‖Complex.binetEndpointSmallVariable w M‖ ^ 2 *
           (1 - ‖Complex.binetEndpointSmallVariable w M‖)⁻¹ / 2 := hraw
     _ ≤ ‖Complex.binetEndpointSmallVariable w M‖ ^ 2 * 2 / 2 := by
@@ -1521,29 +1674,93 @@ theorem Complex.norm_binetAbelPlanaEndpointLogShiftError_le_large_endpoint_major
 /-- Exact algebraic endpoint decomposition: the finite endpoint remainder is
 the sum of the factorial Stirling error and the branch-safe endpoint shift
 error. -/
+theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_eq_factorial_add_shift_algebra
+    (w : ℂ)
+    (N : ℕ) :
+    Complex.binetAbelPlanaFiniteMainTerm N w -
+        Complex.binetLogGammaMainTerm w =
+      Complex.binetAbelPlanaFactorialStirlingError (N + 1) +
+        Complex.binetAbelPlanaEndpointLogShiftError w (N + 1) := by
+  have hmain :
+      Complex.binetAbelPlanaFiniteMainTerm N w =
+        let M : ℕ := N + 1
+        w * Complex.log (M : ℂ) + Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+          (((w + (M : ℂ)) * Complex.log (w + (M : ℂ)) - (w + (M : ℂ))) -
+            (w * Complex.log w - w)) -
+          (Complex.log w + Complex.log (w + (M : ℂ))) / 2 :=
+    Complex.binetAbelPlanaFiniteMainTerm_unfold N w
+  have hlimit :
+      Complex.binetLogGammaMainTerm w =
+        (w - (1 / 2 : ℂ)) * Complex.log w - w +
+          (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2 :=
+    Complex.binetLogGammaMainTerm_unfold w
+  have hfactorial :
+      Complex.binetAbelPlanaFactorialStirlingError (N + 1) =
+        Complex.log ((Nat.factorial (N + 1) : ℕ) : ℂ) -
+          ((((N + 1 : ℕ) : ℂ) + (1 / 2 : ℂ)) *
+              Complex.log ((N + 1 : ℕ) : ℂ) -
+            ((N + 1 : ℕ) : ℂ) +
+              (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) :=
+    Complex.binetAbelPlanaFactorialStirlingError_unfold (N + 1)
+  have hshift :
+      Complex.binetAbelPlanaEndpointLogShiftError w (N + 1) =
+        ((w + ((N + 1 : ℕ) : ℂ) + (1 / 2 : ℂ)) *
+            (Complex.log ((N + 1 : ℕ) : ℂ) -
+              Complex.log (w + ((N + 1 : ℕ) : ℂ)))) +
+          w :=
+    Complex.binetAbelPlanaEndpointLogShiftError_unfold w (N + 1)
+  exact hmain ▸ hlimit ▸ hfactorial.symm ▸ hshift.symm ▸ by
+    exact
+      Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfolded_regroup
+        w ((N + 1 : ℕ) : ℂ)
+        (Complex.log ((N + 1 : ℕ) : ℂ))
+        (Complex.log w)
+        (Complex.log (w + ((N + 1 : ℕ) : ℂ)))
+        (Complex.log ((Nat.factorial (N + 1) : ℕ) : ℂ))
+        (((Real.log (2 * Real.pi)) : ℝ) : ℂ)
+
+/-- Exact algebraic endpoint decomposition: the finite endpoint remainder is
+the sum of the factorial Stirling error and the branch-safe endpoint shift
+error. -/
 theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_eq_factorial_add_shift
     (w : ℂ)
     (N : ℕ) :
     Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w =
       Complex.binetAbelPlanaFactorialStirlingError (N + 1) +
         Complex.binetAbelPlanaEndpointLogShiftError w (N + 1) := by
-  dsimp [Complex.binetAbelPlanaFiniteEndpointStirlingRemainder,
-    Complex.binetAbelPlanaFiniteMainTerm,
-    Complex.binetLogGammaMainTerm,
-    Complex.binetAbelPlanaFactorialStirlingError,
-    Complex.binetAbelPlanaEndpointLogShiftError]
-  ac_rfl
+  have hendpoint_unfold :
+      Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w =
+        Complex.binetAbelPlanaFiniteMainTerm N w -
+          Complex.binetLogGammaMainTerm w :=
+    Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_core_unfold N w
+  exact
+    Eq.trans hendpoint_unfold
+      (Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_eq_factorial_add_shift_algebra
+        w N)
 
 /-- Factorial Stirling error majorant for the endpoint decomposition. -/
 noncomputable def Complex.binetAbelPlanaFactorialStirlingMajorant
     (N : ℕ) : ℝ :=
   (1 : ℝ) / (N + 1 : ℝ)
 
+/-- Definition unfolding for the factorial Stirling endpoint majorant. -/
+theorem Complex.binetAbelPlanaFactorialStirlingMajorant_unfold
+    (N : ℕ) :
+    Complex.binetAbelPlanaFactorialStirlingMajorant N =
+      (1 : ℝ) / (N + 1 : ℝ) := rfl
+
 /-- Endpoint logarithmic-shift majorant for the endpoint decomposition. -/
 noncomputable def Complex.binetAbelPlanaEndpointLogShiftMajorant
     (w : ℂ)
     (N : ℕ) : ℝ :=
   4 * (1 + ‖w‖) ^ 3 / (N + 1 : ℝ)
+
+/-- Definition unfolding for the endpoint logarithmic-shift majorant. -/
+theorem Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold
+    (w : ℂ)
+    (N : ℕ) :
+    Complex.binetAbelPlanaEndpointLogShiftMajorant w N =
+      4 * (1 + ‖w‖) ^ 3 / (N + 1 : ℝ) := rfl
 
 /-- Explicit endpoint-Stirling majorant for the finite Abel-Plana endpoint
 remainder.
@@ -1583,8 +1800,10 @@ theorem Complex.binetAbelPlanaFactorialStirlingMajorant_tendsto_zero :
         Complex.binetAbelPlanaFactorialStirlingMajorant N) =
       (fun N : ℕ => ((N + 1 : ℝ))⁻¹) := by
     funext N
-    dsimp [Complex.binetAbelPlanaFactorialStirlingMajorant]
-    exact one_div (N + 1 : ℝ)
+    exact
+      Eq.trans
+        (Complex.binetAbelPlanaFactorialStirlingMajorant_unfold N)
+        (one_div (N + 1 : ℝ))
   exact heq ▸ hinv
 
 /-- The endpoint logarithmic-shift majorant tends to zero. -/
@@ -1626,10 +1845,12 @@ theorem Complex.binetAbelPlanaEndpointLogShiftMajorant_tendsto_zero
         Complex.binetAbelPlanaEndpointLogShiftMajorant w N) =
       (fun N : ℕ => 4 * (1 + ‖w‖) ^ 3 * ((N + 1 : ℝ))⁻¹) := by
     funext N
-    dsimp [Complex.binetAbelPlanaEndpointLogShiftMajorant]
-    exact div_eq_mul_inv
-      (4 * (1 + ‖w‖) ^ 3)
-      (N + 1 : ℝ)
+    exact
+      Eq.trans
+        (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N)
+        (div_eq_mul_inv
+          (4 * (1 + ‖w‖) ^ 3)
+          (N + 1 : ℝ))
   exact (mul_zero (4 * (1 + ‖w‖) ^ 3)).symm ▸ (heq ▸ hmul)
 
 /-- The endpoint-Stirling majorant tends to zero. -/
@@ -1738,8 +1959,9 @@ theorem Complex.norm_binetAbelPlanaEndpointLogShiftError_le_majorant_owner
         4 * (1 + ‖w‖) ^ 3 / ((N + 1 : ℕ) : ℝ) :=
     Complex.norm_binetAbelPlanaEndpointLogShiftError_le_large_endpoint_majorant
       hM_ne hw hlarge_M
-  dsimp [Complex.binetAbelPlanaEndpointLogShiftMajorant]
-  exact hraw
+  exact
+    (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N).symm ▸
+      hraw
 
 /-- The endpoint logarithmic-shift component tends to zero from its explicit
 majorant. -/
@@ -1928,6 +2150,15 @@ noncomputable def Complex.binetAbelPlanaFiniteUpperContourResidualMajorant
   8 * (1 + ‖w‖) ^ 2 *
     (1 + |Complex.binetAbelPlanaVerticalKernelMass|) / (N + 1 : ℝ)
 
+/-- Definition unfolding for the finite upper-contour residual majorant. -/
+theorem Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_unfold
+    (w : ℂ)
+    (N : ℕ) :
+    Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N =
+      8 * (1 + ‖w‖) ^ 2 *
+        (1 + |Complex.binetAbelPlanaVerticalKernelMass|) /
+          (N + 1 : ℝ) := rfl
+
 /-- Explicit majorant for the lower Abel-Plana tail omitted by truncating the
 lower boundary at height `N`.
 
@@ -1942,6 +2173,14 @@ noncomputable def Complex.binetAbelPlanaFiniteLowerContourTailMajorant
   2 * ∫ t : ℝ in Set.Ioi (N : ℝ),
     Complex.binetAbelPlanaVerticalKernelMajorant t
 
+/-- Definition unfolding for the finite lower-contour tail majorant. -/
+theorem Complex.binetAbelPlanaFiniteLowerContourTailMajorant_unfold
+    (w : ℂ)
+    (N : ℕ) :
+    Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N =
+      2 * ∫ t : ℝ in Set.Ioi (N : ℝ),
+        Complex.binetAbelPlanaVerticalKernelMajorant t := rfl
+
 /-- Explicit finite-contour majorant for the honest total Abel-Plana
 remainder. -/
 noncomputable def Complex.binetAbelPlanaFiniteContourRemainderMajorant
@@ -1949,6 +2188,14 @@ noncomputable def Complex.binetAbelPlanaFiniteContourRemainderMajorant
     (N : ℕ) : ℝ :=
   Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N +
     Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N
+
+/-- Definition unfolding for the total finite-contour remainder majorant. -/
+theorem Complex.binetAbelPlanaFiniteContourRemainderMajorant_unfold
+    (w : ℂ)
+    (N : ℕ) :
+    Complex.binetAbelPlanaFiniteContourRemainderMajorant w N =
+      Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N +
+        Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N := rfl
 
 /-- The upper endpoint-residual majorant tends to zero. -/
 theorem Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_tendsto_zero
@@ -1999,11 +2246,13 @@ theorem Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_tendsto_zero
           (1 + |Complex.binetAbelPlanaVerticalKernelMass|) *
             ((N + 1 : ℝ))⁻¹) := by
     funext N
-    dsimp [Complex.binetAbelPlanaFiniteUpperContourResidualMajorant]
-    exact div_eq_mul_inv
-      (8 * (1 + ‖w‖) ^ 2 *
-        (1 + |Complex.binetAbelPlanaVerticalKernelMass|))
-      (N + 1 : ℝ)
+    exact
+      Eq.trans
+        (Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_unfold w N)
+        (div_eq_mul_inv
+          (8 * (1 + ‖w‖) ^ 2 *
+            (1 + |Complex.binetAbelPlanaVerticalKernelMass|))
+          (N + 1 : ℝ))
   exact
     (mul_zero (8 * (1 + ‖w‖) ^ 2 *
       (1 + |Complex.binetAbelPlanaVerticalKernelMass|))).symm ▸
@@ -2102,7 +2351,7 @@ theorem Complex.binetAbelPlanaFiniteContourRemainderMajorant_tendsto_zero
         Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N +
           Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N) := by
     funext N
-    rfl
+    exact Complex.binetAbelPlanaFiniteContourRemainderMajorant_unfold w N
   exact (zero_add (0 : ℝ)).symm ▸ (heq ▸ hsum)
 
 /-- Exact finite Abel-Plana summation formula for the logarithmic summand. -/
@@ -2137,12 +2386,18 @@ theorem Complex.binetAbelPlanaFiniteRemainderError_eq_contourRemainder_owner
             Complex.binetAbelPlanaFiniteContourRemainder N w :=
     Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMain_add_boundary_add_contourRemainder_owner
       hw N
-  dsimp [Complex.binetAbelPlanaFiniteRemainderError]
+  have herror_unfold :
+      Complex.binetAbelPlanaFiniteRemainderError N w =
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+          (Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) := rfl
   calc
-    Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
-        (Complex.binetAbelPlanaFiniteMainTerm N w +
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
-        =
+    Complex.binetAbelPlanaFiniteRemainderError N w =
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+          (Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :=
+          herror_unfold
+    _ =
         (Complex.binetAbelPlanaFiniteMainTerm N w +
           Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
             Complex.binetAbelPlanaFiniteContourRemainder N w) -
@@ -2536,12 +2791,19 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_major
   have hden_pos :
       0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
     Real.binetSecondFormula_exp_denominator_pos ht_pos
-  dsimp [Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand]
+  have hintegrand_unfold :
+      Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t =
+        Complex.I *
+          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
+    Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand_unfold N w t
   calc
-      ‖Complex.I *
-        (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
-        =
+      ‖Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t‖ =
+        ‖Complex.I *
+          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
+          exact congrArg norm hintegrand_unfold
+    _ =
         ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
           calc
@@ -2582,11 +2844,16 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_major
     _ =
         (4 * (1 + ‖w‖) / (N + 1 : ℝ)) *
           Complex.binetAbelPlanaVerticalKernelMajorant t := by
-          dsimp [Complex.binetAbelPlanaVerticalKernelMajorant]
-          exact Real.mul_mul_div_eq_mul_div
-            (4 * (1 + ‖w‖) / (N + 1 : ℝ))
-            t
-            (Real.exp (2 * Real.pi * t) - 1)
+          exact
+            Eq.trans
+              (Real.mul_mul_div_eq_mul_div
+                (4 * (1 + ‖w‖) / (N + 1 : ℝ))
+                t
+                (Real.exp (2 * Real.pi * t) - 1))
+              (congrArg
+                (fun x : ℝ =>
+                  (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * x)
+                (Complex.binetAbelPlanaVerticalKernelMajorant_unfold t).symm)
 
 /-- Integral transport from a pointwise upper-contour integrand majorant to
 the vertical-kernel mass. -/
@@ -2646,8 +2913,12 @@ theorem Complex.integral_norm_binetAbelPlanaFiniteUpperContourResidualIntegrand_
             Complex.binetAbelPlanaVerticalKernelMajorant t =
         (4 * (1 + ‖w‖) / (N + 1 : ℝ)) *
           Complex.binetAbelPlanaVerticalKernelMass := by
-    dsimp [Complex.binetAbelPlanaVerticalKernelMass]
-    exact integral_const_mul
+    exact
+      Eq.trans
+        integral_const_mul
+        (congrArg
+          (fun x : ℝ => (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * x)
+          Complex.binetAbelPlanaVerticalKernelMass_unfold.symm)
   exact hmono.trans_eq hconst
 
 /-- Fixed-index integral comparison for the upper-contour residual. -/
@@ -2754,12 +3025,14 @@ theorem Complex.binetAbelPlanaFiniteUpperContourResidual_kernelMass_bound_le_maj
   exact
     hscaled_mass.trans
       (hscaled_coef.trans
-        (by
-          dsimp [Complex.binetAbelPlanaFiniteUpperContourResidualMajorant]
-          exact mul_div_assoc
-            (8 * (1 + ‖w‖) ^ 2)
-            (1 + |Complex.binetAbelPlanaVerticalKernelMass|)
-            (N + 1 : ℝ)))
+        (le_of_eq
+          (Eq.trans
+            (mul_div_assoc
+              (8 * (1 + ‖w‖) ^ 2)
+              (1 + |Complex.binetAbelPlanaVerticalKernelMass|)
+              (N + 1 : ℝ))
+            (Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_unfold
+              w N).symm)))
 
 /-- Owner upper-contour residual estimate in majorant form. -/
 theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_majorant_owner
@@ -2995,11 +3268,9 @@ theorem Complex.norm_binetAbelPlanaFiniteLowerContourTail_le_tailKernelMass
       htail_subset).const_mul C
   have hnorm_meas :
       AEStronglyMeasurable (fun t : ℝ => ‖I t‖)
-        (volume.restrict (Set.Ioi (N : ℝ))) := by
-    dsimp [I]
-    exact
-      Complex.aestronglyMeasurable_norm_binetAbelPlanaFiniteLowerContourTail_integrand
-        N w
+        (volume.restrict (Set.Ioi (N : ℝ))) :=
+    Complex.aestronglyMeasurable_norm_binetAbelPlanaFiniteLowerContourTail_integrand
+      N w
   have hnorm_integrable :
       IntegrableOn (fun t : ℝ => ‖I t‖) (Set.Ioi (N : ℝ)) := by
     have hpointwise :
@@ -3023,8 +3294,16 @@ theorem Complex.norm_binetAbelPlanaFiniteLowerContourTail_le_tailKernelMass
   have hnorm_integral :
       ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ ≤
         ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ := by
-    dsimp [Complex.binetAbelPlanaFiniteLowerContourTail, I]
-    exact norm_integral_le_integral_norm _
+    have htail_unfold :
+        Complex.binetAbelPlanaFiniteLowerContourTail N w =
+          ∫ t : ℝ in Set.Ioi (N : ℝ), I t :=
+      Complex.binetAbelPlanaFiniteLowerContourTail_core_unfold N w
+    calc
+      ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ =
+          ‖∫ t : ℝ in Set.Ioi (N : ℝ), I t‖ := by
+            exact congrArg norm htail_unfold
+      _ ≤ ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ :=
+            norm_integral_le_integral_norm _
   exact hnorm_integral.trans (hmono.trans_eq hconst)
 
 /-- Owner lower-tail estimate in fixed-ray kernel-tail form. -/
@@ -3069,10 +3348,15 @@ theorem Complex.exists_norm_binetAbelPlanaFiniteContourRemainder_le_kernelTail_a
   filter_upwards [hlower, hupper] with N hN_lower hN_upper
   calc
     ‖Complex.binetAbelPlanaFiniteContourRemainder N w‖
+        =
+        ‖Complex.binetAbelPlanaFiniteLowerContourTail N w +
+          Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
+          exact congrArg norm
+            (Complex.binetAbelPlanaFiniteContourRemainder_core_unfold N w)
+    _
         ≤
         ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ +
           ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
-          dsimp [Complex.binetAbelPlanaFiniteContourRemainder]
           exact norm_add_le
             (Complex.binetAbelPlanaFiniteLowerContourTail N w)
             (Complex.binetAbelPlanaFiniteUpperContourResidual N w)

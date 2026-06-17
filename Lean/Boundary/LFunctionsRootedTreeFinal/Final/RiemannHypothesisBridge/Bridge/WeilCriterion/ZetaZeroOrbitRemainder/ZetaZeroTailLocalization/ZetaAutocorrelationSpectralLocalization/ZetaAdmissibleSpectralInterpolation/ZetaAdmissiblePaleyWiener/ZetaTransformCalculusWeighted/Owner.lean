@@ -79,13 +79,13 @@ theorem exists_uniform_bound_weightedLaplaceKernel_norm_on_closedBall_support
           ((Metric.closedBall z 1 : Set ℂ) ×ˢ (tsupport φ))) := by
     exact (hcomp.image_of_continuousOn
       (continuousOn_weightedLaplaceKernel_norm_on_closedBall_support φ z)).bddAbove
-  rcases hbdd with ⟨C, hC⟩
-  refine ⟨C, ?_⟩
-  intro p hp
-  exact hC (show ‖(p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2)‖ ∈
-    (fun p : ℂ × ℝ => ‖(p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2)‖) ''
-      ((Metric.closedBall z 1 : Set ℂ) ×ˢ (tsupport φ)) from
-    ⟨p, hp, rfl⟩)
+  match hbdd with
+  | ⟨C, hC⟩ =>
+      exact ⟨C, fun p hp =>
+        hC (show ‖(p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2)‖ ∈
+          (fun p : ℂ × ℝ => ‖(p.2 : ℂ) * φ p.2 * Complex.exp (p.1 * p.2)‖) ''
+            ((Metric.closedBall z 1 : Set ℂ) ×ˢ (tsupport φ)) from
+          ⟨p, hp, rfl⟩)⟩
 
 /-- The weighted Laplace derivative kernel is uniformly bounded on a fixed closed ball. -/
 theorem weightedLaplaceKernel_uniform_bound_on_closedBall_exists
@@ -93,12 +93,11 @@ theorem weightedLaplaceKernel_uniform_bound_on_closedBall_exists
     ∃ C : ℝ, ∀ w : ℂ, w ∈ Metric.closedBall z 1 →
       ∀ t : ℝ, t ∈ tsupport φ.toZetaTestFunction' →
         ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-  obtain ⟨C, hC⟩ :=
+  match
     exists_uniform_bound_weightedLaplaceKernel_norm_on_closedBall_support
-      (φ := φ.toZetaTestFunction') φ.toZetaTestFunction.hasCompactSupport z
-  refine ⟨C, ?_⟩
-  intro w hw t ht
-  exact hC (w, t) ⟨hw, ht⟩
+      (φ := φ.toZetaTestFunction') φ.toZetaTestFunction.hasCompactSupport z with
+  | ⟨C, hC⟩ =>
+      exact ⟨C, fun w hw t ht => hC (w, t) ⟨hw, ht⟩⟩
 
 /-- The bump constant used in the support bounds is strictly positive. -/
 theorem weightedLaplaceKernel_positive_bump (C : ℝ) : 0 < max C 0 + 1 := by
@@ -120,12 +119,12 @@ theorem weightedLaplaceKernel_uniform_bound_on_closedBall
       ∀ w : ℂ, w ∈ Metric.closedBall z 1 →
       ∀ t : ℝ, t ∈ tsupport φ.toZetaTestFunction' →
         ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-  rcases weightedLaplaceKernel_uniform_bound_on_closedBall_exists (φ := φ) z with ⟨C, hC⟩
-  refine ⟨max C 0 + 1, weightedLaplaceKernel_positive_bump C, ?_⟩
-  intro w hw t ht
-  have hbound : ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-    exact hC w hw t ht
-  exact weightedLaplaceKernel_bound_le_bump C hbound
+  match weightedLaplaceKernel_uniform_bound_on_closedBall_exists (φ := φ) z with
+  | ⟨C, hC⟩ =>
+      exact
+        ⟨max C 0 + 1, weightedLaplaceKernel_positive_bump C,
+          fun w hw t ht =>
+            weightedLaplaceKernel_bound_le_bump C (hC w hw t ht)⟩
 
 /-- A pointwise support bound used to keep the almost-everywhere theorem direct. -/
 theorem weightedLaplaceKernel_bound_pointwise_on_support_of_mem
@@ -189,9 +188,11 @@ theorem weightedLaplaceKernel_bound_pointwise_on_support
     ∀ w ∈ Metric.ball z 1,
       ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ max C 0 + 1 := by
   intro w hw
-  by_cases ht : t ∈ tsupport φ.toZetaTestFunction'
-  · exact weightedLaplaceKernel_bound_pointwise_on_support_of_mem φ z C hC ht w hw
-  · exact weightedLaplaceKernel_bound_pointwise_on_support_of_nmem φ z C ht w hw
+  match Classical.em (t ∈ tsupport φ.toZetaTestFunction') with
+  | Or.inl ht =>
+      exact weightedLaplaceKernel_bound_pointwise_on_support_of_mem φ z C hC ht w hw
+  | Or.inr ht =>
+      exact weightedLaplaceKernel_bound_pointwise_on_support_of_nmem φ z C ht w hw
 
 /-- The weighted Laplace kernel is bounded on a closed ball with the support restriction built in. -/
 theorem weightedLaplaceKernel_bound_on_support
@@ -199,10 +200,12 @@ theorem weightedLaplaceKernel_bound_on_support
     ∃ C : ℝ, 0 < C ∧
       ∀ᵐ t : ℝ ∂(volume : Measure ℝ), ∀ w ∈ Metric.ball z 1,
         ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-  rcases weightedLaplaceKernel_uniform_bound_on_closedBall (φ := φ) z with ⟨C, _, hC⟩
-  refine ⟨max C 0 + 1, weightedLaplaceKernel_positive_bump C, ?_⟩
-  exact Filter.Eventually.of_forall fun t : ℝ =>
-    weightedLaplaceKernel_bound_pointwise_on_support φ z C hC t
+  match weightedLaplaceKernel_uniform_bound_on_closedBall (φ := φ) z with
+  | ⟨C, _hCpos, hC⟩ =>
+      exact
+        ⟨max C 0 + 1, weightedLaplaceKernel_positive_bump C,
+          Filter.Eventually.of_forall fun t : ℝ =>
+            weightedLaplaceKernel_bound_pointwise_on_support φ z C hC t⟩
 
 /-- The exponential kernel differentiated in the spectral variable. -/
 theorem hasDerivAt_laplaceKernel_exp
@@ -243,8 +246,8 @@ theorem weightedLaplaceKernel_bound_ae
     ∃ C : ℝ, 0 < C ∧
       ∀ᵐ t : ℝ ∂(volume : Measure ℝ), ∀ w ∈ Metric.ball z 1,
         ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := by
-  rcases weightedLaplaceKernel_bound_on_support φ z with ⟨C, hCpos, hC⟩
-  exact ⟨C, hCpos, hC⟩
+  match weightedLaplaceKernel_bound_on_support φ z with
+  | ⟨C, hCpos, hC⟩ => exact ⟨C, hCpos, hC⟩
 
 /-- The support-indicator constant bound is integrable because the support is compact. -/
 theorem integrable_support_indicator_const
@@ -265,22 +268,24 @@ theorem weightedLaplaceKernel_bound_on_support_indicator
     ∀ᵐ t : ℝ ∂(volume : Measure ℝ), ∀ w ∈ Metric.ball z 1,
       ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
         ≤ Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
-  refine hdom.mono ?_
-  intro t ht w hw
-  by_cases hts : t ∈ tsupport φ.toZetaTestFunction'
-  · calc
-      ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := ht w hw
-      _ = Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
-        exact (Set.indicator_of_mem hts (fun _ : ℝ => C)).symm
-  · have hzero : φ.toZetaTestFunction' t = 0 := image_eq_zero_of_nmem_tsupport hts
-    calc
-      ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
-          = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
-              exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
-      _ = 0 := by
-            exact complex_weighted_zero_mul_exp_norm t w
-      _ ≤ Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
-            exact le_of_eq (Set.indicator_of_not_mem hts (fun _ : ℝ => C)).symm
+  exact hdom.mono
+    (fun t ht w hw =>
+      match Classical.em (t ∈ tsupport φ.toZetaTestFunction') with
+      | Or.inl hts =>
+          calc
+            ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖ ≤ C := ht w hw
+            _ = Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+              exact (Set.indicator_of_mem hts (fun _ : ℝ => C)).symm
+      | Or.inr hts =>
+          have hzero : φ.toZetaTestFunction' t = 0 := image_eq_zero_of_nmem_tsupport hts
+          calc
+            ‖(t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)‖
+                = ‖(t : ℂ) * 0 * Complex.exp (w * t)‖ := by
+                    exact congrArg (fun x => ‖(t : ℂ) * x * Complex.exp (w * t)‖) hzero
+            _ = 0 := by
+                  exact complex_weighted_zero_mul_exp_norm t w
+            _ ≤ Set.indicator (tsupport φ.toZetaTestFunction') (fun _ : ℝ => C) t := by
+                  exact le_of_eq (Set.indicator_of_not_mem hts (fun _ : ℝ => C)).symm)
 
 /-- The zeta Laplace transform is differentiable at every spectral parameter. -/
 theorem aestronglyMeasurable_laplaceKernel_eventually
@@ -332,9 +337,8 @@ theorem zetaLaplaceTransform_differentiableAt_of_bound_data
           ((t : ℂ) * φ.toZetaTestFunction' t * Complex.exp (w * t)) w) :
     DifferentiableAt ℂ (fun w => zetaLaplaceTransform φ.toZetaTestFunction' w) z := by
   have h :=
-    hasDerivAt_integral_of_dominated_loc_of_deriv_le (ε_pos := by positivity) hF_meas hF_int
+    hasDerivAt_integral_of_dominated_loc_of_deriv_le (ε_pos := zero_lt_one) hF_meas hF_int
       hF'_meas hdom hbound_int h_diff
-  unfold zetaLaplaceTransform
   exact h.2.differentiableAt
 
 theorem zetaLaplaceTransform_differentiableAt_of_bound
@@ -357,7 +361,8 @@ theorem zetaLaplaceTransform_differentiableAt_of_bound
 theorem zetaLaplaceTransform_differentiableAt
     (φ : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
     DifferentiableAt ℂ (fun w => zetaLaplaceTransform φ.toZetaTestFunction' w) z := by
-  rcases weightedLaplaceKernel_bound_ae (φ := φ) z with ⟨C, hCpos, hdom⟩
-  exact zetaLaplaceTransform_differentiableAt_of_bound φ z C hCpos hdom
+  match weightedLaplaceKernel_bound_ae (φ := φ) z with
+  | ⟨C, hCpos, hdom⟩ =>
+      exact zetaLaplaceTransform_differentiableAt_of_bound φ z C hCpos hdom
 
 end Mellin

@@ -1,5 +1,7 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
+import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.Topology.Basic
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteHeightSides
 
 /-!
@@ -34,7 +36,7 @@ theorem Complex.ofReal_pi_ne_zero : (Real.pi : ℂ) ≠ 0 := by
 
 /-- The complex coercion of `2` is nonzero. -/
 theorem Complex.ofNat_two_ne_zero : ((2 : ℂ) : ℂ) ≠ 0 := by
-  exact Nat.cast_ne_zero.mpr (by decide : (2 : ℕ) ≠ 0)
+  exact Nat.cast_ne_zero.mpr (Nat.succ_ne_zero 1)
 
 /-- The product `2πi` is nonzero. -/
 theorem Complex.two_pi_I_ne_zero :
@@ -49,14 +51,25 @@ theorem Real.sub_norm_le_of_neg_norm_le_sub
     {n d z : ℝ}
     (h : -d ≤ z - n) :
     n - d ≤ z := by
-  exact le_sub_iff_add_le.mp h
+  calc
+    n - d = n + -d := by
+      exact sub_eq_add_neg n d
+    _ ≤ n + (z - n) := by
+      exact add_le_add_left h n
+    _ = z := by
+      calc
+        n + (z - n) = n + z - n := by
+          exact (add_sub_assoc n z n).symm
+        _ = z + n - n := by
+          exact congrArg (fun u : ℝ => u - n) (add_comm n z)
+        _ = z := add_sub_cancel_right z n
 
 /-- If a nonnegative `d` satisfies `d < (w+n)/2`, then `w+n-d` is positive. -/
 theorem Real.add_sub_pos_of_nonneg_lt_half
     {w n d : ℝ}
     (hd : 0 ≤ d)
     (h : d < (w + n) / 2) :
-    0 < w + n - d := by
+    0 < w + (n - d) := by
   have hhalf_pos : 0 < (w + n) / 2 :=
     lt_of_le_of_lt hd h
   have hsum_pos : 0 < w + n := by
@@ -68,7 +81,9 @@ theorem Real.add_sub_pos_of_nonneg_lt_half
     div_lt_self hsum_pos one_lt_two
   have hd_lt_w_add_n : d < w + n :=
     lt_trans h hhalf_lt_sum
-  exact sub_pos.mpr hd_lt_w_add_n
+  calc
+    0 < w + n - d := sub_pos.mpr hd_lt_w_add_n
+    _ = w + (n - d) := add_sub_assoc w n d
 
 /-- The real cast of an integer/natural complex difference is the real
 difference of the casts. -/
@@ -85,20 +100,23 @@ theorem Complex.int_nat_cast_sub_to_complex
     (n : ℕ) :
     (k : ℂ) - (n : ℂ) = (((k : ℝ) - (n : ℝ)) : ℂ) := by
   calc
-    (k : ℂ) - (n : ℂ) = (((k : ℤ) - (n : ℤ) : ℤ) : ℂ) := by
-      exact (Int.cast_sub k (n : ℤ)).symm
-    _ = (((((k : ℤ) - (n : ℤ) : ℤ) : ℝ) : ℂ)) := by
+    (k : ℂ) - (n : ℂ) = ((k : ℝ) : ℂ) - ((n : ℝ) : ℂ) := by
       rfl
     _ = (((k : ℝ) - (n : ℝ)) : ℂ) := by
-      exact congrArg (fun x : ℝ => (x : ℂ))
-        (Complex.int_nat_cast_sub_to_real k n)
+      rfl
 
 /-- A natural-number lower bound transports through real casts. -/
 theorem Real.one_le_natAbs_cast_of_one_le
     {a : ℤ}
     (h : 1 ≤ Int.natAbs a) :
     (1 : ℝ) ≤ (Int.natAbs a : ℝ) := by
-  exact Nat.cast_le.mpr h
+  have hcast : ((1 : ℕ) : ℝ) ≤ (Int.natAbs a : ℝ) :=
+    (Nat.cast_le (α := ℝ)).mpr h
+  exact
+    Eq.subst
+      (motive := fun x : ℝ => x ≤ (Int.natAbs a : ℝ))
+      Nat.cast_one
+      hcast
 
 /-- Equality of integers transports through the complex cast. -/
 theorem Complex.int_cast_eq_of_int_eq
@@ -106,6 +124,48 @@ theorem Complex.int_cast_eq_of_int_eq
     (h : a = b) :
     (a : ℂ) = (b : ℂ) := by
   exact congrArg (fun z : ℤ => (z : ℂ)) h
+
+/-- Metric-ball membership as a norm inequality centered at a complex point. -/
+theorem Complex.norm_sub_lt_radius_of_mem_ball
+    {z c : ℂ}
+    {R : ℝ}
+    (hz : z ∈ Metric.ball c R) :
+    ‖z - c‖ < R := by
+  calc
+    ‖z - c‖ = dist z c := by
+      exact (dist_eq_norm z c).symm
+    _ < R := Metric.mem_ball.mp hz
+
+/-- Metric-sphere membership as a distance equality. -/
+theorem Complex.dist_eq_radius_of_mem_sphere
+    {z c : ℂ}
+    {R : ℝ}
+    (hz : z ∈ Metric.sphere c R) :
+    dist z c = R := by
+  exact Metric.mem_sphere.mp hz
+
+/-- The residue normalization cancels the Cauchy-circle factor `2πi`. -/
+theorem Complex.normalized_two_pi_I_mul_cancel
+    (x : ℂ) :
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * x) =
+      x := by
+  have htwo_pi_I_ne : ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) ≠ 0 := by
+    exact Complex.two_pi_I_ne_zero
+  calc
+    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * x) =
+        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)) * x := by
+      exact (mul_assoc
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)
+        x).symm
+    _ = 1 * x := by
+      exact congrArg
+        (fun y : ℂ => y * x)
+        (inv_mul_cancel₀ htwo_pi_I_ne)
+    _ = x := one_mul x
 
 /-- Normalized small-circle integral around an integer cotangent pole.
 
@@ -121,6 +181,18 @@ noncomputable def Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
       (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
       c
       ρ
+
+/-- Unfolding of the normalized small-circle integral. -/
+theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_unfold
+    (w c : ℂ)
+    (ρ : ℝ) :
+    Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w c ρ =
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        circleIntegral
+          (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+          c
+          ρ := by
+  rfl
 
 /-- Removable numerator for the logarithmic cotangent pole at the integer
 `n`.
@@ -148,7 +220,14 @@ theorem Complex.finiteAbelPlana_log_integerResidueExtension_eq_centered_off_pole
     Complex.finiteAbelPlanaLogIntegerResidueExtension w n z =
       (z - (n : ℂ)) *
         Complex.finiteAbelPlanaLogRectangleIntegrand w z := by
-  dsimp [Complex.finiteAbelPlanaLogIntegerResidueExtension]
+  show
+    (if z = (n : ℂ) then
+      Complex.finiteAbelPlanaLogIntegerResidue w n
+    else
+      (z - (n : ℂ)) *
+        Complex.finiteAbelPlanaLogRectangleIntegrand w z) =
+      (z - (n : ℂ)) *
+        Complex.finiteAbelPlanaLogRectangleIntegrand w z
   exact if_neg hz
 
 /-- At the integer pole, the removable numerator is filled by the local
@@ -158,7 +237,13 @@ theorem Complex.finiteAbelPlana_log_integerResidueExtension_at_pole
     (n : ℕ) :
     Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ) =
       Complex.finiteAbelPlanaLogIntegerResidue w n := by
-  dsimp [Complex.finiteAbelPlanaLogIntegerResidueExtension]
+  show
+    (if (n : ℂ) = (n : ℂ) then
+      Complex.finiteAbelPlanaLogIntegerResidue w n
+    else
+      ((n : ℂ) - (n : ℂ)) *
+        Complex.finiteAbelPlanaLogRectangleIntegrand w (n : ℂ)) =
+      Complex.finiteAbelPlanaLogIntegerResidue w n
   exact if_pos rfl
 
 /-- Unfolding of the residue extension away from the pole. -/
@@ -189,13 +274,13 @@ theorem Complex.finiteAbelPlana_log_integerResidueExtension_tendsto_at_pole
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ) :
-    Tendsto
+    Filter.Tendsto
       (fun z : ℂ =>
         Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
       (𝓝[≠] (n : ℂ))
       (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w n)) := by
   have hraw :
-      Tendsto
+      Filter.Tendsto
         (fun z : ℂ =>
           (z - (n : ℂ)) *
             Complex.finiteAbelPlanaLogRectangleIntegrand w z)
@@ -256,7 +341,7 @@ theorem Complex.finiteAbelPlana_log_mem_slitPlane_of_mem_integerResidueIsolation
   have hdist :
       ‖z - (n : ℂ)‖ <
         Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n := by
-    simpa [Metric.mem_ball, dist_eq_norm, norm_sub_rev] using hz
+    exact Complex.norm_sub_lt_radius_of_mem_ball hz
   have hre_dist : |z.re - (n : ℝ)| ≤ ‖z - (n : ℂ)‖ := by
     have hre_abs :
         |(z - (n : ℂ)).re| ≤ ‖z - (n : ℂ)‖ := by
@@ -273,7 +358,7 @@ theorem Complex.finiteAbelPlana_log_mem_slitPlane_of_mem_integerResidueIsolation
     lt_of_lt_of_le hdist (min_le_right _ _)
   have hreal_lower :
       -(‖z - (n : ℂ)‖) ≤ z.re - (n : ℝ) :=
-    neg_le.mp (abs_le.mp hre_dist).1
+    (abs_le.mp hre_dist).1
   have hzre_lower :
       (n : ℝ) - ‖z - (n : ℂ)‖ ≤ z.re := by
     exact Real.sub_norm_le_of_neg_norm_le_sub hreal_lower
@@ -302,7 +387,7 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
   have hdist_radius :
       ‖z - (n : ℂ)‖ <
         Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n := by
-    simpa [Metric.mem_ball, dist_eq_norm, norm_sub_rev] using hz
+    exact Complex.norm_sub_lt_radius_of_mem_ball hz
   have hdist_half :
       ‖z - (n : ℂ)‖ < (1 : ℝ) / 2 :=
     lt_of_lt_of_le hdist_radius
@@ -310,40 +395,68 @@ theorem Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsola
   have hint_dist_half :
       ‖(k : ℂ) - (n : ℂ)‖ < (1 : ℝ) / 2 := by
     exact hz_int ▸ hdist_half
-  have hint_dist_eq_abs :
-      ‖(k : ℂ) - (n : ℂ)‖ = |(k : ℝ) - (n : ℝ)| := by
-    have hcast :
-        (k : ℂ) - (n : ℂ) = (((k : ℝ) - (n : ℝ)) : ℂ) := by
-      exact Complex.int_nat_cast_sub_to_complex k n
-    calc
-      ‖(k : ℂ) - (n : ℂ)‖ = ‖(((k : ℝ) - (n : ℝ)) : ℂ)‖ := by
-        exact congrArg norm hcast
-      _ = |(k : ℝ) - (n : ℝ)| := RCLike.norm_ofReal _
   have habs_half : |(k : ℝ) - (n : ℝ)| < (1 : ℝ) / 2 := by
-    exact hint_dist_eq_abs ▸ hint_dist_half
+    have hre_eq :
+        ((k : ℂ) - (n : ℂ)).re = (k : ℝ) - (n : ℝ) := by
+      calc
+        ((k : ℂ) - (n : ℂ)).re = (k : ℂ).re - (n : ℂ).re :=
+          Complex.sub_re (k : ℂ) (n : ℂ)
+        _ = (k : ℝ) - (n : ℝ) := by
+          exact rfl
+    have habs_re_le_abs :
+        |((k : ℂ) - (n : ℂ)).re| ≤ Complex.abs ((k : ℂ) - (n : ℂ)) :=
+      Complex.abs_re_le_abs ((k : ℂ) - (n : ℂ))
+    have habs_re_le_norm :
+        |((k : ℂ) - (n : ℂ)).re| ≤ ‖(k : ℂ) - (n : ℂ)‖ :=
+      (Complex.norm_eq_abs ((k : ℂ) - (n : ℂ))).symm ▸
+        habs_re_le_abs
+    have habs_eq :
+        |((k : ℂ) - (n : ℂ)).re| = |(k : ℝ) - (n : ℝ)| :=
+      congrArg abs hre_eq
+    exact
+      lt_of_le_of_lt
+        (habs_eq ▸ habs_re_le_norm)
+        hint_dist_half
   have hdiff_lt_one : |(k : ℝ) - (n : ℝ)| < (1 : ℝ) := by
     exact lt_trans habs_half one_half_lt_one
   have hdiff_zero : (k : ℤ) - (n : ℤ) = 0 := by
-    by_contra hne
-    have hnat_abs_pos : 0 < Int.natAbs ((k : ℤ) - (n : ℤ)) :=
-      Int.natAbs_pos.mpr hne
-    have hone_le_abs_int : (1 : ℝ) ≤ |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| := by
-      have hone_le_nat : 1 ≤ Int.natAbs ((k : ℤ) - (n : ℤ)) :=
-        Nat.succ_le_of_lt hnat_abs_pos
-      have hnat_abs_eq :
-          |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| =
-            (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) := by
-        exact (Int.cast_natAbs ((k : ℤ) - (n : ℤ)) (R := ℝ)).symm
-      calc
-        (1 : ℝ) ≤ (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) := by
-          exact Real.one_le_natAbs_cast_of_one_le hone_le_nat
-        _ = |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| := hnat_abs_eq.symm
-    have hcast_diff :
-        (((k : ℤ) - (n : ℤ) : ℤ) : ℝ) = (k : ℝ) - (n : ℝ) := by
-      exact Complex.int_nat_cast_sub_to_real k n
-    have hone_le_abs : (1 : ℝ) ≤ |(k : ℝ) - (n : ℝ)| := by
-      exact hcast_diff ▸ hone_le_abs_int
-    exact not_lt_of_ge hone_le_abs hdiff_lt_one
+    exact
+      match Classical.em ((k : ℤ) - (n : ℤ) = 0) with
+      | Or.inl hzero => hzero
+      | Or.inr hne =>
+          False.elim
+            (by
+              have hnat_abs_pos : 0 < Int.natAbs ((k : ℤ) - (n : ℤ)) :=
+                Int.natAbs_pos.mpr hne
+              have hone_le_abs_int :
+                  (1 : ℝ) ≤ |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| := by
+                have hone_le_nat : 1 ≤ Int.natAbs ((k : ℤ) - (n : ℤ)) :=
+                  Nat.succ_le_of_lt hnat_abs_pos
+                have hnat_abs_eq :
+                    |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| =
+                      (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) := by
+                  have habs_cast :
+                      (((|((k : ℤ) - (n : ℤ))| : ℤ) : ℝ) =
+                        |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)|) :=
+                    (Int.cast_abs :
+                      (((|((k : ℤ) - (n : ℤ))| : ℤ) : ℝ) =
+                        |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)|))
+                  exact
+                    (Eq.trans
+                      (Int.cast_natAbs (R := ℝ) :
+                        (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) =
+                          ((|((k : ℤ) - (n : ℤ))| : ℤ) : ℝ))
+                      habs_cast).symm
+                calc
+                  (1 : ℝ) ≤ (Int.natAbs ((k : ℤ) - (n : ℤ)) : ℝ) := by
+                    exact Real.one_le_natAbs_cast_of_one_le hone_le_nat
+                  _ = |(((k : ℤ) - (n : ℤ) : ℤ) : ℝ)| := hnat_abs_eq.symm
+              have hcast_diff :
+                  (((k : ℤ) - (n : ℤ) : ℤ) : ℝ) = (k : ℝ) - (n : ℝ) := by
+                exact Complex.int_nat_cast_sub_to_real k n
+              have hone_le_abs : (1 : ℝ) ≤ |(k : ℝ) - (n : ℝ)| := by
+                exact hcast_diff ▸ hone_le_abs_int
+              exact not_lt_of_ge hone_le_abs hdiff_lt_one)
   have hk_eq_n : (k : ℂ) = (n : ℂ) := by
     have hk_int_eq : (k : ℤ) = (n : ℤ) := sub_eq_zero.mp hdiff_zero
     exact Complex.int_cast_eq_of_int_eq hk_int_eq
@@ -358,19 +471,22 @@ theorem Complex.finiteAbelPlana_log_eq_center_of_sin_pi_mul_eq_zero_of_mem_integ
       (Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n))
     (hzero : Complex.sin ((Real.pi : ℂ) * z) = 0) :
     z = (n : ℂ) := by
-  rcases Complex.sin_eq_zero_iff.mp hzero with ⟨k, hk⟩
-  have hpi_ne : (Real.pi : ℂ) ≠ 0 := by
-    exact Complex.ofReal_pi_ne_zero
-  have hz_eq_int : z = (k : ℂ) := by
-    have hmul :
-        (Real.pi : ℂ) * z = (Real.pi : ℂ) * (k : ℂ) := by
-      calc
-        (Real.pi : ℂ) * z = (k : ℂ) * (Real.pi : ℂ) := hk
-        _ = (Real.pi : ℂ) * (k : ℂ) := mul_comm (k : ℂ) (Real.pi : ℂ)
-    exact mul_left_cancel₀ hpi_ne hmul
   exact
-    Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsolationBall
-      n hz_eq_int hz
+    match Complex.sin_eq_zero_iff.mp hzero with
+    | ⟨k, hk⟩ =>
+        by
+          have hpi_ne : (Real.pi : ℂ) ≠ 0 := by
+            exact Complex.ofReal_pi_ne_zero
+          have hz_eq_int : z = (k : ℂ) := by
+            have hmul :
+                (Real.pi : ℂ) * z = (Real.pi : ℂ) * (k : ℂ) := by
+              calc
+                (Real.pi : ℂ) * z = (k : ℂ) * (Real.pi : ℂ) := hk
+                _ = (Real.pi : ℂ) * (k : ℂ) := mul_comm (k : ℂ) (Real.pi : ℂ)
+            exact mul_left_cancel₀ hpi_ne hmul
+          exact
+            Complex.finiteAbelPlana_log_integer_eq_center_of_mem_integerResidueIsolationBall
+              n hz_eq_int hz
 
 /-- In the residue-isolation disk, the only cotangent pole is the center
 integer. -/
@@ -431,7 +547,7 @@ theorem Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_of_ne
     exact
       Complex.finiteAbelPlana_log_integerResidueExtension_eq_centered_off_pole
         w n hy
-  exact hcentered.congr_of_eventuallyEq heq.symm
+  exact hcentered.congr_of_eventuallyEq heq
 
 /-- The removable residue extension is continuous at the integer pole. -/
 theorem Complex.continuousAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
@@ -443,7 +559,7 @@ theorem Complex.continuousAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
         Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
       (n : ℂ) := by
   have hpunctured :
-      Tendsto
+      Filter.Tendsto
         (fun z : ℂ =>
           Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
         (𝓝[≠] (n : ℂ))
@@ -454,9 +570,37 @@ theorem Complex.continuousAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
       Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ) =
         Complex.finiteAbelPlanaLogIntegerResidue w n :=
     Complex.finiteAbelPlana_log_integerResidueExtension_at_pole w n
-  rw [ContinuousAt]
-  rw [hcenter]
-  exact tendsto_nhds_of_tendsto_nhdsWithin hpunctured tendsto_const_nhds
+  show
+    Filter.Tendsto
+      (fun z : ℂ =>
+        Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
+      (𝓝 (n : ℂ))
+      (𝓝
+        (Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ)))
+  have hpure :
+      Filter.Tendsto
+        (fun z : ℂ =>
+          Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
+        (pure (n : ℂ))
+        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w n)) := by
+    exact hcenter ▸
+      (Filter.tendsto_pure_pure
+        (fun z : ℂ =>
+          Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
+        (n : ℂ)).mono_right
+        (pure_le_nhds
+          (Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ)))
+  have hsup :
+      Filter.Tendsto
+        (fun z : ℂ =>
+          Complex.finiteAbelPlanaLogIntegerResidueExtension w n z)
+        (𝓝[≠] (n : ℂ) ⊔ pure (n : ℂ))
+        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w n)) :=
+    hpunctured.sup hpure
+  have hdomain :
+      𝓝[≠] (n : ℂ) ⊔ pure (n : ℂ) = 𝓝 (n : ℂ) :=
+    nhdsWithin_compl_singleton_sup_pure (n : ℂ)
+  exact hcenter.symm ▸ hdomain ▸ hsup
 
 /-- The removable residue extension is differentiable throughout a punctured
 neighborhood of the integer pole. -/
@@ -474,7 +618,8 @@ theorem Complex.eventually_differentiableAt_finiteAbelPlanaLogIntegerResidueExte
     Complex.finiteAbelPlana_log_integerResidueIsolationRadius_pos hw n
   filter_upwards
     [self_mem_nhdsWithin,
-      (Metric.ball_mem_nhds (n : ℂ) hR).filter_mono nhdsWithin_le_nhds] with z hzne hzball
+      Filter.Eventually.filter_mono nhdsWithin_le_nhds
+        (Metric.ball_mem_nhds (n : ℂ) hR)] with z hzne hzball
   exact
     Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_of_ne
       hw n hzball hzne
@@ -514,13 +659,15 @@ theorem Complex.differentiableOn_finiteAbelPlanaLogIntegerResidueExtension_isola
       (Metric.ball (n : ℂ)
         (Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n)) := by
   intro z hz
-  by_cases hzn : z = (n : ℂ)
-  · exact hzn ▸
-      (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
-        hw n).differentiableWithinAt
-  · exact
-      (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_of_ne
-        hw n hz hzn).differentiableWithinAt
+  exact
+    match Classical.em (z = (n : ℂ)) with
+    | Or.inl hzn =>
+        hzn ▸
+          (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_at_pole
+            hw n).differentiableWithinAt
+    | Or.inr hzn =>
+        (Complex.differentiableAt_finiteAbelPlanaLogIntegerResidueExtension_of_ne
+          hw n hz hzn).differentiableWithinAt
 
 /-- On a positive circle around the integer pole, the rectangle integrand is
 the Cauchy kernel times the removable residue extension. -/
@@ -539,7 +686,7 @@ theorem Complex.finiteAbelPlana_log_rectangleIntegrand_eq_sub_inv_mul_residueExt
     have hdist_zero : dist z (n : ℂ) = 0 := by
       exact h ▸ dist_self (n : ℂ)
     have hdist_radius : dist z (n : ℂ) = ρ := by
-      simpa [Metric.mem_sphere] using hz
+      exact Complex.dist_eq_radius_of_mem_sphere hz
     exact ne_of_gt hρ (hdist_radius ▸ hdist_zero)
   have hoff :
       Complex.finiteAbelPlanaLogIntegerResidueExtension w n z =
@@ -586,7 +733,8 @@ theorem Complex.eventually_pos_lt_finiteAbelPlanaLogIntegerResidueIsolationRadiu
       0 < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n :=
     Complex.finiteAbelPlana_log_integerResidueIsolationRadius_pos hw n
   exact
-    (Ioo_mem_nhdsWithin_Ioi (real_zero_lt_radius_pair hR)).mono
+    Filter.mem_of_superset
+      (Ioo_mem_nhdsWithin_Ioi' hR)
       (fun ρ hρ => ⟨hρ.1, hρ.2⟩)
 
 /-- For every sufficiently small positive radius, the normalized small-circle
@@ -630,19 +778,26 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_
                   Complex.finiteAbelPlanaLogIntegerResidueExtension w n z :=
             Complex.finiteAbelPlana_log_rectangleIntegrand_eq_sub_inv_mul_residueExtension_on_circle
               w n hρ hz
-          dsimp [F]
-          simpa [smul_eq_mul] using hrewrite)
+          show
+            Complex.finiteAbelPlanaLogRectangleIntegrand w z =
+              (z - (n : ℂ))⁻¹ *
+                Complex.finiteAbelPlanaLogIntegerResidueExtension w n z
+          exact hrewrite)
   have hcenter :
       F (n : ℂ) = Complex.finiteAbelPlanaLogIntegerResidue w n := by
-    dsimp [F]
+    show
+      Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ) =
+        Complex.finiteAbelPlanaLogIntegerResidue w n
     exact Complex.finiteAbelPlana_log_integerResidueExtension_at_pole w n
-  dsimp [Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral]
   calc
-    ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-        circleIntegral
-          (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
-          (n : ℂ)
-          ρ =
+    Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ =
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          circleIntegral
+            (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+            (n : ℂ)
+            ρ :=
+      Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_unfold w (n : ℂ) ρ
+    _ =
         ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
           (∮ z in C((n : ℂ), ρ), (z - (n : ℂ))⁻¹ • F z) := by
       exact congrArg
@@ -654,12 +809,18 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_
       exact congrArg
         (fun u : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * u)
         hcauchy
+    _ =
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F (n : ℂ)) := by
+      have hsmul :
+          ((2 * ↑Real.pi * Complex.I : ℂ) • F (n : ℂ)) =
+            (((2 : ℂ) * (Real.pi : ℂ) * Complex.I) * F (n : ℂ)) :=
+        rfl
+      exact congrArg
+        (fun u : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * u)
+        hsmul
     _ = F (n : ℂ) := by
-      have htwo_pi_I_ne : ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) ≠ 0 := by
-        exact Complex.two_pi_I_ne_zero
-      simpa [smul_eq_mul, mul_assoc] using
-        (inv_mul_cancel₀ htwo_pi_I_ne : ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I) = 1)
+      exact Complex.normalized_two_pi_I_mul_cancel (F (n : ℂ))
     _ = Complex.finiteAbelPlanaLogIntegerResidue w n := hcenter
 
 /-- Local Cauchy-residue formula for a small circle around the integer pole.
@@ -696,17 +857,20 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residu
     {w : ℂ}
     (hw : 0 < w.re)
     (n : ℕ) :
-    Tendsto
+    Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ)
       (𝓝[>] (0 : ℝ))
       (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w n)) := by
+  have heq :
+      (fun _ρ : ℝ => Complex.finiteAbelPlanaLogIntegerResidue w n) =ᶠ[𝓝[>] (0 : ℝ)]
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ) :=
+    (Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_isolated
+      hw n).mono
+      (fun ρ hρ => hρ.symm)
   exact
-    tendsto_const_nhds.congr'
-      (Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_eq_residue_of_isolated
-        hw n).symm
-
-/-- Radius bound guaranteeing that the small circles around `0, ..., N+1`
+    tendsto_const_nhds.congr' heq
 
 end
 

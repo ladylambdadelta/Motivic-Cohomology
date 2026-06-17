@@ -46,7 +46,8 @@ theorem zetaZeroSideContribution_eq_of_spectralTomography
     (ρ : ℂ) :
     zetaZeroSideContribution ρ X.seed =
       zetaZeroSideContribution ρ Y.seed := by
-  unfold zetaZeroSideContribution
+  show - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval X.seed (zetaCenteredZero ρ) =
+       - (zetaZeroMultiplicity ρ : ℂ) * zetaSpectralEval Y.seed (zetaCenteredZero ρ)
   exact congrArg
     (fun w : ℂ => - (zetaZeroMultiplicity ρ : ℂ) * w)
     (hXY (zetaCenteredZero ρ))
@@ -58,7 +59,10 @@ theorem zetaZeroTail_eq_of_spectralTomography
       CompletedBoundaryHilbertSource.SpectrallyTomographicallyEquivalent X Y)
     (S : Finset ℂ) :
     zetaZeroTail S X.seed = zetaZeroTail S Y.seed := by
-  unfold zetaZeroTail
+  show ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+         zetaZeroSideContribution (ρ : ℂ) X.seed =
+       ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S},
+         zetaZeroSideContribution (ρ : ℂ) Y.seed
   exact tsum_congr
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ ∧ ρ ∉ S} =>
       zetaZeroSideContribution_eq_of_spectralTomography hXY (ρ : ℂ))

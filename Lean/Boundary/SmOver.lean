@@ -33,20 +33,33 @@ variable {k : Type u} [Field k] [PerfectField k]
   cases h
   rfl
 
+/-- The identity map of a smooth `k`-scheme is compatible with the structure
+map to `Spec k`. -/
+theorem id_over (X : Geometry.SmSchemeOver k) :
+    (𝟙 X.scheme) ≫ X.structMap = X.structMap :=
+  Category.id_comp X.structMap
+
+/-- Composition of maps over `Spec k` is again a map over `Spec k`. -/
+theorem comp_over {X Y Z : Geometry.SmSchemeOver k}
+    (f : SmOverHom X Y) (g : SmOverHom Y Z) :
+    (f.hom ≫ g.hom) ≫ Z.structMap = X.structMap :=
+  calc
+    (f.hom ≫ g.hom) ≫ Z.structMap = f.hom ≫ (g.hom ≫ Z.structMap) := by
+      exact Category.assoc f.hom g.hom Z.structMap
+    _ = f.hom ≫ Y.structMap := by
+      exact congrArg (fun h : Y.scheme ⟶ Spec (CommRingCat.of k) => f.hom ≫ h) g.over
+    _ = X.structMap := f.over
+
 /-- Identity morphism in `Sm/k`. -/
 def id (X : Geometry.SmSchemeOver k) : SmOverHom X X where
   hom := 𝟙 X.scheme
-  over := by simp
+  over := id_over X
 
 /-- Composition in `Sm/k`. -/
 def comp {X Y Z : Geometry.SmSchemeOver k}
     (f : SmOverHom X Y) (g : SmOverHom Y Z) : SmOverHom X Z where
   hom := f.hom ≫ g.hom
-  over := by
-    calc
-      (f.hom ≫ g.hom) ≫ Z.structMap = f.hom ≫ (g.hom ≫ Z.structMap) := by simp [Category.assoc]
-      _ = f.hom ≫ Y.structMap := by rw [g.over]
-      _ = X.structMap := f.over
+  over := comp_over f g
 
 end SmOverHom
 

@@ -20,6 +20,454 @@ noncomputable section
 
 open scoped Topology
 
+/-- A half can be written as the original value plus the negative half. -/
+theorem Real.half_eq_self_add_neg_half
+    (x : ℝ) :
+    x / 2 = x + (-(x / 2)) := by
+  calc
+    x / 2 = x / 2 + 0 := Eq.symm (add_zero (x / 2))
+    _ = x / 2 + (x / 2 + -(x / 2)) := by
+      exact congrArg (fun z : ℝ => x / 2 + z) (Eq.symm (add_neg_cancel (x / 2)))
+    _ = (x / 2 + x / 2) + -(x / 2) := by
+      exact Eq.symm (add_assoc (x / 2) (x / 2) (-(x / 2)))
+    _ = x + (-(x / 2)) := by
+      exact congrArg (fun z : ℝ => z + (-(x / 2))) (add_halves x)
+
+/-- Translating by the displacement from `x` to `y` lands at `y`. -/
+theorem Real.add_sub_self_right
+    (x y : ℝ) :
+    x + (y - x) = y :=
+  add_sub_cancel_left x y
+
+/-- Division by a square followed by division by `d` can be factored by the
+inverse square. -/
+theorem Real.div_sq_div_assoc
+    (δ d t : ℝ) :
+    (t / δ ^ 2) / d = (1 / δ ^ 2) * (t / d) := by
+  calc
+    (t / δ ^ 2) / d = (t * (δ ^ 2)⁻¹) * d⁻¹ := rfl
+    _ = (δ ^ 2)⁻¹ * (t * d⁻¹) := by
+      exact mul_left_comm t (δ ^ 2)⁻¹ d⁻¹
+    _ = (1 * (δ ^ 2)⁻¹) * (t * d⁻¹) := by
+      exact congrArg (fun z : ℝ => z * (t * d⁻¹)) (Eq.symm (one_mul (δ ^ 2)⁻¹))
+    _ = (1 / δ ^ 2) * (t / d) := rfl
+
+/-- A real multiple of `I` has zero real part. -/
+theorem Complex.real_mul_I_re_eq_zero
+    (t : ℝ) :
+    ((t : ℂ) * Complex.I).re = 0 := by
+  calc
+    ((t : ℂ) * Complex.I).re =
+        (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
+      exact Complex.mul_re (t : ℂ) Complex.I
+    _ = t * 0 - 0 * 1 := rfl
+    _ = 0 - 0 := by
+      exact congrArg (fun x : ℝ => x - 0 * 1) (mul_zero t)
+    _ = 0 := sub_self 0
+
+/-- Adding a real multiple of `I` preserves real part. -/
+theorem Complex.add_real_mul_I_re
+    (z : ℂ)
+    (t : ℝ) :
+    (z + (t : ℂ) * Complex.I).re = z.re := by
+  calc
+    (z + (t : ℂ) * Complex.I).re = z.re + ((t : ℂ) * Complex.I).re := by
+      exact Complex.add_re z ((t : ℂ) * Complex.I)
+    _ = z.re + 0 := by
+      exact congrArg (fun x : ℝ => z.re + x)
+        (Complex.real_mul_I_re_eq_zero t)
+    _ = z.re := add_zero z.re
+
+/-- A complex number identified with a real coercion has zero imaginary part. -/
+theorem Complex.im_eq_zero_of_eq_ofReal
+    {z : ℂ}
+    {x : ℝ}
+    (hz : z = (x : ℂ)) :
+    z.im = 0 := by
+  calc
+    z.im = ((x : ℂ) : ℂ).im := congrArg Complex.im hz
+    _ = 0 := Complex.ofReal_im x
+
+/-- Subtracting a real multiple of `I` preserves real part. -/
+theorem Complex.sub_real_mul_I_re
+    (z : ℂ)
+    (t : ℝ) :
+    (z - (t : ℂ) * Complex.I).re = z.re := by
+  calc
+    (z - (t : ℂ) * Complex.I).re = z.re - ((t : ℂ) * Complex.I).re := by
+      exact Complex.sub_re z ((t : ℂ) * Complex.I)
+    _ = z.re - 0 := by
+      exact congrArg (fun x : ℝ => z.re - x)
+        (Complex.real_mul_I_re_eq_zero t)
+    _ = z.re := sub_zero z.re
+
+/-- Squaring a real multiple of `I` gives the negative real square. -/
+theorem Complex.real_mul_I_sq
+    (t : ℝ) :
+    ((t : ℂ) * Complex.I) ^ 2 = -((t : ℂ) ^ 2) := by
+  calc
+    ((t : ℂ) * Complex.I) ^ 2 =
+        ((t : ℂ) * Complex.I) * ((t : ℂ) * Complex.I) := sq _
+    _ = ((t : ℂ) * (t : ℂ)) * (Complex.I * Complex.I) := by
+      exact mul_mul_mul_comm (t : ℂ) Complex.I (t : ℂ) Complex.I
+    _ = ((t : ℂ) * (t : ℂ)) * (-1 : ℂ) := by
+      exact congrArg (fun z : ℂ => ((t : ℂ) * (t : ℂ)) * z) Complex.I_mul_I
+    _ = -((t : ℂ) * (t : ℂ)) := mul_neg_one ((t : ℂ) * (t : ℂ))
+    _ = -((t : ℂ) ^ 2) := by
+      exact congrArg Neg.neg (Eq.symm (sq (t : ℂ)))
+
+/-- Dividing `-1` by `I` gives `I`. -/
+theorem Complex.neg_one_div_I_eq_I :
+    ((-1 : ℂ) / Complex.I) = Complex.I := by
+  have hmul : Complex.I * Complex.I = (-1 : ℂ) :=
+    Complex.I_mul_I
+  exact Eq.symm (eq_div_of_mul_eq'' hmul)
+
+/-- Dividing `1` by `I` gives `-I`. -/
+theorem Complex.one_div_I_eq_neg_I :
+    ((1 : ℂ) / Complex.I) = -Complex.I := by
+  have hmul : Complex.I * (-Complex.I) = (1 : ℂ) := by
+    calc
+      Complex.I * (-Complex.I) = -(Complex.I * Complex.I) :=
+        mul_neg Complex.I Complex.I
+      _ = -(-1 : ℂ) := by
+        exact congrArg Neg.neg Complex.I_mul_I
+      _ = 1 := neg_neg (1 : ℂ)
+  exact Eq.symm (eq_div_of_mul_eq'' hmul)
+
+/-- The branch equation `t / w = I` would force `w + tI = 0`. -/
+theorem Complex.add_I_mul_mul_I_eq_zero
+    (w : ℂ) :
+    w + (Complex.I * w) * Complex.I = 0 := by
+  have hmul : (Complex.I * w) * Complex.I = -w := by
+    calc
+      (Complex.I * w) * Complex.I = Complex.I * (w * Complex.I) :=
+        mul_assoc Complex.I w Complex.I
+      _ = Complex.I * (Complex.I * w) := by
+        exact congrArg (fun z : ℂ => Complex.I * z) (mul_comm w Complex.I)
+      _ = (Complex.I * Complex.I) * w := by
+        exact Eq.symm (mul_assoc Complex.I Complex.I w)
+      _ = (-1 : ℂ) * w := by
+        exact congrArg (fun z : ℂ => z * w) Complex.I_mul_I
+      _ = -w := neg_one_mul w
+  calc
+    w + (Complex.I * w) * Complex.I = w + (-w) := by
+      exact congrArg (fun z : ℂ => w + z) hmul
+    _ = 0 := add_neg_cancel w
+
+/-- The branch equation `t / w = -I` would force `w - tI = 0`. -/
+theorem Complex.sub_neg_I_mul_mul_I_eq_zero
+    (w : ℂ) :
+    w - (-Complex.I * w) * Complex.I = 0 := by
+  have hmul : (-Complex.I * w) * Complex.I = w := by
+    calc
+      (-Complex.I * w) * Complex.I = -Complex.I * (w * Complex.I) :=
+        mul_assoc (-Complex.I) w Complex.I
+      _ = -Complex.I * (Complex.I * w) := by
+        exact congrArg (fun z : ℂ => -Complex.I * z) (mul_comm w Complex.I)
+      _ = (-Complex.I * Complex.I) * w := by
+        exact Eq.symm (mul_assoc (-Complex.I) Complex.I w)
+      _ = (-(Complex.I * Complex.I)) * w := by
+        exact congrArg (fun z : ℂ => z * w) (neg_mul Complex.I Complex.I)
+      _ = (-(-1 : ℂ)) * w := by
+        exact congrArg (fun z : ℂ => z * w)
+          (congrArg Neg.neg Complex.I_mul_I)
+      _ = (1 : ℂ) * w := by
+        exact congrArg (fun z : ℂ => z * w) (neg_neg (1 : ℂ))
+      _ = w := one_mul w
+  calc
+    w - (-Complex.I * w) * Complex.I = w - w := by
+      exact congrArg (fun z : ℂ => w - z) hmul
+    _ = 0 := sub_self w
+
+/-- Collecting one additive cancellation without commutative-group automation. -/
+theorem Complex.add_sub_add_neg_right_eq_add
+    (x a b : ℂ) :
+    (x + a) - (a + -b) = x + b := by
+  calc
+    (x + a) - (a + -b) = (x + a) + -(a + -b) :=
+      sub_eq_add_neg (x + a) (a + -b)
+    _ = (x + a) + (-a + -(-b)) := by
+      exact congrArg (fun u : ℂ => (x + a) + u) (neg_add_rev a (-b))
+    _ = (x + a) + (-a + b) := by
+      exact congrArg (fun u : ℂ => (x + a) + (-a + u)) (neg_neg b)
+    _ = x + (a + (-a + b)) := by
+      exact add_assoc x a (-a + b)
+    _ = x + ((a + -a) + b) := by
+      exact congrArg (fun u : ℂ => x + u) (Eq.symm (add_assoc a (-a) b))
+    _ = x + (0 + b) := by
+      exact congrArg (fun u : ℂ => x + (u + b)) (add_neg_cancel a)
+    _ = x + b := by
+      exact congrArg (fun u : ℂ => x + u) (zero_add b)
+
+/-- Removing the same unit after subtracting a term leaves the negative term. -/
+theorem Complex.one_sub_sub_one_eq_neg
+    (h : ℂ) :
+    (1 - h) - 1 = -h := by
+  calc
+    (1 - h) - 1 = (1 + -h) + -1 := by
+      exact congrArg (fun u : ℂ => u + -1) (sub_eq_add_neg 1 h)
+    _ = 1 + (-h + -1) := add_assoc 1 (-h) (-1)
+    _ = 1 + (-1 + -h) := by
+      exact congrArg (fun u : ℂ => 1 + u) (add_comm (-h) (-1))
+    _ = (1 + -1) + -h := by
+      exact Eq.symm (add_assoc 1 (-1) (-h))
+    _ = 0 + -h := by
+      exact congrArg (fun u : ℂ => u + -h) (add_neg_cancel 1)
+    _ = -h := zero_add (-h)
+
+/-- The final additive cancellation in the Binet main-term derivative. -/
+theorem Complex.add_one_sub_sub_one_eq_sub
+    (L h : ℂ) :
+    (L + (1 - h)) - 1 = L - h := by
+  calc
+    (L + (1 - h)) - 1 = L + ((1 - h) - 1) := by
+      exact Eq.symm (add_sub_assoc L (1 - h) 1)
+    _ = L + -h := by
+      exact congrArg (fun u : ℂ => L + u)
+        (Complex.one_sub_sub_one_eq_neg h)
+    _ = L - h := by
+      exact Eq.symm (sub_eq_add_neg L h)
+
+/-- The two linear factors in the arctangent logarithmic derivative multiply
+to `1 + z^2`. -/
+theorem Complex.one_sub_mul_I_mul_one_add_mul_I
+    (z : ℂ) :
+    (1 - z * Complex.I) * (1 + z * Complex.I) = 1 + z ^ 2 := by
+  have hsquare :
+      (z * Complex.I) * (z * Complex.I) = -z ^ 2 := by
+    calc
+      (z * Complex.I) * (z * Complex.I) =
+          (z * z) * (Complex.I * Complex.I) := by
+        exact mul_mul_mul_comm z Complex.I z Complex.I
+      _ = (z * z) * (-1 : ℂ) := by
+        exact congrArg (fun u : ℂ => (z * z) * u) Complex.I_mul_I
+      _ = -(z * z) := mul_neg_one (z * z)
+      _ = -z ^ 2 := by
+        exact congrArg Neg.neg (Eq.symm (sq z))
+  calc
+    (1 - z * Complex.I) * (1 + z * Complex.I) =
+        1 * (1 + z * Complex.I) - (z * Complex.I) * (1 + z * Complex.I) := by
+      exact sub_mul 1 (z * Complex.I) (1 + z * Complex.I)
+    _ = (1 + z * Complex.I) -
+        ((z * Complex.I) * 1 + (z * Complex.I) * (z * Complex.I)) := by
+      exact congrArg₂ HSub.hSub
+        (one_mul (1 + z * Complex.I))
+        (mul_add (z * Complex.I) 1 (z * Complex.I))
+    _ = (1 + z * Complex.I) -
+        (z * Complex.I + (z * Complex.I) * (z * Complex.I)) := by
+      exact congrArg
+        (fun u : ℂ => (1 + z * Complex.I) - (u + (z * Complex.I) * (z * Complex.I)))
+        (mul_one (z * Complex.I))
+    _ = (1 + z * Complex.I) - (z * Complex.I + -z ^ 2) := by
+      exact congrArg
+        (fun u : ℂ => (1 + z * Complex.I) - (z * Complex.I + u))
+        hsquare
+    _ = 1 + z ^ 2 := by
+      exact Complex.add_sub_add_neg_right_eq_add 1 (z * Complex.I) (z ^ 2)
+
+/-- The scalar normalization in the logarithmic formula for `arctan`. -/
+theorem Complex.neg_I_div_two_mul_two_I_eq_one :
+    (-Complex.I / 2) * ((2 : ℂ) * Complex.I) = 1 := by
+  calc
+    (-Complex.I / 2) * ((2 : ℂ) * Complex.I) =
+        ((-Complex.I / 2) * (2 : ℂ)) * Complex.I := by
+      exact mul_assoc (-Complex.I / 2) (2 : ℂ) Complex.I
+    _ = -Complex.I * Complex.I := by
+      exact congrArg (fun u : ℂ => u * Complex.I)
+        (div_mul_cancel₀ (-Complex.I) (two_ne_zero' ℂ))
+    _ = -(Complex.I * Complex.I) := by
+      exact neg_mul Complex.I Complex.I
+    _ = -(-1 : ℂ) := by
+      exact congrArg Neg.neg Complex.I_mul_I
+    _ = 1 := neg_neg (1 : ℂ)
+
+/-- Denominator cancellation for the logarithmic derivative expression in the
+principal arctangent formula. -/
+theorem Complex.arctan_log_derivative_factor_algebra
+    (z : ℂ)
+    (hden_ne : 1 - z * Complex.I ≠ 0) :
+    (-Complex.I / 2) *
+        (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+          ((1 + z * Complex.I) / (1 - z * Complex.I))) =
+      (1 : ℂ) / (1 + z ^ 2) := by
+  have hquot :
+      (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+          ((1 + z * Complex.I) / (1 - z * Complex.I))) =
+        ((2 : ℂ) * Complex.I) /
+          ((1 - z * Complex.I) * (1 + z * Complex.I)) := by
+    have hden_sq :
+        (1 - z * Complex.I) ^ 2 =
+          (1 - z * Complex.I) * (1 - z * Complex.I) := by
+      exact sq (1 - z * Complex.I)
+    calc
+      (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+          ((1 + z * Complex.I) / (1 - z * Complex.I))) =
+          (((2 : ℂ) * Complex.I /
+              ((1 - z * Complex.I) * (1 - z * Complex.I))) /
+            ((1 + z * Complex.I) / (1 - z * Complex.I))) := by
+        exact congrArg
+          (fun u : ℂ =>
+            (((2 : ℂ) * Complex.I / u) /
+              ((1 + z * Complex.I) / (1 - z * Complex.I))))
+          hden_sq
+      _ =
+          ((((2 : ℂ) * Complex.I) / (1 - z * Complex.I) /
+              (1 - z * Complex.I)) /
+            ((1 + z * Complex.I) / (1 - z * Complex.I))) := by
+        exact congrArg
+          (fun u : ℂ => u / ((1 + z * Complex.I) / (1 - z * Complex.I)))
+          (Eq.symm (div_div ((2 : ℂ) * Complex.I)
+            (1 - z * Complex.I) (1 - z * Complex.I)))
+      _ = (((2 : ℂ) * Complex.I) / (1 - z * Complex.I)) /
+            (1 + z * Complex.I) := by
+        exact div_div_div_cancel_right₀ hden_ne
+          (((2 : ℂ) * Complex.I) / (1 - z * Complex.I))
+          (1 + z * Complex.I)
+      _ = ((2 : ℂ) * Complex.I) /
+            ((1 - z * Complex.I) * (1 + z * Complex.I)) := by
+        exact div_div ((2 : ℂ) * Complex.I)
+          (1 - z * Complex.I) (1 + z * Complex.I)
+  have hfactor :
+      (1 - z * Complex.I) * (1 + z * Complex.I) = 1 + z ^ 2 :=
+    Complex.one_sub_mul_I_mul_one_add_mul_I z
+  calc
+    (-Complex.I / 2) *
+        (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
+          ((1 + z * Complex.I) / (1 - z * Complex.I))) =
+        (-Complex.I / 2) *
+          (((2 : ℂ) * Complex.I) /
+            ((1 - z * Complex.I) * (1 + z * Complex.I))) := by
+      exact congrArg (fun u : ℂ => (-Complex.I / 2) * u) hquot
+    _ = ((-Complex.I / 2) * ((2 : ℂ) * Complex.I)) /
+          ((1 - z * Complex.I) * (1 + z * Complex.I)) := by
+      exact Eq.symm
+        (mul_div_assoc (-Complex.I / 2) ((2 : ℂ) * Complex.I)
+          ((1 - z * Complex.I) * (1 + z * Complex.I)))
+    _ = (1 : ℂ) / ((1 - z * Complex.I) * (1 + z * Complex.I)) := by
+      exact congrArg
+        (fun u : ℂ => u / ((1 - z * Complex.I) * (1 + z * Complex.I)))
+        Complex.neg_I_div_two_mul_two_I_eq_one
+    _ = (1 : ℂ) / (1 + z ^ 2) := by
+      exact congrArg (fun u : ℂ => (1 : ℂ) / u) hfactor
+
+/-- The denominator identity used after composing the arctangent derivative
+with `z ↦ a / z`. -/
+theorem Complex.one_add_sq_div_eq_sq_add_sq_div_sq
+    {a w : ℂ}
+    (hw_ne : w ≠ 0) :
+    1 + (a / w) ^ 2 = (w ^ 2 + a ^ 2) / w ^ 2 := by
+  have hw_sq_ne : w ^ 2 ≠ 0 :=
+    pow_ne_zero 2 hw_ne
+  calc
+    1 + (a / w) ^ 2 = w ^ 2 / w ^ 2 + (a / w) ^ 2 := by
+      exact congrArg (fun u : ℂ => u + (a / w) ^ 2)
+        (Eq.symm (div_self hw_sq_ne))
+    _ = w ^ 2 / w ^ 2 + a ^ 2 / w ^ 2 := by
+      exact congrArg (fun u : ℂ => w ^ 2 / w ^ 2 + u)
+        (div_pow a w 2)
+    _ = (w ^ 2 + a ^ 2) / w ^ 2 := by
+      exact Eq.symm (div_add_div_same (w ^ 2) (a ^ 2) (w ^ 2))
+
+/-- Algebraic normalization of the chain-rule derivative of
+`z ↦ arctan (a / z)`. -/
+theorem Complex.arctan_t_div_derivative_algebra
+    {a w : ℂ}
+    (hw_ne : w ≠ 0) :
+    ((1 : ℂ) / (1 + (a / w) ^ 2)) *
+        (-a / w ^ 2) =
+      -a / (w ^ 2 + a ^ 2) := by
+  have hw_sq_ne : w ^ 2 ≠ 0 :=
+    pow_ne_zero 2 hw_ne
+  have hden_eq :
+      1 + (a / w) ^ 2 = (w ^ 2 + a ^ 2) / w ^ 2 :=
+    Complex.one_add_sq_div_eq_sq_add_sq_div_sq hw_ne
+  calc
+    ((1 : ℂ) / (1 + (a / w) ^ 2)) *
+        (-a / w ^ 2) =
+        ((1 : ℂ) / ((w ^ 2 + a ^ 2) / w ^ 2)) *
+          (-a / w ^ 2) := by
+      exact congrArg (fun u : ℂ => ((1 : ℂ) / u) * (-a / w ^ 2)) hden_eq
+    _ = (w ^ 2 / (w ^ 2 + a ^ 2)) * (-a / w ^ 2) := by
+      exact congrArg (fun u : ℂ => u * (-a / w ^ 2))
+        (one_div_div (w ^ 2 + a ^ 2) (w ^ 2))
+    _ = (-a / w ^ 2) * (w ^ 2 / (w ^ 2 + a ^ 2)) := by
+      exact mul_comm (w ^ 2 / (w ^ 2 + a ^ 2)) (-a / w ^ 2)
+    _ = -a / (w ^ 2 + a ^ 2) := by
+      exact div_mul_div_cancel₀ hw_sq_ne (-a) (w ^ 2 + a ^ 2)
+
+/-- The reciprocal half-factor in the Binet main-term derivative. -/
+theorem Complex.one_half_mul_one_div_eq_one_div_two_mul
+    {w : ℂ}
+    (hw : w ≠ 0) :
+    (1 / 2 : ℂ) * (1 / w) = 1 / (2 * w) := by
+  have htwo : (2 : ℂ) ≠ 0 := by
+    exact two_ne_zero
+  have hprod : (2 : ℂ) * w ≠ 0 :=
+    mul_ne_zero htwo hw
+  apply (mul_left_cancel₀ hprod)
+  calc
+    (2 * w) * ((1 / 2 : ℂ) * (1 / w)) =
+        (2 * (1 / 2 : ℂ)) * (w * (1 / w)) := by
+      exact mul_mul_mul_comm (2 : ℂ) w (1 / 2 : ℂ) (1 / w)
+    _ = 1 * 1 := by
+      exact congrArg₂ HMul.hMul
+        (mul_one_div_cancel htwo)
+        (mul_one_div_cancel hw)
+    _ = 1 := one_mul (1 : ℂ)
+    _ = (2 * w) * (1 / (2 * w)) := by
+      exact Eq.symm (mul_one_div_cancel hprod)
+
+/-- Algebraic normalization of the Binet main-term derivative. -/
+theorem Complex.binetLogGammaMainTerm_derivative_algebra
+    {w L : ℂ}
+    (hw : w ≠ 0) :
+    (1 * L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
+      L - (1 / (2 * w)) := by
+  have hw_cancel : w * (1 / w) = 1 :=
+    mul_one_div_cancel hw
+  have hhalf :
+      (1 / 2 : ℂ) * (1 / w) = 1 / (2 * w) :=
+    Complex.one_half_mul_one_div_eq_one_div_two_mul hw
+  calc
+    (1 * L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
+        (L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 := by
+      calc
+        (1 * L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
+            (L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 := by
+          exact congrArg
+            (fun u : ℂ => (u + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0)
+            (one_mul L)
+        _ = (L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 :=
+          add_zero ((L + (w - (1 / 2 : ℂ)) * (1 / w)) - 1)
+    _ = (L + (w * (1 / w) - (1 / 2 : ℂ) * (1 / w))) - 1 := by
+      exact congrArg (fun u : ℂ => (L + u) - 1)
+        (sub_mul w (1 / 2 : ℂ) (1 / w))
+    _ = (L + (1 - (1 / 2 : ℂ) * (1 / w))) - 1 := by
+      exact congrArg
+        (fun u : ℂ => (L + (u - (1 / 2 : ℂ) * (1 / w))) - 1)
+        hw_cancel
+    _ = (L + (1 - 1 / (2 * w))) - 1 := by
+      exact congrArg (fun u : ℂ => (L + (1 - u)) - 1) hhalf
+    _ = L - (1 / (2 * w)) := by
+      exact Complex.add_one_sub_sub_one_eq_sub L (1 / (2 * w))
+
+/-- Factoring `z^2 + t^2` into the two imaginary translates. -/
+theorem Complex.add_mul_sub_real_mul_I_eq_sq_add_sq
+    (z : ℂ)
+    (t : ℝ) :
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I) =
+      z ^ 2 + (t : ℂ) ^ 2 := by
+  calc
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I)
+        = z ^ 2 - ((t : ℂ) * Complex.I) ^ 2 :=
+      Eq.symm (sq_sub_sq z ((t : ℂ) * Complex.I))
+    _ = z ^ 2 - (-((t : ℂ) ^ 2)) := by
+      exact congrArg (fun u : ℂ => z ^ 2 - u)
+        (Complex.real_mul_I_sq t)
+    _ = z ^ 2 + (t : ℂ) ^ 2 :=
+      sub_neg_eq_add (z ^ 2) ((t : ℂ) ^ 2)
+
 /-- The derivative kernel obtained by differentiating
 `arctan ((t : ℂ) / w)` in Binet's second-formula remainder. -/
 noncomputable def Complex.binetSecondFormulaDerivativeKernel
@@ -55,9 +503,31 @@ theorem Complex.binetLogGammaMainTerm_posReal_im_eq_zero
   have hlog :
       Complex.log (x : ℂ) = ((Real.log x : ℝ) : ℂ) :=
     (Complex.ofReal_log hx.le).symm
-  unfold Complex.binetLogGammaMainTerm
-  exact congrArg (fun z : ℂ => z - ((1 / 2 : ℂ) * Complex.log (x : ℂ)) - (x : ℂ)) hlog
-  norm_num
+  have hreal :
+      Complex.binetLogGammaMainTerm (x : ℂ) =
+        (((x - (1 / 2 : ℝ)) * Real.log x - x +
+          Real.log (2 * Real.pi) / 2 : ℝ) : ℂ) := by
+    calc
+      Complex.binetLogGammaMainTerm (x : ℂ) =
+          ((x : ℂ) - (1 / 2 : ℂ)) * Complex.log (x : ℂ) - (x : ℂ) +
+            (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2 := by
+        exact Complex.binetLogGammaMainTerm_unfold (x : ℂ)
+      _ =
+          ((x : ℂ) - (1 / 2 : ℂ)) * ((Real.log x : ℝ) : ℂ) - (x : ℂ) +
+            (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2 := by
+        exact
+          congrArg
+            (fun z : ℂ =>
+              ((x : ℂ) - (1 / 2 : ℂ)) * z - (x : ℂ) +
+                (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+            hlog
+      _ =
+          (((x - (1 / 2 : ℝ)) * Real.log x - x +
+            Real.log (2 * Real.pi) / 2 : ℝ) : ℂ) := by
+        rfl
+  exact
+    Complex.im_eq_zero_of_eq_ofReal
+      hreal
 
 /-- The Binet arctangent kernel is real-valued on the positive real axis. -/
 theorem Complex.binetSecondFormulaKernel_posReal_im_eq_zero
@@ -89,8 +559,24 @@ theorem Complex.binetSecondFormulaKernel_posReal_im_eq_zero
             exact congrArg (fun z : ℂ => z - 1) (Complex.ofReal_exp _)
           _ = ((Real.exp ((2 : ℝ) * Real.pi * t) - 1 : ℝ) : ℂ) := by
             rfl
-  exact congrArg2 (fun a b : ℂ => a / b) harctan hden
-  norm_num
+  have hquot :
+      Complex.arctan ((t : ℂ) / (x : ℂ)) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) =
+        ((Real.arctan (t / x) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) : ℝ) : ℂ) := by
+    calc
+      Complex.arctan ((t : ℂ) / (x : ℂ)) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) =
+        ((Real.arctan (t / x) : ℝ) : ℂ) /
+          ((Real.exp ((2 : ℝ) * Real.pi * t) - 1 : ℝ) : ℂ) := by
+        exact congrArg₂ (fun a b : ℂ => a / b) harctan hden
+      _ =
+        ((Real.arctan (t / x) /
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) : ℝ) : ℂ) := by
+        exact Complex.ofReal_div
+          (Real.arctan (t / x))
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+  exact Complex.im_eq_zero_of_eq_ofReal hquot
 
 /-- The Binet second-formula remainder is real-valued on the positive real
 axis. -/
@@ -109,13 +595,12 @@ theorem Complex.binetSecondFormulaRemainder_posReal_im_eq_zero
   have hK_im_zero :
       ∀ᵐ t ∂Measure.restrict volume (Set.Ioi (0 : ℝ)),
         (K t).im = 0 := by
-    filter_upwards
-      [MeasureTheory.self_mem_ae_restrict
-        (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
-      with t ht
     exact
-      Complex.binetSecondFormulaKernel_posReal_im_eq_zero
-        hx ht
+      (MeasureTheory.self_mem_ae_restrict
+        (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+        (fun t ht =>
+          Complex.binetSecondFormulaKernel_posReal_im_eq_zero
+            hx ht)
   have hintegral_im_zero :
       (∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im = 0 := by
     have him_integral :
@@ -126,35 +611,55 @@ theorem Complex.binetSecondFormulaRemainder_posReal_im_eq_zero
         ∫ t : ℝ in Set.Ioi (0 : ℝ), (K t).im = 0 := by
       exact integral_eq_zero_of_ae hK_im_zero
     exact Eq.trans him_integral.symm him_integrand_zero
-  unfold Complex.binetSecondFormulaRemainder
-  change (2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im = 0
+  have hremainder_def :
+      (Complex.binetSecondFormulaRemainder (x : ℂ)).im =
+        (2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im :=
+    rfl
   have hmul_im :
       (2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im =
         2 * (∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im := by
     exact Complex.mul_im _ _
-  exact hmul_im.trans (by
-    norm_num [hintegral_im_zero])
-  norm_num [hintegral_im_zero]
+  exact
+    Eq.subst
+      (motive := fun y : ℝ => y = 0)
+      (Eq.symm hremainder_def)
+      (calc
+        (2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im =
+        2 * (∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im := hmul_im
+        _ = 2 * 0 := by
+          exact congrArg (fun y : ℝ => 2 * y) hintegral_im_zero
+        _ = 0 := mul_zero 2)
 
 /-- The Binet logarithm branch is real-valued on the positive real axis. -/
 theorem Complex.binetLogGammaBranch_posReal_im_eq_zero_owner
     {x : ℝ}
     (hx : 0 < x) :
     (Complex.binetLogGammaBranch (x : ℂ)).im = 0 := by
-  unfold Complex.binetLogGammaBranch
   have hmain := Complex.binetLogGammaMainTerm_posReal_im_eq_zero hx
   have hrem := Complex.binetSecondFormulaRemainder_posReal_im_eq_zero hx
+  have hbranch_def :
+      (Complex.binetLogGammaBranch (x : ℂ)).im =
+        (Complex.binetLogGammaMainTerm (x : ℂ) +
+          Complex.binetSecondFormulaRemainder (x : ℂ)).im :=
+    rfl
   exact
-    by
-      calc
+    Eq.subst
+      (motive := fun y : ℝ => y = 0)
+      (Eq.symm hbranch_def)
+      (calc
         (Complex.binetLogGammaMainTerm (x : ℂ) +
             Complex.binetSecondFormulaRemainder (x : ℂ)).im =
-            Complex.binetLogGammaMainTerm (x : ℂ).im +
-              Complex.binetSecondFormulaRemainder (x : ℂ).im := by
+        Complex.binetLogGammaMainTerm (x : ℂ).im +
+          Complex.binetSecondFormulaRemainder (x : ℂ).im := by
           exact Complex.add_im _ _
-        _ = 0 := by
-          linarith
-  norm_num
+        _ = 0 + Complex.binetSecondFormulaRemainder (x : ℂ).im := by
+          exact congrArg
+            (fun y : ℝ =>
+              y + Complex.binetSecondFormulaRemainder (x : ℂ).im)
+            hmain
+        _ = 0 + 0 := by
+          exact congrArg (fun y : ℝ => 0 + y) hrem
+        _ = 0 := zero_add 0)
 
 /-- On the positive real axis, the analytic Binet branch agrees with Lean's
 principal logarithm of Gamma. -/
@@ -238,8 +743,7 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
           have hzI_eq : z * Complex.I = -1 := by
             exact add_eq_zero_iff_eq_neg.mp hzero
           exact congrArg (fun u : ℂ => u / Complex.I) hzI_eq
-        _ = Complex.I := by
-          field_simp [Complex.I_ne_zero, Complex.I_mul_I]
+        _ = Complex.I := Complex.neg_one_div_I_eq_I
     exact hzI hz_eq
   have hden_ne : 1 - z * Complex.I ≠ 0 := by
     intro hzero
@@ -251,8 +755,7 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
           have hzI_eq : z * Complex.I = 1 := by
             exact sub_eq_zero.mp hzero
           exact congrArg (fun u : ℂ => u / Complex.I) hzI_eq
-        _ = -Complex.I := by
-          field_simp [Complex.I_ne_zero, Complex.I_mul_I]
+        _ = -Complex.I := Complex.one_div_I_eq_neg_I
     exact hznegI hz_eq
   let q : ℂ → ℂ :=
     fun u : ℂ => (1 + u * Complex.I) / (1 - u * Complex.I)
@@ -286,16 +789,8 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
           (((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) /
             ((1 + z * Complex.I) / (1 - z * Complex.I))) =
         (1 : ℂ) / (1 + z ^ 2) := by
-    have hprod_ne : 1 + z ^ 2 ≠ 0 := by
-      have hfactor :
-          (1 - z * Complex.I) * (1 + z * Complex.I) = 1 + z ^ 2 := by
-        ring_nf
-      intro hzero
-      exact (mul_ne_zero hden_ne hnum_ne) (hfactor.trans hzero)
-    field_simp [hnum_ne, hden_ne, hprod_ne]
-    ring_nf
-  exact by
-    exact hscaled
+    exact Complex.arctan_log_derivative_factor_algebra z hden_ne
+  exact halg ▸ hscaled
 
 /-- A point in the open right half-plane is nonzero. -/
 theorem Complex.ne_zero_of_re_pos
@@ -317,17 +812,7 @@ theorem Complex.add_real_mul_I_ne_zero_of_re_pos
   have hre_zero : (w + (t : ℂ) * Complex.I).re = 0 := by
     exact congrArg Complex.re hzero
   have hre_eq : (w + (t : ℂ) * Complex.I).re = w.re := by
-    calc
-      (w + (t : ℂ) * Complex.I).re = w.re + ((t : ℂ) * Complex.I).re := by
-        exact Complex.add_re w ((t : ℂ) * Complex.I)
-      _ = w.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by norm_num
-        linarith
+    exact Complex.add_real_mul_I_re w t
   exact (lt_irrefl (0 : ℝ)) (hw_re_pos.trans_eq (hre_eq.symm.trans hre_zero))
 
 /-- Subtracting a purely imaginary number from a point in the open right
@@ -340,17 +825,7 @@ theorem Complex.sub_real_mul_I_ne_zero_of_re_pos
   have hre_zero : (w - (t : ℂ) * Complex.I).re = 0 := by
     exact congrArg Complex.re hzero
   have hre_eq : (w - (t : ℂ) * Complex.I).re = w.re := by
-    calc
-      (w - (t : ℂ) * Complex.I).re = w.re - ((t : ℂ) * Complex.I).re := by
-        exact Complex.sub_re w ((t : ℂ) * Complex.I)
-      _ = w.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by norm_num
-        linarith
+    exact Complex.sub_real_mul_I_re w t
   exact (lt_irrefl (0 : ℝ)) (hw_re_pos.trans_eq (hre_eq.symm.trans hre_zero))
 
 /-- The algebraic denominator `w^2 + t^2` in the differentiated Binet kernel
@@ -368,14 +843,7 @@ theorem Complex.binet_arctan_derivative_denominator_ne_zero
   have hfactor :
       (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I) =
         w ^ 2 + (t : ℂ) ^ 2 := by
-    calc
-      (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I)
-          = w ^ 2 - ((t : ℂ) * Complex.I) ^ 2 := by
-            ring
-      _ = w ^ 2 + (t : ℂ) ^ 2 := by
-            have hI : (Complex.I : ℂ) ^ 2 = -1 := by
-              exact Complex.I_mul_I
-            nlinarith
+    exact Complex.add_mul_sub_real_mul_I_eq_sq_add_sq w t
   intro hzero
   have hprod_zero :
       (w + (t : ℂ) * Complex.I) * (w - (t : ℂ) * Complex.I) = 0 :=
@@ -407,17 +875,7 @@ theorem Complex.re_le_norm_add_real_mul_I
     z.re ≤ ‖z + (t : ℂ) * Complex.I‖ := by
   have hsum_re_nonneg : 0 ≤ (z + (t : ℂ) * Complex.I).re := by
     have hre : (z + (t : ℂ) * Complex.I).re = z.re := by
-      calc
-        (z + (t : ℂ) * Complex.I).re = z.re + ((t : ℂ) * Complex.I).re := by
-          exact Complex.add_re z ((t : ℂ) * Complex.I)
-        _ = z.re := by
-          have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-            calc
-              ((t : ℂ) * Complex.I).re =
-                  (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-                exact Complex.mul_re _ _
-              _ = 0 := by norm_num
-          linarith
+      exact Complex.add_real_mul_I_re z t
     exact hre ▸ hz_re_nonneg
   have hnorm :
       (z + (t : ℂ) * Complex.I).re ≤
@@ -425,17 +883,7 @@ theorem Complex.re_le_norm_add_real_mul_I
     Complex.re_le_norm_of_nonneg_re hsum_re_nonneg
   have hre :
       (z + (t : ℂ) * Complex.I).re = z.re := by
-    calc
-      (z + (t : ℂ) * Complex.I).re = z.re + ((t : ℂ) * Complex.I).re := by
-        exact Complex.add_re z ((t : ℂ) * Complex.I)
-      _ = z.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by norm_num
-        linarith
+    exact Complex.add_real_mul_I_re z t
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ ‖z + (t : ℂ) * Complex.I‖)
@@ -451,17 +899,7 @@ theorem Complex.re_le_norm_sub_real_mul_I
     z.re ≤ ‖z - (t : ℂ) * Complex.I‖ := by
   have hdiff_re_nonneg : 0 ≤ (z - (t : ℂ) * Complex.I).re := by
     have hre : (z - (t : ℂ) * Complex.I).re = z.re := by
-      calc
-        (z - (t : ℂ) * Complex.I).re = z.re - ((t : ℂ) * Complex.I).re := by
-          exact Complex.sub_re z ((t : ℂ) * Complex.I)
-        _ = z.re := by
-          have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-            calc
-              ((t : ℂ) * Complex.I).re =
-                  (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-                exact Complex.mul_re _ _
-              _ = 0 := by norm_num
-          linarith
+      exact Complex.sub_real_mul_I_re z t
     exact hre ▸ hz_re_nonneg
   have hnorm :
       (z - (t : ℂ) * Complex.I).re ≤
@@ -469,37 +907,12 @@ theorem Complex.re_le_norm_sub_real_mul_I
     Complex.re_le_norm_of_nonneg_re hdiff_re_nonneg
   have hre :
       (z - (t : ℂ) * Complex.I).re = z.re := by
-    calc
-      (z - (t : ℂ) * Complex.I).re = z.re - ((t : ℂ) * Complex.I).re := by
-        exact Complex.sub_re z ((t : ℂ) * Complex.I)
-      _ = z.re := by
-        have hmul : ((t : ℂ) * Complex.I).re = 0 := by
-          calc
-            ((t : ℂ) * Complex.I).re =
-                (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-              exact Complex.mul_re _ _
-            _ = 0 := by norm_num
-        linarith
+    exact Complex.sub_real_mul_I_re z t
   exact
     Eq.subst
       (motive := fun x : ℝ => x ≤ ‖z - (t : ℂ) * Complex.I‖)
       hre
       hnorm
-
-/-- Factoring `z^2 + t^2` into the two imaginary translates. -/
-theorem Complex.add_mul_sub_real_mul_I_eq_sq_add_sq
-    (z : ℂ)
-    (t : ℝ) :
-    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I) =
-      z ^ 2 + (t : ℂ) ^ 2 := by
-  calc
-    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I)
-        = z ^ 2 - ((t : ℂ) * Complex.I) ^ 2 := by
-          ring
-    _ = z ^ 2 + (t : ℂ) ^ 2 := by
-          have hI : (Complex.I : ℂ) ^ 2 = -1 := by
-            exact Complex.I_mul_I
-          nlinarith
 
 /-- Lower bound for the differentiated Binet denominator from a real-part
 margin. -/
@@ -573,8 +986,7 @@ theorem Complex.binet_arctan_argument_ne_I
       w + (t : ℂ) * Complex.I
           = w + (Complex.I * w) * Complex.I := by
             exact congrArg (fun u : ℂ => w + u * Complex.I) hmul
-      _ = 0 := by
-            ring_nf
+      _ = 0 := Complex.add_I_mul_mul_I_eq_zero w
   exact (Complex.add_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
 
 /-- For `t > 0`, the Binet arctangent argument avoids the branch point `-I`
@@ -596,8 +1008,7 @@ theorem Complex.binet_arctan_argument_ne_negI
       w - (t : ℂ) * Complex.I
           = w - (-Complex.I * w) * Complex.I := by
             exact congrArg (fun u : ℂ => w - u * Complex.I) hmul
-      _ = 0 := by
-            ring_nf
+      _ = 0 := Complex.sub_neg_I_mul_mul_I_eq_zero w
   exact (Complex.sub_real_mul_I_ne_zero_of_re_pos hw_re_pos) hzero
 
 /-- The denominator in the Cayley transform defining `Complex.arctan` is
@@ -615,7 +1026,7 @@ theorem Complex.one_sub_mul_I_ne_zero_of_ne_negI
       exact Complex.I_mul_I
     have hmul'' : z * Complex.I * (-Complex.I) = -Complex.I := by
       -- transport the identity through the right multiplication
-      exact hmul'.trans (by ring_nf)
+      exact hmul'.trans (one_mul (-Complex.I))
     exact hmul''
   exact hz harg
 
@@ -667,11 +1078,14 @@ theorem Complex.binet_arctan_log_argument_mem_slitPlane
           2 * ((t : ℂ) / w).re /
             Complex.normSq (1 - ((t : ℂ) / w) * Complex.I) := by
       exact Complex.arctan_cayley_im_eq ((t : ℂ) / w)
-    exact hcalc
-    exact
+    have hrhs_pos :
+        0 <
+          2 * ((t : ℂ) / w).re /
+            Complex.normSq (1 - ((t : ℂ) / w) * Complex.I) :=
       div_pos
         (mul_pos two_pos ha_re_pos)
         (Complex.normSq_pos.mpr hden_ne)
+    exact hcalc.symm ▸ hrhs_pos
   have hnot_nonpos :
       ¬
         (1 + ((t : ℂ) / w) * Complex.I) /
@@ -681,7 +1095,7 @@ theorem Complex.binet_arctan_log_argument_mem_slitPlane
         (1 + ((t : ℂ) / w) * Complex.I) /
           (1 - ((t : ℂ) / w) * Complex.I) |>.im = 0 := by
       exact (Complex.nonpos_iff.mp hle).2
-    linarith
+    exact (ne_of_gt hq_im_pos) him_zero
   exact (Complex.mem_slitPlane_iff_not_le_zero).2 hnot_nonpos
 
 /-- The rational factor appearing in the Binet arctangent argument has the
@@ -738,8 +1152,7 @@ theorem Complex.arctan_t_div_hasDerivAt
       ((1 : ℂ) / (1 + ((t : ℂ) / w) ^ 2)) *
           (-(t : ℂ) / w ^ 2) =
         -(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2) := by
-    field_simp [hw_ne, hden_ne]
-    ring
+    exact Complex.arctan_t_div_derivative_algebra hw_ne
   exact halg ▸ hcomp
 
 /-- Pointwise derivative of the arctangent kernel in Binet's second-formula
@@ -764,23 +1177,26 @@ theorem Complex.exists_ball_subset_openRightHalfPlane
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     ∃ ε : ℝ, 0 < ε ∧ ∀ z : ℂ, ‖z - w‖ < ε → 0 < z.re := by
-  refine ⟨w.re / 2, half_pos hw_re_pos, ?_⟩
-  intro z hz
-  have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
-    exact (abs_re_le_abs (z - w))
-  have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
-    lt_of_le_of_lt hre_le_norm hz
-  have hre_lower : -(w.re / 2) < z.re - w.re :=
-    (abs_lt.mp hre_abs_lt).1
-  have hw_half_pos : 0 < w.re / 2 :=
-    half_pos hw_re_pos
-  have hhalf_lt_z : w.re / 2 < z.re := by
-    calc
-      w.re / 2 = w.re + (-(w.re / 2)) := by ring
-      _ < w.re + (z.re - w.re) :=
-        add_lt_add_left hre_lower w.re
-      _ = z.re := by ring
-  exact hw_half_pos.trans hhalf_lt_z
+  exact
+    Exists.intro (w.re / 2)
+      (And.intro (half_pos hw_re_pos) (fun z hz => by
+        have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
+          exact (abs_re_le_abs (z - w))
+        have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
+          lt_of_le_of_lt hre_le_norm hz
+        have hre_lower : -(w.re / 2) < z.re - w.re :=
+          (abs_lt.mp hre_abs_lt).1
+        have hw_half_pos : 0 < w.re / 2 :=
+          half_pos hw_re_pos
+        have hhalf_lt_z : w.re / 2 < z.re := by
+          calc
+            w.re / 2 = w.re + (-(w.re / 2)) :=
+              Real.half_eq_self_add_neg_half w.re
+            _ < w.re + (z.re - w.re) :=
+              add_lt_add_left hre_lower w.re
+            _ = z.re :=
+              Real.add_sub_self_right w.re z.re
+        exact hw_half_pos.trans hhalf_lt_z))
 
 /-- A small ball around a point in the open right half-plane has the explicit
 real-part margin `w.re / 2`. -/
@@ -790,21 +1206,24 @@ theorem Complex.exists_ball_subset_re_ge_half
     ∃ ε : ℝ,
       0 < ε ∧
         ∀ z : ℂ, ‖z - w‖ < ε → w.re / 2 ≤ z.re := by
-  refine ⟨w.re / 2, half_pos hw_re_pos, ?_⟩
-  intro z hz
-  have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
-    exact (abs_re_le_abs (z - w))
-  have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
-    lt_of_le_of_lt hre_le_norm hz
-  have hre_lower : -(w.re / 2) < z.re - w.re :=
-    (abs_lt.mp hre_abs_lt).1
-  have hhalf_lt_z : w.re / 2 < z.re := by
-    calc
-      w.re / 2 = w.re + (-(w.re / 2)) := by ring
-      _ < w.re + (z.re - w.re) :=
-        add_lt_add_left hre_lower w.re
-      _ = z.re := by ring
-  exact le_of_lt hhalf_lt_z
+  exact
+    Exists.intro (w.re / 2)
+      (And.intro (half_pos hw_re_pos) (fun z hz => by
+        have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
+          exact (abs_re_le_abs (z - w))
+        have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
+          lt_of_le_of_lt hre_le_norm hz
+        have hre_lower : -(w.re / 2) < z.re - w.re :=
+          (abs_lt.mp hre_abs_lt).1
+        have hhalf_lt_z : w.re / 2 < z.re := by
+          calc
+            w.re / 2 = w.re + (-(w.re / 2)) :=
+              Real.half_eq_self_add_neg_half w.re
+            _ < w.re + (z.re - w.re) :=
+              add_lt_add_left hre_lower w.re
+            _ = z.re :=
+              Real.add_sub_self_right w.re z.re
+        exact le_of_lt hhalf_lt_z))
 
 /-- The elementary division rearrangement used by the differentiated Binet
 kernel majorant. -/
@@ -812,8 +1231,7 @@ theorem Real.binet_derivativeKernel_div_sq_div_eq
     {δ d t : ℝ}
     (hδ_sq_ne : δ ^ 2 ≠ 0) :
     (t / δ ^ 2) / d = (1 / δ ^ 2) * (t / d) := by
-  field_simp [hδ_sq_ne]
-  ring
+  exact Real.div_sq_div_assoc δ d t
 
 /-- Norm of the rational factor in the differentiated Binet kernel. -/
 theorem Complex.binetSecondFormulaDerivativeKernel_rational_norm_le
@@ -925,16 +1343,16 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
                 Complex.arctan ((t : ℂ) / u) /
                   (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
               (Complex.binetSecondFormulaDerivativeKernel t z) z := by
-  rcases Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
-    ⟨ε, hε_pos, hε_subset⟩
-  refine ⟨ε, hε_pos, ?_⟩
-  intro z hz
-  filter_upwards
-    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
-    with t ht
-  exact
-    Complex.binetSecondFormula_arctanKernel_hasDerivAt
-      ht (hε_subset z hz)
+  match Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
+  | Exists.intro ε hε_data =>
+    exact
+      Exists.intro ε
+        (And.intro hε_data.1 (fun z hz =>
+          (MeasureTheory.self_mem_ae_restrict
+            (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+            (fun t ht =>
+              Complex.binetSecondFormula_arctanKernel_hasDerivAt
+                ht (hε_data.2 z hz))))
 
 /-- Local integrable domination for the differentiated arctangent kernel on
 the positive `t`-axis, stated pointwise before passing to the restricted
@@ -951,26 +1369,29 @@ theorem Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
             ∀ t : ℝ,
               t ∈ Set.Ioi (0 : ℝ) →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
-  rcases Complex.exists_ball_subset_re_ge_half hw_re_pos with
-    ⟨ε, hε_pos, hε_subset⟩
-  let δ : ℝ := w.re / 2
-  let g : ℝ → ℝ :=
-    fun t : ℝ =>
-      (1 / δ ^ 2) *
-        (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
-  have hδ_pos : 0 < δ :=
-    hε_pos
-  have hg_integrable : IntegrableOn g (Set.Ioi (0 : ℝ)) := by
+  match Complex.exists_ball_subset_re_ge_half hw_re_pos with
+  | Exists.intro ε hε_data =>
+    let δ : ℝ := w.re / 2
+    let g : ℝ → ℝ :=
+      fun t : ℝ =>
+        (1 / δ ^ 2) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
+    have hδ_pos : 0 < δ :=
+      hε_data.1
+    have hg_integrable : IntegrableOn g (Set.Ioi (0 : ℝ)) := by
+      exact
+        Real.binetSecondFormula_kernel_majorant_integrableOn.const_mul
+          (1 / δ ^ 2)
     exact
-      Real.binetSecondFormula_kernel_majorant_integrableOn.const_mul
-        (1 / δ ^ 2)
-  refine ⟨ε, hε_pos, g, hg_integrable, ?_⟩
-  intro z hz t ht
-  have hδ_le_re : δ ≤ z.re :=
-    hε_subset z hz
-  exact
-    Complex.binetSecondFormulaDerivativeKernel_norm_le_scaled_majorant
-      hδ_pos hδ_le_re ht
+      Exists.intro ε
+        (And.intro hε_data.1
+          (Exists.intro g
+            (And.intro hg_integrable (fun z hz t ht => by
+              have hδ_le_re : δ ≤ z.re :=
+                hε_data.2 z hz
+              exact
+                Complex.binetSecondFormulaDerivativeKernel_norm_le_scaled_majorant
+                  hδ_pos hδ_le_re ht))))
 
 /-- Local integrable domination for the differentiated arctangent kernel on
 the positive `t`-axis, stated pointwise before passing to the restricted
@@ -1005,16 +1426,21 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
           ‖z - w‖ < ε →
             ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
               ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
-  rcases
+  match
     Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
-      hw_re_pos with
-    ⟨ε, hε_pos, g, hg_int, hg_bound⟩
-  refine ⟨ε, hε_pos, g, hg_int, ?_⟩
-  intro z hz
-  filter_upwards
-    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
-    with t ht
-  exact hg_bound z hz t ht
+      hw_re_pos
+  with
+  | Exists.intro ε hε_data =>
+    match hε_data.2 with
+    | Exists.intro g hg_data =>
+      exact
+        Exists.intro ε
+          (And.intro hε_data.1
+            (Exists.intro g
+              (And.intro hg_data.1 (fun z hz =>
+                (MeasureTheory.self_mem_ae_restrict
+                  (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+                  (fun t ht => hg_data.2 z hz t ht)))))
 
 /-- The arctangent kernel and differentiated Binet kernel have the measurability
 and base-point integrability needed for dominated differentiation. -/
@@ -1147,7 +1573,38 @@ theorem Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable
         (fun t : ℝ =>
           Complex.arctan ((t : ℂ) / z) /
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
-    fun_prop
+    have harg : Measurable (fun t : ℝ => (t : ℂ) / z) :=
+      (Complex.measurable_ofReal.comp measurable_id).div_const z
+    have hlog_arg :
+        Measurable
+          (fun t : ℝ =>
+            Complex.log
+              ((1 + ((t : ℂ) / z) * Complex.I) /
+                (1 - ((t : ℂ) / z) * Complex.I))) :=
+      Complex.measurable_log.comp
+        (((measurable_const.add (harg.mul_const Complex.I))).div
+          (measurable_const.sub (harg.mul_const Complex.I)))
+    have harctan :
+        Measurable
+          (fun t : ℝ => Complex.arctan ((t : ℂ) / z)) := by
+      show
+        Measurable
+          (fun t : ℝ =>
+            (-Complex.I / 2) *
+              Complex.log
+                ((1 + ((t : ℂ) / z) * Complex.I) /
+                  (1 - ((t : ℂ) / z) * Complex.I)))
+      exact measurable_const.mul hlog_arg
+    have hden :
+        Measurable
+          (fun t : ℝ =>
+            Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+      have hlinear :
+          Measurable (fun t : ℝ => (((2 : ℝ) * Real.pi * t : ℝ) : ℂ)) :=
+        Complex.measurable_ofReal.comp
+          ((measurable_const.mul measurable_id))
+      exact hlinear.cexp.sub measurable_const
+    exact harctan.div hden
   exact hmeas.aestronglyMeasurable
 
 /-- The differentiated Binet kernel is a.e.-strongly measurable on the positive
@@ -1160,7 +1617,31 @@ theorem Complex.binetSecondFormulaDerivativeKernel_aestronglyMeasurable
   have hmeas :
       Measurable
         (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w) := by
-    fun_prop [Complex.binetSecondFormulaDerivativeKernel]
+    have ht_complex : Measurable (fun t : ℝ => (t : ℂ)) :=
+      Complex.measurable_ofReal.comp measurable_id
+    have hnum : Measurable (fun t : ℝ => -(t : ℂ)) :=
+      ht_complex.neg
+    have hden :
+        Measurable (fun t : ℝ => w ^ 2 + (t : ℂ) ^ 2) :=
+      measurable_const.add (ht_complex.pow_const 2)
+    have hrational :
+        Measurable (fun t : ℝ => -(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) :=
+      hnum.div hden
+    have hexp_den :
+        Measurable
+          (fun t : ℝ =>
+            Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+      have hlinear :
+          Measurable (fun t : ℝ => (((2 : ℝ) * Real.pi * t : ℝ) : ℂ)) :=
+        Complex.measurable_ofReal.comp
+          (measurable_const.mul measurable_id)
+      exact hlinear.cexp.sub measurable_const
+    show
+      Measurable
+        (fun t : ℝ =>
+          (-(t : ℂ) / (w ^ 2 + (t : ℂ) ^ 2)) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+    exact hrational.div hexp_den
   exact hmeas.aestronglyMeasurable
 
 /-- Early local small-argument estimate for the Binet arctangent argument. -/
@@ -1230,9 +1711,9 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_small_interval
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
-    exact hmeas.aestronglyMeasurable
+    exact
+      (Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable w).mono_measure
+        (Measure.restrict_mono Ioc_subset_Ioi_self le_rfl)
   have hpointwise :
       ∀ᵐ t ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
         ‖K t‖ ≤ c * M t :=
@@ -1256,47 +1737,53 @@ theorem Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant
               (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
             C *
               (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  rcases
-      Complex.arctan_fixed_openRightHalfPlane_ray_tail_linear_bound
-        hw_re_pos with
-    ⟨C, hC_nonneg, harctan_bound⟩
-  refine ⟨C, hC_nonneg, ?_⟩
-  intro t ht_tail
-  have ht_pos : 0 < t :=
-    lt_of_le_of_lt
-      (div_nonneg (norm_nonneg w) zero_le_two)
-      ht_tail
-  have hden_norm :
-      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
-        Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
-    calc
-      ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
-          ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ :=
-        Complex.binetSecondFormula_exp_denominator_norm_eq t
-      _ = Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
-        Real.binetSecondFormula_exp_denominator_norm_eq ht_pos
-  have hden_nonneg :
-      0 ≤ Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
-    le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht_pos)
-  have harctan :
-      ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t :=
-    harctan_bound t ht_tail
-  calc
-    ‖Complex.arctan ((t : ℂ) / w) /
-        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
-        ‖Complex.arctan ((t : ℂ) / w)‖ /
-          ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
-      exact norm_div _ _
-    _ =
-        ‖Complex.arctan ((t : ℂ) / w)‖ /
-          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-      exact congrArg (fun x : ℝ => ‖Complex.arctan ((t : ℂ) / w)‖ / x) hden_norm
-    _ ≤ (C * t) /
-          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
-      div_le_div_of_nonneg_right harctan hden_nonneg
-    _ =
-        C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-      exact (mul_div_assoc C t (Real.exp ((2 : ℝ) * Real.pi * t) - 1)).symm
+  match
+    Complex.arctan_fixed_openRightHalfPlane_ray_tail_linear_bound
+      hw_re_pos
+  with
+  | Exists.intro C hC_data =>
+    exact
+      Exists.intro C
+        (And.intro hC_data.1 (fun t ht_tail => by
+          have ht_pos : 0 < t :=
+            lt_of_le_of_lt
+              (div_nonneg (norm_nonneg w) zero_le_two)
+              ht_tail
+          have hden_norm :
+              ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+                Real.exp ((2 : ℝ) * Real.pi * t) - 1 := by
+            calc
+              ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ =
+                  ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ :=
+                Complex.binetSecondFormula_exp_denominator_norm_eq t
+              _ = Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+                Real.binetSecondFormula_exp_denominator_norm_eq ht_pos
+          have hden_nonneg :
+              0 ≤ Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+            le_of_lt (Real.binetSecondFormula_exp_denominator_pos ht_pos)
+          have harctan :
+              ‖Complex.arctan ((t : ℂ) / w)‖ ≤ C * t :=
+            hC_data.2 t ht_tail
+          calc
+            ‖Complex.arctan ((t : ℂ) / w) /
+                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ =
+                ‖Complex.arctan ((t : ℂ) / w)‖ /
+                  ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
+              exact norm_div _ _
+            _ =
+                ‖Complex.arctan ((t : ℂ) / w)‖ /
+                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+              exact congrArg
+                (fun x : ℝ => ‖Complex.arctan ((t : ℂ) / w)‖ / x)
+                hden_norm
+            _ ≤ (C * t) /
+                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+              div_le_div_of_nonneg_right harctan hden_nonneg
+            _ =
+                C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
+              exact
+                (mul_div_assoc C t
+                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1)).symm))
 
 /-- The Binet kernel is integrable on the upper split interval. -/
 theorem Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
@@ -1312,31 +1799,32 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
   let M : ℝ → ℝ := fun t : ℝ =>
     t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  rcases
-      Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant
-        hw_re_pos with
-    ⟨c, hc_nonneg, htail_bound⟩
-  have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
-    Real.binetSecondFormula_kernel_majorant_integrableOn
-  have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
-    div_nonneg (norm_nonneg w) zero_le_two
-  have hcM_integrable :
-      Integrable (fun t : ℝ => c * M t)
-        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
-  have hK_meas :
-      AEStronglyMeasurable K
-        (volume.restrict (Set.Ioi (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
-    exact hmeas.aestronglyMeasurable
-  have hpointwise :
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
-        ‖K t‖ ≤ c * M t :=
-    (ae_restrict_mem measurableSet_Ioi).mono
-      (fun t ht => htail_bound t ht)
-  exact
-    hcM_integrable.mono' hK_meas hpointwise
+  match
+    Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant
+      hw_re_pos
+  with
+  | Exists.intro c hc_data =>
+    have hM_integrable_Ioi : IntegrableOn M (Set.Ioi (0 : ℝ)) :=
+      Real.binetSecondFormula_kernel_majorant_integrableOn
+    have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
+      div_nonneg (norm_nonneg w) zero_le_two
+    have hcM_integrable :
+        Integrable (fun t : ℝ => c * M t)
+          (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
+      (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
+    have hK_meas :
+        AEStronglyMeasurable K
+          (volume.restrict (Set.Ioi (‖w‖ / 2))) := by
+      exact
+        (Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable w).mono_measure
+          (Measure.restrict_mono (Ioi_subset_Ioi hcut_nonneg) le_rfl)
+    have hpointwise :
+        ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+          ‖K t‖ ≤ c * M t :=
+      (ae_restrict_mem measurableSet_Ioi).mono
+        (fun t ht => hc_data.2 t ht)
+    exact
+      hcM_integrable.mono' hK_meas hpointwise
 
 /-- The Binet arctangent kernel is integrable at each point of the open right
 half-plane. -/
@@ -1382,20 +1870,20 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
                   Complex.arctan ((t : ℂ) / u) /
                     (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
                 (Complex.binetSecondFormulaDerivativeKernel t z) z := by
-  rcases Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
-    ⟨ε, hε_pos, hε_subset⟩
-  refine ⟨ε, hε_pos, ?_⟩
-  filter_upwards
-    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
-    with t ht
-  intro z hz
-  have hnorm : ‖z - w‖ < ε := by
+  match Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
+  | Exists.intro ε hε_data =>
     exact
-      Complex.norm_sub_lt_of_mem_ball_of_le_radius
-        (le_refl ε) hz
-  exact
-    Complex.binetSecondFormula_arctanKernel_hasDerivAt
-      ht (hε_subset z hnorm)
+      Exists.intro ε
+        (And.intro hε_data.1
+          ((MeasureTheory.self_mem_ae_restrict
+            (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+            (fun t ht z hz => by
+              have hnorm : ‖z - w‖ < ε :=
+                Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                  (le_refl ε) hz
+              exact
+                Complex.binetSecondFormula_arctanKernel_hasDerivAt
+                  ht (hε_data.2 z hnorm))))
 
 /-- Uniform-a.e. domination of the differentiated Binet kernel on one ball
 inside the open right half-plane. -/
@@ -1410,20 +1898,25 @@ theorem Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
             ∀ z : ℂ,
               z ∈ Metric.ball w ε →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
-  rcases
-      Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
-        hw_re_pos with
-    ⟨ε, hε_pos, g, hg_int, hg_bound⟩
-  refine ⟨ε, hε_pos, g, hg_int, ?_⟩
-  filter_upwards
-    [MeasureTheory.self_mem_ae_restrict (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))]
-    with t ht
-  intro z hz
-  have hnorm : ‖z - w‖ < ε := by
-    exact
-      Complex.norm_sub_lt_of_mem_ball_of_le_radius
-        (le_refl ε) hz
-  exact hg_bound z hnorm t ht
+  match
+    Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
+      hw_re_pos
+  with
+  | Exists.intro ε hε_data =>
+    match hε_data.2 with
+    | Exists.intro g hg_data =>
+      exact
+        Exists.intro ε
+          (And.intro hε_data.1
+            (Exists.intro g
+              (And.intro hg_data.1
+                ((MeasureTheory.self_mem_ae_restrict
+                  (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+                  (fun t ht z hz => by
+                    have hnorm : ‖z - w‖ < ε :=
+                      Complex.norm_sub_lt_of_mem_ball_of_le_radius
+                        (le_refl ε) hz
+                    exact hg_data.2 z hnorm t ht)))))
 
 /-- Dominated-differentiation transport for the Binet remainder once the
 measurability and base-point integrability data have been supplied. -/
@@ -1543,37 +2036,44 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
     HasDerivAt
       Complex.binetSecondFormulaRemainder
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
-  rcases hdata with ⟨hF_meas, hF_int, hF'_meas⟩
-  rcases hkernel with ⟨ε₁, hε₁_pos, hkernel_bound⟩
-  rcases hdominated with ⟨ε₂, hε₂_pos, g, hg_int, hdominated_bound⟩
-  let ε : ℝ := min ε₁ ε₂
-  have hε_pos : 0 < ε :=
-    lt_min hε₁_pos hε₂_pos
-  have hε_le_ε₁ : ε ≤ ε₁ :=
-    min_le_left ε₁ ε₂
-  have hε_le_ε₂ : ε ≤ ε₂ :=
-    min_le_right ε₁ ε₂
-  have hdiff :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
-        ∀ z : ℂ,
-          z ∈ Metric.ball w ε →
-            HasDerivAt
-              (fun u : ℂ =>
-                Complex.arctan ((t : ℂ) / u) /
-                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
-              (Complex.binetSecondFormulaDerivativeKernel t z) z :=
-    Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
-      hε_le_ε₁ hkernel_bound
-  have hbound :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
-        ∀ z : ℂ,
-          z ∈ Metric.ball w ε →
-            ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
-    Complex.binetSecondFormula_derivativeKernel_bound_on_smaller_ball
-      hε_le_ε₂ hdominated_bound
-  exact
-    Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_and_integrability
-      hε_pos hF_meas hF_int hF'_meas hg_int hbound hdiff
+  match hdata with
+  | And.intro hF_meas hdata_tail =>
+    match hdata_tail with
+    | And.intro hF_int hF'_meas =>
+      match hkernel with
+      | Exists.intro ε₁ hkernel_data =>
+        match hdominated with
+        | Exists.intro ε₂ hdominated_data =>
+          match hdominated_data.2 with
+          | Exists.intro g hg_data =>
+            let ε : ℝ := min ε₁ ε₂
+            have hε_pos : 0 < ε :=
+              lt_min hkernel_data.1 hdominated_data.1
+            have hε_le_ε₁ : ε ≤ ε₁ :=
+              min_le_left ε₁ ε₂
+            have hε_le_ε₂ : ε ≤ ε₂ :=
+              min_le_right ε₁ ε₂
+            have hdiff :
+                ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+                  ∀ z : ℂ,
+                    z ∈ Metric.ball w ε →
+                      HasDerivAt
+                        (fun u : ℂ =>
+                          Complex.arctan ((t : ℂ) / u) /
+                            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+                        (Complex.binetSecondFormulaDerivativeKernel t z) z :=
+              Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
+                hε_le_ε₁ hkernel_data.2
+            have hbound :
+                ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+                  ∀ z : ℂ,
+                    z ∈ Metric.ball w ε →
+                      ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
+              Complex.binetSecondFormula_derivativeKernel_bound_on_smaller_ball
+                hε_le_ε₂ hg_data.2
+            exact
+              Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_and_integrability
+                hε_pos hF_meas hF_int hF'_meas hg_data.1 hbound hdiff
 
 /-- Differentiation under the integral sign for the Binet second-formula
 remainder. -/
@@ -1680,8 +2180,11 @@ theorem Complex.binetLogGammaMainTerm_hasDerivAt_openRightHalfPlane
   have hderiv :
       (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
         Complex.log w - (1 / (2 * w)) := by
-    field_simp [hw_ne_zero]
-    ring
+    exact
+      Complex.binetLogGammaMainTerm_derivative_algebra
+        (w := w)
+        (L := Complex.log w)
+        hw_ne_zero
   exact hmain
 
 /-- The derivative value of the Binet logarithmic main term on the open right
@@ -1736,7 +2239,11 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_ow
       Complex.binetSecondFormulaRemainderDerivative w
   have hbranch_deriv :
       HasDerivAt Complex.binetLogGammaBranch D w := by
-    dsimp [D]
+    show
+      HasDerivAt Complex.binetLogGammaBranch
+        ((Complex.log w - (1 / (2 * w))) +
+          Complex.binetSecondFormulaRemainderDerivative w)
+        w
     exact
       Complex.binetLogGammaBranch_hasDerivAt_openRightHalfPlane
         hw_re_pos
@@ -1745,19 +2252,20 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_ow
         (fun z : ℂ => Complex.exp (Complex.binetLogGammaBranch z))
         (Complex.exp (Complex.binetLogGammaBranch w) * D) w :=
     hbranch_deriv.cexp
-  rcases Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
-    ⟨ε, hε_pos, hε_subset⟩
   have heq_eventually :
       (fun z : ℂ => Complex.exp (Complex.binetLogGammaBranch z)) =ᶠ[𝓝 w]
         Complex.Gamma := by
-    have hball :
-        ∀ᶠ z : ℂ in 𝓝 w, ‖z - w‖ < ε :=
-      (Metric.eventually_nhds_iff_ball.2
-        ⟨ε, hε_pos, fun z hz => hz⟩)
-    exact hball.mono
-      (fun z hz =>
-        Complex.Gamma_binetSecondFormula_branchExponential
-          (hε_subset z hz))
+    match Complex.exists_ball_subset_openRightHalfPlane hw_re_pos with
+    | Exists.intro ε hε_data =>
+      have hball :
+          ∀ᶠ z : ℂ in 𝓝 w, ‖z - w‖ < ε :=
+        (Metric.eventually_nhds_iff_ball.2
+          (Exists.intro ε
+            (And.intro hε_data.1 (fun z hz => hz))))
+      exact hball.mono
+        (fun z hz =>
+          Complex.Gamma_binetSecondFormula_branchExponential
+            (hε_data.2 z hz))
   have hgamma_from_branch :
       HasDerivAt Complex.Gamma
         (Complex.exp (Complex.binetLogGammaBranch w) * D) w :=
@@ -1871,7 +2379,10 @@ theorem Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDer
                   ((Complex.log w - (1 / (2 * w))) +
                     Complex.binetSecondFormulaRemainderDerivative w) - x) hB
     _ = Complex.binetSecondFormulaRemainderDerivative w := by
-          abel
+          exact
+            add_sub_cancel_left
+              (Complex.log w - (1 / (2 * w)))
+              (Complex.binetSecondFormulaRemainderDerivative w)
 
 /-- The derivative of the principal-log Gamma side minus the explicit Binet
 main term, reduced to the logarithmic-derivative Binet identity. -/
@@ -2060,7 +2571,11 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_
       (fun hz => hderiv hz)
       hbase_re hw
   have hbase_zero : F (w.re : ℂ) = 0 := by
-    dsimp [F]
+    show
+      Complex.log (Complex.Gamma (w.re : ℂ)) -
+          (Complex.binetLogGammaMainTerm (w.re : ℂ) +
+            Complex.binetSecondFormulaRemainder (w.re : ℂ)) =
+        0
     exact sub_eq_zero.mpr (hreal hw)
   have hw_zero : F w = 0 := by
     exact Eq.trans hconstant.symm hbase_zero
@@ -2132,11 +2647,11 @@ theorem Complex.Gamma_binetSecondFormula_large_openRightHalfPlane :
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
-  refine ⟨1, zero_lt_one, ?_⟩
-  intro w hw_re_pos _hR
   exact
-    Complex.Gamma_binetSecondFormula_openRightHalfPlane
-      w hw_re_pos
+    Exists.intro 1
+      (And.intro zero_lt_one (fun w hw_re_pos _hR =>
+        Complex.Gamma_binetSecondFormula_openRightHalfPlane
+          w hw_re_pos))
 
 /-- Large-radius Binet formula for the existing principal-arctangent integral.
 The hypothesis is open half-plane because the current remainder is the

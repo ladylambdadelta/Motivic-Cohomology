@@ -1,4 +1,8 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.EulerMaclaurinFormula.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.PoleClearedBoundarySetup.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
 
 /-!
 # Right-half-plane Euler continuation growth
@@ -104,7 +108,7 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
       calc
         ‖(2 : ℂ)‖ = ‖((2 : ℝ) : ℂ)‖ := rfl
         _ = ‖(2 : ℝ)‖ := by
-          exact Complex.norm_ofReal 2
+          exact RCLike.norm_ofReal 2
         _ = 2 := by
           exact Real.norm_of_nonneg zero_le_two
     have hraw : ‖z - 1‖ / ‖(2 : ℂ)‖ ≤ ‖z - 1‖ := by
@@ -153,12 +157,32 @@ theorem eulerMaclaurinPoleClearedZetaEndpointTerm_one_two_strip_polynomial_bound
       _ = 1 + ‖z‖ := by
         exact pow_one (1 + ‖z‖)
       _ = H := rfl
+  have hneg :
+      ‖-((z - 1) / (2 : ℂ)) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ =
+        ‖(z - 1) / (2 : ℂ) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ := by
+    calc
+      ‖-((z - 1) / (2 : ℂ)) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ =
+          ‖-(((z - 1) / (2 : ℂ)) *
+            (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)))‖ := by
+        exact congrArg norm (neg_mul ((z - 1) / (2 : ℂ))
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))).symm
+      _ =
+          ‖(z - 1) / (2 : ℂ) *
+            (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ := by
+        exact norm_neg (((z - 1) / (2 : ℂ)) *
+          (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z)))
   exact Eq.subst
     (motive := fun x : ℝ =>
-      ‖(z - 1) / (2 : ℂ) *
+      ‖-((z - 1) / (2 : ℂ)) *
           (1 / (((eulerMaclaurinPoleClearedZetaCutoff z : ℕ) : ℂ) ^ z))‖ ≤ x)
     hright.symm
-    hproduct
+    (Eq.subst
+      (motive := fun x : ℝ => x ≤ H)
+      hneg.symm
+      hproduct)
 
 /-- Polynomial bound for the Bernoulli-periodic Euler-Maclaurin remainder in
 the bounded strip. -/
@@ -225,27 +249,22 @@ theorem poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_
     le_add_of_nonneg_right (norm_nonneg z)
   have hH_nonneg : 0 ≤ H :=
     le_trans zero_le_one hH_ge_one
-  have hmf : H ^ mf ≤ H ^ m :=
-    pow_le_pow_right₀ hH_ge_one (Nat.le_add_right mf (mm + me + mr))
+  have hmf : H ^ mf ≤ H ^ m := by
+    have hmf_le : mf ≤ m := by
+      omega
+    exact pow_le_pow_right₀ hH_ge_one hmf_le
   have hmm : H ^ mm ≤ H ^ m := by
-    have hmm_le : mm ≤ mf + mm + me + mr := by
-      exact le_trans
-        (le_add_of_nonneg_left (Nat.zero_le mf))
-        (Nat.le_add_right (mf + mm) (me + mr))
+    have hmm_le : mm ≤ m := by
+      omega
     exact pow_le_pow_right₀ hH_ge_one hmm_le
   have hme : H ^ me ≤ H ^ m := by
-    have hme_le : me ≤ mf + mm + me + mr := by
-      exact le_trans
-        (le_add_of_nonneg_left (Nat.zero_le (mf + mm)))
-        (Nat.le_add_right (mf + mm + me) mr)
+    have hme_le : me ≤ m := by
+      omega
     exact pow_le_pow_right₀ hH_ge_one hme_le
   have hmr : H ^ mr ≤ H ^ m := by
-    have hmr_le : mr ≤ (mf + mm + me) + mr :=
-      Nat.le_add_left mr (mf + mm + me)
-    exact Eq.subst
-      (motive := fun d : ℕ => H ^ mr ≤ H ^ d)
-      (show (mf + mm + me) + mr = mf + mm + me + mr from rfl)
-      (pow_le_pow_right₀ hH_ge_one hmr_le)
+    have hmr_le : mr ≤ m := by
+      omega
+    exact pow_le_pow_right₀ hH_ge_one hmr_le
   have hf' :
       ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ Cf * H ^ m :=
     le_trans (hf z hz_one hz_two)
@@ -395,7 +414,8 @@ theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_of_polynomial_bo
       H ^ m ≤ Real.exp ((1 : ℝ) * H ^ m) := by
     exact le_trans
       (le_add_of_nonneg_right zero_le_one)
-      (Real.add_one_le_exp (H ^ m))
+      (by
+        simpa only [one_mul] using Real.add_one_le_exp (H ^ m))
   have htarget :
       C * H ^ m ≤ C * Real.exp ((1 : ℝ) * H ^ m) :=
     mul_le_mul_of_nonneg_left hHpow_le_exp (le_of_lt hC)
@@ -859,20 +879,6 @@ noncomputable def poleClearedRiemannZeta_completedFunctionalEquationMultiplier
   else
     ((z - 1) / (((1 : ℂ) - z) - 1)) *
       (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)
-
-/-- Nonzero left-half-plane normalization identity for the raw completed
-functional-equation multiplier.
-
-This is the exact algebraic identity obtained by unfolding
-`completedRiemannZeta_one_sub`, `riemannZeta_def_of_ne_zero`, and the
-pole-cleared definition away from both removable points. -/
-/-- Denominator data needed to divide the completed functional equation into the
-raw pole-cleared zeta multiplier.
-
-The full left half-plane contains the `Gammaℝ` zero faces, so the algebraic
-division step must be isolated from the exceptional trivial-zero compatibility
-statement below. -/
-
 
 end
 end LFunctions

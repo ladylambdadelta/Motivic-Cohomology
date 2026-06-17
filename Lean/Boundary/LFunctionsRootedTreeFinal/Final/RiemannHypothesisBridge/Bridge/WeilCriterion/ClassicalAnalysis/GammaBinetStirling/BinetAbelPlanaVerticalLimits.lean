@@ -21,6 +21,14 @@ noncomputable section
 open scoped Topology
 open Filter MeasureTheory
 
+/-- Unfolding of the lower full Abel-Plana vertical integral. -/
+theorem Complex.finiteAbelPlana_log_lowerVerticalFullIntegral_unfold
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w =
+      ∫ t : ℝ in Set.Ioi (0 : ℝ),
+        Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t := by
+  rfl
+
 /-- Lower vertical logarithmic-jump integrand equals twice the Binet
 arctangent kernel on the positive half-line. -/
 theorem Complex.finiteAbelPlana_log_lowerVerticalIntegrand_eq_two_arctanKernel
@@ -393,10 +401,25 @@ theorem Complex.finiteAbelPlana_log_lowerVerticalFullIntegral_eq_window_add_tail
         (∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), L t) +
           ∫ t : ℝ in Set.Ioi (N : ℝ), L t :=
     setIntegral_union hdisjoint measurableSet_Ioi hwindow htail
-  dsimp [Complex.finiteAbelPlanaLogLowerVerticalFullIntegral, L]
-  exact Eq.trans (congrArg (fun s : Set ℝ =>
-    ∫ t : ℝ in s, Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)
-      hunion.symm) hsplit
+  calc
+    Complex.finiteAbelPlanaLogLowerVerticalFullIntegral w =
+        ∫ t : ℝ in Set.Ioi (0 : ℝ),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t :=
+      Complex.finiteAbelPlana_log_lowerVerticalFullIntegral_unfold w
+    _ =
+        ∫ t : ℝ in
+            Set.Ioc (0 : ℝ) (N : ℝ) ∪ Set.Ioi (N : ℝ),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t := by
+      exact congrArg
+        (fun s : Set ℝ =>
+          ∫ t : ℝ in s, Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t)
+        hunion.symm
+    _ =
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ),
+          Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t) +
+          ∫ t : ℝ in Set.Ioi (N : ℝ),
+            Complex.finiteAbelPlanaLogLowerVerticalIntegrand w t :=
+      hsplit
 
 /-- Lower vertical Abel-Plana improper-integral convergence on `(0,∞)`.
 
@@ -569,9 +592,34 @@ theorem Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_tendsto_full_owner
           Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
             Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w)) :=
     hsubLower.sub hupper
-  dsimp [Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo,
-    Complex.finiteAbelPlanaLogBoundaryNamedPieces, base] at hsubBoth ⊢
-  exact hsubBoth
+  have hsource :
+      (fun T : ℝ =>
+        base - Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+          Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T) =
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T) := by
+    funext T
+    show
+      base - Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T -
+          Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T =
+        Complex.finiteAbelPlanaLogBoundaryNamedPiecesUpTo N w T
+    exact
+      (Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_unfold
+        N w T).symm
+  have htarget :
+      base -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+            Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w =
+        Complex.finiteAbelPlanaLogBoundaryNamedPieces N w := by
+    show
+      base -
+          Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
+            Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w =
+        Complex.finiteAbelPlanaLogBoundaryNamedPieces N w
+    exact
+      (Complex.finiteAbelPlana_log_boundaryNamedPieces_unfold
+        N w).symm
+  exact hsource ▸ htarget ▸ hsubBoth
 
 end
 

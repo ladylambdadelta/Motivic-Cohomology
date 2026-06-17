@@ -27,7 +27,6 @@ theorem Complex.gammaRecurrenceProduct_ne_zero
         j < N →
           z + (j : ℂ) ≠ 0) :
     Complex.gammaRecurrenceProduct z N ≠ 0 := by
-  unfold Complex.gammaRecurrenceProduct
   exact Finset.prod_ne_zero_iff.mpr
     (fun j hj =>
       hfactor_ne j (Finset.mem_range.mp hj))
@@ -51,7 +50,6 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
         _ = 1 * Complex.Gamma z :=
           (one_mul (Complex.Gamma z)).symm
         _ = Complex.gammaRecurrenceProduct z 0 * Complex.Gamma z := by
-          unfold Complex.gammaRecurrenceProduct
           exact congrArg (fun t : ℂ => t * Complex.Gamma z)
             (Finset.prod_range_zero (fun j : ℕ => z + (j : ℂ))).symm
   | succ N ih =>
@@ -79,7 +77,6 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
       have hprod_step :
           Complex.gammaRecurrenceProduct z (Nat.succ N) =
             Complex.gammaRecurrenceProduct z N * (z + (N : ℂ)) := by
-        unfold Complex.gammaRecurrenceProduct
         exact Finset.prod_range_succ (fun j : ℕ => z + (j : ℂ)) N
       calc
         Complex.Gamma (z + ((Nat.succ N : ℕ) : ℂ)) =
@@ -433,94 +430,97 @@ theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
             ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
               C * (1 + ‖y‖) := by
   let C₀ : ℝ := max |A| |B| + N
-  refine ⟨C₀ + 1, ?_, ?_⟩
-  · have hC₀_nonneg : 0 ≤ C₀ := by
-      have hmax_nonneg : 0 ≤ max |A| |B| :=
-        le_trans (abs_nonneg A) (le_max_left |A| |B|)
-      have hN_nonneg : 0 ≤ (N : ℝ) :=
-        Nat.cast_nonneg N
-      exact add_nonneg hmax_nonneg hN_nonneg
-    exact add_pos_of_nonneg_of_pos hC₀_nonneg zero_lt_one
-  intro x y hxA hxB j hj
-  have hnorm_coord :
-      ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
-        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
-    Eq.subst
-      (motive := fun t : ℝ =>
-        t ≤
-          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
-      (Complex.norm_eq_abs
-        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))).symm
-      (Complex.abs_le_abs_re_add_abs_im
-        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
-  have hre_bound :
-      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| ≤ C₀ :=
-    Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
-      hxA hxB hj
-  have him_eq :
-      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
-    Complex.gammaRecurrenceProduct_factor_im x y j
-  have him_abs_eq_norm :
-      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| = ‖y‖ := by
-    exact
-      Eq.trans
-        (congrArg abs him_eq)
-        (Real.norm_eq_abs y).symm
-  have hcoord_bound :
-      |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
-        C₀ + ‖y‖ := by
-    exact
-      Eq.subst
-        (motive := fun t : ℝ =>
-          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
-              C₀ + t)
-        him_abs_eq_norm.symm
-        (add_le_add_right hre_bound
-          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
   have hC₀_nonneg : 0 ≤ C₀ := by
     have hmax_nonneg : 0 ≤ max |A| |B| :=
       le_trans (abs_nonneg A) (le_max_left |A| |B|)
     have hN_nonneg : 0 ≤ (N : ℝ) :=
       Nat.cast_nonneg N
     exact add_nonneg hmax_nonneg hN_nonneg
-  have hC_ge_one : 1 ≤ C₀ + 1 := by
-    calc
-      1 = 0 + 1 := (zero_add 1).symm
-      _ ≤ C₀ + 1 := add_le_add_right hC₀_nonneg 1
-  have hy_nonneg : 0 ≤ ‖y‖ :=
-    norm_nonneg y
-  have hlinear_to_product :
-      C₀ + ‖y‖ ≤ (C₀ + 1) * (1 + ‖y‖) := by
-    have hleft_const : C₀ ≤ C₀ + 1 :=
-      le_add_of_nonneg_right zero_le_one
-    have hleft_height : ‖y‖ ≤ (C₀ + 1) * ‖y‖ :=
-      calc
-        ‖y‖ = 1 * ‖y‖ := (one_mul ‖y‖).symm
-        _ ≤ (C₀ + 1) * ‖y‖ :=
-          mul_le_mul_of_nonneg_right hC_ge_one hy_nonneg
-    have hsum :
-        C₀ + ‖y‖ ≤ (C₀ + 1) + (C₀ + 1) * ‖y‖ :=
-      add_le_add hleft_const hleft_height
-    have htarget :
-        (C₀ + 1) + (C₀ + 1) * ‖y‖ =
-          (C₀ + 1) * (1 + ‖y‖) := by
-      calc
-        (C₀ + 1) + (C₀ + 1) * ‖y‖ =
-            (C₀ + 1) * 1 + (C₀ + 1) * ‖y‖ := by
-          exact congrArg (fun t : ℝ => t + (C₀ + 1) * ‖y‖)
-            (mul_one (C₀ + 1)).symm
-        _ = (C₀ + 1) * (1 + ‖y‖) :=
-          (mul_add (C₀ + 1) 1 ‖y‖).symm
-    exact
+  have hC_pos : 0 < C₀ + 1 :=
+    add_pos_of_nonneg_of_pos hC₀_nonneg zero_lt_one
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        ∀ j : ℕ,
+          j < N →
+            ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+              (C₀ + 1) * (1 + ‖y‖) := by
+    intro x y hxA hxB j hj
+    have hnorm_coord :
+        ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+          |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
       Eq.subst
-        (motive := fun t : ℝ => C₀ + ‖y‖ ≤ t)
-        htarget
-        hsum
-  exact le_trans hnorm_coord (le_trans hcoord_bound hlinear_to_product)
+        (motive := fun t : ℝ =>
+          t ≤
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
+        (Complex.norm_eq_abs
+          (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))).symm
+        (Complex.abs_le_abs_re_add_abs_im
+          (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
+    have hre_bound :
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| ≤ C₀ :=
+      Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
+        hxA hxB hj
+    have him_eq :
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+      Complex.gammaRecurrenceProduct_factor_im x y j
+    have him_abs_eq_norm :
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| = ‖y‖ := by
+      exact
+        Eq.trans
+          (congrArg abs him_eq)
+          (Real.norm_eq_abs y).symm
+    have hcoord_bound :
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+          C₀ + ‖y‖ := by
+      exact
+        Eq.subst
+          (motive := fun t : ℝ =>
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+                C₀ + t)
+          him_abs_eq_norm.symm
+          (add_le_add_right hre_bound
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
+    have hC_ge_one : 1 ≤ C₀ + 1 := by
+      calc
+        1 = 0 + 1 := (zero_add 1).symm
+        _ ≤ C₀ + 1 := add_le_add_right hC₀_nonneg 1
+    have hy_nonneg : 0 ≤ ‖y‖ :=
+      norm_nonneg y
+    have hlinear_to_product :
+        C₀ + ‖y‖ ≤ (C₀ + 1) * (1 + ‖y‖) := by
+      have hleft_const : C₀ ≤ C₀ + 1 :=
+        le_add_of_nonneg_right zero_le_one
+      have hleft_height : ‖y‖ ≤ (C₀ + 1) * ‖y‖ :=
+        calc
+          ‖y‖ = 1 * ‖y‖ := (one_mul ‖y‖).symm
+          _ ≤ (C₀ + 1) * ‖y‖ :=
+            mul_le_mul_of_nonneg_right hC_ge_one hy_nonneg
+      have hsum :
+          C₀ + ‖y‖ ≤ (C₀ + 1) + (C₀ + 1) * ‖y‖ :=
+        add_le_add hleft_const hleft_height
+      have htarget :
+          (C₀ + 1) + (C₀ + 1) * ‖y‖ =
+            (C₀ + 1) * (1 + ‖y‖) := by
+        calc
+          (C₀ + 1) + (C₀ + 1) * ‖y‖ =
+              (C₀ + 1) * 1 + (C₀ + 1) * ‖y‖ := by
+            exact congrArg (fun t : ℝ => t + (C₀ + 1) * ‖y‖)
+              (mul_one (C₀ + 1)).symm
+          _ = (C₀ + 1) * (1 + ‖y‖) :=
+            (mul_add (C₀ + 1) 1 ‖y‖).symm
+      exact
+        Eq.subst
+          (motive := fun t : ℝ => C₀ + ‖y‖ ≤ t)
+          htarget
+          hsum
+    exact le_trans hnorm_coord (le_trans hcoord_bound hlinear_to_product)
+  exact ⟨C₀ + 1, hC_pos, hpointwise⟩
 
 /-- Per-factor two-sided bounds for deterministic recurrence factors on a fixed
 vertical strip. -/
@@ -541,14 +541,27 @@ theorem Complex.gammaRecurrenceProduct_factor_twoSided_bounds_on_verticalStrip
                 C * (1 + ‖y‖) ∧
               c * (1 + ‖y‖) ≤
                 ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ := by
-  rcases Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip A B N with
-    ⟨C, hC_pos, hC⟩
-  refine ⟨1, C, (1 / 2 : ℝ), zero_lt_one, hC_pos, ?_, ?_⟩
-  · exact one_div_pos.mpr two_pos
-  intro x y hxA hxB hy j hj
-  constructor
-  · exact hC x y hxA hxB j hj
-  · exact Complex.gammaRecurrenceProduct_factor_largeHeight_lower j hy
+  match Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip A B N with
+  | ⟨C, hC_pos, hC⟩ =>
+      let c : ℝ := 1 / 2
+      have hc_pos : 0 < c :=
+        one_div_pos.mpr two_pos
+      have hpointwise :
+          ∀ x y : ℝ,
+            A ≤ x →
+            x ≤ B →
+            (1 : ℝ) ≤ ‖y‖ →
+              ∀ j : ℕ,
+                j < N →
+                  ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
+                    C * (1 + ‖y‖) ∧
+                  c * (1 + ‖y‖) ≤
+                    ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ := by
+        intro x y hxA hxB hy j hj
+        exact
+          ⟨hC x y hxA hxB j hj,
+            Complex.gammaRecurrenceProduct_factor_largeHeight_lower j hy⟩
+      exact ⟨1, C, c, zero_lt_one, hC_pos, hc_pos, hpointwise⟩
 
 /-- Norm of the deterministic recurrence product as the finite product of
 factor norms. -/
@@ -557,7 +570,6 @@ theorem Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
     (N : ℕ) :
     ‖Complex.gammaRecurrenceProduct z N‖ =
       ∏ j ∈ Finset.range N, ‖z + (j : ℂ)‖ := by
-  unfold Complex.gammaRecurrenceProduct
   calc
     ‖∏ j ∈ Finset.range N, z + (j : ℂ)‖ =
         Complex.abs (∏ j ∈ Finset.range N, z + (j : ℂ)) :=
@@ -668,10 +680,23 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_b
           c * (1 + ‖y‖) ^ (N : ℝ) ≤
             ‖Complex.gammaRecurrenceProduct
               (Complex.fixedRealPartVerticalPoint x y) N‖ := by
-  rcases hfactor with ⟨H, C, c, hH_pos, hC_pos, hc_pos, hfactor_pointwise⟩
-  refine ⟨H, C ^ N, c ^ N, hH_pos, ?_, ?_, ?_⟩
-  · exact pow_pos hC_pos N
-  · exact pow_pos hc_pos N
+  match hfactor with
+  | ⟨H, C, c, hH_pos, hC_pos, hc_pos, hfactor_pointwise⟩ =>
+  have hC_pow_pos : 0 < C ^ N :=
+    pow_pos hC_pos N
+  have hc_pow_pos : 0 < c ^ N :=
+    pow_pos hc_pos N
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+            C ^ N * (1 + ‖y‖) ^ (N : ℝ) ∧
+          c ^ N * (1 + ‖y‖) ^ (N : ℝ) ≤
+            ‖Complex.gammaRecurrenceProduct
+              (Complex.fixedRealPartVerticalPoint x y) N‖ := by
   intro x y hxA hxB hy
   let R : ℝ := 1 + ‖y‖
   have hR_nonneg : 0 ≤ R :=
@@ -751,6 +776,7 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_b
           (motive := fun t : ℝ => (c * R) ^ N ≤ t)
           hprod_norm
           hlower_prod)
+  exact ⟨H, C ^ N, c ^ N, hH_pos, hC_pow_pos, hc_pow_pos, hpointwise⟩
 
 /-- The exact finite-product geometry estimate for deterministic Gamma
 recurrence factors on a fixed vertical strip.
@@ -821,28 +847,36 @@ theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHei
           ∀ j : ℕ,
             j < N →
               Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
-  refine ⟨1, zero_lt_one, ?_⟩
-  intro x y _hxA _hxB hy j _hj
-  intro hzero
-  have him_eq :
-      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
-    congrArg Complex.im hzero
-  have hleft_im :
-      (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
-    Complex.gammaRecurrenceProduct_factor_im x y j
-  have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
-    Complex.zero_im
-  have hy_zero : y = 0 :=
-    Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
-  have hnorm_zero : ‖y‖ = 0 :=
-    congrArg norm hy_zero
-  have hnot : ¬ (1 : ℝ) ≤ 0 :=
-    not_le.mpr zero_lt_one
-  exact hnot
-    (Eq.subst
-      (motive := fun t : ℝ => (1 : ℝ) ≤ t)
-      hnorm_zero
-      hy)
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        (1 : ℝ) ≤ ‖y‖ →
+          ∀ j : ℕ,
+            j < N →
+              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
+    intro x y _hxA _hxB hy j _hj
+    intro hzero
+    have him_eq :
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
+      congrArg Complex.im hzero
+    have hleft_im :
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+      Complex.gammaRecurrenceProduct_factor_im x y j
+    have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
+      Complex.zero_im
+    have hy_zero : y = 0 :=
+      Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
+    have hnorm_zero : ‖y‖ = 0 :=
+      congrArg norm hy_zero
+    have hnot : ¬ (1 : ℝ) ≤ 0 :=
+      not_le.mpr zero_lt_one
+    exact hnot
+      (Eq.subst
+        (motive := fun t : ℝ => (1 : ℝ) ≤ t)
+        hnorm_zero
+        hy)
+  exact ⟨1, zero_lt_one, hpointwise⟩
 
 /-- The deterministic strip shift written as a local abbreviation for the
 vertical-strip Stirling transport. -/
@@ -857,7 +891,6 @@ theorem Complex.verticalStripTransportShift_closedRightHalfPlaneSector
     Complex.closedRightHalfPlaneSector
       (Complex.fixedRealPartVerticalPoint
         (x + Complex.verticalStripTransportShift A) y) := by
-  unfold Complex.verticalStripTransportShift
   exact
     Complex.fixedRealPartVerticalPoint_verticalStripRightShift_closedRightHalfPlaneSector
       hx
@@ -870,7 +903,6 @@ theorem Complex.verticalStripTransportShift_radius_ge_of_height_ge
     H ≤
       ‖Complex.fixedRealPartVerticalPoint
         (x + Complex.verticalStripTransportShift A) y‖ := by
-  unfold Complex.verticalStripTransportShift
   exact
     Complex.fixedRealPartVerticalPoint_verticalStripRightShift_radius_ge_of_height_ge
       hH
@@ -883,7 +915,6 @@ theorem Complex.fixedRealPartVerticalPoint_add_verticalStripTransportShift
         (x + Complex.verticalStripTransportShift A) y =
       Complex.fixedRealPartVerticalPoint x y +
         (Complex.verticalStripTransportShift A : ℂ) := by
-  unfold Complex.verticalStripTransportShift
   exact Complex.fixedRealPartVerticalPoint_add_verticalStripRightShift A x y
 
 /-- Sectorial Stirling gives uniform two-sided bounds for the normalized
@@ -930,16 +961,47 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
                 ((1 / 2 : ℂ) -
                   Complex.fixedRealPartVerticalPoint
                     (x + Complex.verticalStripTransportShift A) y)‖ := by
-  rcases hStirling with ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩
+  match hStirling with
+  | ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩ =>
   let s : ℝ := Real.sqrt (2 * Real.pi)
   let H : ℝ := max R (max (4 * K / s) 1)
-  refine ⟨H, 2 * s, s / 2, ?_, ?_, ?_, ?_⟩
-  · exact lt_of_lt_of_le zero_lt_one
+  have hH_pos : 0 < H :=
+    lt_of_lt_of_le zero_lt_one
       (le_trans
         (le_max_right (4 * K / s) 1)
         (le_max_right R (max (4 * K / s) 1)))
-  · exact mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
-  · exact half_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  have hC_pos : 0 < 2 * s :=
+    mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  have hc_pos : 0 < s / 2 :=
+    half_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) *
+              Complex.exp
+                (Complex.fixedRealPartVerticalPoint
+                  (x + Complex.verticalStripTransportShift A) y) *
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) ^
+                ((1 / 2 : ℂ) -
+                  Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y)‖ ≤ 2 * s ∧
+          s / 2 ≤
+            ‖Complex.Gamma
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) *
+              Complex.exp
+                (Complex.fixedRealPartVerticalPoint
+                  (x + Complex.verticalStripTransportShift A) y) *
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y) ^
+                ((1 / 2 : ℂ) -
+                  Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y)‖ := by
   intro x y hxA _hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -988,6 +1050,7 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
   · exact
       Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
         R K hStirling_pointwise w hw_sector hw_R herror_half
+  exact ⟨H, 2 * s, s / 2, hH_pos, hC_pos, hc_pos, hpointwise⟩
 
 /-- Positivity of the exponential/power denominator in normalized Stirling away
 from the origin. -/
@@ -1030,14 +1093,15 @@ theorem Real.arctan_le_self_of_nonneg
     (Real.tan_arctan t)
     hle_tan
 
-/-- Multiplicative form of `Real.arctan_le_self_of_nonneg` after the scale
-change `t = u / |y|`. -/
+/-- Multiplicative form of `Real.arctan_le_self_of_nonneg` after substituting
+`t = u / |y|`. -/
 theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
     {u y : ℝ}
     (hu : 0 ≤ u) :
     ‖y‖ * Real.arctan (u / ‖y‖) ≤ u := by
-  by_cases hy_zero : ‖y‖ = 0
-  · have hleft_eq_zero :
+  match Decidable.em (‖y‖ = 0) with
+  | Or.inl hy_zero =>
+    have hleft_eq_zero :
         ‖y‖ * Real.arctan (u / ‖y‖) = 0 := by
       exact Eq.trans
         (congrArg (fun r : ℝ => r * Real.arctan (u / ‖y‖)) hy_zero)
@@ -1046,8 +1110,9 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
       (motive := fun r : ℝ => r ≤ u)
       hleft_eq_zero.symm
       hu
-  · have hy_pos : 0 < ‖y‖ :=
-      lt_of_le_of_ne (norm_nonneg y) hy_zero.symm
+  | Or.inr hy_ne_zero =>
+    have hy_pos : 0 < ‖y‖ :=
+      lt_of_le_of_ne (norm_nonneg y) hy_ne_zero.symm
     have hratio_nonneg : 0 ≤ u / ‖y‖ :=
       div_nonneg hu (le_of_lt hy_pos)
     have harctan_le : Real.arctan (u / ‖y‖) ≤ u / ‖y‖ :=
@@ -1057,7 +1122,7 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
       mul_le_mul_of_nonneg_left harctan_le (le_of_lt hy_pos)
     have hcancel :
         ‖y‖ * (u / ‖y‖) = u :=
-      mul_div_cancel₀ u hy_zero
+      mul_div_cancel₀ u hy_ne_zero
     exact Eq.subst
       (motive := fun r : ℝ => ‖y‖ * Real.arctan (u / ‖y‖) ≤ r)
       hcancel.symm
@@ -1072,8 +1137,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
     Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
       Real.pi / 2 - Real.arctan (u / y) := by
   let z : ℂ := Complex.fixedRealPartVerticalPoint u y
-  by_cases hu_zero : u = 0
-  · have hz_re_zero : z.re = 0 := by
+  match Decidable.em (u = 0) with
+  | Or.inl hu_zero =>
+    have hz_re_zero : z.re = 0 := by
       calc
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
         _ = 0 := hu_zero
@@ -1096,8 +1162,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
       _ = Real.pi / 2 - 0 := (sub_zero (Real.pi / 2)).symm
       _ = Real.pi / 2 - Real.arctan (u / y) := by
         exact congrArg (fun r : ℝ => Real.pi / 2 - r) hatan_zero.symm
-  · have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_zero.symm
+  | Or.inr hu_ne_zero =>
+    have hu_pos : 0 < u :=
+      lt_of_le_of_ne hu hu_ne_zero.symm
     have hz_re_pos : 0 < z.re := by
       exact Eq.subst
         (motive := fun r : ℝ => 0 < r)
@@ -1155,8 +1222,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
     Complex.arg (Complex.fixedRealPartVerticalPoint u y) =
       -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
   let z : ℂ := Complex.fixedRealPartVerticalPoint u y
-  by_cases hu_zero : u = 0
-  · have hz_re_zero : z.re = 0 := by
+  match Decidable.em (u = 0) with
+  | Or.inl hu_zero =>
+    have hz_re_zero : z.re = 0 := by
       calc
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
         _ = 0 := hu_zero
@@ -1179,8 +1247,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
       _ = -(Real.pi / 2) + 0 := (add_zero (-(Real.pi / 2))).symm
       _ = -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
         exact congrArg (fun r : ℝ => -(Real.pi / 2) + r) hatan_zero.symm
-  · have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_zero.symm
+  | Or.inr hu_ne_zero =>
+    have hu_pos : 0 < u :=
+      lt_of_le_of_ne hu hu_ne_zero.symm
     have hy_norm_pos : 0 < ‖y‖ :=
       Real.norm_pos_iff.mpr (ne_of_lt hy)
     have hz_re_pos : 0 < z.re := by
@@ -1265,8 +1334,9 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
     |(Real.pi / 2) * ‖y‖ -
         Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
       ‖y‖ * Real.arctan (u / ‖y‖) := by
-  rcases lt_trichotomy y 0 with hy_neg | hy_zero | hy_pos
-  · let n : ℝ := ‖y‖
+  match lt_trichotomy y 0 with
+  | Or.inl hy_neg =>
+    let n : ℝ := ‖y‖
     let a : ℝ := Real.arctan (u / n)
     let p : ℝ := Real.pi / 2
     have hn_pos : 0 < n :=
@@ -1340,7 +1410,8 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
       _ = a * n := abs_of_nonneg hprod_nonneg
       _ = n * a := mul_comm a n
       _ = ‖y‖ * Real.arctan (u / ‖y‖) := rfl
-  · have hy_subst : y = 0 := hy_zero
+  | Or.inr (Or.inl hy_zero) =>
+    have hy_subst : y = 0 := hy_zero
     subst y
     have hnorm_zero : ‖(0 : ℝ)‖ = 0 :=
       norm_zero
@@ -1372,7 +1443,8 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
               hnorm_zero)
             (zero_mul (Real.arctan (u / ‖(0 : ℝ)‖)))
         exact hright.symm
-  · let n : ℝ := ‖y‖
+  | Or.inr (Or.inr hy_pos) =>
+    let n : ℝ := ‖y‖
     let a : ℝ := Real.arctan (u / y)
     let p : ℝ := Real.pi / 2
     have hn_eq_y : n = y :=
@@ -1472,18 +1544,27 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
   let D : ℝ :=
     max |A + Complex.verticalStripTransportShift A|
       |B + Complex.verticalStripTransportShift A|
-  refine ⟨1, D, zero_lt_one, ?_, ?_⟩
-  · exact le_trans (abs_nonneg (A + Complex.verticalStripTransportShift A))
+  have hD_nonneg : 0 ≤ D :=
+    le_trans (abs_nonneg (A + Complex.verticalStripTransportShift A))
       (le_max_left
         |A + Complex.verticalStripTransportShift A|
         |B + Complex.verticalStripTransportShift A|)
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        (1 : ℝ) ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          -(Complex.arg w * y) ≤ D + (-(Real.pi / 2) * ‖y‖) ∧
+          (-(Real.pi / 2) * ‖y‖) - D ≤ -(Complex.arg w * y) := by
   intro x y hxA hxB _hy
   let u : ℝ := x + Complex.verticalStripTransportShift A
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
       (x + Complex.verticalStripTransportShift A) y
   have hu_nonneg : 0 ≤ u := by
-    unfold Complex.verticalStripTransportShift
     have hshift : -A ≤ (Complex.verticalStripRightShift A : ℝ) :=
       Complex.neg_lower_le_verticalStripRightShift A
     calc
@@ -1550,6 +1631,7 @@ theorem Complex.shiftedVertical_arg_linear_defect_bounded
           exact add_neg_cancel_left ((Real.pi / 2) * ‖y‖)
             (-(Complex.arg w * y))
     exact htarget
+  exact ⟨1, D, zero_lt_one, hD_nonneg, hpointwise⟩
 
 /-- Quantitative arctangent-defect comparison for shifted right-half-plane
 vertical strips.
@@ -1576,10 +1658,24 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
             C * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
           c * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
             Real.exp (-(Complex.arg w * y)) := by
-  rcases Complex.shiftedVertical_arg_linear_defect_bounded A B with
-    ⟨H, D, hH_pos, hD_nonneg, hdefect⟩
-  refine ⟨H, Real.exp D, Real.exp (-D), hH_pos,
-    Real.exp_pos D, Real.exp_pos (-D), ?_⟩
+  match Complex.shiftedVertical_arg_linear_defect_bounded A B with
+  | ⟨H, D, hH_pos, hD_nonneg, hdefect⟩ =>
+  have hC_pos : 0 < Real.exp D :=
+    Real.exp_pos D
+  have hc_pos : 0 < Real.exp (-D) :=
+    Real.exp_pos (-D)
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          Real.exp (-(Complex.arg w * y)) ≤
+            Real.exp D * Real.exp (-(Real.pi / 2) * ‖y‖) ∧
+          Real.exp (-D) * Real.exp (-(Real.pi / 2) * ‖y‖) ≤
+            Real.exp (-(Complex.arg w * y)) := by
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1614,6 +1710,7 @@ theorem Complex.shiftedVertical_arg_exponential_defect_comparable_quantitative
         _ = Real.exp (-D) * Real.exp b :=
           mul_comm (Real.exp b) (Real.exp (-D))
     exact le_trans (le_of_eq hsplit.symm) hlower_exp
+  exact ⟨H, Real.exp D, Real.exp (-D), hH_pos, hC_pos, hc_pos, hpointwise⟩
 
 /-- Quantitative vertical argument-defect estimate for shifted right-half-plane
 strip points.
@@ -1663,13 +1760,24 @@ theorem Complex.shiftedVertical_radius_base_comparable
               (x + Complex.verticalStripTransportShift A) y
           ‖w‖ ≤ C * (1 + ‖y‖) ∧
           c * (1 + ‖y‖) ≤ ‖w‖ := by
-  rcases
+  match
       Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
         (A + Complex.verticalStripTransportShift A)
         (B + Complex.verticalStripTransportShift A)
         1 with
-    ⟨C, hC_pos, hupper⟩
-  refine ⟨1, C, 1 / 2, zero_lt_one, hC_pos, one_div_pos.mpr two_pos, ?_⟩
+  | ⟨C, hC_pos, hupper⟩ =>
+  have hc_pos : 0 < (1 / 2 : ℝ) :=
+    one_div_pos.mpr two_pos
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        (1 : ℝ) ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          ‖w‖ ≤ C * (1 + ‖y‖) ∧
+          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖w‖ := by
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1715,6 +1823,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
         hzero_add
         hlower_raw
   exact ⟨hupper_final, hlower_final⟩
+  exact ⟨1, C, 1 / 2, zero_lt_one, hC_pos, hc_pos, hpointwise⟩
 
 /-- Real bounded-exponent transport for radius powers.
 
@@ -1747,7 +1856,19 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
     add_nonneg (abs_nonneg (Real.log c)) (abs_nonneg (Real.log C))
   have hEM_nonneg : 0 ≤ E * M :=
     mul_nonneg hE_nonneg hM_nonneg
-  refine ⟨K, k, Real.exp_pos (E * M), Real.exp_pos (-(E * M)), ?_⟩
+  have hK_pos : 0 < K :=
+    Real.exp_pos (E * M)
+  have hk_pos : 0 < k :=
+    Real.exp_pos (-(E * M))
+  have hpointwise :
+      ∀ R Y e : ℝ,
+        0 < Y →
+        c * Y ≤ R →
+        R ≤ C * Y →
+        L ≤ e →
+        e ≤ U →
+          R ^ e ≤ K * Y ^ e ∧
+          k * Y ^ e ≤ R ^ e := by
   intro R Y e hY_pos hlow hhigh hL hU
   let q : ℝ := R / Y
   have hY_nonneg : 0 ≤ Y :=
@@ -1779,8 +1900,9 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
   have he_abs : |e| ≤ E :=
     real_abs_le_max_abs_of_mem_Icc hL hU
   have hlog_abs : |Real.log q| ≤ M := by
-    by_cases hlog_nonneg : 0 ≤ Real.log q
-    · have hlog_le_C : Real.log q ≤ Real.log C :=
+    match Decidable.em (0 ≤ Real.log q) with
+    | Or.inl hlog_nonneg =>
+      have hlog_le_C : Real.log q ≤ Real.log C :=
         Real.log_le_log hq_pos hq_upper
       have hlog_abs_eq : |Real.log q| = Real.log q :=
         abs_of_nonneg hlog_nonneg
@@ -1792,8 +1914,9 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
         _ ≤ |Real.log C| := hC_le_abs
         _ ≤ |Real.log c| + |Real.log C| :=
           le_add_of_nonneg_left (abs_nonneg (Real.log c))
-    · have hlog_nonpos : Real.log q ≤ 0 :=
-        le_of_not_ge hlog_nonneg
+    | Or.inr hlog_not_nonneg =>
+      have hlog_nonpos : Real.log q ≤ 0 :=
+        le_of_not_ge hlog_not_nonneg
       have hlog_c_le : Real.log c ≤ Real.log q :=
         Real.log_le_log hc_pos hq_lower
       have hneg_le : -Real.log q ≤ -Real.log c :=
@@ -1864,6 +1987,7 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
       (motive := fun t : ℝ => k * Y ^ e ≤ t)
       hR_pow_eq.symm
       (mul_le_mul_of_nonneg_right hq_pow_lower hY_pow_nonneg)
+  exact ⟨K, k, hK_pos, hk_pos, hpointwise⟩
 
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
@@ -1888,15 +2012,26 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
             C * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
           c * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
             ‖w‖ ^ (w.re - 1 / 2) := by
-  rcases Complex.shiftedVertical_radius_base_comparable A B with
-    ⟨Hbase, Cbase, cbase, hHbase_pos, hCbase_pos, hcbase_pos, hbase⟩
+  match Complex.shiftedVertical_radius_base_comparable A B with
+  | ⟨Hbase, Cbase, cbase, hHbase_pos, hCbase_pos, hcbase_pos, hbase⟩ =>
   let L : ℝ := A + Complex.verticalStripTransportShift A - 1 / 2
   let U : ℝ := B + Complex.verticalStripTransportShift A - 1 / 2
-  rcases
+  match
       real_rpow_comparable_of_base_comparable_and_bounded_exponent
         Cbase cbase L U hCbase_pos hcbase_pos with
-    ⟨K, k, hK_pos, hk_pos, hrpow⟩
-  refine ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, ?_⟩
+  | ⟨K, k, hK_pos, hk_pos, hrpow⟩ =>
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        Hbase ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          ‖w‖ ^ (w.re - 1 / 2) ≤
+            K * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
+          k * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
+            ‖w‖ ^ (w.re - 1 / 2) := by
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1936,6 +2071,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
           k * Y ^ e ≤ ‖w‖ ^ t)
         heq.symm
         hr.2⟩
+  exact ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, hpointwise⟩
 
 /-- In a fixed shifted vertical strip, the radial polynomial factor in the
 principal-power denominator is comparable to the standard height polynomial. -/
@@ -1986,7 +2122,15 @@ theorem Complex.shiftedVertical_realPartExp_bounded
     lt_of_lt_of_le hEA_pos (le_max_left (Real.exp (-(A + N))) (Real.exp (-(B + N))))
   have hc_pos : 0 < c :=
     lt_min hEA_pos hEB_pos
-  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          Real.exp (-w.re) ≤ C ∧
+          c ≤ Real.exp (-w.re) := by
   intro x y hxA hxB
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -2027,6 +2171,7 @@ theorem Complex.shiftedVertical_realPartExp_bounded
         (motive := fun t : ℝ => c ≤ Real.exp (-t))
         hw_re.symm
         hexp_lower⟩
+  exact ⟨C, c, hC_pos, hc_pos, hpointwise⟩
 
 /-- Real algebra behind the reciprocal denominator after the exponential and
 principal-power norm formulas have been substituted. -/
@@ -2167,17 +2312,37 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
               (x + Complex.verticalStripTransportShift A) y ≤
             1 / (‖Complex.exp w‖ *
                 ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
-  rcases Complex.shiftedVertical_arg_exponential_defect_comparable A B with
-    ⟨Ha, Ca, ca, hHa_pos, hCa_pos, hca_pos, harg⟩
-  rcases Complex.shiftedVertical_radiusPower_comparable A B with
-    ⟨Hr, Cr, cr, hHr_pos, hCr_pos, hcr_pos, hradius⟩
-  rcases Complex.shiftedVertical_realPartExp_bounded A B with
-    ⟨Ce, ce, hCe_pos, hce_pos, hexpRe⟩
+  match Complex.shiftedVertical_arg_exponential_defect_comparable A B with
+  | ⟨Ha, Ca, ca, hHa_pos, hCa_pos, hca_pos, harg⟩ =>
+  match Complex.shiftedVertical_radiusPower_comparable A B with
+  | ⟨Hr, Cr, cr, hHr_pos, hCr_pos, hcr_pos, hradius⟩ =>
+  match Complex.shiftedVertical_realPartExp_bounded A B with
+  | ⟨Ce, ce, hCe_pos, hce_pos, hexpRe⟩ =>
   let H : ℝ := max Ha Hr
-  refine ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
-    lt_of_lt_of_le hHa_pos (le_max_left Ha Hr),
-    mul_pos (mul_pos hCa_pos hCr_pos) hCe_pos,
-    mul_pos (mul_pos hca_pos hcr_pos) hce_pos, ?_⟩
+  have hH_pos : 0 < H :=
+    lt_of_lt_of_le hHa_pos (le_max_left Ha Hr)
+  have hC_pos : 0 < (Ca * Cr) * Ce :=
+    mul_pos (mul_pos hCa_pos hCr_pos) hCe_pos
+  have hc_pos : 0 < (ca * cr) * ce :=
+    mul_pos (mul_pos hca_pos hcr_pos) hce_pos
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          let w : ℂ :=
+            Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y
+          0 < ‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖ ∧
+          1 / (‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤
+            ((Ca * Cr) * Ce) * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ∧
+          ((ca * cr) * ce) * Complex.fixedRealPartVerticalStirlingEnvelope
+              (x + Complex.verticalStripTransportShift A) y ≤
+            1 / (‖Complex.exp w‖ *
+                ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
   intro x y hxA hxB hy
   have hy_a : Ha ≤ ‖y‖ :=
     le_trans (le_max_left Ha Hr) hy
@@ -2500,6 +2665,8 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
               ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re))
         henv_eq
         hshape_bound)
+  exact ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
+    hH_pos, hC_pos, hc_pos, hpointwise⟩
 
 /-- Sectorial normalized Stirling, on the shifted closed-right-half-plane
 points, gives the raw two-sided Gamma envelope with shifted real part.

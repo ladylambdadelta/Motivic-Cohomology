@@ -16,6 +16,110 @@ noncomputable section
 
 open scoped Topology
 
+/-- Unfolding of the bottom horizontal edge. -/
+theorem Complex.finiteAbelPlana_log_bottomHorizontalEdge_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T =
+      ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+        Complex.finiteAbelPlanaLogSummand w
+          ((x : ℂ) - (T : ℂ) * Complex.I) *
+        (Complex.finiteAbelPlanaCotangentKernel
+            ((x : ℂ) - (T : ℂ) * Complex.I) -
+          (Real.pi : ℂ) * Complex.I) := by
+  rfl
+
+/-- Unfolding of the top horizontal edge. -/
+theorem Complex.finiteAbelPlana_log_topHorizontalEdge_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogTopHorizontalEdge N w T =
+      ∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+        Complex.finiteAbelPlanaLogSummand w
+          ((x : ℂ) + (T : ℂ) * Complex.I) *
+        (Complex.finiteAbelPlanaCotangentKernel
+            ((x : ℂ) + (T : ℂ) * Complex.I) +
+          (Real.pi : ℂ) * Complex.I) := by
+  rfl
+
+/-- Unfolding of the horizontal edge error. -/
+theorem Complex.finiteAbelPlana_log_horizontalEdgeError_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
+      Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+        Complex.finiteAbelPlanaLogTopHorizontalEdge N w T := by
+  rfl
+
+/-- Unfolding of the horizontal pointwise majorant. -/
+theorem Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T =
+      (4 * (Real.pi + 1)) *
+        (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+          Real.exp (-(2 * Real.pi * |T|)) := by
+  rfl
+
+/-- Unfolding of the horizontal edge majorant. -/
+theorem Complex.finiteAbelPlana_log_horizontalEdgeMajorant_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T =
+      (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
+        (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+          Real.exp (-(2 * Real.pi * |T|)) := by
+  rfl
+
+/-- Multiplying the pointwise horizontal majorant by the interval length gives
+the integrated horizontal edge majorant. -/
+theorem Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_mul_intervalLength
+    (N : ℕ)
+    (w : ℂ)
+    (T : ℝ) :
+    Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
+        |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| =
+      Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T := by
+  have hpoint :
+      Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T =
+        (4 * (Real.pi + 1)) *
+          (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|)) :=
+    Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_unfold N w T
+  have hlength :
+      |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| = (N + 1 : ℝ) :=
+    Real.horizontal_interval_length_abs N
+  have hmajorant :
+      Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T =
+        (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
+          (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|)) :=
+    Complex.finiteAbelPlana_log_horizontalEdgeMajorant_unfold N w T
+  calc
+    Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
+        |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| =
+        ((4 * (Real.pi + 1)) *
+          (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|))) *
+          (N + 1 : ℝ) := by
+      exact congrArg₂ HMul.hMul hpoint hlength
+    _ =
+        (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
+          (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|)) := by
+      exact Real.horizontal_edge_majorant_assoc
+        (4 * (Real.pi + 1))
+        (N + 1 : ℝ)
+        (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1)
+        (Real.exp (-(2 * Real.pi * |T|)))
+    _ = Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
+      hmajorant.symm
+
 /-- The real number `3` is nonnegative, in the Binet horizontal-decay
 normalization. -/
 theorem Real.binetHorizontal_zero_le_three : (0 : ℝ) ≤ 3 := by
@@ -195,10 +299,23 @@ theorem Complex.norm_finiteAbelPlanaLogBottomHorizontalEdge_le_majorant
           |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| :=
     intervalIntegral.norm_integral_le_of_norm_le_const
       (fun x hx => hpoint x hx)
-  simpa [Complex.finiteAbelPlanaLogBottomHorizontalEdge,
-    Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant,
-    Complex.finiteAbelPlanaLogHorizontalEdgeMajorant,
-    mul_assoc, mul_left_comm, mul_comm] using hnorm
+  have hsource :
+      ‖Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T‖ =
+        ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) - (T : ℂ) * Complex.I) *
+          (Complex.finiteAbelPlanaCotangentKernel
+              ((x : ℂ) - (T : ℂ) * Complex.I) -
+            (Real.pi : ℂ) * Complex.I)‖ :=
+    congrArg norm
+      (Complex.finiteAbelPlana_log_bottomHorizontalEdge_unfold N w T)
+  have htarget :
+      Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
+          |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| =
+        Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
+    Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_mul_intervalLength
+      N w T
+  exact hsource.symm ▸ htarget ▸ hnorm
 
 /-- The top horizontal edge is bounded by the standard finite-strip cotangent
 exponential majorant. -/
@@ -223,10 +340,23 @@ theorem Complex.norm_finiteAbelPlanaLogTopHorizontalEdge_le_majorant
           |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| :=
     intervalIntegral.norm_integral_le_of_norm_le_const
       (fun x hx => hpoint x hx)
-  simpa [Complex.finiteAbelPlanaLogTopHorizontalEdge,
-    Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant,
-    Complex.finiteAbelPlanaLogHorizontalEdgeMajorant,
-    mul_assoc, mul_left_comm, mul_comm] using hnorm
+  have hsource :
+      ‖Complex.finiteAbelPlanaLogTopHorizontalEdge N w T‖ =
+        ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
+          Complex.finiteAbelPlanaLogSummand w
+            ((x : ℂ) + (T : ℂ) * Complex.I) *
+          (Complex.finiteAbelPlanaCotangentKernel
+              ((x : ℂ) + (T : ℂ) * Complex.I) +
+            (Real.pi : ℂ) * Complex.I)‖ :=
+    congrArg norm
+      (Complex.finiteAbelPlana_log_topHorizontalEdge_unfold N w T)
+  have htarget :
+      Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
+          |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| =
+        Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
+    Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_mul_intervalLength
+      N w T
+  exact hsource.symm ▸ htarget ▸ hnorm
 
 /-- The logarithmic factor in the finite-strip horizontal-edge majorant is
 eventually nonnegative and bounded by a quadratic polynomial. -/
@@ -300,11 +430,28 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
               Real.exp (-(2 * Real.pi * T)))
           atTop
           (𝓝 (0 : ℝ)) := by
-      simpa [Real.rpow_natCast] using
-        (Real.tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero
+      have hrpow :
+          Tendsto
+            (fun T : ℝ =>
+              T ^ (2 : ℝ) *
+                Real.exp (-(2 * Real.pi * T)))
+            atTop
+            (𝓝 (0 : ℝ)) :=
+        Real.tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero
           (2 : ℝ) (2 * Real.pi)
-          (mul_pos Real.binetHorizontal_two_pos Real.pi_pos))
-    simpa using hpow
+          (mul_pos Real.binetHorizontal_two_pos Real.pi_pos)
+      have heq :
+          ∀ᶠ T : ℝ in atTop,
+            T ^ (2 : ℕ) *
+                Real.exp (-(2 * Real.pi * T)) =
+              T ^ (2 : ℝ) *
+                Real.exp (-(2 * Real.pi * T)) := by
+        filter_upwards [eventually_ge_atTop (0 : ℝ)] with T hT
+        exact congrArg
+          (fun x : ℝ => x * Real.exp (-(2 * Real.pi * T)))
+          (Real.rpow_natCast T 2).symm
+      exact hrpow.congr' heq.symm
+    exact hpow
   have hlog_bounds :
       ∀ᶠ T : ℝ in atTop,
         0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 ∧
@@ -360,9 +507,43 @@ theorem Complex.finiteAbelPlanaLogHorizontalEdgeMajorant_tendsto_zero
         (𝓝 (0 : ℝ)) :=
     Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
       (‖w‖ + (N + 1 : ℝ))
-  simpa [Complex.finiteAbelPlanaLogHorizontalEdgeMajorant, add_assoc,
-    add_left_comm, add_comm, mul_assoc] using
+  have hscaled :
+      Tendsto
+        (fun T : ℝ =>
+          ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+            ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
+              Real.exp (-(2 * Real.pi * |T|))))
+        atTop
+        (𝓝 (0 : ℝ)) :=
     hdecay.const_mul ((4 * (Real.pi + 1)) * (N + 1 : ℝ))
+  have hsource :
+      (fun T : ℝ =>
+        ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+          ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|)))) =
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T) := by
+    funext T
+    have harg :
+        1 + (‖w‖ + (N + 1 : ℝ)) + |T| =
+          1 + ‖w‖ + (N + 1 : ℝ) + |T| :=
+      (add_assoc 1 ‖w‖ (N + 1 : ℝ)).symm ▸ rfl
+    calc
+      ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+          ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
+            Real.exp (-(2 * Real.pi * |T|))) =
+          (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
+            (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+              Real.exp (-(2 * Real.pi * |T|)) := by
+        exact congrArg
+          (fun y : ℝ =>
+            ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+              ((Real.log y + Real.pi + 1) *
+                Real.exp (-(2 * Real.pi * |T|))))
+          harg
+      _ = Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
+        (Complex.finiteAbelPlana_log_horizontalEdgeMajorant_unfold N w T).symm
+  exact hsource ▸ hscaled
 
 theorem Complex.finiteAbelPlana_log_bottomHorizontalEdge_tendsto_zero
     {w : ℂ}
@@ -433,8 +614,15 @@ theorem Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_decay
         atTop
         (𝓝 (0 : ℂ)) :=
     Complex.finiteAbelPlana_log_topHorizontalEdge_tendsto_zero hw N
-  dsimp [Complex.finiteAbelPlanaLogHorizontalEdgeError]
-  exact hbottom.sub htop
+  have hsource :
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+          Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) =
+      (fun T : ℝ =>
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) := by
+    funext T
+    exact (Complex.finiteAbelPlana_log_horizontalEdgeError_unfold N w T).symm
+  exact hsource ▸ hbottom.sub htop
 
 /-- Finite-height horizontal-edge accounting and decay package. -/
 theorem Complex.finiteAbelPlana_log_horizontalEdgeAccountingAndDecay_owner

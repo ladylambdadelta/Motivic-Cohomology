@@ -21,7 +21,469 @@ boundary has been identified with the missing deleted-arc contribution. -/
 theorem Complex.finiteAbelPlana_log_verticalStrip_add_deleted_sub_verticalStrip_sub_deleted
     (A B : ℂ) :
     A + (B - A) - B = 0 := by
-  ring
+  calc
+    A + (B - A) - B = B - B := by
+      exact congrArg (fun u : ℂ => u - B) (add_sub_cancel_left A B)
+    _ = 0 := sub_self B
+
+/-- Left distributivity over two summands, oriented for collection. -/
+theorem Complex.left_mul_add_two_collect
+    (a b c : ℂ) :
+    a * b + a * c = a * (b + c) :=
+  Eq.symm (mul_add a b c)
+
+/-- Left distributivity over three summands, oriented for collection. -/
+theorem Complex.left_mul_add_three_collect
+    (a b c d : ℂ) :
+    a * b + a * c + a * d = a * (b + c + d) := by
+  calc
+    a * b + a * c + a * d = a * (b + c) + a * d := by
+      exact congrArg (fun u : ℂ => u + a * d)
+        (Complex.left_mul_add_two_collect a b c)
+    _ = a * ((b + c) + d) := by
+      exact Complex.left_mul_add_two_collect a (b + c) d
+    _ = a * (b + c + d) := rfl
+
+/-- Collect the three left endpoint cap/collar boundary pieces after the chord
+terms cancel. -/
+theorem Complex.leftEndpointCapCollarBoundary_collect
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+        (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+          (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
+      lowerT - upperT +
+          Complex.I * (safeLower + safeMiddle + safeUpper) -
+        Complex.I * (pvLower + pvUpper) - arc := by
+  calc
+    (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+        (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+          (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
+      lowerT - upperT +
+          (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc := by
+      abel_nf
+    _ =
+      lowerT - upperT +
+          Complex.I * (safeLower + safeMiddle + safeUpper) -
+        Complex.I * (pvLower + pvUpper) - arc := by
+      exact congrArg₂
+        (fun safe pv : ℂ => lowerT - upperT + safe - pv - arc)
+        (Complex.left_mul_add_three_collect
+          Complex.I safeLower safeMiddle safeUpper)
+        (Complex.left_mul_add_two_collect
+          Complex.I pvLower pvUpper)
+
+/-- Collect the three right endpoint cap/collar boundary pieces after the chord
+terms cancel. -/
+theorem Complex.rightEndpointCapCollarBoundary_collect
+    (lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle
+      safeUpper arc : ℂ) :
+    (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+        (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+          (lowerChord - upperChord - Complex.I * safeMiddle - arc) =
+      lowerT - upperT + Complex.I * (pvLower + pvUpper) -
+        Complex.I * (safeLower + safeMiddle + safeUpper) - arc := by
+  calc
+    (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+        (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+          (lowerChord - upperChord - Complex.I * safeMiddle - arc) =
+      lowerT - upperT +
+          (Complex.I * pvLower + Complex.I * pvUpper) -
+        (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        arc := by
+      abel_nf
+    _ =
+      lowerT - upperT + Complex.I * (pvLower + pvUpper) -
+        Complex.I * (safeLower + safeMiddle + safeUpper) - arc := by
+      exact congrArg₂
+        (fun pv safe : ℂ => lowerT - upperT + pv - safe - arc)
+        (Complex.left_mul_add_two_collect
+          Complex.I pvLower pvUpper)
+        (Complex.left_mul_add_three_collect
+          Complex.I safeLower safeMiddle safeUpper)
+
+/-- The norm of a purely vertical complex displacement is the absolute value
+of its real height. -/
+theorem Complex.norm_I_mul_real (y : ℝ) :
+    ‖Complex.I * (y : ℂ)‖ = |y| := by
+  calc
+    ‖Complex.I * (y : ℂ)‖ = ‖Complex.I‖ * ‖(y : ℂ)‖ :=
+      norm_mul Complex.I (y : ℂ)
+    _ = (1 : ℝ) * ‖(y : ℂ)‖ :=
+      congrArg (fun r : ℝ => r * ‖(y : ℂ)‖) Complex.norm_I
+    _ = ‖(y : ℂ)‖ := one_mul ‖(y : ℂ)‖
+    _ = |y| := RCLike.norm_ofReal y
+
+/-- Cancelling a real center from a vertical translate leaves only the
+vertical displacement. -/
+theorem Complex.norm_centered_vertical_translate_sub_center
+    (M : ℂ)
+    (y : ℝ) :
+    ‖(M + Complex.I * (y : ℂ)) - M‖ = |y| := by
+  have hcancel :
+      (M + Complex.I * (y : ℂ)) - M = Complex.I * (y : ℂ) :=
+    add_sub_cancel_left M (Complex.I * (y : ℂ))
+  calc
+    ‖(M + Complex.I * (y : ℂ)) - M‖ =
+        ‖Complex.I * (y : ℂ)‖ :=
+      congrArg norm hcancel
+    _ = |y| := Complex.norm_I_mul_real y
+
+/-- A positive natural number is at least one after coercion to `ℝ`. -/
+theorem Real.one_le_natCast_of_pos
+    {m : ℕ}
+    (hm : 0 < m) :
+    (1 : ℝ) ≤ (m : ℝ) :=
+  (Nat.cast_le : ((1 : ℝ) ≤ (m : ℝ) ↔ 1 ≤ m)).mpr
+    (Nat.succ_le_iff.mpr hm)
+
+/-- The successor of a natural number is at least one after coercion to `ℝ`. -/
+theorem Real.one_le_natCast_succ
+    (N : ℕ) :
+    (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) :=
+  (Nat.cast_le : ((1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) ↔ 1 ≤ N + 1)).mpr
+    (Nat.succ_le_succ (Nat.zero_le N))
+
+/-- Natural-number order transports to real coercions. -/
+theorem Real.natCast_le_natCast
+    {m N : ℕ}
+    (h : m ≤ N) :
+    (m : ℝ) ≤ (N : ℝ) :=
+  (Nat.cast_le : ((m : ℝ) ≤ (N : ℝ) ↔ m ≤ N)).mpr h
+
+/-- Successor coercion to `ℝ`. -/
+theorem Real.natCast_succ_eq
+    (N : ℕ) :
+    (((N + 1 : ℕ) : ℝ) : ℝ) = (N : ℝ) + 1 :=
+  Nat.cast_succ N
+
+/-- The Abel-Plana quarter gap is smaller than a half gap. -/
+theorem Real.lt_one_div_two_of_lt_one_div_four
+    {ρ : ℝ}
+    (hρ : ρ < (1 : ℝ) / 4) :
+    ρ < (1 : ℝ) / 2 :=
+  lt_trans hρ Real.finiteAbelPlana_one_div_four_lt_one_div_two
+
+/-- Subtracting a nonnegative real number moves weakly left. -/
+theorem Real.sub_nonneg_le_self
+    (x ρ : ℝ)
+    (hρ : 0 ≤ ρ) :
+    x - ρ ≤ x :=
+  sub_le_self x hρ
+
+/-- Negation reverses a real inequality, named for endpoint-height interval
+normalization. -/
+theorem Real.endpoint_neg_le_neg_of_le
+    {a b : ℝ}
+    (h : a ≤ b) :
+    -b ≤ -a :=
+  neg_le_neg h
+
+/-- If `0 < ρ` and `0 < T`, then the lower indentation height is inside the
+ambient upper height. -/
+theorem Real.endpoint_neg_radius_le_height
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ) :
+    -ρ ≤ T := by
+  exact (neg_nonpos.mpr hρ.le).trans hT.le
+
+/-- If `0 < T` and `0 < ρ`, then the lower ambient height is below the upper
+indentation height. -/
+theorem Real.endpoint_neg_height_le_radius
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ) :
+    -T ≤ ρ := by
+  exact (neg_nonpos.mpr hT.le).trans hρ.le
+
+/-- If `0 < ρ < T`, then the lower ambient height is below the lower
+indentation height. -/
+theorem Real.endpoint_neg_height_le_neg_radius
+    {T ρ : ℝ}
+    (hρT : ρ < T) :
+    -T ≤ -ρ :=
+  Real.endpoint_neg_le_neg_of_le hρT.le
+
+/-- The deleted-geometry half-height condition implies the indentation radius
+is smaller than the positive ambient height. -/
+theorem Real.endpoint_radius_lt_height_of_lt_abs_height_half
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ_abs : ρ < |T| / 2) :
+    ρ < T := by
+  have hT_abs : |T| = T := abs_of_pos hT
+  have hρ_half : ρ < T / 2 := by
+    exact hT_abs ▸ hρ_abs
+  exact hρ_half.trans (half_lt_self hT)
+
+/-- A radius below a positive height is below the absolute height. -/
+theorem Real.endpoint_radius_lt_abs_height
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρT : ρ < T) :
+    ρ < |T| :=
+  Eq.mpr
+    (congrArg (fun r : ℝ => ρ < r) (abs_of_pos hT).symm)
+    hρT
+
+/-- The lower endpoint indentation interval lies inside the full vertical
+height interval. -/
+theorem Real.endpoint_lower_interval_subset_height
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T) :
+    ∀ y ∈ [[(-T), (-ρ)]], y ∈ [[-T, T]] := by
+  intro y hy
+  have horder : -T ≤ -ρ :=
+    Real.endpoint_neg_height_le_neg_radius hρT
+  have hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
+    Eq.mp
+      (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
+      hy
+  have hy_le_T : y ≤ T :=
+    hyIcc.2.trans
+      (Real.endpoint_neg_radius_le_height (hρ.trans hρT) hρ)
+  exact
+    Eq.mpr
+      (congrArg (fun S : Set ℝ => y ∈ S)
+        (Set.uIcc_of_le (neg_le_self (le_of_lt (hρ.trans hρT)))))
+      (And.intro hyIcc.1 hy_le_T)
+
+/-- The middle endpoint indentation interval lies inside the full vertical
+height interval. -/
+theorem Real.endpoint_middle_interval_subset_height
+    {T ρ : ℝ}
+    (hρ : 0 < ρ)
+    (hρT : ρ < T) :
+    ∀ y ∈ [[(-ρ), ρ]], y ∈ [[-T, T]] := by
+  intro y hy
+  have horder : -ρ ≤ ρ :=
+    (neg_nonpos.mpr hρ.le).trans hρ.le
+  have hyIcc : y ∈ Set.Icc (-ρ) ρ :=
+    Eq.mp
+      (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
+      hy
+  have hy_ge_negT : -T ≤ y :=
+    (Real.endpoint_neg_height_le_neg_radius hρT).trans hyIcc.1
+  have hy_le_T : y ≤ T :=
+    hyIcc.2.trans hρT.le
+  exact
+    Eq.mpr
+      (congrArg (fun S : Set ℝ => y ∈ S)
+        (Set.uIcc_of_le (neg_le_self (le_of_lt (hρ.trans hρT)))))
+      (And.intro hy_ge_negT hy_le_T)
+
+/-- The upper endpoint indentation interval lies inside the full vertical
+height interval. -/
+theorem Real.endpoint_upper_interval_subset_height
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T) :
+    ∀ y ∈ [[ρ, T]], y ∈ [[-T, T]] := by
+  intro y hy
+  have horder : ρ ≤ T := le_of_lt hρT
+  have hyIcc : y ∈ Set.Icc ρ T :=
+    Eq.mp
+      (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
+      hy
+  have hy_ge_negT : -T ≤ y :=
+    (Real.endpoint_neg_height_le_radius hT hρ).trans hyIcc.1
+  exact
+    Eq.mpr
+      (congrArg (fun S : Set ℝ => y ∈ S)
+        (Set.uIcc_of_le (neg_le_self hT.le)))
+      (And.intro hy_ge_negT hyIcc.2)
+
+/-- A radius smaller than `1/2` has doubled radius at most `1`. -/
+theorem Real.endpoint_two_radius_le_one_of_lt_half
+    {ρ : ℝ}
+    (hρ : ρ < (1 : ℝ) / 2) :
+    ρ + ρ ≤ (1 : ℝ) := by
+  have hsum : ρ + ρ ≤ (1 : ℝ) / 2 + (1 : ℝ) / 2 :=
+    add_le_add hρ.le hρ.le
+  exact hsum.trans_eq (add_halves (1 : ℝ))
+
+/-- A radius smaller than `1/2` satisfies the endpoint disk-separation
+inequality `ρ - 1 ≤ -ρ`. -/
+theorem Real.endpoint_radius_sub_one_le_neg_radius_of_lt_half
+    {ρ : ℝ}
+    (hρ : ρ < (1 : ℝ) / 2) :
+    ρ - 1 ≤ -ρ := by
+  have hdouble : ρ + ρ ≤ (1 : ℝ) :=
+    Real.endpoint_two_radius_le_one_of_lt_half hρ
+  have hle_sub : ρ ≤ 1 - ρ :=
+    le_sub_iff_add_le.mpr hdouble
+  have hle_add : ρ ≤ -ρ + 1 := by
+    calc
+      ρ ≤ 1 - ρ := hle_sub
+      _ = 1 + -ρ := sub_eq_add_neg 1 ρ
+      _ = -ρ + 1 := add_comm 1 (-ρ)
+  exact sub_le_iff_le_add.mpr hle_add
+
+/-- Left endpoint collar separation from a nonzero integer center. -/
+theorem Real.endpoint_left_re_sub_integer_le_neg_radius
+    {x ρ m : ℝ}
+    (hx : x ≤ ρ)
+    (hm : 1 ≤ m)
+    (hρ : ρ < (1 : ℝ) / 2) :
+    x - m ≤ -ρ := by
+  have hxm : x - m ≤ ρ - 1 :=
+    sub_le_sub hx hm
+  exact hxm.trans
+    (Real.endpoint_radius_sub_one_le_neg_radius_of_lt_half hρ)
+
+/-- Rebracketing `M + (1 - ρ)` as `(M + 1) - ρ`. -/
+theorem Real.endpoint_add_one_sub_radius_eq
+    (M ρ : ℝ) :
+    M + (1 - ρ) = (M + 1) - ρ := by
+  calc
+    M + (1 - ρ) = M + (1 + -ρ) :=
+      congrArg (fun x : ℝ => M + x) (sub_eq_add_neg 1 ρ)
+    _ = (M + 1) + -ρ :=
+      add_assoc M 1 (-ρ)
+    _ = (M + 1) - ρ :=
+      (sub_eq_add_neg (M + 1) ρ).symm
+
+/-- Right endpoint collar separation from the previous integer center. -/
+theorem Real.endpoint_radius_le_successor_minus_radius_sub_nat
+    (N : ℕ)
+    {ρ : ℝ}
+    (hρ : ρ < (1 : ℝ) / 2) :
+    ρ ≤ (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) := by
+  have hdouble : ρ + ρ ≤ (1 : ℝ) :=
+    Real.endpoint_two_radius_le_one_of_lt_half hρ
+  have htarget : ρ ≤ 1 - ρ :=
+    le_sub_iff_add_le.mpr hdouble
+  have hbase : ρ ≤ (((N : ℝ) + 1) - ρ) - (N : ℝ) := by
+    calc
+      ρ ≤ 1 - ρ := htarget
+      _ = ((N : ℝ) + (1 - ρ)) - (N : ℝ) :=
+        (add_sub_cancel_left (N : ℝ) (1 - ρ)).symm
+      _ = (((N : ℝ) + 1) - ρ) - (N : ℝ) :=
+        congrArg (fun x : ℝ => x - (N : ℝ))
+          (Real.endpoint_add_one_sub_radius_eq (N : ℝ) ρ)
+  exact
+    hbase.trans_eq
+      (congrArg (fun x : ℝ => (x - ρ) - (N : ℝ))
+        (Real.natCast_succ_eq N).symm)
+
+/-- Endpoint-local transport from ordered closed-interval bounds to `uIcc`
+membership. -/
+theorem Real.endpoint_mem_uIcc_of_bounds
+    {a b x : ℝ}
+    (horder : a ≤ b)
+    (h : a ≤ x ∧ x ≤ b) :
+    x ∈ Set.uIcc a b :=
+  Eq.mpr
+    (congrArg (fun S : Set ℝ => x ∈ S) (Set.uIcc_of_le horder))
+    h
+
+/-- Endpoint-local transport from `uIcc` membership to ordered closed-interval
+bounds. -/
+theorem Real.endpoint_bounds_of_mem_uIcc
+    {a b x : ℝ}
+    (horder : a ≤ b)
+    (h : x ∈ Set.uIcc a b) :
+    a ≤ x ∧ x ≤ b :=
+  Eq.mp
+    (congrArg (fun S : Set ℝ => x ∈ S) (Set.uIcc_of_le horder))
+    h
+
+/-- Endpoint-local equality transport for `uIcc` membership. -/
+theorem Real.endpoint_mem_uIcc_congr
+    {a b x y : ℝ}
+    (hxy : x = y)
+    (hy : y ∈ Set.uIcc a b) :
+    x ∈ Set.uIcc a b :=
+  Eq.mp
+    (congrArg (fun t : ℝ => t ∈ Set.uIcc a b) hxy.symm)
+    hy
+
+/-- Endpoint-local equality transport for `uIcc` membership, with equality in
+the reverse orientation. -/
+theorem Real.endpoint_mem_uIcc_congr_symm
+    {a b x y : ℝ}
+    (hxy : x = y)
+    (hx : x ∈ Set.uIcc a b) :
+    y ∈ Set.uIcc a b :=
+  Eq.mp
+    (congrArg (fun t : ℝ => t ∈ Set.uIcc a b) hxy)
+    hx
+
+/-- Ball membership as the norm inequality for endpoint collar estimates. -/
+theorem Complex.endpoint_norm_lt_of_mem_ball
+    (z c : ℂ)
+    {ρ : ℝ}
+    (h : z ∈ Metric.ball c ρ) :
+    ‖z - c‖ < ρ :=
+  Eq.mp
+    (congrArg (fun r : ℝ => r < ρ) (dist_eq_norm z c))
+    (Metric.mem_ball.mp h)
+
+/-- The real part of subtracting a natural-number point on the real axis. -/
+theorem Complex.endpoint_sub_natCast_re
+    (z : ℂ)
+    (m : ℕ) :
+    (z - (m : ℂ)).re = z.re - (m : ℝ) := by
+  calc
+    (z - (m : ℂ)).re = z.re - (m : ℂ).re :=
+      Complex.sub_re z (m : ℂ)
+    _ = z.re - (m : ℝ) := rfl
+
+/-- The imaginary part of subtracting a natural-number point on the real axis. -/
+theorem Complex.endpoint_sub_natCast_im
+    (z : ℂ)
+    (m : ℕ) :
+    (z - (m : ℂ)).im = z.im := by
+  calc
+    (z - (m : ℂ)).im = z.im - (m : ℂ).im :=
+      Complex.sub_im z (m : ℂ)
+    _ = z.im - 0 := rfl
+    _ = z.im := sub_zero z.im
+
+/-- The norm dominates the absolute value of the real coordinate. -/
+theorem Complex.endpoint_abs_re_le_norm
+    (z : ℂ) :
+    |z.re| ≤ ‖z‖ :=
+  Complex.abs_re_le_abs z
+
+/-- The norm dominates the absolute value of the imaginary coordinate. -/
+theorem Complex.endpoint_abs_im_le_norm
+    (z : ℂ) :
+    |z.im| ≤ ‖z‖ :=
+  Complex.abs_im_le_abs z
+
+/-- A point whose imaginary coordinate has absolute value at least `ρ` cannot
+lie in the centered endpoint disk of radius `ρ`. -/
+theorem Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im
+    {z : ℂ}
+    {ρ : ℝ}
+    (hρ : ρ ≤ |z.im|) :
+    z ∉ Metric.ball (0 : ℂ) ρ :=
+  fun hball =>
+    let hdist : ‖z‖ < ρ :=
+      Complex.endpoint_norm_lt_of_mem_ball z (0 : ℂ) hball
+    let him_norm : |z.im| ≤ ‖z‖ :=
+      Complex.endpoint_abs_im_le_norm z
+    not_lt_of_ge (hρ.trans him_norm) hdist
+
+/-- A point whose centered real coordinate has absolute value at least `ρ`
+cannot lie in the endpoint disk of radius `ρ`. -/
+theorem Complex.endpoint_not_mem_ball_of_radius_le_abs_re_sub_center
+    {z c : ℂ}
+    {ρ : ℝ}
+    (hρ : ρ ≤ |(z - c).re|) :
+    z ∉ Metric.ball c ρ :=
+  fun hball =>
+    let hdist : ‖z - c‖ < ρ :=
+      Complex.endpoint_norm_lt_of_mem_ball z c hball
+    let hre_norm : |(z - c).re| ≤ ‖z - c‖ :=
+      Complex.endpoint_abs_re_le_norm (z - c)
+    not_lt_of_ge (hρ.trans hre_norm) hdist
 
 /-- The left endpoint cap/collar domain: the rectangular cap
 `0 ≤ Re z ≤ ρ`, `-T ≤ Im z ≤ T`, with the deleted endpoint disk removed.
@@ -42,7 +504,11 @@ theorem Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff
     z ∈ Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ ↔
       z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]] ∧
         z ∉ Metric.ball (0 : ℂ) ρ := by
-  dsimp [Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain]
+  show
+    z ∈ ({z : ℂ | z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]]} : Set ℂ) \
+        Metric.ball (0 : ℂ) ρ ↔
+      z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]] ∧
+        z ∉ Metric.ball (0 : ℂ) ρ
   constructor
   · intro hz
     exact ⟨hz.1.1, hz.1.2, hz.2⟩
@@ -64,27 +530,30 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointCapCollarPoint_not_mem_deletedDisk
     z ∉ Metric.ball (m : ℂ) ρ := by
   by_cases hmzero : m = 0
   · subst m
-    simpa using hzcentral
+    exact hzcentral
   · intro hzball
     have hm_pos : 0 < m := Nat.pos_of_ne_zero hmzero
     have hone_le_m : (1 : ℝ) ≤ (m : ℝ) := by
-      exact_mod_cast hm_pos
+      exact Real.one_le_natCast_of_pos hm_pos
     have hρ_lt_half : ρ < (1 : ℝ) / 2 := by
-      linarith
+      exact Real.lt_one_div_two_of_lt_one_div_four hρquarter
     have hzIcc : z.re ∈ Set.Icc (0 : ℝ) ρ := by
-      simpa [Set.uIcc_of_le hρnonneg] using hzre
+      exact Real.endpoint_bounds_of_mem_uIcc hρnonneg hzre
     have hzre_le : z.re ≤ ρ := hzIcc.2
     have hdist_lt : ‖z - (m : ℂ)‖ < ρ := by
-      simpa [dist_eq_norm, sub_eq_add_neg] using Metric.mem_ball.mp hzball
+      exact Complex.endpoint_norm_lt_of_mem_ball z (m : ℂ) hzball
     have hre_norm :
         |(z - (m : ℂ)).re| ≤ ‖z - (m : ℂ)‖ := by
-      simpa [Complex.norm_eq_abs] using Complex.abs_re_le_abs (z - (m : ℂ))
+      exact Complex.abs_re_le_abs (z - (m : ℂ))
     have hre_le_neg : (z - (m : ℂ)).re ≤ -ρ := by
-      simp [sub_re]
-      linarith
+      have hreal :
+          z.re - (m : ℝ) ≤ -ρ :=
+        Real.endpoint_left_re_sub_integer_le_neg_radius
+          hzre_le hone_le_m hρ_lt_half
+      exact (Complex.endpoint_sub_natCast_re z m).symm ▸ hreal
     have hρ_le_abs : ρ ≤ |(z - (m : ℂ)).re| := by
-      have hneg : ρ ≤ -((z - (m : ℂ)).re) := by
-        linarith
+      have hneg : ρ ≤ -((z - (m : ℂ)).re) :=
+        neg_le_neg hre_le_neg
       exact hneg.trans (neg_le_abs _)
     exact not_lt_of_ge (hρ_le_abs.trans hre_norm) hdist_lt
 
@@ -99,12 +568,12 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointCapCollarClosedRectangle_subset_cl
       Complex.finiteAbelPlanaClosedRectangle N T := by
   intro z hz
   have hzIcc : z.re ∈ Set.Icc (0 : ℝ) ρ := by
-    simpa [Set.uIcc_of_le hρnonneg] using hz.1
+    exact Real.endpoint_bounds_of_mem_uIcc hρnonneg hz.1
   have hρ_lt_one : ρ < 1 := by
-    linarith
+    exact Real.lt_one_of_lt_one_div_four hρquarter
   refine Complex.mem_reProdIm.mpr ⟨?_, hz.2⟩
   have hone_le_succ : (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) := by
-    exact_mod_cast Nat.succ_le_succ (Nat.zero_le N)
+    exact Real.one_le_natCast_succ N
   exact ⟨hzIcc.1, hzIcc.2.trans (le_of_lt hρ_lt_one).trans hone_le_succ⟩
 
 /-- The left endpoint cap/collar domain lies in the finite Abel-Plana
@@ -194,48 +663,57 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSemicirclePoint_mem_capCollar
   have hre :
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) =
         ρ * Real.cos θ := by
-    simp [Complex.exp_re, mul_re]
+    ring_nf
   have him :
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) =
         ρ * Real.sin θ := by
-    simp [Complex.exp_im, mul_im]
+    ring_nf
   have hcos_nonneg : 0 ≤ Real.cos θ :=
     Real.cos_nonneg_of_mem_Icc hθ
   have hre_mem :
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) ∈
         [[(0 : ℝ), ρ]] := by
-    rw [hre]
     have hleft : 0 ≤ ρ * Real.cos θ :=
       mul_nonneg hρnonneg hcos_nonneg
     have hright : ρ * Real.cos θ ≤ ρ :=
       mul_le_of_le_one_right hρnonneg (Real.cos_le_one θ)
-    simpa [Set.uIcc_of_le hρnonneg] using And.intro hleft hright
+    exact
+      Eq.mp
+        (congrArg
+          (fun x : ℝ => x ∈ [[(0 : ℝ), ρ]])
+          hre.symm)
+        (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro hleft hright))
   have hsin_abs : |Real.sin θ| ≤ 1 := by
     exact abs_le.mpr (Real.sin_mem_Icc θ)
   have him_abs : |ρ * Real.sin θ| ≤ ρ := by
     calc
       |ρ * Real.sin θ| = ρ * |Real.sin θ| := by
-        rw [abs_mul, abs_of_nonneg hρnonneg]
+        exact (abs_mul ρ (Real.sin θ)).trans
+          (congrArg (fun r : ℝ => r * |Real.sin θ|)
+            (abs_of_nonneg hρnonneg))
       _ ≤ ρ * 1 := mul_le_mul_of_nonneg_left hsin_abs hρnonneg
       _ = ρ := mul_one ρ
   have him_mem :
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) ∈
         [[-T, T]] := by
-    rw [him]
     have habsT : |ρ * Real.sin θ| ≤ T :=
       him_abs.trans (le_of_lt hρT)
     have hb := abs_le.mp habsT
-    simpa [Set.uIcc_of_le (neg_le_self hT.le)] using hb
+    exact
+      Eq.mp
+        (congrArg
+          (fun y : ℝ => y ∈ [[-T, T]])
+          him.symm)
+        (Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le) hb)
   have hnot_ball :
       ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) ∉
         Metric.ball (0 : ℂ) ρ := by
-    have hz_eq :
+      have hz_eq :
         ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
           circleMap (0 : ℂ) ρ θ := by
-      dsimp [circleMap]
-      rw [zero_add, mul_comm (Complex.I) (θ : ℂ)]
-    rw [hz_eq]
-    exact circleMap_not_mem_ball (0 : ℂ) ρ θ
+      unfold circleMap
+      ring_nf
+    exact hz_eq ▸ circleMap_not_mem_ball (0 : ℂ) ρ θ
   exact
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hre_mem, him_mem, hnot_ball⟩
@@ -252,43 +730,55 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointPVVerticalPoint_mem_capCollar
   have hρnonneg : 0 ≤ ρ := le_of_lt hρ
   have hre_mem :
       (Complex.I * (y : ℂ)).re ∈ [[(0 : ℝ), ρ]] := by
-    have hre : (Complex.I * (y : ℂ)).re = 0 := by simp
-    rw [hre]
-    simpa [Set.uIcc_of_le hρnonneg] using And.intro le_rfl hρnonneg
+    have hre : (Complex.I * (y : ℂ)).re = 0 := by
+      ring_nf
+    exact
+      Real.endpoint_mem_uIcc_congr hre
+        (Real.endpoint_mem_uIcc_of_bounds hρnonneg
+          (And.intro le_rfl hρnonneg))
   have him_mem :
       (Complex.I * (y : ℂ)).im ∈ [[-T, T]] := by
     rcases hy with hy | hy
     · have horder : -T ≤ -ρ := hy.1
-      have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-        simpa [Set.uIcc_of_le horder] using hy
-      have hleT : y ≤ T := hyIcc.2.trans (by linarith [hρ])
-      simpa using (And.intro hyIcc.1 hleT)
+      have hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
+        Real.endpoint_bounds_of_mem_uIcc horder hy
+      have hleT : y ≤ T :=
+        hyIcc.2.trans (Real.endpoint_neg_radius_le_height hT hρ)
+      exact
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
+          (And.intro hyIcc.1 hleT)
     · have horder : ρ ≤ T := hy.1
-      have hyIcc : y ∈ Set.Icc ρ T := by
-        simpa [Set.uIcc_of_le horder] using hy
-      have hge_negT : -T ≤ y := by linarith [hT, hρ, hyIcc.1]
-      simpa using (And.intro hge_negT hyIcc.2)
+      have hyIcc : y ∈ Set.Icc ρ T :=
+        Real.endpoint_bounds_of_mem_uIcc horder hy
+      have hge_negT : -T ≤ y :=
+        (Real.endpoint_neg_height_le_radius hT hρ).trans hyIcc.1
+      exact
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
+          (And.intro hge_negT hyIcc.2)
   have hnot_ball :
       (Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ := by
     intro hball
     have hdist : ‖Complex.I * (y : ℂ)‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
+      exact
+        Complex.endpoint_norm_lt_of_mem_ball
+          (Complex.I * (y : ℂ)) (0 : ℂ) hball
     have hρ_le_abs_y : ρ ≤ |y| := by
       rcases hy with hy | hy
       · have horder : -T ≤ -ρ := hy.1
-        have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-          simpa [Set.uIcc_of_le horder] using hy
-        have hneg : ρ ≤ -y := by linarith
+        have hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
+          Real.endpoint_bounds_of_mem_uIcc horder hy
+        have hneg : ρ ≤ -y :=
+          Real.endpoint_neg_le_neg_of_le hyIcc.2
         exact hneg.trans (neg_le_abs y)
       · have horder : ρ ≤ T := hy.1
-        have hyIcc : y ∈ Set.Icc ρ T := by
-          simpa [Set.uIcc_of_le horder] using hy
+        have hyIcc : y ∈ Set.Icc ρ T :=
+          Real.endpoint_bounds_of_mem_uIcc horder hy
         exact hyIcc.1.trans (le_abs_self y)
-    have hnorm : ‖Complex.I * (y : ℂ)‖ = |y| := by
-      rw [norm_mul, Complex.normSq_eq_norm_sq]
-      simp
-    rw [hnorm] at hdist
-    exact not_lt_of_ge hρ_le_abs_y hdist
+    have hnorm : ‖Complex.I * (y : ℂ)‖ = |y| :=
+      Complex.norm_I_mul_real y
+    have hdist_abs : |y| < ρ :=
+      Eq.subst (motive := fun r : ℝ => r < ρ) hnorm hdist
+    exact not_lt_of_ge hρ_le_abs_y hdist_abs
   exact
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hre_mem, him_mem, hnot_ball⟩
@@ -304,26 +794,34 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar
   have hρnonneg : 0 ≤ ρ := le_of_lt hρ
   have hre_mem :
       (((ρ : ℂ) + Complex.I * (y : ℂ)).re) ∈ [[(0 : ℝ), ρ]] := by
-    have hre : ((ρ : ℂ) + Complex.I * (y : ℂ)).re = ρ := by simp
-    rw [hre]
-    simpa [Set.uIcc_of_le hρnonneg] using And.intro hρnonneg le_rfl
+    have hre : ((ρ : ℂ) + Complex.I * (y : ℂ)).re = ρ := by
+      ring_nf
+    exact
+      Real.endpoint_mem_uIcc_congr hre
+        (Real.endpoint_mem_uIcc_of_bounds hρnonneg
+          (And.intro hρnonneg le_rfl))
   have him_mem :
       (((ρ : ℂ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := by
-    simpa using hy
+    exact hy
   have hnot_ball :
       ((ρ : ℂ) + Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ := by
     intro hball
     have hdist : ‖((ρ : ℂ) + Complex.I * (y : ℂ))‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
+      exact
+        Complex.endpoint_norm_lt_of_mem_ball
+          ((ρ : ℂ) + Complex.I * (y : ℂ)) (0 : ℂ) hball
     have hre_norm :
         |(((ρ : ℂ) + Complex.I * (y : ℂ))).re| ≤
           ‖((ρ : ℂ) + Complex.I * (y : ℂ))‖ := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_re_le_abs ((ρ : ℂ) + Complex.I * (y : ℂ))
+      exact
+        Complex.endpoint_abs_re_le_norm
+          ((ρ : ℂ) + Complex.I * (y : ℂ))
     have hρ_le_norm : ρ ≤ ‖((ρ : ℂ) + Complex.I * (y : ℂ))‖ := by
       have hre_abs : |(((ρ : ℂ) + Complex.I * (y : ℂ))).re| = ρ := by
-        simp [abs_of_nonneg hρnonneg]
-      simpa [hre_abs] using hre_norm
+        have hre : (((ρ : ℂ) + Complex.I * (y : ℂ))).re = ρ := by
+          ring_nf
+        exact hre ▸ abs_of_nonneg hρnonneg
+      exact hre_abs ▸ hre_norm
     exact not_lt_of_ge hρ_le_norm hdist
   exact
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
@@ -342,25 +840,28 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointLowerRectangle_subset_capCollar
       Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := by
   intro z hz
   have hzre : z.re ∈ [[(0 : ℝ), ρ]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).1
+    exact (Complex.mem_reProdIm.mp hz).1
   have hzim_lower : z.im ∈ [[-T, -ρ]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).2
-  have horder : -T ≤ -ρ := by linarith
-  have hzimIcc : z.im ∈ Set.Icc (-T) (-ρ) := by
-    simpa [Set.uIcc_of_le horder] using hzim_lower
+    exact (Complex.mem_reProdIm.mp hz).2
+  have horder : -T ≤ -ρ :=
+    Real.endpoint_neg_height_le_neg_radius hρT
+  have hzimIcc : z.im ∈ Set.Icc (-T) (-ρ) :=
+    Real.endpoint_bounds_of_mem_uIcc horder hzim_lower
   have hzim : z.im ∈ [[-T, T]] := by
-    have hleT : z.im ≤ T := hzimIcc.2.trans (by linarith [hρ])
-    simpa using And.intro hzimIcc.1 hleT
+    have hleT : z.im ≤ T :=
+      hzimIcc.2.trans
+        (Real.endpoint_neg_radius_le_height (hρ.trans hρT) hρ)
+    exact
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        (And.intro hzimIcc.1 hleT)
   have hnot_ball : z ∉ Metric.ball (0 : ℂ) ρ := by
-    intro hball
-    have hdist : ‖z‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
-    have him_norm : |z.im| ≤ ‖z‖ := by
-      simpa [Complex.norm_eq_abs] using Complex.abs_im_le_abs z
     have hρ_le_abs_im : ρ ≤ |z.im| := by
-      have hneg : ρ ≤ -z.im := by linarith
+      have hneg : ρ ≤ -z.im :=
+        Real.endpoint_neg_le_neg_of_le hzimIcc.2
       exact hneg.trans (neg_le_abs z.im)
-    exact not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
+    exact
+      Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im
+        hρ_le_abs_im
   exact
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hzre, hzim, hnot_ball⟩
@@ -377,27 +878,90 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar
       Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := by
   intro z hz
   have hzre : z.re ∈ [[(0 : ℝ), ρ]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).1
+    exact (Complex.mem_reProdIm.mp hz).1
   have hzim_upper : z.im ∈ [[ρ, T]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).2
+    exact (Complex.mem_reProdIm.mp hz).2
   have horder : ρ ≤ T := le_of_lt hρT
-  have hzimIcc : z.im ∈ Set.Icc ρ T := by
-    simpa [Set.uIcc_of_le horder] using hzim_upper
+  have hzimIcc : z.im ∈ Set.Icc ρ T :=
+    Real.endpoint_bounds_of_mem_uIcc horder hzim_upper
   have hzim : z.im ∈ [[-T, T]] := by
-    have hge_negT : -T ≤ z.im := by linarith [hρ, hzimIcc.1]
-    simpa using And.intro hge_negT hzimIcc.2
+    have hge_negT : -T ≤ z.im :=
+      (Real.endpoint_neg_height_le_radius (hρ.trans hρT) hρ).trans
+        hzimIcc.1
+    exact
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        (And.intro hge_negT hzimIcc.2)
   have hnot_ball : z ∉ Metric.ball (0 : ℂ) ρ := by
-    intro hball
-    have hdist : ‖z‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
-    have him_norm : |z.im| ≤ ‖z‖ := by
-      simpa [Complex.norm_eq_abs] using Complex.abs_im_le_abs z
     have hρ_le_abs_im : ρ ≤ |z.im| :=
       hzimIcc.1.trans (le_abs_self z.im)
-    exact not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
+    exact
+      Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im
+        hρ_le_abs_im
   exact
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hzre, hzim, hnot_ball⟩
+
+/-- Coordinate normalization for the lower left endpoint rectangle boundary. -/
+theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
+    (f : ℂ → ℂ)
+    (T ρ : ℝ)
+    (hrect :
+      (∫ x : ℝ in (-Complex.I * (T : ℂ)).re..
+          (((ρ : ℂ) - Complex.I * (ρ : ℂ)).re),
+          f ((x : ℂ) + ((-Complex.I * (T : ℂ)).im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in (-Complex.I * (T : ℂ)).re..
+            (((ρ : ℂ) - Complex.I * (ρ : ℂ)).re),
+            f ((x : ℂ) + ((((ρ : ℂ) - Complex.I * (ρ : ℂ)).im) : ℂ) *
+              Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in (-Complex.I * (T : ℂ)).im..
+                (((ρ : ℂ) - Complex.I * (ρ : ℂ)).im),
+                f (((((ρ : ℂ) - Complex.I * (ρ : ℂ)).re) : ℂ) +
+                  (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in (-Complex.I * (T : ℂ)).im..
+                  (((ρ : ℂ) - Complex.I * (ρ : ℂ)).im),
+                  f (((-Complex.I * (T : ℂ)).re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
+      0 := by
+  ring_nf at hrect
+  exact hrect
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the lower
+left endpoint cap coordinates. -/
+theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = -Complex.I * (T : ℂ))
+    (hz₁ : z₁ = (ρ : ℂ) - Complex.I * (ρ : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
+      0 := by
+  subst z₀
+  subst z₁
+  exact
+    Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
+      f T ρ hrect
 
 /-- Cauchy-Goursat on the lower ordinary rectangle in the left endpoint cap.
 
@@ -429,7 +993,8 @@ theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
   have hclosed :
       ([[z₀.re, z₁.re]] ×ℂ [[z₀.im, z₁.im]]) ⊆
         Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := by
-    dsimp [z₀, z₁]
+    unfold z₀
+    unfold z₁
     exact
       Complex.finiteAbelPlanaLogLeftEndpointLowerRectangle_subset_capCollar
         hT hρ hρT
@@ -464,8 +1029,38 @@ theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
         0 :=
     Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
       f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  simpa [z₀, z₁, Algebra.smul_def, mul_comm, mul_left_comm, mul_assoc, sub_eq_add_neg]
-    using hcauchy
+  exact
+    Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+      f T z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the upper
+left endpoint cap coordinates. -/
+theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = Complex.I * (ρ : ℂ))
+    (hz₁ : z₁ = (ρ : ℂ) + Complex.I * (T : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ))) =
+      0 := by
+  subst z₀
+  subst z₁
+  ring_nf at hrect
+  exact hrect
 
 /-- Cauchy-Goursat on the upper ordinary rectangle in the left endpoint cap. -/
 theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
@@ -492,7 +1087,8 @@ theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
   have hclosed :
       ([[z₀.re, z₁.re]] ×ℂ [[z₀.im, z₁.im]]) ⊆
         Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := by
-    dsimp [z₀, z₁]
+    unfold z₀
+    unfold z₁
     exact
       Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar
         hρ hρT
@@ -527,8 +1123,36 @@ theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
         0 :=
     Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
       f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  simpa [z₀, z₁, Algebra.smul_def, mul_comm, mul_left_comm, mul_assoc]
-    using hcauchy
+  exact
+    Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+      f T z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the right-half deleted-disk model boundary to the left endpoint
+half-collar coordinates. -/
+theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model
+    (f : ℂ → ℂ)
+    {ρ : ℝ}
+    (hmodel :
+      (∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+          f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im - ρ : ℝ) : ℂ))) +
+          -(∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+            f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im + ρ : ℝ) : ℂ))) +
+            Complex.I *
+              (∫ y : ℝ in ((0 : ℂ).im - ρ)..((0 : ℂ).im + ρ),
+                f ((((0 : ℂ).re + ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) -
+          ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+            f ((0 : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) +
+          Complex.I * (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      0 := by
+  ring_nf at hmodel
+  exact hmodel
 
 /-- The local Cauchy-Goursat deformation across the left endpoint
 half-rectangle collar outside the deleted disk.
@@ -552,7 +1176,7 @@ theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
     (hdiff :
       DifferentiableOn ℂ f
         (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
-    -(∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) -
         (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) +
           Complex.I * (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
         ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
@@ -561,18 +1185,18 @@ theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
       0 := by
   have hcont_model :
       ContinuousOn f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) := by
-    simpa [Complex.rightHalfRectangleDeletedDiskDomain,
-      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain]
-      using hcont
+    unfold Complex.rightHalfRectangleDeletedDiskDomain
+    unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain at hcont
+    exact hcont
   have hdiff_model :
       DifferentiableOn ℂ f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) := by
-    simpa [Complex.rightHalfRectangleDeletedDiskDomain,
-      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain]
-      using hdiff
+    unfold Complex.rightHalfRectangleDeletedDiskDomain
+    unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain at hdiff
+    exact hdiff
   have hmodel :
-      -(∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+      (∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
           f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im - ρ : ℝ) : ℂ))) +
-          (∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+          -(∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
             f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im + ρ : ℝ) : ℂ))) +
             Complex.I *
               (∫ y : ℝ in ((0 : ℂ).im - ρ)..((0 : ℂ).im + ρ),
@@ -582,9 +1206,12 @@ theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
               (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
         0 :=
     Complex.rightHalfRectangleDeletedDiskBoundary_eq_zero
-      f (0 : ℂ) T ρ le_rfl hρ (by simpa [abs_of_pos hT] using hρT)
+      f (0 : ℂ) T ρ le_rfl hρ
+      (Real.endpoint_radius_lt_abs_height hT hρT)
       hcont_model hdiff_model
-  simpa using hmodel
+  exact
+    Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model
+      f hmodel
 
 /-- The full safe vertical side in the left endpoint cap is the concatenation
 of its lower, middle, and upper pieces. -/
@@ -630,12 +1257,15 @@ theorem Complex.leftEndpointSafeVerticalIntegral_split_three
         ((∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
             ∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
           ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) := by
-      rw [hleft]
+      exact congrArg
+        (fun left : ℂ =>
+          left + ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+        hleft.symm
     _ =
         (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
           (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
             ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) := by
-      ring
+      rfl
 
 /-- Complex-linear algebra assembling the two rectangular endpoint identities
 and the deleted-disk collar identity into the full left endpoint cap/collar boundary
@@ -649,25 +1279,55 @@ theorem Complex.leftEndpointCapCollarBoundary_algebra
     (hupper :
       upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper = 0)
     (hhalf :
-      -lowerChord + upperChord + Complex.I * safeMiddle - arc = 0) :
+      lowerChord - upperChord + Complex.I * safeMiddle - arc = 0) :
     lowerT - upperT + Complex.I * safe -
         Complex.I * (pvLower + pvUpper) - arc =
       0 := by
   have hsum :
       (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
           (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
-            (-lowerChord + upperChord + Complex.I * safeMiddle - arc) =
+            (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
         0 := by
-    rw [hlower, hupper, hhalf]
-    ring
+    calc
+      (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+          (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+            (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
+        0 + 0 + 0 := by
+          exact congrArg₂
+            (fun firstTwo third : ℂ => firstTwo + third)
+            (congrArg₂
+              (fun first second : ℂ => first + second)
+              hlower
+              hupper)
+            hhalf
+      _ = 0 := by
+        exact (add_zero (0 + 0 : ℂ)).trans (zero_add 0)
   calc
     lowerT - upperT + Complex.I * safe -
         Complex.I * (pvLower + pvUpper) - arc =
         (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
           (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
-            (-lowerChord + upperChord + Complex.I * safeMiddle - arc) := by
-      rw [hsafe]
-      ring
+            (lowerChord - upperChord + Complex.I * safeMiddle - arc) := by
+      have hcollected :
+          lowerT - upperT +
+              Complex.I * (safeLower + safeMiddle + safeUpper) -
+            Complex.I * (pvLower + pvUpper) - arc =
+            (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+              (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+                (lowerChord - upperChord + Complex.I * safeMiddle - arc) :=
+        (Complex.leftEndpointCapCollarBoundary_collect
+          lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+          pvLower pvUpper arc).symm
+      exact
+        Eq.subst
+          (motive := fun safeTotal : ℂ =>
+            lowerT - upperT + Complex.I * safeTotal -
+                Complex.I * (pvLower + pvUpper) - arc =
+              (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+                (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+                  (lowerChord - upperChord + Complex.I * safeMiddle - arc))
+          hsafe.symm
+          hcollected
     _ = 0 := hsum
 
 /-- Generic oriented boundary integral of a left endpoint cap/collar.
@@ -732,29 +1392,13 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
     exact hg_cont.intervalIntegrable
   have hlower_interval :
       ∀ y ∈ [[(-T), (-ρ)]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : -T ≤ -ρ := by linarith
-    have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_le_T : y ≤ T := by linarith [hyIcc.2, hρ]
-    simpa using And.intro hyIcc.1 hy_le_T
+    exact Real.endpoint_lower_interval_subset_height hT hρ hρT
   have hmiddle_interval :
       ∀ y ∈ [[(-ρ), ρ]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : -ρ ≤ ρ := by linarith
-    have hyIcc : y ∈ Set.Icc (-ρ) ρ := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_ge_negT : -T ≤ y := by linarith [hρT, hyIcc.1]
-    have hy_le_T : y ≤ T := by linarith [hρT, hyIcc.2]
-    simpa using And.intro hy_ge_negT hy_le_T
+    exact Real.endpoint_middle_interval_subset_height hρ hρT
   have hupper_interval :
       ∀ y ∈ [[ρ, T]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : ρ ≤ T := le_of_lt hρT
-    have hyIcc : y ∈ Set.Icc ρ T := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_ge_negT : -T ≤ y := by linarith [hT, hρ, hyIcc.1]
-    simpa using And.intro hy_ge_negT hyIcc.2
+    exact Real.endpoint_upper_interval_subset_height hT hρ hρT
   have hsafe_split :
       ∫ y : ℝ in (-T)..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) =
         (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
@@ -787,7 +1431,7 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
     Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
       f T hρ hρT hcont hdiff
   have hhalf_zero :
-      -(∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+      (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) -
           (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) +
             Complex.I * (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
           ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
@@ -796,7 +1440,7 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
         0 :=
     Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
       f T hT hρ hρT hcont hdiff
-  dsimp [Complex.leftEndpointCapCollarOrientedBoundaryIntegral]
+  unfold Complex.leftEndpointCapCollarOrientedBoundaryIntegral
   exact
     Complex.leftEndpointCapCollarBoundary_algebra
       (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ)))
@@ -877,7 +1521,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointHalfCollar_balance_of_orientedBo
           Complex.finiteAbelPlanaLogRectangleIntegrand w
               ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-  dsimp [Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary] at hboundary
+  unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary at hboundary
   exact sub_eq_zero.mp hboundary
 
 /-- Cauchy-Goursat on the left endpoint cap/collar domain, with the boundary
@@ -921,9 +1565,8 @@ theorem Complex.finiteAbelPlana_log_leftEndpointCapCollar_orientedBoundary_eq_ze
           (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
           T hT hρ (by
             have hρ_abs : ρ < |T| / 2 := hdeleted_geometry.2.1
-            have hT_abs : |T| = T := abs_of_pos hT
-            rw [hT_abs] at hρ_abs
-            linarith)
+            exact
+              Real.endpoint_radius_lt_height_of_lt_abs_height_half hT hρ_abs)
           hcont_left hdiff_left
 
 /-- The right endpoint cap/collar domain: the rectangular cap
@@ -950,7 +1593,15 @@ theorem Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff
       z.re ∈ [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] ∧
         z.im ∈ [[-T, T]] ∧
           z ∉ Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
-  dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain]
+  show
+    z ∈
+        ({z : ℂ |
+            z.re ∈ [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] ∧
+              z.im ∈ [[-T, T]]} : Set ℂ) \
+          Metric.ball ((N + 1 : ℕ) : ℂ) ρ ↔
+      z.re ∈ [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] ∧
+        z.im ∈ [[-T, T]] ∧
+          z ∉ Metric.ball ((N + 1 : ℕ) : ℂ) ρ
   constructor
   · intro hz
     exact ⟨hz.1.1, hz.1.2, hz.2⟩
@@ -972,33 +1623,43 @@ theorem Complex.finiteAbelPlanaLogRightEndpointCapCollarPoint_not_mem_deletedDis
     z ∉ Metric.ball (m : ℂ) ρ := by
   by_cases hmcenter : m = N + 1
   · subst m
-    simpa using hzcentral
+    exact hzcentral
   · intro hzball
     have hm_lt_succ : m < N + 1 := by
       have hm_lt : m < N + 2 := Finset.mem_range.mp hm
       exact Nat.lt_of_le_of_ne (Nat.lt_succ_iff.mp hm_lt) hmcenter
     have hm_le_N : m ≤ N := Nat.lt_succ_iff.mp hm_lt_succ
     have hm_real_le_N : ((m : ℕ) : ℝ) ≤ (N : ℝ) := by
-      exact_mod_cast hm_le_N
+      exact Real.natCast_le_natCast hm_le_N
     have hρ_lt_half : ρ < (1 : ℝ) / 2 := by
-      linarith
+      exact Real.lt_one_div_two_of_lt_one_div_four hρquarter
     have hleft_le_right :
         ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
-      linarith
+      exact Real.sub_nonneg_le_self (((N + 1 : ℕ) : ℝ)) ρ hρnonneg
     have hzIcc :
         z.re ∈ Set.Icc (((N + 1 : ℕ) : ℝ) - ρ) (((N + 1 : ℕ) : ℝ)) := by
-      simpa [Set.uIcc_of_le hleft_le_right] using hzre
+      exact Real.endpoint_bounds_of_mem_uIcc hleft_le_right hzre
     have hzre_ge : ((N + 1 : ℕ) : ℝ) - ρ ≤ z.re := hzIcc.1
     have hdist_lt : ‖z - (m : ℂ)‖ < ρ := by
-      simpa [dist_eq_norm, sub_eq_add_neg] using Metric.mem_ball.mp hzball
+      exact Complex.endpoint_norm_lt_of_mem_ball z (m : ℂ) hzball
     have hre_norm :
         |(z - (m : ℂ)).re| ≤ ‖z - (m : ℂ)‖ := by
-      simpa [Complex.norm_eq_abs] using Complex.abs_re_le_abs (z - (m : ℂ))
+      exact Complex.endpoint_abs_re_le_norm (z - (m : ℂ))
     have hre_ge : ρ ≤ (z - (m : ℂ)).re := by
-      simp [sub_re]
-      have hsucc_real : (((N + 1 : ℕ) : ℝ) : ℝ) = (N : ℝ) + 1 := by
-        norm_num
-      linarith
+      have hbase :
+          ρ ≤ (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) :=
+        Real.endpoint_radius_le_successor_minus_radius_sub_nat N hρ_lt_half
+      have hmono :
+          (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) ≤
+            z.re - (m : ℝ) :=
+        sub_le_sub hzre_ge hm_real_le_N
+      have hreal : ρ ≤ z.re - (m : ℝ) :=
+        hbase.trans hmono
+      exact
+        Eq.mpr
+          (congrArg (fun r : ℝ => ρ ≤ r)
+            (Complex.endpoint_sub_natCast_re z m).symm)
+          hreal
     have hρ_le_abs : ρ ≤ |(z - (m : ℂ)).re| :=
       hre_ge.trans (le_abs_self _)
     exact not_lt_of_ge (hρ_le_abs.trans hre_norm) hdist_lt
@@ -1016,17 +1677,19 @@ theorem Complex.finiteAbelPlanaLogRightEndpointCapCollarClosedRectangle_subset_c
   intro z hz
   have hleft_le_right :
       ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
-    linarith
+    exact Real.sub_nonneg_le_self ((N + 1 : ℕ) : ℝ) ρ hρnonneg
   have hzIcc :
       z.re ∈ Set.Icc (((N + 1 : ℕ) : ℝ) - ρ) (((N + 1 : ℕ) : ℝ)) := by
-    simpa [Set.uIcc_of_le hleft_le_right] using hz.1
+    exact Real.endpoint_bounds_of_mem_uIcc hleft_le_right hz.1
   have hρ_lt_one : ρ < 1 := by
-    linarith
+    exact Real.lt_one_of_lt_one_div_four hρquarter
   refine Complex.mem_reProdIm.mpr ⟨?_, hz.2⟩
   have hnonneg : 0 ≤ ((N + 1 : ℕ) : ℝ) - ρ := by
-    have hone_le_succ : (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) := by
-      exact_mod_cast Nat.succ_le_succ (Nat.zero_le N)
-    linarith
+    have hone_le_succ : (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) :=
+      Real.one_le_natCast_succ N
+    have hρ_le_succ : ρ ≤ ((N + 1 : ℕ) : ℝ) :=
+      (le_of_lt hρ_lt_one).trans hone_le_succ
+    exact sub_nonneg.mpr hρ_le_succ
   exact ⟨hnonneg.trans hzIcc.1, hzIcc.2⟩
 
 /-- The right endpoint cap/collar domain lies in the finite Abel-Plana
@@ -1120,11 +1783,13 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSemicirclePoint_mem_capCollar
   have hre :
       ((((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re)) =
         ((M : ℝ) + ρ * Real.cos θ) := by
-    simp [M, Complex.exp_re, mul_re]
+    unfold M
+    ring_nf
   have him :
       ((((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im)) =
         ρ * Real.sin θ := by
-    simp [M, Complex.exp_im, mul_im]
+    unfold M
+    ring_nf
   have hcos_nonpos : Real.cos θ ≤ 0 :=
     Real.cos_nonpos_of_pi_div_two_le_of_le hθ.1 hθ.2
   have hcos_ge_neg_one : -1 ≤ Real.cos θ :=
@@ -1132,46 +1797,63 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSemicirclePoint_mem_capCollar
   have hre_mem :
       (((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) ∈
         [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
-    rw [hre]
     have hleft : (M : ℝ) - ρ ≤ (M : ℝ) + ρ * Real.cos θ := by
       have hmul : -ρ ≤ ρ * Real.cos θ := by
         calc
-          -ρ = ρ * (-1) := by ring
+          -ρ = ρ * (-1) := (mul_neg_one ρ).symm
           _ ≤ ρ * Real.cos θ :=
             mul_le_mul_of_nonneg_left hcos_ge_neg_one hρnonneg
-      linarith
+      exact
+        calc
+          (M : ℝ) - ρ = (M : ℝ) + -ρ :=
+            sub_eq_add_neg (M : ℝ) ρ
+          _ ≤ (M : ℝ) + ρ * Real.cos θ :=
+            add_le_add_left hmul (M : ℝ)
     have hright : (M : ℝ) + ρ * Real.cos θ ≤ (M : ℝ) := by
       have hmul : ρ * Real.cos θ ≤ 0 :=
         mul_nonpos_of_nonneg_of_nonpos hρnonneg hcos_nonpos
-      linarith
-    simpa [M, Set.uIcc_of_le (sub_le_self ((N + 1 : ℕ) : ℝ) hρnonneg)] using
-      And.intro hleft hright
+      exact add_le_of_nonpos_right hmul
+    have hinterval :
+        ((M : ℝ) + ρ * Real.cos θ) ∈
+          [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
+      unfold M at hleft hright ⊢
+      exact
+        Real.endpoint_mem_uIcc_of_bounds
+          (Real.sub_nonneg_le_self ((N + 1 : ℕ) : ℝ) ρ hρnonneg)
+          (And.intro hleft hright)
+    exact Real.endpoint_mem_uIcc_congr hre hinterval
   have hsin_abs : |Real.sin θ| ≤ 1 := by
     exact abs_le.mpr (Real.sin_mem_Icc θ)
   have him_abs : |ρ * Real.sin θ| ≤ ρ := by
     calc
       |ρ * Real.sin θ| = ρ * |Real.sin θ| := by
-        rw [abs_mul, abs_of_nonneg hρnonneg]
+        calc
+          |ρ * Real.sin θ| = |ρ| * |Real.sin θ| :=
+            abs_mul ρ (Real.sin θ)
+          _ = ρ * |Real.sin θ| :=
+            congrArg (fun r : ℝ => r * |Real.sin θ|)
+              (abs_of_nonneg hρnonneg)
       _ ≤ ρ * 1 := mul_le_mul_of_nonneg_left hsin_abs hρnonneg
       _ = ρ := mul_one ρ
   have him_mem :
       (((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) ∈
         [[-T, T]] := by
-    rw [him]
     have habsT : |ρ * Real.sin θ| ≤ T :=
       him_abs.trans (le_of_lt hρT)
     have hb := abs_le.mp habsT
-    simpa [Set.uIcc_of_le (neg_le_self hT.le)] using hb
+    exact
+      Real.endpoint_mem_uIcc_congr him
+        (Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le) hb)
   have hnot_ball :
       (((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) ∉
         Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
     have hz_eq :
         (((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
           circleMap ((N + 1 : ℕ) : ℂ) ρ θ := by
-      dsimp [circleMap, M]
-      rw [mul_comm (Complex.I) (θ : ℂ)]
-    rw [hz_eq]
-    exact circleMap_not_mem_ball ((N + 1 : ℕ) : ℂ) ρ θ
+      unfold circleMap
+      unfold M
+      ring_nf
+    exact hz_eq ▸ circleMap_not_mem_ball ((N + 1 : ℕ) : ℂ) ρ θ
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hre_mem, him_mem, hnot_ball⟩
@@ -1192,49 +1874,73 @@ theorem Complex.finiteAbelPlanaLogRightEndpointPVVerticalPoint_mem_capCollar
       (((M : ℂ) + Complex.I * (y : ℂ)).re) ∈
         [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
     have hre : ((M : ℂ) + Complex.I * (y : ℂ)).re = (M : ℝ) := by
-      simp [M]
-    rw [hre]
+      unfold M
+      ring_nf
     have hleft : ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
-      linarith
-    simpa [M, Set.uIcc_of_le hleft] using And.intro hleft le_rfl
+      exact Real.sub_nonneg_le_self ((N + 1 : ℕ) : ℝ) ρ hρnonneg
+    exact
+      Real.endpoint_mem_uIcc_congr hre
+        (Real.endpoint_mem_uIcc_of_bounds hleft
+          (And.intro hleft le_rfl))
   have him_mem :
       (((M : ℂ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := by
     rcases hy with hy | hy
     · have horder : -T ≤ -ρ := hy.1
-      have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-        simpa [Set.uIcc_of_le horder] using hy
-      have hleT : y ≤ T := hyIcc.2.trans (by linarith [hρ])
-      simpa [M] using (And.intro hyIcc.1 hleT)
+      have hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
+        Real.endpoint_bounds_of_mem_uIcc horder hy
+      have hleT : y ≤ T :=
+        hyIcc.2.trans (Real.endpoint_neg_radius_le_height hT hρ)
+      have hy_uIcc : y ∈ [[-T, T]] :=
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
+          (And.intro hyIcc.1 hleT)
+      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by
+        unfold M
+        ring_nf
+      exact Real.endpoint_mem_uIcc_congr him hy_uIcc
     · have horder : ρ ≤ T := hy.1
-      have hyIcc : y ∈ Set.Icc ρ T := by
-        simpa [Set.uIcc_of_le horder] using hy
-      have hge_negT : -T ≤ y := by linarith [hT, hρ, hyIcc.1]
-      simpa [M] using (And.intro hge_negT hyIcc.2)
+      have hyIcc : y ∈ Set.Icc ρ T :=
+        Real.endpoint_bounds_of_mem_uIcc horder hy
+      have hge_negT : -T ≤ y :=
+        (Real.endpoint_neg_height_le_radius hT hρ).trans hyIcc.1
+      have hy_uIcc : y ∈ [[-T, T]] :=
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
+          (And.intro hge_negT hyIcc.2)
+      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by
+        unfold M
+        ring_nf
+      exact Real.endpoint_mem_uIcc_congr him hy_uIcc
   have hnot_ball :
       (((M : ℂ) + Complex.I * (y : ℂ))) ∉
         Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
     intro hball
     have hdist : ‖(((M : ℂ) + Complex.I * (y : ℂ)) - ((N + 1 : ℕ) : ℂ))‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
+      exact
+        Complex.endpoint_norm_lt_of_mem_ball
+          (((M : ℂ) + Complex.I * (y : ℂ)))
+          ((N + 1 : ℕ) : ℂ)
+          hball
     have hρ_le_abs_y : ρ ≤ |y| := by
       rcases hy with hy | hy
       · have horder : -T ≤ -ρ := hy.1
-        have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-          simpa [Set.uIcc_of_le horder] using hy
-        have hneg : ρ ≤ -y := by linarith
+        have hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
+          Real.endpoint_bounds_of_mem_uIcc horder hy
+        have hneg : ρ ≤ -y :=
+          Real.endpoint_neg_le_neg_of_le hyIcc.2
         exact hneg.trans (neg_le_abs y)
       · have horder : ρ ≤ T := hy.1
-        have hyIcc : y ∈ Set.Icc ρ T := by
-          simpa [Set.uIcc_of_le horder] using hy
+        have hyIcc : y ∈ Set.Icc ρ T :=
+          Real.endpoint_bounds_of_mem_uIcc horder hy
         exact hyIcc.1.trans (le_abs_self y)
     have hnorm :
         ‖(((M : ℂ) + Complex.I * (y : ℂ)) - ((N + 1 : ℕ) : ℂ))‖ = |y| := by
-      dsimp [M]
-      ring_nf
-      rw [norm_mul]
-      simp
-    rw [hnorm] at hdist
-    exact not_lt_of_ge hρ_le_abs_y hdist
+      unfold M
+      exact
+        Complex.norm_centered_vertical_translate_sub_center
+          (((N + 1 : ℕ) : ℂ))
+          y
+    have hdist_abs : |y| < ρ :=
+      Eq.subst (motive := fun r : ℝ => r < ρ) hnorm hdist
+    exact not_lt_of_ge hρ_le_abs_y hdist_abs
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hre_mem, him_mem, hnot_ball⟩
@@ -1251,19 +1957,24 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
   have hρnonneg : 0 ≤ ρ := le_of_lt hρ
   have hleft_le_right :
       ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
-    linarith
+    exact Real.sub_nonneg_le_self ((N + 1 : ℕ) : ℝ) ρ hρnonneg
   have hre_mem :
       (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).re) ∈
         [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
     have hre :
         (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).re) =
           ((N + 1 : ℕ) : ℝ) - ρ := by
-      simp
-    rw [hre]
-    simpa [Set.uIcc_of_le hleft_le_right] using And.intro le_rfl hleft_le_right
+      ring_nf
+    exact
+      Real.endpoint_mem_uIcc_congr hre
+        (Real.endpoint_mem_uIcc_of_bounds hleft_le_right
+          (And.intro le_rfl hleft_le_right))
   have him_mem :
       (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := by
-    simpa using hy
+    have him :
+        (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).im) = y := by
+      ring_nf
+    exact Real.endpoint_mem_uIcc_congr him hy
   have hnot_ball :
       (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ))) ∉
         Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
@@ -1271,14 +1982,18 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
     have hdist :
         ‖(((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
             ((N + 1 : ℕ) : ℂ))‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
+      exact
+        Complex.endpoint_norm_lt_of_mem_ball
+          (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)))
+          ((N + 1 : ℕ) : ℂ)
+          hball
     have hre_norm :
         |(((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
             ((N + 1 : ℕ) : ℂ)).re| ≤
           ‖(((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
             ((N + 1 : ℕ) : ℂ))‖ := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_re_le_abs
+      exact
+        Complex.endpoint_abs_re_le_norm
           (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
             ((N + 1 : ℕ) : ℂ))
     have hρ_le_norm :
@@ -1287,8 +2002,12 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
       have hre_abs :
           |(((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
               ((N + 1 : ℕ) : ℂ)).re| = ρ := by
-        simp [abs_of_nonneg hρnonneg]
-      simpa [hre_abs] using hre_norm
+        have hre :
+            ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
+                ((N + 1 : ℕ) : ℂ)).re) = -ρ := by
+          ring_nf
+        exact hre ▸ abs_neg ρ ▸ abs_of_nonneg hρnonneg
+      exact hre_abs ▸ hre_norm
     exact not_lt_of_ge hρ_le_norm hdist
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
@@ -1310,28 +2029,39 @@ theorem Complex.finiteAbelPlanaLogRightEndpointLowerRectangle_subset_capCollar
   intro z hz
   have hzre :
       z.re ∈ [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).1
+    exact (Complex.mem_reProdIm.mp hz).1
   have hzim_lower : z.im ∈ [[-T, -ρ]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).2
-  have horder : -T ≤ -ρ := by linarith
-  have hzimIcc : z.im ∈ Set.Icc (-T) (-ρ) := by
-    simpa [Set.uIcc_of_le horder] using hzim_lower
+    exact (Complex.mem_reProdIm.mp hz).2
+  have horder : -T ≤ -ρ :=
+    Real.endpoint_neg_height_le_neg_radius hρT
+  have hzimIcc : z.im ∈ Set.Icc (-T) (-ρ) :=
+    Real.endpoint_bounds_of_mem_uIcc horder hzim_lower
   have hzim : z.im ∈ [[-T, T]] := by
-    have hleT : z.im ≤ T := hzimIcc.2.trans (by linarith [hρ])
-    simpa using And.intro hzimIcc.1 hleT
+    have hleT : z.im ≤ T :=
+      hzimIcc.2.trans
+        (Real.endpoint_neg_radius_le_height (hρ.trans hρT) hρ)
+    exact
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        (And.intro hzimIcc.1 hleT)
   have hnot_ball : z ∉ Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
-    intro hball
-    have hdist : ‖z - ((N + 1 : ℕ) : ℂ)‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
-    have him_norm : |(z - ((N + 1 : ℕ) : ℂ)).im| ≤ ‖z - ((N + 1 : ℕ) : ℂ)‖ := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_im_le_abs (z - ((N + 1 : ℕ) : ℂ))
     have hρ_le_abs_im : ρ ≤ |(z - ((N + 1 : ℕ) : ℂ)).im| := by
       have hraw : ρ ≤ |z.im| := by
-        have hneg : ρ ≤ -z.im := by linarith
+        have hneg : ρ ≤ -z.im :=
+          Real.endpoint_neg_le_neg_of_le hzimIcc.2
         exact hneg.trans (neg_le_abs z.im)
-      simpa [sub_im] using hraw
-    exact not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
+      exact
+        Eq.mpr
+          (congrArg (fun r : ℝ => ρ ≤ |r|)
+            (Complex.endpoint_sub_natCast_im z (N + 1)).symm)
+          hraw
+    exact
+      fun hball =>
+        let hdist : ‖z - ((N + 1 : ℕ) : ℂ)‖ < ρ :=
+          Complex.endpoint_norm_lt_of_mem_ball z ((N + 1 : ℕ) : ℂ) hball
+        let him_norm : |(z - ((N + 1 : ℕ) : ℂ)).im| ≤
+            ‖z - ((N + 1 : ℕ) : ℂ)‖ :=
+          Complex.endpoint_abs_im_le_norm (z - ((N + 1 : ℕ) : ℂ))
+        not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hzre, hzim, hnot_ball⟩
@@ -1351,30 +2081,73 @@ theorem Complex.finiteAbelPlanaLogRightEndpointUpperRectangle_subset_capCollar
   intro z hz
   have hzre :
       z.re ∈ [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).1
+    exact (Complex.mem_reProdIm.mp hz).1
   have hzim_upper : z.im ∈ [[ρ, T]] := by
-    simpa using (Complex.mem_reProdIm.mp hz).2
+    exact (Complex.mem_reProdIm.mp hz).2
   have horder : ρ ≤ T := le_of_lt hρT
-  have hzimIcc : z.im ∈ Set.Icc ρ T := by
-    simpa [Set.uIcc_of_le horder] using hzim_upper
+  have hzimIcc : z.im ∈ Set.Icc ρ T :=
+    Real.endpoint_bounds_of_mem_uIcc horder hzim_upper
   have hzim : z.im ∈ [[-T, T]] := by
-    have hge_negT : -T ≤ z.im := by linarith [hρ, hzimIcc.1]
-    simpa using And.intro hge_negT hzimIcc.2
+    have hge_negT : -T ≤ z.im :=
+      (Real.endpoint_neg_height_le_radius (hρ.trans hρT) hρ).trans
+        hzimIcc.1
+    exact
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        (And.intro hge_negT hzimIcc.2)
   have hnot_ball : z ∉ Metric.ball ((N + 1 : ℕ) : ℂ) ρ := by
-    intro hball
-    have hdist : ‖z - ((N + 1 : ℕ) : ℂ)‖ < ρ := by
-      simpa [dist_eq_norm] using Metric.mem_ball.mp hball
-    have him_norm : |(z - ((N + 1 : ℕ) : ℂ)).im| ≤ ‖z - ((N + 1 : ℕ) : ℂ)‖ := by
-      simpa [Complex.norm_eq_abs] using
-        Complex.abs_im_le_abs (z - ((N + 1 : ℕ) : ℂ))
     have hρ_le_abs_im : ρ ≤ |(z - ((N + 1 : ℕ) : ℂ)).im| := by
       have hraw : ρ ≤ |z.im| :=
         hzimIcc.1.trans (le_abs_self z.im)
-      simpa [sub_im] using hraw
-    exact not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
+      exact
+        Eq.mpr
+          (congrArg (fun r : ℝ => ρ ≤ |r|)
+            (Complex.endpoint_sub_natCast_im z (N + 1)).symm)
+          hraw
+    exact
+      fun hball =>
+        let hdist : ‖z - ((N + 1 : ℕ) : ℂ)‖ < ρ :=
+          Complex.endpoint_norm_lt_of_mem_ball z ((N + 1 : ℕ) : ℂ) hball
+        let him_norm : |(z - ((N + 1 : ℕ) : ℂ)).im| ≤
+            ‖z - ((N + 1 : ℕ) : ℂ)‖ :=
+          Complex.endpoint_abs_im_le_norm (z - ((N + 1 : ℕ) : ℂ))
+        not_lt_of_ge (hρ_le_abs_im.trans him_norm) hdist
   exact
     Complex.mem_finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain_iff.mpr
       ⟨hzre, hzim, hnot_ball⟩
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the lower
+right endpoint cap coordinates. -/
+theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (N M : ℕ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hM : M = N + 1)
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = (((M : ℝ) - ρ : ℝ) : ℂ) - Complex.I * (T : ℂ))
+    (hz₁ : z₁ = (M : ℂ) - Complex.I * (ρ : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (let M : ℕ := N + 1
+      (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ), f ((x : ℂ) - Complex.I * (T : ℂ))) -
+          (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ), f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f ((M : ℂ) + Complex.I * (y : ℂ))) -
+              Complex.I *
+                (∫ y : ℝ in (-T)..(-ρ),
+                  f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)))) =
+      0 := by
+  subst z₀
+  subst z₁
+  subst M
+  ring_nf at hrect
+  exact hrect
 
 /-- Cauchy-Goursat on the lower ordinary rectangle in the right endpoint cap. -/
 theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_eq_zero
@@ -1406,7 +2179,9 @@ theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_eq_zero
   have hclosed :
       ([[z₀.re, z₁.re]] ×ℂ [[z₀.im, z₁.im]]) ⊆
         Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ := by
-    dsimp [z₀, z₁, M]
+    unfold z₀
+    unfold z₁
+    unfold M
     exact
       Complex.finiteAbelPlanaLogRightEndpointLowerRectangle_subset_capCollar
         hT hρ hρT
@@ -1441,8 +2216,43 @@ theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_eq_zero
         0 :=
     Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
       f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  simpa [z₀, z₁, M, Algebra.smul_def, mul_comm, mul_left_comm, mul_assoc,
-    sub_eq_add_neg] using hcauchy
+  exact
+    Complex.rightEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+      f N M T rfl z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the upper
+right endpoint cap coordinates. -/
+theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (N M : ℕ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hM : M = N + 1)
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = (((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (ρ : ℂ))
+    (hz₁ : z₁ = (M : ℂ) + Complex.I * (T : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (let M : ℕ := N + 1
+      (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ), f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
+          (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ), f ((x : ℂ) + Complex.I * (T : ℂ))) +
+            Complex.I *
+              (∫ y : ℝ in ρ..T, f ((M : ℂ) + Complex.I * (y : ℂ))) -
+              Complex.I *
+                (∫ y : ℝ in ρ..T,
+                  f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)))) =
+      0 := by
+  subst z₀
+  subst z₁
+  subst M
+  ring_nf at hrect
+  exact hrect
 
 /-- Cauchy-Goursat on the upper ordinary rectangle in the right endpoint cap. -/
 theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_eq_zero
@@ -1473,7 +2283,9 @@ theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_eq_zero
   have hclosed :
       ([[z₀.re, z₁.re]] ×ℂ [[z₀.im, z₁.im]]) ⊆
         Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ := by
-    dsimp [z₀, z₁, M]
+    unfold z₀
+    unfold z₁
+    unfold M
     exact
       Complex.finiteAbelPlanaLogRightEndpointUpperRectangle_subset_capCollar
         hρ hρT
@@ -1508,8 +2320,47 @@ theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_eq_zero
         0 :=
     Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
       f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  simpa [z₀, z₁, M, Algebra.smul_def, mul_comm, mul_left_comm, mul_assoc]
-    using hcauchy
+  exact
+    Complex.rightEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+      f N M T rfl z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the left-half deleted-disk model boundary to the right endpoint
+half-collar coordinates. -/
+theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_of_model
+    (f : ℂ → ℂ)
+    (N M : ℕ)
+    {ρ : ℝ}
+    (hM : M = N + 1)
+    (c : ℂ)
+    (hc : c = (M : ℂ))
+    (hmodel :
+      (∫ x : ℝ in (c.re - ρ)..c.re,
+          f (((x : ℝ) : ℂ) + Complex.I * ((c.im - ρ : ℝ) : ℂ))) +
+          -(∫ x : ℝ in (c.re - ρ)..c.re,
+            f (((x : ℝ) : ℂ) + Complex.I * ((c.im + ρ : ℝ) : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (c.im - ρ)..(c.im + ρ),
+                f (((c.re - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) -
+          ∫ θ : ℝ in (Real.pi / 2)..(3 * Real.pi / 2),
+            f (c + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+        0) :
+    (let M : ℕ := N + 1
+      (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+          f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+        -(∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+          f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
+          Complex.I *
+            (∫ y : ℝ in (-ρ)..ρ,
+              f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) -
+        ∫ θ : ℝ in (Real.pi / 2)..(3 * Real.pi / 2),
+          f ((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+      0 := by
+  subst c
+  subst M
+  ring_nf at hmodel
+  exact hmodel
 
 /-- The local Cauchy-Goursat deformation across the right endpoint
 half-rectangle collar outside the deleted disk.
@@ -1533,9 +2384,9 @@ theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_eq_zero
       DifferentiableOn ℂ f
         (Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ)) :
     (let M : ℕ := N + 1
-      -(∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+      (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
           f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
-        (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+        -(∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
           f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
           Complex.I *
             (∫ y : ℝ in (-ρ)..ρ,
@@ -1548,20 +2399,22 @@ theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_eq_zero
   let c : ℂ := (M : ℂ)
   have hcont_model :
       ContinuousOn f (Complex.leftHalfRectangleDeletedDiskDomain c T ρ ρ) := by
-    dsimp [c, M]
-    simpa [Complex.leftHalfRectangleDeletedDiskDomain,
-      Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain]
-      using hcont
+    unfold c
+    unfold M
+    unfold Complex.leftHalfRectangleDeletedDiskDomain
+    unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain at hcont
+    exact hcont
   have hdiff_model :
       DifferentiableOn ℂ f (Complex.leftHalfRectangleDeletedDiskDomain c T ρ ρ) := by
-    dsimp [c, M]
-    simpa [Complex.leftHalfRectangleDeletedDiskDomain,
-      Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain]
-      using hdiff
+    unfold c
+    unfold M
+    unfold Complex.leftHalfRectangleDeletedDiskDomain
+    unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain at hdiff
+    exact hdiff
   have hmodel :
-      -(∫ x : ℝ in (c.re - ρ)..c.re,
+      (∫ x : ℝ in (c.re - ρ)..c.re,
           f (((x : ℝ) : ℂ) + Complex.I * ((c.im - ρ : ℝ) : ℂ))) +
-          (∫ x : ℝ in (c.re - ρ)..c.re,
+          -(∫ x : ℝ in (c.re - ρ)..c.re,
             f (((x : ℝ) : ℂ) + Complex.I * ((c.im + ρ : ℝ) : ℂ))) -
             Complex.I *
               (∫ y : ℝ in (c.im - ρ)..(c.im + ρ),
@@ -1571,10 +2424,14 @@ theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_eq_zero
               (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
         0 :=
     Complex.leftHalfRectangleDeletedDiskBoundary_eq_zero
-      f c T ρ le_rfl hρ (by simpa [abs_of_pos hT] using hρT)
+      f c T ρ le_rfl hρ
+      (Real.endpoint_radius_lt_abs_height hT hρT)
       hcont_model hdiff_model
-  dsimp [c, M] at hmodel ⊢
-  simpa using hmodel
+  unfold c at hmodel ⊢
+  unfold M at hmodel ⊢
+  exact
+    Complex.rightEndpointHalfRectangleDeletedDiskBoundary_of_model
+      f N (N + 1) rfl ((N + 1 : ℕ) : ℂ) rfl hmodel
 
 /-- The full adjacent safe vertical side in the right endpoint cap is the
 concatenation of its lower, middle, and upper pieces. -/
@@ -1639,7 +2496,9 @@ theorem Complex.rightEndpointSafeVerticalIntegral_split_three
         ((∫ y : ℝ in (-T)..(-ρ), g y) +
             ∫ y : ℝ in (-ρ)..ρ, g y) +
           ∫ y : ℝ in ρ..T, g y := by
-      rw [hleft]
+      exact congrArg
+        (fun left : ℂ => left + ∫ y : ℝ in ρ..T, g y)
+        hleft.symm
     _ =
       (let M : ℕ := N + 1
         (∫ y : ℝ in (-T)..(-ρ),
@@ -1648,8 +2507,9 @@ theorem Complex.rightEndpointSafeVerticalIntegral_split_three
             f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) +
             ∫ y : ℝ in ρ..T,
               f ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) := by
-      dsimp [g, M]
-      ring
+      unfold g
+      unfold M
+      rfl
 
 /-- Complex-linear algebra assembling the two rectangular right endpoint
 identities and the right deleted-disk collar identity into the full right endpoint
@@ -1663,25 +2523,54 @@ theorem Complex.rightEndpointCapCollarBoundary_algebra
     (hupper :
       upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper = 0)
     (hhalf :
-      -lowerChord + upperChord - Complex.I * safeMiddle - arc = 0) :
+      lowerChord - upperChord - Complex.I * safeMiddle - arc = 0) :
     lowerT - upperT + Complex.I * (pvLower + pvUpper) -
         Complex.I * safe - arc =
       0 := by
   have hsum :
       (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
           (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
-            (-lowerChord + upperChord - Complex.I * safeMiddle - arc) =
+            (lowerChord - upperChord - Complex.I * safeMiddle - arc) =
         0 := by
-    rw [hlower, hupper, hhalf]
-    ring
+    calc
+      (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+          (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+            (lowerChord - upperChord - Complex.I * safeMiddle - arc) =
+        0 + 0 + 0 := by
+          exact congrArg₂
+            (fun firstTwo third : ℂ => firstTwo + third)
+            (congrArg₂
+              (fun first second : ℂ => first + second)
+              hlower
+              hupper)
+            hhalf
+      _ = 0 := by
+        exact (add_zero (0 + 0 : ℂ)).trans (zero_add 0)
   calc
     lowerT - upperT + Complex.I * (pvLower + pvUpper) -
         Complex.I * safe - arc =
         (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
           (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
-            (-lowerChord + upperChord - Complex.I * safeMiddle - arc) := by
-      rw [hsafe]
-      ring
+            (lowerChord - upperChord - Complex.I * safeMiddle - arc) := by
+      have hcollected :
+          lowerT - upperT + Complex.I * (pvLower + pvUpper) -
+              Complex.I * (safeLower + safeMiddle + safeUpper) - arc =
+            (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+              (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+                (lowerChord - upperChord - Complex.I * safeMiddle - arc) :=
+        (Complex.rightEndpointCapCollarBoundary_collect
+          lowerT upperT lowerChord upperChord pvLower pvUpper safeLower
+          safeMiddle safeUpper arc).symm
+      exact
+        Eq.subst
+          (motive := fun safeTotal : ℂ =>
+            lowerT - upperT + Complex.I * (pvLower + pvUpper) -
+                Complex.I * safeTotal - arc =
+              (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+                (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+                  (lowerChord - upperChord - Complex.I * safeMiddle - arc))
+          hsafe.symm
+          hcollected
     _ = 0 := hsum
 
 /-- Oriented unnormalized boundary expression of the right endpoint cap/collar.
@@ -1777,7 +2666,7 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
           ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)) ∈
             Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ := by
       intro y hy
-      dsimp [M] at hinterval_subset ⊢
+      unfold M at hinterval_subset ⊢
       exact
         Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
           hρ (hinterval_subset y hy)
@@ -1787,29 +2676,13 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
     exact hg_cont.intervalIntegrable
   have hlower_interval :
       ∀ y ∈ [[(-T), (-ρ)]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : -T ≤ -ρ := by linarith
-    have hyIcc : y ∈ Set.Icc (-T) (-ρ) := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_le_T : y ≤ T := by linarith [hyIcc.2, hρ]
-    simpa using And.intro hyIcc.1 hy_le_T
+    exact Real.endpoint_lower_interval_subset_height hT hρ hρT
   have hmiddle_interval :
       ∀ y ∈ [[(-ρ), ρ]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : -ρ ≤ ρ := by linarith
-    have hyIcc : y ∈ Set.Icc (-ρ) ρ := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_ge_negT : -T ≤ y := by linarith [hρT, hyIcc.1]
-    have hy_le_T : y ≤ T := by linarith [hρT, hyIcc.2]
-    simpa using And.intro hy_ge_negT hy_le_T
+    exact Real.endpoint_middle_interval_subset_height hρ hρT
   have hupper_interval :
       ∀ y ∈ [[ρ, T]], y ∈ [[-T, T]] := by
-    intro y hy
-    have horder : ρ ≤ T := le_of_lt hρT
-    have hyIcc : y ∈ Set.Icc ρ T := by
-      simpa [Set.uIcc_of_le horder] using hy
-    have hy_ge_negT : -T ≤ y := by linarith [hT, hρ, hyIcc.1]
-    simpa using And.intro hy_ge_negT hyIcc.2
+    exact Real.endpoint_upper_interval_subset_height hT hρ hρT
   have hsafe_split :
       (let M : ℕ := N + 1
         ∫ y : ℝ in (-T)..T,
@@ -1853,9 +2726,9 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
       f N T hρ hρT hcont hdiff
   have hhalf_zero :
       (let M : ℕ := N + 1
-        -(∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+        (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
             f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
-          (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
+          -(∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ),
             f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
             Complex.I *
               (∫ y : ℝ in (-ρ)..ρ,
@@ -1866,7 +2739,11 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
         0 :=
     Complex.rightEndpointHalfRectangleDeletedDiskBoundary_eq_zero
       f N T hT hρ hρT hcont hdiff
-  dsimp [Complex.rightEndpointCapCollarOrientedBoundaryIntegral]
+  unfold Complex.rightEndpointCapCollarOrientedBoundaryIntegral
+  unfold M at hsafe_split
+  unfold M at hlower_zero
+  unfold M at hupper_zero
+  unfold M at hhalf_zero
   exact
     Complex.rightEndpointCapCollarBoundary_algebra
       (∫ x : ℝ in ((M : ℝ) - ρ)..(M : ℝ), f ((x : ℂ) - Complex.I * (T : ℂ)))
@@ -1886,10 +2763,10 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
       (∫ θ : ℝ in (Real.pi / 2)..(3 * Real.pi / 2),
         f ((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
           (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
-      (by simpa [M] using hsafe_split)
-      (by simpa [M] using hlower_zero)
-      (by simpa [M] using hupper_zero)
-      (by simpa [M] using hhalf_zero)
+      hsafe_split
+      hlower_zero
+      hupper_zero
+      hhalf_zero
 
 /-- The Abel-Plana right endpoint oriented boundary is the generic right cap
 boundary specialized to the logarithmic cotangent rectangle integrand. -/
@@ -1956,9 +2833,8 @@ theorem Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_z
           (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
           N T hT hρ (by
             have hρ_abs : ρ < |T| / 2 := hdeleted_geometry.2.1
-            have hT_abs : |T| = T := abs_of_pos hT
-            rw [hT_abs] at hρ_abs
-            linarith)
+            exact
+              Real.endpoint_radius_lt_height_of_lt_abs_height_half hT hρ_abs)
           hcont_right hdiff_right
 
 /-- Owner Cauchy-Goursat statement for the two endpoint semicollars, in
@@ -2061,7 +2937,7 @@ theorem Complex.finiteAbelPlana_log_endpointHalfCollarCauchyGoursat_balance_left
   · exact
       Complex.finiteAbelPlana_log_leftEndpointHalfCollar_balance_of_orientedBoundary_zero
         w T ρ hboundary.1
-  · dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary] at hboundary
+  · unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary at hboundary
     exact sub_eq_zero.mp hboundary.2
 
 /-- Algebraic conversion from the left endpoint half-collar balance to the
@@ -2079,7 +2955,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointHalfCollar_orientedBoundary_eq_z
               ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) :
     Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ = 0 := by
-  dsimp [Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary]
+  unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary
   exact sub_eq_zero.mpr hbalance
 
 /-- Algebraic conversion from the right endpoint half-collar balance to the
@@ -2232,7 +3108,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointHalfCollarCauchyGoursat_oriente
       Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary N w T ρ = 0 :=
     Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_zero_owner
       N T hT hρ hdeleted_geometry hcont hdiff
-  dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary] at hboundary
+  unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary at hboundary
   exact hboundary
 
 /-- Assembly of the endpoint semicollar pair from the two local half-collar
@@ -2372,7 +3248,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointCapCollar_balance_of_orientedBou
         Complex.finiteAbelPlanaLogRectangleIntegrand w
             ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
           (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-  dsimp [Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary] at hboundary
+  unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary at hboundary
   exact sub_eq_zero.mp hboundary
 
 /-- The left endpoint oriented boundary vanishes exactly when the straight
@@ -2395,7 +3271,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointCapCollar_orientedBoundary_eq_ze
       Complex.finiteAbelPlana_log_leftEndpointCapCollar_balance_of_orientedBoundary_eq_zero
         w T ρ hboundary
   · intro hbalance
-    dsimp [Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary]
+    unfold Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary
     exact sub_eq_zero.mpr hbalance
 
 /-- Unnormalized local Cauchy-Goursat balance for the left endpoint collar.
@@ -2485,7 +3361,7 @@ theorem Complex.finiteAbelPlana_log_leftEndpointCapCollarCauchy_balance
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
     Complex.finiteAbelPlana_log_leftEndpointCapCollar_unnormalizedCauchy_balance
       N T hT hρ hdeleted_geometry hcont hdiff
-  change
+  show
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
         (Complex.finiteAbelPlanaLogLeftEndpointLowerCollar w T ρ -
           Complex.finiteAbelPlanaLogLeftEndpointUpperCollar w T ρ +
@@ -2518,7 +3394,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointHalfCollar_balance_of_orientedB
           Complex.finiteAbelPlanaLogRectangleIntegrand w
               ((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-  dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary] at hboundary
+  unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary at hboundary
   exact sub_eq_zero.mp hboundary
 
 /-- Cauchy-Goursat on the right endpoint cap/collar domain, with the boundary
@@ -2570,7 +3446,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointCapCollar_balance_of_orientedBo
         Complex.finiteAbelPlanaLogRectangleIntegrand w
             ((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
           (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-  dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary] at hboundary
+  unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary at hboundary
   exact sub_eq_zero.mp hboundary
 
 /-- The right endpoint oriented boundary vanishes exactly when the straight
@@ -2595,7 +3471,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_z
       Complex.finiteAbelPlana_log_rightEndpointCapCollar_balance_of_orientedBoundary_eq_zero
         N w T ρ hboundary
   · intro hbalance
-    dsimp [Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary]
+    unfold Complex.finiteAbelPlanaLogRightEndpointCapCollarOrientedBoundary
     exact sub_eq_zero.mpr hbalance
 
 /-- Unnormalized local Cauchy-Goursat balance for the right endpoint collar.
@@ -2685,7 +3561,7 @@ theorem Complex.finiteAbelPlana_log_rightEndpointCapCollarCauchy_balance
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
     Complex.finiteAbelPlana_log_rightEndpointCapCollar_unnormalizedCauchy_balance
       N T hT hρ hdeleted_geometry hcont hdiff
-  change
+  show
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
         (Complex.finiteAbelPlanaLogRightEndpointLowerCollar N w T ρ -
           Complex.finiteAbelPlanaLogRightEndpointUpperCollar N w T ρ +

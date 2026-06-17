@@ -45,38 +45,58 @@ theorem Gammaℝ_finiteOrder_growth_bound_of_log_growth_on_region
         P z →
         ‖Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases hlog with ⟨C, m, hC⟩
-  refine ⟨1, |C| + 1, m, zero_lt_one, ?_, ?_⟩
-  · exact add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one
-  intro z hzP
-  have hC_le : C * (1 + ‖z‖) ^ m ≤ (|C| + 1) * (1 + ‖z‖) ^ m := by
-    have hC_abs : C ≤ |C| + 1 := le_trans (le_abs_self C) (le_add_of_nonneg_right zero_le_one)
-    exact mul_le_mul_of_nonneg_right hC_abs
-      (pow_nonneg (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))) m)
-  have hlog_le :
-      Real.log ‖Complex.Gammaℝ z‖ ≤ (|C| + 1) * (1 + ‖z‖) ^ m :=
-    le_trans (hC z hzP) hC_le
-  by_cases hzero : ‖Complex.Gammaℝ z‖ = 0
-  · exact Eq.subst
-      (motive := fun x : ℝ =>
-        x ≤ 1 * Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))
-      hzero.symm
-      (le_of_lt (mul_pos zero_lt_one (Real.exp_pos ((|C| + 1) * (1 + ‖z‖) ^ m))))
-  · have hpos : 0 < ‖Complex.Gammaℝ z‖ :=
-      lt_of_le_of_ne (norm_nonneg (Complex.Gammaℝ z)) (Ne.symm hzero)
-    have hexp_log : Real.exp (Real.log ‖Complex.Gammaℝ z‖) = ‖Complex.Gammaℝ z‖ :=
-      Real.exp_log hpos
-    have hnorm_eq :
-        ‖Complex.Gammaℝ z‖ = Real.exp (Real.log ‖Complex.Gammaℝ z‖) := hexp_log.symm
-    have hexp_le :
-        Real.exp (Real.log ‖Complex.Gammaℝ z‖) ≤
-          Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) :=
-      Real.exp_le_exp.mpr hlog_le
-    calc
-      ‖Complex.Gammaℝ z‖ = Real.exp (Real.log ‖Complex.Gammaℝ z‖) := hnorm_eq
-      _ ≤ Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) := hexp_le
-      _ = 1 * Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) := by
-        exact (one_mul (Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))).symm
+  match hlog with
+  | ⟨C, m, hC⟩ =>
+      exact
+        Exists.intro 1
+          (Exists.intro (|C| + 1)
+            (Exists.intro m
+              (And.intro zero_lt_one
+                (And.intro
+                  (add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one)
+                  (fun z hzP =>
+                    let hC_abs : C ≤ |C| + 1 :=
+                      le_trans (le_abs_self C) (le_add_of_nonneg_right zero_le_one)
+                    let hbase_nonneg : 0 ≤ 1 + ‖z‖ :=
+                      le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg z))
+                    let hC_le :
+                        C * (1 + ‖z‖) ^ m ≤ (|C| + 1) * (1 + ‖z‖) ^ m :=
+                      mul_le_mul_of_nonneg_right hC_abs (pow_nonneg hbase_nonneg m)
+                    let hlog_le :
+                        Real.log ‖Complex.Gammaℝ z‖ ≤ (|C| + 1) * (1 + ‖z‖) ^ m :=
+                      le_trans (hC z hzP) hC_le
+                    match eq_or_ne ‖Complex.Gammaℝ z‖ 0 with
+                    | Or.inl hzero =>
+                        Eq.subst
+                          (motive := fun x : ℝ =>
+                            x ≤ 1 * Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))
+                          hzero.symm
+                          (le_of_lt
+                            (mul_pos zero_lt_one
+                              (Real.exp_pos ((|C| + 1) * (1 + ‖z‖) ^ m))))
+                    | Or.inr hne =>
+                        let hpos : 0 < ‖Complex.Gammaℝ z‖ :=
+                          lt_of_le_of_ne (norm_nonneg (Complex.Gammaℝ z)) (Ne.symm hne)
+                        let hexp_log :
+                            Real.exp (Real.log ‖Complex.Gammaℝ z‖) =
+                              ‖Complex.Gammaℝ z‖ :=
+                          Real.exp_log hpos
+                        let hnorm_eq :
+                            ‖Complex.Gammaℝ z‖ =
+                              Real.exp (Real.log ‖Complex.Gammaℝ z‖) :=
+                          hexp_log.symm
+                        let hexp_le :
+                            Real.exp (Real.log ‖Complex.Gammaℝ z‖) ≤
+                              Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) :=
+                          Real.exp_le_exp.mpr hlog_le
+                        calc
+                          ‖Complex.Gammaℝ z‖ =
+                              Real.exp (Real.log ‖Complex.Gammaℝ z‖) := hnorm_eq
+                          _ ≤ Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) := hexp_le
+                          _ = 1 * Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) := by
+                            exact
+                              (one_mul
+                                (Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))).symm)))))
 
 /-- The corrected right-half-plane Gamma/Stirling region avoids the `Gammaℝ` zero at `0`.
 
@@ -88,13 +108,25 @@ theorem Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm
     (hz_norm : 1 ≤ ‖z‖) :
     Complex.Gammaℝ z ≠ 0 := by
   intro hzero
-  rcases Complex.Gammaℝ_eq_zero_iff.mp hzero with ⟨n, hz⟩
-  subst z
-  cases n with
-  | zero =>
-      norm_num at hz_norm
-  | succ n =>
-      norm_num at hz_re
+  match Complex.Gammaℝ_eq_zero_iff.mp hzero with
+  | ⟨n, hz⟩ =>
+      have hz_eq : z = -(n : ℂ) := hz
+      have hz_re_eq : z.re = (-(n : ℂ)).re := congrArg Complex.re hz_eq
+      cases n with
+      | zero =>
+          have hnorm_zero : ‖z‖ = 0 := by
+            exact congrArg norm hz_eq
+          have hnot : ¬ (1 : ℝ) ≤ 0 :=
+            not_le_of_gt zero_lt_one
+          exact hnot (Eq.subst (motive := fun x : ℝ => 1 ≤ x) hnorm_zero hz_norm)
+      | succ n =>
+          have hneg_re : (-(Nat.succ n : ℂ)).re < 0 := by
+            exact neg_neg_of_pos (Nat.cast_pos.mpr (Nat.succ_pos n))
+          have hz_re_neg : z.re < 0 := by
+            calc
+              z.re = (-(Nat.succ n : ℂ)).re := hz_re_eq
+              _ < 0 := hneg_re
+          exact (not_lt_of_ge hz_re) hz_re_neg
 
 /-- Points with real part at least `1` have norm at least `1`. -/
 theorem one_le_norm_of_one_le_re
@@ -203,7 +235,8 @@ theorem halfArgument_re_nonneg_of_re_nonneg
     {z : ℂ}
     (hz_re : 0 ≤ z.re) :
     0 ≤ (z / 2).re := by
-  have htwo_pos : (0 : ℝ) < 2 := by norm_num
+  have htwo_pos : (0 : ℝ) < 2 :=
+    zero_lt_two
   calc
     0 ≤ z.re / 2 := by
       exact div_nonneg hz_re (le_of_lt htwo_pos)
@@ -220,13 +253,14 @@ theorem halfArgument_ne_zero_of_one_le_norm
     have hmul := congrArg (fun w : ℂ => w * (2 : ℂ)) hzero
     calc
       z = (z / 2) * (2 : ℂ) := by
-        exact (div_mul_cancel₀ z (by norm_num : (2 : ℂ) ≠ 0)).symm
+        exact (div_mul_cancel₀ z (OfNat.ofNat_ne_zero 2)).symm
       _ = 0 * (2 : ℂ) := by
         exact hmul
       _ = 0 := zero_mul (2 : ℂ)
   have hnorm_zero : ‖z‖ = 0 := by
     exact congrArg norm hz_zero
-  have hnot : ¬ (1 : ℝ) ≤ 0 := by norm_num
+  have hnot : ¬ (1 : ℝ) ≤ 0 :=
+    not_le_of_gt zero_lt_one
   exact hnot (Eq.subst (motive := fun x : ℝ => 1 ≤ x) hnorm_zero hz_norm)
 
 /-- `Complex.Gamma (z / 2)` is nonzero on the large right-half-plane Stirling region. -/
@@ -240,30 +274,31 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
   have hz_half_ne : z / 2 ≠ 0 :=
     halfArgument_ne_zero_of_one_le_norm hz_norm
   intro hzero
-  rcases (Complex.Gamma_eq_zero_iff (z / 2)).mp hzero with ⟨n, hn⟩
-  have hhalf_re_eq : (z / 2).re = (-(n : ℂ)).re := congrArg Complex.re hn
-  have hn_re : (-(n : ℂ)).re = -(n : ℝ) := by
-    norm_num
-  have hz_half_re_nonpos : (z / 2).re ≤ 0 := by
-    calc
-      (z / 2).re = (-(n : ℂ)).re := hhalf_re_eq
-      _ = -(n : ℝ) := hn_re
-      _ ≤ 0 := neg_nonpos.mpr (Nat.cast_nonneg n)
-  have hz_half_re_zero : (z / 2).re = 0 :=
-    le_antisymm hz_half_re_nonpos hz_half_re
-  cases n with
-  | zero =>
-      have hhalf_zero : z / 2 = 0 := by
-        exact hn
-      exact hz_half_ne hhalf_zero
-  | succ n =>
-      have hneg_succ_lt_zero : (-(Nat.succ n : ℂ)).re < 0 := by
-        norm_num
-      have hcontr : (z / 2).re < 0 := by
+  match (Complex.Gamma_eq_zero_iff (z / 2)).mp hzero with
+  | ⟨n, hn⟩ =>
+      have hhalf_re_eq : (z / 2).re = (-(n : ℂ)).re := congrArg Complex.re hn
+      have hn_re : (-(n : ℂ)).re = -(n : ℝ) := by
+        exact Complex.neg_re (n : ℂ)
+      have hz_half_re_nonpos : (z / 2).re ≤ 0 := by
         calc
-          (z / 2).re = (-(Nat.succ n : ℂ)).re := hhalf_re_eq
-          _ < 0 := hneg_succ_lt_zero
-      exact (not_lt_of_ge hz_half_re) hcontr
+          (z / 2).re = (-(n : ℂ)).re := hhalf_re_eq
+          _ = -(n : ℝ) := hn_re
+          _ ≤ 0 := neg_nonpos.mpr (Nat.cast_nonneg n)
+      have hz_half_re_zero : (z / 2).re = 0 :=
+        le_antisymm hz_half_re_nonpos hz_half_re
+      cases n with
+      | zero =>
+          have hhalf_zero : z / 2 = 0 := by
+            exact hn
+          exact hz_half_ne hhalf_zero
+      | succ n =>
+          have hneg_succ_lt_zero : (-(Nat.succ n : ℂ)).re < 0 := by
+            exact neg_neg_of_pos (Nat.cast_pos.mpr (Nat.succ_pos n))
+          have hcontr : (z / 2).re < 0 := by
+            calc
+              (z / 2).re = (-(Nat.succ n : ℂ)).re := hhalf_re_eq
+              _ < 0 := hneg_succ_lt_zero
+          exact (not_lt_of_ge hz_half_re) hcontr
 
 /-- Norm transport for the half-argument. -/
 theorem two_mul_norm_halfArgument
@@ -488,7 +523,7 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
             (lt_trans zero_lt_one (lt_of_le_of_lt ha ht.1)))
         exact hnonneg)
       (fun t ht => by
-        exact mul_nonneg (by norm_num : (0 : ℝ) ≤ 2)
+        exact mul_nonneg zero_le_two
           (le_of_lt (Real.exp_pos (-Real.pi * t))))
       (fun t ht => by
         exact (htail_bound t ht))
@@ -504,7 +539,7 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
           2 * ∫ t : ℝ in Set.Ioi a, Real.exp (-Real.pi * t) := by
         exact integral_const_mul 2 (fun t : ℝ => Real.exp (-Real.pi * t))
       _ ≤ 2 * Real.exp (-Real.pi * a) :=
-        mul_le_mul_of_nonneg_left hexp_tail (by norm_num : (0 : ℝ) ≤ 2)
+        mul_le_mul_of_nonneg_left hexp_tail zero_le_two
   exact le_trans hmono hscaled_tail
 
 /-- A reusable norm-transport lemma for complex quotients. -/
@@ -517,8 +552,7 @@ theorem Complex.norm_div_eq_div_norm
       rfl
     _ = ‖z‖ * ‖w⁻¹‖ := norm_mul _ _
     _ = ‖z‖ * ‖w‖⁻¹ := by
-      congr 1
-      exact norm_inv _ _
+      exact congrArg (fun x : ℝ => ‖z‖ * x) (norm_inv w)
     _ = ‖z‖ / ‖w‖ := by
       exact (mul_inv_eq_div _ _).symm
 
@@ -530,13 +564,40 @@ theorem Complex.norm_arctan_eq_half_norm_log_quotient
     (hz : 1 - z * Complex.I ≠ 0) :
     ‖Complex.arctan z‖ =
       ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
-  unfold Complex.arctan
   calc
-    ‖(1 / 2 : ℂ) * Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ =
-        ‖(1 / 2 : ℂ)‖ * ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+    ‖Complex.arctan z‖ =
+        ‖(-Complex.I / 2 : ℂ) *
+          Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+      rfl
+    _ =
+        ‖(-Complex.I / 2 : ℂ)‖ *
+          ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
           exact norm_mul _ _
     _ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
-          norm_num
+          have hcoeff : ‖(-Complex.I / 2 : ℂ)‖ = (1 / 2 : ℝ) := by
+            calc
+              ‖(-Complex.I / 2 : ℂ)‖ = ‖(-Complex.I : ℂ)‖ / ‖(2 : ℂ)‖ := by
+                exact Complex.norm_div_eq_div_norm (OfNat.ofNat_ne_zero 2)
+              _ = ‖Complex.I‖ / ‖(2 : ℂ)‖ := by
+                exact congrArg (fun x : ℝ => x / ‖(2 : ℂ)‖) (norm_neg Complex.I)
+              _ = 1 / ‖(2 : ℂ)‖ := by
+                exact congrArg (fun x : ℝ => x / ‖(2 : ℂ)‖) Complex.abs_I
+              _ = 1 / 2 := by
+                exact congrArg (fun x : ℝ => 1 / x) (Complex.abs_ofNat 2)
+          calc
+            ‖(-Complex.I / 2 : ℂ)‖ *
+                ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ =
+                (1 / 2 : ℝ) *
+                  ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ := by
+              exact
+                congrArg
+                  (fun x : ℝ =>
+                    x *
+                      ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖)
+                  hcoeff
+            _ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := by
+              exact one_div_mul_eq_div
+                ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ 2
 
 /-- A crude norm bound for `Complex.log` in terms of its real and imaginary
 parts. -/
@@ -554,10 +615,26 @@ theorem Complex.norm_log_le_abs_re_add_abs_im (z : ℂ) :
       calc
         ‖((Complex.log z).re : ℂ)‖ + ‖(Complex.log z).im * Complex.I‖ =
             |(Complex.log z).re| + (‖((Complex.log z).im : ℂ)‖ * ‖Complex.I‖) := by
-          congr 1
-          exact Complex.norm_ofReal _
+          exact
+            congrArg
+              (fun x : ℝ => x + (‖((Complex.log z).im : ℂ)‖ * ‖Complex.I‖))
+              (Complex.norm_ofReal _)
         _ = |(Complex.log z).re| + |(Complex.log z).im| := by
-          norm_num [Complex.norm_ofReal]
+          have hleft : ‖((Complex.log z).im : ℂ)‖ = |(Complex.log z).im| :=
+            Complex.norm_ofReal _
+          have hI : ‖Complex.I‖ = 1 :=
+            Complex.abs_I
+          calc
+            |(Complex.log z).re| +
+                (‖((Complex.log z).im : ℂ)‖ * ‖Complex.I‖) =
+                |(Complex.log z).re| + (|(Complex.log z).im| * 1) := by
+              exact
+                congrArg
+                  (fun x : ℝ => |(Complex.log z).re| + x)
+                  (congrArg₂ HMul.hMul hleft hI)
+            _ = |(Complex.log z).re| + |(Complex.log z).im| := by
+              exact congrArg (fun x : ℝ => |(Complex.log z).re| + x)
+                (mul_one |(Complex.log z).im|)
 
 /-- The complex logarithm norm is controlled by its modulus-logarithm and
 argument parts. -/
@@ -572,13 +649,23 @@ theorem Complex.norm_log_le_abs_log_add_abs_arg (z : ℂ) :
     _ = |Real.log z.abs| + |z.arg| := by
       calc
         ‖z.abs.log‖ + ‖z.arg * Complex.I‖ = |Real.log z.abs| + ‖z.arg * Complex.I‖ := by
-          congr 1
-          exact Complex.norm_ofReal _
+          exact
+            congrArg
+              (fun x : ℝ => x + ‖z.arg * Complex.I‖)
+              (Complex.norm_ofReal _)
         _ = |Real.log z.abs| + |z.arg| := by
           have hmul : ‖z.arg * Complex.I‖ = |z.arg| := by
             calc
               ‖z.arg * Complex.I‖ = ‖(z.arg : ℂ)‖ * ‖Complex.I‖ := norm_mul _ _
-              _ = |z.arg| := by norm_num [Complex.norm_ofReal]
+              _ = |z.arg| := by
+                have harg_norm : ‖(z.arg : ℂ)‖ = |z.arg| :=
+                  Complex.norm_ofReal _
+                have hI : ‖Complex.I‖ = 1 :=
+                  Complex.abs_I
+                calc
+                  ‖(z.arg : ℂ)‖ * ‖Complex.I‖ = |z.arg| * 1 := by
+                    exact congrArg₂ HMul.hMul harg_norm hI
+                  _ = |z.arg| := mul_one |z.arg|
           exact congrArg (fun t : ℝ => |Real.log z.abs| + t) hmul
 
 /-- A coarse `π`-bound for the complex logarithm norm. -/
@@ -600,7 +687,7 @@ theorem Complex.norm_arctan_le_abs_log_quotient_add_pi_half
   have hnorm := Complex.norm_arctan_eq_half_norm_log_quotient z hz
   have hhalf : ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 ≤
       (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := by
-    exact div_le_div_right (by norm_num : (0 : ℝ) < 2) hlog
+    exact div_le_div_right zero_lt_two hlog
   calc
     ‖Complex.arctan z‖ = ‖Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))‖ / 2 := hnorm
     _ ≤ (|Real.log ((1 + z * Complex.I) / (1 - z * Complex.I)).abs| + π) / 2 := hhalf

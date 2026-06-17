@@ -48,6 +48,40 @@ theorem supportIsoOverProduct_refl {X Y : Geometry.SmSchemeOver k}
     Iso.refl P.support, ?_⟩
   rfl
 
+/-- Source-component compatibility extracted from explicit support-isomorphism
+witnesses. -/
+theorem supportIsoOverProduct_toSourceComponent_hom_of_witness
+    {X Y : Geometry.SmSchemeOver k}
+    {P Q : PrimeFiniteCorrespondenceSupport X Y}
+    (compatibleSource :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) P.sourceImage Q.sourceImage)
+    (supportIso : P.support ≅ Q.support)
+    (support_comm :
+      P.inclusion ≫ compatibleSource.iso.hom =
+        supportIso.hom ≫ Q.inclusion) :
+    P.finiteOverSourceComponent ≫ compatibleSource.sourceIso.iso.hom =
+      supportIso.hom ≫ Q.finiteOverSourceComponent :=
+  calc
+    P.finiteOverSourceComponent ≫ compatibleSource.sourceIso.iso.hom =
+        P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Y ≫
+          compatibleSource.sourceIso.iso.hom :=
+          congrArg (fun f => f ≫ compatibleSource.sourceIso.iso.hom) P.inclusion_fst.symm
+    _ = P.inclusion ≫
+          (compatibleSource.iso.hom ≫ sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y) :=
+          Eq.symm (Category.assoc _ _ _)
+    _ = P.inclusion ≫
+          (sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Y ≫
+            compatibleSource.sourceIso.iso.hom) := by
+          exact congrArg (fun f => P.inclusion ≫ f) compatibleSource.hom_fst.symm
+    _ = supportIso.hom ≫ Q.inclusion ≫
+          sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y :=
+          congrArg
+            (fun f => f ≫ sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y)
+            support_comm
+    _ = supportIso.hom ≫ Q.finiteOverSourceComponent :=
+          congrArg (fun f => supportIso.hom ≫ f) Q.inclusion_fst
+
 theorem SupportIsoOverProduct.toSourceComponent_hom
     {X Y : Geometry.SmSchemeOver k}
     {P Q : PrimeFiniteCorrespondenceSupport X Y}
@@ -59,24 +93,41 @@ theorem SupportIsoOverProduct.toSourceComponent_hom
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
   let hcomm := Classical.choose_spec hrest
-  change P.inclusion ≫ hcomp.iso.hom = iso.hom ≫ Q.inclusion at hcomm
-  change P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
-    iso.hom ≫ Q.finiteOverSourceComponent
+  exact
+    supportIsoOverProduct_toSourceComponent_hom_of_witness
+      (P := P) (Q := Q) hcomp iso hcomm
+
+/-- An explicit support isomorphism over the source-product preserves the
+ambient source map. -/
+theorem supportIsoOverProduct_hom_toAmbientSource_of_witness
+    {X Y : Geometry.SmSchemeOver k}
+    {P Q : PrimeFiniteCorrespondenceSupport X Y}
+    (compatibleSource :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) P.sourceImage Q.sourceImage)
+    (supportIso : P.support ≅ Q.support)
+    (support_comm :
+      P.inclusion ≫ compatibleSource.iso.hom =
+        supportIso.hom ≫ Q.inclusion) :
+    supportIso.hom ≫ Q.toAmbientSource = P.toAmbientSource :=
+  let sourceComponentCompatibility :
+      P.finiteOverSourceComponent ≫ compatibleSource.sourceIso.iso.hom =
+        supportIso.hom ≫ Q.finiteOverSourceComponent :=
+    supportIsoOverProduct_toSourceComponent_hom_of_witness
+      (P := P) (Q := Q) compatibleSource supportIso support_comm
   calc
-    P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
-        P.inclusion ≫ sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Y ≫
-          hcomp.sourceIso.iso.hom := by
-          exact congrArg (fun f => f ≫ hcomp.sourceIso.iso.hom) P.inclusion_fst.symm
-    _ = P.inclusion ≫ hcomp.iso.hom ≫
-          sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y := by
-          rw [← hcomp.hom_fst]
-    _ = iso.hom ≫ Q.inclusion ≫
-          sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y := by
-          exact congrArg
-            (fun f => f ≫ sourceOverBaseProduct.fst (k := k) Q.sourceImage.carrier Y)
-            hcomm
-    _ = iso.hom ≫ Q.finiteOverSourceComponent := by
-          rw [Q.inclusion_fst]
+    supportIso.hom ≫ Q.toAmbientSource =
+        supportIso.hom ≫ Q.finiteOverSourceComponent ≫ Q.sourceImage.toAmbient :=
+          rfl
+    _ = P.finiteOverSourceComponent ≫ compatibleSource.sourceIso.iso.hom ≫
+          Q.sourceImage.toAmbient :=
+          congrArg (fun f => f ≫ Q.sourceImage.toAmbient)
+            sourceComponentCompatibility.symm
+    _ = P.finiteOverSourceComponent ≫ P.sourceImage.toAmbient :=
+          congrArg (fun f => P.finiteOverSourceComponent ≫ f)
+            compatibleSource.sourceIso.hom_toAmbient
+    _ = P.toAmbientSource :=
+          rfl
 
 theorem SupportIsoOverProduct.hom_toAmbientSource
     {X Y : Geometry.SmSchemeOver k}
@@ -88,20 +139,38 @@ theorem SupportIsoOverProduct.hom_toAmbientSource
   let hcomp := Classical.choose hPQ
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
-  have hsource := SupportIsoOverProduct.toSourceComponent_hom (P := P) (Q := Q) hPQ
-  change P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom =
-    iso.hom ≫ Q.finiteOverSourceComponent at hsource
-  change iso.hom ≫ Q.toAmbientSource = P.toAmbientSource
+  let hcomm := Classical.choose_spec hrest
+  exact
+    supportIsoOverProduct_hom_toAmbientSource_of_witness
+      (P := P) (Q := Q) hcomp iso hcomm
+
+/-- An explicit support isomorphism over the source-product preserves the
+target map. -/
+theorem supportIsoOverProduct_hom_toTargetScheme_of_witness
+    {X Y : Geometry.SmSchemeOver k}
+    {P Q : PrimeFiniteCorrespondenceSupport X Y}
+    (compatibleSource :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) P.sourceImage Q.sourceImage)
+    (supportIso : P.support ≅ Q.support)
+    (support_comm :
+      P.inclusion ≫ compatibleSource.iso.hom =
+        supportIso.hom ≫ Q.inclusion) :
+    supportIso.hom ≫ Q.toTarget = P.toTarget :=
   calc
-    iso.hom ≫ Q.toAmbientSource =
-        iso.hom ≫ Q.finiteOverSourceComponent ≫ Q.sourceImage.toAmbient := by
-        rfl
-    _ = P.finiteOverSourceComponent ≫ hcomp.sourceIso.iso.hom ≫ Q.sourceImage.toAmbient := by
-        exact congrArg (fun f => f ≫ Q.sourceImage.toAmbient) hsource.symm
-    _ = P.finiteOverSourceComponent ≫ P.sourceImage.toAmbient := by
-        rw [hcomp.sourceIso.hom_toAmbient]
-    _ = P.toAmbientSource := by
-        rfl
+    supportIso.hom ≫ Q.toTarget =
+        supportIso.hom ≫ Q.inclusion ≫
+          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y :=
+          congrArg (fun f => supportIso.hom ≫ f) Q.inclusion_snd.symm
+    _ = P.inclusion ≫ compatibleSource.iso.hom ≫
+          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y :=
+          congrArg
+            (fun f => f ≫ sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y)
+            support_comm.symm
+    _ = P.inclusion ≫ sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Y :=
+          congrArg (fun f => P.inclusion ≫ f) compatibleSource.hom_snd
+    _ = P.toTarget :=
+          P.inclusion_snd
 
 theorem SupportIsoOverProduct.hom_toTargetScheme
     {X Y : Geometry.SmSchemeOver k}
@@ -114,23 +183,9 @@ theorem SupportIsoOverProduct.hom_toTargetScheme
   let hrest := Classical.choose_spec hPQ
   let iso := Classical.choose hrest
   let hcomm := Classical.choose_spec hrest
-  change P.inclusion ≫ hcomp.iso.hom = iso.hom ≫ Q.inclusion at hcomm
-  change iso.hom ≫ Q.toTarget = P.toTarget
-  calc
-    iso.hom ≫ Q.toTarget =
-        iso.hom ≫ Q.inclusion ≫
-          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y := by
-          exact congrArg (fun f => iso.hom ≫ f) Q.inclusion_snd.symm
-    _ = P.inclusion ≫ hcomp.iso.hom ≫
-          sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y := by
-          exact congrArg
-            (fun f => f ≫ sourceOverBaseProduct.snd (k := k) Q.sourceImage.carrier Y)
-            hcomm.symm
-    _ = P.inclusion ≫
-          sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Y := by
-          rw [hcomp.hom_snd]
-    _ = P.toTarget := by
-          exact P.inclusion_snd
+  exact
+    supportIsoOverProduct_hom_toTargetScheme_of_witness
+      (P := P) (Q := Q) hcomp iso hcomm
 
 theorem supportIsoOverProduct_toSourceComponent_hom
     {X Y : Geometry.SmSchemeOver k}
@@ -163,7 +218,7 @@ theorem supportIsoOverProduct_comp_hom_toAmbientSource
     {W : Scheme.{u}} (f : W ⟶ P.support) :
     f ≫ (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource =
       f ≫ P.toAmbientSource := by
-  rw [supportIsoOverProduct_hom_toAmbientSource hPQ]
+  exact congrArg (fun g => f ≫ g) (supportIsoOverProduct_hom_toAmbientSource hPQ)
 
 theorem supportIsoOverProduct_comp_hom_toTargetScheme
     {X Y : Geometry.SmSchemeOver k}
@@ -172,7 +227,7 @@ theorem supportIsoOverProduct_comp_hom_toTargetScheme
     {W : Scheme.{u}} (f : W ⟶ P.support) :
     f ≫ (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget =
       f ≫ P.toTarget := by
-  rw [supportIsoOverProduct_hom_toTargetScheme hPQ]
+  exact congrArg (fun g => f ≫ g) (supportIsoOverProduct_hom_toTargetScheme hPQ)
 
 theorem supportIsoOverProduct_hom_toTargetScheme_structMap
     {X Y : Geometry.SmSchemeOver k}
@@ -180,7 +235,7 @@ theorem supportIsoOverProduct_hom_toTargetScheme_structMap
     (hPQ : SupportIsoOverProduct P Q) :
     (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toTarget ≫ Y.structMap =
       P.toTarget ≫ Y.structMap := by
-  rw [← Category.assoc, supportIsoOverProduct_hom_toTargetScheme hPQ]
+  exact congrArg (fun g => g ≫ Y.structMap) (supportIsoOverProduct_hom_toTargetScheme hPQ)
 
 theorem supportIsoOverProduct_hom_toAmbientSource_structMap
     {X Y : Geometry.SmSchemeOver k}
@@ -188,11 +243,60 @@ theorem supportIsoOverProduct_hom_toAmbientSource_structMap
     (hPQ : SupportIsoOverProduct P Q) :
     (Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource ≫ X.structMap =
       P.toAmbientSource ≫ X.structMap := by
-  change
-    ((Classical.choose (Classical.choose_spec hPQ)).hom ≫ Q.toAmbientSource) ≫ X.structMap =
-      P.toAmbientSource ≫ X.structMap
   exact congrArg (fun f => f ≫ X.structMap)
     (supportIsoOverProduct_hom_toAmbientSource hPQ)
+
+/-- The inverse support isomorphism satisfies the support-embedding
+compatibility needed for symmetry of `SupportIsoOverProduct`. -/
+theorem supportIsoOverProduct_symm_comm_of_witness
+    {X Y : Geometry.SmSchemeOver k}
+    {P Q : PrimeFiniteCorrespondenceSupport X Y}
+    (compatibleSource :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) P.sourceImage Q.sourceImage)
+    (supportIso : P.support ≅ Q.support)
+    (support_comm :
+      P.inclusion ≫ compatibleSource.iso.hom =
+        supportIso.hom ≫ Q.inclusion) :
+    Q.inclusion ≫ compatibleSource.iso.inv =
+      supportIso.inv ≫ P.inclusion := by
+  have inverse_left_support_comm :
+      supportIso.inv ≫ P.inclusion ≫ compatibleSource.iso.hom =
+        Q.inclusion := by
+    calc
+      supportIso.inv ≫ P.inclusion ≫ compatibleSource.iso.hom =
+          supportIso.inv ≫ (P.inclusion ≫ compatibleSource.iso.hom) := by
+            exact Eq.symm (Category.assoc _ _ _)
+      _ = supportIso.inv ≫ (supportIso.hom ≫ Q.inclusion) := by
+            exact congrArg (fun f => supportIso.inv ≫ f) support_comm
+      _ = (supportIso.inv ≫ supportIso.hom) ≫ Q.inclusion := by
+            exact (Category.assoc supportIso.inv supportIso.hom Q.inclusion).symm
+      _ = Q.inclusion := by
+            calc
+              (supportIso.inv ≫ supportIso.hom) ≫ Q.inclusion =
+                  𝟙 _ ≫ Q.inclusion := by
+                    exact congrArg (fun f => f ≫ Q.inclusion) supportIso.inv_hom_id
+              _ = Q.inclusion := by
+                    exact Category.id_comp Q.inclusion
+  have inverse_right_support_comm :
+      supportIso.inv ≫ P.inclusion =
+        Q.inclusion ≫ compatibleSource.iso.inv := by
+    calc
+      supportIso.inv ≫ P.inclusion =
+          (supportIso.inv ≫ P.inclusion) ≫ 𝟙 _ := by
+            exact (Category.comp_id (supportIso.inv ≫ P.inclusion)).symm
+      _ = (supportIso.inv ≫ P.inclusion) ≫
+            compatibleSource.iso.hom ≫ compatibleSource.iso.inv := by
+            exact
+              congrArg (fun f => (supportIso.inv ≫ P.inclusion) ≫ f)
+                compatibleSource.iso.hom_inv_id.symm
+      _ = (supportIso.inv ≫ P.inclusion ≫ compatibleSource.iso.hom) ≫
+            compatibleSource.iso.inv := by
+            exact Category.assoc _ _ _
+      _ = Q.inclusion ≫ compatibleSource.iso.inv := by
+            exact congrArg (fun f => f ≫ compatibleSource.iso.inv)
+              inverse_left_support_comm
+  exact inverse_right_support_comm.symm
 
 /-- Symmetry of the isomorphism-over-product relation. -/
 theorem supportIsoOverProduct_symm {X Y : Geometry.SmSchemeOver k}
@@ -201,21 +305,41 @@ theorem supportIsoOverProduct_symm {X Y : Geometry.SmSchemeOver k}
   rcases hPQ with ⟨hcomp, iso, hcomm⟩
   refine ⟨SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.symm hcomp,
     iso.symm, ?_⟩
-  have hleft : iso.inv ≫ P.inclusion ≫ hcomp.iso.hom = Q.inclusion := by
-    rw [hcomm]
-    rw [← Category.assoc, Iso.inv_hom_id, Category.id_comp]
-  have hright : iso.inv ≫ P.inclusion = Q.inclusion ≫ hcomp.iso.inv := by
-    rw [← hleft]
-    calc
-      iso.inv ≫ P.inclusion =
-          (iso.inv ≫ P.inclusion) ≫ 𝟙 _ := by
-            rw [Category.comp_id]
-      _ = (iso.inv ≫ P.inclusion) ≫ hcomp.iso.hom ≫ hcomp.iso.inv := by
-            rw [Iso.hom_inv_id]
-      _ = (iso.inv ≫ P.inclusion ≫ hcomp.iso.hom) ≫ hcomp.iso.inv := by
-            rfl
-  change Q.inclusion ≫ hcomp.iso.inv = iso.inv ≫ P.inclusion
-  exact hright.symm
+  exact supportIsoOverProduct_symm_comm_of_witness hcomp iso hcomm
+
+/-- Commutativity of the composite support isomorphism used for transitivity
+of `SupportIsoOverProduct`. -/
+theorem supportIsoOverProduct_trans_comm_of_witness
+    {X Y : Geometry.SmSchemeOver k}
+    {P Q R : PrimeFiniteCorrespondenceSupport X Y}
+    (compatiblePQ :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) P.sourceImage Q.sourceImage)
+    (compatibleQR :
+      SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso
+        (Y := Y) Q.sourceImage R.sourceImage)
+    (supportIsoPQ : P.support ≅ Q.support)
+    (supportIsoQR : Q.support ≅ R.support)
+    (support_comm_PQ :
+      P.inclusion ≫ compatiblePQ.iso.hom =
+        supportIsoPQ.hom ≫ Q.inclusion)
+    (support_comm_QR :
+      Q.inclusion ≫ compatibleQR.iso.hom =
+        supportIsoQR.hom ≫ R.inclusion) :
+    P.inclusion ≫ (compatiblePQ.iso ≪≫ compatibleQR.iso).hom =
+      (supportIsoPQ ≪≫ supportIsoQR).hom ≫ R.inclusion :=
+  calc
+    P.inclusion ≫ (compatiblePQ.iso ≪≫ compatibleQR.iso).hom =
+        P.inclusion ≫ compatiblePQ.iso.hom ≫ compatibleQR.iso.hom :=
+          rfl
+    _ = (supportIsoPQ.hom ≫ Q.inclusion) ≫ compatibleQR.iso.hom :=
+          congrArg (fun f => f ≫ compatibleQR.iso.hom) support_comm_PQ
+    _ = supportIsoPQ.hom ≫ (Q.inclusion ≫ compatibleQR.iso.hom) :=
+          Category.assoc supportIsoPQ.hom Q.inclusion compatibleQR.iso.hom
+    _ = supportIsoPQ.hom ≫ (supportIsoQR.hom ≫ R.inclusion) :=
+          congrArg (fun f => supportIsoPQ.hom ≫ f) support_comm_QR
+    _ = (supportIsoPQ ≪≫ supportIsoQR).hom ≫ R.inclusion :=
+          rfl
 
 /-- Transitivity of the isomorphism-over-product relation. -/
 theorem supportIsoOverProduct_trans {X Y : Geometry.SmSchemeOver k}
@@ -227,16 +351,9 @@ theorem supportIsoOverProduct_trans {X Y : Geometry.SmSchemeOver k}
   refine ⟨SourceImageSubscheme.IsoOverAmbient.CompatibleOverBaseProductIso.trans
       hcompPQ hcompQR,
     isoPQ ≪≫ isoQR, ?_⟩
-  calc
-    P.inclusion ≫ (hcompPQ.iso ≪≫ hcompQR.iso).hom
-        = P.inclusion ≫ hcompPQ.iso.hom ≫ hcompQR.iso.hom := by
-              rfl
-    _ = (isoPQ.hom ≫ Q.inclusion) ≫ hcompQR.iso.hom := by
-          exact congrArg (fun f => f ≫ hcompQR.iso.hom) hcommPQ
-    _ = isoPQ.hom ≫ (Q.inclusion ≫ hcompQR.iso.hom) := by
-          rw [Category.assoc]
-    _ = isoPQ.hom ≫ (isoQR.hom ≫ R.inclusion) := by rw [hcommQR]
-    _ = (isoPQ ≪≫ isoQR).hom ≫ R.inclusion := by rfl
+  exact
+    supportIsoOverProduct_trans_comm_of_witness
+      hcompPQ hcompQR isoPQ isoQR hcommPQ hcommQR
 
 /-- The setoid identifying represented prime supports that are isomorphic over
 the same source-image fiber product. -/

@@ -88,7 +88,7 @@ namespace IsoOverAmbient
 def refl {X : Geometry.SmSchemeOver k}
     (C : SourceImageSubscheme (k := k) X) : IsoOverAmbient C C where
   iso := Iso.refl _
-  hom_toAmbient := by simp
+  hom_toAmbient := Category.id_comp C.toAmbient
 
 def symm {X : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X} (h : IsoOverAmbient C D) :
@@ -96,9 +96,15 @@ def symm {X : Geometry.SmSchemeOver k}
   iso := h.iso.symm
   hom_toAmbient := by
     calc
-      h.iso.inv ≫ C.toAmbient = h.iso.inv ≫ (h.iso.hom ≫ D.toAmbient) := by
-        rw [h.hom_toAmbient]
-      _ = D.toAmbient := by simp [Category.assoc]
+      h.iso.inv ≫ C.toAmbient =
+          h.iso.inv ≫ (h.iso.hom ≫ D.toAmbient) :=
+          congrArg (fun f => h.iso.inv ≫ f) h.hom_toAmbient.symm
+      _ = (h.iso.inv ≫ h.iso.hom) ≫ D.toAmbient :=
+          (Category.assoc h.iso.inv h.iso.hom D.toAmbient).symm
+      _ = D.toAmbient :=
+          Eq.trans
+            (congrArg (fun f => f ≫ D.toAmbient) h.iso.inv_hom_id)
+            (Category.id_comp D.toAmbient)
 
 def trans {X : Geometry.SmSchemeOver k}
     {C D E : SourceImageSubscheme (k := k) X}
@@ -107,20 +113,27 @@ def trans {X : Geometry.SmSchemeOver k}
   iso := hCD.iso ≪≫ hDE.iso
   hom_toAmbient := by
     calc
-      (hCD.iso ≪≫ hDE.iso).hom ≫ E.toAmbient = hCD.iso.hom ≫ (hDE.iso.hom ≫ E.toAmbient) := by
-        simp [Category.assoc]
-      _ = hCD.iso.hom ≫ D.toAmbient := by rw [hDE.hom_toAmbient]
-      _ = C.toAmbient := by rw [hCD.hom_toAmbient]
+      (hCD.iso ≪≫ hDE.iso).hom ≫ E.toAmbient =
+          hCD.iso.hom ≫ (hDE.iso.hom ≫ E.toAmbient) :=
+          rfl
+      _ = hCD.iso.hom ≫ D.toAmbient :=
+          congrArg (fun f => hCD.iso.hom ≫ f) hDE.hom_toAmbient
+      _ = C.toAmbient :=
+          hCD.hom_toAmbient
 
 theorem hom_structMap {X : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X} (h : IsoOverAmbient C D) :
     h.iso.hom ≫ D.carrier.structMap = C.carrier.structMap := by
   calc
-    h.iso.hom ≫ D.carrier.structMap = h.iso.hom ≫ (D.toAmbient ≫ X.structMap) := by
-      rw [D.toAmbient_overBase]
-    _ = (h.iso.hom ≫ D.toAmbient) ≫ X.structMap := by simp [Category.assoc]
-    _ = C.toAmbient ≫ X.structMap := by rw [h.hom_toAmbient]
-    _ = C.carrier.structMap := C.toAmbient_overBase
+    h.iso.hom ≫ D.carrier.structMap =
+        h.iso.hom ≫ (D.toAmbient ≫ X.structMap) :=
+        congrArg (fun f => h.iso.hom ≫ f) D.toAmbient_overBase.symm
+    _ = (h.iso.hom ≫ D.toAmbient) ≫ X.structMap :=
+        (Category.assoc h.iso.hom D.toAmbient X.structMap).symm
+    _ = C.toAmbient ≫ X.structMap :=
+        congrArg (fun f => f ≫ X.structMap) h.hom_toAmbient
+    _ = C.carrier.structMap :=
+        C.toAmbient_overBase
 
 end IsoOverAmbient
 
@@ -160,6 +173,14 @@ abbrev sourceOverBaseProduct.snd (S : SchemeOverBase k) (Y : Geometry.SmSchemeOv
     sourceOverBaseProduct (k := k) S Y ⟶ Y.scheme :=
   pullback.snd S.structMap Y.structMap
 
+/-- The defining square of `S ×_k Y`: the two projections have the same map
+to `Spec k`. -/
+theorem sourceOverBaseProduct_condition
+    (S : SchemeOverBase k) (Y : Geometry.SmSchemeOver k) :
+    sourceOverBaseProduct.fst (k := k) S Y ≫ S.structMap =
+      sourceOverBaseProduct.snd (k := k) S Y ≫ Y.structMap :=
+  pullback.condition (f := S.structMap) (g := Y.structMap)
+
 namespace SourceImageSubscheme.IsoOverAmbient
 
 noncomputable def overBaseProductIso {X : Geometry.SmSchemeOver k}
@@ -171,23 +192,49 @@ noncomputable def overBaseProductIso {X : Geometry.SmSchemeOver k}
     pullback.map C.carrier.structMap Y.structMap D.carrier.structMap Y.structMap
       h.iso.hom (𝟙 Y.scheme) (𝟙 (Spec (CommRingCat.of k))) ?_ ?_
   · exact h.hom_structMap.symm
-  · simp
+  · exact Eq.trans (Category.id_comp Y.structMap) (Category.comp_id Y.structMap).symm
+
+theorem overBaseProductIso_hom_fst_raw {X : Geometry.SmSchemeOver k}
+    {Y : Geometry.SmSchemeOver k}
+    {C D : SourceImageSubscheme (k := k) X}
+    (h : SourceImageSubscheme.IsoOverAmbient C D) :
+    (h.overBaseProductIso (Y := Y)).hom ≫ sourceOverBaseProduct.fst (k := k) D.carrier Y =
+      sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.iso.hom := by
+  change
+    pullback.map C.carrier.structMap Y.structMap D.carrier.structMap Y.structMap
+        h.iso.hom (𝟙 Y.scheme) (𝟙 (Spec (CommRingCat.of k))) _ _ ≫
+      sourceOverBaseProduct.fst (k := k) D.carrier Y =
+    sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.iso.hom
+  exact pullback.map_fst
 
 @[simp] theorem overBaseProductIso_hom_fst {X : Geometry.SmSchemeOver k}
     {Y : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X}
     (h : SourceImageSubscheme.IsoOverAmbient C D) :
     (h.overBaseProductIso (Y := Y)).hom ≫ sourceOverBaseProduct.fst (k := k) D.carrier Y =
-      sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.iso.hom := by
-  simp [SourceImageSubscheme.IsoOverAmbient.overBaseProductIso, Category.assoc]
+      sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.iso.hom :=
+  h.overBaseProductIso_hom_fst_raw (Y := Y)
+
+theorem overBaseProductIso_hom_snd_raw {X : Geometry.SmSchemeOver k}
+    {Y : Geometry.SmSchemeOver k}
+    {C D : SourceImageSubscheme (k := k) X}
+    (h : SourceImageSubscheme.IsoOverAmbient C D) :
+    (h.overBaseProductIso (Y := Y)).hom ≫ sourceOverBaseProduct.snd (k := k) D.carrier Y =
+      sourceOverBaseProduct.snd (k := k) C.carrier Y := by
+  change
+    pullback.map C.carrier.structMap Y.structMap D.carrier.structMap Y.structMap
+        h.iso.hom (𝟙 Y.scheme) (𝟙 (Spec (CommRingCat.of k))) _ _ ≫
+      sourceOverBaseProduct.snd (k := k) D.carrier Y =
+    sourceOverBaseProduct.snd (k := k) C.carrier Y
+  exact pullback.map_snd
 
 @[simp] theorem overBaseProductIso_hom_snd {X : Geometry.SmSchemeOver k}
     {Y : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X}
     (h : SourceImageSubscheme.IsoOverAmbient C D) :
     (h.overBaseProductIso (Y := Y)).hom ≫ sourceOverBaseProduct.snd (k := k) D.carrier Y =
-      sourceOverBaseProduct.snd (k := k) C.carrier Y := by
-  simp [SourceImageSubscheme.IsoOverAmbient.overBaseProductIso, Category.assoc]
+      sourceOverBaseProduct.snd (k := k) C.carrier Y :=
+  h.overBaseProductIso_hom_snd_raw (Y := Y)
 
 structure CompatibleOverBaseProductIso {X : Geometry.SmSchemeOver k}
     {Y : Geometry.SmSchemeOver k}
@@ -203,12 +250,109 @@ structure CompatibleOverBaseProductIso {X : Geometry.SmSchemeOver k}
 
 namespace CompatibleOverBaseProductIso
 
+theorem symm_hom_fst {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
+    {C D : SourceImageSubscheme (k := k) X}
+    (h : CompatibleOverBaseProductIso (Y := Y) C D) :
+    h.iso.inv ≫ sourceOverBaseProduct.fst (k := k) C.carrier Y =
+      sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv := by
+  have hcomp :
+      h.iso.hom ≫
+          (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv) =
+        sourceOverBaseProduct.fst (k := k) C.carrier Y := by
+    calc
+      h.iso.hom ≫ (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv) =
+          (h.iso.hom ≫ sourceOverBaseProduct.fst (k := k) D.carrier Y) ≫
+            h.sourceIso.iso.inv := by
+              exact (Category.assoc _ _ _).symm
+      _ = (sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.sourceIso.iso.hom) ≫
+            h.sourceIso.iso.inv := by
+              exact congrArg (fun f => f ≫ h.sourceIso.iso.inv) h.hom_fst
+      _ = sourceOverBaseProduct.fst (k := k) C.carrier Y := by
+              calc
+                (sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.sourceIso.iso.hom) ≫
+                    h.sourceIso.iso.inv =
+                    sourceOverBaseProduct.fst (k := k) C.carrier Y ≫
+                      (h.sourceIso.iso.hom ≫ h.sourceIso.iso.inv) := by
+                        exact Category.assoc _ _ _
+                _ = sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ 𝟙 _ := by
+                      exact congrArg (fun f => sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ f)
+                        h.sourceIso.iso.hom_inv_id
+                _ = sourceOverBaseProduct.fst (k := k) C.carrier Y := by
+                      exact Category.comp_id _
+  have hleft :
+      sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv =
+        h.iso.inv ≫ sourceOverBaseProduct.fst (k := k) C.carrier Y := by
+    have htmp := congrArg (fun f => h.iso.inv ≫ f) hcomp
+    calc
+      sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv =
+          (h.iso.inv ≫ h.iso.hom) ≫
+            (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv) := by
+              exact Eq.symm (Category.assoc _ _ _)
+      _ = h.iso.inv ≫
+            (h.iso.hom ≫ (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫
+              h.sourceIso.iso.inv)) := by
+              exact Category.assoc _ _ _
+      _ = h.iso.inv ≫ sourceOverBaseProduct.fst (k := k) C.carrier Y := by
+              exact congrArg (fun f => h.iso.inv ≫ f) hcomp
+  exact hleft.symm
+
+theorem symm_hom_snd {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
+    {C D : SourceImageSubscheme (k := k) X}
+    (h : CompatibleOverBaseProductIso (Y := Y) C D) :
+    h.iso.inv ≫ sourceOverBaseProduct.snd (k := k) C.carrier Y =
+      sourceOverBaseProduct.snd (k := k) D.carrier Y := by
+  calc
+    h.iso.inv ≫ sourceOverBaseProduct.snd (k := k) C.carrier Y =
+        h.iso.inv ≫ (sourceOverBaseProduct.snd (k := k) D.carrier Y) := by
+          exact congrArg (fun f => h.iso.inv ≫ f) h.hom_snd.symm
+    _ = sourceOverBaseProduct.snd (k := k) D.carrier Y := by
+          exact Category.id_comp _
+
+theorem trans_hom_fst {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
+    {C D E : SourceImageSubscheme (k := k) X}
+    (hCD : CompatibleOverBaseProductIso (Y := Y) C D)
+    (hDE : CompatibleOverBaseProductIso (Y := Y) D E) :
+    (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.fst (k := k) E.carrier Y =
+      sourceOverBaseProduct.fst (k := k) C.carrier Y ≫
+        (hCD.sourceIso.iso ≪≫ hDE.sourceIso.iso).hom := by
+  calc
+    (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.fst (k := k) E.carrier Y =
+        hCD.iso.hom ≫ (hDE.iso.hom ≫ sourceOverBaseProduct.fst (k := k) E.carrier Y) := by
+            rfl
+    _ = hCD.iso.hom ≫
+          (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ hDE.sourceIso.iso.hom) := by
+          exact congrArg (fun f => hCD.iso.hom ≫ f) hDE.hom_fst
+    _ = (hCD.iso.hom ≫ sourceOverBaseProduct.fst (k := k) D.carrier Y) ≫
+          hDE.sourceIso.iso.hom := by
+          exact Category.assoc _ _ _
+    _ = (sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ hCD.sourceIso.iso.hom) ≫
+          hDE.sourceIso.iso.hom := by
+          exact congrArg (fun f => f ≫ hDE.sourceIso.iso.hom) hCD.hom_fst
+    _ = sourceOverBaseProduct.fst (k := k) C.carrier Y ≫
+          (hCD.sourceIso.iso ≪≫ hDE.sourceIso.iso).hom := by
+          rfl
+
+theorem trans_hom_snd {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
+    {C D E : SourceImageSubscheme (k := k) X}
+    (hCD : CompatibleOverBaseProductIso (Y := Y) C D)
+    (hDE : CompatibleOverBaseProductIso (Y := Y) D E) :
+    (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.snd (k := k) E.carrier Y =
+      sourceOverBaseProduct.snd (k := k) C.carrier Y := by
+  calc
+    (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.snd (k := k) E.carrier Y =
+        hCD.iso.hom ≫ (hDE.iso.hom ≫ sourceOverBaseProduct.snd (k := k) E.carrier Y) := by
+            rfl
+    _ = hCD.iso.hom ≫ sourceOverBaseProduct.snd (k := k) D.carrier Y := by
+          exact congrArg (fun f => hCD.iso.hom ≫ f) hDE.hom_snd
+    _ = sourceOverBaseProduct.snd (k := k) C.carrier Y := by
+          exact hCD.hom_snd
+
 def refl {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     (C : SourceImageSubscheme (k := k) X) : CompatibleOverBaseProductIso (Y := Y) C C where
   sourceIso := SourceImageSubscheme.IsoOverAmbient.refl C
   iso := Iso.refl _
-  hom_fst := by simp [SourceImageSubscheme.IsoOverAmbient.refl]
-  hom_snd := by simp [SourceImageSubscheme.IsoOverAmbient.refl]
+  hom_fst := Category.id_comp _
+  hom_snd := Category.id_comp (sourceOverBaseProduct.snd (k := k) C.carrier Y)
 
 def symm {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X}
@@ -216,19 +360,8 @@ def symm {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     CompatibleOverBaseProductIso (Y := Y) D C where
   sourceIso := h.sourceIso.symm
   iso := h.iso.symm
-  hom_fst := by
-    have hleft :
-        h.iso.inv ≫ sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ h.sourceIso.iso.hom =
-          sourceOverBaseProduct.fst (k := k) D.carrier Y := by
-      simpa [Category.assoc] using (congrArg (fun f => h.iso.inv ≫ f) h.hom_fst).symm
-    have hright :
-        h.iso.inv ≫ sourceOverBaseProduct.fst (k := k) C.carrier Y =
-          sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ h.sourceIso.iso.inv := by
-      simpa [Category.assoc] using
-        congrArg (fun f => f ≫ h.sourceIso.iso.inv) hleft
-    simpa [Category.assoc] using hright
-  hom_snd := by
-    simpa [Category.assoc] using (congrArg (fun f => h.iso.inv ≫ f) h.hom_snd).symm
+  hom_fst := h.symm_hom_fst
+  hom_snd := h.symm_hom_snd
 
 def trans {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     {C D E : SourceImageSubscheme (k := k) X}
@@ -237,32 +370,8 @@ def trans {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     CompatibleOverBaseProductIso (Y := Y) C E where
   sourceIso := hCD.sourceIso.trans hDE.sourceIso
   iso := hCD.iso ≪≫ hDE.iso
-  hom_fst := by
-    calc
-      (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.fst (k := k) E.carrier Y
-          = hCD.iso.hom ≫ (hDE.iso.hom ≫ sourceOverBaseProduct.fst (k := k) E.carrier Y) := by
-              simp [Category.assoc]
-      _ = hCD.iso.hom ≫
-            (sourceOverBaseProduct.fst (k := k) D.carrier Y ≫ hDE.sourceIso.iso.hom) := by
-            rw [hDE.hom_fst]
-      _ = (hCD.iso.hom ≫ sourceOverBaseProduct.fst (k := k) D.carrier Y) ≫
-            hDE.sourceIso.iso.hom := by
-            simp [Category.assoc]
-      _ = (sourceOverBaseProduct.fst (k := k) C.carrier Y ≫ hCD.sourceIso.iso.hom) ≫
-            hDE.sourceIso.iso.hom := by
-            rw [hCD.hom_fst]
-      _ = sourceOverBaseProduct.fst (k := k) C.carrier Y ≫
-            (hCD.sourceIso.iso ≪≫ hDE.sourceIso.iso).hom := by
-            simp [Category.assoc]
-  hom_snd := by
-    calc
-      (hCD.iso ≪≫ hDE.iso).hom ≫ sourceOverBaseProduct.snd (k := k) E.carrier Y
-          = hCD.iso.hom ≫ (hDE.iso.hom ≫ sourceOverBaseProduct.snd (k := k) E.carrier Y) := by
-              simp [Category.assoc]
-      _ = hCD.iso.hom ≫ sourceOverBaseProduct.snd (k := k) D.carrier Y := by
-            rw [hDE.hom_snd]
-      _ = sourceOverBaseProduct.snd (k := k) C.carrier Y := by
-            rw [hCD.hom_snd]
+  hom_fst := hCD.trans_hom_fst hDE
+  hom_snd := hCD.trans_hom_snd hDE
 
 def ofIsoOverAmbient {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     {C D : SourceImageSubscheme (k := k) X}
@@ -270,8 +379,8 @@ def ofIsoOverAmbient {X : Geometry.SmSchemeOver k} {Y : Geometry.SmSchemeOver k}
     CompatibleOverBaseProductIso (Y := Y) C D where
   sourceIso := h
   iso := h.overBaseProductIso (Y := Y)
-  hom_fst := by simp using h.overBaseProductIso_hom_fst (Y := Y)
-  hom_snd := by simp using h.overBaseProductIso_hom_snd (Y := Y)
+  hom_fst := h.overBaseProductIso_hom_fst (Y := Y)
+  hom_snd := h.overBaseProductIso_hom_snd (Y := Y)
 
 end CompatibleOverBaseProductIso
 
@@ -338,33 +447,71 @@ abbrev compositionFiberSnd {X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) :
     compositionFiberFst P Q ≫ P.toTargetScheme =
       compositionFiberSnd P Q ≫ Q.toAmbientSource := by
-  simpa [compositionFiberProduct, compositionFiberFst, compositionFiberSnd] using
-    pullback.condition (f := P.toTargetScheme) (g := Q.toAmbientSource)
+  exact pullback.condition (f := P.toTargetScheme) (g := Q.toAmbientSource)
 
 @[simp] theorem toSourceComponent_overBase {X Y : Geometry.SmSchemeOver k}
     (Z : PrimeFiniteCorrespondenceSupport (k := k) X Y) :
     Z.toSourceComponent ≫ Z.sourceImage.carrier.structMap =
       Z.toTargetScheme ≫ Y.structMap := by
-  have hfst := congrArg
-    (fun f => f ≫ Z.sourceImage.carrier.structMap) Z.inclusion_fst
-  have hsnd := congrArg (fun f => f ≫ Y.structMap) Z.inclusion_snd
   calc
-    Z.toSourceComponent ≫ Z.sourceImage.carrier.structMap
-        = Z.inclusion ≫ sourceOverBaseProduct.fst (k := k) Z.sourceImage.carrier Y ≫
-            Z.sourceImage.carrier.structMap := by
-              simpa [PrimeFiniteCorrespondenceSupport.toSourceComponent,
-                PrimeFiniteCorrespondenceSupport.toSourceImage,
-                Category.assoc] using hfst.symm
-    _ = Z.inclusion ≫ sourceOverBaseProduct.snd (k := k) Z.sourceImage.carrier Y ≫ Y.structMap := by
-          simp [sourceOverBaseProduct, Category.assoc, pullback.condition]
+    Z.toSourceComponent ≫ Z.sourceImage.carrier.structMap =
+        Z.inclusion ≫ sourceOverBaseProduct.fst (k := k) Z.sourceImage.carrier Y ≫
+          Z.sourceImage.carrier.structMap := by
+            exact congrArg (fun f => f ≫ Z.sourceImage.carrier.structMap) Z.inclusion_fst.symm
+    _ = Z.inclusion ≫
+          (sourceOverBaseProduct.fst (k := k) Z.sourceImage.carrier Y ≫
+            Z.sourceImage.carrier.structMap) := by
+            exact (Category.assoc _ _ _).symm
+    _ = Z.inclusion ≫
+          (sourceOverBaseProduct.snd (k := k) Z.sourceImage.carrier Y ≫ Y.structMap) := by
+            exact congrArg (fun f => Z.inclusion ≫ f)
+              (sourceOverBaseProduct_condition (k := k) Z.sourceImage.carrier Y)
+    _ = (Z.inclusion ≫ sourceOverBaseProduct.snd (k := k) Z.sourceImage.carrier Y) ≫
+          Y.structMap := by
+            exact (Category.assoc _ _ _).symm
     _ = Z.toTargetScheme ≫ Y.structMap := by
-          simpa [PrimeFiniteCorrespondenceSupport.toTargetScheme, Category.assoc] using hsnd
+            exact congrArg (fun f => f ≫ Y.structMap) Z.inclusion_snd
 
 @[simp] theorem toAmbientSource_overBase {X Y : Geometry.SmSchemeOver k}
     (Z : PrimeFiniteCorrespondenceSupport (k := k) X Y) :
     Z.toAmbientSource ≫ X.structMap = Z.toTargetScheme ≫ Y.structMap := by
-  simp [PrimeFiniteCorrespondenceSupport.toAmbientSource, Category.assoc,
-    Z.toSourceComponent_overBase, Z.sourceImage.toAmbient_overBase]
+  calc
+    Z.toAmbientSource ≫ X.structMap =
+        (Z.toSourceComponent ≫ Z.sourceImage.toAmbient) ≫ X.structMap :=
+          rfl
+    _ = Z.toSourceComponent ≫ (Z.sourceImage.toAmbient ≫ X.structMap) :=
+          Category.assoc Z.toSourceComponent Z.sourceImage.toAmbient X.structMap
+    _ = Z.toSourceComponent ≫ Z.sourceImage.carrier.structMap :=
+          congrArg (fun f => Z.toSourceComponent ≫ f) Z.sourceImage.toAmbient_overBase
+    _ = Z.toTargetScheme ≫ Y.structMap :=
+          Z.toSourceComponent_overBase
+
+/-- The two maps used to send `P ×_Y Q` to `source(P) ×_k Z`
+have the same structure map to `Spec k`. -/
+theorem compositionToAmbientProduct_lift_condition {X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) :
+    compositionFiberFst P Q ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+      compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Z.structMap := by
+  have source_component_condition :
+      compositionFiberFst P Q ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+        compositionFiberFst P Q ≫ P.toTargetScheme ≫ Y.structMap := by
+    exact congrArg (fun f => compositionFiberFst P Q ≫ f) P.toSourceComponent_overBase
+  have fiber_condition :
+      compositionFiberFst P Q ≫ P.toTargetScheme ≫ Y.structMap =
+        compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ Y.structMap :=
+    congrArg (fun f => f ≫ Y.structMap) (compositionFiber_condition P Q)
+  have target_condition :
+      compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ Y.structMap =
+        compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Z.structMap := by
+    exact congrArg (fun f => compositionFiberSnd P Q ≫ f) Q.toAmbientSource_overBase
+  calc
+    compositionFiberFst P Q ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+        compositionFiberFst P Q ≫ P.toTargetScheme ≫ Y.structMap :=
+          source_component_condition
+    _ = compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ Y.structMap :=
+          fiber_condition
+    _ = compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Z.structMap :=
+          target_condition
 
 abbrev compositionToAmbientProduct {X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) :
@@ -372,35 +519,19 @@ abbrev compositionToAmbientProduct {X Y Z : Geometry.SmSchemeOver k}
   pullback.lift
     (compositionFiberFst P Q ≫ P.toSourceComponent)
     (compositionFiberSnd P Q ≫ Q.toTargetScheme)
-    (by
-      have hP := congrArg
-        (fun f => compositionFiberFst P Q ≫ f) P.toSourceComponent_overBase
-      have hPQ' :
-          compositionFiberFst P Q ≫ P.toTargetScheme ≫ Y.structMap =
-            compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ Y.structMap :=
-        congrArg (fun f => f ≫ Y.structMap) (compositionFiber_condition P Q)
-      have hQ := congrArg
-        (fun f => compositionFiberSnd P Q ≫ f) Q.toAmbientSource_overBase
-      calc
-        compositionFiberFst P Q ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap
-            = compositionFiberFst P Q ≫ P.toTargetScheme ≫ Y.structMap := by
-                simpa [Category.assoc] using hP
-        _ = compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ Y.structMap := by
-              exact hPQ'
-        _ = compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Z.structMap := by
-              simpa [Category.assoc] using hQ)
+    (compositionToAmbientProduct_lift_condition P Q)
 
 @[simp] theorem compositionToAmbientProduct_fst {X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) :
     compositionToAmbientProduct P Q ≫ sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Z =
       compositionFiberFst P Q ≫ P.toSourceComponent := by
-  simp [compositionToAmbientProduct]
+  exact pullback.lift_fst _ _ _
 
 @[simp] theorem compositionToAmbientProduct_snd {X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport X Y) (Q : RepresentedPrimeSupport Y Z) :
     compositionToAmbientProduct P Q ≫ sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Z =
       compositionFiberSnd P Q ≫ Q.toTargetScheme := by
-  simp [compositionToAmbientProduct]
+  exact pullback.lift_snd _ _ _
 
 abbrev leftAssociatedCompositionFiberProduct {W X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
@@ -411,6 +542,60 @@ abbrev rightAssociatedCompositionFiberProduct {W X Y Z : Geometry.SmSchemeOver k
     (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
     (R : RepresentedPrimeSupport Y Z) : Scheme :=
   pullback P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource)
+
+/-- The two maps used to send the left-associated fiber product to
+`source(P) ×_k Z` have the same structure map to `Spec k`. -/
+theorem leftAssociatedCompositionToAmbientProduct_lift_condition
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
+    (R : RepresentedPrimeSupport Y Z) :
+    pullback.fst (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource ≫
+        compositionFiberFst P Q ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+      pullback.snd (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource ≫
+        R.toTargetScheme ≫ Z.structMap := by
+  let leftFst : leftAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct P Q :=
+    pullback.fst (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource
+  let leftSnd : leftAssociatedCompositionFiberProduct P Q R ⟶ R.support :=
+    pullback.snd (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource
+  have source_component_condition :
+      leftFst ≫ compositionFiberFst P Q ≫ P.toSourceComponent ≫
+          P.sourceImage.carrier.structMap =
+        leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme ≫ X.structMap := by
+    exact congrArg
+      (fun f => leftFst ≫ compositionFiberFst P Q ≫ f) P.toSourceComponent_overBase
+  have first_fiber_condition :
+      leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme ≫ X.structMap =
+        leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ X.structMap :=
+    congrArg (fun f => f ≫ X.structMap)
+      (congrArg (fun f => leftFst ≫ f) (compositionFiber_condition P Q))
+  have middle_condition :
+      leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ X.structMap =
+        leftFst ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Y.structMap := by
+    exact congrArg
+      (fun f => leftFst ≫ compositionFiberSnd P Q ≫ f) Q.toAmbientSource_overBase
+  have second_fiber_condition :
+      leftFst ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Y.structMap =
+        leftSnd ≫ R.toAmbientSource ≫ Y.structMap := by
+    exact congrArg (fun f => f ≫ Y.structMap)
+      (pullback.condition (f := compositionFiberSnd P Q ≫ Q.toTargetScheme)
+        (g := R.toAmbientSource))
+  have target_condition :
+      leftSnd ≫ R.toAmbientSource ≫ Y.structMap =
+        leftSnd ≫ R.toTargetScheme ≫ Z.structMap := by
+    exact congrArg (fun f => leftSnd ≫ f) R.toAmbientSource_overBase
+  calc
+    leftFst ≫ compositionFiberFst P Q ≫ P.toSourceComponent ≫
+        P.sourceImage.carrier.structMap =
+        leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme ≫ X.structMap :=
+          source_component_condition
+    _ = leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ X.structMap :=
+          first_fiber_condition
+    _ = leftFst ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Y.structMap :=
+          middle_condition
+    _ = leftSnd ≫ R.toAmbientSource ≫ Y.structMap :=
+          second_fiber_condition
+    _ = leftSnd ≫ R.toTargetScheme ≫ Z.structMap :=
+          target_condition
 
 abbrev leftAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
@@ -423,37 +608,7 @@ abbrev leftAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOve
   exact pullback.lift
     (leftFst ≫ compositionFiberFst P Q ≫ P.toSourceComponent)
     (leftSnd ≫ R.toTargetScheme)
-    (by
-      have hP := congrArg
-        (fun f => leftFst ≫ compositionFiberFst P Q ≫ f) P.toSourceComponent_overBase
-      have hPQ :
-          leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme ≫ X.structMap =
-            leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ X.structMap := by
-        exact congrArg (fun f => f ≫ X.structMap)
-          (congrArg (fun f => leftFst ≫ f) (compositionFiber_condition P Q))
-      have hQ := congrArg
-        (fun f => leftFst ≫ compositionFiberSnd P Q ≫ f) Q.toAmbientSource_overBase
-      have hleft :
-          leftFst ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Y.structMap =
-            leftSnd ≫ R.toAmbientSource ≫ Y.structMap := by
-        simpa [leftFst, leftSnd, Category.assoc] using
-          congrArg (fun f => f ≫ Y.structMap)
-            (pullback.condition (f := compositionFiberSnd P Q ≫ Q.toTargetScheme)
-              (g := R.toAmbientSource))
-      have hR := congrArg (fun f => leftSnd ≫ f) R.toAmbientSource_overBase
-      calc
-        leftFst ≫ compositionFiberFst P Q ≫ P.toSourceComponent ≫
-            P.sourceImage.carrier.structMap
-            = leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme ≫ X.structMap := by
-                simpa [Category.assoc] using hP
-        _ = leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource ≫ X.structMap := by
-              simpa [Category.assoc] using hPQ
-        _ = leftFst ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme ≫ Y.structMap := by
-              simpa [Category.assoc] using hQ
-        _ = leftSnd ≫ R.toAmbientSource ≫ Y.structMap := by
-              simpa [Category.assoc] using hleft
-        _ = leftSnd ≫ R.toTargetScheme ≫ Z.structMap := by
-              simpa [Category.assoc] using hR)
+    (leftAssociatedCompositionToAmbientProduct_lift_condition P Q R)
 
 @[simp] theorem leftAssociatedCompositionToAmbientProduct_fst
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -463,7 +618,7 @@ abbrev leftAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOve
         sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Z =
       pullback.fst (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource ≫
         compositionFiberFst P Q ≫ P.toSourceComponent := by
-  simp [leftAssociatedCompositionToAmbientProduct]
+  exact pullback.lift_fst _ _ _
 
 @[simp] theorem leftAssociatedCompositionToAmbientProduct_snd
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -473,7 +628,59 @@ abbrev leftAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOve
         sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Z =
       pullback.snd (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource ≫
         R.toTargetScheme := by
-  simp [leftAssociatedCompositionToAmbientProduct]
+  exact pullback.lift_snd _ _ _
+
+/-- The two maps used to send the right-associated fiber product to
+`source(P) ×_k Z` have the same structure map to `Spec k`. -/
+theorem rightAssociatedCompositionToAmbientProduct_lift_condition
+    {W X Y Z : Geometry.SmSchemeOver k}
+    (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
+    (R : RepresentedPrimeSupport Y Z) :
+    pullback.fst P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource) ≫
+        P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+      pullback.snd P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource) ≫
+        compositionFiberSnd Q R ≫ R.toTargetScheme ≫ Z.structMap := by
+  let rightFst : rightAssociatedCompositionFiberProduct P Q R ⟶ P.support :=
+    pullback.fst P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource)
+  let rightSnd : rightAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct Q R :=
+    pullback.snd P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource)
+  have source_component_condition :
+      rightFst ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+        rightFst ≫ P.toTargetScheme ≫ X.structMap := by
+    exact congrArg (fun f => rightFst ≫ f) P.toSourceComponent_overBase
+  have outer_fiber_condition :
+      rightFst ≫ P.toTargetScheme ≫ X.structMap =
+        rightSnd ≫ compositionFiberFst Q R ≫ Q.toAmbientSource ≫ X.structMap := by
+    exact congrArg (fun f => f ≫ X.structMap)
+      (pullback.condition (f := P.toTargetScheme)
+        (g := compositionFiberFst Q R ≫ Q.toAmbientSource))
+  have middle_condition :
+      rightSnd ≫ compositionFiberFst Q R ≫ Q.toAmbientSource ≫ X.structMap =
+        rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme ≫ Y.structMap := by
+    exact congrArg
+      (fun f => rightSnd ≫ compositionFiberFst Q R ≫ f) Q.toAmbientSource_overBase
+  have inner_fiber_condition :
+      rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme ≫ Y.structMap =
+        rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource ≫ Y.structMap :=
+    congrArg (fun f => f ≫ Y.structMap)
+      (congrArg (fun f => rightSnd ≫ f) (compositionFiber_condition Q R))
+  have target_condition :
+      rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource ≫ Y.structMap =
+        rightSnd ≫ compositionFiberSnd Q R ≫ R.toTargetScheme ≫ Z.structMap := by
+    exact congrArg
+      (fun f => rightSnd ≫ compositionFiberSnd Q R ≫ f) R.toAmbientSource_overBase
+  calc
+    rightFst ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap =
+        rightFst ≫ P.toTargetScheme ≫ X.structMap :=
+          source_component_condition
+    _ = rightSnd ≫ compositionFiberFst Q R ≫ Q.toAmbientSource ≫ X.structMap :=
+          outer_fiber_condition
+    _ = rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme ≫ Y.structMap :=
+          middle_condition
+    _ = rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource ≫ Y.structMap :=
+          inner_fiber_condition
+    _ = rightSnd ≫ compositionFiberSnd Q R ≫ R.toTargetScheme ≫ Z.structMap :=
+          target_condition
 
 abbrev rightAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOver k}
     (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
@@ -486,36 +693,7 @@ abbrev rightAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOv
   exact pullback.lift
     (rightFst ≫ P.toSourceComponent)
     (rightSnd ≫ compositionFiberSnd Q R ≫ R.toTargetScheme)
-    (by
-      have hP := congrArg (fun f => rightFst ≫ f) P.toSourceComponent_overBase
-      have hright :
-          rightFst ≫ P.toTargetScheme ≫ X.structMap =
-            rightSnd ≫ compositionFiberFst Q R ≫ Q.toAmbientSource ≫ X.structMap := by
-        simpa [rightFst, rightSnd, Category.assoc] using
-          congrArg (fun f => f ≫ X.structMap)
-            (pullback.condition (f := P.toTargetScheme)
-              (g := compositionFiberFst Q R ≫ Q.toAmbientSource))
-      have hQ := congrArg
-        (fun f => rightSnd ≫ compositionFiberFst Q R ≫ f) Q.toAmbientSource_overBase
-      have hQR :
-          rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme ≫ Y.structMap =
-            rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource ≫ Y.structMap := by
-        exact congrArg (fun f => f ≫ Y.structMap)
-          (congrArg (fun f => rightSnd ≫ f) (compositionFiber_condition Q R))
-      have hR := congrArg
-        (fun f => rightSnd ≫ compositionFiberSnd Q R ≫ f) R.toAmbientSource_overBase
-      calc
-        rightFst ≫ P.toSourceComponent ≫ P.sourceImage.carrier.structMap
-            = rightFst ≫ P.toTargetScheme ≫ X.structMap := by
-                simpa [Category.assoc] using hP
-        _ = rightSnd ≫ compositionFiberFst Q R ≫ Q.toAmbientSource ≫ X.structMap := by
-              simpa [Category.assoc] using hright
-        _ = rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme ≫ Y.structMap := by
-              simpa [Category.assoc] using hQ
-        _ = rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource ≫ Y.structMap := by
-              simpa [Category.assoc] using hQR
-        _ = rightSnd ≫ compositionFiberSnd Q R ≫ R.toTargetScheme ≫ Z.structMap := by
-              simpa [Category.assoc] using hR)
+    (rightAssociatedCompositionToAmbientProduct_lift_condition P Q R)
 
 @[simp] theorem rightAssociatedCompositionToAmbientProduct_fst
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -525,7 +703,7 @@ abbrev rightAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOv
         sourceOverBaseProduct.fst (k := k) P.sourceImage.carrier Z =
       pullback.fst P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource) ≫
         P.toSourceComponent := by
-  simp [rightAssociatedCompositionToAmbientProduct]
+  exact pullback.lift_fst _ _ _
 
 @[simp] theorem rightAssociatedCompositionToAmbientProduct_snd
     {W X Y Z : Geometry.SmSchemeOver k}
@@ -535,80 +713,7 @@ abbrev rightAssociatedCompositionToAmbientProduct {W X Y Z : Geometry.SmSchemeOv
         sourceOverBaseProduct.snd (k := k) P.sourceImage.carrier Z =
       pullback.snd P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource) ≫
         compositionFiberSnd Q R ≫ R.toTargetScheme := by
-  simp [rightAssociatedCompositionToAmbientProduct]
-
-def compositionFiberProductAssocIso {W X Y Z : Geometry.SmSchemeOver k}
-    (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
-    (R : RepresentedPrimeSupport Y Z) :
-    leftAssociatedCompositionFiberProduct P Q R ≅
-      rightAssociatedCompositionFiberProduct P Q R := by
-  classical
-  let leftFst : leftAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct P Q :=
-    pullback.fst (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource
-  let leftSnd : leftAssociatedCompositionFiberProduct P Q R ⟶ R.support :=
-    pullback.snd (compositionFiberSnd P Q ≫ Q.toTargetScheme) R.toAmbientSource
-  let rightFst : rightAssociatedCompositionFiberProduct P Q R ⟶ P.support :=
-    pullback.fst P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource)
-  let rightSnd : rightAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct Q R :=
-    pullback.snd P.toTargetScheme (compositionFiberFst Q R ≫ Q.toAmbientSource)
-  let leftToQR : leftAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct Q R :=
-    pullback.lift (leftFst ≫ compositionFiberSnd P Q) leftSnd (by
-      simpa [leftFst, leftSnd, Category.assoc] using
-        pullback.condition (f := compositionFiberSnd P Q ≫ Q.toTargetScheme)
-          (g := R.toAmbientSource))
-  let hom : leftAssociatedCompositionFiberProduct P Q R ⟶
-      rightAssociatedCompositionFiberProduct P Q R :=
-    pullback.lift (leftFst ≫ compositionFiberFst P Q) leftToQR (by
-      calc
-        leftFst ≫ compositionFiberFst P Q ≫ P.toTargetScheme
-            = leftFst ≫ compositionFiberSnd P Q ≫ Q.toAmbientSource := by
-                simpa [Category.assoc] using
-                  congrArg (fun f => leftFst ≫ f) (compositionFiber_condition P Q)
-        _ = leftToQR ≫ compositionFiberFst Q R ≫ Q.toAmbientSource := by
-              simp [leftToQR, Category.assoc])
-  let rightToPQ : rightAssociatedCompositionFiberProduct P Q R ⟶ compositionFiberProduct P Q :=
-    pullback.lift rightFst (rightSnd ≫ compositionFiberFst Q R) (by
-      simpa [rightFst, rightSnd, Category.assoc] using
-        pullback.condition (f := P.toTargetScheme)
-          (g := compositionFiberFst Q R ≫ Q.toAmbientSource))
-  let inv : rightAssociatedCompositionFiberProduct P Q R ⟶
-      leftAssociatedCompositionFiberProduct P Q R :=
-    pullback.lift rightToPQ (rightSnd ≫ compositionFiberSnd Q R) (by
-      calc
-        rightToPQ ≫ compositionFiberSnd P Q ≫ Q.toTargetScheme
-            = rightSnd ≫ compositionFiberFst Q R ≫ Q.toTargetScheme := by
-                simp [rightToPQ, Category.assoc]
-        _ = rightSnd ≫ compositionFiberSnd Q R ≫ R.toAmbientSource := by
-              simpa [Category.assoc] using
-                congrArg (fun f => rightSnd ≫ f) (compositionFiber_condition Q R))
-  refine
-    { hom := hom
-      inv := inv
-      hom_inv_id := ?_
-      inv_hom_id := ?_ }
-  · apply pullback.hom_ext
-    · apply pullback.hom_ext
-      · simp [hom, inv, leftFst, rightFst, rightToPQ, Category.assoc]
-      · simp [hom, inv, leftFst, rightSnd, rightToPQ, leftToQR, Category.assoc]
-    · simp [hom, inv, leftSnd, rightSnd, leftToQR, Category.assoc]
-  · apply pullback.hom_ext
-    · simp [hom, inv, leftFst, rightFst, rightToPQ, Category.assoc]
-    · apply pullback.hom_ext
-      · simp [hom, inv, leftFst, leftSnd, rightSnd, rightToPQ, leftToQR, Category.assoc]
-      · simp [hom, inv, leftSnd, rightSnd, leftToQR, Category.assoc]
-
-@[simp] theorem compositionFiberProductAssocIso_hom_comp_rightAssociatedCompositionToAmbientProduct
-    {W X Y Z : Geometry.SmSchemeOver k}
-    (P : RepresentedPrimeSupport W X) (Q : RepresentedPrimeSupport X Y)
-    (R : RepresentedPrimeSupport Y Z) :
-    (compositionFiberProductAssocIso P Q R).hom ≫
-      rightAssociatedCompositionToAmbientProduct P Q R =
-      leftAssociatedCompositionToAmbientProduct P Q R := by
-  apply pullback.hom_ext
-  · simp [compositionFiberProductAssocIso, leftAssociatedCompositionToAmbientProduct,
-      rightAssociatedCompositionToAmbientProduct, Category.assoc]
-  · simp [compositionFiberProductAssocIso, leftAssociatedCompositionToAmbientProduct,
-      rightAssociatedCompositionToAmbientProduct, Category.assoc]
+  exact pullback.lift_snd _ _ _
 
 abbrev inducedMap {X Y : Geometry.SmSchemeOver k}
     (Z : PrimeFiniteCorrespondenceSupport X Y) :

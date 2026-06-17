@@ -1,3 +1,4 @@
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.PoleClearedBoundarySetup.Core
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.Owner
 
 /-!
@@ -16,41 +17,27 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-def poleClearedRiemannZeta (z : ℂ) : ℂ :=
-  Function.update (fun w : ℂ => (w - 1) * riemannZeta w) 1 1 z
-
-/-- Away from the pole face, the removable pole-cleared factor is the ordinary product. -/
-theorem poleClearedRiemannZeta_eq_of_ne_one
-    {z : ℂ}
-    (hz : z ≠ 1) :
-    poleClearedRiemannZeta z = (z - 1) * riemannZeta z := by
-  unfold poleClearedRiemannZeta
-  exact Function.update_noteq hz 1 (fun w : ℂ => (w - 1) * riemannZeta w)
-
-/-- At the pole face, the removable pole-cleared factor has residue value `1`. -/
-theorem poleClearedRiemannZeta_one :
-    poleClearedRiemannZeta 1 = 1 := by
-  unfold poleClearedRiemannZeta
-  exact Function.update_same 1 1 (fun w : ℂ => (w - 1) * riemannZeta w)
-
 /-- The removable pole-cleared zeta factor is continuous everywhere. -/
 theorem poleClearedRiemannZeta_continuousAt
     (z : ℂ) :
     ContinuousAt poleClearedRiemannZeta z := by
-  by_cases hz : z = 1
-  · subst z
-    unfold poleClearedRiemannZeta
-    exact (continuousAt_update_same).2 riemannZeta_residue_one
-  · have hraw :
+  exact dite (z = 1)
+    (fun hz : z = 1 =>
+      Eq.subst
+        (motive := fun w : ℂ => ContinuousAt poleClearedRiemannZeta w)
+        hz.symm
+        ((continuousAt_update_same).2 riemannZeta_residue_one))
+    (fun hz : z ≠ 1 => by
+      have hraw :
         ContinuousAt (fun w : ℂ => (w - 1) * riemannZeta w) z :=
-      (continuousAt_id.sub continuousAt_const).mul
-        ((differentiableAt_riemannZeta hz).continuousAt)
-    have hevent :
+        (continuousAt_id.sub continuousAt_const).mul
+          ((differentiableAt_riemannZeta hz).continuousAt)
+      have hevent :
         poleClearedRiemannZeta =ᶠ[𝓝 z]
           (fun w : ℂ => (w - 1) * riemannZeta w) := by
-      filter_upwards [eventually_ne_nhds hz] with w hw
-      exact poleClearedRiemannZeta_eq_of_ne_one hw
-    exact hraw.congr_of_eventuallyEq hevent
+        exact (eventually_ne_nhds hz).mono
+          (fun w hw => poleClearedRiemannZeta_eq_of_ne_one hw)
+      exact hraw.congr_of_eventuallyEq hevent)
 
 /-- The removable pole-cleared zeta factor is continuous on the right critical compact
 rectangle. -/
@@ -73,8 +60,8 @@ theorem poleClearedRiemannZeta_differentiableAt_of_ne_one
   have hevent :
       poleClearedRiemannZeta =ᶠ[𝓝 z]
         (fun w : ℂ => (w - 1) * riemannZeta w) := by
-    filter_upwards [eventually_ne_nhds hz] with w hw
-    exact poleClearedRiemannZeta_eq_of_ne_one hw
+    exact (eventually_ne_nhds hz).mono
+      (fun w hw => poleClearedRiemannZeta_eq_of_ne_one hw)
   exact hraw.congr_of_eventuallyEq hevent
 
 /-- The residue-normalized pole-cleared zeta factor is analytic at the removable pole. -/
@@ -83,8 +70,8 @@ theorem poleClearedRiemannZeta_analyticAt_one :
   have hd :
       ∀ᶠ z in 𝓝[≠] (1 : ℂ),
         DifferentiableAt ℂ poleClearedRiemannZeta z := by
-    filter_upwards [self_mem_nhdsWithin] with z hz
-    exact poleClearedRiemannZeta_differentiableAt_of_ne_one hz
+    exact self_mem_nhdsWithin.mono
+      (fun z hz => poleClearedRiemannZeta_differentiableAt_of_ne_one hz)
   exact Complex.analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
     hd
     (poleClearedRiemannZeta_continuousAt 1)
@@ -93,12 +80,13 @@ theorem poleClearedRiemannZeta_analyticAt_one :
 theorem poleClearedRiemannZeta_differentiableAt
     (z : ℂ) :
     DifferentiableAt ℂ poleClearedRiemannZeta z := by
-  by_cases hz : z = 1
-  · exact Eq.subst
-      (motive := fun w : ℂ => DifferentiableAt ℂ poleClearedRiemannZeta w)
-      hz.symm
-      poleClearedRiemannZeta_analyticAt_one.differentiableAt
-  · exact poleClearedRiemannZeta_differentiableAt_of_ne_one hz
+  exact dite (z = 1)
+    (fun hz : z = 1 =>
+      Eq.subst
+        (motive := fun w : ℂ => DifferentiableAt ℂ poleClearedRiemannZeta w)
+        hz.symm
+        poleClearedRiemannZeta_analyticAt_one.differentiableAt)
+    (fun hz : z ≠ 1 => poleClearedRiemannZeta_differentiableAt_of_ne_one hz)
 
 /-- The pole-cleared zeta factor is differentiable on every set. -/
 theorem poleClearedRiemannZeta_differentiableOn
@@ -126,16 +114,18 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound :
       ∀ z : ℂ,
         z ∈ completedRiemannZeta₀_rightCriticalStripCompactSet →
         ‖poleClearedRiemannZeta z‖ ≤ C := by
-  rcases IsCompact.exists_bound_of_continuousOn
+  exact match IsCompact.exists_bound_of_continuousOn
       completedRiemannZeta₀_rightCriticalStripCompactSet_isCompact
       poleClearedRiemannZeta_continuousOn_rightCriticalStripCompactSet with
-    ⟨C0, hC0⟩
-  refine ⟨max C0 0 + 1, ?_, ?_⟩
-  · exact add_pos_of_nonneg_of_pos (le_max_right C0 0) zero_lt_one
-  intro z hz
-  have hraw : ‖poleClearedRiemannZeta z‖ ≤ C0 :=
-    hC0 z hz
-  exact le_trans hraw (le_trans (le_max_left C0 0) (le_add_of_nonneg_right zero_le_one))
+    | ⟨C0, hC0⟩ =>
+      ⟨max C0 0 + 1,
+        add_pos_of_nonneg_of_pos (le_max_right C0 0) zero_lt_one,
+        fun z hz => by
+          have hraw : ‖poleClearedRiemannZeta z‖ ≤ C0 :=
+            hC0 z hz
+          exact le_trans hraw
+            (le_trans (le_max_left C0 0)
+              (le_add_of_nonneg_right zero_le_one))⟩
 
 /-- Compact part of the pole-cleared zeta strip estimate. -/
 theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
@@ -148,10 +138,9 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
         ‖z.im‖ ≤ 1 →
         ‖(z - 1) * riemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound with
-    ⟨C, hC, hbound⟩
-  refine ⟨C, 1, 0, hC, zero_lt_one, ?_⟩
-  intro z hz0 hz2 hz_im
+  exact match poleClearedRiemannZeta_rightCriticalStrip_compact_norm_bound with
+    | ⟨C, hC, hbound⟩ =>
+      ⟨C, 1, 0, hC, zero_lt_one, fun z hz0 hz2 hz_im => by
   have hz_mem : z ∈ completedRiemannZeta₀_rightCriticalStripCompactSet :=
     ⟨hz0, hz2, hz_im⟩
   have hfactor_ge_one : (1 : ℝ) ≤ Real.exp (1 * (1 + ‖z‖) ^ 0) := by
@@ -166,8 +155,8 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
   have hC_le_scaled :
       C ≤ C * Real.exp (1 * (1 + ‖z‖) ^ 0) :=
     le_mul_of_one_le_right hC_nonneg hfactor_ge_one
-  by_cases hz1 : z = 1
-  · subst z
+  exact dite (z = 1)
+    (fun hz1 : z = 1 => by
     have hzero :
         ((1 : ℂ) - 1) * riemannZeta (1 : ℂ) = 0 := by
       exact Eq.trans (congrArg (fun x : ℂ => x * riemannZeta (1 : ℂ)) (sub_self (1 : ℂ)))
@@ -182,8 +171,9 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
     exact Eq.subst
       (motive := fun x : ℝ => x ≤ C * Real.exp (1 * (1 + ‖(1 : ℂ)‖) ^ 0))
       hnorm_zero.symm
-      (le_trans (le_of_lt hC) hC_le_scaled)
-  · have hpc_eq :
+      (le_trans (le_of_lt hC) hC_le_scaled))
+    (fun hz1 : z ≠ 1 => by
+    have hpc_eq :
         poleClearedRiemannZeta z = (z - 1) * riemannZeta z :=
       poleClearedRiemannZeta_eq_of_ne_one hz1
     have hraw :
@@ -192,7 +182,7 @@ theorem riemannZeta_rightCriticalStrip_poleCleared_compact_growth_bound :
         (motive := fun w : ℂ => ‖w‖ ≤ C)
         hpc_eq
         (hbound z hz_mem)
-    exact le_trans hraw hC_le_scaled
+    exact le_trans hraw hC_le_scaled)⟩
 
 /-- Reflection sends the left edge of the zeta strip to the vertical line `re = 1`. -/
 theorem one_sub_leftBoundary_re_eq_one
@@ -296,8 +286,7 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
         1 ≤ ‖z.im‖ →
         ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  refine ⟨2, 1, 1, zero_lt_two, zero_lt_one, ?_⟩
-  intro z hz_re hz_im
+  exact ⟨2, 1, 1, zero_lt_two, zero_lt_one, fun z hz_re hz_im => by
   have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ :=
     one_le_norm_of_one_le_norm_im hz_im
   have hden_eq : (((1 : ℂ) - z) - 1) = -z := by
@@ -349,7 +338,7 @@ theorem leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
   calc
     ‖(z - 1) / (((1 : ℂ) - z) - 1)‖ ≤ 2 := hratio_le_two
     _ ≤ 2 * Real.exp ((1 : ℝ) * (1 + ‖z‖) ^ (1 : ℕ)) := by
-      exact le_mul_of_one_le_right zero_le_two hone_le_exp
+      exact le_mul_of_one_le_right zero_le_two hone_le_exp⟩
 
 /-- A positive polynomial vertical-height bound is an exponential finite-order bound in the
 same vertical-height variable. -/
@@ -369,9 +358,9 @@ theorem vertical_polynomial_growth_bound_to_exponential_growth_bound
         z.re = 0 →
         1 ≤ ‖z.im‖ →
         ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z.im‖) ^ m) := by
-  rcases hpoly with ⟨A, m, hA_pos, hbound⟩
-  refine ⟨A, 1, m, hA_pos, zero_lt_one, ?_⟩
-  intro z hz_re hz_im
+  exact match hpoly with
+    | ⟨A, m, hA_pos, hbound⟩ =>
+      ⟨A, 1, m, hA_pos, zero_lt_one, fun z hz_re hz_im => by
   let H : ℝ := (1 + ‖z.im‖) ^ m
   have hH_nonneg : 0 ≤ H :=
     pow_nonneg
@@ -387,7 +376,7 @@ theorem vertical_polynomial_growth_bound_to_exponential_growth_bound
   have hscaled :
       A * H ≤ A * Real.exp ((1 : ℝ) * H) :=
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
-  exact le_trans (hbound z hz_re hz_im) hscaled
+  exact le_trans (hbound z hz_re hz_im) hscaled⟩
 
 /-- A point on the left boundary line is its vertical coordinate times `I`. -/
 theorem leftBoundary_eq_im_mul_I
@@ -602,11 +591,8 @@ theorem verticalComplexGammaStirling_fixedRealPart_norm_core_bound_standard
         ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
           C * Real.exp (-(Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (a - 1 / 2) := by
-  rcases verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
-    ⟨C, hC_pos, hC⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro b hb
-  exact (hC b hb).1
+  exact match verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
+    | ⟨C, hC_pos, hC⟩ => ⟨C, hC_pos, fun b hb => (hC b hb).1⟩
 
 /-- The reciprocal fixed-real-part vertical Stirling estimate for `Complex.Gamma`.
 
@@ -622,11 +608,8 @@ theorem verticalComplexGammaStirling_fixedRealPart_reciprocal_core_bound_standar
         ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
           C * Real.exp ((Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (1 / 2 - a) := by
-  rcases verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
-    ⟨C, hC_pos, hC⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro b hb
-  exact (hC b hb).2
+  exact match verticalComplexGammaStirling_fixedRealPart_twoSided_core_bound_standard a with
+    | ⟨C, hC_pos, hC⟩ => ⟨C, hC_pos, fun b hb => (hC b hb).2⟩
 
 /-- The fixed-real-part direct Stirling envelope factor is nonnegative. -/
 theorem fixedRealPart_gamma_norm_envelope_nonneg
@@ -778,8 +761,8 @@ theorem verticalComplexGammaStirling_fixedRealPart_core_bounds_of_norm_and_recip
         ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
           C * Real.exp ((Real.pi / 2) * ‖b‖) *
             (1 + ‖b‖) ^ (1 / 2 - a) := by
-  rcases hnorm with ⟨Cn, hCn_pos, hCn⟩
-  rcases hreciprocal with ⟨Cr, hCr_pos, hCr⟩
+  exact match hnorm, hreciprocal with
+    | ⟨Cn, hCn_pos, hCn⟩, ⟨Cr, hCr_pos, hCr⟩ => by
   let C : ℝ := Cn + Cr
   have hC_pos : 0 < C :=
     add_pos hCn_pos hCr_pos
@@ -803,9 +786,7 @@ theorem verticalComplexGammaStirling_fixedRealPart_core_bounds_of_norm_and_recip
             (1 + ‖b‖) ^ (1 / 2 - a) :=
     verticalComplexGammaStirling_fixedRealPart_reciprocal_core_bound_mono_constant
       hCr_le_C hCr
-  refine ⟨C, hC_pos, ?_⟩
-  intro b hb
-  exact ⟨hnorm_C b hb, hreciprocal_C b hb⟩
+  exact ⟨C, hC_pos, fun b hb => ⟨hnorm_C b hb, hreciprocal_C b hb⟩⟩
 
 /-- Vertical complex Stirling on fixed real lines, in the two norm forms needed for
 left-boundary Gamma transport.
@@ -992,10 +973,9 @@ theorem verticalComplexGammaStirling_leftBoundary_numerator_core_bound :
         1 ≤ ‖t‖ →
         ‖Complex.Gamma (((1 : ℂ) - (t : ℂ) * Complex.I) / 2)‖ ≤
           A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
-  rcases verticalComplexGammaStirling_fixedRealPart_core_bounds (1 / 2) with
-    ⟨A, hA_pos, hA⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
+  exact match verticalComplexGammaStirling_fixedRealPart_core_bounds (1 / 2) with
+    | ⟨A, hA_pos, hA⟩ =>
+      ⟨A, hA_pos, fun t ht => by
   have htail : (1 / 2 : ℝ) ≤ ‖-t / 2‖ :=
     neg_half_norm_ge_one_half_of_one_le_norm ht
   have hbound :
@@ -1072,7 +1052,7 @@ theorem verticalComplexGammaStirling_leftBoundary_numerator_core_bound :
           ((-t / 2 : ℝ) : ℂ) * Complex.I)‖ ≤
             A * Real.exp (-(Real.pi / 2) * ‖-t / 2‖) * x)
         hpow
-        hbound))
+        hbound))⟩
 
 /-- The denominator vertical line for the left-boundary quotient, before the `π`
 normalization is attached.
@@ -1086,10 +1066,9 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
         1 ≤ ‖t‖ →
         ‖(Complex.Gamma (((t : ℂ) * Complex.I) / 2))⁻¹‖ ≤
           B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
-  rcases verticalComplexGammaStirling_fixedRealPart_core_bounds 0 with
-    ⟨B, hB_pos, hB⟩
-  refine ⟨B, hB_pos, ?_⟩
-  intro t ht
+  exact match verticalComplexGammaStirling_fixedRealPart_core_bounds 0 with
+    | ⟨B, hB_pos, hB⟩ =>
+      ⟨B, hB_pos, fun t ht => by
   have htail : (1 / 2 : ℝ) ≤ ‖t / 2‖ :=
     half_norm_ge_one_half_of_one_le_norm ht
   have hbound :
@@ -1184,7 +1163,7 @@ theorem verticalComplexGammaStirling_leftBoundary_denominator_inv_core_bound :
     (motive := fun x : ℂ =>
       ‖x⁻¹‖ ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
     harg.symm
-    (le_trans hbound hscaled)
+    (le_trans hbound hscaled)⟩
 
 /-- The real part of the numerator `π`-normalizing exponent is `-1/2`. -/
 theorem leftBoundary_numerator_piExponent_re
@@ -1341,9 +1320,9 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound_of_cor
         1 ≤ ‖t‖ →
         ‖unfoldedGammaℝLeftBoundaryRatioNumeratorRealParam t‖ ≤
           A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
-  rcases hcore with ⟨A, hA_pos, hA⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
+  exact match hcore with
+    | ⟨A, hA_pos, hA⟩ =>
+      ⟨A, hA_pos, fun t ht => by
   have hpi_le_one :
       ‖π ^ (-((1 : ℂ) - (t : ℂ) * Complex.I) / 2 : ℂ)‖ ≤ 1 :=
     norm_leftBoundary_numerator_piFactor_le_one t
@@ -1364,7 +1343,7 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_numerator_bound_of_cor
     _ ≤ 1 * (A * Real.exp (-(Real.pi / 4) * ‖t‖)) := by
       exact mul_le_mul hpi_le_one hgamma_bound (norm_nonneg _) zero_le_one
     _ = A * Real.exp (-(Real.pi / 4) * ‖t‖) := by
-      exact one_mul (A * Real.exp (-(Real.pi / 4) * ‖t‖))
+      exact one_mul (A * Real.exp (-(Real.pi / 4) * ‖t‖))⟩
 
 /-- Attach the denominator `π`-normalization to the canonical reciprocal vertical
 `Complex.Gamma` Stirling estimate. -/
@@ -1382,9 +1361,9 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound_
         1 ≤ ‖t‖ →
         ‖(unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam t)⁻¹‖ ≤
           B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖) := by
-  rcases hcore with ⟨B, hB_pos, hB⟩
-  refine ⟨B, hB_pos, ?_⟩
-  intro t ht
+  exact match hcore with
+    | ⟨B, hB_pos, hB⟩ =>
+      ⟨B, hB_pos, fun t ht => by
   let P : ℂ := π ^ (-((t : ℂ) * Complex.I) / 2 : ℂ)
   let G : ℂ := Complex.Gamma (((t : ℂ) * Complex.I) / 2)
   have hP_ne : P ≠ 0 :=
@@ -1417,7 +1396,7 @@ theorem twoSidedVerticalComplexGammaStirling_leftBoundary_denominator_inv_bound_
     (motive := fun x : ℝ =>
       x ≤ B * Real.exp ((Real.pi / 4) * ‖t‖) * Real.sqrt (1 + ‖t‖))
     hnorm_eq.symm
-    hraw
+    hraw⟩
 
 /-- Vertical Stirling upper bound for the named numerator in the unfolded left-boundary
 Gamma quotient.
@@ -1475,10 +1454,9 @@ theorem unfoldedGammaℝLeftBoundaryRatioRealParam_sqrt_growth_bound_of_numerato
         1 ≤ ‖t‖ →
         ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases hnum with ⟨Anum, hAnum_pos, hAnum⟩
-  rcases hden with ⟨Bden, hBden_pos, hBden⟩
-  refine ⟨Anum * Bden, mul_pos hAnum_pos hBden_pos, ?_⟩
-  intro t ht
+  exact match hnum, hden with
+    | ⟨Anum, hAnum_pos, hAnum⟩, ⟨Bden, hBden_pos, hBden⟩ =>
+      ⟨Anum * Bden, mul_pos hAnum_pos hBden_pos, fun t ht => by
   let Eminus : ℝ := Real.exp (-(Real.pi / 4) * ‖t‖)
   let Eplus : ℝ := Real.exp ((Real.pi / 4) * ‖t‖)
   let S : ℝ := Real.sqrt (1 + ‖t‖)
@@ -1581,7 +1559,7 @@ theorem unfoldedGammaℝLeftBoundaryRatioRealParam_sqrt_growth_bound_of_numerato
     (Eq.subst
       (motive := fun x : ℝ => x ≤ (Anum * Eminus) * (Bden * Eplus * S))
       hquot_eq.symm
-      hmul_bound)
+      hmul_bound)⟩
 
 /-- Inline form of the quotient algebra for the left-boundary two-Gamma expression. -/
 theorem inline_twoGammaQuotient_sqrt_growth_bound_of_unfolded
@@ -1601,13 +1579,13 @@ theorem inline_twoGammaQuotient_sqrt_growth_bound_of_unfolded
             (π ^ (-((t : ℂ) * Complex.I) / 2) *
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases hunfolded with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
-    (norm_inline_twoGammaQuotient_eq_norm_unfoldedGammaℝLeftBoundaryRatioRealParam t)
-    (hbound t ht)
+  exact match hunfolded with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht =>
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
+          (norm_inline_twoGammaQuotient_eq_norm_unfoldedGammaℝLeftBoundaryRatioRealParam t)
+          (hbound t ht)⟩
 
 /-- Vertical Stirling quotient corollary for the completed real-Gamma boundary
 ratio.
@@ -1677,15 +1655,15 @@ theorem classicalStirling_unfoldedGammaℝLeftBoundaryRatioRealParam_vertical_sq
         1 ≤ ‖t‖ →
         ‖unfoldedGammaℝLeftBoundaryRatioRealParam t‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases
+  exact match
     classicalStirling_complexGamma_leftBoundary_twoGammaQuotient_vertical_sqrt_growth_bound_from_twoSidedVerticalStirling
-    with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
-    (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t)).symm
-    (hbound t ht)
+    with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht =>
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
+          (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t)).symm
+          (hbound t ht)⟩
 
 /-- Classical vertical Stirling control for the two-Gamma quotient on the left boundary.
 
@@ -1701,15 +1679,15 @@ theorem classicalStirling_complexGamma_leftBoundary_twoGammaQuotient_vertical_sq
             (π ^ (-((t : ℂ) * Complex.I) / 2) *
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases
+  exact match
     classicalStirling_unfoldedGammaℝLeftBoundaryRatioRealParam_vertical_sqrt_growth_bound_from_twoSidedVerticalStirling
-    with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
-    (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t))
-    (hbound t ht)
+    with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht =>
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
+          (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t))
+          (hbound t ht)⟩
 
 /-- Classical vertical Stirling control for the unfolded completed real Gamma ratio,
 stated on the real parameter of the left boundary line.
@@ -1737,14 +1715,13 @@ theorem classicalStirling_unfoldedGammaℝ_leftBoundary_ratio_vertical_sqrt_grow
             (π ^ (-((t : ℂ) * Complex.I) / 2) *
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases classicalStirling_unfoldedGammaℝLeftBoundaryRatioRealParam_vertical_sqrt_growth_bound with
-    ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
-  exact Eq.subst
-    (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
-    (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t))
-    (hbound t ht)
+  exact match classicalStirling_unfoldedGammaℝLeftBoundaryRatioRealParam_vertical_sqrt_growth_bound with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht =>
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ A * Real.sqrt (1 + ‖t‖))
+          (congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t))
+          (hbound t ht)⟩
 
 /-- The unfolded vertical Stirling estimate is exactly the corresponding `Gammaℝ`
 estimate after applying `Gammaℝ_def`. -/
@@ -1756,10 +1733,9 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound
         ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
             Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ ≤
           A * Real.sqrt (1 + ‖t‖) := by
-  rcases classicalStirling_unfoldedGammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
-    ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
+  exact match classicalStirling_unfoldedGammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht => by
   calc
     ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
         Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ =
@@ -1772,7 +1748,7 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound
               Complex.Gamma (((t : ℂ) * Complex.I) / 2))‖ := by
       exact congrArg norm (unfoldedGammaℝLeftBoundaryRatioRealParam_eq_inline t)
     _ ≤ A * Real.sqrt (1 + ‖t‖) :=
-      hbound t ht
+      hbound t ht⟩
 
 /-- On the vertical-tail height range, the square-root height envelope is bounded by the
 linear height envelope. -/
@@ -1811,16 +1787,15 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
         ‖Complex.Gammaℝ ((1 : ℂ) - (t : ℂ) * Complex.I) /
             Complex.Gammaℝ ((t : ℂ) * Complex.I)‖ ≤
           A * (1 + ‖t‖) := by
-  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
-    ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro t ht
+  exact match classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun t ht => by
   have hsqrt_to_linear :
       A * Real.sqrt (1 + ‖t‖) ≤ A * (1 + ‖t‖) :=
     mul_le_mul_of_nonneg_left
       (sqrt_one_add_norm_le_one_add_norm t)
       (le_of_lt hA_pos)
-  exact le_trans (hbound t ht) hsqrt_to_linear
+  exact le_trans (hbound t ht) hsqrt_to_linear⟩
 
 /-- The real-parameter square-root Stirling estimate transported to the full left
 boundary line. -/
@@ -1832,10 +1807,9 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.sqrt (1 + ‖z.im‖) := by
-  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
-    ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro z hz_re hz_im
+  exact match classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound_realParam with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun z hz_re hz_im => by
   have hz_axis : z = (z.im : ℂ) * Complex.I :=
     leftBoundary_eq_im_mul_I z hz_re
   have haxis_bound :
@@ -1848,7 +1822,7 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound
       ‖Complex.Gammaℝ ((1 : ℂ) - w) / Complex.Gammaℝ w‖ ≤
         A * Real.sqrt (1 + ‖z.im‖))
     hz_axis.symm
-    haxis_bound
+    haxis_bound⟩
 
 /-- Classical two-sided vertical Stirling control for the completed real Gamma ratio on
 the left boundary line, in the sharp polynomial degree needed by the critical-line
@@ -1861,16 +1835,15 @@ theorem classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_linear_growth_bou
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) := by
-  rcases classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound with
-    ⟨A, hA_pos, hbound⟩
-  refine ⟨A, hA_pos, ?_⟩
-  intro z hz_re hz_im
+  exact match classicalStirling_Gammaℝ_leftBoundary_ratio_vertical_sqrt_growth_bound with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, hA_pos, fun z hz_re hz_im => by
   have hsqrt_to_linear :
       A * Real.sqrt (1 + ‖z.im‖) ≤ A * (1 + ‖z.im‖) :=
     mul_le_mul_of_nonneg_left
       (sqrt_one_add_norm_le_one_add_norm z.im)
       (le_of_lt hA_pos)
-  exact le_trans (hbound z hz_re hz_im) hsqrt_to_linear
+  exact le_trans (hbound z hz_re hz_im) hsqrt_to_linear⟩
 
 /-- A vertical linear bound is the degree-one polynomial envelope used downstream. -/
 theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
@@ -1889,16 +1862,16 @@ theorem Gammaℝ_leftBoundary_ratio_vertical_polynomial_growth_bound_of_linear
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * (1 + ‖z.im‖) ^ m := by
-  rcases hlinear with ⟨A, hA_pos, hbound⟩
-  refine ⟨A, 1, hA_pos, ?_⟩
-  intro z hz_re hz_im
+  exact match hlinear with
+    | ⟨A, hA_pos, hbound⟩ =>
+      ⟨A, 1, hA_pos, fun z hz_re hz_im => by
   have hpow_one : (1 + ‖z.im‖) ^ (1 : ℕ) = 1 + ‖z.im‖ := by
     exact pow_one (1 + ‖z.im‖)
   exact Eq.subst
     (motive := fun x : ℝ =>
       ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤ A * x)
     hpow_one.symm
-    (hbound z hz_re hz_im)
+    (hbound z hz_re hz_im)⟩
 
 /-- Standard polynomial Stirling control for the completed real Gamma ratio on the left
 vertical tail.
@@ -1953,13 +1926,13 @@ theorem Gammaℝ_leftBoundary_ratio_growth_bound_of_vertical_stirling
         1 ≤ ‖z.im‖ →
         ‖Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases hStirling with ⟨A, B, m, hA, hB, hbound⟩
-  refine ⟨A, B, m, hA, hB, ?_⟩
-  intro z hz_re hz_im
-  exact le_trans (hbound z hz_re hz_im)
-    (finiteOrder_vertical_envelope_le_complex_envelope
-      (le_of_lt hA)
-      (le_of_lt hB))
+  exact match hStirling with
+    | ⟨A, B, m, hA, hB, hbound⟩ =>
+      ⟨A, B, m, hA, hB, fun z hz_re hz_im =>
+        le_trans (hbound z hz_re hz_im)
+          (finiteOrder_vertical_envelope_le_complex_envelope
+            (le_of_lt hA)
+            (le_of_lt hB))⟩
 
 /-- Standard finite-order Stirling control for the completed real Gamma ratio on the left
 vertical tail, in the complex-height envelope used downstream. -/
@@ -2039,12 +2012,13 @@ theorem leftBoundary_finiteOrder_product_growth_bound_core
         z.re = 0 →
         1 ≤ ‖z.im‖ →
         ‖f z‖ * ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases hf with ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩
-  rcases hg with ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩
-  refine ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
-    mul_pos hAf hAg,
-    mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one), ?_⟩
-  intro z hz_re hz_im
+  exact match hf, hg with
+    | ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩,
+      ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩ =>
+      ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
+        mul_pos hAf hAg,
+        mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one),
+        fun z hz_re hz_im => by
   let H : ℝ := 1 + ‖z‖
   have hBf_nonneg : 0 ≤ Bf := le_of_lt hBf
   have hBg_nonneg : 0 ≤ Bg := le_of_lt hBg
@@ -2123,7 +2097,7 @@ theorem leftBoundary_finiteOrder_product_growth_bound_core
             _ = (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
                 exact mul_assoc 2 (Bf + Bg + 1) (H ^ (mf + mg))
         exact congrArg (fun x : ℝ => Af * Ag * Real.exp x) htwo
-  exact le_trans hmul (hcollapse ▸ le_rfl)
+  exact le_trans hmul (hcollapse ▸ le_rfl)⟩
 
 /-- The exact Gamma-ratio Stirling input for the left-edge completed-functional-equation
 transport.
@@ -2140,12 +2114,11 @@ theorem Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_gr
         ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
             (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases leftBoundary_finiteOrder_product_growth_bound_core
+  exact match leftBoundary_finiteOrder_product_growth_bound_core
       leftBoundary_completedFunctionalEquation_poleClearing_ratio_growth_bound
       Gammaℝ_leftBoundary_ratio_stirling_growth_bound_ownerPrimitive with
-    ⟨A, B, m, hA, hB, hproduct⟩
-  refine ⟨A, B, m, hA, hB, ?_⟩
-  intro z hz_re hz_im
+    | ⟨A, B, m, hA, hB, hproduct⟩ =>
+      ⟨A, B, m, hA, hB, fun z hz_re hz_im => by
   have hnorm :
       ‖((z - 1) / (((1 : ℂ) - z) - 1)) *
           (Complex.Gammaℝ ((1 : ℂ) - z) / Complex.Gammaℝ z)‖ =
@@ -2157,7 +2130,7 @@ theorem Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_gr
   exact Eq.subst
     (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
     hnorm.symm
-    (hproduct z hz_re hz_im)
+    (hproduct z hz_re hz_im)⟩
 
 /-- Product of two left-edge finite-order envelopes is again a left-edge finite-order
 envelope. -/
@@ -2186,12 +2159,13 @@ theorem leftBoundary_finiteOrder_product_growth_bound
         z.re = 0 →
         1 ≤ ‖z.im‖ →
         ‖f z‖ * ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  rcases hf with ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩
-  rcases hg with ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩
-  refine ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
-    mul_pos hAf hAg,
-    mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one), ?_⟩
-  intro z hz_re hz_im
+  exact match hf, hg with
+    | ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩,
+      ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩ =>
+      ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
+        mul_pos hAf hAg,
+        mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one),
+        fun z hz_re hz_im => by
   let H : ℝ := 1 + ‖z‖
   have hH_ge_one : (1 : ℝ) ≤ H :=
     le_add_of_nonneg_right (norm_nonneg z)
@@ -2278,7 +2252,7 @@ theorem leftBoundary_finiteOrder_product_growth_bound
       Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) ≤
         Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
     le_rfl
-  exact le_trans hmul (hcollapse ▸ htarget_guard)
+  exact le_trans hmul (hcollapse ▸ htarget_guard)⟩
 
 /-- A positive polynomial vertical-height bound on the boundary line `re = 1` is an
 exponential finite-order bound in the same vertical-height variable. -/
@@ -2298,9 +2272,9 @@ theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
         w.re = 1 →
         1 ≤ ‖w.im‖ →
         ‖f w‖ ≤ A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
-  rcases hpoly with ⟨A, m, hA_pos, hbound⟩
-  refine ⟨A, 1, m, hA_pos, zero_lt_one, ?_⟩
-  intro w hw_re hw_im
+  exact match hpoly with
+    | ⟨A, m, hA_pos, hbound⟩ =>
+      ⟨A, 1, m, hA_pos, zero_lt_one, fun w hw_re hw_im => by
   let H : ℝ := (1 + ‖w.im‖) ^ m
   have hH_nonneg : 0 ≤ H :=
     pow_nonneg
@@ -2316,7 +2290,7 @@ theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
   have hscaled :
       A * H ≤ A * Real.exp ((1 : ℝ) * H) :=
     mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
-  exact le_trans (hbound w hw_re hw_im) hscaled
+  exact le_trans (hbound w hw_re hw_im) hscaled⟩
 
 /-- On the boundary line `re = 1`, the pole-clearing factor has zero real part. -/
 theorem boundaryLine_one_sub_one_re_eq_zero
@@ -2512,31 +2486,31 @@ theorem boundaryLineOnePointRealParam_finite_dirichlet_truncation_norm_le_harmon
       (∑ n ∈ Finset.Icc 1 N,
           ‖(1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖) =
         ∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ)) := by
-    refine Finset.sum_congr rfl ?_
-    intro n hn_mem
-    have hn_one_le : 1 ≤ n :=
-      (Finset.mem_Icc.mp hn_mem).1
-    have hn_pos : 0 < n :=
-      Nat.lt_of_succ_le hn_one_le
-    exact boundaryLineOnePointRealParam_dirichletTerm_norm_eq_inv t hn_pos
+    exact Finset.sum_congr rfl
+      (fun n hn_mem => by
+        have hn_one_le : 1 ≤ n :=
+          (Finset.mem_Icc.mp hn_mem).1
+        have hn_pos : 0 < n :=
+          Nat.lt_of_succ_le hn_one_le
+        exact boundaryLineOnePointRealParam_dirichletTerm_norm_eq_inv t hn_pos)
   have hharmonic :
       (∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ))) = harmonic N := by
     calc
       (∑ n ∈ Finset.Icc 1 N, (1 / (n : ℝ))) =
           ∑ n ∈ Finset.Icc 1 N, ((n : ℚ)⁻¹ : ℝ) := by
-            refine Finset.sum_congr rfl ?_
-            intro n hn_mem
-            have hn_one_le : 1 ≤ n :=
-              (Finset.mem_Icc.mp hn_mem).1
-            have hn_pos : 0 < n :=
-              Nat.lt_of_succ_le hn_one_le
-            have hn_rat_ne : (n : ℚ) ≠ 0 := by
-              exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
-            calc
-              (1 / (n : ℝ)) = ((n : ℝ)⁻¹) := by
-                exact one_div (n : ℝ)
-              _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
-                exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm
+            exact Finset.sum_congr rfl
+              (fun n hn_mem => by
+                have hn_one_le : 1 ≤ n :=
+                  (Finset.mem_Icc.mp hn_mem).1
+                have hn_pos : 0 < n :=
+                  Nat.lt_of_succ_le hn_one_le
+                have hn_rat_ne : (n : ℚ) ≠ 0 := by
+                  exact Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn_pos)
+                calc
+                  (1 / (n : ℝ)) = ((n : ℝ)⁻¹) := by
+                    exact one_div (n : ℝ)
+                  _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+                    exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm)
       _ = harmonic N := by
             have hrat :
                 (∑ n ∈ Finset.Icc 1 N, ((n : ℚ)⁻¹ : ℚ)) = harmonic N :=
@@ -2753,13 +2727,13 @@ theorem boundaryLineOnePointRealParam_finite_truncation_eq_inv_mul_oscillation_s
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
       ∑ n ∈ Finset.Icc 1 N,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
-  refine Finset.sum_congr rfl ?_
-  intro n hn_mem
-  have hn_one_le : 1 ≤ n :=
-    (Finset.mem_Icc.mp hn_mem).1
-  have hn_pos : 0 < n :=
-    Nat.lt_of_succ_le hn_one_le
-  exact boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left t hn_pos
+  exact Finset.sum_congr rfl
+    (fun n hn_mem => by
+      have hn_one_le : 1 ≤ n :=
+        (Finset.mem_Icc.mp hn_mem).1
+      have hn_pos : 0 < n :=
+        Nat.lt_of_succ_le hn_one_le
+      exact boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left t hn_pos)
 
 /-- A finite boundary-line tail after the Abel/Euler-Maclaurin cutoff is exactly the
 corresponding Abel weighted oscillatory tail. -/
@@ -2770,13 +2744,13 @@ theorem boundaryLineOnePointRealParam_finite_tail_after_cutoff_eq_inv_mul_oscill
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)) =
       ∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I)) := by
-  refine Finset.sum_congr rfl ?_
-  intro n hn_mem
-  have hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
-    (Finset.mem_Ioc.mp hn_mem).1
-  have hn_pos : 0 < n :=
-    lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hcutoff_lt_n
-  exact boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left t hn_pos
+  exact Finset.sum_congr rfl
+    (fun n hn_mem => by
+      have hcutoff_lt_n : ⌊2 + ‖t‖⌋₊ < n :=
+        (Finset.mem_Ioc.mp hn_mem).1
+      have hn_pos : 0 < n :=
+        lt_trans (boundaryLineOnePointRealParam_cutoff_pos t) hcutoff_lt_n
+      exact boundaryLineOnePointRealParam_dirichletTerm_eq_inv_mul_oscillation_left t hn_pos)
 
 /-- The natural Abel/Euler-Maclaurin cutoff is fixed by taking the natural floor
 after coercion to the real line. -/

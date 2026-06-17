@@ -34,8 +34,7 @@ theorem zetaLaplaceTransformFiniteSample_smul
     (S : Finset ℂ) (c : ℂ) (f : ZetaAdmissibleFunction) :
     zetaLaplaceTransformFiniteSample S (c • f) =
       c • zetaLaplaceTransformFiniteSample S f := by
-  funext z
-  unfold zetaLaplaceTransformFiniteSample
+  ext z
   have hpoint :
       (c • f).toZetaTestFunction' =
         c • f.toZetaTestFunction' := by
@@ -68,8 +67,7 @@ theorem zetaLaplaceTransformFiniteSample_add
     zetaLaplaceTransformFiniteSample S (f + g) =
       zetaLaplaceTransformFiniteSample S f +
         zetaLaplaceTransformFiniteSample S g := by
-  funext z
-  unfold zetaLaplaceTransformFiniteSample
+  ext z
   have hpoint :
       (f + g).toZetaTestFunction' =
         f.toZetaTestFunction' + g.toZetaTestFunction' := by
@@ -123,8 +121,7 @@ theorem zetaLaplaceTransformFiniteSample_sum
     (S : Finset ℂ) (T : Finset α) (F : α → ZetaAdmissibleFunction) :
     zetaLaplaceTransformFiniteSample S (∑ x in T, F x) =
       ∑ x in T, zetaLaplaceTransformFiniteSample S (F x) := by
-  funext z
-  unfold zetaLaplaceTransformFiniteSample
+  ext z
   have hpoint :
       (∑ x in T, F x).toZetaTestFunction' =
         ∑ x in T, (F x).toZetaTestFunction' := by
@@ -167,7 +164,7 @@ theorem zetaLaplaceTransformFiniteSample_linearCombination_cardinalFamily
           if w = z then 1 else 0) :
     zetaLaplaceTransformFiniteSample S (∑ z : S, aS z • F z) = aS := by
   classical
-  funext w
+  ext w
   calc
     zetaLaplaceTransformFiniteSample S (∑ z : S, aS z • F z) w =
         (∑ z : S, zetaLaplaceTransformFiniteSample S (aS z • F z)) w := by
@@ -260,7 +257,7 @@ theorem zetaLaplaceTransformFiniteSample_eq_cardinalVector_of_cardinalFamily
       zetaLaplaceTransformFiniteSample S (F z) =
         zetaLaplaceTransformCardinalVector S z := by
   intro z
-  funext w
+  ext w
   calc
     zetaLaplaceTransformFiniteSample S (F z) w =
         Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) := by
@@ -290,7 +287,7 @@ theorem zetaLaplaceTransformCardinalVector_linearCombination
     (S : Finset ℂ) (aS : S → ℂ) :
     (∑ z : S, aS z • zetaLaplaceTransformCardinalVector S z) = aS := by
   classical
-  funext w
+  ext w
   calc
     (∑ z : S, aS z • zetaLaplaceTransformCardinalVector S z) w =
         ∑ z : S, (aS z • zetaLaplaceTransformCardinalVector S z) w := by
@@ -492,23 +489,27 @@ theorem zetaLaplaceTransformFiniteSample_surjective_of_dual_separating_ownerPale
     Function.Surjective (zetaLaplaceTransformFiniteSample S) := by
   have hRangeTop :
       LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S) = ⊤ := by
-    by_contra hRangeNeTop
-    have hRangeProper :
-        LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S) < ⊤ :=
-      lt_of_le_of_ne le_top hRangeNeTop
-    rcases Submodule.exists_le_ker_of_lt_top
-        (LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S))
-        hRangeProper with
-      ⟨Λ, hΛne, hΛker⟩
-    have hΛvanish :
-        ∀ f : ZetaAdmissibleFunction,
-          Λ (zetaLaplaceTransformFiniteSample S f) = 0 := by
-      intro f
-      exact LinearMap.mem_ker.mp
-        (hΛker
-          (LinearMap.mem_range.mpr
-            ⟨f, rfl⟩))
-    exact hΛne (hsep Λ hΛvanish)
+    match Classical.em
+        (LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S) = ⊤) with
+    | Or.inl hRangeTop => exact hRangeTop
+    | Or.inr hRangeNeTop =>
+        have hRangeProper :
+            LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S) < ⊤ :=
+          lt_of_le_of_ne le_top hRangeNeTop
+        match
+            Submodule.exists_le_ker_of_lt_top
+              (LinearMap.range (zetaLaplaceTransformFiniteSampleLinearMap S))
+              hRangeProper with
+        | ⟨Λ, hΛne, hΛker⟩ =>
+            have hΛvanish :
+                ∀ f : ZetaAdmissibleFunction,
+                  Λ (zetaLaplaceTransformFiniteSample S f) = 0 := by
+              intro f
+              exact LinearMap.mem_ker.mp
+                (hΛker
+                  (LinearMap.mem_range.mpr
+                    ⟨f, rfl⟩))
+            exact False.elim (hΛne (hsep Λ hΛvanish))
   exact LinearMap.range_eq_top.mp hRangeTop
 
 /-- Finite-dimensional Paley-Wiener interpolation on a spectral sample set.
@@ -592,70 +593,71 @@ theorem exists_zetaLaplaceTransformCardinalFiniteSampleFamilyOn_of_forall_cardin
                 zetaLaplaceTransformCardinalVector S
                   ⟨(z : ℂ), hTailSubset z.property⟩ := by
         intro z
-        rcases hT ⟨(z : ℂ), Finset.mem_insert_of_mem z.property⟩ with
-          ⟨f, hf⟩
-        exact ⟨f, hf⟩
-      rcases ih hTailSubset hTailExists with ⟨Ftail, hFtail⟩
-      rcases hT ⟨a, Finset.mem_insert_self a T⟩ with ⟨fa, hfa⟩
-      let restrictTail :
-          ∀ z : (insert a T : Finset ℂ), (z : ℂ) ≠ a → T :=
-        fun z hz =>
-          ⟨(z : ℂ), (Finset.mem_insert.mp z.property).resolve_left hz⟩
-      let F : (insert a T : Finset ℂ) → ZetaAdmissibleFunction :=
-        fun z =>
-          if hz : (z : ℂ) = a then
-            fa
-          else
-            Ftail (restrictTail z hz)
-      refine ⟨F, ?_⟩
-      intro z
-      by_cases hz : (z : ℂ) = a
-      · have hFz :
-            F z = fa := by
-          unfold F
-          exact dif_pos hz
-        calc
-          zetaLaplaceTransformFiniteSample S (F z) =
-              zetaLaplaceTransformFiniteSample S fa := by
-            exact congrArg
-              (fun f : ZetaAdmissibleFunction =>
-                zetaLaplaceTransformFiniteSample S f)
-              hFz
-          _ = zetaLaplaceTransformCardinalVector S
-              ⟨a, hTS (Finset.mem_insert_self a T)⟩ := by
-            exact hfa
-          _ = zetaLaplaceTransformCardinalVector S
-              ⟨(z : ℂ), hTS z.property⟩ := by
-            have hsub :
-                (⟨a, hTS (Finset.mem_insert_self a T)⟩ : S) =
-                  ⟨(z : ℂ), hTS z.property⟩ := by
-              exact Subtype.ext hz.symm
-            exact congrArg (fun w : S =>
-              zetaLaplaceTransformCardinalVector S w) hsub
-      · have hFz :
-            F z = Ftail (restrictTail z hz) := by
-          unfold F
-          exact dif_neg hz
-        calc
-          zetaLaplaceTransformFiniteSample S (F z) =
-              zetaLaplaceTransformFiniteSample S (Ftail (restrictTail z hz)) := by
-            exact congrArg
-              (fun f : ZetaAdmissibleFunction =>
-                zetaLaplaceTransformFiniteSample S f)
-              hFz
-          _ = zetaLaplaceTransformCardinalVector S
-              ⟨((restrictTail z hz) : ℂ),
-                hTailSubset (restrictTail z hz).property⟩ := by
-            exact hFtail (restrictTail z hz)
-          _ = zetaLaplaceTransformCardinalVector S
-              ⟨(z : ℂ), hTS z.property⟩ := by
-            have hsub :
-                (⟨((restrictTail z hz) : ℂ),
-                  hTailSubset (restrictTail z hz).property⟩ : S) =
-                    ⟨(z : ℂ), hTS z.property⟩ := by
-              exact Subtype.ext rfl
-            exact congrArg (fun w : S =>
-              zetaLaplaceTransformCardinalVector S w) hsub
+        match hT ⟨(z : ℂ), Finset.mem_insert_of_mem z.property⟩ with
+        | ⟨f, hf⟩ => exact ⟨f, hf⟩
+      match ih hTailSubset hTailExists with
+      | ⟨Ftail, hFtail⟩ =>
+          match hT ⟨a, Finset.mem_insert_self a T⟩ with
+          | ⟨fa, hfa⟩ =>
+              let restrictTail :
+                  ∀ z : (insert a T : Finset ℂ), (z : ℂ) ≠ a → T :=
+                fun z hz =>
+                  ⟨(z : ℂ), (Finset.mem_insert.mp z.property).resolve_left hz⟩
+              let F : (insert a T : Finset ℂ) → ZetaAdmissibleFunction :=
+                fun z =>
+                  if hz : (z : ℂ) = a then
+                    fa
+                  else
+                    Ftail (restrictTail z hz)
+              exact ⟨F, fun z =>
+                match Classical.em ((z : ℂ) = a) with
+                | Or.inl hz =>
+                    have hFz :
+                        F z = fa := by
+                      exact dif_pos hz
+                    calc
+                      zetaLaplaceTransformFiniteSample S (F z) =
+                          zetaLaplaceTransformFiniteSample S fa := by
+                        exact congrArg
+                          (fun f : ZetaAdmissibleFunction =>
+                            zetaLaplaceTransformFiniteSample S f)
+                          hFz
+                      _ = zetaLaplaceTransformCardinalVector S
+                          ⟨a, hTS (Finset.mem_insert_self a T)⟩ := by
+                        exact hfa
+                      _ = zetaLaplaceTransformCardinalVector S
+                          ⟨(z : ℂ), hTS z.property⟩ := by
+                        have hsub :
+                            (⟨a, hTS (Finset.mem_insert_self a T)⟩ : S) =
+                              ⟨(z : ℂ), hTS z.property⟩ := by
+                          exact Subtype.ext hz.symm
+                        exact congrArg (fun w : S =>
+                          zetaLaplaceTransformCardinalVector S w) hsub
+                | Or.inr hz =>
+                    have hFz :
+                        F z = Ftail (restrictTail z hz) := by
+                      exact dif_neg hz
+                    calc
+                      zetaLaplaceTransformFiniteSample S (F z) =
+                          zetaLaplaceTransformFiniteSample S
+                            (Ftail (restrictTail z hz)) := by
+                        exact congrArg
+                          (fun f : ZetaAdmissibleFunction =>
+                            zetaLaplaceTransformFiniteSample S f)
+                          hFz
+                      _ = zetaLaplaceTransformCardinalVector S
+                          ⟨((restrictTail z hz) : ℂ),
+                            hTailSubset (restrictTail z hz).property⟩ := by
+                        exact hFtail (restrictTail z hz)
+                      _ = zetaLaplaceTransformCardinalVector S
+                          ⟨(z : ℂ), hTS z.property⟩ := by
+                        have hsub :
+                            (⟨((restrictTail z hz) : ℂ),
+                              hTailSubset (restrictTail z hz).property⟩ : S) =
+                                ⟨(z : ℂ), hTS z.property⟩ := by
+                          exact Subtype.ext rfl
+                        exact congrArg (fun w : S =>
+                          zetaLaplaceTransformCardinalVector S w) hsub⟩
 
 /-- A pointwise cardinal-vector realization for every sample can be assembled into a
 finite-sample cardinal family. -/
@@ -681,10 +683,10 @@ theorem exists_zetaLaplaceTransformCardinalFiniteSampleFamily_of_forall_cardinal
               ⟨(z : ℂ), hSubset z.property⟩ := by
     intro z
     exact hS z
-  rcases exists_zetaLaplaceTransformCardinalFiniteSampleFamilyOn_of_forall_cardinalVector
-      S S hSubset hExists with
-    ⟨F, hF⟩
-  exact ⟨F, hF⟩
+  match
+      exists_zetaLaplaceTransformCardinalFiniteSampleFamilyOn_of_forall_cardinalVector
+        S S hSubset hExists with
+  | ⟨F, hF⟩ => exact ⟨F, hF⟩
 
 /-- Nonempty finite Paley-Wiener cardinal interpolation on a spectral sample set, in
 finite-sample vector form. -/
@@ -706,12 +708,13 @@ theorem exists_zetaLaplaceTransformCardinalFamily_nonempty_ownerPaleyWiener
       ∀ z w : S,
         Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
           if w = z then 1 else 0 := by
-  rcases exists_zetaLaplaceTransformCardinalFiniteSampleFamily_nonempty_ownerPaleyWiener
-      S hS with
-    ⟨F, hF⟩
-  exact ⟨F,
-    zetaLaplaceTransformCardinalFamily_of_finiteSample_eq_cardinalVector
-      S F hF⟩
+  match
+      exists_zetaLaplaceTransformCardinalFiniteSampleFamily_nonempty_ownerPaleyWiener
+        S hS with
+  | ⟨F, hF⟩ =>
+      exact ⟨F,
+        zetaLaplaceTransformCardinalFamily_of_finiteSample_eq_cardinalVector
+          S F hF⟩
 
 /-- Paley-Wiener cardinal interpolation on a finite spectral sample set. -/
 theorem exists_zetaLaplaceTransformCardinalFamily_ownerPaleyWiener
@@ -720,10 +723,18 @@ theorem exists_zetaLaplaceTransformCardinalFamily_ownerPaleyWiener
       ∀ z w : S,
         Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
           if w = z then 1 else 0 := by
-  by_cases hS : S = ∅
-  · subst S
-    exact exists_zetaLaplaceTransformCardinalFamily_empty_ownerPaleyWiener
-  · exact exists_zetaLaplaceTransformCardinalFamily_nonempty_ownerPaleyWiener S hS
+  match Classical.em (S = ∅) with
+  | Or.inl hS =>
+      exact Eq.subst
+        (motive := fun T : Finset ℂ =>
+          ∃ F : T → ZetaAdmissibleFunction,
+            ∀ z w : T,
+              Boundary.zetaLaplaceTransform (F z).toZetaTestFunction' (w : ℂ) =
+                if w = z then 1 else 0)
+        hS.symm
+        exists_zetaLaplaceTransformCardinalFamily_empty_ownerPaleyWiener
+  | Or.inr hS =>
+      exact exists_zetaLaplaceTransformCardinalFamily_nonempty_ownerPaleyWiener S hS
 
 /-- Finite Paley-Wiener interpolation in finite-vector form.
 
@@ -754,11 +765,12 @@ theorem exists_zetaLaplaceTransform_sample_on_finset_ownerPaleyWiener
     ∃ f : ZetaAdmissibleFunction,
       ∀ z : ℂ, z ∈ S →
         Boundary.zetaLaplaceTransform f.toZetaTestFunction' z = a z := by
-  rcases zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
-      S (zetaLaplaceTransformFiniteTarget S a) with
-    ⟨f, hf⟩
-  exact ⟨f, fun z hz =>
-    congrFun hf ⟨z, hz⟩⟩
+  match
+      zetaLaplaceTransformFiniteSample_surjective_ownerPaleyWiener
+        S (zetaLaplaceTransformFiniteTarget S a) with
+  | ⟨f, hf⟩ =>
+      exact ⟨f, fun z hz =>
+        congrFun hf ⟨z, hz⟩⟩
 
 end ZetaAdmissibleFunction
 

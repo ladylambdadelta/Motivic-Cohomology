@@ -15,6 +15,11 @@ noncomputable section
 
 open scoped Topology
 
+noncomputable def entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+    (F : ℂ → ℂ)
+    (hF : ∀ z : ℂ, AnalyticAt ℂ F z)
+    (s : Finset (EntireFunctionZero F))
+    (w : ℂ) : ℂ :=
   ∏ z in s,
     (1 - w / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)
 
@@ -213,13 +218,15 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_def
         F hF hF0 ρ w).symm
       hproduct
-  rcases Finset.prod_eq_zero_iff.mp hproduct_expanded with
-    ⟨z, hz, hfactor_power⟩
-  have hfactor : 1 - w / (z : ℂ) = 0 :=
-    pow_eq_zero hfactor_power
   exact
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_zero_imp_function_zero
-      F hF hF0 ρ z hz w hfactor
+    match Finset.prod_eq_zero_iff.mp hproduct_expanded with
+    | Exists.intro z hz_tail =>
+        match hz_tail with
+        | And.intro hz hfactor_power =>
+            have hfactor : 1 - w / (z : ℂ) = 0 :=
+              pow_eq_zero hfactor_power
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_zero_imp_function_zero
+              F hF hF0 ρ z hz w hfactor
 
 /-- Off-support nonvanishing for the extracted finite zero-factor product.
 
@@ -249,13 +256,17 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_def
         F hF hF0 ρ w).symm
       hproduct
-  rcases Finset.prod_eq_zero_iff.mp hproduct_expanded with ⟨z, hz, hfactor_power⟩
-  have hfactor : 1 - w / (z : ℂ) = 0 :=
-    pow_eq_zero hfactor_power
-  have hw_eq_z : w = (z : ℂ) :=
-    (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
-      F hF hF0 ρ z hz w).1 hfactor
-  exact hw ⟨z, hz, hw_eq_z⟩
+  exact
+    match Finset.prod_eq_zero_iff.mp hproduct_expanded with
+    | Exists.intro z hz_tail =>
+        match hz_tail with
+        | And.intro hz hfactor_power =>
+            have hfactor : 1 - w / (z : ℂ) = 0 :=
+              pow_eq_zero hfactor_power
+            have hw_eq_z : w = (z : ℂ) :=
+              (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
+                F hF hF0 ρ z hz w).1 hfactor
+            hw (Finset.mem_image.mpr (Exists.intro z (And.intro hz hw_eq_z.symm)))
 
 /-- At a support point, every other extracted support factor is nonzero. -/
 theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_other_factor_nonzero_at_support
@@ -286,7 +297,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
     have ha_eq_z : (a : ℂ) = (z : ℂ) :=
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
         F hF hF0 ρ z hz_support (a : ℂ)).1 hbase
-    exact hza (Subtype.ext ha_eq_z)
+    exact hza (Subtype.ext ha_eq_z.symm)
   exact
     pow_ne_zero
       (entireFunctionZeroMultiplicity F hF (z : ℂ))
@@ -490,7 +501,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorPr
     have ha_eq_z : (a : ℂ) = (z : ℂ) :=
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
         F hF S hS0 z hz_support (a : ℂ)).1 hbase
-    exact hza (Subtype.ext ha_eq_z)
+    exact hza (Subtype.ext ha_eq_z.symm)
   exact
     pow_ne_zero
       (entireFunctionZeroMultiplicity F hF (z : ℂ))
@@ -732,10 +743,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
             entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_origin_factor
               F hF hF0 ρ z)
     _ = 1 := by
-      exact
-        Finset.prod_const_one
-          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-            F hF hF0 ρ)
+      exact Finset.prod_const_one
 
 /-- With the current quotient definition `F / Product`, the quotient value at
 the origin is exactly `F 0`. -/
@@ -1009,14 +1017,14 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDi
           entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
             F hF hF0 ρ w := by
   intro w hw
-  by_cases hproduct :
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-          F hF hF0 ρ w = 0
-  · exact
+  exact
+    if hproduct :
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+            F hF hF0 ρ w = 0 then
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_zero
         F hF hF0 ρ w hproduct
         (hproduct_zero_imp_zero w hw hproduct)).symm
-  · exact
+    else
       (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorQuotient_mul_product_of_product_ne_zero
         F hF hF0 ρ w hproduct).symm
 
@@ -1106,18 +1114,28 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF ∅ w) ∧
       Q 0 = F 0 := by
-  refine ⟨F, ?_, ?_, rfl⟩
-  · intro w _hw
-    exact hF w
-  · intro w _hw
+  have hF_an :
+      ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ F w :=
+    fun w _hw => hF w
+  have hF_mul :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          F w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF ∅ w := by
+    intro w _hw
     calc
       F w = F w * 1 := by
         exact (mul_one (F w)).symm
       _ =
           F w *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-          F hF ∅ w := by
+              F hF ∅ w := by
         rfl
+  have hF_origin : F 0 = F 0 :=
+    rfl
+  exact Exists.intro F (And.intro hF_an (And.intro hF_mul hF_origin))
 
 /-- The normalized extracted factor has value `1` at the origin. -/
 theorem entireFunction_normalizedFactor_pow_at_zero
@@ -1136,7 +1154,7 @@ theorem entireFunction_normalizedFactor_pow_at_zero
       exact congrArg (fun x : ℂ => x ^ m) hbase
     _ = 1 := one_pow m
 
-/-- Inserting one normalized nonzero factor does not change the finite product
+/-- Inserting one normalized nonzero factor preserves the finite product
 at the origin. -/
 theorem entireFunction_finiteZeroDivisorProduct_insert_at_zero
     (F : ℂ → ℂ)
@@ -1284,7 +1302,7 @@ theorem complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq
       Qold = ((w - a) ^ m * g) / P := by
     calc
       Qold = (Qold * P) / P := by
-        exact (mul_div_cancel₀ Qold hP_ne).symm
+        exact (mul_div_cancel_right₀ Qold hP_ne).symm
       _ = ((w - a) ^ m * g) / P := by
         exact congrArg (fun x : ℂ => x / P) hfactor
   calc
@@ -1295,7 +1313,21 @@ theorem complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq
         (((-a⁻¹) ^ m) * (w - a) ^ m) := by
       exact congrArg (fun x : ℂ => x / (((-a⁻¹) ^ m) * (w - a) ^ m)) hQold_eq
     _ = (((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m)) / P := by
-      exact div_div_eq_div_div_swap ((w - a) ^ m * g) P (((-a⁻¹) ^ m) * (w - a) ^ m)
+      calc
+        (((w - a) ^ m * g) / P) /
+            (((-a⁻¹) ^ m) * (w - a) ^ m) =
+          ((w - a) ^ m * g) /
+            (P * (((-a⁻¹) ^ m) * (w - a) ^ m)) := by
+          exact div_div ((w - a) ^ m * g) P (((-a⁻¹) ^ m) * (w - a) ^ m)
+        _ =
+          ((w - a) ^ m * g) /
+            ((((-a⁻¹) ^ m) * (w - a) ^ m) * P) := by
+          exact congrArg
+            (fun x : ℂ => ((w - a) ^ m * g) / x)
+            (mul_comm P (((-a⁻¹) ^ m) * (w - a) ^ m))
+        _ =
+          (((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m)) / P := by
+          exact (div_div ((w - a) ^ m * g) (((-a⁻¹) ^ m) * (w - a) ^ m) P).symm
     _ = (g / ((-a⁻¹) ^ m)) / P := by
       have hcancel :
           ((w - a) ^ m * g) / (((-a⁻¹) ^ m) * (w - a) ^ m) =
@@ -1367,7 +1399,9 @@ theorem analyticAt_removable_div_normalizedCenteredPower
           Qold w * P w = (w - a) ^ m * g w :=
       hfactor.mono
         (fun w hw =>
-          Eq.trans hw (smul_eq_mul ((w - a) ^ m) (g w)))
+          Eq.trans hw
+            (show (w - a) ^ m • g w = (w - a) ^ m * g w by
+              rfl))
     have hlocal_punctured :
         ∀ᶠ w in 𝓝[≠] a,
           Qold w * P w = (w - a) ^ m * g w :=
@@ -1375,9 +1409,12 @@ theorem analyticAt_removable_div_normalizedCenteredPower
     have hP_punctured :
         ∀ᶠ w in 𝓝[≠] a, P w ≠ 0 :=
       hP_eventually_ne.filter_mono nhdsWithin_le_nhds
+    have hne_punctured :
+        ∀ᶠ w in 𝓝[≠] a, w ∈ ({a}ᶜ : Set ℂ) :=
+      self_mem_nhdsWithin
     exact
-      (self_mem_nhdsWithin.and_eventually
-        (hlocal_punctured.and_eventually hP_punctured)).mono
+      (hne_punctured.and
+        (hlocal_punctured.and hP_punctured)).mono
         (fun w hw =>
           have hw_ne : w ≠ a :=
             hw.1
@@ -1391,8 +1428,10 @@ theorem analyticAt_removable_div_normalizedCenteredPower
             complex_div_normalizedCenteredPower_eq_localModel_of_mul_eq
               ha0 hw_ne hP_w_ne hlocal_w
           hraw_eq.symm)
-  refine ⟨Q, hQ_an, hpunctured, ?_⟩
-  rfl
+  have hQ_value :
+      Q a = g a / (((-a⁻¹) ^ m) * P a) :=
+    rfl
+  exact Exists.intro Q (And.intro hQ_an (And.intro hpunctured hQ_value))
 
 
 end

@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.BoundaryZeroFactors.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.ZeroFreePrimitive.EndpointTube
 
 /-!
 # Zero-free primitive and harmonic mean-value transport
@@ -14,6 +14,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
 
 theorem complex_log_norm_exp_eq_re
     (w : ℂ) :
@@ -635,296 +636,6 @@ theorem complex_centerSegment_finiteAnalyticAtCover
                             φ hstar hφ hz ht)))))
   exact Exists.intro ({z} : Finset ℂ) (And.intro hcenter_analytic hcover)
 
-/-- Continuity of the two-parameter center-segment map
-`(x,t) ↦ lineMap 0 x t`. -/
-theorem complex_centerSegment_endpointParameter_continuous :
-    Continuous
-      (fun p : ℂ × ℝ =>
-        AffineMap.lineMap (0 : ℂ) p.1 p.2) := by
-  have hmul :
-      Continuous
-        (fun p : ℂ × ℝ => (p.2 : ℂ) * p.1) :=
-    (Complex.continuous_ofReal.comp continuous_snd).mul continuous_fst
-  have hfun :
-      (fun p : ℂ × ℝ =>
-        AffineMap.lineMap (0 : ℂ) p.1 p.2) =
-        fun p : ℂ × ℝ => (p.2 : ℂ) * p.1 :=
-    funext
-      (fun p : ℂ × ℝ =>
-        calc
-          AffineMap.lineMap (0 : ℂ) p.1 p.2 =
-              p.2 • (p.1 - 0) + 0 :=
-            AffineMap.lineMap_apply_module' (0 : ℂ) p.1 p.2
-          _ = (p.2 : ℂ) * (p.1 - 0) + 0 :=
-            rfl
-          _ = (p.2 : ℂ) * p.1 + 0 :=
-            congrArg (fun a : ℂ => (p.2 : ℂ) * a + 0) (sub_zero p.1)
-          _ = (p.2 : ℂ) * p.1 :=
-            add_zero ((p.2 : ℂ) * p.1))
-  exact
-    Eq.subst
-      (motive := fun f : ℂ × ℝ → ℂ => Continuous f)
-      hfun.symm
-      hmul
-
-/-- The base segment containment as a product containment for the
-two-parameter center-segment map. -/
-theorem complex_centerSegment_openTube_productSubset
-    (z : ℂ)
-    (U : Set ℂ)
-    (hseg :
-      ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
-          Set.Icc (0 : ℝ) 1) ⊆ U) :
-    ({z} : Set ℂ) ×ˢ Set.Icc (0 : ℝ) 1 ⊆
-      {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} := by
-  intro p hp
-  have hp_left : p.1 = z :=
-    Set.mem_singleton_iff.1 hp.1
-  have hline :
-      AffineMap.lineMap (k := ℝ) (0 : ℂ) z p.2 =
-        AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 :=
-    congrArg
-      (fun q : ℂ => AffineMap.lineMap (k := ℝ) (0 : ℂ) q p.2)
-      hp_left.symm
-  exact
-    hseg
-      ⟨p.2, hp.2,
-        hline⟩
-
-/-- The generalized tube lemma specialized to the two-parameter center-segment
-map. -/
-theorem complex_centerSegment_openTube_tubeWitness
-    (z : ℂ)
-    (U : Set ℂ)
-    (hU_open : IsOpen U)
-    (hseg :
-      ((fun t : ℝ => AffineMap.lineMap (k := ℝ) (0 : ℂ) z t) ''
-          Set.Icc (0 : ℝ) 1) ⊆ U) :
-    ∃ u : Set ℂ,
-      ∃ v : Set ℝ,
-        IsOpen u ∧
-        IsOpen v ∧
-        ({z} : Set ℂ) ⊆ u ∧
-        Set.Icc (0 : ℝ) 1 ⊆ v ∧
-        u ×ˢ v ⊆
-          {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} := by
-  have hn :
-      IsOpen {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    IsOpen.preimage complex_centerSegment_endpointParameter_continuous hU_open
-  have hprod :
-      ({z} : Set ℂ) ×ˢ Set.Icc (0 : ℝ) 1 ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    complex_centerSegment_openTube_productSubset z U hseg
-  exact
-    generalized_tube_lemma
-      (isCompact_singleton (x := z))
-      isCompact_Icc
-      hn
-      hprod
-
-/-- A product-tube containment transports one endpoint and one interval
-parameter to membership in the open tube. -/
-theorem complex_centerSegment_openTube_lineMem_of_tube
-    (U : Set ℂ)
-    (u : Set ℂ)
-    (v : Set ℝ)
-    (hv_subset : Set.Icc (0 : ℝ) 1 ⊆ v)
-    (huv :
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U})
-    (x : ℂ)
-    (hx : x ∈ u)
-    (t : ℝ)
-    (ht : t ∈ Set.Icc (0 : ℝ) 1) :
-    AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U :=
-  have hp : (x, t) ∈ u ×ˢ v :=
-    And.intro hx (hv_subset ht)
-  huv hp
-
-/-- An open endpoint neighborhood gives a positive endpoint ball whose center
-segments remain in the product tube. -/
-theorem complex_centerSegment_openTube_ballWitness
-    (U : Set ℂ)
-    (u : Set ℂ)
-    (v : Set ℝ)
-    (hu_open : IsOpen u)
-    (hv_subset : Set.Icc (0 : ℝ) 1 ⊆ v)
-    (huv :
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U})
-    (w : ℂ)
-    (hw : w ∈ u) :
-    ∃ ε : ℝ,
-      0 < ε ∧
-      ∀ x : ℂ,
-        x ∈ Metric.ball w ε →
-          ∀ t : ℝ,
-            t ∈ Set.Icc (0 : ℝ) 1 →
-              AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U := by
-  let ε : ℝ := Classical.choose (Metric.isOpen_iff.1 hu_open w hw)
-  have hε_data :
-      0 < ε ∧ Metric.ball w ε ⊆ u :=
-    Classical.choose_spec (Metric.isOpen_iff.1 hu_open w hw)
-  have hε_pos : 0 < ε :=
-    hε_data.1
-  have hε_subset : Metric.ball w ε ⊆ u :=
-    hε_data.2
-  exact
-    Exists.intro ε
-      (And.intro hε_pos
-        (fun x hx t ht =>
-          complex_centerSegment_openTube_lineMem_of_tube
-            U u v hv_subset huv x (hε_subset hx) t ht))
-
-/-- A tube witness gives uniform endpoint-ball stability for all points in the
-endpoint neighborhood. -/
-theorem complex_centerSegment_openTube_stabilityFromTube
-    (z : ℂ)
-    (U : Set ℂ)
-    (u : Set ℂ)
-    (v : Set ℝ)
-    (hu_open : IsOpen u)
-    (hz_subset : ({z} : Set ℂ) ⊆ u)
-    (hv_subset : Set.Icc (0 : ℝ) 1 ⊆ v)
-    (huv :
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U}) :
-    z ∈ u ∧
-      u ∈ 𝓝 z ∧
-      ∀ w : ℂ,
-        w ∈ u →
-          ∃ ε : ℝ,
-            0 < ε ∧
-            ∀ x : ℂ,
-              x ∈ Metric.ball w ε →
-                ∀ t : ℝ,
-                  t ∈ Set.Icc (0 : ℝ) 1 →
-                    AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U := by
-  have hz_mem : z ∈ u :=
-    Set.singleton_subset_iff.1 hz_subset
-  have hu_nhds : u ∈ 𝓝 z :=
-    hu_open.mem_nhds hz_mem
-  have hstable :
-      ∀ w : ℂ,
-        w ∈ u →
-          ∃ ε : ℝ,
-            0 < ε ∧
-            ∀ x : ℂ,
-              x ∈ Metric.ball w ε →
-                ∀ t : ℝ,
-                  t ∈ Set.Icc (0 : ℝ) 1 →
-                    AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U :=
-    fun w hw =>
-      complex_centerSegment_openTube_ballWitness
-        U u v hu_open hv_subset huv w hw
-  exact And.intro hz_mem (And.intro hu_nhds hstable)
-
-/-- Endpoint stability for center segments into an arbitrary open tube around
-the compact base segment.
-
-This is the pure topology lemma behind the finite analytic tube construction:
-if an open set `U` contains the compact segment from `0` to `z`, then endpoints
-near `z` have a small ball of nearby endpoints whose whole center segments
-remain in `U`. -/
-theorem complex_centerSegment_endpointStability_openTube
-    (z : ℂ)
-    (U : Set ℂ)
-    (hU_open : IsOpen U)
-    (hseg :
-      ((fun t : ℝ => AffineMap.lineMap (k := ℝ) (0 : ℂ) z t) ''
-          Set.Icc (0 : ℝ) 1) ⊆ U) :
-    ∃ u : Set ℂ,
-      z ∈ u ∧
-      u ∈ 𝓝 z ∧
-      ∀ w : ℂ,
-        w ∈ u →
-          ∃ ε : ℝ,
-            0 < ε ∧
-            ∀ x : ℂ,
-              x ∈ Metric.ball w ε →
-                ∀ t : ℝ,
-                  t ∈ Set.Icc (0 : ℝ) 1 →
-                    AffineMap.lineMap (k := ℝ) (0 : ℂ) x t ∈ U := by
-  have htube :
-      ∃ u : Set ℂ,
-        ∃ v : Set ℝ,
-          IsOpen u ∧
-          IsOpen v ∧
-          ({z} : Set ℂ) ⊆ u ∧
-          Set.Icc (0 : ℝ) 1 ⊆ v ∧
-          u ×ˢ v ⊆
-            {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    complex_centerSegment_openTube_tubeWitness z U hU_open hseg
-  let u : Set ℂ := Classical.choose htube
-  have hu_exists :
-      ∃ v : Set ℝ,
-        IsOpen u ∧
-        IsOpen v ∧
-        ({z} : Set ℂ) ⊆ u ∧
-        Set.Icc (0 : ℝ) 1 ⊆ v ∧
-        u ×ˢ v ⊆
-          {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    Classical.choose_spec htube
-  let v : Set ℝ := Classical.choose hu_exists
-  have huv_data :
-      IsOpen u ∧
-      IsOpen v ∧
-      ({z} : Set ℂ) ⊆ u ∧
-      Set.Icc (0 : ℝ) 1 ⊆ v ∧
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    Classical.choose_spec hu_exists
-  have hu_open : IsOpen u :=
-    huv_data.1
-  have hz_subset : ({z} : Set ℂ) ⊆ u :=
-    huv_data.2.2.1
-  have hv_subset : Set.Icc (0 : ℝ) 1 ⊆ v :=
-    huv_data.2.2.2.1
-  have huv :
-      u ×ˢ v ⊆
-        {p : ℂ × ℝ | AffineMap.lineMap (k := ℝ) (0 : ℂ) p.1 p.2 ∈ U} :=
-    huv_data.2.2.2.2
-  exact
-    Exists.intro u
-      (complex_centerSegment_openTube_stabilityFromTube
-        z U u v hu_open hz_subset hv_subset huv)
-
-/-- Endpoint stability for center segments into a finite analytic tube.
-
-If a finite union of analytic-at neighborhoods covers the compact center
-segment from `0` to `z`, then after shrinking the endpoint, all center
-segments from `0` to endpoints in a small ball remain inside that finite
-tube.  This is the Lebesgue-number/tube step for the affine segment family. -/
-theorem complex_centerSegment_endpointStability_finiteAnalyticTube
-    (φ : ℂ → ℂ)
-    (z : ℂ)
-    (centers : Finset ℂ)
-    (hcover :
-      ((fun t : ℝ => AffineMap.lineMap (0 : ℂ) z t) ''
-          Set.Icc (0 : ℝ) 1) ⊆
-        ⋃ c ∈ centers, {w : ℂ | AnalyticAt ℂ φ w}) :
-    ∃ u : Set ℂ,
-      z ∈ u ∧
-      u ∈ 𝓝 z ∧
-      ∀ w : ℂ,
-        w ∈ u →
-          ∃ ε : ℝ,
-            0 < ε ∧
-            ∀ x : ℂ,
-              x ∈ Metric.ball w ε →
-                ∀ t : ℝ,
-                  t ∈ Set.Icc (0 : ℝ) 1 →
-                    AffineMap.lineMap (0 : ℂ) x t ∈
-                      ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q} := by
-  exact
-    complex_centerSegment_endpointStability_openTube
-      z
-      (⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q})
-      (isOpen_iUnion fun c =>
-        isOpen_iUnion fun _hc =>
-          isOpen_analyticAt ℂ φ)
-      hcover
-
 /-- Continuity on the parameter interval of the center-segment integrand on a
 finite analytic tube. -/
 theorem complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
@@ -954,7 +665,7 @@ theorem complex_centerSegmentIntegral_finiteTube_integrand_continuousOn
       ContinuousAt
         (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
         t :=
-    (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+    (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := w)).continuousAt
   have hφ_cont :
       ContinuousAt
         (fun u : ℝ => φ (AffineMap.lineMap (0 : ℂ) w u))
@@ -997,7 +708,7 @@ theorem complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
         ContinuousAt
           (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
           t :=
-      (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+      (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := w)).continuousAt
     exact (hanalytic.differentiableAt.continuousAt.comp hline_cont).continuousWithinAt
   have hderiv_seg :
       ContinuousOn
@@ -1024,7 +735,7 @@ theorem complex_centerSegmentIntegral_finiteTube_endpointDerivative_continuousOn
         ContinuousAt
           (fun u : ℝ => AffineMap.lineMap (0 : ℂ) w u)
           t :=
-      (AffineMap.lineMap (0 : ℂ) w).continuous.continuousAt
+      (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := w)).continuousAt
     exact
       (hderiv_analytic.differentiableAt.continuousAt.comp
         hline_cont).continuousWithinAt
@@ -1052,10 +763,10 @@ integrands. -/
 theorem complex_interval_aestronglyMeasurable_of_continuousOn_Icc
     {f : ℝ → ℂ} :
     ContinuousOn f (Set.Icc (0 : ℝ) 1) →
-      AEStronglyMeasurable f (volume.restrict (Ι (0 : ℝ) 1)) := by
+      AEStronglyMeasurable f (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro hf
   exact
-    (hf.mono Ioc_subset_Icc_self).aestronglyMeasurable
+    (hf.mono Set.Ioc_subset_Icc_self).aestronglyMeasurable
       measurableSet_Ioc
 
 /-- Interval integrability of a complex-valued function continuous on
@@ -1091,7 +802,7 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
           AEStronglyMeasurable
             (fun t : ℝ =>
               x * φ (AffineMap.lineMap (0 : ℂ) x t))
-            (volume.restrict (Ι (0 : ℝ) 1))) ∧
+            (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
         IntervalIntegrable
           (fun t : ℝ =>
             w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1102,14 +813,14 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
-          (volume.restrict (Ι (0 : ℝ) 1)) := by
+          (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro w hcont_eventually hcont_base hcont_deriv
   have hmeas_eventually :
       ∀ᶠ x in 𝓝 w,
         AEStronglyMeasurable
           (fun t : ℝ =>
             x * φ (AffineMap.lineMap (0 : ℂ) x t))
-          (volume.restrict (Ι (0 : ℝ) 1)) :=
+          (volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
     hcont_eventually.mono
       (fun x hx =>
         complex_interval_aestronglyMeasurable_of_continuousOn_Icc hx)
@@ -1126,7 +837,7 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability_of_continuousOn
         (fun t : ℝ =>
           complex_centerSegmentIntegral_endpointDerivativeIntegrand
             φ w t)
-        (volume.restrict (Ι (0 : ℝ) 1)) :=
+        (volume.restrict (Set.Ioc (0 : ℝ) 1)) :=
     complex_interval_aestronglyMeasurable_of_continuousOn_Icc hcont_deriv
   exact ⟨hmeas_eventually, hint, hderiv_meas⟩
 
@@ -1149,7 +860,7 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
           AEStronglyMeasurable
             (fun t : ℝ =>
               x * φ (AffineMap.lineMap (0 : ℂ) x t))
-            (volume.restrict (Ι (0 : ℝ) 1))) ∧
+            (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
         IntervalIntegrable
           (fun t : ℝ =>
             w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1160,7 +871,7 @@ theorem complex_centerSegmentIntegral_finiteTube_integrability
           (fun t : ℝ =>
             complex_centerSegmentIntegral_endpointDerivativeIntegrand
               φ w t)
-          (volume.restrict (Ι (0 : ℝ) 1)) := by
+          (volume.restrict (Set.Ioc (0 : ℝ) 1)) := by
   intro w htube htube_eventually
   have hcont_eventually :
       ∀ᶠ x in 𝓝 w,
@@ -1243,7 +954,12 @@ theorem complex_centerSegmentIntegral_endpointDerivative_continuousOn_tube
         (fun q : ℂ × ℝ =>
           φ (AffineMap.lineMap (0 : ℂ) q.1 q.2))
         p :=
-    hanalytic.differentiableAt.continuousAt.comp hline_cont
+    ContinuousAt.comp
+      (f := fun q : ℂ × ℝ =>
+        AffineMap.lineMap (0 : ℂ) q.1 q.2)
+      (g := φ)
+      hanalytic.differentiableAt.continuousAt
+      hline_cont
   have hderiv_analytic :
       AnalyticAt ℂ
         (fun q : ℂ => deriv φ q)
@@ -1254,7 +970,12 @@ theorem complex_centerSegmentIntegral_endpointDerivative_continuousOn_tube
         (fun q : ℂ × ℝ =>
           deriv φ (AffineMap.lineMap (0 : ℂ) q.1 q.2))
         p :=
-    hderiv_analytic.differentiableAt.continuousAt.comp hline_cont
+    ContinuousAt.comp
+      (f := fun q : ℂ × ℝ =>
+        AffineMap.lineMap (0 : ℂ) q.1 q.2)
+      (g := fun q : ℂ => deriv φ q)
+      hderiv_analytic.differentiableAt.continuousAt
+      hline_cont
   have hendpoint_cont :
       ContinuousAt (fun q : ℂ × ℝ => q.1) p :=
     continuous_fst.continuousAt
@@ -1338,35 +1059,42 @@ theorem complex_centerSegmentIntegral_finiteTube_compactBound
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
               (∀ᵐ t ∂volume,
-                t ∈ Ι (0 : ℝ) 1 →
+                t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
                 IntervalIntegrable bound volume (0 : ℝ) 1 := by
   intro w ε hε_pos htube_closed
-  have hbounded :
-      ∃ C : ℝ,
-        ∀ y : ℂ × ℝ,
-          y ∈ Metric.closedBall w ε ×ˢ Set.Icc (0 : ℝ) 1 →
-            ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
-              φ y.1 y.2‖ ≤ C :=
+  have hbdd :
+      BddAbove
+        ((fun p : ℂ × ℝ =>
+          ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+            φ p.1 p.2‖) ''
+          (Metric.closedBall w ε ×ˢ Set.Icc (0 : ℝ) 1)) :=
     complex_centerSegmentIntegral_endpointDerivative_norm_bddAbove_tube
       φ centers w ε htube_closed
   exact
-    match hbounded with
-    | Exists.intro C hC =>
+    match hbdd with
+    | Exists.intro C hC_image =>
+        have hC :
+            ∀ y : ℂ × ℝ,
+              y ∈ Metric.closedBall w ε ×ˢ Set.Icc (0 : ℝ) 1 →
+                ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                  φ y.1 y.2‖ ≤ C :=
+          fun y hy =>
+            hC_image
+              ⟨y, hy, rfl⟩
         have hbound :
             ∀ᵐ t ∂volume,
-              t ∈ Ι (0 : ℝ) 1 →
+              t ∈ Set.Ioc (0 : ℝ) 1 →
                 ∀ x ∈ Metric.ball w ε,
                   ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                     φ x t‖ ≤ (fun _t : ℝ => C) t :=
           Filter.Eventually.of_forall
             (fun t ht_interval x hx =>
               hC
-                ⟨(x, t),
-                  ⟨ball_subset_closedBall hx, Ioc_subset_Icc_self ht_interval⟩,
-                  rfl⟩)
+                (x, t)
+                ⟨Metric.ball_subset_closedBall hx, Set.Ioc_subset_Icc_self ht_interval⟩)
         Exists.intro
           (fun _t : ℝ => C)
           (And.intro hbound intervalIntegrable_const)
@@ -1387,7 +1115,7 @@ theorem complex_centerSegmentIntegral_finiteTube_constantBound
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
               (∀ᵐ t ∂volume,
-                t ∈ Ι (0 : ℝ) 1 →
+                t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
@@ -1411,7 +1139,7 @@ theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
                   AffineMap.lineMap (0 : ℂ) x t ∈
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∀ᵐ t ∂volume,
-              t ∈ Ι (0 : ℝ) 1 →
+              t ∈ Set.Ioc (0 : ℝ) 1 →
                 ∀ x ∈ Metric.ball w ε,
                   HasDerivAt
                     (fun y : ℂ =>
@@ -1423,7 +1151,9 @@ theorem complex_centerSegmentIntegral_finiteTube_pointwiseDerivative_ae
   exact
     Filter.Eventually.of_forall
       (fun t ht x hx =>
-        let hanalytic_mem := htube x (ball_subset_closedBall hx) t ht
+        let ht_Icc : t ∈ Set.Icc (0 : ℝ) 1 :=
+          And.intro ht.1.le ht.2
+        let hanalytic_mem := htube x (Metric.ball_subset_closedBall hx) t ht_Icc
         let hanalytic :=
           match Set.mem_iUnion.1 hanalytic_mem with
           | ⟨_c, hc_mem⟩ =>
@@ -1448,13 +1178,13 @@ theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
                     ⋃ c ∈ centers, {q : ℂ | AnalyticAt ℂ φ q}) →
             ∃ bound : ℝ → ℝ,
               (∀ᵐ t ∂volume,
-                t ∈ Ι (0 : ℝ) 1 →
+                t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ x t‖ ≤ bound t) ∧
               IntervalIntegrable bound volume (0 : ℝ) 1 ∧
               (∀ᵐ t ∂volume,
-                t ∈ Ι (0 : ℝ) 1 →
+                t ∈ Set.Ioc (0 : ℝ) 1 →
                   ∀ x ∈ Metric.ball w ε,
                     HasDerivAt
                       (fun y : ℂ =>
@@ -1466,7 +1196,7 @@ theorem complex_centerSegmentIntegral_finiteTube_domination_and_derivative
     have hconstant :
         ∃ bound : ℝ → ℝ,
           (∀ᵐ t ∂volume,
-            t ∈ Ι (0 : ℝ) 1 →
+            t ∈ Set.Ioc (0 : ℝ) 1 →
               ∀ x ∈ Metric.ball w ε,
                 ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                   φ x t‖ ≤ bound t) ∧
@@ -1519,7 +1249,7 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                   AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1530,16 +1260,16 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
                   IntervalIntegrable bound volume (0 : ℝ) 1 ∧
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
                           (fun y : ℂ =>
@@ -1569,7 +1299,7 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                                       AEStronglyMeasurable
                                         (fun t : ℝ =>
                                           x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                                        (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                                        (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                                     IntervalIntegrable
                                       (fun t : ℝ =>
                                         w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1580,16 +1310,16 @@ theorem complex_centerSegmentIntegral_finiteAnalyticTube_dominatedPackage
                                       (fun t : ℝ =>
                                         complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                           φ w t)
-                                      (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                                      (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                                     ∃ bound : ℝ → ℝ,
                                       (∀ᵐ t ∂volume,
-                                        t ∈ Ι (0 : ℝ) 1 →
+                                        t ∈ Set.Ioc (0 : ℝ) 1 →
                                           ∀ x ∈ Metric.ball w (ε),
                                             ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                                               φ x t‖ ≤ bound t) ∧
                                       IntervalIntegrable bound volume (0 : ℝ) 1 ∧
                                       (∀ᵐ t ∂volume,
-                                        t ∈ Ι (0 : ℝ) 1 →
+                                        t ∈ Set.Ioc (0 : ℝ) 1 →
                                           ∀ x ∈ Metric.ball w (ε),
                                             HasDerivAt
                                               (fun y : ℂ =>
@@ -1674,7 +1404,7 @@ theorem complex_centerSegmentIntegral_compactFiniteTube_dominatedPackage
                   AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1685,16 +1415,16 @@ theorem complex_centerSegmentIntegral_compactFiniteTube_dominatedPackage
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
                   IntervalIntegrable bound volume (0 : ℝ) 1 ∧
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
                           (fun y : ℂ =>
@@ -1738,7 +1468,7 @@ theorem complex_centerSegmentIntegral_compactAnalyticTube_dominatedPackage
                   AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1749,16 +1479,16 @@ theorem complex_centerSegmentIntegral_compactAnalyticTube_dominatedPackage
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
                   IntervalIntegrable bound volume (0 : ℝ) 1 ∧
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
                           (fun y : ℂ =>
@@ -1797,7 +1527,7 @@ theorem complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
                   AEStronglyMeasurable
                     (fun t : ℝ =>
                       x * φ (AffineMap.lineMap (0 : ℂ) x t))
-                    (volume.restrict (Ι (0 : ℝ) 1))) ∧
+                    (volume.restrict (Set.Ioc (0 : ℝ) 1))) ∧
                 IntervalIntegrable
                   (fun t : ℝ =>
                     w * φ (AffineMap.lineMap (0 : ℂ) w t))
@@ -1808,16 +1538,16 @@ theorem complex_centerSegmentIntegral_compact_dominatedHypotheses_on_nhd
                   (fun t : ℝ =>
                     complex_centerSegmentIntegral_endpointDerivativeIntegrand
                       φ w t)
-                  (volume.restrict (Ι (0 : ℝ) 1)) ∧
+                  (volume.restrict (Set.Ioc (0 : ℝ) 1)) ∧
                 ∃ bound : ℝ → ℝ,
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
                           φ x t‖ ≤ bound t) ∧
                   IntervalIntegrable bound volume (0 : ℝ) 1 ∧
                   (∀ᵐ t ∂volume,
-                    t ∈ Ι (0 : ℝ) 1 →
+                    t ∈ Set.Ioc (0 : ℝ) 1 →
                       ∀ x ∈ Metric.ball w ε,
                         HasDerivAt
                           (fun y : ℂ =>
@@ -1894,6 +1624,74 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                                               | And.intro h_bound hbound_tail =>
                                                   match hbound_tail with
                                                   | And.intro hbound_int h_diff =>
+                                                      have h_uIoc_eq :
+                                                          Ι (0 : ℝ) 1 =
+                                                            Set.Ioc (0 : ℝ) 1 :=
+                                                        Set.uIoc_of_le
+                                                          (show (0 : ℝ) ≤ 1 from zero_le_one)
+                                                      have hF_meas_interval :
+                                                          ∀ᶠ x in 𝓝 w,
+                                                            AEStronglyMeasurable
+                                                              (fun t : ℝ =>
+                                                                x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                                                              (volume.restrict (Ι (0 : ℝ) 1)) :=
+                                                        hF_meas.mono
+                                                          (fun x hx =>
+                                                            Eq.subst
+                                                              (motive := fun interval : Set ℝ =>
+                                                                AEStronglyMeasurable
+                                                                  (fun t : ℝ =>
+                                                                    x * φ (AffineMap.lineMap (0 : ℂ) x t))
+                                                                  (volume.restrict interval))
+                                                              (Eq.symm h_uIoc_eq)
+                                                              hx)
+                                                      have hF'_meas_interval :
+                                                          AEStronglyMeasurable
+                                                            (fun t : ℝ =>
+                                                              complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                                                                φ w t)
+                                                            (volume.restrict (Ι (0 : ℝ) 1)) :=
+                                                        Eq.subst
+                                                          (motive := fun interval : Set ℝ =>
+                                                            AEStronglyMeasurable
+                                                              (fun t : ℝ =>
+                                                                complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                                                                  φ w t)
+                                                              (volume.restrict interval))
+                                                          (Eq.symm h_uIoc_eq)
+                                                          hF'_meas
+                                                      have h_bound_interval :
+                                                          ∀ᵐ t ∂volume,
+                                                            t ∈ Ι (0 : ℝ) 1 →
+                                                              ∀ x ∈ Metric.ball w ε,
+                                                                ‖complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                                                                  φ x t‖ ≤ bound t :=
+                                                        h_bound.mono
+                                                          (fun t ht ht_interval =>
+                                                            ht
+                                                              (Eq.subst
+                                                                (motive := fun interval : Set ℝ =>
+                                                                  t ∈ interval)
+                                                                h_uIoc_eq
+                                                                ht_interval))
+                                                      have h_diff_interval :
+                                                          ∀ᵐ t ∂volume,
+                                                            t ∈ Ι (0 : ℝ) 1 →
+                                                              ∀ x ∈ Metric.ball w ε,
+                                                                HasDerivAt
+                                                                  (fun y : ℂ =>
+                                                                    y * φ (AffineMap.lineMap (0 : ℂ) y t))
+                                                                  (complex_centerSegmentIntegral_endpointDerivativeIntegrand
+                                                                    φ x t)
+                                                                  x :=
+                                                        h_diff.mono
+                                                          (fun t ht ht_interval =>
+                                                            ht
+                                                              (Eq.subst
+                                                                (motive := fun interval : Set ℝ =>
+                                                                  t ∈ interval)
+                                                                h_uIoc_eq
+                                                                ht_interval))
                                                       have hparam :=
                                                         intervalIntegral.hasDerivAt_integral_of_dominated_loc_of_deriv_le
                                                           (μ := volume)
@@ -1905,12 +1703,12 @@ theorem complex_centerSegmentIntegral_dominatedParametricIntegral_hypotheses
                                                           (F' := fun x : ℂ => fun t : ℝ =>
                                                             complex_centerSegmentIntegral_endpointDerivativeIntegrand φ x t)
                                                           (x₀ := w)
-                                                          hF_meas
+                                                          hF_meas_interval
                                                           hF_int
-                                                          hF'_meas
-                                                          h_bound
+                                                          hF'_meas_interval
+                                                          h_bound_interval
                                                           hbound_int
-                                                          h_diff
+                                                          h_diff_interval
                                                       hparam.2
                   Exists.intro u (And.intro hz_mem (And.intro hu_nhds hu_deriv))
 
@@ -2082,7 +1880,7 @@ theorem complex_starConvex_centerSegment_phi_continuousOn
       ContinuousAt
         (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
         t :=
-    (AffineMap.lineMap (0 : ℂ) z).continuous.continuousAt
+    (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := z)).continuousAt
   exact
     ((complex_starConvex_centerSegment_phi_continuousAt
       φ hstar hφ z hz t ht).comp hline_cont).continuousWithinAt
@@ -2104,7 +1902,7 @@ theorem complex_starConvex_centerSegment_deriv_phi_continuousOn
       ContinuousAt
         (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
         t :=
-    (AffineMap.lineMap (0 : ℂ) z).continuous.continuousAt
+    (AffineMap.lineMap_continuous (p := (0 : ℂ)) (v := z)).continuousAt
   exact
     ((complex_starConvex_centerSegment_deriv_phi_continuousAt
       φ hstar hφ z hz t ht).comp hline_cont).continuousWithinAt
@@ -2117,7 +1915,21 @@ theorem complex_centerSegment_lineMap_hasDerivAt_real
       (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
       z
       t := by
-  exact AffineMap.hasDerivAt_lineMap (a := (0 : ℂ)) (b := z) (x := t)
+  have hraw :
+      HasDerivAt
+        (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
+        (z - 0)
+        t :=
+    AffineMap.hasDerivAt_lineMap (a := (0 : ℂ)) (b := z) (x := t)
+  exact
+    Eq.subst
+      (motive := fun v : ℂ =>
+        HasDerivAt
+          (fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
+          v
+          t)
+      (sub_zero z)
+      hraw
 
 /-- Real chain rule for a holomorphic function composed with the affine
 center-to-endpoint segment. -/
@@ -2147,14 +1959,12 @@ theorem complex_starConvex_centerSegment_phi_hasDerivAt_real_chainRule
         z
         t :=
     complex_centerSegment_lineMap_hasDerivAt_real z t
-  have hcomp_fderiv :=
-    hφ_at.comp_hasFDerivAt t hline_at.hasFDerivAt
   have hcomp_deriv :
       HasDerivAt
         (φ ∘ fun u : ℝ => AffineMap.lineMap (0 : ℂ) z u)
         ((deriv φ x) * z)
         t :=
-    hcomp_fderiv.hasDerivAt
+    hφ_at.comp t hline_at
   exact
     Eq.subst
       (motive := fun v : ℂ =>
@@ -2392,7 +2202,7 @@ theorem complex_centerSegmentIntegral_radialFTC_integral_eq_endpoint_sub_base
   intro z hz
   have hderiv :
       ∀ t : ℝ,
-        t ∈ [[(0 : ℝ), 1]] →
+        t ∈ Set.uIcc (0 : ℝ) 1 →
           HasDerivAt
             (fun u : ℝ =>
               complex_centerSegmentIntegral_radialFTCPrimitive φ z u)
@@ -3102,14 +2912,10 @@ theorem entireFunction_exp_logDerivPrimitive_model_deriv_algebra
       congrArg
         (fun u : ℂ => deriv G z * (u * (G z)⁻¹))
         hreconstruct_z
-    _ = deriv G z * ((G 0 * Complex.exp (P z)) * (G z)⁻¹) :=
-      congrArg
-        (fun u : ℂ => deriv G z * u)
-        (mul_assoc (G 0) (Complex.exp (P z)) (G z)⁻¹)
     _ = deriv G z * (G 0 * (Complex.exp (P z) * (G z)⁻¹)) :=
       congrArg
         (fun u : ℂ => deriv G z * u)
-        (mul_assoc (G 0) (Complex.exp (P z)) (G z)⁻¹).symm
+        (mul_assoc (G 0) (Complex.exp (P z)) (G z)⁻¹)
     _ = (deriv G z * G 0) * (Complex.exp (P z) * (G z)⁻¹) :=
       (mul_assoc (deriv G z) (G 0) (Complex.exp (P z) * (G z)⁻¹)).symm
     _ = (G 0 * deriv G z) * (Complex.exp (P z) * (G z)⁻¹) :=
@@ -3139,8 +2945,11 @@ identity `P' = G'/G` holds and `G` is zero-free on the disk.  This is the
 radial FTC input before any endpoint reconstruction is used. -/
 theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3171,7 +2980,7 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zer
   have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
     exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
   have hdiffG : DifferentiableAt ℂ G z :=
-    (hG z).differentiableAt
+    (hG z hz).differentiableAt
   have hdiffP : DifferentiableAt ℂ P z :=
     (hP_an z hz).differentiableAt
   have hdiffExp : DifferentiableAt ℂ (fun w : ℂ => Complex.exp (P w)) z :=
@@ -3184,7 +2993,7 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zer
           logDeriv (Complex.exp) (P z) * deriv P z := by
             exact
               logDeriv_comp (f := Complex.exp) (g := P) (x := z)
-                (Complex.differentiableAt_exp (P z)) hdiffP
+                Complex.differentiableAt_exp hdiffP
       _ = 1 * deriv P z := by
             exact congrArg (fun t : ℂ => t * deriv P z)
               (congrArg (fun f : ℂ → ℂ => f (P z)) Complex.LogDeriv_exp)
@@ -3232,7 +3041,10 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zer
           logDeriv (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) z := by
             rfl
         _ = 0 := hlogQ
-    exact (div_eq_zero_iff hquot_ne).mp hdiv_zero
+    exact
+      match div_eq_zero_iff.mp hdiv_zero with
+      | Or.inl hnum_zero => hnum_zero
+      | Or.inr hden_zero => False.elim (hquot_ne hden_zero)
   have hcenter :
       (fun w : ℂ => G w / (G 0 * Complex.exp (P w))) 0 = 1 := by
     have hden0 : G 0 * Complex.exp (P 0) = G 0 := by
@@ -3256,8 +3068,11 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zer
 closed disk. -/
 theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_analyticAt
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3280,8 +3095,12 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_analyticA
   have hden_ne : G 0 * Complex.exp (P z) ≠ 0 := by
     exact mul_ne_zero hG0_ne (Complex.exp_ne_zero (P z))
   have hden_an : AnalyticAt ℂ (fun w : ℂ => G 0 * Complex.exp (P w)) z :=
-    (hP_an z hz).cexp.const_mul (G 0)
-  exact (hG z).div hden_an hden_ne
+    let hden_const_an : AnalyticAt ℂ (fun _w : ℂ => G 0) z :=
+      analyticAt_const
+    let hden_exp_an : AnalyticAt ℂ (fun w : ℂ => Complex.exp (P w)) z :=
+      (hP_an z hz).cexp
+    hden_const_an.mul hden_exp_an
+  exact (hG z hz).div hden_an hden_ne
 
 /-- Real interval derivative-zero constant theorem on `[0,1]`, in endpoint
 form.
@@ -3754,8 +3573,11 @@ closed disk, the chain rule and `P' = G'/G` make the real derivative vanish,
 and the normalization `P 0 = 0` fixes the center value. -/
 theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endpoint_eq
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3791,7 +3613,13 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endp
           (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) 0 = 1 :=
       entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center_core
         G P hG hzero hP_an hP_deriv hP_zero hw
-    exact Eq.trans hcore.1 (Eq.symm (deriv_const' (1 : ℂ) w))
+    have hconst_deriv_fun :
+        deriv (fun _ : ℂ => (1 : ℂ)) = fun _ : ℂ => 0 :=
+      deriv_const' (𝕜 := ℂ) (c := (1 : ℂ))
+    have hconst_deriv_at :
+        deriv (fun _ : ℂ => (1 : ℂ)) w = 0 :=
+      congrArg (fun f : ℂ → ℂ => f w) hconst_deriv_fun
+    exact Eq.trans hcore.1 (Eq.symm hconst_deriv_at)
   have hquot_center :
       (fun u : ℂ => G u / (G 0 * Complex.exp (P u))) 0 =
         (fun _ : ℂ => (1 : ℂ)) 0 :=
@@ -3821,8 +3649,11 @@ theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endp
 /-- Normalized exponential reconstruction from the radial FTC owner root. -/
 theorem entireFunction_exp_logDerivPrimitive_model_value_eq
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3839,7 +3670,7 @@ theorem entireFunction_exp_logDerivPrimitive_model_value_eq
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       G z = G 0 * Complex.exp (P z) := by
-  fun z hz =>
+  exact fun z hz =>
     entireFunction_convexClosedDisk_exp_logDerivPrimitive_radialSegment_endpoint_eq
       G P hG hzero hP_an hP_deriv hP_zero hz
 
@@ -3850,8 +3681,11 @@ The normalization is mathematically necessary: replacing `P` by `P + C` leaves
 `P' = G'/G` unchanged but rescales the model by `exp C`. -/
 theorem entireFunction_exp_logDerivPrimitive_model_deriv_eq
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3896,8 +3730,11 @@ constant, the desired reconstruction follows by multiplying back by the
 nonzero denominator. -/
 theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_quotient_deriv_zero_and_center
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hzero :
       ∀ z : ℂ,
         ‖z‖ ≤ ρ →
@@ -3991,7 +3828,7 @@ theorem entireFunction_convexClosedDisk_eq_on_radialSegment_of_deriv_eq_and_cent
     ∀ z : ℂ,
       ‖z‖ ≤ ρ →
       F z = H z := by
-  fun z hz =>
+  exact fun z hz =>
     entireFunction_convexClosedDisk_radialSegment_endpoint_eq_of_deriv_eq_and_center
       F H hF hH hρ hconvex hderiv hcenter hz
 
@@ -4025,9 +3862,12 @@ Preconnectedness of the convex disk then propagates equality across the disk.
 Cf. Titchmarsh, *The Theory of Functions*, §5. -/
 theorem entireFunction_convexClosedDisk_exp_logDerivPrimitive_reconstruct
     (G P : ℂ → ℂ)
-    (hG : ∀ z : ℂ, AnalyticAt ℂ G z)
     {ρ : ℝ}
     (hρ : 0 ≤ ρ)
+    (hG :
+      ∀ z : ℂ,
+        ‖z‖ ≤ ρ →
+        AnalyticAt ℂ G z)
     (hconvex : Convex ℝ (Metric.closedBall (0 : ℂ) ρ))
     (hzero :
       ∀ z : ℂ,
@@ -4082,7 +3922,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
         G hG hzero hz
   exact
     entireFunction_convexClosedDisk_exists_logDerivPrimitive
-      G hG hρ_nonneg hstar hrecip
+      G hρ_nonneg hG hstar hrecip
 
 /-- A normalized primitive of `G' / G` reconstructs the zero-free holomorphic
 function by exponentiating and multiplying by the center value. -/
@@ -4113,7 +3953,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exp_logDerivPrimitive_reconstruct
     entireFunction_jensenClosedDisk_convex ρ
   exact
     entireFunction_convexClosedDisk_exp_logDerivPrimitive_reconstruct
-      G P hG hρ_nonneg hconvex hzero hP_an hP_deriv hP_zero
+      G P hρ_nonneg hG hconvex hzero hP_an hP_deriv hP_zero
 
 /-- A normalized primitive of the logarithmic derivative gives an analytic
 logarithm branch after adding one logarithm of the nonzero center value. -/
@@ -4187,7 +4027,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simply
       (∀ z : ℂ, ‖z‖ ≤ ρ → G z = Complex.exp (L z)) := by
   exact
     match entireFunction_zeroFreeOnClosedDisk_exists_logDerivPrimitive
-        G hG hρ hzero with
+        G hρ hG hzero with
     | Exists.intro P hP_data =>
         match hP_data with
         | And.intro hP_an hP_tail =>
@@ -4198,7 +4038,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simply
                       ‖z‖ ≤ ρ →
                         G z = G 0 * Complex.exp (P z) :=
                   entireFunction_zeroFreeOnClosedDisk_exp_logDerivPrimitive_reconstruct
-                    G P hG hρ hzero hP_an hP_deriv hP_zero
+                    G P hρ hG hzero hP_an hP_deriv hP_zero
                 entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_of_logDerivPrimitive
                   G P hρ hzero hP_an hP_reconstruct
 
@@ -4270,15 +4110,15 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnec
     (L 0).re = Real.log ‖G 0‖ := by
   exact
     match entireFunction_zeroFreeOnClosedDisk_exists_analyticLogBranch_from_simplyConnectedDisk
-        G hG hρ hzero with
+        G hρ hG hzero with
     | Exists.intro L hL_data =>
         match hL_data with
         | And.intro hL_an hL_log =>
             have hcenter :
                 (L 0).re = Real.log ‖G 0‖ :=
-                entireFunction_analyticLogBranch_center_re_eq_log_norm
-                  G L hρ hL_log
-              Exists.intro L (And.intro hL_an (And.intro hL_log hcenter))
+              entireFunction_analyticLogBranch_center_re_eq_log_norm
+                G L hρ hL_log
+            Exists.intro L (And.intro hL_an (And.intro hL_log hcenter))
 
 /-- A zero-free holomorphic function on a closed disk admits a holomorphic
 logarithm on a neighborhood of that disk, normalized at the center.
@@ -4301,7 +4141,7 @@ theorem entireFunction_zeroFreeOnClosedDisk_exists_analyticLog
       (L 0).re = Real.log ‖G 0‖ := by
   exact
     entireFunction_zeroFreeOnClosedDisk_exists_analyticLog_from_simplyConnectedDisk
-      G (fun z hz => hG z) hρ hzero
+      G hρ (fun z _hz => hG z) hzero
 
 /-- Pointwise analyticity on Jensen's closed disk gives the `DiffContOnCl`
 package needed by Cauchy's integral formula on the corresponding open disk. -/
@@ -4326,8 +4166,8 @@ theorem entireFunction_analyticOnClosedDisk_diffContOnCl
     fun z hz =>
       have hz_norm_le : ‖z‖ ≤ ρ :=
         mem_closedBall_zero_iff.mp hz
-        (hL z hz_norm_le).continuousAt.continuousWithinAt
-    exact DiffContOnCl.mk_ball hdiff hcont
+      (hL z hz_norm_le).continuousAt.continuousWithinAt
+  exact DiffContOnCl.mk_ball hdiff hcont
 
 /-- Cauchy's integral formula at the center of the Jensen disk, in the
 `circleIntegral` normalization. -/
@@ -4360,57 +4200,55 @@ theorem entireFunction_cauchyKernel_circleMap_boundaryCancellation
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
     (θ : ℝ) :
-    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+    deriv (circleMap (0 : ℂ) ρ) θ •
+        (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
       Complex.I := by
   have hρ_pos : 0 < ρ :=
     lt_of_lt_of_le zero_lt_one hρ
   have hρ_ne : ρ ≠ 0 :=
     hρ_pos.ne'
   have hcircle_ne :
-      Complex.circleMap (0 : ℂ) ρ θ ≠ 0 :=
-    Complex.circleMap_ne_center hρ_ne
+      circleMap (0 : ℂ) ρ θ ≠ 0 :=
+    circleMap_ne_center hρ_ne
   have hsub :
-      Complex.circleMap (0 : ℂ) ρ θ - 0 =
-        Complex.circleMap (0 : ℂ) ρ θ :=
-    Complex.circleMap_sub_center (0 : ℂ) ρ θ
+      circleMap (0 : ℂ) ρ θ - 0 =
+        circleMap (0 : ℂ) ρ θ :=
+    circleMap_sub_center (0 : ℂ) ρ θ
   have hderiv :
-      deriv (Complex.circleMap (0 : ℂ) ρ) θ =
-        Complex.circleMap (0 : ℂ) ρ θ * Complex.I :=
-    Complex.deriv_circleMap (0 : ℂ) ρ θ
+      deriv (circleMap (0 : ℂ) ρ) θ =
+        circleMap (0 : ℂ) ρ θ * Complex.I :=
+    deriv_circleMap (0 : ℂ) ρ θ
   have hcancel :
-      (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
-          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ =
+      (circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (circleMap (0 : ℂ) ρ θ)⁻¹ =
         Complex.I := by
     calc
-      (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
-          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ =
-          (Complex.I * Complex.circleMap (0 : ℂ) ρ θ) *
-            (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ := by
+      (circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (circleMap (0 : ℂ) ρ θ)⁻¹ =
+          (Complex.I * circleMap (0 : ℂ) ρ θ) *
+            (circleMap (0 : ℂ) ρ θ)⁻¹ := by
         exact congrArg
-          (fun z : ℂ => z * (Complex.circleMap (0 : ℂ) ρ θ)⁻¹)
-          (mul_comm (Complex.circleMap (0 : ℂ) ρ θ) Complex.I)
+          (fun z : ℂ => z * (circleMap (0 : ℂ) ρ θ)⁻¹)
+          (mul_comm (circleMap (0 : ℂ) ρ θ) Complex.I)
       _ = Complex.I := by
         exact mul_inv_cancel_right₀ hcircle_ne Complex.I
   calc
-    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
-        deriv (Complex.circleMap (0 : ℂ) ρ) θ *
-          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
-      exact smul_eq_mul
-        (deriv (Complex.circleMap (0 : ℂ) ρ) θ)
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)
+    deriv (circleMap (0 : ℂ) ρ) θ •
+        (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+        deriv (circleMap (0 : ℂ) ρ) θ *
+          (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
+      rfl
     _ =
-        (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
-          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
+        (circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) := by
       exact congrArg
-        (fun z : ℂ => z * (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ))
+        (fun z : ℂ => z * (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ))
         hderiv
     _ =
-        (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) *
-          (Complex.circleMap (0 : ℂ) ρ θ)⁻¹ := by
+        (circleMap (0 : ℂ) ρ θ * Complex.I) *
+          (circleMap (0 : ℂ) ρ θ)⁻¹ := by
       exact congrArg
-        (fun z : ℂ => (Complex.circleMap (0 : ℂ) ρ θ * Complex.I) * z)
+        (fun z : ℂ => (circleMap (0 : ℂ) ρ θ * Complex.I) * z)
         (congrArg Inv.inv hsub)
     _ = Complex.I :=
       hcancel
@@ -4420,9 +4258,9 @@ sample. -/
 theorem entireFunction_circleMap_zero_eq_boundarySample
     (ρ : ℝ)
     (θ : ℝ) :
-    Complex.circleMap (0 : ℂ) ρ θ =
+    circleMap (0 : ℂ) ρ θ =
       (ρ : ℂ) * Complex.exp (θ * Complex.I) := by
-  exact Complex.circleMap_zero ρ θ
+  exact circleMap_zero ρ θ
 
 /-- The circle-integral Cauchy-kernel integrand cancels to `I` times the
 boundary value after passing to the Jensen exponential parametrization. -/
@@ -4431,33 +4269,33 @@ theorem entireFunction_cauchyCircleIntegral_integrand_eq_I_smul_boundarySample
     {ρ : ℝ}
     (hρ : 1 ≤ ρ)
     (θ : ℝ) :
-    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
-          L (Complex.circleMap (0 : ℂ) ρ θ)) =
+    deriv (circleMap (0 : ℂ) ρ) θ •
+        (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+          L (circleMap (0 : ℂ) ρ θ)) =
       Complex.I • L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
   have hcancel :
-      deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
+      deriv (circleMap (0 : ℂ) ρ) θ •
+          (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ) =
         Complex.I :=
     entireFunction_cauchyKernel_circleMap_boundaryCancellation hρ θ
   have hsample :
-      Complex.circleMap (0 : ℂ) ρ θ =
+      circleMap (0 : ℂ) ρ θ =
         (ρ : ℂ) * Complex.exp (θ * Complex.I) :=
     entireFunction_circleMap_zero_eq_boundarySample ρ θ
   calc
-    deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
-          L (Complex.circleMap (0 : ℂ) ρ θ)) =
-        (deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-          (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)) •
-          L (Complex.circleMap (0 : ℂ) ρ θ) := by
+    deriv (circleMap (0 : ℂ) ρ) θ •
+        (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+          L (circleMap (0 : ℂ) ρ θ)) =
+        (deriv (circleMap (0 : ℂ) ρ) θ •
+          (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)) •
+          L (circleMap (0 : ℂ) ρ θ) := by
       exact (smul_smul
-        (deriv (Complex.circleMap (0 : ℂ) ρ) θ)
-        (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)
-        (L (Complex.circleMap (0 : ℂ) ρ θ))).symm
-    _ = Complex.I • L (Complex.circleMap (0 : ℂ) ρ θ) := by
+        (deriv (circleMap (0 : ℂ) ρ) θ)
+        (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) : ℂ)
+        (L (circleMap (0 : ℂ) ρ θ)))
+    _ = Complex.I • L (circleMap (0 : ℂ) ρ θ) := by
       exact congrArg
-        (fun z : ℂ => z • L (Complex.circleMap (0 : ℂ) ρ θ))
+        (fun z : ℂ => z • L (circleMap (0 : ℂ) ρ θ))
         hcancel
     _ = Complex.I • L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
       exact congrArg (fun z : ℂ => Complex.I • L z) hsample
@@ -4482,9 +4320,9 @@ theorem entireFunction_cauchyCircleIntegral_eq_I_smul_boundaryIntervalIntegral
   calc
     (∮ z in C((0 : ℂ), ρ), (z - 0)⁻¹ • L z) =
         ∫ θ in (0 : ℝ)..(2 * Real.pi),
-          deriv (Complex.circleMap (0 : ℂ) ρ) θ •
-            (((Complex.circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
-              L (Complex.circleMap (0 : ℂ) ρ θ)) := by
+          deriv (circleMap (0 : ℂ) ρ) θ •
+            (((circleMap (0 : ℂ) ρ θ - 0)⁻¹) •
+              L (circleMap (0 : ℂ) ρ θ)) := by
       rfl
     _ =
         ∫ θ in (0 : ℝ)..(2 * Real.pi),
@@ -4510,9 +4348,14 @@ theorem entireFunction_two_pi_I_inv_smul_I_smul_eq_two_pi_inv_smul
         ((2 * Real.pi : ℂ)⁻¹) := by
     calc
       ((2 * Real.pi * Complex.I : ℂ)⁻¹ * Complex.I) =
-          (((2 * Real.pi : ℂ)⁻¹ * Complex.I⁻¹) * Complex.I) := by
+          ((Complex.I⁻¹ * (2 * Real.pi : ℂ)⁻¹) * Complex.I) := by
         exact congrArg (fun z : ℂ => z * Complex.I)
           (mul_inv_rev (2 * Real.pi : ℂ) Complex.I)
+      _ =
+          (((2 * Real.pi : ℂ)⁻¹ * Complex.I⁻¹) * Complex.I) := by
+        exact congrArg
+          (fun z : ℂ => z * Complex.I)
+          (mul_comm Complex.I⁻¹ ((2 * Real.pi : ℂ)⁻¹))
       _ = ((2 * Real.pi : ℂ)⁻¹ * (Complex.I⁻¹ * Complex.I)) := by
         exact mul_assoc ((2 * Real.pi : ℂ)⁻¹) Complex.I⁻¹ Complex.I
       _ = ((2 * Real.pi : ℂ)⁻¹ * 1) := by
@@ -4646,7 +4489,7 @@ theorem entireFunction_boundaryIntervalIntegrable_of_analyticOnClosedDisk
       (0 : ℝ)
       (2 * Real.pi) := by
   -- The boundary path is continuous and lies in the closed disk by
-  -- `Complex.abs_circleMap_zero`; analytic functions are continuous on that
+  -- `circleMap_mem_closedBall`; analytic functions are continuous on that
   -- image, hence the compact interval parametrization is interval-integrable.
   have hρ_nonneg : 0 ≤ ρ :=
     le_trans zero_le_one hρ
@@ -4654,55 +4497,47 @@ theorem entireFunction_boundaryIntervalIntegrable_of_analyticOnClosedDisk
       Continuous (fun θ : ℝ =>
         (ρ : ℂ) * Complex.exp (θ * Complex.I)) := by
     have hcircle_cont :
-        Continuous (Complex.circleMap (0 : ℂ) ρ) :=
-      Complex.continuous_circleMap (0 : ℂ) ρ
+        Continuous (circleMap (0 : ℂ) ρ) :=
+      continuous_circleMap (0 : ℂ) ρ
     have hsample_eq :
         (fun θ : ℝ => (ρ : ℂ) * Complex.exp (θ * Complex.I)) =
-          Complex.circleMap (0 : ℂ) ρ := by
+          circleMap (0 : ℂ) ρ := by
       exact
         funext
           (fun θ =>
             (entireFunction_circleMap_zero_eq_boundarySample ρ θ).symm)
-  exact Eq.subst
-    (motive := fun f : ℝ → ℂ => Continuous f)
-    hsample_eq.symm
+    exact Eq.subst
+      (motive := fun f : ℝ → ℂ => Continuous f)
+      hsample_eq.symm
       hcircle_cont
   have hboundary_norm :
       ∀ θ : ℝ, ‖(ρ : ℂ) * Complex.exp (θ * Complex.I)‖ ≤ ρ := by
     intro θ
     have hcircle :
-        Complex.circleMap (0 : ℂ) ρ θ =
+        circleMap (0 : ℂ) ρ θ =
           (ρ : ℂ) * Complex.exp (θ * Complex.I) :=
       entireFunction_circleMap_zero_eq_boundarySample ρ θ
     have hclosed :
-        Complex.circleMap (0 : ℂ) ρ θ ∈
+        circleMap (0 : ℂ) ρ θ ∈
           Metric.closedBall (0 : ℂ) ρ :=
-      Complex.circleMap_mem_closedBall (0 : ℂ) hρ_nonneg θ
-    have hnorm_circle : ‖Complex.circleMap (0 : ℂ) ρ θ‖ ≤ ρ :=
+      circleMap_mem_closedBall (0 : ℂ) hρ_nonneg θ
+    have hnorm_circle : ‖circleMap (0 : ℂ) ρ θ‖ ≤ ρ :=
       mem_closedBall_zero_iff.mp hclosed
     exact Eq.subst
       (motive := fun z : ℂ => ‖z‖ ≤ ρ)
-    hcircle
-    hnorm_circle
-have hL_cont_on_boundary :
-    ContinuousOn L
-        (Set.range (fun θ : ℝ =>
-          (ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
-    intro z hz
-    exact
-      match hz with
-      | Exists.intro θ hθz =>
-          have hz_norm : ‖z‖ ≤ ρ :=
-            Eq.subst
-              (motive := fun w : ℂ => ‖w‖ ≤ ρ)
-              hθz.symm
-                (hboundary_norm θ)
-            (hL z hz_norm).continuousAt.continuousWithinAt
+      hcircle
+      hnorm_circle
   have hcomp :
       Continuous (fun θ : ℝ =>
-        L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) :=
-    hL_cont_on_boundary.comp_continuous hsample_cont
-      (fun θ => Set.mem_range_self θ)
+        L ((ρ : ℂ) * Complex.exp (θ * Complex.I))) := by
+    exact continuous_iff_continuousAt.mpr
+      (fun θ =>
+        have hL_at :
+            ContinuousAt L ((ρ : ℂ) * Complex.exp (θ * Complex.I)) :=
+          (hL
+            ((ρ : ℂ) * Complex.exp (θ * Complex.I))
+            (hboundary_norm θ)).continuousAt
+        ContinuousAt.comp hL_at hsample_cont.continuousAt)
   exact hcomp.intervalIntegrable (0 : ℝ) (2 * Real.pi)
 
 /-- Real scalar multiplication in `ℂ`, viewed by real parts. -/
@@ -4718,7 +4553,7 @@ theorem entireFunction_complexMean_realScalar_re
     (w : ℂ) :
     (((c : ℂ) • w).re) = c * w.re := by
   have hsmul : ((c : ℂ) • w) = (c : ℂ) * w :=
-    smul_eq_mul (c : ℂ) w
+    rfl
   exact Eq.trans
     (congrArg Complex.re hsmul)
     (entireFunction_complexMean_realScalar_re_mul c w)
@@ -4727,7 +4562,12 @@ theorem entireFunction_complexMean_realScalar_re
 of the real inverse. -/
 theorem entireFunction_complex_twoPi_inv_eq_real_twoPi_inv :
     ((2 * Real.pi : ℂ)⁻¹) = (((2 * Real.pi)⁻¹ : ℝ) : ℂ) := by
-  exact (Complex.ofReal_inv (2 * Real.pi)).symm
+  have htwo_pi :
+      (2 * Real.pi : ℂ) = ((2 * Real.pi : ℝ) : ℂ) := by
+    exact (Complex.ofReal_mul 2 Real.pi).symm
+  exact Eq.trans
+    (congrArg Inv.inv htwo_pi)
+    (Complex.ofReal_inv (2 * Real.pi)).symm
 
 /-- Real-part transport for the normalized complex boundary mean, isolated from
 the analytic Cauchy input. -/
@@ -4875,7 +4715,7 @@ theorem entireFunction_singleZeroFactor_boundary_point_ne_zero
     (θ : ℝ) :
     ((ρ : ℂ) * Complex.exp (θ * Complex.I)) ≠ 0 := by
   have hρ_ne : (ρ : ℂ) ≠ 0 :=
-    ofReal_ne_zero.mpr hρ_pos.ne'
+    Complex.ofReal_ne_zero.mpr hρ_pos.ne'
   have hexp_ne : Complex.exp (θ * Complex.I) ≠ 0 :=
     Complex.exp_ne_zero (θ * Complex.I)
   exact mul_ne_zero hρ_ne hexp_ne
@@ -4895,10 +4735,10 @@ theorem entireFunction_singleZeroFactor_inner_ne_zero
     entireFunction_singleZeroFactor_boundary_point_ne_zero hρ_pos θ
   intro hzero
   have hdiv_eq_one : a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)) = 1 :=
-    sub_eq_zero.mp hzero
+    (sub_eq_zero.mp hzero).symm
   have hnorm_div_eq_one :
       ‖a / ((ρ : ℂ) * Complex.exp (θ * Complex.I))‖ = 1 :=
-    congrArg norm hdiv_eq_one
+    Eq.trans (congrArg norm hdiv_eq_one) norm_one
   have hnorm_exp :
       ‖Complex.exp (θ * Complex.I)‖ = 1 := by
     calc
@@ -4914,8 +4754,10 @@ theorem entireFunction_singleZeroFactor_inner_ne_zero
           ‖(ρ : ℂ)‖ * ‖Complex.exp (θ * Complex.I)‖ := by
         exact norm_mul (ρ : ℂ) (Complex.exp (θ * Complex.I))
       _ = |ρ| * 1 := by
-        exact congrArg (fun x : ℝ => x * ‖Complex.exp (θ * Complex.I)‖)
+        exact congrArg₂
+          (fun x y : ℝ => x * y)
           (Complex.norm_real ρ)
+          hnorm_exp
       _ = ρ := by
         exact Eq.trans (mul_one |ρ|) (abs_of_pos hρ_pos)
   have hnorm_a_div :
@@ -4954,11 +4796,11 @@ theorem entireFunction_singleZeroFactor_boundary_factorization
       (z * a⁻¹) * (a * z⁻¹) = 1 := by
     calc
       (z * a⁻¹) * (a * z⁻¹) = ((z * a⁻¹) * a) * z⁻¹ := by
-        exact mul_assoc (z * a⁻¹) a z⁻¹
+        exact (mul_assoc (z * a⁻¹) a z⁻¹).symm
       _ = (z * (a⁻¹ * a)) * z⁻¹ := by
         exact congrArg (fun x : ℂ => x * z⁻¹) (mul_assoc z a⁻¹ a)
       _ = z * ((a⁻¹ * a) * z⁻¹) := by
-        exact (mul_assoc z (a⁻¹ * a) z⁻¹).symm
+        exact mul_assoc z (a⁻¹ * a) z⁻¹
       _ = z * (1 * z⁻¹) := by
         exact congrArg (fun x : ℂ => z * (x * z⁻¹)) (inv_mul_cancel₀ ha0)
       _ = z * z⁻¹ := by
@@ -4969,7 +4811,9 @@ theorem entireFunction_singleZeroFactor_boundary_factorization
       exact congrArg (fun x : ℂ => 1 - x) (div_eq_mul_inv z a)
     _ = -(z * a⁻¹) * (1 - a * z⁻¹) := by
       calc
-        1 - (z * a⁻¹) =
+        1 - (z * a⁻¹) = 1 - (z * a⁻¹) * 1 := by
+          exact congrArg (fun x : ℂ => 1 - x) (mul_one (z * a⁻¹)).symm
+        _ =
             (z * a⁻¹) * (a * z⁻¹) - (z * a⁻¹) * 1 := by
           exact congrArg (fun x : ℂ => x - (z * a⁻¹) * 1) hinner.symm
         _ = (z * a⁻¹) * ((a * z⁻¹) - 1) := by
@@ -5105,9 +4949,9 @@ theorem complex_one_sub_mul_id_ne_zero_on_closed_unitDisk
     1 - c * z ≠ 0 := by
   intro hzero
   have hmul_eq_one : c * z = 1 :=
-    sub_eq_zero.mp hzero
+    (sub_eq_zero.mp hzero).symm
   have hnorm_mul_eq_one : ‖c * z‖ = 1 :=
-    congrArg norm hmul_eq_one
+    Eq.trans (congrArg norm hmul_eq_one) norm_one
   have hnorm_mul_le : ‖c * z‖ ≤ ‖c‖ := by
     have hmul_norm : ‖c * z‖ = ‖c‖ * ‖z‖ :=
       norm_mul c z
@@ -5132,10 +4976,10 @@ theorem complex_one_sub_mul_id_ne_zero_on_closed_unitDisk
 theorem complex_norm_conj_lt_one
     {q : ℂ}
     (hq : ‖q‖ < 1) :
-    ‖conj q‖ < 1 := by
+    ‖(starRingEnd ℂ) q‖ < 1 := by
   exact Eq.subst
     (motive := fun x : ℝ => x < 1)
-    (RCLike.norm_conj q)
+    (RCLike.norm_conj q).symm
     hq
 
 /-- The negative-orientation boundary factor has the same norm as the
@@ -5144,48 +4988,74 @@ theorem complex_one_sub_contracting_negativeMode_norm_eq_conj_positiveMode_norm
     (q : ℂ)
     (θ : ℝ) :
     ‖1 - q * Complex.exp (-(θ * Complex.I))‖ =
-      ‖1 - conj q * Complex.exp (θ * Complex.I)‖ := by
+      ‖1 - (starRingEnd ℂ) q * Complex.exp (θ * Complex.I)‖ := by
   have hconj_exp :
-      conj (Complex.exp (-(θ * Complex.I))) =
+      (starRingEnd ℂ) (Complex.exp (-(θ * Complex.I))) =
         Complex.exp (θ * Complex.I) := by
     calc
-      conj (Complex.exp (-(θ * Complex.I))) =
-          Complex.exp (conj (-(θ * Complex.I))) := by
+      (starRingEnd ℂ) (Complex.exp (-(θ * Complex.I))) =
+          Complex.exp ((starRingEnd ℂ) (-(θ * Complex.I))) := by
         exact (Complex.exp_conj (-(θ * Complex.I))).symm
       _ = Complex.exp (θ * Complex.I) := by
         have harg :
-            conj (-(θ * Complex.I)) = θ * Complex.I := by
+            (starRingEnd ℂ) (-(θ * Complex.I)) = θ * Complex.I := by
           calc
-            conj (-(θ * Complex.I)) = -conj (θ * Complex.I) := by
-              exact map_neg conj (θ * Complex.I)
-            _ = -((θ : ℂ) * conj Complex.I) := by
-              exact congrArg Neg.neg (map_mul conj (θ : ℂ) Complex.I)
+            (starRingEnd ℂ) (-(θ * Complex.I)) =
+                -((starRingEnd ℂ) (θ * Complex.I)) := by
+              exact map_neg (starRingEnd ℂ) (θ * Complex.I)
+            _ = -(((starRingEnd ℂ) (θ : ℂ)) *
+                ((starRingEnd ℂ) Complex.I)) := by
+              exact congrArg Neg.neg
+                (map_mul (starRingEnd ℂ) (θ : ℂ) Complex.I)
             _ = -((θ : ℂ) * (-Complex.I)) := by
-              exact congrArg (fun z : ℂ => -((θ : ℂ) * z)) Complex.conj_I
+              have htheta :
+                  (starRingEnd ℂ) (θ : ℂ) = (θ : ℂ) :=
+                Complex.conj_ofReal θ
+              have hI :
+                  (starRingEnd ℂ) Complex.I = -Complex.I :=
+                Complex.conj_I
+              exact Eq.trans
+                (congrArg
+                  (fun z : ℂ =>
+                    -(z * ((starRingEnd ℂ) Complex.I)))
+                  htheta)
+                (congrArg (fun z : ℂ => -((θ : ℂ) * z)) hI)
             _ = (θ : ℂ) * Complex.I := by
-              exact neg_mul_eq_mul_neg (θ : ℂ) Complex.I
+              exact Eq.trans
+                (neg_mul_eq_mul_neg (θ : ℂ) (-Complex.I))
+                (congrArg
+                  (fun z : ℂ => (θ : ℂ) * z)
+                  (neg_neg Complex.I))
         exact congrArg Complex.exp harg
   have hconj_factor :
-      conj (1 - q * Complex.exp (-(θ * Complex.I))) =
-        1 - conj q * Complex.exp (θ * Complex.I) := by
+      (starRingEnd ℂ) (1 - q * Complex.exp (-(θ * Complex.I))) =
+        1 - (starRingEnd ℂ) q * Complex.exp (θ * Complex.I) := by
     calc
-      conj (1 - q * Complex.exp (-(θ * Complex.I))) =
-          conj 1 - conj (q * Complex.exp (-(θ * Complex.I))) := by
-        exact map_sub conj 1 (q * Complex.exp (-(θ * Complex.I)))
-      _ = 1 - conj (q * Complex.exp (-(θ * Complex.I))) := by
+      (starRingEnd ℂ) (1 - q * Complex.exp (-(θ * Complex.I))) =
+          (starRingEnd ℂ) 1 -
+            (starRingEnd ℂ) (q * Complex.exp (-(θ * Complex.I))) := by
+        exact map_sub (starRingEnd ℂ) 1
+          (q * Complex.exp (-(θ * Complex.I)))
+      _ = 1 -
+            (starRingEnd ℂ) (q * Complex.exp (-(θ * Complex.I))) := by
         exact congrArg
-          (fun x : ℂ => x - conj (q * Complex.exp (-(θ * Complex.I))))
-          (map_one conj)
-      _ = 1 - conj q * conj (Complex.exp (-(θ * Complex.I))) := by
+          (fun x : ℂ =>
+            x - (starRingEnd ℂ) (q * Complex.exp (-(θ * Complex.I))))
+          (map_one (starRingEnd ℂ))
+      _ =
+          1 - (starRingEnd ℂ) q *
+            (starRingEnd ℂ) (Complex.exp (-(θ * Complex.I))) := by
         exact congrArg (fun x : ℂ => 1 - x)
-          (map_mul conj q (Complex.exp (-(θ * Complex.I))))
-      _ = 1 - conj q * Complex.exp (θ * Complex.I) := by
-        exact congrArg (fun x : ℂ => 1 - conj q * x) hconj_exp
+          (map_mul (starRingEnd ℂ) q (Complex.exp (-(θ * Complex.I))))
+      _ = 1 - (starRingEnd ℂ) q * Complex.exp (θ * Complex.I) := by
+        exact congrArg (fun x : ℂ => 1 - (starRingEnd ℂ) q * x) hconj_exp
   calc
     ‖1 - q * Complex.exp (-(θ * Complex.I))‖ =
-        ‖conj (1 - q * Complex.exp (-(θ * Complex.I)))‖ := by
-      exact (norm_conj (1 - q * Complex.exp (-(θ * Complex.I)))).symm
-    _ = ‖1 - conj q * Complex.exp (θ * Complex.I)‖ := by
+        ‖(starRingEnd ℂ)
+          (1 - q * Complex.exp (-(θ * Complex.I)))‖ := by
+      exact (RCLike.norm_conj
+        (1 - q * Complex.exp (-(θ * Complex.I)))).symm
+    _ = ‖1 - (starRingEnd ℂ) q * Complex.exp (θ * Complex.I)‖ := by
       exact congrArg norm hconj_factor
 
 /-- The center value of the affine disk factor has zero logarithmic norm. -/
@@ -5269,6 +5139,8 @@ theorem complex_log_one_sub_contracting_positive_fourier_mean_zero
                                 (Complex.norm_exp_ofReal_mul_I θ)
                             _ = 1 := by
                               exact one_mul 1
+                            _ ≤ (1 : ℝ) := by
+                              exact le_refl 1
                         have hlog_re :
                             (L (((1 : ℝ) : ℂ) * Complex.exp (θ * Complex.I))).re =
                               Real.log ‖G (((1 : ℝ) : ℂ) * Complex.exp (θ * Complex.I))‖ :=
@@ -5282,7 +5154,7 @@ theorem complex_log_one_sub_contracting_positive_fourier_mean_zero
                                 1 - c * (((1 : ℝ) : ℂ) * Complex.exp (θ * Complex.I)) := rfl
                             _ = 1 - (c * (((1 : ℝ) : ℂ)) * Complex.exp (θ * Complex.I)) := by
                               exact congrArg (fun x : ℂ => 1 - x)
-                                (mul_assoc c (((1 : ℝ) : ℂ)) (Complex.exp (θ * Complex.I)))
+                                (mul_assoc c (((1 : ℝ) : ℂ)) (Complex.exp (θ * Complex.I))).symm
                             _ = 1 - (c * 1 * Complex.exp (θ * Complex.I)) := by
                               exact congrArg
                                 (fun x : ℂ => 1 - (c * x * Complex.exp (θ * Complex.I)))
@@ -5318,19 +5190,21 @@ theorem complex_log_one_sub_contracting_fourier_mean_zero
         (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - q * Complex.exp (-(θ * Complex.I))‖) =
       0 := by
-  have hconj_contract : ‖conj q‖ < 1 :=
+  have hconj_contract : ‖(starRingEnd ℂ) q‖ < 1 :=
     complex_norm_conj_lt_one hq
   have hpositive :
       (2 * Real.pi)⁻¹ *
           (∫ θ in (0 : ℝ)..(2 * Real.pi),
-            Real.log ‖1 - conj q * Complex.exp (θ * Complex.I)‖) =
+            Real.log ‖1 - (starRingEnd ℂ) q *
+              Complex.exp (θ * Complex.I)‖) =
         0 :=
     complex_log_one_sub_contracting_positive_fourier_mean_zero hconj_contract
   have hboundary :
       (∫ θ in (0 : ℝ)..(2 * Real.pi),
           Real.log ‖1 - q * Complex.exp (-(θ * Complex.I))‖) =
         ∫ θ in (0 : ℝ)..(2 * Real.pi),
-          Real.log ‖1 - conj q * Complex.exp (θ * Complex.I)‖ := by
+          Real.log ‖1 - (starRingEnd ℂ) q *
+            Complex.exp (θ * Complex.I)‖ := by
     exact intervalIntegral.integral_congr fun θ _hθ =>
       congrArg Real.log
         (complex_one_sub_contracting_negativeMode_norm_eq_conj_positiveMode_norm
@@ -5381,11 +5255,14 @@ theorem entireFunction_singleZeroFactor_inner_eq_contracting_fourier_factor
       a / ((ρ : ℂ) * Complex.exp (θ * Complex.I)) =
           a * (((ρ : ℂ) * Complex.exp (θ * Complex.I))⁻¹) := by
         exact div_eq_mul_inv a ((ρ : ℂ) * Complex.exp (θ * Complex.I))
-      _ = a * ((ρ : ℂ)⁻¹ * (Complex.exp (θ * Complex.I))⁻¹) := by
+      _ = a * ((Complex.exp (θ * Complex.I))⁻¹ * (ρ : ℂ)⁻¹) := by
         exact congrArg (fun x : ℂ => a * x)
           (mul_inv_rev (ρ : ℂ) (Complex.exp (θ * Complex.I)))
+      _ = a * ((ρ : ℂ)⁻¹ * (Complex.exp (θ * Complex.I))⁻¹) := by
+        exact congrArg (fun x : ℂ => a * x)
+          (mul_comm (Complex.exp (θ * Complex.I))⁻¹ (ρ : ℂ)⁻¹)
       _ = (a * (ρ : ℂ)⁻¹) * (Complex.exp (θ * Complex.I))⁻¹ := by
-        exact mul_assoc a (ρ : ℂ)⁻¹ (Complex.exp (θ * Complex.I))⁻¹
+        exact (mul_assoc a (ρ : ℂ)⁻¹ (Complex.exp (θ * Complex.I))⁻¹).symm
       _ = (a / (ρ : ℂ)) * (Complex.exp (θ * Complex.I))⁻¹ := by
         exact congrArg
           (fun x : ℂ => x * (Complex.exp (θ * Complex.I))⁻¹)
@@ -5468,8 +5345,12 @@ theorem entireFunction_singleZeroFactor_inner_log_continuous
     hq_cont.norm
   exact continuous_iff_continuousAt.mpr
     (fun θ : ℝ =>
-      (Real.continuousAt_log
-        (norm_ne_zero_iff.mpr (hinner_ne θ))).comp θ hnorm_cont.continuousAt)
+      ContinuousAt.comp
+        (x := θ)
+        (f := fun t : ℝ => ‖q t‖)
+        (g := Real.log)
+        (Real.continuousAt_log (norm_ne_zero_iff.mpr (hinner_ne θ)))
+        hnorm_cont.continuousAt)
 
 /-- The inner single-zero logarithmic boundary factor is interval-integrable on
 the Jensen parameter interval. -/
@@ -5508,9 +5389,28 @@ theorem entireFunction_normalized_const_add_integral_eq_const_of_mean_zero
   have hintegral :
       (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) =
         (2 * Real.pi - 0) • c +
-          ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ :=
-    intervalIntegral_const_add_eq_length_smul_add
-      v c (0 : ℝ) (2 * Real.pi) hv
+          ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ := by
+    have hconst_int :
+        IntervalIntegrable
+          (fun _θ : ℝ => c)
+          MeasureTheory.volume
+          (0 : ℝ)
+          (2 * Real.pi) :=
+      continuous_const.intervalIntegrable (0 : ℝ) (2 * Real.pi)
+    have hadd :
+        (∫ θ in (0 : ℝ)..(2 * Real.pi), c + v θ) =
+          (∫ θ in (0 : ℝ)..(2 * Real.pi), c) +
+            ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ :=
+      intervalIntegral.integral_add hconst_int hv
+    have hconst :
+        (∫ _θ in (0 : ℝ)..(2 * Real.pi), c) =
+          (2 * Real.pi - 0) • c :=
+      intervalIntegral.integral_const c
+    exact Eq.trans hadd
+      (congrArg
+        (fun x : ℝ =>
+          x + ∫ θ in (0 : ℝ)..(2 * Real.pi), v θ)
+        hconst)
   have htwo_ne : 2 * Real.pi ≠ 0 :=
     ne_of_gt Real.two_pi_pos
   have hconst :

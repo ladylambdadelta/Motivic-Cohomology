@@ -18,6 +18,231 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Generic completed-window comparison.
+
+If two finite-window systems have completed limits and their window difference is a
+remainder tending to zero, then the completed limits agree. -/
+theorem completedWindowLimits_eq_of_sub_tendsto_zero
+    {W C R : ℕ → ℝ} {LW LC : ℝ}
+    (hW : Tendsto W atTop (𝓝 LW))
+    (hC : Tendsto C atTop (𝓝 LC))
+    (hsub : (fun N : ℕ => C N - W N) = R)
+    (hR : Tendsto R atTop (𝓝 0)) :
+    LW = LC := by
+  have hdiff :
+      Tendsto
+        (fun N : ℕ => C N - W N)
+        atTop
+        (𝓝 (LC - LW)) :=
+    hC.sub hW
+  have hzero :
+      Tendsto
+        (fun N : ℕ => C N - W N)
+        atTop
+        (𝓝 0) :=
+    Eq.subst
+      (motive := fun u : ℕ → ℝ => Tendsto u atTop (𝓝 0))
+      hsub.symm
+      hR
+  have hsubZero : LC - LW = 0 :=
+    tendsto_nhds_unique hdiff hzero
+  have hLCeqLW : LC = LW := by
+    calc
+      LC = LC - LW + LW := by
+        exact (sub_add_cancel LC LW).symm
+      _ = 0 + LW := by
+        exact congrArg (fun x : ℝ => x + LW) hsubZero
+      _ = LW := by
+        exact zero_add LW
+  exact hLCeqLW.symm
+
+/-- Finite time-side prime windows converge to the completed time-side prime pairing. -/
+theorem finitePrimeTimeDistributionWindow_tendsto_completedTimePairing_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+      atTop
+      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) := by
+  exact finitePrimeTimeDistributionWindow_tendsto_completed f
+
+/-- Finite contour-realized prime windows converge to their completed finite-window
+contour scalar.
+
+This is not a coordinate summability theorem; it is the finite-window horizontal transport
+limit already supplied by the horizontal-decay owner. -/
+theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedFiniteWindowPairing_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f))
+      atTop
+      (𝓝 (completedPrimeContourRealizedFiniteWindowPairing f)) := by
+  unfold completedPrimeContourRealizedFiniteWindowPairing
+  exact
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_timeDistributionPairing_ownerHorizontalDecay
+      f
+
+/-- The raw spectral contour scalar agrees with the completed finite-window contour scalar.
+
+This compatibility wrapper consumes the split prime owner theorem
+`completedPrimeContourFiniteWindowExpansion_diagonalDebtAbsorption_eq_GNSHeartScalar`
+followed by the raw spectral/two-face comparison;
+it is not a coordinate-summability statement. -/
+theorem completedPrimeContourRealizedFiniteWindowPairing_eq_rawSpectralContourPairing_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourRealizedFiniteWindowPairing f =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  exact completedPrimeContourFiniteWindowGNSRealization_rawSpectral f
+
+/-- The finite contour window minus the finite time window is the finite coordinate
+remainder window. -/
+theorem finitePrimeContourWindow_sub_finiteTimeWindow_eq_remainderWindow_ownerTomography
+    (N : ℕ) (f : ZetaAdmissibleFunction) :
+    finitePrimeContourRealizedTimeDistributionWindow N
+        (convolutionAutocorrelation f) -
+      finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f) =
+        finitePrimeContourTransportCoordinateRemainderWindow N f := by
+  exact
+    (finitePrimeContourTransportCoordinateRemainderWindow_eq_contourWindow_sub_timeWindow
+      N f).symm
+
+/-- Completed finite-window prime transport: the time-side completed prime pairing is the
+completed finite-window contour scalar.
+
+This is a uniqueness-of-limits theorem for the finite-window triangle.  The finite
+time-side windows converge to the completed time pairing, the finite contour windows
+converge to the completed finite-window contour scalar, and their difference is the finite
+coordinate remainder window killed by horizontal decay. -/
+theorem completedPrimeTimeDistributionPairing_eq_completedContourFiniteWindowPairing_ownerTomographyLimit
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedFiniteWindowPairing f := by
+  have htime :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) :=
+    finitePrimeTimeDistributionWindow_tendsto_completedTimePairing_ownerTomography f
+  have hcontour :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (completedPrimeContourRealizedFiniteWindowPairing f)) :=
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedFiniteWindowPairing_ownerTomography
+      f
+  have hremainder :
+      Tendsto
+        (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f)
+        atTop
+        (𝓝 0) :=
+    finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerHorizontalDecay
+      f
+  have hwindowEq :
+      (fun N : ℕ =>
+        finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f) -
+          finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f)) =
+        (fun N : ℕ => finitePrimeContourTransportCoordinateRemainderWindow N f) := by
+    funext N
+    exact finitePrimeContourWindow_sub_finiteTimeWindow_eq_remainderWindow_ownerTomography
+      N f
+  exact
+    completedWindowLimits_eq_of_sub_tendsto_zero
+      htime
+      hcontour
+      hwindowEq
+      hremainder
+
+/-- Finite contour-realized prime windows converge to the raw completed contour-realized
+prime pairing after comparing the raw spectral scalar with the completed finite-window
+scalar.  The comparison is supplied by the split finite-window-to-raw-spectral theorem. -/
+theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedContourRealizedTimeDistributionPairing_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeContourRealizedTimeDistributionWindow N
+          (convolutionAutocorrelation f))
+      atTop
+      (𝓝
+        (completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f))) := by
+  have hfinite :
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 (completedPrimeContourRealizedFiniteWindowPairing f)) :=
+    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedFiniteWindowPairing_ownerTomography
+      f
+  have hcompare :
+      completedPrimeContourRealizedFiniteWindowPairing f =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeContourRealizedFiniteWindowPairing_eq_rawSpectralContourPairing_ownerTomography
+      f
+  exact Eq.subst
+    (motive := fun x : ℝ =>
+      Tendsto
+        (fun N : ℕ =>
+          finitePrimeContourRealizedTimeDistributionWindow N
+            (convolutionAutocorrelation f))
+        atTop
+        (𝓝 x))
+    hcompare
+    hfinite
+
+/-- Raw spectral contour comparison wrapper.
+
+The core finite-window transport theorem targets
+`completedPrimeContourRealizedFiniteWindowPairing`.  Passing from that finite-window scalar
+to the raw spectral presentation is supplied by
+`completedPrimeContourFiniteWindowExpansion_diagonalDebtAbsorption_eq_GNSHeartScalar`
+and the raw spectral/two-face comparison. -/
+theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomographyLimit
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+      completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) := by
+  have hfinite :
+      completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
+        completedPrimeContourRealizedFiniteWindowPairing f :=
+    completedPrimeTimeDistributionPairing_eq_completedContourFiniteWindowPairing_ownerTomographyLimit
+      f
+  have hraw :
+      completedPrimeContourRealizedFiniteWindowPairing f =
+        completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) :=
+    completedPrimeContourRealizedFiniteWindowPairing_eq_rawSpectralContourPairing_ownerTomography
+      f
+  exact hfinite.trans hraw
+
+/-- The completed contour-realized prime channel is the completed spectral prime channel. -/
+theorem completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpectralPrimeChannel_ownerTomography
+    (f : ZetaAdmissibleFunction) :
+    completedPrimeContourRealizedTimeDistributionPairing
+        (convolutionAutocorrelation f) =
+      completedSpectralPrimeOffDiagonalChannel f := by
+  have hrealized :
+      completedPrimeContourRealizedTimeDistributionPairing
+          (convolutionAutocorrelation f) =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
+      (convolutionAutocorrelation f)
+  have hspectral :
+      completedSpectralPrimeOffDiagonalChannel f =
+        completedPrimeSpectralDistributionPairing
+          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
+    completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
+  exact hrealized.trans hspectral.symm
+
 /-- Global prime tomography: the completed raw off-diagonal channel is the real part of the
 completed two-face/GNS boundary coefficient.
 
@@ -29,7 +254,9 @@ theorem completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoef
     (f : ZetaAdmissibleFunction) :
     completedPrimeOffDiagonalChannel f =
       Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) := by
-  sorry
+  exact
+    completedPrimeOffDiagonalChannel_eq_completedTwoFaceGNSBoundaryCoefficient_re_ownerDistributionTransport
+      f
 
 /-- A completed prime tomography class records the scalar seen after the completed prime
 time-side boundary distribution is reconstructed as a two-face boundary object.
@@ -200,20 +427,8 @@ theorem completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_own
     completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
       completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) := by
-  have htime :
-      completedPrimeTimeTomographyProjection f =
-        completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
-    completedPrimeTimeTomographyProjection_eq_timeDistributionPairing f
-  have htomography :
-      completedPrimeTimeTomographyProjection f =
-        completedPrimeTwoFaceTomographyProjection f :=
-    completedPrimeTimeTomographyProjection_eq_twoFaceTomographyProjection_ownerTomography f
-  have htwoFace :
-      completedPrimeTwoFaceTomographyProjection f =
-        completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) :=
-    completedPrimeTwoFaceTomographyProjection_eq_contourRealizedPairing f
-  exact htime.symm.trans (htomography.trans htwoFace)
+  exact completedPrimeTimeDistributionPairing_eq_contourRealizedPrimeChannel_ownerTomographyLimit
+    f
 
 /-- Completed prime holographic reconstruction.
 
@@ -246,16 +461,9 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
     (f : ZetaAdmissibleFunction) :
     completedPrimeOffDiagonalChannel f =
       completedSpectralPrimeOffDiagonalChannel f := by
-  have hchannel :
-      completedPrimeOffDiagonalChannel f =
-        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedPrimeOffDiagonalChannel_eq_completedPrimeTwoFaceGNSBoundaryCoefficient_re_ownerTomography f
-  have hspectral :
-      completedSpectralPrimeOffDiagonalChannel f =
-        Complex.re (zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient f) :=
-    completedSpectralPrimeOffDiagonalChannel_eq_completedTwoFaceBoundaryCoefficient_re
+  exact
+    completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerDistributionTransport
       f
-  exact hchannel.trans hspectral.symm
 
 /-- Completed prime holographic reconstruction.
 
@@ -419,19 +627,9 @@ theorem completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpe
     completedPrimeContourRealizedTimeDistributionPairing
         (convolutionAutocorrelation f) =
       completedSpectralPrimeOffDiagonalChannel f := by
-  have hrealized :
-      completedPrimeContourRealizedTimeDistributionPairing
-          (convolutionAutocorrelation f) =
-        completedPrimeSpectralDistributionPairing
-          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
-    completedPrimeContourRealizedTimeDistribution_eq_spectralPrimePowerContribution
-      (convolutionAutocorrelation f)
-  have hspectral :
-      completedSpectralPrimeOffDiagonalChannel f =
-        completedPrimeSpectralDistributionPairing
-          (zetaCompletedSpectralLaplaceTransform (convolutionAutocorrelation f)) :=
-    completedSpectralPrimeOffDiagonalChannel_eq_spectralDistributionPairing f
-  exact hrealized.trans hspectral.symm
+  exact
+    completedPrimeContourRealized_convolutionAutocorrelation_eq_completedSpectralPrimeChannel_ownerTomography
+      f
 
 /-- Completed contour realization identifies the time-side real prime channel with the
 spectral-sample prime channel. -/

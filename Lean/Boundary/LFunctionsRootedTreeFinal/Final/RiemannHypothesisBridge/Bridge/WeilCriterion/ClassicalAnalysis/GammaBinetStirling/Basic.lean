@@ -32,6 +32,14 @@ noncomputable def Complex.binetLogGammaMainTerm (w : ℂ) : ℂ :=
   (w - (1 / 2 : ℂ)) * Complex.log w - w +
     (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2
 
+/-- Unfolding of the Binet logarithmic Gamma main term. -/
+theorem Complex.binetLogGammaMainTerm_unfold
+    (w : ℂ) :
+    Complex.binetLogGammaMainTerm w =
+      (w - (1 / 2 : ℂ)) * Complex.log w - w +
+        (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2 :=
+  rfl
+
 /-- The analytic Euler/Binet logarithm branch of `Gamma` on the right
 half-plane.
 

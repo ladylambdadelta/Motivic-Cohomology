@@ -88,31 +88,30 @@ def centeredCompletedZetaZeroCarrierZerosInClosedDisk
 theorem completedZeroMultiplicityClosedDiskSummand_nonnegative
     (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ completedZeroMultiplicityClosedDiskSummand R ρ := by
-  unfold completedZeroMultiplicityClosedDiskSummand
-  by_cases hρ : ‖(ρ : ℂ)‖ ≤ R
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_pos hρ).symm
-      (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_neg hρ).symm
-      (le_refl (0 : ℝ))
+  exact
+    match Decidable.em (‖(ρ : ℂ)‖ ≤ R) with
+    | Or.inl hρ =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_pos hρ).symm
+          (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
+    | Or.inr hρ =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_neg hρ).symm
+          (le_refl (0 : ℝ))
 
 /-- Closed-disk multiplicity summands vanish outside the closed disk. -/
 theorem completedZeroMultiplicityClosedDiskSummand_eq_zero_of_not_mem
     (R : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hρ : ρ ∉ completedZerosInCenteredClosedDisk R) :
     completedZeroMultiplicityClosedDiskSummand R ρ = 0 := by
-  unfold completedZerosInCenteredClosedDisk at hρ
-  unfold completedZeroMultiplicityClosedDiskSummand
   exact if_neg hρ
 
-/-- Centering by the real half-shift does not change the imaginary coordinate. -/
+/-- Centering by the real half-shift preserves the imaginary coordinate. -/
 theorem zetaCenteredZero_im_eq
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     (zetaCenteredZero (ρ : ℂ)).im = (ρ : ℂ).im := by
-  unfold zetaCenteredZero
   calc
     ((ρ : ℂ) - (1 / 2 : ℂ)).im =
         (ρ : ℂ).im - (1 / 2 : ℂ).im := by
@@ -128,9 +127,6 @@ theorem completedZero_mem_centeredHeightBall_of_mem_centeredClosedDisk
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hρ : ρ ∈ completedZerosInCenteredClosedDisk R) :
     ρ ∈ completedZerosInCenteredHeightBall (R + 1) := by
-  unfold completedZerosInCenteredClosedDisk at hρ
-  unfold completedZerosInCenteredHeightBall
-  unfold zetaCompletedZeroCenteredHeight
   have him :
       ‖(zetaCenteredZero (ρ : ℂ)).im‖ = ‖(ρ : ℂ).im‖ :=
     congrArg (fun x : ℝ => ‖x‖) (zetaCenteredZero_im_eq ρ)
@@ -205,13 +201,7 @@ theorem completedZero_mem_centeredClosedDisk_of_mem_centeredHeightBall
     zetaCompletedZero_re_mem_centeredCriticalStrip ρ
   have hheight :
       1 + ‖((ρ : ℂ) - (1 / 2 : ℂ)).im‖ ≤ T := by
-    exact Eq.subst
-      (motive := fun x : ℝ => x ≤ T)
-      (by
-        unfold zetaCompletedZeroCenteredHeight
-        unfold zetaCenteredZero
-        rfl)
-      hρ
+    exact hρ
   have hbox : (ρ : ℂ) ∈ centeredCriticalHeightBox T :=
     ⟨hstrip.1, hstrip.2, hheight⟩
   have hnorm_radius :
@@ -239,37 +229,39 @@ theorem completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedZeroMultiplicityHeightBallSummand T ρ ≤
       completedZeroMultiplicityClosedDiskSummand (T + 2) ρ := by
-  unfold completedZeroMultiplicityHeightBallSummand
-  unfold completedZeroMultiplicityClosedDiskSummand
-  by_cases hheight : zetaCompletedZeroCenteredHeight ρ ≤ T
-  · have hdisk : ‖(ρ : ℂ)‖ ≤ T + 2 :=
-      completedZero_mem_centeredClosedDisk_of_mem_centeredHeightBall
-        T hT ρ hheight
-    exact Eq.subst
-      (motive := fun x : ℝ =>
-        x ≤ if ‖(ρ : ℂ)‖ ≤ T + 2 then
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
-      (if_pos hheight).symm
-      (Eq.subst
-        (motive := fun x : ℝ =>
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ x)
-        (if_pos hdisk).symm
-        (le_refl (zetaZeroMultiplicity (ρ : ℂ) : ℝ)))
-  · exact Eq.subst
-      (motive := fun x : ℝ =>
-        x ≤ if ‖(ρ : ℂ)‖ ≤ T + 2 then
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
-      (if_neg hheight).symm
-      (by
-        by_cases hdisk : ‖(ρ : ℂ)‖ ≤ T + 2
-        · exact Eq.subst
-            (motive := fun x : ℝ => 0 ≤ x)
+  exact
+    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+    | Or.inl hheight =>
+        have hdisk : ‖(ρ : ℂ)‖ ≤ T + 2 :=
+          completedZero_mem_centeredClosedDisk_of_mem_centeredHeightBall
+            T hT ρ hheight
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ if ‖(ρ : ℂ)‖ ≤ T + 2 then
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
+          (if_pos hheight).symm
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ x)
             (if_pos hdisk).symm
-            (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
-        · exact Eq.subst
-            (motive := fun x : ℝ => 0 ≤ x)
-            (if_neg hdisk).symm
-            (le_refl (0 : ℝ)))
+            (le_refl (zetaZeroMultiplicity (ρ : ℂ) : ℝ)))
+    | Or.inr hheight =>
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ if ‖(ρ : ℂ)‖ ≤ T + 2 then
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
+          (if_neg hheight).symm
+          (match Decidable.em (‖(ρ : ℂ)‖ ≤ T + 2) with
+          | Or.inl hdisk =>
+              Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_pos hdisk).symm
+                (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
+          | Or.inr hdisk =>
+              Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_neg hdisk).symm
+                (le_refl (0 : ℝ)))
 
 /-- Centered-height multiplicity counting is bounded by closed-disk multiplicity counting
 at the controlled enlarged radius. -/
@@ -277,8 +269,6 @@ theorem completedZeroMultiplicityCounting_heightBall_le_closedDiskCounting
     (T : ℝ) (hT : 1 ≤ T) :
     completedZeroMultiplicityCountingInCenteredHeightBall T ≤
       completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) := by
-  unfold completedZeroMultiplicityCountingInCenteredHeightBall
-  unfold completedZeroMultiplicityCountingInCenteredClosedDisk
   exact tsum_le_tsum
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
       completedZeroMultiplicityHeightBallSummand_le_closedDiskSummand T hT ρ)
@@ -299,56 +289,57 @@ theorem completedZeroMultiplicityCounting_heightBall_polynomial_bound_of_closedD
       ∀ T : ℝ,
         1 ≤ T →
         completedZeroMultiplicityCountingInCenteredHeightBall T ≤ C' * T ^ d := by
-  refine ⟨C * (3 : ℝ) ^ d, ?_, ?_⟩
-  · exact mul_pos hC (pow_pos zero_lt_three d)
-  · intro T hT
-    have hheight_disk :
-        completedZeroMultiplicityCountingInCenteredHeightBall T ≤
-          completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) :=
-      completedZeroMultiplicityCounting_heightBall_le_closedDiskCounting T hT
-    have hR_ge_one : 1 ≤ T + 2 :=
-      le_trans hT (le_add_of_nonneg_right zero_le_two)
-    have hclosed_T :
-        completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) ≤
-          C * (T + 2) ^ d :=
-      hclosed (T + 2) hR_ge_one
-    have htwo_le_two_mul : (2 : ℝ) ≤ 2 * T := by
-      exact mul_le_mul_of_nonneg_left hT zero_le_two
-    have hT_add_le_three_mul : T + 2 ≤ (3 : ℝ) * T := by
-      have hadd : T + 2 ≤ T + 2 * T :=
-        add_le_add_left htwo_le_two_mul T
-      have hthree : (3 : ℝ) * T = T + 2 * T := by
-        calc
-          (3 : ℝ) * T = T + T + T := by
-            exact three_mul T
-          _ = T + (T + T) := by
-            exact add_assoc T T T
-          _ = T + 2 * T := by
-            exact congrArg (fun x : ℝ => T + x) (two_mul T).symm
-      exact Eq.subst
-        (motive := fun x : ℝ => T + 2 ≤ x)
-        hthree.symm
-        hadd
-    have hT_add_nonneg : 0 ≤ T + 2 :=
-      le_trans zero_le_one hR_ge_one
-    have hpow :
-        (T + 2) ^ d ≤ ((3 : ℝ) * T) ^ d :=
-      pow_le_pow_left₀ hT_add_nonneg hT_add_le_three_mul d
-    have hscaled :
-        C * (T + 2) ^ d ≤ C * (((3 : ℝ) * T) ^ d) :=
-      mul_le_mul_of_nonneg_left hpow (le_of_lt hC)
-    have hfactor :
-        C * (((3 : ℝ) * T) ^ d) = (C * (3 : ℝ) ^ d) * T ^ d := by
-      calc
-        C * (((3 : ℝ) * T) ^ d) =
-            C * ((3 : ℝ) ^ d * T ^ d) := by
-          exact congrArg (fun x : ℝ => C * x) (mul_pow (3 : ℝ) T d)
-        _ = (C * (3 : ℝ) ^ d) * T ^ d := by
-          exact (mul_assoc C ((3 : ℝ) ^ d) (T ^ d)).symm
-    exact le_trans hheight_disk
-      (le_trans hclosed_T
-        (le_trans hscaled
-          (le_of_eq hfactor)))
+  exact Exists.intro (C * (3 : ℝ) ^ d)
+    (And.intro
+      (mul_pos hC (pow_pos zero_lt_three d))
+      (fun T hT =>
+        have hheight_disk :
+            completedZeroMultiplicityCountingInCenteredHeightBall T ≤
+              completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) :=
+          completedZeroMultiplicityCounting_heightBall_le_closedDiskCounting T hT
+        have hR_ge_one : 1 ≤ T + 2 :=
+          le_trans hT (le_add_of_nonneg_right zero_le_two)
+        have hclosed_T :
+            completedZeroMultiplicityCountingInCenteredClosedDisk (T + 2) ≤
+              C * (T + 2) ^ d :=
+          hclosed (T + 2) hR_ge_one
+        have htwo_le_two_mul : (2 : ℝ) ≤ 2 * T := by
+          exact mul_le_mul_of_nonneg_left hT zero_le_two
+        have hT_add_le_three_mul : T + 2 ≤ (3 : ℝ) * T := by
+          have hadd : T + 2 ≤ T + 2 * T :=
+            add_le_add_left htwo_le_two_mul T
+          have hthree : (3 : ℝ) * T = T + 2 * T := by
+            calc
+              (3 : ℝ) * T = T + T + T := by
+                exact three_mul T
+              _ = T + (T + T) := by
+                exact add_assoc T T T
+              _ = T + 2 * T := by
+                exact congrArg (fun x : ℝ => T + x) (two_mul T).symm
+          Eq.subst
+            (motive := fun x : ℝ => T + 2 ≤ x)
+            hthree.symm
+            hadd
+        have hT_add_nonneg : 0 ≤ T + 2 :=
+          le_trans zero_le_one hR_ge_one
+        have hpow :
+            (T + 2) ^ d ≤ ((3 : ℝ) * T) ^ d :=
+          pow_le_pow_left₀ hT_add_nonneg hT_add_le_three_mul d
+        have hscaled :
+            C * (T + 2) ^ d ≤ C * (((3 : ℝ) * T) ^ d) :=
+          mul_le_mul_of_nonneg_left hpow (le_of_lt hC)
+        have hfactor :
+            C * (((3 : ℝ) * T) ^ d) = (C * (3 : ℝ) ^ d) * T ^ d := by
+          calc
+            C * (((3 : ℝ) * T) ^ d) =
+                C * ((3 : ℝ) ^ d * T ^ d) := by
+              exact congrArg (fun x : ℝ => C * x) (mul_pow (3 : ℝ) T d)
+            _ = (C * (3 : ℝ) ^ d) * T ^ d := by
+              exact (mul_assoc C ((3 : ℝ) ^ d) (T ^ d)).symm
+        le_trans hheight_disk
+          (le_trans hclosed_T
+            (le_trans hscaled
+              (le_of_eq hfactor)))))
 
 /-- A completed zero is a zero of the centered entire zero-carrier. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_zero_of_completedZero
@@ -380,7 +371,6 @@ theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_negHalf :
     add_right_neg (1 / 2 : ℂ)
   have hvalue :
       centeredCompletedRiemannZetaZeroCarrier (-(1 / 2 : ℂ)) = -1 := by
-    unfold centeredCompletedRiemannZetaZeroCarrier
     calc
       ((1 / 2 : ℂ) + -(1 / 2 : ℂ)) *
             (1 - ((1 / 2 : ℂ) + -(1 / 2 : ℂ))) *
@@ -431,7 +421,6 @@ theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_posHalf :
         exact sub_self 1
   have hvalue :
       centeredCompletedRiemannZetaZeroCarrier (1 / 2 : ℂ) = -1 := by
-    unfold centeredCompletedRiemannZetaZeroCarrier
     calc
       ((1 / 2 : ℂ) + (1 / 2 : ℂ)) *
             (1 - ((1 / 2 : ℂ) + (1 / 2 : ℂ))) *
@@ -545,32 +534,30 @@ theorem carrierZeroToCompletedZero_mem_closedDisk
     (z : CenteredCompletedZetaZeroCarrierZero)
     (hz : z ∈ centeredCompletedZetaZeroCarrierZerosInClosedDisk R) :
     carrierZeroToCompletedZero z ∈ completedZerosInCenteredClosedDisk R := by
-  unfold centeredCompletedZetaZeroCarrierZerosInClosedDisk at hz
-  unfold completedZerosInCenteredClosedDisk
   exact hz
 
 /-- Carrier closed-disk multiplicity summands are nonnegative. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_nonnegative
     (R : ℝ) (z : CenteredCompletedZetaZeroCarrierZero) :
     0 ≤ centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z := by
-  unfold centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand
-  by_cases hz : ‖(z : ℂ)‖ ≤ R
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_pos hz).symm
-      (Nat.cast_nonneg (centeredCompletedZetaZeroCarrierMultiplicity (z : ℂ)))
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_neg hz).symm
-      (le_refl (0 : ℝ))
+  exact
+    match Decidable.em (‖(z : ℂ)‖ ≤ R) with
+    | Or.inl hz =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_pos hz).symm
+          (Nat.cast_nonneg (centeredCompletedZetaZeroCarrierMultiplicity (z : ℂ)))
+    | Or.inr hz =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_neg hz).symm
+          (le_refl (0 : ℝ))
 
 /-- Carrier closed-disk multiplicity summands vanish outside the carrier closed disk. -/
 theorem centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_eq_zero_of_not_mem
     (R : ℝ) (z : CenteredCompletedZetaZeroCarrierZero)
     (hz : z ∉ centeredCompletedZetaZeroCarrierZerosInClosedDisk R) :
     centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z = 0 := by
-  unfold centeredCompletedZetaZeroCarrierZerosInClosedDisk at hz
-  unfold centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand
   exact if_neg hz
 
 /-- The denominator clearing factor is nonzero at a completed zero. -/
@@ -606,8 +593,10 @@ theorem centeredCompletedRiemannZetaZeroCarrier_eventuallyEq_denominator_mul
       ∀ᶠ w in 𝓝 (ρ : ℂ), 1 - ((1 / 2 : ℂ) + w) ≠ 0 :=
     ((continuous_const.sub (continuous_const.add continuous_id)).continuousAt).eventually_ne
       hright_ne
-  filter_upwards [hleft_eventually, hright_eventually] with w hwleft hwright
-  exact centeredCompletedRiemannZetaZeroCarrier_eq_denominator_mul hwleft hwright
+  exact
+    (hleft_eventually.and hright_eventually).mono
+      (fun w hw =>
+        centeredCompletedRiemannZetaZeroCarrier_eq_denominator_mul hw.1 hw.2)
 
 /-- Completed-zero multiplicity is the cleared-carrier multiplicity at the same point. -/
 theorem zetaZeroMultiplicity_eq_carrierMultiplicity
@@ -655,36 +644,30 @@ theorem completedZeroMultiplicityClosedDiskSummand_eq_carrierPullback
     completedZeroMultiplicityClosedDiskSummand R ρ =
       centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
         (completedZeroToCarrierZero ρ) := by
-  unfold completedZeroMultiplicityClosedDiskSummand
-  unfold centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand
-  change
-    (if ‖(ρ : ℂ)‖ ≤ R then
-      (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0) =
-    (if ‖(ρ : ℂ)‖ ≤ R then
-      (centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) : ℝ) else 0)
-  by_cases hρ : ‖(ρ : ℂ)‖ ≤ R
-  · have hleft :
-        (if ‖(ρ : ℂ)‖ ≤ R then
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0) =
-            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) :=
-      if_pos hρ
-    have hright :
-        (if ‖(ρ : ℂ)‖ ≤ R then
-          (centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) : ℝ) else 0) =
-            (centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) : ℝ) :=
-      if_pos hρ
-    exact hleft.trans
-      ((congrArg (fun n : ℕ => (n : ℝ))
-        (zetaZeroMultiplicity_eq_carrierMultiplicity ρ)).trans hright.symm)
-  · have hleft :
-        (if ‖(ρ : ℂ)‖ ≤ R then
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0) = 0 :=
-      if_neg hρ
-    have hright :
-        (if ‖(ρ : ℂ)‖ ≤ R then
-          (centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) : ℝ) else 0) = 0 :=
-      if_neg hρ
-    exact hleft.trans hright.symm
+  exact
+    match Decidable.em (‖(ρ : ℂ)‖ ≤ R) with
+    | Or.inl hρ =>
+        have hleft :
+            completedZeroMultiplicityClosedDiskSummand R ρ =
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) :=
+          if_pos hρ
+        have hright :
+            centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
+                (completedZeroToCarrierZero ρ) =
+              (centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) : ℝ) :=
+          if_pos hρ
+        hleft.trans
+          ((congrArg (fun n : ℕ => (n : ℝ))
+            (zetaZeroMultiplicity_eq_carrierMultiplicity ρ)).trans hright.symm)
+    | Or.inr hρ =>
+        have hleft :
+            completedZeroMultiplicityClosedDiskSummand R ρ = 0 :=
+          if_neg hρ
+        have hright :
+            centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
+                (completedZeroToCarrierZero ρ) = 0 :=
+          if_neg hρ
+        hleft.trans hright.symm
 
 /-- The centered entire zero-carrier has only finitely many zeros in every
 ordinary closed disk. This is the local-finiteness part of the finite-order
@@ -747,22 +730,21 @@ theorem completedZeroMultiplicityCounting_closedDisk_le_carrierCounting_of_summa
     completedZeroMultiplicityCountingInCenteredClosedDisk R ≤
       centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk R := by
   have hcompleted_as_pullback :
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        completedZeroMultiplicityClosedDiskSummand R ρ) =
-      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-        centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
-          (completedZeroToCarrierZero ρ)) := by
-    funext ρ
-    exact completedZeroMultiplicityClosedDiskSummand_eq_carrierPullback R ρ
+      (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          completedZeroMultiplicityClosedDiskSummand R ρ) =
+        ∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
+          centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R
+            (completedZeroToCarrierZero ρ) :=
+    tsum_congr
+      (fun ρ =>
+        completedZeroMultiplicityClosedDiskSummand_eq_carrierPullback R ρ)
   have hnonnegative :
       ∀ z : CenteredCompletedZetaZeroCarrierZero,
         0 ≤ centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z :=
     centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand_nonnegative R
-  unfold completedZeroMultiplicityCountingInCenteredClosedDisk
-  unfold centeredCompletedZetaZeroCarrierMultiplicityCountingInClosedDisk
   exact Eq.subst
-    (motive := fun u : {ρ : ℂ // ZetaCompletedZero ρ} → ℝ =>
-      (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ}, u ρ) ≤
+    (motive := fun x : ℝ =>
+      x ≤
         ∑' z : CenteredCompletedZetaZeroCarrierZero,
           centeredCompletedZetaZeroCarrierMultiplicityClosedDiskSummand R z)
     hcompleted_as_pullback.symm

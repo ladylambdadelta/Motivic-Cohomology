@@ -39,24 +39,89 @@ theorem Complex.sectorialStirling_shiftedRawGammaEnvelope_of_normalizedStirling
                 (x + Complex.verticalStripTransportShift A) y)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope
               (x + Complex.verticalStripTransportShift A) y ∧
-          c * Complex.fixedRealPartVerticalStirlingEnvelope
+        c * Complex.fixedRealPartVerticalStirlingEnvelope
               (x + Complex.verticalStripTransportShift A) y ≤
             ‖Complex.Gamma
               (Complex.fixedRealPartVerticalPoint
                 (x + Complex.verticalStripTransportShift A) y)‖ := by
-  rcases
-      Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
-        hStirling A B with
-    ⟨Hn, Cn, cn, hHn_pos, hCn_pos, hcn_pos, hnormalized⟩
-  rcases
-      Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
-        A B with
-    ⟨Hd, Cd, cd, hHd_pos, hCd_pos, hcd_pos, hdenom⟩
+  apply Exists.elim
+    (Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
+      hStirling A B)
+  intro Hn hHn_data
+  apply Exists.elim hHn_data
+  intro Cn hCn_data
+  apply Exists.elim hCn_data
+  intro cn hnormalized_data
+  have hHn_pos : 0 < Hn := hnormalized_data.1
+  have hCn_pos : 0 < Cn := hnormalized_data.2.1
+  have hcn_pos : 0 < cn := hnormalized_data.2.2.1
+  have hnormalized :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        Hn ≤ ‖y‖ →
+          ‖Complex.normalizedGammaStirlingFactor
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ ≤ Cn ∧
+            cn ≤ ‖Complex.normalizedGammaStirlingFactor
+              (Complex.fixedRealPartVerticalPoint
+                (x + Complex.verticalStripTransportShift A) y)‖ :=
+    hnormalized_data.2.2.2
+  apply Exists.elim
+    (Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable A B)
+  intro Hd hHd_data
+  apply Exists.elim hHd_data
+  intro Cd hCd_data
+  apply Exists.elim hCd_data
+  intro cd hdenom_data
+  have hHd_pos : 0 < Hd := hdenom_data.1
+  have hCd_pos : 0 < Cd := hdenom_data.2.1
+  have hcd_pos : 0 < cd := hdenom_data.2.2.1
+  have hdenom :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        Hd ≤ ‖y‖ →
+          0 <
+              ‖Complex.exp
+                  (Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y)‖ *
+                ‖Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y ^
+                    ((1 / 2 : ℂ) -
+                      Complex.fixedRealPartVerticalPoint
+                        (x + Complex.verticalStripTransportShift A) y)‖ ∧
+            1 /
+                (‖Complex.exp
+                    (Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y)‖ *
+                  ‖Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y ^
+                      ((1 / 2 : ℂ) -
+                        Complex.fixedRealPartVerticalPoint
+                          (x + Complex.verticalStripTransportShift A) y)‖) ≤
+              Cd * Complex.fixedRealPartVerticalStirlingEnvelope
+                (x + Complex.verticalStripTransportShift A) y ∧
+            cd * Complex.fixedRealPartVerticalStirlingEnvelope
+                (x + Complex.verticalStripTransportShift A) y ≤
+              1 /
+                (‖Complex.exp
+                    (Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y)‖ *
+                  ‖Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y ^
+                      ((1 / 2 : ℂ) -
+                        Complex.fixedRealPartVerticalPoint
+                          (x + Complex.verticalStripTransportShift A) y)‖) :=
+    hdenom_data.2.2.2
   let H : ℝ := max Hn Hd
-  refine ⟨H, Cn * Cd, cn * cd,
-    lt_of_lt_of_le hHn_pos (le_max_left Hn Hd),
-    mul_pos hCn_pos hCd_pos,
-    mul_pos hcn_pos hcd_pos, ?_⟩
+  apply Exists.intro H
+  apply Exists.intro (Cn * Cd)
+  apply Exists.intro (cn * cd)
+  apply And.intro
+    (lt_of_lt_of_le hHn_pos (le_max_left Hn Hd))
+  apply And.intro (mul_pos hCn_pos hCd_pos)
+  apply And.intro (mul_pos hcn_pos hcd_pos)
   intro x y hxA hxB hy
   have hy_n : Hn ≤ ‖y‖ :=
     le_trans (le_max_left Hn Hd) hy
@@ -184,15 +249,22 @@ theorem Complex.verticalStripGammaBounds_of_shiftedRawBounds_and_recurrenceProdu
         H ≤ ‖y‖ →
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope x y ∧
-          c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
+            c * Complex.fixedRealPartVerticalStirlingEnvelope x y ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
-  rcases hshifted with ⟨Hs, Cs, cs, hHs_pos, hCs_pos, hcs_pos, hshifted_bound⟩
-  rcases hproduct with ⟨Hp, Cp, cp, hHp_pos, hCp_pos, hcp_pos, hproduct_bound⟩
-  rcases hfactor_ne with ⟨Hn, hHn_pos, hfactor_ne_pointwise⟩
+  match hshifted with
+  | ⟨Hs, Cs, cs, hHs_pos, hCs_pos, hcs_pos, hshifted_bound⟩ =>
+  match hproduct with
+  | ⟨Hp, Cp, cp, hHp_pos, hCp_pos, hcp_pos, hproduct_bound⟩ =>
+  match hfactor_ne with
+  | ⟨Hn, hHn_pos, hfactor_ne_pointwise⟩ =>
   let H : ℝ := max Hs (max Hp Hn)
-  refine ⟨H, Cs / cp, cs / Cp, ?_, div_pos hCs_pos hcp_pos,
-    div_pos hcs_pos hCp_pos, ?_⟩
-  · exact lt_of_lt_of_le hHs_pos (le_max_left Hs (max Hp Hn))
+  apply Exists.intro H
+  apply Exists.intro (Cs / cp)
+  apply Exists.intro (cs / Cp)
+  apply And.intro
+    (lt_of_lt_of_le hHs_pos (le_max_left Hs (max Hp Hn)))
+  apply And.intro (div_pos hCs_pos hcp_pos)
+  apply And.intro (div_pos hcs_pos hCp_pos)
   intro x y hxA hxB hy
   have hy_s : Hs ≤ ‖y‖ :=
     le_trans (le_max_left Hs (max Hp Hn)) hy
@@ -545,10 +617,8 @@ theorem Complex.fixedRealPartVerticalStirling_largeHeight_classical
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  rcases
-      Complex.sectorialStirling_verticalStrip_largeHeight_classical
-        a a with
-    ⟨H, C, c, hH_pos, hC_pos, hc_pos, hstrip⟩
+  match Complex.sectorialStirling_verticalStrip_largeHeight_classical a a with
+  | ⟨H, C, c, hH_pos, hC_pos, hc_pos, hstrip⟩ =>
   exact
     ⟨H, C, c, hH_pos, hC_pos, hc_pos,
       fun b hb =>
@@ -591,6 +661,31 @@ def Complex.fixedRealPartVerticalGammaLowerRatio
   ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ /
     Complex.fixedRealPartVerticalStirlingEnvelope a b
 
+/-- The fixed vertical-line point depends continuously on the height. -/
+theorem Complex.continuousAt_fixedRealPartVerticalPoint_height
+    (a b : ℝ) :
+    ContinuousAt (fun x : ℝ => Complex.fixedRealPartVerticalPoint a x) b := by
+  exact continuousAt_const.add
+    (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
+
+/-- The fixed vertical-line Stirling envelope depends continuously on height. -/
+theorem Complex.continuousAt_fixedRealPartVerticalStirlingEnvelope_height
+    (a b : ℝ) :
+    ContinuousAt
+      (fun x : ℝ => Complex.fixedRealPartVerticalStirlingEnvelope a x) b := by
+  have hbase_pos : 0 < 1 + ‖b‖ :=
+    lt_of_lt_of_le zero_lt_one
+      (le_add_of_nonneg_right (norm_nonneg b))
+  have hexp_arg_cont :
+      ContinuousAt (fun x : ℝ => (-(Real.pi / 2)) * ‖x‖) b :=
+    continuousAt_const.mul continuousAt_id.norm
+  have hpow_base_cont :
+      ContinuousAt (fun x : ℝ => 1 + ‖x‖) b :=
+    continuousAt_const.add continuousAt_id.norm
+  exact
+    hexp_arg_cont.rexp.mul
+      (hpow_base_cont.rpow_const (Or.inl hbase_pos.ne'))
+
 /-- The fixed-line compact-height set is compact. -/
 theorem Complex.fixedRealPartVerticalCompactHeightSet_isCompact
     (H : ℝ) :
@@ -618,20 +713,20 @@ theorem Complex.fixedRealPartVerticalCompactHeightSet_nonempty
     {H : ℝ}
     (hH : (1 / 2 : ℝ) ≤ H) :
     (Complex.fixedRealPartVerticalCompactHeightSet H).Nonempty := by
-  refine ⟨(1 / 2 : ℝ), ?_⟩
   have hhalf_nonneg : (0 : ℝ) ≤ 1 / 2 :=
     le_of_lt (half_pos zero_lt_one)
   have hnorm_half : ‖(1 / 2 : ℝ)‖ = 1 / 2 :=
     Real.norm_of_nonneg hhalf_nonneg
-  exact
-    ⟨Eq.subst
+  exact Exists.intro (1 / 2 : ℝ)
+    (And.intro
+      (Eq.subst
         (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
         hnorm_half.symm
-        (le_refl (1 / 2 : ℝ)),
-      Eq.subst
+        (le_refl (1 / 2 : ℝ)))
+      (Eq.subst
         (motive := fun x : ℝ => x ≤ H)
         hnorm_half.symm
-        hH⟩
+        hH))
 
 /-- `Gamma` is nonzero on the fixed-line compact-height strip. -/
 theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
@@ -639,10 +734,9 @@ theorem Complex.Gamma_fixedRealPartVerticalPoint_ne_zero_of_compactHeight
     (hb : b ∈ Complex.fixedRealPartVerticalCompactHeightSet H) :
     Complex.Gamma (Complex.fixedRealPartVerticalPoint a b) ≠ 0 := by
   intro hzero
-  rcases
-      (Complex.Gamma_eq_zero_iff
-        (Complex.fixedRealPartVerticalPoint a b)).mp hzero with
-    ⟨n, hn⟩
+  match (Complex.Gamma_eq_zero_iff
+      (Complex.fixedRealPartVerticalPoint a b)).mp hzero with
+  | ⟨n, hn⟩ =>
   have him_eq :
       (Complex.fixedRealPartVerticalPoint a b).im = (-(n : ℂ)).im :=
     congrArg Complex.im hn
@@ -687,9 +781,7 @@ theorem Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight
       (Complex.fixedRealPartVerticalPoint a b)).mpr ⟨n, hn⟩)
   have hpoint_cont :
       ContinuousAt (fun x : ℝ => Complex.fixedRealPartVerticalPoint a x) b := by
-    unfold Complex.fixedRealPartVerticalPoint
-    exact continuousAt_const.add
-      (Complex.continuous_ofReal.continuousAt.mul continuousAt_const)
+    exact Complex.continuousAt_fixedRealPartVerticalPoint_height a b
   have hgamma_cont :
       ContinuousAt
         (fun x : ℝ => Complex.Gamma (Complex.fixedRealPartVerticalPoint a x))
@@ -709,16 +801,7 @@ theorem Complex.continuousOn_fixedRealPartVerticalGammaRatio_compactHeight
       ContinuousAt
         (fun x : ℝ => Complex.fixedRealPartVerticalStirlingEnvelope a x)
         b := by
-    unfold Complex.fixedRealPartVerticalStirlingEnvelope
-    have hexp_arg_cont :
-        ContinuousAt (fun x : ℝ => (-(Real.pi / 2)) * ‖x‖) b :=
-      continuousAt_const.mul continuousAt_id.norm
-    have hpow_base_cont :
-        ContinuousAt (fun x : ℝ => 1 + ‖x‖) b :=
-      continuousAt_const.add continuousAt_id.norm
-    exact
-      hexp_arg_cont.rexp.mul
-        (hpow_base_cont.rpow_const (Or.inl hbase_pos.ne'))
+    exact Complex.continuousAt_fixedRealPartVerticalStirlingEnvelope_height a b
   have henv_ne :
       Complex.fixedRealPartVerticalStirlingEnvelope a b ≠ 0 :=
     ne_of_gt (Complex.fixedRealPartVerticalStirlingEnvelope_pos a b)
@@ -782,15 +865,16 @@ theorem Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
       ∀ b : ℝ,
         b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
           Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C := by
-  rcases IsCompact.exists_bound_of_continuousOn
+  match IsCompact.exists_bound_of_continuousOn
       (Complex.fixedRealPartVerticalCompactHeightSet_isCompact H)
       (Complex.continuousOn_fixedRealPartVerticalGammaUpperRatio_compactHeight
         a H) with
-    ⟨M, hM⟩
+  | ⟨M, hM⟩ =>
   let C : ℝ := max 1 M
   have hC_pos : 0 < C :=
     lt_of_lt_of_le zero_lt_one (le_max_left 1 M)
-  refine ⟨C, hC_pos, ?_⟩
+  apply Exists.intro C
+  apply And.intro hC_pos
   intro b hb
   exact le_trans (hM b hb) (le_max_right 1 M)
 
@@ -815,12 +899,13 @@ theorem Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
         (Complex.fixedRealPartVerticalCompactHeightSet H) :=
     Complex.continuousOn_fixedRealPartVerticalGammaLowerRatio_compactHeight
       a H
-  rcases hcompact.exists_isMinOn hnonempty hcont with
-    ⟨b₀, hb₀, hb₀_min⟩
+  match hcompact.exists_isMinOn hnonempty hcont with
+  | ⟨b₀, hb₀, hb₀_min⟩ =>
   let c : ℝ := Complex.fixedRealPartVerticalGammaLowerRatio a b₀
   have hc_pos : 0 < c :=
     Complex.fixedRealPartVerticalGammaRatio_pos_on_compactHeight a H hb₀
-  refine ⟨c, hc_pos, ?_⟩
+  apply Exists.intro c
+  apply And.intro hc_pos
   intro b hb
   exact hb₀_min b hb
 
@@ -839,21 +924,24 @@ theorem Complex.fixedRealPartVerticalGammaRatio_compactHeight_bounds
         b ∈ Complex.fixedRealPartVerticalCompactHeightSet H →
           Complex.fixedRealPartVerticalGammaUpperRatio a b ≤ C ∧
           c ≤ Complex.fixedRealPartVerticalGammaLowerRatio a b := by
-  rcases
-      Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
-        a H with
-    ⟨C, hC_pos, hC⟩
-  by_cases hH_half : (1 / 2 : ℝ) ≤ H
-  · rcases
-        Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
-          a H hH_half with
-      ⟨c, hc_pos, hc⟩
+  match Complex.fixedRealPartVerticalGammaUpperRatio_compactHeight_bound
+      a H with
+  | ⟨C, hC_pos, hC⟩ =>
+  match Decidable.em ((1 / 2 : ℝ) ≤ H) with
+  | Or.inl hH_half =>
+    match Complex.fixedRealPartVerticalGammaLowerRatio_compactHeight_pos_bound
+        a H hH_half with
+    | ⟨c, hc_pos, hc⟩ =>
     exact ⟨C, c, hC_pos, hc_pos, fun b hb => ⟨hC b hb, hc b hb⟩⟩
-  · have hhalf_lt_H : H < (1 / 2 : ℝ) :=
+  | Or.inr hH_half =>
+    have hhalf_lt_H : H < (1 / 2 : ℝ) :=
       lt_of_not_ge hH_half
     have hone_pos : (0 : ℝ) < 1 :=
       zero_lt_one
-    refine ⟨C, 1, hC_pos, hone_pos, ?_⟩
+    apply Exists.intro C
+    apply Exists.intro 1
+    apply And.intro hC_pos
+    apply And.intro hone_pos
     intro b hb
     have hle : (1 / 2 : ℝ) ≤ H :=
       le_trans hb.1 hb.2
@@ -861,7 +949,7 @@ theorem Complex.fixedRealPartVerticalGammaRatio_compactHeight_bounds
 
 /-- Ratio bounds on the compact-height part of a fixed vertical line.
 
-This is the compactness/nonvanishing owner certificate: continuity supplies a
+This is the compactness/nonvanishing owner certificate: local regularity supplies a
 finite upper bound for the upper ratio, while nonvanishing of `Γ` and the
 strictly positive Stirling envelope supply a positive lower bound. -/
 theorem Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
@@ -929,7 +1017,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compa
 
 /-- Compact-height patch for fixed-real-part vertical Stirling bounds.
 
-On the compact set `1 / 2 ≤ |b| ≤ H`, continuity and nonvanishing of `Γ` on
+On the compact set `1 / 2 ≤ |b| ≤ H`, local regularity and nonvanishing of `Γ` on
 the fixed vertical line give finite upper and positive lower constants relative
 to the positive fixed-line Stirling envelope. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight
@@ -945,10 +1033,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compa
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  rcases
-      Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
-        a H hH_pos with
-    ⟨C, c, hC_pos, hc_pos, hratio⟩
+  match Complex.fixedRealPartVerticalGammaRatio_bounds_on_compactHeight
+      a H hH_pos with
+  | ⟨C, c, hC_pos, hc_pos, hratio⟩ =>
   exact
     ⟨C, c, hC_pos, hc_pos,
       Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight_of_ratio_bounds
@@ -990,22 +1077,27 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_la
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  rcases hlarge with ⟨H, Clarge, clarge, hH_pos, hClarge_pos, hclarge_pos, hlarge_bound⟩
-  rcases hcompact H hH_pos with
-    ⟨Ccompact, ccompact, hCcompact_pos, hccompact_pos, hcompact_bound⟩
+  match hlarge with
+  | ⟨H, Clarge, clarge, hH_pos, hClarge_pos, hclarge_pos, hlarge_bound⟩ =>
+  match hcompact H hH_pos with
+  | ⟨Ccompact, ccompact, hCcompact_pos, hccompact_pos, hcompact_bound⟩ =>
   let C : ℝ := max Clarge Ccompact
   let c : ℝ := min clarge ccompact
   have hC_pos : 0 < C :=
     lt_of_lt_of_le hClarge_pos (le_max_left Clarge Ccompact)
   have hc_pos : 0 < c :=
     lt_min hclarge_pos hccompact_pos
-  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  apply Exists.intro C
+  apply Exists.intro c
+  apply And.intro hC_pos
+  apply And.intro hc_pos
   intro b hb
   have hE_nonneg :
       0 ≤ Complex.fixedRealPartVerticalStirlingEnvelope a b :=
     Complex.fixedRealPartVerticalStirlingEnvelope_nonneg a b
-  by_cases hb_large : H ≤ ‖b‖
-  · have hlarge_b :
+  match Decidable.em (H ≤ ‖b‖) with
+  | Or.inl hb_large =>
+    have hlarge_b :
         ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
             Clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           clarge * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
@@ -1022,7 +1114,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_la
     exact
       ⟨le_trans hlarge_b.1 hupper_constant,
         le_trans hlower_constant hlarge_b.2⟩
-  · have hb_compact_upper : ‖b‖ ≤ H :=
+  | Or.inr hb_large =>
+    have hb_compact_upper : ‖b‖ ≤ H :=
       le_of_not_ge hb_large
     have hcompact_b :
         ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
@@ -1121,8 +1214,8 @@ theorem Complex.fixedLineVerticalGammaUpperEnvelope :
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
   intro a
-  rcases Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
-    ⟨C, c, hC_pos, hc_pos, hbounds⟩
+  match Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+  | ⟨C, c, hC_pos, hc_pos, hbounds⟩ =>
   exact
     ⟨C, hC_pos,
       fun b hb =>
@@ -1158,8 +1251,8 @@ theorem Complex.fixedLineVerticalGammaLowerEnvelope :
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
   intro a
-  rcases Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
-    ⟨C, c, hC_pos, hc_pos, hbounds⟩
+  match Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+  | ⟨C, c, hC_pos, hc_pos, hbounds⟩ =>
   exact
     ⟨c, hc_pos,
       fun b hb =>
@@ -1198,11 +1291,14 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_owner
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  rcases Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
-    ⟨C, hC_pos, hupper⟩
-  rcases Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
-    ⟨c, hc_pos, hlower⟩
-  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+  | ⟨C, hC_pos, hupper⟩ =>
+  match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+  | ⟨c, hc_pos, hlower⟩ =>
+  apply Exists.intro C
+  apply Exists.intro c
+  apply And.intro hC_pos
+  apply And.intro hc_pos
   intro b hb
   exact ⟨hupper b hb, hlower b hb⟩
 
@@ -1269,18 +1365,26 @@ theorem Complex.Gamma_fixedRealPart_vertical_ne_zero_of_half_le_norm
     (hb : (1 / 2 : ℝ) ≤ ‖b‖) :
     Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I) ≠ 0 := by
   intro hzero
-  rcases (Complex.Gamma_eq_zero_iff ((a : ℂ) + (b : ℂ) * Complex.I)).mp hzero with
-    ⟨n, hn⟩
+  match (Complex.Gamma_eq_zero_iff ((a : ℂ) + (b : ℂ) * Complex.I)).mp hzero with
+  | ⟨n, hn⟩ =>
   have him_eq : (((a : ℂ) + (b : ℂ) * Complex.I).im) = (-(n : ℂ)).im :=
     congrArg Complex.im hn
   have hleft_im :
       (((a : ℂ) + (b : ℂ) * Complex.I).im) = b := by
+    have hmul_im : ((b : ℂ) * Complex.I).im = b :=
+      Complex.mul_I_im (b : ℂ)
+    have hadd_im :
+        (((a : ℂ) + (b : ℂ) * Complex.I).im) =
+          (a : ℂ).im + ((b : ℂ) * Complex.I).im :=
+      Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
+    have hofReal_im : (a : ℂ).im = 0 :=
+      Complex.ofReal_im a
+    have hsum_eq : (a : ℂ).im + ((b : ℂ) * Complex.I).im = 0 + b :=
+      congrArg₂ HAdd.hAdd hofReal_im hmul_im
     calc
       (((a : ℂ) + (b : ℂ) * Complex.I).im) =
-          (a : ℂ).im + ((b : ℂ) * Complex.I).im := Complex.add_im (a : ℂ) ((b : ℂ) * Complex.I)
-      _ = 0 + b := by
-        congr 1
-        exact Complex.mul_I_im (b : ℂ)
+          (a : ℂ).im + ((b : ℂ) * Complex.I).im := hadd_im
+      _ = 0 + b := hsum_eq
       _ = b := zero_add b
   have hright_im : (-(n : ℂ)).im = 0 := by
     calc
@@ -1388,9 +1492,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
             C * Real.exp ((Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (1 / 2 - a) := by
   intro a
-  rcases Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
-    ⟨c, hc_pos, hlower⟩
-  refine ⟨c⁻¹, inv_pos.mpr hc_pos, ?_⟩
+  match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+  | ⟨c, hc_pos, hlower⟩ =>
+  apply Exists.intro c⁻¹
+  apply And.intro (inv_pos.mpr hc_pos)
   exact Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound hc_pos hlower
 
 /-- Fixed-real-part vertical Stirling bounds for `Complex.Gamma` and its
@@ -1408,10 +1513,10 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical 
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
                 (1 + ‖b‖) ^ (1 / 2 - a) := by
   intro a
-  rcases Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
-    ⟨Cu, hCu_pos, hCu⟩
-  rcases Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical a with
-    ⟨Cr, hCr_pos, hCr⟩
+  match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+  | ⟨Cu, hCu_pos, hCu⟩ =>
+  match Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical a with
+  | ⟨Cr, hCr_pos, hCr⟩ =>
   let C : ℝ := Cu + Cr
   have hC_pos : 0 < C :=
     add_pos hCu_pos hCr_pos
@@ -1419,7 +1524,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical 
     le_add_of_nonneg_right (le_of_lt hCr_pos)
   have hCr_le_C : Cr ≤ C :=
     le_add_of_nonneg_left (le_of_lt hCu_pos)
-  refine ⟨C, hC_pos, ?_⟩
+  apply Exists.intro C
+  apply And.intro hC_pos
   intro b hb
   have hdirect_envelope_nonneg :
       0 ≤ Real.exp (-(Real.pi / 2) * ‖b‖) *

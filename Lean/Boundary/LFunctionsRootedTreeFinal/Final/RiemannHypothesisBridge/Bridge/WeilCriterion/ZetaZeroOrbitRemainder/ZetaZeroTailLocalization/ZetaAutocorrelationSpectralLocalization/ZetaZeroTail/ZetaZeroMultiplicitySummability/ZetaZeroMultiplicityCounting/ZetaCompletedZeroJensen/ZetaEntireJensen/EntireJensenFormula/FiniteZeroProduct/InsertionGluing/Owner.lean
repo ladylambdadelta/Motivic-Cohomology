@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.FiniteZeroProduct.ProductCore.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.EntireJensenFormula.FiniteZeroProduct.InsertionGluing.Avoidance
 
 /-!
 # Normalized factor insertion and removable gluing
@@ -75,27 +75,29 @@ theorem entireFunction_finiteZeroDivisorProduct_factor_analyticAt
         (1 - x / (z : ℂ)) ^
           entireFunctionZeroMultiplicity F hF (z : ℂ))
       w := by
-  by_cases hz0 : (z : ℂ) = 0
-  · have hconst :
-        (fun x : ℂ =>
-          (1 - x / (z : ℂ)) ^
-            entireFunctionZeroMultiplicity F hF (z : ℂ))
-          =
-        (fun _x : ℂ =>
-          (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) := by
-      funext x
-      calc
-        (1 - x / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) =
-            (1 - x / 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
-          exact congrArg
-            (fun y : ℂ => (1 - x / y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
-            hz0
-        _ = (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
-          exact congrArg
-            (fun y : ℂ => (1 - y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
-            (div_zero x)
-    exact Eq.subst (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w) hconst.symm analyticAt_const
-  · exact
+  exact
+    if hz0 : (z : ℂ) = 0 then
+      have hconst :
+          (fun x : ℂ =>
+            (1 - x / (z : ℂ)) ^
+              entireFunctionZeroMultiplicity F hF (z : ℂ))
+            =
+          (fun _x : ℂ =>
+            (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ)) := by
+        exact funext_iff.mpr
+          (fun x =>
+            calc
+              (1 - x / (z : ℂ)) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) =
+                  (1 - x / 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
+                exact congrArg
+                  (fun y : ℂ => (1 - x / y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
+                  hz0
+              _ = (1 - 0) ^ entireFunctionZeroMultiplicity F hF (z : ℂ) := by
+                exact congrArg
+                  (fun y : ℂ => (1 - y) ^ entireFunctionZeroMultiplicity F hF (z : ℂ))
+                  (div_zero x))
+      Eq.subst (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w) hconst.symm analyticAt_const
+    else
       ((analyticAt_const.sub
         (analyticAt_id.div analyticAt_const hz0)).pow
           (entireFunctionZeroMultiplicity F hF (z : ℂ)))
@@ -112,17 +114,34 @@ theorem entireFunction_finiteZeroDivisorProduct_analyticAt
           F hF S x)
       w := by
   classical
-  refine Finset.induction_on S ?empty ?insert
-  · have hconst :
+  have hempty :
+      AnalyticAt ℂ
+        (fun x : ℂ =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+            F hF ∅ x)
+        w := by
+    have hconst :
         (fun x : ℂ =>
           entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
             F hF ∅ x)
           =
         (fun _x : ℂ => 1) := by
-      funext x
-      rfl
+      exact funext_iff.mpr (fun _x => rfl)
     exact Eq.subst (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w) hconst.symm analyticAt_const
-  · intro z T hz_not_mem hT
+  have hinsert :
+      ∀ z T,
+        z ∉ T →
+        AnalyticAt ℂ
+          (fun x : ℂ =>
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF T x)
+          w →
+        AnalyticAt ℂ
+          (fun x : ℂ =>
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert z T) x)
+          w := by
+    intro z T hz_not_mem hT
     have hfactor :
         AnalyticAt ℂ
           (fun x : ℂ =>
@@ -140,15 +159,16 @@ theorem entireFunction_finiteZeroDivisorProduct_analyticAt
               entireFunctionZeroMultiplicity F hF (z : ℂ) *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF T x) := by
-      funext x
-      exact
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
-          F hF T z hz_not_mem x
+      exact funext_iff.mpr
+        (fun x =>
+          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_insert
+            F hF T z hz_not_mem x)
     exact
       Eq.subst
         (motive := fun f : ℂ → ℂ => AnalyticAt ℂ f w)
         hprod_eq.symm
         (hfactor.mul hT)
+  exact Finset.induction_on S hempty hinsert
 
 /-- The glued quotient agrees with the local removable quotient near the
 inserted point. -/
@@ -165,19 +185,19 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_local
       ∀ᶠ w in 𝓝 (a : ℂ),
         w ≠ (a : ℂ) →
           Qloc w = entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w :=
-    Filter.EventuallyEq.mp (Filter.eventuallyEq_nhdsWithin_iff.mp hQloc_eq)
+    eventuallyEq_nhdsWithin_iff.mp hQloc_eq
   exact
     hQloc_eq'.mono
       (fun w hw =>
-        by
-          by_cases hw_eq : w = (a : ℂ)
-          · calc
-              entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
-                  Qloc w := if_pos hw_eq
-          · calc
-              entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
-                  entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w := if_neg hw_eq
-              _ = Qloc w := (hw hw_eq).symm)
+        if hw_eq : w = (a : ℂ) then
+          calc
+            entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+                Qloc w := if_pos hw_eq
+        else
+          calc
+            entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a w =
+                entireFunction_insertNormalizedFactor_rawQuotient F Qold hF a w := if_neg hw_eq
+            _ = Qloc w := (hw hw_eq).symm)
 
 /-- Analyticity of the glued quotient at the inserted point. -/
 theorem entireFunction_insertNormalizedFactor_gluedQuotient_analyticAt_insertedPoint
@@ -261,8 +281,8 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_analyticOn_closedDis
           (entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a)
           w := by
   intro w hwρ
-  by_cases hw_eq : w = (a : ℂ)
-  · exact
+  exact
+    if hw_eq : w = (a : ℂ) then
       Eq.subst
         (motive := fun x : ℂ =>
           AnalyticAt ℂ
@@ -271,7 +291,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_analyticOn_closedDis
         hw_eq.symm
         (entireFunction_insertNormalizedFactor_gluedQuotient_analyticAt_insertedPoint
           F Qold Qloc hF a hQloc_an hQloc_eq)
-  · exact
+    else
       (entireFunction_insertNormalizedFactor_rawQuotient_analyticAt_of_ne
         F Qold hF a ha0 hw_eq (hQold_an w hwρ)).congr
         (entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_raw_of_ne
@@ -352,6 +372,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_
     (S : Finset (EntireFunctionZero F))
     (a : EntireFunctionZero F)
     (ha_not_mem : a ∉ S)
+    (hS0 : ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0)
     (ha0 : (a : ℂ) ≠ 0)
     (hQloc_value :
       Qloc (a : ℂ) =
@@ -396,7 +417,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_
             g (a : ℂ) :=
         hg_factor.self_of_nhds
       _ = Z * g (a : ℂ) := by
-        exact smul_eq_mul Z (g (a : ℂ))
+        exact (smul_eq_mul ℂ : Z • g (a : ℂ) = Z * g (a : ℂ))
   have hglue :
       entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a (a : ℂ) =
         Qloc (a : ℂ) :=
@@ -445,7 +466,7 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_
       exact
         congrArg₂
           (fun x y : ℂ => x * y)
-          (Eq.trans hglue hQloc_value)
+          (Eq.trans hglue hQloc_value).symm
           hinsert.symm
 
 /-- Product identity for the glued quotient after inserting one normalized
@@ -486,8 +507,8 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
           entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
             F hF (insert a S) w := by
   intro w hwρ
-  by_cases hw_eq : w = (a : ℂ)
-  · exact
+  exact
+    if hw_eq : w = (a : ℂ) then
       Eq.subst
         (motive := fun x : ℂ =>
           F x =
@@ -497,9 +518,9 @@ theorem entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
         hw_eq.symm
         (entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_at_insertedPoint
           F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQloc_value hg_factor)
-  · exact
+    else
       entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
-        F Qold Qloc g hF ρ S a ha_not_mem ha0 hQold_factor hw_eq hwρ
+        F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQold_factor hw_eq hwρ
 
 /-- Origin normalization of the glued quotient. -/
 theorem entireFunction_insertNormalizedFactor_gluedQuotient_zero
@@ -587,20 +608,33 @@ theorem entireFunction_insertNormalizedFactor_glue_localDivision
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  rcases hlocal_div with ⟨Qloc, hQloc_an, hQloc_eq, hQloc_value⟩
-  refine
-    ⟨entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a,
-      ?_, ?_, ?_⟩
-  · exact
-      entireFunction_insertNormalizedFactor_gluedQuotient_analyticOn_closedDisk
-        F Qold Qloc hF ρ a ha0 hQloc_an hQloc_eq hQold_an
-  · exact
-      entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
-        F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQold_factor
-        hQloc_value hg_factor
-  · exact
-      entireFunction_insertNormalizedFactor_gluedQuotient_zero
-        F Qold Qloc hF a ha0 hQold_zero
+  exact
+    match hlocal_div with
+    | Exists.intro Qloc hQloc_data =>
+        match hQloc_data with
+        | And.intro hQloc_an hQloc_tail =>
+            match hQloc_tail with
+            | And.intro hQloc_eq hQloc_value =>
+                let Q : ℂ → ℂ :=
+                  entireFunction_insertNormalizedFactor_gluedQuotient F Qold Qloc hF a
+                have hQ_an :
+                    ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w :=
+                  entireFunction_insertNormalizedFactor_gluedQuotient_analyticOn_closedDisk
+                    F Qold Qloc hF ρ a ha0 hQloc_an hQloc_eq hQold_an
+                have hQ_product :
+                    ∀ w : ℂ,
+                      ‖w‖ ≤ ρ →
+                      F w =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                            F hF (insert a S) w :=
+                  entireFunction_insertNormalizedFactor_gluedQuotient_product_identity
+                    F Qold Qloc g hF ρ S a ha_not_mem hS0 ha0 hQold_factor
+                    hQloc_value hg_factor
+                have hQ_zero : Q 0 = F 0 :=
+                  entireFunction_insertNormalizedFactor_gluedQuotient_zero
+                    F Qold Qloc hF a ha0 hQold_zero
+                Exists.intro Q (And.intro hQ_an (And.intro hQ_product hQ_zero))
 
 /-- Cancellation identity for the inserted local quotient model.
 
@@ -631,7 +665,7 @@ theorem complex_insertedLocalModel_division_cancellation
       _ = (g * (p⁻¹ * c⁻¹)) * (c * q) := by
             exact congrArg (fun x : ℂ => (g * x) * (c * q)) (mul_inv_rev c p)
       _ = ((g * p⁻¹) * c⁻¹) * (c * q) := by
-            exact congrArg (fun x : ℂ => x * (c * q)) (mul_assoc g p⁻¹ c⁻¹)
+            exact congrArg (fun x : ℂ => x * (c * q)) (mul_assoc g p⁻¹ c⁻¹).symm
       _ = (g * p⁻¹) * (c⁻¹ * (c * q)) := by
             exact mul_assoc (g * p⁻¹) c⁻¹ (c * q)
       _ = (g * p⁻¹) * ((c⁻¹ * c) * q) := by
@@ -647,7 +681,7 @@ theorem complex_insertedLocalModel_division_cancellation
       _ = (q * g) / p := by
             exact (div_eq_mul_inv (q * g) p).symm
   exact
-    mul_left_cancel₀ hcq
+    mul_right_cancel₀ hcq
       (Eq.trans hleft_mul hright_mul.symm)
 
 /-- Local removable division package for the inserted normalized factor,
@@ -734,7 +768,10 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
           ⟨hw.1, hw.2.1,
             fun z hzS =>
               hw.2.2 z
-                (Finset.mem_erase.mpr ⟨ha_not_mem.ne_of_mem hzS, Finset.mem_insert_of_mem hzS⟩)⟩)
+                (Finset.mem_erase.mpr
+                  ⟨fun hza =>
+                    ha_not_mem (Eq.subst (motive := fun x : EntireFunctionZero F => x ∈ S) hza hzS),
+                    Finset.mem_insert_of_mem hzS⟩)⟩)
   have hlocal_punctured :
       ∀ᶠ w in 𝓝[≠] (a : ℂ),
         F w = (w - (a : ℂ)) ^ m * g w := by
@@ -743,7 +780,7 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
           F w = (w - (a : ℂ)) ^ m * g w :=
       hg_factor.mono
         (fun w hw =>
-          Eq.trans hw (smul_eq_mul ((w - (a : ℂ)) ^ m) (g w)))
+          Eq.trans hw (smul_eq_mul ℂ : ((w - (a : ℂ)) ^ m) • g w = ((w - (a : ℂ)) ^ m) * g w))
     exact hlocal.filter_mono nhdsWithin_le_nhds
   have holdProduct_an :
       AnalyticAt ℂ oldProduct (a : ℂ) := by
@@ -767,10 +804,10 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
   have hQold_model_frequently :
       ∃ᶠ w in 𝓝[≠] (a : ℂ), Qold w = oldLocalModel w := by
     exact
-      (hgood.and_eventually hlocal_punctured).mono
+      (Filter.Eventually.and_frequently hlocal_punctured hgood).mono
         (fun w hw =>
-          let hwgood := hw.1
-          let hF_local := hw.2
+          let hF_local := hw.1
+          let hwgood := hw.2
           have hproduct_ne : oldProduct w ≠ 0 :=
             Finset.prod_ne_zero_iff.mpr
               (fun z hz =>
@@ -781,7 +818,7 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
                       ((entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
                         F hF S
                         (fun y hy => hS0 y hy)
-                        z hz w).1 hfactor).symm))
+                        z hz w).1 hfactor)))
           have hfactor_w :
               F w = Qold w * oldProduct w :=
             hQold_factor w hwgood.2.1
@@ -790,7 +827,7 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
             Eq.trans hfactor_w.symm hF_local
           calc
             Qold w = (Qold w * oldProduct w) / oldProduct w := by
-              exact (mul_div_cancel₀ (Qold w) hproduct_ne).symm
+              exact (mul_div_cancel_right₀ (Qold w) hproduct_ne).symm
             _ = ((w - (a : ℂ)) ^ m * g w) / oldProduct w := by
               exact congrArg (fun x : ℂ => x / oldProduct w) hQold_mul
             _ = oldLocalModel w := rfl)
@@ -835,7 +872,7 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
       (holdProduct_an.continuousAt.eventually_ne holdProduct_ne).filter_mono
         nhdsWithin_le_nhds
     exact
-      ((hQold_model.and_eventually hpunctured).and_eventually hproduct_ne_eventual).mono
+      ((hQold_model.and hpunctured).and hproduct_ne_eventual).mono
         (fun w hw =>
           have hQw : Qold w = oldLocalModel w := hw.1.1
           have hwa : w ≠ (a : ℂ) := hw.1.2
@@ -876,8 +913,16 @@ theorem entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and
                   hQw.symm
             _ = Qold w / ((1 - w / (a : ℂ)) ^ m) := by
               exact congrArg (fun x : ℂ => Qold w / x) hnorm.symm)
-  refine ⟨insertedLocalModel, hinserted_an, hraw_eq_inserted, ?_⟩
-  rfl
+  have hinserted_value :
+      insertedLocalModel (a : ℂ) =
+        g (a : ℂ) /
+          (((-(a : ℂ)⁻¹) ^ m) *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF S (a : ℂ)) :=
+    rfl
+  exact Exists.intro insertedLocalModel
+    (And.intro hinserted_an
+      (And.intro hraw_eq_inserted hinserted_value))
 
 /-- If the inserted zero lies outside the closed disk, insertion is ordinary
 division by a nonvanishing analytic normalized factor throughout the disk. -/
@@ -909,10 +954,11 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  refine
-    ⟨entireFunction_insertNormalizedFactor_gluedQuotient F Qold g hF a,
-      ?_, ?_, ?_⟩
-  · intro w hwρ
+  let Q : ℂ → ℂ :=
+    entireFunction_insertNormalizedFactor_gluedQuotient F Qold g hF a
+  have hQ_an :
+      ∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w := by
+    intro w hwρ
     have hw_ne : w ≠ (a : ℂ) := by
       intro hw_eq
       exact haρ_not (hw_eq ▸ hwρ)
@@ -921,16 +967,24 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
         F Qold hF a ha0 hw_ne (hQold_an w hwρ)).congr
         (entireFunction_insertNormalizedFactor_gluedQuotient_eventuallyEq_raw_of_ne
           F Qold g hF a hw_ne).symm
-  · intro w hwρ
+  have hQ_product :
+      ∀ w : ℂ,
+        ‖w‖ ≤ ρ →
+        F w =
+          Q w *
+            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+              F hF (insert a S) w := by
+    intro w hwρ
     have hw_ne : w ≠ (a : ℂ) := by
       intro hw_eq
       exact haρ_not (hw_eq ▸ hwρ)
     exact
       entireFunction_insertNormalizedFactor_gluedQuotient_product_identity_of_ne
-        F Qold g g hF ρ S a ha_not_mem ha0 hQold_factor hw_ne hwρ
-  · exact
-      entireFunction_insertNormalizedFactor_gluedQuotient_zero
-        F Qold g hF a ha0 hQold_zero
+        F Qold g g hF ρ S a ha_not_mem hS0 ha0 hQold_factor hw_ne hwρ
+  have hQ_zero : Q 0 = F 0 :=
+    entireFunction_insertNormalizedFactor_gluedQuotient_zero
+      F Qold g hF a ha0 hQold_zero
+  exact Exists.intro Q (And.intro hQ_an (And.intro hQ_product hQ_zero))
 
 /-- Explicit old-quotient/local-unit form of one-step normalized removable
 division.
@@ -978,8 +1032,9 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  by_cases haρ : ‖(a : ℂ)‖ ≤ ρ
-  · have hlocal_div :
+  exact
+    if haρ : ‖(a : ℂ)‖ ≤ ρ then
+      have hlocal_div :
         ∃ Qloc : ℂ → ℂ,
           AnalyticAt ℂ Qloc (a : ℂ) ∧
           Qloc =ᶠ[𝓝[≠] (a : ℂ)]
@@ -996,11 +1051,10 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient
       entireFunction_insertNormalizedFactor_localDivision_from_oldQuotient_and_localUnit
         F Qold g hF ρ S a ha_not_mem hS0 ha0 haρ
         hg_an hg_ne hg_factor hQold_an hQold_factor
-    exact
       entireFunction_insertNormalizedFactor_glue_localDivision
         F Qold g hF ρ hρ S a ha_not_mem hS0 ha0 hg_an hg_ne hg_factor
         hQold_an hQold_factor hQold_zero hlocal_div
-  · exact
+    else
       entireFunction_insertNormalizedFactor_removableQuotient_off_insertedDisk
         F Qold g hF ρ S a ha_not_mem hS0 ha0 haρ
         hQold_an hQold_factor hQold_zero
@@ -1052,11 +1106,11 @@ theorem entireFunction_insertNormalizedFactor_removableQuotient_of_localTaylorFa
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF (insert a S) w) ∧
       Q 0 = F 0 := by
-  rcases hlocal_a with
-  | intro g hg =>
-      rcases hS with
-      | intro Qold hQold =>
-          exact
+  exact
+    match hlocal_a with
+    | Exists.intro g hg =>
+        match hS with
+        | Exists.intro Qold hQold =>
             entireFunction_insertNormalizedFactor_removableQuotient_from_oldQuotient_and_localUnit
               F Qold g hF ρ hρ S a ha_not_mem hS0 ha0
               hg.1
@@ -1391,13 +1445,75 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
             entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
               F hF S w) ∧
       Q 0 = F 0 := by
-  revert hS0 hlocal
-  refine Finset.induction_on S ?base ?step
-  · intro _hS0 _hlocal
+  have hbase :
+      (∀ z : EntireFunctionZero F, z ∈ (∅ : Finset (EntireFunctionZero F)) → (z : ℂ) ≠ 0) →
+      (∀ z : EntireFunctionZero F,
+        z ∈ (∅ : Finset (EntireFunctionZero F)) →
+          ∃ g : ℂ → ℂ,
+            AnalyticAt ℂ g (z : ℂ) ∧
+            g (z : ℂ) ≠ 0 ∧
+            ∀ᶠ w in 𝓝 (z : ℂ),
+              F w =
+                (w - (z : ℂ)) ^
+                    entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                  g w) →
+      ∃ Q : ℂ → ℂ,
+        (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+        (∀ w : ℂ,
+          ‖w‖ ≤ ρ →
+          F w =
+            Q w *
+              entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                F hF ∅ w) ∧
+        Q 0 = F 0 := by
+    intro _hS0 _hlocal
     exact
       entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_empty
         F hF ρ hρ
-  · intro a S ha_not_mem ih hS0 hlocal
+  have hstep :
+      ∀ a S,
+        a ∉ S →
+        ((∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0) →
+          (∀ z : EntireFunctionZero F,
+            z ∈ S →
+              ∃ g : ℂ → ℂ,
+                AnalyticAt ℂ g (z : ℂ) ∧
+                g (z : ℂ) ≠ 0 ∧
+                ∀ᶠ w in 𝓝 (z : ℂ),
+                  F w =
+                    (w - (z : ℂ)) ^
+                        entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                      g w) →
+          ∃ Q : ℂ → ℂ,
+            (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+            (∀ w : ℂ,
+              ‖w‖ ≤ ρ →
+              F w =
+                Q w *
+                  entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                    F hF S w) ∧
+            Q 0 = F 0) →
+        (∀ z : EntireFunctionZero F, z ∈ insert a S → (z : ℂ) ≠ 0) →
+        (∀ z : EntireFunctionZero F,
+          z ∈ insert a S →
+            ∃ g : ℂ → ℂ,
+              AnalyticAt ℂ g (z : ℂ) ∧
+              g (z : ℂ) ≠ 0 ∧
+              ∀ᶠ w in 𝓝 (z : ℂ),
+                F w =
+                  (w - (z : ℂ)) ^
+                      entireFunctionZeroMultiplicity F hF (z : ℂ) •
+                    g w) →
+        ∃ Q : ℂ → ℂ,
+          (∀ w : ℂ, ‖w‖ ≤ ρ → AnalyticAt ℂ Q w) ∧
+          (∀ w : ℂ,
+            ‖w‖ ≤ ρ →
+            F w =
+              Q w *
+                entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                  F hF (insert a S) w) ∧
+          Q 0 = F 0 := by
+    intro a S ha_not_mem ih hS0 hlocal
     have hS0_tail :
         ∀ z : EntireFunctionZero F, z ∈ S → (z : ℂ) ≠ 0 := by
       intro z hz
@@ -1441,6 +1557,7 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFinite
     exact
       entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_insert_step_ownerRoot
         F hF ρ hρ S a ha_not_mem hS0_tail ha0 hlocal_a hS
+  exact Finset.induction_on S hbase hstep hS0 hlocal
 
 /-- Parameterized finite removable quotient gluing across a finite set of
 nonzero zeros.
@@ -1527,34 +1644,58 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
     exact
       entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_ne_zero
         F hF hF0 ρ z hz_closed
-  obtain ⟨Q, hQ_an, hfactor, hQ0⟩ :=
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
-      F hF ρ hρ S hS0 hlocal
-  refine ⟨Q, hQ_an, ?_, hQ0⟩
-  intro w hwρ
-  have hprod :
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-          F hF S w =
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-          F hF hF0 ρ w := by
-    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-    exact
-      congrArg
-        (fun T : Finset (EntireFunctionZero F) =>
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-            F hF T w)
-        hS
-  calc
-    F w =
-        Q w *
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-            F hF S w :=
-      hfactor w hwρ
-    _ =
-        Q w *
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-            F hF hF0 ρ w := by
-      exact congrArg (fun x : ℂ => Q w * x) hprod
+  exact
+    match
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
+        F hF ρ hρ S hS0 hlocal with
+    | Exists.intro Q hQ_data =>
+        match hQ_data with
+        | And.intro hQ_an hQ_tail =>
+            match hQ_tail with
+            | And.intro hfactor hQ0 =>
+                have hfactor_closed :
+                    ∀ w : ℂ,
+                      ‖w‖ ≤ ρ →
+                      F w =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                            F hF hF0 ρ w := by
+                  intro w hwρ
+                  have hprod :
+                      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF S w =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                          F hF hF0 ρ w := by
+                    calc
+                      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF S w =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF
+                          (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+                            F hF hF0 ρ) w := by
+                        exact congrArg
+                          (fun T : Finset (EntireFunctionZero F) =>
+                            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                              F hF T w)
+                          hS
+                      _ =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                          F hF hF0 ρ w := by
+                        exact
+                          (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct_def
+                            F hF hF0 ρ w).symm
+                  calc
+                    F w =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                            F hF S w :=
+                      hfactor w hwρ
+                    _ =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
+                            F hF hF0 ρ w := by
+                      exact congrArg (fun x : ℂ => Q w * x) hprod
+                Exists.intro Q (And.intro hQ_an (And.intro hfactor_closed hQ0))
 
 /-- Closed-disk removable quotient after extracting all nonzero zeros in
 `‖w‖ ≤ ρ`. -/
@@ -1649,34 +1790,58 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
     exact
       entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor_mem_ne_zero
         F hF hF0 ρ z hz_radial
-  obtain ⟨Q, hQ_an, hfactor, hQ0⟩ :=
-    entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
-      F hF ρ hρ S hS0 hlocal
-  refine ⟨Q, hQ_an, ?_, hQ0⟩
-  intro w hwρ
-  have hprod :
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-          F hF S w =
-        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-          F hF hF0 ρ w := by
-    unfold entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-    exact
-      congrArg
-        (fun T : Finset (EntireFunctionZero F) =>
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-            F hF T w)
-        hS
-  calc
-    F w =
-        Q w *
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
-            F hF S w :=
-      hfactor w hwρ
-    _ =
-        Q w *
-          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
-            F hF hF0 ρ w := by
-      exact congrArg (fun x : ℂ => Q w * x) hprod
+  exact
+    match
+      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteSupportFiniteRemovableQuotient_glue_finset_ownerRoot
+        F hF ρ hρ S hS0 hlocal with
+    | Exists.intro Q hQ_data =>
+        match hQ_data with
+        | And.intro hQ_an hQ_tail =>
+            match hQ_tail with
+            | And.intro hfactor hQ0 =>
+                have hfactor_support :
+                    ∀ w : ℂ,
+                      ‖w‖ ≤ ρ →
+                      F w =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                            F hF hF0 ρ w := by
+                  intro w hwρ
+                  have hprod :
+                      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF S w =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                          F hF hF0 ρ w := by
+                    calc
+                      entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF S w =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                          F hF
+                          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+                            F hF hF0 ρ) w := by
+                        exact congrArg
+                          (fun T : Finset (EntireFunctionZero F) =>
+                            entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                              F hF T w)
+                          hS
+                      _ =
+                        entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                          F hF hF0 ρ w := by
+                        exact
+                          (entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_def
+                            F hF hF0 ρ w).symm
+                  calc
+                    F w =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct
+                            F hF S w :=
+                      hfactor w hwρ
+                    _ =
+                        Q w *
+                          entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct
+                            F hF hF0 ρ w := by
+                      exact congrArg (fun x : ℂ => Q w * x) hprod
+                Exists.intro Q (And.intro hQ_an (And.intro hfactor_support hQ0))
 
 /-- Canonical finite removable quotient after extracting exactly the Jensen
 support divisor, stated as a thin wrapper over the Finset gluing owner lemma. -/
@@ -1790,9 +1955,11 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
               (entireFunctionZeroMultiplicity F hF (z : ℂ))
               (fun hfactor =>
                 hw
-                  ⟨z, hz,
-                    ((entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
-                      F hF hF0 ρ z hz w).1 hfactor).symm⟩))
+                  (Finset.mem_image.mpr
+                    (Exists.intro z
+                      (And.intro hz
+                        ((entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteZeroDivisorProduct_factor_eq_zero_iff
+                          F hF hF0 ρ z hz w).1 hfactor).symm)))))
     exact
       Eq.subst
         (motive := fun x : ℂ => x ≠ 0)
@@ -1853,14 +2020,19 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_supportFiniteRemova
         Q (z : ℂ) ≠ 0) :
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
   intro w hwρ
-  by_cases hw :
-      w ∈
-        (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
-          F hF hF0 ρ).image
-          (fun z : EntireFunctionZero F => (z : ℂ))
-  · rcases Finset.mem_image.1 hw with ⟨z, hz, hzw⟩
-    exact Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw.symm (hon z hz)
-  · exact hoff w hwρ hw
+  exact
+    if hw :
+        w ∈
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_radialGapSupportFiniteZeroDivisor
+            F hF hF0 ρ).image
+            (fun z : EntireFunctionZero F => (z : ℂ)) then
+      match Finset.mem_image.1 hw with
+      | Exists.intro z hz_data =>
+          match hz_data with
+          | And.intro hz hzw =>
+              Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw (hon z hz)
+    else
+      hoff w hwρ hw
 
 /-- A nonzero zero in the closed disk belongs to the closed-disk support
 divisor. -/
@@ -1902,15 +2074,19 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_function_nonzero_of
           (fun z : EntireFunctionZero F => (z : ℂ))) :
     F w ≠ 0 := by
   intro hFw
-  by_cases hw0 : w = 0
-  · exact hF0 (Eq.subst (motive := fun x : ℂ => F x = 0) hw0 hFw)
-  · have hz_mem :
+  exact
+    if hw0 : w = 0 then
+      hF0 (Eq.subst (motive := fun x : ℂ => F x = 0) hw0 hFw)
+    else
+      have hz_mem :
         (⟨w, hFw⟩ : EntireFunctionZero F) ∈
           entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
             F hF hF0 ρ :=
-      entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_of_zero_ne_zero_norm_le
-        F hF hF0 ρ hFw hw0 hwρ
-    exact hw ⟨⟨w, hFw⟩, hz_mem, rfl⟩
+        entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor_mem_of_zero_ne_zero_norm_le
+          F hF hF0 ρ hFw hw0 hwρ
+      hw (Finset.mem_image.mpr
+        (Exists.intro (⟨w, hFw⟩ : EntireFunctionZero F)
+          (And.intro hz_mem rfl)))
 
 /-- Off the closed-disk support, a zero of any exact closed-support quotient
 would force a zero of `F`, contradicting support exclusion. -/
@@ -1945,8 +2121,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
             F hF hF0 ρ w :=
     hfactor w hwρ
-      exact hFw_ne
-    (Eq.trans hfactor_w
+  have hF_zero : F w = 0 :=
+    Eq.trans hfactor_w
       (Eq.trans
         (congrArg
           (fun x : ℂ =>
@@ -1956,258 +2132,8 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
           hQw)
         (zero_mul
           (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-            F hF hF0 ρ w))))
-
-/-- Analytic germs that agree on a punctured neighborhood have the same value
-at the puncture.
-
-This is the reusable removable-value endpoint: after the factor-cancellation
-argument has produced equality away from the center, continuity of the two
-analytic germs identifies their filled-in values. -/
-theorem analyticAt_eq_at_of_eventuallyEq_punctured
-    {f g : ℂ → ℂ}
-    {a : ℂ}
-    (hf : AnalyticAt ℂ f a)
-    (hg : AnalyticAt ℂ g a)
-    (hfg : f =ᶠ[𝓝[≠] a] g) :
-    f a = g a := by
-  have hf_tendsto_nhds :
-      Filter.Tendsto f (𝓝 a) (𝓝 (f a)) :=
-    hf.continuousAt.tendsto
-  have hg_tendsto_nhds :
-      Filter.Tendsto g (𝓝 a) (𝓝 (g a)) :=
-    hg.continuousAt.tendsto
-  have hf_tendsto_punctured :
-      Filter.Tendsto f (𝓝[≠] a) (𝓝 (f a)) :=
-    hf_tendsto_nhds.mono_left nhdsWithin_le_nhds
-  have hg_tendsto_punctured :
-      Filter.Tendsto g (𝓝[≠] a) (𝓝 (g a)) :=
-    hg_tendsto_nhds.mono_left nhdsWithin_le_nhds
-  have hf_tendsto_g_value :
-      Filter.Tendsto f (𝓝[≠] a) (𝓝 (g a)) :=
-    Filter.Tendsto.congr' hfg hg_tendsto_punctured
-  exact
-    tendsto_nhds_unique hf_tendsto_punctured hf_tendsto_g_value
-
-/-- Analytic identity theorem in local punctured-germ form.
-
-If two analytic germs agree frequently in the punctured neighborhood of the
-center, then they agree eventually in the punctured neighborhood. -/
-theorem analyticAt_eventuallyEq_punctured_of_frequentlyEq_punctured
-    {f g : ℂ → ℂ}
-    {a : ℂ}
-    (hf : AnalyticAt ℂ f a)
-    (hg : AnalyticAt ℂ g a)
-    (hfg : ∃ᶠ w in 𝓝[≠] a, f w = g w) :
-    f =ᶠ[𝓝[≠] a] g := by
-  have hfg_nhds :
-      ∀ᶠ w in 𝓝 a, f w = g w :=
-    (AnalyticAt.frequently_eq_iff_eventually_eq hf hg).1 hfg
-  exact hfg_nhds.filter_mono nhdsWithin_le_nhds
-
-/-- Every nonempty real open interval contains a point outside a prescribed
-finite set. -/
-theorem real_Ioo_avoidFinite_nonempty
-    (T : Finset ℝ)
-    {u v : ℝ}
-    (huv : u < v) :
-    ∃ t : ℝ,
-      t ∈ Set.Ioo u v ∧
-        ∀ r : ℝ, r ∈ T → t ≠ r := by
-  have hcount :
-      Set.Countable ((T : Set ℝ)) :=
-    T.finite_toSet.countable
-  have hdense :
-      Dense (((T : Set ℝ))ᶜ) :=
-    hcount.dense_compl
-  have hnonempty :
-      (Set.Ioo u v).Nonempty :=
-    Set.nonempty_Ioo.2 huv
-  rcases hdense.inter_open_nonempty (Set.Ioo u v) isOpen_Ioo hnonempty with
-  | intro t ht =>
-      exact
-        ⟨t, ht.2,
-          fun r hr htr =>
-            ht.1
-              (Eq.subst
-                (motive := fun x : ℝ => x ∈ (T : Set ℝ))
-                htr
-                hr)⟩
-
-/-- One-sided real finite avoidance near `1`.
-
-This is the real topology core used by radial finite avoidance: numbers
-`t < 1`, arbitrarily close to `1`, can be chosen outside a prescribed finite
-set. -/
-theorem real_leftNhds_one_avoidFinite_frequently
-    (T : Finset ℝ) :
-    ∃ᶠ t in 𝓝[<] (1 : ℝ),
-      0 ≤ t ∧
-      t < 1 ∧
-        ∀ r : ℝ, r ∈ T → t ≠ r := by
-  refine Filter.frequently_iff.2 ?_
-  intro U hU
-  rcases
-    (mem_nhdsWithin_Iio_iff_exists_Ioo_subset (a := (1 : ℝ)) (s := U)).1 hU with
-  | intro l hl =>
-      have hl_lt_one : l < 1 :=
-        hl.1
-      have hmax_lt_one : max l 0 < 1 :=
-        max_lt hl_lt_one zero_lt_one
-      rcases real_Ioo_avoidFinite_nonempty T hmax_lt_one with
-      | intro t ht =>
-          have ht_mem_U : t ∈ U :=
-            hl.2 t
-              ⟨lt_of_le_of_lt (le_max_left l 0) ht.1.1, ht.1.2⟩
-          have ht_nonneg : 0 ≤ t :=
-            (le_max_right l 0).trans ht.1.1.le
-          exact
-            ⟨t, ht_mem_U, ht_nonneg, ht.1.2, ht.2⟩
-
-
-/-- Radial finite-avoidance inside a closed disk.
-
-For a nonzero point `a` in `closedBall 0 ρ`, the inward radial points
-`t • a`, with `t < 1` and `t → 1`, stay in the closed disk, are punctured at
-`a`, and avoid any prescribed finite set frequently. -/
-theorem complex_closedBall_radial_punctured_avoidFinite_frequently
-    (a : ℂ)
-    (ρ : ℝ)
-    (T : Finset ℂ)
-    (ha0 : a ≠ 0)
-    (haρ : ‖a‖ ≤ ρ) :
-    ∃ᶠ w in 𝓝[≠] a,
-      w ≠ a ∧
-      ‖w‖ ≤ ρ ∧
-        ∀ z : ℂ, z ∈ T → w ≠ z := by
-  let badScalars : Finset ℝ :=
-    T.image (fun z : ℂ => (z / a).re)
-  have hreal :
-      ∃ᶠ t in 𝓝[<] (1 : ℝ),
-        0 ≤ t ∧
-        t < 1 ∧
-          ∀ r : ℝ, r ∈ badScalars → t ≠ r :=
-    real_leftNhds_one_avoidFinite_frequently badScalars
-  have htendsto_nhds :
-      Tendsto (fun t : ℝ => (t : ℂ) * a) (𝓝[<] (1 : ℝ)) (𝓝 a) := by
-    have hcont :
-        ContinuousAt (fun t : ℝ => (t : ℂ) * a) (1 : ℝ) :=
-      (Complex.continuous_ofReal.continuousAt).mul continuousAt_const
-    have hvalue :
-        (fun t : ℝ => (t : ℂ) * a) 1 = a := by
-      exact one_mul a
-    exact hvalue ▸ hcont.tendsto.mono_left nhdsWithin_le_nhds
-  have heventually_punctured :
-      ∀ᶠ t in 𝓝[<] (1 : ℝ), (t : ℂ) * a ∈ ({a}ᶜ : Set ℂ) := by
-    exact
-      (eventually_mem_nhdsWithin : ∀ᶠ t in 𝓝[<] (1 : ℝ), t ∈ Set.Iio (1 : ℝ)).mono
-        (fun t ht h_eq =>
-          have h_eq_one_mul : (t : ℂ) * a = 1 * a :=
-            h_eq.trans (one_mul a).symm
-          have hscalar_complex : (t : ℂ) = 1 :=
-            mul_right_cancel₀ ha0 h_eq_one_mul
-          have ht_eq_one : t = 1 :=
-            Complex.ofReal_injective hscalar_complex
-          have hnot : ¬ t = 1 :=
-            ne_of_lt ht
-          hnot ht_eq_one)
-  have htendsto :
-      Tendsto (fun t : ℝ => (t : ℂ) * a) (𝓝[<] (1 : ℝ)) (𝓝[≠] a) :=
-    tendsto_nhdsWithin_of_tendsto_nhds_of_eventually_within
-      (fun t : ℝ => (t : ℂ) * a)
-      htendsto_nhds
-      heventually_punctured
-  exact
-    htendsto.frequently
-      (hreal.mono
-        (fun t ht =>
-          have ht_nonneg : 0 ≤ t :=
-            ht.1
-          have ht_lt_one : t < 1 :=
-            ht.2.1
-          have ht_abs_le_one : |t| ≤ 1 :=
-            abs_le.2 ⟨ht_nonneg, ht_lt_one.le⟩
-          have hnorm_scalar : ‖(t : ℂ)‖ = |t| := by
-            exact
-              (complex_norm_ofReal_of_nonnegative ht_nonneg).trans
-                (abs_of_nonneg ht_nonneg).symm
-          have hnorm_le_a : ‖(t : ℂ) * a‖ ≤ ‖a‖ := by
-            calc
-              ‖(t : ℂ) * a‖ = ‖(t : ℂ)‖ * ‖a‖ := by
-                exact norm_mul (t : ℂ) a
-              _ = |t| * ‖a‖ := by
-                exact congrArg (fun r : ℝ => r * ‖a‖) hnorm_scalar
-              _ ≤ 1 * ‖a‖ :=
-                mul_le_mul_of_nonneg_right ht_abs_le_one (norm_nonneg a)
-              _ = ‖a‖ := one_mul ‖a‖
-          have hnorm_le_ρ : ‖(t : ℂ) * a‖ ≤ ρ :=
-            hnorm_le_a.trans haρ
-          ⟨fun h_eq =>
-              have h_eq_one_mul : (t : ℂ) * a = 1 * a :=
-                h_eq.trans (one_mul a).symm
-              have hscalar_complex : (t : ℂ) = 1 :=
-                mul_right_cancel₀ ha0 h_eq_one_mul
-              have ht_eq_one : t = 1 :=
-                Complex.ofReal_injective hscalar_complex
-              have hnot : ¬ t = 1 :=
-                ne_of_lt ht_lt_one
-              hnot ht_eq_one,
-            hnorm_le_ρ,
-            fun z hz h_eq =>
-              have hz_bad :
-                  (z / a).re ∈ badScalars :=
-                Finset.mem_image.2 ⟨z, hz, rfl⟩
-              have hz_div_eq : z / a = (t : ℂ) := by
-                calc
-                  z / a = ((t : ℂ) * a) / a := by
-                    exact congrArg (fun q : ℂ => q / a) h_eq.symm
-                  _ = (t : ℂ) := mul_div_cancel_right₀ (t : ℂ) ha0
-              have ht_re_eq : t = (z / a).re := by
-                exact (congrArg Complex.re hz_div_eq).symm
-              ht.2.2 (z / a).re hz_bad ht_re_eq⟩))
-
-/-- Good punctured closed-disk points near a nonzero support point.
-
-This is the topology input for finite normalized-factor cancellation: near a
-nonzero point `a` with `‖a‖ ≤ ρ`, points of the closed disk that avoid `a` and
-the finitely many other support centers occur frequently in the punctured
-neighborhood of `a`. -/
-theorem entireFunction_closedDisk_puncturedGoodPoints_frequently
-    (F : ℂ → ℂ)
-    (S : Finset (EntireFunctionZero F))
-    (a : EntireFunctionZero F)
-    (ha : a ∈ S)
-    (ha0 : (a : ℂ) ≠ 0)
-    (ρ : ℝ)
-    (haρ : ‖(a : ℂ)‖ ≤ ρ) :
-    ∃ᶠ w in 𝓝[≠] (a : ℂ),
-      w ≠ (a : ℂ) ∧
-      ‖w‖ ≤ ρ ∧
-        ∀ z : EntireFunctionZero F,
-          z ∈ S.erase a →
-            w ≠ (z : ℂ) := by
-  have hradial :
-      ∃ᶠ w in 𝓝[≠] (a : ℂ),
-        w ≠ (a : ℂ) ∧
-        ‖w‖ ≤ ρ ∧
-          ∀ z : ℂ,
-            z ∈ (S.erase a).image (fun z : EntireFunctionZero F => (z : ℂ)) →
-              w ≠ z :=
-    complex_closedBall_radial_punctured_avoidFinite_frequently
-      (a : ℂ)
-      ρ
-      ((S.erase a).image (fun z : EntireFunctionZero F => (z : ℂ)))
-      ha0
-      haρ
-  exact
-    hradial.mono
-      (fun w hw =>
-        ⟨hw.1, hw.2.1,
-          fun z hz =>
-            hw.2.2
-              (z : ℂ)
-              (Finset.mem_image.2 ⟨z, hz, rfl⟩)⟩)
-
+            F hF hF0 ρ w)))
+  exact hFw_ne hF_zero
 
 /-- Pointwise cancellation of the local multiplicity factor against the finite
 normalized product away from the support centers. -/
@@ -2271,13 +2197,13 @@ theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_point
       Finset.prod_ne_zero_iff.mpr
         (fun z hz =>
           pow_ne_zero
-            (entireFunctionZeroMultiplicity F hF (z : ℂ))
+              (entireFunctionZeroMultiplicity F hF (z : ℂ))
             (fun hfactor =>
               hw_erase z hz
                 ((entireFunction_standardJensenFormula_nonzeroAtOrigin_finiteZeroDivisorProduct_factor_eq_zero_iff
                   F hF S
                   (fun y hy => hS0 y hy)
-                  z (Finset.mem_of_mem_erase hz) w).1 hfactor).symm))
+                  z (Finset.mem_of_mem_erase hz) w).1 hfactor)))
   have hD_ne : C * E ≠ 0 :=
     mul_ne_zero hC_ne hE_ne
   have hfactor_local :
@@ -2304,9 +2230,14 @@ theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_point
       _ = (C * P) * E := by
         exact congrArg (fun x : ℂ => x * E) hfactor_local
       _ = P * (C * E) := by
-        exact Eq.trans (mul_assoc C P E).symm (mul_left_comm C P E)
+        calc
+          (C * P) * E = C * (P * E) := mul_assoc C P E
+          _ = C * (E * P) := by
+            exact congrArg (fun x : ℂ => C * x) (mul_comm P E)
+          _ = (C * E) * P := (mul_assoc C E P).symm
+          _ = P * (C * E) := mul_comm (C * E) P
   have hg_mul : F w = P * g w := by
-    exact Eq.trans hg_factor_w (smul_eq_mul P (g w))
+    exact Eq.trans hg_factor_w (smul_eq_mul ℂ : P • g w = P * g w)
   have hmain :
       Q w * (P * (C * E)) = P * g w := by
     calc
@@ -2331,7 +2262,7 @@ theorem entireFunction_finiteNormalizedFactorization_puncturedCancellation_point
     exact mul_left_cancel₀ hP_ne hleft
   calc
     Q w = (Q w * (C * E)) / (C * E) := by
-      exact (mul_div_cancel₀ (Q w) hD_ne).symm
+      exact (mul_div_cancel_right₀ (Q w) hD_ne).symm
     _ = g w / (C * E) := by
       exact congrArg (fun x : ℂ => x / (C * E)) hcancel
 
@@ -2390,14 +2321,14 @@ theorem entireFunction_finiteNormalizedFactorization_frequentlyEq_localRemovable
             g w :=
     hg_factor.filter_mono nhdsWithin_le_nhds
   exact
-    (hgood.and_eventually hlocal_punctured).mono
+    (Filter.Eventually.and_frequently hlocal_punctured hgood).mono
       (fun w hw =>
         entireFunction_finiteNormalizedFactorization_puncturedCancellation_pointwise
           F Q hF ρ S hS0 hfactor a ha ha0 g
-          hw.1.2.1
-          hw.1.1
-          hw.1.2.2
-          hw.2)
+          hw.2.2.1
+          hw.2.1
+          hw.2.2.2
+          hw.1)
 
 /-- Analyticity of the explicit local removable model at a support point.
 
@@ -2830,20 +2761,23 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
         F w =
           Q w *
             entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisorProduct
-              F hF hF0 ρ w) :
+        F hF hF0 ρ w) :
     ∀ w : ℂ, ‖w‖ ≤ ρ → Q w ≠ 0 := by
   intro w hwρ
-  by_cases hw :
-      w ∈
-        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
-          F hF hF0 ρ).image
-          (fun z : EntireFunctionZero F => (z : ℂ))
-  · rcases Finset.mem_image.1 hw with ⟨z, hz, hzw⟩
-    exact
-      Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw.symm
-        (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_at_support_from_maximalMultiplicity_ownerRoot
-          F Q hF hF0 ρ hQ_an hfactor z hz)
-  · exact
+  exact
+    if hw :
+        w ∈
+          (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteZeroDivisor
+            F hF hF0 ρ).image
+            (fun z : EntireFunctionZero F => (z : ℂ)) then
+      match Finset.mem_image.1 hw with
+      | Exists.intro z hz_data =>
+          match hz_data with
+          | And.intro hz hzw =>
+              Eq.subst (motive := fun x : ℂ => Q x ≠ 0) hzw
+                (entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_at_support_from_maximalMultiplicity_ownerRoot
+                  F Q hF hF0 ρ hQ_an hfactor z hz)
+    else
       entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_nonzero_of_not_mem_support
         F Q hF hF0 ρ hfactor hwρ hw
 
@@ -2871,14 +2805,6 @@ theorem entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFi
   exact
     entireFunction_standardJensenFormula_nonzeroAtOrigin_closedDiskSupportFiniteRemovableQuotient_zeroFree_from_maximalMultiplicity_ownerRoot
       F Q hF hF0 ρ hQ_an hfactor
-
-/-- Zero-free analytic Jensen mean theorem for a removable quotient on a closed
-disk.
-
-This is the exact zero-free input needed by the boundary-log decomposition:
-if `Q` is analytic and nonvanishing on the Jensen disk, then the normalized
-boundary mean of `log ‖Q‖` is the central value `log ‖Q 0‖`. -/
-
 
 end
 end LFunctions

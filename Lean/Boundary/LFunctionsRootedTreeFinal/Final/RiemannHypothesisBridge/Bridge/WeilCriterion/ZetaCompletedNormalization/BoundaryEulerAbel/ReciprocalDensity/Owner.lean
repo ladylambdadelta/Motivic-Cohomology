@@ -16,6 +16,64 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- Local regularity of the reciprocal-square density away from zero. -/
+theorem scalarReciprocalDensity_reciprocalSquare_continuousAt
+    {x : ℝ}
+    (hx : x ≠ 0) :
+    ContinuousAt (fun y : ℝ => (1 : ℝ) / y ^ 2) x := by
+  have hx_sq : x ^ 2 ≠ 0 :=
+    pow_ne_zero 2 hx
+  exact continuousAt_const.div (continuousAt_id.pow 2) hx_sq
+
+/-- Local regularity of the shifted logarithm on its nonzero domain. -/
+theorem scalarReciprocalDensity_logTwoAdd_continuousAt
+    {x : ℝ}
+    (hx : 2 + x ≠ 0) :
+    ContinuousAt (fun y : ℝ => Real.log (2 + y)) x := by
+  exact
+    (continuousAt_log hx).comp
+      (continuousAt_const.add continuousAt_id)
+
+/-- Local regularity of `log(2+x) / x` away from the two singular points. -/
+theorem scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
+    {x : ℝ}
+    (hx : x ≠ 0)
+    (hlog : 2 + x ≠ 0) :
+    ContinuousAt (fun y : ℝ => Real.log (2 + y) / y) x := by
+  exact
+    (scalarReciprocalDensity_logTwoAdd_continuousAt hlog).div
+      continuousAt_id
+      hx
+
+/-- Local regularity of `2 * log(2+x) / (2+x)` off the shifted-log pole. -/
+theorem scalarReciprocalDensity_logSqDerivativeDensity_continuousAt
+    {x : ℝ}
+    (hx : 2 + x ≠ 0) :
+    ContinuousAt
+      (fun y : ℝ => 2 * Real.log (2 + y) / (2 + y))
+      x := by
+  have hnum :
+      ContinuousAt (fun y : ℝ => 2 * Real.log (2 + y)) x :=
+    continuousAt_const.mul
+      (scalarReciprocalDensity_logTwoAdd_continuousAt hx)
+  have hden :
+      ContinuousAt (fun y : ℝ => 2 + y) x :=
+    continuousAt_const.add continuousAt_id
+  exact hnum.div hden hx
+
+/-- Local regularity of `log(2+x) / x^2` away from the reciprocal and log poles. -/
+theorem scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+    {x : ℝ}
+    (hx : x ≠ 0)
+    (hlog : 2 + x ≠ 0) :
+    ContinuousAt (fun y : ℝ => Real.log (2 + y) / y ^ 2) x := by
+  have hx_sq : x ^ 2 ≠ 0 :=
+    pow_ne_zero 2 hx
+  exact
+    (scalarReciprocalDensity_logTwoAdd_continuousAt hlog).div
+      (continuousAt_id.pow 2)
+      hx_sq
+
 theorem reciprocalDerivative_norm_eq_on_positive_interval
     {a b x : ℝ}
     (ha : 0 < a)
@@ -136,8 +194,44 @@ theorem reciprocalDensityIntegral_norm_le_scalar_majorant_of_pointwise
   let g : ℝ → ℝ := fun x =>
     ((1 : ℝ) / x ^ 2) *
       (8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
-  have hg : Integrable g (volume.restrict s) := by
-    fun_prop
+  have hcutoff_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
+  have hg_cont :
+      ContinuousOn g
+        (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le hcutoff_pos hx.1)
+    have hlog_arg_pos : 2 + x ≠ 0 := by
+      have htwo_add_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two (le_of_lt (lt_of_lt_of_le hcutoff_pos hx.1))
+      exact ne_of_gt htwo_add_pos
+    have hreciprocal :
+        ContinuousAt (fun y : ℝ => (1 : ℝ) / y ^ 2) x :=
+      scalarReciprocalDensity_reciprocalSquare_continuousAt hx_pos
+    have hquotient :
+        ContinuousAt (fun y : ℝ => y / ‖t‖) x :=
+      continuousAt_id.div_const ‖t‖
+    have hshifted :
+        ContinuousAt (fun y : ℝ => y / ‖t‖ + Real.sqrt (1 + ‖t‖)) x :=
+      hquotient.add continuousAt_const
+    have hweighted :
+        ContinuousAt
+          (fun y : ℝ => 8 * (y / ‖t‖ + Real.sqrt (1 + ‖t‖)))
+          x :=
+      continuousAt_const.mul hshifted
+    have hlog :
+        ContinuousAt (fun y : ℝ => Real.log (2 + y)) x :=
+      scalarReciprocalDensity_logTwoAdd_continuousAt hlog_arg_pos
+    have hright :
+        ContinuousAt
+          (fun y : ℝ =>
+            8 * (y / ‖t‖ + Real.sqrt (1 + ‖t‖)) * Real.log (2 + y))
+          x :=
+      hweighted.mul hlog
+    exact (hreciprocal.mul hright).continuousWithinAt
+  have hg : Integrable g (volume.restrict s) :=
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
   have hbound : ∀ᵐ x ∂volume.restrict s, ‖f x‖ ≤ g x :=
     (ae_restrict_mem measurableSet_Ioc).mono
       (fun x hx => hpointwise x hx)
@@ -260,7 +354,13 @@ theorem real_log_two_add_div_self_le_log_sq_derivative_density
               (2 * Real.log (2 + x)) * ((1 : ℝ) / (2 + x)) := by
             exact div_eq_mul_one_div (2 * Real.log (2 + x)) (2 + x)
           _ = Real.log (2 + x) * (2 * ((1 : ℝ) / (2 + x))) := by
-            ac_rfl
+            let L : ℝ := Real.log (2 + x)
+            let R : ℝ := (1 : ℝ) / (2 + x)
+            calc
+              (2 * L) * R = (L * 2) * R := by
+                exact congrArg (fun y : ℝ => y * R) (mul_comm 2 L)
+              _ = L * (2 * R) := by
+                exact mul_assoc L 2 R
           _ = Real.log (2 + x) * (2 / (2 + x)) := by
             exact congrArg
               (fun y : ℝ => Real.log (2 + x) * y)
@@ -327,8 +427,28 @@ theorem real_intervalIntegral_log_sq_derivative_density_eq_sub
       add_pos_of_pos_of_nonneg zero_lt_two
         (le_trans (show (0 : ℝ) ≤ 2 by exact le_of_lt zero_lt_two) htwo_le_x)
     exact real_hasDerivAt_log_two_add_sq hpos
-  have hint : IntervalIntegrable G volume a b := by
-    fun_prop
+  have hG_cont : ContinuousOn G (Set.uIcc a b) := by
+    intro x hx
+    have hmin_left : min a b = a :=
+      min_eq_left hab
+    have hax_min : min a b ≤ x :=
+      (Set.mem_uIcc.mp hx).1
+    have hax : a ≤ x :=
+      Eq.subst
+        (motive := fun y : ℝ => y ≤ x)
+        hmin_left
+        hax_min
+    have htwo_le_x : (2 : ℝ) ≤ x :=
+      le_trans ha hax
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) htwo_le_x)
+      exact ne_of_gt harg_pos
+    exact
+      (scalarReciprocalDensity_logSqDerivativeDensity_continuousAt harg_ne).continuousWithinAt
+  have hint : IntervalIntegrable G volume a b :=
+    hG_cont.intervalIntegrable
   exact intervalIntegral.integral_eq_sub_of_hasDerivAt hderiv hint
 
 theorem real_integral_Ioc_log_sq_derivative_density_le_endpoint_sq
@@ -369,10 +489,32 @@ theorem real_integral_Ioc_log_two_add_div_self_le_log_endpoint_sq_of_pointwise
       (Real.log (2 + b)) ^ 2 := by
   let f : ℝ → ℝ := fun x => Real.log (2 + x) / x
   let g : ℝ → ℝ := fun x => 2 * Real.log (2 + x) / (2 + x)
-  have hf : Integrable f (volume.restrict (Set.Ioc a b)) := by
-    fun_prop
-  have hg : Integrable g (volume.restrict (Set.Ioc a b)) := by
-    fun_prop
+  have hf_cont : ContinuousOn f (Set.Icc a b) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha hx.1))
+    have hlog_arg : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
+      exact ne_of_gt harg_pos
+    exact
+      (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
+        hx_pos hlog_arg).continuousWithinAt
+  have hg_cont : ContinuousOn g (Set.Icc a b) := by
+    intro x hx
+    have hlog_arg : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) (le_trans ha hx.1))
+      exact ne_of_gt harg_pos
+    exact
+      (scalarReciprocalDensity_logSqDerivativeDensity_continuousAt
+        hlog_arg).continuousWithinAt
+  have hf : Integrable f (volume.restrict (Set.Ioc a b)) :=
+    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Ioc_subset_Icc_self
+  have hg : Integrable g (volume.restrict (Set.Ioc a b)) :=
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
   have hle : f ≤ᵐ[volume.restrict (Set.Ioc a b)] g :=
     (ae_restrict_mem measurableSet_Ioc).mono hpointwise
   have hmono :
@@ -462,9 +604,9 @@ theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core
     have hneg :
         HasDerivAt (fun y : ℝ => -(y⁻¹)) (- (-(x ^ 2)⁻¹)) x :=
       hinv.neg
-    have hfun :
-        (fun y : ℝ => -(y⁻¹)) = v := by
-      exact funext
+    have hlocal :
+        v =ᶠ[𝓝 x] (fun y : ℝ => -(y⁻¹)) :=
+      Filter.Eventually.of_forall
         (fun y : ℝ =>
           congrArg Neg.neg (one_div y))
     have hnormal : - (-(x ^ 2)⁻¹) = 1 / x ^ 2 := by
@@ -474,14 +616,31 @@ theorem real_intervalIntegral_log_two_add_mul_inv_sq_eq_by_parts_core
     exact Eq.subst
       (motive := fun D : ℝ => HasDerivAt v D x)
       hnormal
-      (Eq.subst
-        (motive := fun F : ℝ → ℝ => HasDerivAt F (- (-(x ^ 2)⁻¹)) x)
-        hfun
-        hneg)
-  have hu_int : IntervalIntegrable u' volume (2 : ℝ) b := by
-    fun_prop
-  have hv_int : IntervalIntegrable v' volume (2 : ℝ) b := by
-    fun_prop
+      (hneg.congr_of_eventuallyEq hlocal)
+  have hu'_cont : ContinuousOn u' [[(2 : ℝ), b]] := by
+    intro x hx
+    have hleft : (2 : ℝ) ≤ x :=
+      (Set.mem_uIcc.mp hx).1
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) hleft)
+      exact ne_of_gt harg_pos
+    exact
+      (continuousAt_const.div
+        (continuousAt_const.add continuousAt_id)
+        harg_ne).continuousWithinAt
+  have hv'_cont : ContinuousOn v' [[(2 : ℝ), b]] := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le zero_lt_two (Set.mem_uIcc.mp hx).1)
+    exact
+      (scalarReciprocalDensity_reciprocalSquare_continuousAt
+        hx_pos).continuousWithinAt
+  have hu_int : IntervalIntegrable u' volume (2 : ℝ) b :=
+    hu'_cont.intervalIntegrable
+  have hv_int : IntervalIntegrable v' volume (2 : ℝ) b :=
+    hv'_cont.intervalIntegrable
   exact intervalIntegral.integral_mul_deriv_eq_deriv_mul
     hu hv hu_int hv_int
 
@@ -524,7 +683,7 @@ theorem real_by_parts_log_two_add_endpoint_normalize
         (neg_div (Real.log 4) (2 : ℝ)).symm
   exact congrArg₂ (fun a c : ℝ => a - c) hleft hright
 
-/-- Integral sign-change normalization for the finite by-parts remainder. -/
+/-- Integral sign normalization for the finite by-parts remainder. -/
 theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
     {b : ℝ} :
     let u' : ℝ → ℝ := fun x => 1 / (2 + x)
@@ -534,9 +693,11 @@ theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
   let u' : ℝ → ℝ := fun x => 1 / (2 + x)
   let v : ℝ → ℝ := fun x => -(1 / x)
   let r : ℝ → ℝ := fun x => (1 : ℝ) / (x * (2 + x))
-  have hpoint : (fun x : ℝ => u' x * v x) = (fun x : ℝ => -r x) := by
-    exact funext
-      (fun x : ℝ =>
+  have hintegral :
+      ∫ x in (2 : ℝ)..b, u' x * v x =
+        ∫ x in (2 : ℝ)..b, -r x :=
+    intervalIntegral.integral_congr
+      (fun x _hx =>
         calc
           u' x * v x = (1 / (2 + x)) * (-(1 / x)) := rfl
           _ = -((1 / (2 + x)) * (1 / x)) :=
@@ -545,12 +706,6 @@ theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
             exact congrArg Neg.neg
               (one_div_mul_one_div_rev (a := (2 + x)) (b := x))
           _ = -r x := rfl)
-  have hintegral :
-      ∫ x in (2 : ℝ)..b, u' x * v x =
-        ∫ x in (2 : ℝ)..b, -r x :=
-    congrArg
-      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
-      hpoint
   calc
     -(∫ x in (2 : ℝ)..b, u' x * v x) =
         -(∫ x in (2 : ℝ)..b, -r x) := by
@@ -635,16 +790,10 @@ theorem real_integral_Ioc_log_two_add_div_sq_eq_mul_inv_sq
       ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
         ∫ x in (2 : ℝ)..b, Real.log (2 + x) / x ^ 2 :=
     (intervalIntegral.integral_of_le hb).symm
-  have hpoint :
-      (fun x : ℝ => Real.log (2 + x) / x ^ 2) =
-        (fun x : ℝ => Real.log (2 + x) * (1 / x ^ 2)) := by
-    exact funext
-      (fun x : ℝ =>
-        div_eq_mul_one_div (Real.log (2 + x)) (x ^ 2))
   exact Eq.trans hset
-    (congrArg
-      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
-      hpoint)
+    (intervalIntegral.integral_congr
+      (fun x _hx =>
+        div_eq_mul_one_div (Real.log (2 + x)) (x ^ 2)))
 
 /-- Interval/set normalization for the by-parts remainder term. -/
 theorem real_intervalIntegral_one_div_mul_two_add_eq_Ioc
@@ -682,7 +831,11 @@ theorem real_one_div_mul_two_add_eq_half_sub
     (1 : ℝ) / (x * (2 + x))
         = ((1 / 2 : ℝ) * 2) / (x * (2 + x)) := by
             have hhalf : (1 / 2 : ℝ) * 2 = 1 := by
-              ring
+              have htwo_ne : (2 : ℝ) ≠ 0 :=
+                two_ne_zero
+              calc
+                (1 / 2 : ℝ) * 2 = (1 : ℝ) := by
+                  exact div_mul_cancel₀ (1 : ℝ) htwo_ne
             exact congrArg (fun y : ℝ => y / (x * (2 + x))) hhalf.symm
     _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
             have hnonzero : (x * (2 + x) : ℝ) ≠ 0 := by
@@ -690,7 +843,16 @@ theorem real_one_div_mul_two_add_eq_half_sub
             calc
               ((1 / 2 : ℝ) * 2) / (x * (2 + x))
                   = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
-                      field_simp [hnonzero]
+                      calc
+                        ((1 / 2 : ℝ) * 2) / (x * (2 + x))
+                            = ((1 / 2 : ℝ) * 2) * (x * (2 + x))⁻¹ :=
+                                div_eq_mul_inv ((1 / 2 : ℝ) * 2) (x * (2 + x))
+                        _ = (1 / 2 : ℝ) * (2 * (x * (2 + x))⁻¹) :=
+                                mul_assoc (1 / 2 : ℝ) 2 (x * (2 + x))⁻¹
+                        _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
+                                exact congrArg
+                                  (fun y : ℝ => (1 / 2 : ℝ) * y)
+                                  (div_eq_mul_inv 2 (x * (2 + x))).symm
               _ = (1 / 2 : ℝ) * (2 / (x * (2 + x))) := by
                   rfl
     _ = (1 / 2 : ℝ) * ((1 : ℝ) / x - (1 : ℝ) / (2 + x)) := by
@@ -737,11 +899,9 @@ theorem real_intervalIntegral_one_div_two_add_eq_log_endpoint
   have hleft :
       ∫ x in (2 : ℝ)..b, (1 : ℝ) / (2 + x) =
         ∫ x in (2 : ℝ)..b, (fun y : ℝ => (1 : ℝ) / y) (x + 2) := by
-    exact congrArg
-      (fun f : ℝ → ℝ => ∫ x in (2 : ℝ)..b, f x)
-      (funext
-        (fun x : ℝ =>
-          congrArg (fun y : ℝ => (1 : ℝ) / y) (add_comm 2 x)))
+    exact intervalIntegral.integral_congr
+      (fun x _hx =>
+        congrArg (fun y : ℝ => (1 : ℝ) / y) (add_comm 2 x))
   have heval :
       ∫ x in ((2 : ℝ) + 2)..(b + 2), (1 : ℝ) / x =
         Real.log (b + 2) - Real.log ((2 : ℝ) + 2) := by
@@ -1178,10 +1338,34 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
       ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
         ∫ x in (2 : ℝ)..b, f x :=
     (intervalIntegral.integral_of_le htwo_b).symm
-  have hleft_interval : IntervalIntegrable f volume (2 : ℝ) a := by
-    fun_prop
-  have hright_interval : IntervalIntegrable f volume a b := by
-    fun_prop
+  have hleft_cont : ContinuousOn f [[(2 : ℝ), a]] := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le zero_lt_two (Set.mem_uIcc.mp hx).1)
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) (Set.mem_uIcc.mp hx).1)
+      exact ne_of_gt harg_pos
+    exact
+      (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+        hx_pos harg_ne).continuousWithinAt
+  have hright_cont : ContinuousOn f [[a, b]] := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha (Set.mem_uIcc.mp hx).1))
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_trans (le_of_lt zero_lt_two) (le_trans ha (Set.mem_uIcc.mp hx).1))
+      exact ne_of_gt harg_pos
+    exact
+      (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+        hx_pos harg_ne).continuousWithinAt
+  have hleft_interval : IntervalIntegrable f volume (2 : ℝ) a :=
+    hleft_cont.intervalIntegrable
+  have hright_interval : IntervalIntegrable f volume a b :=
+    hright_cont.intervalIntegrable
   have hadd :
       (∫ x in (2 : ℝ)..a, f x) + ∫ x in a..b, f x =
         ∫ x in (2 : ℝ)..b, f x :=
@@ -1433,7 +1617,25 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
           calc
             ((1 : ℝ) / x ^ 2) * (8 * x * L) =
                 8 * L * (x / x ^ 2) := by
-              ac_rfl
+              let R : ℝ := (1 : ℝ) / x ^ 2
+              calc
+                R * (8 * x * L) = (8 * x * L) * R := by
+                  exact mul_comm R (8 * x * L)
+                _ = (8 * x) * (L * R) := by
+                  exact mul_assoc (8 * x) L R
+                _ = 8 * (x * (L * R)) := by
+                  exact (mul_assoc 8 x (L * R)).symm
+                _ = 8 * ((x * L) * R) := by
+                  exact congrArg (fun y : ℝ => 8 * y) (mul_assoc x L R).symm
+                _ = 8 * ((L * x) * R) := by
+                  exact congrArg (fun y : ℝ => 8 * (y * R)) (mul_comm x L)
+                _ = 8 * (L * (x * R)) := by
+                  exact congrArg (fun y : ℝ => 8 * y) (mul_assoc L x R)
+                _ = 8 * L * (x * R) := by
+                  exact mul_assoc 8 L (x * R)
+                _ = 8 * L * (x / x ^ 2) := by
+                  exact congrArg (fun y : ℝ => 8 * L * y)
+                    (div_eq_mul_one_div x (x ^ 2)).symm
             _ = 8 * L * (1 / x) := by
               have hx_cancel : x / x ^ 2 = 1 / x := by
                 calc
@@ -1458,7 +1660,12 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
           calc
             ((1 : ℝ) / x ^ 2) * (8 * S * L) =
                 8 * S * (L * ((1 : ℝ) / x ^ 2)) := by
-              ac_rfl
+              let R : ℝ := (1 : ℝ) / x ^ 2
+              calc
+                R * (8 * S * L) = (8 * S * L) * R := by
+                  exact mul_comm R (8 * S * L)
+                _ = (8 * S) * (L * R) := by
+                  exact mul_assoc (8 * S) L R
             _ = 8 * S * (L / x ^ 2) := by
               exact congrArg
                 (fun y : ℝ => 8 * S * y)
@@ -1487,10 +1694,69 @@ theorem scalarReciprocalDensityMajorant_integral_split_le_components
   let g : ℝ → ℝ := fun x =>
     8 * (Real.log (2 + x) / x) +
       8 * Real.sqrt (1 + ‖t‖) * (Real.log (2 + x) / x ^ 2)
-  have hf : Integrable f (volume.restrict s) := by
-    fun_prop
-  have hg : Integrable g (volume.restrict s) := by
-    fun_prop
+  have hleft_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
+  have hf_cont : ContinuousOn f
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_of_lt (lt_of_lt_of_le hleft_pos hx.1))
+      exact ne_of_gt harg_pos
+    have hreciprocal :
+        ContinuousAt (fun y : ℝ => (1 : ℝ) / y ^ 2) x :=
+      scalarReciprocalDensity_reciprocalSquare_continuousAt hx_pos
+    have hquotient :
+        ContinuousAt (fun y : ℝ => y / ‖t‖) x :=
+      continuousAt_id.div_const ‖t‖
+    have hshifted :
+        ContinuousAt (fun y : ℝ => y / ‖t‖ + Real.sqrt (1 + ‖t‖)) x :=
+      hquotient.add continuousAt_const
+    have hweighted :
+        ContinuousAt
+          (fun y : ℝ => 8 * (y / ‖t‖ + Real.sqrt (1 + ‖t‖)))
+          x :=
+      continuousAt_const.mul hshifted
+    have hlog :
+        ContinuousAt (fun y : ℝ => Real.log (2 + y)) x :=
+      scalarReciprocalDensity_logTwoAdd_continuousAt harg_ne
+    exact (hreciprocal.mul (hweighted.mul hlog)).continuousWithinAt
+  have hg_cont : ContinuousOn g
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_of_lt (lt_of_lt_of_le hleft_pos hx.1))
+      exact ne_of_gt harg_pos
+    have hleft :
+        ContinuousAt (fun y : ℝ => 8 * (Real.log (2 + y) / y)) x :=
+      continuousAt_const.mul
+        (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
+          hx_pos harg_ne)
+    have hright_base :
+        ContinuousAt
+          (fun y : ℝ => Real.log (2 + y) / y ^ 2)
+          x :=
+      scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+        hx_pos harg_ne
+    have hright :
+        ContinuousAt
+          (fun y : ℝ =>
+            8 * Real.sqrt (1 + ‖t‖) *
+              (Real.log (2 + y) / y ^ 2))
+          x :=
+      continuousAt_const.mul hright_base
+    exact (hleft.add hright).continuousWithinAt
+  have hf : Integrable f (volume.restrict s) :=
+    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Ioc_subset_Icc_self
+  have hg : Integrable g (volume.restrict s) :=
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
   have hle : f ≤ᵐ[volume.restrict s] g :=
     (ae_restrict_mem measurableSet_Ioc).mono
       (fun x hx =>
@@ -1525,10 +1791,43 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
   let A : ℝ := (Real.log (2 + ((M : ℕ) : ℝ))) ^ 2
   let B : ℝ := Real.log (3 + ‖t‖)
   let S : ℝ := Real.sqrt (1 + ‖t‖)
-  have hf : Integrable (fun x => 8 * f x) (volume.restrict s) := by
-    fun_prop
-  have hg : Integrable (fun x => 8 * S * g x) (volume.restrict s) := by
-    fun_prop
+  have hleft_pos : 0 < (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) :=
+    Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t)
+  have hf_cont : ContinuousOn (fun x => 8 * f x)
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_of_lt (lt_of_lt_of_le hleft_pos hx.1))
+      exact ne_of_gt harg_pos
+    exact
+      (continuousAt_const.mul
+        (scalarReciprocalDensity_logTwoAdd_div_self_continuousAt
+          hx_pos harg_ne)).continuousWithinAt
+  have hg_cont : ContinuousOn (fun x => 8 * S * g x)
+      (Set.Icc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+    intro x hx
+    have hx_pos : x ≠ 0 :=
+      ne_of_gt (lt_of_lt_of_le hleft_pos hx.1)
+    have harg_ne : 2 + x ≠ 0 := by
+      have harg_pos : 0 < 2 + x :=
+        add_pos_of_pos_of_nonneg zero_lt_two
+          (le_of_lt (lt_of_lt_of_le hleft_pos hx.1))
+      exact ne_of_gt harg_pos
+    have hbase :
+        ContinuousAt
+          (fun y : ℝ => Real.log (2 + y) / y ^ 2)
+          x :=
+      scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
+        hx_pos harg_ne
+    exact (continuousAt_const.mul hbase).continuousWithinAt
+  have hf : Integrable (fun x => 8 * f x) (volume.restrict s) :=
+    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Ioc_subset_Icc_self
+  have hg : Integrable (fun x => 8 * S * g x) (volume.restrict s) :=
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
   have hsum_eq :
       (∫ x in s, (8 * f x + 8 * S * g x)) =
         (∫ x in s, 8 * f x) + ∫ x in s, 8 * S * g x :=
@@ -1923,19 +2222,32 @@ theorem boundaryLineOnePointRealParam_reciprocalDensity_preCutoff_mass_le
     calc
       (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (1 : ℝ) / (n : ℝ)) =
           ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℝ) := by
-            refine Finset.sum_congr rfl ?_
-            intro n hn_mem
-            have hn_one_le : 1 ≤ n :=
-              (Finset.mem_Icc.mp hn_mem).1
-            have hn_pos : 0 < n :=
-              Nat.lt_of_succ_le hn_one_le
-            calc
-              (1 : ℝ) / (n : ℝ) = ((n : ℝ)⁻¹) := by
-                exact one_div (n : ℝ)
-              _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
-                exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm
-      _ = harmonic ⌊2 + ‖t‖⌋₊ := by
-            exact_mod_cast (harmonic_eq_sum_Icc (n := ⌊2 + ‖t‖⌋₊)).symm
+            exact Finset.sum_congr rfl
+              (fun n hn_mem =>
+                let hn_one_le : 1 ≤ n :=
+                  (Finset.mem_Icc.mp hn_mem).1
+                let hn_pos : 0 < n :=
+                  Nat.lt_of_succ_le hn_one_le
+                calc
+                  (1 : ℝ) / (n : ℝ) = ((n : ℝ)⁻¹) := by
+                    exact one_div (n : ℝ)
+                  _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+                    exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm)
+        _ = harmonic ⌊2 + ‖t‖⌋₊ := by
+        have hrat :
+            (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) =
+              harmonic ⌊2 + ‖t‖⌋₊ :=
+          (harmonic_eq_sum_Icc (n := ⌊2 + ‖t‖⌋₊)).symm
+        have hcast_sum :
+            ((∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) : ℝ) =
+              ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (((n : ℚ)⁻¹ : ℚ) : ℝ) :=
+          Rat.cast_sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
+            (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ))
+        have hcast_harmonic :
+            ((∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) : ℝ) =
+              (harmonic ⌊2 + ‖t‖⌋₊ : ℝ) :=
+          congrArg (fun q : ℚ => (q : ℝ)) hrat
+        exact Eq.trans hcast_sum.symm hcast_harmonic
   exact le_trans hsum_subset (le_of_eq hharmonic)
 
 /-- Finite pre-cutoff block estimate for reciprocal-weighted logarithmic-phase
@@ -1960,11 +2272,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_preCutoff_finiteTail_norm
       (∑ n ∈ Finset.Ioc N M,
           ‖((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖) ≤
         ∑ n ∈ Finset.Ioc N M, (1 : ℝ) / (n : ℝ) := by
-    refine Finset.sum_le_sum ?_
-    intro n hn_mem
-    have hn_pos : 0 < n :=
-      Nat.lt_trans (Nat.lt_of_succ_le hN) (Finset.mem_Ioc.mp hn_mem).1
-    exact boundaryLineOnePointRealParam_reciprocalLogPhaseTerm_norm_le_inv t hn_pos
+    exact Finset.sum_le_sum
+      (fun n hn_mem =>
+        let hn_pos : 0 < n :=
+          Nat.lt_trans (Nat.lt_of_succ_le hN) (Finset.mem_Ioc.mp hn_mem).1
+        boundaryLineOnePointRealParam_reciprocalLogPhaseTerm_norm_le_inv t hn_pos)
   have hmass :
       (∑ n ∈ Finset.Ioc N M, (1 : ℝ) / (n : ℝ)) ≤
         harmonic ⌊2 + ‖t‖⌋₊ :=
@@ -2052,12 +2364,47 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       ∀ x ∈ Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         DifferentiableAt ℝ (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x := by
     intro x hx
-    fun_prop
-  have hf_int :
-      IntegrableOn
-        (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
-        (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
-    fun_prop
+    have hx_pos : 0 < x :=
+      lt_of_lt_of_le
+        (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
+        hx.1
+    exact (complexReciprocalOfReal_hasDerivAt hx_pos).differentiableAt
+    have hf_int :
+        IntegrableOn
+          (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+      let d : ℝ → ℂ := fun x => -(1 : ℂ) / (x : ℂ) ^ 2
+      have hd_cont : ContinuousOn d
+          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) := by
+        intro x hx
+        have hx_pos : 0 < x :=
+          lt_of_lt_of_le
+            (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
+            hx.1
+        have hx_complex_ne : ((x : ℂ) ≠ 0) :=
+          Complex.ofReal_ne_zero.mpr hx_pos.ne'
+        have hx_sq_ne : ((x : ℂ) ^ 2) ≠ 0 :=
+          pow_ne_zero 2 hx_complex_ne
+        have hden :
+            ContinuousAt (fun y : ℝ => ((y : ℂ) ^ 2)) x :=
+          (Complex.continuous_ofReal.continuousAt.pow 2)
+        have hquot :
+            ContinuousAt (fun y : ℝ => (1 : ℂ) / ((y : ℂ) ^ 2)) x :=
+          continuousAt_const.div hden hx_sq_ne
+        exact hquot.neg.continuousWithinAt
+      have hd_int : IntegrableOn d
+          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+        ContinuousOn.integrableOn_Icc hd_cont
+      have hd_eq : EqOn d
+          (deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)))
+          (Set.Icc (((N : ℕ) : ℝ)) ((M : ℕ) : ℝ)) :=
+        fun x hx =>
+          let hx_pos : 0 < x :=
+            lt_of_lt_of_le
+              (Nat.cast_pos.mpr (boundaryLineOnePointRealParam_cutoff_pos t))
+              hx.1
+          (complexReciprocalOfReal_deriv_eq hx_pos).symm
+      exact hd_int.congr_fun hd_eq measurableSet_Icc
   have hidentity :
       (∑ k ∈ Finset.Ioc ⌊(((N : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
           ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))) =
@@ -2095,7 +2442,23 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     have hadd :
         (2 + 8 * L) + (2 + 8 * L) =
           (2 + 2) + (8 * L + 8 * L) := by
-      ac_rfl
+      let A : ℝ := 8 * L
+      have hinner :
+          A + (2 + A) = 2 + (A + A) := by
+        calc
+          A + (2 + A) = (A + 2) + A := by
+            exact (add_assoc A 2 A).symm
+          _ = (2 + A) + A := by
+            exact congrArg (fun y : ℝ => y + A) (add_comm A 2)
+          _ = 2 + (A + A) := by
+            exact add_assoc 2 A A
+      calc
+        (2 + A) + (2 + A) = 2 + (A + (2 + A)) := by
+          exact add_assoc 2 A (2 + A)
+        _ = 2 + (2 + (A + A)) := by
+          exact congrArg (fun y : ℝ => 2 + y) hinner
+        _ = (2 + 2) + (A + A) := by
+          exact (add_assoc 2 2 (A + A)).symm
     have htwo : (2 : ℝ) + 2 = 4 := by
       rfl
     have height_coeff : (8 : ℝ) + 8 = 16 := by
@@ -2198,10 +2561,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log
     one_le_log_two_add_norm_of_one_le_norm ht
   have hfour_le : (4 : ℝ) ≤ 4 * L := by
     calc
-      (4 : ℝ) = 4 * 1 := by
-        exact (mul_one 4).symm
+        (4 : ℝ) = 4 * 1 := by
+          exact (mul_one 4).symm
       _ ≤ 4 * L :=
-        mul_le_mul_of_nonneg_left hlog_one (by norm_num)
+        mul_le_mul_of_nonneg_left hlog_one
+          (Nat.cast_le.mpr (show (0 : ℕ) ≤ 4 by decide) : (0 : ℝ) ≤ 4)
   have hlog_three :
       Real.log (3 + ‖t‖) ≤ 2 * L :=
     reciprocalDensity_log_three_add_norm_le_two_mul_log_two_add_norm t
@@ -2209,16 +2573,39 @@ theorem boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant_le_log
       16 * Real.log (3 + ‖t‖) ≤ 32 * L := by
     calc
       16 * Real.log (3 + ‖t‖) ≤ 16 * (2 * L) :=
-        mul_le_mul_of_nonneg_left hlog_three (by norm_num)
-      _ = 32 * L := by
-        ring
+        mul_le_mul_of_nonneg_left hlog_three
+          (Nat.cast_le.mpr (show (0 : ℕ) ≤ 16 by decide) : (0 : ℝ) ≤ 16)
+        _ = 32 * L := by
+          calc
+            16 * (2 * L) = (16 * 2) * L :=
+              (mul_assoc 16 2 L).symm
+            _ = 32 * L := by
+            exact congrArg
+              (fun c : ℝ => c * L)
+              (by
+                have hnat : (16 : ℕ) * 2 = 32 := by decide
+                have hcast :
+                    (((16 : ℕ) * 2 : ℕ) : ℝ) = (32 : ℝ) :=
+                  congrArg (fun n : ℕ => (n : ℝ)) hnat
+                exact Eq.trans (Nat.cast_mul 16 2) hcast)
   calc
     boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t =
         4 + 16 * Real.log (3 + ‖t‖) := rfl
-    _ ≤ 4 * L + 32 * L :=
-      add_le_add hfour_le hsixteen
-    _ = 36 * L := by
-      ring
+      _ ≤ 4 * L + 32 * L :=
+        add_le_add hfour_le hsixteen
+      _ = 36 * L := by
+        calc
+          4 * L + 32 * L = (4 + 32) * L :=
+            (add_mul 4 32 L).symm
+          _ = 36 * L := by
+          exact congrArg
+            (fun c : ℝ => c * L)
+            (by
+              have hnat : (4 : ℕ) + 32 = 36 := by decide
+              have hcast :
+                  (((4 : ℕ) + 32 : ℕ) : ℝ) = (36 : ℝ) :=
+                congrArg (fun n : ℕ => (n : ℝ)) hnat
+              exact Eq.trans (Nat.cast_add 4 32) hcast)
     _ = 36 * Real.log (2 + ‖t‖) := rfl
 
 /-- Adjacent finite interval sums split over `Ioc` blocks. -/
@@ -2259,7 +2646,24 @@ theorem finite_sum_Ioc_eq_sub_left
         ((∑ n ∈ Finset.Ioc C N, f n) +
           ∑ n ∈ Finset.Ioc N M, f n) -
           ∑ n ∈ Finset.Ioc C N, f n := by
-      abel
+      let A : α := ∑ n ∈ Finset.Ioc C N, f n
+      let B : α := ∑ n ∈ Finset.Ioc N M, f n
+      have hcancel :
+          (A + B) - A = B := by
+        calc
+          (A + B) - A = (A + B) + -A := by
+            exact sub_eq_add_neg (A + B) A
+          _ = A + (B + -A) := by
+            exact add_assoc A B (-A)
+          _ = A + (-A + B) := by
+            exact congrArg (fun y : α => A + y) (add_comm B (-A))
+          _ = (A + -A) + B := by
+            exact (add_assoc A (-A) B).symm
+          _ = 0 + B := by
+            exact congrArg (fun y : α => y + B) (add_right_neg A)
+          _ = B := by
+            exact zero_add B
+      exact hcancel.symm
     _ = (∑ n ∈ Finset.Ioc C M, f n) -
         ∑ n ∈ Finset.Ioc C N, f n := by
       exact congrArg (fun z : α => z - ∑ n ∈ Finset.Ioc C N, f n) hmain.symm
@@ -2292,19 +2696,11 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
   have hM_tail :
       ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    change
-      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
-          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht (le_trans hCN hNM)
   have hN_tail :
       ‖∑ n ∈ Finset.Ioc C N, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-    change
-      ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ N,
-          ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-        boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       t ht hCN
   have htriangle :
@@ -2329,7 +2725,19 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
           36 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) :=
         add_le_add hone hone
       _ = 72 * Real.log (2 + ‖t‖) := by
-        ring
+        calc
+          36 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) =
+              (36 + 36) * Real.log (2 + ‖t‖) :=
+            (add_mul 36 36 (Real.log (2 + ‖t‖))).symm
+          _ = 72 * Real.log (2 + ‖t‖) := by
+            exact congrArg
+              (fun c : ℝ => c * Real.log (2 + ‖t‖))
+              (by
+                have hnat : (36 : ℕ) + 36 = 72 := by decide
+                have hcast :
+                    (((36 : ℕ) + 36 : ℕ) : ℝ) = (72 : ℝ) :=
+                  congrArg (fun n : ℕ => (n : ℝ)) hnat
+                exact Eq.trans (Nat.cast_add 36 36) hcast)
   exact Eq.subst
     (motive := fun z : ℂ => ‖z‖ ≤ 72 * Real.log (2 + ‖t‖))
     hsplit.symm
@@ -2346,24 +2754,29 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
     ‖∑ n ∈ Finset.Ioc N M,
         ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       74 * Real.log (2 + ‖t‖) := by
-  by_cases hMcut : M ≤ ⌊2 + ‖t‖⌋₊
-  · have hpre :
+  match Decidable.em (M ≤ ⌊2 + ‖t‖⌋₊) with
+  | Or.inl hMcut =>
+    have hpre :
         ‖∑ n ∈ Finset.Ioc N M,
             ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
           2 * Real.log (2 + ‖t‖) :=
       boundaryLineOnePointRealParam_logarithmicPhase_preCutoff_finiteTail_norm_le
         t ht hN hMcut
-    have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
-      le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
-    have htwo_le :
-        2 * Real.log (2 + ‖t‖) ≤
-          74 * Real.log (2 + ‖t‖) :=
-      mul_le_mul_of_nonneg_right (by norm_num : (2 : ℝ) ≤ 74) hlog_nonneg
+      have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
+        le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
+      have htwo_le :
+          2 * Real.log (2 + ‖t‖) ≤
+            74 * Real.log (2 + ‖t‖) :=
+      mul_le_mul_of_nonneg_right
+        (Nat.cast_le.mpr (show (2 : ℕ) ≤ 74 by decide) : (2 : ℝ) ≤ 74)
+        hlog_nonneg
     exact le_trans hpre htwo_le
-  · have hC_le_M : ⌊2 + ‖t‖⌋₊ ≤ M :=
+  | Or.inr hMcut =>
+    have hC_le_M : ⌊2 + ‖t‖⌋₊ ≤ M :=
       Nat.le_of_not_ge hMcut
-    by_cases hC_le_N : ⌊2 + ‖t‖⌋₊ ≤ N
-    · have hpost :
+    match Decidable.em (⌊2 + ‖t‖⌋₊ ≤ N) with
+    | Or.inl hC_le_N =>
+      have hpost :
           ‖∑ n ∈ Finset.Ioc N M,
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
             72 * Real.log (2 + ‖t‖) :=
@@ -2372,12 +2785,15 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
       have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
         le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
       have hle :
-          72 * Real.log (2 + ‖t‖) ≤
-            74 * Real.log (2 + ‖t‖) :=
-        mul_le_mul_of_nonneg_right (by norm_num : (72 : ℝ) ≤ 74) hlog_nonneg
+        72 * Real.log (2 + ‖t‖) ≤
+          74 * Real.log (2 + ‖t‖) :=
+        mul_le_mul_of_nonneg_right
+          (Nat.cast_le.mpr (show (72 : ℕ) ≤ 74 by decide) : (72 : ℝ) ≤ 74)
+          hlog_nonneg
       exact le_trans hpost hle
-    · have hN_le_C : N ≤ ⌊2 + ‖t‖⌋₊ :=
-        Nat.le_of_not_ge hC_le_N
+      | Or.inr hC_le_N =>
+        have hN_le_C : N ≤ ⌊2 + ‖t‖⌋₊ :=
+          Nat.le_of_not_ge hC_le_N
       let C : ℕ := ⌊2 + ‖t‖⌋₊
       let f : ℕ → ℂ :=
         fun n => ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))
@@ -2415,10 +2831,6 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
       have hcut :
           ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-        change
-          ‖∑ n ∈ Finset.Ioc ⌊2 + ‖t‖⌋₊ M,
-              ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
-            boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t
         exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
           t ht hC_le_M
       have hcut_log :
@@ -2443,13 +2855,26 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
               2 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) :=
             add_le_add_left hcut_log (2 * Real.log (2 + ‖t‖))
           _ = 38 * Real.log (2 + ‖t‖) := by
-            ring
+            calc
+              2 * Real.log (2 + ‖t‖) + 36 * Real.log (2 + ‖t‖) =
+                  (2 + 36) * Real.log (2 + ‖t‖) :=
+                (add_mul 2 36 (Real.log (2 + ‖t‖))).symm
+              _ = 38 * Real.log (2 + ‖t‖) := by
+                exact congrArg
+                  (fun c : ℝ => c * Real.log (2 + ‖t‖))
+                  (by
+                    have hnat : (2 : ℕ) + 36 = 38 := by decide
+                    have hcast :
+                        (((2 : ℕ) + 36 : ℕ) : ℝ) = (38 : ℝ) :=
+                      congrArg (fun n : ℕ => (n : ℝ)) hnat
+                    exact Eq.trans (Nat.cast_add 2 36) hcast)
           _ ≤ 74 * Real.log (2 + ‖t‖) := by
             have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
               le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
             exact
               mul_le_mul_of_nonneg_right
-                (by norm_num : (38 : ℝ) ≤ 74) hlog_nonneg
+                (Nat.cast_le.mpr (show (38 : ℕ) ≤ 74 by decide) : (38 : ℝ) ≤ 74)
+                hlog_nonneg
       exact Eq.subst
         (motive := fun z : ℂ => ‖z‖ ≤ 74 * Real.log (2 + ‖t‖))
         hsplit_sum.symm

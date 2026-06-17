@@ -351,9 +351,13 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
         ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ :=
       norm_add_le _ _
     _ = ‖z‖ + A := by
-      dsimp [A]
-      congr 1
-      exact norm_neg z
+      show
+        ‖-z‖ + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖ =
+          ‖z‖ + A
+      exact congrArg
+        (fun x : ℝ =>
+          x + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖)
+        (norm_neg z)
         _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
           have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := pow_one (1 + ‖z‖)
           exact hpow1.symm ▸
@@ -545,7 +549,7 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
         ‖Complex.binetSecondFormulaRemainder z‖ ≤
           Cr * (1 + ‖z‖) ^ m := by
       have hmr_le : mr ≤ m := by
-        dsimp [m]
+        show mr ≤ mm + mr
         exact Nat.le_add_left mr mm
       have hpow :
           (1 + ‖z‖) ^ mr ≤ (1 + ‖z‖) ^ m :=
@@ -564,7 +568,10 @@ theorem Complex.log_Gamma_norm_bound_large_sectorSeparated_from_Binet_formula_an
                 Cr * (1 + ‖z‖) ^ m :=
           add_le_add hmain_bound hrem_bound
         _ = C * (1 + ‖z‖) ^ m := by
-          dsimp [C]
+          show
+            Cm * (1 + ‖z‖) ^ m +
+                Cr * (1 + ‖z‖) ^ m =
+              (Cm + Cr) * (1 + ‖z‖) ^ m
           exact Real.sectorialLogNorm_add_same_power Cm Cr
             (1 + ‖z‖) m
     have hformula :

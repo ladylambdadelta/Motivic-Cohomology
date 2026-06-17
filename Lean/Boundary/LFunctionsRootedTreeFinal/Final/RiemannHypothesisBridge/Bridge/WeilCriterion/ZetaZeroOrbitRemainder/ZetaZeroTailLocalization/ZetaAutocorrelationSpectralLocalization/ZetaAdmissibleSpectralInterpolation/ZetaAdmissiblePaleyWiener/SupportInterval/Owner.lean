@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissibleInterpolation.ZetaAdmissibleProbe.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.ZetaAdmissibleFunction.ZetaAdmissibleFunctionCore.Owner
 import Mathlib.Analysis.Calculus.Deriv.Support
 
 /-!
@@ -31,17 +31,15 @@ structure ZetaPaleyWienerSupportInterval (f : ZetaAdmissibleFunction) where
 theorem exists_zetaPaleyWienerSupportUpperBound
     (f : ZetaAdmissibleFunction) :
     ∃ B : ℝ, ∀ t ∈ tsupport f.toZetaTestFunction, t ≤ B := by
-  obtain ⟨B, hB⟩ :=
-    IsCompact.bddAbove f.toZetaTestFunction.hasCompactSupport.isCompact
-  exact ⟨B, hB⟩
+  match IsCompact.bddAbove f.toZetaTestFunction.hasCompactSupport.isCompact with
+  | ⟨B, hB⟩ => exact ⟨B, hB⟩
 
 /-- Compact support gives a lower bound for the admissible source support. -/
 theorem exists_zetaPaleyWienerSupportLowerBound
     (f : ZetaAdmissibleFunction) :
     ∃ A : ℝ, ∀ t ∈ tsupport f.toZetaTestFunction, A ≤ t := by
-  obtain ⟨A, hA⟩ :=
-    IsCompact.bddBelow f.toZetaTestFunction.hasCompactSupport.isCompact
-  exact ⟨A, hA⟩
+  match IsCompact.bddBelow f.toZetaTestFunction.hasCompactSupport.isCompact with
+  | ⟨A, hA⟩ => exact ⟨A, hA⟩
 
 /-- Compact support gives a concrete interval containing the admissible source support, as a
 proposition-level existence statement.  This lemma is useful for ordinary support arguments; the
@@ -50,13 +48,15 @@ by choosing one of these intervals. -/
 theorem exists_zetaPaleyWienerSupportInterval
     (f : ZetaAdmissibleFunction) :
     Nonempty (ZetaPaleyWienerSupportInterval f) := by
-  obtain ⟨A, hA⟩ := exists_zetaPaleyWienerSupportLowerBound f
-  obtain ⟨B, hB⟩ := exists_zetaPaleyWienerSupportUpperBound f
-  exact
-    ⟨⟨min A B, max A B,
-      le_trans (min_le_left A B) (le_max_left A B),
-      (fun t ht => le_trans (min_le_left A B) (hA t ht)),
-      (fun t ht => le_trans (hB t ht) (le_max_right A B))⟩⟩
+  match exists_zetaPaleyWienerSupportLowerBound f with
+  | ⟨A, hA⟩ =>
+      match exists_zetaPaleyWienerSupportUpperBound f with
+      | ⟨B, hB⟩ =>
+          exact
+            ⟨⟨min A B, max A B,
+              le_trans (min_le_left A B) (le_max_left A B),
+              (fun t ht => le_trans (min_le_left A B) (hA t ht)),
+              (fun t ht => le_trans (hB t ht) (le_max_right A B))⟩⟩
 
 /-- The admissible source vanishes strictly above its Paley-Wiener support bound. -/
 theorem zetaPaleyWiener_eq_zero_of_supportUpperBound_lt

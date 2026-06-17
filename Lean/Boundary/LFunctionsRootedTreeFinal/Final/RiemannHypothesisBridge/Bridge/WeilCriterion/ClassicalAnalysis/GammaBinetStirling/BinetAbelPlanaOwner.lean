@@ -15,6 +15,82 @@ noncomputable section
 
 open scoped Topology
 
+/-- The finite logarithmic Gamma approximation unfolded after the Abel-Plana
+index shift `M = N + 1`. -/
+theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted
+    (N M : ℕ)
+    (w : ℂ)
+    (hM : M = N + 1) :
+    Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+      w * Complex.log (M : ℂ) +
+        Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+          ∑ n in Finset.range (M + 1), Complex.log (w + n) := by
+  exact hM ▸ rfl
+
+/-- The finite Abel-Plana remainder error unfolded into the defining
+subtraction. -/
+theorem Complex.binetAbelPlanaFiniteRemainderError_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteRemainderError N w =
+      Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+        (Complex.binetAbelPlanaFiniteMainTerm N w +
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :=
+  rfl
+
+/-- The finite endpoint/Stirling remainder unfolded into the defining
+difference. -/
+theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w =
+      Complex.binetAbelPlanaFiniteMainTerm N w -
+        Complex.binetLogGammaMainTerm w :=
+  rfl
+
+/-- The finite Abel-Plana boundary correction unfolded as its logarithmic jump
+integral. -/
+theorem Complex.binetAbelPlanaFiniteBoundaryCorrection_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteBoundaryCorrection N w =
+      ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ),
+        (-Complex.I) *
+          ((Complex.log (w + (t : ℂ) * Complex.I) -
+              Complex.log (w - (t : ℂ) * Complex.I)) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
+  rfl
+
+/-- The normalized finite Abel-Plana boundary correction unfolded as its
+arctangent-kernel integral. -/
+theorem Complex.binetAbelPlanaFiniteNormalizedBoundary_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.binetAbelPlanaFiniteNormalizedBoundary N w =
+      2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ),
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) :=
+  rfl
+
+/-- The Abel-Plana deformed tail kernel unfolded at a point. -/
+theorem Complex.binetSecondFormulaAbelPlanaDeformedTailKernel_apply
+    (w : ℂ)
+    (t : ℝ) :
+    Complex.binetSecondFormulaAbelPlanaDeformedTailKernel w t =
+      ((‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
+        |((1 : ℝ) / ‖w‖) *
+          (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| : ℝ) : ℂ) :=
+  rfl
+
+/-- The Binet logarithm branch is the main term plus the second-formula
+remainder. -/
+theorem Complex.binetLogGammaBranch_unfold
+    (w : ℂ) :
+    Complex.binetLogGammaBranch w =
+      Complex.binetLogGammaMainTerm w +
+        Complex.binetSecondFormulaRemainder w :=
+  rfl
+
 /-- Exponentiating the finite logarithmic approximation recovers mathlib's
 complex Euler `GammaSeq`, after the index shift used by the Abel-Plana finite
 formula.
@@ -63,8 +139,9 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
           (w * Complex.log (M : ℂ) +
             Complex.log ((Nat.factorial M : ℕ) : ℂ) -
               ∑ n in Finset.range (M + 1), Complex.log (w + n)) := by
-      dsimp [Complex.binetAbelPlanaLogGammaFiniteApproximation, M]
-      rfl
+      exact congrArg Complex.exp
+        (Complex.binetAbelPlanaLogGammaFiniteApproximation_eq_shifted
+          N M w rfl)
     _ =
         Complex.exp (w * Complex.log (M : ℂ)) *
           Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) /
@@ -124,7 +201,10 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
         exact Complex.cpow_def_of_ne_zero hM_ne
       exact hpow
     _ = Complex.GammaSeq w (N + 1) := by
-      dsimp [Complex.GammaSeq, M]
+      show
+        (M : ℂ) ^ w * ((Nat.factorial M : ℕ) : ℂ) /
+            (∏ n in Finset.range (M + 1), w + n) =
+          Complex.GammaSeq w M
       rfl
 
 /-- Truncating an integrable function on `(0,N]` tends to its integral on the
@@ -199,11 +279,26 @@ theorem Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMainTerm_add
       Complex.binetAbelPlanaFiniteMainTerm N w +
         Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
           Complex.binetAbelPlanaFiniteRemainderError N w := by
-  dsimp [Complex.binetAbelPlanaFiniteRemainderError]
-  exact add_add_sub_add_remainder
-    (Complex.binetAbelPlanaLogGammaFiniteApproximation N w)
-    (Complex.binetAbelPlanaFiniteMainTerm N w)
-    (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
+  calc
+    Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+        Complex.binetAbelPlanaFiniteMainTerm N w +
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+            (Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+              (Complex.binetAbelPlanaFiniteMainTerm N w +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N w)) :=
+      add_add_sub_add_remainder
+        (Complex.binetAbelPlanaLogGammaFiniteApproximation N w)
+        (Complex.binetAbelPlanaFiniteMainTerm N w)
+        (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
+    _ =
+        Complex.binetAbelPlanaFiniteMainTerm N w +
+          Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+            Complex.binetAbelPlanaFiniteRemainderError N w := by
+      exact congrArg
+        (fun z : ℂ =>
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w + z)
+        (Complex.binetAbelPlanaFiniteRemainderError_unfold N w).symm
 
 /-- Exact split of the finite main term into the limiting Binet main term and
 the endpoint/Stirling remainder. -/
@@ -213,10 +308,20 @@ theorem Complex.binetAbelPlana_finiteMainTerm_eq_binetMainTerm_add_endpointStirl
     Complex.binetAbelPlanaFiniteMainTerm N w =
       Complex.binetLogGammaMainTerm w +
         Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w := by
-  dsimp [Complex.binetAbelPlanaFiniteEndpointStirlingRemainder]
-  exact add_sub_remainder
-    (Complex.binetAbelPlanaFiniteMainTerm N w)
-    (Complex.binetLogGammaMainTerm w)
+  calc
+    Complex.binetAbelPlanaFiniteMainTerm N w =
+        Complex.binetLogGammaMainTerm w +
+          (Complex.binetAbelPlanaFiniteMainTerm N w -
+            Complex.binetLogGammaMainTerm w) :=
+      add_sub_remainder
+        (Complex.binetAbelPlanaFiniteMainTerm N w)
+        (Complex.binetLogGammaMainTerm w)
+    _ =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w := by
+      exact congrArg
+        (fun z : ℂ => Complex.binetLogGammaMainTerm w + z)
+        (Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfold N w).symm
 
 /-- Endpoint/Stirling convergence in its finite-main-term form.
 
@@ -252,7 +357,7 @@ theorem Complex.binetAbelPlana_endpointStirlingRemainder_tendsto_zero_of_finiteM
         Complex.binetAbelPlanaFiniteMainTerm N w -
           Complex.binetLogGammaMainTerm w) := by
     funext N
-    dsimp [Complex.binetAbelPlanaFiniteEndpointStirlingRemainder]
+    exact Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfold N w
   exact (sub_self _).symm ▸ (heq ▸ hdiff)
 
 /-- Endpoint/Stirling remainder vanishes in the Euler limit. -/
@@ -307,11 +412,13 @@ theorem Complex.binetAbelPlana_finiteRemainderError_eq_zero_of_exact_finiteAbelP
         Complex.binetAbelPlanaFiniteMainTerm N w +
           Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :
     Complex.binetAbelPlanaFiniteRemainderError N w = 0 := by
-  dsimp [Complex.binetAbelPlanaFiniteRemainderError]
   calc
-    Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
-        Complex.binetAbelPlanaFiniteMainTerm N w -
-        Complex.binetAbelPlanaFiniteBoundaryCorrection N w = 0 := by
+    Complex.binetAbelPlanaFiniteRemainderError N w =
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+          (Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :=
+      Complex.binetAbelPlanaFiniteRemainderError_unfold N w
+    _ = 0 := by
       have h' :
           Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
             (Complex.binetAbelPlanaFiniteMainTerm N w +
@@ -390,16 +497,20 @@ theorem Complex.binetAbelPlana_boundaryCorrection_eq_normalizedBoundary
       ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), 2 * K t =
         2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), K t :=
     integral_const_mul 2 K
+  have hboundary_unfold :
+      Complex.binetAbelPlanaFiniteBoundaryCorrection N w =
+        ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), L t :=
+    Complex.binetAbelPlanaFiniteBoundaryCorrection_unfold N w
+  have hnormalized_unfold :
+      Complex.binetAbelPlanaFiniteNormalizedBoundary N w =
+        2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), K t :=
+    Complex.binetAbelPlanaFiniteNormalizedBoundary_unfold N w
   exact
     Eq.trans
-      (by
-        dsimp [Complex.binetAbelPlanaFiniteBoundaryCorrection, L]
-        rfl)
+      hboundary_unfold
       (Eq.trans hintegral
         (Eq.trans hscale
-          (by
-            dsimp [Complex.binetAbelPlanaFiniteNormalizedBoundary, K]
-            rfl).symm))
+          hnormalized_unfold.symm))
 
 /-- The normalized finite Binet boundary integral converges to the full
 second-formula remainder. -/
@@ -542,14 +653,24 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTailKernel_integrableOn_tail
           (‖P t‖ + |((1 : ℝ) / ‖w‖) * M t| : ℝ))
         (Set.Ioi (‖w‖ / 2)) :=
     hP_norm.add hM_scaled_abs
+  have hkernel_eq :
+      (fun t : ℝ =>
+        Complex.binetSecondFormulaAbelPlanaDeformedTailKernel w t) =
+      (fun t : ℝ =>
+        ((‖P t‖ + |((1 : ℝ) / ‖w‖) * M t| : ℝ) : ℂ)) := by
+    funext t
+    show
+      Complex.binetSecondFormulaAbelPlanaDeformedTailKernel w t =
+        ((‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ +
+          |((1 : ℝ) / ‖w‖) *
+            (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))| : ℝ) : ℂ)
+    exact Complex.binetSecondFormulaAbelPlanaDeformedTailKernel_apply w t
   exact
-    Eq.ndrec
+    Eq.subst
+      (motive := fun F : ℝ → ℂ =>
+        IntegrableOn F (Set.Ioi (‖w‖ / 2)))
+      hkernel_eq.symm
       (Complex.ofRealCLM.integrable_comp hsum)
-      (by
-        funext t
-        dsimp [Complex.binetSecondFormulaAbelPlanaDeformedTailKernel,
-          Complex.binetSecondFormulaContourTailMajorantKernel, P, M]
-        rfl)
 
 /-- The deformed tail kernel was normalized to contain the principal tail norm,
 so the pointwise comparison is an immediate kernel-normalization fact. -/
@@ -572,9 +693,15 @@ theorem Complex.binetSecondFormula_principalTailKernel_norm_le_abelPlanaDeformed
         exact abs_of_nonneg hnonneg
   have hle : ‖P‖ ≤ ‖P‖ + A :=
     le_add_of_nonneg_right (abs_nonneg _)
-  dsimp [Complex.binetSecondFormulaAbelPlanaDeformedTailKernel,
-    Complex.binetSecondFormulaContourTailMajorantKernel, P, A] at hnorm ⊢
-  exact hnorm.symm ▸ hle
+  have hkernel :
+      Complex.binetSecondFormulaAbelPlanaDeformedTailKernel w t =
+        ((‖P‖ + A : ℝ) : ℂ) :=
+    Complex.binetSecondFormulaAbelPlanaDeformedTailKernel_apply w t
+  calc
+    ‖P‖ ≤ ‖P‖ + A := hle
+    _ = ‖((‖P‖ + A : ℝ) : ℂ)‖ := hnorm.symm
+    _ = ‖Complex.binetSecondFormulaAbelPlanaDeformedTailKernel w t‖ := by
+      exact congrArg norm hkernel.symm
 
 /-- Abel-Plana contour deformation gives the branch-safe pointwise tail
 comparison. -/
@@ -682,10 +809,16 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaB
       Complex.binetLogGammaMainTerm w +
           Complex.binetSecondFormulaRemainder w + 0 =
         Complex.binetLogGammaBranch w := by
-    dsimp [Complex.binetLogGammaBranch]
-    exact binet_branch_add_zero_eq
-      (Complex.binetLogGammaMainTerm w)
-      (Complex.binetSecondFormulaRemainder w)
+    calc
+      Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w + 0 =
+        Complex.binetLogGammaMainTerm w +
+          Complex.binetSecondFormulaRemainder w :=
+        binet_branch_add_zero_eq
+          (Complex.binetLogGammaMainTerm w)
+          (Complex.binetSecondFormulaRemainder w)
+      _ = Complex.binetLogGammaBranch w :=
+        (Complex.binetLogGammaBranch_unfold w).symm
   exact htarget ▸ (hfinite_eq.symm ▸ hfinite_as_sum)
 
 /-- Abel-Plana constructs the analytic Euler/Binet logarithm branch of Gamma:

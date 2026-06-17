@@ -37,7 +37,16 @@ private theorem complex_zero_sub_half :
 
 private theorem complex_half_add_half :
     (1 / 2 : ℂ) + (1 / 2 : ℂ) = 1 := by
-  norm_num
+  have htwo_ne : (2 : ℂ) ≠ 0 :=
+    two_ne_zero
+  calc
+    (1 / 2 : ℂ) + (1 / 2 : ℂ) =
+        (1 + 1 : ℂ) / 2 := by
+      exact (add_div (1 : ℂ) 1 2).symm
+    _ = (2 : ℂ) / 2 := by
+      exact congrArg (fun w : ℂ => w / 2) one_add_one_eq_two
+    _ = 1 := by
+      exact div_self htwo_ne
 
 private theorem complex_sub_half_eq_zero_of_half_add_eq_one
     {z : ℂ}
@@ -121,8 +130,8 @@ theorem zetaCompletedZero_neg
     {ρ : ℂ}
     (hρ : ZetaCompletedZero ρ) :
     ZetaCompletedZero (-ρ) := by
-  refine zetaCompletedZero_mk ?_ ?_ ?_
-  · intro hneg
+  have hneg : -ρ ≠ -(1 / 2 : ℂ) := by
+    intro hneg
     have hρpos : ρ = (1 / 2 : ℂ) := by
       calc
         ρ = -(-ρ) := by exact (neg_neg ρ).symm
@@ -130,18 +139,22 @@ theorem zetaCompletedZero_neg
           exact congrArg Neg.neg hneg
         _ = (1 / 2 : ℂ) := complex_neg_neg_half
     exact zetaCompletedZero_ne_posHalf_of_prop hρ hρpos
-  · intro hpos
+  have hpos : -ρ ≠ (1 / 2 : ℂ) := by
+    intro hpos
     have hρneg : ρ = -(1 / 2 : ℂ) := by
       calc
         ρ = -(-ρ) := by exact (neg_neg ρ).symm
         _ = - (1 / 2 : ℂ) := by
           exact congrArg Neg.neg hpos
     exact zetaCompletedZero_ne_negHalf_of_prop hρ hρneg
-  · calc
+  have hzero :
+      centeredCompletedRiemannZeta (-ρ) = 0 := by
+    calc
       centeredCompletedRiemannZeta (-ρ) =
           centeredCompletedRiemannZeta ρ := by
         exact centeredCompletedRiemannZeta_neg ρ
       _ = 0 := zetaCompletedZero_zero_of_prop hρ
+  exact zetaCompletedZero_mk hneg hpos hzero
 
 /-- The multiplicity of a completed zeta zero.
 
@@ -163,7 +176,6 @@ theorem completedZetaZeroMultiplicity_eq_order (ρ : ℂ)
     (h : AnalyticAt ℂ centeredCompletedRiemannZeta ρ) :
     completedZetaZeroMultiplicity ρ = h.order.toNat := by
   classical
-  unfold completedZetaZeroMultiplicity
   exact dif_pos h
 
 /-- A completed zero is not the negative shifted pole. -/
@@ -273,7 +285,6 @@ theorem zetaZeroMultiplicity_pos_of_completedZero
       hanalytic
       (zetaCompletedZero_zero ρ)
       (centeredCompletedRiemannZeta_not_eventually_zero_at_completedZero ρ)
-  unfold zetaZeroMultiplicity
   exact Eq.subst
     (motive := fun n : ℕ => 0 < n)
     (completedZetaZeroMultiplicity_eq_order (ρ : ℂ) hanalytic).symm
@@ -292,7 +303,6 @@ noncomputable def zetaCompletedZeroCenteredHeight
 theorem zetaCompletedZeroCenteredHeight_ge_one
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     1 ≤ zetaCompletedZeroCenteredHeight ρ := by
-  unfold zetaCompletedZeroCenteredHeight
   exact le_add_of_nonneg_right (norm_nonneg ((zetaCenteredZero (ρ : ℂ)).im))
 
 /-- Completed-zero centered height is positive. -/
@@ -367,18 +377,20 @@ theorem zetaZeroOrbitFinset_mem_iff (ρ η : ℂ) :
     η ∈ zetaZeroOrbitFinset ρ ↔ η = ρ ∨ η = -ρ := by
   constructor
   · intro hη
-    unfold zetaZeroOrbitFinset at hη
-    rcases Finset.mem_insert.mp hη with hleft | hright
-    · exact Or.inl hleft
-    · have hneg : η = -ρ := by
-        exact Finset.mem_singleton.mp hright
-      exact Or.inr hneg
+    exact
+      match Finset.mem_insert.mp hη with
+      | Or.inl hleft => Or.inl hleft
+      | Or.inr hright =>
+          have hneg : η = -ρ :=
+            Finset.mem_singleton.mp hright
+          Or.inr hneg
   · intro hη
-    unfold zetaZeroOrbitFinset
-    rcases hη with hleft | hright
-    · exact Finset.mem_insert.mpr (Or.inl hleft)
-    · exact Finset.mem_insert.mpr
-        (Or.inr (Finset.mem_singleton.mpr hright))
+    exact
+      match hη with
+      | Or.inl hleft => Finset.mem_insert.mpr (Or.inl hleft)
+      | Or.inr hright =>
+          Finset.mem_insert.mpr
+            (Or.inr (Finset.mem_singleton.mpr hright))
 
 /-- The centered zero orbit contains its positive face. -/
 theorem zetaZeroOrbitFinset_mem_self (ρ : ℂ) :

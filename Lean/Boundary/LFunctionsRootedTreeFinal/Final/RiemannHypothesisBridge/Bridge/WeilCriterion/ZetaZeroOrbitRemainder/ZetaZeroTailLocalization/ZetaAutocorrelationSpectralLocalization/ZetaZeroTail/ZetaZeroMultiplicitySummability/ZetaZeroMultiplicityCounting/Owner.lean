@@ -74,26 +74,27 @@ theorem real_term_le_tsum_of_summable_nonnegative
     hv_hasSum.tsum_eq
   have hv_le_u : ∀ x : α, v x ≤ u x := by
     intro x
-    by_cases hxa : x = a
-    · have hxvalue : v x = u a := by
-        unfold v
-        exact if_pos hxa
-      have htarget : u a = u x :=
-        congrArg u hxa.symm
-      exact Eq.subst
-        (motive := fun y : ℝ => v x ≤ y)
-        htarget
-        (Eq.subst
-          (motive := fun y : ℝ => y ≤ u a)
-          hxvalue
-          (le_refl (u a)))
-    · have hxvalue : v x = 0 := by
-        unfold v
-        exact if_neg hxa
-      exact Eq.subst
-        (motive := fun y : ℝ => y ≤ u x)
-        hxvalue.symm
-        (h_nonneg x)
+    exact
+      match Decidable.em (x = a) with
+      | Or.inl hxa =>
+          have hxvalue : v x = u a :=
+            if_pos hxa
+          have htarget : u a = u x :=
+            congrArg u hxa.symm
+          Eq.subst
+            (motive := fun y : ℝ => v x ≤ y)
+            htarget
+            (Eq.subst
+              (motive := fun y : ℝ => y ≤ u a)
+              hxvalue
+              (le_refl (u a)))
+      | Or.inr hxa =>
+          have hxvalue : v x = 0 :=
+            if_neg hxa
+          Eq.subst
+            (motive := fun y : ℝ => y ≤ u x)
+            hxvalue.symm
+            (h_nonneg x)
   have htsum_le :
       (∑' x : α, v x) ≤ ∑' x : α, u x :=
     tsum_le_tsum hv_le_u hv_summable hu
@@ -106,16 +107,18 @@ theorem real_term_le_tsum_of_summable_nonnegative
 theorem completedZeroMultiplicityHeightBallSummand_nonnegative
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     0 ≤ completedZeroMultiplicityHeightBallSummand T ρ := by
-  unfold completedZeroMultiplicityHeightBallSummand
-  by_cases hρ : zetaCompletedZeroCenteredHeight ρ ≤ T
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_pos hρ).symm
-      (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
-  · exact Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (if_neg hρ).symm
-      (le_refl (0 : ℝ))
+  exact
+    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+    | Or.inl hρ =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_pos hρ).symm
+          (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ)))
+    | Or.inr hρ =>
+        Eq.subst
+          (motive := fun x : ℝ => 0 ≤ x)
+          (if_neg hρ).symm
+          (le_refl (0 : ℝ))
 
 /-- Height-ball summands are monotone in the radius. -/
 theorem completedZeroMultiplicityHeightBallSummand_mono
@@ -123,46 +126,49 @@ theorem completedZeroMultiplicityHeightBallSummand_mono
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedZeroMultiplicityHeightBallSummand S ρ ≤
       completedZeroMultiplicityHeightBallSummand T ρ := by
-  unfold completedZeroMultiplicityHeightBallSummand
-  by_cases hS : zetaCompletedZeroCenteredHeight ρ ≤ S
-  · have hT : zetaCompletedZeroCenteredHeight ρ ≤ T :=
-      le_trans hS hST
-    exact Eq.subst
-      (motive := fun x : ℝ =>
-        x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
-      (if_pos hS).symm
-      (Eq.subst
-        (motive := fun x : ℝ =>
-          (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ x)
-        (if_pos hT).symm
-        (le_refl (zetaZeroMultiplicity (ρ : ℂ) : ℝ)))
-  · by_cases hT : zetaCompletedZeroCenteredHeight ρ ≤ T
-    · exact Eq.subst
-        (motive := fun x : ℝ =>
-          x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
-            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
-        (if_neg hS).symm
-        (Eq.subst
-          (motive := fun x : ℝ => 0 ≤ x)
-          (if_pos hT).symm
-          (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ))))
-    · exact Eq.subst
-        (motive := fun x : ℝ =>
-          x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
-            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
-        (if_neg hS).symm
-        (Eq.subst
-          (motive := fun x : ℝ => 0 ≤ x)
-          (if_neg hT).symm
-          (le_refl (0 : ℝ)))
+  exact
+    match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ S) with
+    | Or.inl hS =>
+        have hT : zetaCompletedZeroCenteredHeight ρ ≤ T :=
+          le_trans hS hST
+        Eq.subst
+          (motive := fun x : ℝ =>
+            x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
+          (if_pos hS).symm
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ x)
+            (if_pos hT).symm
+            (le_refl (zetaZeroMultiplicity (ρ : ℂ) : ℝ)))
+    | Or.inr hS =>
+        match Decidable.em (zetaCompletedZeroCenteredHeight ρ ≤ T) with
+        | Or.inl hT =>
+            Eq.subst
+              (motive := fun x : ℝ =>
+                x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
+                  (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
+              (if_neg hS).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_pos hT).symm
+                (Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ))))
+        | Or.inr hT =>
+            Eq.subst
+              (motive := fun x : ℝ =>
+                x ≤ if zetaCompletedZeroCenteredHeight ρ ≤ T then
+                  (zetaZeroMultiplicity (ρ : ℂ) : ℝ) else 0)
+              (if_neg hS).symm
+              (Eq.subst
+                (motive := fun x : ℝ => 0 ≤ x)
+                (if_neg hT).symm
+                (le_refl (0 : ℝ)))
 
 /-- A completed zero lies in its own centered height ball. -/
 theorem zetaCompletedZero_mem_heightBall_self
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ρ ∈ completedZerosInCenteredHeightBall
       (zetaCompletedZeroCenteredHeight ρ) := by
-  unfold completedZerosInCenteredHeightBall
   exact le_refl (zetaCompletedZeroCenteredHeight ρ)
 
 /-- At its own height, a completed zero contributes its full multiplicity to the
@@ -172,7 +178,6 @@ theorem completedZeroMultiplicityHeightBallSummand_self
     completedZeroMultiplicityHeightBallSummand
         (zetaCompletedZeroCenteredHeight ρ) ρ =
       (zetaZeroMultiplicity (ρ : ℂ) : ℝ) := by
-  unfold completedZeroMultiplicityHeightBallSummand
   exact if_pos (le_refl (zetaCompletedZeroCenteredHeight ρ))
 
 /-- Height-ball multiplicity summands vanish outside the height ball. -/
@@ -180,8 +185,6 @@ theorem completedZeroMultiplicityHeightBallSummand_eq_zero_of_not_mem
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ})
     (hρ : ρ ∉ completedZerosInCenteredHeightBall T) :
     completedZeroMultiplicityHeightBallSummand T ρ = 0 := by
-  unfold completedZerosInCenteredHeightBall at hρ
-  unfold completedZeroMultiplicityHeightBallSummand
   exact if_neg hρ
 
 /-- Finite height balls make the height-ball multiplicity summand summable. -/
@@ -216,7 +219,6 @@ theorem completedZeroMultiplicityHeightBallSummand_le_counting
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     completedZeroMultiplicityHeightBallSummand T ρ ≤
       completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  unfold completedZeroMultiplicityCountingInCenteredHeightBall
   exact real_term_le_tsum_of_summable_nonnegative
     (fun η : {ρ : ℂ // ZetaCompletedZero ρ} =>
       completedZeroMultiplicityHeightBallSummand T η)
@@ -228,7 +230,6 @@ theorem completedZeroMultiplicityHeightBallSummand_le_counting
 theorem completedZeroMultiplicityCountingInCenteredHeightBall_nonnegative
     (T : ℝ) :
     0 ≤ completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  unfold completedZeroMultiplicityCountingInCenteredHeightBall
   have hzeroSummable :
       Summable
         (fun _ρ : {ρ : ℂ // ZetaCompletedZero ρ} => (0 : ℝ)) :=
@@ -263,7 +264,6 @@ theorem completedZeroMultiplicityCountingInCenteredHeightBall_mono
     {S T : ℝ} (hST : S ≤ T) :
     completedZeroMultiplicityCountingInCenteredHeightBall S ≤
       completedZeroMultiplicityCountingInCenteredHeightBall T := by
-  unfold completedZeroMultiplicityCountingInCenteredHeightBall
   exact tsum_le_tsum
     (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
       completedZeroMultiplicityHeightBallSummand_mono hST ρ)
@@ -303,10 +303,8 @@ theorem norm_complex_ofNat_zetaZeroMultiplicity
       (zetaZeroMultiplicity (ρ : ℂ) : ℝ) := by
   have hnonneg : 0 ≤ (zetaZeroMultiplicity (ρ : ℂ) : ℝ) :=
     Nat.cast_nonneg (zetaZeroMultiplicity (ρ : ℂ))
-  change ‖((zetaZeroMultiplicity (ρ : ℂ) : ℝ) : ℂ)‖ =
-    (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
   calc
-    ‖((zetaZeroMultiplicity (ρ : ℂ) : ℝ) : ℂ)‖ =
+    ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ =
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℝ)‖ := by
       exact Complex.norm_ofReal (zetaZeroMultiplicity (ρ : ℂ) : ℝ)
     _ = (zetaZeroMultiplicity (ρ : ℂ) : ℝ) := by
@@ -320,43 +318,50 @@ theorem exists_zetaZeroMultiplicityGrowthEnvelope_bound_from_counting :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         ‖(zetaZeroMultiplicity (ρ : ℂ) : ℂ)‖ ≤
           M * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) := by
-  rcases exists_completedZeroMultiplicityCounting_height_bound with
-    ⟨C, d, hCpos, hcount⟩
-  refine ⟨C, d, hCpos, ?_⟩
-  intro ρ
-  have hmult_count :
-      (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
-        completedZeroMultiplicityCountingInCenteredHeightBall
-          (zetaCompletedZeroCenteredHeight ρ) :=
-    zetaZeroMultiplicity_le_countingFunction_at_height ρ
-  have hcount_height :
-      completedZeroMultiplicityCountingInCenteredHeightBall
-          (zetaCompletedZeroCenteredHeight ρ) ≤
-        C * zetaCompletedZeroCenteredHeight ρ ^ d :=
-    hcount
-      (zetaCompletedZeroCenteredHeight ρ)
-      (zetaCompletedZeroCenteredHeight_ge_one ρ)
-  have hnat_zpow :
-      zetaCompletedZeroCenteredHeight ρ ^ d =
-        zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) := by
-    exact (zpow_natCast (zetaCompletedZeroCenteredHeight ρ) d).symm
-  have hbound_nat :
-      (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
-        C * zetaCompletedZeroCenteredHeight ρ ^ d :=
-    le_trans hmult_count hcount_height
-  have hbound_zpow :
-      (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
-        C * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) :=
-    Eq.subst
-      (motive := fun x : ℝ =>
-        (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ C * x)
-      hnat_zpow
-      hbound_nat
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      x ≤ C * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ))
-    (norm_complex_ofNat_zetaZeroMultiplicity ρ).symm
-    hbound_zpow
+  exact
+    Exists.elim exists_completedZeroMultiplicityCounting_height_bound
+      (fun C hC =>
+        Exists.elim hC
+          (fun d hd =>
+            match hd with
+            | ⟨hCpos, hcount⟩ =>
+                Exists.intro C
+                  (Exists.intro d
+                    (And.intro hCpos
+                      (fun ρ =>
+                        have hmult_count :
+                            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
+                              completedZeroMultiplicityCountingInCenteredHeightBall
+                                (zetaCompletedZeroCenteredHeight ρ) :=
+                          zetaZeroMultiplicity_le_countingFunction_at_height ρ
+                        have hcount_height :
+                            completedZeroMultiplicityCountingInCenteredHeightBall
+                                (zetaCompletedZeroCenteredHeight ρ) ≤
+                              C * zetaCompletedZeroCenteredHeight ρ ^ d :=
+                          hcount
+                            (zetaCompletedZeroCenteredHeight ρ)
+                            (zetaCompletedZeroCenteredHeight_ge_one ρ)
+                        have hnat_zpow :
+                            zetaCompletedZeroCenteredHeight ρ ^ d =
+                              zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) := by
+                          exact (zpow_natCast (zetaCompletedZeroCenteredHeight ρ) d).symm
+                        have hbound_nat :
+                            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
+                              C * zetaCompletedZeroCenteredHeight ρ ^ d :=
+                          le_trans hmult_count hcount_height
+                        have hbound_zpow :
+                            (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤
+                              C * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ) :=
+                          Eq.subst
+                            (motive := fun x : ℝ =>
+                              (zetaZeroMultiplicity (ρ : ℂ) : ℝ) ≤ C * x)
+                            hnat_zpow
+                            hbound_nat
+                        Eq.subst
+                          (motive := fun x : ℝ =>
+                            x ≤ C * zetaCompletedZeroCenteredHeight ρ ^ (d : ℤ))
+                          (norm_complex_ofNat_zetaZeroMultiplicity ρ).symm
+                          hbound_zpow)))))
 
 /-- Every real height at least one belongs to a natural unit shell. -/
 theorem exists_nat_unitShell_of_one_le
@@ -458,23 +463,36 @@ def completedZeroCenteredHeightShellSigma_forget
 theorem completedZeroCenteredHeightShellSigma_forget_surjective :
     Function.Surjective completedZeroCenteredHeightShellSigma_forget := by
   intro ρ
-  rcases exists_completedZeroCenteredHeightShell_index ρ with ⟨m, hm⟩
-  exact ⟨⟨m, ⟨ρ, hm⟩⟩, rfl⟩
+  exact
+    Exists.elim
+      (exists_completedZeroCenteredHeightShell_index ρ)
+      (fun m hm =>
+        Exists.intro ⟨m, ⟨ρ, hm⟩⟩ rfl)
 
 /-- The shell-fiber forgetful map is injective; integer height shells are disjoint. -/
 theorem completedZeroCenteredHeightShellSigma_forget_injective :
     Function.Injective completedZeroCenteredHeightShellSigma_forget := by
   intro x y hxy
-  rcases x with ⟨m, ρm⟩
-  rcases y with ⟨n, ρn⟩
-  rcases ρm with ⟨ρ, hρm⟩
-  rcases ρn with ⟨η, hηn⟩
-  have hρη : ρ = η := hxy
-  cases hρη
-  have hmn : m = n :=
-    completedZeroCenteredHeightShell_index_unique hρm hηn
-  cases hmn
-  rfl
+  match x with
+  | ⟨m, ρm⟩ =>
+      match y with
+      | ⟨n, ρn⟩ =>
+          match ρm with
+          | ⟨ρ, hρm⟩ =>
+              match ρn with
+              | ⟨η, hηn⟩ =>
+                  have hρη : ρ = η := hxy
+                  Eq.ndrec
+                    (motive := fun η' : {ρ : ℂ // ZetaCompletedZero ρ} =>
+                      ⟨m, ⟨ρ, hρm⟩⟩ = ⟨n, ⟨η', hηn⟩⟩)
+                    (have hmn : m = n :=
+                        completedZeroCenteredHeightShell_index_unique hρm hηn
+                      Eq.ndrec
+                        (motive := fun n' : ℕ =>
+                          ⟨m, ⟨ρ, hρm⟩⟩ = ⟨n', ⟨ρ, hηn⟩⟩)
+                        rfl
+                        hmn)
+                    hρη
 
 /-- The total decay mass in one centered-height shell. -/
 noncomputable def completedZeroCenteredHeightShellDecayMass
@@ -496,7 +514,6 @@ theorem completedZeroCenteredHeightShellFiberDecay_nonnegative
     (d k : ℕ)
     (x : CompletedZeroCenteredHeightShellSigma) :
     0 ≤ completedZeroCenteredHeightShellFiberDecay d k x := by
-  unfold completedZeroCenteredHeightShellFiberDecay
   exact zpow_nonneg
     (le_trans zero_le_one
       (zetaCompletedZeroCenteredHeight_ge_one
@@ -543,25 +560,23 @@ theorem summable_completedZeroCenteredHeightShellFiberDecay_of_shellMass
     Summable
       (fun x : CompletedZeroCenteredHeightShellSigma =>
         completedZeroCenteredHeightShellFiberDecay d k x) := by
-  refine (summable_sigma_of_nonneg ?_).mpr ?_
-  · intro x
-    exact completedZeroCenteredHeightShellFiberDecay_nonnegative d k x
-  · constructor
-    · intro m
-      exact summable_completedZeroCenteredHeightShellFiberDecay_fixed d k m
-    · have hfiberSums :
-          (fun m : ℕ =>
-            ∑' x : completedZeroCenteredHeightShellFiber m,
-              completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) =
-            fun m : ℕ =>
-              completedZeroCenteredHeightShellDecayMass d k m := by
-        funext m
-        exact completedZeroCenteredHeightShellFiberDecay_tsum_eq_shellDecayMass
-          d k m
-      exact Eq.subst
-        (motive := fun u : ℕ → ℝ => Summable u)
-        hfiberSums.symm
-        hshell
+  exact
+    (summable_sigma_of_nonneg
+      (fun x : CompletedZeroCenteredHeightShellSigma =>
+        completedZeroCenteredHeightShellFiberDecay_nonnegative d k x)).mpr
+      (And.intro
+        (fun m => summable_completedZeroCenteredHeightShellFiberDecay_fixed d k m)
+        (have hfiberSums :
+            (fun m : ℕ =>
+              ∑' x : completedZeroCenteredHeightShellFiber m,
+                completedZeroCenteredHeightShellFiberDecay d k ⟨m, x⟩) =
+              fun m : ℕ =>
+                completedZeroCenteredHeightShellDecayMass d k m :=
+            rfl
+          Eq.subst
+            (motive := fun u : ℕ → ℝ => Summable u)
+            hfiberSums.symm
+            hshell))
 
 /-- Summability transports across a bijective map of index types. -/
 theorem summable_of_bijective_index_transport_real
@@ -611,9 +626,7 @@ theorem summable_completedZero_centeredHeight_negativePower_of_shellSigma
     (Eq.subst
       (motive := fun u : CompletedZeroCenteredHeightShellSigma → ℝ =>
         Summable u)
-      (by
-        funext x
-        exact completedZeroCenteredHeightShellFiberDecay_eq_baseDecay d k x)
+      rfl
       hsigma)
 
 /-- Summable centered-height shell masses transport to summability over all

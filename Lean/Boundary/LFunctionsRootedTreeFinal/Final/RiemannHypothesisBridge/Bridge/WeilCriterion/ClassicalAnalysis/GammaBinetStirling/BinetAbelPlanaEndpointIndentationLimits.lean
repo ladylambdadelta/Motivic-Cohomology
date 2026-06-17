@@ -168,6 +168,60 @@ theorem Real.endpointRemainder_majorant_product_assoc
     _ = A * L * C := by
       exact Eq.symm (mul_assoc A L C)
 
+/-- The endpoint remainder integral majorant with its scale named as `A`. -/
+theorem Complex.endpointRemainderIntegral_majorant_as_scale
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (n : ℕ)
+    (a b ρ C : ℝ)
+    (hρpos : 0 < ρ)
+    (hbound :
+      ∀ θ ∈ Ι a b,
+        ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+            ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+          Complex.finiteAbelPlanaLogIntegerResidue w n‖ ≤ C) :
+    ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        ∫ θ : ℝ in a..b,
+          ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+              Complex.finiteAbelPlanaLogIntegerResidue w n) /
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+      ≤
+        (‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ * |b - a|) * C := by
+  exact
+    Complex.norm_endpointSemicircleRemainderIntegral_le
+      hw n a b ρ hρpos C hbound
+
+/-- A zero norm is inside every positive ball around zero. -/
+theorem Real.zero_norm_mem_ball_of_pos
+    {ε x : ℝ}
+    (hx : x = 0)
+    (hε : 0 < ε) :
+    x ∈ Metric.ball (0 : ℝ) ε := by
+  have hdist : dist x 0 = 0 := by
+    exact congrArg (fun y : ℝ => dist y 0) hx
+  exact Metric.mem_ball.mpr
+    (Eq.subst
+      (motive := fun r : ℝ => r < ε)
+      hdist.symm
+      hε)
+
+/-- A strict norm bound is exactly membership in the neighborhood ball around
+zero. -/
+theorem Real.mem_zero_ball_of_lt
+    {ε x : ℝ}
+    (hx_nonneg : 0 ≤ x)
+    (h : x < ε) :
+    x ∈ Metric.ball (0 : ℝ) ε := by
+  have hdist : dist x 0 = x :=
+    Real.dist_norm_to_zero_eq_self hx_nonneg
+  exact Metric.mem_ball.mpr
+    (Eq.subst
+      (motive := fun r : ℝ => r < ε)
+      hdist.symm
+      h)
+
 /-- Cancelling the positive endpoint-remainder majorant scale. -/
 theorem Real.endpointRemainder_scale_cancel
     {A ε : ℝ}
@@ -182,6 +236,31 @@ theorem Real.endpointRemainder_scale_cancel
         (mul_comm A ε)
     _ = ε / 2 := by
       exact mul_div_mul_right ε (2 : ℝ) hA
+
+/-- Distance from a nonnegative real norm to zero is the norm itself. -/
+theorem Real.dist_norm_to_zero_eq_self
+    {x : ℝ}
+    (hx : 0 ≤ x) :
+    dist x 0 = x := by
+  have habs : |x| = x := abs_of_nonneg hx
+  calc
+    dist x 0 = |x - 0| := Real.dist_eq x 0
+    _ = |x| := congrArg abs (sub_zero x)
+    _ = x := habs
+
+/-- A complex point is in a metric ball when its norm displacement is below
+the radius. -/
+theorem Complex.mem_ball_of_norm_sub_lt
+    {z c : ℂ}
+    {δ : ℝ}
+    (h : ‖z - c‖ < δ) :
+    z ∈ Metric.ball c δ := by
+  have hdist : dist z c = ‖z - c‖ := dist_eq_norm z c
+  exact Metric.mem_ball.mpr
+    (Eq.subst
+      (motive := fun r : ℝ => r < δ)
+      hdist.symm
+      h)
 
 /-- The left endpoint indentation tends to half the local residue at `0`. -/
 /-- Pointwise cancellation of the simple-pole principal part along an endpoint
@@ -240,8 +319,15 @@ theorem Complex.finiteAbelPlana_log_endpointSemicirclePrincipalPart_integral_eq_
           (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
         (b - a : ℝ) •
           (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n) := by
-    rw [hintegrand]
-    exact intervalIntegral.integral_const _
+    exact
+      Eq.subst
+        (motive := fun F : ℝ → ℂ =>
+          ∫ θ : ℝ in a..b, F θ =
+            (b - a : ℝ) •
+              (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n))
+        hintegrand.symm
+        (intervalIntegral.integral_const
+          (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n))
   calc
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
       ∫ θ : ℝ in a..b,
@@ -257,8 +343,25 @@ theorem Complex.finiteAbelPlana_log_endpointSemicirclePrincipalPart_integral_eq_
     _ =
         ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
           ((Real.pi : ℂ) * (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n)) := by
-      rw [hangle]
-      rfl
+      have hangle_smul :
+          (b - a : ℝ) •
+              (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n) =
+            Real.pi •
+              (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n) :=
+        congrArg
+          (fun x : ℝ =>
+            x • (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n))
+          hangle
+      have hpi_smul :
+          Real.pi •
+              (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n) =
+            (Real.pi : ℂ) *
+              (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n) :=
+        Complex.real_smul Real.pi
+          (Complex.I * Complex.finiteAbelPlanaLogIntegerResidue w n)
+      exact congrArg
+        (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
+        (hangle_smul.trans hpi_smul)
     _ = Complex.finiteAbelPlanaLogIntegerResidue w n / 2 := by
       exact Complex.two_pi_I_normalizes_pi_I_to_half
         (Complex.finiteAbelPlanaLogIntegerResidue w n)
@@ -305,10 +408,13 @@ theorem Complex.norm_endpointSemicircleArcVector
         ‖(ρ : ℂ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
       exact norm_mul (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))
     _ = |ρ| * ‖Complex.exp ((θ : ℂ) * Complex.I)‖ := by
-      rw [hcomm]
-      rfl
+      exact congrArg₂ HMul.hMul
+        (RCLike.norm_ofReal ρ)
+        (congrArg (fun z : ℂ => ‖Complex.exp z‖) hcomm)
     _ = |ρ| * 1 := by
-      rw [Complex.norm_exp_ofReal_mul_I θ]
+      exact congrArg
+        (fun x : ℝ => |ρ| * x)
+        (Complex.norm_exp_ofReal_mul_I θ)
     _ = |ρ| := by
       exact mul_one |ρ|
 
@@ -376,7 +482,36 @@ theorem Complex.norm_endpointSemicircleRemainder_integrand_le
         ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
           ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
         Complex.finiteAbelPlanaLogIntegerResidue w n‖ := by
-      rw [norm_mul, Complex.norm_I, one_mul]
+      calc
+        ‖Complex.I *
+          (Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+            ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+          Complex.finiteAbelPlanaLogIntegerResidue w n)‖ =
+            ‖Complex.I‖ *
+              ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+              Complex.finiteAbelPlanaLogIntegerResidue w n‖ :=
+          norm_mul Complex.I
+            (Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+              ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+            Complex.finiteAbelPlanaLogIntegerResidue w n)
+        _ =
+            1 *
+              ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+              Complex.finiteAbelPlanaLogIntegerResidue w n‖ := by
+          exact congrArg
+            (fun x : ℝ =>
+              x *
+                ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                  ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                Complex.finiteAbelPlanaLogIntegerResidue w n‖)
+            Complex.norm_I
+        _ =
+            ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+              ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+            Complex.finiteAbelPlanaLogIntegerResidue w n‖ :=
+          one_mul _
     _ ≤ C := hC
 
 /-- The removable regular remainder contributes zero on a shrinking endpoint
@@ -471,7 +606,46 @@ theorem Complex.eventually_endpointSemicircleRemainder_uniform_small
           Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ) =
             Complex.finiteAbelPlanaLogIntegerResidue w n :=
         Complex.finiteAbelPlana_log_integerResidueExtension_at_pole w n
-      simpa [hres] using hcont.sub tendsto_const_nhds
+      have hsub :
+          Tendsto
+            (fun z : ℂ =>
+              Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+                Complex.finiteAbelPlanaLogIntegerResidue w n)
+            (𝓝 (n : ℂ))
+            (𝓝
+              (Complex.finiteAbelPlanaLogIntegerResidueExtension w n (n : ℂ) -
+                Complex.finiteAbelPlanaLogIntegerResidue w n)) :=
+        hcont.sub tendsto_const_nhds
+      have hlimit_residue_sub :
+          Tendsto
+            (fun z : ℂ =>
+              Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+                Complex.finiteAbelPlanaLogIntegerResidue w n)
+            (𝓝 (n : ℂ))
+            (𝓝
+              (Complex.finiteAbelPlanaLogIntegerResidue w n -
+                Complex.finiteAbelPlanaLogIntegerResidue w n)) :=
+        Eq.subst
+          (motive := fun L : ℂ =>
+            Tendsto
+              (fun z : ℂ =>
+                Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+                  Complex.finiteAbelPlanaLogIntegerResidue w n)
+              (𝓝 (n : ℂ))
+              (𝓝 (L - Complex.finiteAbelPlanaLogIntegerResidue w n)))
+          hres
+          hsub
+      exact
+        Eq.subst
+          (motive := fun L : ℂ =>
+            Tendsto
+              (fun z : ℂ =>
+                Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+                  Complex.finiteAbelPlanaLogIntegerResidue w n)
+              (𝓝 (n : ℂ))
+              (𝓝 L))
+          (sub_self (Complex.finiteAbelPlanaLogIntegerResidue w n))
+          hlimit_residue_sub
     have hnorm :
         Tendsto
           (fun z : ℂ =>
@@ -479,7 +653,7 @@ theorem Complex.eventually_endpointSemicircleRemainder_uniform_small
               Complex.finiteAbelPlanaLogIntegerResidue w n‖)
           (𝓝 (n : ℂ))
           (𝓝 0) := by
-      simpa using htend.norm
+      exact htend.norm
     have hevent_dist :
         ∀ᶠ z : ℂ in 𝓝 (n : ℂ),
           dist
@@ -501,18 +675,33 @@ theorem Complex.eventually_endpointSemicircleRemainder_uniform_small
     have hlt :
         ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
           Complex.finiteAbelPlanaLogIntegerResidue w n‖ < ε := by
-      simpa [Real.dist_eq, habs] using hz
+      have hdist_eq :
+          dist
+              (‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+                Complex.finiteAbelPlanaLogIntegerResidue w n‖)
+              0 =
+            ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n z -
+              Complex.finiteAbelPlanaLogIntegerResidue w n‖ :=
+        Real.dist_norm_to_zero_eq_self hnorm_nonneg
+      exact
+        Eq.subst
+          (motive := fun r : ℝ => r < ε)
+          hdist_eq
+          hz
     exact le_of_lt hlt
   rcases Metric.mem_nhds_iff.1 hdist with ⟨δ, hδpos, hδ⟩
   filter_upwards [self_mem_nhdsWithin,
     (Ioo_mem_nhdsWithin_Ioi ⟨le_rfl, hδpos⟩)] with ρ hρpos hρδ θ hθ
   have hnorm_arc :
       ‖(ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = ρ := by
-    rw [Complex.norm_endpointSemicircleArcVector ρ θ, abs_of_pos hρpos]
+    calc
+      ‖(ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ = |ρ| :=
+        Complex.norm_endpointSemicircleArcVector ρ θ
+      _ = ρ := abs_of_pos hρpos
   have hball :
       (n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ∈
         Metric.ball (n : ℂ) δ := by
-    rw [Metric.mem_ball, dist_eq_norm]
+    apply Complex.mem_ball_of_norm_sub_lt
     calc
       ‖(n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) - (n : ℂ)‖ =
           ‖(ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))‖ := by
@@ -539,83 +728,106 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircleRemainder_tendsto_zero
               (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
       (𝓝[>] (0 : ℝ))
       (𝓝 (0 : ℂ)) := by
-  rw [tendsto_zero_iff_norm_tendsto_zero]
-  refine Metric.tendsto_nhds.2 ?_
-  intro ε hε
-  let A : ℝ := ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ * |b - a|
-  have hAnonneg : 0 ≤ A := by
-    exact mul_nonneg (norm_nonneg _) (abs_nonneg _)
-  by_cases hAzero : A = 0
-  · have hsmall :
-        ∀ᶠ ρ : ℝ in 𝓝[>] (0 : ℝ),
-          ∀ θ ∈ Ι a b,
-            ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
-                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-              Complex.finiteAbelPlanaLogIntegerResidue w n‖ ≤ 1 :=
-      Complex.eventually_endpointSemicircleRemainder_uniform_small
-        hw n a b zero_lt_one
-    filter_upwards [self_mem_nhdsWithin, hsmall] with ρ hρpos hbound
-    have hle :
-        ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-            ∫ θ : ℝ in a..b,
-              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+  exact tendsto_zero_iff_norm_tendsto_zero.mpr
+    (by
+      refine Metric.tendsto_nhds.2 ?_
+      intro ε hε
+      let A : ℝ := ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹‖ * |b - a|
+      have hAnonneg : 0 ≤ A := by
+        exact mul_nonneg (norm_nonneg _) (abs_nonneg _)
+      by_cases hAzero : A = 0
+      · have hsmall :
+            ∀ᶠ ρ : ℝ in 𝓝[>] (0 : ℝ),
+              ∀ θ ∈ Ι a b,
+                ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
                     ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
-                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
-          ≤ A * 1 := by
-      simpa [A, mul_assoc] using
-        Complex.norm_endpointSemicircleRemainderIntegral_le
-          hw n a b ρ hρpos 1 hbound
-    have hzero_le :
-        ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-            ∫ θ : ℝ in a..b,
-              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                  Complex.finiteAbelPlanaLogIntegerResidue w n‖ ≤ 1 :=
+          Complex.eventually_endpointSemicircleRemainder_uniform_small
+            hw n a b zero_lt_one
+        filter_upwards [self_mem_nhdsWithin, hsmall] with ρ hρpos hbound
+        have hle :
+            ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                ∫ θ : ℝ in a..b,
+                  ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                        ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                      Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                      ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                    (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+              ≤ A * 1 := by
+          exact
+            Complex.endpointRemainderIntegral_majorant_as_scale
+              hw n a b ρ hρpos 1 hbound
+        have hzero_le :
+            ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                ∫ θ : ℝ in a..b,
+                  ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                        ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                      Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                      ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                    (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+              = 0 := by
+          have hA_one_zero : A * 1 = 0 := by
+            exact congrArg (fun x : ℝ => x * 1) hAzero
+          have hle_zero :
+              ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                  ∫ θ : ℝ in a..b,
+                    ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                          ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                        Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                        ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                      (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+                ≤ 0 :=
+            Eq.subst
+              (motive := fun r : ℝ =>
+                ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                    ∫ θ : ℝ in a..b,
+                      ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                            ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                          Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                          ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                        (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+                  ≤ r)
+              hA_one_zero
+              hle
+          exact le_antisymm hle_zero (norm_nonneg _)
+        exact Real.zero_norm_mem_ball_of_pos hzero_le hε
+      · have hApos : 0 < A := lt_of_le_of_ne hAnonneg (Ne.symm hAzero)
+        have hsmall :
+            ∀ᶠ ρ : ℝ in 𝓝[>] (0 : ℝ),
+              ∀ θ ∈ Ι a b,
+                ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
                     ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
-                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
-          = 0 := by
-      exact le_antisymm (by simpa [hAzero] using hle) (norm_nonneg _)
-    simpa [Metric.mem_ball, dist_eq_norm, hzero_le] using hε
-  · have hApos : 0 < A := lt_of_le_of_ne hAnonneg (Ne.symm hAzero)
-    have hsmall :
-        ∀ᶠ ρ : ℝ in 𝓝[>] (0 : ℝ),
-          ∀ θ ∈ Ι a b,
-            ‖Complex.finiteAbelPlanaLogIntegerResidueExtension w n
-                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-              Complex.finiteAbelPlanaLogIntegerResidue w n‖ ≤ ε / (2 * A) :=
-      Complex.eventually_endpointSemicircleRemainder_uniform_small
-        hw n a b (div_pos hε (mul_pos two_pos hApos))
-    filter_upwards [self_mem_nhdsWithin, hsmall] with ρ hρpos hbound
-    have hle :
-        ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-            ∫ θ : ℝ in a..b,
-              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
-                    ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
-                ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
-          ≤ A * (ε / (2 * A)) := by
-      simpa [A, mul_assoc] using
-        Complex.norm_endpointSemicircleRemainderIntegral_le
-          hw n a b ρ hρpos (ε / (2 * A)) hbound
-    have hA_cancel : A * (ε / (2 * A)) = ε / 2 := by
-      exact Real.endpointRemainder_scale_cancel (ne_of_gt hApos)
-    have hhalf_lt : ε / 2 < ε := by
-      exact half_lt_self hε
-    have hlt :
-        ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
-            ∫ θ : ℝ in a..b,
-              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
-                    ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
-                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
-          < ε := by
-      exact lt_of_le_of_lt (hA_cancel ▸ hle) hhalf_lt
-    simpa [Metric.mem_ball, dist_eq_norm] using hlt
-
+                  Complex.finiteAbelPlanaLogIntegerResidue w n‖ ≤ ε / (2 * A) :=
+          Complex.eventually_endpointSemicircleRemainder_uniform_small
+            hw n a b (div_pos hε (mul_pos two_pos hApos))
+        filter_upwards [self_mem_nhdsWithin, hsmall] with ρ hρpos hbound
+        have hle :
+            ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                ∫ θ : ℝ in a..b,
+                  ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                        ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                      Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                    (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+              ≤ A * (ε / (2 * A)) := by
+          exact
+            Complex.endpointRemainderIntegral_majorant_as_scale
+              hw n a b ρ hρpos (ε / (2 * A)) hbound
+        have hA_cancel : A * (ε / (2 * A)) = ε / 2 := by
+          exact Real.endpointRemainder_scale_cancel (ne_of_gt hApos)
+        have hhalf_lt : ε / 2 < ε := by
+          exact half_lt_self hε
+        have hlt :
+            ‖((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                ∫ θ : ℝ in a..b,
+                  ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                        ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                      Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                      ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                    (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))‖
+              < ε := by
+          exact lt_of_le_of_lt (hA_cancel ▸ hle) hhalf_lt
+        exact Real.mem_zero_ball_of_lt (norm_nonneg _) hlt)
 /-- Endpoint arc decomposition into the principal simple-pole part plus the
 removable regular remainder. -/
 theorem Complex.finiteAbelPlana_log_endpointSemicircle_integrand_eq_principal_add_remainder
@@ -837,19 +1049,77 @@ theorem Complex.finiteAbelPlana_log_endpointSemicircleIntegral_linearized
                 Complex.finiteAbelPlanaLogIntegerResidue w n) /
                 ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
               (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
-      rw [intervalIntegral.integral_add hprincipal hremainder]
-      exact mul_add
-        (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹)
-        (∫ θ : ℝ in a..b,
-          ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
-              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
-        (∫ θ : ℝ in a..b,
-          ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
-                ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
-              Complex.finiteAbelPlanaLogIntegerResidue w n) /
-              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
-            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+      have hintegral_add :
+          ∫ θ : ℝ in a..b,
+            (((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+            ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                  ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+          (∫ θ : ℝ in a..b,
+            ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) +
+          (∫ θ : ℝ in a..b,
+            ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                  ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) :=
+        intervalIntegral.integral_add hprincipal hremainder
+      calc
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            ∫ θ : ℝ in a..b,
+              (((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                    ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) =
+          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            ((∫ θ : ℝ in a..b,
+              ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) +
+            (∫ θ : ℝ in a..b,
+              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                    ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))) := by
+          exact congrArg
+            (fun z : ℂ => ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ * z)
+            hintegral_add
+        _ =
+          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              ∫ θ : ℝ in a..b,
+                ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                  (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) +
+            ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+              ∫ θ : ℝ in a..b,
+                ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                      ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                    Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                  (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
+          mul_add
+            (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹)
+            (∫ θ : ℝ in a..b,
+              ((Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+            (∫ θ : ℝ in a..b,
+              ((Complex.finiteAbelPlanaLogIntegerResidueExtension w n
+                    ((n : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+                  Complex.finiteAbelPlanaLogIntegerResidue w n) /
+                  ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) *
+                (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
 
 /-- Endpoint arc decomposition into the principal simple-pole part plus the
 removable regular remainder after integrating over the arc. -/
@@ -875,8 +1145,11 @@ theorem Complex.intervalIntegrable_endpointSemicirclePrincipalPart
     exact
       Complex.finiteAbelPlana_log_endpointSemicirclePrincipalPart_integrand_eq_const
         n hρ θ
-  rw [hpoint]
-  exact intervalIntegrable_const
+  exact
+    Eq.subst
+      (motive := fun F : ℝ → ℂ => IntervalIntegrable F volume a b)
+      hpoint.symm
+      intervalIntegrable_const
 
 /-- The removable endpoint-arc remainder integrand is interval-integrable for
 each nonzero radius. -/
@@ -923,30 +1196,8 @@ theorem Complex.endpointSemicircleArc_mem_integerResidueIsolationBall
         exact congrArg norm
           (add_sub_cancel_left (n : ℂ)
             ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
-      _ = ‖(ρ : ℂ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ := by
-        exact norm_mul (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))
-      _ = ρ * 1 := by
-        have hρnorm : ‖(ρ : ℂ)‖ = ρ := by
-          calc
-            ‖(ρ : ℂ)‖ = |ρ| := by
-              exact RCLike.norm_ofReal ρ
-            _ = ρ := by
-              exact abs_of_nonneg hρpos.le
-        have hexpnorm : ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
-          have hmul :
-              Complex.I * (θ : ℂ) = (θ : ℂ) * Complex.I := by
-            exact mul_comm Complex.I (θ : ℂ)
-          calc
-            ‖Complex.exp (Complex.I * (θ : ℂ))‖ =
-                Complex.abs (Complex.exp (Complex.I * (θ : ℂ))) := by
-              exact Complex.norm_eq_abs _
-            _ = Complex.abs (Complex.exp ((θ : ℂ) * Complex.I)) := by
-              exact congrArg Complex.abs (congrArg Complex.exp hmul)
-            _ = 1 := by
-              exact Complex.abs_exp_ofReal_mul_I θ
-        rw [hρnorm, hexpnorm]
-      _ = ρ := by
-        exact mul_one ρ
+      _ = |ρ| := Complex.norm_endpointSemicircleArcVector ρ θ
+      _ = ρ := abs_of_pos hρpos
   exact hdist ▸ hρR
 
 /-- The removable numerator extension is continuous along a nonzero endpoint
@@ -1207,6 +1458,45 @@ theorem Complex.finiteAbelPlana_log_rightEndpointIndentationIntegral_tendsto_hal
       hw (N + 1) (Real.pi / 2) (3 * Real.pi / 2)
       Real.rightEndpointSemicircle_angleLength
 
+/-- Unfolding of the interior integer residue contribution. -/
+theorem Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w =
+      ∑ n in Finset.range N,
+        Complex.finiteAbelPlanaLogIntegerResidue w (n + 1) :=
+  rfl
+
+/-- Unfolding of the endpoint half-residue contribution. -/
+theorem Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
+      (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 :=
+  rfl
+
+/-- Unfolding of the finite-radius deleted-boundary contribution. -/
+theorem Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (ρ : ℝ) :
+    Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ =
+      Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
+        Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
+          ∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ :=
+  rfl
+
+/-- Unfolding of the principal-value integer residue contribution. -/
+theorem Complex.finiteAbelPlanaLogPVIntegerResidueContribution_unfold
+    (N : ℕ)
+    (w : ℂ) :
+    Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w =
+      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w :=
+  rfl
+
 /-- The finite-radius deleted-boundary contribution converges to the
 principal-value residue contribution. -/
 theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendsto_pvResidues
@@ -1251,8 +1541,18 @@ theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendst
       fun n _hn =>
         Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
           hw (n + 1)
-    simpa [Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution] using
-      tendsto_finset_sum (Finset.range N) hlocal
+    exact
+      Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun ρ : ℝ =>
+              ∑ n in Finset.range N,
+                Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                  w (n + 1 : ℂ) ρ)
+            (𝓝[>] (0 : ℝ))
+            (𝓝 z))
+        (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution_unfold N w).symm
+        (tendsto_finset_sum (Finset.range N) hlocal)
   have hendpoints :
       Tendsto
         (fun ρ : ℝ =>
@@ -1265,16 +1565,54 @@ theorem Complex.finiteAbelPlana_log_pvDeletedBoundaryIntegralContribution_tendst
         Complex.finiteAbelPlanaLogIntegerResidue w 0 / 2 +
             Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) / 2 =
           Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
-      dsimp [Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution]
-      exact Eq.symm
-        (add_div
-          (Complex.finiteAbelPlanaLogIntegerResidue w 0)
-          (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
-          (2 : ℂ))
+      calc
+        Complex.finiteAbelPlanaLogIntegerResidue w 0 / 2 +
+            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1) / 2 =
+          (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 :=
+          (add_div
+            (Complex.finiteAbelPlanaLogIntegerResidue w 0)
+            (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))
+            (2 : ℂ)).symm
+        _ = Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w :=
+          (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution_unfold N w).symm
     exact htarget ▸ hsum
   have htotal := hendpoints.add hinterior
-  simpa [Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution,
-    Complex.finiteAbelPlanaLogPVIntegerResidueContribution] using htotal
+  have hsource :
+      (fun ρ : ℝ =>
+        Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ) =
+      (fun ρ : ℝ =>
+        Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
+          Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
+            ∑ n in Finset.range N,
+              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                w (n + 1 : ℂ) ρ) := by
+    funext ρ
+    exact Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution_unfold N w ρ
+  have htarget :
+      Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w =
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w :=
+    Complex.finiteAbelPlanaLogPVIntegerResidueContribution_unfold N w
+  exact
+    Eq.subst
+      (motive := fun F : ℝ → ℂ =>
+        Tendsto F (𝓝[>] (0 : ℝ))
+          (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)))
+      hsource.symm
+      (Eq.subst
+        (motive := fun z : ℂ =>
+          Tendsto
+            (fun ρ : ℝ =>
+              Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
+                Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
+                  ∑ n in Finset.range N,
+                    Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                      w (n + 1 : ℂ) ρ)
+            (𝓝[>] (0 : ℝ))
+            (𝓝 z))
+        htarget.symm
+        htotal)
 
 end
 
