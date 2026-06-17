@@ -633,7 +633,10 @@ theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
   subst z₀
   subst z₁
   subst M
-  ring_nf at hrect
+  -- After substs, hrect is an algebraic identity in integrals; normalize explicitly
+  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
+    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
+    sub_re, sub_im, neg_re, neg_im] at hrect
   exact hrect
 
 /-- Cauchy-Goursat on the lower ordinary rectangle in the right endpoint cap. -/
@@ -735,7 +738,10 @@ theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
   subst z₀
   subst z₁
   subst M
-  ring_nf at hrect
+  -- After substs, hrect is an algebraic identity in integrals; normalize explicitly
+  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
+    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
+    sub_re, sub_im, neg_re, neg_im] at hrect
   exact hrect
 
 /-- Cauchy-Goursat on the upper ordinary rectangle in the right endpoint cap. -/
@@ -843,7 +849,10 @@ theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_of_model
       0 := by
   subst c
   subst M
-  ring_nf at hmodel
+  -- After substs, hmodel is an algebraic identity in integrals; normalize explicitly
+  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
+    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
+    sub_re, sub_im, neg_re, neg_im] at hmodel
   exact hmodel
 
 /-- The local Cauchy-Goursat deformation across the right endpoint
