@@ -25,18 +25,36 @@ theorem centeredCompletedRiemannZeta_eq (s : ℂ) :
         1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) := by
   exact completedRiemannZeta_eq (1 / 2 + s)
 
+private lemma half_sub_one_eq_neg_half : (1 / 2 : ℂ) - 1 = -(1 / 2 : ℂ) :=
+  neg_eq_of_add_eq_zero_right
+    ((add_sub_right_comm (1 / 2 : ℂ) (1 / 2 : ℂ) 1).symm.trans
+      ((congrArg (· - 1) (two_mul_inv_two (1 : ℂ)).symm).trans
+        (sub_self (1 : ℂ))))
+
+private lemma sub_half_eq_neg_one_sub (z : ℂ) :
+    z - (1 / 2 : ℂ) = -((1 : ℂ) - ((1 / 2 : ℂ) + z)) :=
+  ((neg_sub (1 : ℂ) ((1 / 2 : ℂ) + z)).trans
+    ((congrArg (· - 1) (add_comm (1 / 2 : ℂ) z)).trans
+      ((add_sub_assoc z (1 / 2 : ℂ) 1).trans
+        ((congrArg (z + ·) half_sub_one_eq_neg_half).trans
+          (sub_eq_add_neg z (1 / 2 : ℂ)).symm)))).symm
+
+private lemma half_add_sub_one (w : ℂ) : (1 / 2 : ℂ) + w - 1 = w - (1 / 2 : ℂ) :=
+  (congrArg (· - 1) (add_comm (1 / 2 : ℂ) w)).trans
+    ((add_sub_assoc w (1 / 2 : ℂ) 1).trans
+      ((congrArg (w + ·) half_sub_one_eq_neg_half).trans
+        (sub_eq_add_neg w (1 / 2 : ℂ)).symm))
+
 /-- Excluding the negative shifted pole makes the left denominator nonzero. -/
 theorem centeredShift_leftDenominator_ne_zero_of_ne_negHalf
     {z : ℂ}
     (hzneg : z ≠ -(1 / 2 : ℂ)) :
     (1 / 2 : ℂ) + z ≠ 0 := by
   intro hzero
-  have hz_eq : z = -(1 / 2 : ℂ) := by
-    calc
-      z = ((1 / 2 : ℂ) + z) - (1 / 2 : ℂ) := by ring
-      _ = 0 - (1 / 2 : ℂ) := by
-        exact congrArg (fun w : ℂ => w - (1 / 2 : ℂ)) hzero
-      _ = -(1 / 2 : ℂ) := by ring
+  have hz_eq : z = -(1 / 2 : ℂ) :=
+    (add_sub_cancel_left (1 / 2 : ℂ) z).symm.trans
+      ((congrArg (· - (1 / 2 : ℂ)) hzero).trans
+        (zero_sub (1 / 2 : ℂ)))
   exact hzneg hz_eq
 
 /-- Excluding the positive shifted pole makes the right denominator nonzero. -/
@@ -46,19 +64,13 @@ theorem centeredShift_rightDenominator_ne_zero_of_ne_posHalf
     1 - ((1 / 2 : ℂ) + z) ≠ 0 := by
   intro hzero
   have hz_eq : z = (1 / 2 : ℂ) := by
-    have hz_sub : z - (1 / 2 : ℂ) = 0 := by
-      calc
-        z - (1 / 2 : ℂ) =
-            -((1 : ℂ) - ((1 / 2 : ℂ) + z)) := by ring
-        _ = -0 := by
-          exact congrArg Neg.neg hzero
-        _ = 0 := by
-          exact neg_zero
-    calc
-      z = (z - (1 / 2 : ℂ)) + (1 / 2 : ℂ) := by ring
-      _ = 0 + (1 / 2 : ℂ) := by
-        exact congrArg (fun w : ℂ => w + (1 / 2 : ℂ)) hz_sub
-      _ = (1 / 2 : ℂ) := by ring
+    have hz_sub : z - (1 / 2 : ℂ) = 0 :=
+      (sub_half_eq_neg_one_sub z).trans
+        ((congrArg Neg.neg hzero).trans neg_zero)
+    exact
+      (sub_add_cancel z (1 / 2 : ℂ)).symm.trans
+        ((congrArg (· + (1 / 2 : ℂ)) hz_sub).trans
+          (zero_add (1 / 2 : ℂ)))
   exact hzpos hz_eq
 
 /-- Excluding both shifted poles makes the clearing denominator product nonzero. -/
@@ -420,15 +432,15 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_negHalf :
         (𝓝 (-(1 : ℂ))) := by
     exact hlim.congr'
       (Eventually.of_forall
-        (fun w : ℂ => by
-          unfold centeredCompletedRiemannZeta
-          congr 1
-          ring))
+        (fun w : ℂ =>
+          congrArg₂ (· * ·)
+            ((sub_neg_eq_add w (1 / 2 : ℂ)).trans (add_comm w (1 / 2 : ℂ)))
+            rfl))
   exact eventually_ne_zero_of_tendsto_sub_mul_ne_zero
     (f := centeredCompletedRiemannZeta)
     (a := -(1 / 2 : ℂ))
     (c := -(1 : ℂ))
-    (by norm_num)
+    (neg_ne_zero.mpr one_ne_zero)
     hcentered
 
 /-- The centered completed zeta function is nonzero in a punctured neighborhood
@@ -458,10 +470,10 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_posHalf :
         (𝓝 (1 : ℂ)) := by
     exact hlim.congr'
       (Eventually.of_forall
-        (fun w : ℂ => by
-          unfold centeredCompletedRiemannZeta
-          congr 1
-          ring))
+        (fun w : ℂ =>
+          congrArg₂ (· * ·)
+            (half_add_sub_one w).symm
+            rfl))
   exact eventually_ne_zero_of_tendsto_sub_mul_ne_zero
     (f := centeredCompletedRiemannZeta)
     (a := (1 / 2 : ℂ))
