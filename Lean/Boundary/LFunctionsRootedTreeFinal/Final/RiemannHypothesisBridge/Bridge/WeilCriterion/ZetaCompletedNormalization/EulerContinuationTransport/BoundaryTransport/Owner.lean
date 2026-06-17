@@ -321,7 +321,7 @@ theorem riemannZeta_sub_one_eq_dirichletSeries_tail
     sum_add_tsum_nat_add 2 hsum
   have hprefix :
       ∑ n ∈ Finset.range 2, f n = 1 := by
-    dsimp [f]
+    unfold f
     calc
       (∑ n ∈ Finset.range 2, (1 : ℂ) / ((n : ℂ) ^ z)) =
           (1 : ℂ) / ((0 : ℂ) ^ z) + (1 : ℂ) / ((1 : ℂ) ^ z) :=

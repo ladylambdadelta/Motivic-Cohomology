@@ -187,10 +187,10 @@ theorem exists_admissible_eval_pair (c₁ c₂ : ℝ) (hc : c₁ ≠ c₂) (a₁
   have hdist : 0 < dist c₁ c₂ := dist_pos.2 hc
   let rOut : ℝ := dist c₁ c₂ / 2
   have hrOut_pos : 0 < rOut := by
-    dsimp [rOut]
+    unfold rOut
     exact half_dist_pos_of_ne hc
   have hrOut_lt : rOut < dist c₁ c₂ := by
-    dsimp [rOut]
+    unfold rOut
     exact half_dist_lt_dist_of_ne hc
   let b₁ : ZetaAdmissibleFunction := admissibleBump (c := c₁) (rOut / 2) rOut (by
     exact half_pos hrOut_pos) (by
@@ -278,7 +278,7 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
         sampleSeparationRadius S i₀ ≤ dist (S.x j) (S.x i₀) := by
   let s : Finset (Fin S.n) := Finset.univ.erase i₀
   have hs : i₀ ∉ s := by
-    dsimp [s]
+    unfold s
     exact Finset.not_mem_erase i₀ (Finset.univ : Finset (Fin S.n))
   by_cases hne : s = ∅
   · constructor
@@ -317,7 +317,7 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
     · dsimp [sampleSeparationRadius, s, t]
       exact Eq.subst (motive := fun r : ℝ => 0 < r) (dif_neg hne).symm (half_pos hpos)
     intro j hj
-    dsimp [sampleSeparationRadius, s, t]
+    unfold sampleSeparationRadius s t
     have hmem : dist (S.x j) (S.x i₀) ∈ t := by
       exact Finset.mem_image.2 ⟨j, hj, rfl⟩
     have hle : t.min' ht ≤ dist (S.x j) (S.x i₀) := Finset.min'_le _ _ hmem
@@ -434,7 +434,7 @@ theorem sampleInterpolant_support_subset_iUnion (S : FiniteSample) (a : Fin S.n 
     (F : (i : Fin S.n) → ZetaAdmissibleFunction) :
     Function.support (sampleInterpolant S a F) ⊆ Set.iUnion fun i => Function.support (F i) := by
   intro y hy
-  dsimp [sampleInterpolant] at hy
+  unfold sampleInterpolant at hy
   have hsupport :
       Function.support ⇑(∑ i : Fin S.n, (a i) • F i).toZetaTestFunction =
         Function.support (fun x => ∑ i : Fin S.n, ((a i) • F i) x) :=

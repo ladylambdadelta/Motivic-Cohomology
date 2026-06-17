@@ -1077,7 +1077,7 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
         exact congrArg
           (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
           (by
-            dsimp [c]
+            unfold c
             exact (mul_one 2).symm ▸ mul_div_assoc 2 1 ‖w‖)
   exact
     le_trans hcompare

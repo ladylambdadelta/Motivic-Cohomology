@@ -79,7 +79,7 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
     ∀ᶠ w in 𝓝[≠] z, centeredCompletedRiemannZeta w ≠ 0 := by
   have hz' : completedRiemannZeta ((1 / 2 : ℂ) + z) = 0 := by
     exact by
-      dsimp [centeredCompletedRiemannZeta] at hz ⊢
+      unfold centeredCompletedRiemannZeta at hz ⊢
       exact hz
   have hs0 : (1 / 2 : ℂ) + z ≠ 0 := by
     intro h
