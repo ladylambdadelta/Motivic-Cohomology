@@ -294,7 +294,12 @@ theorem Complex.finiteAbelPlanaLogRightEndpointPVVerticalPoint_mem_capCollar
         [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
     have hre : ((M : ℂ) + Complex.I * (y : ℂ)).re = (M : ℝ) := by
       unfold M
-      ring_nf
+      have h1 : (Complex.I * (y : ℂ)).re = 0 := Complex.I_mul_re y
+      calc ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).re
+          = (↑(N + 1 : ℕ) : ℂ).re + (Complex.I * (y : ℂ)).re := Complex.add_re _ _
+        _ = (↑(N + 1 : ℕ) : ℂ).re + 0 := by rw [h1]
+        _ = (↑(N + 1 : ℕ) : ℂ).re := add_zero _
+        _ = (↑(N + 1 : ℕ) : ℝ) := Complex.ofReal_re _
     have hleft : ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
       exact Real.sub_nonneg_le_self ((N + 1 : ℕ) : ℝ) ρ hρnonneg
     exact
@@ -386,7 +391,9 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
   have him_mem :
       (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] :=
     let him :
-        (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).im) = y := by ring_nf
+        (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).im) = y :=
+      Eq.trans (Complex.add_im (((N + 1 : ℕ) : ℝ) - ρ : ℂ) (Complex.I * (y : ℂ)))
+        (Eq.trans (congrArg (0 + ·) (Complex.mul_im Complex.I (y : ℂ))) (zero_add y))
     Real.endpoint_mem_uIcc_congr him hy
   have hnot_ball :
       (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ))) ∉
@@ -415,7 +422,12 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
               ((N + 1 : ℕ) : ℂ)).re| = ρ :=
         let hre :
             ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) -
-                ((N + 1 : ℕ) : ℂ)).re) = -ρ := by ring_nf
+                ((N + 1 : ℕ) : ℂ)).re) = -ρ :=
+          Eq.trans (Complex.sub_re ((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)) (↑(N + 1 : ℕ)))
+            (Eq.trans (congrArg (· - ↑(N + 1 : ℕ)) (Complex.add_re (((N + 1 : ℕ) : ℝ) - ρ : ℂ) (Complex.I * (y : ℂ))))
+              (Eq.trans (congrArg ((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + 0 - ·) (Complex.ofReal_re (N + 1 : ℕ)))
+                (Eq.trans (congrArg (· - ↑(N + 1 : ℕ)) (add_zero (((N + 1 : ℕ) : ℝ) - ρ : ℝ)))
+                  (sub_right_inj.mpr rfl))))
         hre ▸ abs_neg ρ ▸ abs_of_nonneg hρnonneg
       hre_abs ▸ hre_norm
     exact not_lt_of_ge hρ_le_norm hdist
