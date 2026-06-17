@@ -819,7 +819,16 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       completedRiemannZeta₀ z =
           (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) +
             1 / z + 1 / (1 - z) := by
-        ring
+        have h1 : completedRiemannZeta₀ z - (1 / z + 1 / (1 - z)) =
+                  completedRiemannZeta₀ z - 1 / z - 1 / (1 - z) :=
+          (sub_sub _ _ _).symm
+        calc completedRiemannZeta₀ z =
+            (completedRiemannZeta₀ z - (1 / z + 1 / (1 - z))) + (1 / z + 1 / (1 - z)) :=
+              (sub_add_cancel _ _).symm
+          _ = (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) + (1 / z + 1 / (1 - z)) :=
+              congrArg (· + (1 / z + 1 / (1 - z))) h1
+          _ = (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) + 1 / z + 1 / (1 - z) :=
+              (add_assoc _ _ _).symm
       _ = completedRiemannZeta z + 1 / z + 1 / (1 - z) := by
         exact congrArg (fun w : ℂ => w + 1 / z + 1 / (1 - z)) hformula.symm
   have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ := by
@@ -936,7 +945,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       _ ≤ P + 1 + 1 := by
         exact add_le_add_left hinv_one_sub_le_one (P + 1)
       _ = P + 2 := by
-        ring
+        exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
     nlinarith [hP_nonneg]
@@ -1061,21 +1070,22 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
         (Az * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) *
             (Ag * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) =
           (Az * Ag) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) := by
+      let x := (Bz + Bg + 1) * H ^ (mz + mg)
       calc
-        (Az * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) *
-            (Ag * Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) =
-          (Az * Ag) *
-            (Real.exp ((Bz + Bg + 1) * H ^ (mz + mg)) *
-              Real.exp ((Bz + Bg + 1) * H ^ (mz + mg))) := by
-          ring
-        _ = (Az * Ag) *
-            Real.exp (((Bz + Bg + 1) * H ^ (mz + mg)) +
-              ((Bz + Bg + 1) * H ^ (mz + mg))) := by
-          exact congrArg (fun x : ℝ => (Az * Ag) * x)
-            (Real.exp_add ((Bz + Bg + 1) * H ^ (mz + mg))
-              ((Bz + Bg + 1) * H ^ (mz + mg))).symm
-        _ = (Az * Ag) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) := by
-          ring
+        (Az * Real.exp x) * (Ag * Real.exp x) =
+          (Az * (Real.exp x * Ag)) * Real.exp x := by
+            exact congrArg (· * Real.exp x) (mul_assoc Az (Real.exp x) Ag)
+        _ = (Az * (Ag * Real.exp x)) * Real.exp x := by
+            exact congrArg (· * Real.exp x) (congrArg (Az * ·) (mul_comm (Real.exp x) Ag))
+        _ = ((Az * Ag) * Real.exp x) * Real.exp x := by
+            exact congrArg (· * Real.exp x) ((mul_assoc Az Ag (Real.exp x)).symm)
+        _ = (Az * Ag) * (Real.exp x * Real.exp x) :=
+            mul_assoc (Az * Ag) (Real.exp x) (Real.exp x)
+        _ = (Az * Ag) * Real.exp (x + x) := by
+            exact congrArg (fun y : ℝ => (Az * Ag) * y)
+              (Real.exp_add x x).symm
+        _ = (Az * Ag) * Real.exp (2 * x) := by
+            exact congrArg (Az * Ag * ·) (congrArg Real.exp (by omega))
     exact hmul.trans_eq hcollapse
   have hsum_bound :
       ‖(z - 1) * riemannZeta z‖ * ‖Complex.Gammaℝ z‖ + 1 ≤
@@ -1089,7 +1099,7 @@ theorem poleCleared_zeta_gamma_rightCriticalStrip_verticalTail_product_plus_one_
         (Az * Ag) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) +
             Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) =
           (Az * Ag + 1) * Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)) := by
-      ring
+      exact (add_mul (Az * Ag) 1 (Real.exp (2 * (Bz + Bg + 1) * H ^ (mz + mg)))).symm
     exact hleft.trans_eq hright
   exact hsum_bound
 
@@ -1139,7 +1149,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_growth_bound_of_
   have htarget :
       D * (Apg * Real.exp (Bpg * (1 + ‖z‖) ^ mpg)) =
         D * Apg * Real.exp (Bpg * (1 + ‖z‖) ^ mpg) := by
-    ring
+    exact mul_assoc D Apg (Real.exp (Bpg * (1 + ‖z‖) ^ mpg))
   exact le_trans (hnorm_bound z hz0 hz2 hz_im) (hscaled.trans_eq htarget)
 
 /-- Vertical-tail bound for the pole-cleared completed-zeta entire part in the
@@ -1330,7 +1340,16 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       completedRiemannZeta₀ z =
           (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) +
             1 / z + 1 / (1 - z) := by
-        ring
+        have h1 : completedRiemannZeta₀ z - (1 / z + 1 / (1 - z)) =
+                  completedRiemannZeta₀ z - 1 / z - 1 / (1 - z) :=
+          (sub_sub _ _ _).symm
+        calc completedRiemannZeta₀ z =
+            (completedRiemannZeta₀ z - (1 / z + 1 / (1 - z))) + (1 / z + 1 / (1 - z)) :=
+              (sub_add_cancel _ _).symm
+          _ = (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) + (1 / z + 1 / (1 - z)) :=
+              congrArg (· + (1 / z + 1 / (1 - z))) h1
+          _ = (completedRiemannZeta₀ z - 1 / z - 1 / (1 - z)) + 1 / z + 1 / (1 - z) :=
+              (add_assoc _ _ _).symm
       _ = completedRiemannZeta z + 1 / z + 1 / (1 - z) := by
         exact congrArg (fun w : ℂ => w + 1 / z + 1 / (1 - z)) hformula.symm
   have hz_norm_ge_one : (1 : ℝ) ≤ ‖z‖ := by
@@ -1420,7 +1439,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_norm_le_zeta_gamma_plus_one :
       _ ≤ P + 1 + 1 := by
         exact add_le_add_left hinv_one_sub_le_one (P + 1)
       _ = P + 2 := by
-        ring
+        exact (add_assoc P 1 1).symm.trans (congrArg (P + ·) one_add_one)
   have hP_two_le_three :
       P + 2 ≤ 3 * (P + 1) := by
     nlinarith [hP_nonneg]
@@ -1495,7 +1514,7 @@ theorem completedRiemannZeta₀_farRightHalfPlane_poleCleared_growth_bound
         (Az * Ag) * Real.exp (Bg * H ^ mg) +
             Real.exp (Bg * H ^ mg) =
           (Az * Ag + 1) * Real.exp (Bg * H ^ mg) := by
-      ring
+      exact (add_mul (Az * Ag) 1 (Real.exp (Bg * H ^ mg))).symm
     exact hleft.trans_eq hright
   have hscaled :
       D * (‖riemannZeta z‖ * ‖Complex.Gammaℝ z‖ + 1) ≤
