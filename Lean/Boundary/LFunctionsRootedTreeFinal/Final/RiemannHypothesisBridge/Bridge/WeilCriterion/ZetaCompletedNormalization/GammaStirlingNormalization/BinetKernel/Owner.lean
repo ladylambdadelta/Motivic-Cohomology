@@ -768,7 +768,7 @@ theorem Complex.binet_quotient_factors_ne_zero
             _ = 0 := by
               exact zero_add (1 - z * Complex.I)
         exact Eq.trans hsum hcancel
-    norm_num at hzero
+    exact absurd hzero (show (2 : ℂ) ≠ 0 by exact two_ne_zero)
   · exact hz
 
 /-- The Binet quotient factors are both nonzero whenever the denominator is

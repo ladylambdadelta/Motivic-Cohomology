@@ -57,7 +57,18 @@ theorem zetaPaleyWienerVerticalWeight_le_successor_lowFrequency
       (le_add_of_nonneg_right (norm_nonneg z.im))) (-(N + 1 : ℤ))
   have hexp :
       (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ) := by
-    omega
+    show (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ)
+    have h1 : (1 : ℤ) + (-(N + 1 : ℤ)) = 1 - N - 1 := by
+      calc (1 : ℤ) + (-(N + 1 : ℤ))
+          = 1 + (-(N + 1)) := rfl
+        _ = 1 - (N + 1) := by exact (Int.add_neg_eq_sub 1 (N + 1)).symm
+        _ = 1 - N - 1 := (Int.sub_sub 1 N 1).symm
+    have h2 : (1 : ℤ) - N - 1 = -N := by
+      calc (1 : ℤ) - N - 1
+          = (1 - 1) - N := by exact Int.sub_sub_cancel 1 1 N
+        _ = 0 - N := by exact congrArg (· - N) (Int.sub_self 1)
+        _ = -N := by exact Int.zero_sub N
+    exact h1.trans h2
   have hcombine :
       X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
     calc
@@ -157,7 +168,18 @@ theorem zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency
       (le_add_of_nonneg_right (norm_nonneg z.im))) (-(N + 1 : ℤ))
   have hexp :
       (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ) := by
-    omega
+    show (1 : ℤ) + (-(N + 1 : ℤ)) = -(N : ℤ)
+    have h1 : (1 : ℤ) + (-(N + 1 : ℤ)) = 1 - N - 1 := by
+      calc (1 : ℤ) + (-(N + 1 : ℤ))
+          = 1 + (-(N + 1)) := rfl
+        _ = 1 - (N + 1) := by exact (Int.add_neg_eq_sub 1 (N + 1)).symm
+        _ = 1 - N - 1 := (Int.sub_sub 1 N 1).symm
+    have h2 : (1 : ℤ) - N - 1 = -N := by
+      calc (1 : ℤ) - N - 1
+          = (1 - 1) - N := by exact Int.sub_sub_cancel 1 1 N
+        _ = 0 - N := by exact congrArg (· - N) (Int.sub_self 1)
+        _ = -N := by exact Int.zero_sub N
+    exact h1.trans h2
   have hcombine :
       X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
     calc

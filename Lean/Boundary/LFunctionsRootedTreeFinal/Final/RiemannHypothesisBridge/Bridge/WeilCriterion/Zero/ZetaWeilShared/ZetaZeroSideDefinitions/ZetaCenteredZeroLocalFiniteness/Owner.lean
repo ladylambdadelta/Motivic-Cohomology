@@ -136,10 +136,10 @@ theorem centeredCriticalHeightBox_abs_re_le_one
     {T : ℝ} {z : ℂ}
     (hz : z ∈ centeredCriticalHeightBox T) :
     |z.re| ≤ (1 : ℝ) := by
-  have hnegOne_le_negHalf : (-(1 : ℝ)) ≤ -(1 / 2 : ℝ) := by
-    norm_num
   have hhalf_le_one : (1 / 2 : ℝ) ≤ (1 : ℝ) := by
-    norm_num
+    exact div_le_one zero_lt_two
+  have hnegOne_le_negHalf : (-(1 : ℝ)) ≤ -(1 / 2 : ℝ) :=
+    neg_le_neg hhalf_le_one
   exact abs_le.mpr
     ⟨hnegOne_le_negHalf.trans hz.1,
       hz.2.1.trans hhalf_le_one⟩

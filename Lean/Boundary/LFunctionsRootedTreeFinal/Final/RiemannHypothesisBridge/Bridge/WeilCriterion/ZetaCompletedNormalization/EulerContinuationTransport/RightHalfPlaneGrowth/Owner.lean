@@ -250,20 +250,20 @@ theorem poleClearedRiemannZeta_one_two_strip_polynomial_bound_of_eulerMaclaurin_
   have hH_nonneg : 0 ≤ H :=
     le_trans zero_le_one hH_ge_one
   have hmf : H ^ mf ≤ H ^ m := by
-    have hmf_le : mf ≤ m := by
-      omega
+    have hmf_le : mf ≤ m :=
+      Nat.le_add_right mf (mm + me + mr)
     exact pow_le_pow_right₀ hH_ge_one hmf_le
   have hmm : H ^ mm ≤ H ^ m := by
-    have hmm_le : mm ≤ m := by
-      omega
+    have hmm_le : mm ≤ m :=
+      Nat.le_add_left mm (mf + me + mr)
     exact pow_le_pow_right₀ hH_ge_one hmm_le
   have hme : H ^ me ≤ H ^ m := by
-    have hme_le : me ≤ m := by
-      omega
+    have hme_le : me ≤ m :=
+      Nat.le_add_right me (mf + mm + mr)
     exact pow_le_pow_right₀ hH_ge_one hme_le
   have hmr : H ^ mr ≤ H ^ m := by
-    have hmr_le : mr ≤ m := by
-      omega
+    have hmr_le : mr ≤ m :=
+      Nat.le_add_right mr (mf + mm + me)
     exact pow_le_pow_right₀ hH_ge_one hmr_le
   have hf' :
       ‖eulerMaclaurinPoleClearedZetaFinitePart z‖ ≤ Cf * H ^ m :=
