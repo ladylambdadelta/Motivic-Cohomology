@@ -42,11 +42,11 @@ private lemma mul_re_component (ρ θ : ℝ) :
     (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re - (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im =
       ρ * (Complex.exp (Complex.I * θ)).re :=
   calc (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re - (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im
-      = ρ * (Complex.exp (Complex.I * θ)).re - 0 * (Complex.exp (Complex.I * θ)).im := by
-        exact congrArg₂ (· - ·) (congrArg (· * (Complex.exp (Complex.I * θ)).re) (ofreal_re_val ρ))
-          (congrArg (· * (Complex.exp (Complex.I * θ)).im) (ofreal_im_val ρ))
-    _ = ρ * (Complex.exp (Complex.I * θ)).re - 0 := by
-        exact congrArg (ρ * (Complex.exp (Complex.I * θ)).re - ·) (zero_mul_val _)
+      = ρ * (Complex.exp (Complex.I * θ)).re - 0 * (Complex.exp (Complex.I * θ)).im :=
+          congrArg₂ (· - ·) (congrArg (· * (Complex.exp (Complex.I * θ)).re) (ofreal_re_val ρ))
+            (congrArg (· * (Complex.exp (Complex.I * θ)).im) (ofreal_im_val ρ))
+    _ = ρ * (Complex.exp (Complex.I * θ)).re - 0 :=
+          congrArg (ρ * (Complex.exp (Complex.I * θ)).re - ·) (zero_mul_val _)
     _ = ρ * (Complex.exp (Complex.I * θ)).re := sub_zero_val _
 
 /-- Pure term-mode: Multiply exponential real part to cos -/
@@ -56,6 +56,125 @@ private lemma mul_exp_re_to_cos (ρ θ : ℝ) :
 
 /-- Pure term-mode: Add real parts -/
 private lemma add_re_component (x y : ℂ) : (x + y).re = x.re + y.re := Complex.add_re x y
+
+/-- Component: (ρ:ℂ).re * exp_im + (ρ:ℂ).im * exp_re = ρ * exp_im -/
+private lemma mul_im_component (ρ θ : ℝ) :
+    (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).im + (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).re =
+      ρ * (Complex.exp (Complex.I * θ)).im :=
+  let exp_im := (Complex.exp (Complex.I * θ)).im
+  let exp_re := (Complex.exp (Complex.I * θ)).re
+  calc (ρ : ℂ).re * exp_im + (ρ : ℂ).im * exp_re
+      = ρ * exp_im + 0 * exp_re :=
+          congrArg₂ (· + ·)
+            (congrArg (· * exp_im) (ofreal_re_val ρ))
+            (congrArg (· * exp_re) (ofreal_im_val ρ))
+    _ = ρ * exp_im + 0 := congrArg (ρ * exp_im + ·) (zero_mul exp_re)
+    _ = ρ * exp_im := add_zero _
+
+/-- Component: ρ * exp(I*θ).im = ρ * sin θ -/
+private lemma mul_exp_im_eq_sin (ρ θ : ℝ) :
+    ρ * (Complex.exp (Complex.I * θ)).im = ρ * Real.sin θ :=
+  congrArg (ρ * ·) (Complex.exp_mul_I_im θ)
+
+-- Coordinate computation lemmas for transport theorems.
+-- These compute .re and .im projections for specific complex numbers.
+
+/-- (I * T).re = 0 (auxiliary used repeatedly) -/
+private lemma I_mul_ofReal_re (a : ℝ) : (Complex.I * (a : ℂ)).re = 0 :=
+  (Complex.I_mul_re _).trans
+    ((congrArg Neg.neg (Complex.ofReal_im a)).trans neg_zero)
+
+/-- (I * T).im = T (auxiliary used repeatedly) -/
+private lemma I_mul_ofReal_im (a : ℝ) : (Complex.I * (a : ℂ)).im = a :=
+  (Complex.I_mul_im _).trans (Complex.ofReal_re a)
+
+/-- Lower rect: z₀ = (N+1-ρ:ℂ) - I*T has re = N+1-ρ -/
+private lemma lower_rect_z₀_re (N : ℕ) (ρ T : ℝ) :
+    ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).re = ((N + 1 : ℕ) : ℝ) - ρ :=
+  (Complex.sub_re _ _).trans
+    ((congrArg₂ (· - ·) (Complex.ofReal_re _) (I_mul_ofReal_re T)).trans (sub_zero _))
+
+/-- Lower rect: z₀ = (N+1-ρ:ℂ) - I*T has im = -T -/
+private lemma lower_rect_z₀_im (N : ℕ) (ρ T : ℝ) :
+    ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).im = -T :=
+  (Complex.sub_im _ _).trans
+    ((congrArg₂ (· - ·) (Complex.ofReal_im _) (I_mul_ofReal_im T)).trans (zero_sub T))
+
+/-- Lower rect: z₁ = (N+1:ℂ) - I*ρ has re = N+1 -/
+private lemma lower_rect_z₁_re (N : ℕ) (ρ : ℝ) :
+    (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).re = ((N + 1 : ℕ) : ℝ) :=
+  (Complex.sub_re _ _).trans
+    ((congrArg₂ (· - ·) (Complex.ofReal_re _) (I_mul_ofReal_re ρ)).trans (sub_zero _))
+
+/-- Lower rect: z₁ = (N+1:ℂ) - I*ρ has im = -ρ -/
+private lemma lower_rect_z₁_im (N : ℕ) (ρ : ℝ) :
+    (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).im = -ρ :=
+  (Complex.sub_im _ _).trans
+    ((congrArg₂ (· - ·) (Complex.ofReal_im _) (I_mul_ofReal_im ρ)).trans (zero_sub ρ))
+
+/-- Upper rect: z₀ = (N+1-ρ:ℂ) + I*ρ has re = N+1-ρ -/
+private lemma upper_rect_z₀_re (N : ℕ) (ρ : ℝ) :
+    ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).re = ((N + 1 : ℕ) : ℝ) - ρ :=
+  (Complex.add_re _ _).trans
+    ((congrArg₂ (· + ·) (Complex.ofReal_re _) (I_mul_ofReal_re ρ)).trans (add_zero _))
+
+/-- Upper rect: z₀ = (N+1-ρ:ℂ) + I*ρ has im = ρ -/
+private lemma upper_rect_z₀_im (N : ℕ) (ρ : ℝ) :
+    ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).im = ρ :=
+  (Complex.add_im _ _).trans
+    ((congrArg₂ (· + ·) (Complex.ofReal_im _) (I_mul_ofReal_im ρ)).trans (zero_add ρ))
+
+/-- Upper rect: z₁ = (N+1:ℂ) + I*T has re = N+1 -/
+private lemma upper_rect_z₁_re (N : ℕ) (T : ℝ) :
+    (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).re = ((N + 1 : ℕ) : ℝ) :=
+  (Complex.add_re _ _).trans
+    ((congrArg₂ (· + ·) (Complex.ofReal_re _) (I_mul_ofReal_re T)).trans (add_zero _))
+
+/-- Upper rect: z₁ = (N+1:ℂ) + I*T has im = T -/
+private lemma upper_rect_z₁_im (N : ℕ) (T : ℝ) :
+    (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).im = T :=
+  (Complex.add_im _ _).trans
+    ((congrArg₂ (· + ·) (Complex.ofReal_im _) (I_mul_ofReal_im T)).trans (zero_add T))
+
+/-- Model: (N+1:ℕ:ℂ).re = N+1:ℝ -/
+private lemma model_natCast_re (N : ℕ) : ((N + 1 : ℕ) : ℂ).re = ((N + 1 : ℕ) : ℝ) :=
+  Complex.ofReal_re _
+
+/-- Model: (N+1:ℕ:ℂ).im = 0 -/
+private lemma model_natCast_im (N : ℕ) : ((N + 1 : ℕ) : ℂ).im = 0 :=
+  Complex.ofReal_im _
+
+/-- Integrand: (x:ℂ) + ((-a:ℝ):ℂ)*I = (x:ℂ) - I*(a:ℂ) -/
+private lemma ofReal_neg_mul_I_eq_sub_I_mul (x a : ℝ) :
+    (x : ℂ) + ((-a : ℝ) : ℂ) * Complex.I = (x : ℂ) - Complex.I * (a : ℂ) :=
+  let h_prod : ((-a : ℝ) : ℂ) * Complex.I = -(Complex.I * (a : ℂ)) :=
+    (congrArg (· * Complex.I) (Complex.ofReal_neg a)).trans
+      ((neg_mul (a : ℂ) Complex.I).trans (congrArg Neg.neg (mul_comm (a : ℂ) Complex.I)))
+  (congrArg ((x : ℂ) + ·) h_prod).trans (sub_eq_add_neg _ _).symm
+
+/-- Integrand: (x:ℂ) + ((a:ℝ):ℂ)*I = (x:ℂ) + I*(a:ℂ) (just commutativity) -/
+private lemma ofReal_mul_I_comm (x a : ℝ) :
+    (x : ℂ) + ((a : ℝ) : ℂ) * Complex.I = (x : ℂ) + Complex.I * (a : ℂ) :=
+  congrArg ((x : ℂ) + ·) (mul_comm ((a : ℝ) : ℂ) Complex.I)
+
+/-- Integrand: (a:ℂ) + (y:ℂ)*I = (a:ℂ) + I*(y:ℂ) (just commutativity) -/
+private lemma ofReal_add_y_mul_I_comm (a y : ℝ) :
+    ((a : ℝ) : ℂ) + (y : ℂ) * Complex.I = ((a : ℝ) : ℂ) + Complex.I * (y : ℂ) :=
+  congrArg (((a : ℝ) : ℂ) + ·) (mul_comm (y : ℂ) Complex.I)
+
+/-- Model integrand: x + I*((0-ρ:ℝ):ℂ) = x - I*ρ -/
+private lemma model_integrand_sub (x ρ : ℝ) :
+    (x : ℂ) + Complex.I * ((0 - ρ : ℝ) : ℂ) = (x : ℂ) - Complex.I * (ρ : ℂ) :=
+  let h_sub : ((0 - ρ : ℝ) : ℂ) = -((ρ : ℝ) : ℂ) :=
+    (congrArg (fun r => (r : ℂ)) (zero_sub ρ)).trans (Complex.ofReal_neg ρ)
+  let h_prod : Complex.I * ((0 - ρ : ℝ) : ℂ) = -(Complex.I * (ρ : ℂ)) :=
+    (congrArg (Complex.I * ·) h_sub).trans (mul_neg Complex.I (ρ : ℂ))
+  (congrArg ((x : ℂ) + ·) h_prod).trans (sub_eq_add_neg _ _).symm
+
+/-- Model integrand: x + I*((0+ρ:ℝ):ℂ) = x + I*ρ -/
+private lemma model_integrand_add (x ρ : ℝ) :
+    (x : ℂ) + Complex.I * ((0 + ρ : ℝ) : ℂ) = (x : ℂ) + Complex.I * (ρ : ℂ) :=
+  congrArg ((x : ℂ) + Complex.I * ·) ((congrArg (fun r => (r : ℂ)) (zero_add ρ)))
 
 /-- Helper: Real part of complex exponential in cap-collar domain. -/
 private lemma capCollar_exp_re (N : ℕ) (ρ θ : ℝ) :
@@ -75,44 +194,43 @@ private lemma capCollar_exp_re (N : ℕ) (ρ θ : ℝ) :
 /-- Helper: Imaginary part of complex exponential in cap-collar domain. -/
 private lemma capCollar_exp_im (N : ℕ) (ρ θ : ℝ) :
     ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).im =
-      ρ * Real.sin θ := by
-  have h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im = ρ * Real.sin θ := by
+      ρ * Real.sin θ :=
+  let h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im = ρ * Real.sin θ :=
     calc ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im
         = (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).im +
           (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).re := Complex.mul_im _ _
-      _ = ρ * (Complex.exp (Complex.I * θ)).im := by
-        simp [Complex.ofReal_re, Complex.ofReal_im]
-      _ = ρ * Real.sin θ := by
-        simp [Complex.exp_mul_I_im]
+      _ = ρ * (Complex.exp (Complex.I * θ)).im := mul_im_component ρ θ
+      _ = ρ * Real.sin θ := mul_exp_im_eq_sin ρ θ
   calc ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).im
-      = (↑(N + 1 : ℕ) : ℂ).im + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im := Complex.add_im _ _
-    _ = ρ * Real.sin θ := by
-      simp [Complex.ofReal_im]; rw [h1]
+      = (↑(N + 1 : ℕ) : ℂ).im + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im :=
+          Complex.add_im _ _
+    _ = 0 + ρ * Real.sin θ :=
+          congrArg₂ (· + ·) (Complex.ofReal_im _) h1
+    _ = ρ * Real.sin θ := zero_add _
 
 /-- Helper: Imaginary part of complex number plus pure imaginary. -/
 private lemma capCollar_im_pure (N : ℕ) (y : ℝ) :
-    ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).im = y := by
-  have h1 : (Complex.I * (y : ℂ)).im = y := Complex.I_mul_im y
+    ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).im = y :=
   calc ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).im
       = (↑(N + 1 : ℕ) : ℂ).im + (Complex.I * (y : ℂ)).im := Complex.add_im _ _
-    _ = 0 + y := by simp [Complex.ofReal_im]; rw [h1]
+    _ = 0 + y :=
+          congrArg₂ (· + ·) (Complex.ofReal_im _) (I_mul_ofReal_im y)
     _ = y := zero_add y
 
 /-- Helper: Equivalence between cap-collar point and circleMap. -/
 private lemma capCollar_eq_circleMap (N : ℕ) (ρ θ : ℝ) :
     ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
-      circleMap ((N + 1 : ℕ) : ℂ) ρ θ := by
-  unfold circleMap
-  rfl
+      circleMap ((N + 1 : ℕ) : ℂ) ρ θ := rfl
 
 /-- Helper: Real part of interval cap-collar point. -/
 private lemma capCollar_interval_re (N : ℕ) (ρ y : ℝ) :
     (((↑((N + 1 : ℕ) : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)).re =
-      ((N + 1 : ℕ) : ℝ) - ρ := by
-  have h1 : (Complex.I * (y : ℂ)).re = 0 := Complex.I_mul_re y
+      ((N + 1 : ℕ) : ℝ) - ρ :=
   calc (((↑((N + 1 : ℕ) : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)).re
       = (↑(((N + 1 : ℕ) : ℝ) - ρ) : ℂ).re + (Complex.I * (y : ℂ)).re := Complex.add_re _ _
-    _ = ((N + 1 : ℕ) : ℝ) - ρ := by simp [Complex.ofReal_re]; rw [h1]
+    _ = ((N + 1 : ℕ) : ℝ) - ρ + 0 :=
+          congrArg₂ (· + ·) (Complex.ofReal_re _) (I_mul_ofReal_re y)
+    _ = ((N + 1 : ℕ) : ℝ) - ρ := add_zero _
 
 def Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain
     (N : ℕ)
@@ -396,7 +514,7 @@ theorem Complex.finiteAbelPlanaLogRightEndpointPVVerticalPoint_mem_capCollar
       have h1 : (Complex.I * (y : ℂ)).re = 0 := Complex.I_mul_re y
       calc ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).re
           = (↑(N + 1 : ℕ) : ℂ).re + (Complex.I * (y : ℂ)).re := Complex.add_re _ _
-        _ = (↑(N + 1 : ℕ) : ℂ).re + 0 := by rw [h1]
+        _ = (↑(N + 1 : ℕ) : ℂ).re + 0 := congrArg ((↑(N + 1 : ℕ) : ℂ).re + ·) h1
         _ = (↑(N + 1 : ℕ) : ℂ).re := add_zero _
         _ = (↑(N + 1 : ℕ) : ℝ) := Complex.ofReal_re _
     have hleft : ((N + 1 : ℕ) : ℝ) - ρ ≤ ((N + 1 : ℕ) : ℝ) := by
@@ -667,11 +785,83 @@ theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
   subst z₀
   subst z₁
   subst M
-  -- After substs, hrect is an algebraic identity in integrals; normalize explicitly
-  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
-    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
-    sub_re, sub_im, neg_re, neg_im] at hrect
-  exact hrect
+  exact Eq.mpr (congrArg (· = 0) (
+    let h₀re := lower_rect_z₀_re N ρ T
+    let h₀im := lower_rect_z₀_im N ρ T
+    let h₁re := lower_rect_z₁_re N ρ
+    let h₁im := lower_rect_z₁_im N ρ
+    let hI1 :
+        ∫ x in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).re ..
+                (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).re,
+            f ((x : ℂ) + ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).im : ℝ) : ℂ) *
+              Complex.I) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) - Complex.I * (T : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f ((x : ℂ) + ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).im : ℝ) : ℂ) *
+                Complex.I))
+          h₀re h₁re).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f ((x : ℂ) + ((c : ℝ) : ℂ) * Complex.I))
+            h₀im).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (ofReal_neg_mul_I_eq_sub_I_mul x T))))
+    let hI2 :
+        ∫ x in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).re ..
+                (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).re,
+            f ((x : ℂ) + (((((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).im : ℝ) : ℂ) *
+              Complex.I) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) - Complex.I * (ρ : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f ((x : ℂ) + (((((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).im : ℝ) : ℂ) *
+                Complex.I))
+          h₀re h₁re).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f ((x : ℂ) + ((c : ℝ) : ℂ) * Complex.I))
+            h₁im).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (ofReal_neg_mul_I_eq_sub_I_mul x ρ))))
+    let hI3 :
+        ∫ y in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).im ..
+                (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).im,
+            f (((((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).re : ℝ : ℂ) + (y : ℂ) * Complex.I) =
+        ∫ y in -T .. -ρ, f ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ y in a..b,
+              f ((((((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).re : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+          h₀im h₁im).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ y in -T .. -ρ, f (((c : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+            h₁re).trans
+          (intervalIntegral.integral_congr (fun y _ =>
+              congrArg f (ofReal_add_y_mul_I_comm ((N + 1 : ℕ) : ℝ) y))))
+    let hI4 :
+        ∫ y in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).im ..
+                (((N + 1 : ℕ) : ℂ) - Complex.I * (ρ : ℂ)).im,
+            f (((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).re : ℝ) : ℂ) +
+              (y : ℂ) * Complex.I) =
+        ∫ y in -T .. -ρ,
+            f ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (y : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ y in a..b,
+              f (((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) - Complex.I * (T : ℂ)).re : ℝ) : ℂ) +
+                (y : ℂ) * Complex.I))
+          h₀im h₁im).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ y in -T .. -ρ, f (((c : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+            h₀re).trans
+          (intervalIntegral.integral_congr (fun y _ =>
+              congrArg f (ofReal_add_y_mul_I_comm (((N + 1 : ℕ) : ℝ) - ρ) y))))
+    congrArg₂ (· - ·)
+      (congrArg₂ (· + ·)
+        (congrArg₂ (· - ·) hI1 hI2)
+        (congrArg (Complex.I * ·) hI3))
+      (congrArg (Complex.I * ·) hI4))) hrect
 
 /-- Cauchy-Goursat on the lower ordinary rectangle in the right endpoint cap. -/
 theorem Complex.rightEndpointLowerRectangleBoundaryIntegral_eq_zero
@@ -772,11 +962,83 @@ theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
   subst z₀
   subst z₁
   subst M
-  -- After substs, hrect is an algebraic identity in integrals; normalize explicitly
-  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
-    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
-    sub_re, sub_im, neg_re, neg_im] at hrect
-  exact hrect
+  exact Eq.mpr (congrArg (· = 0) (
+    let h₀re := upper_rect_z₀_re N ρ
+    let h₀im := upper_rect_z₀_im N ρ
+    let h₁re := upper_rect_z₁_re N T
+    let h₁im := upper_rect_z₁_im N T
+    let hI1 :
+        ∫ x in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).re ..
+                (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).re,
+            f ((x : ℂ) + ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).im : ℝ) : ℂ) *
+              Complex.I) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) + Complex.I * (ρ : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f ((x : ℂ) + ((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).im : ℝ) : ℂ) *
+                Complex.I))
+          h₀re h₁re).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f ((x : ℂ) + ((c : ℝ) : ℂ) * Complex.I))
+            h₀im).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (ofReal_mul_I_comm x ρ))))
+    let hI2 :
+        ∫ x in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).re ..
+                (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).re,
+            f ((x : ℂ) + (((((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).im : ℝ) : ℂ) *
+              Complex.I) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) + Complex.I * (T : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f ((x : ℂ) + (((((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).im : ℝ) : ℂ) *
+                Complex.I))
+          h₀re h₁re).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f ((x : ℂ) + ((c : ℝ) : ℂ) * Complex.I))
+            h₁im).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (ofReal_mul_I_comm x T))))
+    let hI3 :
+        ∫ y in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).im ..
+                (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).im,
+            f ((((((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).re : ℝ) : ℂ) + (y : ℂ) * Complex.I) =
+        ∫ y in ρ .. T, f ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ y in a..b,
+              f (((((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).re : ℝ : ℂ) + (y : ℂ) * Complex.I))
+          h₀im h₁im).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ y in ρ .. T, f (((c : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+            h₁re).trans
+          (intervalIntegral.integral_congr (fun y _ =>
+              congrArg f (ofReal_add_y_mul_I_comm ((N + 1 : ℕ) : ℝ) y))))
+    let hI4 :
+        ∫ y in ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).im ..
+                (((N + 1 : ℕ) : ℂ) + Complex.I * (T : ℂ)).im,
+            f (((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).re : ℝ) : ℂ) +
+              (y : ℂ) * Complex.I) =
+        ∫ y in ρ .. T,
+            f ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (y : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ y in a..b,
+              f (((((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (ρ : ℂ)).re : ℝ) : ℂ) +
+                (y : ℂ) * Complex.I))
+          h₀im h₁im).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ y in ρ .. T, f (((c : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+            h₀re).trans
+          (intervalIntegral.integral_congr (fun y _ =>
+              congrArg f (ofReal_add_y_mul_I_comm (((N + 1 : ℕ) : ℝ) - ρ) y))))
+    congrArg₂ (· - ·)
+      (congrArg₂ (· + ·)
+        (congrArg₂ (· - ·) hI1 hI2)
+        (congrArg (Complex.I * ·) hI3))
+      (congrArg (Complex.I * ·) hI4))) hrect
 
 /-- Cauchy-Goursat on the upper ordinary rectangle in the right endpoint cap. -/
 theorem Complex.rightEndpointUpperRectangleBoundaryIntegral_eq_zero
@@ -883,11 +1145,57 @@ theorem Complex.rightEndpointHalfRectangleDeletedDiskBoundary_of_model
       0 := by
   subst c
   subst M
-  -- After substs, hmodel is an algebraic identity in integrals; normalize explicitly
-  simp only [Complex.re_sub, Complex.im_sub, Complex.re_neg, Complex.im_neg,
-    Complex.re_I_mul, Complex.im_I_mul, Complex.ofReal_re, Complex.ofReal_im,
-    sub_re, sub_im, neg_re, neg_im] at hmodel
-  exact hmodel
+  exact Eq.mpr (congrArg (· = 0) (
+    let h_cre := model_natCast_re N
+    let h_cim := model_natCast_im N
+    let hI1 :
+        ∫ x in (((N + 1 : ℕ) : ℂ).re - ρ)..(((N + 1 : ℕ) : ℂ).re),
+            f (((x : ℝ) : ℂ) + Complex.I * ((((N + 1 : ℕ) : ℂ).im - ρ : ℝ) : ℂ)) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) - Complex.I * (ρ : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f (((x : ℝ) : ℂ) + Complex.I * ((((N + 1 : ℕ) : ℂ).im - ρ : ℝ) : ℂ)))
+          (congrArg (· - ρ) h_cre) h_cre).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f (((x : ℝ) : ℂ) + Complex.I * ((c : ℝ) : ℂ)))
+            (congrArg (· - ρ) h_cim)).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (model_integrand_sub x ρ))))
+    let hI2_inner :
+        ∫ x in (((N + 1 : ℕ) : ℂ).re - ρ)..(((N + 1 : ℕ) : ℂ).re),
+            f (((x : ℝ) : ℂ) + Complex.I * ((((N + 1 : ℕ) : ℂ).im + ρ : ℝ) : ℂ)) =
+        ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+            f ((x : ℂ) + Complex.I * (ρ : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ x in a..b,
+              f (((x : ℝ) : ℂ) + Complex.I * ((((N + 1 : ℕ) : ℂ).im + ρ : ℝ) : ℂ)))
+          (congrArg (· - ρ) h_cre) h_cre).trans
+        ((congrArg (fun c : ℝ =>
+              ∫ x in ((N + 1 : ℕ) : ℝ) - ρ .. ((N + 1 : ℕ) : ℝ),
+                f (((x : ℝ) : ℂ) + Complex.I * ((c : ℝ) : ℂ)))
+            (congrArg (· + ρ) h_cim)).trans
+          (intervalIntegral.integral_congr (fun x _ =>
+              congrArg f (model_integrand_add x ρ))))
+    let hI3 :
+        ∫ y in (((N + 1 : ℕ) : ℂ).im - ρ)..(((N + 1 : ℕ) : ℂ).im + ρ),
+            f ((((((N + 1 : ℕ) : ℂ).re - ρ : ℝ) : ℂ)) + Complex.I * (y : ℂ)) =
+        ∫ y in -ρ .. ρ,
+            f ((((N + 1 : ℕ) : ℝ) - ρ : ℝ : ℂ) + Complex.I * (y : ℂ)) :=
+      (congrArg₂ (fun a b =>
+            ∫ y in a..b,
+              f (((((N + 1 : ℕ) : ℂ).re - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)))
+          ((congrArg (· - ρ) h_cim).trans (zero_sub ρ))
+          ((congrArg (· + ρ) h_cim).trans (zero_add ρ))).trans
+        (congrArg (fun c : ℝ =>
+              ∫ y in -ρ .. ρ, f (((c : ℝ) : ℂ) + Complex.I * (y : ℂ)))
+          (congrArg (· - ρ) h_cre))
+    congrArg₂ (· - ·)
+      (congrArg₂ (· - ·)
+        (congrArg₂ (· + ·) hI1 (congrArg Neg.neg hI2_inner))
+        (congrArg (Complex.I * ·) hI3))
+      rfl)) hmodel
 
 /-- The local Cauchy-Goursat deformation across the right endpoint
 half-rectangle collar outside the deleted disk.
@@ -1140,8 +1448,6 @@ theorem Complex.rightEndpointCapCollarOrientedBoundaryIntegral_eq_zero
           ((((M : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)) ∈
             Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain N T ρ := by
       intro y hy
-      have hM : M = N + 1 := rfl
-      rw [hM] at hinterval_subset ⊢
       exact
         Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
           hρ (hinterval_subset y hy)
