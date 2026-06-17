@@ -282,7 +282,7 @@ theorem norm_zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_le_two_spectralMa
         exact (two_mul ‖C‖).symm
   have htwo :
       2 * ‖C‖ ≤ 2 * zetaCompletedPrimeSpectralCoordinateMajorant ι f := by
-    exact mul_le_mul_of_nonneg_left hC (by norm_num : (0 : ℝ) ≤ 2)
+    exact mul_le_mul_of_nonneg_left hC zero_le_two
   exact hsymm.trans (Eq.subst
     (motive := fun x : ℝ =>
       x ≤ 2 * zetaCompletedPrimeSpectralCoordinateMajorant ι f)
