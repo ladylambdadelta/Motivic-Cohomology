@@ -312,8 +312,8 @@ theorem riemannZeta_sub_one_eq_dirichletSeries_tail
     riemannZeta z - 1 =
         (1 + (∑' n : ℕ, f (n + 2))) - 1 := by
           exact congrArg (fun w : ℂ => w - 1) hzeta_eq_one_add_tail
-    _ = ∑' n : ℕ, f (n + 2) := by
-          ring
+    _ = ∑' n : ℕ, f (n + 2) :=
+          add_sub_cancel 1 (∑' n : ℕ, f (n + 2))
     _ = ∑' n : ℕ, 1 / (((n + 2 : ℕ) : ℂ) ^ z) := by
           rfl
 

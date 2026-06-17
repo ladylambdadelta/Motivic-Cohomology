@@ -133,7 +133,8 @@ theorem puncturedVerticalStrip_zero_lt_leftCorridor_re :
 theorem puncturedVerticalStrip_leftCorridor_re_lt_one :
     (1 / 2 : ℝ) < 1 := by
   have h : (1 : ℝ) < 1 * 2 := by
-    norm_num
+    calc (1 : ℝ) < 2 := one_lt_two
+      _ = 1 * 2 := (one_mul 2).symm
   exact (div_lt_iff₀ zero_lt_two).mpr h
 
 /-- The left safe corridor lies inside the right strip boundary. -/

@@ -208,7 +208,10 @@ theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_of_log
       have htarget :
           J₀ + c * (M + B * (1 + 2 * R) ^ m) =
             (J₀ + c * M) + (c * B) * (1 + 2 * R) ^ m := by
-        ring
+        show J₀ + c * (M + B * (1 + 2 * R) ^ m) = (J₀ + c * M) + (c * B) * (1 + 2 * R) ^ m
+        calc J₀ + c * (M + B * (1 + 2 * R) ^ m)
+            = J₀ + (c * M + c * B * (1 + 2 * R) ^ m) := by exact congrArg (J₀ + ·) (mul_add c M (B * (1 + 2 * R) ^ m))
+          _ = (J₀ + c * M) + (c * B) * (1 + 2 * R) ^ m := (add_assoc J₀ (c * M) (c * B * (1 + 2 * R) ^ m)).symm
       exact le_trans hcount (hwith_constant.trans_eq htarget)
 
 /-- Jensen formula plus finite-order growth gives the logarithmic-radius counting estimate.
@@ -248,7 +251,10 @@ theorem one_add_two_mul_le_three_mul_of_one_le
     1 + 2 * R ≤ R + 2 * R := by
       exact add_le_add_right hone_le_R (2 * R)
     _ = 3 * R := by
-      ring
+      show R + 2 * R = 3 * R
+      calc R + 2 * R = 1 * R + 2 * R := by exact congrArg (· + 2 * R) (one_mul R).symm
+        _ = (1 + 2) * R := (add_mul 1 2 R).symm
+        _ = 3 * R := by exact congrArg (· * R) (show (1 : ℝ) + 2 = 3 by norm_num)
 
 /-- A logarithmic Jensen estimate with finite-order radius term gives polynomial
 closed-disk zero counting. -/
@@ -319,8 +325,8 @@ theorem entireFunctionZeroMultiplicityCounting_closedDisk_bound_by_jensen_logari
         (|J| + B * (3 : ℝ) ^ m) * R ^ m := by
     have hright :
         |J| * R ^ m + (B * (3 : ℝ) ^ m) * R ^ m =
-          (|J| + B * (3 : ℝ) ^ m) * R ^ m := by
-      ring
+          (|J| + B * (3 : ℝ) ^ m) * R ^ m :=
+      (add_mul |J| (B * (3 : ℝ) ^ m) (R ^ m)).symm
     exact (add_le_add_right hJ_abs_mul ((B * (3 : ℝ) ^ m) * R ^ m)).trans_eq hright
   have hplus_one :
       (|J| + B * (3 : ℝ) ^ m) * R ^ m ≤

@@ -171,7 +171,7 @@ theorem denominatorProduct_mul_sub_twoReciprocals
 theorem centeredShift_left_add_right_denominator
     (s : ℂ) :
     ((1 / 2 : ℂ) + s) + (1 - ((1 / 2 : ℂ) + s)) = 1 := by
-  ring
+  exact add_sub_cancel ((1 / 2 : ℂ) + s) 1
 
 /-- Subtracting the sum of the two shifted denominators is subtraction by one. -/
 theorem centeredShift_sub_denominatorSum_eq_sub_one
@@ -472,7 +472,8 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_punctured_posHalf :
 theorem centeredCompletedRiemannZeta_neg (s : ℂ) :
     centeredCompletedRiemannZeta (-s) = centeredCompletedRiemannZeta s := by
   have hsub : (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s := by
-    ring
+    show (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s
+    exact (sub_add_eq_sub_sub 1 (1 / 2) s).symm
   have hsymm :
       completedRiemannZeta (1 / 2 - s) = completedRiemannZeta (1 - (1 / 2 + s)) := by
     exact congrArg completedRiemannZeta hsub.symm
@@ -481,7 +482,8 @@ theorem centeredCompletedRiemannZeta_neg (s : ℂ) :
 theorem centeredCompletedRiemannZeta₀_neg (s : ℂ) :
     centeredCompletedRiemannZeta₀ (-s) = centeredCompletedRiemannZeta₀ s := by
   have hsub : (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s := by
-    ring
+    show (1 : ℂ) - (1 / 2 + s) = 1 / 2 - s
+    exact (sub_add_eq_sub_sub 1 (1 / 2) s).symm
   have hsymm :
       completedRiemannZeta₀ (1 / 2 - s) = completedRiemannZeta₀ (1 - (1 / 2 + s)) := by
     exact congrArg completedRiemannZeta₀ hsub.symm
@@ -493,9 +495,11 @@ theorem centeredCompletedRiemannZeta_correction_symm (s : ℂ) :
   have h1 : (1 / 2 : ℂ) + (-s) = (1 / 2 : ℂ) - s := by
     exact sub_eq_add_neg (1 / 2) s
   have h2 : (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s := by
-    ring
+    show (1 : ℂ) - ((1 / 2 : ℂ) - s) = (1 / 2 : ℂ) + s
+    exact sub_sub_eq_add_sub 1 (1 / 2) s
   have h3 : (1 : ℂ) - (1 / 2 + s) = (1 / 2 : ℂ) - s := by
-    ring
+    show (1 : ℂ) - (1 / 2 + s) = (1 / 2 : ℂ) - s
+    exact (sub_add_eq_sub_sub 1 (1 / 2) s).symm
   calc
     1 / (1 / 2 + (-s)) + 1 / (1 - (1 / 2 + (-s))) =
         1 / ((1 / 2 : ℂ) - s) + 1 / (1 - ((1 / 2 : ℂ) - s)) := by

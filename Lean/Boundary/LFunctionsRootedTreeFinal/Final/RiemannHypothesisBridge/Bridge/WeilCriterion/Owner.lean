@@ -214,8 +214,8 @@ theorem boundaryRiemannHypothesis_realPart_of_centered
   have hsre' : z.re - 1 / 2 = 0 := by
     have hcomplex' : (z - 1 / 2 : ℂ).re = z.re - (1 / 2 : ℂ).re := by
       exact Complex.sub_re z (1 / 2 : ℂ)
-    have hhalf : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
-      norm_num
+    have hhalf : (1 / 2 : ℂ).re = (1 / 2 : ℝ) :=
+      Complex.ofReal_re (1 / 2 : ℝ)
     have hcomplex : (z - 1 / 2 : ℂ).re = z.re - 1 / 2 := by
       exact hcomplex'.trans (congrArg (fun x : ℝ => z.re - x) hhalf)
     exact hcomplex.symm.trans hsre
