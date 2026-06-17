@@ -1127,7 +1127,6 @@ theorem explicitFormulaScheduledProjectedHorizontalError_tendsto_zero_ownerProje
           f F.toContourFamily h u channel)
       atTop
       (𝓝 0) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   exact
     explicitFormulaFamilyHorizontalResidueWindowError_tendsto_zero_scheduled
@@ -1147,7 +1146,6 @@ theorem explicitFormulaScheduledProjectedContourSpineError_tendsto_zero_ownerPro
           f F.toContourFamily h u channel)
       atTop
       (𝓝 0) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hresidue :
       Tendsto
@@ -1234,7 +1232,6 @@ theorem explicitFormulaScheduledVerticalChannelProjectionTransportRemainder_tend
           f F.toContourFamily (h.height_schedule.height u) channel)
       atTop
       (𝓝 0) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hvertical :
       Tendsto
@@ -1589,7 +1586,6 @@ theorem explicitFormulaFamilyResidueWindowError_tendsto_zero_ownerResidueCalculu
           (h.height_schedule.height u))
       atTop
       (𝓝 0) := by
-  dsimp
   exact
     explicitFormulaFamilyResidueWindowError_tendsto_zero_core_ownerResidueCalculus
       f F.toContourFamily
@@ -1607,7 +1603,6 @@ theorem zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_owne
           (F.toContourFamily.rectangle (h.height_schedule.height u)))
       atTop
       (𝓝 (zetaCompletedZeroSideComplex f)) := by
-  dsimp
   exact
     zetaCompletedExplicitFormulaContourIntegral_tendsto_zeroSideComplex_core_ownerContourResidueTheorem
       f F.toContourFamily
@@ -1777,7 +1772,6 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContributi
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaPrimeContribution f)) := by
-  dsimp
   exact
     zetaCompletedExplicitFormulaPrimeVerticalChannel_tendsto_primeContribution_ownerPrimeVerticalChannel
       f F hSchedule
@@ -1793,7 +1787,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimede
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
-  dsimp
   exact
     zetaCompletedExplicitFormulaArchimedeanVerticalChannel_tendsto_archimedeanContribution_ownerArchimedeanVerticalChannel
       f F hSchedule
@@ -1809,7 +1802,6 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correction
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaCorrectionContribution f)) := by
-  dsimp
   exact
     zetaCompletedExplicitFormulaCorrectionVerticalChannel_tendsto_correctionContribution_ownerCorrectionVerticalChannel
       f F hSchedule
@@ -1825,7 +1817,6 @@ theorem zetaCompletedExplicitFormulaVerticalChannelSum_tendsto_boundarySum
           (h.height_schedule.height u))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hprime :
       Tendsto
@@ -3210,7 +3201,6 @@ theorem zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_
             (F.toContourFamily.rectangle (h.height_schedule.height u)))
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f)) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hcomparison :
       Tendsto
@@ -3325,12 +3315,10 @@ theorem zetaCompletedExplicitFormulaScheduledVerticalRealizations_reconstruct_sa
       atTop
       (𝓝 (zetaCompletedExplicitFormulaBoundarySumAnalytic f))) := by
   constructor
-  · dsimp
-    exact
+  · exact
       zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
         f F₁ hSchedule₁
-  · dsimp
-    exact
+  · exact
       zetaCompletedExplicitFormulaVerticalDifference_tendsto_boundarySum_core_ownerVerticalDecomposition
         f F₂ hSchedule₂
 
@@ -3347,7 +3335,6 @@ theorem zetaCompletedExplicitFormulaVerticalBoundaryRemainder_tendsto_zero_owner
           (h.height_schedule.height u))
       atTop
       (𝓝 0) := by
-  dsimp
   let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
   have hvertical :
       Tendsto

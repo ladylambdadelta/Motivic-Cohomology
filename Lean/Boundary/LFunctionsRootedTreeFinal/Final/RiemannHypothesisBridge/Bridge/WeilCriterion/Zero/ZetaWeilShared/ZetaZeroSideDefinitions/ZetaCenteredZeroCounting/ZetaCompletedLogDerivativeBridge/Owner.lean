@@ -112,7 +112,7 @@ theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
       (fun w hw hsum => hw (add_left_cancel hsum))
   have hcomp := ht hzero
   exact by
-    dsimp [centeredCompletedRiemannZeta]
+    unfold centeredCompletedRiemannZeta
     exact hcomp
 
 end ZetaAdmissibleFunction

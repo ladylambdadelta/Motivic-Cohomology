@@ -314,7 +314,7 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
       exact by
         exact hjdist.symm ▸ dist_pos.2 (S.inj.ne hneq)
     constructor
-    · dsimp [sampleSeparationRadius, s, t]
+    · unfold sampleSeparationRadius s t
       exact Eq.subst (motive := fun r : ℝ => 0 < r) (dif_neg hne).symm (half_pos hpos)
     intro j hj
     unfold sampleSeparationRadius s t
