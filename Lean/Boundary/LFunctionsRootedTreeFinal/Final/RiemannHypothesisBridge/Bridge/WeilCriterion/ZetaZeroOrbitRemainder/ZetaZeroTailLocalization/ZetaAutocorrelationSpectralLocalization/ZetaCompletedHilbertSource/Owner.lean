@@ -62,8 +62,6 @@ theorem ext
   | mk Xseed Xcorr =>
     cases Y with
     | mk Yseed Ycorr =>
-      change Xseed = Yseed at hseed
-      change Xcorr = Ycorr at hcorr
       cases hseed
       cases hcorr
       rfl
@@ -600,7 +598,8 @@ theorem primeBoundaryChannel_zero :
               (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
                 (ZetaPrimePowerIndex.center ι))))
   have hterm : term = fun _ι : ZetaPrimePowerIndex => 0 := by
-    funext ι
+    ext ι
+    show term ι = 0
     unfold term
     have hpos :
         zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
@@ -655,7 +654,7 @@ theorem primeBoundaryChannel_zero :
         exact congrArg Neg.neg (mul_zero (ZetaPrimePowerIndex.weight ι))
       _ = 0 := by
         exact neg_zero
-  change ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) = 0
+  show ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) = 0
   calc
     ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) =
         ((∑' _ι : ZetaPrimePowerIndex, (0 : ℝ)) : ℂ) := by

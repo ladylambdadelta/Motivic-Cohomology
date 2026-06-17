@@ -677,7 +677,9 @@ theorem completedRiemannZeta₀_rightCriticalStrip_compact_growth_bound :
     hbound z hz_mem
   have hfactor_ge_one : (1 : ℝ) ≤ Real.exp (1 * (1 + ‖z‖) ^ 0) := by
     have hone : (1 : ℝ) * (1 + ‖z‖) ^ 0 = 1 := by
-      ring
+      calc (1 : ℝ) * (1 + ‖z‖) ^ 0 = 1 * 1 := by
+            exact congrArg (· * 1) (pow_zero (1 + ‖z‖))
+          _ = 1 := one_mul 1
     exact Eq.subst
       (motive := fun x : ℝ => (1 : ℝ) ≤ Real.exp x)
       hone.symm
@@ -759,8 +761,7 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
     intro hsub
     have hone_sub_zero : (1 : ℂ) - z = 0 := by
       calc
-        (1 : ℂ) - z = -(z - 1) := by
-          ring
+        (1 : ℂ) - z = -(z - 1) := (neg_sub z 1).symm
         _ = -0 := by
           exact congrArg Neg.neg hsub
         _ = 0 := by
@@ -775,8 +776,17 @@ theorem completedRiemannZeta₀_rightCriticalStrip_verticalTail_norm_le_poleClea
       calc
         z.im = (-(2 * (n : ℂ))).im := by
           exact congrArg Complex.im hn
+        _ = -(2 * (n : ℂ)).im := Complex.neg_im _
+        _ = -((2 : ℂ).im * (n : ℂ).re + (2 : ℂ).re * (n : ℂ).im) :=
+            congrArg Neg.neg (Complex.mul_im 2 (n : ℂ))
+        _ = -(0 * (n : ℂ).re + (2 : ℂ).re * 0) :=
+            congrArg Neg.neg (congrArg₂ (· + ·)
+              (congrArg (· * (n : ℂ).re) (Complex.ofReal_im 2))
+              (congrArg (· * 0) (Complex.ofReal_im n)))
+        _ = -(0 + 0) :=
+            congrArg Neg.neg (congrArg₂ (· + ·) (zero_mul _) (mul_zero _))
         _ = 0 := by
-          norm_num
+            exact (congrArg Neg.neg (add_zero 0)).trans neg_zero
     have him_norm_zero : ‖z.im‖ = 0 :=
       calc
         ‖z.im‖ = ‖(0 : ℝ)‖ := by
