@@ -46,7 +46,22 @@ theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfolded_regroup
         ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) =
       (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) +
         (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) := by
-  ring_nf
+  -- Both sides expand to the same form: logfac + w*logM + M + w - w*logwM - M*logwM - (1/2)*logwM - log2pi/2
+  -- Strategy: expand LHS, expand RHS, show equality
+  calc w * logM + logfac -
+          (((w + M) * logwM - (w + M)) - (w * logw - w)) -
+        (logw + logwM) / 2 -
+        ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2)
+    = w * logM + logfac - ((w + M) * logwM - (w + M) - w * logw + w) - (logw + logwM) / 2 - ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) := by
+        congr 1; ring
+    _ = w * logM + logfac - (w + M) * logwM + (w + M) + w * logw - w - (logw + logwM) / 2 - ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) := by
+        ring
+    _ = w * logM + logfac - (w + M) * logwM + (w + M) + w * logw - w - (logw + logwM) / 2 - (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2 := by
+        ring
+    _ = logfac + w * logM + M + w - w * logwM - M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+        ring
+    _ = (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) + (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) := by
+        ring
 
 /-- Algebraic normalization of the real factorial endpoint error. -/
 theorem Real.factorialStirlingEndpoint_algebra_normalization
