@@ -15,6 +15,15 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- Helper: Imaginary part of (1/2 + t*I) is t. -/
+private lemma im_half_plus_t_i (t : ℝ) : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
+  calc ((1 / 2 : ℂ) + t * Complex.I).im
+      = (1 / 2 : ℂ).im + (t * Complex.I).im := Complex.add_im _ _
+    _ = 0 + t := by
+      simp [Complex.ofReal_im, Complex.I_im]
+      ring
+    _ = t := zero_add t
+
 /-- The inverse-Gamma correction in the completed logarithmic derivative split. -/
 noncomputable def inverseGammaCompletionLogDeriv (z : ℂ) : ℂ :=
   deriv (fun w : ℂ => (Complex.Gammaℝ w)⁻¹) z / (Complex.Gammaℝ z)⁻¹
@@ -393,9 +402,8 @@ theorem CompletedZetaNegLogDerivControl.criticalLineBound_of_mem
     ⟨C, hC, hbound⟩
   refine ⟨C, hC, ?_⟩
   intro t ht
-  have him : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
-    norm_num [Complex.add_im, Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im,
-      Complex.I_re, Complex.I_im]
+  have him : ((1 / 2 : ℂ) + t * Complex.I).im = t :=
+    im_half_plus_t_i t
   have hbound' :=
     hbound ((1 / 2 : ℂ) + t * Complex.I) ht
   have hRHS :
