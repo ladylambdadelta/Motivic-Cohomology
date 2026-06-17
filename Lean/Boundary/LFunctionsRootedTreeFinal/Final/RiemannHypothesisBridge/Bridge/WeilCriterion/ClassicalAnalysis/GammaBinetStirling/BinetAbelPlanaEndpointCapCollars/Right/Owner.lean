@@ -71,6 +71,15 @@ private lemma capCollar_eq_circleMap (N : ℕ) (ρ θ : ℝ) :
   unfold circleMap
   rfl
 
+/-- Helper: Real part of interval cap-collar point. -/
+private lemma capCollar_interval_re (N : ℕ) (ρ y : ℝ) :
+    (((↑((N + 1 : ℕ) : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)).re =
+      ((N + 1 : ℕ) : ℝ) - ρ := by
+  have h1 : (Complex.I * (y : ℂ)).re = 0 := Complex.I_mul_re y
+  calc (((↑((N + 1 : ℕ) : ℝ) - ρ : ℝ) : ℂ) + Complex.I * (y : ℂ)).re
+      = (↑(((N + 1 : ℕ) : ℝ) - ρ) : ℂ).re + (Complex.I * (y : ℂ)).re := Complex.add_re _ _
+    _ = ((N + 1 : ℕ) : ℝ) - ρ := by simp [Complex.ofReal_re]; rw [h1]
+
 def Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain
     (N : ℕ)
     (T ρ : ℝ) : Set ℂ :=
@@ -442,8 +451,8 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSafeVerticalPoint_mem_capCollar
         [[((N + 1 : ℕ) : ℝ) - ρ, ((N + 1 : ℕ) : ℝ)]] := by
     have hre :
         (((((N + 1 : ℕ) : ℝ) - ρ : ℝ) + Complex.I * (y : ℂ)).re) =
-          ((N + 1 : ℕ) : ℝ) - ρ := by
-      ring_nf
+          ((N + 1 : ℕ) : ℝ) - ρ :=
+      capCollar_interval_re (N + 1) ρ y
     exact
       Real.endpoint_mem_uIcc_congr hre
         (Real.endpoint_mem_uIcc_of_bounds hleft_le_right

@@ -17,11 +17,14 @@ namespace ZetaAdmissibleFunction
 
 /-- Helper: Imaginary part of (1/2 + t*I) is t. -/
 private lemma im_half_plus_t_i (t : ℝ) : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
+  have h1 : (1 / 2 : ℂ).im = 0 := Complex.ofReal_im (1 / 2 : ℝ)
+  have h2 : (t * Complex.I).im = t := by
+    calc (t * Complex.I).im = t * Complex.I.im + 0 * Complex.I.re := Complex.mul_im _ _
+      _ = t * 1 + 0 := by simp
+      _ = t := by simp
   calc ((1 / 2 : ℂ) + t * Complex.I).im
       = (1 / 2 : ℂ).im + (t * Complex.I).im := Complex.add_im _ _
-    _ = 0 + t := by
-      simp [Complex.ofReal_im, Complex.I_im]
-      ring
+    _ = 0 + t := by rw [h1, h2]
     _ = t := zero_add t
 
 /-- The inverse-Gamma correction in the completed logarithmic derivative split. -/

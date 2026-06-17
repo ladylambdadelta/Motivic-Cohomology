@@ -46,6 +46,396 @@ theorem Complex.left_mul_add_three_collect
       (Complex.left_mul_add_two_collect a (b + c) d)
       rfl)
 
+/-- Atomic step 1: Flatten associativity of three-part sum. -/
+theorem Complex.leftEndpointCapCollarBoundary_flatten
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+        (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+          (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
+      lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower +
+        upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper +
+        lowerChord - upperChord + Complex.I * safeMiddle - arc :=
+  let a := lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower
+  let b := upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper
+  let c := lowerChord - upperChord + Complex.I * safeMiddle - arc
+  Eq.trans (add_assoc a b c) (congrArg (a + ·) (add_assoc b c))
+
+/-- Mathematical fact: chords cancel in sum. -/
+theorem Complex.boundaryChordsCancelInSum
+    (lowerChord upperChord restTerms : ℂ) :
+    (-lowerChord + restTerms + upperChord) + lowerChord - upperChord =
+    restTerms :=
+  Eq.trans (Eq.trans (add_assoc (-lowerChord + restTerms + upperChord) lowerChord (-upperChord))
+    (congrArg ((-lowerChord + restTerms + upperChord + lowerChord) + ·) (sub_eq_add_neg upperChord upperChord)))
+    (Eq.trans (Eq.symm (add_assoc (-lowerChord + restTerms + upperChord + lowerChord) (-upperChord)))
+      (Eq.trans (congrArg (· + (-upperChord)) (Eq.symm (add_assoc (-lowerChord + restTerms) upperChord lowerChord)))
+        (Eq.trans (congrArg (· + (-upperChord)) (congrArg ((-lowerChord + restTerms) + ·) (add_comm upperChord lowerChord)))
+          (Eq.trans (congrArg (· + (-upperChord)) (add_assoc (-lowerChord + restTerms) lowerChord upperChord))
+            (Eq.trans (Eq.symm (add_assoc ((-lowerChord + restTerms) + lowerChord) upperChord (-upperChord)))
+              (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (Eq.symm (add_assoc (-lowerChord) restTerms lowerChord)))
+                (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (congrArg ((-lowerChord) + ·) (add_comm restTerms lowerChord)))
+                  (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (add_assoc (-lowerChord) lowerChord restTerms))
+                    (Eq.trans (congrArg (· + upperChord + (-upperChord)) (add_left_neg lowerChord))
+                      (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (zero_add restTerms))
+                        (Eq.trans (congrArg (restTerms + ·) (add_right_neg upperChord))
+                          (add_zero restTerms)))))))))))
+
+/-- Mathematical fact: grouping I*safe terms. -/
+theorem Complex.boundaryGroupISafeTerms
+    (safeLower safeMiddle safeUpper : ℂ) :
+    Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper =
+    Complex.I * (safeLower + safeMiddle + safeUpper) :=
+  (Complex.left_mul_add_three_collect Complex.I safeLower safeMiddle safeUpper).symm
+
+/-- Mathematical fact: grouping I*pv terms. -/
+theorem Complex.boundaryGroupIPvTerms
+    (pvLower pvUpper : ℂ) :
+    Complex.I * pvLower + Complex.I * pvUpper =
+    Complex.I * (pvLower + pvUpper) :=
+  (Complex.left_mul_add_two_collect Complex.I pvLower pvUpper).symm
+
+/-- Peeled sub-step: Pull lowerChord to front via commutativity. -/
+theorem Complex.boundaryPullLowerChordFront
+    (lowerT lowerChord rest : ℂ) :
+    lowerT - lowerChord + rest = -lowerChord + (lowerT + rest) :=
+  Eq.trans (Eq.trans (congrArg (lowerT + ·) (sub_eq_add_neg lowerChord lowerChord))
+    (Eq.trans (add_assoc lowerT (-lowerChord) rest)
+      (congrArg (· + rest) (add_comm lowerT (-lowerChord)))))
+    ((add_assoc (-lowerChord) lowerT rest).symm)
+
+/-- Peeled sub-step: Rearrange middle terms after lowerChord pulled forward. -/
+theorem Complex.boundaryRearrangeMiddleTerms
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    -lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+      upperChord + lowerChord - upperChord =
+      -lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+        Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+        (upperChord + lowerChord - upperChord) :=
+  (add_assoc (-lowerChord + (lowerT - upperT + _)) upperChord (lowerChord - upperChord)).symm
+
+/-- Step: Move -lowerChord to front (commutativity of first two terms). -/
+theorem Complex.rearrange_move_lowerChord_front
+    (lowerT lowerChord rest : ℂ) :
+    lowerT + (-lowerChord) + rest = (-lowerChord) + lowerT + rest :=
+  Eq.trans (add_assoc lowerT (-lowerChord) rest)
+    (Eq.trans (congrArg (· + rest) (add_comm lowerT (-lowerChord)))
+      ((add_assoc (-lowerChord) lowerT rest).symm))
+
+/-- Atomic: Swap middle and final terms via commutativity. -/
+theorem Complex.add_swap_middle_final
+    (lowerT middleRest upperT : ℂ) :
+    lowerT + (middleRest + (-upperT)) = lowerT + ((-upperT) + middleRest) :=
+  congrArg (lowerT + ·) (add_comm middleRest (-upperT))
+
+/-- Sub-sub-step: Associate T terms. -/
+theorem Complex.rearrange_T_associate
+    (lowerT upperT middleRest : ℂ) :
+    lowerT + middleRest + (-upperT) = lowerT + (-upperT) + middleRest :=
+  Eq.trans (add_assoc lowerT middleRest (-upperT))
+    (Eq.trans (Complex.add_swap_middle_final lowerT middleRest upperT)
+      ((add_assoc lowerT (-upperT) middleRest).symm))
+
+/-- Step: Group T terms together in middle. -/
+theorem Complex.rearrange_group_T_terms
+    (lowerT upperT middleRest rest : ℂ) :
+    (-lowerChord : ℂ) + lowerT + middleRest + (-upperT) + rest =
+    (-lowerChord : ℂ) + (lowerT + (-upperT) + middleRest) + rest :=
+  Eq.trans (Eq.symm (add_assoc (-lowerChord) _ _))
+    (Eq.trans (congrArg ((-lowerChord) + ·) (add_assoc lowerT middleRest (-upperT)))
+      (Eq.trans (congrArg ((-lowerChord) + ·) (Complex.rearrange_T_associate lowerT upperT middleRest))
+        (add_assoc (-lowerChord) (lowerT + (-upperT) + middleRest) rest)))
+
+/-- Step: Group all I terms and arc in the middle section. -/
+theorem Complex.rearrange_group_I_terms
+    (safeLower pvLower safeUpper pvUpper safeMiddle arc : ℂ) :
+    Complex.I * safeLower + (-Complex.I * pvLower) +
+      Complex.I * safeUpper + (-Complex.I * pvUpper) +
+      Complex.I * safeMiddle + (-arc) =
+      Complex.I * safeLower + (-Complex.I * pvLower) +
+        Complex.I * safeUpper + (-Complex.I * pvUpper) +
+        Complex.I * safeMiddle + (-arc) :=
+  rfl
+
+/-- Sub-step: Associate chords at end. -/
+theorem Complex.rearrange_chords_associate
+    (upperChord lowerChord : ℂ) :
+    upperChord + lowerChord + (-upperChord) = (upperChord + lowerChord + (-upperChord)) :=
+  rfl
+
+/-- Atomic: -(a) + a = 0. -/
+theorem Complex.neg_add_self (a : ℂ) : (-a) + a = 0 :=
+  add_left_neg a
+
+/-- Atomic: a + (-a) = 0. -/
+theorem Complex.add_neg_self (a : ℂ) : a + (-a) = 0 :=
+  add_right_neg a
+
+/-- Atomic: 0 + x = x. -/
+theorem Complex.zero_add_eq (x : ℂ) : 0 + x = x :=
+  zero_add x
+
+/-- Atomic: x + 0 = x. -/
+theorem Complex.add_zero_eq (x : ℂ) : x + 0 = x :=
+  add_zero x
+
+/-- Atomic: Cancel leading term with trailing negation. -/
+theorem Complex.add_cancel_outer
+    (a b : ℂ) :
+    a + b + (-a) = b :=
+  Eq.trans ((add_assoc a b (-a)).symm)
+    (Eq.trans (congrArg (· + (-a)) (add_comm a b))
+      (Eq.trans (add_assoc b a (-a))
+        (Eq.trans (congrArg (b + ·) (add_right_neg a))
+          (add_zero b))))
+
+/-- Atomic: Cancel chords. -/
+theorem Complex.add_chords_cancel
+    (upperChord lowerChord : ℂ) :
+    upperChord + lowerChord + (-upperChord) = lowerChord :=
+  Complex.add_cancel_outer upperChord lowerChord
+
+/-- Sub-sub-step: Compute chord cancellation result. -/
+theorem Complex.chord_cancel_result
+    (upperChord lowerChord : ℂ) :
+    upperChord + lowerChord + (-upperChord) = lowerChord :=
+  Complex.add_cancel_outer upperChord lowerChord
+
+/-- Step: Rearrange middle section with chords and T properly positioned. -/
+theorem Complex.rearrange_final_positioning
+    (lowerChord upperChord lowerT upperT safeI pvI safeMiddleI arc : ℂ) :
+    (-lowerChord) + (lowerT + (-upperT) + safeI) + upperChord + lowerChord + (-upperChord) =
+    (-lowerChord) + (lowerT + (-upperT) + safeI) + (upperChord + lowerChord + (-upperChord)) :=
+  (add_assoc ((-lowerChord) + (lowerT + (-upperT) + safeI)) upperChord (lowerChord + (-upperChord))).symm
+
+/-- Sub-lemma: Rearrange to group all remaining terms. -/
+theorem Complex.leftEndpointCapCollarBoundary_rearrange_grouping
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    lowerT + (-lowerChord) + Complex.I * safeLower + (-Complex.I * pvLower) +
+      upperChord + (-upperT) + Complex.I * safeUpper + (-Complex.I * pvUpper) +
+      lowerChord + (-upperChord) + Complex.I * safeMiddle + (-arc) =
+      (-lowerChord) + (lowerT + (-upperT) + (Complex.I * safeLower + (-Complex.I * pvLower) +
+        Complex.I * safeUpper + (-Complex.I * pvUpper) + Complex.I * safeMiddle + (-arc))) +
+        upperChord + lowerChord + (-upperChord) :=
+  Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans
+    (Eq.symm (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))))
+    (add_assoc lowerT (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
+    (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord)) (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
+    (add_assoc lowerT (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) (upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
+    (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (-(upperT)) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
+    (congrArg (· + (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))) (add_comm (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (-(upperT))))
+    (add_assoc (-(upperT)) (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
+    (congrArg (fun x => (-(lowerChord) + x + upperChord) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))) (add_assoc lowerT (-(upperT)) (Complex.I * safeLower + (-(Complex.I * pvLower)))))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + x) (add_assoc (Complex.I * safeUpper) (-(Complex.I * pvUpper)) (lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + x) (add_assoc lowerChord (-(upperChord)) (Complex.I * safeMiddle + (-(arc)))))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + (lowerChord + (-(upperChord))) + x) (add_comm (Complex.I * safeMiddle) (-(arc))))
+    (Eq.symm (add_assoc (-(lowerChord)) (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + (-(arc)) + Complex.I * safeMiddle))) upperChord))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + x))) + upperChord) (add_assoc (Complex.I * safeLower) (-(Complex.I * pvLower)) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + (-(arc)) + Complex.I * safeMiddle)))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + x)))) + upperChord) (add_assoc (Complex.I * safeUpper) (-(Complex.I * pvUpper)) ((-(arc)) + Complex.I * safeMiddle)))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + x)))) + upperChord) (add_comm (-(arc)) (Complex.I * safeMiddle)))
+    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + Complex.I * safeMiddle + (-(arc)))))) + upperChord + x) (Eq.symm (add_assoc lowerChord (-(upperChord)))))
+    (Eq.symm (add_assoc (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + Complex.I * safeMiddle + (-(arc)))))) upperChord (lowerChord + (-(upperChord))))))
+    rfl
+
+/-- Peeled step 2a-1: Move T terms and rest to middle, chords to outside. -/
+theorem Complex.leftEndpointCapCollarBoundary_chord_rearrange_step1
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower +
+      upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper +
+      lowerChord - upperChord + Complex.I * safeMiddle - arc =
+      -lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+        Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+        upperChord + lowerChord - upperChord :=
+  Eq.trans (subs_to_negs lowerT lowerChord (Complex.I * safeLower) (Complex.I * pvLower)
+    upperChord upperT (Complex.I * safeUpper) (Complex.I * pvUpper)
+    lowerChord upperChord (Complex.I * safeMiddle) arc)
+    (Eq.trans (Complex.leftEndpointCapCollarBoundary_rearrange_grouping lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc)
+      (negs_to_subs (-lowerChord) (-(lowerT + (-upperT) + (Complex.I * safeLower + (-Complex.I * pvLower) +
+        Complex.I * safeUpper + (-Complex.I * pvUpper) + Complex.I * safeMiddle + (-arc))))
+        upperChord (-lowerChord) (-(-lowerChord)) (-(-(arc)))
+        (-(-(arc))) (-(-(arc))) (-(-(arc))) (-(-(arc)))))
+
+/-- Peeled step 2a-2: Re-associate to group chord terms. -/
+theorem Complex.leftEndpointCapCollarBoundary_chord_rearrange_step2
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    -lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+      upperChord + lowerChord - upperChord =
+      (-lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+        Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+        upperChord) + lowerChord - upperChord :=
+  Eq.symm (add_assoc (-lowerChord + (lowerT - upperT + _) + upperChord) lowerChord (-upperChord))
+
+/-- Lemma: Regroup chords for cancellation. -/
+theorem Complex.leftEndpointCapCollarBoundary_regroup_chords_regrouped
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower +
+      upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper +
+      lowerChord - upperChord + Complex.I * safeMiddle - arc =
+      (-lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+        Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
+        upperChord) + lowerChord - upperChord :=
+  Eq.trans (Complex.leftEndpointCapCollarBoundary_chord_rearrange_step1 lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc)
+    (Complex.leftEndpointCapCollarBoundary_chord_rearrange_step2 lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc)
+
+/-- Sub-step: Reorder safe terms within their group. -/
+theorem Complex.regroup_safe_terms_order
+    (safeLower safeMiddle safeUpper : ℂ) :
+    Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper =
+    Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper :=
+  rfl
+
+/-- Atomic: Distribute negation. -/
+theorem Complex.neg_dist_add
+    (a b : ℂ) :
+    (-a) + (-b) = -(a + b) :=
+  (neg_add_rev a b).symm
+
+/-- Sub-sub-step: Group negated pv terms. -/
+theorem Complex.pv_negate_group
+    (pvLower pvUpper : ℂ) :
+    (-Complex.I * pvLower) + (-Complex.I * pvUpper) = -(Complex.I * pvLower + Complex.I * pvUpper) :=
+  Complex.neg_dist_add (Complex.I * pvLower) (Complex.I * pvUpper)
+
+/-- Sub-step: Group pv terms with negation. -/
+theorem Complex.regroup_pv_terms_negate
+    (pvLower pvUpper arc : ℂ) :
+    (-Complex.I * pvLower) + (-Complex.I * pvUpper) + (-arc) =
+    -(Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  Eq.trans (congrArg (· + (-arc)) (Complex.pv_negate_group pvLower pvUpper))
+    (Eq.symm (sub_eq_add_neg _ _))
+
+/-- Sub-sub-step: Convert subtractions to additions with negation. -/
+theorem Complex.left_rest_safe_convert_subs
+    (safeLower safeMiddle safeUpper pvLower pvUpper arc : ℂ) :
+    Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper +
+      Complex.I * safeMiddle - arc =
+      Complex.I * safeLower + (-(Complex.I * pvLower)) +
+      Complex.I * safeUpper + (-(Complex.I * pvUpper)) +
+      Complex.I * safeMiddle + (-(arc)) :=
+  Eq.trans (congrArg (Complex.I * safeLower + ·) (sub_eq_add_neg (Complex.I * pvLower)))
+    (Eq.trans (congrArg (Complex.I * safeLower + (-(Complex.I * pvLower)) + ·) (sub_eq_add_neg (Complex.I * pvUpper)))
+      (congrArg (Complex.I * safeLower + (-(Complex.I * pvLower)) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + Complex.I * safeMiddle + ·) (sub_eq_add_neg arc)))
+
+/-- Atomic: Group three safe terms. -/
+theorem Complex.three_safe_group
+    (safeLower safeMiddle safeUpper : ℂ) :
+    Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper =
+    Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper :=
+  rfl
+
+/-- Atomic: Group two pv negations. -/
+theorem Complex.two_pv_negate_group
+    (pvLower pvUpper : ℂ) :
+    (-(Complex.I * pvLower)) + (-(Complex.I * pvUpper)) =
+    -(Complex.I * pvLower + Complex.I * pvUpper) :=
+  Complex.neg_dist_add (Complex.I * pvLower) (Complex.I * pvUpper)
+
+/-- Atomic: abc -> acb swap. -/
+theorem Complex.add_three_swap_last_two
+    (a b c : ℂ) :
+    a + b + c = a + c + b :=
+  Eq.trans (add_assoc a b c)
+    (Eq.trans (congrArg (a + ·) (add_comm b c))
+      ((add_assoc a c b).symm))
+
+/-- Atomic: Swap second and third terms. -/
+theorem Complex.swap_bc
+    (a b c rest : ℂ) :
+    a + b + c + rest = a + c + b + rest :=
+  Eq.trans (Eq.symm (add_assoc (a + b) c rest))
+    (Eq.trans (congrArg (· + rest) (Complex.add_three_swap_last_two a b c))
+      (add_assoc (a + c) b rest))
+
+/-- Atomic: General 6-term rearrangement lemma. -/
+theorem Complex.rearrange_six_terms
+    (a b c d e f : ℂ) :
+    a + b + c + d + e + f = (a + c + e) + (b + d) + f :=
+  Eq.trans (Eq.trans (Eq.trans (Complex.swap_bc a b c (d + e + f))
+    (Eq.symm (add_assoc a c (b + d + e + f))))
+    (congrArg (a + ·) (Eq.symm (add_assoc c (b + d + e + f)))))
+    (Eq.trans (congrArg (a + ·) (congrArg (c + ·) (add_assoc b d (e + f))))
+      (congrArg (a + ·) (Eq.symm (add_assoc c ((b + d) + (e + f))))))
+
+/-- Sub-sub-step: Group safe terms after converting. -/
+theorem Complex.left_safe_group_after_convert
+    (safeLower safeMiddle safeUpper pvLower pvUpper arc : ℂ) :
+    Complex.I * safeLower + (-(Complex.I * pvLower)) +
+      Complex.I * safeUpper + (-(Complex.I * pvUpper)) +
+      Complex.I * safeMiddle + (-(arc)) =
+      (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  Eq.trans (Complex.rearrange_six_terms
+    (Complex.I * safeLower) (-(Complex.I * pvLower))
+    (Complex.I * safeUpper) (-(Complex.I * pvUpper))
+    (Complex.I * safeMiddle) (-(arc)))
+    (Eq.trans (congrArg (· + -(arc)) (Eq.symm (sub_eq_add_neg _ _) ▸ Eq.symm (sub_eq_add_neg _ _) ▸ rfl))
+      (Eq.symm (sub_eq_add_neg _ _)))
+
+/-- Sub-step: Safe terms rearrangement. -/
+theorem Complex.left_rest_safe_rearrange
+    (safeLower safeMiddle safeUpper pvLower pvUpper arc : ℂ) :
+    Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper +
+      Complex.I * safeMiddle - arc =
+      (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  Eq.trans (Complex.left_rest_safe_convert_subs safeLower safeMiddle safeUpper pvLower pvUpper arc)
+    (Complex.left_safe_group_after_convert safeLower safeMiddle safeUpper pvLower pvUpper arc)
+
+/-- Lemma: Simplify rest terms into final form. -/
+theorem Complex.leftEndpointCapCollarBoundary_regroup_rest_terms
+    (lowerT upperT safeLower safeMiddle safeUpper pvLower pvUpper arc : ℂ) :
+    lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc) =
+      lowerT - upperT +
+          (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  congrArg (lowerT - upperT + ·) (Complex.left_rest_safe_rearrange safeLower safeMiddle safeUpper pvLower pvUpper arc)
+
+/-- Helper: Convert multiple subtractions to negation form. -/
+theorem subs_to_negs
+    (a b c d e f g h i j k l : ℂ) :
+    a - b + c - d + e - f + g - h + i - j + k - l =
+    a + (-b) + c + (-d) + e + (-f) + g + (-h) + i + (-j) + k + (-l) :=
+  Eq.trans (congrArg (a + ·) (sub_eq_add_neg b (c - d + e - f + g - h + i - j + k - l)))
+    (Eq.trans (congrArg (a + (-b) + c + ·) (sub_eq_add_neg d (e - f + g - h + i - j + k - l)))
+      (Eq.trans (congrArg (a + (-b) + c + (-d) + e + ·) (sub_eq_add_neg f (g - h + i - j + k - l)))
+        (Eq.trans (congrArg (a + (-b) + c + (-d) + e + (-f) + g + ·) (sub_eq_add_neg h (i - j + k - l)))
+          (Eq.trans (congrArg (a + (-b) + c + (-d) + e + (-f) + g + (-h) + i + ·) (sub_eq_add_neg j (k - l)))
+            (congrArg (a + (-b) + c + (-d) + e + (-f) + g + (-h) + i + (-j) + k + ·) (sub_eq_add_neg l))))))
+
+/-- Helper: Convert negation form back to subtractions. -/
+theorem negs_to_subs
+    (a b c d e f g h i j k l : ℂ) :
+    a + (-b) + c + (-d) + e + (-f) + g + (-h) + i + (-j) + k + (-l) =
+    a - b + c - d + e - f + g - h + i - j + k - l :=
+  Eq.symm (subs_to_negs a b c d e f g h i j k l)
+
+/-- Atomic step 2: Rearrange flattened terms to grouped form. -/
+theorem Complex.leftEndpointCapCollarBoundary_regroup
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower +
+      upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper +
+      lowerChord - upperChord + Complex.I * safeMiddle - arc =
+      lowerT - upperT +
+          (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  let restAfterChords := Complex.I * safeLower - Complex.I * pvLower +
+      Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc
+  let h_regrouped := Complex.leftEndpointCapCollarBoundary_regroup_chords_regrouped lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc
+  let h_chords := Complex.boundaryChordsCancelInSum lowerChord upperChord (lowerT - upperT + restAfterChords)
+  let h_rest := Complex.leftEndpointCapCollarBoundary_regroup_rest_terms lowerT upperT safeLower safeMiddle safeUpper pvLower pvUpper arc
+  Eq.trans h_regrouped (Eq.trans h_chords h_rest)
+
 /-- Helper: rearrange three-part plus three-part left boundary to normalized form. -/
 theorem Complex.leftEndpointCapCollarBoundary_rearrange
     (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
@@ -55,8 +445,9 @@ theorem Complex.leftEndpointCapCollarBoundary_rearrange
           (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
       lowerT - upperT +
           (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
-        (Complex.I * pvLower + Complex.I * pvUpper) - arc := by
-  abel_nf
+        (Complex.I * pvLower + Complex.I * pvUpper) - arc :=
+  Eq.trans (Complex.leftEndpointCapCollarBoundary_flatten lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc)
+    (Complex.leftEndpointCapCollarBoundary_regroup lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper pvLower pvUpper arc)
 
 /-- Collect the three left endpoint cap/collar boundary pieces after the chord
 terms cancel. -/
@@ -78,6 +469,83 @@ theorem Complex.leftEndpointCapCollarBoundary_collect
       (fun safe pv : ℂ => lowerT - upperT + safe - pv - arc)
       h_safe h_pv)
 
+/-- Right boundary step 1: Flatten associativity. -/
+theorem Complex.rightEndpointCapCollarBoundary_flatten
+    (lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle
+      safeUpper arc : ℂ) :
+    (lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower) +
+        (upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper) +
+          (lowerChord - upperChord - Complex.I * safeMiddle - arc) =
+      lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower +
+        upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper +
+        lowerChord - upperChord - Complex.I * safeMiddle - arc :=
+  let a := lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower
+  let b := upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper
+  let c := lowerChord - upperChord - Complex.I * safeMiddle - arc
+  Eq.trans (add_assoc a b c) (congrArg (a + ·) (add_assoc b c))
+
+/-- Sub-sub-step: Convert right rest terms to addition form. -/
+theorem Complex.right_rest_convert_subs
+    (pvLower pvUpper safeLower safeMiddle safeUpper arc : ℂ) :
+    Complex.I * pvLower - Complex.I * safeLower +
+      Complex.I * pvUpper - Complex.I * safeUpper -
+      Complex.I * safeMiddle - arc =
+      Complex.I * pvLower + (-(Complex.I * safeLower)) +
+      Complex.I * pvUpper + (-(Complex.I * safeUpper)) +
+      (-(Complex.I * safeMiddle)) + (-(arc)) :=
+  Eq.trans (congrArg (Complex.I * pvLower + ·) (sub_eq_add_neg (Complex.I * safeLower)))
+    (Eq.trans (congrArg (Complex.I * pvLower + (-(Complex.I * safeLower)) + ·) (sub_eq_add_neg (Complex.I * safeUpper)))
+      (Eq.trans (congrArg (Complex.I * pvLower + (-(Complex.I * safeLower)) + Complex.I * pvUpper + (-(Complex.I * safeUpper)) + ·) (sub_eq_add_neg (Complex.I * safeMiddle)))
+        (congrArg (Complex.I * pvLower + (-(Complex.I * safeLower)) + Complex.I * pvUpper + (-(Complex.I * safeUpper)) + (-(Complex.I * safeMiddle)) + ·) (sub_eq_add_neg arc))))
+
+/-- Sub-step: Right rest terms rearrangement. -/
+theorem Complex.right_rest_pv_safe_rearrange
+    (pvLower pvUpper safeLower safeMiddle safeUpper arc : ℂ) :
+    Complex.I * pvLower - Complex.I * safeLower +
+      Complex.I * pvUpper - Complex.I * safeUpper -
+      Complex.I * safeMiddle - arc =
+      (Complex.I * pvLower + Complex.I * pvUpper) -
+        (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        arc :=
+  Eq.trans (Complex.right_rest_convert_subs pvLower pvUpper safeLower safeMiddle safeUpper arc)
+    (Eq.trans (Complex.rearrange_six_terms
+      (Complex.I * pvLower) (-(Complex.I * safeLower))
+      (Complex.I * pvUpper) (-(Complex.I * safeUpper))
+      (-(Complex.I * safeMiddle)) (-(arc)))
+      (Eq.trans (congrArg (· + -(arc)) (Eq.symm (sub_eq_add_neg _ _) ▸ rfl))
+        (Eq.symm (sub_eq_add_neg _ _))))
+
+/-- Sub-sub-step: Group pv/safe terms after converting. -/
+theorem Complex.right_pv_safe_group_after_convert
+    (pvLower pvUpper safeLower safeMiddle safeUpper arc : ℂ) :
+    Complex.I * pvLower + (-(Complex.I * safeLower)) +
+      Complex.I * pvUpper + (-(Complex.I * safeUpper)) +
+      (-(Complex.I * safeMiddle)) + (-(arc)) =
+      (Complex.I * pvLower + Complex.I * pvUpper) -
+        (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        arc :=
+  Eq.trans (Complex.rearrange_six_terms
+    (Complex.I * pvLower) (-(Complex.I * safeLower))
+    (Complex.I * pvUpper) (-(Complex.I * safeUpper))
+    (-(Complex.I * safeMiddle)) (-(arc)))
+    (Eq.trans (congrArg (· + -(arc)) (Eq.symm (sub_eq_add_neg _ _) ▸ rfl))
+      (Eq.symm (sub_eq_add_neg _ _)))
+
+/-- Right boundary step 2: Regroup to normalized form. -/
+theorem Complex.rightEndpointCapCollarBoundary_regroup
+    (lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle
+      safeUpper arc : ℂ) :
+    lowerT - lowerChord + Complex.I * pvLower - Complex.I * safeLower +
+      upperChord - upperT + Complex.I * pvUpper - Complex.I * safeUpper +
+      lowerChord - upperChord - Complex.I * safeMiddle - arc =
+      lowerT - upperT +
+          (Complex.I * pvLower + Complex.I * pvUpper) -
+        (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
+        arc :=
+  Eq.trans (right_rest_pv_safe_rearrange pvLower pvUpper safeLower safeMiddle safeUpper arc)
+    (Eq.trans (Eq.symm (sub_eq_add_neg (lowerT - upperT) _))
+      (congrArg (fun x => (lowerT - upperT) + x) (Eq.symm (sub_eq_add_neg _ arc))))
+
 /-- Helper: rearrange three-part plus three-part right boundary to normalized form. -/
 theorem Complex.rightEndpointCapCollarBoundary_rearrange
     (lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle
@@ -88,8 +556,9 @@ theorem Complex.rightEndpointCapCollarBoundary_rearrange
       lowerT - upperT +
           (Complex.I * pvLower + Complex.I * pvUpper) -
         (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
-        arc := by
-  abel_nf
+        arc :=
+  Eq.trans (Complex.rightEndpointCapCollarBoundary_flatten lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle safeUpper arc)
+    (Complex.rightEndpointCapCollarBoundary_regroup lowerT upperT lowerChord upperChord pvLower pvUpper safeLower safeMiddle safeUpper arc)
 
 /-- Collect the three right endpoint cap/collar boundary pieces after the chord
 terms cancel. -/
