@@ -89,11 +89,10 @@ theorem completedRiemannZeta_nonzero_two : completedRiemannZeta (2 : ℂ) ≠ 0 
       (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num))
   have hzeta2 : riemannZeta (2 : ℂ) ≠ 0 := by
     intro hzeta
-    have htwo : (0 : ℂ) = 1 := by
-      have hnorm := riemannZeta_two
-      have hzero : (riemannZeta (2 : ℂ) : ℂ) = 0 := hzeta
-      norm_num [hzero, Complex.normSq, Real.pi_ne_zero] at hnorm
-    exact zero_ne_one htwo.symm
+    -- riemannZeta_two states ζ(2) ≠ 0, so hzeta contradicts it
+    have hnorm := riemannZeta_two
+    simp only [hzeta] at hnorm
+    exact hnorm
   intro h
   have hprod : riemannZeta (2 : ℂ) * Gammaℝ (2 : ℂ) = 0 := by
     exact hcomp.symm.trans h

@@ -20,6 +20,11 @@ noncomputable section
 
 namespace ZetaAdmissibleFunction
 
+/-- Helper: The completion correction packet coordinate is nonzero. -/
+private lemma zetaCompletionCorrectionPacketCoordinate_ne_zero :
+    zetaCompletionCorrectionPacketCoordinate ≠ 0 := by
+  norm_num [zetaCompletionCorrectionPacketCoordinate]
+
 /-- The prime component of the completed zeta boundary defect. -/
 noncomputable def zetaCompletedBoundaryDefectPrime (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
@@ -185,8 +190,8 @@ theorem zetaCompletedBoundaryDefect_correction_mem_support
       zetaCompletedBoundaryDefect f ZetaPacketLabel.correction =
         zetaCompletionCorrectionPacketCoordinate :=
     zetaCompletedBoundaryDefect_correction_apply f
-  have hnonzero : zetaCompletionCorrectionPacketCoordinate ≠ 0 := by
-    norm_num [zetaCompletionCorrectionPacketCoordinate]
+  have hnonzero : zetaCompletionCorrectionPacketCoordinate ≠ 0 :=
+    zetaCompletionCorrectionPacketCoordinate_ne_zero
   have hsupport : zetaCompletedBoundaryDefect f ZetaPacketLabel.correction ≠ 0 := by
     exact hvalue.trans_ne hnonzero
   exact Finsupp.mem_support_iff.mpr hsupport
