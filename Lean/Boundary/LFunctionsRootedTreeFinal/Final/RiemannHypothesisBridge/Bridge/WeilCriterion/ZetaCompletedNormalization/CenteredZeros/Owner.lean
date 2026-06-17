@@ -383,7 +383,7 @@ theorem centeredShift_tendsto_punctured_posHalf_to_one :
   have hhalf :
       ((Homeomorph.addLeft (1 / 2 : ℂ)) ((1 / 2 : ℂ))) = 1 := by
     change (1 / 2 : ℂ) + (1 / 2 : ℂ) = 1
-    norm_num
+    exact (two_mul_inv_two (1 : ℂ)).symm
   exact Eq.subst
     (motive := fun x : ℂ =>
       Tendsto
@@ -599,8 +599,8 @@ theorem centeredCompletedRiemannZeta_uncenter_re
     ((1 / 2 : ℂ) + s).re = (1 / 2 : ℂ).re + s.re := by
       exact Complex.add_re (1 / 2 : ℂ) s
     _ = (1 / 2 : ℝ) + s.re := by
-      have hhalf_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) := by
-        norm_num
+      have hhalf_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) :=
+        Complex.ofReal_re (1 / 2 : ℝ)
       exact congrArg (fun x : ℝ => x + s.re) hhalf_re
 
 /-- If the uncentered coordinate lies in `[0,1]`, the centered coordinate lies
