@@ -120,7 +120,15 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_factorization
     intro h
     have hz_zero : z = 0 := by
       calc
-        z = -(((1 : ℂ) - z) - 1) := by ring
+        z = -(((1 : ℂ) - z) - 1) := by
+          have h1 : ((1 : ℂ) - z) - 1 = (1 - 1) - z := (sub_sub 1 z 1).symm
+          have h2 : (1 - 1 : ℂ) - z = -z := by
+            calc (1 - 1 : ℂ) - z = (0 : ℂ) - z := by norm_num
+              _ = -z := zero_sub z
+          have h3 : -(((1 : ℂ) - z) - 1) = -(-z) := by
+            calc -(((1 : ℂ) - z) - 1) = -(((1 - 1) - z)) := by rw [h1]
+              _ = -(-z) := by rw [h2]
+          exact h3.symm ▸ neg_neg z
         _ = -0 := by exact congrArg Neg.neg h
         _ = 0 := by exact neg_zero
     exact hz_ne_zero hz_zero
