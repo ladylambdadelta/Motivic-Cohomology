@@ -1,0 +1,815 @@
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+import Mathlib.Analysis.SpecialFunctions.Complex.Log
+import Mathlib.MeasureTheory.Integral.SetIntegral
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteHoleSubdivision
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaEndpointCapCollars.Foundation.Owner
+
+/-!
+# Left endpoint cap-collar domains and Cauchy-Goursat theorems
+
+Definitions and theorems for the left endpoint cap-collar domain and its boundary
+analysis, corresponding to the endpoint pole at zero.
+-/
+
+namespace Boundary
+namespace LFunctions
+
+noncomputable section
+
+open scoped Topology
+open MeasureTheory
+
+notation:max "[[" a "," b "]]" => Set.Icc a b
+
+def Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain
+    (T ρ : ℝ) : Set ℂ :=
+  ({z : ℂ | z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]]} : Set ℂ) \
+    Metric.ball (0 : ℂ) ρ
+
+/-- Membership in the left endpoint cap/collar domain is coordinatewise
+membership in the endpoint rectangular cap plus avoidance of the deleted
+endpoint disk. -/
+theorem Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff
+    {T ρ : ℝ}
+    {z : ℂ} :
+    z ∈ Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ ↔
+      z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]] ∧
+        z ∉ Metric.ball (0 : ℂ) ρ :=
+  ⟨fun hz => ⟨hz.1.1, hz.1.2, hz.2⟩,
+   fun hz => ⟨⟨hz.1, hz.2.1⟩, hz.2.2⟩⟩
+
+/-- A point in the left endpoint cap rectangle, after deleting the endpoint
+disk, avoids every deleted integer disk in the finite Abel-Plana rectangle. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointCapCollarPoint_not_mem_deletedDisk
+    {N m : ℕ}
+    {T ρ : ℝ}
+    (_hm : m ∈ Finset.range (N + 2))
+    (hρnonneg : 0 ≤ ρ)
+    (hρquarter : ρ < (1 : ℝ) / 4)
+    {z : ℂ}
+    (hzre : z.re ∈ [[(0 : ℝ), ρ]])
+    (_hzim : z.im ∈ [[-T, T]])
+    (hzcentral : z ∉ Metric.ball (0 : ℂ) ρ) :
+    z ∉ Metric.ball (m : ℂ) ρ :=
+  if hmzero : m = 0 then
+    hmzero ▸ hzcentral
+  else fun hzball =>
+    let hm_pos := Nat.pos_of_ne_zero hmzero
+    let hone_le_m := Real.one_le_natCast_of_pos hm_pos
+    let hρ_lt_half := Real.lt_one_div_two_of_lt_one_div_four hρquarter
+    let hzIcc := Real.endpoint_bounds_of_mem_uIcc hρnonneg hzre
+    let hzre_le := hzIcc.2
+    let hdist_lt := Complex.endpoint_norm_lt_of_mem_ball z (m : ℂ) hzball
+    let hre_norm := Complex.abs_re_le_abs (z - (m : ℂ))
+    let hreal := Real.endpoint_left_re_sub_integer_le_neg_radius hzre_le hone_le_m hρ_lt_half
+    let hre_le_neg := (Complex.endpoint_sub_natCast_re z m).symm ▸ hreal
+    let hneg := neg_le_neg hre_le_neg
+    let hρ_le_abs : ρ ≤ |(z - (m : ℂ)).re| := hneg.trans (neg_le_abs _)
+    not_lt_of_ge (hρ_le_abs.trans hre_norm) hdist_lt
+
+/-- The closed left endpoint cap rectangle lies in the ambient finite
+Abel-Plana rectangle. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointCapCollarClosedRectangle_subset_closedRectangle
+    {N : ℕ}
+    {T ρ : ℝ}
+    (hρnonneg : 0 ≤ ρ)
+    (hρquarter : ρ < (1 : ℝ) / 4) :
+    ({z : ℂ | z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]]} : Set ℂ) ⊆
+      Complex.finiteAbelPlanaClosedRectangle N T :=
+  fun z hz =>
+    let hzIcc := Real.endpoint_bounds_of_mem_uIcc hρnonneg hz.1
+    let hρ_lt_one := Real.lt_one_of_lt_one_div_four hρquarter
+    let hone_le_succ := Real.one_le_natCast_succ N
+    Complex.mem_reProdIm.mpr
+      ⟨hzIcc.1, hzIcc.2.trans (le_of_lt hρ_lt_one).trans hone_le_succ, hz.2⟩
+
+/-- The left endpoint cap/collar domain lies in the finite Abel-Plana
+punctured rectangle. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_subset_puncturedRectangle
+    {N : ℕ}
+    (T : ℝ)
+    {ρ : ℝ}
+    (hρnonneg : 0 ≤ ρ)
+    (hρquarter : ρ < (1 : ℝ) / 4) :
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ ⊆
+      Complex.finiteAbelPlanaPuncturedRectangle N T ρ :=
+  fun z hz =>
+    let hzdata := Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mp hz
+    let hclosed :=
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarClosedRectangle_subset_closedRectangle
+        hρnonneg hρquarter ⟨hzdata.1, hzdata.2.1⟩
+    let havoid : ∀ m ∈ Finset.range (N + 2), z ∉ Metric.ball (m : ℂ) ρ := fun m hm =>
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPoint_not_mem_deletedDisk
+        hm hρnonneg hρquarter hzdata.1 hzdata.2.1 hzdata.2.2
+    Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mpr ⟨hclosed, havoid⟩
+
+/-- Continuity of the Abel-Plana rectangle integrand on the left endpoint
+cap/collar domain, transported from the ambient punctured rectangle. -/
+theorem Complex.continuousOn_finiteAbelPlanaLogRectangleIntegrand_leftEndpointCapCollar
+    {w : ℂ}
+    {N : ℕ}
+    {T ρ : ℝ}
+    (hρnonneg : 0 ≤ ρ)
+    (hρquarter : ρ < (1 : ℝ) / 4)
+    (hcont :
+      ContinuousOn
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        (Complex.finiteAbelPlanaPuncturedRectangle N T ρ)) :
+    ContinuousOn
+      (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+      (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ) :=
+  hcont.mono
+    (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_subset_puncturedRectangle
+      T hρnonneg hρquarter)
+
+/-- Holomorphy of the Abel-Plana rectangle integrand on the left endpoint
+cap/collar domain, transported from the ambient punctured rectangle. -/
+theorem Complex.differentiableOn_finiteAbelPlanaLogRectangleIntegrand_leftEndpointCapCollar
+    {w : ℂ}
+    {N : ℕ}
+    {T ρ : ℝ}
+    (hρnonneg : 0 ≤ ρ)
+    (hρquarter : ρ < (1 : ℝ) / 4)
+    (hdiff :
+      DifferentiableOn ℂ
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        (Complex.finiteAbelPlanaPuncturedRectangle N T ρ)) :
+    DifferentiableOn ℂ
+      (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+      (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ) :=
+  hdiff.mono
+    (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_subset_puncturedRectangle
+      T hρnonneg hρquarter)
+
+/-- A point on the right semicircle around the left endpoint lies in the
+left endpoint punctured cap/collar domain.
+
+This is the endpoint-specific geometric fact that replaces the false full-disk
+containment statement: only the right semicircle, not the whole disk, belongs
+to the left cap. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointSemicirclePoint_mem_capCollar
+    {T ρ θ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T)
+    (hθ : θ ∈ Set.Icc (-(Real.pi / 2)) (Real.pi / 2)) :
+    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) ∈
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+  let hρnonneg : 0 ≤ ρ := le_of_lt hρ
+  let hre :
+      (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) =
+        ρ * Real.cos θ :=
+    (Complex.mul_re (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))).trans
+      (by ring : ρ * ((Complex.exp (Complex.I * (θ : ℂ))).re) = ρ * Real.cos θ)
+  let him :
+      (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) =
+        ρ * Real.sin θ :=
+    (Complex.mul_im (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))).trans
+      (by ring : ρ * ((Complex.exp (Complex.I * (θ : ℂ))).im) = ρ * Real.sin θ)
+  let hcos_nonneg : 0 ≤ Real.cos θ :=
+    Real.cos_nonneg_of_mem_Icc hθ
+  let hre_mem :
+      (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) ∈
+        [[(0 : ℝ), ρ]] :=
+    let hleft : 0 ≤ ρ * Real.cos θ := mul_nonneg hρnonneg hcos_nonneg
+    let hright : ρ * Real.cos θ ≤ ρ :=
+      mul_le_of_le_one_right hρnonneg (Real.cos_le_one θ)
+    Eq.mp
+      (congrArg
+        (fun x : ℝ => x ∈ [[(0 : ℝ), ρ]])
+        hre.symm)
+      (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro hleft hright))
+  let hsin_abs : |Real.sin θ| ≤ 1 := abs_le.mpr (Real.sin_mem_Icc θ)
+  let him_abs : |ρ * Real.sin θ| ≤ ρ :=
+    Eq.trans (abs_mul ρ (Real.sin θ))
+      (Eq.trans
+        (congrArg (fun r : ℝ => r * |Real.sin θ|) (abs_of_nonneg hρnonneg))
+        (Eq.trans (mul_le_mul_of_nonneg_left hsin_abs hρnonneg).eq_of_le (mul_one ρ)))
+  let him_mem :
+      (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) ∈
+        [[-T, T]] :=
+    let habsT : |ρ * Real.sin θ| ≤ T :=
+      him_abs.trans (le_of_lt hρT)
+    let hb := abs_le.mp habsT
+    Eq.mp
+      (congrArg
+        (fun y : ℝ => y ∈ [[-T, T]])
+        him.symm)
+      (Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le) hb)
+  let hz_eq :
+    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      circleMap (0 : ℂ) ρ θ :=
+    by unfold circleMap; ring_nf
+  let hnot_ball :
+      ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) ∉
+        Metric.ball (0 : ℂ) ρ := hz_eq ▸ circleMap_not_mem_ball (0 : ℂ) ρ θ
+  Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
+    ⟨hre_mem, him_mem, hnot_ball⟩
+
+/-- Points on the left principal-value vertical side belong to the left
+endpoint punctured cap/collar domain. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointPVVerticalPoint_mem_capCollar
+    {T ρ y : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hy : y ∈ [[-T, -ρ]] ∨ y ∈ [[ρ, T]]) :
+    (Complex.I * (y : ℂ)) ∈
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+  let hρnonneg : 0 ≤ ρ := le_of_lt hρ
+  let hre_mem :
+      (Complex.I * (y : ℂ)).re ∈ [[(0 : ℝ), ρ]] :=
+    let hre : (Complex.I * (y : ℂ)).re = 0 := by norm_num [Complex.I_re]
+    Real.endpoint_mem_uIcc_congr hre
+      (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro le_rfl hρnonneg))
+  let him_mem :
+      (Complex.I * (y : ℂ)).im ∈ [[-T, T]] :=
+    match hy with
+    | Or.inl hy =>
+        let horder := hy.1
+        let hyIcc := Real.endpoint_bounds_of_mem_uIcc horder hy
+        let hleT := hyIcc.2.trans (Real.endpoint_neg_radius_le_height hT hρ)
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le) ⟨hyIcc.1, hleT⟩
+    | Or.inr hy =>
+        let horder := hy.1
+        let hyIcc := Real.endpoint_bounds_of_mem_uIcc horder hy
+        let hge_negT := (Real.endpoint_neg_height_le_radius hT hρ).trans hyIcc.1
+        Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le) ⟨hge_negT, hyIcc.2⟩
+  let hnot_ball :
+      (Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ :=
+    fun hball =>
+      let hdist := Complex.endpoint_norm_lt_of_mem_ball (Complex.I * (y : ℂ))) (0 : ℂ) hball
+      let hρ_le_abs_y : ρ ≤ |y| :=
+        match hy with
+        | Or.inl hy =>
+            let horder := hy.1
+            let hyIcc := Real.endpoint_bounds_of_mem_uIcc horder hy
+            let hneg := Real.endpoint_neg_le_neg_of_le hyIcc.2
+            hneg.trans (neg_le_abs y)
+        | Or.inr hy =>
+            let horder := hy.1
+            let hyIcc := Real.endpoint_bounds_of_mem_uIcc horder hy
+            hyIcc.1.trans (le_abs_self y)
+      let hnorm := Complex.norm_I_mul_real y
+      let hdist_abs := hnorm ▸ hdist
+      not_lt_of_ge hρ_le_abs_y hdist_abs
+  Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr
+    ⟨hre_mem, him_mem, hnot_ball⟩
+
+/-- Points on the safe vertical side `Re z = ρ` belong to the left endpoint
+punctured cap/collar domain. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar
+    {T ρ y : ℝ}
+    (hρ : 0 < ρ)
+    (hy : y ∈ [[-T, T]]) :
+    ((ρ : ℂ) + Complex.I * (y : ℂ)) ∈
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+  let hρnonneg := le_of_lt hρ
+  let hre_mem : (((ρ : ℂ) + Complex.I * (y : ℂ)).re) ∈ [[(0 : ℝ), ρ]] :=
+    let hre : ((ρ : ℂ) + Complex.I * (y : ℂ)).re = ρ := by norm_num [Complex.add_re, Complex.I_re]
+    Real.endpoint_mem_uIcc_congr hre
+      (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro hρnonneg le_rfl))
+  let him_mem : (((ρ : ℂ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := hy
+  let hnot_ball : ((ρ : ℂ) + Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ :=
+    fun hball =>
+      let hdist := Complex.endpoint_norm_lt_of_mem_ball ((ρ : ℂ) + Complex.I * (y : ℂ))) (0 : ℂ) hball
+      let hre_norm := Complex.endpoint_abs_re_le_norm ((ρ : ℂ) + Complex.I * (y : ℂ)))
+      let hre_abs : |(((ρ : ℂ) + Complex.I * (y : ℂ))).re| = ρ :=
+        let hre : (((ρ : ℂ) + Complex.I * (y : ℂ))).re = ρ := by norm_num [Complex.add_re, Complex.I_re]
+        hre ▸ abs_of_nonneg hρnonneg
+      let hρ_le_norm : ρ ≤ ‖((ρ : ℂ) + Complex.I * (y : ℂ))‖ := hre_abs ▸ hre_norm
+      not_lt_of_ge hρ_le_norm hdist
+  Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr ⟨hre_mem, him_mem, hnot_ball⟩
+
+/-- The lower left endpoint rectangle
+`0 ≤ Re z ≤ ρ`, `-T ≤ Im z ≤ -ρ` lies in the left endpoint punctured
+cap/collar domain. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointLowerRectangle_subset_capCollar
+    {T ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T) :
+    ([[((0 : ℂ).re), ((ρ : ℂ) - Complex.I * (ρ : ℂ)).re]] ×ℂ
+        [[(-T), (-ρ)]]) ⊆
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+  fun z hz =>
+    let hzre := (Complex.mem_reProdIm.mp hz).1
+    let hzim_lower := (Complex.mem_reProdIm.mp hz).2
+    let horder := Real.endpoint_neg_height_le_neg_radius hρT
+    let hzimIcc := Real.endpoint_bounds_of_mem_uIcc horder hzim_lower
+    let hleT := hzimIcc.2.trans (Real.endpoint_neg_radius_le_height (hρ.trans hρT) hρ)
+    let hzim : z.im ∈ [[-T, T]] :=
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        ⟨hzimIcc.1, hleT⟩
+    let hneg : ρ ≤ -z.im := Real.endpoint_neg_le_neg_of_le hzimIcc.2
+    let hρ_le_abs_im : ρ ≤ |z.im| := hneg.trans (neg_le_abs z.im)
+    let hnot_ball : z ∉ Metric.ball (0 : ℂ) ρ :=
+      Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im hρ_le_abs_im
+    Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr ⟨hzre, hzim, hnot_ball⟩
+
+/-- The upper left endpoint rectangle
+`0 ≤ Re z ≤ ρ`, `ρ ≤ Im z ≤ T` lies in the left endpoint punctured
+cap/collar domain. -/
+theorem Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar
+    {T ρ : ℝ}
+    (hρ : 0 < ρ)
+    (hρT : ρ < T) :
+    ([[((0 : ℂ).re), ((ρ : ℂ) + Complex.I * (ρ : ℂ)).re]] ×ℂ
+        [[ρ, T]]) ⊆
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+  fun z hz =>
+    let hzre := (Complex.mem_reProdIm.mp hz).1
+    let hzim_upper := (Complex.mem_reProdIm.mp hz).2
+    let horder := le_of_lt hρT
+    let hzimIcc := Real.endpoint_bounds_of_mem_uIcc horder hzim_upper
+    let hge_negT := (Real.endpoint_neg_height_le_radius (hρ.trans hρT) hρ).trans hzimIcc.1
+    let hzim : z.im ∈ [[-T, T]] :=
+      Real.endpoint_mem_uIcc_of_bounds (neg_le_self (le_of_lt (hρ.trans hρT)))
+        ⟨hge_negT, hzimIcc.2⟩
+    let hρ_le_abs_im : ρ ≤ |z.im| := hzimIcc.1.trans (le_abs_self z.im)
+    let hnot_ball : z ∉ Metric.ball (0 : ℂ) ρ :=
+      Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im hρ_le_abs_im
+    Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr ⟨hzre, hzim, hnot_ball⟩
+
+/-- Coordinate normalization for the lower left endpoint rectangle boundary. -/
+theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
+    (f : ℂ → ℂ)
+    (T ρ : ℝ)
+    (hrect :
+      (∫ x : ℝ in (-Complex.I * (T : ℂ)).re..
+          (((ρ : ℂ) - Complex.I * (ρ : ℂ)).re),
+          f ((x : ℂ) + ((-Complex.I * (T : ℂ)).im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in (-Complex.I * (T : ℂ)).re..
+            (((ρ : ℂ) - Complex.I * (ρ : ℂ)).re),
+            f ((x : ℂ) + ((((ρ : ℂ) - Complex.I * (ρ : ℂ)).im) : ℂ) *
+              Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in (-Complex.I * (T : ℂ)).im..
+                (((ρ : ℂ) - Complex.I * (ρ : ℂ)).im),
+                f (((((ρ : ℂ) - Complex.I * (ρ : ℂ)).re) : ℂ) +
+                  (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in (-Complex.I * (T : ℂ)).im..
+                  (((ρ : ℂ) - Complex.I * (ρ : ℂ)).im),
+                  f (((-Complex.I * (T : ℂ)).re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
+      0 :=
+  hrect
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the lower
+left endpoint cap coordinates. -/
+theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = -Complex.I * (T : ℂ))
+    (hz₁ : z₁ = (ρ : ℂ) - Complex.I * (ρ : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
+      0 :=
+  hz₀ ▸ hz₁ ▸
+    Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
+      f T ρ hrect
+
+/-- Cauchy-Goursat on the lower ordinary rectangle in the left endpoint cap.
+
+This is the lower rectangular piece of the classical endpoint indentation
+argument.  The remaining endpoint cap theorem is obtained by adding this to
+the corresponding upper rectangle and the circular cap deformation. -/
+theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T)
+    (hcont :
+      ContinuousOn f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ))
+    (hdiff :
+      DifferentiableOn ℂ f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
+      0 :=
+  let z₀ : ℂ := -Complex.I * (T : ℂ)
+  let z₁ : ℂ := (ρ : ℂ) - Complex.I * (ρ : ℂ)
+  let hclosed := Complex.finiteAbelPlanaLogLeftEndpointLowerRectangle_subset_capCollar hT hρ hρT
+  let hopen : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
+      Set.Ioo (min z₀.im z₁.im) (max z₀.im z₁.im)) ⊆
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun z hz =>
+    let hzdata := Complex.mem_reProdIm.mp hz
+    hclosed (Complex.mem_reProdIm.mpr ⟨Set.Ioo_subset_Icc_self hzdata.1,
+      Set.Ioo_subset_Icc_self hzdata.2⟩)
+  let hcontinuous_closed := hcont.mono hclosed
+  let hdifferentiable_open := hdiff.mono hopen
+  let hcauchy := Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
+    f z₀ z₁ hcontinuous_closed hdifferentiable_open
+  Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
+    f T z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the generic rectangular Cauchy-Goursat boundary to the upper
+left endpoint cap coordinates. -/
+theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (z₀ z₁ : ℂ)
+    (hz₀ : z₀ = Complex.I * (ρ : ℂ))
+    (hz₁ : z₁ = (ρ : ℂ) + Complex.I * (T : ℂ))
+    (hrect :
+      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
+          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
+            Complex.I •
+              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
+              Complex.I •
+                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ))) =
+      0 :=
+  hz₀ ▸ hz₁ ▸ hrect
+
+/-- Cauchy-Goursat on the upper ordinary rectangle in the left endpoint cap. -/
+theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hρ : 0 < ρ)
+    (hρT : ρ < T)
+    (hcont :
+      ContinuousOn f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ))
+    (hdiff :
+      DifferentiableOn ℂ f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ))) +
+          Complex.I *
+            (∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+            Complex.I *
+              (∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ))) =
+      0 :=
+  let z₀ : ℂ := Complex.I * (ρ : ℂ)
+  let z₁ : ℂ := (ρ : ℂ) + Complex.I * (T : ℂ)
+  let hclosed := Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar hρ hρT
+  let hopen : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
+      Set.Ioo (min z₀.im z₁.im) (max z₀.im z₁.im)) ⊆
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun z hz =>
+    let hzdata := Complex.mem_reProdIm.mp hz
+    hclosed (Complex.mem_reProdIm.mpr ⟨Set.Ioo_subset_Icc_self hzdata.1,
+      Set.Ioo_subset_Icc_self hzdata.2⟩)
+  let hcontinuous_closed := hcont.mono hclosed
+  let hdifferentiable_open := hdiff.mono hopen
+  let hcauchy := Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
+    f z₀ z₁ hcontinuous_closed hdifferentiable_open
+  Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
+    f T z₀ z₁ rfl rfl hcauchy
+
+/-- Transport the right-half deleted-disk model boundary to the left endpoint
+half-collar coordinates. -/
+theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model
+    (f : ℂ → ℂ)
+    {ρ : ℝ}
+    (hmodel :
+      (∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+          f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im - ρ : ℝ) : ℂ))) +
+          -(∫ x : ℝ in (0 : ℝ)..((0 : ℂ).re + ρ),
+            f (((x : ℝ) : ℂ) + Complex.I * (((0 : ℂ).im + ρ : ℝ) : ℂ))) +
+            Complex.I *
+              (∫ y : ℝ in ((0 : ℂ).im - ρ)..((0 : ℂ).im + ρ),
+                f ((((0 : ℂ).re + ρ : ℝ) : ℂ) + Complex.I * (y : ℂ))) -
+          ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+            f ((0 : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+              (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+        0) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) +
+          Complex.I * (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      0 :=
+  hmodel
+
+/-- The local Cauchy-Goursat deformation across the left endpoint
+half-rectangle collar outside the deleted disk.
+
+This is the precise topological core of the left endpoint principal-value
+indentation.  The two horizontal chord integrals at heights `±ρ`, the middle
+safe vertical segment, and the counterclockwise right semicircle bound the
+right half-rectangle with the endpoint disk removed.  Since `f` is
+holomorphic on the punctured endpoint cap, the oriented boundary integral of
+this collar vanishes. -/
+theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T)
+    (hcont :
+      ContinuousOn f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ))
+    (hdiff :
+      DifferentiableOn ℂ f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) -
+        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) +
+          Complex.I * (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      0 :=
+  let hcont_model : ContinuousOn f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) :=
+    hcont
+  let hdiff_model : DifferentiableOn ℂ f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) :=
+    hdiff
+  let hmodel :=
+    Complex.rightHalfRectangleDeletedDiskBoundary_eq_zero
+      f (0 : ℂ) T ρ le_rfl hρ
+      (Real.endpoint_radius_lt_abs_height hT hρT)
+      hcont_model hdiff_model
+  Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model f hmodel
+
+/-- The full safe vertical side in the left endpoint cap is the concatenation
+of its lower, middle, and upper pieces. -/
+theorem Complex.leftEndpointSafeVerticalIntegral_split_three
+    (f : ℂ → ℂ)
+    (T ρ : ℝ)
+    (hlower :
+      IntervalIntegrable
+        (fun y : ℝ => f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+        volume (-T) (-ρ))
+    (hmiddle :
+      IntervalIntegrable
+        (fun y : ℝ => f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+        volume (-ρ) ρ)
+    (hupper :
+      IntervalIntegrable
+        (fun y : ℝ => f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+        volume ρ T) :
+    ∫ y : ℝ in (-T)..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) =
+      (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+        (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+          ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) :=
+  let hleft := intervalIntegral.integral_add_adjacent_intervals hlower hmiddle
+  let hleft_integrable := hlower.trans hmiddle
+  let hright := intervalIntegral.integral_add_adjacent_intervals hleft_integrable hupper
+  calc ∫ y : ℝ in (-T)..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))
+      = (∫ y : ℝ in (-T)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+          ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) := hright.symm
+    _ = ((∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+            ∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+          ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) :=
+      congrArg (fun left : ℂ => left + ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) hleft.symm
+    _ = (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+          (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
+            ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) := rfl
+
+/-- Complex-linear algebra assembling the two rectangular endpoint identities
+and the deleted-disk collar identity into the full left endpoint cap/collar boundary
+identity. -/
+theorem Complex.leftEndpointCapCollarBoundary_algebra
+    (lowerT upperT lowerChord upperChord safe safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ)
+    (hsafe : safe = safeLower + safeMiddle + safeUpper)
+    (hlower :
+      lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower = 0)
+    (hupper :
+      upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper = 0)
+    (hhalf :
+      lowerChord - upperChord + Complex.I * safeMiddle - arc = 0) :
+    lowerT - upperT + Complex.I * safe -
+        Complex.I * (pvLower + pvUpper) - arc =
+      0 :=
+  let hsum : (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+      (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+        (lowerChord - upperChord + Complex.I * safeMiddle - arc) = 0 :=
+    congrArg₂ (fun firstTwo third : ℂ => firstTwo + third)
+      (congrArg₂ (fun first second : ℂ => first + second) hlower hupper) hhalf
+  let hcollected :=
+    (Complex.leftEndpointCapCollarBoundary_collect
+      lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc).symm
+  hsafe ▸ hcollected ▸ hsum
+
+/-- Generic oriented boundary integral of a left endpoint cap/collar.
+
+This is the local topological object behind the Abel-Plana endpoint at `0`.
+The Abel-Plana rectangle integrand is only a later specialization of this
+ordinary deleted-disk collar Cauchy-Goursat boundary. -/
+noncomputable def Complex.leftEndpointCapCollarOrientedBoundaryIntegral
+    (f : ℂ → ℂ)
+    (T ρ : ℝ) : ℂ :=
+  (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
+      (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ))) +
+        Complex.I * (∫ y : ℝ in (-T)..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
+          Complex.I *
+            ((∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) +
+              ∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ))) -
+    ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+      f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Generic Cauchy-Goursat theorem for the left endpoint cap/collar.
+
+This is the classical local deleted-disk collar contour theorem: if `f` is
+continuous and holomorphic on the rectangular cap with the endpoint disk
+deleted, the oriented boundary integral of that cap is zero. -/
+theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
+    (f : ℂ → ℂ)
+    (T : ℝ)
+    {ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hρT : ρ < T)
+    (hcont :
+      ContinuousOn f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ))
+    (hdiff :
+      DifferentiableOn ℂ f
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
+    Complex.leftEndpointCapCollarOrientedBoundaryIntegral f T ρ = 0 :=
+  let g : ℝ → ℂ := fun y : ℝ => f ((ρ : ℂ) + Complex.I * (y : ℂ))
+  let hsafe_integrable : ∀ a b : ℝ,
+        (∀ y ∈ [[a, b]], y ∈ [[-T, T]]) →
+          IntervalIntegrable g volume a b := fun a b hinterval_subset =>
+    let hpath_cont :=
+      (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).continuousOn
+    let hpath_mem : ∀ y ∈ [[a, b]],
+          ((ρ : ℂ) + Complex.I * (y : ℂ)) ∈
+            Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun y hy =>
+      Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar hρ (hinterval_subset y hy)
+    (hcont.comp_continuousOn hpath_cont hpath_mem).intervalIntegrable
+  let hlower_interval :=
+    Real.endpoint_lower_interval_subset_height hT hρ hρT
+  let hmiddle_interval :=
+    Real.endpoint_middle_interval_subset_height hρ hρT
+  let hupper_interval :=
+    Real.endpoint_upper_interval_subset_height hT hρ hρT
+  let hsafe_split :=
+    Complex.leftEndpointSafeVerticalIntegral_split_three
+      f T ρ
+      (hsafe_integrable (-T) (-ρ) hlower_interval)
+      (hsafe_integrable (-ρ) ρ hmiddle_interval)
+      (hsafe_integrable ρ T hupper_interval)
+  let hlower_zero :=
+    Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
+      f T hT hρ hρT hcont hdiff
+  let hupper_zero :=
+    Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
+      f T hρ hρT hcont hdiff
+  let hhalf_zero :=
+    Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
+      f T hT hρ hρT hcont hdiff
+  Complex.leftEndpointCapCollarBoundary_algebra
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ)))
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ)))
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ)))
+    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ)))
+    (∫ y : ℝ in (-T)..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+    (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+    (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+    (∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)))
+    (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ)))
+    (∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ)))
+    (∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+      f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+    hsafe_split
+    hlower_zero
+    hupper_zero
+    hhalf_zero
+
+/-- Oriented unnormalized boundary expression of the left endpoint cap/collar.
+
+The five terms are, in order: lower collar, upper collar with opposite
+orientation, right safe-strip edge, principal-value left edge with opposite
+orientation, and the endpoint semicircle with the punctured-domain orientation
+moved to the left-hand side. -/
+noncomputable def Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary
+    (w : ℂ)
+    (T ρ : ℝ) : ℂ :=
+  Complex.finiteAbelPlanaLogLeftEndpointLowerCollar w T ρ -
+      Complex.finiteAbelPlanaLogLeftEndpointUpperCollar w T ρ +
+        Complex.I * Complex.finiteAbelPlanaLogVerticalStripLeftSide 0 w T ρ -
+          Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ρ -
+    ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+      Complex.finiteAbelPlanaLogRectangleIntegrand w
+          ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+        (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Unfolding of the left endpoint cap/collar oriented boundary into its
+straight collar sides and right semicircular deleted-boundary side. -/
+theorem Complex.finiteAbelPlana_log_leftEndpointCapCollarOrientedBoundary_unfold
+    (w : ℂ)
+    (T ρ : ℝ) :
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ =
+      Complex.finiteAbelPlanaLogLeftEndpointLowerCollar w T ρ -
+          Complex.finiteAbelPlanaLogLeftEndpointUpperCollar w T ρ +
+            Complex.I * Complex.finiteAbelPlanaLogVerticalStripLeftSide 0 w T ρ -
+              Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ρ -
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          Complex.finiteAbelPlanaLogRectangleIntegrand w
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
+  rfl
+
+/-- The Abel-Plana left endpoint oriented boundary is the generic left cap
+boundary specialized to the logarithmic cotangent rectangle integrand. -/
+theorem Complex.finiteAbelPlana_log_leftEndpointCapCollarOrientedBoundary_eq_generic
+    (w : ℂ)
+    (T ρ : ℝ) :
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ =
+      Complex.leftEndpointCapCollarOrientedBoundaryIntegral
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        T ρ :=
+  rfl
+
+/-- Solving the left endpoint oriented-boundary Cauchy equation gives the
+left endpoint half-collar balance. -/
+theorem Complex.finiteAbelPlana_log_leftEndpointHalfCollar_balance_of_orientedBoundary_zero
+    (w : ℂ)
+    (T ρ : ℝ)
+    (hboundary :
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ = 0) :
+    Complex.finiteAbelPlanaLogLeftEndpointLowerCollar w T ρ -
+          Complex.finiteAbelPlanaLogLeftEndpointUpperCollar w T ρ +
+            Complex.I * Complex.finiteAbelPlanaLogVerticalStripLeftSide 0 w T ρ -
+              Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ρ =
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          Complex.finiteAbelPlanaLogRectangleIntegrand w
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
+  sub_eq_zero.mp hboundary
+
+/-- Cauchy-Goursat on the left endpoint cap/collar domain, with the boundary
+orientation identified with the existing named side and indentation integrals.
+
+This is the local deleted-disk collar theorem for the endpoint pole at `0`:
+the boundary of the right endpoint collar, after deleting the endpoint
+semicircle, has zero integral. -/
+theorem Complex.finiteAbelPlana_log_leftEndpointCapCollar_orientedBoundary_eq_zero_owner
+    {w : ℂ}
+    {N : ℕ}
+    (T : ℝ)
+    {ρ : ℝ}
+    (hT : 0 < T)
+    (hρ : 0 < ρ)
+    (hdeleted_geometry :
+      ρ < (1 : ℝ) / 4 ∧
+        ρ < |T| / 2 ∧
+          ∀ n ∈ Finset.range (N + 2),
+            ρ < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n)
+    (hcont_left :
+      ContinuousOn
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ))
+    (hdiff_left :
+      DifferentiableOn ℂ
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ = 0 :=
+  calc Complex.finiteAbelPlanaLogLeftEndpointCapCollarOrientedBoundary w T ρ =
+        Complex.leftEndpointCapCollarOrientedBoundaryIntegral
+          (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+          T ρ :=
+      Complex.finiteAbelPlana_log_leftEndpointCapCollarOrientedBoundary_eq_generic w T ρ
+    _ = 0 :=
+      Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
+        (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
+        T hT hρ
+        (Real.endpoint_radius_lt_height_of_lt_abs_height_half hT hdeleted_geometry.2.1)
+        hcont_left hdiff_left
+
+end
+
+end LFunctions
+end Boundary
