@@ -27,7 +27,7 @@ theorem ext {f g : ZetaPacketTransform} (h : ∀ ℓ, f ℓ = g ℓ) : f = g := 
   cases f
   cases g
   congr
-  funext ℓ
+  ext ℓ
   exact h ℓ
 
 /-- The canonical packet transform attached to the zeta coefficients. -/

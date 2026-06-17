@@ -67,7 +67,7 @@ theorem exists_interpolationSurface_eval_sample_with_support
       HasCompactSupport f ∧
       (interpolationSurface f).1 = spectralModel f ∧
       (interpolationSurface f).2 = separatingProbe f := by
-  rcases exists_admissible_eval_sample_with_support S a with ⟨f, hf, hfc⟩
+  obtain ⟨f, hf, hfc⟩ := exists_admissible_eval_sample_with_support S a
   exact ⟨f, hf, hfc, interpolationSurface_fst f, interpolationSurface_snd f⟩
 
 /-- A finite sample can be realized by an interpolation surface whose delta basis has controlled
@@ -84,8 +84,8 @@ theorem exists_interpolationSurface_eval_sample_with_basis_support
         Function.support f ⊆ (Set.iUnion fun i => Function.support (F i)) ∧
         (interpolationSurface f).1 = spectralModel f ∧
         (interpolationSurface f).2 = separatingProbe f := by
-  rcases exists_admissible_eval_sample_with_basis_support S a with
-    ⟨F, hF1, hF0, hFc, f, hf, hfc, hfs⟩
+  obtain ⟨F, hF1, hF0, hFc, f, hf, hfc, hfs⟩ :=
+    exists_admissible_eval_sample_with_basis_support S a
   exact ⟨F, hF1, hF0, hFc, f, hf, hfc, hfs,
     interpolationSurface_fst f, interpolationSurface_snd f⟩
 
@@ -104,8 +104,8 @@ theorem exists_interpolationSurface_eval_sample_with_basis_closedBall_support
         Function.support f ⊆ (Set.iUnion fun i => Function.support (F i)) ∧
         (interpolationSurface f).1 = spectralModel f ∧
         (interpolationSurface f).2 = separatingProbe f := by
-  rcases exists_admissible_eval_sample_with_basis_closedBall_support S a with
-    ⟨F, hF1, hF0, hFr, f, hf, hfc, hfs⟩
+  obtain ⟨F, hF1, hF0, hFr, f, hf, hfc, hfs⟩ :=
+    exists_admissible_eval_sample_with_basis_closedBall_support S a
   exact ⟨F, hF1, hF0, hFr, f, hf, hfc, hfs,
     interpolationSurface_fst f, interpolationSurface_snd f⟩
 

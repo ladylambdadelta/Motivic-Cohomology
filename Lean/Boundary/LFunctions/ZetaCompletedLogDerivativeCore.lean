@@ -24,7 +24,8 @@ def completedZetaNegLogDeriv (s : ℂ) : ℂ :=
 /-- The completed negative logarithmic derivative is the negative `logDeriv`. -/
 theorem completedZetaNegLogDeriv_eq_neg_logDeriv (s : ℂ) :
     completedZetaNegLogDeriv s = - logDeriv completedRiemannZeta s := by
-  unfold completedZetaNegLogDeriv
+  show - deriv completedRiemannZeta s / completedRiemannZeta s =
+        - logDeriv completedRiemannZeta s
   calc
     (-deriv completedRiemannZeta s) / completedRiemannZeta s =
         -(deriv completedRiemannZeta s / completedRiemannZeta s) := by

@@ -95,7 +95,7 @@ theorem zetaCompletionCorrectionPacketCoordinate_sq :
 
 theorem zetaCompletionCorrection_neg (s : ℂ) :
     zetaCompletionCorrection (-s) = zetaCompletionCorrection s := by
-  unfold zetaCompletionCorrection
+  show zetaWeilCorrection (-s) = zetaWeilCorrection s
   exact zetaWeilCorrection_neg s
 
 theorem zetaCompletionCorrection_centered (s : ℂ) :
