@@ -21,6 +21,13 @@ open MeasureTheory
 
 notation:max "[[" a "," b "]]" => Set.Icc a b
 
+/-- Helper: Equivalence between pure exponential and circleMap at origin. -/
+private lemma leftCapCollar_exp_eq_circleMap (ρ θ : ℝ) :
+    ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
+      circleMap (0 : ℂ) ρ θ := by
+  unfold circleMap
+  rfl
+
 def Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain
     (T ρ : ℝ) : Set ℂ :=
   ({z : ℂ | z.re ∈ [[(0 : ℝ), ρ]] ∧ z.im ∈ [[-T, T]]} : Set ℂ) \
@@ -160,12 +167,12 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSemicirclePoint_mem_capCollar
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re) =
         ρ * Real.cos θ :=
     (Complex.mul_re (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))).trans
-      (by ring : ρ * ((Complex.exp (Complex.I * (θ : ℂ))).re) = ρ * Real.cos θ)
+      (congrArg (ρ * ·) (Complex.exp_mul_I θ).symm ▸ rfl)
   let him :
       (((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im) =
         ρ * Real.sin θ :=
     (Complex.mul_im (ρ : ℂ) (Complex.exp (Complex.I * (θ : ℂ)))).trans
-      (by ring : ρ * ((Complex.exp (Complex.I * (θ : ℂ))).im) = ρ * Real.sin θ)
+      (congrArg (ρ * ·) (Complex.exp_mul_I θ).symm ▸ rfl)
   let hcos_nonneg : 0 ≤ Real.cos θ :=
     Real.cos_nonneg_of_mem_Icc hθ
   let hre_mem :
@@ -199,7 +206,7 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSemicirclePoint_mem_capCollar
   let hz_eq :
     ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
       circleMap (0 : ℂ) ρ θ :=
-    by unfold circleMap; ring_nf
+    leftCapCollar_exp_eq_circleMap ρ θ
   let hnot_ball :
       ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) ∉
         Metric.ball (0 : ℂ) ρ := hz_eq ▸ circleMap_not_mem_ball (0 : ℂ) ρ θ
@@ -218,7 +225,7 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointPVVerticalPoint_mem_capCollar
   let hρnonneg : 0 ≤ ρ := le_of_lt hρ
   let hre_mem :
       (Complex.I * (y : ℂ)).re ∈ [[(0 : ℝ), ρ]] :=
-    let hre : (Complex.I * (y : ℂ)).re = 0 := by norm_num [Complex.I_re]
+    let hre : (Complex.I * (y : ℂ)).re = 0 := Complex.I_re
     Real.endpoint_mem_uIcc_congr hre
       (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro le_rfl hρnonneg))
   let him_mem :
@@ -265,7 +272,7 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar
       Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
   let hρnonneg := le_of_lt hρ
   let hre_mem : (((ρ : ℂ) + Complex.I * (y : ℂ)).re) ∈ [[(0 : ℝ), ρ]] :=
-    let hre : ((ρ : ℂ) + Complex.I * (y : ℂ)).re = ρ := by norm_num [Complex.add_re, Complex.I_re]
+    let hre : ((ρ : ℂ) + Complex.I * (y : ℂ)).re = ρ := Eq.trans (Complex.add_re (ρ : ℂ) (Complex.I * (y : ℂ))) (Eq.trans (congrArg (ρ + ·) Complex.I_re) (add_zero ρ))
     Real.endpoint_mem_uIcc_congr hre
       (Real.endpoint_mem_uIcc_of_bounds hρnonneg (And.intro hρnonneg le_rfl))
   let him_mem : (((ρ : ℂ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := hy
@@ -274,7 +281,7 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar
       let hdist := Complex.endpoint_norm_lt_of_mem_ball ((ρ : ℂ) + Complex.I * (y : ℂ))) (0 : ℂ) hball
       let hre_norm := Complex.endpoint_abs_re_le_norm ((ρ : ℂ) + Complex.I * (y : ℂ)))
       let hre_abs : |(((ρ : ℂ) + Complex.I * (y : ℂ))).re| = ρ :=
-        let hre : (((ρ : ℂ) + Complex.I * (y : ℂ))).re = ρ := by norm_num [Complex.add_re, Complex.I_re]
+        let hre : (((ρ : ℂ) + Complex.I * (y : ℂ))).re = ρ := Eq.trans (Complex.add_re (ρ : ℂ) (Complex.I * (y : ℂ))) (Eq.trans (congrArg (ρ + ·) Complex.I_re) (add_zero ρ))
         hre ▸ abs_of_nonneg hρnonneg
       let hρ_le_norm : ρ ≤ ‖((ρ : ℂ) + Complex.I * (y : ℂ))‖ := hre_abs ▸ hre_norm
       not_lt_of_ge hρ_le_norm hdist

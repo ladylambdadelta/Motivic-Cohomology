@@ -12,6 +12,11 @@ namespace LFunctions
 
 noncomputable section
 
+/-- Helper: Large numeric bounds. -/
+private lemma ten_billion_pos : (0 : ℕ) < 10000000000 := by decide
+
+private lemma euler_approx_le_three : (27182818286 : ℕ) ≤ 3 * 10000000000 := by decide
+
 /-- On the logarithmic boundary range, the canonical logarithm is at least one. -/
 theorem Complex.one_le_log_two_add_norm_of_one_le_norm
     {t : ℝ}
@@ -29,11 +34,10 @@ theorem Complex.one_le_log_two_add_norm_of_one_le_norm
         (2.7182818286 : ℝ) =
           (27182818286 : ℝ) / 10000000000 := rfl
     have hden_pos : (0 : ℝ) < 10000000000 := by
-      exact_mod_cast (show (0 : ℕ) < 10000000000 by decide)
+      exact_mod_cast ten_billion_pos
     have hnum_le :
         (27182818286 : ℝ) ≤ 3 * (10000000000 : ℝ) := by
-      exact_mod_cast
-        (show (27182818286 : ℕ) ≤ 3 * 10000000000 by decide)
+      exact_mod_cast euler_approx_le_three
     have hd9_le_three : (2.7182818286 : ℝ) ≤ 3 := by
       have hfrac :
           (27182818286 : ℝ) / 10000000000 ≤ 3 :=
