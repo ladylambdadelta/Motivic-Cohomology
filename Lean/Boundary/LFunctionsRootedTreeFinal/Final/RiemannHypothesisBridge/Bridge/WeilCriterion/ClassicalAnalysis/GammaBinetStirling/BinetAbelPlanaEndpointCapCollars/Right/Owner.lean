@@ -21,22 +21,56 @@ open MeasureTheory
 
 notation:max "[[" a "," b "]]" => Set.Icc a b
 
+/-- Pure term-mode: (ρ:ℂ).re = ρ -/
+private lemma ofreal_re_val (ρ : ℝ) : (ρ : ℂ).re = ρ := Complex.ofReal_re ρ
+
+/-- Pure term-mode: (ρ:ℂ).im = 0 -/
+private lemma ofreal_im_val (ρ : ℝ) : (ρ : ℂ).im = 0 := Complex.ofReal_im ρ
+
+/-- Pure term-mode: 0 * x = 0 -/
+private lemma zero_mul_val (x : ℂ) : (0 : ℝ) * x = 0 := zero_mul x
+
+/-- Pure term-mode: x - 0 = x -/
+private lemma sub_zero_val (x : ℝ) : x - 0 = x := sub_zero x
+
+/-- Pure term-mode: exp(iθ).re = cos(θ) -/
+private lemma exp_I_mul_re (θ : ℝ) : (Complex.exp (Complex.I * θ)).re = Real.cos θ :=
+  Complex.exp_mul_I_re θ
+
+/-- Pure term-mode: Component multiplication for real part -/
+private lemma mul_re_component (ρ θ : ℝ) :
+    (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re - (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im =
+      ρ * (Complex.exp (Complex.I * θ)).re :=
+  calc (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re - (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im
+      = ρ * (Complex.exp (Complex.I * θ)).re - 0 * (Complex.exp (Complex.I * θ)).im := by
+        exact congrArg₂ (· - ·) (congrArg (· * (Complex.exp (Complex.I * θ)).re) (ofreal_re_val ρ))
+          (congrArg (· * (Complex.exp (Complex.I * θ)).im) (ofreal_im_val ρ))
+    _ = ρ * (Complex.exp (Complex.I * θ)).re - 0 := by
+        exact congrArg (ρ * (Complex.exp (Complex.I * θ)).re - ·) (zero_mul_val _)
+    _ = ρ * (Complex.exp (Complex.I * θ)).re := sub_zero_val _
+
+/-- Pure term-mode: Multiply exponential real part to cos -/
+private lemma mul_exp_re_to_cos (ρ θ : ℝ) :
+    ρ * (Complex.exp (Complex.I * θ)).re = ρ * Real.cos θ :=
+  congrArg (ρ * ·) (exp_I_mul_re θ)
+
+/-- Pure term-mode: Add real parts -/
+private lemma add_re_component (x y : ℂ) : (x + y).re = x.re + y.re := Complex.add_re x y
+
 /-- Helper: Real part of complex exponential in cap-collar domain. -/
 private lemma capCollar_exp_re (N : ℕ) (ρ θ : ℝ) :
     ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).re =
-      ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ := by
-  have h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re = ρ * Real.cos θ := by
+      ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ :=
+  let h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re = ρ * Real.cos θ :=
     calc ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re
         = (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re -
           (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im := Complex.mul_re _ _
-      _ = ρ * (Complex.exp (Complex.I * θ)).re := by
-        simp [Complex.ofReal_re, Complex.ofReal_im]
-      _ = ρ * Real.cos θ := by
-        simp [Complex.exp_mul_I_re]
+      _ = ρ * (Complex.exp (Complex.I * θ)).re := mul_re_component ρ θ
+      _ = ρ * Real.cos θ := mul_exp_re_to_cos ρ θ
   calc ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).re
-      = (↑(N + 1 : ℕ) : ℂ).re + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re := Complex.add_re _ _
-    _ = ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ := by
-      simp [Complex.ofReal_re]; rw [h1]
+      = (↑(N + 1 : ℕ) : ℂ).re + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re := add_re_component _ _
+    _ = ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ :=
+        congrArg (((N + 1 : ℕ) : ℝ) + ·) h1
 
 /-- Helper: Imaginary part of complex exponential in cap-collar domain. -/
 private lemma capCollar_exp_im (N : ℕ) (ρ θ : ℝ) :
