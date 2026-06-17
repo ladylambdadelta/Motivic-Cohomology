@@ -4,6 +4,26 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 /-!
 # Boundary-line Gamma analysis and Abel-Plana assembly
 
+## Helper lemmas for numeric bounds
+-/
+
+namespace Boundary
+namespace LFunctions
+
+/-- Helper: Large denominator positive. -/
+private lemma ten_billion_pos : (0 : ℝ) < 10000000000 := by
+  norm_num
+
+/-- Helper: Euler's constant approximation bound. -/
+private lemma euler_approx_le_three : (27182818286 : ℕ) ≤ 3 * 10000000000 := by
+  norm_num
+
+end LFunctions
+end Boundary
+
+/-!
+# Boundary-line Gamma analysis and Abel-Plana assembly
+
 This file owns the specific left-boundary applications of vertical Stirling estimates,
 the concrete boundary-line zeta computations, and the Abel/Euler-Maclaurin infrastructure
 for finite oscillatory sums along the critical line.
@@ -1755,11 +1775,11 @@ theorem one_le_log_two_add_norm_of_one_le_norm
         (2.7182818286 : ℝ) =
           (27182818286 : ℝ) / 10000000000 := rfl
     have hden_pos : (0 : ℝ) < 10000000000 := by
-      exact Nat.cast_pos.mpr (show (0 : ℕ) < 10000000000 by decide)
+      exact Nat.cast_pos.mpr (show (0 : ℕ) < 10000000000 by norm_num)
     have hnum_le :
         (27182818286 : ℝ) ≤ 3 * (10000000000 : ℝ) := by
-      have hnat : (27182818286 : ℕ) ≤ 3 * 10000000000 := by
-        decide
+      have hnat : (27182818286 : ℕ) ≤ 3 * 10000000000 :=
+        euler_approx_le_three
       have hcast : (27182818286 : ℝ) ≤ ((3 * 10000000000 : ℕ) : ℝ) :=
         Nat.cast_le.mpr hnat
       have hprod : ((3 * 10000000000 : ℕ) : ℝ) = 3 * (10000000000 : ℝ) := by

@@ -17,6 +17,36 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
+/-- Helper: -2(N+1) ≤ -N. Shows exponent sum for rapid decay. -/
+private lemma neg_sum_le_neg_nat (N : ℕ) :
+    (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) ≤ -(N : ℤ) := by
+  have h1 : (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) = -(2 * N + 2 : ℤ) := by
+    calc (-(N + 1 : ℤ)) + (-(N + 1 : ℤ))
+        = -(N + 1) - (N + 1) := by exact Int.add_eq_sub_of_neg_right (Int.neg_add_eq_sub _ _).symm
+      _ = -(N + 1 + (N + 1)) := by exact Int.sub_eq_neg_add (N + 1) (N + 1)
+      _ = -(2 * N + 2) := by norm_num
+  rw [h1]
+  have h2 : (2 : ℤ) * N + 2 ≥ N := by
+    have : (0 : ℤ) ≤ N + 2 := by exact Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 2)
+    exact by norm_num
+  exact Int.neg_le_neg h2
+
+/-- Helper: N - (2N + 1) ≤ -N. Mixed exponent inequality. -/
+private lemma mixed_exp_le_neg_nat (N : ℕ) :
+    (N : ℤ) + (-(N + N + 1 : ℤ)) ≤ -(N : ℤ) := by
+  have h1 : (N : ℤ) + (-(N + N + 1 : ℤ)) = -(N + 1 : ℤ) := by norm_num
+  rw [h1]
+  have h2 : (N + 1 : ℤ) ≥ 0 := Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 1)
+  exact Int.neg_le_neg h2
+
+/-- Helper: K - (K + N + 1) ≤ -N. Polynomial degree exponent. -/
+private lemma poly_deg_exp_le_neg_nat (K N : ℕ) :
+    (K : ℤ) + (-(K + N + 1 : ℤ)) ≤ -(N : ℤ) := by
+  have h1 : (K : ℤ) + (-(K + N + 1 : ℤ)) = -(N + 1 : ℤ) := by norm_num
+  rw [h1]
+  have h2 : (N + 1 : ℤ) ≥ 0 := Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 1)
+  exact Int.neg_le_neg h2
+
 /-- Real power bookkeeping for multiplying two rapidly decaying faces. -/
 theorem rapidTimesRapidPower_le_requestedRapidPower
     (N : ℕ) (X : ℝ) (hX : 1 ≤ X) :
@@ -25,8 +55,8 @@ theorem rapidTimesRapidPower_le_requestedRapidPower
   have hX_ne_zero : X ≠ 0 :=
     ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
   have hexp :
-      (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) ≤ -(N : ℤ) := by
-    omega
+      (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) ≤ -(N : ℤ) :=
+    neg_sum_le_neg_nat N
   have hcombine :
       X ^ (-(N + 1 : ℤ)) * X ^ (-(N + 1 : ℤ)) =
         X ^ ((-(N + 1 : ℤ)) + (-(N + 1 : ℤ))) := by
@@ -48,8 +78,8 @@ theorem polynomialTimesRapidPower_le_requestedRapidPower
   have hX_ne_zero : X ≠ 0 :=
     ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
   have hexp :
-      (N : ℤ) + (-(N + N + 1 : ℤ)) ≤ -(N : ℤ) := by
-    omega
+      (N : ℤ) + (-(N + N + 1 : ℤ)) ≤ -(N : ℤ) :=
+    mixed_exp_le_neg_nat N
   have hnat :
       X ^ N = X ^ (N : ℤ) := by
     exact (zpow_natCast X N).symm
@@ -82,8 +112,8 @@ theorem polynomialDegreeTimesRapidPower_le_requestedRapidPower
   have hX_ne_zero : X ≠ 0 :=
     ne_of_gt (lt_of_lt_of_le zero_lt_one hX)
   have hexp :
-      (K : ℤ) + (-(K + N + 1 : ℤ)) ≤ -(N : ℤ) := by
-    omega
+      (K : ℤ) + (-(K + N + 1 : ℤ)) ≤ -(N : ℤ) :=
+    poly_deg_exp_le_neg_nat K N
   have hnat :
       X ^ K = X ^ (K : ℤ) := by
     exact (zpow_natCast X K).symm
