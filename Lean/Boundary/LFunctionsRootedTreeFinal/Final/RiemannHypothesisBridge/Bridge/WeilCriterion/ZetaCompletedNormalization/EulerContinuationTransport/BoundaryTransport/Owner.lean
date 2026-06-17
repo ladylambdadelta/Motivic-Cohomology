@@ -75,11 +75,16 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
     have hleft_le : 1 + ‖w‖ ≤ 1 + (1 + ‖z‖) :=
       add_le_add_left hw_norm_le 1
     have htwoH_le_Hsq : 1 + (1 + ‖z‖) ≤ H ^ (2 : ℕ) := by
+      have hH_ge_two : 2 ≤ H := by
+        have : 1 ≤ ‖z.im‖ := hz_im
+        have : 2 ≤ 1 + ‖z.im‖ := by exact Nat.add_one_le_iff.mpr this
+        calc (2 : ℝ) ≤ 1 + ‖z.im‖ := this
+          _ ≤ 1 + ‖z‖ := add_le_add_left (Complex.abs_im_le_abs z) 1
+          _ = H := rfl
       calc
         1 + (1 + ‖z‖) = 1 + H := rfl
-        _ ≤ H * H := by
-          nlinarith [hH_ge_one]
-        _ = H ^ (2 : ℕ) := by ring
+        _ ≤ H ^ 2 := by exact one_add_le_sq_of_two_le hH_ge_two
+        _ = H ^ (2 : ℕ) := rfl
     exact le_trans hleft_le htwoH_le_Hsq
   have hpow_le : (1 + ‖w‖) ^ m ≤ (1 + ‖z‖) ^ (2 * m) := by
     have hleft_nonneg : 0 ≤ 1 + ‖w‖ :=
