@@ -21,6 +21,49 @@ open MeasureTheory
 
 notation:max "[[" a "," b "]]" => Set.Icc a b
 
+/-- Helper: Real part of complex exponential in cap-collar domain. -/
+private lemma capCollar_exp_re (N : ℕ) (ρ θ : ℝ) :
+    ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).re =
+      ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ := by
+  have h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re = ρ * Real.cos θ := by
+    calc ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re
+        = (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).re -
+          (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).im := Complex.mul_re _ _
+      _ = ρ * (Complex.exp (Complex.I * θ)).re := by
+        simp [Complex.ofReal_re, Complex.ofReal_im]
+      _ = ρ * Real.cos θ := by
+        simp [Complex.exp_mul_I_re]
+  calc ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).re
+      = (↑(N + 1 : ℕ) : ℂ).re + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).re := Complex.add_re _ _
+    _ = ((N + 1 : ℕ) : ℝ) + ρ * Real.cos θ := by
+      simp [Complex.ofReal_re]; rw [h1]
+
+/-- Helper: Imaginary part of complex exponential in cap-collar domain. -/
+private lemma capCollar_exp_im (N : ℕ) (ρ θ : ℝ) :
+    ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).im =
+      ρ * Real.sin θ := by
+  have h1 : ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im = ρ * Real.sin θ := by
+    calc ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im
+        = (ρ : ℂ).re * (Complex.exp (Complex.I * θ)).im +
+          (ρ : ℂ).im * (Complex.exp (Complex.I * θ)).re := Complex.mul_im _ _
+      _ = ρ * (Complex.exp (Complex.I * θ)).im := by
+        simp [Complex.ofReal_re, Complex.ofReal_im]
+      _ = ρ * Real.sin θ := by
+        simp [Complex.exp_mul_I_im]
+  calc ((↑(N + 1 : ℕ) : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * θ)).im
+      = (↑(N + 1 : ℕ) : ℂ).im + ((ρ : ℂ) * Complex.exp (Complex.I * θ)).im := Complex.add_im _ _
+    _ = ρ * Real.sin θ := by
+      simp [Complex.ofReal_im]; rw [h1]
+
+/-- Helper: Imaginary part of complex number plus pure imaginary. -/
+private lemma capCollar_im_pure (N : ℕ) (y : ℝ) :
+    ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).im = y := by
+  have h1 : (Complex.I * (y : ℂ)).im = y := Complex.I_mul_im y
+  calc ((↑(N + 1 : ℕ) : ℂ) + Complex.I * (y : ℂ)).im
+      = (↑(N + 1 : ℕ) : ℂ).im + (Complex.I * (y : ℂ)).im := Complex.add_im _ _
+    _ = 0 + y := by simp [Complex.ofReal_im]; rw [h1]
+    _ = y := zero_add y
+
 def Complex.finiteAbelPlanaLogRightEndpointCapCollarPuncturedDomain
     (N : ℕ)
     (T ρ : ℝ) : Set ℂ :=
@@ -211,10 +254,14 @@ theorem Complex.finiteAbelPlanaLogRightEndpointSemicirclePoint_mem_capCollar
   have hρnonneg : 0 ≤ ρ := le_of_lt hρ
   have hre :
       ((((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).re)) =
-        ((M : ℝ) + ρ * Real.cos θ) := by unfold M; ring_nf
+        ((M : ℝ) + ρ * Real.cos θ) := by
+    unfold M
+    exact capCollar_exp_re (N + 1) ρ θ
   have him :
       ((((M : ℂ) + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))).im)) =
-        ρ * Real.sin θ := by unfold M; ring_nf
+        ρ * Real.sin θ := by
+    unfold M
+    exact capCollar_exp_im (N + 1) ρ θ
   have hcos_nonpos : Real.cos θ ≤ 0 :=
     Real.cos_nonpos_of_pi_div_two_le_of_le hθ.1 hθ.2
   have hcos_ge_neg_one : -1 ≤ Real.cos θ :=
@@ -317,7 +364,9 @@ theorem Complex.finiteAbelPlanaLogRightEndpointPVVerticalPoint_mem_capCollar
       have hy_uIcc : y ∈ [[-T, T]] :=
         Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
           (And.intro hyIcc.1 hleT)
-      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by unfold M; ring_nf
+      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by
+        unfold M
+        exact capCollar_im_pure (N + 1) y
       exact Real.endpoint_mem_uIcc_congr him hy_uIcc
     · have horder : ρ ≤ T := hy.1
       have hyIcc : y ∈ Set.Icc ρ T :=
@@ -327,7 +376,9 @@ theorem Complex.finiteAbelPlanaLogRightEndpointPVVerticalPoint_mem_capCollar
       have hy_uIcc : y ∈ [[-T, T]] :=
         Real.endpoint_mem_uIcc_of_bounds (neg_le_self hT.le)
           (And.intro hge_negT hyIcc.2)
-      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by unfold M; ring_nf
+      have him : (((M : ℂ) + Complex.I * (y : ℂ)).im) = y := by
+        unfold M
+        exact capCollar_im_pure (N + 1) y
       exact Real.endpoint_mem_uIcc_congr him hy_uIcc
   have hnot_ball :
       (((M : ℂ) + Complex.I * (y : ℂ))) ∉
