@@ -644,6 +644,24 @@ theorem Complex.leftEndpointSafeVerticalIntegral_split_three
           (∫ y : ℝ in (-ρ)..ρ, f ((ρ : ℂ) + Complex.I * (y : ℂ))) +
             ∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ)) := rfl
 
+/-- Collect the three oriented group integrals (two rectangular, one deleted
+disk) into the single left endpoint cap/collar boundary expression, cancelling
+the two interior chords and grouping the safe and principal-value terms. -/
+theorem Complex.leftEndpointCapCollarBoundary_collect
+    (lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
+      pvLower pvUpper arc : ℂ) :
+    (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
+        (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
+        (lowerChord - upperChord + Complex.I * safeMiddle - arc) =
+      lowerT - upperT + Complex.I * (safeLower + safeMiddle + safeUpper) -
+        Complex.I * (pvLower + pvUpper) - arc :=
+  let hgen :=
+    add_collect_caps lowerT upperT (Complex.I * safeLower) (Complex.I * safeUpper)
+      (Complex.I * safeMiddle) (Complex.I * pvLower) (Complex.I * pvUpper) arc
+      lowerChord upperChord
+  (Complex.boundaryGroupIPvTerms pvLower pvUpper) ▸
+    (Complex.boundaryGroupISafeTerms safeLower safeMiddle safeUpper) ▸ hgen
+
 /-- Complex-linear algebra assembling the two rectangular endpoint identities
 and the deleted-disk collar identity into the full left endpoint cap/collar boundary
 identity. -/
@@ -663,13 +681,16 @@ theorem Complex.leftEndpointCapCollarBoundary_algebra
   let hsum : (lowerT - lowerChord + Complex.I * safeLower - Complex.I * pvLower) +
       (upperChord - upperT + Complex.I * safeUpper - Complex.I * pvUpper) +
         (lowerChord - upperChord + Complex.I * safeMiddle - arc) = 0 :=
-    congrArg₂ (fun firstTwo third : ℂ => firstTwo + third)
-      (congrArg₂ (fun first second : ℂ => first + second) hlower hupper) hhalf
+    Eq.trans (congrArg₂ (· + ·) (congrArg₂ (· + ·) hlower hupper) hhalf)
+      (Eq.trans (congrArg (· + (0 : ℂ)) (add_zero (0 : ℂ))) (add_zero (0 : ℂ)))
   let hcollected :=
-    (Complex.leftEndpointCapCollarBoundary_collect
+    Complex.leftEndpointCapCollarBoundary_collect
       lowerT upperT lowerChord upperChord safeLower safeMiddle safeUpper
-      pvLower pvUpper arc).symm
-  hsafe ▸ hcollected ▸ hsum
+      pvLower pvUpper arc
+  let hzero : lowerT - upperT + Complex.I * (safeLower + safeMiddle + safeUpper) -
+      Complex.I * (pvLower + pvUpper) - arc = 0 :=
+    hcollected ▸ hsum
+  hsafe.symm ▸ hzero
 
 /-- Generic oriented boundary integral of a left endpoint cap/collar.
 
@@ -709,16 +730,18 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
         (Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ)) :
     Complex.leftEndpointCapCollarOrientedBoundaryIntegral f T ρ = 0 :=
   let g : ℝ → ℂ := fun y : ℝ => f ((ρ : ℂ) + Complex.I * (y : ℂ))
-  let hsafe_integrable : ∀ a b : ℝ,
+  let hsafe_integrable : ∀ a b : ℝ, a ≤ b →
         (∀ y ∈ [[a, b]], y ∈ [[-T, T]]) →
-          IntervalIntegrable g volume a b := fun a b hinterval_subset =>
+          IntervalIntegrable g volume a b := fun a b hab hinterval_subset =>
     let hpath_cont :=
       (continuous_const.add (continuous_const.mul Complex.continuous_ofReal)).continuousOn
     let hpath_mem : ∀ y ∈ [[a, b]],
           ((ρ : ℂ) + Complex.I * (y : ℂ)) ∈
             Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun y hy =>
       Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar hρ (hinterval_subset y hy)
-    (hcont.comp_continuousOn hpath_cont hpath_mem).intervalIntegrable
+    let hcg : ContinuousOn g (Set.Icc a b) := hcont.comp hpath_cont hpath_mem
+    let hcg_uIcc : ContinuousOn g (Set.uIcc a b) := (Set.uIcc_of_le hab).symm ▸ hcg
+    hcg_uIcc.intervalIntegrable
   let hlower_interval :=
     Real.endpoint_lower_interval_subset_height hT hρ hρT
   let hmiddle_interval :=
@@ -728,9 +751,9 @@ theorem Complex.leftEndpointCapCollarOrientedBoundaryIntegral_eq_zero
   let hsafe_split :=
     Complex.leftEndpointSafeVerticalIntegral_split_three
       f T ρ
-      (hsafe_integrable (-T) (-ρ) hlower_interval)
-      (hsafe_integrable (-ρ) ρ hmiddle_interval)
-      (hsafe_integrable ρ T hupper_interval)
+      (hsafe_integrable (-T) (-ρ) (neg_le_neg hρT.le) hlower_interval)
+      (hsafe_integrable (-ρ) ρ (neg_le_self hρ.le) hmiddle_interval)
+      (hsafe_integrable ρ T hρT.le hupper_interval)
   let hlower_zero :=
     Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
       f T hT hρ hρT hcont hdiff

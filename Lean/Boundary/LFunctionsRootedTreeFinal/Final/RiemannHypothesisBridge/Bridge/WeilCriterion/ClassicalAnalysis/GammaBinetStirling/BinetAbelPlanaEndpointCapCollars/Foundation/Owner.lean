@@ -93,6 +93,169 @@ theorem add_sub_flat {α : Type*} [AddCommGroup α] (a b c : α) : a + (b - c) =
   Eq.trans (congrArg (a + ·) (sub_eq_add_neg b c))
     (Eq.trans (add_assoc a b (-c)).symm (sub_eq_add_neg (a + b) c).symm)
 
+/-- Cancel a subtracted term by re-adding it: `a - b + b = a`. -/
+theorem sub_add_cancel_self {α : Type*} [AddCommGroup α] (a b : α) : a - b + b = a :=
+  Eq.trans (congrArg (· + b) (sub_eq_add_neg a b))
+    (Eq.trans (add_assoc a (-b) b)
+      (Eq.trans (congrArg (a + ·) (neg_add_cancel b)) (add_zero a)))
+
+/-- Generic eight-term reordering used to bring a flattened cap/collar sum into
+its canonical oriented-boundary order.  Pure `add_swap_middle` bubbling. -/
+theorem add_eight_to_canon {α : Type*} [AddCommGroup α]
+    (p1 p2 p3 p4 p5 p6 p7 p8 : α) :
+    p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 =
+      p1 + p6 + p2 + p4 + p7 + p3 + p8 + p5 :=
+  let sA := congrArg (fun w => w + p7 + p8) (add_swap_middle (p1 + p2 + p3 + p4) p5 p6)
+  let sB := congrArg (fun w => w + p5 + p7 + p8) (add_swap_middle (p1 + p2 + p3) p4 p6)
+  let sC := congrArg (fun w => w + p4 + p5 + p7 + p8) (add_swap_middle (p1 + p2) p3 p6)
+  let sD := congrArg (fun w => w + p3 + p4 + p5 + p7 + p8) (add_swap_middle p1 p2 p6)
+  let sE := congrArg (fun w => w + p5 + p7 + p8) (add_swap_middle (p1 + p6 + p2) p3 p4)
+  let sF := congrArg (fun w => w + p8) (add_swap_middle (p1 + p6 + p2 + p4 + p3) p5 p7)
+  let sG := congrArg (fun w => w + p5 + p8) (add_swap_middle (p1 + p6 + p2 + p4) p3 p7)
+  let sH := add_swap_middle (p1 + p6 + p2 + p4 + p7 + p3) p5 p8
+  Eq.trans sA (Eq.trans sB (Eq.trans sC (Eq.trans sD
+    (Eq.trans sE (Eq.trans sF (Eq.trans sG sH))))))
+
+/-- Generic cap/collar boundary collection: the two rectangular groups and the
+deleted-disk group, with the two chords `l` and `c` cancelling, collapse to the
+single oriented-boundary expression.  This is pure `AddCommGroup` rearrangement
+and is shared by the left and right endpoint collars. -/
+theorem add_collect_caps {α : Type*} [AddCommGroup α]
+    (t u x₁ x₂ x₃ y₁ y₂ a l c : α) :
+    (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c + x₃ - a) =
+      t - u + (x₁ + x₃ + x₂) - (y₁ + y₂) - a :=
+  -- Normalise both sides to the flat all-`neg` canonical form
+  --   t + -u + x₁ + x₃ + x₂ + -y₁ + -y₂ + -a.
+  let canon : α := t + -u + x₁ + x₃ + x₂ + -y₁ + -y₂ + -a
+  -- RHS = canon.
+  let hRHS : t - u + (x₁ + x₃ + x₂) - (y₁ + y₂) - a = canon :=
+    let r1 : t - u + (x₁ + x₃ + x₂) - (y₁ + y₂) - a
+          = t - u + (x₁ + x₃ + x₂) + (-(y₁ + y₂)) - a :=
+      congrArg (· - a) (sub_eq_add_neg (t - u + (x₁ + x₃ + x₂)) (y₁ + y₂))
+    let r2 : t - u + (x₁ + x₃ + x₂) + (-(y₁ + y₂)) - a
+          = t - u + (x₁ + x₃ + x₂) + (-(y₁ + y₂)) + (-a) :=
+      sub_eq_add_neg (t - u + (x₁ + x₃ + x₂) + (-(y₁ + y₂))) a
+    let r3 : t - u + (x₁ + x₃ + x₂) + (-(y₁ + y₂)) + (-a)
+          = t - u + (x₁ + x₃ + x₂) + (-y₁ + -y₂) + (-a) :=
+      congrArg (fun w => t - u + (x₁ + x₃ + x₂) + w + (-a)) (neg_add y₁ y₂)
+    -- expand the `x` sum and the `t - u`
+    let r4 : t - u + (x₁ + x₃ + x₂) + (-y₁ + -y₂) + (-a)
+          = (t + -u) + (x₁ + x₃ + x₂) + (-y₁ + -y₂) + (-a) :=
+      congrArg (fun w => w + (x₁ + x₃ + x₂) + (-y₁ + -y₂) + (-a)) (sub_eq_add_neg t u)
+    let r5 : (t + -u) + (x₁ + x₃ + x₂) + (-y₁ + -y₂) + (-a)
+          = (t + -u) + (x₁ + x₃) + x₂ + (-y₁ + -y₂) + (-a) :=
+      congrArg (fun w => w + (-y₁ + -y₂) + (-a)) (add_assoc (t + -u) (x₁ + x₃) x₂).symm
+    let r6 : (t + -u) + (x₁ + x₃) + x₂ + (-y₁ + -y₂) + (-a)
+          = (t + -u) + x₁ + x₃ + x₂ + (-y₁ + -y₂) + (-a) :=
+      congrArg (fun w => w + x₂ + (-y₁ + -y₂) + (-a)) (add_assoc (t + -u) x₁ x₃).symm
+    let r7 : (t + -u) + x₁ + x₃ + x₂ + (-y₁ + -y₂) + (-a)
+          = (t + -u) + x₁ + x₃ + x₂ + -y₁ + -y₂ + (-a) :=
+      congrArg (· + (-a)) (add_assoc ((t + -u) + x₁ + x₃ + x₂) (-y₁) (-y₂)).symm
+    Eq.trans r1 (Eq.trans r2 (Eq.trans r3 (Eq.trans r4 (Eq.trans r5 (Eq.trans r6 r7)))))
+  -- LHS = canon.
+  let hLHS : (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c + x₃ - a) = canon :=
+    -- swap the two trailing groups so the chord `l` meets `-l`
+    let s0 : (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c + x₃ - a)
+          = (t - l + x₁ - y₁) + (l - c + x₃ - a) + (c - u + x₂ - y₂) :=
+      add_swap_middle (t - l + x₁ - y₁) (c - u + x₂ - y₂) (l - c + x₃ - a)
+    -- flatten `P + (l - c + x₃ - a)` and cancel `l`
+    let P : α := t - l + x₁ - y₁
+    let R : α := c - u + x₂ - y₂
+    -- P + (l - c + x₃ - a) = P + l - c + x₃ - a
+    let f1 : P + (l - c + x₃ - a) = P + l - c + x₃ - a :=
+      let a1 : P + (l - c + x₃ - a) = P + (l - c + x₃) - a :=
+        add_sub_flat P (l - c + x₃) a
+      let a2 : P + (l - c + x₃) - a = (P + (l - c)) + x₃ - a :=
+        congrArg (· - a) (add_assoc P (l - c) x₃).symm
+      let a3 : (P + (l - c)) + x₃ - a = (P + l - c) + x₃ - a :=
+        congrArg (fun w => w + x₃ - a) (add_sub_flat P l c)
+      Eq.trans a1 (Eq.trans a2 a3)
+    -- P + l = t + x₁ - y₁  (the `-l` cancels)
+    let hPl : P + l = t + x₁ - y₁ :=
+      let b0 : P + l = ((t - l) + x₁ + (-y₁)) + l :=
+        congrArg (· + l) (sub_eq_add_neg ((t - l) + x₁) y₁)
+      let b1 : ((t - l) + x₁ + (-y₁)) + l = ((t - l) + x₁ + l) + (-y₁) :=
+        add_swap_middle ((t - l) + x₁) (-y₁) l
+      let b2 : ((t - l) + x₁ + l) + (-y₁) = ((t - l) + l + x₁) + (-y₁) :=
+        congrArg (· + (-y₁)) (add_swap_middle (t - l) x₁ l)
+      let b3 : ((t - l) + l + x₁) + (-y₁) = (t + x₁) + (-y₁) :=
+        congrArg (fun w => w + x₁ + (-y₁)) (sub_add_cancel_self t l)
+      let b4 : (t + x₁) + (-y₁) = t + x₁ - y₁ := (sub_eq_add_neg (t + x₁) y₁).symm
+      Eq.trans b0 (Eq.trans b1 (Eq.trans b2 (Eq.trans b3 b4)))
+    -- assemble: P + l - c + x₃ - a = (t + x₁ - y₁) - c + x₃ - a
+    let f2 : P + l - c + x₃ - a = (t + x₁ - y₁) - c + x₃ - a :=
+      congrArg (fun w => w - c + x₃ - a) hPl
+    let hPR : P + (l - c + x₃ - a) = (t + x₁ - y₁) - c + x₃ - a := Eq.trans f1 f2
+    -- now add R and cancel `c`
+    let s1 : (t - l + x₁ - y₁) + (l - c + x₃ - a) + (c - u + x₂ - y₂)
+          = ((t + x₁ - y₁) - c + x₃ - a) + (c - u + x₂ - y₂) :=
+      congrArg (· + R) hPR
+    -- D := (t + x₁ - y₁) - c + x₃ - a ; flatten D + R and cancel c
+    let D : α := (t + x₁ - y₁) - c + x₃ - a
+    -- D + (c - u + x₂ - y₂) = D + c - u + x₂ - y₂
+    let g1 : D + (c - u + x₂ - y₂) = D + c - u + x₂ - y₂ :=
+      let c1 : D + (c - u + x₂ - y₂) = D + (c - u + x₂) - y₂ :=
+        add_sub_flat D (c - u + x₂) y₂
+      let c2 : D + (c - u + x₂) - y₂ = (D + (c - u)) + x₂ - y₂ :=
+        congrArg (· - y₂) (add_assoc D (c - u) x₂).symm
+      let c3 : (D + (c - u)) + x₂ - y₂ = (D + c - u) + x₂ - y₂ :=
+        congrArg (fun w => w + x₂ - y₂) (add_sub_flat D c u)
+      Eq.trans c1 (Eq.trans c2 c3)
+    -- D + c = t + x₁ - y₁ + x₃ - a  (the `-c` cancels)
+    let hDc : D + c = t + x₁ - y₁ + x₃ - a :=
+      -- D = ((t + x₁ - y₁) - c + x₃) - a
+      let d0 : D + c = (((t + x₁ - y₁) - c + x₃) + (-a)) + c :=
+        congrArg (· + c) (sub_eq_add_neg ((t + x₁ - y₁) - c + x₃) a)
+      let d1 : (((t + x₁ - y₁) - c + x₃) + (-a)) + c
+            = (((t + x₁ - y₁) - c + x₃) + c) + (-a) :=
+        add_swap_middle ((t + x₁ - y₁) - c + x₃) (-a) c
+      let d2 : (((t + x₁ - y₁) - c + x₃) + c) + (-a)
+            = (((t + x₁ - y₁) - c) + c + x₃) + (-a) :=
+        congrArg (· + (-a)) (add_swap_middle ((t + x₁ - y₁) - c) x₃ c)
+      let d3 : (((t + x₁ - y₁) - c) + c + x₃) + (-a)
+            = ((t + x₁ - y₁) + x₃) + (-a) :=
+        congrArg (fun w => w + x₃ + (-a)) (sub_add_cancel_self (t + x₁ - y₁) c)
+      let d4 : ((t + x₁ - y₁) + x₃) + (-a) = t + x₁ - y₁ + x₃ - a :=
+        (sub_eq_add_neg ((t + x₁ - y₁) + x₃) a).symm
+      Eq.trans d0 (Eq.trans d1 (Eq.trans d2 (Eq.trans d3 d4)))
+    let g2 : D + c - u + x₂ - y₂ = (t + x₁ - y₁ + x₃ - a) - u + x₂ - y₂ :=
+      congrArg (fun w => w - u + x₂ - y₂) hDc
+    let hDR : D + (c - u + x₂ - y₂) = (t + x₁ - y₁ + x₃ - a) - u + x₂ - y₂ :=
+      Eq.trans g1 g2
+    -- E := (t + x₁ - y₁ + x₃ - a) - u + x₂ - y₂ ; reorder to canon
+    let E : α := (t + x₁ - y₁ + x₃ - a) - u + x₂ - y₂
+    -- fully expand E into +neg flat form and reorder atoms to canon order
+    -- atoms of E (in order): t, x₁, -y₁, x₃, -a, -u, x₂, -y₂
+    -- canon order:            t, -u, x₁, x₃, x₂, -y₁, -y₂, -a
+    let hE : E = canon :=
+      -- expand all subtractions
+      let e1 : E = ((((((t + x₁ + (-y₁) + x₃ + (-a)) + (-u)) + x₂) + (-y₂))) ) :=
+        let p1 : (t + x₁ - y₁ + x₃ - a) = t + x₁ + (-y₁) + x₃ + (-a) :=
+          let q1 : t + x₁ - y₁ + x₃ - a = (t + x₁ - y₁ + x₃) + (-a) :=
+            sub_eq_add_neg (t + x₁ - y₁ + x₃) a
+          let q2 : (t + x₁ - y₁ + x₃) + (-a) = ((t + x₁ + (-y₁)) + x₃) + (-a) :=
+            congrArg (fun w => w + x₃ + (-a)) (sub_eq_add_neg (t + x₁) y₁)
+          Eq.trans q1 q2
+        let p2 : E = ((t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂ - y₂) :=
+          congrArg (fun w => w - u + x₂ - y₂) p1
+        let p3 : (t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂ - y₂
+              = (t + x₁ + (-y₁) + x₃ + (-a)) + (-u) + x₂ + (-y₂) :=
+          let w1 : (t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂ - y₂
+                = (t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂ + (-y₂) :=
+            sub_eq_add_neg ((t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂) y₂
+          let w2 : (t + x₁ + (-y₁) + x₃ + (-a)) - u + x₂ + (-y₂)
+                = (t + x₁ + (-y₁) + x₃ + (-a)) + (-u) + x₂ + (-y₂) :=
+            congrArg (fun w => w + x₂ + (-y₂)) (sub_eq_add_neg (t + x₁ + (-y₁) + x₃ + (-a)) u)
+          Eq.trans w1 w2
+        Eq.trans p2 p3
+      -- Now E = t + x₁ + -y₁ + x₃ + -a + -u + x₂ + -y₂  (left assoc, 8 atoms)
+      -- reorder to canon = t + -u + x₁ + x₃ + x₂ + -y₁ + -y₂ + -a
+      -- use add_eight_rearrange (proved below)
+      Eq.trans e1
+        (add_eight_to_canon t x₁ (-y₁) x₃ (-a) (-u) x₂ (-y₂))
+    Eq.trans s0 (Eq.trans s1 (Eq.trans hDR hE))
+  Eq.trans hLHS hRHS.symm
+
 /-! ## Complex-Specific Lemmas -/
 
 /-- Left distributivity two-term. -/
