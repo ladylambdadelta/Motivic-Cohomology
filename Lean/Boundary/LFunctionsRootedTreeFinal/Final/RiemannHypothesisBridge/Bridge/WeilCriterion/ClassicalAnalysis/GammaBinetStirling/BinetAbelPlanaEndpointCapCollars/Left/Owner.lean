@@ -569,32 +569,6 @@ theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
     (Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
       f z₀ z₁ Hc (hdiff.mono hsubD))
 
-/-- Transport the generic rectangular Cauchy-Goursat boundary to the upper
-left endpoint cap coordinates. -/
-theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
-    (f : ℂ → ℂ)
-    (T : ℝ)
-    {ρ : ℝ}
-    (z₀ z₁ : ℂ)
-    (hz₀ : z₀ = Complex.I * (ρ : ℂ))
-    (hz₁ : z₁ = (ρ : ℂ) + Complex.I * (T : ℂ))
-    (hrect :
-      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
-          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
-            Complex.I •
-              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
-              Complex.I •
-                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
-        0) :
-    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (ρ : ℂ))) -
-        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) + Complex.I * (T : ℂ))) +
-          Complex.I *
-            (∫ y : ℝ in ρ..T, f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
-            Complex.I *
-              (∫ y : ℝ in ρ..T, f (Complex.I * (y : ℂ))) =
-      0 :=
-  hz₀ ▸ hz₁ ▸ hrect
-
 /-- Cauchy-Goursat on the upper ordinary rectangle in the left endpoint cap. -/
 theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
     (f : ℂ → ℂ)
@@ -617,19 +591,65 @@ theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
       0 :=
   let z₀ : ℂ := Complex.I * (ρ : ℂ)
   let z₁ : ℂ := (ρ : ℂ) + Complex.I * (T : ℂ)
+  let hz0re : z₀.re = (0 : ℂ).re := Eq.trans (I_mul_ofReal_re ρ) Complex.zero_re.symm
+  let hz0im : z₀.im = ρ := I_mul_ofReal_im ρ
+  let hz1re : z₁.re = ((ρ : ℂ) + Complex.I * (ρ : ℂ)).re :=
+    Eq.trans (ofReal_add_I_mul_re ρ T) (ofReal_add_I_mul_re ρ ρ).symm
+  let hz1im : z₁.im = T := ofReal_add_I_mul_im ρ T
+  let hzre : z₀.re ≤ z₁.re :=
+    (I_mul_ofReal_re ρ).le.trans (hρ.le.trans (ofReal_add_I_mul_re ρ T).ge)
+  let hzim : z₀.im ≤ z₁.im :=
+    (I_mul_ofReal_im ρ).le.trans (hρT.le.trans (ofReal_add_I_mul_im ρ T).ge)
   let hclosed := Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar hρ hρT
-  let hopen : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
+  let hReEq : Set.uIcc z₀.re z₁.re = Set.Icc ((0 : ℂ).re) (((ρ : ℂ) + Complex.I * (ρ : ℂ)).re) :=
+    Eq.trans (Set.uIcc_of_le hzre) (congrArg₂ Set.Icc hz0re hz1re)
+  let hImEq : Set.uIcc z₀.im z₁.im = Set.Icc ρ T :=
+    Eq.trans (Set.uIcc_of_le hzim) (congrArg₂ Set.Icc hz0im hz1im)
+  let Hc : ContinuousOn f (Set.uIcc z₀.re z₁.re ×ℂ Set.uIcc z₀.im z₁.im) :=
+    (congrArg₂ (· ×ℂ ·) hReEq hImEq).symm ▸ hcont.mono hclosed
+  let hsubD : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
       Set.Ioo (min z₀.im z₁.im) (max z₀.im z₁.im)) ⊆
-    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun z hz =>
-    let hzdata := Complex.mem_reProdIm.mp hz
-    hclosed (Complex.mem_reProdIm.mpr ⟨Set.Ioo_subset_Icc_self hzdata.1,
-      Set.Ioo_subset_Icc_self hzdata.2⟩)
-  let hcontinuous_closed := hcont.mono hclosed
-  let hdifferentiable_open := hdiff.mono hopen
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+    fun z hz =>
+      let hzd := Complex.mem_reProdIm.mp hz
+      let h1 := Set.mem_Ioo.mp hzd.1
+      let h2 := Set.mem_Ioo.mp hzd.2
+      let hre : z.re ∈ Set.Icc ((0 : ℂ).re) (((ρ : ℂ) + Complex.I * (ρ : ℂ)).re) :=
+        Set.mem_Icc.mpr
+          ⟨hz0re.symm.trans_le ((min_eq_left hzre).symm.trans_le (le_of_lt h1.1)),
+            (le_of_lt h1.2).trans_eq ((max_eq_right hzre).trans hz1re)⟩
+      let him : z.im ∈ Set.Icc ρ T :=
+        Set.mem_Icc.mpr
+          ⟨hz0im.symm.trans_le ((min_eq_left hzim).symm.trans_le (le_of_lt h2.1)),
+            (le_of_lt h2.2).trans_eq ((max_eq_right hzim).trans hz1im)⟩
+      hclosed (Complex.mem_reProdIm.mpr ⟨hre, him⟩)
   let hcauchy := Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
-    f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  Complex.leftEndpointUpperRectangleBoundaryIntegral_of_rectBoundary
-    f T z₀ z₁ rfl rfl hcauchy
+    f z₀ z₁ Hc (hdiff.mono hsubD)
+  let hIA := intervalIntegral_congr3
+    (Eq.trans (left_upper_integrand f ρ).symm
+      (congrArg (fun v : ℝ => fun x : ℝ => f ((x : ℂ) + ((v : ℝ) : ℂ) * Complex.I))
+        (I_mul_ofReal_im ρ).symm))
+    (I_mul_ofReal_re ρ).symm (ofReal_add_I_mul_re ρ T).symm
+  let hIB := intervalIntegral_congr3
+    (Eq.trans (left_upper_integrand f T).symm
+      (congrArg (fun v : ℝ => fun x : ℝ => f ((x : ℂ) + ((v : ℝ) : ℂ) * Complex.I))
+        (ofReal_add_I_mul_im ρ T).symm))
+    (I_mul_ofReal_re ρ).symm (ofReal_add_I_mul_re ρ T).symm
+  let hIC := intervalIntegral_congr3
+    (Eq.trans (left_vert_integrand f ρ).symm
+      (congrArg (fun v : ℝ => fun y : ℝ => f (((v : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+        (ofReal_add_I_mul_re ρ T).symm))
+    (I_mul_ofReal_im ρ).symm (ofReal_add_I_mul_im ρ T).symm
+  let hID := intervalIntegral_congr3
+    (Eq.trans (left_pv_integrand f).symm
+      (congrArg (fun v : ℝ => fun y : ℝ => f (((v : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+        (I_mul_ofReal_re ρ).symm))
+    (I_mul_ofReal_im ρ).symm (ofReal_add_I_mul_im ρ T).symm
+  Eq.trans
+    (congrArg₂ (· - ·)
+      (congrArg₂ (· + ·) (congrArg₂ (· - ·) hIA hIB) (congrArg (HMul.hMul Complex.I) hIC))
+      (congrArg (HMul.hMul Complex.I) hID))
+    hcauchy
 
 /-- Transport the right-half deleted-disk model boundary to the left endpoint
 half-collar coordinates. -/
