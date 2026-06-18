@@ -721,9 +721,10 @@ theorem Real.endpoint_radius_sub_one_le_neg_radius_of_lt_half
     Real.endpoint_two_radius_le_one_of_lt_half hρ
   let hle_sub : ρ ≤ 1 - ρ :=
     le_sub_iff_add_le.mpr hdouble
+  let hle_conv : 1 - ρ = -ρ + 1 :=
+    (sub_eq_add_neg 1 ρ).trans (add_comm 1 (-ρ))
   let hle_add : ρ ≤ -ρ + 1 :=
-    Eq.trans hle_sub
-      (Eq.trans (sub_eq_add_neg 1 ρ) (add_comm 1 (-ρ)))
+    hle_sub.trans (hle_conv ▸ le_refl _)
   sub_le_iff_le_add.mpr hle_add
 
 /-- Left endpoint collar separation from a nonzero integer center. -/
@@ -740,8 +741,7 @@ theorem Real.endpoint_left_re_sub_integer_le_neg_radius
 theorem Real.endpoint_add_one_sub_radius_eq
     (M ρ : ℝ) :
     M + (1 - ρ) = (M + 1) - ρ :=
-  Eq.trans
-    (congrArg (fun x : ℝ => M + x) (sub_eq_add_neg 1 ρ))
+  Eq.trans (congrArg (M + ·) (sub_eq_add_neg 1 ρ))
     (Eq.trans (add_assoc M 1 (-ρ)) ((sub_eq_add_neg (M + 1) ρ).symm))
 
 /-- Right endpoint collar separation from the previous integer center. -/
@@ -754,15 +754,11 @@ theorem Real.endpoint_radius_le_successor_minus_radius_sub_nat
     Real.endpoint_two_radius_le_one_of_lt_half hρ
   let htarget : ρ ≤ 1 - ρ :=
     le_sub_iff_add_le.mpr hdouble
-  let hbase : ρ ≤ (((N : ℝ) + 1) - ρ) - (N : ℝ) :=
-    Eq.trans htarget
-      (Eq.trans
-        ((add_sub_cancel_left (N : ℝ) (1 - ρ)).symm)
-        (congrArg (fun x : ℝ => x - (N : ℝ))
-          (Real.endpoint_add_one_sub_radius_eq (N : ℝ) ρ)))
-  hbase.trans_eq
-    (congrArg (fun x : ℝ => (x - ρ) - (N : ℝ))
-      (Real.natCast_succ_eq N).symm)
+  let h1 : (N : ℝ) + (1 - ρ) - (N : ℝ) = 1 - ρ :=
+    add_sub_cancel (N : ℝ) (1 - ρ)
+  let h2 : (N : ℝ) + 1 = (N + 1 : ℕ : ℝ) :=
+    (Real.natCast_succ_eq N).symm
+  htarget.trans (h1.symm ▸ (congrArg (· - (N : ℝ)) h2) ▸ (Real.endpoint_add_one_sub_radius_eq (N : ℝ) ρ).symm ▸ le_refl _)
 
 /-- Endpoint-local transport from ordered closed-interval bounds to `uIcc`
 membership. -/
@@ -843,8 +839,10 @@ theorem Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im
     (hρ : ρ ≤ |z.im|) :
     z ∉ Metric.ball (0 : ℂ) ρ :=
   fun hball =>
-    let hdist : ‖z‖ < ρ :=
+    let hdist_raw : ‖z - 0‖ < ρ :=
       Complex.endpoint_norm_lt_of_mem_ball z (0 : ℂ) hball
+    let hdist : ‖z‖ < ρ :=
+      (sub_zero z) ▸ hdist_raw
     let him_norm : |z.im| ≤ ‖z‖ :=
       Complex.endpoint_abs_im_le_norm z
     not_lt_of_ge (hρ.trans him_norm) hdist
