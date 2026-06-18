@@ -982,7 +982,25 @@ theorem Complex.finiteAbelPlana_log_leftEndpointCapCollarOrientedBoundary_eq_gen
       Complex.leftEndpointCapCollarOrientedBoundaryIntegral
         (fun z : ℂ => Complex.finiteAbelPlanaLogRectangleIntegrand w z)
         T ρ :=
-  rfl
+  let hc : ((((0 : ℕ) : ℝ) + ρ : ℝ) : ℂ) = (ρ : ℂ) :=
+    congrArg (fun r : ℝ => (r : ℂ)) (Eq.trans (congrArg (· + ρ) Nat.cast_zero) (zero_add ρ))
+  let hStrip : Complex.finiteAbelPlanaLogVerticalStripLeftSide 0 w T ρ =
+      ∫ y : ℝ in (-T)..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w ((ρ : ℂ) + Complex.I * (y : ℂ)) :=
+    congrArg
+      (fun c : ℂ => ∫ y : ℝ in (-T)..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w (c + Complex.I * (y : ℂ))) hc
+  congrArg
+    (fun s : ℂ =>
+      Complex.finiteAbelPlanaLogLeftEndpointLowerCollar w T ρ -
+          Complex.finiteAbelPlanaLogLeftEndpointUpperCollar w T ρ +
+            Complex.I * s -
+              Complex.I * Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ρ -
+        ∫ θ : ℝ in (-(Real.pi / 2))..(Real.pi / 2),
+          Complex.finiteAbelPlanaLogRectangleIntegrand w
+              ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
+            (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+    hStrip
 
 /-- Solving the left endpoint oriented-boundary Cauchy equation gives the
 left endpoint half-collar balance. -/
