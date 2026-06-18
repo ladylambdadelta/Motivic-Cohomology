@@ -45,32 +45,15 @@ theorem add_swap_middle {α : Type*} [AddCommGroup α] (a b c : α) : a + b + c 
 This proof chains: move e past d, then past c, then past b. -/
 theorem add_six_rearrange {α : Type*} [AddCommGroup α] (a b c d e f : α) :
     a + b + c + d + e + f = a + e + c + b + d + f :=
-  let step1_de : d + e = e + d := add_comm d e
-  let step1 : a + b + c + d + e + f = a + b + c + e + d + f :=
-    let h1 : a + b + c + (d + e) + f = a + b + c + (e + d) + f := congrArg (fun x => a + b + c + x + f) step1_de
-    let h2 : a + b + c + d + e + f = a + b + c + (d + e) + f := rfl
-    Eq.trans h2 h1
-  let step2_bc : b + c = c + b := add_comm b c
-  let step2 : a + b + c + e + d + f = a + c + b + e + d + f :=
-    let h1 : a + (b + c) + e + d + f = a + (c + b) + e + d + f := congrArg (fun x => a + x + e + d + f) step2_bc
-    let h2 : a + b + c + e + d + f = a + (b + c) + e + d + f := rfl
-    Eq.trans h2 h1
-  let step3_cb : c + b = b + c := add_comm c b
-  let step3_be : b + e = e + b := add_comm b e
-  let step3 : a + c + b + e + d + f = a + e + c + b + d + f :=
-    let h1 : a + (c + b) + (e + d) + f = a + (e + b) + (c + d) + f :=
-      let cb_be : (c + b) + (e + d) = (e + b) + (c + d) :=
-        Eq.trans (add_assoc c b (e + d))
-          (Eq.trans (congrArg (c + ·) (add_assoc b e d))
-            (Eq.trans (congrArg (c + ·) (congrArg (b + ·) (add_comm e d)))
-              (Eq.trans (congrArg (c + ·) (add_assoc b d e).symm)
-                (Eq.trans (add_assoc c b d e).symm
-                  (Eq.trans (congrArg (· + (d + e)) (add_comm c b))
-                    (add_assoc b c d e))))))
-      congrArg (fun x => a + x + f) cb_be
-    let h2 : a + (c + b) + e + d + f = a + (c + b) + (e + d) + f := rfl
-    Eq.trans h2 h1
-  Eq.trans step1 (Eq.trans step2 step3)
+  let eq1 : a + b + c + d + e + f = a + b + c + e + d + f :=
+    congrArg (· + f) (add_swap_middle (a + b + c) d e)
+  let eq2 : a + b + c + e + d + f = a + b + e + c + d + f :=
+    congrArg (fun x => x + d + f) (add_swap_middle (a + b) c e)
+  let eq3 : a + b + e + c + d + f = a + e + b + c + d + f :=
+    congrArg (fun x => x + c + d + f) (add_swap_middle a b e)
+  let eq4 : a + e + b + c + d + f = a + e + c + b + d + f :=
+    congrArg (fun x => x + d + f) (add_swap_middle (a + e) b c)
+  Eq.trans eq1 (Eq.trans eq2 (Eq.trans eq3 eq4))
 
 /-- Distribution of multiplication over addition. -/
 theorem mul_add_dist_2 {α : Type*} [Ring α] (r a b : α) : r * a + r * b = r * (a + b) :=
@@ -86,15 +69,12 @@ theorem neg_add_dist {α : Type*} [AddCommGroup α] (a b : α) : (-a) + (-b) = -
 
 /-- Cancel outer terms: a + b + (-a) = b. -/
 theorem add_cancel_outer {α : Type*} [AddCommGroup α] (a b : α) : a + b + (-a) = b :=
-  let h1 : a + b + (-a) = a + (b + (-a)) := (add_assoc a b (-a)).symm
-  let h2 : b + (-a) = b - a := rfl
-  let h3 : a + (b - a) = a + (b + (-a)) := rfl
-  let h4 : a + (b + (-a)) = (a + b) + (-a) := add_assoc a b (-a)
-  let h5 : (a + b) + (-a) = b + (a + (-a)) :=
-    Eq.trans (add_comm (a + b) (-a)) (Eq.trans (add_assoc (-a) a b) (congrArg (· + b) (add_comm (-a) a)))
-  let h6 : a + (-a) = 0 := add_neg_cancel a
-  let h7 : b + 0 = b := add_zero b
-  Eq.trans h1 (Eq.trans h4 (Eq.trans h5 (Eq.trans (congrArg (· + b) h6) h7)))
+  let h1 : a + b + (-a) = a + (b + (-a)) := add_assoc a b (-a)
+  let h2 : a + (b + (-a)) = a + ((-a) + b) := congrArg (a + ·) (add_comm b (-a))
+  let h3 : a + ((-a) + b) = a + (-a) + b := (add_assoc a (-a) b).symm
+  let h4 : a + (-a) + b = (0 : α) + b := congrArg (· + b) (add_neg_cancel a)
+  let h5 : (0 : α) + b = b := zero_add b
+  Eq.trans h1 (Eq.trans h2 (Eq.trans h3 (Eq.trans h4 h5)))
 
 /-- Subtraction to negation. -/
 theorem sub_eq_neg {α : Type*} [AddCommGroup α] (a b : α) : a - b = a + (-b) :=
@@ -107,6 +87,11 @@ theorem neg_sum_two {α : Type*} [AddCommGroup α] (a b : α) : -(a + b) = -a + 
 /-- Cancel identity for three terms. -/
 theorem add_cancel_three {α : Type*} [AddCommGroup α] (a b : α) : a + b + (-a) = b :=
   add_cancel_outer a b
+
+/-- Flatten an addition over a subtraction: `a + (b - c) = a + b - c`. -/
+theorem add_sub_flat {α : Type*} [AddCommGroup α] (a b c : α) : a + (b - c) = a + b - c :=
+  Eq.trans (congrArg (a + ·) (sub_eq_add_neg b c))
+    (Eq.trans (add_assoc a b (-c)).symm (sub_eq_add_neg (a + b) c).symm)
 
 /-! ## Complex-Specific Lemmas -/
 
@@ -130,7 +115,7 @@ theorem Complex.boundaryGroupIPvTerms (p₁ p₂ : ℂ) :
 
 /-- Swap middle two. -/
 theorem Complex.add_swap_middle (a b c : ℂ) : a + b + c = a + c + b :=
-  add_swap_middle a b c
+  _root_.Boundary.LFunctions.add_swap_middle a b c
 
 /-- Six-term rearrange. -/
 theorem Complex.six_term_center_move (a b c d e f : ℂ) : a + b + c + d + e + f = a + e + c + b + d + f :=
@@ -146,14 +131,12 @@ theorem Complex.add_chords_cancel (u l : ℂ) : u + l + (-u) = l :=
 
 /-- Helper: A + (B - A) = B. -/
 theorem add_sub_self {α : Type*} [AddCommGroup α] (A B : α) : A + (B - A) = B :=
-  let h1 : B - A = B + (-A) := sub_eq_add_neg B A
-  let h2 : A + (B + (-A)) = (A + B) + (-A) := add_assoc A B (-A)
-  let h3 : (A + B) + (-A) = (B + A) + (-A) := congrArg (· + (-A)) (add_comm A B)
-  let h4 : (B + A) + (-A) = B + (A + (-A)) := (add_assoc B A (-A)).symm
-  let h5 : A + (-A) = 0 := add_neg_cancel A
-  let h6 : B + 0 = B := add_zero B
-  Eq.trans (congrArg (A + ·) h1)
-    (Eq.trans h2 (Eq.trans h3 (Eq.trans h4 (Eq.trans (congrArg (B + ·) h5) h6))))
+  let h1 : A + (B - A) = A + (B + (-A)) := congrArg (A + ·) (sub_eq_add_neg B A)
+  let h2 : A + (B + (-A)) = A + ((-A) + B) := congrArg (A + ·) (add_comm B (-A))
+  let h3 : A + ((-A) + B) = A + (-A) + B := (add_assoc A (-A) B).symm
+  let h4 : A + (-A) + B = (0 : α) + B := congrArg (· + B) (add_neg_cancel A)
+  let h5 : (0 : α) + B = B := zero_add B
+  Eq.trans h1 (Eq.trans h2 (Eq.trans h3 (Eq.trans h4 h5)))
 
 /-- Basic cancellation: A + (B - A) - B = 0. -/
 theorem Complex.finiteAbelPlana_log_verticalStrip_add_deleted_sub_verticalStrip_sub_deleted (A B : ℂ) :
@@ -171,18 +154,48 @@ theorem Complex.leftEndpointCapCollarBoundary_flatten
       t - l + Complex.I * s₁ - Complex.I * p₁ +
         c - u + Complex.I * s₃ - Complex.I * p₂ +
         l - c + Complex.I * s₂ - a :=
-  rfl
+  let G1 := t - l + Complex.I * s₁ - Complex.I * p₁
+  let F := G1 + c - u + Complex.I * s₃ - Complex.I * p₂
+  -- Flatten the second group `G2 = (c - u + I*s₃) - I*p₂` onto `G1`.
+  let a1 : G1 + (c - u + Complex.I * s₃ - Complex.I * p₂)
+        = (G1 + (c - u + Complex.I * s₃)) - Complex.I * p₂ :=
+    add_sub_flat G1 (c - u + Complex.I * s₃) (Complex.I * p₂)
+  let b1 : (G1 + (c - u + Complex.I * s₃)) - Complex.I * p₂
+        = (G1 + (c - u) + Complex.I * s₃) - Complex.I * p₂ :=
+    congrArg (· - Complex.I * p₂) (add_assoc G1 (c - u) (Complex.I * s₃)).symm
+  let c1 : (G1 + (c - u) + Complex.I * s₃) - Complex.I * p₂ = F :=
+    congrArg (fun y => (y + Complex.I * s₃) - Complex.I * p₂) (add_sub_flat G1 c u)
+  let g1 : G1 + (c - u + Complex.I * s₃ - Complex.I * p₂) = F :=
+    Eq.trans a1 (Eq.trans b1 c1)
+  -- Flatten the third group `G3 = (l - c + I*s₂) - a` onto `F`.
+  let a2 : F + (l - c + Complex.I * s₂ - a)
+        = (F + (l - c + Complex.I * s₂)) - a :=
+    add_sub_flat F (l - c + Complex.I * s₂) a
+  let b2 : (F + (l - c + Complex.I * s₂)) - a
+        = (F + (l - c) + Complex.I * s₂) - a :=
+    congrArg (· - a) (add_assoc F (l - c) (Complex.I * s₂)).symm
+  let c2 : (F + (l - c) + Complex.I * s₂) - a
+        = F + l - c + Complex.I * s₂ - a :=
+    congrArg (fun y => (y + Complex.I * s₂) - a) (add_sub_flat F l c)
+  let g2 : F + (l - c + Complex.I * s₂ - a) = F + l - c + Complex.I * s₂ - a :=
+    Eq.trans a2 (Eq.trans b2 c2)
+  Eq.trans (congrArg (· + (l - c + Complex.I * s₂ - a)) g1) g2
 
 /-- Chord cancellation in sum. -/
 theorem Complex.boundaryChordsCancelInSum (l c r : ℂ) :
     (-l + r + c) + l - c = r :=
-  let h : (-l + r + c) + l - c = r + ((-l + l) - c) :=
-    Eq.trans (Eq.trans (Eq.symm (add_assoc (-l + r + c) l (-c)))
-      (congrArg ((-l + r + c) + ·) (sub_eq_add_neg l c)))
-      (Eq.trans (Eq.symm (add_assoc (-l) (r + c) (l + (-c))))
-        (congrArg ((-l) + ·) (Eq.trans (add_assoc (r + c) l (-c))
-          (congrArg (r + ·) (Eq.trans (add_comm c l) (Eq.symm (add_assoc l c (-c))))))))
-  Eq.trans h (Eq.trans (congrArg (r + ·) (Eq.trans (add_neg_cancel l) (Eq.trans (zero_add (-c)) (Eq.symm (sub_eq_add_neg 0 c))))) (add_zero r))
+  let e0 : (-l + r + c) + l - c = (-l + r + c) + l + (-c) :=
+    sub_eq_add_neg ((-l + r + c) + l) c
+  let e1 : (-l + r + c) + l + (-c) = ((-l + r) + l + c) + (-c) :=
+    congrArg (· + (-c)) (add_swap_middle (-l + r) c l)
+  let e2 : ((-l + r) + l + c) + (-c) = (((-l) + l + r) + c) + (-c) :=
+    congrArg (fun x => x + c + (-c)) (add_swap_middle (-l) r l)
+  let e3 : (((-l) + l + r) + c) + (-c) = ((0 + r) + c) + (-c) :=
+    congrArg (fun x => x + r + c + (-c)) (neg_add_cancel l)
+  let e4 : ((0 + r) + c) + (-c) = (r + c) + (-c) :=
+    congrArg (fun x => x + c + (-c)) (zero_add r)
+  let e5 : (r + c) + (-c) = r := add_neg_cancel_right r c
+  Eq.trans e0 (Eq.trans e1 (Eq.trans e2 (Eq.trans e3 (Eq.trans e4 e5))))
 
 /-! ## Real-Theoretic Lemmas -/
 
@@ -287,11 +300,19 @@ theorem Real.endpoint_radius_le_successor_minus_radius_sub_nat (N : ℕ) {ρ : �
     (hρ : ρ < (1 : ℝ) / 2) : ρ ≤ (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) :=
   let hdouble : ρ + ρ ≤ (1 : ℝ) := Real.endpoint_two_radius_le_one_of_lt_half hρ
   let htarget : ρ ≤ 1 - ρ := le_sub_iff_add_le.mpr hdouble
+  let c : ℝ := (N : ℝ)
+  let s1 : (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) = ((c + 1) - ρ) - c :=
+    congrArg (fun t => (t - ρ) - c) (Real.natCast_succ_eq N)
+  let s2 : ((c + 1) - ρ) - c = ((c + 1) + (-ρ)) - c :=
+    congrArg (· - c) (sub_eq_add_neg (c + 1) ρ)
+  let s3 : ((c + 1) + (-ρ)) - c = ((c + 1) + (-ρ)) + (-c) :=
+    sub_eq_add_neg ((c + 1) + (-ρ)) c
+  let s4 : ((c + 1) + (-ρ)) + (-c) = (c + (1 + (-ρ))) + (-c) :=
+    congrArg (· + (-c)) (add_assoc c 1 (-ρ))
+  let s5 : (c + (1 + (-ρ))) + (-c) = 1 + (-ρ) := add_cancel_outer c (1 + (-ρ))
+  let s6 : (1 : ℝ) + (-ρ) = 1 - ρ := (sub_eq_add_neg 1 ρ).symm
   let h_eq : (((N + 1 : ℕ) : ℝ) - ρ) - (N : ℝ) = 1 - ρ :=
-    Eq.trans (Eq.trans (congrArg (· - (N : ℝ)) (Eq.trans (Nat.cast_succ N) rfl))
-      (Eq.trans (sub_eq_add_neg _ _)
-        (Eq.trans (add_assoc (N : ℝ) 1 (-(ρ))) rfl)))
-      (sub_eq_add_neg 1 ρ).symm)
+    Eq.trans s1 (Eq.trans s2 (Eq.trans s3 (Eq.trans s4 (Eq.trans s5 s6))))
   h_eq ▸ htarget
 
 /-- Transport to uIcc from bounds. -/
