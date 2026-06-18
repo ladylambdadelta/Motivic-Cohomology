@@ -256,6 +256,148 @@ theorem add_collect_caps {α : Type*} [AddCommGroup α]
     Eq.trans s0 (Eq.trans s1 (Eq.trans hDR hE))
   Eq.trans hLHS hRHS.symm
 
+/-- Eight-term reordering for the right endpoint collar (different canonical
+permutation than `add_eight_to_canon`). -/
+theorem add_eight_to_canon_right {α : Type*} [AddCommGroup α]
+    (p1 p2 p3 p4 p5 p6 p7 p8 : α) :
+    p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 =
+      p1 + p6 + p2 + p7 + p3 + p4 + p8 + p5 :=
+  let sA := congrArg (fun w => w + p7 + p8) (add_swap_middle (p1 + p2 + p3 + p4) p5 p6)
+  let sB := congrArg (fun w => w + p5 + p7 + p8) (add_swap_middle (p1 + p2 + p3) p4 p6)
+  let sC := congrArg (fun w => w + p4 + p5 + p7 + p8) (add_swap_middle (p1 + p2) p3 p6)
+  let sD := congrArg (fun w => w + p3 + p4 + p5 + p7 + p8) (add_swap_middle p1 p2 p6)
+  let sE := congrArg (fun w => w + p8) (add_swap_middle (p1 + p6 + p2 + p3 + p4) p5 p7)
+  let sF := congrArg (fun w => w + p5 + p8) (add_swap_middle (p1 + p6 + p2 + p3) p4 p7)
+  let sG := congrArg (fun w => w + p4 + p5 + p8) (add_swap_middle (p1 + p6 + p2) p3 p7)
+  let sH := add_swap_middle (p1 + p6 + p2 + p7 + p3 + p4) p5 p8
+  Eq.trans sA (Eq.trans sB (Eq.trans sC (Eq.trans sD
+    (Eq.trans sE (Eq.trans sF (Eq.trans sG sH))))))
+
+/-- Right endpoint variant of `add_collect_caps`: the deleted-disk group's
+middle term is a subtracted (`safe`) term, so it joins the `y`-sum. -/
+theorem add_collect_caps_right {α : Type*} [AddCommGroup α]
+    (t u x₁ x₂ y₁ y₂ y₃ a l c : α) :
+    (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c - y₃ - a) =
+      t - u + (x₁ + x₂) - (y₁ + y₃ + y₂) - a :=
+  let canon : α := t + -u + x₁ + x₂ + -y₁ + -y₃ + -y₂ + -a
+  let hRHS : t - u + (x₁ + x₂) - (y₁ + y₃ + y₂) - a = canon :=
+    let hnegY : -(y₁ + y₃ + y₂) = -y₁ + -y₃ + -y₂ :=
+      Eq.trans (neg_add (y₁ + y₃) y₂) (congrArg (· + -y₂) (neg_add y₁ y₃))
+    let r1 : t - u + (x₁ + x₂) - (y₁ + y₃ + y₂) - a
+          = t - u + (x₁ + x₂) + (-(y₁ + y₃ + y₂)) - a :=
+      congrArg (· - a) (sub_eq_add_neg (t - u + (x₁ + x₂)) (y₁ + y₃ + y₂))
+    let r2 : t - u + (x₁ + x₂) + (-(y₁ + y₃ + y₂)) - a
+          = t - u + (x₁ + x₂) + (-(y₁ + y₃ + y₂)) + (-a) :=
+      sub_eq_add_neg (t - u + (x₁ + x₂) + (-(y₁ + y₃ + y₂))) a
+    let r3 : t - u + (x₁ + x₂) + (-(y₁ + y₃ + y₂)) + (-a)
+          = t - u + (x₁ + x₂) + (-y₁ + -y₃ + -y₂) + (-a) :=
+      congrArg (fun w => t - u + (x₁ + x₂) + w + (-a)) hnegY
+    let r4 : t - u + (x₁ + x₂) + (-y₁ + -y₃ + -y₂) + (-a)
+          = (t + -u) + (x₁ + x₂) + (-y₁ + -y₃ + -y₂) + (-a) :=
+      congrArg (fun w => w + (x₁ + x₂) + (-y₁ + -y₃ + -y₂) + (-a)) (sub_eq_add_neg t u)
+    let r5 : (t + -u) + (x₁ + x₂) + (-y₁ + -y₃ + -y₂) + (-a)
+          = (t + -u) + x₁ + x₂ + (-y₁ + -y₃ + -y₂) + (-a) :=
+      congrArg (fun w => w + (-y₁ + -y₃ + -y₂) + (-a)) (add_assoc (t + -u) x₁ x₂).symm
+    let r6 : (t + -u) + x₁ + x₂ + (-y₁ + -y₃ + -y₂) + (-a)
+          = (t + -u) + x₁ + x₂ + (-y₁ + -y₃) + -y₂ + (-a) :=
+      congrArg (· + (-a)) (add_assoc ((t + -u) + x₁ + x₂) (-y₁ + -y₃) (-y₂)).symm
+    let r7 : (t + -u) + x₁ + x₂ + (-y₁ + -y₃) + -y₂ + (-a)
+          = (t + -u) + x₁ + x₂ + -y₁ + -y₃ + -y₂ + (-a) :=
+      congrArg (fun w => w + -y₂ + (-a)) (add_assoc ((t + -u) + x₁ + x₂) (-y₁) (-y₃)).symm
+    Eq.trans r1 (Eq.trans r2 (Eq.trans r3 (Eq.trans r4 (Eq.trans r5 (Eq.trans r6 r7)))))
+  let hLHS : (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c - y₃ - a) = canon :=
+    let s0 : (t - l + x₁ - y₁) + (c - u + x₂ - y₂) + (l - c - y₃ - a)
+          = (t - l + x₁ - y₁) + (l - c - y₃ - a) + (c - u + x₂ - y₂) :=
+      add_swap_middle (t - l + x₁ - y₁) (c - u + x₂ - y₂) (l - c - y₃ - a)
+    let P : α := t - l + x₁ - y₁
+    let R : α := c - u + x₂ - y₂
+    let f1 : P + (l - c - y₃ - a) = P + l - c - y₃ - a :=
+      let a1 : P + (l - c - y₃ - a) = P + (l - c - y₃) - a :=
+        add_sub_flat P (l - c - y₃) a
+      let a2 : P + (l - c - y₃) - a = (P + (l - c)) - y₃ - a :=
+        congrArg (· - a) (add_sub_flat P (l - c) y₃)
+      let a3 : (P + (l - c)) - y₃ - a = (P + l - c) - y₃ - a :=
+        congrArg (fun w => w - y₃ - a) (add_sub_flat P l c)
+      Eq.trans a1 (Eq.trans a2 a3)
+    let hPl : P + l = t + x₁ - y₁ :=
+      let b0 : P + l = ((t - l) + x₁ + (-y₁)) + l :=
+        congrArg (· + l) (sub_eq_add_neg ((t - l) + x₁) y₁)
+      let b1 : ((t - l) + x₁ + (-y₁)) + l = ((t - l) + x₁ + l) + (-y₁) :=
+        add_swap_middle ((t - l) + x₁) (-y₁) l
+      let b2 : ((t - l) + x₁ + l) + (-y₁) = ((t - l) + l + x₁) + (-y₁) :=
+        congrArg (· + (-y₁)) (add_swap_middle (t - l) x₁ l)
+      let b3 : ((t - l) + l + x₁) + (-y₁) = (t + x₁) + (-y₁) :=
+        congrArg (fun w => w + x₁ + (-y₁)) (sub_add_cancel_self t l)
+      let b4 : (t + x₁) + (-y₁) = t + x₁ - y₁ := (sub_eq_add_neg (t + x₁) y₁).symm
+      Eq.trans b0 (Eq.trans b1 (Eq.trans b2 (Eq.trans b3 b4)))
+    let f2 : P + l - c - y₃ - a = (t + x₁ - y₁) - c - y₃ - a :=
+      congrArg (fun w => w - c - y₃ - a) hPl
+    let hPR : P + (l - c - y₃ - a) = (t + x₁ - y₁) - c - y₃ - a := Eq.trans f1 f2
+    let s1 : (t - l + x₁ - y₁) + (l - c - y₃ - a) + (c - u + x₂ - y₂)
+          = ((t + x₁ - y₁) - c - y₃ - a) + (c - u + x₂ - y₂) :=
+      congrArg (· + R) hPR
+    let D : α := (t + x₁ - y₁) - c - y₃ - a
+    let g1 : D + (c - u + x₂ - y₂) = D + c - u + x₂ - y₂ :=
+      let c1 : D + (c - u + x₂ - y₂) = D + (c - u + x₂) - y₂ :=
+        add_sub_flat D (c - u + x₂) y₂
+      let c2 : D + (c - u + x₂) - y₂ = (D + (c - u)) + x₂ - y₂ :=
+        congrArg (· - y₂) (add_assoc D (c - u) x₂).symm
+      let c3 : (D + (c - u)) + x₂ - y₂ = (D + c - u) + x₂ - y₂ :=
+        congrArg (fun w => w + x₂ - y₂) (add_sub_flat D c u)
+      Eq.trans c1 (Eq.trans c2 c3)
+    let hDc : D + c = t + x₁ - y₁ - y₃ - a :=
+      let d0 : D + c = (((t + x₁ - y₁) - c - y₃) + (-a)) + c :=
+        congrArg (· + c) (sub_eq_add_neg ((t + x₁ - y₁) - c - y₃) a)
+      let d1 : (((t + x₁ - y₁) - c - y₃) + (-a)) + c
+            = (((t + x₁ - y₁) - c - y₃) + c) + (-a) :=
+        add_swap_middle ((t + x₁ - y₁) - c - y₃) (-a) c
+      let d2a : (((t + x₁ - y₁) - c - y₃) + c) + (-a)
+            = ((((t + x₁ - y₁) - c) + (-y₃)) + c) + (-a) :=
+        congrArg (fun w => w + c + (-a)) (sub_eq_add_neg ((t + x₁ - y₁) - c) y₃)
+      let d2b : ((((t + x₁ - y₁) - c) + (-y₃)) + c) + (-a)
+            = (((t + x₁ - y₁) - c) + c + (-y₃)) + (-a) :=
+        congrArg (· + (-a)) (add_swap_middle ((t + x₁ - y₁) - c) (-y₃) c)
+      let d3 : (((t + x₁ - y₁) - c) + c + (-y₃)) + (-a)
+            = ((t + x₁ - y₁) + (-y₃)) + (-a) :=
+        congrArg (fun w => w + (-y₃) + (-a)) (sub_add_cancel_self (t + x₁ - y₁) c)
+      let d4 : ((t + x₁ - y₁) + (-y₃)) + (-a) = t + x₁ - y₁ - y₃ - a :=
+        Eq.trans (congrArg (· + (-a)) (sub_eq_add_neg (t + x₁ - y₁) y₃).symm)
+          (sub_eq_add_neg (t + x₁ - y₁ - y₃) a).symm
+      Eq.trans d0 (Eq.trans d1 (Eq.trans d2a (Eq.trans d2b (Eq.trans d3 d4))))
+    let g2 : D + c - u + x₂ - y₂ = (t + x₁ - y₁ - y₃ - a) - u + x₂ - y₂ :=
+      congrArg (fun w => w - u + x₂ - y₂) hDc
+    let hDR : D + (c - u + x₂ - y₂) = (t + x₁ - y₁ - y₃ - a) - u + x₂ - y₂ :=
+      Eq.trans g1 g2
+    let hE : (t + x₁ - y₁ - y₃ - a) - u + x₂ - y₂ = canon :=
+      let e1 : (t + x₁ - y₁ - y₃ - a) - u + x₂ - y₂
+            = t + x₁ + (-y₁) + (-y₃) + (-a) + (-u) + x₂ + (-y₂) :=
+        let p1 : (t + x₁ - y₁ - y₃ - a) = t + x₁ + (-y₁) + (-y₃) + (-a) :=
+          let q1 : t + x₁ - y₁ - y₃ - a = (t + x₁ - y₁ - y₃) + (-a) :=
+            sub_eq_add_neg (t + x₁ - y₁ - y₃) a
+          let q2 : (t + x₁ - y₁ - y₃) + (-a) = ((t + x₁ - y₁) + (-y₃)) + (-a) :=
+            congrArg (· + (-a)) (sub_eq_add_neg (t + x₁ - y₁) y₃)
+          let q3 : ((t + x₁ - y₁) + (-y₃)) + (-a) = ((t + x₁ + (-y₁)) + (-y₃)) + (-a) :=
+            congrArg (fun w => w + (-y₃) + (-a)) (sub_eq_add_neg (t + x₁) y₁)
+          Eq.trans q1 (Eq.trans q2 q3)
+        let p2 : (t + x₁ - y₁ - y₃ - a) - u + x₂ - y₂
+              = (t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂ - y₂ :=
+          congrArg (fun w => w - u + x₂ - y₂) p1
+        let p3 : (t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂ - y₂
+              = (t + x₁ + (-y₁) + (-y₃) + (-a)) + (-u) + x₂ + (-y₂) :=
+          let w1 : (t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂ - y₂
+                = (t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂ + (-y₂) :=
+            sub_eq_add_neg ((t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂) y₂
+          let w2 : (t + x₁ + (-y₁) + (-y₃) + (-a)) - u + x₂ + (-y₂)
+                = (t + x₁ + (-y₁) + (-y₃) + (-a)) + (-u) + x₂ + (-y₂) :=
+            congrArg (fun w => w + x₂ + (-y₂))
+              (sub_eq_add_neg (t + x₁ + (-y₁) + (-y₃) + (-a)) u)
+          Eq.trans w1 w2
+        Eq.trans p2 p3
+      Eq.trans e1
+        (add_eight_to_canon_right t x₁ (-y₁) (-y₃) (-a) (-u) x₂ (-y₂))
+    Eq.trans s0 (Eq.trans s1 (Eq.trans hDR hE))
+  Eq.trans hLHS hRHS.symm
+
 /-! ## Complex-Specific Lemmas -/
 
 /-- Left distributivity two-term. -/
