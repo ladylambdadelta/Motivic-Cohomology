@@ -749,35 +749,73 @@ theorem Complex.log_binet_quotient_re_im (z : ℂ)
   · exact Complex.log_binet_quotient_re_eq_log_ratio z h1 h2
   · exact Complex.log_binet_quotient_im_eq_arg_ratio z
 
-/-- The Binet quotient factors are automatically nonzero as soon as the
-denominator is nonzero. -/
+/-- The Binet quotient factors are both nonzero whenever z has nonzero real part.
+
+The imaginary part of `1 + z * I` equals `z.re`, and the imaginary part of
+`1 - z * I` equals `-z.re`.  If either factor were zero its imaginary part
+would be zero, forcing `z.re = 0`. -/
 theorem Complex.binet_quotient_factors_ne_zero
     (z : ℂ)
-    (hz : 1 - z * Complex.I ≠ 0) :
-    1 + z * Complex.I ≠ 0 ∧ 1 - z * Complex.I ≠ 0 := by
-  constructor
-  · intro h1
-    have hsum : (1 + z * Complex.I) + (1 - z * Complex.I) = (2 : ℂ) := by ring
-    have hzero : (2 : ℂ) = 0 := by
-      exact by
-        have hcancel : (1 + z * Complex.I) + (1 - z * Complex.I) = (0 : ℂ) := by
-          calc
-            (1 + z * Complex.I) + (1 - z * Complex.I) =
-                (0 : ℂ) + (1 - z * Complex.I) := by
-              exact congrArg (fun t : ℂ => t + (1 - z * Complex.I)) h1
-            _ = 0 := by
-              exact zero_add (1 - z * Complex.I)
-        exact Eq.trans hsum hcancel
-    exact absurd hzero (show (2 : ℂ) ≠ 0 by exact two_ne_zero)
-  · exact hz
+    (hz : z.re ≠ 0) :
+    1 + z * Complex.I ≠ 0 ∧ 1 - z * Complex.I ≠ 0 :=
+  ⟨fun h1 =>
+    let him_plus : (1 + z * Complex.I).im = z.re :=
+      calc (1 + z * Complex.I).im
+          = (1 : ℂ).im + (z * Complex.I).im :=
+            Complex.add_im 1 (z * Complex.I)
+        _ = 0 + (z * Complex.I).im :=
+            congrArg (fun x : ℝ => x + (z * Complex.I).im) Complex.one_im
+        _ = (z * Complex.I).im :=
+            zero_add (z * Complex.I).im
+        _ = z.re * Complex.I.im + z.im * Complex.I.re :=
+            Complex.mul_im z Complex.I
+        _ = z.re * 1 + z.im * 0 :=
+            congrArg₂ (fun a b : ℝ => z.re * a + z.im * b) Complex.I_im Complex.I_re
+        _ = z.re + 0 :=
+            congrArg₂ (fun a b : ℝ => a + b) (mul_one z.re) (mul_zero z.im)
+        _ = z.re :=
+            add_zero z.re
+    let him_zero : (1 + z * Complex.I).im = 0 :=
+      (congrArg Complex.im h1).trans Complex.zero_im
+    hz (him_plus.symm.trans him_zero),
+  fun h2 =>
+    let him_minus : (1 - z * Complex.I).im = -z.re :=
+      calc (1 - z * Complex.I).im
+          = (1 : ℂ).im - (z * Complex.I).im :=
+            Complex.sub_im 1 (z * Complex.I)
+        _ = 0 - (z * Complex.I).im :=
+            congrArg (fun x : ℝ => x - (z * Complex.I).im) Complex.one_im
+        _ = -(z * Complex.I).im :=
+            zero_sub (z * Complex.I).im
+        _ = -(z.re * Complex.I.im + z.im * Complex.I.re) :=
+            congrArg Neg.neg (Complex.mul_im z Complex.I)
+        _ = -(z.re * 1 + z.im * 0) :=
+            congrArg (fun x : ℝ => -x)
+              (congrArg₂ (fun a b : ℝ => z.re * a + z.im * b) Complex.I_im Complex.I_re)
+        _ = -(z.re + 0) :=
+            congrArg (fun x : ℝ => -x)
+              (congrArg₂ (fun a b : ℝ => a + b) (mul_one z.re) (mul_zero z.im))
+        _ = -z.re :=
+            congrArg Neg.neg (add_zero z.re)
+    let him_zero : (1 - z * Complex.I).im = 0 :=
+      (congrArg Complex.im h2).trans Complex.zero_im
+    hz (neg_eq_zero.mp (him_minus.symm.trans him_zero))⟩
 
-/-- The Binet quotient factors are both nonzero whenever the denominator is
-nonzero. -/
+/-- The Binet plus factor is nonzero whenever z has nonzero real part. -/
+theorem Complex.binet_quotient_factors_ne_zero_of_re_ne_zero
+    (z : ℂ)
+    (hz : z.re ≠ 0) :
+    1 + z * Complex.I ≠ 0 :=
+  (Complex.binet_quotient_factors_ne_zero z hz).1
+
+/-- The Binet quotient factors are both nonzero whenever the real part is
+nonzero.  This replaces the earlier false statement which claimed to derive
+numerator nonvanishing from denominator nonvanishing alone. -/
 theorem Complex.binet_quotient_factors_ne_zero_of_denominator_ne_zero
     (z : ℂ)
-    (hz : 1 - z * Complex.I ≠ 0) :
-    1 + z * Complex.I ≠ 0 := by
-  exact (Complex.binet_quotient_factors_ne_zero z hz).1
+    (hz : z.re ≠ 0) :
+    1 + z * Complex.I ≠ 0 :=
+  Complex.binet_quotient_factors_ne_zero_of_re_ne_zero z hz
 
 /-- Honest split-bound mirror for the Binet remainder on the open right half-plane.
 
@@ -807,27 +845,24 @@ theorem Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane
   have hS : ‖S‖ ≤ 4 * J / ‖w‖ := by
     exact Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
       (w := w) hw_re_pos
-  rcases
-      Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
-        (w := w) hw_re_pos with
-    ⟨C, hC_nonneg, hT⟩
-  refine ⟨C, hC_nonneg, ?_⟩
-  have hT_named :
-      ‖T‖ ≤ 2 * C * J := by
-    exact hT
-  have hsum : ‖S + T‖ ≤ 4 * J / ‖w‖ + 2 * C * J := by
-    calc
-      ‖S + T‖ ≤ ‖S‖ + ‖T‖ :=
-        norm_add_le S T
-      _ ≤ 4 * J / ‖w‖ + 2 * C * J :=
-        add_le_add hS hT_named
-  exact
-    Eq.subst
-      (motive := fun z : ℂ =>
-        ‖z‖ ≤
-          4 * J / ‖w‖ + 2 * C * J)
-      hsplit.symm
-      hsum
+  match Complex.binetSecondFormulaRemainder_tail_norm_le_integral_majorant
+      (w := w) hw_re_pos with
+  | ⟨C, hC_nonneg, hT⟩ =>
+      let hT_named : ‖T‖ ≤ 2 * C * J := hT
+      let hsum : ‖S + T‖ ≤ 4 * J / ‖w‖ + 2 * C * J :=
+        calc
+          ‖S + T‖ ≤ ‖S‖ + ‖T‖ :=
+            norm_add_le S T
+          _ ≤ 4 * J / ‖w‖ + 2 * C * J :=
+            add_le_add hS hT_named
+      exact
+        ⟨C, hC_nonneg,
+          Eq.subst
+            (motive := fun z : ℂ =>
+              ‖z‖ ≤
+                4 * J / ‖w‖ + 2 * C * J)
+            hsplit.symm
+            hsum⟩
 
 /-- Binet's second formula with the honest split remainder bound on the open
 right half-plane. -/
@@ -850,13 +885,13 @@ theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRig
                   2 * C *
                     (∫ t : ℝ in Set.Ioi (0 : ℝ),
                       t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
-    ⟨Rlog, hRlog, hlog⟩
-  refine ⟨Rlog, 1, hRlog, zero_lt_one, ?_⟩
-  intro w hw_re_pos hw_norm
-  exact
-    ⟨hlog w hw_re_pos hw_norm,
-      Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩
+  match Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
+  | ⟨Rlog, hRlog, hlog⟩ =>
+      exact
+        ⟨Rlog, 1, hRlog, zero_lt_one,
+          fun w hw_re_pos hw_norm =>
+            ⟨hlog w hw_re_pos hw_norm,
+              Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩⟩
 
 /-- Small-argument Binet remainder estimate with the explicit `1 / ‖w‖`
 factor. -/
@@ -952,9 +987,9 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_radius_pos :
         0 < C ∧
         Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
         Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
-    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
-  exact ⟨K, R, hR, C, hC, hcompare, hmajorant⟩
+  match Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+  | ⟨K, R, C, hR, hC, hcompare, hmajorant⟩ =>
+      exact ⟨K, R, hR, C, hC, hcompare, hmajorant⟩
 
 /-- Positivity of the uniform majorant constant supplied by the
 contour-deformed tail kernel existence theorem. -/
@@ -963,10 +998,10 @@ theorem Complex.binetSecondFormula_contourDeformed_tail_kernel_constant_pos :
       0 < C ∧
       0 < R ∧
       Complex.BinetSecondFormulaContourTailIntegralComparison K R ∧
-      Complex.BinetSecondFormulaContourTailUniformMajorant K R C := by
-  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
-    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
-  exact ⟨K, R, C, hC, hR, hcompare, hmajorant⟩
+      Complex.BinetSecondFormulaContourTailUniformMajorant K R C :=
+  match Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+  | ⟨K, R, C, hR, hC, hcompare, hmajorant⟩ =>
+      ⟨K, R, C, hC, hR, hcompare, hmajorant⟩
 
 /-- Principal-tail comparison supplied by the contour-deformed kernel
 existence theorem. -/
@@ -1005,9 +1040,9 @@ theorem Complex.binetSecondFormula_arctan_tail_contourDeformed_kernel_fullSector
             ‖K w t‖ ≤
               (C / ‖w‖) *
                 (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))) := by
-  rcases Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
-    ⟨K, R, C, hR, hC, hcompare, hmajorant⟩
-  exact ⟨K, R, C, hR, hC, fun w hw hRle => ⟨hcompare w hw hRle, hmajorant w hw hRle⟩⟩
+  match Complex.binetSecondFormula_contourDeformed_tail_kernel_exists with
+  | ⟨K, R, C, hR, hC, hcompare, hmajorant⟩ =>
+      exact ⟨K, R, C, hR, hC, fun w hw hRle => ⟨hcompare w hw hRle, hmajorant w hw hRle⟩⟩
 
 /-- Branch-uniform full-sector integral tail majorant for the Binet arctangent
 kernel, after contour deformation. -/
@@ -1021,70 +1056,64 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
           ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
             (2 * C / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  refine ⟨2, 1, two_pos, zero_lt_one, ?_⟩
-  intro w hw_re_pos hRtail_le
-  let M : ℝ → ℝ := fun t : ℝ =>
-    t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  let c : ℝ := (1 : ℝ) / ‖w‖
-  have hcompare :
-      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ :=
-    Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral
-      w hw_re_pos hRtail_le
-  have hkernel_norm :
-      (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖) =
-        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t := by
-    refine setIntegral_congr_fun measurableSet_Ioi ?_
-    intro t ht
-    have ht_pos : 0 < t :=
-      lt_of_le_of_lt
-        (div_nonneg (norm_nonneg w) zero_le_two)
-        ht
-    have hmajorant_nonneg :
-        0 ≤ M t :=
-      le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
-    have hcoeff_nonneg : 0 ≤ c :=
-      div_nonneg zero_le_one (norm_nonneg w)
-    have hproduct_nonneg : 0 ≤ c * M t :=
-      mul_nonneg hcoeff_nonneg hmajorant_nonneg
-    calc
-      ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
-          ‖((c * M t : ℝ) : ℂ)‖ := by
-        rfl
-      _ = |c * M t| := by
-        exact RCLike.norm_ofReal (c * M t)
-      _ = c * M t :=
-        abs_of_nonneg hproduct_nonneg
-  have hintegral_const_mul :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-        c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
-    exact integral_const_mul c M
-  have hscale :
-      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-        (2 * (1 : ℝ) / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-    calc
-      2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
-          2 * (c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact congrArg (fun x : ℝ => 2 * x) hintegral_const_mul
-      _ = (2 * c) * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact (mul_assoc 2 c (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t)).symm
-      _ = (2 * (1 : ℝ) / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) := by
-        exact congrArg
-          (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
-          (by
-            unfold c
-            exact (mul_one 2).symm ▸ mul_div_assoc 2 1 ‖w‖)
-  exact
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+  ⟨2, 1, two_pos, zero_lt_one, fun w hw_re_pos hRtail_le =>
+    let M : ℝ → ℝ := fun t : ℝ =>
+      t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+    let c : ℝ := (1 : ℝ) / ‖w‖
+    let hcompare :
+        ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+          2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ :=
+      Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral
+        w hw_re_pos hRtail_le
+    let hkernel_norm :
+        (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖) =
+          ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t :=
+      setIntegral_congr_fun measurableSet_Ioi (fun t ht =>
+        let ht_pos : 0 < t :=
+          lt_of_le_of_lt
+            (div_nonneg (norm_nonneg w) zero_le_two)
+            ht
+        let hmajorant_nonneg : 0 ≤ M t :=
+          le_of_lt (Real.binetSecondFormula_kernel_majorant_pos ht_pos)
+        let hcoeff_nonneg : 0 ≤ c :=
+          div_nonneg zero_le_one (norm_nonneg w)
+        let hproduct_nonneg : 0 ≤ c * M t :=
+          mul_nonneg hcoeff_nonneg hmajorant_nonneg
+        calc
+          ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ =
+              ‖((c * M t : ℝ) : ℂ)‖ :=
+            rfl
+          _ = |c * M t| :=
+            RCLike.norm_ofReal (c * M t)
+          _ = c * M t :=
+            abs_of_nonneg hproduct_nonneg)
+    let hintegral_const_mul :
+        ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+          c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t :=
+      integral_const_mul c M
+    let hscale :
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+          (2 * (1 : ℝ) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) :=
+      calc
+        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), c * M t =
+            2 * (c * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) :=
+          congrArg (fun x : ℝ => 2 * x) hintegral_const_mul
+        _ = (2 * c) * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) :=
+          (mul_assoc 2 c (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t)).symm
+        _ = (2 * (1 : ℝ) / ‖w‖) *
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t) :=
+          congrArg
+            (fun x : ℝ => x * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t))
+            (mul_div_assoc 2 1 ‖w‖).symm
     le_trans hcompare
       (le_trans
         (le_of_eq
           (congrArg (fun x : ℝ => 2 * x) hkernel_norm))
-        (le_of_eq hscale))
+        (le_of_eq hscale))⟩
 
 /-- Integrated form of the branch-uniform full-sector tail majorant.
 
@@ -1100,13 +1129,11 @@ theorem Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral
           ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
             (C / ‖w‖) *
               (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-  rcases
-      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant_from_contour with
-    ⟨Rtail, Ctail, hRtail, hCtail, htail⟩
-  refine ⟨Rtail, 2 * Ctail, hRtail, mul_pos two_pos hCtail, ?_⟩
-  intro w hw_re_pos hRtail_le
-  exact htail w hw_re_pos hRtail_le
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+  let ⟨Rtail, Ctail, hRtail, hCtail, htail⟩ :=
+    Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant_from_contour
+  ⟨Rtail, 2 * Ctail, hRtail, mul_pos two_pos hCtail,
+    fun w hw_re_pos hRtail_le => htail w hw_re_pos hRtail_le⟩
 
 /-- Full-sector tail absorption for the Binet remainder split at `‖w‖ / 2`.
 
@@ -1121,75 +1148,70 @@ theorem Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm :
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ K / ‖w‖ := by
-  rcases
-      Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant with
-    ⟨Rtail, Ctail, hRtail, hCtail, htail_majorant⟩
-  refine ⟨max Rtail 2, 2 * Ctail, ?_, ?_, ?_⟩
-  · exact lt_of_lt_of_le hRtail (le_max_left Rtail 2)
-  · exact mul_pos two_pos hCtail
-  intro w hw_re_pos hw_norm_large
-  have hRtail_le : Rtail ≤ ‖w‖ :=
-    le_trans (le_max_left Rtail 2) hw_norm_large
-  have htwo_le_norm : (2 : ℝ) ≤ ‖w‖ :=
-    le_trans (le_max_right Rtail 2) hw_norm_large
-  have hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 := by
-    exact (le_div_iff₀' two_pos).mpr htwo_le_norm
-  have htail :
-      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
-        (Ctail / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
-    htail_majorant w hw_re_pos hRtail_le
-  have hreal_tail :
-      ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
-        2 * Real.exp (-Real.pi * (‖w‖ / 2)) :=
-    Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
-      (a := ‖w‖ / 2) hhalf_ge_one
-  have hcoeff_nonneg : 0 ≤ Ctail / ‖w‖ :=
-    div_nonneg (le_of_lt hCtail) (norm_nonneg w)
-  have htail_exp :
-      (Ctail / ‖w‖) *
-          (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
-            t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) ≤
-        (Ctail / ‖w‖) *
-          (2 * Real.exp (-Real.pi * (‖w‖ / 2))) :=
-    mul_le_mul_of_nonneg_left hreal_tail hcoeff_nonneg
-  have hexponent_nonpos : -Real.pi * (‖w‖ / 2) ≤ 0 := by
-    have hproduct_nonneg : 0 ≤ Real.pi * (‖w‖ / 2) :=
-      mul_nonneg (le_of_lt Real.pi_pos)
-        (div_nonneg (norm_nonneg w) zero_le_two)
-    calc
-      -Real.pi * (‖w‖ / 2) = -(Real.pi * (‖w‖ / 2)) := by
-        exact neg_mul Real.pi (‖w‖ / 2)
-      _ ≤ 0 := neg_nonpos.mpr hproduct_nonneg
-  have hexp_le_one :
-      Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 1 :=
-    Real.exp_le_one_iff.mpr hexponent_nonpos
-  have htwo_exp_le_two :
-      2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ (2 : ℝ) :=
-    calc
-      2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 2 * 1 :=
-        mul_le_mul_of_nonneg_left hexp_le_one zero_le_two
-      _ = 2 := mul_one 2
-  have htail_const :
-      (Ctail / ‖w‖) *
-          (2 * Real.exp (-Real.pi * (‖w‖ / 2))) ≤
-        (Ctail / ‖w‖) * 2 :=
-    mul_le_mul_of_nonneg_left htwo_exp_le_two hcoeff_nonneg
-  have htarget :
-      (Ctail / ‖w‖) * 2 = (2 * Ctail) / ‖w‖ := by
-    calc
-      (Ctail / ‖w‖) * 2 = (Ctail * 2) / ‖w‖ := by
-        exact (mul_div_assoc Ctail 2 ‖w‖).symm
-      _ = (2 * Ctail) / ‖w‖ := by
-        exact congrArg (fun x : ℝ => x / ‖w‖) (mul_comm Ctail 2)
-  exact
-    le_trans htail
-      (le_trans htail_exp
-        (le_trans htail_const
-          (le_of_eq htarget)))
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ K / ‖w‖ :=
+  let ⟨Rtail, Ctail, hRtail, hCtail, htail_majorant⟩ :=
+    Complex.binetSecondFormula_arctan_tail_branchUniform_fullSector_integral_majorant
+  ⟨max Rtail 2, 2 * Ctail,
+    lt_of_lt_of_le hRtail (le_max_left Rtail 2),
+    mul_pos two_pos hCtail,
+    fun w hw_re_pos hw_norm_large =>
+      let hRtail_le : Rtail ≤ ‖w‖ :=
+        le_trans (le_max_left Rtail 2) hw_norm_large
+      let htwo_le_norm : (2 : ℝ) ≤ ‖w‖ :=
+        le_trans (le_max_right Rtail 2) hw_norm_large
+      let hhalf_ge_one : (1 : ℝ) ≤ ‖w‖ / 2 :=
+        (le_div_iff₀' two_pos).mpr htwo_le_norm
+      let htail :
+          ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
+            (Ctail / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) :=
+        htail_majorant w hw_re_pos hRtail_le
+      let hreal_tail :
+          ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+              t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1) ≤
+            2 * Real.exp (-Real.pi * (‖w‖ / 2)) :=
+        Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
+          (a := ‖w‖ / 2) hhalf_ge_one
+      let hcoeff_nonneg : 0 ≤ Ctail / ‖w‖ :=
+        div_nonneg (le_of_lt hCtail) (norm_nonneg w)
+      let htail_exp :
+          (Ctail / ‖w‖) *
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+                t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) ≤
+            (Ctail / ‖w‖) *
+              (2 * Real.exp (-Real.pi * (‖w‖ / 2))) :=
+        mul_le_mul_of_nonneg_left hreal_tail hcoeff_nonneg
+      let hexponent_nonpos : -Real.pi * (‖w‖ / 2) ≤ 0 :=
+        let hproduct_nonneg : 0 ≤ Real.pi * (‖w‖ / 2) :=
+          mul_nonneg (le_of_lt Real.pi_pos)
+            (div_nonneg (norm_nonneg w) zero_le_two)
+        calc
+          -Real.pi * (‖w‖ / 2) = -(Real.pi * (‖w‖ / 2)) :=
+            neg_mul Real.pi (‖w‖ / 2)
+          _ ≤ 0 := neg_nonpos.mpr hproduct_nonneg
+      let hexp_le_one : Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 1 :=
+        Real.exp_le_one_iff.mpr hexponent_nonpos
+      let htwo_exp_le_two : 2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ (2 : ℝ) :=
+        calc
+          2 * Real.exp (-Real.pi * (‖w‖ / 2)) ≤ 2 * 1 :=
+            mul_le_mul_of_nonneg_left hexp_le_one zero_le_two
+          _ = 2 := mul_one 2
+      let htail_const :
+          (Ctail / ‖w‖) *
+              (2 * Real.exp (-Real.pi * (‖w‖ / 2))) ≤
+            (Ctail / ‖w‖) * 2 :=
+        mul_le_mul_of_nonneg_left htwo_exp_le_two hcoeff_nonneg
+      let htarget : (Ctail / ‖w‖) * 2 = (2 * Ctail) / ‖w‖ :=
+        calc
+          (Ctail / ‖w‖) * 2 = (Ctail * 2) / ‖w‖ :=
+            (mul_div_assoc Ctail 2 ‖w‖).symm
+          _ = (2 * Ctail) / ‖w‖ :=
+            congrArg (fun x : ℝ => x / ‖w‖) (mul_comm Ctail 2)
+      le_trans htail
+        (le_trans htail_exp
+          (le_trans htail_const
+            (le_of_eq htarget)))⟩
 
 /-- Root marking the missing comparison from the honest split Binet remainder
 bound to a pure open-right-half-plane `O(1 / ‖w‖)` estimate.
@@ -1204,56 +1226,53 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
-          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ :=
   let J : ℝ :=
     ∫ t : ℝ in Set.Ioi (0 : ℝ),
       t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
-  rcases Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm with
-    ⟨Rtail, Ktail, hRtail, hKtail, htail⟩
+  let ⟨Rtail, Ktail, hRtail, hKtail, htailBound⟩ :=
+    Complex.binetSecondFormula_tail_remainder_fullSector_norm_le_div_norm
   let K : ℝ := 4 * J + Ktail
-  have hJ_pos : 0 < J :=
+  let hJ_pos : 0 < J :=
     Real.binetSecondFormula_kernel_majorant_integral_pos
-  have hK : 0 < K :=
+  let hK : 0 < K :=
     add_pos (mul_pos (by norm_num : (0 : ℝ) < 4) hJ_pos) hKtail
-  refine ⟨Rtail, K, hRtail, hK, ?_⟩
-  intro w hw_re_pos hRtail_le
-  have hsplit :
-      Complex.binetSecondFormulaRemainder w =
-        Complex.binetSecondFormulaSmallRemainder w +
-          Complex.binetSecondFormulaTailRemainder w := by
-    exact Complex.binetSecondFormulaRemainder_eq_small_add_tail (w := w) hw_re_pos
-  have hsmall :
-      ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤ 4 * J / ‖w‖ := by
-    exact
+  ⟨Rtail, K, hRtail, hK, fun w hw_re_pos hRtail_le =>
+    let hsplit :
+        Complex.binetSecondFormulaRemainder w =
+          Complex.binetSecondFormulaSmallRemainder w +
+            Complex.binetSecondFormulaTailRemainder w :=
+      Complex.binetSecondFormulaRemainder_eq_small_add_tail (w := w) hw_re_pos
+    let hsmall :
+        ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤ 4 * J / ‖w‖ :=
       Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
         (w := w) hw_re_pos
-  have htail :
-      ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ Ktail / ‖w‖ :=
-    htail w hw_re_pos hRtail_le
-  have hsum :
-      ‖Complex.binetSecondFormulaSmallRemainder w +
-          Complex.binetSecondFormulaTailRemainder w‖ ≤
-        4 * J / ‖w‖ + Ktail / ‖w‖ := by
-    calc
-      ‖Complex.binetSecondFormulaSmallRemainder w +
-          Complex.binetSecondFormulaTailRemainder w‖
-          ≤ ‖Complex.binetSecondFormulaSmallRemainder w‖ +
-              ‖Complex.binetSecondFormulaTailRemainder w‖ :=
-        norm_add_le _ _
-      _ ≤ 4 * J / ‖w‖ + Ktail / ‖w‖ :=
-        add_le_add hsmall htail
-  have hcombine :
-      4 * J / ‖w‖ + Ktail / ‖w‖ = K / ‖w‖ := by
-    calc
-      4 * J / ‖w‖ + Ktail / ‖w‖ =
-          (4 * J + Ktail) / ‖w‖ := by
-        exact (add_div (4 * J) Ktail ‖w‖).symm
-      _ = K / ‖w‖ := rfl
-  exact
+    let htail :
+        ‖Complex.binetSecondFormulaTailRemainder w‖ ≤ Ktail / ‖w‖ :=
+      htailBound w hw_re_pos hRtail_le
+    let hsum :
+        ‖Complex.binetSecondFormulaSmallRemainder w +
+            Complex.binetSecondFormulaTailRemainder w‖ ≤
+          4 * J / ‖w‖ + Ktail / ‖w‖ :=
+      calc
+        ‖Complex.binetSecondFormulaSmallRemainder w +
+            Complex.binetSecondFormulaTailRemainder w‖
+            ≤ ‖Complex.binetSecondFormulaSmallRemainder w‖ +
+                ‖Complex.binetSecondFormulaTailRemainder w‖ :=
+          norm_add_le _ _
+        _ ≤ 4 * J / ‖w‖ + Ktail / ‖w‖ :=
+          add_le_add hsmall htail
+    let hcombine :
+        4 * J / ‖w‖ + Ktail / ‖w‖ = K / ‖w‖ :=
+      calc
+        4 * J / ‖w‖ + Ktail / ‖w‖ =
+            (4 * J + Ktail) / ‖w‖ :=
+          (add_div (4 * J) Ktail ‖w‖).symm
+        _ = K / ‖w‖ := rfl
     Eq.subst
       (motive := fun z : ℂ => ‖z‖ ≤ K / ‖w‖)
       hsplit.symm
-      (hsum.trans_eq hcombine)
+      (hsum.trans_eq hcombine)⟩
 
 /-- Root marking the missing pure-decay Binet/log-Gamma comparison.
 
@@ -1271,21 +1290,21 @@ theorem Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalf
         Complex.log (Complex.Gamma w) =
             Complex.binetLogGammaMainTerm w +
               Complex.binetSecondFormulaRemainder w ∧
-          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ := by
-  rcases Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius with
-    ⟨Rlog, hRlog, hlog⟩
-  rcases
-      Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption with
-    ⟨Rtail, K, hRtail, hK, htail⟩
-  refine ⟨max Rlog Rtail, K, ?_, hK, ?_⟩
-  · exact lt_of_lt_of_le hRlog (le_max_left Rlog Rtail)
-  intro w hw_re_pos hnorm
-  have hRlog_le : Rlog ≤ ‖w‖ :=
-    le_trans (le_max_left Rlog Rtail) hnorm
-  have hRtail_le : Rtail ≤ ‖w‖ :=
-    le_trans (le_max_right Rlog Rtail) hnorm
-  exact ⟨hlog w hw_re_pos hRlog_le,
-    htail w hw_re_pos hRtail_le⟩
+          ‖Complex.binetSecondFormulaRemainder w‖ ≤ K / ‖w‖ :=
+  let ⟨Rlog, hRlog, hlog⟩ :=
+    Complex.binetSecondFormula_logGamma_closedRightHalfPlane_largeRadius
+  let ⟨Rtail, K, hRtail, hK, htail⟩ :=
+    Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires_tail_absorption
+  ⟨max Rlog Rtail, K,
+    lt_of_lt_of_le hRlog (le_max_left Rlog Rtail),
+    hK,
+    fun w hw_re_pos hnorm =>
+      let hRlog_le : Rlog ≤ ‖w‖ :=
+        le_trans (le_max_left Rlog Rtail) hnorm
+      let hRtail_le : Rtail ≤ ‖w‖ :=
+        le_trans (le_max_right Rlog Rtail) hnorm
+      ⟨hlog w hw_re_pos hRlog_le,
+        htail w hw_re_pos hRtail_le⟩⟩
 
 /-- Exponentiating Binet's logarithmic identity separates the main term from
 the Binet remainder. -/
@@ -1721,9 +1740,12 @@ theorem Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_norm_le_of_binetRe
         w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
       2 * Real.sqrt (2 * Real.pi) * ‖Complex.binetSecondFormulaRemainder w‖ := by
   exact
-    Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
-      hGamma_ne hw_ne hbinet ▸
-      Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE
+    Eq.subst
+      (motive := fun x : ℂ => ‖x‖ ≤
+        2 * Real.sqrt (2 * Real.pi) * ‖Complex.binetSecondFormulaRemainder w‖)
+      (Complex.normalizedGammaStirlingFactor_sub_sqrt_two_pi_eq_exp_binetRemainder_sub_one
+        hGamma_ne hw_ne hbinet).symm
+      (Complex.sqrt_two_pi_mul_exp_sub_one_norm_le_of_norm_le_one hE)
 
 /-- The fixed-real-part vertical line point `a + i b`, named to keep all fixed-line
 Stirling estimates definitionally aligned. -/

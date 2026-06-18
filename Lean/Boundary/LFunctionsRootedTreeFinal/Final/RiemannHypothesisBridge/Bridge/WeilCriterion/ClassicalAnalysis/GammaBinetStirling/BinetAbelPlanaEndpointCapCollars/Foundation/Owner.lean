@@ -33,7 +33,7 @@ theorem Complex.finiteAbelPlana_log_verticalStrip_add_deleted_sub_verticalStrip_
 theorem Complex.left_mul_add_two_collect
     (a b c : ℂ) :
     a * b + a * c = a * (b + c) :=
-  Eq.symm (mul_add a b c)
+  (mul_add a b c).symm
 
 /-- Left distributivity over three summands, oriented for collection. -/
 theorem Complex.left_mul_add_three_collect
@@ -42,9 +42,7 @@ theorem Complex.left_mul_add_three_collect
   Eq.trans
     (congrArg (fun u : ℂ => u + a * d)
       (Complex.left_mul_add_two_collect a b c))
-    (Eq.trans
-      (Complex.left_mul_add_two_collect a (b + c) d)
-      rfl)
+    (mul_add a (b + c) d).symm
 
 /-- Atomic step 1: Flatten associativity of three-part sum. -/
 theorem Complex.leftEndpointCapCollarBoundary_flatten
@@ -66,43 +64,39 @@ theorem Complex.boundaryChordsCancelInSum
     (lowerChord upperChord restTerms : ℂ) :
     (-lowerChord + restTerms + upperChord) + lowerChord - upperChord =
     restTerms :=
-  Eq.trans (Eq.trans (add_assoc (-lowerChord + restTerms + upperChord) lowerChord (-upperChord))
-    (congrArg ((-lowerChord + restTerms + upperChord + lowerChord) + ·) (sub_eq_add_neg upperChord upperChord)))
-    (Eq.trans (Eq.symm (add_assoc (-lowerChord + restTerms + upperChord + lowerChord) (-upperChord)))
-      (Eq.trans (congrArg (· + (-upperChord)) (Eq.symm (add_assoc (-lowerChord + restTerms) upperChord lowerChord)))
-        (Eq.trans (congrArg (· + (-upperChord)) (congrArg ((-lowerChord + restTerms) + ·) (add_comm upperChord lowerChord)))
-          (Eq.trans (congrArg (· + (-upperChord)) (add_assoc (-lowerChord + restTerms) lowerChord upperChord))
-            (Eq.trans (Eq.symm (add_assoc ((-lowerChord + restTerms) + lowerChord) upperChord (-upperChord)))
-              (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (Eq.symm (add_assoc (-lowerChord) restTerms lowerChord)))
-                (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (congrArg ((-lowerChord) + ·) (add_comm restTerms lowerChord)))
-                  (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (add_assoc (-lowerChord) lowerChord restTerms))
-                    (Eq.trans (congrArg (· + upperChord + (-upperChord)) (add_left_neg lowerChord))
-                      (Eq.trans (congrArg (fun x => x + upperChord + (-upperChord)) (zero_add restTerms))
-                        (Eq.trans (congrArg (restTerms + ·) (add_right_neg upperChord))
-                          (add_zero restTerms)))))))))))
+  Eq.trans (sub_eq_add_neg ((-lowerChord + restTerms + upperChord) + lowerChord) upperChord)
+    (Eq.trans (congrArg (· + (-upperChord)) (Eq.symm (add_assoc (-lowerChord + restTerms) upperChord lowerChord)))
+      (Eq.trans (congrArg (· + (-upperChord)) (congrArg ((-lowerChord + restTerms) + ·) (add_comm upperChord lowerChord)))
+        (Eq.trans (congrArg (· + (-upperChord)) (add_assoc (-lowerChord + restTerms) lowerChord upperChord))
+          (Eq.trans (Eq.symm (add_assoc ((-lowerChord + restTerms) + lowerChord) upperChord (-upperChord)))
+            (Eq.trans (congrArg (fun x => x + (-upperChord)) (Eq.symm (add_assoc (-lowerChord) restTerms lowerChord)))
+              (Eq.trans (congrArg (fun x => x + (-upperChord)) (congrArg ((-lowerChord) + ·) (add_comm restTerms lowerChord)))
+                (Eq.trans (congrArg (fun x => x + (-upperChord)) (add_assoc (-lowerChord) lowerChord restTerms))
+                  (Eq.trans (congrArg (· + (-upperChord)) (neg_add_cancel lowerChord))
+                    (Eq.trans (congrArg (fun x => x + (-upperChord)) (zero_add restTerms))
+                      (add_neg_cancel upperChord ▸ add_zero restTerms)))))))))))
 
 /-- Mathematical fact: grouping I*safe terms. -/
 theorem Complex.boundaryGroupISafeTerms
     (safeLower safeMiddle safeUpper : ℂ) :
     Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper =
     Complex.I * (safeLower + safeMiddle + safeUpper) :=
-  (Complex.left_mul_add_three_collect Complex.I safeLower safeMiddle safeUpper).symm
+  Complex.left_mul_add_three_collect Complex.I safeLower safeMiddle safeUpper
 
 /-- Mathematical fact: grouping I*pv terms. -/
 theorem Complex.boundaryGroupIPvTerms
     (pvLower pvUpper : ℂ) :
     Complex.I * pvLower + Complex.I * pvUpper =
     Complex.I * (pvLower + pvUpper) :=
-  (Complex.left_mul_add_two_collect Complex.I pvLower pvUpper).symm
+  Complex.left_mul_add_two_collect Complex.I pvLower pvUpper
 
 /-- Peeled sub-step: Pull lowerChord to front via commutativity. -/
 theorem Complex.boundaryPullLowerChordFront
     (lowerT lowerChord rest : ℂ) :
     lowerT - lowerChord + rest = -lowerChord + (lowerT + rest) :=
-  Eq.trans (Eq.trans (congrArg (lowerT + ·) (sub_eq_add_neg lowerChord lowerChord))
-    (Eq.trans (add_assoc lowerT (-lowerChord) rest)
-      (congrArg (· + rest) (add_comm lowerT (-lowerChord)))))
-    ((add_assoc (-lowerChord) lowerT rest).symm)
+  Eq.trans (sub_eq_add_neg lowerT lowerChord ▸ Eq.symm (add_assoc lowerT (-lowerChord) rest))
+    (Eq.trans (congrArg (· + rest) (add_comm lowerT (-lowerChord)))
+      (add_assoc (-lowerChord) lowerT rest).symm)
 
 /-- Peeled sub-step: Rearrange middle terms after lowerChord pulled forward. -/
 theorem Complex.boundaryRearrangeMiddleTerms
@@ -140,7 +134,7 @@ theorem Complex.rearrange_T_associate
 
 /-- Step: Group T terms together in middle. -/
 theorem Complex.rearrange_group_T_terms
-    (lowerT upperT middleRest rest : ℂ) :
+    (lowerChord lowerT upperT middleRest rest : ℂ) :
     (-lowerChord : ℂ) + lowerT + middleRest + (-upperT) + rest =
     (-lowerChord : ℂ) + (lowerT + (-upperT) + middleRest) + rest :=
   Eq.trans (Eq.symm (add_assoc (-lowerChord) _ _))
@@ -167,11 +161,11 @@ theorem Complex.rearrange_chords_associate
 
 /-- Atomic: -(a) + a = 0. -/
 theorem Complex.neg_add_self (a : ℂ) : (-a) + a = 0 :=
-  add_left_neg a
+  neg_add_cancel a
 
 /-- Atomic: a + (-a) = 0. -/
 theorem Complex.add_neg_self (a : ℂ) : a + (-a) = 0 :=
-  add_right_neg a
+  add_neg_cancel a
 
 /-- Atomic: 0 + x = x. -/
 theorem Complex.zero_add_eq (x : ℂ) : 0 + x = x :=
@@ -188,7 +182,7 @@ theorem Complex.add_cancel_outer
   Eq.trans ((add_assoc a b (-a)).symm)
     (Eq.trans (congrArg (· + (-a)) (add_comm a b))
       (Eq.trans (add_assoc b a (-a))
-        (Eq.trans (congrArg (b + ·) (add_right_neg a))
+        (Eq.trans (congrArg (b + ·) (add_neg_cancel a))
           (add_zero b))))
 
 /-- Atomic: Cancel chords. -/
@@ -220,25 +214,10 @@ theorem Complex.leftEndpointCapCollarBoundary_rearrange_grouping
       (-lowerChord) + (lowerT + (-upperT) + (Complex.I * safeLower + (-Complex.I * pvLower) +
         Complex.I * safeUpper + (-Complex.I * pvUpper) + Complex.I * safeMiddle + (-arc))) +
         upperChord + lowerChord + (-upperChord) :=
-  Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans (Eq.trans
-    (Eq.symm (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))))
-    (add_assoc lowerT (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
-    (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower)) + upperChord)) (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
-    (add_assoc lowerT (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) (upperChord + (-(upperT) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
-    (add_assoc (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (-(upperT)) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
-    (congrArg (· + (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))) (add_comm (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (-(upperT))))
-    (add_assoc (-(upperT)) (lowerT + (-(lowerChord) + Complex.I * safeLower + (-(Complex.I * pvLower))) + upperChord) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))))
-    (congrArg (fun x => (-(lowerChord) + x + upperChord) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc)))) (add_assoc lowerT (-(upperT)) (Complex.I * safeLower + (-(Complex.I * pvLower)))))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + x) (add_assoc (Complex.I * safeUpper) (-(Complex.I * pvUpper)) (lowerChord + (-(upperChord) + Complex.I * safeMiddle + (-(arc))))))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + x) (add_assoc lowerChord (-(upperChord)) (Complex.I * safeMiddle + (-(arc)))))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + Complex.I * safeLower + (-(Complex.I * pvLower)))) + upperChord) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + (lowerChord + (-(upperChord))) + x) (add_comm (Complex.I * safeMiddle) (-(arc))))
-    (Eq.symm (add_assoc (-(lowerChord)) (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + (-(arc)) + Complex.I * safeMiddle))) upperChord))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + x))) + upperChord) (add_assoc (Complex.I * safeLower) (-(Complex.I * pvLower)) (Complex.I * safeUpper + (-(Complex.I * pvUpper)) + (-(arc)) + Complex.I * safeMiddle)))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + x)))) + upperChord) (add_assoc (Complex.I * safeUpper) (-(Complex.I * pvUpper)) ((-(arc)) + Complex.I * safeMiddle)))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + x)))) + upperChord) (add_comm (-(arc)) (Complex.I * safeMiddle)))
-    (congrArg (fun x => (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + (Complex.I * safeUpper + (-(Complex.I * pvUpper))) + Complex.I * safeMiddle + (-(arc)))))) + upperChord + x) (Eq.symm (add_assoc lowerChord (-(upperChord)))))
-    (Eq.symm (add_assoc (-(lowerChord) + (lowerT + (-(upperT) + (Complex.I * safeLower + (-(Complex.I * pvLower)) + Complex.I * safeUpper + (-(Complex.I * pvUpper)) + Complex.I * safeMiddle + (-(arc)))))) upperChord (lowerChord + (-(upperChord))))))
-    rfl
+  Eq.trans (Eq.symm (add_assoc lowerT _ _))
+    (Eq.trans (congrArg (lowerT + ·) (Eq.symm (add_assoc (-lowerChord) _ _)))
+      (Eq.trans (congrArg (fun x => (-lowerChord) + (lowerT + x)) (Eq.symm (add_assoc (-upperT) _ _)))
+        (rfl)))
 
 /-- Peeled step 2a-1: Move T terms and rest to middle, chords to outside. -/
 theorem Complex.leftEndpointCapCollarBoundary_chord_rearrange_step1
@@ -269,7 +248,7 @@ theorem Complex.leftEndpointCapCollarBoundary_chord_rearrange_step2
       (-lowerChord + (lowerT - upperT + (Complex.I * safeLower - Complex.I * pvLower +
         Complex.I * safeUpper - Complex.I * pvUpper + Complex.I * safeMiddle - arc)) +
         upperChord) + lowerChord - upperChord :=
-  Eq.symm (add_assoc (-lowerChord + (lowerT - upperT + _) + upperChord) lowerChord (-upperChord))
+  (add_assoc (-lowerChord + (lowerT - upperT + _) + upperChord) lowerChord (-upperChord)).symm
 
 /-- Lemma: Regroup chords for cancellation. -/
 theorem Complex.leftEndpointCapCollarBoundary_regroup_chords_regrouped
@@ -376,7 +355,7 @@ theorem Complex.left_safe_group_after_convert
     (Complex.I * safeLower) (-(Complex.I * pvLower))
     (Complex.I * safeUpper) (-(Complex.I * pvUpper))
     (Complex.I * safeMiddle) (-(arc)))
-    (Eq.trans (congrArg (· + -(arc)) (Eq.symm (sub_eq_add_neg _ _) ▸ Eq.symm (sub_eq_add_neg _ _) ▸ rfl))
+    (Eq.trans (congrArg (· + -(arc)) (Eq.symm (sub_eq_add_neg _ _) ▸ rfl))
       (Eq.symm (sub_eq_add_neg _ _)))
 
 /-- Sub-step: Safe terms rearrangement. -/
@@ -417,7 +396,7 @@ theorem negs_to_subs
     (a b c d e f g h i j k l : ℂ) :
     a + (-b) + c + (-d) + e + (-f) + g + (-h) + i + (-j) + k + (-l) =
     a - b + c - d + e - f + g - h + i - j + k - l :=
-  Eq.symm (subs_to_negs a b c d e f g h i j k l)
+  (subs_to_negs a b c d e f g h i j k l).symm
 
 /-- Atomic step 2: Rearrange flattened terms to grouped form. -/
 theorem Complex.leftEndpointCapCollarBoundary_regroup
@@ -542,7 +521,7 @@ theorem Complex.rightEndpointCapCollarBoundary_regroup
           (Complex.I * pvLower + Complex.I * pvUpper) -
         (Complex.I * safeLower + Complex.I * safeMiddle + Complex.I * safeUpper) -
         arc :=
-  Eq.trans (right_rest_pv_safe_rearrange pvLower pvUpper safeLower safeMiddle safeUpper arc)
+  Eq.trans (Complex.right_rest_pv_safe_rearrange pvLower pvUpper safeLower safeMiddle safeUpper arc)
     (Eq.trans (Eq.symm (sub_eq_add_neg (lowerT - upperT) _))
       (congrArg (fun x => (lowerT - upperT) + x) (Eq.symm (sub_eq_add_neg _ arc))))
 
@@ -603,14 +582,13 @@ theorem Real.one_le_natCast_of_pos
     {m : ℕ}
     (hm : 0 < m) :
     (1 : ℝ) ≤ (m : ℝ) :=
-  (Nat.cast_le : ((1 : ℝ) ≤ (m : ℝ) ↔ 1 ≤ m)).mpr (Nat.succ_le_iff.mpr hm)
+  by exact_mod_cast Nat.succ_le_iff.mpr hm
 
 /-- The successor of a natural number is at least one after coercion to `ℝ`. -/
 theorem Real.one_le_natCast_succ
     (N : ℕ) :
     (1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) :=
-  (Nat.cast_le : ((1 : ℝ) ≤ ((N + 1 : ℕ) : ℝ) ↔ 1 ≤ N + 1)).mpr
-    (Nat.succ_le_succ (Nat.zero_le N))
+  by exact_mod_cast Nat.succ_le_succ (Nat.zero_le N)
 
 /-- Natural-number order transports to real coercions. -/
 theorem Real.natCast_le_natCast
@@ -622,7 +600,7 @@ theorem Real.natCast_le_natCast
 /-- Successor coercion to `ℝ`. -/
 theorem Real.natCast_succ_eq
     (N : ℕ) :
-    (((N + 1 : ℕ) : ℝ) : ℝ) = (N : ℝ) + 1 :=
+    ((N + 1 : ℕ) : ℝ) = (N : ℝ) + 1 :=
   Nat.cast_succ N
 
 /-- The Abel-Plana quarter gap is smaller than a half gap. -/
@@ -690,9 +668,7 @@ theorem Real.endpoint_radius_lt_abs_height
     (hT : 0 < T)
     (hρT : ρ < T) :
     ρ < |T| :=
-  Eq.mpr
-    (congrArg (fun r : ℝ => ρ < r) (abs_of_pos hT).symm)
-    hρT
+  lt_of_lt_of_eq hρT (abs_of_pos hT).symm
 
 /-- The lower endpoint indentation interval lies inside the full vertical
 height interval. -/
@@ -703,17 +679,7 @@ theorem Real.endpoint_lower_interval_subset_height
     (hρT : ρ < T) :
     ∀ y ∈ [[(-T), (-ρ)]], y ∈ [[-T, T]] :=
   fun y hy =>
-    let horder : -T ≤ -ρ := Real.endpoint_neg_height_le_neg_radius hρT
-    let hyIcc : y ∈ Set.Icc (-T) (-ρ) :=
-      Eq.mp
-        (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
-        hy
-    let hy_le_T : y ≤ T :=
-      hyIcc.2.trans (Real.endpoint_neg_radius_le_height (hρ.trans hρT) hρ)
-    Eq.mpr
-      (congrArg (fun S : Set ℝ => y ∈ S)
-        (Set.uIcc_of_le (neg_le_self (le_of_lt (hρ.trans hρT)))))
-      (And.intro hyIcc.1 hy_le_T)
+    ⟨hy.1, hy.2.trans (Real.endpoint_neg_radius_le_height hT hρ)⟩
 
 /-- The middle endpoint indentation interval lies inside the full vertical
 height interval. -/
@@ -723,19 +689,7 @@ theorem Real.endpoint_middle_interval_subset_height
     (hρT : ρ < T) :
     ∀ y ∈ [[(-ρ), ρ]], y ∈ [[-T, T]] :=
   fun y hy =>
-    let horder : -ρ ≤ ρ := (neg_nonpos.mpr hρ.le).trans hρ.le
-    let hyIcc : y ∈ Set.Icc (-ρ) ρ :=
-      Eq.mp
-        (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
-        hy
-    let hy_ge_negT : -T ≤ y :=
-      (Real.endpoint_neg_height_le_neg_radius hρT).trans hyIcc.1
-    let hy_le_T : y ≤ T :=
-      hyIcc.2.trans hρT.le
-    Eq.mpr
-      (congrArg (fun S : Set ℝ => y ∈ S)
-        (Set.uIcc_of_le (neg_le_self (le_of_lt (hρ.trans hρT)))))
-      (And.intro hy_ge_negT hy_le_T)
+    ⟨(Real.endpoint_neg_height_le_neg_radius hρT).trans hy.1, hy.2.trans hρT.le⟩
 
 /-- The upper endpoint indentation interval lies inside the full vertical
 height interval. -/
@@ -746,17 +700,7 @@ theorem Real.endpoint_upper_interval_subset_height
     (hρT : ρ < T) :
     ∀ y ∈ [[ρ, T]], y ∈ [[-T, T]] :=
   fun y hy =>
-    let horder : ρ ≤ T := le_of_lt hρT
-    let hyIcc : y ∈ Set.Icc ρ T :=
-      Eq.mp
-        (congrArg (fun S : Set ℝ => y ∈ S) (Set.uIcc_of_le horder))
-        hy
-    let hy_ge_negT : -T ≤ y :=
-      (Real.endpoint_neg_height_le_radius hT hρ).trans hyIcc.1
-    Eq.mpr
-      (congrArg (fun S : Set ℝ => y ∈ S)
-        (Set.uIcc_of_le (neg_le_self hT.le)))
-      (And.intro hy_ge_negT hyIcc.2)
+    ⟨(Real.endpoint_neg_height_le_radius hT hρ).trans hy.1, hy.2⟩
 
 /-- A radius smaller than `1/2` has doubled radius at most `1`. -/
 theorem Real.endpoint_two_radius_le_one_of_lt_half
@@ -827,9 +771,7 @@ theorem Real.endpoint_mem_uIcc_of_bounds
     (horder : a ≤ b)
     (h : a ≤ x ∧ x ≤ b) :
     x ∈ Set.uIcc a b :=
-  Eq.mpr
-    (congrArg (fun S : Set ℝ => x ∈ S) (Set.uIcc_of_le horder))
-    h
+  Set.mem_uIcc.mpr (Or.inl h)
 
 /-- Endpoint-local transport from `uIcc` membership to ordered closed-interval
 bounds. -/
@@ -838,9 +780,7 @@ theorem Real.endpoint_bounds_of_mem_uIcc
     (horder : a ≤ b)
     (h : x ∈ Set.uIcc a b) :
     a ≤ x ∧ x ≤ b :=
-  Eq.mp
-    (congrArg (fun S : Set ℝ => x ∈ S) (Set.uIcc_of_le horder))
-    h
+  Set.mem_Icc.mp ((Set.uIcc_of_le horder) ▸ h)
 
 /-- Endpoint-local equality transport for `uIcc` membership. -/
 theorem Real.endpoint_mem_uIcc_congr
@@ -848,9 +788,7 @@ theorem Real.endpoint_mem_uIcc_congr
     (hxy : x = y)
     (hy : y ∈ Set.uIcc a b) :
     x ∈ Set.uIcc a b :=
-  Eq.mp
-    (congrArg (fun t : ℝ => t ∈ Set.uIcc a b) hxy.symm)
-    hy
+  hxy.symm ▸ hy
 
 /-- Endpoint-local equality transport for `uIcc` membership, with equality in
 the reverse orientation. -/
@@ -859,9 +797,7 @@ theorem Real.endpoint_mem_uIcc_congr_symm
     (hxy : x = y)
     (hx : x ∈ Set.uIcc a b) :
     y ∈ Set.uIcc a b :=
-  Eq.mp
-    (congrArg (fun t : ℝ => t ∈ Set.uIcc a b) hxy)
-    hx
+  hxy ▸ hx
 
 /-- Ball membership as the norm inequality for endpoint collar estimates. -/
 theorem Complex.endpoint_norm_lt_of_mem_ball

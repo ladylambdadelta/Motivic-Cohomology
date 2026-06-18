@@ -95,50 +95,45 @@ theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_eq
     (N : ℕ) :
     Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b =
       Complex.fixedRealPartVerticalStirlingEnvelope a b *
-        (1 + ‖b‖) ^ (N : ℝ) := by
-  have hbase_pos : 0 < 1 + ‖b‖ :=
+        (1 + ‖b‖) ^ (N : ℝ) :=
+  let hbase_pos : 0 < 1 + ‖b‖ :=
     lt_of_lt_of_le zero_lt_one
       (le_add_of_nonneg_right (norm_nonneg b))
-  have hexponent :
-      a + (N : ℝ) - 1 / 2 =
-        (a - 1 / 2) + (N : ℝ) := by
+  let hexponent :
+      a + (N : ℝ) - 1 / 2 = (a - 1 / 2) + (N : ℝ) :=
     calc
-      a + (N : ℝ) - 1 / 2 =
-          (a + (N : ℝ)) + -(1 / 2) := by
-        exact sub_eq_add_neg (a + (N : ℝ)) (1 / 2)
-      _ = a + ((N : ℝ) + -(1 / 2)) := by
-        exact add_assoc a (N : ℝ) (-(1 / 2))
-      _ = a + (-(1 / 2) + (N : ℝ)) := by
-        exact congrArg (fun t : ℝ => a + t) (add_comm (N : ℝ) (-(1 / 2)))
-      _ = (a + -(1 / 2)) + (N : ℝ) := by
-        exact (add_assoc a (-(1 / 2)) (N : ℝ)).symm
-      _ = (a - 1 / 2) + (N : ℝ) := by
-        exact congrArg (fun t : ℝ => t + (N : ℝ))
-          (sub_eq_add_neg a (1 / 2)).symm
-  unfold Complex.fixedRealPartVerticalStirlingEnvelope
+      a + (N : ℝ) - 1 / 2 = (a + (N : ℝ)) + -(1 / 2) :=
+        sub_eq_add_neg (a + (N : ℝ)) (1 / 2)
+      _ = a + ((N : ℝ) + -(1 / 2)) :=
+        add_assoc a (N : ℝ) (-(1 / 2))
+      _ = a + (-(1 / 2) + (N : ℝ)) :=
+        congrArg (fun t : ℝ => a + t) (add_comm (N : ℝ) (-(1 / 2)))
+      _ = (a + -(1 / 2)) + (N : ℝ) :=
+        (add_assoc a (-(1 / 2)) (N : ℝ)).symm
+      _ = (a - 1 / 2) + (N : ℝ) :=
+        congrArg (fun t : ℝ => t + (N : ℝ)) (sub_eq_add_neg a (1 / 2)).symm
   calc
-    Real.exp (-(Real.pi / 2) * ‖b‖) *
-        (1 + ‖b‖) ^ (a + (N : ℝ) - 1 / 2) =
-      Real.exp (-(Real.pi / 2) * ‖b‖) *
-        (1 + ‖b‖) ^ ((a - 1 / 2) + (N : ℝ)) := by
-      exact congrArg
-        (fun t : ℝ =>
-          Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ t)
+    Complex.fixedRealPartVerticalStirlingEnvelope (a + N) b =
+        Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a + (N : ℝ) - 1 / 2) :=
+      rfl
+    _ = Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ ((a - 1 / 2) + (N : ℝ)) :=
+      congrArg
+        (fun t : ℝ => Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ t)
         hexponent
-    _ =
-      Real.exp (-(Real.pi / 2) * ‖b‖) *
-        ((1 + ‖b‖) ^ (a - 1 / 2) *
-          (1 + ‖b‖) ^ (N : ℝ)) := by
-      exact congrArg
+    _ = Real.exp (-(Real.pi / 2) * ‖b‖) *
+          ((1 + ‖b‖) ^ (a - 1 / 2) * (1 + ‖b‖) ^ (N : ℝ)) :=
+      congrArg
         (fun t : ℝ => Real.exp (-(Real.pi / 2) * ‖b‖) * t)
         (Real.rpow_add hbase_pos (a - 1 / 2) (N : ℝ))
-    _ =
-      (Real.exp (-(Real.pi / 2) * ‖b‖) *
-        (1 + ‖b‖) ^ (a - 1 / 2)) *
-          (1 + ‖b‖) ^ (N : ℝ) := by
-      exact mul_assoc (Real.exp (-(Real.pi / 2) * ‖b‖))
+    _ = (Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (a - 1 / 2)) *
+          (1 + ‖b‖) ^ (N : ℝ) :=
+      mul_assoc (Real.exp (-(Real.pi / 2) * ‖b‖))
         ((1 + ‖b‖) ^ (a - 1 / 2))
         ((1 + ‖b‖) ^ (N : ℝ))
+    _ = Complex.fixedRealPartVerticalStirlingEnvelope a b * (1 + ‖b‖) ^ (N : ℝ) :=
+      rfl
 
 /-- Cancelling the polynomial scale introduced by a natural real-part shift in
 the vertical Stirling envelope. -/
@@ -463,34 +458,31 @@ theorem Complex.Gamma_ne_zero_of_closedRightHalfPlaneSector_of_ne_zero
     {w : ℂ}
     (hw_sector : Complex.closedRightHalfPlaneSector w)
     (hw_ne : w ≠ 0) :
-    Complex.Gamma w ≠ 0 := by
-  intro hzero
-  rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
-  subst w
-  cases n with
-  | zero =>
-      exact hw_ne (neg_zero : -((0 : ℂ)) = 0)
-  | succ n =>
-      have hre_eq :
-          (-(((Nat.succ n : ℕ) : ℂ))).re =
-            -(((Nat.succ n : ℕ) : ℝ)) := by
-        calc
-          (-(((Nat.succ n : ℕ) : ℂ))).re =
-              -(((Nat.succ n : ℕ) : ℂ).re) :=
-            Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
-          _ = -(((Nat.succ n : ℕ) : ℝ)) := by
-            exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
-      have hre_nonneg :
-          (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
-        Eq.subst
-          (motive := fun x : ℝ => (0 : ℝ) ≤ x)
-          hre_eq
-          hw_sector
-      have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
-        Nat.cast_pos.mpr (Nat.succ_pos n)
-      have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
-        neg_neg_of_pos hsucc_pos
-      exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
+    Complex.Gamma w ≠ 0 :=
+  fun hzero =>
+    match (Complex.Gamma_eq_zero_iff w).mp hzero with
+    | ⟨0, hn⟩ => hw_ne (hn.trans (neg_zero : -((0 : ℂ)) = 0))
+    | ⟨Nat.succ n, hn⟩ =>
+        let hw_sector' : Complex.closedRightHalfPlaneSector (-(((Nat.succ n : ℕ) : ℂ))) :=
+          Eq.subst hn hw_sector
+        let hre_eq :
+            (-(((Nat.succ n : ℕ) : ℂ))).re = -(((Nat.succ n : ℕ) : ℝ)) :=
+          calc
+            (-(((Nat.succ n : ℕ) : ℂ))).re =
+                -(((Nat.succ n : ℕ) : ℂ).re) :=
+              Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
+            _ = -(((Nat.succ n : ℕ) : ℝ)) :=
+              congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
+        let hre_nonneg : (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+          Eq.subst
+            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+            hre_eq
+            hw_sector'
+        let hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
+          Nat.cast_pos.mpr (Nat.succ_pos n)
+        let hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
+          neg_neg_of_pos hsucc_pos
+        (not_lt_of_ge hre_nonneg) hneg_lt_zero
 
 /-- Nonvanishing of the normalized Stirling factor in the closed right
 half-plane away from the origin.
@@ -806,52 +798,49 @@ theorem Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         Real.log B ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
   let δ : ℝ := Real.log 2
   let C : ℝ := max (Real.log B / δ) 1
-  have hδ_pos : 0 < δ :=
+  let hδ_pos : 0 < δ :=
     Real.log_pos one_lt_two
-  have hC_pos : 0 < C :=
+  let hC_pos : 0 < C :=
     lt_of_lt_of_le zero_lt_one (le_max_right (Real.log B / δ) 1)
-  refine ⟨C, hC_pos, ?_⟩
-  intro w _hw_sector _hw_radius
-  have htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
-    mul_nonneg zero_le_two (norm_nonneg w)
-  have hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
-    le_add_of_nonneg_right htwo_norm_nonneg
-  have harg_ge_two : (2 : ℝ) ≤ 2 + 2 * ‖w‖ :=
-    le_add_of_nonneg_right htwo_norm_nonneg
-  have hlog_ge_delta :
-      δ ≤ Real.log (2 + 2 * ‖w‖) :=
-    Real.log_le_log zero_lt_two harg_ge_two
-  have hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
-    le_trans (le_of_lt hδ_pos) hlog_ge_delta
-  have hdelta_le_envelope :
-      δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-    have hlog_le_envelope :
-        Real.log (2 + 2 * ‖w‖) ≤
-          (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-      calc
-        Real.log (2 + 2 * ‖w‖) =
-            1 * Real.log (2 + 2 * ‖w‖) :=
-          (one_mul (Real.log (2 + 2 * ‖w‖))).symm
-        _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-          mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
-    exact le_trans hlog_ge_delta hlog_le_envelope
-  have hlogB_div_le_C : Real.log B / δ ≤ C :=
-    le_max_left (Real.log B / δ) 1
-  have hlogB_le_Cδ : Real.log B ≤ C * δ :=
-    (div_le_iff₀ hδ_pos).mp hlogB_div_le_C
-  have hCδ_le_Cenv :
-      C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
-    mul_le_mul_of_nonneg_left hdelta_le_envelope (le_of_lt hC_pos)
-  have hCenv_eq :
-      C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
-        C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-    mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
-  exact
+  ⟨C, hC_pos, fun w _hw_sector _hw_radius =>
+    let htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
+      mul_nonneg zero_le_two (norm_nonneg w)
+    let hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
+      le_add_of_nonneg_right htwo_norm_nonneg
+    let harg_ge_two : (2 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+      le_add_of_nonneg_right htwo_norm_nonneg
+    let hlog_ge_delta : δ ≤ Real.log (2 + 2 * ‖w‖) :=
+      Real.log_le_log zero_lt_two harg_ge_two
+    let hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+      le_trans (le_of_lt hδ_pos) hlog_ge_delta
+    let hdelta_le_envelope :
+        δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      let hlog_le_envelope :
+          Real.log (2 + 2 * ‖w‖) ≤
+            (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+        calc
+          Real.log (2 + 2 * ‖w‖) =
+              1 * Real.log (2 + 2 * ‖w‖) :=
+            (one_mul (Real.log (2 + 2 * ‖w‖))).symm
+          _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+            mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
+      le_trans hlog_ge_delta hlog_le_envelope
+    let hlogB_div_le_C : Real.log B / δ ≤ C :=
+      le_max_left (Real.log B / δ) 1
+    let hlogB_le_Cδ : Real.log B ≤ C * δ :=
+      (div_le_iff₀ hδ_pos).mp hlogB_div_le_C
+    let hCδ_le_Cenv :
+        C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
+      mul_le_mul_of_nonneg_left hdelta_le_envelope (le_of_lt hC_pos)
+    let hCenv_eq :
+        C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
     le_trans hlogB_le_Cδ
-      (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq))
+      (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq))⟩
 
 /-- In the closed right half-plane, the real-part contribution to the
 normalized Stirling loss is nonpositive, so the loss is bounded by the
@@ -1239,13 +1228,12 @@ def Complex.verticalStripRightShift (A : ℝ) : ℕ :=
 /-- The deterministic strip shift dominates the negative lower endpoint. -/
 theorem Complex.neg_lower_le_verticalStripRightShift
     (A : ℝ) :
-    -A ≤ (Complex.verticalStripRightShift A : ℝ) := by
-  have hmax : -A ≤ max 0 (-A) :=
+    -A ≤ (Complex.verticalStripRightShift A : ℝ) :=
+  let hmax : -A ≤ max 0 (-A) :=
     le_max_right 0 (-A)
-  have hceil : max 0 (-A) ≤ (Complex.verticalStripRightShift A : ℝ) := by
-    unfold Complex.verticalStripRightShift
-    exact Nat.le_ceil (max 0 (-A))
-  exact le_trans hmax hceil
+  let hceil : max 0 (-A) ≤ (Complex.verticalStripRightShift A : ℝ) :=
+    Nat.le_ceil (max 0 (-A))
+  le_trans hmax hceil
 
 /-- The deterministic strip shift is nonnegative as a real number. -/
 theorem Complex.verticalStripRightShift_nonneg
@@ -1359,57 +1347,55 @@ theorem real_pi_radius_absorbed_by_logLinearEnvelope_uniform
       ∀ r : ℝ,
         R₀ ≤ r →
         (Real.pi / 2) * r ≤
-          C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
+          C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
   let C : ℝ := (Real.pi / 2) / Real.log 2
-  have hlog_two_pos : 0 < Real.log 2 :=
+  let hlog_two_pos : 0 < Real.log 2 :=
     Real.log_pos one_lt_two
-  have hpi_half_pos : 0 < Real.pi / 2 :=
+  let hpi_half_pos : 0 < Real.pi / 2 :=
     div_pos Real.pi_pos two_pos
-  have hC_pos : 0 < C :=
+  let hC_pos : 0 < C :=
     div_pos hpi_half_pos hlog_two_pos
-  refine ⟨C, hC_pos, ?_⟩
-  intro r hr
-  have hr_nonneg : 0 ≤ r :=
-    real_nonneg_of_largeRadius R₀ r hR₀_pos hr
-  have hH_nonneg : 0 ≤ 1 + 2 * r :=
-    add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
-  have hr_le_H : r ≤ 1 + 2 * r :=
-    real_radius_le_one_add_two_mul r hr_nonneg
-  have hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
-    real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
-  have hC_log_two : C * Real.log 2 = Real.pi / 2 := by
-    calc
-      C * Real.log 2 =
-          ((Real.pi / 2) / Real.log 2) * Real.log 2 := rfl
-      _ = Real.pi / 2 :=
-        div_mul_cancel₀ (Real.pi / 2) (ne_of_gt hlog_two_pos)
-  have hpi_half_le_CL :
-      Real.pi / 2 ≤ C * Real.log (2 + 2 * r) := by
-    have hmul : C * Real.log 2 ≤ C * Real.log (2 + 2 * r) :=
-      mul_le_mul_of_nonneg_left hL_lower (le_of_lt hC_pos)
-    exact le_trans (le_of_eq hC_log_two.symm) hmul
-  have hleft_to_H :
-      (Real.pi / 2) * r ≤ (Real.pi / 2) * (1 + 2 * r) :=
-    mul_le_mul_of_nonneg_left hr_le_H (le_of_lt hpi_half_pos)
-  have hH_scale :
-      (Real.pi / 2) * (1 + 2 * r) ≤
-        (C * Real.log (2 + 2 * r)) * (1 + 2 * r) :=
-    mul_le_mul_of_nonneg_right hpi_half_le_CL hH_nonneg
-  have htarget_eq :
-      (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
-        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-    calc
-      (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
-          C * (Real.log (2 + 2 * r) * (1 + 2 * r)) :=
-        (mul_assoc C (Real.log (2 + 2 * r)) (1 + 2 * r)).symm
-      _ = C * ((1 + 2 * r) * Real.log (2 + 2 * r)) := by
-        exact congrArg
-          (fun x : ℝ => C * x)
-          (mul_comm (Real.log (2 + 2 * r)) (1 + 2 * r))
-      _ = C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-        exact mul_assoc C (1 + 2 * r) (Real.log (2 + 2 * r))
-  exact le_trans hleft_to_H
-    (le_trans hH_scale (le_of_eq htarget_eq))
+  ⟨C, hC_pos, fun r hr =>
+    let hr_nonneg : 0 ≤ r :=
+      real_nonneg_of_largeRadius R₀ r hR₀_pos hr
+    let hH_nonneg : 0 ≤ 1 + 2 * r :=
+      add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
+    let hr_le_H : r ≤ 1 + 2 * r :=
+      real_radius_le_one_add_two_mul r hr_nonneg
+    let hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
+      real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
+    let hC_log_two : C * Real.log 2 = Real.pi / 2 :=
+      calc
+        C * Real.log 2 =
+            ((Real.pi / 2) / Real.log 2) * Real.log 2 := rfl
+        _ = Real.pi / 2 :=
+          div_mul_cancel₀ (Real.pi / 2) (ne_of_gt hlog_two_pos)
+    let hpi_half_le_CL : Real.pi / 2 ≤ C * Real.log (2 + 2 * r) :=
+      let hmul : C * Real.log 2 ≤ C * Real.log (2 + 2 * r) :=
+        mul_le_mul_of_nonneg_left hL_lower (le_of_lt hC_pos)
+      le_trans (le_of_eq hC_log_two.symm) hmul
+    let hleft_to_H :
+        (Real.pi / 2) * r ≤ (Real.pi / 2) * (1 + 2 * r) :=
+      mul_le_mul_of_nonneg_left hr_le_H (le_of_lt hpi_half_pos)
+    let hH_scale :
+        (Real.pi / 2) * (1 + 2 * r) ≤
+          (C * Real.log (2 + 2 * r)) * (1 + 2 * r) :=
+      mul_le_mul_of_nonneg_right hpi_half_le_CL hH_nonneg
+    let htarget_eq :
+        (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
+          C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+      calc
+        (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
+            C * (Real.log (2 + 2 * r) * (1 + 2 * r)) :=
+          (mul_assoc C (Real.log (2 + 2 * r)) (1 + 2 * r)).symm
+        _ = C * ((1 + 2 * r) * Real.log (2 + 2 * r)) :=
+          congrArg
+            (fun x : ℝ => C * x)
+            (mul_comm (Real.log (2 + 2 * r)) (1 + 2 * r))
+        _ = C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+          mul_assoc C (1 + 2 * r) (Real.log (2 + 2 * r))
+    le_trans hleft_to_H
+      (le_trans hH_scale (le_of_eq htarget_eq))⟩
 
 /-- Uniform version of the real logarithmic envelope on a large-radius region. -/
 theorem real_abs_log_le_largeRadius_log_envelope_uniform
@@ -1419,84 +1405,81 @@ theorem real_abs_log_le_largeRadius_log_envelope_uniform
       0 < C ∧
       ∀ r : ℝ,
         R₀ ≤ r →
-        ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
+        ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) :=
   let C : ℝ := max 1 (R₀⁻¹ / Real.log 2)
-  have hlog_two_pos : 0 < Real.log 2 :=
+  let hlog_two_pos : 0 < Real.log 2 :=
     Real.log_pos one_lt_two
-  have hR₀_inv_nonneg : 0 ≤ R₀⁻¹ :=
+  let hR₀_inv_nonneg : 0 ≤ R₀⁻¹ :=
     inv_nonneg.mpr (le_of_lt hR₀_pos)
-  have hC_pos : 0 < C :=
+  let hC_pos : 0 < C :=
     lt_of_lt_of_le zero_lt_one (le_max_left 1 (R₀⁻¹ / Real.log 2))
-  refine ⟨C, hC_pos, ?_⟩
-  intro r hr
-  have hr_pos : 0 < r :=
-    lt_of_lt_of_le hR₀_pos hr
-  have hr_nonneg : 0 ≤ r :=
-    le_of_lt hr_pos
-  have hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
-    real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
-  have hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
-    real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
-  by_cases hone_le_r : (1 : ℝ) ≤ r
-  · have hlog_nonneg : 0 ≤ Real.log r :=
-      Real.log_nonneg hone_le_r
-    have hnorm_log : ‖Real.log r‖ = Real.log r :=
-      Real.norm_of_nonneg hlog_nonneg
-    have hr_le_arg : r ≤ 2 + 2 * r := by
-      calc
-        r ≤ 2 * r :=
-          calc
-            r = 1 * r := (one_mul r).symm
-            _ ≤ 2 * r := mul_le_mul_of_nonneg_right one_le_two hr_nonneg
-        _ ≤ 2 + 2 * r :=
-          le_add_of_nonneg_left zero_le_two
-    have hlog_le_L : Real.log r ≤ Real.log (2 + 2 * r) :=
-      Real.log_le_log hr_pos hr_le_arg
-    have hC_ge_one : (1 : ℝ) ≤ C :=
-      le_max_left 1 (R₀⁻¹ / Real.log 2)
-    have hL_le_CL : Real.log (2 + 2 * r) ≤ C * Real.log (2 + 2 * r) := by
-      calc
-        Real.log (2 + 2 * r) =
-            1 * Real.log (2 + 2 * r) :=
-          (one_mul (Real.log (2 + 2 * r))).symm
-        _ ≤ C * Real.log (2 + 2 * r) :=
-          mul_le_mul_of_nonneg_right hC_ge_one hL_nonneg
-    exact le_trans (le_of_eq hnorm_log)
-      (le_trans hlog_le_L hL_le_CL)
-  · have hr_le_one : r ≤ 1 :=
-      le_of_not_ge hone_le_r
-    have hlog_nonpos : Real.log r ≤ 0 :=
-      (Real.log_nonpos_iff hr_pos).mpr hr_le_one
-    have hnorm_log : ‖Real.log r‖ = -Real.log r :=
-      Real.norm_of_nonpos hlog_nonpos
-    have hneg_log_le_inv : -Real.log r ≤ r⁻¹ := by
-      have hneg_inv_le_log : -r⁻¹ ≤ Real.log r :=
-        Real.neg_inv_le_log hr_nonneg
-      exact neg_le.mp hneg_inv_le_log
-    have hinv_le_R₀_inv : r⁻¹ ≤ R₀⁻¹ :=
-      one_div_le_one_div_of_le hR₀_pos hr
-    have hsmall : ‖Real.log r‖ ≤ R₀⁻¹ :=
-      le_trans (le_of_eq hnorm_log) (le_trans hneg_log_le_inv hinv_le_R₀_inv)
-    have hratio_le_C : R₀⁻¹ / Real.log 2 ≤ C :=
-      le_max_right 1 (R₀⁻¹ / Real.log 2)
-    have hR₀_inv_le_ratio_L :
-        R₀⁻¹ ≤ (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) := by
-      have hR₀_inv_div_mul :
-          R₀⁻¹ = (R₀⁻¹ / Real.log 2) * Real.log 2 := by
-        exact (div_mul_cancel₀ R₀⁻¹ (ne_of_gt hlog_two_pos)).symm
-      have hmul :
-          (R₀⁻¹ / Real.log 2) * Real.log 2 ≤
-            (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) :=
-        mul_le_mul_of_nonneg_left hL_lower
-          (div_nonneg hR₀_inv_nonneg (le_of_lt hlog_two_pos))
-      exact le_trans (le_of_eq hR₀_inv_div_mul)
-        hmul
-    have hratio_L_le_CL :
-        (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) ≤
-          C * Real.log (2 + 2 * r) :=
-      mul_le_mul_of_nonneg_right hratio_le_C hL_nonneg
-    exact le_trans hsmall
-      (le_trans hR₀_inv_le_ratio_L hratio_L_le_CL)
+  ⟨C, hC_pos, fun r hr =>
+    let hr_pos : 0 < r :=
+      lt_of_lt_of_le hR₀_pos hr
+    let hr_nonneg : 0 ≤ r :=
+      le_of_lt hr_pos
+    let hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
+      real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
+    let hL_lower : Real.log 2 ≤ Real.log (2 + 2 * r) :=
+      real_log_two_le_largeRadius_log_envelope R₀ r hR₀_pos hr
+    if hone_le_r : (1 : ℝ) ≤ r then
+      let hlog_nonneg : 0 ≤ Real.log r :=
+        Real.log_nonneg hone_le_r
+      let hnorm_log : ‖Real.log r‖ = Real.log r :=
+        Real.norm_of_nonneg hlog_nonneg
+      let hr_le_arg : r ≤ 2 + 2 * r :=
+        calc
+          r ≤ 2 * r :=
+            calc
+              r = 1 * r := (one_mul r).symm
+              _ ≤ 2 * r := mul_le_mul_of_nonneg_right one_le_two hr_nonneg
+          _ ≤ 2 + 2 * r :=
+            le_add_of_nonneg_left zero_le_two
+      let hlog_le_L : Real.log r ≤ Real.log (2 + 2 * r) :=
+        Real.log_le_log hr_pos hr_le_arg
+      let hC_ge_one : (1 : ℝ) ≤ C :=
+        le_max_left 1 (R₀⁻¹ / Real.log 2)
+      let hL_le_CL : Real.log (2 + 2 * r) ≤ C * Real.log (2 + 2 * r) :=
+        calc
+          Real.log (2 + 2 * r) =
+              1 * Real.log (2 + 2 * r) :=
+            (one_mul (Real.log (2 + 2 * r))).symm
+          _ ≤ C * Real.log (2 + 2 * r) :=
+            mul_le_mul_of_nonneg_right hC_ge_one hL_nonneg
+      le_trans (le_of_eq hnorm_log)
+        (le_trans hlog_le_L hL_le_CL)
+    else
+      let hr_le_one : r ≤ 1 :=
+        le_of_not_ge hone_le_r
+      let hlog_nonpos : Real.log r ≤ 0 :=
+        (Real.log_nonpos_iff hr_pos).mpr hr_le_one
+      let hnorm_log : ‖Real.log r‖ = -Real.log r :=
+        Real.norm_of_nonpos hlog_nonpos
+      let hneg_log_le_inv : -Real.log r ≤ r⁻¹ :=
+        neg_le.mp (Real.neg_inv_le_log hr_nonneg)
+      let hinv_le_R₀_inv : r⁻¹ ≤ R₀⁻¹ :=
+        one_div_le_one_div_of_le hR₀_pos hr
+      let hsmall : ‖Real.log r‖ ≤ R₀⁻¹ :=
+        le_trans (le_of_eq hnorm_log) (le_trans hneg_log_le_inv hinv_le_R₀_inv)
+      let hratio_le_C : R₀⁻¹ / Real.log 2 ≤ C :=
+        le_max_right 1 (R₀⁻¹ / Real.log 2)
+      let hR₀_inv_le_ratio_L :
+          R₀⁻¹ ≤ (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) :=
+        let hR₀_inv_div_mul :
+            R₀⁻¹ = (R₀⁻¹ / Real.log 2) * Real.log 2 :=
+          (div_mul_cancel₀ R₀⁻¹ (ne_of_gt hlog_two_pos)).symm
+        let hmul :
+            (R₀⁻¹ / Real.log 2) * Real.log 2 ≤
+              (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) :=
+          mul_le_mul_of_nonneg_left hL_lower
+            (div_nonneg hR₀_inv_nonneg (le_of_lt hlog_two_pos))
+        le_trans (le_of_eq hR₀_inv_div_mul) hmul
+      let hratio_L_le_CL :
+          (R₀⁻¹ / Real.log 2) * Real.log (2 + 2 * r) ≤
+            C * Real.log (2 + 2 * r) :=
+        mul_le_mul_of_nonneg_right hratio_le_C hL_nonneg
+      le_trans hsmall
+        (le_trans hR₀_inv_le_ratio_L hratio_L_le_CL)⟩
 
 /-- Pure real logarithmic envelope for a radius bounded below away from zero. -/
 theorem real_abs_log_le_largeRadius_log_envelope
@@ -1505,10 +1488,9 @@ theorem real_abs_log_le_largeRadius_log_envelope
     (hr : R₀ ≤ r) :
     ∃ C : ℝ,
       0 < C ∧
-      ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) := by
-  rcases real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos with
-    ⟨C, hC_pos, hC⟩
-  exact ⟨C, hC_pos, hC r hr⟩
+      ‖Real.log r‖ ≤ C * Real.log (2 + 2 * r) :=
+  let ⟨C, hC_pos, hC⟩ := real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos
+  ⟨C, hC_pos, hC r hr⟩
 
 /-- The logarithm of the radius is absorbed by the logarithmic envelope on any
 large-radius region bounded away from zero. -/
@@ -1668,70 +1650,65 @@ theorem real_linear_log_absorption_uniform
       ∀ r : ℝ,
         R₀ ≤ r →
         (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
-          C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-  rcases real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos with
-    ⟨Clog, hClog_pos, hlog⟩
-  rcases real_pi_radius_absorbed_by_logLinearEnvelope_uniform R₀ hR₀_pos with
-    ⟨Cpi, hCpi_pos, hpi⟩
-  refine ⟨Clog + Cpi, add_pos hClog_pos hCpi_pos, ?_⟩
-  intro r hr
-  have hr_nonneg : 0 ≤ r :=
-    real_nonneg_of_largeRadius R₀ r hR₀_pos hr
-  have hH_nonneg : 0 ≤ 1 + 2 * r :=
-    add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
-  have hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
-    real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
-  have hfactor_nonneg : 0 ≤ r + 1 / 2 :=
-    add_nonneg hr_nonneg (le_of_lt one_half_pos)
-  have hfactor_le_H : r + 1 / 2 ≤ 1 + 2 * r :=
-    real_radius_add_half_le_one_add_two_mul r hr_nonneg
-  have hlog_bound :
-      ‖Real.log r‖ ≤ Clog * Real.log (2 + 2 * r) :=
-    hlog r hr
-  have hfirst_step :
-      (r + 1 / 2) * ‖Real.log r‖ ≤
-        (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) :=
-    mul_le_mul_of_nonneg_left hlog_bound hfactor_nonneg
-  have hClogL_nonneg :
-      0 ≤ Clog * Real.log (2 + 2 * r) :=
-    mul_nonneg (le_of_lt hClog_pos) hL_nonneg
-  have hfirst_factor :
-      (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) ≤
-        (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) :=
-    mul_le_mul_of_nonneg_right hfactor_le_H hClogL_nonneg
-  have hfirst_assoc :
-      (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
-        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-    calc
-      (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
-          ((1 + 2 * r) * Clog) * Real.log (2 + 2 * r) :=
-        mul_assoc (1 + 2 * r) Clog (Real.log (2 + 2 * r))
-      _ = (Clog * (1 + 2 * r)) * Real.log (2 + 2 * r) := by
-        exact congrArg
-          (fun x : ℝ => x * Real.log (2 + 2 * r))
-          (mul_comm (1 + 2 * r) Clog)
-      _ = Clog * (1 + 2 * r) * Real.log (2 + 2 * r) := rfl
-  have hfirst :
-      (r + 1 / 2) * ‖Real.log r‖ ≤
-        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) :=
-    le_trans hfirst_step
-      (le_trans hfirst_factor (le_of_eq hfirst_assoc))
-  have hsecond :
-      (Real.pi / 2) * r ≤
-        Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) :=
-    hpi r hr
-  have hsum :
-      (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
-        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
+          C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+  let ⟨Clog, hClog_pos, hlog⟩ := real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos
+  let ⟨Cpi, hCpi_pos, hpi⟩ := real_pi_radius_absorbed_by_logLinearEnvelope_uniform R₀ hR₀_pos
+  ⟨Clog + Cpi, add_pos hClog_pos hCpi_pos, fun r hr =>
+    let hr_nonneg : 0 ≤ r :=
+      real_nonneg_of_largeRadius R₀ r hR₀_pos hr
+    let hH_nonneg : 0 ≤ 1 + 2 * r :=
+      add_nonneg zero_le_one (mul_nonneg zero_le_two hr_nonneg)
+    let hL_nonneg : 0 ≤ Real.log (2 + 2 * r) :=
+      real_largeRadius_log_envelope_nonneg R₀ r hR₀_pos hr
+    let hfactor_nonneg : 0 ≤ r + 1 / 2 :=
+      add_nonneg hr_nonneg (le_of_lt one_half_pos)
+    let hfactor_le_H : r + 1 / 2 ≤ 1 + 2 * r :=
+      real_radius_add_half_le_one_add_two_mul r hr_nonneg
+    let hlog_bound : ‖Real.log r‖ ≤ Clog * Real.log (2 + 2 * r) :=
+      hlog r hr
+    let hfirst_step :
+        (r + 1 / 2) * ‖Real.log r‖ ≤
+          (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) :=
+      mul_le_mul_of_nonneg_left hlog_bound hfactor_nonneg
+    let hClogL_nonneg : 0 ≤ Clog * Real.log (2 + 2 * r) :=
+      mul_nonneg (le_of_lt hClog_pos) hL_nonneg
+    let hfirst_factor :
+        (r + 1 / 2) * (Clog * Real.log (2 + 2 * r)) ≤
+          (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) :=
+      mul_le_mul_of_nonneg_right hfactor_le_H hClogL_nonneg
+    let hfirst_assoc :
+        (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
+          Clog * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+      calc
+        (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
+            ((1 + 2 * r) * Clog) * Real.log (2 + 2 * r) :=
+          mul_assoc (1 + 2 * r) Clog (Real.log (2 + 2 * r))
+        _ = (Clog * (1 + 2 * r)) * Real.log (2 + 2 * r) :=
+          congrArg
+            (fun x : ℝ => x * Real.log (2 + 2 * r))
+            (mul_comm (1 + 2 * r) Clog)
+        _ = Clog * (1 + 2 * r) * Real.log (2 + 2 * r) := rfl
+    let hfirst :
+        (r + 1 / 2) * ‖Real.log r‖ ≤
+          Clog * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+      le_trans hfirst_step
+        (le_trans hfirst_factor (le_of_eq hfirst_assoc))
+    let hsecond :
+        (Real.pi / 2) * r ≤
           Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) :=
-    add_le_add hfirst hsecond
-  have hcombine :
-      Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
-          Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) =
-        (Clog + Cpi) * (1 + 2 * r) * Real.log (2 + 2 * r) :=
-    logLinearEnvelope_add_constants
-      Clog Cpi (1 + 2 * r) (Real.log (2 + 2 * r))
-  exact le_trans hsum (le_of_eq hcombine)
+      hpi r hr
+    let hsum :
+        (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
+          Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
+            Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+      add_le_add hfirst hsecond
+    let hcombine :
+        Clog * (1 + 2 * r) * Real.log (2 + 2 * r) +
+            Cpi * (1 + 2 * r) * Real.log (2 + 2 * r) =
+          (Clog + Cpi) * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+      logLinearEnvelope_add_constants
+        Clog Cpi (1 + 2 * r) (Real.log (2 + 2 * r))
+    le_trans hsum (le_of_eq hcombine)⟩
 
 /-- Pure real absorption of the norm-log majorant into the standard log-linear
 envelope, using a lower radius cutoff. -/
@@ -1742,10 +1719,9 @@ theorem real_linear_log_absorption
     ∃ C : ℝ,
       0 < C ∧
       (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r ≤
-        C * (1 + 2 * r) * Real.log (2 + 2 * r) := by
-  rcases real_linear_log_absorption_uniform R₀ hR₀_pos with
-    ⟨C, hC_pos, hC⟩
-  exact ⟨C, hC_pos, hC r hr⟩
+        C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
+  let ⟨C, hC_pos, hC⟩ := real_linear_log_absorption_uniform R₀ hR₀_pos
+  ⟨C, hC_pos, hC r hr⟩
 
 /-- The elementary norm-log majorant is absorbed by the standard log-linear
 envelope on every large-radius region. -/
@@ -1776,14 +1752,12 @@ theorem Complex.radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         (w.re - 1 / 2) * Real.log ‖w‖ - Complex.arg w * w.im ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases Complex.linear_log_absorption R₀ hR₀_pos with
-    ⟨C, hC_pos, hlinear⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro w hw_sector hw_radius
-  exact le_trans
-    (Complex.radiusArgumentLoss_le_norm_log_majorant w hw_sector)
-    (hlinear w hw_radius)
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨C, hC_pos, hlinear⟩ := Complex.linear_log_absorption R₀ hR₀_pos
+  ⟨C, hC_pos, fun w hw_sector hw_radius =>
+    le_trans
+      (Complex.radiusArgumentLoss_le_norm_log_majorant w hw_sector)
+      (hlinear w hw_radius)⟩
 
 /-- The branch-loss radius/argument expression is absorbed by the standard
 large-radius log-linear envelope on the closed right half-plane. -/
@@ -1812,20 +1786,17 @@ theorem Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLin
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         -Real.log ‖w ^ ((1 / 2 : ℂ) - w)‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases
-      Complex.cpow_half_minus_self_radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
-        R₀ hR₀_pos with
-    ⟨C, hC_pos, hbranch_bound⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro w hw_sector hw_radius
-  have hw_ne : w ≠ 0 :=
-    Complex.ne_zero_of_pos_le_norm hR₀_pos hw_radius
-  exact le_trans
-    (le_of_eq
-      (Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss
-        hw_ne))
-    (hbranch_bound w hw_sector hw_radius)
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨C, hC_pos, hbranch_bound⟩ :=
+    Complex.cpow_half_minus_self_radiusArgumentLoss_absorbed_by_largeRadius_logLinearEnvelope
+      R₀ hR₀_pos
+  ⟨C, hC_pos, fun w hw_sector hw_radius =>
+    let hw_ne : w ≠ 0 :=
+      Complex.ne_zero_of_pos_le_norm hR₀_pos hw_radius
+    le_trans
+      (le_of_eq
+        (Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss hw_ne))
+      (hbranch_bound w hw_sector hw_radius)⟩
 
 /-- The principal-branch logarithmic loss in normalized Stirling is absorbed by
 the large-radius log-linear envelope. -/
@@ -1838,16 +1809,14 @@ theorem Complex.normalizedGammaStirlingLogLoss_absorbed_by_largeRadius_logLinear
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         Complex.normalizedGammaStirlingLogLoss w ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases
-      Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLinearEnvelope
-        R₀ hR₀_pos with
-    ⟨C, hC_pos, hcpow⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro w hw_sector hw_radius
-  exact le_trans
-    (Complex.normalizedGammaStirlingLogLoss_le_neg_cpow_log hw_sector)
-    (hcpow w hw_sector hw_radius)
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨C, hC_pos, hcpow⟩ :=
+    Complex.neg_log_norm_cpow_half_minus_self_absorbed_by_largeRadius_logLinearEnvelope
+      R₀ hR₀_pos
+  ⟨C, hC_pos, fun w hw_sector hw_radius =>
+    le_trans
+      (Complex.normalizedGammaStirlingLogLoss_le_neg_cpow_log hw_sector)
+      (hcpow w hw_sector hw_radius)⟩
 
 /-- Assembly of constant-log absorption and principal-branch loss absorption. -/
 theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound_of_constant_and_loss
@@ -1874,25 +1843,25 @@ theorem Complex.normalizedGammaStirlingLogLoss_absorbs_logBound_of_constant_and_
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases hconstant with ⟨Cconstant, hCconstant_pos, hconstant_bound⟩
-  rcases hloss with ⟨Closs, hCloss_pos, hloss_bound⟩
-  refine ⟨Cconstant + Closs, add_pos hCconstant_pos hCloss_pos, ?_⟩
-  intro w hw_sector hw_radius
-  have hsum :
-      Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
-        Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
-          Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-    add_le_add
-      (hconstant_bound w hw_sector hw_radius)
-      (hloss_bound w hw_sector hw_radius)
-  have hcombine :
-      Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
-          Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) =
-        (Cconstant + Closs) * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-    logLinearEnvelope_add_constants
-      Cconstant Closs (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
-  exact le_trans hsum (le_of_eq hcombine)
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨Cconstant, hCconstant_pos, hconstant_bound⟩ := hconstant
+  let ⟨Closs, hCloss_pos, hloss_bound⟩ := hloss
+  ⟨Cconstant + Closs, add_pos hCconstant_pos hCloss_pos,
+    fun w hw_sector hw_radius =>
+      let hsum :
+          Real.log B + Complex.normalizedGammaStirlingLogLoss w ≤
+            Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
+              Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+        add_le_add
+          (hconstant_bound w hw_sector hw_radius)
+          (hloss_bound w hw_sector hw_radius)
+      let hcombine :
+          Cconstant * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) +
+              Closs * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) =
+            (Cconstant + Closs) * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+        logLinearEnvelope_add_constants
+          Cconstant Closs (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+      le_trans hsum (le_of_eq hcombine)⟩
 
 /-- The branch/cpow logarithmic loss from normalized Stirling is absorbed by
 the standard log-linear envelope on the large-radius closed right half-plane. -/
@@ -1938,41 +1907,38 @@ theorem Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound_largeRadi
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases Complex.normalizedGammaStirlingLogLoss_absorbs_logBound
-      B R₀ hB_pos hR₀_pos with
-    ⟨C, hC_pos, hloss⟩
-  refine ⟨C, hC_pos, ?_⟩
-  intro w hw_sector hw_radius
-  have hfactor_ne :
-      Complex.normalizedGammaStirlingFactor w ≠ 0 :=
-    Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSector_largeRadius
-      R₀ hR₀_pos hw_sector hw_radius
-  have hfactor_pos :
-      0 < ‖Complex.normalizedGammaStirlingFactor w‖ :=
-    norm_pos_iff.mpr hfactor_ne
-  have hfactor_bound :
-      ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B :=
-    hfactor w hw_sector hw_radius
-  have hfactor_log :
-      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
-    Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
-      B hfactor_pos hfactor_bound
-  have hgamma_extract :
-      Real.log ‖Complex.Gamma w‖ ≤
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨C, hC_pos, hloss⟩ :=
+    Complex.normalizedGammaStirlingLogLoss_absorbs_logBound B R₀ hB_pos hR₀_pos
+  ⟨C, hC_pos, fun w hw_sector hw_radius =>
+    let hfactor_ne :
+        Complex.normalizedGammaStirlingFactor w ≠ 0 :=
+      Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSector_largeRadius
+        R₀ hR₀_pos hw_sector hw_radius
+    let hfactor_pos :
+        0 < ‖Complex.normalizedGammaStirlingFactor w‖ :=
+      norm_pos_iff.mpr hfactor_ne
+    let hfactor_bound :
+        ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B :=
+      hfactor w hw_sector hw_radius
+    let hfactor_log :
+        Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
+      Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
+        B hfactor_pos hfactor_bound
+    let hgamma_extract :
+        Real.log ‖Complex.Gamma w‖ ≤
+          Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+            Complex.normalizedGammaStirlingLogLoss w :=
+      Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
+        w hfactor_ne
+    let hlog_plus_loss :
         Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
-          Complex.normalizedGammaStirlingLogLoss w :=
-    Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
-      w hfactor_ne
-  have hlog_plus_loss :
-      Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
-          Complex.normalizedGammaStirlingLogLoss w ≤
-        Real.log B + Complex.normalizedGammaStirlingLogLoss w :=
-    add_le_add_right hfactor_log
-      (Complex.normalizedGammaStirlingLogLoss w)
-  exact
+            Complex.normalizedGammaStirlingLogLoss w ≤
+          Real.log B + Complex.normalizedGammaStirlingLogLoss w :=
+      add_le_add_right hfactor_log
+        (Complex.normalizedGammaStirlingLogLoss w)
     le_trans hgamma_extract
-      (le_trans hlog_plus_loss (hloss w hw_sector hw_radius))
+      (le_trans hlog_plus_loss (hloss w hw_sector hw_radius))⟩
 
 /-- The closed right-half-plane Gamma annulus used to absorb small radii in the
 normalized Stirling extraction. -/
@@ -2008,12 +1974,11 @@ theorem Complex.closedRightHalfPlaneGammaAnnulus_isClosed
 /-- The closed right-half-plane Gamma annulus is bounded. -/
 theorem Complex.closedRightHalfPlaneGammaAnnulus_isBounded
     (R₀ : ℝ) :
-    Bornology.IsBounded (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
-  refine isBounded_iff_forall_norm_le.2 ⟨max R₀ 0 + 1, ?_⟩
-  intro w hw
-  have hraw : ‖w‖ ≤ R₀ := hw.2.2
-  exact le_trans hraw
-    (le_trans (le_max_left R₀ 0) (le_add_of_nonneg_right zero_le_one))
+    Bornology.IsBounded (Complex.closedRightHalfPlaneGammaAnnulus R₀) :=
+  isBounded_iff_forall_norm_le.2 ⟨max R₀ 0 + 1, fun w hw =>
+    let hraw : ‖w‖ ≤ R₀ := hw.2.2
+    le_trans hraw
+      (le_trans (le_max_left R₀ 0) (le_add_of_nonneg_right zero_le_one))⟩
 
 /-- The closed right-half-plane Gamma annulus is compact. -/
 theorem Complex.closedRightHalfPlaneGammaAnnulus_isCompact
@@ -2028,45 +1993,46 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
     (R₀ : ℝ)
     {w : ℂ}
     (hw : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀) :
-    Complex.Gamma w ≠ 0 := by
-  intro hzero
-  rcases (Complex.Gamma_eq_zero_iff w).mp hzero with ⟨n, hn⟩
-  subst w
-  cases n with
-  | zero =>
-      have hnorm_zero : ‖(-((0 : ℕ) : ℂ))‖ = 0 := by
-        calc
-          ‖(-((0 : ℕ) : ℂ))‖ = ‖(-(0 : ℂ))‖ := rfl
-          _ = ‖(0 : ℂ)‖ :=
-            congrArg norm (neg_zero : -((0 : ℂ)) = 0)
-          _ = 0 := norm_zero
-      have hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 :=
-        Eq.subst
-          (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
-          hnorm_zero
-          hw.2.1
-      exact (not_lt_of_ge hhalf_le_zero) one_half_pos
-  | succ n =>
-      have hre_eq :
-          (-(((Nat.succ n : ℕ) : ℂ))).re =
-            -(((Nat.succ n : ℕ) : ℝ)) := by
-        calc
-          (-(((Nat.succ n : ℕ) : ℂ))).re =
-              -(((Nat.succ n : ℕ) : ℂ).re) :=
-            Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
-          _ = -(((Nat.succ n : ℕ) : ℝ)) := by
-            exact congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
-      have hre_nonneg :
-          (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
-        Eq.subst
-          (motive := fun x : ℝ => (0 : ℝ) ≤ x)
-          hre_eq
-          hw.1
-      have hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
-        Nat.cast_pos.mpr (Nat.succ_pos n)
-      have hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
-        neg_neg_of_pos hsucc_pos
-      exact (not_lt_of_ge hre_nonneg) hneg_lt_zero
+    Complex.Gamma w ≠ 0 :=
+  fun hzero =>
+    match (Complex.Gamma_eq_zero_iff w).mp hzero with
+    | ⟨0, hn⟩ =>
+        let hnorm_zero : ‖(-((0 : ℕ) : ℂ))‖ = 0 :=
+          calc
+            ‖(-((0 : ℕ) : ℂ))‖ = ‖(-(0 : ℂ))‖ := rfl
+            _ = ‖(0 : ℂ)‖ :=
+              congrArg norm (neg_zero : -((0 : ℂ)) = 0)
+            _ = 0 := norm_zero
+        let hhalf_le_norm : (1 / 2 : ℝ) ≤ ‖w‖ := hw.2.1
+        let hhalf_le_hn : (1 / 2 : ℝ) ≤ ‖(-((0 : ℕ) : ℂ))‖ :=
+          Eq.subst hn hhalf_le_norm
+        let hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 :=
+          Eq.subst
+            (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
+            hnorm_zero
+            hhalf_le_hn
+        (not_lt_of_ge hhalf_le_zero) one_half_pos
+    | ⟨Nat.succ n, hn⟩ =>
+        let hw_sector' : Complex.closedRightHalfPlaneSector (-(((Nat.succ n : ℕ) : ℂ))) :=
+          Eq.subst hn hw.1
+        let hre_eq :
+            (-(((Nat.succ n : ℕ) : ℂ))).re = -(((Nat.succ n : ℕ) : ℝ)) :=
+          calc
+            (-(((Nat.succ n : ℕ) : ℂ))).re =
+                -(((Nat.succ n : ℕ) : ℂ).re) :=
+              Complex.neg_re (((Nat.succ n : ℕ) : ℂ))
+            _ = -(((Nat.succ n : ℕ) : ℝ)) :=
+              congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
+        let hre_nonneg : (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
+          Eq.subst
+            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
+            hre_eq
+            hw_sector'
+        let hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
+          Nat.cast_pos.mpr (Nat.succ_pos n)
+        let hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
+          neg_neg_of_pos hsucc_pos
+        (not_lt_of_ge hre_nonneg) hneg_lt_zero
 
 /-- The function `w ↦ log ‖Γ(w)‖` is continuous on the closed right-half-plane
 Gamma annulus. -/
@@ -2098,14 +2064,12 @@ theorem Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound
     ∃ M : ℝ,
       ∀ w : ℂ,
         w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
-        Real.log ‖Complex.Gamma w‖ ≤ M := by
-  rcases IsCompact.exists_bound_of_continuousOn
+        Real.log ‖Complex.Gamma w‖ ≤ M :=
+  let ⟨M, hM⟩ :=
+    IsCompact.exists_bound_of_continuousOn
       (Complex.closedRightHalfPlaneGammaAnnulus_isCompact R₀)
-      (Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus R₀) with
-    ⟨M, hM⟩
-  refine ⟨M, ?_⟩
-  intro w hw
-  exact hM w hw
+      (Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus R₀)
+  ⟨M, fun w hw => hM w hw⟩
 
 /-- The log-linear Gamma envelope has a positive lower bound on the compact
 annulus. -/
@@ -2116,32 +2080,30 @@ theorem Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
       0 < δ ∧
       ∀ w : ℂ,
         w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
-        δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  refine ⟨Real.log 3, Real.log_pos one_lt_three, ?_⟩
-  intro w hw
-  have htwo_norm_ge_one : (1 : ℝ) ≤ 2 * ‖w‖ :=
-    (div_le_iff₀' zero_lt_two).mp hw.2.1
-  have hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
-    le_add_of_nonneg_right (mul_nonneg zero_le_two (norm_nonneg w))
-  have harg_ge_three : (3 : ℝ) ≤ 2 + 2 * ‖w‖ := by
-    calc
-      (3 : ℝ) = 2 + 1 := rfl
-      _ ≤ 2 + 2 * ‖w‖ :=
-        add_le_add_left htwo_norm_ge_one 2
-  have hlog_le :
-      Real.log 3 ≤ Real.log (2 + 2 * ‖w‖) :=
-    Real.log_le_log zero_lt_three harg_ge_three
-  have hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
-    le_trans (le_of_lt (Real.log_pos one_lt_three)) hlog_le
-  have hone_mul :
-      Real.log (2 + 2 * ‖w‖) ≤
-        (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-    calc
-      Real.log (2 + 2 * ‖w‖) = 1 * Real.log (2 + 2 * ‖w‖) :=
-        (one_mul (Real.log (2 + 2 * ‖w‖))).symm
-      _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-        mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
-  exact le_trans hlog_le hone_mul
+        δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  ⟨Real.log 3, Real.log_pos one_lt_three, fun w hw =>
+    let htwo_norm_ge_one : (1 : ℝ) ≤ 2 * ‖w‖ :=
+      (div_le_iff₀' zero_lt_two).mp hw.2.1
+    let hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
+      le_add_of_nonneg_right (mul_nonneg zero_le_two (norm_nonneg w))
+    let harg_ge_three : (3 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+      calc
+        (3 : ℝ) = 2 + 1 := rfl
+        _ ≤ 2 + 2 * ‖w‖ :=
+          add_le_add_left htwo_norm_ge_one 2
+    let hlog_le : Real.log 3 ≤ Real.log (2 + 2 * ‖w‖) :=
+      Real.log_le_log zero_lt_three harg_ge_three
+    let hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+      le_trans (le_of_lt (Real.log_pos one_lt_three)) hlog_le
+    let hone_mul :
+        Real.log (2 + 2 * ‖w‖) ≤
+          (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      calc
+        Real.log (2 + 2 * ‖w‖) = 1 * Real.log (2 + 2 * ‖w‖) :=
+          (one_mul (Real.log (2 + 2 * ‖w‖))).symm
+        _ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          mul_le_mul_of_nonneg_right hH_ge_one hlog_nonneg
+    le_trans hlog_le hone_mul⟩
 
 /-- A bounded numerator and positive envelope lower bound give a constant
 multiple bound on the compact Gamma annulus. -/
@@ -2163,35 +2125,31 @@ theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_o
         (1 / 2 : ℝ) ≤ ‖w‖ →
         ‖w‖ ≤ R₀ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
   let C : ℝ := max (M / δ) 1
-  have hC_pos : 0 < C :=
+  let hC_pos : 0 < C :=
     lt_of_lt_of_le zero_lt_one (le_max_right (M / δ) 1)
-  refine ⟨C, hC_pos, ?_⟩
-  intro w hw_sector hw_inner hw_outer
-  have hw_annulus : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ :=
-    ⟨hw_sector, hw_inner, hw_outer⟩
-  have hraw :
-      Real.log ‖Complex.Gamma w‖ ≤ M :=
-    hM w hw_annulus
-  have hM_div_le_C : M / δ ≤ C :=
-    le_max_left (M / δ) 1
-  have hM_le_Cδ : M ≤ C * δ :=
-    (div_le_iff₀ hδ_pos).mp hM_div_le_C
-  have hδ_le_env :
-      δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-    hδ w hw_annulus
-  have hCδ_le_Cenv :
-      C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
-    mul_le_mul_of_nonneg_left hδ_le_env (le_of_lt hC_pos)
-  have hCenv_eq :
-      C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
-        C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-    mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
-  exact
+  ⟨C, hC_pos, fun w hw_sector hw_inner hw_outer =>
+    let hw_annulus : w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ :=
+      ⟨hw_sector, hw_inner, hw_outer⟩
+    let hraw : Real.log ‖Complex.Gamma w‖ ≤ M :=
+      hM w hw_annulus
+    let hM_div_le_C : M / δ ≤ C :=
+      le_max_left (M / δ) 1
+    let hM_le_Cδ : M ≤ C * δ :=
+      (div_le_iff₀ hδ_pos).mp hM_div_le_C
+    let hδ_le_env : δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      hδ w hw_annulus
+    let hCδ_le_Cenv :
+        C * δ ≤ C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) :=
+      mul_le_mul_of_nonneg_left hδ_le_env (le_of_lt hC_pos)
+    let hCenv_eq :
+        C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+      mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
     le_trans hraw
       (le_trans hM_le_Cδ
-        (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq)))
+        (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq)))⟩
 
 /-- Compact annulus absorption for the logarithmic Gamma envelope in the closed
 right half-plane sector.
@@ -2211,15 +2169,12 @@ theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus
         (1 / 2 : ℝ) ≤ ‖w‖ →
         ‖w‖ ≤ R₀ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound R₀ with
-    ⟨M, hM⟩
-  rcases Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
-      R₀ hR₀_pos with
-    ⟨δ, hδ_pos, hδ⟩
-  exact
-    Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_of_bound_and_lower
-      R₀ M δ hδ_pos hM hδ
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨M, hM⟩ := Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound R₀
+  let ⟨δ, hδ_pos, hδ⟩ :=
+    Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound R₀ hR₀_pos
+  Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_of_bound_and_lower
+    R₀ M δ hδ_pos hM hδ
 
 /-- Assembly of large-radius extraction and compact-annulus absorption. -/
 theorem Complex.Gamma_log_norm_bound_of_largeRadius_and_compactAnnulus
@@ -2247,47 +2202,48 @@ theorem Complex.Gamma_log_norm_bound_of_largeRadius_and_compactAnnulus
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases hlarge with ⟨Clarge, hClarge_pos, hlarge_bound⟩
-  rcases hannulus with ⟨Cannulus, hCannulus_pos, hannulus_bound⟩
-  refine ⟨max Clarge Cannulus,
-    lt_of_lt_of_le hClarge_pos (le_max_left Clarge Cannulus), ?_⟩
-  intro w hw_sector hw_norm
-  have htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
-    mul_nonneg zero_le_two (norm_nonneg w)
-  have hH_nonneg : 0 ≤ 1 + 2 * ‖w‖ :=
-    add_nonneg zero_le_one htwo_norm_nonneg
-  have hlog_arg_ge_one : (1 : ℝ) ≤ 2 + 2 * ‖w‖ := by
-    exact le_trans one_le_two (le_add_of_nonneg_right htwo_norm_nonneg)
-  have hL_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
-    Real.log_nonneg hlog_arg_ge_one
-  by_cases hlarge_radius : R₀ ≤ ‖w‖
-  · have hraw :
-        Real.log ‖Complex.Gamma w‖ ≤
-          Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      hlarge_bound w hw_sector hlarge_radius
-    have hmono :
-        Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
-          max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      logLinearEnvelope_mono_constant
-        (le_max_left Clarge Cannulus)
-        hH_nonneg
-        hL_nonneg
-    exact le_trans hraw hmono
-  · have hannulus_radius : ‖w‖ ≤ R₀ :=
-      le_of_not_ge hlarge_radius
-    have hraw :
-        Real.log ‖Complex.Gamma w‖ ≤
-          Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      hannulus_bound w hw_sector hw_norm hannulus_radius
-    have hmono :
-        Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
-          max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      logLinearEnvelope_mono_constant
-        (le_max_right Clarge Cannulus)
-        hH_nonneg
-        hL_nonneg
-    exact le_trans hraw hmono
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨Clarge, hClarge_pos, hlarge_bound⟩ := hlarge
+  let ⟨Cannulus, _hCannulus_pos, hannulus_bound⟩ := hannulus
+  ⟨max Clarge Cannulus,
+    lt_of_lt_of_le hClarge_pos (le_max_left Clarge Cannulus),
+    fun w hw_sector hw_norm =>
+      let htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
+        mul_nonneg zero_le_two (norm_nonneg w)
+      let hH_nonneg : 0 ≤ 1 + 2 * ‖w‖ :=
+        add_nonneg zero_le_one htwo_norm_nonneg
+      let hlog_arg_ge_one : (1 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+        le_trans one_le_two (le_add_of_nonneg_right htwo_norm_nonneg)
+      let hL_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+        Real.log_nonneg hlog_arg_ge_one
+      if hlarge_radius : R₀ ≤ ‖w‖ then
+        let hraw :
+            Real.log ‖Complex.Gamma w‖ ≤
+              Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          hlarge_bound w hw_sector hlarge_radius
+        let hmono :
+            Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+              max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          logLinearEnvelope_mono_constant
+            (le_max_left Clarge Cannulus)
+            hH_nonneg
+            hL_nonneg
+        le_trans hraw hmono
+      else
+        let hannulus_radius : ‖w‖ ≤ R₀ :=
+          le_of_not_ge hlarge_radius
+        let hraw :
+            Real.log ‖Complex.Gamma w‖ ≤
+              Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          hannulus_bound w hw_sector hw_norm hannulus_radius
+        let hmono :
+            Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+              max Clarge Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+          logLinearEnvelope_mono_constant
+            (le_max_right Clarge Cannulus)
+            hH_nonneg
+            hL_nonneg
+        le_trans hraw hmono⟩
 
 /-- The remaining real/branch extraction from a uniform bound for
 `Γ(w) exp(w) w^(1/2-w)` to the logarithmic Gamma norm envelope.
@@ -2393,41 +2349,39 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  rcases hStirling with ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+  let ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩ := hStirling
   let R₀ : ℝ :=
     max R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)
-  have hR₀_pos : 0 < R₀ := by
-    exact lt_of_lt_of_le zero_lt_one (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))
-  have hfactor :
+  let hR₀_pos : 0 < R₀ :=
+    lt_of_lt_of_le zero_lt_one (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))
+  let hfactor :
       ∀ w : ℂ,
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
         ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤
-          2 * Real.sqrt (2 * Real.pi) := by
-    intro w hw_sector hw_R₀
-    have hw_R : R ≤ ‖w‖ :=
-      le_trans (le_max_left R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)) hw_R₀
-    have hw_one : 1 ≤ ‖w‖ :=
-      le_trans (le_trans (le_max_right (2 * K / Real.sqrt (2 * Real.pi)) 1)
-        (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
-    have hw_norm_pos : 0 < ‖w‖ :=
-      lt_of_lt_of_le zero_lt_one hw_one
-    have hw_cutoff : 2 * K / Real.sqrt (2 * Real.pi) ≤ ‖w‖ :=
-      le_trans (le_trans
-        (le_max_left (2 * K / Real.sqrt (2 * Real.pi)) 1)
-        (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
-    have hK_div_le : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) :=
-      real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
-        K ‖w‖ hK_pos hw_norm_pos hw_cutoff
-    exact
+          2 * Real.sqrt (2 * Real.pi) :=
+    fun w hw_sector hw_R₀ =>
+      let hw_R : R ≤ ‖w‖ :=
+        le_trans (le_max_left R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)) hw_R₀
+      let hw_one : 1 ≤ ‖w‖ :=
+        le_trans (le_trans (le_max_right (2 * K / Real.sqrt (2 * Real.pi)) 1)
+          (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
+      let hw_norm_pos : 0 < ‖w‖ :=
+        lt_of_lt_of_le zero_lt_one hw_one
+      let hw_cutoff : 2 * K / Real.sqrt (2 * Real.pi) ≤ ‖w‖ :=
+        le_trans (le_trans
+          (le_max_left (2 * K / Real.sqrt (2 * Real.pi)) 1)
+          (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))) hw_R₀
+      let hK_div_le : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) :=
+        real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
+          K ‖w‖ hK_pos hw_norm_pos hw_cutoff
       Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
         R K hStirling_pointwise w hw_sector hw_R hK_div_le
-  have hB_pos : 0 < 2 * Real.sqrt (2 * Real.pi) := by
-    exact mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
-  exact
-    Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
-      (2 * Real.sqrt (2 * Real.pi)) R₀ hB_pos hR₀_pos hfactor
+  let hB_pos : 0 < 2 * Real.sqrt (2 * Real.pi) :=
+    mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+  Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
+    (2 * Real.sqrt (2 * Real.pi)) R₀ hB_pos hR₀_pos hfactor
 
 /-- The sectorial exponential Stirling asymptotic gives the standard logarithmic
 norm envelope on the closed right half-plane.

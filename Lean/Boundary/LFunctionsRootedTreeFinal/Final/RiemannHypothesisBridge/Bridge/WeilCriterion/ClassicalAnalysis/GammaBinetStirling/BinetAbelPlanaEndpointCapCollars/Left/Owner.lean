@@ -244,7 +244,7 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointPVVerticalPoint_mem_capCollar
   let hnot_ball :
       (Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ :=
     fun hball =>
-      let hdist := Complex.endpoint_norm_lt_of_mem_ball (Complex.I * (y : ℂ))) (0 : ℂ) hball
+      let hdist := Complex.endpoint_norm_lt_of_mem_ball (Complex.I * (y : ℂ)) (0 : ℂ) hball
       let hρ_le_abs_y : ρ ≤ |y| :=
         match hy with
         | Or.inl hy =>
@@ -278,8 +278,8 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointSafeVerticalPoint_mem_capCollar
   let him_mem : (((ρ : ℂ) + Complex.I * (y : ℂ)).im) ∈ [[-T, T]] := hy
   let hnot_ball : ((ρ : ℂ) + Complex.I * (y : ℂ)) ∉ Metric.ball (0 : ℂ) ρ :=
     fun hball =>
-      let hdist := Complex.endpoint_norm_lt_of_mem_ball ((ρ : ℂ) + Complex.I * (y : ℂ))) (0 : ℂ) hball
-      let hre_norm := Complex.endpoint_abs_re_le_norm ((ρ : ℂ) + Complex.I * (y : ℂ)))
+      let hdist := Complex.endpoint_norm_lt_of_mem_ball ((ρ : ℂ) + Complex.I * (y : ℂ)) (0 : ℂ) hball
+      let hre_norm := Complex.endpoint_abs_re_le_norm ((ρ : ℂ) + Complex.I * (y : ℂ))
       let hre_abs : |(((ρ : ℂ) + Complex.I * (y : ℂ))).re| = ρ :=
         let hre : (((ρ : ℂ) + Complex.I * (y : ℂ))).re = ρ := Eq.trans (Complex.add_re (ρ : ℂ) (Complex.I * (y : ℂ))) (Eq.trans (congrArg (ρ + ·) Complex.I_re) (add_zero ρ))
         hre ▸ abs_of_nonneg hρnonneg
