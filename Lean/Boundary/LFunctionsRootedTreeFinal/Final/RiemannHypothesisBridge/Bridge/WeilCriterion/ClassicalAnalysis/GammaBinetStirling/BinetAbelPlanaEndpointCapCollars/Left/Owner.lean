@@ -381,6 +381,78 @@ theorem Complex.finiteAbelPlanaLogLeftEndpointUpperRectangle_subset_capCollar
       Complex.endpoint_not_mem_center_ball_of_radius_le_abs_im hρ_le_abs_im
     Complex.mem_finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain_iff.mpr ⟨hzre', hzim, hnot_ball⟩
 
+/-! ### Coordinate helpers for the rectangle-boundary transport -/
+
+private lemma I_mul_ofReal_re (r : ℝ) : (Complex.I * (r : ℂ)).re = 0 :=
+  Eq.trans (Complex.I_mul_re (r : ℂ))
+    (Eq.trans (congrArg Neg.neg (Complex.ofReal_im r)) neg_zero)
+private lemma I_mul_ofReal_im (r : ℝ) : (Complex.I * (r : ℂ)).im = r :=
+  Eq.trans (Complex.I_mul_im (r : ℂ)) (Complex.ofReal_re r)
+private lemma negI_mul_re (r : ℝ) : (-Complex.I * (r : ℂ)).re = 0 :=
+  Eq.trans (congrArg Complex.re (neg_mul Complex.I (r : ℂ)))
+    (Eq.trans (Complex.neg_re (Complex.I * (r : ℂ))) (congrArg Neg.neg (I_mul_ofReal_re r)) |>.trans
+      neg_zero)
+private lemma negI_mul_im (r : ℝ) : (-Complex.I * (r : ℂ)).im = -r :=
+  Eq.trans (congrArg Complex.im (neg_mul Complex.I (r : ℂ)))
+    (Eq.trans (Complex.neg_im (Complex.I * (r : ℂ))) (congrArg Neg.neg (I_mul_ofReal_im r)))
+private lemma ofReal_sub_I_mul_re (a r : ℝ) :
+    ((a : ℂ) - Complex.I * (r : ℂ)).re = a :=
+  Eq.trans (Complex.sub_re (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· - ·) (Complex.ofReal_re a) (I_mul_ofReal_re r)) (sub_zero a))
+private lemma ofReal_sub_I_mul_im (a r : ℝ) :
+    ((a : ℂ) - Complex.I * (r : ℂ)).im = -r :=
+  Eq.trans (Complex.sub_im (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· - ·) (Complex.ofReal_im a) (I_mul_ofReal_im r)) (zero_sub r))
+private lemma ofReal_add_I_mul_re (a r : ℝ) :
+    ((a : ℂ) + Complex.I * (r : ℂ)).re = a :=
+  Eq.trans (Complex.add_re (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· + ·) (Complex.ofReal_re a) (I_mul_ofReal_re r)) (add_zero a))
+private lemma ofReal_add_I_mul_im (a r : ℝ) :
+    ((a : ℂ) + Complex.I * (r : ℂ)).im = r :=
+  Eq.trans (Complex.add_im (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· + ·) (Complex.ofReal_im a) (I_mul_ofReal_im r)) (zero_add r))
+
+/-- Lower horizontal integrand normalization: `f (x + ↑(-r)·I) = f (x - I·r)`. -/
+private lemma left_lower_integrand (f : ℂ → ℂ) (r : ℝ) :
+    (fun x : ℝ => f ((x : ℂ) + ((-r : ℝ) : ℂ) * Complex.I)) =
+      (fun x : ℝ => f ((x : ℂ) - Complex.I * (r : ℂ))) :=
+  funext fun x =>
+    congrArg f
+      (Eq.trans
+        (congrArg (fun w => (x : ℂ) + w)
+          (Eq.trans (congrArg (· * Complex.I) (Complex.ofReal_neg r))
+            (Eq.trans (neg_mul (r : ℂ) Complex.I)
+              (congrArg Neg.neg (mul_comm (r : ℂ) Complex.I)))))
+        (sub_eq_add_neg (x : ℂ) (Complex.I * (r : ℂ))).symm)
+/-- Upper horizontal integrand normalization: `f (x + ↑r·I) = f (x + I·r)`. -/
+private lemma left_upper_integrand (f : ℂ → ℂ) (r : ℝ) :
+    (fun x : ℝ => f ((x : ℂ) + (r : ℂ) * Complex.I)) =
+      (fun x : ℝ => f ((x : ℂ) + Complex.I * (r : ℂ))) :=
+  funext fun x =>
+    congrArg f (congrArg (fun w => (x : ℂ) + w) (mul_comm (r : ℂ) Complex.I))
+/-- Safe vertical integrand normalization: `f (↑a + ↑y·I) = f (a + I·y)`. -/
+private lemma left_vert_integrand (f : ℂ → ℂ) (a : ℝ) :
+    (fun y : ℝ => f ((a : ℂ) + (y : ℂ) * Complex.I)) =
+      (fun y : ℝ => f ((a : ℂ) + Complex.I * (y : ℂ))) :=
+  funext fun y =>
+    congrArg f (congrArg (fun w => (a : ℂ) + w) (mul_comm (y : ℂ) Complex.I))
+/-- Principal-value vertical integrand normalization: `f (↑0 + ↑y·I) = f (I·y)`. -/
+private lemma left_pv_integrand (f : ℂ → ℂ) :
+    (fun y : ℝ => f (((0 : ℝ) : ℂ) + (y : ℂ) * Complex.I)) =
+      (fun y : ℝ => f (Complex.I * (y : ℂ))) :=
+  funext fun y =>
+    congrArg f
+      (Eq.trans (congrArg (· + (y : ℂ) * Complex.I) Complex.ofReal_zero)
+        (Eq.trans (zero_add ((y : ℂ) * Complex.I)) (mul_comm (y : ℂ) Complex.I)))
+
+/-- Congruence of an interval integral in integrand and both endpoints. -/
+private lemma intervalIntegral_congr3 {g g' : ℝ → ℂ} {a a' b b' : ℝ}
+    (hg : g = g') (ha : a = a') (hb : b = b') :
+    (∫ x : ℝ in a..b, g x) = ∫ x : ℝ in a'..b', g' x :=
+  Eq.trans (congrArg (fun w => intervalIntegral w a b MeasureTheory.volume) hg)
+    (Eq.trans (congrArg (fun w => intervalIntegral g' w b MeasureTheory.volume) ha)
+      (congrArg (fun w => intervalIntegral g' a' w MeasureTheory.volume) hb))
+
 /-- Coordinate normalization for the lower left endpoint rectangle boundary. -/
 theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
     (f : ℂ → ℂ)
@@ -410,35 +482,31 @@ theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundar
             Complex.I *
               (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
       0 :=
-  hrect
-
-/-- Transport the generic rectangular Cauchy-Goursat boundary to the lower
-left endpoint cap coordinates. -/
-theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
-    (f : ℂ → ℂ)
-    (T : ℝ)
-    {ρ : ℝ}
-    (z₀ z₁ : ℂ)
-    (hz₀ : z₀ = -Complex.I * (T : ℂ))
-    (hz₁ : z₁ = (ρ : ℂ) - Complex.I * (ρ : ℂ))
-    (hrect :
-      (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₀.im : ℂ) * Complex.I)) -
-          (∫ x : ℝ in z₀.re..z₁.re, f ((x : ℂ) + (z₁.im : ℂ) * Complex.I)) +
-            Complex.I •
-              (∫ y : ℝ in z₀.im..z₁.im, f ((z₁.re : ℂ) + (y : ℂ) * Complex.I)) -
-              Complex.I •
-                (∫ y : ℝ in z₀.im..z₁.im, f ((z₀.re : ℂ) + (y : ℂ) * Complex.I)) =
-        0) :
-    (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (T : ℂ))) -
-        (∫ x : ℝ in (0 : ℝ)..ρ, f ((x : ℂ) - Complex.I * (ρ : ℂ))) +
-          Complex.I *
-            (∫ y : ℝ in (-T)..(-ρ), f ((ρ : ℂ) + Complex.I * (y : ℂ))) -
-            Complex.I *
-              (∫ y : ℝ in (-T)..(-ρ), f (Complex.I * (y : ℂ))) =
-      0 :=
-  hz₀ ▸ hz₁ ▸
-    Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary
-      f T ρ hrect
+  let hIA := intervalIntegral_congr3
+    (Eq.trans (left_lower_integrand f T).symm
+      (congrArg (fun v : ℝ => fun x : ℝ => f ((x : ℂ) + ((v : ℝ) : ℂ) * Complex.I))
+        (negI_mul_im T).symm))
+    (negI_mul_re T).symm (ofReal_sub_I_mul_re ρ ρ).symm
+  let hIB := intervalIntegral_congr3
+    (Eq.trans (left_lower_integrand f ρ).symm
+      (congrArg (fun v : ℝ => fun x : ℝ => f ((x : ℂ) + ((v : ℝ) : ℂ) * Complex.I))
+        (ofReal_sub_I_mul_im ρ ρ).symm))
+    (negI_mul_re T).symm (ofReal_sub_I_mul_re ρ ρ).symm
+  let hIC := intervalIntegral_congr3
+    (Eq.trans (left_vert_integrand f ρ).symm
+      (congrArg (fun v : ℝ => fun y : ℝ => f (((v : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+        (ofReal_sub_I_mul_re ρ ρ).symm))
+    (negI_mul_im T).symm (ofReal_sub_I_mul_im ρ ρ).symm
+  let hID := intervalIntegral_congr3
+    (Eq.trans (left_pv_integrand f).symm
+      (congrArg (fun v : ℝ => fun y : ℝ => f (((v : ℝ) : ℂ) + (y : ℂ) * Complex.I))
+        (negI_mul_re T).symm))
+    (negI_mul_im T).symm (ofReal_sub_I_mul_im ρ ρ).symm
+  Eq.trans
+    (congrArg₂ (· - ·)
+      (congrArg₂ (· + ·) (congrArg₂ (· - ·) hIA hIB) (congrArg (HMul.hMul Complex.I) hIC))
+      (congrArg (HMul.hMul Complex.I) hID))
+    hrect
 
 /-- Cauchy-Goursat on the lower ordinary rectangle in the left endpoint cap.
 
@@ -467,19 +535,39 @@ theorem Complex.leftEndpointLowerRectangleBoundaryIntegral_eq_zero
       0 :=
   let z₀ : ℂ := -Complex.I * (T : ℂ)
   let z₁ : ℂ := (ρ : ℂ) - Complex.I * (ρ : ℂ)
+  let hz0re : z₀.re = (0 : ℂ).re := Eq.trans (negI_mul_re T) Complex.zero_re.symm
+  let hz0im : z₀.im = -T := negI_mul_im T
+  let hz1im : z₁.im = -ρ := ofReal_sub_I_mul_im ρ ρ
+  let hzre : z₀.re ≤ z₁.re :=
+    (negI_mul_re T).le.trans (hρ.le.trans (ofReal_sub_I_mul_re ρ ρ).ge)
+  let hzim : z₀.im ≤ z₁.im :=
+    hz0im.le.trans ((neg_le_neg hρT.le).trans hz1im.ge)
   let hclosed := Complex.finiteAbelPlanaLogLeftEndpointLowerRectangle_subset_capCollar hT hρ hρT
-  let hopen : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
+  let hReEq : Set.uIcc z₀.re z₁.re = Set.Icc ((0 : ℂ).re) z₁.re :=
+    Eq.trans (Set.uIcc_of_le hzre) (congrArg (fun w => Set.Icc w z₁.re) hz0re)
+  let hImEq : Set.uIcc z₀.im z₁.im = Set.Icc (-T) (-ρ) :=
+    Eq.trans (Set.uIcc_of_le hzim) (congrArg₂ Set.Icc hz0im hz1im)
+  let Hc : ContinuousOn f (Set.uIcc z₀.re z₁.re ×ℂ Set.uIcc z₀.im z₁.im) :=
+    (congrArg₂ (· ×ℂ ·) hReEq hImEq).symm ▸ hcont.mono hclosed
+  let hsubD : (Set.Ioo (min z₀.re z₁.re) (max z₀.re z₁.re) ×ℂ
       Set.Ioo (min z₀.im z₁.im) (max z₀.im z₁.im)) ⊆
-    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ := fun z hz =>
-    let hzdata := Complex.mem_reProdIm.mp hz
-    hclosed (Complex.mem_reProdIm.mpr ⟨Set.Ioo_subset_Icc_self hzdata.1,
-      Set.Ioo_subset_Icc_self hzdata.2⟩)
-  let hcontinuous_closed := hcont.mono hclosed
-  let hdifferentiable_open := hdiff.mono hopen
-  let hcauchy := Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
-    f z₀ z₁ hcontinuous_closed hdifferentiable_open
-  Complex.leftEndpointLowerRectangleBoundaryIntegral_of_rectBoundary
-    f T z₀ z₁ rfl rfl hcauchy
+      Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ :=
+    fun z hz =>
+      let hzd := Complex.mem_reProdIm.mp hz
+      let h1 := Set.mem_Ioo.mp hzd.1
+      let h2 := Set.mem_Ioo.mp hzd.2
+      let hre : z.re ∈ Set.Icc ((0 : ℂ).re) z₁.re :=
+        Set.mem_Icc.mpr
+          ⟨hz0re.symm.trans_le ((min_eq_left hzre).symm.trans_le (le_of_lt h1.1)),
+            (le_of_lt h1.2).trans_eq (max_eq_right hzre)⟩
+      let him : z.im ∈ Set.Icc (-T) (-ρ) :=
+        Set.mem_Icc.mpr
+          ⟨hz0im.symm.trans_le ((min_eq_left hzim).symm.trans_le (le_of_lt h2.1)),
+            (le_of_lt h2.2).trans_eq ((max_eq_right hzim).trans hz1im)⟩
+      hclosed (Complex.mem_reProdIm.mpr ⟨hre, him⟩)
+  Complex.leftEndpointLowerRectangleBoundaryIntegral_normalize_rectBoundary f T ρ
+    (Complex.integral_boundary_rect_eq_zero_of_continuousOn_of_differentiableOn
+      f z₀ z₁ Hc (hdiff.mono hsubD))
 
 /-- Transport the generic rectangular Cauchy-Goursat boundary to the upper
 left endpoint cap coordinates. -/
