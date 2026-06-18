@@ -315,24 +315,24 @@ theorem Real.endpoint_radius_le_successor_minus_radius_sub_nat (N : ℕ) {ρ : �
     Eq.trans s1 (Eq.trans s2 (Eq.trans s3 (Eq.trans s4 (Eq.trans s5 s6))))
   h_eq ▸ htarget
 
-/-- Transport to uIcc from bounds. -/
+/-- Transport to the closed interval from bounds. -/
 theorem Real.endpoint_mem_uIcc_of_bounds {a b x : ℝ}
-    (horder : a ≤ b) (h : a ≤ x ∧ x ≤ b) : x ∈ Set.uIcc a b :=
-  Set.mem_uIcc.mpr (Or.inl h)
+    (_horder : a ≤ b) (h : a ≤ x ∧ x ≤ b) : x ∈ Set.Icc a b :=
+  Set.mem_Icc.mpr h
 
-/-- Transport from uIcc to bounds. -/
+/-- Transport from the closed interval to bounds. -/
 theorem Real.endpoint_bounds_of_mem_uIcc {a b x : ℝ}
-    (horder : a ≤ b) (h : x ∈ Set.uIcc a b) : a ≤ x ∧ x ≤ b :=
-  Set.mem_Icc.mp ((Set.uIcc_of_le horder) ▸ h)
+    (_horder : a ≤ b) (h : x ∈ Set.Icc a b) : a ≤ x ∧ x ≤ b :=
+  Set.mem_Icc.mp h
 
-/-- Equality transport for uIcc. -/
+/-- Equality transport for the closed interval. -/
 theorem Real.endpoint_mem_uIcc_congr {a b x y : ℝ}
-    (hxy : x = y) (hy : y ∈ Set.uIcc a b) : x ∈ Set.uIcc a b :=
+    (hxy : x = y) (hy : y ∈ Set.Icc a b) : x ∈ Set.Icc a b :=
   hxy.symm ▸ hy
 
-/-- Equality transport uIcc (reverse). -/
+/-- Equality transport for the closed interval (reverse). -/
 theorem Real.endpoint_mem_uIcc_congr_symm {a b x y : ℝ}
-    (hxy : x = y) (hx : x ∈ Set.uIcc a b) : y ∈ Set.uIcc a b :=
+    (hxy : x = y) (hx : x ∈ Set.Icc a b) : y ∈ Set.Icc a b :=
   hxy ▸ hx
 
 /-- Ball membership as norm. -/
