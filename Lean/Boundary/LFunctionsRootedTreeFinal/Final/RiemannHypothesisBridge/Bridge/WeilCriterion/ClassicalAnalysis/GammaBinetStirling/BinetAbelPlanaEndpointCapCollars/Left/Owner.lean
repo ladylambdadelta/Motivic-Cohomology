@@ -651,6 +651,27 @@ theorem Complex.leftEndpointUpperRectangleBoundaryIntegral_eq_zero
       (congrArg (HMul.hMul Complex.I) hID))
     hcauchy
 
+/-- The left endpoint punctured cap/collar domain is the right-half deleted-disk
+model domain centered at the origin. -/
+private lemma leftCap_eq_rightHalfRect {T ρ : ℝ} (hρ : 0 ≤ ρ) (hT : 0 ≤ T) :
+    Complex.finiteAbelPlanaLogLeftEndpointCapCollarPuncturedDomain T ρ =
+      Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ :=
+  let h0ρ : (0 : ℂ).re + ρ = ρ := Eq.trans (congrArg (· + ρ) Complex.zero_re) (zero_add ρ)
+  let hImSub : (0 : ℂ).im - T = -T := Eq.trans (congrArg (· - T) Complex.zero_im) (zero_sub T)
+  let hImAdd : (0 : ℂ).im + T = T := Eq.trans (congrArg (· + T) Complex.zero_im) (zero_add T)
+  let hReLe : (0 : ℂ).re ≤ (0 : ℂ).re + ρ :=
+    Complex.zero_re.trans_le (hρ.trans_eq h0ρ.symm)
+  let hImLe : (0 : ℂ).im - T ≤ (0 : ℂ).im + T :=
+    hImSub.trans_le ((neg_le_self hT).trans_eq hImAdd.symm)
+  let hIccRe : Set.Icc (0 : ℝ) ρ = Set.uIcc ((0 : ℂ).re) ((0 : ℂ).re + ρ) :=
+    (Eq.trans (Set.uIcc_of_le hReLe) (congrArg₂ Set.Icc Complex.zero_re h0ρ)).symm
+  let hIccIm : Set.Icc (-T) T = Set.uIcc ((0 : ℂ).im - T) ((0 : ℂ).im + T) :=
+    (Eq.trans (Set.uIcc_of_le hImLe) (congrArg₂ Set.Icc hImSub hImAdd)).symm
+  congrArg (· \ Metric.ball (0 : ℂ) ρ)
+    (congrArg setOf
+      (funext fun z =>
+        congrArg₂ And (congrArg (z.re ∈ ·) hIccRe) (congrArg (z.im ∈ ·) hIccIm)))
+
 /-- Transport the right-half deleted-disk model boundary to the left endpoint
 half-collar coordinates. -/
 theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model
@@ -675,7 +696,34 @@ theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_of_model
           f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
       0 :=
-  hmodel
+  let hImSubρ : (0 : ℂ).im - ρ = -ρ := Eq.trans (congrArg (· - ρ) Complex.zero_im) (zero_sub ρ)
+  let hImAddρ : (0 : ℂ).im + ρ = ρ := Eq.trans (congrArg (· + ρ) Complex.zero_im) (zero_add ρ)
+  let h0ρ : (0 : ℂ).re + ρ = ρ := Eq.trans (congrArg (· + ρ) Complex.zero_re) (zero_add ρ)
+  let hGA := intervalIntegral_congr3
+    (funext fun x : ℝ => congrArg f
+      (Eq.trans (sub_eq_add_neg (x : ℂ) (Complex.I * (ρ : ℂ)))
+        (congrArg (fun w : ℂ => (x : ℂ) + w)
+          (Eq.trans (mul_neg Complex.I (ρ : ℂ)).symm
+            (congrArg (fun w : ℂ => Complex.I * w)
+              (Eq.trans (Complex.ofReal_neg ρ).symm
+                (congrArg (fun r : ℝ => (r : ℂ)) hImSubρ.symm)))))))
+    rfl h0ρ.symm
+  let hGB := intervalIntegral_congr3
+    (congrArg (fun w : ℝ => fun x : ℝ => f ((x : ℂ) + Complex.I * ((w : ℝ) : ℂ))) hImAddρ.symm)
+    rfl h0ρ.symm
+  let hGC := intervalIntegral_congr3
+    (congrArg (fun w : ℝ => fun y : ℝ => f (((w : ℝ) : ℂ) + Complex.I * (y : ℂ))) h0ρ.symm)
+    hImSubρ.symm hImAddρ.symm
+  let hGθ := intervalIntegral_congr3
+    (funext fun θ : ℝ =>
+      congrArg (· * (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (congrArg f (zero_add ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))).symm))
+    rfl rfl
+  Eq.trans
+    (congrArg₂ (· - ·)
+      (congrArg₂ (· + ·) (congrArg₂ (· - ·) hGA hGB) (congrArg (HMul.hMul Complex.I) hGC))
+      hGθ)
+    hmodel
 
 /-- The local Cauchy-Goursat deformation across the left endpoint
 half-rectangle collar outside the deleted disk.
@@ -706,10 +754,11 @@ theorem Complex.leftEndpointHalfRectangleDeletedDiskBoundary_eq_zero
           f ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) *
             (Complex.I * (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) =
       0 :=
+  let hdom := leftCap_eq_rightHalfRect hρ.le hT.le
   let hcont_model : ContinuousOn f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) :=
-    hcont
+    hdom ▸ hcont
   let hdiff_model : DifferentiableOn ℂ f (Complex.rightHalfRectangleDeletedDiskDomain (0 : ℂ) T ρ ρ) :=
-    hdiff
+    hdom ▸ hdiff
   let hmodel :=
     Complex.rightHalfRectangleDeletedDiskBoundary_eq_zero
       f (0 : ℂ) T ρ le_rfl hρ
