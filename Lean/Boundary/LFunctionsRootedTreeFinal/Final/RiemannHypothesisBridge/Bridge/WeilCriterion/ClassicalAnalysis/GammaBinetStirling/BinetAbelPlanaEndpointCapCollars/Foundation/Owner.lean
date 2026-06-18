@@ -536,6 +536,82 @@ theorem Complex.endpoint_not_mem_ball_of_radius_le_abs_re_sub_center {z c : ℂ}
     let hre_norm : |(z - c).re| ≤ ‖z - c‖ := Complex.endpoint_abs_re_le_norm (z - c)
     not_lt_of_ge (hρ.trans hre_norm) hdist
 
+/-! ## Coordinate and integrand helpers for rectangle-boundary transport
+
+These are shared by the left and right endpoint cap/collar transports. -/
+
+theorem I_mul_ofReal_re (r : ℝ) : (Complex.I * (r : ℂ)).re = 0 :=
+  Eq.trans (Complex.I_mul_re (r : ℂ))
+    (Eq.trans (congrArg Neg.neg (Complex.ofReal_im r)) neg_zero)
+theorem I_mul_ofReal_im (r : ℝ) : (Complex.I * (r : ℂ)).im = r :=
+  Eq.trans (Complex.I_mul_im (r : ℂ)) (Complex.ofReal_re r)
+theorem negI_mul_re (r : ℝ) : (-Complex.I * (r : ℂ)).re = 0 :=
+  Eq.trans (congrArg Complex.re (neg_mul Complex.I (r : ℂ)))
+    (Eq.trans (Complex.neg_re (Complex.I * (r : ℂ))) (congrArg Neg.neg (I_mul_ofReal_re r)) |>.trans
+      neg_zero)
+theorem negI_mul_im (r : ℝ) : (-Complex.I * (r : ℂ)).im = -r :=
+  Eq.trans (congrArg Complex.im (neg_mul Complex.I (r : ℂ)))
+    (Eq.trans (Complex.neg_im (Complex.I * (r : ℂ))) (congrArg Neg.neg (I_mul_ofReal_im r)))
+theorem ofReal_sub_I_mul_re (a r : ℝ) :
+    ((a : ℂ) - Complex.I * (r : ℂ)).re = a :=
+  Eq.trans (Complex.sub_re (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· - ·) (Complex.ofReal_re a) (I_mul_ofReal_re r)) (sub_zero a))
+theorem ofReal_sub_I_mul_im (a r : ℝ) :
+    ((a : ℂ) - Complex.I * (r : ℂ)).im = -r :=
+  Eq.trans (Complex.sub_im (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· - ·) (Complex.ofReal_im a) (I_mul_ofReal_im r)) (zero_sub r))
+theorem ofReal_add_I_mul_re (a r : ℝ) :
+    ((a : ℂ) + Complex.I * (r : ℂ)).re = a :=
+  Eq.trans (Complex.add_re (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· + ·) (Complex.ofReal_re a) (I_mul_ofReal_re r)) (add_zero a))
+theorem ofReal_add_I_mul_im (a r : ℝ) :
+    ((a : ℂ) + Complex.I * (r : ℂ)).im = r :=
+  Eq.trans (Complex.add_im (a : ℂ) (Complex.I * (r : ℂ)))
+    (Eq.trans (congrArg₂ (· + ·) (Complex.ofReal_im a) (I_mul_ofReal_im r)) (zero_add r))
+
+/-- Horizontal integrand normalization with a subtracted imaginary part:
+`f (x + ↑(-r)·I) = f (x - I·r)`. -/
+theorem integrand_horiz_sub (f : ℂ → ℂ) (r : ℝ) :
+    (fun x : ℝ => f ((x : ℂ) + ((-r : ℝ) : ℂ) * Complex.I)) =
+      (fun x : ℝ => f ((x : ℂ) - Complex.I * (r : ℂ))) :=
+  funext fun x =>
+    congrArg f
+      (Eq.trans
+        (congrArg (fun w => (x : ℂ) + w)
+          (Eq.trans (congrArg (· * Complex.I) (Complex.ofReal_neg r))
+            (Eq.trans (neg_mul (r : ℂ) Complex.I)
+              (congrArg Neg.neg (mul_comm (r : ℂ) Complex.I)))))
+        (sub_eq_add_neg (x : ℂ) (Complex.I * (r : ℂ))).symm)
+/-- Horizontal integrand normalization: `f (x + ↑r·I) = f (x + I·r)`. -/
+theorem integrand_horiz_add (f : ℂ → ℂ) (r : ℝ) :
+    (fun x : ℝ => f ((x : ℂ) + (r : ℂ) * Complex.I)) =
+      (fun x : ℝ => f ((x : ℂ) + Complex.I * (r : ℂ))) :=
+  funext fun x =>
+    congrArg f (congrArg (fun w => (x : ℂ) + w) (mul_comm (r : ℂ) Complex.I))
+/-- Vertical integrand normalization: `f (↑a + ↑y·I) = f (a + I·y)`. -/
+theorem integrand_vert (f : ℂ → ℂ) (a : ℝ) :
+    (fun y : ℝ => f ((a : ℂ) + (y : ℂ) * Complex.I)) =
+      (fun y : ℝ => f ((a : ℂ) + Complex.I * (y : ℂ))) :=
+  funext fun y =>
+    congrArg f (congrArg (fun w => (a : ℂ) + w) (mul_comm (y : ℂ) Complex.I))
+/-- Principal-value vertical integrand normalization at the origin:
+`f (↑0 + ↑y·I) = f (I·y)`. -/
+theorem integrand_pv_zero (f : ℂ → ℂ) :
+    (fun y : ℝ => f (((0 : ℝ) : ℂ) + (y : ℂ) * Complex.I)) =
+      (fun y : ℝ => f (Complex.I * (y : ℂ))) :=
+  funext fun y =>
+    congrArg f
+      (Eq.trans (congrArg (· + (y : ℂ) * Complex.I) Complex.ofReal_zero)
+        (Eq.trans (zero_add ((y : ℂ) * Complex.I)) (mul_comm (y : ℂ) Complex.I)))
+
+/-- Congruence of an interval integral in integrand and both endpoints. -/
+theorem intervalIntegral_congr3 {g g' : ℝ → ℂ} {a a' b b' : ℝ}
+    (hg : g = g') (ha : a = a') (hb : b = b') :
+    (∫ x : ℝ in a..b, g x) = ∫ x : ℝ in a'..b', g' x :=
+  Eq.trans (congrArg (fun w => intervalIntegral w a b MeasureTheory.volume) hg)
+    (Eq.trans (congrArg (fun w => intervalIntegral g' w b MeasureTheory.volume) ha)
+      (congrArg (fun w => intervalIntegral g' a' w MeasureTheory.volume) hb))
+
 end
 
 end LFunctions
