@@ -736,7 +736,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
   | ⟨C, hC_pos, hupper⟩ =>
   have hc_pos : 0 < (1 / 2 : ℝ) :=
     one_div_pos.mpr two_pos
-  refine ⟨1, C, 1 / 2, zero_lt_one, hC_pos, hc_pos, ?_⟩
+  exact ⟨1, C, 1 / 2, zero_lt_one, hC_pos, hc_pos, by
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -783,7 +783,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
               (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
         hlower_raw
       _ = ‖w‖ := congrArg norm hzero_add
-  exact ⟨hupper_final, hlower_final⟩
+  exact ⟨hupper_final, hlower_final⟩⟩
 
 /-- Real bounded-exponent transport for radius powers.
 
@@ -820,7 +820,7 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
     Real.exp_pos (E * M)
   have hk_pos : 0 < k :=
     Real.exp_pos (-(E * M))
-  refine ⟨K, k, hK_pos, hk_pos, ?_⟩
+  exact ⟨K, k, hK_pos, hk_pos, by
   intro R Y e hY_pos hlow hhigh hL hU
   let q : ℝ := R / Y
   have hY_nonneg : 0 ≤ Y :=
@@ -932,7 +932,7 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
   · calc
       k * Y ^ e ≤ q ^ e * Y ^ e :=
         mul_le_mul_of_nonneg_right hq_pow_lower hY_pow_nonneg
-      _ = R ^ e := hR_pow_eq.symm
+      _ = R ^ e := hR_pow_eq.symm⟩
 
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
@@ -965,7 +965,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
       real_rpow_comparable_of_base_comparable_and_bounded_exponent
         Cbase cbase L U hCbase_pos hcbase_pos with
   | ⟨K, k, hK_pos, hk_pos, hrpow⟩ =>
-  refine ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, ?_⟩
+  exact ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, by
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1004,7 +1004,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
       calc
         k * Y ^ e ≤ ‖w‖ ^ e := hr.2
         _ = ‖w‖ ^ (w.re - 1 / 2) :=
-          (congrArg (fun t : ℝ => ‖w‖ ^ t) heq).symm⟩
+          (congrArg (fun t : ℝ => ‖w‖ ^ t) heq).symm⟩⟩
 
 /-- In a fixed shifted vertical strip, the radial polynomial factor in the
 principal-power denominator is comparable to the standard height polynomial. -/
@@ -1055,7 +1055,7 @@ theorem Complex.shiftedVertical_realPartExp_bounded
     lt_of_lt_of_le hEA_pos (le_max_left (Real.exp (-(A + N))) (Real.exp (-(B + N))))
   have hc_pos : 0 < c :=
     lt_min hEA_pos hEB_pos
-  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
+  exact ⟨C, c, hC_pos, hc_pos, by
   intro x y hxA hxB
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1097,7 +1097,7 @@ theorem Complex.shiftedVertical_realPartExp_bounded
       calc
         c ≤ Real.exp (-(x + N)) := hexp_lower
         _ = Real.exp (-w.re) :=
-          (congrArg (fun t : ℝ => Real.exp (-t)) hw_re).symm⟩
+          (congrArg (fun t : ℝ => Real.exp (-t)) hw_re).symm⟩⟩
 
 /-- Real algebra behind the reciprocal denominator after the exponential and
 principal-power norm formulas have been substituted. -/
@@ -1253,8 +1253,8 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     mul_pos (mul_pos hCa_pos hCr_pos) hCe_pos
   have hc_pos : 0 < (ca * cr) * ce :=
     mul_pos (mul_pos hca_pos hcr_pos) hce_pos
-  refine ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
-    hH_pos, hC_pos, hc_pos, ?_⟩
+  exact ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
+    hH_pos, hC_pos, hc_pos, by
   intro x y hxA hxB hy
   have hy_a : Ha ≤ ‖y‖ :=
     le_trans (le_max_left Ha Hr) hy
@@ -1574,7 +1574,7 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
             ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) :=
         hshape_bound
       _ = 1 / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
-        hreciprocal_shape.symm
+        hreciprocal_shape.symm⟩
 
 /- Sectorial normalized Stirling, on the shifted closed-right-half-plane
 points, gives the raw two-sided Gamma envelope with shifted real part.
@@ -1587,8 +1587,3 @@ hypothesis; the rest is principal-branch norm algebra. -/
 
 end
 end LFunctions
-
-end
-
-end LFunctions
-end Boundary
