@@ -307,11 +307,11 @@ private theorem add_two_square_channels_right
     _ = (P + A) + (T + C) := by
       exact congrArg (fun z : ℂ => (P + A) + z) (add_comm C T)
     _ = P + (A + (T + C)) := by
-      exact (add_assoc P A (T + C)).symm
+      exact add_assoc P A (T + C)
     _ = P + (T + (A + C)) := by
       exact congrArg (fun z : ℂ => P + z) (add_left_comm A T C)
     _ = (P + T) + (A + C) := by
-      exact add_assoc P T (A + C)
+      exact (add_assoc P T (A + C)).symm
     _ = (P + T) + A + C := by
       exact (add_assoc (P + T) A C).symm
 
@@ -394,7 +394,48 @@ theorem zetaCompletedHermitianBoundaryDefect_correction_apply
     (f : ZetaAdmissibleFunction) :
     zetaCompletedHermitianBoundaryDefect f ZetaPacketLabel.correction =
       (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
-  rfl
+  have hprime :
+      zetaPrimeHermitianPacketAsEnsemble f ZetaPacketLabel.correction = 0 :=
+    zetaPrimeHermitianPacketAsEnsemble_correction_apply f
+  have harch :
+      zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.correction = 0 := by
+    exact
+      Finsupp.single_eq_of_ne
+        (fun h : ZetaPacketLabel.archimedean = ZetaPacketLabel.correction =>
+          ZetaPacketLabel.noConfusion h)
+  have hcorr :
+      zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.correction =
+        (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
+    exact Finsupp.single_eq_same
+  calc
+    (zetaPrimeHermitianPacketAsEnsemble f +
+          zetaArchimedeanHermitianPacketAsEnsemble f +
+          zetaCorrectionHermitianPacketAsEnsemble f)
+        ZetaPacketLabel.correction =
+        zetaPrimeHermitianPacketAsEnsemble f ZetaPacketLabel.correction +
+          zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.correction +
+          zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.correction := by
+      rfl
+    _ =
+        0 + 0 +
+          zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.correction := by
+      exact congrArg₂
+        (fun a b : ℂ =>
+          a + b +
+            zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.correction)
+        hprime harch
+    _ = 0 + 0 +
+          (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
+      exact congrArg (fun z : ℂ => 0 + 0 + z) hcorr
+    _ = 0 +
+          (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
+      exact congrArg
+        (fun z : ℂ =>
+          z + (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ))
+        (add_zero 0)
+    _ = (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ) := by
+      exact zero_add
+        (Boundary.LFunctions.zetaCompletionCorrectionPacketCoordinate : ℂ)
 
 /-- The correction Hermitian packet Gram is the square of the normalized correction coordinate. -/
 theorem zetaCompletedHermitianBoundaryDefect_correctionPacketGram_eq_coordinate_sq
@@ -556,10 +597,10 @@ theorem zetaPrimeDefectKernelPositiveForm_re_eq_finiteDefectAmplitudeSum
           zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) =
         ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
           Complex.re (zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) := by
-      exact Complex.sum_re
+      exact Complex.re_sum
+        zetaCompletedExplicitFormulaPrimeSupport
         (fun ℓ : ℕ × ℕ =>
           zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f)
-        zetaCompletedExplicitFormulaPrimeSupport
     _ =
         ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
           ZetaHermitianPacketEnsemble.coordinateGram

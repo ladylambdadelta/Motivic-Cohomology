@@ -101,7 +101,7 @@ theorem centeredCompletedRiemannZeta_uncenter_re
     _ = (1 / 2 : ℝ) + s.re := by
       have hhalf_complex :
           (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) := by
-        rfl
+        exact Eq.symm (Complex.ofReal_div (1 : ℝ) (2 : ℝ))
       have hhalf_coe_re :
           (((1 / 2 : ℝ) : ℂ).re) = (1 / 2 : ℝ) :=
         Complex.ofReal_re (1 / 2 : ℝ)

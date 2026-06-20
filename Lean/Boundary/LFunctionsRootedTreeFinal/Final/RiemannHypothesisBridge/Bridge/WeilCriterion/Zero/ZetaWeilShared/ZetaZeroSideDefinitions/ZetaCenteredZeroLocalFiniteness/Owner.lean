@@ -12,6 +12,9 @@ namespace LFunctions
 
 noncomputable section
 
+open Filter
+open scoped Topology
+
 /-- The two shifted pole locations, intersected with the centered height ball. -/
 def centeredZetaShiftedPolesInCenteredHeightBall (T : ℝ) : Set ℂ :=
   {z : ℂ |
@@ -138,7 +141,7 @@ theorem centeredCriticalHeightBox_abs_re_le_one
     (hz : z ∈ centeredCriticalHeightBox T) :
     |z.re| ≤ (1 : ℝ) := by
   have hhalf_le_one : (1 / 2 : ℝ) ≤ (1 : ℝ) := by
-    exact div_le_one zero_lt_two
+    norm_num
   have hnegOne_le_negHalf : (-(1 : ℝ)) ≤ -(1 / 2 : ℝ) :=
     neg_le_neg hhalf_le_one
   exact abs_le.mpr
@@ -161,6 +164,8 @@ theorem centeredCriticalHeightBox_abs_im_le_abs_height
     calc
       (z - (1 / 2 : ℂ)).im = z.im - (1 / 2 : ℂ).im := by
         exact Complex.sub_im z (1 / 2 : ℂ)
+      _ = z.im - 0 := by
+        exact congrArg (fun x : ℝ => z.im - x) (by norm_num : (1 / 2 : ℂ).im = 0)
       _ = z.im := by
         exact sub_zero (z.im)
   have him_norm_le_abs_height :
@@ -228,9 +233,11 @@ theorem finite_of_compact_closed_discrete_subtype
     (S ∩ K).Finite := by
   have hcompact_KS : IsCompact (K ∩ S) :=
     hcompact.inter_right hclosed
-  have hdiscrete_KS : DiscreteTopology (K ∩ S) :=
-    DiscreteTopology.of_subset hdiscrete Set.inter_subset_right
-  have hfinite_KS : (K ∩ S).Finite :=
+  have hdiscrete_KS : DiscreteTopology ((K ∩ S : Set ℂ)) :=
+    DiscreteTopology.of_subset hdiscrete (by
+      intro z hz
+      exact hz.2)
+  have hfinite_KS : (K ∩ S : Set ℂ).Finite :=
     IsCompact.finite hcompact_KS hdiscrete_KS
   exact Eq.subst
     (motive := fun U : Set ℂ => U.Finite)
@@ -280,7 +287,7 @@ and away from the shifted poles it is closed by continuity of the centered
 completed zeta function. -/
 theorem isClosed_centeredZetaNontrivialZeroSet :
     IsClosed centeredZetaNontrivialZeroSet := by
-  refine isOpen_compl_iff.mpr ?_
+  refine isOpen_compl_iff.mp ?_
   refine isOpen_iff_mem_nhds.mpr ?_
   intro z hz
   by_cases hzneg : z = -(1 / 2 : ℂ)

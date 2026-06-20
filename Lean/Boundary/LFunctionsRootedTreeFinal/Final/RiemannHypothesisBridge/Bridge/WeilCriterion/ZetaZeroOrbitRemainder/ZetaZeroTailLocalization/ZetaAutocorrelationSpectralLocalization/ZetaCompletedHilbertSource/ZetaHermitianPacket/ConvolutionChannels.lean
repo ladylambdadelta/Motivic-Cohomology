@@ -14,12 +14,12 @@ namespace ZetaAdmissibleFunction
 folding paired spectral coordinates into Hermitian squares. -/
 noncomputable def zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution
     (f : ZetaAdmissibleFunction) : ℂ :=
-  ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+  Finset.sum zetaCompletedExplicitFormulaPrimeSupport (fun ℓ : ℕ × ℕ =>
     (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
         star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) +
       star
         (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
-          star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f))
+          star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))
 
 /-- The archimedean channel produced directly by the convolution transform factorization. -/
 noncomputable def zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution
@@ -87,17 +87,46 @@ theorem zetaCompletedExplicitFormulaPrimeSpectralAmplitude_mul_star_opposite
 theorem zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution_eq_weightedPairedSum_owner
     (f : ZetaAdmissibleFunction) :
     zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution f =
-      ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
+      Finset.sum zetaCompletedExplicitFormulaPrimeSupport (fun ℓ : ℕ × ℕ =>
         (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
           ((zetaCompletedPrimeBoundaryRealizedPositiveFace ℓ.1 ℓ.2 f *
               star (zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f)) +
             star
               (zetaCompletedPrimeBoundaryRealizedPositiveFace ℓ.1 ℓ.2 f *
-                star (zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f))) := by
+                star (zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f)))) := by
   exact Finset.sum_congr rfl
-    (fun ℓ _ =>
-      congrArg (fun z : ℂ => z + star z)
-        (zetaCompletedExplicitFormulaPrimeSpectralAmplitude_mul_star_opposite ℓ.1 ℓ.2 f))
+    (fun ℓ _ => by
+      let w : ℝ := zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2
+      let x : ℂ :=
+        zetaCompletedPrimeBoundaryRealizedPositiveFace ℓ.1 ℓ.2 f *
+          star (zetaCompletedPrimeBoundaryRealizedNegativeFace ℓ.1 ℓ.2 f)
+      have hraw :
+          zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) =
+            (w : ℂ) * x :=
+        zetaCompletedExplicitFormulaPrimeSpectralAmplitude_mul_star_opposite ℓ.1 ℓ.2 f
+      have hstar_w : star (w : ℂ) = (w : ℂ) := by
+        exact Complex.conj_ofReal w
+      have hstar_weighted : star ((w : ℂ) * x) = (w : ℂ) * star x := by
+        calc
+          star ((w : ℂ) * x) = star x * star (w : ℂ) := by
+            exact star_mul (w : ℂ) x
+          _ = star x * (w : ℂ) := by
+            exact congrArg (fun z : ℂ => star x * z) hstar_w
+          _ = (w : ℂ) * star x := by
+            exact mul_comm (star x) (w : ℂ)
+      calc
+        zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+              star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f) +
+            star
+              (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+                star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) =
+            (w : ℂ) * x + star ((w : ℂ) * x) := by
+          exact congrArg (fun z : ℂ => z + star z) hraw
+        _ = (w : ℂ) * x + (w : ℂ) * star x := by
+          exact congrArg (fun z : ℂ => (w : ℂ) * x + z) hstar_weighted
+        _ = (w : ℂ) * (x + star x) := by
+          exact (mul_add (w : ℂ) x (star x)).symm)
 
 /-- The paired archimedean spectral packet contribution is the weighted paired product. -/
 theorem zetaCompletedExplicitFormulaArchimedeanConvolutionPairedContribution_eq_weightedPaired_owner
@@ -203,7 +232,87 @@ theorem zetaCompletedArchimedeanBoundaryRealizedGram_eq_hermitianArchimedeanPack
     zetaCompletedArchimedeanBoundaryRealizedGram f =
       (ZetaHermitianPacketEnsemble.archimedeanPacketGram
         (zetaCompletedHermitianBoundaryDefect f) : ℂ) := by
-  rfl
+  let x : ZetaHermitianPacketEnsemble := zetaCompletedHermitianBoundaryDefect f
+  let a : ℂ := zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f
+  have hprime :
+      zetaPrimeHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean = 0 :=
+    zetaPrimeHermitianPacketAsEnsemble_archimedean_apply f
+  have hcorr :
+      zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean = 0 := by
+    exact
+      Finsupp.single_eq_of_ne
+        (fun h : ZetaPacketLabel.correction = ZetaPacketLabel.archimedean =>
+          ZetaPacketLabel.noConfusion h)
+  have harch :
+      zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean = a := by
+    exact Finsupp.single_eq_same
+  have hx_arch : x ZetaPacketLabel.archimedean = a := by
+    calc
+      (zetaPrimeHermitianPacketAsEnsemble f +
+            zetaArchimedeanHermitianPacketAsEnsemble f +
+            zetaCorrectionHermitianPacketAsEnsemble f)
+          ZetaPacketLabel.archimedean =
+          zetaPrimeHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean +
+            zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean +
+            zetaCorrectionHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean := by
+        rfl
+      _ =
+          0 +
+            zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean +
+            0 := by
+        exact congrArg₂
+          (fun u v : ℂ =>
+            u +
+              zetaArchimedeanHermitianPacketAsEnsemble f ZetaPacketLabel.archimedean +
+              v)
+          hprime
+          hcorr
+      _ = 0 + a + 0 := by
+        exact congrArg (fun z : ℂ => 0 + z + 0) harch
+      _ = a + 0 := by
+        exact congrArg (fun z : ℂ => z + 0) (zero_add a)
+      _ = a := by
+        exact add_zero a
+  have hsum :
+      ∑ ℓ in x.support,
+          (match ℓ with
+          | .archimedean => ZetaHermitianPacketEnsemble.coordinateGram (x ℓ)
+          | _ => 0) =
+        ZetaHermitianPacketEnsemble.coordinateGram (x ZetaPacketLabel.archimedean) := by
+    exact Finset.sum_eq_single ZetaPacketLabel.archimedean
+      (fun ℓ hℓ hne => by
+        cases ℓ with
+        | prime p n => rfl
+        | archimedean => exact False.elim (hne rfl)
+        | correction => rfl)
+      (fun hnotmem => by
+        have hx_zero : x ZetaPacketLabel.archimedean = 0 :=
+          Finsupp.not_mem_support_iff.mp hnotmem
+        exact
+          (congrArg ZetaHermitianPacketEnsemble.coordinateGram hx_zero).trans
+            ZetaHermitianPacketEnsemble.coordinateGram_zero)
+  have hgram :
+      ZetaHermitianPacketEnsemble.archimedeanPacketGram x =
+        ZetaHermitianPacketEnsemble.coordinateGram (x ZetaPacketLabel.archimedean) := by
+    exact hsum
+  have hcoord :
+      (ZetaHermitianPacketEnsemble.coordinateGram (x ZetaPacketLabel.archimedean) : ℂ) =
+        a * star a := by
+    calc
+      (ZetaHermitianPacketEnsemble.coordinateGram (x ZetaPacketLabel.archimedean) : ℂ) =
+          (ZetaHermitianPacketEnsemble.coordinateGram a : ℂ) := by
+        exact congrArg
+          (fun z : ℂ => (ZetaHermitianPacketEnsemble.coordinateGram z : ℂ))
+          hx_arch
+      _ = a * star a := by
+        exact (Complex.mul_conj a).symm
+  calc
+    zetaCompletedArchimedeanBoundaryRealizedGram f = a * star a := by
+      rfl
+    _ = (ZetaHermitianPacketEnsemble.coordinateGram
+          (x ZetaPacketLabel.archimedean) : ℂ) := hcoord.symm
+    _ = (ZetaHermitianPacketEnsemble.archimedeanPacketGram x : ℂ) := by
+      exact congrArg (fun r : ℝ => (r : ℂ)) hgram.symm
 
 /-- The weighted seed-amplitude prime coordinate is the completed autocorrelation face
 coordinate. This is the coordinate form of the spectral-factor theorem, not a raw negative-face
@@ -301,6 +410,8 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
                 hweight
             _ = 0 := by
               exact zero_mul
+                (zetaCompletedPrimeBoundaryRealizedPositiveFace p n f *
+                  star (zetaCompletedPrimeBoundaryRealizedNegativeFace p n f))
         have hrealized :
             zetaCompletedPrimeBoundaryRealizedCoordinateGram p n f = 0 := by
           calc
@@ -323,6 +434,10 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
                 hweight
             _ = 0 := by
               exact zero_mul
+                (zetaCompletedAutocorrelationPrimePositiveFace p n
+                  (zetaCompletedAutocorrelationProbe f) +
+                  star (zetaCompletedAutocorrelationPrimePositiveFace p n
+                    (zetaCompletedAutocorrelationProbe f)))
         calc
           (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f *
               star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f)) +
@@ -335,7 +450,7 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
           _ = 0 := by
             calc
               0 + star (0 : ℂ) = 0 + (0 : ℂ) := by
-                exact congrArg (fun z : ℂ => 0 + z) (star_zero : star (0 : ℂ) = 0)
+                exact congrArg (fun z : ℂ => 0 + z) (star_zero (R := ℂ))
               _ = 0 := by
                 exact add_zero 0
           _ = zetaCompletedPrimeBoundaryRealizedCoordinateGram p n f := hrealized.symm
@@ -362,6 +477,8 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
               hweight
           _ = 0 := by
             exact zero_mul
+              (zetaCompletedPrimeBoundaryRealizedPositiveFace p n f *
+                star (zetaCompletedPrimeBoundaryRealizedNegativeFace p n f))
       have hrealized :
           zetaCompletedPrimeBoundaryRealizedCoordinateGram p n f = 0 := by
         calc
@@ -384,6 +501,10 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
               hweight
           _ = 0 := by
             exact zero_mul
+              (zetaCompletedAutocorrelationPrimePositiveFace p n
+                (zetaCompletedAutocorrelationProbe f) +
+                star (zetaCompletedAutocorrelationPrimePositiveFace p n
+                  (zetaCompletedAutocorrelationProbe f)))
       calc
         (zetaCompletedExplicitFormulaPrimeSpectralAmplitude p n f *
             star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude p n f)) +
@@ -396,7 +517,7 @@ theorem zetaCompletedPrimeBoundaryReconstruction_pairedCoordinate_eq_realizedGra
         _ = 0 := by
           calc
             0 + star (0 : ℂ) = 0 + (0 : ℂ) := by
-              exact congrArg (fun z : ℂ => 0 + z) (star_zero : star (0 : ℂ) = 0)
+              exact congrArg (fun z : ℂ => 0 + z) (star_zero (R := ℂ))
             _ = 0 := by
               exact add_zero 0
         _ = zetaCompletedPrimeBoundaryRealizedCoordinateGram p n f := hrealized.symm
@@ -477,15 +598,18 @@ theorem zetaCompletedExplicitFormulaPrimeConvolutionPairedContribution_eq_twoFac
       zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
         star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)
   have hsplit :
-      (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, C ℓ + star (C ℓ)) =
-        (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, C ℓ) +
-          (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, star (C ℓ)) := by
+      Finset.sum zetaCompletedExplicitFormulaPrimeSupport
+          (fun ℓ : ℕ × ℕ => C ℓ + star (C ℓ)) =
+        Finset.sum zetaCompletedExplicitFormulaPrimeSupport C +
+          Finset.sum zetaCompletedExplicitFormulaPrimeSupport
+            (fun ℓ : ℕ × ℕ => star (C ℓ)) := by
     exact Finset.sum_add_distrib
   have hstar :
-      (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, star (C ℓ)) =
-        star (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, C ℓ) := by
+      Finset.sum zetaCompletedExplicitFormulaPrimeSupport
+          (fun ℓ : ℕ × ℕ => star (C ℓ)) =
+        star (Finset.sum zetaCompletedExplicitFormulaPrimeSupport C) := by
     exact
-      (map_sum star zetaCompletedExplicitFormulaPrimeSupport C).symm
+      (star_sum zetaCompletedExplicitFormulaPrimeSupport C).symm
   exact hsplit.trans
     (congrArg
       (fun z : ℂ => (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport, C ℓ) + z)

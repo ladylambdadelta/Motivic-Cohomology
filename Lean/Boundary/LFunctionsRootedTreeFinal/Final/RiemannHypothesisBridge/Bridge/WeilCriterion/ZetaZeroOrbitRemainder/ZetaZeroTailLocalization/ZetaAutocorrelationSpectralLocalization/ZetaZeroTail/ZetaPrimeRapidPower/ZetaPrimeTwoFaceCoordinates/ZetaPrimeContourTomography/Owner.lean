@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaCompletedWeightStream.ZetaCompletedFinitePart.ZetaPrimeDistributionTransport.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaAnalyticPackage.Owner
 
 /-!
 # Prime contour tomography
@@ -162,10 +164,52 @@ theorem real_sub_add_tail_cancel
     (C T τ : ℝ) :
     C - (T + τ) + τ = C - T := by
   calc
-    C - (T + τ) + τ = C - ((T + τ) - τ) := by
-      exact sub_add_eq_sub_sub C (T + τ) τ
+    C - (T + τ) + τ = C + (-(T + τ) + τ) := by
+      exact add_assoc C (-(T + τ)) τ
+    _ = C + (-T + (-τ + τ)) := by
+      exact congrArg (fun x : ℝ => C + x) (neg_add T τ)
+    _ = C + (-T + 0) := by
+      exact congrArg (fun x : ℝ => C + (-T + x)) (neg_add_cancel τ)
+    _ = C + -T := by
+      exact congrArg (fun x : ℝ => C + x) (add_zero (-T))
     _ = C - T := by
-      exact congrArg (fun x : ℝ => C - x) (add_sub_cancel_right T τ)
+      exact (sub_eq_add_neg C T).symm
+
+/-- The finite time-side prime windows converge to the completed time-side prime
+distribution. -/
+theorem finitePrimeTimeDistributionWindow_tendsto_completed
+    (f : ZetaAdmissibleFunction) :
+    Tendsto
+      (fun N : ℕ =>
+        finitePrimeTimeDistributionWindow N (convolutionAutocorrelation f))
+      atTop
+      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f))) := by
+  have hcoordinate :
+      ∀ ι : ZetaPrimePowerIndex,
+        zetaPrimeOffDiagonalCoordinate ι f =
+          completedPrimeTimeDistributionCoordinate ι
+            (convolutionAutocorrelation f) := by
+    intro ι
+    exact
+      (completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical
+        ι f).symm
+  have htime :
+      Summable (fun ι : ZetaPrimePowerIndex =>
+        completedPrimeTimeDistributionCoordinate ι
+          (convolutionAutocorrelation f)) :=
+    (summable_zetaPrimeOffDiagonalCoordinate f).congr hcoordinate
+  unfold finitePrimeTimeDistributionWindow
+  exact ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
+    (fun ι : ZetaPrimePowerIndex =>
+      completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))
+    htime
+    (fun ι hι => by
+      have hphysical :
+          completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f) =
+            zetaPrimeOffDiagonalCoordinate ι f :=
+        completedPrimeTimeDistributionCoordinate_convolutionAutocorrelation_eq_physical ι f
+      exact hphysical.trans
+        (zetaPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine ι f hι))
 
 /-- The coordinatewise contour-transport remainder between the contour-realized and
 time-side prime distributions. -/
@@ -865,7 +909,7 @@ theorem finitePrimeContourRealizedComplexWindow_re_eq_coordinateSum
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeContourRealizedTimeDistributionCoordinate ι g := by
   exact
-    (Complex.sum_re
+    (Complex.re_sum
       (fun ι : ZetaPrimePowerIndex =>
         finitePrimeContourRealizedComplexCoordinate ι g)
       (ZetaPrimePowerIndex.window N)).trans
@@ -972,7 +1016,7 @@ theorem finitePrimeTimeDistributionComplexWindow_re_eq_coordinateSum
       ∑ ι in ZetaPrimePowerIndex.window N,
         completedPrimeTimeDistributionCoordinate ι g := by
   exact
-    (Complex.sum_re
+    (Complex.re_sum
       (fun ι : ZetaPrimePowerIndex =>
         finitePrimeTimeDistributionComplexCoordinate ι g)
       (ZetaPrimePowerIndex.window N)).trans
@@ -1373,7 +1417,11 @@ directly from the summability of the contour-realized prime coordinates and the
 nongenuine-coordinate support reduction, before any coordinate-remainder tail theorem is
 used. -/
 theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairing_ownerTailEstimate
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hmajorant :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeSpectralCoordinateMajorant ι f)) :
     Tendsto
       (fun N : ℕ =>
         finitePrimeContourRealizedTimeDistributionWindow N
@@ -1389,10 +1437,11 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairin
             (convolutionAutocorrelation f)) := by
     exact
       summable_complex_family_of_norm_le_two_spectralMajorant
+        f
         (fun ι : ZetaPrimePowerIndex =>
           completedPrimeContourRealizedSpectralCoordinate ι
             (convolutionAutocorrelation f))
-        f
+        hmajorant
         (fun ι : ZetaPrimePowerIndex =>
           norm_completedPrimeContourRealizedSpectralCoordinate_le_two_spectralMajorant
             ι f)
@@ -1458,7 +1507,7 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairin
     unfold completedPrimeContourRealizedTimeDistributionPairing
     unfold completedPrimeSpectralDistributionPairing
     unfold completedPrimeContourRealizedTimeDistributionCoordinate
-    exact Complex.tsum_re
+    exact Complex.re_tsum
       (fun ι : ZetaPrimePowerIndex =>
         -((ι.weight : ℂ) *
           (zetaCompletedSpectralLaplaceTransform
@@ -1505,8 +1554,7 @@ theorem finitePrimeContourTransportCoordinateRemainderWindow_tendsto_zero_ownerT
         (𝓝
           (completedPrimeContourRealizedTimeDistributionPairing
             (convolutionAutocorrelation f))) :=
-    finitePrimeContourRealizedTimeDistributionWindow_tendsto_completedPairing_ownerTailEstimate
-      f
+    D.contourWindow_tendsto
   have htime :
       Tendsto
         (fun N : ℕ =>

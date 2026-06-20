@@ -20,7 +20,7 @@ namespace LFunctions
 
 noncomputable section
 
-open Filter
+open Complex Filter
 open scoped Topology
 
 namespace ZetaAdmissibleFunction
@@ -102,11 +102,11 @@ theorem Gammaℝ_zeroSet_countable :
     ({z : ℂ | Gammaℝ z = 0} : Set ℂ).Countable := by
   have hsubset :
       ({z : ℂ | Gammaℝ z = 0} : Set ℂ) ⊆
-        Set.range (fun n : ℕ => (-(2 * n : ℕ) : ℂ)) := by
+        Set.range (fun n : ℕ => (-(2 * (n : ℂ)) : ℂ)) := by
     intro z hz
     rcases Complex.Gammaℝ_eq_zero_iff.mp hz with ⟨n, hn⟩
     exact ⟨n, hn.symm⟩
-  exact (Set.countable_range (fun n : ℕ => (-(2 * n : ℕ) : ℂ))).mono hsubset
+  exact (Set.countable_range (fun n : ℕ => (-(2 * (n : ℂ)) : ℂ))).mono hsubset
 
 /-- Division by two is injective on complex numbers. -/
 theorem complex_div_two_injective : Function.Injective (fun z : ℂ => z / 2) := by
@@ -195,9 +195,9 @@ theorem explicitFormulaContourFamilyHorizontalAvoidsSingularBoundary_of_not_mem_
       calc
         T = -((zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im) := by
           exact
-            (congrArg Neg.neg
+            ((congrArg Neg.neg
               (zetaCompletedExplicitFormulaBottomPath_im (F.rectangle T) x)).trans
-              (neg_neg T)
+              (neg_neg T)).symm
         _ = -z.im := by
           exact congrArg Neg.neg (congrArg Complex.im hzpath.symm)
     exact hT (Or.inr ⟨z, hz, him.symm⟩)

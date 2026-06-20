@@ -1,6 +1,9 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaCompletedLogDerivativeControl.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.Core
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaPuncturedPlane.Owner
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.Analysis.Calculus.LogDeriv
 import Mathlib.Analysis.SpecialFunctions.Gamma.Basic
@@ -75,45 +78,20 @@ theorem CompletedZetaNegLogDerivControl.criticalLineLogDeriv_range_eq_neg_comple
 /-- Away from its shifted poles, the centered completed zeta has isolated zeros. -/
 theorem centeredCompletedRiemannZeta_eventually_ne_zero_of_zero
     (z : ℂ) (hz0 : z ≠ -(1 / 2 : ℂ)) (hz1 : z ≠ (1 / 2 : ℂ))
-    (hz : centeredCompletedRiemannZeta z = 0) :
+    (_hz : centeredCompletedRiemannZeta z = 0) :
     ∀ᶠ w in 𝓝[≠] z, centeredCompletedRiemannZeta w ≠ 0 := by
-  have hz' : completedRiemannZeta ((1 / 2 : ℂ) + z) = 0 := by
-    exact by
-      unfold centeredCompletedRiemannZeta at hz ⊢
-      exact hz
-  have hs0 : (1 / 2 : ℂ) + z ≠ 0 := by
-    intro h
-    have hz_eq : z = -(1 / 2 : ℂ) := by
-      have hsum : (1 / 2 : ℂ) + z = (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by
-        calc
-          (1 / 2 : ℂ) + z = 0 := h
-          _ = (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by norm_num
-      exact add_left_cancel hsum
-    exact hz0 hz_eq
-  have hs1 : (1 / 2 : ℂ) + z ≠ 1 := by
-    intro h
-    have hz_eq : z = (1 / 2 : ℂ) := by
-      have hsum : (1 / 2 : ℂ) + z = (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
-        calc
-          (1 / 2 : ℂ) + z = 1 := h
-          _ = (1 / 2 : ℂ) + (1 / 2 : ℂ) := by norm_num
-      exact add_left_cancel hsum
-    exact hz1 hz_eq
-  have hzero :=
-    completedRiemannZeta_eventually_ne_zero_of_zero ((1 / 2 : ℂ) + z) hs0 hs1 hz'
-  have ht :
-      Tendsto (fun w : ℂ => (1 / 2 : ℂ) + w) (𝓝[≠] z)
-        (𝓝[≠] ((1 / 2 : ℂ) + z)) := by
-    refine tendsto_nhdsWithin_iff.2 ?_
-    refine ⟨
-      ((continuous_const.add continuous_id).continuousAt.tendsto).mono_left nhdsWithin_le_nhds,
-      ?_⟩
-    exact Eventually.mono self_mem_nhdsWithin
-      (fun w hw hsum => hw (add_left_cancel hsum))
-  have hcomp := ht hzero
-  exact by
-    unfold centeredCompletedRiemannZeta
-    exact hcomp
+  have hA : AnalyticAt ℂ centeredCompletedRiemannZeta z :=
+    centeredCompletedRiemannZeta_analyticAt_of_ne_shiftedPoles hz0 hz1
+  have hnot :
+      ¬ ∀ᶠ w in 𝓝 z, centeredCompletedRiemannZeta w = 0 := by
+    intro hzero
+    exact centeredCompletedRiemannZeta_not_eventually_zero_at_zero_of_ne_shiftedPoles hz0 hz1
+      (Filter.Eventually.mono hzero
+        (fun w hw => (centeredCompletedRiemannZetaFunction_eq w).trans hw))
+  rcases hA.eventually_eq_zero_or_eventually_ne_zero with hzero | hne
+  · exfalso
+    exact hnot hzero
+  · exact hne
 
 end ZetaAdmissibleFunction
 

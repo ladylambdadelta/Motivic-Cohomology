@@ -89,6 +89,23 @@ theorem complex_ofReal_support_eq_real_support (f : ℝ → ℝ) :
     apply hx
     exact Complex.ofReal_eq_zero.mp hcx
 
+theorem complex_ofReal_eq_one_of_real_eq_one {x : ℝ} (hx : x = 1) :
+    ((x : ℝ) : ℂ) = (1 : ℂ) := by
+  calc
+    ((x : ℝ) : ℂ) = ((1 : ℝ) : ℂ) := congrArg (fun y : ℝ => ((y : ℝ) : ℂ)) hx
+    _ = (1 : ℂ) := Complex.ofReal_one
+
+theorem complex_ofReal_eq_zero_of_real_eq_zero {x : ℝ} (hx : x = 0) :
+    ((x : ℝ) : ℂ) = (0 : ℂ) := by
+  calc
+    ((x : ℝ) : ℂ) = ((0 : ℝ) : ℂ) := congrArg (fun y : ℝ => ((y : ℝ) : ℂ)) hx
+    _ = (0 : ℂ) := Complex.ofReal_zero
+
+theorem dist_gt_of_not_mem_closedBall {c r x : ℝ} (hx : x ∉ Metric.closedBall c r) :
+    r < dist x c := by
+  have hnot : ¬ dist x c ≤ r := fun hle => hx hle
+  exact lt_of_not_ge hnot
+
 /-- An explicit finite sample package for owner-level interpolation statements. -/
 structure FiniteSample where
   n : ℕ
@@ -131,9 +148,9 @@ def admissibleBump (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
 theorem admissibleBump_apply_center (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
     admissibleBump (c := c) rIn rOut hrIn hr c = (1 : ℂ) := by
   change (((⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c) c : ℝ) : ℂ) = (1 : ℂ)
-  exact_mod_cast
-    ContDiffBump.one_of_mem_closedBall (f := (⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c))
-      (Metric.mem_closedBall_self hrIn.le)
+  exact complex_ofReal_eq_one_of_real_eq_one
+    (ContDiffBump.one_of_mem_closedBall (f := (⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c))
+      (Metric.mem_closedBall_self hrIn.le))
 
 /-- The admissible bump has compact support. -/
 theorem admissibleBump_hasCompactSupport (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr : rIn < rOut) :
@@ -145,16 +162,14 @@ theorem admissibleBump_zero_of_le_dist (c rIn rOut : ℝ) (hrIn : 0 < rIn) (hr :
     {x : ℝ} (hx : rOut ≤ dist x c) :
     admissibleBump (c := c) rIn rOut hrIn hr x = 0 := by
   change (((⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c) x : ℝ) : ℂ) = (0 : ℂ)
-  exact_mod_cast
-    ContDiffBump.zero_of_le_dist (f := (⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c)) hx
+  exact complex_ofReal_eq_zero_of_real_eq_zero
+    (ContDiffBump.zero_of_le_dist (f := (⟨rIn, rOut, hrIn, hr⟩ : ContDiffBump c)) hx)
 
 /-- The admissible bump vanishes away from the closed `rOut`-ball around its center. -/
 theorem admissibleBump_eq_zero_of_not_mem_closedBall (c rIn rOut : ℝ) (hrIn : 0 < rIn)
     (hr : rIn < rOut) {x : ℝ} (hx : x ∉ Metric.closedBall c rOut) :
     admissibleBump (c := c) rIn rOut hrIn hr x = 0 := by
-  have hdist : rOut < dist x c := by
-    exact lt_of_not_ge (fun h => hx (by
-      exact h))
+  have hdist : rOut < dist x c := dist_gt_of_not_mem_closedBall hx
   exact admissibleBump_zero_of_le_dist (c := c) (rIn := rIn) (rOut := rOut) hrIn hr (by
     exact le_of_lt_for_bump_radius hdist)
 
@@ -254,10 +269,38 @@ theorem admissibleBump_support_subset_closedBall (c rIn rOut : ℝ) (hrIn : 0 < 
     (hr : rIn < rOut) :
     Function.support (admissibleBump (c := c) rIn rOut hrIn hr) ⊆ Metric.closedBall c rOut := by
   intro x hx
-  by_contra hx'
-  exact hx (by
-    exact
-      admissibleBump_eq_zero_of_not_mem_closedBall (c := c) (rIn := rIn) (rOut := rOut) hrIn hr hx')
+  let b : ContDiffBump c := ⟨rIn, rOut, hrIn, hr⟩
+  have hsupport :
+      Function.support (fun x => ((b x : ℝ) : ℂ)) = Function.support (fun x => b x) :=
+    complex_ofReal_support_eq_real_support (fun x => b x)
+  change x ∈ Function.support (fun x => ((b x : ℝ) : ℂ)) at hx
+  have hxReal : x ∈ Function.support (fun x => b x) :=
+    Eq.subst (motive := fun s : Set ℝ => x ∈ s) hsupport hx
+  have hbSupport : Function.support (fun x => b x) = Metric.ball c rOut :=
+    ContDiffBump.support_eq (f := b)
+  have hxBall : x ∈ Metric.ball c rOut :=
+    Eq.subst (motive := fun s : Set ℝ => x ∈ s) hbSupport hxReal
+  show dist x c ≤ rOut
+  exact le_of_lt (show dist x c < rOut from hxBall)
+
+theorem sampleDistanceImage_nonempty_of_ne_empty (S : FiniteSample) (i₀ : Fin S.n)
+    {s : Finset (Fin S.n)} (hne : s ≠ ∅) :
+    (s.image fun j => dist (S.x j) (S.x i₀)).Nonempty := by
+  match Finset.nonempty_iff_ne_empty.mpr hne with
+  | ⟨j, hj⟩ =>
+      exact ⟨dist (S.x j) (S.x i₀), Finset.mem_image.2 ⟨j, hj, rfl⟩⟩
+
+theorem sampleDistanceImage_min_pos_of_erase (S : FiniteSample) (i₀ : Fin S.n)
+    (s : Finset (Fin S.n)) (hs : i₀ ∉ s) (ht : (s.image fun j => dist (S.x j) (S.x i₀)).Nonempty) :
+    0 < (s.image fun j => dist (S.x j) (S.x i₀)).min' ht := by
+  have hm : (s.image fun j => dist (S.x j) (S.x i₀)).min' ht ∈
+      (s.image fun j => dist (S.x j) (S.x i₀)) := Finset.min'_mem _ _
+  match Finset.mem_image.1 hm with
+  | ⟨j, hj, hjdist⟩ =>
+      have hneq : j ≠ i₀ := by
+        intro hji
+        exact hs (Eq.subst (motive := fun k : Fin S.n => k ∈ s) hji hj)
+      exact hjdist.symm ▸ dist_pos.2 (S.inj.ne hneq)
 
 /-- The explicit separation radius for one point of a finite sample. -/
 def sampleSeparationRadius (S : FiniteSample) (i₀ : Fin S.n) : ℝ :=
@@ -266,9 +309,7 @@ def sampleSeparationRadius (S : FiniteSample) (i₀ : Fin S.n) : ℝ :=
     1
   else
     let t : Finset ℝ := s.image fun j => dist (S.x j) (S.x i₀)
-    have ht : t.Nonempty := by
-      rcases Finset.nonempty_iff_ne_empty.mpr hne with ⟨j, hj⟩
-      exact ⟨dist (S.x j) (S.x i₀), Finset.mem_image.2 ⟨j, hj, rfl⟩⟩
+    have ht : t.Nonempty := sampleDistanceImage_nonempty_of_ne_empty S i₀ hne
     t.min' ht / 2
 
 /-- The explicit separation radius is positive and below every other sample-point distance. -/
@@ -286,9 +327,7 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
         unfold sampleSeparationRadius
         change (if h : s = ∅ then (1 : ℝ) else
           let t : Finset ℝ := Finset.image (fun j => dist (S.x j) (S.x i₀)) s
-          let ht : t.Nonempty := by
-            rcases Finset.nonempty_iff_ne_empty.mpr h with ⟨j, hj⟩
-            exact ⟨dist (S.x j) (S.x i₀), Finset.mem_image.2 ⟨j, hj, rfl⟩⟩
+          let ht : t.Nonempty := sampleDistanceImage_nonempty_of_ne_empty S i₀ h
           t.min' ht / 2) = 1
         exact dif_pos hne
       exact Eq.subst (motive := fun r : ℝ => 0 < r) hrad.symm zero_lt_one
@@ -298,26 +337,23 @@ theorem sampleSeparationRadius_pos_and_le (S : FiniteSample) (i₀ : Fin S.n) :
       exact hne ▸ hjs
     exact False.elim (Finset.not_mem_empty j hfalse)
   · let t : Finset ℝ := s.image fun j => dist (S.x j) (S.x i₀)
-    have ht : t.Nonempty := by
-      rcases Finset.nonempty_iff_ne_empty.mpr hne with ⟨j, hj⟩
-      refine ⟨dist (S.x j) (S.x i₀), ?_⟩
-      exact Finset.mem_image.2 ⟨j, hj, rfl⟩
-    have hpos : 0 < t.min' ht := by
-      have hm : t.min' ht ∈ t := Finset.min'_mem _ _
-      rcases Finset.mem_image.1 hm with ⟨j, hj, hjdist⟩
-      have hneq : j ≠ i₀ := by
-        intro hji
-        apply hs
-        have : j ∈ s := hj
-        subst hji
-        exact this
-      exact by
-        exact hjdist.symm ▸ dist_pos.2 (S.inj.ne hneq)
+    have ht : t.Nonempty := sampleDistanceImage_nonempty_of_ne_empty S i₀ hne
+    have hpos : 0 < t.min' ht := sampleDistanceImage_min_pos_of_erase S i₀ s hs ht
     constructor
-    · unfold sampleSeparationRadius s t
+    · unfold sampleSeparationRadius
+      change 0 <
+        (if h : s = ∅ then (1 : ℝ) else
+          let t : Finset ℝ := Finset.image (fun j => dist (S.x j) (S.x i₀)) s
+          let ht : t.Nonempty := sampleDistanceImage_nonempty_of_ne_empty S i₀ h
+          t.min' ht / 2)
       exact Eq.subst (motive := fun r : ℝ => 0 < r) (dif_neg hne).symm (half_pos hpos)
     intro j hj
-    unfold sampleSeparationRadius s t
+    unfold sampleSeparationRadius
+    change
+      (if h : s = ∅ then (1 : ℝ) else
+        let t : Finset ℝ := Finset.image (fun j => dist (S.x j) (S.x i₀)) s
+        let ht : t.Nonempty := sampleDistanceImage_nonempty_of_ne_empty S i₀ h
+        t.min' ht / 2) ≤ dist (S.x j) (S.x i₀)
     have hmem : dist (S.x j) (S.x i₀) ∈ t := by
       exact Finset.mem_image.2 ⟨j, hj, rfl⟩
     have hle : t.min' ht ≤ dist (S.x j) (S.x i₀) := Finset.min'_le _ _ hmem

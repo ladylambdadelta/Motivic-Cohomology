@@ -59,9 +59,11 @@ theorem exists_zeroOrbit_autocorrelation_negative_margin_probe_of_negative_probe
       ∃ f : ZetaAdmissibleFunction,
         zetaZeroOrbitContributionRe ρ
             (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
-  rcases hprobe with ⟨f, hf⟩
-  rcases exists_positive_margin_of_lt_zero hf with ⟨δ, hδ, hmargin⟩
-  exact ⟨δ, hδ, f, hmargin⟩
+  match hprobe with
+  | ⟨f, hf⟩ =>
+      match exists_positive_margin_of_lt_zero hf with
+      | ⟨δ, hδ, hmargin⟩ =>
+          exact ⟨δ, hδ, f, hmargin⟩
 
 /-- Off-critical completed zeros have one autocorrelation probe with a fixed negative
 finite-orbit margin. -/
@@ -106,12 +108,11 @@ theorem exists_zeroOrbit_autocorrelation_negative_margin_family
         ∃ f : ZetaAdmissibleFunction,
           zetaZeroOrbitContributionRe ρ
               (ZetaAdmissibleFunction.convolutionAutocorrelation f) ≤ -δ := by
-  rcases
-    exists_zeroOrbit_autocorrelation_negative_margin_probe ρ hρ hρre horbit with
-    ⟨δ, hδ, hprobe⟩
-  exact ⟨δ, hδ,
-    exists_zeroOrbit_autocorrelation_negative_margin_family_of_probe
-      ρ δ hprobe⟩
+  match exists_zeroOrbit_autocorrelation_negative_margin_probe ρ hρ hρre horbit with
+  | ⟨δ, hδ, hprobe⟩ =>
+      exact ⟨δ, hδ,
+        exists_zeroOrbit_autocorrelation_negative_margin_family_of_probe
+          ρ δ hprobe⟩
 
 end
 end LFunctions

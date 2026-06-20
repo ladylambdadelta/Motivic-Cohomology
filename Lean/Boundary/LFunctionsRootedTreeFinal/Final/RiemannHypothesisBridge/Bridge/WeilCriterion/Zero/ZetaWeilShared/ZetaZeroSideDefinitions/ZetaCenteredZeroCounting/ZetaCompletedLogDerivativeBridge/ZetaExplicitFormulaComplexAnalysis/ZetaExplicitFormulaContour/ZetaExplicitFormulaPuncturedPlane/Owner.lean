@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.ZetaCompletedLogDerivativeCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.Owner
 import Mathlib.Analysis.Complex.Basic
@@ -43,7 +43,7 @@ theorem completedRiemannZeta_eventuallyEq_zero_on_puncturedPlane
   let U : Set ℂ := {w : ℂ | w ≠ 0 ∧ w ≠ 1}
   have hU : IsPreconnected U := by
     have hcount : ({0, 1} : Set ℂ).Countable := by
-      exact (Set.finite_insert _ (Set.finite_singleton _)).countable
+      simpa using ((Set.countable_singleton (1 : ℂ)).insert (0 : ℂ))
     have hU_eq : U = ({0, 1} : Set ℂ)ᶜ := by
       ext w
       constructor
@@ -58,12 +58,17 @@ theorem completedRiemannZeta_eventuallyEq_zero_on_puncturedPlane
           exact hw (Or.inl h0)
         · intro h1
           exact hw (Or.inr h1)
-    have hpath : IsPathConnected (U : Set ℂ) := by
+    have hpath_compl : IsPathConnected (({0, 1} : Set ℂ)ᶜ) := by
       exact
         (Set.Countable.isPathConnected_compl_of_one_lt_rank
           (show 1 < Module.rank ℝ ℂ by
-            exact Complex.rank_real_complex)
+            exact Complex.rank_real_complex ▸ Nat.one_lt_ofNat)
           hcount)
+    have hpath : IsPathConnected (U : Set ℂ) := by
+      exact Eq.subst
+        (motive := fun S : Set ℂ => IsPathConnected S)
+        hU_eq.symm
+        hpath_compl
     exact hpath.isConnected.isPreconnected
   have hzU : z ∈ U := by
     constructor
@@ -89,10 +94,11 @@ theorem completedRiemannZeta_nonzero_two : completedRiemannZeta (2 : ℂ) ≠ 0 
       (Gammaℝ_ne_zero_of_re_pos (2 : ℂ) (by norm_num))
   have hzeta2 : riemannZeta (2 : ℂ) ≠ 0 := by
     intro hzeta
-    -- riemannZeta_two states ζ(2) ≠ 0, so hzeta contradicts it
     have hnorm := riemannZeta_two
     simp only [hzeta] at hnorm
-    exact hnorm
+    have hpi : ((Real.pi : ℂ) ^ 2 / 6) ≠ 0 := by
+      field_simp [Real.pi_ne_zero]
+    exact hpi hnorm.symm
   intro h
   have hprod : riemannZeta (2 : ℂ) * Gammaℝ (2 : ℂ) = 0 := by
     exact hcomp.symm.trans h

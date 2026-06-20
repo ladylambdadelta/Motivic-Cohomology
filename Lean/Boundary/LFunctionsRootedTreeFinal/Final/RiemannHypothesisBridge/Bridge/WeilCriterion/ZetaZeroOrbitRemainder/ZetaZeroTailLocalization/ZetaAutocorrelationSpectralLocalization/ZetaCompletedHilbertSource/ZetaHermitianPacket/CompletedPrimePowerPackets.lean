@@ -1,3 +1,8 @@
+import Mathlib.Algebra.Order.Ring.Basic
+import Mathlib.Algebra.Star.BigOperators
+import Mathlib.Data.Complex.BigOperators
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.Topology.Algebra.InfiniteSum.Constructions
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.PrimeBoundaryPackets
 
 namespace Boundary
@@ -373,10 +378,10 @@ theorem zetaCompletedPrimeDefectKernelPositiveWindow_re_nonnegative
     _ = Complex.re
         (∑ ι in ZetaPrimePowerIndex.window N,
           zetaCompletedPrimeDefectKernelPositiveCoordinate ι f) := by
-      exact (Complex.sum_re
+      exact (Complex.re_sum
+        (ZetaPrimePowerIndex.window N)
         (fun ι =>
-          zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)
-        (ZetaPrimePowerIndex.window N)).symm
+          zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)).symm
 
 /-- Nongenuine prime-power indices have zero completed positive defect coordinate. -/
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_eq_zero_of_not_isGenuine
@@ -414,7 +419,11 @@ theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_eq_zero_of_not_isGenuin
         (congrArg₂ Sub.sub hpos hneg)
         (congrArg star (congrArg₂ Sub.sub hpos hneg))
     _ = 0 := by
-      exact zero_mul (star (0 - 0 : ℂ))
+      exact Eq.trans
+        (congrArg
+          (fun z : ℂ => z * star (0 - 0 : ℂ))
+          (sub_self (0 : ℂ)))
+        (zero_mul (star (0 - 0 : ℂ)))
 
 /-- The prime spectral majorant for the two real-axis amplitude families.
 
@@ -590,7 +599,7 @@ theorem complex_norm_defect_square_le_two_sq_add_sq (a b : ℂ) :
     exact Eq.subst
       (motive := fun x : ℝ => x ≤ 2 * (‖a‖ ^ 2 + ‖b‖ ^ 2))
       (pow_two (‖a‖ + ‖b‖))
-      (add_sq_le ‖a‖ ‖b‖)
+      (add_sq_le (a := ‖a‖) (b := ‖b‖))
   exact hmul_self.trans (hsquare.trans harith)
 
 /-- The positive defect-square coordinate is bounded by twice the spectral majorant. -/
@@ -701,14 +710,16 @@ theorem summable_zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_of_spectralMajor
 /-- Taking real parts commutes with the completed prime-power sum of positive defect
 coordinates. -/
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_re_tsum_eq_coordinateTsum_re
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hsum :
+      Summable
+        (fun ι : ZetaPrimePowerIndex =>
+          zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)) :
     (∑' ι : ZetaPrimePowerIndex,
         Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)) =
       Complex.re (zetaCompletedPrimeDefectKernelPositiveCoordinateTsum f) := by
   exact
-    (Complex.tsum_re
-      (fun ι : ZetaPrimePowerIndex =>
-        zetaCompletedPrimeDefectKernelPositiveCoordinate ι f)).symm
+    (Complex.re_tsum hsum).symm
 
 /-- Dagger commutes with the completed oriented prime-power sum. -/
 theorem zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_star_tsum
@@ -719,9 +730,43 @@ theorem zetaCompletedPrimeTwoFaceGNSOrientedCoordinate_star_tsum
         (∑' ι : ZetaPrimePowerIndex,
           zetaCompletedPrimeTwoFaceGNSOrientedCoordinate ι f) := by
   exact
-    (star_tsum
-      (fun ι : ZetaPrimePowerIndex =>
+    (tsum_star
+      (f := fun ι : ZetaPrimePowerIndex =>
         zetaCompletedPrimeTwoFaceGNSOrientedCoordinate ι f)).symm
+
+/-- A complex number with zero imaginary part is its real part embedded in `ℂ`. -/
+theorem complex_eq_ofReal_re_of_im_eq_zero
+    (z : ℂ) (hz : Complex.im z = 0) :
+    z = (Complex.re z : ℂ) := by
+  exact Complex.ext
+    (Complex.ofReal_re (Complex.re z)).symm
+    (hz.trans (Complex.ofReal_im (Complex.re z)).symm)
+
+/-- The imaginary part of a completed complex sum vanishes when every coordinate is
+real-valued. -/
+theorem complex_im_tsum_eq_zero_of_forall_im_eq_zero
+    {ι : Type*} (u : ι → ℂ)
+    (hzero : ∀ i : ι, Complex.im (u i) = 0) :
+    Complex.im (∑' i : ι, u i) = 0 := by
+  have hpoint :
+      (fun i : ι => u i) =
+        (fun i : ι => (Complex.re (u i) : ℂ)) :=
+    funext
+      (fun i : ι =>
+        complex_eq_ofReal_re_of_im_eq_zero (u i) (hzero i))
+  calc
+    Complex.im (∑' i : ι, u i) =
+        Complex.im (∑' i : ι, (Complex.re (u i) : ℂ)) := by
+      exact congrArg
+        (fun v : ι → ℂ => Complex.im (∑' i : ι, v i))
+        hpoint
+    _ =
+        Complex.im ((∑' i : ι, Complex.re (u i) : ℝ) : ℂ) := by
+      exact congrArg Complex.im
+        (Complex.ofReal_tsum
+          (fun i : ι => Complex.re (u i))).symm
+    _ = 0 := by
+      exact Complex.ofReal_im (∑' i : ι, Complex.re (u i))
 
 /-- Finite completed prime defect-square windows expand as diagonal debt minus the
 symmetrized two-face window. -/
@@ -744,22 +789,32 @@ theorem zetaCompletedPrimeDefectKernelPositiveWindow_add_twoFaceWindow_eq_diagon
         (∑ ι in s, P ι) + ((∑ ι in s, C ι) + (∑ ι in s, star (C ι))) := by
       exact congrArg
         (fun z : ℂ => (∑ ι in s, P ι) + ((∑ ι in s, C ι) + z))
-        (map_sum star C s)
+        (star_sum s C)
     _ =
         ((∑ ι in s, P ι) + (∑ ι in s, C ι)) +
           (∑ ι in s, star (C ι)) := by
-      exact add_assoc (∑ ι in s, P ι) (∑ ι in s, C ι) (∑ ι in s, star (C ι))
+      exact (add_assoc (∑ ι in s, P ι) (∑ ι in s, C ι) (∑ ι in s, star (C ι))).symm
     _ =
-        (∑ ι in s, P ι + C ι) + (∑ ι in s, star (C ι)) := by
+        Finset.sum s (fun ι : ZetaPrimePowerIndex => P ι + C ι) +
+          Finset.sum s (fun ι : ZetaPrimePowerIndex => star (C ι)) := by
       exact congrArg
-        (fun z : ℂ => z + (∑ ι in s, star (C ι)))
-        (Finset.sum_add_distrib.symm)
+        (fun z : ℂ => z + Finset.sum s (fun ι : ZetaPrimePowerIndex => star (C ι)))
+        ((Finset.sum_add_distrib (s := s) (f := P) (g := C)).symm)
     _ =
-        ∑ ι in s, (P ι + C ι) + star (C ι) := by
-      exact Finset.sum_add_distrib.symm
+        Finset.sum s (fun ι : ZetaPrimePowerIndex => (P ι + C ι) + star (C ι)) := by
+      exact
+        ((Finset.sum_add_distrib
+          (s := s)
+          (f := fun ι : ZetaPrimePowerIndex => P ι + C ι)
+          (g := fun ι : ZetaPrimePowerIndex => star (C ι))).symm)
+    _ =
+        Finset.sum s (fun ι : ZetaPrimePowerIndex => P ι + (C ι + star (C ι))) := by
+      exact Finset.sum_congr rfl
+        (fun (ι : ZetaPrimePowerIndex) (_ : ι ∈ s) =>
+          add_assoc (P ι) (C ι) (star (C ι)))
     _ = ∑ ι in s, D ι := by
       exact Finset.sum_congr rfl
-        (fun ι _ =>
+        (fun (ι : ZetaPrimePowerIndex) (_ : ι ∈ s) =>
           zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
             ι f)
 
@@ -818,7 +873,7 @@ theorem zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_tsum_eq_matrixCoeffici
           - (∑' ι : ZetaPrimePowerIndex,
             zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) :=
       tsum_neg
-        (fun ι : ZetaPrimePowerIndex =>
+        (f := fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f)
     calc
       - (∑' ι : ZetaPrimePowerIndex,
@@ -849,8 +904,8 @@ theorem zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_tsum_eq_matrixCoeffici
 theorem zetaCompletedPrimeDefectKernelPositiveCoordinate_add_twoFaceCoordinate_tsum_eq_diagonalDebt
     (f : ZetaAdmissibleFunction) :
     (∑' ι : ZetaPrimePowerIndex,
-        zetaCompletedPrimeDefectKernelPositiveCoordinate ι f +
-          zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) =
+        (zetaCompletedPrimeDefectKernelPositiveCoordinate ι f +
+          zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f)) =
       zetaCompletedPrimeDefectKernelDiagonalDebtCoordinateTsum f := by
   exact tsum_congr
     (fun ι : ZetaPrimePowerIndex =>
@@ -935,18 +990,12 @@ theorem zetaCompletedPrimeTwoFaceGNSMatrixCoefficient_im_eq_zero
       exact congrArg Complex.im
         (zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_tsum_eq_matrixCoefficient
           f).symm
-    _ =
-        ∑' ι : ZetaPrimePowerIndex,
-          Complex.im (zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f) := by
-      exact Complex.tsum_im
+    _ = 0 := by
+      exact complex_im_tsum_eq_zero_of_forall_im_eq_zero
         (fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate ι f)
-    _ = ∑' _ι : ZetaPrimePowerIndex, (0 : ℝ) := by
-      exact tsum_congr
         (fun ι : ZetaPrimePowerIndex =>
           zetaCompletedPrimeTwoFaceGNSSymmetrizedCoordinate_im_eq_zero ι f)
-    _ = 0 := by
-      exact tsum_zero
 
 /-- The completed prime two-face boundary coefficient is real-valued. -/
 theorem zetaCompletedPrimeTwoFaceGNSBoundaryCoefficient_im_eq_zero

@@ -136,14 +136,17 @@ theorem Real.binetHorizontal_two_pos : (0 : ℝ) < 2 := by
 /-- The real number `1` is bounded by `4`, in the Binet horizontal-decay
 normalization. -/
 theorem Real.binetHorizontal_one_le_four : (1 : ℝ) ≤ 4 := by
-  change ((1 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ)
-  exact Nat.cast_le.mpr (Nat.le.intro (show (1 : ℕ) + 3 = 4 from rfl))
+  calc
+    (1 : ℝ) ≤ 1 + 3 := le_add_of_nonneg_right Real.binetHorizontal_zero_le_three
+    _ = 3 + 1 := add_comm 1 3
+    _ = 4 := three_add_one_eq_four
 
 /-- The real number `3` is bounded by `4`, in the Binet horizontal-decay
 normalization. -/
 theorem Real.binetHorizontal_three_le_four : (3 : ℝ) ≤ 4 := by
-  change ((3 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ)
-  exact Nat.cast_le.mpr (Nat.le.intro (show (3 : ℕ) + 1 = 4 from rfl))
+  calc
+    (3 : ℝ) ≤ 3 + 1 := le_add_of_nonneg_right zero_le_one
+    _ = 4 := three_add_one_eq_four
 
 /-- The basic absolute-value inequality `0 ≤ c + |c|`. -/
 theorem Real.binetHorizontal_self_add_abs_nonneg (c : ℝ) :
@@ -287,9 +290,9 @@ theorem Complex.norm_finiteAbelPlanaLogBottomHorizontalEdge_le_majorant
     ∀ᶠ T : ℝ in atTop,
       ‖Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T‖ ≤
         Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T := by
-  filter_upwards
-    [Complex.norm_finiteAbelPlanaLogBottomHorizontalIntegrand_le_majorant
-      hw N] with T hpoint
+  exact
+    (Complex.norm_finiteAbelPlanaLogBottomHorizontalIntegrand_le_majorant
+      hw N).mono (fun T hpoint => by
   have hnorm :
       ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
           Complex.finiteAbelPlanaLogSummand w
@@ -322,7 +325,7 @@ theorem Complex.norm_finiteAbelPlanaLogBottomHorizontalEdge_le_majorant
         Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
     Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_mul_intervalLength
       N w T
-  exact hsource.symm ▸ htarget ▸ hnorm
+  exact hsource.symm ▸ htarget ▸ hnorm)
 
 /-- The top horizontal edge is bounded by the standard finite-strip cotangent
 exponential majorant. -/
@@ -333,9 +336,9 @@ theorem Complex.norm_finiteAbelPlanaLogTopHorizontalEdge_le_majorant
     ∀ᶠ T : ℝ in atTop,
       ‖Complex.finiteAbelPlanaLogTopHorizontalEdge N w T‖ ≤
         Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T := by
-  filter_upwards
-    [Complex.norm_finiteAbelPlanaLogTopHorizontalIntegrand_le_majorant
-      hw N] with T hpoint
+  exact
+    (Complex.norm_finiteAbelPlanaLogTopHorizontalIntegrand_le_majorant
+      hw N).mono (fun T hpoint => by
   have hnorm :
       ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
           Complex.finiteAbelPlanaLogSummand w
@@ -368,7 +371,7 @@ theorem Complex.norm_finiteAbelPlanaLogTopHorizontalEdge_le_majorant
         Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
     Complex.finiteAbelPlana_log_horizontalPointwiseMajorant_mul_intervalLength
       N w T
-  exact hsource.symm ▸ htarget ▸ hnorm
+  exact hsource.symm ▸ htarget ▸ hnorm)
 
 /-- The logarithmic factor in the finite-strip horizontal-edge majorant is
 eventually nonnegative and bounded by a quadratic polynomial. -/
@@ -377,7 +380,9 @@ theorem Real.eventually_finiteAbelPlanaLogHorizontalEdge_log_nonneg_le_sq
     ∀ᶠ T : ℝ in atTop,
       0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 ∧
         Real.log (1 + c + |T|) + Real.pi + 1 ≤ T ^ 2 := by
-  filter_upwards [eventually_ge_atTop (max (4 + Real.pi : ℝ) (|c| + 1))] with T hT
+  exact
+    (eventually_ge_atTop (max (4 + Real.pi : ℝ) (|c| + 1))).mono
+      (fun T hT => by
   have hT_large : (4 + Real.pi : ℝ) ≤ T :=
     le_trans (le_max_left (4 + Real.pi : ℝ) (|c| + 1)) hT
   have hT_abs : |c| + 1 ≤ T :=
@@ -415,7 +420,7 @@ theorem Real.eventually_finiteAbelPlanaLogHorizontalEdge_log_nonneg_le_sq
       hlog_le_arg harg_le_two_mul_T
   have htwo_mul_add_le_sq : 2 * T + Real.pi + 1 ≤ T ^ 2 := by
     exact Real.binetHorizontal_two_mul_add_le_sq_of_large hT_large
-  exact ⟨hnonneg, le_trans hlog_add_le_two_mul_add htwo_mul_add_le_sq⟩
+  exact ⟨hnonneg, le_trans hlog_add_le_two_mul_add htwo_mul_add_le_sq⟩)
 
 /-- A real asymptotic helper for the finite-strip horizontal-edge majorant:
 the logarithmic factor has polynomial growth, hence the exponential term
@@ -471,14 +476,21 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
         0 ≤
           (Real.log (1 + c + |T|) + Real.pi + 1) *
             Real.exp (-(2 * Real.pi * |T|)) := by
-    filter_upwards [hlog_bounds] with T hT
-    exact mul_nonneg hT.1 (Real.exp_nonneg _)
+    exact hlog_bounds.mono
+      (fun T hT => mul_nonneg hT.1 (Real.exp_nonneg _))
   have hupper :
       ∀ᶠ T : ℝ in atTop,
         (Real.log (1 + c + |T|) + Real.pi + 1) *
             Real.exp (-(2 * Real.pi * |T|)) ≤
           ((2 * Real.pi * T) ^ 2) * Real.exp (-(2 * Real.pi * T)) := by
-    filter_upwards [hlog_bounds, eventually_ge_atTop (0 : ℝ)] with T hlog hT
+    exact (hlog_bounds.and (eventually_ge_atTop (0 : ℝ))).mono
+      (fun T hpair => by
+    have hlog :
+        0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 ∧
+          Real.log (1 + c + |T|) + Real.pi + 1 ≤ T ^ 2 :=
+      hpair.1
+    have hT : (0 : ℝ) ≤ T :=
+      hpair.2
     have habs : |T| = T := abs_of_nonneg hT
     have hexp_nonneg :
         0 ≤ Real.exp (-(2 * Real.pi * T)) :=
@@ -515,7 +527,7 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
       _ ≤ T ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
         exact mul_le_mul_of_nonneg_right hlog.2 hexp_nonneg
       _ ≤ (2 * Real.pi * T) ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
-        exact mul_le_mul_of_nonneg_right hsquare_le_scaled hexp_nonneg
+        exact mul_le_mul_of_nonneg_right hsquare_le_scaled hexp_nonneg)
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le'
     tendsto_const_nhds hpoly_exp hnonneg hupper
 
@@ -763,10 +775,10 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
       ∀ᶠ T : ℝ in atTop,
         Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
           -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
-    filter_upwards [hbridges] with T hbridge
-    exact
-      Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_owner
-        hw N T hbridge.1 hbridge.2.1 hbridge.2.2
+    exact hbridges.mono
+      (fun T hbridge =>
+        Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_owner
+          hw N T hbridge.1 hbridge.2.1 hbridge.2.2)
   have hdecay :
       Tendsto
         (fun T : ℝ =>

@@ -98,8 +98,8 @@ theorem weightTriangularTransport
     (h : FiniteBoundaryLowerWeightAbsorptionCert x) :
     FiniteBoundaryWeightObject.squareRepresentative x + x.debtAbsorption =
       FiniteBoundaryWeightObject.finitePartRepresentative x := by
-  unfold FiniteBoundaryWeightObject.absorbedSquareRepresentative at h
-  unfold FiniteBoundaryWeightObject.squareRepresentative
+  change FiniteBoundaryWeightObject.absorbedSquareRepresentative x =
+    FiniteBoundaryWeightObject.finitePartRepresentative x
   exact h.absorbed_square_eq_finitePart
 
 end FiniteBoundaryLowerWeightAbsorptionCert
@@ -320,7 +320,15 @@ theorem finitePartBoundaryRemainder_eq_tail
               -zetaPrimeDiagonalDebt N f) + x)
           (zetaArchimedeanCorrectionAutocorrelationChannel_eq_squareEnergy f)
       _ = P + A + C := by
-        rfl
+        unfold P
+        unfold A
+        unfold C
+        exact
+          (add_assoc
+            (zetaPrimeOffDiagonalChannel N f + zetaPrimeDiagonalDebt N f +
+              -zetaPrimeDiagonalDebt N f)
+            (zetaArchimedeanAutocorrelationSquareEnergy f)
+            (zetaCorrectionAutocorrelationSquareEnergy f)).symm
   have hchannel :
       completedFinitePartBoundaryChannel f = p + a + q + r := by
     have harch :

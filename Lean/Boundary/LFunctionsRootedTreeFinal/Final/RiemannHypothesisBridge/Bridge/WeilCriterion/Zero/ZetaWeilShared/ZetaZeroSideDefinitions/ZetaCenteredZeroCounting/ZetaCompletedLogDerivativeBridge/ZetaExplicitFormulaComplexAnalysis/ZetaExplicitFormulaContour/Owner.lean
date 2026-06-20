@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaRectangleAPI.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaContourPaths.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.ZetaExplicitFormulaContourPathLemmas.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusZeta.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaAdmissibleTransformRegularity.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaCompletedLogDerivativeControl.Owner
@@ -109,10 +110,10 @@ theorem deriv_completedRiemannZeta_one_sub
       - deriv completedRiemannZeta s := by
   have hfun :
       deriv (fun z : ℂ => completedRiemannZeta (1 - z)) s =
-        deriv completedRiemannZeta s :=
+      deriv completedRiemannZeta s :=
     Filter.EventuallyEq.deriv_eq
       (Eventually.of_forall
-        (fun z => zetaCompletedExplicitFormula_completedRiemannZeta_one_sub z))
+        (fun z => boundary_completedRiemannZeta_one_sub z))
   have hchain :
       deriv (fun z : ℂ => completedRiemannZeta (1 - z)) s =
         - deriv completedRiemannZeta (1 - s) :=
@@ -229,7 +230,7 @@ theorem completedZetaNegLogDeriv_one_sub_core (s : ℂ)
     (hΛ : completedRiemannZeta s ≠ 0) :
     completedZetaNegLogDeriv (1 - s) = - completedZetaNegLogDeriv s := by
   have hsym : completedRiemannZeta (1 - s) = completedRiemannZeta s :=
-    zetaCompletedExplicitFormula_completedRiemannZeta_one_sub s
+    boundary_completedRiemannZeta_one_sub s
   have hderiv :
       deriv completedRiemannZeta (1 - s) =
         - deriv completedRiemannZeta s :=

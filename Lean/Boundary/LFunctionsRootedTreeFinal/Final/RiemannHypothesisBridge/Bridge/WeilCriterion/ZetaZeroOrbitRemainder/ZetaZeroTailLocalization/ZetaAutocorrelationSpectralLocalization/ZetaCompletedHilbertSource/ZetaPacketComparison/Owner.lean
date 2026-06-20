@@ -29,6 +29,7 @@ theorem zetaCompletedExplicitFormulaPrimeWeight_eq_packetWeight_prime
     (p n : ℕ) :
     zetaCompletedExplicitFormulaPrimeWeight p n =
       zetaPrimePacketWeight (ZetaPacketLabel.prime p n) := by
+  unfold zetaCompletedExplicitFormulaPrimeWeight zetaPrimePacketWeight
   rfl
 
 /-- Real scalar action on a complex prime defect is the explicit complex product. -/
@@ -38,7 +39,18 @@ theorem zetaPrimePacketWeight_smul_defect_eq_mul
         ZetaTestFunction.primePacketTranslationDefect p n f.toZetaTestFunction' 0 =
       (zetaCompletedExplicitFormulaPrimeWeight p n : ℂ) *
         ZetaTestFunction.primePacketTranslationDefect p n f.toZetaTestFunction' 0 := by
-  rfl
+  let z : ℂ := ZetaTestFunction.primePacketTranslationDefect p n f.toZetaTestFunction' 0
+  have hweight :
+      zetaPrimePacketWeight (ZetaPacketLabel.prime p n) =
+        zetaCompletedExplicitFormulaPrimeWeight p n :=
+    (zetaCompletedExplicitFormulaPrimeWeight_eq_packetWeight_prime p n).symm
+  calc
+    zetaPrimePacketWeight (ZetaPacketLabel.prime p n) •
+        ZetaTestFunction.primePacketTranslationDefect p n f.toZetaTestFunction' 0 =
+        (zetaPrimePacketWeight (ZetaPacketLabel.prime p n) : ℂ) * z := by
+      rfl
+    _ = (zetaCompletedExplicitFormulaPrimeWeight p n : ℂ) * z := by
+      exact congrArg (fun w : ℝ => (w : ℂ) * z) hweight
 
 /-- The prime packet is the finite packet of real parts of the explicit prime summands. -/
 theorem zetaPrimePacketAsEnsemble_eq_explicitFormulaPrimePacket
@@ -51,7 +63,15 @@ theorem zetaPrimePacketAsEnsemble_eq_explicitFormulaPrimePacket
             ((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
               ZetaTestFunction.primePacketTranslationDefect
                 ℓ.1 ℓ.2 f.toZetaTestFunction' 0)) := by
-  rfl
+  exact Finset.sum_congr
+    zetaCompletedExplicitFormulaPrimeSupport_eq_packetPrimeSupport_zero
+    (fun ℓ _hℓ =>
+      congrArg
+        (fun z : ℂ =>
+          ZetaPacketEnsemble.single
+            (ZetaPacketLabel.prime ℓ.1 ℓ.2)
+            (Complex.re z))
+        (zetaPrimePacketWeight_smul_defect_eq_mul ℓ.1 ℓ.2 f))
 
 /-- The archimedean packet is the singleton real part of the explicit archimedean contribution. -/
 theorem zetaArchimedeanPacketAsEnsemble_eq_explicitFormulaArchimedeanPacket
@@ -59,6 +79,7 @@ theorem zetaArchimedeanPacketAsEnsemble_eq_explicitFormulaArchimedeanPacket
     zetaArchimedeanPacketAsEnsemble f =
       ZetaPacketEnsemble.single .archimedean
         (Complex.re (zetaCompletedExplicitFormulaArchimedeanContribution f)) := by
+  unfold zetaArchimedeanPacketAsEnsemble
   rfl
 
 /-- The correction packet is the singleton normalized correction coordinate. -/

@@ -1,3 +1,5 @@
+import Mathlib.Algebra.Star.BigOperators
+import Mathlib.Data.Complex.BigOperators
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.AdmissiblePackets
 
 namespace Boundary
@@ -56,7 +58,7 @@ noncomputable def zetaArchimedeanRealizedGramPacketAsEnsemble
 
 /-- The realized correction Gram packet attached to the seed probe. -/
 noncomputable def zetaCorrectionRealizedGramPacketAsEnsemble
-    (f : ZetaAdmissibleFunction) : ZetaCompletedBoundaryRealizedGramPacket :=
+    (_f : ZetaAdmissibleFunction) : ZetaCompletedBoundaryRealizedGramPacket :=
   ZetaCompletedBoundaryRealizedGramPacket.single .correction
     (zetaCompletionCorrection 0)
 
@@ -88,14 +90,21 @@ noncomputable def zetaCompletedArchimedeanBoundaryRealizedGram
 
 /-- The correction realized Gram channel. -/
 noncomputable def zetaCompletedCorrectionBoundaryRealizedGram
-    (f : ZetaAdmissibleFunction) : ℂ :=
+    (_f : ZetaAdmissibleFunction) : ℂ :=
   zetaCompletionCorrection 0
 
 /-- The completed paired spectral boundary form. -/
 noncomputable def zetaCompletedPairedSpectralBoundaryForm
     (f : ZetaAdmissibleFunction) : ℂ :=
-  ZetaPairedSpectralPacketEnsemble.pairedForm
-    (zetaCompletedPairedSpectralBoundaryDefect f)
+  (Finset.sum zetaCompletedExplicitFormulaPrimeSupport (fun ℓ : ℕ × ℕ =>
+    (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+          star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)) +
+        star
+          (zetaCompletedExplicitFormulaPrimeSpectralAmplitude ℓ.1 ℓ.2 f *
+            star (zetaCompletedExplicitFormulaPrimeOppositeSpectralAmplitude ℓ.1 ℓ.2 f)))) +
+    (zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f *
+      star (zetaCompletedExplicitFormulaArchimedeanSpectralAmplitude f)) +
+    zetaCompletionCorrection 0
 
 /-- The completed paired spectral boundary real form. -/
 noncomputable def zetaCompletedPairedSpectralBoundaryRealForm
@@ -467,22 +476,32 @@ theorem zetaPrimeDefectKernelPositiveForm_add_twoFace_eq_diagonalDebt
       exact congrArg
         (fun z : ℂ =>
           (∑ ℓ in s, P ℓ) + ((∑ ℓ in s, C ℓ) + z))
-        (map_sum star s C)
+        (star_sum s C)
     _ =
         ((∑ ℓ in s, P ℓ) + (∑ ℓ in s, C ℓ)) +
           (∑ ℓ in s, star (C ℓ)) := by
-      exact add_assoc (∑ ℓ in s, P ℓ) (∑ ℓ in s, C ℓ) (∑ ℓ in s, star (C ℓ))
+      exact (add_assoc (∑ ℓ in s, P ℓ) (∑ ℓ in s, C ℓ) (∑ ℓ in s, star (C ℓ))).symm
     _ =
-        (∑ ℓ in s, P ℓ + C ℓ) + (∑ ℓ in s, star (C ℓ)) := by
+        Finset.sum s (fun ℓ : ℕ × ℕ => P ℓ + C ℓ) +
+          Finset.sum s (fun ℓ : ℕ × ℕ => star (C ℓ)) := by
       exact congrArg
-        (fun z : ℂ => z + (∑ ℓ in s, star (C ℓ)))
-        (Finset.sum_add_distrib.symm)
+        (fun z : ℂ => z + Finset.sum s (fun ℓ : ℕ × ℕ => star (C ℓ)))
+        ((Finset.sum_add_distrib (s := s) (f := P) (g := C)).symm)
     _ =
-        ∑ ℓ in s, (P ℓ + C ℓ) + star (C ℓ) := by
-      exact Finset.sum_add_distrib.symm
+        Finset.sum s (fun ℓ : ℕ × ℕ => (P ℓ + C ℓ) + star (C ℓ)) := by
+      exact
+        ((Finset.sum_add_distrib
+          (s := s)
+          (f := fun ℓ : ℕ × ℕ => P ℓ + C ℓ)
+          (g := fun ℓ : ℕ × ℕ => star (C ℓ))).symm)
+    _ =
+        Finset.sum s (fun ℓ : ℕ × ℕ => P ℓ + (C ℓ + star (C ℓ))) := by
+      exact Finset.sum_congr rfl
+        (fun (ℓ : ℕ × ℕ) (_ : ℓ ∈ s) =>
+          add_assoc (P ℓ) (C ℓ) (star (C ℓ)))
     _ = ∑ ℓ in s, D ℓ := by
       exact Finset.sum_congr rfl
-        (fun ℓ _ =>
+        (fun (ℓ : ℕ × ℕ) (_ : ℓ ∈ s) =>
           zetaPrimeDefectKernelPositiveCoordinate_add_twoFace_eq_diagonalDebtCoordinate
             ℓ.1 ℓ.2 f)
 
@@ -555,10 +574,10 @@ theorem zetaPrimeDefectKernelPositiveForm_re_nonnegative
     _ = Complex.re
         (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
           zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f) := by
-      exact (Complex.sum_re
+      exact (Complex.re_sum
+        zetaCompletedExplicitFormulaPrimeSupport
         (fun ℓ =>
-          zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f)
-        zetaCompletedExplicitFormulaPrimeSupport).symm
+          zetaPrimeDefectKernelPositiveCoordinate ℓ.1 ℓ.2 f)).symm
 
 /-- One finite-display prime defect coordinate has real part equal to the Hermitian
 defect-amplitude coordinate Gram. -/

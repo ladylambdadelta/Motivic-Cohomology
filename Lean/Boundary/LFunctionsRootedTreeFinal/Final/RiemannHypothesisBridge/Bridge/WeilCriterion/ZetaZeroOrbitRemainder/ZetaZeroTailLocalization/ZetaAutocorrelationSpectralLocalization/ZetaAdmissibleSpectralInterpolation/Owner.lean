@@ -247,7 +247,7 @@ theorem zetaSpectralEval_daggerProduct_eq_one_of_seed_and_reflection_one
         (fun w : ℂ => 1 * star w)
         hright
     _ = 1 * 1 := by
-      exact congrArg (fun w : ℂ => 1 * w) star_one
+      exact congrArg (fun w : ℂ => 1 * w) (star_one (R := ℂ))
     _ = 1 := by
       exact one_mul 1
 

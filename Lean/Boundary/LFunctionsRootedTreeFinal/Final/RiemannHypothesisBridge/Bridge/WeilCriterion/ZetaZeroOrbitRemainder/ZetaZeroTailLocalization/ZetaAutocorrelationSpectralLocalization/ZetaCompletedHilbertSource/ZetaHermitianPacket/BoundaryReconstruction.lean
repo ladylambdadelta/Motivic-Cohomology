@@ -10,33 +10,6 @@ open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
-/-- The prime projection of the completed paired spectral packet is the prime convolution
-paired contribution. -/
-theorem zetaCompletedPairedSpectralBoundaryForm_prime_eq_contribution
-    (f : ZetaAdmissibleFunction) :
-    ZetaPairedSpectralPacketEnsemble.primePairedForm
-        (zetaCompletedPairedSpectralBoundaryDefect f) =
-      zetaCompletedExplicitFormulaPrimeConvolutionContribution f := by
-  rfl
-
-/-- The archimedean projection of the completed paired spectral packet is the archimedean
-convolution paired contribution. -/
-theorem zetaCompletedPairedSpectralBoundaryForm_archimedean_eq_contribution
-    (f : ZetaAdmissibleFunction) :
-    ZetaPairedSpectralPacketEnsemble.archimedeanPairedForm
-        (zetaCompletedPairedSpectralBoundaryDefect f) =
-      zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f := by
-  rfl
-
-/-- The correction projection of the completed paired spectral packet is the correction
-convolution paired contribution. -/
-theorem zetaCompletedPairedSpectralBoundaryForm_correction_eq_contribution
-    (f : ZetaAdmissibleFunction) :
-    ZetaPairedSpectralPacketEnsemble.correctionPairedForm
-        (zetaCompletedPairedSpectralBoundaryDefect f) =
-      zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-  rfl
-
 /-- The completed paired spectral boundary form is the sum of the three convolution-channel
 contributions. -/
 theorem zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions
@@ -45,36 +18,7 @@ theorem zetaCompletedPairedSpectralBoundaryForm_eq_convolutionContributions
       zetaCompletedExplicitFormulaPrimeConvolutionContribution f +
         zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f +
         zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-  have hsplit :
-      ZetaPairedSpectralPacketEnsemble.pairedForm
-          (zetaCompletedPairedSpectralBoundaryDefect f) =
-        ZetaPairedSpectralPacketEnsemble.primePairedForm
-            (zetaCompletedPairedSpectralBoundaryDefect f) +
-          ZetaPairedSpectralPacketEnsemble.archimedeanPairedForm
-            (zetaCompletedPairedSpectralBoundaryDefect f) +
-          ZetaPairedSpectralPacketEnsemble.correctionPairedForm
-            (zetaCompletedPairedSpectralBoundaryDefect f) :=
-    ZetaPairedSpectralPacketEnsemble.pairedForm_eq_prime_add_archimedean_add_correction
-      (zetaCompletedPairedSpectralBoundaryDefect f)
-  have hprime :
-      ZetaPairedSpectralPacketEnsemble.primePairedForm
-          (zetaCompletedPairedSpectralBoundaryDefect f) =
-        zetaCompletedExplicitFormulaPrimeConvolutionContribution f :=
-    zetaCompletedPairedSpectralBoundaryForm_prime_eq_contribution f
-  have harch :
-      ZetaPairedSpectralPacketEnsemble.archimedeanPairedForm
-          (zetaCompletedPairedSpectralBoundaryDefect f) =
-        zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f :=
-    zetaCompletedPairedSpectralBoundaryForm_archimedean_eq_contribution f
-  have hcorrection :
-      ZetaPairedSpectralPacketEnsemble.correctionPairedForm
-          (zetaCompletedPairedSpectralBoundaryDefect f) =
-        zetaCompletedExplicitFormulaCorrectionConvolutionContribution f :=
-    zetaCompletedPairedSpectralBoundaryForm_correction_eq_contribution f
-  exact hsplit.trans
-    (congrArg₂ (fun x y : ℂ => x + y)
-      (congrArg₂ (fun x y : ℂ => x + y) hprime harch)
-      hcorrection)
+  rfl
 
 /-- Completed boundary reconstruction into the realized Gram channel. This is the direct
 explicit-formula reconstruction statement; it does not identify the realized Gram with an

@@ -39,9 +39,19 @@ theorem zetaCompletedExplicitFormulaPrimeWeight_nonnegative (p n : ℕ) :
     if hp : Nat.Prime p then
       if hn : n ≠ 0 then
         have hp_two : 2 ≤ p := Nat.Prime.two_le hp
-        have hp_pos_nat : 0 < p := lt_of_lt_of_le (by decide : (0 : ℕ) < 2) hp_two
+        have htwo_pos_nat : (0 : ℕ) < 2 :=
+          Nat.zero_lt_succ 1
+        have hp_pos_nat : 0 < p := lt_of_lt_of_le htwo_pos_nat hp_two
         have hp_one_real : (1 : ℝ) ≤ p := by
-          exact Nat.cast_le.mpr (Nat.succ_le_of_lt hp_pos_nat)
+          have hp_one_cast :
+              ((1 : ℕ) : ℝ) ≤ (p : ℝ) :=
+            Nat.cast_le (α := ℝ).mpr (Nat.succ_le_of_lt hp_pos_nat)
+          have hone_cast : ((1 : ℕ) : ℝ) = (1 : ℝ) :=
+            Nat.cast_one
+          exact Eq.subst
+            (motive := fun x : ℝ => x ≤ (p : ℝ))
+            hone_cast
+            hp_one_cast
         have hlog : 0 ≤ Real.log p := Real.log_nonneg hp_one_real
         have hsqrt : 0 ≤ Real.sqrt (p ^ n) := Real.sqrt_nonneg _
         have hquot : 0 ≤ Real.log p / Real.sqrt (p ^ n) :=
@@ -160,7 +170,7 @@ theorem zetaPrimeHermitianVerticalCenter_dagger_fixed (p n : ℕ) :
     _ = -((-Complex.I) * (a : ℂ)) := by
       rfl
     _ = -( -((Complex.I) * (a : ℂ))) := by
-      exact congrArg Neg.neg (neg_mul Complex.I (a : ℂ)).symm
+      exact congrArg Neg.neg (neg_mul Complex.I (a : ℂ))
     _ = Complex.I * (a : ℂ) := by
       exact neg_neg (Complex.I * (a : ℂ))
     _ = (a : ℂ) * Complex.I := by

@@ -66,6 +66,29 @@ theorem ZetaPhiAnalyticControl.verticalStripRapidDecay
           ≤ C * (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
   exact h.vertical_strip_rapid_decay a b N
 
+/-- The chosen rapid-decay constant for `Φ_f` on a vertical strip. -/
+noncomputable def ZetaPhiAnalyticControl.verticalStripRapidDecayConstant
+    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
+    (a b : ℝ) (N : ℕ) : ℝ :=
+  Classical.choose (h.verticalStripRapidDecay a b N)
+
+/-- The chosen vertical-strip rapid-decay constant is positive. -/
+theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_pos
+    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
+    (a b : ℝ) (N : ℕ) :
+    0 < h.verticalStripRapidDecayConstant a b N := by
+  exact (Classical.choose_spec (h.verticalStripRapidDecay a b N)).1
+
+/-- The chosen vertical-strip rapid-decay constant bounds `Φ_f` on the strip. -/
+theorem ZetaPhiAnalyticControl.verticalStripRapidDecayConstant_bound
+    {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
+    (a b : ℝ) (N : ℕ) (z : ℂ)
+    (ha : a ≤ z.re) (hb : z.re ≤ b) :
+    ‖zetaCompletedExplicitFormulaPhi f z‖
+      ≤ h.verticalStripRapidDecayConstant a b N *
+        (1 + ‖z.im‖) ^ (-(N : ℤ)) := by
+  exact (Classical.choose_spec (h.verticalStripRapidDecay a b N)).2 z ha hb
+
 /-- `Φ_f` is differentiable along the right contour edge whenever the control package is present. -/
 theorem ZetaPhiAnalyticControl.differentiableAt_rightPath
     {f : ZetaAdmissibleFunction} (h : ZetaPhiAnalyticControl f)
@@ -86,8 +109,10 @@ theorem ZetaPhiAnalyticControl.rightPath_verticalStripBound
       0 < C ∧
       ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaRightPath r t)‖
         ≤ C * (1 + ‖(zetaCompletedExplicitFormulaRightPath r t).im‖) ^ (-(N : ℤ)) := by
-  rcases h.verticalStripRapidDecay a b N with ⟨C, hC, hbound⟩
-  exact ⟨C, hC, hbound (zetaCompletedExplicitFormulaRightPath r t) ha hb⟩
+  exact
+    match h.verticalStripRapidDecay a b N with
+    | ⟨C, hC, hbound⟩ =>
+        ⟨C, hC, hbound (zetaCompletedExplicitFormulaRightPath r t) ha hb⟩
 
 /-- The vertical-strip bound of `Φ_f` applies to the top contour edge once the rectangle is inside
 the chosen strip. -/
@@ -100,8 +125,10 @@ theorem ZetaPhiAnalyticControl.topPath_verticalStripBound
       0 < C ∧
       ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaTopPath r x)‖
         ≤ C * (1 + ‖(zetaCompletedExplicitFormulaTopPath r x).im‖) ^ (-(N : ℤ)) := by
-  rcases h.verticalStripRapidDecay a b N with ⟨C, hC, hbound⟩
-  exact ⟨C, hC, hbound (zetaCompletedExplicitFormulaTopPath r x) ha hb⟩
+  exact
+    match h.verticalStripRapidDecay a b N with
+    | ⟨C, hC, hbound⟩ =>
+        ⟨C, hC, hbound (zetaCompletedExplicitFormulaTopPath r x) ha hb⟩
 
 /-- The vertical-strip bound of `Φ_f` applies to the bottom contour edge once the rectangle is
 inside the chosen strip. -/
@@ -114,8 +141,10 @@ theorem ZetaPhiAnalyticControl.bottomPath_verticalStripBound
       0 < C ∧
       ‖zetaCompletedExplicitFormulaPhi f (zetaCompletedExplicitFormulaBottomPath r x)‖
         ≤ C * (1 + ‖(zetaCompletedExplicitFormulaBottomPath r x).im‖) ^ (-(N : ℤ)) := by
-  rcases h.verticalStripRapidDecay a b N with ⟨C, hC, hbound⟩
-  exact ⟨C, hC, hbound (zetaCompletedExplicitFormulaBottomPath r x) ha hb⟩
+  exact
+    match h.verticalStripRapidDecay a b N with
+    | ⟨C, hC, hbound⟩ =>
+        ⟨C, hC, hbound (zetaCompletedExplicitFormulaBottomPath r x) ha hb⟩
 
 /-- Compact support of the admissible source gives entireity of the completed Laplace
 transform. -/
@@ -184,7 +213,7 @@ noncomputable def zetaPhiAnalyticControl_of_admissible
         fun a b N => zetaPhi_verticalStripRapidDecay_of_admissible f a b N }
 
 /-- The transform package is the owner-level input for contour estimates. -/
-def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Type :=
+def ZetaPhiAnalyticControlPackage (f : ZetaAdmissibleFunction) : Prop :=
   ZetaPhiAnalyticControl f
 
 /-- The transform package is exactly the analytic control data. -/

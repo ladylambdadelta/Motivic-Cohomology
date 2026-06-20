@@ -18,13 +18,25 @@ by `1/2`. -/
 theorem zetaCenteredZero_re_eq_completedZero_re_sub_half
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     (zetaCenteredZero (ρ : ℂ)).re = (ρ : ℂ).re - (1 / 2 : ℝ) := by
-  unfold zetaCenteredZero
   calc
-    ((ρ : ℂ) - (1 / 2 : ℂ)).re =
+    (zetaCenteredZero (ρ : ℂ)).re =
+        ((ρ : ℂ) - (1 / 2 : ℂ)).re := by
+      rfl
+    _ =
         (ρ : ℂ).re - (1 / 2 : ℂ).re := by
       exact Complex.sub_re (ρ : ℂ) (1 / 2 : ℂ)
     _ = (ρ : ℂ).re - (1 / 2 : ℝ) := by
-      exact congrArg (fun x : ℝ => (ρ : ℂ).re - x) Complex.ofReal_re
+      have hhalf_complex :
+          (1 / 2 : ℂ) = ((1 / 2 : ℝ) : ℂ) := by
+        exact Eq.symm (Complex.ofReal_div (1 : ℝ) (2 : ℝ))
+      have hhalf_coe_re :
+          (((1 / 2 : ℝ) : ℂ).re) = (1 / 2 : ℝ) :=
+        Complex.ofReal_re (1 / 2 : ℝ)
+      have hhalf_re : (1 / 2 : ℂ).re = (1 / 2 : ℝ) :=
+        Eq.trans
+          (congrArg Complex.re hhalf_complex)
+          hhalf_coe_re
+      exact congrArg (fun x : ℝ => (ρ : ℂ).re - x) hhalf_re
 
 /-- Centered completed zeros lie in the centered critical strip. -/
 theorem zetaCompletedZero_re_mem_centeredCriticalStrip
@@ -82,11 +94,12 @@ theorem exists_zetaCenteredZero_fixed_vertical_strip :
       ∀ ρ : {ρ : ℂ // ZetaCompletedZero ρ},
         a ≤ (zetaCenteredZero (ρ : ℂ)).re ∧
           (zetaCenteredZero (ρ : ℂ)).re ≤ b := by
-  rcases exists_zetaCompletedZero_fixed_vertical_strip with
-    ⟨a, b, hstrip⟩
-  refine ⟨a - (1 / 2 : ℝ), b - (1 / 2 : ℝ), ?_⟩
-  intro ρ
-  exact zetaCenteredZero_mem_centered_transport_strip a b hstrip ρ
+  exact
+    match exists_zetaCompletedZero_fixed_vertical_strip with
+    | ⟨a, b, hstrip⟩ =>
+        ⟨a - (1 / 2 : ℝ), b - (1 / 2 : ℝ),
+          fun ρ =>
+            zetaCenteredZero_mem_centered_transport_strip a b hstrip ρ⟩
 
 end
 

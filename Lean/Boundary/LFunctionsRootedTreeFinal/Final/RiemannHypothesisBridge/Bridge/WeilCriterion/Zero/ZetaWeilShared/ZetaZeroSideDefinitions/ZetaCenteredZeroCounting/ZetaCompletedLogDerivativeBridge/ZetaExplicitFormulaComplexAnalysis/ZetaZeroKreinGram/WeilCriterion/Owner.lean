@@ -224,8 +224,7 @@ theorem boundaryRiemannHypothesis_pole_shift
     (z : ℂ) (hpole : z ≠ 1) :
     (1 / 2 + (z - 1 / 2)) ≠ 1 := by
   intro h1
-  apply hpole
-  exact boundaryRiemannHypothesis_shift_eq z ▸ h1
+  exact hpole ((boundaryRiemannHypothesis_shift_eq z).symm.trans h1)
 
 /-- The centered zero-criterion transport rewrites the real part conclusion. -/
 theorem boundaryRiemannHypothesis_realPart_of_centered
@@ -253,7 +252,6 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   intro z hz htriv hpole
   let s : ℂ := z - 1 / 2
   have hs : 1 / 2 + s = z := by
-    change 1 / 2 + (z - 1 / 2) = z
     exact boundaryRiemannHypothesis_shift_eq z
   have hz' : riemannZeta (1 / 2 + s) = 0 := by
     exact hs ▸ hz
@@ -262,7 +260,7 @@ theorem boundaryRiemannHypothesis_of_centeredZeroCriterion
   have hpole' : (1 / 2 + s) ≠ 1 :=
     boundaryRiemannHypothesis_pole_shift z hpole
   have hsre : s.re = 0 := h s hz' htriv' hpole'
-	  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
+  exact boundaryRiemannHypothesis_realPart_of_centered z hsre
 
 /-- A nontrivial centered zeta zero that is off the critical centered line. -/
 structure OffCriticalCenteredZetaZero where

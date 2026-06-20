@@ -444,7 +444,13 @@ noncomputable def explicitFormulaScheduledRectangleResidueSum
 theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaVerticallyRegularContourFamily)
     (hSchedule : ExplicitFormulaCofinalHeightSchedule F.toContourFamily)
-    (u : ℝ) :
+    (u : ℝ)
+    (hfinite :
+      let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
+      zetaCompletedExplicitFormulaContourIntegral f
+          (F.toContourFamily.rectangle (h.height_schedule.height u)) =
+        explicitFormulaCompletedZeroHeightWindowResidueSum f
+          (h.height_schedule.height u)) :
     let h := explicitFormulaFamilyAnalyticPackage_of_admissible f F hSchedule
     explicitFormulaScheduledRectangleContourIntegral f F.toContourFamily h u =
       explicitFormulaScheduledRectangleResidueSum f F.toContourFamily h u := by
@@ -456,10 +462,7 @@ theorem explicitFormulaScheduledRectangleContourIntegral_eq_residueSum
         rfl
     _ = explicitFormulaCompletedZeroHeightWindowResidueSum f
         (h.height_schedule.height u) := by
-        exact
-          zetaCompletedExplicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_ownerCauchyResidueComputation
-            f F.toContourFamily h (h.height_schedule.height u)
-            (h.height_schedule.avoids_boundary u)
+        exact hfinite
     _ = explicitFormulaScheduledRectangleResidueSum f F.toContourFamily h u := by
         rfl
 

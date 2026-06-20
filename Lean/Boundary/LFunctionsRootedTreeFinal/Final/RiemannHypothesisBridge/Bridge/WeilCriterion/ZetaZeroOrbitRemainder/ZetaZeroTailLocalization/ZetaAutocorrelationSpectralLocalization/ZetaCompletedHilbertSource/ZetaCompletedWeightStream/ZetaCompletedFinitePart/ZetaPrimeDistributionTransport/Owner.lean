@@ -2,8 +2,8 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaTransformCalculus.ZetaTransformCalculusBase.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaTransformCalculusWeighted.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.CompletedPrimePowerPackets
 
 /-!
 # Prime distribution transport
@@ -56,21 +56,21 @@ theorem spectralBoundaryChannel_convolutionPair_factorization
   unfold spectralBoundaryChannel
   have hprime :
       (∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
-          (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
             zetaCompletedExplicitFormulaPhi (convolutionPair f h)
-              (zetaPrimePacketCenter ℓ.1 ℓ.2)) =
+              (zetaPrimePacketCenter ℓ.1 ℓ.2))) =
         ∑ ℓ in zetaCompletedExplicitFormulaPrimeSupport,
-          (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
+          -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) *
             (zetaCompletedExplicitFormulaPhi f (zetaPrimePacketCenter ℓ.1 ℓ.2) *
               star
                 (zetaCompletedExplicitFormulaPhi h
-                  (-star (zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ)))) := by
+                  (-star (zetaPrimePacketCenter ℓ.1 ℓ.2 : ℂ))))) := by
     refine Finset.sum_congr rfl ?_
     intro ℓ hℓ
     unfold zetaCompletedExplicitFormulaPhi
     unfold zetaAutocorrelationSpectralTransform
     exact congrArg
-      (fun z : ℂ => (zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) * z)
+      (fun z : ℂ => -((zetaCompletedExplicitFormulaPrimeWeight ℓ.1 ℓ.2 : ℂ) * z))
       (Boundary.zetaLaplaceTransform_convolutionPair
         f h (zetaPrimePacketCenter ℓ.1 ℓ.2))
   have harch :
@@ -102,7 +102,7 @@ theorem spectralPrimeBoundaryWindow_convolutionPair_factorization
   intro ι hι
   unfold zetaCompletedExplicitFormulaPhi
   unfold zetaAutocorrelationSpectralTransform
-  exact congrArg (fun z : ℂ => (ι.weight : ℂ) * z)
+  exact congrArg (fun z : ℂ => -((ι.weight : ℂ) * z))
     (Boundary.zetaLaplaceTransform_convolutionPair f h ι.center)
 
 /-- The completed physical prime off-diagonal channel, obtained as the finite-part limit of
@@ -352,7 +352,7 @@ theorem zetaCompletedPrimeCenterSpectralLocalizationMajorant_eq_zero_of_not_isGe
         (fun x : ℝ =>
           x * ‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2)
         hweight)
-      (zero_mul ‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2)
+      (zero_mul (‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2))
   have hopp :
       zetaCompletedPrimeOppositeWeightedSampleNormSq ι f = 0 := by
     unfold zetaCompletedPrimeOppositeWeightedSampleNormSq
@@ -361,7 +361,7 @@ theorem zetaCompletedPrimeCenterSpectralLocalizationMajorant_eq_zero_of_not_isGe
         (fun x : ℝ =>
           x * ‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2)
         hweight)
-      (zero_mul ‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2)
+      (zero_mul (‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2))
   unfold zetaCompletedPrimeCenterSpectralLocalizationMajorant
   exact (congrArg₂ HAdd.hAdd hpos hopp).trans (add_zero 0)
 
@@ -378,7 +378,7 @@ theorem zetaCompletedPrimePositiveWeightedSampleNormSq_eq_zero_of_not_isGenuine
       (fun x : ℝ =>
         x * ‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2)
       hweight)
-    (zero_mul ‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2)
+    (zero_mul (‖zetaCompletedPrimeHermitianSeedAmplitude ι.p ι.n f‖ ^ 2))
 
 /-- Rectangular boxes and genuine prime-power windows give the same positive weighted
 sample-square sum, because nongenuine indices have zero completed prime weight. -/
@@ -410,7 +410,7 @@ theorem zetaCompletedPrimeOppositeWeightedSampleNormSq_eq_zero_of_not_isGenuine
       (fun x : ℝ =>
         x * ‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2)
       hweight)
-    (zero_mul ‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2)
+    (zero_mul (‖zetaCompletedPrimeHermitianNegativeSeedAmplitude ι.p ι.n f‖ ^ 2))
 
 /-- The positive weighted prime-center sample-square is nonnegative. -/
 theorem zetaCompletedPrimePositiveWeightedSampleNormSq_nonnegative
@@ -494,6 +494,7 @@ theorem completedAutocorrelationSpectralTransform_weightedPrimeSampling_eq_weigh
           ι f := by
   unfold completedAutocorrelationSpectralTransform_weightedPrimeSampling
   unfold completedAutocorrelationSpectralTransform_primeCenterPlancherelDensity
+  rfl
 
 /-- Weighted prime sampling is nonnegative. -/
 theorem completedAutocorrelationSpectralTransform_weightedPrimeSampling_nonnegative
@@ -527,7 +528,7 @@ theorem completedAutocorrelationSpectralTransform_weightedPrimeSampling_eq_zero_
       (fun x : ℝ =>
         x * ‖zetaCompletedSpectralLaplaceTransform f ι.center‖ ^ 2)
       hweight)
-    (zero_mul ‖zetaCompletedSpectralLaplaceTransform f ι.center‖ ^ 2)
+    (zero_mul (‖zetaCompletedSpectralLaplaceTransform f ι.center‖ ^ 2))
 
 /-- Rectangular boxes and genuine prime-power windows give the same weighted prime-sampling
 sum, because nongenuine indices have zero completed prime weight. -/
@@ -678,12 +679,12 @@ theorem finitePrimeContourRealizedTimeDistributionWindow_eq_sum_coordinate
   unfold finitePrimeContourRealizedTimeDistributionWindow
   unfold completedPrimeContourRealizedTimeDistributionCoordinate
   exact
-    Complex.sum_re
+    Complex.re_sum
+      (ZetaPrimePowerIndex.window N)
       (fun ι : ZetaPrimePowerIndex =>
         -((ι.weight : ℂ) *
           (zetaCompletedSpectralLaplaceTransform g ι.center +
             star (zetaCompletedSpectralLaplaceTransform g ι.center))))
-      (ZetaPrimePowerIndex.window N)
 
 /-- At an autocorrelation probe, the time-side prime coordinate is the physical
 off-diagonal coordinate. -/
@@ -814,12 +815,19 @@ theorem completedPrimeTimeDistributionPairing_eq_primePowerContribution_re
   unfold completedPrimeTimeDistributionPairing
   unfold completedPrimeTimeDistributionCoordinate
   unfold zetaCompletedExplicitFormulaPrimePowerContribution
-  exact (Complex.ofReal_re
-    (∑' ι : ZetaPrimePowerIndex,
+  let r : ZetaPrimePowerIndex → ℝ :=
+    fun ι : ZetaPrimePowerIndex =>
       -(ι.weight *
         Complex.re
           (zetaCompletedTimeBoundaryValue g ι.center +
-            star (zetaCompletedTimeBoundaryValue g ι.center))))).symm
+            star (zetaCompletedTimeBoundaryValue g ι.center)))
+  have hleft : (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
+      ∑' ι : ZetaPrimePowerIndex, r ι :=
+    Complex.ofReal_re (∑' ι : ZetaPrimePowerIndex, r ι)
+  have hright : (↑(∑' ι : ZetaPrimePowerIndex, r ι) : ℂ).re =
+      (∑' ι : ZetaPrimePowerIndex, (r ι : ℂ)).re :=
+    congrArg Complex.re (Complex.ofReal_tsum r)
+  simpa [r] using hleft.symm.trans hright
 
 /-- The real spectral prime off-diagonal coordinate in the completed prime-power
 explicit-formula distribution. -/
@@ -878,14 +886,14 @@ theorem finiteSpectralPrimeOffDiagonalWindow_eq_sum_coordinates
         zetaSpectralPrimeOffDiagonalCoordinate ι f := by
   unfold finiteSpectralPrimeOffDiagonalWindow
   unfold zetaSpectralPrimeOffDiagonalCoordinate
-  exact Complex.sum_re
+  exact Complex.re_sum
+    (ZetaPrimePowerIndex.window N)
     (fun ι : ZetaPrimePowerIndex =>
       -((ι.weight : ℂ) *
         (zetaCompletedExplicitFormulaPhi (convolutionAutocorrelation f) ι.center +
           star
             (zetaCompletedExplicitFormulaPhi
               (convolutionAutocorrelation f) ι.center))))
-    (ZetaPrimePowerIndex.window N)
 
 /-- Nongenuine indices have zero spectral prime off-diagonal coordinate. -/
 theorem zetaSpectralPrimeOffDiagonalCoordinate_eq_zero_of_not_isGenuine
@@ -1143,7 +1151,7 @@ theorem completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalCha
   have htime :
       completedPrimeOffDiagonalChannel f =
         completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) :=
-    completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f
+    (completedPrimeTimeDistributionPairing_eq_completedPrimeOffDiagonalChannel f).symm
   have htransport :
       completedPrimeTimeDistributionPairing (convolutionAutocorrelation f) =
         completedPrimeContourRealizedTimeDistributionPairing
@@ -1191,7 +1199,19 @@ theorem zetaCompletedExplicitFormulaPrimePowerContribution_re_eq_spectralSampleC
         completedSpectralPrimeOffDiagonalChannel f :=
     completedPrimeOffDiagonalChannel_eq_completedSpectralPrimeOffDiagonalChannel_ownerDistributionTransport_core
       f D
-  exact hchannel
+  have htime :
+      completedPrimeOffDiagonalChannel f =
+        Complex.re
+          (zetaCompletedExplicitFormulaPrimePowerContribution
+            (convolutionAutocorrelation f)) :=
+    completedPrimeOffDiagonalChannel_eq_primePowerContribution_re f
+  have hspectral :
+      completedSpectralPrimeOffDiagonalChannel f =
+        Complex.re
+          (zetaCompletedExplicitFormulaPrimePowerSpectralSampleContribution
+            (convolutionAutocorrelation f)) :=
+    rfl
+  exact htime.symm.trans (hchannel.trans hspectral)
 
 /-- Completed prime distribution transport from the physical/time presentation to the
 spectral contour presentation.
@@ -1357,7 +1377,7 @@ theorem exists_rawHeightPolynomialBound_of_finsetSupport
   · have hu_zero : u ι = 0 :=
       hsupport ι hι
     have hnorm_zero : ‖u ι‖ = 0 :=
-      congrArg norm hu_zero
+      by simpa using congrArg norm hu_zero
     have hright_nonnegative : 0 ≤ C * d ι :=
       mul_nonneg (le_of_lt hC_positive) (le_of_lt hd_positive)
     calc

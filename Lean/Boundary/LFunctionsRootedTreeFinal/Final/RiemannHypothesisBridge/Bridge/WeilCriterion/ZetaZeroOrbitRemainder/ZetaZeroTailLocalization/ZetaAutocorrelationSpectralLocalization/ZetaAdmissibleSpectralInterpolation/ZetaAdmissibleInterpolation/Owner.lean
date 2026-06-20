@@ -54,7 +54,8 @@ theorem interpolationSurface_components (f : ZetaAdmissibleFunction) :
   rfl
 
 /-- The spectral-model component of a finite sum is the finite sum of spectral models. -/
-theorem interpolationSurface_fst_sum {α : Type*} (s : Finset α) (f : α → ZetaAdmissibleFunction) :
+theorem interpolationSurface_fst_sum {α : Type*} [DecidableEq α] (s : Finset α)
+    (f : α → ZetaAdmissibleFunction) :
     (interpolationSurface (∑ a in s, f a)).1 = ∑ a in s, spectralModel (f a) := by
   exact (interpolationSurface_fst (∑ a in s, f a)).trans
     (spectralModel_sum (s := s) f)

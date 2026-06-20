@@ -17,7 +17,8 @@ namespace ZetaAdmissibleFunction
 
 /-- Helper: Imaginary part of (1/2 + t*I) is t. -/
 private lemma im_half_plus_t_i (t : ℝ) : ((1 / 2 : ℂ) + t * Complex.I).im = t := by
-  have h1 : (1 / 2 : ℂ).im = 0 := Complex.ofReal_im (1 / 2 : ℝ)
+  have h1 : (1 / 2 : ℂ).im = 0 := by
+    norm_num
   have h2 : (t * Complex.I).im = t := by
     calc (t * Complex.I).im = t * Complex.I.im + 0 * Complex.I.re := Complex.mul_im _ _
       _ = t * 1 + 0 := by simp
@@ -271,7 +272,7 @@ theorem completedZetaNegLogDeriv_polynomialStripBound_of_zetaSide_and_gamma
         (zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
           (E.ne_zero z hz) (E.ne_one z hz)
           (E.zeta_ne_zero z hz) (E.gamma_ne_zero z hz))
-    exact (sub_eq_iff_eq_add.mp hside).symm
+    exact (eq_sub_iff_add_eq.mp hside).symm
   have hnorm_split :
       ‖completedZetaNegLogDeriv z‖ ≤
         ‖zetaSideNegLogDeriv z‖ + ‖correction‖ := by
@@ -352,9 +353,9 @@ structure CompletedZetaNegLogDerivControl (f : ZetaAdmissibleFunction) where
       ∃ C : ℝ,
         0 < C ∧
         ∀ z : ℂ,
-          z ∈ E.carrier →
-          ‖completedZetaNegLogDeriv z‖
-            ≤ C * (1 + ‖z.im‖) ^ N}
+            z ∈ E.carrier →
+            ‖completedZetaNegLogDeriv z‖
+              ≤ C * (1 + ‖z.im‖) ^ N
 
 /-- The strip-control package exposes fixed-degree zero-excised polynomial growth. -/
 theorem CompletedZetaNegLogDerivControl.zeroExcisedPolynomialGrowth
@@ -382,7 +383,7 @@ theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBound
   exact h.zero_excised_polynomial_strip_bound a b E N
 
 /-- The completed negative log-derivative control is the owner-level strip package. -/
-def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Type :=
+def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Prop :=
   CompletedZetaNegLogDerivControl f
 
 /-- The package is exactly the strip-control data. -/

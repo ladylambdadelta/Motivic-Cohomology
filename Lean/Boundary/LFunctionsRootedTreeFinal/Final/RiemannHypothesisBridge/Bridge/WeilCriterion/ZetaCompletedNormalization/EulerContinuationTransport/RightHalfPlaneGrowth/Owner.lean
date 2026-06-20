@@ -676,8 +676,8 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growt
       exact
         ⟨A, B, m, hA, hB,
           fun w hw_one hw_two =>
-            match Classical.em (w = 1) with
-            | Or.inl hw_eq_one =>
+            dite (w = 1)
+              (fun hw_eq_one =>
                 have hraw_zero :
                     (w - 1) * riemannZeta w = 0 := by
                   have hfactor_zero : w - 1 = 0 := by
@@ -698,8 +698,8 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growt
                     (motive := fun x : ℝ =>
                       x ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
                     (norm_zero : ‖(0 : ℂ)‖ = (0 : ℝ)).symm
-                    htarget_nonneg)
-            | Or.inr hw_ne_one =>
+                    htarget_nonneg))
+              (fun hw_ne_one =>
                 have hpole :
                     poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
                   poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
@@ -707,7 +707,7 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growt
                   (motive := fun u : ℂ =>
                     ‖u‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
                   hpole
-                  (hbound w hw_one hw_two)⟩
+                  (hbound w hw_one hw_two))⟩
 
 /-- Patch `1 ≤ Re s ≤ 2` Euler-Maclaurin/PL growth with the far-right
 Dirichlet-series growth to obtain the full right half-plane. -/
@@ -844,8 +844,8 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_E
             have hA_nonneg : 0 ≤ A := le_of_lt hA
             have hA_le : A ≤ A + 1 :=
               le_add_of_nonneg_right zero_le_one
-            match Classical.em (w = 1) with
-            | Or.inl hw_one =>
+            dite (w = 1)
+              (fun hw_one =>
                 have hpole_one :
                     poleClearedRiemannZeta w = 1 := by
                   exact Eq.subst
@@ -879,8 +879,8 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_E
                     (motive := fun x : ℝ =>
                       x ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m))
                     (norm_one : ‖(1 : ℂ)‖ = (1 : ℝ)).symm
-                    htarget)
-            | Or.inr hw_ne_one =>
+                    htarget))
+              (fun hw_ne_one =>
                 have hpole_raw :
                     poleClearedRiemannZeta w = (w - 1) * riemannZeta w :=
                   poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
@@ -893,7 +893,7 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_E
                   (motive := fun u : ℂ =>
                     ‖u‖ ≤ (A + 1) * Real.exp (B * (1 + ‖w‖) ^ m))
                   hpole_raw.symm
-                  ((hraw_bound w hw_re).trans henlarge)⟩
+                  ((hraw_bound w hw_re).trans henlarge))⟩
 
 theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,

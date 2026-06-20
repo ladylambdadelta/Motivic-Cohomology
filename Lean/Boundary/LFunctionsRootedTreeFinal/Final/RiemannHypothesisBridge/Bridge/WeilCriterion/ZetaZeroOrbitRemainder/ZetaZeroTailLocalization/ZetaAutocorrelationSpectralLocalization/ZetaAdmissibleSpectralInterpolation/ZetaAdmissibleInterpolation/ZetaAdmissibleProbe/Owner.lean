@@ -28,7 +28,7 @@ theorem zetaLaplaceTransform_congr_apply_ownerAdmissibleProbe
   show
     (∫ t : ℝ, φ t * Complex.exp (z * t)) =
       ∫ t : ℝ, ψ t * Complex.exp (z * t)
-  exact integral_congr_ae
+  exact MeasureTheory.integral_congr_ae
     (Filter.Eventually.of_forall
       (fun t : ℝ =>
         congrArg
@@ -277,7 +277,13 @@ theorem admissibleProbeLaplaceFiniteSample_surjective_ownerAdmissibleProbe
   | ⟨f, hf⟩ =>
       exact ⟨f, by
         ext z
-        exact hf ⟨z, z.property⟩⟩
+        have hsample_def :
+            admissibleProbeLaplaceFiniteSample S f =
+              zetaLaplaceTransformFiniteSample S f := by
+          rfl
+        exact
+          (congrArg (fun v : S → ℂ => v z) hsample_def).trans
+            (congrArg (fun v : S → ℂ => v z) hf)⟩
 
 /-- The bundled finite admissible Laplace-sample linear map has full range. -/
 theorem admissibleProbeLaplaceFiniteSample_range_top_ownerAdmissibleProbe
@@ -380,27 +386,33 @@ theorem admissibleProbes_separate_finiteExponentialDistributions
       | ⟨f, hf⟩ =>
           have hpair :
               finiteExponentialLaplacePairing S c f = e z₀ * c z₀ := by
-            show
-              (∑ z : S,
-                Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) * c z) =
-                e z₀ * c z₀
-            exact Finset.sum_eq_single z₀
-              (fun z _hz hzz₀ =>
-                have hsample :
-                    Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) =
-                      e z := by
-                  exact congrArg (fun a : S → ℂ => a z) hf
-                have heq : e z = 0 :=
-                  admissibleProbeLaplaceFiniteSampleCoordinate_of_ne S hzz₀
-                calc
-                  Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) * c z =
-                      e z * c z := by
-                    exact congrArg (fun u : ℂ => u * c z) hsample
-                  _ = 0 * c z := by
-                    exact congrArg (fun u : ℂ => u * c z) heq
-                  _ = 0 := by
-                    exact zero_mul (c z))
-              (fun hz₀mem => False.elim (hz₀mem (Finset.mem_univ z₀)))
+            have hsingle_raw :
+                (∑ z : S,
+                  Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) * c z) =
+                  Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z₀ : ℂ) * c z₀ :=
+              Finset.sum_eq_single z₀
+                (fun z _hz hzz₀ =>
+                  have hsample :
+                      Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) =
+                        e z := by
+                    exact congrArg (fun a : S → ℂ => a z) hf
+                  have heq : e z = 0 :=
+                    admissibleProbeLaplaceFiniteSampleCoordinate_of_ne S hzz₀
+                  calc
+                    Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z : ℂ) * c z =
+                        e z * c z := by
+                      exact congrArg (fun u : ℂ => u * c z) hsample
+                    _ = 0 * c z := by
+                      exact congrArg (fun u : ℂ => u * c z) heq
+                    _ = 0 := by
+                      exact zero_mul (c z))
+                (fun hz₀mem => False.elim (hz₀mem (Finset.mem_univ z₀)))
+            have hsample_z₀ :
+                Boundary.zetaLaplaceTransform f.toZetaTestFunction' (z₀ : ℂ) =
+                  e z₀ :=
+              congrArg (fun a : S → ℂ => a z₀) hf
+            exact hsingle_raw.trans
+              (congrArg (fun u : ℂ => u * c z₀) hsample_z₀)
           have hcoord :
               e z₀ * c z₀ = c z₀ := by
             calc

@@ -384,30 +384,34 @@ def coordinateForm (zPlus zMinus : ℂ) : ℂ :=
 def coordinateGram (z : ℂ × ℂ) : ℂ :=
   coordinateForm z.1 z.2
 
-/-- The total paired sesquilinear packet form. -/
-def pairedForm (x : ZetaPairedSpectralPacketEnsemble) : ℂ :=
-  ∑ ℓ in x.support, coordinateGram (x ℓ)
+/-- The prime paired spectral contribution.
 
-/-- The prime paired spectral contribution. -/
+Prime coordinates enter the completed explicit-formula boundary through the symmetrized
+two-face channel `raw + star raw`; the archimedean and correction labels below are already
+normalized as one-face Hermitian coordinates. -/
 def primePairedForm (x : ZetaPairedSpectralPacketEnsemble) : ℂ :=
-  ∑ ℓ in x.support,
+  x.sum (fun ℓ z =>
     match ℓ with
-    | .prime _ _ => coordinateGram (x ℓ)
-    | _ => 0
+    | .prime _ _ => coordinateGram z + star (coordinateGram z)
+    | _ => 0)
 
 /-- The archimedean paired spectral contribution. -/
 def archimedeanPairedForm (x : ZetaPairedSpectralPacketEnsemble) : ℂ :=
-  ∑ ℓ in x.support,
+  x.sum (fun ℓ z =>
     match ℓ with
-    | .archimedean => coordinateGram (x ℓ)
-    | _ => 0
+    | .archimedean => coordinateGram z
+    | _ => 0)
 
 /-- The correction paired spectral contribution. -/
 def correctionPairedForm (x : ZetaPairedSpectralPacketEnsemble) : ℂ :=
-  ∑ ℓ in x.support,
+  x.sum (fun ℓ z =>
     match ℓ with
-    | .correction => coordinateGram (x ℓ)
-    | _ => 0
+    | .correction => coordinateGram z
+    | _ => 0)
+
+/-- The total paired boundary form in the completed normalization. -/
+def pairedForm (x : ZetaPairedSpectralPacketEnsemble) : ℂ :=
+  primePairedForm x + archimedeanPairedForm x + correctionPairedForm x
 
 /-- The real part of the paired packet form. This is the real quantity consumed by sign
 statements; the complex paired form remains the owner object. -/
@@ -441,72 +445,7 @@ theorem pairedForm_eq_prime_add_archimedean_add_correction
     (x : ZetaPairedSpectralPacketEnsemble) :
     pairedForm x =
       primePairedForm x + archimedeanPairedForm x + correctionPairedForm x := by
-  calc
-    ∑ ℓ in x.support, coordinateGram (x ℓ) =
-        ∑ ℓ in x.support,
-          ((match ℓ with
-            | .prime _ _ => coordinateGram (x ℓ)
-            | _ => 0) +
-          (match ℓ with
-            | .archimedean => coordinateGram (x ℓ)
-            | _ => 0) +
-          (match ℓ with
-            | .correction => coordinateGram (x ℓ)
-            | _ => 0)) := by
-      exact Finset.sum_congr rfl
-        (fun ℓ _ =>
-          match ℓ with
-          | .prime m n =>
-              calc
-                coordinateGram (x (ZetaPacketLabel.prime m n)) =
-                    coordinateGram (x (ZetaPacketLabel.prime m n)) + 0 := by
-                  exact (add_zero _).symm
-                _ =
-                    coordinateGram (x (ZetaPacketLabel.prime m n)) + 0 + 0 := by
-                  exact (add_zero _).symm
-          | .archimedean =>
-              calc
-                coordinateGram (x ZetaPacketLabel.archimedean) =
-                    0 + coordinateGram (x ZetaPacketLabel.archimedean) := by
-                  exact (zero_add _).symm
-                _ = 0 + coordinateGram (x ZetaPacketLabel.archimedean) + 0 := by
-                  exact (add_zero _).symm
-          | .correction =>
-              calc
-                coordinateGram (x ZetaPacketLabel.correction) =
-                    0 + coordinateGram (x ZetaPacketLabel.correction) := by
-                  exact (zero_add _).symm
-                _ = 0 + (0 + coordinateGram (x ZetaPacketLabel.correction)) := by
-                  exact congrArg (fun t : ℂ => 0 + t)
-                    (zero_add (coordinateGram (x ZetaPacketLabel.correction))).symm
-                _ = 0 + 0 + coordinateGram (x ZetaPacketLabel.correction) := by
-                  exact (add_assoc 0 0 (coordinateGram (x ZetaPacketLabel.correction))).symm)
-    _ =
-        (∑ ℓ in x.support,
-          match ℓ with
-          | .prime _ _ => coordinateGram (x ℓ)
-          | _ => 0) +
-        (∑ ℓ in x.support,
-          match ℓ with
-          | .archimedean => coordinateGram (x ℓ)
-          | _ => 0) +
-        (∑ ℓ in x.support,
-          match ℓ with
-          | .correction => coordinateGram (x ℓ)
-          | _ => 0) := by
-      exact sum_three_terms x.support
-        (fun ℓ =>
-          match ℓ with
-          | .prime _ _ => coordinateGram (x ℓ)
-          | _ => 0)
-        (fun ℓ =>
-          match ℓ with
-          | .archimedean => coordinateGram (x ℓ)
-          | _ => 0)
-        (fun ℓ =>
-          match ℓ with
-          | .correction => coordinateGram (x ℓ)
-          | _ => 0)
+  rfl
 
 end ZetaPairedSpectralPacketEnsemble
 

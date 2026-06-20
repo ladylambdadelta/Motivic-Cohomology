@@ -30,10 +30,10 @@ main term. -/
 theorem Complex.binetAbelPlanaFiniteMainTerm_tendsto_binetMainTerm_owner
     {w : ℂ}
     (hw : 0 < w.re) :
-    Tendsto
+    Filter.Tendsto
       (fun N : ℕ =>
         Complex.binetAbelPlanaFiniteMainTerm N w)
-      atTop
+      Filter.atTop
       (𝓝 (Complex.binetLogGammaMainTerm w)) := by
   exact
     Complex.binetAbelPlanaFiniteMainTerm_tendsto_binetMainTerm_from_endpointStirling_owner
@@ -47,15 +47,21 @@ Abel-Plana remainder formula and decay of the logarithmic summand along the
 finite contour, not by asserting eventual exactness of a truncated formula. -/
 theorem Complex.binetAbelPlanaFiniteRemainderError_tendsto_zero_owner
     {w : ℂ}
-    (hw : 0 < w.re) :
-    Tendsto
+    (hw : 0 < w.re)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w) :
+    Filter.Tendsto
       (fun N : ℕ =>
         Complex.binetAbelPlanaFiniteRemainderError N w)
-      atTop
+      Filter.atTop
       (𝓝 (0 : ℂ)) := by
   exact
     Complex.binetAbelPlanaFiniteRemainderError_tendsto_zero_from_contourNorm_owner
-      hw
+      hw hfinite
 
 end
 

@@ -17,6 +17,7 @@ noncomputable section
 
 open scoped Topology
 open Filter
+open MeasureTheory
 
 /-- Pointwise finite-height bridge from the normalized principal-value
 rectangle side to the two normalized boundary faces and the horizontal edge
@@ -902,6 +903,52 @@ theorem Complex.finiteAbelPlana_log_rightRemainderPVRawNormalized_eq_changedInte
                       (Real.pi : ℂ) * Complex.I)))))
         hchange
 
+/-- Changed lower-half left endpoint exponential-remainder integrand on a
+positive finite window. -/
+noncomputable def Complex.leftChangedLowerRemainderIntegrand
+    (w : ℂ) : ℝ → ℂ :=
+  fun t : ℝ =>
+    (-Complex.I) *
+      (Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
+        (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
+          (Real.pi : ℂ) * Complex.I))
+
+/-- Upper-half left endpoint exponential-remainder integrand on a positive
+finite window. -/
+noncomputable def Complex.leftUpperRemainderIntegrand
+    (w : ℂ) : ℝ → ℂ :=
+  fun t : ℝ =>
+    (-Complex.I) *
+      (Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
+
+/-- Changed lower-half right endpoint exponential-remainder integrand on a
+positive finite window. -/
+noncomputable def Complex.rightChangedLowerRemainderIntegrand
+    (N : ℕ)
+    (w : ℂ) : ℝ → ℂ :=
+  fun t : ℝ =>
+    Complex.I *
+      (Complex.finiteAbelPlanaLogSummand w
+          (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel
+            (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) -
+          (Real.pi : ℂ) * Complex.I))
+
+/-- Upper-half right endpoint exponential-remainder integrand on a positive
+finite window. -/
+noncomputable def Complex.rightUpperRemainderIntegrand
+    (N : ℕ)
+    (w : ℂ) : ℝ → ℂ :=
+  fun t : ℝ =>
+    Complex.I *
+      (Complex.finiteAbelPlanaLogSummand w
+          (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) *
+        (Complex.finiteAbelPlanaCotangentKernel
+            (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) +
+          (Real.pi : ℂ) * Complex.I))
+
 /-- The remaining finite-interval linearity step for the left normalized PV
 remainder after the lower half-line has been changed by `y = -t`. -/
 theorem Complex.finiteAbelPlana_log_leftChangedIntervalSum_eq_remainderPVNormalized
@@ -909,21 +956,11 @@ theorem Complex.finiteAbelPlana_log_leftChangedIntervalSum_eq_remainderPVNormali
     (T ε : ℝ)
     (hεT : ε ≤ T)
     (hlower :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          (-Complex.I) *
-            (Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
-              (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T)
+      IntervalIntegrable (Complex.leftChangedLowerRemainderIntegrand w)
+        volume ε T)
     (hupper :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          (-Complex.I) *
-            (Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T) :
+      IntervalIntegrable (Complex.leftUpperRemainderIntegrand w)
+        volume ε T) :
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
         (((-Complex.I) *
           (∫ t : ℝ in ε..T,
@@ -937,18 +974,8 @@ theorem Complex.finiteAbelPlana_log_leftChangedIntervalSum_eq_remainderPVNormali
                 (Real.pi : ℂ) * Complex.I)))) =
       Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSidePVNormalized w T ε := by
   let q : ℂ := ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹
-  let L : ℝ → ℂ :=
-    fun t =>
-      (-Complex.I) *
-        (Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
-          (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
-            (Real.pi : ℂ) * Complex.I))
-  let U : ℝ → ℂ :=
-    fun t =>
-      (-Complex.I) *
-        (Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
-          (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
-            (Real.pi : ℂ) * Complex.I))
+  let L : ℝ → ℂ := Complex.leftChangedLowerRemainderIntegrand w
+  let U : ℝ → ℂ := Complex.leftUpperRemainderIntegrand w
   have hsum :
       ∫ t : ℝ in ε..T, L t + U t =
         (∫ t : ℝ in ε..T, L t) + ∫ t : ℝ in ε..T, U t :=
@@ -963,6 +990,32 @@ theorem Complex.finiteAbelPlana_log_leftChangedIntervalSum_eq_remainderPVNormali
       ∫ t : ℝ in ε..T, q * (L t + U t) =
         ∫ t : ℝ in Set.Ioc ε T, q * (L t + U t) :=
     intervalIntegral.integral_of_le hεT
+  have hL :
+      ∫ t : ℝ in ε..T, L t =
+        (-Complex.I) *
+          (∫ t : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
+              (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
+                (Real.pi : ℂ) * Complex.I)) :=
+    intervalIntegral.integral_const_mul
+      (-Complex.I)
+      (fun t : ℝ =>
+        Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
+          (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
+            (Real.pi : ℂ) * Complex.I))
+  have hU :
+      ∫ t : ℝ in ε..T, U t =
+        (-Complex.I) *
+          (∫ t : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
+                (Real.pi : ℂ) * Complex.I)) :=
+    intervalIntegral.integral_const_mul
+      (-Complex.I)
+      (fun t : ℝ =>
+        Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
+          (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
+            (Real.pi : ℂ) * Complex.I))
   unfold Complex.finiteAbelPlanaLogLeftVerticalCotangentRemainderSidePVNormalized
   calc
     q *
@@ -977,7 +1030,8 @@ theorem Complex.finiteAbelPlana_log_leftChangedIntervalSum_eq_remainderPVNormali
               (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
                 (Real.pi : ℂ) * Complex.I)))) =
       q * ((∫ t : ℝ in ε..T, L t) + ∫ t : ℝ in ε..T, U t) := by
-      rfl
+      exact congrArg (fun z : ℂ => q * z)
+        (congrArg₂ HAdd.hAdd hL.symm hU.symm)
     _ = q * ∫ t : ℝ in ε..T, L t + U t := by
       exact congrArg (fun z : ℂ => q * z) hsum.symm
     _ = ∫ t : ℝ in ε..T, q * (L t + U t) := by
@@ -992,25 +1046,11 @@ theorem Complex.finiteAbelPlana_log_rightChangedIntervalSum_eq_remainderPVNormal
     (T ε : ℝ)
     (hεT : ε ≤ T)
     (hlower :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          Complex.I *
-            (Complex.finiteAbelPlanaLogSummand w
-                (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel
-                  (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) -
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T)
+      IntervalIntegrable (Complex.rightChangedLowerRemainderIntegrand N w)
+        volume ε T)
     (hupper :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          Complex.I *
-            (Complex.finiteAbelPlanaLogSummand w
-                (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel
-                  (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) +
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T) :
+      IntervalIntegrable (Complex.rightUpperRemainderIntegrand N w)
+        volume ε T) :
     ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
         ((Complex.I *
           (∫ t : ℝ in ε..T,
@@ -1029,18 +1069,8 @@ theorem Complex.finiteAbelPlana_log_rightChangedIntervalSum_eq_remainderPVNormal
       Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSidePVNormalized N w T ε := by
   let M : ℕ := N + 1
   let q : ℂ := ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹
-  let L : ℝ → ℂ :=
-    fun t =>
-      Complex.I *
-        (Complex.finiteAbelPlanaLogSummand w ((M : ℂ) - Complex.I * (t : ℂ)) *
-          (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) - Complex.I * (t : ℂ)) -
-            (Real.pi : ℂ) * Complex.I))
-  let U : ℝ → ℂ :=
-    fun t =>
-      Complex.I *
-        (Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (t : ℂ)) *
-          (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (t : ℂ)) +
-            (Real.pi : ℂ) * Complex.I))
+  let L : ℝ → ℂ := Complex.rightChangedLowerRemainderIntegrand N w
+  let U : ℝ → ℂ := Complex.rightUpperRemainderIntegrand N w
   have hsum :
       ∫ t : ℝ in ε..T, L t + U t =
         (∫ t : ℝ in ε..T, L t) + ∫ t : ℝ in ε..T, U t :=
@@ -1055,6 +1085,32 @@ theorem Complex.finiteAbelPlana_log_rightChangedIntervalSum_eq_remainderPVNormal
       ∫ t : ℝ in ε..T, q * (L t + U t) =
         ∫ t : ℝ in Set.Ioc ε T, q * (L t + U t) :=
     intervalIntegral.integral_of_le hεT
+  have hL :
+      ∫ t : ℝ in ε..T, L t =
+        Complex.I *
+          (∫ t : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) - Complex.I * (t : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) - Complex.I * (t : ℂ)) -
+                (Real.pi : ℂ) * Complex.I)) :=
+    intervalIntegral.integral_const_mul
+      Complex.I
+      (fun t : ℝ =>
+        Complex.finiteAbelPlanaLogSummand w ((M : ℂ) - Complex.I * (t : ℂ)) *
+          (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) - Complex.I * (t : ℂ)) -
+            (Real.pi : ℂ) * Complex.I))
+  have hU :
+      ∫ t : ℝ in ε..T, U t =
+        Complex.I *
+          (∫ t : ℝ in ε..T,
+            Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (t : ℂ)) *
+              (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (t : ℂ)) +
+                (Real.pi : ℂ) * Complex.I)) :=
+    intervalIntegral.integral_const_mul
+      Complex.I
+      (fun t : ℝ =>
+        Complex.finiteAbelPlanaLogSummand w ((M : ℂ) + Complex.I * (t : ℂ)) *
+          (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (t : ℂ)) +
+            (Real.pi : ℂ) * Complex.I))
   unfold Complex.finiteAbelPlanaLogRightVerticalCotangentRemainderSidePVNormalized
   calc
     q *
@@ -1069,7 +1125,8 @@ theorem Complex.finiteAbelPlana_log_rightChangedIntervalSum_eq_remainderPVNormal
               (Complex.finiteAbelPlanaCotangentKernel ((M : ℂ) + Complex.I * (t : ℂ)) +
                 (Real.pi : ℂ) * Complex.I)))) =
       q * ((∫ t : ℝ in ε..T, L t) + ∫ t : ℝ in ε..T, U t) := by
-      rfl
+      exact congrArg (fun z : ℂ => q * z)
+        (congrArg₂ HAdd.hAdd hL.symm hU.symm)
     _ = q * ∫ t : ℝ in ε..T, L t + U t := by
       exact congrArg (fun z : ℂ => q * z) hsum.symm
     _ = ∫ t : ℝ in ε..T, q * (L t + U t) := by
@@ -1125,8 +1182,11 @@ theorem Complex.continuousOn_leftChangedLowerCotangentKernel
   have hne : (-(Complex.I * (t : ℂ))).im ≠ 0 :=
     him.symm ▸ ne_of_lt (neg_neg_of_pos ht_pos)
   exact
-    ((Complex.differentiableAt_finiteAbelPlanaCotangentKernel
-      (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt.comp t
+    (ContinuousAt.comp'
+      (g := Complex.finiteAbelPlanaCotangentKernel)
+      (f := fun t : ℝ => -(Complex.I * (t : ℂ)))
+      (Complex.differentiableAt_finiteAbelPlanaCotangentKernel
+        (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt
       hpath.continuousAt).continuousWithinAt
 
 /-- Cotangent-kernel continuity on the upper-half left endpoint positive
@@ -1153,8 +1213,11 @@ theorem Complex.continuousOn_leftUpperCotangentKernel
   have hne : (Complex.I * (t : ℂ)).im ≠ 0 :=
     him.symm ▸ ne_of_gt ht_pos
   exact
-    ((Complex.differentiableAt_finiteAbelPlanaCotangentKernel
-      (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt.comp t
+    (ContinuousAt.comp'
+      (g := Complex.finiteAbelPlanaCotangentKernel)
+      (f := fun t : ℝ => Complex.I * (t : ℂ))
+      (Complex.differentiableAt_finiteAbelPlanaCotangentKernel
+        (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt
       hpath.continuousAt).continuousWithinAt
 
 /-- Continuity of the changed lower-half right endpoint logarithmic summand. -/
@@ -1162,10 +1225,10 @@ theorem Complex.continuous_rightChangedLowerVerticalSummand
     (N : ℕ)
     {w : ℂ}
     (hw : 0 < w.re) :
-    let M : ℕ := N + 1
     Continuous
       (fun t : ℝ =>
-        Complex.finiteAbelPlanaLogSummand w ((M : ℂ) - Complex.I * (t : ℂ))) := by
+        Complex.finiteAbelPlanaLogSummand w
+          (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ))) := by
   let M : ℕ := N + 1
   have hlog_base :
       Continuous
@@ -1220,8 +1283,11 @@ theorem Complex.continuousOn_rightChangedLowerCotangentKernel
   have hne : ((M : ℂ) - Complex.I * (t : ℂ)).im ≠ 0 :=
     him.symm ▸ ne_of_lt (neg_neg_of_pos ht_pos)
   exact
-    ((Complex.differentiableAt_finiteAbelPlanaCotangentKernel
-      (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt.comp t
+    (ContinuousAt.comp'
+      (g := Complex.finiteAbelPlanaCotangentKernel)
+      (f := fun t : ℝ => (M : ℂ) - Complex.I * (t : ℂ))
+      (Complex.differentiableAt_finiteAbelPlanaCotangentKernel
+        (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt
       hpath.continuousAt).continuousWithinAt
 
 /-- Cotangent-kernel continuity on the upper-half right endpoint positive
@@ -1265,8 +1331,11 @@ theorem Complex.continuousOn_rightUpperCotangentKernel
   have hne : ((M : ℂ) + Complex.I * (t : ℂ)).im ≠ 0 :=
     him.symm ▸ ne_of_gt ht_pos
   exact
-    ((Complex.differentiableAt_finiteAbelPlanaCotangentKernel
-      (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt.comp t
+    (ContinuousAt.comp'
+      (g := Complex.finiteAbelPlanaCotangentKernel)
+      (f := fun t : ℝ => (M : ℂ) + Complex.I * (t : ℂ))
+      (Complex.differentiableAt_finiteAbelPlanaCotangentKernel
+        (Complex.sin_pi_mul_ne_zero_of_im_ne_zero hne)).continuousAt
       hpath.continuousAt).continuousWithinAt
 
 /-- Interval integrability of the changed lower-half left vertical
@@ -1277,13 +1346,8 @@ theorem Complex.intervalIntegrable_leftChangedLowerRemainderIntegrand
     (T ε : ℝ)
     (hε : 0 < ε)
     (hεT : ε < T) :
-    IntervalIntegrable
-      (fun t : ℝ =>
-        (-Complex.I) *
-          (Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
-            (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
-              (Real.pi : ℂ) * Complex.I))
-      MeasureTheory.volume ε T := by
+    IntervalIntegrable (Complex.leftChangedLowerRemainderIntegrand w)
+      volume ε T := by
   have hlog :
       Continuous
         (fun t : ℝ =>
@@ -1307,13 +1371,8 @@ theorem Complex.intervalIntegrable_leftUpperRemainderIntegrand
     (T ε : ℝ)
     (hε : 0 < ε)
     (hεT : ε < T) :
-    IntervalIntegrable
-      (fun t : ℝ =>
-        (-Complex.I) *
-          (Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
-            (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
-              (Real.pi : ℂ) * Complex.I))
-      MeasureTheory.volume ε T := by
+    IntervalIntegrable (Complex.leftUpperRemainderIntegrand w)
+      volume ε T := by
   have hlog :
       Continuous
         (fun t : ℝ =>
@@ -1338,15 +1397,8 @@ theorem Complex.intervalIntegrable_rightChangedLowerRemainderIntegrand
     (T ε : ℝ)
     (hε : 0 < ε)
     (hεT : ε < T) :
-    IntervalIntegrable
-      (fun t : ℝ =>
-        Complex.I *
-          (Complex.finiteAbelPlanaLogSummand w
-              (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) *
-            (Complex.finiteAbelPlanaCotangentKernel
-                (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) -
-              (Real.pi : ℂ) * Complex.I))
-      MeasureTheory.volume ε T := by
+    IntervalIntegrable (Complex.rightChangedLowerRemainderIntegrand N w)
+      volume ε T := by
   let M : ℕ := N + 1
   have hlog :
       Continuous
@@ -1372,15 +1424,8 @@ theorem Complex.intervalIntegrable_rightUpperRemainderIntegrand
     (T ε : ℝ)
     (hε : 0 < ε)
     (hεT : ε < T) :
-    IntervalIntegrable
-      (fun t : ℝ =>
-        Complex.I *
-          (Complex.finiteAbelPlanaLogSummand w
-              (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) *
-            (Complex.finiteAbelPlanaCotangentKernel
-                (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) +
-              (Real.pi : ℂ) * Complex.I))
-      MeasureTheory.volume ε T := by
+    IntervalIntegrable (Complex.rightUpperRemainderIntegrand N w)
+      volume ε T := by
   let M : ℕ := N + 1
   have hlog :
       Continuous
@@ -1405,21 +1450,11 @@ theorem Complex.leftPVNormalizedRemainderOrientation_of_changedIntervalIntegrabl
     (hε : 0 < ε)
     (hεT : ε < T)
     (hlower :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          (-Complex.I) *
-            (Complex.finiteAbelPlanaLogSummand w (-(Complex.I * (t : ℂ))) *
-              (Complex.finiteAbelPlanaCotangentKernel (-(Complex.I * (t : ℂ))) -
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T)
+      IntervalIntegrable (Complex.leftChangedLowerRemainderIntegrand w)
+        volume ε T)
     (hupper :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          (-Complex.I) *
-            (Complex.finiteAbelPlanaLogSummand w (Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel (Complex.I * (t : ℂ)) +
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T) :
+      IntervalIntegrable (Complex.leftUpperRemainderIntegrand w)
+        volume ε T) :
     Complex.LeftPVNormalizedRemainderOrientation w T ε := by
   exact
     Complex.leftPVNormalizedRemainderOrientation_of_rawNormalized_eq
@@ -1438,25 +1473,11 @@ theorem Complex.rightPVNormalizedRemainderOrientation_of_changedIntervalIntegrab
     (hε : 0 < ε)
     (hεT : ε < T)
     (hlower :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          Complex.I *
-            (Complex.finiteAbelPlanaLogSummand w
-                (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel
-                  (((N + 1 : ℕ) : ℂ) - Complex.I * (t : ℂ)) -
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T)
+      IntervalIntegrable (Complex.rightChangedLowerRemainderIntegrand N w)
+        volume ε T)
     (hupper :
-      IntervalIntegrable
-        (fun t : ℝ =>
-          Complex.I *
-            (Complex.finiteAbelPlanaLogSummand w
-                (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) *
-              (Complex.finiteAbelPlanaCotangentKernel
-                  (((N + 1 : ℕ) : ℂ) + Complex.I * (t : ℂ)) +
-                (Real.pi : ℂ) * Complex.I))
-        MeasureTheory.volume ε T) :
+      IntervalIntegrable (Complex.rightUpperRemainderIntegrand N w)
+        volume ε T) :
     Complex.RightPVNormalizedRemainderOrientation N w T ε := by
   exact
     Complex.rightPVNormalizedRemainderOrientation_of_rawNormalized_eq
@@ -1559,82 +1580,219 @@ theorem Complex.finiteAbelPlana_log_rectangleSideExpressionPVNormalized_eq_bound
         ((q * (-UC - Complex.I * LV)) + (q * (-Complex.I * LR)) +
           ((q * (LC + Complex.I * RV)) + (q * (Complex.I * RR)))) +
           (q * (B - Top)) := by
+    have hhorizontal :
+        (LC + B) - (UC + Top) = (LC - UC) + (B - Top) :=
+      add_sub_add_comm LC B UC Top
+    have hrightVertical :
+        Complex.I * (RV + RR) = Complex.I * RV + Complex.I * RR :=
+      mul_add Complex.I RV RR
+    have hleftVertical :
+        Complex.I * (LV + LR) = Complex.I * LV + Complex.I * LR :=
+      mul_add Complex.I LV LR
+    have hrawVertical :
+        Complex.I * (RV + RR) - Complex.I * (LV + LR) =
+          (Complex.I * RV + Complex.I * RR) +
+            (-Complex.I * LV + -Complex.I * LR) := by
+      calc
+        Complex.I * (RV + RR) - Complex.I * (LV + LR) =
+          (Complex.I * RV + Complex.I * RR) -
+            (Complex.I * LV + Complex.I * LR) := by
+          exact congrArg₂ HSub.hSub hrightVertical hleftVertical
+        _ =
+          (Complex.I * RV + Complex.I * RR) +
+            -((Complex.I * LV + Complex.I * LR)) := by
+          exact sub_eq_add_neg
+            (Complex.I * RV + Complex.I * RR)
+            (Complex.I * LV + Complex.I * LR)
+        _ =
+          (Complex.I * RV + Complex.I * RR) +
+            (-(Complex.I * LV) + -(Complex.I * LR)) := by
+          exact congrArg
+            (fun z : ℂ => (Complex.I * RV + Complex.I * RR) + z)
+            (neg_add (Complex.I * LV) (Complex.I * LR))
+        _ =
+          (Complex.I * RV + Complex.I * RR) +
+            (-Complex.I * LV + -Complex.I * LR) := by
+          exact congrArg
+            (fun z : ℂ => (Complex.I * RV + Complex.I * RR) + z)
+            (congrArg₂ HAdd.hAdd
+              (neg_mul Complex.I LV).symm
+              (neg_mul Complex.I LR).symm)
+    have hcore :
+        ((LC - UC) + (B - Top)) +
+            ((Complex.I * RV + Complex.I * RR) +
+              (-Complex.I * LV + -Complex.I * LR)) =
+          ((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
+      calc
+        ((LC - UC) + (B - Top)) +
+            ((Complex.I * RV + Complex.I * RR) +
+              (-Complex.I * LV + -Complex.I * LR)) =
+          (LC + -UC + (B - Top)) +
+            ((Complex.I * RV + Complex.I * RR) +
+              (-Complex.I * LV + -Complex.I * LR)) := by
+          exact congrArg
+            (fun z : ℂ => (z + (B - Top)) +
+              ((Complex.I * RV + Complex.I * RR) +
+                (-Complex.I * LV + -Complex.I * LR)))
+            (sub_eq_add_neg LC UC)
+        _ =
+          ((-UC + -(Complex.I * LV)) + (LC + Complex.I * RV)) +
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
+          have hvertical_repair :
+              (Complex.I * RV + Complex.I * RR) +
+                  (-Complex.I * LV + -Complex.I * LR) =
+                (Complex.I * RV + -Complex.I * LV) +
+                  (Complex.I * RR + -Complex.I * LR) :=
+            add_add_add_comm
+              (Complex.I * RV) (Complex.I * RR)
+              (-Complex.I * LV) (-Complex.I * LR)
+          have hfirst_pair :
+              (LC + -UC) + (Complex.I * RV + -Complex.I * LV) =
+                (-UC + -(Complex.I * LV)) + (LC + Complex.I * RV) := by
+            calc
+              (LC + -UC) + (Complex.I * RV + -Complex.I * LV) =
+                (LC + Complex.I * RV) + (-UC + -Complex.I * LV) := by
+                exact add_add_add_comm
+                  LC (-UC) (Complex.I * RV) (-Complex.I * LV)
+              _ =
+                (LC + Complex.I * RV) + (-UC + -(Complex.I * LV)) := by
+                exact congrArg
+                  (fun z : ℂ => (LC + Complex.I * RV) + (-UC + z))
+                  (neg_mul Complex.I LV)
+              _ =
+                (-UC + -(Complex.I * LV)) + (LC + Complex.I * RV) := by
+                exact add_comm
+                  (LC + Complex.I * RV)
+                  (-UC + -(Complex.I * LV))
+          have hsecond_pair :
+              (B - Top) + (Complex.I * RR + -Complex.I * LR) =
+                (-Complex.I * LR + Complex.I * RR) + (B - Top) := by
+            calc
+              (B - Top) + (Complex.I * RR + -Complex.I * LR) =
+                (B - Top) + (-Complex.I * LR + Complex.I * RR) := by
+                exact congrArg (fun z : ℂ => (B - Top) + z)
+                  (add_comm (Complex.I * RR) (-Complex.I * LR))
+              _ =
+                (-Complex.I * LR + Complex.I * RR) + (B - Top) := by
+                exact add_comm
+                  (B - Top)
+                  (-Complex.I * LR + Complex.I * RR)
+          calc
+            (LC + -UC + (B - Top)) +
+                ((Complex.I * RV + Complex.I * RR) +
+                  (-Complex.I * LV + -Complex.I * LR)) =
+              (LC + -UC + (B - Top)) +
+                ((Complex.I * RV + -Complex.I * LV) +
+                  (Complex.I * RR + -Complex.I * LR)) := by
+              exact congrArg
+                (fun z : ℂ => (LC + -UC + (B - Top)) + z)
+                hvertical_repair
+            _ =
+              ((LC + -UC) + (Complex.I * RV + -Complex.I * LV)) +
+                ((B - Top) + (Complex.I * RR + -Complex.I * LR)) := by
+              exact add_add_add_comm
+                (LC + -UC) (B - Top)
+                (Complex.I * RV + -Complex.I * LV)
+                (Complex.I * RR + -Complex.I * LR)
+            _ =
+              ((-UC + -(Complex.I * LV)) + (LC + Complex.I * RV)) +
+                ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
+              exact congrArg₂ HAdd.hAdd hfirst_pair hsecond_pair
+        _ =
+          ((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
+          exact congrArg
+            (fun z : ℂ => (z + (LC + Complex.I * RV)) +
+              ((-Complex.I * LR + Complex.I * RR) + (B - Top)))
+            (sub_eq_add_neg (-UC) (Complex.I * LV)).symm
+    have hsplit_right :
+        q * ((-Complex.I * LR + Complex.I * RR) + (B - Top)) =
+          (q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top) := by
+      calc
+        q * ((-Complex.I * LR + Complex.I * RR) + (B - Top)) =
+          q * (-Complex.I * LR + Complex.I * RR) + q * (B - Top) := by
+          exact mul_add q (-Complex.I * LR + Complex.I * RR) (B - Top)
+        _ =
+          (q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top) := by
+          exact congrArg
+            (fun z : ℂ => z + q * (B - Top))
+            (mul_add q (-Complex.I * LR) (Complex.I * RR))
+    have hsplit_all :
+        q * (((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top))) =
+          (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
+            ((q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top)) := by
+      calc
+        q * (((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top))) =
+          q * ((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
+            q * ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
+          exact mul_add q
+            ((-UC - Complex.I * LV) + (LC + Complex.I * RV))
+            ((-Complex.I * LR + Complex.I * RR) + (B - Top))
+        _ =
+          (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
+            ((q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top)) := by
+          exact congrArg₂ HAdd.hAdd
+            (mul_add q (-UC - Complex.I * LV) (LC + Complex.I * RV))
+            hsplit_right
+    have hfinal_collect :
+        (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
+            ((q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top)) =
+          ((q * (-UC - Complex.I * LV)) + (q * (-Complex.I * LR)) +
+            ((q * (LC + Complex.I * RV)) + (q * (Complex.I * RR)))) +
+            (q * (B - Top)) := by
+      calc
+        (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
+            ((q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top)) =
+          ((q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
+            (q * (-Complex.I * LR) + q * (Complex.I * RR))) +
+              q * (B - Top) := by
+          exact (add_assoc
+            (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV))
+            (q * (-Complex.I * LR) + q * (Complex.I * RR))
+            (q * (B - Top))).symm
+        _ =
+          ((q * (-UC - Complex.I * LV)) + (q * (-Complex.I * LR)) +
+            ((q * (LC + Complex.I * RV)) + (q * (Complex.I * RR)))) +
+              q * (B - Top) := by
+          exact congrArg
+            (fun z : ℂ => z + q * (B - Top))
+            (add_add_add_comm
+              (q * (-UC - Complex.I * LV))
+              (q * (LC + Complex.I * RV))
+              (q * (-Complex.I * LR))
+              (q * (Complex.I * RR)))
     calc
       q * (((LC + B) - (UC + Top)) +
           (Complex.I * (RV + RR) - Complex.I * (LV + LR))) =
         q * (((LC - UC) + (B - Top)) +
-          ((Complex.I * RV + Complex.I * RR) -
-            (Complex.I * LV + Complex.I * LR))) := by
+          (Complex.I * (RV + RR) - Complex.I * (LV + LR))) := by
         exact congrArg
           (fun z : ℂ => q * (z +
             (Complex.I * (RV + RR) - Complex.I * (LV + LR))))
-          (add_sub_add_comm LC B UC Top)
+          hhorizontal
       _ =
         q * (((LC - UC) + (B - Top)) +
           ((Complex.I * RV + Complex.I * RR) +
-            (-(Complex.I * LV) + -(Complex.I * LR)))) := by
+            (-Complex.I * LV + -Complex.I * LR))) := by
         exact congrArg
           (fun z : ℂ => q * (((LC - UC) + (B - Top)) + z))
-          (congrArg₂ HSub.hSub
-            (mul_add Complex.I RV RR)
-            (mul_add Complex.I LV LR) ▸
-            sub_eq_add_neg (Complex.I * RV + Complex.I * RR)
-              (Complex.I * LV + Complex.I * LR))
+          hrawVertical
       _ =
         q * (((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
           ((-Complex.I * LR + Complex.I * RR) + (B - Top))) := by
-        exact congrArg (fun z : ℂ => q * z)
-          (by
-            calc
-              ((LC - UC) + (B - Top)) +
-                  ((Complex.I * RV + Complex.I * RR) +
-                    (-(Complex.I * LV) + -(Complex.I * LR))) =
-                (LC + -UC + (B - Top)) +
-                  ((Complex.I * RV + Complex.I * RR) +
-                    (-(Complex.I * LV) + -(Complex.I * LR))) := by
-                exact congrArg
-                  (fun z : ℂ => (z + (B - Top)) +
-                    ((Complex.I * RV + Complex.I * RR) +
-                      (-(Complex.I * LV) + -(Complex.I * LR))))
-                  (sub_eq_add_neg LC UC)
-              _ =
-                ((-UC + -(Complex.I * LV)) + (LC + Complex.I * RV)) +
-                  ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
-                exact add_add_add_comm
-                  (LC + -UC) (B - Top)
-                  (Complex.I * RV + Complex.I * RR)
-                  (-(Complex.I * LV) + -(Complex.I * LR))
-              _ =
-                ((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
-                  ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
-                exact congrArg
-                  (fun z : ℂ => (z + (LC + Complex.I * RV)) +
-                    ((-Complex.I * LR + Complex.I * RR) + (B - Top)))
-                  (sub_eq_add_neg (-UC) (Complex.I * LV)).symm)
-      _ =
-        q * ((-UC - Complex.I * LV) + (LC + Complex.I * RV)) +
-          q * ((-Complex.I * LR + Complex.I * RR) + (B - Top)) := by
-        exact mul_add q
-          ((-UC - Complex.I * LV) + (LC + Complex.I * RV))
-          ((-Complex.I * LR + Complex.I * RR) + (B - Top))
+        exact congrArg (fun z : ℂ => q * z) hcore
       _ =
         (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV)) +
-          (q * (-Complex.I * LR) + q * (Complex.I * RR) + q * (B - Top)) := by
-        exact congrArg₂ HAdd.hAdd
-          (mul_add q (-UC - Complex.I * LV) (LC + Complex.I * RV))
-          (Eq.trans
-            (mul_add q (-Complex.I * LR + Complex.I * RR) (B - Top))
-            (congrArg
-              (fun z : ℂ => z + q * (B - Top))
-              (mul_add q (-Complex.I * LR) (Complex.I * RR))))
+          ((q * (-Complex.I * LR) + q * (Complex.I * RR)) + q * (B - Top)) := by
+        exact hsplit_all
       _ =
         ((q * (-UC - Complex.I * LV)) + (q * (-Complex.I * LR)) +
           ((q * (LC + Complex.I * RV)) + (q * (Complex.I * RR)))) +
           (q * (B - Top)) := by
-        exact add_right_comm
-          (q * (-UC - Complex.I * LV) + q * (LC + Complex.I * RV))
-          (q * (-Complex.I * LR) + q * (Complex.I * RR))
-          (q * (B - Top))
+        exact hfinal_collect
   have hfaces :
       ((q * (-UC - Complex.I * LV)) + (q * (-Complex.I * LR)) +
           ((q * (LC + Complex.I * RV)) + (q * (Complex.I * RR)))) +

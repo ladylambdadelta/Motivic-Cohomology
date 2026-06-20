@@ -1,6 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissibleInterpolation.ZetaAdmissibleTransform.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.ZetaPacketReconstruction.ZetaPacketDecomposition.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.ZetaPacketReconstruction.ZetaPacketEnergy.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.ZetaLogBoundaryDefect.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletionCorrection.Owner
 
@@ -41,15 +42,23 @@ theorem exists_zetaPacketSupportRadius (f : ZetaAdmissibleFunction) :
 def zetaPrimePacketWeight : ZetaPacketLabel → ℝ
   | .prime p m =>
       if _hp : Nat.Prime p then
-        Real.log p / Real.sqrt (p ^ m)
+        if _hm : m ≠ 0 then
+          Real.log p / Real.sqrt (p ^ m)
+        else
+          0
       else
         0
   | _ => 0
 
-theorem zetaPrimePacketWeight_prime (p m : ℕ) (hp : Nat.Prime p) :
+theorem zetaPrimePacketWeight_prime (p m : ℕ) (hp : Nat.Prime p) (hm : m ≠ 0) :
     zetaPrimePacketWeight (.prime p m) = Real.log p / Real.sqrt (p ^ m) := by
   unfold zetaPrimePacketWeight
-  exact if_pos hp
+  exact (if_pos hp).trans (if_pos hm)
+
+theorem zetaPrimePacketWeight_zero_exponent (p m : ℕ) (hp : Nat.Prime p) (hm : ¬ m ≠ 0) :
+    zetaPrimePacketWeight (.prime p m) = 0 := by
+  unfold zetaPrimePacketWeight
+  exact (if_pos hp).trans (if_neg hm)
 
 theorem zetaPrimePacketWeight_nonprime (ℓ : ZetaPacketLabel) (h : ¬ ∃ p m, ℓ = .prime p m) :
     zetaPrimePacketWeight ℓ = 0 := by
@@ -83,7 +92,7 @@ def zetaPrimePacketAsEnsemble (f : ZetaAdmissibleFunction) (B : ℝ) :
 def zetaArchimedeanPacketAsEnsemble (f : ZetaAdmissibleFunction) :
     ZetaPacketEnsemble :=
   ZetaPacketEnsemble.single .archimedean
-    (Complex.re (ZetaTestFunction.archimedeanTranslationDefect 0 f.toZetaTestFunction' 0))
+    (Complex.re (zetaCompletedExplicitFormulaArchimedeanContribution f))
 
 /-- The completion/correction packet associated to an admissible function. -/
 noncomputable def zetaCorrectionPacketAsEnsemble (_f : ZetaAdmissibleFunction) :

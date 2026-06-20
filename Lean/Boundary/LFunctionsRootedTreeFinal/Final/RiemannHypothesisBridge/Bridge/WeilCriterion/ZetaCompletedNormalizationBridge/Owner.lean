@@ -1,8 +1,9 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.ZetaCompletedLogDerivativeCore.Owner
 import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.Topology.Basic
 
 /-!
 # Boundary completed normalization bridge
@@ -18,7 +19,8 @@ namespace LFunctions
 
 noncomputable section
 
-open Complex
+open Complex Filter
+open scoped Topology
 
 namespace ZetaAdmissibleFunction
 
@@ -126,103 +128,8 @@ theorem complex_negLogDeriv_mul_inv_sub_correction
     (hB : B ≠ 0) (hC : C ≠ 0) :
     -((A * C⁻¹ + B * D) / (B * C⁻¹)) =
       -A / B - D / C⁻¹ := by
-  have hCinv : C⁻¹ ≠ 0 :=
-    inv_ne_zero hC
-  have hden : B * C⁻¹ ≠ 0 :=
-    mul_ne_zero hB hCinv
-  have hA_cancel :
-      (A * C⁻¹) / (B * C⁻¹) = A / B := by
-    calc
-      (A * C⁻¹) / (B * C⁻¹)
-          = (A * C⁻¹) * (B * C⁻¹)⁻¹ := by
-            exact div_eq_mul_inv (A * C⁻¹) (B * C⁻¹)
-      _ = (A * C⁻¹) * (C * B⁻¹) := by
-            exact congrArg (fun x : ℂ => (A * C⁻¹) * x)
-              (calc
-                (B * C⁻¹)⁻¹ = (C⁻¹)⁻¹ * B⁻¹ := by
-                  exact mul_inv_rev B C⁻¹
-                _ = C * B⁻¹ := by
-                  exact congrArg (fun x : ℂ => x * B⁻¹) (inv_inv C))
-      _ = A * (C⁻¹ * C) * B⁻¹ := by
-            exact Eq.trans (mul_assoc A C⁻¹ (C * B⁻¹))
-              (congrArg (fun x : ℂ => A * x) (mul_assoc C⁻¹ C B⁻¹).symm)
-      _ = A * 1 * B⁻¹ := by
-            exact congrArg (fun x : ℂ => A * x * B⁻¹) (inv_mul_cancel₀ hC)
-      _ = A * B⁻¹ := by
-            exact congrArg (fun x : ℂ => x * B⁻¹) (mul_one A)
-      _ = A / B := by
-            exact (div_eq_mul_inv A B).symm
-  have hD_cancel :
-      (B * D) / (B * C⁻¹) = D / C⁻¹ := by
-    calc
-      (B * D) / (B * C⁻¹)
-          = (B * D) * (B * C⁻¹)⁻¹ := by
-            exact div_eq_mul_inv (B * D) (B * C⁻¹)
-      _ = (B * D) * (C * B⁻¹) := by
-            exact congrArg (fun x : ℂ => (B * D) * x)
-              (calc
-                (B * C⁻¹)⁻¹ = (C⁻¹)⁻¹ * B⁻¹ := by
-                  exact mul_inv_rev B C⁻¹
-                _ = C * B⁻¹ := by
-                  exact congrArg (fun x : ℂ => x * B⁻¹) (inv_inv C))
-      _ = D * (B * B⁻¹) * C := by
-            calc
-              (B * D) * (C * B⁻¹)
-                  = D * B * (B⁻¹ * C) := by
-                    exact Eq.trans
-                      (mul_left_comm B D (C * B⁻¹))
-                      (Eq.trans
-                        (congrArg (fun x : ℂ => D * x) (mul_comm B (C * B⁻¹)))
-                        (congrArg (fun x : ℂ => D * x)
-                          (Eq.trans (mul_assoc (C * B⁻¹) B 1).symm
-                            (by
-                              calc
-                                C * B⁻¹ * B * 1 = C * (B⁻¹ * B) * 1 := by
-                                  exact congrArg (fun x : ℂ => x * 1) (mul_assoc C B⁻¹ B)
-                                _ = C * 1 * 1 := by
-                                  exact congrArg (fun x : ℂ => C * x * 1) (inv_mul_cancel₀ hB)
-                                _ = C := by
-                                  exact Eq.trans (congrArg (fun x : ℂ => x * 1) (mul_one C)) (mul_one C)
-                                _ = B * B⁻¹ * C := by
-                                  exact (congrArg (fun x : ℂ => x * C) (mul_inv_cancel₀ hB)).symm)))))
-              _ = D * (B * B⁻¹) * C := by
-                    exact mul_assoc D B B⁻¹
-      _ = D * 1 * C := by
-            exact congrArg (fun x : ℂ => D * x * C) (mul_inv_cancel₀ hB)
-      _ = D * C := by
-            exact congrArg (fun x : ℂ => x * C) (mul_one D)
-      _ = D / C⁻¹ := by
-            exact
-              (calc
-                D / C⁻¹ = D * (C⁻¹)⁻¹ := by
-                  exact div_eq_mul_inv D C⁻¹
-                _ = D * C := by
-                  exact congrArg (fun x : ℂ => D * x) (inv_inv C)).symm
-  have hsplit :
-      (A * C⁻¹ + B * D) / (B * C⁻¹) =
-        (A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹) := by
-    calc
-      (A * C⁻¹ + B * D) / (B * C⁻¹)
-          = (A * C⁻¹ + B * D) * (B * C⁻¹)⁻¹ := by
-            exact div_eq_mul_inv (A * C⁻¹ + B * D) (B * C⁻¹)
-      _ = (A * C⁻¹) * (B * C⁻¹)⁻¹ + (B * D) * (B * C⁻¹)⁻¹ := by
-            exact add_mul (A * C⁻¹) (B * D) (B * C⁻¹)⁻¹
-      _ = (A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹) := by
-            exact congrArg₂ HAdd.hAdd
-              (div_eq_mul_inv (A * C⁻¹) (B * C⁻¹)).symm
-              (div_eq_mul_inv (B * D) (B * C⁻¹)).symm
-  calc
-    -((A * C⁻¹ + B * D) / (B * C⁻¹))
-        = -((A * C⁻¹) / (B * C⁻¹) + (B * D) / (B * C⁻¹)) := by
-          exact congrArg Neg.neg hsplit
-    _ = -((A * C⁻¹) / (B * C⁻¹)) - ((B * D) / (B * C⁻¹)) := by
-          exact neg_add ((A * C⁻¹) / (B * C⁻¹)) ((B * D) / (B * C⁻¹))
-    _ = -(A / B) - ((B * D) / (B * C⁻¹)) := by
-          exact congrArg (fun x : ℂ => -x - ((B * D) / (B * C⁻¹))) hA_cancel
-    _ = -(A / B) - (D / C⁻¹) := by
-          exact congrArg (fun x : ℂ => -(A / B) - x) hD_cancel
-    _ = -A / B - D / C⁻¹ := by
-          exact congrArg (fun x : ℂ => x - D / C⁻¹) (neg_div A B).symm
+  field_simp [hB, hC]
+  ring
 
 /-- Removing the Gamma factor adds the explicit archimedean correction to the negative
 logarithmic derivative. This inverse-Gamma form is the owner-level statement available from
@@ -235,15 +142,40 @@ theorem zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
       completedZetaNegLogDeriv s -
         deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ := by
   unfold zetaSideNegLogDeriv completedZetaNegLogDeriv
-  unfold zetaSideFactor
-  exact
-    complex_negLogDeriv_mul_inv_sub_correction
-      (deriv completedRiemannZeta s)
-      (completedRiemannZeta s)
-      (Gammaℝ s)
-      (deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s)
-      hΛ
-      hΓ
+  have hderiv :
+      deriv zetaSideFactor s =
+        deriv completedRiemannZeta s * (Gammaℝ s)⁻¹ +
+          completedRiemannZeta s * deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s :=
+    deriv_zetaSideFactor_at hs0 hs1 hΓ
+  have hfactor :
+      zetaSideFactor s = completedRiemannZeta s * (Gammaℝ s)⁻¹ :=
+    zetaSideFactor_eq s
+  calc
+    -deriv zetaSideFactor s / zetaSideFactor s =
+        -(deriv completedRiemannZeta s * (Gammaℝ s)⁻¹ +
+            completedRiemannZeta s * deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s) /
+          (completedRiemannZeta s * (Gammaℝ s)⁻¹) := by
+      exact congrArg₂ (fun x y : ℂ => -x / y) hderiv hfactor
+    _ =
+        -((deriv completedRiemannZeta s * (Gammaℝ s)⁻¹ +
+            completedRiemannZeta s * deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s) /
+          (completedRiemannZeta s * (Gammaℝ s)⁻¹)) := by
+      exact
+        (neg_div
+          (completedRiemannZeta s * (Gammaℝ s)⁻¹)
+          (deriv completedRiemannZeta s * (Gammaℝ s)⁻¹ +
+            completedRiemannZeta s * deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s))
+    _ =
+        -deriv completedRiemannZeta s / completedRiemannZeta s -
+          deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ := by
+      exact
+        complex_negLogDeriv_mul_inv_sub_correction
+          (deriv completedRiemannZeta s)
+          (completedRiemannZeta s)
+          (Gammaℝ s)
+          (deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s)
+          hΛ
+          hΓ
 
 end ZetaAdmissibleFunction
 
@@ -262,13 +194,7 @@ theorem riemannZeta_zero_eq_neg_half :
 /-- The value `-1/2` is nonzero in the complex normalization. -/
 theorem complex_neg_half_ne_zero :
     (-1 / 2 : ℂ) ≠ 0 := by
-  have hone : (1 : ℂ) ≠ 0 :=
-    one_ne_zero
-  have htwo : (2 : ℂ) ≠ 0 :=
-    two_ne_zero
-  have hdiv : (1 / 2 : ℂ) ≠ 0 :=
-    div_ne_zero hone htwo
-  exact neg_ne_zero.mpr hdiv
+  norm_num
 
 /-- The ordinary Riemann zeta function is nonzero at the normalization point `0`. -/
 theorem riemannZeta_zero_ne_zero :
@@ -283,46 +209,31 @@ nonzero even locus used by the Weil criterion bridge. -/
 theorem gammaReal_zeroIndex_iff_zero_or_negative_even
     {s : ℂ} :
     (∃ n : ℕ, s = -(2 * (n : ℂ))) ↔
-      s = 0 ∨ ∃ n : ℕ, s = (-2 : ℂ) * ((n + 1 : ℕ) : ℂ) := by
+      s = 0 ∨ ∃ n : ℕ, s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
   constructor
   · intro h
     rcases h with ⟨n, hn⟩
     cases n with
     | zero =>
         left
-        calc
-          s = -(2 * (0 : ℂ)) := hn
-          _ = -0 := by
-            exact congrArg Neg.neg (mul_zero (2 : ℂ))
-          _ = 0 := by
-            exact neg_zero
+        simpa using hn
     | succ n =>
         right
         refine ⟨n, ?_⟩
-        calc
-          s = -(2 * (((n + 1 : ℕ) : ℂ))) := hn
-          _ = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
-            exact neg_mul_eq_neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))
+        simpa [neg_mul] using hn
   · intro h
     rcases h with hzero | hnegative
     · refine ⟨0, ?_⟩
-      calc
-        s = 0 := hzero
-        _ = -0 := by
-          exact neg_zero.symm
-        _ = -(2 * (0 : ℂ)) := by
-          exact congrArg Neg.neg (mul_zero (2 : ℂ)).symm
+      simpa using hzero
     · rcases hnegative with ⟨n, hn⟩
       refine ⟨n + 1, ?_⟩
-      calc
-        s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := hn
-        _ = -(2 * (((n + 1 : ℕ) : ℂ))) := by
-          exact (neg_mul_eq_neg_mul (2 : ℂ) (((n + 1 : ℕ) : ℂ))).symm
+      simpa [neg_mul] using hn
 
 /-- The exact zero locus of the completed Gamma factor in the current normalization. -/
 theorem Gammaℝ_eq_zero_iff_zero_or_negative_even
     {s : ℂ} :
-    Gammaℝ s = 0 ↔ s = 0 ∨ ∃ n : ℕ, s = -2 * (n + 1) := by
+    Gammaℝ s = 0 ↔
+      s = 0 ∨ ∃ n : ℕ, s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) := by
   exact Complex.Gammaℝ_eq_zero_iff.trans gammaReal_zeroIndex_iff_zero_or_negative_even
 
 /-- The completed Gamma factor is nonzero away from its centered nonpositive-even
@@ -330,11 +241,11 @@ singular locus. -/
 theorem Gammaℝ_ne_zero_of_ne_zero_and_not_negative_even
     {s : ℂ}
     (hs0 : s ≠ 0)
-    (hneg : ¬ ∃ n : ℕ, s = -2 * (n + 1)) :
+    (hneg : ¬ ∃ n : ℕ, s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ))) :
     Gammaℝ s ≠ 0 := by
   intro hΓ
   have hzero_or_negative :
-      s = 0 ∨ ∃ n : ℕ, s = -2 * (n + 1) :=
+      s = 0 ∨ ∃ n : ℕ, s = (-2 : ℂ) * (((n + 1 : ℕ) : ℂ)) :=
     (Gammaℝ_eq_zero_iff_zero_or_negative_even).1 hΓ
   rcases hzero_or_negative with hzero | hnegative
   · exact hs0 hzero

@@ -1,6 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaCompletedWeightStream.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaPacketComparison.ZetaCompletedBoundaryDefect.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.HermitianBoundaryDefect
 
 /-!
 # Completed boundary Hilbert sources
@@ -76,29 +76,29 @@ instance : AddCommGroup CompletedBoundaryHilbertSource where
       correctionCoordinate := n * X.correctionCoordinate }
   add_assoc := by
     intro X Y Z
-    ext
-    · exact add_assoc X.seed Y.seed Z.seed
-    · exact add_assoc X.correctionCoordinate Y.correctionCoordinate Z.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (add_assoc X.seed Y.seed Z.seed)
+      (add_assoc X.correctionCoordinate Y.correctionCoordinate Z.correctionCoordinate)
   zero_add := by
     intro X
-    ext
-    · exact zero_add X.seed
-    · exact zero_add X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (zero_add X.seed)
+      (zero_add X.correctionCoordinate)
   add_zero := by
     intro X
-    ext
-    · exact add_zero X.seed
-    · exact add_zero X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (add_zero X.seed)
+      (add_zero X.correctionCoordinate)
   add_comm := by
     intro X Y
-    ext
-    · exact add_comm X.seed Y.seed
-    · exact add_comm X.correctionCoordinate Y.correctionCoordinate
-  add_left_neg := by
+    exact CompletedBoundaryHilbertSource.ext
+      (add_comm X.seed Y.seed)
+      (add_comm X.correctionCoordinate Y.correctionCoordinate)
+  neg_add_cancel := by
     intro X
-    ext
-    · exact neg_add_cancel X.seed
-    · exact neg_add_cancel X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (neg_add_cancel X.seed)
+      (neg_add_cancel X.correctionCoordinate)
   sub_eq_add_neg := by
     intro X Y
     rfl
@@ -107,105 +107,143 @@ instance : AddCommGroup CompletedBoundaryHilbertSource where
       correctionCoordinate := n * X.correctionCoordinate }
   nsmul_zero := by
     intro X
-    ext
-    · exact nsmul_zero X.seed
-    · change ((0 : ℕ) : ℝ) * X.correctionCoordinate = 0
-      exact zero_mul X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (zero_nsmul X.seed)
+      (by
+        calc
+          ((0 : ℕ) : ℝ) * X.correctionCoordinate =
+              (0 : ℝ) * X.correctionCoordinate := by
+            exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
+              (Nat.cast_zero)
+          _ = 0 := by
+            exact zero_mul X.correctionCoordinate)
   nsmul_succ := by
     intro n X
-    ext
-    · exact nsmul_succ n X.seed
-    · change ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
+    exact CompletedBoundaryHilbertSource.ext
+      (succ_nsmul X.seed n)
+      (by
+        change ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
         n * X.correctionCoordinate + X.correctionCoordinate
-      calc
-        ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
-            (((n : ℕ) : ℝ) + 1) * X.correctionCoordinate := by
-          exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
-            (Nat.cast_add n 1)
-        _ =
-            ((n : ℕ) : ℝ) * X.correctionCoordinate +
-              1 * X.correctionCoordinate := by
-          exact add_mul ((n : ℕ) : ℝ) 1 X.correctionCoordinate
-        _ =
-            ((n : ℕ) : ℝ) * X.correctionCoordinate +
-              X.correctionCoordinate := by
-          exact congrArg
-            (fun a : ℝ => ((n : ℕ) : ℝ) * X.correctionCoordinate + a)
-            (one_mul X.correctionCoordinate)
+        have hcast :
+            ((n + 1 : ℕ) : ℝ) = ((n : ℕ) : ℝ) + 1 := by
+          exact (Nat.cast_add n 1).trans
+            (congrArg (fun a : ℝ => ((n : ℕ) : ℝ) + a) Nat.cast_one)
+        calc
+          ((n + 1 : ℕ) : ℝ) * X.correctionCoordinate =
+              (((n : ℕ) : ℝ) + 1) * X.correctionCoordinate := by
+            exact congrArg (fun a : ℝ => a * X.correctionCoordinate) hcast
+          _ =
+              ((n : ℕ) : ℝ) * X.correctionCoordinate +
+                1 * X.correctionCoordinate := by
+            exact add_mul ((n : ℕ) : ℝ) 1 X.correctionCoordinate
+          _ =
+              ((n : ℕ) : ℝ) * X.correctionCoordinate +
+                X.correctionCoordinate := by
+            exact congrArg
+              (fun a : ℝ => ((n : ℕ) : ℝ) * X.correctionCoordinate + a)
+              (one_mul X.correctionCoordinate))
   zsmul_zero' := by
     intro X
-    ext
-    · exact zsmul_zero' X.seed
-    · change ((0 : ℤ) : ℝ) * X.correctionCoordinate = 0
-      exact zero_mul X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (SubNegMonoid.zsmul_zero' X.seed)
+      (by
+        calc
+          ((0 : ℤ) : ℝ) * X.correctionCoordinate =
+              (0 : ℝ) * X.correctionCoordinate := by
+            exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
+              (Int.cast_zero)
+          _ = 0 := by
+            exact zero_mul X.correctionCoordinate)
   zsmul_succ' := by
     intro n X
-    ext
-    · exact zsmul_succ' n X.seed
-    · change (((Int.ofNat n + 1 : ℤ) : ℝ) * X.correctionCoordinate) =
-        (n : ℤ) * X.correctionCoordinate + X.correctionCoordinate
-      have hcast :
-          ((Int.ofNat n + 1 : ℤ) : ℝ) = ((n : ℤ) : ℝ) + 1 := by
-        exact Int.cast_add (Int.ofNat n) 1
-      calc
-        ((Int.ofNat n + 1 : ℤ) : ℝ) * X.correctionCoordinate =
-            (((n : ℤ) : ℝ) + 1) * X.correctionCoordinate := by
-          exact congrArg (fun a : ℝ => a * X.correctionCoordinate) hcast
-        _ =
-            ((n : ℤ) : ℝ) * X.correctionCoordinate +
-              1 * X.correctionCoordinate := by
-          exact add_mul ((n : ℤ) : ℝ) 1 X.correctionCoordinate
-        _ =
-            ((n : ℤ) : ℝ) * X.correctionCoordinate +
-              X.correctionCoordinate := by
-          exact congrArg
-            (fun a : ℝ => ((n : ℤ) : ℝ) * X.correctionCoordinate + a)
-            (one_mul X.correctionCoordinate)
+    exact CompletedBoundaryHilbertSource.ext
+      (SubNegMonoid.zsmul_succ' n X.seed)
+      (by
+        change ((((n.succ : ℕ) : ℤ) : ℝ) * X.correctionCoordinate) =
+          (((n : ℕ) : ℤ) : ℝ) * X.correctionCoordinate + X.correctionCoordinate
+        have hsucc :
+            (((n.succ : ℕ) : ℤ) : ℝ) =
+              (((n : ℕ) : ℤ) : ℝ) + 1 := by
+          calc
+            (((n.succ : ℕ) : ℤ) : ℝ) =
+                ((n.succ : ℕ) : ℝ) := by
+              exact Int.cast_natCast n.succ
+            _ = ((n : ℕ) : ℝ) + 1 := by
+              exact Nat.cast_succ n
+            _ = (((n : ℕ) : ℤ) : ℝ) + 1 := by
+              exact congrArg (fun a : ℝ => a + 1)
+                (Int.cast_natCast n).symm
+        calc
+          (((n.succ : ℕ) : ℤ) : ℝ) * X.correctionCoordinate =
+              ((((n : ℕ) : ℤ) : ℝ) + 1) * X.correctionCoordinate := by
+            exact congrArg (fun a : ℝ => a * X.correctionCoordinate) hsucc
+          _ =
+              (((n : ℕ) : ℤ) : ℝ) * X.correctionCoordinate +
+                1 * X.correctionCoordinate := by
+            exact add_mul (((n : ℕ) : ℤ) : ℝ) 1 X.correctionCoordinate
+          _ =
+              (((n : ℕ) : ℤ) : ℝ) * X.correctionCoordinate +
+                X.correctionCoordinate := by
+            exact congrArg
+              (fun a : ℝ =>
+                (((n : ℕ) : ℤ) : ℝ) * X.correctionCoordinate + a)
+              (one_mul X.correctionCoordinate))
   zsmul_neg' := by
     intro n X
-    ext
-    · exact zsmul_neg' n X.seed
-    · change (((-Int.ofNat n : ℤ) : ℝ) * X.correctionCoordinate) =
-        -(((n : ℤ) : ℝ) * X.correctionCoordinate)
-      calc
-        ((-Int.ofNat n : ℤ) : ℝ) * X.correctionCoordinate =
-            (-((n : ℤ) : ℝ)) * X.correctionCoordinate := by
-          exact congrArg (fun a : ℝ => a * X.correctionCoordinate)
-            (Int.cast_neg (Int.ofNat n))
-        _ = -(((n : ℤ) : ℝ) * X.correctionCoordinate) := by
-          exact neg_mul ((n : ℤ) : ℝ) X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (SubNegMonoid.zsmul_neg' n X.seed)
+      (by
+        change (((Int.negSucc n : ℤ) : ℝ) * X.correctionCoordinate) =
+          -(((((n.succ : ℕ) : ℤ) : ℝ) * X.correctionCoordinate))
+        have hneg :
+            ((Int.negSucc n : ℤ) : ℝ) =
+              -((((n.succ : ℕ) : ℤ) : ℝ)) := by
+          calc
+            ((Int.negSucc n : ℤ) : ℝ) =
+                -(((n + 1 : ℕ) : ℝ)) := by
+              exact Int.cast_negSucc n
+            _ = -((((n.succ : ℕ) : ℤ) : ℝ)) := by
+              exact congrArg Neg.neg (Int.cast_natCast n.succ).symm
+        calc
+          ((Int.negSucc n : ℤ) : ℝ) * X.correctionCoordinate =
+              -((((n.succ : ℕ) : ℤ) : ℝ)) * X.correctionCoordinate := by
+            exact congrArg (fun a : ℝ => a * X.correctionCoordinate) hneg
+          _ =
+              -(((((n.succ : ℕ) : ℤ) : ℝ) * X.correctionCoordinate)) := by
+            exact neg_mul ((((n.succ : ℕ) : ℤ) : ℝ))
+              X.correctionCoordinate)
 
 instance : Module ℝ CompletedBoundaryHilbertSource where
   one_smul := by
     intro X
-    ext
-    · exact one_smul ℝ X.seed
-    · exact one_mul X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (one_smul ℝ X.seed)
+      (one_mul X.correctionCoordinate)
   mul_smul := by
     intro a b X
-    ext
-    · exact mul_smul a b X.seed
-    · exact mul_assoc a b X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (mul_smul a b X.seed)
+      (mul_assoc a b X.correctionCoordinate)
   smul_zero := by
     intro a
-    ext
-    · exact smul_zero a
-    · exact mul_zero a
+    exact CompletedBoundaryHilbertSource.ext
+      (smul_zero a)
+      (mul_zero a)
   smul_add := by
     intro a X Y
-    ext
-    · exact smul_add a X.seed Y.seed
-    · exact mul_add a X.correctionCoordinate Y.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (smul_add a X.seed Y.seed)
+      (mul_add a X.correctionCoordinate Y.correctionCoordinate)
   add_smul := by
     intro a b X
-    ext
-    · exact add_smul a b X.seed
-    · exact add_mul a b X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (add_smul a b X.seed)
+      (add_mul a b X.correctionCoordinate)
   zero_smul := by
     intro X
-    ext
-    · exact zero_smul ℝ X.seed
-    · exact zero_mul X.correctionCoordinate
+    exact CompletedBoundaryHilbertSource.ext
+      (zero_smul ℝ X.seed)
+      (zero_mul X.correctionCoordinate)
 
 end CompletedBoundaryHilbertSource
 
@@ -420,7 +458,7 @@ theorem CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent.symm
     (h :
       CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent X Y) :
     CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent Y X := by
-  exact h.symm
+  exact Eq.symm h
 
 /-- GNS-tomographic equivalence is transitive. -/
 theorem CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent.trans
@@ -430,7 +468,7 @@ theorem CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent.trans
     (hYZ :
       CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent Y Z) :
     CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent X Z := by
-  exact hXY.trans hYZ
+  exact Eq.trans hXY hYZ
 
 /-- GNS tomography determines the ordered-heart scalar.  This is the positive-kernel
 analogue of projective tomography: equality against all probes identifies the diagonal
@@ -448,11 +486,8 @@ theorem completedBoundaryHilbertSource_GNSTomography_of_eq
     {X Y : CompletedBoundaryHilbertSource}
     (hXY : X = Y) :
     CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent X Y := by
-  exact Eq.subst
-    (motive := fun Z : CompletedBoundaryHilbertSource =>
-      CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent X Z)
-    hXY.symm
-    (CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent.refl X)
+  cases hXY
+  exact CompletedBoundaryHilbertSource.GNSTomographicallyEquivalent.refl X
 
 /-- Equal Hilbert-source representatives have the same ordered-heart scalar. -/
 theorem completedOrderedHeartScalar_eq_of_eq
@@ -588,15 +623,15 @@ theorem primeBoundaryChannel_zero :
   unfold primeBoundaryChannel
   unfold zetaCompletedExplicitFormulaPrimeContribution
   unfold zetaCompletedExplicitFormulaPrimePowerContribution
-  let term : ZetaPrimePowerIndex → ℝ :=
+  let term : ZetaPrimePowerIndex → ℂ :=
     fun ι : ZetaPrimePowerIndex =>
-      -(ZetaPrimePowerIndex.weight ι *
-        Complex.re
-          (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
-              (ZetaPrimePowerIndex.center ι) +
-            star
-              (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
-                (ZetaPrimePowerIndex.center ι))))
+      -(((ZetaPrimePowerIndex.weight ι : ℝ) : ℂ) *
+        ((Complex.re
+            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                (ZetaPrimePowerIndex.center ι) +
+              star
+                (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                  (ZetaPrimePowerIndex.center ι))) : ℝ) : ℂ))
   have hterm : term = fun _ι : ZetaPrimePowerIndex => 0 := by
     ext ι
     show term ι = 0
@@ -639,33 +674,35 @@ theorem primeBoundaryChannel_zero :
           0 := by
       exact (congrArg Complex.re hsum).trans Complex.zero_re
     calc
-      -(ZetaPrimePowerIndex.weight ι *
-          Complex.re
-            (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
-                (ZetaPrimePowerIndex.center ι) +
-              star
-                (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
-                  (ZetaPrimePowerIndex.center ι)))) =
-          -(ZetaPrimePowerIndex.weight ι * 0) := by
+      -(((ZetaPrimePowerIndex.weight ι : ℝ) : ℂ) *
+          ((Complex.re
+              (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                  (ZetaPrimePowerIndex.center ι) +
+                star
+                  (zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction)
+                    (ZetaPrimePowerIndex.center ι))) : ℝ) : ℂ)) =
+          -(((ZetaPrimePowerIndex.weight ι : ℝ) : ℂ) * ((0 : ℝ) : ℂ)) := by
         exact congrArg
-          (fun x : ℝ => -(ZetaPrimePowerIndex.weight ι * x))
+          (fun x : ℝ =>
+            -(((ZetaPrimePowerIndex.weight ι : ℝ) : ℂ) * ((x : ℝ) : ℂ)))
           hre
       _ = -0 := by
-        exact congrArg Neg.neg (mul_zero (ZetaPrimePowerIndex.weight ι))
+        exact congrArg Neg.neg
+          (mul_zero (((ZetaPrimePowerIndex.weight ι : ℝ) : ℂ)))
       _ = 0 := by
         exact neg_zero
-  show ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) = 0
+  change (∑' ι : ZetaPrimePowerIndex, term ι) = 0
   calc
-    ((∑' ι : ZetaPrimePowerIndex, term ι) : ℂ) =
-        ((∑' _ι : ZetaPrimePowerIndex, (0 : ℝ)) : ℂ) := by
+    (∑' ι : ZetaPrimePowerIndex, term ι) =
+        (∑' _ι : ZetaPrimePowerIndex, (0 : ℂ)) := by
       exact congrArg
-        (fun u : ZetaPrimePowerIndex → ℝ =>
-          ((∑' ι : ZetaPrimePowerIndex, u ι) : ℂ))
+        (fun u : ZetaPrimePowerIndex → ℂ =>
+          (∑' ι : ZetaPrimePowerIndex, u ι))
         hterm
-    _ = ((0 : ℝ) : ℂ) := by
-      exact congrArg (fun x : ℝ => (x : ℂ)) (tsum_zero)
     _ = 0 := by
-      exact Complex.ofReal_zero
+      exact tsum_zero
+    _ = 0 := by
+      rfl
 
 /-- The archimedean boundary channel vanishes on the zero admissible probe. -/
 theorem archimedeanBoundaryChannel_zero :
@@ -884,30 +921,48 @@ theorem completedBoundaryTimePairingScalar_eq_of_add_lowerWeightRadical
 theorem completedBoundaryHilbertSource_eq_add_sub
     (X Y : CompletedBoundaryHilbertSource) :
     X = Y + (X - Y) := by
-  have h :
-      Y + (X - Y) = X := by
-    calc
-      Y + (X - Y) =
-          Y + (X + -Y) := by
-        rfl
-      _ =
-          (Y + X) + -Y := by
-        exact (add_assoc Y X (-Y)).symm
-      _ =
-          (X + Y) + -Y := by
-        exact congrArg (fun Z : CompletedBoundaryHilbertSource => Z + -Y)
-          (add_comm Y X)
-      _ =
-          X + (Y + -Y) := by
-        exact add_assoc X Y (-Y)
-      _ =
-          X + 0 := by
-        exact congrArg (fun Z : CompletedBoundaryHilbertSource => X + Z)
-          (add_right_neg Y)
-      _ =
-          X := by
-        exact add_zero X
-  exact h.symm
+  apply CompletedBoundaryHilbertSource.ext
+  · change X.seed = Y.seed + (X.seed + -Y.seed)
+    exact
+      (calc
+        Y.seed + (X.seed + -Y.seed) =
+            (Y.seed + X.seed) + -Y.seed := by
+          exact (add_assoc Y.seed X.seed (-Y.seed)).symm
+        _ = (X.seed + Y.seed) + -Y.seed := by
+          exact congrArg (fun Z : ZetaAdmissibleFunction => Z + -Y.seed)
+            (add_comm Y.seed X.seed)
+        _ = X.seed + (Y.seed + -Y.seed) := by
+          exact add_assoc X.seed Y.seed (-Y.seed)
+        _ = X.seed + 0 := by
+          exact congrArg (fun Z : ZetaAdmissibleFunction => X.seed + Z)
+            (add_right_neg Y.seed)
+        _ = X.seed := by
+          exact add_zero X.seed).symm
+  · change X.correctionCoordinate =
+      Y.correctionCoordinate + (X.correctionCoordinate + -Y.correctionCoordinate)
+    exact
+      (calc
+        Y.correctionCoordinate +
+            (X.correctionCoordinate + -Y.correctionCoordinate) =
+            (Y.correctionCoordinate + X.correctionCoordinate) +
+              -Y.correctionCoordinate := by
+          exact
+            (add_assoc Y.correctionCoordinate X.correctionCoordinate
+              (-Y.correctionCoordinate)).symm
+        _ = (X.correctionCoordinate + Y.correctionCoordinate) +
+              -Y.correctionCoordinate := by
+          exact congrArg (fun Z : ℝ => Z + -Y.correctionCoordinate)
+            (add_comm Y.correctionCoordinate X.correctionCoordinate)
+        _ = X.correctionCoordinate +
+              (Y.correctionCoordinate + -Y.correctionCoordinate) := by
+          exact
+            add_assoc X.correctionCoordinate Y.correctionCoordinate
+              (-Y.correctionCoordinate)
+        _ = X.correctionCoordinate + 0 := by
+          exact congrArg (fun Z : ℝ => X.correctionCoordinate + Z)
+            (add_right_neg Y.correctionCoordinate)
+        _ = X.correctionCoordinate := by
+          exact add_zero X.correctionCoordinate).symm
 
 /-- Two Hilbert-source representatives have the same reduced time-pairing scalar when their
 difference is lower-weight radical, provided the completed Hilbert pairing is additive in both

@@ -25,31 +25,28 @@ theorem finite_completedZerosInCenteredHeightBall
   have himage_subset :
       Subtype.val '' completedZerosInCenteredHeightBall T ⊆ S := by
     intro z hz
-    rcases hz with ⟨ρ, hρ, hzρ⟩
-    unfold S
-    unfold centeredZetaZerosInCenteredHeightBall
-    constructor
-    · have hzero_raw : centeredCompletedRiemannZeta (ρ : ℂ) = 0 :=
-        (centeredCompletedRiemannZetaFunction_eq (ρ : ℂ)).symm.trans
-          (zetaCompletedZero_zero ρ)
-      exact Eq.subst
-        (motive := fun w : ℂ => centeredCompletedRiemannZeta w = 0)
-        hzρ
-        hzero_raw
-    · have hheight :
-          1 + ‖((ρ : ℂ) - (1 / 2 : ℂ)).im‖ ≤ T := by
-        exact Eq.subst
-          (motive := fun x : ℝ => x ≤ T)
-          (by
-            unfold zetaCompletedZeroCenteredHeight
-            unfold zetaCenteredZero
-            rfl)
-          hρ
-      exact Eq.subst
-        (motive := fun w : ℂ =>
-          1 + ‖(w - (1 / 2 : ℂ)).im‖ ≤ T)
-        hzρ
-        hheight
+    exact
+      match hz with
+      | ⟨ρ, hρ, hzρ⟩ =>
+          let hzero_raw : centeredCompletedRiemannZeta (ρ : ℂ) = 0 :=
+            (centeredCompletedRiemannZetaFunction_eq (ρ : ℂ)).symm.trans
+              (zetaCompletedZero_zero ρ)
+          let hzero_z : centeredCompletedRiemannZeta z = 0 :=
+            Eq.subst
+              (motive := fun w : ℂ => centeredCompletedRiemannZeta w = 0)
+              hzρ
+              hzero_raw
+          let hheight_raw :
+              1 + ‖((ρ : ℂ) - (1 / 2 : ℂ)).im‖ ≤ T :=
+            hρ
+          let hheight_z :
+              1 + ‖(z - (1 / 2 : ℂ)).im‖ ≤ T :=
+            Eq.subst
+              (motive := fun w : ℂ =>
+                1 + ‖(w - (1 / 2 : ℂ)).im‖ ≤ T)
+              hzρ
+              hheight_raw
+          ⟨hzero_z, hheight_z⟩
   have hfinite_image :
       (Subtype.val '' completedZerosInCenteredHeightBall T).Finite :=
     Set.Finite.subset

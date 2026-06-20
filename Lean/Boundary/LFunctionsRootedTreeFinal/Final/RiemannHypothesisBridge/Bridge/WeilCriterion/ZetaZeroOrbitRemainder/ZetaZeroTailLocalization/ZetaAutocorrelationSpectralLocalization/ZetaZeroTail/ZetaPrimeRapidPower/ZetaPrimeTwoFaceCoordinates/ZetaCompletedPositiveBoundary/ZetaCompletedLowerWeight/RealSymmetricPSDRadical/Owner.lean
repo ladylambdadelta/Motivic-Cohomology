@@ -104,9 +104,12 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
           -((b + 1) / (2 * c)) * (2 * c) = -(b + 1) := by
         calc
           -((b + 1) / (2 * c)) * (2 * c)
-              = -(((b + 1) * (2 * c)⁻¹) * (2 * c)) := by
-                exact congrArg (fun x : ℝ => -x * (2 * c))
-                  (div_eq_mul_inv (b + 1) (2 * c))
+              = -(((b + 1) / (2 * c)) * (2 * c)) := by
+                exact neg_mul ((b + 1) / (2 * c)) (2 * c)
+          _ = -(((b + 1) * (2 * c)⁻¹) * (2 * c)) := by
+            exact congrArg Neg.neg
+              (congrArg (fun x : ℝ => x * (2 * c))
+                (div_eq_mul_inv (b + 1) (2 * c)))
           _ = -((b + 1) * ((2 * c)⁻¹ * (2 * c))) := by
             exact congrArg Neg.neg (mul_assoc (b + 1) (2 * c)⁻¹ (2 * c))
           _ = -((b + 1) * 1) := by
@@ -114,17 +117,20 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
           _ = -(b + 1) := by
             exact congrArg Neg.neg (mul_one (b + 1))
       have hmiddle :
-          2 * (-(b + 1) / (2 * c)) * c = -(b + 1) := by
+          2 * (-((b + 1) / (2 * c))) * c = -(b + 1) := by
+        have hcomm :
+            2 * (-((b + 1) / (2 * c))) =
+              -((b + 1) / (2 * c)) * 2 := by
+          exact mul_comm 2 (-((b + 1) / (2 * c)))
         calc
-          2 * (-(b + 1) / (2 * c)) * c
-              = (-(b + 1) / (2 * c)) * (2 * c) := by
-                exact Eq.trans
-                  (mul_assoc 2 (-(b + 1) / (2 * c)) c)
-                  (congrArg (fun x : ℝ => x * c)
-                    (mul_comm 2 (-(b + 1) / (2 * c))))
+          2 * (-((b + 1) / (2 * c))) * c =
+              (-((b + 1) / (2 * c)) * 2) * c := by
+                exact congrArg (fun x : ℝ => x * c) hcomm
+          _ = -((b + 1) / (2 * c)) * (2 * c) := by
+            exact mul_assoc (-((b + 1) / (2 * c))) 2 c
           _ = -(b + 1) := hneg_cancel
       calc
-        b + 2 * (-(b + 1) / (2 * c)) * c
+        b + 2 * (-((b + 1) / (2 * c))) * c
             = b + (-(b + 1)) := by
               exact congrArg (fun x : ℝ => b + x) hmiddle
         _ = b + (-b + -1) := by

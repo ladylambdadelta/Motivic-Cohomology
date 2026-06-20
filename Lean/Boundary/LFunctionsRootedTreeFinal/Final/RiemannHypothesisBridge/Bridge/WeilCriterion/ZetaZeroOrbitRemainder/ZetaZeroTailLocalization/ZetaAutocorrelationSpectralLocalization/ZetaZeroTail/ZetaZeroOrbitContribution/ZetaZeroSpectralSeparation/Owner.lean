@@ -22,7 +22,6 @@ finite spectral sample set. -/
 theorem zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset
     (ρ η : ℂ) (hη : η ∈ zetaZeroOrbitFinset ρ) :
     zetaCenteredZero η ∈ zetaZeroOrbitSpectralSampleFinset ρ := by
-  unfold zetaZeroOrbitSpectralSampleFinset
   exact Finset.mem_image.mpr ⟨η, hη, rfl⟩
 
 /-- The finite spectral interpolation layer supplies an autocorrelation probe whose
@@ -33,13 +32,13 @@ theorem exists_zeroOrbit_autocorrelation_unitSpectralSamples
       ∀ η : ℂ, η ∈ zetaZeroOrbitFinset ρ →
         zetaSpectralEval (ZetaAdmissibleFunction.convolutionAutocorrelation f)
           (zetaCenteredZero η) = 1 := by
-  rcases
+  match
     ZetaAdmissibleFunction.exists_autocorrelation_spectralEval_one_on_finset
       (zetaZeroOrbitSpectralSampleFinset ρ) with
-    ⟨f, hf⟩
-  exact ⟨f, fun η hη =>
-    hf (zetaCenteredZero η)
-      (zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset ρ η hη)⟩
+  | ⟨f, hf⟩ =>
+      exact ⟨f, fun η hη =>
+        hf (zetaCenteredZero η)
+          (zetaCenteredZero_mem_zeroOrbitSpectralSampleFinset ρ η hη)⟩
 
 /-- A nonzero real part prevents a zero from colliding with its reflected orbit face. -/
 theorem zetaZeroOrbit_self_ne_neg_of_re_ne_zero
@@ -59,10 +58,10 @@ theorem zetaZeroOrbit_self_ne_neg_of_re_ne_zero
       _ = 0 := by
         exact neg_add_cancel ρ.re
   have htwo : (2 : ℝ) * ρ.re = 0 := by
-    exact (two_mul ρ.re).symm.trans htwo_zero
+    exact (two_mul ρ.re).trans htwo_zero
   have htwo_ne : (2 : ℝ) ≠ 0 := by
     exact two_ne_zero
-  exact hρre (eq_zero_of_mul_eq_zero_left htwo htwo_ne)
+  exact hρre (eq_zero_of_ne_zero_of_mul_left_eq_zero htwo_ne htwo)
 
 /-- The reflected face is not already present in the singleton positive face. -/
 theorem zetaZeroOrbit_neg_not_mem_singleton_self
@@ -78,12 +77,16 @@ theorem zetaZeroOrbitContribution_eq_self_add_neg
     (ρ : ℂ) (hρre : ρ.re ≠ 0) (φ : ZetaAdmissibleFunction) :
     zetaZeroOrbitContribution ρ φ =
       zetaZeroSideContribution ρ φ + zetaZeroSideContribution (-ρ) φ := by
-  unfold zetaZeroOrbitContribution
-  unfold zetaZeroOrbitFinset
+  show
+    (insert ρ (insert (-ρ) (∅ : Finset ℂ))).sum
+        (fun η => zetaZeroSideContribution η φ) =
+      zetaZeroSideContribution ρ φ + zetaZeroSideContribution (-ρ) φ
   calc
-    (insert ρ (insert (-ρ) ∅)).sum (fun η => zetaZeroSideContribution η φ) =
+    (insert ρ (insert (-ρ) (∅ : Finset ℂ))).sum
+        (fun η => zetaZeroSideContribution η φ) =
         zetaZeroSideContribution ρ φ +
-          (insert (-ρ) ∅).sum (fun η => zetaZeroSideContribution η φ) := by
+          (insert (-ρ) (∅ : Finset ℂ)).sum
+            (fun η => zetaZeroSideContribution η φ) := by
       exact Finset.sum_insert
         (by
           intro hmem
@@ -239,13 +242,13 @@ theorem exists_zeroOrbit_autocorrelation_finiteSpectralSeparator_owner
     ∃ f : ZetaAdmissibleFunction,
       zetaZeroOrbitContributionRe ρ
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  rcases exists_zeroOrbit_autocorrelation_unitSpectralSamples ρ with
-    ⟨f, hsample⟩
-  exact ⟨f,
-    zetaZeroOrbitContributionRe_lt_zero_of_unitSpectralSamples
-      ρ hρ hρre horbit
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      hsample⟩
+  match exists_zeroOrbit_autocorrelation_unitSpectralSamples ρ with
+  | ⟨f, hsample⟩ =>
+      exact ⟨f,
+        zetaZeroOrbitContributionRe_lt_zero_of_unitSpectralSamples
+          ρ hρ hρre horbit
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+          hsample⟩
 
 end
 

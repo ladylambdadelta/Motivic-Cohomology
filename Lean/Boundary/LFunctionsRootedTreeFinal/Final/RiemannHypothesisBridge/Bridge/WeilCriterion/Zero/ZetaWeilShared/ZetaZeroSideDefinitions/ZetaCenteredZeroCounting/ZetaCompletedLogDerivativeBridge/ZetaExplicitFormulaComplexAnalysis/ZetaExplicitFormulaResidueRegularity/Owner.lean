@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaContour.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaGeometry.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroSideContribution.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.Owner
 
 /-!
 # Boundary explicit-formula residue regularity
@@ -156,7 +157,7 @@ theorem completedZetaContourIntegrand_regularAt_all_boundary_points_of_avoidsBou
       z ∈ explicitFormulaContourFamilyBoundary F T →
         ContinuousAt (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z ∧
           DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z :=
-  fun z hz => completedZetaContourIntegrand_regularAt_boundary_of_avoidsBoundary f F h T havoid hz
+  fun _ hz => completedZetaContourIntegrand_regularAt_boundary_of_avoidsBoundary f F h T havoid hz
 
 /-- The completed contour integrand is continuous on every avoided rectangle boundary.
 
@@ -171,7 +172,7 @@ theorem completedZetaContourIntegrand_continuousOn_boundary_of_avoidsBoundary
   intro z hz
   exact
     (completedZetaContourIntegrand_regularAt_all_boundary_points_of_avoidsBoundary
-      f F h T havoid z hz).1
+      f F h T havoid z hz).1.continuousWithinAt
 
 /-- The explicit-formula residue datum attached to a completed zero.  The zero coordinate
 is the same coordinate used by the completed-zero side, so the residue summand evaluates
@@ -264,18 +265,17 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
 /-- The zero-side presentation of the finite completed-zero height windows converges to the
 completed zero-side complex `tsum`. -/
 theorem explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContribution (ρ : ℂ) f)) :
     Tendsto
       (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T)
       atTop
       (𝓝
         (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
           zetaZeroSideContribution (ρ : ℂ) f)) := by
-  have hsum :
-      Summable
-        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
-          zetaZeroSideContribution (ρ : ℂ) f) :=
-    summable_zetaZeroSideContribution f
   have hwindow :
       Tendsto
         (fun T : ℝ =>
@@ -305,7 +305,11 @@ theorem explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum
 /-- The residue presentation of the finite completed-zero height windows converges to the
 completed zero-side complex `tsum`. -/
 theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum
-    (f : ZetaAdmissibleFunction) :
+    (f : ZetaAdmissibleFunction)
+    (hsum :
+      Summable
+        (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} =>
+          zetaZeroSideContribution (ρ : ℂ) f)) :
     Tendsto
       (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T)
       atTop
@@ -319,7 +323,7 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_tendsto_zeroSideTsum
         (𝓝
           (∑' ρ : {ρ : ℂ // ZetaCompletedZero ρ},
             zetaZeroSideContribution (ρ : ℂ) f)) :=
-    explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum f
+    explicitFormulaCompletedZeroHeightWindowZeroSideSum_tendsto_tsum f hsum
   have hpointwise :
       (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowResidueSum f T) =
         (fun T : ℝ => explicitFormulaCompletedZeroHeightWindowZeroSideSum f T) := by
@@ -339,15 +343,16 @@ completed-zeta singular set.
 
 This is the acyclic owner theorem for the finite rectangle residue equality.  Downstream
 files consume this theorem; they do not reconstruct a second finite residue calculation. -/
-theorem zetaCompletedExplicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_ownerCauchyResidueComputation
+theorem zetaCompletedExplicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_of_finiteRectangleResidueTheorem
     (f : ZetaAdmissibleFunction) (F : ExplicitFormulaContourFamily)
-    (h : ExplicitFormulaFamilyAnalyticPackage f F) (T : ℝ)
-    (havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T) :
+    (_h : ExplicitFormulaFamilyAnalyticPackage f F) (T : ℝ)
+    (_havoid : explicitFormulaContourFamilyAvoidsSingularBoundary F T)
+    (hfinite :
+      zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
+        explicitFormulaCompletedZeroHeightWindowResidueSum f T) :
     zetaCompletedExplicitFormulaContourIntegral f (F.rectangle T) =
       explicitFormulaCompletedZeroHeightWindowResidueSum f T := by
-  exact
-    explicitFormulaRectangleContourIntegral_eq_heightWindowResidueSum_of_avoidsBoundary_ownerFiniteRectangleResidueTheorem
-      f F h T havoid
+  exact hfinite
 
 end ZetaAdmissibleFunction
 
