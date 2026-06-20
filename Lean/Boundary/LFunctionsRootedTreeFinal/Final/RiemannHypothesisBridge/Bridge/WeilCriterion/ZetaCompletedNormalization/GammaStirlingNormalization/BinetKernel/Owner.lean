@@ -2,7 +2,6 @@ import Mathlib.Analysis.Complex.PhragmenLindelof
 import Mathlib.Data.Complex.Exponential
 import Mathlib.Analysis.RCLike.Basic
 import Mathlib.NumberTheory.AbelSummation
-import Mathlib.NumberTheory.LSeries.Nonvanishing
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.Analysis.SpecialFunctions.Complex.Arctan
@@ -13,7 +12,6 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Core.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.RightCriticalStripCompact.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.Owner
 
 /-!
 # Binet kernel and sectorial Gamma seed estimates
@@ -48,12 +46,9 @@ theorem Gammaℝ_finiteOrder_growth_bound_of_log_growth_on_region
   match hlog with
   | ⟨C, m, hC⟩ =>
       exact
-        Exists.intro 1
-          (Exists.intro (|C| + 1)
-            (Exists.intro m
-              (And.intro zero_lt_one
-                (And.intro
-                  (add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one)
+        ⟨1, |C| + 1, m,
+              zero_lt_one,
+                  (add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one),
                   (fun z hzP =>
                     let hC_abs : C ≤ |C| + 1 :=
                       le_trans (le_abs_self C) (le_add_of_nonneg_right zero_le_one)
@@ -96,7 +91,7 @@ theorem Gammaℝ_finiteOrder_growth_bound_of_log_growth_on_region
                           _ = 1 * Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m) := by
                             exact
                               (one_mul
-                                (Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))).symm)))))
+                                (Real.exp ((|C| + 1) * (1 + ‖z‖) ^ m))).symm)⟩
 
 /-- The corrected right-half-plane Gamma/Stirling region avoids the `Gammaℝ` zero at `0`.
 
@@ -106,13 +101,12 @@ theorem Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm
     {z : ℂ}
     (hz_re : 0 ≤ z.re)
     (hz_norm : 1 ≤ ‖z‖) :
-    Complex.Gammaℝ z ≠ 0 := by
-  intro hzero
+    Complex.Gammaℝ z ≠ 0 := fun hzero =>
   match Complex.Gammaℝ_eq_zero_iff.mp hzero with
   | ⟨n, hz⟩ =>
       have hz_eq : z = -(n : ℂ) := hz
       have hz_re_eq : z.re = (-(n : ℂ)).re := congrArg Complex.re hz_eq
-      cases n with
+      match n with
       | zero =>
           have hnorm_zero : ‖z‖ = 0 := by
             exact congrArg norm hz_eq
@@ -211,8 +205,7 @@ theorem unfoldedNormalizedGammaℝFactor_ne_zero_of_re_nonneg_and_one_le_norm
     {z : ℂ}
     (hz_re : 0 ≤ z.re)
     (hz_norm : 1 ≤ ‖z‖) :
-    unfoldedNormalizedGammaℝFactor z ≠ 0 := by
-  intro hzero
+    unfoldedNormalizedGammaℝFactor z ≠ 0 := fun hzero =>
   have hGammaℝ_ne : Complex.Gammaℝ z ≠ 0 :=
     Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm hz_re hz_norm
   have hGammaℝ_zero : Complex.Gammaℝ z = 0 :=
@@ -247,8 +240,7 @@ theorem halfArgument_re_nonneg_of_re_nonneg
 theorem halfArgument_ne_zero_of_one_le_norm
     {z : ℂ}
     (hz_norm : 1 ≤ ‖z‖) :
-    z / 2 ≠ 0 := by
-  intro hzero
+    z / 2 ≠ 0 := fun hzero =>
   have hz_zero : z = 0 := by
     have hmul := congrArg (fun w : ℂ => w * (2 : ℂ)) hzero
     calc
@@ -273,7 +265,7 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
     halfArgument_re_nonneg_of_re_nonneg hz_re
   have hz_half_ne : z / 2 ≠ 0 :=
     halfArgument_ne_zero_of_one_le_norm hz_norm
-  intro hzero
+  exact fun hzero =>
   match (Complex.Gamma_eq_zero_iff (z / 2)).mp hzero with
   | ⟨n, hn⟩ =>
       have hhalf_re_eq : (z / 2).re = (-(n : ℂ)).re := congrArg Complex.re hn
@@ -286,7 +278,7 @@ theorem ComplexGamma_halfArgument_ne_zero_of_re_nonneg_and_one_le_norm
           _ ≤ 0 := neg_nonpos.mpr (Nat.cast_nonneg n)
       have hz_half_re_zero : (z / 2).re = 0 :=
         le_antisymm hz_half_re_nonpos hz_half_re
-      cases n with
+      match n with
       | zero =>
           have hhalf_zero : z / 2 = 0 := by
             exact hn
@@ -413,9 +405,8 @@ theorem Complex.binetSecondFormula_arctan_kernel_norm_le_openRightHalfPlane
           ‖Complex.arctan ((t : ℂ) / w) /
               (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
             (t / ‖w‖) /
-              (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-  intro t ht hsmall
-  exact
+              (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
+  fun t ht hsmall =>
     Complex.binetSecondFormula_kernel_norm_le_of_small_argument
       (w := w) hw_re_pos ht hsmall
 
@@ -502,9 +493,9 @@ theorem Real.binetSecondFormula_kernel_majorant_tail_integral_le_exp
       ∀ t : ℝ,
         t ∈ Set.Ioi a →
           ‖t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)‖ ≤
-            2 * Real.exp (-Real.pi * t) := by
-    intro t ht
-    exact Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
+            2 * Real.exp (-Real.pi * t) :=
+    fun t ht =>
+      Real.binetSecondFormula_kernel_majorant_tail_pointwise_le_two_exp
       (lt_of_le_of_lt ha ht.1)
   have hexp_int :
       IntegrableOn (fun t : ℝ => 2 * Real.exp (-Real.pi * t)) (Set.Ioi a) := by
@@ -733,9 +724,10 @@ theorem Complex.log_binet_quotient_coords (z : ℂ)
     Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I)) =
       (Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖) +
         arg ((1 + z * Complex.I) / (1 - z * Complex.I)) * Complex.I := by
-  apply Complex.ext <;>
-    exacts [Complex.log_binet_quotient_re_eq_log_ratio z h1 h2,
-      Complex.log_binet_quotient_im_eq_arg_ratio z]
+  exact
+    Complex.ext
+      (Complex.log_binet_quotient_re_eq_log_ratio z h1 h2)
+      (Complex.log_binet_quotient_im_eq_arg_ratio z)
 
 /-- The Binet quotient logarithm has real and imaginary parts given by the
 coordinate formulas. -/
@@ -745,9 +737,10 @@ theorem Complex.log_binet_quotient_re_im (z : ℂ)
       Real.log ‖1 + z * Complex.I‖ - Real.log ‖1 - z * Complex.I‖ ∧
     (Complex.log ((1 + z * Complex.I) / (1 - z * Complex.I))).im =
       arg ((1 + z * Complex.I) / (1 - z * Complex.I)) := by
-  constructor
-  · exact Complex.log_binet_quotient_re_eq_log_ratio z h1 h2
-  · exact Complex.log_binet_quotient_im_eq_arg_ratio z
+  exact
+    ⟨
+      (Complex.log_binet_quotient_re_eq_log_ratio z h1 h2),
+      (Complex.log_binet_quotient_im_eq_arg_ratio z)⟩
 
 /-- The Binet quotient factors are both nonzero whenever z has nonzero real part.
 
@@ -816,6 +809,18 @@ theorem Complex.binet_quotient_factors_ne_zero_of_denominator_ne_zero
     (hz : z.re ≠ 0) :
     1 + z * Complex.I ≠ 0 :=
   Complex.binet_quotient_factors_ne_zero_of_re_ne_zero z hz
+
+/-- Small-argument Binet remainder estimate with the explicit `1 / ‖w‖`
+factor. -/
+theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤
+      4 *
+        (∫ t : ℝ in Set.Ioi (0 : ℝ),
+          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
+  exact Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
+    (w := w) hw_re_pos
 
 /-- Honest split-bound mirror for the Binet remainder on the open right half-plane.
 
@@ -893,25 +898,12 @@ theorem Complex.binetSecondFormula_logGamma_with_split_remainder_bound_closedRig
             ⟨hlog w hw_re_pos hw_norm,
               Complex.binetSecondFormula_remainder_split_bound_openRightHalfPlane hw_re_pos⟩⟩
 
-/-- Small-argument Binet remainder estimate with the explicit `1 / ‖w‖`
-factor. -/
-theorem Complex.binetSecondFormula_small_remainder_norm_le_integral_majorant
-    {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
-    ‖Complex.binetSecondFormulaSmallRemainder w‖ ≤
-      4 *
-        (∫ t : ℝ in Set.Ioi (0 : ℝ),
-          t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) / ‖w‖ := by
-  exact Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
-    (w := w) hw_re_pos
-
 /-- The concrete contour tail majorant kernel has the uniform full-sector
 `1 / ‖w‖` pointwise bound. -/
 theorem Complex.binetSecondFormula_contourTailMajorantKernel_uniform_majorant :
     Complex.BinetSecondFormulaContourTailUniformMajorant
       Complex.binetSecondFormulaContourTailMajorantKernel 2 1 := by
-  intro w _hw_re_pos _hw_norm
-  exact
+  exact fun w _hw_re_pos _hw_norm =>
     (ae_restrict_mem measurableSet_Ioi).mono
       (fun t ht => by
         have ht_pos : 0 < t :=
@@ -1236,7 +1228,7 @@ theorem Complex.binetSecondFormula_remainder_bound_closedRightHalfPlane_requires
   let hJ_pos : 0 < J :=
     Real.binetSecondFormula_kernel_majorant_integral_pos
   let hK : 0 < K :=
-    add_pos (mul_pos (by norm_num : (0 : ℝ) < 4) hJ_pos) hKtail
+    add_pos (mul_pos four_pos hJ_pos) hKtail
   ⟨Rtail, K, hRtail, hK, fun w hw_re_pos hRtail_le =>
     let hsplit :
         Complex.binetSecondFormulaRemainder w =

@@ -50,6 +50,176 @@ noncomputable def zetaLaplaceTransform
     (φ : LFunctions.ZetaTestFunction) (z : ℂ) : ℂ :=
   ∫ t : ℝ, φ t * Complex.exp (z * t)
 
+/-- The admissible translate agrees pointwise with right translation of the carrier. -/
+theorem zetaAdmissible_translate_toZetaTestFunction'_apply
+    (c t : ℝ) (f : LFunctions.ZetaAdmissibleFunction) :
+    (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' t =
+      f.toZetaTestFunction' (t + c) := by
+  calc
+    (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' t =
+        LFunctions.ZetaAdmissibleFunction.translate c f t := by
+      exact
+        LFunctions.ZetaAdmissibleFunction.toZetaTestFunction'_apply
+          (LFunctions.ZetaAdmissibleFunction.translate c f) t
+    _ = f (t + c) := by
+      exact LFunctions.ZetaAdmissibleFunction.translate_apply c f t
+    _ = f.toZetaTestFunction' (t + c) := by
+      exact
+        (LFunctions.ZetaAdmissibleFunction.toZetaTestFunction'_apply
+          f (t + c)).symm
+
+/-- The exponential kernel after right translation splits off the translation factor. -/
+theorem zetaLaplaceTranslate_kernel_split
+    (z : ℂ) (c u : ℝ) :
+    Complex.exp (z * ((u - c : ℝ) : ℂ)) =
+      Complex.exp (-(z * (c : ℂ))) * Complex.exp (z * (u : ℂ)) := by
+  have hsub :
+      ((u - c : ℝ) : ℂ) = (u : ℂ) - (c : ℂ) := by
+    exact Complex.ofReal_sub u c
+  have harg :
+      z * ((u - c : ℝ) : ℂ) =
+        -(z * (c : ℂ)) + z * (u : ℂ) := by
+    calc
+      z * ((u - c : ℝ) : ℂ) =
+          z * ((u : ℂ) - (c : ℂ)) := by
+        exact congrArg (fun w : ℂ => z * w) hsub
+      _ = z * ((u : ℂ) + -(c : ℂ)) := by
+        exact congrArg (fun w : ℂ => z * w) (sub_eq_add_neg (u : ℂ) (c : ℂ))
+      _ = z * (u : ℂ) + z * (-(c : ℂ)) := by
+        exact mul_add z (u : ℂ) (-(c : ℂ))
+      _ = z * (u : ℂ) + -(z * (c : ℂ)) := by
+        exact congrArg (fun w : ℂ => z * (u : ℂ) + w) (mul_neg z (c : ℂ))
+      _ = -(z * (c : ℂ)) + z * (u : ℂ) := by
+        exact add_comm (z * (u : ℂ)) (-(z * (c : ℂ)))
+  calc
+    Complex.exp (z * ((u - c : ℝ) : ℂ)) =
+        Complex.exp (-(z * (c : ℂ)) + z * (u : ℂ)) := by
+      exact congrArg Complex.exp harg
+    _ =
+        Complex.exp (-(z * (c : ℂ))) * Complex.exp (z * (u : ℂ)) := by
+      exact Complex.exp_add (-(z * (c : ℂ))) (z * (u : ℂ))
+
+/-- The translated Laplace integrand factors into the translation exponential and the
+original Laplace integrand after the whole-line change of variables. -/
+theorem zetaLaplaceTranslate_integrand_after_change
+    (z : ℂ) (c u : ℝ) (f : LFunctions.ZetaAdmissibleFunction) :
+    (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' (u - c) *
+        Complex.exp (z * ((u - c : ℝ) : ℂ)) =
+      Complex.exp (-(z * (c : ℂ))) *
+        (f.toZetaTestFunction' u * Complex.exp (z * (u : ℂ))) := by
+  have hsource :
+      (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' (u - c) =
+        f.toZetaTestFunction' u := by
+    calc
+      (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' (u - c) =
+          f.toZetaTestFunction' ((u - c) + c) := by
+        exact zetaAdmissible_translate_toZetaTestFunction'_apply c (u - c) f
+      _ = f.toZetaTestFunction' u := by
+        exact congrArg f.toZetaTestFunction' (sub_add_cancel u c)
+  have hkernel :
+      Complex.exp (z * ((u - c : ℝ) : ℂ)) =
+        Complex.exp (-(z * (c : ℂ))) * Complex.exp (z * (u : ℂ)) :=
+    zetaLaplaceTranslate_kernel_split z c u
+  calc
+    (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' (u - c) *
+        Complex.exp (z * ((u - c : ℝ) : ℂ)) =
+        f.toZetaTestFunction' u *
+          (Complex.exp (-(z * (c : ℂ))) * Complex.exp (z * (u : ℂ))) := by
+      exact congrArg₂ (fun A B : ℂ => A * B) hsource hkernel
+    _ =
+        Complex.exp (-(z * (c : ℂ))) *
+          (f.toZetaTestFunction' u * Complex.exp (z * (u : ℂ))) := by
+      calc
+        f.toZetaTestFunction' u *
+            (Complex.exp (-(z * (c : ℂ))) * Complex.exp (z * (u : ℂ))) =
+            (f.toZetaTestFunction' u * Complex.exp (-(z * (c : ℂ)))) *
+              Complex.exp (z * (u : ℂ)) := by
+          exact (mul_assoc
+            (f.toZetaTestFunction' u)
+            (Complex.exp (-(z * (c : ℂ))))
+            (Complex.exp (z * (u : ℂ)))).symm
+        _ =
+            (Complex.exp (-(z * (c : ℂ))) * f.toZetaTestFunction' u) *
+              Complex.exp (z * (u : ℂ)) := by
+          exact congrArg
+            (fun w : ℂ => w * Complex.exp (z * (u : ℂ)))
+            (mul_comm
+              (f.toZetaTestFunction' u)
+              (Complex.exp (-(z * (c : ℂ)))))
+        _ =
+            Complex.exp (-(z * (c : ℂ))) *
+              (f.toZetaTestFunction' u * Complex.exp (z * (u : ℂ))) := by
+          exact mul_assoc
+            (Complex.exp (-(z * (c : ℂ))))
+            (f.toZetaTestFunction' u)
+            (Complex.exp (z * (u : ℂ)))
+
+/-- Translating an admissible source multiplies its Laplace transform by the expected
+exponential translation character. -/
+theorem zetaLaplaceTransform_translate
+    (c : ℝ) (f : LFunctions.ZetaAdmissibleFunction) (z : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' z =
+      Complex.exp (-(z * (c : ℂ))) *
+        zetaLaplaceTransform f.toZetaTestFunction' z := by
+  let translatedIntegrand : ℝ → ℂ :=
+    fun t : ℝ =>
+      (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' t *
+        Complex.exp (z * (t : ℂ))
+  let shiftedIntegrand : ℝ → ℂ :=
+    fun u : ℝ =>
+      (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' (u - c) *
+        Complex.exp (z * ((u - c : ℝ) : ℂ))
+  let originalIntegrand : ℝ → ℂ :=
+    fun u : ℝ => f.toZetaTestFunction' u * Complex.exp (z * (u : ℂ))
+  have hchange :
+      (∫ t : ℝ, translatedIntegrand t) =
+        ∫ u : ℝ, shiftedIntegrand u := by
+    calc
+      (∫ t : ℝ, translatedIntegrand t) =
+          ∫ u : ℝ, translatedIntegrand (u + (-c)) := by
+        exact (integral_add_right_eq_self (-c) (μ := volume)
+          (f := translatedIntegrand)).symm
+      _ = ∫ u : ℝ, shiftedIntegrand u := by
+        exact integral_congr_ae
+          (Filter.Eventually.of_forall
+            (fun u =>
+              congrArg translatedIntegrand (sub_eq_add_neg u c).symm))
+  have hfactor :
+      (∫ u : ℝ, shiftedIntegrand u) =
+        ∫ u : ℝ,
+          Complex.exp (-(z * (c : ℂ))) * originalIntegrand u := by
+    exact integral_congr_ae
+      (Filter.Eventually.of_forall
+        (fun u =>
+          zetaLaplaceTranslate_integrand_after_change z c u f))
+  have hconst :
+      (∫ u : ℝ,
+        Complex.exp (-(z * (c : ℂ))) * originalIntegrand u) =
+        Complex.exp (-(z * (c : ℂ))) *
+          ∫ u : ℝ, originalIntegrand u := by
+    exact integral_mul_left
+      (Complex.exp (-(z * (c : ℂ)))) originalIntegrand
+  calc
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.translate c f).toZetaTestFunction' z =
+        ∫ t : ℝ, translatedIntegrand t := by
+      rfl
+    _ = ∫ u : ℝ, shiftedIntegrand u := by
+      exact hchange
+    _ =
+        ∫ u : ℝ,
+          Complex.exp (-(z * (c : ℂ))) * originalIntegrand u := by
+      exact hfactor
+    _ =
+        Complex.exp (-(z * (c : ℂ))) *
+          ∫ u : ℝ, originalIntegrand u := by
+      exact hconst
+    _ =
+        Complex.exp (-(z * (c : ℂ))) *
+          zetaLaplaceTransform f.toZetaTestFunction' z := by
+      rfl
+
 /-- The dagger Laplace kernel is the conjugate of the opposite spectral kernel. This lives in the
 base transform file so convolution transform calculus does not depend on the reflection layer. -/
 theorem dagger_laplaceKernel_pointwise_base
@@ -910,5 +1080,103 @@ theorem zetaLaplaceTransform_continuous
       hcontOn
       hzero
   exact continuous_iff_continuousOn_univ.mpr hcont'
+
+/-- The twisted normalized bump has Laplace transform equal to one at its cancelling
+spectral parameter. -/
+theorem zetaLaplaceTransform_laplaceUnitSeed
+    (a : ℂ) :
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a).toZetaTestFunction' a =
+      1 := by
+  have hpoint :
+      (fun t : ℝ =>
+        (LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a).toZetaTestFunction' t *
+          Complex.exp (a * t)) =
+        LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex := by
+    funext t
+    let x : ℂ := a * (t : ℂ)
+    have hexp :
+        Complex.exp (-x) * Complex.exp x = 1 := by
+      calc
+        Complex.exp (-x) * Complex.exp x =
+            Complex.exp (-x + x) := by
+          exact (Complex.exp_add (-x) x).symm
+        _ = Complex.exp 0 := by
+          exact congrArg Complex.exp (neg_add_cancel x)
+        _ = 1 := by
+          exact Complex.exp_zero
+    calc
+      (LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a).toZetaTestFunction' t *
+          Complex.exp (a * t) =
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t *
+              LFunctions.ZetaAdmissibleFunction.laplaceUnitSeedExponential a t) *
+            Complex.exp (a * t) := by
+        rfl
+      _ =
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t *
+              Complex.exp (-x)) *
+            Complex.exp x := by
+        rfl
+      _ =
+          LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t *
+            (Complex.exp (-x) * Complex.exp x) := by
+        exact mul_assoc
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t)
+          (Complex.exp (-x))
+          (Complex.exp x)
+      _ =
+          LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t * 1 := by
+        exact congrArg
+          (fun u : ℂ =>
+            LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t * u)
+          hexp
+      _ = LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t := by
+        exact mul_one
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t)
+  let I : ℝ :=
+    ∫ t : ℝ,
+      LFunctions.ZetaAdmissibleFunction.laplaceUnitBump.normed
+        (volume : Measure ℝ) t
+  have hI : I = 1 :=
+    LFunctions.ZetaAdmissibleFunction.laplaceUnitBump.integral_normed
+      (μ := (volume : Measure ℝ))
+  calc
+    zetaLaplaceTransform
+        (LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a).toZetaTestFunction' a =
+        ∫ t : ℝ,
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a).toZetaTestFunction' t *
+            Complex.exp (a * t) := by
+      rfl
+    _ = ∫ t : ℝ,
+          LFunctions.ZetaAdmissibleFunction.laplaceUnitBumpComplex t := by
+      exact congrArg
+        (fun f : ℝ → ℂ => ∫ t : ℝ, f t)
+        hpoint
+    _ =
+        ∫ t : ℝ,
+          (LFunctions.ZetaAdmissibleFunction.laplaceUnitBump.normed
+            (volume : Measure ℝ) t : ℂ) := by
+      rfl
+    _ = (I : ℂ) := by
+      exact
+        integral_ofReal
+          (𝕜 := ℂ)
+          (μ := (volume : Measure ℝ))
+          (f := fun t : ℝ =>
+            LFunctions.ZetaAdmissibleFunction.laplaceUnitBump.normed
+              (volume : Measure ℝ) t)
+    _ = (1 : ℂ) := by
+      exact congrArg (fun u : ℝ => (u : ℂ)) hI
+
+/-- Every spectral point has an admissible one-point seed with nonzero Laplace value. -/
+theorem exists_zetaLaplaceTransform_nonzero_seed
+    (a : ℂ) :
+    ∃ seed : LFunctions.ZetaAdmissibleFunction,
+      zetaLaplaceTransform seed.toZetaTestFunction' a ≠ 0 := by
+  exact
+    ⟨LFunctions.ZetaAdmissibleFunction.laplaceUnitSeed a,
+      fun hzero =>
+        one_ne_zero
+          ((zetaLaplaceTransform_laplaceUnitSeed a).symm.trans hzero)⟩
 
 end Mellin

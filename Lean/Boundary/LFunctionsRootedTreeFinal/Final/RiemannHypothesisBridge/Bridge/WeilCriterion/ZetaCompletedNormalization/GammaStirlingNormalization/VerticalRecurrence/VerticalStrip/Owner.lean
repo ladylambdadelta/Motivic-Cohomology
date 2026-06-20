@@ -16,18 +16,6 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-      Eq.subst
-        (motive := fun t : ℝ =>
-          t ≤
-            ‖Complex.gammaRecurrenceProduct
-              (Complex.fixedRealPartVerticalPoint x y) N‖)
-        hlower_target
-        (Eq.subst
-          (motive := fun t : ℝ => (c * R) ^ N ≤ t)
-          hprod_norm
-          hlower_prod)
-  exact ⟨H, C ^ N, c ^ N, hH_pos, hC_pow_pos, hc_pow_pos, hpointwise⟩
-
 /-- The exact finite-product geometry estimate for deterministic Gamma
 recurrence factors on a fixed vertical strip.
 
@@ -86,6 +74,47 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds
 
 /-- Large vertical height keeps all deterministic recurrence factors nonzero. -/
 theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHeight
+    (A B : ℝ)
+    (N : ℕ) :
+    ∃ H : ℝ,
+      0 < H ∧
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        H ≤ ‖y‖ →
+          ∀ j : ℕ,
+            j < N →
+              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
+  have hpointwise :
+      ∀ x y : ℝ,
+        A ≤ x →
+        x ≤ B →
+        (1 : ℝ) ≤ ‖y‖ →
+          ∀ j : ℕ,
+            j < N →
+              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
+    intro x y _hxA _hxB hy j _hj
+    intro hzero
+    have him_eq :
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
+      congrArg Complex.im hzero
+    have hleft_im :
+        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
+      Complex.gammaRecurrenceProduct_factor_im x y j
+    have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
+      Complex.zero_im
+    have hy_zero : y = 0 :=
+      Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
+    have hnorm_zero : ‖y‖ = 0 :=
+      congrArg norm hy_zero
+    have hnot : ¬ (1 : ℝ) ≤ 0 :=
+      not_le.mpr zero_lt_one
+    exact hnot
+      (Eq.subst
+        (motive := fun t : ℝ => (1 : ℝ) ≤ t)
+        hnorm_zero
+        hy)
+  exact ⟨1, zero_lt_one, hpointwise⟩
 
 end
 

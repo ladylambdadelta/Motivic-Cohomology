@@ -97,9 +97,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleRadiusBound_pos
                 Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n))) :=
     lt_min hquarter (lt_min hheight hinf)
   exact
-    Eq.subst
-      (motive := fun R : ℝ => 0 < R)
-      (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T).symm
+    (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T).symm ▸
       hpositive
 
 /-- Any deletion radius below the punctured-rectangle bound is below the
@@ -120,9 +118,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_quarter
               (Finset.range_nat_add_two_nonempty N)
               (fun n =>
                 Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n))) :=
-    Eq.subst
-      (motive := fun R : ℝ => ρ < R)
-      (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T)
+    (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T) ▸
       hρR
   exact lt_of_lt_of_le hρR_unfold
     (min_le_left ((1 : ℝ) / 4)
@@ -150,9 +146,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_height_half
               (Finset.range_nat_add_two_nonempty N)
               (fun n =>
                 Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n))) :=
-    Eq.subst
-      (motive := fun R : ℝ => ρ < R)
-      (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T)
+    (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T) ▸
       hρR
   exact lt_of_lt_of_le hρR_unfold
     ((min_le_right ((1 : ℝ) / 4)
@@ -185,9 +179,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_integerResidueI
               (Finset.range_nat_add_two_nonempty N)
               (fun n =>
                 Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n))) :=
-    Eq.subst
-      (motive := fun R : ℝ => ρ < R)
-      (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T)
+    (Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound_unfold w N T) ▸
       hρR
   have hbound_le_inf :
       min ((1 : ℝ) / 4)
@@ -287,41 +279,33 @@ theorem Complex.mem_finiteAbelPlanaPuncturedRectangle_iff
         Complex.finiteAbelPlanaClosedRectangle N T \
           ⋃ n ∈ Finset.range (N + 2), Metric.ball (n : ℂ) ρ :=
     Complex.finiteAbelPlanaPuncturedRectangle_unfold N T ρ
-  constructor
-  · intro hz
-    have hz_unfold :
-        z ∈ Complex.finiteAbelPlanaClosedRectangle N T \
-          ⋃ n ∈ Finset.range (N + 2), Metric.ball (n : ℂ) ρ :=
-      Eq.subst
-        (motive := fun S : Set ℂ => z ∈ S)
-        hunfold
-        hz
-    exact
-      And.intro
-        hz_unfold.1
-        (fun n hn hball =>
-          hz_unfold.2
-            (Set.mem_iUnion.2
-              (Exists.intro n
-                (Set.mem_iUnion.2
-                  (Exists.intro hn hball)))))
-  · intro hz
-    have hz_unfold :
-        z ∈ Complex.finiteAbelPlanaClosedRectangle N T \
-          ⋃ n ∈ Finset.range (N + 2), Metric.ball (n : ℂ) ρ := by
-      exact
-        And.intro
-          hz.1
-          (fun hmem =>
-            match Set.mem_iUnion.1 hmem with
-            | Exists.intro n hnmem =>
-                match Set.mem_iUnion.1 hnmem with
-                | Exists.intro hn hball => hz.2 n hn hball)
-    exact
-      Eq.subst
-        (motive := fun S : Set ℂ => z ∈ S)
-        hunfold.symm
-        hz_unfold
+  exact
+    ⟨
+      (fun hz =>
+        have hz_unfold :
+            z ∈ Complex.finiteAbelPlanaClosedRectangle N T \
+              ⋃ n ∈ Finset.range (N + 2), Metric.ball (n : ℂ) ρ :=
+          hunfold ▸ hz
+        ⟨
+          hz_unfold.1
+          , fun n hn hball =>
+            hz_unfold.2
+              (Set.mem_iUnion.2
+                ⟨n,
+                  (Set.mem_iUnion.2
+                    ⟨hn, hball⟩)⟩)⟩)
+      , (fun hz =>
+        have hz_unfold :
+            z ∈ Complex.finiteAbelPlanaClosedRectangle N T \
+              ⋃ n ∈ Finset.range (N + 2), Metric.ball (n : ℂ) ρ :=
+          ⟨
+            hz.1
+            , fun hmem =>
+              match Set.mem_iUnion.1 hmem with
+              | ⟨n, hnmem⟩ =>
+                  match Set.mem_iUnion.1 hnmem with
+                  | ⟨hn, hball⟩ => hz.2 n hn hball⟩
+        hunfold.symm ▸ hz_unfold)⟩
 
 /-- A point of the punctured finite Abel-Plana rectangle still lies in the
 underlying closed rectangle. -/
@@ -329,9 +313,9 @@ theorem Complex.finiteAbelPlanaPuncturedRectangle_subset_closedRectangle
     (N : ℕ)
     (T ρ : ℝ) :
     Complex.finiteAbelPlanaPuncturedRectangle N T ρ ⊆
-      Complex.finiteAbelPlanaClosedRectangle N T := by
-  intro z hz
-  exact (Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz).1
+      Complex.finiteAbelPlanaClosedRectangle N T :=
+  fun _z hz =>
+    (Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz).1
 
 /-- The center of every deleted integer-pole disk is absent from the punctured
 finite Abel-Plana rectangle. -/
@@ -343,11 +327,12 @@ theorem Complex.finiteAbelPlana_integerPole_not_mem_puncturedRectangle
     {n : ℕ}
     (hn : n ∈ Finset.range (N + 2)) :
     (n : ℂ) ∉ Complex.finiteAbelPlanaPuncturedRectangle N T ρ := by
-  intro hz
-  have havoid :
-      ∀ m ∈ Finset.range (N + 2), (n : ℂ) ∉ Metric.ball (m : ℂ) ρ :=
-    (Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz).2
-  exact havoid n hn (Metric.mem_ball_self hρ)
+  exact
+    fun hz =>
+      have havoid :
+          ∀ m ∈ Finset.range (N + 2), (n : ℂ) ∉ Metric.ball (m : ℂ) ρ :=
+        (Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz).2
+      havoid n hn (Metric.mem_ball_self hρ)
 
 /-- Every named integer pole in the finite Abel-Plana pole set is excluded
 from the punctured rectangle. -/
@@ -379,14 +364,15 @@ theorem Complex.finiteAbelPlana_puncturedRectangle_not_mem_integerPoleSet
     {z : ℂ}
     (hzrect : z ∈ Complex.finiteAbelPlanaPuncturedRectangle N T ρ) :
     z ∉ Complex.finiteAbelPlanaIntegerPoleSet N := by
-  intro hzpole
-  have hdisjoint :
-      Disjoint
-        (Complex.finiteAbelPlanaIntegerPoleSet N)
-        (Complex.finiteAbelPlanaPuncturedRectangle N T ρ) :=
-    Complex.finiteAbelPlana_integerPoleSet_disjoint_puncturedRectangle
-      N T hρ
-  exact Set.disjoint_left.mp hdisjoint hzpole hzrect
+  exact
+    fun hzpole =>
+      have hdisjoint :
+          Disjoint
+            (Complex.finiteAbelPlanaIntegerPoleSet N)
+            (Complex.finiteAbelPlanaPuncturedRectangle N T ρ) :=
+        Complex.finiteAbelPlana_integerPoleSet_disjoint_puncturedRectangle
+          N T hρ
+      Set.disjoint_left.mp hdisjoint hzpole hzrect
 
 /-- A deleted disk whose radius is below the local residue-isolation radius is
 contained in that isolation ball. -/
@@ -397,9 +383,9 @@ theorem Complex.finiteAbelPlana_deletedDisk_subset_integerResidueIsolationBall
     (hρR : ρ < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n) :
     Metric.ball (n : ℂ) ρ ⊆
       Metric.ball (n : ℂ)
-        (Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n) := by
-  intro z hz
-  exact Metric.mem_ball.mpr (lt_of_lt_of_le (Metric.mem_ball.mp hz) (le_of_lt hρR))
+        (Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n) :=
+  fun _z hz =>
+    Metric.mem_ball.mpr (lt_of_lt_of_le (Metric.mem_ball.mp hz) (le_of_lt hρR))
 
 /-- Form of the deleted-disk isolation lemma matching the geometry package
 used by the punctured rectangle theorem. -/
@@ -484,15 +470,15 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_deletedDiskGeometry
         ∀ n ∈ Finset.range (N + 2),
           ρ < Complex.finiteAbelPlanaLogIntegerResidueIsolationRadius w n := by
   exact
-    And.intro
+    ⟨
       (Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_quarter
         w N T hρR)
-      (And.intro
+      , ⟨
         (Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_height_half
           w N T hρR)
-        (fun n hn =>
+        , fun n hn =>
           Complex.finiteAbelPlana_log_puncturedRectangle_radius_lt_integerResidueIsolationRadius
-            w N T hρR hn))
+            w N T hρR hn⟩⟩
 
 /-- Points of the closed finite Abel-Plana rectangle have nonnegative real
 part. -/
@@ -558,7 +544,7 @@ theorem Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedR
     (hzero : Complex.sin ((Real.pi : ℂ) * z) = 0) :
     ∃ n ∈ Finset.range (N + 2), z = (n : ℂ) := by
   match Complex.sin_eq_zero_iff.mp hzero with
-  | Exists.intro k hk =>
+  | ⟨k, hk⟩ =>
       have hpi_ne : (Real.pi : ℂ) ≠ 0 := by
         exact Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
       have hz_eq_int : z = (k : ℂ) := by
@@ -612,7 +598,7 @@ theorem Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedR
         exact Finset.mem_range.2 (Nat.lt_succ_iff.2 hn_le)
       have hcast : (n : ℂ) = (k : ℂ) := by
         exact congrArg (fun z : ℤ => (z : ℂ)) hn_int
-      exact Exists.intro n (And.intro hn_range (hz_eq_int.trans hcast.symm))
+      exact ⟨n, hn_range, hz_eq_int.trans hcast.symm⟩
 
 /-- The punctured finite Abel-Plana rectangle avoids every cotangent pole. -/
 theorem Complex.finiteAbelPlana_log_sin_pi_mul_ne_zero_of_mem_puncturedRectangle
@@ -622,20 +608,21 @@ theorem Complex.finiteAbelPlana_log_sin_pi_mul_ne_zero_of_mem_puncturedRectangle
     (hρ : 0 < ρ)
     (hz : z ∈ Complex.finiteAbelPlanaPuncturedRectangle N T ρ) :
     Complex.sin ((Real.pi : ℂ) * z) ≠ 0 := by
-  intro hzero
-  have hzdata :
-      z ∈ Complex.finiteAbelPlanaClosedRectangle N T ∧
-        ∀ n ∈ Finset.range (N + 2), z ∉ Metric.ball (n : ℂ) ρ :=
-    Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz
-  match
-    Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedRectangle
-      hzdata.1 hzero with
-  | Exists.intro n hndata =>
-      have hn : n ∈ Finset.range (N + 2) := hndata.1
-      have hz_eq : z = (n : ℂ) := hndata.2
-      have hzball : z ∈ Metric.ball (n : ℂ) ρ := by
-        exact hz_eq ▸ Metric.mem_ball_self hρ
-      exact hzdata.2 n hn hzball
+  exact
+    fun hzero =>
+      have hzdata :
+          z ∈ Complex.finiteAbelPlanaClosedRectangle N T ∧
+            ∀ n ∈ Finset.range (N + 2), z ∉ Metric.ball (n : ℂ) ρ :=
+        Complex.mem_finiteAbelPlanaPuncturedRectangle_iff.mp hz
+      match
+        Complex.finiteAbelPlana_integerPole_of_sin_pi_mul_eq_zero_of_mem_closedRectangle
+          hzdata.1 hzero with
+      | ⟨n, hndata⟩ =>
+          have hn : n ∈ Finset.range (N + 2) := hndata.1
+          have hz_eq : z = (n : ℂ) := hndata.2
+          have hzball : z ∈ Metric.ball (n : ℂ) ρ := by
+            exact hz_eq ▸ Metric.mem_ball_self hρ
+          hzdata.2 n hn hzball
 
 /-- On the punctured finite Abel-Plana rectangle, the logarithmic argument
 stays in the principal slit plane. -/
@@ -734,7 +721,8 @@ theorem Complex.finiteAbelPlana_log_deletedBoundaryContribution_decomposition
       Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
         Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
           ∑ n in Finset.range N,
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ := by
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+              w ((n + 1 : ℕ) : ℂ) ρ := by
   rfl
 
 /-- Boundary decomposition for the finite-radius punctured Abel-Plana domain:
@@ -788,19 +776,18 @@ theorem Complex.finiteAbelPlana_log_puncturedBoundary_zero_iff_pvNormalized_sub_
     Complex.finiteAbelPlanaLogFiniteRadiusPuncturedBoundaryIntegral N w T ρ = 0 ↔
       Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ -
         Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ = 0 := by
-  constructor
-  · intro hboundary_zero
-    exact
-      Eq.trans
-        (Complex.finiteAbelPlana_log_pvNormalized_sub_deleted_eq_finiteRadiusPuncturedBoundaryIntegral
-          N w T ρ)
-        hboundary_zero
-  · intro hnormalized_zero
-    exact
-      Eq.trans
-        (Complex.finiteAbelPlana_log_finiteRadiusPuncturedBoundaryIntegral_eq_pvNormalized_sub_deleted
-          N w T ρ)
-        hnormalized_zero
+  exact
+    ⟨
+      (fun hboundary_zero =>
+        Eq.trans
+          (Complex.finiteAbelPlana_log_pvNormalized_sub_deleted_eq_finiteRadiusPuncturedBoundaryIntegral
+            N w T ρ)
+          hboundary_zero)
+      , fun hnormalized_zero =>
+        Eq.trans
+          (Complex.finiteAbelPlana_log_finiteRadiusPuncturedBoundaryIntegral_eq_pvNormalized_sub_deleted
+            N w T ρ)
+          hnormalized_zero⟩
 
 /-- If the finite-hole boundary-cancellation theorem has shown that the
 normalized outer boundary and deleted boundary cancel, then the named

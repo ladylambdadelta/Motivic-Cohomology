@@ -26,9 +26,11 @@ theorem abs_le_max_abs_endpoints_of_mem_interval
   have hx_upper : x ≤ max |a| |b| :=
     le_trans hxb
       (le_trans (le_abs_self b) (le_max_right |a| |b|))
-  have hx_lower : -x ≤ max |a| |b| :=
+  have hx_neg_upper : -x ≤ max |a| |b| :=
     le_trans (neg_le_neg hxa)
       (le_trans (neg_le_abs a) (le_max_left |a| |b|))
+  have hx_lower : -(max |a| |b|) ≤ x :=
+    neg_le.mp hx_neg_upper
   exact abs_le.mpr ⟨hx_lower, hx_upper⟩
 
 /-- The product of the one-dimensional endpoint absolute-value envelopes dominates the
@@ -395,7 +397,14 @@ theorem complex_verticalLine_decomposition_rhs_re
         ((z.re * t : ℂ) + ((z.im * t : ℝ) : ℂ) * Complex.I).re := by
       exact congrArg (fun v : ℂ => ((z.re * t : ℂ) + v).re) hIcomm
     _ = z.re * t := by
-      exact paley_ofReal_add_mul_I_re (z.re * t) (z.im * t)
+      have h_re_mul_cast :
+          (((z.re * t : ℝ) : ℂ) = (z.re : ℂ) * (t : ℂ)) :=
+        Complex.ofReal_mul z.re t
+      exact Eq.subst
+        (motive := fun v : ℂ =>
+          (v + ((z.im * t : ℝ) : ℂ) * Complex.I).re = z.re * t)
+        h_re_mul_cast
+        (paley_ofReal_add_mul_I_re (z.re * t) (z.im * t))
 
 /-- The imaginary part of the explicit vertical-line decomposition is the vertical part. -/
 theorem complex_verticalLine_decomposition_rhs_im
@@ -428,7 +437,14 @@ theorem complex_verticalLine_decomposition_rhs_im
         ((z.re * t : ℂ) + ((z.im * t : ℝ) : ℂ) * Complex.I).im := by
       exact congrArg (fun v : ℂ => ((z.re * t : ℂ) + v).im) hIcomm
     _ = z.im * t := by
-      exact paley_ofReal_add_mul_I_im (z.re * t) (z.im * t)
+      have h_re_mul_cast :
+          (((z.re * t : ℝ) : ℂ) = (z.re : ℂ) * (t : ℂ)) :=
+        Complex.ofReal_mul z.re t
+      exact Eq.subst
+        (motive := fun v : ℂ =>
+          (v + ((z.im * t : ℝ) : ℂ) * Complex.I).im = z.im * t)
+        h_re_mul_cast
+        (paley_ofReal_add_mul_I_im (z.re * t) (z.im * t))
 
 /-- Norm of the complex exponential on a vertical line is the exponential of the real
 part of the exponent. -/

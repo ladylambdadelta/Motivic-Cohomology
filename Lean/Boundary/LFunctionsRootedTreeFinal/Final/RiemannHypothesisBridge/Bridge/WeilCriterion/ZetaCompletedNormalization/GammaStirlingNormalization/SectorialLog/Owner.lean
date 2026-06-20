@@ -507,10 +507,11 @@ theorem Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSec
   have hexp_ne : Complex.exp w ≠ 0 :=
     Complex.exp_ne_zero w
   have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
-    intro hzero
-    have hbase_zero : w = 0 :=
-      ((cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
-    exact hw_ne hbase_zero
+    exact
+      fun hzero =>
+        have hbase_zero : w = 0 :=
+          ((cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
+        hw_ne hbase_zero
   show
       Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) ≠ 0
   exact mul_ne_zero (mul_ne_zero hGamma_ne hexp_ne) hcpow_ne
@@ -687,38 +688,38 @@ theorem Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
     Real.log ‖Complex.Gamma w‖ ≤
       Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
         Complex.normalizedGammaStirlingLogLoss w := by
-  have hGamma_ne : Complex.Gamma w ≠ 0 := by
-    intro hGamma_zero
-    have hfactor_zero :
-        Complex.normalizedGammaStirlingFactor w = 0 := by
-      calc
-        Complex.normalizedGammaStirlingFactor w =
-            Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
-        _ = 0 * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) :=
-          congrArg
-            (fun x : ℂ => x * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
-            hGamma_zero
-        _ = (0 : ℂ) * w ^ ((1 / 2 : ℂ) - w) := by
-          exact congrArg
-            (fun x : ℂ => x * w ^ ((1 / 2 : ℂ) - w))
-            (zero_mul (Complex.exp w))
-        _ = 0 :=
-          zero_mul (w ^ ((1 / 2 : ℂ) - w))
-    exact hfactor_ne hfactor_zero
-  have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
-    intro hcpow_zero
-    have hfactor_zero :
-        Complex.normalizedGammaStirlingFactor w = 0 := by
-      calc
-        Complex.normalizedGammaStirlingFactor w =
-            Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
-        _ = Complex.Gamma w * Complex.exp w * 0 :=
-          congrArg
-            (fun x : ℂ => Complex.Gamma w * Complex.exp w * x)
-            hcpow_zero
-        _ = 0 :=
-          mul_zero (Complex.Gamma w * Complex.exp w)
-    exact hfactor_ne hfactor_zero
+  have hGamma_ne : Complex.Gamma w ≠ 0 :=
+    fun hGamma_zero =>
+      have hfactor_zero :
+          Complex.normalizedGammaStirlingFactor w = 0 := by
+        calc
+          Complex.normalizedGammaStirlingFactor w =
+              Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
+          _ = 0 * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) :=
+            congrArg
+              (fun x : ℂ => x * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
+              hGamma_zero
+          _ = (0 : ℂ) * w ^ ((1 / 2 : ℂ) - w) := by
+            exact congrArg
+              (fun x : ℂ => x * w ^ ((1 / 2 : ℂ) - w))
+              (zero_mul (Complex.exp w))
+          _ = 0 :=
+            zero_mul (w ^ ((1 / 2 : ℂ) - w))
+      hfactor_ne hfactor_zero
+  have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 :=
+    fun hcpow_zero =>
+      have hfactor_zero :
+          Complex.normalizedGammaStirlingFactor w = 0 := by
+        calc
+          Complex.normalizedGammaStirlingFactor w =
+              Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) := rfl
+          _ = Complex.Gamma w * Complex.exp w * 0 :=
+            congrArg
+              (fun x : ℂ => Complex.Gamma w * Complex.exp w * x)
+              hcpow_zero
+          _ = 0 :=
+            mul_zero (Complex.Gamma w * Complex.exp w)
+      hfactor_ne hfactor_zero
   exact le_of_eq
     (Complex.Gamma_log_norm_eq_normalizedGammaStirlingFactor_log_add_loss
       w hGamma_ne hcpow_ne)
@@ -1961,11 +1962,10 @@ theorem Complex.closedRightHalfPlaneGammaAnnulus_isClosed
           {w : ℂ | (1 / 2 : ℝ) ≤ ‖w‖} ∩
             {w : ℂ | ‖w‖ ≤ R₀} := by
     ext w
-    constructor
-    · intro hw
-      exact ⟨⟨hw.1, hw.2.1⟩, hw.2.2⟩
-    · intro hw
-      exact ⟨hw.1.1, hw.1.2, hw.2⟩
+    exact
+      Iff.intro
+        (fun hw => ⟨⟨hw.1, hw.2.1⟩, hw.2.2⟩)
+        (fun hw => ⟨hw.1.1, hw.1.2, hw.2⟩)
   exact Eq.subst
     (motive := fun S : Set ℂ => IsClosed S)
     hset.symm
@@ -2041,21 +2041,22 @@ theorem Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus
     ContinuousOn
       (fun w : ℂ => Real.log ‖Complex.Gamma w‖)
       (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
-  intro w hw
-  have hgamma_ne : Complex.Gamma w ≠ 0 :=
-    Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus R₀ hw
-  have hnot_pole : ∀ m : ℕ, w ≠ -m := by
-    intro m hwm
-    exact hgamma_ne ((Complex.Gamma_eq_zero_iff w).mpr ⟨m, hwm⟩)
-  have hgamma_cont : ContinuousAt Complex.Gamma w :=
-    (Complex.differentiableAt_Gamma w hnot_pole).continuousAt
-  have hnorm_cont :
-      ContinuousWithinAt (fun z : ℂ => ‖Complex.Gamma z‖)
-        (Complex.closedRightHalfPlaneGammaAnnulus R₀) w :=
-    hgamma_cont.norm.continuousWithinAt
-  have hnorm_ne : ‖Complex.Gamma w‖ ≠ 0 :=
-    ne_of_gt (norm_pos_iff.mpr hgamma_ne)
-  exact hnorm_cont.log hnorm_ne
+  exact
+    fun w hw =>
+      have hgamma_ne : Complex.Gamma w ≠ 0 :=
+        Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus R₀ hw
+      have hnot_pole : ∀ m : ℕ, w ≠ -m :=
+        fun m hwm =>
+          hgamma_ne ((Complex.Gamma_eq_zero_iff w).mpr ⟨m, hwm⟩)
+      have hgamma_cont : ContinuousAt Complex.Gamma w :=
+        (Complex.differentiableAt_Gamma w hnot_pole).continuousAt
+      have hnorm_cont :
+          ContinuousWithinAt (fun z : ℂ => ‖Complex.Gamma z‖)
+            (Complex.closedRightHalfPlaneGammaAnnulus R₀) w :=
+        hgamma_cont.norm.continuousWithinAt
+      have hnorm_ne : ‖Complex.Gamma w‖ ≠ 0 :=
+        ne_of_gt (norm_pos_iff.mpr hgamma_ne)
+      exact hnorm_cont.log hnorm_ne
 
 /-- Compact boundedness of `log ‖Γ(w)‖` on the closed right-half-plane Gamma
 annulus. -/

@@ -1,6 +1,9 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaTestFunction.Owner
 import Mathlib.Topology.ContinuousMap.CompactlySupported
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+import Mathlib.Analysis.Calculus.BumpFunction.Normed
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 
 /-!
 # Boundary admissible test functions core
@@ -16,6 +19,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped CompactlySupported ContDiff
+open MeasureTheory
 
 /-- The admissible test-function carrier for the explicit-formula route.
 
@@ -387,5 +391,64 @@ theorem scale_apply (a : ℝ) (f : ZetaAdmissibleFunction) (x : ℝ) :
   split_ifs with ha
   · rfl
   · rfl
+
+/-- The normalized smooth bump at the origin used as the local seed for one-point
+Laplace detection. -/
+def laplaceUnitBump : ContDiffBump (0 : ℝ) :=
+  default
+
+/-- The normalized smooth bump, viewed as a complex-valued function. -/
+def laplaceUnitBumpComplex (t : ℝ) : ℂ :=
+  (laplaceUnitBump.normed (volume : Measure ℝ) t : ℂ)
+
+/-- The normalized smooth bump is compactly supported after complex scalar extension. -/
+theorem laplaceUnitBumpComplex_hasCompactSupport :
+    HasCompactSupport laplaceUnitBumpComplex := by
+  have hreal :
+      HasCompactSupport
+        (fun t : ℝ => laplaceUnitBump.normed (volume : Measure ℝ) t) :=
+    laplaceUnitBump.hasCompactSupport_normed
+      (μ := (volume : Measure ℝ))
+  exact
+    hasCompactSupport_iff_eventuallyEq.mpr
+      ((hasCompactSupport_iff_eventuallyEq.mp hreal).mono
+        (fun t ht =>
+          congrArg (fun u : ℝ => (u : ℂ)) ht))
+
+/-- The normalized smooth bump is smooth after complex scalar extension. -/
+theorem laplaceUnitBumpComplex_contDiff :
+    ContDiff ℝ ∞ laplaceUnitBumpComplex := by
+  exact
+    Complex.ofRealCLM.contDiff.comp
+      (laplaceUnitBump.contDiff_normed
+        (μ := (volume : Measure ℝ)))
+
+/-- The exponential cancelling factor used in the one-point Laplace seed. -/
+def laplaceUnitSeedExponential (a : ℂ) (t : ℝ) : ℂ :=
+  Complex.exp (-(a * (t : ℂ)))
+
+/-- The exponential cancelling factor is smooth as a real-parametrized complex function. -/
+theorem laplaceUnitSeedExponential_contDiff (a : ℂ) :
+    ContDiff ℝ ∞ (laplaceUnitSeedExponential a) := by
+  have harg :
+      ContDiff ℝ ∞ (fun t : ℝ => -(a * (t : ℂ))) := by
+    exact
+      (contDiff_const.mul Complex.ofRealCLM.contDiff).neg
+  exact Complex.contDiff_exp.comp harg
+
+/-- The admissible one-point seed at `a`, obtained by twisting a normalized smooth bump
+by the cancelling exponential `exp (-a t)`. -/
+def laplaceUnitSeed (a : ℂ) : ZetaAdmissibleFunction where
+  toZetaTestFunction :=
+    CompactlySupportedContinuousMap.mk
+      (ContinuousMap.mk
+        (fun t : ℝ => laplaceUnitBumpComplex t * laplaceUnitSeedExponential a t)
+        (laplaceUnitBumpComplex_contDiff.continuous.mul
+          (laplaceUnitSeedExponential_contDiff a).continuous))
+      (laplaceUnitBumpComplex_hasCompactSupport.mul_right)
+  smooth := by
+    exact
+      laplaceUnitBumpComplex_contDiff.mul
+        (laplaceUnitSeedExponential_contDiff a)
 
 end ZetaAdmissibleFunction

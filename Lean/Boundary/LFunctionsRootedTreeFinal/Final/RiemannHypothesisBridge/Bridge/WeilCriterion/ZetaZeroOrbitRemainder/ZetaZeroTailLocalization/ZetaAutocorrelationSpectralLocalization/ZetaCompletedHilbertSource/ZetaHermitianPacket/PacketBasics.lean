@@ -157,11 +157,11 @@ theorem coordinateGram_split
         | _ => 0) +
       (match ℓ with
         | .correction => coordinateGram (x ℓ)
-        | _ => 0) := by
-  cases ℓ with
-  | prime m n => exact coordinateGram_split_prime x m n
-  | archimedean => exact coordinateGram_split_archimedean x
-  | correction => exact coordinateGram_split_correction x
+        | _ => 0) :=
+  match ℓ with
+  | .prime m n => coordinateGram_split_prime x m n
+  | .archimedean => coordinateGram_split_archimedean x
+  | .correction => coordinateGram_split_correction x
 
 /-- The Hermitian packet norm is nonnegative. -/
 theorem normSq_nonnegative (x : ZetaHermitianPacketEnsemble) :
@@ -172,11 +172,11 @@ theorem normSq_nonnegative (x : ZetaHermitianPacketEnsemble) :
 theorem primePacketGram_nonnegative (x : ZetaHermitianPacketEnsemble) :
     0 ≤ primePacketGram x := by
   exact Finset.sum_nonneg
-    (fun ℓ _ => by
-      cases ℓ with
-      | prime p n => exact Complex.normSq_nonneg (x (ZetaPacketLabel.prime p n))
-      | archimedean => exact le_refl 0
-      | correction => exact le_refl 0)
+    (fun ℓ _ =>
+      match ℓ with
+      | .prime p n => Complex.normSq_nonneg (x (ZetaPacketLabel.prime p n))
+      | .archimedean => le_refl 0
+      | .correction => le_refl 0)
 
 /-- The Hermitian coordinate Gram of a zero coordinate is zero. -/
 theorem coordinateGram_zero :
@@ -194,9 +194,9 @@ theorem primePacketGram_eq_sum_of_support_subset
         | .prime _ _ => coordinateGram (x ℓ)
         | _ => 0 := by
   exact Finset.sum_subset hs
-    (fun ℓ _ hnotmem => by
-      cases ℓ with
-      | prime p n =>
+    (fun ℓ _ hnotmem =>
+      match ℓ with
+      | .prime p n =>
           have hcoord_zero :
               x (ZetaPacketLabel.prime p n) = 0 :=
             Finsupp.not_mem_support_iff.mp hnotmem
@@ -205,8 +205,8 @@ theorem primePacketGram_eq_sum_of_support_subset
                 coordinateGram (0 : ℂ) := by
               exact congrArg coordinateGram hcoord_zero
             _ = 0 := coordinateGram_zero
-      | archimedean => rfl
-      | correction => rfl)
+      | .archimedean => rfl
+      | .correction => rfl)
 
 /-- The prime Hermitian Gram is determined by the prime coordinates. -/
 theorem primePacketGram_eq_of_prime_coordinates
@@ -243,33 +243,33 @@ theorem primePacketGram_eq_of_prime_coordinates
           | .prime _ _ => coordinateGram (y ℓ)
           | _ => 0 := by
     exact Finset.sum_congr rfl
-      (fun ℓ _ => by
-        cases ℓ with
-        | prime p n =>
-            exact congrArg coordinateGram (hprime p n)
-        | archimedean => rfl
-        | correction => rfl)
+      (fun ℓ _ =>
+        match ℓ with
+        | .prime p n =>
+            congrArg coordinateGram (hprime p n)
+        | .archimedean => rfl
+        | .correction => rfl)
   exact hxsum.trans (hsum.trans hysum.symm)
 
 /-- The archimedean Hermitian packet Gram is nonnegative. -/
 theorem archimedeanPacketGram_nonnegative (x : ZetaHermitianPacketEnsemble) :
     0 ≤ archimedeanPacketGram x := by
   exact Finset.sum_nonneg
-    (fun ℓ _ => by
-      cases ℓ with
-      | prime p n => exact le_refl 0
-      | archimedean => exact Complex.normSq_nonneg (x ZetaPacketLabel.archimedean)
-      | correction => exact le_refl 0)
+    (fun ℓ _ =>
+      match ℓ with
+      | .prime _p _n => le_refl 0
+      | .archimedean => Complex.normSq_nonneg (x ZetaPacketLabel.archimedean)
+      | .correction => le_refl 0)
 
 /-- The correction Hermitian packet Gram is nonnegative. -/
 theorem correctionPacketGram_nonnegative (x : ZetaHermitianPacketEnsemble) :
     0 ≤ correctionPacketGram x := by
   exact Finset.sum_nonneg
-    (fun ℓ _ => by
-      cases ℓ with
-      | prime p n => exact le_refl 0
-      | archimedean => exact le_refl 0
-      | correction => exact Complex.normSq_nonneg (x ZetaPacketLabel.correction))
+    (fun ℓ _ =>
+      match ℓ with
+      | .prime _p _n => le_refl 0
+      | .archimedean => le_refl 0
+      | .correction => Complex.normSq_nonneg (x ZetaPacketLabel.correction))
 
 /-- The Hermitian norm square splits into prime, archimedean, and correction
 packet-family Gram contributions. -/
@@ -454,9 +454,9 @@ theorem pairedForm_eq_prime_add_archimedean_add_correction
             | .correction => coordinateGram (x ℓ)
             | _ => 0)) := by
       exact Finset.sum_congr rfl
-        (fun ℓ _ => by
-          cases ℓ with
-          | prime m n =>
+        (fun ℓ _ =>
+          match ℓ with
+          | .prime m n =>
               calc
                 coordinateGram (x (ZetaPacketLabel.prime m n)) =
                     coordinateGram (x (ZetaPacketLabel.prime m n)) + 0 := by
@@ -464,14 +464,14 @@ theorem pairedForm_eq_prime_add_archimedean_add_correction
                 _ =
                     coordinateGram (x (ZetaPacketLabel.prime m n)) + 0 + 0 := by
                   exact (add_zero _).symm
-          | archimedean =>
+          | .archimedean =>
               calc
                 coordinateGram (x ZetaPacketLabel.archimedean) =
                     0 + coordinateGram (x ZetaPacketLabel.archimedean) := by
                   exact (zero_add _).symm
                 _ = 0 + coordinateGram (x ZetaPacketLabel.archimedean) + 0 := by
                   exact (add_zero _).symm
-          | correction =>
+          | .correction =>
               calc
                 coordinateGram (x ZetaPacketLabel.correction) =
                     0 + coordinateGram (x ZetaPacketLabel.correction) := by
@@ -546,21 +546,21 @@ theorem coordinate_split (x : ZetaCompletedBoundaryRealizedGramPacket) (ℓ : Ze
     x ℓ =
       (match ℓ with | .prime _ _ => x ℓ | _ => 0) +
       (match ℓ with | .archimedean => x ℓ | _ => 0) +
-      (match ℓ with | .correction => x ℓ | _ => 0) := by
-  cases ℓ with
-  | prime m n =>
+      (match ℓ with | .correction => x ℓ | _ => 0) :=
+  match ℓ with
+  | .prime m n =>
       calc
         x (ZetaPacketLabel.prime m n) = x (ZetaPacketLabel.prime m n) + 0 := by
           exact (add_zero _).symm
         _ = x (ZetaPacketLabel.prime m n) + 0 + 0 := by
           exact (add_zero _).symm
-  | archimedean =>
+  | .archimedean =>
       calc
         x ZetaPacketLabel.archimedean = 0 + x ZetaPacketLabel.archimedean := by
           exact (zero_add _).symm
         _ = 0 + x ZetaPacketLabel.archimedean + 0 := by
           exact (add_zero _).symm
-  | correction =>
+  | .correction =>
       calc
         x ZetaPacketLabel.correction = 0 + x ZetaPacketLabel.correction := by
           exact (zero_add _).symm

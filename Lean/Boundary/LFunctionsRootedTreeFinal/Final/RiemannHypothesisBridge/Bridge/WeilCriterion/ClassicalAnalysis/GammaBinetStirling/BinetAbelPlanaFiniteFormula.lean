@@ -52,12 +52,33 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
     (hw : 0 < w.re)
     (N : ℕ)
     (T : ℝ)
-    (hT : 0 < T) :
+    (hT : 0 < T)
+    (hevent :
+      (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ) =ᶠ[
+        𝓝[>] (0 : ℝ)]
+        (fun ρ : ℝ =>
+          (Complex.finiteAbelPlanaLogLeftBoundaryFacePVNormalized N w T ρ +
+            Complex.finiteAbelPlanaLogRightBoundaryFacePVNormalized N w T ρ) +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T))
+    (htarget :
+      (((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            (-Complex.finiteAbelPlanaLogUpperHorizontalCotangentConstantSide N w T -
+              Complex.I * Complex.finiteAbelPlanaLogLeftVerticalCotangentConstantSide w T)) +
+          (-Complex.finiteAbelPlanaLogLowerVerticalIntegralUpTo w T)) +
+        ((((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            (Complex.finiteAbelPlanaLogLowerHorizontalCotangentConstantSide N w T +
+              Complex.I *
+                Complex.finiteAbelPlanaLogRightVerticalCotangentConstantSide N w T)) +
+          (-Complex.finiteAbelPlanaLogUpperVerticalIntegralUpTo N w T))) +
+        Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
+          Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T +
+            Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) :
     Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
       -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   exact
     Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_owner
-      hw N T hT
+      hw N T hT hevent htarget
 
 /-- Stable wrapper for horizontal-edge decay. -/
 theorem Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero
@@ -163,7 +184,8 @@ theorem Complex.finiteAbelPlana_log_boundaryNamedPiecesUpTo_tendsto_full
 theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hbridges : Complex.FiniteHeightPVBridgePackageAt N w) :
     Tendsto
       (fun T : ℝ =>
         Complex.finiteAbelPlanaLogFiniteHeightContourError N w T)
@@ -171,12 +193,13 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero
       (𝓝 (0 : ℂ)) := by
   exact
     Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
-      hw N
+      hw N hbridges
 
 /-- Finite-height principal-value rectangle cotangent formula. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       Tendsto
         (fun T : ℝ =>
@@ -186,12 +209,13 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula
   intro N
   exact
     Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula_from_contour
-      hw N
+      hw hbridges N
 
 /-- Finite Abel-Plana principal-value cotangent formula. -/
 theorem Complex.finiteAbelPlana_log_principalValueCotangentFormula
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w := by
@@ -210,25 +234,27 @@ theorem Complex.finiteAbelPlana_log_principalValueCotangentFormula
         atTop
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula
-      hw N
+      hw hbridges N
   exact tendsto_nhds_unique hboundary hresidue
 
 /-- The decomposed finite Abel-Plana boundary expression equals the residue
 sum of the principal-value cotangent-kernel integrand. -/
 theorem Complex.finiteAbelPlana_log_boundaryNamedPieces_eq_residueSum
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w := by
   intro N
-  exact Complex.finiteAbelPlana_log_principalValueCotangentFormula hw N
+  exact Complex.finiteAbelPlana_log_principalValueCotangentFormula hw hbridges N
 
 /-- Kernel-level finite Abel-Plana rectangle theorem for the logarithmic
 summand, in principal-value endpoint normalization. -/
 theorem Complex.finiteAbelPlana_log_rectangleIntegrand_residueTheorem
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       let M : ℕ := N + 1
       Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w =
@@ -239,9 +265,9 @@ theorem Complex.finiteAbelPlana_log_rectangleIntegrand_residueTheorem
           Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w := by
   intro N
   have hresidue :
-      Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
+    Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w :=
-    Complex.finiteAbelPlana_log_boundaryNamedPieces_eq_residueSum hw N
+    Complex.finiteAbelPlana_log_boundaryNamedPieces_eq_residueSum hw hbridges N
   have hboundary :
       let M : ℕ := N + 1
       Complex.finiteAbelPlanaLogBoundaryNamedPieces N w =
@@ -261,7 +287,8 @@ poles are counted with half weight.  The ordinary finite sample sum requires
 adding the explicit endpoint restoration. -/
 theorem Complex.finiteAbelPlana_log_summand_integralForm_from_rectangleResidues
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       let M : ℕ := N + 1
       ∑ n in Finset.range (M + 1), Complex.finiteAbelPlanaLogSummand w n =
@@ -292,7 +319,7 @@ theorem Complex.finiteAbelPlana_log_summand_integralForm_from_rectangleResidues
           Complex.finiteAbelPlanaLogSummandHalfEndpoints N w -
           Complex.finiteAbelPlanaLogSummandLowerVerticalIntegral N w -
           Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w :=
-    Complex.finiteAbelPlana_log_rectangleIntegrand_residueTheorem hw N
+    Complex.finiteAbelPlana_log_rectangleIntegrand_residueTheorem hw hbridges N
   calc
     ∑ n in Finset.range (N + 1 + 1), Complex.finiteAbelPlanaLogSummand w n =
         Complex.finiteAbelPlanaLogIntegerResidueSum N w := by
@@ -318,7 +345,8 @@ principal logarithmic summand `z ↦ log (w+z)`, with endpoint restoration
 kept explicit. -/
 theorem Complex.finiteAbelPlana_log_summand_rectangleResidue_decomposition
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       let M : ℕ := N + 1
       ∑ n in Finset.range (M + 1), Complex.finiteAbelPlanaLogSummand w n =
@@ -338,7 +366,7 @@ theorem Complex.finiteAbelPlana_log_summand_rectangleResidue_decomposition
           Complex.finiteAbelPlanaLogSummandUpperVerticalIntegral N w +
           Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
     Complex.finiteAbelPlana_log_summand_integralForm_from_rectangleResidues
-      hw N
+      hw hbridges N
   have hprimitive :
       let M : ℕ := N + 1
       ∫ x : ℝ in (0 : ℝ)..(M : ℝ),
@@ -409,7 +437,8 @@ theorem Complex.finiteAbelPlana_log_summand_rectangleResidue_decomposition
 logarithmic summand residues. -/
 theorem Complex.finiteAbelPlana_log_summand_eq_contourDecomposition
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       let M : ℕ := N + 1
       ∑ n in Finset.range (M + 1), Complex.log (w + n) =
@@ -419,13 +448,14 @@ theorem Complex.finiteAbelPlana_log_summand_eq_contourDecomposition
           Complex.finiteAbelPlanaLogSummandUpperVerticalBoundary N w +
           Complex.finiteAbelPlanaLogEndpointResidueRestoration N w := by
   intro N
-  exact Complex.finiteAbelPlana_log_summand_rectangleResidue_decomposition hw N
+  exact Complex.finiteAbelPlana_log_summand_rectangleResidue_decomposition hw hbridges N
 
 /-- Endpoint-restored finite Abel-Plana summation formula for the logarithmic
 summand residues. -/
 theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       let M : ℕ := N + 1
       ∑ n in Finset.range (M + 1), Complex.log (w + n) =
@@ -446,7 +476,7 @@ theorem Complex.finiteAbelPlana_log_summand_eq_mainBoundaryUpper
           Complex.finiteAbelPlanaLogSummandLowerVerticalBoundary N w +
           Complex.finiteAbelPlanaLogSummandUpperVerticalBoundary N w +
           Complex.finiteAbelPlanaLogEndpointResidueRestoration N w :=
-    Complex.finiteAbelPlana_log_summand_eq_contourDecomposition hw N
+    Complex.finiteAbelPlana_log_summand_eq_contourDecomposition hw hbridges N
   have hprimitive :
       Complex.finiteAbelPlanaLogSummandEndpointPrimitive N w =
         (((w + ((N + 1 : ℕ) : ℂ)) *

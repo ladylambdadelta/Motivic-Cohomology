@@ -619,22 +619,23 @@ positive real axis. -/
 theorem logarithmicPhase_derivativeMagnitude_antitoneOn_positive
     (t : ℝ) :
     AntitoneOn (fun u : ℝ => ‖t‖ / u) (Set.Ioi 0) := by
-  intro x hx y hy hxy
-  have hreciprocal : (1 : ℝ) / y ≤ (1 : ℝ) / x :=
-    one_div_le_one_div_of_le hy hxy
-  have hnorm_nonneg : 0 ≤ ‖t‖ :=
-    norm_nonneg t
-  have hleft : ‖t‖ / y = ‖t‖ * ((1 : ℝ) / y) :=
-    div_eq_mul_one_div ‖t‖ y
-  have hright : ‖t‖ / x = ‖t‖ * ((1 : ℝ) / x) :=
-    div_eq_mul_one_div ‖t‖ x
-  exact Eq.subst
-    (motive := fun target : ℝ => ‖t‖ / y ≤ target)
-    hright.symm
-    (Eq.subst
-      (motive := fun source : ℝ => source ≤ ‖t‖ * ((1 : ℝ) / x))
-      hleft.symm
-      (mul_le_mul_of_nonneg_left hreciprocal hnorm_nonneg))
+  exact
+    fun x hx y hy hxy =>
+      have hreciprocal : (1 : ℝ) / y ≤ (1 : ℝ) / x :=
+        one_div_le_one_div_of_le hy hxy
+      have hnorm_nonneg : 0 ≤ ‖t‖ :=
+        norm_nonneg t
+      have hleft : ‖t‖ / y = ‖t‖ * ((1 : ℝ) / y) :=
+        div_eq_mul_one_div ‖t‖ y
+      have hright : ‖t‖ / x = ‖t‖ * ((1 : ℝ) / x) :=
+        div_eq_mul_one_div ‖t‖ x
+      Eq.subst
+        (motive := fun target : ℝ => ‖t‖ / y ≤ target)
+        hright.symm
+        (Eq.subst
+          (motive := fun source : ℝ => source ≤ ‖t‖ * ((1 : ℝ) / x))
+          hleft.symm
+          (mul_le_mul_of_nonneg_left hreciprocal hnorm_nonneg))
 
 /-- Standard first-derivative test for the concrete logarithmic phase, after
 the phase derivative and its monotonicity have been isolated. -/
@@ -994,8 +995,7 @@ theorem eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact oscillatoryEulerMaclaurin_logarithmicPhase_endpoint_bound t ht hNM
 
-/-- The reciprocal derivative has the expected positive variation density on
-the post-cutoff interval. -/
+/- The reciprocal-variation owner consumes these logarithmic-phase estimates downstream. -/
 
 end
 end LFunctions

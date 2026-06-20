@@ -53,8 +53,9 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
   | succ N ih =>
       have hfactor_prev :
           ∀ j : ℕ, j < N → z + (j : ℂ) ≠ 0 := by
-        intro j hj
-        exact hfactor_ne j (Nat.lt_trans hj (Nat.lt_succ_self N))
+        exact
+          fun j hj =>
+            hfactor_ne j (Nat.lt_trans hj (Nat.lt_succ_self N))
       have hN_factor : z + (N : ℂ) ≠ 0 :=
         hfactor_ne N (Nat.lt_succ_self N)
       have hsucc_arg :
@@ -219,7 +220,7 @@ theorem Complex.Gamma_eq_shifted_div_gammaRecurrenceProduct
       _ = Complex.Gamma z :=
         mul_div_cancel_left₀ (Complex.Gamma z) hprod_ne).symm
 
-/-- Norm form of the finite Gamma recurrence transport. -/
+/- The norm form of recurrence transport is owned by `VerticalRecurrence.Factors`. -/
 
 end
 

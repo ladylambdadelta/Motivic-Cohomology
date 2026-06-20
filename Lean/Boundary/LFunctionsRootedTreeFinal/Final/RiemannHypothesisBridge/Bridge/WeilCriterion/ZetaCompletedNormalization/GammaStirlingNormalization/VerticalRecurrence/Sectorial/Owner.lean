@@ -16,48 +16,6 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
-    (A B : ℝ)
-    (N : ℕ) :
-    ∃ H : ℝ,
-      0 < H ∧
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        H ≤ ‖y‖ →
-          ∀ j : ℕ,
-            j < N →
-              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        (1 : ℝ) ≤ ‖y‖ →
-          ∀ j : ℕ,
-            j < N →
-              Complex.fixedRealPartVerticalPoint x y + (j : ℂ) ≠ 0 := by
-    intro x y _hxA _hxB hy j _hj
-    intro hzero
-    have him_eq :
-        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = (0 : ℂ).im :=
-      congrArg Complex.im hzero
-    have hleft_im :
-        (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im = y :=
-      Complex.gammaRecurrenceProduct_factor_im x y j
-    have hzero_im : (0 : ℂ).im = (0 : ℝ) :=
-      Complex.zero_im
-    have hy_zero : y = 0 :=
-      Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
-    have hnorm_zero : ‖y‖ = 0 :=
-      congrArg norm hy_zero
-    have hnot : ¬ (1 : ℝ) ≤ 0 :=
-      not_le.mpr zero_lt_one
-    exact hnot
-      (Eq.subst
-        (motive := fun t : ℝ => (1 : ℝ) ≤ t)
-        hnorm_zero
-        hy)
-  exact ⟨1, zero_lt_one, hpointwise⟩
-
 /-- The deterministic strip shift written as a local abbreviation for the
 vertical-strip Stirling transport. -/
 def Complex.verticalStripTransportShift (A : ℝ) : ℕ :=
@@ -248,8 +206,6 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
   have hcpow_pos : 0 < ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
     norm_pos_iff.mpr hcpow_ne
   exact mul_pos hexp_pos hcpow_pos
-
-/-- Elementary arctangent majorization used to quantify the angular defect of a
 
 end
 

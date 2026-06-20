@@ -16,6 +16,7 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- Elementary arctangent majorization used to quantify the angular defect of a
 right-half-plane vertical ray. -/
 theorem Real.arctan_le_self_of_nonneg
     {t : ℝ}

@@ -47,9 +47,11 @@ noncomputable def Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution
     (w : ℂ)
     (ρ : ℝ) : ℂ :=
   (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-    Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2 +
+    Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+      w ((N + 1 : ℕ) : ℂ) ρ) / 2 +
       ∑ n in Finset.range N,
-        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ
+        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+          w ((n + 1 : ℕ) : ℂ) ρ
 
 /-- Normalized semicircular indentation integral around the left endpoint pole
 `0`.
@@ -90,7 +92,8 @@ noncomputable def Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContributio
   Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
     Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
       ∑ n in Finset.range N,
-        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ
+        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+          w ((n + 1 : ℕ) : ℂ) ρ
 
 /-- Unfolding of the small-circle residue contribution. -/
 theorem Complex.finiteAbelPlana_log_smallCircleIntegerResidueContribution_unfold'
@@ -126,9 +129,11 @@ theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_unfold
     (ρ : ℝ) :
     Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ =
       (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2 +
+        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+          w ((N + 1 : ℕ) : ℂ) ρ) / 2 +
           ∑ n in Finset.range N,
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ := by
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+              w ((n + 1 : ℕ) : ℂ) ρ := by
   rfl
 
 /-- Unfolding of the principal-value integer residue contribution. -/

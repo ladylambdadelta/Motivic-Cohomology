@@ -15,6 +15,7 @@ namespace LFunctions
 
 noncomputable section
 
+open MeasureTheory
 open scoped ContDiff
 
 namespace ZetaAdmissibleFunction
@@ -106,7 +107,7 @@ theorem zetaPaleyWienerLaplaceKernel_norm_integrable
 
 /-- Norm of an integrable complex-valued integral is bounded by the integral of its norm. -/
 theorem complex_norm_integral_le_integral_norm_of_integrable
-    (g : ℝ → ℂ) (hg : Integrable g) :
+    (g : ℝ → ℂ) (_hg : Integrable g) :
     ‖∫ t : ℝ, g t‖ ≤ ∫ t : ℝ, ‖g t‖ :=
   MeasureTheory.norm_integral_le_integral_norm g
 
@@ -127,6 +128,7 @@ noncomputable def zetaPaleyWienerSupportIndicatorBound
 
 /-- The constant interval-indicator majorant attached to a Paley-Wiener support interval. -/
 noncomputable def zetaPaleyWienerIntervalIndicatorBound
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) : ℝ → ℝ :=
   Set.indicator (Set.Icc I.lower I.upper) (fun _ : ℝ => B)
 
@@ -160,6 +162,7 @@ theorem zetaPaleyWienerSupportIndicatorBound_integrable
 
 /-- The interval indicator bound is integrable. -/
 theorem zetaPaleyWienerIntervalIndicatorBound_integrable
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) :
     Integrable (zetaPaleyWienerIntervalIndicatorBound I B) :=
   real_integrable_const_indicator_of_isCompact
@@ -189,11 +192,11 @@ theorem zetaPaleyWienerSupportIndicatorBound_le_intervalIndicatorBound
     have hsupport_value :
         zetaPaleyWienerSupportIndicatorBound f B t = B := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_mem hsupport
+      exact Set.indicator_of_mem hsupport (fun _ : ℝ => B)
     have hinterval_value :
         zetaPaleyWienerIntervalIndicatorBound I B t = B := by
       unfold zetaPaleyWienerIntervalIndicatorBound
-      exact Set.indicator_of_mem hinterval
+      exact Set.indicator_of_mem hinterval (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
       hsupport_value.symm
@@ -204,12 +207,12 @@ theorem zetaPaleyWienerSupportIndicatorBound_le_intervalIndicatorBound
   · have hsupport_value :
         zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_not_mem hsupport
+      exact Set.indicator_of_not_mem hsupport (fun _ : ℝ => B)
     by_cases hinterval : t ∈ Set.Icc I.lower I.upper
     · have hinterval_value :
           zetaPaleyWienerIntervalIndicatorBound I B t = B := by
         unfold zetaPaleyWienerIntervalIndicatorBound
-        exact Set.indicator_of_mem hinterval
+        exact Set.indicator_of_mem hinterval (fun _ : ℝ => B)
       exact Eq.subst
         (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
         hsupport_value.symm
@@ -220,7 +223,7 @@ theorem zetaPaleyWienerSupportIndicatorBound_le_intervalIndicatorBound
     · have hinterval_value :
           zetaPaleyWienerIntervalIndicatorBound I B t = 0 := by
         unfold zetaPaleyWienerIntervalIndicatorBound
-        exact Set.indicator_of_not_mem hinterval
+        exact Set.indicator_of_not_mem hinterval (fun _ : ℝ => B)
       exact Eq.subst
         (motive := fun v : ℝ => v ≤ zetaPaleyWienerIntervalIndicatorBound I B t)
         hsupport_value.symm
@@ -267,7 +270,7 @@ theorem zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
   · have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = B := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_mem ht
+      exact Set.indicator_of_mem ht (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ => ‖zetaPaleyWienerLaplaceKernel f z t‖ ≤ v)
       hindicator.symm
@@ -278,7 +281,7 @@ theorem zetaPaleyWienerLaplaceKernel_norm_le_supportIndicatorBound
     have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_not_mem ht
+      exact Set.indicator_of_not_mem ht (fun _ : ℝ => B)
     have hnorm_zero :
         ‖zetaPaleyWienerLaplaceKernel f z t‖ = 0 := by
       exact (congrArg (fun v : ℂ => ‖v‖) hkernel).trans norm_zero
@@ -296,7 +299,7 @@ theorem real_integral_mono_of_integrable_pointwise_le
     (hu : Integrable u) (hv : Integrable v)
     (hle : ∀ t : ℝ, u t ≤ v t) :
     (∫ t : ℝ, u t) ≤ ∫ t : ℝ, v t := by
-  exact MeasureTheory.integral_mono hu hv (Filter.Eventually.of_forall hle)
+  exact MeasureTheory.integral_mono hu hv hle
 
 /-- Pointwise domination of the kernel norm by the support-indicator majorant passes to
 real-line integrals. -/
@@ -349,7 +352,7 @@ theorem zetaLaplaceTransform_norm_le_supportIndicatorIntegral
 real-line integrals. -/
 theorem zetaPaleyWienerSupportIndicatorIntegral_le_intervalIndicatorIntegral
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
-    (B : ℝ) (hB_nonneg : 0 ≤ B)
+    (B : ℝ) (_hB_nonneg : 0 ≤ B)
     (hpoint :
       ∀ t : ℝ,
         zetaPaleyWienerSupportIndicatorBound f B t ≤
@@ -368,16 +371,16 @@ the interval volume. -/
 theorem real_integral_const_indicator_eq_setIntegral_const
     (K : Set ℝ) (hK : MeasurableSet K) (B : ℝ) :
     (∫ t : ℝ, Set.indicator K (fun _ : ℝ => B) t) =
-      ∫ t in K, B := by
+      ∫ _ in K, B := by
   exact integral_indicator hK
 
 /-- The set integral of a real constant is the constant times the set volume. -/
 theorem real_setIntegral_const_eq_const_mul_volume
     (K : Set ℝ) (B : ℝ) :
-    (∫ t in K, B) = B * (volume K).toReal := by
+    (∫ _ in K, B) = B * (volume K).toReal := by
   calc
-    (∫ t in K, B) = (volume K).toReal • B := by
-      exact integral_const B
+    (∫ _ in K, B) = (volume K).toReal • B := by
+      exact MeasureTheory.setIntegral_const B
     _ = (volume K).toReal * B := by
       rfl
     _ = B * (volume K).toReal := by
@@ -396,7 +399,7 @@ theorem real_integral_const_indicator_of_isCompact_eq_const_mul_volume
 /-- The integral of a nonnegative constant over an interval indicator is constant times
 the interval volume. -/
 theorem real_integral_const_indicator_Icc_eq_const_mul_volume
-    (lower upper B : ℝ) (hB_nonneg : 0 ≤ B) :
+    (lower upper B : ℝ) (_hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, Set.indicator (Set.Icc lower upper) (fun _ : ℝ => B) t) =
       B * (volume (Set.Icc lower upper)).toReal := by
   exact real_integral_const_indicator_of_isCompact_eq_const_mul_volume
@@ -404,6 +407,7 @@ theorem real_integral_const_indicator_Icc_eq_const_mul_volume
 
 /-- The interval-indicator integral is the constant times the interval volume. -/
 theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) (hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t) =
       B * (volume (Set.Icc I.lower I.upper)).toReal := by
@@ -413,7 +417,7 @@ theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_bound_mul_volume
 
 /-- Ordered closed real interval volume in `toReal` form. -/
 theorem real_volume_Icc_eq_ofReal_sub
-    {lower upper : ℝ} (hlu : lower ≤ upper) :
+    {lower upper : ℝ} (_hlu : lower ≤ upper) :
     volume (Set.Icc lower upper) = ENNReal.ofReal (upper - lower) := by
   exact Real.volume_Icc
 
@@ -438,6 +442,7 @@ theorem real_volume_Icc_toReal_eq_sub
 
 /-- The volume of an ordered closed real interval is its endpoint difference. -/
 theorem zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) :
     (volume (Set.Icc I.lower I.upper)).toReal =
       I.upper - I.lower := by
@@ -445,6 +450,7 @@ theorem zetaPaleyWienerIntervalVolume_toReal_eq_upper_sub_lower
 
 /-- The volume of the certified support interval is the certified support interval length. -/
 theorem zetaPaleyWienerIntervalVolume_toReal_eq_supportIntervalLength
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) :
     (volume (Set.Icc I.lower I.upper)).toReal =
       zetaPaleyWienerSupportIntervalLength I := by
@@ -461,6 +467,7 @@ theorem zetaPaleyWienerIntervalVolume_toReal_eq_supportIntervalLength
 /-- The integral of the constant interval indicator is the constant times the certified
 interval length. -/
 theorem zetaPaleyWienerIntervalIndicatorIntegral_eq_intervalLength_mul_bound
+    {f : ZetaAdmissibleFunction}
     (I : ZetaPaleyWienerSupportInterval f) (B : ℝ) (hB_nonneg : 0 ≤ B) :
     (∫ t : ℝ, zetaPaleyWienerIntervalIndicatorBound I B t) =
       B * zetaPaleyWienerSupportIntervalLength I := by

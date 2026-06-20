@@ -1,8 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.ZetaAdmissibleFunction.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.AutocorrelationInterface.AutocorrelationCore.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.ZetaTransformCalculusReflection.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.ZetaCompletedLogDerivativeCore.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaExplicitFormulaNormalizationBridge.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.ZetaLogBoundaryDefect.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaCompletedHilbertSource.ZetaHermitianPacket.ZetaPrimePowerWindow.Owner
 import Mathlib.Analysis.Calculus.ContDiff.Basic
@@ -133,15 +131,15 @@ theorem zetaCompletedExplicitFormulaPhi_eq_spectralLaplaceTransform
 theorem zetaCompletedTimeBoundaryValue_eq_apply
     (f : ZetaAdmissibleFunction) (a : ℝ) :
     zetaCompletedTimeBoundaryValue f a = f a := by
-  unfold zetaCompletedTimeBoundaryValue
-  exact ZetaAdmissibleFunction.toZetaTestFunction'_apply f a
+  calc
+    zetaCompletedTimeBoundaryValue f a = f.toZetaTestFunction' a := rfl
+    _ = f a := ZetaAdmissibleFunction.toZetaTestFunction'_apply f a
 
 /-- The zero admissible probe has zero time-side boundary value. -/
 theorem zetaCompletedTimeBoundaryValue_zero
     (a : ℝ) :
     zetaCompletedTimeBoundaryValue (0 : ZetaAdmissibleFunction) a = 0 := by
-  unfold zetaCompletedTimeBoundaryValue
-  exact ZetaAdmissibleFunction.toZetaTestFunction'_apply 0 a
+  exact zetaCompletedTimeBoundaryValue_eq_apply 0 a
 
 /-- The time-side value of the convolution autocorrelation is the autocorrelation kernel. -/
 theorem zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel
@@ -149,11 +147,17 @@ theorem zetaCompletedTimeBoundaryValue_convolutionAutocorrelation_eq_kernel
     zetaCompletedTimeBoundaryValue
         (ZetaAdmissibleFunction.convolutionAutocorrelation f) a =
       ZetaAdmissibleFunction.convolutionAutocorrelationKernel f a := by
-  unfold zetaCompletedTimeBoundaryValue
-  exact
+  have htime :
+      zetaCompletedTimeBoundaryValue
+          (ZetaAdmissibleFunction.convolutionAutocorrelation f) a =
+        (ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction' a := rfl
+  have htest :
+      (ZetaAdmissibleFunction.convolutionAutocorrelation f).toZetaTestFunction' a =
+        ZetaAdmissibleFunction.convolutionAutocorrelationKernel f a :=
     (ZetaAdmissibleFunction.convolutionAutocorrelation_toZetaTestFunction'_apply
       f a).trans
       (ZetaAdmissibleFunction.convolutionAutocorrelationKernel_apply f a)
+  exact htime.trans htest
 
 /-- The explicit-formula spectral transform is definitionally the named `Φ_f`. -/
 theorem zetaCompletedExplicitFormulaPhi_eq (f : ZetaAdmissibleFunction) :
@@ -169,21 +173,36 @@ theorem zetaCompletedExplicitFormulaPhi_eq_laplace (f : ZetaAdmissibleFunction) 
 theorem zetaCompletedExplicitFormulaPhi_zero
     (z : ℂ) :
     zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) z = 0 := by
-  unfold zetaCompletedExplicitFormulaPhi
-  unfold zetaAutocorrelationSpectralTransform
-  unfold Boundary.zetaLaplaceTransform
-  calc
-    (∫ t : ℝ,
-        (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
-          Complex.exp (z * t)) =
-        ∫ _t : ℝ, 0 := by
-      exact MeasureTheory.integral_congr_ae
-        (Filter.Eventually.of_forall
-          (fun t : ℝ => by
-            change (0 : ℂ) * Complex.exp (z * t) = 0
-            exact zero_mul (Complex.exp (z * t))))
-    _ = 0 := by
-      exact MeasureTheory.integral_zero ℝ ℂ
+  have hphi :
+      zetaCompletedExplicitFormulaPhi (0 : ZetaAdmissibleFunction) z =
+        Boundary.zetaLaplaceTransform
+          (0 : ZetaAdmissibleFunction).toZetaTestFunction' z := rfl
+  have hlaplace :
+      Boundary.zetaLaplaceTransform
+          (0 : ZetaAdmissibleFunction).toZetaTestFunction' z = 0 := by
+    show
+      (∫ t : ℝ,
+          (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
+            Complex.exp (z * t)) = 0
+    calc
+      (∫ t : ℝ,
+          (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
+            Complex.exp (z * t)) =
+          ∫ _t : ℝ, 0 := by
+        exact MeasureTheory.integral_congr_ae
+          (Filter.Eventually.of_forall
+            (fun t : ℝ =>
+              calc
+                (0 : ZetaAdmissibleFunction).toZetaTestFunction' t *
+                    Complex.exp (z * t) =
+                    (0 : ℂ) * Complex.exp (z * t) := by
+                  exact congrArg
+                    (fun x : ℂ => x * Complex.exp (z * t))
+                    (ZetaAdmissibleFunction.toZetaTestFunction'_apply 0 t)
+                _ = 0 := zero_mul (Complex.exp (z * t))))
+      _ = 0 := by
+        exact MeasureTheory.integral_zero ℝ ℂ
+  exact hphi.trans hlaplace
 
 /-- The spectral transform of the convolution autocorrelation pairs opposite real spectral
 parameters. -/
@@ -214,7 +233,6 @@ theorem zetaAutocorrelationSpectralTransform_eq_laplace (f : ZetaAdmissibleFunct
 theorem zetaAutocorrelationSpectralTransform_continuous_apply
     (f : ZetaAdmissibleFunction) :
     Continuous (fun z : ℂ => zetaAutocorrelationSpectralTransform f z) := by
-  unfold zetaAutocorrelationSpectralTransform
   exact zetaLaplaceTransform_continuous f
 
 /-- The reflected admissible function has reflected underlying test function. -/
@@ -258,8 +276,6 @@ theorem zetaCompletedExplicitFormulaPhi_dagger
     (f : ZetaAdmissibleFunction) (z : ℂ) :
     zetaCompletedExplicitFormulaPhi (zetaAdmissibleDagger f) z =
       star (zetaCompletedExplicitFormulaPhi f (-star z)) := by
-  unfold zetaCompletedExplicitFormulaPhi
-  unfold zetaAutocorrelationSpectralTransform
   exact Boundary.zetaLaplaceTransform_dagger f z
 
 /-- The explicit-formula transform of the reflected autocorrelation is the reflected transform. -/
@@ -425,6 +441,40 @@ def oppositeBoundaryChannel (g : ZetaAdmissibleFunction) : ℂ :=
     poleBoundaryChannel g +
     completionBoundaryChannel g
 
+/-- The completed boundary channel unfolds to the analytic boundary sum core. -/
+theorem completedBoundaryChannel_unfold
+    (g : ZetaAdmissibleFunction) :
+    completedBoundaryChannel g =
+      zetaCompletedExplicitFormulaBoundarySumCore g := by
+  rfl
+
+/-- The prime boundary channel unfolds to the prime contribution. -/
+theorem primeBoundaryChannel_unfold
+    (g : ZetaAdmissibleFunction) :
+    primeBoundaryChannel g =
+      zetaCompletedExplicitFormulaPrimeContribution g := by
+  rfl
+
+/-- The archimedean boundary channel unfolds to the archimedean contribution. -/
+theorem archimedeanBoundaryChannel_unfold
+    (g : ZetaAdmissibleFunction) :
+    archimedeanBoundaryChannel g =
+      zetaCompletedExplicitFormulaArchimedeanContribution g := by
+  rfl
+
+/-- The pole boundary channel unfolds to the correction contribution. -/
+theorem poleBoundaryChannel_unfold
+    (g : ZetaAdmissibleFunction) :
+    poleBoundaryChannel g =
+      zetaCompletedExplicitFormulaCorrectionContribution g := by
+  rfl
+
+/-- The residual completion channel is zero in the current normalization. -/
+theorem completionBoundaryChannel_unfold
+    (g : ZetaAdmissibleFunction) :
+    completionBoundaryChannel g = 0 := by
+  rfl
+
 /-- The local channel decomposition of the completed boundary functional. -/
 theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completion
     (g : ZetaAdmissibleFunction) :
@@ -433,13 +483,11 @@ theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completio
         archimedeanBoundaryChannel g +
         poleBoundaryChannel g +
         completionBoundaryChannel g := by
-  unfold completedBoundaryChannel
-  unfold primeBoundaryChannel
-  unfold archimedeanBoundaryChannel
-  unfold poleBoundaryChannel
-  unfold completionBoundaryChannel
   calc
-    zetaCompletedExplicitFormulaBoundarySumCore g =
+    completedBoundaryChannel g =
+        zetaCompletedExplicitFormulaBoundarySumCore g :=
+      completedBoundaryChannel_unfold g
+    _ =
         zetaCompletedExplicitFormulaPrimeContribution g +
           zetaCompletedExplicitFormulaArchimedeanContribution g +
           zetaCompletedExplicitFormulaCorrectionContribution g :=
@@ -449,6 +497,18 @@ theorem completedBoundaryChannel_eq_prime_add_archimedean_add_pole_add_completio
           zetaCompletedExplicitFormulaArchimedeanContribution g +
           zetaCompletedExplicitFormulaCorrectionContribution g + 0 := by
       exact (add_zero _).symm
+    _ =
+        primeBoundaryChannel g +
+          archimedeanBoundaryChannel g +
+          poleBoundaryChannel g +
+          completionBoundaryChannel g := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd
+          (congrArg₂ HAdd.hAdd
+            (primeBoundaryChannel_unfold g).symm
+            (archimedeanBoundaryChannel_unfold g).symm)
+          (poleBoundaryChannel_unfold g).symm)
+        (completionBoundaryChannel_unfold g).symm
 
 /-- The Hermitian kernel assembled from the completed boundary channels on the convolution
 pairing algebra. -/

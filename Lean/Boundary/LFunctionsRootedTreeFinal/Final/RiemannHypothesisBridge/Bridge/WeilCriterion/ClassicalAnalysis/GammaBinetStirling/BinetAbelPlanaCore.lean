@@ -1773,13 +1773,18 @@ noncomputable def Complex.finiteAbelPlanaLogTopHorizontalEdge
 
 /-- The decaying horizontal cotangent-remainder part left by the finite-height
 Abel-Plana rectangle after the constant half-plane cotangent terms have been
-absorbed into the named boundary expression. -/
+absorbed into the named boundary expression.
+
+The finite residue theorem uses the normalized contour integral
+`(2πi)⁻¹ ∮`.  This primitive therefore includes the same normalization; the
+bottom and top edge objects themselves remain the raw horizontal integrals. -/
 noncomputable def Complex.finiteAbelPlanaLogHorizontalEdgeError
     (N : ℕ)
     (w : ℂ)
     (T : ℝ) : ℂ :=
-  Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
-    Complex.finiteAbelPlanaLogTopHorizontalEdge N w T
+  ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+    (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+      Complex.finiteAbelPlanaLogTopHorizontalEdge N w T)
 
 /-- Finite-height principal-value rectangle residue accounting with the
 horizontal contour error kept explicit. -/

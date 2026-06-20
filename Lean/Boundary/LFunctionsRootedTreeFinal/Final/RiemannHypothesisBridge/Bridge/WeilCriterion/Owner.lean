@@ -348,10 +348,11 @@ theorem offCriticalCenteredZero_completedZero
               (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
             exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
           _ = 1 := (two_mul_inv_two (1 : ℂ)).symm
-  · exact centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
-      (offCriticalCenteredZero_shift_ne_zero z)
-      (offCriticalCenteredZero_gamma_ne_zero z)
-      z.zeta_zero
+  · exact (centeredCompletedRiemannZetaFunction_eq z.point).trans
+      (centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+        (offCriticalCenteredZero_shift_ne_zero z)
+        (offCriticalCenteredZero_gamma_ne_zero z)
+        z.zeta_zero)
 
 /-- The centered reflection orbit of an off-critical centered zero lies in the centered
 completed-zero locus. -/

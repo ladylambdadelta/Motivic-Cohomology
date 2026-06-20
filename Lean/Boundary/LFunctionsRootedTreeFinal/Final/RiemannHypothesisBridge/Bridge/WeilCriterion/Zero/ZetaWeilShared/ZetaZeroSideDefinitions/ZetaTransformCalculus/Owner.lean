@@ -108,17 +108,6 @@ theorem zetaLaplaceTransform_sum
     _ = ∑ a in s, zetaLaplaceTransform (f a) z := by
           exact zetaLaplaceTransform_sum_integral s f z h
 
-/-- The zeta Laplace transform is definitionally stable under pointwise equality. -/
-theorem zetaLaplaceTransform_congr
-    {φ ψ : LFunctions.ZetaTestFunction}
-    (h : ∀ t : ℝ, φ t = ψ t) :
-    zetaLaplaceTransform φ = zetaLaplaceTransform ψ := by
-  funext z
-  unfold zetaLaplaceTransform
-  refine integral_congr_ae ?_
-  exact Filter.Eventually.of_forall fun t =>
-    congrArg (fun x => x * Complex.exp (z * t)) (h t)
-
 /-- Boundary name for mathlib's Mellin/Fourier bridge. -/
 theorem boundary_mellin_eq_fourierIntegral (f : ℝ → E) {s : ℂ} :
     mellin f s =

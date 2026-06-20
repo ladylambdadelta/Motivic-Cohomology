@@ -16,6 +16,8 @@ open MeasureTheory
 namespace Boundary
 namespace LFunctions
 
+open ZetaAdmissibleFunction
+
 /-- The zeroth vertical-frequency decay weight is one. -/
 theorem zetaPaleyWiener_zeroDecayWeight
     (y : ℝ) :

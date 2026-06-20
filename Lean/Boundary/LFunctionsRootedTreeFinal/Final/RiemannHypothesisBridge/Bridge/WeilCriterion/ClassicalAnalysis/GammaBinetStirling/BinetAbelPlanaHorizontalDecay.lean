@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaSideAssembly
@@ -15,6 +16,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open Filter
 
 /-- Unfolding of the bottom horizontal edge. -/
 theorem Complex.finiteAbelPlana_log_bottomHorizontalEdge_unfold
@@ -50,8 +52,9 @@ theorem Complex.finiteAbelPlana_log_horizontalEdgeError_unfold
     (w : ℂ)
     (T : ℝ) :
     Complex.finiteAbelPlanaLogHorizontalEdgeError N w T =
-      Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
-        Complex.finiteAbelPlanaLogTopHorizontalEdge N w T := by
+      ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+        (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+          Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) := by
   rfl
 
 /-- Unfolding of the horizontal pointwise majorant. -/
@@ -133,17 +136,14 @@ theorem Real.binetHorizontal_two_pos : (0 : ℝ) < 2 := by
 /-- The real number `1` is bounded by `4`, in the Binet horizontal-decay
 normalization. -/
 theorem Real.binetHorizontal_one_le_four : (1 : ℝ) ≤ 4 := by
-  exact (Nat.cast_le.mpr (Nat.succ_le_succ (Nat.zero_le 3)) :
-    ((1 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ))
+  change ((1 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ)
+  exact Nat.cast_le.mpr (Nat.le.intro (show (1 : ℕ) + 3 = 4 from rfl))
 
 /-- The real number `3` is bounded by `4`, in the Binet horizontal-decay
 normalization. -/
 theorem Real.binetHorizontal_three_le_four : (3 : ℝ) ≤ 4 := by
-  exact (Nat.cast_le.mpr
-    (Nat.succ_le_succ
-      (Nat.succ_le_succ
-        (Nat.succ_le_succ (Nat.zero_le 0)))) :
-    ((3 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ))
+  change ((3 : ℕ) : ℝ) ≤ ((4 : ℕ) : ℝ)
+  exact Nat.cast_le.mpr (Nat.le.intro (show (3 : ℕ) + 1 = 4 from rfl))
 
 /-- The basic absolute-value inequality `0 ≤ c + |c|`. -/
 theorem Real.binetHorizontal_self_add_abs_nonneg (c : ℝ) :
@@ -265,9 +265,11 @@ theorem Real.binetHorizontal_two_mul_add_le_sq_of_large
       _ ≤ 2 * T + T := by
         exact add_le_add_left hpi_one_le_T (2 * T)
       _ = (2 + 1) * T := by
-        exact (add_mul 2 1 T).symm
+        exact Eq.trans
+          (congrArg (fun z : ℝ => 2 * T + z) (one_mul T).symm)
+          (add_mul 2 1 T).symm
       _ = 3 * T := by
-        rfl
+        exact congrArg (fun z : ℝ => z * T) (two_add_one_eq_three : (2 : ℝ) + 1 = 3)
   have hthree_mul_le_sq : 3 * T ≤ T ^ 2 := by
     calc
       3 * T ≤ T * T := by
@@ -297,8 +299,13 @@ theorem Complex.norm_finiteAbelPlanaLogBottomHorizontalEdge_le_majorant
             (Real.pi : ℂ) * Complex.I)‖ ≤
         Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
           |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| :=
+    have hinterval :
+        Ι (0 : ℝ) ((N + 1 : ℕ) : ℝ) = Ι (0 : ℝ) ((N : ℝ) + 1) := by
+      exact congrArg (fun r : ℝ => Ι (0 : ℝ) r) (Nat.cast_add_one N)
     intervalIntegral.norm_integral_le_of_norm_le_const
-      (fun x hx => hpoint x hx)
+      (fun x hx =>
+        hpoint x
+          (Eq.mp (congrArg (fun s : Set ℝ => x ∈ s) hinterval) hx))
   have hsource :
       ‖Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T‖ =
         ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -338,8 +345,13 @@ theorem Complex.norm_finiteAbelPlanaLogTopHorizontalEdge_le_majorant
             (Real.pi : ℂ) * Complex.I)‖ ≤
         Complex.finiteAbelPlanaLogHorizontalPointwiseMajorant N w T *
           |((N + 1 : ℕ) : ℝ) - (0 : ℝ)| :=
+    have hinterval :
+        Ι (0 : ℝ) ((N + 1 : ℕ) : ℝ) = Ι (0 : ℝ) ((N : ℝ) + 1) := by
+      exact congrArg (fun r : ℝ => Ι (0 : ℝ) r) (Nat.cast_add_one N)
     intervalIntegral.norm_integral_le_of_norm_le_const
-      (fun x hx => hpoint x hx)
+      (fun x hx =>
+        hpoint x
+          (Eq.mp (congrArg (fun s : Set ℝ => x ∈ s) hinterval) hx))
   have hsource :
       ‖Complex.finiteAbelPlanaLogTopHorizontalEdge N w T‖ =
         ‖∫ x : ℝ in (0 : ℝ)..((N + 1 : ℕ) : ℝ),
@@ -419,39 +431,36 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
   have hpoly_exp :
       Tendsto
         (fun T : ℝ =>
-          (T ^ 2 : ℝ) *
+          (((2 : ℝ) * Real.pi * T) ^ 2 : ℝ) *
             Real.exp (-(2 * Real.pi * T)))
         atTop
         (𝓝 (0 : ℝ)) := by
-    have hpow :
+    have hpow_exp :
         Tendsto
-          (fun T : ℝ =>
-            T ^ (2 : ℕ) *
-              Real.exp (-(2 * Real.pi * T)))
+          (fun x : ℝ =>
+            x ^ (2 : ℕ) * Real.exp (-x))
           atTop
-          (𝓝 (0 : ℝ)) := by
-      have hrpow :
+          (𝓝 (0 : ℝ)) :=
+      Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero 2
+    have hscale_atTop :
+        Tendsto
+          (fun T : ℝ => (2 : ℝ) * Real.pi * T)
+          atTop
+          atTop := by
+      have hscale_pos : 0 < (2 : ℝ) * Real.pi :=
+        mul_pos Real.binetHorizontal_two_pos Real.pi_pos
+      have hfirst :
           Tendsto
-            (fun T : ℝ =>
-              T ^ (2 : ℝ) *
-                Real.exp (-(2 * Real.pi * T)))
+            (fun T : ℝ => ((2 : ℝ) * Real.pi) * T)
             atTop
-            (𝓝 (0 : ℝ)) :=
-        Real.tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero
-          (2 : ℝ) (2 * Real.pi)
-          (mul_pos Real.binetHorizontal_two_pos Real.pi_pos)
-      have heq :
-          ∀ᶠ T : ℝ in atTop,
-            T ^ (2 : ℕ) *
-                Real.exp (-(2 * Real.pi * T)) =
-              T ^ (2 : ℝ) *
-                Real.exp (-(2 * Real.pi * T)) := by
-        filter_upwards [eventually_ge_atTop (0 : ℝ)] with T hT
-        exact congrArg
-          (fun x : ℝ => x * Real.exp (-(2 * Real.pi * T)))
-          (Real.rpow_natCast T 2).symm
-      exact hrpow.congr' heq.symm
-    exact hpow
+            atTop :=
+        tendsto_id.const_mul_atTop hscale_pos
+      have hsame :
+          (fun T : ℝ => ((2 : ℝ) * Real.pi) * T) =
+            (fun T : ℝ => (2 : ℝ) * Real.pi * T) :=
+        rfl
+      exact hsame ▸ hfirst
+    exact hpow_exp.comp hscale_atTop
   have hlog_bounds :
       ∀ᶠ T : ℝ in atTop,
         0 ≤ Real.log (1 + c + |T|) + Real.pi + 1 ∧
@@ -468,12 +477,31 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
       ∀ᶠ T : ℝ in atTop,
         (Real.log (1 + c + |T|) + Real.pi + 1) *
             Real.exp (-(2 * Real.pi * |T|)) ≤
-          T ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
+          ((2 * Real.pi * T) ^ 2) * Real.exp (-(2 * Real.pi * T)) := by
     filter_upwards [hlog_bounds, eventually_ge_atTop (0 : ℝ)] with T hlog hT
     have habs : |T| = T := abs_of_nonneg hT
     have hexp_nonneg :
         0 ≤ Real.exp (-(2 * Real.pi * T)) :=
       Real.exp_nonneg _
+    have htwo_pi_one : (1 : ℝ) ≤ 2 * Real.pi := by
+      have hpi_one : (1 : ℝ) ≤ Real.pi := by
+        exact le_trans one_le_two Real.two_le_pi
+      calc
+        (1 : ℝ) ≤ Real.pi := hpi_one
+        _ = (1 : ℝ) * Real.pi := by
+          exact (one_mul Real.pi).symm
+        _ ≤ 2 * Real.pi := by
+          exact mul_le_mul_of_nonneg_right one_le_two (le_of_lt Real.pi_pos)
+    have hT_le_scaled : T ≤ 2 * Real.pi * T := by
+      calc
+        T = (1 : ℝ) * T := by
+          exact (one_mul T).symm
+        _ ≤ (2 * Real.pi) * T := by
+          exact mul_le_mul_of_nonneg_right htwo_pi_one hT
+        _ = 2 * Real.pi * T := rfl
+    have hsquare_le_scaled :
+        T ^ 2 ≤ (2 * Real.pi * T) ^ 2 :=
+      pow_le_pow_left₀ hT hT_le_scaled 2
     calc
       (Real.log (1 + c + |T|) + Real.pi + 1) *
           Real.exp (-(2 * Real.pi * |T|)) =
@@ -486,7 +514,9 @@ theorem Real.tendsto_finiteAbelPlanaLogHorizontalEdge_log_exp_zero
           habs
       _ ≤ T ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
         exact mul_le_mul_of_nonneg_right hlog.2 hexp_nonneg
-  exact tendsto_of_tendsto_of_tendsto_of_le_of_le
+      _ ≤ (2 * Real.pi * T) ^ 2 * Real.exp (-(2 * Real.pi * T)) := by
+        exact mul_le_mul_of_nonneg_right hsquare_le_scaled hexp_nonneg
+  exact tendsto_of_tendsto_of_tendsto_of_le_of_le'
     tendsto_const_nhds hpoly_exp hnonneg hupper
 
 /-- The finite-strip horizontal-edge majorant tends to zero. -/
@@ -514,8 +544,19 @@ theorem Complex.finiteAbelPlanaLogHorizontalEdgeMajorant_tendsto_zero
             ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
               Real.exp (-(2 * Real.pi * |T|))))
         atTop
-        (𝓝 (0 : ℝ)) :=
-    hdecay.const_mul ((4 * (Real.pi + 1)) * (N + 1 : ℝ))
+        (𝓝 (0 : ℝ)) := by
+    exact Eq.mpr
+      (congrArg
+        (fun z : ℝ =>
+          Tendsto
+            (fun T : ℝ =>
+              ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+                ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
+                  Real.exp (-(2 * Real.pi * |T|))))
+            atTop
+            (𝓝 z))
+        (mul_zero ((4 * (Real.pi + 1)) * (N + 1 : ℝ))).symm)
+      (hdecay.const_mul ((4 * (Real.pi + 1)) * (N + 1 : ℝ)))
   have hsource :
       (fun T : ℝ =>
         ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
@@ -532,15 +573,23 @@ theorem Complex.finiteAbelPlanaLogHorizontalEdgeMajorant_tendsto_zero
       ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
           ((Real.log (1 + (‖w‖ + (N + 1 : ℝ)) + |T|) + Real.pi + 1) *
             Real.exp (-(2 * Real.pi * |T|))) =
-          (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
-            (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
-              Real.exp (-(2 * Real.pi * |T|)) := by
+          ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
+            ((Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+              Real.exp (-(2 * Real.pi * |T|))) := by
         exact congrArg
           (fun y : ℝ =>
             ((4 * (Real.pi + 1)) * (N + 1 : ℝ)) *
               ((Real.log y + Real.pi + 1) *
                 Real.exp (-(2 * Real.pi * |T|))))
           harg
+      _ =
+          (4 * (Real.pi + 1)) * (N + 1 : ℝ) *
+            (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1) *
+              Real.exp (-(2 * Real.pi * |T|)) := by
+        exact (mul_assoc
+          ((4 * (Real.pi + 1)) * (N + 1 : ℝ))
+          (Real.log (1 + ‖w‖ + (N + 1 : ℝ) + |T|) + Real.pi + 1)
+          (Real.exp (-(2 * Real.pi * |T|)))).symm
       _ = Complex.finiteAbelPlanaLogHorizontalEdgeMajorant N w T :=
         (Complex.finiteAbelPlana_log_horizontalEdgeMajorant_unfold N w T).symm
   exact hsource ▸ hscaled
@@ -565,8 +614,7 @@ theorem Complex.finiteAbelPlana_log_bottomHorizontalEdge_tendsto_zero
         atTop
         (𝓝 (0 : ℝ)) :=
     Complex.finiteAbelPlanaLogHorizontalEdgeMajorant_tendsto_zero N w
-  exact tendsto_of_norm_tendsto_zero
-    (squeeze_zero_norm' hbound hmajorant)
+  exact squeeze_zero_norm' hbound hmajorant
 
 /-- The top horizontal edge vanishes as the rectangle height tends to
 infinity. -/
@@ -590,8 +638,7 @@ theorem Complex.finiteAbelPlana_log_topHorizontalEdge_tendsto_zero
         atTop
         (𝓝 (0 : ℝ)) :=
     Complex.finiteAbelPlanaLogHorizontalEdgeMajorant_tendsto_zero N w
-  exact tendsto_of_norm_tendsto_zero
-    (squeeze_zero_norm' hbound hmajorant)
+  exact squeeze_zero_norm' hbound hmajorant
 
 /-- Horizontal edges vanish as the rectangle height tends to infinity. -/
 theorem Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_decay
@@ -616,33 +663,59 @@ theorem Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_decay
     Complex.finiteAbelPlana_log_topHorizontalEdge_tendsto_zero hw N
   have hsource :
       (fun T : ℝ =>
-        Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
-          Complex.finiteAbelPlanaLogTopHorizontalEdge N w T) =
+        ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+          (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+            Complex.finiteAbelPlanaLogTopHorizontalEdge N w T)) =
       (fun T : ℝ =>
         Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) := by
     funext T
     exact (Complex.finiteAbelPlana_log_horizontalEdgeError_unfold N w T).symm
-  exact hsource ▸ hbottom.sub htop
+  have hraw :
+      Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+            Complex.finiteAbelPlanaLogTopHorizontalEdge N w T)
+        atTop
+        (𝓝 (0 : ℂ)) := by
+    exact Eq.mpr (congrArg (fun z : ℂ => Tendsto
+        (fun T : ℝ =>
+          Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+            Complex.finiteAbelPlanaLogTopHorizontalEdge N w T)
+        atTop
+        (𝓝 z)) (sub_zero (0 : ℂ)).symm) (hbottom.sub htop)
+  have hscaled :
+      Tendsto
+        (fun T : ℝ =>
+          ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+            (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+              Complex.finiteAbelPlanaLogTopHorizontalEdge N w T))
+        atTop
+        (𝓝 (0 : ℂ)) := by
+    exact Eq.mpr
+      (congrArg
+        (fun z : ℂ =>
+          Tendsto
+            (fun T : ℝ =>
+              ((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹ *
+                (Complex.finiteAbelPlanaLogBottomHorizontalEdge N w T -
+                  Complex.finiteAbelPlanaLogTopHorizontalEdge N w T))
+            atTop
+            (𝓝 z))
+        (mul_zero (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹)).symm)
+      (hraw.const_mul (((2 : ℂ) * (Real.pi : ℂ) * Complex.I)⁻¹))
+  exact hsource ▸ hscaled
 
 /-- Finite-height horizontal-edge accounting and decay package. -/
 theorem Complex.finiteAbelPlana_log_horizontalEdgeAccountingAndDecay_owner
     {w : ℂ}
     (hw : 0 < w.re) :
     ∀ N : ℕ,
-      (∀ T : ℝ,
-        0 < T →
-        Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
-          -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T) ∧
       Tendsto
         (fun T : ℝ => Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
         atTop
         (𝓝 (0 : ℂ)) := by
   intro N
-  exact
-    ⟨Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_residueAccounting
-        hw N,
-      Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_decay
-        hw N⟩
+  exact Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_decay hw N
 
 /-- Owner-side form of
 `finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError`. -/
@@ -651,12 +724,14 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEd
     (hw : 0 < w.re)
     (N : ℕ)
     (T : ℝ)
-    (hT : 0 < T) :
+    (hT : 0 < T)
+    (hevent : Complex.FiniteHeightPVRectangleBoundaryBridge N w T)
+    (htarget : Complex.FiniteHeightPVBoundaryTargetBridge N w T) :
     Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
       -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
   exact
-    (Complex.finiteAbelPlana_log_horizontalEdgeAccountingAndDecay_owner
-      hw N).1 T hT
+    Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_residueAccounting
+      hw N T hT hevent htarget
 
 /-- Owner-side form of
 `finiteAbelPlana_log_horizontalEdgeError_tendsto_zero`. -/
@@ -670,15 +745,15 @@ theorem Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_owner
       atTop
       (𝓝 (0 : ℂ)) := by
   exact
-    (Complex.finiteAbelPlana_log_horizontalEdgeAccountingAndDecay_owner
-      hw N).2
+    Complex.finiteAbelPlana_log_horizontalEdgeAccountingAndDecay_owner hw N
 
 /-- Owner-side form of
 `finiteAbelPlana_log_finiteHeightContourError_tendsto_zero`. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
     {w : ℂ}
     (hw : 0 < w.re)
-    (N : ℕ) :
+    (N : ℕ)
+    (hbridges : Complex.FiniteHeightPVBridgePackageAt N w) :
     Tendsto
       (fun T : ℝ =>
         Complex.finiteAbelPlanaLogFiniteHeightContourError N w T)
@@ -688,19 +763,28 @@ theorem Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
       ∀ᶠ T : ℝ in atTop,
         Complex.finiteAbelPlanaLogFiniteHeightContourError N w T =
           -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T := by
-    filter_upwards [eventually_gt_atTop (0 : ℝ)] with T hT
+    filter_upwards [hbridges] with T hbridge
     exact
       Complex.finiteAbelPlana_log_finiteHeightContourError_eq_neg_horizontalEdgeError_owner
-        hw N T hT
+        hw N T hbridge.1 hbridge.2.1 hbridge.2.2
   have hdecay :
       Tendsto
         (fun T : ℝ =>
           -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
         atTop
-        (𝓝 (0 : ℂ)) :=
-    (Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_owner
-      hw N).neg
-  exact hdecay.congr' hidentify.symm
+        (𝓝 (0 : ℂ)) := by
+    exact Eq.mpr
+      (congrArg
+        (fun z : ℂ =>
+          Tendsto
+            (fun T : ℝ =>
+              -Complex.finiteAbelPlanaLogHorizontalEdgeError N w T)
+            atTop
+            (𝓝 z))
+        (neg_zero : -(0 : ℂ) = 0).symm)
+      ((Complex.finiteAbelPlana_log_horizontalEdgeError_tendsto_zero_owner
+        hw N).neg)
+  exact hdecay.congr' (hidentify.mono (fun T hT => hT.symm))
 
 end
 

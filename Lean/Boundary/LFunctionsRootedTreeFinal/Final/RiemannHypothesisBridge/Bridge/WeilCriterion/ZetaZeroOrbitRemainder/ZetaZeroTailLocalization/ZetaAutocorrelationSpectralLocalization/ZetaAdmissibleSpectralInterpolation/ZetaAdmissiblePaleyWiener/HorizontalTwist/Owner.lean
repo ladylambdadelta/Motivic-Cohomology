@@ -60,13 +60,15 @@ theorem zetaPaleyWienerHorizontalTwist_continuous
 
 /-- The compact parameter-support rectangle used for uniform Paley-Wiener seminorms. -/
 def zetaPaleyWienerParameterSupportRectangle
-    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) : Set (ℝ × ℝ) :=
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) : Set (ℝ × ℝ) :=
   Set.Icc a b ×ˢ Set.Icc I.lower I.upper
 
 /-- Membership in the Paley-Wiener parameter-support rectangle is exactly the four endpoint
 inequalities. -/
 theorem zetaPaleyWienerParameterSupportRectangle_mem
-    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) (p : ℝ × ℝ) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) (p : ℝ × ℝ) :
     p ∈ zetaPaleyWienerParameterSupportRectangle I a b ↔
       a ≤ p.1 ∧ p.1 ≤ b ∧ I.lower ≤ p.2 ∧ p.2 ≤ I.upper := by
   constructor
@@ -77,7 +79,8 @@ theorem zetaPaleyWienerParameterSupportRectangle_mem
 
 /-- The parameter-support rectangle is compact. -/
 theorem zetaPaleyWienerParameterSupportRectangle_isCompact
-    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f)
+    (a b : ℝ) :
     IsCompact (zetaPaleyWienerParameterSupportRectangle I a b) := by
   exact isCompact_Icc.prod isCompact_Icc
 
@@ -126,7 +129,9 @@ theorem zetaPaleyWienerVerticalLineEmbedding_eq_translate_linear
     (x t : ℝ) :
     zetaPaleyWienerVerticalLineEmbedding x t =
       (x, 0) + zetaPaleyWienerVerticalLinearEmbedding t := by
-  rfl
+  unfold zetaPaleyWienerVerticalLineEmbedding
+  unfold zetaPaleyWienerVerticalLinearEmbedding
+  exact Prod.ext (add_zero x).symm (zero_add t).symm
 
 /-- The generic vertical-line compatibility theorem at derivative order zero. -/
 theorem iteratedDeriv_verticalLine_eq_iteratedFDeriv_verticalDirection_zero
@@ -141,6 +146,73 @@ theorem iteratedDeriv_verticalLine_eq_iteratedFDeriv_verticalDirection_zero
       (f := F)
       (x := (x, t))
       (m := fun _ : Fin 0 => zetaPaleyWienerVerticalParameterDirection)).symm
+
+/-- Iterated Frechet derivatives are invariant under left affine translation of the source. -/
+theorem iteratedFDeriv_comp_add_left
+    (F : ℝ × ℝ → ℂ) (hF : ContDiff ℝ ∞ F)
+    (n : ℕ) (A q : ℝ × ℝ) :
+    iteratedFDeriv ℝ n (fun p : ℝ × ℝ => F (A + p)) q =
+      iteratedFDeriv ℝ n F (A + q) := by
+  induction n generalizing q with
+  | zero =>
+      ext m
+      exact iteratedFDeriv_zero_apply
+        (f := fun p : ℝ × ℝ => F (A + p))
+        (x := q)
+        (m := m)
+  | succ n ih =>
+      rw [iteratedFDeriv_succ_eq_comp_left]
+      rw [iteratedFDeriv_succ_eq_comp_left]
+      have htranslated_jet :
+          (fun p : ℝ × ℝ =>
+            iteratedFDeriv ℝ n (fun r : ℝ × ℝ => F (A + r)) p) =
+            (iteratedFDeriv ℝ n F) ∘
+              (fun p : ℝ × ℝ => A + p) := by
+        funext p
+        exact ih p
+      have hjet_diff :
+          DifferentiableAt ℝ (iteratedFDeriv ℝ n F) (A + q) := by
+        have hn_lt :
+            (n : WithTop ℕ∞) < (∞ : WithTop ℕ∞) :=
+          WithTop.coe_lt_coe.2 (ENat.coe_lt_top n)
+        exact (hF.differentiable_iteratedFDeriv hn_lt) (A + q)
+      have htranslate_diff :
+          DifferentiableAt ℝ (fun p : ℝ × ℝ => A + p) q :=
+        (differentiableAt_id.const_add A)
+      have htranslate_deriv :
+          fderiv ℝ (fun p : ℝ × ℝ => A + p) q =
+            ContinuousLinearMap.id ℝ (ℝ × ℝ) := by
+        exact Eq.trans
+          (fderiv_const_add
+            (𝕜 := ℝ)
+            (f := fun p : ℝ × ℝ => p)
+            (x := q)
+            A)
+          (fderiv_id (𝕜 := ℝ) (x := q))
+      have hfderiv :
+          fderiv ℝ
+              (iteratedFDeriv ℝ n (fun p : ℝ × ℝ => F (A + p))) q =
+            fderiv ℝ (iteratedFDeriv ℝ n F) (A + q) := by
+        exact Eq.trans
+          (congrArg
+            (fun H : (ℝ × ℝ) →
+                ContinuousMultilinearMap ℝ (fun _ : Fin n => ℝ × ℝ) ℂ =>
+              fderiv ℝ H q)
+            htranslated_jet)
+          (Eq.trans
+            (fderiv_comp q hjet_diff htranslate_diff)
+            (Eq.trans
+              (congrArg
+                (fun L : ℝ × ℝ →L[ℝ] ℝ × ℝ =>
+                  (fderiv ℝ (iteratedFDeriv ℝ n F) (A + q)).comp L)
+                htranslate_deriv)
+              (ContinuousLinearMap.comp_id
+                (fderiv ℝ (iteratedFDeriv ℝ n F) (A + q)))))
+      exact congrArg
+        ((continuousMultilinearCurryLeftEquiv ℝ
+          (fun _ : Fin (Nat.succ n) => ℝ × ℝ)
+          ℂ).symm)
+        hfderiv
 
 /-- Frechet derivatives of the vertical affine restriction are obtained by precomposing the
 ambient Frechet derivative with the vertical linear embedding. -/
@@ -159,16 +231,27 @@ theorem iteratedFDeriv_verticalLine_eq_comp_verticalLinearEmbedding
     exact congrArg F (zetaPaleyWienerVerticalLineEmbedding_eq_translate_linear x u)
   have hG :
       ContDiff ℝ ∞ G := by
-    exact hF.comp (contDiff_const.add L.contDiff)
+    exact hF.comp (contDiff_const.add contDiff_id)
+  have hn_le_smooth :
+      (n : WithTop ℕ∞) ≤ (∞ : WithTop ℕ∞) :=
+    WithTop.coe_le_coe.2 (show (n : ℕ∞) ≤ ⊤ from le_top)
   have hcomp :
       iteratedFDeriv ℝ n (G ∘ L) t =
         (iteratedFDeriv ℝ n G (L t)).compContinuousLinearMap
           (fun _ : Fin n => L) :=
-    L.iteratedFDeriv_comp_right hG t le_top
+    L.iteratedFDeriv_comp_right hG t (i := n) hn_le_smooth
   have htranslate :
       iteratedFDeriv ℝ n G (L t) =
         iteratedFDeriv ℝ n F (x, t) := by
-    exact iteratedFDeriv_comp_add_left n A (L t)
+    change
+      iteratedFDeriv ℝ n (fun p : ℝ × ℝ => F (A + p)) (L t) =
+        iteratedFDeriv ℝ n F (x, t)
+    have hpoint :
+        A + L t = (x, t) :=
+      (zetaPaleyWienerVerticalLineEmbedding_eq_translate_linear x t).symm
+    exact Eq.trans
+      (iteratedFDeriv_comp_add_left F hF n A (L t))
+      (congrArg (fun z : ℝ × ℝ => iteratedFDeriv ℝ n F z) hpoint)
   exact Eq.subst
     (motive := fun q : ℝ → ℂ =>
       iteratedFDeriv ℝ n q t =
@@ -232,7 +315,7 @@ iterated derivatives and repeated vertical Frechet derivatives. -/
 theorem iteratedDeriv_verticalLine_eq_iteratedFDeriv_verticalDirection_succ
     (F : ℝ × ℝ → ℂ) (hF : ContDiff ℝ ∞ F)
     (n : ℕ)
-    (ih :
+    (_ih :
       ∀ x t : ℝ,
         iteratedDeriv n (fun u : ℝ => F (x, u)) t =
           (iteratedFDeriv ℝ n F (x, t) :
@@ -314,8 +397,11 @@ theorem zetaPaleyWienerHorizontalTwistVerticalJet_continuous
   have hjet :
       Continuous
         (iteratedFDeriv ℝ n (zetaPaleyWienerHorizontalTwistParameter f)) :=
-    (zetaPaleyWienerHorizontalTwistParameter_contDiff f).continuous_iteratedFDeriv
-      n le_top
+    ContDiff.continuous_iteratedFDeriv
+      (𝕜 := ℝ)
+      (m := n)
+      (WithTop.coe_le_coe.2 (show (n : ℕ∞) ≤ ⊤ from le_top))
+      (zetaPaleyWienerHorizontalTwistParameter_contDiff f)
   have hdirection :
       Continuous
         (fun _p : ℝ × ℝ =>
@@ -333,8 +419,16 @@ theorem zetaPaleyWienerHorizontalTwistVerticalJet_contDiff
   have hjet :
       ContDiff ℝ ∞
         (iteratedFDeriv ℝ n (zetaPaleyWienerHorizontalTwistParameter f)) :=
+    have hsmooth_add :
+        (∞ : WithTop ℕ∞) + (n : WithTop ℕ∞) ≤
+          (∞ : WithTop ℕ∞) := by
+      change
+        (((⊤ : ℕ∞) + (n : ℕ∞) : ℕ∞) : WithTop ℕ∞) ≤
+          ((⊤ : ℕ∞) : WithTop ℕ∞)
+      exact WithTop.coe_le_coe.2
+        (show (⊤ : ℕ∞) + (n : ℕ∞) ≤ ⊤ from le_top)
     (zetaPaleyWienerHorizontalTwistParameter_contDiff f).iteratedFDeriv_right
-      le_top
+      hsmooth_add
   have happly :
       ContDiff ℝ ∞
         (fun L : ContinuousMultilinearMap ℝ (fun _ : Fin n => ℝ × ℝ) ℂ =>
@@ -403,7 +497,8 @@ theorem exists_zetaPaleyWienerHorizontalTwistVerticalJet_intervalBound
 /-- A point of the real line is either inside the certified support interval or strictly
 outside one of its two sides. -/
 theorem zetaPaleyWienerSupportInterval_inside_or_outside
-    (I : ZetaPaleyWienerSupportInterval f) (t : ℝ) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f)
+    (t : ℝ) :
     (I.lower ≤ t ∧ t ≤ I.upper) ∨ t < I.lower ∨ I.upper < t := by
   by_cases ht_lower : I.lower ≤ t
   · by_cases ht_upper : t ≤ I.upper

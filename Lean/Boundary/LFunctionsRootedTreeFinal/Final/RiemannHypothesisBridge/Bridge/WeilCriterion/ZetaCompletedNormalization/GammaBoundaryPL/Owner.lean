@@ -775,18 +775,19 @@ theorem strip_uniform_bound_of_holomorphic_boundary_bound_and_mathlib_growth
       a ≤ z.re →
       z.re ≤ b →
       ‖f z‖ ≤ C := by
-  intro z hza hzb
-  exact PhragmenLindelof.vertical_strip
-    (f := f)
-    (a := a)
-    (b := b)
-    (C := C)
-    hhol
-    hgrowth
-    hleft
-    hright
-    hza
-    hzb
+  exact
+    fun z hza hzb =>
+      PhragmenLindelof.vertical_strip
+        (f := f)
+        (a := a)
+        (b := b)
+        (C := C)
+        hhol
+        hgrowth
+        hleft
+        hright
+        hza
+        hzb
 
 /-- Separate finite-order boundary envelopes on the two vertical sides can be dominated by
 a single common finite-order envelope.
@@ -1127,35 +1128,36 @@ theorem strip_vertical_boundary_envelope_exp_damped_bound
       z.re = b →
       1 ≤ ‖z.im‖ →
       Real.exp (-(B * (1 + ‖z.im‖) ^ m)) * ‖f z‖ ≤ A) := by
-  constructor
-  · intro z hz_re hz_im
-    let X : ℝ := B * (1 + ‖z.im‖) ^ m
-    have hbound :
-        ‖f z‖ ≤ A * Real.exp X :=
-      hboundary.1 z hz_re hz_im
-    have hdamp_nonneg : 0 ≤ Real.exp (-X) :=
-      le_of_lt (Real.exp_pos (-X))
-    have hscaled :
-        Real.exp (-X) * ‖f z‖ ≤ Real.exp (-X) * (A * Real.exp X) :=
-      mul_le_mul_of_nonneg_left hbound hdamp_nonneg
-    have hcollapse :
-        Real.exp (-X) * (A * Real.exp X) = A := by
-      exact exp_negative_growth_mul_growth_cancel A X
-    exact hscaled.trans_eq hcollapse
-  · intro z hz_re hz_im
-    let X : ℝ := B * (1 + ‖z.im‖) ^ m
-    have hbound :
-        ‖f z‖ ≤ A * Real.exp X :=
-      hboundary.2 z hz_re hz_im
-    have hdamp_nonneg : 0 ≤ Real.exp (-X) :=
-      le_of_lt (Real.exp_pos (-X))
-    have hscaled :
-        Real.exp (-X) * ‖f z‖ ≤ Real.exp (-X) * (A * Real.exp X) :=
-      mul_le_mul_of_nonneg_left hbound hdamp_nonneg
-    have hcollapse :
-        Real.exp (-X) * (A * Real.exp X) = A := by
-      exact exp_negative_growth_mul_growth_cancel A X
-    exact hscaled.trans_eq hcollapse
+  exact
+    And.intro
+      (fun z hz_re hz_im =>
+        let X : ℝ := B * (1 + ‖z.im‖) ^ m
+        have hbound :
+            ‖f z‖ ≤ A * Real.exp X :=
+          hboundary.1 z hz_re hz_im
+        have hdamp_nonneg : 0 ≤ Real.exp (-X) :=
+          le_of_lt (Real.exp_pos (-X))
+        have hscaled :
+            Real.exp (-X) * ‖f z‖ ≤ Real.exp (-X) * (A * Real.exp X) :=
+          mul_le_mul_of_nonneg_left hbound hdamp_nonneg
+        have hcollapse :
+            Real.exp (-X) * (A * Real.exp X) = A := by
+          exact exp_negative_growth_mul_growth_cancel A X
+        hscaled.trans_eq hcollapse)
+      (fun z hz_re hz_im =>
+        let X : ℝ := B * (1 + ‖z.im‖) ^ m
+        have hbound :
+            ‖f z‖ ≤ A * Real.exp X :=
+          hboundary.2 z hz_re hz_im
+        have hdamp_nonneg : 0 ≤ Real.exp (-X) :=
+          le_of_lt (Real.exp_pos (-X))
+        have hscaled :
+            Real.exp (-X) * ‖f z‖ ≤ Real.exp (-X) * (A * Real.exp X) :=
+          mul_le_mul_of_nonneg_left hbound hdamp_nonneg
+        have hcollapse :
+            Real.exp (-X) * (A * Real.exp X) = A := by
+          exact exp_negative_growth_mul_growth_cancel A X
+        hscaled.trans_eq hcollapse)
 
 /-- The vertical height is bounded by the ordinary complex height. -/
 theorem vertical_basicHeight_le_complex_basicHeight
@@ -1301,7 +1303,7 @@ theorem strip_finite_order_growth_of_vertical_boundary_envelope_damped_family
 /-- The explicit damped-family Phragmen-Lindelöf normalization theorem.
 
 This is the remaining analytic epsilon/damping primitive: after introducing the standard
-damped family, apply `strip_uniform_bound_of_holomorphic_boundary_bound_and_mathlib_growth`
+damped family, use `strip_uniform_bound_of_holomorphic_boundary_bound_and_mathlib_growth`
 to the damped family and then absorb the damping parameter back into the same finite-order
 envelope. -/
 theorem strip_finite_order_growth_of_common_boundary_envelope_damped_family
@@ -1474,7 +1476,7 @@ theorem strip_growth_bound_of_holomorphic_boundary_growth_and_finite_order
   exact strip_finite_order_growth_reduces_to_bounded_boundary_phragmenLindelof
     f a b hab hhol hfinite hleft hright
 
-/-- The removable pole-cleared zeta factor, normalized by the residue value at `1`. -/
+/- The pole-cleared zeta factor itself is owned by `PoleClearedBoundarySetup.Core`. -/
 
 end
 end LFunctions

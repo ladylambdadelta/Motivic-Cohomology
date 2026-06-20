@@ -31,19 +31,19 @@ def zetaLaplaceTransformHasVerticalStripDecayConstant
 
 /-- The length of the compact support interval used in the Paley-Wiener estimate. -/
 def zetaPaleyWienerSupportIntervalLength
-    (I : ZetaPaleyWienerSupportInterval f) : ℝ :=
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f) : ℝ :=
   max (I.upper - I.lower) 0
 
 /-- The support-interval length is nonnegative. -/
 theorem zetaPaleyWienerSupportIntervalLength_nonnegative
-    (I : ZetaPaleyWienerSupportInterval f) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f) :
     0 ≤ zetaPaleyWienerSupportIntervalLength I := by
   unfold zetaPaleyWienerSupportIntervalLength
   exact le_max_right (I.upper - I.lower) 0
 
 /-- For ordered support intervals, the stored length is the ordinary endpoint difference. -/
 theorem zetaPaleyWienerSupportIntervalLength_eq_upper_sub_lower
-    (I : ZetaPaleyWienerSupportInterval f) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f) :
     zetaPaleyWienerSupportIntervalLength I = I.upper - I.lower := by
   unfold zetaPaleyWienerSupportIntervalLength
   exact max_eq_left (sub_nonneg.mpr I.lower_le_upper)
@@ -51,13 +51,13 @@ theorem zetaPaleyWienerSupportIntervalLength_eq_upper_sub_lower
 /-- The horizontal exponential factor is uniformly bounded on a fixed vertical strip and
 support interval. -/
 def zetaPaleyWienerStripExponentialEnvelope
-    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) : ℝ :=
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) : ℝ :=
   Real.exp (max (max (|a * I.lower|) (|a * I.upper|))
     (max (|b * I.lower|) (|b * I.upper|)))
 
 /-- The strip exponential envelope is positive. -/
 theorem zetaPaleyWienerStripExponentialEnvelope_pos
-    (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) :
+    {f : ZetaAdmissibleFunction} (I : ZetaPaleyWienerSupportInterval f) (a b : ℝ) :
     0 < zetaPaleyWienerStripExponentialEnvelope I a b := by
   unfold zetaPaleyWienerStripExponentialEnvelope
   exact Real.exp_pos _
@@ -95,11 +95,11 @@ theorem zetaPaleyWienerSupportNormSet_eq_supportNormImage
   · intro hr
     rcases hr with ⟨t, ht_support, ht_norm⟩
     unfold zetaPaleyWienerSupportNormImage
-    exact ⟨t, ht_support, ht_norm.symm⟩
+    exact ⟨t, ht_support, ht_norm⟩
   · intro hr
     rcases hr with ⟨t, ht_support, ht_norm⟩
     unfold zetaPaleyWienerSupportNormSet
-    exact ⟨t, ht_support, ht_norm.symm⟩
+    exact ⟨t, ht_support, ht_norm⟩
 
 /-- The pointwise norm map attached to an admissible source is continuous. -/
 theorem zetaPaleyWienerSupportNormMap_continuous
@@ -113,7 +113,7 @@ theorem zetaPaleyWienerSupportNormImage_isCompact
     IsCompact (zetaPaleyWienerSupportNormImage f) := by
   unfold zetaPaleyWienerSupportNormImage
   exact f.toZetaTestFunction.hasCompactSupport.isCompact.image
-    (zetaPaleyWienerSupportNormMap_continuous f).continuousOn
+    (zetaPaleyWienerSupportNormMap_continuous f)
 
 /-- The compact-support norm image is bounded above. -/
 theorem zetaPaleyWienerSupportNormImage_bddAbove

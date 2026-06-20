@@ -1,7 +1,7 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.MeasureTheory.Integral.SetIntegral
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteHoleSubdivision
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaFiniteHoleSubdivisionCore
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaEndpointCapCollars.Foundation.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaEndpointCapCollars.Left.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaEndpointCapCollars.Right.Owner
@@ -356,7 +356,7 @@ orientation identified with the existing named side and indentation integrals.
 This is the exact local classical proof obligation: apply Cauchy-Goursat to the
 punctured cap/collar domain and match its oriented boundary to the lower collar,
 upper collar, adjacent safe-strip vertical edge, principal-value left edge, and
-right endpoint semicircle. -/
+right semicircular indentation at the left endpoint. -/
 theorem Complex.finiteAbelPlana_log_leftEndpointCapCollar_orientedBoundary_eq_zero
     {w : ℂ}
     (N : ℕ)
@@ -525,7 +525,7 @@ orientation identified with the existing named side and indentation integrals.
 This is the exact local classical proof obligation: apply Cauchy-Goursat to the
 punctured cap/collar domain and match its oriented boundary to the lower collar,
 upper collar, principal-value right edge, adjacent safe-strip vertical edge, and
-left endpoint semicircle. -/
+left semicircular indentation at the right endpoint. -/
 theorem Complex.finiteAbelPlana_log_rightEndpointCapCollar_orientedBoundary_eq_zero
     {w : ℂ}
     (N : ℕ)

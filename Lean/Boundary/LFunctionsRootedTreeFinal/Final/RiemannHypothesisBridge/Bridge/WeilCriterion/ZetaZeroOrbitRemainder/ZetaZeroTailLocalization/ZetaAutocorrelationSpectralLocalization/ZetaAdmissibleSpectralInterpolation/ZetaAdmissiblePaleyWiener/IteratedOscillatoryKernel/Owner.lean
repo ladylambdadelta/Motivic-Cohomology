@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.LowFrequencyDecay.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.ZetaExplicitFormulaAnalyticCore.Owner
 
 /-!
 # Paley-Wiener iterated oscillatory kernels
@@ -12,9 +13,12 @@ the existing owner surface.
 
 open scoped Real
 open MeasureTheory
+open scoped ContDiff
 
 namespace Boundary
 namespace LFunctions
+
+open ZetaAdmissibleFunction
 
 /-- The arbitrary iterated-derivative oscillatory kernel is integrable. -/
 theorem zetaPaleyWienerIteratedDerivativeOscillatoryKernel_integrable
@@ -26,8 +30,7 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryKernel_integrable
       (zetaPaleyWienerIteratedDerivativeOscillatoryKernel_hasCompactSupport f n x y)
 
 /-- Zero-order compact-support bound for arbitrary iterated horizontal-twist derivative
-oscillatory integrals. -/
-/-- Helper for uniform bound: extract witness and basic inequalities. -/
+oscillatory integrals, with the witness and basic inequalities exposed. -/
 theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_zeroOrder_uniformBound_witness
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (start : ℕ) :
@@ -133,7 +136,7 @@ theorem zetaPaleyWienerHorizontalTwistIteratedDerivative_contDiff
   have hfun :
       (fun t : ℝ => zetaPaleyWienerHorizontalTwistIteratedDerivative f start x t) =
         fun t : ℝ => zetaPaleyWienerHorizontalTwistVerticalJet f start x t :=
-    Function.ext hfun_eq
+    funext hfun_eq
   exact Eq.subst
     (motive := fun g : ℝ → ℂ => ContDiff ℝ ∞ g)
     hfun.symm
@@ -145,8 +148,10 @@ theorem zetaPaleyWienerHorizontalTwistIteratedDerivative_differentiableAt
     DifferentiableAt ℝ
       (fun u : ℝ => zetaPaleyWienerHorizontalTwistIteratedDerivative f start x u)
       t := by
+  have horder : (1 : WithTop ℕ∞) ≤ (∞ : WithTop ℕ∞) :=
+    WithTop.coe_le_coe.2 (show (1 : ℕ∞) ≤ ⊤ from le_top)
   exact (zetaPaleyWienerHorizontalTwistIteratedDerivative_contDiff
-    f start x).differentiable le_top t
+    f start x).differentiable horder t
 
 /-- The derivative value of the `start`th iterated source is the successor iterated source. -/
 theorem deriv_zetaPaleyWienerHorizontalTwistIteratedDerivative
@@ -230,7 +235,7 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_boundaryTerm_eq_zer
           exact congrArg
             (fun v : ℂ => 0 - v)
             (zero_mul (zetaPaleyWienerVerticalOscillation y lower))
-    _ = 0 := sub_zero 0
+    _ = 0 := sub_zero (0 : ℂ)
 
 /-- The frequency-multiplied oscillatory kernel for an iterated source is integrable. -/
 theorem zetaPaleyWienerIteratedDerivativeOscillatoryKernel_frequency_integrable
@@ -315,14 +320,15 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_frequency_mul_eq_in
   have hright_integrand :
       (fun t : ℝ => H t * (A * V t)) =
         fun t : ℝ => A * (H t * V t) :=
-    Function.ext fun t =>
-      calc H t * (A * V t)
-        = (H t * A) * V t := by
-          exact (mul_assoc (H t) A (V t)).symm
-        _ = (A * H t) * V t := by
-          exact congrArg (fun v : ℂ => v * V t) (mul_comm (H t) A)
-        _ = A * (H t * V t) := by
-          exact mul_assoc A (H t) (V t)
+    funext
+      (fun t : ℝ =>
+        calc
+          H t * (A * V t) = (H t * A) * V t := by
+            exact (mul_assoc (H t) A (V t)).symm
+          _ = (A * H t) * V t := by
+            exact congrArg (fun v : ℂ => v * V t) (mul_comm (H t) A)
+          _ = A * (H t * V t) := by
+            exact mul_assoc A (H t) (V t))
   have hintegral :
       (∫ t : ℝ, H t * (A * V t)) =
         A * ∫ t : ℝ, H t * V t := by
@@ -330,12 +336,14 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_frequency_mul_eq_in
       (congrArg
         (fun q : ℝ → ℂ => ∫ t : ℝ, q t)
         hright_integrand)
-      (integral_const_mul A (fun t : ℝ => H t * V t))
+      (MeasureTheory.integral_mul_left A (fun t : ℝ => H t * V t))
   have hdefs : zetaPaleyWienerIteratedDerivativeOscillatoryIntegral f start x y =
       ∫ t : ℝ, zetaPaleyWienerHorizontalTwistIteratedDerivative f start x t *
         zetaPaleyWienerVerticalOscillation y t := by
     rfl
-  exact hdefs ▸ hintegral.symm
+  exact Eq.trans
+    (congrArg (fun q : ℂ => A * q) hdefs)
+    hintegral.symm
 
 /-- The successor iterated source integral is the successor oscillatory integral. -/
 theorem zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_succ_integral_eq
@@ -653,6 +661,63 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_h
           (zetaPaleyWienerIteratedDerivativeOscillatoryIntegral_one f x y)
           hiter⟩
 
+/-- Pointwise low/high frequency decision for the positive-order Fourier estimate. -/
+theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_from_low_high_pointwise
+    (f : ZetaAdmissibleFunction) (a b : ℝ) (N : ℕ)
+    (Clow Chigh : ℝ)
+    (hClow :
+      ∀ x y : ℝ,
+        a ≤ x →
+        x ≤ b →
+        ‖y‖ ≤ 1 →
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖
+          ≤ Clow * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)))
+    (hChigh :
+      ∀ x y : ℝ,
+        a ≤ x →
+        x ≤ b →
+        1 ≤ ‖y‖ →
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖
+          ≤ Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)))
+    (x y : ℝ) (hx_left : a ≤ x) (hx_right : x ≤ b) :
+    ‖∫ t : ℝ,
+      zetaPaleyWienerVerticalLineIBPDerivative f x t *
+        zetaPaleyWienerVerticalOscillation y t‖
+      ≤ max Clow Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+  let hweight :
+      0 ≤ (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+    zetaPaleyWiener_realVerticalDecayWeight_nonnegative y (Nat.succ N)
+  if hlow_region : ‖y‖ ≤ 1 then
+    let hbound :
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖
+          ≤ Clow * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+      hClow x y hx_left hx_right hlow_region
+    let hconstant :
+        Clow * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) ≤
+          max Clow Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+      mul_le_mul_of_nonneg_right (le_max_left Clow Chigh) hweight
+    hbound.trans hconstant
+  else
+    let hhigh_region : 1 ≤ ‖y‖ :=
+      le_of_lt (lt_of_not_ge hlow_region)
+    let hbound :
+        ‖∫ t : ℝ,
+          zetaPaleyWienerVerticalLineIBPDerivative f x t *
+            zetaPaleyWienerVerticalOscillation y t‖
+          ≤ Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+      hChigh x y hx_left hx_right hhigh_region
+    let hconstant :
+        Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) ≤
+          max Clow Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
+      mul_le_mul_of_nonneg_right (le_max_right Clow Chigh) hweight
+    hbound.trans hconstant
+
 /-- Low- and high-frequency positive-order estimates combine into the global estimate. -/
 theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_from_low_high
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
@@ -691,35 +756,8 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_f
   match hlow, hhigh with
   | ⟨Clow, hClow_pos, hClow⟩, ⟨Chigh, hChigh_pos, hChigh⟩ =>
       exact ⟨max Clow Chigh, lt_of_lt_of_le hClow_pos (le_max_left Clow Chigh),
-        fun x y hx_left hx_right => by
-          have hweight :
-              0 ≤ (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-            zetaPaleyWiener_realVerticalDecayWeight_nonnegative y (Nat.succ N)
-          by_cases hlow_region : ‖y‖ ≤ 1
-          · have hbound :
-                ‖∫ t : ℝ,
-                  zetaPaleyWienerVerticalLineIBPDerivative f x t *
-                    zetaPaleyWienerVerticalOscillation y t‖
-                  ≤ Clow * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-              hClow x y hx_left hx_right hlow_region
-            have hconstant :
-                Clow * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) ≤
-                  max Clow Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-              mul_le_mul_of_nonneg_right (le_max_left Clow Chigh) hweight
-            exact hbound.trans hconstant
-          · have hhigh_region : 1 ≤ ‖y‖ :=
-              le_of_lt (lt_of_not_ge hlow_region)
-            have hbound :
-                ‖∫ t : ℝ,
-                  zetaPaleyWienerVerticalLineIBPDerivative f x t *
-                    zetaPaleyWienerVerticalOscillation y t‖
-                  ≤ Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-              hChigh x y hx_left hx_right hhigh_region
-            have hconstant :
-                Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) ≤
-                  max Clow Chigh * (1 + ‖y‖) ^ (-((Nat.succ N : ℕ) : ℤ)) :=
-              mul_le_mul_of_nonneg_right (le_max_right Clow Chigh) hweight
-            exact hbound.trans hconstant⟩
+        zetaPaleyWienerHorizontalTwistDerivative_fourierIntegral_positiveOrder_from_low_high_pointwise
+          f a b N Clow Chigh hClow hChigh⟩
 
 /-- Positive-order Fourier decay for the compactly supported horizontal-twist derivative
 family is the repeated-integration-by-parts estimate. -/
@@ -917,6 +955,51 @@ theorem zetaLaplaceTransform_supportInterval_successor_lowFrequency_decay_from_c
           exact (mul_assoc C 2 (zetaPaleyWienerVerticalWeight z (N + 1))).symm
         hbound.trans (hrenorm.trans_eq hreassociate)⟩
 
+/-- Pointwise low/high frequency decision for the global successor strip estimate. -/
+theorem zetaLaplaceTransform_supportInterval_successor_decay_from_low_high_pointwise
+    (f : ZetaAdmissibleFunction)
+    (a b : ℝ) (N : ℕ)
+    (Clow Chigh : ℝ)
+    (hClow :
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        ‖z.im‖ ≤ 1 →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Clow * zetaPaleyWienerVerticalWeight z (N + 1))
+    (hChigh :
+      ∀ z : ℂ,
+        zetaPaleyWienerInVerticalStrip a b z →
+        1 ≤ ‖z.im‖ →
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Chigh * zetaPaleyWienerVerticalWeight z (N + 1))
+    (z : ℂ) (hz : zetaPaleyWienerInVerticalStrip a b z) :
+    ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+      ≤ max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+  let hweight : 0 ≤ zetaPaleyWienerVerticalWeight z (N + 1) :=
+    zetaPaleyWienerVerticalWeight_nonnegative z (N + 1)
+  if hlow_region : ‖z.im‖ ≤ 1 then
+    let hbound :
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Clow * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      hClow z hz hlow_region
+    let hconstant :
+        Clow * zetaPaleyWienerVerticalWeight z (N + 1) ≤
+          max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      mul_le_mul_of_nonneg_right (le_max_left Clow Chigh) hweight
+    hbound.trans hconstant
+  else
+    let hhigh_region : 1 ≤ ‖z.im‖ :=
+      le_of_lt (lt_of_not_ge hlow_region)
+    let hbound :
+        ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
+          ≤ Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      hChigh z hz hhigh_region
+    let hconstant :
+        Chigh * zetaPaleyWienerVerticalWeight z (N + 1) ≤
+          max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
+      mul_le_mul_of_nonneg_right (le_max_right Clow Chigh) hweight
+    hbound.trans hconstant
+
 /-- The low/high frequency successor estimates combine into the global successor estimate. -/
 theorem zetaLaplaceTransform_supportInterval_successor_decay_from_low_high
     (f : ZetaAdmissibleFunction)
@@ -945,30 +1028,9 @@ theorem zetaLaplaceTransform_supportInterval_successor_decay_from_low_high
           ≤ C * zetaPaleyWienerVerticalWeight z (N + 1) := by
   match hlow, hhigh with
   | ⟨Clow, hClow_pos, hClow⟩, ⟨Chigh, hChigh_pos, hChigh⟩ =>
-      exact ⟨max Clow Chigh, lt_of_lt_of_le hClow_pos (le_max_left Clow Chigh), fun z hz => by
-        let hweight : 0 ≤ zetaPaleyWienerVerticalWeight z (N + 1) :=
-          zetaPaleyWienerVerticalWeight_nonnegative z (N + 1)
-        by_cases hlow_region : ‖z.im‖ ≤ 1
-        · have hbound :
-              ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
-                ≤ Clow * zetaPaleyWienerVerticalWeight z (N + 1) :=
-            hClow z hz hlow_region
-          have hconstant :
-              Clow * zetaPaleyWienerVerticalWeight z (N + 1) ≤
-                max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
-            mul_le_mul_of_nonneg_right (le_max_left Clow Chigh) hweight
-          exact hbound.trans hconstant
-        · have hhigh_region : 1 ≤ ‖z.im‖ :=
-            le_of_lt (lt_of_not_ge hlow_region)
-          have hbound :
-              ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖
-                ≤ Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
-            hChigh z hz hhigh_region
-          have hconstant :
-              Chigh * zetaPaleyWienerVerticalWeight z (N + 1) ≤
-                max Clow Chigh * zetaPaleyWienerVerticalWeight z (N + 1) :=
-            mul_le_mul_of_nonneg_right (le_max_right Clow Chigh) hweight
-          exact hbound.trans hconstant⟩
+      exact ⟨max Clow Chigh, lt_of_lt_of_le hClow_pos (le_max_left Clow Chigh),
+        zetaLaplaceTransform_supportInterval_successor_decay_from_low_high_pointwise
+          f a b N Clow Chigh hClow hChigh⟩
 
 /-- One integration-by-parts step for Paley-Wiener control on a fixed compact support
 interval.

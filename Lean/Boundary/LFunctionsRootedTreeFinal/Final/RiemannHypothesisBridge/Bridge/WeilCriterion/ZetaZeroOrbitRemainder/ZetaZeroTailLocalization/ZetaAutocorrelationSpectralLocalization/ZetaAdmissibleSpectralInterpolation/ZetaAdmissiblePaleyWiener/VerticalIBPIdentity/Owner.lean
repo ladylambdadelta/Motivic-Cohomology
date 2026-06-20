@@ -1,3 +1,4 @@
+import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaAdmissibleSpectralInterpolation.ZetaAdmissiblePaleyWiener.VerticalDerivativeSource.Owner
 
 /-!
@@ -15,6 +16,8 @@ open MeasureTheory
 
 namespace Boundary
 namespace LFunctions
+
+open ZetaAdmissibleFunction
 
 /-- The compact-support boundary term for the horizontal twist vanishes at any lower and
 upper cutoffs chosen strictly outside the certified support interval. -/
@@ -63,12 +66,12 @@ theorem zetaPaleyWienerVerticalLineIBP_boundaryTerm_eq_zero_of_strict_bounds
           exact congrArg
             (fun v : ℂ => 0 - v)
             (zero_mul (zetaPaleyWienerVerticalOscillation y lower))
-    _ = 0 := sub_zero 0
+    _ = 0 := sub_zero (0 : ℂ)
 
 /-- The vertical-line integration-by-parts identity before solving for the kernel
 integral. -/
 theorem zetaPaleyWienerVerticalLineKernel_integral_mul_frequency_eq_neg_derivativeIntegral
-    (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
+    (f : ZetaAdmissibleFunction) (_I : ZetaPaleyWienerSupportInterval f)
     (x y : ℝ) :
     (Complex.I * (y : ℂ)) *
         (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) =
@@ -129,7 +132,7 @@ theorem zetaPaleyWienerVerticalLineKernel_integral_mul_frequency_eq_neg_derivati
               (fun q : ℝ → ℂ => ∫ t : ℝ, q t)
               hleft_integrand
       _ = A * (∫ t : ℝ, H t * V t) := by
-            exact integral_const_mul A (fun t : ℝ => H t * V t)
+            exact integral_smul A (fun t : ℝ => H t * V t)
       _ = A * (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t) := by
             exact congrArg
               (fun v : ℂ => A * v)
@@ -169,7 +172,12 @@ theorem zetaPaleyWienerVerticalLineIBPDerivativeIntegral_eq_neg_frequency_mul_ke
         -zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y :=
     zetaPaleyWienerVerticalLineKernel_integral_mul_frequency_eq_neg_derivativeIntegral
       f I x y
-  exact neg_eq_iff_eq_neg.mpr h.symm
+  exact Eq.trans
+    (Eq.trans
+      (neg_neg (zetaPaleyWienerVerticalLineIBPDerivativeIntegral f x y)).symm
+      (congrArg Neg.neg h.symm))
+    (neg_mul (Complex.I * (y : ℂ))
+      (∫ t : ℝ, zetaPaleyWienerVerticalLineKernel f x y t)).symm
 
 /-- The frequency multiplier times the displayed inverse factor is `-1`. -/
 theorem zetaPaleyWiener_frequency_mul_I_inverse_eq_neg_one
@@ -307,7 +315,7 @@ parts on the vertical oscillation gives one inverse vertical-frequency factor. -
 theorem zetaLaplaceTransform_supportInterval_verticalLineIBP_normIdentity
     (f : ZetaAdmissibleFunction) (I : ZetaPaleyWienerSupportInterval f)
     (a b : ℝ) (z : ℂ)
-    (hzstrip : zetaPaleyWienerInVerticalStrip a b z)
+    (_hzstrip : zetaPaleyWienerInVerticalStrip a b z)
     (hzhigh : 1 ≤ ‖z.im‖) :
     ‖Boundary.zetaLaplaceTransform f.toZetaTestFunction' z‖ =
       ‖Complex.I * (z.im : ℂ)⁻¹ *

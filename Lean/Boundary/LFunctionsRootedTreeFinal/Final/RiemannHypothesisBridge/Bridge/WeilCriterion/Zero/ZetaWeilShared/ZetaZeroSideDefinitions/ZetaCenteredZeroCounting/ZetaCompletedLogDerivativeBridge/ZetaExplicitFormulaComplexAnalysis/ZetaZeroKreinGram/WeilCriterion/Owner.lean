@@ -1,10 +1,9 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaTestFunction.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.ZetaAdmissibleFunction.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalizationBridge.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.WeilCorrectionCore.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaWeilShared.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ProbeInterface.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroCounting.ZetaCompletedLogDerivativeBridge.ZetaExplicitFormulaComplexAnalysis.ZetaZeroKreinGram.Owner
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 /-!
@@ -109,9 +108,20 @@ def zetaWeilGammaPart (s : ℂ) : ℂ :=
 
 theorem zetaWeilForm_eq_main_minus_correction (s : ℂ) :
     zetaWeilForm s = zetaWeilMainTerm s - zetaWeilCorrection s := by
-  unfold zetaWeilForm zetaWeilMainTerm zetaWeilCorrection
-  exact centeredCompletedRiemannZeta_eq s ▸ by
-    exact sub_sub _ _ _
+  calc
+    zetaWeilForm s = centeredCompletedRiemannZeta s := rfl
+    _ =
+        centeredCompletedRiemannZeta₀ s -
+          1 / (1 / 2 + s) - 1 / (1 - (1 / 2 + s)) :=
+      centeredCompletedRiemannZeta_eq s
+    _ =
+        zetaWeilMainTerm s -
+          (1 / (1 / 2 + s) + 1 / (1 - (1 / 2 + s))) := by
+      exact sub_sub
+        (centeredCompletedRiemannZeta₀ s)
+        (1 / (1 / 2 + s))
+        (1 / (1 - (1 / 2 + s)))
+    _ = zetaWeilMainTerm s - zetaWeilCorrection s := rfl
 
 /-- The Weil-form decomposition rewritten as the main term minus correction. -/
 theorem zetaWeilForm_eq_main_minus_correction_expanded (s : ℂ) :
@@ -126,20 +136,30 @@ theorem zetaWeilForm_eq_prime_add_archimedean_add_correction (s : ℂ) :
 
 theorem zetaWeilForm_neg (s : ℂ) :
     zetaWeilForm (-s) = zetaWeilForm s := by
-  unfold zetaWeilForm
-  exact centeredCompletedRiemannZeta_neg s
+  calc
+    zetaWeilForm (-s) = centeredCompletedRiemannZeta (-s) := rfl
+    _ = centeredCompletedRiemannZeta s := centeredCompletedRiemannZeta_neg s
+    _ = zetaWeilForm s := rfl
 
 theorem zetaWeilMainTerm_neg (s : ℂ) :
     zetaWeilMainTerm (-s) = zetaWeilMainTerm s := by
-  unfold zetaWeilMainTerm
-  exact centeredCompletedRiemannZeta₀_neg s
+  calc
+    zetaWeilMainTerm (-s) = centeredCompletedRiemannZeta₀ (-s) := rfl
+    _ = centeredCompletedRiemannZeta₀ s := centeredCompletedRiemannZeta₀_neg s
+    _ = zetaWeilMainTerm s := rfl
 
 theorem zetaWeilCompletedPart_eq_dirichlet_mul_gamma (s : ℂ)
     (hs : (1 / 2 : ℂ) + s ≠ 0) (hΓ : Gammaℝ (1 / 2 + s) ≠ 0) :
     zetaWeilCompletedPart s = zetaWeilDirichletPart s * zetaWeilGammaPart s := by
-  unfold zetaWeilCompletedPart zetaWeilDirichletPart zetaWeilGammaPart
   have h := riemannZeta_def_of_ne_zero (s := (1 / 2 : ℂ) + s) hs
-  exact (div_eq_iff hΓ).mp h.symm
+  have hcompleted :
+      completedRiemannZeta (1 / 2 + s) =
+        riemannZeta (1 / 2 + s) * Gammaℝ (1 / 2 + s) :=
+    (div_eq_iff hΓ).mp h.symm
+  calc
+    zetaWeilCompletedPart s = completedRiemannZeta (1 / 2 + s) := rfl
+    _ = riemannZeta (1 / 2 + s) * Gammaℝ (1 / 2 + s) := hcompleted
+    _ = zetaWeilDirichletPart s * zetaWeilGammaPart s := rfl
 
 /-- Criterion-facing form of the centered completed zeta, expressed in the
 mathlib normalization. -/
@@ -194,10 +214,10 @@ theorem boundaryRiemannHypothesis_nontrivial_shift
     (z : ℂ) (htriv : ¬ ∃ n : ℕ, z = -2 * (n + 1)) :
     ¬ ∃ n : ℕ, 1 / 2 + (z - 1 / 2) = -2 * (n + 1) := by
   intro hx
-  rcases hx with ⟨n, hn⟩
-  apply htriv
-  refine ⟨n, ?_⟩
-  exact boundaryRiemannHypothesis_shift_eq z ▸ hn
+  exact
+    match hx with
+    | ⟨n, hn⟩ =>
+        htriv ⟨n, (boundaryRiemannHypothesis_shift_eq z).symm.trans hn⟩
 
 /-- The centered zero-criterion transport preserves the pole exclusion. -/
 theorem boundaryRiemannHypothesis_pole_shift
@@ -298,12 +318,13 @@ theorem exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalC
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) +
         zetaZeroOrbitRemainderRe z.point
           (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  rcases
-    exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
-      z hcompleted horbit with
-    ⟨f, _hfinite_negative, hremainder_dominated⟩
-  exact ⟨f, zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg
-    hremainder_dominated⟩
+  exact
+    match
+      exists_negative_zeroOrbit_with_dominated_remainder_autocorrelation_of_offCriticalCenteredZero
+        z hcompleted horbit with
+    | ⟨f, _hfinite_negative, hremainder_dominated⟩ =>
+        ⟨f, zeroOrbit_add_remainder_lt_zero_of_remainder_lt_neg
+          hremainder_dominated⟩
 
 /-- The shifted coordinate of an off-critical centered zero avoids the completed
 normalization singularity. -/
@@ -331,27 +352,28 @@ theorem offCriticalCenteredZero_gamma_ne_zero
 theorem offCriticalCenteredZero_completedZero
     (z : OffCriticalCenteredZetaZero) :
     ZetaCompletedZero z.point := by
-  refine zetaCompletedZero_mk ?_ ?_ ?_
-  · intro hpoint
-    exact offCriticalCenteredZero_shift_ne_zero z
+  exact zetaCompletedZero_mk
+    (fun hpoint =>
+      offCriticalCenteredZero_shift_ne_zero z
       (by
         calc
           (1 / 2 : ℂ) + z.point =
               (1 / 2 : ℂ) + (-(1 / 2 : ℂ)) := by
             exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
-          _ = 0 := add_neg_self (1 / 2 : ℂ))
-  · intro hpoint
-    exact z.not_pole
+          _ = 0 := add_neg_self (1 / 2 : ℂ)))
+    (fun hpoint =>
+      z.not_pole
       (by
         calc
           (1 / 2 : ℂ) + z.point =
               (1 / 2 : ℂ) + (1 / 2 : ℂ) := by
             exact congrArg (fun w : ℂ => (1 / 2 : ℂ) + w) hpoint
-          _ = 1 := (two_mul_inv_two (1 : ℂ)).symm
-  · exact centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
-      (offCriticalCenteredZero_shift_ne_zero z)
-      (offCriticalCenteredZero_gamma_ne_zero z)
-      z.zeta_zero
+          _ = 1 := (two_mul_inv_two (1 : ℂ)).symm))
+    ((centeredCompletedRiemannZetaFunction_eq z.point).trans
+      (centeredCompletedRiemannZeta_eq_zero_of_riemannZeta_eq_zero
+        (offCriticalCenteredZero_shift_ne_zero z)
+        (offCriticalCenteredZero_gamma_ne_zero z)
+        z.zeta_zero))
 
 /-- The centered reflection orbit of an off-critical centered zero lies in the centered
 completed-zero locus. -/
@@ -363,17 +385,20 @@ theorem offCriticalCenteredZero_orbit_completedZero
     offCriticalCenteredZero_completedZero z
   have hfaces : η = z.point ∨ η = -z.point :=
     (zetaZeroOrbitFinset_mem_iff z.point η).1 hη
-  rcases hfaces with hpos | hneg
-  · exact Eq.subst
-      (motive := fun x : ℂ => ZetaCompletedZero x)
-      hpos.symm
-      hcompleted
-  · have hnegzero : ZetaCompletedZero (-z.point) := by
-      exact zetaCompletedZero_neg hcompleted
-    exact Eq.subst
-      (motive := fun x : ℂ => ZetaCompletedZero x)
-      hneg.symm
-      hnegzero
+  exact
+    match hfaces with
+    | Or.inl hpos =>
+        Eq.subst
+          (motive := fun x : ℂ => ZetaCompletedZero x)
+          hpos.symm
+          hcompleted
+    | Or.inr hneg =>
+        have hnegzero : ZetaCompletedZero (-z.point) :=
+          zetaCompletedZero_neg hcompleted
+        Eq.subst
+          (motive := fun x : ℂ => ZetaCompletedZero x)
+          hneg.symm
+          hnegzero
 
 /-- An off-critical centered Riemann-zeta zero is a centered completed-zeta zero, and its
 functional-equation orbit remains in the centered completed zero locus. -/
@@ -392,20 +417,21 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  rcases offCriticalCenteredZero_completedZero_and_orbit z with
-    ⟨hcompleted, horbit⟩
-  rcases exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
-      z hcompleted horbit with
-    ⟨f, hf⟩
-  exact ⟨f,
-    zetaCompletedZeroSideRe_lt_zero_of_orbitContribution_add_remainderRe_lt_zero
-      z.point
-      (ZetaAdmissibleFunction.convolutionAutocorrelation f)
-      hcompleted
-      horbit
-      (summable_zetaZeroSideContribution
-        (ZetaAdmissibleFunction.convolutionAutocorrelation f))
-      hf⟩
+  exact
+    match offCriticalCenteredZero_completedZero_and_orbit z with
+    | ⟨hcompleted, horbit⟩ =>
+        match exists_negative_zeroOrbit_plus_remainder_autocorrelation_of_offCriticalCenteredZero
+            z hcompleted horbit with
+        | ⟨f, hf⟩ =>
+            ⟨f,
+              zetaCompletedZeroSideRe_lt_zero_of_orbitContribution_add_remainderRe_lt_zero
+                z.point
+                (ZetaAdmissibleFunction.convolutionAutocorrelation f)
+                hcompleted
+                horbit
+                (summable_zetaZeroSideContribution
+                  (ZetaAdmissibleFunction.convolutionAutocorrelation f))
+                hf⟩
 
 /-- The zero-detecting direction of Weil's criterion.
 
@@ -416,14 +442,15 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
-  rcases exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero z with
-    ⟨f, hf⟩
-  refine ⟨f, ?_⟩
-  calc
-    zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
-        zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
-      exact zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
-    _ < 0 := hf
+  exact
+    match exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero z with
+    | ⟨f, hf⟩ =>
+        ⟨f,
+          calc
+            zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) =
+                zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) := by
+              exact zetaWeilFormCompleted_convolutionAutocorrelation_eq_zeroSide f
+            _ < 0 := hf⟩
 
 /-- Parameter-facing wrapper for the zero-detecting direction of Weil's criterion. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
@@ -436,6 +463,35 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   exact exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
     ⟨s, hz, htriv, hpole, hoff⟩
+
+/-- Quadratic Weil positivity excludes off-critical nontrivial centered zeros. -/
+theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+    (h : ZetaWeilQuadraticPositivity)
+    (s : ℂ)
+    (hz : riemannZeta (1 / 2 + s) = 0)
+    (htriv : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1))
+    (hpole : (1 / 2 + s) ≠ 1) :
+    ¬ s.re ≠ 0 := by
+  intro hoff
+  exact
+    match exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+        s hz htriv hpole hoff with
+    | ⟨f, hfneg⟩ =>
+        (not_lt_of_ge (h f)) hfneg
+
+/-- Real trichotomy turns exclusion of the off-critical condition into equality with the
+centered critical line, without using double-negation elimination. -/
+theorem real_eq_zero_of_not_ne_zero
+    (x : ℝ) (hnot : ¬ x ≠ 0) :
+    x = 0 := by
+  exact
+    match lt_trichotomy x 0 with
+    | Or.inl hxlt =>
+        False.elim (hnot (ne_of_lt hxlt))
+    | Or.inr (Or.inl hxeq) =>
+        hxeq
+    | Or.inr (Or.inr hxgt) =>
+        False.elim (hnot (Ne.symm (ne_of_lt hxgt)))
 
 /-- Quadratic Weil positivity gives the centered zero criterion.
 
@@ -450,10 +506,9 @@ theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
 	          (1 / 2 + s) ≠ 1 →
 	            s.re = 0 := by
   intro s hz htriv hpole
-  by_contra hoff
-  rcases exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
-      s hz htriv hpole hoff with ⟨f, hfneg⟩
-  exact (not_lt_of_ge (h f)) hfneg
+  exact real_eq_zero_of_not_ne_zero s.re
+    (not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+      h s hz htriv hpole)
 
 /-- The standard Weil criterion in the quadratic/autocorrelation form. -/
 theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity

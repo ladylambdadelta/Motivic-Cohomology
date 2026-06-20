@@ -70,10 +70,36 @@ theorem real_neg_sub_half (x a : ℝ) :
 theorem translationDefect_add_apply (a : ℝ) (f g : ZetaTestFunction) (x : ℝ) :
     translationDefect a (f + g) x = translationDefect a f x + translationDefect a g x := by
   unfold translationDefect
+  let A : ℂ := f (x + a / 2)
+  let B : ℂ := g (x + a / 2)
+  let C : ℂ := -f (x - a / 2)
+  let D : ℂ := -g (x - a / 2)
   have hnegative :
       -(f (x - a / 2) + g (x - a / 2)) =
         -f (x - a / 2) + -g (x - a / 2) :=
     neg_add (f (x - a / 2)) (g (x - a / 2))
+  have h_reassoc :
+      (A + B) + (C + D) = A + (B + C) + D := by
+    calc
+      (A + B) + (C + D) = ((A + B) + C) + D := by
+        exact (add_assoc (A + B) C D).symm
+      _ = (A + (B + C)) + D := by
+        exact congrArg (fun y : ℂ => y + D) (add_assoc A B C)
+  have h_swap_middle :
+      A + (B + C) + D = A + (C + B) + D := by
+    exact congrArg (fun y : ℂ => A + y + D) (add_comm B C)
+  have h_left_group :
+      A + (C + B) + D = (A + C) + (B + D) := by
+    calc
+      A + (C + B) + D = (A + (C + B)) + D := by
+        exact Eq.refl _
+      _ = ((A + C) + B) + D := by
+        exact congrArg (fun y : ℂ => y + D) (add_assoc A C B).symm
+      _ = (A + C) + (B + D) := by
+        exact add_assoc (A + C) B D
+  have h_four_add :
+      (A + B) + (C + D) = (A + C) + (B + D) :=
+    Eq.trans h_reassoc (Eq.trans h_swap_middle h_left_group)
   calc
     (f (x + a / 2) + g (x + a / 2)) - (f (x - a / 2) + g (x - a / 2)) =
         (f (x + a / 2) + g (x + a / 2)) +
@@ -83,7 +109,7 @@ theorem translationDefect_add_apply (a : ℝ) (f g : ZetaTestFunction) (x : ℝ)
               (fun y : ℂ => (f (x + a / 2) + g (x + a / 2)) + y)
               hnegative)
     _ = (f (x + a / 2) + -f (x - a / 2)) + (g (x + a / 2) + -g (x - a / 2)) := by
-          ac_rfl
+          exact h_four_add
 
 theorem translationDefect_zero (f : ZetaTestFunction) :
     translationDefect 0 f = fun _ => 0 := by
@@ -200,10 +226,35 @@ theorem archimedeanTranslationDefect_add_apply (a : ℝ) (f g : ZetaTestFunction
     archimedeanTranslationDefect a (f + g) x =
       archimedeanTranslationDefect a f x + archimedeanTranslationDefect a g x := by
   unfold archimedeanTranslationDefect
+  let A : ℂ := f (x + a / 2)
+  let B : ℂ := g (x + a / 2)
+  let C : ℂ := f (x - a / 2)
+  let D : ℂ := g (x - a / 2)
+  have h_reassoc :
+      A + B + (C + D) = A + (B + C) + D := by
+    calc
+      A + B + (C + D) = (A + B) + (C + D) := by
+        exact Eq.refl _
+      _ = ((A + B) + C) + D := by
+        exact (add_assoc (A + B) C D).symm
+      _ = (A + (B + C)) + D := by
+        exact congrArg (fun y : ℂ => y + D) (add_assoc A B C)
+  have h_swap_middle :
+      A + (B + C) + D = A + (C + B) + D := by
+    exact congrArg (fun y : ℂ => A + y + D) (add_comm B C)
+  have h_left_group :
+      A + (C + B) + D = (A + C) + (B + D) := by
+    calc
+      A + (C + B) + D = (A + (C + B)) + D := by
+        exact Eq.refl _
+      _ = ((A + C) + B) + D := by
+        exact congrArg (fun y : ℂ => y + D) (add_assoc A C B).symm
+      _ = (A + C) + (B + D) := by
+        exact add_assoc (A + C) B D
   change
     f (x + a / 2) + g (x + a / 2) + (f (x - a / 2) + g (x - a / 2)) =
       (f (x + a / 2) + f (x - a / 2)) + (g (x + a / 2) + g (x - a / 2))
-  ac_rfl
+  exact Eq.trans h_reassoc (Eq.trans h_swap_middle h_left_group)
 
 theorem archimedeanTranslationDefect_zero (f : ZetaTestFunction) :
     archimedeanTranslationDefect 0 f = fun x => 2 * f x := by

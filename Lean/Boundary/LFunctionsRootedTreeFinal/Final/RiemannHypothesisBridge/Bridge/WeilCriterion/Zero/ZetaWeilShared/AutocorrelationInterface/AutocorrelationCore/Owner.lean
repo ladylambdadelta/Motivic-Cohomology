@@ -180,10 +180,10 @@ theorem convolutionPairKernel_centeredIntegrand_eq_standardIntegrand
   have hleft : (y - t / 2) + t / 2 = y :=
     sub_add_cancel y (t / 2)
   have hright_arg : (y - t / 2) - t / 2 = y - t := by
-    calc (y - t / 2) - t / 2 = y - (t / 2 + t / 2) := (sub_sub y (t / 2) (t / 2)).symm
+    calc (y - t / 2) - t / 2 = y - (t / 2 + t / 2) := sub_sub y (t / 2) (t / 2)
       _ = y - t := by exact congrArg (y - ·) (add_halves t)
   have hdagger_arg : -(t - y) = y - t :=
-    (neg_sub t y).symm
+    neg_sub t y
   calc
     f ((y - t / 2) + t / 2) *
         star (h ((y - t / 2) - t / 2)) =
@@ -225,10 +225,19 @@ theorem convolutionPairKernel_eq_standard
       have hxleft : ((x + t / 2) - t / 2) + t / 2 = x + t / 2 :=
         sub_add_cancel (x + t / 2) (t / 2)
       have hxright : ((x + t / 2) - t / 2) - t / 2 = x - t / 2 := by
-        calc ((x + t / 2) - t / 2) - t / 2 = (x + t / 2) - (t / 2 + t / 2) := (sub_sub (x + t / 2) (t / 2) (t / 2)).symm
+        calc ((x + t / 2) - t / 2) - t / 2 = (x + t / 2) - (t / 2 + t / 2) := sub_sub (x + t / 2) (t / 2) (t / 2)
           _ = (x + t / 2) - t := by exact congrArg ((x + t / 2) - ·) (add_halves t)
-          _ = x + t / 2 - t := by exact (add_sub_assoc x (t / 2) t).symm
-          _ = x - (t - t / 2) := by exact (sub_sub x t (t / 2)).symm
+          _ = x + t / 2 - t := rfl
+          _ = x - (t - t / 2) := by
+            calc
+              x + t / 2 - t = x + (t / 2 + -t) := by
+                exact add_sub_assoc x (t / 2) t
+              _ = x + -(t - t / 2) := by
+                exact congrArg (fun a : ℝ => x + a)
+                  ((sub_eq_add_neg (t / 2) t).symm.trans
+                    (neg_sub t (t / 2)).symm)
+              _ = x - (t - t / 2) := by
+                exact (sub_eq_add_neg x (t - t / 2)).symm
           _ = x - t / 2 := by exact congrArg (x - ·) (sub_half t)
       calc
         f (((x + t / 2) - t / 2) + t / 2) *

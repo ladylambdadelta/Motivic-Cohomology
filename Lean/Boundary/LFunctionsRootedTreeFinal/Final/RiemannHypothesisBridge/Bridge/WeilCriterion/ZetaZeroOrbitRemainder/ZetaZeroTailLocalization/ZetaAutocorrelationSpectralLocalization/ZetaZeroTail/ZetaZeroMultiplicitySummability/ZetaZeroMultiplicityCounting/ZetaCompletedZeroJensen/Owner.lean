@@ -1,4 +1,9 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaCompletedZeroJensen.ZetaEntireJensen.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaZeroMultiplicitySummability.ZetaZeroMultiplicityCounting.ZetaPolynomialTailSummability.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaCenteredZeroVerticalStrip.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.ZetaCenteredZeroLocalFiniteness.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CompletedZetaGrowth.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.Core
 
 /-!
@@ -12,6 +17,9 @@ namespace Boundary
 namespace LFunctions
 
 noncomputable section
+
+open Filter
+open scoped Topology
 
 /-- Multiplicity summand for completed zeros inside a centered closed disk. -/
 noncomputable def completedZeroMultiplicityClosedDiskSummand
@@ -117,7 +125,8 @@ theorem zetaCenteredZero_im_eq
         (ρ : ℂ).im - (1 / 2 : ℂ).im := by
       exact Complex.sub_im (ρ : ℂ) (1 / 2 : ℂ)
     _ = (ρ : ℂ).im - (0 : ℝ) := by
-      exact congrArg (fun x : ℝ => (ρ : ℂ).im - x) Complex.ofReal_im
+      exact congrArg (fun x : ℝ => (ρ : ℂ).im - x)
+        (Complex.ofReal_im (1 / 2 : ℝ))
     _ = (ρ : ℂ).im := by
       exact sub_zero (ρ : ℂ).im
 
@@ -304,19 +313,25 @@ theorem completedZeroMultiplicityCounting_heightBall_polynomial_bound_of_closedD
               C * (T + 2) ^ d :=
           hclosed (T + 2) hR_ge_one
         have htwo_le_two_mul : (2 : ℝ) ≤ 2 * T := by
-          exact mul_le_mul_of_nonneg_left hT zero_le_two
+          calc
+            (2 : ℝ) = 2 * 1 := by
+              exact (mul_one (2 : ℝ)).symm
+            _ ≤ 2 * T := by
+              exact mul_le_mul_of_nonneg_left hT zero_le_two
         have hT_add_le_three_mul : T + 2 ≤ (3 : ℝ) * T := by
           have hadd : T + 2 ≤ T + 2 * T :=
             add_le_add_left htwo_le_two_mul T
           have hthree : (3 : ℝ) * T = T + 2 * T := by
             calc
-              (3 : ℝ) * T = T + T + T := by
-                exact three_mul T
-              _ = T + (T + T) := by
-                exact add_assoc T T T
+              (3 : ℝ) * T = (2 + 1 : ℝ) * T := by
+                exact congrArg (fun x : ℝ => x * T) (two_add_one_eq_three.symm)
+              _ = 2 * T + 1 * T := by
+                exact add_mul 2 1 T
+              _ = 2 * T + T := by
+                exact congrArg (fun x : ℝ => 2 * T + x) (one_mul T)
               _ = T + 2 * T := by
-                exact congrArg (fun x : ℝ => T + x) (two_mul T).symm
-          Eq.subst
+                exact add_comm (2 * T) T
+          exact Eq.subst
             (motive := fun x : ℝ => T + 2 ≤ x)
             hthree.symm
             hadd
@@ -350,7 +365,8 @@ theorem centeredCompletedRiemannZetaZeroCarrier_zero_of_completedZero
       (zetaCompletedZero_ne_negHalf ρ))
     (centeredShift_rightDenominator_ne_zero_of_ne_posHalf
       (zetaCompletedZero_ne_posHalf ρ))
-    (zetaCompletedZero_zero ρ)
+    ((centeredCompletedRiemannZetaFunction_eq (ρ : ℂ)).symm.trans
+      (zetaCompletedZero_zero ρ))
 
 /-- A completed zero maps canonically to a zero of the centered entire zero-carrier. -/
 def completedZeroToCarrierZero
@@ -362,7 +378,10 @@ def completedZeroToCarrierZero
 theorem completedZeroToCarrierZero_injective :
     Function.Injective completedZeroToCarrierZero := by
   intro ρ η hρη
-  exact Subtype.ext (congrArg Subtype.val hρη)
+  exact Subtype.ext
+    (congrArg
+      (fun z : CenteredCompletedZetaZeroCarrierZero => (z : ℂ))
+      hρη)
 
 /-- The cleared zero-carrier is nonzero at the negative shifted pole face. -/
 theorem centeredCompletedRiemannZetaZeroCarrier_ne_zero_negHalf :
@@ -514,7 +533,8 @@ theorem zetaCompletedZero_of_centeredCompletedZetaZeroCarrierZero
     match mul_eq_zero.mp hproduct_zero with
     | Or.inl hdenom_zero => False.elim (hdenom hdenom_zero)
     | Or.inr hzero => hzero
-  exact zetaCompletedZero_mk hneg hpos hcompleted_zero
+  exact zetaCompletedZero_mk hneg hpos
+    ((centeredCompletedRiemannZetaFunction_eq (z : ℂ)).trans hcompleted_zero)
 
 /-- A carrier zero maps canonically back to the completed-zero divisor. -/
 def carrierZeroToCompletedZero
@@ -526,7 +546,10 @@ def carrierZeroToCompletedZero
 theorem carrierZeroToCompletedZero_injective :
     Function.Injective carrierZeroToCompletedZero := by
   intro z w hzw
-  exact Subtype.ext (congrArg Subtype.val hzw)
+  exact Subtype.ext
+    (congrArg
+      (fun ρ : {ρ : ℂ // ZetaCompletedZero ρ} => (ρ : ℂ))
+      hzw)
 
 /-- Carrier zeros in a closed disk map into completed zeros in the same closed disk. -/
 theorem carrierZeroToCompletedZero_mem_closedDisk
@@ -603,40 +626,7 @@ theorem zetaZeroMultiplicity_eq_carrierMultiplicity
     (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     zetaZeroMultiplicity (ρ : ℂ) =
       centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) := by
-  let u : ℂ → ℂ :=
-    fun w : ℂ => ((1 / 2 : ℂ) + w) * (1 - ((1 / 2 : ℂ) + w))
-  have hcompleted :
-      AnalyticAt ℂ centeredCompletedRiemannZeta (ρ : ℂ) :=
-    centeredCompletedRiemannZeta_analyticAt_of_completedZero ρ
-  have hcarrier :
-      AnalyticAt ℂ centeredCompletedRiemannZetaZeroCarrier (ρ : ℂ) :=
-    centeredCompletedRiemannZetaZeroCarrier_analyticAt (ρ : ℂ)
-  have hu : AnalyticAt ℂ u (ρ : ℂ) := by
-    exact centeredShift_denominatorClearingFactor_analyticAt (ρ : ℂ)
-  have huz : u (ρ : ℂ) ≠ 0 := by
-    exact completedZero_denominatorClearingFactor_ne_zero ρ
-  have heq :
-      centeredCompletedRiemannZetaZeroCarrier =ᶠ[𝓝 (ρ : ℂ)]
-        (fun w : ℂ => u w * centeredCompletedRiemannZeta w) :=
-    centeredCompletedRiemannZetaZeroCarrier_eventuallyEq_denominator_mul ρ
-  have horder :
-      hcarrier.order = hcompleted.order :=
-    analyticAt_order_eq_of_eventuallyEq_mul_left
-      hcarrier
-      hcompleted
-      hu
-      huz
-      heq
-  calc
-    zetaZeroMultiplicity (ρ : ℂ) =
-        completedZetaZeroMultiplicity (ρ : ℂ) := by
-      rfl
-    _ = hcompleted.order.toNat := by
-      exact completedZetaZeroMultiplicity_eq_order (ρ : ℂ) hcompleted
-    _ = hcarrier.order.toNat := by
-      exact (congrArg ENat.toNat horder).symm
-    _ = centeredCompletedZetaZeroCarrierMultiplicity (ρ : ℂ) := by
-      rfl
+  rfl
 
 /-- Closed-disk completed-zero summands are the pullback of carrier-zero summands. -/
 theorem completedZeroMultiplicityClosedDiskSummand_eq_carrierPullback

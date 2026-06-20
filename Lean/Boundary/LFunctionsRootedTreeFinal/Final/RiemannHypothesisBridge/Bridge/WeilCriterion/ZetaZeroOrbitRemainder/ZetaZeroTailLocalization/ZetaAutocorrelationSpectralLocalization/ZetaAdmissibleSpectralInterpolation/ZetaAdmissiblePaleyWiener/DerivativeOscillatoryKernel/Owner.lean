@@ -15,6 +15,16 @@ open MeasureTheory
 namespace Boundary
 namespace LFunctions
 
+open ZetaAdmissibleFunction
+
+/-- The complex zero norm is bounded by any positive real constant. -/
+theorem complex_norm_zero_le_of_pos (C : ℝ) (hCpos : 0 < C) :
+    ‖(0 : ℂ)‖ ≤ C :=
+  Eq.subst
+    (motive := fun v : ℝ => v ≤ C)
+    (norm_zero : ‖(0 : ℂ)‖ = (0 : ℝ)).symm
+    (le_of_lt hCpos)
+
 /-- The derivative-source oscillatory kernel used in the post-IBP Fourier integral. -/
 noncomputable def zetaPaleyWienerDerivativeOscillatoryKernel
     (f : ZetaAdmissibleFunction) (x y t : ℝ) : ℂ :=
@@ -76,7 +86,7 @@ theorem zetaPaleyWienerDerivativeOscillatoryKernel_norm_le_supportIndicatorBound
     have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = B := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_mem ht
+      exact Set.indicator_of_mem ht (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ =>
         ‖zetaPaleyWienerDerivativeOscillatoryKernel f x y t‖ ≤ v)
@@ -92,7 +102,7 @@ theorem zetaPaleyWienerDerivativeOscillatoryKernel_norm_le_supportIndicatorBound
     have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_not_mem ht
+      exact Set.indicator_of_not_mem ht (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ =>
         v ≤ zetaPaleyWienerSupportIndicatorBound f B t)
@@ -259,7 +269,7 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryKernel_norm_le_supportIndica
     have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = B := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_mem ht
+      exact Set.indicator_of_mem ht (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ =>
         ‖zetaPaleyWienerIteratedDerivativeOscillatoryKernel f n x y t‖ ≤ v)
@@ -275,7 +285,7 @@ theorem zetaPaleyWienerIteratedDerivativeOscillatoryKernel_norm_le_supportIndica
     have hindicator :
         zetaPaleyWienerSupportIndicatorBound f B t = 0 := by
       unfold zetaPaleyWienerSupportIndicatorBound
-      exact Set.indicator_of_not_mem ht
+      exact Set.indicator_of_not_mem ht (fun _ : ℝ => B)
     exact Eq.subst
       (motive := fun v : ℝ =>
         v ≤ zetaPaleyWienerSupportIndicatorBound f B t)
@@ -297,7 +307,7 @@ theorem zetaPaleyWienerHorizontalTwistIteratedDerivative_continuous
     zetaPaleyWienerHorizontalTwistVerticalJet_continuous f n
   have hline :
       Continuous (fun t : ℝ => (x, t)) :=
-    continuous_const.prod continuous_id
+    continuous_const.prod_mk continuous_id
   have hjet_line :
       Continuous
         (fun t : ℝ => zetaPaleyWienerHorizontalTwistVerticalJet f n x t) :=
@@ -449,7 +459,7 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_zero_uniformSemi
       exact Eq.subst
         (motive := fun v : ℂ => ‖v‖ ≤ C)
         hzero.symm
-        (le_of_lt hCpos)
+        (complex_norm_zero_le_of_pos C hCpos)
     · have hzero :
           zetaPaleyWienerHorizontalTwistIteratedDerivative f 0 x t = 0 :=
         zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
@@ -457,7 +467,7 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_zero_uniformSemi
       exact Eq.subst
         (motive := fun v : ℂ => ‖v‖ ≤ C)
         hzero.symm
-        (le_of_lt hCpos)
+        (complex_norm_zero_le_of_pos C hCpos)
 
 /-- Uniform seminorm control for the iterated horizontal-twist derivative family on compact
 real-part strips and the fixed compact support interval. -/
@@ -492,7 +502,7 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_uniformSeminorm
       exact Eq.subst
         (motive := fun v : ℂ => ‖v‖ ≤ C)
         hzero.symm
-        (le_of_lt hCpos)
+        (complex_norm_zero_le_of_pos C hCpos)
     · have hzero :
           zetaPaleyWienerHorizontalTwistIteratedDerivative f N x t = 0 :=
         zetaPaleyWienerHorizontalTwistIteratedDerivative_eq_zero_of_supportInterval_lt
@@ -500,7 +510,7 @@ theorem exists_zetaPaleyWienerHorizontalTwistIteratedDerivative_uniformSeminorm
       exact Eq.subst
         (motive := fun v : ℂ => ‖v‖ ≤ C)
         hzero.symm
-        (le_of_lt hCpos)
+        (complex_norm_zero_le_of_pos C hCpos)
 
 /-- Uniform seminorm control for the first horizontal-twist derivative family on compact
 real-part strips. -/

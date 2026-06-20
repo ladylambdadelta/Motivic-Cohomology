@@ -29,10 +29,13 @@ theorem finite_completedZerosInCenteredHeightBall
     unfold S
     unfold centeredZetaZerosInCenteredHeightBall
     constructor
-    · exact Eq.subst
+    · have hzero_raw : centeredCompletedRiemannZeta (ρ : ℂ) = 0 :=
+        (centeredCompletedRiemannZetaFunction_eq (ρ : ℂ)).symm.trans
+          (zetaCompletedZero_zero ρ)
+      exact Eq.subst
         (motive := fun w : ℂ => centeredCompletedRiemannZeta w = 0)
         hzρ
-        (zetaCompletedZero_zero ρ)
+        hzero_raw
     · have hheight :
           1 + ‖((ρ : ℂ) - (1 / 2 : ℂ)).im‖ ≤ T := by
         exact Eq.subst

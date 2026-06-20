@@ -45,8 +45,7 @@ rectangle. -/
 theorem poleClearedRiemannZeta_continuousOn_rightCriticalStripCompactSet :
     ContinuousOn poleClearedRiemannZeta
       completedRiemannZeta₀_rightCriticalStripCompactSet := by
-  intro z _hz
-  exact (poleClearedRiemannZeta_continuousAt z).continuousWithinAt
+  exact fun z _hz => (poleClearedRiemannZeta_continuousAt z).continuousWithinAt
 
 /-- Away from the removable pole face, the pole-cleared zeta factor is differentiable by
 the ordinary zeta differentiability theorem. -/
@@ -93,8 +92,7 @@ theorem poleClearedRiemannZeta_differentiableAt
 theorem poleClearedRiemannZeta_differentiableOn
     (s : Set ℂ) :
     DifferentiableOn ℂ poleClearedRiemannZeta s := by
-  intro z _hz
-  exact (poleClearedRiemannZeta_differentiableAt z).differentiableWithinAt
+  exact fun z _hz => (poleClearedRiemannZeta_differentiableAt z).differentiableWithinAt
 
 /-- Removable-pole holomorphy of the pole-cleared zeta factor on the open right
 critical strip.
@@ -210,40 +208,42 @@ theorem Gammaℝ_leftBoundary_nonzero_of_verticalTail
     z ≠ 0 ∧ (1 : ℂ) - z ≠ 0 ∧
       Complex.Gammaℝ z ≠ 0 ∧ Complex.Gammaℝ ((1 : ℂ) - z) ≠ 0 := by
   have hz_ne_zero : z ≠ 0 := by
-    intro hz
-    have him_zero : z.im = 0 := by
-      calc
-        z.im = (0 : ℂ).im := by
-          exact congrArg Complex.im hz
-        _ = 0 := by
-          exact Complex.zero_im
-    have him_norm_zero : ‖z.im‖ = 0 := by
-      calc
-        ‖z.im‖ = ‖(0 : ℝ)‖ := by
-          exact congrArg norm him_zero
-        _ = 0 := by
-          exact norm_zero
-    have hone_le_zero : (1 : ℝ) ≤ 0 :=
-      Eq.subst
-        (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-        him_norm_zero
-        hz_im
-    exact not_lt_of_ge hone_le_zero zero_lt_one
+    exact
+      fun hz =>
+        have him_zero : z.im = 0 := by
+          calc
+            z.im = (0 : ℂ).im := by
+              exact congrArg Complex.im hz
+            _ = 0 := by
+              exact Complex.zero_im
+        have him_norm_zero : ‖z.im‖ = 0 := by
+          calc
+            ‖z.im‖ = ‖(0 : ℝ)‖ := by
+              exact congrArg norm him_zero
+            _ = 0 := by
+              exact norm_zero
+        have hone_le_zero : (1 : ℝ) ≤ 0 :=
+          Eq.subst
+            (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+            him_norm_zero
+            hz_im
+        not_lt_of_ge hone_le_zero zero_lt_one
   have hone_sub_ne_zero : (1 : ℂ) - z ≠ 0 := by
-    intro hsub
-    have hre_zero : ((1 : ℂ) - z).re = 0 := by
-      calc
-        ((1 : ℂ) - z).re = (0 : ℂ).re := by
-          exact congrArg Complex.re hsub
-        _ = 0 := by
-          exact Complex.zero_re
-    have hre_one : ((1 : ℂ) - z).re = 1 := by
-      exact one_sub_leftBoundary_re_eq_one hz_re
-    have hone_eq_zero : (1 : ℝ) = 0 := by
-      calc
-        (1 : ℝ) = ((1 : ℂ) - z).re := hre_one.symm
-        _ = 0 := hre_zero
-    exact one_ne_zero hone_eq_zero
+    exact
+      fun hsub =>
+        have hre_zero : ((1 : ℂ) - z).re = 0 := by
+          calc
+            ((1 : ℂ) - z).re = (0 : ℂ).re := by
+              exact congrArg Complex.re hsub
+            _ = 0 := by
+              exact Complex.zero_re
+        have hre_one : ((1 : ℂ) - z).re = 1 := by
+          exact one_sub_leftBoundary_re_eq_one hz_re
+        have hone_eq_zero : (1 : ℝ) = 0 := by
+          calc
+            (1 : ℝ) = ((1 : ℂ) - z).re := hre_one.symm
+            _ = 0 := hre_zero
+        one_ne_zero hone_eq_zero
   have hGamma_ne : Complex.Gammaℝ z ≠ 0 := by
     exact Gammaℝ_ne_zero_of_re_nonneg_and_one_le_norm
       (le_of_eq hz_re.symm)
@@ -472,11 +472,12 @@ theorem unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_ne_zero_of_one_le_
   have hGamma_ne :
       Complex.Gammaℝ ((t : ℂ) * Complex.I) ≠ 0 :=
     (Gammaℝ_leftBoundary_nonzero_of_verticalTail haxis_re haxis_im).2.2.1
-  intro hzero
-  exact hGamma_ne
-    (Eq.trans
-      (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_eq_Gammaℝ t).symm
-      hzero)
+  exact
+    fun hzero =>
+      hGamma_ne
+        (Eq.trans
+          (unfoldedGammaℝLeftBoundaryRatioDenominatorRealParam_eq_Gammaℝ t).symm
+          hzero)
 
 /-- The denominator in the unfolded left-boundary Gamma quotient has positive norm on
 the vertical-tail range. -/
@@ -652,37 +653,38 @@ theorem verticalComplexGammaStirling_fixedRealPart_norm_core_bound_mono_constant
       ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
         D * Real.exp (-(Real.pi / 2) * ‖b‖) *
           (1 + ‖b‖) ^ (a - 1 / 2) := by
-  intro b hb
-  let E : ℝ :=
-    Real.exp (-(Real.pi / 2) * ‖b‖) *
-      (1 + ‖b‖) ^ (a - 1 / 2)
-  have hE_nonneg : 0 ≤ E :=
-    fixedRealPart_gamma_norm_envelope_nonneg a b
-  have hscaled : C * E ≤ D * E :=
-    mul_le_mul_of_nonneg_right hCD hE_nonneg
-  have hsource_assoc :
-      C * Real.exp (-(Real.pi / 2) * ‖b‖) *
-          (1 + ‖b‖) ^ (a - 1 / 2) =
-        C * E :=
-    mul_assoc C (Real.exp (-(Real.pi / 2) * ‖b‖))
-      ((1 + ‖b‖) ^ (a - 1 / 2))
-  have htarget_assoc :
-      D * Real.exp (-(Real.pi / 2) * ‖b‖) *
-          (1 + ‖b‖) ^ (a - 1 / 2) =
-        D * E :=
-    mul_assoc D (Real.exp (-(Real.pi / 2) * ‖b‖))
-      ((1 + ‖b‖) ^ (a - 1 / 2))
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
-    htarget_assoc.symm
-    (le_trans
-      (Eq.subst
+  exact
+    fun b hb =>
+      let E : ℝ :=
+        Real.exp (-(Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (a - 1 / 2)
+      have hE_nonneg : 0 ≤ E :=
+        fixedRealPart_gamma_norm_envelope_nonneg a b
+      have hscaled : C * E ≤ D * E :=
+        mul_le_mul_of_nonneg_right hCD hE_nonneg
+      have hsource_assoc :
+          C * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) =
+            C * E :=
+        mul_assoc C (Real.exp (-(Real.pi / 2) * ‖b‖))
+          ((1 + ‖b‖) ^ (a - 1 / 2))
+      have htarget_assoc :
+          D * Real.exp (-(Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (a - 1 / 2) =
+            D * E :=
+        mul_assoc D (Real.exp (-(Real.pi / 2) * ‖b‖))
+          ((1 + ‖b‖) ^ (a - 1 / 2))
+      Eq.subst
         (motive := fun x : ℝ =>
           ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
-        hsource_assoc
-        (hC b hb))
-      hscaled)
+        htarget_assoc.symm
+        (le_trans
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤ x)
+            hsource_assoc
+            (hC b hb))
+          hscaled)
 
 /-- A reciprocal fixed-real-part vertical Gamma estimate remains valid after enlarging
 its constant. -/
@@ -700,37 +702,38 @@ theorem verticalComplexGammaStirling_fixedRealPart_reciprocal_core_bound_mono_co
       ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
         D * Real.exp ((Real.pi / 2) * ‖b‖) *
           (1 + ‖b‖) ^ (1 / 2 - a) := by
-  intro b hb
-  let E : ℝ :=
-    Real.exp ((Real.pi / 2) * ‖b‖) *
-      (1 + ‖b‖) ^ (1 / 2 - a)
-  have hE_nonneg : 0 ≤ E :=
-    fixedRealPart_gamma_reciprocal_envelope_nonneg a b
-  have hscaled : C * E ≤ D * E :=
-    mul_le_mul_of_nonneg_right hCD hE_nonneg
-  have hsource_assoc :
-      C * Real.exp ((Real.pi / 2) * ‖b‖) *
-          (1 + ‖b‖) ^ (1 / 2 - a) =
-        C * E :=
-    mul_assoc C (Real.exp ((Real.pi / 2) * ‖b‖))
-      ((1 + ‖b‖) ^ (1 / 2 - a))
-  have htarget_assoc :
-      D * Real.exp ((Real.pi / 2) * ‖b‖) *
-          (1 + ‖b‖) ^ (1 / 2 - a) =
-        D * E :=
-    mul_assoc D (Real.exp ((Real.pi / 2) * ‖b‖))
-      ((1 + ‖b‖) ^ (1 / 2 - a))
-  exact Eq.subst
-    (motive := fun x : ℝ =>
-      ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
-    htarget_assoc.symm
-    (le_trans
-      (Eq.subst
+  exact
+    fun b hb =>
+      let E : ℝ :=
+        Real.exp ((Real.pi / 2) * ‖b‖) *
+          (1 + ‖b‖) ^ (1 / 2 - a)
+      have hE_nonneg : 0 ≤ E :=
+        fixedRealPart_gamma_reciprocal_envelope_nonneg a b
+      have hscaled : C * E ≤ D * E :=
+        mul_le_mul_of_nonneg_right hCD hE_nonneg
+      have hsource_assoc :
+          C * Real.exp ((Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (1 / 2 - a) =
+            C * E :=
+        mul_assoc C (Real.exp ((Real.pi / 2) * ‖b‖))
+          ((1 + ‖b‖) ^ (1 / 2 - a))
+      have htarget_assoc :
+          D * Real.exp ((Real.pi / 2) * ‖b‖) *
+              (1 + ‖b‖) ^ (1 / 2 - a) =
+            D * E :=
+        mul_assoc D (Real.exp ((Real.pi / 2) * ‖b‖))
+          ((1 + ‖b‖) ^ (1 / 2 - a))
+      Eq.subst
         (motive := fun x : ℝ =>
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
-        hsource_assoc
-        (hC b hb))
-      hscaled)
+        htarget_assoc.symm
+        (le_trans
+          (Eq.subst
+            (motive := fun x : ℝ =>
+              ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤ x)
+            hsource_assoc
+            (hC b hb))
+          hscaled)
 
 /-- The two fixed-real-part vertical Gamma estimates can be put under one positive
 constant by enlarging to the sum of the two constants. -/

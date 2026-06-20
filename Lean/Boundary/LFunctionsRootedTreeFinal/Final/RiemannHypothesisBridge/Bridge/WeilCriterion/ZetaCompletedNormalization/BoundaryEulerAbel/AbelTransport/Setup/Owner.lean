@@ -332,6 +332,15 @@ oscillatory primitives
 bounded, the finite weighted tail is bounded by the two endpoint terms and the
 integral term. -/
 theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_norm_le
+    (t : ℝ)
+    (ht : 1 ≤ ‖t‖)
+    {M : ℕ}
+    (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
+    ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
+        ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
+      boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
+  exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
+    t ht hNM
 
 end
 

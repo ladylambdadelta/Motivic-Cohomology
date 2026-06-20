@@ -15,9 +15,10 @@ namespace LFunctions
 
 noncomputable section
 
-open scoped ContDiff
+  open scoped ContDiff
+  open MeasureTheory
 
-namespace ZetaAdmissibleFunction
+  namespace ZetaAdmissibleFunction
 
 /-- The derivative source used by vertical-line integration by parts after the horizontal
 factor has been absorbed into the source. -/
@@ -32,15 +33,19 @@ theorem hasDerivAt_zetaPaleyWienerHorizontalTwist
       (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u)
       (zetaPaleyWienerVerticalLineIBPDerivative f x t)
       t := by
-  exact
-    ((zetaPaleyWienerHorizontalTwist_contDiff f x).differentiable le_top t).hasDerivAt
+    exact
+      ((zetaPaleyWienerHorizontalTwist_contDiff f x).differentiable
+        (show 1 ≤ (∞ : WithTop ℕ∞) from
+          WithTop.coe_le_coe.2 (OrderTop.le_top (1 : ℕ∞))) t).hasDerivAt
 
 /-- The derivative source of the horizontal twist is continuous. -/
 theorem zetaPaleyWienerVerticalLineIBPDerivative_continuous
     (f : ZetaAdmissibleFunction) (x : ℝ) :
-    Continuous (fun t : ℝ => zetaPaleyWienerVerticalLineIBPDerivative f x t) := by
-  unfold zetaPaleyWienerVerticalLineIBPDerivative
-  exact (zetaPaleyWienerHorizontalTwist_contDiff f x).continuous_deriv le_top
+      Continuous (fun t : ℝ => zetaPaleyWienerVerticalLineIBPDerivative f x t) := by
+    unfold zetaPaleyWienerVerticalLineIBPDerivative
+    exact (zetaPaleyWienerHorizontalTwist_contDiff f x).continuous_deriv
+      (show 1 ≤ (∞ : WithTop (ℕ∞)) from
+        WithTop.coe_le_coe.2 (OrderTop.le_top (1 : ℕ∞)))
 
 /-- The derivative source of the horizontal twist has compact support. -/
 theorem zetaPaleyWienerVerticalLineIBPDerivative_hasCompactSupport
@@ -194,42 +199,64 @@ theorem hasDerivAt_zetaPaleyWienerVerticalOscillation
       (Complex.I * (y : ℂ) *
         zetaPaleyWienerVerticalOscillation y t)
       t := by
-  have hlinear_complex :
-      HasDerivAt
-        (fun w : ℂ => Complex.I * (y : ℂ) * w)
+    have hlinear_complex :
+        HasDerivAt
+          (fun w : ℂ => Complex.I * (y : ℂ) * w)
+          (Complex.I * (y : ℂ))
+          (t : ℂ) := by
+      have hid :
+          HasDerivAt
+            (fun w : ℂ => w)
+            (1 : ℂ)
+            (t : ℂ) :=
+        hasDerivAt_id (t : ℂ)
+      have hconst_mul :
+          HasDerivAt
+            (fun w : ℂ => Complex.I * (y : ℂ) * w)
+            (Complex.I * (y : ℂ) * 1)
+            (t : ℂ) :=
+        hid.const_mul (Complex.I * (y : ℂ))
+      have hone :
+          Complex.I * (y : ℂ) * 1 = Complex.I * (y : ℂ) :=
+        mul_one (Complex.I * (y : ℂ))
+      exact Eq.subst
+        (motive := fun v : ℂ =>
+          HasDerivAt
+            (fun w : ℂ => Complex.I * (y : ℂ) * w)
+            v
+            (t : ℂ))
+        hone
+        hconst_mul
+    have hlinear_real :
+        HasDerivAt
+          (fun u : ℝ => Complex.I * (y : ℂ) * (u : ℂ))
+          (Complex.I * (y : ℂ))
+          t :=
+      hlinear_complex.comp_ofReal
+    have hexp :
+        HasDerivAt
+          (fun u : ℝ => Complex.exp (Complex.I * (y : ℂ) * (u : ℂ)))
+          (Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) *
+            (Complex.I * (y : ℂ)))
+          t :=
+      (Complex.hasDerivAt_exp (Complex.I * (y : ℂ) * (t : ℂ))).comp
+        t hlinear_real
+    have hcomm :
+        Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) *
+            (Complex.I * (y : ℂ)) =
+          Complex.I * (y : ℂ) *
+            Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) :=
+      mul_comm
+        (Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)))
         (Complex.I * (y : ℂ))
-        (t : ℂ) := by
-    exact (hasDerivAt_id (t : ℂ)).const_mul (Complex.I * (y : ℂ))
-  have hlinear_real :
-      HasDerivAt
-        (fun u : ℝ => Complex.I * (y : ℂ) * (u : ℂ))
-        (Complex.I * (y : ℂ))
-        t :=
-    hlinear_complex.comp_ofReal
-  have hexp :
-      HasDerivAt
-        (fun u : ℝ => Complex.exp (Complex.I * (y : ℂ) * (u : ℂ)))
-        (Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) *
-          (Complex.I * (y : ℂ)))
-        t :=
-    (Complex.hasDerivAt_exp (Complex.I * (y : ℂ) * (t : ℂ))).comp
-      t hlinear_real
-  have hcomm :
-      Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) *
-          (Complex.I * (y : ℂ)) =
-        Complex.I * (y : ℂ) *
-          Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)) :=
-    mul_comm
-      (Complex.exp (Complex.I * (y : ℂ) * (t : ℂ)))
-      (Complex.I * (y : ℂ))
-  exact Eq.subst
-    (motive := fun v : ℂ =>
-      HasDerivAt
-        (fun u : ℝ => zetaPaleyWienerVerticalOscillation y u)
-        v
-        t)
-    hcomm
-    hexp
+    exact Eq.subst
+      (motive := fun v : ℂ =>
+        HasDerivAt
+          (fun u : ℝ => zetaPaleyWienerVerticalOscillation y u)
+          v
+          t)
+      hcomm
+      hexp
 
 /-- The horizontal twist vanishes strictly above the certified support interval. -/
 theorem zetaPaleyWienerHorizontalTwist_eq_zero_of_supportInterval_lt
@@ -335,17 +362,18 @@ theorem zetaPaleyWienerHorizontalTwistDerivative_tsupport_subset_source
     (f : ZetaAdmissibleFunction) (x : ℝ) :
     tsupport (fun t : ℝ => zetaPaleyWienerVerticalLineIBPDerivative f x t) ⊆
       tsupport f.toZetaTestFunction := by
-  intro t ht
-  have hsupport :
-      Function.support
-          (deriv (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u)) ⊆
-        tsupport (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u) :=
-    support_deriv_subset
-  have htwist :
-      t ∈ tsupport (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u) := by
-    unfold zetaPaleyWienerVerticalLineIBPDerivative at ht
-    exact hsupport (subset_tsupport _ ht)
-  exact zetaPaleyWienerHorizontalTwist_tsupport_subset_source f x htwist
+    intro t ht
+    have hderiv :
+        t ∈ tsupport
+          (deriv (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u)) := by
+      unfold zetaPaleyWienerVerticalLineIBPDerivative at ht
+      exact ht
+    have htwist :
+        t ∈ tsupport (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u) :=
+      zetaPaleyWiener_tsupport_deriv_subset
+        (fun u : ℝ => zetaPaleyWienerHorizontalTwist f x u)
+        hderiv
+    exact zetaPaleyWienerHorizontalTwist_tsupport_subset_source f x htwist
 
 /-- Every iterated derivative of the horizontal twist has support contained in the original
 admissible source support. -/

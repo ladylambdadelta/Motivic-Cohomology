@@ -55,7 +55,6 @@ theorem zetaPaleyWienerVerticalPhase_re_zero
 theorem zetaPaleyWienerVerticalOscillation_norm_eq_one
     (y t : ℝ) :
     ‖zetaPaleyWienerVerticalOscillation y t‖ = 1 := by
-  unfold zetaPaleyWienerVerticalOscillation
   exact Eq.trans
     (complexExp_norm_eq_realExp_re (Complex.I * (y : ℂ) * (t : ℂ)))
     (Eq.trans
@@ -125,14 +124,19 @@ theorem complex_exp_verticalLine_decomposition_from_add
     Complex.exp ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)) =
       (Real.exp (z.re * t) : ℂ) *
         Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) := by
+  have hmul_cast :
+      (((z.re * t : ℝ) : ℂ)) = (z.re : ℂ) * (t : ℂ) :=
+    Complex.ofReal_mul z.re t
   have hadd :
-      Complex.exp ((z.re * t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)) =
-        Complex.exp (z.re * t : ℂ) *
+      Complex.exp ((z.re : ℂ) * (t : ℂ) + Complex.I * (z.im : ℂ) * (t : ℂ)) =
+        Complex.exp ((z.re : ℂ) * (t : ℂ)) *
           Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)) :=
-    Complex.exp_add (z.re * t : ℂ) (Complex.I * (z.im : ℂ) * (t : ℂ))
+    Complex.exp_add ((z.re : ℂ) * (t : ℂ)) (Complex.I * (z.im : ℂ) * (t : ℂ))
   have hreal :
-      Complex.exp (z.re * t : ℂ) = (Real.exp (z.re * t) : ℂ) :=
-    Complex.ofReal_exp (z.re * t)
+      Complex.exp ((z.re : ℂ) * (t : ℂ)) = (Real.exp (z.re * t) : ℂ) :=
+    Eq.trans
+      (congrArg Complex.exp hmul_cast.symm)
+      (Complex.ofReal_exp (z.re * t)).symm
   exact Eq.trans hadd
     (congrArg
       (fun v : ℂ => v * Complex.exp (Complex.I * (z.im : ℂ) * (t : ℂ)))
@@ -182,17 +186,13 @@ theorem zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel
     (f : ZetaAdmissibleFunction) (z : ℂ) (t : ℝ) :
     zetaPaleyWienerLaplaceKernel f z t =
       zetaPaleyWienerVerticalLineKernel f z.re z.im t := by
-  unfold zetaPaleyWienerLaplaceKernel
-  unfold zetaPaleyWienerVerticalLineKernel
-  unfold zetaPaleyWienerHorizontalTwist
-  unfold zetaPaleyWienerVerticalOscillation
   exact zetaPaleyWienerLaplaceKernel_eq_verticalLineKernel_pointwise f z t
 
 /-- Pointwise equality of integrands transports their real-line integrals. -/
 theorem complex_integral_congr_of_pointwise_eq
     (u v : ℝ → ℂ) (h : ∀ t : ℝ, u t = v t) :
     (∫ t : ℝ, u t) = ∫ t : ℝ, v t := by
-  exact integral_congr_ae (Filter.Eventually.of_forall h)
+  exact MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall h)
 
 /-- The zeta Laplace transform is the integral of the vertical-line kernel. -/
 theorem zetaLaplaceTransform_eq_verticalLineKernelIntegral

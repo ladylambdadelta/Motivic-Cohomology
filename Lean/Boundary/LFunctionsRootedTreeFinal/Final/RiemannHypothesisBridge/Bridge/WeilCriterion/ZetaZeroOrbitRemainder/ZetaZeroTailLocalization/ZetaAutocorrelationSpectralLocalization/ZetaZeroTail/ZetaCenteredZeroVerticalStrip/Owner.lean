@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.Zero.ZetaWeilShared.ZetaZeroSideDefinitions.Core
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.CenteredZeros.CriticalStrip.Owner
 
 /-!
 # Centered-zero vertical strip
@@ -32,7 +33,8 @@ theorem zetaCompletedZero_re_mem_centeredCriticalStrip
       (ρ : ℂ).re ≤ (1 / 2 : ℝ) := by
   exact centeredCompletedRiemannZeta_zero_re_mem_centeredCriticalStrip
     (ρ : ℂ)
-    (zetaCompletedZero_zero ρ)
+    ((centeredCompletedRiemannZetaFunction_eq (ρ : ℂ)).symm.trans
+      (zetaCompletedZero_zero ρ))
 
 /-- Completed-zero coordinates lie in one fixed vertical strip.
 

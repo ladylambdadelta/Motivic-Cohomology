@@ -61,13 +61,17 @@ theorem zetaPaleyWienerVerticalWeight_le_successor_lowFrequency
     have h1 : (1 : ℤ) + (-(N + 1 : ℤ)) = 1 - N - 1 := by
       calc (1 : ℤ) + (-(N + 1 : ℤ))
           = 1 + (-(N + 1)) := rfl
-        _ = 1 - (N + 1) := by exact (Int.add_neg_eq_sub 1 (N + 1)).symm
-        _ = 1 - N - 1 := (Int.sub_sub 1 N 1).symm
+        _ = 1 - (N + 1 : ℤ) := by
+          exact (sub_eq_add_neg (1 : ℤ) (N + 1 : ℤ)).symm
+        _ = 1 - N - 1 := (Int.sub_sub (1 : ℤ) (N : ℤ) (1 : ℤ)).symm
     have h2 : (1 : ℤ) - N - 1 = -N := by
       calc (1 : ℤ) - N - 1
-          = (1 - 1) - N := by exact Int.sub_sub_cancel 1 1 N
-        _ = 0 - N := by exact congrArg (· - N) (Int.sub_self 1)
-        _ = -N := by exact Int.zero_sub N
+          = 1 - ((N : ℤ) + 1) := Int.sub_sub (1 : ℤ) (N : ℤ) (1 : ℤ)
+        _ = 1 - (1 + (N : ℤ)) := by
+          exact congrArg (fun y : ℤ => (1 : ℤ) - y) (add_comm (N : ℤ) 1)
+        _ = (1 - 1) - N := (Int.sub_sub (1 : ℤ) (1 : ℤ) (N : ℤ)).symm
+        _ = 0 - N := by exact congrArg (fun x : ℤ => x - (N : ℤ)) (Int.sub_self 1)
+        _ = -N := by exact Int.zero_sub (N : ℤ)
     exact h1.trans h2
   have hcombine :
       X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
@@ -172,13 +176,17 @@ theorem zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency
     have h1 : (1 : ℤ) + (-(N + 1 : ℤ)) = 1 - N - 1 := by
       calc (1 : ℤ) + (-(N + 1 : ℤ))
           = 1 + (-(N + 1)) := rfl
-        _ = 1 - (N + 1) := by exact (Int.add_neg_eq_sub 1 (N + 1)).symm
-        _ = 1 - N - 1 := (Int.sub_sub 1 N 1).symm
+        _ = 1 - (N + 1 : ℤ) := by
+          exact (sub_eq_add_neg (1 : ℤ) (N + 1 : ℤ)).symm
+        _ = 1 - N - 1 := (Int.sub_sub (1 : ℤ) (N : ℤ) (1 : ℤ)).symm
     have h2 : (1 : ℤ) - N - 1 = -N := by
       calc (1 : ℤ) - N - 1
-          = (1 - 1) - N := by exact Int.sub_sub_cancel 1 1 N
-        _ = 0 - N := by exact congrArg (· - N) (Int.sub_self 1)
-        _ = -N := by exact Int.zero_sub N
+          = 1 - ((N : ℤ) + 1) := Int.sub_sub (1 : ℤ) (N : ℤ) (1 : ℤ)
+        _ = 1 - (1 + (N : ℤ)) := by
+          exact congrArg (fun y : ℤ => (1 : ℤ) - y) (add_comm (N : ℤ) 1)
+        _ = (1 - 1) - N := (Int.sub_sub (1 : ℤ) (1 : ℤ) (N : ℤ)).symm
+        _ = 0 - N := by exact congrArg (fun x : ℤ => x - (N : ℤ)) (Int.sub_self 1)
+        _ = -N := by exact Int.zero_sub (N : ℤ)
     exact h1.trans h2
   have hcombine :
       X * X ^ (-(N + 1 : ℤ)) = X ^ (-(N : ℤ)) := by
@@ -214,7 +222,7 @@ theorem zetaPaleyWiener_inverseIm_mul_weight_le_successor_highFrequency
     2 * X ^ (-(N + 1 : ℤ))
   exact Eq.subst
     (motive := fun y : ℝ => y ≤ 2 * X ^ (-(N + 1 : ℤ)))
-    hrearrange
+    hrearrange.symm
     hscaled
 
 end ZetaAdmissibleFunction

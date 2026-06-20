@@ -27,9 +27,8 @@ theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlana :
     ∀ w : ℂ,
       0 < w.re →
         Complex.exp (Complex.binetLogGammaBranch w) =
-          Complex.Gamma w := by
-  intro w hw
-  exact
+          Complex.Gamma w :=
+  fun w hw =>
     Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
       w hw
 

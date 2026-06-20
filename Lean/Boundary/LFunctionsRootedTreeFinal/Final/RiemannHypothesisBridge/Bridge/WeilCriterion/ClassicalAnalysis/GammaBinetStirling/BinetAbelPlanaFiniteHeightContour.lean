@@ -20,7 +20,8 @@ open scoped Topology
 finite-height error has been identified with the vanishing horizontal edges. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueTheorem
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       Tendsto
         (fun T : ℝ =>
@@ -52,7 +53,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueThe
         atTop
         (𝓝 (0 : ℂ)) :=
     Complex.finiteAbelPlana_log_finiteHeightContourError_tendsto_zero_owner
-      hw N
+      hw N (hbridges N)
   have hsum :
       Tendsto
         (fun T : ℝ =>
@@ -87,7 +88,8 @@ principal-value contour theorem after unfolding the named side and residue
 objects. -/
 theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula_from_contour
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hbridges : Complex.FiniteHeightPVBridgePackage w) :
     ∀ N : ℕ,
       Tendsto
         (fun T : ℝ =>
@@ -102,7 +104,7 @@ theorem Complex.finiteAbelPlana_log_finiteHeightPrincipalValueCotangentFormula_f
         atTop
         (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) :=
     Complex.finiteAbelPlana_log_finiteHeightPrincipalValueContour_residueTheorem
-      hw N
+      hw hbridges N
   have hside :
       (fun T : ℝ =>
           Complex.finiteAbelPlanaLogFiniteHeightNamedSideExpression N w T) =

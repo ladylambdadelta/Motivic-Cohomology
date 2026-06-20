@@ -720,26 +720,26 @@ theorem riemannZeta_boundaryLine_one_raw_growth_bound_of_poleCleared_growth_boun
                     (And.intro hdata.left
                       (And.intro hdata.right.left
                         (fun w hw_re hw_im =>
-                          let hw_ne_one : w ≠ 1 := by
-                            intro hw
-                            have him_zero : w.im = 0 := by
-                              calc
-                                w.im = (1 : ℂ).im := by
-                                  exact congrArg Complex.im hw
-                                _ = 0 := by
-                                  exact Complex.one_im
-                            have him_norm_zero : ‖w.im‖ = 0 := by
-                              calc
-                                ‖w.im‖ = ‖(0 : ℝ)‖ := by
-                                  exact congrArg norm him_zero
-                                _ = 0 := by
-                                  exact norm_zero
-                            have hone_le_zero : (1 : ℝ) ≤ 0 :=
-                              Eq.subst
-                                (motive := fun x : ℝ => (1 : ℝ) ≤ x)
-                                him_norm_zero
-                                hw_im
-                            not_lt_of_ge hone_le_zero zero_lt_one
+                          let hw_ne_one : w ≠ 1 :=
+                            fun hw =>
+                              have him_zero : w.im = 0 := by
+                                calc
+                                  w.im = (1 : ℂ).im := by
+                                    exact congrArg Complex.im hw
+                                  _ = 0 := by
+                                    exact Complex.one_im
+                              have him_norm_zero : ‖w.im‖ = 0 := by
+                                calc
+                                  ‖w.im‖ = ‖(0 : ℝ)‖ := by
+                                    exact congrArg norm him_zero
+                                  _ = 0 := by
+                                    exact norm_zero
+                              have hone_le_zero : (1 : ℝ) ≤ 0 :=
+                                Eq.subst
+                                  (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+                                  him_norm_zero
+                                  hw_im
+                              not_lt_of_ge hone_le_zero zero_lt_one
                           let hpole_eq :
                               poleClearedRiemannZeta w =
                                 (w - 1) * riemannZeta w :=
@@ -755,6 +755,56 @@ theorem riemannZeta_boundaryLine_one_raw_growth_bound_of_poleCleared_growth_boun
 This is the smallest zeta-side analytic primitive needed on the reflected left boundary:
 reflection sends `re z = 0` to `re (1 - z) = 1`, not to the `re = 2`
 Dirichlet-series boundary. -/
+theorem poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        ‖poleClearedRiemannZeta w‖ ≤
+          A * Real.exp (B * (1 + ‖w‖) ^ m) := by
+  exact Exists.elim riemannZeta_poleCleared_boundaryLine_one_growth_bound_standard
+    (fun A hA_tail =>
+      Exists.elim hA_tail
+        (fun B hB_tail =>
+          Exists.elim hB_tail
+            (fun m hdata =>
+              Exists.intro A
+                (Exists.intro B
+                  (Exists.intro m
+                    (And.intro hdata.left
+                      (And.intro hdata.right.left
+                        (fun w hw_re hw_im =>
+                          let hw_ne_one : w ≠ 1 :=
+                            fun hw =>
+                              have him_zero : w.im = 0 := by
+                                calc
+                                  w.im = (1 : ℂ).im := by
+                                    exact congrArg Complex.im hw
+                                  _ = 0 := by
+                                    exact Complex.one_im
+                              have him_norm_zero : ‖w.im‖ = 0 := by
+                                calc
+                                  ‖w.im‖ = ‖(0 : ℝ)‖ := by
+                                    exact congrArg norm him_zero
+                                  _ = 0 := by
+                                    exact norm_zero
+                              have hone_le_zero : (1 : ℝ) ≤ 0 :=
+                                Eq.subst
+                                  (motive := fun x : ℝ => (1 : ℝ) ≤ x)
+                                  him_norm_zero
+                                  hw_im
+                              not_lt_of_ge hone_le_zero zero_lt_one
+                          let hpole_eq :
+                              poleClearedRiemannZeta w =
+                                (w - 1) * riemannZeta w :=
+                            poleClearedRiemannZeta_eq_of_ne_one hw_ne_one
+                          Eq.subst
+                            (motive := fun x : ℂ =>
+                              ‖x‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
+                            hpole_eq.symm
+                            (hdata.right.right w hw_re hw_im)))))))))
 
 
 end

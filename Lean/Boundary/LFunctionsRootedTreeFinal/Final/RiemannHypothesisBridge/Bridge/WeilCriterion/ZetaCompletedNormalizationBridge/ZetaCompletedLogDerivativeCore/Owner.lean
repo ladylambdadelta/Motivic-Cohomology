@@ -21,12 +21,20 @@ namespace ZetaAdmissibleFunction
 def completedZetaNegLogDeriv (s : ℂ) : ℂ :=
   - deriv completedRiemannZeta s / completedRiemannZeta s
 
+/-- The completed negative logarithmic derivative unfolds to its defining quotient. -/
+theorem completedZetaNegLogDeriv_unfold (s : ℂ) :
+    completedZetaNegLogDeriv s =
+      - deriv completedRiemannZeta s / completedRiemannZeta s := by
+  rfl
+
 /-- The completed negative logarithmic derivative is the negative `logDeriv`. -/
 theorem completedZetaNegLogDeriv_eq_neg_logDeriv (s : ℂ) :
     completedZetaNegLogDeriv s = - logDeriv completedRiemannZeta s := by
-  unfold completedZetaNegLogDeriv
   calc
-    (-deriv completedRiemannZeta s) / completedRiemannZeta s =
+    completedZetaNegLogDeriv s =
+        (-deriv completedRiemannZeta s) / completedRiemannZeta s :=
+      completedZetaNegLogDeriv_unfold s
+    _ =
         -(deriv completedRiemannZeta s / completedRiemannZeta s) := by
       exact neg_div (completedRiemannZeta s) (deriv completedRiemannZeta s)
     _ = - logDeriv completedRiemannZeta s := by

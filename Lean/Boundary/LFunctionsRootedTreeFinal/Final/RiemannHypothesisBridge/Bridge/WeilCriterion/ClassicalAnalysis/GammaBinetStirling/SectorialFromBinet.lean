@@ -1,4 +1,8 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet
+import Mathlib.Analysis.Complex.Basic
+import Mathlib.MeasureTheory.Function.SpecialFunctions.Basic
+import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.Order.Interval.Set.Disjoint
 
 /-!
 # Sectorial estimates from Binet
@@ -13,32 +17,94 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
+open Set
 
 /-- Trivial real nonnegativity of `2`, named to keep arithmetic side
 conditions out of the Binet estimates. -/
 theorem Real.zero_le_two_real : (0 : ℝ) ≤ 2 :=
   zero_le_two
 
+/-- The Binet arctangent kernel is measurable for each fixed `w`. -/
+theorem Complex.measurable_binetSecondFormula_arctan_kernel
+    (w : ℂ) :
+    Measurable
+      (fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / w)) := by
+  have hofReal : Measurable fun t : ℝ => (t : ℂ) :=
+    Complex.measurable_ofReal
+  have hquot : Measurable fun t : ℝ => (t : ℂ) / w :=
+    hofReal.div measurable_const
+  exact Complex.measurable_arctan.comp hquot
+
+/-- The full Binet second-formula kernel is measurable for each fixed `w`. -/
+theorem Complex.measurable_binetSecondFormula_kernel
+    (w : ℂ) :
+    Measurable
+      (fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
+  have harctan : Measurable fun t : ℝ =>
+      Complex.arctan ((t : ℂ) / w) :=
+    Complex.measurable_binetSecondFormula_arctan_kernel w
+  have hlinearReal : Measurable fun t : ℝ =>
+      (2 : ℝ) * Real.pi * t :=
+    (measurable_const.mul measurable_const).mul measurable_id
+  have hlinearComplex : Measurable fun t : ℝ =>
+      (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) :=
+    Complex.measurable_ofReal.comp hlinearReal
+  have hden : Measurable fun t : ℝ =>
+      Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1 :=
+    hlinearComplex.cexp.sub measurable_const
+  exact harctan.div hden
+
 /-- Trivial strict lower bound for `8`, named to keep arithmetic side conditions
 out of the Binet estimates. -/
 theorem Real.zero_lt_eight_real : (0 : ℝ) < 8 := by
-  exact lt_of_lt_of_le zero_lt_one one_le_ofNat
+  exact Nat.cast_pos.mpr (Nat.succ_pos 7)
+
+/-- Multiplying twice a number by one half recovers the number. -/
+theorem Real.eq_two_mul_mul_half
+    (B : ℝ) :
+    B = (2 * B) * (1 / 2 : ℝ) := by
+  calc
+    B = B * 1 := Eq.symm (mul_one B)
+    _ = B * ((1 : ℝ) / 2 + (1 : ℝ) / 2) := by
+      exact congrArg (fun x : ℝ => B * x) (Eq.symm (add_halves (1 : ℝ)))
+    _ = B * ((1 : ℝ) / 2) + B * ((1 : ℝ) / 2) := by
+      exact left_distrib B ((1 : ℝ) / 2) ((1 : ℝ) / 2)
+    _ = (B + B) * ((1 : ℝ) / 2) := by
+      exact Eq.symm (right_distrib B B ((1 : ℝ) / 2))
+    _ = (2 * B) * ((1 : ℝ) / 2) := by
+      exact congrArg (fun x : ℝ => x * ((1 : ℝ) / 2)) (Eq.symm (two_mul B))
 
 /-- Multiplying by two twice gives the explicit coefficient four. -/
 theorem Real.two_mul_two_mul
     (x : ℝ) :
     2 * (2 * x) = 4 * x := by
   calc
-    2 * (2 * x) = (2 * 2 : ℝ) * x := mul_assoc 2 2 x
-    _ = 4 * x := rfl
+    2 * (2 * x) = (2 * x) + (2 * x) := two_mul (2 * x)
+    _ = (2 * x + 2 * x) := Eq.refl _
+    _ = (2 + 2 : ℝ) * x := by
+      exact Eq.symm (right_distrib 2 2 x)
+    _ = 4 * x := by
+      exact congrArg (fun c : ℝ => c * x) (two_add_two_eq_four)
 
 /-- Multiplying coefficient four by two gives coefficient eight. -/
 theorem Real.two_mul_four_mul
     (x : ℝ) :
     2 * (4 * x) = 8 * x := by
+  have hcoeff : (2 : ℝ) * 4 = 8 := by
+    calc
+      (2 : ℝ) * 4 = ((2 * 4 : ℕ) : ℝ) := by
+        exact (Nat.cast_mul 2 4).symm
+      _ = (8 : ℝ) := by
+        exact congrArg (fun n : ℕ => (n : ℝ)) rfl
   calc
-    2 * (4 * x) = (2 * 4 : ℝ) * x := mul_assoc 2 4 x
-    _ = 8 * x := rfl
+    2 * (4 * x) = (2 * 4 : ℝ) * x := by
+      exact (mul_assoc 2 4 x).symm
+    _ = 8 * x := by
+      exact congrArg (fun c : ℝ => c * x) hcoeff
 
 /-- Rewriting the lower split kernel majorant into constant-times-majorant
 form. -/
@@ -93,7 +159,8 @@ theorem Real.two_mul_div_mul_half_eq
     _ = (2 * B) / 2 := by
       exact congrArg (fun x : ℝ => x / 2) (div_mul_cancel₀ (2 * B) hr)
     _ = (2 * B) * (1 / 2 : ℝ) := by
-      exact div_eq_mul_inv (2 * B) 2
+      exact Eq.trans (div_eq_mul_inv (2 * B) 2)
+        (congrArg (fun x : ℝ => (2 * B) * x) (inv_eq_one_div 2))
     _ = B := by
       exact Eq.symm (Real.eq_two_mul_mul_half B)
 
@@ -123,13 +190,21 @@ theorem Real.three_mul_mul_reassoc
 theorem Real.add_two_mul_eq_three_mul
     (x : ℝ) :
     x + 2 * x = 3 * x := by
+  have hcoeff : (2 : ℝ) + 1 = 3 := by
+    exact two_add_one_eq_three
   calc
     x + 2 * x = x + (x + x) := by
       exact congrArg (fun z : ℝ => x + z) (two_mul x)
-    _ = x + x + x := by
-      exact Eq.symm (add_assoc x x x)
+    _ = (x + x) + x := by
+      exact (add_assoc x x x).symm
+    _ = 2 * x + x := by
+      exact congrArg (fun z : ℝ => z + x) (two_mul x).symm
+    _ = 2 * x + 1 * x := by
+      exact congrArg (fun z : ℝ => 2 * x + z) (Eq.symm (one_mul x))
+    _ = (2 + 1 : ℝ) * x := by
+      exact Eq.symm (right_distrib 2 1 x)
     _ = 3 * x := by
-      exact Eq.symm (three_mul x)
+      exact congrArg (fun c : ℝ => c * x) hcoeff
 
 /-- Upper bound for a quotient from an upper numerator bound and a lower
 denominator bound. -/
@@ -171,6 +246,20 @@ theorem Real.zero_lt_three : (0 : ℝ) < 3 :=
 /-- The real number `3` is nonnegative. -/
 theorem Real.zero_le_three : (0 : ℝ) ≤ 3 :=
   le_of_lt Real.zero_lt_three
+
+/-- The real number `1` is at most `3`. -/
+theorem Real.one_le_three_real : (1 : ℝ) ≤ (3 : ℝ) :=
+  Real.one_le_three
+
+/-- The real number `1/3` is at most `3`. -/
+theorem Real.one_div_three_le_three_real : (1 / 3 : ℝ) ≤ 3 := by
+  have hthree_pos : (0 : ℝ) < 3 := Real.zero_lt_three
+  have hthree_mul : (1 : ℝ) ≤ 3 * 3 := by
+    calc
+      (1 : ℝ) ≤ (3 : ℝ) := Real.one_le_three_real
+      _ ≤ 3 * 3 := by
+        exact le_mul_of_one_le_right (le_of_lt hthree_pos) Real.one_le_three_real
+  exact (div_le_iff₀ hthree_pos).2 hthree_mul
 
 /-- The real number `4` is nonnegative. -/
 theorem Real.zero_le_four : (0 : ℝ) ≤ 4 :=
@@ -240,7 +329,7 @@ theorem Real.one_div_three_mul_three_mul
   calc
     (1 / 3 : ℝ) * (3 * x)
         = ((1 / 3 : ℝ) * 3) * x :=
-            mul_assoc (1 / 3 : ℝ) 3 x
+            (mul_assoc (1 / 3 : ℝ) 3 x).symm
     _ = 1 * x := by
             exact congrArg (fun y : ℝ => y * x)
               (one_div_mul_cancel (ne_of_gt Real.zero_lt_three))
@@ -279,8 +368,7 @@ theorem Complex.norm_real_mul_I (t : ℝ) :
     ‖(t : ℂ) * Complex.I‖ = ‖(t : ℂ)‖ * ‖Complex.I‖ := by
       exact norm_mul _ _
     _ = |t| * 1 := by
-      congr 1
-      exact Real.norm_of_nonneg (abs_nonneg t)
+      exact congrArg₂ HMul.hMul (Complex.norm_real t) Complex.norm_I
     _ = |t| := mul_one |t|
 
 /-- The scalar factor in the arctangent logarithm has norm `1/2`. -/
@@ -301,21 +389,6 @@ theorem Complex.norm_neg_I_div_two :
 theorem Real.one_div_two_le_one : (1 / 2 : ℝ) ≤ 1 :=
   le_of_lt one_half_lt_one
 
-/-- Multiplying twice a number by one half recovers the number. -/
-theorem Real.eq_two_mul_mul_half
-    (B : ℝ) :
-    B = (2 * B) * (1 / 2 : ℝ) := by
-  calc
-    B = B * 1 := Eq.symm (mul_one B)
-    _ = B * ((1 : ℝ) / 2 + (1 : ℝ) / 2) := by
-      exact congrArg (fun x : ℝ => B * x) (Eq.symm (add_halves (1 : ℝ)))
-    _ = B * ((1 : ℝ) / 2) + B * ((1 : ℝ) / 2) := by
-      exact left_distrib B ((1 : ℝ) / 2) ((1 : ℝ) / 2)
-    _ = (B + B) * ((1 : ℝ) / 2) := by
-      exact Eq.symm (right_distrib B B ((1 : ℝ) / 2))
-    _ = (2 * B) * ((1 : ℝ) / 2) := by
-      exact congrArg (fun x : ℝ => x * ((1 : ℝ) / 2)) (Eq.symm (two_mul B))
-
 /-- If `2n ≤ t`, then `n + t` is bounded by three copies of the tail
 `t - n`. -/
 theorem Real.add_le_three_mul_sub_of_two_mul_le
@@ -330,7 +403,7 @@ theorem Real.add_le_three_mul_sub_of_two_mul_le
   have hn_le_tail : n ≤ t - n :=
     le_sub_iff_add_le'.mpr hsum
   have ht_eq_tail_add_n : t = (t - n) + n :=
-    Eq.symm (sub_add_cancel_of_le hn_le_t)
+    Eq.symm (tsub_add_cancel_of_le hn_le_t)
   have ht_le_two_tail : t ≤ 2 * (t - n) := by
     calc
       t = (t - n) + n := ht_eq_tail_add_n
@@ -366,7 +439,9 @@ theorem Complex.one_sub_real_div_mul_I_norm_lower
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   have hre_nonneg : 0 ≤ (w - (t : ℂ) * Complex.I).re := by
-    exact le_of_lt hw_re_pos
+    have hre : (w - (t : ℂ) * Complex.I).re = w.re :=
+      Complex.sub_im_re w t
+    exact hre.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w - (t : ℂ) * Complex.I).re| = w.re := by
     have hre : (w - (t : ℂ) * Complex.I).re = w.re :=
@@ -400,7 +475,9 @@ theorem Complex.one_add_real_div_mul_I_norm_lower
   have hw_norm_pos : 0 < ‖w‖ :=
     norm_pos_iff.mpr hw_ne_zero
   have hre_nonneg : 0 ≤ (w + (t : ℂ) * Complex.I).re := by
-    exact le_of_lt hw_re_pos
+    have hre : (w + (t : ℂ) * Complex.I).re = w.re :=
+      Complex.add_im_re w t
+    exact hre.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w + (t : ℂ) * Complex.I).re| = w.re := by
     have hre : (w + (t : ℂ) * Complex.I).re = w.re :=
@@ -450,7 +527,7 @@ theorem Complex.log_norm_le_abs_log_norm_add_pi
     (z : ℂ) :
     ‖Complex.log z‖ ≤ |Real.log ‖z‖| + Real.pi := by
   calc
-    ‖Complex.log z‖ = Complex.abs (Complex.log z) := norm_eq_abs _
+    ‖Complex.log z‖ = Complex.abs (Complex.log z) := Complex.norm_eq_abs _
     _ ≤ |(Complex.log z).re| + |(Complex.log z).im| :=
       Complex.abs_le_abs_re_add_abs_im (Complex.log z)
     _ = |Real.log ‖z‖| + |Complex.arg z| := by
@@ -573,7 +650,10 @@ theorem Complex.norm_pos_of_re_pos
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     0 < ‖w‖ :=
-  norm_pos_iff.mpr (Complex.ne_zero_of_re_pos hw_re_pos)
+  norm_pos_iff.mpr
+    (fun hw_zero => by
+      cases hw_zero
+      exact (lt_irrefl (0 : ℝ)) hw_re_pos)
 
 /-- The separation hypothesis implies the lower real-part product bound. -/
 theorem Complex.sep_mul_le_re
@@ -608,7 +688,23 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
     (t : ℝ) :
     w.re ≤ ‖w + (t : ℂ) * Complex.I‖ := by
   have hre_nonneg : 0 ≤ (w + (t : ℂ) * Complex.I).re := by
-    exact le_of_lt hw_re_pos
+    have hre : (w + (t : ℂ) * Complex.I).re = w.re := by
+      calc
+        (w + (t : ℂ) * Complex.I).re = w.re + ((t : ℂ) * Complex.I).re := by
+          exact Complex.add_re w ((t : ℂ) * Complex.I)
+        _ = w.re + 0 := by
+          have hI : ((t : ℂ) * Complex.I).re = 0 := by
+            calc
+              ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+                exact Complex.mul_I_re (t : ℂ)
+              _ = -0 := by
+                exact congrArg Neg.neg (Complex.ofReal_im t)
+              _ = 0 := by
+                exact neg_zero
+          exact congrArg (fun x : ℝ => w.re + x) hI
+        _ = w.re := by
+          exact add_zero w.re
+    exact hre.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w + (t : ℂ) * Complex.I).re| = w.re := by
     calc
@@ -619,7 +715,13 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_numerator_lower
             exact Complex.add_re w ((t : ℂ) * Complex.I)
           _ = w.re := by
             have hI : ((t : ℂ) * Complex.I).re = 0 := by
-              exact Complex.mul_re (t : ℂ) Complex.I
+              calc
+                ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+                  exact Complex.mul_I_re (t : ℂ)
+                _ = -0 := by
+                  exact congrArg Neg.neg (Complex.ofReal_im t)
+                _ = 0 := by
+                  exact neg_zero
             calc
               w.re + ((t : ℂ) * Complex.I).re = w.re + 0 := by
                 exact congrArg (fun x : ℝ => w.re + x) hI
@@ -639,7 +741,9 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
     (t : ℝ) :
     w.re ≤ ‖w - (t : ℂ) * Complex.I‖ := by
   have hre_nonneg : 0 ≤ (w - (t : ℂ) * Complex.I).re := by
-    exact le_of_lt hw_re_pos
+    have hre : (w - (t : ℂ) * Complex.I).re = w.re :=
+      Complex.sub_im_re w t
+    exact hre.symm ▸ le_of_lt hw_re_pos
   have hre_abs_eq :
       |(w - (t : ℂ) * Complex.I).re| = w.re := by
     calc
@@ -650,7 +754,13 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_denominator_lower
             exact Complex.sub_re w ((t : ℂ) * Complex.I)
           _ = w.re := by
             have hI : ((t : ℂ) * Complex.I).re = 0 := by
-              exact Complex.mul_re (t : ℂ) Complex.I
+              calc
+                ((t : ℂ) * Complex.I).re = -((t : ℂ).im) := by
+                  exact Complex.mul_I_re (t : ℂ)
+                _ = -0 := by
+                  exact congrArg Neg.neg (Complex.ofReal_im t)
+                _ = 0 := by
+                  exact neg_zero
             calc
               w.re - ((t : ℂ) * Complex.I).re = w.re - 0 := by
                 exact congrArg (fun x : ℝ => w.re - x) hI
@@ -696,10 +806,15 @@ theorem Complex.binetSecondFormula_arctan_tail_denominator_le_three_norm
       _ = t := abs_of_nonneg ht_nonneg
   calc
     ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
-      show ‖w + -((t : ℂ) * Complex.I)‖ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖
-      exact norm_add_le _ _
+      calc
+        ‖w - (t : ℂ) * Complex.I‖ = ‖w + -((t : ℂ) * Complex.I)‖ := by
+          exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+        _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ := by
+          exact norm_add_le _ _
+        _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+          exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I))
     _ = ‖w‖ + t := by
-      exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I) ▸ htI_norm)
+      exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
     _ ≤ ‖w‖ + 2 * ‖w‖ := add_le_add_left ht_le _
     _ = 3 * ‖w‖ := by
       exact Real.add_two_mul_eq_three_mul ‖w‖
@@ -746,27 +861,40 @@ theorem Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
           _ = ‖w - (t : ℂ) * Complex.I‖ := by
             exact norm_neg _
     exact by
-      have hrev' : ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤ ‖w - (t : ℂ) * Complex.I‖ := by
-        exact hnorm_eq.symm ▸ htI_norm ▸ hrev
-      exact hrev'
+      have hleft :
+          t - ‖w‖ = ‖(t : ℂ) * Complex.I‖ - ‖w‖ :=
+        congrArg (fun x : ℝ => x - ‖w‖) htI_norm.symm
+      have hrev' : ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤
+          ‖w - (t : ℂ) * Complex.I‖ :=
+        hnorm_eq ▸ hrev
+      exact hleft.trans_le hrev'
   have hplus_lower :
       t - ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
     have hrev :
         ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤
-          ‖(t : ℂ) * Complex.I - (-w)‖ :=
-      norm_sub_norm_le ((t : ℂ) * Complex.I) (-w)
+          ‖(t : ℂ) * Complex.I - (-w)‖ := by
+      have hrev0 :
+          ‖(t : ℂ) * Complex.I‖ - ‖-w‖ ≤
+            ‖(t : ℂ) * Complex.I - (-w)‖ :=
+        norm_sub_norm_le ((t : ℂ) * Complex.I) (-w)
+      calc
+        ‖(t : ℂ) * Complex.I‖ - ‖w‖ =
+            ‖(t : ℂ) * Complex.I‖ - ‖-w‖ := by
+          exact congrArg (fun x : ℝ => ‖(t : ℂ) * Complex.I‖ - x) (norm_neg w).symm
+        _ ≤ ‖(t : ℂ) * Complex.I - (-w)‖ := hrev0
     have hnorm_eq :
         ‖(t : ℂ) * Complex.I - (-w)‖ =
           ‖w + (t : ℂ) * Complex.I‖ := by
-      exact by
-        calc
-          ‖(t : ℂ) * Complex.I - (-w)‖ = ‖w + (t : ℂ) * Complex.I‖ := by
-            congr 1
-            exact Complex.sub_neg_eq_add_comm ((t : ℂ) * Complex.I) w
+      exact congrArg norm
+        (Complex.sub_neg_eq_add_comm ((t : ℂ) * Complex.I) w)
     exact by
-      have hrev' : ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤ ‖w + (t : ℂ) * Complex.I‖ := by
-        exact hnorm_eq.symm ▸ htI_norm ▸ hrev
-      exact hrev'
+      have hleft :
+          t - ‖w‖ = ‖(t : ℂ) * Complex.I‖ - ‖w‖ :=
+        congrArg (fun x : ℝ => x - ‖w‖) htI_norm.symm
+      have hrev' : ‖(t : ℂ) * Complex.I‖ - ‖w‖ ≤
+          ‖w + (t : ℂ) * Complex.I‖ :=
+        hnorm_eq ▸ hrev
+      exact hleft.trans_le hrev'
   have hplus_upper :
       ‖w + (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := by
     calc
@@ -777,7 +905,13 @@ theorem Complex.binetSecondFormula_arctan_tail_far_ratio_bounds
       ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + t := by
     calc
       ‖w - (t : ℂ) * Complex.I‖ ≤ ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
-        exact norm_add_le _ _
+        calc
+          ‖w - (t : ℂ) * Complex.I‖ = ‖w + -((t : ℂ) * Complex.I)‖ := by
+            exact congrArg norm (sub_eq_add_neg w ((t : ℂ) * Complex.I))
+          _ ≤ ‖w‖ + ‖-((t : ℂ) * Complex.I)‖ := by
+            exact norm_add_le _ _
+          _ = ‖w‖ + ‖(t : ℂ) * Complex.I‖ := by
+            exact congrArg (fun x : ℝ => ‖w‖ + x) (norm_neg ((t : ℂ) * Complex.I))
       _ = ‖w‖ + t := by
         exact congrArg (fun x : ℝ => ‖w‖ + x) htI_norm
   constructor
@@ -839,7 +973,7 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
     show 3 * ‖w‖ / w.re ≤ max (3 * ‖w‖ / w.re) 3
     exact le_max_left _ _
   refine ⟨m, M, hm_pos, ?_, ?_⟩
-  · exact le_trans (le_of_lt hm_pos) hM_ge_three
+  · exact le_trans hm_le_third (le_trans Real.one_div_three_le_three_real hM_ge_three)
   · intro t ht_tail
     have ht_nonneg : 0 ≤ t := by
       have hcut_nonneg : 0 ≤ ‖w‖ / 2 :=
@@ -916,8 +1050,8 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
                   ‖w - (t : ℂ) * Complex.I‖ ≤
                   ‖w + (t : ℂ) * Complex.I‖ := by
             exact hmul.trans_eq (Real.one_div_three_mul_three_mul
-              ‖w + (t : ℂ) * Complex.I‖).symm.le
-          exact (le_div_iff₀ hden_pos).mp hmul'
+              ‖w + (t : ℂ) * Complex.I‖)
+          exact (le_div_iff₀ hden_pos).2 hmul'
         calc
           m ≤ (1 / 3 : ℝ) := hm_le_third
           _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
@@ -928,8 +1062,7 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
       · have hthree :
             ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ ≤ 3 := by
-          exact (div_le_iff₀ hden_pos).2 hthird
-          exact hnum_le
+          exact (div_le_iff₀ hden_pos).2 hnum_le
         calc
           ‖(w + (t : ℂ) * Complex.I) /
               (w - (t : ℂ) * Complex.I)‖ =
@@ -962,14 +1095,27 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds
       Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_cleared
         hw_re_pos with
     ⟨m, M, hm_pos, hmM, hbounds⟩
-  have hw_ne_zero : w ≠ 0 :=
-    Complex.ne_zero_of_re_pos hw_re_pos
+  have hw_ne_zero : w ≠ 0 := by
+    intro hw_zero
+    cases hw_zero
+    exact (lt_irrefl (0 : ℝ)) hw_re_pos
   refine ⟨m, M, hm_pos, hmM, ?_⟩
   intro t ht_tail
   have h := hbounds t ht_tail
   constructor
-  · exact Eq.trans h.1 (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t)
-  · exact Eq.trans h.2 (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm
+  · calc
+      m ≤ ‖(w + (t : ℂ) * Complex.I) /
+            (w - (t : ℂ) * Complex.I)‖ := h.1
+      _ = ‖(1 + ((t : ℂ) / w) * Complex.I) /
+            (1 - ((t : ℂ) / w) * Complex.I)‖ := by
+        exact (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm
+  · calc
+      ‖(1 + ((t : ℂ) / w) * Complex.I) /
+          (1 - ((t : ℂ) / w) * Complex.I)‖ =
+          ‖(w + (t : ℂ) * Complex.I) /
+            (w - (t : ℂ) * Complex.I)‖ := by
+        exact Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t
+      _ ≤ M := h.2
 
 /-- Fixed-ray branch separation gives a uniform bound for the principal
 arctangent on the upper split interval. -/
@@ -999,7 +1145,7 @@ theorem Complex.binetSecondFormula_arctan_tail_log_ratio_bounded
 principal arctangent itself. -/
 theorem Complex.binetSecondFormula_arctan_tail_bounded_of_log_ratio_bound
     {w : ℂ}
-    (hw_re_pos : 0 < w.re)
+    (_hw_re_pos : 0 < w.re)
     (hlog :
       ∃ L : ℝ,
         0 ≤ L ∧
@@ -1098,6 +1244,7 @@ theorem Complex.binetSecondFormula_arctan_tail_linear_bound_of_bounded
           (Real.two_mul_div_mul_half_eq
             (B := B) (r := ‖w‖) hw_norm_pos.ne').symm
         _ = C * (‖w‖ / 2) := rfl
+        _ ≤ C * (‖w‖ / 2) := le_rfl
     have hC_mul_mono :
         C * (‖w‖ / 2) ≤ C * t :=
       mul_le_mul_of_nonneg_left ht_lower hC_nonneg
@@ -1160,10 +1307,12 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
     show 3 / ε ≤ max (3 / ε) 3
     exact le_max_left _ _
   refine ⟨m, M, hm_pos, ?_, ?_⟩
-  · exact le_trans (le_of_lt hm_pos) hM_ge_three
+  · exact le_trans hm_le_third (le_trans Real.one_div_three_le_three_real hM_ge_three)
   · intro w hw_re_pos hw_sep t ht_tail
-    have hw_ne_zero : w ≠ 0 :=
-      Complex.ne_zero_of_re_pos hw_re_pos
+    have hw_ne_zero : w ≠ 0 := by
+      intro hw_zero
+      cases hw_zero
+      exact (lt_irrefl (0 : ℝ)) hw_re_pos
     have hw_norm_pos : 0 < ‖w‖ :=
       Complex.norm_pos_of_re_pos hw_re_pos
     have ht_nonneg : 0 ≤ t := by
@@ -1187,19 +1336,21 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
       have hden_pos : 0 < 3 * ‖w‖ :=
         mul_pos hthree_pos hw_norm_pos
       exact (div_le_div_iff₀ hthree_pos hden_pos).2
-      calc
+        (calc
         ε * (3 * ‖w‖) = 3 * (ε * ‖w‖) := by
           exact Real.mul_three_mul_reassoc ε ‖w‖
         _ ≤ 3 * w.re :=
           mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
+        _ = w.re * 3 := by
+          exact mul_comm 3 w.re)
     have hbounded_upper_const :
         3 * ‖w‖ / w.re ≤ 3 / ε := by
       exact (div_le_div_iff₀ hw_re_pos hε).2
-      calc
+        (calc
         3 * ‖w‖ * ε = 3 * (ε * ‖w‖) := by
           exact Real.three_mul_mul_reassoc ε ‖w‖
         _ ≤ 3 * w.re :=
-          mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos)
+          mul_le_mul_of_nonneg_left hsep_mul (le_of_lt hthree_pos))
     by_cases ht_bounded : t ≤ 2 * ‖w‖
     · have hnum_upper :
           ‖w + (t : ℂ) * Complex.I‖ ≤ 3 * ‖w‖ :=
@@ -1227,7 +1378,7 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
           _ = ‖(1 + ((t : ℂ) / w) * Complex.I) /
                 (1 - ((t : ℂ) / w) * Complex.I)‖ := by
             exact (norm_div _ _).symm.trans
-              (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t)
+              (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm
       · have hupper :
             ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ ≤
@@ -1240,7 +1391,7 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
               (1 - ((t : ℂ) / w) * Complex.I)‖ =
               ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ := by
-            exact (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm.trans
+            exact (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).trans
               (norm_div _ _)
           _ ≤ 3 * ‖w‖ / w.re := hupper
           _ ≤ 3 / ε := hbounded_upper_const
@@ -1255,17 +1406,21 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
             (1 / 3 : ℝ) ≤
               ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ := by
-          exact (le_div_iff₀ hden_pos).2 hthird
-          calc
-            (1 / 3 : ℝ) *
-                ‖w - (t : ℂ) * Complex.I‖ ≤
-                (1 / 3 : ℝ) *
-                  (3 * ‖w + (t : ℂ) * Complex.I‖) :=
-              mul_le_mul_of_nonneg_left hden_le
-                (div_nonneg zero_le_one (le_of_lt hthree_pos))
-            _ = ‖w + (t : ℂ) * Complex.I‖ :=
-              Real.one_div_three_mul_three_mul
-                ‖w + (t : ℂ) * Complex.I‖
+          have hmul :
+              (1 / 3 : ℝ) *
+                  ‖w - (t : ℂ) * Complex.I‖ ≤
+                  (1 / 3 : ℝ) *
+                    (3 * ‖w + (t : ℂ) * Complex.I‖) :=
+            mul_le_mul_of_nonneg_left hden_le
+              (div_nonneg zero_le_one (le_of_lt hthree_pos))
+          have hmul' :
+              (1 / 3 : ℝ) *
+                  ‖w - (t : ℂ) * Complex.I‖ ≤
+                  ‖w + (t : ℂ) * Complex.I‖ :=
+            hmul.trans_eq
+              (Real.one_div_three_mul_three_mul
+                ‖w + (t : ℂ) * Complex.I‖)
+          exact (le_div_iff₀ hden_pos).2 hmul'
         calc
           m ≤ (1 / 3 : ℝ) := hm_le_third
           _ ≤ ‖w + (t : ℂ) * Complex.I‖ /
@@ -1273,18 +1428,17 @@ theorem Complex.binetSecondFormula_arctan_tail_ratio_norm_bounds_sectorSeparated
           _ = ‖(1 + ((t : ℂ) / w) * Complex.I) /
                 (1 - ((t : ℂ) / w) * Complex.I)‖ := by
             exact (norm_div _ _).symm.trans
-              (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t)
+              (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm
       · have hthree :
             ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ ≤ 3 := by
-          exact (div_le_iff₀ hden_pos).2 hthree
-          exact hnum_le
+          exact (div_le_iff₀ hden_pos).2 hnum_le
         calc
           ‖(1 + ((t : ℂ) / w) * Complex.I) /
               (1 - ((t : ℂ) / w) * Complex.I)‖ =
               ‖w + (t : ℂ) * Complex.I‖ /
                 ‖w - (t : ℂ) * Complex.I‖ := by
-            exact (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).symm.trans
+            exact (Complex.binetSecondFormula_arctan_tail_ratio_eq_norm w hw_ne_zero t).trans
               (norm_div _ _)
           _ ≤ 3 := hthree
           _ ≤ M := hM_ge_three
@@ -1414,8 +1568,8 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_small_interval
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
+    have hmeas : Measurable K :=
+      Complex.measurable_binetSecondFormula_kernel w
     exact hmeas.aestronglyMeasurable
   have hpointwise :
       ∀ᵐ t ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
@@ -1486,13 +1640,15 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant
     _ =
         ‖Complex.arctan ((t : ℂ) / w)‖ /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-      exact hden_norm
+      exact congrArg
+        (fun d : ℝ => ‖Complex.arctan ((t : ℂ) / w)‖ / d)
+        hden_norm
     _ ≤ (C * t) /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
       div_le_div_of_nonneg_right harctan hden_nonneg
     _ =
         C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-      exact (mul_div_assoc _ _ _).symm
+      exact mul_div_assoc C t (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
 
 /-- Uniform tail pointwise domination for the Binet kernel on a fixed wedge.
 
@@ -1541,13 +1697,15 @@ theorem Complex.binetSecondFormula_kernel_tail_norm_le_majorant_sectorSeparated
     _ =
         ‖Complex.arctan ((t : ℂ) / w)‖ /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-      exact hden_norm
+      exact congrArg
+        (fun d : ℝ => ‖Complex.arctan ((t : ℂ) / w)‖ / d)
+        hden_norm
     _ ≤ (C * t) /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) :=
       div_le_div_of_nonneg_right harctan hden_nonneg
     _ =
         C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
-      exact (mul_div_assoc _ _ _).symm
+      exact mul_div_assoc C t (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
 
 /-- The Binet kernel is integrable on the upper split interval. -/
 theorem Complex.binetSecondFormula_kernel_integrableOn_tail_interval
@@ -1578,8 +1736,8 @@ theorem Complex.binetSecondFormula_kernel_integrableOn_tail_interval
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioi (‖w‖ / 2))) := by
-    have hmeas : Measurable K := by
-      fun_prop
+    have hmeas : Measurable K :=
+      Complex.measurable_binetSecondFormula_kernel w
     exact hmeas.aestronglyMeasurable
   have hpointwise :
       ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
@@ -1623,12 +1781,12 @@ theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     Complex.binetSecondFormulaRemainder w =
-      2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
+      (2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
           Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) +
-        2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) +
+        (2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
           Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
   let K : ℝ → ℂ := fun t : ℝ =>
     Complex.arctan ((t : ℂ) / w) /
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
@@ -1645,8 +1803,8 @@ theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
     hK_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)
   have hsplit :
       ∫ t : ℝ in Set.Ioi (0 : ℝ), K t =
-        ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
-          ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+        (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t) +
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t) := by
     have hunion :
         Set.Ioc (0 : ℝ) (‖w‖ / 2) ∪ Set.Ioi (‖w‖ / 2) =
           Set.Ioi (0 : ℝ) :=
@@ -1659,10 +1817,18 @@ theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
       ∫ t : ℝ in Set.Ioi (0 : ℝ), K t =
           ∫ t : ℝ in
             Set.Ioc (0 : ℝ) (‖w‖ / 2) ∪ Set.Ioi (‖w‖ / 2), K t := by
-        exact hunion
+        exact
+          congrArg
+            (fun s : Set ℝ => ∫ t : ℝ in s, K t)
+            hunion.symm
       _ =
-          ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
-            ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t) +
+            (∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t) := by
+        change
+          ∫ t : ℝ in
+              Set.Ioc (0 : ℝ) (‖w‖ / 2) ∪ Set.Ioi (‖w‖ / 2), K t ∂volume =
+            ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t ∂volume +
+              ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t ∂volume
         exact
           setIntegral_union hdisjoint measurableSet_Ioi
             hsmall_integrable htail_integrable
@@ -1672,12 +1838,12 @@ theorem Complex.binetSecondFormulaRemainder_eq_small_add_tail
       rfl
     _ =
         2 *
-            (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
-              ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t) := by
-      exact hsplit
+            ((∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t) +
+              (∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t)) := by
+      exact congrArg (fun z : ℂ => 2 * z) hsplit
     _ =
-        2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t +
-          2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t := by
+        (2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t) +
+          (2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t) := by
       exact
         Complex.two_mul_add_eq_add_two_mul
           (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t)
@@ -1746,20 +1912,26 @@ theorem Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
     setIntegral_mono_set hM_integrable_Ioi
       ((ae_restrict_mem measurableSet_Ioi).mono
         (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
-      (Eventually.of_forall (fun t ht => ht.1))
+      (Filter.Eventually.of_forall (fun t ht => ht.1))
   have hscaled_mono :
       ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t ≤
         c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
     calc
       ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t =
           c * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), M t := by
-        exact integral_const_mul c M
+        exact MeasureTheory.integral_mul_left c M
       _ ≤ c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
         mul_le_mul_of_nonneg_left hmono hc_nonneg
   calc
     ‖2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ =
         2 * ‖∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖ := by
-      exact norm_mul _ _
+      exact
+        Eq.trans (norm_mul (2 : ℂ)
+          (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t))
+          (congrArg
+            (fun r : ℝ =>
+              r * ‖∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), K t‖)
+            (Complex.norm_natCast 2))
     _ ≤ 2 * (∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2), c * M t) :=
       mul_le_mul_of_nonneg_left hnorm_integral Real.zero_le_two_real
     _ ≤ 2 * (c * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
@@ -1822,20 +1994,26 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_fixed_majorant
     setIntegral_mono_set hM_integrable_Ioi
       ((ae_restrict_mem measurableSet_Ioi).mono
         (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
-      (Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
+      (Filter.Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
   have hscaled_mono :
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t ≤
         C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
     calc
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t =
           C * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
-        exact integral_const_mul C M
+        exact MeasureTheory.integral_mul_left C M
       _ ≤ C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
         mul_le_mul_of_nonneg_left hmono hC_nonneg
   calc
     ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ =
         2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
-      exact norm_mul _ _
+      exact
+        Eq.trans (norm_mul (2 : ℂ)
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t))
+          (congrArg
+            (fun r : ℝ =>
+              r * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖)
+            (Complex.norm_natCast 2))
     _ ≤ 2 * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t) :=
       mul_le_mul_of_nonneg_left hnorm_integral Real.zero_le_two_real
     _ ≤ 2 * (C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
@@ -1911,20 +2089,26 @@ theorem Complex.binetSecondFormulaRemainder_tail_norm_le_sectorSeparated_majoran
     setIntegral_mono_set hM_integrable_Ioi
       ((ae_restrict_mem measurableSet_Ioi).mono
         (fun t ht => Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
-      (Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
+      (Filter.Eventually.of_forall (fun t ht => lt_of_le_of_lt hcut_nonneg ht))
   have hscaled_mono :
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t ≤
         C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t := by
     calc
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t =
           C * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), M t := by
-        exact integral_const_mul C M
+        exact MeasureTheory.integral_mul_left C M
       _ ≤ C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t :=
         mul_le_mul_of_nonneg_left hmono hC_nonneg
   calc
     ‖2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ =
         2 * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖ := by
-      exact norm_mul _ _
+      exact
+        Eq.trans (norm_mul (2 : ℂ)
+          (∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t))
+          (congrArg
+            (fun r : ℝ =>
+              r * ‖∫ t : ℝ in Set.Ioi (‖w‖ / 2), K t‖)
+            (Complex.norm_natCast 2))
     _ ≤ 2 * (∫ t : ℝ in Set.Ioi (‖w‖ / 2), C * M t) :=
       mul_le_mul_of_nonneg_left hnorm_integral Real.zero_le_two_real
     _ ≤ 2 * (C * ∫ t : ℝ in Set.Ioi (0 : ℝ), M t) :=
@@ -1958,6 +2142,8 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_integral_majorant_from_split
       Complex.arctan ((t : ℂ) / w) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
   have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
+    unfold S
+    unfold T
     exact Complex.binetSecondFormulaRemainder_eq_small_add_tail hw_re_pos
   have hS : ‖S‖ ≤ 4 * J / ‖w‖ :=
     Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
@@ -2033,16 +2219,23 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
         ε hε with
     ⟨Ct, hCt_nonneg, htail⟩
   refine ⟨4 * J + 2 * Ct * J + 1, ?_, ?_⟩
-  · have hJ_pos : 0 < J :=
-      Real.binetSecondFormula_kernel_majorant_integral_pos
-    have hJ_nonneg : 0 ≤ J :=
-      le_of_lt hJ_pos
+  · have hJ_nonneg : 0 ≤ J :=
+      integral_nonneg_of_ae
+        ((ae_restrict_mem measurableSet_Ioi).mono
+          (fun t ht =>
+            Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
     have hfourJ_nonneg : 0 ≤ 4 * J :=
       mul_nonneg Real.zero_le_four hJ_nonneg
     have htail_nonneg : 0 ≤ 2 * Ct * J :=
       mul_nonneg (mul_nonneg Real.zero_le_two_real hCt_nonneg)
         hJ_nonneg
-    exact add_nonneg (add_nonneg hfourJ_nonneg htail_nonneg) zero_le_one
+    have hsum_nonneg : 0 ≤ 4 * J + 2 * Ct * J :=
+      add_nonneg hfourJ_nonneg htail_nonneg
+    calc
+      (0 : ℝ) < 1 := zero_lt_one
+      _ = 0 + 1 := Eq.symm (zero_add 1)
+      _ ≤ 4 * J + 2 * Ct * J + 1 :=
+        add_le_add_right hsum_nonneg 1
   · intro w hw_re_pos hw_sep hw_large
     let S : ℂ :=
       2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (‖w‖ / 2),
@@ -2053,6 +2246,8 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
         Complex.arctan ((t : ℂ) / w) /
           (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
     have hsplit : Complex.binetSecondFormulaRemainder w = S + T := by
+      unfold S
+      unfold T
       exact Complex.binetSecondFormulaRemainder_eq_small_add_tail hw_re_pos
     have hsmall :
         ‖S‖ ≤ 4 * J := by
@@ -2061,12 +2256,14 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
         Complex.binetSecondFormulaRemainder_small_norm_le_integral_majorant
           hw_re_pos
       have hJ_nonneg : 0 ≤ J :=
-        le_of_lt Real.binetSecondFormula_kernel_majorant_integral_pos
+        integral_nonneg_of_ae
+          ((ae_restrict_mem measurableSet_Ioi).mono
+            (fun t ht =>
+              Real.binetSecondFormula_kernel_majorant_nonneg_on_Ioi t ht))
       have hfourJ_nonneg : 0 ≤ 4 * J :=
         mul_nonneg Real.zero_le_four hJ_nonneg
       have hdiv_le : 4 * J / ‖w‖ ≤ 4 * J := by
-        exact div_le_of_le_mul₀ hfourJ_nonneg
-          (lt_of_lt_of_le zero_lt_one hw_large)
+        exact div_le_of_le_mul₀ (norm_nonneg w) hfourJ_nonneg
           (by
             calc
               4 * J ≤ 4 * J * 1 := by
@@ -2084,7 +2281,7 @@ theorem Complex.binetSecondFormulaRemainder_norm_le_sectorSeparated
         _ ≤ 4 * J + 2 * Ct * J := add_le_add hsmall htail_bound
     calc
       ‖Complex.binetSecondFormulaRemainder w‖ = ‖S + T‖ := by
-        exact hsplit
+        exact congrArg norm hsplit
       _ ≤ 4 * J + 2 * Ct * J := hsum
       _ ≤ 4 * J + 2 * Ct * J + 1 := by
         exact le_add_of_nonneg_right zero_le_one
@@ -2157,7 +2354,7 @@ theorem Real.integral_pos_on_Ioi_zero_of_integral_pos_on_Ioo_zero_one_of_nonneg
       (fun t ht => hnonneg t ht)
   have hsubset_ae :
       Set.Ioo (0 : ℝ) 1 ≤ᵐ[volume] Set.Ioi (0 : ℝ) :=
-    Eventually.of_forall (fun t ht => ht.1)
+    Filter.Eventually.of_forall (fun t ht => ht.1)
   have hmono :
       ∫ t : ℝ in Set.Ioo (0 : ℝ) 1, f t ≤
         ∫ t : ℝ in Set.Ioi (0 : ℝ), f t :=

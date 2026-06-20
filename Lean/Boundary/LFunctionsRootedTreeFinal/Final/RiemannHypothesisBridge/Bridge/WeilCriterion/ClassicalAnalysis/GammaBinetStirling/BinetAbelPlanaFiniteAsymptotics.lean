@@ -33,7 +33,466 @@ theorem Real.factorialStirlingEndpoint_final_regroup
     (A X Y Z U V : ℝ) :
     A + (-(X + Y - Z) + (-(U) + -(V))) =
       (A - (U + Y) - (X - Z)) - V := by
-  abel_nf
+  have hleft_sub :
+      X + Y - Z = X + Y + -Z :=
+    sub_eq_add_neg (X + Y) Z
+  have hneg_left :
+      -(X + Y - Z) = -(X + Y) + Z := by
+    calc
+      -(X + Y - Z) = -(X + Y + -Z) := by
+        exact congrArg Neg.neg hleft_sub
+      _ = -(X + Y) + -(-Z) := neg_add (X + Y) (-Z)
+      _ = -(X + Y) + Z := by
+        exact congrArg (fun r : ℝ => -(X + Y) + r) (neg_neg Z)
+  have hneg_xy :
+      -(X + Y) = -X + -Y :=
+    neg_add X Y
+  have htarget_sub₁ :
+      A - (U + Y) = A + -(U + Y) :=
+    sub_eq_add_neg A (U + Y)
+  have htarget_sub₂ :
+      A - (U + Y) - (X - Z) =
+        (A - (U + Y)) + -(X - Z) :=
+    sub_eq_add_neg (A - (U + Y)) (X - Z)
+  have htarget_sub₃ :
+      (A - (U + Y) - (X - Z)) - V =
+        (A - (U + Y) - (X - Z)) + -V :=
+    sub_eq_add_neg (A - (U + Y) - (X - Z)) V
+  have hneg_uy :
+      -(U + Y) = -U + -Y :=
+    neg_add U Y
+  have hneg_xz :
+      -(X - Z) = -X + Z := by
+    calc
+      -(X - Z) = -(X + -Z) := by
+        exact congrArg Neg.neg (sub_eq_add_neg X Z)
+      _ = -X + -(-Z) := neg_add X (-Z)
+      _ = -X + Z := by
+        exact congrArg (fun r : ℝ => -X + r) (neg_neg Z)
+  calc
+    A + (-(X + Y - Z) + (-(U) + -(V))) =
+        A + ((-(X + Y) + Z) + (-U + -V)) := by
+      exact congrArg
+        (fun r : ℝ => A + (r + (-U + -V)))
+        hneg_left
+    _ = A + (((-X + -Y) + Z) + (-U + -V)) := by
+      exact congrArg
+        (fun r : ℝ => A + ((r + Z) + (-U + -V)))
+        hneg_xy
+    _ = A + ((-U + -Y) + (-X + Z) + -V) := by
+      calc
+        A + (((-X + -Y) + Z) + (-U + -V)) =
+            A + (((-X + -Y) + Z) + (-V + -U)) := by
+          exact congrArg
+            (fun r : ℝ => A + (((-X + -Y) + Z) + r))
+            (add_comm (-U) (-V))
+        _ = A + ((((-X + -Y) + Z) + -V) + -U) := by
+          exact congrArg
+            (fun r : ℝ => A + r)
+            (add_assoc ((-X + -Y) + Z) (-V) (-U))
+        _ = A + (-U + (((-X + -Y) + Z) + -V)) := by
+          exact congrArg
+            (fun r : ℝ => A + r)
+            (add_comm ((((-X + -Y) + Z) + -V)) (-U))
+        _ = A + (-U + (((-X + -Y) + Z) + -V)) := rfl
+        _ = A + (-U + (((-X + -Y) + Z) + -V)) := rfl
+        _ = A + ((-U + -Y) + (-X + Z) + -V) := by
+          exact
+            Eq.symm
+              (calc
+                A + ((-U + -Y) + (-X + Z) + -V) =
+                    A + (((-U + -Y) + (-X + Z)) + -V) := rfl
+                _ = A + ((-U + -Y) + ((-X + Z) + -V)) := by
+                  exact congrArg (fun r : ℝ => A + r)
+                    (add_assoc (-U + -Y) (-X + Z) (-V))
+                _ = A + (-U + (-Y + ((-X + Z) + -V))) := by
+                  exact congrArg (fun r : ℝ => A + r)
+                    (add_assoc (-U) (-Y) ((-X + Z) + -V))
+                _ = A + (-U + (((-X + Z) + -Y) + -V)) := by
+                  exact congrArg
+                    (fun r : ℝ => A + (-U + r))
+                    (Eq.trans
+                      (add_comm (-Y) ((-X + Z) + -V))
+                      (Eq.symm (add_assoc (-X + Z) (-V) (-Y))))
+                _ = A + (-U + (((-X + -Y) + Z) + -V)) := by
+                  exact congrArg
+                    (fun r : ℝ => A + (-U + (r + -V)))
+                    (Eq.symm (add_assoc (-X) (-Y) Z)))
+    _ = (A - (U + Y) - (X - Z)) - V := by
+      exact Eq.symm
+        (calc
+          (A - (U + Y) - (X - Z)) - V =
+              (A - (U + Y) - (X - Z)) + -V := htarget_sub₃
+          _ = ((A - (U + Y)) + -(X - Z)) + -V := by
+            exact congrArg (fun r : ℝ => r + -V) htarget_sub₂
+          _ = ((A + -(U + Y)) + -(X - Z)) + -V := by
+            exact congrArg
+              (fun r : ℝ => (r + -(X - Z)) + -V)
+              htarget_sub₁
+          _ = ((A + (-U + -Y)) + -(X - Z)) + -V := by
+            exact congrArg
+              (fun r : ℝ => ((A + r) + -(X - Z)) + -V)
+              hneg_uy
+          _ = ((A + (-U + -Y)) + (-X + Z)) + -V := by
+            exact congrArg
+              (fun r : ℝ => ((A + (-U + -Y)) + r) + -V)
+              hneg_xz
+          _ = A + ((-U + -Y) + (-X + Z) + -V) := by
+            calc
+              ((A + (-U + -Y)) + (-X + Z)) + -V =
+                  (A + ((-U + -Y) + (-X + Z))) + -V := by
+                exact congrArg
+                  (fun r : ℝ => r + -V)
+                  (add_assoc A (-U + -Y) (-X + Z))
+              _ = A + (((-U + -Y) + (-X + Z)) + -V) :=
+                add_assoc A ((-U + -Y) + (-X + Z)) (-V)
+      _ = A + ((-U + -Y) + (-X + Z) + -V) := rfl)
+
+/-- Subtracting a difference expands by adding the right endpoint. -/
+theorem Complex.sub_sub_sub_eq_sub_sub_add
+    (a b c d : ℂ) :
+    (a - b) - (c - d) = a - b - c + d := by
+  calc
+    (a - b) - (c - d) = (a - b) + -(c - d) :=
+      sub_eq_add_neg (a - b) (c - d)
+    _ = (a - b) + (-c + d) := by
+      exact congrArg (fun z : ℂ => (a - b) + z) (neg_sub c d)
+    _ = ((a - b) + -c) + d :=
+      (add_assoc (a - b) (-c) d).symm
+    _ = (a - b - c) + d := by
+      exact congrArg (fun z : ℂ => z + d)
+        (sub_eq_add_neg (a - b) c).symm
+
+/-- Expanding the endpoint product in the finite Binet remainder. -/
+theorem Complex.endpoint_product_expand
+    (w M logwM : ℂ) :
+    (w + M) * logwM = w * logwM + M * logwM := by
+  exact add_mul w M logwM
+
+/-- Removing a sum from the right of a subtraction removes the two summands
+successively. -/
+theorem Complex.sub_add_right_as_sub_sub
+    (a b c : ℂ) :
+    a - (b + c) = a - b - c := by
+  calc
+    a - (b + c) = a + -(b + c) :=
+      sub_eq_add_neg a (b + c)
+    _ = a + (-b + -c) := by
+      exact congrArg (fun z : ℂ => a + z) (neg_add b c)
+    _ = (a + -b) + -c :=
+      (add_assoc a (-b) (-c)).symm
+    _ = a - b - c := by
+      exact congrArg (fun z : ℂ => z + -c)
+        (sub_eq_add_neg a b).symm
+
+/-- Subtracting a difference adds back the right-hand term. -/
+theorem Complex.sub_sub_right_as_sub_add
+    (a b c : ℂ) :
+    a - (b - c) = a - b + c := by
+  calc
+    a - (b - c) = a - (b + -c) := by
+      exact congrArg (fun z : ℂ => a - z) (sub_eq_add_neg b c)
+    _ = a - b - (-c) :=
+      Complex.sub_add_right_as_sub_sub a b (-c)
+    _ = a - b + c := by
+      exact congrArg (fun z : ℂ => a - b + z) (neg_neg c)
+
+/-- Subtracting an expanded four-term endpoint expression exposes the four
+successive additive contributions. -/
+theorem Complex.endpoint_subtract_four_term_expand
+    (p a b c d e f : ℂ) :
+    p - (a - b - c + d) - e - f =
+      p - a + b + c - d - e - f := by
+  calc
+    p - (a - b - c + d) - e - f =
+        (p - (a - b - c) - d) - e - f := by
+      exact congrArg (fun z : ℂ => z - e - f)
+        (Complex.sub_add_right_as_sub_sub p (a - b - c) d)
+    _ = ((p - (a - b) + c) - d) - e - f := by
+      exact congrArg (fun z : ℂ => (z - d) - e - f)
+        (Complex.sub_sub_right_as_sub_add p (a - b) c)
+    _ = (((p - a + b) + c) - d) - e - f := by
+      exact congrArg (fun z : ℂ => (z + c - d) - e - f)
+        (Complex.sub_sub_right_as_sub_add p a b)
+    _ = p - a + b + c - d - e - f := rfl
+
+/-- Subtracting a three-term expression of the form `a - b + c`. -/
+theorem Complex.sub_sub_add_three_term_expand
+    (p a b c : ℂ) :
+    p - (a - b + c) = p - a + b - c := by
+  calc
+    p - (a - b + c) = p - (a - b) - c :=
+      Complex.sub_add_right_as_sub_sub p (a - b) c
+    _ = p - a + b - c := by
+      exact congrArg (fun z : ℂ => z - c)
+        (Complex.sub_sub_right_as_sub_add p a b)
+
+/-- Expanding subtraction of an endpoint product. -/
+theorem Complex.sub_endpoint_product_expand
+    (p w M logwM : ℂ) :
+    p - (w + M) * logwM =
+      p - w * logwM - M * logwM := by
+  calc
+    p - (w + M) * logwM =
+        p - (w * logwM + M * logwM) := by
+      exact congrArg (fun z : ℂ => p - z)
+        (Complex.endpoint_product_expand w M logwM)
+    _ = p - w * logwM - M * logwM :=
+      Complex.sub_add_right_as_sub_sub p (w * logwM) (M * logwM)
+
+/-- Expanding the shifted logarithm product in the left endpoint normal form. -/
+theorem Complex.sub_shifted_log_product_expand
+    (p w logw : ℂ) :
+    p - (w - (1 / 2 : ℂ)) * logw =
+      p - w * logw + (1 / 2 : ℂ) * logw := by
+  calc
+    p - (w - (1 / 2 : ℂ)) * logw =
+        p - (w * logw - (1 / 2 : ℂ) * logw) := by
+      exact congrArg (fun z : ℂ => p - z)
+        (sub_mul w (1 / 2 : ℂ) logw)
+    _ = p - w * logw + (1 / 2 : ℂ) * logw :=
+      Complex.sub_sub_right_as_sub_add p (w * logw) ((1 / 2 : ℂ) * logw)
+
+/-- The two half-logarithm contributions cancel in the endpoint normal form. -/
+theorem Complex.sub_half_logsum_add_half_log
+    (p logw logwM : ℂ) :
+    p - (logw + logwM) / 2 + (1 / 2 : ℂ) * logw =
+      p - (1 / 2 : ℂ) * logwM := by
+  have hsplit :
+      (logw + logwM) / 2 =
+        (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logwM := by
+    calc
+      (logw + logwM) / 2 =
+          (logw + logwM) * (2 : ℂ)⁻¹ :=
+        div_eq_mul_inv (logw + logwM) (2 : ℂ)
+      _ = (logw + logwM) * (1 / 2 : ℂ) := by
+        exact congrArg (fun z : ℂ => (logw + logwM) * z)
+          (inv_eq_one_div (2 : ℂ))
+      _ = (1 / 2 : ℂ) * (logw + logwM) := by
+        exact mul_comm (logw + logwM) (1 / 2 : ℂ)
+      _ = (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logwM :=
+        mul_add (1 / 2 : ℂ) logw logwM
+  calc
+    p - (logw + logwM) / 2 + (1 / 2 : ℂ) * logw =
+        p - ((1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logwM) +
+          (1 / 2 : ℂ) * logw := by
+      exact congrArg
+        (fun z : ℂ => p - z + (1 / 2 : ℂ) * logw)
+        hsplit
+    _ = p - (1 / 2 : ℂ) * logw - (1 / 2 : ℂ) * logwM +
+          (1 / 2 : ℂ) * logw :=
+      congrArg
+        (fun z : ℂ => z + (1 / 2 : ℂ) * logw)
+        (Complex.sub_add_right_as_sub_sub
+          p
+          ((1 / 2 : ℂ) * logw)
+          ((1 / 2 : ℂ) * logwM))
+    _ = (p - (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logw) -
+          (1 / 2 : ℂ) * logwM := by
+      calc
+        p - (1 / 2 : ℂ) * logw - (1 / 2 : ℂ) * logwM +
+            (1 / 2 : ℂ) * logw =
+          (p - (1 / 2 : ℂ) * logw - (1 / 2 : ℂ) * logwM) +
+            (1 / 2 : ℂ) * logw := rfl
+        _ =
+          (p - (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logw) -
+            (1 / 2 : ℂ) * logwM := by
+          exact
+            Eq.symm
+              (calc
+                (p - (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logw) -
+                    (1 / 2 : ℂ) * logwM =
+                    (p - (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logw) +
+                      -((1 / 2 : ℂ) * logwM) :=
+                  sub_eq_add_neg
+                    (p - (1 / 2 : ℂ) * logw + (1 / 2 : ℂ) * logw)
+                    ((1 / 2 : ℂ) * logwM)
+                _ =
+                    ((p - (1 / 2 : ℂ) * logw) +
+                      (1 / 2 : ℂ) * logw) +
+                      -((1 / 2 : ℂ) * logwM) := rfl
+                _ =
+                    (p - (1 / 2 : ℂ) * logw) +
+                      ((1 / 2 : ℂ) * logw +
+                        -((1 / 2 : ℂ) * logwM)) :=
+                  add_assoc
+                    (p - (1 / 2 : ℂ) * logw)
+                    ((1 / 2 : ℂ) * logw)
+                    (-((1 / 2 : ℂ) * logwM))
+                _ =
+                    (p - (1 / 2 : ℂ) * logw) +
+                      (-((1 / 2 : ℂ) * logwM) +
+                        (1 / 2 : ℂ) * logw) := by
+                  exact congrArg
+                    (fun z : ℂ => (p - (1 / 2 : ℂ) * logw) + z)
+                    (add_comm ((1 / 2 : ℂ) * logw)
+                      (-((1 / 2 : ℂ) * logwM)))
+                _ =
+                    ((p - (1 / 2 : ℂ) * logw) +
+                      -((1 / 2 : ℂ) * logwM)) +
+                      (1 / 2 : ℂ) * logw :=
+                  (add_assoc
+                    (p - (1 / 2 : ℂ) * logw)
+                    (-((1 / 2 : ℂ) * logwM))
+                    ((1 / 2 : ℂ) * logw)).symm
+                _ =
+                    p - (1 / 2 : ℂ) * logw -
+                      (1 / 2 : ℂ) * logwM +
+                        (1 / 2 : ℂ) * logw := rfl)
+    _ = p - (1 / 2 : ℂ) * logwM := by
+      exact congrArg
+        (fun z : ℂ => z - (1 / 2 : ℂ) * logwM)
+        (sub_add_cancel p ((1 / 2 : ℂ) * logw))
+
+/-- Expanding the shifted endpoint product against a logarithm difference. -/
+theorem Complex.shifted_endpoint_product_logdiff_expand
+    (w M logM logwM : ℂ) :
+    (w + M + (1 / 2 : ℂ)) * (logM - logwM) =
+      w * logM - w * logwM +
+        (M * logM - M * logwM) +
+          ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM) := by
+  calc
+    (w + M + (1 / 2 : ℂ)) * (logM - logwM) =
+        ((w + M) + (1 / 2 : ℂ)) * (logM - logwM) := rfl
+    _ =
+        (w + M) * (logM - logwM) +
+          (1 / 2 : ℂ) * (logM - logwM) :=
+      add_mul (w + M) (1 / 2 : ℂ) (logM - logwM)
+    _ =
+        (w * (logM - logwM) + M * (logM - logwM)) +
+          (1 / 2 : ℂ) * (logM - logwM) := by
+      exact congrArg
+        (fun z : ℂ => z + (1 / 2 : ℂ) * (logM - logwM))
+        (add_mul w M (logM - logwM))
+    _ =
+        ((w * logM - w * logwM) +
+          (M * logM - M * logwM)) +
+          ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM) := by
+      exact congrArg₂ HAdd.hAdd
+        (congrArg₂ HAdd.hAdd
+          (mul_sub w logM logwM)
+          (mul_sub M logM logwM))
+        (mul_sub (1 / 2 : ℂ) logM logwM)
+    _ =
+      w * logM - w * logwM +
+        (M * logM - M * logwM) +
+          ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM) := rfl
+
+/-- Final additive reassociation for the left endpoint normal form. -/
+theorem Complex.left_endpoint_normal_form_reassociate
+    (w M logM logwM logfac log2pi : ℂ) :
+    w * logM + logfac - w * logwM - M * logwM + (w + M) - w -
+        (1 / 2 : ℂ) * logwM + w - log2pi / 2 =
+      logfac + w * logM + M + w - w * logwM -
+        M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+  ac_rfl
+
+/-- Final additive reassociation for the right endpoint normal form. -/
+theorem Complex.right_endpoint_normal_form_reassociate
+    (w M logM logwM logfac log2pi : ℂ)
+    (hshift :
+      (w + M + (1 / 2 : ℂ)) * (logM - logwM) =
+        w * logM - w * logwM +
+          (M * logM - M * logwM) +
+            ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM)) :
+    (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) +
+        (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) =
+      logfac + w * logM + M + w - w * logwM -
+        M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+  have hexpanded :
+      (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) +
+          ((w * logM - w * logwM +
+            (M * logM - M * logwM) +
+              ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM)) + w) =
+        logfac + w * logM + M + w - w * logwM -
+          M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+    ac_rfl
+  exact hshift.symm ▸ hexpanded
+
+/-- Left normal form for the unfolded endpoint Stirling remainder. -/
+theorem Complex.binet_endpoint_left_unfolded_normal_form
+    (w M logM logw logwM logfac log2pi : ℂ) :
+    w * logM + logfac - (w + M) * logwM + (w + M) +
+        w * logw - w - (logw + logwM) / 2 -
+        (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2 =
+      logfac + w * logM + M + w - w * logwM -
+        M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+  have hprod :
+      w * logM + logfac - (w + M) * logwM =
+        w * logM + logfac - w * logwM - M * logwM :=
+    Complex.sub_endpoint_product_expand (w * logM + logfac) w M logwM
+  have hshift :
+      w * logM + logfac - w * logwM - M * logwM + (w + M) +
+          w * logw - w - (logw + logwM) / 2 -
+          (w - (1 / 2 : ℂ)) * logw =
+        w * logM + logfac - w * logwM - M * logwM + (w + M) +
+          w * logw - w - (logw + logwM) / 2 -
+          w * logw + (1 / 2 : ℂ) * logw :=
+    Complex.sub_shifted_log_product_expand
+      (w * logM + logfac - w * logwM - M * logwM + (w + M) +
+        w * logw - w - (logw + logwM) / 2)
+      w
+      logw
+  have hhalf :
+      w * logM + logfac - w * logwM - M * logwM + (w + M) +
+          w * logw - w - (logw + logwM) / 2 -
+          w * logw + (1 / 2 : ℂ) * logw =
+        w * logM + logfac - w * logwM - M * logwM + (w + M) - w -
+          (1 / 2 : ℂ) * logwM := by
+    exact
+      Complex.sub_half_logsum_add_half_log
+        (w * logM + logfac - w * logwM - M * logwM + (w + M) +
+          w * logw - w - w * logw)
+        logw
+        logwM
+  calc
+    w * logM + logfac - (w + M) * logwM + (w + M) +
+        w * logw - w - (logw + logwM) / 2 -
+        (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2 =
+      w * logM + logfac - w * logwM - M * logwM + (w + M) +
+        w * logw - w - (logw + logwM) / 2 -
+        (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2 := by
+      exact congrArg
+        (fun z : ℂ =>
+          z + (w + M) + w * logw - w - (logw + logwM) / 2 -
+            (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2)
+        hprod
+    _ =
+      w * logM + logfac - w * logwM - M * logwM + (w + M) +
+        w * logw - w - (logw + logwM) / 2 -
+        w * logw + (1 / 2 : ℂ) * logw + w - log2pi / 2 := by
+      exact congrArg
+        (fun z : ℂ => z + w - log2pi / 2)
+        hshift
+    _ =
+      w * logM + logfac - w * logwM - M * logwM + (w + M) - w -
+        (1 / 2 : ℂ) * logwM + w - log2pi / 2 := by
+      exact congrArg
+        (fun z : ℂ => z + w - log2pi / 2)
+        hhalf
+    _ =
+      logfac + w * logM + M + w - w * logwM -
+        M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+      exact
+        Complex.left_endpoint_normal_form_reassociate
+          w M logM logwM logfac log2pi
+
+/-- Right normal form for the unfolded endpoint Stirling remainder. -/
+theorem Complex.binet_endpoint_right_unfolded_normal_form
+    (w M logM logwM logfac log2pi : ℂ) :
+    (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) +
+        (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) =
+      logfac + w * logM + M + w - w * logwM -
+        M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
+  have hshift :
+      (w + M + (1 / 2 : ℂ)) * (logM - logwM) =
+        w * logM - w * logwM +
+          (M * logM - M * logwM) +
+            ((1 / 2 : ℂ) * logM - (1 / 2 : ℂ) * logwM) :=
+    Complex.shifted_endpoint_product_logdiff_expand w M logM logwM
+  exact
+    Complex.right_endpoint_normal_form_reassociate
+      w M logM logwM logfac log2pi hshift
 
 /-- Ring bookkeeping for the complex endpoint remainder after the finite main
 term, the limiting Binet main term, the factorial Stirling error, and the
@@ -53,15 +512,41 @@ theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfolded_regroup
         (logw + logwM) / 2 -
         ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2)
     = w * logM + logfac - ((w + M) * logwM - (w + M) - w * logw + w) - (logw + logwM) / 2 - ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) := by
-        congr 1; ring
+        exact congrArg
+          (fun z : ℂ =>
+            w * logM + logfac - z - (logw + logwM) / 2 -
+              ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2))
+          (Complex.sub_sub_sub_eq_sub_sub_add
+            ((w + M) * logwM)
+            (w + M)
+            (w * logw)
+            w)
     _ = w * logM + logfac - (w + M) * logwM + (w + M) + w * logw - w - (logw + logwM) / 2 - ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2) := by
-        ring
+        exact
+          Complex.endpoint_subtract_four_term_expand
+            (w * logM + logfac)
+            ((w + M) * logwM)
+            (w + M)
+            (w * logw)
+            w
+            ((logw + logwM) / 2)
+            ((w - (1 / 2 : ℂ)) * logw - w + log2pi / 2)
     _ = w * logM + logfac - (w + M) * logwM + (w + M) + w * logw - w - (logw + logwM) / 2 - (w - (1 / 2 : ℂ)) * logw + w - log2pi / 2 := by
-        ring
+        exact
+          Complex.sub_sub_add_three_term_expand
+            (w * logM + logfac - (w + M) * logwM + (w + M) +
+              w * logw - w - (logw + logwM) / 2)
+            ((w - (1 / 2 : ℂ)) * logw)
+            w
+            (log2pi / 2)
     _ = logfac + w * logM + M + w - w * logwM - M * logwM - (1 / 2 : ℂ) * logwM - log2pi / 2 := by
-        ring
+        exact
+          Complex.binet_endpoint_left_unfolded_normal_form
+            w M logM logw logwM logfac log2pi
     _ = (logfac - ((M + (1 / 2 : ℂ)) * logM - M + log2pi / 2)) + (((w + M + (1 / 2 : ℂ)) * (logM - logwM)) + w) := by
-        ring
+        exact
+          (Complex.binet_endpoint_right_unfolded_normal_form
+            w M logM logwM logfac log2pi).symm
 
 /-- Algebraic normalization of the real factorial endpoint error. -/
 theorem Real.factorialStirlingEndpoint_algebra_normalization
@@ -579,18 +1064,18 @@ theorem Real.binetAbelPlanaFactorialStirlingError_tendsto_zero_owner :
         (𝓝 (Real.log (Real.sqrt Real.pi) -
           Real.log (Real.sqrt Real.pi))) :=
     hlog.sub tendsto_const_nhds
-  have heq :
-      (fun N : ℕ =>
-        Real.binetAbelPlanaFactorialStirlingError (N + 1)) =
+  have hevent :
       (fun N : ℕ =>
         Real.log (Stirling.stirlingSeq (N + 1)) -
-          Real.log (Real.sqrt Real.pi)) := by
-    funext N
-    exact
-      Real.binetAbelPlanaFactorialStirlingError_eq_log_stirlingSeq_sub_log_sqrt_pi
-        (N + 1)
-        (Nat.succ_ne_zero N)
-  exact sub_self (Real.log (Real.sqrt Real.pi)) ▸ (heq ▸ hsub)
+          Real.log (Real.sqrt Real.pi)) =ᶠ[atTop]
+      (fun N : ℕ =>
+        Real.binetAbelPlanaFactorialStirlingError (N + 1)) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Real.binetAbelPlanaFactorialStirlingError_eq_log_stirlingSeq_sub_log_sqrt_pi
+          (N + 1)
+          (Nat.succ_ne_zero N)).symm)
+  exact sub_self (Real.log (Real.sqrt Real.pi)) ▸ (hsub.congr' hevent)
 
 /-- The endpoint shift error measuring
 `(M + w + 1/2) log (1 + w/M) - w`, in branch-safe difference form. -/
@@ -722,24 +1207,25 @@ theorem Complex.binetEndpoint_log_nat_add_eq_log_nat_add_log_one_add
         exact add_comm (M : ℂ) w
   have hsmall_ne :
       (1 + Complex.binetEndpointSmallVariable w M) ≠ 0 := by
-    intro hzero
-    have hmul_zero :
+    exact fun hzero =>
+      by
+      have hmul_zero :
         (M : ℂ) * (1 + Complex.binetEndpointSmallVariable w M) = 0 := by
-      exact congrArg (fun z : ℂ => (M : ℂ) * z) hzero
-    have hsum_zero : w + (M : ℂ) = 0 := by
-      exact hprod.symm ▸ hmul_zero
-    have hre_zero : (w + (M : ℂ)).re = 0 := by
-      exact congrArg Complex.re hsum_zero
-    have hre_eq : (w + (M : ℂ)).re = w.re + (M : ℝ) := by
-      calc
-        (w + (M : ℂ)).re = w.re + (M : ℂ).re :=
-          Complex.add_re w (M : ℂ)
-        _ = w.re + (M : ℝ) := by
-          exact congrArg (fun r : ℝ => w.re + r)
-            (Complex.ofReal_re (M : ℝ))
-    have hre_pos : 0 < (w + (M : ℂ)).re := by
-      exact hre_eq.symm ▸ add_pos hw hMpos_real
-    exact (ne_of_gt hre_pos) hre_zero
+        exact congrArg (fun z : ℂ => (M : ℂ) * z) hzero
+      have hsum_zero : w + (M : ℂ) = 0 := by
+        exact hprod.symm ▸ hmul_zero
+      have hre_zero : (w + (M : ℂ)).re = 0 := by
+        exact congrArg Complex.re hsum_zero
+      have hre_eq : (w + (M : ℂ)).re = w.re + (M : ℝ) := by
+        calc
+          (w + (M : ℂ)).re = w.re + (M : ℂ).re :=
+            Complex.add_re w (M : ℂ)
+          _ = w.re + (M : ℝ) := by
+            exact congrArg (fun r : ℝ => w.re + r)
+              (Complex.ofReal_re (M : ℝ))
+      have hre_pos : 0 < (w + (M : ℂ)).re := by
+        exact hre_eq.symm ▸ add_pos hw hMpos_real
+      exact (ne_of_gt hre_pos) hre_zero
   calc
     Complex.log (w + (M : ℂ))
         = Complex.log ((M : ℂ) *
@@ -812,59 +1298,74 @@ theorem Complex.eventually_norm_binetEndpointSmallVariable_le_half
   have hbound :
       ∀ᶠ M : ℕ in atTop, 2 * ‖w‖ ≤ (M : ℝ) := by
     exact eventually_ge_atTop (Nat.ceil (2 * ‖w‖))
-  filter_upwards [hbound] with M hM
-  by_cases hMzero : M = 0
-  · subst M
-    calc
-      ‖Complex.binetEndpointSmallVariable w 0‖ = ‖w / (0 : ℂ)‖ := by
-        exact congrArg norm (Complex.binetEndpointSmallVariable_unfold w 0)
-      _ = 0 := by
-        exact congrArg norm (div_zero w)
-      _ ≤ (1 / 2 : ℝ) :=
-        div_nonneg zero_le_one zero_le_two
-  · have hMpos_nat : 0 < M := Nat.pos_of_ne_zero hMzero
-    have hMpos_real : 0 < (M : ℝ) := Nat.cast_pos.mpr hMpos_nat
-    have htwo_ne : (2 : ℝ) ≠ 0 :=
-      two_ne_zero
-    have hdiv_bound :
-        (2 * ‖w‖) / (2 : ℝ) ≤ (M : ℝ) / (2 : ℝ) :=
-      div_le_div_of_nonneg_right hM zero_le_two
-    have hleft :
-        (2 * ‖w‖) / (2 : ℝ) = ‖w‖ := by
-      calc
-        (2 * ‖w‖) / (2 : ℝ) = (‖w‖ * 2) / (2 : ℝ) := by
-          exact congrArg (fun x : ℝ => x / (2 : ℝ))
-            (mul_comm (2 : ℝ) ‖w‖)
-        _ = ‖w‖ :=
-          mul_div_cancel_right₀ ‖w‖ htwo_ne
-    have hright :
-        (M : ℝ) / (2 : ℝ) = (1 / 2 : ℝ) * (M : ℝ) := by
-      calc
-        (M : ℝ) / (2 : ℝ) = (M : ℝ) * (2 : ℝ)⁻¹ := by
-          exact div_eq_mul_inv (M : ℝ) (2 : ℝ)
-        _ = (2 : ℝ)⁻¹ * (M : ℝ) := by
-          exact mul_comm (M : ℝ) (2 : ℝ)⁻¹
-        _ = (1 / 2 : ℝ) * (M : ℝ) := by
-          exact congrArg (fun x : ℝ => x * (M : ℝ))
-            (inv_eq_one_div (2 : ℝ))
-    have hhalf :
-        ‖w‖ ≤ (1 / 2 : ℝ) * (M : ℝ) := by
-      calc
-        ‖w‖ = (2 * ‖w‖) / (2 : ℝ) := hleft.symm
-        _ ≤ (M : ℝ) / (2 : ℝ) := hdiv_bound
-        _ = (1 / 2 : ℝ) * (M : ℝ) := hright
-    have hnorm_div :
-        ‖w / (M : ℂ)‖ = ‖w‖ / (M : ℝ) := by
-      calc
-        ‖w / (M : ℂ)‖ = ‖w‖ / ‖(M : ℂ)‖ :=
-          norm_div w (M : ℂ)
-        _ = ‖w‖ / (M : ℝ) := by
-          exact congrArg (fun x : ℝ => ‖w‖ / x)
-            (Complex.norm_natCast M)
-    calc
-      ‖w / (M : ℂ)‖ = ‖w‖ / (M : ℝ) := hnorm_div
-      _ ≤ (1 / 2 : ℝ) :=
-        (div_le_iff₀ hMpos_real).mpr hhalf
+  exact
+    hbound.mono
+      (fun M hM =>
+        match M with
+        | 0 =>
+          calc
+            ‖Complex.binetEndpointSmallVariable w 0‖ = ‖w / (0 : ℂ)‖ := by
+              exact congrArg norm (Complex.binetEndpointSmallVariable_unfold w 0)
+            _ = 0 := by
+              exact congrArg norm (div_zero w)
+            _ ≤ (1 / 2 : ℝ) :=
+              div_nonneg zero_le_one zero_le_two
+        | Nat.succ M' =>
+          by
+            have hMpos_nat : 0 < Nat.succ M' := Nat.succ_pos M'
+            have hMpos_real : 0 < ((Nat.succ M' : ℕ) : ℝ) :=
+              Nat.cast_pos.mpr hMpos_nat
+            have htwo_ne : (2 : ℝ) ≠ 0 :=
+              two_ne_zero
+            have hdiv_bound :
+                (2 * ‖w‖) / (2 : ℝ) ≤
+                  ((Nat.succ M' : ℕ) : ℝ) / (2 : ℝ) :=
+              div_le_div_of_nonneg_right hM zero_le_two
+            have hleft :
+                (2 * ‖w‖) / (2 : ℝ) = ‖w‖ := by
+              calc
+                (2 * ‖w‖) / (2 : ℝ) = (‖w‖ * 2) / (2 : ℝ) := by
+                  exact congrArg (fun x : ℝ => x / (2 : ℝ))
+                    (mul_comm (2 : ℝ) ‖w‖)
+                _ = ‖w‖ :=
+                  mul_div_cancel_right₀ ‖w‖ htwo_ne
+            have hright :
+                ((Nat.succ M' : ℕ) : ℝ) / (2 : ℝ) =
+                  (1 / 2 : ℝ) * ((Nat.succ M' : ℕ) : ℝ) := by
+              calc
+                ((Nat.succ M' : ℕ) : ℝ) / (2 : ℝ) =
+                    ((Nat.succ M' : ℕ) : ℝ) * (2 : ℝ)⁻¹ := by
+                  exact div_eq_mul_inv ((Nat.succ M' : ℕ) : ℝ) (2 : ℝ)
+                _ = (2 : ℝ)⁻¹ * ((Nat.succ M' : ℕ) : ℝ) := by
+                  exact mul_comm ((Nat.succ M' : ℕ) : ℝ) (2 : ℝ)⁻¹
+                _ = (1 / 2 : ℝ) * ((Nat.succ M' : ℕ) : ℝ) := by
+                  exact congrArg
+                    (fun x : ℝ => x * ((Nat.succ M' : ℕ) : ℝ))
+                    (inv_eq_one_div (2 : ℝ))
+            have hhalf :
+                ‖w‖ ≤ (1 / 2 : ℝ) * ((Nat.succ M' : ℕ) : ℝ) := by
+              calc
+                ‖w‖ = (2 * ‖w‖) / (2 : ℝ) := hleft.symm
+                _ ≤ ((Nat.succ M' : ℕ) : ℝ) / (2 : ℝ) := hdiv_bound
+                _ = (1 / 2 : ℝ) * ((Nat.succ M' : ℕ) : ℝ) := hright
+            have hnorm_div :
+                ‖w / (((Nat.succ M' : ℕ) : ℂ))‖ =
+                  ‖w‖ / ((Nat.succ M' : ℕ) : ℝ) := by
+              calc
+                ‖w / (((Nat.succ M' : ℕ) : ℂ))‖ =
+                    ‖w‖ / ‖(((Nat.succ M' : ℕ) : ℂ))‖ :=
+                  norm_div w (((Nat.succ M' : ℕ) : ℂ))
+                _ = ‖w‖ / ((Nat.succ M' : ℕ) : ℝ) := by
+                  exact congrArg (fun x : ℝ => ‖w‖ / x)
+                    (Complex.norm_natCast (Nat.succ M'))
+            calc
+              ‖Complex.binetEndpointSmallVariable w (Nat.succ M')‖ =
+                  ‖w / (((Nat.succ M' : ℕ) : ℂ))‖ := by
+                exact congrArg norm
+                  (Complex.binetEndpointSmallVariable_unfold w (Nat.succ M'))
+              _ = ‖w‖ / ((Nat.succ M' : ℕ) : ℝ) := hnorm_div
+              _ ≤ (1 / 2 : ℝ) :=
+                (div_le_iff₀ hMpos_real).mpr hhalf)
 
 /-- A number bounded by `1 / 2` leaves a positive distance from `1`. -/
 theorem Real.one_sub_pos_of_le_half
@@ -1182,8 +1683,9 @@ theorem Real.one_add_half_mul_two_eq_three :
 /-- The real identity `3 / 2 = 1 + 1 / 2`. -/
 theorem Real.three_div_two_eq_one_add_half :
     ((3 : ℝ) / 2) = 1 + (1 / 2 : ℝ) := by
-  apply (div_eq_iff two_ne_zero).mpr
-  exact Real.one_add_half_mul_two_eq_three.symm
+  exact
+    (div_eq_iff two_ne_zero).mpr
+      Real.one_add_half_mul_two_eq_three.symm
 
 /-- Rewriting `(3 / 2) * M` as `M + (1 / 2) * M`. -/
 theorem Real.three_div_two_mul
@@ -1810,16 +2312,16 @@ theorem Complex.binetAbelPlanaFactorialStirlingMajorant_tendsto_zero :
         tendsto_atTop_add_const_right atTop (1 : ℝ)
           tendsto_natCast_atTop_atTop
     exact tendsto_inv_atTop_zero.comp hshift
-  have heq :
+  have hevent :
+      (fun N : ℕ => ((N + 1 : ℝ))⁻¹) =ᶠ[atTop]
       (fun N : ℕ =>
-        Complex.binetAbelPlanaFactorialStirlingMajorant N) =
-      (fun N : ℕ => ((N + 1 : ℝ))⁻¹) := by
-    funext N
-    exact
-      Eq.trans
-        (Complex.binetAbelPlanaFactorialStirlingMajorant_unfold N)
-        (one_div (N + 1 : ℝ))
-  exact heq ▸ hinv
+        Complex.binetAbelPlanaFactorialStirlingMajorant N) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Eq.trans
+          (Complex.binetAbelPlanaFactorialStirlingMajorant_unfold N)
+          (one_div (N + 1 : ℝ))).symm)
+  exact hinv.congr' hevent
 
 /-- The endpoint logarithmic-shift majorant tends to zero. -/
 theorem Complex.binetAbelPlanaEndpointLogShiftMajorant_tendsto_zero
@@ -1855,18 +2357,18 @@ theorem Complex.binetAbelPlanaEndpointLogShiftMajorant_tendsto_zero
         atTop
         (𝓝 (4 * (1 + ‖w‖) ^ 3 * 0)) :=
     hconst.mul hinv
-  have heq :
+  have hevent :
+      (fun N : ℕ => 4 * (1 + ‖w‖) ^ 3 * ((N + 1 : ℝ))⁻¹) =ᶠ[atTop]
       (fun N : ℕ =>
-        Complex.binetAbelPlanaEndpointLogShiftMajorant w N) =
-      (fun N : ℕ => 4 * (1 + ‖w‖) ^ 3 * ((N + 1 : ℝ))⁻¹) := by
-    funext N
-    exact
-      Eq.trans
-        (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N)
-        (div_eq_mul_inv
-          (4 * (1 + ‖w‖) ^ 3)
-          (N + 1 : ℝ))
-  exact (mul_zero (4 * (1 + ‖w‖) ^ 3)).symm ▸ (heq ▸ hmul)
+        Complex.binetAbelPlanaEndpointLogShiftMajorant w N) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Eq.trans
+          (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N)
+          (div_eq_mul_inv
+            (4 * (1 + ‖w‖) ^ 3)
+            (N + 1 : ℝ))).symm)
+  exact (mul_zero (4 * (1 + ‖w‖) ^ 3)).symm ▸ (hmul.congr' hevent)
 
 /-- The endpoint-Stirling majorant tends to zero. -/
 theorem Complex.binetAbelPlanaEndpointStirlingMajorant_tendsto_zero
@@ -1898,15 +2400,15 @@ theorem Complex.binetAbelPlanaEndpointStirlingMajorant_tendsto_zero
         atTop
         (𝓝 ((0 : ℝ) + 0)) :=
     hfactorial.add hshift
-  have heq :
-      (fun N : ℕ =>
-        Complex.binetAbelPlanaEndpointStirlingMajorant w N) =
+  have hevent :
       (fun N : ℕ =>
         Complex.binetAbelPlanaFactorialStirlingMajorant N +
-          Complex.binetAbelPlanaEndpointLogShiftMajorant w N) := by
-    funext N
-    rfl
-  exact (zero_add (0 : ℝ)).symm ▸ (heq ▸ hsum)
+          Complex.binetAbelPlanaEndpointLogShiftMajorant w N) =ᶠ[atTop]
+      (fun N : ℕ =>
+        Complex.binetAbelPlanaEndpointStirlingMajorant w N) :=
+    Filter.Eventually.of_forall
+      (fun _N => rfl)
+  exact (zero_add (0 : ℝ)).symm ▸ (hsum.congr' hevent)
 
 /-- The factorial Stirling component tends to zero by mathlib's Stirling
 formula. -/
@@ -1930,17 +2432,17 @@ theorem Complex.binetAbelPlanaFactorialStirlingError_tendsto_zero_owner :
         atTop
         (𝓝 ((0 : ℝ) : ℂ)) :=
     Complex.continuous_ofReal.tendsto 0 |>.comp hreal
-  have heq :
+  have hevent :
       (fun N : ℕ =>
-        Complex.binetAbelPlanaFactorialStirlingError (N + 1)) =
+        (Real.binetAbelPlanaFactorialStirlingError (N + 1) : ℂ)) =ᶠ[atTop]
       (fun N : ℕ =>
-        (Real.binetAbelPlanaFactorialStirlingError (N + 1) : ℂ)) := by
-    funext N
-    exact
-      Complex.binetAbelPlanaFactorialStirlingError_eq_ofReal
-        (N + 1)
-        (Nat.succ_ne_zero N)
-  exact heq ▸ hcomplex
+        Complex.binetAbelPlanaFactorialStirlingError (N + 1)) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Complex.binetAbelPlanaFactorialStirlingError_eq_ofReal
+          (N + 1)
+          (Nat.succ_ne_zero N)).symm)
+  exact hcomplex.congr' hevent
 
 /-- Owner logarithmic-shift estimate in majorant form. -/
 theorem Complex.norm_binetAbelPlanaEndpointLogShiftError_le_majorant_owner
@@ -1952,31 +2454,34 @@ theorem Complex.norm_binetAbelPlanaEndpointLogShiftError_le_majorant_owner
   have hlarge :
       ∀ᶠ N : ℕ in atTop,
         2 * (1 + ‖w‖) ≤ ((N + 1 : ℕ) : ℝ) := by
-    refine eventually_atTop.mpr ?_
-    refine ⟨Nat.ceil (2 * (1 + ‖w‖)), ?_⟩
-    intro N hN
-    have hceil :
-        2 * (1 + ‖w‖) ≤ ((Nat.ceil (2 * (1 + ‖w‖))) : ℝ) :=
-      Nat.le_ceil (2 * (1 + ‖w‖))
-    have hNreal :
-        ((Nat.ceil (2 * (1 + ‖w‖))) : ℝ) ≤ (N : ℝ) :=
-      Nat.cast_le.mpr hN
-    have hN_le_succ : (N : ℝ) ≤ ((N + 1 : ℕ) : ℝ) := by
-      exact Nat.cast_le.mpr (Nat.le_succ N)
-    exact hceil.trans (hNreal.trans hN_le_succ)
-  filter_upwards [hlarge] with N hNlarge
-  have hM_ne : N + 1 ≠ 0 := Nat.succ_ne_zero N
-  have hlarge_M :
-      2 * (1 + ‖w‖) ≤ ((N + 1 : ℕ) : ℝ) :=
-    hNlarge
-  have hraw :
-      ‖Complex.binetAbelPlanaEndpointLogShiftError w (N + 1)‖ ≤
-        4 * (1 + ‖w‖) ^ 3 / ((N + 1 : ℕ) : ℝ) :=
-    Complex.norm_binetAbelPlanaEndpointLogShiftError_le_large_endpoint_majorant
-      hM_ne hw hlarge_M
+    (eventually_ge_atTop (Nat.ceil (2 * (1 + ‖w‖)))).mono
+      (fun N hN =>
+        by
+          have hceil :
+              2 * (1 + ‖w‖) ≤ ((Nat.ceil (2 * (1 + ‖w‖))) : ℝ) :=
+            Nat.le_ceil (2 * (1 + ‖w‖))
+          have hNreal :
+              ((Nat.ceil (2 * (1 + ‖w‖))) : ℝ) ≤ (N : ℝ) :=
+            Nat.cast_le.mpr hN
+          have hN_le_succ : (N : ℝ) ≤ ((N + 1 : ℕ) : ℝ) :=
+            Nat.cast_le.mpr (Nat.le_succ N)
+          exact hceil.trans (hNreal.trans hN_le_succ))
   exact
-    (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N).symm ▸
-      hraw
+    hlarge.mono
+      (fun N hNlarge =>
+        by
+          have hM_ne : N + 1 ≠ 0 := Nat.succ_ne_zero N
+          have hlarge_M :
+              2 * (1 + ‖w‖) ≤ ((N + 1 : ℕ) : ℝ) :=
+            hNlarge
+          have hraw :
+              ‖Complex.binetAbelPlanaEndpointLogShiftError w (N + 1)‖ ≤
+                4 * (1 + ‖w‖) ^ 3 / ((N + 1 : ℕ) : ℝ) :=
+            Complex.norm_binetAbelPlanaEndpointLogShiftError_le_large_endpoint_majorant
+              hM_ne hw hlarge_M
+          exact
+            (Complex.binetAbelPlanaEndpointLogShiftMajorant_unfold w N).symm ▸
+              hraw)
 
 /-- The endpoint logarithmic-shift component tends to zero from its explicit
 majorant. -/
@@ -2044,17 +2549,17 @@ theorem Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_tendsto_zero_from_
         atTop
         (𝓝 ((0 : ℂ) + 0)) :=
     hfactorial.add hshift
-  have heq :
-      (fun N : ℕ =>
-        Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w) =
+  have hevent :
       (fun N : ℕ =>
         Complex.binetAbelPlanaFactorialStirlingError (N + 1) +
-          Complex.binetAbelPlanaEndpointLogShiftError w (N + 1)) := by
-    funext N
-    exact
-      Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_eq_factorial_add_shift
-        w N
-  exact (zero_add (0 : ℂ)).symm ▸ (heq ▸ hsum)
+          Complex.binetAbelPlanaEndpointLogShiftError w (N + 1)) =ᶠ[atTop]
+      (fun N : ℕ =>
+        Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_eq_factorial_add_shift
+          w N).symm)
+  exact (zero_add (0 : ℂ)).symm ▸ (hsum.congr' hevent)
 
 /-- Endpoint logarithmic Stirling remainder for the finite Abel-Plana main
 term.
@@ -2113,30 +2618,31 @@ theorem Complex.binetAbelPlanaFiniteMainTerm_tendsto_binetMainTerm_of_endpointSt
         atTop
         (𝓝 (0 + Complex.binetLogGammaMainTerm w)) :=
     hendpoint.add tendsto_const_nhds
-  have hfinite_eq :
+  have hfinite_event :
       (fun N : ℕ =>
         Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w +
-          Complex.binetLogGammaMainTerm w) =
+          Complex.binetLogGammaMainTerm w) =ᶠ[atTop]
       (fun N : ℕ =>
-        Complex.binetAbelPlanaFiniteMainTerm N w) := by
-    funext N
-    calc
-      Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w +
-          Complex.binetLogGammaMainTerm w
-          =
-          (Complex.binetAbelPlanaFiniteMainTerm N w -
-              Complex.binetLogGammaMainTerm w) +
-            Complex.binetLogGammaMainTerm w := by
-        rfl
-      _ = Complex.binetAbelPlanaFiniteMainTerm N w := by
-        exact sub_add_cancel
-          (Complex.binetAbelPlanaFiniteMainTerm N w)
-          (Complex.binetLogGammaMainTerm w)
+        Complex.binetAbelPlanaFiniteMainTerm N w) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        calc
+          Complex.binetAbelPlanaFiniteEndpointStirlingRemainder N w +
+              Complex.binetLogGammaMainTerm w
+              =
+              (Complex.binetAbelPlanaFiniteMainTerm N w -
+                  Complex.binetLogGammaMainTerm w) +
+                Complex.binetLogGammaMainTerm w := by
+            rfl
+          _ = Complex.binetAbelPlanaFiniteMainTerm N w := by
+            exact sub_add_cancel
+              (Complex.binetAbelPlanaFiniteMainTerm N w)
+              (Complex.binetLogGammaMainTerm w))
   have htarget :
       (0 : ℂ) + Complex.binetLogGammaMainTerm w =
         Complex.binetLogGammaMainTerm w :=
     zero_add (Complex.binetLogGammaMainTerm w)
-  exact htarget ▸ (hfinite_eq ▸ hsum)
+  exact htarget ▸ (hsum.congr' hfinite_event)
 
 /-- Finite endpoint/Stirling asymptotic in the concrete finite-main-term
 form. -/
@@ -2253,25 +2759,25 @@ theorem Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_tendsto_zero
         (𝓝 (8 * (1 + ‖w‖) ^ 2 *
           (1 + |Complex.binetAbelPlanaVerticalKernelMass|) * 0)) :=
     hconst.mul hinv
-  have heq :
-      (fun N : ℕ =>
-        Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N) =
+  have hevent :
       (fun N : ℕ =>
         8 * (1 + ‖w‖) ^ 2 *
           (1 + |Complex.binetAbelPlanaVerticalKernelMass|) *
-            ((N + 1 : ℝ))⁻¹) := by
-    funext N
-    exact
-      Eq.trans
-        (Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_unfold w N)
-        (div_eq_mul_inv
-          (8 * (1 + ‖w‖) ^ 2 *
-            (1 + |Complex.binetAbelPlanaVerticalKernelMass|))
-          (N + 1 : ℝ))
+            ((N + 1 : ℝ))⁻¹) =ᶠ[atTop]
+      (fun N : ℕ =>
+        Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Eq.trans
+          (Complex.binetAbelPlanaFiniteUpperContourResidualMajorant_unfold w N)
+          (div_eq_mul_inv
+            (8 * (1 + ‖w‖) ^ 2 *
+              (1 + |Complex.binetAbelPlanaVerticalKernelMass|))
+            (N + 1 : ℝ))).symm)
   exact
     (mul_zero (8 * (1 + ‖w‖) ^ 2 *
       (1 + |Complex.binetAbelPlanaVerticalKernelMass|))).symm ▸
-      (heq ▸ hmul)
+      (hmul.congr' hevent)
 
 /-- The lower-tail majorant tends to zero. -/
 theorem Complex.binetAbelPlanaFiniteLowerContourTailMajorant_tendsto_zero
@@ -2289,23 +2795,21 @@ theorem Complex.binetAbelPlanaFiniteLowerContourTailMajorant_tendsto_zero
           ∫ t : ℝ in Set.Ioi (N : ℝ), K t)
         atTop
         (𝓝 (∫ t : ℝ in ⋂ N : ℕ, Set.Ioi (N : ℝ), K t)) := by
-    refine tendsto_setIntegral_of_antitone ?_ ?_ ?_
-    · intro N
-      exact measurableSet_Ioi
-    · intro N M hNM
-      exact Set.Ioi_subset_Ioi (Nat.cast_le.mpr hNM)
-    · exact
-        ⟨0,
-          Complex.binetAbelPlanaVerticalKernelMajorant_integrableOn⟩
+    exact
+      tendsto_setIntegral_of_antitone
+        (fun _N => measurableSet_Ioi)
+        (fun N M hNM => Set.Ioi_subset_Ioi (Nat.cast_le.mpr hNM))
+        ⟨0, Complex.binetAbelPlanaVerticalKernelMajorant_integrableOn⟩
   have hInter :
       (⋂ N : ℕ, Set.Ioi (N : ℝ)) = (∅ : Set ℝ) := by
-    ext t
-    constructor
-    · intro ht
-      rcases exists_nat_gt t with ⟨N, hN⟩
-      exact False.elim ((lt_asymm hN) (ht N))
-    · intro ht
-      exact False.elim ht
+    exact
+      Set.ext
+        (fun t =>
+          Iff.intro
+            (fun ht =>
+              match exists_nat_gt t with
+              | ⟨N, hN⟩ => False.elim ((lt_asymm hN) (ht N)))
+            (fun ht => False.elim ht))
   have htail_zero :
       Tendsto
         (fun N : ℕ =>
@@ -2320,14 +2824,14 @@ theorem Complex.binetAbelPlanaFiniteLowerContourTailMajorant_tendsto_zero
         atTop
         (𝓝 ((2 : ℝ) * 0)) :=
     tendsto_const_nhds.mul htail_zero
-  have heq :
+  have hevent :
       (fun N : ℕ =>
-        Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N) =
+        2 * ∫ t : ℝ in Set.Ioi (N : ℝ), K t) =ᶠ[atTop]
       (fun N : ℕ =>
-        2 * ∫ t : ℝ in Set.Ioi (N : ℝ), K t) := by
-    funext N
-    rfl
-  exact (mul_zero (2 : ℝ)).symm ▸ (heq ▸ hscale)
+        Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N) :=
+    Filter.Eventually.of_forall
+      (fun _N => rfl)
+  exact (mul_zero (2 : ℝ)).symm ▸ (hscale.congr' hevent)
 
 /-- The finite-contour majorant tends to zero. -/
 theorem Complex.binetAbelPlanaFiniteContourRemainderMajorant_tendsto_zero
@@ -2359,15 +2863,16 @@ theorem Complex.binetAbelPlanaFiniteContourRemainderMajorant_tendsto_zero
         atTop
         (𝓝 ((0 : ℝ) + 0)) :=
     hlower.add hupper
-  have heq :
-      (fun N : ℕ =>
-        Complex.binetAbelPlanaFiniteContourRemainderMajorant w N) =
+  have hevent :
       (fun N : ℕ =>
         Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N +
-          Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N) := by
-    funext N
-    exact Complex.binetAbelPlanaFiniteContourRemainderMajorant_unfold w N
-  exact (zero_add (0 : ℝ)).symm ▸ (heq ▸ hsum)
+          Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N) =ᶠ[atTop]
+      (fun N : ℕ =>
+        Complex.binetAbelPlanaFiniteContourRemainderMajorant w N) :=
+    Filter.Eventually.of_forall
+      (fun N =>
+        (Complex.binetAbelPlanaFiniteContourRemainderMajorant_unfold w N).symm)
+  exact (zero_add (0 : ℝ)).symm ▸ (hsum.congr' hevent)
 
 /-- Exact finite Abel-Plana summation formula for the logarithmic summand. -/
 theorem Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMain_add_boundary_add_contourRemainder_owner
@@ -2393,41 +2898,41 @@ theorem Complex.binetAbelPlanaFiniteRemainderError_eq_contourRemainder_owner
     ∀ N : ℕ,
       Complex.binetAbelPlanaFiniteRemainderError N w =
         Complex.binetAbelPlanaFiniteContourRemainder N w := by
-  intro N
-  have hfinite :
-      Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
-        Complex.binetAbelPlanaFiniteMainTerm N w +
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
-            Complex.binetAbelPlanaFiniteContourRemainder N w :=
-    Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMain_add_boundary_add_contourRemainder_owner
-      hw N
-  have herror_unfold :
+  exact fun N => by
+    have hfinite :
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w :=
+      Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMain_add_boundary_add_contourRemainder_owner
+        hw N
+    have herror_unfold :
+        Complex.binetAbelPlanaFiniteRemainderError N w =
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+            (Complex.binetAbelPlanaFiniteMainTerm N w +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N w) := rfl
+    calc
       Complex.binetAbelPlanaFiniteRemainderError N w =
-        Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
+            (Complex.binetAbelPlanaFiniteMainTerm N w +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :=
+            herror_unfold
+      _ =
           (Complex.binetAbelPlanaFiniteMainTerm N w +
-            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) := rfl
-  calc
-    Complex.binetAbelPlanaFiniteRemainderError N w =
-        Complex.binetAbelPlanaLogGammaFiniteApproximation N w -
-          (Complex.binetAbelPlanaFiniteMainTerm N w +
-            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) :=
-          herror_unfold
-    _ =
-        (Complex.binetAbelPlanaFiniteMainTerm N w +
-          Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
-            Complex.binetAbelPlanaFiniteContourRemainder N w) -
-          (Complex.binetAbelPlanaFiniteMainTerm N w +
-            Complex.binetAbelPlanaFiniteBoundaryCorrection N w) := by
-          exact congrArg
-            (fun z : ℂ =>
-              z - (Complex.binetAbelPlanaFiniteMainTerm N w +
-                Complex.binetAbelPlanaFiniteBoundaryCorrection N w))
-            hfinite
-    _ = Complex.binetAbelPlanaFiniteContourRemainder N w := by
-          exact Complex.add_add_sub_add_eq_right
-            (Complex.binetAbelPlanaFiniteMainTerm N w)
-            (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
-            (Complex.binetAbelPlanaFiniteContourRemainder N w)
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w) -
+            (Complex.binetAbelPlanaFiniteMainTerm N w +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N w) := by
+            exact congrArg
+              (fun z : ℂ =>
+                z - (Complex.binetAbelPlanaFiniteMainTerm N w +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N w))
+              hfinite
+      _ = Complex.binetAbelPlanaFiniteContourRemainder N w := by
+            exact Complex.add_add_sub_add_eq_right
+              (Complex.binetAbelPlanaFiniteMainTerm N w)
+              (Complex.binetAbelPlanaFiniteBoundaryCorrection N w)
+              (Complex.binetAbelPlanaFiniteContourRemainder N w)
 
 /-- The real coordinate is bounded by the complex norm. -/
 theorem Complex.abs_re_le_norm_owner
@@ -2437,10 +2942,7 @@ theorem Complex.abs_re_le_norm_owner
     Complex.abs_re_le_abs z
   have hnorm : ‖z‖ = Complex.abs z :=
     Complex.norm_eq_abs z
-  exact Eq.subst
-    (motive := fun r : ℝ => |z.re| ≤ r)
-    hnorm.symm
-    habs
+  exact hnorm.symm ▸ habs
 
 /-- The real part of the upper endpoint line is the endpoint real part. -/
 theorem Complex.binetAbelPlana_upperEndpointLine_re
@@ -2567,32 +3069,34 @@ theorem Complex.binetAbelPlanaFiniteUpperLogJump_eq_segmentIntegral_owner
       Complex.binetAbelPlanaFiniteUpperLogJump N w t =
         ∫ s : ℝ in (-t)..t,
           Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s := by
-  filter_upwards with t
-  have hftc :
-      ∫ s : ℝ in (-t)..t,
-          Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s =
-        Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
-          Complex.log (w + (N + 1 : ℂ) + ((-t : ℝ) : ℂ) * Complex.I) :=
-    Complex.integral_binetAbelPlanaUpperLogJumpSegmentIntegrand_eq_log_sub
-      hw N (-t) t
-  calc
-    Complex.binetAbelPlanaFiniteUpperLogJump N w t =
-        Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
-          Complex.log (w + (N + 1 : ℂ) + (-(t : ℂ) * Complex.I)) := by
-      rfl
-    _ =
-        Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
-          Complex.log (w + (N + 1 : ℂ) + ((-t : ℝ) : ℂ) * Complex.I) := by
-      exact congrArg
-        (fun z : ℂ =>
-          Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
-            Complex.log (w + (N + 1 : ℂ) + z))
-        (Complex.ofReal_neg_mul_I t).symm
-    _ =
-        ∫ s : ℝ in (-t)..t,
-          Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s :=
-      hftc.symm
-
+  exact
+    Filter.Eventually.of_forall
+      (fun t => by
+    have hftc :
+            ∫ s : ℝ in (-t)..t,
+                Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s =
+              Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
+                Complex.log (w + (N + 1 : ℂ) + ((-t : ℝ) : ℂ) * Complex.I) :=
+          Complex.integral_binetAbelPlanaUpperLogJumpSegmentIntegrand_eq_log_sub
+            hw N (-t) t
+        calc
+          Complex.binetAbelPlanaFiniteUpperLogJump N w t =
+              Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
+                Complex.log (w + (N + 1 : ℂ) + (-(t : ℂ) * Complex.I)) := by
+            rfl
+          _ =
+              Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
+                Complex.log (w + (N + 1 : ℂ) + ((-t : ℝ) : ℂ) * Complex.I) := by
+            exact congrArg
+              (fun z : ℂ =>
+                Complex.log (w + (N + 1 : ℂ) + (t : ℂ) * Complex.I) -
+                  Complex.log (w + (N + 1 : ℂ) + z))
+              (Complex.ofReal_neg_mul_I t).symm
+          _ =
+              ∫ s : ℝ in (-t)..t,
+                Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s :=
+            hftc.symm)
+    
 /-- Pointwise denominator estimate for the upper endpoint differential-log
 segment integrand. -/
 theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_inv
@@ -2602,34 +3106,34 @@ theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_i
     ∀ s : ℝ,
       ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
         (w.re + (N + 1 : ℝ))⁻¹ := by
-  intro s
-  let z : ℂ := w + (N + 1 : ℂ) + (s : ℂ) * Complex.I
-  have hN_pos : 0 < (N + 1 : ℝ) := by
-    exact Nat.cast_pos.mpr (Nat.succ_pos N)
-  have hendpoint_pos : 0 < w.re + (N + 1 : ℝ) :=
-    add_pos hw hN_pos
-  have hendpoint_le_norm :
-      w.re + (N + 1 : ℝ) ≤ ‖z‖ :=
-    Complex.upperEndpointLine_endpoint_re_le_norm hw N s
-  have hinv_le :
-      ‖z‖⁻¹ ≤ (w.re + (N + 1 : ℝ))⁻¹ :=
+  exact fun s => by
+    let z : ℂ := w + (N + 1 : ℂ) + (s : ℂ) * Complex.I
+    have hN_pos : 0 < (N + 1 : ℝ) := by
+      exact Nat.cast_pos.mpr (Nat.succ_pos N)
+    have hendpoint_pos : 0 < w.re + (N + 1 : ℝ) :=
+      add_pos hw hN_pos
+    have hendpoint_le_norm :
+        w.re + (N + 1 : ℝ) ≤ ‖z‖ :=
+      Complex.upperEndpointLine_endpoint_re_le_norm hw N s
+    have hinv_le :
+        ‖z‖⁻¹ ≤ (w.re + (N + 1 : ℝ))⁻¹ :=
+      calc
+        ‖z‖⁻¹ = (1 : ℝ) / ‖z‖ := by
+          exact inv_eq_one_div ‖z‖
+        _ ≤ (1 : ℝ) / (w.re + (N + 1 : ℝ)) :=
+          one_div_le_one_div_of_le hendpoint_pos hendpoint_le_norm
+        _ = (w.re + (N + 1 : ℝ))⁻¹ := by
+          exact (inv_eq_one_div (w.re + (N + 1 : ℝ))).symm
     calc
-      ‖z‖⁻¹ = (1 : ℝ) / ‖z‖ := by
-        exact inv_eq_one_div ‖z‖
-      _ ≤ (1 : ℝ) / (w.re + (N + 1 : ℝ)) :=
-        one_div_le_one_div_of_le hendpoint_pos hendpoint_le_norm
-      _ = (w.re + (N + 1 : ℝ))⁻¹ := by
-        exact (inv_eq_one_div (w.re + (N + 1 : ℝ))).symm
-  calc
-    ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖
-        = ‖Complex.I / z‖ := by
-          rfl
-    _ = ‖Complex.I‖ / ‖z‖ := by
-          exact norm_div Complex.I z
-    _ = ‖z‖⁻¹ := by
-          exact Complex.norm_I_div_eq_inv_norm z
-    _ ≤ (w.re + (N + 1 : ℝ))⁻¹ :=
-          hinv_le
+      ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖
+          = ‖Complex.I / z‖ := by
+            rfl
+      _ = ‖Complex.I‖ / ‖z‖ := by
+            exact norm_div Complex.I z
+      _ = ‖z‖⁻¹ := by
+            exact Complex.norm_I_div_eq_inv_norm z
+      _ ≤ (w.re + (N + 1 : ℝ))⁻¹ :=
+            hinv_le
 
 /-- Interval-length integration of the pointwise segment-integrand bound. -/
 theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_length_mul_endpoint_re_inv
@@ -2640,38 +3144,40 @@ theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_length_mul_end
       ‖∫ s : ℝ in (-t)..t,
           Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
         (2 * t) * (w.re + (N + 1 : ℝ))⁻¹ := by
-  filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi] with t ht
-  have ht_nonneg : 0 ≤ t := le_of_lt ht
-  have hpoint :
-      ∀ s : ℝ,
-        ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
-          (w.re + (N + 1 : ℝ))⁻¹ :=
-    Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_inv
-      hw N
-  have hinterval :
-      ‖∫ s : ℝ in (-t)..t,
-          Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
-        (w.re + (N + 1 : ℝ))⁻¹ * |t - (-t)| :=
-    intervalIntegral.norm_integral_le_of_norm_le_const
-      (fun s hs => hpoint s)
-  have habs : |t - (-t)| = 2 * t := by
-    calc
-      |t - (-t)| = |2 * t| := by
-        exact congrArg abs (Real.sub_neg_eq_two_mul t)
-      _ = 2 * t := abs_of_nonneg (mul_nonneg zero_le_two ht_nonneg)
-  calc
-    ‖∫ s : ℝ in (-t)..t,
-        Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖
-        ≤ (w.re + (N + 1 : ℝ))⁻¹ * |t - (-t)| := hinterval
-    _ = (w.re + (N + 1 : ℝ))⁻¹ * (2 * t) := by
-          exact congrArg
-            (fun x : ℝ => (w.re + (N + 1 : ℝ))⁻¹ * x)
-            habs
-    _ = (2 * t) * (w.re + (N + 1 : ℝ))⁻¹ := by
-          exact mul_comm (w.re + (N + 1 : ℝ))⁻¹ (2 * t)
-
-/-- Norm bound for the differential-log segment integral. -/
-theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_two_mul_t_div_endpoint_re
+  exact
+    (MeasureTheory.ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht => by
+    have ht_nonneg : 0 ≤ t := le_of_lt ht
+    have hpoint :
+        ∀ s : ℝ,
+              ‖Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
+                (w.re + (N + 1 : ℝ))⁻¹ :=
+          Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegrand_le_endpoint_re_inv
+            hw N
+        have hinterval :
+            ‖∫ s : ℝ in (-t)..t,
+                Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
+              (w.re + (N + 1 : ℝ))⁻¹ * |t - (-t)| :=
+          intervalIntegral.norm_integral_le_of_norm_le_const
+            (fun s hs => hpoint s)
+        have habs : |t - (-t)| = 2 * t := by
+          calc
+            |t - (-t)| = |2 * t| := by
+              exact congrArg abs (Real.sub_neg_eq_two_mul t)
+            _ = 2 * t := abs_of_nonneg (mul_nonneg zero_le_two ht_nonneg)
+        calc
+          ‖∫ s : ℝ in (-t)..t,
+              Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖
+              ≤ (w.re + (N + 1 : ℝ))⁻¹ * |t - (-t)| := hinterval
+          _ = (w.re + (N + 1 : ℝ))⁻¹ * (2 * t) := by
+                exact congrArg
+                  (fun x : ℝ => (w.re + (N + 1 : ℝ))⁻¹ * x)
+                  habs
+          _ = (2 * t) * (w.re + (N + 1 : ℝ))⁻¹ := by
+                exact mul_comm (w.re + (N + 1 : ℝ))⁻¹ (2 * t))
+    
+    /-- Norm bound for the differential-log segment integral. -/
+    theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_two_mul_t_div_endpoint_re
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ) :
@@ -2686,11 +3192,7 @@ theorem Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_two_mul_t_div_
           (2 * t) * (w.re + (N + 1 : ℝ))⁻¹ :=
     Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_length_mul_endpoint_re_inv
       hw N
-  filter_upwards [hlength] with t ht
-  change ‖∫ s : ℝ in (-t)..t,
-      Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
-    (2 * t) * (w.re + (N + 1 : ℝ))⁻¹
-  exact ht
+  exact hlength
 
 /-- Differential-log segment estimate for the upper Abel-Plana logarithmic
 jump. -/
@@ -2701,22 +3203,23 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperLogJump_le_two_mul_t_div_endpoint_
       ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
         ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ ≤
           (2 * t) / (w.re + (N + 1 : ℝ)) := by
-  intro N
-  have hidentity :
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
-        Complex.binetAbelPlanaFiniteUpperLogJump N w t =
-          ∫ s : ℝ in (-t)..t,
-            Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s :=
-    Complex.binetAbelPlanaFiniteUpperLogJump_eq_segmentIntegral_owner hw N
-  have hbound :
-      ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
-        ‖∫ s : ℝ in (-t)..t,
-            Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
-          (2 * t) / (w.re + (N + 1 : ℝ)) :=
-    Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_two_mul_t_div_endpoint_re
-      hw N
-  filter_upwards [hidentity, hbound] with t ht_eq ht_bound
-  exact ht_eq ▸ ht_bound
+  exact fun N => by
+    have hidentity :
+        ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
+          Complex.binetAbelPlanaFiniteUpperLogJump N w t =
+            ∫ s : ℝ in (-t)..t,
+              Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s :=
+      Complex.binetAbelPlanaFiniteUpperLogJump_eq_segmentIntegral_owner hw N
+    have hbound :
+        ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
+          ‖∫ s : ℝ in (-t)..t,
+              Complex.binetAbelPlanaUpperLogJumpSegmentIntegrand N w s‖ ≤
+            (2 * t) / (w.re + (N + 1 : ℝ)) :=
+      Complex.norm_binetAbelPlanaUpperLogJumpSegmentIntegral_le_two_mul_t_div_endpoint_re
+        hw N
+    exact
+      (hidentity.and hbound).mono
+        (fun _t ht_pair => ht_pair.1 ▸ ht_pair.2)
 
 /-- Endpoint real-part comparison for the upper Abel-Plana logarithmic jump. -/
 theorem Complex.two_mul_t_div_upperEndpoint_re_le_public_logJump_majorant
@@ -2727,40 +3230,40 @@ theorem Complex.two_mul_t_div_upperEndpoint_re_le_public_logJump_majorant
       t ∈ Set.Ioi (0 : ℝ) →
         (2 * t) / (w.re + (N + 1 : ℝ)) ≤
           (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t := by
-  intro t ht
-  have hN_pos : 0 < (N + 1 : ℝ) := by
-    exact Nat.cast_pos.mpr (Nat.succ_pos N)
-  have hendpoint_pos : 0 < w.re + (N + 1 : ℝ) :=
-    add_pos hw hN_pos
-  have hone_le : 1 ≤ 1 + ‖w‖ :=
-    le_add_of_nonneg_right (norm_nonneg w)
-  have hbase :
-      (2 : ℝ) / (w.re + (N + 1 : ℝ)) ≤
-        4 * (1 + ‖w‖) / (N + 1 : ℝ) := by
-    have hden_le :
-        (N + 1 : ℝ) ≤ w.re + (N + 1 : ℝ) :=
-      le_add_of_nonneg_left hw.le
-    have hrecip :
-        (1 : ℝ) / (w.re + (N + 1 : ℝ)) ≤
-          1 / (N + 1 : ℝ) := by
-      exact one_div_le_one_div_of_le hN_pos hden_le
-    have htwo :
+  exact fun t ht => by
+    have hN_pos : 0 < (N + 1 : ℝ) := by
+      exact Nat.cast_pos.mpr (Nat.succ_pos N)
+    have hendpoint_pos : 0 < w.re + (N + 1 : ℝ) :=
+      add_pos hw hN_pos
+    have hone_le : 1 ≤ 1 + ‖w‖ :=
+      le_add_of_nonneg_right (norm_nonneg w)
+    have hbase :
         (2 : ℝ) / (w.re + (N + 1 : ℝ)) ≤
-          2 / (N + 1 : ℝ) := by
-      exact mul_le_mul_of_nonneg_left hrecip zero_le_two
-    have htwo_le_four :
-        (2 : ℝ) / (N + 1 : ℝ) ≤
           4 * (1 + ‖w‖) / (N + 1 : ℝ) := by
-      have hnum : (2 : ℝ) ≤ 4 * (1 + ‖w‖) := by
-        exact Real.two_le_four_mul_of_one_le hone_le
-      exact div_le_div_of_nonneg_right hnum hN_pos.le
-    exact htwo.trans htwo_le_four
-  calc
-    (2 * t) / (w.re + (N + 1 : ℝ))
-        = ((2 : ℝ) / (w.re + (N + 1 : ℝ))) * t := by
-          exact Real.two_mul_div_eq_div_mul t (w.re + (N + 1 : ℝ))
-    _ ≤ (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t := by
-          exact mul_le_mul_of_nonneg_right hbase ht.le
+      have hden_le :
+          (N + 1 : ℝ) ≤ w.re + (N + 1 : ℝ) :=
+        le_add_of_nonneg_left hw.le
+      have hrecip :
+          (1 : ℝ) / (w.re + (N + 1 : ℝ)) ≤
+            1 / (N + 1 : ℝ) := by
+        exact one_div_le_one_div_of_le hN_pos hden_le
+      have htwo :
+          (2 : ℝ) / (w.re + (N + 1 : ℝ)) ≤
+            2 / (N + 1 : ℝ) := by
+        exact mul_le_mul_of_nonneg_left hrecip zero_le_two
+      have htwo_le_four :
+          (2 : ℝ) / (N + 1 : ℝ) ≤
+            4 * (1 + ‖w‖) / (N + 1 : ℝ) := by
+        have hnum : (2 : ℝ) ≤ 4 * (1 + ‖w‖) := by
+          exact Real.two_le_four_mul_of_one_le hone_le
+        exact div_le_div_of_nonneg_right hnum hN_pos.le
+      exact htwo.trans htwo_le_four
+    calc
+      (2 * t) / (w.re + (N + 1 : ℝ))
+          = ((2 : ℝ) / (w.re + (N + 1 : ℝ))) * t := by
+            exact Real.two_mul_div_eq_div_mul t (w.re + (N + 1 : ℝ))
+      _ ≤ (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t := by
+            exact mul_le_mul_of_nonneg_right hbase ht.le
 
 /-- Upper-endpoint logarithmic jump bound along the finite Abel-Plana
 vertical contour. -/
@@ -2778,12 +3281,14 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperLogJump_le_endpoint_kernel
             (2 * t) / (w.re + (N + 1 : ℝ)) :=
     Complex.norm_binetAbelPlanaFiniteUpperLogJump_le_two_mul_t_div_endpoint_re
       hw
-  filter_upwards with N
-  filter_upwards [hsegment N, ae_restrict_mem measurableSet_Ioi] with t ht_segment ht_mem
   exact
-    ht_segment.trans
-      (Complex.two_mul_t_div_upperEndpoint_re_le_public_logJump_majorant
-        hw N t ht_mem)
+    Filter.Eventually.of_forall
+      (fun N =>
+        ((hsegment N).and (ae_restrict_mem measurableSet_Ioi)).mono
+          (fun t ht_pair =>
+            ht_pair.1.trans
+              (Complex.two_mul_t_div_upperEndpoint_re_le_public_logJump_majorant
+                hw N t ht_pair.2)))
 
 /-- Pointwise majorization of the upper-contour residual integrand. -/
 theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_majorant
@@ -2800,75 +3305,83 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_major
           ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ ≤
             (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t :=
     Complex.norm_binetAbelPlanaFiniteUpperLogJump_le_endpoint_kernel hw
-  filter_upwards [hjump] with N hN
-  filter_upwards [hN, ae_restrict_mem measurableSet_Ioi] with t ht_jump ht_mem
-  have ht_pos : 0 < t := ht_mem
-  have hden_pos :
-      0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
-    Real.binetSecondFormula_exp_denominator_pos ht_pos
-  have hintegrand_unfold :
-      Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t =
-        Complex.I *
-          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
-    Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand_unfold N w t
-  calc
-      ‖Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t‖ =
-        ‖Complex.I *
-          (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
-          exact congrArg norm hintegrand_unfold
-    _ =
-        ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
-          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-          calc
-            ‖Complex.I *
-                (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
-                = ‖Complex.I‖ *
-                    ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-                      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
-                  exact norm_mul _ _
-            _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
-                  exact (one_mul
-                    ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-                      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
-                    ▸ congrArg
-                      (fun r : ℝ =>
-                        r *
-                          ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
-                            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
-                      Complex.norm_I
-            _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
-                  ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
-                  exact norm_div _ _
-            _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
-                  ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
-                  exact congrArg (fun x : ℝ => ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ / x)
-                    (Complex.binetSecondFormula_exp_denominator_norm_eq t)
-            _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
-                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-                  exact congrArg
-                    (fun x : ℝ => ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ / x)
-                    (Real.binetSecondFormula_exp_denominator_norm_eq ht_pos)
-    _ ≤
-        ((4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t) /
-          (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
-          exact div_le_div_of_nonneg_right ht_jump hden_pos.le
-    _ =
-        (4 * (1 + ‖w‖) / (N + 1 : ℝ)) *
-          Complex.binetAbelPlanaVerticalKernelMajorant t := by
-          exact
-            Eq.trans
-              (Real.mul_mul_div_eq_mul_div
-                (4 * (1 + ‖w‖) / (N + 1 : ℝ))
-                t
-                (Real.exp (2 * Real.pi * t) - 1))
-              (congrArg
-                (fun x : ℝ =>
-                  (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * x)
-                (Complex.binetAbelPlanaVerticalKernelMajorant_unfold t).symm)
+  exact
+    hjump.mono
+      (fun N hN =>
+        (hN.and (ae_restrict_mem measurableSet_Ioi)).mono
+          (fun t ht_pair =>
+            by
+              have ht_jump :
+                  ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ ≤
+                    (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t :=
+                ht_pair.1
+              have ht_pos : 0 < t := ht_pair.2
+              have hden_pos :
+                  0 < Real.exp ((2 : ℝ) * Real.pi * t) - 1 :=
+                Real.binetSecondFormula_exp_denominator_pos ht_pos
+              have hintegrand_unfold :
+                  Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t =
+                    Complex.I *
+                      (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
+                Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand_unfold N w t
+              calc
+                    ‖Complex.binetAbelPlanaFiniteUpperContourResidualIntegrand N w t‖ =
+                      ‖Complex.I *
+                        (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
+                        exact congrArg norm hintegrand_unfold
+                  _ =
+                      ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
+                        (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+                        calc
+                          ‖Complex.I *
+                              (Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
+                              = ‖Complex.I‖ *
+                                  ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+                                exact norm_mul _ _
+                          _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+                                exact (one_mul
+                                  ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
+                                  ▸ congrArg
+                                    (fun r : ℝ =>
+                                      r *
+                                        ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t /
+                                          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
+                                    Complex.norm_I
+                          _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
+                                ‖Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1‖ := by
+                                exact norm_div _ _
+                          _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
+                                ‖Real.exp ((2 : ℝ) * Real.pi * t) - 1‖ := by
+                                exact congrArg (fun x : ℝ => ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ / x)
+                                  (Complex.binetSecondFormula_exp_denominator_norm_eq t)
+                          _ = ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ /
+                                (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+                                exact congrArg
+                                  (fun x : ℝ => ‖Complex.binetAbelPlanaFiniteUpperLogJump N w t‖ / x)
+                                  (Real.binetSecondFormula_exp_denominator_norm_eq ht_pos)
+                  _ ≤
+                      ((4 * (1 + ‖w‖) / (N + 1 : ℝ)) * t) /
+                        (Real.exp ((2 : ℝ) * Real.pi * t) - 1) := by
+                        exact div_le_div_of_nonneg_right ht_jump hden_pos.le
+                  _ =
+                      (4 * (1 + ‖w‖) / (N + 1 : ℝ)) *
+                        Complex.binetAbelPlanaVerticalKernelMajorant t := by
+                        exact
+                          Eq.trans
+                            (Real.mul_mul_div_eq_mul_div
+                              (4 * (1 + ‖w‖) / (N + 1 : ℝ))
+                              t
+                              (Real.exp (2 * Real.pi * t) - 1))
+              	              (congrArg
+              	                (fun x : ℝ =>
+              	                  (4 * (1 + ‖w‖) / (N + 1 : ℝ)) * x)
+              	                (Complex.binetAbelPlanaVerticalKernelMajorant_unfold t).symm)))
 
 /-- Integral transport from a pointwise upper-contour integrand majorant to
 the vertical-kernel mass. -/
@@ -2984,12 +3497,13 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_kernelMass_owne
               Complex.binetAbelPlanaVerticalKernelMajorant t :=
     Complex.norm_binetAbelPlanaFiniteUpperContourResidual_integrand_le_majorant
       hw
-  filter_upwards [hpointwise] with N hN
   exact
-    Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_kernelMass_of_integrand_majorant
-      (w := w)
-      (N := N)
-      hN
+    hpointwise.mono
+      (fun N hN =>
+        Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_kernelMass_of_integrand_majorant
+          (w := w)
+          (N := N)
+          hN)
 
 /-- The kernel-mass bound is dominated by the upper-residual majorant. -/
 theorem Complex.binetAbelPlanaFiniteUpperContourResidual_kernelMass_bound_le_majorant
@@ -3063,11 +3577,12 @@ theorem Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_majorant_owner
             Complex.binetAbelPlanaVerticalKernelMass :=
     Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_kernelMass_owner
       hw
-  filter_upwards [hkernel] with N hN
   exact
-    hN.trans
-      (Complex.binetAbelPlanaFiniteUpperContourResidual_kernelMass_bound_le_majorant
-        w N)
+    hkernel.mono
+      (fun N hN =>
+        hN.trans
+          (Complex.binetAbelPlanaFiniteUpperContourResidual_kernelMass_bound_le_majorant
+            w N))
 
 /-- The lower finite Abel-Plana tail integrand equals twice the principal
 Binet arctangent kernel on its positive vertical contour. -/
@@ -3083,13 +3598,15 @@ theorem Complex.binetAbelPlanaFiniteLowerContourTail_integrand_eq_two_arctanKern
           2 *
             (Complex.arctan ((t : ℂ) / w) /
               (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) := by
-  intro N
-  filter_upwards [ae_restrict_mem measurableSet_Ioi] with t ht
-  have ht_pos : 0 < t :=
-    lt_of_le_of_lt (Nat.cast_nonneg N) ht
-  exact
-    Complex.binetAbelPlana_logJump_integrand_eq_two_arctanKernel
-      hw ht_pos
+  exact fun N =>
+    (ae_restrict_mem measurableSet_Ioi).mono
+      (fun t ht =>
+        by
+          have ht_pos : 0 < t :=
+            lt_of_le_of_lt (Nat.cast_nonneg N) ht
+          exact
+            Complex.binetAbelPlana_logJump_integrand_eq_two_arctanKernel
+              hw ht_pos)
 
 /-- Pointwise lower-tail domination by twice the Binet vertical kernel
 majorant. -/
@@ -3105,72 +3622,88 @@ theorem Complex.norm_binetAbelPlanaFiniteLowerContourTail_integrand_le_majorant
                   Complex.log (w - (t : ℂ) * Complex.I)) /
                 (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ ≤
               C * Complex.binetAbelPlanaVerticalKernelMajorant t := by
-  rcases
+  exact
+    match
       Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant_owner
         hw with
-    ⟨C, hC_nonneg, hC⟩
-  refine ⟨2 * C, mul_nonneg zero_le_two hC_nonneg, ?_⟩
-  rcases exists_nat_gt (‖w‖ / 2) with ⟨N₀, hN₀⟩
-  filter_upwards [eventually_ge_atTop N₀] with N hN
-  filter_upwards
-    [Complex.binetAbelPlanaFiniteLowerContourTail_integrand_eq_two_arctanKernel
-      hw N,
-      ae_restrict_mem measurableSet_Ioi] with t ht_eq ht_mem
-  have hN₀_le_N : (N₀ : ℝ) ≤ (N : ℝ) := by
-    exact Nat.cast_le.mpr hN
-  have ht_tail : t ∈ Set.Ioi (‖w‖ / 2) := by
-    exact lt_of_lt_of_le hN₀ (le_trans hN₀_le_N (le_of_lt ht_mem))
-  have hkernel :
-      ‖Complex.arctan ((t : ℂ) / w) /
-          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
-        C * Complex.binetAbelPlanaVerticalKernelMajorant t :=
-    hC t ht_tail
-  have hmajorant_nonneg :
-      0 ≤ Complex.binetAbelPlanaVerticalKernelMajorant t :=
-    Complex.binetAbelPlanaVerticalKernelMajorant_nonneg_on_Ioi
-      t
-      (lt_of_lt_of_le hN₀
-        (le_trans hN₀_le_N (le_of_lt ht_mem)))
-  calc
-    ‖(-Complex.I) *
-        ((Complex.log (w + (t : ℂ) * Complex.I) -
-            Complex.log (w - (t : ℂ) * Complex.I)) /
-          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
-        =
-        ‖2 *
-          (Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
-          exact congrArg norm ht_eq
-    _ =
-        2 *
-          ‖Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
-          have htwo : ‖(2 : ℂ)‖ = (2 : ℝ) := by
-            exact Complex.norm_two_natCast
-          calc
-            ‖2 *
-              (Complex.arctan ((t : ℂ) / w) /
-                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
-                =
-                ‖(2 : ℂ)‖ *
-                  ‖Complex.arctan ((t : ℂ) / w) /
-                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
-                  exact norm_mul _ _
-            _ =
-                2 *
-                  ‖Complex.arctan ((t : ℂ) / w) /
-                    (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
-                  exact congrArg
-                    (fun x : ℝ =>
-                      x *
-                        ‖Complex.arctan ((t : ℂ) / w) /
-                          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
-                    htwo
-    _ ≤ 2 * (C * Complex.binetAbelPlanaVerticalKernelMajorant t) := by
-          exact mul_le_mul_of_nonneg_left hkernel zero_le_two
-    _ = (2 * C) * Complex.binetAbelPlanaVerticalKernelMajorant t := by
-          exact Real.two_mul_assoc C
-            (Complex.binetAbelPlanaVerticalKernelMajorant t)
+    | ⟨C, hC_nonneg, hC⟩ =>
+      Exists.intro (2 * C)
+        (And.intro
+          (mul_nonneg zero_le_two hC_nonneg)
+          (match exists_nat_gt (‖w‖ / 2) with
+          | ⟨N₀, hN₀⟩ =>
+            (eventually_ge_atTop N₀).mono
+              (fun N hN =>
+                ((Complex.binetAbelPlanaFiniteLowerContourTail_integrand_eq_two_arctanKernel
+                  hw N).and (ae_restrict_mem measurableSet_Ioi)).mono
+                  (fun t ht_pair =>
+                    by
+                      have ht_eq :
+                          (-Complex.I) *
+                            ((Complex.log (w + (t : ℂ) * Complex.I) -
+                                Complex.log (w - (t : ℂ) * Complex.I)) /
+                              (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) =
+                            2 *
+                              (Complex.arctan ((t : ℂ) / w) /
+                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)) :=
+                        ht_pair.1
+                      have ht_mem : t ∈ Set.Ioi (N : ℝ) :=
+                        ht_pair.2
+                        have hN₀_le_N : (N₀ : ℝ) ≤ (N : ℝ) := by
+                          exact Nat.cast_le.mpr hN
+                        have ht_tail : t ∈ Set.Ioi (‖w‖ / 2) := by
+                          exact lt_of_lt_of_le hN₀ (le_trans hN₀_le_N (le_of_lt ht_mem))
+                        have hkernel :
+                            ‖Complex.arctan ((t : ℂ) / w) /
+                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ ≤
+                              C * Complex.binetAbelPlanaVerticalKernelMajorant t :=
+                          hC t ht_tail
+                        have hmajorant_nonneg :
+                            0 ≤ Complex.binetAbelPlanaVerticalKernelMajorant t :=
+                          Complex.binetAbelPlanaVerticalKernelMajorant_nonneg_on_Ioi
+                            t
+                            (lt_of_lt_of_le hN₀
+                              (le_trans hN₀_le_N (le_of_lt ht_mem)))
+                        calc
+                          ‖(-Complex.I) *
+                              ((Complex.log (w + (t : ℂ) * Complex.I) -
+                                  Complex.log (w - (t : ℂ) * Complex.I)) /
+                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
+                              =
+                              ‖2 *
+                                (Complex.arctan ((t : ℂ) / w) /
+                                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖ := by
+                                exact congrArg norm ht_eq
+                          _ =
+                              2 *
+                                ‖Complex.arctan ((t : ℂ) / w) /
+                                  (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+                                have htwo : ‖(2 : ℂ)‖ = (2 : ℝ) := by
+                                  exact Complex.norm_two_natCast
+                                calc
+                                  ‖2 *
+                                    (Complex.arctan ((t : ℂ) / w) /
+                                      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))‖
+                                      =
+                                      ‖(2 : ℂ)‖ *
+                                        ‖Complex.arctan ((t : ℂ) / w) /
+                                          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+                                        exact norm_mul _ _
+                                  _ =
+                                      2 *
+                                        ‖Complex.arctan ((t : ℂ) / w) /
+                                          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖ := by
+                                        exact congrArg
+                                          (fun x : ℝ =>
+                                            x *
+                                              ‖Complex.arctan ((t : ℂ) / w) /
+                                                (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)‖)
+                                          htwo
+                          _ ≤ 2 * (C * Complex.binetAbelPlanaVerticalKernelMajorant t) := by
+                                exact mul_le_mul_of_nonneg_left hkernel zero_le_two
+                          _ = (2 * C) * Complex.binetAbelPlanaVerticalKernelMajorant t := by
+                                exact Real.two_mul_assoc C
+                                  (Complex.binetAbelPlanaVerticalKernelMajorant t))))
 
 /-- The lower finite Abel-Plana tail positive vertical line is measurable. -/
 theorem Complex.measurable_binetAbelPlanaFiniteLowerContourTail_plusLine
@@ -3260,66 +3793,72 @@ theorem Complex.norm_binetAbelPlanaFiniteLowerContourTail_le_tailKernelMass
           ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ ≤
             C * ∫ t : ℝ in Set.Ioi (N : ℝ),
               Complex.binetAbelPlanaVerticalKernelMajorant t := by
-  rcases
+  exact
+    match
       Complex.norm_binetAbelPlanaFiniteLowerContourTail_integrand_le_majorant
         hw with
-    ⟨C, hC_nonneg, hC⟩
-  refine ⟨C, hC_nonneg, ?_⟩
-  filter_upwards [hC] with N hN
-  let I : ℝ → ℂ := fun t : ℝ =>
-    (-Complex.I) *
-      ((Complex.log (w + (t : ℂ) * Complex.I) -
-          Complex.log (w - (t : ℂ) * Complex.I)) /
-        (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
-  let K : ℝ → ℝ := fun t : ℝ =>
-    Complex.binetAbelPlanaVerticalKernelMajorant t
-  have htail_subset :
-      Set.Ioi (N : ℝ) ⊆ Set.Ioi (0 : ℝ) := by
-    intro t ht
-    exact lt_of_le_of_lt (Nat.cast_nonneg N) ht
-  have hCK_integrable :
-      IntegrableOn (fun t : ℝ => C * K t) (Set.Ioi (N : ℝ)) :=
-    (Complex.binetAbelPlanaVerticalKernelMajorant_integrableOn.mono_set
-      htail_subset).const_mul C
-  have hnorm_meas :
-      AEStronglyMeasurable (fun t : ℝ => ‖I t‖)
-        (volume.restrict (Set.Ioi (N : ℝ))) :=
-    Complex.aestronglyMeasurable_norm_binetAbelPlanaFiniteLowerContourTail_integrand
-      N w
-  have hnorm_integrable :
-      IntegrableOn (fun t : ℝ => ‖I t‖) (Set.Ioi (N : ℝ)) := by
-    have hpointwise :
-        ∀ᵐ t ∂volume.restrict (Set.Ioi (N : ℝ)),
-          ‖‖I t‖‖ ≤ C * K t := by
-      filter_upwards [hN] with t ht
-      have hnorm_nonneg : 0 ≤ ‖I t‖ := norm_nonneg _
-      exact (Real.norm_of_nonneg hnorm_nonneg) ▸ ht
-    exact hCK_integrable.mono' hnorm_meas hpointwise
-  have hmono :
-      ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ ≤
-        ∫ t : ℝ in Set.Ioi (N : ℝ), C * K t :=
-    setIntegral_mono_ae_restrict
-      hnorm_integrable
-      hCK_integrable
-      hN
-  have hconst :
-      ∫ t : ℝ in Set.Ioi (N : ℝ), C * K t =
-        C * ∫ t : ℝ in Set.Ioi (N : ℝ), K t := by
-    exact integral_const_mul
-  have hnorm_integral :
-      ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ ≤
-        ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ := by
-    have htail_unfold :
-        Complex.binetAbelPlanaFiniteLowerContourTail N w =
-          ∫ t : ℝ in Set.Ioi (N : ℝ), I t :=
-      Complex.binetAbelPlanaFiniteLowerContourTail_core_unfold N w
-    calc
-      ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ =
-          ‖∫ t : ℝ in Set.Ioi (N : ℝ), I t‖ := by
-            exact congrArg norm htail_unfold
-      _ ≤ ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ :=
-            norm_integral_le_integral_norm _
-  exact hnorm_integral.trans (hmono.trans_eq hconst)
+    | ⟨C, hC_nonneg, hC⟩ =>
+      Exists.intro C
+        (And.intro hC_nonneg
+          (hC.mono
+            (fun N hN =>
+              by
+                let I : ℝ → ℂ := fun t : ℝ =>
+                  (-Complex.I) *
+                    ((Complex.log (w + (t : ℂ) * Complex.I) -
+                        Complex.log (w - (t : ℂ) * Complex.I)) /
+                      (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+                let K : ℝ → ℝ := fun t : ℝ =>
+                  Complex.binetAbelPlanaVerticalKernelMajorant t
+                have htail_subset :
+                    Set.Ioi (N : ℝ) ⊆ Set.Ioi (0 : ℝ) := by
+                  exact fun _t ht => lt_of_le_of_lt (Nat.cast_nonneg N) ht
+                have hCK_integrable :
+                    IntegrableOn (fun t : ℝ => C * K t) (Set.Ioi (N : ℝ)) :=
+                  (Complex.binetAbelPlanaVerticalKernelMajorant_integrableOn.mono_set
+                    htail_subset).const_mul C
+                have hnorm_meas :
+                    AEStronglyMeasurable (fun t : ℝ => ‖I t‖)
+                      (volume.restrict (Set.Ioi (N : ℝ))) :=
+                  Complex.aestronglyMeasurable_norm_binetAbelPlanaFiniteLowerContourTail_integrand
+                    N w
+                have hnorm_integrable :
+                    IntegrableOn (fun t : ℝ => ‖I t‖) (Set.Ioi (N : ℝ)) := by
+                  have hpointwise :
+                      ∀ᵐ t ∂volume.restrict (Set.Ioi (N : ℝ)),
+                        ‖‖I t‖‖ ≤ C * K t := by
+                    exact
+                      hN.mono
+                        (fun t ht =>
+                          by
+                            have hnorm_nonneg : 0 ≤ ‖I t‖ := norm_nonneg _
+                            exact (Real.norm_of_nonneg hnorm_nonneg) ▸ ht)
+                  exact hCK_integrable.mono' hnorm_meas hpointwise
+                have hmono :
+                    ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ ≤
+                      ∫ t : ℝ in Set.Ioi (N : ℝ), C * K t :=
+                  setIntegral_mono_ae_restrict
+                    hnorm_integrable
+                    hCK_integrable
+                    hN
+                have hconst :
+                    ∫ t : ℝ in Set.Ioi (N : ℝ), C * K t =
+                      C * ∫ t : ℝ in Set.Ioi (N : ℝ), K t := by
+                  exact integral_const_mul
+                have hnorm_integral :
+                    ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ ≤
+                      ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ := by
+                  have htail_unfold :
+                      Complex.binetAbelPlanaFiniteLowerContourTail N w =
+                        ∫ t : ℝ in Set.Ioi (N : ℝ), I t :=
+                    Complex.binetAbelPlanaFiniteLowerContourTail_core_unfold N w
+                  calc
+                    ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ =
+                        ‖∫ t : ℝ in Set.Ioi (N : ℝ), I t‖ := by
+                          exact congrArg norm htail_unfold
+                    _ ≤ ∫ t : ℝ in Set.Ioi (N : ℝ), ‖I t‖ :=
+                          norm_integral_le_integral_norm _
+                exact hnorm_integral.trans (hmono.trans_eq hconst)))
 
 /-- Owner lower-tail estimate in fixed-ray kernel-tail form. -/
 theorem Complex.exists_norm_binetAbelPlanaFiniteLowerContourTail_le_kernelTail_owner
@@ -3350,36 +3889,51 @@ theorem Complex.exists_norm_binetAbelPlanaFiniteContourRemainder_le_kernelTail_a
             C * ∫ t : ℝ in Set.Ioi (N : ℝ),
                 Complex.binetAbelPlanaVerticalKernelMajorant t +
               Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N := by
-  rcases
+  exact
+    match
       Complex.exists_norm_binetAbelPlanaFiniteLowerContourTail_le_kernelTail_owner
         hw with
-    ⟨C, hC_nonneg, hlower⟩
-  refine ⟨C, hC_nonneg, ?_⟩
-  have hupper :
-      ∀ᶠ N : ℕ in atTop,
-        ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ ≤
-          Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N :=
-    Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_majorant_owner hw
-  filter_upwards [hlower, hupper] with N hN_lower hN_upper
-  calc
-    ‖Complex.binetAbelPlanaFiniteContourRemainder N w‖
-        =
-        ‖Complex.binetAbelPlanaFiniteLowerContourTail N w +
-          Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
-          exact congrArg norm
-            (Complex.binetAbelPlanaFiniteContourRemainder_core_unfold N w)
-    _
-        ≤
-        ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ +
-          ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
-          exact norm_add_le
-            (Complex.binetAbelPlanaFiniteLowerContourTail N w)
-            (Complex.binetAbelPlanaFiniteUpperContourResidual N w)
-    _ ≤
-        C * ∫ t : ℝ in Set.Ioi (N : ℝ),
-            Complex.binetAbelPlanaVerticalKernelMajorant t +
-          Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N := by
-          exact add_le_add hN_lower hN_upper
+    | ⟨C, hC_nonneg, hlower⟩ =>
+      Exists.intro C
+        (And.intro hC_nonneg
+          (by
+            have hupper :
+                ∀ᶠ N : ℕ in atTop,
+                  ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ ≤
+                    Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N :=
+              Complex.norm_binetAbelPlanaFiniteUpperContourResidual_le_majorant_owner hw
+            exact
+              (hlower.and hupper).mono
+                (fun N hN_pair =>
+                  by
+                    have hN_lower :
+                        ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ ≤
+                          C * ∫ t : ℝ in Set.Ioi (N : ℝ),
+                            Complex.binetAbelPlanaVerticalKernelMajorant t :=
+                      hN_pair.1
+                    have hN_upper :
+                        ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ ≤
+                          Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N :=
+                      hN_pair.2
+                    calc
+                        ‖Complex.binetAbelPlanaFiniteContourRemainder N w‖
+                            =
+                            ‖Complex.binetAbelPlanaFiniteLowerContourTail N w +
+                              Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
+                              exact congrArg norm
+                                (Complex.binetAbelPlanaFiniteContourRemainder_core_unfold N w)
+                        _
+                            ≤
+                            ‖Complex.binetAbelPlanaFiniteLowerContourTail N w‖ +
+                              ‖Complex.binetAbelPlanaFiniteUpperContourResidual N w‖ := by
+                              exact norm_add_le
+                                (Complex.binetAbelPlanaFiniteLowerContourTail N w)
+                                (Complex.binetAbelPlanaFiniteUpperContourResidual N w)
+                        _ ≤
+                            C * ∫ t : ℝ in Set.Ioi (N : ℝ),
+                                Complex.binetAbelPlanaVerticalKernelMajorant t +
+                              Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N := by
+                              exact add_le_add hN_lower hN_upper)))
 
 /-- Owner finite-contour remainder estimate in majorant form. -/
 theorem Complex.exists_norm_binetAbelPlanaFiniteRemainderError_le_kernelTail_add_upperMajorant_owner
@@ -3398,13 +3952,15 @@ theorem Complex.exists_norm_binetAbelPlanaFiniteRemainderError_le_kernelTail_add
           Complex.binetAbelPlanaFiniteContourRemainder N w :=
     Complex.binetAbelPlanaFiniteRemainderError_eq_contourRemainder_owner
       hw
-  rcases
+  exact
+    match
       Complex.exists_norm_binetAbelPlanaFiniteContourRemainder_le_kernelTail_add_upperMajorant_owner
         hw with
-    ⟨C, hC_nonneg, hbound⟩
-  refine ⟨C, hC_nonneg, ?_⟩
-  filter_upwards [hbound] with N hN
-  exact hidentity N ▸ hN
+    | ⟨C, hC_nonneg, hbound⟩ =>
+      Exists.intro C
+        (And.intro hC_nonneg
+          (hbound.mono
+            (fun N hN => hidentity N ▸ hN)))
 
 /-- Norm convergence from a fixed-ray lower kernel-tail estimate and the
 upper-endpoint majorant estimate. -/
@@ -3444,15 +4000,15 @@ theorem Complex.binetAbelPlanaFiniteRemainderError_norm_tendsto_zero_of_kernelTa
               Complex.binetAbelPlanaVerticalKernelMajorant t)
           atTop
           (𝓝 (0 : ℝ)) := by
-      have heq :
+      have hevent :
           (fun N : ℕ =>
-            Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N) =
+            Complex.binetAbelPlanaFiniteLowerContourTailMajorant w N) =ᶠ[atTop]
           (fun N : ℕ =>
             (2 : ℝ) * ∫ t : ℝ in Set.Ioi (N : ℝ),
-              Complex.binetAbelPlanaVerticalKernelMajorant t) := by
-        funext N
-        rfl
-      exact heq ▸ hmajorant
+              Complex.binetAbelPlanaVerticalKernelMajorant t) :=
+        Filter.Eventually.of_forall
+          (fun _N => rfl)
+      exact hmajorant.congr' hevent
     have hinv :
         Tendsto
           (fun N : ℕ =>
@@ -3462,19 +4018,20 @@ theorem Complex.binetAbelPlanaFiniteRemainderError_norm_tendsto_zero_of_kernelTa
           atTop
           (𝓝 ((1 / 2 : ℝ) * 0)) :=
       tendsto_const_nhds.mul hscale
-    have heq_tail :
+    have hevent_tail :
         (fun N : ℕ =>
           (1 / 2 : ℝ) *
             ((2 : ℝ) * ∫ t : ℝ in Set.Ioi (N : ℝ),
-              Complex.binetAbelPlanaVerticalKernelMajorant t)) =
+              Complex.binetAbelPlanaVerticalKernelMajorant t)) =ᶠ[atTop]
         (fun N : ℕ =>
           ∫ t : ℝ in Set.Ioi (N : ℝ),
-            Complex.binetAbelPlanaVerticalKernelMajorant t) := by
-      funext N
-      exact Real.half_mul_two_mul
-        (∫ t : ℝ in Set.Ioi (N : ℝ),
-          Complex.binetAbelPlanaVerticalKernelMajorant t)
-    exact (mul_zero (1 / 2 : ℝ)).symm ▸ (heq_tail ▸ hinv)
+            Complex.binetAbelPlanaVerticalKernelMajorant t) :=
+      Filter.Eventually.of_forall
+        (fun N =>
+          Real.half_mul_two_mul
+            (∫ t : ℝ in Set.Ioi (N : ℝ),
+              Complex.binetAbelPlanaVerticalKernelMajorant t))
+    exact (mul_zero (1 / 2 : ℝ)).symm ▸ (hinv.congr' hevent_tail)
   have hlower_scaled :
       Tendsto
         (fun N : ℕ =>
@@ -3531,11 +4088,12 @@ theorem Complex.binetAbelPlanaFiniteRemainderError_norm_tendsto_zero_owner
                 Complex.binetAbelPlanaFiniteUpperContourResidualMajorant w N :=
     Complex.exists_norm_binetAbelPlanaFiniteRemainderError_le_kernelTail_add_upperMajorant_owner
       hw
-  rcases hnorm_bound with ⟨C, hC_nonneg, hbound⟩
   exact
-    Complex.binetAbelPlanaFiniteRemainderError_norm_tendsto_zero_of_kernelTail_add_upperMajorant
-      hC_nonneg
-      hbound
+    match hnorm_bound with
+    | ⟨_C, hC_nonneg, hbound⟩ =>
+      Complex.binetAbelPlanaFiniteRemainderError_norm_tendsto_zero_of_kernelTail_add_upperMajorant
+        hC_nonneg
+        hbound
 
 /-- Algebraic/topological assembly of complex convergence from norm decay of
 the finite Abel-Plana contour remainder. -/

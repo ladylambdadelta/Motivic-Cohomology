@@ -218,6 +218,34 @@ noncomputable def Complex.finiteAbelPlanaLogFiniteHeightRightSidePV
     Complex.finiteAbelPlanaLogRectangleIntegrand w
       ((M : ℂ) + Complex.I * (y : ℂ))
 
+/-- Unfolding of the principal-value left vertical side. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightLeftSidePV_unfold
+    (w : ℂ)
+    (T ε : ℝ) :
+    Complex.finiteAbelPlanaLogFiniteHeightLeftSidePV w T ε =
+      (∫ y : ℝ in (-T)..(-ε),
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          (Complex.I * (y : ℂ))) +
+      ∫ y : ℝ in ε..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          (Complex.I * (y : ℂ)) := by
+  rfl
+
+/-- Unfolding of the principal-value right vertical side. -/
+theorem Complex.finiteAbelPlana_log_finiteHeightRightSidePV_unfold
+    (N : ℕ)
+    (w : ℂ)
+    (T ε : ℝ) :
+    let M : ℕ := N + 1
+    Complex.finiteAbelPlanaLogFiniteHeightRightSidePV N w T ε =
+      (∫ y : ℝ in (-T)..(-ε),
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          ((M : ℂ) + Complex.I * (y : ℂ))) +
+      ∫ y : ℝ in ε..T,
+        Complex.finiteAbelPlanaLogRectangleIntegrand w
+          ((M : ℂ) + Complex.I * (y : ℂ)) := by
+  rfl
+
 /-- Principal-value raw vertical side contribution with radius `ε` around the
 endpoint cotangent poles.  This is the honest vertical side object for the
 finite Abel-Plana contour; the unindented raw vertical side is only a

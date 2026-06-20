@@ -27,54 +27,33 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_unfold
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ := by
   rfl
 
-/-- Unfolding of the finite full small-circle residue contribution. -/
-theorem Complex.finiteAbelPlana_log_smallCircleIntegerResidueContribution_unfold
-    (N : ℕ)
-    (w : ℂ) :
-    Complex.finiteAbelPlanaLogSmallCircleIntegerResidueContribution N w =
-      ∑ n in Finset.range (N + 2),
-        Complex.finiteAbelPlanaLogIntegerResidue w n := by
-  rfl
-
-/-- Unfolding of the interior integer residue contribution. -/
-theorem Complex.finiteAbelPlana_log_interiorIntegerResidueContribution_unfold
-    (N : ℕ)
-    (w : ℂ) :
-    Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w =
-      ∑ n in Finset.range N,
-        Complex.finiteAbelPlanaLogIntegerResidue w (n + 1) := by
-  rfl
-
-/-- Unfolding of the endpoint integer residue contribution. -/
-theorem Complex.finiteAbelPlana_log_endpointIntegerResidueContribution_unfold
-    (N : ℕ)
-    (w : ℂ) :
-    Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
-      (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
-        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 := by
-  rfl
-
-/-- Unfolding of the principal-value small-circle integral contribution. -/
-theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_unfold
+/-- Nat-cast-normalized unfolding of the principal-value small-circle
+contribution. -/
+theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_natCast_unfold
     (N : ℕ)
     (w : ℂ)
     (ρ : ℝ) :
     Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ =
-      (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2 +
+      (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+        Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2 +
           ∑ n in Finset.range N,
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ := by
-  rfl
-
-/-- Unfolding of the principal-value integer residue contribution. -/
-theorem Complex.finiteAbelPlana_log_pvIntegerResidueContribution_unfold
-    (N : ℕ)
-    (w : ℂ) :
-    Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w =
-      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
-        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w := by
-  rfl
-
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ := by
+  have hzero_arg :
+      (0 : ℂ) = ((0 : ℕ) : ℂ) :=
+    (Nat.cast_zero : (((0 : ℕ) : ℂ) = 0)).symm
+  exact
+    Eq.trans
+      (Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_unfold
+        N w ρ)
+      (congrArg
+        (fun z : ℂ =>
+          (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w z ρ +
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+              w ((N + 1 : ℕ) : ℂ) ρ) / 2 +
+              ∑ n in Finset.range N,
+                Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                  w ((n + 1 : ℕ) : ℂ) ρ)
+        hzero_arg)
 
 /-- Finite-hole Cauchy-Goursat for the Abel-Plana punctured rectangle, in the
 form that consumes only the holomorphicity of the rectangle integrand on the
@@ -160,47 +139,6 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangle_subdomainCauchyGoursat
   exact
     Complex.finiteAbelPlana_log_finiteHoleCauchyGoursat_of_puncturedRectangleHolomorphic
       N T hT hρ hdeleted_geometry hcont hdiff
-
-/-- The endpoint principal-value indentation contribution is the endpoint
-integer-residue contribution in the finite Abel-Plana normalization. -/
-theorem Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_endpointIntegerResidueContribution
-    (N : ℕ)
-    (w : ℂ) :
-    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w =
-      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
-  rfl
-
-/-- Endpoint indentation accounting for the two boundary cotangent poles.
-
-The left and right principal-value indentations around `0` and `N + 1`
-contribute the endpoint residue term in the same normalization as the
-small-circle residue sum.  This is the boundary-pole part of the principal
-value contour theorem; it is separated from the interior finite-hole
-calculation so the final Cauchy theorem does not hide endpoint geometry. -/
-theorem Complex.finiteAbelPlana_log_endpointBoundaryPoleIndentationAccounting
-    {w : ℂ}
-    (hw : 0 < w.re)
-    (N : ℕ)
-    (T : ℝ)
-    {ρ : ℝ}
-    (hρ : 0 < ρ)
-    (hρR : ρ <
-      Complex.finiteAbelPlanaLogPuncturedRectangleRadiusBound w N T) :
-    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
-        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w =
-      0 := by
-  calc
-    Complex.finiteAbelPlanaLogEndpointPVIndentationContribution N w -
-        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w
-        =
-      Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w -
-        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w := by
-      exact congrArg
-        (fun u : ℂ =>
-          u - Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)
-        (Complex.finiteAbelPlana_log_endpointPVIndentationContribution_eq_endpointIntegerResidueContribution
-          N w)
-    _ = 0 := sub_self _
 
 /-- Finite-radius Cauchy-Goursat for the punctured Abel-Plana rectangle.
 
@@ -344,7 +282,8 @@ theorem Complex.eventually_pos_lt_finiteAbelPlanaLogPuncturedRectangleRadiusBoun
     Complex.finiteAbelPlana_log_puncturedRectangleRadiusBound_pos
       hw N hT
   exact
-    (Ioo_mem_nhdsWithin_Ioi ⟨le_rfl, hR⟩).mono
+    Filter.mem_of_superset
+      (Ioo_mem_nhdsWithin_Ioi ⟨le_rfl, hR⟩)
       (fun ρ hρ => ⟨hρ.1, hρ.2⟩)
 
 /-- The punctured-rectangle Cauchy-Goursat identity before taking residues.
@@ -359,7 +298,7 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleCauchyGoursat_pvSmallCircl
     (N : ℕ)
     (T : ℝ)
     (hT : 0 < T) :
-    Tendsto
+    Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ -
           Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ)
@@ -370,13 +309,14 @@ theorem Complex.finiteAbelPlana_log_puncturedRectangleCauchyGoursat_pvSmallCircl
         Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ -
             Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ =
           0 := by
-      filter_upwards
-        [Complex.eventually_pos_lt_finiteAbelPlanaLogPuncturedRectangleRadiusBound
-          hw N hT] with ρ hρ
-      exact
-        Complex.finiteAbelPlana_log_puncturedRectangleBoundary_eq_zero_of_pos_lt_radiusBound
-          hw N T hT hρ.1 hρ.2
-  exact tendsto_const_nhds.congr' hevent.symm
+    exact
+      (Complex.eventually_pos_lt_finiteAbelPlanaLogPuncturedRectangleRadiusBound
+        hw N hT).mono
+        (fun ρ hρ =>
+          Complex.finiteAbelPlana_log_puncturedRectangleBoundary_eq_zero_of_pos_lt_radiusBound
+            hw N T hT hρ.1 hρ.2)
+  exact tendsto_const_nhds.congr'
+    (hevent.mono (fun ρ hρ => hρ.symm))
 
 /-- The normalized small-circle integrals converge to the already-owned local
 integer residues, summed over the finite rectangle poles. -/
@@ -384,14 +324,14 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_res
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ) :
-    Tendsto
+    Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegralSum N w ρ)
       (𝓝[>] (0 : ℝ))
       (𝓝 (Complex.finiteAbelPlanaLogSmallCircleIntegerResidueContribution N w)) := by
   have hlocal :
       ∀ n ∈ Finset.range (N + 2),
-        Tendsto
+        Filter.Tendsto
           (fun ρ : ℝ =>
             Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ)
           (𝓝[>] (0 : ℝ))
@@ -400,7 +340,7 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_res
       Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
         hw n
   have hsum :
-      Tendsto
+      Filter.Tendsto
         (fun ρ : ℝ =>
           ∑ n in Finset.range (N + 2),
             Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ)
@@ -412,10 +352,10 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_res
   have hsource :
       (fun ρ : ℝ =>
         ∑ n in Finset.range (N + 2),
-          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ) =
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n : ℂ) ρ) =ᶠ[𝓝[>] (0 : ℝ)]
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegralSum N w ρ) :=
-    funext
+    Filter.Eventually.of_forall
       (fun ρ =>
         (Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_unfold
           N w ρ).symm)
@@ -425,7 +365,149 @@ theorem Complex.finiteAbelPlana_log_normalizedSmallCircleIntegralSum_tendsto_res
       Complex.finiteAbelPlanaLogSmallCircleIntegerResidueContribution N w :=
     (Complex.finiteAbelPlana_log_smallCircleIntegerResidueContribution_unfold
       N w).symm
-  exact hsource ▸ htarget ▸ hsum
+  exact (htarget ▸ hsum).congr' hsource
+
+/-- The interior principal-value small circles converge to the full interior
+integer residue contribution. -/
+theorem Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residues
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ) :
+    Filter.Tendsto
+      (fun ρ : ℝ =>
+        ∑ n in Finset.range N,
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ)
+      (𝓝[>] (0 : ℝ))
+      (𝓝 (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) := by
+  have hlocal :
+      ∀ n ∈ Finset.range N,
+        Filter.Tendsto
+          (fun ρ : ℝ =>
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ)
+          (𝓝[>] (0 : ℝ))
+          (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w (n + 1))) :=
+    fun n _hn =>
+      Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
+        hw (n + 1)
+  have hsum :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          ∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝
+          (∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogIntegerResidue w (n + 1))) :=
+    tendsto_finset_sum (Finset.range N) hlocal
+  have htarget :
+      (∑ n in Finset.range N,
+        Complex.finiteAbelPlanaLogIntegerResidue w (n + 1)) =
+      Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w :=
+    (Complex.finiteAbelPlana_log_interiorIntegerResidueContribution_unfold
+      N w).symm
+  exact htarget ▸ hsum
+
+/-- The endpoint principal-value small circles converge to the raw endpoint
+half-residue expression. -/
+theorem Complex.finiteAbelPlana_log_pvEndpointSmallCircleIntegral_tendsto_rawResidues
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ) :
+    Filter.Tendsto
+      (fun ρ : ℝ =>
+        (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2)
+      (𝓝[>] (0 : ℝ))
+      (𝓝 ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+        Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2)) := by
+  have hleft :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w 0)) :=
+    Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
+      hw 0
+  have hright :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))) :=
+    Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
+      hw (N + 1)
+  have hsum := hleft.add hright
+  have hhalf :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2)) :=
+    hsum.div_const 2
+  exact hhalf
+
+/-- Principal-value small-circle integrals converge to the endpoint-plus-interior
+integer residue contribution. -/
+theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_endpoint_add_interior_residues
+    {w : ℂ}
+    (hw : 0 < w.re)
+    (N : ℕ) :
+    Filter.Tendsto
+      (fun ρ : ℝ =>
+        Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ)
+      (𝓝[>] (0 : ℝ))
+      (𝓝
+        (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
+          Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) := by
+  have hinterior :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          ∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) :=
+    Complex.finiteAbelPlana_log_pvInteriorSmallCircleIntegral_tendsto_residues
+      hw N
+  have hendpoints :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2)) :=
+    Complex.finiteAbelPlana_log_pvEndpointSmallCircleIntegral_tendsto_rawResidues
+      hw N
+  have hendpointTarget :
+      (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
+          Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 =
+        Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w :=
+    (Complex.finiteAbelPlana_log_endpointIntegerResidueContribution_unfold
+      N w).symm
+  have hendpointsNamed :
+      Filter.Tendsto
+        (fun ρ : ℝ =>
+          (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2)
+        (𝓝[>] (0 : ℝ))
+        (𝓝 (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)) :=
+    hendpointTarget ▸ hendpoints
+  have htotal := hendpointsNamed.add hinterior
+  have hsource :
+      (fun ρ : ℝ =>
+        (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((0 : ℕ) : ℂ) ρ +
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((N + 1 : ℕ) : ℂ) ρ) / 2 +
+          ∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n + 1 : ℕ) : ℂ) ρ) =ᶠ[𝓝[>] (0 : ℝ)]
+      (fun ρ : ℝ =>
+        Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ) :=
+    Filter.Eventually.of_forall
+      (fun ρ =>
+        (Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_natCast_unfold
+          N w ρ).symm)
+  exact htotal.congr' hsource
 
 /-- Principal-value small-circle integrals converge to the principal-value
 integer residue contribution: half endpoint residues plus full interior
@@ -434,105 +516,21 @@ theorem Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_pv
     {w : ℂ}
     (hw : 0 < w.re)
     (N : ℕ) :
-    Tendsto
+    Filter.Tendsto
       (fun ρ : ℝ =>
         Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ)
       (𝓝[>] (0 : ℝ))
       (𝓝 (Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w)) := by
-  have hleft :
-      Tendsto
-        (fun ρ : ℝ =>
-          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ)
-        (𝓝[>] (0 : ℝ))
-        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w 0)) :=
-    Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
-      hw 0
-  have hright :
-      Tendsto
-        (fun ρ : ℝ =>
-          Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ)
-        (𝓝[>] (0 : ℝ))
-        (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w (N + 1))) :=
-    Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
-      hw (N + 1)
-  have hinterior :
-      Tendsto
-        (fun ρ : ℝ =>
-          ∑ n in Finset.range N,
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ)
-        (𝓝[>] (0 : ℝ))
-        (𝓝 (Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w)) := by
-    have hlocal :
-        ∀ n ∈ Finset.range N,
-          Tendsto
-            (fun ρ : ℝ =>
-              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ)
-            (𝓝[>] (0 : ℝ))
-            (𝓝 (Complex.finiteAbelPlanaLogIntegerResidue w (n + 1))) :=
-      fun n _hn =>
-        Complex.finiteAbelPlana_log_normalizedSmallCircleIntegral_tendsto_residue
-          hw (n + 1)
-    have hsum :
-        Tendsto
-          (fun ρ : ℝ =>
-            ∑ n in Finset.range N,
-              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ)
-          (𝓝[>] (0 : ℝ))
-          (𝓝
-            (∑ n in Finset.range N,
-              Complex.finiteAbelPlanaLogIntegerResidue w (n + 1))) :=
-      tendsto_finset_sum (Finset.range N) hlocal
-    have htarget :
-        (∑ n in Finset.range N,
-          Complex.finiteAbelPlanaLogIntegerResidue w (n + 1)) =
-        Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w :=
-      (Complex.finiteAbelPlana_log_interiorIntegerResidueContribution_unfold
-        N w).symm
-    exact htarget ▸ hsum
-  have hendpoints :
-      Tendsto
-        (fun ρ : ℝ =>
-          (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2)
-        (𝓝[>] (0 : ℝ))
-        (𝓝 (Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w)) := by
-    have hsum := hleft.add hright
-    have hhalf :
-        Tendsto
-          (fun ρ : ℝ =>
-            (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2)
-          (𝓝[>] (0 : ℝ))
-          (𝓝 ((Complex.finiteAbelPlanaLogIntegerResidue w 0 +
-            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2)) :=
-      hsum.div_const 2
-    have htarget :
-        (Complex.finiteAbelPlanaLogIntegerResidue w 0 +
-            Complex.finiteAbelPlanaLogIntegerResidue w (N + 1)) / 2 =
-          Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w :=
-      (Complex.finiteAbelPlana_log_endpointIntegerResidueContribution_unfold
-        N w).symm
-    exact htarget ▸ hhalf
-  have htotal := hendpoints.add hinterior
-  have hsource :
-      (fun ρ : ℝ =>
-        (Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w 0 ρ +
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (N + 1 : ℂ) ρ) / 2 +
-          ∑ n in Finset.range N,
-            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ) =
-      (fun ρ : ℝ =>
-        Complex.finiteAbelPlanaLogPVSmallCircleIntegralContribution N w ρ) := by
-    funext ρ
-    exact
-      (Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_unfold
-        N w ρ).symm
   have htarget :
       Complex.finiteAbelPlanaLogEndpointIntegerResidueContribution N w +
           Complex.finiteAbelPlanaLogInteriorIntegerResidueContribution N w =
         Complex.finiteAbelPlanaLogPVIntegerResidueContribution N w :=
     (Complex.finiteAbelPlana_log_pvIntegerResidueContribution_unfold
       N w).symm
-  exact hsource ▸ htarget ▸ htotal
+  exact
+    htarget ▸
+      Complex.finiteAbelPlana_log_pvSmallCircleIntegralContribution_tendsto_endpoint_add_interior_residues
+        hw N
 
 end
 

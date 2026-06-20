@@ -754,6 +754,20 @@ theorem intervalIntegral_congr3 {g g' : ℝ → ℂ} {a a' b b' : ℝ}
     (Eq.trans (congrArg (fun w => intervalIntegral g' w b MeasureTheory.volume) ha)
       (congrArg (fun w => intervalIntegral g' a' w MeasureTheory.volume) hb))
 
+/-- Pointwise congruence of an interval integral in integrand and both
+endpoints. -/
+theorem intervalIntegral_congr3_pointwise {g g' : ℝ → ℂ} {a a' b b' : ℝ}
+    (hg : ∀ x : ℝ, g x = g' x) (ha : a = a') (hb : b = b') :
+    (∫ x : ℝ in a..b, g x) = ∫ x : ℝ in a'..b', g' x := by
+  have hintegrand :
+      (∫ x : ℝ in a..b, g x) = ∫ x : ℝ in a..b, g' x :=
+    intervalIntegral.integral_congr (fun x _hx => hg x)
+  exact
+    Eq.trans hintegrand
+      (Eq.trans
+        (congrArg (fun w => intervalIntegral g' w b MeasureTheory.volume) ha)
+        (congrArg (fun w => intervalIntegral g' a' w MeasureTheory.volume) hb))
+
 end
 
 end LFunctions

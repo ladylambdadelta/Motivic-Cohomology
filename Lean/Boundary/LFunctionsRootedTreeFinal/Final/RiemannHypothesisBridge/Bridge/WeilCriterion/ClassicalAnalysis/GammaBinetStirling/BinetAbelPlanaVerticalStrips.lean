@@ -1213,7 +1213,7 @@ theorem Complex.finiteAbelPlana_log_remainingBoundary_after_internalVerticalCanc
         (Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
           Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
             ∑ n in Finset.range N,
-              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ) := by
+              Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n : ℂ) + 1) ρ) := by
   calc
     Complex.finiteAbelPlanaLogFiniteRadiusPuncturedBoundaryIntegral N w T ρ =
         Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ -
@@ -1226,13 +1226,51 @@ theorem Complex.finiteAbelPlana_log_remainingBoundary_after_internalVerticalCanc
           (Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
             Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
               ∑ n in Finset.range N,
-                Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w (n + 1 : ℂ) ρ) := by
+                Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral w ((n : ℂ) + 1) ρ) := by
+      have hone_arg :
+          (1 : ℂ) = ((1 : ℕ) : ℂ) :=
+        (Nat.cast_one : (((1 : ℕ) : ℂ) = 1)).symm
+      have hsum :
+          (∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+              w ((n + 1 : ℕ) : ℂ) ρ) =
+          (∑ n in Finset.range N,
+            Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+              w ((n : ℂ) + 1) ρ) := by
+        exact Eq.symm
+          (Finset.sum_congr rfl
+            (fun n _hn =>
+              congrArg
+                (fun z : ℂ =>
+                  Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                    w z ρ)
+                (Eq.trans
+                  (congrArg (fun z : ℂ => (n : ℂ) + z) hone_arg)
+                  ((Nat.cast_add n 1).symm :
+                    (n : ℂ) + ((1 : ℕ) : ℂ) =
+                      ((n + 1 : ℕ) : ℂ)))))
+      have hdeleted :
+          Complex.finiteAbelPlanaLogPVDeletedBoundaryIntegralContribution N w ρ =
+            Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
+              Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
+                ∑ n in Finset.range N,
+                  Complex.finiteAbelPlanaLogNormalizedSmallCircleIntegral
+                    w ((n : ℂ) + 1) ρ := by
+        exact
+          Eq.trans
+            (Complex.finiteAbelPlana_log_deletedBoundaryContribution_decomposition N w ρ)
+            (congrArg
+              (fun s : ℂ =>
+                Complex.finiteAbelPlanaLogLeftEndpointIndentationIntegral w ρ +
+                  Complex.finiteAbelPlanaLogRightEndpointIndentationIntegral N w ρ +
+                    s)
+              hsum)
       exact
         congrArg
           (fun z =>
             Complex.finiteAbelPlanaLogFiniteHeightRectangleSideExpressionPVNormalized N w T ρ -
               z)
-          (Complex.finiteAbelPlana_log_deletedBoundaryContribution_decomposition N w ρ)
+          hdeleted
 
 /-- Oriented boundary integral of an ordinary axis-parallel rectangle for the
 finite Abel-Plana logarithmic contour integrand.

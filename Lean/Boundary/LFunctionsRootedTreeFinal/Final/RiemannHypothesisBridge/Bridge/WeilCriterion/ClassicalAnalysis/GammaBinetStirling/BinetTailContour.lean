@@ -50,6 +50,16 @@ theorem Complex.binetSecondFormulaTailRemainder_eq_principalTailKernel_integral
         Complex.binetSecondFormulaPrincipalTailKernel w t := by
   rfl
 
+/-- The principal tail kernel is definitionally the arctangent-over-exponential
+Binet kernel. -/
+theorem Complex.binetSecondFormulaPrincipalTailKernel_fun_eq
+    (w : ℂ) :
+    (fun t : ℝ => Complex.binetSecondFormulaPrincipalTailKernel w t) =
+      fun t : ℝ =>
+        Complex.arctan ((t : ℂ) / w) /
+          (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
+  rfl
+
 /-- The principal tail kernel is integrable on the split tail in the open
 right half-plane. -/
 theorem Complex.binetSecondFormulaPrincipalTailKernel_integrableOn_tail
@@ -61,9 +71,7 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_integrableOn_tail
   exact
     Eq.ndrec
       Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
-      (by
-        unfold Complex.binetSecondFormulaPrincipalTailKernel
-        rfl)
+      (Complex.binetSecondFormulaPrincipalTailKernel_fun_eq w).symm
 
 /-- The norm of the Binet tail remainder is bounded by twice the integral of
 the norm of the principal tail kernel. -/
@@ -148,8 +156,7 @@ def Complex.BinetSecondFormulaContourTailUniformMajorant
 /-- The branch-safe contour-deformation comparison for the Binet tail. -/
 theorem Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral :
     Complex.BinetSecondFormulaContourTailIntegralComparison
-      Complex.binetSecondFormulaContourTailMajorantKernel 2 := by
-  intro w hw_re_pos hw_norm
+      Complex.binetSecondFormulaContourTailMajorantKernel 2 := fun w hw_re_pos hw_norm =>
   have htail_to_kernel :
       ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
         2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
