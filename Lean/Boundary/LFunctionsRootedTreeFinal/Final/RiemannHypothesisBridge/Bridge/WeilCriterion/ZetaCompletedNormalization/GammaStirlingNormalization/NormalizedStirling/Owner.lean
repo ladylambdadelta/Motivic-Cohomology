@@ -21,17 +21,40 @@ estimate for `Γ`.
 This is the bridge from the Binet remainder control to the normalized
 Stirling factor. -/
 theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
         0 < w.re →
         R ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
+          K / ‖w‖ := fun hbranch => by
   match
-      Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane_requires_tail_absorption with
+      Complex.binetSecondFormula_logGamma_with_remainder_bound_closedRightHalfPlane_requires_tail_absorption
+        hbranch with
   | ⟨R, K, hR, hK, hBinet⟩ =>
     let R' : ℝ := max R K
     let K' : ℝ := 2 * Real.sqrt (2 * Real.pi) * K
@@ -45,19 +68,19 @@ theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_bine
       exact mul_pos htwo_sqrt_pos hK
     exact
       ⟨R', K', hR', hK',
-        fun w hw_re_pos hw_radius =>
+        fun w hw_re_pos hw_radius hgamma_slit_open hfinite_real hfinite_open =>
           have hR_le : R ≤ ‖w‖ :=
             le_trans (le_max_left R K) hw_radius
           have hK_le : K ≤ ‖w‖ :=
             le_trans (le_max_right R K) hw_radius
-          match hBinet w hw_re_pos hR_le with
+          match hBinet w hw_re_pos hR_le hgamma_slit_open hfinite_real hfinite_open with
           | ⟨hlog, hrem⟩ =>
             let E : ℂ := Complex.binetSecondFormulaRemainder w
             have hnorm_pos : 0 < ‖w‖ :=
               lt_of_lt_of_le hR' hw_radius
             have hsmall : ‖E‖ ≤ 1 := by
               have hdiv_le_one : K / ‖w‖ ≤ 1 :=
-                (div_le_one₀ hnorm_pos.le).mpr hK_le
+                (div_le_one₀ hnorm_pos).mpr hK_le
               exact hrem.trans hdiv_le_one
             have hw_ne : w ≠ 0 :=
               norm_pos_iff.mp hnorm_pos

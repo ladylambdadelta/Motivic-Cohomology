@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.LogArctangent.Owner
+import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
 # Binet formula: branch and integral representations
@@ -13,7 +14,11 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open MeasureTheory
 
+/-- Multiplying the upper and lower vertical factors gives the quadratic
+denominator used in the Binet derivative kernel. -/
+theorem Complex.add_mul_I_mul_sub_mul_I_eq_sq_add_sq
     (z : ℂ)
     (t : ℝ) :
     (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I) =
@@ -49,11 +54,16 @@ principal `Complex.log (Complex.Gamma w)`. -/
 theorem Complex.Gamma_binetSecondFormula_branchExponential :
     ∀ {w : ℂ},
       0 < w.re →
+        (∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+            Complex.binetAbelPlanaFiniteMainTerm N w +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+                Complex.binetAbelPlanaFiniteContourRemainder N w) →
         Complex.exp (Complex.binetLogGammaBranch w) =
           Complex.Gamma w := by
-  intro w hw
+  intro w hw hfinite
   exact
-    Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlana w hw
+    Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlana w hw hfinite
 
 /-- The Binet main term is real-valued on the positive real axis. -/
 theorem Complex.binetLogGammaMainTerm_posReal_im_eq_zero
@@ -84,7 +94,43 @@ theorem Complex.binetLogGammaMainTerm_posReal_im_eq_zero
       _ =
           (((x - (1 / 2 : ℝ)) * Real.log x - x +
             Real.log (2 * Real.pi) / 2 : ℝ) : ℂ) := by
-        rfl
+        have hshift :
+            (x : ℂ) - (1 / 2 : ℂ) = ((x - (1 / 2 : ℝ) : ℝ) : ℂ) := by
+          have hhalf : (((1 / 2 : ℝ) : ℝ) : ℂ) = (1 / 2 : ℂ) := by
+            exact Complex.ofReal_div 1 2
+          exact
+            Eq.trans
+              (congrArg (fun u : ℂ => (x : ℂ) - u) hhalf.symm)
+              (Eq.symm (Complex.ofReal_sub x (1 / 2 : ℝ)))
+        exact
+          Eq.trans
+            (congrArg
+              (fun u : ℂ =>
+                u * ((Real.log x : ℝ) : ℂ) - (x : ℂ) +
+                  (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+              hshift)
+            (Eq.trans
+              (congrArg
+              (fun u : ℂ =>
+                u - (x : ℂ) + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+              (Eq.symm (Complex.ofReal_mul (x - (1 / 2 : ℝ)) (Real.log x))))
+            (Eq.trans
+              (congrArg
+                (fun u : ℂ => u + (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
+                (Eq.symm
+                  (Complex.ofReal_sub
+                    ((x - (1 / 2 : ℝ)) * Real.log x)
+                    x)))
+              (Eq.trans
+                (congrArg
+                  (fun u : ℂ =>
+                    (((x - (1 / 2 : ℝ)) * Real.log x - x : ℝ) : ℂ) + u)
+                  (Eq.symm
+                    (Complex.ofReal_div (Real.log (2 * Real.pi)) 2)))
+                (Eq.symm
+                  (Complex.ofReal_add
+                    (((x - (1 / 2 : ℝ)) * Real.log x - x))
+                    (Real.log (2 * Real.pi) / 2))))))
   exact
     Complex.im_eq_zero_of_eq_ofReal
       hreal
@@ -92,8 +138,8 @@ theorem Complex.binetLogGammaMainTerm_posReal_im_eq_zero
 /-- The Binet arctangent kernel is real-valued on the positive real axis. -/
 theorem Complex.binetSecondFormulaKernel_posReal_im_eq_zero
     {x t : ℝ}
-    (hx : 0 < x)
-    (ht : 0 < t) :
+    (_hx : 0 < x)
+    (_ht : 0 < t) :
     (Complex.arctan ((t : ℂ) / (x : ℂ)) /
         (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)).im = 0 := by
   have harg :
@@ -116,9 +162,11 @@ theorem Complex.binetSecondFormulaKernel_posReal_im_eq_zero
         calc
           Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1 =
               ((Real.exp ((2 : ℝ) * Real.pi * t) : ℝ) : ℂ) - 1 := by
-            exact congrArg (fun z : ℂ => z - 1) (Complex.ofReal_exp _)
+            exact congrArg (fun z : ℂ => z - 1) (Complex.ofReal_exp _).symm
           _ = ((Real.exp ((2 : ℝ) * Real.pi * t) - 1 : ℝ) : ℂ) := by
-            rfl
+            exact
+              Eq.symm
+                (Complex.ofReal_sub (Real.exp ((2 : ℝ) * Real.pi * t)) 1)
   have hquot :
       Complex.arctan ((t : ℂ) / (x : ℂ)) /
           (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) =
@@ -133,9 +181,9 @@ theorem Complex.binetSecondFormulaKernel_posReal_im_eq_zero
       _ =
         ((Real.arctan (t / x) /
           (Real.exp ((2 : ℝ) * Real.pi * t) - 1) : ℝ) : ℂ) := by
-        exact Complex.ofReal_div
+        exact Eq.symm (Complex.ofReal_div
           (Real.arctan (t / x))
-          (Real.exp ((2 : ℝ) * Real.pi * t) - 1)
+          (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
   exact Complex.im_eq_zero_of_eq_ofReal hquot
 
 /-- The Binet second-formula remainder is real-valued on the positive real
@@ -148,16 +196,17 @@ theorem Complex.binetSecondFormulaRemainder_posReal_im_eq_zero
     Complex.arctan ((t : ℂ) / (x : ℂ)) /
       (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1)
   have hK_integrable :
-      Integrable K (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+      Integrable K (volume.restrict (Set.Ioi (0 : ℝ))) := by
     exact
       Complex.binetSecondFormula_arctanKernel_integrable_owner
         (w := (x : ℂ)) hx
   have hK_im_zero :
-      ∀ᵐ t ∂Measure.restrict volume (Set.Ioi (0 : ℝ)),
+      ∀ᵐ t ∂volume.restrict (Set.Ioi (0 : ℝ)),
         (K t).im = 0 := by
     exact
-      (MeasureTheory.self_mem_ae_restrict
-        (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+      Filter.mem_of_superset
+        (MeasureTheory.self_mem_ae_restrict
+          (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ))))
         (fun t ht =>
           Complex.binetSecondFormulaKernel_posReal_im_eq_zero
             hx ht)
@@ -178,7 +227,7 @@ theorem Complex.binetSecondFormulaRemainder_posReal_im_eq_zero
   have hmul_im :
       (2 * ∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im =
         2 * (∫ t : ℝ in Set.Ioi (0 : ℝ), K t).im := by
-    exact Complex.mul_im _ _
+    exact Complex.im_ofReal_mul 2 (∫ t : ℝ in Set.Ioi (0 : ℝ), K t)
   exact
     Eq.subst
       (motive := fun y : ℝ => y = 0)
@@ -209,13 +258,13 @@ theorem Complex.binetLogGammaBranch_posReal_im_eq_zero_owner
       (calc
         (Complex.binetLogGammaMainTerm (x : ℂ) +
             Complex.binetSecondFormulaRemainder (x : ℂ)).im =
-        Complex.binetLogGammaMainTerm (x : ℂ).im +
-          Complex.binetSecondFormulaRemainder (x : ℂ).im := by
+        (Complex.binetLogGammaMainTerm (x : ℂ)).im +
+          (Complex.binetSecondFormulaRemainder (x : ℂ)).im := by
           exact Complex.add_im _ _
-        _ = 0 + Complex.binetSecondFormulaRemainder (x : ℂ).im := by
+        _ = 0 + (Complex.binetSecondFormulaRemainder (x : ℂ)).im := by
           exact congrArg
             (fun y : ℝ =>
-              y + Complex.binetSecondFormulaRemainder (x : ℂ).im)
+              y + (Complex.binetSecondFormulaRemainder (x : ℂ)).im)
             hmain
         _ = 0 + 0 := by
           exact congrArg (fun y : ℝ => 0 + y) hrem
@@ -225,14 +274,20 @@ theorem Complex.binetLogGammaBranch_posReal_im_eq_zero_owner
 principal logarithm of Gamma. -/
 theorem Complex.binetLogGammaBranch_eq_principalLog_Gamma_of_posReal_owner
     {x : ℝ}
-    (hx : 0 < x) :
+    (hx : 0 < x)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+          Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+              Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) :
     Complex.binetLogGammaBranch (x : ℂ) =
       Complex.log (Complex.Gamma (x : ℂ)) := by
   have hbranch_exp :
       Complex.exp (Complex.binetLogGammaBranch (x : ℂ)) =
         Complex.Gamma (x : ℂ) :=
     Complex.Gamma_binetSecondFormula_branchExponential
-      (w := (x : ℂ)) hx
+      (w := (x : ℂ)) hx hfinite
   have hgamma_pos : 0 < Real.Gamma x :=
     Real.Gamma_pos_of_pos hx
   have hgamma_real :
@@ -243,10 +298,12 @@ theorem Complex.binetLogGammaBranch_eq_principalLog_Gamma_of_posReal_owner
         Complex.log (Complex.Gamma (x : ℂ)) := by
     exact by
       have h' : Complex.Gamma (x : ℂ) = ((Real.Gamma x : ℝ) : ℂ) := hgamma_real
-      exact h'.symm ▸ (Complex.ofReal_log hgamma_pos.le).symm
+      exact h'.symm ▸ Complex.ofReal_log hgamma_pos.le
   have hlog_im :
       (Complex.log (Complex.Gamma (x : ℂ))).im = 0 := by
-    exact congrArg Complex.im hlog_gamma
+    have hofReal_im :
+        (((Real.log (Real.Gamma x) : ℝ) : ℂ)).im = 0 := rfl
+    exact Eq.trans (congrArg Complex.im hlog_gamma).symm hofReal_im
   have hbranch_im :
       (Complex.binetLogGammaBranch (x : ℂ)).im = 0 :=
     Complex.binetLogGammaBranch_posReal_im_eq_zero_owner hx
@@ -270,6 +327,23 @@ This is a real-axis branch comparison theorem.  It is separate from the global
 open-half-plane Abel-Plana output, which is the branch-exponential theorem
 above. -/
 theorem Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
+    {x : ℝ}
+    (hx : 0 < x)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+          Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+              Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) :
+    Complex.log (Complex.Gamma (x : ℂ)) =
+      Complex.binetLogGammaMainTerm (x : ℂ) +
+        Complex.binetSecondFormulaRemainder (x : ℂ) := by
+  have hbranch :
+      Complex.binetLogGammaBranch (x : ℂ) =
+        Complex.log (Complex.Gamma (x : ℂ)) :=
+    Complex.binetLogGammaBranch_eq_principalLog_Gamma_of_posReal_owner
+      hx hfinite
+  exact hbranch.symm
 
 end
 

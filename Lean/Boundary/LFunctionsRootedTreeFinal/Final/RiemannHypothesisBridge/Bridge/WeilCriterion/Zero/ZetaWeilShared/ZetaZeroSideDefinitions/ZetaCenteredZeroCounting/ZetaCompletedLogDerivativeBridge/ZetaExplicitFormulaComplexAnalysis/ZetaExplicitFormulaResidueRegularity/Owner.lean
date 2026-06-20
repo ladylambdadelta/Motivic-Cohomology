@@ -108,12 +108,10 @@ theorem completedZetaContourIntegrandSingularSet_subset_contourSingularPoint :
     completedZetaContourIntegrandSingularSet ⊆
       {z : ℂ | explicitFormulaContourSingularPoint z} := by
   intro z hz
-  unfold completedZetaContourIntegrandSingularSet at hz
-  unfold explicitFormulaContourSingularPoint
-  rcases hz with hz0 | hz1 | hzeta
-  · exact Or.inl hz0
-  · exact Or.inr (Or.inl hz1)
-  · exact Or.inr (Or.inr (Or.inr (Or.inr hzeta)))
+  match hz with
+  | Or.inl hz0 => exact Or.inl hz0
+  | Or.inr (Or.inl hz1) => exact Or.inr (Or.inl hz1)
+  | Or.inr (Or.inr hzeta) => exact Or.inr (Or.inr (Or.inr (Or.inr hzeta)))
 
 /-- Boundary avoidance for the scheduled contour excludes the completed contour-integrand
 singular set on that rectangle boundary. -/
@@ -189,10 +187,6 @@ theorem explicitFormulaZeroResidue_ofCompletedZero_eq_zeroSideContribution
     (f : ZetaAdmissibleFunction) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     explicitFormulaZeroResidue f (explicitFormulaZeroDataOfCompletedZero ρ) =
       zetaZeroSideContribution (ρ : ℂ) f := by
-  unfold explicitFormulaZeroResidue
-  unfold explicitFormulaZeroDataOfCompletedZero
-  unfold zetaZeroSideContribution
-  unfold zetaCenteredZero
   rfl
 
 /-- The finite completed-zero height window used by the residue-side contour approximation. -/
@@ -206,7 +200,6 @@ theorem mem_explicitFormulaCompletedZeroHeightWindow_iff
     (T : ℝ) (ρ : {ρ : ℂ // ZetaCompletedZero ρ}) :
     ρ ∈ explicitFormulaCompletedZeroHeightWindow T ↔
       ρ ∈ completedZerosInCenteredHeightBall T := by
-  unfold explicitFormulaCompletedZeroHeightWindow
   exact Set.Finite.mem_toFinset (finite_completedZerosInCenteredHeightBall T)
 
 /-- Completed-zero height windows are monotone in the height cutoff. -/
@@ -220,8 +213,6 @@ theorem explicitFormulaCompletedZeroHeightWindow_mono
     (mem_explicitFormulaCompletedZeroHeightWindow_iff S ρ).1 hρ
   have hρT :
       ρ ∈ completedZerosInCenteredHeightBall T := by
-    unfold completedZerosInCenteredHeightBall at hρS
-    unfold completedZerosInCenteredHeightBall
     exact le_trans hρS hST
   exact (mem_explicitFormulaCompletedZeroHeightWindow_iff T ρ).2 hρT
 
@@ -235,7 +226,6 @@ theorem explicitFormulaCompletedZeroHeightWindow_tendsto_atTop :
         exact (mem_explicitFormulaCompletedZeroHeightWindow_iff
           (zetaCompletedZeroCenteredHeight ρ) ρ).2
           (by
-            unfold completedZerosInCenteredHeightBall
             exact le_refl (zetaCompletedZeroCenteredHeight ρ))⟩)
 
 /-- The finite residue sum over the completed-zero height window. -/
@@ -255,8 +245,6 @@ theorem explicitFormulaCompletedZeroHeightWindowResidueSum_eq_zeroSideSum
     (f : ZetaAdmissibleFunction) (T : ℝ) :
     explicitFormulaCompletedZeroHeightWindowResidueSum f T =
       explicitFormulaCompletedZeroHeightWindowZeroSideSum f T := by
-  unfold explicitFormulaCompletedZeroHeightWindowResidueSum
-  unfold explicitFormulaCompletedZeroHeightWindowZeroSideSum
   exact Finset.sum_congr
     rfl
     (fun ρ _hρ =>

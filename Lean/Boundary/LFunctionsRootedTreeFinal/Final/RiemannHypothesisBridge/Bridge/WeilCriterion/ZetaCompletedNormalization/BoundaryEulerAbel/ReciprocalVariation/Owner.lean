@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.FirstDerivative.Owner
 
 /-!
 # Reciprocal-variation estimates
@@ -110,15 +110,11 @@ logarithmic-phase partial sums. -/
 theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
-    (hphase_deriv :
-      ∀ {u : ℝ}, 0 < u →
-        deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u =
-          (((-(t : ℂ) * Complex.I) / (u : ℂ)) *
-            boundaryLineOnePointRealParam_logarithmicPhaseFunction t u))
-    (hphase_deriv_norm :
-      ∀ {u : ℝ}, 0 < u →
-        ‖deriv (boundaryLineOnePointRealParam_logarithmicPhaseFunction t) u‖ =
-          ‖t‖ / u)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     (hreciprocal_deriv :
       ∀ {u : ℝ}, 0 < u →
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) u =
@@ -133,15 +129,6 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  have hpartial :
-      ∀ {x : ℝ},
-        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
-          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
-            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x) := by
-    intro x hx
-    exact
-      firstDerivativeEulerMaclaurin_logarithmicPhase_partialSum_bound
-        t ht hphase_deriv hphase_deriv_norm hx
   exact
     oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_bound_of_partialSums
       t ht hpartial hreciprocal_deriv hreciprocal_deriv_norm hNM
@@ -156,6 +143,11 @@ majorant alone. -/
 theorem oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
@@ -164,9 +156,7 @@ theorem oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact
     oscillatoryEulerMaclaurin_logarithmicPhase_reciprocalVariation_integral_bound
-      t ht
-      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_eq t hu)
-      (fun hu => boundaryLineOnePointRealParam_logarithmicPhaseFunction_deriv_norm_eq t hu)
+      t ht hpartial
       (fun hu => complexReciprocalOfReal_deriv_eq hu)
       (fun hu => complexReciprocalOfReal_deriv_norm_eq hu)
       hNM

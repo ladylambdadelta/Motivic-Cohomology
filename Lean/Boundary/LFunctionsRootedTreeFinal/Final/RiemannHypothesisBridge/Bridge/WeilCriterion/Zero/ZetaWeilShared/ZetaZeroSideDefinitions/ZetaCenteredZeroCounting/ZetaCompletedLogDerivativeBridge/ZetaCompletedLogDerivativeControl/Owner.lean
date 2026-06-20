@@ -382,6 +382,29 @@ theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBound
           ≤ C * (1 + ‖z.im‖) ^ N := by
   exact h.zero_excised_polynomial_strip_bound a b E N
 
+/-- The chosen zero-excised strip-bound constant. -/
+noncomputable def CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) : ℝ :=
+  Classical.choose (h.zeroExcisedStripBound a b E N)
+
+/-- The chosen zero-excised strip-bound constant is positive. -/
+theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant_pos
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ) :
+    0 < h.zeroExcisedStripBoundConstant a b E N :=
+  (Classical.choose_spec (h.zeroExcisedStripBound a b E N)).1
+
+/-- The chosen zero-excised strip-bound constant bounds the completed negative
+logarithmic derivative on the excised carrier. -/
+theorem CompletedZetaNegLogDerivControl.zeroExcisedStripBoundConstant_bound
+    {f : ZetaAdmissibleFunction} (h : CompletedZetaNegLogDerivControl f)
+    (a b : ℝ) (E : CompletedZetaZeroExcisedStrip a b) (N : ℕ)
+    (z : ℂ) (hz : z ∈ E.carrier) :
+    ‖completedZetaNegLogDeriv z‖ ≤
+      h.zeroExcisedStripBoundConstant a b E N * (1 + ‖z.im‖) ^ N :=
+  (Classical.choose_spec (h.zeroExcisedStripBound a b E N)).2 z hz
+
 /-- The completed negative log-derivative control is the owner-level strip package. -/
 def CompletedZetaNegLogDerivControlPackage (f : ZetaAdmissibleFunction) : Prop :=
   CompletedZetaNegLogDerivControl f

@@ -35,8 +35,11 @@ theorem Real.half_eq_self_add_neg_half
 /-- Translating by the displacement from `x` to `y` lands at `y`. -/
 theorem Real.add_sub_self_right
     (x y : ℝ) :
-    x + (y - x) = y :=
-  add_sub_cancel_left x y
+    x + (y - x) = y := by
+  calc
+    x + (y - x) = x + y - x := by
+      exact (add_sub_assoc x y x).symm
+    _ = y := add_sub_cancel_left x y
 
 /-- Division by a square followed by division by `d` can be factored by the
 inverse square. -/
@@ -45,37 +48,13 @@ theorem Real.div_sq_div_assoc
     (t / δ ^ 2) / d = (1 / δ ^ 2) * (t / d) := by
   calc
     (t / δ ^ 2) / d = (t * (δ ^ 2)⁻¹) * d⁻¹ := rfl
+    _ = t * ((δ ^ 2)⁻¹ * d⁻¹) := by
+      exact mul_assoc t (δ ^ 2)⁻¹ d⁻¹
     _ = (δ ^ 2)⁻¹ * (t * d⁻¹) := by
       exact mul_left_comm t (δ ^ 2)⁻¹ d⁻¹
     _ = (1 * (δ ^ 2)⁻¹) * (t * d⁻¹) := by
       exact congrArg (fun z : ℝ => z * (t * d⁻¹)) (Eq.symm (one_mul (δ ^ 2)⁻¹))
     _ = (1 / δ ^ 2) * (t / d) := rfl
-
-/-- A real multiple of `I` has zero real part. -/
-theorem Complex.real_mul_I_re_eq_zero
-    (t : ℝ) :
-    ((t : ℂ) * Complex.I).re = 0 := by
-  calc
-    ((t : ℂ) * Complex.I).re =
-        (t : ℂ).re * Complex.I.re - (t : ℂ).im * Complex.I.im := by
-      exact Complex.mul_re (t : ℂ) Complex.I
-    _ = t * 0 - 0 * 1 := rfl
-    _ = 0 - 0 := by
-      exact congrArg (fun x : ℝ => x - 0 * 1) (mul_zero t)
-    _ = 0 := sub_self 0
-
-/-- Adding a real multiple of `I` preserves real part. -/
-theorem Complex.add_real_mul_I_re
-    (z : ℂ)
-    (t : ℝ) :
-    (z + (t : ℂ) * Complex.I).re = z.re := by
-  calc
-    (z + (t : ℂ) * Complex.I).re = z.re + ((t : ℂ) * Complex.I).re := by
-      exact Complex.add_re z ((t : ℂ) * Complex.I)
-    _ = z.re + 0 := by
-      exact congrArg (fun x : ℝ => z.re + x)
-        (Complex.real_mul_I_re_eq_zero t)
-    _ = z.re := add_zero z.re
 
 /-- A complex number identified with a real coercion has zero imaginary part. -/
 theorem Complex.im_eq_zero_of_eq_ofReal
@@ -86,19 +65,6 @@ theorem Complex.im_eq_zero_of_eq_ofReal
   calc
     z.im = ((x : ℂ) : ℂ).im := congrArg Complex.im hz
     _ = 0 := Complex.ofReal_im x
-
-/-- Subtracting a real multiple of `I` preserves real part. -/
-theorem Complex.sub_real_mul_I_re
-    (z : ℂ)
-    (t : ℝ) :
-    (z - (t : ℂ) * Complex.I).re = z.re := by
-  calc
-    (z - (t : ℂ) * Complex.I).re = z.re - ((t : ℂ) * Complex.I).re := by
-      exact Complex.sub_re z ((t : ℂ) * Complex.I)
-    _ = z.re - 0 := by
-      exact congrArg (fun x : ℝ => z.re - x)
-        (Complex.real_mul_I_re_eq_zero t)
-    _ = z.re := sub_zero z.re
 
 /-- Squaring a real multiple of `I` gives the negative real square. -/
 theorem Complex.real_mul_I_sq
@@ -118,21 +84,21 @@ theorem Complex.real_mul_I_sq
 /-- Dividing `-1` by `I` gives `I`. -/
 theorem Complex.neg_one_div_I_eq_I :
     ((-1 : ℂ) / Complex.I) = Complex.I := by
-  have hmul : Complex.I * Complex.I = (-1 : ℂ) :=
-    Complex.I_mul_I
-  exact Eq.symm (eq_div_of_mul_eq'' hmul)
+  calc
+    ((-1 : ℂ) / Complex.I) = -((-1 : ℂ) * Complex.I) :=
+      Complex.div_I (-1 : ℂ)
+    _ = -(-Complex.I) := by
+      exact congrArg Neg.neg (neg_one_mul Complex.I)
+    _ = Complex.I := neg_neg Complex.I
 
 /-- Dividing `1` by `I` gives `-I`. -/
 theorem Complex.one_div_I_eq_neg_I :
     ((1 : ℂ) / Complex.I) = -Complex.I := by
-  have hmul : Complex.I * (-Complex.I) = (1 : ℂ) := by
-    calc
-      Complex.I * (-Complex.I) = -(Complex.I * Complex.I) :=
-        mul_neg Complex.I Complex.I
-      _ = -(-1 : ℂ) := by
-        exact congrArg Neg.neg Complex.I_mul_I
-      _ = 1 := neg_neg (1 : ℂ)
-  exact Eq.symm (eq_div_of_mul_eq'' hmul)
+  calc
+    ((1 : ℂ) / Complex.I) = -((1 : ℂ) * Complex.I) :=
+      Complex.div_I (1 : ℂ)
+    _ = -Complex.I := by
+      exact congrArg Neg.neg (one_mul Complex.I)
 
 /-- The branch equation `t / w = I` would force `w + tI = 0`. -/
 theorem Complex.add_I_mul_mul_I_eq_zero
@@ -181,6 +147,25 @@ theorem Complex.sub_neg_I_mul_mul_I_eq_zero
 
 /-- Collecting one additive cancellation without commutative-group automation. -/
 theorem Complex.add_sub_add_neg_right_eq_add
+    (x a b : ℂ) :
+    (x + a) - (a + -b) = x + b := by
+  calc
+    (x + a) - (a + -b) = (x + a) + -(a + -b) :=
+      sub_eq_add_neg (x + a) (a + -b)
+    _ = (x + a) + (-(-b) + -a) := by
+      exact congrArg (fun u : ℂ => (x + a) + u) (neg_add_rev a (-b))
+    _ = (x + a) + (b + -a) := by
+      exact congrArg (fun u : ℂ => (x + a) + (u + -a)) (neg_neg b)
+    _ = (x + a) + (-a + b) := by
+      exact congrArg (fun u : ℂ => (x + a) + u) (add_comm b (-a))
+    _ = x + (a + (-a + b)) := by
+      exact add_assoc x a (-a + b)
+    _ = x + ((a + -a) + b) := by
+      exact congrArg (fun u : ℂ => x + u) (Eq.symm (add_assoc a (-a) b))
+    _ = x + (0 + b) := by
+      exact congrArg (fun u : ℂ => x + (u + b)) (add_neg_cancel a)
+    _ = x + b := by
+      exact congrArg (fun u : ℂ => x + u) (zero_add b)
 
 end
 

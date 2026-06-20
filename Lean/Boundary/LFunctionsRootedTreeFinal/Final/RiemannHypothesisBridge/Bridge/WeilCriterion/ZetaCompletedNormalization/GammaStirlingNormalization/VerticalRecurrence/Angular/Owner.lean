@@ -26,19 +26,17 @@ theorem Real.arctan_le_self_of_nonneg
     have hzero_le :
         Real.arctan 0 ≤ Real.arctan t :=
       Real.arctan_strictMono.monotone ht
-    exact Eq.subst
-      (motive := fun r : ℝ => r ≤ Real.arctan t)
-      Real.arctan_zero
-      hzero_le
+    calc
+      0 = Real.arctan 0 := Real.arctan_zero.symm
+      _ ≤ Real.arctan t := hzero_le
   have harctan_lt_half_pi : Real.arctan t < Real.pi / 2 :=
     Real.arctan_lt_pi_div_two t
   have hle_tan :
       Real.arctan t ≤ Real.tan (Real.arctan t) :=
     Real.le_tan harctan_nonneg harctan_lt_half_pi
-  exact Eq.subst
-    (motive := fun r : ℝ => Real.arctan t ≤ r)
-    (Real.tan_arctan t)
-    hle_tan
+  calc
+    Real.arctan t ≤ Real.tan (Real.arctan t) := hle_tan
+    _ = t := Real.tan_arctan t
 
 /-- Multiplicative form of `Real.arctan_le_self_of_nonneg` after substituting
 `t = u / |y|`. -/
@@ -53,10 +51,9 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
       exact Eq.trans
         (congrArg (fun r : ℝ => r * Real.arctan (u / ‖y‖)) hy_zero)
         (zero_mul (Real.arctan (u / ‖y‖)))
-    exact Eq.subst
-      (motive := fun r : ℝ => r ≤ u)
-      hleft_eq_zero.symm
-      hu
+    calc
+      ‖y‖ * Real.arctan (u / ‖y‖) = 0 := hleft_eq_zero
+      _ ≤ u := hu
   | Or.inr hy_ne_zero =>
     have hy_pos : 0 < ‖y‖ :=
       lt_of_le_of_ne (norm_nonneg y) hy_ne_zero.symm
@@ -70,10 +67,9 @@ theorem Real.norm_mul_arctan_div_norm_le_self_of_nonneg
     have hcancel :
         ‖y‖ * (u / ‖y‖) = u :=
       mul_div_cancel₀ u hy_ne_zero
-    exact Eq.subst
-      (motive := fun r : ℝ => ‖y‖ * Real.arctan (u / ‖y‖) ≤ r)
-      hcancel.symm
-      hmul
+    calc
+      ‖y‖ * Real.arctan (u / ‖y‖) ≤ ‖y‖ * (u / ‖y‖) := hmul
+      _ = u := hcancel
 
 /-- Principal-argument formula for a right-half-plane ray above the real axis,
 written in the reciprocal arctangent form suited to the linear defect estimate. -/
@@ -91,10 +87,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
         _ = 0 := hu_zero
     have hz_im_pos : 0 < z.im := by
-      exact Eq.subst
-        (motive := fun r : ℝ => 0 < r)
-        (Complex.fixedRealPartVerticalPoint_im u y).symm
-        hy
+      calc
+        0 < y := hy
+        _ = z.im := (Complex.fixedRealPartVerticalPoint_im u y).symm
     have harg_axis : Complex.arg z = Real.pi / 2 :=
       Complex.arg_eq_pi_div_two_iff.mpr ⟨hz_re_zero, hz_im_pos⟩
     have hratio_zero : u / y = 0 := by
@@ -111,17 +106,15 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
         exact congrArg (fun r : ℝ => Real.pi / 2 - r) hatan_zero.symm
   | Or.inr hu_ne_zero =>
     have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_ne_zero.symm
+      lt_of_le_of_ne hu hu_ne_zero
     have hz_re_pos : 0 < z.re := by
-      exact Eq.subst
-        (motive := fun r : ℝ => 0 < r)
-        (Complex.fixedRealPartVerticalPoint_re u y).symm
-        hu_pos
+      calc
+        0 < u := hu_pos
+        _ = z.re := (Complex.fixedRealPartVerticalPoint_re u y).symm
     have hz_im_pos : 0 < z.im := by
-      exact Eq.subst
-        (motive := fun r : ℝ => 0 < r)
-        (Complex.fixedRealPartVerticalPoint_im u y).symm
-        hy
+      calc
+        0 < y := hy
+        _ = z.im := (Complex.fixedRealPartVerticalPoint_im u y).symm
     have harg_gt_neg_half : -(Real.pi / 2) < Complex.arg z :=
       Complex.neg_pi_div_two_lt_arg_iff.mpr (Or.inl hz_re_pos)
     have harg_lt_half : Complex.arg z < Real.pi / 2 :=
@@ -141,20 +134,28 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arcta
     have hratio_pos : 0 < y / u :=
       div_pos hy hu_pos
     have hinv_eq : (y / u)⁻¹ = u / y :=
-      inv_div
+      inv_div y u
     have hrecip :
         Real.arctan (u / y) = Real.pi / 2 - Real.arctan (y / u) := by
-      exact Eq.subst
-        (motive := fun r : ℝ =>
-          Real.arctan r = Real.pi / 2 - Real.arctan (y / u))
-        hinv_eq
-        (Real.arctan_inv_of_pos hratio_pos)
+      calc
+        Real.arctan (u / y) =
+            Real.arctan ((y / u)⁻¹) :=
+          congrArg Real.arctan hinv_eq.symm
+        _ = Real.pi / 2 - Real.arctan (y / u) :=
+          Real.arctan_inv_of_pos hratio_pos
     have hswap :
         Real.arctan (y / u) = Real.pi / 2 - Real.arctan (u / y) := by
       have hsum :
           Real.arctan (u / y) + Real.arctan (y / u) = Real.pi / 2 := by
         exact (eq_sub_iff_add_eq.mp hrecip)
-      exact (eq_sub_iff_add_eq.mpr hsum.symm)
+      have hsum_comm :
+          Real.arctan (y / u) + Real.arctan (u / y) = Real.pi / 2 := by
+        calc
+          Real.arctan (y / u) + Real.arctan (u / y) =
+              Real.arctan (u / y) + Real.arctan (y / u) :=
+            add_comm (Real.arctan (y / u)) (Real.arctan (u / y))
+          _ = Real.pi / 2 := hsum
+      exact eq_sub_iff_add_eq.mpr hsum_comm
     calc
       Complex.arg (Complex.fixedRealPartVerticalPoint u y) = Complex.arg z := rfl
       _ = Real.arctan (y / u) := harg_eq_atan.symm
@@ -176,10 +177,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
         z.re = u := Complex.fixedRealPartVerticalPoint_re u y
         _ = 0 := hu_zero
     have hz_im_neg : z.im < 0 := by
-      exact Eq.subst
-        (motive := fun r : ℝ => r < 0)
-        (Complex.fixedRealPartVerticalPoint_im u y).symm
-        hy
+      calc
+        z.im = y := Complex.fixedRealPartVerticalPoint_im u y
+        _ < 0 := hy
     have harg_axis : Complex.arg z = -(Real.pi / 2) :=
       Complex.arg_eq_neg_pi_div_two_iff.mpr ⟨hz_re_zero, hz_im_neg⟩
     have hratio_zero : u / ‖y‖ = 0 := by
@@ -196,19 +196,17 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
         exact congrArg (fun r : ℝ => -(Real.pi / 2) + r) hatan_zero.symm
   | Or.inr hu_ne_zero =>
     have hu_pos : 0 < u :=
-      lt_of_le_of_ne hu hu_ne_zero.symm
+      lt_of_le_of_ne hu hu_ne_zero
     have hy_norm_pos : 0 < ‖y‖ :=
-      Real.norm_pos_iff.mpr (ne_of_lt hy)
+      norm_pos_iff.mpr (ne_of_lt hy)
     have hz_re_pos : 0 < z.re := by
-      exact Eq.subst
-        (motive := fun r : ℝ => 0 < r)
-        (Complex.fixedRealPartVerticalPoint_re u y).symm
-        hu_pos
+      calc
+        0 < u := hu_pos
+        _ = z.re := (Complex.fixedRealPartVerticalPoint_re u y).symm
     have hz_im_neg : z.im < 0 := by
-      exact Eq.subst
-        (motive := fun r : ℝ => r < 0)
-        (Complex.fixedRealPartVerticalPoint_im u y).symm
-        hy
+      calc
+        z.im = y := Complex.fixedRealPartVerticalPoint_im u y
+        _ < 0 := hy
     have harg_gt_neg_half : -(Real.pi / 2) < Complex.arg z :=
       Complex.neg_pi_div_two_lt_arg_iff.mpr (Or.inl hz_re_pos)
     have harg_lt_half : Complex.arg z < Real.pi / 2 :=
@@ -216,7 +214,9 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
     have hy_eq_neg_norm : y = -‖y‖ := by
       have hnorm : ‖y‖ = -y :=
         Real.norm_of_nonpos (le_of_lt hy)
-      exact hnorm.symm ▸ rfl
+      calc
+        y = -(-y) := (neg_neg y).symm
+        _ = -‖y‖ := congrArg Neg.neg hnorm.symm
     have htan_arg : Real.tan (Complex.arg z) = y / u := by
       calc
         Real.tan (Complex.arg z) = z.im / z.re := Complex.tan_arg z
@@ -241,15 +241,16 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
     have hratio_pos : 0 < ‖y‖ / u :=
       div_pos hy_norm_pos hu_pos
     have hinv_eq : (‖y‖ / u)⁻¹ = u / ‖y‖ :=
-      inv_div
+      inv_div ‖y‖ u
     have hrecip :
         Real.arctan (u / ‖y‖) =
           Real.pi / 2 - Real.arctan (‖y‖ / u) := by
-      exact Eq.subst
-        (motive := fun r : ℝ =>
-          Real.arctan r = Real.pi / 2 - Real.arctan (‖y‖ / u))
-        hinv_eq
-        (Real.arctan_inv_of_pos hratio_pos)
+      calc
+        Real.arctan (u / ‖y‖) =
+            Real.arctan ((‖y‖ / u)⁻¹) :=
+          congrArg Real.arctan hinv_eq.symm
+        _ = Real.pi / 2 - Real.arctan (‖y‖ / u) :=
+          Real.arctan_inv_of_pos hratio_pos
     have hneg_atan_eq :
         -Real.arctan (‖y‖ / u) =
           -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
@@ -263,10 +264,25 @@ theorem Complex.arg_fixedRealPartVerticalPoint_of_neg_im_eq_neg_pi_div_two_add_a
                 Real.arctan (u / ‖y‖) + Real.arctan (‖y‖ / u) =
                   Real.pi / 2 :=
               eq_sub_iff_add_eq.mp hrecip
-            exact eq_sub_iff_add_eq.mpr hsum.symm
+            have hsum_comm :
+                Real.arctan (‖y‖ / u) + Real.arctan (u / ‖y‖) =
+                  Real.pi / 2 := by
+              calc
+                Real.arctan (‖y‖ / u) + Real.arctan (u / ‖y‖) =
+                    Real.arctan (u / ‖y‖) + Real.arctan (‖y‖ / u) :=
+                  add_comm (Real.arctan (‖y‖ / u)) (Real.arctan (u / ‖y‖))
+                _ = Real.pi / 2 := hsum
+            exact eq_sub_iff_add_eq.mpr hsum_comm
           exact congrArg Neg.neg hswap
         _ = -(Real.pi / 2) + Real.arctan (u / ‖y‖) := by
-          exact neg_sub (Real.pi / 2) (Real.arctan (u / ‖y‖))
+          calc
+            -(Real.pi / 2 - Real.arctan (u / ‖y‖)) =
+                Real.arctan (u / ‖y‖) - Real.pi / 2 :=
+              neg_sub (Real.pi / 2) (Real.arctan (u / ‖y‖))
+            _ = Real.arctan (u / ‖y‖) + -(Real.pi / 2) :=
+              sub_eq_add_neg (Real.arctan (u / ‖y‖)) (Real.pi / 2)
+            _ = -(Real.pi / 2) + Real.arctan (u / ‖y‖) :=
+              add_comm (Real.arctan (u / ‖y‖)) (-(Real.pi / 2))
     calc
       Complex.arg (Complex.fixedRealPartVerticalPoint u y) = Complex.arg z := rfl
       _ = Real.arctan (y / u) := harg_eq_atan.symm
@@ -287,7 +303,7 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
     let a : ℝ := Real.arctan (u / n)
     let p : ℝ := Real.pi / 2
     have hn_pos : 0 < n :=
-      Real.norm_pos_iff.mpr (ne_of_lt hy_neg)
+      norm_pos_iff.mpr (ne_of_lt hy_neg)
     have hy_eq_neg_n : y = -n := by
       have hnorm : ‖y‖ = -y :=
         Real.norm_of_nonpos (le_of_lt hy_neg)
@@ -307,10 +323,9 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
       have hzero_le :
           Real.arctan 0 ≤ Real.arctan (u / n) :=
         Real.arctan_strictMono.monotone hratio_nonneg
-      exact Eq.subst
-        (motive := fun r : ℝ => r ≤ a)
-        Real.arctan_zero
-        hzero_le
+      calc
+        0 = Real.arctan 0 := Real.arctan_zero.symm
+        _ ≤ Real.arctan (u / n) := hzero_le
     have hprod_nonneg : 0 ≤ a * n :=
       mul_nonneg ha_nonneg (le_of_lt hn_pos)
     have harg_mul :
@@ -358,37 +373,44 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
       _ = n * a := mul_comm a n
       _ = ‖y‖ * Real.arctan (u / ‖y‖) := rfl
   | Or.inr (Or.inl hy_zero) =>
-    have hy_subst : y = 0 := hy_zero
-    subst y
-    have hnorm_zero : ‖(0 : ℝ)‖ = 0 :=
-      norm_zero
+    have hnorm_y_zero : ‖y‖ = 0 := by
+      calc
+        ‖y‖ = ‖(0 : ℝ)‖ := congrArg norm hy_zero
+        _ = 0 := norm_zero
+    have harg_mul_zero :
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y = 0 := by
+      calc
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y =
+            Complex.arg (Complex.fixedRealPartVerticalPoint u y) * 0 :=
+          congrArg
+            (fun t : ℝ =>
+              Complex.arg (Complex.fixedRealPartVerticalPoint u y) * t)
+            hy_zero
+        _ = 0 := mul_zero (Complex.arg (Complex.fixedRealPartVerticalPoint u y))
     calc
-      |(Real.pi / 2) * ‖(0 : ℝ)‖ -
-          Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)| =
-          |(Real.pi / 2) * 0 -
-            Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)| := by
-        exact congrArg
-          (fun r : ℝ =>
-            |(Real.pi / 2) * r -
-              Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ)|)
-          hnorm_zero
+      |(Real.pi / 2) * ‖y‖ -
+          Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+          |(Real.pi / 2) * 0 - 0| := by
+        exact congrArg₂
+          (fun r s : ℝ => |(Real.pi / 2) * r - s|)
+          hnorm_y_zero
+          harg_mul_zero
       _ = |0 - 0| := by
         have hleft : (Real.pi / 2) * (0 : ℝ) = 0 :=
           mul_zero (Real.pi / 2)
-        have hright :
-            Complex.arg (Complex.fixedRealPartVerticalPoint u 0) * (0 : ℝ) = 0 :=
-          mul_zero (Complex.arg (Complex.fixedRealPartVerticalPoint u 0))
-        exact congrArg₂ (fun r s : ℝ => |r - s|) hleft hright
+        exact congrArg (fun r : ℝ => |r - 0|) hleft
       _ = 0 := by
         exact Eq.trans (congrArg abs (sub_zero (0 : ℝ))) abs_zero
-      _ = ‖(0 : ℝ)‖ * Real.arctan (u / ‖(0 : ℝ)‖) := by
+      _ = ‖y‖ * Real.arctan (u / ‖y‖) := by
         have hright :
-            ‖(0 : ℝ)‖ * Real.arctan (u / ‖(0 : ℝ)‖) = 0 := by
-          exact Eq.trans
-            (congrArg
-              (fun r : ℝ => r * Real.arctan (u / ‖(0 : ℝ)‖))
-              hnorm_zero)
-            (zero_mul (Real.arctan (u / ‖(0 : ℝ)‖)))
+            ‖y‖ * Real.arctan (u / ‖y‖) = 0 := by
+          calc
+            ‖y‖ * Real.arctan (u / ‖y‖) =
+                0 * Real.arctan (u / ‖y‖) :=
+              congrArg
+                (fun r : ℝ => r * Real.arctan (u / ‖y‖))
+                hnorm_y_zero
+            _ = 0 := zero_mul (Real.arctan (u / ‖y‖))
         exact hright.symm
   | Or.inr (Or.inr hy_pos) =>
     let n : ℝ := ‖y‖
@@ -397,10 +419,9 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
     have hn_eq_y : n = y :=
       Real.norm_of_nonneg (le_of_lt hy_pos)
     have hn_pos : 0 < n :=
-      Eq.subst
-        (motive := fun r : ℝ => 0 < r)
-        hn_eq_y.symm
-        hy_pos
+      calc
+        0 < y := hy_pos
+        _ = n := hn_eq_y.symm
     have harg :
         Complex.arg (Complex.fixedRealPartVerticalPoint u y) = p - a :=
       Complex.arg_fixedRealPartVerticalPoint_of_pos_im_eq_pi_div_two_sub_arctan
@@ -411,10 +432,9 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan
       have hzero_le :
           Real.arctan 0 ≤ Real.arctan (u / y) :=
         Real.arctan_strictMono.monotone hratio_nonneg
-      exact Eq.subst
-        (motive := fun r : ℝ => r ≤ a)
-        Real.arctan_zero
-        hzero_le
+      calc
+        0 = Real.arctan 0 := Real.arctan_zero.symm
+        _ ≤ Real.arctan (u / y) := hzero_le
     have hprod_nonneg : 0 ≤ a * y :=
       mul_nonneg ha_nonneg (le_of_lt hy_pos)
     have harg_mul :
@@ -463,10 +483,11 @@ theorem Complex.rightHalfPlaneVertical_arg_linear_defect_abs_le_re
           Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
         ‖y‖ * Real.arctan (u / ‖y‖) :=
     Complex.rightHalfPlaneVertical_arg_linear_defect_abs_eq_norm_mul_arctan hu
-  exact Eq.subst
-    (motive := fun r : ℝ => r ≤ u)
-    hdef_eq.symm
-    (Real.norm_mul_arctan_div_norm_le_self_of_nonneg hu)
+  calc
+    |(Real.pi / 2) * ‖y‖ -
+        Complex.arg (Complex.fixedRealPartVerticalPoint u y) * y| =
+        ‖y‖ * Real.arctan (u / ‖y‖) := hdef_eq
+    _ ≤ u := Real.norm_mul_arctan_div_norm_le_self_of_nonneg hu
 
 /-- Additive quantitative argument-defect estimate for shifted right-half-plane
 vertical strips.
@@ -715,16 +736,7 @@ theorem Complex.shiftedVertical_radius_base_comparable
   | ⟨C, hC_pos, hupper⟩ =>
   have hc_pos : 0 < (1 / 2 : ℝ) :=
     one_div_pos.mpr two_pos
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        (1 : ℝ) ≤ ‖y‖ →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          ‖w‖ ≤ C * (1 + ‖y‖) ∧
-          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖w‖ := by
+  refine ⟨1, C, 1 / 2, zero_lt_one, hC_pos, hc_pos, ?_⟩
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -752,10 +764,12 @@ theorem Complex.shiftedVertical_radius_base_comparable
     add_zero w
   have hupper_final :
       ‖w‖ ≤ C * (1 + ‖y‖) :=
-    Eq.subst
-      (motive := fun z : ℂ => ‖z‖ ≤ C * (1 + ‖y‖))
-      hzero_add
-      hupper_w
+    calc
+      ‖w‖ =
+          ‖Complex.fixedRealPartVerticalPoint
+            (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
+        congrArg norm hzero_add.symm
+      _ ≤ C * (1 + ‖y‖) := hupper_w
   have hlower_final :
       (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖w‖ := by
     have hlower_raw :
@@ -763,14 +777,13 @@ theorem Complex.shiftedVertical_radius_base_comparable
           ‖Complex.fixedRealPartVerticalPoint
               (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
       Complex.gammaRecurrenceProduct_factor_largeHeight_lower 0 hy
-    exact
-      Eq.subst
-        (motive := fun z : ℂ =>
-          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ ‖z‖)
-        hzero_add
+    calc
+      (1 / 2 : ℝ) * (1 + ‖y‖) ≤
+          ‖Complex.fixedRealPartVerticalPoint
+              (x + Complex.verticalStripTransportShift A) y + (0 : ℂ)‖ :=
         hlower_raw
+      _ = ‖w‖ := congrArg norm hzero_add
   exact ⟨hupper_final, hlower_final⟩
-  exact ⟨1, C, 1 / 2, zero_lt_one, hC_pos, hc_pos, hpointwise⟩
 
 /-- Real bounded-exponent transport for radius powers.
 
@@ -807,15 +820,7 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
     Real.exp_pos (E * M)
   have hk_pos : 0 < k :=
     Real.exp_pos (-(E * M))
-  have hpointwise :
-      ∀ R Y e : ℝ,
-        0 < Y →
-        c * Y ≤ R →
-        R ≤ C * Y →
-        L ≤ e →
-        e ≤ U →
-          R ^ e ≤ K * Y ^ e ∧
-          k * Y ^ e ≤ R ^ e := by
+  refine ⟨K, k, hK_pos, hk_pos, ?_⟩
   intro R Y e hY_pos hlow hhigh hL hU
   let q : ℝ := R / Y
   have hY_nonneg : 0 ≤ Y :=
@@ -898,25 +903,19 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
       Real.rpow_def_of_pos hq_pos e
     have hcomm : Real.log q * e = e * Real.log q :=
       mul_comm (Real.log q) e
-    exact Eq.subst
-      (motive := fun t : ℝ => t ≤ K)
-      hq_pow_eq.symm
-      (Eq.subst
-        (motive := fun t : ℝ => Real.exp t ≤ K)
-        hcomm
-        (Real.exp_le_exp.mpr hupper_exp_arg))
+    calc
+      q ^ e = Real.exp (Real.log q * e) := hq_pow_eq
+      _ = Real.exp (e * Real.log q) := congrArg Real.exp hcomm
+      _ ≤ K := Real.exp_le_exp.mpr hupper_exp_arg
   have hq_pow_lower : k ≤ q ^ e := by
     have hq_pow_eq : q ^ e = Real.exp (Real.log q * e) :=
       Real.rpow_def_of_pos hq_pos e
     have hcomm : Real.log q * e = e * Real.log q :=
       mul_comm (Real.log q) e
-    exact Eq.subst
-      (motive := fun t : ℝ => k ≤ t)
-      hq_pow_eq.symm
-      (Eq.subst
-        (motive := fun t : ℝ => k ≤ Real.exp t)
-        hcomm
-        (Real.exp_le_exp.mpr hlower_exp_arg))
+    calc
+      k ≤ Real.exp (e * Real.log q) := Real.exp_le_exp.mpr hlower_exp_arg
+      _ = Real.exp (Real.log q * e) := (congrArg Real.exp hcomm).symm
+      _ = q ^ e := hq_pow_eq.symm
   have hY_pow_nonneg : 0 ≤ Y ^ e :=
     Real.rpow_nonneg hY_nonneg e
   have hR_pow_eq : R ^ e = q ^ e * Y ^ e := by
@@ -926,15 +925,14 @@ theorem real_rpow_comparable_of_base_comparable_and_bounded_exponent
       _ = q ^ e * Y ^ e :=
         Real.mul_rpow hq_nonneg hY_nonneg
   constructor
-  · exact Eq.subst
-      (motive := fun t : ℝ => t ≤ K * Y ^ e)
-      hR_pow_eq.symm
-      (mul_le_mul_of_nonneg_right hq_pow_upper hY_pow_nonneg)
-  · exact Eq.subst
-      (motive := fun t : ℝ => k * Y ^ e ≤ t)
-      hR_pow_eq.symm
-      (mul_le_mul_of_nonneg_right hq_pow_lower hY_pow_nonneg)
-  exact ⟨K, k, hK_pos, hk_pos, hpointwise⟩
+  · calc
+      R ^ e = q ^ e * Y ^ e := hR_pow_eq
+      _ ≤ K * Y ^ e :=
+        mul_le_mul_of_nonneg_right hq_pow_upper hY_pow_nonneg
+  · calc
+      k * Y ^ e ≤ q ^ e * Y ^ e :=
+        mul_le_mul_of_nonneg_right hq_pow_lower hY_pow_nonneg
+      _ = R ^ e := hR_pow_eq.symm
 
 /-- Bounded-exponent radius-power comparison for shifted vertical strips.
 
@@ -967,18 +965,7 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
       real_rpow_comparable_of_base_comparable_and_bounded_exponent
         Cbase cbase L U hCbase_pos hcbase_pos with
   | ⟨K, k, hK_pos, hk_pos, hrpow⟩ =>
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        Hbase ≤ ‖y‖ →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          ‖w‖ ^ (w.re - 1 / 2) ≤
-            K * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ∧
-          k * (1 + ‖y‖) ^ (x + Complex.verticalStripTransportShift A - 1 / 2) ≤
-            ‖w‖ ^ (w.re - 1 / 2) := by
+  refine ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, ?_⟩
   intro x y hxA hxB hy
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1008,17 +995,16 @@ theorem Complex.shiftedVertical_radiusPower_comparable_boundedExponent
         k * Y ^ e ≤ ‖w‖ ^ e :=
     hrpow ‖w‖ Y e hY_pos hbase_xy.2 hbase_xy.1 hL hU
   exact
-    ⟨Eq.subst
-        (motive := fun t : ℝ =>
-          ‖w‖ ^ t ≤ K * Y ^ e)
-        heq.symm
-        hr.1,
-      Eq.subst
-        (motive := fun t : ℝ =>
-          k * Y ^ e ≤ ‖w‖ ^ t)
-        heq.symm
-        hr.2⟩
-  exact ⟨Hbase, K, k, hHbase_pos, hK_pos, hk_pos, hpointwise⟩
+    ⟨by
+      calc
+        ‖w‖ ^ (w.re - 1 / 2) = ‖w‖ ^ e :=
+          congrArg (fun t : ℝ => ‖w‖ ^ t) heq
+        _ ≤ K * Y ^ e := hr.1,
+      by
+      calc
+        k * Y ^ e ≤ ‖w‖ ^ e := hr.2
+        _ = ‖w‖ ^ (w.re - 1 / 2) :=
+          (congrArg (fun t : ℝ => ‖w‖ ^ t) heq).symm⟩
 
 /-- In a fixed shifted vertical strip, the radial polynomial factor in the
 principal-power denominator is comparable to the standard height polynomial. -/
@@ -1069,15 +1055,7 @@ theorem Complex.shiftedVertical_realPartExp_bounded
     lt_of_lt_of_le hEA_pos (le_max_left (Real.exp (-(A + N))) (Real.exp (-(B + N))))
   have hc_pos : 0 < c :=
     lt_min hEA_pos hEB_pos
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          Real.exp (-w.re) ≤ C ∧
-          c ≤ Real.exp (-w.re) := by
+  refine ⟨C, c, hC_pos, hc_pos, ?_⟩
   intro x y hxA hxB
   let w : ℂ :=
     Complex.fixedRealPartVerticalPoint
@@ -1110,15 +1088,16 @@ theorem Complex.shiftedVertical_realPartExp_bounded
       (min_le_right (Real.exp (-(A + N))) (Real.exp (-(B + N))))
       hexp_lower_B
   exact
-    ⟨Eq.subst
-        (motive := fun t : ℝ => Real.exp (-t) ≤ C)
-        hw_re.symm
-        hexp_upper,
-      Eq.subst
-        (motive := fun t : ℝ => c ≤ Real.exp (-t))
-        hw_re.symm
-        hexp_lower⟩
-  exact ⟨C, c, hC_pos, hc_pos, hpointwise⟩
+    ⟨by
+      calc
+        Real.exp (-w.re) = Real.exp (-(x + N)) :=
+          congrArg (fun t : ℝ => Real.exp (-t)) hw_re
+        _ ≤ C := hexp_upper,
+      by
+      calc
+        c ≤ Real.exp (-(x + N)) := hexp_lower
+        _ = Real.exp (-w.re) :=
+          (congrArg (fun t : ℝ => Real.exp (-t)) hw_re).symm⟩
 
 /-- Real algebra behind the reciprocal denominator after the exponential and
 principal-power norm formulas have been substituted. -/
@@ -1147,6 +1126,8 @@ theorem real_stirlingDenominator_reciprocal_shape
       calc
         x - 1 / 2 = x + -(1 / 2) := sub_eq_add_neg x (1 / 2)
         _ = -(1 / 2) + x := add_comm x (-(1 / 2))
+        _ = -(1 / 2) + -(-x) := by
+          exact congrArg (fun t : ℝ => -(1 / 2) + t) (neg_neg x).symm
         _ = -(1 / 2 + -x) := by
           exact (neg_add (1 / 2) (-x)).symm
         _ = -(1 / 2 - x) := by
@@ -1272,24 +1253,8 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
     mul_pos (mul_pos hCa_pos hCr_pos) hCe_pos
   have hc_pos : 0 < (ca * cr) * ce :=
     mul_pos (mul_pos hca_pos hcr_pos) hce_pos
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        H ≤ ‖y‖ →
-          let w : ℂ :=
-            Complex.fixedRealPartVerticalPoint
-              (x + Complex.verticalStripTransportShift A) y
-          0 < ‖Complex.exp w‖ *
-                ‖w ^ ((1 / 2 : ℂ) - w)‖ ∧
-          1 / (‖Complex.exp w‖ *
-                ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤
-            ((Ca * Cr) * Ce) * Complex.fixedRealPartVerticalStirlingEnvelope
-              (x + Complex.verticalStripTransportShift A) y ∧
-          ((ca * cr) * ce) * Complex.fixedRealPartVerticalStirlingEnvelope
-              (x + Complex.verticalStripTransportShift A) y ≤
-            1 / (‖Complex.exp w‖ *
-                ‖w ^ ((1 / 2 : ℂ) - w)‖) := by
+  refine ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
+    hH_pos, hC_pos, hc_pos, ?_⟩
   intro x y hxA hxB hy
   have hy_a : Ha ≤ ‖y‖ :=
     le_trans (le_max_left Ha Hr) hy
@@ -1337,10 +1302,11 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
   constructor
   · have hrad_upper :
         ‖w‖ ^ (w.re - 1 / 2) ≤ Cr * P := by
-      exact Eq.subst
-        (motive := fun t : ℝ => ‖w‖ ^ (t - 1 / 2) ≤ Cr * P)
-        hw_re.symm
-        hradius_xy.1
+      calc
+        ‖w‖ ^ (w.re - 1 / 2) =
+            ‖w‖ ^ ((x + Complex.verticalStripTransportShift A) - 1 / 2) :=
+          congrArg (fun t : ℝ => ‖w‖ ^ (t - 1 / 2)) hw_re
+        _ ≤ Cr * P := hradius_xy.1
     have harg_upper :
         Real.exp (-(Complex.arg w * y)) ≤ Ca * Eexp :=
       harg_xy.1
@@ -1453,25 +1419,24 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
           Complex.fixedRealPartVerticalStirlingEnvelope
             (x + Complex.verticalStripTransportShift A) y := by
       rfl
-    exact Eq.subst
-      (motive := fun t : ℝ =>
-        t ≤ ((Ca * Cr) * Ce) *
+    calc
+      1 / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) =
+          Real.exp (-(Complex.arg w * y)) *
+            ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) :=
+        hreciprocal_shape
+      _ ≤ ((Ca * Cr) * Ce) * (Eexp * P) := hshape_bound
+      _ = ((Ca * Cr) * Ce) *
           Complex.fixedRealPartVerticalStirlingEnvelope
-            (x + Complex.verticalStripTransportShift A) y)
-      hreciprocal_shape.symm
-      (Eq.subst
-        (motive := fun t : ℝ =>
-            Real.exp (-(Complex.arg w * y)) *
-                ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) ≤
-            ((Ca * Cr) * Ce) * t)
-        henv_eq
-        hshape_bound)
+            (x + Complex.verticalStripTransportShift A) y :=
+        congrArg (fun t : ℝ => ((Ca * Cr) * Ce) * t) henv_eq
   · have hrad_lower :
         cr * P ≤ ‖w‖ ^ (w.re - 1 / 2) := by
-      exact Eq.subst
-        (motive := fun t : ℝ => cr * P ≤ ‖w‖ ^ (t - 1 / 2))
-        hw_re.symm
-        hradius_xy.2
+      calc
+        cr * P ≤
+            ‖w‖ ^ ((x + Complex.verticalStripTransportShift A) - 1 / 2) :=
+          hradius_xy.2
+        _ = ‖w‖ ^ (w.re - 1 / 2) :=
+          (congrArg (fun t : ℝ => ‖w‖ ^ (t - 1 / 2)) hw_re).symm
     have harg_lower :
         ca * Eexp ≤ Real.exp (-(Complex.arg w * y)) :=
       harg_xy.2
@@ -1599,23 +1564,19 @@ theorem Complex.shiftedVerticalStirlingDenominator_reciprocal_comparable
           Complex.fixedRealPartVerticalStirlingEnvelope
             (x + Complex.verticalStripTransportShift A) y := by
       rfl
-    exact Eq.subst
-      (motive := fun t : ℝ =>
-        ((ca * cr) * ce) *
+    calc
+      ((ca * cr) * ce) *
           Complex.fixedRealPartVerticalStirlingEnvelope
-            (x + Complex.verticalStripTransportShift A) y ≤ t)
-      hreciprocal_shape.symm
-      (Eq.subst
-        (motive := fun t : ℝ =>
-          ((ca * cr) * ce) * t ≤
-            Real.exp (-(Complex.arg w * y)) *
-              ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re))
-        henv_eq
-        hshape_bound)
-  exact ⟨H, (Ca * Cr) * Ce, (ca * cr) * ce,
-    hH_pos, hC_pos, hc_pos, hpointwise⟩
+            (x + Complex.verticalStripTransportShift A) y =
+          ((ca * cr) * ce) * (Eexp * P) :=
+        congrArg (fun t : ℝ => ((ca * cr) * ce) * t) henv_eq.symm
+      _ ≤ Real.exp (-(Complex.arg w * y)) *
+            ‖w‖ ^ (w.re - 1 / 2) * Real.exp (-w.re) :=
+        hshape_bound
+      _ = 1 / (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) :=
+        hreciprocal_shape.symm
 
-/-- Sectorial normalized Stirling, on the shifted closed-right-half-plane
+/- Sectorial normalized Stirling, on the shifted closed-right-half-plane
 points, gives the raw two-sided Gamma envelope with shifted real part.
 
 This is the branch/exponential extraction layer: it converts control of

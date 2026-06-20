@@ -26,11 +26,16 @@ Whittaker-Watson, *A Course of Modern Analysis*, Ch. XII, and DLMF §5.11.3. -/
 theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlana :
     ∀ w : ℂ,
       0 < w.re →
+        (∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+            Complex.binetAbelPlanaFiniteMainTerm N w +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+                Complex.binetAbelPlanaFiniteContourRemainder N w) →
         Complex.exp (Complex.binetLogGammaBranch w) =
           Complex.Gamma w :=
-  fun w hw =>
+  fun w hw hfinite =>
     Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
-      w hw
+      w hw hfinite
 
 /-- The contour-deformed tail comparison produced by the same Abel-Plana
 deformation as Binet's second formula.

@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.Denominator.Owner
+import Mathlib.Analysis.Calculus.ParametricIntegral
 
 /-!
 # Binet formula: derivatives and kernel bounds
@@ -13,74 +14,49 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
-
-    {t : ℝ} {w : ℂ}
-    (ht : 0 < t)
-    (hw_re_pos : 0 < w.re) :
-    (1 + ((t : ℂ) / w) * Complex.I) /
-        (1 - ((t : ℂ) / w) * Complex.I) ∈ Complex.slitPlane := by
-  have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
-  have harg_ne_negI : (t : ℂ) / w ≠ -Complex.I :=
-    Complex.binet_arctan_argument_ne_negI hw_re_pos
-  have hden_ne :
-      1 - ((t : ℂ) / w) * Complex.I ≠ 0 :=
-    Complex.one_sub_mul_I_ne_zero_of_ne_negI harg_ne_negI
-  have hq_im_pos :
-      0 <
-        (1 + ((t : ℂ) / w) * Complex.I) /
-          (1 - ((t : ℂ) / w) * Complex.I) |>.im := by
-    have ha_re_pos : 0 < ((t : ℂ) / w).re := by
-      have hdivre :
-          ((t : ℂ) / w).re =
-            (t * w.re) / Complex.normSq w := by
-        exact Complex.div_re (t : ℂ) w
-      calc
-        0 < (t * w.re) / Complex.normSq w := by
-          exact div_pos
-            (mul_pos (by exact ht) hw_re_pos)
-            (Complex.normSq_pos.mpr hw_ne)
-        _ = ((t : ℂ) / w).re := hdivre.symm
-      exact
-        div_pos
-          (mul_pos (by exact ht) hw_re_pos)
-          (Complex.normSq_pos.mpr hw_ne)
-    have hcalc :
-        (1 + ((t : ℂ) / w) * Complex.I) /
-            (1 - ((t : ℂ) / w) * Complex.I) |>.im =
-          2 * ((t : ℂ) / w).re /
-            Complex.normSq (1 - ((t : ℂ) / w) * Complex.I) := by
-      exact Complex.arctan_cayley_im_eq ((t : ℂ) / w)
-    have hrhs_pos :
-        0 <
-          2 * ((t : ℂ) / w).re /
-            Complex.normSq (1 - ((t : ℂ) / w) * Complex.I) :=
-      div_pos
-        (mul_pos two_pos ha_re_pos)
-        (Complex.normSq_pos.mpr hden_ne)
-    exact hcalc.symm ▸ hrhs_pos
-  have hnot_nonpos :
-      ¬
-        (1 + ((t : ℂ) / w) * Complex.I) /
-          (1 - ((t : ℂ) / w) * Complex.I) ≤ 0 := by
-    intro hle
-    have him_zero :
-        (1 + ((t : ℂ) / w) * Complex.I) /
-          (1 - ((t : ℂ) / w) * Complex.I) |>.im = 0 := by
-      exact (Complex.nonpos_iff.mp hle).2
-    exact (ne_of_gt hq_im_pos) him_zero
-  exact (Complex.mem_slitPlane_iff_not_le_zero).2 hnot_nonpos
+open MeasureTheory
 
 /-- The rational factor appearing in the Binet arctangent argument has the
 expected derivative on the open right half-plane. -/
 theorem Complex.binet_arctan_argument_derivative
     {t : ℝ} {w : ℂ}
-    (ht : 0 < t)
+    (_ht : 0 < t)
     (hw_re_pos : 0 < w.re) :
     HasDerivAt
       (fun z : ℂ => (t : ℂ) / z)
       (-(t : ℂ) / w ^ 2) w := by
   have hw_ne : w ≠ 0 := Complex.ne_zero_of_re_pos hw_re_pos
-  exact (hasDerivAt_inv hw_ne).const_mul (t : ℂ)
+  have hraw :
+      HasDerivAt
+        (fun z : ℂ => (t : ℂ) * z⁻¹)
+        ((t : ℂ) * (-(w ^ 2)⁻¹)) w :=
+    (hasDerivAt_inv hw_ne).const_mul (t : ℂ)
+  have hfun :
+      (fun z : ℂ => (t : ℂ) * z⁻¹) =
+        (fun z : ℂ => (t : ℂ) / z) := by
+    funext z
+    exact (div_eq_mul_inv (t : ℂ) z).symm
+  have hderiv :
+      (t : ℂ) * (-(w ^ 2)⁻¹) =
+        -(t : ℂ) / w ^ 2 := by
+    calc
+      (t : ℂ) * (-(w ^ 2)⁻¹) =
+          -((t : ℂ) * (w ^ 2)⁻¹) := by
+        exact mul_neg (t : ℂ) ((w ^ 2)⁻¹)
+      _ = -((t : ℂ) / w ^ 2) := by
+        exact congrArg Neg.neg (Eq.symm (div_eq_mul_inv (t : ℂ) (w ^ 2)))
+      _ = -(t : ℂ) / w ^ 2 := by
+        exact neg_div' (w ^ 2) (t : ℂ)
+  exact
+    Eq.subst
+      (motive := fun f : ℂ → ℂ =>
+        HasDerivAt f (-(t : ℂ) / w ^ 2) w)
+      hfun
+      (Eq.subst
+        (motive := fun d : ℂ =>
+          HasDerivAt (fun z : ℂ => (t : ℂ) * z⁻¹) d w)
+        hderiv
+        hraw)
 
 /-- The arctangent derivative needed for the Binet kernel after composing
 `Complex.arctan` with `z ↦ (t : ℂ) / z` on the open right half-plane. -/
@@ -153,7 +129,7 @@ theorem Complex.exists_ball_subset_openRightHalfPlane
     Exists.intro (w.re / 2)
       (And.intro (half_pos hw_re_pos) (fun z hz => by
         have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
-          exact (abs_re_le_abs (z - w))
+          exact RCLike.abs_re_le_norm (z - w)
         have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
           lt_of_le_of_lt hre_le_norm hz
         have hre_lower : -(w.re / 2) < z.re - w.re :=
@@ -182,7 +158,7 @@ theorem Complex.exists_ball_subset_re_ge_half
     Exists.intro (w.re / 2)
       (And.intro (half_pos hw_re_pos) (fun z hz => by
         have hre_le_norm : |z.re - w.re| ≤ ‖z - w‖ := by
-          exact (abs_re_le_abs (z - w))
+          exact RCLike.abs_re_le_norm (z - w)
         have hre_abs_lt : |z.re - w.re| < w.re / 2 :=
           lt_of_le_of_lt hre_le_norm hz
         have hre_lower : -(w.re / 2) < z.re - w.re :=
@@ -201,7 +177,7 @@ theorem Complex.exists_ball_subset_re_ge_half
 kernel majorant. -/
 theorem Real.binet_derivativeKernel_div_sq_div_eq
     {δ d t : ℝ}
-    (hδ_sq_ne : δ ^ 2 ≠ 0) :
+    (_hδ_sq_ne : δ ^ 2 ≠ 0) :
     (t / δ ^ 2) / d = (1 / δ ^ 2) * (t / d) := by
   exact Real.div_sq_div_assoc δ d t
 
@@ -227,13 +203,15 @@ theorem Complex.binetSecondFormulaDerivativeKernel_rational_norm_le
   have ht_norm : ‖(t : ℂ)‖ = t := by
     calc
       ‖(t : ℂ)‖ = |(t : ℝ)| := by
-        exact Complex.norm_ofReal t
+        exact RCLike.norm_ofReal t
       _ = t := Real.norm_of_nonneg (le_of_lt ht)
   have hnorm :
       ‖-(t : ℂ) / D‖ = t / ‖D‖ := by
     calc
-      ‖-(t : ℂ) / D‖ = ‖(t : ℂ)‖ / ‖D‖ := by
+      ‖-(t : ℂ) / D‖ = ‖-(t : ℂ)‖ / ‖D‖ := by
         exact norm_div _ _
+      _ = ‖(t : ℂ)‖ / ‖D‖ := by
+        exact congrArg (fun x : ℝ => x / ‖D‖) (norm_neg (t : ℂ))
       _ = t / ‖D‖ := by
         exact congrArg (fun x : ℝ => x / ‖D‖) ht_norm
   have hdiv :
@@ -309,7 +287,7 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
       0 < ε ∧
       ∀ z : ℂ,
         ‖z - w‖ < ε →
-          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+          ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
             HasDerivAt
               (fun u : ℂ =>
                 Complex.arctan ((t : ℂ) / u) /
@@ -320,8 +298,9 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt
     exact
       Exists.intro ε
         (And.intro hε_data.1 (fun z hz =>
-          (MeasureTheory.self_mem_ae_restrict
-            (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+          Filter.mem_of_superset
+            (MeasureTheory.self_mem_ae_restrict
+              (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ))))
             (fun t ht =>
               Complex.binetSecondFormula_arctanKernel_hasDerivAt
                 ht (hε_data.2 z hz))))
@@ -349,7 +328,7 @@ theorem Complex.binetSecondFormula_derivativeKernel_pointwise_bound_on_ball
         (1 / δ ^ 2) *
           (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1))
     have hδ_pos : 0 < δ :=
-      hε_data.1
+      half_pos hw_re_pos
     have hg_integrable : IntegrableOn g (Set.Ioi (0 : ℝ)) := by
       exact
         Real.binetSecondFormula_kernel_majorant_integrableOn.const_mul
@@ -396,7 +375,7 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
         IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
         ∀ z : ℂ,
           ‖z - w‖ < ε →
-            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
               ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
   match
     Complex.binetSecondFormula_arctanKernel_derivative_pointwise_majorant
@@ -410,35 +389,10 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_locally_dominated
           (And.intro hε_data.1
             (Exists.intro g
               (And.intro hg_data.1 (fun z hz =>
-                (MeasureTheory.self_mem_ae_restrict
-                  (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+                Filter.mem_of_superset
+                  (MeasureTheory.self_mem_ae_restrict
+                    (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ))))
                   (fun t ht => hg_data.2 z hz t ht)))))
-
-/-- The arctangent kernel and differentiated Binet kernel have the measurability
-and base-point integrability needed for dominated differentiation. -/
-theorem Complex.binetSecondFormulaRemainder_integral_data
-    {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
-    (∀ᶠ z in 𝓝 w,
-      AEStronglyMeasurable
-        (fun t : ℝ =>
-          Complex.arctan ((t : ℂ) / z) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
-        (Measure.restrict volume (Set.Ioi (0 : ℝ)))) ∧
-      Integrable
-        (fun t : ℝ =>
-          Complex.arctan ((t : ℂ) / w) /
-            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
-        (Measure.restrict volume (Set.Ioi (0 : ℝ))) ∧
-      AEStronglyMeasurable
-        (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
-        (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
-  exact
-    ⟨Eventually.of_forall
-        (fun z =>
-          Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable z),
-      Complex.binetSecondFormula_arctanKernel_integrable hw_re_pos,
-      Complex.binetSecondFormulaDerivativeKernel_aestronglyMeasurable w⟩
 
 /-- Membership in a smaller ball gives the norm inequality needed for a larger
 radius measured in the normed-space coordinates. -/
@@ -467,7 +421,7 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
     {ε η : ℝ}
     (hε_le_η : ε ≤ η)
     (hkernel :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
         ∀ z : ℂ,
           z ∈ Metric.ball w η →
             HasDerivAt
@@ -475,7 +429,7 @@ theorem Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
                 Complex.arctan ((t : ℂ) / u) /
                   (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
               (Complex.binetSecondFormulaDerivativeKernel t z) z) :
-    ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+    ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
       ∀ z : ℂ,
         z ∈ Metric.ball w ε →
           HasDerivAt
@@ -507,11 +461,11 @@ theorem Complex.binetSecondFormula_derivativeKernel_bound_on_smaller_ball
     {g : ℝ → ℝ}
     (hε_le_η : ε ≤ η)
     (hbound :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
         ∀ z : ℂ,
           z ∈ Metric.ball w η →
             ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t) :
-    ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+    ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
       ∀ z : ℂ,
         z ∈ Metric.ball w ε →
           ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
@@ -679,15 +633,15 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_small_interval
   have hcM_integrable :
       Integrable (fun t : ℝ => c * M t)
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) :=
-    (hM_integrable_Ioi.mono_set Ioc_subset_Ioi_self).const_mul c
+    (hM_integrable_Ioi.mono_set Set.Ioc_subset_Ioi_self).const_mul c
   have hK_meas :
       AEStronglyMeasurable K
         (volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2))) := by
     exact
       (Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable w).mono_measure
-        (Measure.restrict_mono Ioc_subset_Ioi_self le_rfl)
+        (Measure.restrict_mono Set.Ioc_subset_Ioi_self le_rfl)
   have hpointwise :
-      ∀ᵐ t ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
+      ∀ᵐ (t : ℝ) ∂volume.restrict (Set.Ioc (0 : ℝ) (‖w‖ / 2)),
         ‖K t‖ ≤ c * M t :=
     (ae_restrict_mem measurableSet_Ioc).mono
       (fun t ht =>
@@ -754,8 +708,8 @@ theorem Complex.binetSecondFormula_arctanKernel_tail_norm_le_majorant
             _ =
                 C * (t / (Real.exp ((2 : ℝ) * Real.pi * t) - 1)) := by
               exact
-                (mul_div_assoc C t
-                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1)).symm))
+                mul_div_assoc C t
+                  (Real.exp ((2 : ℝ) * Real.pi * t) - 1)))
 
 /-- The Binet kernel is integrable on the upper split interval. -/
 theorem Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
@@ -783,15 +737,15 @@ theorem Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
     have hcM_integrable :
         Integrable (fun t : ℝ => c * M t)
           (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
-      (hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)).const_mul c
+      (hM_integrable_Ioi.mono_set (Set.Ioi_subset_Ioi hcut_nonneg)).const_mul c
     have hK_meas :
         AEStronglyMeasurable K
           (volume.restrict (Set.Ioi (‖w‖ / 2))) := by
       exact
         (Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable w).mono_measure
-          (Measure.restrict_mono (Ioi_subset_Ioi hcut_nonneg) le_rfl)
+          (Measure.restrict_mono (Set.Ioi_subset_Ioi hcut_nonneg) le_rfl)
     have hpointwise :
-        ∀ᵐ t ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
+        ∀ᵐ (t : ℝ) ∂volume.restrict (Set.Ioi (‖w‖ / 2)),
           ‖K t‖ ≤ c * M t :=
       (ae_restrict_mem measurableSet_Ioi).mono
         (fun t ht => hc_data.2 t ht)
@@ -827,6 +781,32 @@ theorem Complex.binetSecondFormula_arctanKernel_integrable
     hunion ▸ hsmall.union htail
   exact hK_integrable
 
+/-- The arctangent kernel and differentiated Binet kernel have the measurability
+and base-point integrability needed for dominated differentiation. -/
+theorem Complex.binetSecondFormulaRemainder_integral_data
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    (∀ᶠ z in 𝓝 w,
+      AEStronglyMeasurable
+        (fun t : ℝ =>
+          Complex.arctan ((t : ℂ) / z) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+        (Measure.restrict volume (Set.Ioi (0 : ℝ)))) ∧
+      Integrable
+        (fun t : ℝ =>
+          Complex.arctan ((t : ℂ) / w) /
+            (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1))
+        (Measure.restrict volume (Set.Ioi (0 : ℝ))) ∧
+      AEStronglyMeasurable
+        (fun t : ℝ => Complex.binetSecondFormulaDerivativeKernel t w)
+        (Measure.restrict volume (Set.Ioi (0 : ℝ))) := by
+  exact
+    ⟨Filter.Eventually.of_forall
+        (fun z =>
+          Complex.binetSecondFormula_arctanKernel_aestronglyMeasurable z),
+      Complex.binetSecondFormula_arctanKernel_integrable hw_re_pos,
+      Complex.binetSecondFormulaDerivativeKernel_aestronglyMeasurable w⟩
+
 /-- Uniform-a.e. differentiability of the Binet arctangent kernel on one ball
 inside the open right half-plane. -/
 theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
@@ -834,7 +814,7 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
     (hw_re_pos : 0 < w.re) :
     ∃ ε : ℝ,
       0 < ε ∧
-        ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+        ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
           ∀ z : ℂ,
             z ∈ Metric.ball w ε →
               HasDerivAt
@@ -847,8 +827,9 @@ theorem Complex.binetSecondFormula_arctanKernel_local_hasDerivAt_uniform_ae
     exact
       Exists.intro ε
         (And.intro hε_data.1
-          ((MeasureTheory.self_mem_ae_restrict
-            (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+          (Filter.mem_of_superset
+            (MeasureTheory.self_mem_ae_restrict
+              (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ))))
             (fun t ht z hz => by
               have hnorm : ‖z - w‖ < ε :=
                 Complex.norm_sub_lt_of_mem_ball_of_le_radius
@@ -866,7 +847,7 @@ theorem Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
       0 < ε ∧
       ∃ g : ℝ → ℝ,
         IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
-          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+          ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
             ∀ z : ℂ,
               z ∈ Metric.ball w ε →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t := by
@@ -882,8 +863,9 @@ theorem Complex.binetSecondFormula_derivativeKernel_locally_dominated_uniform_ae
           (And.intro hε_data.1
             (Exists.intro g
               (And.intro hg_data.1
-                ((MeasureTheory.self_mem_ae_restrict
-                  (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ)))).mono
+                (Filter.mem_of_superset
+                  (MeasureTheory.self_mem_ae_restrict
+                    (measurableSet_Ioi : MeasurableSet (Set.Ioi (0 : ℝ))))
                   (fun t ht z hz => by
                     have hnorm : ‖z - w‖ < ε :=
                       Complex.norm_sub_lt_of_mem_ball_of_le_radius
@@ -917,12 +899,12 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative_an
     (hg_int :
       Integrable g (Measure.restrict volume (Set.Ioi (0 : ℝ))))
     (hbound :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
         ∀ z : ℂ,
           z ∈ Metric.ball w ε →
             ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t)
     (hdiff :
-      ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+      ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
         ∀ z : ℂ,
           z ∈ Metric.ball w ε →
             HasDerivAt
@@ -988,7 +970,7 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
     (hkernel :
       ∃ ε : ℝ,
         0 < ε ∧
-          ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+          ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
             ∀ z : ℂ,
               z ∈ Metric.ball w ε →
               HasDerivAt
@@ -1001,7 +983,7 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
         0 < ε ∧
         ∃ g : ℝ → ℝ,
           IntegrableOn g (Set.Ioi (0 : ℝ)) ∧
-            ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+            ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
               ∀ z : ℂ,
                 z ∈ Metric.ball w ε →
                 ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t) :
@@ -1026,7 +1008,7 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
             have hε_le_ε₂ : ε ≤ ε₂ :=
               min_le_right ε₁ ε₂
             have hdiff :
-                ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+                ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
                   ∀ z : ℂ,
                     z ∈ Metric.ball w ε →
                       HasDerivAt
@@ -1037,7 +1019,7 @@ theorem Complex.binetSecondFormulaRemainder_hasDerivAt_from_kernel_derivative
               Complex.binetSecondFormula_arctanKernel_derivative_on_smaller_ball
                 hε_le_ε₁ hkernel_data.2
             have hbound :
-                ∀ᵐ t ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
+                ∀ᵐ (t : ℝ) ∂(Measure.restrict volume (Set.Ioi (0 : ℝ))),
                   ∀ z : ℂ,
                     z ∈ Metric.ball w ε →
                       ‖Complex.binetSecondFormulaDerivativeKernel t z‖ ≤ g t :=
@@ -1069,7 +1051,8 @@ right half-plane, stated as the exact special-function derivative owner fact
 needed for Binet's differentiated formula. -/
 theorem Complex.logGamma_hasDerivAt_openRightHalfPlane_from_Gamma_derivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane) :
     HasDerivAt
       (fun z : ℂ => Complex.log (Complex.Gamma z))
       (deriv Complex.Gamma w / Complex.Gamma w) w := by
@@ -1077,47 +1060,35 @@ theorem Complex.logGamma_hasDerivAt_openRightHalfPlane_from_Gamma_derivative
     intro n hw_eq
     have hre_nonpos : w.re ≤ 0 := by
       have hre : w.re = (-(n : ℂ)).re := congrArg Complex.re hw_eq
-      exact hre.symm ▸ le_of_eq (by rfl)
+      have hneg_re : (-(n : ℂ)).re = -(n : ℝ) := by
+        exact
+          Eq.trans
+            (Complex.neg_re (n : ℂ))
+            (congrArg Neg.neg (Complex.natCast_re n))
+      have hneg_nonpos : (-(n : ℂ)).re ≤ 0 :=
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ 0)
+          hneg_re.symm
+          (neg_nonpos.mpr (Nat.cast_nonneg n))
+      exact
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ 0)
+          hre.symm
+          hneg_nonpos
     exact not_lt_of_ge hre_nonpos hw_re_pos
   have hgamma_deriv :
       HasDerivAt Complex.Gamma (deriv Complex.Gamma w) w :=
     (Complex.differentiableAt_Gamma w hnot_pole).hasDerivAt
   have hgamma_ne : Complex.Gamma w ≠ 0 :=
     Complex.Gamma_ne_zero hnot_pole
-  exact hgamma_deriv.clog hgamma_ne
+  exact hgamma_deriv.clog hgamma_slit
 
 /-- Points in the open right half-plane lie in the principal-log slit plane. -/
 theorem Complex.mem_slitPlane_of_re_pos
     {w : ℂ}
     (hw_re_pos : 0 < w.re) :
     w ∈ Complex.slitPlane := by
-  have hnot_nonpos : ¬ w ≤ 0 := by
-    intro hw_nonpos
-    have hw_im_zero : w.im = 0 :=
-      (Complex.nonpos_iff.mp hw_nonpos).2
-    have hw_re_nonpos : w.re ≤ 0 :=
-      (Complex.nonpos_iff.mp hw_nonpos).1
-    exact not_lt_of_ge hw_re_nonpos hw_re_pos
-  exact (Complex.mem_slitPlane_iff_not_le_zero).2 hnot_nonpos
-
-/-- The explicit Binet main term is complex-differentiable on the open right
-half-plane. -/
-theorem Complex.binetLogGammaMainTerm_differentiableAt_openRightHalfPlane
-    {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
-    DifferentiableAt ℂ Complex.binetLogGammaMainTerm w := by
-  have hlog_diff :
-      DifferentiableAt ℂ (fun z : ℂ => Complex.log z) w :=
-    differentiableAt_id.clog
-      (Complex.mem_slitPlane_of_re_pos hw_re_pos)
-  have hmain :
-      DifferentiableAt ℂ
-        (fun z : ℂ =>
-          (z - (1 / 2 : ℂ)) * Complex.log z - z +
-            (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2) w :=
-    (((differentiableAt_id.const_sub (1 / 2 : ℂ)).mul hlog_diff).sub
-      differentiableAt_id).const_add _
-  exact hmain
+  exact Complex.mem_slitPlane_iff.mpr (Or.inl hw_re_pos)
 
 /-- Explicit derivative of the Binet logarithmic main term on the open right
 half-plane. -/
@@ -1146,18 +1117,39 @@ theorem Complex.binetLogGammaMainTerm_hasDerivAt_openRightHalfPlane
         (fun z : ℂ =>
           (z - (1 / 2 : ℂ)) * Complex.log z - z +
             (((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)
-        ((1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0) w :=
-    ((hprod.sub (hasDerivAt_id' w)).const_add
+        ((1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1) w :=
+    ((hprod.sub (hasDerivAt_id' w)).add_const
       ((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2))
   have hderiv :
-      (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 =
+      (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 =
         Complex.log w - (1 / (2 * w)) := by
-    exact
-      Complex.binetLogGammaMainTerm_derivative_algebra
-        (w := w)
-        (L := Complex.log w)
-        hw_ne_zero
-  exact hmain
+    calc
+      (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 =
+          (1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1 + 0 := by
+        exact
+          Eq.symm
+            (add_zero
+              ((1 * Complex.log w + (w - (1 / 2 : ℂ)) * (1 / w)) - 1))
+      _ = Complex.log w - (1 / (2 * w)) :=
+        Complex.binetLogGammaMainTerm_derivative_algebra
+          (w := w)
+          (L := Complex.log w)
+          hw_ne_zero
+  exact
+    Eq.subst
+      (motive := fun d : ℂ =>
+        HasDerivAt Complex.binetLogGammaMainTerm d w)
+      hderiv
+      hmain
+
+/-- The explicit Binet main term is complex-differentiable on the open right
+half-plane. -/
+theorem Complex.binetLogGammaMainTerm_differentiableAt_openRightHalfPlane
+    {w : ℂ}
+    (hw_re_pos : 0 < w.re) :
+    DifferentiableAt ℂ Complex.binetLogGammaMainTerm w :=
+  (Complex.binetLogGammaMainTerm_hasDerivAt_openRightHalfPlane
+    hw_re_pos).differentiableAt
 
 /-- The derivative value of the Binet logarithmic main term on the open right
 half-plane. -/
@@ -1200,7 +1192,20 @@ input after the local derivative transport and Binet main-term derivative have
 both been proved from local calculus. -/
 theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_owner
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     deriv Complex.Gamma w / Complex.Gamma w =
       (Complex.log w - (1 / (2 * w))) +
         2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
@@ -1234,19 +1239,34 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_ow
         (Metric.eventually_nhds_iff_ball.2
           (Exists.intro ε
             (And.intro hε_data.1 (fun z hz => hz))))
-      exact hball.mono
-        (fun z hz =>
+      exact (hball.and hfinite_nhds).mono
+        (fun z hzhfinite =>
           Complex.Gamma_binetSecondFormula_branchExponential
-            (hε_data.2 z hz))
+            (hε_data.2 z hzhfinite.1)
+            hzhfinite.2)
   have hgamma_from_branch :
       HasDerivAt Complex.Gamma
         (Complex.exp (Complex.binetLogGammaBranch w) * D) w :=
-    hexp_branch_deriv.congr_of_eventuallyEq heq_eventually
+    hexp_branch_deriv.congr_of_eventuallyEq heq_eventually.symm
   have hnot_pole : ∀ n : ℕ, w ≠ -(n : ℂ) := by
     intro n hw_eq
     have hre_nonpos : w.re ≤ 0 := by
       have hre : w.re = (-(n : ℂ)).re := congrArg Complex.re hw_eq
-      exact hre.symm ▸ le_of_eq (by rfl)
+      have hneg_re : (-(n : ℂ)).re = -(n : ℝ) := by
+        exact
+          Eq.trans
+            (Complex.neg_re (n : ℂ))
+            (congrArg Neg.neg (Complex.natCast_re n))
+      have hneg_nonpos : (-(n : ℂ)).re ≤ 0 :=
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ 0)
+          hneg_re.symm
+          (neg_nonpos.mpr (Nat.cast_nonneg n))
+      exact
+        Eq.subst
+          (motive := fun x : ℝ => x ≤ 0)
+          hre.symm
+          hneg_nonpos
     exact not_lt_of_ge hre_nonpos hw_re_pos
   have hgamma_deriv :
       HasDerivAt Complex.Gamma (deriv Complex.Gamma w) w :=
@@ -1259,26 +1279,49 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_ow
       Complex.exp (Complex.binetLogGammaBranch w) =
         Complex.Gamma w :=
     Complex.Gamma_binetSecondFormula_branchExponential hw_re_pos
+      hfinite_w
   have hgamma_ne : Complex.Gamma w ≠ 0 :=
     Complex.Gamma_ne_zero hnot_pole
+  have hgamma_mul_D :
+      Complex.Gamma w * D = deriv Complex.Gamma w := by
+    calc
+      Complex.Gamma w * D =
+          Complex.exp (Complex.binetLogGammaBranch w) * D := by
+        exact congrArg (fun u : ℂ => u * D) hbranch_exp.symm
+      _ = deriv Complex.Gamma w := hderiv_eq
   have hD_eq :
       D =
         deriv Complex.Gamma w / Complex.Gamma w := by
     calc
       D = (Complex.Gamma w)⁻¹ * (Complex.Gamma w * D) := by
-        exact (inv_mul_cancel_left₀ hgamma_ne).symm
+        exact (inv_mul_cancel_left₀ hgamma_ne D).symm
       _ = (Complex.Gamma w)⁻¹ * deriv Complex.Gamma w := by
         exact congrArg (fun u : ℂ => (Complex.Gamma w)⁻¹ * u)
-          (Eq.trans hbranch_exp.symm hderiv_eq)
+          hgamma_mul_D
+      _ = deriv Complex.Gamma w * (Complex.Gamma w)⁻¹ := by
+        exact mul_comm (Complex.Gamma w)⁻¹ (deriv Complex.Gamma w)
       _ = deriv Complex.Gamma w / Complex.Gamma w := by
-        exact (div_eq_mul_inv _ _).symm
+        exact (div_eq_mul_inv (deriv Complex.Gamma w) (Complex.Gamma w)).symm
   exact hD_eq.symm
 
 /-- The standard Binet log-derivative identity with the differentiated
 arctangent-kernel integral written out. -/
 theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     deriv Complex.Gamma w / Complex.Gamma w =
       (Complex.log w - (1 / (2 * w))) +
         2 * ∫ t : ℝ in Set.Ioi (0 : ℝ),
@@ -1286,26 +1329,52 @@ theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
             (Complex.exp (((2 : ℝ) * Real.pi * t : ℝ) : ℂ) - 1) := by
   exact
     Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral_owner
-      hw_re_pos
+      hw_re_pos hfinite_w hfinite_nhds
 
 /-- The standard Binet log-derivative identity in the local remainder-derivative
 normalization used by this file. -/
 theorem Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_remainderDerivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     deriv Complex.Gamma w / Complex.Gamma w =
       (Complex.log w - (1 / (2 * w))) +
         Complex.binetSecondFormulaRemainderDerivative w := by
   exact
     Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_integral
-      hw_re_pos
+      hw_re_pos hfinite_w hfinite_nhds
 
 /-- The differentiated Binet identity at the logarithmic-derivative level:
 the Gamma logarithmic derivative minus the derivative of the explicit main
 term is the derivative of the Binet remainder. -/
 theorem Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDerivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     deriv Complex.Gamma w / Complex.Gamma w -
         deriv Complex.binetLogGammaMainTerm w =
       Complex.binetSecondFormulaRemainderDerivative w := by
@@ -1318,7 +1387,7 @@ theorem Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDer
         (Complex.log w - (1 / (2 * w))) +
           Complex.binetSecondFormulaRemainderDerivative w :=
     Complex.Gamma_logDerivative_eq_binet_explicit_derivative_add_remainderDerivative
-      hw_re_pos
+      hw_re_pos hfinite_w hfinite_nhds
   calc
     deriv Complex.Gamma w / Complex.Gamma w -
         deriv Complex.binetLogGammaMainTerm w =
@@ -1360,7 +1429,21 @@ theorem Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDer
 main term, reduced to the logarithmic-derivative Binet identity. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_from_logDerivative_identity
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1371,7 +1454,7 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_from_logDerivative_i
         (fun z : ℂ => Complex.log (Complex.Gamma z))
         (deriv Complex.Gamma w / Complex.Gamma w) w :=
     Complex.logGamma_hasDerivAt_openRightHalfPlane_from_Gamma_derivative
-      hw_re_pos
+      hw_re_pos hgamma_slit
   have hmain :
       HasDerivAt
         Complex.binetLogGammaMainTerm
@@ -1385,7 +1468,7 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_from_logDerivative_i
           deriv Complex.binetLogGammaMainTerm w =
         Complex.binetSecondFormulaRemainderDerivative w :=
     Complex.Gamma_logDerivative_sub_binetMainTerm_derivative_eq_remainderDerivative
-      hw_re_pos
+      hw_re_pos hfinite_w hfinite_nhds
   exact hderiv_eq ▸ hsub
 
 /-- The special-function derivative identity behind Binet's second
@@ -1393,7 +1476,21 @@ formula: the logarithmic derivative of Gamma minus the derivative of the
 explicit Binet main term is the differentiated Binet remainder. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_from_digamma_Binet
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1401,13 +1498,27 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_fr
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
   exact
     Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_from_logDerivative_identity
-      hw_re_pos
+      hw_re_pos hgamma_slit hfinite_w hfinite_nhds
 
 /-- The logarithmic Gamma side and explicit Binet main term have the
 derivative prescribed by the differentiated Binet remainder. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1415,13 +1526,27 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
   exact
     Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder_from_digamma_Binet
-      hw_re_pos
+      hw_re_pos hgamma_slit hfinite_w hfinite_nhds
 
 /-- The logarithmic Gamma side, after subtracting the explicit Binet main
 term, has derivative equal to the differentiated Binet remainder. -/
 theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_remainderDerivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1429,14 +1554,28 @@ theorem Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_remainderDerivative
       (Complex.binetSecondFormulaRemainderDerivative w) w := by
   exact
     Complex.Gamma_logGamma_sub_binetMainTerm_derivative_matches_remainder
-      hw_re_pos
+      hw_re_pos hgamma_slit hfinite_w hfinite_nhds
 
 /-- Differentiating the arctangent-kernel integral under the integral sign
 gives the same logarithmic derivative as the Gamma side after subtracting the
 explicit Binet main term. -/
 theorem Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1450,14 +1589,54 @@ theorem Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
             Complex.binetLogGammaMainTerm z)
         (Complex.binetSecondFormulaRemainderDerivative w) w :=
     Complex.Gamma_logGamma_sub_binetMainTerm_hasDerivAt_remainderDerivative
-      hw_re_pos
+      hw_re_pos hgamma_slit hfinite_w hfinite_nhds
   have hremainder :
       HasDerivAt
         Complex.binetSecondFormulaRemainder
         (Complex.binetSecondFormulaRemainderDerivative w) w :=
     Complex.binetSecondFormulaRemainder_hasDerivAt
       hw_re_pos
-  exact hlog_main.sub hremainder
+  have hraw :
+      HasDerivAt
+        (fun z : ℂ =>
+          (Complex.log (Complex.Gamma z) -
+            Complex.binetLogGammaMainTerm z) -
+              Complex.binetSecondFormulaRemainder z)
+        (Complex.binetSecondFormulaRemainderDerivative w -
+          Complex.binetSecondFormulaRemainderDerivative w) w :=
+    hlog_main.sub hremainder
+  have hfun :
+      (fun z : ℂ =>
+          (Complex.log (Complex.Gamma z) -
+            Complex.binetLogGammaMainTerm z) -
+              Complex.binetSecondFormulaRemainder z) =
+        (fun z : ℂ =>
+          Complex.log (Complex.Gamma z) -
+            (Complex.binetLogGammaMainTerm z +
+              Complex.binetSecondFormulaRemainder z)) := by
+    funext z
+    exact sub_sub (Complex.log (Complex.Gamma z))
+      (Complex.binetLogGammaMainTerm z)
+      (Complex.binetSecondFormulaRemainder z)
+  have hderiv_zero :
+      Complex.binetSecondFormulaRemainderDerivative w -
+          Complex.binetSecondFormulaRemainderDerivative w =
+        0 :=
+    sub_self (Complex.binetSecondFormulaRemainderDerivative w)
+  exact
+    Eq.subst
+      (motive := fun f : ℂ → ℂ => HasDerivAt f 0 w)
+      hfun
+      (Eq.subst
+        (motive := fun d : ℂ =>
+          HasDerivAt
+            (fun z : ℂ =>
+              (Complex.log (Complex.Gamma z) -
+                Complex.binetLogGammaMainTerm z) -
+                  Complex.binetSecondFormulaRemainder z)
+            d w)
+        hderiv_zero
+        hraw)
 
 /-- A complex function with zero derivative on the open right half-plane is
 constant there.  This is the convex-domain mean-value theorem specialized to
@@ -1482,8 +1661,15 @@ theorem Complex.openRightHalfPlane_eq_of_hasDerivAt_zero
     intro u hu
     have hunique : UniqueDiffWithinAt ℂ S u :=
       hopen.uniqueDiffWithinAt hu
-    exact
+    have hfderiv :
+        fderivWithin ℂ F S u =
+          ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (0 : ℂ) :=
       (hderiv hu).hasFDerivAt.hasFDerivWithinAt.fderivWithin hunique
+    have hclm_zero :
+        ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (0 : ℂ) =
+          (0 : ℂ →L[ℂ] ℂ) := by
+      exact ContinuousLinearMap.ext (fun v => smul_zero v)
+    exact Eq.trans hfderiv hclm_zero
   exact hconv.is_const_of_fderivWithin_eq_zero hdiff hzero hz hw
 
 /-- The two sides of Binet's second formula have the same complex derivative
@@ -1495,7 +1681,21 @@ with the logarithmic derivative of `Gamma` minus the derivative of the explicit
 main term. -/
 theorem Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
     {w : ℂ}
-    (hw_re_pos : 0 < w.re) :
+    (hw_re_pos : 0 < w.re)
+    (hgamma_slit : Complex.Gamma w ∈ Complex.slitPlane)
+    (hfinite_w :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w)
+    (hfinite_nhds :
+      ∀ᶠ z : ℂ in 𝓝 w,
+        ∀ N : ℕ,
+          Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+            Complex.binetAbelPlanaFiniteMainTerm N z +
+              Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                Complex.binetAbelPlanaFiniteContourRemainder N z) :
     HasDerivAt
       (fun z : ℂ =>
         Complex.log (Complex.Gamma z) -
@@ -1504,7 +1704,7 @@ theorem Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
       0 w := by
   exact
     Complex.Gamma_binetSecondFormula_arctanKernel_integral_sameDerivative
-      hw_re_pos
+      hw_re_pos hgamma_slit hfinite_w hfinite_nhds
 
 /-- A holomorphic Binet difference with zero derivative on the open right
 half-plane is determined there by its positive-real values. -/
@@ -1561,17 +1761,43 @@ propagate Binet's formula through the open right half-plane. -/
 theorem Complex.Gamma_binetSecondFormula_integral_representation_from_realAxis_and_derivative :
     ∀ w : ℂ,
       0 < w.re →
+      (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+      (∀ x : ℝ,
+        0 < x →
+          ∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+              Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+      (∀ z : ℂ,
+        0 < z.re →
+          (∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+              Complex.binetAbelPlanaFiniteMainTerm N z +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                  Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+          (∀ᶠ y : ℂ in 𝓝 z,
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                Complex.binetAbelPlanaFiniteMainTerm N y +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                    Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Complex.log (Complex.Gamma w) =
-          Complex.binetLogGammaMainTerm w +
+            Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
+  intro w hw hgamma_slit_open hfinite_real hfinite_open
   exact
     Complex.Gamma_binetSecondFormula_openRightHalfPlane_of_positiveReal_and_sameDerivative
       (fun hx =>
         Complex.Gamma_binetSecondFormula_integral_representation_positiveReal
-          hx)
+          hx (hfinite_real _ hx))
       (fun hw_re_pos =>
         Complex.Gamma_binetSecondFormula_integral_representation_sameDerivative
-          hw_re_pos)
+          hw_re_pos
+          (hgamma_slit_open _ hw_re_pos)
+          (hfinite_open _ hw_re_pos).1
+          (hfinite_open _ hw_re_pos).2)
+      w hw
 
 /-- The classical second Binet integral representation, with the principal
 logarithm normalization used by `Complex.binetLogGammaMainTerm` and the
@@ -1579,6 +1805,27 @@ literal arctangent-kernel remainder used in this package. -/
 theorem Complex.Gamma_binetSecondFormula_integral_representation_principalLog :
     ∀ w : ℂ,
       0 < w.re →
+      (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+      (∀ x : ℝ,
+        0 < x →
+          ∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+              Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+      (∀ z : ℂ,
+        0 < z.re →
+          (∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+              Complex.binetAbelPlanaFiniteMainTerm N z +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                  Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+          (∀ᶠ y : ℂ in 𝓝 z,
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                Complex.binetAbelPlanaFiniteMainTerm N y +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                    Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
@@ -1590,6 +1837,27 @@ integral representation on the open right half-plane. -/
 theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_representation :
     ∀ w : ℂ,
       0 < w.re →
+      (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+      (∀ x : ℝ,
+        0 < x →
+          ∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+              Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+      (∀ z : ℂ,
+        0 < z.re →
+          (∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+              Complex.binetAbelPlanaFiniteMainTerm N z +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                  Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+          (∀ᶠ y : ℂ in 𝓝 z,
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                Complex.binetAbelPlanaFiniteMainTerm N y +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                    Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
@@ -1600,6 +1868,27 @@ theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane_from_integral_repres
 theorem Complex.Gamma_binetSecondFormula_openRightHalfPlane :
     ∀ w : ℂ,
       0 < w.re →
+      (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+      (∀ x : ℝ,
+        0 < x →
+          ∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+              Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+      (∀ z : ℂ,
+        0 < z.re →
+          (∀ N : ℕ,
+            Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+              Complex.binetAbelPlanaFiniteMainTerm N z +
+                Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                  Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+          (∀ᶠ y : ℂ in 𝓝 z,
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                Complex.binetAbelPlanaFiniteMainTerm N y +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                    Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Complex.log (Complex.Gamma w) =
           Complex.binetLogGammaMainTerm w +
             Complex.binetSecondFormulaRemainder w := by
@@ -1611,66 +1900,146 @@ statement.  On the boundary `w = i y`, the kernel crosses the principal
 arctangent branch point at `t = y`, so this theorem records the large-radius
 form for the existing pointwise integral only on `0 < w.re`. -/
 theorem Complex.Gamma_binetSecondFormula_large_openRightHalfPlane :
-    ∃ R : ℝ,
-      0 < R ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-        Complex.log (Complex.Gamma w) =
-          Complex.binetLogGammaMainTerm w +
-            Complex.binetSecondFormulaRemainder w := by
-  exact
-    Exists.intro 1
-      (And.intro zero_lt_one (fun w hw_re_pos _hR =>
-        Complex.Gamma_binetSecondFormula_openRightHalfPlane
-          w hw_re_pos))
+      ∃ R : ℝ,
+        0 < R ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
+          Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w := by
+    exact
+      Exists.intro 1
+        (And.intro zero_lt_one (fun w hw_re_pos _hR hgamma_slit_open hfinite_real hfinite_open =>
+          Complex.Gamma_binetSecondFormula_openRightHalfPlane
+            w hw_re_pos hgamma_slit_open hfinite_real hfinite_open))
 
 /-- Large-radius Binet formula for the existing principal-arctangent integral.
 The hypothesis is open half-plane because the current remainder is the
 pointwise kernel integral, not a boundary-value object on the imaginary axis. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation :
-    ∃ R : ℝ,
-      0 < R ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-        Complex.log (Complex.Gamma w) =
-          Complex.binetLogGammaMainTerm w +
-            Complex.binetSecondFormulaRemainder w := by
+      ∃ R : ℝ,
+        0 < R ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
+          Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w := by
   exact
     Complex.Gamma_binetSecondFormula_large_openRightHalfPlane
 
 /-- Closed-sector continuation of Binet's second logarithmic formula after a
 large-radius cutoff for the literal open-half-plane arctangent remainder. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation :
-    ∃ R : ℝ,
-      0 < R ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-        Complex.log (Complex.Gamma w) =
-          Complex.binetLogGammaMainTerm w +
-            Complex.binetSecondFormulaRemainder w := by
+      ∃ R : ℝ,
+        0 < R ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
+          Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w := by
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_continuation
 
 /-- Binet's second logarithmic formula for Gamma in the open right half-plane,
 away from the origin and after a fixed large-radius cutoff. -/
 theorem Complex.Gamma_binetSecondFormula_closedRightHalfPlane :
-    ∃ R : ℝ,
-      0 < R ∧
-      ∀ w : ℂ,
-        0 < w.re →
-        R ≤ ‖w‖ →
-        Complex.log (Complex.Gamma w) =
-          Complex.binetLogGammaMainTerm w +
-            Complex.binetSecondFormulaRemainder w := by
+      ∃ R : ℝ,
+        0 < R ∧
+        ∀ w : ℂ,
+          0 < w.re →
+          R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
+          Complex.log (Complex.Gamma w) =
+            Complex.binetLogGammaMainTerm w +
+              Complex.binetSecondFormulaRemainder w := by
   exact
     Complex.Gamma_binetSecondFormula_closedRightHalfPlane_from_open_continuation
-
-end
-
-end LFunctions
 
 end
 

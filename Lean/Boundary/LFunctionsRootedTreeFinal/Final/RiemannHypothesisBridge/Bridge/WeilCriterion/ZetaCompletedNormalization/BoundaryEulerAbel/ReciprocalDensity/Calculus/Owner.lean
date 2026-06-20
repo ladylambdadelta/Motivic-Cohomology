@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.FirstDerivative.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Regularity.Owner
 
@@ -1813,13 +1813,19 @@ Euler-Maclaurin derivations. -/
 theorem eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
           deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
-  exact oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound t ht hNM
+  exact oscillatoryEulerMaclaurin_logarithmicPhase_integral_bound
+    t ht hpartial hNM
 
 /-- Deep Euler-Maclaurin arithmetic owner for the finite Abel endpoint and
 reciprocal-derivative integral terms.
@@ -1831,6 +1837,11 @@ constant. -/
 theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     (‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
@@ -1846,7 +1857,8 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
         2 + 8 * Real.log (3 + ‖t‖)) := by
   exact
     ⟨eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound t ht hNM,
-      eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound t ht hNM⟩
+      eulerMaclaurin_logarithmicPhase_finiteAbel_integral_bound
+        t ht hpartial hNM⟩
 
 /-- Exact endpoint arithmetic for the finite Abel package.  This is the
 reciprocal-weight endpoint part after the first-derivative estimate has been
@@ -1864,8 +1876,7 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_endpoint_arithmetic
             ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    (logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
-      t ht hNM).1
+    eulerMaclaurin_logarithmicPhase_finiteAbel_endpoint_bound t ht hNM
 
 /-- Exact reciprocal-derivative integral arithmetic for the finite Abel package.
 The analytic input is the first-derivative partial-sum estimate; this lemma owns
@@ -1873,6 +1884,11 @@ the endpoint and logarithmic integral bookkeeping. -/
 theorem logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
@@ -1881,7 +1897,7 @@ theorem logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
         2 + 8 * Real.log (3 + ‖t‖) := by
   exact
     (logarithmicPhase_firstDerivative_finiteAbel_endpoint_integral_arithmetic
-      t ht hNM).2
+      t ht hpartial hNM).2
 
 /-- Algebraic endpoint extraction from the logarithmic-phase first-derivative
 partial-sum estimate.
@@ -1890,13 +1906,21 @@ This is not a separate analytic input: the two reciprocal endpoint weights are
 controlled after the canonical cutoff by applying
 `logarithmicPhasePartialSum_firstDerivative_bound` at `M` and at the cutoff. -/
 theorem logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
+    (hfiniteDifference : logarithmicPhaseFiniteDifferenceHypothesis)
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     (‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊((M : ℕ) : ℝ)⌋₊‖ ≤
-        8 * ((((M : ℕ) : ℝ) / ‖t‖) + Real.sqrt (1 + ‖t‖)) *
-          Real.log (2 + ((M : ℕ) : ℝ))) ∧
+        40 *
+          ((((⌊((M : ℕ) : ℝ)⌋₊ + 1 : ℕ) : ℝ) / ‖t‖ +
+              Real.sqrt (1 + ‖t‖)) *
+            Real.log (2 + ⌊((M : ℕ) : ℝ)⌋₊))) ∧
     (‖(((((M : ℕ) : ℝ) : ℂ)⁻¹ : ℂ)) *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
             ⌊((M : ℕ) : ℝ)⌋₊‖ +
@@ -1909,9 +1933,11 @@ theorem logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
             boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
         2 + 8 * Real.log (3 + ‖t‖)) := by
   exact
-    ⟨logarithmicPhase_firstDerivative_finiteAbel_rightPartial_bound t ht hNM,
+    ⟨logarithmicPhase_firstDerivative_finiteAbel_rightPartial_bound
+        hfiniteDifference t ht hNM,
       logarithmicPhase_firstDerivative_finiteAbel_endpoint_arithmetic t ht hNM,
-      logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic t ht hNM⟩
+      logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
+        t ht hpartial hNM⟩
 
 /-- Explicit finite Abel-tail constant for the logarithmic-phase oscillator
 after the canonical cutoff.

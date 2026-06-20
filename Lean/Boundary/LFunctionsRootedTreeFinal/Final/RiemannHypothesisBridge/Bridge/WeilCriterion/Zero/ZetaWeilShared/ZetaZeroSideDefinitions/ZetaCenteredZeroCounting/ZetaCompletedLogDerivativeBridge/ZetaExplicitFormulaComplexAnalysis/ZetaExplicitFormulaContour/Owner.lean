@@ -170,7 +170,8 @@ theorem rightPath_ne_zero_of_re_pos (r : ExplicitFormulaRectangle) (t : ℝ)
 /-- The rectangle right edge is strictly positive when `c > 1/2`. -/
 theorem rightEdge_c_pos (r : ExplicitFormulaRectangle) (hc : (1 / 2 : ℝ) < r.c) :
     0 < r.c := by
-  have hhalf : 0 < (1 / 2 : ℝ) := by norm_num
+  have hhalf : 0 < (1 / 2 : ℝ) :=
+    half_pos zero_lt_one
   exact lt_trans hhalf hc
 
 /-- The left edge real part is strictly positive when `c < 1`. -/
@@ -247,9 +248,10 @@ theorem completedZetaNegLogDeriv_one_sub_core (s : ℂ)
     _ = deriv completedRiemannZeta s / completedRiemannZeta s := by
       exact Eq.trans
         (congrArg (fun z : ℂ => - (- deriv completedRiemannZeta s) / z) hsym)
-        (by ring)
+        (congrArg
+          (fun z : ℂ => z / completedRiemannZeta s)
+          (neg_neg (deriv completedRiemannZeta s)))
     _ = - completedZetaNegLogDeriv s := by
-      unfold completedZetaNegLogDeriv
       have hneg_div :
           - deriv completedRiemannZeta s / completedRiemannZeta s =
             - (deriv completedRiemannZeta s / completedRiemannZeta s) :=
@@ -393,7 +395,6 @@ theorem zetaCompletedExplicitFormulaContourIntegrand_differentiableAt_core
     (hΦ : DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaPhi f w)
       (z - (1 / 2 : ℂ))) :
     DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
-  unfold zetaCompletedExplicitFormulaContourIntegrand
   have hsub : DifferentiableAt ℂ (fun w : ℂ => w - (1 / 2 : ℂ)) z := by
     exact differentiableAt_id.sub (differentiableAt_const (1 / 2 : ℂ))
   have hshift :
@@ -417,7 +418,6 @@ theorem norm_zetaCompletedExplicitFormulaContourIntegrand_le_core
     (f : ZetaAdmissibleFunction) (s : ℂ) :
     ‖zetaCompletedExplicitFormulaContourIntegrand f s‖
       ≤ ‖completedZetaNegLogDeriv s‖ * ‖zetaCompletedExplicitFormulaPhi f (s - 1 / 2)‖ := by
-  unfold zetaCompletedExplicitFormulaContourIntegrand
   exact norm_mul_le _ _
 
 /-- The contour integrand norm is bounded by the product of the log-derivative and `Φ_f` norms. -/
@@ -636,7 +636,6 @@ theorem differentiableAt_zetaCompletedExplicitFormulaContourIntegrand_core
     {f : ZetaAdmissibleFunction} (hPhi : ZetaPhiAnalyticControl f)
     {z : ℂ} (hz0 : z ≠ 0) (hz1 : z ≠ 1) (hz : completedRiemannZeta z ≠ 0) :
     DifferentiableAt ℂ (fun w : ℂ => zetaCompletedExplicitFormulaContourIntegrand f w) z := by
-  unfold zetaCompletedExplicitFormulaContourIntegrand
   have hZ : DifferentiableAt ℂ completedZetaNegLogDeriv z :=
     differentiableAt_completedZetaNegLogDeriv hz0 hz1 hz
   have hshift :
@@ -675,16 +674,15 @@ theorem contourIntegrand_singularSet_countable_core :
     ext z
     constructor
     · intro hz
-      rcases hz with hz | hz | hz
-      · exact Or.inl (Or.inl hz)
-      · exact Or.inl (Or.inr hz)
-      · exact Or.inr hz
+      match hz with
+      | Or.inl hz0 => exact Or.inl (Or.inl hz0)
+      | Or.inr (Or.inl hz1) => exact Or.inl (Or.inr hz1)
+      | Or.inr (Or.inr hzzero) => exact Or.inr hzzero
     · intro hz
-      rcases hz with hz | hz
-      · rcases hz with hz | hz
-        · exact Or.inl hz
-        · exact Or.inr (Or.inl hz)
-      · exact Or.inr (Or.inr hz)
+      match hz with
+      | Or.inl (Or.inl hz0) => exact Or.inl hz0
+      | Or.inl (Or.inr hz1) => exact Or.inr (Or.inl hz1)
+      | Or.inr hzzero => exact Or.inr (Or.inr hzzero)
   exact hsubset ▸ hunion
 
 /-- The singular set for the contour integrand is countable. -/

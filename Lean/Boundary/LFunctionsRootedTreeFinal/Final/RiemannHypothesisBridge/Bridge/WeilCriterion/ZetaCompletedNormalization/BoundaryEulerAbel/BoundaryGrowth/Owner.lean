@@ -17,7 +17,12 @@ local notation "π" => Real.pi
 
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
@@ -28,7 +33,7 @@ theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t :=
     eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_explicit
-      t ht
+      t ht hpartial
   exact boundaryLineOnePointRealParam_tail_norm_le_explicit_of_oscillatory_tail_norm_le_explicit
     t htail
 
@@ -36,23 +41,35 @@ theorem eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
 `N = ⌊2 + |t|⌋₊`. -/
 theorem eulerMaclaurin_riemannZeta_one_add_it_tail_after_cutoff_norm_le_explicit
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  exact eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate t ht
+  exact eulerMaclaurin_boundaryLineOnePointRealParam_classical_tail_estimate
+    t ht hpartial
 
 /-- Public Abel/Euler-Maclaurin zeta-tail root.  The proof is now only name
 transport from the canonical Euler-Maclaurin tail estimate at the exact cutoff. -/
 theorem abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_explicit
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
       ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
         (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  exact eulerMaclaurin_riemannZeta_one_add_it_tail_after_cutoff_norm_le_explicit t ht
+  exact eulerMaclaurin_riemannZeta_one_add_it_tail_after_cutoff_norm_le_explicit
+    t ht hpartial
 
 /-- Triangle-inequality split of `ζ(1+it)` into its Abel/Euler-Maclaurin tail
 and finite Dirichlet truncation. -/
@@ -81,7 +98,12 @@ theorem boundaryLineOnePointRealParam_zeta_norm_le_tail_plus_truncation
 explicit-tail boundary estimate. -/
 theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_explicit_tail_add_log_bound
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
         (1 + Real.log (2 + ‖t‖)) := by
@@ -98,7 +120,8 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_explicit_tail_add_log
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t :=
-    abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_explicit t ht
+    abelEulerMaclaurin_riemannZeta_one_add_it_tail_norm_le_explicit
+      t ht hpartial
   have hfinite :
       ‖∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           (1 : ℂ) / ((n : ℂ) ^ boundaryLineOnePointRealParam t)‖ ≤
@@ -270,13 +293,18 @@ theorem boundaryLineOnePointRealParam_explicit_tail_plus_log_le_constant_log
 boundary estimate with the explicit Abel-tail constant still visible. -/
 theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
         (1 + Real.log (2 + ‖t‖)) := by
   exact
     abelEulerMaclaurin_riemannZeta_one_add_it_vertical_explicit_tail_add_log_bound
-      t ht
+      t ht hpartial
 
 /-- The exact analytic Abel/Euler-Maclaurin tail estimate on `ζ(1 + it)`.
 
@@ -290,18 +318,22 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_anal
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+              8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
   exact Exists.intro 38
     (And.intro
       (Nat.cast_pos.mpr (show (0 : ℕ) < 38 from Nat.succ_pos 37))
-      (fun t ht =>
+      (fun t ht hpartial =>
         let hexplicit :
             ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
               boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
                 (1 + Real.log (2 + ‖t‖)) :=
           abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_explicit
-            t ht
+            t ht hpartial
         let habsorb :
             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t +
                 (1 + Real.log (2 + ‖t‖)) ≤
@@ -320,6 +352,10 @@ theorem abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound :
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+              8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
   exact abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound_analytic
@@ -333,6 +369,10 @@ theorem eulerMaclaurin_riemannZeta_boundaryLineOnePointRealParam_vertical_log_gr
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+              8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
   exact abelEulerMaclaurin_riemannZeta_one_add_it_vertical_log_growth_bound
@@ -348,6 +388,10 @@ theorem classicalZeta_riemannZeta_boundaryLineOnePointRealParam_vertical_log_gro
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+              8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) →
         ‖riemannZeta (boundaryLineOnePointRealParam t)‖ ≤
           A * Real.log (2 + ‖t‖) := by
   exact
@@ -362,18 +406,22 @@ theorem classicalZeta_boundaryLineOneZetaRealParam_vertical_log_growth_bound_fro
       0 < A ∧
       ∀ t : ℝ,
         1 ≤ ‖t‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+              8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) →
         ‖boundaryLineOneZetaRealParam t‖ ≤ A * Real.log (2 + ‖t‖) := by
   exact Exists.elim
     classicalZeta_riemannZeta_boundaryLineOnePointRealParam_vertical_log_growth_bound_from_EulerMaclaurin_truncation
     (fun A hA =>
       Exists.intro A
         (And.intro hA.left
-          (fun t ht =>
+          (fun t ht hpartial =>
             Eq.subst
               (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖t‖))
               (show ‖riemannZeta (boundaryLineOnePointRealParam t)‖ =
                   ‖boundaryLineOneZetaRealParam t‖ from rfl)
-              (hA.right t ht))))
+              (hA.right t ht hpartial))))
 
 /-- A logarithmic zeta estimate on `re = 1` gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
@@ -452,17 +500,21 @@ theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_EulerMacla
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
   exact Exists.elim
     classicalZeta_boundaryLineOneZetaRealParam_vertical_log_growth_bound_from_EulerMaclaurin_truncation
     (fun A hA =>
       Exists.intro A
         (And.intro hA.left
-          (fun w hw_re hw_im =>
+          (fun w hw_re hw_im hpartial =>
             Eq.subst
               (motive := fun x : ℝ => x ≤ A * Real.log (2 + ‖w.im‖))
               (norm_riemannZeta_boundaryLine_one_eq_norm_realParam hw_re).symm
-              (hA.right w.im hw_im))))
+              (hA.right w.im hw_im hpartial))))
 
 /-- Classical logarithmic vertical growth of zeta on the boundary line `re = 1`, in the
 standard partial-summation/truncation form. -/
@@ -472,6 +524,10 @@ theorem classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) := by
   exact
     classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_EulerMaclaurin_truncation
@@ -485,10 +541,59 @@ theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bo
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
-  exact boundaryLine_one_zeta_log_growth_bound_to_poleCleared_log_linear_growth_bound
+  exact Exists.elim
     classicalZeta_boundaryLine_one_vertical_log_growth_bound_from_truncation
+    (fun A hA =>
+      Exists.intro A
+        (And.intro hA.left
+          (fun w hw_re hw_im hpartial =>
+            let hpole_norm :
+                ‖w - 1‖ ≤ 1 + ‖w.im‖ :=
+              boundaryLine_one_sub_one_norm_le_vertical_height hw_re
+            let hzeta_norm :
+                ‖riemannZeta w‖ ≤ A * Real.log (2 + ‖w.im‖) :=
+              hA.right w hw_re hw_im hpartial
+            let hzeta_rhs_nonneg :
+                0 ≤ A * Real.log (2 + ‖w.im‖) :=
+              le_trans (norm_nonneg (riemannZeta w)) hzeta_norm
+            let hheight_nonneg : 0 ≤ 1 + ‖w.im‖ :=
+              le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
+            let hmul :
+                ‖w - 1‖ * ‖riemannZeta w‖ ≤
+                  (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) :=
+              mul_le_mul hpole_norm hzeta_norm hzeta_rhs_nonneg hheight_nonneg
+            let htarget_eq :
+                (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
+                  A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+              calc
+                (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)) =
+                    ((1 + ‖w.im‖) * A) * Real.log (2 + ‖w.im‖) := by
+                  exact mul_assoc (1 + ‖w.im‖) A (Real.log (2 + ‖w.im‖))
+                _ = (A * (1 + ‖w.im‖)) * Real.log (2 + ‖w.im‖) := by
+                  exact congrArg
+                    (fun x : ℝ => x * Real.log (2 + ‖w.im‖))
+                    (mul_comm (1 + ‖w.im‖) A)
+                _ = A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
+                  rfl
+            let hnorm_eq :
+                ‖(w - 1) * riemannZeta w‖ =
+                  ‖w - 1‖ * ‖riemannZeta w‖ :=
+              norm_mul (w - 1) (riemannZeta w)
+            Eq.subst
+              (motive := fun x : ℝ =>
+                ‖(w - 1) * riemannZeta w‖ ≤ x)
+              htarget_eq
+              (Eq.subst
+                (motive := fun x : ℝ => x ≤
+                  (1 + ‖w.im‖) * (A * Real.log (2 + ‖w.im‖)))
+                hnorm_eq.symm
+                hmul))))
 
 /-- The logarithmic boundary-line zeta estimate gives the log-linear estimate for the
 pole-cleared product `(s - 1)ζ(s)`. -/
@@ -518,26 +623,33 @@ theorem classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bo
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖) := by
   exact classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound_from_truncation
 
-/-- A log-linear vertical-height boundary estimate gives the coarser polynomial envelope
-used by the normalization chain. -/
+/-- A conditional log-linear vertical-height boundary estimate gives the coarser
+conditional polynomial envelope used by the normalization chain. -/
 theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
     {f : ℂ → ℂ}
+    (P : ℂ → Prop)
     (hlog :
       ∃ A : ℝ,
         0 < A ∧
         ∀ w : ℂ,
           w.re = 1 →
           1 ≤ ‖w.im‖ →
+          P w →
           ‖f w‖ ≤ A * (1 + ‖w.im‖) * Real.log (2 + ‖w.im‖)) :
     ∃ A : ℝ, ∃ m : ℕ,
       0 < A ∧
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        P w →
         ‖f w‖ ≤ A * (1 + ‖w.im‖) ^ m := by
   exact Exists.elim hlog
     (fun A hA =>
@@ -545,7 +657,7 @@ theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
         (Exists.intro 2
           (And.intro
             (mul_pos two_pos hA.left)
-            (fun w hw_re hw_im =>
+            (fun w hw_re hw_im hP =>
               let H : ℝ := 1 + ‖w.im‖
               let hH_nonneg : 0 ≤ H :=
                 le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im))
@@ -593,12 +705,54 @@ theorem boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
                     exact mul_assoc (2 * A) H H
                   _ = (2 * A) * H ^ (2 : ℕ) := by
                     exact congrArg (fun x : ℝ => (2 * A) * x) (pow_two H).symm
-              le_trans (hA.right w hw_re hw_im)
+              le_trans (hA.right w hw_re hw_im hP)
                 (Eq.subst
                   (motive := fun x : ℝ =>
                     A * H * Real.log (2 + ‖w.im‖) ≤ x)
                   htarget_eq
                   hmul_log_le)))))
+
+/-- A conditional polynomial vertical-height boundary estimate gives the
+conditional exponential finite-order envelope in the same vertical-height
+variable. -/
+theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound_of_condition
+    {f : ℂ → ℂ}
+    (P : ℂ → Prop)
+    (hpoly :
+      ∃ A : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        ∀ w : ℂ,
+          w.re = 1 →
+          1 ≤ ‖w.im‖ →
+          P w →
+          ‖f w‖ ≤ A * (1 + ‖w.im‖) ^ m) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ w : ℂ,
+        w.re = 1 →
+        1 ≤ ‖w.im‖ →
+        P w →
+        ‖f w‖ ≤ A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
+  exact match hpoly with
+    | ⟨A, m, hA_pos, hbound⟩ =>
+      ⟨A, 1, m, hA_pos, zero_lt_one, fun w hw_re hw_im hP => by
+        let H : ℝ := (1 + ‖w.im‖) ^ m
+        have hH_nonneg : 0 ≤ H :=
+          pow_nonneg
+            (le_trans zero_le_one (le_add_of_nonneg_right (norm_nonneg w.im)))
+            m
+        have hH_le_exp : H ≤ Real.exp ((1 : ℝ) * H) := by
+          have hone_mul : (1 : ℝ) * H = H := by
+            exact one_mul H
+          exact Eq.subst
+            (motive := fun x : ℝ => H ≤ Real.exp x)
+            hone_mul.symm
+            (Real.one_le_exp H)
+        have hscaled :
+            A * H ≤ A * Real.exp ((1 : ℝ) * H) :=
+          mul_le_mul_of_nonneg_left hH_le_exp (le_of_lt hA_pos)
+        exact le_trans (hbound w hw_re hw_im hP) hscaled⟩
 
 /-- Standard polynomial vertical growth of the pole-cleared zeta factor on the boundary
 line `re = 1`.
@@ -611,9 +765,18 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_boun
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * (1 + ‖w.im‖) ^ m := by
   exact boundaryLine_one_log_linear_growth_bound_to_polynomial_growth_bound
+    (fun w : ℂ =>
+      ∀ {x : ℝ},
+        (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+            8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x))
     classicalZeta_poleCleared_boundaryLine_one_vertical_log_linear_growth_bound
 
 /-- Standard finite-order vertical growth of the pole-cleared zeta factor on the boundary
@@ -629,9 +792,18 @@ theorem riemannZeta_poleCleared_boundaryLine_one_vertical_growth_bound_standard 
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w.im‖) ^ m) := by
-  exact boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
+  exact boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound_of_condition
+    (fun w : ℂ =>
+      ∀ {x : ℝ},
+        (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+            8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x))
     riemannZeta_poleCleared_boundaryLine_one_vertical_polynomial_growth_bound_standard
 
 /-- The standard vertical-height finite-order estimate for `(s - 1)ζ(s)` on `re = 1`
@@ -644,6 +816,10 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_of_vertical_growth
         ∀ w : ℂ,
           w.re = 1 →
           1 ≤ ‖w.im‖ →
+          (∀ {x : ℝ},
+            (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+              ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+                8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
           ‖(w - 1) * riemannZeta w‖ ≤
             A * Real.exp (B * (1 + ‖w.im‖) ^ m)) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
@@ -652,6 +828,10 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_of_vertical_growth
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact Exists.elim hvertical
@@ -665,8 +845,8 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_of_vertical_growth
                   (Exists.intro m
                     (And.intro hdata.left
                       (And.intro hdata.right.left
-                        (fun w hw_re hw_im =>
-                          le_trans (hdata.right.right w hw_re hw_im)
+                        (fun w hw_re hw_im hpartial =>
+                          le_trans (hdata.right.right w hw_re hw_im hpartial)
                             (finiteOrder_vertical_envelope_le_complex_envelope
                               (le_of_lt hdata.left)
                               (le_of_lt hdata.right.left))))))))))
@@ -680,6 +860,10 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_standard :
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact riemannZeta_poleCleared_boundaryLine_one_growth_bound_of_vertical_growth
@@ -762,6 +946,10 @@ theorem poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard :
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖poleClearedRiemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact Exists.elim riemannZeta_poleCleared_boundaryLine_one_growth_bound_standard
@@ -775,7 +963,7 @@ theorem poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard :
                   (Exists.intro m
                     (And.intro hdata.left
                       (And.intro hdata.right.left
-                        (fun w hw_re hw_im =>
+                        (fun w hw_re hw_im hpartial =>
                           let hw_ne_one : w ≠ 1 :=
                             fun hw =>
                               have him_zero : w.im = 0 := by
@@ -804,7 +992,7 @@ theorem poleClearedRiemannZeta_boundaryLine_one_growth_bound_standard :
                             (motive := fun x : ℂ =>
                               ‖x‖ ≤ A * Real.exp (B * (1 + ‖w‖) ^ m))
                             hpole_eq.symm
-                            (hdata.right.right w hw_re hw_im)))))))))
+                            (hdata.right.right w hw_re hw_im hpartial)))))))))
 
 
 end

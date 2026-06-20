@@ -14,15 +14,148 @@ noncomputable section
 
 open scoped Topology
 
+/-- The numerator in the derivative of the Cayley transform defining the
+principal arctangent. -/
+theorem Complex.arctan_cayley_derivative_numerator
+    (z : ℂ) :
+    Complex.I * (1 - z * Complex.I) -
+        (1 + z * Complex.I) * (-Complex.I) =
+      (2 : ℂ) * Complex.I := by
+  have hleft :
+      Complex.I * (1 - z * Complex.I) = Complex.I + z := by
+    calc
+      Complex.I * (1 - z * Complex.I) =
+          Complex.I * 1 - Complex.I * (z * Complex.I) := by
+        exact mul_sub Complex.I 1 (z * Complex.I)
+      _ = Complex.I - Complex.I * (z * Complex.I) := by
+        exact congrArg (fun u : ℂ => u - Complex.I * (z * Complex.I))
+          (mul_one Complex.I)
+      _ = Complex.I - (Complex.I * z) * Complex.I := by
+        exact congrArg (fun u : ℂ => Complex.I - u)
+          (Eq.symm (mul_assoc Complex.I z Complex.I))
+      _ = Complex.I - (z * Complex.I) * Complex.I := by
+        exact congrArg (fun u : ℂ => Complex.I - u * Complex.I)
+          (mul_comm Complex.I z)
+      _ = Complex.I - z * (Complex.I * Complex.I) := by
+        exact congrArg (fun u : ℂ => Complex.I - u)
+          (mul_assoc z Complex.I Complex.I)
+      _ = Complex.I - z * (-1 : ℂ) := by
+        exact congrArg (fun u : ℂ => Complex.I - z * u) Complex.I_mul_I
+      _ = Complex.I - -z := by
+        exact congrArg (fun u : ℂ => Complex.I - u) (mul_neg_one z)
+      _ = Complex.I + z := sub_neg_eq_add Complex.I z
+  have hright :
+      (1 + z * Complex.I) * (-Complex.I) = -Complex.I + z := by
+    calc
+      (1 + z * Complex.I) * (-Complex.I) =
+          1 * (-Complex.I) + (z * Complex.I) * (-Complex.I) := by
+        exact add_mul 1 (z * Complex.I) (-Complex.I)
+      _ = -Complex.I + (z * Complex.I) * (-Complex.I) := by
+        exact congrArg (fun u : ℂ => u + (z * Complex.I) * (-Complex.I))
+          (one_mul (-Complex.I))
+      _ = -Complex.I + z * (Complex.I * (-Complex.I)) := by
+        exact congrArg (fun u : ℂ => -Complex.I + u)
+          (mul_assoc z Complex.I (-Complex.I))
+      _ = -Complex.I + z * (-(Complex.I * Complex.I)) := by
+        exact congrArg (fun u : ℂ => -Complex.I + z * u)
+          (mul_neg Complex.I Complex.I)
+      _ = -Complex.I + z * (-(-1 : ℂ)) := by
+        exact congrArg
+          (fun u : ℂ => -Complex.I + z * (-u))
+          Complex.I_mul_I
+      _ = -Complex.I + z * 1 := by
+        exact congrArg (fun u : ℂ => -Complex.I + z * u) (neg_neg (1 : ℂ))
+      _ = -Complex.I + z := by
+        exact congrArg (fun u : ℂ => -Complex.I + u) (mul_one z)
+  calc
+    Complex.I * (1 - z * Complex.I) -
+        (1 + z * Complex.I) * (-Complex.I) =
+        (Complex.I + z) - (-Complex.I + z) := by
+      exact congrArg₂ HSub.hSub hleft hright
+    _ = (Complex.I + z) - (z + -Complex.I) := by
+      exact congrArg (fun u : ℂ => (Complex.I + z) - u)
+        (add_comm (-Complex.I) z)
+    _ = Complex.I + Complex.I := by
+      exact Complex.add_sub_add_neg_right_eq_add Complex.I z Complex.I
+    _ = (1 : ℂ) * Complex.I + (1 : ℂ) * Complex.I := by
+      exact congrArg₂ HAdd.hAdd (Eq.symm (one_mul Complex.I))
+        (Eq.symm (one_mul Complex.I))
+    _ = ((1 : ℂ) + 1) * Complex.I := by
+      exact Eq.symm (add_mul (1 : ℂ) 1 Complex.I)
+    _ = (2 : ℂ) * Complex.I := by
+      exact congrArg (fun u : ℂ => u * Complex.I) (one_add_one_eq_two)
+
+/-- The real numerator cancellation in the imaginary part of the Cayley
+transform. -/
+theorem Real.cayley_im_div_identity
+    (a b d : ℝ) :
+    a * (1 + b) / d - (1 - b) * (-a) / d = 2 * a / d := by
+  have hright_neg :
+      -((1 - b) * (-a)) = a * (1 - b) := by
+    calc
+      -((1 - b) * (-a)) = -(-((1 - b) * a)) := by
+        exact congrArg Neg.neg (mul_neg (1 - b) a)
+      _ = (1 - b) * a := neg_neg ((1 - b) * a)
+      _ = a * (1 - b) := mul_comm (1 - b) a
+  have hsum :
+      a * (1 + b) + a * (1 - b) = 2 * a := by
+    have hinside :
+        (1 + b) + (1 - b) = (2 : ℝ) := by
+      calc
+        (1 + b) + (1 - b) = 1 + (b + (1 - b)) := by
+          exact add_assoc 1 b (1 - b)
+        _ = 1 + (b + (1 + -b)) := by
+          exact congrArg (fun u : ℝ => 1 + (b + u)) (sub_eq_add_neg 1 b)
+        _ = 1 + ((b + 1) + -b) := by
+          exact congrArg (fun u : ℝ => 1 + u) (Eq.symm (add_assoc b 1 (-b)))
+        _ = 1 + ((1 + b) + -b) := by
+          exact congrArg (fun u : ℝ => 1 + (u + -b)) (add_comm b 1)
+        _ = 1 + (1 + (b + -b)) := by
+          exact congrArg (fun u : ℝ => 1 + u) (add_assoc 1 b (-b))
+        _ = 1 + (1 + 0) := by
+          exact congrArg (fun u : ℝ => 1 + (1 + u)) (add_neg_cancel b)
+        _ = 1 + 1 := by
+          exact congrArg (fun u : ℝ => 1 + u) (add_zero 1)
+        _ = 2 := one_add_one_eq_two
+    calc
+      a * (1 + b) + a * (1 - b) =
+          a * ((1 + b) + (1 - b)) := by
+        exact Eq.symm (left_distrib a (1 + b) (1 - b))
+      _ = a * 2 := by
+        exact congrArg (fun u : ℝ => a * u) hinside
+      _ = 2 * a := mul_comm a 2
+  calc
+    a * (1 + b) / d - (1 - b) * (-a) / d =
+        a * (1 + b) / d + -((1 - b) * (-a) / d) := by
+      exact sub_eq_add_neg (a * (1 + b) / d) ((1 - b) * (-a) / d)
+    _ = a * (1 + b) / d + -((1 - b) * (-a)) / d := by
+      exact congrArg (fun u : ℝ => a * (1 + b) / d + u)
+        (neg_div' d ((1 - b) * (-a)))
+    _ = a * (1 + b) / d + (a * (1 - b)) / d := by
+      exact congrArg (fun u : ℝ => a * (1 + b) / d + u / d) hright_neg
+    _ = (a * (1 + b) + a * (1 - b)) / d := by
+      exact Eq.symm (add_div (a * (1 + b)) (a * (1 - b)) d)
+    _ = 2 * a / d := by
+      exact congrArg (fun u : ℝ => u / d) hsum
+
+/-- Positive-real Binet formula for the principal logarithm of Gamma, reduced
+from the branch formula. -/
+theorem Complex.Gamma_binetSecondFormula_principalLog_positiveReal_owner
     {x : ℝ}
-    (hx : 0 < x) :
+    (hx : 0 < x)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+          Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+              Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) :
     Complex.log (Complex.Gamma (x : ℂ)) =
       Complex.binetLogGammaMainTerm (x : ℂ) +
         Complex.binetSecondFormulaRemainder (x : ℂ) := by
   have hbranch :
       Complex.binetLogGammaBranch (x : ℂ) =
         Complex.log (Complex.Gamma (x : ℂ)) :=
-    Complex.binetLogGammaBranch_eq_principalLog_Gamma_of_posReal_owner hx
+    Complex.binetLogGammaBranch_eq_principalLog_Gamma_of_posReal_owner hx hfinite
   exact hbranch.symm
 
 /-- The principal complex arctangent has derivative `1 / (1 + z^2)` at points
@@ -45,7 +178,9 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
           exact (mul_div_cancel_right₀ z Complex.I_ne_zero).symm
         _ = (-1 : ℂ) / Complex.I := by
           have hzI_eq : z * Complex.I = -1 := by
-            exact add_eq_zero_iff_eq_neg.mp hzero
+            have hzero_comm : z * Complex.I + 1 = 0 :=
+              Eq.trans (add_comm (z * Complex.I) 1) hzero
+            exact add_eq_zero_iff_eq_neg.mp hzero_comm
           exact congrArg (fun u : ℂ => u / Complex.I) hzI_eq
         _ = Complex.I := Complex.neg_one_div_I_eq_I
     exact hzI hz_eq
@@ -57,7 +192,7 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
           exact (mul_div_cancel_right₀ z Complex.I_ne_zero).symm
         _ = (1 : ℂ) / Complex.I := by
           have hzI_eq : z * Complex.I = 1 := by
-            exact sub_eq_zero.mp hzero
+            exact Eq.symm (sub_eq_zero.mp hzero)
           exact congrArg (fun u : ℂ => u / Complex.I) hzI_eq
         _ = -Complex.I := Complex.one_div_I_eq_neg_I
     exact hznegI hz_eq
@@ -68,13 +203,37 @@ theorem Complex.arctan_hasDerivAt_of_log_argument_mem_slitPlane
         ((2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2) z := by
     have hnum :
         HasDerivAt (fun u : ℂ => 1 + u * Complex.I) Complex.I z := by
-      exact ((hasDerivAt_id' z).mul_const Complex.I).const_add 1
+      exact
+        Eq.subst
+          (motive := fun d : ℂ =>
+            HasDerivAt (fun u : ℂ => 1 + u * Complex.I) d z)
+          (one_mul Complex.I)
+          (((hasDerivAt_id' z).mul_const Complex.I).const_add 1)
     have hden :
         HasDerivAt (fun u : ℂ => 1 - u * Complex.I) (-Complex.I) z := by
-      exact ((hasDerivAt_id' z).mul_const Complex.I).const_sub 1
+      have hneg_one_mul :
+          -(1 * Complex.I) = -Complex.I := by
+        exact congrArg Neg.neg (one_mul Complex.I)
+      exact
+        Eq.subst
+          (motive := fun d : ℂ =>
+            HasDerivAt (fun u : ℂ => 1 - u * Complex.I) d z)
+          hneg_one_mul
+          (((hasDerivAt_id' z).mul_const Complex.I).const_sub 1)
     have hdiv := hnum.div hden hden_ne
-    exact by
-      exact hdiv
+    have halg :
+        (Complex.I * (1 - z * Complex.I) -
+            (1 + z * Complex.I) * (-Complex.I)) /
+            (1 - z * Complex.I) ^ 2 =
+          (2 : ℂ) * Complex.I / (1 - z * Complex.I) ^ 2 := by
+      exact congrArg
+        (fun u : ℂ => u / (1 - z * Complex.I) ^ 2)
+        (Complex.arctan_cayley_derivative_numerator z)
+    exact
+      Eq.subst
+        (motive := fun d : ℂ => HasDerivAt q d z)
+        halg
+        hdiv
   have hlog :
       HasDerivAt
         (fun u : ℂ => Complex.log (q u))
@@ -325,13 +484,17 @@ theorem Complex.one_sub_mul_I_ne_zero_of_ne_negI
   have hmul : z * Complex.I = 1 :=
     (sub_eq_zero.mp hzero).symm
   have harg : z = -Complex.I := by
-    have hmul' := congrArg (fun u : ℂ => u * (-Complex.I)) hmul
-    have hI : (Complex.I : ℂ) * Complex.I = -1 := by
-      exact Complex.I_mul_I
-    have hmul'' : z * Complex.I * (-Complex.I) = -Complex.I := by
-      -- transport the identity through the right multiplication
-      exact hmul'.trans (one_mul (-Complex.I))
-    exact hmul''
+    have hnegI_mul_I : (-Complex.I) * Complex.I = 1 := by
+      calc
+        (-Complex.I) * Complex.I = -(Complex.I * Complex.I) := by
+          exact neg_mul Complex.I Complex.I
+        _ = -(-1 : ℂ) := by
+          exact congrArg Neg.neg Complex.I_mul_I
+        _ = 1 := neg_neg (1 : ℂ)
+    have hright :
+        z * Complex.I = (-Complex.I) * Complex.I :=
+      hmul.trans hnegI_mul_I.symm
+    exact mul_right_cancel₀ Complex.I_ne_zero hright
   exact hz harg
 
 /-- Imaginary part of the Cayley transform used in the principal-log
@@ -340,12 +503,133 @@ theorem Complex.arctan_cayley_im_eq
     (z : ℂ) :
     ((1 + z * Complex.I) / (1 - z * Complex.I)).im =
       2 * z.re / Complex.normSq (1 - z * Complex.I) := by
-  exact Complex.div_im _ _
+  have hnum_im : (1 + z * Complex.I).im = z.re := by
+    calc
+      (1 + z * Complex.I).im = (1 : ℂ).im + (z * Complex.I).im := by
+        exact Complex.add_im 1 (z * Complex.I)
+      _ = 0 + (z * Complex.I).im := by
+        rfl
+      _ = 0 + z.re := by
+        exact congrArg (fun u : ℝ => 0 + u) (Complex.mul_I_im z)
+      _ = z.re := zero_add z.re
+  have hnum_re : (1 + z * Complex.I).re = 1 - z.im := by
+    calc
+      (1 + z * Complex.I).re = (1 : ℂ).re + (z * Complex.I).re := by
+        exact Complex.add_re 1 (z * Complex.I)
+      _ = 1 + (z * Complex.I).re := by
+        rfl
+      _ = 1 + -z.im := by
+        exact congrArg (fun u : ℝ => 1 + u) (Complex.mul_I_re z)
+      _ = 1 - z.im := by
+        exact Eq.symm (sub_eq_add_neg 1 z.im)
+  have hden_re : (1 - z * Complex.I).re = 1 + z.im := by
+    calc
+      (1 - z * Complex.I).re = (1 : ℂ).re - (z * Complex.I).re := by
+        exact Complex.sub_re 1 (z * Complex.I)
+      _ = 1 - (z * Complex.I).re := by
+        rfl
+      _ = 1 - -z.im := by
+        exact congrArg (fun u : ℝ => 1 - u) (Complex.mul_I_re z)
+      _ = 1 + z.im := sub_neg_eq_add 1 z.im
+  have hden_im : (1 - z * Complex.I).im = -z.re := by
+    calc
+      (1 - z * Complex.I).im = (1 : ℂ).im - (z * Complex.I).im := by
+        exact Complex.sub_im 1 (z * Complex.I)
+      _ = 0 - (z * Complex.I).im := by
+        rfl
+      _ = 0 - z.re := by
+        exact congrArg (fun u : ℝ => 0 - u) (Complex.mul_I_im z)
+      _ = -z.re := zero_sub z.re
+  have hdiv :
+      ((1 + z * Complex.I) / (1 - z * Complex.I)).im =
+        (1 + z * Complex.I).im * (1 - z * Complex.I).re /
+            Complex.normSq (1 - z * Complex.I) -
+          (1 + z * Complex.I).re * (1 - z * Complex.I).im /
+            Complex.normSq (1 - z * Complex.I) :=
+    Complex.div_im _ _
+  calc
+    ((1 + z * Complex.I) / (1 - z * Complex.I)).im =
+        (1 + z * Complex.I).im * (1 - z * Complex.I).re /
+            Complex.normSq (1 - z * Complex.I) -
+          (1 + z * Complex.I).re * (1 - z * Complex.I).im /
+            Complex.normSq (1 - z * Complex.I) := hdiv
+    _ = z.re * (1 + z.im) / Complex.normSq (1 - z * Complex.I) -
+          (1 - z.im) * (-z.re) / Complex.normSq (1 - z * Complex.I) := by
+      exact congrArg₂ HSub.hSub
+        (congrArg₂ HDiv.hDiv
+          (congrArg₂ HMul.hMul hnum_im hden_re)
+          rfl)
+        (congrArg₂ HDiv.hDiv
+          (congrArg₂ HMul.hMul hnum_re hden_im)
+          rfl)
+    _ = 2 * z.re / Complex.normSq (1 - z * Complex.I) := by
+      exact Real.cayley_im_div_identity z.re z.im
+        (Complex.normSq (1 - z * Complex.I))
 
 /-- For `t > 0` and `0 < w.re`, the Cayley transform appearing in the
 principal-log definition of `Complex.arctan ((t : ℂ) / w)` lies in the slit
 plane, so the principal logarithm is differentiable there. -/
 theorem Complex.binet_arctan_log_argument_mem_slitPlane
+    {t : ℝ} {w : ℂ}
+    (ht : 0 < t)
+    (hw_re_pos : 0 < w.re) :
+    (1 + ((t : ℂ) / w) * Complex.I) /
+        (1 - ((t : ℂ) / w) * Complex.I) ∈ Complex.slitPlane := by
+  let z : ℂ := (t : ℂ) / w
+  have harg_ne_negI :
+      z ≠ -Complex.I :=
+    Complex.binet_arctan_argument_ne_negI hw_re_pos
+  have hden_ne :
+      1 - z * Complex.I ≠ 0 :=
+    Complex.one_sub_mul_I_ne_zero_of_ne_negI harg_ne_negI
+  have hw_ne : w ≠ 0 :=
+    Complex.ne_zero_of_re_pos hw_re_pos
+  have hw_normSq_pos : 0 < Complex.normSq w :=
+    (Complex.normSq_pos).mpr hw_ne
+  have hz_re_pos : 0 < z.re := by
+    have hdiv_re :
+        z.re =
+          ((t : ℂ).re * w.re / Complex.normSq w) +
+            ((t : ℂ).im * w.im / Complex.normSq w) := by
+      exact Complex.div_re (t : ℂ) w
+    have hreal_re : (t : ℂ).re = t := rfl
+    have hreal_im : (t : ℂ).im = 0 := rfl
+    have hmain_pos : 0 < t * w.re / Complex.normSq w :=
+      div_pos (mul_pos ht hw_re_pos) hw_normSq_pos
+    calc
+      0 < t * w.re / Complex.normSq w := hmain_pos
+      _ = (t * w.re / Complex.normSq w) + 0 := by
+        exact Eq.symm (add_zero (t * w.re / Complex.normSq w))
+      _ =
+          ((t : ℂ).re * w.re / Complex.normSq w) +
+            ((t : ℂ).im * w.im / Complex.normSq w) := by
+        exact Eq.symm
+          (congrArg₂ HAdd.hAdd
+            (congrArg₂ HDiv.hDiv
+              (congrArg₂ HMul.hMul hreal_re rfl)
+              rfl)
+            (Eq.trans
+              (congrArg₂ HDiv.hDiv
+                (congrArg₂ HMul.hMul hreal_im rfl)
+                rfl)
+              (Eq.trans
+                (congrArg (fun u : ℝ => u / Complex.normSq w) (zero_mul w.im))
+                (zero_div (Complex.normSq w)))))
+      _ = z.re := hdiv_re.symm
+  have hden_normSq_pos :
+      0 < Complex.normSq (1 - z * Complex.I) :=
+    (Complex.normSq_pos).mpr hden_ne
+  have him_pos :
+      0 <
+        ((1 + z * Complex.I) / (1 - z * Complex.I)).im := by
+    calc
+      0 < 2 * z.re / Complex.normSq (1 - z * Complex.I) :=
+        div_pos (mul_pos two_pos hz_re_pos) hden_normSq_pos
+      _ = ((1 + z * Complex.I) / (1 - z * Complex.I)).im :=
+        (Complex.arctan_cayley_im_eq z).symm
+  exact
+    Complex.mem_slitPlane_iff.mpr
+      (Or.inr (ne_of_gt him_pos))
 
 end
 

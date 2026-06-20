@@ -1,4 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlanaClassicalInputs
+import Mathlib.MeasureTheory.Integral.IntegrableOn
+import Mathlib.MeasureTheory.Integral.SetIntegral
 
 /-!
 # Owner theorems for the Abel-Plana derivation of Binet's formula
@@ -14,6 +16,8 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
+open Filter
+open MeasureTheory
 
 /-- The finite logarithmic Gamma approximation unfolded after the Abel-Plana
 index shift `M = N + 1`. -/
@@ -110,7 +114,7 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
   have hfactorial_ne : (((Nat.factorial M : ℕ) : ℂ) ≠ 0) := by
     exact Nat.cast_ne_zero.mpr (Nat.factorial_ne_zero M)
   have hterm_ne :
-      ∀ n : ℕ, n ∈ Finset.range (M + 1) → w + n ≠ 0 := fun n _hn hzero =>
+      ∀ n : ℕ, n ∈ Finset.range (M + 1) → w + n ≠ 0 := fun n _hn hzero => by
     have hre_zero : (w + (n : ℂ)).re = 0 := by
       exact congrArg Complex.re hzero
     have hre_sum : (w + (n : ℂ)).re = w.re + n := by
@@ -146,11 +150,34 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
           Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) /
             Complex.exp
               (∑ n in Finset.range (M + 1), Complex.log (w + n)) := by
-      exact Complex.exp_sub _ _
+      let S : ℂ := ∑ n in Finset.range (M + 1), Complex.log (w + n)
+      let A : ℂ := w * Complex.log (M : ℂ)
+      let B : ℂ := Complex.log ((Nat.factorial M : ℕ) : ℂ)
+      have hsub :
+          Complex.exp (A + B - S) =
+            Complex.exp (A + B) / Complex.exp S :=
+        Complex.exp_sub (A + B) S
+      have hadd :
+          Complex.exp (A + B) = Complex.exp A * Complex.exp B :=
+        Complex.exp_add A B
+      calc
+        Complex.exp
+            (w * Complex.log (M : ℂ) +
+              Complex.log ((Nat.factorial M : ℕ) : ℂ) -
+                ∑ n in Finset.range (M + 1), Complex.log (w + n)) =
+          Complex.exp (A + B - S) := rfl
+        _ = Complex.exp (A + B) / Complex.exp S := hsub
+        _ = Complex.exp A * Complex.exp B / Complex.exp S := by
+          exact congrArg (fun z : ℂ => z / Complex.exp S) hadd
+        _ =
+          Complex.exp (w * Complex.log (M : ℂ)) *
+            Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) /
+              Complex.exp
+                (∑ n in Finset.range (M + 1), Complex.log (w + n)) := rfl
     _ =
         Complex.exp (Complex.log (M : ℂ) * w) *
           ((Nat.factorial M : ℕ) : ℂ) /
-            (∏ n in Finset.range (M + 1), w + n) := by
+            (∏ n in Finset.range (M + 1), (w + (n : ℂ))) := by
       have hnum :
           Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) =
             ((Nat.factorial M : ℕ) : ℂ) := by
@@ -158,51 +185,68 @@ theorem Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
       have hden :
           Complex.exp
             (∑ n in Finset.range (M + 1), Complex.log (w + n)) =
-          ∏ n in Finset.range (M + 1), (w + n) := by
+          ∏ n in Finset.range (M + 1), (w + (n : ℂ)) := by
         exact
           (Complex.exp_sum (s := Finset.range (M + 1))
             (f := fun n => Complex.log (w + n))).trans
-              (Finset.prod_congr rfl
-                (fun n hn => Complex.exp_log (hterm_ne n hn)))
+            (Finset.prod_congr rfl
+              (fun n hn => Complex.exp_log (hterm_ne n hn)))
+      have hmul_comm_exp :
+          Complex.exp (w * Complex.log (M : ℂ)) =
+            Complex.exp (Complex.log (M : ℂ) * w) := by
+        exact congrArg Complex.exp (mul_comm w (Complex.log (M : ℂ)))
       have hfrac :
-          Complex.exp (Complex.log (M : ℂ) * w) *
+          Complex.exp (w * Complex.log (M : ℂ)) *
             Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) /
               Complex.exp
                 (∑ n in Finset.range (M + 1), Complex.log (w + n)) =
           Complex.exp (Complex.log (M : ℂ) * w) *
             ((Nat.factorial M : ℕ) : ℂ) /
-              (∏ n in Finset.range (M + 1), w + n) := by
+              (∏ n in Finset.range (M + 1), (w + (n : ℂ))) := by
         calc
-          Complex.exp (Complex.log (M : ℂ) * w) *
+          Complex.exp (w * Complex.log (M : ℂ)) *
               Complex.exp (Complex.log ((Nat.factorial M : ℕ) : ℂ)) /
                 Complex.exp
                   (∑ n in Finset.range (M + 1), Complex.log (w + n)) =
-            Complex.exp (Complex.log (M : ℂ) * w) *
-              (((Nat.factorial M : ℕ) : ℂ) /
+            Complex.exp (w * Complex.log (M : ℂ)) *
+              ((Nat.factorial M : ℕ) : ℂ) /
                 Complex.exp
-                  (∑ n in Finset.range (M + 1), Complex.log (w + n))) := by
-              exact congrArg
-                (fun z : ℂ => Complex.exp (Complex.log (M : ℂ) * w) * z /
-                  Complex.exp
-                    (∑ n in Finset.range (M + 1), Complex.log (w + n))) hnum
+                  (∑ n in Finset.range (M + 1), Complex.log (w + n)) := by
+            exact congrArg
+              (fun z : ℂ => Complex.exp (w * Complex.log (M : ℂ)) * z /
+                Complex.exp
+                  (∑ n in Finset.range (M + 1), Complex.log (w + n))) hnum
+          _ = Complex.exp (w * Complex.log (M : ℂ)) *
+              ((Nat.factorial M : ℕ) : ℂ) /
+                (∏ n in Finset.range (M + 1), (w + (n : ℂ))) := by
+            exact congrArg
+              (fun z : ℂ =>
+                Complex.exp (w * Complex.log (M : ℂ)) *
+                  ((Nat.factorial M : ℕ) : ℂ) / z)
+              hden
           _ = Complex.exp (Complex.log (M : ℂ) * w) *
-              (((Nat.factorial M : ℕ) : ℂ) /
-                (∏ n in Finset.range (M + 1), w + n)) := by
-              exact congrArg
-                (fun z : ℂ => Complex.exp (Complex.log (M : ℂ) * w) * z) (
-                  congrArg (fun z : ℂ => ((Nat.factorial M : ℕ) : ℂ) / z) hden)
+              ((Nat.factorial M : ℕ) : ℂ) /
+                (∏ n in Finset.range (M + 1), (w + (n : ℂ))) := by
+            exact congrArg
+              (fun z : ℂ =>
+                z * ((Nat.factorial M : ℕ) : ℂ) /
+                  (∏ n in Finset.range (M + 1), (w + (n : ℂ))))
+              hmul_comm_exp
       exact hfrac
-      exact hsum
     _ =
         (M : ℂ) ^ w * ((Nat.factorial M : ℕ) : ℂ) /
-          (∏ n in Finset.range (M + 1), w + n) := by
+          (∏ n in Finset.range (M + 1), (w + (n : ℂ))) := by
       have hpow : (M : ℂ) ^ w = Complex.exp (Complex.log (M : ℂ) * w) := by
-        exact Complex.cpow_def_of_ne_zero hM_ne
-      exact hpow
+        exact Complex.cpow_def_of_ne_zero hM_ne w
+      exact congrArg
+        (fun z : ℂ =>
+          z * ((Nat.factorial M : ℕ) : ℂ) /
+            (∏ n in Finset.range (M + 1), (w + (n : ℂ))))
+        hpow.symm
     _ = Complex.GammaSeq w (N + 1) := by
       show
         (M : ℂ) ^ w * ((Nat.factorial M : ℕ) : ℂ) /
-            (∏ n in Finset.range (M + 1), w + n) =
+            (∏ n in Finset.range (M + 1), (w + (n : ℂ))) =
           Complex.GammaSeq w M
       rfl
 
@@ -225,8 +269,14 @@ theorem Complex.tendsto_integral_Ioc_natCast_of_integrableOn_Ioi
       ⟨hx.1, le_trans hx.2 (Nat.cast_le.mpr hNM)⟩
   have hs_union :
       (⋃ N : ℕ, s N) = Set.Ioi (0 : ℝ) := by
-    exact iUnion_Ioc_eq_Ioi_self_iff.mpr
-      (fun x _hx => exists_nat_ge x)
+    ext x
+    constructor
+    · intro hx
+      rcases Set.mem_iUnion.mp hx with ⟨N, hN⟩
+      exact hN.1
+    · intro hx
+      rcases exists_nat_ge x with ⟨N, hN⟩
+      exact Set.mem_iUnion.mpr ⟨N, ⟨hx, hN⟩⟩
   have h_integrable_union :
       IntegrableOn f (⋃ N : ℕ, s N) := by
     exact hs_union.symm ▸ hf
@@ -244,9 +294,17 @@ the remainder defined by subtracting them. -/
 theorem add_add_sub_add_remainder
     (A M B : ℂ) :
     A = M + B + (A - (M + B)) := by
+  let C : ℂ := M + B
   calc
-    A = (M + B) + (A - (M + B)) := by
-      exact (add_sub_cancel'_right A (M + B)).symm
+    A = 0 + A := (zero_add A).symm
+    _ = (C + -C) + A := by
+      exact congrArg (fun z : ℂ => z + A) (add_neg_cancel C).symm
+    _ = C + (-C + A) := by
+      exact add_assoc C (-C) A
+    _ = C + (A + -C) := by
+      exact congrArg (fun z : ℂ => C + z) (add_comm (-C) A)
+    _ = C + (A - C) := by
+      exact congrArg (fun z : ℂ => C + z) (sub_eq_add_neg A C).symm
     _ = M + B + (A - (M + B)) := rfl
 
 /-- Reassemble a finite main term from its limiting term and the endpoint
@@ -254,7 +312,16 @@ Stirling remainder. -/
 theorem add_sub_remainder
     (F L : ℂ) :
     F = L + (F - L) := by
-  exact (add_sub_cancel'_right F L).symm
+  calc
+    F = 0 + F := (zero_add F).symm
+    _ = (L + -L) + F := by
+      exact congrArg (fun z : ℂ => z + F) (add_neg_cancel L).symm
+    _ = L + (-L + F) := by
+      exact add_assoc L (-L) F
+    _ = L + (F + -L) := by
+      exact congrArg (fun z : ℂ => L + z) (add_comm (-L) F)
+    _ = L + (F - L) := by
+      exact congrArg (fun z : ℂ => L + z) (sub_eq_add_neg F L).symm
 
 /-- Dropping a terminal zero from a Binet main-plus-remainder expression. -/
 theorem binet_branch_add_zero_eq
@@ -271,7 +338,7 @@ file is designed to avoid. -/
 theorem Complex.binetAbelPlana_logGammaFiniteApproximation_eq_finiteMainTerm_add_boundary_add_error
     {N : ℕ}
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (_hw : 0 < w.re) :
     Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
       Complex.binetAbelPlanaFiniteMainTerm N w +
         Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
@@ -356,7 +423,11 @@ theorem Complex.binetAbelPlana_endpointStirlingRemainder_tendsto_zero_of_finiteM
     Filter.Eventually.of_forall
       (fun N =>
         (Complex.binetAbelPlanaFiniteEndpointStirlingRemainder_unfold N w).symm)
-  exact (sub_self _).symm ▸ (hdiff.congr' hevent)
+  have hlimit_zero :
+      Complex.binetLogGammaMainTerm w -
+          Complex.binetLogGammaMainTerm w = (0 : ℂ) :=
+    sub_self (Complex.binetLogGammaMainTerm w)
+  exact hlimit_zero ▸ (hdiff.congr' hevent)
 
 /-- Endpoint/Stirling remainder vanishes in the Euler limit. -/
 theorem Complex.binetAbelPlana_endpointStirlingRemainder_tendsto_zero
@@ -387,14 +458,20 @@ theorem Complex.binetAbelPlana_finiteMainTerm_tendsto_binetMainTerm_from_endpoin
 /-- The finite Abel-Plana remainder error vanishes in the Euler limit. -/
 theorem Complex.binetAbelPlana_finiteRemainderError_tendsto_zero
     {w : ℂ}
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w) :
     Tendsto
       (fun N : ℕ =>
         Complex.binetAbelPlanaFiniteRemainderError N w)
       atTop
       (𝓝 (0 : ℂ)) := by
   exact
-    Complex.binetAbelPlanaFiniteRemainderError_tendsto_zero_owner hw
+    Complex.binetAbelPlanaFiniteRemainderError_tendsto_zero_owner hw hfinite
 
 /-- If the exact finite Abel-Plana formula has no residual term at a given
 index, the named finite remainder error is zero at that index.
@@ -462,7 +539,7 @@ theorem Complex.binetAbelPlana_finiteRemainderError_tendsto_zero_of_eventually_e
       (fun N hN =>
         Complex.binetAbelPlana_finiteRemainderError_eq_zero_of_exact_finiteAbelPlana
           (N := N) (w := w) hN)
-  exact hzero.tendsto_iff.mpr tendsto_const_nhds
+  exact tendsto_const_nhds.congr' hzero.symm
 
 /-- The Abel-Plana logarithmic jump equals the normalized arctangent-kernel
 boundary correction. -/
@@ -494,7 +571,7 @@ theorem Complex.binetAbelPlana_boundaryCorrection_eq_normalizedBoundary
   have hscale :
       ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), 2 * K t =
         2 * ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), K t :=
-    integral_const_mul 2 K
+    integral_mul_left (μ := volume.restrict (Set.Ioc (0 : ℝ) (N : ℝ))) 2 K
   have hboundary_unfold :
       Complex.binetAbelPlanaFiniteBoundaryCorrection N w =
         ∫ t : ℝ in Set.Ioc (0 : ℝ) (N : ℝ), L t :=
@@ -636,7 +713,8 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTailKernel_integrableOn_tail
   have hcut_nonneg : (0 : ℝ) ≤ ‖w‖ / 2 :=
     div_nonneg (norm_nonneg w) zero_le_two
   have hM_tail : IntegrableOn M (Set.Ioi (‖w‖ / 2)) :=
-    hM_integrable_Ioi.mono_set (Ioi_subset_Ioi hcut_nonneg)
+    hM_integrable_Ioi.mono_set
+      (fun t ht => lt_of_le_of_lt hcut_nonneg ht)
   have hP_norm :
       IntegrableOn (fun t : ℝ => ‖P t‖) (Set.Ioi (‖w‖ / 2)) :=
     hP_integrable.norm
@@ -651,10 +729,17 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTailKernel_integrableOn_tail
           (‖P t‖ + |((1 : ℝ) / ‖w‖) * M t| : ℝ))
         (Set.Ioi (‖w‖ / 2)) :=
     hP_norm.add hM_scaled_abs
+  have hbase :
+      Integrable
+        (fun t : ℝ =>
+          (((‖P t‖ + |((1 : ℝ) / ‖w‖) * M t| : ℝ)) : ℂ))
+        (volume.restrict (Set.Ioi (‖w‖ / 2))) :=
+    Complex.ofRealCLM.integrable_comp hsum
   exact
-    (Complex.ofRealCLM.integrable_comp hsum).congr_fun
-      (fun t _ =>
-        (Complex.binetSecondFormulaAbelPlanaDeformedTailKernel_apply w t).symm)
+    hbase.congr
+      (Filter.Eventually.of_forall
+        (fun t =>
+          (Complex.binetSecondFormulaAbelPlanaDeformedTailKernel_apply w t).symm))
 
 /-- The deformed tail kernel was normalized to contain the principal tail norm,
 so the pointwise comparison is an immediate kernel-normalization fact. -/
@@ -672,7 +757,7 @@ theorem Complex.binetSecondFormula_principalTailKernel_norm_le_abelPlanaDeformed
   have hnorm :
       ‖((‖P‖ + A : ℝ) : ℂ)‖ = ‖P‖ + A := by
     calc
-      ‖((‖P‖ + A : ℝ) : ℂ)‖ = |(‖P‖ + A : ℝ)| := Complex.norm_ofReal _
+      ‖((‖P‖ + A : ℝ) : ℂ)‖ = |(‖P‖ + A : ℝ)| := Complex.norm_real _
       _ = ‖P‖ + A := by
         exact abs_of_nonneg hnonneg
   have hle : ‖P‖ ≤ ‖P‖ + A :=
@@ -702,7 +787,7 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTail_pointwiseComparison :
 tail integral comparison. -/
 theorem Complex.binetSecondFormula_abelPlanaDeformedTail_integralComparison :
     Complex.BinetSecondFormulaPrincipalTailKernelIntegralComparison
-      Complex.binetSecondFormulaAbelPlanaDeformedTailKernel 2 := fun w hw hR =>
+      Complex.binetSecondFormulaAbelPlanaDeformedTailKernel 2 := fun w hw hR => by
   let P : ℝ → ℂ := fun t : ℝ =>
     Complex.binetSecondFormulaPrincipalTailKernel w t
   let K : ℝ → ℂ := fun t : ℝ =>
@@ -721,7 +806,7 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTail_integralComparison :
     Complex.binetSecondFormula_abelPlanaDeformedTail_pointwiseComparison
       w hw hR
   exact
-    setIntegral_mono_ae
+    setIntegral_mono_ae_restrict
       hP_integrable.norm
       hK_integrable.norm
       hpointwise
@@ -730,7 +815,13 @@ theorem Complex.binetSecondFormula_abelPlanaDeformedTail_integralComparison :
 Abel-Plana identity and the two convergence statements. -/
 theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaBranch
     (w : ℂ)
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w) :
     Tendsto
       (fun N : ℕ =>
         Complex.binetAbelPlanaLogGammaFiniteApproximation N w)
@@ -757,6 +848,7 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaB
         atTop
         (𝓝 (0 : ℂ)) :=
     Complex.binetAbelPlana_finiteRemainderError_tendsto_zero hw
+      hfinite
   have hsum :
       Tendsto
         (fun N : ℕ =>
@@ -808,7 +900,13 @@ theorem Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaB
 exponentiating the branch recovers `Gamma` on the open right half-plane. -/
 theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
     (w : ℂ)
-    (hw : 0 < w.re) :
+    (hw : 0 < w.re)
+    (hfinite :
+      ∀ N : ℕ,
+        Complex.binetAbelPlanaLogGammaFiniteApproximation N w =
+          Complex.binetAbelPlanaFiniteMainTerm N w +
+            Complex.binetAbelPlanaFiniteBoundaryCorrection N w +
+              Complex.binetAbelPlanaFiniteContourRemainder N w) :
     Complex.exp (Complex.binetLogGammaBranch w) =
       Complex.Gamma w := by
   have hfinite_branch :
@@ -818,7 +916,7 @@ theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
         atTop
         (𝓝 (Complex.binetLogGammaBranch w)) :=
     Complex.binetAbelPlanaLogGammaFiniteApproximation_tendsto_binetLogGammaBranch
-      w hw
+      w hw hfinite
   have hexp_branch :
       Tendsto
         (fun N : ℕ =>
@@ -833,7 +931,7 @@ theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
         atTop
         (𝓝 (Complex.Gamma w)) :=
     (Complex.GammaSeq_tendsto_Gamma w).comp
-      (tendsto_add_atTop_nat 1)
+      (Filter.tendsto_add_atTop_nat 1)
   have hsame :
       (fun N : ℕ => Complex.GammaSeq w (N + 1)) =ᶠ[atTop]
       (fun N : ℕ =>
@@ -843,7 +941,15 @@ theorem Complex.exp_binetLogGammaBranch_eq_Gamma_from_AbelPlanaOwner
       (fun N =>
         (Complex.exp_binetAbelPlanaLogGammaFiniteApproximation_eq_GammaSeq
           (N := N) hw).symm)
-  exact tendsto_nhds_unique (hGammaSeq.congr' hsame) hexp_branch
+  have hGamma_from_exp :
+      Tendsto
+        (fun N : ℕ =>
+          Complex.exp
+            (Complex.binetAbelPlanaLogGammaFiniteApproximation N w))
+        atTop
+        (𝓝 (Complex.Gamma w)) :=
+    hGammaSeq.congr' hsame
+  exact tendsto_nhds_unique hexp_branch hGamma_from_exp
 
 /-- The contour-deformed tail comparison produced by the Abel-Plana
 deformation. -/

@@ -511,6 +511,7 @@ uniform two-sided Gamma bounds with the classical
 `exp (-π |y| / 2) (1 + |y|)^(x - 1/2)` profile.  This is the upstream
 fixed-line owner theorem; cf. Whittaker-Watson, Ch. XII and DLMF §5.11. -/
 theorem Complex.sectorialStirling_verticalStrip_largeHeight_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (A B : ℝ) :
     ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
       0 < H ∧
@@ -526,7 +527,7 @@ theorem Complex.sectorialStirling_verticalStrip_largeHeight_classical
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint x y)‖ := by
   exact
     Complex.sectorialLogGammaAsymptotic_verticalStrip_largeHeight_bounds
-      Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane A B
+      (Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane hbranch) A B
 
 /-- Classical large-height fixed-real-part vertical Stirling theorem.
 
@@ -535,6 +536,7 @@ the closed right half-plane when `a < 0`.  The correct owner input is therefore
 the fixed-line specialization of sectorial Stirling in sectors avoiding the
 negative real axis, with constants depending on `a`; cf. DLMF §5.11. -/
 theorem Complex.fixedRealPartVerticalStirling_largeHeight_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (a : ℝ) :
     ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
       0 < H ∧
@@ -546,7 +548,7 @@ theorem Complex.fixedRealPartVerticalStirling_largeHeight_classical
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  match Complex.sectorialStirling_verticalStrip_largeHeight_classical a a with
+  match Complex.sectorialStirling_verticalStrip_largeHeight_classical hbranch a a with
   | ⟨H, C, c, hH_pos, hC_pos, hc_pos, hstrip⟩ =>
   exact
     ⟨H, C, c, hH_pos, hC_pos, hc_pos,
@@ -560,6 +562,7 @@ lies in a closed sector avoiding the negative real axis, with sector aperture
 depending on `a`.  Sectorial Stirling there gives the two-sided
 `exp (-π |b| / 2) (1 + |b|)^(a - 1/2)` envelope. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_largeHeight_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (a : ℝ) :
     ∃ H : ℝ, ∃ C : ℝ, ∃ c : ℝ,
       0 < H ∧
@@ -571,7 +574,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_large
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  exact Complex.fixedRealPartVerticalStirling_largeHeight_classical a
+  exact Complex.fixedRealPartVerticalStirling_largeHeight_classical hbranch a
 
 /-- The compact-height part of a fixed vertical line. -/
 def Complex.fixedRealPartVerticalCompactHeightSet
@@ -1067,6 +1070,7 @@ vertical-line argument analysis of
 `w ^ ((1 / 2 : ℂ) - w)`, including the `exp (-π |b| / 2)` factor and matching
 lower bound. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_classical
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (a : ℝ) :
     ∃ C : ℝ, ∃ c : ℝ,
       0 < C ∧
@@ -1081,7 +1085,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_class
     Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_of_large_and_compact
       a
       (Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_largeHeight_classical
-        a)
+        hbranch a)
       (Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_compactHeight
         a)
 
@@ -1093,6 +1097,7 @@ separating the argument of `a + i b`: it supplies the matching
 fixed real line.  The public one-sided estimates below are just projections
 from this two-sided classical input. -/
 theorem Complex.fixedLineVerticalGammaTwoSidedEnvelope :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ C : ℝ, ∃ c : ℝ,
         0 < C ∧
@@ -1102,8 +1107,8 @@ theorem Complex.fixedLineVerticalGammaTwoSidedEnvelope :
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
               C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
             c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
-              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  exact fun a => Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_classical a
+              ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := fun hbranch =>
+  fun a => Complex.Gamma_fixedRealPart_vertical_twoSided_norm_stirling_bounds_classical hbranch a
 
 /-- Standard sectorial `log Γ` Stirling upper bound on the closed right half-plane.
 
@@ -1114,14 +1119,15 @@ the negative real axis gives a uniform
 §5.11. The bound is stated for `log ‖Γ(w)‖`, the real part of `log Γ(w)`, so
 later Gamma-real normalization steps do not need a branch of `logGamma`. -/
 theorem Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
         0 ≤ w.re →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  exact Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch =>
+  Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane hbranch
 
 /-- Fixed-line vertical upper envelope for `Complex.Gamma`.
 
@@ -1129,16 +1135,17 @@ For each fixed real part `a`, Stirling's formula on the vertical line
 `a + i b` gives exponential decay `exp (-π |b| / 2)` and polynomial factor
 `(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
 theorem Complex.fixedLineVerticalGammaUpperEnvelope :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ C : ℝ,
         0 < C ∧
         ∀ b : ℝ,
           1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
-            C * Complex.fixedRealPartVerticalStirlingEnvelope a b := by
+            C * Complex.fixedRealPartVerticalStirlingEnvelope a b := fun hbranch =>
   exact
     fun a =>
-      match Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+      match Complex.fixedLineVerticalGammaTwoSidedEnvelope hbranch a with
       | ⟨C, c, hC_pos, hc_pos, hbounds⟩ =>
         ⟨C, hC_pos, fun b hb => (hbounds b hb).1⟩
 
@@ -1148,6 +1155,7 @@ This is the direct fixed-line classical estimate: for each fixed real part `a`,
 `Γ(a + i b)` has vertical decay `exp (-π |b| / 2)` and polynomial factor
 `(1 + |b|)^(a - 1/2)`; cf. DLMF §5.11. -/
 theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ C : ℝ,
         0 < C ∧
@@ -1155,8 +1163,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical :
           1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ ≤
             C * Real.exp (-(Real.pi / 2) * ‖b‖) *
-              (1 + ‖b‖) ^ (a - 1 / 2) := by
-  exact Complex.fixedLineVerticalGammaUpperEnvelope
+              (1 + ‖b‖) ^ (a - 1 / 2) := fun hbranch =>
+  Complex.fixedLineVerticalGammaUpperEnvelope hbranch
 
 /-- Fixed-line vertical lower envelope for `Complex.Gamma`.
 
@@ -1164,16 +1172,17 @@ For each fixed real part `a`, the lower half of vertical Stirling gives the
 matching positive constant in front of the same exponential-polynomial
 envelope; cf. DLMF §5.11. -/
 theorem Complex.fixedLineVerticalGammaLowerEnvelope :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ c : ℝ,
         0 < c ∧
         ∀ b : ℝ,
           1 / 2 ≤ ‖b‖ →
           c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
-            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
+            ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := fun hbranch =>
   exact
     fun a =>
-      match Complex.fixedLineVerticalGammaTwoSidedEnvelope a with
+      match Complex.fixedLineVerticalGammaTwoSidedEnvelope hbranch a with
       | ⟨C, c, hC_pos, hc_pos, hbounds⟩ =>
         ⟨c, hc_pos, fun b hb => (hbounds b hb).2⟩
 
@@ -1183,6 +1192,7 @@ This is the lower half of the classical fixed-line estimate, isolated so the
 reciprocal estimate is a norm-order transport rather than an independent
 primitive. -/
 theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ c : ℝ,
         0 < c ∧
@@ -1190,8 +1200,8 @@ theorem Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical :
           1 / 2 ≤ ‖b‖ →
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
-            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := by
-  exact Complex.fixedLineVerticalGammaLowerEnvelope
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖ := fun hbranch =>
+  Complex.fixedLineVerticalGammaLowerEnvelope hbranch
 
 /-- Two-sided fixed-real-part vertical Stirling bounds for `Complex.Gamma`, with the
 fixed-line point and envelope named by the owner API.
@@ -1200,6 +1210,7 @@ This is the reusable bundled form of the classical fixed-line asymptotic estimat
 downstream reciprocal and quotient arguments should consume this statement rather
 than repeatedly unpacking the two split roots. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_owner
+    (hbranch : Complex.BinetSecondFormulaBranchUniformTailAbsorption)
     (a : ℝ) :
     ∃ C : ℝ, ∃ c : ℝ,
       0 < C ∧
@@ -1208,11 +1219,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_owner
         1 / 2 ≤ ‖b‖ →
           ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ ≤
             C * Complex.fixedRealPartVerticalStirlingEnvelope a b ∧
-          c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
+            c * Complex.fixedRealPartVerticalStirlingEnvelope a b ≤
             ‖Complex.Gamma (Complex.fixedRealPartVerticalPoint a b)‖ := by
-  match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+  match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical hbranch a with
   | ⟨C, hC_pos, hupper⟩ =>
-  match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+  match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical hbranch a with
   | ⟨c, hc_pos, hlower⟩ =>
   exact
     ⟨C, c, hC_pos, hc_pos, fun b hb => ⟨hupper b hb, hlower b hb⟩⟩
@@ -1223,6 +1234,7 @@ This package is now only product assembly from the canonical local
 special-function roots above: sectorial exponential Stirling, its log-norm
 consequence, and the two fixed-real-part vertical estimates. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     (∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
@@ -1254,24 +1266,25 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_package_classical 
           1 / 2 ≤ ‖b‖ →
           c * Real.exp (-(Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (a - 1 / 2) ≤
-            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖) := by
+            ‖Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I)‖) := fun hbranch =>
   exact
-    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical,
-      Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical,
-      Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical,
-      Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical⟩
+    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch,
+      Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical hbranch,
+      Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical hbranch,
+      Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical hbranch⟩
 
 /-- Sectorial log-norm consequence of closed-sector logarithmic Stirling for
 `Complex.Gamma` on the closed right half-plane. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
         0 ≤ w.re →
         (1 / 2 : ℝ) ≤ ‖w‖ →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  exact Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch =>
+  Complex.logGamma_closedRightHalfPlane_sectorial_log_norm_bound_classical hbranch
 
 /-- `Complex.Gamma` is nonzero on fixed vertical lines away from the real-axis
 pole convention when `|b| ≥ 1/2`. -/
@@ -1400,6 +1413,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound
 /-- Fixed-real-part reciprocal vertical Stirling bound for `Complex.Gamma`, obtained
 from the lower fixed-line estimate by reciprocal transport. -/
 theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ C : ℝ,
         0 < C ∧
@@ -1408,9 +1422,9 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
             C * Real.exp ((Real.pi / 2) * ‖b‖) *
               (1 + ‖b‖) ^ (1 / 2 - a) := by
-  exact
+  exact fun hbranch =>
     fun a =>
-      match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical a with
+      match Complex.Gamma_fixedRealPart_vertical_stirling_lower_bound_classical hbranch a with
       | ⟨c, hc_pos, hlower⟩ =>
         ⟨c⁻¹, inv_pos.mpr hc_pos,
           Complex.Gamma_fixedRealPart_vertical_reciprocal_bound_of_lower_bound hc_pos hlower⟩
@@ -1418,6 +1432,7 @@ theorem Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical
 /-- Fixed-real-part vertical Stirling bounds for `Complex.Gamma` and its
 reciprocal. -/
 theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∀ a : ℝ,
       ∃ C : ℝ,
         0 < C ∧
@@ -1429,11 +1444,11 @@ theorem Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical 
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
                 (1 + ‖b‖) ^ (1 / 2 - a) := by
-  exact
+  exact fun hbranch =>
     fun a =>
-      match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical a with
+      match Complex.Gamma_fixedRealPart_vertical_stirling_upper_bound_classical hbranch a with
       | ⟨Cu, hCu_pos, hCu⟩ =>
-      match Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical a with
+      match Complex.Gamma_fixedRealPart_vertical_reciprocal_stirling_bound_classical hbranch a with
       | ⟨Cr, hCr_pos, hCr⟩ =>
       let C : ℝ := Cu + Cr
       have hC_pos : 0 < C :=
@@ -1533,6 +1548,7 @@ This owner theorem is now only the product assembly of the formula-level
 Stirling input, its sectorial log-norm consequence, and the fixed-line vertical
 estimates; cf. DLMF §5.11. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_vertical_bounds_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     (∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
@@ -1559,11 +1575,11 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_stirling_expansion_with_ver
                 (1 + ‖b‖) ^ (a - 1 / 2) ∧
           ‖(Complex.Gamma ((a : ℂ) + (b : ℂ) * Complex.I))⁻¹‖ ≤
               C * Real.exp ((Real.pi / 2) * ‖b‖) *
-                (1 + ‖b‖) ^ (1 / 2 - a)) := by
+                (1 + ‖b‖) ^ (1 / 2 - a)) := fun hbranch =>
   exact
-    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical,
-      Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical,
-      Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical⟩
+    ⟨Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical hbranch,
+      Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_classical hbranch,
+      Complex.Gamma_fixedRealPart_vertical_twoSided_stirling_bounds_classical hbranch⟩
 
 /- Classical closed-sector Stirling estimates for `Complex.Gamma` are packaged
 above by

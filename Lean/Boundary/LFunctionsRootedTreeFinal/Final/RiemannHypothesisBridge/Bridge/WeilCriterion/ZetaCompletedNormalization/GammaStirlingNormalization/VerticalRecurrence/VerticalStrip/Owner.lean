@@ -105,15 +105,21 @@ theorem Complex.gammaRecurrenceProduct_factors_ne_zero_on_verticalStrip_largeHei
       Complex.zero_im
     have hy_zero : y = 0 :=
       Eq.trans hleft_im.symm (Eq.trans him_eq hzero_im)
-    have hnorm_zero : ‖y‖ = 0 :=
-      congrArg norm hy_zero
+    have hnorm_zero : ‖y‖ = 0 := by
+      calc
+        ‖y‖ = ‖(0 : ℝ)‖ :=
+          congrArg norm hy_zero
+        _ = 0 :=
+          norm_zero
     have hnot : ¬ (1 : ℝ) ≤ 0 :=
       not_le.mpr zero_lt_one
-    exact hnot
-      (Eq.subst
-        (motive := fun t : ℝ => (1 : ℝ) ≤ t)
-        hnorm_zero
-        hy)
+    have hone_le_zero : (1 : ℝ) ≤ 0 := by
+      calc
+        (1 : ℝ) ≤ ‖y‖ :=
+          hy
+        _ = 0 :=
+          hnorm_zero
+    exact hnot hone_le_zero
   exact ⟨1, zero_lt_one, hpointwise⟩
 
 end

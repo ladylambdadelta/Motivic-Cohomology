@@ -32,9 +32,9 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
     {d t : V}
     (hdd : B d d = 0) :
     B d t = 0 := by
-  by_cases htd : B t d = 0
-  · exact (B_symm d t).trans htd
-  · exfalso
+  match Decidable.em (B t d = 0) with
+  | Or.inl htd => exact (B_symm d t).trans htd
+  | Or.inr htd =>
     let b : ℝ := B t t
     let c : ℝ := B t d
     let r : ℝ := -((b + 1) / (2 * c))
@@ -95,7 +95,7 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
                 rfl))
         _ = b + 2 * r * c := hquadratic_arithmetic
     have hr : b + 2 * r * c = -1 := by
-      unfold r
+      change b + 2 * (-((b + 1) / (2 * c))) * c = -1
       have htwo_c_ne : 2 * c ≠ 0 := by
         exact mul_ne_zero two_ne_zero hc
       have htwo_c_cancel : (2 * c)⁻¹ * (2 * c) = 1 :=
@@ -144,7 +144,7 @@ theorem real_symmetric_bilinear_psd_left_radical_of_self_zero
       Eq.trans hexpand hr
     have hnonnegative_neg_one : 0 ≤ (-1 : ℝ) :=
       Eq.subst (motive := fun x : ℝ => 0 ≤ x) hnegative hpos
-    exact (not_le_of_gt neg_one_lt_zero) hnonnegative_neg_one
+    exact False.elim ((not_le_of_gt neg_one_lt_zero) hnonnegative_neg_one)
 
 /-- In a real symmetric positive-semidefinite bilinear pairing, a vector with zero
 self-pairing lies in the right radical. -/

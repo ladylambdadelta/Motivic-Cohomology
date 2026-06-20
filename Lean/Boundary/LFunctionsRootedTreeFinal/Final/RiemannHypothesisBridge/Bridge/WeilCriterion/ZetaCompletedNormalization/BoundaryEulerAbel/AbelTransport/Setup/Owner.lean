@@ -28,8 +28,8 @@ theorem logarithmicPhase_finiteAbelEndpoint_bound
         boundaryLineOnePointRealParam_logarithmicPhasePartialSum t
           ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  exact (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
-    t ht hNM).2.1
+  exact logarithmicPhase_firstDerivative_finiteAbel_endpoint_arithmetic
+    t ht hNM
 
 /-- Endpoint contribution in the finite Abel decomposition after the canonical
 cutoff.  This consumes the first-derivative logarithmic-phase primitive bound at
@@ -53,6 +53,11 @@ decomposition after the canonical cutoff. -/
 theorem logarithmicPhase_finiteAbelDerivativeIntegral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
@@ -60,8 +65,8 @@ theorem logarithmicPhase_finiteAbelDerivativeIntegral_bound
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
-      t ht hNM).2.2
+    logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
+      t ht hpartial hNM
 
 /-- Reciprocal-derivative integral contribution in the finite Abel decomposition.
 The integrand is the product of the derivative of `u ↦ 1/u` and the
@@ -69,13 +74,18 @@ first-derivative logarithmic-phase primitive bound. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelDerivativeIntegral_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
         deriv (fun y : ℝ => ((y : ℂ)⁻¹ : ℂ)) x *
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
-  exact logarithmicPhase_finiteAbelDerivativeIntegral_bound t ht hNM
+  exact logarithmicPhase_finiteAbelDerivativeIntegral_bound t ht hpartial hNM
 
 /-- Concrete finite Abel-tail estimate obtained through Mathlib's Abel
 summation theorem.
@@ -87,13 +97,18 @@ this theorem only exposes that canonical route under an explicit owner name. -/
 theorem mathlibAbelSummation_boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-    t ht hNM
+    t ht hpartial hNM
 
 /-- The completed Abel/Euler-Maclaurin tail package for the logarithmic-phase
 oscillator after the canonical cutoff.
@@ -106,6 +121,11 @@ reciprocal-derivative terms at `N = ⌊2 + |t|⌋₊`. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_explicit
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
@@ -113,7 +133,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_abelTail_norm_le_explicit
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   exact
     boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-      t ht hNM
+      t ht hpartial hNM
 
 /-- Abel summation in the precise finite form needed for the boundary-line tail:
 coefficients are the logarithmic-phase oscillatory partial sums of `n^{-it}` and
@@ -334,13 +354,18 @@ integral term. -/
 theorem abelSummation_boundaryLineOnePointRealParam_cutoff_finite_tail_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
         ((k : ℂ)⁻¹ : ℂ) * ((k : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-    t ht hNM
+    t ht hpartial hNM
 
 end
 

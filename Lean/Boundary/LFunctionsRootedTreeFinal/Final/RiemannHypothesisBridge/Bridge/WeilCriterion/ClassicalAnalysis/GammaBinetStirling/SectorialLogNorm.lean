@@ -358,11 +358,11 @@ theorem Complex.binetLogGammaMainTerm_affine_norm_bound_large_openRightHalfPlane
         (fun x : ℝ =>
           x + ‖((((Real.log (2 * Real.pi)) : ℝ) : ℂ) / 2)‖)
         (norm_neg z)
-        _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
-          have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := pow_one (1 + ‖z‖)
-          exact hpow1.symm ▸
-            Real.sectorialLogNorm_norm_add_constant_le_product
-              (norm_nonneg z) hA_nonneg
+    _ ≤ (1 + A) * (1 + ‖z‖) ^ 1 := by
+      have hpow1 : (1 + ‖z‖) ^ 1 = (1 + ‖z‖) := pow_one (1 + ‖z‖)
+      exact hpow1.symm ▸
+        Real.sectorialLogNorm_norm_add_constant_le_product
+          (norm_nonneg z) hA_nonneg
 
 /-- The product and affine pieces assemble to the direct polynomial norm
 growth of the explicit Binet main term. -/

@@ -76,16 +76,14 @@ theorem Complex.gammaRecurrenceProduct_factor_height_le_norm
       (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))
   have hnorm_eq_abs : ‖y‖ = |y| :=
     Real.norm_eq_abs y
-  exact
-    Eq.subst
-      (motive := fun t : ℝ =>
-        t ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖)
-      hnorm_eq_abs.symm
-      (Eq.subst
-        (motive := fun t : ℝ =>
-          |t| ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖)
-        him
-        hbasic)
+  calc
+    ‖y‖ = |y| :=
+      hnorm_eq_abs
+    _ =
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
+      (congrArg abs him).symm
+    _ ≤ ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ :=
+      hbasic
 
 /-- For height at least one, the factor lower bound is comparable to
 `1 + |y|` with the explicit constant `1 / 2`. -/
@@ -105,10 +103,8 @@ theorem Complex.gammaRecurrenceProduct_factor_largeHeight_lower
     calc
       1 + ‖y‖ ≤ ‖y‖ + ‖y‖ :=
         add_le_add_right hone_le_norm ‖y‖
-      _ = (1 + 1) * ‖y‖ := by
-        exact (two_mul ‖y‖).symm
-      _ = 2 * ‖y‖ := by
-        exact congrArg (fun t : ℝ => t * ‖y‖) (one_add_one_eq_two)
+      _ = 2 * ‖y‖ :=
+        (two_mul ‖y‖).symm
   have hhalf_nonneg : 0 ≤ (1 / 2 : ℝ) :=
     le_of_lt (one_div_pos.mpr htwo_pos)
   have hhalf_sum_le_norm :
@@ -127,15 +123,15 @@ theorem Complex.gammaRecurrenceProduct_factor_largeHeight_lower
           have htwo_ne : (2 : ℝ) ≠ 0 :=
             ne_of_gt htwo_pos
           exact congrArg (fun t : ℝ => t * ‖y‖)
-            (inv_mul_cancel₀ htwo_ne)
+            (one_div_mul_cancel htwo_ne)
         _ = ‖y‖ :=
           one_mul ‖y‖
-    exact
-      Eq.subst
-        (motive := fun t : ℝ =>
-          (1 / 2 : ℝ) * (1 + ‖y‖) ≤ t)
-        hcollapse
+    calc
+      (1 / 2 : ℝ) * (1 + ‖y‖) ≤
+          (1 / 2 : ℝ) * (2 * ‖y‖) :=
         hmul
+      _ = ‖y‖ :=
+        hcollapse
   exact
     le_trans hhalf_sum_le_norm
       (Complex.gammaRecurrenceProduct_factor_height_le_norm x y j)
@@ -152,7 +148,7 @@ theorem real_abs_le_max_abs_of_mem_Icc
   have hmax_B : |B| ≤ max |A| |B| :=
     le_max_right |A| |B|
   have hleft_endpoint : -|A| ≤ A :=
-    neg_le_abs A
+    neg_abs_le A
   have hleft_max : -max |A| |B| ≤ -|A| :=
     neg_le_neg hmax_A
   have hleft : -max |A| |B| ≤ x :=
@@ -203,10 +199,11 @@ theorem Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
         exact congrArg (fun t : ℝ => max |A| |B| + t) hj_abs
       _ ≤ max |A| |B| + N :=
         add_le_add_left hj_le_N (max |A| |B|)
-  exact
-    Eq.subst
-      (motive := fun t : ℝ => |t| ≤ max |A| |B| + N)
-      hre.symm
+  calc
+    |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| =
+        |x + (j : ℝ)| :=
+      congrArg abs hre
+    _ ≤ max |A| |B| + N :=
       hsum
 
 /-- A recurrence factor is bounded above by a fixed strip constant times
@@ -245,15 +242,17 @@ theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
         ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ ≤
           |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
             |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
-      Eq.subst
-        (motive := fun t : ℝ =>
-          t ≤
+      calc
+        ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ =
+            Complex.abs
+              (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)) :=
+          Complex.norm_eq_abs
+            (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))
+        _ ≤
             |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
-        (Complex.norm_eq_abs
-          (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))).symm
-        (Complex.abs_le_abs_re_add_abs_im
-          (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
+              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
+          Complex.abs_le_abs_re_add_abs_im
+            (Complex.fixedRealPartVerticalPoint x y + (j : ℂ))
     have hre_bound :
         |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| ≤ C₀ :=
       Complex.gammaRecurrenceProduct_factor_re_abs_le_stripConstant
@@ -271,15 +270,15 @@ theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
         |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
             |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
           C₀ + ‖y‖ := by
-      exact
-        Eq.subst
-          (motive := fun t : ℝ =>
-            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
-              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
-                C₀ + t)
-          him_abs_eq_norm.symm
-          (add_le_add_right hre_bound
-            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|)
+      calc
+        |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).re| +
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| ≤
+            C₀ +
+              |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im| :=
+          add_le_add_right hre_bound
+            |(Complex.fixedRealPartVerticalPoint x y + (j : ℂ)).im|
+        _ = C₀ + ‖y‖ := by
+          exact congrArg (fun t : ℝ => C₀ + t) him_abs_eq_norm
     have hC_ge_one : 1 ≤ C₀ + 1 := by
       calc
         1 = 0 + 1 := (zero_add 1).symm
@@ -308,11 +307,11 @@ theorem Complex.gammaRecurrenceProduct_factor_upper_on_verticalStrip
               (mul_one (C₀ + 1)).symm
           _ = (C₀ + 1) * (1 + ‖y‖) :=
             (mul_add (C₀ + 1) 1 ‖y‖).symm
-      exact
-        Eq.subst
-          (motive := fun t : ℝ => C₀ + ‖y‖ ≤ t)
-          htarget
+      calc
+        C₀ + ‖y‖ ≤ (C₀ + 1) + (C₀ + 1) * ‖y‖ :=
           hsum
+        _ = (C₀ + 1) * (1 + ‖y‖) :=
+          htarget
     exact le_trans hnorm_coord (le_trans hcoord_bound hlinear_to_product)
   exact ⟨C₀ + 1, hC_pos, hpointwise⟩
 
@@ -363,14 +362,16 @@ theorem Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
     (z : ℂ)
     (N : ℕ) :
     ‖Complex.gammaRecurrenceProduct z N‖ =
-      ∏ j ∈ Finset.range N, ‖z + (j : ℂ)‖ := by
+      Finset.prod (Finset.range N) (fun j : ℕ => ‖z + (j : ℂ)‖) := by
   calc
-    ‖∏ j ∈ Finset.range N, z + (j : ℂ)‖ =
-        Complex.abs (∏ j ∈ Finset.range N, z + (j : ℂ)) :=
-      Complex.norm_eq_abs (∏ j ∈ Finset.range N, z + (j : ℂ))
-    _ = ∏ j ∈ Finset.range N, Complex.abs (z + (j : ℂ)) :=
+    ‖Complex.gammaRecurrenceProduct z N‖ =
+        Complex.abs (Finset.prod (Finset.range N)
+          (fun j : ℕ => z + (j : ℂ))) :=
+      Complex.norm_eq_abs (Complex.gammaRecurrenceProduct z N)
+    _ = Finset.prod (Finset.range N)
+        (fun j : ℕ => Complex.abs (z + (j : ℂ))) :=
       Complex.abs_prod (Finset.range N) (fun j : ℕ => z + (j : ℂ))
-    _ = ∏ j ∈ Finset.range N, ‖z + (j : ℂ)‖ :=
+    _ = Finset.prod (Finset.range N) (fun j : ℕ => ‖z + (j : ℂ)‖) :=
       Finset.prod_congr rfl
         (fun j hj =>
           (Complex.norm_eq_abs (z + (j : ℂ))).symm)
@@ -383,21 +384,24 @@ theorem real_finset_range_prod_upper_of_factor_le
     (hM_nonneg : 0 ≤ M)
     (hf_nonneg : ∀ j : ℕ, j < N → 0 ≤ f j)
     (hf_le : ∀ j : ℕ, j < N → f j ≤ M) :
-    (∏ j ∈ Finset.range N, f j) ≤ M ^ N := by
+    Finset.prod (Finset.range N) f ≤ M ^ N := by
+  have : 0 ≤ M :=
+    hM_nonneg
   have hprod_le :
-      (∏ j ∈ Finset.range N, f j) ≤
-        ∏ j ∈ Finset.range N, M :=
+      Finset.prod (Finset.range N) f ≤
+        Finset.prod (Finset.range N) (fun _ : ℕ => M) :=
     Finset.prod_le_prod
       (fun j hj => hf_nonneg j (Finset.mem_range.mp hj))
       (fun j hj => hf_le j (Finset.mem_range.mp hj))
   have hconst :
-      (∏ j ∈ Finset.range N, M) = M ^ #(Finset.range N) :=
+      Finset.prod (Finset.range N) (fun _ : ℕ => M) =
+        M ^ (Finset.range N).card :=
     Finset.prod_const M
   have hcard :
-      #(Finset.range N) = N :=
+      (Finset.range N).card = N :=
     Finset.card_range N
   have hconst_N :
-      (∏ j ∈ Finset.range N, M) = M ^ N :=
+      Finset.prod (Finset.range N) (fun _ : ℕ => M) = M ^ N :=
     Eq.trans hconst (congrArg (fun n : ℕ => M ^ n) hcard)
   exact le_trans hprod_le (le_of_eq hconst_N)
 
@@ -408,27 +412,27 @@ theorem real_finset_range_prod_lower_of_factor_ge
     {f : ℕ → ℝ}
     (hm_nonneg : 0 ≤ m)
     (hf_ge : ∀ j : ℕ, j < N → m ≤ f j) :
-    m ^ N ≤ (∏ j ∈ Finset.range N, f j) := by
+    m ^ N ≤ Finset.prod (Finset.range N) f := by
   have hprod_le :
-      (∏ j ∈ Finset.range N, m) ≤
-        ∏ j ∈ Finset.range N, f j :=
+      Finset.prod (Finset.range N) (fun _ : ℕ => m) ≤
+        Finset.prod (Finset.range N) f :=
     Finset.prod_le_prod
       (fun j hj => hm_nonneg)
       (fun j hj => hf_ge j (Finset.mem_range.mp hj))
   have hconst :
-      (∏ j ∈ Finset.range N, m) = m ^ #(Finset.range N) :=
+      Finset.prod (Finset.range N) (fun _ : ℕ => m) =
+        m ^ (Finset.range N).card :=
     Finset.prod_const m
   have hcard :
-      #(Finset.range N) = N :=
+      (Finset.range N).card = N :=
     Finset.card_range N
   have hconst_N :
-      (∏ j ∈ Finset.range N, m) = m ^ N :=
+      Finset.prod (Finset.range N) (fun _ : ℕ => m) = m ^ N :=
     Eq.trans hconst (congrArg (fun n : ℕ => m ^ n) hcard)
-  exact
-    Eq.subst
-      (motive := fun t : ℝ =>
-        t ≤ ∏ j ∈ Finset.range N, f j)
-      hconst_N
+  calc
+    m ^ N = Finset.prod (Finset.range N) (fun _ : ℕ => m) :=
+      hconst_N.symm
+    _ ≤ Finset.prod (Finset.range N) f :=
       hprod_le
 
 /-- Convert a natural power to the real-power notation used by the Gamma
@@ -438,7 +442,9 @@ theorem real_pow_natCast_eq_rpow
     (hr : 0 ≤ r)
     (N : ℕ) :
     r ^ N = r ^ (N : ℝ) := by
-  exact Real.rpow_natCast r N
+  have : 0 ≤ r :=
+    hr
+  exact (Real.rpow_natCast r N).symm
 
 /-- Finite products preserve uniform per-factor polynomial upper/lower bounds
 for the deterministic Gamma recurrence product. -/
@@ -476,90 +482,104 @@ theorem Complex.gammaRecurrenceProduct_verticalStrip_twoSided_bounds_of_factor_b
               (Complex.fixedRealPartVerticalPoint x y) N‖ := by
   match hfactor with
   | ⟨H, C, c, hH_pos, hC_pos, hc_pos, hfactor_pointwise⟩ =>
-  have hC_pow_pos : 0 < C ^ N :=
-    pow_pos hC_pos N
-  have hc_pow_pos : 0 < c ^ N :=
-    pow_pos hc_pos N
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        H ≤ ‖y‖ →
-          ‖Complex.gammaRecurrenceProduct
-              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
-            C ^ N * (1 + ‖y‖) ^ (N : ℝ) ∧
-          c ^ N * (1 + ‖y‖) ^ (N : ℝ) ≤
+      have hC_pow_pos : 0 < C ^ N :=
+        pow_pos hC_pos N
+      have hc_pow_pos : 0 < c ^ N :=
+        pow_pos hc_pos N
+      have hpointwise :
+          ∀ x y : ℝ,
+            A ≤ x →
+            x ≤ B →
+            H ≤ ‖y‖ →
+              ‖Complex.gammaRecurrenceProduct
+                  (Complex.fixedRealPartVerticalPoint x y) N‖ ≤
+                C ^ N * (1 + ‖y‖) ^ (N : ℝ) ∧
+              c ^ N * (1 + ‖y‖) ^ (N : ℝ) ≤
+                ‖Complex.gammaRecurrenceProduct
+                  (Complex.fixedRealPartVerticalPoint x y) N‖ := by
+        intro x y hxA hxB hy
+        let R : ℝ := 1 + ‖y‖
+        have hR_nonneg : 0 ≤ R :=
+          add_nonneg zero_le_one (norm_nonneg y)
+        have hCR_nonneg : 0 ≤ C * R :=
+          mul_nonneg (le_of_lt hC_pos) hR_nonneg
+        have hcR_nonneg : 0 ≤ c * R :=
+          mul_nonneg (le_of_lt hc_pos) hR_nonneg
+        have hprod_norm :
             ‖Complex.gammaRecurrenceProduct
-              (Complex.fixedRealPartVerticalPoint x y) N‖ := by
-  intro x y hxA hxB hy
-  let R : ℝ := 1 + ‖y‖
-  have hR_nonneg : 0 ≤ R :=
-    add_nonneg zero_le_one (norm_nonneg y)
-  have hR_pos : 0 < R :=
-    add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg y)
-  have hCR_nonneg : 0 ≤ C * R :=
-    mul_nonneg (le_of_lt hC_pos) hR_nonneg
-  have hcR_nonneg : 0 ≤ c * R :=
-    mul_nonneg (le_of_lt hc_pos) hR_nonneg
-  have hprod_norm :
-      ‖Complex.gammaRecurrenceProduct
-          (Complex.fixedRealPartVerticalPoint x y) N‖ =
-        ∏ j ∈ Finset.range N,
-          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖ :=
-    Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
-      (Complex.fixedRealPartVerticalPoint x y) N
-  have hupper_prod :
-      (∏ j ∈ Finset.range N,
-          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) ≤
-        (C * R) ^ N :=
-    real_finset_range_prod_upper_of_factor_le
-      N
-      hCR_nonneg
-      (fun j hj =>
-        norm_nonneg (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
-      (fun j hj =>
-        (hfactor_pointwise x y hxA hxB hy j hj).1)
-  have hlower_prod :
-      (c * R) ^ N ≤
-        (∏ j ∈ Finset.range N,
-          ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
-    real_finset_range_prod_lower_of_factor_ge
-      N
-      hcR_nonneg
-      (fun j hj =>
-        (hfactor_pointwise x y hxA hxB hy j hj).2)
-  have hupper_target :
-      (C * R) ^ N =
-        C ^ N * R ^ (N : ℝ) := by
-    have hmul_pow : (C * R) ^ N = C ^ N * R ^ N :=
-      mul_pow C R N
-    have hR_pow : R ^ N = R ^ (N : ℝ) :=
-      real_pow_natCast_eq_rpow hR_nonneg N
-    exact
-      Eq.trans hmul_pow
-        (congrArg (fun t : ℝ => C ^ N * t) hR_pow)
-  have hlower_target :
-      (c * R) ^ N =
-        c ^ N * R ^ (N : ℝ) := by
-    have hmul_pow : (c * R) ^ N = c ^ N * R ^ N :=
-      mul_pow c R N
-    have hR_pow : R ^ N = R ^ (N : ℝ) :=
-      real_pow_natCast_eq_rpow hR_nonneg N
-    exact
-      Eq.trans hmul_pow
-        (congrArg (fun t : ℝ => c ^ N * t) hR_pow)
-  constructor
-  · exact
-      Eq.subst
-        (motive := fun t : ℝ =>
-          ‖Complex.gammaRecurrenceProduct
-              (Complex.fixedRealPartVerticalPoint x y) N‖ ≤ t)
-        hupper_target
-        (Eq.subst
-          (motive := fun t : ℝ => t ≤ (C * R) ^ N)
-          hprod_norm.symm
-          hupper_prod)
-  · exact
+                (Complex.fixedRealPartVerticalPoint x y) N‖ =
+              Finset.prod (Finset.range N)
+                (fun j : ℕ =>
+                  ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
+          Complex.gammaRecurrenceProduct_norm_eq_prod_factor_norms
+            (Complex.fixedRealPartVerticalPoint x y) N
+        have hupper_prod :
+            Finset.prod (Finset.range N)
+                (fun j : ℕ =>
+                  ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) ≤
+              (C * R) ^ N :=
+          real_finset_range_prod_upper_of_factor_le
+            N
+            hCR_nonneg
+            (fun j hj =>
+              norm_nonneg (Complex.fixedRealPartVerticalPoint x y + (j : ℂ)))
+            (fun j hj =>
+              (hfactor_pointwise x y hxA hxB hy j hj).1)
+        have hlower_prod :
+            (c * R) ^ N ≤
+              Finset.prod (Finset.range N)
+                (fun j : ℕ =>
+                  ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
+          real_finset_range_prod_lower_of_factor_ge
+            N
+            hcR_nonneg
+            (fun j hj =>
+              (hfactor_pointwise x y hxA hxB hy j hj).2)
+        have hupper_target :
+            (C * R) ^ N =
+              C ^ N * R ^ (N : ℝ) := by
+          have hmul_pow : (C * R) ^ N = C ^ N * R ^ N :=
+            mul_pow C R N
+          have hR_pow : R ^ N = R ^ (N : ℝ) :=
+            real_pow_natCast_eq_rpow hR_nonneg N
+          exact
+            Eq.trans hmul_pow
+              (congrArg (fun t : ℝ => C ^ N * t) hR_pow)
+        have hlower_target :
+            (c * R) ^ N =
+              c ^ N * R ^ (N : ℝ) := by
+          have hmul_pow : (c * R) ^ N = c ^ N * R ^ N :=
+            mul_pow c R N
+          have hR_pow : R ^ N = R ^ (N : ℝ) :=
+            real_pow_natCast_eq_rpow hR_nonneg N
+          exact
+            Eq.trans hmul_pow
+              (congrArg (fun t : ℝ => c ^ N * t) hR_pow)
+        constructor
+        · calc
+            ‖Complex.gammaRecurrenceProduct
+                (Complex.fixedRealPartVerticalPoint x y) N‖ =
+                Finset.prod (Finset.range N)
+                  (fun j : ℕ =>
+                    ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
+              hprod_norm
+            _ ≤ (C * R) ^ N :=
+              hupper_prod
+            _ = C ^ N * R ^ (N : ℝ) :=
+              hupper_target
+        · calc
+            c ^ N * R ^ (N : ℝ) = (c * R) ^ N :=
+              hlower_target.symm
+            _ ≤
+                Finset.prod (Finset.range N)
+                  (fun j : ℕ =>
+                    ‖Complex.fixedRealPartVerticalPoint x y + (j : ℂ)‖) :=
+              hlower_prod
+            _ =
+                ‖Complex.gammaRecurrenceProduct
+                  (Complex.fixedRealPartVerticalPoint x y) N‖ :=
+              hprod_norm.symm
+      exact ⟨H, C ^ N, c ^ N, hH_pos, hC_pow_pos, hc_pow_pos, hpointwise⟩
 
 end
 

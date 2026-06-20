@@ -58,14 +58,12 @@ theorem explicitFormulaPrimeLogDerivative_eq_neg_logDeriv_of_regular
     zetaSideNegLogDeriv_eq_riemannZetaNegLogDeriv hs0 hΛ hΓ
   have hriemann :
       riemannZetaNegLogDeriv s = - logDeriv riemannZeta s := by
-    unfold riemannZetaNegLogDeriv
     calc
       -deriv riemannZeta s / riemannZeta s =
           -(deriv riemannZeta s / riemannZeta s) := by
         exact neg_div (riemannZeta s) (deriv riemannZeta s)
       _ = -logDeriv riemannZeta s := by
         exact Eq.symm <| congrArg Neg.neg (logDeriv_apply (f := riemannZeta) (x := s))
-  unfold explicitFormulaPrimeLogDerivative
   calc
     completedZetaNegLogDeriv s - inverseGammaCompletionLogDeriv s =
         completedZetaNegLogDeriv s -
@@ -161,7 +159,6 @@ theorem explicitFormulaPrimeLogDerivative_continuousAt_of_regular
       s hs0 hs1 hΛ hΓ
   have hordinary :
       ContinuousAt (fun z : ℂ => - logDeriv riemannZeta z) s := by
-    unfold logDeriv
     exact
       ((deriv_riemannZeta_continuousAt_of_regular s hs1).div
         ((differentiableAt_riemannZeta hs1).continuousAt)
@@ -201,14 +198,12 @@ theorem explicitFormulaArchimedeanLogDerivative_continuousAt_of_regular
     Complex.differentiable_Gammaℝ_inv.continuous.continuousAt
   have hcorrection :
       ContinuousAt explicitFormulaCorrectionLogDerivative s := by
-    unfold explicitFormulaCorrectionLogDerivative
     have hsub : s - 1 ≠ 0 :=
       sub_ne_zero.mpr hs1
     exact
       (continuousAt_const.neg.div continuousAt_id hs0).sub
         (continuousAt_const.div
           (continuousAt_id.sub continuousAt_const) hsub)
-  unfold explicitFormulaArchimedeanLogDerivative
   exact
     (hderiv.div hgammaInv hΓinv).sub hcorrection
 
@@ -224,7 +219,6 @@ theorem zetaSideNegLogDeriv_eq_explicitFormulaPrimeLogDerivative_of_regular
           deriv (fun z : ℂ => (Gammaℝ z)⁻¹) s / (Gammaℝ s)⁻¹ :=
     zetaSideNegLogDeriv_eq_completed_sub_invGamma_correction
       hs0 hs1 hΛ hΓ
-  unfold explicitFormulaPrimeLogDerivative
   calc
     zetaSideNegLogDeriv s =
         completedZetaNegLogDeriv s -
@@ -250,7 +244,6 @@ theorem inverseGammaCorrection_eq_archimedean_add_poleCorrection
       exact (inverseGammaCompletionLogDeriv_eq s).symm
     _ = explicitFormulaArchimedeanLogDerivative s +
           explicitFormulaCorrectionLogDerivative s := by
-      unfold explicitFormulaArchimedeanLogDerivative
       exact sub_add_cancel
         (inverseGammaCompletionLogDeriv s)
         (explicitFormulaCorrectionLogDerivative s)
@@ -278,7 +271,6 @@ theorem completedZetaNegLogDeriv_eq_explicitFormulaCompletedLogDerivative_of_reg
         explicitFormulaArchimedeanLogDerivative s +
           explicitFormulaCorrectionLogDerivative s :=
     inverseGammaCorrection_eq_archimedean_add_poleCorrection s
-  unfold explicitFormulaCompletedLogDerivative
   calc
     completedZetaNegLogDeriv s =
         zetaSideNegLogDeriv s +
@@ -312,9 +304,6 @@ theorem completedZetaNegLogDeriv_eq_explicitFormulaCompletedLogDerivative_of_tot
   let Z : ℂ := completedZetaNegLogDeriv s
   let G : ℂ := inverseGammaCompletionLogDeriv s
   let C : ℂ := explicitFormulaCorrectionLogDerivative s
-  unfold explicitFormulaCompletedLogDerivative
-  unfold explicitFormulaPrimeLogDerivative
-  unfold explicitFormulaArchimedeanLogDerivative
   change Z = (Z - G) + (G - C) + C
   calc
     Z = (Z - G) + G := by

@@ -91,11 +91,11 @@ theorem explicitFormulaContourFamilyAvoidsSingularBoundary_of_vertical_horizonta
     (hhorizontal : explicitFormulaContourFamilyHorizontalAvoidsSingularBoundary F T) :
     explicitFormulaContourFamilyAvoidsSingularBoundary F T := by
   intro z hz hboundary
-  rcases hboundary with hright | hleft | htop | hbottom
-  · exact hvertical z hz (Or.inl hright)
-  · exact hvertical z hz (Or.inr hleft)
-  · exact hhorizontal z hz (Or.inl htop)
-  · exact hhorizontal z hz (Or.inr hbottom)
+  match hboundary with
+  | Or.inl hright => exact hvertical z hz (Or.inl hright)
+  | Or.inr (Or.inl hleft) => exact hvertical z hz (Or.inr hleft)
+  | Or.inr (Or.inr (Or.inl htop)) => exact hhorizontal z hz (Or.inl htop)
+  | Or.inr (Or.inr (Or.inr hbottom)) => exact hhorizontal z hz (Or.inr hbottom)
 
 /-- The completed `Gammaℝ` zero locus is countable. -/
 theorem Gammaℝ_zeroSet_countable :
@@ -104,8 +104,8 @@ theorem Gammaℝ_zeroSet_countable :
       ({z : ℂ | Gammaℝ z = 0} : Set ℂ) ⊆
         Set.range (fun n : ℕ => (-(2 * (n : ℂ)) : ℂ)) := by
     intro z hz
-    rcases Complex.Gammaℝ_eq_zero_iff.mp hz with ⟨n, hn⟩
-    exact ⟨n, hn.symm⟩
+    match Complex.Gammaℝ_eq_zero_iff.mp hz with
+    | ⟨n, hn⟩ => exact ⟨n, hn.symm⟩
   exact (Set.countable_range (fun n : ℕ => (-(2 * (n : ℂ)) : ℂ))).mono hsubset
 
 /-- Division by two is injective on complex numbers. -/
@@ -181,26 +181,26 @@ theorem explicitFormulaContourFamilyHorizontalAvoidsSingularBoundary_of_not_mem_
     (hT : T ∉ explicitFormulaContourHorizontalBadHeightSet F) :
     explicitFormulaContourFamilyHorizontalAvoidsSingularBoundary F T := by
   intro z hz hhit
-  rcases hhit with htop | hbottom
-  · rcases htop with ⟨x, _hx, hzpath⟩
-    have him : T = z.im := by
-      calc
-        T = (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).im := by
-          exact (zetaCompletedExplicitFormulaTopPath_im (F.rectangle T) x).symm
-        _ = z.im := by
-          exact congrArg Complex.im hzpath.symm
-    exact hT (Or.inl ⟨z, hz, him.symm⟩)
-  · rcases hbottom with ⟨x, _hx, hzpath⟩
-    have him : T = -z.im := by
-      calc
-        T = -((zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im) := by
-          exact
-            ((congrArg Neg.neg
-              (zetaCompletedExplicitFormulaBottomPath_im (F.rectangle T) x)).trans
-              (neg_neg T)).symm
-        _ = -z.im := by
-          exact congrArg Neg.neg (congrArg Complex.im hzpath.symm)
-    exact hT (Or.inr ⟨z, hz, him.symm⟩)
+  match hhit with
+  | Or.inl ⟨x, _hx, hzpath⟩ =>
+      have him : T = z.im := by
+        calc
+          T = (zetaCompletedExplicitFormulaTopPath (F.rectangle T) x).im := by
+            exact (zetaCompletedExplicitFormulaTopPath_im (F.rectangle T) x).symm
+          _ = z.im := by
+            exact congrArg Complex.im hzpath.symm
+      exact hT (Or.inl ⟨z, hz, him.symm⟩)
+  | Or.inr ⟨x, _hx, hzpath⟩ =>
+      have him : T = -z.im := by
+        calc
+          T = -((zetaCompletedExplicitFormulaBottomPath (F.rectangle T) x).im) := by
+            exact
+              ((congrArg Neg.neg
+                (zetaCompletedExplicitFormulaBottomPath_im (F.rectangle T) x)).trans
+                (neg_neg T)).symm
+          _ = -z.im := by
+            exact congrArg Neg.neg (congrArg Complex.im hzpath.symm)
+      exact hT (Or.inr ⟨z, hz, him.symm⟩)
 
 /-- A contour family with vertical singularities already excluded. -/
 structure ExplicitFormulaVerticallyRegularContourFamily where
@@ -217,8 +217,9 @@ theorem exists_height_between_not_mem_countable
     hs.dense_compl ℝ
   have hu : u < u + 1 :=
     lt_add_of_pos_right u zero_lt_one
-  obtain ⟨T, hTcompl, hTinterval⟩ := hdense.exists_between hu
-  exact ⟨T, hTinterval.1, hTinterval.2, hTcompl⟩
+  match hdense.exists_between hu with
+  | ⟨T, hTcompl, hTinterval⟩ =>
+      exact ⟨T, hTinterval.1, hTinterval.2, hTcompl⟩
 
 /-- A supplied cofinal real-height schedule avoiding a fixed bad-height set.
 

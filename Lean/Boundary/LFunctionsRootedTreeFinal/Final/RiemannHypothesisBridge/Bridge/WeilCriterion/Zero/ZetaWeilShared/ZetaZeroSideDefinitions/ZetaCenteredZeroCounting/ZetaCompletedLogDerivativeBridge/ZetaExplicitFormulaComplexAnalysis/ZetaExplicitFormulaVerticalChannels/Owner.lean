@@ -94,7 +94,6 @@ theorem zetaCompletedExplicitFormulaPrimeVerticalChannel_eq_contribution_add_tra
         zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder f F T := by
   let V : ℂ := zetaCompletedExplicitFormulaPrimeVerticalChannel f F T
   let P : ℂ := zetaCompletedExplicitFormulaPrimeContribution f
-  unfold zetaCompletedExplicitFormulaPrimeVerticalChannelTransportRemainder
   change V = P + (V - P)
   calc
     V = V + 0 := by
@@ -125,7 +124,6 @@ theorem zetaCompletedExplicitFormulaArchimedeanVerticalChannel_eq_contribution_a
         zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder f F T := by
   let V : ℂ := zetaCompletedExplicitFormulaArchimedeanVerticalChannel f F T
   let A : ℂ := zetaCompletedExplicitFormulaArchimedeanContribution f
-  unfold zetaCompletedExplicitFormulaArchimedeanVerticalChannelTransportRemainder
   change V = A + (V - A)
   calc
     V = V + 0 := by
@@ -156,7 +154,6 @@ theorem zetaCompletedExplicitFormulaCorrectionVerticalChannel_eq_contribution_ad
         zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder f F T := by
   let V : ℂ := zetaCompletedExplicitFormulaCorrectionVerticalChannel f F T
   let C : ℂ := zetaCompletedExplicitFormulaCorrectionContribution f
-  unfold zetaCompletedExplicitFormulaCorrectionVerticalChannelTransportRemainder
   change V = C + (V - C)
   calc
     V = V + 0 := by

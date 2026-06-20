@@ -53,7 +53,10 @@ def completedPositiveBoundaryPreconeElement
       finitePositiveRenormalizedBoundaryWindow_tendsto_boundaryChannel f
     absorptionDefect_eq := by
       intro N
-      unfold finiteDiagonalDebtAbsorptionDefect
+      change
+        finiteDiagonalDebtAbsorptionDefect N f =
+          finitePositiveRenormalizedBoundaryWindow N f -
+            finitePositiveSquareEnergyWindow N f
       rfl }
 
 /-- The absorption defect of the completed positive-boundary precone element is the finite
@@ -93,8 +96,11 @@ theorem completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar
       completedBoundaryTimePairingScalar
           (completedPositiveBoundaryOrderedHeartClass f) =
         Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
-    unfold completedPositiveBoundaryOrderedHeartClass
-    unfold completedBoundaryTimePairingScalar
+    change
+      completedBoundaryHilbertPairing
+          (completedBoundaryHilbertSource f)
+          (completedBoundaryHilbertSource f) =
+        Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
     exact completedBoundaryHilbertPairing_source_self_eq_boundaryChannel_re f
   exact hscalar.trans hpair.symm
 
@@ -122,7 +128,10 @@ theorem completedFinitePartBoundaryChannel_eq_timePairingScalar
       completedBoundaryTimePairingScalar
           (completedFinitePartBoundaryOrderedHeartClass f) =
         Complex.re (completedBoundaryChannel (convolutionAutocorrelation f)) := by
-    unfold completedFinitePartBoundaryOrderedHeartClass
+    change
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        Complex.re (completedBoundaryChannel (convolutionAutocorrelation f))
     exact
       (completedPositiveBoundaryPreconeElement_scalar_eq_timePairingScalar f).symm.trans
         (completedPositiveBoundaryPreconeElement_scalar_eq_boundaryChannel_re f)
@@ -145,7 +154,7 @@ theorem completedPositiveBoundaryAbsorptionDefectOrderedHeartClass_lowerWeightRa
     (f : ZetaAdmissibleFunction) :
     CompletedBoundaryHilbertSource.LowerWeightRadical
       (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f) := by
-  unfold completedPositiveBoundaryAbsorptionDefectOrderedHeartClass
+  change CompletedBoundaryHilbertSource.LowerWeightRadical 0
   exact completedBoundaryHilbertSource_zero_lowerWeightRadical
 
 /-- The absorbed positive-boundary class and square-only class have the same ordered-heart
@@ -231,7 +240,9 @@ theorem completedPositiveSquareBoundaryOrderedHeartScalar_eq_GNSNormSq
     completedOrderedHeartScalar
         (completedPositiveSquareBoundaryOrderedHeartClass f) =
       completedBoundaryGNSNormSq f := by
-  unfold completedPositiveSquareBoundaryOrderedHeartClass
+  change
+    completedOrderedHeartScalar (completedBoundaryHilbertSource f) =
+      completedBoundaryGNSNormSq f
   exact (completedBoundaryGNSNormSq_eq_orderedHeartScalar f).symm
 
 /-- The completed finite-part boundary class has GNS norm-square scalar in the completed
@@ -265,8 +276,6 @@ theorem completedRenormalizedDefectKernelBoundaryChannel_eq_positivePresentation
     exact
       zetaCompletedGNSPositiveBoundaryPresentationScalar_eq_primeDefect_add_archimedean_add_correction
         f
-  unfold completedRenormalizedDefectKernelBoundaryChannel
-  unfold completedPrimeDefectKernelPositiveChannel
   change P + A + C = zetaCompletedGNSPositiveBoundaryPresentationScalar f
   exact hpresentation.symm
 
@@ -292,7 +301,15 @@ theorem zetaCompletedGNSPositiveBoundaryPresentationScalar_add_symmetrized_eq_di
               (zetaCompletedHermitianBoundaryDefect f) : ℂ)) :=
     zetaCompletedGNSPositiveBoundaryPresentationForm_add_symmetrized_eq_diagonalDebt_add_archCorrection
       f
-  unfold zetaCompletedGNSPositiveBoundaryPresentationScalar
+  change
+    Complex.re (zetaCompletedGNSPositiveBoundaryPresentationForm f) +
+        Complex.re (zetaCompletedGNSSymmetrizedBoundaryForm f) =
+      Complex.re
+        (zetaCompletedGNSDiagonalDebtBoundaryForm f +
+          ((ZetaHermitianPacketEnsemble.archimedeanPacketGram
+              (zetaCompletedHermitianBoundaryDefect f) : ℂ) +
+            (ZetaHermitianPacketEnsemble.correctionPacketGram
+              (zetaCompletedHermitianBoundaryDefect f) : ℂ)))
   calc
     Complex.re (zetaCompletedGNSPositiveBoundaryPresentationForm f) +
         Complex.re (zetaCompletedGNSSymmetrizedBoundaryForm f) =
@@ -585,7 +602,10 @@ theorem archimedeanBoundaryChannel_convolutionAutocorrelation_eq_archimedeanConv
     (f : ZetaAdmissibleFunction) :
     archimedeanBoundaryChannel (convolutionAutocorrelation f) =
       zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f := by
-  unfold archimedeanBoundaryChannel
+  change
+    zetaCompletedExplicitFormulaArchimedeanContribution
+        (convolutionAutocorrelation f) =
+      zetaCompletedExplicitFormulaArchimedeanConvolutionContribution f
   exact
     zetaCompletedExplicitFormulaArchimedeanContribution_convolutionAutocorrelation_eq_paired_owner
       f
@@ -595,7 +615,10 @@ theorem poleBoundaryChannel_convolutionAutocorrelation_eq_correctionConvolutionC
     (f : ZetaAdmissibleFunction) :
     poleBoundaryChannel (convolutionAutocorrelation f) =
       zetaCompletedExplicitFormulaCorrectionConvolutionContribution f := by
-  unfold poleBoundaryChannel
+  change
+    zetaCompletedExplicitFormulaCorrectionContribution
+        (convolutionAutocorrelation f) =
+      zetaCompletedExplicitFormulaCorrectionConvolutionContribution f
   exact
     zetaCompletedExplicitFormulaCorrectionContribution_convolutionAutocorrelation_eq_owner
       f
@@ -626,7 +649,7 @@ theorem completedFinitePartBoundaryChannel_eq_symmetrizedTwoFaceBoundaryScalar
   have halias :
       completedRawTimeBoundaryScalar f =
         completedSymmetrizedTwoFaceBoundaryScalar f := by
-    unfold completedSymmetrizedTwoFaceBoundaryScalar
+    rfl
   exact hfinite.trans (hraw.trans halias)
 
 /-- The finite-part time-pairing scalar is the absorbed positive-boundary precone scalar. -/
@@ -685,8 +708,11 @@ theorem completedPositiveBoundaryPreconeElement_scalar_eq_absorbedOrderedHeartTi
           (completedPositiveBoundaryOrderedHeartClass f) =
         completedBoundaryTimePairingScalar
           (completedPositiveBoundaryAbsorbedOrderedHeartClass f) := by
-    unfold completedPositiveBoundaryAbsorbedOrderedHeartClass
-    unfold completedPositiveBoundaryAbsorptionDefectOrderedHeartClass
+    change
+      completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f) =
+        completedBoundaryTimePairingScalar
+          (completedPositiveBoundaryOrderedHeartClass f + 0)
     exact
       (congrArg completedBoundaryTimePairingScalar
         (add_zero (completedPositiveBoundaryOrderedHeartClass f))).symm
@@ -696,20 +722,20 @@ theorem completedPositiveBoundaryPreconeElement_scalar_eq_absorbedOrderedHeartTi
 source. -/
 theorem completedPositiveBoundaryAbsorbedOrderedHeartTimePairingScalar_eq_positiveBoundaryTimePairingScalar
     (f : ZetaAdmissibleFunction)
-    (habsorption :
+    (_habsorption :
       CompletedBoundaryHilbertSource.LowerWeightRadical
         (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)) :
     completedBoundaryTimePairingScalar
         (completedPositiveBoundaryAbsorbedOrderedHeartClass f) =
       completedBoundaryTimePairingScalar
         (completedPositiveBoundaryOrderedHeartClass f) := by
-  unfold completedPositiveBoundaryAbsorbedOrderedHeartClass
-  exact completedBoundaryTimePairingScalar_eq_of_add_lowerWeightRadical
-    completedBoundaryHilbertPairing_add_left
-    completedBoundaryHilbertPairing_add_right
-    (completedPositiveBoundaryOrderedHeartClass f)
-    (completedPositiveBoundaryAbsorptionDefectOrderedHeartClass f)
-    habsorption
+  change
+    completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f + 0) =
+      completedBoundaryTimePairingScalar
+        (completedPositiveBoundaryOrderedHeartClass f)
+  exact congrArg completedBoundaryTimePairingScalar
+    (add_zero (completedPositiveBoundaryOrderedHeartClass f))
 
 /-- The positive-boundary time-pairing scalar is the raw completed time-side boundary scalar. -/
 theorem completedPositiveBoundaryTimePairingScalar_eq_rawTimeBoundaryScalar
@@ -735,7 +761,9 @@ theorem completedPositiveBoundaryOrderedHeartScalar_eq_positiveDefectKernelBound
     completedOrderedHeartScalar
         (completedPositiveBoundaryOrderedHeartClass f) =
       completedPositiveDefectKernelBoundaryScalar f := by
-  unfold completedPositiveBoundaryOrderedHeartClass
+  change
+    completedOrderedHeartScalar (completedBoundaryHilbertSource f) =
+      completedPositiveDefectKernelBoundaryScalar f
   have hgns :
       completedOrderedHeartScalar (completedBoundaryHilbertSource f) =
         completedBoundaryGNSNormSq f := by

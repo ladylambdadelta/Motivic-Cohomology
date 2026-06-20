@@ -412,6 +412,12 @@ theorem offCriticalCenteredZero_completedZero_and_orbit
 This is the real analytic separation step in Weil's criterion: an off-critical centered
 zero produces an admissible autocorrelation seed whose zero-side quadratic form is negative. -/
 theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaCompletedZeroSideRe (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
@@ -428,6 +434,8 @@ theorem exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
                 hcompleted
                 horbit
                 (summable_zetaZeroSideContribution
+                  hpartialOneTwo htailOneTwo hcompactOneTwo
+                  hpartialLeft htailBoundary hcompactBoundary
                   (ZetaAdmissibleFunction.convolutionAutocorrelation f))
                 hf⟩
 
@@ -437,11 +445,19 @@ An off-critical nontrivial centered zero can be separated by an admissible
 autocorrelation seed whose completed Weil quadratic form is strictly negative.
 This theorem is now only the Weil-form transport of the zero-side separation theorem above. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (z : OffCriticalCenteredZetaZero) :
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   exact
-    match exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero z with
+    match exists_negative_zeroSide_autocorrelation_of_offCriticalCenteredZero
+        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialLeft htailBoundary hcompactBoundary z with
     | ⟨f, hf⟩ =>
         ⟨f,
           calc
@@ -452,6 +468,12 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
 
 /-- Parameter-facing wrapper for the zero-detecting direction of Weil's criterion. -/
 theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (s : ℂ)
     (hz : riemannZeta (1 / 2 + s) = 0)
     (htriv : ¬ ∃ n : ℕ, 1 / 2 + s = -2 * (n + 1))
@@ -460,10 +482,18 @@ theorem exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZer
     ∃ f : ZetaAdmissibleFunction,
       zetaWeilFormCompleted (ZetaAdmissibleFunction.convolutionAutocorrelation f) < 0 := by
   exact exists_negative_autocorrelation_quadraticForm_of_offCriticalCenteredZero
+    hpartialOneTwo htailOneTwo hcompactOneTwo
+    hpartialLeft htailBoundary hcompactBoundary
     ⟨s, hz, htriv, hpole, hoff⟩
 
 /-- Quadratic Weil positivity excludes off-critical nontrivial centered zeros. -/
 theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity)
     (s : ℂ)
     (hz : riemannZeta (1 / 2 + s) = 0)
@@ -473,6 +503,8 @@ theorem not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
   intro hoff
   exact
     match exists_negative_autocorrelation_quadraticForm_of_offCritical_centeredZero
+        hpartialOneTwo htailOneTwo hcompactOneTwo
+        hpartialLeft htailBoundary hcompactBoundary
         s hz htriv hpole hoff with
     | ⟨f, hfneg⟩ =>
         (not_lt_of_ge (h f)) hfneg
@@ -497,6 +529,12 @@ This is the standard Weil-criterion formalization point: once the completed Weil
 form is nonnegative on all autocorrelation seeds, every nontrivial centered zero lies on the
 critical line. -/
 theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity) :
     ∀ s : ℂ,
 	      riemannZeta (1 / 2 + s) = 0 →
@@ -506,14 +544,24 @@ theorem centeredZeroCriterion_of_zetaWeilQuadraticPositivity
   intro s hz htriv hpole
   exact real_eq_zero_of_not_ne_zero s.re
     (not_offCritical_centeredZero_of_zetaWeilQuadraticPositivity
+      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialLeft htailBoundary hcompactBoundary
       h s hz htriv hpole)
 
 /-- The standard Weil criterion in the quadratic/autocorrelation form. -/
 theorem boundaryRiemannHypothesis_of_zetaWeilQuadraticPositivity
+    (hpartialOneTwo : BoundaryLineOneAbelPartialMajorant)
+    (htailOneTwo : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactOneTwo : PoleClearedOneTwoStripCompactBoundaryBound)
+    (hpartialLeft : ReflectedBoundaryAbelPartialMajorant)
+    (htailBoundary : PoleClearedRightCriticalStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedRightCriticalStripCompactBoundaryBound)
     (h : ZetaWeilQuadraticPositivity) :
     boundaryRiemannHypothesis := by
   exact boundaryRiemannHypothesis_of_centeredZeroCriterion
-    (centeredZeroCriterion_of_zetaWeilQuadraticPositivity h)
+    (centeredZeroCriterion_of_zetaWeilQuadraticPositivity
+      hpartialOneTwo htailOneTwo hcompactOneTwo
+      hpartialLeft htailBoundary hcompactBoundary h)
 
 end
 

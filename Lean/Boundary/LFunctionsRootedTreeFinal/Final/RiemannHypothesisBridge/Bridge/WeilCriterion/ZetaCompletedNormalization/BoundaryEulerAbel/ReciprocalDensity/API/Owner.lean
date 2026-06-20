@@ -1,4 +1,4 @@
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.LogarithmicPhase.FirstDerivative.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalVariation.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Regularity.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Owner
@@ -32,14 +32,19 @@ theorem reciprocalDensity_logarithmicPhase_finiteAbelEndpoint_bound
           ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
-      t ht hNM).2.1
+    logarithmicPhase_firstDerivative_finiteAbel_endpoint_arithmetic
+      t ht hNM
 
 /-- Owner API: reciprocal-derivative integral contribution in the finite Abel
 decomposition after the canonical cutoff. -/
 theorem reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
@@ -47,8 +52,8 @@ theorem reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
           boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
       2 + 8 * Real.log (3 + ‖t‖) := by
   exact
-    (logarithmicPhase_firstDerivative_eulerMaclaurin_finiteAbel_package
-      t ht hNM).2.2
+    logarithmicPhase_firstDerivative_finiteAbel_integral_arithmetic
+      t ht hpartial hNM
 
 /-- Finite reciprocal-weighted logarithmic-phase tail estimate after the
 canonical cutoff.
@@ -59,6 +64,11 @@ the Abel/Euler-Maclaurin identity. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ‖∑ k ∈ Finset.Ioc ⌊(((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ))⌋₊ ⌊((M : ℕ) : ℝ)⌋₊,
@@ -138,7 +148,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
       ‖J‖ ≤ 2 + 8 * Real.log (3 + ‖t‖) := by
     exact
       reciprocalDensity_logarithmicPhase_finiteAbelDerivativeIntegral_bound
-        t ht hNM
+        t ht hpartial hNM
   have htriangle :
       ‖SM - SN - J‖ ≤ ‖SM‖ + ‖SN‖ + ‖J‖ := by
     have hfirst : ‖SM - SN - J‖ ≤ ‖SM - SN‖ + ‖J‖ :=
@@ -390,6 +400,11 @@ tails. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {N M : ℕ}
     (hCN : ⌊2 + ‖t‖⌋₊ ≤ N)
     (hNM : N ≤ M) :
@@ -414,12 +429,12 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_nor
       ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-      t ht (le_trans hCN hNM)
+      t ht hpartial (le_trans hCN hNM)
   have hN_tail :
       ‖∑ n ∈ Finset.Ioc C N, f n‖ ≤
         boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
     exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-      t ht hCN
+      t ht hpartial hCN
   have htriangle :
       ‖(∑ n ∈ Finset.Ioc C M, f n) -
           ∑ n ∈ Finset.Ioc C N, f n‖ ≤
@@ -465,6 +480,11 @@ bounded, using the constructive pre-cutoff estimate and the cutoff Abel tail. -/
 theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
     (t : ℝ)
     (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x))
     {N M : ℕ}
     (hN : 1 ≤ N)
     (hNM : N ≤ M) :
@@ -498,7 +518,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
               ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
             72 * Real.log (2 + ‖t‖) :=
         boundaryLineOnePointRealParam_logarithmicPhase_postCutoff_finiteTail_norm_le
-          t ht hC_le_N hNM
+          t ht hpartial hC_le_N hNM
       have hlog_nonneg : 0 ≤ Real.log (2 + ‖t‖) :=
         le_trans zero_le_one (one_le_log_two_add_norm_of_one_le_norm ht)
       have hle :
@@ -549,7 +569,7 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_finiteTail_norm_le
           ‖∑ n ∈ Finset.Ioc C M, f n‖ ≤
             boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
         exact boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-          t ht hC_le_M
+          t ht hpartial hC_le_M
       have hcut_log :
           boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t ≤
             36 * Real.log (2 + ‖t‖) :=

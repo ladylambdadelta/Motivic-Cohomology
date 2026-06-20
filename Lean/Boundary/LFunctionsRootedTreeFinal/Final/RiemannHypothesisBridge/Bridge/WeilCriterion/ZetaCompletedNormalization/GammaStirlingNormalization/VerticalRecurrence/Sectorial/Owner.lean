@@ -76,7 +76,7 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
         A ≤ x →
         x ≤ B →
         H ≤ ‖y‖ →
-          ‖Complex.Gamma
+    ‖Complex.Gamma
               (Complex.fixedRealPartVerticalPoint
                 (x + Complex.verticalStripTransportShift A) y) *
               Complex.exp
@@ -101,94 +101,94 @@ theorem Complex.sectorialStirling_shiftedNormalizedFactor_twoSided_bounds
                     (x + Complex.verticalStripTransportShift A) y)‖ := by
   match hStirling with
   | ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩ =>
-  let s : ℝ := Real.sqrt (2 * Real.pi)
-  let H : ℝ := max R (max (4 * K / s) 1)
-  have hH_pos : 0 < H :=
-    lt_of_lt_of_le zero_lt_one
-      (le_trans
-        (le_max_right (4 * K / s) 1)
-        (le_max_right R (max (4 * K / s) 1)))
-  have hC_pos : 0 < 2 * s :=
-    mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
-  have hc_pos : 0 < s / 2 :=
-    half_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
-  have hpointwise :
-      ∀ x y : ℝ,
-        A ≤ x →
-        x ≤ B →
-        H ≤ ‖y‖ →
-          ‖Complex.Gamma
-              (Complex.fixedRealPartVerticalPoint
-                (x + Complex.verticalStripTransportShift A) y) *
-              Complex.exp
-                (Complex.fixedRealPartVerticalPoint
-                  (x + Complex.verticalStripTransportShift A) y) *
-              (Complex.fixedRealPartVerticalPoint
-                (x + Complex.verticalStripTransportShift A) y) ^
-                ((1 / 2 : ℂ) -
-                  Complex.fixedRealPartVerticalPoint
-                    (x + Complex.verticalStripTransportShift A) y)‖ ≤ 2 * s ∧
-          s / 2 ≤
-            ‖Complex.Gamma
-              (Complex.fixedRealPartVerticalPoint
-                (x + Complex.verticalStripTransportShift A) y) *
-              Complex.exp
-                (Complex.fixedRealPartVerticalPoint
-                  (x + Complex.verticalStripTransportShift A) y) *
-              (Complex.fixedRealPartVerticalPoint
-                (x + Complex.verticalStripTransportShift A) y) ^
-                ((1 / 2 : ℂ) -
-                  Complex.fixedRealPartVerticalPoint
-                    (x + Complex.verticalStripTransportShift A) y)‖ := by
-  intro x y hxA _hxB hy
-  let w : ℂ :=
-    Complex.fixedRealPartVerticalPoint
-      (x + Complex.verticalStripTransportShift A) y
-  have hw_sector : Complex.closedRightHalfPlaneSector w :=
-    Complex.verticalStripTransportShift_closedRightHalfPlaneSector hxA
-  have hw_radius_H : H ≤ ‖w‖ :=
-    Complex.verticalStripTransportShift_radius_ge_of_height_ge hy
-  have hw_R : R ≤ ‖w‖ :=
-    le_trans (le_max_left R (max (4 * K / s) 1)) hw_radius_H
-  have hw_one : 1 ≤ ‖w‖ :=
-    le_trans
-      (le_trans
-        (le_max_right (4 * K / s) 1)
-        (le_max_right R (max (4 * K / s) 1)))
-      hw_radius_H
-  have hw_norm_pos : 0 < ‖w‖ :=
-    lt_of_lt_of_le zero_lt_one hw_one
-  have hw_cutoff_half : 4 * K / s ≤ ‖w‖ :=
-    le_trans
-      (le_trans
-        (le_max_left (4 * K / s) 1)
-        (le_max_right R (max (4 * K / s) 1)))
-      hw_radius_H
-  have herror_half :
-      K / ‖w‖ ≤ s / 2 :=
-    real_stirlingError_div_norm_le_half_sqrt_two_pi_of_cutoff
-      K ‖w‖ hK_pos hw_norm_pos hw_cutoff_half
-  have hhalf_le_s : s / 2 ≤ s := by
-    have hs_nonneg : 0 ≤ s :=
-      Real.sqrt_nonneg (2 * Real.pi)
-    exact
-      (div_le_iff₀ zero_lt_two).mpr
-        (by
-          calc
-            s ≤ s + s := le_add_of_nonneg_right hs_nonneg
-            _ = 2 * s := (two_mul s).symm
-            _ = s * 2 := mul_comm 2 s)
-  have herror_full :
-      K / ‖w‖ ≤ s :=
-    le_trans herror_half hhalf_le_s
-  constructor
-  · exact
-      Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
-        R K hStirling_pointwise w hw_sector hw_R herror_full
-  · exact
-      Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
-        R K hStirling_pointwise w hw_sector hw_R herror_half
-  exact ⟨H, 2 * s, s / 2, hH_pos, hC_pos, hc_pos, hpointwise⟩
+      let s : ℝ := Real.sqrt (2 * Real.pi)
+      let H : ℝ := max R (max (4 * K / s) 1)
+      have hH_pos : 0 < H :=
+        lt_of_lt_of_le zero_lt_one
+          (le_trans
+            (le_max_right (4 * K / s) 1)
+            (le_max_right R (max (4 * K / s) 1)))
+      have hC_pos : 0 < 2 * s :=
+        mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+      have hc_pos : 0 < s / 2 :=
+        half_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
+      have hpointwise :
+          ∀ x y : ℝ,
+            A ≤ x →
+            x ≤ B →
+            H ≤ ‖y‖ →
+              ‖Complex.Gamma
+                  (Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y) *
+                  Complex.exp
+                    (Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y) *
+                  (Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y) ^
+                    ((1 / 2 : ℂ) -
+                      Complex.fixedRealPartVerticalPoint
+                        (x + Complex.verticalStripTransportShift A) y)‖ ≤ 2 * s ∧
+              s / 2 ≤
+                ‖Complex.Gamma
+                  (Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y) *
+                  Complex.exp
+                    (Complex.fixedRealPartVerticalPoint
+                      (x + Complex.verticalStripTransportShift A) y) *
+                  (Complex.fixedRealPartVerticalPoint
+                    (x + Complex.verticalStripTransportShift A) y) ^
+                    ((1 / 2 : ℂ) -
+                      Complex.fixedRealPartVerticalPoint
+                        (x + Complex.verticalStripTransportShift A) y)‖ := by
+        intro x y hxA _hxB hy
+        let w : ℂ :=
+          Complex.fixedRealPartVerticalPoint
+            (x + Complex.verticalStripTransportShift A) y
+        have hw_sector : Complex.closedRightHalfPlaneSector w :=
+          Complex.verticalStripTransportShift_closedRightHalfPlaneSector hxA
+        have hw_radius_H : H ≤ ‖w‖ :=
+          Complex.verticalStripTransportShift_radius_ge_of_height_ge hy
+        have hw_R : R ≤ ‖w‖ :=
+          le_trans (le_max_left R (max (4 * K / s) 1)) hw_radius_H
+        have hw_one : 1 ≤ ‖w‖ :=
+          le_trans
+            (le_trans
+              (le_max_right (4 * K / s) 1)
+              (le_max_right R (max (4 * K / s) 1)))
+            hw_radius_H
+        have hw_norm_pos : 0 < ‖w‖ :=
+          lt_of_lt_of_le zero_lt_one hw_one
+        have hw_cutoff_half : 4 * K / s ≤ ‖w‖ :=
+          le_trans
+            (le_trans
+              (le_max_left (4 * K / s) 1)
+              (le_max_right R (max (4 * K / s) 1)))
+            hw_radius_H
+        have herror_half :
+            K / ‖w‖ ≤ s / 2 :=
+          real_stirlingError_div_norm_le_half_sqrt_two_pi_of_cutoff
+            K ‖w‖ hK_pos hw_norm_pos hw_cutoff_half
+        have hhalf_le_s : s / 2 ≤ s := by
+          have hs_nonneg : 0 ≤ s :=
+            Real.sqrt_nonneg (2 * Real.pi)
+          exact
+            (div_le_iff₀ zero_lt_two).mpr
+              (by
+                calc
+                  s ≤ s + s := le_add_of_nonneg_right hs_nonneg
+                  _ = 2 * s := (two_mul s).symm
+                  _ = s * 2 := mul_comm 2 s)
+        have herror_full :
+            K / ‖w‖ ≤ s :=
+          le_trans herror_half hhalf_le_s
+        constructor
+        · exact
+            Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
+              R K hStirling_pointwise w hw_sector hw_R herror_full
+        · exact
+            Complex.half_sqrt_two_pi_le_normalizedGammaFactor_norm_of_exponentialStirling_error
+              R K hStirling_pointwise w hw_sector hw_R herror_half
+      exact ⟨H, 2 * s, s / 2, hH_pos, hC_pos, hc_pos, hpointwise⟩
 
 /-- Positivity of the exponential/power denominator in normalized Stirling away
 from the origin. -/
@@ -201,7 +201,7 @@ theorem Complex.stirlingDenominator_pos_of_ne_zero
   have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
     intro hzero
     have hbase_zero : w = 0 :=
-      ((cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
+      ((Complex.cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
     exact hw_ne hbase_zero
   have hcpow_pos : 0 < ‖w ^ ((1 / 2 : ℂ) - w)‖ :=
     norm_pos_iff.mpr hcpow_ne

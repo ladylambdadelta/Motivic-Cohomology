@@ -51,6 +51,10 @@ theorem riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive :
       ∀ w : ℂ,
         w.re = 1 →
         1 ≤ ‖w.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖w.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum w.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖w.im‖) + Real.sqrt (1 + ‖w.im‖)) * Real.log (2 + x)) →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact riemannZeta_poleCleared_boundaryLine_one_growth_bound_standard
@@ -68,13 +72,20 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x)) →
         ‖(((1 : ℂ) - z) - 1) * riemannZeta ((1 : ℂ) - z)‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, 2 * m, hA, hB,
-          fun z hz_re hz_im =>
+          fun z hz_re hz_im hpartial =>
           let w : ℂ := (1 : ℂ) - z
           have hw_re : w.re = 1 :=
             one_sub_leftBoundary_re_eq_one hz_re
@@ -131,7 +142,7 @@ theorem riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimiti
                 Real.exp (B * (1 + ‖z‖) ^ (2 * m)) := by
             exact Real.exp_le_exp.mpr
               (mul_le_mul_of_nonneg_left hpow_le (le_of_lt hB))
-          le_trans (hbound w hw_re hw_im)
+          le_trans (hbound w hw_re hw_im hpartial)
             (mul_le_mul_of_nonneg_left hexp_le (le_of_lt hA))⟩
 
 /-- Functional-equation algebra for the left-edge pole-cleared zeta factor. -/
@@ -261,15 +272,30 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x)) →
         ‖(z - 1) * riemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
-  match leftBoundary_finiteOrder_product_growth_bound
+  match leftBoundary_finiteOrder_product_growth_bound_of_condition
+      (fun z : ℂ =>
+        ∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x))
       Gammaℝ_leftBoundary_completedFunctionalEquation_multiplier_stirling_growth_bound
       riemannZeta_reflected_leftBoundary_poleCleared_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hproduct⟩ =>
     exact
       ⟨A, B, m, hA, hB,
-        fun z hz_re hz_im =>
+        fun z hz_re hz_im hpartial =>
           have hfactor :
               (z - 1) * riemannZeta z =
                 (((z - 1) / (((1 : ℂ) - z) - 1)) *
@@ -286,7 +312,7 @@ theorem riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_
           Eq.subst
             (motive := fun x : ℝ => x ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
             hnorm_factor.symm
-            (hproduct z hz_re hz_im)⟩
+            (hproduct z hz_re hz_im hpartial)⟩
 
 /-- Left-edge transport for the pole-cleared zeta factor through the completed functional
 equation and the available vertical-tail Gamma/Stirling control. -/
@@ -297,13 +323,20 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x)) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
     exact
       ⟨A, B, m, hA, hB,
-        fun z hz_re hz_im =>
+        fun z hz_re hz_im hpartial =>
           have hz_ne_one : z ≠ 1 :=
             fun hz_eq =>
               have hz_re_one : z.re = 1 := by
@@ -324,7 +357,7 @@ theorem poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling
             (motive := fun w : ℂ =>
               ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
             hpole.symm
-            (hbound z hz_re hz_im)⟩
+            (hbound z hz_re hz_im hpartial)⟩
 
 /-- Exact two-edge boundary-growth input for the pole-cleared zeta strip theorem.
 
@@ -338,6 +371,13 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_leftBoundary_functionalEquatio
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x)) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact poleClearedRiemannZeta_leftBoundary_completedFunctionalEquation_stirling_transport_growth_bound
@@ -693,6 +733,13 @@ theorem poleClearedRiemannZeta_rightCriticalStrip_verticalBoundary_growth_bound 
       ∀ z : ℂ,
         z.re = 0 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖((1 : ℂ) - z).im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum
+                ((1 : ℂ) - z).im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖((1 : ℂ) - z).im‖) +
+                  Real.sqrt (1 + ‖((1 : ℂ) - z).im‖)) *
+                Real.log (2 + x)) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m)) ∧
     (∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,

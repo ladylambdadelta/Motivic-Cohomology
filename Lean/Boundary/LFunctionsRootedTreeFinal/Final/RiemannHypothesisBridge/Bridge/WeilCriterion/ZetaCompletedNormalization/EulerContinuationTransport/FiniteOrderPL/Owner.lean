@@ -758,13 +758,17 @@ theorem poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMacla
       ∀ z : ℂ,
         z.re = 1 →
         1 ≤ ‖z.im‖ →
+        (∀ {x : ℝ},
+          (⌊2 + ‖z.im‖⌋₊ : ℝ) ≤ x →
+            ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum z.im ⌊x⌋₊‖ ≤
+              8 * ((x / ‖z.im‖) + Real.sqrt (1 + ‖z.im‖)) * Real.log (2 + x)) →
         ‖poleClearedRiemannZeta z‖ ≤
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   match riemannZeta_poleCleared_boundaryLine_one_growth_bound_ownerPrimitive with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, m, hA, hB,
-          fun z hz_re hz_im =>
+          fun z hz_re hz_im hpartial =>
             have hz_ne_one : z ≠ 1 :=
               fun hz_one =>
               have hz_im_zero : z.im = 0 := by
@@ -792,7 +796,7 @@ theorem poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMacla
               (motive := fun w : ℂ =>
                 ‖w‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
               hpole.symm
-              (hbound z hz_re hz_im)⟩
+              (hbound z hz_re hz_im hpartial)⟩
 
 /-- Right boundary finite-order growth for the removable pole-cleared zeta on
 `Re s = 2`, from the Dirichlet-series estimate. -/

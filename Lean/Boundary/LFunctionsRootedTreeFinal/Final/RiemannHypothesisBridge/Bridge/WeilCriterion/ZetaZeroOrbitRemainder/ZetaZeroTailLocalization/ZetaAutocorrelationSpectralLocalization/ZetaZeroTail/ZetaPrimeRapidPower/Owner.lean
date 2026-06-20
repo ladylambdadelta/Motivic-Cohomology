@@ -20,32 +20,101 @@ namespace ZetaAdmissibleFunction
 /-- Helper: -2(N+1) ≤ -N. Shows exponent sum for rapid decay. -/
 private lemma neg_sum_le_neg_nat (N : ℕ) :
     (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) ≤ -(N : ℤ) := by
-  have h1 : (-(N + 1 : ℤ)) + (-(N + 1 : ℤ)) = -(2 * N + 2 : ℤ) := by
-    calc (-(N + 1 : ℤ)) + (-(N + 1 : ℤ))
-        = -(N + 1) - (N + 1) := by exact Int.add_eq_sub_of_neg_right (Int.neg_add_eq_sub _ _).symm
-      _ = -(N + 1 + (N + 1)) := by exact Int.sub_eq_neg_add (N + 1) (N + 1)
-      _ = -(2 * N + 2) := by norm_num
-  rw [h1]
-  have h2 : (2 : ℤ) * N + 2 ≥ N := by
-    have : (0 : ℤ) ≤ N + 2 := by exact Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 2)
-    exact by norm_num
-  exact Int.neg_le_neg h2
+  have hN_le_N_add_one :
+      (N : ℤ) ≤ (N : ℤ) + 1 := by
+    calc
+      (N : ℤ) = (N : ℤ) + 0 := (add_zero (N : ℤ)).symm
+      _ ≤ (N : ℤ) + 1 := add_le_add_left zero_le_one (N : ℤ)
+  have hN_add_one_nonnegative :
+      0 ≤ (N : ℤ) + 1 :=
+    Int.add_nonneg (Int.coe_nat_nonneg N) zero_le_one
+  have hN_add_one_le_double :
+      (N : ℤ) + 1 ≤ ((N : ℤ) + 1) + ((N : ℤ) + 1) := by
+    calc
+      (N : ℤ) + 1 = ((N : ℤ) + 1) + 0 := (add_zero ((N : ℤ) + 1)).symm
+      _ ≤ ((N : ℤ) + 1) + ((N : ℤ) + 1) :=
+        add_le_add_left hN_add_one_nonnegative ((N : ℤ) + 1)
+  have hN_le_double :
+      (N : ℤ) ≤ ((N : ℤ) + 1) + ((N : ℤ) + 1) :=
+    le_trans hN_le_N_add_one hN_add_one_le_double
+  calc
+    (-(N + 1 : ℤ)) + (-(N + 1 : ℤ))
+        = -(((N : ℤ) + 1) + ((N : ℤ) + 1)) := by
+          change -((N : ℤ) + 1) + -((N : ℤ) + 1) =
+            -(((N : ℤ) + 1) + ((N : ℤ) + 1))
+          exact (neg_add ((N : ℤ) + 1) ((N : ℤ) + 1)).symm
+    _ ≤ -(N : ℤ) := Int.neg_le_neg hN_le_double
 
 /-- Helper: N - (2N + 1) ≤ -N. Mixed exponent inequality. -/
 private lemma mixed_exp_le_neg_nat (N : ℕ) :
     (N : ℤ) + (-(N + N + 1 : ℤ)) ≤ -(N : ℤ) := by
-  have h1 : (N : ℤ) + (-(N + N + 1 : ℤ)) = -(N + 1 : ℤ) := by norm_num
-  rw [h1]
-  have h2 : (N + 1 : ℤ) ≥ 0 := Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 1)
-  exact Int.neg_le_neg h2
+  have hidentity :
+      (N : ℤ) + (-(N + N + 1 : ℤ)) = -((N : ℤ) + 1) := by
+    change
+      (N : ℤ) + -(((N : ℤ) + (N : ℤ)) + 1) =
+        -((N : ℤ) + 1)
+    calc
+      (N : ℤ) + -(((N : ℤ) + (N : ℤ)) + 1)
+          = (N : ℤ) + (-((N : ℤ) + (N : ℤ)) + -1) := by
+            exact congrArg (fun x : ℤ => (N : ℤ) + x)
+              (neg_add ((N : ℤ) + (N : ℤ)) 1)
+      _ = (N : ℤ) + ((-(N : ℤ) + -(N : ℤ)) + -1) := by
+        exact congrArg
+          (fun x : ℤ => (N : ℤ) + (x + -1))
+          (neg_add (N : ℤ) (N : ℤ))
+      _ = ((N : ℤ) + -(N : ℤ)) + (-(N : ℤ) + -1) := by
+        exact (add_assoc (N : ℤ) (-(N : ℤ)) (-(N : ℤ) + -1)).symm
+      _ = 0 + (-(N : ℤ) + -1) := by
+        exact congrArg (fun x : ℤ => x + (-(N : ℤ) + -1))
+          (add_neg_cancel (N : ℤ))
+      _ = -(N : ℤ) + -1 := zero_add (-(N : ℤ) + -1)
+      _ = -((N : ℤ) + 1) := (neg_add (N : ℤ) 1).symm
+  have hnonnegative :
+      0 ≤ (N : ℤ) + 1 :=
+    Int.add_nonneg (Int.coe_nat_nonneg N) zero_le_one
+  have hneg_le : -((N : ℤ) + 1) ≤ -(N : ℤ) :=
+    Int.neg_le_neg
+      (calc
+        (N : ℤ) = (N : ℤ) + 0 := (add_zero (N : ℤ)).symm
+        _ ≤ (N : ℤ) + 1 := add_le_add_left zero_le_one (N : ℤ))
+  exact Eq.subst
+    (motive := fun x : ℤ => x ≤ -(N : ℤ))
+    hidentity.symm
+    hneg_le
 
 /-- Helper: K - (K + N + 1) ≤ -N. Polynomial degree exponent. -/
 private lemma poly_deg_exp_le_neg_nat (K N : ℕ) :
     (K : ℤ) + (-(K + N + 1 : ℤ)) ≤ -(N : ℤ) := by
-  have h1 : (K : ℤ) + (-(K + N + 1 : ℤ)) = -(N + 1 : ℤ) := by norm_num
-  rw [h1]
-  have h2 : (N + 1 : ℤ) ≥ 0 := Int.add_nonneg (Int.coe_nat_nonneg N) (by norm_num : (0 : ℤ) ≤ 1)
-  exact Int.neg_le_neg h2
+  have hidentity :
+      (K : ℤ) + (-(K + N + 1 : ℤ)) = -((N : ℤ) + 1) := by
+    change
+      (K : ℤ) + -(((K : ℤ) + (N : ℤ)) + 1) =
+        -((N : ℤ) + 1)
+    calc
+      (K : ℤ) + -(((K : ℤ) + (N : ℤ)) + 1)
+          = (K : ℤ) + (-((K : ℤ) + (N : ℤ)) + -1) := by
+            exact congrArg (fun x : ℤ => (K : ℤ) + x)
+              (neg_add ((K : ℤ) + (N : ℤ)) 1)
+      _ = (K : ℤ) + ((-(K : ℤ) + -(N : ℤ)) + -1) := by
+        exact congrArg
+          (fun x : ℤ => (K : ℤ) + (x + -1))
+          (neg_add (K : ℤ) (N : ℤ))
+      _ = ((K : ℤ) + -(K : ℤ)) + (-(N : ℤ) + -1) := by
+        exact (add_assoc (K : ℤ) (-(K : ℤ)) (-(N : ℤ) + -1)).symm
+      _ = 0 + (-(N : ℤ) + -1) := by
+        exact congrArg (fun x : ℤ => x + (-(N : ℤ) + -1))
+          (add_neg_cancel (K : ℤ))
+      _ = -(N : ℤ) + -1 := zero_add (-(N : ℤ) + -1)
+      _ = -((N : ℤ) + 1) := (neg_add (N : ℤ) 1).symm
+  have hneg_le : -((N : ℤ) + 1) ≤ -(N : ℤ) :=
+    Int.neg_le_neg
+      (calc
+        (N : ℤ) = (N : ℤ) + 0 := (add_zero (N : ℤ)).symm
+        _ ≤ (N : ℤ) + 1 := add_le_add_left zero_le_one (N : ℤ))
+  exact Eq.subst
+    (motive := fun x : ℤ => x ≤ -(N : ℤ))
+    hidentity.symm
+    hneg_le
 
 /-- Real power bookkeeping for multiplying two rapidly decaying faces. -/
 theorem rapidTimesRapidPower_le_requestedRapidPower
@@ -104,7 +173,7 @@ theorem polynomialTimesRapidPower_le_requestedRapidPower
     hmono
 
 /-- Real power bookkeeping for multiplying an independent polynomial-growth degree `K`
-by sufficiently rapid decay to obtain the requested decay order `N`. -/
+against sufficiently rapid decay to reach the requested decay order `N`. -/
 theorem polynomialDegreeTimesRapidPower_le_requestedRapidPower
     (K N : ℕ) (X : ℝ) (hX : 1 ≤ X) :
     X ^ K * X ^ (-(K + N + 1 : ℤ)) ≤

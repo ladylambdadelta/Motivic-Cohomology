@@ -1,5 +1,7 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.BinetAbelPlana
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.Binet.Derivatives.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ClassicalAnalysis.GammaBinetStirling.SectorialFromBinet
+import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 /-!
 # Binet tail contour package
@@ -15,11 +17,7 @@ namespace LFunctions
 noncomputable section
 
 open scoped Topology
-
-/-- The norm of the complex scalar `2` is the real scalar `2`. -/
-theorem Complex.norm_two :
-    ‖(2 : ℂ)‖ = (2 : ℝ) :=
-  Complex.norm_natCast 2
+open MeasureTheory
 
 /-- The lower Binet remainder piece after splitting at `‖w‖ / 2`.
 
@@ -69,9 +67,8 @@ theorem Complex.binetSecondFormulaPrincipalTailKernel_integrableOn_tail
       (fun t : ℝ => Complex.binetSecondFormulaPrincipalTailKernel w t)
       (Set.Ioi (‖w‖ / 2)) := by
   exact
-    Eq.ndrec
-      Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
-      (Complex.binetSecondFormulaPrincipalTailKernel_fun_eq w).symm
+    Complex.binetSecondFormula_arctanKernel_integrableOn_tail_interval
+      (w := w) hw_re_pos
 
 /-- The norm of the Binet tail remainder is bounded by twice the integral of
 the norm of the principal tail kernel. -/
@@ -156,23 +153,23 @@ def Complex.BinetSecondFormulaContourTailUniformMajorant
 /-- The branch-safe contour-deformation comparison for the Binet tail. -/
 theorem Complex.binetSecondFormula_tailRemainder_norm_le_contourTailMajorantKernel_integral :
     Complex.BinetSecondFormulaContourTailIntegralComparison
-      Complex.binetSecondFormulaContourTailMajorantKernel 2 := fun w hw_re_pos hw_norm =>
-  have htail_to_kernel :
+      Complex.binetSecondFormulaContourTailMajorantKernel 2 :=
+  fun w hw_re_pos hw_norm =>
+  let htail_to_kernel :
       ‖Complex.binetSecondFormulaTailRemainder w‖ ≤
         2 * ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
           ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ :=
     Complex.binetSecondFormulaTailRemainder_norm_le_principalTailKernel_norm_integral
       (w := w) hw_re_pos
-  have hkernel_compare :
+  let hkernel_compare :
       ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
           ‖Complex.binetSecondFormulaPrincipalTailKernel w t‖ ≤
         ∫ t : ℝ in Set.Ioi (‖w‖ / 2),
           ‖Complex.binetSecondFormulaContourTailMajorantKernel w t‖ :=
     Complex.binetSecondFormula_principalTailKernel_integral_le_contourTailMajorantKernel_integral
       w hw_re_pos hw_norm
-  exact
-    le_trans htail_to_kernel
-      (mul_le_mul_of_nonneg_left hkernel_compare zero_le_two)
+  le_trans htail_to_kernel
+    (mul_le_mul_of_nonneg_left hkernel_compare zero_le_two)
 
 end
 

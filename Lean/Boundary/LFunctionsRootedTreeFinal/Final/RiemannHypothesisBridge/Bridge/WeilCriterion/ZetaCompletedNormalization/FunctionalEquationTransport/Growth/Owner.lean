@@ -1485,7 +1485,10 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunc
         poleClearedRiemannZeta hright)
       hidentity
 
-theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling :
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1496,13 +1499,17 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFu
   exact
     poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_of_completedFunctionalEquation_transport
       poleClearedRiemannZeta_leftHalfPlane_completedFunctionalEquation_transport_identity
-      poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
+      (poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
+        hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Left half-plane finite-order growth for the pole-cleared zeta factor.
 
 This is only name transport from the completed functional equation plus the
 Gamma/Stirling owner estimates. -/
-theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation :
+theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalEquation
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -1512,6 +1519,7 @@ theorem poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_functionalE
           A * Real.exp (B * (1 + ‖z‖) ^ m) := by
   exact
     poleClearedRiemannZeta_leftHalfPlane_finiteOrder_growth_from_completedFunctionalEquation_and_GammaStirling
+      hpartialLeft htailBoundary hcompactBoundary
 
 /-- Compact core of the central strip for the pole-cleared zeta factor.
 

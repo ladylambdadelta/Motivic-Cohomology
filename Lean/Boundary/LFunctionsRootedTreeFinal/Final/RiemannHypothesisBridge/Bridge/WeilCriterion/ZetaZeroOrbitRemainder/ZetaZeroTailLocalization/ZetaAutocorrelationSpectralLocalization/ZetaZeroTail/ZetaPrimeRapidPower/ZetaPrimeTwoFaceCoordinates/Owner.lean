@@ -105,7 +105,14 @@ theorem finitePrimeTimeDistributionWindow_tendsto_completed
         completedPrimeTimeDistributionCoordinate ι
           (convolutionAutocorrelation f)) :=
     (summable_zetaPrimeOffDiagonalCoordinate f).congr hcoordinate
-  unfold finitePrimeTimeDistributionWindow
+  change
+    Tendsto
+      (fun N : ℕ =>
+        ∑ ι in ZetaPrimePowerIndex.window N,
+          completedPrimeTimeDistributionCoordinate ι
+            (convolutionAutocorrelation f))
+      atTop
+      (𝓝 (completedPrimeTimeDistributionPairing (convolutionAutocorrelation f)))
   exact ZetaPrimePowerIndex.tendsto_sum_window_tsum_of_summable
     (fun ι : ZetaPrimePowerIndex =>
       completedPrimeTimeDistributionCoordinate ι (convolutionAutocorrelation f))

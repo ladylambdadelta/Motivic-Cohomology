@@ -15,6 +15,40 @@ noncomputable section
 open scoped Filter Topology
 local notation "π" => Real.pi
 
+/-- The deterministic finite product used to transport `Γ z` to `Γ (z + N)`. -/
+noncomputable def Complex.gammaRecurrenceProduct
+    (z : ℂ)
+    (N : ℕ) : ℂ :=
+  Finset.prod (Finset.range N) (fun j : ℕ => z + (j : ℂ))
+
+/-- The recurrence product at height zero is the empty product. -/
+theorem Complex.gammaRecurrenceProduct_zero
+    (z : ℂ) :
+    Complex.gammaRecurrenceProduct z 0 = 1 := by
+  calc
+    Complex.gammaRecurrenceProduct z 0 =
+        Finset.prod (Finset.range 0) (fun j : ℕ => z + (j : ℂ)) :=
+      rfl
+    _ = 1 :=
+      Finset.prod_range_zero (fun j : ℕ => z + (j : ℂ))
+
+/-- The recurrence product at a successor height appends the last factor. -/
+theorem Complex.gammaRecurrenceProduct_succ
+    (z : ℂ)
+    (N : ℕ) :
+    Complex.gammaRecurrenceProduct z (Nat.succ N) =
+      Complex.gammaRecurrenceProduct z N * (z + (N : ℂ)) := by
+  calc
+    Complex.gammaRecurrenceProduct z (Nat.succ N) =
+        Finset.prod (Finset.range (Nat.succ N))
+          (fun j : ℕ => z + (j : ℂ)) :=
+      rfl
+    _ =
+        Finset.prod (Finset.range N) (fun j : ℕ => z + (j : ℂ)) *
+          (z + (N : ℂ)) :=
+      Finset.prod_range_succ (fun j : ℕ => z + (j : ℂ)) N
+    _ = Complex.gammaRecurrenceProduct z N * (z + (N : ℂ)) := by
+      exact congrArg (fun t : ℂ => t * (z + (N : ℂ))) rfl
 
 /-- The recurrence product is nonzero when all its factors are nonzero. -/
 theorem Complex.gammaRecurrenceProduct_ne_zero
@@ -25,6 +59,8 @@ theorem Complex.gammaRecurrenceProduct_ne_zero
         j < N →
           z + (j : ℂ) ≠ 0) :
     Complex.gammaRecurrenceProduct z N ≠ 0 := by
+  show
+      Finset.prod (Finset.range N) (fun j : ℕ => z + (j : ℂ)) ≠ 0
   exact Finset.prod_ne_zero_iff.mpr
     (fun j hj =>
       hfactor_ne j (Finset.mem_range.mp hj))
@@ -41,15 +77,20 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
       Complex.gammaRecurrenceProduct z N * Complex.Gamma z := by
   induction N with
   | zero =>
+      have hNatZero : ((0 : ℕ) : ℂ) = 0 :=
+        Nat.cast_zero
       calc
         Complex.Gamma (z + ((0 : ℕ) : ℂ)) =
+            Complex.Gamma (z + 0) :=
+          congrArg (fun t : ℂ => Complex.Gamma (z + t)) hNatZero
+        _ =
             Complex.Gamma z :=
           congrArg Complex.Gamma (add_zero z)
         _ = 1 * Complex.Gamma z :=
           (one_mul (Complex.Gamma z)).symm
         _ = Complex.gammaRecurrenceProduct z 0 * Complex.Gamma z := by
           exact congrArg (fun t : ℂ => t * Complex.Gamma z)
-            (Finset.prod_range_zero (fun j : ℕ => z + (j : ℂ))).symm
+            (Complex.gammaRecurrenceProduct_zero z).symm
   | succ N ih =>
       have hfactor_prev :
           ∀ j : ℕ, j < N → z + (j : ℂ) ≠ 0 := by
@@ -76,7 +117,7 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
       have hprod_step :
           Complex.gammaRecurrenceProduct z (Nat.succ N) =
             Complex.gammaRecurrenceProduct z N * (z + (N : ℂ)) := by
-        exact Finset.prod_range_succ (fun j : ℕ => z + (j : ℂ)) N
+        exact Complex.gammaRecurrenceProduct_succ z N
       calc
         Complex.Gamma (z + ((Nat.succ N : ℕ) : ℂ)) =
             (z + (N : ℂ)) * Complex.Gamma (z + (N : ℂ)) :=
@@ -88,8 +129,20 @@ theorem Complex.Gamma_shifted_eq_gammaRecurrenceProduct_mul
         _ =
             (Complex.gammaRecurrenceProduct z N * (z + (N : ℂ))) *
               Complex.Gamma z := by
-          exact (mul_left_comm (z + (N : ℂ))
-            (Complex.gammaRecurrenceProduct z N) (Complex.Gamma z)).symm
+          calc
+            (z + (N : ℂ)) *
+                (Complex.gammaRecurrenceProduct z N * Complex.Gamma z) =
+                ((z + (N : ℂ)) * Complex.gammaRecurrenceProduct z N) *
+                  Complex.Gamma z :=
+              (mul_assoc (z + (N : ℂ))
+                (Complex.gammaRecurrenceProduct z N) (Complex.Gamma z)).symm
+            _ =
+                (Complex.gammaRecurrenceProduct z N * (z + (N : ℂ))) *
+                  Complex.Gamma z := by
+              exact congrArg
+                (fun t : ℂ => t * Complex.Gamma z)
+                (mul_comm (z + (N : ℂ))
+                  (Complex.gammaRecurrenceProduct z N))
         _ =
             Complex.gammaRecurrenceProduct z (Nat.succ N) *
               Complex.Gamma z := by

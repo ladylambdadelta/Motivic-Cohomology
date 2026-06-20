@@ -1,4 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaStirlingNormalization.NormalizedStirling.Owner
+import Mathlib.Analysis.SpecialFunctions.Pow.Complex
 
 /-!
 # Sectorial log-Gamma Stirling normalization
@@ -18,6 +19,11 @@ local notation "π" => Real.pi
 def Complex.fixedRealPartVerticalPoint (a b : ℝ) : ℂ :=
   (a : ℂ) + (b : ℂ) * Complex.I
 
+/-- The real half embedded in `ℂ` is the complex half. -/
+theorem Complex.ofReal_one_div_two_eq_complex_one_div_two :
+    (((1 / 2 : ℝ) : ℂ) = (1 / 2 : ℂ)) := by
+  exact Complex.ofReal_div 1 2
+
 /-- The fixed-line point has real coordinate `a`. -/
 theorem Complex.fixedRealPartVerticalPoint_re
     (a b : ℝ) :
@@ -29,7 +35,13 @@ theorem Complex.fixedRealPartVerticalPoint_re
         Complex.add_re (a : ℂ) ((b : ℂ) * Complex.I)
     _ = a + 0 := by
       congr 1
-      exact Complex.mul_I_re (b : ℂ)
+      calc
+        ((b : ℂ) * Complex.I).re = -((b : ℂ).im) :=
+          Complex.mul_I_re (b : ℂ)
+        _ = -0 :=
+          congrArg Neg.neg (Complex.ofReal_im b)
+        _ = 0 :=
+          neg_zero
     _ = a := add_zero a
 
 /-- The fixed-line point has imaginary coordinate `b`. -/
@@ -129,9 +141,9 @@ theorem Complex.fixedRealPartVerticalStirlingEnvelope_natShift_eq
         (Real.rpow_add hbase_pos (a - 1 / 2) (N : ℝ))
     _ = (Real.exp (-(Real.pi / 2) * ‖b‖) * (1 + ‖b‖) ^ (a - 1 / 2)) *
           (1 + ‖b‖) ^ (N : ℝ) :=
-      mul_assoc (Real.exp (-(Real.pi / 2) * ‖b‖))
+      (mul_assoc (Real.exp (-(Real.pi / 2) * ‖b‖))
         ((1 + ‖b‖) ^ (a - 1 / 2))
-        ((1 + ‖b‖) ^ (N : ℝ))
+        ((1 + ‖b‖) ^ (N : ℝ))).symm
     _ = Complex.fixedRealPartVerticalStirlingEnvelope a b * (1 + ‖b‖) ^ (N : ℝ) :=
       rfl
 
@@ -195,33 +207,86 @@ used by the owner API:
 right half-plane for large radius; cf. DLMF §5.11 and Whittaker-Watson,
 Ch. XII. -/
 theorem Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  exact
+          K / ‖w‖ := fun hbranch => by
+  match
     Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane_from_binetSecondFormula
+      hbranch
+  with
+  | ⟨R, K, hR, hK, hbound⟩ =>
+    exact
+      ⟨R, K, hR, hK,
+        fun w hw_re_pos _hw_sector hw_norm hgamma_slit_open hfinite_real hfinite_open =>
+          hbound w hw_re_pos hw_norm hgamma_slit_open hfinite_real hfinite_open⟩
 
 /-- Classical sectorial Stirling estimate for the normalized Gamma factor on
 the closed right half-plane.
 
 This is only name transport to the canonical sectorial Stirling theorem above. -/
 theorem Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  exact Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane
+          K / ‖w‖ := fun hbranch =>
+  Complex.sectorialStirling_normalizedGamma_closedRightHalfPlane hbranch
 
 /-- Sectorial logarithmic Stirling expansion for `Complex.Gamma` on the closed
 right half-plane.
@@ -230,16 +295,39 @@ This public owner theorem is the normalized-factor consequence of the canonical
 sectorial Stirling estimate.  The logarithmic formulation and this exponential
 normalization are equivalent on the large closed right-half-plane sector. -/
 theorem Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  exact Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane
+          K / ‖w‖ := fun hbranch =>
+  Complex.classical_sectorialStirling_normalizedGamma_closedRightHalfPlane hbranch
 
 /-- If a complex number is within `sqrt (2π)` of `sqrt (2π)`, then its norm is
 bounded by `2 sqrt (2π)`.
@@ -270,7 +358,11 @@ theorem Complex.norm_le_two_sqrt_two_pi_of_norm_sub_sqrt_two_pi_le_sqrt_two_pi
     Real.sqrt_nonneg (2 * Real.pi)
   have hnorm_sqrt :
       ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ = Real.sqrt (2 * Real.pi) := by
-    exact Complex.norm_ofReal_of_nonneg hsqrt_nonneg
+    calc
+      ‖(Real.sqrt (2 * Real.pi) : ℂ)‖ = |Real.sqrt (2 * Real.pi)| :=
+        Complex.norm_real (Real.sqrt (2 * Real.pi))
+      _ = Real.sqrt (2 * Real.pi) :=
+        abs_of_nonneg hsqrt_nonneg
   calc
     ‖A‖ ≤
         ‖A - (Real.sqrt (2 * Real.pi) : ℂ)‖ +
@@ -310,6 +402,27 @@ theorem Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStir
       (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
       herror
 
+/-- Pointwise normalized Gamma-factor bound from a pointwise exponential
+Stirling error estimate. -/
+theorem Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_pointwise_exponentialStirling_error
+    (K : ℝ)
+    (w : ℂ)
+    (hStirling :
+      ‖Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+        K / ‖w‖)
+    (hw_error : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi)) :
+    ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤
+      2 * Real.sqrt (2 * Real.pi) :=
+  let herror :
+      ‖Complex.Gamma w * Complex.exp w *
+          w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
+        Real.sqrt (2 * Real.pi) :=
+    le_trans hStirling hw_error
+  Complex.norm_le_two_sqrt_two_pi_of_norm_sub_sqrt_two_pi_le_sqrt_two_pi
+    (Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w))
+    herror
+
 /-- If a complex number is within half of `sqrt (2π)` from `sqrt (2π)`, then
 its norm is bounded below by the same half-constant. -/
 theorem Complex.half_sqrt_two_pi_le_norm_of_norm_sub_sqrt_two_pi_le_half
@@ -322,7 +435,11 @@ theorem Complex.half_sqrt_two_pi_le_norm_of_norm_sub_sqrt_two_pi_le_half
   have hs_nonneg : 0 ≤ s :=
     Real.sqrt_nonneg (2 * Real.pi)
   have hs_norm : ‖(s : ℂ)‖ = s :=
-    Complex.norm_ofReal_of_nonneg hs_nonneg
+    calc
+      ‖(s : ℂ)‖ = |s| :=
+        Complex.norm_real s
+      _ = s :=
+        abs_of_nonneg hs_nonneg
   have htriangle :
       ‖(s : ℂ)‖ ≤ ‖A‖ + ‖A - (s : ℂ)‖ := by
     calc
@@ -338,20 +455,11 @@ theorem Complex.half_sqrt_two_pi_le_norm_of_norm_sub_sqrt_two_pi_le_half
   have hhalf_le_sub : s - s / 2 ≤ ‖A‖ :=
     sub_le_iff_le_add.mpr hs_le_sum
   have hhalf_eq : s - s / 2 = s / 2 := by
-    calc
-      s - s / 2 = s * 1 - s * (1 / 2) := by
-        exact congrArg₂ HSub.hSub (mul_one s).symm (mul_one_div s 2).symm
-      _ = s * (1 - 1 / 2) := by
-        exact (mul_sub s 1 (1 / 2)).symm
-      _ = s * (1 / 2) := by
-        exact congrArg (fun t : ℝ => s * t) (sub_eq_self.mpr ?_)
-      _ = s / 2 := by
-        exact mul_one_div s 2
-    · exact sub_eq_zero.mpr (one_div_two_add_one_div_two.symm)
-  exact
-    Eq.subst
-      (motive := fun t : ℝ => t ≤ ‖A‖)
-      hhalf_eq
+    exact sub_half s
+  calc
+    s / 2 = s - s / 2 :=
+      hhalf_eq.symm
+    _ ≤ ‖A‖ :=
       hhalf_le_sub
 
 /-- Pointwise lower normalized Gamma-factor bound extracted from an exponential
@@ -397,37 +505,36 @@ theorem real_stirlingError_div_norm_le_half_sqrt_two_pi_of_cutoff
     have hK_nonneg : 0 ≤ K :=
       le_of_lt hK_pos
     have htwo_le_four : (2 : ℝ) ≤ 4 := by
-      calc
-        (2 : ℝ) ≤ 2 + 2 := le_add_of_nonneg_right (le_of_lt two_pos)
-        _ = 4 := rfl
-    calc
-      2 * K ≤ 4 * K :=
-        mul_le_mul_of_nonneg_right htwo_le_four hK_nonneg
+      exact Real.two_le_four
+    exact mul_le_mul_of_nonneg_right htwo_le_four hK_nonneg
   have htwoK_le_rs : 2 * K ≤ r * s :=
     le_trans htwoK_le_fourK hcutoff_mul
+  have htwoK_le_sr : 2 * K ≤ s * r :=
+    calc
+      2 * K ≤ r * s :=
+        htwoK_le_rs
+      _ = s * r :=
+        mul_comm r s
   have htwoK_div_r_le_s : 2 * K / r ≤ s :=
-    (div_le_iff₀ hr_pos).mpr
-      (Eq.subst
-        (motive := fun t : ℝ => 2 * K ≤ t)
-        (mul_comm s r)
-        htwoK_le_rs)
+    (div_le_iff₀ hr_pos).mpr htwoK_le_sr
   have htwo_pos : 0 < (2 : ℝ) :=
     two_pos
   have hK_div_eq : 2 * (K / r) = 2 * K / r := by
-    calc
-      2 * (K / r) = (2 * K) / r := by
-        exact (mul_div_assoc 2 K r).symm
+    exact (mul_div_assoc 2 K r).symm
   have htwice_le : 2 * (K / r) ≤ s :=
-    Eq.subst
-      (motive := fun t : ℝ => t ≤ s)
-      hK_div_eq.symm
-      htwoK_div_r_le_s
+    calc
+      2 * (K / r) = 2 * K / r :=
+        hK_div_eq
+      _ ≤ s :=
+        htwoK_div_r_le_s
+  have hright_product_le_s : K / r * 2 ≤ s :=
+    calc
+      K / r * 2 = 2 * (K / r) :=
+        mul_comm (K / r) 2
+      _ ≤ s :=
+        htwice_le
   exact
-    (le_div_iff₀ htwo_pos).mpr
-      (Eq.subst
-        (motive := fun t : ℝ => t ≤ s)
-        (mul_comm (K / r) 2)
-        htwice_le)
+    (le_div_iff₀ htwo_pos).mpr hright_product_le_s
 
 /-- The normalized factor appearing in sectorial exponential Stirling for
 `Complex.Gamma`. -/
@@ -461,10 +568,17 @@ theorem Complex.Gamma_ne_zero_of_closedRightHalfPlaneSector_of_ne_zero
     Complex.Gamma w ≠ 0 :=
   fun hzero =>
     match (Complex.Gamma_eq_zero_iff w).mp hzero with
-    | ⟨0, hn⟩ => hw_ne (hn.trans (neg_zero : -((0 : ℂ)) = 0))
+    | ⟨0, hn⟩ =>
+        let hneg_zero_nat : -(((0 : ℕ) : ℂ)) = 0 :=
+          (congrArg Neg.neg (Nat.cast_zero : ((0 : ℕ) : ℂ) = 0)).trans neg_zero
+        hw_ne (hn.trans hneg_zero_nat)
     | ⟨Nat.succ n, hn⟩ =>
         let hw_sector' : Complex.closedRightHalfPlaneSector (-(((Nat.succ n : ℕ) : ℂ))) :=
-          Eq.subst hn hw_sector
+          calc
+            (0 : ℝ) ≤ w.re :=
+              hw_sector
+            _ = (-(((Nat.succ n : ℕ) : ℂ))).re :=
+              congrArg Complex.re hn
         let hre_eq :
             (-(((Nat.succ n : ℕ) : ℂ))).re = -(((Nat.succ n : ℕ) : ℝ)) :=
           calc
@@ -474,10 +588,11 @@ theorem Complex.Gamma_ne_zero_of_closedRightHalfPlaneSector_of_ne_zero
             _ = -(((Nat.succ n : ℕ) : ℝ)) :=
               congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
         let hre_nonneg : (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
-          Eq.subst
-            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
-            hre_eq
-            hw_sector'
+          calc
+            (0 : ℝ) ≤ (-(((Nat.succ n : ℕ) : ℂ))).re :=
+              hw_sector'
+            _ = -(((Nat.succ n : ℕ) : ℝ)) :=
+              hre_eq
         let hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
           Nat.cast_pos.mpr (Nat.succ_pos n)
         let hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
@@ -509,9 +624,7 @@ theorem Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSec
   have hcpow_ne : w ^ ((1 / 2 : ℂ) - w) ≠ 0 := by
     exact
       fun hzero =>
-        have hbase_zero : w = 0 :=
-          ((cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1
-        hw_ne hbase_zero
+        hw_ne (((Complex.cpow_eq_zero_iff w ((1 / 2 : ℂ) - w)).mp hzero).1)
   show
       Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w) ≠ 0
   exact mul_ne_zero (mul_ne_zero hGamma_ne hexp_ne) hcpow_ne
@@ -541,7 +654,7 @@ theorem Complex.log_norm_exp_eq_re
     Real.log ‖Complex.exp w‖ = w.re := by
   have hnorm_eq_abs :
       ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
-    norm_eq_abs (Complex.exp w)
+    Complex.norm_eq_abs (Complex.exp w)
   have habs_eq_exp :
       Complex.abs (Complex.exp w) = Real.exp w.re :=
     Complex.abs_exp w
@@ -560,7 +673,7 @@ theorem Complex.norm_exp_eq_exp_re
     ‖Complex.exp w‖ = Real.exp w.re := by
   have hnorm_eq_abs :
       ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
-    norm_eq_abs (Complex.exp w)
+    Complex.norm_eq_abs (Complex.exp w)
   calc
     ‖Complex.exp w‖ = Complex.abs (Complex.exp w) :=
       hnorm_eq_abs
@@ -752,10 +865,13 @@ theorem Complex.Gamma_norm_le_of_normalizedGammaStirlingFactor_norm_le
   have hmul_le :
       ‖Complex.Gamma w‖ *
           (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) ≤ B :=
-    Eq.subst
-      (motive := fun t : ℝ => t ≤ B)
-      hnorm
-      hbound
+    calc
+      ‖Complex.Gamma w‖ *
+          (‖Complex.exp w‖ * ‖w ^ ((1 / 2 : ℂ) - w)‖) =
+        ‖Complex.normalizedGammaStirlingFactor w‖ :=
+          hnorm.symm
+      _ ≤ B :=
+        hbound
   exact (le_div_iff₀ hden_pos).mpr hmul_le
 
 /-- Solving the normalized Stirling factor for a lower bound on `‖Γ(w)‖`. -/
@@ -839,7 +955,7 @@ theorem Complex.constant_log_absorbed_by_largeRadius_logLinearEnvelope
     let hCenv_eq :
         C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+      (mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))).symm
     le_trans hlogB_le_Cδ
       (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq))⟩
 
@@ -978,8 +1094,12 @@ theorem Complex.half_minus_self_re
     ((1 / 2 : ℂ) - w).re =
         (1 / 2 : ℂ).re - w.re :=
       Complex.sub_re (1 / 2 : ℂ) w
+    _ = (((1 / 2 : ℝ) : ℂ).re) - w.re := by
+      exact congrArg
+        (fun z : ℂ => z.re - w.re)
+        Complex.ofReal_one_div_two_eq_complex_one_div_two.symm
     _ = (1 / 2 : ℝ) - w.re := by
-      exact congrArg (fun x : ℝ => x - w.re) (Complex.ofReal_re (1 / 2))
+      exact congrArg (fun x : ℝ => x - w.re) (Complex.ofReal_re (1 / 2 : ℝ))
 
 /-- Imaginary coordinate of the Stirling power exponent `(1/2) - w`. -/
 theorem Complex.half_minus_self_im
@@ -989,8 +1109,12 @@ theorem Complex.half_minus_self_im
     ((1 / 2 : ℂ) - w).im =
         (1 / 2 : ℂ).im - w.im :=
       Complex.sub_im (1 / 2 : ℂ) w
+    _ = (((1 / 2 : ℝ) : ℂ).im) - w.im := by
+      exact congrArg
+        (fun z : ℂ => z.im - w.im)
+        Complex.ofReal_one_div_two_eq_complex_one_div_two.symm
     _ = 0 - w.im := by
-      exact congrArg (fun x : ℝ => x - w.im) (Complex.ofReal_im (1 / 2))
+      exact congrArg (fun x : ℝ => x - w.im) (Complex.ofReal_im (1 / 2 : ℝ))
     _ = -w.im :=
       zero_sub w.im
 
@@ -1029,24 +1153,27 @@ theorem Complex.neg_log_norm_cpow_half_minus_self_eq_radiusArgumentLoss_of_log_n
           Complex.arg w * (-w.im)) =
           -(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖) +
             Complex.arg w * (-w.im) := by
-        exact neg_sub
+        exact (neg_sub
           (((1 / 2 : ℝ) - w.re) * Real.log ‖w‖)
-          (Complex.arg w * (-w.im))
+          (Complex.arg w * (-w.im))).trans
+            (add_comm (Complex.arg w * (-w.im))
+              (-(((1 / 2 : ℝ) - w.re) * Real.log ‖w‖)))
       _ = (-((1 / 2 : ℝ) - w.re)) * Real.log ‖w‖ +
             Complex.arg w * (-w.im) := by
         exact congrArg
           (fun x : ℝ => x + Complex.arg w * (-w.im))
-          (neg_mul ((1 / 2 : ℝ) - w.re) (Real.log ‖w‖))
+          (neg_mul ((1 / 2 : ℝ) - w.re) (Real.log ‖w‖)).symm
       _ = (-(1 / 2 : ℝ) + w.re) * Real.log ‖w‖ +
             Complex.arg w * (-w.im) := by
         exact congrArg
           (fun x : ℝ => x * Real.log ‖w‖ + Complex.arg w * (-w.im))
-          (neg_sub (1 / 2 : ℝ) w.re)
+          ((neg_sub (1 / 2 : ℝ) w.re).trans (add_comm w.re (-(1 / 2 : ℝ))))
       _ = (w.re - 1 / 2) * Real.log ‖w‖ +
             Complex.arg w * (-w.im) := by
         exact congrArg
           (fun x : ℝ => x * Real.log ‖w‖ + Complex.arg w * (-w.im))
-          (sub_eq_add_neg w.re (1 / 2)).symm
+          ((add_comm (-(1 / 2 : ℝ)) w.re).trans
+            (sub_eq_add_neg w.re (1 / 2)).symm)
       _ = (w.re - 1 / 2) * Real.log ‖w‖ +
             (-(Complex.arg w * w.im)) := by
         exact congrArg
@@ -1093,25 +1220,12 @@ theorem Complex.re_le_norm
   have hnorm_eq_abs : ‖w‖ = Complex.abs w :=
     Complex.norm_eq_abs w
   have hre_abs_le_norm : |w.re| ≤ ‖w‖ :=
-    Eq.subst
-      (motive := fun x : ℝ => |w.re| ≤ x)
-      hnorm_eq_abs.symm
-      hre_abs_le_abs
+    calc
+      |w.re| ≤ Complex.abs w :=
+        hre_abs_le_abs
+      _ = ‖w‖ :=
+        hnorm_eq_abs.symm
   exact le_trans (le_abs_self w.re) hre_abs_le_norm
-
-/-- The imaginary coordinate absolute value is bounded by the complex norm. -/
-theorem Complex.abs_im_le_norm
-    (w : ℂ) :
-    |w.im| ≤ ‖w‖ := by
-  have him_abs_le_abs : |w.im| ≤ Complex.abs w :=
-    Complex.abs_im_le_abs w
-  have hnorm_eq_abs : ‖w‖ = Complex.abs w :=
-    Complex.norm_eq_abs w
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => |w.im| ≤ x)
-      hnorm_eq_abs.symm
-      him_abs_le_abs
 
 /-- Fixed vertical points lie in the closed right half-plane exactly when their
 fixed real part is nonnegative. -/
@@ -1120,11 +1234,11 @@ theorem Complex.fixedRealPartVerticalPoint_closedRightHalfPlaneSector
     (ha : 0 ≤ a) :
     Complex.closedRightHalfPlaneSector
       (Complex.fixedRealPartVerticalPoint a b) := by
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => 0 ≤ x)
-      (Complex.fixedRealPartVerticalPoint_re a b).symm
+  calc
+    (0 : ℝ) ≤ a :=
       ha
+    _ = (Complex.fixedRealPartVerticalPoint a b).re :=
+      (Complex.fixedRealPartVerticalPoint_re a b).symm
 
 /-- The imaginary height is bounded by the complex norm of a fixed vertical
 point. -/
@@ -1140,15 +1254,18 @@ theorem Complex.fixedRealPartVerticalPoint_abs_im_le_norm
     Complex.abs_im_le_norm (Complex.fixedRealPartVerticalPoint a b)
   have hnorm_eq_abs : ‖b‖ = |b| :=
     Real.norm_eq_abs b
-  exact
-    Eq.subst
-      (motive := fun x : ℝ => x ≤ ‖Complex.fixedRealPartVerticalPoint a b‖)
-      hnorm_eq_abs.symm
-      (Eq.subst
-        (motive := fun x : ℝ =>
-          |x| ≤ ‖Complex.fixedRealPartVerticalPoint a b‖)
-        him
-        hbasic)
+  have hb_abs_le :
+      |b| ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ := by
+    calc
+      |b| = |(Complex.fixedRealPartVerticalPoint a b).im| :=
+        congrArg abs him.symm
+      _ ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
+        hbasic
+  calc
+    ‖b‖ = |b| :=
+      hnorm_eq_abs
+    _ ≤ ‖Complex.fixedRealPartVerticalPoint a b‖ :=
+      hb_abs_le
 
 /-- A large imaginary height forces a large complex radius on a fixed vertical
 line. -/
@@ -1197,7 +1314,13 @@ theorem Complex.fixedRealPartVerticalPoint_natShift_closedRightHalfPlaneSector
   have hnonneg : 0 ≤ x + (N : ℝ) := by
     have hneg_x_le_N : -x ≤ (N : ℝ) :=
       le_trans (neg_le_neg hx) hA
-    exact neg_le.mp hneg_x_le_N
+    calc
+      (0 : ℝ) = -x + x :=
+        (neg_add_cancel x).symm
+      _ ≤ (N : ℝ) + x :=
+        add_le_add_right hneg_x_le_N x
+      _ = x + (N : ℝ) :=
+        add_comm (N : ℝ) x
   exact
     Complex.fixedRealPartVerticalPoint_closedRightHalfPlaneSector hnonneg
 
@@ -1314,7 +1437,7 @@ theorem real_radius_add_half_le_one_add_two_mul
     (hr_nonneg : 0 ≤ r) :
     r + 1 / 2 ≤ 1 + 2 * r := by
   have hhalf_le_one : (1 / 2 : ℝ) ≤ 1 :=
-    one_half_le_one
+    Real.one_div_two_le_one
   have hr_le_two_r : r ≤ 2 * r := by
     calc
       r = 1 * r := (one_mul r).symm
@@ -1388,13 +1511,13 @@ theorem real_pi_radius_absorbed_by_logLinearEnvelope_uniform
       calc
         (C * Real.log (2 + 2 * r)) * (1 + 2 * r) =
             C * (Real.log (2 + 2 * r) * (1 + 2 * r)) :=
-          (mul_assoc C (Real.log (2 + 2 * r)) (1 + 2 * r)).symm
+          mul_assoc C (Real.log (2 + 2 * r)) (1 + 2 * r)
         _ = C * ((1 + 2 * r) * Real.log (2 + 2 * r)) :=
           congrArg
             (fun x : ℝ => C * x)
             (mul_comm (Real.log (2 + 2 * r)) (1 + 2 * r))
         _ = C * (1 + 2 * r) * Real.log (2 + 2 * r) :=
-          mul_assoc C (1 + 2 * r) (Real.log (2 + 2 * r))
+          (mul_assoc C (1 + 2 * r) (Real.log (2 + 2 * r))).symm
     le_trans hleft_to_H
       (le_trans hH_scale (le_of_eq htarget_eq))⟩
 
@@ -1459,7 +1582,13 @@ theorem real_abs_log_le_largeRadius_log_envelope_uniform
       let hneg_log_le_inv : -Real.log r ≤ r⁻¹ :=
         neg_le.mp (Real.neg_inv_le_log hr_nonneg)
       let hinv_le_R₀_inv : r⁻¹ ≤ R₀⁻¹ :=
-        one_div_le_one_div_of_le hR₀_pos hr
+        calc
+          r⁻¹ = 1 / r :=
+            (one_div r).symm
+          _ ≤ 1 / R₀ :=
+            one_div_le_one_div_of_le hR₀_pos hr
+          _ = R₀⁻¹ :=
+            one_div R₀
       let hsmall : ‖Real.log r‖ ≤ R₀⁻¹ :=
         le_trans (le_of_eq hnorm_log) (le_trans hneg_log_le_inv hinv_le_R₀_inv)
       let hratio_le_C : R₀⁻¹ / Real.log 2 ≤ C :=
@@ -1503,7 +1632,8 @@ theorem Complex.log_norm_le_log_envelope
       ∀ w : ℂ,
         R₀ ≤ ‖w‖ →
         ‖Real.log ‖w‖‖ ≤ C * Real.log (2 + 2 * ‖w‖) := by
-  exact real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos
+  let ⟨C, hC_pos, hC⟩ := real_abs_log_le_largeRadius_log_envelope_uniform R₀ hR₀_pos
+  exact ⟨C, hC_pos, fun w hw => hC ‖w‖ hw⟩
 
 /-- If `0 ≤ x ≤ r`, then the shifted coordinate `x - 1/2` is bounded by
 `r + 1/2` in absolute value. -/
@@ -1566,11 +1696,11 @@ theorem real_radiusTerm_le_norm_log_majorant
         |x - 1 / 2| * ‖Real.log r‖ ≤
           (r + 1 / 2) * ‖Real.log r‖ :=
       mul_le_mul_of_nonneg_right hshift hlog_nonneg
-    exact
-      Eq.subst
-        (motive := fun y : ℝ =>
-          |x - 1 / 2| * y ≤ (r + 1 / 2) * ‖Real.log r‖)
-        habs_log_eq_norm.symm
+    calc
+      |x - 1 / 2| * |Real.log r| =
+          |x - 1 / 2| * ‖Real.log r‖ :=
+        congrArg (fun y : ℝ => |x - 1 / 2| * y) habs_log_eq_norm
+      _ ≤ (r + 1 / 2) * ‖Real.log r‖ :=
         hmul
   exact le_trans hterm_le_abs
     (le_trans (le_of_eq habs_mul) hmajor)
@@ -1585,7 +1715,7 @@ theorem real_argumentTerm_le_sectorial_majorant
       -θ * y ≤ |θ * y| := by
     calc
       -θ * y = -(θ * y) :=
-        (neg_mul θ y).symm
+        neg_mul θ y
       _ ≤ |θ * y| :=
         neg_le_abs (θ * y)
   have habs_product :
@@ -1619,7 +1749,14 @@ theorem real_radiusArgumentLoss_le_norm_log_majorant
   have hleft_eq :
       (x - 1 / 2) * Real.log r - θ * y =
         (x - 1 / 2) * Real.log r + (-θ * y) := by
-    exact sub_eq_add_neg ((x - 1 / 2) * Real.log r) (θ * y)
+    calc
+      (x - 1 / 2) * Real.log r - θ * y =
+          (x - 1 / 2) * Real.log r + -(θ * y) :=
+        sub_eq_add_neg ((x - 1 / 2) * Real.log r) (θ * y)
+      _ = (x - 1 / 2) * Real.log r + (-θ * y) :=
+        congrArg
+          (fun u : ℝ => (x - 1 / 2) * Real.log r + u)
+          (neg_mul θ y).symm
   have hsum :
       (x - 1 / 2) * Real.log r + (-θ * y) ≤
         (r + 1 / 2) * ‖Real.log r‖ + (Real.pi / 2) * r :=
@@ -1683,7 +1820,7 @@ theorem real_linear_log_absorption_uniform
       calc
         (1 + 2 * r) * (Clog * Real.log (2 + 2 * r)) =
             ((1 + 2 * r) * Clog) * Real.log (2 + 2 * r) :=
-          mul_assoc (1 + 2 * r) Clog (Real.log (2 + 2 * r))
+          (mul_assoc (1 + 2 * r) Clog (Real.log (2 + 2 * r))).symm
         _ = (Clog * (1 + 2 * r)) * Real.log (2 + 2 * r) :=
           congrArg
             (fun x : ℝ => x * Real.log (2 + 2 * r))
@@ -1735,7 +1872,8 @@ theorem Complex.linear_log_absorption
         R₀ ≤ ‖w‖ →
         (‖w‖ + 1 / 2) * ‖Real.log ‖w‖‖ + (Real.pi / 2) * ‖w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
-  exact real_linear_log_absorption_uniform R₀ hR₀_pos
+  let ⟨C, hC_pos, hC⟩ := real_linear_log_absorption_uniform R₀ hR₀_pos
+  exact ⟨C, hC_pos, fun w hw => hC ‖w‖ hw⟩
 
 /-- Pure real domination of the radius/argument loss by the standard
 log-linear envelope on the closed right half-plane.
@@ -1966,10 +2104,13 @@ theorem Complex.closedRightHalfPlaneGammaAnnulus_isClosed
       Iff.intro
         (fun hw => ⟨⟨hw.1, hw.2.1⟩, hw.2.2⟩)
         (fun hw => ⟨hw.1.1, hw.1.2, hw.2⟩)
-  exact Eq.subst
-    (motive := fun S : Set ℂ => IsClosed S)
-    hset.symm
-    ((hsector.inter hinner).inter houter)
+  have hclosed_rhs :
+      IsClosed
+        ({w : ℂ | Complex.closedRightHalfPlaneSector w} ∩
+          {w : ℂ | (1 / 2 : ℝ) ≤ ‖w‖} ∩
+            {w : ℂ | ‖w‖ ≤ R₀}) :=
+    (hsector.inter hinner).inter houter
+  exact hset.symm ▸ hclosed_rhs
 
 /-- The closed right-half-plane Gamma annulus is bounded. -/
 theorem Complex.closedRightHalfPlaneGammaAnnulus_isBounded
@@ -1999,22 +2140,32 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
     | ⟨0, hn⟩ =>
         let hnorm_zero : ‖(-((0 : ℕ) : ℂ))‖ = 0 :=
           calc
-            ‖(-((0 : ℕ) : ℂ))‖ = ‖(-(0 : ℂ))‖ := rfl
+            ‖(-((0 : ℕ) : ℂ))‖ = ‖(-(0 : ℂ))‖ :=
+              congrArg (fun z : ℂ => ‖-z‖) (Nat.cast_zero : ((0 : ℕ) : ℂ) = 0)
             _ = ‖(0 : ℂ)‖ :=
               congrArg norm (neg_zero : -((0 : ℂ)) = 0)
             _ = 0 := norm_zero
         let hhalf_le_norm : (1 / 2 : ℝ) ≤ ‖w‖ := hw.2.1
         let hhalf_le_hn : (1 / 2 : ℝ) ≤ ‖(-((0 : ℕ) : ℂ))‖ :=
-          Eq.subst hn hhalf_le_norm
+          calc
+            (1 / 2 : ℝ) ≤ ‖w‖ :=
+              hhalf_le_norm
+            _ = ‖(-((0 : ℕ) : ℂ))‖ :=
+              congrArg norm hn
         let hhalf_le_zero : (1 / 2 : ℝ) ≤ 0 :=
-          Eq.subst
-            (motive := fun x : ℝ => (1 / 2 : ℝ) ≤ x)
-            hnorm_zero
-            hhalf_le_hn
+          calc
+            (1 / 2 : ℝ) ≤ ‖(-((0 : ℕ) : ℂ))‖ :=
+              hhalf_le_hn
+            _ = 0 :=
+              hnorm_zero
         (not_lt_of_ge hhalf_le_zero) one_half_pos
     | ⟨Nat.succ n, hn⟩ =>
         let hw_sector' : Complex.closedRightHalfPlaneSector (-(((Nat.succ n : ℕ) : ℂ))) :=
-          Eq.subst hn hw.1
+          calc
+            (0 : ℝ) ≤ w.re :=
+              hw.1
+            _ = (-(((Nat.succ n : ℕ) : ℂ))).re :=
+              congrArg Complex.re hn
         let hre_eq :
             (-(((Nat.succ n : ℕ) : ℂ))).re = -(((Nat.succ n : ℕ) : ℝ)) :=
           calc
@@ -2024,10 +2175,11 @@ theorem Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus
             _ = -(((Nat.succ n : ℕ) : ℝ)) :=
               congrArg Neg.neg (Complex.natCast_re (Nat.succ n))
         let hre_nonneg : (0 : ℝ) ≤ -(((Nat.succ n : ℕ) : ℝ)) :=
-          Eq.subst
-            (motive := fun x : ℝ => (0 : ℝ) ≤ x)
-            hre_eq
-            hw_sector'
+          calc
+            (0 : ℝ) ≤ (-(((Nat.succ n : ℕ) : ℂ))).re :=
+              hw_sector'
+            _ = -(((Nat.succ n : ℕ) : ℝ)) :=
+              hre_eq
         let hsucc_pos : (0 : ℝ) < ((Nat.succ n : ℕ) : ℝ) :=
           Nat.cast_pos.mpr (Nat.succ_pos n)
         let hneg_lt_zero : -(((Nat.succ n : ℕ) : ℝ)) < 0 :=
@@ -2042,7 +2194,7 @@ theorem Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus
       (fun w : ℂ => Real.log ‖Complex.Gamma w‖)
       (Complex.closedRightHalfPlaneGammaAnnulus R₀) := by
   exact
-    fun w hw =>
+    fun w hw => by
       have hgamma_ne : Complex.Gamma w ≠ 0 :=
         Complex.Gamma_ne_zero_on_closedRightHalfPlaneGammaAnnulus R₀ hw
       have hnot_pole : ∀ m : ℕ, w ≠ -m :=
@@ -2070,7 +2222,7 @@ theorem Complex.log_norm_Gamma_closedRightHalfPlaneGammaAnnulus_bound
     IsCompact.exists_bound_of_continuousOn
       (Complex.closedRightHalfPlaneGammaAnnulus_isCompact R₀)
       (Complex.continuousOn_log_norm_Gamma_closedRightHalfPlaneGammaAnnulus R₀)
-  ⟨M, fun w hw => hM w hw⟩
+  ⟨M, fun w hw => le_trans (le_abs_self (Real.log ‖Complex.Gamma w‖)) (hM w hw)⟩
 
 /-- The log-linear Gamma envelope has a positive lower bound on the compact
 annulus. -/
@@ -2082,20 +2234,17 @@ theorem Complex.logLinearEnvelope_closedRightHalfPlaneGammaAnnulus_lower_bound
       ∀ w : ℂ,
         w ∈ Complex.closedRightHalfPlaneGammaAnnulus R₀ →
         δ ≤ (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-  ⟨Real.log 3, Real.log_pos one_lt_three, fun w hw =>
+  ⟨Real.log 2, Real.log_pos one_lt_two, fun w hw =>
     let htwo_norm_ge_one : (1 : ℝ) ≤ 2 * ‖w‖ :=
       (div_le_iff₀' zero_lt_two).mp hw.2.1
     let hH_ge_one : (1 : ℝ) ≤ 1 + 2 * ‖w‖ :=
       le_add_of_nonneg_right (mul_nonneg zero_le_two (norm_nonneg w))
-    let harg_ge_three : (3 : ℝ) ≤ 2 + 2 * ‖w‖ :=
-      calc
-        (3 : ℝ) = 2 + 1 := rfl
-        _ ≤ 2 + 2 * ‖w‖ :=
-          add_le_add_left htwo_norm_ge_one 2
-    let hlog_le : Real.log 3 ≤ Real.log (2 + 2 * ‖w‖) :=
-      Real.log_le_log zero_lt_three harg_ge_three
+    let harg_ge_two : (2 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+      le_add_of_nonneg_right (mul_nonneg zero_le_two (norm_nonneg w))
+    let hlog_le : Real.log 2 ≤ Real.log (2 + 2 * ‖w‖) :=
+      Real.log_le_log zero_lt_two harg_ge_two
     let hlog_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
-      le_trans (le_of_lt (Real.log_pos one_lt_three)) hlog_le
+      le_trans (le_of_lt (Real.log_pos one_lt_two)) hlog_le
     let hone_mul :
         Real.log (2 + 2 * ‖w‖) ≤
           (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
@@ -2147,7 +2296,7 @@ theorem Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus_o
     let hCenv_eq :
         C * ((1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖)) =
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
-      mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))
+      (mul_assoc C (1 + 2 * ‖w‖) (Real.log (2 + 2 * ‖w‖))).symm
     le_trans hraw
       (le_trans hM_le_Cδ
         (le_trans hCδ_le_Cenv (le_of_eq hCenv_eq)))⟩
@@ -2318,10 +2467,11 @@ theorem real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
   have hK_le_rs : K ≤ r * s :=
     le_trans hK_le_twoK hcutoff_mul
   have hK_le_sr : K ≤ s * r :=
-    Eq.subst
-      (motive := fun x : ℝ => K ≤ x)
-      (mul_comm r s)
-      hK_le_rs
+    calc
+      K ≤ r * s :=
+        hK_le_rs
+      _ = s * r :=
+        mul_comm r s
   exact (div_le_iff₀ hr_pos).mpr hK_le_sr
 
 /-- Log-norm envelope extracted from the closed-right-half-plane exponential
@@ -2339,27 +2489,96 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
         0 < R ∧
         0 < K ∧
         ∀ w : ℂ,
+          0 < w.re →
           Complex.closedRightHalfPlaneSector w →
           R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
           ‖Complex.Gamma w * Complex.exp w *
               w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
             K / ‖w‖) :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
   let ⟨R, K, hR_pos, hK_pos, hStirling_pointwise⟩ := hStirling
   let R₀ : ℝ :=
     max R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)
   let hR₀_pos : 0 < R₀ :=
-    lt_of_lt_of_le zero_lt_one (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1))
+    lt_of_lt_of_le zero_lt_one
+      (le_trans
+        (le_max_right (2 * K / Real.sqrt (2 * Real.pi)) 1)
+        (le_max_right R (max (2 * K / Real.sqrt (2 * Real.pi)) 1)))
   let hfactor :
       ∀ w : ℂ,
         Complex.closedRightHalfPlaneSector w →
         R₀ ≤ ‖w‖ →
+        0 < w.re →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w * w ^ ((1 / 2 : ℂ) - w)‖ ≤
           2 * Real.sqrt (2 * Real.pi) :=
     fun w hw_sector hw_R₀ =>
@@ -2377,12 +2596,91 @@ theorem Complex.Gamma_closedRightHalfPlane_sectorial_log_norm_bound_of_exponenti
       let hK_div_le : K / ‖w‖ ≤ Real.sqrt (2 * Real.pi) :=
         real_stirlingError_div_norm_le_sqrt_two_pi_of_cutoff
           K ‖w‖ hK_pos hw_norm_pos hw_cutoff
-      Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_exponentialStirling_error
-        R K hStirling_pointwise w hw_sector hw_R hK_div_le
+      fun hw_re_pos hgamma_slit_open hfinite_real hfinite_open =>
+        Complex.normalizedGammaFactor_norm_le_two_sqrt_two_pi_of_pointwise_exponentialStirling_error
+          K w
+          (hStirling_pointwise w hw_re_pos hw_sector hw_R
+            hgamma_slit_open hfinite_real hfinite_open)
+          hK_div_le
   let hB_pos : 0 < 2 * Real.sqrt (2 * Real.pi) :=
     mul_pos two_pos (Real.sqrt_pos.mpr (mul_pos two_pos Real.pi_pos))
-  Complex.Gamma_log_norm_bound_of_normalizedStirlingFactor_bound
-    (2 * Real.sqrt (2 * Real.pi)) R₀ hB_pos hR₀_pos hfactor
+  let B : ℝ := 2 * Real.sqrt (2 * Real.pi)
+  let hlarge_loss :=
+    Complex.normalizedGammaStirlingLogLoss_absorbs_logBound B R₀ hB_pos hR₀_pos
+  let hannulus :=
+    Complex.Gamma_log_norm_bound_closedRightHalfPlaneSector_compactAnnulus
+      R₀ hR₀_pos
+  match hlarge_loss, hannulus with
+  | ⟨Clarge, hClarge_pos, hloss⟩, ⟨Cannulus, _hCannulus_pos, hannulus_bound⟩ =>
+    ⟨max Clarge Cannulus,
+      lt_of_lt_of_le hClarge_pos (le_max_left Clarge Cannulus),
+      fun w hw_re_pos hw_sector hw_norm hgamma_slit_open hfinite_real hfinite_open =>
+        let htwo_norm_nonneg : 0 ≤ 2 * ‖w‖ :=
+          mul_nonneg zero_le_two (norm_nonneg w)
+        let hH_nonneg : 0 ≤ 1 + 2 * ‖w‖ :=
+          add_nonneg zero_le_one htwo_norm_nonneg
+        let hlog_arg_ge_one : (1 : ℝ) ≤ 2 + 2 * ‖w‖ :=
+          le_trans one_le_two (le_add_of_nonneg_right htwo_norm_nonneg)
+        let hL_nonneg : 0 ≤ Real.log (2 + 2 * ‖w‖) :=
+          Real.log_nonneg hlog_arg_ge_one
+        if hlarge_radius : R₀ ≤ ‖w‖ then
+          let hfactor_ne :
+              Complex.normalizedGammaStirlingFactor w ≠ 0 :=
+            Complex.normalizedGammaStirlingFactor_ne_zero_of_closedRightHalfPlaneSector_largeRadius
+              R₀ hR₀_pos hw_sector hlarge_radius
+          let hfactor_pos :
+              0 < ‖Complex.normalizedGammaStirlingFactor w‖ :=
+            norm_pos_iff.mpr hfactor_ne
+          let hfactor_bound :
+              ‖Complex.normalizedGammaStirlingFactor w‖ ≤ B :=
+            hfactor w hw_sector hlarge_radius hw_re_pos
+              hgamma_slit_open hfinite_real hfinite_open
+          let hfactor_log :
+              Real.log ‖Complex.normalizedGammaStirlingFactor w‖ ≤ Real.log B :=
+            Complex.normalizedGammaStirlingFactor_log_le_of_norm_bound
+              B hfactor_pos hfactor_bound
+          let hgamma_extract :
+              Real.log ‖Complex.Gamma w‖ ≤
+                Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+                  Complex.normalizedGammaStirlingLogLoss w :=
+            Complex.Gamma_log_norm_le_normalizedGammaStirlingFactor_log_add_loss
+              w hfactor_ne
+          let hlog_plus_loss :
+              Real.log ‖Complex.normalizedGammaStirlingFactor w‖ +
+                  Complex.normalizedGammaStirlingLogLoss w ≤
+                Real.log B + Complex.normalizedGammaStirlingLogLoss w :=
+            add_le_add_right hfactor_log
+              (Complex.normalizedGammaStirlingLogLoss w)
+          let hlarge_bound :
+              Real.log ‖Complex.Gamma w‖ ≤
+                Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+            le_trans hgamma_extract
+              (le_trans hlog_plus_loss (hloss w hw_sector hlarge_radius))
+          let hmono :
+              Clarge * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+                max Clarge Cannulus * (1 + 2 * ‖w‖) *
+                  Real.log (2 + 2 * ‖w‖) :=
+            logLinearEnvelope_mono_constant
+              (le_max_left Clarge Cannulus)
+              hH_nonneg
+              hL_nonneg
+          le_trans hlarge_bound hmono
+        else
+          let hannulus_radius : ‖w‖ ≤ R₀ :=
+            le_of_not_ge hlarge_radius
+          let hannulus_raw :
+              Real.log ‖Complex.Gamma w‖ ≤
+                Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) :=
+            hannulus_bound w hw_sector hw_norm hannulus_radius
+          let hmono :
+              Cannulus * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) ≤
+                max Clarge Cannulus * (1 + 2 * ‖w‖) *
+                  Real.log (2 + 2 * ‖w‖) :=
+            logLinearEnvelope_mono_constant
+              (le_max_right Clarge Cannulus)
+              hH_nonneg
+              hL_nonneg
+          le_trans hannulus_raw hmono⟩
 
 /-- The sectorial exponential Stirling asymptotic gives the standard logarithmic
 norm envelope on the closed right half-plane.
@@ -2398,16 +2696,60 @@ theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asympt
         0 < R ∧
         0 < K ∧
         ∀ w : ℂ,
+          0 < w.re →
           Complex.closedRightHalfPlaneSector w →
           R ≤ ‖w‖ →
+          (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+          (∀ x : ℝ,
+            0 < x →
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                  Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                      Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+          (∀ z : ℂ,
+            0 < z.re →
+              (∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                  Complex.binetAbelPlanaFiniteMainTerm N z +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                      Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+              (∀ᶠ y : ℂ in 𝓝 z,
+                ∀ N : ℕ,
+                  Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                    Complex.binetAbelPlanaFiniteMainTerm N y +
+                      Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                        Complex.binetAbelPlanaFiniteContourRemainder N y)) →
           ‖Complex.Gamma w * Complex.exp w *
               w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
             K / ‖w‖) :
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Real.log ‖Complex.Gamma w‖ ≤
           C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
   exact
@@ -2421,16 +2763,39 @@ Stirling's expansion with a uniform `O(1 / ‖w‖)` remainder on the closed rig
 half-plane, viewed as a closed sector avoiding the negative real axis; cf. DLMF
 §5.11 and Whittaker-Watson, Ch. XII. -/
 theorem Complex.Gamma_closedRightHalfPlane_sectorial_exponential_stirling_expansion_classical :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ R : ℝ, ∃ K : ℝ,
       0 < R ∧
       0 < K ∧
       ∀ w : ℂ,
-        0 ≤ w.re →
+        0 < w.re →
+        Complex.closedRightHalfPlaneSector w →
         R ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         ‖Complex.Gamma w * Complex.exp w *
             w ^ ((1 / 2 : ℂ) - w) - (Real.sqrt (2 * Real.pi) : ℂ)‖ ≤
-          K / ‖w‖ := by
-  exact Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
+          K / ‖w‖ := fun hbranch =>
+  Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane hbranch
 
 /-- Sectorial Gamma exponential envelope on the closed right half-plane.
 
@@ -2438,18 +2803,39 @@ This is the classical growth consequence of sectorial logarithmic Stirling:
 the real part of `log Γ(w)` is bounded by a linear-logarithmic envelope on the
 closed right half-plane, uniformly away from the origin; cf. DLMF §5.11. -/
 theorem Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane :
+    Complex.BinetSecondFormulaBranchUniformTailAbsorption →
     ∃ C : ℝ,
       0 < C ∧
       ∀ w : ℂ,
+        0 < w.re →
         Complex.closedRightHalfPlaneSector w →
         (1 / 2 : ℝ) ≤ ‖w‖ →
+        (∀ z : ℂ, 0 < z.re → Complex.Gamma z ∈ Complex.slitPlane) →
+        (∀ x : ℝ,
+          0 < x →
+            ∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N (x : ℂ) =
+                Complex.binetAbelPlanaFiniteMainTerm N (x : ℂ) +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N (x : ℂ) +
+                    Complex.binetAbelPlanaFiniteContourRemainder N (x : ℂ)) →
+        (∀ z : ℂ,
+          0 < z.re →
+            (∀ N : ℕ,
+              Complex.binetAbelPlanaLogGammaFiniteApproximation N z =
+                Complex.binetAbelPlanaFiniteMainTerm N z +
+                  Complex.binetAbelPlanaFiniteBoundaryCorrection N z +
+                    Complex.binetAbelPlanaFiniteContourRemainder N z) ∧
+            (∀ᶠ y : ℂ in 𝓝 z,
+              ∀ N : ℕ,
+                Complex.binetAbelPlanaLogGammaFiniteApproximation N y =
+                  Complex.binetAbelPlanaFiniteMainTerm N y +
+                    Complex.binetAbelPlanaFiniteBoundaryCorrection N y +
+                      Complex.binetAbelPlanaFiniteContourRemainder N y)) →
         Real.log ‖Complex.Gamma w‖ ≤
-          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := by
+          C * (1 + 2 * ‖w‖) * Real.log (2 + 2 * ‖w‖) := fun hbranch => by
   exact
     Complex.sectorialGammaExponentialEnvelope_closedRightHalfPlane_of_asymptotic
-      Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane
-
-/-- The finite recurrence product relating `Γ z` and `Γ (z + N)`. -/
+      (Complex.sectorialLogGammaAsymptotic_closedRightHalfPlane hbranch)
 
 end
 end LFunctions

@@ -14,23 +14,11 @@ noncomputable section
 
 open scoped Topology
 
+/-- Cancelling the shifted summand in an additive complex expression. -/
+theorem Complex.add_sub_add_neg_eq_add
     (x a b : ℂ) :
     (x + a) - (a + -b) = x + b := by
-  calc
-    (x + a) - (a + -b) = (x + a) + -(a + -b) :=
-      sub_eq_add_neg (x + a) (a + -b)
-    _ = (x + a) + (-a + -(-b)) := by
-      exact congrArg (fun u : ℂ => (x + a) + u) (neg_add_rev a (-b))
-    _ = (x + a) + (-a + b) := by
-      exact congrArg (fun u : ℂ => (x + a) + (-a + u)) (neg_neg b)
-    _ = x + (a + (-a + b)) := by
-      exact add_assoc x a (-a + b)
-    _ = x + ((a + -a) + b) := by
-      exact congrArg (fun u : ℂ => x + u) (Eq.symm (add_assoc a (-a) b))
-    _ = x + (0 + b) := by
-      exact congrArg (fun u : ℂ => x + (u + b)) (add_neg_cancel a)
-    _ = x + b := by
-      exact congrArg (fun u : ℂ => x + u) (zero_add b)
+  exact Complex.add_sub_add_neg_right_eq_add x a b
 
 /-- Removing the same unit after subtracting a term leaves the negative term. -/
 theorem Complex.one_sub_sub_one_eq_neg
@@ -52,9 +40,9 @@ theorem Complex.one_sub_sub_one_eq_neg
 theorem Complex.add_one_sub_sub_one_eq_sub
     (L h : ℂ) :
     (L + (1 - h)) - 1 = L - h := by
-  calc
-    (L + (1 - h)) - 1 = L + ((1 - h) - 1) := by
-      exact Eq.symm (add_sub_assoc L (1 - h) 1)
+    calc
+      (L + (1 - h)) - 1 = L + ((1 - h) - 1) := by
+        exact add_sub_assoc L (1 - h) 1
     _ = L + -h := by
       exact congrArg (fun u : ℂ => L + u)
         (Complex.one_sub_sub_one_eq_neg h)
@@ -102,9 +90,9 @@ theorem Complex.one_sub_mul_I_mul_one_add_mul_I
 theorem Complex.neg_I_div_two_mul_two_I_eq_one :
     (-Complex.I / 2) * ((2 : ℂ) * Complex.I) = 1 := by
   calc
-    (-Complex.I / 2) * ((2 : ℂ) * Complex.I) =
-        ((-Complex.I / 2) * (2 : ℂ)) * Complex.I := by
-      exact mul_assoc (-Complex.I / 2) (2 : ℂ) Complex.I
+      (-Complex.I / 2) * ((2 : ℂ) * Complex.I) =
+          ((-Complex.I / 2) * (2 : ℂ)) * Complex.I := by
+        exact Eq.symm (mul_assoc (-Complex.I / 2) (2 : ℂ) Complex.I)
     _ = -Complex.I * Complex.I := by
       exact congrArg (fun u : ℂ => u * Complex.I)
         (div_mul_cancel₀ (-Complex.I) (two_ne_zero' ℂ))
@@ -199,7 +187,7 @@ theorem Complex.one_add_sq_div_eq_sq_add_sq_div_sq
       exact congrArg (fun u : ℂ => w ^ 2 / w ^ 2 + u)
         (div_pow a w 2)
     _ = (w ^ 2 + a ^ 2) / w ^ 2 := by
-      exact Eq.symm (div_add_div_same (w ^ 2) (a ^ 2) (w ^ 2))
+      exact div_add_div_same (w ^ 2) (a ^ 2) (w ^ 2)
 
 /-- Algebraic normalization of the chain-rule derivative of
 `z ↦ arctan (a / z)`. -/
@@ -226,7 +214,8 @@ theorem Complex.arctan_t_div_derivative_algebra
     _ = (-a / w ^ 2) * (w ^ 2 / (w ^ 2 + a ^ 2)) := by
       exact mul_comm (w ^ 2 / (w ^ 2 + a ^ 2)) (-a / w ^ 2)
     _ = -a / (w ^ 2 + a ^ 2) := by
-      exact div_mul_div_cancel₀ hw_sq_ne (-a) (w ^ 2 + a ^ 2)
+      exact div_mul_div_cancel₀ (a := -a) (b := w ^ 2)
+        (c := w ^ 2 + a ^ 2) hw_sq_ne
 
 /-- The reciprocal half-factor in the Binet main-term derivative. -/
 theorem Complex.one_half_mul_one_div_eq_one_div_two_mul
@@ -286,6 +275,19 @@ theorem Complex.binetLogGammaMainTerm_derivative_algebra
 
 /-- Factoring `z^2 + t^2` into the two imaginary translates. -/
 theorem Complex.add_mul_sub_real_mul_I_eq_sq_add_sq
+    (z : ℂ)
+    (t : ℝ) :
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I) =
+      z ^ 2 + (t : ℂ) ^ 2 := by
+  calc
+    (z + (t : ℂ) * Complex.I) * (z - (t : ℂ) * Complex.I)
+        = z ^ 2 - ((t : ℂ) * Complex.I) ^ 2 :=
+      Eq.symm (sq_sub_sq z ((t : ℂ) * Complex.I))
+    _ = z ^ 2 - (-((t : ℂ) ^ 2)) := by
+      exact congrArg (fun u : ℂ => z ^ 2 - u)
+        (Complex.real_mul_I_sq t)
+    _ = z ^ 2 + (t : ℂ) ^ 2 :=
+      sub_neg_eq_add (z ^ 2) ((t : ℂ) ^ 2)
 
 end
 

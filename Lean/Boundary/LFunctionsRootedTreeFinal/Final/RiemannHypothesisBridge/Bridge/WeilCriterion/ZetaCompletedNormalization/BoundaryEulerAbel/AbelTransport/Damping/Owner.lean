@@ -1749,7 +1749,12 @@ right half-plane, and the Dirichlet-continuation boundary identity; cf.
 Titchmarsh, *The Theory of the Riemann Zeta-function*, §3.5. -/
 theorem abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
@@ -1763,7 +1768,7 @@ theorem abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound
     intro M hNM
     exact
       boundaryLineOnePointRealParam_logarithmicPhase_finiteAbelTail_norm_le
-        t ht hNM
+        t ht hpartial hNM
   have habel :
       Tendsto
         (fun σ : ℝ =>
@@ -1793,12 +1798,18 @@ and integral estimates at `N = ⌊2 + |t|⌋₊`; cf. Titchmarsh, *The Theory of
 Riemann Zeta-function*, §3.5. -/
 theorem abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_explicit
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
-  exact abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound t ht
+  exact abelBoundary_logarithmicPhase_oscillatory_tail_after_cutoff_bound
+    t ht hpartial
 
 /-- Exact post-cutoff oscillatory tail after the cutoff `N = ⌊2 + |t|⌋₊`.
 
@@ -1806,14 +1817,19 @@ The proof is now only the conjunction of the peeled Dirichlet-continuation
 identity and the explicit Abel/Euler-Maclaurin endpoint/integral estimate. -/
 theorem eulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_hasSum_norm_le_explicit
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖) :
+    (ht : 1 ≤ ‖t‖)
+    (hpartial :
+      ∀ {x : ℝ},
+        (⌊2 + ‖t‖⌋₊ : ℝ) ≤ x →
+          ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum t ⌊x⌋₊‖ ≤
+            8 * ((x / ‖t‖) + Real.sqrt (1 + ‖t‖)) * Real.log (2 + x)) :
     ‖riemannZeta (boundaryLineOnePointRealParam t) -
         ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊,
           ((n : ℂ)⁻¹ : ℂ) * ((n : ℂ) ^ (-(t : ℂ) * Complex.I))‖ ≤
       boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant t := by
   exact
     (abelEulerMaclaurin_boundaryLineOnePointRealParam_oscillatory_tail_after_cutoff_norm_le_explicit
-      t ht)
+      t ht hpartial)
 
 /-- Transport a boundary-line tail norm estimate from the Abel-normalized oscillatory
 finite truncation back to the original Dirichlet monomials. -/

@@ -1,6 +1,6 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.EulerMaclaurinFormula.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.EulerContinuationTransport.FiniteOrderPL.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.PoleClearedBoundarySetup.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.FiniteOrderAlgebra.Owner
 
@@ -18,6 +18,42 @@ noncomputable section
 
 open scoped Filter Topology
 local notation "π" => Real.pi
+
+/-- Global Abel partial-sum majorant needed on the left edge `re = 1`. -/
+def BoundaryLineOneAbelPartialMajorant : Prop :=
+  ∀ z : ℂ,
+    z.re = 1 →
+    1 ≤ ‖z.im‖ →
+    ∀ {x : ℝ},
+      (⌊2 + ‖z.im‖⌋₊ : ℝ) ≤ x →
+        ‖boundaryLineOnePointRealParam_logarithmicPhasePartialSum z.im ⌊x⌋₊‖ ≤
+          8 * ((x / ‖z.im‖) + Real.sqrt (1 + ‖z.im‖)) * Real.log (2 + x)
+
+/-- Uniform bounded-boundary vertical-tail input for the strip `1 ≤ re ≤ 2`. -/
+def PoleClearedOneTwoStripBoundedTailBoundary : Prop :=
+  ∃ A : ℝ,
+    0 < A ∧
+    (∀ z : ℂ,
+      z.re = 1 →
+      1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta z‖ ≤ A) ∧
+    (∀ z : ℂ,
+      z.re = 2 →
+      1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta z‖ ≤ A)
+
+/-- Uniform bounded-boundary compact-height input for the strip `1 ≤ re ≤ 2`. -/
+def PoleClearedOneTwoStripCompactBoundaryBound : Prop :=
+  ∃ C : ℝ,
+    0 < C ∧
+    (∀ z : ℂ,
+      z.re = 1 →
+      ¬ 1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta z‖ ≤ C) ∧
+    (∀ z : ℂ,
+      z.re = 2 →
+      ¬ 1 ≤ ‖z.im‖ →
+      ‖poleClearedRiemannZeta z‖ ≤ C)
 
 /-- Local definition equation for the Euler-Maclaurin remainder package. -/
 private lemma eulerMaclaurinPoleClearedZetaRemainderTerm_unfold
@@ -508,7 +544,10 @@ theorem poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaur
 
 /-- Vertical-tail finite-order growth for the removable pole-cleared zeta on
 `1 ≤ Re s ≤ 2`, obtained from the two boundary estimates and strip PL. -/
-theorem poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL :
+theorem poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -522,8 +561,14 @@ theorem poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_a
     poleClearedRiemannZeta 1 2 one_lt_two
     poleClearedRiemannZeta_one_two_strip_diffContOnCl
     poleClearedRiemannZeta_one_two_strip_admissible_growth_from_EulerMaclaurin_continuation
-    poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMaclaurin
+    (match poleClearedRiemannZeta_one_two_strip_leftBoundary_growth_from_EulerMaclaurin with
+    | ⟨A, B, m, hA, hB, hleft⟩ =>
+        ⟨A, B, m, hA, hB,
+          fun z hz_re hz_im =>
+            hleft z hz_re hz_im (hpartialLeft z hz_re hz_im)⟩)
     poleClearedRiemannZeta_one_two_strip_rightBoundary_growth_from_dirichletSeries
+    htailBoundary
+    hcompactBoundary
 
 /-- Compact-height finite-order growth for the removable pole-cleared zeta on
 `1 ≤ Re s ≤ 2`. -/
@@ -640,7 +685,10 @@ estimate at `Re s = 1`, the Dirichlet-series estimate gives the right edge at
 transports these boundary estimates across the strip.  The removable
 normalization is essential at `s = 1`; the raw product is recovered only after
 this theorem. -/
-theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL :
+theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -652,7 +700,8 @@ theorem poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclau
   exact
     poleClearedRiemannZeta_one_two_strip_growth_of_compactCore_and_verticalTail
       poleClearedRiemannZeta_one_two_strip_compactCore_growth_from_localBoundedness
-      poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL
+      (poleClearedRiemannZeta_one_two_strip_verticalTail_growth_from_boundary_and_PL
+        hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Bounded-width Euler-Maclaurin/continuation growth for the raw pole-cleared
 zeta product on `1 ≤ Re s ≤ 2`.
@@ -662,7 +711,10 @@ boundary-line estimate at `Re s = 1`, the Dirichlet series gives the right edge
 at `Re s = 2`, and the pole-cleared product is holomorphic across `s = 1`, so
 the generic vertical-strip Phragmen-Lindelöf finite-order API gives the
 bounded-width envelope. -/
-theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growth_from_EulerMaclaurin_strip :
+theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growth_from_EulerMaclaurin_strip
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -671,7 +723,8 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growt
         w.re ≤ 2 →
         ‖(w - 1) * riemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
-  match poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL with
+  match poleClearedRiemannZeta_one_two_strip_finiteOrder_growth_from_EulerMaclaurin_boundary_and_PL
+      hpartialLeft htailBoundary hcompactBoundary with
   | ⟨A, B, m, hA, hB, hbound⟩ =>
       exact
         ⟨A, B, m, hA, hB,
@@ -785,7 +838,10 @@ form.  It is the standard theorem that Euler-Maclaurin summation gives
 polynomial, hence finite-order, growth for `(s - 1)ζ(s)` uniformly on
 `Re s ≥ 1`; the factor `(s - 1)` removes the simple pole at `1`.  See
 Titchmarsh, Ch. 3, or Edwards, Ch. 1. -/
-theorem classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
+theorem classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -795,7 +851,8 @@ theorem classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact
     classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_of_strip_and_farRight
-      classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growth_from_EulerMaclaurin_strip
+      (classicalZeta_poleCleared_rightHalfPlane_one_le_two_le_finiteOrder_growth_from_EulerMaclaurin_strip
+        hpartialLeft htailBoundary hcompactBoundary)
       riemannZeta_poleCleared_rightHalfPlane_two_le_finiteOrder_growth_from_dirichletSeries
 
 /-- Euler-Maclaurin finite-order growth for the pole-cleared zeta factor on the
@@ -807,7 +864,10 @@ boundary line `Re s = 1` into the half-plane `Re s ≥ 1`.  The far-right
 Dirichlet-series theorem above only proves the easier subregion `2 ≤ Re s`;
 the transport across the functional equation genuinely needs this full
 half-plane statement. -/
-theorem riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard :
+theorem riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -817,6 +877,7 @@ theorem riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_Eu
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact
     classicalZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
+      hpartialLeft htailBoundary hcompactBoundary
 
 /-- The standard Euler-Maclaurin bound for `(s - 1)ζ(s)` gives the removable
 pole-cleared zeta bound on `1 ≤ Re s`. -/
@@ -895,7 +956,10 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_E
                   hpole_raw.symm
                   ((hraw_bound w hw_re).trans henlarge))⟩
 
-theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin :
+theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -905,7 +969,8 @@ theorem poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_Eul
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact
     poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_of_raw_EulerMaclaurin
-      riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard
+      (riemannZeta_poleCleared_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin_standard
+        hpartialLeft htailBoundary hcompactBoundary)
 
 /-- Reflected right half-plane finite-order growth for the pole-cleared zeta factor.
 
@@ -913,7 +978,10 @@ This is the right-side input needed by the functional equation on the left
 half-plane: after reflection `w = 1 - z`, one only has `1 ≤ Re w`.  The proof is
 the Euler-Maclaurin/Abel finite-order theorem in the half-plane of meromorphic
 continuation, with the pole at `1` removed. -/
-theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin :
+theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_EulerMaclaurin
+    (hpartialLeft : BoundaryLineOneAbelPartialMajorant)
+    (htailBoundary : PoleClearedOneTwoStripBoundedTailBoundary)
+    (hcompactBoundary : PoleClearedOneTwoStripCompactBoundaryBound) :
     ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
       0 < A ∧
       0 < B ∧
@@ -922,6 +990,7 @@ theorem poleClearedRiemannZeta_reflectedRightHalfPlane_finiteOrder_growth_from_E
         ‖poleClearedRiemannZeta w‖ ≤
           A * Real.exp (B * (1 + ‖w‖) ^ m) := by
   exact poleClearedRiemannZeta_rightHalfPlane_one_le_finiteOrder_growth_from_EulerMaclaurin
+    hpartialLeft htailBoundary hcompactBoundary
 
 /-- The removable completed-functional-equation multiplier for the pole-cleared
 zeta factor on the left half-plane.

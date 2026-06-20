@@ -41,9 +41,6 @@ def finiteBoundaryLowerWeightExactObject_cert
     FiniteBoundaryLowerWeightExactCert
       (finiteBoundaryLowerWeightExactObject N f) :=
   { finitePart_eq_zero := by
-      unfold finiteBoundaryLowerWeightExactObject
-      unfold FiniteBoundaryWeightObject.finitePartRepresentative
-      unfold finitePartDebtAbsorptionWindow
       let D : ℝ := zetaPrimeDiagonalDebt N f
       change 0 + D + -D + 0 = 0
       calc
@@ -271,7 +268,9 @@ theorem completedBoundaryPairing_eq_kernel
     (S T : CompletedBoundaryWeightStream) :
     completedBoundaryPairing S T =
       Complex.re (completedHermitianKernel S.source T.source) := by
-  unfold completedBoundaryPairing
+  change
+    Complex.re (completedBoundaryChannel (convolutionPair S.source T.source)) =
+      Complex.re (completedHermitianKernel S.source T.source)
   exact congrArg Complex.re
     (completedBoundaryChannel_convolutionPair_eq_kernel S.source T.source)
 
@@ -281,7 +280,9 @@ theorem completedBoundaryPairing_self_eq_boundaryChannel_autocorrelation
     (S : CompletedBoundaryWeightStream) :
     completedBoundaryPairing S S =
       Complex.re (completedBoundaryChannel (convolutionAutocorrelation S.source)) := by
-  unfold completedBoundaryPairing
+  change
+    Complex.re (completedBoundaryChannel (convolutionPair S.source S.source)) =
+      Complex.re (completedBoundaryChannel (convolutionAutocorrelation S.source))
   exact congrArg
     (fun g : ZetaAdmissibleFunction =>
       Complex.re (completedBoundaryChannel g))

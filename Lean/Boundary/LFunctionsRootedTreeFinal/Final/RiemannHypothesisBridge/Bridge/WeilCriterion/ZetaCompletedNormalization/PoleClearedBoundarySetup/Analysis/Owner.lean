@@ -1,5 +1,5 @@
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.PoleClearedBoundarySetup.Core.Owner
-import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.Owner
+import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.GammaBoundaryPL.DampedFamily.Owner
 
 /-!
 # Boundary-line Gamma analysis and Abel-Plana assembly
@@ -12,11 +12,11 @@ namespace LFunctions
 
 /-- Helper: Large denominator positive. -/
 private lemma ten_billion_pos : (0 : ℝ) < 10000000000 := by
-  norm_num
+  exact Nat.cast_pos.mpr (Nat.succ_pos 9999999999)
 
 /-- Helper: Euler's constant approximation bound. -/
 private lemma euler_approx_le_three : (27182818286 : ℕ) ≤ 3 * 10000000000 := by
-  norm_num
+  exact Nat.le.intro (show 27182818286 + 2817181714 = 3 * 10000000000 by rfl)
 
 end LFunctions
 end Boundary
@@ -1482,6 +1482,131 @@ theorem leftBoundary_finiteOrder_product_growth_bound
     le_rfl
   exact le_trans hmul (hcollapse ▸ htarget_guard)⟩
 
+/-- Product of an unconditional left-edge finite-order envelope and a conditional
+left-edge finite-order envelope is again a conditional left-edge finite-order envelope. -/
+theorem leftBoundary_finiteOrder_product_growth_bound_of_condition
+    {f g : ℂ → ℂ}
+    (P : ℂ → Prop)
+    (hf :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          ‖f z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m))
+    (hg :
+      ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+        0 < A ∧
+        0 < B ∧
+        ∀ z : ℂ,
+          z.re = 0 →
+          1 ≤ ‖z.im‖ →
+          P z →
+          ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m)) :
+    ∃ A : ℝ, ∃ B : ℝ, ∃ m : ℕ,
+      0 < A ∧
+      0 < B ∧
+      ∀ z : ℂ,
+        z.re = 0 →
+        1 ≤ ‖z.im‖ →
+        P z →
+        ‖f z‖ * ‖g z‖ ≤ A * Real.exp (B * (1 + ‖z‖) ^ m) := by
+  exact match hf, hg with
+    | ⟨Af, Bf, mf, hAf, hBf, hf_bound⟩,
+      ⟨Ag, Bg, mg, hAg, hBg, hg_bound⟩ =>
+      ⟨Af * Ag, 2 * (Bf + Bg + 1), mf + mg,
+        mul_pos hAf hAg,
+        mul_pos zero_lt_two (add_pos (add_pos hBf hBg) zero_lt_one),
+        fun z hz_re hz_im hP => by
+  let H : ℝ := 1 + ‖z‖
+  have hH_ge_one : (1 : ℝ) ≤ H :=
+    le_add_of_nonneg_right (norm_nonneg z)
+  have hH_nonneg : 0 ≤ H :=
+    le_trans zero_le_one hH_ge_one
+  have hBf_nonneg : 0 ≤ Bf := le_of_lt hBf
+  have hBg_nonneg : 0 ≤ Bg := le_of_lt hBg
+  have hf_enlarge :
+      Af * Real.exp (Bf * H ^ mf) ≤
+        Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+      (le_of_lt hAf)
+      (le_refl Af)
+      (by
+        calc
+          Bf ≤ Bf + Bg := le_add_of_nonneg_right hBg_nonneg
+          _ ≤ Bf + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+      hBf_nonneg
+      (Nat.le_add_right mf mg)
+  have hmg_le : mg ≤ mf + mg := by
+    exact Eq.subst
+      (motive := fun d : ℕ => mg ≤ d)
+      (Nat.add_comm mg mf)
+      (Nat.le_add_right mg mf)
+  have hg_enlarge :
+      Ag * Real.exp (Bg * H ^ mg) ≤
+        Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    exponentialFiniteOrder_bound_le_of_le_constants_and_exponent_core
+      (le_of_lt hAg)
+      (le_refl Ag)
+      (by
+        calc
+          Bg ≤ Bf + Bg := le_add_of_nonneg_left hBf_nonneg
+          _ ≤ Bf + Bg + 1 := le_add_of_nonneg_right zero_le_one)
+      hBg_nonneg
+      hmg_le
+  have hf_target :
+      ‖f z‖ ≤ Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    le_trans (hf_bound z hz_re hz_im) hf_enlarge
+  have hg_target :
+      ‖g z‖ ≤ Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) :=
+    le_trans (hg_bound z hz_re hz_im hP) hg_enlarge
+  have hmul :
+      ‖f z‖ * ‖g z‖ ≤
+        (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) :=
+    mul_le_mul hf_target hg_target (norm_nonneg (g z))
+      (mul_nonneg (le_of_lt hAf)
+        (le_of_lt (Real.exp_pos ((Bf + Bg + 1) * H ^ (mf + mg)))))
+  have hcollapse :
+      (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) =
+        Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) := by
+    calc
+      (Af * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) *
+          (Ag * Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) =
+        (Af * Ag) *
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)) *
+            Real.exp ((Bf + Bg + 1) * H ^ (mf + mg))) := by
+        exact mul_mul_mul_comm Af
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
+          Ag
+          (Real.exp ((Bf + Bg + 1) * H ^ (mf + mg)))
+      _ = (Af * Ag) *
+          Real.exp (((Bf + Bg + 1) * H ^ (mf + mg)) +
+            ((Bf + Bg + 1) * H ^ (mf + mg))) := by
+        exact congrArg (fun x : ℝ => (Af * Ag) * x)
+          (Real.exp_add ((Bf + Bg + 1) * H ^ (mf + mg))
+            ((Bf + Bg + 1) * H ^ (mf + mg))).symm
+      _ = Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) := by
+        have htwo :
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+          calc
+            ((Bf + Bg + 1) * H ^ (mf + mg)) +
+                ((Bf + Bg + 1) * H ^ (mf + mg)) =
+              2 * ((Bf + Bg + 1) * H ^ (mf + mg)) := by
+                exact (two_mul ((Bf + Bg + 1) * H ^ (mf + mg))).symm
+            _ = (2 * (Bf + Bg + 1)) * H ^ (mf + mg) := by
+                exact mul_assoc 2 (Bf + Bg + 1) (H ^ (mf + mg))
+        exact congrArg (fun x : ℝ => Af * Ag * Real.exp x) htwo
+  have htarget_guard :
+      Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) ≤
+        Af * Ag * Real.exp ((2 * (Bf + Bg + 1)) * H ^ (mf + mg)) :=
+    le_rfl
+  exact le_trans hmul (hcollapse ▸ htarget_guard)⟩
+
 /-- A positive polynomial vertical-height bound on the boundary line `re = 1` is an
 exponential finite-order bound in the same vertical-height variable. -/
 theorem boundaryLine_one_polynomial_growth_bound_to_exponential_growth_bound
@@ -1775,7 +1900,7 @@ theorem one_le_log_two_add_norm_of_one_le_norm
         (2.7182818286 : ℝ) =
           (27182818286 : ℝ) / 10000000000 := rfl
     have hden_pos : (0 : ℝ) < 10000000000 := by
-      exact Nat.cast_pos.mpr (show (0 : ℕ) < 10000000000 by norm_num)
+      exact ten_billion_pos
     have hnum_le :
         (27182818286 : ℝ) ≤ 3 * (10000000000 : ℝ) := by
       have hnat : (27182818286 : ℕ) ≤ 3 * 10000000000 :=
