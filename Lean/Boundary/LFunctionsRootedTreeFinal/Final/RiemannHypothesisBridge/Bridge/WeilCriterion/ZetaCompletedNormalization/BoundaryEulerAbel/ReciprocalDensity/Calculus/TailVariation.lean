@@ -253,7 +253,7 @@ after the canonical cutoff.
 The constant is intentionally not normalized to `1`: the owner estimate must
 record the actual Abel endpoint and reciprocal-derivative contribution rather
 than hiding it behind a false unit-bound surface. -/
-def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
+noncomputable def boundaryLineOnePointRealParam_logarithmicPhaseAbelTailConstant
     (t : ℝ) : ℝ :=
   4 + 16 * Real.log (3 + ‖t‖)
 
@@ -262,9 +262,60 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_tail_exponent_eq
     (t : ℝ) :
     (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
       -boundaryLineOnePointRealParam t := by
-  show (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
-    -((1 : ℂ) + (t : ℂ) * Complex.I)
-  exact Complex.ext rfl rfl
+  have hneg_sum :
+      (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
+        -((1 : ℂ) + (t : ℂ) * Complex.I) := by
+    calc
+      (-1 : ℂ) + (-(t : ℂ) * Complex.I) =
+          -(1 : ℂ) + -((t : ℂ) * Complex.I) := by
+        exact congrArg₂ (fun u v : ℂ => u + v)
+          (show (-1 : ℂ) = -(1 : ℂ) by rfl)
+          (neg_mul (t : ℂ) Complex.I)
+      _ = -((1 : ℂ) + (t : ℂ) * Complex.I) := by
+        exact (neg_add (1 : ℂ) ((t : ℂ) * Complex.I)).symm
+  have hparam :
+      ((1 : ℂ) + (t : ℂ) * Complex.I) =
+        boundaryLineOnePointRealParam t := by
+    have hre :
+        ((1 : ℂ) + (t : ℂ) * Complex.I).re =
+          (boundaryLineOnePointRealParam t).re := by
+      calc
+        ((1 : ℂ) + (t : ℂ) * Complex.I).re =
+            (1 : ℂ).re + ((t : ℂ) * Complex.I).re := by
+          exact Complex.add_re (1 : ℂ) ((t : ℂ) * Complex.I)
+        _ = (1 : ℝ) + (-(t : ℂ).im) := by
+          exact congrArg₂ (fun u v : ℝ => u + v)
+            (Complex.ofReal_re 1)
+            (Complex.mul_I_re (t : ℂ))
+        _ = (1 : ℝ) + (-0) := by
+          exact congrArg (fun u : ℝ => (1 : ℝ) + (-u))
+            (Complex.ofReal_im t)
+        _ = (1 : ℝ) + 0 := by
+          exact congrArg (fun u : ℝ => (1 : ℝ) + u) neg_zero
+        _ = (1 : ℝ) := by
+          exact add_zero 1
+        _ = (boundaryLineOnePointRealParam t).re := by
+          exact (boundaryLineOnePointRealParam_re t).symm
+    have him :
+        ((1 : ℂ) + (t : ℂ) * Complex.I).im =
+          (boundaryLineOnePointRealParam t).im := by
+      calc
+        ((1 : ℂ) + (t : ℂ) * Complex.I).im =
+            (1 : ℂ).im + ((t : ℂ) * Complex.I).im := by
+          exact Complex.add_im (1 : ℂ) ((t : ℂ) * Complex.I)
+        _ = (0 : ℝ) + (t : ℂ).re := by
+          exact congrArg₂ (fun u v : ℝ => u + v)
+            (Complex.ofReal_im 1)
+            (Complex.mul_I_im (t : ℂ))
+        _ = (0 : ℝ) + t := by
+          exact congrArg (fun u : ℝ => (0 : ℝ) + u)
+            (Complex.ofReal_re t)
+        _ = t := by
+          exact zero_add t
+        _ = (boundaryLineOnePointRealParam t).im := by
+          exact (boundaryLineOnePointRealParam_im t).symm
+    exact Complex.ext hre him
+  exact Eq.trans hneg_sum (congrArg Neg.neg hparam)
 
 /-- Positive-natural complex-power normalization for the undamped
 boundary-line tail term. -/
@@ -569,35 +620,50 @@ theorem boundaryLineOnePointRealParam_reciprocalDensity_preCutoff_mass_le
   have hharmonic :
       (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (1 : ℝ) / (n : ℝ)) =
         harmonic ⌊2 + ‖t‖⌋₊ := by
-    calc
-      (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (1 : ℝ) / (n : ℝ)) =
-          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℝ) := by
-            exact Finset.sum_congr rfl
-              (fun n hn_mem =>
-                let hn_one_le : 1 ≤ n :=
-                  (Finset.mem_Icc.mp hn_mem).1
-                let hn_pos : 0 < n :=
-                  Nat.lt_of_succ_le hn_one_le
-                calc
-                  (1 : ℝ) / (n : ℝ) = ((n : ℝ)⁻¹) := by
-                    exact one_div (n : ℝ)
-                  _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
-                    exact (Rat.cast_inv (R := ℝ) (n : ℚ)).symm)
-        _ = harmonic ⌊2 + ‖t‖⌋₊ := by
-        have hrat :
-            (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) =
-              harmonic ⌊2 + ‖t‖⌋₊ :=
-          (harmonic_eq_sum_Icc (n := ⌊2 + ‖t‖⌋₊)).symm
-        have hcast_sum :
-            ((∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) : ℝ) =
-              ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (((n : ℚ)⁻¹ : ℚ) : ℝ) :=
-          Rat.cast_sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
-            (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ))
-        have hcast_harmonic :
-            ((∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, ((n : ℚ)⁻¹ : ℚ)) : ℝ) =
-              (harmonic ⌊2 + ‖t‖⌋₊ : ℝ) :=
-          congrArg (fun q : ℚ => (q : ℝ)) hrat
-        exact Eq.trans hcast_sum.symm hcast_harmonic
+    let qsum : ℚ :=
+      Finset.sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
+        (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ))
+    have hqsum_def :
+        qsum =
+          Finset.sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
+            (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ)) :=
+      rfl
+    have hrat :
+        qsum = harmonic ⌊2 + ‖t‖⌋₊ :=
+      Eq.trans hqsum_def
+        (harmonic_eq_sum_Icc (n := ⌊2 + ‖t‖⌋₊)).symm
+    have hcast_sum :
+        (qsum : ℝ) =
+          Finset.sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
+            (fun n : ℕ => (((n : ℚ)⁻¹ : ℚ) : ℝ)) :=
+      Eq.trans
+        (congrArg (fun q : ℚ => (q : ℝ)) hqsum_def)
+        (map_sum (Rat.castHom ℝ)
+          (fun n : ℕ => ((n : ℚ)⁻¹ : ℚ))
+          (Finset.Icc 1 ⌊2 + ‖t‖⌋₊))
+    have hcast_harmonic :
+        (qsum : ℝ) = (harmonic ⌊2 + ‖t‖⌋₊ : ℝ) :=
+      congrArg (fun q : ℚ => (q : ℝ)) hrat
+    have hsum_cast :
+        (Finset.sum (Finset.Icc 1 ⌊2 + ‖t‖⌋₊)
+          (fun n : ℕ => (((n : ℚ)⁻¹ : ℚ) : ℝ))) =
+          harmonic ⌊2 + ‖t‖⌋₊ :=
+      Eq.trans hcast_sum.symm hcast_harmonic
+    have hterm :
+        (∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (1 : ℝ) / (n : ℝ)) =
+          ∑ n ∈ Finset.Icc 1 ⌊2 + ‖t‖⌋₊, (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+      exact Finset.sum_congr rfl
+        (fun n hn_mem => by
+          have hn_one_le : 1 ≤ n :=
+            (Finset.mem_Icc.mp hn_mem).1
+          have hn_pos : 0 < n :=
+            Nat.lt_of_succ_le hn_one_le
+          calc
+            (1 : ℝ) / (n : ℝ) = ((n : ℝ)⁻¹) := by
+              exact one_div (n : ℝ)
+            _ = (((n : ℚ)⁻¹ : ℚ) : ℝ) := by
+              exact (Rat.cast_inv (α := ℝ) (n : ℚ)).symm)
+    exact Eq.trans hterm hsum_cast
   exact le_trans hsum_subset (le_of_eq hharmonic)
 
 /-- Finite pre-cutoff block estimate for reciprocal-weighted logarithmic-phase
@@ -640,17 +706,23 @@ theorem boundaryLineOnePointRealParam_logarithmicPhase_preCutoff_finiteTail_norm
   have hone_add :
       1 + Real.log (2 + ‖t‖) ≤
         2 * Real.log (2 + ‖t‖) := by
+    let L : ℝ := Real.log (2 + ‖t‖)
     calc
-      1 + Real.log (2 + ‖t‖) ≤
-          Real.log (2 + ‖t‖) + Real.log (2 + ‖t‖) := by
-        exact add_le_add_right hlog_one (Real.log (2 + ‖t‖))
-      _ = (1 + 1) * Real.log (2 + ‖t‖) := by
-        exact (add_mul 1 1 (Real.log (2 + ‖t‖))).symm
-      _ = 2 * Real.log (2 + ‖t‖) := by
-        rfl
-  exact le_trans hnorm_sum (le_trans hterm_sum (le_trans hmass (le_trans hharmonic hone_add)))
+      1 + L ≤ L + L := by
+        exact add_le_add_right hlog_one L
+      _ = 1 * L + 1 * L := by
+        exact congrArg₂ (fun u v : ℝ => u + v)
+          (one_mul L).symm
+          (one_mul L).symm
+      _ = (1 + 1) * L := by
+        exact (add_mul 1 1 L).symm
+      _ = 2 * L := by
+        exact congrArg (fun u : ℝ => u * L) one_add_one_eq_two
+  exact
+    le_trans hnorm_sum
+      (le_trans hterm_sum
+        (le_trans hmass (le_trans hharmonic hone_add)))
 
 
-end
 end LFunctions
 end Boundary

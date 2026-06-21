@@ -4930,27 +4930,27 @@
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Calculus/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Calculus/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: repaired reciprocal-density calculus tail variation, tail core, by-parts, tail bounds, and import owner plumbing; `lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Owner` completed successfully."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {
-        "command": "lake env lean Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Regularity/Owner.lean",
-        "result": "not_checked"
+        "command": "lake --old build +Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Regularity.Owner",
+        "result": "passed_lake_old_build_2026-06-21"
       },
       "file": "Lean/Boundary/LFunctionsRootedTreeFinal/Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Regularity/Owner.lean",
       "notes": [
         "Auto-added during rooted-tree inventory completion on 2026-06-20.",
-        "Status is unknown: no narrow Lean check has been run for this matrix entry in this pass."
+        "2026-06-21 update: checklist evidence records this owner as green from a narrow `lake --old build` checkpoint."
       ],
-      "status": "unknown"
+      "status": "green"
     },
     {
       "check": {

@@ -6,7 +6,7 @@ Use `lake --old build <module-target>` for local classification checkpoints when
 
 Total in checklist: 131. Levels: 54. Cyclic/unplaced: 0.
 
-Status totals: green:60, pending:4, red:21, unknown:46.
+Status totals: green:61, pending:4, red:21, unknown:45.
 
 ## Parallel Components
 
@@ -292,11 +292,11 @@ Complete earlier levels before later levels when files are connected by imports.
 
 - [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaZeroOrbitRemainder/ZetaZeroTailLocalization/ZetaAutocorrelationSpectralLocalization/ZetaZeroTail/ZetaPrimeRapidPower/Owner.lean | status: green; deps-in-checklist: 1; downstream-in-checklist: 1; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaZeroOrbitRemainder.ZetaZeroTailLocalization.ZetaAutocorrelationSpectralLocalization.ZetaZeroTail.ZetaPrimeRapidPower.Owner`; last: passed_lake_old_build_2026-06-21
 
-### Level 15 (1 files; unknown:1)
+### Level 15 (1 files; green:1)
 
 #### BoundaryEulerAbel normalization
 
-- [ ] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Calculus/Owner.lean | status: unknown; deps-in-checklist: 3; downstream-in-checklist: 2; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Owner`; last: not_checked
+- [x] Final/RiemannHypothesisBridge/Bridge/WeilCriterion/ZetaCompletedNormalization/BoundaryEulerAbel/ReciprocalDensity/Calculus/Owner.lean | status: green; deps-in-checklist: 3; downstream-in-checklist: 2; target: `+Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Owner`; last: passed_lake_old_build_2026-06-21
 
 ### Level 16 (1 files; unknown:1)
 

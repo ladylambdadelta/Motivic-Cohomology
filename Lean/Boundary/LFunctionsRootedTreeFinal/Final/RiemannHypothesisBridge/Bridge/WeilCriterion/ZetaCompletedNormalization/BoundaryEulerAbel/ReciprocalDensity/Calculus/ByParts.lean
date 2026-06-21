@@ -345,7 +345,7 @@ theorem real_intervalIntegral_log_two_add_by_parts_remainder_normalize
 
 theorem real_intervalIntegral_log_two_add_mul_inv_sq_by_parts_rhs_normalize
     {b : ℝ}
-    (hb : (2 : ℝ) ≤ b) :
+    (_hb : (2 : ℝ) ≤ b) :
     let u : ℝ → ℝ := fun x => Real.log (2 + x)
     let v : ℝ → ℝ := fun x => -(1 / x)
     let u' : ℝ → ℝ := fun x => 1 / (2 + x)
@@ -677,12 +677,10 @@ theorem real_intervalIntegral_one_div_mul_two_add_eq_logs_interval_core
         ((Real.log b - Real.log 2) -
           (Real.log (2 + b) - Real.log 4)) / 2 := by
             exact
-              (one_div_mul_eq_div :
-                (1 / (2 : ℝ)) *
-                    ((Real.log b - Real.log 2) -
-                      (Real.log (2 + b) - Real.log 4)) =
-                  ((Real.log b - Real.log 2) -
-                    (Real.log (2 + b) - Real.log 4)) / (2 : ℝ))
+              one_div_mul_eq_div
+                (2 : ℝ)
+                ((Real.log b - Real.log 2) -
+                  (Real.log (2 + b) - Real.log 4))
       _ = ((Real.log b - Real.log (2 + b)) -
             (Real.log 2 - Real.log 4)) / 2 := by
             have halg :
@@ -860,7 +858,10 @@ theorem real_log_two_add_by_parts_endpoint_le_log_four_half
   have hneg_nonpos : -Real.log (2 + b) / b ≤ 0 := by
     have hneg : -(Real.log (2 + b) / b) ≤ 0 :=
       neg_nonpos.mpr hdiv_nonneg
-    exact hneg
+    exact Eq.subst
+      (motive := fun y : ℝ => y ≤ 0)
+      (neg_div' b (Real.log (2 + b)))
+      hneg
   calc
     (-Real.log (2 + b) / b) - (-Real.log 4 / 2) =
         (-Real.log (2 + b) / b) + Real.log 4 / 2 := by

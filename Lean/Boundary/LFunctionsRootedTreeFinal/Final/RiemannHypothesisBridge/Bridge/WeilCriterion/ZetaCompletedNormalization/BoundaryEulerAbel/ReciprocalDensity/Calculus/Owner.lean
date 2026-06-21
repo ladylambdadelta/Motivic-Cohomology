@@ -11,6 +11,5 @@ including integration bounds, by-parts identities, and calculus estimates.
 namespace Boundary
 namespace LFunctions
 
-end
 end LFunctions
 end Boundary

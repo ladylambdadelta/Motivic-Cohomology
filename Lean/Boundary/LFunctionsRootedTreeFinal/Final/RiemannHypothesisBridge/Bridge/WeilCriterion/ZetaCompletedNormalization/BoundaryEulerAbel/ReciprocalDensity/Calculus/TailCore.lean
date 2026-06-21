@@ -2,6 +2,7 @@ import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.W
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Regularity.Owner
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.Prelude
 import Boundary.LFunctionsRootedTreeFinal.Final.RiemannHypothesisBridge.Bridge.WeilCriterion.ZetaCompletedNormalization.BoundaryEulerAbel.ReciprocalDensity.Calculus.ByParts
+import Mathlib.MeasureTheory.Integral.Bochner
 /-!
 # Reciprocal-density integral and calculus estimates
 
@@ -12,6 +13,8 @@ including integration bounds, by-parts identities, and calculus estimates.
 namespace Boundary
 namespace LFunctions
 
+open MeasureTheory
+
 /-- Adjacent `Ioc` intervals split the finite reciprocal-density scalar
 integral. -/
 theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
@@ -19,8 +22,8 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
     (ha : (2 : ℝ) ≤ a)
     (hab : a ≤ b) :
     ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
-      ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
-        ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 := by
+      (∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2) +
+        (∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2) := by
   let f : ℝ → ℝ := fun x => Real.log (2 + x) / x ^ 2
   have htwo_b : (2 : ℝ) ≤ b :=
     le_trans ha hab
@@ -36,26 +39,30 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
       ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
         ∫ x in (2 : ℝ)..b, f x :=
     (intervalIntegral.integral_of_le htwo_b).symm
-  have hleft_cont : ContinuousOn f [[(2 : ℝ), a]] := by
+  have hleft_cont : ContinuousOn f (Set.uIcc (2 : ℝ) a) := by
     intro x hx
+    have hx_left : (2 : ℝ) ≤ x :=
+      real_left_le_of_mem_uIcc_of_le ha hx
     have hx_pos : x ≠ 0 :=
-      ne_of_gt (lt_of_lt_of_le zero_lt_two (Set.mem_uIcc.mp hx).1)
+      ne_of_gt (lt_of_lt_of_le zero_lt_two hx_left)
     have harg_ne : 2 + x ≠ 0 := by
       have harg_pos : 0 < 2 + x :=
         add_pos_of_pos_of_nonneg zero_lt_two
-          (le_trans (le_of_lt zero_lt_two) (Set.mem_uIcc.mp hx).1)
+          (le_trans (le_of_lt zero_lt_two) hx_left)
       exact ne_of_gt harg_pos
     exact
       (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
         hx_pos harg_ne).continuousWithinAt
-  have hright_cont : ContinuousOn f [[a, b]] := by
+  have hright_cont : ContinuousOn f (Set.uIcc a b) := by
     intro x hx
+    have hx_left : a ≤ x :=
+      real_left_le_of_mem_uIcc_of_le hab hx
     have hx_pos : x ≠ 0 :=
-      ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha (Set.mem_uIcc.mp hx).1))
+      ne_of_gt (lt_of_lt_of_le zero_lt_two (le_trans ha hx_left))
     have harg_ne : 2 + x ≠ 0 := by
       have harg_pos : 0 < 2 + x :=
         add_pos_of_pos_of_nonneg zero_lt_two
-          (le_trans (le_of_lt zero_lt_two) (le_trans ha (Set.mem_uIcc.mp hx).1))
+          (le_trans (le_of_lt zero_lt_two) (le_trans ha hx_left))
       exact ne_of_gt harg_pos
     exact
       (scalarReciprocalDensity_logTwoAdd_div_square_continuousAt
@@ -65,7 +72,7 @@ theorem real_integral_Ioc_log_two_add_div_sq_adjacent_split
   have hright_interval : IntervalIntegrable f volume a b :=
     hright_cont.intervalIntegrable
   have hadd :
-      (∫ x in (2 : ℝ)..a, f x) + ∫ x in a..b, f x =
+      (∫ x in (2 : ℝ)..a, f x) + (∫ x in a..b, f x) =
         ∫ x in (2 : ℝ)..b, f x :=
     intervalIntegral.integral_add_adjacent_intervals
       hleft_interval hright_interval
@@ -96,8 +103,8 @@ theorem real_integral_Ioc_log_two_add_div_sq_tail_bound_of_two_le
         real_log_two_add_div_sq_nonneg_of_two_le (le_of_lt hx.1))
   have htail_split :
       ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 =
-        ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
-          ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 := by
+        (∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2) +
+          (∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2) := by
     exact real_integral_Ioc_log_two_add_div_sq_adjacent_split ha hab
   have hleft_nonneg :
       0 ≤ ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 :=
@@ -107,8 +114,8 @@ theorem real_integral_Ioc_log_two_add_div_sq_tail_bound_of_two_le
         ∫ x in Set.Ioc (2 : ℝ) b, Real.log (2 + x) / x ^ 2 := by
     have hadd :
         ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 ≤
-          ∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2 +
-            ∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2 :=
+          (∫ x in Set.Ioc (2 : ℝ) a, Real.log (2 + x) / x ^ 2) +
+            (∫ x in Set.Ioc a b, Real.log (2 + x) / x ^ 2) :=
       le_add_of_nonneg_left hleft_nonneg
     exact Eq.subst
       (motive := fun y : ℝ =>
@@ -147,7 +154,7 @@ theorem real_integral_Ioc_log_two_add_div_sq_le_log_three_add_height
   have hfour_le : (4 : ℝ) ≤ 3 + H := by
     calc
       (4 : ℝ) = 3 + 1 := by
-        rfl
+        exact three_add_one_eq_four.symm
       _ ≤ 3 + H :=
         add_le_add_left hH 3
   have hlog_four_le : Real.log 4 ≤ Real.log (3 + H) := by
@@ -164,7 +171,7 @@ Proof route: on the post-cutoff interval, `2 ≤ x`, hence
 monotonicity then bound the finite interval by the right endpoint square. -/
 theorem scalarReciprocalDensity_log_over_x_integral_bound_calculus
     (t : ℝ)
-    (ht : 1 ≤ ‖t‖)
+    (_ht : 1 ≤ ‖t‖)
     {M : ℕ}
     (hNM : ⌊2 + ‖t‖⌋₊ ≤ M) :
     ∫ x in Set.Ioc (((⌊2 + ‖t‖⌋₊ : ℕ) : ℝ)) ((M : ℕ) : ℝ),
@@ -257,14 +264,18 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
       calc
         (1 : ℝ) ≤ 1 + 1 := le_add_of_nonneg_right zero_le_one
         _ = 2 := by
-          rfl
+          exact one_add_one_eq_two
     have htwo_le_two_add : (2 : ℝ) ≤ 2 + x :=
-      add_le_add_left hx_nonneg 2
+      calc
+        (2 : ℝ) = 2 + 0 := by
+          exact (add_zero 2).symm
+        _ ≤ 2 + x :=
+          add_le_add_left hx_nonneg 2
     exact Real.log_nonneg (le_trans hone_le_two htwo_le_two_add)
   have hS_nonneg : 0 ≤ S :=
     Real.sqrt_nonneg (1 + ‖t‖)
   have height_nonneg : 0 ≤ (8 : ℝ) :=
-    ofNat_nonneg 8
+    Nat.cast_nonneg 8
   have hweight_nonneg : 0 ≤ (1 : ℝ) / x ^ 2 := by
     exact div_nonneg zero_le_one hx_sq_nonneg
   have hfirst_ratio : x / T ≤ x := by
@@ -322,7 +333,7 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
                 _ = (8 * x) * (L * R) := by
                   exact mul_assoc (8 * x) L R
                 _ = 8 * (x * (L * R)) := by
-                  exact (mul_assoc 8 x (L * R)).symm
+                  exact mul_assoc 8 x (L * R)
                 _ = 8 * ((x * L) * R) := by
                   exact congrArg (fun y : ℝ => 8 * y) (mul_assoc x L R).symm
                 _ = 8 * ((L * x) * R) := by
@@ -330,7 +341,7 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
                 _ = 8 * (L * (x * R)) := by
                   exact congrArg (fun y : ℝ => 8 * y) (mul_assoc L x R)
                 _ = 8 * L * (x * R) := by
-                  exact mul_assoc 8 L (x * R)
+                  exact (mul_assoc 8 L (x * R)).symm
                 _ = 8 * L * (x / x ^ 2) := by
                   exact congrArg (fun y : ℝ => 8 * L * y)
                     (div_eq_mul_one_div x (x ^ 2)).symm
@@ -339,8 +350,10 @@ theorem scalarReciprocalDensityMajorant_pointwise_split
                 calc
                   x / x ^ 2 = x / (x * x) := by
                     exact congrArg (fun y : ℝ => x / y) (sq x)
-                  _ = 1 / x := by
+                  _ = x⁻¹ := by
                     exact div_mul_cancel_left₀ hx_ne x
+                  _ = 1 / x := by
+                    exact (one_div x).symm
               exact congrArg (fun y : ℝ => 8 * L * y) hx_cancel
             _ = 8 * (L / x) := by
               calc
@@ -452,9 +465,9 @@ theorem scalarReciprocalDensityMajorant_integral_split_le_components
       continuousAt_const.mul hright_base
     exact (hleft.add hright).continuousWithinAt
   have hf : Integrable f (volume.restrict s) :=
-    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Ioc_subset_Icc_self
+    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Set.Ioc_subset_Icc_self
   have hg : Integrable g (volume.restrict s) :=
-    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Set.Ioc_subset_Icc_self
   have hle : f ≤ᵐ[volume.restrict s] g :=
     (ae_restrict_mem measurableSet_Ioc).mono
       (fun x hx =>
@@ -523,9 +536,9 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
         hx_pos harg_ne
     exact (continuousAt_const.mul hbase).continuousWithinAt
   have hf : Integrable (fun x => 8 * f x) (volume.restrict s) :=
-    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Ioc_subset_Icc_self
+    (ContinuousOn.integrableOn_Icc hf_cont).mono_set Set.Ioc_subset_Icc_self
   have hg : Integrable (fun x => 8 * S * g x) (volume.restrict s) :=
-    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Ioc_subset_Icc_self
+    (ContinuousOn.integrableOn_Icc hg_cont).mono_set Set.Ioc_subset_Icc_self
   have hsum_eq :
       (∫ x in s, (8 * f x + 8 * S * g x)) =
         (∫ x in s, 8 * f x) + ∫ x in s, 8 * S * g x :=
@@ -537,7 +550,7 @@ theorem scalarReciprocalDensityMajorant_components_le_endpoint_bound
       (∫ x in s, 8 * S * g x) = (8 * S) * ∫ x in s, g x :=
     integral_mul_left (8 * S) g
   have height_nonneg : 0 ≤ (8 : ℝ) := by
-    exact ofNat_nonneg 8
+    exact Nat.cast_nonneg 8
   have hS_nonneg : 0 ≤ S :=
     Real.sqrt_nonneg (1 + ‖t‖)
   have hheightS_nonneg : 0 ≤ 8 * S :=
@@ -637,6 +650,5 @@ theorem reciprocalDensityIntegral_scalar_majorant_finite_endpoint_bound_calculus
         8 * Real.sqrt (1 + ‖t‖) * Real.log (3 + ‖t‖) := by
   exact scalarReciprocalDensityMajorant_finiteEndpoint_integral_bound t ht hNM
 
-end
 end LFunctions
 end Boundary
